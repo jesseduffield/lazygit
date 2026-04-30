@@ -2,13 +2,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 # Lazygit 키 바인딩
 
-_Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
-
 ## 글로벌 키 바인딩
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-r> `` | 최근에 사용한 저장소로 전환 |  |
+| `` <ctrl+r> `` | 최근에 사용한 저장소로 전환 |  |
 | `` <pgup> (fn+up/shift+k) `` | 메인 패널을 위로 스크롤 |  |
 | `` <pgdown> (fn+down/shift+j) `` | 메인 패널을 아래로로 스크롤 |  |
 | `` @ `` | 명령어 로그 메뉴 열기 | View options for the command log e.g. show/hide the command log and focus the command log. |
@@ -19,7 +17,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` } `` | Diff 보기의 변경 사항 주위에 표시되는 컨텍스트의 크기를 늘리기 | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` { `` | Diff 보기의 변경 사항 주위에 표시되는 컨텍스트 크기 줄이기 | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
-| `` <c-p> `` | 커스텀 Patch 옵션 보기 |  |
+| `` <ctrl+p> `` | 커스텀 Patch 옵션 보기 |  |
 | `` m `` | View merge/rebase options | View options to abort/continue/skip the current merge/rebase. |
 | `` R `` | 새로고침 | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
 | `` + `` | 다음 스크린 모드 (normal/half/fullscreen) |  |
@@ -27,12 +25,12 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
 | `` <esc> `` | 취소 |  |
 | `` ? `` | 매뉴 열기 |  |
-| `` <c-s> `` | View filter-by-path options | View options for filtering the commit log, so that only commits matching the filter are shown. |
+| `` <ctrl+s> `` | View filter-by-path options | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | Diff 메뉴 열기 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` <c-e> `` | Diff 메뉴 열기 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
+| `` <ctrl+e> `` | Diff 메뉴 열기 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | 종료 |  |
-| `` <c-z> `` | Suspend the application |  |
-| `` <c-w> `` | 공백문자를 Diff 뷰에서 표시 여부 전환 | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <ctrl+z> `` | Suspend the application |  |
+| `` <ctrl+w> `` | 공백문자를 Diff 뷰에서 표시 여부 전환 | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | 되돌리기 (reflog) (실험적) | The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 | `` Z `` | 다시 실행 (reflog) (실험적) | The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 
@@ -45,8 +43,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` < (<home>) `` | 맨 위로 스크롤  |  |
 | `` > (<end>) `` | 맨 아래로 스크롤  |  |
 | `` v `` | 드래그 선택 전환 |  |
-| `` <s-down> `` | Range select down |  |
-| `` <s-up> `` | Range select up |  |
+| `` <shift+down> `` | Range select down |  |
+| `` <shift+up> `` | Range select up |  |
 | `` / `` | 검색 시작 |  |
 | `` H `` | 우 스크롤 |  |
 | `` L `` | 좌 스크롤 |  |
@@ -64,7 +62,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | 체크아웃 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | 커밋 attribute 복사 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 브라우저에서 커밋 열기 |  |
@@ -72,8 +70,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
-| `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+r> `` | Reset cherry-picked (copied) commits selection |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
@@ -106,7 +104,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | 체크아웃 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | 커밋 attribute 복사 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | 브라우저에서 커밋 열기 |  |
@@ -114,8 +112,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
-| `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+r> `` | Reset cherry-picked (copied) commits selection |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View selected item's files |  |
@@ -174,7 +172,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <right> `` | 다음 hunk를 선택 |  |
 | `` v `` | 드래그 선택 전환 |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <c-o> `` | 선택한 텍스트를 클립보드에 복사 |  |
+| `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
 | `` o `` | 파일 닫기 | Open file in default application. |
 | `` e `` | 파일 편집 | Open file in external editor. |
 | `` <space> `` | Line(s)을 패치에 추가/삭제 |  |
@@ -190,7 +188,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <right> `` | 다음 hunk를 선택 |  |
 | `` v `` | 드래그 선택 전환 |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <c-o> `` | 선택한 텍스트를 클립보드에 복사 |  |
+| `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
 | `` <space> `` | Staged 전환 | 선택한 행을 staged / unstaged |
 | `` d `` | 변경을 삭제 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
 | `` o `` | 파일 닫기 | Open file in default application. |
@@ -201,14 +199,14 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` c `` | 커밋 변경내용 | 스테이징된 변경 사항 커밋. |
 | `` w `` | Commit changes without pre-commit hook |  |
 | `` C `` | Git 편집기를 사용하여 변경 내용을 커밋합니다. |  |
-| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 검색 시작 |  |
 
 ## 브랜치
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 브랜치명을 클립보드에 복사 |  |
+| `` <ctrl+o> `` | 브랜치명을 클립보드에 복사 |  |
 | `` i `` | Git-flow 옵션 보기 |  |
 | `` <space> `` | 체크아웃 | Checkout selected item. |
 | `` n `` | 새 브랜치 생성 |  |
@@ -216,7 +214,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` o `` | 풀 리퀘스트 생성 |  |
 | `` O `` | 풀 리퀘스트 생성 옵션 |  |
 | `` G `` | Open pull request in browser |  |
-| `` <c-y> `` | 풀 리퀘스트 URL을 클립보드에 복사 |  |
+| `` <ctrl+y> `` | 풀 리퀘스트 URL을 클립보드에 복사 |  |
 | `` c `` | 이름으로 체크아웃 | Checkout by name. In the input box you can enter '-' to switch to the previous branch. |
 | `` - `` | Checkout previous branch |  |
 | `` F `` | 강제 체크아웃 | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
@@ -229,7 +227,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` g `` | View reset options |  |
 | `` R `` | 브랜치 이름 변경 |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
@@ -251,7 +249,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 서브모듈 이름을 클립보드에 복사 |  |
+| `` <ctrl+o> `` | 서브모듈 이름을 클립보드에 복사 |  |
 | `` <enter> `` | Enter | 서브모듈 열기 |
 | `` d `` | Remove | Remove the selected submodule and its corresponding directory. |
 | `` u `` | Update | 서브모듈 업데이트 |
@@ -277,7 +275,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 브랜치명을 클립보드에 복사 |  |
+| `` <ctrl+o> `` | 브랜치명을 클립보드에 복사 |  |
 | `` <space> `` | 체크아웃 | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | 새 브랜치 생성 |  |
 | `` M `` | 현재 브랜치에 병합 | View options for merging the selected item into the current branch (regular merge, squash merge) |
@@ -286,7 +284,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` u `` | Set as upstream | Set the selected remote branch as the upstream of the checked-out branch. |
 | `` s `` | Sort order |  |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
@@ -296,8 +294,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
-| `` <c-r> `` | Reset cherry-picked (copied) commits selection |  |
+| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <ctrl+r> `` | Reset cherry-picked (copied) commits selection |  |
 | `` b `` | Bisect 옵션 보기 |  |
 | `` s `` | 스쿼시 | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
 | `` f `` | Fixup | Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded. |
@@ -310,15 +308,15 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` p `` | Pick | Pick commit (when mid-rebase) |
 | `` F `` | Create fixup commit | Create fixup commit for this commit |
 | `` S `` | Apply fixup commits | Squash all 'fixup!' commits above selected commit (autosquash) |
-| `` <a-down> `` | 커밋을 1개 아래로 이동 |  |
-| `` <a-up> `` | 커밋을 1개 위로 이동 |  |
+| `` <alt+down> `` | 커밋을 1개 아래로 이동 |  |
+| `` <alt+up> `` | 커밋을 1개 위로 이동 |  |
 | `` V `` | 커밋을 붙여넣기 (cherry-pick) |  |
 | `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
 | `` A `` | Amend | Amend commit with staged changes |
 | `` a `` | Amend commit attribute | Set/Reset commit author or set co-author. |
 | `` t `` | Revert | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
 | `` T `` | Tag commit | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
-| `` <c-l> `` | 로그 메뉴 열기 | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
+| `` <ctrl+l> `` | 로그 메뉴 열기 | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
 | `` G `` | Open pull request in browser |  |
 | `` <space> `` | 체크아웃 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | 커밋 attribute 복사 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
@@ -327,7 +325,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View selected item's files |  |
@@ -338,13 +336,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 파일명을 클립보드에 복사 |  |
+| `` <ctrl+o> `` | 파일명을 클립보드에 복사 |  |
 | `` y `` | 클립보드에 복사 |  |
 | `` c `` | 체크아웃 | Checkout file |
 | `` d `` | View 'discard changes' options | Discard this commit's changes to this file |
 | `` o `` | 파일 닫기 | Open file in default application. |
 | `` e `` | Edit | Open file in external editor. |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` <space> `` | Toggle file included in patch | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Toggle all files included in patch | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | Enter file to add selected lines to the patch (or toggle directory collapsed) | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
@@ -365,13 +363,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy tag to clipboard |  |
+| `` <ctrl+o> `` | Copy tag to clipboard |  |
 | `` <space> `` | 체크아웃 | Checkout the selected tag as a detached HEAD. |
 | `` n `` | 태그를 생성 | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
 | `` d `` | 삭제 | View delete options for local/remote tag. |
 | `` P `` | 태그를 push | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | 초기화 | View reset options (soft/mixed/hard) for resetting onto selected item. |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` w `` | View worktree options |  |
@@ -381,15 +379,15 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | 파일명을 클립보드에 복사 |  |
+| `` <ctrl+o> `` | 파일명을 클립보드에 복사 |  |
 | `` <space> `` | Staged 전환 | Toggle staged for selected file. |
-| `` <c-b> `` | 파일을 필터하기 (Staged/unstaged) |  |
+| `` <ctrl+b> `` | 파일을 필터하기 (Staged/unstaged) |  |
 | `` y `` | 클립보드에 복사 |  |
 | `` c `` | 커밋 변경내용 | 스테이징된 변경 사항 커밋. |
 | `` w `` | Commit changes without pre-commit hook |  |
 | `` A `` | 마지맛 커밋 수정 |  |
 | `` C `` | Git 편집기를 사용하여 변경 내용을 커밋합니다. |  |
-| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` e `` | Edit | Open file in external editor. |
 | `` o `` | 파일 닫기 | Open file in default application. |
 | `` i `` | Ignore file |  |
@@ -402,7 +400,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` g `` | View upstream reset options |  |
 | `` D `` | 초기화 | View reset options for working tree (e.g. nuking the working tree). |
 | `` ` `` | 파일 트리뷰로 전환 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | Fetch | Fetch changes from remote. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
@@ -416,4 +414,4 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` <enter> `` | 확인 |  |
 | `` <esc> `` | 닫기/취소 |  |
-| `` <c-o> `` | 클립보드에 복사 |  |
+| `` <ctrl+o> `` | 클립보드에 복사 |  |

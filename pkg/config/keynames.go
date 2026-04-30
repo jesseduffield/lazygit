@@ -54,16 +54,16 @@ func LabelForKey(key gocui.Key) string {
 
 	label := ""
 	if key.Mod()&gocui.ModCtrl != 0 {
-		label += "c-"
+		label += "ctrl+"
 	}
 	if key.Mod()&gocui.ModAlt != 0 {
-		label += "a-"
+		label += "alt+"
 	}
 	if key.Mod()&gocui.ModShift != 0 {
-		label += "s-"
+		label += "shift+"
 	}
 	if key.Mod()&gocui.ModMeta != 0 {
-		label += "m-"
+		label += "meta+"
 	}
 
 	if key.KeyName() == gocui.KeyName(tcell.KeyRune) {

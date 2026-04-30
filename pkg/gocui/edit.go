@@ -22,12 +22,22 @@ func (f EditorFunc) Edit(v *View, key Key) bool {
 // DefaultEditor is the default editor.
 var DefaultEditor Editor = EditorFunc(SimpleEditor)
 
+var (
+	moveWordLeftKeybinding      = NewKey(KeyArrowLeft, "", ModCtrl)
+	moveWordRightKeybinding     = NewKey(KeyArrowRight, "", ModCtrl)
+	backspaceWordKeybinding     = NewKey(KeyBackspace, "", ModCtrl)
+	forwardDeleteWordKeybinding = NewKey(KeyDelete, "", ModCtrl)
+)
+
 // SimpleEditor is used as the default gocui editor.
 func SimpleEditor(v *View, key Key) bool {
 	switch {
-	case key.Equals(NewKey(KeyBackspace, "", ModAlt)),
+	case key.Equals(backspaceWordKeybinding),
 		key.Equals(NewKeyStrMod("w", ModCtrl)):
 		v.TextArea.BackSpaceWord()
+	case key.Equals(forwardDeleteWordKeybinding),
+		key.Equals(NewKeyStrMod("d", ModAlt)):
+		v.TextArea.ForwardDeleteWord()
 	case key.Equals(NewKeyName(KeyBackspace)):
 		v.TextArea.BackSpaceChar()
 	case key.Equals(NewKeyStrMod("d", ModCtrl)),
@@ -38,13 +48,13 @@ func SimpleEditor(v *View, key Key) bool {
 	case key.Equals(NewKeyName(KeyArrowUp)):
 		v.TextArea.MoveCursorUp()
 	case key.Equals(NewKeyStrMod("b", ModAlt)),
-		key.Equals(NewKey(KeyArrowLeft, "", ModAlt)):
+		key.Equals(moveWordLeftKeybinding):
 		v.TextArea.MoveLeftWord()
 	case key.Equals(NewKeyName(KeyArrowLeft)),
 		key.Equals(NewKeyStrMod("b", ModCtrl)):
 		v.TextArea.MoveCursorLeft()
 	case key.Equals(NewKeyStrMod("f", ModAlt)),
-		key.Equals(NewKey(KeyArrowRight, "", ModAlt)):
+		key.Equals(moveWordRightKeybinding):
 		v.TextArea.MoveRightWord()
 	case key.Equals(NewKeyName(KeyArrowRight)),
 		key.Equals(NewKeyStrMod("b", ModCtrl)):

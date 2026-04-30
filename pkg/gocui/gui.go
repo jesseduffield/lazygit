@@ -1629,3 +1629,10 @@ func (g *Gui) Snapshot() string {
 
 	return builder.String()
 }
+
+func (g *Gui) SetEditKeybindings(moveWordLeft, moveWordRight, backspaceWord, forwardDeleteWord Key) {
+	moveWordLeftKeybinding = moveWordLeft
+	moveWordRightKeybinding = moveWordRight
+	backspaceWordKeybinding = backspaceWord
+	forwardDeleteWordKeybinding = forwardDeleteWord
+}

@@ -1741,7 +1741,6 @@ func EnglishTranslationSet() *TranslationSet {
 		StartFilter:                      "Filter the current view by text",
 		SelectRemoteRepository:           "Select base repository for pull requests",
 		FetchingPullRequests:             "Fetching pull requests",
-		KeybindingsLegend:                "Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b",
 		RenameBranch:                     "Rename branch",
 		BranchUpstreamOptionsTitle:       "Upstream options",
 		ViewBranchUpstreamOptions:        "View upstream options",
@@ -2260,7 +2259,7 @@ gui:
 keybinding:
   universal:
     suspendApp: <disabled>
-    redo: <c-z>
+    redo: <ctrl+z>
 
 - The 'git.paging.useConfig' option has been removed. If you were relying on it to configure your pager, you'll have to explicitly set the pager again using the 'git.paging.pager' option.
 `,
@@ -2268,8 +2267,8 @@ keybinding:
 
 keybinding:
   commits:
-    moveDownCommit: <c-j>
-    moveUpCommit: <c-k>
+    moveDownCommit: <ctrl+j>
+    moveUpCommit: <ctrl+k>
   universal:
     confirmInEditor: <a-enter>
 `,

@@ -197,8 +197,6 @@ func formatSections(tr *i18n.TranslationSet, bindingSections []*bindingSection) 
 	var content strings.Builder
 	content.WriteString(fmt.Sprintf("# Lazygit %s\n", tr.Keybindings))
 
-	content.WriteString(fmt.Sprintf("\n%s\n", italicize(tr.KeybindingsLegend)))
-
 	for _, section := range bindingSections {
 		content.WriteString(formatTitle(section.title))
 		content.WriteString("| Key | Action | Info |\n")
@@ -233,8 +231,4 @@ func formatBinding(binding *types.Binding) string {
 	// Use backticks for keyboard keys. Two backticks are needed with an inner space
 	//  to escape a key that is itself a backtick.
 	return fmt.Sprintf("| `` %s `` | %s | %s |\n", action, description, tooltip)
-}
-
-func italicize(str string) string {
-	return fmt.Sprintf("_%s_", str)
 }

@@ -3,32 +3,31 @@
 A keybinding is one of:
 
 - A single printable character, e.g. `q`, `?`, `5`. Uppercase letters mean
-  shift+letter — write `A`, not `<s-a>`.
+  shift+letter — write `A`, not `<shift+a>`.
 - A special key name in angle brackets, e.g. `<enter>`, `<f1>`, `<up>`.
-- A key with modifiers in angle brackets, e.g. `<c-c>` (Ctrl+C), `<c-s-up>`
-  (Ctrl+Shift+Up).
+- A key with modifiers in angle brackets, e.g. `<ctrl+c>`, `<ctrl+shift+up>`.
 - The literal string `<disabled>` to disable a binding.
 
 ### Modifiers
 
-Prefix a key with one or more modifiers, joined by `-`:
+Prefix a key with one or more modifiers, joined by `+`:
 
-| Prefix | Long form | Modifier                                                                                  |
-| ------ | --------- | ----------------------------------------------------------------------------------------- |
-| `c-`   | `ctrl-`   | Ctrl                                                                                      |
-| `a-`   | `alt-`    | Alt                                                                                       |
-| `s-`   | `shift-`  | Shift                                                                                     |
-| `m-`   | `meta-`   | Depends on terminal; typically ⌘ on macOS or Super/Win key, when the terminal forwards it |
+| Prefix   | Short form | Modifier                                                                                  |
+| -------- | ---------- | ----------------------------------------------------------------------------------------- |
+| `ctrl+`  | `c+`       | Ctrl                                                                                      |
+| `alt+`   | `a+`       | Alt                                                                                       |
+| `shift+` | `s+`       | Shift                                                                                     |
+| `meta+`  | `m+`       | Depends on terminal; typically ⌘ on macOS or Super/Win key, when the terminal forwards it |
 
-You can also use `+` instead of `-` as the separator. Modifiers may appear in
+You can also use `-` instead of `+` as the separator. Modifiers may appear in
 any order, and short and long forms can be mixed. The whole binding should be
 wrapped in angle brackets when it has any modifiers. The following all express
 the same binding:
 
-- `<c-s-up>`
-- `<ctrl-shift-up>`
 - `<ctrl+shift+up>`
-- `<s-c-up>`
+- `<c+s+up>`
+- `<ctrl-shift-up>`
+- `<shift+ctrl+up>`
 
 ### Special key names
 
@@ -53,22 +52,22 @@ the same binding:
 | `<space>`                               | Space               |
 | `<mouse wheel up>`/`<mouse wheel down>` | Mouse wheel up/down |
 
-These can be combined with modifiers, e.g. `<c-up>`, `<c-s-f1>`, `<a-enter>`.
+These can be combined with modifiers, e.g. `<ctrl+up>`, `<ctrl+shift+f1>`, `<alt+enter>`.
 
 ### Special characters with modifiers
 
 `<minus>` and `<plus>` are keyword forms for `-` and `+` when combined with a
-modifier (e.g. `<c-minus>` for Ctrl+`-`). Without modifiers, write `-` and `+`
-directly. `<space>` is the keyword for the space character.
+modifier (e.g. `<ctrl+minus>` for Ctrl+`-`). Without modifiers, write `-` and
+`+` directly. `<space>` is the keyword for the space character.
 
 ### Combinations that are rejected
 
 These look reasonable but can't actually be delivered by a terminal:
 
-- `<s-a>` (shift alone on a rune) — terminals fold shift into the rune itself,
-  so shift+a arrives as `A`. Write `A` instead.
-- `<c-A>`, `<a-A>`, etc. (modifier on an uppercase ASCII letter) — write
-  `<c-s-a>` instead.
+- `<shift+a>` (shift alone on a rune) — terminals fold shift into the rune
+  itself, so shift+a arrives as `A`. Write `A` instead.
+- `<ctrl+A>`, `<alt+A>`, etc. (modifier on an uppercase ASCII letter) — write
+  `<ctrl+shift+a>` instead.
 
 ### Terminal compatibility
 

@@ -431,7 +431,8 @@ git:
     - git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
 
   # If true, git diffs are rendered with the `--ignore-all-space` flag, which
-  # ignores whitespace changes. Can be toggled from within Lazygit with `<c-w>`.
+  # ignores whitespace changes. Can be toggled from within Lazygit with
+  # `<ctrl+w>`.
   ignoreWhitespaceInDiffView: false
 
   # The number of lines of context to show around each diff hunk. Can be changed
@@ -468,14 +469,14 @@ git:
     # appear chronologically. See https://git-scm.com/docs/
     #
     # Can be changed from within Lazygit with `Log menu -> Commit sort order`
-    # (`<c-l>` in the commits window by default).
+    # (`<ctrl+l>` in the commits window by default).
     order: topo-order
 
     # This determines whether the git graph is rendered in the commits panel
     # One of 'always' | 'never' | 'when-maximised'
     #
-    # Can be toggled from within lazygit with `Log menu -> Show git graph` (`<c-l>`
-    # in the commits window by default).
+    # Can be toggled from within lazygit with `Log menu -> Show git graph`
+    # (`<ctrl+l>` in the commits window by default).
     showGraph: always
 
     # displays the whole git graph by default in the commits view (equivalent to
@@ -594,8 +595,8 @@ promptToReturnFromSubprocess: true
 keybinding:
   universal:
     quit: q
-    quit-alt1: <c-c>
-    suspendApp: <c-z>
+    quit-alt1: <ctrl+c>
+    suspendApp: <ctrl+z>
     return: <esc>
     quitWithoutChangingDirectory: Q
     togglePanel: <tab>
@@ -612,8 +613,8 @@ keybinding:
     gotoTop-alt: <home>
     gotoBottom-alt: <end>
     toggleRangeSelect: v
-    rangeSelectDown: <s-down>
-    rangeSelectUp: <s-up>
+    rangeSelectDown: <shift+down>
+    rangeSelectUp: <shift+up>
     prevBlock: <left>
     nextBlock: <right>
     prevBlock-alt: h
@@ -630,6 +631,18 @@ keybinding:
     nextMatch: "n"
     prevMatch: "N"
     startSearch: /
+
+    # <alt+left> on Mac
+    moveWordLeft: <ctrl+left>
+
+    # <alt+right> on Mac
+    moveWordRight: <ctrl+right>
+
+    # <alt+backspace> on Mac
+    backspaceWord: <ctrl+backspace>
+
+    # <alt+delete> on Mac
+    forwardDeleteWord: <ctrl+delete>
     optionMenu: <disabled>
     optionMenu-alt1: '?'
     select: <space>
@@ -638,9 +651,9 @@ keybinding:
     confirmMenu: <enter>
     confirmSuggestion: <enter>
 
-    # <m-enter> on Mac
-    confirmInEditor: <c-enter>
-    confirmInEditor-alt: <c-s>
+    # <meta+enter> on Mac
+    confirmInEditor: <ctrl+enter>
+    confirmInEditor-alt: <ctrl+s>
     remove: d
     new: "n"
     edit: e
@@ -649,8 +662,8 @@ keybinding:
     scrollDownMain: <pgdown>
     scrollUpMain-alt1: K
     scrollDownMain-alt1: J
-    scrollUpMain-alt2: <c-u>
-    scrollDownMain-alt2: <c-d>
+    scrollUpMain-alt2: <ctrl+u>
+    scrollDownMain-alt2: <ctrl+d>
     executeShellCommand: ':'
     createRebaseOptionsMenu: m
 
@@ -660,7 +673,7 @@ keybinding:
     # 'Files' appended for legacy reasons
     pullFiles: p
     refresh: R
-    createPatchOptionsMenu: <c-p>
+    createPatchOptionsMenu: <ctrl+p>
     nextTab: ']'
     prevTab: '['
     nextScreenMode: +
@@ -668,19 +681,19 @@ keybinding:
     cyclePagers: '|'
     undo: z
     redo: Z
-    filteringMenu: <c-s>
+    filteringMenu: <ctrl+s>
     diffingMenu: W
-    diffingMenu-alt: <c-e>
-    copyToClipboard: <c-o>
-    openRecentRepos: <c-r>
+    diffingMenu-alt: <ctrl+e>
+    copyToClipboard: <ctrl+o>
+    openRecentRepos: <ctrl+r>
     submitEditorText: <enter>
     extrasMenu: '@'
-    toggleWhitespaceInDiffView: <c-w>
+    toggleWhitespaceInDiffView: <ctrl+w>
     increaseContextInDiffView: '}'
     decreaseContextInDiffView: '{'
     increaseRenameSimilarityThreshold: )
     decreaseRenameSimilarityThreshold: (
-    openDiffTool: <c-t>
+    openDiffTool: <ctrl+t>
   status:
     checkForUpdate: u
     recentRepos: <enter>
@@ -691,7 +704,7 @@ keybinding:
     commitChangesWithoutHook: w
     amendLastCommit: A
     commitChangesWithEditor: C
-    findBaseCommitForFixup: <c-f>
+    findBaseCommitForFixup: <ctrl+f>
     confirmDiscard: x
     ignoreFile: i
     refreshFiles: r
@@ -702,7 +715,7 @@ keybinding:
     fetch: f
     toggleTreeView: '`'
     openMergeOptions: M
-    openStatusFilter: <c-b>
+    openStatusFilter: <ctrl+b>
     copyFileInfoToClipboard: "y"
     collapseAll: '-'
     expandAll: =
@@ -710,7 +723,7 @@ keybinding:
     createPullRequest: o
     viewPullRequestOptions: O
     openPullRequestInBrowser: G
-    copyPullRequestURL: <c-y>
+    copyPullRequestURL: <ctrl+y>
     checkoutBranchByName: c
     forceCheckoutBranch: F
     checkoutPreviousBranch: '-'
@@ -737,8 +750,8 @@ keybinding:
     setFixupMessage: c
     createFixupCommit: F
     squashAboveCommits: S
-    moveDownCommit: <a-down>
-    moveUpCommit: <a-up>
+    moveDownCommit: <alt+down>
+    moveUpCommit: <alt+up>
     amendToCommit: A
     resetCommitAuthor: a
     pickCommit: p
@@ -748,9 +761,9 @@ keybinding:
     markCommitAsBaseForRebase: B
     tagCommit: T
     checkoutCommit: <space>
-    resetCherryPick: <c-r>
+    resetCherryPick: <ctrl+r>
     copyCommitAttributeToClipboard: "y"
-    openLogMenu: <c-l>
+    openLogMenu: <ctrl+l>
     openInBrowser: o
     openPullRequestInBrowser: G
     viewBisectOptions: b
@@ -774,7 +787,7 @@ keybinding:
     update: u
     bulkMenu: b
   commitMessage:
-    commitMenu: <c-o>
+    commitMenu: <ctrl+o>
 ```
 <!-- END CONFIG YAML -->
 

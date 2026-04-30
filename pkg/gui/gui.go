@@ -474,6 +474,13 @@ func (gui *Gui) onUserConfigLoaded() error {
 	gui.g.NextSearchMatchKey = config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.NextMatch)
 	gui.g.PrevSearchMatchKey = config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.PrevMatch)
 
+	gui.g.SetEditKeybindings(
+		config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.MoveWordLeft),
+		config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.MoveWordRight),
+		config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.BackspaceWord),
+		config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.ForwardDeleteWord),
+	)
+
 	gui.g.ShowListFooter = userConfig.Gui.ShowListFooter
 
 	gui.g.Mouse = userConfig.Gui.MouseEvents

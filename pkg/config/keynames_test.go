@@ -585,27 +585,27 @@ func TestLabelForKey(t *testing.T) {
 		// Space and dash — special-cased rune output
 		{"plain dash uses literal", gocui.NewKeyStrMod("-", gocui.ModNone), "-"},
 		{"plain space uses keyword", gocui.NewKeyStrMod(" ", gocui.ModNone), "<space>"},
-		{"ctrl+dash uses minus keyword", gocui.NewKeyStrMod("-", gocui.ModCtrl), "<c-minus>"},
-		{"alt+dash uses minus keyword", gocui.NewKeyStrMod("-", gocui.ModAlt), "<a-minus>"},
+		{"ctrl+dash uses minus keyword", gocui.NewKeyStrMod("-", gocui.ModCtrl), "<ctrl+minus>"},
+		{"alt+dash uses minus keyword", gocui.NewKeyStrMod("-", gocui.ModAlt), "<alt+minus>"},
 		{"plain plus uses literal", gocui.NewKeyStrMod("+", gocui.ModNone), "+"},
-		{"ctrl+plus uses plus keyword", gocui.NewKeyStrMod("+", gocui.ModCtrl), "<c-plus>"},
-		{"alt+plus uses plus keyword", gocui.NewKeyStrMod("+", gocui.ModAlt), "<a-plus>"},
-		{"ctrl+space", gocui.NewKeyStrMod(" ", gocui.ModCtrl), "<c-space>"},
+		{"ctrl+plus uses plus keyword", gocui.NewKeyStrMod("+", gocui.ModCtrl), "<ctrl+plus>"},
+		{"alt+plus uses plus keyword", gocui.NewKeyStrMod("+", gocui.ModAlt), "<alt+plus>"},
+		{"ctrl+space", gocui.NewKeyStrMod(" ", gocui.ModCtrl), "<ctrl+space>"},
 
 		// Single modifier on a rune
-		{"ctrl+letter", gocui.NewKeyStrMod("a", gocui.ModCtrl), "<c-a>"},
-		{"alt+letter", gocui.NewKeyStrMod("x", gocui.ModAlt), "<a-x>"},
-		{"meta+letter", gocui.NewKeyStrMod("z", gocui.ModMeta), "<m-z>"},
-		{"shift+space", gocui.NewKeyStrMod(" ", gocui.ModShift), "<s-space>"},
+		{"ctrl+letter", gocui.NewKeyStrMod("a", gocui.ModCtrl), "<ctrl+a>"},
+		{"alt+letter", gocui.NewKeyStrMod("x", gocui.ModAlt), "<alt+x>"},
+		{"meta+letter", gocui.NewKeyStrMod("z", gocui.ModMeta), "<meta+z>"},
+		{"shift+space", gocui.NewKeyStrMod(" ", gocui.ModShift), "<shift+space>"},
 
-		// Modifier ordering — canonical output is c-, a-, s-, m-
-		{"ctrl+alt orders c before a", gocui.NewKeyStrMod("x", gocui.ModCtrl|gocui.ModAlt), "<c-a-x>"},
-		{"shift+ctrl orders c before s", gocui.NewKeyStrMod("x", gocui.ModShift|gocui.ModCtrl), "<c-s-x>"},
-		{"meta+shift orders s before m", gocui.NewKeyStrMod("x", gocui.ModMeta|gocui.ModShift), "<s-m-x>"},
+		// Modifier ordering — canonical output is ctrl+, alt+, shift+, meta+
+		{"ctrl+alt orders ctrl before alt", gocui.NewKeyStrMod("x", gocui.ModCtrl|gocui.ModAlt), "<ctrl+alt+x>"},
+		{"shift+ctrl orders ctrl before shift", gocui.NewKeyStrMod("x", gocui.ModShift|gocui.ModCtrl), "<ctrl+shift+x>"},
+		{"meta+shift orders shift before meta", gocui.NewKeyStrMod("x", gocui.ModMeta|gocui.ModShift), "<shift+meta+x>"},
 		{
-			"all four modifiers ordered c-a-s-m",
+			"all four modifiers ordered ctrl+alt+shift+meta",
 			gocui.NewKeyStrMod("x", gocui.ModCtrl|gocui.ModAlt|gocui.ModShift|gocui.ModMeta),
-			"<c-a-s-m-x>",
+			"<ctrl+alt+shift+meta+x>",
 		},
 
 		// Special keys (always wrapped, even unmodified)
@@ -630,10 +630,10 @@ func TestLabelForKey(t *testing.T) {
 		{"mouse wheel down", gocui.NewKey(gocui.MouseWheelDown, "", gocui.ModNone), "<mouse wheel down>"},
 
 		// Modifiers on special keys
-		{"shift+f1", gocui.NewKey(gocui.KeyF1, "", gocui.ModShift), "<s-f1>"},
-		{"alt+up", gocui.NewKey(gocui.KeyArrowUp, "", gocui.ModAlt), "<a-up>"},
-		{"meta+enter", gocui.NewKey(gocui.KeyEnter, "", gocui.ModMeta), "<m-enter>"},
-		{"ctrl+shift+up", gocui.NewKey(gocui.KeyArrowUp, "", gocui.ModCtrl|gocui.ModShift), "<c-s-up>"},
+		{"shift+f1", gocui.NewKey(gocui.KeyF1, "", gocui.ModShift), "<shift+f1>"},
+		{"alt+up", gocui.NewKey(gocui.KeyArrowUp, "", gocui.ModAlt), "<alt+up>"},
+		{"meta+enter", gocui.NewKey(gocui.KeyEnter, "", gocui.ModMeta), "<meta+enter>"},
+		{"ctrl+shift+up", gocui.NewKey(gocui.KeyArrowUp, "", gocui.ModCtrl|gocui.ModShift), "<ctrl+shift+up>"},
 	}
 
 	for _, s := range scenarios {
