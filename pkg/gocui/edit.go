@@ -38,7 +38,8 @@ func SimpleEditor(v *View, key Key) bool {
 	case key.Equals(forwardDeleteWordKeybinding),
 		key.Equals(NewKeyStrMod("d", ModAlt)):
 		v.TextArea.ForwardDeleteWord()
-	case key.Equals(NewKeyName(KeyBackspace)):
+	case key.Equals(NewKeyName(KeyBackspace)),
+		key.Equals(NewKeyStrMod("h", ModCtrl)):
 		v.TextArea.BackSpaceChar()
 	case key.Equals(NewKeyStrMod("d", ModCtrl)),
 		key.Equals(NewKeyName(KeyDelete)):
