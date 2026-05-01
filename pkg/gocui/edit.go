@@ -57,7 +57,7 @@ func SimpleEditor(v *View, key Key) bool {
 		key.Equals(moveWordRightKeybinding):
 		v.TextArea.MoveRightWord()
 	case key.Equals(NewKeyName(KeyArrowRight)),
-		key.Equals(NewKeyStrMod("b", ModCtrl)):
+		key.Equals(NewKeyStrMod("f", ModCtrl)):
 		v.TextArea.MoveCursorRight()
 	case key.Equals(NewKeyName(KeyEnter)):
 		v.TextArea.TypeCharacter("\n")
