@@ -75,7 +75,7 @@ func TestOSCommandQuoteWindows(t *testing.T) {
 
 	actual := osCommand.Quote(`hello "test" 'test2'`)
 
-	expected := `\"hello "'"'"test"'"'" 'test2'\"`
+	expected := `"hello \"test\" 'test2'"`
 
 	assert.EqualValues(t, expected, actual)
 }
