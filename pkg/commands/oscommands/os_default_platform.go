@@ -40,6 +40,11 @@ func (c *OSCommand) UpdateWindowTitle() error {
 	return nil
 }
 
+// setRawCmdLine is a no-op on non-Windows hosts. It exists so the
+// shared shell-invocation code path compiles when callers simulate
+// the Windows platform in tests.
+func setRawCmdLine(cmd *exec.Cmd, cmdLine string) {}
+
 func TerminateProcessGracefully(cmd *exec.Cmd) error {
 	if cmd.Process == nil {
 		return nil

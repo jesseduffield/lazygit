@@ -48,26 +48,100 @@ func (self *CmdObjBuilder) NewShell(commandStr string, shellFunctionsFile string
 	if len(shellFunctionsFile) > 0 {
 		commandStr = fmt.Sprintf("%ssource %s\n%s", self.platform.PrefixForShellFunctionsFile, shellFunctionsFile, commandStr)
 	}
-	quotedCommand := self.quotedCommandString(commandStr)
+
+	if self.platform.OS == "windows" {
+		return self.newWindowsShell(commandStr)
+	}
+
+	quotedCommand := self.Quote(commandStr)
 	cmdArgs := str.ToArgv(fmt.Sprintf("%s %s %s", self.platform.Shell, self.platform.ShellArg, quotedCommand))
 
 	return self.New(cmdArgs)
 }
 
-func (self *CmdObjBuilder) quotedCommandString(commandStr string) string {
-	// Windows does not seem to like quotes around the command
-	if self.platform.OS == "windows" {
-		return strings.NewReplacer(
-			"^", "^^",
-			"&", "^&",
-			"|", "^|",
-			"<", "^<",
-			">", "^>",
-			"%", "^%",
-		).Replace(commandStr)
+// newWindowsShell wraps the command in `cmd.exe /s /c "<command>"`. The /s
+// flag tells cmd to strip exactly the outermost pair of quotes and pass the
+// rest through unchanged, which preserves any quoting the command itself
+// contains (e.g. `"C:\Program Files\my-editor.exe" file.txt`). Without /s,
+// cmd's default rules drop the wrong quotes once the command line contains
+// more than two of them.
+//
+// We bypass Go's standard arg quoting via SysProcAttr.CmdLine: it follows the
+// CommandLineToArgvW convention (`\"` for inner quotes), but cmd.exe doesn't.
+func (self *CmdObjBuilder) newWindowsShell(commandStr string) *CmdObj {
+	escaped := strings.NewReplacer(
+		"^", "^^",
+		"&", "^&",
+		"|", "^|",
+		"<", "^<",
+		">", "^>",
+		"%", "^%",
+	).Replace(commandStr)
+
+	// Round-trip through ToArgv to normalize the `\"` quoting that Quote()
+	// emits on Windows, then re-encode each arg using the standard Windows
+	// convention so the spawned process recovers the original args.
+	parsedArgs := str.ToArgv(escaped)
+	encoded := make([]string, len(parsedArgs))
+	for i, a := range parsedArgs {
+		encoded[i] = escapeWindowsArg(a)
+	}
+	rebuilt := strings.Join(encoded, " ")
+
+	args := []string{self.platform.Shell, "/s", self.platform.ShellArg, rebuilt}
+	cmdObj := self.New(args)
+
+	cmdLine := fmt.Sprintf(`%s /s %s "%s"`, self.platform.Shell, self.platform.ShellArg, rebuilt)
+	setRawCmdLine(cmdObj.GetCmd(), cmdLine)
+
+	return cmdObj
+}
+
+// escapeWindowsArg encodes a single argument using the standard Windows
+// convention (the same algorithm as syscall.EscapeArg, reimplemented here so
+// the call site builds on all platforms). Used when assembling the command
+// line we hand to cmd.exe via SysProcAttr.CmdLine on Windows.
+func escapeWindowsArg(s string) string {
+	if len(s) == 0 {
+		return `""`
+	}
+	hasSpecial := false
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c == ' ' || c == '\t' || c == '"' {
+			hasSpecial = true
+			break
+		}
+	}
+	if !hasSpecial {
+		return s
 	}
 
-	return self.Quote(commandStr)
+	var b strings.Builder
+	b.WriteByte('"')
+	slashes := 0
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch c {
+		case '\\':
+			slashes++
+			b.WriteByte(c)
+		case '"':
+			for ; slashes > 0; slashes-- {
+				b.WriteByte('\\')
+			}
+			b.WriteByte('\\')
+			b.WriteByte(c)
+		default:
+			slashes = 0
+			b.WriteByte(c)
+		}
+	}
+	for ; slashes > 0; slashes-- {
+		b.WriteByte('\\')
+	}
+	b.WriteByte('"')
+	return b.String()
 }
 
 func (self *CmdObjBuilder) CloneWithNewRunner(decorate func(ICmdObjRunner) ICmdObjRunner) *CmdObjBuilder {
