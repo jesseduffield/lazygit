@@ -239,7 +239,7 @@ type OnFocusLostOpts struct {
 type ContextKey string
 
 type KeybindingsOpts struct {
-	GetKey func(key string) gocui.Key
+	GetKey func(key string) []gocui.Key
 	Config config.KeybindingConfig
 	Guards KeybindingGuards
 }

@@ -205,3 +205,11 @@ func GetValidatedKeyBindingKey(label string) gocui.Key {
 
 	return key
 }
+
+func GetValidatedKeyBindingKeys(label string) []gocui.Key {
+	k := GetValidatedKeyBindingKey(label)
+	if !k.IsSet() {
+		return nil
+	}
+	return []gocui.Key{k}
+}

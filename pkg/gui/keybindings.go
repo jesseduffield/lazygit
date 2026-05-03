@@ -69,7 +69,7 @@ func (gui *Gui) keybindingOpts() types.KeybindingsOpts {
 	}
 
 	return types.KeybindingsOpts{
-		GetKey: config.GetValidatedKeyBindingKey,
+		GetKey: config.GetValidatedKeyBindingKeys,
 		Config: keybindingConfig,
 		Guards: guards,
 	}
@@ -176,7 +176,7 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName: "information",
-			Key:      gocui.NewKeyName(gocui.MouseLeft),
+			Key:      []gocui.Key{gocui.NewKeyName(gocui.MouseLeft)},
 			Handler:  gui.handleInfoClick,
 		},
 		{
@@ -196,26 +196,26 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName:    "main",
-			Key:         gocui.NewKeyName(gocui.MouseWheelDown),
+			Key:         []gocui.Key{gocui.NewKeyName(gocui.MouseWheelDown)},
 			Handler:     gui.scrollDownMain,
 			Description: gui.c.Tr.ScrollDown,
 			Alternative: "fn+up",
 		},
 		{
 			ViewName:    "main",
-			Key:         gocui.NewKeyName(gocui.MouseWheelUp),
+			Key:         []gocui.Key{gocui.NewKeyName(gocui.MouseWheelUp)},
 			Handler:     gui.scrollUpMain,
 			Description: gui.c.Tr.ScrollUp,
 			Alternative: "fn+down",
 		},
 		{
 			ViewName: "secondary",
-			Key:      gocui.NewKeyName(gocui.MouseWheelDown),
+			Key:      []gocui.Key{gocui.NewKeyName(gocui.MouseWheelDown)},
 			Handler:  gui.scrollDownSecondary,
 		},
 		{
 			ViewName: "secondary",
-			Key:      gocui.NewKeyName(gocui.MouseWheelUp),
+			Key:      []gocui.Key{gocui.NewKeyName(gocui.MouseWheelUp)},
 			Handler:  gui.scrollUpSecondary,
 		},
 		{
@@ -240,12 +240,12 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName: "confirmation",
-			Key:      gocui.NewKeyName(gocui.MouseWheelUp),
+			Key:      []gocui.Key{gocui.NewKeyName(gocui.MouseWheelUp)},
 			Handler:  gui.scrollUpConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
-			Key:      gocui.NewKeyName(gocui.MouseWheelDown),
+			Key:      []gocui.Key{gocui.NewKeyName(gocui.MouseWheelDown)},
 			Handler:  gui.scrollDownConfirmationPanel,
 		},
 		{
@@ -287,12 +287,12 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName: "extras",
-			Key:      gocui.NewKeyName(gocui.MouseWheelUp),
+			Key:      []gocui.Key{gocui.NewKeyName(gocui.MouseWheelUp)},
 			Handler:  gui.scrollUpExtra,
 		},
 		{
 			ViewName: "extras",
-			Key:      gocui.NewKeyName(gocui.MouseWheelDown),
+			Key:      []gocui.Key{gocui.NewKeyName(gocui.MouseWheelDown)},
 			Handler:  gui.scrollDownExtra,
 		},
 		{
@@ -352,7 +352,7 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		{
 			ViewName: "extras",
 			Tag:      "navigation",
-			Key:      gocui.NewKeyName(gocui.MouseLeft),
+			Key:      []gocui.Key{gocui.NewKeyName(gocui.MouseLeft)},
 			Handler:  gui.handleFocusCommandLog,
 		},
 	}
@@ -448,7 +448,9 @@ func (gui *Gui) SetKeybinding(binding *types.Binding) {
 		return gui.callKeybindingHandler(binding)
 	}
 
-	gui.g.SetKeybinding(binding.ViewName, binding.Key, handler)
+	for _, key := range binding.Key {
+		gui.g.SetKeybinding(binding.ViewName, key, handler)
+	}
 }
 
 func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {

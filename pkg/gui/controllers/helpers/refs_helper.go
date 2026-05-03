@@ -216,7 +216,7 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 
 func (self *RefsHelper) CreateSortOrderMenu(sortOptionsOrder []string, menuPrompt string, onSelected func(sortOrder string) error, currentValue string) error {
 	type sortMenuOption struct {
-		key         gocui.Key
+		key         []gocui.Key
 		label       string
 		description string
 		sortOrder   string
@@ -260,7 +260,7 @@ func (self *RefsHelper) CreateGitResetMenu(name string, ref string) error {
 	type strengthWithKey struct {
 		strength string
 		label    string
-		key      gocui.Key
+		key      []gocui.Key
 		tooltip  string
 	}
 	strengths := []strengthWithKey{
@@ -318,7 +318,7 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 
 	if len(branches) > 0 {
 		menuItems = append(menuItems, lo.Map(branches, func(branch *models.Branch, index int) *types.MenuItem {
-			var key gocui.Key
+			var key []gocui.Key
 			if index < 9 {
 				key = menuKey(rune(index + 1 + '0')) // Convert 1-based index to key
 			}

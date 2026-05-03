@@ -39,7 +39,7 @@ const (
 func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 	type optionAndKey struct {
 		option string
-		key    gocui.Key
+		key    []gocui.Key
 	}
 
 	options := []optionAndKey{

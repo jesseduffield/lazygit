@@ -41,12 +41,12 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 	globalBindings := self.c.Contexts().Global.GetKeybindings(self.c.KeybindingsOpts())
 
 	currentContextKeys := set.NewFromSlice(
-		lo.Map(currentContextBindings, func(binding *types.Binding, _ int) gocui.Key {
+		lo.FlatMap(currentContextBindings, func(binding *types.Binding, _ int) []gocui.Key {
 			return binding.Key
 		}))
 
 	allBindings := append(currentContextBindings, lo.Filter(globalBindings, func(b *types.Binding, _ int) bool {
-		return !currentContextKeys.Includes(b.Key)
+		return len(b.Key) == 0 || !currentContextKeys.Includes(b.Key[0])
 	})...)
 
 	bindingsToDisplay := lo.Filter(allBindings, func(binding *types.Binding, _ int) bool {
@@ -60,7 +60,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 		}
 
 		return bindingInfo{
-			key:         config.LabelForKey(binding.Key),
+			key:         config.LabelForKey(binding.Key[0]),
 			description: binding.GetShortDescription(),
 			style:       displayStyle,
 		}

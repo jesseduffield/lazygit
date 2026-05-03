@@ -2,6 +2,7 @@ package custom_commands
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -45,7 +46,7 @@ func (self *Client) GetCustomCommandKeybindings() ([]*types.Binding, error) {
 			}
 			bindings = append(bindings, &types.Binding{
 				ViewName:    "", // custom commands menus are global; we filter the commands inside by context
-				Key:         config.GetValidatedKeyBindingKey(customCommand.Key),
+				Key:         []gocui.Key{config.GetValidatedKeyBindingKey(customCommand.Key)},
 				Handler:     handler,
 				Description: getCustomCommandsMenuDescription(customCommand, self.c.Tr),
 				OpensMenu:   true,
@@ -72,7 +73,7 @@ func (self *Client) showCustomCommandsMenu(customCommand config.CustomCommand) e
 			}
 			menuItems = append(menuItems, &types.MenuItem{
 				Label:     subCommand.GetDescription(),
-				Key:       config.GetValidatedKeyBindingKey(subCommand.Key),
+				Key:       []gocui.Key{config.GetValidatedKeyBindingKey(subCommand.Key)},
 				OnPress:   handler,
 				OpensMenu: true,
 			})
@@ -92,7 +93,7 @@ func (self *Client) showCustomCommandsMenu(customCommand config.CustomCommand) e
 
 			menuItems = append(menuItems, &types.MenuItem{
 				Label:   subCommand.GetDescription(),
-				Key:     config.GetValidatedKeyBindingKey(subCommand.Key),
+				Key:     []gocui.Key{config.GetValidatedKeyBindingKey(subCommand.Key)},
 				OnPress: self.handlerCreator.call(subCommand),
 			})
 		}
