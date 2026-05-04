@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -382,7 +383,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 				OnPress: func() error {
 					return onMergeStrategySelected("--ours")
 				},
-				Key: 'c',
+				Key: gocui.NewKeyRune('c'),
 			},
 			{
 				LabelColumns: []string{
@@ -392,7 +393,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 				OnPress: func() error {
 					return onMergeStrategySelected("--theirs")
 				},
-				Key: 'i',
+				Key: gocui.NewKeyRune('i'),
 			},
 			{
 				LabelColumns: []string{
@@ -402,7 +403,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 				OnPress: func() error {
 					return onMergeStrategySelected("--union")
 				},
-				Key: 'b',
+				Key: gocui.NewKeyRune('b'),
 			},
 			{
 				LabelColumns: []string{
@@ -410,7 +411,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 					cmdColor.Sprint("git mergetool"),
 				},
 				OnPress: self.OpenMergeTool,
-				Key:     'm',
+				Key:     gocui.NewKeyRune('m'),
 			},
 		},
 	})

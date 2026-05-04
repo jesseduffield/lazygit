@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spf13/afero"
@@ -167,8 +166,8 @@ func (self *CommitMessageContext) SetPanelState(
 
 	self.c.Views().CommitDescription.Subtitle = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionSubTitle,
 		map[string]string{
-			"togglePanelKeyBinding": keybindings.Label(self.c.UserConfig().Keybinding.Universal.TogglePanel),
-			"commitMenuKeybinding":  keybindings.Label(self.c.UserConfig().Keybinding.CommitMessage.CommitMenu),
+			"togglePanelKeyBinding": self.c.UserConfig().Keybinding.Universal.TogglePanel,
+			"commitMenuKeybinding":  self.c.UserConfig().Keybinding.CommitMessage.CommitMenu,
 		})
 
 	self.c.Views().CommitDescription.Visible = true

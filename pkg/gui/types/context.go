@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -239,7 +239,7 @@ type OnFocusLostOpts struct {
 type ContextKey string
 
 type KeybindingsOpts struct {
-	GetKey func(key string) Key
+	GetKey func(key string) gocui.Key
 	Config config.KeybindingConfig
 	Guards KeybindingGuards
 }

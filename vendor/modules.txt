@@ -27,6 +27,12 @@ github.com/cli/go-gh/v2/pkg/config
 # github.com/cli/safeexec v1.0.1
 ## explicit; go 1.15
 github.com/cli/safeexec
+# github.com/clipperhouse/displaywidth v0.11.0
+## explicit; go 1.18
+github.com/clipperhouse/displaywidth
+# github.com/clipperhouse/uax29/v2 v2.7.0
+## explicit; go 1.18
+github.com/clipperhouse/uax29/v2/graphemes
 # github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 ## explicit
 github.com/cloudfoundry/jibber_jabber
@@ -42,40 +48,13 @@ github.com/fatih/color
 # github.com/gdamore/encoding v1.0.1
 ## explicit; go 1.9
 github.com/gdamore/encoding
-# github.com/gdamore/tcell/v2 v2.13.8
-## explicit; go 1.24.0
-github.com/gdamore/tcell/v2
-github.com/gdamore/tcell/v2/terminfo
-github.com/gdamore/tcell/v2/terminfo/a/aixterm
-github.com/gdamore/tcell/v2/terminfo/a/alacritty
-github.com/gdamore/tcell/v2/terminfo/a/ansi
-github.com/gdamore/tcell/v2/terminfo/base
-github.com/gdamore/tcell/v2/terminfo/c/cygwin
-github.com/gdamore/tcell/v2/terminfo/d/dtterm
-github.com/gdamore/tcell/v2/terminfo/dynamic
-github.com/gdamore/tcell/v2/terminfo/e/emacs
-github.com/gdamore/tcell/v2/terminfo/extended
-github.com/gdamore/tcell/v2/terminfo/f/foot
-github.com/gdamore/tcell/v2/terminfo/g/gnome
-github.com/gdamore/tcell/v2/terminfo/k/konsole
-github.com/gdamore/tcell/v2/terminfo/k/kterm
-github.com/gdamore/tcell/v2/terminfo/l/linux
-github.com/gdamore/tcell/v2/terminfo/p/pcansi
-github.com/gdamore/tcell/v2/terminfo/r/rxvt
-github.com/gdamore/tcell/v2/terminfo/s/screen
-github.com/gdamore/tcell/v2/terminfo/s/simpleterm
-github.com/gdamore/tcell/v2/terminfo/s/sun
-github.com/gdamore/tcell/v2/terminfo/t/tmux
-github.com/gdamore/tcell/v2/terminfo/v/vt100
-github.com/gdamore/tcell/v2/terminfo/v/vt102
-github.com/gdamore/tcell/v2/terminfo/v/vt220
-github.com/gdamore/tcell/v2/terminfo/v/vt320
-github.com/gdamore/tcell/v2/terminfo/v/vt400
-github.com/gdamore/tcell/v2/terminfo/v/vt420
-github.com/gdamore/tcell/v2/terminfo/x/xfce
-github.com/gdamore/tcell/v2/terminfo/x/xterm
-github.com/gdamore/tcell/v2/terminfo/x/xterm_ghostty
-github.com/gdamore/tcell/v2/terminfo/x/xterm_kitty
+# github.com/gdamore/tcell/v3 v3.3.0
+## explicit; go 1.25.0
+github.com/gdamore/tcell/v3
+github.com/gdamore/tcell/v3/color
+github.com/gdamore/tcell/v3/internal/widthutil
+github.com/gdamore/tcell/v3/tty
+github.com/gdamore/tcell/v3/vt
 # github.com/go-errors/errors v1.5.1
 ## explicit; go 1.14
 github.com/go-errors/errors
@@ -99,9 +78,6 @@ github.com/integrii/flaggy
 github.com/jesseduffield/generics/maps
 github.com/jesseduffield/generics/orderedset
 github.com/jesseduffield/generics/set
-# github.com/jesseduffield/gocui v0.3.1-0.20260327132312-944dab3bc980
-## explicit; go 1.25
-github.com/jesseduffield/gocui
 # github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 ## explicit; go 1.18
 github.com/jesseduffield/lazycore/pkg/boxlayout
@@ -210,7 +186,7 @@ golang.org/x/sync/errgroup
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.41.0
+# golang.org/x/term v0.42.0
 ## explicit; go 1.25.0
 golang.org/x/term
 # golang.org/x/text v0.36.0

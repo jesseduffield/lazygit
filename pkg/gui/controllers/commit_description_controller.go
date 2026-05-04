@@ -1,8 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -72,18 +71,18 @@ func (self *CommitDescriptionController) GetOnFocus() func(types.OnFocusOpts) {
 			if self.c.UserConfig().Keybinding.Universal.ConfirmInEditor == "<disabled>" {
 				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
 					map[string]string{
-						"confirmInEditorKeybinding": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt),
+						"confirmInEditorKeybinding": self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt,
 					})
 			} else if self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt == "<disabled>" {
 				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
 					map[string]string{
-						"confirmInEditorKeybinding": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditor),
+						"confirmInEditorKeybinding": self.c.UserConfig().Keybinding.Universal.ConfirmInEditor,
 					})
 			} else {
 				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooterTwoBindings,
 					map[string]string{
-						"confirmInEditorKeybinding1": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditor),
-						"confirmInEditorKeybinding2": keybindings.Label(self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt),
+						"confirmInEditorKeybinding1": self.c.UserConfig().Keybinding.Universal.ConfirmInEditor,
+						"confirmInEditorKeybinding2": self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt,
 					})
 			}
 		}
@@ -120,7 +119,7 @@ func (self *CommitDescriptionController) handleTogglePanel() error {
 		// which is common in pasted code snippets.
 		view := self.Context().GetView()
 		for range 4 {
-			view.Editor.Edit(view, gocui.KeySpace, ' ', 0)
+			view.Editor.Edit(view, gocui.NewKeyRune(' '))
 		}
 		return nil
 	}

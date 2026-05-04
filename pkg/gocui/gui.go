@@ -1,0 +1,1638 @@
+// Copyright 2014 The gocui Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package gocui
+
+import (
+	standardErrors "errors"
+	"runtime"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/gdamore/tcell/v3"
+	"github.com/go-errors/errors"
+	"github.com/rivo/uniseg"
+)
+
+// OutputMode represents an output mode, which determines how colors
+// are used.
+type OutputMode int
+
+const DOUBLE_CLICK_THRESHOLD = 500 * time.Millisecond
+
+var (
+	// ErrNoSuchKeybind is returned when the keybinding being parsed does not exist.
+	ErrNoSuchKeybind = standardErrors.New("no such keybind")
+
+	// ErrUnknownView allows to assert if a View must be initialized.
+	ErrUnknownView = standardErrors.New("unknown view")
+
+	// ErrQuit is used to decide if the MainLoop finished successfully.
+	ErrQuit = standardErrors.New("quit")
+
+	// ErrKeybindingNotHandled is returned when a keybinding is not handled, so that the key can be dispatched further
+	ErrKeybindingNotHandled = standardErrors.New("keybinding not handled")
+)
+
+const (
+	// OutputNormal provides 8-colors terminal mode.
+	OutputNormal OutputMode = iota
+
+	// Output256 provides 256-colors terminal mode.
+	Output256
+
+	// Output216 provides 216 ansi color terminal mode.
+	Output216
+
+	// OutputGrayscale provides greyscale terminal mode.
+	OutputGrayscale
+
+	// OutputTrue provides 24bit color terminal mode.
+	// This mode is recommended even if your terminal doesn't support
+	// such mode. The colors are represented exactly as you
+	// write them (no clamping or truncating). `tcell` should take care
+	// of what your terminal can do.
+	OutputTrue
+)
+
+type tabClickHandler func(int) error
+
+type tabClickBinding struct {
+	viewName string
+	handler  tabClickHandler
+}
+
+// TODO: would be good to define inbound and outbound click handlers e.g.
+// clicking on a file is an inbound thing where we don't care what context you're
+// in when it happens, whereas clicking on the main view from the files view is an
+// outbound click with a specific handler. But this requires more thinking about
+// where handlers should live.
+type ViewMouseBinding struct {
+	// the view that is clicked
+	ViewName string
+
+	// the view that has focus when the click occurs.
+	FocusedView string
+
+	Handler func(ViewMouseBindingOpts) error
+
+	Modifier Modifier
+
+	// must be a mouse key
+	Key KeyName
+}
+
+type ViewMouseBindingOpts struct {
+	X int // i.e. origin x + cursor x
+	Y int // i.e. origin y + cursor y
+
+	Key KeyName // which button was clicked (will be one of the Mouse* constants)
+
+	IsDoubleClick bool // true if this is a double click
+}
+
+type GuiMutexes struct {
+	ViewsMutex sync.Mutex
+}
+
+type replayedEvents struct {
+	Keys        chan *TcellKeyEventWrapper
+	Resizes     chan *TcellResizeEventWrapper
+	MouseEvents chan *TcellMouseEventWrapper
+}
+
+type RecordingConfig struct {
+	Speed  float64
+	Leeway int
+}
+
+type clickInfo struct {
+	x        int
+	y        int
+	key      KeyName
+	viewName string
+	time     time.Time
+}
+
+// Gui represents the whole User Interface, including the views, layouts
+// and keybindings.
+type Gui struct {
+	RecordingConfig
+	// ReplayedEvents is for passing pre-recorded input events, for the purposes of testing
+	ReplayedEvents replayedEvents
+	playRecording  bool
+
+	tabClickBindings         []*tabClickBinding
+	viewMouseBindings        []*ViewMouseBinding
+	lastClick                *clickInfo
+	gEvents                  chan GocuiEvent
+	userEvents               chan userEvent
+	views                    []*View
+	currentView              *View
+	managers                 []Manager
+	keybindings              []*keybinding
+	focusHandler             func(bool) error
+	openHyperlink            func(string, string) error
+	onSelectSearchResultFunc func(*View, int)
+	renderSearchStatusFunc   func(*View, int, int)
+	maxX, maxY               int
+	outputMode               OutputMode
+	stop                     chan struct{}
+
+	// BgColor and FgColor allow to configure the background and foreground
+	// colors of the GUI.
+	BgColor, FgColor, FrameColor Attribute
+
+	// SelBgColor and SelFgColor allow to configure the background and
+	// foreground colors of the frame of the current view.
+	SelBgColor, SelFgColor, SelFrameColor Attribute
+
+	// If Highlight is true, Sel{Bg,Fg}Colors will be used to draw the
+	// frame of the current view.
+	Highlight bool
+
+	// If ShowListFooter is true then show list footer (i.e. the part that says we're at item 5 out of 10)
+	ShowListFooter bool
+
+	// If Cursor is true then the cursor is enabled.
+	Cursor bool
+
+	// If Mouse is true then mouse events will be enabled.
+	Mouse bool
+
+	IsPasting bool
+
+	// If InputEsc is true, when ESC sequence is in the buffer and it doesn't
+	// match any known sequence, ESC means KeyEsc.
+	InputEsc bool
+
+	// SupportOverlaps is true when we allow for view edges to overlap with other
+	// view edges
+	SupportOverlaps bool
+
+	Mutexes GuiMutexes
+
+	OnSearchEscape func() error
+
+	SearchEscapeKey    Key
+	NextSearchMatchKey Key
+	PrevSearchMatchKey Key
+
+	ErrorHandler func(error) error
+
+	ShouldHandleMouseEvent func(view *View, key KeyName) bool
+
+	screen         tcell.Screen
+	suspendedMutex sync.Mutex
+	suspended      bool
+
+	taskManager *TaskManager
+
+	lastHoverView *View
+}
+
+type NewGuiOpts struct {
+	OutputMode      OutputMode
+	SupportOverlaps bool
+	PlayRecording   bool
+	Headless        bool
+	// only applicable when Headless is true
+	Width int
+	// only applicable when Headless is true
+	Height int
+
+	RuneReplacements map[rune]string
+}
+
+// NewGui returns a new Gui object with a given output mode.
+func NewGui(opts NewGuiOpts) (*Gui, error) {
+	g := &Gui{}
+
+	var err error
+	if opts.Headless {
+		err = g.tcellInitSimulation(opts.Width, opts.Height)
+	} else {
+		err = g.tcellInit(runeReplacements)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if opts.Headless || runtime.GOOS == "windows" {
+		g.maxX, g.maxY = g.screen.Size()
+	} else {
+		// TODO: find out if we actually need this bespoke logic for linux
+		g.maxX, g.maxY, err = g.getTermWindowSize()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	g.outputMode = opts.OutputMode
+
+	g.stop = make(chan struct{})
+
+	g.gEvents = make(chan GocuiEvent, 20)
+	g.userEvents = make(chan userEvent, 20)
+	g.taskManager = newTaskManager()
+
+	if opts.PlayRecording {
+		g.ReplayedEvents = replayedEvents{
+			Keys:        make(chan *TcellKeyEventWrapper),
+			Resizes:     make(chan *TcellResizeEventWrapper),
+			MouseEvents: make(chan *TcellMouseEventWrapper),
+		}
+	}
+
+	g.BgColor, g.FgColor, g.FrameColor = ColorDefault, ColorDefault, ColorDefault
+	g.SelBgColor, g.SelFgColor, g.SelFrameColor = ColorDefault, ColorDefault, ColorDefault
+
+	// SupportOverlaps is true when we allow for view edges to overlap with other
+	// view edges
+	g.SupportOverlaps = opts.SupportOverlaps
+
+	// default keys for when searching strings in a view
+	g.SearchEscapeKey = NewKeyName(KeyEsc)
+	g.NextSearchMatchKey = NewKeyRune('n')
+	g.PrevSearchMatchKey = NewKeyRune('N')
+
+	g.playRecording = opts.PlayRecording
+
+	return g, nil
+}
+
+func (g *Gui) NewTask() *TaskImpl {
+	return g.taskManager.NewTask()
+}
+
+// An idle listener listens for when the program is idle. This is useful for
+// integration tests which can wait for the program to be idle before taking
+// the next step in the test.
+func (g *Gui) AddIdleListener(c chan struct{}) {
+	g.taskManager.addIdleListener(c)
+}
+
+// Close finalizes the library. It should be called after a successful
+// initialization and when gocui is not needed anymore.
+func (g *Gui) Close() {
+	close(g.stop)
+	Screen.Fini()
+}
+
+// Size returns the terminal's size.
+func (g *Gui) Size() (x, y int) {
+	return g.maxX, g.maxY
+}
+
+// SetRune writes a rune at the given point, relative to the top-left
+// corner of the terminal. It checks if the position is valid and applies
+// the given colors.
+// Should only be used if you know that the given rune is not part of a grapheme cluster.
+func (g *Gui) SetRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
+	if x < 0 || y < 0 || x >= g.maxX || y >= g.maxY {
+		// swallowing error because it's not that big of a deal
+		return nil
+	}
+	tcellSetCell(x, y, string(ch), fgColor, bgColor, g.outputMode)
+	return nil
+}
+
+// SetView creates a new view with its top-left corner at (x0, y0)
+// and the bottom-right one at (x1, y1). If a view with the same name
+// already exists, its dimensions are updated; otherwise, the error
+// ErrUnknownView is returned, which allows to assert if the View must
+// be initialized. It checks if the position is valid.
+func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, error) {
+	if name == "" {
+		return nil, errors.New("invalid name")
+	}
+
+	if v, err := g.View(name); err == nil {
+		sizeChanged := v.x0 != x0 || v.x1 != x1 || v.y0 != y0 || v.y1 != y1
+
+		v.x0 = x0
+		v.y0 = y0
+		v.x1 = x1
+		v.y1 = y1
+
+		if sizeChanged {
+			v.clearViewLines()
+
+			if v.Editable {
+				cursorX, cursorY := v.TextArea.GetCursorXY()
+				newViewCursorX, newOriginX := updatedCursorAndOrigin(0, v.InnerWidth(), cursorX)
+				newViewCursorY, newOriginY := updatedCursorAndOrigin(0, v.InnerHeight(), cursorY)
+
+				v.SetCursor(newViewCursorX, newViewCursorY)
+				v.SetOrigin(newOriginX, newOriginY)
+			}
+		}
+
+		return v, nil
+	}
+
+	g.Mutexes.ViewsMutex.Lock()
+
+	v := NewView(name, x0, y0, x1, y1, g.outputMode)
+	v.BgColor, v.FgColor = g.BgColor, g.FgColor
+	v.SelBgColor, v.SelFgColor = g.SelBgColor, g.SelFgColor
+	v.Overlaps = overlaps
+	g.views = append(g.views, v)
+
+	v.setOnSelectResult(g.onSelectSearchItem)
+	v.setRenderSearchStatus(g.renderSearchStatus)
+
+	g.Mutexes.ViewsMutex.Unlock()
+
+	return v, errors.Wrap(ErrUnknownView, 0)
+}
+
+func (g *Gui) onSelectSearchItem(v *View, selectedLineIdx int) {
+	if g.onSelectSearchResultFunc != nil {
+		g.onSelectSearchResultFunc(v, selectedLineIdx)
+	}
+}
+
+func (g *Gui) renderSearchStatus(v *View, selected int, total int) {
+	if g.renderSearchStatusFunc != nil {
+		g.renderSearchStatusFunc(v, selected, total)
+	}
+}
+
+// SetViewBeneath sets a view stacked beneath another view
+func (g *Gui) SetViewBeneath(name string, aboveViewName string, height int) (*View, error) {
+	aboveView, err := g.View(aboveViewName)
+	if err != nil {
+		return nil, err
+	}
+
+	viewTop := aboveView.y1 + 1
+	return g.SetView(name, aboveView.x0, viewTop, aboveView.x1, viewTop+height-1, 0)
+}
+
+// SetViewOnTop sets the given view on top of the existing ones.
+func (g *Gui) SetViewOnTop(name string) (*View, error) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
+	for i, v := range g.views {
+		if v.name == name {
+			s := append(g.views[:i], g.views[i+1:]...)
+			g.views = append(s, v)
+			return v, nil
+		}
+	}
+	return nil, errors.Wrap(ErrUnknownView, 0)
+}
+
+// SetViewOnBottom sets the given view on bottom of the existing ones.
+func (g *Gui) SetViewOnBottom(name string) (*View, error) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
+	for i, v := range g.views {
+		if v.name == name {
+			s := append(g.views[:i], g.views[i+1:]...)
+			g.views = append([]*View{v}, s...)
+			return v, nil
+		}
+	}
+	return nil, errors.Wrap(ErrUnknownView, 0)
+}
+
+func (g *Gui) SetViewOnTopOf(toMove string, other string) error {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
+	if toMove == other {
+		return nil
+	}
+
+	// need to find the two current positions and then move toMove before other in the list.
+	toMoveIndex := -1
+	otherIndex := -1
+
+	for i, v := range g.views {
+		if v.name == toMove {
+			toMoveIndex = i
+		}
+
+		if v.name == other {
+			otherIndex = i
+		}
+	}
+
+	if toMoveIndex == -1 || otherIndex == -1 {
+		return errors.Wrap(ErrUnknownView, 0)
+	}
+
+	// already on top
+	if toMoveIndex > otherIndex {
+		return nil
+	}
+
+	// need to actually do it the other way around. Last is highest
+	viewToMove := g.views[toMoveIndex]
+
+	g.views = append(g.views[:toMoveIndex], g.views[toMoveIndex+1:]...)
+	g.views = append(g.views[:otherIndex], append([]*View{viewToMove}, g.views[otherIndex:]...)...)
+	return nil
+}
+
+// replaces the content in toView with the content in fromView
+func (g *Gui) CopyContent(fromView *View, toView *View) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
+	toView.CopyContent(fromView)
+}
+
+// Views returns all the views in the GUI.
+func (g *Gui) Views() []*View {
+	return g.views
+}
+
+// View returns a pointer to the view with the given name, or error
+// ErrUnknownView if a view with that name does not exist.
+func (g *Gui) View(name string) (*View, error) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
+	for _, v := range g.views {
+		if v.name == name {
+			return v, nil
+		}
+	}
+	return nil, errors.Wrap(ErrUnknownView, 0)
+}
+
+// VisibleViewByPosition returns a pointer to a view matching the given position, or
+// error ErrUnknownView if a view in that position does not exist.
+func (g *Gui) VisibleViewByPosition(x, y int) (*View, error) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
+	// traverse views in reverse order checking top views first
+	for i := len(g.views); i > 0; i-- {
+		v := g.views[i-1]
+
+		if !v.Visible {
+			continue
+		}
+
+		frameOffset := 0
+		if v.Frame {
+			frameOffset = 1
+		}
+		if x > v.x0-frameOffset && x < v.x1+frameOffset && y > v.y0-frameOffset && y < v.y1+frameOffset {
+			return v, nil
+		}
+	}
+	return nil, errors.Wrap(ErrUnknownView, 0)
+}
+
+// ViewPosition returns the coordinates of the view with the given name, or
+// error ErrUnknownView if a view with that name does not exist.
+func (g *Gui) ViewPosition(name string) (x0, y0, x1, y1 int, err error) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
+	for _, v := range g.views {
+		if v.name == name {
+			return v.x0, v.y0, v.x1, v.y1, nil
+		}
+	}
+	return 0, 0, 0, 0, errors.Wrap(ErrUnknownView, 0)
+}
+
+// DeleteView deletes a view by name.
+func (g *Gui) DeleteView(name string) error {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
+	for i, v := range g.views {
+		if v.name == name {
+			g.views = append(g.views[:i], g.views[i+1:]...)
+			return nil
+		}
+	}
+	return errors.Wrap(ErrUnknownView, 0)
+}
+
+// SetCurrentView gives the focus to a given view.
+func (g *Gui) SetCurrentView(name string) (*View, error) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
+	for _, v := range g.views {
+		if v.name == name {
+			g.currentView = v
+			return v, nil
+		}
+	}
+	return nil, errors.Wrap(ErrUnknownView, 0)
+}
+
+// CurrentView returns the currently focused view, or nil if no view
+// owns the focus.
+func (g *Gui) CurrentView() *View {
+	return g.currentView
+}
+
+// SetKeybinding creates a new keybinding. If viewname equals to ""
+// (empty string) then the keybinding will apply to all views. key must
+// be a rune or a Key.
+//
+// When mouse keys are used (MouseLeft, MouseRight, ...), modifier might not work correctly.
+// It behaves differently on different platforms. Somewhere it doesn't register Alt key press,
+// on others it might report Ctrl as Alt. It's not consistent and therefore it's not recommended
+// to use with mouse keys.
+func (g *Gui) SetKeybinding(viewname string, key Key, mod Modifier, handler func(*Gui, *View) error) error {
+	kb := newKeybinding(viewname, key, mod, handler)
+	g.keybindings = append(g.keybindings, kb)
+	return nil
+}
+
+// DeleteKeybinding deletes a keybinding.
+func (g *Gui) DeleteKeybinding(viewname string, key Key, mod Modifier) error {
+	for i, kb := range g.keybindings {
+		if kb.viewName == viewname && kb.key.keyName == key.KeyName() && kb.key.str == key.str && kb.mod == mod {
+			g.keybindings = append(g.keybindings[:i], g.keybindings[i+1:]...)
+			return nil
+		}
+	}
+	return errors.New("keybinding not found")
+}
+
+// DeleteKeybindings deletes all keybindings of view.
+func (g *Gui) DeleteAllKeybindings() {
+	g.keybindings = []*keybinding{}
+	g.tabClickBindings = []*tabClickBinding{}
+	g.viewMouseBindings = []*ViewMouseBinding{}
+}
+
+// DeleteKeybindings deletes all keybindings of view.
+func (g *Gui) DeleteViewKeybindings(viewname string) {
+	var s []*keybinding
+	for _, kb := range g.keybindings {
+		if kb.viewName != viewname {
+			s = append(s, kb)
+		}
+	}
+	g.keybindings = s
+}
+
+// SetTabClickBinding sets a binding for a tab click event
+func (g *Gui) SetTabClickBinding(viewName string, handler tabClickHandler) error {
+	g.tabClickBindings = append(g.tabClickBindings, &tabClickBinding{
+		viewName: viewName,
+		handler:  handler,
+	})
+
+	return nil
+}
+
+func (g *Gui) SetViewClickBinding(binding *ViewMouseBinding) error {
+	g.viewMouseBindings = append(g.viewMouseBindings, binding)
+
+	return nil
+}
+
+func (g *Gui) SetFocusHandler(handler func(bool) error) {
+	g.focusHandler = handler
+}
+
+func (g *Gui) SetOpenHyperlinkFunc(openHyperlinkFunc func(string, string) error) {
+	g.openHyperlink = openHyperlinkFunc
+}
+
+func (g *Gui) SetOnSelectSearchResultFunc(onSelectSearchResultFunc func(*View, int)) {
+	g.onSelectSearchResultFunc = onSelectSearchResultFunc
+}
+
+func (g *Gui) SetRenderSearchStatusFunc(renderSearchStatusFunc func(*View, int, int)) {
+	g.renderSearchStatusFunc = renderSearchStatusFunc
+}
+
+// userEvent represents an event triggered by the user.
+type userEvent struct {
+	f    func(*Gui) error
+	task Task
+}
+
+// Update executes the passed function. This method can be called safely from a
+// goroutine in order to update the GUI. It is important to note that the
+// passed function won't be executed immediately, instead it will be added to
+// the user events queue. Given that Update spawns a goroutine, the order in
+// which the user events will be handled is not guaranteed.
+func (g *Gui) Update(f func(*Gui) error) {
+	task := g.NewTask()
+
+	go g.updateAsyncAux(f, task)
+}
+
+// UpdateAsync is a version of Update that does not spawn a go routine, it can
+// be a bit more efficient in cases where Update is called many times like when
+// tailing a file.  In general you should use Update()
+func (g *Gui) UpdateAsync(f func(*Gui) error) {
+	task := g.NewTask()
+
+	g.updateAsyncAux(f, task)
+}
+
+func (g *Gui) updateAsyncAux(f func(*Gui) error, task Task) {
+	g.userEvents <- userEvent{f: f, task: task}
+}
+
+// Calls a function in a goroutine. Handles panics gracefully and tracks
+// number of background tasks.
+// Always use this when you want to spawn a goroutine and you want lazygit to
+// consider itself 'busy` as it runs the code. Don't use for long-running
+// background goroutines where you wouldn't want lazygit to be considered busy
+// (i.e. when you wouldn't want a loader to be shown to the user)
+func (g *Gui) OnWorker(f func(Task) error) {
+	task := g.NewTask()
+	go func() {
+		g.onWorkerAux(f, task)
+		task.Done()
+	}()
+}
+
+func (g *Gui) onWorkerAux(f func(Task) error, task Task) {
+	panicking := true
+	defer func() {
+		if panicking && Screen != nil {
+			Screen.Fini()
+		}
+	}()
+
+	err := f(task)
+
+	panicking = false
+
+	if err != nil {
+		g.Update(func(g *Gui) error {
+			return err
+		})
+	}
+}
+
+// A Manager is in charge of GUI's layout and can be used to build widgets.
+type Manager interface {
+	// Layout is called every time the GUI is redrawn, it must contain the
+	// base views and its initializations.
+	Layout(*Gui) error
+}
+
+// The ManagerFunc type is an adapter to allow the use of ordinary functions as
+// Managers. If f is a function with the appropriate signature, ManagerFunc(f)
+// is an Manager object that calls f.
+type ManagerFunc func(*Gui) error
+
+// Layout calls f(g)
+func (f ManagerFunc) Layout(g *Gui) error {
+	return f(g)
+}
+
+// SetManager sets the given GUI managers. It deletes all views and
+// keybindings.
+func (g *Gui) SetManager(managers ...Manager) {
+	g.managers = managers
+	g.currentView = nil
+	g.views = nil
+	g.keybindings = nil
+	g.tabClickBindings = nil
+
+	go func() { g.gEvents <- GocuiEvent{Type: eventResize} }()
+}
+
+// SetManagerFunc sets the given manager function. It deletes all views and
+// keybindings.
+func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
+	g.SetManager(ManagerFunc(manager))
+}
+
+// MainLoop runs the main loop until an error is returned. A successful
+// finish should return ErrQuit.
+func (g *Gui) MainLoop() error {
+	go func() {
+		for {
+			select {
+			case <-g.stop:
+				return
+			default:
+				g.gEvents <- g.pollEvent()
+			}
+		}
+	}()
+
+	Screen.EnableFocus()
+	Screen.EnablePaste()
+
+	previousEnableMouse := false
+	for {
+		if g.Mouse != previousEnableMouse {
+			if g.Mouse {
+				Screen.EnableMouse()
+			} else {
+				Screen.DisableMouse()
+			}
+
+			previousEnableMouse = g.Mouse
+		}
+
+		err := g.processEvent()
+		if err != nil {
+			return err
+		}
+	}
+}
+
+func (g *Gui) handleError(err error) error {
+	if err != nil && !standardErrors.Is(err, ErrQuit) && g.ErrorHandler != nil {
+		return g.ErrorHandler(err)
+	}
+
+	return err
+}
+
+func (g *Gui) processEvent() error {
+	select {
+	case ev := <-g.gEvents:
+		task := g.NewTask()
+		defer func() { task.Done() }()
+
+		if err := g.handleError(g.handleEvent(&ev)); err != nil {
+			return err
+		}
+	case ev := <-g.userEvents:
+		defer func() { ev.task.Done() }()
+
+		if err := g.handleError(ev.f(g)); err != nil {
+			return err
+		}
+	}
+
+	if err := g.processRemainingEvents(); err != nil {
+		return err
+	}
+	if err := g.flush(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// processRemainingEvents handles the remaining events in the events pool.
+func (g *Gui) processRemainingEvents() error {
+	for {
+		select {
+		case ev := <-g.gEvents:
+			if err := g.handleError(g.handleEvent(&ev)); err != nil {
+				return err
+			}
+		case ev := <-g.userEvents:
+			err := g.handleError(ev.f(g))
+			ev.task.Done()
+			if err != nil {
+				return err
+			}
+		default:
+			return nil
+		}
+	}
+}
+
+// handleEvent handles an event, based on its type (key-press, error,
+// etc.)
+func (g *Gui) handleEvent(ev *GocuiEvent) error {
+	switch ev.Type {
+	case eventKey, eventMouse, eventMouseMove:
+		return g.onKey(ev)
+	case eventError:
+		return ev.Err
+	case eventResize:
+		g.onResize()
+		return nil
+	case eventFocus:
+		return g.onFocus(ev)
+	case eventPaste:
+		g.IsPasting = ev.Start
+		return nil
+	default:
+		return nil
+	}
+}
+
+func (g *Gui) onResize() {
+	// not sure if we actually need this
+	// g.screen.Sync()
+}
+
+// drawFrameEdges draws the horizontal and vertical edges of a view.
+func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
+	runeH, runeV := '─', '│'
+	if len(v.FrameRunes) >= 2 {
+		runeH, runeV = v.FrameRunes[0], v.FrameRunes[1]
+	}
+
+	for x := v.x0 + 1; x < v.x1 && x < g.maxX; x++ {
+		if x < 0 {
+			continue
+		}
+		if v.y0 > -1 && v.y0 < g.maxY {
+			if err := g.SetRune(x, v.y0, runeH, fgColor, bgColor); err != nil {
+				return err
+			}
+		}
+		if v.y1 > -1 && v.y1 < g.maxY {
+			if err := g.SetRune(x, v.y1, runeH, fgColor, bgColor); err != nil {
+				return err
+			}
+		}
+	}
+
+	showScrollbar, realScrollbarStart, realScrollbarEnd := calcRealScrollbarStartEnd(v)
+	for y := v.y0 + 1; y < v.y1 && y < g.maxY; y++ {
+		if y < 0 {
+			continue
+		}
+		if v.x0 > -1 && v.x0 < g.maxX {
+			if err := g.SetRune(v.x0, y, runeV, fgColor, bgColor); err != nil {
+				return err
+			}
+		}
+		if v.x1 > -1 && v.x1 < g.maxX {
+			runeToPrint := calcScrollbarRune(showScrollbar, realScrollbarStart, realScrollbarEnd, y, runeV)
+
+			if err := g.SetRune(v.x1, y, runeToPrint, fgColor, bgColor); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func calcScrollbarRune(
+	showScrollbar bool, scrollbarStart int, scrollbarEnd int, position int, runeV rune,
+) rune {
+	if showScrollbar && (position >= scrollbarStart && position <= scrollbarEnd) {
+		return '▐'
+	}
+
+	return runeV
+}
+
+func calcRealScrollbarStartEnd(v *View) (bool, int, int) {
+	height := v.InnerHeight()
+	fullHeight := v.ViewLinesHeight() - v.scrollMargin()
+
+	if v.CanScrollPastBottom {
+		fullHeight += height
+	}
+
+	if height < 2 || height >= fullHeight {
+		return false, 0, 0
+	}
+
+	originY := v.OriginY()
+	scrollbarStart, scrollbarHeight := calcScrollbar(fullHeight, height, originY, height-1)
+	top := v.y0 + 1
+	realScrollbarStart := top + scrollbarStart
+	realScrollbarEnd := realScrollbarStart + scrollbarHeight
+
+	return true, realScrollbarStart, realScrollbarEnd
+}
+
+func cornerRune(index byte) rune {
+	return []rune{' ', '│', '│', '│', '─', '┘', '┐', '┤', '─', '└', '┌', '├', '├', '┴', '┬', '┼'}[index]
+}
+
+// cornerCustomRune returns rune from `v.FrameRunes` slice. If the length of slice is less than 11
+// all the missing runes will be translated to the default `cornerRune()`
+func cornerCustomRune(v *View, index byte) rune {
+	// Translate `cornerRune()` index
+	//  0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
+	// ' ', '│', '│', '│', '─', '┘', '┐', '┤', '─', '└', '┌', '├', '├', '┴', '┬', '┼'
+	// into `FrameRunes` index
+	//  0    1    2    3    4    5    6    7    8    9    10
+	// '─', '│', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼'
+	switch index {
+	case 1, 2, 3:
+		return v.FrameRunes[1]
+	case 4, 8:
+		return v.FrameRunes[0]
+	case 5:
+		return v.FrameRunes[5]
+	case 6:
+		return v.FrameRunes[3]
+	case 7:
+		if len(v.FrameRunes) < 8 {
+			break
+		}
+		return v.FrameRunes[7]
+	case 9:
+		return v.FrameRunes[4]
+	case 10:
+		return v.FrameRunes[2]
+	case 11, 12:
+		if len(v.FrameRunes) < 7 {
+			break
+		}
+		return v.FrameRunes[6]
+	case 13:
+		if len(v.FrameRunes) < 10 {
+			break
+		}
+		return v.FrameRunes[9]
+	case 14:
+		if len(v.FrameRunes) < 9 {
+			break
+		}
+		return v.FrameRunes[8]
+	case 15:
+		if len(v.FrameRunes) < 11 {
+			break
+		}
+		return v.FrameRunes[10]
+	default:
+		return ' ' // cornerRune(0)
+	}
+	return cornerRune(index)
+}
+
+func corner(v *View, directions byte) rune {
+	index := v.Overlaps | directions
+	if len(v.FrameRunes) >= 6 {
+		return cornerCustomRune(v, index)
+	}
+	return cornerRune(index)
+}
+
+// drawFrameCorners draws the corners of the view.
+func (g *Gui) drawFrameCorners(v *View, fgColor, bgColor Attribute) error {
+	if v.y0 == v.y1 {
+		if !g.SupportOverlaps && v.x0 >= 0 && v.x1 >= 0 && v.y0 >= 0 && v.x0 < g.maxX && v.x1 < g.maxX && v.y0 < g.maxY {
+			if err := g.SetRune(v.x0, v.y0, '╶', fgColor, bgColor); err != nil {
+				return err
+			}
+			if err := g.SetRune(v.x1, v.y0, '╴', fgColor, bgColor); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	runeTL, runeTR, runeBL, runeBR := '┌', '┐', '└', '┘'
+	if len(v.FrameRunes) >= 6 {
+		runeTL, runeTR, runeBL, runeBR = v.FrameRunes[2], v.FrameRunes[3], v.FrameRunes[4], v.FrameRunes[5]
+	}
+	if g.SupportOverlaps {
+		runeTL = corner(v, BOTTOM|RIGHT)
+		runeTR = corner(v, BOTTOM|LEFT)
+		runeBL = corner(v, TOP|RIGHT)
+		runeBR = corner(v, TOP|LEFT)
+	}
+
+	corners := []struct {
+		x, y int
+		ch   rune
+	}{{v.x0, v.y0, runeTL}, {v.x1, v.y0, runeTR}, {v.x0, v.y1, runeBL}, {v.x1, v.y1, runeBR}}
+
+	for _, c := range corners {
+		if c.x >= 0 && c.y >= 0 && c.x < g.maxX && c.y < g.maxY {
+			if err := g.SetRune(c.x, c.y, c.ch, fgColor, bgColor); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// drawTitle draws the title of the view.
+func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
+	if v.y0 < 0 || v.y0 >= g.maxY {
+		return nil
+	}
+
+	tabs := v.Tabs
+	prefix := v.TitlePrefix
+	if prefix != "" {
+		if len(v.FrameRunes) > 0 {
+			prefix += string(v.FrameRunes[0])
+		} else {
+			prefix += "─"
+		}
+	}
+	separator := " - "
+	charIndex := 0
+	currentTabStart := -1
+	currentTabEnd := -1
+	if len(tabs) == 0 {
+		tabs = []string{v.Title}
+	} else {
+		for i, tab := range tabs {
+			if i == v.TabIndex {
+				currentTabStart = charIndex
+				currentTabEnd = charIndex + len(tab)
+				break
+			}
+			charIndex += len(tab)
+			if i < len(tabs)-1 {
+				charIndex += len(separator)
+			}
+		}
+	}
+
+	str := strings.Join(tabs, separator)
+
+	x := v.x0 + 2
+	for _, ch := range prefix {
+		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
+			return err
+		}
+		x += uniseg.StringWidth(string(ch))
+	}
+	for i, ch := range str {
+		if x < 0 {
+			continue
+		} else if x > v.x1-2 || x >= g.maxX {
+			break
+		}
+		currentFgColor := fgColor
+		currentBgColor := bgColor
+		// if you are the current view and you have multiple tabs, de-highlight the non-selected tabs
+		if v == g.currentView && len(v.Tabs) > 0 {
+			currentFgColor = v.FgColor
+			currentBgColor = v.BgColor
+		}
+
+		if i >= currentTabStart && i <= currentTabEnd {
+			currentFgColor = v.SelFgColor
+			if v != g.currentView {
+				currentFgColor &= ^AttrBold
+			}
+		}
+		if err := g.SetRune(x, v.y0, ch, currentFgColor, currentBgColor); err != nil {
+			return err
+		}
+		x += uniseg.StringWidth(string(ch))
+	}
+	return nil
+}
+
+// drawSubtitle draws the subtitle of the view.
+func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
+	if v.y0 < 0 || v.y0 >= g.maxY {
+		return nil
+	}
+
+	start := v.x1 - 5 - uniseg.StringWidth(v.Subtitle)
+	if start < v.x0 {
+		return nil
+	}
+	x := start
+	for _, ch := range v.Subtitle {
+		if x >= v.x1 {
+			break
+		}
+		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
+			return err
+		}
+		x += uniseg.StringWidth(string(ch))
+	}
+	return nil
+}
+
+// drawListFooter draws the footer of a list view, showing something like '1 of 10'
+func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
+	if len(v.lines) == 0 {
+		return nil
+	}
+
+	message := v.Footer
+
+	if v.y1 < 0 || v.y1 >= g.maxY {
+		return nil
+	}
+
+	start := v.x1 - 1 - uniseg.StringWidth(message)
+	if start < v.x0 {
+		return nil
+	}
+	x := start
+	for _, ch := range message {
+		if x >= v.x1 {
+			break
+		}
+		if err := g.SetRune(x, v.y1, ch, fgColor, bgColor); err != nil {
+			return err
+		}
+		x += uniseg.StringWidth(string(ch))
+	}
+	return nil
+}
+
+// flush updates the gui, re-drawing frames and buffers.
+func (g *Gui) flush() error {
+	// pretty sure we don't need this, but keeping it here in case we get weird visual artifacts
+	// g.clear(g.FgColor, g.BgColor)
+
+	maxX, maxY := Screen.Size()
+	// if GUI's size has changed, we need to redraw all views
+	if maxX != g.maxX || maxY != g.maxY {
+		for _, v := range g.views {
+			v.clearViewLines()
+		}
+	}
+	g.maxX, g.maxY = maxX, maxY
+
+	for _, m := range g.managers {
+		if err := m.Layout(g); err != nil {
+			return err
+		}
+	}
+	for _, v := range g.views {
+		if err := g.draw(v); err != nil {
+			return err
+		}
+	}
+
+	Screen.Show()
+	return nil
+}
+
+func (g *Gui) ForceLayoutAndRedraw() error {
+	return g.flush()
+}
+
+// force redrawing one or more views outside of the normal main loop. Useful during longer
+// operations that block the main thread, to update a spinner in a status view.
+func (g *Gui) ForceRedrawViews(views ...*View) error {
+	for _, m := range g.managers {
+		if err := m.Layout(g); err != nil {
+			return err
+		}
+	}
+
+	for _, v := range views {
+		v.draw()
+	}
+
+	Screen.Show()
+	return nil
+}
+
+// draw manages the cursor and calls the draw function of a view.
+func (g *Gui) draw(v *View) error {
+	if g.suspended {
+		return nil
+	}
+
+	if !v.Visible || v.y1 < v.y0 || v.x1 < v.x0 {
+		return nil
+	}
+
+	if g.Cursor {
+		if curview := g.currentView; curview != nil {
+			vMaxX, vMaxY := curview.InnerSize()
+			if curview.cx >= 0 && curview.cx < vMaxX && curview.cy >= 0 && curview.cy < vMaxY {
+				cx, cy := curview.x0+curview.cx+1, curview.y0+curview.cy+1
+				Screen.ShowCursor(cx, cy)
+			} else {
+				Screen.HideCursor()
+			}
+		}
+	} else {
+		Screen.HideCursor()
+	}
+
+	v.draw()
+
+	if v.Frame {
+		var fgColor, bgColor, frameColor Attribute
+		if g.Highlight && v == g.currentView {
+			fgColor = g.SelFgColor
+			bgColor = g.SelBgColor
+			frameColor = g.SelFrameColor
+		} else {
+			bgColor = g.BgColor
+			if v.TitleColor != ColorDefault {
+				fgColor = v.TitleColor
+			} else {
+				fgColor = g.FgColor
+			}
+			if v.FrameColor != ColorDefault {
+				frameColor = v.FrameColor
+			} else {
+				frameColor = g.FrameColor
+			}
+		}
+
+		if err := g.drawFrameEdges(v, frameColor, bgColor); err != nil {
+			return err
+		}
+		if err := g.drawFrameCorners(v, frameColor, bgColor); err != nil {
+			return err
+		}
+		if v.Title != "" || len(v.Tabs) > 0 {
+			if err := g.drawTitle(v, fgColor, bgColor); err != nil {
+				return err
+			}
+		}
+		if v.Subtitle != "" {
+			if err := g.drawSubtitle(v, fgColor, bgColor); err != nil {
+				return err
+			}
+		}
+		if v.Footer != "" && g.ShowListFooter {
+			if err := g.drawListFooter(v, fgColor, bgColor); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// onKey manages key-press events. A keybinding handler is called when
+// a key-press or mouse event satisfies a configured keybinding. Furthermore,
+// currentView's internal buffer is modified if currentView.Editable is true.
+func (g *Gui) onKey(ev *GocuiEvent) error {
+	switch ev.Type {
+	case eventKey:
+
+		// newlines. I actually don't quite understand why, because from reading
+		// When pasting text in Ghostty, it sends us '\r' (which is delivered as
+		// ctrl-j by tcell) instead of '\n' for newlines. I actually don't quite
+		// understand why, because from reading Ghostty's source code (e.g.
+		// https://github.com/ghostty-org/ghostty/commit/010338354a0) it does
+		// this conversion only for non-bracketed paste mode, but I'm seeing it
+		// in bracketed paste mode. Whatever I'm missing here, converting '\r'
+		// back to '\n' fixes pasting multi-line text from Ghostty, and doesn't
+		// seem harmful for other terminal emulators.
+		if g.IsPasting && ev.Key.Equals(NewKeyStrMod("j", ModCtrl)) {
+			ev.Key = NewKeyName(KeyEnter)
+		}
+
+		err := g.execKeybindings(g.currentView, ev)
+		if err != nil {
+			return err
+		}
+
+	case eventMouse:
+		mx, my := ev.MouseX, ev.MouseY
+		v, err := g.VisibleViewByPosition(mx, my)
+		if err != nil {
+			break
+		}
+
+		// newCx and newCy are relative to the view port, i.e. to the visible area of the view
+		newCx := mx - v.x0 - 1
+		newCy := my - v.y0 - 1
+		// newX and newY are relative to the view's content, independent of its scroll position
+		newX := newCx + v.ox
+		newY := newCy + v.oy
+		// if view is editable don't go further than the furthest character for that line
+		if v.Editable {
+			if newY < 0 {
+				newY = 0
+				newCy = -v.oy
+			} else if newY >= len(v.lines) {
+				newY = len(v.lines) - 1
+				newCy = newY - v.oy
+			}
+
+			visibleLineWidth := 0
+			for _, c := range v.lines[newY] {
+				visibleLineWidth += c.width
+			}
+			if visibleLineWidth < newX {
+				newX = visibleLineWidth
+				newCx = visibleLineWidth - v.ox
+			}
+		}
+
+		if ev.Key.KeyName() == MouseLeft && (ev.Key.Mod()&ModMotion) == 0 && !v.Editable && g.openHyperlink != nil {
+			if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
+				if link := v.viewLines[newY].line[newX].hyperlink; link != "" {
+					return g.openHyperlink(link, v.name)
+				}
+			}
+		}
+
+		if g.ShouldHandleMouseEvent != nil {
+			if !g.ShouldHandleMouseEvent(v, ev.Key.KeyName()) {
+				// Give clients a chance to reject clicks, for example clicks in inactive views
+				// when a modal panel is open.
+				break
+			}
+		}
+
+		if !IsMouseScrollKey(ev.Key.KeyName()) {
+			v.SetCursor(newCx, newCy)
+			if v.Editable {
+				v.TextArea.SetCursor2D(newX, newY)
+
+				// SetCursor2D might have adjusted the text area's cursor to the
+				// left to move left from a soft line break, so we need to
+				// update the view's cursor to match the text area's cursor.
+				cX, _ := v.TextArea.GetCursorXY()
+				v.SetCursorX(cX)
+			}
+		}
+
+		if v.Frame && my == v.y0 {
+			if len(v.Tabs) > 0 {
+				tabIndex := v.GetClickedTabIndex(mx - v.x0)
+
+				if tabIndex >= 0 {
+					for _, binding := range g.tabClickBindings {
+						if binding.viewName == v.Name() {
+							return binding.handler(tabIndex)
+						}
+					}
+				}
+			}
+		}
+
+		if IsMouseKey(ev.Key) {
+			isDoubleClick := g.recordClickInfo(newX, newY, ev.Key.KeyName(), v)
+			opts := ViewMouseBindingOpts{X: newX, Y: newY, Key: ev.Key.KeyName(), IsDoubleClick: isDoubleClick}
+			matched, err := g.execMouseKeybindings(v, ev, opts)
+			if err != nil {
+				return err
+			}
+			if matched {
+				return nil
+			}
+		}
+
+		if err := g.execKeybindings(v, ev); err != nil {
+			return err
+		}
+
+	case eventMouseMove:
+		mx, my := ev.MouseX, ev.MouseY
+		v, err := g.VisibleViewByPosition(mx, my)
+		if err != nil {
+			break
+		}
+		if g.lastHoverView != nil && g.lastHoverView != v {
+			g.lastHoverView.lastHoverPosition = nil
+			g.lastHoverView.hoveredHyperlink = nil
+		}
+		g.lastHoverView = v
+		v.onMouseMove(mx, my)
+
+	default:
+	}
+
+	return nil
+}
+
+// remember the information for this click, and return true if it was a double click
+func (g *Gui) recordClickInfo(x, y int, key KeyName, v *View) bool {
+	if IsMouseScrollKey(key) {
+		g.lastClick = nil
+		return false
+	}
+
+	clickInfo := &clickInfo{
+		x:        x,
+		y:        y,
+		key:      key,
+		viewName: v.Name(),
+		time:     time.Now(),
+	}
+
+	isDoubleClick := g.lastClick != nil &&
+		clickInfo.x == g.lastClick.x &&
+		clickInfo.y == g.lastClick.y &&
+		clickInfo.key == g.lastClick.key &&
+		clickInfo.viewName == g.lastClick.viewName &&
+		clickInfo.time.Before(g.lastClick.time.Add(DOUBLE_CLICK_THRESHOLD))
+
+	g.lastClick = clickInfo
+	return isDoubleClick
+}
+
+func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBindingOpts) (bool, error) {
+	isMatch := func(binding *ViewMouseBinding) bool {
+		return binding.ViewName == view.Name() &&
+			ev.Key.KeyName() == binding.Key &&
+			ev.Key.Mod() == binding.Modifier
+	}
+
+	// first pass looks for ones that match the focused view
+	for _, binding := range g.viewMouseBindings {
+		if isMatch(binding) && binding.FocusedView != "" && binding.FocusedView == g.currentView.Name() {
+			if err := binding.Handler(opts); !errors.Is(err, ErrKeybindingNotHandled) {
+				return true, err
+			}
+		}
+	}
+
+	for _, binding := range g.viewMouseBindings {
+		if isMatch(binding) && binding.FocusedView == "" {
+			return true, binding.Handler(opts)
+		}
+	}
+
+	return false, nil
+}
+
+func IsMouseKey(key Key) bool {
+	switch key.KeyName() {
+	case
+		MouseLeft,
+		MouseRight,
+		MouseMiddle,
+		MouseRelease,
+		MouseWheelUp,
+		MouseWheelDown,
+		MouseWheelLeft,
+		MouseWheelRight:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsMouseScrollKey(keyName KeyName) bool {
+	switch keyName {
+	case
+		MouseWheelUp,
+		MouseWheelDown,
+		MouseWheelLeft,
+		MouseWheelRight:
+		return true
+	default:
+		return false
+	}
+}
+
+// execKeybindings executes the keybinding handlers that match the passed view
+// and event.
+func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
+	var globalKb *keybinding
+	var matchingParentViewKb *keybinding
+
+	if g.IsPasting && v != nil && !v.Editable {
+		return nil
+	}
+
+	// if we're searching, and we've hit n/N/Esc, we ignore the default keybinding
+	if v != nil && v.IsSearching() {
+		if ev.Key.Equals(g.NextSearchMatchKey) {
+			return v.gotoNextMatch()
+		} else if ev.Key.Equals(g.PrevSearchMatchKey) {
+			return v.gotoPreviousMatch()
+		} else if ev.Key.Equals(g.SearchEscapeKey) {
+			v.searcher.clearSearch()
+			if g.OnSearchEscape != nil {
+				if err := g.OnSearchEscape(); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}
+
+	var err error
+
+	for _, kb := range g.keybindings {
+		if kb.handler == nil {
+			continue
+		}
+		if !kb.matchKeypress(ev.Key) {
+			continue
+		}
+		if g.matchView(v, kb) {
+			err = g.execKeybinding(v, kb)
+			if !errors.Is(err, ErrKeybindingNotHandled) {
+				return err
+			}
+
+			matchingParentViewKb = nil
+			break
+		}
+		if v != nil && g.matchView(v.ParentView, kb) {
+			matchingParentViewKb = kb
+		}
+		if globalKb == nil && kb.viewName == "" {
+			globalKb = kb
+		}
+	}
+	if matchingParentViewKb != nil {
+		err = g.execKeybinding(v.ParentView, matchingParentViewKb)
+		if !errors.Is(err, ErrKeybindingNotHandled) {
+			return err
+		}
+	}
+
+	if g.currentView != nil && g.currentView.Editable && g.currentView.Editor != nil {
+		matched := g.currentView.Editor.Edit(g.currentView, ev.Key)
+		if matched {
+			return nil
+		}
+	}
+
+	if globalKb != nil {
+		err = g.execKeybinding(v, globalKb)
+	}
+	return err
+}
+
+// execKeybinding executes a given keybinding
+func (g *Gui) execKeybinding(v *View, kb *keybinding) error {
+	if err := kb.handler(g, v); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (g *Gui) onFocus(ev *GocuiEvent) error {
+	if g.focusHandler != nil {
+		return g.focusHandler(ev.Focused)
+	}
+
+	return nil
+}
+
+func (g *Gui) Suspend() error {
+	g.suspendedMutex.Lock()
+	defer g.suspendedMutex.Unlock()
+
+	if g.suspended {
+		return errors.New("Already suspended")
+	}
+
+	g.suspended = true
+
+	return g.screen.Suspend()
+}
+
+func (g *Gui) Resume() error {
+	g.suspendedMutex.Lock()
+	defer g.suspendedMutex.Unlock()
+
+	if !g.suspended {
+		return errors.New("Cannot resume because we are not suspended")
+	}
+
+	g.suspended = false
+
+	return g.screen.Resume()
+}
+
+// matchView returns if the keybinding matches the current view (and the view's context)
+func (g *Gui) matchView(v *View, kb *keybinding) bool {
+	// if the user is typing in a field, ignore char keys
+	if v == nil {
+		return false
+	}
+	if v.Editable && kb.key.Str() != "" && kb.key.Mod() == 0 {
+		return false
+	}
+	if kb.viewName != v.name {
+		return false
+	}
+	return true
+}
+
+// returns a string representation of the current state of the gui, character-for-character
+func (g *Gui) Snapshot() string {
+	if g.screen == nil {
+		return "<no screen rendered>"
+	}
+
+	width, height := g.screen.Size()
+
+	builder := &strings.Builder{}
+
+	for y := range height {
+		for x := 0; x < width; x++ {
+			char, _, charWidth := g.screen.Get(x, y)
+			if charWidth == 0 {
+				continue
+			}
+			builder.WriteString(char)
+			if charWidth > 1 {
+				x += charWidth - 1
+			}
+		}
+		builder.WriteRune('\n')
+	}
+
+	return builder.String()
+}
+
+func (g *Gui) SetEditKeybindings(moveWordLeft, moveWordRight, backspaceWord, forwardDeleteWord Key) {
+	moveWordLeftKeybinding = moveWordLeft
+	moveWordRightKeybinding = moveWordRight
+	backspaceWordKeybinding = backspaceWord
+	forwardDeleteWordKeybinding = forwardDeleteWord
+}

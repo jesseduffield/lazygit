@@ -3,7 +3,7 @@ package controllers
 import (
 	"fmt"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -27,7 +27,7 @@ func NewPromptController(
 func (self *PromptController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:             gocui.KeyEnter,
+			Key:             gocui.NewKeyName(gocui.KeyEnter),
 			Handler:         func() error { return self.context().State.OnConfirm() },
 			Description:     self.c.Tr.Confirm,
 			DisplayOnScreen: true,

@@ -3,8 +3,8 @@ package controllers
 import (
 	"errors"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -130,7 +130,7 @@ func (self *CommitMessageController) handleTogglePanel() error {
 		// switch to the description panel.
 		view := self.context().GetView()
 		for range 4 {
-			view.Editor.Edit(view, gocui.KeySpace, ' ', 0)
+			view.Editor.Edit(view, gocui.NewKeyRune(' '))
 		}
 		return nil
 	}

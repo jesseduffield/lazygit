@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -671,14 +671,14 @@ func (self *FilesController) handleNonInlineConflict(file *models.File) error {
 		OnPress: func() error {
 			return handle(self.c.Git().WorkingTree.StageFile, self.c.Tr.Actions.ResolveConflictByKeepingFile)
 		},
-		Key: 'k',
+		Key: gocui.NewKeyRune('k'),
 	}
 	deleteItem := &types.MenuItem{
 		Label: self.c.Tr.MergeConflictDeleteFile,
 		OnPress: func() error {
 			return handle(self.c.Git().WorkingTree.RemoveConflictedFile, self.c.Tr.Actions.ResolveConflictByDeletingFile)
 		},
-		Key: 'd',
+		Key: gocui.NewKeyRune('d'),
 	}
 	items := []*types.MenuItem{}
 	switch file.ShortStatus {
@@ -856,7 +856,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 					}
 					return nil
 				},
-				Key: 'i',
+				Key: gocui.NewKeyRune('i'),
 			},
 			{
 				LabelColumns: []string{self.c.Tr.ExcludeFile},
@@ -866,7 +866,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 					}
 					return nil
 				},
-				Key: 'e',
+				Key: gocui.NewKeyRune('e'),
 			},
 		},
 	})
@@ -950,7 +950,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayStaged)
 				},
-				Key:    's',
+				Key:    gocui.NewKeyRune('s'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayStaged),
 			},
 			{
@@ -958,7 +958,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayUnstaged)
 				},
-				Key:    'u',
+				Key:    gocui.NewKeyRune('u'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUnstaged),
 			},
 			{
@@ -966,7 +966,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayTracked)
 				},
-				Key:    't',
+				Key:    gocui.NewKeyRune('t'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayTracked),
 			},
 			{
@@ -974,7 +974,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayUntracked)
 				},
-				Key:    'T',
+				Key:    gocui.NewKeyRune('T'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUntracked),
 			},
 			{
@@ -982,7 +982,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayAll)
 				},
-				Key:    'r',
+				Key:    gocui.NewKeyRune('r'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayAll),
 			},
 		},
@@ -1092,7 +1092,7 @@ func (self *FilesController) createStashMenu() error {
 					}
 					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashAllChanges)
 				},
-				Key: 'a',
+				Key: gocui.NewKeyRune('a'),
 			},
 			{
 				Label: self.c.Tr.StashAllChangesKeepIndex,
@@ -1103,14 +1103,14 @@ func (self *FilesController) createStashMenu() error {
 					// if there are no staged files it behaves the same as Stash.Save
 					return self.handleStashSave(self.c.Git().Stash.StashAndKeepIndex, self.c.Tr.Actions.StashAllChangesKeepIndex)
 				},
-				Key: 'i',
+				Key: gocui.NewKeyRune('i'),
 			},
 			{
 				Label: self.c.Tr.StashIncludeUntrackedChanges,
 				OnPress: func() error {
 					return self.handleStashSave(self.c.Git().Stash.StashIncludeUntrackedChanges, self.c.Tr.Actions.StashIncludeUntrackedChanges)
 				},
-				Key: 'U',
+				Key: gocui.NewKeyRune('U'),
 			},
 			{
 				Label: self.c.Tr.StashStagedChanges,
@@ -1121,7 +1121,7 @@ func (self *FilesController) createStashMenu() error {
 					}
 					return self.handleStashSave(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
 				},
-				Key: 's',
+				Key: gocui.NewKeyRune('s'),
 			},
 			{
 				Label: self.c.Tr.StashUnstagedChanges,
@@ -1135,7 +1135,7 @@ func (self *FilesController) createStashMenu() error {
 					// ordinary stash
 					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashUnstagedChanges)
 				},
-				Key: 'u',
+				Key: gocui.NewKeyRune('u'),
 			},
 		},
 	})
@@ -1182,7 +1182,7 @@ func (self *FilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            'n',
+		Key:            gocui.NewKeyRune('n'),
 	}
 	copyRelativePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyRelativeFilePath,
@@ -1194,7 +1194,7 @@ func (self *FilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            'p',
+		Key:            gocui.NewKeyRune('p'),
 	}
 	copyAbsolutePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyAbsoluteFilePath,
@@ -1210,7 +1210,7 @@ func (self *FilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            'P',
+		Key:            gocui.NewKeyRune('P'),
 	}
 	copyFileDiffItem := &types.MenuItem{
 		Label:   self.c.Tr.CopySelectedDiff,
@@ -1236,7 +1236,7 @@ func (self *FilesController) openCopyMenu() error {
 				return nil
 			},
 		))(),
-		Key: 's',
+		Key: gocui.NewKeyRune('s'),
 	}
 	copyAllDiff := &types.MenuItem{
 		Label:   self.c.Tr.CopyAllFilesDiff,
@@ -1261,7 +1261,7 @@ func (self *FilesController) openCopyMenu() error {
 				return nil
 			},
 		)(),
-		Key: 'a',
+		Key: gocui.NewKeyRune('a'),
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
@@ -1534,7 +1534,7 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
 			return nil
 		},
-		Key: 'u',
+		Key: gocui.NewKeyRune('u'),
 		Tooltip: utils.ResolvePlaceholderString(
 			self.c.Tr.DiscardUnstagedTooltip,
 			map[string]string{

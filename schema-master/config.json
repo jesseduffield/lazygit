@@ -375,7 +375,7 @@
         },
         "ignoreWhitespaceInDiffView": {
           "type": "boolean",
-          "description": "If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `\u003cc-w\u003e`.",
+          "description": "If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `\u003cctrl+w\u003e`.",
           "default": false
         },
         "diffContextSize": {
@@ -874,7 +874,7 @@
         },
         "copyPullRequestURL": {
           "type": "string",
-          "default": "\u003cc-y\u003e"
+          "default": "\u003cctrl+y\u003e"
         },
         "checkoutBranchByName": {
           "type": "string",
@@ -954,7 +954,7 @@
       "properties": {
         "commitMenu": {
           "type": "string",
-          "default": "\u003cc-o\u003e"
+          "default": "\u003cctrl+o\u003e"
         }
       },
       "additionalProperties": false,
@@ -996,11 +996,11 @@
         },
         "moveDownCommit": {
           "type": "string",
-          "default": "\u003cc-j\u003e"
+          "default": "\u003calt+down\u003e"
         },
         "moveUpCommit": {
           "type": "string",
-          "default": "\u003cc-k\u003e"
+          "default": "\u003calt+up\u003e"
         },
         "amendToCommit": {
           "type": "string",
@@ -1040,7 +1040,7 @@
         },
         "resetCherryPick": {
           "type": "string",
-          "default": "\u003cc-R\u003e"
+          "default": "\u003cctrl+r\u003e"
         },
         "copyCommitAttributeToClipboard": {
           "type": "string",
@@ -1048,7 +1048,7 @@
         },
         "openLogMenu": {
           "type": "string",
-          "default": "\u003cc-l\u003e"
+          "default": "\u003cctrl+l\u003e"
         },
         "openInBrowser": {
           "type": "string",
@@ -1137,7 +1137,7 @@
         },
         "findBaseCommitForFixup": {
           "type": "string",
-          "default": "\u003cc-f\u003e"
+          "default": "\u003cctrl+f\u003e"
         },
         "confirmDiscard": {
           "type": "string",
@@ -1181,7 +1181,7 @@
         },
         "openStatusFilter": {
           "type": "string",
-          "default": "\u003cc-b\u003e"
+          "default": "\u003cctrl+b\u003e"
         },
         "copyFileInfoToClipboard": {
           "type": "string",
@@ -1279,11 +1279,11 @@
         },
         "quit-alt1": {
           "type": "string",
-          "default": "\u003cc-c\u003e"
+          "default": "\u003cctrl+c\u003e"
         },
         "suspendApp": {
           "type": "string",
-          "default": "\u003cc-z\u003e"
+          "default": "\u003cctrl+z\u003e"
         },
         "return": {
           "type": "string",
@@ -1351,11 +1351,11 @@
         },
         "rangeSelectDown": {
           "type": "string",
-          "default": "\u003cs-down\u003e"
+          "default": "\u003cshift+down\u003e"
         },
         "rangeSelectUp": {
           "type": "string",
-          "default": "\u003cs-up\u003e"
+          "default": "\u003cshift+up\u003e"
         },
         "prevBlock": {
           "type": "string",
@@ -1410,6 +1410,26 @@
           "type": "string",
           "default": "/"
         },
+        "moveWordLeft": {
+          "type": "string",
+          "description": "\u003calt+left\u003e on Mac",
+          "default": "\u003cctrl+left\u003e"
+        },
+        "moveWordRight": {
+          "type": "string",
+          "description": "\u003calt+right\u003e on Mac",
+          "default": "\u003cctrl+right\u003e"
+        },
+        "backspaceWord": {
+          "type": "string",
+          "description": "\u003calt+backspace\u003e on Mac",
+          "default": "\u003cctrl+backspace\u003e"
+        },
+        "forwardDeleteWord": {
+          "type": "string",
+          "description": "\u003calt+delete\u003e on Mac",
+          "default": "\u003cctrl+delete\u003e"
+        },
         "optionMenu": {
           "type": "string",
           "default": "\u003cdisabled\u003e"
@@ -1440,11 +1460,12 @@
         },
         "confirmInEditor": {
           "type": "string",
-          "default": "\u003ca-enter\u003e"
+          "description": "\u003cmeta+enter\u003e on Mac",
+          "default": "\u003cctrl+enter\u003e"
         },
         "confirmInEditor-alt": {
           "type": "string",
-          "default": "\u003cc-s\u003e"
+          "default": "\u003cctrl+s\u003e"
         },
         "remove": {
           "type": "string",
@@ -1480,11 +1501,11 @@
         },
         "scrollUpMain-alt2": {
           "type": "string",
-          "default": "\u003cc-u\u003e"
+          "default": "\u003cctrl+u\u003e"
         },
         "scrollDownMain-alt2": {
           "type": "string",
-          "default": "\u003cc-d\u003e"
+          "default": "\u003cctrl+d\u003e"
         },
         "executeShellCommand": {
           "type": "string",
@@ -1510,7 +1531,7 @@
         },
         "createPatchOptionsMenu": {
           "type": "string",
-          "default": "\u003cc-p\u003e"
+          "default": "\u003cctrl+p\u003e"
         },
         "nextTab": {
           "type": "string",
@@ -1542,7 +1563,7 @@
         },
         "filteringMenu": {
           "type": "string",
-          "default": "\u003cc-s\u003e"
+          "default": "\u003cctrl+s\u003e"
         },
         "diffingMenu": {
           "type": "string",
@@ -1550,15 +1571,15 @@
         },
         "diffingMenu-alt": {
           "type": "string",
-          "default": "\u003cc-e\u003e"
+          "default": "\u003cctrl+e\u003e"
         },
         "copyToClipboard": {
           "type": "string",
-          "default": "\u003cc-o\u003e"
+          "default": "\u003cctrl+o\u003e"
         },
         "openRecentRepos": {
           "type": "string",
-          "default": "\u003cc-r\u003e"
+          "default": "\u003cctrl+r\u003e"
         },
         "submitEditorText": {
           "type": "string",
@@ -1570,7 +1591,7 @@
         },
         "toggleWhitespaceInDiffView": {
           "type": "string",
-          "default": "\u003cc-w\u003e"
+          "default": "\u003cctrl+w\u003e"
         },
         "increaseContextInDiffView": {
           "type": "string",
@@ -1590,7 +1611,7 @@
         },
         "openDiffTool": {
           "type": "string",
-          "default": "\u003cc-t\u003e"
+          "default": "\u003cctrl+t\u003e"
         }
       },
       "additionalProperties": false,
@@ -1616,7 +1637,7 @@
             "topo-order",
             "default"
           ],
-          "description": "One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'\n'topo-order' makes it easier to read the git log graph, but commits may not appear chronologically. See https://git-scm.com/docs/\n\nCan be changed from within Lazygit with `Log menu -\u003e Commit sort order` (`\u003cc-l\u003e` in the commits window by default).",
+          "description": "One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'\n'topo-order' makes it easier to read the git log graph, but commits may not appear chronologically. See https://git-scm.com/docs/\n\nCan be changed from within Lazygit with `Log menu -\u003e Commit sort order` (`\u003cctrl+l\u003e` in the commits window by default).",
           "default": "topo-order"
         },
         "showGraph": {
@@ -1626,7 +1647,7 @@
             "never",
             "when-maximised"
           ],
-          "description": "This determines whether the git graph is rendered in the commits panel\nOne of 'always' | 'never' | 'when-maximised'\n\nCan be toggled from within lazygit with `Log menu -\u003e Show git graph` (`\u003cc-l\u003e` in the commits window by default).",
+          "description": "This determines whether the git graph is rendered in the commits panel\nOne of 'always' | 'never' | 'when-maximised'\n\nCan be toggled from within lazygit with `Log menu -\u003e Show git graph` (`\u003cctrl+l\u003e` in the commits window by default).",
           "default": "always"
         },
         "showWholeGraph": {

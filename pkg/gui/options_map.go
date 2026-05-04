@@ -5,9 +5,10 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -40,7 +41,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 	globalBindings := self.c.Contexts().Global.GetKeybindings(self.c.KeybindingsOpts())
 
 	currentContextKeys := set.NewFromSlice(
-		lo.Map(currentContextBindings, func(binding *types.Binding, _ int) types.Key {
+		lo.Map(currentContextBindings, func(binding *types.Binding, _ int) gocui.Key {
 			return binding.Key
 		}))
 
@@ -59,7 +60,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 		}
 
 		return bindingInfo{
-			key:         keybindings.LabelFromKey(binding.Key),
+			key:         config.LabelForKey(binding.Key),
 			description: binding.GetShortDescription(),
 			style:       displayStyle,
 		}
@@ -69,7 +70,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 	if currentContext.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
 		if self.c.Modes().CherryPicking.Active() {
 			optionsMap = utils.Prepend(optionsMap, bindingInfo{
-				key:         keybindings.Label(self.c.KeybindingsOpts().Config.Commits.PasteCommits),
+				key:         self.c.KeybindingsOpts().Config.Commits.PasteCommits,
 				description: self.c.Tr.PasteCommits,
 				style:       style.FgCyan,
 			})
@@ -77,7 +78,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 
 		if self.c.Model().BisectInfo.Started() {
 			optionsMap = utils.Prepend(optionsMap, bindingInfo{
-				key:         keybindings.Label(self.c.KeybindingsOpts().Config.Commits.ViewBisectOptions),
+				key:         self.c.KeybindingsOpts().Config.Commits.ViewBisectOptions,
 				description: self.c.Tr.ViewBisectOptions,
 				style:       style.FgGreen,
 			})
@@ -87,7 +88,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 	// Mode-specific global keybindings
 	if state := self.c.Model().WorkingTreeStateAtLastCommitRefresh; state.Any() {
 		optionsMap = utils.Prepend(optionsMap, bindingInfo{
-			key:         keybindings.Label(self.c.KeybindingsOpts().Config.Universal.CreateRebaseOptionsMenu),
+			key:         self.c.KeybindingsOpts().Config.Universal.CreateRebaseOptionsMenu,
 			description: state.OptionsMapTitle(self.c.Tr),
 			style:       style.FgYellow,
 		})
@@ -95,7 +96,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 
 	if self.c.Git().Patch.PatchBuilder.Active() {
 		optionsMap = utils.Prepend(optionsMap, bindingInfo{
-			key:         keybindings.Label(self.c.KeybindingsOpts().Config.Universal.CreatePatchOptionsMenu),
+			key:         self.c.KeybindingsOpts().Config.Universal.CreatePatchOptionsMenu,
 			description: self.c.Tr.ViewPatchOptions,
 			style:       style.FgYellow,
 		})

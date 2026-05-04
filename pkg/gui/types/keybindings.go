@@ -1,11 +1,9 @@
 package types
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
-
-type Key any // FIXME: find out how to get `gocui.Key | rune`
 
 // Binding - a keybinding mapping a key and modifier to a handler. The keypress
 // is only handled if the given view has focus, or handled globally if the view
@@ -13,7 +11,7 @@ type Key any // FIXME: find out how to get `gocui.Key | rune`
 type Binding struct {
 	ViewName    string
 	Handler     func() error
-	Key         Key
+	Key         gocui.Key
 	Modifier    gocui.Modifier
 	Description string
 	// DescriptionFunc is used instead of Description if non-nil, and is useful for dynamic

@@ -299,7 +299,7 @@ type GitConfig struct {
 	BranchLogCmd string `yaml:"branchLogCmd"`
 	// Commands used to display git log of all branches in the main window, they will be cycled in order of appearance (array of strings)
 	AllBranchesLogCmds []string `yaml:"allBranchesLogCmds"`
-	// If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `<c-w>`.
+	// If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `<ctrl+w>`.
 	IgnoreWhitespaceInDiffView bool `yaml:"ignoreWhitespaceInDiffView"`
 	// The number of lines of context to show around each diff hunk. Can be changed from within Lazygit with the `{` and `}` keys.
 	DiffContextSize uint64 `yaml:"diffContextSize"`
@@ -380,12 +380,12 @@ type LogConfig struct {
 	// One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
 	// 'topo-order' makes it easier to read the git log graph, but commits may not appear chronologically. See https://git-scm.com/docs/
 	//
-	// Can be changed from within Lazygit with `Log menu -> Commit sort order` (`<c-l>` in the commits window by default).
+	// Can be changed from within Lazygit with `Log menu -> Commit sort order` (`<ctrl+l>` in the commits window by default).
 	Order string `yaml:"order" jsonschema:"enum=date-order,enum=author-date-order,enum=topo-order,enum=default"`
 	// This determines whether the git graph is rendered in the commits panel
 	// One of 'always' | 'never' | 'when-maximised'
 	//
-	// Can be toggled from within lazygit with `Log menu -> Show git graph` (`<c-l>` in the commits window by default).
+	// Can be toggled from within lazygit with `Log menu -> Show git graph` (`<ctrl+l>` in the commits window by default).
 	ShowGraph string `yaml:"showGraph" jsonschema:"enum=always,enum=never,enum=when-maximised"`
 	// displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
 	ShowWholeGraph bool `yaml:"showWholeGraph"`
@@ -454,6 +454,10 @@ type KeybindingUniversalConfig struct {
 	NextMatch                         string   `yaml:"nextMatch"`
 	PrevMatch                         string   `yaml:"prevMatch"`
 	StartSearch                       string   `yaml:"startSearch"`
+	MoveWordLeft                      string   `yaml:"moveWordLeft"`      // <alt+left> on Mac
+	MoveWordRight                     string   `yaml:"moveWordRight"`     // <alt+right> on Mac
+	BackspaceWord                     string   `yaml:"backspaceWord"`     // <alt+backspace> on Mac
+	ForwardDeleteWord                 string   `yaml:"forwardDeleteWord"` // <alt+delete> on Mac
 	OptionMenu                        string   `yaml:"optionMenu"`
 	OptionMenuAlt1                    string   `yaml:"optionMenu-alt1"`
 	Select                            string   `yaml:"select"`
@@ -461,7 +465,7 @@ type KeybindingUniversalConfig struct {
 	Confirm                           string   `yaml:"confirm"`
 	ConfirmMenu                       string   `yaml:"confirmMenu"`
 	ConfirmSuggestion                 string   `yaml:"confirmSuggestion"`
-	ConfirmInEditor                   string   `yaml:"confirmInEditor"`
+	ConfirmInEditor                   string   `yaml:"confirmInEditor"` // <meta+enter> on Mac
 	ConfirmInEditorAlt                string   `yaml:"confirmInEditor-alt"`
 	Remove                            string   `yaml:"remove"`
 	New                               string   `yaml:"new"`
@@ -766,6 +770,12 @@ type IconProperties struct {
 }
 
 func GetDefaultConfig() *UserConfig {
+	// This is only for tests; we don't want to use the test runner's host platform in that case,
+	// but always use the fallback bindings
+	return GetDefaultConfigForPlatform("")
+}
+
+func GetDefaultConfigForPlatform(platform string) *UserConfig {
 	return &UserConfig{
 		Gui: GuiConfig{
 			ScrollHeight:             2,
@@ -896,8 +906,8 @@ func GetDefaultConfig() *UserConfig {
 		Keybinding: KeybindingConfig{
 			Universal: KeybindingUniversalConfig{
 				Quit:                              "q",
-				QuitAlt1:                          "<c-c>",
-				SuspendApp:                        "<c-z>",
+				QuitAlt1:                          "<ctrl+c>",
+				SuspendApp:                        "<ctrl+z>",
 				Return:                            "<esc>",
 				QuitWithoutChangingDirectory:      "Q",
 				TogglePanel:                       "<tab>",
@@ -914,8 +924,8 @@ func GetDefaultConfig() *UserConfig {
 				GotoTopAlt:                        "<home>",
 				GotoBottomAlt:                     "<end>",
 				ToggleRangeSelect:                 "v",
-				RangeSelectDown:                   "<s-down>",
-				RangeSelectUp:                     "<s-up>",
+				RangeSelectDown:                   "<shift+down>",
+				RangeSelectUp:                     "<shift+up>",
 				PrevBlock:                         "<left>",
 				NextBlock:                         "<right>",
 				PrevBlockAlt:                      "h",
@@ -927,6 +937,10 @@ func GetDefaultConfig() *UserConfig {
 				NextMatch:                         "n",
 				PrevMatch:                         "N",
 				StartSearch:                       "/",
+				MoveWordLeft:                      platformKeyBinding(platform, map[string]string{"darwin": "<alt+left>"}, "<ctrl+left>"),
+				MoveWordRight:                     platformKeyBinding(platform, map[string]string{"darwin": "<alt+right>"}, "<ctrl+right>"),
+				BackspaceWord:                     platformKeyBinding(platform, map[string]string{"darwin": "<alt+backspace>"}, "<ctrl+backspace>"),
+				ForwardDeleteWord:                 platformKeyBinding(platform, map[string]string{"darwin": "<alt+delete>"}, "<ctrl+delete>"),
 				OptionMenu:                        "<disabled>",
 				OptionMenuAlt1:                    "?",
 				Select:                            "<space>",
@@ -934,25 +948,25 @@ func GetDefaultConfig() *UserConfig {
 				Confirm:                           "<enter>",
 				ConfirmMenu:                       "<enter>",
 				ConfirmSuggestion:                 "<enter>",
-				ConfirmInEditor:                   "<a-enter>",
-				ConfirmInEditorAlt:                "<c-s>",
+				ConfirmInEditor:                   platformKeyBinding(platform, map[string]string{"darwin": "<meta+enter>"}, "<ctrl+enter>"),
+				ConfirmInEditorAlt:                "<ctrl+s>",
 				Remove:                            "d",
 				New:                               "n",
 				Edit:                              "e",
 				OpenFile:                          "o",
-				OpenRecentRepos:                   "<c-r>",
+				OpenRecentRepos:                   "<ctrl+r>",
 				ScrollUpMain:                      "<pgup>",
 				ScrollDownMain:                    "<pgdown>",
 				ScrollUpMainAlt1:                  "K",
 				ScrollDownMainAlt1:                "J",
-				ScrollUpMainAlt2:                  "<c-u>",
-				ScrollDownMainAlt2:                "<c-d>",
+				ScrollUpMainAlt2:                  "<ctrl+u>",
+				ScrollDownMainAlt2:                "<ctrl+d>",
 				ExecuteShellCommand:               ":",
 				CreateRebaseOptionsMenu:           "m",
 				Push:                              "P",
 				Pull:                              "p",
 				Refresh:                           "R",
-				CreatePatchOptionsMenu:            "<c-p>",
+				CreatePatchOptionsMenu:            "<ctrl+p>",
 				NextTab:                           "]",
 				PrevTab:                           "[",
 				NextScreenMode:                    "+",
@@ -960,18 +974,18 @@ func GetDefaultConfig() *UserConfig {
 				CyclePagers:                       "|",
 				Undo:                              "z",
 				Redo:                              "Z",
-				FilteringMenu:                     "<c-s>",
+				FilteringMenu:                     "<ctrl+s>",
 				DiffingMenu:                       "W",
-				DiffingMenuAlt:                    "<c-e>",
-				CopyToClipboard:                   "<c-o>",
+				DiffingMenuAlt:                    "<ctrl+e>",
+				CopyToClipboard:                   "<ctrl+o>",
 				SubmitEditorText:                  "<enter>",
 				ExtrasMenu:                        "@",
-				ToggleWhitespaceInDiffView:        "<c-w>",
+				ToggleWhitespaceInDiffView:        "<ctrl+w>",
 				IncreaseContextInDiffView:         "}",
 				DecreaseContextInDiffView:         "{",
 				IncreaseRenameSimilarityThreshold: ")",
 				DecreaseRenameSimilarityThreshold: "(",
-				OpenDiffTool:                      "<c-t>",
+				OpenDiffTool:                      "<ctrl+t>",
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate:             "u",
@@ -984,7 +998,7 @@ func GetDefaultConfig() *UserConfig {
 				CommitChangesWithoutHook: "w",
 				AmendLastCommit:          "A",
 				CommitChangesWithEditor:  "C",
-				FindBaseCommitForFixup:   "<c-f>",
+				FindBaseCommitForFixup:   "<ctrl+f>",
 				IgnoreFile:               "i",
 				RefreshFiles:             "r",
 				StashAllChanges:          "s",
@@ -994,14 +1008,14 @@ func GetDefaultConfig() *UserConfig {
 				Fetch:                    "f",
 				ToggleTreeView:           "`",
 				OpenMergeOptions:         "M",
-				OpenStatusFilter:         "<c-b>",
+				OpenStatusFilter:         "<ctrl+b>",
 				ConfirmDiscard:           "x",
 				CopyFileInfoToClipboard:  "y",
 				CollapseAll:              "-",
 				ExpandAll:                "=",
 			},
 			Branches: KeybindingBranchesConfig{
-				CopyPullRequestURL:       "<c-y>",
+				CopyPullRequestURL:       "<ctrl+y>",
 				CreatePullRequest:        "o",
 				ViewPullRequestOptions:   "O",
 				OpenPullRequestInBrowser: "G",
@@ -1033,8 +1047,8 @@ func GetDefaultConfig() *UserConfig {
 				SetFixupMessage:                "c",
 				CreateFixupCommit:              "F",
 				SquashAboveCommits:             "S",
-				MoveDownCommit:                 "<c-j>",
-				MoveUpCommit:                   "<c-k>",
+				MoveDownCommit:                 "<alt+down>",
+				MoveUpCommit:                   "<alt+up>",
 				AmendToCommit:                  "A",
 				ResetCommitAuthor:              "a",
 				PickCommit:                     "p",
@@ -1044,9 +1058,9 @@ func GetDefaultConfig() *UserConfig {
 				MarkCommitAsBaseForRebase:      "B",
 				CreateTag:                      "T",
 				CheckoutCommit:                 "<space>",
-				ResetCherryPick:                "<c-R>",
+				ResetCherryPick:                "<ctrl+r>",
 				CopyCommitAttributeToClipboard: "y",
-				OpenLogMenu:                    "<c-l>",
+				OpenLogMenu:                    "<ctrl+l>",
 				OpenInBrowser:                  "o",
 				OpenPullRequestInBrowser:       "G",
 				ViewBisectOptions:              "b",
@@ -1076,8 +1090,15 @@ func GetDefaultConfig() *UserConfig {
 				BulkMenu: "b",
 			},
 			CommitMessage: KeybindingCommitMessageConfig{
-				CommitMenu: "<c-o>",
+				CommitMenu: "<ctrl+o>",
 			},
 		},
 	}
+}
+
+func platformKeyBinding(platform string, bindingByPlatform map[string]string, fallback string) string {
+	if binding, ok := bindingByPlatform[platform]; ok {
+		return binding
+	}
+	return fallback
 }

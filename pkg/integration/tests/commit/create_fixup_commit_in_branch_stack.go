@@ -27,11 +27,11 @@ var CreateFixupCommitInBranchStack = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI ◯ branch2 commit 2"),
-				Contains("CI ◯ branch2 commit 1"),
-				Contains("CI ◯ * branch1 commit 3"),
-				Contains("CI ◯ branch1 commit 2"),
-				Contains("CI ◯ branch1 commit 1"),
+				Contains("CI ○ branch2 commit 2"),
+				Contains("CI ○ branch2 commit 1"),
+				Contains("CI ○ * branch1 commit 3"),
+				Contains("CI ○ branch1 commit 2"),
+				Contains("CI ○ branch1 commit 1"),
 			).
 			NavigateToLine(Contains("branch1 commit 2")).
 			Press(keys.Commits.CreateFixupCommit).
@@ -42,12 +42,12 @@ var CreateFixupCommitInBranchStack = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("CI ◯ branch2 commit 2"),
-				Contains("CI ◯ branch2 commit 1"),
-				Contains("CI ◯ * fixup! branch1 commit 2"),
-				Contains("CI ◯ branch1 commit 3"),
-				Contains("CI ◯ branch1 commit 2"),
-				Contains("CI ◯ branch1 commit 1"),
+				Contains("CI ○ branch2 commit 2"),
+				Contains("CI ○ branch2 commit 1"),
+				Contains("CI ○ * fixup! branch1 commit 2"),
+				Contains("CI ○ branch1 commit 3"),
+				Contains("CI ○ branch1 commit 2"),
+				Contains("CI ○ branch1 commit 1"),
 			)
 	},
 })

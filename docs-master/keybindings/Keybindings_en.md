@@ -2,13 +2,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 # Lazygit Keybindings
 
-_Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
-
 ## Global keybindings
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-r> `` | Switch to a recent repo |  |
+| `` <ctrl+r> `` | Switch to a recent repo |  |
 | `` <pgup> (fn+up/shift+k) `` | Scroll up main window |  |
 | `` <pgdown> (fn+down/shift+j) `` | Scroll down main window |  |
 | `` @ `` | View command log options | View options for the command log e.g. show/hide the command log and focus the command log. |
@@ -19,7 +17,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` } `` | Increase diff context size | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` { `` | Decrease diff context size | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
-| `` <c-p> `` | View custom patch options |  |
+| `` <ctrl+p> `` | View custom patch options |  |
 | `` m `` | View merge/rebase options | View options to abort/continue/skip the current merge/rebase. |
 | `` R `` | Refresh | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
 | `` + `` | Next screen mode (normal/half/fullscreen) |  |
@@ -27,12 +25,12 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
 | `` <esc> `` | Cancel |  |
 | `` ? `` | Open keybindings menu |  |
-| `` <c-s> `` | View filter options | View options for filtering the commit log, so that only commits matching the filter are shown. |
+| `` <ctrl+s> `` | View filter options | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` <c-e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
+| `` <ctrl+e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q `` | Quit |  |
-| `` <c-z> `` | Suspend the application |  |
-| `` <c-w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <ctrl+z> `` | Suspend the application |  |
+| `` <ctrl+w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | Undo | The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 | `` Z `` | Redo | The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 
@@ -45,8 +43,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` < (<home>) `` | Scroll to top |  |
 | `` > (<end>) `` | Scroll to bottom |  |
 | `` v `` | Toggle range select |  |
-| `` <s-down> `` | Range select down |  |
-| `` <s-up> `` | Range select up |  |
+| `` <shift+down> `` | Range select down |  |
+| `` <shift+up> `` | Range select up |  |
 | `` / `` | Search the current view by text |  |
 | `` H `` | Scroll left |  |
 | `` L `` | Scroll right |  |
@@ -57,13 +55,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy path to clipboard |  |
+| `` <ctrl+o> `` | Copy path to clipboard |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Checkout | Checkout file. This replaces the file in your working tree with the version from the selected commit. |
 | `` d `` | Discard | Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file. |
 | `` o `` | Open file | Open file in default application. |
 | `` e `` | Edit | Open file in external editor. |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` <space> `` | Toggle file included in patch | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Toggle all files | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` <enter> `` | Enter file / Toggle directory collapsed | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
@@ -84,8 +82,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
-| `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
+| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <ctrl+r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` b `` | View bisect options |  |
 | `` s `` | Squash | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
 | `` f `` | Fixup | Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded. |
@@ -98,15 +96,15 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` p `` | Pick | Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase. |
 | `` F `` | Create fixup commit | Create 'fixup!' commit for the selected commit. Later on, you can press `S` on this same commit to apply all above fixup commits. |
 | `` S `` | Apply fixup commits | Squash all 'fixup!' commits, either above the selected commit, or all in current branch (autosquash). |
-| `` <c-j> `` | Move commit down one |  |
-| `` <c-k> `` | Move commit up one |  |
+| `` <alt+down> `` | Move commit down one |  |
+| `` <alt+up> `` | Move commit up one |  |
 | `` V `` | Paste (cherry-pick) |  |
 | `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
 | `` A `` | Amend | Amend commit with staged changes. If the selected commit is the HEAD commit, this will perform `git commit --amend`. Otherwise the commit will be amended via a rebase. |
 | `` a `` | Amend commit attribute | Set/Reset commit author or set co-author. |
 | `` t `` | Revert | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
 | `` T `` | Tag commit | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
-| `` <c-l> `` | View log options | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
+| `` <ctrl+l> `` | View log options | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
 | `` G `` | Open pull request in browser |  |
 | `` <space> `` | Checkout | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
@@ -115,7 +113,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Copy (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
@@ -128,21 +126,21 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 |-----|--------|-------------|
 | `` <enter> `` | Confirm |  |
 | `` <esc> `` | Close/Cancel |  |
-| `` <c-o> `` | Copy to clipboard |  |
+| `` <ctrl+o> `` | Copy to clipboard |  |
 
 ## Files
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy path to clipboard |  |
+| `` <ctrl+o> `` | Copy path to clipboard |  |
 | `` <space> `` | Stage | Toggle staged for selected file. |
-| `` <c-b> `` | Filter files by status |  |
+| `` <ctrl+b> `` | Filter files by status |  |
 | `` y `` | Copy to clipboard |  |
 | `` c `` | Commit | Commit staged changes. |
 | `` w `` | Commit changes without pre-commit hook |  |
 | `` A `` | Amend last commit |  |
 | `` C `` | Commit changes using git editor |  |
-| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` e `` | Edit | Open file in external editor. |
 | `` o `` | Open file | Open file in default application. |
 | `` i `` | Ignore or exclude file |  |
@@ -155,7 +153,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` g `` | View upstream reset options |  |
 | `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |
 | `` ` `` | Toggle file tree view | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` f `` | Fetch | Fetch changes from remote. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
@@ -174,7 +172,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy branch name to clipboard |  |
+| `` <ctrl+o> `` | Copy branch name to clipboard |  |
 | `` i `` | Show git-flow options |  |
 | `` <space> `` | Checkout | Checkout selected item. |
 | `` n `` | New branch |  |
@@ -182,7 +180,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` o `` | Create pull request |  |
 | `` O `` | View create pull request options |  |
 | `` G `` | Open pull request in browser |  |
-| `` <c-y> `` | Copy pull request URL to clipboard |  |
+| `` <ctrl+y> `` | Copy pull request URL to clipboard |  |
 | `` c `` | Checkout by name | Checkout by name. In the input box you can enter '-' to switch to the previous branch. |
 | `` - `` | Checkout previous branch |  |
 | `` F `` | Force checkout | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
@@ -195,7 +193,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` g `` | Reset |  |
 | `` R `` | Rename branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
@@ -221,8 +219,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` mouse wheel down (fn+up) `` | Scroll down |  |
-| `` mouse wheel up (fn+down) `` | Scroll up |  |
+| `` <mouse wheel down> (fn+up) `` | Scroll down |  |
+| `` <mouse wheel up> (fn+down) `` | Scroll up |  |
 | `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | Search the current view by text |  |
@@ -235,7 +233,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <right> `` | Go to next hunk |  |
 | `` v `` | Toggle range select |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <c-o> `` | Copy selected text to clipboard |  |
+| `` <ctrl+o> `` | Copy selected text to clipboard |  |
 | `` o `` | Open file | Open file in default application. |
 | `` e `` | Edit file | Open file in external editor. |
 | `` <space> `` | Toggle lines in patch |  |
@@ -251,7 +249,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` <right> `` | Go to next hunk |  |
 | `` v `` | Toggle range select |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <c-o> `` | Copy selected text to clipboard |  |
+| `` <ctrl+o> `` | Copy selected text to clipboard |  |
 | `` <space> `` | Stage | Toggle selection staged / unstaged. |
 | `` d `` | Discard | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
 | `` o `` | Open file | Open file in default application. |
@@ -262,7 +260,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` c `` | Commit | Commit staged changes. |
 | `` w `` | Commit changes without pre-commit hook |  |
 | `` C `` | Commit changes using git editor |  |
-| `` <c-f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Search the current view by text |  |
 
 ## Menu
@@ -277,7 +275,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Checkout | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
@@ -285,8 +283,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Copy (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
-| `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+r> `` | Reset copied (cherry-picked) commits selection |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
@@ -297,7 +295,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy branch name to clipboard |  |
+| `` <ctrl+o> `` | Copy branch name to clipboard |  |
 | `` <space> `` | Checkout | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | New branch |  |
 | `` M `` | Merge | View options for merging the selected item into the current branch (regular merge, squash merge) |
@@ -306,7 +304,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` u `` | Set as upstream | Set the selected remote branch as the upstream of the checked-out branch. |
 | `` s `` | Sort order |  |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
@@ -362,7 +360,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` <space> `` | Checkout | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
@@ -370,8 +368,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Copy (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
-| `` <c-r> `` | Reset copied (cherry-picked) commits selection |  |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+r> `` | Reset copied (cherry-picked) commits selection |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View files |  |
@@ -382,7 +380,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy submodule name to clipboard |  |
+| `` <ctrl+o> `` | Copy submodule name to clipboard |  |
 | `` <enter> `` | Enter | Enter submodule. After entering the submodule, you can press `<esc>` to escape back to the parent repo. |
 | `` d `` | Remove | Remove the selected submodule and its corresponding directory. |
 | `` u `` | Update | Update selected submodule. |
@@ -396,13 +394,13 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <c-o> `` | Copy tag to clipboard |  |
+| `` <ctrl+o> `` | Copy tag to clipboard |  |
 | `` <space> `` | Checkout | Checkout the selected tag as a detached HEAD. |
 | `` n `` | New tag | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | Push tag | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
-| `` <c-t> `` | Open external diff tool (git difftool) |  |
+| `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
 | `` w `` | View worktree options |  |
