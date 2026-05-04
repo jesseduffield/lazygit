@@ -39,6 +39,12 @@ func (self *PromptController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			DisplayOnScreen: true,
 		},
 		{
+			Key:             opts.GetKey(opts.Config.Universal.ReturnAlt),
+			Handler:         func() error { return self.context().State.OnClose() },
+			Description:     self.c.Tr.CloseCancel,
+			DisplayOnScreen: true,
+		},
+		{
 			Key: opts.GetKey(opts.Config.Universal.TogglePanel),
 			Handler: func() error {
 				if len(self.c.Contexts().Suggestions.State.Suggestions) > 0 {

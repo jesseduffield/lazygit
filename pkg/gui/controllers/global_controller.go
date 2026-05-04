@@ -77,6 +77,15 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			DisplayOnScreen:   true,
 		},
 		{
+			Key:               opts.GetKey(opts.Config.Universal.ReturnAlt),
+			Modifier:          gocui.ModNone,
+			Handler:           self.escape,
+			Description:       self.c.Tr.Cancel,
+			DescriptionFunc:   self.escapeDescription,
+			GetDisabledReason: self.escapeEnabled,
+			DisplayOnScreen:   true,
+		},
+		{
 			ViewName:  "",
 			Key:       opts.GetKey(opts.Config.Universal.OptionMenu),
 			Handler:   self.createOptionsMenu,
