@@ -423,7 +423,8 @@ type KeybindingConfig struct {
 
 // damn looks like we have some inconsistencies here with -alt and -alt1
 type KeybindingUniversalConfig struct {
-	Quit                              Keybinding   `yaml:"quit"`
+	Quit Keybinding `yaml:"quit"`
+	// Deprecated: add the key to `quit` instead.
 	QuitAlt1                          Keybinding   `yaml:"quit-alt1"`
 	SuspendApp                        Keybinding   `yaml:"suspendApp"`
 	Return                            Keybinding   `yaml:"return"`
@@ -767,6 +768,14 @@ type CustomIconsConfig struct {
 type IconProperties struct {
 	Icon  string `yaml:"icon"`
 	Color string `yaml:"color"`
+}
+
+// MergeLegacyAltKeybindings folds deprecated `*Alt*` fields into their
+// corresponding multi-key main field. New code should treat the main field
+// as the single source of truth; the alt fields will be removed in a future
+// release.
+func (c *KeybindingConfig) MergeLegacyAltKeybindings() {
+	mergeLegacyAlt(&c.Universal.Quit, c.Universal.QuitAlt1)
 }
 
 func GetDefaultConfig() *UserConfig {

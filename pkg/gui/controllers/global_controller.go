@@ -112,10 +112,6 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Handler:     self.quit,
 		},
 		{
-			Keys:    opts.GetKeys(opts.Config.Universal.QuitAlt1),
-			Handler: self.quit,
-		},
-		{
 			Keys:    opts.GetKeys(opts.Config.Universal.QuitWithoutChangingDirectory),
 			Handler: self.quitWithoutChangingDirectory,
 		},

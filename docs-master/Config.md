@@ -597,8 +597,7 @@ promptToReturnFromSubprocess: true
 # for the syntax.
 keybinding:
   universal:
-    quit: q
-    quit-alt1: <ctrl+c>
+    quit: [q, <ctrl+c>]
     suspendApp: <ctrl+z>
     return: <esc>
     quitWithoutChangingDirectory: Q

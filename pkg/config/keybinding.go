@@ -84,3 +84,9 @@ func (Keybinding) JSONSchema() *jsonschema.Schema {
 		},
 	}
 }
+
+// mergeLegacyAlt folds a deprecated `*Alt*` field into the corresponding
+// multi-key main field.
+func mergeLegacyAlt(main *Keybinding, alt Keybinding) {
+	*main = lo.Union(*main, alt)
+}

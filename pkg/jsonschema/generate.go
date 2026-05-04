@@ -60,6 +60,7 @@ func customReflect(v *config.UserConfig) *jsonschema.Schema {
 	schema := r.Reflect(v)
 	inlineKeybindingRefs(schema)
 	defaultConfig := config.GetDefaultConfig()
+	defaultConfig.Keybinding.MergeLegacyAltKeybindings()
 	userConfigSchema := schema.Definitions["UserConfig"]
 
 	defaultValue := reflect.ValueOf(defaultConfig).Elem()

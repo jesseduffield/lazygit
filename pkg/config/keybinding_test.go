@@ -135,6 +135,59 @@ func TestKeybindingMarshalJSON(t *testing.T) {
 	}
 }
 
+func TestMergeLegacyAltKeybindings(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		quit     Keybinding
+		quitAlt1 Keybinding
+		expected Keybinding
+	}{
+		{
+			name:     "alt is folded into main",
+			quit:     Keybinding{"q"},
+			quitAlt1: Keybinding{"<ctrl+c>"},
+			expected: Keybinding{"q", "<ctrl+c>"},
+		},
+		{
+			name:     "alt is not appended if already present",
+			quit:     Keybinding{"q", "<ctrl+c>"},
+			quitAlt1: Keybinding{"<ctrl+c>"},
+			expected: Keybinding{"q", "<ctrl+c>"},
+		},
+		{
+			name:     "empty alt is ignored",
+			quit:     Keybinding{"q"},
+			quitAlt1: nil,
+			expected: Keybinding{"q"},
+		},
+		{
+			name:     "user-supplied multi-key main is preserved",
+			quit:     Keybinding{"q", "<esc>"},
+			quitAlt1: Keybinding{"<ctrl+c>"},
+			expected: Keybinding{"q", "<esc>", "<ctrl+c>"},
+		},
+		{
+			name:     "multi-key alt is folded element by element",
+			quit:     Keybinding{"q"},
+			quitAlt1: Keybinding{"<ctrl+c>", "<esc>"},
+			expected: Keybinding{"q", "<ctrl+c>", "<esc>"},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			cfg := KeybindingConfig{
+				Universal: KeybindingUniversalConfig{
+					Quit:     s.quit,
+					QuitAlt1: s.quitAlt1,
+				},
+			}
+			cfg.MergeLegacyAltKeybindings()
+			assert.Equal(t, s.expected, cfg.Universal.Quit)
+		})
+	}
+}
+
 func TestKeybindingYAMLRoundTrip(t *testing.T) {
 	scenarios := []Keybinding{
 		{"q"},

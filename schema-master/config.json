@@ -2125,7 +2125,10 @@
               "type": "array"
             }
           ],
-          "default": "q"
+          "default": [
+            "q",
+            "\u003cctrl+c\u003e"
+          ]
         },
         "quit-alt1": {
           "oneOf": [
@@ -2139,6 +2142,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `quit` instead.",
           "default": "\u003cctrl+c\u003e"
         },
         "suspendApp": {
