@@ -1,0 +1,151 @@
+package config
+
+import (
+	"encoding/json"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
+)
+
+func TestKeybindingUnmarshalYAML(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		input    string
+		expected Keybinding
+		wantErr  bool
+	}{
+		{
+			name:     "scalar string",
+			input:    `q`,
+			expected: Keybinding{"q"},
+		},
+		{
+			name:     "scalar with special characters",
+			input:    `<esc>`,
+			expected: Keybinding{"<esc>"},
+		},
+		{
+			name:     "sequence with one element",
+			input:    `[q]`,
+			expected: Keybinding{"q"},
+		},
+		{
+			name:     "sequence with multiple elements",
+			input:    `["q", "<esc>"]`,
+			expected: Keybinding{"q", "<esc>"},
+		},
+		{
+			name:     "empty sequence",
+			input:    `[]`,
+			expected: Keybinding{},
+		},
+		{
+			name:     "scalar <disabled> decodes to empty",
+			input:    `<disabled>`,
+			expected: Keybinding{},
+		},
+		{
+			name:     "scalar empty string decodes to empty",
+			input:    `""`,
+			expected: Keybinding{},
+		},
+		{
+			name:     "<disabled> entries are filtered out of a sequence",
+			input:    `["q", "<disabled>", "<esc>"]`,
+			expected: Keybinding{"q", "<esc>"},
+		},
+		{
+			name:    "mapping is rejected",
+			input:   `{key: q}`,
+			wantErr: true,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			var k Keybinding
+			err := yaml.Unmarshal([]byte(s.input), &k)
+			if s.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, s.expected, k)
+		})
+	}
+}
+
+func TestKeybindingMarshalYAML(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		input    Keybinding
+		expected string
+	}{
+		{
+			name:     "single key emits a scalar",
+			input:    Keybinding{"q"},
+			expected: "q\n",
+		},
+		{
+			name:     "multiple keys emit a flow sequence",
+			input:    Keybinding{"q", "<esc>"},
+			expected: "[q, <esc>]\n",
+		},
+		{
+			name:     "empty keybinding emits an empty sequence",
+			input:    Keybinding{},
+			expected: "[]\n",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			out, err := yaml.Marshal(s.input)
+			assert.NoError(t, err)
+			assert.Equal(t, s.expected, string(out))
+		})
+	}
+}
+
+func TestKeybindingMarshalJSON(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		input    Keybinding
+		expected string
+	}{
+		{
+			name:     "single key emits a string",
+			input:    Keybinding{"q"},
+			expected: `"q"`,
+		},
+		{
+			name:     "multiple keys emit an array",
+			input:    Keybinding{"q", "esc"},
+			expected: `["q","esc"]`,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			out, err := json.Marshal(s.input)
+			assert.NoError(t, err)
+			assert.Equal(t, s.expected, string(out))
+		})
+	}
+}
+
+func TestKeybindingYAMLRoundTrip(t *testing.T) {
+	scenarios := []Keybinding{
+		{"q"},
+		{"q", "<esc>"},
+		{"<ctrl+c>", "<ctrl+d>", "<esc>"},
+	}
+	for _, original := range scenarios {
+		out, err := yaml.Marshal(original)
+		assert.NoError(t, err)
+		var decoded Keybinding
+		assert.NoError(t, yaml.Unmarshal(out, &decoded))
+		assert.Equal(t, original, decoded)
+	}
+}
