@@ -423,86 +423,86 @@ type KeybindingConfig struct {
 
 // damn looks like we have some inconsistencies here with -alt and -alt1
 type KeybindingUniversalConfig struct {
-	Quit                              Keybinding `yaml:"quit"`
-	QuitAlt1                          Keybinding `yaml:"quit-alt1"`
-	SuspendApp                        Keybinding `yaml:"suspendApp"`
-	Return                            Keybinding `yaml:"return"`
-	QuitWithoutChangingDirectory      Keybinding `yaml:"quitWithoutChangingDirectory"`
-	TogglePanel                       Keybinding `yaml:"togglePanel"`
-	PrevItem                          Keybinding `yaml:"prevItem"`
-	NextItem                          Keybinding `yaml:"nextItem"`
-	PrevItemAlt                       Keybinding `yaml:"prevItem-alt"`
-	NextItemAlt                       Keybinding `yaml:"nextItem-alt"`
-	PrevPage                          Keybinding `yaml:"prevPage"`
-	NextPage                          Keybinding `yaml:"nextPage"`
-	ScrollLeft                        Keybinding `yaml:"scrollLeft"`
-	ScrollRight                       Keybinding `yaml:"scrollRight"`
-	GotoTop                           Keybinding `yaml:"gotoTop"`
-	GotoBottom                        Keybinding `yaml:"gotoBottom"`
-	GotoTopAlt                        Keybinding `yaml:"gotoTop-alt"`
-	GotoBottomAlt                     Keybinding `yaml:"gotoBottom-alt"`
-	ToggleRangeSelect                 Keybinding `yaml:"toggleRangeSelect"`
-	RangeSelectDown                   Keybinding `yaml:"rangeSelectDown"`
-	RangeSelectUp                     Keybinding `yaml:"rangeSelectUp"`
-	PrevBlock                         Keybinding `yaml:"prevBlock"`
-	NextBlock                         Keybinding `yaml:"nextBlock"`
-	PrevBlockAlt                      Keybinding `yaml:"prevBlock-alt"`
-	NextBlockAlt                      Keybinding `yaml:"nextBlock-alt"`
-	NextBlockAlt2                     Keybinding `yaml:"nextBlock-alt2"`
-	PrevBlockAlt2                     Keybinding `yaml:"prevBlock-alt2"`
-	JumpToBlock                       []string   `yaml:"jumpToBlock"`
-	FocusMainView                     Keybinding `yaml:"focusMainView"`
-	NextMatch                         Keybinding `yaml:"nextMatch"`
-	PrevMatch                         Keybinding `yaml:"prevMatch"`
-	StartSearch                       Keybinding `yaml:"startSearch"`
-	MoveWordLeft                      Keybinding `yaml:"moveWordLeft"`      // <alt+left> on Mac
-	MoveWordRight                     Keybinding `yaml:"moveWordRight"`     // <alt+right> on Mac
-	BackspaceWord                     Keybinding `yaml:"backspaceWord"`     // <alt+backspace> on Mac
-	ForwardDeleteWord                 Keybinding `yaml:"forwardDeleteWord"` // <alt+delete> on Mac
-	OptionMenu                        Keybinding `yaml:"optionMenu"`
-	Select                            Keybinding `yaml:"select"`
-	GoInto                            Keybinding `yaml:"goInto"`
-	Confirm                           Keybinding `yaml:"confirm"`
-	ConfirmMenu                       Keybinding `yaml:"confirmMenu"`
-	ConfirmSuggestion                 Keybinding `yaml:"confirmSuggestion"`
-	ConfirmInEditor                   Keybinding `yaml:"confirmInEditor"` // <meta+enter> on Mac
-	ConfirmInEditorAlt                Keybinding `yaml:"confirmInEditor-alt"`
-	Remove                            Keybinding `yaml:"remove"`
-	New                               Keybinding `yaml:"new"`
-	Edit                              Keybinding `yaml:"edit"`
-	OpenFile                          Keybinding `yaml:"openFile"`
-	ScrollUpMain                      Keybinding `yaml:"scrollUpMain"`
-	ScrollDownMain                    Keybinding `yaml:"scrollDownMain"`
-	ScrollUpMainAlt1                  Keybinding `yaml:"scrollUpMain-alt1"`
-	ScrollDownMainAlt1                Keybinding `yaml:"scrollDownMain-alt1"`
-	ScrollUpMainAlt2                  Keybinding `yaml:"scrollUpMain-alt2"`
-	ScrollDownMainAlt2                Keybinding `yaml:"scrollDownMain-alt2"`
-	ExecuteShellCommand               Keybinding `yaml:"executeShellCommand"`
-	CreateRebaseOptionsMenu           Keybinding `yaml:"createRebaseOptionsMenu"`
-	Push                              Keybinding `yaml:"pushFiles"` // 'Files' appended for legacy reasons
-	Pull                              Keybinding `yaml:"pullFiles"` // 'Files' appended for legacy reasons
-	Refresh                           Keybinding `yaml:"refresh"`
-	CreatePatchOptionsMenu            Keybinding `yaml:"createPatchOptionsMenu"`
-	NextTab                           Keybinding `yaml:"nextTab"`
-	PrevTab                           Keybinding `yaml:"prevTab"`
-	NextScreenMode                    Keybinding `yaml:"nextScreenMode"`
-	PrevScreenMode                    Keybinding `yaml:"prevScreenMode"`
-	CyclePagers                       Keybinding `yaml:"cyclePagers"`
-	Undo                              Keybinding `yaml:"undo"`
-	Redo                              Keybinding `yaml:"redo"`
-	FilteringMenu                     Keybinding `yaml:"filteringMenu"`
-	DiffingMenu                       Keybinding `yaml:"diffingMenu"`
-	DiffingMenuAlt                    Keybinding `yaml:"diffingMenu-alt"`
-	CopyToClipboard                   Keybinding `yaml:"copyToClipboard"`
-	OpenRecentRepos                   Keybinding `yaml:"openRecentRepos"`
-	SubmitEditorText                  Keybinding `yaml:"submitEditorText"`
-	ExtrasMenu                        Keybinding `yaml:"extrasMenu"`
-	ToggleWhitespaceInDiffView        Keybinding `yaml:"toggleWhitespaceInDiffView"`
-	IncreaseContextInDiffView         Keybinding `yaml:"increaseContextInDiffView"`
-	DecreaseContextInDiffView         Keybinding `yaml:"decreaseContextInDiffView"`
-	IncreaseRenameSimilarityThreshold Keybinding `yaml:"increaseRenameSimilarityThreshold"`
-	DecreaseRenameSimilarityThreshold Keybinding `yaml:"decreaseRenameSimilarityThreshold"`
-	OpenDiffTool                      Keybinding `yaml:"openDiffTool"`
+	Quit                              Keybinding   `yaml:"quit"`
+	QuitAlt1                          Keybinding   `yaml:"quit-alt1"`
+	SuspendApp                        Keybinding   `yaml:"suspendApp"`
+	Return                            Keybinding   `yaml:"return"`
+	QuitWithoutChangingDirectory      Keybinding   `yaml:"quitWithoutChangingDirectory"`
+	TogglePanel                       Keybinding   `yaml:"togglePanel"`
+	PrevItem                          Keybinding   `yaml:"prevItem"`
+	NextItem                          Keybinding   `yaml:"nextItem"`
+	PrevItemAlt                       Keybinding   `yaml:"prevItem-alt"`
+	NextItemAlt                       Keybinding   `yaml:"nextItem-alt"`
+	PrevPage                          Keybinding   `yaml:"prevPage"`
+	NextPage                          Keybinding   `yaml:"nextPage"`
+	ScrollLeft                        Keybinding   `yaml:"scrollLeft"`
+	ScrollRight                       Keybinding   `yaml:"scrollRight"`
+	GotoTop                           Keybinding   `yaml:"gotoTop"`
+	GotoBottom                        Keybinding   `yaml:"gotoBottom"`
+	GotoTopAlt                        Keybinding   `yaml:"gotoTop-alt"`
+	GotoBottomAlt                     Keybinding   `yaml:"gotoBottom-alt"`
+	ToggleRangeSelect                 Keybinding   `yaml:"toggleRangeSelect"`
+	RangeSelectDown                   Keybinding   `yaml:"rangeSelectDown"`
+	RangeSelectUp                     Keybinding   `yaml:"rangeSelectUp"`
+	PrevBlock                         Keybinding   `yaml:"prevBlock"`
+	NextBlock                         Keybinding   `yaml:"nextBlock"`
+	PrevBlockAlt                      Keybinding   `yaml:"prevBlock-alt"`
+	NextBlockAlt                      Keybinding   `yaml:"nextBlock-alt"`
+	NextBlockAlt2                     Keybinding   `yaml:"nextBlock-alt2"`
+	PrevBlockAlt2                     Keybinding   `yaml:"prevBlock-alt2"`
+	JumpToBlock                       []Keybinding `yaml:"jumpToBlock"`
+	FocusMainView                     Keybinding   `yaml:"focusMainView"`
+	NextMatch                         Keybinding   `yaml:"nextMatch"`
+	PrevMatch                         Keybinding   `yaml:"prevMatch"`
+	StartSearch                       Keybinding   `yaml:"startSearch"`
+	MoveWordLeft                      Keybinding   `yaml:"moveWordLeft"`      // <alt+left> on Mac
+	MoveWordRight                     Keybinding   `yaml:"moveWordRight"`     // <alt+right> on Mac
+	BackspaceWord                     Keybinding   `yaml:"backspaceWord"`     // <alt+backspace> on Mac
+	ForwardDeleteWord                 Keybinding   `yaml:"forwardDeleteWord"` // <alt+delete> on Mac
+	OptionMenu                        Keybinding   `yaml:"optionMenu"`
+	Select                            Keybinding   `yaml:"select"`
+	GoInto                            Keybinding   `yaml:"goInto"`
+	Confirm                           Keybinding   `yaml:"confirm"`
+	ConfirmMenu                       Keybinding   `yaml:"confirmMenu"`
+	ConfirmSuggestion                 Keybinding   `yaml:"confirmSuggestion"`
+	ConfirmInEditor                   Keybinding   `yaml:"confirmInEditor"` // <meta+enter> on Mac
+	ConfirmInEditorAlt                Keybinding   `yaml:"confirmInEditor-alt"`
+	Remove                            Keybinding   `yaml:"remove"`
+	New                               Keybinding   `yaml:"new"`
+	Edit                              Keybinding   `yaml:"edit"`
+	OpenFile                          Keybinding   `yaml:"openFile"`
+	ScrollUpMain                      Keybinding   `yaml:"scrollUpMain"`
+	ScrollDownMain                    Keybinding   `yaml:"scrollDownMain"`
+	ScrollUpMainAlt1                  Keybinding   `yaml:"scrollUpMain-alt1"`
+	ScrollDownMainAlt1                Keybinding   `yaml:"scrollDownMain-alt1"`
+	ScrollUpMainAlt2                  Keybinding   `yaml:"scrollUpMain-alt2"`
+	ScrollDownMainAlt2                Keybinding   `yaml:"scrollDownMain-alt2"`
+	ExecuteShellCommand               Keybinding   `yaml:"executeShellCommand"`
+	CreateRebaseOptionsMenu           Keybinding   `yaml:"createRebaseOptionsMenu"`
+	Push                              Keybinding   `yaml:"pushFiles"` // 'Files' appended for legacy reasons
+	Pull                              Keybinding   `yaml:"pullFiles"` // 'Files' appended for legacy reasons
+	Refresh                           Keybinding   `yaml:"refresh"`
+	CreatePatchOptionsMenu            Keybinding   `yaml:"createPatchOptionsMenu"`
+	NextTab                           Keybinding   `yaml:"nextTab"`
+	PrevTab                           Keybinding   `yaml:"prevTab"`
+	NextScreenMode                    Keybinding   `yaml:"nextScreenMode"`
+	PrevScreenMode                    Keybinding   `yaml:"prevScreenMode"`
+	CyclePagers                       Keybinding   `yaml:"cyclePagers"`
+	Undo                              Keybinding   `yaml:"undo"`
+	Redo                              Keybinding   `yaml:"redo"`
+	FilteringMenu                     Keybinding   `yaml:"filteringMenu"`
+	DiffingMenu                       Keybinding   `yaml:"diffingMenu"`
+	DiffingMenuAlt                    Keybinding   `yaml:"diffingMenu-alt"`
+	CopyToClipboard                   Keybinding   `yaml:"copyToClipboard"`
+	OpenRecentRepos                   Keybinding   `yaml:"openRecentRepos"`
+	SubmitEditorText                  Keybinding   `yaml:"submitEditorText"`
+	ExtrasMenu                        Keybinding   `yaml:"extrasMenu"`
+	ToggleWhitespaceInDiffView        Keybinding   `yaml:"toggleWhitespaceInDiffView"`
+	IncreaseContextInDiffView         Keybinding   `yaml:"increaseContextInDiffView"`
+	DecreaseContextInDiffView         Keybinding   `yaml:"decreaseContextInDiffView"`
+	IncreaseRenameSimilarityThreshold Keybinding   `yaml:"increaseRenameSimilarityThreshold"`
+	DecreaseRenameSimilarityThreshold Keybinding   `yaml:"decreaseRenameSimilarityThreshold"`
+	OpenDiffTool                      Keybinding   `yaml:"openDiffTool"`
 }
 
 type KeybindingStatusConfig struct {
@@ -932,7 +932,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				NextBlockAlt:                      Keybinding{"l"},
 				PrevBlockAlt2:                     Keybinding{"<backtab>"},
 				NextBlockAlt2:                     Keybinding{"<tab>"},
-				JumpToBlock:                       []string{"1", "2", "3", "4", "5"},
+				JumpToBlock:                       []Keybinding{{"1"}, {"2"}, {"3"}, {"4"}, {"5"}},
 				FocusMainView:                     Keybinding{"0"},
 				NextMatch:                         Keybinding{"n"},
 				PrevMatch:                         Keybinding{"N"},

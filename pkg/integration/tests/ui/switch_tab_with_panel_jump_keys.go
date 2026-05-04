@@ -16,19 +16,19 @@ var SwitchTabWithPanelJumpKeys = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Worktrees().Focus().
-			Press(config.Keybinding{keys.Universal.JumpToBlock[2]})
+			Press(keys.Universal.JumpToBlock[2])
 
 		t.Views().Branches().IsFocused().
-			Press(config.Keybinding{keys.Universal.JumpToBlock[2]})
+			Press(keys.Universal.JumpToBlock[2])
 
 		t.Views().Remotes().IsFocused().
-			Press(config.Keybinding{keys.Universal.JumpToBlock[2]})
+			Press(keys.Universal.JumpToBlock[2])
 
 		t.Views().Tags().IsFocused().
-			Press(config.Keybinding{keys.Universal.JumpToBlock[2]})
+			Press(keys.Universal.JumpToBlock[2])
 
 		t.Views().Branches().IsFocused().
-			Press(config.Keybinding{keys.Universal.JumpToBlock[1]})
+			Press(keys.Universal.JumpToBlock[1])
 
 		// When jumping to a panel from a different one, keep its current tab:
 		t.Views().Worktrees().IsFocused()

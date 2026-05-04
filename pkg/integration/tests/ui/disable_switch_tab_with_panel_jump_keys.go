@@ -15,9 +15,9 @@ var DisableSwitchTabWithPanelJumpKeys = NewIntegrationTest(NewIntegrationTestArg
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Status().Focus().
-			Press(config.Keybinding{keys.Universal.JumpToBlock[1]})
+			Press(keys.Universal.JumpToBlock[1])
 		t.Views().Files().IsFocused().
-			Press(config.Keybinding{keys.Universal.JumpToBlock[1]})
+			Press(keys.Universal.JumpToBlock[1])
 
 		// Despite jumping to an already focused panel,
 		// the tab should not change from the base files view

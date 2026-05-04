@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -127,7 +128,10 @@ func TestUserConfigValidate_enums(t *testing.T) {
 		{
 			name: "JumpToBlock keybinding",
 			setup: func(config *UserConfig, value string) {
-				config.Keybinding.Universal.JumpToBlock = strings.Split(value, ",")
+				labels := strings.Split(value, ",")
+				config.Keybinding.Universal.JumpToBlock = lo.Map(labels, func(label string, _ int) Keybinding {
+					return Keybinding{label}
+				})
 			},
 			testCases: []testCase{
 				{value: "", valid: false},

@@ -363,7 +363,7 @@ func (self *ViewDriver) Focus() *ViewDriver {
 		if lo.Contains(window.viewNames, viewName) {
 			tabIndex := lo.IndexOf(window.viewNames, viewName)
 			// jump to the desired window
-			self.t.press(self.t.keys.Universal.JumpToBlock[windowIndex])
+			self.t.press(self.t.keys.Universal.JumpToBlock[windowIndex][0])
 
 			// assert we're in the window before continuing
 			self.t.assertWithRetries(func() (bool, string) {

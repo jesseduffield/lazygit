@@ -180,3 +180,18 @@ func TestKeybindingConfigYAMLAcceptsBothForms(t *testing.T) {
 		})
 	}
 }
+
+func TestJumpToBlockYAMLAcceptsMixedForms(t *testing.T) {
+	yamlInput := `
+jumpToBlock:
+  - "1"
+  - ["2", "@"]
+  - "3"
+  - "4"
+  - "5"
+`
+	var cfg KeybindingUniversalConfig
+	assert.NoError(t, yaml.Unmarshal([]byte(yamlInput), &cfg))
+	expected := []Keybinding{{"1"}, {"2", "@"}, {"3"}, {"4"}, {"5"}}
+	assert.Equal(t, expected, cfg.JumpToBlock)
+}

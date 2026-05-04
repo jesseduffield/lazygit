@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -210,14 +211,14 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig().Git.Commit.AutoWrapWidth
 
 	if gui.c.UserConfig().Gui.ShowPanelJumps {
-		keyToTitlePrefix := func(key string) string {
-			if key == "<disabled>" {
+		keyToTitlePrefix := func(binding config.Keybinding) string {
+			if len(binding) == 0 {
 				return ""
 			}
-			return fmt.Sprintf("[%s]", key)
+			return fmt.Sprintf("[%s]", binding[0])
 		}
 		jumpBindings := gui.c.UserConfig().Keybinding.Universal.JumpToBlock
-		jumpLabels := lo.Map(jumpBindings, func(binding string, _ int) string {
+		jumpLabels := lo.Map(jumpBindings, func(binding config.Keybinding, _ int) string {
 			return keyToTitlePrefix(binding)
 		})
 
@@ -236,7 +237,7 @@ func (gui *Gui) configureViewProperties() {
 
 		gui.Views.Stash.TitlePrefix = jumpLabels[4]
 
-		gui.Views.Main.TitlePrefix = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusMainView[0])
+		gui.Views.Main.TitlePrefix = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusMainView)
 	} else {
 		gui.Views.Status.TitlePrefix = ""
 
