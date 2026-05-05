@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 	"github.com/sirupsen/logrus"
@@ -209,6 +209,10 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 					// array and we don't want to be mutating that while it's being written
 					<-lineWrittenChan
 				}
+			}
+
+			if err := scanner.Err(); err != nil {
+				self.Log.Error(err)
 			}
 		})
 

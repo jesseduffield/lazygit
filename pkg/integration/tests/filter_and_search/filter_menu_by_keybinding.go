@@ -18,11 +18,11 @@ var FilterMenuByKeybinding = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Keybindings")).
-					Filter("@+").
+					Filter("@_").
 					Lines(
 						// menu has filtered down to the one item that matches the filter
 						Contains("--- Global ---"),
-						Contains("+ Next screen mode").IsSelected(),
+						Contains("_ Prev screen mode").IsSelected(),
 					).
 					Confirm()
 			}).

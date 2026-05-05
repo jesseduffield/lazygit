@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"time"
 
@@ -136,7 +137,7 @@ func findOrCreateConfigDir() (string, error) {
 }
 
 func loadUserConfigWithDefaults(configFiles []*ConfigFile, isGuiInitialized bool) (*UserConfig, error) {
-	return loadUserConfig(configFiles, GetDefaultConfig(), isGuiInitialized)
+	return loadUserConfig(configFiles, GetDefaultConfigForPlatform(runtime.GOOS), isGuiInitialized)
 }
 
 func loadUserConfig(configFiles []*ConfigFile, base *UserConfig, isGuiInitialized bool) (*UserConfig, error) {

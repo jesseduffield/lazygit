@@ -6,15 +6,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -231,7 +230,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            'n',
+		Key:            gocui.NewKeyRune('n'),
 	}
 	copyRelativePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyRelativeFilePath,
@@ -243,7 +242,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            'p',
+		Key:            gocui.NewKeyRune('p'),
 	}
 	copyAbsolutePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyAbsoluteFilePath,
@@ -259,7 +258,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            'P',
+		Key:            gocui.NewKeyRune('P'),
 	}
 	copyFileDiffItem := &types.MenuItem{
 		Label: self.c.Tr.CopySelectedDiff,
@@ -267,7 +266,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 			return self.copyDiffToClipboard(node.GetPath(), self.c.Tr.FileDiffCopiedToast)
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            's',
+		Key:            gocui.NewKeyRune('s'),
 	}
 	copyAllDiff := &types.MenuItem{
 		Label: self.c.Tr.CopyAllFilesDiff,
@@ -275,7 +274,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 			return self.copyDiffToClipboard(".", self.c.Tr.AllFilesDiffCopiedToast)
 		},
 		DisabledReason: self.require(self.itemsSelected())(),
-		Key:            'a',
+		Key:            gocui.NewKeyRune('a'),
 	}
 	copyFileContentItem := &types.MenuItem{
 		Label: self.c.Tr.CopyFileContent,
@@ -296,7 +295,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 				}
 				return nil
 			}))(),
-		Key: 'c',
+		Key: gocui.NewKeyRune('c'),
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
@@ -437,7 +436,7 @@ func (self *CommitFilesController) openDiffTool(node *filetree.CommitFileNode) e
 func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.CommitFileNode) error {
 	if self.c.UserConfig().Git.DiffContextSize == 0 {
 		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextForCustomPatch,
-			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
+			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
 	}
 
 	toggle := func() error {
@@ -531,7 +530,7 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 
 	if self.c.UserConfig().Git.DiffContextSize == 0 {
 		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextForCustomPatch,
-			keybindings.Label(self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView))
+			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
 	}
 
 	from, to, reverse := self.currentFromToReverseForPatchBuilding()

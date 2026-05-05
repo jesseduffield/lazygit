@@ -5,9 +5,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -216,15 +216,15 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 
 func (self *RefsHelper) CreateSortOrderMenu(sortOptionsOrder []string, menuPrompt string, onSelected func(sortOrder string) error, currentValue string) error {
 	type sortMenuOption struct {
-		key         types.Key
+		key         gocui.Key
 		label       string
 		description string
 		sortOrder   string
 	}
 	availableSortOptions := map[string]sortMenuOption{
-		"recency":      {label: self.c.Tr.SortByRecency, description: self.c.Tr.SortBasedOnReflog, key: 'r'},
-		"alphabetical": {label: self.c.Tr.SortAlphabetical, description: "--sort=refname", key: 'a'},
-		"date":         {label: self.c.Tr.SortByDate, description: "--sort=-committerdate", key: 'd'},
+		"recency":      {label: self.c.Tr.SortByRecency, description: self.c.Tr.SortBasedOnReflog, key: gocui.NewKeyRune('r')},
+		"alphabetical": {label: self.c.Tr.SortAlphabetical, description: "--sort=refname", key: gocui.NewKeyRune('a')},
+		"date":         {label: self.c.Tr.SortByDate, description: "--sort=-committerdate", key: gocui.NewKeyRune('d')},
 	}
 	sortOptions := make([]sortMenuOption, 0, len(sortOptionsOrder))
 	for _, key := range sortOptionsOrder {
@@ -260,14 +260,14 @@ func (self *RefsHelper) CreateGitResetMenu(name string, ref string) error {
 	type strengthWithKey struct {
 		strength string
 		label    string
-		key      types.Key
+		key      gocui.Key
 		tooltip  string
 	}
 	strengths := []strengthWithKey{
 		// not i18'ing because it's git terminology
-		{strength: "mixed", label: "Mixed reset", key: 'm', tooltip: self.c.Tr.ResetMixedTooltip},
-		{strength: "soft", label: "Soft reset", key: 's', tooltip: self.c.Tr.ResetSoftTooltip},
-		{strength: "hard", label: "Hard reset", key: 'h', tooltip: self.c.Tr.ResetHardTooltip},
+		{strength: "mixed", label: "Mixed reset", key: gocui.NewKeyRune('m'), tooltip: self.c.Tr.ResetMixedTooltip},
+		{strength: "soft", label: "Soft reset", key: gocui.NewKeyRune('s'), tooltip: self.c.Tr.ResetSoftTooltip},
+		{strength: "hard", label: "Hard reset", key: gocui.NewKeyRune('h'), tooltip: self.c.Tr.ResetHardTooltip},
 	}
 
 	menuItems := lo.Map(strengths, func(row strengthWithKey, _ int) *types.MenuItem {
@@ -312,15 +312,15 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 				self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
 				return self.CheckoutRef(hash, types.CheckoutRefOptions{})
 			},
-			Key: 'd',
+			Key: gocui.NewKeyRune('d'),
 		},
 	}
 
 	if len(branches) > 0 {
 		menuItems = append(menuItems, lo.Map(branches, func(branch *models.Branch, index int) *types.MenuItem {
-			var key types.Key
+			var key gocui.Key
 			if index < 9 {
-				key = rune(index + 1 + '0') // Convert 1-based index to key
+				key = gocui.NewKeyRune(rune(index + 1 + '0')) // Convert 1-based index to key
 			}
 			return &types.MenuItem{
 				LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutBranchAtCommit, branch.Name)},
@@ -336,7 +336,7 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 			LabelColumns:   []string{self.c.Tr.Actions.CheckoutBranch},
 			OnPress:        func() error { return nil },
 			DisabledReason: &types.DisabledReason{Text: self.c.Tr.NoBranchesFoundAtCommitTooltip},
-			Key:            '1',
+			Key:            gocui.NewKeyRune('1'),
 		})
 	}
 

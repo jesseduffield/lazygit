@@ -96,6 +96,8 @@ func TestFindConflictsAux(t *testing.T) {
 
 	for _, s := range scenarios {
 		reader := strings.NewReader(s.content)
-		assert.EqualValues(t, s.expected, fileHasConflictMarkersAux(reader))
+		result, err := fileHasConflictMarkersAux(reader)
+		assert.NoError(t, err)
+		assert.EqualValues(t, s.expected, result)
 	}
 }

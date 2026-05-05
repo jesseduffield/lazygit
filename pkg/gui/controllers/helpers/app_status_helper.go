@@ -3,7 +3,7 @@ package helpers
 import (
 	"time"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/status"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )

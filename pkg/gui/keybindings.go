@@ -4,10 +4,10 @@ import (
 	"errors"
 	"log"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -61,7 +61,7 @@ func (gui *Gui) GetCheatsheetKeybindings() []*types.Binding {
 }
 
 func (gui *Gui) keybindingOpts() types.KeybindingsOpts {
-	config := gui.c.UserConfig().Keybinding
+	keybindingConfig := gui.c.UserConfig().Keybinding
 
 	guards := types.KeybindingGuards{
 		OutsideFilterMode: gui.outsideFilterMode,
@@ -69,8 +69,8 @@ func (gui *Gui) keybindingOpts() types.KeybindingsOpts {
 	}
 
 	return types.KeybindingsOpts{
-		GetKey: keybindings.GetKey,
-		Config: config,
+		GetKey: config.GetValidatedKeyBindingKey,
+		Config: keybindingConfig,
 		Guards: guards,
 	}
 }
@@ -180,7 +180,7 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName: "information",
-			Key:      gocui.MouseLeft,
+			Key:      gocui.NewKeyName(gocui.MouseLeft),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleInfoClick,
 		},
@@ -201,27 +201,27 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName:    "main",
-			Key:         gocui.MouseWheelDown,
+			Key:         gocui.NewKeyName(gocui.MouseWheelDown),
 			Handler:     gui.scrollDownMain,
 			Description: gui.c.Tr.ScrollDown,
 			Alternative: "fn+up",
 		},
 		{
 			ViewName:    "main",
-			Key:         gocui.MouseWheelUp,
+			Key:         gocui.NewKeyName(gocui.MouseWheelUp),
 			Handler:     gui.scrollUpMain,
 			Description: gui.c.Tr.ScrollUp,
 			Alternative: "fn+down",
 		},
 		{
 			ViewName: "secondary",
-			Key:      gocui.MouseWheelDown,
+			Key:      gocui.NewKeyName(gocui.MouseWheelDown),
 			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownSecondary,
 		},
 		{
 			ViewName: "secondary",
-			Key:      gocui.MouseWheelUp,
+			Key:      gocui.NewKeyName(gocui.MouseWheelUp),
 			Modifier: gocui.ModNone,
 			Handler:  gui.scrollUpSecondary,
 		},
@@ -251,12 +251,12 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName: "confirmation",
-			Key:      gocui.MouseWheelUp,
+			Key:      gocui.NewKeyName(gocui.MouseWheelUp),
 			Handler:  gui.scrollUpConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
-			Key:      gocui.MouseWheelDown,
+			Key:      gocui.NewKeyName(gocui.MouseWheelDown),
 			Handler:  gui.scrollDownConfirmationPanel,
 		},
 		{
@@ -304,12 +304,12 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName: "extras",
-			Key:      gocui.MouseWheelUp,
+			Key:      gocui.NewKeyName(gocui.MouseWheelUp),
 			Handler:  gui.scrollUpExtra,
 		},
 		{
 			ViewName: "extras",
-			Key:      gocui.MouseWheelDown,
+			Key:      gocui.NewKeyName(gocui.MouseWheelDown),
 			Handler:  gui.scrollDownExtra,
 		},
 		{
@@ -379,7 +379,7 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		{
 			ViewName: "extras",
 			Tag:      "navigation",
-			Key:      gocui.MouseLeft,
+			Key:      gocui.NewKeyName(gocui.MouseLeft),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleFocusCommandLog,
 		},
@@ -473,30 +473,12 @@ func (gui *Gui) resetKeybindings() error {
 	return nil
 }
 
-func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View) error {
-	return func(g *gocui.Gui, v *gocui.View) error {
-		return f()
-	}
-}
-
 func (gui *Gui) SetKeybinding(binding *types.Binding) error {
-	handler := func() error {
+	handler := func(g *gocui.Gui, v *gocui.View) error {
 		return gui.callKeybindingHandler(binding)
 	}
 
-	// TODO: move all mouse-ey stuff into new mouse approach
-	if gocui.IsMouseKey(binding.Key) {
-		handler = func() error {
-			// we ignore click events on views that aren't popup panels, when a popup panel is focused
-			if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName {
-				return nil
-			}
-
-			return binding.Handler()
-		}
-	}
-
-	return gui.g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, gui.wrappedHandler(handler))
+	return gui.g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, handler)
 }
 
 func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
