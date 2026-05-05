@@ -421,6 +421,9 @@ func getDefaultStashWindowBox(args WindowArrangementArgs) *boxlayout.Box {
 
 func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) []*boxlayout.Box {
 	return func(width int, height int) []*boxlayout.Box {
+		hideStatus := args.UserConfig.Gui.HideStatusPanel
+		separateWorktrees := args.UserConfig.Gui.WorktreesInSeparateGroup
+
 		if args.ScreenMode == types.SCREEN_FULL || args.ScreenMode == types.SCREEN_HALF {
 			fullHeightBox := func(window string) *boxlayout.Box {
 				if window == args.CurrentSideWindow {
@@ -436,13 +439,20 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				}
 			}
 
-			return []*boxlayout.Box{
-				fullHeightBox("status"),
+			boxes := []*boxlayout.Box{}
+			if !hideStatus {
+				boxes = append(boxes, fullHeightBox("status"))
+			}
+			if separateWorktrees {
+				boxes = append(boxes, fullHeightBox("worktrees"))
+			}
+			boxes = append(boxes,
 				fullHeightBox("files"),
 				fullHeightBox("branches"),
 				fullHeightBox("commits"),
 				fullHeightBox("stash"),
-			}
+			)
+			return boxes
 		} else if height >= 28 {
 			accordionMode := args.UserConfig.Gui.ExpandFocusedSidePanel
 			accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
@@ -456,16 +466,23 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				return defaultBox
 			}
 
-			return []*boxlayout.Box{
-				{
+			boxes := []*boxlayout.Box{}
+			if !hideStatus {
+				boxes = append(boxes, &boxlayout.Box{
 					Window: "status",
 					Size:   3,
-				},
+				})
+			}
+			if separateWorktrees {
+				boxes = append(boxes, accordionBox(&boxlayout.Box{Window: "worktrees", Weight: 1}))
+			}
+			boxes = append(boxes,
 				accordionBox(&boxlayout.Box{Window: "files", Weight: 1}),
 				accordionBox(&boxlayout.Box{Window: "branches", Weight: 1}),
 				accordionBox(&boxlayout.Box{Window: "commits", Weight: 1}),
 				accordionBox(getDefaultStashWindowBox(args)),
-			}
+			)
+			return boxes
 		}
 
 		squashedHeight := 1
@@ -487,12 +504,19 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 			}
 		}
 
-		return []*boxlayout.Box{
-			squashedSidePanelBox("status"),
+		boxes := []*boxlayout.Box{}
+		if !hideStatus {
+			boxes = append(boxes, squashedSidePanelBox("status"))
+		}
+		if separateWorktrees {
+			boxes = append(boxes, squashedSidePanelBox("worktrees"))
+		}
+		boxes = append(boxes,
 			squashedSidePanelBox("files"),
 			squashedSidePanelBox("branches"),
 			squashedSidePanelBox("commits"),
 			squashedSidePanelBox("stash"),
-		}
+		)
+		return boxes
 	}
 }

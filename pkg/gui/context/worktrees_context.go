@@ -28,12 +28,17 @@ func NewWorktreesContext(c *ContextCommon) *WorktreesContext {
 		)
 	}
 
+	windowName := "files"
+	if c.UserConfig().Gui.WorktreesInSeparateGroup {
+		windowName = "worktrees"
+	}
+
 	return &WorktreesContext{
 		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				View:       c.Views().Worktrees,
-				WindowName: "files",
+				WindowName: windowName,
 				Key:        WORKTREES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
