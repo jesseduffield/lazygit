@@ -151,6 +151,8 @@ type GuiConfig struct {
 	ShowBottomLine bool `yaml:"showBottomLine"`
 	// If true, show jump-to-window keybindings in window titles.
 	ShowPanelJumps bool `yaml:"showPanelJumps"`
+	// If true, show separate Unstaged/Staged tabs in the Files window.
+	ShowFileChangeTabs bool `yaml:"showFileChangeTabs"`
 	// Deprecated: use nerdFontsVersion instead
 	ShowIcons bool `yaml:"showIcons" jsonschema:"deprecated"`
 	// Nerd fonts version to use.
@@ -817,6 +819,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			ShowCommandLog:                      true,
 			ShowBottomLine:                      true,
 			ShowPanelJumps:                      true,
+			ShowFileChangeTabs:                  false,
 			ShowFileTree:                        true,
 			ShowRootItemInFileTree:              true,
 			FileTreeSortOrder:                   "mixed",

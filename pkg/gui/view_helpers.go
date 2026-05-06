@@ -131,6 +131,9 @@ func (gui *Gui) filesTabIndex() int {
 	if gui.State == nil || gui.State.Contexts == nil || gui.State.Contexts.Files == nil {
 		return 0
 	}
+	if !gui.c.UserConfig().Gui.ShowFileChangeTabs {
+		return 0
+	}
 
 	filter := gui.State.Contexts.Files.GetStatusFilter()
 	switch filter {
@@ -145,6 +148,10 @@ func (gui *Gui) filesTabIndex() int {
 
 func (gui *Gui) applyFilesTab(tabName string) error {
 	if gui.State == nil || gui.State.Contexts == nil || gui.State.Contexts.Files == nil {
+		return nil
+	}
+
+	if !gui.c.UserConfig().Gui.ShowFileChangeTabs {
 		return nil
 	}
 
