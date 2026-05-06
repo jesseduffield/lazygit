@@ -862,6 +862,14 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 				Tab:      gui.c.Tr.FilesTitle,
 				ViewName: "files",
 			},
+			{
+				Tab:      gui.c.Tr.UnstagedChanges,
+				ViewName: "files",
+			},
+			{
+				Tab:      gui.c.Tr.StagedChanges,
+				ViewName: "files",
+			},
 			context.TabView{
 				Tab:      gui.c.Tr.WorktreesTitle,
 				ViewName: "worktrees",

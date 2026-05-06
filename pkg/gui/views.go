@@ -271,4 +271,8 @@ func (gui *Gui) configureViewProperties() {
 			}
 		}
 	}
+
+	if gui.Views.Files != nil {
+		gui.Views.Files.TabIndex = gui.filesTabIndex()
+	}
 }
