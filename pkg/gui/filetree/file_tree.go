@@ -49,8 +49,10 @@ type IFileTree interface {
 	GetAllFiles() []*models.File
 	GetStatusFilter() FileTreeDisplayFilter
 	GetRoot() *FileNode
-	SetTextFilter(filter string, useFuzzySearch bool)
+	SetTextFilter(filter string, useFuzzySearch bool, filterMode string, regexpPrefix string)
 	GetTextFilter() string
+	TextFilterMode() string
+	TextRegexpFilterPrefix() string
 }
 
 type FileTree struct {
@@ -60,8 +62,10 @@ type FileTree struct {
 	common         *common.Common
 	filter         FileTreeDisplayFilter
 	collapsedPaths *CollapsedPaths
-	textFilter     string
-	useFuzzySearch bool
+	textFilter           string
+	useFuzzySearch       bool
+	textFilterMode       string
+	textRegexpPrefix     string
 }
 
 var _ IFileTree = &FileTree{}
@@ -106,7 +110,7 @@ func (self *FileTree) getFilesForDisplay() []*models.File {
 	}
 
 	if self.textFilter != "" {
-		files = filterFilesByText(files, self.textFilter, self.useFuzzySearch)
+		files = filterFilesByText(files, self.textFilter, self.useFuzzySearch, self.textFilterMode, self.textRegexpPrefix)
 	}
 
 	return files
@@ -232,12 +236,22 @@ func (self *FileTree) GetStatusFilter() FileTreeDisplayFilter {
 	return self.filter
 }
 
-func (self *FileTree) SetTextFilter(filter string, useFuzzySearch bool) {
+func (self *FileTree) SetTextFilter(filter string, useFuzzySearch bool, filterMode string, regexpPrefix string) {
 	self.textFilter = filter
 	self.useFuzzySearch = useFuzzySearch
+	self.textFilterMode = filterMode
+	self.textRegexpPrefix = regexpPrefix
 	self.SetTree()
 }
 
 func (self *FileTree) GetTextFilter() string {
 	return self.textFilter
+}
+
+func (self *FileTree) TextFilterMode() string {
+	return self.textFilterMode
+}
+
+func (self *FileTree) TextRegexpFilterPrefix() string {
+	return self.textRegexpPrefix
 }

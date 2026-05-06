@@ -239,6 +239,7 @@ var tests = []*components.IntegrationTest{
 	file.StageChildrenRangeSelect,
 	file.StageDeletedRangeSelect,
 	file.StageRangeSelect,
+	filter_and_search.FilterBranchesRegexp,
 	filter_and_search.FilterByFileStatus,
 	filter_and_search.FilterCommitFiles,
 	filter_and_search.FilterCommitFilesToggleDirectory,

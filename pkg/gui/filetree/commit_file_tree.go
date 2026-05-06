@@ -15,8 +15,10 @@ type ICommitFileTree interface {
 	GetAllItems() []*CommitFileNode
 	GetAllFiles() []*models.CommitFile
 	GetRoot() *CommitFileNode
-	SetTextFilter(filter string, useFuzzySearch bool)
+	SetTextFilter(filter string, useFuzzySearch bool, filterMode string, regexpPrefix string)
 	GetTextFilter() string
+	TextFilterMode() string
+	TextRegexpFilterPrefix() string
 }
 
 type CommitFileTree struct {
@@ -25,8 +27,10 @@ type CommitFileTree struct {
 	showTree       bool
 	common         *common.Common
 	collapsedPaths *CollapsedPaths
-	textFilter     string
-	useFuzzySearch bool
+	textFilter           string
+	useFuzzySearch       bool
+	textFilterMode       string
+	textRegexpPrefix     string
 }
 
 func (self *CommitFileTree) CollapseAll() {
@@ -100,7 +104,7 @@ func (self *CommitFileTree) GetAllFiles() []*models.CommitFile {
 func (self *CommitFileTree) getFilesForDisplay() []*models.CommitFile {
 	files := self.getFiles()
 	if self.textFilter != "" {
-		files = filterCommitFilesByText(files, self.textFilter, self.useFuzzySearch)
+		files = filterCommitFilesByText(files, self.textFilter, self.useFuzzySearch, self.textFilterMode, self.textRegexpPrefix)
 	}
 	return files
 }
@@ -117,14 +121,24 @@ func (self *CommitFileTree) SetTree() {
 	}
 }
 
-func (self *CommitFileTree) SetTextFilter(filter string, useFuzzySearch bool) {
+func (self *CommitFileTree) SetTextFilter(filter string, useFuzzySearch bool, filterMode string, regexpPrefix string) {
 	self.textFilter = filter
 	self.useFuzzySearch = useFuzzySearch
+	self.textFilterMode = filterMode
+	self.textRegexpPrefix = regexpPrefix
 	self.SetTree()
 }
 
 func (self *CommitFileTree) GetTextFilter() string {
 	return self.textFilter
+}
+
+func (self *CommitFileTree) TextFilterMode() string {
+	return self.textFilterMode
+}
+
+func (self *CommitFileTree) TextRegexpFilterPrefix() string {
+	return self.textRegexpPrefix
 }
 
 func (self *CommitFileTree) IsCollapsed(path string) bool {

@@ -71,6 +71,64 @@ func TestFilterStrings(t *testing.T) {
 	}
 }
 
+func TestViewFilterPattern(t *testing.T) {
+	const def = "re:"
+	pat, re := ViewFilterPattern("substring", "re:^main", def)
+	assert.True(t, re)
+	assert.Equal(t, "^main", pat)
+
+	pat, re = ViewFilterPattern("substring", "plain", def)
+	assert.False(t, re)
+	assert.Equal(t, "plain", pat)
+
+	pat, re = ViewFilterPattern("regexp", "^main", def)
+	assert.True(t, re)
+	assert.Equal(t, "^main", pat)
+
+	pat, re = ViewFilterPattern("fuzzy", "re:a.c", def)
+	assert.True(t, re)
+	assert.Equal(t, "a.c", pat)
+
+	pat, re = ViewFilterPattern("substring", "rx:^x", "rx:")
+	assert.True(t, re)
+	assert.Equal(t, "^x", pat)
+
+	pat, re = ViewFilterPattern("substring", "re:^main", "rx:")
+	assert.False(t, re)
+	assert.Equal(t, "re:^main", pat)
+}
+
+func TestFindFromRegexp(t *testing.T) {
+	haystack := []string{"main", "amain", "xmain"}
+	src := stringSource(haystack)
+
+	got := FindFrom("^main", src, false, true)
+	assert.Len(t, got, 1)
+	assert.Equal(t, 0, got[0].Index)
+	assert.Equal(t, "main", got[0].Str)
+
+	// '.' is regexp metacharacter: 'foo.go' matches 'fooXgo'; literal dot needs '\.'
+	dotHay := stringSource([]string{"fooXgo", "foo.go"})
+	got = FindFrom("foo.go", dotHay, false, true)
+	assert.Len(t, got, 2)
+	got = FindFrom(`foo\.go`, dotHay, false, true)
+	assert.Len(t, got, 1)
+	assert.Equal(t, "foo.go", got[0].Str)
+
+	// invalid pattern => no matches
+	got = FindFrom("(", src, false, true)
+	assert.Empty(t, got)
+
+	// case: lowercase pattern matches uppercase (implicit (?i))
+	got = FindFrom("main", stringSource([]string{"Main"}), false, true)
+	assert.Len(t, got, 1)
+
+	// uppercase in pattern => case-sensitive
+	got = FindFrom("Main", stringSource([]string{"main", "Main"}), false, true)
+	assert.Len(t, got, 1)
+	assert.Equal(t, "Main", got[0].Str)
+}
+
 func TestCaseInsensitiveContains(t *testing.T) {
 	testCases := []struct {
 		haystack string

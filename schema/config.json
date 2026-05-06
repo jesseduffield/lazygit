@@ -790,10 +790,16 @@
           "type": "string",
           "enum": [
             "substring",
-            "fuzzy"
+            "fuzzy",
+            "regexp"
           ],
-          "description": "How things are filtered when typing '/'.\nOne of 'substring' (default) | 'fuzzy'",
+          "description": "How things are filtered when typing '/'.\nOne of 'substring' (default) | 'fuzzy' | 'regexp'\nIn substring or fuzzy mode, prefix the filter with regexpFilterPrefix (default 're:') to use a Go regular\nexpression for that filter only.\nIn regexp mode, '.' and other metacharacters are regexp syntax (escape '.' to match a literal dot in paths).",
           "default": "substring"
+        },
+        "regexpFilterPrefix": {
+          "type": "string",
+          "description": "When filterMode is substring or fuzzy, if the filter starts with this string, the rest is treated as a\nGo regexp. Default is 're:'. Leave empty in config to use the default.",
+          "default": "re:"
         },
         "spinner": {
           "$ref": "#/$defs/SpinnerConfig",
