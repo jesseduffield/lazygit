@@ -544,26 +544,10 @@ func (g *Gui) CurrentView() *View {
 // SetKeybinding creates a new keybinding. If viewname equals to ""
 // (empty string) then the keybinding will apply to all views. key must
 // be a rune or a Key.
-//
-// When mouse keys are used (MouseLeft, MouseRight, ...), modifier might not work correctly.
-// It behaves differently on different platforms. Somewhere it doesn't register Alt key press,
-// on others it might report Ctrl as Alt. It's not consistent and therefore it's not recommended
-// to use with mouse keys.
-func (g *Gui) SetKeybinding(viewname string, key Key, mod Modifier, handler func(*Gui, *View) error) error {
-	kb := newKeybinding(viewname, key, mod, handler)
+func (g *Gui) SetKeybinding(viewname string, key Key, handler func(*Gui, *View) error) error {
+	kb := newKeybinding(viewname, key, handler)
 	g.keybindings = append(g.keybindings, kb)
 	return nil
-}
-
-// DeleteKeybinding deletes a keybinding.
-func (g *Gui) DeleteKeybinding(viewname string, key Key, mod Modifier) error {
-	for i, kb := range g.keybindings {
-		if kb.viewName == viewname && kb.key.keyName == key.KeyName() && kb.key.str == key.str && kb.mod == mod {
-			g.keybindings = append(g.keybindings[:i], g.keybindings[i+1:]...)
-			return nil
-		}
-	}
-	return errors.New("keybinding not found")
 }
 
 // DeleteKeybindings deletes all keybindings of view.

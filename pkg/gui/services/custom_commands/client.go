@@ -2,7 +2,6 @@ package custom_commands
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -47,7 +46,6 @@ func (self *Client) GetCustomCommandKeybindings() ([]*types.Binding, error) {
 			bindings = append(bindings, &types.Binding{
 				ViewName:    "", // custom commands menus are global; we filter the commands inside by context
 				Key:         config.GetValidatedKeyBindingKey(customCommand.Key),
-				Modifier:    gocui.ModNone,
 				Handler:     handler,
 				Description: getCustomCommandsMenuDescription(customCommand, self.c.Tr),
 				OpensMenu:   true,

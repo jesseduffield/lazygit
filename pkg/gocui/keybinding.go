@@ -19,16 +19,14 @@ type Modifier tcell.ModMask
 type keybinding struct {
 	viewName string
 	key      Key
-	mod      Modifier
 	handler  func(*Gui, *View) error
 }
 
 // newKeybinding returns a new Keybinding object.
-func newKeybinding(viewname string, key Key, mod Modifier, handler func(*Gui, *View) error) (kb *keybinding) {
+func newKeybinding(viewname string, key Key, handler func(*Gui, *View) error) (kb *keybinding) {
 	kb = &keybinding{
 		viewName: viewname,
 		key:      key,
-		mod:      mod,
 		handler:  handler,
 	}
 	return kb

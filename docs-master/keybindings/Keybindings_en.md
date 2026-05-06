@@ -96,8 +96,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` p `` | Pick | Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase. |
 | `` F `` | Create fixup commit | Create 'fixup!' commit for the selected commit. Later on, you can press `S` on this same commit to apply all above fixup commits. |
 | `` S `` | Apply fixup commits | Squash all 'fixup!' commits, either above the selected commit, or all in current branch (autosquash). |
-| `` <alt+down> `` | Move commit down one |  |
-| `` <alt+up> `` | Move commit up one |  |
+| `` <ctrl+j> `` | Move commit down one |  |
+| `` <ctrl+k> `` | Move commit up one |  |
 | `` V `` | Paste (cherry-pick) |  |
 | `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
 | `` A `` | Amend | Amend commit with staged changes. If the selected commit is the HEAD commit, this will perform `git commit --amend`. Otherwise the commit will be amended via a rebase. |

@@ -178,8 +178,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` p `` | Pick | Выбрать коммит (в середине перебазирования) |
 | `` F `` | Создать fixup коммит | Создать fixup коммит для этого коммита |
 | `` S `` | Apply fixup commits | Объединить все 'fixup!' коммиты выше в выбранный коммит (автосохранение) |
-| `` <alt+down> `` | Переместить коммит вниз на один |  |
-| `` <alt+up> `` | Переместить коммит вверх на один |  |
+| `` <ctrl+j> `` | Переместить коммит вниз на один |  |
+| `` <ctrl+k> `` | Переместить коммит вверх на один |  |
 | `` V `` | Вставить отобранные коммиты (cherry-pick) |  |
 | `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
 | `` A `` | Amend | Править последний коммит с проиндексированными изменениями |

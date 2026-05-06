@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -69,7 +68,6 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Return),
-			Modifier:          gocui.ModNone,
 			Handler:           self.escape,
 			Description:       self.c.Tr.Cancel,
 			DescriptionFunc:   self.escapeDescription,
@@ -85,7 +83,6 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		{
 			ViewName: "",
 			Key:      opts.GetKey(opts.Config.Universal.OptionMenuAlt1),
-			Modifier: gocui.ModNone,
 			// we have the description on the alt key and not the main key for legacy reasons
 			// (the original main key was 'x' but we've reassigned that to other purposes)
 			Description:       self.c.Tr.OpenKeybindingsMenu,
@@ -118,23 +115,19 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Quit),
-			Modifier:    gocui.ModNone,
 			Description: self.c.Tr.Quit,
 			Handler:     self.quit,
 		},
 		{
-			Key:      opts.GetKey(opts.Config.Universal.QuitAlt1),
-			Modifier: gocui.ModNone,
-			Handler:  self.quit,
+			Key:     opts.GetKey(opts.Config.Universal.QuitAlt1),
+			Handler: self.quit,
 		},
 		{
-			Key:      opts.GetKey(opts.Config.Universal.QuitWithoutChangingDirectory),
-			Modifier: gocui.ModNone,
-			Handler:  self.quitWithoutChangingDirectory,
+			Key:     opts.GetKey(opts.Config.Universal.QuitWithoutChangingDirectory),
+			Handler: self.quitWithoutChangingDirectory,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.SuspendApp),
-			Modifier:    gocui.ModNone,
 			Handler:     self.c.Helpers().SuspendResume.SuspendApp,
 			Description: self.c.Tr.SuspendApp,
 			GetDisabledReason: func() *types.DisabledReason {

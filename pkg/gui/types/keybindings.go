@@ -12,7 +12,6 @@ type Binding struct {
 	ViewName    string
 	Handler     func() error
 	Key         gocui.Key
-	Modifier    gocui.Modifier
 	Description string
 	// DescriptionFunc is used instead of Description if non-nil, and is useful for dynamic
 	// descriptions that change depending on context. Important: this must not be an expensive call.

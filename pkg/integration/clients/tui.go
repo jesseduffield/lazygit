@@ -43,7 +43,7 @@ func RunTUI(raceDetector bool) {
 
 	g.SetManagerFunc(app.layout)
 
-	if err := g.SetKeybinding("list", gocui.NewKeyName(gocui.KeyArrowUp), gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", gocui.NewKeyName(gocui.KeyArrowUp), func(*gocui.Gui, *gocui.View) error {
 		if app.itemIdx > 0 {
 			app.itemIdx--
 		}
@@ -57,7 +57,7 @@ func RunTUI(raceDetector bool) {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.NewKeyName(gocui.KeyArrowDown), gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", gocui.NewKeyName(gocui.KeyArrowDown), func(*gocui.Gui, *gocui.View) error {
 		if app.itemIdx < len(app.filteredTests)-1 {
 			app.itemIdx++
 		}
@@ -72,15 +72,15 @@ func RunTUI(raceDetector bool) {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.NewKeyStrMod("c", gocui.ModCtrl), gocui.ModNone, quit); err != nil {
+	if err := g.SetKeybinding("list", gocui.NewKeyStrMod("c", gocui.ModCtrl), quit); err != nil {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.NewKeyRune('q'), gocui.ModNone, quit); err != nil {
+	if err := g.SetKeybinding("list", gocui.NewKeyRune('q'), quit); err != nil {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.NewKeyRune('s'), gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", gocui.NewKeyRune('s'), func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -93,7 +93,7 @@ func RunTUI(raceDetector bool) {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.NewKeyName(gocui.KeyEnter), gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", gocui.NewKeyName(gocui.KeyEnter), func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -106,7 +106,7 @@ func RunTUI(raceDetector bool) {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.NewKeyRune('t'), gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", gocui.NewKeyRune('t'), func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -119,7 +119,7 @@ func RunTUI(raceDetector bool) {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.NewKeyRune('d'), gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", gocui.NewKeyRune('d'), func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -132,7 +132,7 @@ func RunTUI(raceDetector bool) {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.NewKeyRune('o'), gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", gocui.NewKeyRune('o'), func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -148,7 +148,7 @@ func RunTUI(raceDetector bool) {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.NewKeyRune('O'), gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", gocui.NewKeyRune('O'), func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -164,7 +164,7 @@ func RunTUI(raceDetector bool) {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", gocui.NewKeyRune('/'), gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", gocui.NewKeyRune('/'), func(*gocui.Gui, *gocui.View) error {
 		app.filtering = true
 		if _, err := g.SetCurrentView("editor"); err != nil {
 			return err
@@ -181,7 +181,7 @@ func RunTUI(raceDetector bool) {
 	}
 
 	// not using the editor yet, but will use it to help filter the list
-	if err := g.SetKeybinding("editor", gocui.NewKeyName(gocui.KeyEsc), gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("editor", gocui.NewKeyName(gocui.KeyEsc), func(*gocui.Gui, *gocui.View) error {
 		app.filtering = false
 		if _, err := g.SetCurrentView("list"); err != nil {
 			return err
@@ -198,7 +198,7 @@ func RunTUI(raceDetector bool) {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("editor", gocui.NewKeyName(gocui.KeyEnter), gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("editor", gocui.NewKeyName(gocui.KeyEnter), func(*gocui.Gui, *gocui.View) error {
 		app.filtering = false
 
 		if _, err := g.SetCurrentView("list"); err != nil {
