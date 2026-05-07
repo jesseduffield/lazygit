@@ -780,22 +780,27 @@ func (self *RefreshHelper) refForLog() string {
 }
 
 func (self *RefreshHelper) refreshView(context types.Context) {
-	// Re-applying the filter must be done before re-rendering the view, so that
-	// the filtered list model is up to date for rendering.
-	self.searchHelper.ReApplyFilter(context)
+	// refreshView is called from the worker goroutine that drives async
+	// refreshes, so bounce to the UI thread before mutating view content.
+	self.c.OnUIThread(func() error {
+		// Re-applying the filter must be done before re-rendering the view, so that
+		// the filtered list model is up to date for rendering.
+		self.searchHelper.ReApplyFilter(context)
 
-	self.c.PostRefreshUpdate(context)
+		self.c.PostRefreshUpdate(context)
 
-	self.c.AfterLayout(func() error {
-		// Re-applying the search must be done after re-rendering the view though,
-		// so that the "x of y" status is shown correctly.
-		//
-		// Also, it must be done after layout, because otherwise FocusPoint
-		// hasn't been called yet (see ListContextTrait.FocusLine), which means
-		// that the scroll position might be such that the entire visible
-		// content is outside the viewport. And this would cause problems in
-		// searchModelCommits.
-		self.searchHelper.ReApplySearch(context)
+		self.c.AfterLayout(func() error {
+			// Re-applying the search must be done after re-rendering the view though,
+			// so that the "x of y" status is shown correctly.
+			//
+			// Also, it must be done after layout, because otherwise FocusPoint
+			// hasn't been called yet (see ListContextTrait.FocusLine), which means
+			// that the scroll position might be such that the entire visible
+			// content is outside the viewport. And this would cause problems in
+			// searchModelCommits.
+			self.searchHelper.ReApplySearch(context)
+			return nil
+		})
 		return nil
 	})
 }
