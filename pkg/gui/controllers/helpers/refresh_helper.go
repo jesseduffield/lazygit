@@ -532,9 +532,12 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 
 	// Need to re-render the commits view because the visualization of local
 	// branch heads might have changed
-	self.c.Mutexes().LocalCommitsMutex.Lock()
-	self.c.Contexts().LocalCommits.HandleRender()
-	self.c.Mutexes().LocalCommitsMutex.Unlock()
+	self.c.OnUIThread(func() error {
+		self.c.Mutexes().LocalCommitsMutex.Lock()
+		self.c.Contexts().LocalCommits.HandleRender()
+		self.c.Mutexes().LocalCommitsMutex.Unlock()
+		return nil
+	})
 
 	self.refreshStatus()
 }
