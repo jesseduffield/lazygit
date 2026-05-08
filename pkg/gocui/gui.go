@@ -13,7 +13,9 @@ import (
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/generics/set"
 	"github.com/rivo/uniseg"
+	"github.com/samber/lo"
 )
 
 // OutputMode represents an output mode, which determines how colors
@@ -1172,25 +1174,7 @@ func (g *Gui) flush() error {
 // actually-changed cells are emitted to the terminal.
 // Will also redraw any views that overlap tainted views
 func (g *Gui) flushContentOnly(views []*View) error {
-	// We also want to taint views that overlap tainted views
-	for i, v := range views {
-		if !v.tainted {
-			continue
-		}
-		for _, above := range views[i+1:] {
-			if above.tainted {
-				continue
-			}
-			if rectsOverlap(v, above) {
-				above.tainted = true
-			}
-		}
-	}
-
-	for _, v := range views {
-		if !v.tainted {
-			continue
-		}
+	for _, v := range viewsToRedrawContentOnly(views) {
 		if err := g.draw(v); err != nil {
 			return err
 		}
@@ -1198,6 +1182,29 @@ func (g *Gui) flushContentOnly(views []*View) error {
 
 	Screen.Show()
 	return nil
+}
+
+func viewsToRedrawContentOnly(views []*View) []*View {
+	redrawIndexes := set.New[int]()
+
+	for i, v := range views {
+		if !v.tainted && !redrawIndexes.Includes(i) {
+			continue
+		}
+
+		redrawIndexes.Add(i)
+
+		for j, above := range views[i+1:] {
+			aboveIndex := i + 1 + j
+			if !redrawIndexes.Includes(aboveIndex) && rectsOverlap(v, above) {
+				redrawIndexes.Add(aboveIndex)
+			}
+		}
+	}
+
+	return lo.FilterMap(views, func(view *View, i int) (*View, bool) {
+		return view, redrawIndexes.Includes(i)
+	})
 }
 
 // Reports whether two views' rectangles share at least one cell.
