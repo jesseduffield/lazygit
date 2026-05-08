@@ -1,6 +1,7 @@
 package gocui
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -199,4 +200,48 @@ func TestProcessRemainingEvents_EmptyQueue_ReturnsTrue(t *testing.T) {
 	contentOnly, err := g.processRemainingEvents()
 	assert.NoError(t, err)
 	assert.True(t, contentOnly, "should return true when no events are queued")
+}
+
+// Ensure an overlapping view that is not tainted does not get overdrawn
+func TestFlushContentOnly_DoesNotOverdrawHigherZViews(t *testing.T) {
+	g := newTestGui(t)
+
+	// Base view
+	list, _ := g.SetView("list", 0, 0, 79, 23, 0)
+	list.Frame = false
+	list.SetContent(strings.Repeat("LIST LINE FILLER FILLER FILLER FILLER FILLER FILLER FILLER FILLER FILLER\n", 22))
+
+	// Overlapping 'popup'
+	popup, _ := g.SetView("popup", 20, 8, 60, 16, 0)
+	popup.Frame = false
+	popupLine := strings.Repeat("P", 60)
+	popup.SetContent(strings.Repeat(popupLine+"\n", 16))
+
+	// Full flush — popup ends up on top.
+	assert.NoError(t, g.flush())
+
+	cellAt := func(x, y int) string {
+		s, _, _ := g.screen.Get(x, y)
+		return s
+	}
+
+	// Taint only the list view
+	list.SetContent(strings.Repeat(strings.Repeat("X", 80)+"\n", 22))
+	assert.True(t, list.IsTainted(), "list should be tainted after SetContent")
+	assert.False(t, popup.IsTainted(), "popup should not be tainted")
+
+	// flushContentOnly is what spinner ticks ultimately invoke.
+	assert.NoError(t, g.flushContentOnly(g.views))
+
+	assert.Equal(t, "P", cellAt(21, 9),
+		"popup region must still show popup content after flushContentOnly; "+
+			"if this fails the popup-overdraw bug is present")
+
+	// Additional checks to be sure
+	assert.Equal(t, "P", cellAt(40, 11), "interior popup cell should still show popup content")
+	assert.Equal(t, "P", cellAt(58, 14), "near-edge popup cell should still show popup content")
+
+	// Ensure tainted view was updated
+	assert.Equal(t, "X", cellAt(5, 5), "list cell outside popup should show new list content")
+	assert.Equal(t, "X", cellAt(70, 20), "list cell outside popup should show new list content")
 }

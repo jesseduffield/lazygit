@@ -1170,7 +1170,23 @@ func (g *Gui) flush() error {
 // Redraws only tainted views and skips the layout pass.
 // tcell's cell-level dirty tracking ensures only
 // actually-changed cells are emitted to the terminal.
+// Will also redraw any views that overlap tainted views
 func (g *Gui) flushContentOnly(views []*View) error {
+	// We also want to taint views that overlap tainted views
+	for i, v := range views {
+		if !v.tainted {
+			continue
+		}
+		for _, above := range views[i+1:] {
+			if above.tainted {
+				continue
+			}
+			if rectsOverlap(v, above) {
+				above.tainted = true
+			}
+		}
+	}
+
 	for _, v := range views {
 		if !v.tainted {
 			continue
@@ -1182,6 +1198,13 @@ func (g *Gui) flushContentOnly(views []*View) error {
 
 	Screen.Show()
 	return nil
+}
+
+// Reports whether two views' rectangles share at least one cell.
+func rectsOverlap(a, b *View) bool {
+	ax0, ay0, ax1, ay1 := a.Dimensions()
+	bx0, by0, bx1, by1 := b.Dimensions()
+	return ax0 <= bx1 && ax1 >= bx0 && ay0 <= by1 && ay1 >= by0
 }
 
 func (g *Gui) ForceLayoutAndRedraw() error {
