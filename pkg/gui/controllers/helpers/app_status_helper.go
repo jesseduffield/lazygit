@@ -94,7 +94,7 @@ func (self *AppStatusHelper) renderAppStatus() {
 	self.c.OnWorker(func(_ gocui.Task) error {
 		ticker := time.NewTicker(time.Millisecond * time.Duration(self.c.UserConfig().Gui.Spinner.Rate))
 		defer ticker.Stop()
-		prevAppStatus := ""
+		prevAppStatus, _ := self.statusMgr().GetStatusString(self.c.UserConfig())
 		for range ticker.C {
 			appStatus, color := self.statusMgr().GetStatusString(self.c.UserConfig())
 
