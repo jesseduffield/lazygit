@@ -949,7 +949,11 @@ func (self *RefreshHelper) setGithubPullRequests(authToken string, baseRemote *m
 	self.savePullRequestsToCache(prs)
 	self.rebuildPullRequestsMap()
 
-	self.c.PostRefreshUpdate(self.c.Contexts().Branches)
+	self.c.OnUIThread(func() error {
+		self.c.PostRefreshUpdate(self.c.Contexts().Branches)
+		return nil
+	})
+
 	return nil
 }
 
