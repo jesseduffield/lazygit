@@ -22,6 +22,7 @@ import (
 	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/samber/lo"
@@ -156,7 +157,7 @@ func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*b
 		bindingsByHeader,
 		func(header header, hBindings []*types.Binding) headerWithBindings {
 			uniqBindings := lo.UniqBy(hBindings, func(binding *types.Binding) string {
-				return binding.Description + config.LabelForKey(binding.Keys[0])
+				return binding.Description + keyLabels(binding.Keys)
 			})
 
 			return headerWithBindings{
@@ -213,8 +214,14 @@ func formatTitle(title string) string {
 	return fmt.Sprintf("\n## %s\n\n", title)
 }
 
+func keyLabels(keys []gocui.Key) string {
+	return strings.Join(lo.Map(keys, func(k gocui.Key, _ int) string {
+		return config.LabelForKey(k)
+	}), ", ")
+}
+
 func formatBinding(binding *types.Binding) string {
-	action := config.LabelForKey(binding.Keys[0])
+	action := keyLabels(binding.Keys)
 	description := binding.Description
 	if binding.Alternative != "" {
 		action += fmt.Sprintf(" (%s)", binding.Alternative)
