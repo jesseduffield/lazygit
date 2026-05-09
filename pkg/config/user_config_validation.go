@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -8,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 func (config *UserConfig) Validate() error {
@@ -48,6 +51,22 @@ func (config *UserConfig) Validate() error {
 	}
 	if err := validateCustomCommands(config.CustomCommands); err != nil {
 		return err
+	}
+	if err := validateSpinner(config.Gui.Spinner); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateSpinner(spinner SpinnerConfig) error {
+	if len(spinner.Frames) == 0 {
+		return errors.New("gui.spinner.frames must not be empty.")
+	}
+	firstWidth := utils.StringWidth(spinner.Frames[0])
+	if lo.SomeBy(spinner.Frames, func(frame string) bool {
+		return utils.StringWidth(frame) != firstWidth
+	}) {
+		return errors.New("All gui.spinner.frames entries must have the same width.")
 	}
 	return nil
 }

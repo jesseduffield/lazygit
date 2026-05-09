@@ -97,6 +97,7 @@ var tests = []*components.IntegrationTest{
 	cherry_pick.CherryPickDuringRebase,
 	cherry_pick.CherryPickMerge,
 	cherry_pick.CherryPickRange,
+	cherry_pick.CherryPickRangeAfterPaste,
 	commit.AddCoAuthor,
 	commit.AddCoAuthorRange,
 	commit.AddCoAuthorWhileCommitting,

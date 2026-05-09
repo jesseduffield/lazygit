@@ -428,6 +428,8 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 
 	gui.c.Context().Push(contextToPush, types.OnFocusOpts{})
 
+	gui.render()
+
 	return nil
 }
 
@@ -1182,6 +1184,12 @@ func (gui *Gui) setColorScheme() {
 
 func (gui *Gui) onUIThread(f func() error) {
 	gui.g.Update(func(*gocui.Gui) error {
+		return f()
+	})
+}
+
+func (gui *Gui) onUIThreadContentOnly(f func() error) {
+	gui.g.UpdateContentOnly(func(*gocui.Gui) error {
 		return f()
 	})
 }

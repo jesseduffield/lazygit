@@ -13,7 +13,9 @@ import (
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/generics/set"
 	"github.com/rivo/uniseg"
+	"github.com/samber/lo"
 )
 
 // OutputMode represents an output mode, which determines how colors
@@ -604,6 +606,10 @@ func (g *Gui) SetRenderSearchStatusFunc(renderSearchStatusFunc func(*View, int, 
 type userEvent struct {
 	f    func(*Gui) error
 	task Task
+	// Signals that this event only modifies view content (e.g. SetContent).
+	// When all events in a batch are contentOnly, processEvent
+	// can skip the expensive layout() call in flush().
+	contentOnly bool
 }
 
 // Update executes the passed function. This method can be called safely from a
@@ -628,6 +634,12 @@ func (g *Gui) UpdateAsync(f func(*Gui) error) {
 
 func (g *Gui) updateAsyncAux(f func(*Gui) error, task Task) {
 	g.userEvents <- userEvent{f: f, task: task}
+}
+
+// Like Update, but signals that the callback only modifies content.
+func (g *Gui) UpdateContentOnly(f func(*Gui) error) {
+	task := g.NewTask()
+	g.userEvents <- userEvent{f: f, task: task, contentOnly: true}
 }
 
 // Calls a function in a goroutine. Handles panics gracefully and tracks
@@ -743,6 +755,8 @@ func (g *Gui) handleError(err error) error {
 }
 
 func (g *Gui) processEvent() error {
+	contentOnly := false
+
 	select {
 	case ev := <-g.gEvents:
 		task := g.NewTask()
@@ -752,6 +766,7 @@ func (g *Gui) processEvent() error {
 			return err
 		}
 	case ev := <-g.userEvents:
+		contentOnly = ev.contentOnly
 		defer func() { ev.task.Done() }()
 
 		if err := g.handleError(ev.f(g)); err != nil {
@@ -759,32 +774,38 @@ func (g *Gui) processEvent() error {
 		}
 	}
 
-	if err := g.processRemainingEvents(); err != nil {
+	remainingContentOnly, err := g.processRemainingEvents()
+	if err != nil {
 		return err
 	}
-	if err := g.flush(); err != nil {
-		return err
-	}
+	contentOnly = contentOnly && remainingContentOnly
 
-	return nil
+	if contentOnly {
+		return g.flushContentOnly(g.views)
+	}
+	return g.flush()
 }
 
 // processRemainingEvents handles the remaining events in the events pool.
-func (g *Gui) processRemainingEvents() error {
+// Returns true if all processed events were content-only.
+func (g *Gui) processRemainingEvents() (bool, error) {
+	contentOnly := true
 	for {
 		select {
 		case ev := <-g.gEvents:
+			contentOnly = false
 			if err := g.handleError(g.handleEvent(&ev)); err != nil {
-				return err
+				return false, err
 			}
 		case ev := <-g.userEvents:
+			contentOnly = ev.contentOnly && contentOnly
 			err := g.handleError(ev.f(g))
 			ev.task.Done()
 			if err != nil {
-				return err
+				return false, err
 			}
 		default:
-			return nil
+			return contentOnly, nil
 		}
 	}
 }
@@ -1148,25 +1169,60 @@ func (g *Gui) flush() error {
 	return nil
 }
 
-func (g *Gui) ForceLayoutAndRedraw() error {
-	return g.flush()
-}
-
-// force redrawing one or more views outside of the normal main loop. Useful during longer
-// operations that block the main thread, to update a spinner in a status view.
-func (g *Gui) ForceRedrawViews(views ...*View) error {
-	for _, m := range g.managers {
-		if err := m.Layout(g); err != nil {
+// Redraws only tainted views and skips the layout pass.
+// tcell's cell-level dirty tracking ensures only
+// actually-changed cells are emitted to the terminal.
+// Will also redraw any views that overlap tainted views
+func (g *Gui) flushContentOnly(views []*View) error {
+	for _, v := range viewsToRedrawContentOnly(views) {
+		if err := g.draw(v); err != nil {
 			return err
 		}
 	}
 
-	for _, v := range views {
-		v.draw()
-	}
-
 	Screen.Show()
 	return nil
+}
+
+func viewsToRedrawContentOnly(views []*View) []*View {
+	redrawIndexes := set.New[int]()
+
+	for i, v := range views {
+		if !v.tainted && !redrawIndexes.Includes(i) {
+			continue
+		}
+
+		redrawIndexes.Add(i)
+
+		for j, above := range views[i+1:] {
+			aboveIndex := i + 1 + j
+			if !redrawIndexes.Includes(aboveIndex) && rectsOverlap(v, above) {
+				redrawIndexes.Add(aboveIndex)
+			}
+		}
+	}
+
+	return lo.FilterMap(views, func(view *View, i int) (*View, bool) {
+		return view, redrawIndexes.Includes(i)
+	})
+}
+
+// Reports whether two views' rectangles share at least one cell.
+func rectsOverlap(a, b *View) bool {
+	ax0, ay0, ax1, ay1 := a.Dimensions()
+	bx0, by0, bx1, by1 := b.Dimensions()
+	return ax0 <= bx1 && ax1 >= bx0 && ay0 <= by1 && ay1 >= by0
+}
+
+func (g *Gui) ForceLayoutAndRedraw() error {
+	return g.flush()
+}
+
+// Redraws only tainted views outside of the normal main
+// loop, without a layout pass. Useful during longer operations that block the
+// main thread, e.g. to update a spinner in a status view.
+func (g *Gui) ForceFlushViewsContentOnly(views []*View) error {
+	return g.flushContentOnly(views)
 }
 
 // draw manages the cursor and calls the draw function of a view.
