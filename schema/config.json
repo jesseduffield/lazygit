@@ -1852,7 +1852,7 @@
           "uniqueItems": true,
           "description": "Color of keybindings help text in the bottom line",
           "default": [
-            "blue"
+            "white"
           ]
         },
         "selectedLineBgColor": {
