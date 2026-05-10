@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
@@ -114,6 +115,42 @@ func (self *ConfigCommands) Branches(cmd oscommands.ICmdObjBuilder) map[string]*
 
 func (self *ConfigCommands) GetGitFlowPrefixes() string {
 	return self.gitConfig.GetGeneral("--local --get-regexp gitflow.prefix")
+}
+
+// parseGitFlowPrefixMap parses git-flow config output into a prefix → branchType map.
+// Line format: "gitflow.prefix.<type> <prefix>". Prefixes are normalized to end in "/".
+func parseGitFlowPrefixMap(legacyOutput string) map[string]string {
+	legacyRegexp := regexp.MustCompile(`gitflow\.prefix\.(\S+)\s+(.*)`)
+	prefixToType := make(map[string]string)
+	for line := range strings.SplitSeq(legacyOutput, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		if m := legacyRegexp.FindStringSubmatch(line); len(m) == 3 {
+			prefix := normalizeGitFlowPrefix(m[2])
+			if prefix == "" {
+				continue
+			}
+			prefixToType[prefix] = m[1]
+		}
+	}
+	return prefixToType
+}
+
+func normalizeGitFlowPrefix(prefix string) string {
+	prefix = strings.TrimSpace(prefix)
+	if prefix == "" {
+		return ""
+	}
+	if !strings.HasSuffix(prefix, "/") {
+		return prefix + "/"
+	}
+	return prefix
+}
+
+func (self *ConfigCommands) GetGitFlowPrefixMap() map[string]string {
+	return parseGitFlowPrefixMap(self.GetGitFlowPrefixes())
 }
 
 func (self *ConfigCommands) GetCoreCommentChar() byte {
