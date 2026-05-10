@@ -230,7 +230,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            gocui.NewKeyRune('n'),
+		Key:            menuKey('n'),
 	}
 	copyRelativePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyRelativeFilePath,
@@ -242,7 +242,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            gocui.NewKeyRune('p'),
+		Key:            menuKey('p'),
 	}
 	copyAbsolutePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyAbsoluteFilePath,
@@ -258,7 +258,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            gocui.NewKeyRune('P'),
+		Key:            menuKey('P'),
 	}
 	copyFileDiffItem := &types.MenuItem{
 		Label: self.c.Tr.CopySelectedDiff,
@@ -266,7 +266,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 			return self.copyDiffToClipboard(node.GetPath(), self.c.Tr.FileDiffCopiedToast)
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            gocui.NewKeyRune('s'),
+		Key:            menuKey('s'),
 	}
 	copyAllDiff := &types.MenuItem{
 		Label: self.c.Tr.CopyAllFilesDiff,
@@ -274,7 +274,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 			return self.copyDiffToClipboard(".", self.c.Tr.AllFilesDiffCopiedToast)
 		},
 		DisabledReason: self.require(self.itemsSelected())(),
-		Key:            gocui.NewKeyRune('a'),
+		Key:            menuKey('a'),
 	}
 	copyFileContentItem := &types.MenuItem{
 		Label: self.c.Tr.CopyFileContent,
@@ -295,7 +295,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 				}
 				return nil
 			}))(),
-		Key: gocui.NewKeyRune('c'),
+		Key: menuKey('c'),
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{

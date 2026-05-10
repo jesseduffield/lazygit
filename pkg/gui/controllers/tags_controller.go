@@ -282,14 +282,14 @@ func (self *TagsController) delete(tag *models.Tag) error {
 	menuItems := []*types.MenuItem{
 		{
 			Label: self.c.Tr.DeleteLocalTag,
-			Key:   gocui.NewKeyRune('c'),
+			Key:   menuKey('c'),
 			OnPress: func() error {
 				return self.localDelete(tag)
 			},
 		},
 		{
 			Label:     self.c.Tr.DeleteRemoteTag,
-			Key:       gocui.NewKeyRune('r'),
+			Key:       menuKey('r'),
 			OpensMenu: true,
 			OnPress: func() error {
 				return self.remoteDelete(tag)
@@ -297,7 +297,7 @@ func (self *TagsController) delete(tag *models.Tag) error {
 		},
 		{
 			Label:     self.c.Tr.DeleteLocalAndRemoteTag,
-			Key:       gocui.NewKeyRune('b'),
+			Key:       menuKey('b'),
 			OpensMenu: true,
 			OnPress: func() error {
 				return self.localAndRemoteDelete(tag)

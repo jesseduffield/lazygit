@@ -6,7 +6,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -164,14 +163,14 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 			OnPress: func() error {
 				return self.copyCommitSubjectToClipboard(commit)
 			},
-			Key: gocui.NewKeyRune('s'),
+			Key: menuKey('s'),
 		},
 		{
 			Label: self.c.Tr.CommitMessage,
 			OnPress: func() error {
 				return self.copyCommitMessageToClipboard(commit)
 			},
-			Key: gocui.NewKeyRune('m'),
+			Key: menuKey('m'),
 		},
 		{
 			Label:          self.c.Tr.CommitMessageBody,
@@ -179,28 +178,28 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 			OnPress: func() error {
 				return self.copyCommitMessageBodyToClipboard(commitMessageBody)
 			},
-			Key: gocui.NewKeyRune('b'),
+			Key: menuKey('b'),
 		},
 		{
 			Label: self.c.Tr.CommitURL,
 			OnPress: func() error {
 				return self.copyCommitURLToClipboard(commit)
 			},
-			Key: gocui.NewKeyRune('u'),
+			Key: menuKey('u'),
 		},
 		{
 			Label: self.c.Tr.CommitDiff,
 			OnPress: func() error {
 				return self.copyCommitDiffToClipboard(commit)
 			},
-			Key: gocui.NewKeyRune('d'),
+			Key: menuKey('d'),
 		},
 		{
 			Label: self.c.Tr.CommitAuthor,
 			OnPress: func() error {
 				return self.copyAuthorToClipboard(commit)
 			},
-			Key: gocui.NewKeyRune('a'),
+			Key: menuKey('a'),
 		},
 	}
 
@@ -209,7 +208,7 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 		OnPress: func() error {
 			return self.copyCommitTagsToClipboard(commit)
 		},
-		Key: gocui.NewKeyRune('t'),
+		Key: menuKey('t'),
 	}
 
 	if len(commit.Tags) == 0 {

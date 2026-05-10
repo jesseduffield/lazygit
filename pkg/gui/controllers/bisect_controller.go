@@ -6,7 +6,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -102,7 +101,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 				return self.afterMark(selectCurrentAfter, waitToReselect)
 			},
 			DisabledReason: singleItemIfNotBisecting,
-			Key:            gocui.NewKeyRune('b'),
+			Key:            menuKey('b'),
 		},
 		{
 			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, shortHashToMark, info.OldTerm()),
@@ -115,7 +114,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 				return self.afterMark(selectCurrentAfter, waitToReselect)
 			},
 			DisabledReason: singleItemIfNotBisecting,
-			Key:            gocui.NewKeyRune('g'),
+			Key:            menuKey('g'),
 		},
 		{
 			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipCurrent, shortHashToMark),
@@ -128,7 +127,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 				return self.afterMark(selectCurrentAfter, waitToReselect)
 			},
 			DisabledReason: singleItemIfNotBisecting,
-			Key:            gocui.NewKeyRune('s'),
+			Key:            menuKey('s'),
 		},
 	}
 	if info.GetCurrentHash() != "" && info.GetCurrentHash() != commit.Hash() {
@@ -143,7 +142,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 				return self.afterMark(selectCurrentAfter, waitToReselect)
 			},
 			DisabledReason: self.require(self.singleItemSelected())(),
-			Key:            gocui.NewKeyRune('S'),
+			Key:            menuKey('S'),
 		}))
 	}
 	menuItems = append(menuItems, lo.ToPtr(types.MenuItem{
@@ -151,7 +150,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 		OnPress: func() error {
 			return self.c.Helpers().Bisect.Reset()
 		},
-		Key: gocui.NewKeyRune('r'),
+		Key: menuKey('r'),
 	}))
 
 	return self.c.Menu(types.CreateMenuOptions{
@@ -180,7 +179,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 					return nil
 				},
 				DisabledReason: self.require(self.singleItemSelected())(),
-				Key:            gocui.NewKeyRune('b'),
+				Key:            menuKey('b'),
 			},
 			{
 				Label: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortHash(), info.OldTerm()),
@@ -198,7 +197,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 					return nil
 				},
 				DisabledReason: self.require(self.singleItemSelected())(),
-				Key:            gocui.NewKeyRune('g'),
+				Key:            menuKey('g'),
 			},
 			{
 				Label: self.c.Tr.Bisect.ChooseTerms,
@@ -223,7 +222,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 					})
 					return nil
 				},
-				Key: gocui.NewKeyRune('t'),
+				Key: menuKey('t'),
 			},
 		},
 	})

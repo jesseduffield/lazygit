@@ -671,14 +671,14 @@ func (self *FilesController) handleNonInlineConflict(file *models.File) error {
 		OnPress: func() error {
 			return handle(self.c.Git().WorkingTree.StageFile, self.c.Tr.Actions.ResolveConflictByKeepingFile)
 		},
-		Key: gocui.NewKeyRune('k'),
+		Key: menuKey('k'),
 	}
 	deleteItem := &types.MenuItem{
 		Label: self.c.Tr.MergeConflictDeleteFile,
 		OnPress: func() error {
 			return handle(self.c.Git().WorkingTree.RemoveConflictedFile, self.c.Tr.Actions.ResolveConflictByDeletingFile)
 		},
-		Key: gocui.NewKeyRune('d'),
+		Key: menuKey('d'),
 	}
 	items := []*types.MenuItem{}
 	switch file.ShortStatus {
@@ -856,7 +856,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 					}
 					return nil
 				},
-				Key: gocui.NewKeyRune('i'),
+				Key: menuKey('i'),
 			},
 			{
 				LabelColumns: []string{self.c.Tr.ExcludeFile},
@@ -866,7 +866,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 					}
 					return nil
 				},
-				Key: gocui.NewKeyRune('e'),
+				Key: menuKey('e'),
 			},
 		},
 	})
@@ -950,7 +950,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayStaged)
 				},
-				Key:    gocui.NewKeyRune('s'),
+				Key:    menuKey('s'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayStaged),
 			},
 			{
@@ -958,7 +958,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayUnstaged)
 				},
-				Key:    gocui.NewKeyRune('u'),
+				Key:    menuKey('u'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUnstaged),
 			},
 			{
@@ -966,7 +966,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayTracked)
 				},
-				Key:    gocui.NewKeyRune('t'),
+				Key:    menuKey('t'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayTracked),
 			},
 			{
@@ -974,7 +974,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayUntracked)
 				},
-				Key:    gocui.NewKeyRune('T'),
+				Key:    menuKey('T'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUntracked),
 			},
 			{
@@ -982,7 +982,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayAll)
 				},
-				Key:    gocui.NewKeyRune('r'),
+				Key:    menuKey('r'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayAll),
 			},
 		},
@@ -1092,7 +1092,7 @@ func (self *FilesController) createStashMenu() error {
 					}
 					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashAllChanges)
 				},
-				Key: gocui.NewKeyRune('a'),
+				Key: menuKey('a'),
 			},
 			{
 				Label: self.c.Tr.StashAllChangesKeepIndex,
@@ -1103,14 +1103,14 @@ func (self *FilesController) createStashMenu() error {
 					// if there are no staged files it behaves the same as Stash.Save
 					return self.handleStashSave(self.c.Git().Stash.StashAndKeepIndex, self.c.Tr.Actions.StashAllChangesKeepIndex)
 				},
-				Key: gocui.NewKeyRune('i'),
+				Key: menuKey('i'),
 			},
 			{
 				Label: self.c.Tr.StashIncludeUntrackedChanges,
 				OnPress: func() error {
 					return self.handleStashSave(self.c.Git().Stash.StashIncludeUntrackedChanges, self.c.Tr.Actions.StashIncludeUntrackedChanges)
 				},
-				Key: gocui.NewKeyRune('U'),
+				Key: menuKey('U'),
 			},
 			{
 				Label: self.c.Tr.StashStagedChanges,
@@ -1121,7 +1121,7 @@ func (self *FilesController) createStashMenu() error {
 					}
 					return self.handleStashSave(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
 				},
-				Key: gocui.NewKeyRune('s'),
+				Key: menuKey('s'),
 			},
 			{
 				Label: self.c.Tr.StashUnstagedChanges,
@@ -1135,7 +1135,7 @@ func (self *FilesController) createStashMenu() error {
 					// ordinary stash
 					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashUnstagedChanges)
 				},
-				Key: gocui.NewKeyRune('u'),
+				Key: menuKey('u'),
 			},
 		},
 	})
@@ -1182,7 +1182,7 @@ func (self *FilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            gocui.NewKeyRune('n'),
+		Key:            menuKey('n'),
 	}
 	copyRelativePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyRelativeFilePath,
@@ -1194,7 +1194,7 @@ func (self *FilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            gocui.NewKeyRune('p'),
+		Key:            menuKey('p'),
 	}
 	copyAbsolutePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyAbsoluteFilePath,
@@ -1210,7 +1210,7 @@ func (self *FilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            gocui.NewKeyRune('P'),
+		Key:            menuKey('P'),
 	}
 	copyFileDiffItem := &types.MenuItem{
 		Label:   self.c.Tr.CopySelectedDiff,
@@ -1236,7 +1236,7 @@ func (self *FilesController) openCopyMenu() error {
 				return nil
 			},
 		))(),
-		Key: gocui.NewKeyRune('s'),
+		Key: menuKey('s'),
 	}
 	copyAllDiff := &types.MenuItem{
 		Label:   self.c.Tr.CopyAllFilesDiff,
@@ -1261,7 +1261,7 @@ func (self *FilesController) openCopyMenu() error {
 				return nil
 			},
 		)(),
-		Key: gocui.NewKeyRune('a'),
+		Key: menuKey('a'),
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
@@ -1528,7 +1528,7 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
 			return nil
 		},
-		Key: gocui.NewKeyRune('u'),
+		Key: menuKey('u'),
 		Tooltip: utils.ResolvePlaceholderString(
 			self.c.Tr.DiscardUnstagedTooltip,
 			map[string]string{

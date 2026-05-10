@@ -300,7 +300,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 	)
 	viewDivergenceFromBaseBranchItem := &types.MenuItem{
 		LabelColumns: []string{label},
-		Key:          gocui.NewKeyRune('b'),
+		Key:          menuKey('b'),
 		OnPress: func() error {
 			branch := self.context().GetSelected()
 			if branch == nil {
@@ -333,7 +333,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 			})
 			return nil
 		},
-		Key: gocui.NewKeyRune('u'),
+		Key: menuKey('u'),
 	}
 
 	setUpstreamItem := &types.MenuItem{
@@ -358,7 +358,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 				return nil
 			})
 		},
-		Key: gocui.NewKeyRune('s'),
+		Key: menuKey('s'),
 	}
 
 	upstreamResetOptions := utils.ResolvePlaceholderString(
@@ -391,7 +391,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 			return nil
 		},
 		Tooltip: upstreamResetTooltip,
-		Key:     gocui.NewKeyRune('g'),
+		Key:     menuKey('g'),
 	}
 
 	upstreamRebaseItem := &types.MenuItem{
@@ -404,7 +404,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 			return nil
 		},
 		Tooltip: upstreamRebaseTooltip,
-		Key:     gocui.NewKeyRune('r'),
+		Key:     menuKey('r'),
 	}
 
 	if !selectedBranch.IsTrackingRemote() {
@@ -624,7 +624,7 @@ func (self *BranchesController) delete(branches []*models.Branch) error {
 
 	localDeleteItem := &types.MenuItem{
 		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalBranches, self.c.Tr.DeleteLocalBranch),
-		Key:   gocui.NewKeyRune('c'),
+		Key:   menuKey('c'),
 		OnPress: func() error {
 			return self.localDelete(branches)
 		},
@@ -635,7 +635,7 @@ func (self *BranchesController) delete(branches []*models.Branch) error {
 
 	remoteDeleteItem := &types.MenuItem{
 		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteRemoteBranches, self.c.Tr.DeleteRemoteBranch),
-		Key:   gocui.NewKeyRune('r'),
+		Key:   menuKey('r'),
 		OnPress: func() error {
 			return self.remoteDelete(branches)
 		},
@@ -648,7 +648,7 @@ func (self *BranchesController) delete(branches []*models.Branch) error {
 
 	deleteBothItem := &types.MenuItem{
 		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalAndRemoteBranches, self.c.Tr.DeleteLocalAndRemoteBranch),
-		Key:   gocui.NewKeyRune('b'),
+		Key:   menuKey('b'),
 		OnPress: func() error {
 			return self.localAndRemoteDelete(branches)
 		},

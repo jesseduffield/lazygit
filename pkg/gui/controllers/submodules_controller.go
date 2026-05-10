@@ -233,7 +233,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return nil
 					})
 				},
-				Key: gocui.NewKeyRune('i'),
+				Key: menuKey('i'),
 			},
 			{
 				LabelColumns: []string{self.c.Tr.BulkUpdateSubmodules, style.FgYellow.Sprint(self.c.Git().Submodule.BulkUpdateCmdObj().ToString())},
@@ -248,7 +248,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return nil
 					})
 				},
-				Key: gocui.NewKeyRune('u'),
+				Key: menuKey('u'),
 			},
 			{
 				LabelColumns: []string{self.c.Tr.BulkUpdateRecursiveSubmodules, style.FgYellow.Sprint(self.c.Git().Submodule.BulkUpdateRecursivelyCmdObj().ToString())},
@@ -263,7 +263,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return nil
 					})
 				},
-				Key: gocui.NewKeyRune('r'),
+				Key: menuKey('r'),
 			},
 			{
 				LabelColumns: []string{self.c.Tr.BulkDeinitSubmodules, style.FgRed.Sprint(self.c.Git().Submodule.BulkDeinitCmdObj().ToString())},
@@ -278,7 +278,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return nil
 					})
 				},
-				Key: gocui.NewKeyRune('d'),
+				Key: menuKey('d'),
 			},
 		},
 	})
