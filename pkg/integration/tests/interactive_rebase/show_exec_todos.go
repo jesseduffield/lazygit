@@ -26,7 +26,7 @@ var ShowExecTodos = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
-			Press("X").
+			Press(config.Keybinding{"X"}).
 			Tap(func() {
 				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("Rebasing (2/4)Executing: false")).Confirm()
 			}).

@@ -44,7 +44,7 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Enter,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.EnterSubmoduleTooltip,
-				map[string]string{"escape": opts.Config.Universal.Return}),
+				map[string]string{"escape": opts.Config.Universal.Return.String()}),
 			DisplayOnScreen: true,
 		},
 		{

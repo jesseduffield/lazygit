@@ -25,7 +25,7 @@ var BasicCommand = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsEmpty().
 			IsFocused().
-			Press("a").
+			Press(config.Keybinding{"a"}).
 			Lines(
 				Contains("myfile"),
 			)

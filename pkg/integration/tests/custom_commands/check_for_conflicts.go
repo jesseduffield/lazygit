@@ -35,7 +35,7 @@ var CheckForConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("second-change-branch"),
 			).
 			NavigateToLine(Contains("second-change-branch")).
-			Press("m")
+			Press(config.Keybinding{"m"})
 
 		t.Common().AcknowledgeConflicts()
 	},

@@ -57,7 +57,7 @@ var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsEmpty().
 			IsFocused().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Prompt().Title(Equals("Enter a file name")).Type("myfile").Confirm()
 

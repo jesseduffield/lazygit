@@ -51,14 +51,14 @@ var MenuPromptWithKeys = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
 			IsFocused().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Choose an option"))
 
 		// 'H' is normally a navigation key (ScrollLeft), so this tests that menu item
 		// keybindings have proper precedence over non-essential navigation keys
-		t.Views().Menu().Press("H")
+		t.Views().Menu().Press(config.Keybinding{"H"})
 
 		t.FileSystem().FileContent("result.txt", Equals("SECOND\n"))
 	},

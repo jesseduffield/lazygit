@@ -43,13 +43,13 @@ var CustomCommandsSubmenuWithSpecialKeybindings = NewIntegrationTest(NewIntegrat
 				},
 			},
 		}
-		cfg.GetUserConfig().Keybinding.Universal.ConfirmMenu = "y"
+		cfg.GetUserConfig().Keybinding.Universal.ConfirmMenu = config.Keybinding{"y"}
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
 			Focus().
 			IsEmpty().
-			Press("x").
+			Press(config.Keybinding{"x"}).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("My Custom Commands")).
@@ -59,14 +59,14 @@ var CustomCommandsSubmenuWithSpecialKeybindings = NewIntegrationTest(NewIntegrat
 						Contains("  echo y"),
 						Contains("  echo down"),
 					)
-				t.GlobalPress("j")
+				t.GlobalPress(config.Keybinding{"j"})
 				t.ExpectPopup().Alert().Title(Equals("echo j")).Content(Equals("j")).Confirm()
 			}).
-			Press("x").
+			Press(config.Keybinding{"x"}).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("My Custom Commands"))
-				t.GlobalPress("H")
+				t.GlobalPress(config.Keybinding{"H"})
 				t.ExpectPopup().Alert().Title(Equals("echo H")).Content(Equals("H")).Confirm()
 			})
 	},

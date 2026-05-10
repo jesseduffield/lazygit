@@ -44,7 +44,7 @@ var Enter = NewIntegrationTest(NewIntegrationTestArgs{
 		assertInSubmodule()
 
 		t.Views().Files().IsFocused().
-			Press("e").
+			Press(config.Keybinding{"e"}).
 			Tap(func() {
 				t.Views().Commits().Content(Contains("empty commit"))
 			}).

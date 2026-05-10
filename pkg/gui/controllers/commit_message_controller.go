@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type CommitMessageController struct {
@@ -123,7 +124,7 @@ func (self *CommitMessageController) handleTogglePanel() error {
 	// ctrl key or fn key, which is unlikely to occur in pasted text. And if
 	// they mapped some *other* command to "<tab>", then we're totally out of
 	// luck.
-	if self.c.GocuiGui().IsPasting && self.c.UserConfig().Keybinding.Universal.TogglePanel == "<tab>" {
+	if self.c.GocuiGui().IsPasting && lo.Contains(self.c.UserConfig().Keybinding.Universal.TogglePanel, "<tab>") {
 		// It is unlikely that a pasted commit message contains a tab in the
 		// subject line, so it shouldn't matter too much how we handle it.
 		// Simply insert 4 spaces instead; all that matters is that we don't
@@ -183,7 +184,7 @@ func (self *CommitMessageController) confirm() error {
 	// to some ctrl key or fn key, which is unlikely to occur in pasted text.
 	// And if they mapped some *other* command to "<enter>", then we're totally
 	// out of luck.
-	if self.c.GocuiGui().IsPasting && self.c.UserConfig().Keybinding.Universal.SubmitEditorText == "<enter>" {
+	if self.c.GocuiGui().IsPasting && lo.Contains(self.c.UserConfig().Keybinding.Universal.SubmitEditorText, "<enter>") {
 		return self.switchToCommitDescription()
 	}
 

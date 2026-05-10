@@ -40,13 +40,13 @@ var SelectedSubmodule = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("submodule").IsSelected(),
 			)
 
-		t.Views().Submodules().Press("X")
+		t.Views().Submodules().Press(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("path/submodule"))
 
-		t.Views().Submodules().Press("U")
+		t.Views().Submodules().Press(config.Keybinding{"U"})
 		t.FileSystem().FileContent("file.txt", Equals("../submodule"))
 
-		t.Views().Submodules().Press("N")
+		t.Views().Submodules().Press(config.Keybinding{"N"})
 		t.FileSystem().FileContent("file.txt", Equals("submodule"))
 	},
 })

@@ -48,7 +48,7 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Branches().
 			Focus().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Menu().Title(Equals("Choose commit message")).Select(Contains("bar")).Confirm()
 

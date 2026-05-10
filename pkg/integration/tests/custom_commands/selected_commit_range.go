@@ -29,13 +29,13 @@ var SelectedCommitRange = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 01"),
 			)
 
-		t.GlobalPress("X")
+		t.GlobalPress(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("commit 03\n"))
 
 		t.Views().Commits().Focus().
 			Press(keys.Universal.RangeSelectDown)
 
-		t.GlobalPress("X")
+		t.GlobalPress(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("commit 03\ncommit 02\n"))
 	},
 })

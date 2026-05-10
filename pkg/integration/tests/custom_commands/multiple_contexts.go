@@ -25,7 +25,7 @@ var MultipleContexts = NewIntegrationTest(NewIntegrationTestArgs{
 		// commits
 		t.Views().Commits().
 			Focus().
-			Press("X")
+			Press(config.Keybinding{"X"})
 
 		t.Views().Files().
 			Focus().
@@ -37,7 +37,7 @@ var MultipleContexts = NewIntegrationTest(NewIntegrationTestArgs{
 		// branches
 		t.Views().Branches().
 			Focus().
-			Press("X")
+			Press(config.Keybinding{"X"})
 
 		t.Views().Files().
 			Focus().
@@ -46,7 +46,7 @@ var MultipleContexts = NewIntegrationTest(NewIntegrationTestArgs{
 		// files
 		t.Views().ReflogCommits().
 			Focus().
-			Press("X")
+			Press(config.Keybinding{"X"})
 
 		t.Views().Files().
 			Focus().

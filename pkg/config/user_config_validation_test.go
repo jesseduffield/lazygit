@@ -114,7 +114,7 @@ func TestUserConfigValidate_enums(t *testing.T) {
 		{
 			name: "Keybindings",
 			setup: func(config *UserConfig, value string) {
-				config.Keybinding.Universal.Quit = value
+				config.Keybinding.Universal.Quit = Keybinding{value}
 			},
 			testCases: []testCase{
 				{value: "", valid: true},

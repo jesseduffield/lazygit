@@ -63,7 +63,7 @@ var CustomCommand = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Branches().
 			Focus().
 			Wait(500).
-			Press("a").
+			Press(config.Keybinding{"a"}).
 			Tap(func() {
 				t.Wait(500)
 

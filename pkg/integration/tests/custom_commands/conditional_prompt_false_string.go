@@ -55,7 +55,7 @@ var ConditionalPromptFalseString = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
 			IsFocused().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Menu().Title(Equals("Pick one")).Select(Contains("foo")).Confirm()
 

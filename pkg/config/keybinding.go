@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/karimkhaleel/jsonschema"
 	"github.com/samber/lo"
@@ -65,6 +66,12 @@ func (k Keybinding) MarshalJSON() ([]byte, error) {
 		return json.Marshal(k[0])
 	}
 	return json.Marshal([]string(k))
+}
+
+// String renders the keybinding as a human-readable label, joining
+// alternates with " or " for use in help text.
+func (k Keybinding) String() string {
+	return strings.Join(k, " or ")
 }
 
 // JSONSchema lets the schema generator describe this type as a union of a

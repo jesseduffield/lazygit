@@ -105,8 +105,8 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description:       self.c.Tr.CherryPickCopy,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.CherryPickCopyTooltip,
 				map[string]string{
-					"paste":  opts.Config.Commits.PasteCommits,
-					"escape": opts.Config.Universal.Return,
+					"paste":  opts.Config.Commits.PasteCommits.String(),
+					"escape": opts.Config.Universal.Return.String(),
 				},
 			),
 			DisplayOnScreen: true,

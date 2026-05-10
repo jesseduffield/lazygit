@@ -141,7 +141,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			GetDisabledReason: self.require(self.notMidRebase(self.c.Tr.AlreadyRebasing), self.canFindCommitForQuickStart),
 			Description:       self.c.Tr.QuickStartInteractiveRebase,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.QuickStartInteractiveRebaseTooltip, map[string]string{
-				"editKey": editCommitKey,
+				"editKey": editCommitKey.String(),
 			}),
 		},
 		{
@@ -161,7 +161,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Tooltip: utils.ResolvePlaceholderString(
 				self.c.Tr.CreateFixupCommitTooltip,
 				map[string]string{
-					"squashAbove": opts.Config.Commits.SquashAboveCommits,
+					"squashAbove": opts.Config.Commits.SquashAboveCommits.String(),
 				},
 			),
 		},
@@ -679,7 +679,7 @@ func (self *LocalCommitsController) findCommitForQuickStartInteractiveRebase() (
 
 	if !ok || index == 0 {
 		errorMsg := utils.ResolvePlaceholderString(self.c.Tr.CannotQuickStartInteractiveRebase, map[string]string{
-			"editKey": self.c.UserConfig().Keybinding.Universal.Edit,
+			"editKey": self.c.UserConfig().Keybinding.Universal.Edit.String(),
 		})
 
 		return nil, errors.New(errorMsg)

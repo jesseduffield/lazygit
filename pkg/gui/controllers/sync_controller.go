@@ -256,8 +256,8 @@ func (self *SyncController) forcePushPrompt() string {
 	return utils.ResolvePlaceholderString(
 		self.c.Tr.ForcePushPrompt,
 		map[string]string{
-			"cancelKey":  self.c.UserConfig().Keybinding.Universal.Return,
-			"confirmKey": self.c.UserConfig().Keybinding.Universal.Confirm,
+			"cancelKey":  self.c.UserConfig().Keybinding.Universal.Return.String(),
+			"confirmKey": self.c.UserConfig().Keybinding.Universal.Confirm.String(),
 		},
 	)
 }

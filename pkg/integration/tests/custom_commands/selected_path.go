@@ -29,7 +29,7 @@ var SelectedPath = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Focus().
 			NavigateToLine(Contains("file2"))
-		t.GlobalPress("X")
+		t.GlobalPress(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("folder2/file2"))
 
 		t.Views().Commits().
@@ -38,7 +38,7 @@ var SelectedPath = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			NavigateToLine(Contains("file1"))
-		t.GlobalPress("X")
+		t.GlobalPress(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("folder1/file1"))
 	},
 })

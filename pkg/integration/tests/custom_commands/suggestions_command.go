@@ -49,7 +49,7 @@ var SuggestionsCommand = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("branch-three"),
 				Contains("branch-two"),
 			).
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Prompt().
 			Title(Equals("Enter a branch name")).

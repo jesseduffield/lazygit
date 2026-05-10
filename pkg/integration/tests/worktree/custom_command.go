@@ -32,7 +32,7 @@ var CustomCommand = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("linked-worktree"),
 			).
 			NavigateToLine(Contains("linked-worktree")).
-			Press("d").
+			Press(config.Keybinding{"d"}).
 			Lines(
 				Contains("(main worktree)"),
 			)

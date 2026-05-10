@@ -46,7 +46,7 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 		assertInSubmodule()
 
 		t.Views().Files().IsFocused().
-			Press("e").
+			Press(config.Keybinding{"e"}).
 			Tap(func() {
 				t.Views().Commits().Content(Contains("empty commit"))
 				t.Views().Files().Content(Contains("my_file"))

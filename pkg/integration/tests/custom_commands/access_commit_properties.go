@@ -29,7 +29,7 @@ var AccessCommitProperties = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("my change").IsSelected(),
 			).
-			Press("X")
+			Press(config.Keybinding{"X"})
 
 		hash := t.Git().GetCommitHash("HEAD")
 		t.FileSystem().FileContent("file.txt", Equals(fmt.Sprintf("my change\n%s\n%s", hash, hash)))

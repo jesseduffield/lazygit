@@ -39,7 +39,7 @@ var CustomCommandsSubmenu = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Focus().
 			IsEmpty().
-			Press("x").
+			Press(config.Keybinding{"x"}).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("My Custom Commands")).
@@ -55,7 +55,7 @@ var CustomCommandsSubmenu = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Focus().
-			Press("x").
+			Press(config.Keybinding{"x"}).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("My Custom Commands")).
@@ -63,7 +63,7 @@ var CustomCommandsSubmenu = NewIntegrationTest(NewIntegrationTestArgs{
 						Contains("1 touch myfile-global"),
 						Contains("3 touch myfile-commits"),
 					)
-				t.GlobalPress("3")
+				t.GlobalPress(config.Keybinding{"3"})
 			})
 
 		t.Views().Files().

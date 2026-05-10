@@ -25,7 +25,7 @@ var GlobalContext = NewIntegrationTest(NewIntegrationTestArgs{
 		// commits
 		t.Views().Commits().
 			Focus().
-			Press("X")
+			Press(config.Keybinding{"X"})
 
 		t.Views().Files().
 			Focus().
@@ -37,7 +37,7 @@ var GlobalContext = NewIntegrationTest(NewIntegrationTestArgs{
 		// branches
 		t.Views().Branches().
 			Focus().
-			Press("X")
+			Press(config.Keybinding{"X"})
 
 		t.Views().Files().
 			Focus().
@@ -49,7 +49,7 @@ var GlobalContext = NewIntegrationTest(NewIntegrationTestArgs{
 		// files
 		t.Views().Files().
 			Focus().
-			Press("X")
+			Press(config.Keybinding{"X"})
 
 		t.Views().Files().
 			Focus().

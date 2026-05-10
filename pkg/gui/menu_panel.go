@@ -28,10 +28,10 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	maxColumnSize := 1
 
 	essentialKeys := []gocui.Key{
-		config.GetValidatedKeyBindingKey(gui.c.UserConfig().Keybinding.Universal.ConfirmMenu),
-		config.GetValidatedKeyBindingKey(gui.c.UserConfig().Keybinding.Universal.Return),
-		config.GetValidatedKeyBindingKey(gui.c.UserConfig().Keybinding.Universal.PrevItem),
-		config.GetValidatedKeyBindingKey(gui.c.UserConfig().Keybinding.Universal.NextItem),
+		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.ConfirmMenu)[0],
+		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.Return)[0],
+		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.PrevItem)[0],
+		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.NextItem)[0],
 	}
 
 	for _, item := range opts.Items {

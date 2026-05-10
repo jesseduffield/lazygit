@@ -149,3 +149,34 @@ func TestKeybindingYAMLRoundTrip(t *testing.T) {
 		assert.Equal(t, original, decoded)
 	}
 }
+
+func TestKeybindingConfigYAMLAcceptsBothForms(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		yaml     string
+		expected Keybinding
+	}{
+		{
+			name:     "scalar form",
+			yaml:     "quit: q\n",
+			expected: Keybinding{"q"},
+		},
+		{
+			name:     "sequence form",
+			yaml:     "quit: [q, <esc>]\n",
+			expected: Keybinding{"q", "<esc>"},
+		},
+		{
+			name:     "block sequence form",
+			yaml:     "quit:\n  - q\n  - <esc>\n",
+			expected: Keybinding{"q", "<esc>"},
+		},
+	}
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			var cfg KeybindingUniversalConfig
+			assert.NoError(t, yaml.Unmarshal([]byte(s.yaml), &cfg))
+			assert.Equal(t, s.expected, cfg.Quit)
+		})
+	}
+}

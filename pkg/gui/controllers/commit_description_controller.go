@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type CommitDescriptionController struct {
@@ -67,22 +68,24 @@ func (self *CommitDescriptionController) GetMouseKeybindings(opts types.Keybindi
 func (self *CommitDescriptionController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
 		footer := ""
-		if self.c.UserConfig().Keybinding.Universal.ConfirmInEditor != "<disabled>" || self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt != "<disabled>" {
-			if self.c.UserConfig().Keybinding.Universal.ConfirmInEditor == "<disabled>" {
+		mainDisabled := len(self.c.UserConfig().Keybinding.Universal.ConfirmInEditor) > 0
+		altDisabled := len(self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt) > 0
+		if !mainDisabled || !altDisabled {
+			if mainDisabled {
 				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
 					map[string]string{
-						"confirmInEditorKeybinding": self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt,
+						"confirmInEditorKeybinding": self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt.String(),
 					})
-			} else if self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt == "<disabled>" {
+			} else if altDisabled {
 				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
 					map[string]string{
-						"confirmInEditorKeybinding": self.c.UserConfig().Keybinding.Universal.ConfirmInEditor,
+						"confirmInEditorKeybinding": self.c.UserConfig().Keybinding.Universal.ConfirmInEditor.String(),
 					})
 			} else {
 				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooterTwoBindings,
 					map[string]string{
-						"confirmInEditorKeybinding1": self.c.UserConfig().Keybinding.Universal.ConfirmInEditor,
-						"confirmInEditorKeybinding2": self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt,
+						"confirmInEditorKeybinding1": self.c.UserConfig().Keybinding.Universal.ConfirmInEditor.String(),
+						"confirmInEditorKeybinding2": self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt.String(),
 					})
 			}
 		}
@@ -112,7 +115,7 @@ func (self *CommitDescriptionController) handleTogglePanel() error {
 	// ctrl key or fn key, which is unlikely to occur in pasted text. And if
 	// they mapped some *other* command to "<tab>", then we're totally out of
 	// luck.
-	if self.c.GocuiGui().IsPasting && self.c.UserConfig().Keybinding.Universal.TogglePanel == "<tab>" {
+	if self.c.GocuiGui().IsPasting && lo.Contains(self.c.UserConfig().Keybinding.Universal.TogglePanel, "<tab>") {
 		// Handling tabs in pasted commit messages is not optimal, but hopefully
 		// good enough for now. We simply insert 4 spaces without worrying about
 		// column alignment. This works well enough for leading indentation,

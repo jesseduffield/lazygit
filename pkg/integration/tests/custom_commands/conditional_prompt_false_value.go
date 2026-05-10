@@ -37,7 +37,7 @@ var ConditionalPromptFalseValue = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
 			IsFocused().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Prompt().Title(Equals("Enter a word")).Type("false").Confirm()
 
