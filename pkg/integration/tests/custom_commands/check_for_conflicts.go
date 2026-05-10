@@ -16,7 +16,7 @@ var CheckForConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "m",
+				Key:     config.Keybinding{"m"},
 				Context: "localBranches",
 				Command: "git merge {{ .SelectedLocalBranch.Name | quote }}",
 				After: &config.CustomCommandAfterHook{

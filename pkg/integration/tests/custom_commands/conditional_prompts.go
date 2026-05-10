@@ -15,7 +15,7 @@ var ConditionalPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "files",
 				Command: `echo "{{.Form.Choice}}{{if .Form.Detail}} {{.Form.Detail}}{{end}}" > result.txt`,
 				Prompts: []config.CustomCommandPrompt{
@@ -28,13 +28,13 @@ var ConditionalPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 								Name:        "first",
 								Description: "First option",
 								Value:       "FIRST",
-								Key:         "1",
+								Key:         config.Keybinding{"1"},
 							},
 							{
 								Name:        "second",
 								Description: "Second option",
 								Value:       "SECOND",
-								Key:         "H",
+								Key:         config.Keybinding{"H"},
 							},
 						},
 					},

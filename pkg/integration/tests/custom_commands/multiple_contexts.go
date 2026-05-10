@@ -15,7 +15,7 @@ var MultipleContexts = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "X",
+				Key:     config.Keybinding{"X"},
 				Context: "commits, reflogCommits",
 				Command: "touch myfile",
 			},

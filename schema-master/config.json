@@ -60,8 +60,18 @@
     "CustomCommand": {
       "properties": {
         "key": {
-          "type": "string",
-          "description": "The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md. To bind several alternates to the same command, use a sequence (e.g. `[a, b]`)."
         },
         "commandMenu": {
           "items": {
@@ -165,8 +175,18 @@
           ]
         },
         "key": {
-          "type": "string",
-          "description": "Keybinding to invoke this menu option without needing to navigate to it"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Keybinding to invoke this menu option without needing to navigate to it. Accepts either a single key or a sequence of alternates."
         }
       },
       "additionalProperties": false,

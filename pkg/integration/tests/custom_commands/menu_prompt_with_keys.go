@@ -15,7 +15,7 @@ var MenuPromptWithKeys = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "files",
 				Command: `echo {{.Form.Choice | quote}} > result.txt`,
 				Prompts: []config.CustomCommandPrompt{
@@ -28,19 +28,19 @@ var MenuPromptWithKeys = NewIntegrationTest(NewIntegrationTestArgs{
 								Name:        "first",
 								Description: "First option",
 								Value:       "FIRST",
-								Key:         "1",
+								Key:         config.Keybinding{"1"},
 							},
 							{
 								Name:        "second",
 								Description: "Second option",
 								Value:       "SECOND",
-								Key:         "H",
+								Key:         config.Keybinding{"H"},
 							},
 							{
 								Name:        "third",
 								Description: "Third option",
 								Value:       "THIRD",
-								Key:         "3",
+								Key:         config.Keybinding{"3"},
 							},
 						},
 					},

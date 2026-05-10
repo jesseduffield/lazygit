@@ -667,8 +667,8 @@ type CustomCommandAfterHook struct {
 }
 
 type CustomCommand struct {
-	// The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md
-	Key string `yaml:"key"`
+	// The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md. To bind several alternates to the same command, use a sequence (e.g. `[a, b]`).
+	Key Keybinding `yaml:"key"`
 	// Instead of defining a single custom command, create a menu of custom commands. Useful for grouping related commands together under a single keybinding, and for keeping them out of the global keybindings menu.
 	// When using this, all other fields except Key and Description are ignored and must be empty.
 	CommandMenu []CustomCommand `yaml:"commandMenu"`
@@ -753,8 +753,8 @@ type CustomCommandMenuOption struct {
 	Description string `yaml:"description"`
 	// The value that will be used in the command
 	Value string `yaml:"value" jsonschema:"example=feature,minLength=1"`
-	// Keybinding to invoke this menu option without needing to navigate to it
-	Key string `yaml:"key"`
+	// Keybinding to invoke this menu option without needing to navigate to it. Accepts either a single key or a sequence of alternates.
+	Key Keybinding `yaml:"key"`
 }
 
 type CustomIconsConfig struct {

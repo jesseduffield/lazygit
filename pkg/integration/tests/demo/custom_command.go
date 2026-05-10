@@ -28,7 +28,7 @@ var CustomCommand = NewIntegrationTest(NewIntegrationTestArgs{
 
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "localBranches",
 				Command: `git checkout {{.Form.Branch}}`,
 				Prompts: []config.CustomCommandPrompt{

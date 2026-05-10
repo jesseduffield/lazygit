@@ -13,21 +13,21 @@ var CustomCommandsSubmenu = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:         "x",
+				Key:         config.Keybinding{"x"},
 				Description: "My Custom Commands",
 				CommandMenu: []config.CustomCommand{
 					{
-						Key:     "1",
+						Key:     config.Keybinding{"1"},
 						Context: "global",
 						Command: "touch myfile-global",
 					},
 					{
-						Key:     "2",
+						Key:     config.Keybinding{"2"},
 						Context: "files",
 						Command: "touch myfile-files",
 					},
 					{
-						Key:     "3",
+						Key:     config.Keybinding{"3"},
 						Context: "commits",
 						Command: "touch myfile-commits",
 					},

@@ -15,7 +15,7 @@ var SelectedCommitRange = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "X",
+				Key:     config.Keybinding{"X"},
 				Context: "global",
 				Command: `git log --format="%s" {{.SelectedCommitRange.From}}^..{{.SelectedCommitRange.To}} > file.txt`,
 			},

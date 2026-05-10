@@ -17,13 +17,13 @@ var ShowOutputInPanel = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "X",
+				Key:     config.Keybinding{"X"},
 				Context: "commits",
 				Command: "printf '%s' '{{ .SelectedLocalCommit.Name }}'",
 				Output:  "popup",
 			},
 			{
-				Key:         "Y",
+				Key:         config.Keybinding{"Y"},
 				Context:     "commits",
 				Command:     "printf '%s' '{{ .SelectedLocalCommit.Name }}'",
 				Output:      "popup",

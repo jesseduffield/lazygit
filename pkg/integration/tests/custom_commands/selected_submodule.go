@@ -17,17 +17,17 @@ var SelectedSubmodule = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "X",
+				Key:     config.Keybinding{"X"},
 				Context: "submodules",
 				Command: "printf '%s' '{{ .SelectedSubmodule.Path }}' > file.txt",
 			},
 			{
-				Key:     "U",
+				Key:     config.Keybinding{"U"},
 				Context: "submodules",
 				Command: "printf '%s' '{{ .SelectedSubmodule.Url }}' > file.txt",
 			},
 			{
-				Key:     "N",
+				Key:     config.Keybinding{"N"},
 				Context: "submodules",
 				Command: "printf '%s' '{{ .SelectedSubmodule.Name }}' > file.txt",
 			},

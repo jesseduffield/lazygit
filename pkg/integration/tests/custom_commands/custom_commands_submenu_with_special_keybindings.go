@@ -13,29 +13,29 @@ var CustomCommandsSubmenuWithSpecialKeybindings = NewIntegrationTest(NewIntegrat
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:         "x",
+				Key:         config.Keybinding{"x"},
 				Description: "My Custom Commands",
 				CommandMenu: []config.CustomCommand{
 					{
-						Key:     "j",
+						Key:     config.Keybinding{"j"},
 						Context: "global",
 						Command: "echo j",
 						Output:  "popup",
 					},
 					{
-						Key:     "H",
+						Key:     config.Keybinding{"H"},
 						Context: "global",
 						Command: "echo H",
 						Output:  "popup",
 					},
 					{
-						Key:     "y",
+						Key:     config.Keybinding{"y"},
 						Context: "global",
 						Command: "echo y",
 						Output:  "popup",
 					},
 					{
-						Key:     "<down>",
+						Key:     config.Keybinding{"<down>"},
 						Context: "global",
 						Command: "echo down",
 						Output:  "popup",

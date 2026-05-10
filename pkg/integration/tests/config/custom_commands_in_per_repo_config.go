@@ -17,12 +17,12 @@ var CustomCommandsInPerRepoConfig = NewIntegrationTest(NewIntegrationTestArgs{
 
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "X",
+				Key:     config.Keybinding{"X"},
 				Context: "global",
 				Command: "printf 'global X' > file.txt",
 			},
 			{
-				Key:     "Y",
+				Key:     config.Keybinding{"Y"},
 				Context: "global",
 				Command: "printf 'global Y' > file.txt",
 			},
