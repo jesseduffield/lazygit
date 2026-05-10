@@ -36,7 +36,7 @@ func (self *KeybindingCreator) call(customCommand config.CustomCommand, handler 
 	return lo.Map(viewNames, func(viewName string, _ int) *types.Binding {
 		return &types.Binding{
 			ViewName:    viewName,
-			Key:         []gocui.Key{config.GetValidatedKeyBindingKey(customCommand.Key)},
+			Keys:        []gocui.Key{config.GetValidatedKeyBindingKey(customCommand.Key)},
 			Handler:     handler,
 			Description: customCommand.GetDescription(),
 		}

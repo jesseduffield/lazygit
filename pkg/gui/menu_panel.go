@@ -47,7 +47,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 
 		// Remove all item keybindings that are the same as one of the essential bindings
 		if !opts.KeepConflictingKeybindings {
-			item.Key = lo.Filter(item.Key, func(k gocui.Key, _ int) bool {
+			item.Keys = lo.Filter(item.Keys, func(k gocui.Key, _ int) bool {
 				return !lo.Contains(essentialKeys, k)
 			})
 		}

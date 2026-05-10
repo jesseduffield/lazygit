@@ -35,7 +35,7 @@ func NewGitFlowController(
 func (self *GitFlowController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Branches.ViewGitFlowOptions),
+			Keys:        opts.GetKeys(opts.Config.Branches.ViewGitFlowOptions),
 			Handler:     self.withItem(self.handleCreateGitFlowMenu),
 			Description: self.c.Tr.GitFlowOptions,
 			OpensMenu:   true,
@@ -82,22 +82,22 @@ func (self *GitFlowController) handleCreateGitFlowMenu(branch *models.Branch) er
 			{
 				Label:   "start feature",
 				OnPress: startHandler("feature"),
-				Key:     menuKey('f'),
+				Keys:    menuKey('f'),
 			},
 			{
 				Label:   "start hotfix",
 				OnPress: startHandler("hotfix"),
-				Key:     menuKey('h'),
+				Keys:    menuKey('h'),
 			},
 			{
 				Label:   "start bugfix",
 				OnPress: startHandler("bugfix"),
-				Key:     menuKey('b'),
+				Keys:    menuKey('b'),
 			},
 			{
 				Label:   "start release",
 				OnPress: startHandler("release"),
-				Key:     menuKey('r'),
+				Keys:    menuKey('r'),
 			},
 		},
 	})

@@ -24,19 +24,19 @@ func NewSearchPromptController(
 func (self *SearchPromptController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:     []gocui.Key{gocui.NewKeyName(gocui.KeyEnter)},
+			Keys:    []gocui.Key{gocui.NewKeyName(gocui.KeyEnter)},
 			Handler: self.confirm,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.Return),
+			Keys:    opts.GetKeys(opts.Config.Universal.Return),
 			Handler: self.cancel,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.PrevItem),
+			Keys:    opts.GetKeys(opts.Config.Universal.PrevItem),
 			Handler: self.prevHistory,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.NextItem),
+			Keys:    opts.GetKeys(opts.Config.Universal.NextItem),
 			Handler: self.nextHistory,
 		},
 	}

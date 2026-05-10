@@ -39,17 +39,17 @@ const (
 func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 	type optionAndKey struct {
 		option string
-		key    []gocui.Key
+		keys   []gocui.Key
 	}
 
 	options := []optionAndKey{
-		{option: REBASE_OPTION_CONTINUE, key: menuKey('c')},
-		{option: REBASE_OPTION_ABORT, key: menuKey('a')},
+		{option: REBASE_OPTION_CONTINUE, keys: menuKey('c')},
+		{option: REBASE_OPTION_ABORT, keys: menuKey('a')},
 	}
 
 	if self.c.Git().Status.WorkingTreeState().CanSkip() {
 		options = append(options, optionAndKey{
-			option: REBASE_OPTION_SKIP, key: menuKey('s'),
+			option: REBASE_OPTION_SKIP, keys: menuKey('s'),
 		})
 	}
 
@@ -59,7 +59,7 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 			OnPress: func() error {
 				return self.genericMergeCommand(row.option)
 			},
-			Key: row.key,
+			Keys: row.keys,
 		}
 	})
 
@@ -198,7 +198,7 @@ func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
 				OnPress: func() error {
 					return self.genericMergeCommand(REBASE_OPTION_ABORT)
 				},
-				Key: menuKey('a'),
+				Keys: menuKey('a'),
 			},
 		},
 		HideCancel: true,
@@ -284,7 +284,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			Label: utils.ResolvePlaceholderString(self.c.Tr.SimpleRebase,
 				map[string]string{"ref": ref},
 			),
-			Key:            menuKey('s'),
+			Keys:           menuKey('s'),
 			DisabledReason: disabledReason,
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
@@ -308,7 +308,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			Label: utils.ResolvePlaceholderString(self.c.Tr.InteractiveRebase,
 				map[string]string{"ref": ref},
 			),
-			Key:            menuKey('i'),
+			Keys:           menuKey('i'),
 			DisabledReason: disabledReason,
 			Tooltip:        self.c.Tr.InteractiveRebaseTooltip,
 			OnPress: func() error {
@@ -334,7 +334,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			Label: utils.ResolvePlaceholderString(self.c.Tr.RebaseOntoBaseBranch,
 				map[string]string{"baseBranch": ShortBranchName(baseBranch)},
 			),
-			Key:            menuKey('b'),
+			Keys:           menuKey('b'),
 			DisabledReason: baseBranchDisabledReason,
 			Tooltip:        self.c.Tr.RebaseOntoBaseBranchTooltip,
 			OnPress: func() error {
@@ -392,7 +392,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 		firstRegularMergeItem = &types.MenuItem{
 			Label:   self.c.Tr.RegularMergeFastForward,
 			OnPress: self.RegularMerge(refName, git_commands.MERGE_VARIANT_REGULAR),
-			Key:     menuKey('m'),
+			Keys:    menuKey('m'),
 			Tooltip: utils.ResolvePlaceholderString(
 				self.c.Tr.RegularMergeFastForwardTooltip,
 				map[string]string{
@@ -406,7 +406,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 		secondRegularMergeItem = &types.MenuItem{
 			Label:   self.c.Tr.RegularMergeNonFastForward,
 			OnPress: self.RegularMerge(refName, git_commands.MERGE_VARIANT_NON_FAST_FORWARD),
-			Key:     menuKey('n'),
+			Keys:    menuKey('n'),
 			Tooltip: utils.ResolvePlaceholderString(
 				self.c.Tr.RegularMergeNonFastForwardTooltip,
 				map[string]string{
@@ -419,7 +419,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 		firstRegularMergeItem = &types.MenuItem{
 			Label:   self.c.Tr.RegularMergeNonFastForward,
 			OnPress: self.RegularMerge(refName, git_commands.MERGE_VARIANT_REGULAR),
-			Key:     menuKey('m'),
+			Keys:    menuKey('m'),
 			Tooltip: utils.ResolvePlaceholderString(
 				self.c.Tr.RegularMergeNonFastForwardTooltip,
 				map[string]string{
@@ -432,7 +432,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 		secondRegularMergeItem = &types.MenuItem{
 			Label:   self.c.Tr.RegularMergeFastForward,
 			OnPress: self.RegularMerge(refName, git_commands.MERGE_VARIANT_FAST_FORWARD),
-			Key:     menuKey('f'),
+			Keys:    menuKey('f'),
 			Tooltip: utils.ResolvePlaceholderString(
 				self.c.Tr.RegularMergeFastForwardTooltip,
 				map[string]string{
@@ -464,7 +464,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 			{
 				Label:   self.c.Tr.SquashMergeUncommitted,
 				OnPress: self.SquashMergeUncommitted(refName),
-				Key:     menuKey('s'),
+				Keys:    menuKey('s'),
 				Tooltip: utils.ResolvePlaceholderString(
 					self.c.Tr.SquashMergeUncommittedTooltip,
 					map[string]string{
@@ -475,7 +475,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 			{
 				Label:   self.c.Tr.SquashMergeCommitted,
 				OnPress: self.SquashMergeCommitted(refName, checkedOutBranchName),
-				Key:     menuKey('S'),
+				Keys:    menuKey('S'),
 				Tooltip: utils.ResolvePlaceholderString(
 					self.c.Tr.SquashMergeCommittedTooltip,
 					map[string]string{

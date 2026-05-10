@@ -29,29 +29,29 @@ func NewCommitMessageController(
 func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.SubmitEditorText),
+			Keys:        opts.GetKeys(opts.Config.Universal.SubmitEditorText),
 			Handler:     self.confirm,
 			Description: self.c.Tr.Confirm,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Return),
+			Keys:        opts.GetKeys(opts.Config.Universal.Return),
 			Handler:     self.close,
 			Description: self.c.Tr.Close,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.PrevItem),
+			Keys:    opts.GetKeys(opts.Config.Universal.PrevItem),
 			Handler: self.handlePreviousCommit,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.NextItem),
+			Keys:    opts.GetKeys(opts.Config.Universal.NextItem),
 			Handler: self.handleNextCommit,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
+			Keys:    opts.GetKeys(opts.Config.Universal.TogglePanel),
 			Handler: self.handleTogglePanel,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.CommitMessage.CommitMenu),
+			Keys:    opts.GetKeys(opts.Config.CommitMessage.CommitMenu),
 			Handler: self.openCommitMenu,
 		},
 	}

@@ -42,11 +42,11 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 
 	currentContextKeys := set.NewFromSlice(
 		lo.FlatMap(currentContextBindings, func(binding *types.Binding, _ int) []gocui.Key {
-			return binding.Key
+			return binding.Keys
 		}))
 
 	allBindings := append(currentContextBindings, lo.Filter(globalBindings, func(b *types.Binding, _ int) bool {
-		return len(b.Key) == 0 || !currentContextKeys.Includes(b.Key[0])
+		return len(b.Keys) == 0 || !currentContextKeys.Includes(b.Keys[0])
 	})...)
 
 	bindingsToDisplay := lo.Filter(allBindings, func(binding *types.Binding, _ int) bool {
@@ -60,7 +60,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 		}
 
 		return bindingInfo{
-			key:         config.LabelForKey(binding.Key[0]),
+			key:         config.LabelForKey(binding.Keys[0]),
 			description: binding.GetShortDescription(),
 			style:       displayStyle,
 		}

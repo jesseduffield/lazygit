@@ -31,19 +31,19 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 			Label:   self.c.Tr.ResetPatch,
 			Tooltip: self.c.Tr.ResetPatchTooltip,
 			OnPress: self.c.Helpers().PatchBuilding.Reset,
-			Key:     menuKey('c'),
+			Keys:    menuKey('c'),
 		},
 		{
 			Label:   self.c.Tr.ApplyPatch,
 			Tooltip: self.c.Tr.ApplyPatchTooltip,
 			OnPress: func() error { return self.handleApplyPatch(false) },
-			Key:     menuKey('a'),
+			Keys:    menuKey('a'),
 		},
 		{
 			Label:   self.c.Tr.ApplyPatchInReverse,
 			Tooltip: self.c.Tr.ApplyPatchInReverseTooltip,
 			OnPress: func() error { return self.handleApplyPatch(true) },
-			Key:     menuKey('r'),
+			Keys:    menuKey('r'),
 		},
 	}
 
@@ -53,25 +53,25 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 				Label:   fmt.Sprintf(self.c.Tr.RemovePatchFromOriginalCommit, utils.ShortHash(self.c.Git().Patch.PatchBuilder.To)),
 				Tooltip: self.c.Tr.RemovePatchFromOriginalCommitTooltip,
 				OnPress: self.handleDeletePatchFromCommit,
-				Key:     menuKey('d'),
+				Keys:    menuKey('d'),
 			},
 			{
 				Label:   self.c.Tr.MovePatchOutIntoIndex,
 				Tooltip: self.c.Tr.MovePatchOutIntoIndexTooltip,
 				OnPress: self.handleMovePatchIntoWorkingTree,
-				Key:     menuKey('i'),
+				Keys:    menuKey('i'),
 			},
 			{
 				Label:   self.c.Tr.MovePatchIntoNewCommit,
 				Tooltip: self.c.Tr.MovePatchIntoNewCommitTooltip,
 				OnPress: self.handlePullPatchIntoNewCommit,
-				Key:     menuKey('n'),
+				Keys:    menuKey('n'),
 			},
 			{
 				Label:   self.c.Tr.MovePatchIntoNewCommitBefore,
 				Tooltip: self.c.Tr.MovePatchIntoNewCommitBeforeTooltip,
 				OnPress: self.handlePullPatchIntoNewCommitBefore,
-				Key:     menuKey('N'),
+				Keys:    menuKey('N'),
 			},
 		}...)
 
@@ -93,7 +93,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 								Label:          fmt.Sprintf(self.c.Tr.MovePatchToSelectedCommit, selectedCommit.Hash()),
 								Tooltip:        self.c.Tr.MovePatchToSelectedCommitTooltip,
 								OnPress:        self.handleMovePatchToSelectedCommit,
-								Key:            menuKey('m'),
+								Keys:           menuKey('m'),
 								DisabledReason: disabledReason,
 							},
 						}, menuItems[1:]...,
@@ -107,7 +107,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 		{
 			Label:   self.c.Tr.CopyPatchToClipboard,
 			OnPress: func() error { return self.copyPatchToClipboard() },
-			Key:     menuKey('y'),
+			Keys:    menuKey('y'),
 		},
 	}...)
 

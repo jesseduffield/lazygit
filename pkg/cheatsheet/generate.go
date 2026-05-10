@@ -145,7 +145,7 @@ func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*b
 			return false
 		}
 
-		return (binding.Description != "" || binding.Alternative != "") && len(binding.Key) > 0
+		return (binding.Description != "" || binding.Alternative != "") && len(binding.Keys) > 0
 	})
 
 	bindingsByHeader := lo.GroupBy(bindingsToDisplay, func(binding *types.Binding) header {
@@ -156,7 +156,7 @@ func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*b
 		bindingsByHeader,
 		func(header header, hBindings []*types.Binding) headerWithBindings {
 			uniqBindings := lo.UniqBy(hBindings, func(binding *types.Binding) string {
-				return binding.Description + config.LabelForKey(binding.Key[0])
+				return binding.Description + config.LabelForKey(binding.Keys[0])
 			})
 
 			return headerWithBindings{
@@ -214,7 +214,7 @@ func formatTitle(title string) string {
 }
 
 func formatBinding(binding *types.Binding) string {
-	action := config.LabelForKey(binding.Key[0])
+	action := config.LabelForKey(binding.Keys[0])
 	description := binding.Description
 	if binding.Alternative != "" {
 		action += fmt.Sprintf(" (%s)", binding.Alternative)

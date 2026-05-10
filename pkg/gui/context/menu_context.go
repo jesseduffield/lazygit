@@ -76,7 +76,7 @@ func NewMenuViewModel(c *ContextCommon) *MenuViewModel {
 			if filterKeybindings {
 				// Allow searching all configured keybindings of each item, even though only the
 				// first one is shown in the menu.
-				return lo.Map(item.Key, func(k gocui.Key, _ int) string {
+				return lo.Map(item.Keys, func(k gocui.Key, _ int) string {
 					return config.LabelForKey(k)
 				})
 			}
@@ -143,8 +143,8 @@ func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 		}
 
 		keyLabel := ""
-		if len(item.Key) > 0 {
-			keyLabel = style.FgCyan.Sprint(config.LabelForKey(item.Key[0]))
+		if len(item.Keys) > 0 {
+			keyLabel = style.FgCyan.Sprint(config.LabelForKey(item.Keys[0]))
 		}
 
 		checkMark := ""
@@ -210,12 +210,12 @@ func (self *MenuViewModel) GetNonModelItems() []*NonModelItem {
 func (self *MenuContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	basicBindings := self.ListContextTrait.GetKeybindings(opts)
 	menuItemsWithKeys := lo.Filter(self.menuItems, func(item *types.MenuItem, _ int) bool {
-		return len(item.Key) > 0
+		return len(item.Keys) > 0
 	})
 
 	menuItemBindings := lo.Map(menuItemsWithKeys, func(item *types.MenuItem, _ int) *types.Binding {
 		return &types.Binding{
-			Key:     item.Key,
+			Keys:    item.Keys,
 			Handler: func() error { return self.OnMenuPress(item) },
 		}
 	})

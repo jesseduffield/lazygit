@@ -39,7 +39,7 @@ func NewTagsController(
 func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Keys:              opts.GetKeys(opts.Config.Universal.Select),
 			Handler:           self.withItem(self.checkout),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,
@@ -47,14 +47,14 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.New),
+			Keys:            opts.GetKeys(opts.Config.Universal.New),
 			Handler:         self.create,
 			Description:     self.c.Tr.NewTag,
 			Tooltip:         self.c.Tr.NewTagTooltip,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.delete),
 			Description:       self.c.Tr.Delete,
 			GetDisabledReason: self.require(self.singleItemSelected()),
@@ -63,7 +63,7 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.PushTag),
+			Keys:              opts.GetKeys(opts.Config.Branches.PushTag),
 			Handler:           self.withItem(self.push),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.PushTag,
@@ -71,7 +71,7 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
+			Keys:              opts.GetKeys(opts.Config.Commits.ViewResetOptions),
 			Handler:           self.withItem(self.createResetMenu),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Reset,
@@ -80,7 +80,7 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			OpensMenu:         true,
 		},
 		{
-			Key: opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Keys: opts.GetKeys(opts.Config.Universal.OpenDiffTool),
 			Handler: self.withItem(func(selectedTag *models.Tag) error {
 				return self.c.Helpers().Diff.OpenDiffToolForRef(selectedTag)
 			}),
@@ -282,14 +282,14 @@ func (self *TagsController) delete(tag *models.Tag) error {
 	menuItems := []*types.MenuItem{
 		{
 			Label: self.c.Tr.DeleteLocalTag,
-			Key:   menuKey('c'),
+			Keys:  menuKey('c'),
 			OnPress: func() error {
 				return self.localDelete(tag)
 			},
 		},
 		{
 			Label:     self.c.Tr.DeleteRemoteTag,
-			Key:       menuKey('r'),
+			Keys:      menuKey('r'),
 			OpensMenu: true,
 			OnPress: func() error {
 				return self.remoteDelete(tag)
@@ -297,7 +297,7 @@ func (self *TagsController) delete(tag *models.Tag) error {
 		},
 		{
 			Label:     self.c.Tr.DeleteLocalAndRemoteTag,
-			Key:       menuKey('b'),
+			Keys:      menuKey('b'),
 			OpensMenu: true,
 			OnPress: func() error {
 				return self.localAndRemoteDelete(tag)

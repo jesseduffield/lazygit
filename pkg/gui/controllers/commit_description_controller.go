@@ -25,23 +25,23 @@ func NewCommitDescriptionController(
 func (self *CommitDescriptionController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
+			Keys:    opts.GetKeys(opts.Config.Universal.TogglePanel),
 			Handler: self.handleTogglePanel,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.Return),
+			Keys:    opts.GetKeys(opts.Config.Universal.Return),
 			Handler: self.close,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.ConfirmInEditor),
+			Keys:    opts.GetKeys(opts.Config.Universal.ConfirmInEditor),
 			Handler: self.confirm,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.ConfirmInEditorAlt),
+			Keys:    opts.GetKeys(opts.Config.Universal.ConfirmInEditorAlt),
 			Handler: self.confirm,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.CommitMessage.CommitMenu),
+			Keys:    opts.GetKeys(opts.Config.CommitMessage.CommitMenu),
 			Handler: self.openCommitMenu,
 		},
 	}

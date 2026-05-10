@@ -382,7 +382,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 				OnPress: func() error {
 					return onMergeStrategySelected("--ours")
 				},
-				Key: menuKey('c'),
+				Keys: menuKey('c'),
 			},
 			{
 				LabelColumns: []string{
@@ -392,7 +392,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 				OnPress: func() error {
 					return onMergeStrategySelected("--theirs")
 				},
-				Key: menuKey('i'),
+				Keys: menuKey('i'),
 			},
 			{
 				LabelColumns: []string{
@@ -402,7 +402,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 				OnPress: func() error {
 					return onMergeStrategySelected("--union")
 				},
-				Key: menuKey('b'),
+				Keys: menuKey('b'),
 			},
 			{
 				LabelColumns: []string{
@@ -410,7 +410,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 					cmdColor.Sprint("git mergetool"),
 				},
 				OnPress: self.OpenMergeTool,
-				Key:     menuKey('m'),
+				Keys:    menuKey('m'),
 			},
 		},
 	})

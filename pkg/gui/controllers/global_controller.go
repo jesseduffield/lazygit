@@ -23,20 +23,20 @@ func NewGlobalController(
 func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.ExecuteShellCommand),
+			Keys:        opts.GetKeys(opts.Config.Universal.ExecuteShellCommand),
 			Handler:     self.shellCommand,
 			Description: self.c.Tr.ExecuteShellCommand,
 			Tooltip:     self.c.Tr.ExecuteShellCommandTooltip,
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.CreatePatchOptionsMenu),
+			Keys:        opts.GetKeys(opts.Config.Universal.CreatePatchOptionsMenu),
 			Handler:     self.createCustomPatchOptionsMenu,
 			Description: self.c.Tr.ViewPatchOptions,
 			OpensMenu:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.CreateRebaseOptionsMenu),
+			Keys:              opts.GetKeys(opts.Config.Universal.CreateRebaseOptionsMenu),
 			Handler:           opts.Guards.NoPopupPanel(self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu),
 			Description:       self.c.Tr.ViewMergeRebaseOptions,
 			Tooltip:           self.c.Tr.ViewMergeRebaseOptionsTooltip,
@@ -44,30 +44,30 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			GetDisabledReason: self.canShowRebaseOptions,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Refresh),
+			Keys:        opts.GetKeys(opts.Config.Universal.Refresh),
 			Handler:     opts.Guards.NoPopupPanel(self.refresh),
 			Description: self.c.Tr.Refresh,
 			Tooltip:     self.c.Tr.RefreshTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.NextScreenMode),
+			Keys:        opts.GetKeys(opts.Config.Universal.NextScreenMode),
 			Handler:     opts.Guards.NoPopupPanel(self.nextScreenMode),
 			Description: self.c.Tr.NextScreenMode,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.PrevScreenMode),
+			Keys:        opts.GetKeys(opts.Config.Universal.PrevScreenMode),
 			Handler:     opts.Guards.NoPopupPanel(self.prevScreenMode),
 			Description: self.c.Tr.PrevScreenMode,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.CyclePagers),
+			Keys:              opts.GetKeys(opts.Config.Universal.CyclePagers),
 			Handler:           opts.Guards.NoPopupPanel(self.cyclePagers),
 			GetDisabledReason: self.canCyclePagers,
 			Description:       self.c.Tr.CyclePagers,
 			Tooltip:           self.c.Tr.CyclePagersTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Return),
+			Keys:              opts.GetKeys(opts.Config.Universal.Return),
 			Handler:           self.escape,
 			Description:       self.c.Tr.Cancel,
 			DescriptionFunc:   self.escapeDescription,
@@ -76,7 +76,7 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			ViewName:          "",
-			Key:               opts.GetKey(opts.Config.Universal.OptionMenu),
+			Keys:              opts.GetKeys(opts.Config.Universal.OptionMenu),
 			Description:       self.c.Tr.OpenKeybindingsMenu,
 			ShortDescription:  self.c.Tr.Keybindings,
 			Handler:           self.createOptionsMenu,
@@ -86,41 +86,41 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.FilteringMenu),
+			Keys:        opts.GetKeys(opts.Config.Universal.FilteringMenu),
 			Handler:     opts.Guards.NoPopupPanel(self.createFilteringMenu),
 			Description: self.c.Tr.OpenFilteringMenu,
 			Tooltip:     self.c.Tr.OpenFilteringMenuTooltip,
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.DiffingMenu),
+			Keys:        opts.GetKeys(opts.Config.Universal.DiffingMenu),
 			Handler:     opts.Guards.NoPopupPanel(self.createDiffingMenu),
 			Description: self.c.Tr.ViewDiffingOptions,
 			Tooltip:     self.c.Tr.ViewDiffingOptionsTooltip,
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.DiffingMenuAlt),
+			Keys:        opts.GetKeys(opts.Config.Universal.DiffingMenuAlt),
 			Handler:     opts.Guards.NoPopupPanel(self.createDiffingMenu),
 			Description: self.c.Tr.ViewDiffingOptions,
 			Tooltip:     self.c.Tr.ViewDiffingOptionsTooltip,
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Quit),
+			Keys:        opts.GetKeys(opts.Config.Universal.Quit),
 			Description: self.c.Tr.Quit,
 			Handler:     self.quit,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.QuitAlt1),
+			Keys:    opts.GetKeys(opts.Config.Universal.QuitAlt1),
 			Handler: self.quit,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.QuitWithoutChangingDirectory),
+			Keys:    opts.GetKeys(opts.Config.Universal.QuitWithoutChangingDirectory),
 			Handler: self.quitWithoutChangingDirectory,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.SuspendApp),
+			Keys:        opts.GetKeys(opts.Config.Universal.SuspendApp),
 			Handler:     self.c.Helpers().SuspendResume.SuspendApp,
 			Description: self.c.Tr.SuspendApp,
 			GetDisabledReason: func() *types.DisabledReason {
@@ -133,7 +133,7 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			},
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.ToggleWhitespaceInDiffView),
+			Keys:        opts.GetKeys(opts.Config.Universal.ToggleWhitespaceInDiffView),
 			Handler:     self.toggleWhitespace,
 			Description: self.c.Tr.ToggleWhitespaceInDiffView,
 			Tooltip:     self.c.Tr.ToggleWhitespaceInDiffViewTooltip,

@@ -32,14 +32,14 @@ func NewSyncController(
 func (self *SyncController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Push),
+			Keys:              opts.GetKeys(opts.Config.Universal.Push),
 			Handler:           opts.Guards.NoPopupPanel(self.HandlePush),
 			GetDisabledReason: self.getDisabledReasonForPushOrPull,
 			Description:       self.c.Tr.Push,
 			Tooltip:           self.c.Tr.PushTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Pull),
+			Keys:              opts.GetKeys(opts.Config.Universal.Pull),
 			Handler:           opts.Guards.NoPopupPanel(self.HandlePull),
 			GetDisabledReason: self.getDisabledReasonForPushOrPull,
 			Description:       self.c.Tr.Pull,

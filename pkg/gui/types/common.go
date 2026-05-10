@@ -259,10 +259,10 @@ type MenuItem struct {
 	// Only applies when Label is used
 	OpensMenu bool
 
-	// If Key is non-empty, the user can press any of these keys to invoke the
+	// If Keys is non-empty, the user can press any of these keys to invoke the
 	// menu item, as opposed to having to navigate to it. Only the first key is
 	// shown in the menu; the alternates are matched silently.
-	Key []gocui.Key
+	Keys []gocui.Key
 
 	// A widget to show in front of the menu item. Supported widget types are
 	// checkboxes and radio buttons,

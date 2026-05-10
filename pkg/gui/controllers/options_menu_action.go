@@ -33,7 +33,7 @@ func (self *OptionsMenuAction) Call() error {
 
 						return self.c.IGuiCommon.CallKeybindingHandler(binding)
 					},
-					Key:            binding.Key,
+					Keys:           binding.Keys,
 					Tooltip:        binding.Tooltip,
 					DisabledReason: disabledReason,
 					Section:        section,
