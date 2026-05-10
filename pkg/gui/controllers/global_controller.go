@@ -100,13 +100,6 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			OpensMenu:   true,
 		},
 		{
-			Keys:        opts.GetKeys(opts.Config.Universal.DiffingMenuAlt),
-			Handler:     opts.Guards.NoPopupPanel(self.createDiffingMenu),
-			Description: self.c.Tr.ViewDiffingOptions,
-			Tooltip:     self.c.Tr.ViewDiffingOptionsTooltip,
-			OpensMenu:   true,
-		},
-		{
 			Keys:        opts.GetKeys(opts.Config.Universal.Quit),
 			Description: self.c.Tr.Quit,
 			Handler:     self.quit,

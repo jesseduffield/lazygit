@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | Переключиться на последний репозиторий |  |
-| `` <pgup> (fn+up/shift+k) `` | Прокрутить вверх главную панель |  |
-| `` <pgdown> (fn+down/shift+j) `` | Прокрутить вниз главную панель |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | Прокрутить вверх главную панель |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | Прокрутить вниз главную панель |  |
 | `` @ `` | Открыть меню журнала команд | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Отправить изменения | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | Получить и слить изменения | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
@@ -26,8 +26,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | Отменить |  |
 | `` ? `` | Открыть меню |  |
 | `` <ctrl+s> `` | Просмотреть параметры фильтрации по пути | View options for filtering the commit log, so that only commits matching the filter are shown. |
-| `` W `` | Открыть меню сравнении | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` <ctrl+e> `` | Открыть меню сравнении | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
+| `` W, <ctrl+e> `` | Открыть меню сравнении | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q, <ctrl+c> `` | Выйти |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | Переключить отображение изменении пробелов в просмотрщике сравнении | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
@@ -40,8 +39,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | Предыдущая страница |  |
 | `` . `` | Следующая страница |  |
-| `` < (<home>) `` | Пролистать наверх |  |
-| `` > (<end>) `` | Прокрутить вниз |  |
+| `` <, <home> `` | Пролистать наверх |  |
+| `` >, <end> `` | Прокрутить вниз |  |
 | `` v `` | Переключить выборку перетаскивания |  |
 | `` <shift+down> `` | Range select down |  |
 | `` <shift+up> `` | Range select up |  |
@@ -114,8 +113,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <space> `` | Выбрать эту часть |  |
 | `` b `` | Выбрать все части |  |
-| `` <up> `` | Выбрать предыдущую часть |  |
-| `` <down> `` | Выбрать следующую часть |  |
+| `` <up>, k `` | Выбрать предыдущую часть |  |
+| `` <down>, j `` | Выбрать следующую часть |  |
 | `` <left>, h `` | Выбрать предыдущий конфликт |  |
 | `` <right>, l `` | Выбрать следующий конфликт |  |
 | `` z `` | Отменить | Undo last merge conflict resolution. |

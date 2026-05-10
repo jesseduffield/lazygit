@@ -602,27 +602,19 @@ keybinding:
     return: <esc>
     quitWithoutChangingDirectory: Q
     togglePanel: <tab>
-    prevItem: <up>
-    nextItem: <down>
-    prevItem-alt: k
-    nextItem-alt: j
+    prevItem: [<up>, k]
+    nextItem: [<down>, j]
     prevPage: ','
     nextPage: .
     scrollLeft: H
     scrollRight: L
-    gotoTop: <
-    gotoBottom: '>'
-    gotoTop-alt: <home>
-    gotoBottom-alt: <end>
+    gotoTop: [<, <home>]
+    gotoBottom: ['>', <end>]
     toggleRangeSelect: v
     rangeSelectDown: <shift+down>
     rangeSelectUp: <shift+up>
-    prevBlock: <left>
-    nextBlock: <right>
-    prevBlock-alt: h
-    nextBlock-alt: l
-    nextBlock-alt2: <tab>
-    prevBlock-alt2: <backtab>
+    prevBlock: [<left>, h, <backtab>]
+    nextBlock: [<right>, l, <tab>]
     jumpToBlock:
       - "1"
       - "2"
@@ -653,18 +645,13 @@ keybinding:
     confirmSuggestion: <enter>
 
     # <meta+enter> on Mac
-    confirmInEditor: <ctrl+enter>
-    confirmInEditor-alt: <ctrl+s>
+    confirmInEditor: [<ctrl+enter>, <ctrl+s>]
     remove: d
     new: "n"
     edit: e
     openFile: o
-    scrollUpMain: <pgup>
-    scrollDownMain: <pgdown>
-    scrollUpMain-alt1: K
-    scrollDownMain-alt1: J
-    scrollUpMain-alt2: <ctrl+u>
-    scrollDownMain-alt2: <ctrl+d>
+    scrollUpMain: [<pgup>, K, <ctrl+u>]
+    scrollDownMain: [<pgdown>, J, <ctrl+d>]
     executeShellCommand: ':'
     createRebaseOptionsMenu: m
 
@@ -683,8 +670,7 @@ keybinding:
     undo: z
     redo: Z
     filteringMenu: <ctrl+s>
-    diffingMenu: W
-    diffingMenu-alt: <ctrl+e>
+    diffingMenu: [W, <ctrl+e>]
     copyToClipboard: <ctrl+o>
     openRecentRepos: <ctrl+r>
     submitEditorText: <enter>

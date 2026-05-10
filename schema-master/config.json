@@ -2247,7 +2247,10 @@
               "type": "array"
             }
           ],
-          "default": "\u003cup\u003e"
+          "default": [
+            "\u003cup\u003e",
+            "k"
+          ]
         },
         "nextItem": {
           "oneOf": [
@@ -2261,7 +2264,10 @@
               "type": "array"
             }
           ],
-          "default": "\u003cdown\u003e"
+          "default": [
+            "\u003cdown\u003e",
+            "j"
+          ]
         },
         "prevItem-alt": {
           "oneOf": [
@@ -2275,6 +2281,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `prevItem` instead.",
           "default": "k"
         },
         "nextItem-alt": {
@@ -2289,6 +2296,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `nextItem` instead.",
           "default": "j"
         },
         "prevPage": {
@@ -2359,7 +2367,10 @@
               "type": "array"
             }
           ],
-          "default": "\u003c"
+          "default": [
+            "\u003c",
+            "\u003chome\u003e"
+          ]
         },
         "gotoBottom": {
           "oneOf": [
@@ -2373,7 +2384,10 @@
               "type": "array"
             }
           ],
-          "default": "\u003e"
+          "default": [
+            "\u003e",
+            "\u003cend\u003e"
+          ]
         },
         "gotoTop-alt": {
           "oneOf": [
@@ -2387,6 +2401,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `gotoTop` instead.",
           "default": "\u003chome\u003e"
         },
         "gotoBottom-alt": {
@@ -2401,6 +2416,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `gotoBottom` instead.",
           "default": "\u003cend\u003e"
         },
         "toggleRangeSelect": {
@@ -2457,7 +2473,11 @@
               "type": "array"
             }
           ],
-          "default": "\u003cleft\u003e"
+          "default": [
+            "\u003cleft\u003e",
+            "h",
+            "\u003cbacktab\u003e"
+          ]
         },
         "nextBlock": {
           "oneOf": [
@@ -2471,7 +2491,11 @@
               "type": "array"
             }
           ],
-          "default": "\u003cright\u003e"
+          "default": [
+            "\u003cright\u003e",
+            "l",
+            "\u003ctab\u003e"
+          ]
         },
         "prevBlock-alt": {
           "oneOf": [
@@ -2485,6 +2509,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `prevBlock` instead.",
           "default": "h"
         },
         "nextBlock-alt": {
@@ -2499,6 +2524,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `nextBlock` instead.",
           "default": "l"
         },
         "nextBlock-alt2": {
@@ -2513,6 +2539,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `nextBlock` instead.",
           "default": "\u003ctab\u003e"
         },
         "prevBlock-alt2": {
@@ -2527,6 +2554,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `prevBlock` instead.",
           "default": "\u003cbacktab\u003e"
         },
         "jumpToBlock": {
@@ -2765,7 +2793,10 @@
             }
           ],
           "description": "\u003cmeta+enter\u003e on Mac",
-          "default": "\u003cctrl+enter\u003e"
+          "default": [
+            "\u003cctrl+enter\u003e",
+            "\u003cctrl+s\u003e"
+          ]
         },
         "confirmInEditor-alt": {
           "oneOf": [
@@ -2779,6 +2810,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `confirmInEditor` instead.",
           "default": "\u003cctrl+s\u003e"
         },
         "remove": {
@@ -2849,7 +2881,11 @@
               "type": "array"
             }
           ],
-          "default": "\u003cpgup\u003e"
+          "default": [
+            "\u003cpgup\u003e",
+            "K",
+            "\u003cctrl+u\u003e"
+          ]
         },
         "scrollDownMain": {
           "oneOf": [
@@ -2863,7 +2899,11 @@
               "type": "array"
             }
           ],
-          "default": "\u003cpgdown\u003e"
+          "default": [
+            "\u003cpgdown\u003e",
+            "J",
+            "\u003cctrl+d\u003e"
+          ]
         },
         "scrollUpMain-alt1": {
           "oneOf": [
@@ -2877,6 +2917,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `scrollUpMain` instead.",
           "default": "K"
         },
         "scrollDownMain-alt1": {
@@ -2891,6 +2932,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `scrollDownMain` instead.",
           "default": "J"
         },
         "scrollUpMain-alt2": {
@@ -2905,6 +2947,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `scrollUpMain` instead.",
           "default": "\u003cctrl+u\u003e"
         },
         "scrollDownMain-alt2": {
@@ -2919,6 +2962,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `scrollDownMain` instead.",
           "default": "\u003cctrl+d\u003e"
         },
         "executeShellCommand": {
@@ -3131,7 +3175,10 @@
               "type": "array"
             }
           ],
-          "default": "W"
+          "default": [
+            "W",
+            "\u003cctrl+e\u003e"
+          ]
         },
         "diffingMenu-alt": {
           "oneOf": [
@@ -3145,6 +3192,7 @@
               "type": "array"
             }
           ],
+          "description": "Deprecated: add the key to `diffingMenu` instead.",
           "default": "\u003cctrl+e\u003e"
         },
         "copyToClipboard": {

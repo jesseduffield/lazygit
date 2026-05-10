@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | Switch to a recent repo |  |
-| `` <pgup> (fn+up/shift+k) `` | Scroll up main window |  |
-| `` <pgdown> (fn+down/shift+j) `` | Scroll down main window |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | Scroll up main window |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | Scroll down main window |  |
 | `` @ `` | View command log options | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Push | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | Pull | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
@@ -26,8 +26,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | Cancel |  |
 | `` ? `` | Open keybindings menu |  |
 | `` <ctrl+s> `` | View filter options | View options for filtering the commit log, so that only commits matching the filter are shown. |
-| `` W `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` <ctrl+e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
+| `` W, <ctrl+e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q, <ctrl+c> `` | Quit |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
@@ -40,8 +39,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | Previous page |  |
 | `` . `` | Next page |  |
-| `` < (<home>) `` | Scroll to top |  |
-| `` > (<end>) `` | Scroll to bottom |  |
+| `` <, <home> `` | Scroll to top |  |
+| `` >, <end> `` | Scroll to bottom |  |
 | `` v `` | Toggle range select |  |
 | `` <shift+down> `` | Range select down |  |
 | `` <shift+up> `` | Range select up |  |
@@ -205,8 +204,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <space> `` | Pick hunk |  |
 | `` b `` | Pick all hunks |  |
-| `` <up> `` | Previous hunk |  |
-| `` <down> `` | Next hunk |  |
+| `` <up>, k `` | Previous hunk |  |
+| `` <down>, j `` | Next hunk |  |
 | `` <left>, h `` | Previous conflict |  |
 | `` <right>, l `` | Next conflict |  |
 | `` z `` | Undo | Undo last merge conflict resolution. |

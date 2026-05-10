@@ -100,26 +100,6 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 			Description: gui.c.Tr.ScrollDownMainWindow,
 		},
 		{
-			ViewName: "",
-			Keys:     opts.GetKeys(opts.Config.Universal.ScrollUpMainAlt1),
-			Handler:  gui.scrollUpMain,
-		},
-		{
-			ViewName: "",
-			Keys:     opts.GetKeys(opts.Config.Universal.ScrollDownMainAlt1),
-			Handler:  gui.scrollDownMain,
-		},
-		{
-			ViewName: "",
-			Keys:     opts.GetKeys(opts.Config.Universal.ScrollUpMainAlt2),
-			Handler:  gui.scrollUpMain,
-		},
-		{
-			ViewName: "",
-			Keys:     opts.GetKeys(opts.Config.Universal.ScrollDownMainAlt2),
-			Handler:  gui.scrollDownMain,
-		},
-		{
 			ViewName:          "files",
 			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           gui.handleCopySelectedSideContextItemToClipboard,
@@ -230,16 +210,6 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName: "confirmation",
-			Keys:     opts.GetKeys(opts.Config.Universal.PrevItemAlt),
-			Handler:  gui.scrollUpConfirmationPanel,
-		},
-		{
-			ViewName: "confirmation",
-			Keys:     opts.GetKeys(opts.Config.Universal.NextItemAlt),
-			Handler:  gui.scrollDownConfirmationPanel,
-		},
-		{
-			ViewName: "confirmation",
 			Keys:     []gocui.Key{gocui.NewKeyName(gocui.MouseWheelUp)},
 			Handler:  gui.scrollUpConfirmationPanel,
 		},
@@ -265,17 +235,7 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName: "confirmation",
-			Keys:     opts.GetKeys(opts.Config.Universal.GotoTopAlt),
-			Handler:  gui.goToConfirmationPanelTop,
-		},
-		{
-			ViewName: "confirmation",
 			Keys:     opts.GetKeys(opts.Config.Universal.GotoBottom),
-			Handler:  gui.goToConfirmationPanelBottom,
-		},
-		{
-			ViewName: "confirmation",
-			Keys:     opts.GetKeys(opts.Config.Universal.GotoBottomAlt),
 			Handler:  gui.goToConfirmationPanelBottom,
 		},
 		{
@@ -298,12 +258,6 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		{
 			ViewName: "extras",
 			Tag:      "navigation",
-			Keys:     opts.GetKeys(opts.Config.Universal.PrevItemAlt),
-			Handler:  gui.scrollUpExtra,
-		},
-		{
-			ViewName: "extras",
-			Tag:      "navigation",
 			Keys:     opts.GetKeys(opts.Config.Universal.PrevItem),
 			Handler:  gui.scrollUpExtra,
 		},
@@ -311,12 +265,6 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 			ViewName: "extras",
 			Tag:      "navigation",
 			Keys:     opts.GetKeys(opts.Config.Universal.NextItem),
-			Handler:  gui.scrollDownExtra,
-		},
-		{
-			ViewName: "extras",
-			Tag:      "navigation",
-			Keys:     opts.GetKeys(opts.Config.Universal.NextItemAlt),
 			Handler:  gui.scrollDownExtra,
 		},
 		{
@@ -336,17 +284,7 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName: "extras",
-			Keys:     opts.GetKeys(opts.Config.Universal.GotoTopAlt),
-			Handler:  gui.goToExtrasPanelTop,
-		},
-		{
-			ViewName: "extras",
 			Keys:     opts.GetKeys(opts.Config.Universal.GotoBottom),
-			Handler:  gui.goToExtrasPanelBottom,
-		},
-		{
-			ViewName: "extras",
-			Keys:     opts.GetKeys(opts.Config.Universal.GotoBottomAlt),
 			Handler:  gui.goToExtrasPanelBottom,
 		},
 		{

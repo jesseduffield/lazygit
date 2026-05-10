@@ -271,16 +271,12 @@ func (self *ListController) isFocused() bool {
 
 func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
-		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.PrevItemAlt), Handler: self.HandlePrevLine},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.PrevItem), Handler: self.HandlePrevLine},
-		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextItemAlt), Handler: self.HandleNextLine},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextItem), Handler: self.HandleNextLine},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.PrevPage), Handler: self.HandlePrevPage, Description: self.c.Tr.PrevPage},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextPage), Handler: self.HandleNextPage, Description: self.c.Tr.NextPage},
-		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoTop), Handler: self.HandleGotoTop, Description: self.c.Tr.GotoTop, Alternative: "<home>"},
-		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoBottom), Handler: self.HandleGotoBottom, Description: self.c.Tr.GotoBottom, Alternative: "<end>"},
-		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoTopAlt), Handler: self.HandleGotoTop},
-		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoBottomAlt), Handler: self.HandleGotoBottom},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoTop), Handler: self.HandleGotoTop, Description: self.c.Tr.GotoTop},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoBottom), Handler: self.HandleGotoBottom, Description: self.c.Tr.GotoBottom},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.ScrollLeft), Handler: self.HandleScrollLeft},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.ScrollRight), Handler: self.HandleScrollRight},
 	}

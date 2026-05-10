@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | 切換到最近使用的版本庫 |  |
-| `` <pgup> (fn+up/shift+k) `` | 向上捲動主面板 |  |
-| `` <pgdown> (fn+down/shift+j) `` | 向下捲動主面板 |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | 向上捲動主面板 |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | 向下捲動主面板 |  |
 | `` @ `` | 開啟命令記錄選單 | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | 推送 | 推送到遠端。如果沒有設定遠端，會開啟設定視窗。 |
 | `` p `` | 拉取 | 從遠端同步當前分支。如果沒有設定遠端，會開啟設定視窗。 |
@@ -26,8 +26,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | 取消 |  |
 | `` ? `` | 開啟選單 |  |
 | `` <ctrl+s> `` | 檢視篩選路徑選項 | View options for filtering the commit log, so that only commits matching the filter are shown. |
-| `` W `` | 開啟差異比較選單 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` <ctrl+e> `` | 開啟差異比較選單 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
+| `` W, <ctrl+e> `` | 開啟差異比較選單 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q, <ctrl+c> `` | 結束 |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | 切換是否在差異檢視中顯示空格變更 | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
@@ -40,8 +39,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | 上一頁 |  |
 | `` . `` | 下一頁 |  |
-| `` < (<home>) `` | 捲動到頂部 |  |
-| `` > (<end>) `` | 捲動到底部 |  |
+| `` <, <home> `` | 捲動到頂部 |  |
+| `` >, <end> `` | 捲動到底部 |  |
 | `` v `` | 切換拖曳選擇 |  |
 | `` <shift+down> `` | Range select down |  |
 | `` <shift+up> `` | Range select up |  |
@@ -90,8 +89,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <space> `` | 挑選程式碼片段 |  |
 | `` b `` | 挑選所有程式碼片段 |  |
-| `` <up> `` | 選擇上一段 |  |
-| `` <down> `` | 選擇下一段 |  |
+| `` <up>, k `` | 選擇上一段 |  |
+| `` <down>, j `` | 選擇下一段 |  |
 | `` <left>, h `` | 選擇上一個衝突 |  |
 | `` <right>, l `` | 選擇下一個衝突 |  |
 | `` z `` | 復原 | Undo last merge conflict resolution. |

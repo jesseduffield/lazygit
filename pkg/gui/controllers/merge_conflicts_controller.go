@@ -84,14 +84,6 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 			Tooltip:     self.c.Tr.OpenFileTooltip,
 		},
 		{
-			Keys:    opts.GetKeys(opts.Config.Universal.PrevItemAlt),
-			Handler: self.withRenderAndFocus(self.PrevConflictHunk),
-		},
-		{
-			Keys:    opts.GetKeys(opts.Config.Universal.NextItemAlt),
-			Handler: self.withRenderAndFocus(self.NextConflictHunk),
-		},
-		{
 			Keys:        opts.GetKeys(opts.Config.Universal.ScrollLeft),
 			Handler:     self.withRenderAndFocus(self.HandleScrollLeft),
 			Description: self.c.Tr.ScrollLeft,

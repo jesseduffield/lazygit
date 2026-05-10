@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | 最近のリポジトリをチェックアウト |  |
-| `` <pgup> (fn+up/shift+k) `` | メインウィンドウを上にスクロール |  |
-| `` <pgdown> (fn+down/shift+j) `` | メインウィンドウを下にスクロール |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | メインウィンドウを上にスクロール |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | メインウィンドウを下にスクロール |  |
 | `` @ `` | コマンドログオプションを表示 | コマンドログのオプションを表示します（例：コマンドログの表示/非表示、コマンドログへのフォーカスなど）。 |
 | `` P `` | プッシュ | 現在のブランチを対応するアップストリームブランチにプッシュします。アップストリームが設定されていない場合、アップストリームブランチの設定を求められます。 |
 | `` p `` | プル | 現在のブランチのリモートから変更をプルします。アップストリームが設定されていない場合、アップストリームブランチの設定を求められます。 |
@@ -26,8 +26,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | キャンセル |  |
 | `` ? `` | キーバインディングメニューを開く |  |
 | `` <ctrl+s> `` | フィルターオプションを表示 | コミットログのフィルタリングオプションを表示し、フィルタに一致するコミットのみを表示します。 |
-| `` W `` | 差分オプションを表示 | ２つのrefの差分に関連するオプションを表示します（例：選択したrefとの差分表示、差分を取るrefの入力、差分方向の反転など）。 |
-| `` <ctrl+e> `` | 差分オプションを表示 | ２つのrefの差分に関連するオプションを表示します（例：選択したrefとの差分表示、差分を取るrefの入力、差分方向の反転など）。 |
+| `` W, <ctrl+e> `` | 差分オプションを表示 | ２つのrefの差分に関連するオプションを表示します（例：選択したrefとの差分表示、差分を取るrefの入力、差分方向の反転など）。 |
 | `` q, <ctrl+c> `` | 終了 |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | 空白表示の切り替え | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
@@ -40,8 +39,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | 前のページ |  |
 | `` . `` | 次のページ |  |
-| `` < (<home>) `` | 先頭にスクロール |  |
-| `` > (<end>) `` | 末尾にスクロール |  |
+| `` <, <home> `` | 先頭にスクロール |  |
+| `` >, <end> `` | 末尾にスクロール |  |
 | `` v `` | 範囲選択を切り替え |  |
 | `` <shift+down> `` | 範囲選択を下に |  |
 | `` <shift+up> `` | 範囲選択を上に |  |
@@ -288,8 +287,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <space> `` | ハンクを選択 |  |
 | `` b `` | すべてのハンクを選択 |  |
-| `` <up> `` | 前のハンク |  |
-| `` <down> `` | 次のハンク |  |
+| `` <up>, k `` | 前のハンク |  |
+| `` <down>, j `` | 次のハンク |  |
 | `` <left>, h `` | 前のコンフリクト |  |
 | `` <right>, l `` | 次のコンフリクト |  |
 | `` z `` | 元に戻す | 最後のマージコンフリクト解決を元に戻します。 |

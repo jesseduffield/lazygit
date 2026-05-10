@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | 최근에 사용한 저장소로 전환 |  |
-| `` <pgup> (fn+up/shift+k) `` | 메인 패널을 위로 스크롤 |  |
-| `` <pgdown> (fn+down/shift+j) `` | 메인 패널을 아래로로 스크롤 |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | 메인 패널을 위로 스크롤 |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | 메인 패널을 아래로로 스크롤 |  |
 | `` @ `` | 명령어 로그 메뉴 열기 | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | 푸시 | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | 업데이트 | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
@@ -26,8 +26,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | 취소 |  |
 | `` ? `` | 매뉴 열기 |  |
 | `` <ctrl+s> `` | View filter-by-path options | View options for filtering the commit log, so that only commits matching the filter are shown. |
-| `` W `` | Diff 메뉴 열기 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` <ctrl+e> `` | Diff 메뉴 열기 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
+| `` W, <ctrl+e> `` | Diff 메뉴 열기 | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q, <ctrl+c> `` | 종료 |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | 공백문자를 Diff 뷰에서 표시 여부 전환 | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
@@ -40,8 +39,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | 이전 페이지 |  |
 | `` . `` | 다음 페이지 |  |
-| `` < (<home>) `` | 맨 위로 스크롤  |  |
-| `` > (<end>) `` | 맨 아래로 스크롤  |  |
+| `` <, <home> `` | 맨 위로 스크롤  |  |
+| `` >, <end> `` | 맨 아래로 스크롤  |  |
 | `` v `` | 드래그 선택 전환 |  |
 | `` <shift+down> `` | Range select down |  |
 | `` <shift+up> `` | Range select up |  |
@@ -144,8 +143,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <space> `` | Pick hunk |  |
 | `` b `` | Pick all hunks |  |
-| `` <up> `` | 이전 hunk를 선택 |  |
-| `` <down> `` | 다음 hunk를 선택 |  |
+| `` <up>, k `` | 이전 hunk를 선택 |  |
+| `` <down>, j `` | 다음 hunk를 선택 |  |
 | `` <left>, h `` | 이전 충돌을 선택 |  |
 | `` <right>, l `` | 다음 충돌을 선택 |  |
 | `` z `` | 되돌리기 | Undo last merge conflict resolution. |

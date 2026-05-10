@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | Mudar para um repositório recente |  |
-| `` <pgup> (fn+up/shift+k) `` | Rolar janela principal para cima |  |
-| `` <pgdown> (fn+down/shift+j) `` | Rolar a janela principal para baixo |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | Rolar janela principal para cima |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | Rolar a janela principal para baixo |  |
 | `` @ `` | View command log options | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Empurre (Push) | Faça push do branch atual para o seu branch upstream. Se nenhum upstream estiver configurado, você será solicitado a configurar um branch a montante. |
 | `` p `` | Puxar (Pull) | Puxe alterações do controle remoto para o ramo atual. Se nenhum upstream estiver configurado, será solicitado configurar um ramo a montante. |
@@ -26,8 +26,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | Cancelar |  |
 | `` ? `` | Abrir o menu de atalhos do teclado |  |
 | `` <ctrl+s> `` | Ver opções de filtro | View options for filtering the commit log, so that only commits matching the filter are shown. |
-| `` W `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` <ctrl+e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
+| `` W, <ctrl+e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q, <ctrl+c> `` | Sair |  |
 | `` <ctrl+z> `` | Suspender a aplicação |  |
 | `` <ctrl+w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
@@ -40,8 +39,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | Aba anterior |  |
 | `` . `` | Próxima aba |  |
-| `` < (<home>) `` | Voltar ao topo |  |
-| `` > (<end>) `` | Ir para o final |  |
+| `` <, <home> `` | Voltar ao topo |  |
+| `` >, <end> `` | Ir para o final |  |
 | `` v `` | Toggle range select |  |
 | `` <shift+down> `` | Range select down |  |
 | `` <shift+up> `` | Range select up |  |
@@ -273,8 +272,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <space> `` | Escolha o local |  |
 | `` b `` | Pegar todos os pedaços |  |
-| `` <up> `` | Trecho anterior |  |
-| `` <down> `` | Próximo trecho |  |
+| `` <up>, k `` | Trecho anterior |  |
+| `` <down>, j `` | Próximo trecho |  |
 | `` <left>, h `` | Conflito anterior |  |
 | `` <right>, l `` | Próximo conflito |  |
 | `` z `` | Desfazer | Desfazer resolução de conflitos de última mesclagem. |

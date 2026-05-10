@@ -38,10 +38,6 @@ func (self *CommitDescriptionController) GetKeybindings(opts types.KeybindingsOp
 			Handler: self.confirm,
 		},
 		{
-			Keys:    opts.GetKeys(opts.Config.Universal.ConfirmInEditorAlt),
-			Handler: self.confirm,
-		},
-		{
 			Keys:    opts.GetKeys(opts.Config.CommitMessage.CommitMenu),
 			Handler: self.openCommitMenu,
 		},
@@ -68,26 +64,12 @@ func (self *CommitDescriptionController) GetMouseKeybindings(opts types.Keybindi
 func (self *CommitDescriptionController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
 		footer := ""
-		mainDisabled := len(self.c.UserConfig().Keybinding.Universal.ConfirmInEditor) > 0
-		altDisabled := len(self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt) > 0
-		if !mainDisabled || !altDisabled {
-			if mainDisabled {
-				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
-					map[string]string{
-						"confirmInEditorKeybinding": self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt.String(),
-					})
-			} else if altDisabled {
-				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
-					map[string]string{
-						"confirmInEditorKeybinding": self.c.UserConfig().Keybinding.Universal.ConfirmInEditor.String(),
-					})
-			} else {
-				footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooterTwoBindings,
-					map[string]string{
-						"confirmInEditorKeybinding1": self.c.UserConfig().Keybinding.Universal.ConfirmInEditor.String(),
-						"confirmInEditorKeybinding2": self.c.UserConfig().Keybinding.Universal.ConfirmInEditorAlt.String(),
-					})
-			}
+		keys := self.c.UserConfig().Keybinding.Universal.ConfirmInEditor
+		if len(keys) > 0 {
+			footer = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionFooter,
+				map[string]string{
+					"confirmInEditorKeybinding": keys.String(),
+				})
 		}
 		self.c.Views().CommitDescription.Footer = footer
 	}

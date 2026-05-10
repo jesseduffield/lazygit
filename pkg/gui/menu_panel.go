@@ -27,6 +27,10 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 
 	maxColumnSize := 1
 
+	// Only the primary key of each navigation binding is reserved as
+	// essential; alternates (e.g. the historical j/k that lived under
+	// `*Alt` fields) stay available to be reused by menu items, which
+	// take precedence over the inherited list bindings.
 	essentialKeys := []gocui.Key{
 		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.ConfirmMenu)[0],
 		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.Return)[0],

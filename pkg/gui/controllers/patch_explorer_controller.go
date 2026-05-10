@@ -41,18 +41,8 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 	return []*types.Binding{
 		{
 			Tag:     "navigation",
-			Keys:    opts.GetKeys(opts.Config.Universal.PrevItemAlt),
-			Handler: self.withRenderAndFocus(self.HandlePrevLine),
-		},
-		{
-			Tag:     "navigation",
 			Keys:    opts.GetKeys(opts.Config.Universal.PrevItem),
 			Handler: self.withRenderAndFocus(self.HandlePrevLine),
-		},
-		{
-			Tag:     "navigation",
-			Keys:    opts.GetKeys(opts.Config.Universal.NextItemAlt),
-			Handler: self.withRenderAndFocus(self.HandleNextLine),
 		},
 		{
 			Tag:     "navigation",
@@ -122,16 +112,6 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 			Keys:        opts.GetKeys(opts.Config.Universal.GotoBottom),
 			Description: self.c.Tr.GotoBottom,
 			Handler:     self.withRenderAndFocus(self.HandleGotoBottom),
-		},
-		{
-			Tag:     "navigation",
-			Keys:    opts.GetKeys(opts.Config.Universal.GotoTopAlt),
-			Handler: self.withRenderAndFocus(self.HandleGotoTop),
-		},
-		{
-			Tag:     "navigation",
-			Keys:    opts.GetKeys(opts.Config.Universal.GotoBottomAlt),
-			Handler: self.withRenderAndFocus(self.HandleGotoBottom),
 		},
 		{
 			Tag:     "navigation",
