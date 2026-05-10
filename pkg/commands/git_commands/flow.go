@@ -20,7 +20,7 @@ func NewFlowCommands(
 }
 
 func (self *FlowCommands) GitFlowEnabled() bool {
-	return self.config.GetGitFlowPrefixes() != ""
+	return len(self.config.GetGitFlowPrefixMap()) > 0
 }
 
 func (self *FlowCommands) FinishCmdObj(branchName string) (*oscommands.CmdObj, error) {
