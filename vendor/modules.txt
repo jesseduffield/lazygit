@@ -1,0 +1,216 @@
+# dario.cat/mergo v1.0.2
+## explicit; go 1.13
+dario.cat/mergo
+# github.com/adrg/xdg v0.5.3
+## explicit; go 1.19
+github.com/adrg/xdg
+github.com/adrg/xdg/internal/pathutil
+github.com/adrg/xdg/internal/userdirs
+# github.com/atotto/clipboard v0.1.4
+## explicit
+github.com/atotto/clipboard
+# github.com/aybabtme/humanlog v0.4.1
+## explicit; go 1.13
+github.com/aybabtme/humanlog
+# github.com/bahlo/generic-list-go v0.2.0
+## explicit; go 1.18
+github.com/bahlo/generic-list-go
+# github.com/buger/jsonparser v1.1.2
+## explicit; go 1.13
+github.com/buger/jsonparser
+# github.com/cli/go-gh/v2 v2.13.0
+## explicit; go 1.25.0
+github.com/cli/go-gh/v2/internal/set
+github.com/cli/go-gh/v2/internal/yamlmap
+github.com/cli/go-gh/v2/pkg/auth
+github.com/cli/go-gh/v2/pkg/config
+# github.com/cli/safeexec v1.0.1
+## explicit; go 1.15
+github.com/cli/safeexec
+# github.com/clipperhouse/displaywidth v0.11.0
+## explicit; go 1.18
+github.com/clipperhouse/displaywidth
+# github.com/clipperhouse/uax29/v2 v2.7.0
+## explicit; go 1.18
+github.com/clipperhouse/uax29/v2/graphemes
+# github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
+## explicit
+github.com/cloudfoundry/jibber_jabber
+# github.com/creack/pty v1.1.24
+## explicit; go 1.18
+github.com/creack/pty
+# github.com/davecgh/go-spew v1.1.1
+## explicit
+github.com/davecgh/go-spew/spew
+# github.com/fatih/color v1.9.0
+## explicit; go 1.13
+github.com/fatih/color
+# github.com/gdamore/encoding v1.0.1
+## explicit; go 1.9
+github.com/gdamore/encoding
+# github.com/gdamore/tcell/v3 v3.3.0
+## explicit; go 1.25.0
+github.com/gdamore/tcell/v3
+github.com/gdamore/tcell/v3/color
+github.com/gdamore/tcell/v3/internal/widthutil
+github.com/gdamore/tcell/v3/tty
+github.com/gdamore/tcell/v3/vt
+# github.com/go-errors/errors v1.5.1
+## explicit; go 1.14
+github.com/go-errors/errors
+# github.com/go-logfmt/logfmt v0.5.0
+## explicit; go 1.13
+github.com/go-logfmt/logfmt
+# github.com/google/go-cmp v0.7.0
+## explicit; go 1.21
+# github.com/gookit/color v1.6.0
+## explicit; go 1.18
+github.com/gookit/color
+# github.com/hpcloud/tail v1.0.0
+## explicit
+# github.com/integrii/flaggy v1.8.0
+## explicit; go 1.25
+github.com/integrii/flaggy
+# github.com/invopop/jsonschema v0.10.0
+## explicit; go 1.18
+# github.com/jesseduffield/generics v0.0.0-20250517122708-b0b4a53a6f5c
+## explicit; go 1.18
+github.com/jesseduffield/generics/maps
+github.com/jesseduffield/generics/orderedset
+github.com/jesseduffield/generics/set
+# github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
+## explicit; go 1.18
+github.com/jesseduffield/lazycore/pkg/boxlayout
+github.com/jesseduffield/lazycore/pkg/utils
+# github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
+## explicit
+github.com/kardianos/osext
+# github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3
+## explicit; go 1.18
+github.com/karimkhaleel/jsonschema
+# github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
+## explicit
+github.com/kr/logfmt
+# github.com/kr/pretty v0.3.1
+## explicit; go 1.12
+# github.com/kylelemons/godebug v1.1.0
+## explicit; go 1.11
+# github.com/kyokomi/emoji/v2 v2.2.13
+## explicit; go 1.14
+github.com/kyokomi/emoji/v2
+# github.com/lucasb-eyer/go-colorful v1.4.0
+## explicit; go 1.12
+github.com/lucasb-eyer/go-colorful
+# github.com/mailru/easyjson v0.7.7
+## explicit; go 1.12
+github.com/mailru/easyjson/buffer
+github.com/mailru/easyjson/jwriter
+# github.com/mattn/go-colorable v0.1.13
+## explicit; go 1.15
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.20
+## explicit; go 1.15
+github.com/mattn/go-isatty
+# github.com/mgutz/str v1.2.0
+## explicit
+github.com/mgutz/str
+# github.com/mitchellh/go-ps v1.0.0
+## explicit; go 1.13
+github.com/mitchellh/go-ps
+# github.com/onsi/ginkgo v1.10.3
+## explicit
+# github.com/onsi/gomega v1.34.1
+## explicit; go 1.20
+# github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe
+## explicit; go 1.17
+github.com/petermattis/goid
+# github.com/pmezard/go-difflib v1.0.0
+## explicit
+github.com/pmezard/go-difflib/difflib
+# github.com/rivo/uniseg v0.4.7
+## explicit; go 1.18
+github.com/rivo/uniseg
+# github.com/rogpeppe/go-internal v1.14.1
+## explicit; go 1.23
+# github.com/sahilm/fuzzy v0.1.1
+## explicit
+github.com/sahilm/fuzzy
+# github.com/samber/lo v1.53.0
+## explicit; go 1.18
+github.com/samber/lo
+github.com/samber/lo/internal/constraints
+github.com/samber/lo/internal/xrand
+github.com/samber/lo/internal/xtime
+github.com/samber/lo/mutable
+# github.com/sanity-io/litter v1.5.8
+## explicit; go 1.16
+github.com/sanity-io/litter
+# github.com/sasha-s/go-deadlock v0.3.9
+## explicit
+github.com/sasha-s/go-deadlock
+# github.com/sirupsen/logrus v1.9.4
+## explicit; go 1.17
+github.com/sirupsen/logrus
+# github.com/spf13/afero v1.15.0
+## explicit; go 1.23.0
+github.com/spf13/afero
+github.com/spf13/afero/internal/common
+github.com/spf13/afero/mem
+# github.com/spkg/bom v1.0.1
+## explicit; go 1.16
+github.com/spkg/bom
+# github.com/stefanhaller/git-todo-parser v0.0.7-0.20250905083220-c50528f08304
+## explicit; go 1.13
+github.com/stefanhaller/git-todo-parser/todo
+# github.com/stretchr/testify v1.11.1
+## explicit; go 1.17
+github.com/stretchr/testify/assert
+github.com/stretchr/testify/assert/yaml
+# github.com/wk8/go-ordered-map/v2 v2.1.8
+## explicit; go 1.18
+github.com/wk8/go-ordered-map/v2
+# github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
+## explicit; go 1.19
+github.com/xo/terminfo
+# golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
+## explicit; go 1.20
+golang.org/x/exp/constraints
+golang.org/x/exp/slices
+# golang.org/x/net v0.47.0
+## explicit; go 1.24.0
+# golang.org/x/sync v0.20.0
+## explicit; go 1.25.0
+golang.org/x/sync/errgroup
+# golang.org/x/sys v0.43.0
+## explicit; go 1.25.0
+golang.org/x/sys/plan9
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# golang.org/x/term v0.42.0
+## explicit; go 1.25.0
+golang.org/x/term
+# golang.org/x/text v0.36.0
+## explicit; go 1.25.0
+golang.org/x/text/cases
+golang.org/x/text/encoding
+golang.org/x/text/encoding/internal/identifier
+golang.org/x/text/internal
+golang.org/x/text/internal/language
+golang.org/x/text/internal/language/compact
+golang.org/x/text/internal/tag
+golang.org/x/text/language
+golang.org/x/text/runes
+golang.org/x/text/transform
+golang.org/x/text/unicode/norm
+# gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c
+## explicit; go 1.11
+# gopkg.in/fsnotify.v1 v1.4.7
+## explicit
+# gopkg.in/ozeidan/fuzzy-patricia.v3 v3.0.0
+## explicit
+gopkg.in/ozeidan/fuzzy-patricia.v3/patricia
+# gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
+## explicit
+# gopkg.in/yaml.v3 v3.0.1
+## explicit
+gopkg.in/yaml.v3

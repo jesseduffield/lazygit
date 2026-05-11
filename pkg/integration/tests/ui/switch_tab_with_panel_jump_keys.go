@@ -1,0 +1,36 @@
+package ui
+
+import (
+	"github.com/jesseduffield/lazygit/pkg/config"
+	. "github.com/jesseduffield/lazygit/pkg/integration/components"
+)
+
+var SwitchTabWithPanelJumpKeys = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Switch tab with the panel jump keys after enabling the feature",
+	ExtraCmdArgs: []string{},
+	Skip:         false,
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.SwitchTabsWithPanelJumpKeys = true
+	},
+	SetupRepo: func(shell *Shell) {
+	},
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Worktrees().Focus().
+			Press(keys.Universal.JumpToBlock[2])
+
+		t.Views().Branches().IsFocused().
+			Press(keys.Universal.JumpToBlock[2])
+
+		t.Views().Remotes().IsFocused().
+			Press(keys.Universal.JumpToBlock[2])
+
+		t.Views().Tags().IsFocused().
+			Press(keys.Universal.JumpToBlock[2])
+
+		t.Views().Branches().IsFocused().
+			Press(keys.Universal.JumpToBlock[1])
+
+		// When jumping to a panel from a different one, keep its current tab:
+		t.Views().Worktrees().IsFocused()
+	},
+})

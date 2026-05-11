@@ -1,0 +1,112 @@
+# Specify a command to be executed
+# like `/bin/bash -l`, `ls`, or any other commands
+# the default is bash for Linux
+# or powershell.exe for Windows
+command: echo "YOU NEED TO SPECIFY YOUR OWN COMMAND WITH THE -d ARG"
+
+# Specify the current working directory path
+# the default is the current working directory path
+cwd: null
+
+# Export additional ENV variables
+env:
+  recording: true
+
+# Explicitly set the number of columns
+# or use `auto` to take the current
+# number of columns of your shell
+cols: 120 # 100
+
+# Explicitly set the number of rows
+# or use `auto` to take the current
+# number of rows of your shell
+rows: 35 # 30
+
+# Amount of times to repeat GIF
+# If value is -1, play once
+# If value is 0, loop indefinitely
+# If value is a positive number, loop n times
+repeat: 0
+
+# Quality
+# 1 - 100
+# Higher quality seems to make no difference, but running it through
+# gifsicle ends up with a much better compressed version.
+quality: 100
+
+# Delay between frames in ms
+# If the value is `auto` use the actual recording delays
+frameDelay: auto
+
+# Maximum delay between frames in ms
+# Ignored if the `frameDelay` isn't set to `auto`
+# Set to `auto` to prevent limiting the max idle time
+maxIdleTime: 2000
+
+# The surrounding frame box
+# The `type` can be null, window, floating, or solid`
+# To hide the title use the value null
+# Don't forget to add a backgroundColor style with a null as type
+frameBox:
+  type: floating
+  title: Lazygit
+  style:
+    border: 0px black solid
+    backgroundColor: "#1d1d1d"
+    margin: -5px
+
+# Add a watermark image to the rendered gif
+# You need to specify an absolute path for
+# the image on your machine or a URL, and you can also
+# add your own CSS styles
+watermark:
+  imagePath: null
+  style:
+    position: absolute
+    right: 15px
+    bottom: 15px
+    width: 100px
+    opacity: 0.9
+
+# Cursor style can be one of
+# `block`, `underline`, or `bar`
+cursorStyle: block
+
+# Font family
+# You can use any font that is installed on your machine
+# in CSS-like syntax
+# Download from:
+# https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/DejaVuSansMono.zip
+# Not using the mono font because it makes icons too small.
+fontFamily: "DejaVuSansM Nerd Font"
+
+# The size of the font
+fontSize: 8
+
+# The height of lines
+lineHeight: 1
+
+# The spacing between letters
+letterSpacing: 0
+
+# Theme
+theme:
+  background: "transparent"
+  foreground: "#dddad6"
+  cursor: "#c7c7c7"
+  black: "#7a7a7a"
+  red: "#fc4384"
+  green: "#b3e33b"
+  yellow: "#ffa727"
+  blue: "#102895"
+  magenta: "#c930c7"
+  cyan: "#00c5c7"
+  white: "#c7c7c7"
+  brightBlack: "#676767"
+  brightRed: "#ff7fac"
+  brightGreen: "#c8ed71"
+  brightYellow: "#ebdf86"
+  brightBlue: "#6871ff"
+  brightMagenta: "#ff76ff"
+  brightCyan: "#5ffdff"
+  brightWhite: "#fffefe"

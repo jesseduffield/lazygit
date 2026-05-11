@@ -1,0 +1,154 @@
+package context
+
+import (
+	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	deadlock "github.com/sasha-s/go-deadlock"
+)
+
+type PatchExplorerContext struct {
+	*SimpleContext
+	*SearchTrait
+
+	state                  *patch_exploring.State
+	viewTrait              *ViewTrait
+	getIncludedLineIndices func() []int
+	c                      *ContextCommon
+	mutex                  deadlock.Mutex
+
+	// true if we're inside the OnSelectItem callback; in that case we don't want to update the
+	// search result index.
+	inOnSelectItemCallback bool
+}
+
+var (
+	_ types.IPatchExplorerContext = (*PatchExplorerContext)(nil)
+	_ types.ISearchableContext    = (*PatchExplorerContext)(nil)
+)
+
+func NewPatchExplorerContext(
+	view *gocui.View,
+	windowName string,
+	key types.ContextKey,
+
+	getIncludedLineIndices func() []int,
+
+	c *ContextCommon,
+) *PatchExplorerContext {
+	ctx := &PatchExplorerContext{
+		state:                  nil,
+		viewTrait:              NewViewTrait(view),
+		c:                      c,
+		getIncludedLineIndices: getIncludedLineIndices,
+		SimpleContext: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
+			View:                       view,
+			WindowName:                 windowName,
+			Key:                        key,
+			Kind:                       types.MAIN_CONTEXT,
+			Focusable:                  true,
+			HighlightOnFocus:           true,
+			NeedsRerenderOnWidthChange: types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES,
+		})),
+		SearchTrait: NewSearchTrait(c),
+	}
+
+	ctx.SetHandleRenderFunc(ctx.OnViewWidthChanged)
+
+	return ctx
+}
+
+func (self *PatchExplorerContext) IsPatchExplorerContext() {}
+
+func (self *PatchExplorerContext) GetState() *patch_exploring.State {
+	return self.state
+}
+
+func (self *PatchExplorerContext) SetState(state *patch_exploring.State) {
+	self.state = state
+}
+
+func (self *PatchExplorerContext) GetViewTrait() types.IViewTrait {
+	return self.viewTrait
+}
+
+func (self *PatchExplorerContext) GetIncludedLineIndices() []int {
+	return self.getIncludedLineIndices()
+}
+
+func (self *PatchExplorerContext) RenderAndFocus() {
+	self.setContent()
+
+	self.FocusSelection()
+	self.c.Render()
+}
+
+func (self *PatchExplorerContext) Render() {
+	self.setContent()
+
+	self.c.Render()
+}
+
+func (self *PatchExplorerContext) setContent() {
+	self.GetView().SetContent(self.GetContentToRender())
+}
+
+func (self *PatchExplorerContext) FocusSelection() {
+	view := self.GetView()
+	state := self.GetState()
+	bufferHeight := view.InnerHeight()
+	_, origin := view.Origin()
+	numLines := view.ViewLinesHeight()
+
+	newOriginY := state.CalculateOrigin(origin, bufferHeight, numLines)
+
+	view.SetOriginY(newOriginY)
+
+	startIdx, endIdx := state.SelectedViewRange()
+	// As far as the view is concerned, we are always selecting a range
+	view.SetRangeSelectStart(startIdx)
+	view.SetCursorY(endIdx - newOriginY)
+
+	if !self.inOnSelectItemCallback {
+		view.SetNearestSearchPosition()
+	}
+}
+
+func (self *PatchExplorerContext) GetContentToRender() string {
+	if self.GetState() == nil {
+		return ""
+	}
+
+	return self.GetState().RenderForLineIndices(self.GetIncludedLineIndices())
+}
+
+func (self *PatchExplorerContext) NavigateTo(selectedLineIdx int) {
+	self.GetState().SetLineSelectMode()
+	self.GetState().SelectLine(selectedLineIdx)
+
+	self.RenderAndFocus()
+}
+
+func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {
+	return &self.mutex
+}
+
+func (self *PatchExplorerContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
+	return nil
+}
+
+func (self *PatchExplorerContext) OnSearchSelect(selectedLineIdx int) {
+	self.GetMutex().Lock()
+	defer self.GetMutex().Unlock()
+	self.inOnSelectItemCallback = true
+	self.NavigateTo(selectedLineIdx)
+	self.inOnSelectItemCallback = false
+}
+
+func (self *PatchExplorerContext) OnViewWidthChanged() {
+	if state := self.GetState(); state != nil {
+		state.OnViewWidthChanged(self.GetView())
+		self.setContent()
+		self.RenderAndFocus()
+	}
+}

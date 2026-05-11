@@ -1,0 +1,110 @@
+version: "2"
+run:
+  go: "1.25"
+linters:
+  enable:
+    - copyloopvar
+    - errorlint
+    - exhaustive
+    - intrange
+    - makezero
+    - nakedret
+    - nolintlint
+    - prealloc
+    - revive
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - wastedassign
+  settings:
+    copyloopvar:
+      check-alias: true
+    exhaustive:
+      default-signifies-exhaustive: true
+    nakedret:
+      # the gods will judge me but I just don't like naked returns at all
+      max-func-lines: 0
+    staticcheck:
+      checks:
+        - all
+
+        # SA1019 is for checking that we're not using fields marked as
+        # deprecated in a comment. It decides this in a loose way so I'm
+        # silencing it. Also because it's tripping on our own structs.
+        - -SA1019
+
+        # ST1003 complains about names like remoteUrl or itemId (should be
+        # remoteURL and itemID). While I like these suggestions, it also
+        # complains about enum constants that are all caps, and we use these and
+        # I like them, and also about camelCase identifiers that contain an
+        # underscore, which we also use in a few places. Since it can't be
+        # configured to ignore specific cases, and I don't want to use nolint
+        # comments in the code, we have to disable it altogether.
+        - -ST1003 # Poorly chosen identifier
+
+        # Probably a good idea, but we first have to review our error reporting
+        # strategy to be able to use it everywhere.
+        - -ST1005 # Error strings should not be capitalized
+
+        # Many of our classes use self as a receiver name, and we think that's fine.
+        - -ST1006 # Use of self or this as receiver name
+
+        # De Morgan's law suggests to replace `!(a && b)` with `!a || !b`; but
+        # sometimes I find one more readable than the other, so I want to decide
+        # that myself.
+        - -QF1001 # De Morgan's law
+
+        # QF1003 is about using a tagged switch instead of an if-else chain. In
+        # many cases this is a useful suggestion; however, sometimes the change
+        # is only possible by adding a default case to the switch (when there
+        # was no `else` block in the original code), in which case I don't find
+        # it to be an improvement.
+        - -QF1003 # Could replace with tagged switch
+
+        # We need to review our use of embedded fields. I suspect that in some
+        # cases the fix is not to remove the selector for the embedded field,
+        # but to turn the embedded field into a named field.
+        - -QF1008 # Could remove embedded field from selector
+
+        # The following checks are all disabled by default in golangci-lint, but
+        # we disable them again explicitly here to make it easier to keep this
+        # list in sync with the gopls config in .vscode/settings.json.
+        - -ST1000, # At least one file in a package should have a package comment
+        - -ST1020, # The documentation of an exported function should start with the function's name
+        - -ST1021, # The documentation of an exported type should start with type's name
+        - -ST1022, # The documentation of an exported variable or constant should start with variable's name
+
+      dot-import-whitelist:
+        - github.com/jesseduffield/lazygit/pkg/integration/components
+    revive:
+      severity: warning
+      rules:
+        - name: atomic
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: error-naming
+        - name: var-declaration
+        - name: package-comments
+        - name: range
+        - name: time-naming
+        - name: indent-error-flow
+        - name: errorf
+        - name: superfluous-else
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - vendor/
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - vendor/

@@ -1,0 +1,29 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+  categories:
+    - title: Features ✨
+      labels:
+        - feature
+    - title: Enhancements 🔥
+      labels:
+        - enhancement
+    - title: Fixes 🔧
+      labels:
+        - bug
+    - title: Maintenance ⚙️
+      labels:
+        - maintenance
+    - title: Docs 📖
+      labels:
+        - docs
+    - title: I18n 🌎
+      labels:
+        - i18n
+    - title: Performance Improvements 📊
+      labels:
+        - performance
+    - title: Other Changes
+      labels:
+        - "*"

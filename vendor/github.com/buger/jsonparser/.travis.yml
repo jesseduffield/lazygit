@@ -1,0 +1,12 @@
+language: go
+arch:
+    - amd64
+    - ppc64le
+go:
+    - 1.13.x
+    - 1.14.x
+    - 1.15.x
+    - 1.16.x
+    - 1.17.x
+    - 1.18.x
+script: go test -v ./.

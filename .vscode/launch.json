@@ -1,0 +1,70 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Lazygit",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "main.go",
+      "args": [
+        "--debug",
+        "--use-config-file=${workspaceFolder}/.vscode/debugger_config.yml"
+      ],
+      "hideSystemGoroutines": true,
+      "console": "integratedTerminal",
+    },
+    {
+      "name": "Tail Lazygit logs",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "main.go",
+      "args": [
+        "--logs",
+        "--use-config-file=${workspaceFolder}/.vscode/debugger_config.yml"
+      ],
+      "console": "integratedTerminal",
+    },
+    {
+      "name": "JSON Schema generator",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/pkg/jsonschema/generator.go",
+      "cwd": "${workspaceFolder}/pkg/jsonschema",
+      "console": "integratedTerminal",
+    },
+    {
+      "name": "Attach to a running Lazygit",
+      "type": "go",
+      "request": "attach",
+      "mode": "local",
+      "processId": "lazygit",
+      "hideSystemGoroutines": true,
+      "console": "integratedTerminal",
+    },
+    {
+      // To use this, first start an integration test with the "cli" runner and
+      // use the -debug option; e.g.
+      // $ make integration-test-cli -- -debug tag/reset.go
+      "name": "Attach to integration test runner",
+      "type": "go",
+      "request": "attach",
+      "mode": "local",
+      "processId": "test_lazygit",
+      "hideSystemGoroutines": true,
+      "console": "integratedTerminal",
+    },
+  ],
+  "compounds": [
+    {
+      "name": "Run with logs",
+      "configurations": [
+        "Tail Lazygit logs",
+        "Debug Lazygit"
+      ],
+      "stopAll": true
+    }
+  ]
+}

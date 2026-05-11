@@ -1,0 +1,273 @@
+# Contributing
+
+This project does not accept pull requests.
+
+In todays world of agentic coding I have decided that it no longer makes sense for me to look at incoming pull requests. As far as I can tell, the vast majority of these is AI-generated these days, which in itself is not necessarily a bad thing; however, there's no way for me to tell whether the person posting the PR actually understands anything about the code that is being contributed or not, and I don't feel like spending time and energy on finding out whether they do.
+
+Now you might ask why this even matters; coding agents are capable of producing amazingly high-quality code, so why is it important that the person opening the PR understands it, as long as the code works and tests are green? It does actually matter very much to me. AI generated code needs to be carefully reviewed and iterated on, and it is the contributor's job to do that, not mine. And I have no idea to what extent the contributor has done this, or whether they are even capable of it.
+
+Every PR needs work and iterations until it is mergeable, whether manually coded or AI generated (even very good ones do), and if I don't know whether the person posting the PR will act on my review feedback themselves or just pass it on to their coding agent (which I guess is the much more likely case today), then it doesn't make sense for me to work with them.
+
+For this reason I will close incoming pull requests by default from now on, without comment. Sorry if this sounds hostile, but honestly I don't feel I have much of a choice if I want maintaining this project to still be enjoyable for me.
+
+With that said, if you are indeed serious about contributing a high-quality PR to lazygit, and you are familiar with go, and you have learned enough about lazygit's code base to tell whether your changes are good, then do raise an issue and explain what you are planning to do, and somehow make it plausible that your PR will be worth my time reviewing it. In such a case I might make an exception from the default rule.
+
+In the future I might also consider adopting a vouch system similar to [Ghostty's](https://github.com/ghostty-org/ghostty/blob/main/CONTRIBUTING.md#first-time-contributors), but right now I feel the effort needed to set this up and maintain is not justified given the rather low number of high-quality contributions I have seen in recent times.
+
+Even though we no longer accept pull requests, I find it important to emphasize that Lazygit is still a community project, and non-PR contributions are still very welcome. Do file issues for bug reports or feature requests, and help shape the future of lazygit by actively participating in discussing UX designs. Also, the localization system very much depends on everybody's help with translating texts (see https://crowdin.com/project/lazygit).
+
+---
+
+The remainder of this document is the old version from a time when contributing pull requests was still encouraged. Keeping it here in case I reconsider my policy in the future.
+
+## PR walkthrough
+
+[This video](https://www.youtube.com/watch?v=kNavnhzZHtk) walks through the process of adding a small feature to lazygit. If you have no idea where to start, watching that video is a good first step.
+
+## Design principles
+
+See [here](./VISION.md) for a set of design principles that we want to consider when building a feature or making a change.
+
+## Codebase guide
+
+[This doc](./docs/dev/Codebase_Guide.md) explains:
+
+- what the different packages in the codebase are for
+- where important files live
+- important concepts in the code
+- how the event loop works
+- other useful information
+
+## All code changes happen through Pull Requests
+
+Pull requests are the best way to propose changes to the codebase. We actively
+welcome your pull requests:
+
+1. Fork the repo and create your branch from `master`.
+2. If you've added code that should be tested, add tests.
+3. If you've added code that needs documentation, update the documentation.
+4. Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
+5. Issue that pull request!
+
+Please do not raise pull request from your fork's master branch: make a feature branch instead. Lazygit maintainers will sometimes push changes to your branch when reviewing a PR and we often can't do this if you use your master branch.
+
+If you've never written Go in your life, then join the club! Lazygit was the maintainer's first Go program, and most contributors have never used Go before. Go is widely considered an easy-to-learn language, so if you're looking for an open source project to gain dev experience, you've come to the right place.
+
+## Commit history
+
+We value a clean and useful commit history, so please take some time to organize your commits so that they make sense. Don't assume that they will be squashed on merge anyway; we don't do that here.
+
+In particular:
+
+- Refactorings and behavior changes should be in separate commits. There are very few exceptions where this is not possible, but in my experience they are very rare.
+- Strive for minimal commits; every change that is independent from other changes should be in a commit of its own (with a good commit message that explains why the change is made).
+- When you need to iterate over your implementation during review (e.g. because you discovered a bug, or a maintainer requested changes), don't just pile new commits on top. Use fixup commits to make your changes transparent while still maintaining a good commit history. If you don't know what that means, [here's a brief introduction](docs/Fixup_Commits.md).
+
+## A note about AI
+
+It has become common recently to throw an issue at a coding agent and submit whatever comes out of it as a PR. This is not appreciated here, and I will close PRs where I can tell this was the case, or where I even suspect it was the case.
+
+Some of these PRs may actually be good and useful, but many are not, and it's not a good use of my time as a maintainer to look at generated PRs to decide. This is the job of the PR's contributor, and if you don't speak enough go or can't be bothered to get familiar enough with lazygit's codebase to tell, then don't contribute the PR.
+
+## Running in a VSCode dev container
+
+If you want to spare yourself the hassle of setting up your dev environment yourself (i.e. installing Go, extensions, and extra tools), you can run the Lazygit code in a VSCode dev container like so:
+
+![image](https://user-images.githubusercontent.com/8456633/201500508-0d55f99f-5035-4a6f-a0f8-eaea5c003e5d.png)
+
+This requires that:
+
+- you have docker installed
+- you have the dev containers extension installed in VSCode
+
+See [here](https://code.visualstudio.com/docs/devcontainers/containers) for more info about dev containers.
+
+## Running in a Github Codespace
+
+If you want to start contributing to Lazygit with the click of a button, you can open the lazygit codebase in a Codespace. First fork the repo, then click to create a codespace:
+
+![image](https://user-images.githubusercontent.com/8456633/201500566-ffe9105d-6030-4cc7-a525-6570b0b413a2.png)
+
+To run lazygit from within the integrated terminal just go `go run main.go`
+
+This allows you to contribute to Lazygit without needing to install anything on your local machine. The Codespace has all the necessary tools and extensions pre-installed.
+
+## Using Nix for development
+
+If you use Nix, you can leverage the included flake to set up a complete development environment with all necessary dependencies:
+
+```sh
+nix develop
+```
+
+This will drop you into a development shell that includes:
+
+- Latest Go toolchain
+- golangci-lint for code linting
+- git and make
+
+You can also build and run lazygit using nix:
+
+```sh
+# Build lazygit
+nix build
+
+# Run lazygit directly
+nix run
+```
+
+The nix flake supports multiple architectures (x86_64-linux, aarch64-linux, x86_64-darwin, aarch64-darwin) and provides a consistent development environment across different systems.
+
+## Code of conduct
+
+Please note by participating in this project, you agree to abide by the [code of conduct].
+
+[code of conduct]: https://github.com/jesseduffield/lazygit/blob/master/CODE-OF-CONDUCT.md
+
+## Any contributions you make will be under the MIT Software License
+
+In short, when you submit code changes, your submissions are understood to be
+under the same [MIT License](http://choosealicense.com/licenses/mit/) that
+covers the project. Feel free to contact the maintainers if that's a concern.
+
+## Report bugs using Github's [issues](https://github.com/jesseduffield/lazygit/issues)
+
+We use GitHub issues to track public bugs. Report a bug by [opening a new
+issue](https://github.com/jesseduffield/lazygit/issues/new); it's that easy!
+
+## Go
+
+This project is written in Go. Go is an opinionated language with strict idioms, but some of those idioms are a little extreme. Some things we do differently:
+
+1. There is no shame in using `self` as a receiver name in a struct method. In fact we encourage it
+2. There is no shame in prefixing an interface with 'I' instead of suffixing with 'er' when there are several methods on the interface.
+3. If a struct implements an interface, we make it explicit with something like:
+
+```go
+var _ MyInterface = &MyStruct{}
+```
+
+This makes the intent clearer and means that if we fail to satisfy the interface we'll get an error in the file that needs fixing.
+
+### Code Formatting
+
+To check code formatting [gofumpt](https://pkg.go.dev/mvdan.cc/gofumpt#section-readme) (which is a bit stricter than [gofmt](https://pkg.go.dev/cmd/gofmt)) is used.
+VSCode will format the code correctly if you tell the Go extension to use `gofumpt` via your [`settings.json`](https://code.visualstudio.com/docs/getstarted/settings#_settingsjson)
+by setting [`formatting.gofumpt`](https://github.com/golang/tools/blob/master/gopls/doc/settings.md#gofumpt-bool) to `true`:
+
+```jsonc
+// .vscode/settings.json
+{
+  "gopls": {
+    "formatting.gofumpt": true
+  }
+}
+```
+
+To run gofumpt from your terminal go:
+
+```
+go install mvdan.cc/gofumpt@latest && gofumpt -l -w .
+```
+
+## Programming Font
+
+Lazygit supports [Nerd Fonts](https://www.nerdfonts.com) to render certain icons. Sometimes we use some of these icons verbatim in string literals in the code (mainly in tests), so you need to set your development environment to use a nerd font to see these.
+
+## Internationalisation
+
+Boy that's a hard word to spell. Anyway, lazygit is translated into several languages within the pkg/i18n package.
+
+### For developers adding new text
+
+If you need to render text to the user, you should add a new field to the TranslationSet struct in `pkg/i18n/english.go` and add the actual content within the `EnglishTranslationSet()` method in the same file. Then you can access via `gui.Tr.YourNewText` (or `self.c.Tr.YourNewText`, etc).
+
+Note, we use 'Sentence case' for everything (so no 'Title Case' or 'whatever-it's-called-when-there's-no-capital-letters-case')
+
+### For translators
+
+Lazygit translations are managed through [Crowdin](https://crowdin.com/project/lazygit/). If you'd like to contribute translations:
+
+1. Join the Crowdin project at https://crowdin.com/project/lazygit/
+2. Select your target language and help translate missing strings
+3. The translation files in `pkg/i18n/translations/` are managed by the maintainers - please don't edit them directly
+
+For detailed information about the translation process, including how maintainers sync translations, see `pkg/i18n/translations/README.md`.
+
+## Debugging
+
+The easiest way to debug lazygit is to have two terminal tabs open at once: one for running lazygit (via `go run main.go -debug` in the project root) and one for viewing lazygit's logs (which can be done via `go run main.go --logs` or just `lazygit --logs`).
+
+From most places in the codebase you have access to a logger e.g. `gui.Log.Warn("blah")` or `self.c.Log.Warn("blah")`.
+
+If you find that the existing logs are too noisy, you can set the log level with e.g. `LOG_LEVEL=warn go run main.go -debug` and then only use `Warn` logs yourself.
+
+If you need to log from code in the vendor directory (e.g. the `gocui` package), you won't have access to the logger, but you can easily add logging support by setting the `LAZYGIT_LOG_PATH` environment variable and using `logs.Global.Warn("blah")`. This is a global logger that's only intended for development purposes.
+
+If you keep having to do some setup steps to reproduce an issue, read the Testing section below to see how to create an integration test by recording a lazygit session. It's pretty easy!
+
+### VSCode debugger
+
+If you want to trigger a debug session from VSCode, you can use the following snippet. Note that the `console` key is, at the time of writing, still an experimental feature.
+
+```jsonc
+// .vscode/launch.json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "debug lazygit",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "main.go",
+      "args": ["--debug"],
+      "console": "externalTerminal" // <-- you need this to actually see the lazygit UI in a window while debugging
+    }
+  ]
+}
+```
+
+## Profiling
+
+If you want to investigate what's contributing to CPU or memory usage, see [this separate document](docs/dev/Profiling.md).
+
+## Testing
+
+Lazygit has two kinds of tests: unit tests and integration tests. Unit tests go in files that end in `_test.go`, and are written in Go. For integration tests, see [here](https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md)
+
+## Updating Gocui
+
+Sometimes you will need to make a change in the gocui fork (https://github.com/jesseduffield/gocui). Gocui is the package responsible for rendering windows and handling user input. Here's the typical process to follow:
+
+1. Make the changes in gocui inside lazygit's vendor directory so it's easy to test against lazygit
+2. Copy the changes over to the actual gocui repo (clone it if you haven't already, and use the `awesome` branch, not `master`)
+3. Raise a PR on the gocui repo with your changes
+4. After that PR is merged, make a PR in lazygit bumping the gocui version. You can bump the version by running the following at the lazygit repo root:
+
+```sh
+./scripts/bump_gocui.sh
+```
+
+5. Raise a PR in lazygit with those changes
+
+## Updating Lazycore
+
+[Lazycore](https://github.com/jesseduffield/lazycore) is a repo containing shared functionality between lazygit and lazydocker. Sometimes you will need to make a change to that repo and import the changes into lazygit. Similar to updating Gocui, here's what you do:
+
+1. Make the changes in lazycore inside lazygit's vendor directory so it's easy to test against lazygit
+2. Copy the changes over to the actual lazycore repo (clone it if you haven't already, and use the `master` branch)
+3. Raise a PR on the lazycore repo with your changes
+4. After that PR is merged, make a PR in lazygit bumping the lazycore version. You can bump the version by running the following at the lazygit repo root:
+
+```sh
+./scripts/bump_lazycore.sh
+```
+
+Or if you're using VSCode, there is a bump lazycore task you can find by going `cmd+shift+p` and typing 'Run task'
+
+5. Raise a PR in lazygit with those changes
+
+## Improvements
+
+If you can think of any way to improve these docs let us know.

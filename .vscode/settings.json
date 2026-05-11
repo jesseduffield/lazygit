@@ -1,0 +1,29 @@
+{
+  "gopls": {
+    "formatting.gofumpt": true,
+    "ui.diagnostic.staticcheck": true,
+    "ui.diagnostic.analyses": {
+      // This list must match the one in .golangci.yml
+      "SA1019": false,
+      "ST1003": false,
+      "ST1005": false,
+      "ST1006": false,
+      "QF1001": false,
+      "QF1003": false,
+      "QF1008": false,
+      "ST1000": false,
+      "ST1020": false,
+      "ST1021": false,
+      "ST1022": false,
+      // Dot imports; this warning is enabled in .golangci.yml, but with an
+      // extra dot-import-whitelist config. Because I couldn't figure out how to
+      // specify that extra config for gopls, I'm disabling the check altogether
+      // here.
+      "ST1001": false,
+    },
+  },
+  "go.alternateTools": {
+    "golangci-lint-v2": "${workspaceFolder}/scripts/golangci-lint-shim.sh",
+  },
+  "go.lintTool": "golangci-lint-v2",
+}

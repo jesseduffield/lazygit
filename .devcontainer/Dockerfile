@@ -1,0 +1,11 @@
+# adapted from https://github.com/devcontainers/images/blob/main/src/go/.devcontainer/Dockerfile
+
+# [Choice] Go version (use -bullseye variants on local arm64/Apple Silicon): 1, 1.19, 1.18, 1-bullseye, 1.19-bullseye, 1.18-bullseye, 1-buster, 1.19-buster, 1.18-buster
+ARG VARIANT=1-trixie
+FROM golang:${VARIANT}
+
+RUN go install mvdan.cc/gofumpt@latest
+
+# [Optional] Uncomment this section to install additional OS packages.
+# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+#     && apt-get -y install --no-install-recommends <your-package-list-here>

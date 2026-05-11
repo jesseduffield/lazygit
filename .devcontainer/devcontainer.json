@@ -1,0 +1,69 @@
+// adapted from https://github.com/devcontainers/images/blob/main/src/go/.devcontainer/devcontainer.json
+{
+  "build": {
+      "dockerfile": "./Dockerfile",
+      "context": "."
+  },
+  "features": {
+      "ghcr.io/devcontainers/features/common-utils:1": {
+          "installZsh": "true",
+          "username": "vscode",
+          "uid": "1000",
+          "gid": "1000",
+          "upgradePackages": "true"
+      },
+      "ghcr.io/devcontainers/features/go:1": {
+          "version": "none"
+      },
+      "ghcr.io/devcontainers/features/git:1": {
+          "version": "latest",
+          "ppa": "false"
+      }
+  },
+  "overrideFeatureInstallOrder": [
+      "ghcr.io/devcontainers/features/common-utils"
+  ],
+  // not sure if we actually need these
+  "runArgs": [
+      "--cap-add=SYS_PTRACE",
+      "--security-opt",
+      "seccomp=unconfined"
+  ],
+  // Configure tool-specific properties.
+  "customizations": {
+      // Configure properties specific to VS Code.
+      "vscode": {
+          // Set *default* container specific settings.json values on container create.
+          "settings": {
+              "go.toolsManagement.checkForUpdates": "local",
+              "go.useLanguageServer": true,
+              "go.gopath": "/go",
+              "[go]": {
+                "editor.formatOnSave": true,
+                "editor.codeActionsOnSave": {
+                  "source.organizeImports": true
+                }
+              },
+              "go.lintTool": "golangci-lint",
+              "gopls": {
+                "formatting.gofumpt": true,
+                "usePlaceholders": false // add parameter placeholders when completing a function
+              },
+              "files.eol": "\n"
+          },
+          // Add the IDs of extensions you want installed when the container is created.
+          "extensions": [
+              "golang.Go"
+          ]
+      }
+  },
+  // Use 'postCreateCommand' to run commands after the container is created.
+  // "postCreateCommand": "go version",
+
+  // See https://www.kenmuse.com/blog/avoiding-dubious-ownership-in-dev-containers/ for the safe.directory part
+  // The defaultBranch part is required for our deprecated integration tests.
+  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && git config --global init.defaultBranch master",
+
+  // Set `remoteUser` to `root` to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+  "remoteUser": "vscode"
+}

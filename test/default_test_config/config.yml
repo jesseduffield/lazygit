@@ -1,0 +1,22 @@
+# This config is used in our integration tests. If we want to modify this for a specific test, you can do so in the SetupConfig function
+
+disableStartupPopups: true
+promptToReturnFromSubprocess: false
+
+gui:
+  theme:
+    activeBorderColor:
+    - green
+    - bold
+    inactiveBorderColor:
+    - black
+  # Not important in tests but it creates clutter in demos
+  showRandomTip: false
+  animateExplosion: false # takes too long
+git:
+  # We don't want to run any periodic background git commands because it'll introduce race conditions and flakiness.
+  # If we need to refresh something from within the test (which should only really happen if we've invoked a
+  # shell command in the background) we should have the user press shift+R to refresh.
+  # TODO: add tests which explicitly test auto-refresh functionality
+  autoRefresh: false
+  autoFetch: false

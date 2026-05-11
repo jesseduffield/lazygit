@@ -1,0 +1,97 @@
+package controllers
+
+import (
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
+
+type SideWindowControllerFactory struct {
+	c *ControllerCommon
+}
+
+func NewSideWindowControllerFactory(c *ControllerCommon) *SideWindowControllerFactory {
+	return &SideWindowControllerFactory{c: c}
+}
+
+func (self *SideWindowControllerFactory) Create(context types.Context) types.IController {
+	return NewSideWindowController(self.c, context)
+}
+
+type SideWindowController struct {
+	baseController
+	c       *ControllerCommon
+	context types.Context
+}
+
+func NewSideWindowController(
+	c *ControllerCommon,
+	context types.Context,
+) *SideWindowController {
+	return &SideWindowController{
+		baseController: baseController{},
+		c:              c,
+		context:        context,
+	}
+}
+
+func (self *SideWindowController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	return []*types.Binding{
+		{Key: opts.GetKey(opts.Config.Universal.PrevBlock), Handler: self.previousSideWindow},
+		{Key: opts.GetKey(opts.Config.Universal.NextBlock), Handler: self.nextSideWindow},
+		{Key: opts.GetKey(opts.Config.Universal.PrevBlockAlt), Handler: self.previousSideWindow},
+		{Key: opts.GetKey(opts.Config.Universal.NextBlockAlt), Handler: self.nextSideWindow},
+		{Key: opts.GetKey(opts.Config.Universal.PrevBlockAlt2), Handler: self.previousSideWindow},
+		{Key: opts.GetKey(opts.Config.Universal.NextBlockAlt2), Handler: self.nextSideWindow},
+	}
+}
+
+func (self *SideWindowController) Context() types.Context {
+	return nil
+}
+
+func (self *SideWindowController) previousSideWindow() error {
+	windows := self.c.Helpers().Window.SideWindows()
+	currentWindow := self.c.Helpers().Window.CurrentWindow()
+	var newWindow string
+	if currentWindow == "" || currentWindow == windows[0] {
+		newWindow = windows[len(windows)-1]
+	} else {
+		for i := range windows {
+			if currentWindow == windows[i] {
+				newWindow = windows[i-1]
+				break
+			}
+			if i == len(windows)-1 {
+				return nil
+			}
+		}
+	}
+
+	context := self.c.Helpers().Window.GetContextForWindow(newWindow)
+
+	self.c.Context().Push(context, types.OnFocusOpts{})
+	return nil
+}
+
+func (self *SideWindowController) nextSideWindow() error {
+	windows := self.c.Helpers().Window.SideWindows()
+	currentWindow := self.c.Helpers().Window.CurrentWindow()
+	var newWindow string
+	if currentWindow == "" || currentWindow == windows[len(windows)-1] {
+		newWindow = windows[0]
+	} else {
+		for i := range windows {
+			if currentWindow == windows[i] {
+				newWindow = windows[i+1]
+				break
+			}
+			if i == len(windows)-1 {
+				return nil
+			}
+		}
+	}
+
+	context := self.c.Helpers().Window.GetContextForWindow(newWindow)
+
+	self.c.Context().Push(context, types.OnFocusOpts{})
+	return nil
+}

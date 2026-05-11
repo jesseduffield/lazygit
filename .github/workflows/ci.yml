@@ -1,0 +1,232 @@
+name: Continuous Integration
+
+env:
+  GO_VERSION: 1.25
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  unit-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+        include:
+          - os: ubuntu-latest
+            cache_path: ~/.cache/go-build
+          - os: windows-latest
+            cache_path: ~\AppData\Local\go-build
+    name: ci - ${{matrix.os}}
+    runs-on: ${{matrix.os}}
+    env:
+      GOFLAGS: -mod=vendor
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.25.x
+      - name: Test code
+        # we're passing -short so that we skip the integration tests, which will be run in parallel below
+        run: |
+          mkdir -p /tmp/code_coverage
+          go test ./... -short -cover -args "-test.gocoverdir=/tmp/code_coverage"
+      - name: Upload code coverage artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-unit-${{ matrix.os }}-${{ github.run_id }}
+          path: /tmp/code_coverage
+
+  integration-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        git-version:
+          - 2.32.0 # oldest supported version
+          - 2.38.2 # first version that supports the rebase.updateRefs config
+          - 2.44.0
+          - latest # We rely on github to have the latest version installed on their VMs
+    runs-on: ubuntu-latest
+    name: "Integration Tests - git ${{matrix.git-version}}"
+    env:
+      GOFLAGS: -mod=vendor
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Restore Git cache
+        if: matrix.git-version != 'latest'
+        id: cache-git-restore
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/git-${{matrix.git-version}}
+          key: ${{runner.os}}-git-${{matrix.git-version}}
+      - name: Build Git ${{matrix.git-version}}
+        if: steps.cache-git-restore.outputs.cache-hit != 'true' && matrix.git-version != 'latest'
+        run: >
+          sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential ca-certificates curl gettext libexpat1-dev libssl-dev libz-dev openssl
+          && curl -sL "https://mirrors.edge.kernel.org/pub/software/scm/git/git-${{matrix.git-version}}.tar.xz" -o - | tar xJ -C "$HOME"
+          && cd "$HOME/git-${{matrix.git-version}}"
+          && ./configure
+          && make -j
+      - name: Install Git ${{matrix.git-version}}
+        if: matrix.git-version != 'latest'
+        run: sudo make -C "$HOME/git-${{matrix.git-version}}" -j install
+      - name: Save Git cache
+        if: steps.cache-git-restore.outputs.cache-hit != 'true' && matrix.git-version != 'latest'
+        uses: actions/cache/save@v5
+        with:
+          path: ~/git-${{matrix.git-version}}
+          key: ${{runner.os}}-git-${{matrix.git-version}}
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.25.x
+      - name: Print git version
+        run: git --version
+      - name: Test code
+        env:
+          # See https://go.dev/blog/integration-test-coverage
+          LAZYGIT_GOCOVERDIR: /tmp/code_coverage
+        run: |
+          mkdir -p /tmp/code_coverage
+          ./scripts/run_integration_tests.sh
+      - name: Upload code coverage artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-integration-${{ matrix.git-version }}-${{ github.run_id }}
+          path: /tmp/code_coverage
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GOFLAGS: -mod=vendor
+      GOARCH: amd64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.25.x
+      - name: Build linux binary
+        run: |
+          GOOS=linux go build
+      - name: Build windows binary
+        run: |
+          GOOS=windows go build
+      - name: Build darwin binary
+        run: |
+          GOOS=darwin go build
+      - name: Build integration test binary
+        run: |
+          GOOS=linux go build cmd/integration_test/main.go
+      - name: Build integration test injector
+        run: |
+          GOOS=linux go build pkg/integration/clients/injector/main.go
+  check-codebase:
+    runs-on: ubuntu-latest
+    env:
+      GOFLAGS: -mod=vendor
+      GOARCH: amd64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.25.x
+      - name: Check Vendor Directory
+        # ensure our vendor directory matches up with our go modules
+        run: |
+          go mod vendor && git diff --exit-code || (echo "Unexpected change to vendor directory. Run 'go mod vendor' locally and commit the changes" && exit 1)
+      - name: Check go.mod file
+        # ensure our go.mod file is clean
+        run: |
+          go mod tidy && git diff --exit-code || (echo "go.mod file is not clean. Run 'go mod tidy' locally and commit the changes" && exit 1)
+      - name: Check All Auto-Generated Files
+        # ensure all our auto-generated files are up to date
+        run: |
+          go generate ./... && git diff --quiet || (git status -s; echo "Auto-generated files not up to date. Run 'go generate ./...' locally and commit the changes" && exit 1)
+        shell: bash # needed so that we get "-o pipefail"
+      - name: Check Filenames
+        run: scripts/check_filenames.sh
+  lint:
+    runs-on: ubuntu-latest
+    env:
+      GOFLAGS: -mod=vendor
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.25.x
+      - name: Lint
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9
+        with:
+          # If you change this, make sure to also update scripts/golangci-lint-shim.sh
+          version: v2.4.0
+      - name: errors
+        run: golangci-lint run
+        if: ${{ failure() }}
+  upload-coverage:
+    # List all jobs that produce coverage files
+    needs: [unit-tests, integration-tests]
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.25.x
+
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: /tmp/code_coverage
+
+      - name: Combine coverage files
+        run: |
+          # Find all directories in /tmp/code_coverage and create a comma-separated list
+          COVERAGE_DIRS=$(find /tmp/code_coverage -mindepth 1 -maxdepth 1 -type d -printf '/tmp/code_coverage/%f,' | sed 's/,$//')
+          echo "Coverage directories: $COVERAGE_DIRS"
+          # Run the combine command with the generated list
+          go tool covdata textfmt -i=$COVERAGE_DIRS -o coverage.out
+          echo "Combined coverage:"
+          go tool cover -func coverage.out | tail -1 | awk '{print $3}'
+
+      - name: Upload to Codacy
+        run: |
+          CODACY_PROJECT_TOKEN="${CODACY_PROJECT_TOKEN}" \
+            bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
+            --force-coverage-parser go -r coverage.out
+
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+  check-for-fixups:
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/master'
+    steps:
+      # See https://github.com/actions/checkout/issues/552#issuecomment-1167086216
+      - name: "PR commits"
+        run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} ))" >> "${GITHUB_ENV}"
+
+      - name: "Checkout PR branch and all PR commits"
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: ${{ env.PR_FETCH_DEPTH }}
+
+      - name: Check for fixups
+        run: |
+          ./scripts/check_for_fixups.sh ${{ github.event.pull_request.base.ref }}

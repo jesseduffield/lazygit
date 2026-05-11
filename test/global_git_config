@@ -1,0 +1,10 @@
+# This is the global git config we use for all our integration tests
+
+[user]
+	name = CI
+	email = CI@example.com
+[protocol "file"]
+	# see https://vielmetti.typepad.com/logbook/2022/10/git-security-fixes-lead-to-fatal-transport-file-not-allowed-error-in-ci-systems-cve-2022-39253.html
+	allow = always
+[commit]
+	gpgSign = false

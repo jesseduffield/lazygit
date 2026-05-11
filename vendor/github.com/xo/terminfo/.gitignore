@@ -1,0 +1,9 @@
+/.cache/
+
+/cmd/infocmp/infocmp
+/cmd/infocmp/.out/
+
+/infocmp
+/.out/
+
+*.txt
