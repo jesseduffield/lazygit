@@ -2,7 +2,7 @@
 
 # We will have only done a shallow clone, so the git log will consist only of
 # commits on the current PR
-commits=$(git log --format="%h %s" | egrep '(^fixup!|^squash!|^amend!|WIP|DROPME)')
+commits=$(git log --format="%s" | egrep '(^fixup!|^squash!|^amend!|WIP|DROPME)')
 
 if [ -z "$commits" ]; then
     echo "No fixup commits found."
