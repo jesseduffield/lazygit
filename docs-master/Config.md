@@ -643,8 +643,7 @@ keybinding:
 
     # <alt+delete> on Mac
     forwardDeleteWord: <ctrl+delete>
-    optionMenu: <disabled>
-    optionMenu-alt1: '?'
+    optionMenu: '?'
     select: <space>
     goInto: <enter>
     confirm: <enter>

@@ -459,7 +459,6 @@ type KeybindingUniversalConfig struct {
 	BackspaceWord                     string   `yaml:"backspaceWord"`     // <alt+backspace> on Mac
 	ForwardDeleteWord                 string   `yaml:"forwardDeleteWord"` // <alt+delete> on Mac
 	OptionMenu                        string   `yaml:"optionMenu"`
-	OptionMenuAlt1                    string   `yaml:"optionMenu-alt1"`
 	Select                            string   `yaml:"select"`
 	GoInto                            string   `yaml:"goInto"`
 	Confirm                           string   `yaml:"confirm"`
@@ -941,8 +940,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				MoveWordRight:                     platformKeyBinding(platform, map[string]string{"darwin": "<alt+right>"}, "<ctrl+right>"),
 				BackspaceWord:                     platformKeyBinding(platform, map[string]string{"darwin": "<alt+backspace>"}, "<ctrl+backspace>"),
 				ForwardDeleteWord:                 platformKeyBinding(platform, map[string]string{"darwin": "<alt+delete>"}, "<ctrl+delete>"),
-				OptionMenu:                        "<disabled>",
-				OptionMenuAlt1:                    "?",
+				OptionMenu:                        "?",
 				Select:                            "<space>",
 				GoInto:                            "<enter>",
 				Confirm:                           "<enter>",

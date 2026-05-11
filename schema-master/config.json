@@ -1432,10 +1432,6 @@
         },
         "optionMenu": {
           "type": "string",
-          "default": "\u003cdisabled\u003e"
-        },
-        "optionMenu-alt1": {
-          "type": "string",
           "default": "?"
         },
         "select": {

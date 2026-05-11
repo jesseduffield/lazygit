@@ -75,21 +75,14 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			DisplayOnScreen:   true,
 		},
 		{
-			ViewName:  "",
-			Key:       opts.GetKey(opts.Config.Universal.OptionMenu),
-			Handler:   self.createOptionsMenu,
-			OpensMenu: true,
-		},
-		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.OptionMenuAlt1),
-			// we have the description on the alt key and not the main key for legacy reasons
-			// (the original main key was 'x' but we've reassigned that to other purposes)
+			ViewName:          "",
+			Key:               opts.GetKey(opts.Config.Universal.OptionMenu),
 			Description:       self.c.Tr.OpenKeybindingsMenu,
-			Handler:           self.createOptionsMenu,
 			ShortDescription:  self.c.Tr.Keybindings,
-			DisplayOnScreen:   true,
+			Handler:           self.createOptionsMenu,
 			GetDisabledReason: self.optionsMenuDisabledReason,
+			OpensMenu:         true,
+			DisplayOnScreen:   true,
 		},
 		{
 			ViewName:    "",
