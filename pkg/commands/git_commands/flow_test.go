@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,6 +42,7 @@ func TestFinishCmdObj(t *testing.T) {
 		expected               []string
 		expectedError          string
 		gitConfigMockResponses map[string]string
+		userConfig             *config.UserConfig
 	}{
 		{
 			testName:               "not a git flow branch",
@@ -65,12 +67,41 @@ func TestFinishCmdObj(t *testing.T) {
 				"--local --get-regexp gitflow.prefix": "gitflow.prefix.feature feature/",
 			},
 		},
+		{
+			testName:      "feature branch with extra finish args",
+			branchName:    "feature/mybranch",
+			expected:      []string{"git", "flow", "feature", "finish", "mybranch", "--keepremote"},
+			expectedError: "",
+			gitConfigMockResponses: map[string]string{
+				"--local --get-regexp gitflow.prefix": "gitflow.prefix.feature feature/",
+			},
+			userConfig: &config.UserConfig{
+				Git: config.GitConfig{
+					GitFlowFinishArgs: []string{"--keepremote"},
+				},
+			},
+		},
+		{
+			testName:      "feature branch with multiple extra finish args",
+			branchName:    "feature/mybranch",
+			expected:      []string{"git", "flow", "feature", "finish", "mybranch", "--keepremote", "--keeplocal"},
+			expectedError: "",
+			gitConfigMockResponses: map[string]string{
+				"--local --get-regexp gitflow.prefix": "gitflow.prefix.feature feature/",
+			},
+			userConfig: &config.UserConfig{
+				Git: config.GitConfig{
+					GitFlowFinishArgs: []string{"--keepremote", "--keeplocal"},
+				},
+			},
+		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildFlowCommands(commonDeps{
-				gitConfig: git_config.NewFakeGitConfig(s.gitConfigMockResponses),
+				gitConfig:  git_config.NewFakeGitConfig(s.gitConfigMockResponses),
+				userConfig: s.userConfig,
 			})
 
 			cmd, err := instance.FinishCmdObj(s.branchName)
