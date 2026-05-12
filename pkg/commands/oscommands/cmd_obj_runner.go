@@ -106,6 +106,10 @@ func (self *cmdObjRunner) RunWithOutputAux(cmdObj *CmdObj) (string, error) {
 
 	t := time.Now()
 	output, err := sanitisedCommandOutput(cmdObj.GetCmd().CombinedOutput())
+
+	// Filter out git warning lines that can appear in stderr and cause parsing issues
+	output = self.filterGitWarnings(output)
+
 	if err != nil {
 		self.log.WithField("command", cmdObj.ToString()).Error(output)
 	}
@@ -194,6 +198,21 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj *CmdObj, onLine func(line st
 
 func (self *cmdObjRunner) logCmdObj(cmdObj *CmdObj) {
 	self.guiIO.logCommandFn(cmdObj.ToString(), true)
+}
+
+// filterGitWarnings removes warning lines from git output that can interfere with parsing
+// and logs them for debugging visibility
+func (self *cmdObjRunner) filterGitWarnings(output string) string {
+	lines := strings.Split(output, "\n")
+	filtered := make([]string, 0, len(lines))
+	for _, line := range lines {
+		if strings.HasPrefix(line, "warning:") {
+			self.log.Warnf("filtered git warning: %s", line)
+		} else {
+			filtered = append(filtered, line)
+		}
+	}
+	return strings.Join(filtered, "\n")
 }
 
 func sanitisedCommandOutput(output []byte, err error) (string, error) {
