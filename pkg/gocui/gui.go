@@ -546,10 +546,9 @@ func (g *Gui) CurrentView() *View {
 // SetKeybinding creates a new keybinding. If viewname equals to ""
 // (empty string) then the keybinding will apply to all views. key must
 // be a rune or a Key.
-func (g *Gui) SetKeybinding(viewname string, key Key, handler func(*Gui, *View) error) error {
+func (g *Gui) SetKeybinding(viewname string, key Key, handler func(*Gui, *View) error) {
 	kb := newKeybinding(viewname, key, handler)
 	g.keybindings = append(g.keybindings, kb)
-	return nil
 }
 
 // DeleteKeybindings deletes all keybindings of view.

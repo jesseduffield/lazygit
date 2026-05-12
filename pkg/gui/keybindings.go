@@ -418,9 +418,7 @@ func (gui *Gui) resetKeybindings() error {
 	bindings, mouseBindings := gui.GetInitialKeybindingsWithCustomCommands()
 
 	for _, binding := range bindings {
-		if err := gui.SetKeybinding(binding); err != nil {
-			return err
-		}
+		gui.SetKeybinding(binding)
 	}
 
 	for _, binding := range mouseBindings {
@@ -445,12 +443,12 @@ func (gui *Gui) resetKeybindings() error {
 	return nil
 }
 
-func (gui *Gui) SetKeybinding(binding *types.Binding) error {
+func (gui *Gui) SetKeybinding(binding *types.Binding) {
 	handler := func(g *gocui.Gui, v *gocui.View) error {
 		return gui.callKeybindingHandler(binding)
 	}
 
-	return gui.g.SetKeybinding(binding.ViewName, binding.Key, handler)
+	gui.g.SetKeybinding(binding.ViewName, binding.Key, handler)
 }
 
 func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
