@@ -168,8 +168,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` p `` | Pick | Kies commit (wanneer midden in rebase) |
 | `` F `` | Creëer fixup commit | Creëer fixup commit |
 | `` S `` | Apply fixup commits | Squash bovenstaande commits |
-| `` <alt+down> `` | Verplaats commit 1 naar beneden |  |
-| `` <alt+up> `` | Verplaats commit 1 naar boven |  |
+| `` <ctrl+j> `` | Verplaats commit 1 naar beneden |  |
+| `` <ctrl+k> `` | Verplaats commit 1 naar boven |  |
 | `` V `` | Plak commits (cherry-pick) |  |
 | `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
 | `` A `` | Amend | Wijzig commit met staged veranderingen |

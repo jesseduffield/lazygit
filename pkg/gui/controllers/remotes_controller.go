@@ -106,7 +106,11 @@ func (self *RemotesController) GetOnRenderToMain() func() {
 			if remote == nil {
 				task = types.NewRenderStringTask("No remotes")
 			} else {
-				task = types.NewRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", style.FgGreen.Sprint(remote.Name), strings.Join(remote.Urls, "\n")))
+				content := fmt.Sprintf("%s\nUrls:\n%s", style.FgGreen.Sprint(remote.Name), strings.Join(remote.Urls, "\n"))
+				if len(remote.PushUrls) > 0 {
+					content += fmt.Sprintf("\nPush Urls:\n%s", strings.Join(remote.PushUrls, "\n"))
+				}
+				task = types.NewRenderStringTask(content)
 			}
 
 			self.c.RenderToMainViews(types.RefreshMainOpts{

@@ -79,6 +79,10 @@ func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) 
 		}
 	}
 
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
 	return configs, nil
 }
 

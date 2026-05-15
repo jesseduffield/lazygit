@@ -2263,12 +2263,9 @@ keybinding:
 
 - The 'git.paging.useConfig' option has been removed. If you were relying on it to configure your pager, you'll have to explicitly set the pager again using the 'git.paging.pager' option.
 `,
-			"0.62.0": `- The default keybindings for moving commits up and down have changed from ctrl-k/ctrl-j to alt-up/alt-down; this is mostly for personal preference, I find them easier to remember, and they are nicely similar to moving a line of code up and down in many code editors. Also, the default binding for submitting a commit from the commit description editor has changed from alt-enter to command-enter on Mac, or ctrl-enter on Linux and Windows; these are the same bindings that are used in many multi-line edit field situations, e.g. in GitHub comments. Unfortunately these are not supported by all terminals; see https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md#terminal-compatibility for more on that. If you want to revert these changes, you can do so by adding the following to your config:
+			"0.62.0": `- The default keybinding for submitting a commit from the commit description editor has changed from alt-enter to command-enter on Mac, or ctrl-enter on Linux and Windows; these are the same bindings that are used in many multi-line edit field situations, e.g. in GitHub comments. Unfortunately these are not supported by all terminals; see https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md#terminal-compatibility for more on that. If you want to revert this change, you can do so by adding the following to your config:
 
 keybinding:
-  commits:
-    moveDownCommit: <ctrl+j>
-    moveUpCommit: <ctrl+k>
   universal:
     confirmInEditor: <a-enter>
 `,

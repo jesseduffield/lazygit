@@ -210,6 +210,10 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 					<-lineWrittenChan
 				}
 			}
+
+			if err := scanner.Err(); err != nil {
+				self.Log.Error(err)
+			}
 		})
 
 		loaded := false

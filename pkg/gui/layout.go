@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -23,7 +24,11 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	informationStr := gui.informationStr()
 
-	appStatus := gui.helpers.AppStatus.GetStatusString()
+	var appStatus string
+	appStatusView, err := g.View("appStatus")
+	if err == nil {
+		appStatus = utils.Decolorise(appStatusView.Buffer())
+	}
 
 	viewDimensions := gui.getWindowDimensions(informationStr, appStatus)
 

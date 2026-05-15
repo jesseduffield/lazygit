@@ -44,9 +44,9 @@ var MergeNonFastForward = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Lines(
-				Contains("⏣─╮ Merge branch 'branch1' into original-branch").IsSelected(),
-				Contains("│ ◯ * branch1"),
-				Contains("◯─╯ one"),
+				Contains("◎─╮ Merge branch 'branch1' into original-branch").IsSelected(),
+				Contains("│ ○ * branch1"),
+				Contains("○─╯ one"),
 			)
 
 		// Check that branch2 shows the non-fast-forward option first
@@ -66,11 +66,11 @@ var MergeNonFastForward = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Lines(
-				Contains("⏣─╮ Merge branch 'branch2' into original-branch").IsSelected(),
-				Contains("│ ◯ * branch2"),
-				Contains("⏣─│─╮ Merge branch 'branch1' into original-branch"),
-				Contains("│ │ ◯ * branch1"),
-				Contains("◯─┴─╯ one"),
+				Contains("◎─╮ Merge branch 'branch2' into original-branch").IsSelected(),
+				Contains("│ ○ * branch2"),
+				Contains("◎─│─╮ Merge branch 'branch1' into original-branch"),
+				Contains("│ │ ○ * branch1"),
+				Contains("○─┴─╯ one"),
 			)
 	},
 })

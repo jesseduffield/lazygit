@@ -22,9 +22,9 @@ var RevertWithConflictSingleCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI ◯ add second line").IsSelected(),
-				Contains("CI ◯ add first line"),
-				Contains("CI ◯ add empty file"),
+				Contains("CI ○ add second line").IsSelected(),
+				Contains("CI ○ add first line"),
+				Contains("CI ○ add empty file"),
 			).
 			SelectNextItem().
 			Press(keys.Commits.RevertCommit).
@@ -42,9 +42,9 @@ var RevertWithConflictSingleCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("--- Pending reverts ---"),
 				Contains("revert").Contains("CI <-- CONFLICT --- add first line"),
 				Contains("--- Commits ---"),
-				Contains("CI ◯ add second line"),
-				Contains("CI ◯ add first line"),
-				Contains("CI ◯ add empty file"),
+				Contains("CI ○ add second line"),
+				Contains("CI ○ add first line"),
+				Contains("CI ○ add empty file"),
 			)
 
 		t.Views().Options().Content(Contains("View revert options: m"))
@@ -67,10 +67,10 @@ var RevertWithConflictSingleCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Lines(
-				Contains(`CI ◯ Revert "add first line"`),
-				Contains("CI ◯ add second line"),
-				Contains("CI ◯ add first line"),
-				Contains("CI ◯ add empty file"),
+				Contains(`CI ○ Revert "add first line"`),
+				Contains("CI ○ add second line"),
+				Contains("CI ○ add first line"),
+				Contains("CI ○ add empty file"),
 			)
 	},
 })

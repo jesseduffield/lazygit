@@ -192,8 +192,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` p `` | 挑選 | 挑選提交 (於變基過程中) |
 | `` F `` | 建立修復提交 | 為此提交建立修復提交 |
 | `` S `` | 壓縮上方所有「fixup」提交（自動壓縮） | 是否壓縮上方 {{.commit}} 所有「fixup」提交？ |
-| `` <alt+down> `` | 向下移動提交 |  |
-| `` <alt+up> `` | 向上移動提交 |  |
+| `` <ctrl+j> `` | 向下移動提交 |  |
+| `` <ctrl+k> `` | 向上移動提交 |  |
 | `` V `` | 貼上提交 (揀選) |  |
 | `` B `` | 為了變基已標注提交為基準提交 | 請為了下一次變基選擇一項基準提交；此將執行 `git rebase --onto`。 |
 | `` A `` | 修改 | 使用已預存的更改修正提交 |

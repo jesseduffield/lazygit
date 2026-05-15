@@ -3,7 +3,6 @@ package controllers
 import (
 	"log"
 
-	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -40,9 +39,8 @@ func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpt
 		return &types.Binding{
 			ViewName: "",
 			// by default the keys are 1, 2, 3, etc
-			Key:      opts.GetKey(opts.Config.Universal.JumpToBlock[index]),
-			Modifier: gocui.ModNone,
-			Handler:  opts.Guards.NoPopupPanel(self.goToSideWindow(window)),
+			Key:     opts.GetKey(opts.Config.Universal.JumpToBlock[index]),
+			Handler: opts.Guards.NoPopupPanel(self.goToSideWindow(window)),
 		}
 	})
 }
