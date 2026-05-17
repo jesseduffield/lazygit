@@ -483,6 +483,11 @@ func TestAddCoAuthorToDescription(t *testing.T) {
 			description:    "Body\n\nCo-authored-by: Jane Smith <jane@smith.com>",
 			expectedResult: "Body\n\nCo-authored-by: Jane Smith <jane@smith.com>\nCo-authored-by: John Doe <john@doe.com>",
 		},
+		{
+			name:           "Description with trailing newlines",
+			description:    "Body\n\n",
+			expectedResult: "Body\n\nCo-authored-by: John Doe <john@doe.com>",
+		},
 	}
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {

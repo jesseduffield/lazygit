@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -282,14 +282,14 @@ func (self *TagsController) delete(tag *models.Tag) error {
 	menuItems := []*types.MenuItem{
 		{
 			Label: self.c.Tr.DeleteLocalTag,
-			Key:   'c',
+			Key:   gocui.NewKeyRune('c'),
 			OnPress: func() error {
 				return self.localDelete(tag)
 			},
 		},
 		{
 			Label:     self.c.Tr.DeleteRemoteTag,
-			Key:       'r',
+			Key:       gocui.NewKeyRune('r'),
 			OpensMenu: true,
 			OnPress: func() error {
 				return self.remoteDelete(tag)
@@ -297,7 +297,7 @@ func (self *TagsController) delete(tag *models.Tag) error {
 		},
 		{
 			Label:     self.c.Tr.DeleteLocalAndRemoteTag,
-			Key:       'b',
+			Key:       gocui.NewKeyRune('b'),
 			OpensMenu: true,
 			OnPress: func() error {
 				return self.localAndRemoteDelete(tag)

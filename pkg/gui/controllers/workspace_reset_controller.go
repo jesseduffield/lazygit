@@ -8,7 +8,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -53,7 +53,7 @@ func (self *FilesController) createResetMenu() error {
 					})
 				return nil
 			},
-			Key:     'x',
+			Key:     gocui.NewKeyRune('x'),
 			Tooltip: self.c.Tr.NukeDescription,
 		},
 		{
@@ -72,7 +72,7 @@ func (self *FilesController) createResetMenu() error {
 				)
 				return nil
 			},
-			Key: 'u',
+			Key: gocui.NewKeyRune('u'),
 		},
 		{
 			LabelColumns: []string{
@@ -90,7 +90,7 @@ func (self *FilesController) createResetMenu() error {
 				)
 				return nil
 			},
-			Key: 'c',
+			Key: gocui.NewKeyRune('c'),
 		},
 		{
 			LabelColumns: []string{
@@ -115,7 +115,7 @@ func (self *FilesController) createResetMenu() error {
 				)
 				return nil
 			},
-			Key: 'S',
+			Key: gocui.NewKeyRune('S'),
 		},
 		{
 			LabelColumns: []string{
@@ -133,7 +133,7 @@ func (self *FilesController) createResetMenu() error {
 				)
 				return nil
 			},
-			Key: 's',
+			Key: gocui.NewKeyRune('s'),
 		},
 		{
 			LabelColumns: []string{
@@ -151,7 +151,7 @@ func (self *FilesController) createResetMenu() error {
 				)
 				return nil
 			},
-			Key: 'm',
+			Key: gocui.NewKeyRune('m'),
 		},
 		{
 			LabelColumns: []string{
@@ -176,7 +176,7 @@ func (self *FilesController) createResetMenu() error {
 						},
 					})
 			},
-			Key: 'h',
+			Key: gocui.NewKeyRune('h'),
 		},
 	}
 

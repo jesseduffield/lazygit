@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -24,24 +24,20 @@ func NewSearchPromptController(
 func (self *SearchPromptController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:      gocui.KeyEnter,
-			Modifier: gocui.ModNone,
-			Handler:  self.confirm,
+			Key:     gocui.NewKeyName(gocui.KeyEnter),
+			Handler: self.confirm,
 		},
 		{
-			Key:      opts.GetKey(opts.Config.Universal.Return),
-			Modifier: gocui.ModNone,
-			Handler:  self.cancel,
+			Key:     opts.GetKey(opts.Config.Universal.Return),
+			Handler: self.cancel,
 		},
 		{
-			Key:      opts.GetKey(opts.Config.Universal.PrevItem),
-			Modifier: gocui.ModNone,
-			Handler:  self.prevHistory,
+			Key:     opts.GetKey(opts.Config.Universal.PrevItem),
+			Handler: self.prevHistory,
 		},
 		{
-			Key:      opts.GetKey(opts.Config.Universal.NextItem),
-			Modifier: gocui.ModNone,
-			Handler:  self.nextHistory,
+			Key:     opts.GetKey(opts.Config.Universal.NextItem),
+			Handler: self.nextHistory,
 		},
 	}
 }

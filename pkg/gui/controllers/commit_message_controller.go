@@ -3,8 +3,8 @@ package controllers
 import (
 	"errors"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -82,6 +82,12 @@ func (self *CommitMessageController) GetOnFocusLost() func(types.OnFocusLostOpts
 	}
 }
 
+func (self *CommitMessageController) GetOnQuit() func() {
+	return func() {
+		self.c.Helpers().Commits.PreserveCommitMessage()
+	}
+}
+
 func (self *CommitMessageController) Context() types.Context {
 	return self.context()
 }
@@ -124,7 +130,7 @@ func (self *CommitMessageController) handleTogglePanel() error {
 		// switch to the description panel.
 		view := self.context().GetView()
 		for range 4 {
-			view.Editor.Edit(view, gocui.KeySpace, ' ', 0)
+			view.Editor.Edit(view, gocui.NewKeyRune(' '))
 		}
 		return nil
 	}
@@ -137,7 +143,7 @@ func (self *CommitMessageController) handleCommitIndexChange(value int) error {
 	newIndex := currentIndex + value
 	if newIndex == context.NoCommitIndex {
 		self.context().SetSelectedIndex(newIndex)
-		self.c.Helpers().Commits.SetMessageAndDescriptionInView(self.context().GetHistoryMessage())
+		self.c.Helpers().Commits.SetPreservedMessageInView(self.context().GetHistoryMessage())
 		return nil
 	} else if currentIndex == context.NoCommitIndex {
 		self.context().SetHistoryMessage(self.c.Helpers().Commits.JoinCommitMessageAndUnwrappedDescription())
@@ -162,7 +168,7 @@ func (self *CommitMessageController) setCommitMessageAtIndex(index int) (bool, e
 	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
 		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
 	}
-	self.c.Helpers().Commits.UpdateCommitPanelView(commitMessage)
+	self.c.Helpers().Commits.SetMessageAndDescriptionInView(commitMessage)
 	return true, nil
 }
 

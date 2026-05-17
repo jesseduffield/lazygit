@@ -1,18 +1,20 @@
+//go:build windows
 // +build windows
 
-// Display color on windows
-// refer:
-//  golang.org/x/sys/windows
-// 	golang.org/x/crypto/ssh/terminal
-// 	https://docs.microsoft.com/en-us/windows/console
 package color
 
+// Display color on Windows
+//
+// refer:
+//
+//	golang.org/x/sys/windows
+//	golang.org/x/crypto/ssh/terminal
+//	https://docs.microsoft.com/en-us/windows/console
 import (
 	"os"
 	"syscall"
 	"unsafe"
 
-	"github.com/xo/terminfo"
 	"golang.org/x/sys/windows"
 )
 
@@ -28,17 +30,15 @@ var (
 )
 
 func init() {
-	if !SupportColor() {
-		isLikeInCmd = true
+	// if support color 16+, don't need to enable VTP
+	if colorLevel > Level16 {
+		return
+	}
+	if !Enable { // disable color
 		return
 	}
 
-	// if disabled.
-	if !Enable {
-		return
-	}
-
-	// if at windows's ConEmu, Cmder, putty ... terminals not need VTP
+	// if at Windows's ConEmu, Cmder, putty ... terminals not need VTP
 
 	// -------- try force enable colors on windows terminal -------
 	tryEnableVTP(needVTP)
@@ -47,7 +47,7 @@ func init() {
 	// err := getConsoleScreenBufferInfo(uintptr(syscall.Stdout), &defScreenInfo)
 }
 
-// try force enable colors on windows terminal
+// try force enable colors on Windows terminal
 func tryEnableVTP(enable bool) bool {
 	if !enable {
 		return false
@@ -57,7 +57,7 @@ func tryEnableVTP(enable bool) bool {
 
 	initKernel32Proc()
 
-	// enable colors on windows terminal
+	// enable colors on Windows terminal
 	if tryEnableOnCONOUT() {
 		return true
 	}
@@ -70,7 +70,7 @@ func initKernel32Proc() {
 		return
 	}
 
-	// load related windows dll
+	// load related Windows dll
 	// https://docs.microsoft.com/en-us/windows/console/setconsolemode
 	kernel32 = syscall.NewLazyDLL("kernel32.dll")
 
@@ -106,15 +106,15 @@ func tryEnableOnStdout() bool {
 }
 
 // Get the Windows Version and Build Number
-var (
-	winVersion, _, buildNumber = windows.RtlGetNtVersionNumbers()
-)
+var winVersion, _, buildNumber = windows.RtlGetNtVersionNumbers()
 
 // refer
-//  https://github.com/Delta456/box-cli-maker/blob/7b5a1ad8a016ce181e7d8b05e24b54ff60b4b38a/detect_windows.go#L30-L57
-//  https://github.com/gookit/color/issues/25#issuecomment-738727917
-// detects the Color Level Supported on windows: cmd, powerShell
-func detectSpecialTermColor(termVal string) (tl terminfo.ColorLevel, needVTP bool) {
+//
+//	https://github.com/Delta456/box-cli-maker/blob/7b5a1ad8a016ce181e7d8b05e24b54ff60b4b38a/detect_windows.go#L30-L57
+//	https://github.com/gookit/color/issues/25#issuecomment-738727917
+//
+// detects the color level supported on Windows: cmd, powerShell
+func detectSpecialTermColor(termVal string) (tl Level, needVTP bool) {
 	if os.Getenv("ConEmuANSI") == "ON" {
 		debugf("support True Color by ConEmuANSI=ON")
 		// ConEmuANSI is "ON" for generic ANSI support
@@ -122,7 +122,7 @@ func detectSpecialTermColor(termVal string) (tl terminfo.ColorLevel, needVTP boo
 		// I am just assuming that people wouldn't have disabled it
 		// Even if it is not enabled then ConEmu will auto round off
 		// accordingly
-		return terminfo.ColorLevelMillions, false
+		return LevelRgb, false
 	}
 
 	// Before Windows 10 Build Number 10586, console never supported ANSI Colors
@@ -130,33 +130,33 @@ func detectSpecialTermColor(termVal string) (tl terminfo.ColorLevel, needVTP boo
 		// Detect if using ANSICON on older systems
 		if os.Getenv("ANSICON") != "" {
 			conVersion := os.Getenv("ANSICON_VER")
-			// 8 bit Colors were only supported after v1.81 release
+			// 8-bit Colors were only supported after v1.81 release
 			if conVersion >= "181" {
-				return terminfo.ColorLevelHundreds, false
+				return Level256, false
 			}
-			return terminfo.ColorLevelBasic, false
+			return Level16, false
 		}
 
-		return terminfo.ColorLevelNone, false
+		return LevelNo, false
 	}
 
-	// True Color is not available before build 14931 so fallback to 8 bit color.
+	// True Color is not available before build 14931 so fallback to 8-bit color.
 	if buildNumber < 14931 {
-		return terminfo.ColorLevelHundreds, true
+		return Level256, true
 	}
 
 	// Windows 10 build 14931 is the first release that supports 16m/TrueColor
 	debugf("support True Color on windows version is >= build 14931")
-	return terminfo.ColorLevelMillions, true
+	return LevelRgb, true
 }
 
 /*************************************************************
- * render full color code on windows(8,16,24bit color)
+ * render full color code on Windows(8,16,24bit color)
  *************************************************************/
 
 // docs https://docs.microsoft.com/zh-cn/windows/console/getconsolemode#parameters
 const (
-	// equals to docs page's ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+	// EnableVirtualTerminalProcessingMode equals to docs page's ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 	EnableVirtualTerminalProcessingMode uint32 = 0x4
 )
 
@@ -166,9 +166,10 @@ const (
 // doc https://docs.microsoft.com/zh-cn/windows/console/console-virtual-terminal-sequences#samples
 //
 // Usage:
-// 	err := EnableVirtualTerminalProcessing(syscall.Stdout, true)
-// 	// support print color text
-// 	err = EnableVirtualTerminalProcessing(syscall.Stdout, false)
+//
+//	err := EnableVirtualTerminalProcessing(syscall.Stdout, true)
+//	// support print color text
+//	err = EnableVirtualTerminalProcessing(syscall.Stdout, false)
 func EnableVirtualTerminalProcessing(stream syscall.Handle, enable bool) error {
 	var mode uint32
 	// Check if it is currently in the terminal
@@ -216,7 +217,7 @@ func EnableVirtualTerminalProcessing(stream syscall.Handle, enable bool) error {
 // }
 
 /*************************************************************
- * render simple color code on windows
+ * render simple color code on Windows
  *************************************************************/
 
 // IsTty returns true if the given file descriptor is a terminal.
@@ -224,20 +225,21 @@ func IsTty(fd uintptr) bool {
 	initKernel32Proc()
 
 	var st uint32
-	r, _, e := syscall.Syscall(procGetConsoleMode.Addr(), 2, fd, uintptr(unsafe.Pointer(&st)), 0)
+	r, _, e := syscall.SyscallN(procGetConsoleMode.Addr(), 2, fd, uintptr(unsafe.Pointer(&st)), 0)
 	return r != 0 && e == 0
 }
 
 // IsTerminal returns true if the given file descriptor is a terminal.
 //
 // Usage:
-// 	fd := os.Stdout.Fd()
-// 	fd := uintptr(syscall.Stdout) // for windows
-// 	IsTerminal(fd)
+//
+//	fd := os.Stdout.Fd()
+//	fd := uintptr(syscall.Stdout) // for Windows
+//	IsTerminal(fd)
 func IsTerminal(fd uintptr) bool {
 	initKernel32Proc()
 
 	var st uint32
-	r, _, e := syscall.Syscall(procGetConsoleMode.Addr(), 2, fd, uintptr(unsafe.Pointer(&st)), 0)
+	r, _, e := syscall.SyscallN(procGetConsoleMode.Addr(), 2, fd, uintptr(unsafe.Pointer(&st)), 0)
 	return r != 0 && e == 0
 }

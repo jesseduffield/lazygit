@@ -289,3 +289,33 @@ func TestUserConfigValidate_enums(t *testing.T) {
 		})
 	}
 }
+
+func TestUserConfigValidate_spinnerFrames(t *testing.T) {
+	scenarios := []struct {
+		name   string
+		frames []string
+		valid  bool
+	}{
+		{name: "empty", frames: []string{}, valid: false},
+		{name: "single frame", frames: []string{"|"}, valid: true},
+		{name: "all same width", frames: []string{"|", "/", "-", "\\"}, valid: true},
+		{name: "all same width, multi-char", frames: []string{".  ", ".. ", "..."}, valid: true},
+		{name: "all same width, wide runes", frames: []string{"⠋", "⠙", "⠹"}, valid: true},
+		{name: "differing widths", frames: []string{"|", "//"}, valid: false},
+		{name: "first differs from rest", frames: []string{"||", "/", "-"}, valid: false},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			config := GetDefaultConfig()
+			config.Gui.Spinner.Frames = s.frames
+			err := config.Validate()
+
+			if s.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}

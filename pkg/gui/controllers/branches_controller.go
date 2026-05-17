@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/gookit/color"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -253,42 +253,12 @@ func stateText(state string) string {
 func coloredStateText(state string) string {
 	if icons.IsIconEnabled() {
 		return fmt.Sprintf("%s%s%s",
-			withPrFgColor(state, ""),
-			withPrBgColor(state, style.FgWhite.Sprint(stateText(state))),
-			withPrFgColor(state, ""))
+			presentation.WithPrColor(state, "", false),
+			presentation.WithPrColor(state, color.RGB(0xFF, 0xFF, 0xFF, false).Sprint(stateText(state)), true),
+			presentation.WithPrColor(state, "", false))
 	}
 
-	return withPrFgColor(state, stateText(state))
-}
-
-func withPrFgColor(state string, text string) string {
-	switch state {
-	case "OPEN":
-		return style.FgGreen.Sprint(text)
-	case "CLOSED":
-		return style.FgRed.Sprint(text)
-	case "MERGED":
-		return style.FgMagenta.Sprint(text)
-	case "DRAFT":
-		return color.RGB(0x66, 0x66, 0x66, false).Sprint(text)
-	default:
-		return style.FgDefault.Sprint(text)
-	}
-}
-
-func withPrBgColor(state string, text string) string {
-	switch state {
-	case "OPEN":
-		return style.BgGreen.Sprint(text)
-	case "CLOSED":
-		return style.BgRed.Sprint(text)
-	case "MERGED":
-		return style.BgMagenta.Sprint(text)
-	case "DRAFT":
-		return color.RGB(0x66, 0x66, 0x66, true).Sprint(text)
-	default:
-		return style.BgDefault.Sprint(text)
-	}
+	return presentation.WithPrColor(state, stateText(state), false)
 }
 
 func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branch) error {
@@ -330,7 +300,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 	)
 	viewDivergenceFromBaseBranchItem := &types.MenuItem{
 		LabelColumns: []string{label},
-		Key:          'b',
+		Key:          gocui.NewKeyRune('b'),
 		OnPress: func() error {
 			branch := self.context().GetSelected()
 			if branch == nil {
@@ -363,7 +333,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 			})
 			return nil
 		},
-		Key: 'u',
+		Key: gocui.NewKeyRune('u'),
 	}
 
 	setUpstreamItem := &types.MenuItem{
@@ -388,7 +358,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 				return nil
 			})
 		},
-		Key: 's',
+		Key: gocui.NewKeyRune('s'),
 	}
 
 	upstreamResetOptions := utils.ResolvePlaceholderString(
@@ -421,7 +391,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 			return nil
 		},
 		Tooltip: upstreamResetTooltip,
-		Key:     'g',
+		Key:     gocui.NewKeyRune('g'),
 	}
 
 	upstreamRebaseItem := &types.MenuItem{
@@ -434,7 +404,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 			return nil
 		},
 		Tooltip: upstreamRebaseTooltip,
-		Key:     'r',
+		Key:     gocui.NewKeyRune('r'),
 	}
 
 	if !selectedBranch.IsTrackingRemote() {
@@ -654,7 +624,7 @@ func (self *BranchesController) delete(branches []*models.Branch) error {
 
 	localDeleteItem := &types.MenuItem{
 		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalBranches, self.c.Tr.DeleteLocalBranch),
-		Key:   'c',
+		Key:   gocui.NewKeyRune('c'),
 		OnPress: func() error {
 			return self.localDelete(branches)
 		},
@@ -665,7 +635,7 @@ func (self *BranchesController) delete(branches []*models.Branch) error {
 
 	remoteDeleteItem := &types.MenuItem{
 		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteRemoteBranches, self.c.Tr.DeleteRemoteBranch),
-		Key:   'r',
+		Key:   gocui.NewKeyRune('r'),
 		OnPress: func() error {
 			return self.remoteDelete(branches)
 		},
@@ -678,7 +648,7 @@ func (self *BranchesController) delete(branches []*models.Branch) error {
 
 	deleteBothItem := &types.MenuItem{
 		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalAndRemoteBranches, self.c.Tr.DeleteLocalAndRemoteBranch),
-		Key:   'b',
+		Key:   gocui.NewKeyRune('b'),
 		OnPress: func() error {
 			return self.localAndRemoteDelete(branches)
 		},

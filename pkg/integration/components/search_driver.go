@@ -1,7 +1,7 @@
 package components
 
 // TODO: soft-code this
-const ClearKey = "<c-u>"
+const ClearKey = "<ctrl+u>"
 
 type SearchDriver struct {
 	t *TestDriver
