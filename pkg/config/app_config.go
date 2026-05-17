@@ -722,6 +722,14 @@ type CachedPullRequest struct {
 	HeadRepositoryOwner string `yaml:"headRepositoryOwner"`
 }
 
+// MarshalYAML trims fields that break YAML round-trips when cached to state.yml.
+func (pr CachedPullRequest) MarshalYAML() (interface{}, error) {
+	type cachedPullRequest CachedPullRequest
+	sanitized := cachedPullRequest(pr)
+	sanitized.Title = strings.TrimSpace(pr.Title)
+	return sanitized, nil
+}
+
 func getDefaultAppState() *AppState {
 	return &AppState{
 		GithubPullRequests: make(map[string][]CachedPullRequest),
