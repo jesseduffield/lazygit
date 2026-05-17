@@ -137,6 +137,14 @@ func TestEditFileAtLineAndWaitCmd(t *testing.T) {
 			},
 			expectedCmdStr: `subl --wait -- "file/with space":12`,
 		},
+		{
+			filename:   `C:\repo\patch.go`,
+			lineNumber: 10,
+			osConfig: config.OSConfig{
+				EditAtLineAndWait: `"C:\Program Files\Notepad++\notepad++.exe" -multiInst -nosession -noPlugin -n{{line}} {{filename}}`,
+			},
+			expectedCmdStr: `"C:\Program Files\Notepad++\notepad++.exe" -multiInst -nosession -noPlugin -n10 "C:\\repo\\patch.go"`,
+		},
 	}
 
 	for _, s := range scenarios {

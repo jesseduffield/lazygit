@@ -49,6 +49,12 @@ func (self *CmdObjBuilder) NewShell(commandStr string, shellFunctionsFile string
 		commandStr = fmt.Sprintf("%ssource %s\n%s", self.platform.PrefixForShellFunctionsFile, shellFunctionsFile, commandStr)
 	}
 	quotedCommand := self.quotedCommandString(commandStr)
+	if self.platform.OS == "windows" {
+		// cmd.exe expects a single argument after `/c`; ToArgv would split quoted
+		// paths with spaces into multiple argv entries and break editors like Notepad++.
+		return self.New([]string{self.platform.Shell, self.platform.ShellArg, quotedCommand})
+	}
+
 	cmdArgs := str.ToArgv(fmt.Sprintf("%s %s %s", self.platform.Shell, self.platform.ShellArg, quotedCommand))
 
 	return self.New(cmdArgs)
