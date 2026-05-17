@@ -614,7 +614,6 @@ type TranslationSet struct {
 	SelectRemoteRepository                string
 	FetchingPullRequests                  string
 	Keybindings                           string
-	KeybindingsLegend                     string
 	KeybindingsMenuSectionLocal           string
 	KeybindingsMenuSectionGlobal          string
 	KeybindingsMenuSectionNavigation      string
