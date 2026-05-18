@@ -28,12 +28,12 @@ const (
 // position.
 type View struct {
 	name           string
-	x0, y0, x1, y1 int      // left top right bottom
-	ox, oy         int      // view offsets
-	cx, cy         int      // cursor position
-	rx, ry         int      // Read() offsets
-	wx, wy         int      // Write() offsets
-	lines          [][]cell // All the data
+	x0, y0, x1, y1 int        // left top right bottom
+	ox, oy         int        // view offsets
+	cx, cy         int        // cursor position
+	rx, ry         int        // Read() offsets
+	wx, wy         int        // Write() offsets
+	lines          []lineType // All the data
 	outMode        OutputMode
 	// The y position of the first line of a range selection.
 	// This is not relative to the view's origin: it is relative to the first line
@@ -446,6 +446,12 @@ type viewLine struct {
 	line           []cell
 }
 
+// lineType is one of v.lines: the cells of a source lineType, plus any per-lineType
+// metadata about how it was terminated (added in later commits).
+type lineType struct {
+	cells cells
+}
+
 type cell struct {
 	chr              string // a grapheme cluster
 	width            int    // number of terminal cells occupied by chr (always 1 or 2)
@@ -738,20 +744,20 @@ func (v *View) makeWriteable(x, y int) {
 			}
 			v.lines = v.lines[:newLen]
 		} else {
-			v.lines = append(v.lines, nil)
+			v.lines = append(v.lines, lineType{})
 		}
 	}
 	// cell `x` need not be index-able (that's why `<`)
 	// append should be used by `lines[y]` user if he wants to write beyond `x`
-	for len(v.lines[y]) < x {
-		if cap(v.lines[y]) > len(v.lines[y]) {
-			newLen := cap(v.lines[y])
+	for len(v.lines[y].cells) < x {
+		if cap(v.lines[y].cells) > len(v.lines[y].cells) {
+			newLen := cap(v.lines[y].cells)
 			if newLen > x {
 				newLen = x
 			}
-			v.lines[y] = v.lines[y][:newLen]
+			v.lines[y].cells = v.lines[y].cells[:newLen]
 		} else {
-			v.lines[y] = append(v.lines[y], cell{})
+			v.lines[y].cells = append(v.lines[y].cells, cell{})
 		}
 	}
 }
@@ -761,7 +767,7 @@ func (v *View) makeWriteable(x, y int) {
 func (v *View) writeCells(cells []cell) {
 	var newLen int
 	// use maximum len available
-	line := v.lines[v.wy][:cap(v.lines[v.wy])]
+	line := v.lines[v.wy].cells[:cap(v.lines[v.wy].cells)]
 	maxCopy := len(line) - v.wx
 	if maxCopy < len(cells) {
 		copy(line[v.wx:], cells[:maxCopy])
@@ -770,11 +776,11 @@ func (v *View) writeCells(cells []cell) {
 	} else { // maxCopy >= len(cells)
 		copy(line[v.wx:], cells)
 		newLen = v.wx + len(cells)
-		if newLen < len(v.lines[v.wy]) {
-			newLen = len(v.lines[v.wy])
+		if newLen < len(v.lines[v.wy].cells) {
+			newLen = len(v.lines[v.wy].cells)
 		}
 	}
-	v.lines[v.wy] = line[:newLen]
+	v.lines[v.wy].cells = line[:newLen]
 	v.wx += len(cells)
 }
 
@@ -800,7 +806,7 @@ func (v *View) write(p []byte) {
 
 	finishLine := func() {
 		v.autoRenderHyperlinksInCurrentLine()
-		if v.wx >= len(v.lines[v.wy]) {
+		if v.wx >= len(v.lines[v.wy].cells) {
 			v.writeCells([]cell{{
 				chr:     "",
 				width:   0,
@@ -814,7 +820,7 @@ func (v *View) write(p []byte) {
 		v.wx = 0
 		v.wy++
 		if v.wy >= len(v.lines) {
-			v.lines = append(v.lines, nil)
+			v.lines = append(v.lines, lineType{})
 		}
 	}
 
@@ -851,7 +857,7 @@ func (v *View) write(p []byte) {
 			}
 			v.writeCells(cells)
 			if truncateLine {
-				v.lines[v.wy] = v.lines[v.wy][:v.wx]
+				v.lines[v.wy].cells = v.lines[v.wy].cells[:v.wx]
 			}
 		}
 	}
@@ -910,7 +916,7 @@ func (v *View) autoRenderHyperlinksInCurrentLine() {
 		return
 	}
 
-	line := v.lines[v.wy]
+	line := v.lines[v.wy].cells
 	start := 0
 	for {
 		linkStart := findLinkStart(line[start:])
@@ -927,7 +933,7 @@ func (v *View) autoRenderHyperlinksInCurrentLine() {
 			link.WriteString(line[linkEnd].chr)
 		}
 		for i := linkStart; i < linkEnd; i++ {
-			v.lines[v.wy][i].hyperlink = link.String()
+			v.lines[v.wy].cells[i].hyperlink = link.String()
 		}
 		start = linkEnd
 	}
@@ -958,7 +964,7 @@ func (v *View) parseInput(ch []byte, width int, x int, _ int) (bool, []cell) {
 			// fill rest of line
 			v.ei.instructionRead()
 			cx := 0
-			for _, cell := range v.lines[v.wy][0:v.wx] {
+			for _, cell := range v.lines[v.wy].cells[0:v.wx] {
 				cx += cell.width
 			}
 			repeatCount = v.InnerWidth() - cx
@@ -1010,8 +1016,8 @@ func (v *View) Read(p []byte) (n int, err error) {
 		v.readBuffer = nil
 	}
 	for v.ry < len(v.lines) {
-		for v.rx < len(v.lines[v.ry]) {
-			s := v.lines[v.ry][v.rx].chr
+		for v.rx < len(v.lines[v.ry].cells) {
+			s := v.lines[v.ry].cells[v.rx].chr
 			count := len(s)
 			copy(p[offset:], s)
 			v.rx++
@@ -1175,9 +1181,9 @@ func (v *View) updateSearchPositions() {
 				}
 
 				// If a view line exists for this line index:
-				if v.lines[result.Y] != nil {
+				if v.lines[result.Y].cells != nil {
 					// search this view line for the search string
-					positions := searchPositionsForLine(v.lines[result.Y], result.Y)
+					positions := searchPositionsForLine(v.lines[result.Y].cells, result.Y)
 					if len(positions) > 0 {
 						// If we found any occurrences, add them
 						v.searcher.searchPositions = append(v.searcher.searchPositions, positions...)
@@ -1318,7 +1324,7 @@ func (v *View) refreshViewLinesIfNeeded() {
 				wrap = maxX
 			}
 
-			ls := lineWrap(line, wrap)
+			ls := lineWrap(line.cells, wrap)
 			for j := range ls {
 				vline := viewLine{linesX: j, linesY: i, line: ls[j]}
 
@@ -1411,7 +1417,7 @@ func (v *View) BufferLines() []string {
 
 	lines := make([]string, len(v.lines))
 	for i, l := range v.lines {
-		lines[i] = cells(l).String()
+		lines[i] = l.cells.String()
 	}
 	return lines
 }
@@ -1454,12 +1460,12 @@ func (v *View) ViewLinesHeight() int {
 // ViewBuffer returns a string with the contents of the view's buffer that is
 // shown to the user.
 func (v *View) ViewBuffer() string {
-	lines := make([][]cell, len(v.viewLines))
+	strs := make([]string, len(v.viewLines))
 	for i := range v.viewLines {
-		lines[i] = v.viewLines[i].line
+		strs[i] = cells(v.viewLines[i].line).String()
 	}
 
-	return linesToString(lines)
+	return strings.Join(strs, "\n")
 }
 
 // Line returns a string with the line of the view's internal buffer
@@ -1474,7 +1480,7 @@ func (v *View) Line(y int) (string, bool) {
 		return "", false
 	}
 
-	return cells(v.lines[y]).String(), true
+	return v.lines[y].cells.String(), true
 }
 
 // Word returns a string with the word of the view's internal buffer
@@ -1485,11 +1491,11 @@ func (v *View) Word(x, y int) (string, bool) {
 		return "", false
 	}
 
-	if x < 0 || y < 0 || y >= len(v.lines) || x >= len(v.lines[y]) {
+	if x < 0 || y < 0 || y >= len(v.lines) || x >= len(v.lines[y].cells) {
 		return "", false
 	}
 
-	str := cells(v.lines[y]).String()
+	str := v.lines[y].cells.String()
 
 	nl := strings.LastIndexFunc(str[:x], indexFunc)
 	if nl == -1 {
@@ -1519,9 +1525,8 @@ func (v *View) SetHighlight(y int, on bool) {
 		return
 	}
 
-	line := v.lines[y]
-	cells := make([]cell, 0)
-	for _, c := range line {
+	cells := make([]cell, 0, len(v.lines[y].cells))
+	for _, c := range v.lines[y].cells {
 		if on {
 			c.bgColor = v.SelBgColor
 			c.fgColor = v.SelFgColor
@@ -1532,7 +1537,7 @@ func (v *View) SetHighlight(y int, on bool) {
 		cells = append(cells, c)
 	}
 	v.tainted = true
-	v.lines[y] = cells
+	v.lines[y].cells = cells
 	v.clearHover()
 }
 
@@ -1598,10 +1603,10 @@ func lineWrap(line []cell, columns int) [][]cell {
 	return lines
 }
 
-func linesToString(lines [][]cell) string {
+func linesToString(lines []lineType) string {
 	str := make([]string, len(lines))
 	for i := range lines {
-		str[i] = cells(lines[i]).String()
+		str[i] = lines[i].cells.String()
 	}
 
 	return strings.Join(str, "\n")
@@ -1671,7 +1676,7 @@ func (v *View) SelectedLines() []string {
 }
 
 func (v *View) lineContentAtIdx(idx int) string {
-	return cells(v.lines[idx]).String()
+	return v.lines[idx].cells.String()
 }
 
 func (v *View) SelectedPoint() (int, int) {
@@ -1775,11 +1780,11 @@ func (v *View) OverwriteLinesAndClearEverythingElse(lineCount int, y int, conten
 	v.overwriteLines(y, content)
 
 	for i := range y {
-		v.lines[i] = nil
+		v.lines[i] = lineType{}
 	}
 
 	for i := v.wy + 1; i < len(v.lines); i += 1 {
-		v.lines[i] = nil
+		v.lines[i] = lineType{}
 	}
 }
 
@@ -1922,7 +1927,7 @@ func (v *View) scrollMargin() int {
 // foreground color
 func (v *View) ContainsColoredText(fgColor string, text string) bool {
 	for _, line := range v.lines {
-		if containsColoredTextInLine(fgColor, text, line) {
+		if containsColoredTextInLine(fgColor, text, line.cells) {
 			return true
 		}
 	}
