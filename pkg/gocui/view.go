@@ -1411,9 +1411,7 @@ func (v *View) BufferLines() []string {
 
 	lines := make([]string, len(v.lines))
 	for i, l := range v.lines {
-		str := lineType(l).String()
-		str = strings.ReplaceAll(str, "\x00", "")
-		lines[i] = str
+		lines[i] = lineType(l).String()
 	}
 	return lines
 }
@@ -1434,9 +1432,7 @@ func (v *View) ViewBufferLines() []string {
 
 	lines := make([]string, len(v.viewLines))
 	for i, l := range v.viewLines {
-		str := lineType(l.line).String()
-		str = strings.ReplaceAll(str, "\x00", "")
-		lines[i] = str
+		lines[i] = lineType(l.line).String()
 	}
 	return lines
 }
@@ -1605,14 +1601,7 @@ func lineWrap(line []cell, columns int) [][]cell {
 func linesToString(lines [][]cell) string {
 	str := make([]string, len(lines))
 	for i := range lines {
-		rns := make([]rune, 0, len(lines[i]))
-		line := lineType(lines[i]).String()
-		for _, c := range line {
-			if c != '\x00' {
-				rns = append(rns, c)
-			}
-		}
-		str[i] = string(rns)
+		str[i] = lineType(lines[i]).String()
 	}
 
 	return strings.Join(str, "\n")
@@ -1682,9 +1671,7 @@ func (v *View) SelectedLines() []string {
 }
 
 func (v *View) lineContentAtIdx(idx int) string {
-	line := v.lines[idx]
-	str := lineType(line).String()
-	return strings.ReplaceAll(str, "\x00", "")
+	return lineType(v.lines[idx]).String()
 }
 
 func (v *View) SelectedPoint() (int, int) {
