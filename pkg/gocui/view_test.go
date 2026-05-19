@@ -504,3 +504,89 @@ func TestShortFilledLineExtendsBgWithoutWrap(t *testing.T) {
 			"cell at (%d, 1) should have red bg", x)
 	}
 }
+
+// TestWrappedFilledLineExtendsBgToEdge demonstrates that when a line is
+// filled to the edge with \x1b[K (the pattern used by `delta` for diff
+// lines) but exceeds the view's inner width, every wrapped segment loses
+// the fill background past its content.
+func TestWrappedFilledLineExtendsBgToEdge(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	// View dimensions: Width=12 (x0=0..x1=11), Height=6; InnerWidth=10,
+	// InnerHeight=4. Frame inset of 1 places content cells at screen
+	// (1..10, 1..4).
+	v := NewView("name", 0, 0, 11, 5, OutputNormal)
+	v.Wrap = true
+
+	// Content with spaces so word wrap ends each segment before the
+	// right edge: "aaa bbb ccc ddd eee" wraps at InnerWidth=10 to three
+	// segments — "aaa bbb" / "ccc ddd" / "eee". Each row's trailing area
+	// should pick up the red fill from \x1b[K but currently falls back to
+	// the view default bg.
+	v.writeString("\x1b[41m" + "aaa bbb ccc ddd eee" + "\x1b[0m\x1b[41m\x1b[K\x1b[0m\n")
+	v.draw()
+
+	// trailingFrom is 1-indexed: each row's content ends at column
+	// trailingFrom[y]-1, so columns trailingFrom[y]..10 are the trailing
+	// fill area where the bug shows.
+	trailingFrom := []int{8, 8, 4}
+	for y := 1; y <= 3; y++ {
+		for x := trailingFrom[y-1]; x <= 10; x++ {
+			_, style, _ := Screen.Get(x, y)
+			/* EXPECTED:
+			assert.Equal(t, color.Maroon, style.GetBackground(),
+				"trailing cell at (%d, %d) should have red bg", x, y)
+			ACTUAL: */
+			assert.Equal(t, tcell.ColorDefault, style.GetBackground(),
+				"trailing cell at (%d, %d) falls back to default bg", x, y)
+		}
+	}
+}
+
+// TestMulticolorWrappedFillUsesLastCellOfEachSegment demonstrates that
+// when a wrapped line switches bg color part-way through and ends with
+// \x1b[K, the trailing area on each wrapped row should match the bg
+// that was active where that row's content ended — not the \x1b[K bg,
+// which would bleed the color from the end of the logical line back
+// into the earlier wrapped rows.
+func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	// View dimensions: Width=12 (x0=0..x1=11), Height=6; InnerWidth=10,
+	// InnerHeight=4. Frame inset of 1 places content cells at screen
+	// (1..10, 1..4).
+	v := NewView("name", 0, 0, 11, 5, OutputNormal)
+	v.Wrap = true
+
+	// Content "aaa bbb ccc" is 11 cells; lineWrap breaks at the space
+	// between "bbb" and "ccc" (index 7) so segment 1 is "aaa bbb" (red,
+	// last cell red) and segment 2 is "ccc" (green, last cell green).
+	// \x1b[K records the green bg on the source line.
+	v.writeString("\x1b[41maaa bbb\x1b[42m ccc\x1b[K\x1b[0m\n")
+	v.draw()
+
+	// Row 1's content ends with a red cell at x=7, so trailing columns
+	// 8..10 should pick up red rather than the \x1b[K's green.
+	for x := 8; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 1)
+		/* EXPECTED:
+		assert.Equal(t, color.Maroon, style.GetBackground(),
+			"trailing cell at (%d, 1) should have red bg (matching segment's last cell)", x)
+		ACTUAL: */
+		assert.Equal(t, tcell.ColorDefault, style.GetBackground(),
+			"trailing cell at (%d, 1) falls back to default bg", x)
+	}
+
+	// Row 2's content ends with a green cell at x=3, so trailing
+	// columns 4..10 should pick up green (matching both the segment's
+	// last cell and the \x1b[K bg — these happen to agree here).
+	for x := 4; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 2)
+		/* EXPECTED:
+		assert.Equal(t, color.Green, style.GetBackground(),
+			"trailing cell at (%d, 2) should have green bg", x)
+		ACTUAL: */
+		assert.Equal(t, tcell.ColorDefault, style.GetBackground(),
+			"trailing cell at (%d, 2) falls back to default bg", x)
+	}
+}
