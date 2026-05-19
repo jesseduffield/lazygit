@@ -8,9 +8,27 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 	"github.com/rivo/uniseg"
 	"github.com/stretchr/testify/assert"
 )
+
+// WithSimulationScreen swaps the package-level Screen for a tcell
+// terminfo-backed mock terminal so tests can call view.draw() and
+// inspect rendered cells via Screen.Get(). The previous Screen is
+// restored on test cleanup.
+func WithSimulationScreen(t *testing.T, width, height int) {
+	t.Helper()
+	saved := Screen
+	if err := (&Gui{}).tcellInitSimulation(width, height); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		Screen.Fini()
+		Screen = saved
+	})
+}
 
 func TestWriteString(t *testing.T) {
 	tests := []struct {
@@ -411,5 +429,78 @@ func TestLineWrap(t *testing.T) {
 
 			assert.EqualValues(t, tc.expected, resultStrings)
 		})
+	}
+}
+
+// TestNewlineTerminatedLineClearsTrailingBg verifies that a '\n' resets
+// any attributes (e.g. AttrReverse-driven background) past the line's
+// content, so a reversed cell at the end doesn't bleed into the empty
+// area to the right.
+func TestNewlineTerminatedLineClearsTrailingBg(t *testing.T) {
+	WithSimulationScreen(t, 14, 5)
+
+	v := NewView("name", 0, 0, 11, 4, OutputNormal)
+
+	// \x1b[7m sets reverse; \x1b[31m sets fg=red. With reverse the cell
+	// renders with bg=red. The trailing area past "foo" must NOT extend
+	// the red bg because '\n' marks the line as cleanly terminated.
+	v.writeString("\x1b[7m\x1b[31mfoo\x1b[0m\n")
+	v.draw()
+
+	// First row: cells 1..3 are "foo" (render with red bg via reverse),
+	// cells 4..10 are trailing and should be plain default.
+	for x := 4; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 1)
+		assert.Equal(t, tcell.ColorDefault, style.GetForeground(),
+			"trailing cell at (%d, 1) should have default fg", x)
+		assert.False(t, style.HasReverse(),
+			"trailing cell at (%d, 1) should not have reverse attribute", x)
+	}
+}
+
+// TestUnterminatedReverseLineExtendsToEdge verifies that without a
+// terminating '\n' or '\x1b[K', the line's last cell's attributes
+// (including AttrReverse) propagate through the trailing area so a
+// reversed-bg line extends all the way to the right edge.
+func TestUnterminatedReverseLineExtendsToEdge(t *testing.T) {
+	WithSimulationScreen(t, 14, 5)
+
+	v := NewView("name", 0, 0, 11, 4, OutputNormal)
+
+	// Reverse + red fg, "foo", no termination. Each "foo" cell renders
+	// with bg=red via reverse, and the trailing cells past "foo" must
+	// keep the reverse so the rendered bg extends to the right edge.
+	v.writeString("\x1b[7m\x1b[31mfoo")
+	v.draw()
+
+	// Cells 1..3 are content; cells 4..10 are trailing. All ten should
+	// have reverse on with red fg (so they all render with bg=red).
+	for x := 1; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 1)
+		assert.Equal(t, color.Maroon, style.GetForeground(),
+			"cell at (%d, 1) should have red fg under reverse", x)
+		assert.True(t, style.HasReverse(),
+			"cell at (%d, 1) should have reverse attribute", x)
+	}
+}
+
+// TestShortFilledLineExtendsBgWithoutWrap verifies that '\x1b[K' fills
+// the rest of the line with the current bg color for a line that's
+// short enough to fit within the view's inner width.
+func TestShortFilledLineExtendsBgWithoutWrap(t *testing.T) {
+	WithSimulationScreen(t, 14, 5)
+
+	v := NewView("name", 0, 0, 11, 4, OutputNormal)
+
+	// \x1b[41m sets bg=red. "hi" fits within InnerWidth=10; \x1b[K should
+	// fill the remaining 8 cells with red.
+	v.writeString("\x1b[41mhi\x1b[K\x1b[0m\n")
+	v.draw()
+
+	// All ten cells at (1..10, 1) should have red bg.
+	for x := 1; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 1)
+		assert.Equal(t, color.Maroon, style.GetBackground(),
+			"cell at (%d, 1) should have red bg", x)
 	}
 }
