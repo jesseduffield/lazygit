@@ -44,17 +44,17 @@ func TestWriteString(t *testing.T) {
 		{
 			[]string{},
 			[]string{"1\n"},
-			[][]string{{"1", ""}},
+			[][]string{{"1"}},
 		},
 		{
 			[]string{},
 			[]string{"1\n", "2\n"},
-			[][]string{{"1", ""}, {"2", ""}},
+			[][]string{{"1"}, {"2"}},
 		},
 		{
 			[]string{"a"},
 			[]string{"1\n"},
-			[][]string{{"1", ""}},
+			[][]string{{"1"}},
 		},
 		{
 			[]string{"a\x00"},
@@ -74,12 +74,12 @@ func TestWriteString(t *testing.T) {
 		{
 			[]string{},
 			[]string{"1\r"},
-			[][]string{{"1", ""}},
+			[][]string{{"1"}},
 		},
 		{
 			[]string{"a"},
 			[]string{"1\r"},
-			[][]string{{"1", ""}},
+			[][]string{{"1"}},
 		},
 		{
 			[]string{"a\x00"},
@@ -462,29 +462,28 @@ func TestNewlineTerminatedLineClearsTrailingBg(t *testing.T) {
 	}
 }
 
-// TestUnterminatedReverseLineExtendsToEdge verifies that without a
-// terminating '\n' or '\x1b[K', the line's last cell's attributes
-// (including AttrReverse) propagate through the trailing area so a
-// reversed-bg line extends all the way to the right edge.
-func TestUnterminatedReverseLineExtendsToEdge(t *testing.T) {
+// TestUnterminatedReverseLineDoesNotExtend verifies that an unterminated
+// line ending with an AttrReverse cell does NOT propagate the reversed
+// background past the line's content — matching real terminal behavior
+// (try `print '\x1b[7m\x1b[31mfoo'` in a shell). The trailing area
+// is rendered as plain default.
+func TestUnterminatedReverseLineDoesNotExtend(t *testing.T) {
 	WithSimulationScreen(t, 14, 5)
 
 	v := NewView("name", 0, 0, 11, 4, OutputNormal)
 
-	// Reverse + red fg, "foo", no termination. Each "foo" cell renders
-	// with bg=red via reverse, and the trailing cells past "foo" must
-	// keep the reverse so the rendered bg extends to the right edge.
+	// Reverse + red fg, "foo", no termination. The trailing cells past
+	// "foo" should be plain default, NOT a continuation of the red bg.
 	v.writeString("\x1b[7m\x1b[31mfoo")
 	v.draw()
 
-	// Cells 1..3 are content; cells 4..10 are trailing. All ten should
-	// have reverse on with red fg (so they all render with bg=red).
-	for x := 1; x <= 10; x++ {
+	// Cells 4..10 are trailing and should be default with no reverse.
+	for x := 4; x <= 10; x++ {
 		_, style, _ := Screen.Get(x, 1)
-		assert.Equal(t, color.Maroon, style.GetForeground(),
-			"cell at (%d, 1) should have red fg under reverse", x)
-		assert.True(t, style.HasReverse(),
-			"cell at (%d, 1) should have reverse attribute", x)
+		assert.Equal(t, tcell.ColorDefault, style.GetForeground(),
+			"trailing cell at (%d, 1) should have default fg", x)
+		assert.False(t, style.HasReverse(),
+			"trailing cell at (%d, 1) should not have reverse attribute", x)
 	}
 }
 
