@@ -444,12 +444,28 @@ type SearchPosition struct {
 type viewLine struct {
 	linesX, linesY int // coordinates relative to v.lines
 	line           []cell
+
+	// Colors used to extend the bg past this wrapped segment's content.
+	// Derived at wrap time from the source line — see refreshViewLinesIfNeeded
+	// for the per-segment rule.
+	trailingFillAttributes *trailingFillAttributes
 }
 
-// lineType is one of v.lines: the cells of a source lineType, plus any per-lineType
-// metadata about how it was terminated (added in later commits).
+// lineType is one of v.lines: the cells of a source line, plus optional
+// trailingFillAttributes recording the colors used to extend the bg
+// past the line's content when the writer emitted '\x1b[K'.
 type lineType struct {
-	cells cells
+	cells                  cells
+	trailingFillAttributes *trailingFillAttributes
+}
+
+// trailingFillAttributes describes the fg/bg colors that draw() should
+// use for cells past the end of a wrapped segment's content. On a source
+// line this records what the writer asked for via '\x1b[K' (and so opts
+// the line in to trailing fill at all); the per-segment values on each
+// viewLine are derived from it at wrap time.
+type trailingFillAttributes struct {
+	fg, bg Attribute
 }
 
 type cell struct {
@@ -945,16 +961,19 @@ func (v *View) parseInput(ch []byte, width int, x int, _ int) (bool, []cell) {
 	} else {
 		repeatCount := 1
 		if _, ok := v.ei.instruction.(eraseInLineFromCursor); ok {
-			// fill rest of line
+			// Discard any old content past the cursor and record the
+			// fill colors so draw() paints the trailing area with them.
+			// This extends the bg to the right edge in both the
+			// content-fits and content-wraps cases — for the latter,
+			// the metadata is what reaches every wrapped segment past
+			// the last word.
 			v.ei.instructionRead()
-			cx := 0
-			for _, cell := range v.lines[v.wy].cells[0:v.wx] {
-				cx += cell.width
-			}
-			repeatCount = v.InnerWidth() - cx
-			ch = []byte{' '}
-			width = 1
 			truncateLine = true
+			v.lines[v.wy].trailingFillAttributes = &trailingFillAttributes{
+				fg: v.ei.curFgColor,
+				bg: v.ei.curBgColor,
+			}
+			return truncateLine, []cell{}
 		} else if isEscape {
 			// do not output anything
 			return truncateLine, nil
@@ -1244,6 +1263,15 @@ func (v *View) draw() {
 			break
 		}
 
+		// Decide the colors used for cells past the end of vline.line:
+		// the source line's trailingFillAttributes (set by '\x1b[K') if
+		// any, otherwise plain defaults.
+		trailingCell := emptyCell
+		if attrs := vline.trailingFillAttributes; attrs != nil {
+			trailingCell.fgColor = attrs.fg
+			trailingCell.bgColor = attrs.bg
+		}
+
 		// x tracks the current x position in the view, and cellIdx tracks the
 		// index of the cell. If we print a double-sized rune, we increment cellIdx
 		// by one but x by two.
@@ -1266,7 +1294,7 @@ func (v *View) draw() {
 
 			// if we're out of cells to write, we'll just print empty cells.
 			if cellIdx > len(vline.line)-1 {
-				c = emptyCell
+				c = trailingCell
 			} else {
 				c = vline.line[cellIdx]
 			}
@@ -1304,7 +1332,25 @@ func (v *View) refreshViewLinesIfNeeded() {
 
 			ls := lineWrap(line.cells, wrap)
 			for j := range ls {
-				vline := viewLine{linesX: j, linesY: i, line: ls[j]}
+				// Per-segment trailing fill. When the source line opted in
+				// via '\x1b[K', the LAST wrapped segment uses those colors
+				// directly; earlier segments use the colors of their own
+				// last cell, so the trailing area matches the bg active
+				// where that segment ended rather than bleeding the
+				// '\x1b[K' bg back across color changes in the line.
+				var attrs *trailingFillAttributes
+				if line.trailingFillAttributes != nil {
+					if j == len(ls)-1 {
+						attrs = line.trailingFillAttributes
+					} else if len(ls[j]) > 0 {
+						last := ls[j][len(ls[j])-1]
+						attrs = &trailingFillAttributes{fg: last.fgColor, bg: last.bgColor}
+					}
+				}
+				vline := viewLine{
+					linesX: j, linesY: i, line: ls[j],
+					trailingFillAttributes: attrs,
+				}
 
 				if lineIdx > len(v.viewLines)-1 {
 					v.viewLines = append(v.viewLines, vline)
