@@ -453,7 +453,7 @@ type cell struct {
 	hyperlink        string
 }
 
-type lineType []cell
+type cells []cell
 
 func characterEquals(chr []byte, b byte) bool {
 	return len(chr) == 1 && chr[0] == b
@@ -464,7 +464,7 @@ func isCRLF(chr []byte) bool {
 }
 
 // String returns a string from a given cell slice.
-func (l lineType) String() string {
+func (l cells) String() string {
 	var str strings.Builder
 	for _, c := range l {
 		str.WriteString(c.chr)
@@ -1411,7 +1411,7 @@ func (v *View) BufferLines() []string {
 
 	lines := make([]string, len(v.lines))
 	for i, l := range v.lines {
-		lines[i] = lineType(l).String()
+		lines[i] = cells(l).String()
 	}
 	return lines
 }
@@ -1432,7 +1432,7 @@ func (v *View) ViewBufferLines() []string {
 
 	lines := make([]string, len(v.viewLines))
 	for i, l := range v.viewLines {
-		lines[i] = lineType(l.line).String()
+		lines[i] = cells(l.line).String()
 	}
 	return lines
 }
@@ -1474,7 +1474,7 @@ func (v *View) Line(y int) (string, bool) {
 		return "", false
 	}
 
-	return lineType(v.lines[y]).String(), true
+	return cells(v.lines[y]).String(), true
 }
 
 // Word returns a string with the word of the view's internal buffer
@@ -1489,7 +1489,7 @@ func (v *View) Word(x, y int) (string, bool) {
 		return "", false
 	}
 
-	str := lineType(v.lines[y]).String()
+	str := cells(v.lines[y]).String()
 
 	nl := strings.LastIndexFunc(str[:x], indexFunc)
 	if nl == -1 {
@@ -1601,7 +1601,7 @@ func lineWrap(line []cell, columns int) [][]cell {
 func linesToString(lines [][]cell) string {
 	str := make([]string, len(lines))
 	for i := range lines {
-		str[i] = lineType(lines[i]).String()
+		str[i] = cells(lines[i]).String()
 	}
 
 	return strings.Join(str, "\n")
@@ -1671,7 +1671,7 @@ func (v *View) SelectedLines() []string {
 }
 
 func (v *View) lineContentAtIdx(idx int) string {
-	return lineType(v.lines[idx]).String()
+	return cells(v.lines[idx]).String()
 }
 
 func (v *View) SelectedPoint() (int, int) {
