@@ -804,10 +804,6 @@ func (v *View) write(p []byte) {
 	// Fill with empty cells, if writing outside current view buffer
 	v.makeWriteable(v.wx, v.wy)
 
-	finishLine := func() {
-		v.autoRenderHyperlinksInCurrentLine()
-	}
-
 	advanceToNextLine := func() {
 		v.wx = 0
 		v.wy++
@@ -837,10 +833,10 @@ func (v *View) write(p []byte) {
 
 		switch {
 		case characterEquals(chr, '\n') || isCRLF(chr):
-			finishLine()
+			v.autoRenderHyperlinksInCurrentLine()
 			advanceToNextLine()
 		case characterEquals(chr, '\r'):
-			finishLine()
+			v.autoRenderHyperlinksInCurrentLine()
 			v.wx = 0
 		default:
 			truncateLine, cells := v.parseInput(chr, width, v.wx, v.wy)
@@ -854,11 +850,7 @@ func (v *View) write(p []byte) {
 		}
 	}
 
-	if v.pendingNewline {
-		finishLine()
-	} else {
-		v.autoRenderHyperlinksInCurrentLine()
-	}
+	v.autoRenderHyperlinksInCurrentLine()
 
 	v.updateSearchPositions()
 }
