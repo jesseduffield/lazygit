@@ -806,14 +806,6 @@ func (v *View) write(p []byte) {
 
 	finishLine := func() {
 		v.autoRenderHyperlinksInCurrentLine()
-		if v.wx >= len(v.lines[v.wy].cells) {
-			v.writeCells([]cell{{
-				chr:     "",
-				width:   0,
-				fgColor: 0,
-				bgColor: 0,
-			}})
-		}
 	}
 
 	advanceToNextLine := func() {
@@ -1254,7 +1246,6 @@ func (v *View) draw() {
 	}
 
 	emptyCell := cell{chr: " ", width: 1, fgColor: ColorDefault, bgColor: ColorDefault}
-	var prevFgColor Attribute
 
 	for y, vline := range v.viewLines[start:] {
 		if y >= maxY {
@@ -1284,13 +1275,8 @@ func (v *View) draw() {
 			// if we're out of cells to write, we'll just print empty cells.
 			if cellIdx > len(vline.line)-1 {
 				c = emptyCell
-				c.fgColor = prevFgColor
 			} else {
 				c = vline.line[cellIdx]
-				// capturing previous foreground colour so that if we're using the reverse
-				// attribute we honour the final character's colour and don't awkwardly switch
-				// to a new background colour for the remainder of the line
-				prevFgColor = c.fgColor
 			}
 
 			fgColor := c.fgColor
