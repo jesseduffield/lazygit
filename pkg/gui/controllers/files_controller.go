@@ -1348,13 +1348,7 @@ func (self *FilesController) fetch() error {
 			return errors.New(self.c.Tr.PassUnameWrong)
 		}
 
-		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS, types.PULL_REQUESTS}, Mode: types.SYNC})
-
-		if err == nil {
-			err = self.c.Helpers().BranchesHelper.AutoForwardBranches()
-		}
-
-		return err
+		return self.c.Helpers().BranchesHelper.PostFetchRefresh(err)
 	})
 }
 
