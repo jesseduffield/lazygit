@@ -18,16 +18,19 @@ import (
 type RefsHelper struct {
 	c *HelperCommon
 
-	rebaseHelper *MergeAndRebaseHelper
+	rebaseHelper     *MergeAndRebaseHelper
+	baseBranchHelper *BaseBranchHelper
 }
 
 func NewRefsHelper(
 	c *HelperCommon,
 	rebaseHelper *MergeAndRebaseHelper,
+	baseBranchHelper *BaseBranchHelper,
 ) *RefsHelper {
 	return &RefsHelper{
-		c:            c,
-		rebaseHelper: rebaseHelper,
+		c:                c,
+		rebaseHelper:     rebaseHelper,
+		baseBranchHelper: baseBranchHelper,
 	}
 }
 
@@ -419,13 +422,9 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 
 func (self *RefsHelper) MoveCommitsToNewBranch() error {
 	currentBranch := self.c.Model().Branches[0]
-	candidates, err := self.c.Git().Loaders.BranchLoader.GetBaseBranchCandidates(currentBranch, self.c.Model().MainBranches)
+	baseBranchRef, _, _, err := self.baseBranchHelper.ResolveBaseBranch(currentBranch)
 	if err != nil {
 		return err
-	}
-	baseBranchRef := ""
-	if len(candidates) > 0 {
-		baseBranchRef = candidates[0]
 	}
 
 	withNewBranchNamePrompt := func(baseBranchName string, f func(string) error) error {

@@ -17,14 +17,17 @@ import (
 )
 
 type MergeAndRebaseHelper struct {
-	c *HelperCommon
+	c                *HelperCommon
+	baseBranchHelper *BaseBranchHelper
 }
 
 func NewMergeAndRebaseHelper(
 	c *HelperCommon,
+	baseBranchHelper *BaseBranchHelper,
 ) *MergeAndRebaseHelper {
 	return &MergeAndRebaseHelper{
-		c: c,
+		c:                c,
+		baseBranchHelper: baseBranchHelper,
 	}
 }
 
@@ -270,13 +273,9 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
 	}
 
-	candidates, err := self.c.Git().Loaders.BranchLoader.GetBaseBranchCandidates(checkedOutBranch, self.c.Model().MainBranches)
+	baseBranch, _, _, err := self.baseBranchHelper.ResolveBaseBranch(checkedOutBranch)
 	if err != nil {
 		return err
-	}
-	baseBranch := ""
-	if len(candidates) > 0 {
-		baseBranch = candidates[0]
 	}
 	if baseBranch == "" {
 		baseBranch = self.c.Tr.CouldNotDetermineBaseBranch
