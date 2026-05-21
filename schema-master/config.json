@@ -3465,6 +3465,10 @@
           "type": "string",
           "description": "Command for opening a file, as if the file is double-clicked. Should contain \"{{filename}}\", but doesn't support \"{{line}}\"."
         },
+        "openInTerminal": {
+          "type": "boolean",
+          "description": "Whether lazygit suspends until an open process returns"
+        },
         "openLink": {
           "type": "string",
           "description": "Command for opening a link. Should contain \"{{link}}\"."

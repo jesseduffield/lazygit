@@ -33,6 +33,15 @@ func GetEditAtLineAndWaitTemplate(shell string, osConfig *OSConfig, guessDefault
 	return template
 }
 
+func GetOpenTemplate(osConfig *OSConfig, defaultTemplate string) (string, bool) {
+	template := osConfig.Open
+	if template == "" {
+		template = defaultTemplate
+	}
+
+	return template, getOpenInTerminal(osConfig)
+}
+
 func GetOpenDirInEditorTemplate(shell string, osConfig *OSConfig, guessDefaultEditor func() string) (string, bool) {
 	preset := getPreset(shell, osConfig, guessDefaultEditor)
 	template := osConfig.OpenDirInEditor
@@ -195,4 +204,12 @@ func getEditInTerminal(osConfig *OSConfig, preset *editPreset) bool {
 		return *osConfig.SuspendOnEdit
 	}
 	return preset.suspend()
+}
+
+func getOpenInTerminal(osConfig *OSConfig) bool {
+	if osConfig.SuspendOnOpen != nil {
+		return *osConfig.SuspendOnOpen
+	}
+
+	return false
 }
