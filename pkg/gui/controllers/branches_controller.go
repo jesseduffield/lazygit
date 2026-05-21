@@ -291,15 +291,16 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 	}
 
 	var disabledReason *types.DisabledReason
-	baseBranch, _, _, err := self.c.Helpers().BaseBranch.ResolveBaseBranch(selectedBranch)
+	baseBranch, baseAmbiguous, baseCandidates, err := self.c.Helpers().BaseBranch.ResolveBaseBranch(selectedBranch)
 	if err != nil {
 		return err
 	}
-	if baseBranch == "" {
-		baseBranch = self.c.Tr.CouldNotDetermineBaseBranch
+	baseBranchLabel := baseBranch
+	if baseBranchLabel == "" {
+		baseBranchLabel = self.c.Tr.CouldNotDetermineBaseBranch
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CouldNotDetermineBaseBranch}
 	}
-	shortBaseBranchName := helpers.ShortBranchName(baseBranch)
+	shortBaseBranchName := helpers.ShortBranchName(baseBranchLabel)
 	label := utils.ResolvePlaceholderString(
 		self.c.Tr.ViewDivergenceFromBaseBranch,
 		map[string]string{"baseBranch": shortBaseBranchName},
@@ -312,14 +313,19 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 			if branch == nil {
 				return nil
 			}
-
-			return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
-				Ref:                     branch,
-				TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), shortBaseBranchName),
-				RefToShowDivergenceFrom: baseBranch,
-				Context:                 self.context(),
-				ShowBranchHeads:         false,
-			})
+			showDivergence := func(base string) error {
+				return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
+					Ref:                     branch,
+					TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), helpers.ShortBranchName(base)),
+					RefToShowDivergenceFrom: base,
+					Context:                 self.context(),
+					ShowBranchHeads:         false,
+				})
+			}
+			if baseAmbiguous {
+				return self.c.Helpers().BaseBranch.ShowPicker(branch, baseCandidates, showDivergence)
+			}
+			return showDivergence(baseBranch)
 		},
 		DisabledReason: disabledReason,
 	}
