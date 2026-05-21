@@ -206,9 +206,13 @@ func (self *BranchLoader) getBehindBaseBranchValuesLegacy(
 	return err
 }
 
-// Holds parsed values from a single %(ahead-behind:<base>) field.
+// Holds parsed values from a single %(ahead-behind:<base>) field. `valid`
+// is false when the field failed to parse (e.g. the base was unreachable
+// from this ref); the entry is preserved so that the slice stays index-
+// aligned with the configured main branches.
 type aheadBehind struct {
 	ahead, behind int
+	valid         bool
 }
 
 type branchAheadBehind struct {
@@ -222,7 +226,7 @@ type branchAheadBehind struct {
 //
 // Lines whose NUL-split column count doesn't match (1 + numBases) are dropped.
 // Blank lines are ignored.
-// Individual malformed ahead-behind fields produce {valid: false} entries
+// Individual malformed ahead-behind fields produce {valid: false} entries.
 func parseAheadBehindForEachRefOutput(
 	output string,
 	numBases int, // number of %(ahead-behind:...) tokens
@@ -238,7 +242,7 @@ func parseAheadBehindForEachRefOutput(
 			continue
 		}
 		refName := cols[0]
-		aheadBehinds := lo.FilterMap(cols[1:], func(col string, _ int) (aheadBehind, bool) {
+		aheadBehinds := lo.Map(cols[1:], func(col string, _ int) aheadBehind {
 			return parseAheadBehindField(col)
 		})
 		entry := branchAheadBehind{
@@ -250,27 +254,48 @@ func parseAheadBehindForEachRefOutput(
 	return result
 }
 
-func parseAheadBehindField(s string) (aheadBehind, bool) {
+func parseAheadBehindField(s string) aheadBehind {
 	parts := strings.Fields(s)
 	if len(parts) != 2 {
-		return aheadBehind{}, false
+		return aheadBehind{}
 	}
 	ahead, err1 := strconv.Atoi(parts[0])
 	behind, err2 := strconv.Atoi(parts[1])
 	if err1 != nil || err2 != nil {
-		return aheadBehind{}, false
+		return aheadBehind{}
 	}
-	return aheadBehind{ahead: ahead, behind: behind}, true
+	return aheadBehind{ahead: ahead, behind: behind, valid: true}
 }
 
-// Picks the "closest" base by smallest ahead value (commits the branch
-// has that the base doesn't = roughly "since fork point") and returns
-// its behind value.
-// Ties are broken by index order
-func selectBehindForBranch(aheadBehinds []aheadBehind) int {
-	return lo.MinBy(aheadBehinds, func(a, b aheadBehind) bool {
-		return a.ahead < b.ahead
-	}).behind
+// selectBaseForBranch picks the closest base for a branch given (ahead,
+// behind) measurements against each configured main branch. "Closest" =
+// smallest ahead value (fewest branch commits not in the base). Ties are
+// broken by the order of mainRefs (i.e. config order).
+//
+// aheadBehinds must be index-aligned with mainRefs; invalid entries are
+// skipped. Returns the winning ref, its behind value, and the full set
+// of refs tied at the minimum ahead (in config order). The caller can
+// detect ambiguity via `len(candidates) > 1`. With no valid entry the
+// return is ("", 0, nil).
+func selectBaseForBranch(
+	aheadBehinds []aheadBehind, mainRefs []string,
+) (winner string, behind int, candidates []string) {
+	bestAhead := -1
+	for i, ab := range aheadBehinds {
+		if !ab.valid {
+			continue
+		}
+		switch {
+		case bestAhead < 0 || ab.ahead < bestAhead:
+			bestAhead = ab.ahead
+			winner = mainRefs[i]
+			behind = ab.behind
+			candidates = []string{mainRefs[i]}
+		case ab.ahead == bestAhead:
+			candidates = append(candidates, mainRefs[i])
+		}
+	}
+	return winner, behind, candidates
 }
 
 // The output format is:
@@ -313,7 +338,7 @@ func (self *BranchLoader) getBehindBaseBranchValuesFast(
 
 	for _, p := range parsed {
 		if branch, ok := branchByRef[p.refName]; ok {
-			behind := selectBehindForBranch(p.aheadBehinds)
+			_, behind, _ := selectBaseForBranch(p.aheadBehinds, mainBranchRefs)
 			branch.BehindBaseBranch.Store(int32(behind))
 			delete(branchByRef, p.refName)
 		}
