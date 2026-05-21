@@ -343,23 +343,69 @@ func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *Mai
 		return "", nil
 	}
 
+	mainBranchRefs := mainBranches.Get()
 	output, err := self.cmd.New(
 		NewGitCmd("for-each-ref").
 			Arg("--contains").
 			Arg(mergeBase).
 			Arg("--format=%(refname)").
-			Arg(mainBranches.Get()...).
+			Arg(mainBranchRefs...).
 			ToArgv(),
 	).DontLog().RunWithOutput()
 	if err != nil {
 		return "", err
 	}
 	trimmedOutput := strings.TrimSpace(output)
-	split := strings.Split(trimmedOutput, "\n")
-	if len(split) == 0 || split[0] == "" {
+	if trimmedOutput == "" {
 		return "", nil
 	}
-	return split[0], nil
+	contained := strings.Split(trimmedOutput, "\n")
+
+	// for-each-ref sorts its output alphabetically by refname regardless of
+	// the order we passed the refs in. Restore the user's configured order so
+	// it can serve as the natural tiebreaker.
+	candidates := lo.Filter(mainBranchRefs, func(ref string, _ int) bool {
+		return lo.Contains(contained, ref)
+	})
+	if len(candidates) == 0 {
+		return "", nil
+	}
+	if len(candidates) == 1 {
+		return candidates[0], nil
+	}
+
+	// Multiple main branches contain the merge-base. Pick the "closest" by
+	// the same definition the fast path uses (smallest ahead value, i.e.
+	// fewest branch commits not in the base). Ties fall back to config
+	// order, which `candidates` already preserves.
+	bestIdx := 0
+	bestAhead := -1
+	for i, ref := range candidates {
+		revListOutput, err := self.cmd.New(
+			NewGitCmd("rev-list").
+				Arg("--left-right").
+				Arg("--count").
+				Arg(fmt.Sprintf("%s...%s", branch.FullRefName(), ref)).
+				ToArgv(),
+		).DontLog().RunWithOutput()
+		if err != nil {
+			return "", err
+		}
+		parts := strings.Fields(strings.TrimSpace(revListOutput))
+		if len(parts) != 2 {
+			continue
+		}
+		ahead, err := strconv.Atoi(parts[0])
+		if err != nil {
+			continue
+		}
+		if bestAhead < 0 || ahead < bestAhead {
+			bestAhead = ahead
+			bestIdx = i
+		}
+	}
+
+	return candidates[bestIdx], nil
 }
 
 func (self *BranchLoader) obtainBranches() []*models.Branch {
