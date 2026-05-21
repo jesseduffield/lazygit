@@ -491,3 +491,48 @@ func TestGetBehindBaseBranchValuesForAllBranches_LegacyPath(t *testing.T) {
 
 	runner.CheckForMissingCalls()
 }
+
+// When the merge-base is contained in more than one configured main branch,
+// git for-each-ref returns those refs sorted alphabetically by refname,
+// regardless of the order we pass them in. The chosen base should respect
+// the user's configured order ("main" first), not the alphabetical accident.
+//
+// Demonstrates the bug; the expected behavior is asserted in the next commit.
+func TestGetBaseBranch_AmbiguousPicksAlphabeticalNotConfigOrder(t *testing.T) {
+	mainBranchRefs := []string{"refs/heads/main", "refs/heads/develop"}
+	branch := &models.Branch{Name: "feat-x"}
+
+	runner := oscommands.NewFakeRunner(t).
+		ExpectGitArgs(
+			[]string{"merge-base", "refs/heads/feat-x", "refs/heads/main", "refs/heads/develop"},
+			"abc123\n", nil).
+		ExpectGitArgs(
+			[]string{
+				"for-each-ref", "--contains", "abc123", "--format=%(refname)",
+				"refs/heads/main", "refs/heads/develop",
+			},
+			"refs/heads/develop\nrefs/heads/main\n", nil)
+
+	gitCommon := buildGitCommon(commonDeps{runner: runner})
+
+	loader := &BranchLoader{
+		Common:    gitCommon.Common,
+		GitCommon: gitCommon,
+		cmd:       gitCommon.cmd,
+	}
+
+	mainBranches := &MainBranches{
+		c:                    gitCommon.Common,
+		cmd:                  gitCommon.cmd,
+		existingMainBranches: mainBranchRefs,
+		previousMainBranches: gitCommon.Common.UserConfig().Git.MainBranches,
+	}
+
+	baseBranch, err := loader.GetBaseBranch(branch, mainBranches)
+	assert.NoError(t, err)
+	// Want: "refs/heads/main" (first in config order among the tied candidates).
+	// Have: "refs/heads/develop" (alphabetical first from for-each-ref).
+	assert.Equal(t, "refs/heads/develop", baseBranch)
+
+	runner.CheckForMissingCalls()
+}
