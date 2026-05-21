@@ -142,7 +142,7 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 			expected: []branchAheadBehind{
 				{
 					refName:      "refs/heads/feat",
-					aheadBehinds: []aheadBehind{{ahead: 2, behind: 5}},
+					aheadBehinds: []aheadBehind{{ahead: 2, behind: 5, valid: true}},
 				},
 			},
 		},
@@ -155,15 +155,15 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 				{
 					refName: "refs/heads/feat",
 					aheadBehinds: []aheadBehind{
-						{ahead: 2, behind: 5},
-						{ahead: 10, behind: 1},
+						{ahead: 2, behind: 5, valid: true},
+						{ahead: 10, behind: 1, valid: true},
 					},
 				},
 				{
 					refName: "refs/heads/main",
 					aheadBehinds: []aheadBehind{
-						{ahead: 0, behind: 0},
-						{ahead: 0, behind: 0},
+						{ahead: 0, behind: 0, valid: true},
+						{ahead: 0, behind: 0, valid: true},
 					},
 				},
 			},
@@ -176,7 +176,8 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 				{
 					refName: "refs/heads/feat",
 					aheadBehinds: []aheadBehind{
-						{ahead: 2, behind: 5},
+						{valid: false},
+						{ahead: 2, behind: 5, valid: true},
 					},
 				},
 			},
@@ -188,7 +189,7 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 			expected: []branchAheadBehind{
 				{
 					refName:      "refs/heads/feat/foo-bar",
-					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2}},
+					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2, valid: true}},
 				},
 			},
 		},
@@ -199,7 +200,7 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 			expected: []branchAheadBehind{
 				{
 					refName:      "refs/heads/feat",
-					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2}},
+					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2, valid: true}},
 				},
 			},
 		},
@@ -212,11 +213,11 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 			expected: []branchAheadBehind{
 				{
 					refName:      "refs/heads/good",
-					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2}},
+					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2, valid: true}},
 				},
 				{
 					refName:      "refs/heads/also_good",
-					aheadBehinds: []aheadBehind{{ahead: 3, behind: 4}},
+					aheadBehinds: []aheadBehind{{ahead: 3, behind: 4, valid: true}},
 				},
 			},
 		},
@@ -227,7 +228,7 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 			expected: []branchAheadBehind{
 				{
 					refName:      "refs/heads/feat",
-					aheadBehinds: []aheadBehind{},
+					aheadBehinds: []aheadBehind{{valid: false}},
 				},
 			},
 		},
@@ -247,26 +248,35 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 	}
 }
 
-func TestSelectBehindForBranch(t *testing.T) {
+func TestSelectBaseForBranch(t *testing.T) {
 	type scenario struct {
-		testName     string
-		aheadBehinds []aheadBehind
-		expected     int
+		testName           string
+		aheadBehinds       []aheadBehind
+		mainRefs           []string
+		expectedWinner     string
+		expectedBehind     int
+		expectedCandidates []string
 	}
 
 	scenarios := []scenario{
 		{
-			testName:     "single base, valid value",
-			aheadBehinds: []aheadBehind{{ahead: 3, behind: 7}},
-			expected:     7,
+			testName:           "single base, valid value",
+			aheadBehinds:       []aheadBehind{{ahead: 3, behind: 7, valid: true}},
+			mainRefs:           []string{"refs/heads/master"},
+			expectedWinner:     "refs/heads/master",
+			expectedBehind:     7,
+			expectedCandidates: []string{"refs/heads/master"},
 		},
 		{
 			testName: "multi-base, clear winner by ahead",
 			aheadBehinds: []aheadBehind{
-				{ahead: 50, behind: 10}, // master
-				{ahead: 5, behind: 2},   // develop  ← smallest ahead
+				{ahead: 50, behind: 10, valid: true}, // master
+				{ahead: 5, behind: 2, valid: true},   // develop  ← smallest ahead
 			},
-			expected: 2,
+			mainRefs:           []string{"refs/heads/master", "refs/heads/develop"},
+			expectedWinner:     "refs/heads/develop",
+			expectedBehind:     2,
+			expectedCandidates: []string{"refs/heads/develop"},
 		},
 		{
 			testName: "develop forked from master case (ancestor-of-each-other)",
@@ -275,42 +285,66 @@ func TestSelectBehindForBranch(t *testing.T) {
 			// ahead vs master = 5 + 50 = 55; behind vs master = 0
 			// ahead vs develop = 5;          behind vs develop = 5
 			aheadBehinds: []aheadBehind{
-				{ahead: 55, behind: 0}, // master
-				{ahead: 5, behind: 5},  // develop  ← smallest ahead
+				{ahead: 55, behind: 0, valid: true}, // master
+				{ahead: 5, behind: 5, valid: true},  // develop  ← smallest ahead
 			},
-			expected: 5,
+			mainRefs:           []string{"refs/heads/master", "refs/heads/develop"},
+			expectedWinner:     "refs/heads/develop",
+			expectedBehind:     5,
+			expectedCandidates: []string{"refs/heads/develop"},
 		},
 		{
 			testName: "tie on ahead - first base wins (config order)",
 			aheadBehinds: []aheadBehind{
-				{ahead: 5, behind: 10}, // first
-				{ahead: 5, behind: 99}, // second, same ahead
+				{ahead: 5, behind: 10, valid: true}, // first
+				{ahead: 5, behind: 99, valid: true}, // second, same ahead
 			},
-			expected: 10,
+			mainRefs:       []string{"refs/heads/main", "refs/heads/develop"},
+			expectedWinner: "refs/heads/main",
+			expectedBehind: 10,
+			expectedCandidates: []string{
+				"refs/heads/main",
+				"refs/heads/develop",
+			},
 		},
 		{
 			testName: "first base invalid, second valid",
 			aheadBehinds: []aheadBehind{
-				{ahead: 3, behind: 8},
+				{valid: false},
+				{ahead: 3, behind: 8, valid: true},
 			},
-			expected: 8,
+			mainRefs:           []string{"refs/heads/master", "refs/heads/develop"},
+			expectedWinner:     "refs/heads/develop",
+			expectedBehind:     8,
+			expectedCandidates: []string{"refs/heads/develop"},
 		},
 		{
-			testName:     "all invalid - returns 0",
-			aheadBehinds: []aheadBehind{},
-			expected:     0,
+			testName: "all invalid - returns empty",
+			aheadBehinds: []aheadBehind{
+				{valid: false},
+				{valid: false},
+			},
+			mainRefs:           []string{"refs/heads/master", "refs/heads/develop"},
+			expectedWinner:     "",
+			expectedBehind:     0,
+			expectedCandidates: nil,
 		},
 		{
-			testName:     "empty - returns 0",
-			aheadBehinds: nil,
-			expected:     0,
+			testName:           "empty - returns empty",
+			aheadBehinds:       nil,
+			mainRefs:           nil,
+			expectedWinner:     "",
+			expectedBehind:     0,
+			expectedCandidates: nil,
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			result := selectBehindForBranch(s.aheadBehinds)
-			assert.Equal(t, s.expected, result)
+			winner, behind, candidates := selectBaseForBranch(s.aheadBehinds, s.mainRefs)
+			assert.Equal(t, s.expectedWinner, winner)
+			assert.Equal(t, s.expectedBehind, behind)
+			assert.Equal(t, s.expectedCandidates, candidates)
 		})
 	}
 }
