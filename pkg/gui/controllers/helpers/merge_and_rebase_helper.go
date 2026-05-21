@@ -19,6 +19,8 @@ import (
 type MergeAndRebaseHelper struct {
 	c *HelperCommon
 
+	baseBranchHelper *BaseBranchHelper
+
 	// Whether the "continue the rebase/merge?" prompt is currently on screen.
 	// We use this to auto-dismiss it if the operation stops being in the state
 	// that the prompt is offering to act on (e.g. it was continued or aborted
@@ -29,9 +31,11 @@ type MergeAndRebaseHelper struct {
 
 func NewMergeAndRebaseHelper(
 	c *HelperCommon,
+	baseBranchHelper *BaseBranchHelper,
 ) *MergeAndRebaseHelper {
 	return &MergeAndRebaseHelper{
-		c: c,
+		c:                c,
+		baseBranchHelper: baseBranchHelper,
 	}
 }
 
@@ -343,13 +347,9 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
 	}
 
-	candidates, err := self.c.Git().Loaders.BranchLoader.GetBaseBranchCandidates(checkedOutBranch, self.c.Model().MainBranches)
+	baseBranch, _, _, err := self.baseBranchHelper.ResolveBaseBranch(checkedOutBranch)
 	if err != nil {
 		return err
-	}
-	baseBranch := ""
-	if len(candidates) > 0 {
-		baseBranch = candidates[0]
 	}
 	if baseBranch == "" {
 		baseBranch = self.c.Tr.CouldNotDetermineBaseBranch
