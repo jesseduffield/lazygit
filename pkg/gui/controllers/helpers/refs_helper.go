@@ -422,7 +422,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 
 func (self *RefsHelper) MoveCommitsToNewBranch() error {
 	currentBranch := self.c.Model().Branches[0]
-	baseBranchRef, _, _, err := self.baseBranchHelper.ResolveBaseBranch(currentBranch)
+	baseBranchRef, baseAmbiguous, baseCandidates, err := self.baseBranchHelper.ResolveBaseBranch(currentBranch)
 	if err != nil {
 		return err
 	}
@@ -485,9 +485,15 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 			{
 				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchFromBaseItem, shortBaseBranchName),
 				OnPress: func() error {
-					return withNewBranchNamePrompt(shortBaseBranchName, func(newBranchName string) error {
-						return self.moveCommitsToNewBranchOffOfMainBranch(newBranchName, baseBranchRef)
-					})
+					moveOff := func(base string) error {
+						return withNewBranchNamePrompt(ShortBranchName(base), func(newBranchName string) error {
+							return self.moveCommitsToNewBranchOffOfMainBranch(newBranchName, base)
+						})
+					}
+					if baseAmbiguous {
+						return self.baseBranchHelper.ShowPicker(currentBranch, baseCandidates, moveOff)
+					}
+					return moveOff(baseBranchRef)
 				},
 			},
 			{
