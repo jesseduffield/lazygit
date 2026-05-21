@@ -492,8 +492,8 @@ func TestGetBehindBaseBranchValuesForAllBranches_LegacyPath(t *testing.T) {
 		{Name: "feat-x"},
 	}
 
-	// In legacy path: per-branch GetBaseBranch (merge-base + for-each-ref --contains)
-	// then rev-list --left-right --count.
+	// In legacy path: per-branch GetBaseBranchCandidates (merge-base +
+	// for-each-ref --contains) then rev-list --left-right --count.
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"merge-base", "refs/heads/feat-x", "refs/heads/master"}, "abc123\n", nil).
 		ExpectGitArgs([]string{"for-each-ref", "--contains", "abc123", "--format=%(refname)", "refs/heads/master"}, "refs/heads/master\n", nil).
@@ -527,10 +527,10 @@ func TestGetBehindBaseBranchValuesForAllBranches_LegacyPath(t *testing.T) {
 }
 
 // When the branch's merge-base is contained in more than one configured main
-// branch and the ahead counts are equal, the chosen base must respect the
-// user's configured order rather than the alphabetical order of
+// branch and the ahead counts are equal, the candidate list must preserve
+// the user's configured order rather than the alphabetical order of
 // for-each-ref's output.
-func TestGetBaseBranch_AmbiguousFallsBackToConfigOrder(t *testing.T) {
+func TestGetBaseBranchCandidates_AmbiguousReturnsAllInConfigOrder(t *testing.T) {
 	mainBranchRefs := []string{"refs/heads/main", "refs/heads/develop"}
 	branch := &models.Branch{Name: "feat-x"}
 
@@ -566,9 +566,9 @@ func TestGetBaseBranch_AmbiguousFallsBackToConfigOrder(t *testing.T) {
 		previousMainBranches: gitCommon.Common.UserConfig().Git.MainBranches,
 	}
 
-	baseBranch, err := loader.GetBaseBranch(branch, mainBranches)
+	candidates, err := loader.GetBaseBranchCandidates(branch, mainBranches)
 	assert.NoError(t, err)
-	assert.Equal(t, "refs/heads/main", baseBranch)
+	assert.Equal(t, []string{"refs/heads/main", "refs/heads/develop"}, candidates)
 
 	runner.CheckForMissingCalls()
 }
@@ -576,8 +576,9 @@ func TestGetBaseBranch_AmbiguousFallsBackToConfigOrder(t *testing.T) {
 // When a configured main branch has a strictly smaller ahead count than any
 // other (e.g. the branch was forked off `main` after main's last merge into
 // `develop`, so `develop` doesn't yet contain the fork point's recent main
-// history), that base wins outright regardless of config order.
-func TestGetBaseBranch_UnambiguousPicksSmallestAhead(t *testing.T) {
+// history), that base wins outright regardless of config order, so only
+// that one ref is returned.
+func TestGetBaseBranchCandidates_UnambiguousReturnsSmallestAheadOnly(t *testing.T) {
 	mainBranchRefs := []string{"refs/heads/develop", "refs/heads/main"}
 	branch := &models.Branch{Name: "feat-x"}
 
@@ -613,9 +614,9 @@ func TestGetBaseBranch_UnambiguousPicksSmallestAhead(t *testing.T) {
 		previousMainBranches: gitCommon.Common.UserConfig().Git.MainBranches,
 	}
 
-	baseBranch, err := loader.GetBaseBranch(branch, mainBranches)
+	candidates, err := loader.GetBaseBranchCandidates(branch, mainBranches)
 	assert.NoError(t, err)
-	assert.Equal(t, "refs/heads/main", baseBranch)
+	assert.Equal(t, []string{"refs/heads/main"}, candidates)
 
 	runner.CheckForMissingCalls()
 }

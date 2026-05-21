@@ -171,9 +171,13 @@ func (self *BranchLoader) getBehindBaseBranchValuesLegacy(
 
 	for _, branch := range branches {
 		errg.Go(func() error {
-			baseBranch, err := self.GetBaseBranch(branch, mainBranches)
+			candidates, err := self.GetBaseBranchCandidates(branch, mainBranches)
 			if err != nil {
 				return err
+			}
+			baseBranch := ""
+			if len(candidates) > 0 {
+				baseBranch = candidates[0]
 			}
 			behind := 0 // prime it in case something below fails
 			if baseBranch != "" {
@@ -354,18 +358,16 @@ func (self *BranchLoader) getBehindBaseBranchValuesFast(
 	return nil
 }
 
-// Find the base branch for the given branch (i.e. the main branch that the
-// given branch was forked off of)
-//
-// Note that this function may return an empty string even if the returned error
-// is nil, e.g. when none of the configured main branches exist. This is not
-// considered an error condition, so callers need to check both the returned
-// error and whether the returned base branch is empty (and possibly react
-// differently in both cases).
-func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *MainBranches) (string, error) {
+// GetBaseBranchCandidates returns the configured main branches that are the
+// closest base for the given branch — typically a single ref, but more
+// when the closeness rule (smallest ahead value) leaves a tie. Candidates
+// are returned in config order, so callers wanting one answer can use
+// candidates[0] as the config-order tiebreak. An empty slice (with nil
+// error) means no configured main branch contains the branch's merge-base.
+func (self *BranchLoader) GetBaseBranchCandidates(branch *models.Branch, mainBranches *MainBranches) ([]string, error) {
 	mergeBase := mainBranches.GetMergeBase(branch.FullRefName())
 	if mergeBase == "" {
-		return "", nil
+		return nil, nil
 	}
 
 	mainBranchRefs := mainBranches.Get()
@@ -378,33 +380,30 @@ func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *Mai
 			ToArgv(),
 	).DontLog().RunWithOutput()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	trimmedOutput := strings.TrimSpace(output)
 	if trimmedOutput == "" {
-		return "", nil
+		return nil, nil
 	}
 	contained := strings.Split(trimmedOutput, "\n")
 
 	// for-each-ref sorts its output alphabetically by refname regardless of
 	// the order we passed the refs in. Restore the user's configured order so
 	// it can serve as the natural tiebreaker.
-	candidates := lo.Filter(mainBranchRefs, func(ref string, _ int) bool {
+	containing := lo.Filter(mainBranchRefs, func(ref string, _ int) bool {
 		return lo.Contains(contained, ref)
 	})
-	if len(candidates) == 0 {
-		return "", nil
-	}
-	if len(candidates) == 1 {
-		return candidates[0], nil
+	if len(containing) <= 1 {
+		return containing, nil
 	}
 
 	// Multiple main branches contain the merge-base. Measure ahead/behind
 	// against each and hand off to selectBaseForBranch — the same selector
 	// the fast path uses — so both paths agree on the closeness rule and
 	// the config-order tiebreak.
-	aheadBehinds := make([]aheadBehind, len(candidates))
-	for i, ref := range candidates {
+	aheadBehinds := make([]aheadBehind, len(containing))
+	for i, ref := range containing {
 		revListOutput, err := self.cmd.New(
 			NewGitCmd("rev-list").
 				Arg("--left-right").
@@ -413,17 +412,17 @@ func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *Mai
 				ToArgv(),
 		).DontLog().RunWithOutput()
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		aheadBehinds[i] = parseAheadBehindField(strings.TrimSpace(revListOutput))
 	}
 
-	winner, _, _ := selectBaseForBranch(aheadBehinds, candidates)
-	if winner == "" {
+	_, _, candidates := selectBaseForBranch(aheadBehinds, containing)
+	if len(candidates) == 0 {
 		// Every rev-list output was malformed; fall back to config order.
-		return candidates[0], nil
+		return containing, nil
 	}
-	return winner, nil
+	return candidates, nil
 }
 
 func (self *BranchLoader) obtainBranches() []*models.Branch {

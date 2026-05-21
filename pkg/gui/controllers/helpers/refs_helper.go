@@ -419,9 +419,13 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 
 func (self *RefsHelper) MoveCommitsToNewBranch() error {
 	currentBranch := self.c.Model().Branches[0]
-	baseBranchRef, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(currentBranch, self.c.Model().MainBranches)
+	candidates, err := self.c.Git().Loaders.BranchLoader.GetBaseBranchCandidates(currentBranch, self.c.Model().MainBranches)
 	if err != nil {
 		return err
+	}
+	baseBranchRef := ""
+	if len(candidates) > 0 {
+		baseBranchRef = candidates[0]
 	}
 
 	withNewBranchNamePrompt := func(baseBranchName string, f func(string) error) error {

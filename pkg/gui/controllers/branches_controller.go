@@ -285,9 +285,13 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 	}
 
 	var disabledReason *types.DisabledReason
-	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(selectedBranch, self.c.Model().MainBranches)
+	candidates, err := self.c.Git().Loaders.BranchLoader.GetBaseBranchCandidates(selectedBranch, self.c.Model().MainBranches)
 	if err != nil {
 		return err
+	}
+	baseBranch := ""
+	if len(candidates) > 0 {
+		baseBranch = candidates[0]
 	}
 	if baseBranch == "" {
 		baseBranch = self.c.Tr.CouldNotDetermineBaseBranch
