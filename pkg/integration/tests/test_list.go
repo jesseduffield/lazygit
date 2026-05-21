@@ -428,6 +428,7 @@ var tests = []*components.IntegrationTest{
 	sync.FetchAndAutoForwardBranchesAllBranchesCheckedOutInOtherWorktree,
 	sync.FetchAndAutoForwardBranchesNone,
 	sync.FetchAndAutoForwardBranchesOnlyMainBranches,
+	sync.FetchAndAutoForwardBranchesWorktreeAddedAfterStartup,
 	sync.FetchPrune,
 	sync.FetchWhenSortedByDate,
 	sync.ForcePush,
