@@ -399,12 +399,11 @@ func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *Mai
 		return candidates[0], nil
 	}
 
-	// Multiple main branches contain the merge-base. Pick the "closest" by
-	// the same definition the fast path uses (smallest ahead value, i.e.
-	// fewest branch commits not in the base). Ties fall back to config
-	// order, which `candidates` already preserves.
-	bestIdx := 0
-	bestAhead := -1
+	// Multiple main branches contain the merge-base. Measure ahead/behind
+	// against each and hand off to selectBaseForBranch — the same selector
+	// the fast path uses — so both paths agree on the closeness rule and
+	// the config-order tiebreak.
+	aheadBehinds := make([]aheadBehind, len(candidates))
 	for i, ref := range candidates {
 		revListOutput, err := self.cmd.New(
 			NewGitCmd("rev-list").
@@ -416,21 +415,15 @@ func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *Mai
 		if err != nil {
 			return "", err
 		}
-		parts := strings.Fields(strings.TrimSpace(revListOutput))
-		if len(parts) != 2 {
-			continue
-		}
-		ahead, err := strconv.Atoi(parts[0])
-		if err != nil {
-			continue
-		}
-		if bestAhead < 0 || ahead < bestAhead {
-			bestAhead = ahead
-			bestIdx = i
-		}
+		aheadBehinds[i] = parseAheadBehindField(strings.TrimSpace(revListOutput))
 	}
 
-	return candidates[bestIdx], nil
+	winner, _, _ := selectBaseForBranch(aheadBehinds, candidates)
+	if winner == "" {
+		// Every rev-list output was malformed; fall back to config order.
+		return candidates[0], nil
+	}
+	return winner, nil
 }
 
 func (self *BranchLoader) obtainBranches() []*models.Branch {
