@@ -295,9 +295,13 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
 	}
 
-	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(checkedOutBranch, self.c.Model().MainBranches)
+	candidates, err := self.c.Git().Loaders.BranchLoader.GetBaseBranchCandidates(checkedOutBranch, self.c.Model().MainBranches)
 	if err != nil {
 		return err
+	}
+	baseBranch := ""
+	if len(candidates) > 0 {
+		baseBranch = candidates[0]
 	}
 	if baseBranch == "" {
 		baseBranch = self.c.Tr.CouldNotDetermineBaseBranch
