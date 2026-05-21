@@ -43,12 +43,8 @@ var FetchAndAutoForwardBranchesWorktreeAddedAfterStartup = NewIntegrationTest(Ne
 		t.Views().Branches().
 			Lines(
 				Contains("feature").IsSelected(),
-				/* EXPECTED:
 				Contains("master (worktree linked-worktree) ↓1"),
 				Contains("wt-branch").DoesNotContain("worktree"),
-				ACTUAL: */
-				Contains("master ✓"),
-				Contains("wt-branch (worktree linked-worktree)"),
 			)
 
 		t.Views().Worktrees().
@@ -58,11 +54,6 @@ var FetchAndAutoForwardBranchesWorktreeAddedAfterStartup = NewIntegrationTest(Ne
 
 		t.Views().Files().
 			Focus().
-			/* EXPECTED:
 			IsEmpty()
-			ACTUAL: */
-			Lines(
-				Equals("D  file03.txt"),
-			)
 	},
 })
