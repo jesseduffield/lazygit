@@ -347,12 +347,13 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
 	}
 
-	baseBranch, _, _, err := self.baseBranchHelper.ResolveBaseBranch(checkedOutBranch)
+	baseBranch, baseAmbiguous, baseCandidates, err := self.baseBranchHelper.ResolveBaseBranch(checkedOutBranch)
 	if err != nil {
 		return err
 	}
-	if baseBranch == "" {
-		baseBranch = self.c.Tr.CouldNotDetermineBaseBranch
+	baseBranchLabel := baseBranch
+	if baseBranchLabel == "" {
+		baseBranchLabel = self.c.Tr.CouldNotDetermineBaseBranch
 		baseBranchDisabledReason = &types.DisabledReason{Text: self.c.Tr.CouldNotDetermineBaseBranch}
 	}
 
@@ -409,27 +410,33 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 		},
 		{
 			Label: utils.ResolvePlaceholderString(self.c.Tr.RebaseOntoBaseBranch,
-				map[string]string{"baseBranch": ShortBranchName(baseBranch)},
+				map[string]string{"baseBranch": ShortBranchName(baseBranchLabel)},
 			),
 			Keys:           menuKey('b'),
 			DisabledReason: baseBranchDisabledReason,
 			Tooltip:        self.c.Tr.RebaseOntoBaseBranchTooltip,
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
-				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(task gocui.Task) error {
-					baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
-					var err error
-					if baseCommit != "" {
-						err = self.c.Git().Rebase.RebaseBranchFromBaseCommit(baseBranch, baseCommit)
-					} else {
-						err = self.c.Git().Rebase.RebaseBranch(baseBranch)
-					}
-					err = self.CheckMergeOrRebase(err)
-					if err == nil {
-						return self.ResetMarkedBaseCommit()
-					}
-					return err
-				})
+				doRebase := func(base string) error {
+					self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
+					return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(task gocui.Task) error {
+						baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
+						var err error
+						if baseCommit != "" {
+							err = self.c.Git().Rebase.RebaseBranchFromBaseCommit(base, baseCommit)
+						} else {
+							err = self.c.Git().Rebase.RebaseBranch(base)
+						}
+						err = self.CheckMergeOrRebase(err)
+						if err == nil {
+							return self.ResetMarkedBaseCommit()
+						}
+						return err
+					})
+				}
+				if baseAmbiguous {
+					return self.baseBranchHelper.ShowPicker(checkedOutBranch, baseCandidates, doRebase)
+				}
+				return doRebase(baseBranch)
 			},
 		},
 	}
