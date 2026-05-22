@@ -476,7 +476,11 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 				self.c.Git().Patch.PatchBuilder.Reset()
 			}
 
-			self.c.PostRefreshUpdate(self.context())
+			self.c.OnUIThread(func() error {
+				self.c.PostRefreshUpdate(self.context())
+				return nil
+			})
+
 			return nil
 		})
 	}

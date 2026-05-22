@@ -124,7 +124,6 @@ func (self *ListContextTrait) HandleRender() {
 		content := self.renderLines(-1, -1)
 		self.GetViewTrait().SetContent(content)
 	}
-	self.c.Render()
 	self.setFooter()
 }
 

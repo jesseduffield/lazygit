@@ -27,6 +27,8 @@ while still being meaningful and self-contained.
 
 - **Every commit must compile and pass all tests.** No "WIP" commits, no
   commits that leave the tree broken and rely on a follow-up to fix it.
+- **Every commit must be `gofumpt`-formatted.** Run `make format` before
+  committing.
 - **Commit messages explain _why_, not _what_.** The diff already shows what
   changed; the message should capture the motivation, the constraint, or the
   bug being fixed. If the reason is obvious from a one-line subject, no body
@@ -37,6 +39,28 @@ while still being meaningful and self-contained.
   changes behavior should be as small as possible.
 - **Do not use conventional commits** (no `feat:`/`fix:`/`chore:` prefixes).
   Match the plain English imperative style of the existing history.
+
+## Iterate with `fixup!` commits
+
+When refining work that's already committed — adjusting an approach,
+incorporating an idea from elsewhere, fixing something that belongs to the
+same logical unit — create a fixup against the target commit
+(`git commit --fixup=<sha>`) so the history collapses cleanly under
+`git rebase --autosquash`. Don't pile follow-up commits on top with the
+intent of squashing them later.
+
+If the changes don't map cleanly onto existing commits — say they cut
+across several of them, or restructure something at a different layer
+than any existing commit naturally owns — stop and ask the user how to
+proceed. Resetting the branch and redoing the work is sometimes the right
+call, but it's the user's call to make.
+
+After writing a fixup, re-read the target commit's message. If anything in
+that message has become inaccurate or misleading because of the fixup, use
+an `amend!` commit instead (its subject is `amend! <original subject>` and
+its body becomes the target's new full message after autosquash). A plain
+`fixup!` keeps the original message verbatim, so message drift stays in
+unless you explicitly correct it.
 
 ## Prefer the cleaner design over the smaller diff
 
@@ -82,9 +106,57 @@ the buggy one, so the file compiles and the test passes against unfixed code.
 In the fix commit, remove the comment markers and delete the `ACTUAL` line.
 Don't explain the pattern in commit messages.
 
+The fix commit must be _exactly_ "delete the markers and delete the `ACTUAL`
+line" — no other edits. That means `EXPECTED` and `ACTUAL` have to be drop-in
+replacements for each other at the same syntactic position. If you can't write
+them that way (e.g. one is `.IsEmpty()` and the other is `.Lines(...)`),
+restructure the surrounding code until you can — usually by putting the
+comment block between two adjacent chained calls, so both forms are just the
+next method in the chain:
+
+```go
+t.Views().Files().
+    Focus().
+    /* EXPECTED:
+    IsEmpty()
+    ACTUAL: */
+    Lines(
+        Equals("D  file03.txt"),
+    )
+```
+
+If you find yourself reaching for a local variable so that both forms can be
+expressed against the same receiver, the structure isn't right yet — go back
+and fix it instead of papering over it with a binding.
+
 Use this pattern only where it makes sense; don't apply it by default.
+
+## Integration test conventions
+
+Don't bind views to local variables. Always chain method calls directly from
+`t.Views().<View>()`. Patterns like `filesView := t.Views().Files().Focus()`
+followed by `filesView.Lines(...)` are not how tests in this repo are written;
+keep the call site fluent.
 
 ## Use stretchr/testify for assertions
 
 Prefer `assert.Equal` (and friends) over hand-rolled `if` checks. The failure
 messages are more useful and the intent is clearer at a glance.
+
+## Don't present "live with the bug" as an option
+
+When you're investigating a defect and laying out fix options for the user,
+"accept the race / leave it as-is / document it and move on" is not one of
+them. A known race condition, data corruption, or correctness violation is a
+bug that needs a real fix, not a tradeoff. Even if the failure rate is low,
+even if the window is tiny, even if no current code path appears to hit it —
+present actual fixes. If a real fix is genuinely out of reach (e.g. it
+requires API changes you can't make), say so plainly; don't dress "no fix"
+up as a viable option in a numbered list alongside real ones.
+
+## Don't search outside the working tree
+
+Never run `find` (or similar) from `/` or other paths outside the project. All
+third-party code we use is vendored under `vendor/`, so dependency sources are
+reachable from inside the working tree — search there instead of the host
+filesystem.

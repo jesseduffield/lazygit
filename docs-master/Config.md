@@ -1117,6 +1117,8 @@ Where:
 - `provider` is one of `github`, `bitbucket`, `bitbucketServer`, `azuredevops`, `gitlab`, `gitea` or `codeberg`
 - `webDomain` is the URL where your git service exposes a web interface and APIs, e.g. `gitservice.work.com`
 
+For the `github` provider, configuring an entry here also enables the pull-request icons in the branches panel for that host (e.g. a GitHub Enterprise Server instance). Lazygit picks up the auth token via the same mechanisms as the `gh` CLI: the `GH_ENTERPRISE_TOKEN` / `GITHUB_ENTERPRISE_TOKEN` environment variables, or `gh auth login --hostname <webDomain>`.
+
 ## Predefined commit message prefix
 
 In situations where certain naming pattern is used for branches and commits, pattern can be used to populate commit message with prefix that is parsed from the branch name.
