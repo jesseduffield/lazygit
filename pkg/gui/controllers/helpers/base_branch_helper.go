@@ -50,7 +50,7 @@ func (self *BaseBranchHelper) ShowPicker(
 ) error {
 	items := lo.Map(candidates, func(ref string, _ int) *types.MenuItem {
 		return &types.MenuItem{
-			Label:   ShortBranchName(ref),
+			Label:   BaseBranchDisplayName(ref),
 			OnPress: func() error { return onPicked(ref) },
 		}
 	})

@@ -289,14 +289,14 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 	if err != nil {
 		return err
 	}
-	baseBranchLabel := helpers.ShortBranchName(baseBranch)
+	baseBranchLabel := helpers.BaseBranchDisplayName(baseBranch)
 	switch {
 	case baseBranch == "":
 		baseBranchLabel = self.c.Tr.CouldNotDetermineBaseBranch
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CouldNotDetermineBaseBranch}
 	case baseAmbiguous:
 		shortNames := lo.Map(baseCandidates, func(ref string, _ int) string {
-			return helpers.ShortBranchName(ref)
+			return helpers.BaseBranchDisplayName(ref)
 		})
 		baseBranchLabel = utils.ResolvePlaceholderString(self.c.Tr.PickBaseBranchLabel,
 			map[string]string{"candidates": strings.Join(shortNames, ", ")},
@@ -317,7 +317,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 			showDivergence := func(base string) error {
 				return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
 					Ref:                     branch,
-					TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), helpers.ShortBranchName(base)),
+					TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), helpers.BaseBranchDisplayName(base)),
 					RefToShowDivergenceFrom: base,
 					Context:                 self.context(),
 					ShowBranchHeads:         false,
