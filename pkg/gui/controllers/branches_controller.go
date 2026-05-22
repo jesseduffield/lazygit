@@ -289,15 +289,22 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 	if err != nil {
 		return err
 	}
-	baseBranchLabel := baseBranch
-	if baseBranchLabel == "" {
+	baseBranchLabel := helpers.ShortBranchName(baseBranch)
+	switch {
+	case baseBranch == "":
 		baseBranchLabel = self.c.Tr.CouldNotDetermineBaseBranch
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CouldNotDetermineBaseBranch}
+	case baseAmbiguous:
+		shortNames := lo.Map(baseCandidates, func(ref string, _ int) string {
+			return helpers.ShortBranchName(ref)
+		})
+		baseBranchLabel = utils.ResolvePlaceholderString(self.c.Tr.PickBaseBranchLabel,
+			map[string]string{"candidates": strings.Join(shortNames, ", ")},
+		)
 	}
-	shortBaseBranchName := helpers.ShortBranchName(baseBranchLabel)
 	label := utils.ResolvePlaceholderString(
 		self.c.Tr.ViewDivergenceFromBaseBranch,
-		map[string]string{"baseBranch": shortBaseBranchName},
+		map[string]string{"baseBranch": baseBranchLabel},
 	)
 	viewDivergenceFromBaseBranchItem := &types.MenuItem{
 		LabelColumns: []string{label},
