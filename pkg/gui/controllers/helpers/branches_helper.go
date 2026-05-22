@@ -195,8 +195,30 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 	return nil
 }
 
-func ShortBranchName(fullBranchName string) string {
-	return strings.TrimPrefix(strings.TrimPrefix(fullBranchName, "refs/heads/"), "refs/remotes/")
+// BaseBranchDisplayName returns the user-facing name of a configured main
+// branch from its resolved full ref:
+//
+//	refs/heads/main             → main
+//	refs/remotes/origin/main    → main
+//	refs/remotes/origin/feat/x  → feat/x
+//
+// For remote-tracking refs the remote name is dropped along with the prefix:
+// the user configured plain "main" in mainBranches and shouldn't have to see
+// whether lazygit ultimately resolved it to a local or remote ref. The remote
+// is only meaningful internally, so this function is intended specifically for
+// base-branch display — don't use it where the local/remote distinction
+// matters.
+func BaseBranchDisplayName(fullBranchName string) string {
+	if name, ok := strings.CutPrefix(fullBranchName, "refs/heads/"); ok {
+		return name
+	}
+	if name, ok := strings.CutPrefix(fullBranchName, "refs/remotes/"); ok {
+		if _, withoutRemote, found := strings.Cut(name, "/"); found {
+			return withoutRemote
+		}
+		return name
+	}
+	return fullBranchName
 }
 
 func (self *BranchesHelper) checkedOutByOtherWorktree(branch *models.Branch) bool {
