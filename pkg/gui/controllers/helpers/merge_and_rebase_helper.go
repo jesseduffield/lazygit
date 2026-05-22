@@ -351,14 +351,14 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 	if err != nil {
 		return err
 	}
-	baseBranchLabel := ShortBranchName(baseBranch)
+	baseBranchLabel := BaseBranchDisplayName(baseBranch)
 	switch {
 	case baseBranch == "":
 		baseBranchLabel = self.c.Tr.CouldNotDetermineBaseBranch
 		baseBranchDisabledReason = &types.DisabledReason{Text: self.c.Tr.CouldNotDetermineBaseBranch}
 	case baseAmbiguous:
 		shortNames := lo.Map(baseCandidates, func(ref string, _ int) string {
-			return ShortBranchName(ref)
+			return BaseBranchDisplayName(ref)
 		})
 		baseBranchLabel = utils.ResolvePlaceholderString(self.c.Tr.PickBaseBranchLabel,
 			map[string]string{"candidates": strings.Join(shortNames, ", ")},

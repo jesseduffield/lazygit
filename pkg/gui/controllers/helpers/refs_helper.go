@@ -480,10 +480,10 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 		return nil
 	}
 
-	baseBranchLabel := ShortBranchName(baseBranchRef)
+	baseBranchLabel := BaseBranchDisplayName(baseBranchRef)
 	if baseAmbiguous {
 		shortNames := lo.Map(baseCandidates, func(ref string, _ int) string {
-			return ShortBranchName(ref)
+			return BaseBranchDisplayName(ref)
 		})
 		baseBranchLabel = utils.ResolvePlaceholderString(self.c.Tr.PickBaseBranchLabel,
 			map[string]string{"candidates": strings.Join(shortNames, ", ")},
@@ -503,7 +503,7 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchFromBaseItem, baseBranchLabel),
 				OnPress: func() error {
 					moveOff := func(base string) error {
-						return withNewBranchNamePrompt(ShortBranchName(base), func(newBranchName string) error {
+						return withNewBranchNamePrompt(BaseBranchDisplayName(base), func(newBranchName string) error {
 							return self.moveCommitsToNewBranchOffOfMainBranch(newBranchName, base)
 						})
 					}
