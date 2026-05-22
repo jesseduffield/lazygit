@@ -302,10 +302,18 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 	if err != nil {
 		return err
 	}
-	baseBranchLabel := baseBranch
-	if baseBranchLabel == "" {
+	baseBranchLabel := ShortBranchName(baseBranch)
+	switch {
+	case baseBranch == "":
 		baseBranchLabel = self.c.Tr.CouldNotDetermineBaseBranch
 		baseBranchDisabledReason = &types.DisabledReason{Text: self.c.Tr.CouldNotDetermineBaseBranch}
+	case baseAmbiguous:
+		shortNames := lo.Map(baseCandidates, func(ref string, _ int) string {
+			return ShortBranchName(ref)
+		})
+		baseBranchLabel = utils.ResolvePlaceholderString(self.c.Tr.PickBaseBranchLabel,
+			map[string]string{"candidates": strings.Join(shortNames, ", ")},
+		)
 	}
 
 	menuItems := []*types.MenuItem{
@@ -361,7 +369,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 		},
 		{
 			Label: utils.ResolvePlaceholderString(self.c.Tr.RebaseOntoBaseBranch,
-				map[string]string{"baseBranch": ShortBranchName(baseBranchLabel)},
+				map[string]string{"baseBranch": baseBranchLabel},
 			),
 			Keys:           menuKey('b'),
 			DisabledReason: baseBranchDisabledReason,

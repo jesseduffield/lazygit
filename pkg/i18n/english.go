@@ -565,6 +565,7 @@ type TranslationSet struct {
 	CouldNotDetermineBaseBranch           string
 	PickBaseBranchTitle                   string
 	PickBaseBranchPrompt                  string
+	PickBaseBranchLabel                   string
 	DivergenceSectionHeaderLocal          string
 	DivergenceSectionHeaderRemote         string
 	ViewUpstreamResetOptions              string
@@ -1706,6 +1707,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CouldNotDetermineBaseBranch:          "Couldn't determine base branch",
 		PickBaseBranchTitle:                  "Pick a base branch for {{.branchName}}",
 		PickBaseBranchPrompt:                 "More than one configured main branch is a candidate for this branch's base. Pick which one to treat as its base.",
+		PickBaseBranchLabel:                  "pick: {{.candidates}}",
 		DivergenceSectionHeaderLocal:         "Local",
 		DivergenceSectionHeaderRemote:        "Remote",
 		ViewUpstreamResetOptions:             "Reset checked-out branch onto {{.upstream}}",
