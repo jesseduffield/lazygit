@@ -284,6 +284,66 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			showDivergenceCfg:    "none",
 			expected:             []string{"1m", "", "branc… Pushing |"},
 		},
+		// Ambiguous base, candidates disagree on whether branch is up to date
+		// → render "?" without an arrow (we don't know if it's behind).
+		{
+			branch: &models.Branch{
+				Name:             "branch_name",
+				Recency:          "1m",
+				BehindBaseBranch: *makeAtomic(models.BehindBaseAmbiguousMaybeUpToDate),
+			},
+			itemOperation:        types.ItemOperationNone,
+			fullDescription:      false,
+			viewWidth:            20,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			showDivergenceCfg:    "arrowAndNumber",
+			expected:             []string{"1m", "", "branch_name    ?"},
+		},
+		{
+			branch: &models.Branch{
+				Name:             "branch_name",
+				Recency:          "1m",
+				BehindBaseBranch: *makeAtomic(models.BehindBaseAmbiguousMaybeUpToDate),
+			},
+			itemOperation:        types.ItemOperationNone,
+			fullDescription:      false,
+			viewWidth:            20,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			showDivergenceCfg:    "onlyArrow",
+			expected:             []string{"1m", "", "branch_name    ?"},
+		},
+		// Ambiguous base, every candidate has branch behind by some non-zero
+		// amount → render "↓?" (arrowAndNumber) or "↓" (onlyArrow).
+		{
+			branch: &models.Branch{
+				Name:             "branch_name",
+				Recency:          "1m",
+				BehindBaseBranch: *makeAtomic(models.BehindBaseAmbiguousDefinitelyBehind),
+			},
+			itemOperation:        types.ItemOperationNone,
+			fullDescription:      false,
+			viewWidth:            20,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			showDivergenceCfg:    "arrowAndNumber",
+			expected:             []string{"1m", "", "branch_name   ↓?"},
+		},
+		{
+			branch: &models.Branch{
+				Name:             "branch_name",
+				Recency:          "1m",
+				BehindBaseBranch: *makeAtomic(models.BehindBaseAmbiguousDefinitelyBehind),
+			},
+			itemOperation:        types.ItemOperationNone,
+			fullDescription:      false,
+			viewWidth:            20,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			showDivergenceCfg:    "onlyArrow",
+			expected:             []string{"1m", "", "branch_name    ↓"},
+		},
 		{
 			branch:               &models.Branch{Name: "abc", Recency: "1m"},
 			itemOperation:        types.ItemOperationPushing,

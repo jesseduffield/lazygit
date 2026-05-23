@@ -253,9 +253,25 @@ func divergenceStr(
 	result := ""
 	if ItemOperationToString(itemOperation, tr) == "" && userConfig.Gui.ShowDivergenceFromBaseBranch != "none" {
 		behind := branch.BehindBaseBranch.Load()
-		if behind != 0 {
-			if userConfig.Gui.ShowDivergenceFromBaseBranch == "arrowAndNumber" {
+		showNumber := userConfig.Gui.ShowDivergenceFromBaseBranch == "arrowAndNumber"
+		switch {
+		case behind > 0:
+			if showNumber {
 				result += fmt.Sprintf("↓%d", behind)
+			} else {
+				result += "↓"
+			}
+		case behind == models.BehindBaseAmbiguousMaybeUpToDate:
+			// We don't know whether the branch is up to date or behind,
+			// because the candidate bases disagree. "?" intentionally has
+			// no arrow — we'd be implying "behind" if it did.
+			result += "?"
+		case behind == models.BehindBaseAmbiguousDefinitelyBehind:
+			// Every candidate has the branch behind, but by different
+			// amounts — show that it's behind without committing to a
+			// specific count.
+			if showNumber {
+				result += "↓?"
 			} else {
 				result += "↓"
 			}
