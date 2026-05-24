@@ -724,9 +724,9 @@ func (self *RefreshHelper) loadWorktrees() {
 	if err != nil {
 		self.c.Log.Error(err)
 		self.c.Model().Worktrees = []*models.Worktree{}
+	} else {
+		self.c.Model().Worktrees = worktrees
 	}
-
-	self.c.Model().Worktrees = worktrees
 }
 
 func (self *RefreshHelper) refreshWorktrees() {
