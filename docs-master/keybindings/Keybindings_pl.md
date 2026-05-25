@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | Przełącz na ostatnie repozytorium |  |
-| `` <pgup> (fn+up/shift+k) `` | Przewiń główne okno w górę |  |
-| `` <pgdown> (fn+down/shift+j) `` | Przewiń główne okno w dół |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | Przewiń główne okno w górę |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | Przewiń główne okno w dół |  |
 | `` @ `` | Pokaż opcje dziennika poleceń | Pokaż opcje dla dziennika poleceń, np. pokazywanie/ukrywanie dziennika poleceń i skupienie na dzienniku poleceń. |
 | `` P `` | Wypchnij | Wypchnij bieżącą gałąź do jej gałęzi nadrzędnej. Jeśli nie skonfigurowano gałęzi nadrzędnej, zostaniesz poproszony o skonfigurowanie gałęzi nadrzędnej. |
 | `` p `` | Pociągnij | Pociągnij zmiany z zdalnego dla bieżącej gałęzi. Jeśli nie skonfigurowano gałęzi nadrzędnej, zostaniesz poproszony o skonfigurowanie gałęzi nadrzędnej. |
@@ -26,9 +26,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | Anuluj |  |
 | `` ? `` | Otwórz menu przypisań klawiszy |  |
 | `` <ctrl+s> `` | Pokaż opcje filtrowania | Pokaż opcje filtrowania dziennika commitów, tak aby pokazywane były tylko commity pasujące do filtra. |
-| `` W `` | Pokaż opcje różnicowania | Pokaż opcje dotyczące różnicowania dwóch refów, np. różnicowanie względem wybranego refa, wprowadzanie refa do różnicowania i odwracanie kierunku różnic. |
-| `` <ctrl+e> `` | Pokaż opcje różnicowania | Pokaż opcje dotyczące różnicowania dwóch refów, np. różnicowanie względem wybranego refa, wprowadzanie refa do różnicowania i odwracanie kierunku różnic. |
-| `` q `` | Wyjdź |  |
+| `` W, <ctrl+e> `` | Pokaż opcje różnicowania | Pokaż opcje dotyczące różnicowania dwóch refów, np. różnicowanie względem wybranego refa, wprowadzanie refa do różnicowania i odwracanie kierunku różnic. |
+| `` q, <ctrl+c> `` | Wyjdź |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | Przełącz białe znaki | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | Cofnij | Dziennik reflog zostanie użyty do określenia, jakie polecenie git należy uruchomić, aby cofnąć ostatnie polecenie git. Nie obejmuje to zmian w drzewie roboczym; brane są pod uwagę tylko commity. |
@@ -40,8 +39,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | Poprzednia strona |  |
 | `` . `` | Następna strona |  |
-| `` < (<home>) `` | Przewiń do góry |  |
-| `` > (<end>) `` | Przewiń do dołu |  |
+| `` <, <home> `` | Przewiń do góry |  |
+| `` >, <end> `` | Przewiń do dołu |  |
 | `` v `` | Przełącz zaznaczenie zakresu |  |
 | `` <shift+down> `` | Zaznacz zakres w dół |  |
 | `` <shift+up> `` | Zaznacz zakres w górę |  |
@@ -115,8 +114,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Idź do poprzedniego fragmentu |  |
-| `` <right> `` | Idź do następnego fragmentu |  |
+| `` <left>, h `` | Idź do poprzedniego fragmentu |  |
+| `` <right>, l `` | Idź do następnego fragmentu |  |
 | `` v `` | Przełącz zaznaczenie zakresu |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |
@@ -189,10 +188,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <space> `` | Wybierz fragment |  |
 | `` b `` | Wybierz wszystkie fragmenty |  |
-| `` <up> `` | Poprzedni fragment |  |
-| `` <down> `` | Następny fragment |  |
-| `` <left> `` | Poprzedni konflikt |  |
-| `` <right> `` | Następny konflikt |  |
+| `` <up>, k `` | Poprzedni fragment |  |
+| `` <down>, j `` | Następny fragment |  |
+| `` <left>, h `` | Poprzedni konflikt |  |
+| `` <right>, l `` | Następny konflikt |  |
 | `` z `` | Cofnij | Cofnij ostatnie rozwiązanie konfliktu scalania. |
 | `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
@@ -203,8 +202,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Idź do poprzedniego fragmentu |  |
-| `` <right> `` | Idź do następnego fragmentu |  |
+| `` <left>, h `` | Idź do poprzedniego fragmentu |  |
+| `` <right>, l `` | Idź do następnego fragmentu |  |
 | `` v `` | Przełącz zaznaczenie zakresu |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |

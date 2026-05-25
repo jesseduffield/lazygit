@@ -12,7 +12,7 @@ var ShowExecTodos = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "X",
+				Key:     config.Keybinding{"X"},
 				Context: "commits",
 				Command: "git -c core.editor=: rebase -i -x false HEAD^^",
 			},
@@ -26,7 +26,7 @@ var ShowExecTodos = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
-			Press("X").
+			Press(config.Keybinding{"X"}).
 			Tap(func() {
 				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("Rebasing (2/4)Executing: false")).Confirm()
 			}).

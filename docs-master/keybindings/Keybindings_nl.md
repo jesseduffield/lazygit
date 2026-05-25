@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | Wissel naar een recente repo |  |
-| `` <pgup> (fn+up/shift+k) `` | Scroll naar beneden vanaf hoofdpaneel |  |
-| `` <pgdown> (fn+down/shift+j) `` | Scroll naar beneden vanaf hoofdpaneel |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | Scroll naar beneden vanaf hoofdpaneel |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | Scroll naar beneden vanaf hoofdpaneel |  |
 | `` @ `` | View command log options | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Push | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | Pull | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
@@ -26,9 +26,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | Annuleren |  |
 | `` ? `` | Open menu |  |
 | `` <ctrl+s> `` | Bekijk scoping opties | View options for filtering the commit log, so that only commits matching the filter are shown. |
-| `` W `` | Open diff menu | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` <ctrl+e> `` | Open diff menu | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` q `` | Quit |  |
+| `` W, <ctrl+e> `` | Open diff menu | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
+| `` q, <ctrl+c> `` | Quit |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | Ongedaan maken (via reflog) (experimenteel) | The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
@@ -40,8 +39,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | Vorige pagina |  |
 | `` . `` | Volgende pagina |  |
-| `` < (<home>) `` | Scroll naar boven |  |
-| `` > (<end>) `` | Scroll naar beneden |  |
+| `` <, <home> `` | Scroll naar boven |  |
+| `` >, <end> `` | Scroll naar beneden |  |
 | `` v `` | Toggle drag selecteer |  |
 | `` <shift+down> `` | Range select down |  |
 | `` <shift+up> `` | Range select up |  |
@@ -213,10 +212,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <space> `` | Kies stuk |  |
 | `` b `` | Kies beide stukken |  |
-| `` <up> `` | Selecteer bovenste hunk |  |
-| `` <down> `` | Selecteer onderste hunk |  |
-| `` <left> `` | Selecteer voorgaand conflict |  |
-| `` <right> `` | Selecteer volgende conflict |  |
+| `` <up>, k `` | Selecteer bovenste hunk |  |
+| `` <down>, j `` | Selecteer onderste hunk |  |
+| `` <left>, h `` | Selecteer voorgaand conflict |  |
+| `` <right>, l `` | Selecteer volgende conflict |  |
 | `` z `` | Ongedaan maken | Undo last merge conflict resolution. |
 | `` e `` | Verander bestand | Open file in external editor. |
 | `` o `` | Open bestand | Open file in default application. |
@@ -237,8 +236,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Selecteer de vorige hunk |  |
-| `` <right> `` | Selecteer de volgende hunk |  |
+| `` <left>, h `` | Selecteer de vorige hunk |  |
+| `` <right>, l `` | Selecteer de volgende hunk |  |
 | `` v `` | Toggle drag selecteer |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |
@@ -312,8 +311,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Selecteer de vorige hunk |  |
-| `` <right> `` | Selecteer de volgende hunk |  |
+| `` <left>, h `` | Selecteer de vorige hunk |  |
+| `` <right>, l `` | Selecteer de volgende hunk |  |
 | `` v `` | Toggle drag selecteer |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |

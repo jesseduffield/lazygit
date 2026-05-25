@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -36,7 +35,7 @@ func NewGitFlowController(
 func (self *GitFlowController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Branches.ViewGitFlowOptions),
+			Keys:        opts.GetKeys(opts.Config.Branches.ViewGitFlowOptions),
 			Handler:     self.withItem(self.handleCreateGitFlowMenu),
 			Description: self.c.Tr.GitFlowOptions,
 			OpensMenu:   true,
@@ -83,22 +82,22 @@ func (self *GitFlowController) handleCreateGitFlowMenu(branch *models.Branch) er
 			{
 				Label:   "start feature",
 				OnPress: startHandler("feature"),
-				Key:     gocui.NewKeyRune('f'),
+				Keys:    menuKey('f'),
 			},
 			{
 				Label:   "start hotfix",
 				OnPress: startHandler("hotfix"),
-				Key:     gocui.NewKeyRune('h'),
+				Keys:    menuKey('h'),
 			},
 			{
 				Label:   "start bugfix",
 				OnPress: startHandler("bugfix"),
-				Key:     gocui.NewKeyRune('b'),
+				Keys:    menuKey('b'),
 			},
 			{
 				Label:   "start release",
 				OnPress: startHandler("release"),
-				Key:     gocui.NewKeyRune('r'),
+				Keys:    menuKey('r'),
 			},
 		},
 	})

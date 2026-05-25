@@ -45,20 +45,20 @@ func NewRemotesController(
 func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Keys:              opts.GetKeys(opts.Config.Universal.GoInto),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ViewBranches,
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.New),
+			Keys:            opts.GetKeys(opts.Config.Universal.New),
 			Handler:         self.add,
 			Description:     self.c.Tr.NewRemote,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.remove),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Remove,
@@ -66,7 +66,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Keys:              opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:           self.withItem(self.edit),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Edit,
@@ -74,7 +74,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.FetchRemote),
+			Keys:              opts.GetKeys(opts.Config.Branches.FetchRemote),
 			Handler:           self.withItem(self.fetch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Fetch,
@@ -82,7 +82,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.AddForkRemote),
+			Keys:              opts.GetKeys(opts.Config.Branches.AddForkRemote),
 			Handler:           self.addFork,
 			GetDisabledReason: self.hasOriginRemote(),
 			Description:       self.c.Tr.AddForkRemote,

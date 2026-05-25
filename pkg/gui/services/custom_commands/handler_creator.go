@@ -232,7 +232,7 @@ func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrapp
 			OnPress: func() error {
 				return wrappedF(option.Value)
 			},
-			Key: config.GetValidatedKeyBindingKey(option.Key),
+			Keys: config.GetValidatedKeyBindingKeys(option.Key),
 		}
 	})
 

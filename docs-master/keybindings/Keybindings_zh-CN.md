@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | 切换到最近的仓库 |  |
-| `` <pgup> (fn+up/shift+k) `` | 向上滚动主面板 |  |
-| `` <pgdown> (fn+down/shift+j) `` | 向下滚动主面板 |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | 向上滚动主面板 |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | 向下滚动主面板 |  |
 | `` @ `` | 打开命令日志菜单 | 查看命令日志的选项，例如显示/隐藏命令日志以及聚焦命令日志 |
 | `` P `` | 推送 | 推送当前分支到它的上游。如果上游未配置，您可以在弹窗中配置上游分支。 |
 | `` p `` | 拉取 | 从当前分支的远程分支获取改动。如果上游未配置，您可以在弹窗中配置上游分支。 |
@@ -26,9 +26,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | 取消 |  |
 | `` ? `` | 打开菜单 |  |
 | `` <ctrl+s> `` | 查看按路径过滤选项 | 查看用于过滤提交日志的选项，以便仅显示与过滤器匹配的提交。 |
-| `` W `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
-| `` <ctrl+e> `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
-| `` q `` | 退出 |  |
+| `` W, <ctrl+e> `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
+| `` q, <ctrl+c> `` | 退出 |  |
 | `` <ctrl+z> `` | 挂起应用程序 |  |
 | `` <ctrl+w> `` | 切换是否在差异视图中显示空白字符差异 | 切换是否在差异视图中显示空白字符更改。<br><br>默认值可在配置文件中通过键 'git.ignoreWhitespaceInDiffView' 更改。 |
 | `` z `` | 撤销 | Reflog将用于确定运行哪个git命令来撤消最后一个git命令。这并不包括对工作树的更改，只考虑提交。 |
@@ -40,8 +39,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | 上一页 |  |
 | `` . `` | 下一页 |  |
-| `` < (<home>) `` | 滚动到顶部 |  |
-| `` > (<end>) `` | 滚动到底部 |  |
+| `` <, <home> `` | 滚动到顶部 |  |
+| `` >, <end> `` | 滚动到底部 |  |
 | `` v `` | 切换拖动选择 |  |
 | `` <shift+down> `` | 向下扩展选择范围 |  |
 | `` <shift+up> `` | 向上扩展选择范围 |  |
@@ -252,8 +251,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 选择上一个区块 |  |
-| `` <right> `` | 选择下一个区块 |  |
+| `` <left>, h `` | 选择上一个区块 |  |
+| `` <right>, l `` | 选择下一个区块 |  |
 | `` v `` | 切换拖动选择 |  |
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` <ctrl+o> `` | 复制选中文本到剪贴板 |  |
@@ -294,10 +293,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <space> `` | 选中区块 |  |
 | `` b `` | 选中所有区块 |  |
-| `` <up> `` | 选择顶部块 |  |
-| `` <down> `` | 选择底部块 |  |
-| `` <left> `` | 选择上一个冲突 |  |
-| `` <right> `` | 选择下一个冲突 |  |
+| `` <up>, k `` | 选择顶部块 |  |
+| `` <down>, j `` | 选择底部块 |  |
+| `` <left>, h `` | 选择上一个冲突 |  |
+| `` <right>, l `` | 选择下一个冲突 |  |
 | `` z `` | 撤销 | 撤消上次合并冲突解决 |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
@@ -308,8 +307,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 选择上一个区块 |  |
-| `` <right> `` | 选择下一个区块 |  |
+| `` <left>, h `` | 选择上一个区块 |  |
+| `` <right>, l `` | 选择下一个区块 |  |
 | `` v `` | 切换拖动选择 |  |
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` <ctrl+o> `` | 复制选中文本到剪贴板 |  |

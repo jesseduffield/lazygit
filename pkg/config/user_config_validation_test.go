@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -114,7 +115,7 @@ func TestUserConfigValidate_enums(t *testing.T) {
 		{
 			name: "Keybindings",
 			setup: func(config *UserConfig, value string) {
-				config.Keybinding.Universal.Quit = value
+				config.Keybinding.Universal.Quit = Keybinding{value}
 			},
 			testCases: []testCase{
 				{value: "", valid: true},
@@ -127,7 +128,10 @@ func TestUserConfigValidate_enums(t *testing.T) {
 		{
 			name: "JumpToBlock keybinding",
 			setup: func(config *UserConfig, value string) {
-				config.Keybinding.Universal.JumpToBlock = strings.Split(value, ",")
+				labels := strings.Split(value, ",")
+				config.Keybinding.Universal.JumpToBlock = lo.Map(labels, func(label string, _ int) Keybinding {
+					return Keybinding{label}
+				})
 			},
 			testCases: []testCase{
 				{value: "", valid: false},
@@ -142,7 +146,7 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			setup: func(config *UserConfig, value string) {
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:     value,
+						Key:     Keybinding{value},
 						Command: "echo 'hello'",
 					},
 				}
@@ -160,10 +164,10 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			setup: func(config *UserConfig, value string) {
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:         "X",
+						Key:         Keybinding{"X"},
 						Description: "My Custom Commands",
 						CommandMenu: []CustomCommand{
-							{Key: value, Command: "echo 'hello'", Context: "global"},
+							{Key: Keybinding{value}, Command: "echo 'hello'", Context: "global"},
 						},
 					},
 				}
@@ -181,12 +185,12 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			setup: func(config *UserConfig, value string) {
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:         "X",
+						Key:         Keybinding{"X"},
 						Description: "My Custom Commands",
 						Prompts: []CustomCommandPrompt{
 							{
 								Options: []CustomCommandMenuOption{
-									{Key: value},
+									{Key: Keybinding{value}},
 								},
 							},
 						},
@@ -225,10 +229,10 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			setup: func(config *UserConfig, _ string) {
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:         "X",
+						Key:         Keybinding{"X"},
 						Description: "My Custom Commands",
 						CommandMenu: []CustomCommand{
-							{Key: "1", Command: "echo 'hello'", Context: "global"},
+							{Key: Keybinding{"1"}, Command: "echo 'hello'", Context: "global"},
 						},
 					},
 				}
@@ -242,10 +246,10 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			setup: func(config *UserConfig, _ string) {
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:     "X",
+						Key:     Keybinding{"X"},
 						Context: "global", // context is not allowed for submenus
 						CommandMenu: []CustomCommand{
-							{Key: "1", Command: "echo 'hello'", Context: "global"},
+							{Key: Keybinding{"1"}, Command: "echo 'hello'", Context: "global"},
 						},
 					},
 				}
@@ -259,10 +263,10 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			setup: func(config *UserConfig, _ string) {
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:         "X",
+						Key:         Keybinding{"X"},
 						LoadingText: "loading", // other properties are not allowed for submenus (using loadingText as an example)
 						CommandMenu: []CustomCommand{
-							{Key: "1", Command: "echo 'hello'", Context: "global"},
+							{Key: Keybinding{"1"}, Command: "echo 'hello'", Context: "global"},
 						},
 					},
 				}

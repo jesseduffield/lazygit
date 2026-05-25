@@ -136,9 +136,8 @@ func (gui *Gui) getRandomTip() string {
 			config.Universal.NextPage,
 		),
 		fmt.Sprintf(
-			"You can jump to the top/bottom of a panel using '%s (or %s)' and '%s (or %s)'",
-			config.Universal.GotoTop, config.Universal.GotoTopAlt,
-			config.Universal.GotoBottom, config.Universal.GotoBottomAlt,
+			"You can jump to the top/bottom of a panel using '%s' and '%s'",
+			config.Universal.GotoTop, config.Universal.GotoBottom,
 		),
 		fmt.Sprintf(
 			"To collapse/expand a directory, press '%s'",

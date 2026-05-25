@@ -166,8 +166,8 @@ func (self *CommitMessageContext) SetPanelState(
 
 	self.c.Views().CommitDescription.Subtitle = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionSubTitle,
 		map[string]string{
-			"togglePanelKeyBinding": self.c.UserConfig().Keybinding.Universal.TogglePanel,
-			"commitMenuKeybinding":  self.c.UserConfig().Keybinding.CommitMessage.CommitMenu,
+			"togglePanelKeyBinding": self.c.UserConfig().Keybinding.Universal.TogglePanel.String(),
+			"commitMenuKeybinding":  self.c.UserConfig().Keybinding.CommitMessage.CommitMenu.String(),
 		})
 
 	self.c.Views().CommitDescription.Visible = true

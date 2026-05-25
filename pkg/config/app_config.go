@@ -203,6 +203,7 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig, isGuiInitialize
 		}
 	}
 
+	base.Keybinding.MergeLegacyAltKeybindings()
 	return base, nil
 }
 
