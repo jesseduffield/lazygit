@@ -138,19 +138,16 @@ func fetchPullRequestsQuery(branches []string, owner string, repo string) (strin
 	return queryString, variables
 }
 
-func (self *GitHubCommands) GetAuthToken() string {
-	defaultHost, _ := auth.DefaultHost()
-	token, _ := auth.TokenForHost(defaultHost)
+func (self *GitHubCommands) GetAuthToken(host string) string {
+	token, _ := auth.TokenForHost(host)
 	return token
 }
 
-// FetchRecentPRs fetches recent pull requests using GraphQL.
-func (self *GitHubCommands) FetchRecentPRs(branches []string, baseRemote *models.Remote, token string) ([]*models.GithubPullRequest, error) {
-	repoOwner, repoName, err := self.GetBaseRepoOwnerAndName(baseRemote)
-	if err != nil {
-		return nil, err
-	}
-
+// FetchRecentPRs fetches recent pull requests using GraphQL. serviceInfo
+// identifies the GitHub instance (github.com or a GitHub Enterprise Server)
+// and the owner/repo to query against.
+func (self *GitHubCommands) FetchRecentPRs(branches []string, serviceInfo *hosting_service.ServiceInfo, token string) ([]*models.GithubPullRequest, error) {
+	endpoint := graphQLEndpoint(serviceInfo.WebDomain)
 	t := time.Now()
 
 	var g errgroup.Group
@@ -171,7 +168,7 @@ func (self *GitHubCommands) FetchRecentPRs(branches []string, baseRemote *models
 
 		// Launch a goroutine for each chunk of branches
 		g.Go(func() error {
-			prs, err := self.fetchRecentPRsAux(repoOwner, repoName, branchChunk, token)
+			prs, err := self.fetchRecentPRsAux(endpoint, serviceInfo.Owner, serviceInfo.Repository, branchChunk, token)
 			if err != nil {
 				return err
 			}
@@ -181,7 +178,7 @@ func (self *GitHubCommands) FetchRecentPRs(branches []string, baseRemote *models
 	}
 
 	// Wait for all goroutines, then close the channel so the range loop exits
-	err = g.Wait()
+	err := g.Wait()
 	close(results)
 	if err != nil {
 		return nil, err
@@ -198,14 +195,14 @@ func (self *GitHubCommands) FetchRecentPRs(branches []string, baseRemote *models
 	return allPRs, nil
 }
 
-func (self *GitHubCommands) fetchRecentPRsAux(repoOwner string, repoName string, branches []string, token string) ([]*models.GithubPullRequest, error) {
+func (self *GitHubCommands) fetchRecentPRsAux(endpoint string, repoOwner string, repoName string, branches []string, token string) ([]*models.GithubPullRequest, error) {
 	queryString, variables := fetchPullRequestsQuery(branches, repoOwner, repoName)
 
 	bodyBytes, err := json.Marshal(graphQLRequest{Query: queryString, Variables: variables})
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("POST", "https://api.github.com/graphql", bytes.NewBuffer(bodyBytes))
+	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -336,45 +333,12 @@ func getRemotesToOwnersMap(remotes []*models.Remote) map[string]string {
 	return res
 }
 
-func (self *GitHubCommands) InGithubRepo(remotes []*models.Remote) bool {
-	if len(remotes) == 0 {
-		return false
+// graphQLEndpoint returns the GraphQL API URL for a GitHub host. github.com
+// uses a dedicated api. subdomain; GitHub Enterprise Server hangs the API off
+// the web host under /api/graphql.
+func graphQLEndpoint(host string) string {
+	if auth.NormalizeHostname(host) == "github.com" {
+		return "https://api.github.com/graphql"
 	}
-
-	remote := getMainRemote(remotes)
-
-	if len(remote.Urls) == 0 {
-		return false
-	}
-
-	url := remote.Urls[0]
-	return strings.Contains(strings.ToLower(url), "github.com")
-}
-
-func getMainRemote(remotes []*models.Remote) *models.Remote {
-	for _, remote := range remotes {
-		if remote.Name == "origin" {
-			return remote
-		}
-	}
-
-	// need to sort remotes by name so that this is deterministic
-	return lo.MinBy(remotes, func(a, b *models.Remote) bool {
-		return a.Name < b.Name
-	})
-}
-
-func (self *GitHubCommands) GetBaseRepoOwnerAndName(baseRemote *models.Remote) (string, string, error) {
-	if len(baseRemote.Urls) == 0 {
-		return "", "", fmt.Errorf("No URLs found for remote")
-	}
-
-	url := baseRemote.Urls[0]
-
-	repoInfo, err := hosting_service.GetRepoInfoFromURL(url)
-	if err != nil {
-		return "", "", err
-	}
-
-	return repoInfo.Owner, repoInfo.Repository, nil
+	return "https://" + host + "/api/graphql"
 }

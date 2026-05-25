@@ -996,11 +996,11 @@
         },
         "moveDownCommit": {
           "type": "string",
-          "default": "\u003calt+down\u003e"
+          "default": "\u003cctrl+j\u003e"
         },
         "moveUpCommit": {
           "type": "string",
-          "default": "\u003calt+up\u003e"
+          "default": "\u003cctrl+k\u003e"
         },
         "amendToCommit": {
           "type": "string",

@@ -750,8 +750,8 @@ keybinding:
     setFixupMessage: c
     createFixupCommit: F
     squashAboveCommits: S
-    moveDownCommit: <alt+down>
-    moveUpCommit: <alt+up>
+    moveDownCommit: <ctrl+j>
+    moveUpCommit: <ctrl+k>
     amendToCommit: A
     resetCommitAuthor: a
     pickCommit: p
@@ -1116,6 +1116,8 @@ Where:
 - `gitDomain` stands for the domain used by git itself (i.e. the one present on clone URLs), e.g. `git.work.com`
 - `provider` is one of `github`, `bitbucket`, `bitbucketServer`, `azuredevops`, `gitlab`, `gitea` or `codeberg`
 - `webDomain` is the URL where your git service exposes a web interface and APIs, e.g. `gitservice.work.com`
+
+For the `github` provider, configuring an entry here also enables the pull-request icons in the branches panel for that host (e.g. a GitHub Enterprise Server instance). Lazygit picks up the auth token via the same mechanisms as the `gh` CLI: the `GH_ENTERPRISE_TOKEN` / `GITHUB_ENTERPRISE_TOKEN` environment variables, or `gh auth login --hostname <webDomain>`.
 
 ## Predefined commit message prefix
 

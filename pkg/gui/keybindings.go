@@ -102,25 +102,21 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		{
 			ViewName: "",
 			Key:      opts.GetKey(opts.Config.Universal.ScrollUpMainAlt1),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollUpMain,
 		},
 		{
 			ViewName: "",
 			Key:      opts.GetKey(opts.Config.Universal.ScrollDownMainAlt1),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownMain,
 		},
 		{
 			ViewName: "",
 			Key:      opts.GetKey(opts.Config.Universal.ScrollUpMainAlt2),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollUpMain,
 		},
 		{
 			ViewName: "",
 			Key:      opts.GetKey(opts.Config.Universal.ScrollDownMainAlt2),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownMain,
 		},
 		{
@@ -181,7 +177,6 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		{
 			ViewName: "information",
 			Key:      gocui.NewKeyName(gocui.MouseLeft),
-			Modifier: gocui.ModNone,
 			Handler:  gui.handleInfoClick,
 		},
 		{
@@ -216,37 +211,31 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		{
 			ViewName: "secondary",
 			Key:      gocui.NewKeyName(gocui.MouseWheelDown),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownSecondary,
 		},
 		{
 			ViewName: "secondary",
 			Key:      gocui.NewKeyName(gocui.MouseWheelUp),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollUpSecondary,
 		},
 		{
 			ViewName: "confirmation",
 			Key:      opts.GetKey(opts.Config.Universal.PrevItem),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollUpConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
 			Key:      opts.GetKey(opts.Config.Universal.NextItem),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
 			Key:      opts.GetKey(opts.Config.Universal.PrevItemAlt),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollUpConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
 			Key:      opts.GetKey(opts.Config.Universal.NextItemAlt),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownConfirmationPanel,
 		},
 		{
@@ -262,37 +251,31 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		{
 			ViewName: "confirmation",
 			Key:      opts.GetKey(opts.Config.Universal.NextPage),
-			Modifier: gocui.ModNone,
 			Handler:  gui.pageDownConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
 			Key:      opts.GetKey(opts.Config.Universal.PrevPage),
-			Modifier: gocui.ModNone,
 			Handler:  gui.pageUpConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
 			Key:      opts.GetKey(opts.Config.Universal.GotoTop),
-			Modifier: gocui.ModNone,
 			Handler:  gui.goToConfirmationPanelTop,
 		},
 		{
 			ViewName: "confirmation",
 			Key:      opts.GetKey(opts.Config.Universal.GotoTopAlt),
-			Modifier: gocui.ModNone,
 			Handler:  gui.goToConfirmationPanelTop,
 		},
 		{
 			ViewName: "confirmation",
 			Key:      opts.GetKey(opts.Config.Universal.GotoBottom),
-			Modifier: gocui.ModNone,
 			Handler:  gui.goToConfirmationPanelBottom,
 		},
 		{
 			ViewName: "confirmation",
 			Key:      opts.GetKey(opts.Config.Universal.GotoBottomAlt),
-			Modifier: gocui.ModNone,
 			Handler:  gui.goToConfirmationPanelBottom,
 		},
 		{
@@ -316,71 +299,60 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 			ViewName: "extras",
 			Tag:      "navigation",
 			Key:      opts.GetKey(opts.Config.Universal.PrevItemAlt),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollUpExtra,
 		},
 		{
 			ViewName: "extras",
 			Tag:      "navigation",
 			Key:      opts.GetKey(opts.Config.Universal.PrevItem),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollUpExtra,
 		},
 		{
 			ViewName: "extras",
 			Tag:      "navigation",
 			Key:      opts.GetKey(opts.Config.Universal.NextItem),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownExtra,
 		},
 		{
 			ViewName: "extras",
 			Tag:      "navigation",
 			Key:      opts.GetKey(opts.Config.Universal.NextItemAlt),
-			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownExtra,
 		},
 		{
 			ViewName: "extras",
 			Key:      opts.GetKey(opts.Config.Universal.NextPage),
-			Modifier: gocui.ModNone,
 			Handler:  gui.pageDownExtrasPanel,
 		},
 		{
 			ViewName: "extras",
 			Key:      opts.GetKey(opts.Config.Universal.PrevPage),
-			Modifier: gocui.ModNone,
 			Handler:  gui.pageUpExtrasPanel,
 		},
 		{
 			ViewName: "extras",
 			Key:      opts.GetKey(opts.Config.Universal.GotoTop),
-			Modifier: gocui.ModNone,
 			Handler:  gui.goToExtrasPanelTop,
 		},
 		{
 			ViewName: "extras",
 			Key:      opts.GetKey(opts.Config.Universal.GotoTopAlt),
-			Modifier: gocui.ModNone,
 			Handler:  gui.goToExtrasPanelTop,
 		},
 		{
 			ViewName: "extras",
 			Key:      opts.GetKey(opts.Config.Universal.GotoBottom),
-			Modifier: gocui.ModNone,
 			Handler:  gui.goToExtrasPanelBottom,
 		},
 		{
 			ViewName: "extras",
 			Key:      opts.GetKey(opts.Config.Universal.GotoBottomAlt),
-			Modifier: gocui.ModNone,
 			Handler:  gui.goToExtrasPanelBottom,
 		},
 		{
 			ViewName: "extras",
 			Tag:      "navigation",
 			Key:      gocui.NewKeyName(gocui.MouseLeft),
-			Modifier: gocui.ModNone,
 			Handler:  gui.handleFocusCommandLog,
 		},
 	}
@@ -478,7 +450,7 @@ func (gui *Gui) SetKeybinding(binding *types.Binding) error {
 		return gui.callKeybindingHandler(binding)
 	}
 
-	return gui.g.SetKeybinding(binding.ViewName, binding.Key, binding.Modifier, handler)
+	return gui.g.SetKeybinding(binding.ViewName, binding.Key, handler)
 }
 
 func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {

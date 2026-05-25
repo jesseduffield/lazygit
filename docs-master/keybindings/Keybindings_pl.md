@@ -69,8 +69,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` p `` | Wybierz | Oznacz wybrany commit do wybrania (podczas rebazowania). Oznacza to, że commit zostanie zachowany po kontynuacji rebazowania. |
 | `` F `` | Utwórz commit fixup | Utwórz commit 'fixup!' dla wybranego commita. Później możesz nacisnąć `S` na tym samym commicie, aby zastosować wszystkie powyższe commity fixup. |
 | `` S `` | Zastosuj commity fixup | Scal wszystkie commity 'fixup!', albo powyżej wybranego commita, albo wszystkie w bieżącej gałęzi (autosquash). |
-| `` <alt+down> `` | Przesuń commit w dół |  |
-| `` <alt+up> `` | Przesuń commit w górę |  |
+| `` <ctrl+j> `` | Przesuń commit w dół |  |
+| `` <ctrl+k> `` | Przesuń commit w górę |  |
 | `` V `` | Wklej (cherry-pick) |  |
 | `` B `` | Oznacz jako bazowy commit dla rebase | Wybierz bazowy commit dla następnego rebase. Kiedy robisz rebase na branch, tylko commity powyżej bazowego commita zostaną przeniesione. Używa to polecenia `git rebase --onto`. |
 | `` A `` | Popraw | Popraw commit ze zmianami zatwierdzonymi. Jeśli wybrany commit jest commit HEAD, to wykona `git commit --amend`. W przeciwnym razie commit zostanie poprawiony za pomocą rebazowania. |
