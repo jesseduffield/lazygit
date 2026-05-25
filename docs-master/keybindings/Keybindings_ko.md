@@ -307,8 +307,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` p `` | Pick | Pick commit (when mid-rebase) |
 | `` F `` | Create fixup commit | Create fixup commit for this commit |
 | `` S `` | Apply fixup commits | Squash all 'fixup!' commits above selected commit (autosquash) |
-| `` <ctrl+j> `` | 커밋을 1개 아래로 이동 |  |
-| `` <ctrl+k> `` | 커밋을 1개 위로 이동 |  |
+| `` <ctrl+j>, <alt+down> `` | 커밋을 1개 아래로 이동 |  |
+| `` <ctrl+k>, <alt+up> `` | 커밋을 1개 위로 이동 |  |
 | `` V `` | 커밋을 붙여넣기 (cherry-pick) |  |
 | `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
 | `` A `` | Amend | Amend commit with staged changes |

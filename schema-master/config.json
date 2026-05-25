@@ -1346,7 +1346,10 @@
               "type": "array"
             }
           ],
-          "default": "\u003cctrl+j\u003e"
+          "default": [
+            "\u003cctrl+j\u003e",
+            "\u003calt-down\u003e"
+          ]
         },
         "moveUpCommit": {
           "oneOf": [
@@ -1360,7 +1363,10 @@
               "type": "array"
             }
           ],
-          "default": "\u003cctrl+k\u003e"
+          "default": [
+            "\u003cctrl+k\u003e",
+            "\u003calt-up\u003e"
+          ]
         },
         "amendToCommit": {
           "oneOf": [
