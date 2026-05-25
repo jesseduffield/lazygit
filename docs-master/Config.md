@@ -737,8 +737,8 @@ keybinding:
     setFixupMessage: c
     createFixupCommit: F
     squashAboveCommits: S
-    moveDownCommit: <ctrl+j>
-    moveUpCommit: <ctrl+k>
+    moveDownCommit: [<ctrl+j>, <alt-down>]
+    moveUpCommit: [<ctrl+k>, <alt-up>]
     amendToCommit: A
     resetCommitAuthor: a
     pickCommit: p
