@@ -52,13 +52,13 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 			DisplayOnScreen: true,
 		},
 		{
-			Keys:            opts.GetKeys(opts.Config.Universal.PrevBlock),
+			Keys:            opts.GetKeys(opts.Config.Main.PrevHunk),
 			Handler:         self.withRenderAndFocus(self.PrevConflict),
 			Description:     self.c.Tr.PrevConflict,
 			DisplayOnScreen: true,
 		},
 		{
-			Keys:            opts.GetKeys(opts.Config.Universal.NextBlock),
+			Keys:            opts.GetKeys(opts.Config.Main.NextHunk),
 			Handler:         self.withRenderAndFocus(self.NextConflict),
 			Description:     self.c.Tr.NextConflict,
 			DisplayOnScreen: true,
@@ -82,14 +82,6 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 			Handler:     self.HandleOpenFile,
 			Description: self.c.Tr.OpenFile,
 			Tooltip:     self.c.Tr.OpenFileTooltip,
-		},
-		{
-			Keys:    opts.GetKeys(opts.Config.Universal.PrevBlockAlt),
-			Handler: self.withRenderAndFocus(self.PrevConflict),
-		},
-		{
-			Keys:    opts.GetKeys(opts.Config.Universal.NextBlockAlt),
-			Handler: self.withRenderAndFocus(self.NextConflict),
 		},
 		{
 			Keys:    opts.GetKeys(opts.Config.Universal.PrevItemAlt),

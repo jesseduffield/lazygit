@@ -248,8 +248,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 前のハンクに移動 |  |
-| `` <right> `` | 次のハンクに移動 |  |
+| `` <left>, h `` | 前のハンクに移動 |  |
+| `` <right>, l `` | 次のハンクに移動 |  |
 | `` v `` | 範囲選択を切り替え |  |
 | `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
@@ -270,8 +270,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 前のハンクに移動 |  |
-| `` <right> `` | 次のハンクに移動 |  |
+| `` <left>, h `` | 前のハンクに移動 |  |
+| `` <right>, l `` | 次のハンクに移動 |  |
 | `` v `` | 範囲選択を切り替え |  |
 | `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
@@ -290,8 +290,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` b `` | すべてのハンクを選択 |  |
 | `` <up> `` | 前のハンク |  |
 | `` <down> `` | 次のハンク |  |
-| `` <left> `` | 前のコンフリクト |  |
-| `` <right> `` | 次のコンフリクト |  |
+| `` <left>, h `` | 前のコンフリクト |  |
+| `` <right>, l `` | 次のコンフリクト |  |
 | `` z `` | 元に戻す | 最後のマージコンフリクト解決を元に戻します。 |
 | `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
 | `` o `` | ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |

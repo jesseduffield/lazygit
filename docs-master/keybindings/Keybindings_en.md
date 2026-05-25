@@ -207,8 +207,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` b `` | Pick all hunks |  |
 | `` <up> `` | Previous hunk |  |
 | `` <down> `` | Next hunk |  |
-| `` <left> `` | Previous conflict |  |
-| `` <right> `` | Next conflict |  |
+| `` <left>, h `` | Previous conflict |  |
+| `` <right>, l `` | Next conflict |  |
 | `` z `` | Undo | Undo last merge conflict resolution. |
 | `` e `` | Edit file | Open file in external editor. |
 | `` o `` | Open file | Open file in default application. |
@@ -229,8 +229,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Go to previous hunk |  |
-| `` <right> `` | Go to next hunk |  |
+| `` <left>, h `` | Go to previous hunk |  |
+| `` <right>, l `` | Go to next hunk |  |
 | `` v `` | Toggle range select |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |
@@ -245,8 +245,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Go to previous hunk |  |
-| `` <right> `` | Go to next hunk |  |
+| `` <left>, h `` | Go to previous hunk |  |
+| `` <right>, l `` | Go to next hunk |  |
 | `` v `` | Toggle range select |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |

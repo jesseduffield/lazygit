@@ -215,8 +215,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` b `` | Kies beide stukken |  |
 | `` <up> `` | Selecteer bovenste hunk |  |
 | `` <down> `` | Selecteer onderste hunk |  |
-| `` <left> `` | Selecteer voorgaand conflict |  |
-| `` <right> `` | Selecteer volgende conflict |  |
+| `` <left>, h `` | Selecteer voorgaand conflict |  |
+| `` <right>, l `` | Selecteer volgende conflict |  |
 | `` z `` | Ongedaan maken | Undo last merge conflict resolution. |
 | `` e `` | Verander bestand | Open file in external editor. |
 | `` o `` | Open bestand | Open file in default application. |
@@ -237,8 +237,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Selecteer de vorige hunk |  |
-| `` <right> `` | Selecteer de volgende hunk |  |
+| `` <left>, h `` | Selecteer de vorige hunk |  |
+| `` <right>, l `` | Selecteer de volgende hunk |  |
 | `` v `` | Toggle drag selecteer |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |
@@ -312,8 +312,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Selecteer de vorige hunk |  |
-| `` <right> `` | Selecteer de volgende hunk |  |
+| `` <left>, h `` | Selecteer de vorige hunk |  |
+| `` <right>, l `` | Selecteer de volgende hunk |  |
 | `` v `` | Toggle drag selecteer |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |

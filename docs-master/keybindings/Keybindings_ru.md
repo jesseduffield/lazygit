@@ -80,8 +80,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Выбрать предыдущую часть |  |
-| `` <right> `` | Выбрать следующую часть |  |
+| `` <left>, h `` | Выбрать предыдущую часть |  |
+| `` <right>, l `` | Выбрать следующую часть |  |
 | `` v `` | Переключить выборку перетаскивания |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
@@ -116,8 +116,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` b `` | Выбрать все части |  |
 | `` <up> `` | Выбрать предыдущую часть |  |
 | `` <down> `` | Выбрать следующую часть |  |
-| `` <left> `` | Выбрать предыдущий конфликт |  |
-| `` <right> `` | Выбрать следующий конфликт |  |
+| `` <left>, h `` | Выбрать предыдущий конфликт |  |
+| `` <right>, l `` | Выбрать следующий конфликт |  |
 | `` z `` | Отменить | Undo last merge conflict resolution. |
 | `` e `` | Редактировать файл | Open file in external editor. |
 | `` o `` | Открыть файл | Open file in default application. |
@@ -128,8 +128,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Выбрать предыдущую часть |  |
-| `` <right> `` | Выбрать следующую часть |  |
+| `` <left>, h `` | Выбрать предыдущую часть |  |
+| `` <right>, l `` | Выбрать следующую часть |  |
 | `` v `` | Переключить выборку перетаскивания |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |

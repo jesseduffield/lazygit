@@ -241,8 +241,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Ir para o local anterior |  |
-| `` <right> `` | Ir para o próximo trecho |  |
+| `` <left>, h `` | Ir para o local anterior |  |
+| `` <right>, l `` | Ir para o próximo trecho |  |
 | `` v `` | Toggle range select |  |
 | `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
 | `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
@@ -275,8 +275,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` b `` | Pegar todos os pedaços |  |
 | `` <up> `` | Trecho anterior |  |
 | `` <down> `` | Próximo trecho |  |
-| `` <left> `` | Conflito anterior |  |
-| `` <right> `` | Próximo conflito |  |
+| `` <left>, h `` | Conflito anterior |  |
+| `` <right>, l `` | Próximo conflito |  |
 | `` z `` | Desfazer | Desfazer resolução de conflitos de última mesclagem. |
 | `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
@@ -287,8 +287,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Ir para o local anterior |  |
-| `` <right> `` | Ir para o próximo trecho |  |
+| `` <left>, h `` | Ir para o local anterior |  |
+| `` <right>, l `` | Ir para o próximo trecho |  |
 | `` v `` | Toggle range select |  |
 | `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
 | `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |

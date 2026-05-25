@@ -1921,6 +1921,40 @@
     },
     "KeybindingMainConfig": {
       "properties": {
+        "prevHunk": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003cleft\u003e",
+            "h"
+          ]
+        },
+        "nextHunk": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003cright\u003e",
+            "l"
+          ]
+        },
         "toggleSelectHunk": {
           "oneOf": [
             {

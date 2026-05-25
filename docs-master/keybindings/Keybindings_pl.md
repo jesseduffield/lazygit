@@ -115,8 +115,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Idź do poprzedniego fragmentu |  |
-| `` <right> `` | Idź do następnego fragmentu |  |
+| `` <left>, h `` | Idź do poprzedniego fragmentu |  |
+| `` <right>, l `` | Idź do następnego fragmentu |  |
 | `` v `` | Przełącz zaznaczenie zakresu |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |
@@ -191,8 +191,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` b `` | Wybierz wszystkie fragmenty |  |
 | `` <up> `` | Poprzedni fragment |  |
 | `` <down> `` | Następny fragment |  |
-| `` <left> `` | Poprzedni konflikt |  |
-| `` <right> `` | Następny konflikt |  |
+| `` <left>, h `` | Poprzedni konflikt |  |
+| `` <right>, l `` | Następny konflikt |  |
 | `` z `` | Cofnij | Cofnij ostatnie rozwiązanie konfliktu scalania. |
 | `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
@@ -203,8 +203,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Idź do poprzedniego fragmentu |  |
-| `` <right> `` | Idź do następnego fragmentu |  |
+| `` <left>, h `` | Idź do poprzedniego fragmentu |  |
+| `` <right>, l `` | Idź do następnego fragmentu |  |
 | `` v `` | Przełącz zaznaczenie zakresu |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |

@@ -252,8 +252,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 选择上一个区块 |  |
-| `` <right> `` | 选择下一个区块 |  |
+| `` <left>, h `` | 选择上一个区块 |  |
+| `` <right>, l `` | 选择下一个区块 |  |
 | `` v `` | 切换拖动选择 |  |
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` <ctrl+o> `` | 复制选中文本到剪贴板 |  |
@@ -296,8 +296,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` b `` | 选中所有区块 |  |
 | `` <up> `` | 选择顶部块 |  |
 | `` <down> `` | 选择底部块 |  |
-| `` <left> `` | 选择上一个冲突 |  |
-| `` <right> `` | 选择下一个冲突 |  |
+| `` <left>, h `` | 选择上一个冲突 |  |
+| `` <right>, l `` | 选择下一个冲突 |  |
 | `` z `` | 撤销 | 撤消上次合并冲突解决 |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
@@ -308,8 +308,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 选择上一个区块 |  |
-| `` <right> `` | 选择下一个区块 |  |
+| `` <left>, h `` | 选择上一个区块 |  |
+| `` <right>, l `` | 选择下一个区块 |  |
 | `` v `` | 切换拖动选择 |  |
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` <ctrl+o> `` | 复制选中文本到剪贴板 |  |

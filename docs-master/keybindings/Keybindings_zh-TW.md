@@ -62,8 +62,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 選擇上一段 |  |
-| `` <right> `` | 選擇下一段 |  |
+| `` <left>, h `` | 選擇上一段 |  |
+| `` <right>, l `` | 選擇下一段 |  |
 | `` v `` | 切換拖曳選擇 |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
@@ -92,8 +92,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` b `` | 挑選所有程式碼片段 |  |
 | `` <up> `` | 選擇上一段 |  |
 | `` <down> `` | 選擇下一段 |  |
-| `` <left> `` | 選擇上一個衝突 |  |
-| `` <right> `` | 選擇下一個衝突 |  |
+| `` <left>, h `` | 選擇上一個衝突 |  |
+| `` <right>, l `` | 選擇下一個衝突 |  |
 | `` z `` | 復原 | Undo last merge conflict resolution. |
 | `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
 | `` o `` | 開啟檔案 | 使用預設軟體開啟 |
@@ -104,8 +104,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 選擇上一段 |  |
-| `` <right> `` | 選擇下一段 |  |
+| `` <left>, h `` | 選擇上一段 |  |
+| `` <right>, l `` | 選擇下一段 |  |
 | `` v `` | 切換拖曳選擇 |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |

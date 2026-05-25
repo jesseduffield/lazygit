@@ -72,22 +72,14 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 			Description: self.c.Tr.RangeSelectDown,
 		},
 		{
-			Keys:        opts.GetKeys(opts.Config.Universal.PrevBlock),
+			Keys:        opts.GetKeys(opts.Config.Main.PrevHunk),
 			Handler:     self.withRenderAndFocus(self.HandlePrevHunk),
 			Description: self.c.Tr.PrevHunk,
 		},
 		{
-			Keys:    opts.GetKeys(opts.Config.Universal.PrevBlockAlt),
-			Handler: self.withRenderAndFocus(self.HandlePrevHunk),
-		},
-		{
-			Keys:        opts.GetKeys(opts.Config.Universal.NextBlock),
+			Keys:        opts.GetKeys(opts.Config.Main.NextHunk),
 			Handler:     self.withRenderAndFocus(self.HandleNextHunk),
 			Description: self.c.Tr.NextHunk,
-		},
-		{
-			Keys:    opts.GetKeys(opts.Config.Universal.NextBlockAlt),
-			Handler: self.withRenderAndFocus(self.HandleNextHunk),
 		},
 		{
 			Keys:        opts.GetKeys(opts.Config.Universal.ToggleRangeSelect),

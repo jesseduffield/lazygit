@@ -146,8 +146,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` b `` | Pick all hunks |  |
 | `` <up> `` | 이전 hunk를 선택 |  |
 | `` <down> `` | 다음 hunk를 선택 |  |
-| `` <left> `` | 이전 충돌을 선택 |  |
-| `` <right> `` | 다음 충돌을 선택 |  |
+| `` <left>, h `` | 이전 충돌을 선택 |  |
+| `` <right>, l `` | 다음 충돌을 선택 |  |
 | `` z `` | 되돌리기 | Undo last merge conflict resolution. |
 | `` e `` | 파일 편집 | Open file in external editor. |
 | `` o `` | 파일 닫기 | Open file in default application. |
@@ -168,8 +168,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 이전 hunk를 선택 |  |
-| `` <right> `` | 다음 hunk를 선택 |  |
+| `` <left>, h `` | 이전 hunk를 선택 |  |
+| `` <right>, l `` | 다음 hunk를 선택 |  |
 | `` v `` | 드래그 선택 전환 |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
@@ -184,8 +184,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 이전 hunk를 선택 |  |
-| `` <right> `` | 다음 hunk를 선택 |  |
+| `` <left>, h `` | 이전 hunk를 선택 |  |
+| `` <right>, l `` | 다음 hunk를 선택 |  |
 | `` v `` | 드래그 선택 전환 |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
