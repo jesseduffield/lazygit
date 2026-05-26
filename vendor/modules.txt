@@ -63,7 +63,7 @@ github.com/go-errors/errors
 github.com/go-logfmt/logfmt
 # github.com/google/go-cmp v0.7.0
 ## explicit; go 1.21
-# github.com/gookit/color v1.6.0
+# github.com/gookit/color v1.6.1
 ## explicit; go 1.18
 github.com/gookit/color
 # github.com/hpcloud/tail v1.0.0
