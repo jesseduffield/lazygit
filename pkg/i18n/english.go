@@ -536,6 +536,7 @@ type TranslationSet struct {
 	EnterStaging                          string
 	ExitCustomPatchBuilder                string
 	ExitFocusedMainView                   string
+	ToggleSelectionInFocusedMainView      string
 	EnterUpstream                         string
 	InvalidUpstream                       string
 	NewRemote                             string
@@ -1676,6 +1677,7 @@ func EnglishTranslationSet() *TranslationSet {
 		EnterStaging:                         "Enter staging/patch building",
 		ExitCustomPatchBuilder:               `Exit custom patch builder`,
 		ExitFocusedMainView:                  "Exit back to side panel",
+		ToggleSelectionInFocusedMainView:     "Show/hide selection",
 		EnterUpstream:                        `Enter upstream as '<remote> <branchname>'`,
 		InvalidUpstream:                      "Invalid upstream. Must be in the format '<remote> <branchname>'",
 		NewRemote:                            `New remote`,
