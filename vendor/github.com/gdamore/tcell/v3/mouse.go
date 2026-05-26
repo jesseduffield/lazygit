@@ -49,8 +49,9 @@ func (ev *EventMouse) Modifiers() ModMask {
 	return ev.mod
 }
 
-// Position returns the mouse position in character cells.  The origin
-// 0, 0 is at the upper left corner.
+// Position returns the mouse position.  The origin 0, 0 is at the upper
+// left corner.  The unit is character cells unless the screen was started
+// with MousePixelEvents, in which case the unit is terminal pixels.
 func (ev *EventMouse) Position() (int, int) {
 	return ev.x, ev.y
 }
