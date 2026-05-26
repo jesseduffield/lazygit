@@ -93,8 +93,6 @@ github.com/karimkhaleel/jsonschema
 github.com/kr/logfmt
 # github.com/kr/pretty v0.3.1
 ## explicit; go 1.12
-# github.com/kylelemons/godebug v1.1.0
-## explicit; go 1.11
 # github.com/kyokomi/emoji/v2 v2.2.13
 ## explicit; go 1.14
 github.com/kyokomi/emoji/v2
@@ -132,8 +130,8 @@ github.com/pmezard/go-difflib/difflib
 github.com/rivo/uniseg
 # github.com/rogpeppe/go-internal v1.14.1
 ## explicit; go 1.23
-# github.com/sahilm/fuzzy v0.1.1
-## explicit
+# github.com/sahilm/fuzzy v0.1.2
+## explicit; go 1.24.5
 github.com/sahilm/fuzzy
 # github.com/samber/lo v1.53.0
 ## explicit; go 1.18
