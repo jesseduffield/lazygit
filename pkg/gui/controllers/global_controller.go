@@ -158,7 +158,7 @@ func (self *GlobalController) prevScreenMode() error {
 func (self *GlobalController) cyclePagers() error {
 	self.c.State().GetPagerConfig().CyclePagers()
 	if self.c.Context().CurrentSide().GetKey() == self.c.Context().Current().GetKey() {
-		self.c.Context().CurrentSide().HandleFocus(types.OnFocusOpts{})
+		self.c.Context().CurrentSide().HandleRenderToMain()
 	}
 
 	current, total := self.c.State().GetPagerConfig().CurrentPagerIndex()
