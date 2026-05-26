@@ -26,7 +26,7 @@ func NewMainContext(
 				WindowName:       windowName,
 				Key:              key,
 				Focusable:        true,
-				HighlightOnFocus: c.UserConfig().Gui.ShowSelectionInFocusedMainView,
+				HighlightOnFocus: false,
 			})),
 		SearchTrait: NewSearchTrait(c),
 	}

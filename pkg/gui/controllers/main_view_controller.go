@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type MainViewController struct {
@@ -30,11 +31,13 @@ func NewMainViewController(
 }
 
 func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
-	var goIntoDescription string
-	// We only want to show the "enter" menu item if the user config is true;
-	// leaving the description empty causes it to be hidden
-	if self.c.UserConfig().Gui.ShowSelectionInFocusedMainView {
-		goIntoDescription = self.c.Tr.EnterStaging
+	// When a selection is shown, we surface the bindings that act on it
+	// (enter to dive into staging, escape to hide the selection).
+	selectionShown := self.context.GetView().Highlight
+
+	var enterDescription string
+	if selectionShown {
+		enterDescription = self.c.Tr.EnterStaging
 	}
 
 	return []*types.Binding{
@@ -52,9 +55,16 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen: true,
 		},
 		{
-			Keys:        opts.GetKeys(opts.Config.Universal.GoInto),
-			Handler:     self.enter,
-			Description: goIntoDescription,
+			Keys:            opts.GetKeys(opts.Config.Universal.Select),
+			Handler:         self.toggleSelection,
+			Description:     self.c.Tr.ToggleSelectionInFocusedMainView,
+			DisplayOnScreen: !selectionShown,
+		},
+		{
+			Keys:            opts.GetKeys(opts.Config.Universal.GoInto),
+			Handler:         self.enter,
+			Description:     enterDescription,
+			DisplayOnScreen: selectionShown,
 		},
 		{
 			// overriding this because we want to read all of the task's output before we start searching
@@ -87,11 +97,14 @@ func (self *MainViewController) Context() types.Context {
 	return self.context
 }
 
+// Transient focus shifts (popups, search) leave HighlightInactive=true on our
+// view (set by ContextMgr.Activate when a different view becomes current). Our
+// context's highlightOnFocus is false, so SimpleContext.HandleFocus never
+// resets it. Reset it here on the way back in, so that if we still hold a
+// selection it's drawn as active. The flag is a no-op when Highlight is false.
 func (self *MainViewController) GetOnFocus() func(types.OnFocusOpts) {
-	return func(opts types.OnFocusOpts) {
-		if opts.ClickedWindowName != "" {
-			self.context.GetView().FocusPoint(0, opts.ClickedViewLineIdx, false)
-		}
+	return func(types.OnFocusOpts) {
+		self.context.GetView().HighlightInactive = false
 	}
 }
 
@@ -104,11 +117,33 @@ func (self *MainViewController) togglePanel() error {
 }
 
 func (self *MainViewController) escape() error {
+	v := self.context.GetView()
+	if v.Highlight {
+		v.Highlight = false
+		return nil
+	}
 	self.c.Context().Pop()
 	return nil
 }
 
+func (self *MainViewController) toggleSelection() error {
+	v := self.context.GetView()
+	if v.Highlight {
+		v.Highlight = false
+		return nil
+	}
+	v.Highlight = true
+	v.HighlightInactive = false
+	lineIdx := v.OriginY() + v.InnerHeight()/2
+	lineIdx = lo.Clamp(lineIdx, 0, v.ViewLinesHeight()-1)
+	v.FocusPoint(0, lineIdx, false)
+	return nil
+}
+
 func (self *MainViewController) enter() error {
+	if !self.context.GetView().Highlight {
+		return nil
+	}
 	sidePanelContext := self.c.Context().NextInStack(self.context)
 	if sidePanelContext != nil && sidePanelContext.GetOnClickFocusedMainView() != nil {
 		return sidePanelContext.GetOnClickFocusedMainView()(
