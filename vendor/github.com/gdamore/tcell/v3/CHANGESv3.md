@@ -45,6 +45,10 @@ the associated lower case rune (e.g. "a", "b", etc.) and `ModCtrl`.
 The `KeyBackspace2` key is no longer delivered, but is converted to
 `KeyBackspace`. (This resolves some inconsistency around e.g. CTRL-H vs DELETE.)
 
+When advanced key reporting is enabled, Shift-Tab is reported as `KeyTab` with
+`ModShift`, not as `KeyBacktab`.  Legacy key reporting still reports Shift-Tab
+as `KeyBacktab`.
+
 ### Termbox Compatibility Removed
 
 The `termbox` compatibility package is removed. Few applications were using it,

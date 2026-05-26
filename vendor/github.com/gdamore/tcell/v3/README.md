@@ -119,6 +119,24 @@ than respecting themes. For other cases, such as typical text apps that
 only use a few colors, its more desirable to respect the themes that
 the user has established.)
 
+## Terminal Overrides
+
+_Tcell_ normally negotiates terminal capabilities automatically, but some
+terminal emulators answer those queries incorrectly. These environment
+variables provide user escape hatches when the automatic path is not reliable:
+
+- `TCELL_KEYBOARD_PROTOCOL=auto|legacy|kitty|win32|xterm` forces the keyboard
+  reporting protocol.
+- `TCELL_NEGOTIATE=auto|disable` disables startup capability negotiation when
+  terminal responses themselves are problematic.
+- `TCELL_MOUSE=auto|disable` prevents applications from enabling terminal mouse
+  reporting.
+
+Applications can also choose a keyboard protocol with `OptKeyboardProtocol` or
+disable startup negotiation with `OptNegotiation`. Environment variables take
+precedence so users can recover from bad terminal behavior without modifying an
+application.
+
 ## Performance
 
 Reasonable attempts have been made to minimize sending data to terminals,

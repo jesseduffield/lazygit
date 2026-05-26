@@ -247,13 +247,16 @@ func NewMockTerm(opts ...MockOpt) MockTerm {
 	mt := &mockTerm{}
 	mt.mb = NewMockBackend(opts...)
 	var be MockBackend = mt.mb
+	emOpts := []EmulatorOpt{}
 	for _, o := range opts {
 		switch o.(type) {
 		case MockOptNoBlit:
 			be = &noMockBlit{be, struct{}{}}
+		case MockOpt8BitControls:
+			emOpts = append(emOpts, EmulatorOpt8BitControls{})
 		}
 	}
-	mt.em = NewEmulator(be)
+	mt.em = NewEmulator(be, emOpts...)
 	mt.em.SetId("TCellMock", "1.0")
 	mt.ks = &KeyboardState{}
 	return mt
@@ -643,6 +646,12 @@ func (o MockOptColors) SetMockOpt(mb *mockBackend) { mb.colors = int(o) }
 type MockOptNoBlit struct{}
 
 func (MockOptNoBlit) SetMockOpt(mb *mockBackend) {}
+
+// MockOpt8BitControls enables raw 8-bit and UTF-8 encoded C1 controls in the
+// emulator. The default is to accept only 7-bit ESC-prefixed controls.
+type MockOpt8BitControls struct{}
+
+func (MockOpt8BitControls) SetMockOpt(mb *mockBackend) {}
 
 // NewMockBackend returns a MockBackend modified by the given options.
 // The default is a fully featured 256-color backend with initial size 80x24.
