@@ -11,12 +11,12 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | Przewiń główne okno w dół |  |
 | `` @ `` | Pokaż opcje dziennika poleceń | Pokaż opcje dla dziennika poleceń, np. pokazywanie/ukrywanie dziennika poleceń i skupienie na dzienniku poleceń. |
 | `` P `` | Wypchnij | Wypchnij bieżącą gałąź do jej gałęzi nadrzędnej. Jeśli nie skonfigurowano gałęzi nadrzędnej, zostaniesz poproszony o skonfigurowanie gałęzi nadrzędnej. |
-| `` p `` | Pociągnij | Pociągnij zmiany z zdalnego dla bieżącej gałęzi. Jeśli nie skonfigurowano gałęzi nadrzędnej, zostaniesz poproszony o skonfigurowanie gałęzi nadrzędnej. |
+| `` p `` | Pociągnij | Pociągnij zmiany ze zdalnego dla bieżącej gałęzi. Jeśli nie skonfigurowano gałęzi nadrzędnej, zostaniesz poproszony o skonfigurowanie gałęzi nadrzędnej. |
 | `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` } `` | Zwiększ rozmiar kontekstu w widoku różnic | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` { `` | Zmniejsz rozmiar kontekstu w widoku różnic | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
-| `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
+| `` : `` | Wykonaj polecenie w powłoce | Bring up a prompt where you can enter a shell command to execute. |
 | `` <ctrl+p> `` | Wyświetl opcje niestandardowej łatki |  |
 | `` m `` | Pokaż opcje scalania/rebase | Pokaż opcje do przerwania/kontynuowania/pominięcia bieżącego scalania/rebase. |
 | `` R `` | Odśwież | Odśwież stan git (tj. uruchom `git status`, `git branch`, itp. w tle, aby zaktualizować zawartość paneli). To nie uruchamia `git fetch`. |
@@ -62,27 +62,27 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` c `` | Set fixup message | Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message. |
 | `` r `` | Przeformułuj | Przeformułuj wiadomość wybranego commita. |
 | `` R `` | Przeformułuj za pomocą edytora |  |
-| `` d `` | Usuń | Usuń wybrany commit. To usunie commit z gałęzi za pomocą rebazowania. Jeśli commit wprowadza zmiany, od których zależą późniejsze commity, być może będziesz musiał rozwiązać konflikty scalania. |
-| `` e `` | Edytuj (rozpocznij interaktywne rebazowanie) | Edytuj wybrany commit. Użyj tego, aby rozpocząć interaktywne rebazowanie od wybranego commita. Podczas trwania rebazowania, to oznaczy wybrany commit do edycji, co oznacza, że po kontynuacji rebazowania, rebazowanie zostanie wstrzymane na wybranym commicie, aby umożliwić wprowadzenie zmian. |
-| `` i `` | Rozpocznij interaktywny rebase | Rozpocznij interaktywny rebase dla commitów na twoim branchu. To będzie zawierać wszystkie commity od HEAD do pierwszego commita scalenia lub commita głównego brancha.<br>Jeśli chcesz zamiast tego rozpocząć interaktywny rebase od wybranego commita, naciśnij `e`. |
-| `` p `` | Wybierz | Oznacz wybrany commit do wybrania (podczas rebazowania). Oznacza to, że commit zostanie zachowany po kontynuacji rebazowania. |
+| `` d `` | Usuń | Usuń wybrany commit. To usunie commit z gałęzi za pomocą przebazowania. Jeśli commit wprowadza zmiany, od których zależą późniejsze commity, być może będziesz musiał rozwiązać konflikty scalania. |
+| `` e `` | Edytuj (rozpocznij interaktywne przebazowanie) | Edytuj wybrany commit. Użyj tego, aby rozpocząć interaktywne przebazowanie od wybranego commita. Podczas trwania przebazowania, to oznaczy wybrany commit do edycji, co oznacza, że po kontynuacji przebazowania, przebazowanie zostanie wstrzymane na wybranym commicie, aby umożliwić wprowadzenie zmian. |
+| `` i `` | Rozpocznij interaktywne przebazowanie | Rozpocznij interaktywne przebazowanie dla commitów na twojej gałęzi. To będzie zawierać wszystkie commity od HEAD do pierwszego commita scalenia lub commita głównej gałęzi.<br>Jeśli zamiast tego chcesz rozpocząć interaktywne przebazowanie od wybranego commita, naciśnij `e`. |
+| `` p `` | Wybierz | Oznacz wybrany commit do wybrania (podczas przebazowania). Oznacza to, że commit zostanie zachowany po kontynuacji przebazowania. |
 | `` F `` | Utwórz commit fixup | Utwórz commit 'fixup!' dla wybranego commita. Później możesz nacisnąć `S` na tym samym commicie, aby zastosować wszystkie powyższe commity fixup. |
 | `` S `` | Zastosuj commity fixup | Scal wszystkie commity 'fixup!', albo powyżej wybranego commita, albo wszystkie w bieżącej gałęzi (autosquash). |
 | `` <ctrl+j>, <alt+down> `` | Przesuń commit w dół |  |
 | `` <ctrl+k>, <alt+up> `` | Przesuń commit w górę |  |
 | `` V `` | Wklej (cherry-pick) |  |
-| `` B `` | Oznacz jako bazowy commit dla rebase | Wybierz bazowy commit dla następnego rebase. Kiedy robisz rebase na branch, tylko commity powyżej bazowego commita zostaną przeniesione. Używa to polecenia `git rebase --onto`. |
-| `` A `` | Popraw | Popraw commit ze zmianami zatwierdzonymi. Jeśli wybrany commit jest commit HEAD, to wykona `git commit --amend`. W przeciwnym razie commit zostanie poprawiony za pomocą rebazowania. |
+| `` B `` | Oznacz jako bazowy commit dla przebazowania | Wybierz bazowy commit dla następnego przebazowania. Kiedy robisz przebazowanie na gałąź, tylko commity powyżej bazowego commita zostaną przeniesione. Używa to polecenia `git rebase --onto`. |
+| `` A `` | Popraw | Popraw commit ze zmianami zatwierdzonymi. Jeśli wybrany commit jest commit HEAD, to wykona `git commit --amend`. W przeciwnym razie commit zostanie poprawiony za pomocą przebazowania. |
 | `` a `` | Popraw atrybut commita | Ustaw/Resetuj autora commita lub ustaw współautora. |
 | `` t `` | Cofnij | Utwórz commit cofający dla wybranego commita, który stosuje zmiany wybranego commita w odwrotnej kolejności. |
 | `` T `` | Otaguj commit | Utwórz nowy tag wskazujący na wybrany commit. Zostaniesz poproszony o wprowadzenie nazwy tagu i opcjonalnego opisu. |
 | `` <ctrl+l> `` | Zobacz opcje logów | Zobacz opcje dla logów commitów, np. zmiana kolejności sortowania, ukrywanie grafu gita, pokazywanie całego grafu gita. |
-| `` G `` | Open pull request in browser |  |
+| `` G `` | Otwórz żądanie ściągnięcia w przeglądarce |  |
 | `` <space> `` | Przełącz | Przełącz wybrany commit jako odłączoną HEAD. |
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
 | `` o `` | Otwórz commit w przeglądarce |  |
 | `` n `` | Utwórz nową gałąź z commita |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` N `` | Przenieś commity do nowej gałęzi | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
 | `` C `` | Kopiuj (cherry-pick) | Oznacz commit jako skopiowany. Następnie, w widoku lokalnych commitów, możesz nacisnąć `V`, aby wkleić (cherry-pick) skopiowane commity do sprawdzonej gałęzi. W dowolnym momencie możesz nacisnąć `<esc>`, aby anulować zaznaczenie. |
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
@@ -108,6 +108,26 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | Przełącz | Przełącz do wybranego drzewa pracy. |
 | `` o `` | Otwórz w edytorze |  |
 | `` d `` | Usuń | Usuń wybrane drzewo pracy. To usunie zarówno katalog drzewa pracy, jak i metadane o drzewie pracy w katalogu .git. |
+| `` / `` | Filtruj bieżący widok po tekście |  |
+
+## Dziennik reflog
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <space> `` | Przełącz | Przełącz wybrany commit jako odłączoną HEAD. |
+| `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
+| `` o `` | Otwórz commit w przeglądarce |  |
+| `` n `` | Utwórz nową gałąź z commita |  |
+| `` N `` | Przenieś commity do nowej gałęzi | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
+| `` C `` | Kopiuj (cherry-pick) | Oznacz commit jako skopiowany. Następnie, w widoku lokalnych commitów, możesz nacisnąć `V`, aby wkleić (cherry-pick) skopiowane commity do sprawdzonej gałęzi. W dowolnym momencie możesz nacisnąć `<esc>`, aby anulować zaznaczenie. |
+| `` <ctrl+r> `` | Resetuj wybrane (cherry-picked) commity |  |
+| `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
+| `` * `` | Select commits of current branch |  |
+| `` 0 `` | Focus main view |  |
+| `` <enter> `` | Pokaż commity |  |
+| `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
 
 ## Główny panel (budowanie łatki)
@@ -141,13 +161,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` i `` | Pokaż opcje git-flow |  |
 | `` <space> `` | Przełącz | Przełącz wybrany element. |
 | `` n `` | Nowa gałąź |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` N `` | Przenieś commity do nowej gałęzi | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` o `` | Utwórz żądanie ściągnięcia |  |
 | `` O `` | Zobacz opcje tworzenia pull requesta |  |
-| `` G `` | Open pull request in browser |  |
+| `` G `` | Otwórz żądanie ściągnięcia w przeglądarce |  |
 | `` <ctrl+y> `` | Kopiuj adres URL żądania ściągnięcia do schowka |  |
 | `` c `` | Przełącz według nazwy | Przełącz według nazwy. W polu wprowadzania możesz wpisać '-' aby przełączyć się na ostatnią gałąź. |
-| `` - `` | Checkout previous branch |  |
+| `` - `` | Przełącz na poprzednią gałąź |  |
 | `` F `` | Wymuś przełączenie | Wymuś przełączenie wybranej gałęzi. To spowoduje odrzucenie wszystkich lokalnych zmian w drzewie roboczym przed przełączeniem na wybraną gałąź. |
 | `` d `` | Usuń | Wyświetl opcje usuwania lokalnej/odległej gałęzi. |
 | `` r `` | Przebazuj | Przebazuj przełączoną gałąź na wybraną gałąź. |
@@ -268,7 +288,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | Kopiuj ścieżkę do schowka |  |
 | `` y `` | Kopiuj do schowka |  |
 | `` c `` | Przełącz | Przełącz plik. Zastępuje plik w twoim drzewie roboczym wersją z wybranego commita. |
-| `` d `` | Odrzuć | Odrzuć zmiany w tym pliku z tego commita. Uruchamia interaktywny rebase w tle, więc możesz otrzymać konflikt scalania, jeśli późniejszy commit również zmienia ten plik. |
+| `` d `` | Odrzuć | Odrzuć zmiany w tym pliku z tego commita. Uruchamia interaktywne przebazowanie w tle, więc możesz otrzymać konflikt scalania, jeśli późniejszy commit również zmienia ten plik. |
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
 | `` e `` | Edytuj | Otwórz plik w zewnętrznym edytorze. |
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
@@ -287,26 +307,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <enter> `` | Potwierdź |  |
 | `` <esc> `` | Zamknij |  |
-
-## Reflog
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
-| `` <space> `` | Przełącz | Przełącz wybrany commit jako odłączoną HEAD. |
-| `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
-| `` o `` | Otwórz commit w przeglądarce |  |
-| `` n `` | Utwórz nową gałąź z commita |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
-| `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
-| `` C `` | Kopiuj (cherry-pick) | Oznacz commit jako skopiowany. Następnie, w widoku lokalnych commitów, możesz nacisnąć `V`, aby wkleić (cherry-pick) skopiowane commity do sprawdzonej gałęzi. W dowolnym momencie możesz nacisnąć `<esc>`, aby anulować zaznaczenie. |
-| `` <ctrl+r> `` | Resetuj wybrane (cherry-picked) commity |  |
-| `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
-| `` * `` | Select commits of current branch |  |
-| `` 0 `` | Focus main view |  |
-| `` <enter> `` | Pokaż commity |  |
-| `` w `` | Zobacz opcje drzewa pracy |  |
-| `` / `` | Filtruj bieżący widok po tekście |  |
 
 ## Schowek
 
@@ -343,7 +343,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
 | `` o `` | Otwórz commit w przeglądarce |  |
 | `` n `` | Utwórz nową gałąź z commita |  |
-| `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` N `` | Przenieś commity do nowej gałęzi | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
 | `` C `` | Kopiuj (cherry-pick) | Oznacz commit jako skopiowany. Następnie, w widoku lokalnych commitów, możesz nacisnąć `V`, aby wkleić (cherry-pick) skopiowane commity do sprawdzonej gałęzi. W dowolnym momencie możesz nacisnąć `<esc>`, aby anulować zaznaczenie. |
 | `` <ctrl+r> `` | Resetuj wybrane (cherry-picked) commity |  |
@@ -372,7 +372,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <ctrl+o> `` | Copy tag to clipboard |  |
+| `` <ctrl+o> `` | Skopiuj tag do schowka |  |
 | `` <space> `` | Przełącz | Przełącz wybrany tag jako odłączoną głowę (detached HEAD). |
 | `` n `` | Nowy tag | Utwórz nowy tag z bieżącego commita. Zostaniesz poproszony o wprowadzenie nazwy tagu i opcjonalnego opisu. |
 | `` d `` | Usuń | Wyświetl opcje usuwania lokalnego/odległego tagu. |
