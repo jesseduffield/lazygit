@@ -137,9 +137,6 @@ gui:
   # staging view.
   useHunkModeInStagingView: true
 
-  # If true, show a selection when the main view is focused.
-  showSelectionInFocusedMainView: false
-
   # One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko'
   # | 'ru' | 'pt'
   language: auto

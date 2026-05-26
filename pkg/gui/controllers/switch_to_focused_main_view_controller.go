@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/samber/lo"
 )
 
 // This controller is for all contexts that can focus their main view.
@@ -62,29 +61,21 @@ func (self *SwitchToFocusedMainViewController) Context() types.Context {
 }
 
 func (self *SwitchToFocusedMainViewController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.focusMainView(self.c.Contexts().Normal, opts.Y)
+	return self.focusMainView(self.c.Contexts().Normal)
 }
 
 func (self *SwitchToFocusedMainViewController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
-	return self.focusMainView(self.c.Contexts().NormalSecondary, opts.Y)
+	return self.focusMainView(self.c.Contexts().NormalSecondary)
 }
 
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
-	return self.focusMainView(self.c.Contexts().Normal, -1)
+	return self.focusMainView(self.c.Contexts().Normal)
 }
 
-func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext types.Context, clickedViewLineIdx int) error {
+func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext types.Context) error {
 	if context, ok := mainViewContext.(types.ISearchableContext); ok {
 		context.ClearSearchString()
 	}
-	onFocusOpts := types.OnFocusOpts{ClickedWindowName: mainViewContext.GetWindowName()}
-	if clickedViewLineIdx >= 0 {
-		onFocusOpts.ClickedViewLineIdx = clickedViewLineIdx
-	} else {
-		mainView := mainViewContext.GetView()
-		lineIdx := mainView.OriginY() + mainView.Height()/2
-		onFocusOpts.ClickedViewLineIdx = lo.Clamp(lineIdx, 0, mainView.LinesHeight()-1)
-	}
-	self.c.Context().Push(mainViewContext, onFocusOpts)
+	self.c.Context().Push(mainViewContext, types.OnFocusOpts{})
 	return nil
 }

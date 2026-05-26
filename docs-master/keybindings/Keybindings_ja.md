@@ -192,6 +192,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
 | `` <esc> `` | サイドパネルに戻る |  |
+| `` <space> `` | Show/hide selection |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## タグ
@@ -305,6 +306,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel up> (fn+down) `` | 上にスクロール |  |
 | `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
 | `` <esc> `` | サイドパネルに戻る |  |
+| `` <space> `` | Show/hide selection |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## メニュー
