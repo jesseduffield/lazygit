@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -157,8 +158,12 @@ func (self *GlobalController) prevScreenMode() error {
 
 func (self *GlobalController) cyclePagers() error {
 	self.c.State().GetPagerConfig().CyclePagers()
-	if self.c.Context().CurrentSide().GetKey() == self.c.Context().Current().GetKey() {
-		self.c.Context().CurrentSide().HandleFocus(types.OnFocusOpts{})
+	currentSide := self.c.Context().CurrentSide()
+	currentKey := self.c.Context().Current().GetKey()
+	if currentSide.GetKey() == currentKey ||
+		currentKey == context.NORMAL_MAIN_CONTEXT_KEY ||
+		currentKey == context.NORMAL_SECONDARY_CONTEXT_KEY {
+		currentSide.HandleRenderToMain()
 	}
 
 	current, total := self.c.State().GetPagerConfig().CurrentPagerIndex()
