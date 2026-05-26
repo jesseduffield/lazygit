@@ -26,7 +26,7 @@ require (
 	github.com/mgutz/str v1.2.0
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/rivo/uniseg v0.4.7
-	github.com/sahilm/fuzzy v0.1.1
+	github.com/sahilm/fuzzy v0.1.2
 	github.com/samber/lo v1.53.0
 	github.com/sanity-io/litter v1.5.8
 	github.com/sasha-s/go-deadlock v0.3.9
@@ -58,7 +58,6 @@ require (
 	github.com/invopop/jsonschema v0.10.0 // indirect
 	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
-	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
