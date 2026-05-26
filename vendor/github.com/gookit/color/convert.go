@@ -767,15 +767,15 @@ func RgbStrToHsl(rgbStr string) []float64 {
 	}
 
 	r, e1 := strconv.ParseInt(strings.TrimSpace(rgbVals[0]), 10, 0)
-	if e1 != nil {
+	if e1 != nil || r < 0 || r > 255 {
 		return nil
 	}
 	g, e2 := strconv.ParseInt(strings.TrimSpace(rgbVals[1]), 10, 0)
-	if e2 != nil {
+	if e2 != nil || g < 0 || g > 255 {
 		return nil
 	}
 	b, e3 := strconv.ParseInt(strings.TrimSpace(rgbVals[2]), 10, 0)
-	if e3 != nil {
+	if e3 != nil || b < 0 || b > 255 {
 		return nil
 	}
 	return RgbToHsl(uint8(r), uint8(g), uint8(b))
