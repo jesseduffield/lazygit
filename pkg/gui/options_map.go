@@ -46,7 +46,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 		}))
 
 	allBindings := append(currentContextBindings, lo.Filter(globalBindings, func(b *types.Binding, _ int) bool {
-		return len(b.Keys) == 0 || !currentContextKeys.Includes(b.Keys[0])
+		return len(b.Keys) > 0 && !currentContextKeys.Includes(b.Keys[0])
 	})...)
 
 	bindingsToDisplay := lo.Filter(allBindings, func(binding *types.Binding, _ int) bool {
