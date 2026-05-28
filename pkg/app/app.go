@@ -239,12 +239,8 @@ func (app *App) setupRepo(
 		}
 
 		// check if we have a recent repo we can open
-		for _, repoDir := range app.Config.GetAppState().RecentRepos {
-			if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
-				if err := os.Chdir(repoDir); err == nil {
-					return true, nil
-				}
-			}
+		if openRecentRepo(app) {
+			return true, nil
 		}
 
 		fmt.Fprintln(os.Stderr, app.Tr.NoRecentRepositories)
