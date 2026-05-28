@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -73,7 +74,11 @@ func NewMenuViewModel(c *ContextCommon) *MenuViewModel {
 		func() []*types.MenuItem { return self.menuItems },
 		func(item *types.MenuItem) []string {
 			if filterKeybindings {
-				return []string{config.LabelForKey(item.Key)}
+				// Allow searching all configured keybindings of each item, even though only the
+				// first one is shown in the menu.
+				return lo.Map(item.Keys, func(k gocui.Key, _ int) string {
+					return config.LabelForKey(k)
+				})
 			}
 
 			return item.LabelColumns
@@ -138,8 +143,8 @@ func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 		}
 
 		keyLabel := ""
-		if item.Key.IsSet() {
-			keyLabel = style.FgCyan.Sprint(config.LabelForKey(item.Key))
+		if len(item.Keys) > 0 {
+			keyLabel = style.FgCyan.Sprint(config.LabelForKey(item.Keys[0]))
 		}
 
 		checkMark := ""
@@ -205,12 +210,12 @@ func (self *MenuViewModel) GetNonModelItems() []*NonModelItem {
 func (self *MenuContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	basicBindings := self.ListContextTrait.GetKeybindings(opts)
 	menuItemsWithKeys := lo.Filter(self.menuItems, func(item *types.MenuItem, _ int) bool {
-		return item.Key.IsSet()
+		return len(item.Keys) > 0
 	})
 
 	menuItemBindings := lo.Map(menuItemsWithKeys, func(item *types.MenuItem, _ int) *types.Binding {
 		return &types.Binding{
-			Key:     item.Key,
+			Keys:    item.Keys,
 			Handler: func() error { return self.OnMenuPress(item) },
 		}
 	})

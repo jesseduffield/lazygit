@@ -32,21 +32,21 @@ func NewMainViewController(
 func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:             opts.GetKey(opts.Config.Universal.TogglePanel),
+			Keys:            opts.GetKeys(opts.Config.Universal.TogglePanel),
 			Handler:         self.togglePanel,
 			Description:     self.c.Tr.ToggleStagingView,
 			Tooltip:         self.c.Tr.ToggleStagingViewTooltip,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Return),
+			Keys:            opts.GetKeys(opts.Config.Universal.Return),
 			Handler:         self.escape,
 			Description:     self.c.Tr.ExitFocusedMainView,
 			DisplayOnScreen: true,
 		},
 		{
 			// overriding this because we want to read all of the task's output before we start searching
-			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
+			Keys:        opts.GetKeys(opts.Config.Universal.StartSearch),
 			Handler:     self.openSearch,
 			Description: self.c.Tr.StartSearch,
 			Tag:         "navigation",

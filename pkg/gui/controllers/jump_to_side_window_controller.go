@@ -39,7 +39,7 @@ func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpt
 		return &types.Binding{
 			ViewName: "",
 			// by default the keys are 1, 2, 3, etc
-			Key:     opts.GetKey(opts.Config.Universal.JumpToBlock[index]),
+			Keys:    opts.GetKeys(opts.Config.Universal.JumpToBlock[index]),
 			Handler: opts.Guards.NoPopupPanel(self.goToSideWindow(window)),
 		}
 	})

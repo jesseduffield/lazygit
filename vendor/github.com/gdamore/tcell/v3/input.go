@@ -22,8 +22,8 @@
 // There is unfortunately *one* conflict, with aixterm, for CSI-P - which is KeyDelete
 // in aixterm, but F1 in others.
 
-//go:build !js && !wasm
-// +build !js,!wasm
+//go:build (!js && !wasm) || (js && wasm)
+// +build !js,!wasm js,wasm
 
 package tcell
 
@@ -59,31 +59,61 @@ const (
 	istXda  // extended device attributes (ESC P Ps ST)
 )
 
+// defaultControlStringLimit caps inbound OSC/XDA control-string payloads
+// before they can grow without bound while waiting for a string terminator.
+const defaultControlStringLimit = 64 * 1024
+
 func newInputParser(eq chan<- Event) *inputParser {
 	return &inputParser{
-		evch: eq,
-		buf:  make([]rune, 0, 128),
+		evch:             eq,
+		buf:              make([]rune, 0, 128),
+		controlStringMax: defaultControlStringLimit,
 	}
 }
 
 type inputParser struct {
-	buf       []rune       // bytes to process (ingest data)
-	utfBuf    []byte       // accrued UTF8 bytes
-	strBuf    []byte       // accrued string data (for ST, OSC, etc.)
-	csiParams []byte       // accrued parameter bytes for CSI (and SS3)
-	csiInterm []byte       // accrued intermediate bytes for CSI
-	escChar   byte         // last byte for escape
-	escaped   bool         // true if next key should be modified by ESC
-	btnsDown  ButtonMask   // mouse buttons down (excludes wheel buttons)
-	state     inputState   // tracks processor state
-	strState  inputState   // saved str state (needed for ST)
-	l         sync.Mutex   // protects local state
-	evch      chan<- Event // where events are routed
-	rows      int          // used for clipping mouse coordinates
-	cols      int          // used for clipping mouse coordinates
-	keyTime   time.Time    // time of last key press / byte ingested
-	nested    *inputParser // for buggy win32-input-mode implementations
-	surrogate rune         // high surrogate pair seen (for Win32 input mode)
+	buf              []rune       // bytes to process (ingest data)
+	utfBuf           []byte       // accrued UTF8 bytes
+	strBuf           []byte       // accrued string data (for ST, OSC, etc.)
+	csiParams        []byte       // accrued parameter bytes for CSI (and SS3)
+	csiInterm        []byte       // accrued intermediate bytes for CSI
+	escChar          byte         // last byte for escape
+	escaped          bool         // true if next key should be modified by ESC
+	btnsDown         ButtonMask   // mouse buttons down (excludes wheel buttons)
+	state            inputState   // tracks processor state
+	strState         inputState   // saved str state (needed for ST)
+	l                sync.Mutex   // protects local state
+	evch             chan<- Event // where events are routed
+	rows             int          // used for clipping mouse coordinates
+	cols             int          // used for clipping mouse coordinates
+	pixelMouse       bool         // mouse reports in pixels (CSI ?1016h); skip cell clipping
+	keyTime          time.Time    // time of last key press / byte ingested
+	nested           *inputParser // for buggy win32-input-mode implementations
+	surrogate        rune         // high surrogate pair seen (for Win32 input mode)
+	advanced         bool         // use advanced key reporting semantics
+	controlStringMax int          // maximum inbound OSC/XDA payload size; 0 means unlimited
+	discardString    bool         // drop the rest of an over-limit OSC/XDA sequence
+}
+
+func keyFromInt(n int) (Key, bool) {
+	if n < 0 || n > 32767 {
+		return 0, false
+	}
+	return Key(n), true
+}
+
+func keyFromRune(r rune) (Key, bool) {
+	if r < 0 || r > 32767 {
+		return 0, false
+	}
+	return Key(r), true
+}
+
+func asciiByteFromInt(n int) (byte, bool) {
+	if n <= 0 || n >= 0x80 {
+		return 0, false
+	}
+	return byte(n), true
 }
 
 // Waiting returns true if the processor is waiting for
@@ -97,6 +127,21 @@ func (ip *inputParser) Waiting() bool {
 	ip.l.Lock()
 	defer ip.l.Unlock()
 	return ip.state != istInit
+}
+
+// SetPixelMouse toggles whether SGR mouse reports are interpreted as
+// pixel coordinates (CSI ?1016h) rather than character cells (CSI ?1006h).
+// When enabled, mouse coordinates are not clipped to the screen size.
+// The setting is also forwarded to the lazily-created nested parser used
+// for win32-input-mode, if one exists, so both stay in sync.
+func (ip *inputParser) SetPixelMouse(on bool) {
+	ip.l.Lock()
+	ip.pixelMouse = on
+	nested := ip.nested
+	ip.l.Unlock()
+	if nested != nil {
+		nested.SetPixelMouse(on)
+	}
 }
 
 func (ip *inputParser) SetSize(w, h int) {
@@ -116,7 +161,7 @@ func (ip *inputParser) post(ev Event) {
 	if ip.escaped {
 		ip.escaped = false
 		if ke, ok := ev.(*EventKey); ok {
-			ev = NewEventKey(ke.Key(), ke.Str(), ke.Modifiers()|ModAlt)
+			ev = ip.newKey(ke.Key(), ke.Str(), ke.Modifiers()|ModAlt, ke.Pressed(), ke.Physical(), ke.Repeat())
 		}
 	} else if ke, ok := ev.(*EventKey); ok {
 		switch ke.Key() {
@@ -128,6 +173,31 @@ func (ip *inputParser) post(ev Event) {
 	}
 
 	ip.evch <- ev
+}
+
+func (ip *inputParser) newKey(k Key, str string, mod ModMask, pressed bool, physical Key, repeat int) *EventKey {
+	if ip.advanced {
+		return NewEventKeyEx(k, str, mod, pressed, physical, repeat)
+	}
+	return NewEventKey(k, str, mod)
+}
+
+func (ip *inputParser) postKey(k Key, str string, mod ModMask) {
+	ip.post(ip.newKey(k, str, mod, true, 0, 1))
+}
+
+func (ip *inputParser) postKeyEx(k Key, str string, mod ModMask, pressed bool, physical Key, repeat int) {
+	ip.post(ip.newKey(k, str, mod, pressed, physical, repeat))
+}
+
+func (ip *inputParser) postControlKey(r rune, mod ModMask) {
+	if r == 0 {
+		ip.postKeyEx(KeyRune, " ", mod|ModCtrl, true, Key(' '), 1)
+	} else if ip.advanced && r >= 1 && r <= 26 {
+		ip.postKeyEx(KeyRune, string('a'+r-1), mod|ModCtrl, true, Key('a'+r-1), 1)
+	} else {
+		ip.postKey(KeyRune, string(r+0x40), mod|ModCtrl)
+	}
 }
 
 type csiParamMode struct {
@@ -358,6 +428,14 @@ var csiUKeys = map[int]keyMap{
 	57425: {Key: KeyInsert},          // KP_INSERT
 	57426: {Key: KeyDelete},          // KP_DELETE
 	// 57427: {Key: KeyBegin},          // KP_BEGIN
+	57441: {Key: KeyShift}, // LEFT_SHIFT
+	57442: {Key: KeyCtrl},  // LEFT_CONTROL
+	57443: {Key: KeyAlt},   // LEFT_ALT
+	57444: {Key: KeyMeta},  // LEFT_SUPER
+	57447: {Key: KeyShift}, // RIGHT_SHIFT
+	57448: {Key: KeyCtrl},  // RIGHT_CONTROL
+	57449: {Key: KeyAlt},   // RIGHT_ALT
+	57450: {Key: KeyMeta},  // RIGHT_SUPER
 
 	// TODO: Media keys
 }
@@ -447,7 +525,8 @@ func (ip *inputParser) scan() {
 		if r >= 0xA0 {
 			// 8-bit extended Unicode we just treat as such - this will swallow anything else queued up
 			ip.state = istInit
-			ip.post(NewEventKey(KeyRune, string(r), ModNone))
+			physical, _ := keyFromRune(r)
+			ip.postKeyEx(KeyRune, string(r), ModNone, true, physical, 1)
 			continue
 		} else if r >= 0x80 {
 			// ISO 2022 control chars
@@ -463,19 +542,20 @@ func (ip *inputParser) scan() {
 				ip.state = istEsc
 				ip.escChar = 0
 			case '\t':
-				ip.post(NewEventKey(KeyTab, "", ModNone))
+				ip.postKey(KeyTab, "", ModNone)
 			case '\b', '\x7F':
-				ip.post(NewEventKey(KeyBackspace, "", ModNone))
+				ip.postKey(KeyBackspace, "", ModNone)
 			case '\r':
-				ip.post(NewEventKey(KeyEnter, "", ModNone))
+				ip.postKey(KeyEnter, "", ModNone)
 			default:
 				// Control keys - legacy handling
 				if r == 0 {
-					ip.post(NewEventKey(KeyRune, " ", ModCtrl))
+					ip.postControlKey(r, ModNone)
 				} else if r < ' ' {
-					ip.post(NewEventKey(KeyRune, string(r+0x40), ModCtrl))
+					ip.postControlKey(r, ModNone)
 				} else {
-					ip.post(NewEventKey(KeyRune, string(r), ModNone))
+					physical, _ := keyFromRune(r)
+					ip.postKeyEx(KeyRune, string(r), ModNone, true, physical, 1)
 				}
 			}
 		case istEsc:
@@ -488,6 +568,7 @@ func (ip *inputParser) scan() {
 			case ']':
 				ip.state = istOsc
 				ip.strBuf = nil
+				ip.discardString = false
 				ip.escChar = byte(r)
 			case 'N':
 				ip.state = istSs2 // no known uses
@@ -502,6 +583,7 @@ func (ip *inputParser) scan() {
 				ip.state = istXda
 				ip.csiParams = nil
 				ip.strBuf = nil
+				ip.discardString = false
 				ip.escChar = byte(r)
 			case 'X':
 				ip.state = istSos
@@ -521,7 +603,7 @@ func (ip *inputParser) scan() {
 			case '\t':
 				// Linux console only, does not conform to ECMA
 				ip.state = istInit
-				ip.post(NewEventKey(KeyBacktab, "", ModNone))
+				ip.postKey(KeyBacktab, "", ModNone)
 			default:
 				if r == '\x1b' {
 					// leading ESC to capture alt
@@ -535,7 +617,8 @@ func (ip *inputParser) scan() {
 						mod |= ModCtrl
 						r += 0x60
 					}
-					ip.post(NewEventKey(KeyRune, string(r), mod))
+					physical, _ := keyFromRune(r)
+					ip.postKeyEx(KeyRune, string(r), mod, true, physical, 1)
 				}
 			}
 		case istCsi:
@@ -585,16 +668,16 @@ func (ip *inputParser) scan() {
 				// parameters that do not match one of these forms, we just discard it.
 				if len(ip.csiParams) == 0 {
 					// simple SS3 case
-					ip.post(NewEventKey(k, "", ModNone))
+					ip.postKey(k, "", ModNone)
 				} else if parts := strings.Split(string(ip.csiParams), ";"); len(parts) >= 1 {
 					// SS3 with modifier (old style).  Note old terminfo would declare these as high
 					// numbered function keys, but we encode as modified since that's how they are entered.
 					if len(parts) >= 2 {
 						if m, err := strconv.Atoi(parts[1]); err == nil && (parts[0] == "1" || parts[0] == "") {
-							ip.post(NewEventKey(k, "", calcModifier(m)))
+							ip.postKey(k, "", calcModifier(m))
 						}
 					} else if m, err := strconv.Atoi(parts[0]); err == nil {
-						ip.post(NewEventKey(k, "", calcModifier(m)))
+						ip.postKey(k, "", calcModifier(m))
 					}
 				}
 			}
@@ -614,9 +697,16 @@ func (ip *inputParser) scan() {
 				ip.strState = ip.state
 				ip.state = istSt
 			case '\x07':
-				ip.handleXda(string(ip.strBuf))
+				if ip.discardString {
+					ip.discardString = false
+					ip.state = istInit
+				} else {
+					ip.handleXda(string(ip.strBuf))
+				}
 			default:
-				ip.strBuf = append(ip.strBuf, byte(r&0x7f))
+				if !ip.discardString {
+					ip.appendStringBytes(byte(r & 0x7f))
+				}
 			}
 
 		case istOsc: // not sure if used
@@ -625,29 +715,42 @@ func (ip *inputParser) scan() {
 				ip.strState = ip.state
 				ip.state = istSt
 			case '\x07':
-				ip.handleOsc(string(ip.strBuf))
+				if ip.discardString {
+					ip.discardString = false
+					ip.state = istInit
+				} else {
+					ip.handleOsc(string(ip.strBuf))
+				}
 			default:
-				ip.strBuf = append(ip.strBuf, byte(r&0x7f))
+				if !ip.discardString {
+					ip.appendStringBytes(byte(r & 0x7f))
+				}
 			}
 		case istSt:
 			if r == '\\' || r == '\x07' {
 				ip.state = istInit
-				switch ip.strState {
-				case istOsc:
-					ip.handleOsc(string(ip.strBuf))
-				case istXda:
-					ip.handleXda(string(ip.strBuf))
-				case istPm, istApc, istSos, istDcs:
-					ip.state = istInit
+				if ip.discardString {
+					ip.discardString = false
+				} else {
+					switch ip.strState {
+					case istOsc:
+						ip.handleOsc(string(ip.strBuf))
+					case istXda:
+						ip.handleXda(string(ip.strBuf))
+					case istPm, istApc, istSos, istDcs:
+						ip.state = istInit
+					}
 				}
 			} else {
-				ip.strBuf = append(ip.strBuf, '\x1b', byte(r))
+				if !ip.discardString {
+					ip.appendStringBytes('\x1b', byte(r))
+				}
 				ip.state = ip.strState
 			}
 		case istLnx:
 			// linux console does not follow ECMA
 			if k, ok := linuxFKeys[r]; ok {
-				ip.post(NewEventKey(k, "", ModNone))
+				ip.postKey(k, "", ModNone)
 			}
 			ip.state = istInit
 		}
@@ -655,13 +758,23 @@ func (ip *inputParser) scan() {
 
 	if ip.state != istInit && time.Since(ip.keyTime) > time.Millisecond*50 {
 		if ip.state == istEsc {
-			ip.post(NewEventKey(KeyEscape, "", ModNone))
+			ip.postKey(KeyEscape, "", ModNone)
 		} else if ec := ip.escChar; ec != 0 {
-			ip.post(NewEventKey(KeyRune, string(ec), ModAlt))
+			ip.postKey(KeyRune, string(ec), ModAlt)
 		}
 		// if we take too long between bytes, reset the state machine.
 		ip.state = istInit
+		ip.discardString = false
 	}
+}
+
+func (ip *inputParser) appendStringBytes(bs ...byte) {
+	if ip.controlStringMax > 0 && len(ip.strBuf)+len(bs) > ip.controlStringMax {
+		ip.strBuf = nil
+		ip.discardString = true
+		return
+	}
+	ip.strBuf = append(ip.strBuf, bs...)
 }
 
 func (ip *inputParser) handleOsc(str string) {
@@ -717,6 +830,99 @@ func calcModifier(n int) ModMask {
 	return m
 }
 
+func calcWinModifier(n int, advanced bool) ModMask {
+	m := ModNone
+	if n&0x010 != 0 {
+		m |= ModShift
+	}
+	if advanced {
+		// Bits through 0x0100 match Win32 dwControlKeyState. 0x0040 and
+		// 0x0080 are ScrollLock and CapsLock, not Meta. The 0x0200 and
+		// 0x0400 bits are tcell extensions used by the WASM browser shim,
+		// which has Meta keys but no native Win32 bit assignment for them.
+		if n&0x0008 != 0 {
+			m |= ModLCtrl
+		}
+		if n&0x0004 != 0 {
+			m |= ModRCtrl
+		}
+		if n&0x0002 != 0 {
+			m |= ModLAlt
+		}
+		if n&0x0001 != 0 {
+			m |= ModRAlt
+		}
+		if n&0x0200 != 0 {
+			m |= ModLMeta
+		}
+		if n&0x0400 != 0 {
+			m |= ModRMeta
+		}
+	} else {
+		if n&0x000c != 0 {
+			m |= ModCtrl
+		}
+		if n&0x0003 != 0 {
+			m |= ModAlt
+		}
+	}
+	return m
+}
+
+func winModifierKey(vk int) (Key, ModMask, bool) {
+	switch vk {
+	case 0x10:
+		return KeyShift, ModShift, true
+	case 0xa0:
+		return KeyShift, ModLShift, true
+	case 0xa1:
+		return KeyShift, ModRShift, true
+	case 0x11:
+		return KeyCtrl, ModCtrl, true
+	case 0xa2:
+		return KeyCtrl, ModLCtrl, true
+	case 0xa3:
+		return KeyCtrl, ModRCtrl, true
+	case 0x12:
+		return KeyAlt, ModAlt, true
+	case 0xa4:
+		return KeyAlt, ModLAlt, true
+	case 0xa5:
+		return KeyAlt, ModRAlt, true
+	case 0x5b:
+		return KeyMeta, ModLMeta, true
+	case 0x5c:
+		return KeyMeta, ModRMeta, true
+	case 0x14:
+		return KeyCapsLock, ModNone, true
+	default:
+		return 0, ModNone, false
+	}
+}
+
+func kittyModifierKey(code int) ModMask {
+	switch code {
+	case 57441:
+		return ModLShift
+	case 57447:
+		return ModRShift
+	case 57442:
+		return ModLCtrl
+	case 57448:
+		return ModRCtrl
+	case 57443:
+		return ModLAlt
+	case 57449:
+		return ModRAlt
+	case 57444:
+		return ModLMeta
+	case 57450:
+		return ModRMeta
+	default:
+		return ModNone
+	}
+}
+
 func (ip *inputParser) handleMouse(mode rune, params []int) {
 
 	// XTerm mouse events only report at most one button at a time,
@@ -729,9 +935,15 @@ func (ip *inputParser) handleMouse(mode rune, params []int) {
 	btn := params[0]
 	// Some terminals will report mouse coordinates outside the
 	// screen, especially with click-drag events.  Clip the coordinates
-	// to the screen in that case.
-	x := max(min(params[1]-1, ip.cols-1), 0)
-	y := max(min(params[2]-1, ip.rows-1), 0)
+	// to the screen in that case.  In pixel-reporting mode (CSI ?1016h)
+	// the values are already pixels rather than cells, so skip the clip
+	// and pass them through unchanged for the application to interpret.
+	x := params[1] - 1
+	y := params[2] - 1
+	if !ip.pixelMouse {
+		x = max(min(x, ip.cols-1), 0)
+		y = max(min(y, ip.rows-1), 0)
+	}
 
 	button := ButtonNone
 	mod := ModNone
@@ -827,7 +1039,7 @@ func (ip *inputParser) handleWinKey(P []int) {
 	for len(P) < 6 {
 		P = append(P, 0) // ensure sufficient length
 	}
-	if P[3] == 0 {
+	if P[3] == 0 && !ip.advanced {
 		// key up event ignore ignore
 		return
 	}
@@ -835,58 +1047,81 @@ func (ip *inputParser) handleWinKey(P []int) {
 	// these terminals never send ambiguous escapes
 	ip.escaped = false
 
-	if P[0] == 0 && P[1] == 0 && P[2] > 0 && P[2] < 0x80 { // only ASCII in win32-input-mode
-		if ip.nested == nil {
-			ip.nested = &inputParser{
-				evch: ip.evch,
-				rows: ip.rows,
-				cols: ip.cols,
+	if P[0] == 0 && P[1] == 0 { // only ASCII in win32-input-mode
+		if b, ok := asciiByteFromInt(P[2]); ok {
+			if ip.nested == nil {
+				ip.nested = &inputParser{
+					evch:             ip.evch,
+					rows:             ip.rows,
+					cols:             ip.cols,
+					advanced:         ip.advanced,
+					pixelMouse:       ip.pixelMouse,
+					controlStringMax: ip.controlStringMax,
+				}
 			}
+			ip.nested.ScanUTF8([]byte{b})
+			return
 		}
-		if P[2] > 0 {
-			ip.nested.ScanUTF8([]byte{byte(P[2])})
-		}
-		return
 	}
 
 	key := KeyRune
 	chr := rune(P[2])
 	mod := ModNone
 	rpt := max(1, P[5])
+	decoded := false
 	if k1, ok := winKeys[P[0]]; ok {
 		chr = 0
 		key = k1
+		decoded = true
+	} else if ip.advanced {
+		if k1, mod1, ok := winModifierKey(P[0]); ok {
+			key = k1
+			mod = mod1
+			chr = 0
+			decoded = true
+		}
+	}
+	if decoded {
+		// Already decoded.
 	} else if chr == 0 && P[0] >= 0x30 && P[0] <= 0x39 {
 		chr = rune(P[0])
 	} else if chr < ' ' && P[0] >= 0x41 && P[0] <= 0x5a {
-		key = Key(P[0])
-		chr = 0
+		if ip.advanced {
+			key = KeyRune
+			chr = rune(P[0] + 0x20)
+		} else {
+			var ok bool
+			if key, ok = keyFromInt(P[0]); !ok {
+				return
+			}
+			chr = 0
+		}
 	} else if chr >= 0xD800 && chr <= 0xDBFF {
 		// high surrogate pair
+		if ip.surrogate != 0 {
+			ip.postKeyEx(KeyRune, string(utf8.RuneError), mod, P[3] != 0, 0, rpt)
+		}
 		ip.surrogate = chr
 		return
 	} else if chr >= 0xDC00 && chr <= 0xDFFF {
 		// low surrogate pair
-		chr = utf16.DecodeRune(ip.surrogate, chr)
-	} else if P[0] == 0x10 || P[0] == 0x11 || P[0] == 0x12 || P[0] == 0x14 {
-		// lone modifiers
+		if ip.surrogate == 0 {
+			chr = utf8.RuneError
+		} else {
+			chr = utf16.DecodeRune(ip.surrogate, chr)
+		}
+	} else if ip.surrogate != 0 {
+		ip.postKeyEx(KeyRune, string(utf8.RuneError), mod, P[3] != 0, 0, rpt)
+	} else if _, _, ok := winModifierKey(P[0]); ok {
+		// Lone modifier releases are ignored unless advanced mode is enabled.
 		ip.surrogate = 0
 		return
 	}
 
 	ip.surrogate = 0
 
-	// Modifiers
-	if P[4]&0x010 != 0 {
-		mod |= ModShift
-	}
-	if P[4]&0x000c != 0 {
-		mod |= ModCtrl
-	}
-	if P[4]&0x0003 != 0 {
-		mod |= ModAlt
-	}
-	if key == KeyRune && chr > ' ' && mod == ModShift {
+	mod |= calcWinModifier(P[4], ip.advanced)
+	if key == KeyRune && chr > ' ' && mod == ModShift && !ip.advanced {
 		// filter out lone shift for printable chars
 		mod = ModNone
 	}
@@ -895,12 +1130,17 @@ func (ip *inputParser) handleWinKey(P []int) {
 		mod = ModNone
 	}
 
-	for range rpt {
-		if key != KeyRune {
-			ip.post(NewEventKey(key, "", mod))
-		} else if chr != 0 {
-			ip.post(NewEventKey(KeyRune, string(chr), mod))
+	physical := key
+	if key == KeyRune && chr != 0 {
+		physical, _ = keyFromRune(chr)
+		if ip.advanced && P[0] >= 0x41 && P[0] <= 0x5a {
+			physical, _ = keyFromInt(P[0] + 0x20)
 		}
+	}
+	if key != KeyRune {
+		ip.postKeyEx(key, "", mod, P[3] != 0, physical, rpt)
+	} else if chr != 0 {
+		ip.postKeyEx(KeyRune, string(chr), mod, P[3] != 0, physical, rpt)
 	}
 }
 
@@ -976,7 +1216,6 @@ func (ip *inputParser) handleCsi(mode rune, params []byte, intermediate []byte) 
 	// reset state
 	ip.state = istInit
 
-	var parts []string
 	var P []int
 	hasLT := false
 	hasQM := false
@@ -994,15 +1233,53 @@ func (ip *inputParser) handleCsi(mode rune, params []byte, intermediate []byte) 
 		pstr = pstr[1:]
 	}
 
+	pressed := true
+	repeat := 1
+	physical := Key(0)
 	if pstr != "" && pstr[0] >= '0' && pstr[0] <= '9' {
-		parts = strings.Split(pstr, ";")
+		var PSubs [][]int
+
+		parts := strings.Split(pstr, ";")
 		for i := range parts {
-			if parts[i] != "" {
-				if n, e := strconv.ParseInt(parts[i], 10, 32); e == nil {
+			subparts := strings.Split(parts[i], ":")
+			if subparts[0] != "" {
+				if n, e := strconv.ParseInt(subparts[0], 10, 32); e == nil {
 					P = append(P, int(n))
+				} else {
+					P = append(P, 0)
 				}
 			} else {
 				P = append(P, 0)
+			}
+			subs := []int{}
+			for _, sub := range subparts[1:] {
+				if sub != "" {
+					if n, e := strconv.ParseInt(sub, 10, 32); e == nil {
+						subs = append(subs, int(n))
+					}
+				} else {
+					subs = append(subs, 0)
+				}
+			}
+			PSubs = append(PSubs, subs)
+		}
+		if len(PSubs) > 1 && len(PSubs[1]) > 0 {
+			switch PSubs[1][0] {
+			case 2:
+				repeat = 2
+			case 3:
+				pressed = false
+			}
+		}
+		if len(PSubs) > 0 && len(PSubs[0]) > 0 {
+			base := PSubs[0][0]
+			if baseKey, ok := csiUKeys[base]; ok {
+				physical = baseKey.Key
+				if physical == KeyRune && baseKey.Rune != 0 {
+					physical, _ = keyFromRune(baseKey.Rune)
+				}
+			} else if base != 0 {
+				physical, _ = keyFromInt(base)
 			}
 		}
 	}
@@ -1076,10 +1353,13 @@ func (ip *inputParser) handleCsi(mode rune, params []byte, intermediate []byte) 
 			if len(P) > 1 {
 				mod = calcModifier(P[1])
 			}
+			if mod1 := kittyModifierKey(P0); mod1 != ModNone {
+				mod |= mod1
+			}
 			if key != KeyRune {
-				ip.post(NewEventKey(key, "", mod))
+				ip.postKeyEx(key, "", mod, pressed, physical, repeat)
 			} else if chr != 0 {
-				ip.post(NewEventKey(KeyRune, string(chr), mod))
+				ip.postKeyEx(KeyRune, string(chr), mod, pressed, physical, repeat)
 			}
 			return
 		}
@@ -1114,14 +1394,17 @@ func (ip *inputParser) handleCsi(mode rune, params []byte, intermediate []byte) 
 		if len(P) >= 2 {
 			mod := calcModifier(P[1])
 			if ks, ok := csiAllKeys[csiParamMode{M: mode, P: P0}]; ok {
-				ip.post(NewEventKey(ks.Key, "", mod))
+				ip.postKeyEx(ks.Key, "", mod, pressed, 0, repeat)
 				return
 			}
-			if P0 == 27 && len(P) > 2 && P[2] > 0 && P[2] <= 0xff {
+			if P0 == 27 && len(P) > 2 && P[2] > 0 && P[2] <= utf8.MaxRune {
 				if P[2] < ' ' || P[2] == 0x7F {
-					ip.post(NewEventKey(Key(P[2]), "", mod))
+					if key, ok := keyFromInt(P[2]); ok {
+						ip.postKey(key, "", mod)
+					}
 				} else {
-					ip.post(NewEventKey(KeyRune, string(rune(P[2])), mod))
+					physical, _ := keyFromRune(rune(P[2]))
+					ip.postKeyEx(KeyRune, string(rune(P[2])), mod, true, physical, 1)
 				}
 				return
 			}
@@ -1135,13 +1418,13 @@ func (ip *inputParser) handleCsi(mode rune, params []byte, intermediate []byte) 
 		} else if mode == 'P' && os.Getenv("TERM") == "aixterm" {
 			ks.Key = KeyDelete // aixterm hack - conflicts with kitty protocol
 		}
-		ip.post(NewEventKey(ks.Key, "", ks.Mod))
+		ip.postKey(ks.Key, "", ks.Mod)
 		return
 	}
 
 	// this might have been an SS3 style key with modifiers applied
 	if k, ok := ss3Keys[mode]; ok && P0 == 1 && len(P) > 1 {
-		ip.post(NewEventKey(k, "", calcModifier(P[1])))
+		ip.postKeyEx(k, "", calcModifier(P[1]), pressed, 0, repeat)
 		return
 	}
 	// if we got here we just swallow the unknown sequence

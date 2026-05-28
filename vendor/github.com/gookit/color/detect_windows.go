@@ -30,11 +30,8 @@ var (
 )
 
 func init() {
-	// if support color 16+, don't need to enable VTP
-	if colorLevel > Level16 {
-		return
-	}
-	if !Enable { // disable color
+	// needVTP=false OR Enable=false: Don't need to enable virtual process
+	if !needVTP || !Enable {
 		return
 	}
 
@@ -146,7 +143,7 @@ func detectSpecialTermColor(termVal string) (tl Level, needVTP bool) {
 	}
 
 	// Windows 10 build 14931 is the first release that supports 16m/TrueColor
-	debugf("support True Color on windows version is >= build 14931")
+	debugf("support True Color on windows version >= 14931, needVTP=true")
 	return LevelRgb, true
 }
 

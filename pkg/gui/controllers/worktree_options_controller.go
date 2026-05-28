@@ -36,7 +36,7 @@ func NewWorktreeOptionsController(c *ControllerCommon, context CanViewWorktreeOp
 func (self *WorktreeOptionsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Worktrees.ViewWorktreeOptions),
+			Keys:        opts.GetKeys(opts.Config.Worktrees.ViewWorktreeOptions),
 			Handler:     self.withItem(self.viewWorktreeOptions),
 			Description: self.c.Tr.ViewWorktreeOptions,
 			OpensMenu:   true,

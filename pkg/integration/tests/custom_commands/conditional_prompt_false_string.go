@@ -15,7 +15,7 @@ var ConditionalPromptFalseString = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "files",
 				Command: `echo "{{.Form.Choice}}" > result.txt`,
 				Prompts: []config.CustomCommandPrompt{
@@ -55,7 +55,7 @@ var ConditionalPromptFalseString = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
 			IsFocused().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Menu().Title(Equals("Pick one")).Select(Contains("foo")).Confirm()
 

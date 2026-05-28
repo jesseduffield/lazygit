@@ -53,13 +53,13 @@ type reflogAction struct {
 func (self *UndoController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Undo),
+			Keys:        opts.GetKeys(opts.Config.Universal.Undo),
 			Handler:     self.reflogUndo,
 			Description: self.c.Tr.UndoReflog,
 			Tooltip:     self.c.Tr.UndoTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Redo),
+			Keys:        opts.GetKeys(opts.Config.Universal.Redo),
 			Handler:     self.reflogRedo,
 			Description: self.c.Tr.RedoReflog,
 			Tooltip:     self.c.Tr.RedoTooltip,

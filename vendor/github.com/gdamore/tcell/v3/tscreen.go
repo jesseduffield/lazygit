@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build !js && !wasm
-// +build !js,!wasm
+//go:build (!js && !wasm) || (js && wasm)
+// +build !js,!wasm js,wasm
 
 package tcell
 
@@ -83,6 +83,53 @@ func (o OptAltScreen) apply(t *tScreen) {
 	t.altScreen = bool(o)
 }
 
+// OptSanitizeContent enables stripping control characters from content passed
+// to Put and PutStr. This is safer, but a little slower than leaving content
+// unsanitized.
+type OptSanitizeContent bool
+
+func (o OptSanitizeContent) apply(t *tScreen) {
+	t.cells.sanitizeContent = bool(o)
+}
+
+// OptAdvancedKeys enables richer key reporting where supported.  In this mode
+// key events may include release state, repeat counts, and physical keys, and
+// ASCII control letters are reported as KeyRune with ModCtrl instead of
+// KeyCtrlA through KeyCtrlZ.  Shift-Tab is reported as KeyTab with ModShift,
+// rather than KeyBacktab.
+type OptAdvancedKeys bool
+
+func (o OptAdvancedKeys) apply(t *tScreen) {
+	t.advancedKeys = bool(o)
+}
+
+// OptKeyboardProtocol forces the keyboard reporting protocol instead of using
+// startup negotiation. The zero value forces legacy keyboard reporting.
+type OptKeyboardProtocol KeyProtocol
+
+func (o OptKeyboardProtocol) apply(t *tScreen) {
+	t.forceKeyboardProtocol(KeyProtocol(o))
+}
+
+// OptNegotiation controls whether terminal capabilities are negotiated during
+// startup. The default is true.
+type OptNegotiation bool
+
+func (o OptNegotiation) apply(t *tScreen) {
+	t.negotiate = bool(o)
+}
+
+// OptControlStringLimit sets the maximum inbound control-string payload size
+// accepted from the terminal before the parser drops the sequence. This limits
+// OSC and XDA strings, including OSC 52 clipboard strings; OSC 52 is the
+// protocol used for writing clipboard data through the terminal. The default is
+// 64 KiB; a value of 0 disables the limit.
+type OptControlStringLimit int
+
+func (o OptControlStringLimit) apply(t *tScreen) {
+	t.controlStringLimit = max(int(o), 0)
+}
+
 // Some terminal escapes that are basically universal.
 // We would really like to be able to use private mode queries for some of
 // these but generally we've found that support for queries is not always present,
@@ -132,6 +179,7 @@ const (
 	notifyDesktop777  = "\x1b]777;notify;%s;%s\x1b\\"       // Most commonly supported
 	queryKittyKbd     = "\x1b[?u"                           // Query for Kitty keyboard support
 	enableKittyKbd    = "\x1b[=1u"                          // Technically this pushes
+	enableKittyKbdAdv = "\x1b[=15u"                         // disambiguation, events, alternate keys, all keys
 	disableKittyKbd   = "\x1b[=0u"                          // Technically this means pop previous mode
 	queryXTermKbd     = "\x1b[?4m"                          // Query for XTerm modify other keys support
 	enableXTermKbd    = "\x1b[>4;2m"                        // Enable modify other keys protocol
@@ -143,7 +191,12 @@ const (
 // is presumed, at least on UNIX hosts. (Windows hosts will typically fail this
 // call altogether.)
 func NewTerminfoScreenFromTty(tty Tty, opts ...TerminfoScreenOption) (Screen, error) {
-	t := &tScreen{tty: tty, altScreen: true}
+	t := &tScreen{
+		tty:                tty,
+		altScreen:          true,
+		negotiate:          true,
+		controlStringLimit: defaultControlStringLimit,
+	}
 
 	t.prepareCursorStyles()
 	t.prepareExtendedOSC()
@@ -160,76 +213,145 @@ func NewTerminfoScreenFromTty(tty Tty, opts ...TerminfoScreenOption) (Screen, er
 
 // tScreen represents a screen backed by a terminfo implementation.
 type tScreen struct {
-	tty           Tty
-	h             int
-	w             int
-	fini          bool
-	cells         CellBuffer
-	buffering     bool // true if we are collecting writes to buf instead of sending directly to out
-	buf           bytes.Buffer
-	curstyle      Style
-	style         Style
-	resizeQ       chan bool
-	quit          chan struct{}
-	keyQ          chan []byte
-	cx            int
-	cy            int
-	cls           bool // clear screen
-	cursorx       int
-	cursory       int
-	acs           map[rune]string
-	charset       string
-	encoder       transform.Transformer
-	decoder       transform.Transformer
-	fallback      map[rune]string
-	ncolor        int
-	colors        map[color.Color]color.Color
-	palette       []color.Color
-	truecolor     bool
-	noColor       bool
-	legacy        bool
-	hasClipboard  bool // true if OSC 52 reported via DA1
-	finiOnce      sync.Once
-	enterUrl      string
-	exitUrl       string
-	setWinSize    string
-	cursorStyles  map[CursorStyle]string
-	cursorStyle   CursorStyle
-	cursorColor   color.Color
-	cursorRGB     string
-	cursorFg      string
-	stopQ         chan struct{}
-	eventQ        chan Event
-	initQ         chan Event
-	initted       bool
-	running       bool
-	startTime     time.Time
-	wg            sync.WaitGroup
-	mouseFlags    MouseFlags
-	pasteEnabled  bool
-	focusEnabled  bool
-	setTitle      string
-	saveTitle     string
-	restoreTitle  string
-	title         string
-	setClipboard  string
-	notifyDesktop string
-	termName      string
-	termVers      string
-	term          string // value from $TERM
-	altScreen     bool
-	inlineResize  bool
-	haveMouse     bool
-	haveMouseSgr  bool
-	haveKittyKbd  bool
-	haveWin32Kbd  bool
-	haveXTermKbd  bool
-	input         *inputParser
+	tty                Tty
+	h                  int
+	w                  int
+	fini               bool
+	cells              CellBuffer
+	buffering          bool // true if we are collecting writes to buf instead of sending directly to out
+	buf                bytes.Buffer
+	curstyle           Style
+	style              Style
+	resizeQ            chan bool
+	quit               chan struct{}
+	keyQ               chan []byte
+	cx                 int
+	cy                 int
+	cls                bool // clear screen
+	cursorx            int
+	cursory            int
+	acs                map[rune]string
+	charset            string
+	encoder            transform.Transformer
+	decoder            transform.Transformer
+	fallback           map[rune]string
+	ncolor             int
+	colors             map[color.Color]color.Color
+	palette            []color.Color
+	truecolor          bool
+	noColor            bool
+	legacy             bool
+	hasClipboard       bool // true if OSC 52 reported via DA1
+	finiOnce           sync.Once
+	enterUrl           string
+	exitUrl            string
+	setWinSize         string
+	cursorStyles       map[CursorStyle]string
+	cursorStyle        CursorStyle
+	cursorColor        color.Color
+	cursorRGB          string
+	cursorFg           string
+	stopQ              chan struct{}
+	eventQ             chan Event
+	initQ              chan Event
+	initted            bool
+	running            bool
+	startTime          time.Time
+	wg                 sync.WaitGroup
+	mouseFlags         MouseFlags
+	pasteEnabled       bool
+	focusEnabled       bool
+	setTitle           string
+	saveTitle          string
+	restoreTitle       string
+	title              string
+	setClipboard       string
+	notifyDesktop      string
+	termName           string
+	termVers           string
+	term               string // value from $TERM
+	altScreen          bool
+	inlineResize       bool
+	haveMouse          bool
+	haveMouseSgr       bool
+	haveKittyKbd       bool
+	haveWin32Kbd       bool
+	haveXTermKbd       bool
+	forcedKbd          KeyProtocol
+	forceKbd           bool
+	negotiate          bool
+	mouseDisabled      bool
+	advancedKeys       bool
+	controlStringLimit int
+	input              *inputParser
 	sync.Mutex
 }
 
 func (t *tScreen) useAltScreen() bool {
 	return t.altScreen && os.Getenv("TCELL_ALTSCREEN") != "disable"
+}
+
+func validKeyboardProtocol(p KeyProtocol) bool {
+	switch p {
+	case LegacyKeyboard, KittyKeyboard, Win32Keyboard, XTermKeyboard:
+		return true
+	default:
+		return false
+	}
+}
+
+func parseKeyboardProtocol(s string) (KeyProtocol, bool) {
+	switch s {
+	case "legacy":
+		return LegacyKeyboard, true
+	case "kitty":
+		return KittyKeyboard, true
+	case "win32":
+		return Win32Keyboard, true
+	case "xterm":
+		return XTermKeyboard, true
+	default:
+		return LegacyKeyboard, false
+	}
+}
+
+func (t *tScreen) forceKeyboardProtocol(p KeyProtocol) bool {
+	if !validKeyboardProtocol(p) {
+		return false
+	}
+	t.forcedKbd = p
+	t.forceKbd = true
+	return true
+}
+
+func (t *tScreen) applyKeyboardProtocolOverride() {
+	if !t.forceKbd {
+		return
+	}
+	t.haveKittyKbd = t.forcedKbd == KittyKeyboard
+	t.haveWin32Kbd = t.forcedKbd == Win32Keyboard
+	t.haveXTermKbd = t.forcedKbd == XTermKeyboard
+}
+
+func (t *tScreen) applyEnvironmentOverrides() {
+	switch os.Getenv("TCELL_KEYBOARD_PROTOCOL") {
+	case "auto":
+		t.forceKbd = false
+	case "":
+	default:
+		if p, ok := parseKeyboardProtocol(os.Getenv("TCELL_KEYBOARD_PROTOCOL")); ok {
+			t.forceKeyboardProtocol(p)
+		}
+	}
+
+	switch os.Getenv("TCELL_NEGOTIATE") {
+	case "auto":
+		t.negotiate = true
+	case "disable":
+		t.negotiate = false
+	}
+
+	t.mouseDisabled = os.Getenv("TCELL_MOUSE") == "disable"
 }
 
 func (t *tScreen) Init() error {
@@ -307,11 +429,15 @@ func (t *tScreen) Init() error {
 		t.legacy = true
 	}
 
+	t.applyEnvironmentOverrides()
+
 	t.initted = false
 	t.quit = make(chan struct{})
 	t.initQ = make(chan Event, 32)
 	t.eventQ = make(chan Event, 128)
 	t.input = newInputParser(t.filterEvents())
+	t.input.advanced = t.advancedKeys
+	t.input.controlStringMax = t.controlStringLimit
 
 	t.Lock()
 	t.cx = -1
@@ -480,6 +606,9 @@ func (t *tScreen) Fini() {
 }
 
 func (t *tScreen) finish() {
+	t.Lock()
+	t.fini = true
+	t.Unlock()
 	close(t.quit)
 	t.finalize()
 }
@@ -664,6 +793,13 @@ func (t *tScreen) emitUrl(u urlInfo) {
 	}
 }
 
+// urlNeedsEmission reports whether a hyperlink transition has any wire effect.
+// Url ids can be staged before the Url itself, and id-only transitions have no
+// OSC 8 representation of their own.
+func urlNeedsEmission(oldUrl, newUrl urlInfo) bool {
+	return oldUrl != newUrl && (oldUrl.url != "" || newUrl.url != "")
+}
+
 func (t *tScreen) drawCell(x, y int) int {
 
 	str, style, width := t.cells.Get(x, y)
@@ -697,8 +833,8 @@ func (t *tScreen) drawCell(x, y int) int {
 		if style.url != nil {
 			newUrl = *style.url
 		}
-		// URL string can be long, so don't send it unless we really need to
-		if newUrl != oldUrl {
+		// URL string can be long, so don't send it unless we really need to.
+		if urlNeedsEmission(oldUrl, newUrl) {
 			t.emitUrl(newUrl)
 		}
 
@@ -746,6 +882,10 @@ func (t *tScreen) drawCell(x, y int) int {
 
 func (t *tScreen) ShowCursor(x, y int) {
 	t.Lock()
+	if t.fini {
+		t.Unlock()
+		return
+	}
 	t.cursorx = x
 	t.cursory = y
 	t.Unlock()
@@ -753,6 +893,10 @@ func (t *tScreen) ShowCursor(x, y int) {
 
 func (t *tScreen) SetCursor(cs CursorStyle, cc Color) {
 	t.Lock()
+	if t.fini {
+		t.Unlock()
+		return
+	}
 	t.cursorStyle = cs
 	t.cursorColor = cc
 	t.Unlock()
@@ -876,6 +1020,10 @@ func (t *tScreen) draw() {
 		}
 	}
 
+	if t.curstyle.url != nil && t.curstyle.url.url != "" {
+		t.emitUrl(urlInfo{})
+	}
+
 	// restore the cursor
 	t.showCursor()
 
@@ -894,6 +1042,10 @@ func (t *tScreen) EnableMouse(flags ...MouseFlags) {
 	}
 
 	t.Lock()
+	if t.fini {
+		t.Unlock()
+		return
+	}
 	t.mouseFlags = f
 	t.enableMouse(f)
 	t.Unlock()
@@ -912,7 +1064,10 @@ func (t *tScreen) enableMouse(f MouseFlags) {
 	// so we enable the mouse unconditionally unless we get a report
 	// that says we have mouse, but not SGR mouse.  This is suboptimal, but
 	// a concession forced by the sorry state of terminal emulators.
-	if t.haveMouse && !t.haveMouseSgr {
+	if t.mouseDisabled {
+		f = 0
+	}
+	if f != 0 && t.haveMouse && !t.haveMouseSgr {
 		return
 	}
 
@@ -921,6 +1076,10 @@ func (t *tScreen) enableMouse(f MouseFlags) {
 	t.Print(vt.PmMouseDrag.Disable())
 	t.Print(vt.PmMouseMotion.Disable())
 	t.Print(vt.PmMouseSgr.Disable())
+	t.Print(vt.PmMouseSgrPixel.Disable())
+
+	pixel := f&MousePixelEvents != 0
+	t.input.SetPixelMouse(pixel)
 
 	if f&(MouseButtonEvents|MouseDragEvents|MouseMotionEvents) != 0 {
 		t.Print(vt.PmMouseButton.Enable())
@@ -932,12 +1091,20 @@ func (t *tScreen) enableMouse(f MouseFlags) {
 		t.Print(vt.PmMouseMotion.Enable())
 	}
 	if f&(MouseButtonEvents|MouseDragEvents|MouseMotionEvents) != 0 {
-		t.Print(vt.PmMouseSgr.Enable())
+		if pixel {
+			t.Print(vt.PmMouseSgrPixel.Enable())
+		} else {
+			t.Print(vt.PmMouseSgr.Enable())
+		}
 	}
 }
 
 func (t *tScreen) DisableMouse() {
 	t.Lock()
+	if t.fini {
+		t.Unlock()
+		return
+	}
 	t.mouseFlags = 0
 	t.enableMouse(0)
 	t.Unlock()
@@ -945,6 +1112,10 @@ func (t *tScreen) DisableMouse() {
 
 func (t *tScreen) EnablePaste() {
 	t.Lock()
+	if t.fini {
+		t.Unlock()
+		return
+	}
 	t.pasteEnabled = true
 	t.enablePasting(true)
 	t.Unlock()
@@ -952,6 +1123,10 @@ func (t *tScreen) EnablePaste() {
 
 func (t *tScreen) DisablePaste() {
 	t.Lock()
+	if t.fini {
+		t.Unlock()
+		return
+	}
 	t.pasteEnabled = false
 	t.enablePasting(false)
 	t.Unlock()
@@ -971,6 +1146,10 @@ func (t *tScreen) enablePasting(on bool) {
 
 func (t *tScreen) EnableFocus() {
 	t.Lock()
+	if t.fini {
+		t.Unlock()
+		return
+	}
 	t.focusEnabled = true
 	t.enableFocusReporting()
 	t.Unlock()
@@ -978,6 +1157,10 @@ func (t *tScreen) EnableFocus() {
 
 func (t *tScreen) DisableFocus() {
 	t.Lock()
+	if t.fini {
+		t.Unlock()
+		return
+	}
 	t.focusEnabled = false
 	t.disableFocusReporting()
 	t.Unlock()
@@ -1189,6 +1372,11 @@ func (t *tScreen) UnregisterRuneFallback(orig rune) {
 }
 
 func (t *tScreen) SetSize(w, h int) {
+	t.Lock()
+	defer t.Unlock()
+	if t.fini {
+		return
+	}
 	if t.setWinSize != "" {
 		t.Printf(t.setWinSize, w, h)
 	}
@@ -1199,16 +1387,73 @@ func (t *tScreen) SetSize(w, h int) {
 func (t *tScreen) Resize(int, int, int, int) {}
 
 func (t *tScreen) Suspend() error {
-	t.disengage()
+	t.Lock()
+	if t.fini {
+		t.Unlock()
+		return nil
+	}
+	finish := t.disengageStart()
+	t.Unlock()
+	if finish {
+		t.disengageFinish()
+	}
 	return nil
 }
 
 func (t *tScreen) Resume() error {
-	return t.engage()
+	t.Lock()
+	defer t.Unlock()
+	if t.fini {
+		return nil
+	}
+	return t.engageLocked()
 }
 
 func (t *tScreen) Tty() (Tty, bool) {
 	return t.tty, true
+}
+
+func (t *tScreen) applyKnownTerminalProfile(goos, termProgram string) bool {
+	switch termProgram {
+	case "Apple_Terminal":
+		// macOS Terminal.app cannot handle the startup queries, but it does
+		// support modern mouse reporting.
+		t.haveMouse = true
+		t.haveMouseSgr = true
+		t.termName = "Terminal.app"
+		t.termVers = os.Getenv("TERM_PROGRAM_VERSION")
+		return true
+	case "WezTerm":
+		// The WezTerm keyboard protocol to use is in theory driven by its
+		// own configuration, but we have found this unreliable because it
+		// does not mask unsupported capabilities.  Furthermore, on Windows
+		// builds the kitty protocol implementation is broken, while on other
+		// builds win32-input-mode is broken.  This is a best effort to make
+		// WezTerm work reasonably; our stronger advice is to choose another
+		// terminal program altogether.  This workaround will probably not
+		// apply to ssh sessions, as TERM_PROGRAM is not normally propagated.
+		if goos == "windows" {
+			t.haveWin32Kbd = true
+		} else {
+			t.haveKittyKbd = true
+			t.haveWin32Kbd = false
+		}
+		t.haveMouse = true
+		t.haveMouseSgr = true
+		t.initted = true
+		t.termName = "WezTerm"
+		t.termVers = os.Getenv("TERM_PROGRAM_VERSION")
+		return true
+	}
+	return false
+}
+
+func useVTWindowSizeQuery(goos string) bool {
+	return goos != "windows"
+}
+
+func useXTermKeyboardQuery(goos string) bool {
+	return goos != "windows"
 }
 
 // engage is used to place the terminal in raw mode and establish screen size, etc.
@@ -1217,6 +1462,11 @@ func (t *tScreen) Tty() (Tty, bool) {
 func (t *tScreen) engage() error {
 	t.Lock()
 	defer t.Unlock()
+	return t.engageLocked()
+}
+
+// engageLocked is engage's implementation when t's lock is already held.
+func (t *tScreen) engageLocked() error {
 	if t.tty == nil {
 		return ErrNoScreen
 	}
@@ -1234,24 +1484,37 @@ func (t *tScreen) engage() error {
 	go t.mainLoop(stopQ)
 
 	if !t.initted {
-		t.Print(requestWindowSize)
 		// macOS Terminal.app is brain damaged
 		// https://garrett.damore.org/2025/12/macos-terminal-still-missing-mark-apple.html
 		// Eventually they'll hopefully fix this.  As the environment variable
 		// does not convey by default via ssh, remote sessions might see spurious characters
 		// emitted during startup.  See the blog post for alternatives.
-		if os.Getenv("TERM_PROGRAM") != "Apple_Terminal" {
+		if !t.applyKnownTerminalProfile(runtime.GOOS, os.Getenv("TERM_PROGRAM")) && t.negotiate {
+			if useVTWindowSizeQuery(runtime.GOOS) {
+				t.Print(requestWindowSize)
+			}
 			t.Print(vt.PmResizeReports.Query())
 			t.Print(vt.PmMouseButton.Query())
 			t.Print(vt.PmMouseSgr.Query())
-			t.Print(vt.PmWin32Input.Query())
-			t.Print(queryKittyKbd)
-			t.Print(queryXTermKbd)
+			if !t.forceKbd {
+				t.Print(vt.PmWin32Input.Query())
+				t.Print(queryKittyKbd)
+				if useXTermKeyboardQuery(runtime.GOOS) {
+					// XTerm's modifyOtherKeys mode is mainly useful for XTerm
+					// itself, and we do not use it on Windows.
+					t.Print(queryXTermKbd)
+				}
+			}
 			t.Print(requestExtAttr)
 		}
-		t.Print(requestPrimaryDA) // NB: MUST BE LAST
+		if !t.negotiate {
+			t.initted = true
+		} else if !t.initted {
+			t.Print(requestPrimaryDA) // NB: MUST BE LAST
+		}
 	}
 	t.processInitQ()
+	t.applyKeyboardProtocolOverride()
 	if t.useAltScreen() {
 		// Technically this may not be right, but every terminal we know about
 		// (even Wyse 60) uses this to enter the alternate screen buffer, and
@@ -1264,7 +1527,11 @@ func (t *tScreen) engage() error {
 	if t.haveWin32Kbd {
 		t.Print(vt.PmWin32Input.Enable())
 	} else if t.haveKittyKbd {
-		t.Print(enableKittyKbd)
+		if t.advancedKeys {
+			t.Print(enableKittyKbdAdv)
+		} else {
+			t.Print(enableKittyKbd)
+		}
 	} else if t.haveXTermKbd {
 		t.Print(enableXTermKbd)
 	}
@@ -1286,17 +1553,9 @@ func (t *tScreen) engage() error {
 	if t.title != "" && t.setTitle != "" {
 		t.Printf(t.setTitle, t.title)
 	}
-	if runtime.GOOS == "windows" {
-		// This workaround exists because of what we believe to be bugs in the
-		// interaction between ConPTY, the VT-Input layer, and some terminal emulators
-		// such as WezTerm.  Note that it is *not* needed for Windows Terminal, but
-		// should be benign there.  As another note, we have observed that at least Alacritty
-		// and WezTerm do not properly handle the primaryDA query on these platforms.
-		// (WezTerm performs much better when running a remote shell or on macOS.)
-		t.Print(enableKittyKbd)
-		t.Print(vt.PmWin32Input.Enable())
+	if t.negotiate && useVTWindowSizeQuery(runtime.GOOS) {
+		t.Print(requestWindowSize)
 	}
-	t.Print(requestWindowSize)
 
 	if t.inlineResize {
 		t.Print(vt.PmResizeReports.Enable())
@@ -1311,11 +1570,19 @@ func (t *tScreen) engage() error {
 // can take over the terminal interface.  This restores the TTY mode that was
 // present when the application was first started.
 func (t *tScreen) disengage() {
-
 	t.Lock()
+	finish := t.disengageStart()
+	t.Unlock()
+	if finish {
+		t.disengageFinish()
+	}
+}
+
+// disengageStart begins a disengage operation while t's lock is already held.
+// It returns true when disengageFinish must be called after releasing the lock.
+func (t *tScreen) disengageStart() bool {
 	if !t.running {
-		t.Unlock()
-		return
+		return false
 	}
 
 	t.running = false
@@ -1327,8 +1594,12 @@ func (t *tScreen) disengage() {
 	stopQ := t.stopQ
 	close(stopQ)
 	_ = t.tty.Drain()
-	t.Unlock()
+	return true
+}
 
+// disengageFinish completes a disengage operation after disengageStart has
+// released the running loops.
+func (t *tScreen) disengageFinish() {
 	// wait for everything to shut down
 	t.wg.Wait()
 
@@ -1357,7 +1628,6 @@ func (t *tScreen) disengage() {
 	// Hack for Windows.
 	if runtime.GOOS == "windows" {
 		t.Print(vt.PmWin32Input.Disable())
-		t.Print(disableKittyKbd)
 	}
 
 	// t.Print(t.disableCsiU)
@@ -1375,6 +1645,11 @@ func (t *tScreen) disengage() {
 
 // Beep emits a beep to the terminal.
 func (t *tScreen) Beep() error {
+	t.Lock()
+	defer t.Unlock()
+	if t.fini {
+		return nil
+	}
 	t.Print(string(byte(7)))
 	return nil
 }
@@ -1401,9 +1676,13 @@ func (t *tScreen) GetCells() *CellBuffer {
 
 func (t *tScreen) SetTitle(title string) {
 	t.Lock()
-	t.title = title
+	if t.fini {
+		t.Unlock()
+		return
+	}
+	t.title = stripOSCControlsIfNeeded(title)
 	if t.setTitle != "" && t.running {
-		t.Printf(t.setTitle, title)
+		t.Printf(t.setTitle, t.title)
 	}
 	t.Unlock()
 }
@@ -1411,6 +1690,10 @@ func (t *tScreen) SetTitle(title string) {
 func (t *tScreen) SetClipboard(data []byte) {
 	// Post binary data to the system clipboard.  It might be UTF-8, it might not be.
 	t.Lock()
+	if t.fini {
+		t.Unlock()
+		return
+	}
 	if t.setClipboard != "" {
 		encoded := base64.StdEncoding.EncodeToString(data)
 		t.Printf(t.setClipboard, encoded)
@@ -1420,6 +1703,10 @@ func (t *tScreen) SetClipboard(data []byte) {
 
 func (t *tScreen) GetClipboard() {
 	t.Lock()
+	if t.fini {
+		t.Unlock()
+		return
+	}
 	if t.setClipboard != "" {
 		t.Printf(t.setClipboard, "?")
 	}
@@ -1432,7 +1719,11 @@ func (t *tScreen) HasClipboard() bool {
 
 func (t *tScreen) ShowNotification(title string, body string) {
 	t.Lock()
-	t.Printf(t.notifyDesktop, title, body)
+	if t.fini {
+		t.Unlock()
+		return
+	}
+	t.Printf(t.notifyDesktop, stripOSCControlsIfNeeded(title), stripOSCControlsIfNeeded(body))
 	t.Unlock()
 }
 
@@ -1440,4 +1731,19 @@ func (t *tScreen) Terminal() (string, string) {
 	t.Lock()
 	defer t.Unlock()
 	return t.termName, t.termVers
+}
+
+func (t *tScreen) KeyboardProtocol() KeyProtocol {
+	t.Lock()
+	defer t.Unlock()
+	if t.haveWin32Kbd {
+		return Win32Keyboard
+	}
+	if t.haveKittyKbd {
+		return KittyKeyboard
+	}
+	if t.haveXTermKbd {
+		return XTermKeyboard
+	}
+	return LegacyKeyboard
 }

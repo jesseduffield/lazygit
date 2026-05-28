@@ -35,7 +35,7 @@ func (self *KeybindingCreator) call(customCommand config.CustomCommand, handler 
 	return lo.Map(viewNames, func(viewName string, _ int) *types.Binding {
 		return &types.Binding{
 			ViewName:    viewName,
-			Key:         config.GetValidatedKeyBindingKey(customCommand.Key),
+			Keys:        config.GetValidatedKeyBindingKeys(customCommand.Key),
 			Handler:     handler,
 			Description: customCommand.GetDescription(),
 		}
@@ -80,9 +80,9 @@ func formatUnknownContextError(customCommand config.CustomCommand) error {
 		return string(key)
 	})
 
-	return fmt.Errorf("Error when setting custom command keybindings: unknown context: %s. Key: %s, Command: %s.\nPermitted contexts: %s", customCommand.Context, customCommand.Key, customCommand.Command, strings.Join(allContextKeyStrings, ", "))
+	return fmt.Errorf("Error when setting custom command keybindings: unknown context: %s. Key: %s, Command: %s.\nPermitted contexts: %s", customCommand.Context, customCommand.Key.String(), customCommand.Command, strings.Join(allContextKeyStrings, ", "))
 }
 
 func formatContextNotProvidedError(customCommand config.CustomCommand) error {
-	return fmt.Errorf("Error parsing custom command keybindings: context not provided (use context: 'global' for the global context). Key: %s, Command: %s", customCommand.Key, customCommand.Command)
+	return fmt.Errorf("Error parsing custom command keybindings: context not provided (use context: 'global' for the global context). Key: %s, Command: %s", customCommand.Key.String(), customCommand.Command)
 }

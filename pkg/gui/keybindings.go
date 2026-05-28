@@ -69,9 +69,9 @@ func (gui *Gui) keybindingOpts() types.KeybindingsOpts {
 	}
 
 	return types.KeybindingsOpts{
-		GetKey: config.GetValidatedKeyBindingKey,
-		Config: keybindingConfig,
-		Guards: guards,
+		GetKeys: config.GetValidatedKeyBindingKeys,
+		Config:  keybindingConfig,
+		Guards:  guards,
 	}
 }
 
@@ -81,114 +81,94 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 	bindings := []*types.Binding{
 		{
 			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.OpenRecentRepos),
+			Keys:        opts.GetKeys(opts.Config.Universal.OpenRecentRepos),
 			Handler:     opts.Guards.NoPopupPanel(gui.helpers.Repos.CreateRecentReposMenu),
 			Description: gui.c.Tr.SwitchRepo,
 		},
 		{
 			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.ScrollUpMain),
+			Keys:        opts.GetKeys(opts.Config.Universal.ScrollUpMain),
 			Handler:     gui.scrollUpMain,
 			Alternative: "fn+up/shift+k",
 			Description: gui.c.Tr.ScrollUpMainWindow,
 		},
 		{
 			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.ScrollDownMain),
+			Keys:        opts.GetKeys(opts.Config.Universal.ScrollDownMain),
 			Handler:     gui.scrollDownMain,
 			Alternative: "fn+down/shift+j",
 			Description: gui.c.Tr.ScrollDownMainWindow,
 		},
 		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.ScrollUpMainAlt1),
-			Handler:  gui.scrollUpMain,
-		},
-		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.ScrollDownMainAlt1),
-			Handler:  gui.scrollDownMain,
-		},
-		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.ScrollUpMainAlt2),
-			Handler:  gui.scrollUpMain,
-		},
-		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.ScrollDownMainAlt2),
-			Handler:  gui.scrollDownMain,
-		},
-		{
 			ViewName:          "files",
-			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           gui.handleCopySelectedSideContextItemToClipboard,
 			GetDisabledReason: gui.getCopySelectedSideContextItemToClipboardDisabledReason,
 			Description:       gui.c.Tr.CopyPathToClipboard,
 		},
 		{
 			ViewName:          "localBranches",
-			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           gui.handleCopySelectedSideContextItemToClipboard,
 			GetDisabledReason: gui.getCopySelectedSideContextItemToClipboardDisabledReason,
 			Description:       gui.c.Tr.CopyBranchNameToClipboard,
 		},
 		{
 			ViewName:          "remoteBranches",
-			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           gui.handleCopySelectedSideContextItemToClipboard,
 			GetDisabledReason: gui.getCopySelectedSideContextItemToClipboardDisabledReason,
 			Description:       gui.c.Tr.CopyBranchNameToClipboard,
 		},
 		{
 			ViewName:          "tags",
-			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           gui.handleCopySelectedSideContextItemToClipboard,
 			GetDisabledReason: gui.getCopySelectedSideContextItemToClipboardDisabledReason,
 			Description:       gui.c.Tr.CopyTagToClipboard,
 		},
 		{
 			ViewName:          "commits",
-			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           gui.handleCopySelectedSideContextItemCommitHashToClipboard,
 			GetDisabledReason: gui.getCopySelectedSideContextItemToClipboardDisabledReason,
 			Description:       gui.c.Tr.CopyCommitHashToClipboard,
 		},
 		{
 			ViewName:    "commits",
-			Key:         opts.GetKey(opts.Config.Commits.ResetCherryPick),
+			Keys:        opts.GetKeys(opts.Config.Commits.ResetCherryPick),
 			Handler:     gui.helpers.CherryPick.Reset,
 			Description: gui.c.Tr.ResetCherryPick,
 		},
 		{
 			ViewName:          "reflogCommits",
-			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           gui.handleCopySelectedSideContextItemToClipboard,
 			GetDisabledReason: gui.getCopySelectedSideContextItemToClipboardDisabledReason,
 			Description:       gui.c.Tr.CopyCommitHashToClipboard,
 		},
 		{
 			ViewName:          "subCommits",
-			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           gui.handleCopySelectedSideContextItemCommitHashToClipboard,
 			GetDisabledReason: gui.getCopySelectedSideContextItemToClipboardDisabledReason,
 			Description:       gui.c.Tr.CopyCommitHashToClipboard,
 		},
 		{
 			ViewName: "information",
-			Key:      gocui.NewKeyName(gocui.MouseLeft),
+			Keys:     []gocui.Key{gocui.NewKeyName(gocui.MouseLeft)},
 			Handler:  gui.handleInfoClick,
 		},
 		{
 			ViewName:          "commitFiles",
-			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           gui.handleCopySelectedSideContextItemToClipboard,
 			GetDisabledReason: gui.getCopySelectedSideContextItemToClipboardDisabledReason,
 			Description:       gui.c.Tr.CopyPathToClipboard,
 		},
 		{
 			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.ExtrasMenu),
+			Keys:        opts.GetKeys(opts.Config.Universal.ExtrasMenu),
 			Handler:     opts.Guards.NoPopupPanel(gui.handleCreateExtrasMenuPanel),
 			Description: gui.c.Tr.OpenCommandLogMenu,
 			Tooltip:     gui.c.Tr.OpenCommandLogMenuTooltip,
@@ -196,163 +176,121 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName:    "main",
-			Key:         gocui.NewKeyName(gocui.MouseWheelDown),
+			Keys:        []gocui.Key{gocui.NewKeyName(gocui.MouseWheelDown)},
 			Handler:     gui.scrollDownMain,
 			Description: gui.c.Tr.ScrollDown,
 			Alternative: "fn+up",
 		},
 		{
 			ViewName:    "main",
-			Key:         gocui.NewKeyName(gocui.MouseWheelUp),
+			Keys:        []gocui.Key{gocui.NewKeyName(gocui.MouseWheelUp)},
 			Handler:     gui.scrollUpMain,
 			Description: gui.c.Tr.ScrollUp,
 			Alternative: "fn+down",
 		},
 		{
 			ViewName: "secondary",
-			Key:      gocui.NewKeyName(gocui.MouseWheelDown),
+			Keys:     []gocui.Key{gocui.NewKeyName(gocui.MouseWheelDown)},
 			Handler:  gui.scrollDownSecondary,
 		},
 		{
 			ViewName: "secondary",
-			Key:      gocui.NewKeyName(gocui.MouseWheelUp),
+			Keys:     []gocui.Key{gocui.NewKeyName(gocui.MouseWheelUp)},
 			Handler:  gui.scrollUpSecondary,
 		},
 		{
 			ViewName: "confirmation",
-			Key:      opts.GetKey(opts.Config.Universal.PrevItem),
+			Keys:     opts.GetKeys(opts.Config.Universal.PrevItem),
 			Handler:  gui.scrollUpConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
-			Key:      opts.GetKey(opts.Config.Universal.NextItem),
+			Keys:     opts.GetKeys(opts.Config.Universal.NextItem),
 			Handler:  gui.scrollDownConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
-			Key:      opts.GetKey(opts.Config.Universal.PrevItemAlt),
+			Keys:     []gocui.Key{gocui.NewKeyName(gocui.MouseWheelUp)},
 			Handler:  gui.scrollUpConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
-			Key:      opts.GetKey(opts.Config.Universal.NextItemAlt),
+			Keys:     []gocui.Key{gocui.NewKeyName(gocui.MouseWheelDown)},
 			Handler:  gui.scrollDownConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
-			Key:      gocui.NewKeyName(gocui.MouseWheelUp),
-			Handler:  gui.scrollUpConfirmationPanel,
-		},
-		{
-			ViewName: "confirmation",
-			Key:      gocui.NewKeyName(gocui.MouseWheelDown),
-			Handler:  gui.scrollDownConfirmationPanel,
-		},
-		{
-			ViewName: "confirmation",
-			Key:      opts.GetKey(opts.Config.Universal.NextPage),
+			Keys:     opts.GetKeys(opts.Config.Universal.NextPage),
 			Handler:  gui.pageDownConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
-			Key:      opts.GetKey(opts.Config.Universal.PrevPage),
+			Keys:     opts.GetKeys(opts.Config.Universal.PrevPage),
 			Handler:  gui.pageUpConfirmationPanel,
 		},
 		{
 			ViewName: "confirmation",
-			Key:      opts.GetKey(opts.Config.Universal.GotoTop),
+			Keys:     opts.GetKeys(opts.Config.Universal.GotoTop),
 			Handler:  gui.goToConfirmationPanelTop,
 		},
 		{
 			ViewName: "confirmation",
-			Key:      opts.GetKey(opts.Config.Universal.GotoTopAlt),
-			Handler:  gui.goToConfirmationPanelTop,
-		},
-		{
-			ViewName: "confirmation",
-			Key:      opts.GetKey(opts.Config.Universal.GotoBottom),
-			Handler:  gui.goToConfirmationPanelBottom,
-		},
-		{
-			ViewName: "confirmation",
-			Key:      opts.GetKey(opts.Config.Universal.GotoBottomAlt),
+			Keys:     opts.GetKeys(opts.Config.Universal.GotoBottom),
 			Handler:  gui.goToConfirmationPanelBottom,
 		},
 		{
 			ViewName:          "submodules",
-			Key:               opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           gui.handleCopySelectedSideContextItemToClipboard,
 			GetDisabledReason: gui.getCopySelectedSideContextItemToClipboardDisabledReason,
 			Description:       gui.c.Tr.CopySubmoduleNameToClipboard,
 		},
 		{
 			ViewName: "extras",
-			Key:      gocui.NewKeyName(gocui.MouseWheelUp),
+			Keys:     []gocui.Key{gocui.NewKeyName(gocui.MouseWheelUp)},
 			Handler:  gui.scrollUpExtra,
 		},
 		{
 			ViewName: "extras",
-			Key:      gocui.NewKeyName(gocui.MouseWheelDown),
+			Keys:     []gocui.Key{gocui.NewKeyName(gocui.MouseWheelDown)},
 			Handler:  gui.scrollDownExtra,
 		},
 		{
 			ViewName: "extras",
 			Tag:      "navigation",
-			Key:      opts.GetKey(opts.Config.Universal.PrevItemAlt),
+			Keys:     opts.GetKeys(opts.Config.Universal.PrevItem),
 			Handler:  gui.scrollUpExtra,
 		},
 		{
 			ViewName: "extras",
 			Tag:      "navigation",
-			Key:      opts.GetKey(opts.Config.Universal.PrevItem),
-			Handler:  gui.scrollUpExtra,
-		},
-		{
-			ViewName: "extras",
-			Tag:      "navigation",
-			Key:      opts.GetKey(opts.Config.Universal.NextItem),
+			Keys:     opts.GetKeys(opts.Config.Universal.NextItem),
 			Handler:  gui.scrollDownExtra,
 		},
 		{
 			ViewName: "extras",
-			Tag:      "navigation",
-			Key:      opts.GetKey(opts.Config.Universal.NextItemAlt),
-			Handler:  gui.scrollDownExtra,
-		},
-		{
-			ViewName: "extras",
-			Key:      opts.GetKey(opts.Config.Universal.NextPage),
+			Keys:     opts.GetKeys(opts.Config.Universal.NextPage),
 			Handler:  gui.pageDownExtrasPanel,
 		},
 		{
 			ViewName: "extras",
-			Key:      opts.GetKey(opts.Config.Universal.PrevPage),
+			Keys:     opts.GetKeys(opts.Config.Universal.PrevPage),
 			Handler:  gui.pageUpExtrasPanel,
 		},
 		{
 			ViewName: "extras",
-			Key:      opts.GetKey(opts.Config.Universal.GotoTop),
+			Keys:     opts.GetKeys(opts.Config.Universal.GotoTop),
 			Handler:  gui.goToExtrasPanelTop,
 		},
 		{
 			ViewName: "extras",
-			Key:      opts.GetKey(opts.Config.Universal.GotoTopAlt),
-			Handler:  gui.goToExtrasPanelTop,
-		},
-		{
-			ViewName: "extras",
-			Key:      opts.GetKey(opts.Config.Universal.GotoBottom),
-			Handler:  gui.goToExtrasPanelBottom,
-		},
-		{
-			ViewName: "extras",
-			Key:      opts.GetKey(opts.Config.Universal.GotoBottomAlt),
+			Keys:     opts.GetKeys(opts.Config.Universal.GotoBottom),
 			Handler:  gui.goToExtrasPanelBottom,
 		},
 		{
 			ViewName: "extras",
 			Tag:      "navigation",
-			Key:      gocui.NewKeyName(gocui.MouseLeft),
+			Keys:     []gocui.Key{gocui.NewKeyName(gocui.MouseLeft)},
 			Handler:  gui.handleFocusCommandLog,
 		},
 	}
@@ -372,14 +310,14 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 	bindings = append(bindings, []*types.Binding{
 		{
 			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.NextTab),
+			Keys:        opts.GetKeys(opts.Config.Universal.NextTab),
 			Handler:     opts.Guards.NoPopupPanel(gui.handleNextTab),
 			Description: gui.c.Tr.NextTab,
 			Tag:         "navigation",
 		},
 		{
 			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.PrevTab),
+			Keys:        opts.GetKeys(opts.Config.Universal.PrevTab),
 			Handler:     opts.Guards.NoPopupPanel(gui.handlePrevTab),
 			Description: gui.c.Tr.PrevTab,
 			Tag:         "navigation",
@@ -418,9 +356,7 @@ func (gui *Gui) resetKeybindings() error {
 	bindings, mouseBindings := gui.GetInitialKeybindingsWithCustomCommands()
 
 	for _, binding := range bindings {
-		if err := gui.SetKeybinding(binding); err != nil {
-			return err
-		}
+		gui.SetKeybinding(binding)
 	}
 
 	for _, binding := range mouseBindings {
@@ -445,12 +381,14 @@ func (gui *Gui) resetKeybindings() error {
 	return nil
 }
 
-func (gui *Gui) SetKeybinding(binding *types.Binding) error {
+func (gui *Gui) SetKeybinding(binding *types.Binding) {
 	handler := func(g *gocui.Gui, v *gocui.View) error {
 		return gui.callKeybindingHandler(binding)
 	}
 
-	return gui.g.SetKeybinding(binding.ViewName, binding.Key, handler)
+	for _, key := range binding.Keys {
+		gui.g.SetKeybinding(binding.ViewName, key, handler)
+	}
 }
 
 func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {

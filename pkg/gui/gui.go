@@ -472,15 +472,15 @@ func (gui *Gui) onUserConfigLoaded() error {
 	gui.setColorScheme()
 	gui.configureViewProperties()
 
-	gui.g.SearchEscapeKey = config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.Return)
-	gui.g.NextSearchMatchKey = config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.NextMatch)
-	gui.g.PrevSearchMatchKey = config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.PrevMatch)
+	gui.g.SearchEscapeKeys = config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.Return)
+	gui.g.NextSearchMatchKeys = config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.NextMatch)
+	gui.g.PrevSearchMatchKeys = config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.PrevMatch)
 
 	gui.g.SetEditKeybindings(
-		config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.MoveWordLeft),
-		config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.MoveWordRight),
-		config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.BackspaceWord),
-		config.GetValidatedKeyBindingKey(userConfig.Keybinding.Universal.ForwardDeleteWord),
+		config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.MoveWordLeft),
+		config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.MoveWordRight),
+		config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.BackspaceWord),
+		config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.ForwardDeleteWord),
 	)
 
 	gui.g.ShowListFooter = userConfig.Gui.ShowListFooter
@@ -1089,7 +1089,7 @@ func (gui *Gui) showIntroPopupMessage() {
 		introMessage := utils.ResolvePlaceholderString(
 			gui.c.Tr.IntroPopupMessage,
 			map[string]string{
-				"confirmationKey": gui.c.UserConfig().Keybinding.Universal.Confirm,
+				"confirmationKey": gui.c.UserConfig().Keybinding.Universal.Confirm.String(),
 			},
 		)
 

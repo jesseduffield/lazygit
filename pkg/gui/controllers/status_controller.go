@@ -34,37 +34,37 @@ func NewStatusController(
 func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
+			Keys:        opts.GetKeys(opts.Config.Universal.OpenFile),
 			Handler:     self.openConfig,
 			Description: self.c.Tr.OpenConfig,
 			Tooltip:     self.c.Tr.OpenFileTooltip,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Edit),
+			Keys:            opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:         self.editConfig,
 			Description:     self.c.Tr.EditConfig,
 			Tooltip:         self.c.Tr.EditFileTooltip,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Status.CheckForUpdate),
+			Keys:            opts.GetKeys(opts.Config.Status.CheckForUpdate),
 			Handler:         self.handleCheckForUpdate,
 			Description:     self.c.Tr.CheckForUpdate,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Status.RecentRepos),
+			Keys:            opts.GetKeys(opts.Config.Status.RecentRepos),
 			Handler:         self.c.Helpers().Repos.CreateRecentReposMenu,
 			Description:     self.c.Tr.SwitchRepo,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Status.AllBranchesLogGraph),
+			Keys:        opts.GetKeys(opts.Config.Status.AllBranchesLogGraph),
 			Handler:     func() error { self.switchToOrRotateAllBranchesLogs(); return nil },
 			Description: self.c.Tr.AllBranchesLogGraph,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Status.AllBranchesLogGraphReverse),
+			Keys:        opts.GetKeys(opts.Config.Status.AllBranchesLogGraphReverse),
 			Handler:     func() error { self.switchToOrRotateAllBranchesLogsBackward(); return nil },
 			Description: self.c.Tr.AllBranchesLogGraphReverse,
 		},

@@ -35,12 +35,8 @@ func NewSideWindowController(
 
 func (self *SideWindowController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
-		{Key: opts.GetKey(opts.Config.Universal.PrevBlock), Handler: self.previousSideWindow},
-		{Key: opts.GetKey(opts.Config.Universal.NextBlock), Handler: self.nextSideWindow},
-		{Key: opts.GetKey(opts.Config.Universal.PrevBlockAlt), Handler: self.previousSideWindow},
-		{Key: opts.GetKey(opts.Config.Universal.NextBlockAlt), Handler: self.nextSideWindow},
-		{Key: opts.GetKey(opts.Config.Universal.PrevBlockAlt2), Handler: self.previousSideWindow},
-		{Key: opts.GetKey(opts.Config.Universal.NextBlockAlt2), Handler: self.nextSideWindow},
+		{Keys: opts.GetKeys(opts.Config.Universal.PrevBlock), Handler: self.previousSideWindow},
+		{Keys: opts.GetKeys(opts.Config.Universal.NextBlock), Handler: self.nextSideWindow},
 	}
 }
 

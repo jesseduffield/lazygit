@@ -591,36 +591,30 @@ notARepository: prompt
 # view the output of the subprocess before returning to Lazygit.
 promptToReturnFromSubprocess: true
 
-# Keybindings
+# Keybindings.
+# Each binding can be a single key or a list of keys; see
+# https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md
+# for the syntax.
 keybinding:
   universal:
-    quit: q
-    quit-alt1: <ctrl+c>
+    quit: [q, <ctrl+c>]
     suspendApp: <ctrl+z>
     return: <esc>
     quitWithoutChangingDirectory: Q
     togglePanel: <tab>
-    prevItem: <up>
-    nextItem: <down>
-    prevItem-alt: k
-    nextItem-alt: j
+    prevItem: [<up>, k]
+    nextItem: [<down>, j]
     prevPage: ','
     nextPage: .
     scrollLeft: H
     scrollRight: L
-    gotoTop: <
-    gotoBottom: '>'
-    gotoTop-alt: <home>
-    gotoBottom-alt: <end>
+    gotoTop: [<, <home>]
+    gotoBottom: ['>', <end>]
     toggleRangeSelect: v
     rangeSelectDown: <shift+down>
     rangeSelectUp: <shift+up>
-    prevBlock: <left>
-    nextBlock: <right>
-    prevBlock-alt: h
-    nextBlock-alt: l
-    nextBlock-alt2: <tab>
-    prevBlock-alt2: <backtab>
+    prevBlock: [<left>, h, <backtab>]
+    nextBlock: [<right>, l, <tab>]
     jumpToBlock:
       - "1"
       - "2"
@@ -643,8 +637,7 @@ keybinding:
 
     # <alt+delete> on Mac
     forwardDeleteWord: <ctrl+delete>
-    optionMenu: <disabled>
-    optionMenu-alt1: '?'
+    optionMenu: '?'
     select: <space>
     goInto: <enter>
     confirm: <enter>
@@ -652,18 +645,13 @@ keybinding:
     confirmSuggestion: <enter>
 
     # <meta+enter> on Mac
-    confirmInEditor: <ctrl+enter>
-    confirmInEditor-alt: <ctrl+s>
+    confirmInEditor: [<ctrl+enter>, <ctrl+s>]
     remove: d
     new: "n"
     edit: e
     openFile: o
-    scrollUpMain: <pgup>
-    scrollDownMain: <pgdown>
-    scrollUpMain-alt1: K
-    scrollDownMain-alt1: J
-    scrollUpMain-alt2: <ctrl+u>
-    scrollDownMain-alt2: <ctrl+d>
+    scrollUpMain: [<pgup>, K, <ctrl+u>]
+    scrollDownMain: [<pgdown>, J, <ctrl+d>]
     executeShellCommand: ':'
     createRebaseOptionsMenu: m
 
@@ -682,8 +670,7 @@ keybinding:
     undo: z
     redo: Z
     filteringMenu: <ctrl+s>
-    diffingMenu: W
-    diffingMenu-alt: <ctrl+e>
+    diffingMenu: [W, <ctrl+e>]
     copyToClipboard: <ctrl+o>
     openRecentRepos: <ctrl+r>
     submitEditorText: <enter>
@@ -750,8 +737,8 @@ keybinding:
     setFixupMessage: c
     createFixupCommit: F
     squashAboveCommits: S
-    moveDownCommit: <ctrl+j>
-    moveUpCommit: <ctrl+k>
+    moveDownCommit: [<ctrl+j>, <alt-down>]
+    moveUpCommit: [<ctrl+k>, <alt-up>]
     amendToCommit: A
     resetCommitAuthor: a
     pickCommit: p
@@ -779,6 +766,8 @@ keybinding:
   commitFiles:
     checkoutCommitFile: c
   main:
+    prevHunk: [<left>, h]
+    nextHunk: [<right>, l]
     toggleSelectHunk: a
     pickBothHunks: b
     editSelectHunk: E
