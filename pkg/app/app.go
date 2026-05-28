@@ -262,7 +262,7 @@ func (app *App) setupRepo(
 			os.Exit(0)
 		}
 
-		if didOpenRepo := openRecentRepo(app); didOpenRepo {
+		if openRecentRepo(app) {
 			return true, nil
 		}
 
