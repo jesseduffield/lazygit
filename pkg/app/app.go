@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/afero"
 
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
+	"github.com/jesseduffield/lazygit/pkg/commands/direnv"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -171,6 +172,15 @@ func openRecentRepo(app *App) bool {
 	for _, repoDir := range app.Config.GetAppState().RecentRepos {
 		if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
 			if err := os.Chdir(repoDir); err == nil {
+				// The command log isn't up yet, so any direnv diagnostics
+				// only make it to the debug log here.
+				msg, derr := direnv.Load(app.OSCommand.Cmd)
+				if msg != "" {
+					app.Log.WithField("message", msg).Info("direnv")
+				}
+				if derr != nil {
+					app.Log.WithError(derr).Warn("direnv load failed")
+				}
 				return true
 			}
 		}

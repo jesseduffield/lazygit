@@ -10,6 +10,7 @@ import (
 
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/direnv"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -170,6 +171,14 @@ func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey
 			return err
 		}
 
+		direnvMsg, direnvErr := direnv.Load(self.c.OS().Cmd)
+		if direnvMsg != "" {
+			self.c.LogCommand(direnvMsg, false)
+		}
+		if direnvErr != nil {
+			self.c.Log.WithError(direnvErr).Warn("direnv load failed")
+		}
+
 		if err := self.recordDirectoryHelper.RecordCurrentDirectory(); err != nil {
 			self.c.Log.Errorf("error recording current directory: %v", err)
 		}
@@ -177,6 +186,10 @@ func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey
 		self.c.Mutexes().RefreshingFilesMutex.Lock()
 		defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
 
-		return self.onNewRepo(appTypes.StartArgs{}, contextKey)
+		if err := self.onNewRepo(appTypes.StartArgs{}, contextKey); err != nil {
+			return err
+		}
+
+		return direnvErr
 	})
 }
