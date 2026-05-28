@@ -466,6 +466,7 @@ var tests = []*components.IntegrationTest{
 	ui.Accordion,
 	ui.DisableSwitchTabWithPanelJumpKeys,
 	ui.EmptyMenu,
+	ui.KeybindingSuggestionsDontCrashOnDisabledBindings,
 	ui.KeybindingSuggestionsWhenSwitchingRepos,
 	ui.ModeSpecificKeybindingSuggestions,
 	ui.OpenLinkFailure,
