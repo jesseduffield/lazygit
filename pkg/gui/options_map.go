@@ -50,7 +50,7 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 	})...)
 
 	bindingsToDisplay := lo.Filter(allBindings, func(binding *types.Binding, _ int) bool {
-		return binding.DisplayOnScreen && !binding.IsDisabled()
+		return len(binding.Keys) > 0 && binding.DisplayOnScreen && !binding.IsDisabled()
 	})
 
 	optionsMap := lo.Map(bindingsToDisplay, func(binding *types.Binding, _ int) bindingInfo {
