@@ -189,6 +189,10 @@ func (w *winTty) getConsoleInput() error {
 		rv, _, er := procGetNumberOfConsoleInputEvents.Call(
 			uintptr(w.in),
 			uintptr(unsafe.Pointer(&nrec)))
+		if rv == 0 {
+			return er
+		}
+
 		rec := make([]inputRecord, max(nrec, 1))
 		rv, _, er = procReadConsoleInput.Call(
 			uintptr(w.in),
@@ -205,22 +209,15 @@ func (w *winTty) getConsoleInput() error {
 			case keyEvent:
 				// we normally only expect to see ascii, but paste data may come in as UTF-16.
 				wc := rune(binary.LittleEndian.Uint16(ir.data[10:]))
-				if wc >= 0xD800 && wc <= 0xDBFF {
-					// if it was a high surrogate, which happens for pasted UTF-16,
-					// then save it until we get the low and can decode it.
-					w.surrogate = wc
-					continue
-				} else if wc >= 0xDC00 && wc <= 0xDFFF {
-					wc = utf16.DecodeRune(w.surrogate, wc)
-				}
-				w.surrogate = 0
-				for _, chr := range []byte(string(wc)) {
-					// We normally expect only to see ASCII (win32-input-mode),
-					// but apparently pasted data can arrive in UTF-16 here.
-					select {
-					case w.buf <- chr:
-					case <-w.stopQ:
-						break loop
+				for _, decoded := range decodeUTF16Rune(&w.surrogate, wc) {
+					for _, chr := range []byte(string(decoded)) {
+						// We normally expect only to see ASCII (win32-input-mode),
+						// but apparently pasted data can arrive in UTF-16 here.
+						select {
+						case w.buf <- chr:
+						case <-w.stopQ:
+							break loop
+						}
 					}
 				}
 

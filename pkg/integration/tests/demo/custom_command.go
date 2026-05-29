@@ -28,7 +28,7 @@ var CustomCommand = NewIntegrationTest(NewIntegrationTestArgs{
 
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "localBranches",
 				Command: `git checkout {{.Form.Branch}}`,
 				Prompts: []config.CustomCommandPrompt{
@@ -63,7 +63,7 @@ var CustomCommand = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Branches().
 			Focus().
 			Wait(500).
-			Press("a").
+			Press(config.Keybinding{"a"}).
 			Tap(func() {
 				t.Wait(500)
 

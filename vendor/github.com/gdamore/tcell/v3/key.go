@@ -1,4 +1,4 @@
-// Copyright 2025 The TCell Authors
+// Copyright 2026 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,9 +45,12 @@ import (
 // specific keys.
 type EventKey struct {
 	EventTime
-	mod ModMask
-	key Key
-	str string // string for key, usually just one character, but may be composed sequence
+	mod      ModMask
+	key      Key
+	physical Key
+	str      string // string for key, usually just one character, but may be composed sequence
+	pressed  bool
+	repeat   int
 }
 
 // Str returns the string corresponding to the key press, if it makes sense.
@@ -66,6 +69,38 @@ func (ev *EventKey) Key() Key {
 	return ev.key
 }
 
+// Physical returns the physical key that was pressed, when known.
+//
+// This is different from Key() and Str(), which describe the logical key result
+// delivered to the application.  For example, on a US keyboard Shift-/ may
+// produce Str() == "?", while Physical() reports KeySlash.  Most applications
+// should use Key() and Str(); Physical is intended for layout-independent uses
+// such as keyboard remappers, embedded terminal emulators, and games that care
+// about key location rather than the printed character.
+//
+// For letter keys, compare physical values against the lowercase aliases
+// KeyA through KeyZ.  The legacy KeyCtrlA through KeyCtrlZ constants occupy
+// the same numeric range as Key('A') through Key('Z'), so Key('A') is not a
+// physical "A" key identifier.
+//
+// If the physical key is unknown, this returns zero.
+func (ev *EventKey) Physical() Key {
+	return ev.physical
+}
+
+// Pressed returns true for key press events, and false for key release events.
+// Legacy keyboard reporting only reports presses.
+func (ev *EventKey) Pressed() bool {
+	return ev.pressed
+}
+
+// Repeat returns the repeat count for this key event.  Legacy keyboard
+// reporting synthesizes repeated key presses as separate events, so this will
+// normally be 1.
+func (ev *EventKey) Repeat() int {
+	return ev.repeat
+}
+
 // Modifiers returns the modifiers that were present with the key press.  Note
 // that not all platforms and terminals support this equally well, and some
 // cases we will not not know for sure.  Hence, applications should avoid
@@ -73,6 +108,19 @@ func (ev *EventKey) Key() Key {
 func (ev *EventKey) Modifiers() ModMask {
 	return ev.mod
 }
+
+// KeyProtocol identifies the keyboard reporting protocol that the terminal
+// is currently using.  More capable protocols allow disambiguating modifier
+// combinations, distinguishing key release events, etc.
+type KeyProtocol int
+
+// These are the keyboard protocols that tcell can report.
+const (
+	LegacyKeyboard KeyProtocol = iota // basic VT100 style reports
+	KittyKeyboard                     // kitty supports events, unambiguous keys modulo left/right modifiers
+	Win32Keyboard                     // win32 supports the full feature set
+	XTermKeyboard                     // xterm modify other keys, disambiguation only, no release events
+)
 
 // KeyNames holds the written names of special keys. Useful to echo back a key
 // name, or to look up a key from a string value.
@@ -171,6 +219,11 @@ var KeyNames = map[Key]string{
 	KeyCapsLock:   "CapsLock",
 	KeyScrollLock: "ScrollLock",
 	KeyNumLock:    "NumLock",
+	KeyShift:      "Shift",
+	KeyCtrl:       "Ctrl",
+	KeyAlt:        "Alt",
+	KeyMeta:       "Meta",
+	KeyHyper:      "Hyper",
 	KeyCtrlA:      "Ctrl-A",
 	KeyCtrlB:      "Ctrl-B",
 	KeyCtrlC:      "Ctrl-C",
@@ -204,19 +257,49 @@ var KeyNames = map[Key]string{
 func (ev *EventKey) Name() string {
 	s := ""
 	m := []string{}
-	if ev.mod&ModShift != 0 {
+	if ev.mod&modLShift != 0 {
+		m = append(m, "LeftShift")
+	}
+	if ev.mod&modRShift != 0 {
+		m = append(m, "RightShift")
+	}
+	if ev.mod&ModShift != 0 && ev.mod&(modLShift|modRShift) == 0 {
 		m = append(m, "Shift")
 	}
-	if ev.mod&ModAlt != 0 {
+	if ev.mod&modLAlt != 0 {
+		m = append(m, "LeftAlt")
+	}
+	if ev.mod&modRAlt != 0 {
+		m = append(m, "RightAlt")
+	}
+	if ev.mod&ModAlt != 0 && ev.mod&(modLAlt|modRAlt) == 0 {
 		m = append(m, "Alt")
 	}
-	if ev.mod&ModMeta != 0 {
+	if ev.mod&modLMeta != 0 {
+		m = append(m, "LeftMeta")
+	}
+	if ev.mod&modRMeta != 0 {
+		m = append(m, "RightMeta")
+	}
+	if ev.mod&ModMeta != 0 && ev.mod&(modLMeta|modRMeta) == 0 {
 		m = append(m, "Meta")
 	}
-	if ev.mod&ModCtrl != 0 {
+	if ev.mod&modLCtrl != 0 {
+		m = append(m, "LeftCtrl")
+	}
+	if ev.mod&modRCtrl != 0 {
+		m = append(m, "RightCtrl")
+	}
+	if ev.mod&ModCtrl != 0 && ev.mod&(modLCtrl|modRCtrl) == 0 {
 		m = append(m, "Ctrl")
 	}
-	if ev.mod&ModHyper != 0 {
+	if ev.mod&modLHyper != 0 {
+		m = append(m, "LeftHyper")
+	}
+	if ev.mod&modRHyper != 0 {
+		m = append(m, "RightHyper")
+	}
+	if ev.mod&ModHyper != 0 && ev.mod&(modLHyper|modRHyper) == 0 {
 		m = append(m, "Hyper")
 	}
 
@@ -229,6 +312,28 @@ func (ev *EventKey) Name() string {
 		}
 	}
 	if len(m) != 0 {
+		switch ev.key {
+		case KeyShift:
+			if ev.mod&(modLShift|modRShift|ModShift) != 0 {
+				return strings.Join(m, "+")
+			}
+		case KeyCtrl:
+			if ev.mod&(modLCtrl|modRCtrl|ModCtrl) != 0 {
+				return strings.Join(m, "+")
+			}
+		case KeyAlt:
+			if ev.mod&(modLAlt|modRAlt|ModAlt) != 0 {
+				return strings.Join(m, "+")
+			}
+		case KeyMeta:
+			if ev.mod&(modLMeta|modRMeta|ModMeta) != 0 {
+				return strings.Join(m, "+")
+			}
+		case KeyHyper:
+			if ev.mod&(modLHyper|modRHyper|ModHyper) != 0 {
+				return strings.Join(m, "+")
+			}
+		}
 		if ev.mod&ModCtrl != 0 && strings.HasPrefix(s, "Ctrl-") {
 			s = s[5:]
 		}
@@ -242,9 +347,24 @@ func (ev *EventKey) Name() string {
 // has more precise information it should set that specifically.  Callers
 // that aren't sure about modifier state (most) should just pass ModNone.
 func NewEventKey(k Key, str string, mod ModMask) *EventKey {
+	return newEventKey(k, str, mod, true, 0, 1, false)
+}
+
+// NewEventKeyEx creates an extended key event with press/release, physical key,
+// and repeat metadata.  It also uses the newer key normalization rules: ASCII
+// control letters are reported as KeyRune plus ModCtrl instead of legacy
+// KeyCtrlA through KeyCtrlZ values.
+func NewEventKeyEx(k Key, str string, mod ModMask, pressed bool, physical Key, repeat int) *EventKey {
+	return newEventKey(k, str, mod, pressed, physical, repeat, true)
+}
+
+func newEventKey(k Key, str string, mod ModMask, pressed bool, physical Key, repeat int, advanced bool) *EventKey {
 	ch := rune(0)
 	if len(str) == 1 {
 		ch = []rune(str)[0]
+	}
+	if repeat <= 0 {
+		repeat = 1
 	}
 
 	if k == KeyRune {
@@ -267,7 +387,7 @@ func NewEventKey(k Key, str string, mod ModMask) *EventKey {
 
 		// For legacy reasons, if Ctrl is pressed with an ASCII alphabetic, then we
 		// emit it as a KeyCtrlXX symbol.
-		if mod == ModCtrl {
+		if mod == ModCtrl && !advanced {
 			// We don't do Ctrl-[ or backslash or those specially.
 			if ch >= 'A' && ch <= 'Z' { // upper case
 				k = KeyCtrlA + Key(ch-'A')
@@ -280,7 +400,7 @@ func NewEventKey(k Key, str string, mod ModMask) *EventKey {
 
 		// Windows reports ModShift for shifted keys.  This is inconsistent
 		// with UNIX, lets harmonize this.
-		if mod == ModShift && str != "" {
+		if mod == ModShift && str != "" && !advanced {
 			mod = ModNone
 		}
 	}
@@ -290,19 +410,29 @@ func NewEventKey(k Key, str string, mod ModMask) *EventKey {
 		k = KeyBackspace
 	}
 
+	// Advanced key reporting exposes Shift-Tab directly.  Backtab is a legacy
+	// alias from terminals that cannot distinguish a physical Backtab key.
+	if k == KeyBacktab && advanced {
+		k = KeyTab
+		mod |= ModShift
+		if physical == 0 || physical == KeyBacktab {
+			physical = KeyTab
+		}
+	}
+
 	// Shift-Tab should be Backtab.
-	if k == KeyTab && (mod&ModShift) != 0 {
+	if k == KeyTab && (mod&ModShift) != 0 && !advanced {
 		k = KeyBacktab
 		mod &^= ModShift
 	}
-	ev := &EventKey{key: k, str: str, mod: mod}
+	ev := &EventKey{key: k, str: str, mod: mod, pressed: pressed, physical: physical, repeat: repeat}
 	ev.SetEventNow()
 	return ev
 }
 
 // ModMask is a mask of modifier keys.  Note that it will not always be
 // possible to report modifier keys.
-type ModMask int16
+type ModMask int32
 
 // These are the modifiers keys that can be sent either with a key press,
 // or a mouse event.  Note that as of now, due to the confusion associated
@@ -316,6 +446,103 @@ const (
 	ModMeta
 	ModHyper
 	ModNone ModMask = 0
+)
+
+const (
+	modLShift ModMask = 1 << (iota + 5)
+	modRShift
+	modLCtrl
+	modRCtrl
+	modLAlt
+	modRAlt
+	modLMeta
+	modRMeta
+	modLHyper
+	modRHyper
+)
+
+// These modifiers identify a specific side when the keyboard protocol reports
+// one.  They include the aggregate modifier bit, so ModLCtrl also satisfies
+// checks for ModCtrl.
+const (
+	ModLShift = ModShift | modLShift
+	ModRShift = ModShift | modRShift
+	ModLCtrl  = ModCtrl | modLCtrl
+	ModRCtrl  = ModCtrl | modRCtrl
+	ModLAlt   = ModAlt | modLAlt
+	ModRAlt   = ModAlt | modRAlt
+	ModLMeta  = ModMeta | modLMeta
+	ModRMeta  = ModMeta | modRMeta
+	ModLHyper = ModHyper | modLHyper
+	ModRHyper = ModHyper | modRHyper
+)
+
+// These keys are aliases for printable physical keys.  They are primarily
+// useful with EventKey.Physical, which may report a base key location separately
+// from the generated text.
+//
+// These names identify the unshifted base key on a US-style keyboard layout.
+// They do not identify logical characters produced by modifiers or other
+// layouts.  For example, the physical key named KeySlash may produce "/" or
+// "?" on a US keyboard depending on Shift, and may produce different text on
+// other layouts.  Applications interested in the logical key sequence should
+// use EventKey.Key and EventKey.Str instead.
+const (
+	KeySpace Key = ' '
+	Key0     Key = '0'
+	Key1     Key = '1'
+	Key2     Key = '2'
+	Key3     Key = '3'
+	Key4     Key = '4'
+	Key5     Key = '5'
+	Key6     Key = '6'
+	Key7     Key = '7'
+	Key8     Key = '8'
+	Key9     Key = '9'
+
+	KeyGrave      Key = '`'
+	KeyBacktick   Key = KeyGrave
+	KeyMinus      Key = '-'
+	KeyEqual      Key = '='
+	KeyLBrace     Key = '['
+	KeyLBracket   Key = KeyLBrace
+	KeyRBrace     Key = ']'
+	KeyRBracket   Key = KeyRBrace
+	KeyBackslash  Key = '\\'
+	KeySemi       Key = ';'
+	KeySemicolon  Key = KeySemi
+	KeyQuote      Key = '\''
+	KeyApostrophe Key = KeyQuote
+	KeyComma      Key = ','
+	KeyPeriod     Key = '.'
+	KeySlash      Key = '/'
+
+	KeyA Key = 'a'
+	KeyB Key = 'b'
+	KeyC Key = 'c'
+	KeyD Key = 'd'
+	KeyE Key = 'e'
+	KeyF Key = 'f'
+	KeyG Key = 'g'
+	KeyH Key = 'h'
+	KeyI Key = 'i'
+	KeyJ Key = 'j'
+	KeyK Key = 'k'
+	KeyL Key = 'l'
+	KeyM Key = 'm'
+	KeyN Key = 'n'
+	KeyO Key = 'o'
+	KeyP Key = 'p'
+	KeyQ Key = 'q'
+	KeyR Key = 'r'
+	KeyS Key = 's'
+	KeyT Key = 't'
+	KeyU Key = 'u'
+	KeyV Key = 'v'
+	KeyW Key = 'w'
+	KeyX Key = 'x'
+	KeyY Key = 'y'
+	KeyZ Key = 'z'
 )
 
 // Key is a generic value for representing keys, and especially special
@@ -351,6 +578,8 @@ const (
 	KeyCancel
 	KeyPrint
 	KeyPause
+	// KeyBacktab is used for legacy Shift-Tab reporting.  In advanced key
+	// reporting mode, Shift-Tab is reported as KeyTab with ModShift instead.
 	KeyBacktab
 	KeyF1
 	KeyF2
@@ -420,6 +649,11 @@ const (
 	KeyCapsLock
 	KeyScrollLock
 	KeyNumLock
+	KeyShift
+	KeyCtrl
+	KeyAlt
+	KeyMeta
+	KeyHyper
 )
 
 const (
@@ -432,6 +666,10 @@ const (
 // rune (lower case) and control modifier.  If the shift key
 // or other modifiers are present then these will *NOT* be reported,
 // but reported instead as KeyRune.
+//
+// Note that these are not reported in advanced key reporting mode.
+// Instead, for advanced keys, expect KeyRune and a modifier with the
+// associated rune to be sent.
 const (
 	KeyCtrlA Key = iota + 65
 	KeyCtrlB
@@ -466,6 +704,10 @@ const (
 
 // These are the defined ASCII values for key codes.  They generally match
 // with KeyCtrl values.
+//
+// Most of these will not be reported in advanced key reporting mode, as they
+// are not possible to type directly. Some notable exceptions are KeyESC, KeyBS,
+// KeyTAB, and KeyCR, which have aliases below.
 const (
 	KeyNUL Key = iota
 	KeySOH

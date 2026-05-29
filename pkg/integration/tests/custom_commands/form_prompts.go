@@ -15,7 +15,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "files",
 				Command: `echo {{.Form.FileContent | quote}} > {{.Form.FileName | quote}}`,
 				Prompts: []config.CustomCommandPrompt{
@@ -59,7 +59,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsEmpty().
 			IsFocused().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Prompt().Title(Equals("Enter a file name")).Type("my file").Confirm()
 

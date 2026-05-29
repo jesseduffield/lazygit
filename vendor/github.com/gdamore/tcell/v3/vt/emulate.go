@@ -220,10 +220,25 @@ type Cell struct {
 	W int    // Display width (0, 1, or 2)
 }
 
+// EmulatorOpt configures an Emulator.
+type EmulatorOpt interface {
+	setEmulatorOpt(*emulator)
+}
+
+// EmulatorOpt8BitControls enables parsing of C1 controls, such as CSI and OSC,
+// when they are presented as raw 8-bit bytes or UTF-8 encoded C1 controls.
+// The default is to only accept the 7-bit ESC-prefixed forms.
+type EmulatorOpt8BitControls struct{}
+
+func (EmulatorOpt8BitControls) setEmulatorOpt(em *emulator) {
+	em.c1Allowed = true
+	em.c1Enabled = true
+}
+
 // NewEmulator creates an emulator instance on top of the given backend.
 // The input is relative to the emulator, so it receives data from the host,
 // whereas the emulator sends data to the application through the output.
-func NewEmulator(be Backend) Emulator {
+func NewEmulator(be Backend, opts ...EmulatorOpt) Emulator {
 	stopQ := make(chan bool)
 	defStyle := BaseStyle.WithFg(color.Silver).WithBg(color.Black)
 	em := &emulator{
@@ -248,6 +263,9 @@ func NewEmulator(be Backend) Emulator {
 			PmWin32Input:      ModeOff,
 		},
 		mouseReports: MouseDisabled,
+	}
+	for _, opt := range opts {
+		opt.setEmulatorOpt(em)
 	}
 	if _, ok := be.(Resizer); ok {
 		em.localModes[PmResizeReports] = ModeOff
@@ -297,7 +315,9 @@ type emulator struct {
 	pos            Coord
 	buffering      uint         // reference count - number of (re-entrant) buffering calls
 	autoWrap       bool         // next character will wrap (auto margin, deferred until char emitted)
-	sevenOnly      bool         // only allow 7-bit escapes (needed for KOI8, ShiftJIS, etc.)
+	c1Allowed      bool         // allow C1 controls in raw 8-bit and UTF-8 encodings
+	c1Enabled      bool         // C1 controls are currently enabled
+	c1Prefix       bool         // string parser has seen the first byte of a UTF-8 encoded C1 control
 	appKeyPad      bool         // use application key pad keys?
 	name           string       // name of this emulator (used for extended attributes)
 	vers           string       // version string of this emulator (used for extended attributes)
@@ -372,13 +392,13 @@ func (em *emulator) inbInit(b byte) {
 		return
 	}
 
-	// For 8-bit encodings, we treat these as Fe sequences.
-	// Basically the same as ESC followed by (b - 0x40).
-	// TODO: condition this so that we do not do this if
-	// the encoding cannot support it (UTF, 8859, and EUC encodings
-	// are all fine here, but others like ShiftJIS or KOI8 might not be).
-	if b >= 0x80 && b <= 0x9F && !em.sevenOnly {
-		em.inbEsc(b - 0x40)
+	// For C1 controls, the raw 8-bit form is the same as ESC followed by
+	// (b - 0x40). This is disabled by default because modern protocols
+	// generally treat these forms as insecure.
+	if b >= 0x80 && b <= 0x9f {
+		if em.c1Enabled {
+			em.inbEsc(b - 0x40)
+		}
 		return
 	}
 
@@ -529,6 +549,12 @@ func (em *emulator) inbNF(b byte) {
 		// case "(Q", "(9": // TODO: select G0 as French Canadian
 		// case "(R", "(f": // TODO: select G0 as French
 		// case "(Y": // TODO: select G0 as Italian
+	case " F": // S7C1T - send/use 7-bit C1 controls
+		em.c1Enabled = false
+	case " G": // S8C1T - send/use 8-bit C1 controls
+		if em.c1Allowed {
+			em.c1Enabled = true
+		}
 	}
 }
 
@@ -550,8 +576,17 @@ func (em *emulator) inbCSI(b byte) {
 
 // inbOSC handles bytes that are part of on OSC sequences (operating system command).
 func (em *emulator) inbOSC(b byte) {
+	if em.inbStringC1(b, em.processOSC) {
+		return
+	}
+
 	switch b {
-	case 0x9c, 0x07:
+	case 0x9c:
+		if em.c1Enabled {
+			em.inb = em.inbInit
+			em.processOSC()
+		}
+	case 0x07:
 		em.inb = em.inbInit
 		em.processOSC()
 	case '\\':
@@ -569,8 +604,16 @@ func (em *emulator) inbOSC(b byte) {
 
 // inbStr handles PM, SOS, and any other string we want to consume and discard.
 func (em *emulator) inbStr(b byte) {
+	if em.inbStringC1(b, nil) {
+		return
+	}
+
 	switch b {
-	case 0x9c, 0x07:
+	case 0x9c:
+		if em.c1Enabled {
+			em.inb = em.inbInit
+		}
+	case 0x07:
 		em.inb = em.inbInit
 	case '\\':
 		if buf := em.inBuf.Bytes(); len(buf) > 0 && buf[len(buf)-1] == 0x1b {
@@ -584,6 +627,27 @@ func (em *emulator) inbStr(b byte) {
 	}
 }
 
+func (em *emulator) inbStringC1(b byte, done func()) bool {
+	if em.c1Prefix {
+		em.c1Prefix = false
+		if b >= 0x80 && b <= 0x9f {
+			if em.c1Enabled && b == 0x9c {
+				em.inb = em.inbInit
+				if done != nil {
+					done()
+				}
+			}
+			return true
+		}
+		em.inBuf.WriteByte(0xc2)
+	}
+	if b == 0xc2 {
+		em.c1Prefix = true
+		return true
+	}
+	return false
+}
+
 // inbUTF handles continuation bytes for UTF-8 sequences.
 func (em *emulator) inbUTF(b byte) {
 	if b&0xC0 == 0x80 {
@@ -595,7 +659,13 @@ func (em *emulator) inbUTF(b byte) {
 			if err != nil {
 				em.beep()
 			} else {
-				em.putRune(r)
+				if r >= 0x80 && r <= 0x9f {
+					if em.c1Enabled {
+						em.inbEsc(byte(r) - 0x40)
+					}
+				} else {
+					em.putRune(r)
+				}
 			}
 		}
 	} else {
@@ -730,7 +800,7 @@ func (em *emulator) processSgr(str string) {
 		v, err := strconv.Atoi(word)
 		if err != nil {
 			// just swallow it for now
-			return
+			continue
 		}
 		switch v {
 		case 0:
@@ -2333,6 +2403,7 @@ func (em *emulator) ResizeEvent(size Coord) {
 func (em *emulator) applyResize(size Coord) {
 	// resize clobbers our content, until it is redrawn
 	em.size = size
+	em.tabStops = slices.DeleteFunc(em.tabStops, func(x Col) bool { return x >= em.size.X })
 	// resizing resets the margins
 	em.topMargin = 0
 	em.botMargin = em.size.Y - 1

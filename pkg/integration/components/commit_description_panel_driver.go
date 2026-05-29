@@ -42,7 +42,7 @@ func (self *CommitDescriptionPanelDriver) GoToBeginning() *CommitDescriptionPane
 }
 
 func (self *CommitDescriptionPanelDriver) AddCoAuthor(author string) *CommitDescriptionPanelDriver {
-	self.t.press(self.t.keys.CommitMessage.CommitMenu)
+	self.t.press(self.t.keys.CommitMessage.CommitMenu[0])
 	self.t.ExpectPopup().Menu().Title(Equals("Commit Menu")).
 		Select(Contains("Add co-author")).
 		Confirm()

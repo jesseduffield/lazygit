@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | Switch to a recent repo |  |
-| `` <pgup> (fn+up/shift+k) `` | Scroll up main window |  |
-| `` <pgdown> (fn+down/shift+j) `` | Scroll down main window |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | Scroll up main window |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | Scroll down main window |  |
 | `` @ `` | View command log options | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Push | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | Pull | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
@@ -26,9 +26,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | Cancel |  |
 | `` ? `` | Open keybindings menu |  |
 | `` <ctrl+s> `` | View filter options | View options for filtering the commit log, so that only commits matching the filter are shown. |
-| `` W `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` <ctrl+e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` q `` | Quit |  |
+| `` W, <ctrl+e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
+| `` q, <ctrl+c> `` | Quit |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` z `` | Undo | The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
@@ -40,8 +39,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | Previous page |  |
 | `` . `` | Next page |  |
-| `` < (<home>) `` | Scroll to top |  |
-| `` > (<end>) `` | Scroll to bottom |  |
+| `` <, <home> `` | Scroll to top |  |
+| `` >, <end> `` | Scroll to bottom |  |
 | `` v `` | Toggle range select |  |
 | `` <shift+down> `` | Range select down |  |
 | `` <shift+up> `` | Range select up |  |
@@ -96,8 +95,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` p `` | Pick | Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase. |
 | `` F `` | Create fixup commit | Create 'fixup!' commit for the selected commit. Later on, you can press `S` on this same commit to apply all above fixup commits. |
 | `` S `` | Apply fixup commits | Squash all 'fixup!' commits, either above the selected commit, or all in current branch (autosquash). |
-| `` <ctrl+j> `` | Move commit down one |  |
-| `` <ctrl+k> `` | Move commit up one |  |
+| `` <ctrl+j>, <alt+down> `` | Move commit down one |  |
+| `` <ctrl+k>, <alt+up> `` | Move commit up one |  |
 | `` V `` | Paste (cherry-pick) |  |
 | `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
 | `` A `` | Amend | Amend commit with staged changes. If the selected commit is the HEAD commit, this will perform `git commit --amend`. Otherwise the commit will be amended via a rebase. |
@@ -205,10 +204,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <space> `` | Pick hunk |  |
 | `` b `` | Pick all hunks |  |
-| `` <up> `` | Previous hunk |  |
-| `` <down> `` | Next hunk |  |
-| `` <left> `` | Previous conflict |  |
-| `` <right> `` | Next conflict |  |
+| `` <up>, k `` | Previous hunk |  |
+| `` <down>, j `` | Next hunk |  |
+| `` <left>, h `` | Previous conflict |  |
+| `` <right>, l `` | Next conflict |  |
 | `` z `` | Undo | Undo last merge conflict resolution. |
 | `` e `` | Edit file | Open file in external editor. |
 | `` o `` | Open file | Open file in default application. |
@@ -229,8 +228,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Go to previous hunk |  |
-| `` <right> `` | Go to next hunk |  |
+| `` <left>, h `` | Go to previous hunk |  |
+| `` <right>, l `` | Go to next hunk |  |
 | `` v `` | Toggle range select |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |
@@ -245,8 +244,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Go to previous hunk |  |
-| `` <right> `` | Go to next hunk |  |
+| `` <left>, h `` | Go to previous hunk |  |
+| `` <right>, l `` | Go to next hunk |  |
 | `` v `` | Toggle range select |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |

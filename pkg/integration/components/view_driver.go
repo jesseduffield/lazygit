@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/samber/lo"
 )
@@ -362,7 +363,7 @@ func (self *ViewDriver) Focus() *ViewDriver {
 		if lo.Contains(window.viewNames, viewName) {
 			tabIndex := lo.IndexOf(window.viewNames, viewName)
 			// jump to the desired window
-			self.t.press(self.t.keys.Universal.JumpToBlock[windowIndex])
+			self.t.press(self.t.keys.Universal.JumpToBlock[windowIndex][0])
 
 			// assert we're in the window before continuing
 			self.t.assertWithRetries(func() (bool, string) {
@@ -376,11 +377,11 @@ func (self *ViewDriver) Focus() *ViewDriver {
 			currentViewTabIndex := lo.IndexOf(window.viewNames, currentViewName)
 			if tabIndex > currentViewTabIndex {
 				for range tabIndex - currentViewTabIndex {
-					self.t.press(self.t.keys.Universal.NextTab)
+					self.t.press(self.t.keys.Universal.NextTab[0])
 				}
 			} else if tabIndex < currentViewTabIndex {
 				for range currentViewTabIndex - tabIndex {
-					self.t.press(self.t.keys.Universal.PrevTab)
+					self.t.press(self.t.keys.Universal.PrevTab[0])
 				}
 			}
 
@@ -407,10 +408,10 @@ func (self *ViewDriver) IsFocused() *ViewDriver {
 	return self
 }
 
-func (self *ViewDriver) Press(keyStr string) *ViewDriver {
+func (self *ViewDriver) Press(key config.Keybinding) *ViewDriver {
 	self.IsFocused()
 
-	self.t.press(keyStr)
+	self.t.press(key[0])
 
 	return self
 }
@@ -423,10 +424,10 @@ func (self *ViewDriver) Delay() *ViewDriver {
 
 // for use when typing or navigating, because in demos we want that to happen
 // faster
-func (self *ViewDriver) PressFast(keyStr string) *ViewDriver {
+func (self *ViewDriver) PressFast(key config.Keybinding) *ViewDriver {
 	self.IsFocused()
 
-	self.t.pressFast(keyStr)
+	self.t.pressFast(key[0])
 
 	return self
 }

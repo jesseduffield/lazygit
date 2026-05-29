@@ -42,7 +42,7 @@ func NewFilesController(
 func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Keys:              opts.GetKeys(opts.Config.Universal.Select),
 			Handler:           self.withItems(self.press),
 			GetDisabledReason: self.require(self.withFileTreeViewModelMutex(self.itemsSelected())),
 			Description:       self.c.Tr.Stage,
@@ -50,46 +50,46 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.OpenStatusFilter),
+			Keys:        opts.GetKeys(opts.Config.Files.OpenStatusFilter),
 			Handler:     self.handleStatusFilterPressed,
 			Description: self.c.Tr.FileFilter,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.CopyFileInfoToClipboard),
+			Keys:        opts.GetKeys(opts.Config.Files.CopyFileInfoToClipboard),
 			Handler:     self.openCopyMenu,
 			Description: self.c.Tr.CopyToClipboardMenu,
 			OpensMenu:   true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Files.CommitChanges),
+			Keys:            opts.GetKeys(opts.Config.Files.CommitChanges),
 			Handler:         self.c.Helpers().WorkingTree.HandleCommitPress,
 			Description:     self.c.Tr.Commit,
 			Tooltip:         self.c.Tr.CommitTooltip,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
+			Keys:        opts.GetKeys(opts.Config.Files.CommitChangesWithoutHook),
 			Handler:     self.c.Helpers().WorkingTree.HandleWIPCommitPress,
 			Description: self.c.Tr.CommitChangesWithoutHook,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.AmendLastCommit),
+			Keys:        opts.GetKeys(opts.Config.Files.AmendLastCommit),
 			Handler:     self.handleAmendCommitPress,
 			Description: self.c.Tr.AmendLastCommit,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),
+			Keys:        opts.GetKeys(opts.Config.Files.CommitChangesWithEditor),
 			Handler:     self.c.Helpers().WorkingTree.HandleCommitEditorPress,
 			Description: self.c.Tr.CommitChangesWithEditor,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.FindBaseCommitForFixup),
+			Keys:        opts.GetKeys(opts.Config.Files.FindBaseCommitForFixup),
 			Handler:     self.c.Helpers().FixupHelper.HandleFindBaseCommitForFixupPress,
 			Description: self.c.Tr.FindBaseCommitForFixup,
 			Tooltip:     self.c.Tr.FindBaseCommitForFixupTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Keys:              opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:           self.withItems(self.edit),
 			GetDisabledReason: self.require(self.withFileTreeViewModelMutex(self.itemsSelected(self.canEditFiles))),
 			Description:       self.c.Tr.Edit,
@@ -97,53 +97,53 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.OpenFile),
+			Keys:              opts.GetKeys(opts.Config.Universal.OpenFile),
 			Handler:           self.Open,
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.OpenFile,
 			Tooltip:           self.c.Tr.OpenFileTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Files.IgnoreFile),
+			Keys:              opts.GetKeys(opts.Config.Files.IgnoreFile),
 			Handler:           self.withItem(self.ignoreOrExcludeMenu),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Actions.IgnoreExcludeFile,
 			OpensMenu:         true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.RefreshFiles),
+			Keys:        opts.GetKeys(opts.Config.Files.RefreshFiles),
 			Handler:     self.refresh,
 			Description: self.c.Tr.RefreshFiles,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Files.StashAllChanges),
+			Keys:            opts.GetKeys(opts.Config.Files.StashAllChanges),
 			Handler:         self.stash,
 			Description:     self.c.Tr.Stash,
 			Tooltip:         self.c.Tr.StashTooltip,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.ViewStashOptions),
+			Keys:        opts.GetKeys(opts.Config.Files.ViewStashOptions),
 			Handler:     self.createStashMenu,
 			Description: self.c.Tr.ViewStashOptions,
 			Tooltip:     self.c.Tr.ViewStashOptionsTooltip,
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.ToggleStagedAll),
+			Keys:        opts.GetKeys(opts.Config.Files.ToggleStagedAll),
 			Handler:     self.toggleStagedAll,
 			Description: self.c.Tr.ToggleStagedAll,
 			Tooltip:     self.c.Tr.ToggleStagedAllTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Keys:              opts.GetKeys(opts.Config.Universal.GoInto),
 			Handler:           self.enter,
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.FileEnter,
 			Tooltip:           self.c.Tr.FileEnterTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItems(self.remove),
 			GetDisabledReason: self.withFileTreeViewModelMutex(self.require(self.itemsSelected(self.canRemove))),
 			Description:       self.c.Tr.Discard,
@@ -152,13 +152,13 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
+			Keys:        opts.GetKeys(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.createResetToUpstreamMenu,
 			Description: self.c.Tr.ViewResetToUpstreamOptions,
 			OpensMenu:   true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Files.ViewResetOptions),
+			Keys:            opts.GetKeys(opts.Config.Files.ViewResetOptions),
 			Handler:         self.createResetMenu,
 			Description:     self.c.Tr.Reset,
 			Tooltip:         self.c.Tr.FileResetOptionsTooltip,
@@ -166,19 +166,19 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
+			Keys:        opts.GetKeys(opts.Config.Files.ToggleTreeView),
 			Handler:     self.toggleTreeView,
 			Description: self.c.Tr.ToggleTreeView,
 			Tooltip:     self.c.Tr.ToggleTreeViewTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Keys:              opts.GetKeys(opts.Config.Universal.OpenDiffTool),
 			Handler:           self.withItem(self.openDiffTool),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.OpenDiffTool,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Files.OpenMergeOptions),
+			Keys:              opts.GetKeys(opts.Config.Files.OpenMergeOptions),
 			Handler:           self.withItems(self.openMergeConflictMenu),
 			Description:       self.c.Tr.ViewMergeConflictOptions,
 			Tooltip:           self.c.Tr.ViewMergeConflictOptionsTooltip,
@@ -187,20 +187,20 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.Fetch),
+			Keys:        opts.GetKeys(opts.Config.Files.Fetch),
 			Handler:     self.fetch,
 			Description: self.c.Tr.Fetch,
 			Tooltip:     self.c.Tr.FetchTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Files.CollapseAll),
+			Keys:              opts.GetKeys(opts.Config.Files.CollapseAll),
 			Handler:           self.collapseAll,
 			Description:       self.c.Tr.CollapseAll,
 			Tooltip:           self.c.Tr.CollapseAllTooltip,
 			GetDisabledReason: self.require(self.isInTreeMode),
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Files.ExpandAll),
+			Keys:              opts.GetKeys(opts.Config.Files.ExpandAll),
 			Handler:           self.expandAll,
 			Description:       self.c.Tr.ExpandAll,
 			Tooltip:           self.c.Tr.ExpandAllTooltip,
@@ -671,14 +671,14 @@ func (self *FilesController) handleNonInlineConflict(file *models.File) error {
 		OnPress: func() error {
 			return handle(self.c.Git().WorkingTree.StageFile, self.c.Tr.Actions.ResolveConflictByKeepingFile)
 		},
-		Key: gocui.NewKeyRune('k'),
+		Keys: menuKey('k'),
 	}
 	deleteItem := &types.MenuItem{
 		Label: self.c.Tr.MergeConflictDeleteFile,
 		OnPress: func() error {
 			return handle(self.c.Git().WorkingTree.RemoveConflictedFile, self.c.Tr.Actions.ResolveConflictByDeletingFile)
 		},
-		Key: gocui.NewKeyRune('d'),
+		Keys: menuKey('d'),
 	}
 	items := []*types.MenuItem{}
 	switch file.ShortStatus {
@@ -856,7 +856,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 					}
 					return nil
 				},
-				Key: gocui.NewKeyRune('i'),
+				Keys: menuKey('i'),
 			},
 			{
 				LabelColumns: []string{self.c.Tr.ExcludeFile},
@@ -866,7 +866,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 					}
 					return nil
 				},
-				Key: gocui.NewKeyRune('e'),
+				Keys: menuKey('e'),
 			},
 		},
 	})
@@ -950,7 +950,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayStaged)
 				},
-				Key:    gocui.NewKeyRune('s'),
+				Keys:   menuKey('s'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayStaged),
 			},
 			{
@@ -958,7 +958,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayUnstaged)
 				},
-				Key:    gocui.NewKeyRune('u'),
+				Keys:   menuKey('u'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUnstaged),
 			},
 			{
@@ -966,7 +966,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayTracked)
 				},
-				Key:    gocui.NewKeyRune('t'),
+				Keys:   menuKey('t'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayTracked),
 			},
 			{
@@ -974,7 +974,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayUntracked)
 				},
-				Key:    gocui.NewKeyRune('T'),
+				Keys:   menuKey('T'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayUntracked),
 			},
 			{
@@ -982,7 +982,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayAll)
 				},
-				Key:    gocui.NewKeyRune('r'),
+				Keys:   menuKey('r'),
 				Widget: types.MakeMenuRadioButton(currentFilter == filetree.DisplayAll),
 			},
 		},
@@ -1092,7 +1092,7 @@ func (self *FilesController) createStashMenu() error {
 					}
 					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashAllChanges)
 				},
-				Key: gocui.NewKeyRune('a'),
+				Keys: menuKey('a'),
 			},
 			{
 				Label: self.c.Tr.StashAllChangesKeepIndex,
@@ -1103,14 +1103,14 @@ func (self *FilesController) createStashMenu() error {
 					// if there are no staged files it behaves the same as Stash.Save
 					return self.handleStashSave(self.c.Git().Stash.StashAndKeepIndex, self.c.Tr.Actions.StashAllChangesKeepIndex)
 				},
-				Key: gocui.NewKeyRune('i'),
+				Keys: menuKey('i'),
 			},
 			{
 				Label: self.c.Tr.StashIncludeUntrackedChanges,
 				OnPress: func() error {
 					return self.handleStashSave(self.c.Git().Stash.StashIncludeUntrackedChanges, self.c.Tr.Actions.StashIncludeUntrackedChanges)
 				},
-				Key: gocui.NewKeyRune('U'),
+				Keys: menuKey('U'),
 			},
 			{
 				Label: self.c.Tr.StashStagedChanges,
@@ -1121,7 +1121,7 @@ func (self *FilesController) createStashMenu() error {
 					}
 					return self.handleStashSave(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
 				},
-				Key: gocui.NewKeyRune('s'),
+				Keys: menuKey('s'),
 			},
 			{
 				Label: self.c.Tr.StashUnstagedChanges,
@@ -1135,7 +1135,7 @@ func (self *FilesController) createStashMenu() error {
 					// ordinary stash
 					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashUnstagedChanges)
 				},
-				Key: gocui.NewKeyRune('u'),
+				Keys: menuKey('u'),
 			},
 		},
 	})
@@ -1182,7 +1182,7 @@ func (self *FilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            gocui.NewKeyRune('n'),
+		Keys:           menuKey('n'),
 	}
 	copyRelativePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyRelativeFilePath,
@@ -1194,7 +1194,7 @@ func (self *FilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            gocui.NewKeyRune('p'),
+		Keys:           menuKey('p'),
 	}
 	copyAbsolutePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyAbsoluteFilePath,
@@ -1210,7 +1210,7 @@ func (self *FilesController) openCopyMenu() error {
 			return nil
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
-		Key:            gocui.NewKeyRune('P'),
+		Keys:           menuKey('P'),
 	}
 	copyFileDiffItem := &types.MenuItem{
 		Label:   self.c.Tr.CopySelectedDiff,
@@ -1236,7 +1236,7 @@ func (self *FilesController) openCopyMenu() error {
 				return nil
 			},
 		))(),
-		Key: gocui.NewKeyRune('s'),
+		Keys: menuKey('s'),
 	}
 	copyAllDiff := &types.MenuItem{
 		Label:   self.c.Tr.CopyAllFilesDiff,
@@ -1261,7 +1261,7 @@ func (self *FilesController) openCopyMenu() error {
 				return nil
 			},
 		)(),
-		Key: gocui.NewKeyRune('a'),
+		Keys: menuKey('a'),
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
@@ -1502,7 +1502,7 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
 			return nil
 		},
-		Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig().Keybinding.Files.ConfirmDiscard),
+		Keys: self.c.KeybindingsOpts().GetKeys(self.c.UserConfig().Keybinding.Files.ConfirmDiscard),
 		Tooltip: utils.ResolvePlaceholderString(
 			self.c.Tr.DiscardAllTooltip,
 			map[string]string{
@@ -1528,7 +1528,7 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
 			return nil
 		},
-		Key: gocui.NewKeyRune('u'),
+		Keys: menuKey('u'),
 		Tooltip: utils.ResolvePlaceholderString(
 			self.c.Tr.DiscardUnstagedTooltip,
 			map[string]string{

@@ -11,9 +11,28 @@ GOOS=js GOARCH=wasm go build -o yourfile.wasm
 
 ## Additional files
 
-You also need 5 other files in the same directory as the wasm. Four (`tcell.html`, `tcell.js`, `termstyle.css`, and `beep.wav`) are provided in the `webfiles` directory. The last one, `wasm_exec.js`, can be copied from GOROOT into the current directory by executing
+You also need the supporting web files in the same directory as the wasm. The files `tcell.html`, `tcell.js`, `termstyle.css`, and `beep.wav`, plus the `ghostty-web` directory, are provided in the `webfiles` directory. The last file, `wasm_exec.js`, can be copied from GOROOT into the current directory by executing
 ```sh
 cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" ./
+```
+
+The web frontend uses `ghostty-web`. The required browser runtime files are vendored in `webfiles/ghostty-web` and must be copied alongside `tcell.js`; no npm, bundler, or external CDN is required. The vendored `ghostty-web` files are MIT licensed; see `webfiles/ghostty-web/LICENSE`.
+
+```sh
+cp -R webfiles/ghostty-web /path/to/dir/to/serve/
+```
+
+The vendored `ghostty-web.js` is intentionally browser-only. Its upstream Node `readFile` fallback import is removed so browser-oriented servers and bundlers such as Vite do not try to resolve a Node file-system shim; the bundled code loads `ghostty-vt.wasm` with `fetch`.
+
+For example:
+
+```sh
+mkdir -p /tmp/tcell-wasm
+cp webfiles/tcell.html webfiles/tcell.js webfiles/termstyle.css webfiles/beep.wav /tmp/tcell-wasm/
+cp -R webfiles/ghostty-web /tmp/tcell-wasm/
+cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" /tmp/tcell-wasm/
+GOOS=js GOARCH=wasm go build -o /tmp/tcell-wasm/main.wasm ./demos/unicode
+python3 -m http.server -d /tmp/tcell-wasm 8080
 ```
 
 In `tcell.js`, you also need to change the constant
@@ -54,8 +73,24 @@ It is recommended to use an iframe if you want to embed the app into a webpage:
 <iframe src="tcell.html" title="Tcell app"></iframe>
 ```
 
+### Sizing
+
+By default the web terminal fits itself to the size of the `#terminal` element and reacts to container resizes. The bundled `termstyle.css` makes this full-page by default.
+
+You can override the terminal cell dimensions explicitly in HTML:
+
+```html
+<pre id="terminal" data-cols="100" data-rows="30"></pre>
+```
+
+If only one of `data-cols` or `data-rows` is set, the other dimension remains reactive.
+
 ## Other considerations
 
 ### Accessing files
 
 `io.Open(filename)` and other related functions for reading file systems do not work; use `http.Get(filename)` instead.
+
+### Keyboard shortcuts
+
+The browser may reserve some key combinations before JavaScript can see or cancel them. This is especially common for Meta/Command shortcuts on macOS, such as Command-L. Standalone Meta key events can be reported, but Meta-modified key combinations are browser-dependent and should not be relied upon in WASM web mode.
