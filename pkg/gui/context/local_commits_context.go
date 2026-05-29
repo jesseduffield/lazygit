@@ -249,6 +249,10 @@ func shouldShowGraph(c *ContextCommon) bool {
 		return false
 	}
 
+	if c.Modes().Filtering.GetHideMerges() {
+		return false
+	}
+
 	value := c.UserConfig().Git.Log.ShowGraph
 
 	switch value {

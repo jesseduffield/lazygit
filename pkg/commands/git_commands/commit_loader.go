@@ -68,6 +68,8 @@ type GetCommitsOptions struct {
 	RefToShowDivergenceFrom string
 	MainBranches            *MainBranches
 	HashPool                *utils.StringPool
+	// If true, exclude merge commits from the output
+	HideMerges bool
 }
 
 // GetCommits obtains the commits of the current branch
@@ -591,6 +593,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 		ArgIf(gitLogOrder != "default", "--"+gitLogOrder).
 		ArgIf(opts.All, "--all").
 		Arg("--oneline").
+		ArgIf(opts.HideMerges, "--no-merges").
 		Arg(prettyFormat).
 		Arg("--abbrev=40").
 		ArgIf(opts.FilterAuthor != "", "--author="+opts.FilterAuthor).

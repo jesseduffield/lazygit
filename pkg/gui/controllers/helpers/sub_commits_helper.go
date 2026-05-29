@@ -43,6 +43,7 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 			RefToShowDivergenceFrom: opts.RefToShowDivergenceFrom,
 			MainBranches:            self.c.Model().MainBranches,
 			HashPool:                self.c.Model().HashPool,
+			HideMerges:              self.c.Modes().Filtering.GetHideMerges(),
 		},
 	)
 	if err != nil {
