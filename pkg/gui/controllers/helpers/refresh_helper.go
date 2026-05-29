@@ -106,6 +106,23 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			scopeSet = set.NewFromSlice(options.Scope)
 		}
 
+		// Expand co-refreshing scopes up front so downstream conditions can be
+		// simple single-scope checks. The relationships are:
+		//   - whenever the reflog or bisect info changes, commits and branches
+		//     can change too (e.g. switching branches updates the reflog and
+		//     can move HEAD), so refresh commits + branches alongside
+		//   - submodules are refreshed as part of the files refresh
+		//   - merge conflicts are part of what the files refresh produces
+		if scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
+			scopeSet.Add(types.COMMITS, types.BRANCHES)
+		}
+		if scopeSet.Includes(types.SUBMODULES) {
+			scopeSet.Add(types.FILES)
+		}
+		if scopeSet.Includes(types.FILES) {
+			scopeSet.Add(types.MERGE_CONFLICTS)
+		}
+
 		wg := sync.WaitGroup{}
 		refresh := func(name string, f func()) {
 			// if we're in a demo we don't want any async refreshes because
@@ -129,7 +146,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 
 		branchesAndRemotesWg := sync.WaitGroup{}
 		includeWorktreesWithBranches := false
-		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) || scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
+		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) {
 			// whenever we change commits, we should update branches because the upstream/downstream
 			// counts can change. Whenever we change branches we should also change commits
 			// e.g. in the case of switching branches.
@@ -166,7 +183,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		}
 
 		fileWg := sync.WaitGroup{}
-		if scopeSet.Includes(types.FILES) || scopeSet.Includes(types.SUBMODULES) {
+		if scopeSet.Includes(types.FILES) {
 			fileWg.Add(1)
 			refresh("files", func() {
 				_ = self.refreshFilesAndSubmodules()
@@ -212,7 +229,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			refresh("patch building", func() { self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{}) })
 		}
 
-		if scopeSet.Includes(types.MERGE_CONFLICTS) || scopeSet.Includes(types.FILES) {
+		if scopeSet.Includes(types.MERGE_CONFLICTS) {
 			refresh("merge conflicts", func() { _ = self.mergeConflictsHelper.RefreshMergeState() })
 		}
 
