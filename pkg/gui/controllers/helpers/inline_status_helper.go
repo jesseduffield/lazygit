@@ -68,6 +68,14 @@ func (self *InlineStatusHelper) WithInlineStatus(opts InlineStatusOpts, f func(g
 	visible := view.Visible && self.windowHelper.TopViewInWindow(context.GetWindowName(), false) == view
 	if visible && context.IsItemVisible(opts.Item) {
 		self.c.OnWorker(func(task gocui.Task) error {
+			// An inline status is just a waiting status rendered on the item
+			// rather than in the bottom line, so it gets the same treatment:
+			// pause the background routines while we drive the operation. (The
+			// off-screen branch below goes through WithWaitingStatus, which
+			// already does this.)
+			self.c.PauseBackgroundRefreshes(true)
+			defer self.c.PauseBackgroundRefreshes(false)
+
 			self.start(opts)
 			defer self.stop(opts)
 
