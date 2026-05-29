@@ -62,6 +62,17 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 		}
 	}
 
+	if userConfig.Git.AutoDetectExternalChanges {
+		interval := userConfig.Refresher.ExternalChangeCheckInterval
+		if interval > 0 {
+			go utils.Safe(self.startBackgroundExternalChangeDetection)
+		} else {
+			self.gui.c.Log.Errorf(
+				"Value of config option 'refresher.externalChangeCheckInterval' (%d) is invalid, disabling external change detection",
+				interval)
+		}
+	}
+
 	if self.gui.Config.GetDebug() {
 		self.goEvery(time.Second*time.Duration(10), self.gui.stopChan, func(_ bool) error {
 			formatBytes := func(b uint64) string {
@@ -125,6 +136,58 @@ func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh() {
 		self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 		return nil
 	})
+}
+
+func (self *BackgroundRoutineMgr) startBackgroundExternalChangeDetection() {
+	self.gui.waitForIntro.Wait()
+
+	// Seed the snapshot so we don't trigger a refresh on the very first tick.
+	// The startup refresh path has already populated the in-memory model from
+	// disk, so anything we observe now is what's already on screen.
+	// On error: leave the snapshot empty so the first successful poll sees a
+	// diff and triggers a refresh, which is the safe behavior.
+	if snapshot, err := self.gui.git.Status.RefsSnapshot(); err == nil {
+		self.gui.helpers.Refresh.SetRefsSnapshot(snapshot)
+	}
+
+	userConfig := self.gui.UserConfig()
+	self.goEvery(
+		userConfig.Refresher.ExternalChangeCheckIntervalDuration(),
+		self.gui.stopChan,
+		func(_ bool) error {
+			self.checkForExternalChanges()
+			return nil
+		},
+	)
+}
+
+func (self *BackgroundRoutineMgr) checkForExternalChanges() {
+	current, err := self.gui.git.Status.RefsSnapshot()
+	if err != nil {
+		// Transient error (e.g. git process couldn't start). Don't update the
+		// stored snapshot; we'll retry next tick.
+		self.gui.c.Log.Warnf("RefsSnapshot failed: %v", err)
+		return
+	}
+
+	if !self.gui.helpers.Refresh.RefsSnapshotChangedSince(current) {
+		return
+	}
+
+	// goEvery checks the pause count before starting us, but a git operation
+	// may have begun (and paused refreshes) after that check, while we were
+	// reading the snapshot above. In that case the change we detected is the
+	// operation's own intermediate state, so back off: the operation will
+	// refresh and re-snapshot when it finishes, and if the change was really
+	// external we'll catch it on the next tick after the pause lifts. We don't
+	// update the stored snapshot, so nothing is swallowed.
+	if self.backgroundRefreshesPaused() {
+		return
+	}
+
+	// No need to update the stored snapshot here; Refresh does that.
+	self.gui.c.Log.Info("External ref change detected — refreshing")
+	self.gui.c.Refresh(types.RefreshOptions{})
 }
 
 // returns a channel that can be used to trigger the callback immediately
