@@ -36,7 +36,12 @@ while still being meaningful and self-contained.
 - **Separate preparatory refactorings from behavior changes.** If a fix or
   feature is easier to review after a refactor, land the refactor in its own
   commit first. Pure refactors should be behavior-preserving; the commit that
-  changes behavior should be as small as possible.
+  changes behavior should be as small as possible. This applies even when the
+  refactor only becomes apparent _while_ writing the behavior change — e.g. you
+  extract a helper to avoid duplication. Don't let "I discovered it mid-change"
+  excuse bundling it in. Before committing, review your diff and split out any
+  hunk that is behavior-preserving (an extraction, a rename, a move) into a
+  preceding commit, by staging hunks or resetting and recommitting in order.
 - **Do not use conventional commits** (no `feat:`/`fix:`/`chore:` prefixes).
   Match the plain English imperative style of the existing history.
 
@@ -45,9 +50,17 @@ while still being meaningful and self-contained.
 When refining work that's already committed — adjusting an approach,
 incorporating an idea from elsewhere, fixing something that belongs to the
 same logical unit — create a fixup against the target commit
-(`git commit --fixup=<sha>`) so the history collapses cleanly under
-`git rebase --autosquash`. Don't pile follow-up commits on top with the
-intent of squashing them later.
+(`git commit --fixup=<sha>`) so it sits alongside its target, ready for the
+user to fold in later with `git rebase --autosquash`. Don't pile follow-up
+commits on top with the intent of squashing them later.
+
+This holds **even when the target is the most recent commit (HEAD)**: use
+`git commit --fixup`, not `git commit --amend`. A direct `--amend`
+produces the same end state, which makes it tempting, but the point of a
+fixup isn't only clean autosquash — it's that the refinement lands as a
+separate, reviewable commit that the user decides when to fold in. A bare
+`--amend` rewrites the commit on the spot and skips that checkpoint. Don't
+treat "I'm only touching the tip commit" as an exception.
 
 If the changes don't map cleanly onto existing commits — say they cut
 across several of them, or restructure something at a different layer
@@ -57,10 +70,47 @@ call, but it's the user's call to make.
 
 After writing a fixup, re-read the target commit's message. If anything in
 that message has become inaccurate or misleading because of the fixup, use
-an `amend!` commit instead (its subject is `amend! <original subject>` and
-its body becomes the target's new full message after autosquash). A plain
-`fixup!` keeps the original message verbatim, so message drift stays in
-unless you explicitly correct it.
+an `amend!` commit instead. The safest way to create one is
+`git commit --fixup=amend:<sha>`, which opens the editor prefilled with the
+target's existing message for you to revise.
+
+An `amend!` commit's message has this exact shape:
+
+```
+amend! <original subject>
+
+<new subject>
+
+<new body>
+```
+
+The first line (`amend! <original subject>`) is **only the matcher** that
+ties the commit to its target — it must equal the target's current subject.
+Everything after the blank line is the **complete replacement message**, so
+it must begin with a subject line of its own. Even when you only mean to
+change the body, you still repeat the (unchanged) subject as that first line.
+
+This is the trap when writing the message by hand with `-m` instead of using
+the prefilled editor: if you pass only the body, there is no replacement
+subject line, so after autosquash the target loses its subject and the first
+body paragraph silently gets promoted to the subject. By hand it must be
+`-m "amend! <subject>" -m "<subject>" -m "<body>"` — note the subject appears
+twice, once in the matcher and once as the start of the replacement message.
+
+A plain `fixup!` keeps the original message verbatim, so message drift stays
+in unless you explicitly correct it.
+
+**Never squash the fixups yourself.** Leave them in the history as separate
+commits. Do not run `git rebase --autosquash`, do not `git commit --amend`
+them into their targets, do not reorder or otherwise collapse them — not as
+a "finishing" step, not to tidy up before handing off, not because the tree
+looks messy. The whole point of a fixup is that the iteration stays
+**visible and reviewable**; squashing it away yourself destroys exactly the
+artifact it exists to create. Collapsing fixups into their targets is the
+user's action, taken once they've reviewed the iterations. Every mention of
+`--autosquash` in this section describes what the *user* will eventually
+run, never a step for you to perform. If you think the history is ready to
+collapse, say so and leave it to them.
 
 ## Prefer the cleaner design over the smaller diff
 
@@ -153,6 +203,36 @@ even if the window is tiny, even if no current code path appears to hit it —
 present actual fixes. If a real fix is genuinely out of reach (e.g. it
 requires API changes you can't make), say so plainly; don't dress "no fix"
 up as a viable option in a numbered list alongside real ones.
+
+## Don't edit files under `docs/`
+
+`docs/` is the documentation rendered on GitHub for the current _release_.
+Users read it as the reference for the version they're running. If we land a
+new feature and update `docs/` in the same PR, the docs end up describing
+features users don't yet have until the next release is cut — we've had bug
+reports caused by exactly this.
+
+So:
+
+- Document new features in `docs-master/` only. The release process
+  (`scripts/update_docs_for_release.sh`) copies `docs-master/` to `docs/` at
+  release time.
+- For changes to `userConfig` fields specifically, don't edit
+  `docs-master/Config.md` by hand either — the relevant section is
+  auto-generated from the struct field doc comments. After editing the
+  struct, run `make generate` and include the regenerated
+  `docs-master/Config.md` (and `schema-master/config.json`) in your commit.
+- Don't hard-wrap the doc comments on `userConfig` fields. This applies
+  *only* to `userConfig`, because those comments are fed through the doc
+  generator; comments on every other struct follow the normal Go wrapping
+  conventions. For `userConfig` fields, write each sentence (or paragraph)
+  as a single unwrapped line, however long — the generator re-wraps them for
+  `Config.md` (see `wrapLine` in `pkg/jsonschema/generate_config_docs.go`).
+  Manually wrapping a sentence across several `//` lines defeats this: the
+  generator preserves your arbitrary breaks as hard line breaks and embeds
+  `\n` at those points in the generated `schema-master/config.json`
+  description. (Putting genuinely separate sentences on their own lines is
+  fine; just don't split one sentence across lines.)
 
 ## Don't search outside the working tree
 
