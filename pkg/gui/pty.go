@@ -22,17 +22,17 @@ func (gui *Gui) desiredPtySize(view *gocui.View) *pty.Winsize {
 
 func (gui *Gui) onResize() error {
 	gui.Mutexes.PtyMutex.Lock()
-	defer gui.Mutexes.PtyMutex.Unlock()
-
 	for viewName, ptmx := range gui.viewPtmxMap {
-		// TODO: handle resizing properly: we need to actually clear the main view
-		// and re-read the output from our pty. Or we could just re-run the original
-		// command from scratch
+		// Resize active ptys so still-running commands keep matching the view size.
 		view, _ := gui.g.View(viewName)
 		if err := pty.Setsize(ptmx, gui.desiredPtySize(view)); err != nil {
+			gui.Mutexes.PtyMutex.Unlock()
 			return utils.WrapError(err)
 		}
 	}
+	gui.Mutexes.PtyMutex.Unlock()
+
+	gui.refreshMainContentOnResize()
 
 	return nil
 }
