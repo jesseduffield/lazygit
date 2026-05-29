@@ -358,6 +358,11 @@
           "description": "If true, periodically refresh files and submodules",
           "default": true
         },
+        "autoDetectExternalChanges": {
+          "type": "boolean",
+          "description": "If true, poll the repo periodically for external ref changes (commits, branch updates, checkouts made outside lazygit) and refresh when one is detected. Independent of autoRefresh, which only governs the files panel.",
+          "default": true
+        },
         "autoForwardBranches": {
           "type": "string",
           "enum": [
@@ -3548,6 +3553,12 @@
           "exclusiveMinimum": 0,
           "description": "Re-fetch interval in seconds.\nAuto-fetch can be disabled via option 'git.autoFetch'.",
           "default": 60
+        },
+        "externalChangeCheckInterval": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "Interval in seconds at which lazygit polls for external ref changes (commits, branch updates, checkouts made outside lazygit).\nDetection can be disabled via option 'git.autoDetectExternalChanges'.",
+          "default": 2
         }
       },
       "additionalProperties": false,
