@@ -187,6 +187,56 @@ func TestGetRepoPaths(t *testing.T) {
 				return fmt.Errorf("'git %v --show-toplevel --absolute-git-dir --git-common-dir --is-bare-repository --show-superproject-working-tree' failed: fatal: invalid gitfile format: /path/to/repo/worktree2/.git", args)
 			},
 		},
+		{
+			Name: "bare repo with worktree setup",
+			BeforeFunc: func(runner *oscommands.FakeCmdObjRunner, getRevParseArgs argFn) {
+				runner.ExpectGitArgs(
+					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
+					"",
+					errors.New("fatal: this operation must be run in a work tree"),
+				)
+
+				runner.ExpectGitArgs(
+					[]string{"-C", ".bare", "rev-parse", "--is-bare-repository"},
+					"true",
+					nil,
+				)
+
+				runner.ExpectGitArgs(
+					[]string{"-C", ".bare", "worktree", "list", "--porcelain"},
+					"worktree /path/to/parent/main\nHEAD abc123\nbranch refs/heads/main\n\n",
+					nil,
+				)
+
+				runner.ExpectGitArgs(
+					[]string{"-C", ".bare", "symbolic-ref", "refs/remotes/origin/HEAD", "--short"},
+					"origin/main",
+					nil,
+				)
+
+				mockOutput := []string{
+					"/path/to/parent/main",
+					"/path/to/parent/.bare",
+					"/path/to/parent/.bare",
+					"false",
+				}
+				runner.ExpectGitArgs(
+					append([]string{"-C", "/path/to/parent/main"}, append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")...),
+					strings.Join(mockOutput, "\n"),
+					nil,
+				)
+			},
+			Path: "",
+			Expected: &RepoPaths{
+				worktreePath:       "/path/to/parent/main",
+				worktreeGitDirPath: "/path/to/parent/.bare",
+				repoPath:           "/path/to/parent",
+				repoGitDirPath:     "/path/to/parent/.bare",
+				repoName:           "parent",
+				isBareRepo:         false,
+			},
+			Err: nil,
+		},
 	}
 
 	for _, s := range scenarios {
@@ -211,6 +261,174 @@ func TestGetRepoPaths(t *testing.T) {
 				assert.Nil(t, err)
 				assert.Equal(t, s.Expected, repoPaths)
 			}
+		})
+	}
+}
+
+func TestParseWorktreeList(t *testing.T) {
+	output := `worktree /path/to/repo/main
+HEAD abc123456
+branch refs/heads/main
+
+worktree /path/to/repo/feature
+HEAD def789012
+branch refs/heads/feature-branch
+
+worktree /path/to/repo/detached
+HEAD ghi345678
+detached
+
+`
+
+	worktrees := parseWorktreeList(output)
+	expected := []WorktreeInfo{
+		{Path: "/path/to/repo/main", Head: "abc123456", Branch: "refs/heads/main"},
+		{Path: "/path/to/repo/feature", Head: "def789012", Branch: "refs/heads/feature-branch"},
+		{Path: "/path/to/repo/detached", Head: "ghi345678", Branch: ""},
+	}
+
+	assert.Equal(t, expected, worktrees)
+}
+
+func TestSelectBestWorktree(t *testing.T) {
+	parentDir := "/path/to/parent"
+	bareDir := "/path/to/parent/.bare"
+
+	scenarios := []struct {
+		Name              string
+		Worktrees         []WorktreeInfo
+		Expected          WorktreeInfo
+		MockDefaultBranch func(runner *oscommands.FakeCmdObjRunner)
+	}{
+		{
+			Name: "single worktree",
+			Worktrees: []WorktreeInfo{
+				{Path: "/path/to/parent/single", Branch: "refs/heads/feature"},
+			},
+			Expected: WorktreeInfo{Path: "/path/to/parent/single", Branch: "refs/heads/feature"},
+			MockDefaultBranch: func(runner *oscommands.FakeCmdObjRunner) {
+				runner.ExpectGitArgs(
+					[]string{"-C", bareDir, "symbolic-ref", "refs/remotes/origin/HEAD", "--short"},
+					"",
+					errors.New("not found"),
+				)
+				runner.ExpectGitArgs(
+					[]string{"-C", bareDir, "config", "init.defaultBranch"},
+					"",
+					errors.New("not found"),
+				)
+			},
+		},
+		{
+			Name: "prefer main branch",
+			Worktrees: []WorktreeInfo{
+				{Path: "/path/to/parent/feature", Branch: "refs/heads/feature"},
+				{Path: "/path/to/parent/main", Branch: "refs/heads/main"},
+				{Path: "/path/to/parent/other", Branch: "refs/heads/other"},
+			},
+			Expected: WorktreeInfo{Path: "/path/to/parent/main", Branch: "refs/heads/main"},
+			MockDefaultBranch: func(runner *oscommands.FakeCmdObjRunner) {
+				runner.ExpectGitArgs(
+					[]string{"-C", bareDir, "symbolic-ref", "refs/remotes/origin/HEAD", "--short"},
+					"origin/main",
+					nil,
+				)
+			},
+		},
+		{
+			Name: "prefer master branch",
+			Worktrees: []WorktreeInfo{
+				{Path: "/path/to/parent/feature", Branch: "refs/heads/feature"},
+				{Path: "/path/to/parent/master", Branch: "refs/heads/master"},
+			},
+			Expected: WorktreeInfo{Path: "/path/to/parent/master", Branch: "refs/heads/master"},
+			MockDefaultBranch: func(runner *oscommands.FakeCmdObjRunner) {
+				runner.ExpectGitArgs(
+					[]string{"-C", bareDir, "symbolic-ref", "refs/remotes/origin/HEAD", "--short"},
+					"origin/master",
+					nil,
+				)
+			},
+		},
+		{
+			Name: "prefer main directory name",
+			Worktrees: []WorktreeInfo{
+				{Path: "/path/to/parent/feature", Branch: "refs/heads/feature"},
+				{Path: "/path/to/parent/main", Branch: "refs/heads/feature"},
+			},
+			Expected: WorktreeInfo{Path: "/path/to/parent/main", Branch: "refs/heads/feature"},
+			MockDefaultBranch: func(runner *oscommands.FakeCmdObjRunner) {
+				runner.ExpectGitArgs(
+					[]string{"-C", bareDir, "symbolic-ref", "refs/remotes/origin/HEAD", "--short"},
+					"origin/main",
+					nil,
+				)
+			},
+		},
+		{
+			Name: "prefer master directory name",
+			Worktrees: []WorktreeInfo{
+				{Path: "/path/to/parent/feature", Branch: "refs/heads/feature"},
+				{Path: "/path/to/parent/master", Branch: "refs/heads/feature"},
+			},
+			Expected: WorktreeInfo{Path: "/path/to/parent/master", Branch: "refs/heads/feature"},
+			MockDefaultBranch: func(runner *oscommands.FakeCmdObjRunner) {
+				runner.ExpectGitArgs(
+					[]string{"-C", bareDir, "symbolic-ref", "refs/remotes/origin/HEAD", "--short"},
+					"origin/master",
+					nil,
+				)
+			},
+		},
+		{
+			Name: "first alphabetically when no preferences",
+			Worktrees: []WorktreeInfo{
+				{Path: "/path/to/parent/z-feature", Branch: "refs/heads/feature"},
+				{Path: "/path/to/parent/a-feature", Branch: "refs/heads/other"},
+			},
+			Expected: WorktreeInfo{Path: "/path/to/parent/a-feature", Branch: "refs/heads/other"},
+			MockDefaultBranch: func(runner *oscommands.FakeCmdObjRunner) {
+				runner.ExpectGitArgs(
+					[]string{"-C", bareDir, "symbolic-ref", "refs/remotes/origin/HEAD", "--short"},
+					"",
+					errors.New("not found"),
+				)
+				runner.ExpectGitArgs(
+					[]string{"-C", bareDir, "config", "init.defaultBranch"},
+					"",
+					errors.New("not found"),
+				)
+			},
+		},
+		{
+			Name: "prefer custom default branch",
+			Worktrees: []WorktreeInfo{
+				{Path: "/path/to/parent/feature", Branch: "refs/heads/feature"},
+				{Path: "/path/to/parent/develop", Branch: "refs/heads/develop"},
+				{Path: "/path/to/parent/master", Branch: "refs/heads/master"},
+			},
+			Expected: WorktreeInfo{Path: "/path/to/parent/develop", Branch: "refs/heads/develop"},
+			MockDefaultBranch: func(runner *oscommands.FakeCmdObjRunner) {
+				runner.ExpectGitArgs(
+					[]string{"-C", bareDir, "symbolic-ref", "refs/remotes/origin/HEAD", "--short"},
+					"origin/develop",
+					nil,
+				)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.Name, func(t *testing.T) {
+			runner := oscommands.NewFakeRunner(t)
+			cmd := oscommands.NewDummyCmdObjBuilder(runner)
+
+			if s.MockDefaultBranch != nil {
+				s.MockDefaultBranch(runner)
+			}
+
+			result := selectBestWorktree(s.Worktrees, parentDir, bareDir, cmd)
+			assert.Equal(t, s.Expected, result)
 		})
 	}
 }
