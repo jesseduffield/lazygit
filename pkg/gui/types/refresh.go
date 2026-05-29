@@ -44,4 +44,9 @@ type RefreshOptions struct {
 	// keeps the selection index the same. Useful after checking out a detached
 	// head, and selecting index 0.
 	KeepBranchSelectionIndex bool
+
+	// If true, call git status with --untracked-files=no to skip enumerating untracked files, and
+	// keep the ones we have in the model. Useful as a performance optimization when we know the
+	// untracked files can't have changed, e.g. after staging/unstaging hunks of tracked files.
+	TakeOverUntrackedFilesFromPreviousModel bool
 }
