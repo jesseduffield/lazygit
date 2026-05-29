@@ -19,6 +19,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"github.com/sasha-s/go-deadlock"
 )
 
 type RefreshHelper struct {
@@ -36,6 +37,12 @@ type RefreshHelper struct {
 	// Keyed by repo path so that switching to a different repo while lazygit is running
 	// still triggers the prompt there.
 	githubBaseRemotePromptDismissed map[string]bool
+
+	// Last observed refs+HEAD fingerprint, used by the background poller to
+	// decide whether a real refresh is needed. Written at the end of every
+	// refresh that re-read refs/commits, read by the poller.
+	refsSnapshotMutex deadlock.Mutex
+	refsSnapshot      string
 }
 
 func NewRefreshHelper(
@@ -122,6 +129,13 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		if scopeSet.Includes(types.FILES) {
 			scopeSet.Add(types.MERGE_CONFLICTS)
 		}
+
+		// Capture the refs snapshot now, before we start reading git's state
+		// below, rather than after. This is important to guard against the race
+		// of git's state changing externally while (or right after) we are
+		// refreshing; the risk is one potential extra refresh, but capturing the
+		// snapshot at the end would risk missing one, which is worse.
+		self.updateRefsSnapshotIfRelevant(scopeSet)
 
 		wg := sync.WaitGroup{}
 		refresh := func(name string, f func()) {
@@ -251,6 +265,46 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 	}
 
 	f()
+}
+
+// SetRefsSnapshot stores the given snapshot as the last observed refs state.
+// Called externally by the background poller at startup to seed the snapshot,
+// and internally by Refresh at the end of a refs-touching refresh.
+func (self *RefreshHelper) SetRefsSnapshot(snapshot string) {
+	self.refsSnapshotMutex.Lock()
+	defer self.refsSnapshotMutex.Unlock()
+	self.refsSnapshot = snapshot
+}
+
+// RefsSnapshotChangedSince reports whether the given snapshot differs from
+// the last observed one. Pure read; does not update internal state.
+func (self *RefreshHelper) RefsSnapshotChangedSince(snapshot string) bool {
+	self.refsSnapshotMutex.Lock()
+	defer self.refsSnapshotMutex.Unlock()
+	return snapshot != self.refsSnapshot
+}
+
+// updateRefsSnapshotIfRelevant captures a fresh refs snapshot from disk at the
+// start of a refresh that re-reads refs/commits (see the call site for why we
+// capture before reading the model rather than after). This keeps the
+// background poller's stored snapshot in sync with what's been observed by the
+// UI, so in-app commands and focus-in refreshes don't cause the next poll to
+// spuriously re-trigger.
+//
+// We check just COMMITS and BRANCHES because the scope-expansion step at the
+// top of Refresh has already added these whenever REFLOG or BISECT_INFO are
+// in scope, and whenever a nil scope was passed.
+func (self *RefreshHelper) updateRefsSnapshotIfRelevant(scopeSet *set.Set[types.RefreshableView]) {
+	if !scopeSet.Includes(types.COMMITS) && !scopeSet.Includes(types.BRANCHES) {
+		return
+	}
+
+	snapshot, err := self.c.Git().Status.RefsSnapshot()
+	if err != nil {
+		self.c.Log.Warnf("RefsSnapshot failed during refresh: %v", err)
+		return
+	}
+	self.SetRefsSnapshot(snapshot)
 }
 
 func getScopeNames(scopes []types.RefreshableView) []string {
