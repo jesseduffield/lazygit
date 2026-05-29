@@ -66,12 +66,22 @@ func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task
 }
 
 func (self *AppStatusHelper) WithWaitingStatusImpl(message string, f func(gocui.Task) error, task gocui.Task) error {
+	// A waiting status means lazygit is driving a git operation itself (often
+	// one that internally runs a rebase and continues it). Pause the background
+	// routines for its duration so they don't refresh from an intermediate
+	// state and reveal, say, the half-finished history of a reword.
+	self.c.PauseBackgroundRefreshes(true)
+	defer self.c.PauseBackgroundRefreshes(false)
+
 	return self.statusMgr().WithWaitingStatus(message, self.renderAppStatus, func(waitingStatusHandle *status.WaitingStatusHandle) error {
 		return f(appStatusHelperTask{task, waitingStatusHandle})
 	})
 }
 
 func (self *AppStatusHelper) WithWaitingStatusSync(message string, f func() error) error {
+	self.c.PauseBackgroundRefreshes(true)
+	defer self.c.PauseBackgroundRefreshes(false)
+
 	return self.statusMgr().WithWaitingStatus(message, func() {}, func(*status.WaitingStatusHandle) error {
 		stop := make(chan struct{})
 		defer func() { close(stop) }()
