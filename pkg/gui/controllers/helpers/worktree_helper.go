@@ -107,7 +107,7 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 				return err
 			}
 
-			return self.reposHelper.DispatchSwitchTo(opts.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
+			return self.reposHelper.DispatchSwitchTo(opts.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey, "")
 		})
 	}
 
@@ -161,7 +161,7 @@ func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.C
 
 	self.c.LogAction(self.c.Tr.SwitchToWorktree)
 
-	return self.reposHelper.DispatchSwitchTo(worktree.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
+	return self.reposHelper.DispatchSwitchTo(worktree.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey, "")
 }
 
 func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error {

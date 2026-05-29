@@ -49,7 +49,9 @@ func (self *ReposHelper) EnterSubmodule(submodule *models.SubmoduleConfig) error
 	}
 	self.c.State().GetRepoPathStack().Push(wd)
 
-	return self.DispatchSwitchToRepo(submodule.FullPath(), context.NO_CONTEXT)
+	// Preserve the current screen mode when entering submodule
+	currentScreenMode := self.c.State().GetRepoState().GetScreenMode()
+	return self.DispatchSwitchToRepoWithScreenMode(submodule.FullPath(), context.NO_CONTEXT, currentScreenMode)
 }
 
 func (self *ReposHelper) getCurrentBranch(path string) string {
@@ -141,10 +143,15 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 }
 
 func (self *ReposHelper) DispatchSwitchToRepo(path string, contextKey types.ContextKey) error {
-	return self.DispatchSwitchTo(path, self.c.Tr.ErrRepositoryMovedOrDeleted, contextKey)
+	return self.DispatchSwitchTo(path, self.c.Tr.ErrRepositoryMovedOrDeleted, contextKey, "")
 }
 
-func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey types.ContextKey) error {
+func (self *ReposHelper) DispatchSwitchToRepoWithScreenMode(path string, contextKey types.ContextKey, screenMode types.ScreenMode) error {
+	screenModeStr := screenModeToString(screenMode)
+	return self.DispatchSwitchTo(path, self.c.Tr.ErrRepositoryMovedOrDeleted, contextKey, screenModeStr)
+}
+
+func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey types.ContextKey, screenMode string) error {
 	return self.c.WithWaitingStatus(self.c.Tr.Switching, func(gocui.Task) error {
 		env.UnsetGitLocationEnvVars()
 		originalPath, err := os.Getwd()
@@ -177,6 +184,17 @@ func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey
 		self.c.Mutexes().RefreshingFilesMutex.Lock()
 		defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
 
-		return self.onNewRepo(appTypes.StartArgs{}, contextKey)
+		return self.onNewRepo(appTypes.StartArgs{ScreenMode: screenMode}, contextKey)
 	})
+}
+
+func screenModeToString(screenMode types.ScreenMode) string {
+	switch screenMode {
+	case types.SCREEN_HALF:
+		return "half"
+	case types.SCREEN_FULL:
+		return "full"
+	default:
+		return "normal"
+	}
 }
