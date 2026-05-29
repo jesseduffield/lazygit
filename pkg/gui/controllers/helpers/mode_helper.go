@@ -184,10 +184,10 @@ func (self *ModeHelper) ExitFilterMode() error {
 
 func (self *ModeHelper) ClearFiltering() error {
 	selectedCommitHash := self.c.Contexts().LocalCommits.GetSelectedCommitHash()
+	forcedHalfScreen := self.c.Modes().Filtering.GetForcedHalfScreen()
 	self.c.Modes().Filtering.Reset()
-	if self.c.State().GetRepoState().GetScreenMode() == types.SCREEN_HALF {
-		self.c.State().GetRepoState().SetScreenMode(types.SCREEN_NORMAL)
-	}
+	repoState := self.c.State().GetRepoState()
+	repoState.SetScreenMode(screenModeAfterClearingFiltering(repoState.GetScreenMode(), forcedHalfScreen))
 
 	self.c.Refresh(types.RefreshOptions{
 		Scope: ScopesToRefreshWhenFilteringModeChanges(),
@@ -205,6 +205,14 @@ func (self *ModeHelper) ClearFiltering() error {
 		},
 	})
 	return nil
+}
+
+func screenModeAfterClearingFiltering(current types.ScreenMode, forcedHalfScreen bool) types.ScreenMode {
+	if forcedHalfScreen && current == types.SCREEN_HALF {
+		return types.SCREEN_NORMAL
+	}
+
+	return current
 }
 
 // Stashes really only need to be refreshed when filtering by path, not by author, but it's too much
