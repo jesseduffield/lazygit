@@ -560,6 +560,9 @@ type TranslationSet struct {
 	ViewDivergenceFromUpstream            string
 	ViewDivergenceFromBaseBranch          string
 	CouldNotDetermineBaseBranch           string
+	PickBaseBranchTitle                   string
+	PickBaseBranchPrompt                  string
+	PickBaseBranchLabel                   string
 	DivergenceSectionHeaderLocal          string
 	DivergenceSectionHeaderRemote         string
 	ViewUpstreamResetOptions              string
@@ -1686,6 +1689,9 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewDivergenceFromUpstream:           "View divergence from upstream",
 		ViewDivergenceFromBaseBranch:         "View divergence from base branch ({{.baseBranch}})",
 		CouldNotDetermineBaseBranch:          "Couldn't determine base branch",
+		PickBaseBranchTitle:                  "Pick a base branch for {{.branchName}}",
+		PickBaseBranchPrompt:                 "More than one configured main branch is a candidate for this branch's base. Pick which one to treat as its base.",
+		PickBaseBranchLabel:                  "pick: {{.candidates}}",
 		DivergenceSectionHeaderLocal:         "Local",
 		DivergenceSectionHeaderRemote:        "Remote",
 		ViewUpstreamResetOptions:             "Reset checked-out branch onto {{.upstream}}",
