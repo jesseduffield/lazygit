@@ -3521,13 +3521,13 @@
       "properties": {
         "refreshInterval": {
           "type": "integer",
-          "minimum": 0,
+          "exclusiveMinimum": 0,
           "description": "File/submodule refresh interval in seconds.\nAuto-refresh can be disabled via option 'git.autoRefresh'.",
           "default": 10
         },
         "fetchInterval": {
           "type": "integer",
-          "minimum": 0,
+          "exclusiveMinimum": 0,
           "description": "Re-fetch interval in seconds.\nAuto-fetch can be disabled via option 'git.autoFetch'.",
           "default": 60
         }
