@@ -140,9 +140,7 @@ func (self *AppStatusHelper) renderAppStatusSync(stop chan struct{}) {
 		for {
 			select {
 			case <-ticker.C:
-				appStatus, color := self.statusMgr().GetStatusString(self.c.UserConfig())
-				self.c.Views().AppStatus.FgColor = color
-				self.c.SetViewContent(self.c.Views().AppStatus, appStatus)
+				self.setAppStatusContent()
 				// Redraw all views of the bottom line:
 				bottomLineViews := []*gocui.View{
 					self.c.Views().AppStatus, self.c.Views().Options, self.c.Views().Information,
@@ -154,4 +152,10 @@ func (self *AppStatusHelper) renderAppStatusSync(stop chan struct{}) {
 			}
 		}
 	}()
+}
+
+func (self *AppStatusHelper) setAppStatusContent() {
+	appStatus, color := self.statusMgr().GetStatusString(self.c.UserConfig())
+	self.c.Views().AppStatus.FgColor = color
+	self.c.SetViewContent(self.c.Views().AppStatus, appStatus)
 }
