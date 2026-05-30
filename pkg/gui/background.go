@@ -141,14 +141,11 @@ func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh() {
 func (self *BackgroundRoutineMgr) startBackgroundExternalChangeDetection() {
 	self.gui.waitForIntro.Wait()
 
-	// Seed the snapshot so we don't trigger a refresh on the very first tick.
-	// The startup refresh path has already populated the in-memory model from
-	// disk, so anything we observe now is what's already on screen.
-	// On error: leave the snapshot empty so the first successful poll sees a
-	// diff and triggers a refresh, which is the safe behavior.
-	if snapshot, err := self.gui.git.Status.RefsSnapshot(); err == nil {
-		self.gui.helpers.Refresh.SetRefsSnapshot(snapshot)
-	}
+	// We don't seed the snapshot here. The startup refresh captures one on
+	// entry (like every refs-touching refresh), and until one has been
+	// captured RefsSnapshotChangedSince treats the empty baseline as
+	// "unchanged", so we never fire a spurious refresh before a baseline
+	// exists — no need to depend on the timing of that startup refresh.
 
 	userConfig := self.gui.UserConfig()
 	self.goEvery(
