@@ -44,10 +44,10 @@ type UserConfig struct {
 type RefresherConfig struct {
 	// File/submodule refresh interval in seconds.
 	// Auto-refresh can be disabled via option 'git.autoRefresh'.
-	RefreshInterval int `yaml:"refreshInterval" jsonschema:"minimum=0"`
+	RefreshInterval int `yaml:"refreshInterval" jsonschema:"exclusiveMinimum=0"`
 	// Re-fetch interval in seconds.
 	// Auto-fetch can be disabled via option 'git.autoFetch'.
-	FetchInterval int `yaml:"fetchInterval" jsonschema:"minimum=0"`
+	FetchInterval int `yaml:"fetchInterval" jsonschema:"exclusiveMinimum=0"`
 }
 
 func (c *RefresherConfig) RefreshIntervalDuration() time.Duration {
