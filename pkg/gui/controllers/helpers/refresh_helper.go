@@ -281,6 +281,17 @@ func (self *RefreshHelper) SetRefsSnapshot(snapshot string) {
 func (self *RefreshHelper) RefsSnapshotChangedSince(snapshot string) bool {
 	self.refsSnapshotMutex.Lock()
 	defer self.refsSnapshotMutex.Unlock()
+
+	// An empty stored snapshot means no refresh has captured one yet, so we
+	// have no baseline to compare against and report "unchanged" rather than
+	// firing a spurious refresh. This can only be the unset zero value: a
+	// snapshot we actually computed is never empty, because its HEAD component
+	// is always non-empty (a branch ref when attached, a hash when detached —
+	// even a repo with no commits yields "ref: refs/heads/main").
+	if self.refsSnapshot == "" {
+		return false
+	}
+
 	return snapshot != self.refsSnapshot
 }
 
