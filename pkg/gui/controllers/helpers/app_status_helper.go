@@ -126,6 +126,13 @@ func (self *AppStatusHelper) renderAppStatusSync(stop chan struct{}) {
 		ticker := time.NewTicker(time.Millisecond * time.Duration(self.c.UserConfig().Gui.Spinner.Rate))
 		defer ticker.Stop()
 
+		// Write the status into the view before the first layout below, so that
+		// layout (which sizes the bottom line based on the actual content of the
+		// AppStatus view) leaves room for it and it shows right away. The ticker
+		// only updates the spinner frame using ForceFlushViewsContentOnly, so this
+		// doesn't re-layout.
+		self.setAppStatusContent()
+
 		// Forcing a re-layout and redraw after we added the waiting status;
 		// this is needed in case the gui.showBottomLine config is set to false,
 		// to make sure the bottom line appears. It's also useful for redrawing
@@ -148,6 +155,14 @@ func (self *AppStatusHelper) renderAppStatusSync(stop chan struct{}) {
 				}
 				_ = self.c.GocuiGui().ForceFlushViewsContentOnly(bottomLineViews)
 			case <-stop:
+				// Clear the status from the view and re-layout, otherwise the
+				// stale content would keep layout reserving room for it forever.
+				// The UI thread is free again at this point, so we go through
+				// OnUIThread like the async renderAppStatus does.
+				self.c.OnUIThread(func() error {
+					self.c.SetViewContent(self.c.Views().AppStatus, "")
+					return nil
+				})
 				break outer
 			}
 		}
