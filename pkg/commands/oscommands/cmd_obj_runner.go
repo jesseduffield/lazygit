@@ -105,12 +105,18 @@ func (self *cmdObjRunner) RunWithOutputAux(cmdObj *CmdObj) (string, error) {
 	}
 
 	t := time.Now()
-	output, err := sanitisedCommandOutput(cmdObj.GetCmd().CombinedOutput())
+	cmd := cmdObj.GetCmd()
+	output, err := sanitisedCommandOutput(cmd.CombinedOutput())
 	if err != nil {
 		self.log.WithField("command", cmdObj.ToString()).Error(output)
 	}
 
-	self.log.Infof("%s (%s)", cmdObj.ToString(), time.Since(t))
+	wall := time.Since(t)
+	if ps := cmd.ProcessState; ps != nil {
+		self.log.Infof("%s (wall %s, cpu %s)", cmdObj.ToString(), wall, ps.UserTime()+ps.SystemTime())
+	} else {
+		self.log.Infof("%s (wall %s)", cmdObj.ToString(), wall)
+	}
 
 	return output, err
 }
