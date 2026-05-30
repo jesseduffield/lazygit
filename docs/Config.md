@@ -246,6 +246,9 @@ gui:
   # If true, show jump-to-window keybindings in window titles.
   showPanelJumps: true
 
+  # If true, show separate Unstaged/Staged tabs in the Files window.
+  showFileChangeTabs: false
+
   # Nerd fonts version to use.
   # One of: '2' | '3' | empty string (default)
   # If empty, do not show icons.
