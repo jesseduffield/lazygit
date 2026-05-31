@@ -82,6 +82,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | 搜尋 |  |
 
 ## 主面板（合併）
@@ -146,6 +147,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -212,6 +214,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -241,6 +244,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | 搜尋 |  |
 
 ## 收藏 (Stash)
@@ -253,6 +257,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` n `` | 新分支 | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
 | `` r `` | 重新命名收藏 |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -273,6 +278,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -304,6 +310,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` u `` | 檢視遠端設定 | 檢視有關遠端分支的設定（例如重設至遠端） |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -320,6 +327,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | 重設 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
@@ -355,6 +363,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | 搜尋 |  |
 
 ## 次要
@@ -364,6 +373,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | 搜尋 |  |
 
 ## 狀態
@@ -377,6 +387,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Show/cycle all branch logs |  |
 | `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 
 ## 確認面板
 
@@ -413,6 +424,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | 檢視重設選項 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |

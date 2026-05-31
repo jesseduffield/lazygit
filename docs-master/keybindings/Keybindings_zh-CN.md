@@ -66,6 +66,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` * `` | 选择当前分支的提交 |  |
 | `` 0 `` | 聚焦主视图 |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 查看提交的文件 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 开始搜索 |  |
@@ -110,6 +111,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` * `` | 选择当前分支的提交 |  |
 | `` 0 `` | 聚焦主视图 |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
@@ -152,6 +154,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` * `` | 选择当前分支的提交 |  |
 | `` 0 `` | 聚焦主视图 |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 查看提交的文件 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 开始搜索 |  |
@@ -181,6 +184,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | 折叠全部文件 | 折叠文件树中的全部目录 |
 | `` = `` | 展开全部文件 | 展开文件树中的全部目录 |
 | `` 0 `` | 聚焦主视图 |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | 通过文本过滤当前视图 |  |
 
 ## 文件
@@ -214,6 +218,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | 折叠全部文件 | 折叠文件树中的全部目录 |
 | `` = `` | 展开全部文件 | 展开文件树中的全部目录 |
 | `` 0 `` | 聚焦主视图 |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | 通过文本过滤当前视图 |  |
 
 ## 本地分支
@@ -243,6 +248,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` u `` | 查看上游选项 | 查看与分支上游相关的选项，例如设置/取消设置上游和重置为上游。 |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` 0 `` | 聚焦主视图 |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
@@ -275,6 +281,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | 重置 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` 0 `` | 聚焦主视图 |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
@@ -286,6 +293,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | 切换到其他面板 | 切换到其他视图（已暂存/未暂存的变更） |
 | `` <esc> `` | 退出回到侧边面板 |  |
 | `` 0 `` | 聚焦主视图 |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | 开始搜索 |  |
 
 ## 正在合并
@@ -335,6 +343,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | 切换到其他面板 | 切换到其他视图（已暂存/未暂存的变更） |
 | `` <esc> `` | 退出回到侧边面板 |  |
 | `` 0 `` | 聚焦主视图 |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | 开始搜索 |  |
 
 ## 状态
@@ -348,6 +357,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | 显示/循环所有分支日志 |  |
 | `` A `` | 显示/循环所有分支日志（反向） |  |
 | `` 0 `` | 聚焦主视图 |  |
+| `` 9 `` | Focus secondary view |  |
 
 ## 确认面板
 
@@ -375,6 +385,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` n `` | 新分支 | 从选定的贮藏项创建一个新分支。这是通过 git 检查创建贮藏项的提交，从该提交创建一个新分支，然后将贮藏项作为附加提交应用到新分支来实现的。 |
 | `` r `` | 重命名贮藏 |  |
 | `` 0 `` | 聚焦主视图 |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 查看提交的文件 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
@@ -413,6 +424,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` 0 `` | 聚焦主视图 |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | 查看提交 |  |
 | `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |

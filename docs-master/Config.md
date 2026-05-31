@@ -622,6 +622,7 @@ keybinding:
       - "4"
       - "5"
     focusMainView: "0"
+    focusSecondaryView: "9"
     nextMatch: "n"
     prevMatch: "N"
     startSearch: /

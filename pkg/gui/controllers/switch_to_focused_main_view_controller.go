@@ -5,7 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-// This controller is for all contexts that can focus their main view.
+// This controller is for all contexts that can focus their main or secondary view.
 
 var _ types.IController = &SwitchToFocusedMainViewController{}
 
@@ -32,6 +32,12 @@ func (self *SwitchToFocusedMainViewController) GetKeybindings(opts types.Keybind
 			Keys:        opts.GetKeys(opts.Config.Universal.FocusMainView),
 			Handler:     self.handleFocusMainView,
 			Description: self.c.Tr.FocusMainView,
+			Tag:         "global",
+		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Universal.FocusSecondaryView),
+			Handler:     self.handleFocusSecondaryView,
+			Description: self.c.Tr.FocusSecondaryView,
 			Tag:         "global",
 		},
 	}
@@ -70,6 +76,13 @@ func (self *SwitchToFocusedMainViewController) onClickSecondary(opts gocui.ViewM
 
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
 	return self.focusMainView(self.c.Contexts().Normal)
+}
+
+func (self *SwitchToFocusedMainViewController) handleFocusSecondaryView() error {
+	if !self.c.State().GetRepoState().GetSplitMainPanel() {
+		return nil
+	}
+	return self.focusMainView(self.c.Contexts().NormalSecondary)
 }
 
 func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext types.Context) error {

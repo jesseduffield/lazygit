@@ -238,6 +238,7 @@ func (gui *Gui) configureViewProperties() {
 		gui.Views.Stash.TitlePrefix = jumpLabels[4]
 
 		gui.Views.Main.TitlePrefix = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusMainView)
+		gui.Views.Secondary.TitlePrefix = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusSecondaryView)
 	} else {
 		gui.Views.Status.TitlePrefix = ""
 
@@ -255,6 +256,7 @@ func (gui *Gui) configureViewProperties() {
 		gui.Views.Stash.TitlePrefix = ""
 
 		gui.Views.Main.TitlePrefix = ""
+		gui.Views.Secondary.TitlePrefix = ""
 	}
 
 	for _, view := range gui.g.Views() {

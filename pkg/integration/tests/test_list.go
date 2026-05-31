@@ -467,6 +467,7 @@ var tests = []*components.IntegrationTest{
 	ui.DisableSwitchTabWithPanelJumpKeys,
 	ui.EmptyMenu,
 	ui.FocusMainViewFromSecondary,
+	ui.FocusSecondaryView,
 	ui.KeybindingSuggestionsDontCrashOnDisabledBindings,
 	ui.KeybindingSuggestionsWhenSwitchingRepos,
 	ui.ModeSpecificKeybindingSuggestions,

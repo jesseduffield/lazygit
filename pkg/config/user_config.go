@@ -458,23 +458,24 @@ type KeybindingUniversalConfig struct {
 	// Deprecated: add the key to `nextBlock` instead.
 	NextBlockAlt2 Keybinding `yaml:"nextBlock-alt2"`
 	// Deprecated: add the key to `prevBlock` instead.
-	PrevBlockAlt2     Keybinding   `yaml:"prevBlock-alt2"`
-	JumpToBlock       []Keybinding `yaml:"jumpToBlock"`
-	FocusMainView     Keybinding   `yaml:"focusMainView"`
-	NextMatch         Keybinding   `yaml:"nextMatch"`
-	PrevMatch         Keybinding   `yaml:"prevMatch"`
-	StartSearch       Keybinding   `yaml:"startSearch"`
-	MoveWordLeft      Keybinding   `yaml:"moveWordLeft"`      // <alt+left> on Mac
-	MoveWordRight     Keybinding   `yaml:"moveWordRight"`     // <alt+right> on Mac
-	BackspaceWord     Keybinding   `yaml:"backspaceWord"`     // <alt+backspace> on Mac
-	ForwardDeleteWord Keybinding   `yaml:"forwardDeleteWord"` // <alt+delete> on Mac
-	OptionMenu        Keybinding   `yaml:"optionMenu"`
-	Select            Keybinding   `yaml:"select"`
-	GoInto            Keybinding   `yaml:"goInto"`
-	Confirm           Keybinding   `yaml:"confirm"`
-	ConfirmMenu       Keybinding   `yaml:"confirmMenu"`
-	ConfirmSuggestion Keybinding   `yaml:"confirmSuggestion"`
-	ConfirmInEditor   Keybinding   `yaml:"confirmInEditor"` // <meta+enter> on Mac
+	PrevBlockAlt2      Keybinding   `yaml:"prevBlock-alt2"`
+	JumpToBlock        []Keybinding `yaml:"jumpToBlock"`
+	FocusMainView      Keybinding   `yaml:"focusMainView"`
+	FocusSecondaryView Keybinding   `yaml:"focusSecondaryView"`
+	NextMatch          Keybinding   `yaml:"nextMatch"`
+	PrevMatch          Keybinding   `yaml:"prevMatch"`
+	StartSearch        Keybinding   `yaml:"startSearch"`
+	MoveWordLeft       Keybinding   `yaml:"moveWordLeft"`      // <alt+left> on Mac
+	MoveWordRight      Keybinding   `yaml:"moveWordRight"`     // <alt+right> on Mac
+	BackspaceWord      Keybinding   `yaml:"backspaceWord"`     // <alt+backspace> on Mac
+	ForwardDeleteWord  Keybinding   `yaml:"forwardDeleteWord"` // <alt+delete> on Mac
+	OptionMenu         Keybinding   `yaml:"optionMenu"`
+	Select             Keybinding   `yaml:"select"`
+	GoInto             Keybinding   `yaml:"goInto"`
+	Confirm            Keybinding   `yaml:"confirm"`
+	ConfirmMenu        Keybinding   `yaml:"confirmMenu"`
+	ConfirmSuggestion  Keybinding   `yaml:"confirmSuggestion"`
+	ConfirmInEditor    Keybinding   `yaml:"confirmInEditor"` // <meta+enter> on Mac
 	// Deprecated: add the key to `confirmInEditor` instead.
 	ConfirmInEditorAlt Keybinding `yaml:"confirmInEditor-alt"`
 	Remove             Keybinding `yaml:"remove"`
@@ -973,6 +974,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				NextBlockAlt2:                     Keybinding{"<tab>"},
 				JumpToBlock:                       []Keybinding{{"1"}, {"2"}, {"3"}, {"4"}, {"5"}},
 				FocusMainView:                     Keybinding{"0"},
+				FocusSecondaryView:                Keybinding{"9"},
 				NextMatch:                         Keybinding{"n"},
 				PrevMatch:                         Keybinding{"N"},
 				StartSearch:                       Keybinding{"/"},
