@@ -97,6 +97,16 @@ func (self *BisectCommands) GetInfoForGitDir(gitDir string) *BisectInfo {
 	currentHash := strings.TrimSpace(string(currentContent))
 	info.current = currentHash
 
+	// Read actual HEAD to detect manual checkouts during bisect.
+	// During bisect, HEAD is always a detached hash (not a symbolic ref).
+	headContent, err := os.ReadFile(filepath.Join(gitDir, "HEAD"))
+	if err == nil {
+		headStr := strings.TrimSpace(string(headContent))
+		if !strings.HasPrefix(headStr, "ref: ") {
+			info.headHash = headStr
+		}
+	}
+
 	return info
 }
 
