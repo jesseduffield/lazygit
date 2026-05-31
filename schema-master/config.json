@@ -2600,6 +2600,20 @@
           ],
           "default": "0"
         },
+        "focusSecondaryView": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "9"
+        },
         "nextMatch": {
           "oneOf": [
             {

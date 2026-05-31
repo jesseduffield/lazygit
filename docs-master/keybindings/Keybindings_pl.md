@@ -88,6 +88,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Wyświetl pliki |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
@@ -98,6 +99,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Drzewa pracy
@@ -126,6 +129,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Pokaż commity |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
@@ -180,6 +184,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` u `` | Pokaż opcje upstream | Pokaż opcje dotyczące upstream gałęzi, np. ustawianie/usuwanie upstream i resetowanie do upstream. |
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Pokaż commity |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
@@ -200,6 +205,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel up> (fn+down) `` | Przewiń w górę |  |
 | `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Panel główny (scalanie)
@@ -279,6 +286,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
 
 ## Pliki commita
@@ -299,6 +307,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
 
 ## Podsumowanie commita
@@ -318,6 +327,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` n `` | Nowa gałąź | Utwórz nową gałąź z wybranego wpisu schowka. Działa poprzez przełączenie git na commit, na którym wpis schowka został utworzony, tworzenie nowej gałęzi z tego commita, a następnie zastosowanie wpisu schowka do nowej gałęzi jako dodatkowego commita. |
 | `` r `` | Zmień nazwę schowka |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Wyświetl pliki |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
@@ -333,6 +343,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Show/cycle all branch logs |  |
 | `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 
 ## Sub-commity
 
@@ -350,6 +361,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Wyświetl pliki |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
@@ -380,6 +392,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Pokaż commity |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
@@ -411,6 +424,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Pokaż commity |  |
 | `` w `` | Zobacz opcje drzewa pracy |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |

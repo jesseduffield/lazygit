@@ -73,6 +73,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | Найти |  |
 
 ## Главная панель (Индексирование)
@@ -105,6 +107,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel up> (fn+down) `` | Прокрутить вверх |  |
 | `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | Найти |  |
 
 ## Главная панель (Слияние)
@@ -155,6 +159,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -197,6 +202,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Просмотреть файлы выбранного элемента |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Найти |  |
@@ -228,6 +234,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -264,6 +271,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Просмотреть файлы выбранного элемента |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Найти |  |
@@ -307,6 +315,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | Filter the current view by text |  |
 
 ## Статус
@@ -320,6 +329,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Show/cycle all branch logs |  |
 | `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 
 ## Теги
 
@@ -333,6 +343,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -352,6 +363,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
@@ -399,6 +411,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | Filter the current view by text |  |
 
 ## Хранилище
@@ -411,6 +424,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` n `` | Новая ветка | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
 | `` r `` | Переименовать хранилище |  |
 | `` 0 `` | Focus main view |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Просмотреть файлы выбранного элемента |  |
 | `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
