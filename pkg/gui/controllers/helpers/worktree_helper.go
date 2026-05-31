@@ -114,7 +114,11 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 	self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.NewWorktreePath,
 		HandleConfirm: func(path string) error {
-			opts.Path = path
+			expanded, err := utils.ExpandHomeDir(path)
+			if err != nil {
+				return err
+			}
+			opts.Path = expanded
 
 			if detached {
 				return f()
