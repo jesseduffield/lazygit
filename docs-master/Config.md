@@ -644,6 +644,14 @@ keybinding:
     confirmMenu: <enter>
     confirmSuggestion: <enter>
 
+    # Key for confirming the search/filter prompt (the one opened with
+    # `startSearch`).
+    confirmSearch: <enter>
+
+    # Key for confirming a text input prompt (e.g. when naming a stash or a new
+    # branch).
+    confirmPrompt: <enter>
+
     # <meta+enter> on Mac
     confirmInEditor: [<ctrl+enter>, <ctrl+s>]
     remove: d
