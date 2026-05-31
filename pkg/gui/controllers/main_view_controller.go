@@ -1,6 +1,12 @@
 package controllers
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+	"fmt"
+	"path/filepath"
+
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -32,17 +38,22 @@ func NewMainViewController(
 
 func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	// When a selection is shown, we surface the bindings that act on it
-	// (enter to dive into staging, e to edit the selected line, escape to hide
-	// the selection).
+	// (enter to dive into staging, e to edit the selected line, G to open the
+	// line in the branch's pull request, escape to hide the selection).
 	selectionShown := self.context.GetView().Highlight
 
 	var enterDescription string
 	var editDescription string
 	var editTooltip string
+	var openPullRequestDescription string
+	var openPullRequestTooltip string
 	if selectionShown {
 		enterDescription = self.c.Tr.EnterStaging
 		editDescription = self.c.Tr.EditFile
 		editTooltip = self.c.Tr.EditFileTooltip
+		// TODO: i18n-ize these
+		openPullRequestDescription = "Open pull request for selected line"
+		openPullRequestTooltip = "Open a browser at the selected line in the diff of the current branch's pull request, so that you can comment on it. Only works for local branches that have a pull request on GitHub."
 	}
 
 	return []*types.Binding{
@@ -76,6 +87,12 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Handler:     self.editLine,
 			Description: editDescription,
 			Tooltip:     editTooltip,
+		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Commits.OpenPullRequestInBrowser),
+			Handler:     self.openPullRequestForSelectedLine,
+			Description: openPullRequestDescription,
+			Tooltip:     openPullRequestTooltip,
 		},
 		{
 			// overriding this because we want to read all of the task's output before we start searching
@@ -175,6 +192,96 @@ func (self *MainViewController) editLine() error {
 	}
 	lineNumber = self.c.Helpers().Diff.AdjustLineNumber(path, lineNumber, self.context.GetViewName())
 	return self.c.Helpers().Files.EditFileAtLine(path, lineNumber)
+}
+
+func (self *MainViewController) openPullRequestForSelectedLine() error {
+	if !self.context.GetView().Highlight {
+		return nil
+	}
+
+	sidePanelContext := self.c.Context().NextInStack(self.context)
+	if sidePanelContext == nil {
+		return nil
+	}
+
+	// The branch whose PR to open depends on where we navigated from: the
+	// checked-out branch when looking at its own commits, but the branch we
+	// drilled into when in the sub-commits or commit-files panels.
+	branchName, ok := self.branchForPullRequest(sidePanelContext)
+	if !ok {
+		return nil
+	}
+
+	pr, ok := self.c.Model().PullRequestsMap[branchName]
+	if !ok {
+		return errors.New(self.c.Tr.NoPullRequestForBranch)
+	}
+
+	// The diff shown is the diff of a particular commit, so we deep-link into
+	// that commit's view of the PR; its right-side line numbers match what we're
+	// showing, so (unlike editLine) no line-number adjustment is needed.
+	diffableContext, ok := sidePanelContext.(types.DiffableContext)
+	if !ok {
+		return nil
+	}
+	commitSha := diffableContext.RefForAdjustingLineNumberInDiff()
+	if commitSha == "" {
+		return nil
+	}
+
+	// Figure out the clicked file and line the same way entering staging does.
+	path, lineNumber, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(
+		self.context.GetViewName(), self.context.GetView().SelectedLineIdx())
+	if !ok {
+		return nil
+	}
+
+	relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), path)
+	if err != nil {
+		return err
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)
+	return self.c.OS().OpenLink(
+		githubPullRequestLineURL(pr.Url, commitSha, filepath.ToSlash(relativePath), lineNumber))
+}
+
+// branchForPullRequest returns the local branch whose pull request applies to
+// the diff currently shown in the focused main view, given the side panel
+// beneath it. It returns false for contexts that don't map to a local branch
+// (e.g. the working-tree files panel, stashes, tags, or remote branches).
+func (self *MainViewController) branchForPullRequest(sidePanelContext types.Context) (string, bool) {
+	switch sidePanelContext.GetKey() {
+	case context.LOCAL_COMMITS_CONTEXT_KEY:
+		return self.c.Model().CheckedOutBranch, true
+	case context.SUB_COMMITS_CONTEXT_KEY:
+		ref := self.c.Contexts().SubCommits.GetRef()
+		if ref == nil {
+			return "", false
+		}
+		return ref.RefName(), true
+	case context.COMMIT_FILES_CONTEXT_KEY:
+		// The commit files panel doesn't itself know which branch it belongs to;
+		// that's determined by the panel we entered it from.
+		parent := self.c.Contexts().CommitFiles.GetParentContext()
+		if parent == nil {
+			return "", false
+		}
+		return self.branchForPullRequest(parent)
+	default:
+		return "", false
+	}
+}
+
+// githubPullRequestLineURL builds a URL that opens the given line of a file in
+// the diff of a specific commit within a GitHub pull request. The file is
+// identified by the SHA-256 of its repo-relative path, and R<line> targets the
+// right (new) side of the diff. See
+// https://github.com/orgs/community/discussions/55764.
+func githubPullRequestLineURL(prURL string, commitSha string, relativePath string, lineNumber int) string {
+	pathHash := sha256.Sum256([]byte(relativePath))
+	anchor := fmt.Sprintf("diff-%sR%d", hex.EncodeToString(pathHash[:]), lineNumber)
+	return fmt.Sprintf("%s/changes/%s#%s", prURL, commitSha, anchor)
 }
 
 func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
