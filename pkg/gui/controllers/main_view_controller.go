@@ -160,11 +160,8 @@ func (self *MainViewController) toggleSelection() error {
 		v.Highlight = false
 		return nil
 	}
-	v.Highlight = true
-	v.HighlightInactive = false
-	lineIdx := v.OriginY() + v.InnerHeight()/2
-	lineIdx = lo.Clamp(lineIdx, 0, v.ViewLinesHeight()-1)
-	v.FocusPoint(0, lineIdx, false)
+	// Start the selection in the middle of the visible area.
+	showSelectionAtLine(v, v.OriginY()+v.InnerHeight()/2)
 	return nil
 }
 
@@ -172,12 +169,27 @@ func (self *MainViewController) enter() error {
 	if !self.context.GetView().Highlight {
 		return nil
 	}
+	return self.enterForLine(self.context.GetView().SelectedLineIdx())
+}
+
+// enterForLine dives into staging/patch-building for the given line, by
+// delegating to the side panel beneath the focused main view (the same handler
+// used when clicking).
+func (self *MainViewController) enterForLine(lineIdx int) error {
 	sidePanelContext := self.c.Context().NextInStack(self.context)
 	if sidePanelContext != nil && sidePanelContext.GetOnClickFocusedMainView() != nil {
-		return sidePanelContext.GetOnClickFocusedMainView()(
-			self.context.GetViewName(), self.context.GetView().SelectedLineIdx())
+		return sidePanelContext.GetOnClickFocusedMainView()(self.context.GetViewName(), lineIdx)
 	}
 	return nil
+}
+
+// showSelectionAtLine turns on the focused main view's selection and moves it to
+// the given view line, clamped to the content.
+func showSelectionAtLine(view *gocui.View, lineIdx int) {
+	view.Highlight = true
+	view.HighlightInactive = false
+	lineIdx = lo.Clamp(lineIdx, 0, view.ViewLinesHeight()-1)
+	view.FocusPoint(0, lineIdx, false)
 }
 
 func (self *MainViewController) editLine() error {
@@ -285,23 +297,21 @@ func githubPullRequestLineURL(prURL string, commitSha string, relativePath strin
 }
 
 func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
-	if self.context.GetView().Highlight && !opts.IsDoubleClick {
-		return nil
-	}
-
-	sidePanelContext := self.c.Context().NextInStack(self.context)
-	if sidePanelContext != nil && sidePanelContext.GetOnClickFocusedMainView() != nil {
-		return sidePanelContext.GetOnClickFocusedMainView()(self.context.GetViewName(), opts.Y)
+	// A click points at a line, so it sets the selection there; a double-click
+	// additionally dives into staging/patch-building for that line.
+	showSelectionAtLine(self.context.GetView(), opts.Y)
+	if opts.IsDoubleClick {
+		return self.enterForLine(opts.Y)
 	}
 	return nil
 }
 
 func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.ViewMouseBindingOpts) error {
-	self.c.Context().Push(self.context, types.OnFocusOpts{
-		ClickedWindowName:  self.context.GetWindowName(),
-		ClickedViewLineIdx: opts.Y,
-	})
-
+	self.c.Context().Push(self.context, types.OnFocusOpts{})
+	showSelectionAtLine(self.context.GetView(), opts.Y)
+	if opts.IsDoubleClick {
+		return self.enterForLine(opts.Y)
+	}
 	return nil
 }
 
