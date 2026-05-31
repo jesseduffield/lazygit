@@ -1,9 +1,12 @@
 package controllers
 
 import (
-	"time"
-
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+	"fmt"
 	"path/filepath"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -147,6 +150,14 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Handler:           self.openJumpToFileMenu,
 			Description:       "Jump to file",
 			DescriptionFunc:   self.diffSelectionDescriptionText("Jump to file"),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Commits.OpenPullRequestInBrowser),
+			Handler:           self.openPullRequestForSelectedLine,
+			Description:       "Open pull request for selected line",
+			DescriptionFunc:   self.diffSelectionDescriptionText("Open pull request for selected line"),
+			Tooltip:           "Open a browser at the selected line in the diff of the current branch's pull request, so that you can comment on it. Only works for local branches that have a pull request on GitHub.",
 			GetDisabledReason: self.diffSelectionDisabledReason,
 		},
 		{
@@ -1011,6 +1022,90 @@ func (self *MainViewController) editDiffLine(viewLine int, beforeEdit func()) er
 	// ones, so they have to be carried forward before we can point an editor at them.
 	lineNumber := self.c.Helpers().Diff.AdjustLineNumber(info.Path, info.NewLine, self.context.GetViewName())
 	return self.c.Helpers().Files.EditFileAtLine(info.Path, lineNumber)
+}
+
+func (self *MainViewController) openPullRequestForSelectedLine() error {
+	sidePanelContext := self.c.Context().NextInStack(self.context)
+	if sidePanelContext == nil {
+		return nil
+	}
+
+	// The branch whose PR to open depends on where we navigated from: the
+	// checked-out branch when looking at its own commits, but the branch we
+	// drilled into when in the sub-commits or commit-files panels.
+	branchName, ok := self.branchForPullRequest(sidePanelContext)
+	if !ok {
+		return nil
+	}
+
+	pr, ok := self.c.Model().PullRequestsMap[branchName]
+	if !ok {
+		return errors.New(self.c.Tr.NoPullRequestForBranch)
+	}
+
+	// The diff shown is the diff of a particular commit, so we deep-link into
+	// that commit's view of the PR; its right-side line numbers match what we're
+	// showing, so (unlike editLine) no line-number adjustment is needed.
+	diffableContext, ok := sidePanelContext.(types.DiffableContext)
+	if !ok {
+		return nil
+	}
+	commitSha := diffableContext.RefForAdjustingLineNumberInDiff()
+	if commitSha == "" {
+		return nil
+	}
+
+	info, ok := self.c.Helpers().DiffLine.GetDiffLineInfo(self.context.GetView(), self.context.GetView().SelectedLineIdx())
+	if !ok {
+		return nil
+	}
+
+	relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), info.Path)
+	if err != nil {
+		return err
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)
+	return self.c.OS().OpenLink(
+		githubPullRequestLineURL(pr.Url, commitSha, filepath.ToSlash(relativePath), info.NewLine))
+}
+
+// branchForPullRequest returns the local branch whose pull request applies to
+// the diff currently shown in the focused main view, given the side panel
+// beneath it. It returns false for contexts that don't map to a local branch
+// (e.g. the working-tree files panel, stashes, tags, or remote branches).
+func (self *MainViewController) branchForPullRequest(sidePanelContext types.Context) (string, bool) {
+	switch sidePanelContext.GetKey() {
+	case context.LOCAL_COMMITS_CONTEXT_KEY:
+		return self.c.Model().CheckedOutBranch, true
+	case context.SUB_COMMITS_CONTEXT_KEY:
+		ref := self.c.Contexts().SubCommits.GetRef()
+		if ref == nil {
+			return "", false
+		}
+		return ref.RefName(), true
+	case context.COMMIT_FILES_CONTEXT_KEY:
+		// The commit files panel doesn't itself know which branch it belongs to;
+		// that's determined by the panel we entered it from.
+		parent := self.c.Contexts().CommitFiles.GetParentContext()
+		if parent == nil {
+			return "", false
+		}
+		return self.branchForPullRequest(parent)
+	default:
+		return "", false
+	}
+}
+
+// githubPullRequestLineURL builds a URL that opens the given line of a file in
+// the diff of a specific commit within a GitHub pull request. The file is
+// identified by the SHA-256 of its repo-relative path, and R<line> targets the
+// right (new) side of the diff. See
+// https://github.com/orgs/community/discussions/55764.
+func githubPullRequestLineURL(prURL string, commitSha string, relativePath string, lineNumber int) string {
+	pathHash := sha256.Sum256([]byte(relativePath))
+	anchor := fmt.Sprintf("diff-%sR%d", hex.EncodeToString(pathHash[:]), lineNumber)
+	return fmt.Sprintf("%s/changes/%s#%s", prURL, commitSha, anchor)
 }
 
 func (self *MainViewController) openSearch() error {
