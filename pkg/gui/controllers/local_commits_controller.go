@@ -309,9 +309,17 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() {
 			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
-					Title:    "Patch",
-					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-					Task:     task,
+					Title: "Patch",
+					SubTitle: self.c.Helpers().Diff.CombineSubTitles(
+						func() string {
+							if self.c.UserConfig().Gui.ShowCommitSignature {
+								return self.c.Helpers().Diff.CommitSignatureSubTitle(commit)
+							}
+							return ""
+						}(),
+						self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					),
+					Task: task,
 				},
 				Secondary: secondaryPatchPanelUpdateOpts(self.c),
 			})

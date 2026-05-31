@@ -166,6 +166,8 @@ type GuiConfig struct {
 	CommitAuthorLongLength int `yaml:"commitAuthorLongLength"`
 	// Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.
 	CommitHashLength int `yaml:"commitHashLength" jsonschema:"minimum=0"`
+	// If true, show commit signature indicators in the commits list and patch subtitle.
+	ShowCommitSignature bool `yaml:"showCommitSignature"`
 	// If true, show commit hashes alongside branch names in the branches view.
 	ShowBranchCommitHash bool `yaml:"showBranchCommitHash"`
 	// Whether to show the divergence from the base branch in the branches view.
@@ -868,6 +870,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			CommitAuthorShortLength:             2,
 			CommitAuthorLongLength:              17,
 			CommitHashLength:                    8,
+			ShowCommitSignature:                 false,
 			ShowBranchCommitHash:                false,
 			ShowDivergenceFromBaseBranch:        "none",
 			CommandLogSize:                      8,
