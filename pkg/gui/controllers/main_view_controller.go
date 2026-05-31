@@ -32,12 +32,17 @@ func NewMainViewController(
 
 func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	// When a selection is shown, we surface the bindings that act on it
-	// (enter to dive into staging, escape to hide the selection).
+	// (enter to dive into staging, e to edit the selected line, escape to hide
+	// the selection).
 	selectionShown := self.context.GetView().Highlight
 
 	var enterDescription string
+	var editDescription string
+	var editTooltip string
 	if selectionShown {
 		enterDescription = self.c.Tr.EnterStaging
+		editDescription = self.c.Tr.EditFile
+		editTooltip = self.c.Tr.EditFileTooltip
 	}
 
 	return []*types.Binding{
@@ -65,6 +70,12 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Handler:         self.enter,
 			Description:     enterDescription,
 			DisplayOnScreen: selectionShown,
+		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Universal.Edit),
+			Handler:     self.editLine,
+			Description: editDescription,
+			Tooltip:     editTooltip,
 		},
 		{
 			// overriding this because we want to read all of the task's output before we start searching
@@ -150,6 +161,20 @@ func (self *MainViewController) enter() error {
 			self.context.GetViewName(), self.context.GetView().SelectedLineIdx())
 	}
 	return nil
+}
+
+func (self *MainViewController) editLine() error {
+	if !self.context.GetView().Highlight {
+		return nil
+	}
+	// Figure out the clicked file and line the same way entering staging does.
+	path, lineNumber, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(
+		self.context.GetViewName(), self.context.GetView().SelectedLineIdx())
+	if !ok {
+		return nil
+	}
+	lineNumber = self.c.Helpers().Diff.AdjustLineNumber(path, lineNumber, self.context.GetViewName())
+	return self.c.Helpers().Files.EditFileAtLine(path, lineNumber)
 }
 
 func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
