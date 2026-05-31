@@ -214,6 +214,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` O `` | 풀 리퀘스트 생성 옵션 |  |
 | `` G `` | Open pull request in browser |  |
 | `` <ctrl+y> `` | 풀 리퀘스트 URL을 클립보드에 복사 |  |
+| `` y `` | Copy branch URL to clipboard |  |
 | `` c `` | 이름으로 체크아웃 | Checkout by name. In the input box you can enter '-' to switch to the previous branch. |
 | `` - `` | Checkout previous branch |  |
 | `` F `` | 강제 체크아웃 | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |

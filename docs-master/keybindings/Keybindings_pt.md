@@ -96,6 +96,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` O `` | View create pull request options |  |
 | `` G `` | Open pull request in browser |  |
 | `` <ctrl+y> `` | Copiar URL do pull request para área de transferência |  |
+| `` y `` | Copy branch URL to clipboard |  |
 | `` c `` | Checar por nome | Checar por nome. Na caixa de entrada você pode inserir '-' para trocar para a última branch  |
 | `` - `` | Checkout da branch anterior |  |
 | `` F `` | Forçar checagem | Forçar checagem da branch selecionada. Isso irá descartar todas as mudanças no seu diretório de trabalho antes cheque a branch selecionada   |
