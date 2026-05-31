@@ -83,6 +83,10 @@ func generateAtDir(cheatsheetDir string) {
 		content = fmt.Sprintf("_This file is auto-generated. To update, make the changes in the "+
 			"pkg/i18n directory and then run `%s` from the project root._\n\n%s", CommandToRun(), content)
 		writeString(file, content)
+		err = file.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
