@@ -61,21 +61,27 @@ func (self *SwitchToFocusedMainViewController) Context() types.Context {
 }
 
 func (self *SwitchToFocusedMainViewController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.focusMainView(self.c.Contexts().Normal)
+	return self.focusMainView(self.c.Contexts().Normal, opts.Y)
 }
 
 func (self *SwitchToFocusedMainViewController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
-	return self.focusMainView(self.c.Contexts().NormalSecondary)
+	return self.focusMainView(self.c.Contexts().NormalSecondary, opts.Y)
 }
 
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
-	return self.focusMainView(self.c.Contexts().Normal)
+	// Focusing by keyboard doesn't point at any particular line, so we don't
+	// show a selection; the user is free to scroll. Clicking does point at a
+	// line, so it selects it (see focusMainView's clickedLineIdx).
+	return self.focusMainView(self.c.Contexts().Normal, -1)
 }
 
-func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext types.Context) error {
+func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext types.Context, clickedLineIdx int) error {
 	if context, ok := mainViewContext.(types.ISearchableContext); ok {
 		context.ClearSearchString()
 	}
 	self.c.Context().Push(mainViewContext, types.OnFocusOpts{})
+	if clickedLineIdx >= 0 {
+		showSelectionAtLine(mainViewContext.GetView(), clickedLineIdx)
+	}
 	return nil
 }
