@@ -223,6 +223,7 @@ func (self *BranchesHelper) promptWorktreeBranchDelete(selectedBranch *models.Br
 		Items: []*types.MenuItem{
 			{
 				Label: self.c.Tr.SwitchToWorktree,
+				Key:   gocui.NewKeyRune('s'),
 				OnPress: func() error {
 					return self.worktreeHelper.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
 				},
@@ -230,12 +231,14 @@ func (self *BranchesHelper) promptWorktreeBranchDelete(selectedBranch *models.Br
 			{
 				Label:   self.c.Tr.DetachWorktree,
 				Tooltip: self.c.Tr.DetachWorktreeTooltip,
+				Key:     gocui.NewKeyRune('d'),
 				OnPress: func() error {
 					return self.worktreeHelper.Detach(worktree)
 				},
 			},
 			{
 				Label: self.c.Tr.RemoveWorktree,
+				Key:   gocui.NewKeyRune('r'),
 				OnPress: func() error {
 					return self.worktreeHelper.Remove(worktree, false)
 				},
