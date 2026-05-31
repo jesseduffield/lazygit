@@ -361,11 +361,34 @@ func (self *FilesController) GetOnDoubleClick() func() error {
 
 func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
 	return func(mainViewName string, clickedLineIdx int) error {
-		node := self.getSelectedItem()
-		if node != nil && node.File != nil {
-			return self.EnterFile(types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
+		clickedFile, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(mainViewName, clickedLineIdx)
+		if !ok {
+			line = -1
 		}
-		return nil
+
+		node := self.context().GetSelected()
+		if node == nil {
+			return nil
+		}
+
+		if !node.IsFile() && ok {
+			relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), clickedFile)
+			if err != nil {
+				return err
+			}
+			relativePath = "./" + relativePath
+			self.context().FileTreeViewModel.ExpandToPath(relativePath)
+			self.c.PostRefreshUpdate(self.context())
+
+			idx, ok := self.context().FileTreeViewModel.GetIndexForPath(relativePath)
+			if ok {
+				self.context().SetSelectedLineIdx(idx)
+				self.context().GetViewTrait().FocusPoint(
+					self.context().ModelIndexToViewIndex(idx), false)
+			}
+		}
+
+		return self.EnterFile(types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
 	}
 }
 
@@ -606,7 +629,7 @@ func (self *FilesController) getSelectedFile() *models.File {
 }
 
 func (self *FilesController) enter() error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
+	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1, ClickedViewRealLineIdx: -1})
 }
 
 func (self *FilesController) collapseAll() error {

@@ -10,6 +10,14 @@ import (
 
 type PatchBuildingHelper struct {
 	c *HelperCommon
+
+	// When patch building is entered straight from a focused main view (rather
+	// than from the commit files panel), this records the side panel to return
+	// to on escape, so that we skip the commit files panel we never really
+	// visited. It is nil for the normal flow, where escape just pops back to the
+	// commit files panel. Set on every entry into patch building (see
+	// CommitFilesHelper.EnterCommitFile) so it can't leak between flows.
+	escapeContext types.Context
 }
 
 func NewPatchBuildingHelper(
@@ -32,9 +40,17 @@ func (self *PatchBuildingHelper) ShowHunkStagingHint() {
 	}
 }
 
-// takes us from the patch building panel back to the commit files panel
+// takes us from the patch building panel back to the commit files panel, or
+// straight back to the side panel if we entered patch building from a focused
+// main view (see escapeContext)
 func (self *PatchBuildingHelper) Escape() {
-	self.c.Context().Pop()
+	if self.escapeContext != nil {
+		escapeContext := self.escapeContext
+		self.escapeContext = nil
+		self.c.Context().Push(escapeContext, types.OnFocusOpts{})
+	} else {
+		self.c.Context().Pop()
+	}
 }
 
 // kills the custom patch and returns us back to the commit files panel if needed
@@ -56,8 +72,10 @@ func (self *PatchBuildingHelper) Reset() error {
 
 func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpts) {
 	selectedLineIdx := -1
+	selectedRealLineIdx := -1
 	if opts.ClickedWindowName == "main" {
 		selectedLineIdx = opts.ClickedViewLineIdx
+		selectedRealLineIdx = opts.ClickedViewRealLineIdx
 	}
 
 	if !self.c.Git().Patch.PatchBuilder.Active() {
@@ -89,7 +107,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 
 	oldState := context.GetState()
 
-	state := patch_exploring.NewState(diff, selectedLineIdx, context.GetView(), oldState, self.c.UserConfig().Gui.UseHunkModeInStagingView)
+	state := patch_exploring.NewState(diff, selectedLineIdx, selectedRealLineIdx, context.GetView(), oldState, self.c.UserConfig().Gui.UseHunkModeInStagingView)
 	context.SetState(state)
 	if state == nil {
 		self.Escape()
