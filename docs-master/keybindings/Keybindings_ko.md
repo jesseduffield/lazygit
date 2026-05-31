@@ -83,6 +83,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` 0 `` | Focus main view |  |
 | `` / `` | 검색 시작 |  |
 
 ## Stash
@@ -161,6 +162,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel up> (fn+down) `` | 위로 스크롤 |  |
 | `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` 0 `` | Focus main view |  |
 | `` / `` | 검색 시작 |  |
 
 ## 메인 패널 (Patch Building)

@@ -234,6 +234,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel up> (fn+down) `` | Rolar para cima |  |
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` 0 `` | Focar visualização principal |  |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Painel Principal (preparação)
@@ -336,6 +337,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` 0 `` | Focar visualização principal |  |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Stash
