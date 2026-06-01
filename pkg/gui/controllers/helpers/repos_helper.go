@@ -171,7 +171,7 @@ func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey
 		}
 
 		if err := self.recordDirectoryHelper.RecordCurrentDirectory(); err != nil {
-			return err
+			self.c.Log.Errorf("error recording current directory: %v", err)
 		}
 
 		self.c.Mutexes().RefreshingFilesMutex.Lock()
