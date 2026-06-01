@@ -891,6 +891,8 @@ type TranslationSet struct {
 	CreateWorktreeFromDetached               string
 	LcWorktree                               string
 	ChangingDirectoryTo                      string
+	DirenvApprovalTitle                      string
+	DirenvApprovalPrompt                     string
 	Name                                     string
 	Branch                                   string
 	Path                                     string
@@ -2012,6 +2014,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CreateWorktreeFromDetached:               "Create worktree from {{.ref}} (detached)",
 		LcWorktree:                               "worktree",
 		ChangingDirectoryTo:                      "Changing directory to {{.path}}",
+		DirenvApprovalTitle:                      "Approve .envrc?",
+		DirenvApprovalPrompt:                     "Press {{.confirmKey}} to run 'direnv allow' and load the environment.\nPress {{.cancelKey}} to skip.\n\n{{.content}}",
 		Name:                                     "Name",
 		Branch:                                   "Branch",
 		Path:                                     "Path",
