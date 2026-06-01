@@ -171,13 +171,7 @@ func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey
 			return err
 		}
 
-		direnvMsg, direnvErr := direnv.Load(self.c.OS().Cmd)
-		if direnvMsg != "" {
-			self.c.LogCommand(direnvMsg, false)
-		}
-		if direnvErr != nil {
-			self.c.Log.WithError(direnvErr).Warn("direnv load failed")
-		}
+		direnvResult := self.logDirenvResult(direnv.Load(self.c.OS().Cmd))
 
 		if err := self.recordDirectoryHelper.RecordCurrentDirectory(); err != nil {
 			self.c.Log.Errorf("error recording current directory: %v", err)
@@ -190,6 +184,57 @@ func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey
 			return err
 		}
 
-		return direnvErr
+		if direnvResult.Blocked {
+			self.c.OnUIThread(func() error {
+				self.promptDirenvApproval(direnvResult.EnvrcPath)
+				return nil
+			})
+			return nil
+		}
+
+		return direnvResult.Err
+	})
+}
+
+// logDirenvResult writes whatever direnv emitted to the command log and the
+// debug log; both happen for every load attempt regardless of outcome.
+func (self *ReposHelper) logDirenvResult(result direnv.LoadResult) direnv.LoadResult {
+	if result.Message != "" {
+		self.c.LogCommand(result.Message, false)
+	}
+	if result.Err != nil {
+		self.c.Log.WithError(result.Err).Warn("direnv load failed")
+	}
+	return result
+}
+
+// promptDirenvApproval shows the user the contents of an unapproved .envrc
+// and offers to run `direnv allow` for them. On confirm, we approve the
+// file and re-run Load so the new env reaches subprocesses; on cancel we
+// leave the env as-is (the previous repo's vars are already unloaded by
+// the initial Load call, which is the correct state).
+func (self *ReposHelper) promptDirenvApproval(envrcPath string) {
+	content, err := os.ReadFile(envrcPath)
+	if err != nil {
+		self.c.Log.WithError(err).Warn("could not read .envrc for approval prompt")
+		return
+	}
+
+	indented := "  " + strings.ReplaceAll(strings.TrimRight(string(content), "\n"), "\n", "\n  ")
+	prompt := utils.ResolvePlaceholderString(self.c.Tr.DirenvApprovalPrompt, map[string]string{
+		"confirmKey": self.c.UserConfig().Keybinding.Universal.Confirm.String(),
+		"cancelKey":  self.c.UserConfig().Keybinding.Universal.Return.String(),
+		"content":    indented,
+	})
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.DirenvApprovalTitle,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			if err := direnv.Allow(self.c.OS().Cmd, envrcPath); err != nil {
+				return err
+			}
+			return self.logDirenvResult(direnv.Load(self.c.OS().Cmd)).Err
+		},
 	})
 }

@@ -172,14 +172,16 @@ func openRecentRepo(app *App) bool {
 	for _, repoDir := range app.Config.GetAppState().RecentRepos {
 		if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
 			if err := os.Chdir(repoDir); err == nil {
-				// The command log isn't up yet, so any direnv diagnostics
-				// only make it to the debug log here.
-				msg, derr := direnv.Load(app.OSCommand.Cmd)
-				if msg != "" {
-					app.Log.WithField("message", msg).Info("direnv")
+				// We're still in setup, before the gui exists, so we can't show the approval popup
+				// that DispatchSwitchTo offers for blocked .envrc files; just log and move on.
+				// Also, the logs only go to the debug log, not the Command Log, because that's not
+				// available yet, either.
+				result := direnv.Load(app.OSCommand.Cmd)
+				if result.Message != "" {
+					app.Log.WithField("message", result.Message).Info("direnv")
 				}
-				if derr != nil {
-					app.Log.WithError(derr).Warn("direnv load failed")
+				if result.Err != nil {
+					app.Log.WithError(result.Err).Warn("direnv load failed")
 				}
 				return true
 			}

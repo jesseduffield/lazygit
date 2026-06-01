@@ -41,3 +41,48 @@ func TestParseDirenvExport(t *testing.T) {
 		})
 	}
 }
+
+func TestParseDirenvStatus(t *testing.T) {
+	scenarios := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{
+			name:  "no .envrc found",
+			input: `{"state":{"foundRC":null}}`,
+			want:  "",
+		},
+		{
+			name:  "found and allowed (0)",
+			input: `{"state":{"foundRC":{"allowed":0,"path":"/repo/.envrc"}}}`,
+			want:  "",
+		},
+		{
+			name:  "found but not allowed (1) — eligible for approval",
+			input: `{"state":{"foundRC":{"allowed":1,"path":"/repo/.envrc"}}}`,
+			want:  "/repo/.envrc",
+		},
+		{
+			name:  "found but denied (2) — user already said no",
+			input: `{"state":{"foundRC":{"allowed":2,"path":"/repo/.envrc"}}}`,
+			want:  "",
+		},
+		{
+			name:  "malformed JSON",
+			input: `{not json`,
+			want:  "",
+		},
+		{
+			name:  "empty input",
+			input: "",
+			want:  "",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.want, parseDirenvStatus([]byte(s.input)))
+		})
+	}
+}

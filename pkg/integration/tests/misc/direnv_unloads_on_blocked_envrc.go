@@ -11,11 +11,11 @@ import (
 // Real direnv exits non-zero when the destination .envrc isn't authorized,
 // but it still emits a valid JSON delta on stdout that unloads vars from
 // the previously-active .envrc. We have to apply that delta anyway, or the
-// previous repo's env leaks into the new one. The fake direnv here mimics
-// that behavior; the test also asserts that the user gets an error popup
-// (the command log alone is easy to miss).
+// previous repo's env leaks into the new one. This test exercises the
+// "skip approval" branch: the approval popup appears, the user cancels,
+// and the previous repo's env is still gone.
 var DirenvUnloadsOnBlockedEnvrc = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Blocked .envrc unloads the previous repo's env and shows an error popup",
+	Description:  "Blocked .envrc unloads the previous repo's env even if the user skips approval",
 	ExtraCmdArgs: []string{},
 	ExtraEnvVars: map[string]string{
 		"PATH": "{{actualPath}}/bin:" + os.Getenv("PATH"),
@@ -37,10 +37,19 @@ var DirenvUnloadsOnBlockedEnvrc = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("initial")
 		shell.CloneNonBare("other")
 
+		shell.CreateFile("../other/.envrc", "export LG_DIRENV_TEST=from_envrc\n")
+
 		shell.CreateFile("../bin/direnv", `#!/bin/sh
-echo '{"LG_DIRENV_TEST":null}'
-echo "direnv: error /repo/.envrc is blocked. Run 'direnv allow' to approve its content" >&2
-exit 1
+case "$1 $2" in
+"export json")
+    echo '{"LG_DIRENV_TEST":null}'
+    echo "direnv: error $PWD/.envrc is blocked" >&2
+    exit 1
+    ;;
+"status --json")
+    printf '{"state":{"foundRC":{"allowed":1,"path":"%s/.envrc"}}}\n' "$PWD"
+    ;;
+esac
 `)
 		shell.MakeExecutable("../bin/direnv")
 	},
@@ -53,18 +62,15 @@ exit 1
 			).
 			Confirm()
 
-		t.ExpectPopup().Alert().
-			Title(Equals("Error")).
-			Content(Contains("is blocked")).
-			Confirm()
+		t.ExpectPopup().Confirmation().
+			Title(Equals("Approve .envrc?")).
+			Content(Contains("export LG_DIRENV_TEST=from_envrc")).
+			Cancel()
 
-		// If unload worked, $LG_DIRENV_TEST is empty in the custom command.
 		t.Views().Files().
 			Focus().
 			Press(config.Keybinding{"X"}).
-			Lines(
-				Contains("output.txt").IsSelected(),
-			)
+			NavigateToLine(Contains("output.txt"))
 		t.Views().Main().Content(Contains("VAR=[]"))
 	},
 })
