@@ -445,19 +445,58 @@ func (self *FilesController) optimisticChange(nodes []*filetree.FileNode, optimi
 	return nil
 }
 
-func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) error {
-	// Obtaining this lock because optimistic rendering requires us to mutate
-	// the files in our model.
-	self.c.Mutexes().RefreshingFilesMutex.Lock()
-	defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
-
-	for _, node := range selectedNodes {
+// toggleStaged decides whether to stage or unstage the given nodes, updates the
+// model optimistically, and then runs the matching git command via the supplied
+// callbacks. press() (acting on the selection) and toggleStagedAll() (acting on
+// the whole tree) share this; they differ only in the git commands they run,
+// which is why those are passed in.
+//
+// If any node has unstaged changes we stage the nodes that have them (staging
+// already-staged deleted files/folders would fail); otherwise we unstage all
+// the nodes.
+func (self *FilesController) toggleStaged(
+	nodes []*filetree.FileNode,
+	stageAction string,
+	unstageAction string,
+	stage func(unstagedNodes []*filetree.FileNode) error,
+	unstage func(nodes []*filetree.FileNode) error,
+) error {
+	for _, node := range nodes {
 		// if any files within have inline merge conflicts we can't stage or unstage,
 		// or it'll end up with those >>>>>> lines actually staged
 		if node.GetHasInlineMergeConflicts() {
 			return errors.New(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
 		}
 	}
+
+	nodes = normalisedSelectedNodes(nodes)
+
+	unstagedNodes := filterNodesHaveUnstagedChanges(nodes)
+
+	if len(unstagedNodes) > 0 {
+		self.c.LogAction(stageAction)
+
+		if err := self.optimisticChange(unstagedNodes, self.optimisticStage); err != nil {
+			return err
+		}
+
+		return stage(unstagedNodes)
+	}
+
+	self.c.LogAction(unstageAction)
+
+	if err := self.optimisticChange(nodes, self.optimisticUnstage); err != nil {
+		return err
+	}
+
+	return unstage(nodes)
+}
+
+func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) error {
+	// Obtaining this lock because optimistic rendering requires us to mutate
+	// the files in our model.
+	self.c.Mutexes().RefreshingFilesMutex.Lock()
+	defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
 
 	// When filtering, expand directory nodes to individual visible file paths
 	// so that only filtered files are staged/unstaged.
@@ -477,63 +516,46 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 		})
 	}
 
-	selectedNodes = normalisedSelectedNodes(selectedNodes)
-
-	// If any node has unstaged changes, we'll stage all the selected unstaged nodes (staging already staged deleted files/folders would fail).
-	// Otherwise, we unstage all the selected nodes.
-	unstagedSelectedNodes := filterNodesHaveUnstagedChanges(selectedNodes)
-
-	if len(unstagedSelectedNodes) > 0 {
+	stage := func(unstagedNodes []*filetree.FileNode) error {
 		var extraArgs []string
-
 		if self.context().GetStatusFilter() == filetree.DisplayTracked {
 			extraArgs = []string{"-u"}
 		}
 
-		self.c.LogAction(self.c.Tr.Actions.StageFile)
-
-		if err := self.optimisticChange(unstagedSelectedNodes, self.optimisticStage); err != nil {
-			return err
-		}
-
-		if err := self.c.Git().WorkingTree.StageFiles(toPaths(unstagedSelectedNodes), extraArgs); err != nil {
-			return err
-		}
-	} else {
-		self.c.LogAction(self.c.Tr.Actions.UnstageFile)
-
-		if err := self.optimisticChange(selectedNodes, self.optimisticUnstage); err != nil {
-			return err
-		}
-
-		if self.context().IsFiltering() {
-			// When filtering, only unstage visible files
-			if err := self.unstageFilteredFiles(selectedNodes); err != nil {
-				return err
-			}
-		} else {
-			// need to partition the paths into tracked and untracked (where we assume directories are tracked). Then we'll run the commands separately.
-			trackedNodes, untrackedNodes := utils.Partition(selectedNodes, func(node *filetree.FileNode) bool {
-				// We treat all directories as tracked. I'm not actually sure why we do this but
-				// it's been the existing behaviour for a while and nobody has complained
-				return !node.IsFile() || node.GetIsTracked()
-			})
-
-			if len(untrackedNodes) > 0 {
-				if err := self.c.Git().WorkingTree.UnstageUntrackedFiles(toPaths(untrackedNodes)); err != nil {
-					return err
-				}
-			}
-
-			if len(trackedNodes) > 0 {
-				if err := self.c.Git().WorkingTree.UnstageTrackedFiles(toPaths(trackedNodes)); err != nil {
-					return err
-				}
-			}
-		}
+		return self.c.Git().WorkingTree.StageFiles(toPaths(unstagedNodes), extraArgs)
 	}
 
-	return nil
+	unstage := func(nodes []*filetree.FileNode) error {
+		if self.context().IsFiltering() {
+			// When filtering, only unstage visible files
+			return self.unstageFilteredFiles(nodes)
+		}
+
+		// need to partition the paths into tracked and untracked (where we assume directories are tracked). Then we'll run the commands separately.
+		trackedNodes, untrackedNodes := utils.Partition(nodes, func(node *filetree.FileNode) bool {
+			// We treat all directories as tracked. I'm not actually sure why we do this but
+			// it's been the existing behaviour for a while and nobody has complained
+			return !node.IsFile() || node.GetIsTracked()
+		})
+
+		if len(untrackedNodes) > 0 {
+			if err := self.c.Git().WorkingTree.UnstageUntrackedFiles(toPaths(untrackedNodes)); err != nil {
+				return err
+			}
+		}
+
+		if len(trackedNodes) > 0 {
+			if err := self.c.Git().WorkingTree.UnstageTrackedFiles(toPaths(trackedNodes)); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	return self.toggleStaged(selectedNodes,
+		self.c.Tr.Actions.StageFile, self.c.Tr.Actions.UnstageFile,
+		stage, unstage)
 }
 
 func (self *FilesController) press(nodes []*filetree.FileNode) error {
@@ -721,19 +743,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 
 	root := self.context().FileTreeViewModel.GetRoot()
 
-	// if any files within have inline merge conflicts we can't stage or unstage,
-	// or it'll end up with those >>>>>> lines actually staged
-	if root.GetHasInlineMergeConflicts() {
-		return errors.New(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
-	}
-
-	if root.GetHasUnstagedChanges() {
-		self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-
-		if err := self.optimisticChange([]*filetree.FileNode{root}, self.optimisticStage); err != nil {
-			return err
-		}
-
+	stage := func(unstagedNodes []*filetree.FileNode) error {
 		if self.context().IsFiltering() {
 			// When filtering, only stage visible files
 			var paths []string
@@ -741,35 +751,25 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 				paths = append(paths, file.Path)
 				return nil
 			})
-			if err := self.c.Git().WorkingTree.StageFiles(paths, nil); err != nil {
-				return err
-			}
-		} else {
-			onlyTrackedFiles := self.context().GetStatusFilter() == filetree.DisplayTracked
-			if err := self.c.Git().WorkingTree.StageAll(onlyTrackedFiles); err != nil {
-				return err
-			}
-		}
-	} else {
-		self.c.LogAction(self.c.Tr.Actions.UnstageAllFiles)
-
-		if err := self.optimisticChange([]*filetree.FileNode{root}, self.optimisticUnstage); err != nil {
-			return err
+			return self.c.Git().WorkingTree.StageFiles(paths, nil)
 		}
 
-		if self.context().IsFiltering() {
-			// When filtering, only unstage visible files
-			if err := self.unstageFilteredFiles([]*filetree.FileNode{root}); err != nil {
-				return err
-			}
-		} else {
-			if err := self.c.Git().WorkingTree.UnstageAll(); err != nil {
-				return err
-			}
-		}
+		onlyTrackedFiles := self.context().GetStatusFilter() == filetree.DisplayTracked
+		return self.c.Git().WorkingTree.StageAll(onlyTrackedFiles)
 	}
 
-	return nil
+	unstage := func(nodes []*filetree.FileNode) error {
+		if self.context().IsFiltering() {
+			// When filtering, only unstage visible files
+			return self.unstageFilteredFiles(nodes)
+		}
+
+		return self.c.Git().WorkingTree.UnstageAll()
+	}
+
+	return self.toggleStaged([]*filetree.FileNode{root},
+		self.c.Tr.Actions.StageAllFiles, self.c.Tr.Actions.UnstageAllFiles,
+		stage, unstage)
 }
 
 func (self *FilesController) unstageFiles(node *filetree.FileNode) error {
