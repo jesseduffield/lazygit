@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -149,6 +150,59 @@ func TestEditFileAtLineAndWaitCmd(t *testing.T) {
 
 		cmdStr := instance.GetEditAtLineAndWaitCmdStr(s.filename, s.lineNumber)
 		assert.Equal(t, s.expectedCmdStr, cmdStr)
+	}
+}
+
+func TestOpenFileCmd(t *testing.T) {
+	type scenario struct {
+		name           string
+		filename       string
+		osConfig       config.OSConfig
+		expectedCmdStr string
+		suspend        bool
+	}
+
+	scenarios := []scenario{
+		{
+			name:           "uses platform default open command",
+			filename:       "test",
+			osConfig:       config.OSConfig{},
+			expectedCmdStr: `open -- "test"`,
+			suspend:        false,
+		},
+		{
+			name:     "uses explicit open command",
+			filename: "file/with space",
+			osConfig: config.OSConfig{
+				Open: "custom-open {{filename}}",
+			},
+			expectedCmdStr: `custom-open "file/with space"`,
+			suspend:        false,
+		},
+		{
+			name:     "suspends when open is configured to run in terminal",
+			filename: "test",
+			osConfig: config.OSConfig{
+				SuspendOnOpen: lo.ToPtr(true),
+			},
+			expectedCmdStr: `open -- "test"`,
+			suspend:        true,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			userConfig := config.GetDefaultConfig()
+			userConfig.OS = s.osConfig
+
+			instance := buildFileCommands(commonDeps{
+				userConfig: userConfig,
+			})
+
+			cmdStr, suspend := instance.GetOpenCmdStr(s.filename)
+			assert.Equal(t, s.expectedCmdStr, cmdStr)
+			assert.Equal(t, s.suspend, suspend)
+		})
 	}
 }
 

@@ -65,6 +65,17 @@ func (self *FileCommands) GetEditAtLineAndWaitCmdStr(filename string, lineNumber
 	return cmdStr
 }
 
+func (self *FileCommands) GetOpenCmdStr(filename string) (string, bool) {
+	template, suspend := config.GetOpenTemplate(&self.UserConfig().OS, config.GetPlatformDefaultConfig().Open)
+
+	templateValues := map[string]string{
+		"filename": self.cmd.Quote(filename),
+	}
+
+	cmdStr := utils.ResolvePlaceholderString(template, templateValues)
+	return cmdStr, suspend
+}
+
 func (self *FileCommands) GetOpenDirInEditorCmdStr(path string) (string, bool) {
 	template, suspend := config.GetOpenDirInEditorTemplate(self.os.Platform.Shell, &self.UserConfig().OS, self.guessDefaultEditor)
 
