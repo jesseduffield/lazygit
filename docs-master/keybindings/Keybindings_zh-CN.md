@@ -54,7 +54,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <ctrl+o> `` | 复制缩略提交哈希值到剪贴板 |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -98,7 +98,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <ctrl+o> `` | 复制缩略提交哈希值到剪贴板 |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -118,12 +118,12 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <ctrl+o> `` | 复制缩略提交哈希值到剪贴板 |  |
 | `` <ctrl+r> `` | 重置已拣选(复制)的提交 |  |
 | `` b `` | 查看二分查找选项 |  |
 | `` s `` | 压缩(Squash) | 将已选提交压缩到该提交之下。这些选定的提交的消息会附加到该提交的消息之下。 |
 | `` f `` | 修正 （fixup） | 将选定的提交合并到其下面的提交中。与压缩类似，但所选提交的消息将被丢弃。 |
-| `` c `` | Set fixup message | Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message. |
+| `` c `` | 设置修复提交信息 | 设置修复提交的信息选项。-C 选项表示使用此提交的信息，而非目标提交的信息。 |
 | `` r `` | 改写提交 | 重写所选提交的消息。 |
 | `` R `` | 使用编辑器重命名提交 |  |
 | `` d `` | 删除提交 | 删除选中的提交。这将通过变基从分支中删除该提交，如果该提交修改的内容依赖于后续的提交，则需要解决合并冲突。 |
@@ -141,7 +141,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` t `` | 撤销(Revert) | 为所选提交创建还原提交，这会反向应用所选提交的更改。 |
 | `` T `` | 标签提交 | 创建一个新标签指向所选提交。您可以在弹窗中输入标签名称和描述(可选)。 |
 | `` <ctrl+l> `` | 打开日志菜单 | 查看提交日志的选项，例如更改排序顺序、隐藏 git graph、显示整个 git graph。 |
-| `` G `` | Open pull request in browser |  |
+| `` G `` | 在浏览器中打开拉取请求 |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -227,7 +227,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` N `` | 移动提交至新分支 | 创建一个新分支，并将当前分支未推送的提交移动到该分支。如果您打算开始新工作但忘记先创建新分支，这会很有用。<br><br>请注意，此操作忽略选择，新分支总是从主分支创建或堆叠在当前分支之上（您可以选择哪种方式）。 |
 | `` o `` | 创建拉取请求 |  |
 | `` O `` | 创建拉取请求选项 |  |
-| `` G `` | Open pull request in browser |  |
+| `` G `` | 在浏览器中打开拉取请求 |  |
 | `` <ctrl+y> `` | 复制拉取请求 URL 到剪贴板 |  |
 | `` c `` | 按名称检出 | 按名称检出。在输入框中，您可以输入'-' 来切换到最后一个分支。 |
 | `` - `` | 签出上一个分支 |  |
@@ -259,7 +259,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
 | `` <space> `` | 添加/移除 行到补丁 |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
+| `` d `` | 从提交中移除行 | 从本次提交中移除所选行。此操作会在后台运行交互式变基，因此如果后续提交也修改了这些行，您可能会遇到合并冲突。 |
 | `` <esc> `` | 退出逐行模式 |  |
 | `` / `` | 开始搜索 |  |
 
@@ -344,7 +344,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` u `` | 检查更新 |  |
 | `` <enter> `` | 切换到最近的仓库 |  |
 | `` a `` | 显示/循环所有分支日志 |  |
-| `` A `` | Show/cycle all branch logs (reverse) |  |
+| `` A `` | 显示/循环所有分支日志（反向） |  |
 | `` 0 `` | 聚焦主视图 |  |
 
 ## 确认面板

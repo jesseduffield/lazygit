@@ -431,7 +431,8 @@ git:
     - git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium
 
   # If true, git diffs are rendered with the `--ignore-all-space` flag, which
-  # ignores whitespace changes. Can be toggled from within Lazygit with `<c-w>`.
+  # ignores whitespace changes. Can be toggled from within Lazygit with
+  # `<ctrl+w>`.
   ignoreWhitespaceInDiffView: false
 
   # The number of lines of context to show around each diff hunk. Can be changed
@@ -468,14 +469,14 @@ git:
     # appear chronologically. See https://git-scm.com/docs/
     #
     # Can be changed from within Lazygit with `Log menu -> Commit sort order`
-    # (`<c-l>` in the commits window by default).
+    # (`<ctrl+l>` in the commits window by default).
     order: topo-order
 
     # This determines whether the git graph is rendered in the commits panel
     # One of 'always' | 'never' | 'when-maximised'
     #
-    # Can be toggled from within lazygit with `Log menu -> Show git graph` (`<c-l>`
-    # in the commits window by default).
+    # Can be toggled from within lazygit with `Log menu -> Show git graph`
+    # (`<ctrl+l>` in the commits window by default).
     showGraph: always
 
     # displays the whole git graph by default in the commits view (equivalent to
@@ -593,36 +594,30 @@ notARepository: prompt
 # view the output of the subprocess before returning to Lazygit.
 promptToReturnFromSubprocess: true
 
-# Keybindings
+# Keybindings.
+# Each binding can be a single key or a list of keys; see
+# https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md
+# for the syntax.
 keybinding:
   universal:
-    quit: q
-    quit-alt1: <c-c>
-    suspendApp: <c-z>
+    quit: [q, <ctrl+c>]
+    suspendApp: <ctrl+z>
     return: <esc>
     quitWithoutChangingDirectory: Q
     togglePanel: <tab>
-    prevItem: <up>
-    nextItem: <down>
-    prevItem-alt: k
-    nextItem-alt: j
+    prevItem: [<up>, k]
+    nextItem: [<down>, j]
     prevPage: ','
     nextPage: .
     scrollLeft: H
     scrollRight: L
-    gotoTop: <
-    gotoBottom: '>'
-    gotoTop-alt: <home>
-    gotoBottom-alt: <end>
+    gotoTop: [<, <home>]
+    gotoBottom: ['>', <end>]
     toggleRangeSelect: v
-    rangeSelectDown: <s-down>
-    rangeSelectUp: <s-up>
-    prevBlock: <left>
-    nextBlock: <right>
-    prevBlock-alt: h
-    nextBlock-alt: l
-    nextBlock-alt2: <tab>
-    prevBlock-alt2: <backtab>
+    rangeSelectDown: <shift+down>
+    rangeSelectUp: <shift+up>
+    prevBlock: [<left>, h, <backtab>]
+    nextBlock: [<right>, l, <tab>]
     jumpToBlock:
       - "1"
       - "2"
@@ -633,25 +628,33 @@ keybinding:
     nextMatch: "n"
     prevMatch: "N"
     startSearch: /
-    optionMenu: <disabled>
-    optionMenu-alt1: '?'
+
+    # <alt+left> on Mac
+    moveWordLeft: <ctrl+left>
+
+    # <alt+right> on Mac
+    moveWordRight: <ctrl+right>
+
+    # <alt+backspace> on Mac
+    backspaceWord: <ctrl+backspace>
+
+    # <alt+delete> on Mac
+    forwardDeleteWord: <ctrl+delete>
+    optionMenu: '?'
     select: <space>
     goInto: <enter>
     confirm: <enter>
     confirmMenu: <enter>
     confirmSuggestion: <enter>
-    confirmInEditor: <a-enter>
-    confirmInEditor-alt: <c-s>
+
+    # <meta+enter> on Mac
+    confirmInEditor: [<ctrl+enter>, <ctrl+s>]
     remove: d
     new: "n"
     edit: e
     openFile: o
-    scrollUpMain: <pgup>
-    scrollDownMain: <pgdown>
-    scrollUpMain-alt1: K
-    scrollDownMain-alt1: J
-    scrollUpMain-alt2: <c-u>
-    scrollDownMain-alt2: <c-d>
+    scrollUpMain: [<pgup>, K, <ctrl+u>]
+    scrollDownMain: [<pgdown>, J, <ctrl+d>]
     executeShellCommand: ':'
     createRebaseOptionsMenu: m
 
@@ -661,7 +664,7 @@ keybinding:
     # 'Files' appended for legacy reasons
     pullFiles: p
     refresh: R
-    createPatchOptionsMenu: <c-p>
+    createPatchOptionsMenu: <ctrl+p>
     nextTab: ']'
     prevTab: '['
     nextScreenMode: +
@@ -669,19 +672,18 @@ keybinding:
     cyclePagers: '|'
     undo: z
     redo: Z
-    filteringMenu: <c-s>
-    diffingMenu: W
-    diffingMenu-alt: <c-e>
-    copyToClipboard: <c-o>
-    openRecentRepos: <c-r>
+    filteringMenu: <ctrl+s>
+    diffingMenu: [W, <ctrl+e>]
+    copyToClipboard: <ctrl+o>
+    openRecentRepos: <ctrl+r>
     submitEditorText: <enter>
     extrasMenu: '@'
-    toggleWhitespaceInDiffView: <c-w>
+    toggleWhitespaceInDiffView: <ctrl+w>
     increaseContextInDiffView: '}'
     decreaseContextInDiffView: '{'
     increaseRenameSimilarityThreshold: )
     decreaseRenameSimilarityThreshold: (
-    openDiffTool: <c-t>
+    openDiffTool: <ctrl+t>
   status:
     checkForUpdate: u
     recentRepos: <enter>
@@ -692,7 +694,7 @@ keybinding:
     commitChangesWithoutHook: w
     amendLastCommit: A
     commitChangesWithEditor: C
-    findBaseCommitForFixup: <c-f>
+    findBaseCommitForFixup: <ctrl+f>
     confirmDiscard: x
     ignoreFile: i
     refreshFiles: r
@@ -703,7 +705,7 @@ keybinding:
     fetch: f
     toggleTreeView: '`'
     openMergeOptions: M
-    openStatusFilter: <c-b>
+    openStatusFilter: <ctrl+b>
     copyFileInfoToClipboard: "y"
     collapseAll: '-'
     expandAll: =
@@ -711,7 +713,7 @@ keybinding:
     createPullRequest: o
     viewPullRequestOptions: O
     openPullRequestInBrowser: G
-    copyPullRequestURL: <c-y>
+    copyPullRequestURL: <ctrl+y>
     checkoutBranchByName: c
     forceCheckoutBranch: F
     checkoutPreviousBranch: '-'
@@ -738,8 +740,8 @@ keybinding:
     setFixupMessage: c
     createFixupCommit: F
     squashAboveCommits: S
-    moveDownCommit: <c-j>
-    moveUpCommit: <c-k>
+    moveDownCommit: [<ctrl+j>, <alt-down>]
+    moveUpCommit: [<ctrl+k>, <alt-up>]
     amendToCommit: A
     resetCommitAuthor: a
     pickCommit: p
@@ -749,9 +751,9 @@ keybinding:
     markCommitAsBaseForRebase: B
     tagCommit: T
     checkoutCommit: <space>
-    resetCherryPick: <c-R>
+    resetCherryPick: <ctrl+r>
     copyCommitAttributeToClipboard: "y"
-    openLogMenu: <c-l>
+    openLogMenu: <ctrl+l>
     openInBrowser: o
     openPullRequestInBrowser: G
     viewBisectOptions: b
@@ -767,6 +769,8 @@ keybinding:
   commitFiles:
     checkoutCommitFile: c
   main:
+    prevHunk: [<left>, h]
+    nextHunk: [<right>, l]
     toggleSelectHunk: a
     pickBothHunks: b
     editSelectHunk: E
@@ -775,7 +779,7 @@ keybinding:
     update: u
     bulkMenu: b
   commitMessage:
-    commitMenu: <c-o>
+    commitMenu: <ctrl+o>
 ```
 <!-- END CONFIG YAML -->
 
@@ -1104,6 +1108,8 @@ Where:
 - `gitDomain` stands for the domain used by git itself (i.e. the one present on clone URLs), e.g. `git.work.com`
 - `provider` is one of `github`, `bitbucket`, `bitbucketServer`, `azuredevops`, `gitlab`, `gitea` or `codeberg`
 - `webDomain` is the URL where your git service exposes a web interface and APIs, e.g. `gitservice.work.com`
+
+For the `github` provider, configuring an entry here also enables the pull-request icons in the branches panel for that host (e.g. a GitHub Enterprise Server instance). Lazygit picks up the auth token via the same mechanisms as the `gh` CLI: the `GH_ENTERPRISE_TOKEN` / `GITHUB_ENTERPRISE_TOKEN` environment variables, or `gh auth login --hostname <webDomain>`.
 
 ## Predefined commit message prefix
 

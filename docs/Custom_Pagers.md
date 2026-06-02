@@ -6,7 +6,7 @@ Support does not extend to Windows users, because we're making use of a package 
 
 Multiple pagers are supported; you can cycle through them with the `|` key. This can be useful if you usually prefer a particular pager, but want to use a different one for certain kinds of diffs.
 
-Pagers are configured with the `pagers` array in the git section; here's an example for a multi-pager setup:
+Pagers are configured with the `pagers` array in the git section; here's an example for a multi-pager setup (use an empty object `{}` for the default builtin diff display that doesn't use a pager):
 
 ```yaml
 git:
@@ -15,6 +15,7 @@ git:
     - pager: ydiff -p cat -s --wrap --width={{columnWidth}}
       colorArg: never
     - externalDiffCommand: difft --color=always
+    - {} # default, no pager used
 ```
 
 The `colorArg` key is for whether you want the `--color=always` arg in your `git diff` command. Some pagers want it set to `always`, others want it set to `never`. The default is `always`, since that's what most pagers need.

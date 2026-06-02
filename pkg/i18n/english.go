@@ -2266,7 +2266,7 @@ keybinding:
 
 keybinding:
   universal:
-    confirmInEditor: <a-enter>
+    confirmInEditor: [<alt+enter>, <ctrl+s>]
 `,
 		},
 	}
