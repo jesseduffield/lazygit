@@ -427,6 +427,8 @@ var tests = []*components.IntegrationTest{
 	submodule.Reset,
 	submodule.ResetFolder,
 	submodule.Stage,
+	submodule.StageAllWithDirtySubmodule,
+	submodule.StageDirtyOnly,
 	sync.FetchAndAutoForwardBranchesAllBranches,
 	sync.FetchAndAutoForwardBranchesAllBranchesCheckedOutInOtherWorktree,
 	sync.FetchAndAutoForwardBranchesNone,

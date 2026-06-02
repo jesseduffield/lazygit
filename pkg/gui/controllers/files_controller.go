@@ -476,7 +476,22 @@ func (self *FilesController) toggleStaged(
 
 	unstagedNodes := filterNodesHaveUnstagedChanges(nodes, self.c.Model().Submodules)
 
-	if len(unstagedNodes) > 0 {
+	// Staging a submodule that only has dirty or untracked content (no new
+	// commit) is a no-op: the parent repo can't stage that content. When that's
+	// the only thing that looks stageable, don't stage; fall through to
+	// unstaging instead. That keeps the toggle symmetric (e.g. a fully-staged
+	// tree that also contains a dirty submodule still unstages on the next
+	// press) rather than getting stuck trying to stage the unstageable content.
+	shouldStage := len(unstagedNodes) > 0
+	if shouldStage {
+		noOp, err := self.stagingWouldBeNoOp(unstagedNodes)
+		if err != nil {
+			return err
+		}
+		shouldStage = !noOp
+	}
+
+	if shouldStage {
 		self.c.LogAction(stageAction)
 
 		if err := self.optimisticChange(unstagedNodes, self.optimisticStage); err != nil {
@@ -484,6 +499,12 @@ func (self *FilesController) toggleStaged(
 		}
 
 		return stage(unstagedNodes)
+	}
+
+	// If there's nothing staged to unstage either, then the only thing we acted
+	// on was an unstageable submodule and nothing happened, so say why.
+	if !someNodesHaveStagedChanges(nodes) {
+		return errors.New(self.c.Tr.NothingToStageForSubmodule)
 	}
 
 	self.c.LogAction(unstageAction)
@@ -1448,6 +1469,40 @@ func fileHasStageableUnstagedChanges(file *models.File, submodules []*models.Sub
 	}
 
 	return true
+}
+
+// stagingWouldBeNoOp reports whether staging the given nodes would have no
+// visible effect, which happens when the only things being staged are
+// submodules that have dirty or untracked content but no new commit: the
+// parent repo can't stage that content. If a regular file (or a submodule with
+// a stageable new commit) is among them, staging does something, so this
+// returns false.
+func (self *FilesController) stagingWouldBeNoOp(nodes []*filetree.FileNode) (bool, error) {
+	submodules := self.c.Model().Submodules
+
+	var submodulePaths []string
+	hasOtherStageableChanges := false
+	for _, node := range nodes {
+		_ = node.ForEachFile(func(file *models.File) error {
+			if file.IsSubmodule(submodules) {
+				submodulePaths = append(submodulePaths, file.Path)
+			} else if file.HasUnstagedChanges {
+				hasOtherStageableChanges = true
+			}
+			return nil
+		})
+	}
+
+	if hasOtherStageableChanges || len(submodulePaths) == 0 {
+		return false, nil
+	}
+
+	anyStageable, err := self.c.Git().Submodule.AnyHaveStageableChanges(submodulePaths)
+	if err != nil {
+		return false, err
+	}
+
+	return !anyStageable, nil
 }
 
 func findSubmoduleNode(nodes []*filetree.FileNode, submodules []*models.SubmoduleConfig) *models.File {

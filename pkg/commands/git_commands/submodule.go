@@ -9,6 +9,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/samber/lo"
 )
 
 // .gitmodules looks like this:
@@ -84,6 +85,30 @@ func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) 
 	}
 
 	return configs, nil
+}
+
+// AnyHaveStageableChanges reports whether any of the given submodule paths has
+// a checked-out commit that differs from the one recorded in the
+// superproject's index, i.e. a change that `git add <path>` would actually
+// stage. A submodule that only has dirty or untracked content (with no new
+// commit) can't be staged from the superproject, so it won't be reported here.
+func (self *SubmoduleCommands) AnyHaveStageableChanges(paths []string) (bool, error) {
+	if len(paths) == 0 {
+		return false, nil
+	}
+
+	cmdArgs := NewGitCmd("submodule").Arg("status", "--").Arg(paths...).ToArgv()
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return false, err
+	}
+
+	// Each line looks like "<prefix><sha> <path> (<describe>)". A '+' prefix
+	// means the checked-out commit differs from the index, i.e. there's a
+	// commit change to stage.
+	return lo.SomeBy(strings.Split(output, "\n"), func(line string) bool {
+		return strings.HasPrefix(line, "+")
+	}), nil
 }
 
 func (self *SubmoduleCommands) Stash(submodule *models.SubmoduleConfig) error {
