@@ -387,6 +387,9 @@ var unstageStatusMap = map[string]string{
 	"A ": "??",
 	"M ": " M",
 	"D ": " D",
+	// A submodule with both a staged commit and unstageable dirty content; the
+	// staged commit gets unstaged, the dirty content stays.
+	"MM": " M",
 }
 
 func (self *FilesController) optimisticStage(file *models.File) bool {
