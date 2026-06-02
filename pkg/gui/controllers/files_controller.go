@@ -471,7 +471,7 @@ func (self *FilesController) toggleStaged(
 
 	nodes = normalisedSelectedNodes(nodes)
 
-	unstagedNodes := filterNodesHaveUnstagedChanges(nodes)
+	unstagedNodes := filterNodesHaveUnstagedChanges(nodes, self.c.Model().Submodules)
 
 	if len(unstagedNodes) > 0 {
 		self.c.LogAction(stageAction)
@@ -1421,10 +1421,30 @@ func someNodesHaveStagedChanges(nodes []*filetree.FileNode) bool {
 	return lo.SomeBy(nodes, (*filetree.FileNode).GetHasStagedChanges)
 }
 
-func filterNodesHaveUnstagedChanges(nodes []*filetree.FileNode) []*filetree.FileNode {
+func filterNodesHaveUnstagedChanges(nodes []*filetree.FileNode, submodules []*models.SubmoduleConfig) []*filetree.FileNode {
 	return lo.Filter(nodes, func(node *filetree.FileNode, _ int) bool {
-		return node.GetHasUnstagedChanges()
+		return node.SomeFile(func(file *models.File) bool {
+			return fileHasStageableUnstagedChanges(file, submodules)
+		})
 	})
+}
+
+// For a submodule, the only thing the parent repo can stage is the
+// commit-pointer change; dirty or untracked content within the submodule
+// shows up as an unstaged change but can never be staged from the parent. So
+// once the submodule's commit is staged (leaving it at e.g. "MM"), we mustn't
+// treat the leftover unstaged change as stageable, or pressing space would
+// keep trying to stage it instead of unstaging it.
+func fileHasStageableUnstagedChanges(file *models.File, submodules []*models.SubmoduleConfig) bool {
+	if !file.HasUnstagedChanges {
+		return false
+	}
+
+	if file.IsSubmodule(submodules) {
+		return !file.HasStagedChanges
+	}
+
+	return true
 }
 
 func findSubmoduleNode(nodes []*filetree.FileNode, submodules []*models.SubmoduleConfig) *models.File {

@@ -39,13 +39,8 @@ var Stage = NewIntegrationTest(NewIntegrationTestArgs{
 			// Pressing again must unstage the submodule, taking us back to
 			// " M" rather than trying (and failing) to stage the dirty content.
 			PressPrimaryAction().
-			/* EXPECTED:
 			Lines(
 				Equals(" M my_submodule_path (submodule)").IsSelected(),
-			)
-			ACTUAL: */
-			Lines(
-				Equals("MM my_submodule_path (submodule)").IsSelected(),
 			)
 	},
 })
