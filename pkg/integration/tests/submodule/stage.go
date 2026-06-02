@@ -6,7 +6,7 @@ import (
 )
 
 var Stage = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Stage and unstage a submodule that has both a new commit and dirty content. The new commit can be staged, but the dirty content can't, so unstaging must still work.",
+	Description:  "Stage and unstage a submodule that has both a new commit and dirty content. The new commit can be staged, but the dirty content can't, so unstaging must still work; this must hold for both the stage (space) and stage-all (a) keybindings.",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
@@ -39,6 +39,18 @@ var Stage = NewIntegrationTest(NewIntegrationTestArgs{
 			// Pressing again must unstage the submodule, taking us back to
 			// " M" rather than trying (and failing) to stage the dirty content.
 			PressPrimaryAction().
+			Lines(
+				Equals(" M my_submodule_path (submodule)").IsSelected(),
+			).
+			// The same has to hold for the stage-all keybinding, which shares
+			// the same decision logic: it stages the new commit...
+			Press(keys.Files.ToggleStagedAll).
+			Lines(
+				Equals("MM my_submodule_path (submodule)").IsSelected(),
+			).
+			// ...and then unstages it again rather than getting stuck on the
+			// dirty content.
+			Press(keys.Files.ToggleStagedAll).
 			Lines(
 				Equals(" M my_submodule_path (submodule)").IsSelected(),
 			)
