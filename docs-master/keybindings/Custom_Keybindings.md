@@ -7,6 +7,8 @@ A keybinding is one of:
 - A special key name in angle brackets, e.g. `<enter>`, `<f1>`, `<up>`.
 - A key with modifiers in angle brackets, e.g. `<ctrl+c>`, `<ctrl+shift+up>`.
 - The literal string `<disabled>` to disable a binding.
+- A list of any of the above, to bind multiple keys to the same action:
+  `quit: [q, <ctrl+c>]`.
 
 ### Modifiers
 

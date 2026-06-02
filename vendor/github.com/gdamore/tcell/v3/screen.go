@@ -249,6 +249,9 @@ type Screen interface {
 	// supports it.  Right now only terminals supporting OSC 777 support this.
 	ShowNotification(title string, body string)
 
+	// KeyboardProtocol returns the keyboard protocol currently in use.
+	KeyboardProtocol() KeyProtocol
+
 	// Terminal returns the terminal name and version if known.  If either of these
 	// are unknown, then empty strings are returned in their place.  This is intended
 	// to facilitate debug, and also applications that wish to enable very specific
@@ -260,7 +263,8 @@ var overrideScreen chan Screen
 var overrideOnce sync.Once
 
 // NewScreen returns a default Screen suitable for the user's terminal environment.
-func NewScreen() (Screen, error) {
+// Any options are passed through to NewTerminfoScreen.
+func NewScreen(opts ...TerminfoScreenOption) (Screen, error) {
 
 	// Allow an application (presumably test code) to inject a replacement default
 	// screen.  This could also be used to create shims for things like nesting screens.
@@ -270,7 +274,7 @@ func NewScreen() (Screen, error) {
 	default:
 	}
 
-	if s, e := NewTerminfoScreen(); s != nil {
+	if s, e := NewTerminfoScreen(opts...); s != nil {
 		return s, nil
 	} else {
 		return nil, e
@@ -296,6 +300,15 @@ const (
 	MouseButtonEvents = MouseFlags(1) // Click events only
 	MouseDragEvents   = MouseFlags(2) // Click-drag events (includes button events)
 	MouseMotionEvents = MouseFlags(4) // All mouse events (includes click and drag events)
+	// MousePixelEvents requests that mouse coordinates be reported in
+	// terminal pixels rather than character cells (xterm SGR-Pixel mode,
+	// CSI ?1016h). It is a modifier on the other mouse flags: at least one
+	// of MouseButtonEvents, MouseDragEvents, or MouseMotionEvents must also
+	// be set for any events to be delivered. When this mode is active,
+	// EventMouse.Position() returns coordinates in pixels; the application
+	// is responsible for mapping those to its own grid (e.g. via the
+	// terminal's reported cell-pixel size).
+	MousePixelEvents = MouseFlags(8)
 )
 
 // CursorStyle represents a given cursor style, which can include the shape and
@@ -345,6 +358,7 @@ type screenImpl interface {
 	GetClipboard()
 	HasClipboard() bool
 	ShowNotification(string, string)
+	KeyboardProtocol() KeyProtocol
 	Terminal() (string, string)
 
 	// Following methods are not part of the Screen api, but are used for interaction with
@@ -382,16 +396,19 @@ func (b *baseScreen) Put(x int, y int, str string, style Style) (remain string, 
 func (b *baseScreen) PutStrStyled(x int, y int, str string, style Style) {
 	cells := b.GetCells()
 	b.Lock()
+	defer b.Unlock()
 	cols, rows := cells.Size()
+	if cells.sanitizeContent {
+		str = stripOSCControlsIfNeeded(str)
+	}
 	width := 0
 	for str != "" && x < cols && y < rows {
-		str, width = cells.Put(x, y, str, style)
+		str, width = cells.put(x, y, str, style)
 		if width == 0 {
 			break
 		}
 		x += width
 	}
-	defer b.Unlock()
 }
 
 func (b *baseScreen) PutStr(x, y int, str string) {

@@ -21,7 +21,7 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "localBranches",
 				Command: `echo "{{index .PromptResponses 0}} {{index .PromptResponses 1}} {{ .SelectedLocalBranch.Name }}" > output.txt`,
 				Prompts: []config.CustomCommandPrompt{
@@ -48,7 +48,7 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Branches().
 			Focus().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Menu().Title(Equals("Choose commit message")).Select(Contains("bar")).Confirm()
 

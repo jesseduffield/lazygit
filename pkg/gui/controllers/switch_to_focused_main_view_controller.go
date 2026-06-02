@@ -29,7 +29,7 @@ func NewSwitchToFocusedMainViewController(
 func (self *SwitchToFocusedMainViewController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.FocusMainView),
+			Keys:        opts.GetKeys(opts.Config.Universal.FocusMainView),
 			Handler:     self.handleFocusMainView,
 			Description: self.c.Tr.FocusMainView,
 			Tag:         "global",

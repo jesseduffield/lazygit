@@ -178,9 +178,9 @@ type Gui struct {
 
 	OnSearchEscape func() error
 
-	SearchEscapeKey    Key
-	NextSearchMatchKey Key
-	PrevSearchMatchKey Key
+	SearchEscapeKeys    []Key
+	NextSearchMatchKeys []Key
+	PrevSearchMatchKeys []Key
 
 	ErrorHandler func(error) error
 
@@ -256,9 +256,9 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g.SupportOverlaps = opts.SupportOverlaps
 
 	// default keys for when searching strings in a view
-	g.SearchEscapeKey = NewKeyName(KeyEsc)
-	g.NextSearchMatchKey = NewKeyRune('n')
-	g.PrevSearchMatchKey = NewKeyRune('N')
+	g.SearchEscapeKeys = []Key{NewKeyName(KeyEsc)}
+	g.NextSearchMatchKeys = []Key{NewKeyRune('n')}
+	g.PrevSearchMatchKeys = []Key{NewKeyRune('N')}
 
 	g.playRecording = opts.PlayRecording
 
@@ -546,10 +546,9 @@ func (g *Gui) CurrentView() *View {
 // SetKeybinding creates a new keybinding. If viewname equals to ""
 // (empty string) then the keybinding will apply to all views. key must
 // be a rune or a Key.
-func (g *Gui) SetKeybinding(viewname string, key Key, handler func(*Gui, *View) error) error {
+func (g *Gui) SetKeybinding(viewname string, key Key, handler func(*Gui, *View) error) {
 	kb := newKeybinding(viewname, key, handler)
 	g.keybindings = append(g.keybindings, kb)
-	return nil
 }
 
 // DeleteKeybindings deletes all keybindings of view.
@@ -1526,11 +1525,11 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 
 	// if we're searching, and we've hit n/N/Esc, we ignore the default keybinding
 	if v != nil && v.IsSearching() {
-		if ev.Key.Equals(g.NextSearchMatchKey) {
+		if lo.SomeBy(g.NextSearchMatchKeys, func(k Key) bool { return ev.Key.Equals(k) }) {
 			return v.gotoNextMatch()
-		} else if ev.Key.Equals(g.PrevSearchMatchKey) {
+		} else if lo.SomeBy(g.PrevSearchMatchKeys, func(k Key) bool { return ev.Key.Equals(k) }) {
 			return v.gotoPreviousMatch()
-		} else if ev.Key.Equals(g.SearchEscapeKey) {
+		} else if lo.SomeBy(g.SearchEscapeKeys, func(k Key) bool { return ev.Key.Equals(k) }) {
 			v.searcher.clearSearch()
 			if g.OnSearchEscape != nil {
 				if err := g.OnSearchEscape(); err != nil {
@@ -1670,7 +1669,7 @@ func (g *Gui) Snapshot() string {
 	return builder.String()
 }
 
-func (g *Gui) SetEditKeybindings(moveWordLeft, moveWordRight, backspaceWord, forwardDeleteWord Key) {
+func (g *Gui) SetEditKeybindings(moveWordLeft, moveWordRight, backspaceWord, forwardDeleteWord []Key) {
 	moveWordLeftKeybinding = moveWordLeft
 	moveWordRightKeybinding = moveWordRight
 	backspaceWordKeybinding = backspaceWord

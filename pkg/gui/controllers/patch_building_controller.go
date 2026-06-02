@@ -27,25 +27,25 @@ func NewPatchBuildingController(
 func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
+			Keys:        opts.GetKeys(opts.Config.Universal.OpenFile),
 			Handler:     self.OpenFile,
 			Description: self.c.Tr.OpenFile,
 			Tooltip:     self.c.Tr.OpenFileTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
+			Keys:        opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:     self.EditFile,
 			Description: self.c.Tr.EditFile,
 			Tooltip:     self.c.Tr.EditFileTooltip,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Select),
+			Keys:            opts.GetKeys(opts.Config.Universal.Select),
 			Handler:         self.ToggleSelectionAndRefresh,
 			Description:     self.c.Tr.ToggleSelectionForPatch,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.discardSelection,
 			GetDisabledReason: self.getDisabledReasonForDiscard,
 			Description:       self.c.Tr.RemoveSelectionFromPatch,
@@ -53,7 +53,7 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Return),
+			Keys:            opts.GetKeys(opts.Config.Universal.Return),
 			Handler:         self.Escape,
 			Description:     self.c.Tr.ExitCustomPatchBuilder,
 			DescriptionFunc: self.EscapeDescription,

@@ -6,7 +6,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -52,7 +51,7 @@ func NewBasicCommitsController(c *ControllerCommon, context ContainsCommits) *Ba
 func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Commits.CheckoutCommit),
+			Keys:              opts.GetKeys(opts.Config.Commits.CheckoutCommit),
 			Handler:           self.withItem(self.checkout),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Checkout,
@@ -60,7 +59,7 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Commits.CopyCommitAttributeToClipboard),
+			Keys:              opts.GetKeys(opts.Config.Commits.CopyCommitAttributeToClipboard),
 			Handler:           self.withItem(self.copyCommitAttribute),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.CopyCommitAttributeToClipboard,
@@ -68,13 +67,13 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			OpensMenu:         true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Commits.OpenInBrowser),
+			Keys:              opts.GetKeys(opts.Config.Commits.OpenInBrowser),
 			Handler:           self.withItem(self.openInBrowser),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.OpenCommitInBrowser,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.New),
+			Keys:              opts.GetKeys(opts.Config.Universal.New),
 			Handler:           self.withItem(self.newBranch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.CreateNewBranchFromCommit,
@@ -84,14 +83,14 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			// panel. But I find it important that this ends up next to "New Branch", and I couldn't
 			// find another way to achieve this. It's not such a big deal to have it in subcommits and
 			// reflog too, I'd say.
-			Key:               opts.GetKey(opts.Config.Branches.MoveCommitsToNewBranch),
+			Keys:              opts.GetKeys(opts.Config.Branches.MoveCommitsToNewBranch),
 			Handler:           self.c.Helpers().Refs.MoveCommitsToNewBranch,
 			GetDisabledReason: self.c.Helpers().Refs.CanMoveCommitsToNewBranch,
 			Description:       self.c.Tr.MoveCommitsToNewBranch,
 			Tooltip:           self.c.Tr.MoveCommitsToNewBranchTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Commits.ViewResetOptions),
+			Keys:              opts.GetKeys(opts.Config.Commits.ViewResetOptions),
 			Handler:           self.withItem(self.createResetMenu),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ViewResetOptions,
@@ -100,31 +99,31 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Commits.CherryPickCopy),
+			Keys:              opts.GetKeys(opts.Config.Commits.CherryPickCopy),
 			Handler:           self.withItem(self.copyRange),
 			GetDisabledReason: self.require(self.itemRangeSelected(self.canCopyCommits)),
 			Description:       self.c.Tr.CherryPickCopy,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.CherryPickCopyTooltip,
 				map[string]string{
-					"paste":  opts.Config.Commits.PasteCommits,
-					"escape": opts.Config.Universal.Return,
+					"paste":  opts.Config.Commits.PasteCommits.String(),
+					"escape": opts.Config.Universal.Return.String(),
 				},
 			),
 			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.ResetCherryPick),
+			Keys:        opts.GetKeys(opts.Config.Commits.ResetCherryPick),
 			Handler:     self.c.Helpers().CherryPick.Reset,
 			Description: self.c.Tr.ResetCherryPick,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Keys:              opts.GetKeys(opts.Config.Universal.OpenDiffTool),
 			Handler:           self.withItem(self.openDiffTool),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.OpenDiffTool,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Commits.SelectCommitsOfCurrentBranch),
+			Keys:              opts.GetKeys(opts.Config.Commits.SelectCommitsOfCurrentBranch),
 			Handler:           self.selectCommitsOfCurrentBranch,
 			GetDisabledReason: self.require(self.canSelectCommitsOfCurrentBranch),
 			Description:       self.c.Tr.SelectCommitsOfCurrentBranch,
@@ -164,14 +163,14 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 			OnPress: func() error {
 				return self.copyCommitSubjectToClipboard(commit)
 			},
-			Key: gocui.NewKeyRune('s'),
+			Keys: menuKey('s'),
 		},
 		{
 			Label: self.c.Tr.CommitMessage,
 			OnPress: func() error {
 				return self.copyCommitMessageToClipboard(commit)
 			},
-			Key: gocui.NewKeyRune('m'),
+			Keys: menuKey('m'),
 		},
 		{
 			Label:          self.c.Tr.CommitMessageBody,
@@ -179,28 +178,28 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 			OnPress: func() error {
 				return self.copyCommitMessageBodyToClipboard(commitMessageBody)
 			},
-			Key: gocui.NewKeyRune('b'),
+			Keys: menuKey('b'),
 		},
 		{
 			Label: self.c.Tr.CommitURL,
 			OnPress: func() error {
 				return self.copyCommitURLToClipboard(commit)
 			},
-			Key: gocui.NewKeyRune('u'),
+			Keys: menuKey('u'),
 		},
 		{
 			Label: self.c.Tr.CommitDiff,
 			OnPress: func() error {
 				return self.copyCommitDiffToClipboard(commit)
 			},
-			Key: gocui.NewKeyRune('d'),
+			Keys: menuKey('d'),
 		},
 		{
 			Label: self.c.Tr.CommitAuthor,
 			OnPress: func() error {
 				return self.copyAuthorToClipboard(commit)
 			},
-			Key: gocui.NewKeyRune('a'),
+			Keys: menuKey('a'),
 		},
 	}
 
@@ -209,7 +208,7 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 		OnPress: func() error {
 			return self.copyCommitTagsToClipboard(commit)
 		},
-		Key: gocui.NewKeyRune('t'),
+		Keys: menuKey('t'),
 	}
 
 	if len(commit.Tags) == 0 {

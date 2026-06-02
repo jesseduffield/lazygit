@@ -15,7 +15,7 @@
 package vt
 
 // BaseKey is the Kitty protocol base key. These are kitty's representation of a scan code.
-// As the Kitty protocol is likely the extended keyboard protocol we care about, we use
+// As the Kitty protocol is likely the extended keyboard protocol we care most about, we use
 // this as the primary reporting mechanism. (It also helps that this may provide an easier
 // fallback for implementations that don't have raw scan codes and are willing to assume an
 // ANSI layout.)
@@ -198,7 +198,7 @@ func (k Key) ScanCode() ScanCode {
 }
 
 // WinVK represents a windows virtual key code.
-// These are similar to base keys, but a multiple scanned key codes
+// These are similar to base keys, but multiple scanned key codes
 // may result in the same virtual key.  This can also be sensitive to
 // the keyboard layout.
 type WinVK rune
@@ -346,7 +346,7 @@ const (
 
 var baseKeys map[Key]BaseKey
 
-// KittyBase returns the corresponding Kitty "base" key for the given USB cod.
+// KittyBase returns the corresponding Kitty "base" key for the given USB code.
 // If no corresponding value can be found, then zero is returned.  Note that
 // some keys (such as F1) are valid, and recognized by Kitty, but do not use the
 // base key encoding because they use another reporting format.
@@ -462,15 +462,16 @@ func init() {
 		KeyRAlt:         57449,
 		KeyRMeta:        57450,
 
-		// KeyHiragana:   0, // TBD
-		// KeyConvert:    0, // TBD
-		// KeyNonConvert: 0, // TD
+		// KeyHiragana:   0, // Later
+		// KeyConvert:    0, // Later
+		// KeyNonConvert: 0, // Later
 
 		// Windows uses a bunch of HID usages from
 		// the consumer page (0x0c) for media playback, and
 		// other applications. We just ignore them.
 	}
 
+	// Scan codes used by Windows.
 	scanCodes = map[Key]ScanCode{
 		KeyA:            0x1e,
 		KeyB:            0x30,

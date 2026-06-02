@@ -205,3 +205,10 @@ func GetValidatedKeyBindingKey(label string) gocui.Key {
 
 	return key
 }
+
+func GetValidatedKeyBindingKeys(labels Keybinding) []gocui.Key {
+	return lo.FilterMap(labels, func(label string, _ int) (gocui.Key, bool) {
+		k := GetValidatedKeyBindingKey(label)
+		return k, k.IsSet()
+	})
+}

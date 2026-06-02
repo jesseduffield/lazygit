@@ -126,10 +126,12 @@ func validateKeybindings(keybindingConfig KeybindingConfig) error {
 	return nil
 }
 
-func validateCustomCommandKey(key string) error {
-	if !isValidKeybindingKey(key) {
-		return fmt.Errorf("Unrecognized key '%s' for custom command. For permitted values see %s",
-			key, constants.Links.Docs.CustomKeybindings)
+func validateCustomCommandKey(key Keybinding) error {
+	for _, k := range key {
+		if !isValidKeybindingKey(k) {
+			return fmt.Errorf("Unrecognized key '%s' for custom command. For permitted values see %s",
+				k, constants.Links.Docs.CustomKeybindings)
+		}
 	}
 	return nil
 }
@@ -150,7 +152,7 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 				customCommand.After != nil {
 				commandRef := ""
 				if len(customCommand.Key) > 0 {
-					commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key)
+					commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key.String())
 				}
 				return fmt.Errorf("Error with custom command%s: it is not allowed to use both commandMenu and any of the other fields except key and description.", commandRef)
 			}
@@ -176,9 +178,11 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 
 func validateCustomCommandPrompt(prompt CustomCommandPrompt) error {
 	for _, option := range prompt.Options {
-		if !isValidKeybindingKey(option.Key) {
-			return fmt.Errorf("Unrecognized key '%s' for custom command prompt option. For permitted values see %s",
-				option.Key, constants.Links.Docs.CustomKeybindings)
+		for _, k := range option.Key {
+			if !isValidKeybindingKey(k) {
+				return fmt.Errorf("Unrecognized key '%s' for custom command prompt option. For permitted values see %s",
+					k, constants.Links.Docs.CustomKeybindings)
+			}
 		}
 	}
 

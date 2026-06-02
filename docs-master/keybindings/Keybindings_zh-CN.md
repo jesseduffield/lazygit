@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | 切换到最近的仓库 |  |
-| `` <pgup> (fn+up/shift+k) `` | 向上滚动主面板 |  |
-| `` <pgdown> (fn+down/shift+j) `` | 向下滚动主面板 |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | 向上滚动主面板 |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | 向下滚动主面板 |  |
 | `` @ `` | 打开命令日志菜单 | 查看命令日志的选项，例如显示/隐藏命令日志以及聚焦命令日志 |
 | `` P `` | 推送 | 推送当前分支到它的上游。如果上游未配置，您可以在弹窗中配置上游分支。 |
 | `` p `` | 拉取 | 从当前分支的远程分支获取改动。如果上游未配置，您可以在弹窗中配置上游分支。 |
@@ -26,9 +26,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | 取消 |  |
 | `` ? `` | 打开菜单 |  |
 | `` <ctrl+s> `` | 查看按路径过滤选项 | 查看用于过滤提交日志的选项，以便仅显示与过滤器匹配的提交。 |
-| `` W `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
-| `` <ctrl+e> `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
-| `` q `` | 退出 |  |
+| `` W, <ctrl+e> `` | 打开 diff 菜单 | 查看与比较两个引用相关的选项，例如与选定的 ref 进行比较，输入要比较的 ref，然后反转比较方向。 |
+| `` q, <ctrl+c> `` | 退出 |  |
 | `` <ctrl+z> `` | 挂起应用程序 |  |
 | `` <ctrl+w> `` | 切换是否在差异视图中显示空白字符差异 | 切换是否在差异视图中显示空白字符更改。<br><br>默认值可在配置文件中通过键 'git.ignoreWhitespaceInDiffView' 更改。 |
 | `` z `` | 撤销 | Reflog将用于确定运行哪个git命令来撤消最后一个git命令。这并不包括对工作树的更改，只考虑提交。 |
@@ -40,8 +39,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | 上一页 |  |
 | `` . `` | 下一页 |  |
-| `` < (<home>) `` | 滚动到顶部 |  |
-| `` > (<end>) `` | 滚动到底部 |  |
+| `` <, <home> `` | 滚动到顶部 |  |
+| `` >, <end> `` | 滚动到底部 |  |
 | `` v `` | 切换拖动选择 |  |
 | `` <shift+down> `` | 向下扩展选择范围 |  |
 | `` <shift+up> `` | 向上扩展选择范围 |  |
@@ -55,7 +54,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <ctrl+o> `` | 复制缩略提交哈希值到剪贴板 |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -99,7 +98,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <ctrl+o> `` | 复制缩略提交哈希值到剪贴板 |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -119,12 +118,12 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` <ctrl+o> `` | 复制缩略提交哈希值到剪贴板 |  |
 | `` <ctrl+r> `` | 重置已拣选(复制)的提交 |  |
 | `` b `` | 查看二分查找选项 |  |
 | `` s `` | 压缩(Squash) | 将已选提交压缩到该提交之下。这些选定的提交的消息会附加到该提交的消息之下。 |
 | `` f `` | 修正 （fixup） | 将选定的提交合并到其下面的提交中。与压缩类似，但所选提交的消息将被丢弃。 |
-| `` c `` | Set fixup message | Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message. |
+| `` c `` | 设置修复提交信息 | 设置修复提交的信息选项。-C 选项表示使用此提交的信息，而非目标提交的信息。 |
 | `` r `` | 改写提交 | 重写所选提交的消息。 |
 | `` R `` | 使用编辑器重命名提交 |  |
 | `` d `` | 删除提交 | 删除选中的提交。这将通过变基从分支中删除该提交，如果该提交修改的内容依赖于后续的提交，则需要解决合并冲突。 |
@@ -133,8 +132,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` p `` | 拣选(Pick) | 标记选中的提交为 picked（变基过程中）。这意味该提交将在后续的变基中保留。 |
 | `` F `` | 为此提交创建修正 | 创建修正提交 |
 | `` S `` | 应用该修复提交 | 压缩所选提交之上或当前分支的所有 “fixup!” 提交（自动压缩）。 |
-| `` <ctrl+j> `` | 下移提交 |  |
-| `` <ctrl+k> `` | 上移提交 |  |
+| `` <ctrl+j>, <alt+down> `` | 下移提交 |  |
+| `` <ctrl+k>, <alt+up> `` | 上移提交 |  |
 | `` V `` | 粘贴提交(拣选) |  |
 | `` B `` | 标记一个主提交用于变基 | 选择下一次变基的主提交。当您变基到一个分支时，只有高于主提交的提交才会被引入。这使用“git rebase --onto”命令。 |
 | `` A `` | 修补(Amend) | 用已暂存的变更来修补提交 |
@@ -142,7 +141,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` t `` | 撤销(Revert) | 为所选提交创建还原提交，这会反向应用所选提交的更改。 |
 | `` T `` | 标签提交 | 创建一个新标签指向所选提交。您可以在弹窗中输入标签名称和描述(可选)。 |
 | `` <ctrl+l> `` | 打开日志菜单 | 查看提交日志的选项，例如更改排序顺序、隐藏 git graph、显示整个 git graph。 |
-| `` G `` | Open pull request in browser |  |
+| `` G `` | 在浏览器中打开拉取请求 |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -228,7 +227,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` N `` | 移动提交至新分支 | 创建一个新分支，并将当前分支未推送的提交移动到该分支。如果您打算开始新工作但忘记先创建新分支，这会很有用。<br><br>请注意，此操作忽略选择，新分支总是从主分支创建或堆叠在当前分支之上（您可以选择哪种方式）。 |
 | `` o `` | 创建拉取请求 |  |
 | `` O `` | 创建拉取请求选项 |  |
-| `` G `` | Open pull request in browser |  |
+| `` G `` | 在浏览器中打开拉取请求 |  |
 | `` <ctrl+y> `` | 复制拉取请求 URL 到剪贴板 |  |
 | `` c `` | 按名称检出 | 按名称检出。在输入框中，您可以输入'-' 来切换到最后一个分支。 |
 | `` - `` | 签出上一个分支 |  |
@@ -252,15 +251,15 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 选择上一个区块 |  |
-| `` <right> `` | 选择下一个区块 |  |
+| `` <left>, h `` | 选择上一个区块 |  |
+| `` <right>, l `` | 选择下一个区块 |  |
 | `` v `` | 切换拖动选择 |  |
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` <ctrl+o> `` | 复制选中文本到剪贴板 |  |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
 | `` <space> `` | 添加/移除 行到补丁 |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
+| `` d `` | 从提交中移除行 | 从本次提交中移除所选行。此操作会在后台运行交互式变基，因此如果后续提交也修改了这些行，您可能会遇到合并冲突。 |
 | `` <esc> `` | 退出逐行模式 |  |
 | `` / `` | 开始搜索 |  |
 
@@ -294,10 +293,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <space> `` | 选中区块 |  |
 | `` b `` | 选中所有区块 |  |
-| `` <up> `` | 选择顶部块 |  |
-| `` <down> `` | 选择底部块 |  |
-| `` <left> `` | 选择上一个冲突 |  |
-| `` <right> `` | 选择下一个冲突 |  |
+| `` <up>, k `` | 选择顶部块 |  |
+| `` <down>, j `` | 选择底部块 |  |
+| `` <left>, h `` | 选择上一个冲突 |  |
+| `` <right>, l `` | 选择下一个冲突 |  |
 | `` z `` | 撤销 | 撤消上次合并冲突解决 |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
@@ -308,8 +307,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 选择上一个区块 |  |
-| `` <right> `` | 选择下一个区块 |  |
+| `` <left>, h `` | 选择上一个区块 |  |
+| `` <right>, l `` | 选择下一个区块 |  |
 | `` v `` | 切换拖动选择 |  |
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` <ctrl+o> `` | 复制选中文本到剪贴板 |  |
@@ -345,7 +344,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` u `` | 检查更新 |  |
 | `` <enter> `` | 切换到最近的仓库 |  |
 | `` a `` | 显示/循环所有分支日志 |  |
-| `` A `` | Show/cycle all branch logs (reverse) |  |
+| `` A `` | 显示/循环所有分支日志（反向） |  |
 | `` 0 `` | 聚焦主视图 |  |
 
 ## 确认面板

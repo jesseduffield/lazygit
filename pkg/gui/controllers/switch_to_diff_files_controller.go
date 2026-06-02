@@ -40,7 +40,7 @@ func NewSwitchToDiffFilesController(
 func (self *SwitchToDiffFilesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Keys:              opts.GetKeys(opts.Config.Universal.GoInto),
 			Handler:           self.enter,
 			GetDisabledReason: self.canEnter,
 			Description:       self.c.Tr.ViewItemFiles,

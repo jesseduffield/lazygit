@@ -13,29 +13,29 @@ var CustomCommandsSubmenuWithSpecialKeybindings = NewIntegrationTest(NewIntegrat
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:         "x",
+				Key:         config.Keybinding{"x"},
 				Description: "My Custom Commands",
 				CommandMenu: []config.CustomCommand{
 					{
-						Key:     "j",
+						Key:     config.Keybinding{"j"},
 						Context: "global",
 						Command: "echo j",
 						Output:  "popup",
 					},
 					{
-						Key:     "H",
+						Key:     config.Keybinding{"H"},
 						Context: "global",
 						Command: "echo H",
 						Output:  "popup",
 					},
 					{
-						Key:     "y",
+						Key:     config.Keybinding{"y"},
 						Context: "global",
 						Command: "echo y",
 						Output:  "popup",
 					},
 					{
-						Key:     "<down>",
+						Key:     config.Keybinding{"<down>"},
 						Context: "global",
 						Command: "echo down",
 						Output:  "popup",
@@ -43,13 +43,13 @@ var CustomCommandsSubmenuWithSpecialKeybindings = NewIntegrationTest(NewIntegrat
 				},
 			},
 		}
-		cfg.GetUserConfig().Keybinding.Universal.ConfirmMenu = "y"
+		cfg.GetUserConfig().Keybinding.Universal.ConfirmMenu = config.Keybinding{"y"}
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
 			Focus().
 			IsEmpty().
-			Press("x").
+			Press(config.Keybinding{"x"}).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("My Custom Commands")).
@@ -59,14 +59,14 @@ var CustomCommandsSubmenuWithSpecialKeybindings = NewIntegrationTest(NewIntegrat
 						Contains("  echo y"),
 						Contains("  echo down"),
 					)
-				t.GlobalPress("j")
+				t.GlobalPress(config.Keybinding{"j"})
 				t.ExpectPopup().Alert().Title(Equals("echo j")).Content(Equals("j")).Confirm()
 			}).
-			Press("x").
+			Press(config.Keybinding{"x"}).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("My Custom Commands"))
-				t.GlobalPress("H")
+				t.GlobalPress(config.Keybinding{"H"})
 				t.ExpectPopup().Alert().Title(Equals("echo H")).Content(Equals("H")).Confirm()
 			})
 	},
