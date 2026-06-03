@@ -21,11 +21,11 @@ func NewCommitFilesHelper(c *HelperCommon, patchBuildingHelper *PatchBuildingHel
 	}
 }
 
-// escapeContext is the side panel that escaping the patch builder should return
-// to, for the case where we're entering it straight from a focused main view;
-// it's nil for the normal flow that goes through the commit files panel. See
-// PatchBuildingHelper.escapeContext.
-func (self *CommitFilesHelper) EnterCommitFile(node *filetree.CommitFileNode, escapeContext types.Context, opts types.OnFocusOpts) error {
+// focusedMainViewSnapshot records the focused main view to return to when
+// escaping the patch builder, for the case where we're entering it straight from
+// there; it's nil for the normal flow that goes through the commit files panel.
+// See types.FocusedMainViewSnapshot.
+func (self *CommitFilesHelper) EnterCommitFile(node *filetree.CommitFileNode, focusedMainViewSnapshot *types.FocusedMainViewSnapshot, opts types.OnFocusOpts) error {
 	if node.File == nil {
 		self.handleToggleCommitFileDirCollapsed(node)
 		return nil
@@ -55,7 +55,7 @@ func (self *CommitFilesHelper) EnterCommitFile(node *filetree.CommitFileNode, es
 			// Set on every entry (so it can't leak from a previous main-view
 			// entry into a subsequent normal one), right as we push the patch
 			// builder.
-			self.patchBuildingHelper.escapeContext = escapeContext
+			self.c.Contexts().CustomPatchBuilder.SetFocusedMainViewSnapshot(focusedMainViewSnapshot)
 
 			self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
 			self.patchBuildingHelper.ShowHunkStagingHint()

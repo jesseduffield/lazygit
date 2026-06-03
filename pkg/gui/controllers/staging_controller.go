@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -175,7 +176,7 @@ func (self *StagingController) Escape() error {
 		return nil
 	}
 
-	self.c.Context().Pop()
+	helpers.EscapeFromPatchExplorer(self.c.HelperCommon, self.context)
 	return nil
 }
 
