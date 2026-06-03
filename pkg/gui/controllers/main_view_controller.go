@@ -191,6 +191,37 @@ func showSelectionAtLine(view *gocui.View, lineIdx int) {
 	view.FocusPoint(0, lineIdx, false)
 }
 
+// focusedMainViewContextForViewName maps a focused main view's view name (as
+// passed to GetOnClickFocusedMainView) to its context.
+func focusedMainViewContextForViewName(c *ControllerCommon, viewName string) types.Context {
+	if viewName == c.Contexts().NormalSecondary.GetViewName() {
+		return c.Contexts().NormalSecondary
+	}
+	return c.Contexts().Normal
+}
+
+// focusedMainViewSnapshot captures where a focused main view is (scroll +
+// selected line) when diving into a patch explorer from it, so escaping can
+// return there with the main view focused. sidePanel is the panel to land on
+// first (which re-renders the content); for commits/stash it's the originating
+// panel, skipping the commit files panel we pass through. selectedLineIdx is the
+// view line that was selected in the focused main view. Call this before any
+// mutation that might re-render the main view.
+func focusedMainViewSnapshot(c *ControllerCommon, mainViewName string, sidePanel types.Context, selectedLineIdx int) *types.FocusedMainViewSnapshot {
+	mainView := focusedMainViewContextForViewName(c, mainViewName)
+	sidePanelSelectedLineIdx := -1
+	if listContext, ok := sidePanel.(types.IListContext); ok {
+		sidePanelSelectedLineIdx = listContext.GetList().GetSelectedLineIdx()
+	}
+	return &types.FocusedMainViewSnapshot{
+		SidePanel:                sidePanel,
+		SidePanelSelectedLineIdx: sidePanelSelectedLineIdx,
+		MainView:                 mainView,
+		OriginY:                  mainView.GetView().OriginY(),
+		SelectedLineIdx:          selectedLineIdx,
+	}
+}
+
 func (self *MainViewController) editLine() error {
 	if !self.context.GetView().Highlight {
 		return nil

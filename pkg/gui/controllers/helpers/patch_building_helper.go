@@ -10,14 +10,6 @@ import (
 
 type PatchBuildingHelper struct {
 	c *HelperCommon
-
-	// When patch building is entered straight from a focused main view (rather
-	// than from the commit files panel), this records the side panel to return
-	// to on escape, so that we skip the commit files panel we never really
-	// visited. It is nil for the normal flow, where escape just pops back to the
-	// commit files panel. Set on every entry into patch building (see
-	// CommitFilesHelper.EnterCommitFile) so it can't leak between flows.
-	escapeContext types.Context
 }
 
 func NewPatchBuildingHelper(
@@ -40,17 +32,47 @@ func (self *PatchBuildingHelper) ShowHunkStagingHint() {
 	}
 }
 
-// takes us from the patch building panel back to the commit files panel, or
-// straight back to the side panel if we entered patch building from a focused
-// main view (see escapeContext)
+// takes us from the patch building panel back to the commit files panel, or to
+// the focused main view if that's where we entered it from
 func (self *PatchBuildingHelper) Escape() {
-	if self.escapeContext != nil {
-		escapeContext := self.escapeContext
-		self.escapeContext = nil
-		self.c.Context().Push(escapeContext, types.OnFocusOpts{})
-	} else {
-		self.c.Context().Pop()
+	EscapeFromPatchExplorer(self.c, self.c.Contexts().CustomPatchBuilder)
+}
+
+// EscapeFromPatchExplorer returns from a patch explorer context (staging or
+// patch building). If we entered it from a focused main view, we go back to
+// where we came from (re-rendering the side panel's content into the main view,
+// like the plain escape does), then focus the main view and restore its scroll
+// position and selection. Otherwise we just pop to the side panel.
+func EscapeFromPatchExplorer(c *HelperCommon, context types.IPatchExplorerContext) {
+	snapshot := context.GetFocusedMainViewSnapshot()
+	if snapshot == nil {
+		c.Context().Pop()
+		return
 	}
+
+	context.SetFocusedMainViewSnapshot(nil)
+
+	// Restore the side panel's selection before we render it, so it shows the
+	// same content the main view had (diving into staging can change it, e.g.
+	// from a directory to a file in the files panel).
+	if listContext, ok := snapshot.SidePanel.(types.IListContext); ok && snapshot.SidePanelSelectedLineIdx >= 0 {
+		listContext.GetList().SetSelectedLineIdx(snapshot.SidePanelSelectedLineIdx)
+	}
+
+	// Land on the side panel first (this re-renders the original content into the
+	// main view), then focus the main view on top of it.
+	c.Context().Push(snapshot.SidePanel, types.OnFocusOpts{})
+	c.Context().Push(snapshot.MainView, types.OnFocusOpts{})
+
+	// Restore the scroll position and selection on the next UI tick.
+	view := snapshot.MainView.GetView()
+	c.OnUIThread(func() error {
+		view.SetOrigin(view.OriginX(), snapshot.OriginY)
+		view.FocusPoint(0, snapshot.SelectedLineIdx, false)
+		view.Highlight = true
+		view.HighlightInactive = false
+		return nil
+	})
 }
 
 // kills the custom patch and returns us back to the commit files panel if needed
