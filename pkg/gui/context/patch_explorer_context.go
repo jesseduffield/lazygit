@@ -20,6 +20,11 @@ type PatchExplorerContext struct {
 	// true if we're inside the OnSelectItem callback; in that case we don't want to update the
 	// search result index.
 	inOnSelectItemCallback bool
+
+	// Set when this patch explorer was entered from a focused main view, so that
+	// escaping returns there; nil for the normal flow. See
+	// types.FocusedMainViewSnapshot.
+	focusedMainViewSnapshot *types.FocusedMainViewSnapshot
 }
 
 var (
@@ -59,6 +64,14 @@ func NewPatchExplorerContext(
 }
 
 func (self *PatchExplorerContext) IsPatchExplorerContext() {}
+
+func (self *PatchExplorerContext) GetFocusedMainViewSnapshot() *types.FocusedMainViewSnapshot {
+	return self.focusedMainViewSnapshot
+}
+
+func (self *PatchExplorerContext) SetFocusedMainViewSnapshot(snapshot *types.FocusedMainViewSnapshot) {
+	self.focusedMainViewSnapshot = snapshot
+}
 
 func (self *PatchExplorerContext) GetState() *patch_exploring.State {
 	return self.state
