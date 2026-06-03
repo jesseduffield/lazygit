@@ -535,6 +535,9 @@ func (self *CommitFilesController) expandAll() error {
 
 func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
 	return func(mainViewName string, clickedLineIdx int) error {
+		// Capture before any mutation below that might re-render the main view.
+		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context(), clickedLineIdx)
+
 		clickedFile, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(mainViewName, clickedLineIdx)
 		if !ok {
 			line = -1
@@ -563,9 +566,8 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 			}
 		}
 
-		// Entered from the commit files panel's own focused main view, so escape
-		// should just pop back to it; no special escape context needed.
-		return self.c.Helpers().CommitFiles.EnterCommitFile(node, nil, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
+		// Entered from the focused main view, so escaping returns there.
+		return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
 	}
 }
 
