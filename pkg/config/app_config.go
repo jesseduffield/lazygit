@@ -93,7 +93,7 @@ func NewAppConfig(
 		})
 	} else {
 		// Load default config files
-		path := filepath.Join(configDir, ConfigFilename)
+		_, path := findConfigFile(ConfigFilenames)
 		configFile := &ConfigFile{Path: path, Policy: ConfigFilePolicyCreateIfMissing}
 		configFiles = []*ConfigFile{configFile}
 	}
@@ -126,7 +126,7 @@ func NewAppConfig(
 }
 
 func ConfigDir() string {
-	_, filePath := findConfigFile(ConfigFilename)
+	_, filePath := findConfigFile(ConfigFilenames)
 
 	return filepath.Dir(filePath)
 }
@@ -587,34 +587,50 @@ func (c *AppConfig) GetTempDir() string {
 
 // findConfigFile looks for a possibly existing config file.
 // This function does NOT create any folders or files.
-func findConfigFile(filename string) (exists bool, path string) {
+func findConfigFile(filenames []string) (exists bool, path string) {
 	if envConfigDir := os.Getenv("CONFIG_DIR"); envConfigDir != "" {
-		return true, filepath.Join(envConfigDir, filename)
+		return findFirstConfigFile(filenames, envConfigDir)
 	}
 
 	// look for jesseduffield/lazygit/filename in XDG_CONFIG_HOME and XDG_CONFIG_DIRS
-	legacyConfigPath, err := xdg.SearchConfigFile(filepath.Join("jesseduffield", "lazygit", filename))
-	if err == nil {
-		return true, legacyConfigPath
+	for _, filename := range filenames {
+		legacyConfigPath, err := xdg.SearchConfigFile(filepath.Join("jesseduffield", "lazygit", filename))
+		if err == nil {
+			return true, legacyConfigPath
+		}
 	}
 
 	// look for lazygit/filename in XDG_CONFIG_HOME and XDG_CONFIG_DIRS
-	configFilepath, err := xdg.SearchConfigFile(filepath.Join("lazygit", filename))
-	if err == nil {
-		return true, configFilepath
+	for _, filename := range filenames {
+		configFilepath, err := xdg.SearchConfigFile(filepath.Join("lazygit", filename))
+		if err == nil {
+			return true, configFilepath
+		}
 	}
 
-	return false, filepath.Join(xdg.ConfigHome, "lazygit", filename)
+	return false, filepath.Join(xdg.ConfigHome, "lazygit", filenames[0])
 }
 
-var ConfigFilename = "config.yml"
+// findFirstConfigFile returns the first existing file in dir from the list, or
+// the default path if none exist.
+func findFirstConfigFile(filenames []string, dir string) (exists bool, path string) {
+	for _, filename := range filenames {
+		fullPath := filepath.Join(dir, filename)
+		if _, err := os.Stat(fullPath); err == nil {
+			return true, fullPath
+		}
+	}
+	return false, filepath.Join(dir, filenames[0])
+}
+
+var ConfigFilenames = []string{"config.yml", "config.yaml"}
 
 // stateFilePath looks for a possibly existing state file.
 // if none exist, the default path is returned and all parent directories are created.
 func stateFilePath(filename string) (string, error) {
-	exists, legacyStateFile := findConfigFile(filename)
-	if exists {
-		return legacyStateFile, nil
+	_, path := findFirstConfigFile([]string{filename}, xdg.ConfigHome+"/lazygit")
+	if _, err := os.Stat(path); err == nil {
+		return path, nil
 	}
 
 	// looks for XDG_STATE_HOME/lazygit/filename
