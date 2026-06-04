@@ -54,6 +54,12 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		return gui.newCmdTask(view, cmd, prefix)
 	}
 
+	// Mark the view as loading synchronously now, before the layout pass: the
+	// actual task is created in afterLayout (below), which runs after layout, so
+	// without this the next layout pass would clamp the scroll position to the
+	// not-yet-loaded content.
+	gui.getManager(view).StartLoading()
+
 	// Run the pty after layout so that it gets the correct size
 	gui.afterLayout(func() error {
 		// Need to get the width and the pager again because the layout might have

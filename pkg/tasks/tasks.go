@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -44,6 +45,11 @@ type ViewBufferManager struct {
 	readLines    chan LinesToRead
 	taskKey      string
 	onNewKey     func()
+
+	// Whether a command task is currently reading content into the view. While
+	// this is true the content is still growing, so callers (e.g. the layout)
+	// must not clamp the view's scroll position to the amount loaded so far.
+	loading atomic.Bool
 
 	// beforeStart is the function that is called before starting a new task
 	beforeStart  func()
@@ -107,6 +113,21 @@ func (self *ViewBufferManager) ReadLines(n int) {
 			self.readLines <- LinesToRead{Total: n, InitialRefreshAfter: -1}
 		})
 	}
+}
+
+// IsLoading reports whether a command task is currently reading content into the
+// view, meaning the content is still growing.
+func (self *ViewBufferManager) IsLoading() bool {
+	return self.loading.Load()
+}
+
+// StartLoading marks the view as loading content. It must be called
+// synchronously when a command/pty task is started, before the task's goroutine
+// runs, so that a layout pass happening in between doesn't clamp the scroll
+// position to the not-yet-loaded content. It is cleared when the task reaches
+// the end of its input.
+func (self *ViewBufferManager) StartLoading() {
+	self.loading.Store(true)
 }
 
 func (self *ViewBufferManager) ReadToEnd(then func()) {
@@ -297,6 +318,11 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 							// if we're here then there's nothing left to scan from the source
 							// so we're at the EOF and can flush the stale content
 							self.onEndOfInput()
+							// The content is fully loaded now, so it's safe again for the
+							// layout to clamp the scroll position to it. We deliberately
+							// don't clear this when stopped (rather than EOF'd), because that
+							// means a newer task is taking over and is still loading.
+							self.loading.Store(false)
 							callThen()
 							break outer
 						}
