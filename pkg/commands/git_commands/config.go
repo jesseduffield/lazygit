@@ -175,6 +175,10 @@ func (self *ConfigCommands) GetGitFlowPrefixMap() map[string]string {
 	return parseGitFlowPrefixMap(self.getGitFlowPrefixes(), self.getGitFlowNextPrefixes())
 }
 
+func (self *ConfigCommands) GetGitFlowFinishArgs() []string {
+	return self.UserConfig().Git.GitFlowFinishArgs
+}
+
 func (self *ConfigCommands) GetCoreCommentChar() byte {
 	if commentCharStr := self.gitConfig.Get("core.commentChar"); len(commentCharStr) == 1 {
 		return commentCharStr[0]
