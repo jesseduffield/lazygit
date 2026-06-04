@@ -1,10 +1,52 @@
 package config
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestKeybindingPlatform(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		envValue string
+		expected string
+	}{
+		{
+			name:     "Not set falls back to the host OS",
+			envValue: "",
+			expected: runtime.GOOS,
+		},
+		{
+			name:     "darwin is honored",
+			envValue: "darwin",
+			expected: "darwin",
+		},
+		{
+			name:     "linux is honored",
+			envValue: "linux",
+			expected: "linux",
+		},
+		{
+			name:     "windows is honored",
+			envValue: "windows",
+			expected: "windows",
+		},
+		{
+			name:     "An unrecognized value falls back to the host OS",
+			envValue: "mac",
+			expected: runtime.GOOS,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			t.Setenv("LAZYGIT_KEYBINDING_PLATFORM", s.envValue)
+			assert.Equal(t, s.expected, KeybindingPlatform())
+		})
+	}
+}
 
 func TestMigrationOfRenamedKeys(t *testing.T) {
 	scenarios := []struct {
