@@ -11,10 +11,15 @@ session. It is meant as a **starting point for future sessions**, which might:
    tests. (We did *not* make that plan; this doc gives a future session enough
    context to make it.)
 
-> Status at end of session: branch `use-delta-hyperlinks-for-clicking-in-diff`,
-> with a pile of **uncommitted** changes implementing the escape/restore work
-> (see "Uncommitted work" below). The tree builds (`just build`), is
-> `gofumpt`-clean, and `just vet` passes.
+> Status at end of **session 2** (the latest): branch
+> `use-delta-hyperlinks-for-clicking-in-diff`. The escape/restore work that was
+> uncommitted at the end of session 1 is now committed (`d901a9711` "WIP
+> FocusedMainViewSnapshot approach"). Session 2 dug into the **flicker on
+> escape** and landed three standalone bug fixes (see "§6" and the new commits
+> on top of `e5326c3a6`); the remaining flicker is understood but not yet fully
+> solved, and a small pile of **uncommitted** feature machinery
+> (`keepOrigin` + the `ReadToEnd`-based restore) is left in the working tree.
+> The tree builds (`just build`), is `gofumpt`-clean, and the unit tests pass.
 
 ---
 
@@ -241,132 +246,108 @@ silently produced the wrong relative path → wrong `sha256` anchor. See memory
 view should return to that focused main view, fresh content, **scroll +
 selection restored**, main view focused.
 
-### The mechanism we built (uncommitted)
+### The mechanism (now committed + a little still uncommitted)
 
 - `types.FocusedMainViewSnapshot { SidePanel, SidePanelSelectedLineIdx,
   MainView, OriginY, SelectedLineIdx }` (`pkg/gui/types/context.go`).
-- Stored on `PatchExplorerContext.focusedMainViewSnapshot` with
-  `Get/SetFocusedMainViewSnapshot` on the `IPatchExplorerContext` interface
-  (`pkg/gui/context/patch_explorer_context.go`). `nil` ⇒ entered the normal way
-  ⇒ plain `Pop()`.
-- **Capture** at entry via `focusedMainViewSnapshot(c, mainViewName, sidePanel,
-  selectedLineIdx)` in `main_view_controller.go`, called at the **start** of
-  each `GetOnClickFocusedMainView` (files, commit-files, commits) **before** any
-  mutation that re-renders the main view. It records the side panel, its
-  selected line (so we can put it back — e.g. files-panel directory→file), the
-  main view context, and the main view's `OriginY` + selected line.
-- **Thread** the snapshot through `FilesController.EnterFile(snapshot, opts)`
-  and `CommitFilesHelper.EnterCommitFile(node, snapshot, opts)`, which set it on
-  the `Staging`/`CustomPatchBuilder` context right as they push it (set on
-  *every* entry so it can't leak; `nil` for the normal flow).
-- **Escape**: `helpers.EscapeFromPatchExplorer(c, ctx)` (shared by
-  `StagingController.Escape` and `PatchBuildingHelper.Escape`). If a snapshot is
-  present: restore the side panel's selection, `Push(SidePanel)`,
-  `Push(MainView)`, then on the next UI tick restore origin + selection.
-  Otherwise `Pop()`.
+- Stored on `PatchExplorerContext.focusedMainViewSnapshot` (`nil` ⇒ entered the
+  normal way ⇒ plain `Pop()`), captured at entry in `focusedMainViewSnapshot(…)`
+  (`main_view_controller.go`), threaded through `FilesController.EnterFile` /
+  `CommitFilesHelper.EnterCommitFile`. All of this is committed in `d901a9711`.
+- **Escape**: `helpers.EscapeFromPatchExplorer(c, ctx)` restores the side panel's
+  selection, `Push(SidePanel)`, `Push(MainView)`, then restores origin +
+  selection. The current version of this (the `ReadToEnd`-based restore plus the
+  `keepOrigin` machinery below) is the **uncommitted** part left in the working
+  tree — it's WIP because the flicker isn't fully solved.
 
-### What works ✅
+### Where session 2 landed: the flicker is fully diagnosed; 3 bug fixes committed
 
-- Escape lands on the **focused main view** (main focused), content re-rendered.
-- **Selection restore works perfectly when the original scroll was at/near the
-  top** (selection within the initially-loaded screenful). User confirmed this
-  "feels exactly as expected."
-- The files/commit-files panels and the commits/stash "all the way out" routing
-  are correct.
+Restoring scroll + selection on escape **works** (the final state is correct).
+What remained was a **flicker on the way in**: a brief intermediate frame before
+the view settles at the saved position. Chasing it uncovered three genuine,
+independent bugs (all now committed on top of `e5326c3a6`):
 
-### What does NOT work ❌ (the remaining detail)
+1. **`6c7d9a295` Lock the view + guard the line index in `HyperLinkInLine`.**
+   It read `v.lines`/`v.viewLines` with no `writeMutex`, racing a concurrent
+   re-render, and indexed `v.lines[viewLines[y].linesY]` after only checking `y`
+   against `len(viewLines)`. Because `refreshViewLinesIfNeeded` overwrites
+   `viewLines` *in place without truncating*, the tail keeps stale entries
+   whose `linesY` points past a shrunk `v.lines` → out-of-range panic on `enter`
+   while a shorter diff was still loading.
+2. **`3b31cfe01` Don't scroll a view up to fill blank space while loading.**
+   The layout's scroll-up clamp ([`layout.go`], added in `6114f69ee5ef`) clamps
+   a view's origin to `TotalContentHeight()` — which for a main view is just the
+   **lines loaded so far**. During an async re-render that's a fraction of the
+   eventual content, so it yanked the view to the top. Fix: a synchronously-set
+   `ViewBufferManager.loading` flag (set in the cmd/pty wrappers *before* the
+   layout pass, cleared at EOF but **not** on stop), and the layout skips the
+   clamp while loading.
+3. **`a4b72a6f6` Fire queued `ReadToEnd` callbacks when the initial read hits
+   EOF.** The read loop processes one request at a time; the initial request has
+   no `Then` and a large line count, so if the content is shorter it hits EOF on
+   that request and `break`s out, abandoning any queued `ReadToEnd` request in
+   the channel → its `Then` silently dropped (this was session 1's "ReadToEnd's
+   `then` never fired" mystery!). Fix: drain queued requests and fire their
+   `Then`s on EOF.
 
-When the focused main view was **scrolled down**:
+### Corrected diagnosis (session 1's §6 diagnosis was WRONG in its mechanism)
 
-- The restored **scroll resets to the top**, and
-- the **selection lands off by roughly the scroll amount** (≈ the original
-  `OriginY`).
+Session 1 said "on restore only the initial screenful (`height=37`) is loaded,
+so `FocusPoint` returns early." **That was inaccurate.** The truth, confirmed by
+instrumenting **every** write to the main view's `oy` (see Debug tooling §10):
 
-### Diagnosis (confirmed with debug logging — high confidence)
+- `linesToReadFromCmdTask` reads `height*(height-1)+oy` lines (≈1332+, capped at
+  5000) — **not** one screenful. For typical diffs the whole thing loads quickly.
+- The scroll wasn't failing because content was unloaded at *restore* time (the
+  `ReadToEnd` restore, once the drain fix above made it fire, sets the final
+  position correctly). It was failing because the **layout clamp** (bug #2) was
+  resetting `oy` to 0 on *every layout pass* during the async load, until the
+  content caught up. That is the real cause of "scroll resets to the top."
 
-The captured snapshot is correct (e.g. `originY=92 selectedLineIdx=144`). The
-problem is purely **content not loaded far enough when we restore**:
+### The full origin-reset chain on escape (and how each is handled now)
 
-- On restore the view had **only the initial screenful (`height=37`)**. So
-  `SetOrigin(0,92)` can't really show line 92, and **`FocusPoint(0,144,false)`
-  returns early** (`144-92=52 > 37`), leaving the cursor where the render left
-  it → "off by the scroll amount." At `OriginY=0` everything fits in the
-  screenful, which is why the top case works.
-- We need to **force the task to read down to (at least) the target line before
-  restoring**. `ReadToEnd` is the right primitive, but every attempt mis-timed
-  it against the async task lifecycle.
+Tracing every `oy` write during a commits-scrolled-down escape, three different
+things were all moving the origin off the saved value:
 
-### The "clobber" insight (why only commits/stash is hard)
+1. **`onNewKey`** (`tasks_adapter.go`) resets `oy` to 0 when the re-render's
+   command key differs from the last one (it does, because the commit-files
+   render clobbered the main view on entry). → handled by
+   `ViewBufferManager.KeepOriginForNextTask()` (uncommitted feature machinery),
+   which suppresses that one reset.
+2. **`CopyContent`** (`view.go`, via `moveMainContextToTop`) copies the
+   *previous top view's* buffer **and origin** into the main view to avoid a
+   blank frame. → handled by re-asserting `SetOrigin(saved)` after the pushes.
+3. **The layout scroll-up clamp** → handled by bug fix #2 (the `loading` flag).
 
-- **files / commit-files:** entering staging/patch-building renders into the
-  *Staging*/*PatchBuilding* view, so the `Main` view is **never touched** — its
-  content, scroll, and full loaded range survive. In principle exit there can be
-  "focus main + restore selection" with **no re-render and no loading**, because
-  everything is still there. (We did not specialize this yet — current code
-  re-renders uniformly.)
-- **commits / stash:** entering goes through `SwitchToDiffFilesController.enter()`
-  which **pushes the commit-files panel**, and *that* renders the commit-files
-  diff **into the `Main` view** (a different command/key) — clobbering the
-  commit diff and resetting origin. So on exit we must **rebuild** the commit
-  diff from scratch (re-render), and that's where the async loading race lives.
+### The one remaining flicker (and the correct fix — not yet implemented)
 
-### Approaches tried and why each failed (don't repeat blindly)
+With all three handled, the *scroll no longer jumps*. But there's still a brief
+intermediate frame, and we found exactly what it is: **`CopyContent` seeds the
+main view with the patch-building view's buffer**, and since we set the origin
+to the saved position (far down) while that placeholder is shorter, the draw
+shows the placeholder's *last line* at the top with blank below — until the pty
+task finishes loading the real diff and repaints at the saved position. (It
+"appears scrolled up by a varying amount" purely because what shows at the saved
+`oy` depends on the patch's *length*, via `min(oy, patchLines-1)`.)
 
-1. **`OnUIThread(restore)` only (no read).** Restore runs after one tick, but
-   only the screenful is loaded → scroll/deep-selection fail. *(This is the
-   current reverted "Version A" state: best UX so far — main focused, selection
-   works at top.)*
-2. **`ReadToEnd(restore)` synchronously after the pushes.** `self.readLines` is
-   `nil` at that instant (task not set up yet) → `ReadToEnd` calls `restore()`
-   immediately → still `height=37`.
-3. **Defer `ReadToEnd` one UI tick, with `Push(MainView)` already done.**
-   `ReadToEnd`'s `then` **never fired** → restore never ran → main not even
-   focused. Hypothesis: focusing the main view **stops the side panel's render
-   task**, so there's no live task to read.
-4. **Reorder: keep side panel focused, `ReadToEnd`, then focus main + restore.**
-   `then` **still never fired**. So the "focus change kills the task" theory is
-   at best incomplete — even with the side panel focused, the task isn't reading
-   to end on our request. **This is the live mystery.**
+**NOTE — a rejected red herring:** "avoid clobbering the main view on entry"
+does **not** fix this. `CopyContent` overwrites the main view's buffer
+regardless of what was there, so preserving the original commit diff on entry
+wouldn't change the placeholder frame.
 
-### Current code state
-
-Reverted to approach (1) ("Version A"): `EscapeFromPatchExplorer` does
-`Push(SidePanel)` → `Push(MainView)` → `OnUIThread`(SetOrigin + FocusPoint +
-Highlight). Debug logging removed. Main focused; selection good at top; scroll
-not restored when scrolled.
-
-### Concrete next steps to investigate
-
-- **Understand the task lifecycle precisely** in `pkg/tasks/tasks.go`: when does
-  `self.readLines` become the *new* task's channel after `Push`? Does deactivating
-  a context (`ContextMgr.deactivate` / `HandleFocusLost`) **stop** the
-  main view's render task? Does pushing a second context create a second task on
-  the `Main` view that stops the first?
-- Re-add the temporary logging (snapshot values; `manager nil?`; "ReadToEnd then
-  fired, height=…"; "restore before/after oy/sel/height") and trace **which task
-  is live and whether/when its `then` fires** in each of the four approaches.
-- Strongly consider the **"avoid the clobber"** route (approach 2 in §6's
-  options below): if entering patch building from the commits focused main view
-  did **not** overwrite the `Main` view, exit would need no re-render at all and
-  the whole async problem disappears. Open question: can we push the commit-files
-  panel as the side panel **without** it rendering into the `Main` view (or
-  render it elsewhere), given they share the `"main"` window?
-- Compare with how `MainViewController.openSearch` successfully uses
-  `ReadToEnd` — replicate its precondition (a single, already-live task on the
-  view) rather than reading right after a `Push`.
-
-### Options on the table (we paused to choose)
-
-1. Find/learn the right loading primitive: "render to main, wait until loaded
-   through line N, then set origin+cursor," that survives the focus dance.
-2. Avoid the re-render for commits by not clobbering the `Main` view on the way
-   in (then exit is the easy files/commit-files path).
-3. Scope down: ship "focus main + re-render + restore selection when within the
-   loaded region," accept that deep scroll resets to top; revisit later.
-
-The user wants to **persevere on (1)/(2) together** — they don't know the task
-system much better than we reconstructed it here, so it's genuinely joint
-exploration. (3) is the fallback.
+**The correct fix (user's conclusion, agreed):** we're applying the saved origin
+*too early*. It must be applied *exactly* when the pty task does its first
+repaint (when it has read enough to fill the view at the saved scroll). The
+catch: `InitialRefreshAfter` — which decides *when* that first repaint happens —
+is computed from the view's `OriginY` **at task-creation time**. So the target
+origin must be known at creation (so the task reads enough), but the view must
+keep showing the placeholder until that first paint, and only snap to the saved
+position *as part of* that paint. Concretely: **a cmd/pty analogue of
+`RenderStringWithScrollTask`** — "render this command and scroll to Y once
+you've read enough" — applying the origin at the `InitialRefreshAfter` refresh
+rather than up front. This is the concrete next step; it's bounded but real
+work, and likely lets us drop the `keepOrigin` + after-push `SetOrigin`
+machinery (they'd be subsumed by the task setting the origin itself).
 
 ---
 
@@ -457,3 +438,72 @@ Context a planning session will need:
   `ReadToEnd`, the read loop) — **the thing to master to finish §6**.
 - `pkg/gui/tasks_adapter.go` — string/cmd task wrappers and the origin-reset
   callbacks.
+- `pkg/gui/layout.go` — the scroll-up-to-fill clamp (`setViewFromDimensions`);
+  now skipped while a view's task `IsLoading()`.
+
+---
+
+## 10. Debug tooling (stripped from the tree; paste back when needed)
+
+These two general-purpose debugging tools were invaluable in session 2 and were
+removed from the working tree when cleaning up. They are recorded here so they
+can be reapplied without re-deriving them.
+
+### Slow down rendering (`LAZYGIT_SLOW_RENDER=<ms>`)
+
+Stretches the async load so you can watch the frames of a re-render. Add to the
+read goroutine in `ViewBufferManager.NewCmdTask` (`pkg/tasks/tasks.go`), just
+before the `outer:` label, plus the per-line sleep inside the inner read loop
+right after `lineWrittenChan <- struct{}{}`. Needs `os` and `strconv` imports.
+
+```go
+// DEBUG: artificially slow down rendering so transitions are visible.
+var slowRenderPerLine time.Duration
+if v := os.Getenv("LAZYGIT_SLOW_RENDER"); v != "" {
+    if ms, err := strconv.Atoi(v); err == nil {
+        slowRenderPerLine = time.Duration(ms) * time.Millisecond
+    }
+}
+// ... and inside the inner loop, after lineWrittenChan <- struct{}{}:
+if slowRenderPerLine > 0 {
+    time.Sleep(slowRenderPerLine)
+}
+```
+
+Run as `LAZYGIT_SLOW_RENDER=20 just debug`.
+
+### Trace every change to a view's scroll position
+
+Catches *who* moves `oy` (the trick that finally found the layout clamp). Add to
+`pkg/gocui/view.go` (needs `os`, `runtime` imports) and call
+`debugMainOriginReset(v, <newY>)` immediately before **every** write to `v.oy`:
+`SetOrigin`, `SetOriginY`, `CopyContent`, `FocusPoint` (the `calculateNewOrigin`
+branch), the `Autoscroll` branch in `draw`, and `ScrollUp`/`ScrollDown`. Filter
+by `v.name == "main"` (or whatever view you're chasing).
+
+```go
+func debugMainOriginReset(v *View, newY int) {
+    if v.name != "main" || newY == v.oy {
+        return
+    }
+    pc := make([]uintptr, 6)
+    n := runtime.Callers(3, pc)
+    frames := runtime.CallersFrames(pc[:n])
+    var b strings.Builder
+    for i := 0; i < 4; i++ {
+        fr, more := frames.Next()
+        fmt.Fprintf(&b, " <- %s:%d", fr.File[strings.LastIndex(fr.File, "/")+1:], fr.Line)
+        if !more {
+            break
+        }
+    }
+    if f, err := os.OpenFile("/tmp/fmvs_origin.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644); err == nil {
+        fmt.Fprintf(f, "main oy %d->%d%s\n", v.oy, newY, b.String())
+        f.Close()
+    }
+}
+```
+
+The full session-2 diff (including these and the per-feature `FMVS` `Log.Infof`
+breadcrumbs) was also saved to `/tmp/fmv-session-full.patch` during the
+cleanup — though `/tmp` is ephemeral, so this section is the durable copy.
