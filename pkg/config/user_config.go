@@ -44,10 +44,13 @@ type UserConfig struct {
 type RefresherConfig struct {
 	// File/submodule refresh interval in seconds.
 	// Auto-refresh can be disabled via option 'git.autoRefresh'.
-	RefreshInterval int `yaml:"refreshInterval" jsonschema:"minimum=0"`
+	RefreshInterval int `yaml:"refreshInterval" jsonschema:"exclusiveMinimum=0"`
 	// Re-fetch interval in seconds.
 	// Auto-fetch can be disabled via option 'git.autoFetch'.
-	FetchInterval int `yaml:"fetchInterval" jsonschema:"minimum=0"`
+	FetchInterval int `yaml:"fetchInterval" jsonschema:"exclusiveMinimum=0"`
+	// Interval in seconds at which lazygit polls for external ref changes (commits, branch updates, checkouts made outside lazygit).
+	// Detection can be disabled via option 'git.autoDetectExternalChanges'.
+	ExternalChangeCheckInterval int `yaml:"externalChangeCheckInterval" jsonschema:"exclusiveMinimum=0"`
 }
 
 func (c *RefresherConfig) RefreshIntervalDuration() time.Duration {
@@ -56,6 +59,10 @@ func (c *RefresherConfig) RefreshIntervalDuration() time.Duration {
 
 func (c *RefresherConfig) FetchIntervalDuration() time.Duration {
 	return time.Second * time.Duration(c.FetchInterval)
+}
+
+func (c *RefresherConfig) ExternalChangeCheckIntervalDuration() time.Duration {
+	return time.Second * time.Duration(c.ExternalChangeCheckInterval)
 }
 
 type GuiConfig struct {
@@ -289,6 +296,8 @@ type GitConfig struct {
 	AutoFetch bool `yaml:"autoFetch"`
 	// If true, periodically refresh files and submodules
 	AutoRefresh bool `yaml:"autoRefresh"`
+	// If true, poll the repo periodically for external ref changes (commits, branch updates, checkouts made outside lazygit) and refresh when one is detected. Independent of autoRefresh, which only governs the files panel.
+	AutoDetectExternalChanges bool `yaml:"autoDetectExternalChanges"`
 	// If not "none", lazygit will automatically fast-forward local branches to match their upstream after fetching. Applies to branches that are not the currently checked out branch, and only to those that are strictly behind their upstream (as opposed to diverged).
 	// Possible values: 'none' | 'onlyMainBranches' | 'allBranches'
 	AutoForwardBranches string `yaml:"autoForwardBranches" jsonschema:"enum=none,enum=onlyMainBranches,enum=allBranches"`
@@ -912,6 +921,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			MainBranches:                 []string{"master", "main"},
 			AutoFetch:                    true,
 			AutoRefresh:                  true,
+			AutoDetectExternalChanges:    true,
 			AutoForwardBranches:          "onlyMainBranches",
 			FetchAll:                     true,
 			AutoStageResolvedConflicts:   true,
@@ -927,8 +937,9 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			TruncateCopiedCommitHashesTo: 12,
 		},
 		Refresher: RefresherConfig{
-			RefreshInterval: 10,
-			FetchInterval:   60,
+			RefreshInterval:             10,
+			FetchInterval:               60,
+			ExternalChangeCheckInterval: 2,
 		},
 		Update: UpdateConfig{
 			Method: "prompt",
