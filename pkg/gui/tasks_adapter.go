@@ -17,6 +17,10 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	).Debug("RunCommand")
 
 	manager := gui.getManager(view)
+	// Mark the view as loading synchronously (before the task's goroutine runs
+	// and before the next layout pass) so the layout doesn't clamp the scroll
+	// position to the not-yet-loaded content.
+	manager.StartLoading()
 
 	var r io.ReadCloser
 	start := func() (*exec.Cmd, io.Reader) {
