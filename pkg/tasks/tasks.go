@@ -346,6 +346,21 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 							// means a newer task is taking over and is still loading.
 							self.loading.Store(false)
 							callThen()
+							// Any read requests that were queued while we were reading are
+							// now trivially satisfied, since we've read everything. Fire
+							// their callbacks instead of dropping them when we break out of
+							// the loop below (and nil out readLines).
+						drain:
+							for {
+								select {
+								case queued := <-self.readLines:
+									if queued.Then != nil {
+										queued.Then()
+									}
+								default:
+									break drain
+								}
+							}
 							break outer
 						}
 						writeToView(append(line, '\n'))
