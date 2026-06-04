@@ -448,7 +448,7 @@ func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName strin
 			}
 		}
 
-		return self.EnterFile(snapshot, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
+		return self.EnterFile(snapshot, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, SelectLineInDefaultMode: true})
 	}
 }
 
