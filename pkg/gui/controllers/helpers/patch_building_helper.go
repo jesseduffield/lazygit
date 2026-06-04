@@ -59,18 +59,47 @@ func EscapeFromPatchExplorer(c *HelperCommon, context types.IPatchExplorerContex
 		listContext.GetList().SetSelectedLineIdx(snapshot.SidePanelSelectedLineIdx)
 	}
 
+	view := snapshot.MainView.GetView()
+
+	// Ask the upcoming re-render to restore the scroll position. Pushing the side
+	// panel re-renders its content into the main view via a cmd/pty task. Until
+	// that content is ready, the main view keeps showing the placeholder that
+	// CopyContent left in it (the view we're leaving) at its current scroll; the
+	// task then scrolls to the saved position as part of the first paint that
+	// shows the real content. Doing it this way (rather than setting the origin up
+	// front) avoids both a jump to the top and a misplaced placeholder frame.
+	if manager := c.GetViewBufferManagerForView(view); manager != nil {
+		manager.ScrollToOriginYForNextTask(snapshot.OriginY)
+	}
+
 	// Land on the side panel first (this re-renders the original content into the
 	// main view), then focus the main view on top of it.
 	c.Context().Push(snapshot.SidePanel, types.OnFocusOpts{})
 	c.Context().Push(snapshot.MainView, types.OnFocusOpts{})
 
-	// Restore the scroll position and selection on the next UI tick.
-	view := snapshot.MainView.GetView()
-	c.OnUIThread(func() error {
-		view.SetOrigin(view.OriginX(), snapshot.OriginY)
+	restore := func() {
 		view.FocusPoint(0, snapshot.SelectedLineIdx, false)
 		view.Highlight = true
 		view.HighlightInactive = false
+	}
+
+	// The scroll position is handled by the re-render above, but the selection
+	// still needs the content loaded down to the selected line, which happens
+	// asynchronously. Wait until the diff has been fully read before restoring
+	// it. We do this on the next UI tick, by which point the re-render task is
+	// live and ReadToEnd can hook into it.
+	c.OnUIThread(func() error {
+		manager := c.GetViewBufferManagerForView(view)
+		if manager == nil {
+			restore()
+			return nil
+		}
+		manager.ReadToEnd(func() {
+			c.OnUIThread(func() error {
+				restore()
+				return nil
+			})
+		})
 		return nil
 	})
 }
