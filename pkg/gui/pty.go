@@ -60,6 +60,11 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// not-yet-loaded content.
 	gui.getManager(view).StartLoading()
 
+	// Read any requested scroll-restore now so we can size the initial read to it
+	// in afterLayout; the task itself clears the request and applies the scroll at
+	// its first paint.
+	targetOriginY := gui.getManager(view).GetScrollToOriginYForNextTask()
+
 	// Run the pty after layout so that it gets the correct size
 	gui.afterLayout(func() error {
 		// Need to get the width and the pager again because the layout might have
@@ -102,7 +107,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 			gui.Mutexes.PtyMutex.Unlock()
 		}
 
-		linesToRead := gui.linesToReadFromCmdTask(view)
+		linesToRead := gui.linesToReadFromCmdTask(view, targetOriginY)
 		return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr)
 	})
 

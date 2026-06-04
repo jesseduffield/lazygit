@@ -22,6 +22,11 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// position to the not-yet-loaded content.
 	manager.StartLoading()
 
+	// If a caller asked us to restore a scroll position for this render, size the
+	// initial read to it (below) and let the task scroll there at its first paint.
+	// The task clears the request and suppresses the origin reset when it starts.
+	targetOriginY := manager.GetScrollToOriginYForNextTask()
+
 	var r io.ReadCloser
 	start := func() (*exec.Cmd, io.Reader) {
 		var err error
@@ -46,7 +51,7 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		}
 	}
 
-	linesToRead := gui.linesToReadFromCmdTask(view)
+	linesToRead := gui.linesToReadFromCmdTask(view, targetOriginY)
 	if err := manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr); err != nil {
 		gui.c.Log.Error(err)
 	}
