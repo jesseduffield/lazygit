@@ -1545,11 +1545,26 @@ func (v *View) Word(x, y int) (string, bool) {
 }
 
 func (v *View) HyperLinkInLine(y int, urlScheme string) (string, bool) {
+	// Take the lock so we don't race a concurrent re-render that is rebuilding the
+	// buffer.
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+
 	if y < 0 || y >= len(v.viewLines) {
 		return "", false
 	}
 
-	for _, c := range v.lines[v.viewLines[y].linesY].cells {
+	// refreshViewLinesIfNeeded overwrites viewLines in place without truncating,
+	// so while a shorter re-render is loading, the tail of viewLines can still
+	// hold stale entries pointing past the (shrunk) v.lines. Guard against that.
+	linesY := v.viewLines[y].linesY
+	if linesY >= len(v.lines) {
+		return "", false
+	}
+
+	for _, c := range  v.lines[linesY].cells {
 		if strings.HasPrefix(c.hyperlink, urlScheme) {
 			return c.hyperlink, true
 		}
