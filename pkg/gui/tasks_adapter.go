@@ -29,6 +29,11 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// still-running writes (see View.SetContentWidth).
 	contentWidth := view.InnerWidth()
 
+	// If a caller asked us to restore a scroll position for this render, size the
+	// initial read to it (below) and let the task scroll there at its first paint.
+	// The task clears the request and suppresses the origin reset when it starts.
+	targetOriginY := manager.GetScrollToOriginYForNextTask()
+
 	var r io.ReadCloser
 	start := func() (tasks.Cmd, io.Reader) {
 		view.SetContentWidth(contentWidth)
@@ -55,7 +60,7 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		}
 	}
 
-	linesToRead := gui.linesToReadFromCmdTask(view)
+	linesToRead := gui.linesToReadFromCmdTask(view, targetOriginY)
 	if err := manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr); err != nil {
 		gui.c.Log.Error(err)
 	}
