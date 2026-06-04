@@ -107,11 +107,13 @@ func (self *CommitFileTree) getFilesForDisplay() []*models.CommitFile {
 
 func (self *CommitFileTree) SetTree() {
 	filesForDisplay := self.getFilesForDisplay()
-	showRootItem := self.common.UserConfig().Gui.ShowRootItemInFileTree
+	guiConfig := self.common.UserConfig().Gui
+	showRootItem := guiConfig.ShowRootItemInFileTree
+	cmp := NodeSortComparator[models.CommitFile](guiConfig.FileTreeSortOrder, guiConfig.FileTreeSortCaseSensitive)
 	if self.showTree {
-		self.tree = BuildTreeFromCommitFiles(filesForDisplay, showRootItem)
+		self.tree = BuildTreeFromCommitFiles(filesForDisplay, showRootItem, cmp)
 	} else {
-		self.tree = BuildFlatTreeFromCommitFiles(filesForDisplay, showRootItem)
+		self.tree = BuildFlatTreeFromCommitFiles(filesForDisplay, showRootItem, cmp)
 	}
 }
 
@@ -149,6 +151,10 @@ func (self *CommitFileTree) GetFile(path string) *models.CommitFile {
 	}
 
 	return nil
+}
+
+func (self *CommitFileTree) GetVisualDepth(index int) int {
+	return self.tree.GetVisualDepthAtIndex(index+1, self.collapsedPaths) // +1 to skip root
 }
 
 func (self *CommitFileTree) InTreeMode() bool {

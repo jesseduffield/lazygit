@@ -17,13 +17,13 @@ var ShowOutputInPanel = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "X",
+				Key:     config.Keybinding{"X"},
 				Context: "commits",
 				Command: "printf '%s' '{{ .SelectedLocalCommit.Name }}'",
 				Output:  "popup",
 			},
 			{
-				Key:         "Y",
+				Key:         config.Keybinding{"Y"},
 				Context:     "commits",
 				Command:     "printf '%s' '{{ .SelectedLocalCommit.Name }}'",
 				Output:      "popup",
@@ -37,7 +37,7 @@ var ShowOutputInPanel = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("my change").IsSelected(),
 			).
-			Press("X")
+			Press(config.Keybinding{"X"})
 
 		t.ExpectPopup().Alert().
 			// Uses cmd string as title if no outputTitle is provided
@@ -46,7 +46,7 @@ var ShowOutputInPanel = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 
 		t.Views().Commits().
-			Press("Y")
+			Press(config.Keybinding{"Y"})
 
 		hash := t.Git().GetCommitHash("HEAD")
 		t.ExpectPopup().Alert().

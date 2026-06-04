@@ -15,7 +15,7 @@ var RunCommand = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "localBranches",
 				Command: `git checkout {{.Form.Branch}}`,
 				Prompts: []config.CustomCommandPrompt{
@@ -32,7 +32,7 @@ var RunCommand = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().
 			Focus().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Prompt().
 			Title(Equals("Enter a branch name")).

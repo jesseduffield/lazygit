@@ -93,11 +93,11 @@ func FileHasConflictMarkers(path string) (bool, error) {
 
 	defer file.Close()
 
-	return fileHasConflictMarkersAux(file), nil
+	return fileHasConflictMarkersAux(file)
 }
 
 // Efficiently scans through a file looking for merge conflict markers. Returns true if it does
-func fileHasConflictMarkersAux(file io.Reader) bool {
+func fileHasConflictMarkersAux(file io.Reader) (bool, error) {
 	scanner := bufio.NewScanner(file)
 	scanner.Split(utils.ScanLinesAndTruncateWhenLongerThanBuffer(bufio.MaxScanTokenSize))
 	for scanner.Scan() {
@@ -105,13 +105,13 @@ func fileHasConflictMarkersAux(file io.Reader) bool {
 
 		// only searching for start/end markers because the others are more ambiguous
 		if bytes.HasPrefix(line, CONFLICT_START_BYTES) {
-			return true
+			return true, nil
 		}
 
 		if bytes.HasPrefix(line, CONFLICT_END_BYTES) {
-			return true
+			return true, nil
 		}
 	}
 
-	return false
+	return false, scanner.Err()
 }

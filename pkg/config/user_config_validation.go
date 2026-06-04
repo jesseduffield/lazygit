@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -8,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 func (config *UserConfig) Validate() error {
@@ -17,6 +20,10 @@ func (config *UserConfig) Validate() error {
 	}
 	if err := validateEnum("gui.showDivergenceFromBaseBranch", config.Gui.ShowDivergenceFromBaseBranch,
 		[]string{"none", "onlyArrow", "arrowAndNumber"}); err != nil {
+		return err
+	}
+	if err := validateEnum("gui.fileTreeSortOrder", config.Gui.FileTreeSortOrder,
+		[]string{"mixed", "filesFirst", "foldersFirst"}); err != nil {
 		return err
 	}
 	if err := validateEnum("git.autoForwardBranches", config.Git.AutoForwardBranches,
@@ -44,6 +51,22 @@ func (config *UserConfig) Validate() error {
 	}
 	if err := validateCustomCommands(config.CustomCommands); err != nil {
 		return err
+	}
+	if err := validateSpinner(config.Gui.Spinner); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateSpinner(spinner SpinnerConfig) error {
+	if len(spinner.Frames) == 0 {
+		return errors.New("gui.spinner.frames must not be empty.")
+	}
+	firstWidth := utils.StringWidth(spinner.Frames[0])
+	if lo.SomeBy(spinner.Frames, func(frame string) bool {
+		return utils.StringWidth(frame) != firstWidth
+	}) {
+		return errors.New("All gui.spinner.frames entries must have the same width.")
 	}
 	return nil
 }
@@ -103,10 +126,12 @@ func validateKeybindings(keybindingConfig KeybindingConfig) error {
 	return nil
 }
 
-func validateCustomCommandKey(key string) error {
-	if !isValidKeybindingKey(key) {
-		return fmt.Errorf("Unrecognized key '%s' for custom command. For permitted values see %s",
-			key, constants.Links.Docs.CustomKeybindings)
+func validateCustomCommandKey(key Keybinding) error {
+	for _, k := range key {
+		if !isValidKeybindingKey(k) {
+			return fmt.Errorf("Unrecognized key '%s' for custom command. For permitted values see %s",
+				k, constants.Links.Docs.CustomKeybindings)
+		}
 	}
 	return nil
 }
@@ -127,7 +152,7 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 				customCommand.After != nil {
 				commandRef := ""
 				if len(customCommand.Key) > 0 {
-					commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key)
+					commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key.String())
 				}
 				return fmt.Errorf("Error with custom command%s: it is not allowed to use both commandMenu and any of the other fields except key and description.", commandRef)
 			}
@@ -153,9 +178,11 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 
 func validateCustomCommandPrompt(prompt CustomCommandPrompt) error {
 	for _, option := range prompt.Options {
-		if !isValidKeybindingKey(option.Key) {
-			return fmt.Errorf("Unrecognized key '%s' for custom command prompt option. For permitted values see %s",
-				option.Key, constants.Links.Docs.CustomKeybindings)
+		for _, k := range option.Key {
+			if !isValidKeybindingKey(k) {
+				return fmt.Errorf("Unrecognized key '%s' for custom command prompt option. For permitted values see %s",
+					k, constants.Links.Docs.CustomKeybindings)
+			}
 		}
 	}
 

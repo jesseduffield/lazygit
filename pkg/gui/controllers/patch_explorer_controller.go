@@ -3,7 +3,7 @@ package controllers
 import (
 	"strings"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -41,61 +41,43 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 	return []*types.Binding{
 		{
 			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.PrevItemAlt),
+			Keys:    opts.GetKeys(opts.Config.Universal.PrevItem),
 			Handler: self.withRenderAndFocus(self.HandlePrevLine),
 		},
 		{
 			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.PrevItem),
-			Handler: self.withRenderAndFocus(self.HandlePrevLine),
-		},
-		{
-			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.NextItemAlt),
-			Handler: self.withRenderAndFocus(self.HandleNextLine),
-		},
-		{
-			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.NextItem),
+			Keys:    opts.GetKeys(opts.Config.Universal.NextItem),
 			Handler: self.withRenderAndFocus(self.HandleNextLine),
 		},
 		{
 			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.RangeSelectUp),
+			Keys:        opts.GetKeys(opts.Config.Universal.RangeSelectUp),
 			Handler:     self.withRenderAndFocus(self.HandlePrevLineRange),
 			Description: self.c.Tr.RangeSelectUp,
 		},
 		{
 			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.RangeSelectDown),
+			Keys:        opts.GetKeys(opts.Config.Universal.RangeSelectDown),
 			Handler:     self.withRenderAndFocus(self.HandleNextLineRange),
 			Description: self.c.Tr.RangeSelectDown,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.PrevBlock),
+			Keys:        opts.GetKeys(opts.Config.Main.PrevHunk),
 			Handler:     self.withRenderAndFocus(self.HandlePrevHunk),
 			Description: self.c.Tr.PrevHunk,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.PrevBlockAlt),
-			Handler: self.withRenderAndFocus(self.HandlePrevHunk),
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Universal.NextBlock),
+			Keys:        opts.GetKeys(opts.Config.Main.NextHunk),
 			Handler:     self.withRenderAndFocus(self.HandleNextHunk),
 			Description: self.c.Tr.NextHunk,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.NextBlockAlt),
-			Handler: self.withRenderAndFocus(self.HandleNextHunk),
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Universal.ToggleRangeSelect),
+			Keys:        opts.GetKeys(opts.Config.Universal.ToggleRangeSelect),
 			Handler:     self.withRenderAndFocus(self.HandleToggleSelectRange),
 			Description: self.c.Tr.ToggleRangeSelect,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Main.ToggleSelectHunk),
+			Keys:        opts.GetKeys(opts.Config.Main.ToggleSelectHunk),
 			Handler:     self.withRenderAndFocus(self.HandleToggleSelectHunk),
 			Description: self.c.Tr.ToggleSelectHunk,
 			DescriptionFunc: func() string {
@@ -109,50 +91,40 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 		},
 		{
 			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.PrevPage),
+			Keys:        opts.GetKeys(opts.Config.Universal.PrevPage),
 			Handler:     self.withRenderAndFocus(self.HandlePrevPage),
 			Description: self.c.Tr.PrevPage,
 		},
 		{
 			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.NextPage),
+			Keys:        opts.GetKeys(opts.Config.Universal.NextPage),
 			Handler:     self.withRenderAndFocus(self.HandleNextPage),
 			Description: self.c.Tr.NextPage,
 		},
 		{
 			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.GotoTop),
+			Keys:        opts.GetKeys(opts.Config.Universal.GotoTop),
 			Handler:     self.withRenderAndFocus(self.HandleGotoTop),
 			Description: self.c.Tr.GotoTop,
 		},
 		{
 			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.GotoBottom),
+			Keys:        opts.GetKeys(opts.Config.Universal.GotoBottom),
 			Description: self.c.Tr.GotoBottom,
 			Handler:     self.withRenderAndFocus(self.HandleGotoBottom),
 		},
 		{
 			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.GotoTopAlt),
-			Handler: self.withRenderAndFocus(self.HandleGotoTop),
-		},
-		{
-			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.GotoBottomAlt),
-			Handler: self.withRenderAndFocus(self.HandleGotoBottom),
-		},
-		{
-			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.ScrollLeft),
+			Keys:    opts.GetKeys(opts.Config.Universal.ScrollLeft),
 			Handler: self.withRenderAndFocus(self.HandleScrollLeft),
 		},
 		{
 			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.ScrollRight),
+			Keys:    opts.GetKeys(opts.Config.Universal.ScrollRight),
 			Handler: self.withRenderAndFocus(self.HandleScrollRight),
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Keys:        opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.withLock(self.CopySelectedToClipboard),
 			Description: self.c.Tr.CopySelectedTextToClipboard,
 		},

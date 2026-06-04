@@ -9,8 +9,8 @@ var FilterMenuWithNoKeybindings = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Filtering the keybindings menu so that only entries without keybinding are left",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Keybinding.Universal.ToggleWhitespaceInDiffView = "<disabled>"
+	SetupConfig: func(cfg *config.AppConfig) {
+		cfg.GetUserConfig().Keybinding.Universal.ToggleWhitespaceInDiffView = nil
 	},
 	SetupRepo: func(shell *Shell) {
 	},

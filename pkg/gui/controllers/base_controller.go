@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -15,11 +15,15 @@ func (self *baseController) GetMouseKeybindings(opts types.KeybindingsOpts) []*g
 	return nil
 }
 
-func (self *baseController) GetOnClick() func() error {
+func (self *baseController) GetOnDoubleClick() func() error {
 	return nil
 }
 
 func (self *baseController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
+	return nil
+}
+
+func (self *baseController) GetOnClick() func(opts gocui.ViewMouseBindingOpts) error {
 	return nil
 }
 
@@ -32,5 +36,9 @@ func (self *baseController) GetOnFocus() func(types.OnFocusOpts) {
 }
 
 func (self *baseController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return nil
+}
+
+func (self *baseController) GetOnQuit() func() {
 	return nil
 }

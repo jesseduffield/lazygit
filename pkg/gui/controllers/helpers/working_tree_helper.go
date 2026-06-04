@@ -97,6 +97,12 @@ func IsWorkingTreeDirtyExceptSubmodules(files []*models.File, submoduleConfigs [
 	return AnyStagedFilesExceptSubmodules(files, submoduleConfigs) || AnyTrackedFilesExceptSubmodules(files, submoduleConfigs)
 }
 
+func GetUnstagedFilesExceptSubmodules(files []*models.File, submoduleConfigs []*models.SubmoduleConfig) []string {
+	return lo.FilterMap(files, func(f *models.File, _ int) (string, bool) {
+		return f.Path, f.HasUnstagedChanges && f.Tracked && !f.IsSubmodule(submoduleConfigs)
+	})
+}
+
 func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfig) *models.File {
 	for _, file := range self.c.Model().Files {
 		if file.IsSubmodule([]*models.SubmoduleConfig{submodule}) {
@@ -189,9 +195,9 @@ func (self *WorkingTreeHelper) HandleWIPCommitPress() error {
 }
 
 func (self *WorkingTreeHelper) HandleCommitPress() error {
-	message := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
-
-	if message == "" {
+	var initialMessage string
+	preservedMessage := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
+	if preservedMessage == "" {
 		commitPrefixConfigs := self.commitPrefixConfigsForRepo()
 		for _, commitPrefixConfig := range commitPrefixConfigs {
 			prefixPattern := commitPrefixConfig.Pattern
@@ -206,14 +212,13 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 			}
 
 			if rgx.MatchString(branchName) {
-				prefix := rgx.ReplaceAllString(branchName, prefixReplace)
-				message = prefix
+				initialMessage = rgx.ReplaceAllString(branchName, prefixReplace)
 				break
 			}
 		}
 	}
 
-	return self.HandleCommitPressWithMessage(message, false)
+	return self.HandleCommitPressWithMessage(initialMessage, false)
 }
 
 func (self *WorkingTreeHelper) WithEnsureCommittableFiles(handler func() error) error {
@@ -377,7 +382,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 				OnPress: func() error {
 					return onMergeStrategySelected("--ours")
 				},
-				Key: 'c',
+				Keys: menuKey('c'),
 			},
 			{
 				LabelColumns: []string{
@@ -387,7 +392,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 				OnPress: func() error {
 					return onMergeStrategySelected("--theirs")
 				},
-				Key: 'i',
+				Keys: menuKey('i'),
 			},
 			{
 				LabelColumns: []string{
@@ -397,7 +402,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 				OnPress: func() error {
 					return onMergeStrategySelected("--union")
 				},
-				Key: 'b',
+				Keys: menuKey('b'),
 			},
 			{
 				LabelColumns: []string{
@@ -405,7 +410,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 					cmdColor.Sprint("git mergetool"),
 				},
 				OnPress: self.OpenMergeTool,
-				Key:     'm',
+				Keys:    menuKey('m'),
 			},
 		},
 	})

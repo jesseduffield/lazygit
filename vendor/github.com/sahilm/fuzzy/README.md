@@ -17,7 +17,7 @@ VSCode, IntelliJ IDEA et al. This library is external dependency-free. It only d
 
 - Speed. Matches are returned in milliseconds. It's perfect for interactive search boxes.
 
-- The positions of matches is returned. Allows you to highlight matching characters.
+- The positions of matches are returned. Allows you to highlight matching characters.
 
 - Unicode aware.
 
@@ -76,7 +76,7 @@ func contains(needle int, haystack []int) bool {
 	return false
 }
 ``` 
-If the data you want to match isn't a slice of strings, you can use `FindFromSource` by implementing
+If the data you want to match isn't a slice of strings, you can use `FindFrom` by implementing
 the provided `Source` interface. Here's an example:
 
 ```go
@@ -119,7 +119,9 @@ func main() {
 		},
 	}
 	results := fuzzy.FindFrom("al", emps)
-	fmt.Println(results)
+	for _, r := range results {
+		fmt.Println(emps[r.Index])
+	}
 }
 ```
 

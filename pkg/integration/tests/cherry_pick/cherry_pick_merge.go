@@ -39,10 +39,10 @@ var CherryPickMerge = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().SubCommits().
 			IsFocused().
 			Lines(
-				Contains("⏣─╮ Merge branch 'second-branch'").IsSelected(),
-				Contains("│ ◯ two"),
-				Contains("│ ◯ one"),
-				Contains("◯ ╯ base"),
+				Contains("◎─╮ Merge branch 'second-branch'").IsSelected(),
+				Contains("│ ○ two"),
+				Contains("│ ○ one"),
+				Contains("○ ╯ base"),
 			).
 			// copy the merge commit
 			Press(keys.Commits.CherryPickCopy)

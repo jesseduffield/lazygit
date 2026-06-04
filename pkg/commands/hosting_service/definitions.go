@@ -1,12 +1,18 @@
 package hosting_service
 
+import "regexp"
+
 // if you want to make a custom regex for a given service feel free to test it out
 // at https://regex101.com using the flavor Golang
-var defaultUrlRegexStrings = []string{
-	`^(?:https?|ssh)://[^/]+/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
-	`^(.*?@)?.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
+var defaultUrlRegexps = []*regexp.Regexp{
+	regexp.MustCompile(`^(?:https?|ssh)://[^/]+/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`),
+	regexp.MustCompile(`^(.*?@)?.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`),
 }
-var defaultRepoURLTemplate = "https://{{.webDomain}}/{{.owner}}/{{.repo}}"
+
+var (
+	defaultRepoURLTemplate  = "https://{{.webDomain}}/{{.owner}}/{{.repo}}"
+	defaultRepoNameTemplate = "{{.owner}}/{{.repo}}"
+)
 
 // we've got less type safety using go templates but this lends itself better to
 // users adding custom service definitions in their config
@@ -15,8 +21,9 @@ var githubServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/compare/{{.From}}?expand=1",
 	pullRequestURLIntoTargetBranch:  "/compare/{{.To}}...{{.From}}?expand=1",
 	commitURL:                       "/commit/{{.CommitHash}}",
-	regexStrings:                    defaultUrlRegexStrings,
+	urlRegexps:                      defaultUrlRegexps,
 	repoURLTemplate:                 defaultRepoURLTemplate,
+	repoNameTemplate:                defaultRepoNameTemplate,
 }
 
 var bitbucketServiceDef = ServiceDefinition{
@@ -24,11 +31,12 @@ var bitbucketServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/pull-requests/new?source={{.From}}&t=1",
 	pullRequestURLIntoTargetBranch:  "/pull-requests/new?source={{.From}}&dest={{.To}}&t=1",
 	commitURL:                       "/commits/{{.CommitHash}}",
-	regexStrings: []string{
-		`^(?:https?|ssh)://.*/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
-		`^.*@.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
+	urlRegexps: []*regexp.Regexp{
+		regexp.MustCompile(`^(?:https?|ssh)://.*/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`),
+		regexp.MustCompile(`^.*@.*:/*(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`),
 	},
-	repoURLTemplate: defaultRepoURLTemplate,
+	repoURLTemplate:  defaultRepoURLTemplate,
+	repoNameTemplate: defaultRepoNameTemplate,
 }
 
 var gitLabServiceDef = ServiceDefinition{
@@ -36,8 +44,9 @@ var gitLabServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/-/merge_requests/new?merge_request%5Bsource_branch%5D={{.From}}",
 	pullRequestURLIntoTargetBranch:  "/-/merge_requests/new?merge_request%5Bsource_branch%5D={{.From}}&merge_request%5Btarget_branch%5D={{.To}}",
 	commitURL:                       "/-/commit/{{.CommitHash}}",
-	regexStrings:                    defaultUrlRegexStrings,
+	urlRegexps:                      defaultUrlRegexps,
 	repoURLTemplate:                 defaultRepoURLTemplate,
+	repoNameTemplate:                defaultRepoNameTemplate,
 }
 
 var azdoServiceDef = ServiceDefinition{
@@ -45,13 +54,14 @@ var azdoServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/pullrequestcreate?sourceRef={{.From}}",
 	pullRequestURLIntoTargetBranch:  "/pullrequestcreate?sourceRef={{.From}}&targetRef={{.To}}",
 	commitURL:                       "/commit/{{.CommitHash}}",
-	regexStrings: []string{
-		`^.+@vs-ssh\.visualstudio\.com[:/](?:v3/)?(?P<org>[^/]+)/(?P<project>[^/]+)/(?P<repo>[^/]+?)(?:\.git)?$`,
-		`^git@ssh.dev.azure.com.*/(?P<org>.*)/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
-		`^https://.*@dev.azure.com/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
-		`^https://.*/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`,
+	urlRegexps: []*regexp.Regexp{
+		regexp.MustCompile(`^.+@vs-ssh\.visualstudio\.com[:/](?:v3/)?(?P<org>[^/]+)/(?P<project>[^/]+)/(?P<repo>[^/]+?)(?:\.git)?$`),
+		regexp.MustCompile(`^git@ssh.dev.azure.com.*/(?P<org>.*)/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`),
+		regexp.MustCompile(`^https://.*@dev.azure.com/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`),
+		regexp.MustCompile(`^https://.*/(?P<org>.*?)/(?P<project>.*?)/_git/(?P<repo>.*?)(?:\.git)?$`),
 	},
-	repoURLTemplate: "https://{{.webDomain}}/{{.org}}/{{.project}}/_git/{{.repo}}",
+	repoURLTemplate:  "https://{{.webDomain}}/{{.org}}/{{.project}}/_git/{{.repo}}",
+	repoNameTemplate: "{{.org}}/{{.project}}/{{.repo}}",
 }
 
 var bitbucketServerServiceDef = ServiceDefinition{
@@ -59,11 +69,12 @@ var bitbucketServerServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/pull-requests?create&sourceBranch={{.From}}",
 	pullRequestURLIntoTargetBranch:  "/pull-requests?create&targetBranch={{.To}}&sourceBranch={{.From}}",
 	commitURL:                       "/commits/{{.CommitHash}}",
-	regexStrings: []string{
-		`^ssh://git@.*/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
-		`^https://.*/scm/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
+	urlRegexps: []*regexp.Regexp{
+		regexp.MustCompile(`^ssh://git@.*/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`),
+		regexp.MustCompile(`^https://.*/scm/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`),
 	},
-	repoURLTemplate: "https://{{.webDomain}}/projects/{{.project}}/repos/{{.repo}}",
+	repoURLTemplate:  "https://{{.webDomain}}/projects/{{.project}}/repos/{{.repo}}",
+	repoNameTemplate: "{{.project}}/{{.repo}}",
 }
 
 var giteaServiceDef = ServiceDefinition{
@@ -71,7 +82,7 @@ var giteaServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/compare/{{.From}}",
 	pullRequestURLIntoTargetBranch:  "/compare/{{.To}}...{{.From}}",
 	commitURL:                       "/commit/{{.CommitHash}}",
-	regexStrings:                    defaultUrlRegexStrings,
+	urlRegexps:                      defaultUrlRegexps,
 	repoURLTemplate:                 defaultRepoURLTemplate,
 }
 
@@ -80,7 +91,7 @@ var codebergServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/compare/{{.From}}",
 	pullRequestURLIntoTargetBranch:  "/compare/{{.To}}...{{.From}}",
 	commitURL:                       "/commit/{{.CommitHash}}",
-	regexStrings:                    defaultUrlRegexStrings,
+	urlRegexps:                      defaultUrlRegexps,
 	repoURLTemplate:                 defaultRepoURLTemplate,
 }
 

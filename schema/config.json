@@ -60,8 +60,18 @@
     "CustomCommand": {
       "properties": {
         "key": {
-          "type": "string",
-          "description": "The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "The key to trigger the command. Use a single letter or one of the values from https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md. To bind several alternates to the same command, use a sequence (e.g. `[a, b]`)."
         },
         "commandMenu": {
           "items": {
@@ -165,8 +175,18 @@
           ]
         },
         "key": {
-          "type": "string",
-          "description": "Keybinding to invoke this menu option without needing to navigate to it"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Keybinding to invoke this menu option without needing to navigate to it. Accepts either a single key or a sequence of alternates."
         }
       },
       "additionalProperties": false,
@@ -234,6 +254,13 @@
           "description": "Like valueFormat but for the labels. If `labelFormat` is not specified, `valueFormat` is shown instead.\nOnly for menuFromCommand prompts.",
           "examples": [
             "{{ .branch | green }}"
+          ]
+        },
+        "condition": {
+          "type": "string",
+          "description": "A Go template expression evaluated against the current form state. If it resolves to empty string or 'false', the prompt is skipped.",
+          "examples": [
+            "{{ eq .Form.Choice \"yes\" }}"
           ]
         }
       },
@@ -368,7 +395,7 @@
         },
         "ignoreWhitespaceInDiffView": {
           "type": "boolean",
-          "description": "If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `\u003cc-w\u003e`.",
+          "description": "If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `\u003cctrl+w\u003e`.",
           "default": false
         },
         "diffContextSize": {
@@ -632,6 +659,21 @@
           "description": "If true, add a \"/\" root item in the file tree representing the root of the repository. It is only added when necessary, i.e. when there is more than one item at top level.",
           "default": true
         },
+        "fileTreeSortOrder": {
+          "type": "string",
+          "enum": [
+            "mixed",
+            "filesFirst",
+            "foldersFirst"
+          ],
+          "description": "How to sort files and directories in the file tree.\nOne of: 'mixed' (default) | 'filesFirst' | 'foldersFirst'",
+          "default": "mixed"
+        },
+        "fileTreeSortCaseSensitive": {
+          "type": "boolean",
+          "description": "If true (default), sort the file tree case-sensitively.",
+          "default": true
+        },
         "showNumstatInFilesView": {
           "type": "boolean",
           "description": "If true, show the number of lines changed per file in the Files view",
@@ -754,6 +796,16 @@
           "description": "Whether to stack UI components on top of each other.\nOne of 'auto' (default) | 'always' | 'never'",
           "default": "auto"
         },
+        "portraitModeAutoMaxWidth": {
+          "type": "integer",
+          "description": "In 'auto' mode, portrait mode will be used if the window width is less than or equal to portraitModeAutoMaxWidth and the window height is greater than or equal to portraitModeAutoMinHeight. Unused when portraitMode is not 'auto'.",
+          "default": 84
+        },
+        "portraitModeAutoMinHeight": {
+          "type": "integer",
+          "description": "In 'auto' mode, portrait mode will be used if the window width is less than or equal to portraitModeAutoMaxWidth and the window height is greater than or equal to portraitModeAutoMinHeight. Unused when portraitMode is not 'auto'.",
+          "default": 46
+        },
         "filterMode": {
           "type": "string",
           "enum": [
@@ -811,15 +863,45 @@
     "KeybindingAmendAttributeConfig": {
       "properties": {
         "resetAuthor": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "a"
         },
         "setAuthor": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "A"
         },
         "addCoAuthor": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "c"
         }
       },
@@ -829,75 +911,269 @@
     "KeybindingBranchesConfig": {
       "properties": {
         "createPullRequest": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "o"
         },
         "viewPullRequestOptions": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "O"
         },
+        "openPullRequestInBrowser": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "G"
+        },
         "copyPullRequestURL": {
-          "type": "string",
-          "default": "\u003cc-y\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+y\u003e"
         },
         "checkoutBranchByName": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "c"
         },
         "forceCheckoutBranch": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "F"
         },
         "checkoutPreviousBranch": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "-"
         },
         "rebaseBranch": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "r"
         },
         "renameBranch": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "R"
         },
         "mergeIntoCurrentBranch": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "M"
         },
         "moveCommitsToNewBranch": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "N"
         },
         "viewGitFlowOptions": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "i"
         },
         "fastForward": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "f"
         },
         "createTag": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "T"
         },
         "pushTag": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "P"
         },
         "setUpstream": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "u"
         },
         "fetchRemote": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "f"
         },
         "addForkRemote": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "F"
         },
         "sortOrder": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "s"
         }
       },
@@ -907,7 +1183,17 @@
     "KeybindingCommitFilesConfig": {
       "properties": {
         "checkoutCommitFile": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "c"
         }
       },
@@ -917,8 +1203,18 @@
     "KeybindingCommitMessageConfig": {
       "properties": {
         "commitMenu": {
-          "type": "string",
-          "default": "\u003cc-o\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+o\u003e"
         }
       },
       "additionalProperties": false,
@@ -927,107 +1223,387 @@
     "KeybindingCommitsConfig": {
       "properties": {
         "squashDown": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "s"
         },
         "renameCommit": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "r"
         },
         "renameCommitWithEditor": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "R"
         },
         "viewResetOptions": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "g"
         },
         "markCommitAsFixup": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "f"
         },
         "setFixupMessage": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "c"
         },
         "createFixupCommit": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "F"
         },
         "squashAboveCommits": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "S"
         },
         "moveDownCommit": {
-          "type": "string",
-          "default": "\u003cc-j\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003cctrl+j\u003e",
+            "\u003calt-down\u003e"
+          ]
         },
         "moveUpCommit": {
-          "type": "string",
-          "default": "\u003cc-k\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003cctrl+k\u003e",
+            "\u003calt-up\u003e"
+          ]
         },
         "amendToCommit": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "A"
         },
         "resetCommitAuthor": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "a"
         },
         "pickCommit": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "p"
         },
         "revertCommit": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "t"
         },
         "cherryPickCopy": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "C"
         },
         "pasteCommits": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "V"
         },
         "markCommitAsBaseForRebase": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "B"
         },
         "tagCommit": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "T"
         },
         "checkoutCommit": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "\u003cspace\u003e"
         },
         "resetCherryPick": {
-          "type": "string",
-          "default": "\u003cc-R\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+r\u003e"
         },
         "copyCommitAttributeToClipboard": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "y"
         },
         "openLogMenu": {
-          "type": "string",
-          "default": "\u003cc-l\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+l\u003e"
         },
         "openInBrowser": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "o"
         },
+        "openPullRequestInBrowser": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "G"
+        },
         "viewBisectOptions": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "b"
         },
         "startInteractiveRebase": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "i"
         },
         "selectCommitsOfCurrentBranch": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "*"
         }
       },
@@ -1075,84 +1651,274 @@
       },
       "additionalProperties": false,
       "type": "object",
-      "description": "Keybindings"
+      "description": "Keybindings.\nEach binding can be a single key or a list of keys; see https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md for the syntax."
     },
     "KeybindingFilesConfig": {
       "properties": {
         "commitChanges": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "c"
         },
         "commitChangesWithoutHook": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "w"
         },
         "amendLastCommit": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "A"
         },
         "commitChangesWithEditor": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "C"
         },
         "findBaseCommitForFixup": {
-          "type": "string",
-          "default": "\u003cc-f\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+f\u003e"
         },
         "confirmDiscard": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "x"
         },
         "ignoreFile": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "i"
         },
         "refreshFiles": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "r"
         },
         "stashAllChanges": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "s"
         },
         "viewStashOptions": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "S"
         },
         "toggleStagedAll": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "a"
         },
         "viewResetOptions": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "D"
         },
         "fetch": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "f"
         },
         "toggleTreeView": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "`"
         },
         "openMergeOptions": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "M"
         },
         "openStatusFilter": {
-          "type": "string",
-          "default": "\u003cc-b\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+b\u003e"
         },
         "copyFileInfoToClipboard": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "y"
         },
         "collapseAll": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "-"
         },
         "expandAll": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "="
         }
       },
@@ -1161,16 +1927,80 @@
     },
     "KeybindingMainConfig": {
       "properties": {
+        "prevHunk": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003cleft\u003e",
+            "h"
+          ]
+        },
+        "nextHunk": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003cright\u003e",
+            "l"
+          ]
+        },
         "toggleSelectHunk": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "a"
         },
         "pickBothHunks": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "b"
         },
         "editSelectHunk": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "E"
         }
       },
@@ -1180,11 +2010,31 @@
     "KeybindingStashConfig": {
       "properties": {
         "popStash": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "g"
         },
         "renameStash": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "r"
         }
       },
@@ -1194,19 +2044,59 @@
     "KeybindingStatusConfig": {
       "properties": {
         "checkForUpdate": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "u"
         },
         "recentRepos": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "\u003center\u003e"
         },
         "allBranchesLogGraph": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "a"
         },
         "allBranchesLogGraphReverse": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "A"
         }
       },
@@ -1216,15 +2106,45 @@
     "KeybindingSubmodulesConfig": {
       "properties": {
         "init": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "i"
         },
         "update": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "u"
         },
         "bulkMenu": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "b"
         }
       },
@@ -1234,116 +2154,428 @@
     "KeybindingUniversalConfig": {
       "properties": {
         "quit": {
-          "type": "string",
-          "default": "q"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "q",
+            "\u003cctrl+c\u003e"
+          ]
         },
         "quit-alt1": {
-          "type": "string",
-          "default": "\u003cc-c\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `quit` instead.",
+          "default": "\u003cctrl+c\u003e"
         },
         "suspendApp": {
-          "type": "string",
-          "default": "\u003cc-z\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+z\u003e"
         },
         "return": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "\u003cesc\u003e"
         },
         "quitWithoutChangingDirectory": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "Q"
         },
         "togglePanel": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "\u003ctab\u003e"
         },
         "prevItem": {
-          "type": "string",
-          "default": "\u003cup\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003cup\u003e",
+            "k"
+          ]
         },
         "nextItem": {
-          "type": "string",
-          "default": "\u003cdown\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003cdown\u003e",
+            "j"
+          ]
         },
         "prevItem-alt": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `prevItem` instead.",
           "default": "k"
         },
         "nextItem-alt": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `nextItem` instead.",
           "default": "j"
         },
         "prevPage": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": ","
         },
         "nextPage": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "."
         },
         "scrollLeft": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "H"
         },
         "scrollRight": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "L"
         },
         "gotoTop": {
-          "type": "string",
-          "default": "\u003c"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003c",
+            "\u003chome\u003e"
+          ]
         },
         "gotoBottom": {
-          "type": "string",
-          "default": "\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003e",
+            "\u003cend\u003e"
+          ]
         },
         "gotoTop-alt": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `gotoTop` instead.",
           "default": "\u003chome\u003e"
         },
         "gotoBottom-alt": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `gotoBottom` instead.",
           "default": "\u003cend\u003e"
         },
         "toggleRangeSelect": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "v"
         },
         "rangeSelectDown": {
-          "type": "string",
-          "default": "\u003cs-down\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cshift+down\u003e"
         },
         "rangeSelectUp": {
-          "type": "string",
-          "default": "\u003cs-up\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cshift+up\u003e"
         },
         "prevBlock": {
-          "type": "string",
-          "default": "\u003cleft\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003cleft\u003e",
+            "h",
+            "\u003cbacktab\u003e"
+          ]
         },
         "nextBlock": {
-          "type": "string",
-          "default": "\u003cright\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003cright\u003e",
+            "l",
+            "\u003ctab\u003e"
+          ]
         },
         "prevBlock-alt": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `prevBlock` instead.",
           "default": "h"
         },
         "nextBlock-alt": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `nextBlock` instead.",
           "default": "l"
         },
         "nextBlock-alt2": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `nextBlock` instead.",
           "default": "\u003ctab\u003e"
         },
         "prevBlock-alt2": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `prevBlock` instead.",
           "default": "\u003cbacktab\u003e"
         },
         "jumpToBlock": {
           "items": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
           },
           "type": "array",
           "default": [
@@ -1355,202 +2587,759 @@
           ]
         },
         "focusMainView": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "0"
         },
         "nextMatch": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "n"
         },
         "prevMatch": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "N"
         },
         "startSearch": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "/"
         },
-        "optionMenu": {
-          "type": "string",
-          "default": "\u003cdisabled\u003e"
+        "moveWordLeft": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "\u003calt+left\u003e on Mac",
+          "default": "\u003cctrl+left\u003e"
         },
-        "optionMenu-alt1": {
-          "type": "string",
+        "moveWordRight": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "\u003calt+right\u003e on Mac",
+          "default": "\u003cctrl+right\u003e"
+        },
+        "backspaceWord": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "\u003calt+backspace\u003e on Mac",
+          "default": "\u003cctrl+backspace\u003e"
+        },
+        "forwardDeleteWord": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "\u003calt+delete\u003e on Mac",
+          "default": "\u003cctrl+delete\u003e"
+        },
+        "optionMenu": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "?"
         },
         "select": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "\u003cspace\u003e"
         },
         "goInto": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "\u003center\u003e"
         },
         "confirm": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "\u003center\u003e"
         },
         "confirmMenu": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "\u003center\u003e"
         },
         "confirmSuggestion": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "\u003center\u003e"
         },
         "confirmInEditor": {
-          "type": "string",
-          "default": "\u003ca-enter\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "\u003cmeta+enter\u003e on Mac",
+          "default": [
+            "\u003cctrl+enter\u003e",
+            "\u003cctrl+s\u003e"
+          ]
         },
         "confirmInEditor-alt": {
-          "type": "string",
-          "default": "\u003cc-s\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `confirmInEditor` instead.",
+          "default": "\u003cctrl+s\u003e"
         },
         "remove": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "d"
         },
         "new": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "n"
         },
         "edit": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "e"
         },
         "openFile": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "o"
         },
         "scrollUpMain": {
-          "type": "string",
-          "default": "\u003cpgup\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003cpgup\u003e",
+            "K",
+            "\u003cctrl+u\u003e"
+          ]
         },
         "scrollDownMain": {
-          "type": "string",
-          "default": "\u003cpgdown\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "\u003cpgdown\u003e",
+            "J",
+            "\u003cctrl+d\u003e"
+          ]
         },
         "scrollUpMain-alt1": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `scrollUpMain` instead.",
           "default": "K"
         },
         "scrollDownMain-alt1": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `scrollDownMain` instead.",
           "default": "J"
         },
         "scrollUpMain-alt2": {
-          "type": "string",
-          "default": "\u003cc-u\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `scrollUpMain` instead.",
+          "default": "\u003cctrl+u\u003e"
         },
         "scrollDownMain-alt2": {
-          "type": "string",
-          "default": "\u003cc-d\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `scrollDownMain` instead.",
+          "default": "\u003cctrl+d\u003e"
         },
         "executeShellCommand": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": ":"
         },
         "createRebaseOptionsMenu": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "m"
         },
         "pushFiles": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "description": "'Files' appended for legacy reasons",
           "default": "P"
         },
         "pullFiles": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "description": "'Files' appended for legacy reasons",
           "default": "p"
         },
         "refresh": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "R"
         },
         "createPatchOptionsMenu": {
-          "type": "string",
-          "default": "\u003cc-p\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+p\u003e"
         },
         "nextTab": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "]"
         },
         "prevTab": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "["
         },
         "nextScreenMode": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "+"
         },
         "prevScreenMode": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "_"
         },
         "cyclePagers": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "|"
         },
         "undo": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "z"
         },
         "redo": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "Z"
         },
         "filteringMenu": {
-          "type": "string",
-          "default": "\u003cc-s\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+s\u003e"
         },
         "diffingMenu": {
-          "type": "string",
-          "default": "W"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": [
+            "W",
+            "\u003cctrl+e\u003e"
+          ]
         },
         "diffingMenu-alt": {
-          "type": "string",
-          "default": "\u003cc-e\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Deprecated: add the key to `diffingMenu` instead.",
+          "default": "\u003cctrl+e\u003e"
         },
         "copyToClipboard": {
-          "type": "string",
-          "default": "\u003cc-o\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+o\u003e"
         },
         "openRecentRepos": {
-          "type": "string",
-          "default": "\u003cc-r\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+r\u003e"
         },
         "submitEditorText": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "\u003center\u003e"
         },
         "extrasMenu": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "@"
         },
         "toggleWhitespaceInDiffView": {
-          "type": "string",
-          "default": "\u003cc-w\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+w\u003e"
         },
         "increaseContextInDiffView": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "}"
         },
         "decreaseContextInDiffView": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "{"
         },
         "increaseRenameSimilarityThreshold": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": ")"
         },
         "decreaseRenameSimilarityThreshold": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "("
         },
         "openDiffTool": {
-          "type": "string",
-          "default": "\u003cc-t\u003e"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+t\u003e"
         }
       },
       "additionalProperties": false,
@@ -1559,7 +3348,17 @@
     "KeybindingWorktreesConfig": {
       "properties": {
         "viewWorktreeOptions": {
-          "type": "string",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "default": "w"
         }
       },
@@ -1576,7 +3375,7 @@
             "topo-order",
             "default"
           ],
-          "description": "One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'\n'topo-order' makes it easier to read the git log graph, but commits may not appear chronologically. See https://git-scm.com/docs/\n\nCan be changed from within Lazygit with `Log menu -\u003e Commit sort order` (`\u003cc-l\u003e` in the commits window by default).",
+          "description": "One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'\n'topo-order' makes it easier to read the git log graph, but commits may not appear chronologically. See https://git-scm.com/docs/\n\nCan be changed from within Lazygit with `Log menu -\u003e Commit sort order` (`\u003cctrl+l\u003e` in the commits window by default).",
           "default": "topo-order"
         },
         "showGraph": {
@@ -1586,7 +3385,7 @@
             "never",
             "when-maximised"
           ],
-          "description": "This determines whether the git graph is rendered in the commits panel\nOne of 'always' | 'never' | 'when-maximised'\n\nCan be toggled from within lazygit with `Log menu -\u003e Show git graph` (`\u003cc-l\u003e` in the commits window by default).",
+          "description": "This determines whether the git graph is rendered in the commits panel\nOne of 'always' | 'never' | 'when-maximised'\n\nCan be toggled from within lazygit with `Log menu -\u003e Show git graph` (`\u003cctrl+l\u003e` in the commits window by default).",
           "default": "always"
         },
         "showWholeGraph": {
@@ -2005,7 +3804,7 @@
         },
         "keybinding": {
           "$ref": "#/$defs/KeybindingConfig",
-          "description": "Keybindings"
+          "description": "Keybindings.\nEach binding can be a single key or a list of keys; see https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md for the syntax."
         }
       },
       "additionalProperties": false,

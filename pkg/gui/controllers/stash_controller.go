@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -34,7 +36,7 @@ func NewStashController(
 func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Keys:              opts.GetKeys(opts.Config.Universal.Select),
 			Handler:           self.withItem(self.handleStashApply),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Apply,
@@ -42,7 +44,7 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Stash.PopStash),
+			Keys:              opts.GetKeys(opts.Config.Stash.PopStash),
 			Handler:           self.withItem(self.handleStashPop),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Pop,
@@ -50,7 +52,7 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItems(self.handleStashDrop),
 			GetDisabledReason: self.require(self.itemRangeSelected()),
 			Description:       self.c.Tr.Drop,
@@ -58,14 +60,14 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.New),
+			Keys:              opts.GetKeys(opts.Config.Universal.New),
 			Handler:           self.withItem(self.handleNewBranchOffStashEntry),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.NewBranch,
 			Tooltip:           self.c.Tr.NewBranchFromStashTooltip,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Stash.RenameStash),
+			Keys:              opts.GetKeys(opts.Config.Stash.RenameStash),
 			Handler:           self.withItem(self.handleRenameStashEntry),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.RenameStash,
@@ -129,7 +131,7 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error {
 	pop := func() error {
 		self.c.LogAction(self.c.Tr.Actions.PopStash)
-		self.c.LogCommand("Popping stash "+stashEntry.Hash, false)
+		self.c.LogCommand(fmt.Sprintf(self.c.Tr.Log.PoppingStash, stashEntry.Hash), false)
 		err := self.c.Git().Stash.Pop(stashEntry.Index)
 		self.postStashRefresh()
 		if err != nil {
@@ -163,7 +165,7 @@ func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) 
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.DropStash)
 			for i := len(stashEntries) - 1; i >= 0; i-- {
-				self.c.LogCommand("Dropping stash "+stashEntries[i].Hash, false)
+				self.c.LogCommand(fmt.Sprintf(self.c.Tr.Log.DroppingStash, stashEntries[i].Hash), false)
 				err := self.c.Git().Stash.Drop(stashEntries[i].Index)
 				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 				if err != nil {

@@ -5,9 +5,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -54,7 +54,19 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
-		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+		scope := []types.RefreshableView{
+			types.COMMITS,
+			types.BRANCHES,
+			types.FILES,
+			types.REFLOG,
+			types.WORKTREES,
+			types.BISECT_INFO,
+			types.STAGING,
+		}
+		if options.RefreshPullRequests {
+			scope = append(scope, types.PULL_REQUESTS)
+		}
+		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, Scope: scope, KeepBranchSelectionIndex: true})
 	}
 
 	localBranch, found := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
@@ -120,8 +132,8 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 // Shows a prompt to choose between creating a new branch or checking out a detached head
 func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchName string) error {
-	checkout := func(branchName string) error {
-		return self.CheckoutRef(branchName, types.CheckoutRefOptions{})
+	checkout := func(branchName string, refreshPullRequests bool) error {
+		return self.CheckoutRef(branchName, types.CheckoutRefOptions{RefreshPullRequests: refreshPullRequests})
 	}
 
 	// If a branch with this name already exists locally, just check it out. We
@@ -130,7 +142,7 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 	if lo.ContainsBy(self.c.Model().Branches, func(branch *models.Branch) bool {
 		return branch.Name == localBranchName
 	}) {
-		return checkout(localBranchName)
+		return checkout(localBranchName, false)
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
@@ -156,14 +168,14 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 						Mode:  types.SYNC,
 						Scope: []types.RefreshableView{types.BRANCHES},
 					})
-					return checkout(localBranchName)
+					return checkout(localBranchName, true)
 				},
 			},
 			{
 				Label:   self.c.Tr.CheckoutTypeDetachedHead,
 				Tooltip: self.c.Tr.CheckoutTypeDetachedHeadTooltip,
 				OnPress: func() error {
-					return checkout(fullBranchName)
+					return checkout(fullBranchName, false)
 				},
 			},
 		},
@@ -204,15 +216,15 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 
 func (self *RefsHelper) CreateSortOrderMenu(sortOptionsOrder []string, menuPrompt string, onSelected func(sortOrder string) error, currentValue string) error {
 	type sortMenuOption struct {
-		key         types.Key
+		keys        []gocui.Key
 		label       string
 		description string
 		sortOrder   string
 	}
 	availableSortOptions := map[string]sortMenuOption{
-		"recency":      {label: self.c.Tr.SortByRecency, description: self.c.Tr.SortBasedOnReflog, key: 'r'},
-		"alphabetical": {label: self.c.Tr.SortAlphabetical, description: "--sort=refname", key: 'a'},
-		"date":         {label: self.c.Tr.SortByDate, description: "--sort=-committerdate", key: 'd'},
+		"recency":      {label: self.c.Tr.SortByRecency, description: self.c.Tr.SortBasedOnReflog, keys: menuKey('r')},
+		"alphabetical": {label: self.c.Tr.SortAlphabetical, description: "--sort=refname", keys: menuKey('a')},
+		"date":         {label: self.c.Tr.SortByDate, description: "--sort=-committerdate", keys: menuKey('d')},
 	}
 	sortOptions := make([]sortMenuOption, 0, len(sortOptionsOrder))
 	for _, key := range sortOptionsOrder {
@@ -233,7 +245,7 @@ func (self *RefsHelper) CreateSortOrderMenu(sortOptionsOrder []string, menuPromp
 			OnPress: func() error {
 				return onSelected(opt.sortOrder)
 			},
-			Key:    opt.key,
+			Keys:   opt.keys,
 			Widget: types.MakeMenuRadioButton(opt.sortOrder == currentValue),
 		}
 	})
@@ -248,14 +260,14 @@ func (self *RefsHelper) CreateGitResetMenu(name string, ref string) error {
 	type strengthWithKey struct {
 		strength string
 		label    string
-		key      types.Key
+		keys     []gocui.Key
 		tooltip  string
 	}
 	strengths := []strengthWithKey{
 		// not i18'ing because it's git terminology
-		{strength: "mixed", label: "Mixed reset", key: 'm', tooltip: self.c.Tr.ResetMixedTooltip},
-		{strength: "soft", label: "Soft reset", key: 's', tooltip: self.c.Tr.ResetSoftTooltip},
-		{strength: "hard", label: "Hard reset", key: 'h', tooltip: self.c.Tr.ResetHardTooltip},
+		{strength: "mixed", label: "Mixed reset", keys: menuKey('m'), tooltip: self.c.Tr.ResetMixedTooltip},
+		{strength: "soft", label: "Soft reset", keys: menuKey('s'), tooltip: self.c.Tr.ResetSoftTooltip},
+		{strength: "hard", label: "Hard reset", keys: menuKey('h'), tooltip: self.c.Tr.ResetHardTooltip},
 	}
 
 	menuItems := lo.Map(strengths, func(row strengthWithKey, _ int) *types.MenuItem {
@@ -275,7 +287,7 @@ func (self *RefsHelper) CreateGitResetMenu(name string, ref string) error {
 						},
 					})
 			},
-			Key:     row.key,
+			Keys:    row.keys,
 			Tooltip: row.tooltip,
 		}
 	})
@@ -300,15 +312,15 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 				self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
 				return self.CheckoutRef(hash, types.CheckoutRefOptions{})
 			},
-			Key: 'd',
+			Keys: menuKey('d'),
 		},
 	}
 
 	if len(branches) > 0 {
 		menuItems = append(menuItems, lo.Map(branches, func(branch *models.Branch, index int) *types.MenuItem {
-			var key types.Key
+			var keys []gocui.Key
 			if index < 9 {
-				key = rune(index + 1 + '0') // Convert 1-based index to key
+				keys = menuKey(rune(index + 1 + '0')) // Convert 1-based index to key
 			}
 			return &types.MenuItem{
 				LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutBranchAtCommit, branch.Name)},
@@ -316,7 +328,7 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 					self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
 					return self.CheckoutRef(branch.RefName(), types.CheckoutRefOptions{})
 				},
-				Key: key,
+				Keys: keys,
 			}
 		})...)
 	} else {
@@ -324,7 +336,7 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 			LabelColumns:   []string{self.c.Tr.Actions.CheckoutBranch},
 			OnPress:        func() error { return nil },
 			DisabledReason: &types.DisabledReason{Text: self.c.Tr.NoBranchesFoundAtCommitTooltip},
-			Key:            '1',
+			Keys:           menuKey('1'),
 		})
 	}
 

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -28,6 +29,7 @@ var colorPatterns *colorMatcher
 func GetBranchListDisplayStrings(
 	branches []*models.Branch,
 	getItemOperation func(item types.HasUrn) types.ItemOperation,
+	prs map[string]*models.GithubPullRequest,
 	fullDescription bool,
 	diffName string,
 	viewWidth int,
@@ -37,7 +39,7 @@ func GetBranchListDisplayStrings(
 ) [][]string {
 	return lo.Map(branches, func(branch *models.Branch, _ int) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, viewWidth, tr, userConfig, worktrees, time.Now())
+		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, viewWidth, tr, userConfig, worktrees, time.Now(), prs)
 	})
 }
 
@@ -52,6 +54,7 @@ func getBranchDisplayStrings(
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
 	now time.Time,
+	prs map[string]*models.GithubPullRequest,
 ) []string {
 	checkedOutByWorkTree := git_commands.CheckedOutByOtherWorktree(b, worktrees)
 	showCommitHash := fullDescription || userConfig.Gui.ShowBranchCommitHash
@@ -63,11 +66,12 @@ func getBranchDisplayStrings(
 	if len(divergence) > 0 {
 		availableWidth -= utils.StringWidth(divergence) + 1
 	}
-	if icons.IsIconEnabled() {
-		availableWidth -= 2 // one for the icon, one for the space
-	}
 	if showCommitHash {
 		availableWidth -= utils.COMMIT_HASH_SHORT_SIZE + 1
+	}
+	if len(prs) > 0 {
+		// if we have PRs then we assume that at least one branch in the list has one
+		availableWidth -= 2
 	}
 	paddingNeededForDivergence := availableWidth
 
@@ -136,16 +140,31 @@ func getBranchDisplayStrings(
 	res := make([]string, 0, 6)
 	res = append(res, recencyColor.Sprint(b.Recency))
 
-	if icons.IsIconEnabled() {
-		res = append(res, nameTextStyle.Sprint(icons.IconForBranch(b)))
+	var coloredPrIcon string
+	pr, hasPr := prs[b.Name]
+	if hasPr && ShouldShowPrForBranch(pr, b.Name, userConfig) {
+		var prIcon string
+		if icons.IsIconEnabled() {
+			prIcon = icons.IconForRemoteUrl(pr.Url)
+		} else {
+			prIcon = "●"
+		}
+		coloredPrIcon = WithPrColor(pr.State, prIcon, false)
 	}
+	res = append(res, coloredPrIcon)
 
 	if showCommitHash {
 		res = append(res, utils.ShortHash(b.CommitHash))
 	}
 
 	if divergence != "" {
-		paddingNeededForDivergence -= utils.StringWidth(utils.Decolorise(coloredName)) - 1
+		if fullDescription {
+			// don't right-align the divergence in half or full screen mode, since other fields
+			// follow in that case and we don't know the width of our column
+			paddingNeededForDivergence = 1
+		} else {
+			paddingNeededForDivergence -= utils.StringWidth(utils.Decolorise(coloredName)) - 1
+		}
 		if paddingNeededForDivergence > 0 {
 			coloredName += strings.Repeat(" ", paddingNeededForDivergence)
 			coloredName += style.FgCyan.Sprint(divergence)
@@ -251,4 +270,29 @@ func SetCustomBranches(customBranchColors map[string]string, isRegex bool) {
 		patterns: utils.SetCustomColors(customBranchColors),
 		isRegex:  isRegex,
 	}
+}
+
+func WithPrColor(state string, text string, isBg bool) string {
+	switch state {
+	case "OPEN":
+		return color.RGB(0x43, 0x84, 0x40, isBg).Sprint(text)
+	case "CLOSED":
+		return color.RGB(0xC9, 0x45, 0x3C, isBg).Sprint(text)
+	case "MERGED":
+		return color.RGB(0x82, 0x59, 0xDD, isBg).Sprint(text)
+	case "DRAFT":
+		return color.RGB(0x67, 0x6C, 0x75, isBg).Sprint(text)
+	default:
+		return lo.Ternary(isBg, style.BgDefault, style.FgDefault).Sprint(text)
+	}
+}
+
+func ShouldShowPrForBranch(pr *models.GithubPullRequest, branchName string, userConfig *config.UserConfig) bool {
+	if !lo.Contains(userConfig.Git.MainBranches, branchName) {
+		return true
+	}
+
+	// For main branches we only want to show the PR if it's open (or draft), on the assumption that a
+	// closed PR for a main branch is always a mistake.
+	return pr.State != "CLOSED" && pr.State != "MERGED"
 }

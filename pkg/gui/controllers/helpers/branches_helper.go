@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -43,6 +43,7 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 	doDelete := func() error {
 		return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(_ gocui.Task) error {
 			self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
+			self.logBranchHashes(branches)
 			branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
 			if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
 				return err
@@ -178,6 +179,7 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 				}
 
 				self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
+				self.logBranchHashes(branches)
 				branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
 				if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
 					return err
@@ -257,6 +259,20 @@ func (self *BranchesHelper) allBranchesMerged(branches []*models.Branch) (bool, 
 	return allBranchesMerged, nil
 }
 
+func (self *BranchesHelper) logBranchHashes(branches []*models.Branch) {
+	for _, branch := range branches {
+		msg := utils.ResolvePlaceholderString(
+			self.c.Tr.Log.DeletingBranch,
+			map[string]string{
+				"branchName": branch.Name,
+				"hash":       branch.CommitHash,
+			},
+		)
+
+		self.c.LogCommand(msg, false)
+	}
+}
+
 func (self *BranchesHelper) deleteRemoteBranches(remoteBranches []*models.RemoteBranch, task gocui.Task) error {
 	remotes := lo.GroupBy(remoteBranches, func(branch *models.RemoteBranch) string { return branch.RemoteName })
 	for remote, branches := range remotes {
@@ -267,6 +283,21 @@ func (self *BranchesHelper) deleteRemoteBranches(remoteBranches []*models.Remote
 		}
 	}
 	return nil
+}
+
+func (self *BranchesHelper) PostFetchRefresh(fetchErr error) error {
+	scope := []types.RefreshableView{
+		types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS, types.PULL_REQUESTS,
+	}
+	// AutoForwardBranches needs a fresh worktree model to skip branches that are checked out elsewhere.
+	if self.c.UserConfig().Git.AutoForwardBranches != "none" {
+		scope = append(scope, types.WORKTREES)
+	}
+	self.c.Refresh(types.RefreshOptions{Scope: scope, Mode: types.SYNC})
+	if fetchErr != nil {
+		return fetchErr
+	}
+	return self.AutoForwardBranches()
 }
 
 func (self *BranchesHelper) AutoForwardBranches() error {

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -41,14 +41,34 @@ func NewCommitsHelper(
 	}
 }
 
+// SplitCommitMessageAndDescription splits a message in git's canonical format
+// (summary and body separated by a blank line) into summary and description.
 func (self *CommitsHelper) SplitCommitMessageAndDescription(message string) (string, string) {
-	msg, description, _ := strings.Cut(message, "\n")
-	return msg, strings.TrimSpace(description)
+	summary, description, _ := strings.Cut(message, "\n")
+	description = strings.TrimPrefix(description, "\n")
+	return summary, description
+}
+
+// SplitPreservedCommitMessage splits a message in our preservation format
+// (summary and description joined by a single "\n") into summary and description.
+// It is lossless: round-tripping through JoinCommitMessageAndUnwrappedDescription
+// preserves the exact content.
+func (self *CommitsHelper) SplitPreservedCommitMessage(message string) (string, string) {
+	summary, description, _ := strings.Cut(message, "\n")
+	return summary, description
 }
 
 func (self *CommitsHelper) SetMessageAndDescriptionInView(message string) {
 	summary, description := self.SplitCommitMessageAndDescription(message)
+	self.setSummaryAndDescriptionInView(summary, description)
+}
 
+func (self *CommitsHelper) SetPreservedMessageInView(message string) {
+	summary, description := self.SplitPreservedCommitMessage(message)
+	self.setSummaryAndDescriptionInView(summary, description)
+}
+
+func (self *CommitsHelper) setSummaryAndDescriptionInView(summary, description string) {
 	self.setCommitSummary(summary)
 	self.setCommitDescription(description)
 	self.c.Contexts().CommitMessage.RenderSubtitle()
@@ -98,21 +118,6 @@ func (self *CommitsHelper) SwitchToEditor() error {
 	return self.c.Contexts().CommitMessage.SwitchToEditor(filepath)
 }
 
-func (self *CommitsHelper) UpdateCommitPanelView(message string) {
-	if message != "" {
-		self.SetMessageAndDescriptionInView(message)
-		return
-	}
-
-	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
-		preservedMessage := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
-		self.SetMessageAndDescriptionInView(preservedMessage)
-		return
-	}
-
-	self.SetMessageAndDescriptionInView("")
-}
-
 type OpenCommitMessagePanelOpts struct {
 	CommitIndex      int
 	SummaryTitle     string
@@ -138,19 +143,35 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 		return opts.OnConfirm(summary, description)
 	}
 
+	// When there's no explicit initial message but we're in a preservation
+	// context, fall back to any previously preserved message. This is stored as
+	// the "initial" value so the unchanged-message check on close still works
+	// correctly (in particular, clearing the panel then escaping will notice
+	// the difference and delete the preserved file).
+	initialMessage := opts.InitialMessage
+	initialMessageIsPreserved := false
+	if opts.PreserveMessage && initialMessage == "" {
+		initialMessage = self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
+		initialMessageIsPreserved = true
+	}
+
 	self.c.Contexts().CommitMessage.SetPanelState(
 		opts.CommitIndex,
 		opts.SummaryTitle,
 		opts.DescriptionTitle,
 		opts.PreserveMessage,
-		opts.InitialMessage,
+		initialMessage,
 		onConfirm,
 		opts.OnSwitchToEditor,
 		opts.ForceSkipHooks,
 		opts.SkipHooksPrefix,
 	)
 
-	self.UpdateCommitPanelView(opts.InitialMessage)
+	if initialMessageIsPreserved {
+		self.SetPreservedMessageInView(initialMessage)
+	} else {
+		self.SetMessageAndDescriptionInView(initialMessage)
+	}
 
 	self.c.Context().Push(self.c.Contexts().CommitMessage, types.OnFocusOpts{})
 }
@@ -162,7 +183,7 @@ func (self *CommitsHelper) ClearPreservedCommitMessage() {
 func (self *CommitsHelper) HandleCommitConfirm() error {
 	summary, description := self.getCommitSummary(), self.getCommitDescription()
 
-	if summary == "" {
+	if strings.TrimSpace(summary) == "" {
 		return errors.New(self.c.Tr.CommitWithoutMessageErr)
 	}
 
@@ -174,15 +195,17 @@ func (self *CommitsHelper) HandleCommitConfirm() error {
 	return nil
 }
 
-func (self *CommitsHelper) CloseCommitMessagePanel() {
+func (self *CommitsHelper) PreserveCommitMessage() {
 	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
 		message := self.JoinCommitMessageAndUnwrappedDescription()
 		if message != self.c.Contexts().CommitMessage.GetInitialMessage() {
 			self.c.Contexts().CommitMessage.SetPreservedMessageAndLogError(message)
 		}
-	} else {
-		self.SetMessageAndDescriptionInView("")
 	}
+}
+
+func (self *CommitsHelper) CloseCommitMessagePanel() {
+	self.PreserveCommitMessage()
 
 	self.c.Contexts().CommitMessage.SetHistoryMessage("")
 
@@ -206,7 +229,7 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 			OnPress: func() error {
 				return self.SwitchToEditor()
 			},
-			Key:            'e',
+			Keys:           menuKey('e'),
 			DisabledReason: disabledReasonForOpenInEditor,
 		},
 		{
@@ -214,14 +237,14 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 			OnPress: func() error {
 				return self.addCoAuthor(suggestionFunc)
 			},
-			Key: 'c',
+			Keys: menuKey('c'),
 		},
 		{
 			Label: self.c.Tr.PasteCommitMessageFromClipboard,
 			OnPress: func() error {
 				return self.pasteCommitMessageFromClipboard()
 			},
-			Key: 'p',
+			Keys: menuKey('p'),
 		},
 	}
 	return self.c.Menu(types.CreateMenuOptions{

@@ -8,13 +8,13 @@ Lazygit's vision is to be the most enjoyable UI for git.
 
 There are seven (sometimes contradictory) design principles we follow:
 
-- Discoverability
-- Simplicity
-- Safety
-- Power
-- Speed
-- Conformity with git
-- Think of the codebase
+- [Discoverability](#discoverability)
+- [Simplicity](#simplicity)
+- [Safety](#safety)
+- [Power](#power)
+- [Speed](#speed)
+- [Conformity with git](#conformity-with-git)
+- [Think of the codebase](#think-of-the-codebase)
 
 ### Discoverability
 
@@ -45,6 +45,7 @@ The git CLI is very complex but most git use cases are simple. Lazygit needs to 
 - Don't overwhelm the user with options
 - Use sensible defaults
 - We already have too many configuration options: think hard before adding any new ones
+  - A bit of elaboration on this one: in the past we made the mistake of adding new config options all the time for unimportant things. The thinking was: one user wants to have this new feature or behavior, we are not sure if everybody will like it, so we hide it behind a config. This seems good because we satisfy everybody's needs, but it's bad because if Config.md is pages and pages of text, most users will not bother reading all of it, so they won't be aware of the actually useful options among all the obscure ones. We should be much more conservative about adding new config options that only few users are likely to use.
 
 ### Safety
 
@@ -55,7 +56,7 @@ It's easy to screw things up in git so Lazygit should try to protect the user fr
   - e.g. undo action
   - the escape key should get you out of most transient situations (rebasing, diffing, etc)
 
-## Power
+### Power
 
 Users shouldn't have to drop down the CLI _too_ often. Lazygit should be able to handle some complex use cases.
 

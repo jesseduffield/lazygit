@@ -1,7 +1,7 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	deadlock "github.com/sasha-s/go-deadlock"
@@ -52,15 +52,6 @@ func NewPatchExplorerContext(
 		})),
 		SearchTrait: NewSearchTrait(c),
 	}
-
-	ctx.GetView().SetRenderSearchStatus(ctx.SearchTrait.RenderSearchStatus)
-	ctx.GetView().SetOnSelectItem(func(selectedLineIdx int) {
-		ctx.GetMutex().Lock()
-		defer ctx.GetMutex().Unlock()
-		ctx.inOnSelectItemCallback = true
-		ctx.NavigateTo(selectedLineIdx)
-		ctx.inOnSelectItemCallback = false
-	})
 
 	ctx.SetHandleRenderFunc(ctx.OnViewWidthChanged)
 
@@ -144,6 +135,14 @@ func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {
 
 func (self *PatchExplorerContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
 	return nil
+}
+
+func (self *PatchExplorerContext) OnSearchSelect(selectedLineIdx int) {
+	self.GetMutex().Lock()
+	defer self.GetMutex().Unlock()
+	self.inOnSelectItemCallback = true
+	self.NavigateTo(selectedLineIdx)
+	self.inOnSelectItemCallback = false
 }
 
 func (self *PatchExplorerContext) OnViewWidthChanged() {
