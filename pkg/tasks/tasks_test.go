@@ -52,7 +52,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		return cmd, reader
 	}
 
-	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{20, -1, nil}, onDone)
+	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{Total: 20, InitialRefreshAfter: -1}, onDone)
 
 	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: func() { task.Done() }})
 
@@ -115,7 +115,7 @@ func TestNewCmdTask(t *testing.T) {
 		return cmd, reader
 	}
 
-	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{20, -1, nil}, onDone)
+	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{Total: 20, InitialRefreshAfter: -1}, onDone)
 	wg := sync.WaitGroup{}
 	wg.Go(func() {
 		time.Sleep(100 * time.Millisecond)
@@ -182,37 +182,37 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 		{
 			"total < initialRefreshAfter",
 			150,
-			LinesToRead{100, 120, nil},
+			LinesToRead{Total: 100, InitialRefreshAfter: 120},
 			[]int{100},
 		},
 		{
 			"total == initialRefreshAfter",
 			150,
-			LinesToRead{100, 100, nil},
+			LinesToRead{Total: 100, InitialRefreshAfter: 100},
 			[]int{100},
 		},
 		{
 			"total > initialRefreshAfter",
 			150,
-			LinesToRead{100, 50, nil},
+			LinesToRead{Total: 100, InitialRefreshAfter: 50},
 			[]int{50, 100},
 		},
 		{
 			"initialRefreshAfter == -1",
 			150,
-			LinesToRead{100, -1, nil},
+			LinesToRead{Total: 100, InitialRefreshAfter: -1},
 			[]int{100},
 		},
 		{
 			"totalTaskLines < initialRefreshAfter",
 			25,
-			LinesToRead{100, 50, nil},
+			LinesToRead{Total: 100, InitialRefreshAfter: 50},
 			[]int{25},
 		},
 		{
 			"totalTaskLines between total and initialRefreshAfter",
 			75,
-			LinesToRead{100, 50, nil},
+			LinesToRead{Total: 100, InitialRefreshAfter: 50},
 			[]int{50, 75},
 		},
 	}
