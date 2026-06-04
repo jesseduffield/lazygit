@@ -74,11 +74,11 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 
 	hunkMode := self.c.UserConfig().Gui.UseHunkModeInStagingView
 	mainContext.SetState(
-		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainSelectedRealLineIdx, mainContext.GetView(), mainContext.GetState(), hunkMode),
+		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainSelectedRealLineIdx, mainContext.GetView(), mainContext.GetState(), hunkMode, focusOpts.SelectLineInDefaultMode),
 	)
 
 	secondaryContext.SetState(
-		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondarySelectedRealLineIdx, secondaryContext.GetView(), secondaryContext.GetState(), hunkMode),
+		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondarySelectedRealLineIdx, secondaryContext.GetView(), secondaryContext.GetState(), hunkMode, focusOpts.SelectLineInDefaultMode),
 	)
 
 	mainState := mainContext.GetState()

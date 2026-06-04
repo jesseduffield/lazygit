@@ -577,7 +577,7 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 		}
 
 		// Entered from the focused main view, so escaping returns there.
-		return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line})
+		return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, SelectLineInDefaultMode: true})
 	}
 }
 
