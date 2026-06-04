@@ -261,6 +261,14 @@ type OnFocusOpts struct {
 	// If not -1, takes precedence over ClickedViewLineIdx.
 	ClickedViewRealLineIdx int
 
+	// When entering a patch explorer (staging or patch building) by clicking or
+	// pressing enter on a line in a focused main view, we select that line using
+	// the default select mode (hunk or line, per the UseHunkModeInStagingView
+	// config), the same as when entering through the side panel. Clicking
+	// directly on the patch explorer view instead starts a range selection that
+	// can be extended by dragging.
+	SelectLineInDefaultMode bool
+
 	ScrollSelectionIntoView bool
 }
 
