@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
+	"strconv"
 	"sync"
 	"time"
 
@@ -248,6 +250,17 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				}
 			}
 
+			// Set LAZYGIT_SLOW_RENDER=<milliseconds> to sleep that long after each
+			// line is written to the view, stretching async loads out so the frames
+			// of a re-render become visible. Useful for debugging scroll/flicker
+			// behaviour; has no effect when the variable is unset.
+			var slowRenderPerLine time.Duration
+			if v := os.Getenv("LAZYGIT_SLOW_RENDER"); v != "" {
+				if ms, err := strconv.Atoi(v); err == nil {
+					slowRenderPerLine = time.Duration(ms) * time.Millisecond
+				}
+			}
+
 		outer:
 			for {
 				select {
@@ -289,6 +302,10 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 						}
 						writeToView(append(line, '\n'))
 						lineWrittenChan <- struct{}{}
+
+						if slowRenderPerLine > 0 {
+							time.Sleep(slowRenderPerLine)
+						}
 
 						if i+1 == linesToRead.InitialRefreshAfter {
 							// We have read enough lines to fill the view, so do a first refresh
