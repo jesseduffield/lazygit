@@ -79,6 +79,23 @@ func (self *Patch) HunkEndIdx(hunkIndex int) int {
 	return self.HunkStartIdx(hunkIndex) + self.hunks[hunkIndex].lineCount() - 1
 }
 
+// IsWellFormed reports whether every hunk's body matches the lengths declared
+// in its header. A faithful unified diff always satisfies this. A rendering that
+// restructured the diff body does not — e.g. delta with line-number gutters
+// shifts the +/- marker off the start of each line, so every body line reads as
+// context and the computed lengths no longer match the header. This lets a
+// parser tell a real unified diff from a mangled one and fall back rather than
+// trust a mis-parse. Only meaningful for patches produced by Parse (the lengths
+// are read from the header there).
+func (self *Patch) IsWellFormed() bool {
+	for _, hunk := range self.hunks {
+		if hunk.oldLength() != hunk.declaredOldLength || hunk.newLength() != hunk.declaredNewLength {
+			return false
+		}
+	}
+	return true
+}
+
 func (self *Patch) ContainsChanges() bool {
 	return lo.SomeBy(self.hunks, func(hunk *Hunk) bool {
 		return hunk.containsChanges()

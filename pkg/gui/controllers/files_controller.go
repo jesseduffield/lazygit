@@ -421,9 +421,11 @@ func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName strin
 		// Capture before any mutation below that might re-render the main view.
 		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context(), clickedLineIdx)
 
-		clickedFile, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(mainViewName, clickedLineIdx)
-		if !ok {
-			line = -1
+		info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, clickedLineIdx)
+		line := -1
+		isDeletion := false
+		if ok {
+			line, isDeletion = info.PatchSelectLine()
 		}
 
 		node := self.context().GetSelected()
@@ -432,7 +434,7 @@ func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName strin
 		}
 
 		if !node.IsFile() && ok {
-			relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), clickedFile)
+			relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), info.Path)
 			if err != nil {
 				return err
 			}
@@ -448,7 +450,7 @@ func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName strin
 			}
 		}
 
-		return self.EnterFile(snapshot, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, SelectLineInDefaultMode: true})
+		return self.EnterFile(snapshot, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, ClickedViewRealLineIsDeletion: isDeletion, SelectLineInDefaultMode: true})
 	}
 }
 

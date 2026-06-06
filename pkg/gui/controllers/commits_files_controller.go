@@ -538,9 +538,11 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 		// Capture before any mutation below that might re-render the main view.
 		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context(), clickedLineIdx)
 
-		clickedFile, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(mainViewName, clickedLineIdx)
-		if !ok {
-			line = -1
+		info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, clickedLineIdx)
+		line := -1
+		isDeletion := false
+		if ok {
+			line, isDeletion = info.PatchSelectLine()
 		}
 
 		node := self.getSelectedItem()
@@ -549,7 +551,7 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 		}
 
 		if !node.IsFile() && ok {
-			relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), clickedFile)
+			relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), info.Path)
 			if err != nil {
 				return err
 			}
@@ -567,7 +569,7 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 		}
 
 		// Entered from the focused main view, so escaping returns there.
-		return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, SelectLineInDefaultMode: true})
+		return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, ClickedViewRealLineIsDeletion: isDeletion, SelectLineInDefaultMode: true})
 	}
 }
 

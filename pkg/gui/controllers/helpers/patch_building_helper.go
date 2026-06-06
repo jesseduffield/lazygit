@@ -158,7 +158,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 
 	oldState := context.GetState()
 
-	state := patch_exploring.NewState(diff, selectedLineIdx, selectedRealLineIdx, context.GetView(), oldState, self.c.UserConfig().Gui.UseHunkModeInStagingView, opts.SelectLineInDefaultMode)
+	state := patch_exploring.NewState(diff, selectedLineIdx, selectedRealLineIdx, opts.ClickedViewRealLineIsDeletion, context.GetView(), oldState, self.c.UserConfig().Gui.UseHunkModeInStagingView, opts.SelectLineInDefaultMode)
 	context.SetState(state)
 	if state == nil {
 		self.Escape()

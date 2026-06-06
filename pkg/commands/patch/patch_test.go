@@ -706,6 +706,30 @@ func TestPatchLineForOldLineNumber(t *testing.T) {
 	}
 }
 
+func TestIsWellFormed(t *testing.T) {
+	assert.True(t, Parse(simpleDiff).IsWellFormed())
+	assert.True(t, Parse(twoHunks).IsWellFormed())
+	assert.True(t, Parse(consecutiveDeletions).IsWellFormed())
+	assert.True(t, Parse(newFile).IsWellFormed())
+	assert.True(t, Parse(deletedFile).IsWellFormed())
+	assert.True(t, Parse(addNewlineToEndOfFile).IsWellFormed())
+
+	// A diff whose body has been mangled so the +/- markers no longer start each
+	// line (as delta's line-number gutters do) reads as all-context, so the body
+	// lengths no longer match the header.
+	gutterMangled := `diff --git a/filename b/filename
+index 9320895..6d79956 100644
+--- a/filename
++++ b/filename
+@@ -1,4 +1,2 @@
+ apple
+ grape
+ pear
+ lemon
+`
+	assert.False(t, Parse(gutterMangled).IsWellFormed())
+}
+
 func TestGetNextStageableLineIndex(t *testing.T) {
 	type scenario struct {
 		testName  string

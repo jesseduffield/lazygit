@@ -54,10 +54,11 @@ func (self *SwitchToDiffFilesController) GetKeybindings(opts types.KeybindingsOp
 
 func (self *SwitchToDiffFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
 	return func(mainViewName string, clickedLineIdx int) error {
-		clickedFile, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(mainViewName, clickedLineIdx)
+		info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, clickedLineIdx)
 		if !ok {
 			return nil
 		}
+		line, isDeletion := info.PatchSelectLine()
 
 		// Capture before self.enter() pushes the commit files panel, which
 		// re-renders the main view. We escape "all the way out" to this side
@@ -71,7 +72,7 @@ func (self *SwitchToDiffFilesController) GetOnClickFocusedMainView() func(mainVi
 		context := self.c.Contexts().CommitFiles
 		var node *filetree.CommitFileNode
 
-		relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), clickedFile)
+		relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), info.Path)
 		if err != nil {
 			return err
 		}
@@ -88,7 +89,7 @@ func (self *SwitchToDiffFilesController) GetOnClickFocusedMainView() func(mainVi
 		context.GetViewTrait().FocusPoint(
 			context.ModelIndexToViewIndex(idx), false)
 		node = context.GetSelected()
-		return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, SelectLineInDefaultMode: true})
+		return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, ClickedViewRealLineIsDeletion: isDeletion, SelectLineInDefaultMode: true})
 	}
 }
 
