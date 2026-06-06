@@ -1566,6 +1566,33 @@ func (v *View) HyperLinkInLine(y int, urlScheme string) (string, bool) {
 	return "", false
 }
 
+// BufferLineForViewLine maps a view line index (which counts wrapped lines) to
+// the index of the corresponding line in the unwrapped internal buffer (as
+// returned by BufferLines). Several view lines can map to the same buffer line
+// when wrapping is on. Returns false if the view line is out of range.
+func (v *View) BufferLineForViewLine(y int) (int, bool) {
+	// Take the lock so we don't race a concurrent re-render that is rebuilding
+	// the buffer.
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+
+	if y < 0 || y >= len(v.viewLines) {
+		return 0, false
+	}
+
+	// refreshViewLinesIfNeeded overwrites viewLines in place without truncating,
+	// so while a shorter re-render is loading, the tail of viewLines can still
+	// hold stale entries pointing past the (shrunk) v.lines. Guard against that.
+	linesY := v.viewLines[y].linesY
+	if linesY >= len(v.lines) {
+		return 0, false
+	}
+
+	return linesY, true
+}
+
 // indexFunc allows to split lines by words taking into account spaces
 // and 0.
 func indexFunc(r rune) bool {
