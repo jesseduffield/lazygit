@@ -45,7 +45,7 @@ const (
 	HUNK
 )
 
-func NewState(diff string, selectedLineIdx int, selectedRealLineIdx int, view *gocui.View, oldState *State, useHunkModeByDefault bool, selectLineInDefaultMode bool) *State {
+func NewState(diff string, selectedLineIdx int, selectedRealLineIdx int, selectedRealLineIsDeletion bool, view *gocui.View, oldState *State, useHunkModeByDefault bool, selectLineInDefaultMode bool) *State {
 	if oldState != nil && diff == oldState.diff && selectedLineIdx == -1 {
 		// if we're here then we can return the old state. If selectedLineIdx was not -1
 		// then that would mean we were trying to click and potentially drag a range, which
@@ -62,10 +62,18 @@ func NewState(diff string, selectedLineIdx int, selectedRealLineIdx int, view *g
 	viewLineIndices, patchLineIndices := wrapPatchLines(diff, view)
 
 	if selectedRealLineIdx != -1 {
-		// PatchLineForLineNumber returns a patch line index, but selectedLineIdx
-		// is in view-line (wrapped) space, so convert it. Without this the
-		// landing line is off by the number of wrapped lines above it.
-		patchLineIdx := patch.PatchLineForLineNumber(selectedRealLineIdx)
+		// Look the source line number up in the freshly parsed patch. A deletion
+		// is identified by its old-file line number (two consecutive deletions
+		// share a new-file line number), everything else by its new-file one.
+		// The result is a patch line index, but selectedLineIdx is in view-line
+		// (wrapped) space, so convert it; without this the landing line is off by
+		// the number of wrapped lines above it.
+		var patchLineIdx int
+		if selectedRealLineIsDeletion {
+			patchLineIdx = patch.PatchLineForOldLineNumber(selectedRealLineIdx)
+		} else {
+			patchLineIdx = patch.PatchLineForLineNumber(selectedRealLineIdx)
+		}
 		selectedLineIdx = viewLineIndices[lo.Clamp(patchLineIdx, 0, len(viewLineIndices)-1)]
 	}
 

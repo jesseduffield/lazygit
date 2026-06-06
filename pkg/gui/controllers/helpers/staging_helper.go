@@ -1,13 +1,17 @@
 package helpers
 
 import (
+	"path/filepath"
 	"regexp"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
+
+var lazygitEditURLRegexp = regexp.MustCompile(`^lazygit-edit://(.+?):(\d+)$`)
 
 type StagingHelper struct {
 	c            *HelperCommon
@@ -74,11 +78,11 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 
 	hunkMode := self.c.UserConfig().Gui.UseHunkModeInStagingView
 	mainContext.SetState(
-		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainSelectedRealLineIdx, mainContext.GetView(), mainContext.GetState(), hunkMode, focusOpts.SelectLineInDefaultMode),
+		patch_exploring.NewState(mainDiff, mainSelectedLineIdx, mainSelectedRealLineIdx, focusOpts.ClickedViewRealLineIsDeletion, mainContext.GetView(), mainContext.GetState(), hunkMode, focusOpts.SelectLineInDefaultMode),
 	)
 
 	secondaryContext.SetState(
-		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondarySelectedRealLineIdx, secondaryContext.GetView(), secondaryContext.GetState(), hunkMode, focusOpts.SelectLineInDefaultMode),
+		patch_exploring.NewState(secondaryDiff, secondarySelectedLineIdx, secondarySelectedRealLineIdx, focusOpts.ClickedViewRealLineIsDeletion, secondaryContext.GetView(), secondaryContext.GetState(), hunkMode, focusOpts.SelectLineInDefaultMode),
 	)
 
 	mainState := mainContext.GetState()
@@ -136,19 +140,67 @@ func (self *StagingHelper) mainStagingFocused() bool {
 	return self.c.Context().CurrentStatic().GetKey() == self.c.Contexts().Staging.GetKey()
 }
 
-func (self *StagingHelper) GetFileAndLineForClickedDiffLine(windowName string, lineIdx int) (string, int, bool) {
+// GetDiffLineInfo recovers the patch-space identity — (file, type, new-line,
+// old-line) — of a rendered diff row, given the window showing the diff and the
+// (wrapped) view line index. It is the single seam the focused main view and
+// patch explorer consumers go through to act on the line the user is pointing
+// at, and the strategy behind it is swappable (see diff-line-metadata-notes.md).
+//
+// Today it first parses the decolorized view buffer (mechanism #1), which serves
+// the structure-preserving renderings (no pager, git diff --color,
+// delta --color-only, diff-so-fancy --patch). When that fails — e.g. a pager
+// restructured the diff, as delta's default mode does — it falls back to delta's
+// lazygit-edit:// hyperlinks. The hyperlink can't convey the side, so its result
+// is reported as a non-deletion content line. A future backend reading #2's
+// per-cell OSC metadata would slot in ahead of these, behind the same shape.
+func (self *StagingHelper) GetDiffLineInfo(windowName string, viewLineIdx int) (types.DiffLineInfo, bool) {
 	v, _ := self.c.GocuiGui().View(self.windowHelper.GetViewNameForWindow(windowName))
-	hyperlink, ok := v.HyperLinkInLine(lineIdx, "lazygit-edit:")
-	if !ok {
-		return "", 0, false
+	if v == nil {
+		return types.DiffLineInfo{}, false
 	}
 
-	re := regexp.MustCompile(`^lazygit-edit://(.+?):(\d+)$`)
-	matches := re.FindStringSubmatch(hyperlink)
-	if matches == nil {
-		return "", 0, false
+	if info, ok := self.diffLineInfoFromBuffer(v, viewLineIdx); ok {
+		return info, true
 	}
-	filepath := matches[1]
-	lineNumber := utils.MustConvertToInt(matches[2])
-	return filepath, lineNumber, true
+	return self.diffLineInfoFromHyperlink(v, viewLineIdx)
+}
+
+func (self *StagingHelper) diffLineInfoFromBuffer(v *gocui.View, viewLineIdx int) (types.DiffLineInfo, bool) {
+	bufferLineIdx, ok := v.BufferLineForViewLine(viewLineIdx)
+	if !ok {
+		return types.DiffLineInfo{}, false
+	}
+
+	parsed, ok := parseDiffLineFromBuffer(v.BufferLines(), bufferLineIdx)
+	if !ok {
+		return types.DiffLineInfo{}, false
+	}
+
+	return types.DiffLineInfo{
+		Path:    filepath.Join(self.c.Git().RepoPaths.WorktreePath(), parsed.RelPath),
+		Type:    parsed.Type,
+		NewLine: parsed.NewLine,
+		OldLine: parsed.OldLine,
+	}, true
+}
+
+func (self *StagingHelper) diffLineInfoFromHyperlink(v *gocui.View, viewLineIdx int) (types.DiffLineInfo, bool) {
+	hyperlink, ok := v.HyperLinkInLine(viewLineIdx, "lazygit-edit:")
+	if !ok {
+		return types.DiffLineInfo{}, false
+	}
+
+	matches := lazygitEditURLRegexp.FindStringSubmatch(hyperlink)
+	if matches == nil {
+		return types.DiffLineInfo{}, false
+	}
+
+	return types.DiffLineInfo{
+		// delta emits an absolute path here, which is what the consumers want.
+		Path: matches[1],
+		// The hyperlink carries no side, so it can't distinguish a deletion from
+		// an addition or context line; report it as a plain content line.
+		Type:    types.DiffLineOther,
+		NewLine: utils.MustConvertToInt(matches[2]),
+	}, true
 }

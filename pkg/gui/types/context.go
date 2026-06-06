@@ -258,8 +258,16 @@ type OnFocusOpts struct {
 	ClickedWindowName  string
 	ClickedViewLineIdx int
 
-	// If not -1, takes precedence over ClickedViewLineIdx.
+	// A source line number identifying the line to land on in the patch
+	// explorer. If not -1, takes precedence over ClickedViewLineIdx. It is a
+	// new-file line number, unless ClickedViewRealLineIsDeletion is set, in which
+	// case it is an old-file line number (two consecutive deletions share a
+	// new-file line number, so only the old-file number identifies a deletion).
 	ClickedViewRealLineIdx int
+
+	// Whether ClickedViewRealLineIdx is an old-file line number for a deletion;
+	// see above.
+	ClickedViewRealLineIsDeletion bool
 
 	// When entering a patch explorer (staging or patch building) by clicking or
 	// pressing enter on a line in a focused main view, we select that line using

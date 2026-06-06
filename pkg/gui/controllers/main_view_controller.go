@@ -228,13 +228,13 @@ func (self *MainViewController) editLine() error {
 		return nil
 	}
 	// Figure out the clicked file and line the same way entering staging does.
-	path, lineNumber, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(
+	info, ok := self.c.Helpers().Staging.GetDiffLineInfo(
 		self.context.GetViewName(), self.context.GetView().SelectedLineIdx())
 	if !ok {
 		return nil
 	}
-	lineNumber = self.c.Helpers().Diff.AdjustLineNumber(path, lineNumber, self.context.GetViewName())
-	return self.c.Helpers().Files.EditFileAtLine(path, lineNumber)
+	lineNumber := self.c.Helpers().Diff.AdjustLineNumber(info.Path, info.NewLine, self.context.GetViewName())
+	return self.c.Helpers().Files.EditFileAtLine(info.Path, lineNumber)
 }
 
 func (self *MainViewController) openPullRequestForSelectedLine() error {
@@ -273,20 +273,24 @@ func (self *MainViewController) openPullRequestForSelectedLine() error {
 	}
 
 	// Figure out the clicked file and line the same way entering staging does.
-	path, lineNumber, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(
+	info, ok := self.c.Helpers().Staging.GetDiffLineInfo(
 		self.context.GetViewName(), self.context.GetView().SelectedLineIdx())
 	if !ok {
 		return nil
 	}
 
-	relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), path)
+	relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), info.Path)
 	if err != nil {
 		return err
 	}
 
+	// A deletion isn't on the right (new) side of the diff, so anchor it on the
+	// left (old) side; everything else on the right.
+	side, lineNumber := info.PullRequestAnchor()
+
 	self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)
 	return self.c.OS().OpenLink(
-		githubPullRequestLineURL(pr.Url, commitSha, filepath.ToSlash(relativePath), lineNumber))
+		githubPullRequestLineURL(pr.Url, commitSha, filepath.ToSlash(relativePath), side, lineNumber))
 }
 
 // branchForPullRequest returns the local branch whose pull request applies to
@@ -318,12 +322,12 @@ func (self *MainViewController) branchForPullRequest(sidePanelContext types.Cont
 
 // githubPullRequestLineURL builds a URL that opens the given line of a file in
 // the diff of a specific commit within a GitHub pull request. The file is
-// identified by the SHA-256 of its repo-relative path, and R<line> targets the
-// right (new) side of the diff. See
+// identified by the SHA-256 of its repo-relative path, and side ("R"/"L")
+// selects the right (new) or left (old) side of the diff. See
 // https://github.com/orgs/community/discussions/55764.
-func githubPullRequestLineURL(prURL string, commitSha string, relativePath string, lineNumber int) string {
+func githubPullRequestLineURL(prURL string, commitSha string, relativePath string, side string, lineNumber int) string {
 	pathHash := sha256.Sum256([]byte(relativePath))
-	anchor := fmt.Sprintf("diff-%sR%d", hex.EncodeToString(pathHash[:]), lineNumber)
+	anchor := fmt.Sprintf("diff-%s%s%d", hex.EncodeToString(pathHash[:]), side, lineNumber)
 	return fmt.Sprintf("%s/changes/%s#%s", prURL, commitSha, anchor)
 }
 
