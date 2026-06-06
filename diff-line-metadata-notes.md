@@ -55,12 +55,30 @@ lines down to the row. The first character (`+`/`-`/space) gives the side.
 - **Inherently high-fidelity**: parsing *is* working in patch space, so it
   knows the side and exact line directly — none of delta's hyperlink lossiness.
 - **Works for structure-preserving renderings**: no pager, `git diff --color`,
-  `delta --color-only`, `diff-so-fancy --patch`. You don't branch on which
+  and `delta --color-only` **without line numbers**. You don't branch on which
   pager is configured — you just try to parse what's on screen; if it isn't a
   unified diff, the parse fails and we fall back.
 - **Cannot** serve renderings that restructure the diff (delta's default mode,
   difftastic, side-by-side) — there's no unified-diff line structure left to
   parse.
+
+> **Prototype finding — two corrections to the coverage below.** Verified
+> empirically by feeding real pager output through gocui's escape parser and
+> running the parser on every line (see §8):
+>
+> - **`delta --color-only` only qualifies *without* line numbers.** With
+>   `--line-numbers` (which is exactly what users who want clickable diffs
+>   enable, since the hyperlinks ride on the gutter), delta keeps the `diff
+>   --git`/`@@`/`---`/`+++` headers but prefixes every body line with a gutter
+>   (`  2 ⋮    │-grape`), pushing the `+`/`-` marker off the start of the line.
+>   So the body reads as all-context and the naive parse is *confidently wrong*,
+>   not merely absent. This is the gutter the §3.1 emit-spec already worried
+>   about — for #1 it's fatal. The fix is an integrity check, not gutter-aware
+>   parsing (see §8); the host stays layout-agnostic and falls back.
+> - **`diff-so-fancy` (even `--patch`) is *not* a #1 case.** It rewrites the
+>   headers (`modified: file`, `@ file:line @`) and **strips the `+`/`-` markers
+>   entirely**, so there's no unified-diff structure left. It belongs in the #2
+>   column with delta's default mode.
 
 `git diff --color` is squarely a #1 case (it only injects ANSI into a standard
 unified diff), **not** a #2 target. `git --word-diff` is the genuine odd one
@@ -79,7 +97,9 @@ fidelity out of delta's default rendering.
 | Rendering | #1 (parse) | #2 (emit) |
 |---|---|---|
 | no pager / `git diff --color` | ✅ | n/a (git won't emit) |
-| `delta --color-only`, `diff-so-fancy --patch` | ✅ | ✅ if patched |
+| `delta --color-only` (no line numbers) | ✅ | ✅ if patched |
+| `delta --color-only --line-numbers` | ❌ (gutter; see note above) | ✅ if patched |
+| `diff-so-fancy` / `--patch` (strips `+`/`-`) | ❌ | ✅ if patched |
 | delta default (color-conveyed side, gutters) | ❌ | ✅ if patched |
 | difftastic / side-by-side | ❌ | ✅ if patched |
 | `git --word-diff` | ❌ | ✅ if patched (out of scope) |
@@ -231,9 +251,21 @@ patch-find for added/context, PR `R` anchor).
 
 ## 6. Open questions
 
-- **`new-line` for a deleted line:** exact convention (presumably `newStart` +
-  #added/context above it in the hunk, i.e. the new-file position the deletion
-  sits at). All pagers must agree.
+- ~~**`new-line` for a deleted line:**~~ **RESOLVED (#1 prototype).** The
+  convention is exactly what `patch.LineNumberOfLine` already computes:
+  `newStart` + #(added/context) above the deletion within the hunk — the
+  new-file position the deletion sits at. Confirmed empirically: two consecutive
+  deletions both report `new-line` = that shared position (e.g. both `2`), and
+  are told apart only by `old-line` (`2` vs `3`). So a deleted line carries
+  *both* numbers; consumers pick (`old-line` for staging-land and the PR `L`
+  anchor, `new-line` for the editor). All pagers must agree on this for #2.
+- ~~**Multi-file split approach:**~~ **RESOLVED (#1 prototype).** Split the
+  buffer on `diff --git` boundaries to isolate the section for the file
+  containing the target row, then `patch.Parse` that single section: its patch
+  line indices line up 1:1 with the section's buffer lines, so the patch line
+  index is just `targetBufferIdx − fileStartIdx`. New/old line numbers and the
+  type then fall straight out of the patch arithmetic. The file path comes from
+  the section's `+++ b/…` line (falling back to `--- a/…`, then `diff --git`).
 - **Do headers carry line numbers?** `hunk-header` *could* carry old-start /
   new-start, but hunk boundaries are also derivable from coordinate
   discontinuities in the content lines, so it may be unnecessary. `file-header`
@@ -283,3 +315,68 @@ side-by-side mode — at render time. It's the biggest *external* unknown; if de
 structurally can't emit something, the spec must adapt. Read-only research, so it
 can run alongside #1. Still do #1 first: know what you *need* before checking what
 delta *can do*.
+
+---
+
+## 8. #1 prototype — built & verified
+
+Step 1 of the build order is done, at **prototype quality on the throwaway
+branch** `use-delta-hyperlinks-for-clicking-in-diff`. What it comprises:
+
+- **The data model is validated.** `types.DiffLineInfo {Path, Type
+  (file-header | hunk-header | context | added | deleted | other), NewLine,
+  OldLine}` — the same shape the #2 payload (§3.2) will carry. Building the
+  consumers against it confirmed the field set is right: `deleted` genuinely
+  needs *both* line numbers (see §6), `type` is load-bearing (the staging and PR
+  consumers branch on `deleted`), and nothing else was missing.
+- **The seam exists and has two real backends behind it.**
+  `StagingHelper.GetDiffLineInfo` tries the buffer parser first, then the old
+  `lazygit-edit://` hyperlink reader. This proves the seam is real (not a
+  single-backend wrapper) and shows the degradation story: the hyperlink reader
+  can't convey the side, so it reports `other`, which consumers treat as a
+  non-deletion — exactly the pre-existing behavior. #2 slots in *ahead* of both.
+- **The arithmetic is reused, plus old-file mirrors.** Added
+  `Patch.OldLineNumberOfLine` / `PatchLineForOldLineNumber` (mirrors of the
+  new-file functions) so a deletion lands on its exact patch line by old-file
+  number — this is what fixes the two-deletions/two-additions case.
+- **Layout-agnosticism is preserved by an integrity check, not gutter parsing.**
+  The host does **not** learn delta's gutter format. Instead `Patch.IsWellFormed`
+  checks each hunk's parsed body against its header-declared lengths; a gutter (or
+  any body-restructuring) makes them disagree, so the parse is rejected and the
+  seam falls back. This keeps "all layout knowledge stays in the pager" (§3.1)
+  intact for #1 too, and is the cleanest signal for *when* to fall back.
+
+**Verified** by feeding real pager output through gocui's actual escape parser
+(`gocui.NewView` + `View.Write`) and running the parser on every resulting line —
+i.e. against the bytes the live app would hold. Results drove the §2.3 coverage
+corrections: ✅ no-pager, `git diff --color`, `delta --color-only` (no line
+numbers), with consecutive deletions/additions landing distinctly; ❌ (clean
+fall-through) `delta --color-only --line-numbers`, `diff-so-fancy`, delta default.
+
+**Implications for #2 / the production plan:**
+
+- The `IsWellFormed`-style "is this really a unified diff?" gate is worth keeping
+  as the host's fallback trigger even once #2 exists (`#2 present → use it; else
+  parse if well-formed; else give up`).
+- delta-with-line-numbers is the *common* delta config (it's what the hyperlinks
+  feature needs), and #1 can't serve it — so it's a strong motivator for #2, and
+  a concrete case the delta patch must cover.
+- The path comes from `+++ b/…`/`--- a/…`/`diff --git`; git's C-quoting of
+  unusual paths is **not** handled (prototype). #2 should carry the path
+  explicitly (it already does, §3.2) and the production #1 path should decode
+  quoting.
+- **`View.BufferLineForViewLine` (and `HyperLinkInLine`, which it mirrors) can
+  return *stale* data, not only panic — fix when productionizing.** The guard
+  only rejects a `linesY` that's gone out of range of a shrunk `v.lines`. But if
+  a newer render task has *refilled* `v.lines` while `v.viewLines` still holds
+  the previous task's entries (kept deliberately, to avoid flicker), a `linesY`
+  that is still in range now points at the *new* buffer's content at that index —
+  so we silently map to the wrong line, no panic. Harmless in the prototype (the
+  focused main view is static while the user clicks/presses enter), but the
+  productionized read needs the view-line→buffer-line mapping to be consistent
+  with the buffer it then reads: e.g. snapshot `viewLines` *and* `lines` under one
+  lock and parse from that snapshot, or tie the read to the task that produced the
+  buffer. Both #1 (this mapping) and the #2 per-cell attachment read have to get
+  this right.
+- Still open (untouched by #1): the §3.x #2 wire-format questions, headers
+  carrying line numbers, difftastic specifics.
