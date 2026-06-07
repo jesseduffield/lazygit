@@ -272,9 +272,8 @@ patch-find for added/context, PR `R` anchor).
   needs no line numbers (the `file` field already attributes every line).
 - **difftastic specifics:** how many regions per row in practice, and where
   exactly it should emit each attachment.
-- **v1 wire format:** delimiter and encoding of an absent `old-line` (positional
-  vs. a minimal key/value within the version — note this is a *within-version*
-  choice, orthogonal to the versioning-vs-key/value extensibility decision).
+- ~~**v1 wire format:**~~ **RESOLVED (#2 prototype, §9).** Positional, `;`-delimited,
+  `file` last so it may itself contain `;`; an absent `old-line` is the empty field.
 - **Should the pager always emit, or only when the env var is set?** Leaning
   env-var-gated (zero cost when no consumer wants it; harmless outside a host).
 
@@ -380,3 +379,83 @@ fall-through) `delta --color-only --line-numbers`, `diff-so-fancy`, delta defaul
   this right.
 - Still open (untouched by #1): the §3.x #2 wire-format questions, headers
   carrying line numbers, difftastic specifics.
+
+---
+
+## 9. #2 prototype — delta de-risk + pinned v1 wire format
+
+Step 4 of the build order (the emitter side) is in progress on the same throwaway
+branch, **NORMAL (unified, single-column) mode only** — side-by-side deliberately
+ignored this iteration. Source: `/Users/stk/Stk/Dev/Builds/delta`.
+
+### 9.1 Delta de-risk (read-only) — all four fields are reachable, with one gotcha
+
+Where delta renders each unified-mode content line, and what it has there:
+
+- **The single per-line emit point is `Painter::paint_lines`** (`src/paint.rs`),
+  whose loop emits every content line (`output_buffer.push_str(&line)`). All three
+  unified content paths funnel through it: context via `paint_zero_line`, and
+  buffered minus/plus via `paint_buffered_minus_and_plus_lines` →
+  `paint_minus_and_plus_lines` (the non-`side_by_side` branch). **Side-by-side
+  calls `Painter::paint_line` (singular) directly and never goes through
+  `paint_lines`**, so threading metadata through `paint_lines` leaves the
+  out-of-scope side-by-side path untouched.
+- **`type`** is the `State` enum variant at the emit point (`HunkMinus` / `HunkPlus`
+  / `HunkZero`, plus `…Wrapped`). Reliable.
+- **`file`** is on the `StateMachine` as `plus_file` / `minus_file` (parsed from
+  `+++ b/…` / `--- a/…`). The hunk-header handler already uses the exact selection
+  we want: `if plus_file == "/dev/null" { minus_file } else { plus_file }`.
+- **`new-line` / `old-line`.** ⚠️ **The gotcha that shaped the design:** delta only
+  maintains its old/new line counters (`LineNumbersData.line_number`) **when
+  `--line-numbers` is enabled** — in delta's *default* mode (the #2 target!)
+  `Painter.line_numbers_data` is `None` and the counters never advance. So the
+  numbers are **not** sitting there for free; the patch must track its own
+  counters, seeded from the parsed hunk header (`@@ -old,len +new,len @@`, already
+  available as `ParsedHunkHeader.line_numbers_and_hunk_lengths`).
+- **Deleted lines carry both numbers** exactly as §6 resolved: at a `-` line the
+  new-file counter has *not* advanced past the preceding context/added lines, so it
+  already holds `newStart + #(added/context above)` — the new-file position the
+  deletion sits at. Mirrors `patch.LineNumberOfLine`.
+
+**Why not reuse delta's `LineNumbersData` (it already has the counters + `plus_file`
+and is already threaded to the emit point)?** Because forcing it `Some` in default
+mode to get the counters would also (a) render the gutter and (b) change
+wrap-width math (`wrapping.rs` reserves gutter width whenever it's `Some`). Both are
+layout changes. A **dedicated, purely-additive emitter** (only injects OSC bytes,
+never touches styling/width/wrapping) is both safer and cleaner, and its counter
+logic is a near-copy of `linenumbers_and_styles`.
+
+### 9.2 Pinned v1 wire format (placeholder OSC `456`)
+
+```
+ESC ] 456 ; <version> ; <type> ; <new-line> ; <old-line> ; <file> ST
+```
+
+- `ESC` = `0x1b`; `ST` = `ESC \` (`0x1b 0x5c`) — same framing as delta's OSC-8.
+- `<version>`: decimal; `1` for v1.
+- `<type>`: one char — `c` context · `a` added · `d` deleted. (Reserved for later:
+  `h` hunk-header, `f` file-header, `o` other. The prototype emits only `c`/`a`/`d`,
+  i.e. content lines; header rows get no attachment and the host falls back.)
+- `<new-line>`: decimal new-file line number; present on every content line.
+- `<old-line>`: decimal old-file line number; **empty** unless `type=d`.
+- `<file>`: repo-relative or absolute path; **last field on purpose** so it may
+  contain `;`. The host splits the payload into at most 5 fields and the path is
+  the remainder. Host normalizes via `RepoPaths.WorktreePath()` (not `RepoPath()`).
+
+**Env handshake (the one piece that can't be retrofitted):**
+`EMIT_OSC456_METADATA=V1[,V2,…]` — the host advertises the versions it understands;
+the pager emits the highest mutually-understood one. Unset (outside lazygit) ⇒
+pager emits nothing ⇒ harmless in a raw terminal / `less` / `tmux`. The prototype
+emits V1 when the advertised list contains `V1`.
+
+### 9.3 Deferred / known prototype limitations
+
+- **Terminal-source audit of the OSC number is DEFERRED** (§3.4). `456` is a
+  placeholder; before publishing, verify it against xterm/VTE/kitty/foot/WezTerm/
+  iTerm2/Windows Terminal and pick a high, distinctive final number.
+- **Wrapped continuation rows** (`Hunk*Wrapped`) get no attachment in the prototype
+  — only the primary content row does. Fine for the normal case (gocui's own
+  wrapping is handled host-side by the view-line→buffer-line mapping); delta-level
+  wrapping of one logical line into several rows is the unhandled case.
+- **Header rows** (`@@`, `diff --git`, `---`/`+++`) get no attachment; acting on a
+  header row falls through to #1, then to no-selection.
