@@ -283,7 +283,14 @@ patch-find for added/context, PR `R` anchor).
 
 The prototype is a learning vehicle, not production code: its two jobs are to
 **inform the final OSC spec** (which we want to publish for pager-developer
-feedback) and to **inform a from-scratch production plan**. Sequence:
+feedback) and to **inform a from-scratch production plan**.
+
+> **Status:** steps 1–4 are done and step 5 is end-to-end verified for the
+> NORMAL (unified, single-column) case — see §8 (#1) and §9 (#2). What remains of
+> step 5 is the *deliverables*: finalize and publish the spec, and write the
+> production plan. Side-by-side and difftastic are untouched.
+
+Sequence:
 
 1. **#1 prototype first** (§5) — the buffer parser plus the
    `(file, type, new-line, old-line?)` accessor seam, wired to the
@@ -306,7 +313,8 @@ feedback) and to **inform a from-scratch production plan**. Sequence:
 4. **#2 emitter side** — the delta patch; this is what stress-tests the spec
    against reality, side-by-side being the hard case (§3.5).
 5. **End-to-end → finalize the spec (publish for feedback) → write the
-   production plan.**
+   production plan.** End-to-end is **done** (§9.4); the spec and production
+   plan are the remaining deliverables.
 
 **Parallel de-risking (any time, doesn't block #1):** confirm by reading delta's
 source that it can produce the fields per region — for `-` lines and in
@@ -382,11 +390,15 @@ fall-through) `delta --color-only --line-numbers`, `diff-so-fancy`, delta defaul
 
 ---
 
-## 9. #2 prototype — delta de-risk + pinned v1 wire format
+## 9. #2 prototype — built & verified end-to-end
 
-Step 4 of the build order (the emitter side) is in progress on the same throwaway
-branch, **NORMAL (unified, single-column) mode only** — side-by-side deliberately
-ignored this iteration. Source: `/Users/stk/Stk/Dev/Builds/delta`.
+Build-order steps 2–5 are done at **prototype quality**, for the **NORMAL
+(unified, single-column) case only** (side-by-side deliberately ignored this
+iteration), end-to-end verified in the running app. The delta patch lives on
+branch `prototype-osc-metadata` in `/Users/stk/Stk/Dev/Builds/delta`; the host
+side is on `use-delta-hyperlinks-for-clicking-in-diff`. §9.1 records the delta
+de-risk, §9.2 the pinned wire format, §9.3 the deferred items, and §9.4 what was
+built and how it was verified.
 
 ### 9.1 Delta de-risk (read-only) — all four fields are reachable, with one gotcha
 
@@ -459,3 +471,53 @@ emits V1 when the advertised list contains `V1`.
   wrapping of one logical line into several rows is the unhandled case.
 - **Header rows** (`@@`, `diff --git`, `---`/`+++`) get no attachment; acting on a
   header row falls through to #1, then to no-selection.
+
+### 9.4 What was built, and how it was verified
+
+**Emitter (delta, branch `prototype-osc-metadata`).** A dedicated additive
+emitter (`src/features/diff_line_metadata.rs`) gated on `EMIT_OSC456_METADATA`:
+it tracks its own old/new counters (seeded at each hunk header, mirroring
+`LineNumbersData::initialize_hunk`, so it works in delta's default mode where the
+line-number counters are otherwise dormant) and is threaded through
+`Painter::paint_lines` next to `line_numbers_data`, prepending one OSC per
+content line. It only injects bytes — no styling/width/wrapping change — so with
+the var unset the output is byte-for-byte identical to stock delta (confirmed
+with `cat -v`).
+
+**Carrier (gocui).** The escape interpreter (`pkg/gocui/escape.go`) now
+accumulates the OSC number before dispatching (so multi-digit `456` is
+recognized alongside `8`), and a new `stateOSCMetadata` collects the payload. The
+payload is stamped onto each cell like a hyperlink (`pkg/gocui/view.go`) and read
+back via `DiffLineMetadataInLine`; it is cleared at each line boundary so it
+can't bleed onto a following line with no metadata (the pager never closes it).
+
+**Consumer (lazygit).** `parseDiffLineMetadata` (in `diff_line_parser.go`,
+alongside the #1 buffer parser, both producing `parsedDiffLine`) parses the
+payload; `StagingHelper.diffLineInfoFromMetadata` normalizes the path and it is
+tried **first** in `GetDiffLineInfo`, ahead of #1 and the hyperlink. The host
+advertises `EMIT_OSC456_METADATA=V1` on the pager subprocess in `newPtyTask`.
+
+**Verified.**
+- **Delta bytes** (real binary, `cat -v`): correct OSC per content line across
+  context/added/deleted, **two consecutive deletions sharing a new-line and
+  differing only in old-line** (the §6 case), multi-hunk re-seeding, and a
+  whole-file deletion (`/dev/null` → `minus_file`, new-line 0). Output byte-identical
+  to stock delta when the var is unset. All 71 touched delta unit tests pass.
+- **Carrier + parse** (unit tests): `TestDiffLineMetadata` drives synthetic OSC
+  through the real `View.Write` and asserts the per-line payloads, no header
+  bleed, and that the OSC bytes don't render; `TestParseDiffLineMetadata` covers
+  the payload parsing incl. semicolon-in-path, absolute path, and malformed
+  rejections.
+- **Real binary → gocui → parse** (throwaway test, since it needs the local
+  delta build): ran the patched delta in **default mode** with lazygit's env on a
+  real diff, fed the output through a real `View`, and recovered the correct
+  `(file, type, new, old)` for every content row including both deletions.
+- **In the running app** (`just debug`, manual): with delta's **default mode**
+  (which #1 cannot parse and which emits no hyperlinks), clicking / `enter` / `e`
+  / `G` resolve correctly via #2 — including the side for deletions, which #1 +
+  hyperlinks cannot convey.
+
+**Next (deliverables, not yet done):** finalize and publish the OSC spec for
+pager developers (after the §3.4 terminal audit picks the real OSC number), and
+write the from-scratch production plan. Then extend coverage to side-by-side and
+difftastic (multiple regions per row, §3.1), which this iteration ignored.
