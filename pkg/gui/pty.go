@@ -102,6 +102,13 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 		cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
 
+		// Advertise to a metadata-aware pager (e.g. a patched delta) the diff-line
+		// metadata protocol versions we understand, so it annotates each line with
+		// an OSC sequence we can read back (see diff-line-metadata-notes.md). A
+		// pager that doesn't understand it ignores the variable, so this is safe to
+		// set unconditionally.
+		cmd.Env = append(cmd.Env, "EMIT_OSC456_METADATA=V1")
+
 		manager := gui.getManager(view)
 
 		// Size the pty from the view's dimensions here, on the UI thread; the
