@@ -159,6 +159,43 @@ func TestAutoRenderingHyperlinks(t *testing.T) {
 	assert.Equal(t, "https://example.com", v.lines[0].cells[0].hyperlink)
 }
 
+func TestDiffLineMetadata(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// Synthetic delta-style output: each content line is prefixed with an
+	// OSC 456 sequence carrying version;type;new;old;file (old empty unless a
+	// deletion), and the OSC bytes themselves must not become visible cells. The
+	// final line is a header with no OSC, to prove the metadata doesn't bleed.
+	osc := func(payload string) string { return "\x1b]456;" + payload + "\x1b\\" }
+	v.writeString(strings.Join([]string{
+		osc("1;c;1;;foo.txt") + "line1",
+		osc("1;d;2;2;foo.txt") + "old2",
+		osc("1;a;2;;foo.txt") + "new2",
+		"@@ a header line with no metadata @@",
+	}, "\n"))
+
+	type result struct {
+		payload string
+		ok      bool
+	}
+	got := make([]result, len(v.lines))
+	for y := range v.lines {
+		payload, ok := v.DiffLineMetadataInLine(y)
+		got[y] = result{payload, ok}
+	}
+
+	assert.Equal(t, []result{
+		{"1;c;1;;foo.txt", true},
+		{"1;d;2;2;foo.txt", true},
+		{"1;a;2;;foo.txt", true},
+		{"", false}, // the header line carries no metadata (no bleed)
+	}, got)
+
+	// The OSC sequence is consumed as an escape, so the visible text is intact.
+	assert.Equal(t, "line1", v.BufferLines()[0])
+	assert.Equal(t, "@@ a header line with no metadata @@", v.BufferLines()[3])
+}
+
 func TestContainsColoredText(t *testing.T) {
 	hexColor := func(text string, hexStr string) []cell {
 		cells := make([]cell, len(text))
