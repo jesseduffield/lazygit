@@ -256,6 +256,11 @@ type GitConfig struct {
 	// Array of pagers. Each entry has the following format:
 	// [dev] The following documentation is duplicated from the PagingConfig struct below.
 	//
+	//   # A name for the pager, shown in the notification when cycling pagers.
+	//   # If not set, the name is derived from the first word of the pager
+	//   # command (or of the external diff command).
+	//   name: ""
+	//
 	//   # Value of the --color arg in the git diff command. Some pagers want
 	//   # this to be set to 'always' and some want it set to 'never'
 	//   colorArg: "always"
@@ -347,6 +352,8 @@ func (PagerType) JSONSchemaExtend(schema *jsonschema.Schema) {
 
 // [dev] This documentation is duplicated in the GitConfig struct. If you make changes here, make them there too.
 type PagingConfig struct {
+	// A name for the pager, shown in the notification when cycling pagers. If not set, the name is derived from the first word of the pager command (or of the external diff command).
+	Name string `yaml:"name"`
 	// Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'
 	ColorArg string `yaml:"colorArg" jsonschema:"enum=always,enum=never"`
 	// e.g.

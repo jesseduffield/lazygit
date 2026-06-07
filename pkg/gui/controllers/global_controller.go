@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"fmt"
+	"strconv"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type GlobalController struct {
@@ -166,8 +167,21 @@ func (self *GlobalController) cyclePagers() error {
 		currentSide.HandleRenderToMain()
 	}
 
-	current, total := self.c.State().GetPagerConfig().CurrentPagerIndex()
-	self.c.Toast(fmt.Sprintf("Selected pager %d of %d", current+1, total))
+	pagerConfig := self.c.State().GetPagerConfig()
+	current, total := pagerConfig.CurrentPagerIndex()
+	name := pagerConfig.CurrentPagerName()
+	if name == "" {
+		if pagerConfig.CurrentPagerUsesGitConfigDiff() {
+			name = self.c.Tr.ExternalDiffPagerName
+		} else {
+			name = self.c.Tr.DefaultPagerName
+		}
+	}
+	self.c.Toast(utils.ResolvePlaceholderString(self.c.Tr.SelectedPager, map[string]string{
+		"name":    name,
+		"current": strconv.Itoa(current + 1),
+		"total":   strconv.Itoa(total),
+	}))
 	return nil
 }
 

@@ -608,6 +608,9 @@ type TranslationSet struct {
 	CyclePagers                           string
 	CyclePagersTooltip                    string
 	CyclePagersDisabledReason             string
+	SelectedPager                         string
+	DefaultPagerName                      string
+	ExternalDiffPagerName                 string
 	StartSearch                           string
 	StartFilter                           string
 	SelectRemoteRepository                string
@@ -1739,6 +1742,9 @@ func EnglishTranslationSet() *TranslationSet {
 		CyclePagers:                      "Cycle pagers",
 		CyclePagersTooltip:               "Choose the next pager in the list of configured pagers.",
 		CyclePagersDisabledReason:        "No other pagers configured",
+		SelectedPager:                    "Pager: {{.name}} ({{.current}} of {{.total}})",
+		DefaultPagerName:                 "(default)",
+		ExternalDiffPagerName:            "(external diff)",
 		StartSearch:                      "Search the current view by text",
 		StartFilter:                      "Filter the current view by text",
 		SelectRemoteRepository:           "Select base repository for pull requests",
