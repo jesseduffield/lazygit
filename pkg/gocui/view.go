@@ -473,6 +473,9 @@ type cell struct {
 	width            int    // number of terminal cells occupied by chr (always 1 or 2)
 	bgColor, fgColor Attribute
 	hyperlink        string
+	// per-line diff metadata from an OSC 456 sequence (see
+	// diff-line-metadata-notes.md); empty unless a pager emitted it
+	metadata string
 }
 
 type cells []cell
@@ -823,6 +826,10 @@ func (v *View) write(p []byte) {
 		if v.wy >= len(v.lines) {
 			v.lines = append(v.lines, lineType{})
 		}
+		// An OSC 456 diff-metadata sequence applies only to the line it prefixes
+		// (the pager re-emits one per line and never closes it), so drop it at the
+		// line boundary rather than letting it carry onto a line with no metadata.
+		v.ei.metadata.Reset()
 	}
 
 	if v.pendingNewline {
@@ -992,6 +999,7 @@ func (v *View) parseInput(ch []byte, width int, x int, _ int) (bool, []cell) {
 			fgColor:   v.ei.curFgColor,
 			bgColor:   v.ei.curBgColor,
 			hyperlink: v.ei.hyperlink.String(),
+			metadata:  v.ei.metadata.String(),
 			chr:       string(ch),
 			width:     width,
 		}
@@ -1557,9 +1565,42 @@ func (v *View) HyperLinkInLine(y int, urlScheme string) (string, bool) {
 		return "", false
 	}
 
-	for _, c := range  v.lines[linesY].cells {
+	for _, c := range v.lines[linesY].cells {
 		if strings.HasPrefix(c.hyperlink, urlScheme) {
 			return c.hyperlink, true
+		}
+	}
+
+	return "", false
+}
+
+// DiffLineMetadataInLine returns the OSC 456 per-line diff metadata payload
+// attached to the given (wrapped) view line, if a pager emitted one. In the
+// single-column case every cell of the line carries the same payload, so the
+// first non-empty one is the answer. See diff-line-metadata-notes.md.
+func (v *View) DiffLineMetadataInLine(y int) (string, bool) {
+	// Take the lock so we don't race a concurrent re-render that is rebuilding the
+	// buffer.
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+
+	if y < 0 || y >= len(v.viewLines) {
+		return "", false
+	}
+
+	// refreshViewLinesIfNeeded overwrites viewLines in place without truncating,
+	// so while a shorter re-render is loading, the tail of viewLines can still
+	// hold stale entries pointing past the (shrunk) v.lines. Guard against that.
+	linesY := v.viewLines[y].linesY
+	if linesY >= len(v.lines) {
+		return "", false
+	}
+
+	for _, c := range v.lines[linesY].cells {
+		if c.metadata != "" {
+			return c.metadata, true
 		}
 	}
 
