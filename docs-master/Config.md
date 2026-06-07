@@ -675,6 +675,7 @@ keybinding:
     nextScreenMode: +
     prevScreenMode: _
     cyclePagers: '|'
+    cyclePagersReverse: \
     undo: z
     redo: Z
     filteringMenu: <ctrl+s>

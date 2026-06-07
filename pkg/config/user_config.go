@@ -511,6 +511,7 @@ type KeybindingUniversalConfig struct {
 	NextScreenMode          Keybinding `yaml:"nextScreenMode"`
 	PrevScreenMode          Keybinding `yaml:"prevScreenMode"`
 	CyclePagers             Keybinding `yaml:"cyclePagers"`
+	CyclePagersReverse      Keybinding `yaml:"cyclePagersReverse"`
 	Undo                    Keybinding `yaml:"undo"`
 	Redo                    Keybinding `yaml:"redo"`
 	FilteringMenu           Keybinding `yaml:"filteringMenu"`
@@ -1019,6 +1020,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				NextScreenMode:                    Keybinding{"+"},
 				PrevScreenMode:                    Keybinding{"_"},
 				CyclePagers:                       Keybinding{"|"},
+				CyclePagersReverse:                Keybinding{"\\"},
 				Undo:                              Keybinding{"z"},
 				Redo:                              Keybinding{"Z"},
 				FilteringMenu:                     Keybinding{"<ctrl+s>"},

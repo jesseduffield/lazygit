@@ -23,6 +23,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` + `` | 下一屏模式(正常/半屏/全屏) |  |
 | `` _ `` | 上一屏模式 |  |
 | `` \| `` | 切换分页器 | 从已配置的分页器列表中选择下一个分页器 |
+| `` \ `` | Cycle pagers (reverse) | Choose the previous pager in the list of configured pagers. |
 | `` <esc> `` | 取消 |  |
 | `` ? `` | 打开菜单 |  |
 | `` <ctrl+s> `` | 查看按路径过滤选项 | 查看用于过滤提交日志的选项，以便仅显示与过滤器匹配的提交。 |

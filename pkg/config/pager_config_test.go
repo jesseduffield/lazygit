@@ -55,3 +55,28 @@ func TestCurrentPagerNameWithoutPagers(t *testing.T) {
 
 	assert.Equal(t, "", config.CurrentPagerName())
 }
+
+func TestCyclePagers(t *testing.T) {
+	userConfig := &UserConfig{}
+	userConfig.Git.Pagers = []PagingConfig{{Name: "a"}, {Name: "b"}, {Name: "c"}}
+	config := NewPagerConfig(func() *UserConfig { return userConfig })
+
+	currentIndex := func() int {
+		index, _ := config.CurrentPagerIndex()
+		return index
+	}
+
+	assert.Equal(t, 0, currentIndex())
+
+	config.CyclePagers()
+	assert.Equal(t, 1, currentIndex())
+	config.CyclePagers()
+	assert.Equal(t, 2, currentIndex())
+	config.CyclePagers()
+	assert.Equal(t, 0, currentIndex(), "cycling forward past the last pager wraps to the first")
+
+	config.CyclePagersBackward()
+	assert.Equal(t, 2, currentIndex(), "cycling backward past the first pager wraps to the last")
+	config.CyclePagersBackward()
+	assert.Equal(t, 1, currentIndex())
+}

@@ -23,6 +23,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` + `` | 次の画面モード（通常/半分/全画面） |  |
 | `` _ `` | 前の画面モード |  |
 | `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers. |
+| `` \ `` | Cycle pagers (reverse) | Choose the previous pager in the list of configured pagers. |
 | `` <esc> `` | キャンセル |  |
 | `` ? `` | キーバインディングメニューを開く |  |
 | `` <ctrl+s> `` | フィルターオプションを表示 | コミットログのフィルタリングオプションを表示し、フィルタに一致するコミットのみを表示します。 |

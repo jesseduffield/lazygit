@@ -69,6 +69,13 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Tooltip:           self.c.Tr.CyclePagersTooltip,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Universal.CyclePagersReverse),
+			Handler:           opts.Guards.NoPopupPanel(self.cyclePagersBackward),
+			GetDisabledReason: self.canCyclePagers,
+			Description:       self.c.Tr.CyclePagersReverse,
+			Tooltip:           self.c.Tr.CyclePagersReverseTooltip,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Return),
 			Handler:           self.escape,
 			Description:       self.c.Tr.Cancel,
@@ -159,6 +166,12 @@ func (self *GlobalController) prevScreenMode() error {
 
 func (self *GlobalController) cyclePagers() error {
 	self.c.State().GetPagerConfig().CyclePagers()
+	self.onPagerChanged()
+	return nil
+}
+
+func (self *GlobalController) cyclePagersBackward() error {
+	self.c.State().GetPagerConfig().CyclePagersBackward()
 	self.onPagerChanged()
 	return nil
 }

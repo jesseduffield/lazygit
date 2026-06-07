@@ -78,6 +78,11 @@ func (self *PagerConfig) CyclePagers() {
 	self.pagerIndex = (self.pagerIndex + 1) % len(self.getUserConfig().Git.Pagers)
 }
 
+func (self *PagerConfig) CyclePagersBackward() {
+	n := len(self.getUserConfig().Git.Pagers)
+	self.pagerIndex = (self.pagerIndex - 1 + n) % n
+}
+
 func (self *PagerConfig) CurrentPagerIndex() (int, int) {
 	return self.pagerIndex, len(self.getUserConfig().Git.Pagers)
 }

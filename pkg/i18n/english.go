@@ -607,6 +607,8 @@ type TranslationSet struct {
 	PrevScreenMode                        string
 	CyclePagers                           string
 	CyclePagersTooltip                    string
+	CyclePagersReverse                    string
+	CyclePagersReverseTooltip             string
 	CyclePagersDisabledReason             string
 	SelectedPager                         string
 	DefaultPagerName                      string
@@ -1741,6 +1743,8 @@ func EnglishTranslationSet() *TranslationSet {
 		PrevScreenMode:                   "Prev screen mode",
 		CyclePagers:                      "Cycle pagers",
 		CyclePagersTooltip:               "Choose the next pager in the list of configured pagers.",
+		CyclePagersReverse:               "Cycle pagers (reverse)",
+		CyclePagersReverseTooltip:        "Choose the previous pager in the list of configured pagers.",
 		CyclePagersDisabledReason:        "No other pagers configured",
 		SelectedPager:                    "Pager: {{.name}} ({{.current}} of {{.total}})",
 		DefaultPagerName:                 "(default)",

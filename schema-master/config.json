@@ -3127,6 +3127,20 @@
           ],
           "default": "|"
         },
+        "cyclePagersReverse": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\\"
+        },
         "undo": {
           "oneOf": [
             {

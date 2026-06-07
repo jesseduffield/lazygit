@@ -23,6 +23,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` + `` | Next screen mode (normal/half/fullscreen) |  |
 | `` _ `` | Prev screen mode |  |
 | `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers. |
+| `` \ `` | Cycle pagers (reverse) | Choose the previous pager in the list of configured pagers. |
 | `` <esc> `` | Cancel |  |
 | `` ? `` | Open keybindings menu |  |
 | `` <ctrl+s> `` | View filter options | View options for filtering the commit log, so that only commits matching the filter are shown. |
