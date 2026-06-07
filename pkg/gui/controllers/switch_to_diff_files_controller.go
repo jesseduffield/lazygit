@@ -4,6 +4,8 @@ import (
 	"path/filepath"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+
+	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -48,6 +50,46 @@ func (self *SwitchToDiffFilesController) GetKeybindings(opts types.KeybindingsOp
 	}
 
 	return bindings
+}
+
+func (self *SwitchToDiffFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
+	return func(mainViewName string, clickedLineIdx int) error {
+		clickedFile, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(mainViewName, clickedLineIdx)
+		if !ok {
+			return nil
+		}
+
+		// Capture before self.enter() pushes the commit files panel, which
+		// re-renders the main view. We escape "all the way out" to this side
+		// panel (skipping the commit files panel), then focus the main view.
+		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context, clickedLineIdx)
+
+		if err := self.enter(); err != nil {
+			return err
+		}
+
+		context := self.c.Contexts().CommitFiles
+		var node *filetree.CommitFileNode
+
+		relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), clickedFile)
+		if err != nil {
+			return err
+		}
+		relativePath = "./" + relativePath
+		context.CommitFileTreeViewModel.ExpandToPath(relativePath)
+		self.c.PostRefreshUpdate(context)
+
+		idx, ok := context.CommitFileTreeViewModel.GetIndexForPath(relativePath)
+		if !ok {
+			return nil
+		}
+
+		context.SetSelectedLineIdx(idx)
+		context.GetViewTrait().FocusPoint(
+			context.ModelIndexToViewIndex(idx), false)
+		node = context.GetSelected()
+		return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, SelectLineInDefaultMode: true})
+	}
 }
 
 func (self *SwitchToDiffFilesController) Context() types.Context {

@@ -32,9 +32,76 @@ func (self *PatchBuildingHelper) ShowHunkStagingHint() {
 	}
 }
 
-// takes us from the patch building panel back to the commit files panel
+// takes us from the patch building panel back to the commit files panel, or to
+// the focused main view if that's where we entered it from
 func (self *PatchBuildingHelper) Escape() {
-	self.c.Context().Pop()
+	EscapeFromPatchExplorer(self.c, self.c.Contexts().CustomPatchBuilder)
+}
+
+// EscapeFromPatchExplorer returns from a patch explorer context (staging or
+// patch building). If we entered it from a focused main view, we go back to
+// where we came from (re-rendering the side panel's content into the main view,
+// like the plain escape does), then focus the main view and restore its scroll
+// position and selection. Otherwise we just pop to the side panel.
+func EscapeFromPatchExplorer(c *HelperCommon, context types.IPatchExplorerContext) {
+	snapshot := context.GetFocusedMainViewSnapshot()
+	if snapshot == nil {
+		c.Context().Pop()
+		return
+	}
+
+	context.SetFocusedMainViewSnapshot(nil)
+
+	// Restore the side panel's selection before we render it, so it shows the
+	// same content the main view had (diving into staging can change it, e.g.
+	// from a directory to a file in the files panel).
+	if listContext, ok := snapshot.SidePanel.(types.IListContext); ok && snapshot.SidePanelSelectedLineIdx >= 0 {
+		listContext.GetList().SetSelectedLineIdx(snapshot.SidePanelSelectedLineIdx)
+	}
+
+	view := snapshot.MainView.GetView()
+
+	// Ask the upcoming re-render to restore the scroll position. Pushing the side
+	// panel re-renders its content into the main view via a cmd/pty task. Until
+	// that content is ready, the main view keeps showing the placeholder that
+	// CopyContent left in it (the view we're leaving) at its current scroll; the
+	// task then scrolls to the saved position as part of the first paint that
+	// shows the real content. Doing it this way (rather than setting the origin up
+	// front) avoids both a jump to the top and a misplaced placeholder frame.
+	if manager := c.GetViewBufferManagerForView(view); manager != nil {
+		manager.ScrollToOriginYForNextTask(snapshot.OriginY)
+	}
+
+	// Land on the side panel first (this re-renders the original content into the
+	// main view), then focus the main view on top of it.
+	c.Context().Push(snapshot.SidePanel, types.OnFocusOpts{})
+	c.Context().Push(snapshot.MainView, types.OnFocusOpts{})
+
+	restore := func() {
+		view.FocusPoint(0, snapshot.SelectedLineIdx, false)
+		view.Highlight = true
+		view.HighlightInactive = false
+	}
+
+	// The scroll position is handled by the re-render above, but the selection
+	// still needs the content loaded down to the selected line, which happens
+	// asynchronously. Wait until the diff has been fully read before restoring
+	// it. We do this on the next UI tick, by which point the re-render task is
+	// live and ReadToEnd can hook into it.
+	c.OnUIThread(func() error {
+		manager := c.GetViewBufferManagerForView(view)
+		if manager == nil {
+			restore()
+			return nil
+		}
+		manager.ReadToEnd(func() {
+			c.OnUIThread(func() error {
+				restore()
+				return nil
+			})
+		})
+		return nil
+	})
 }
 
 // kills the custom patch and returns us back to the commit files panel if needed
@@ -56,8 +123,10 @@ func (self *PatchBuildingHelper) Reset() error {
 
 func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpts) {
 	selectedLineIdx := -1
+	selectedRealLineIdx := -1
 	if opts.ClickedWindowName == "main" {
 		selectedLineIdx = opts.ClickedViewLineIdx
+		selectedRealLineIdx = opts.ClickedViewRealLineIdx
 	}
 
 	if !self.c.Git().Patch.PatchBuilder.Active() {
@@ -89,7 +158,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 
 	oldState := context.GetState()
 
-	state := patch_exploring.NewState(diff, selectedLineIdx, context.GetView(), oldState, self.c.UserConfig().Gui.UseHunkModeInStagingView)
+	state := patch_exploring.NewState(diff, selectedLineIdx, selectedRealLineIdx, context.GetView(), oldState, self.c.UserConfig().Gui.UseHunkModeInStagingView, opts.SelectLineInDefaultMode)
 	context.SetState(state)
 	if state == nil {
 		self.Escape()

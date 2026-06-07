@@ -361,11 +361,37 @@ func (self *FilesController) GetOnDoubleClick() func() error {
 
 func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
 	return func(mainViewName string, clickedLineIdx int) error {
-		node := self.getSelectedItem()
-		if node != nil && node.File != nil {
-			return self.EnterFile(types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
+		// Capture before any mutation below that might re-render the main view.
+		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context(), clickedLineIdx)
+
+		clickedFile, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(mainViewName, clickedLineIdx)
+		if !ok {
+			line = -1
 		}
-		return nil
+
+		node := self.context().GetSelected()
+		if node == nil {
+			return nil
+		}
+
+		if !node.IsFile() && ok {
+			relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), clickedFile)
+			if err != nil {
+				return err
+			}
+			relativePath = "./" + relativePath
+			self.context().FileTreeViewModel.ExpandToPath(relativePath)
+			self.c.PostRefreshUpdate(self.context())
+
+			idx, ok := self.context().FileTreeViewModel.GetIndexForPath(relativePath)
+			if ok {
+				self.context().SetSelectedLineIdx(idx)
+				self.context().GetViewTrait().FocusPoint(
+					self.context().ModelIndexToViewIndex(idx), false)
+			}
+		}
+
+		return self.EnterFile(snapshot, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, SelectLineInDefaultMode: true})
 	}
 }
 
@@ -652,7 +678,7 @@ func (self *FilesController) getSelectedFile() *models.File {
 }
 
 func (self *FilesController) enter() error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
+	return self.EnterFile(nil, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1, ClickedViewRealLineIdx: -1})
 }
 
 func (self *FilesController) collapseAll() error {
@@ -671,7 +697,11 @@ func (self *FilesController) expandAll() error {
 	return nil
 }
 
-func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
+// focusedMainViewSnapshot records the focused main view to return to when
+// escaping the staging view, for the case where we're entering it straight from
+// there; it's nil for the normal flow that goes through the files panel. See
+// types.FocusedMainViewSnapshot.
+func (self *FilesController) EnterFile(focusedMainViewSnapshot *types.FocusedMainViewSnapshot, opts types.OnFocusOpts) error {
 	node := self.context().GetSelected()
 	if node == nil {
 		return nil
@@ -697,6 +727,9 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 	}
 
 	context := lo.Ternary(opts.ClickedWindowName == "secondary", self.c.Contexts().StagingSecondary, self.c.Contexts().Staging)
+	// Set on every entry (so it can't leak from a previous main-view entry into a
+	// subsequent normal one), right as we push the staging view.
+	context.SetFocusedMainViewSnapshot(focusedMainViewSnapshot)
 	self.c.Context().Push(context, opts)
 	self.c.Helpers().PatchBuilding.ShowHunkStagingHint()
 
@@ -1360,7 +1393,7 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 }
 
 func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
+	return self.EnterFile(nil, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
 }
 
 func (self *FilesController) fetch() error {

@@ -45,7 +45,7 @@ const (
 	HUNK
 )
 
-func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *State, useHunkModeByDefault bool) *State {
+func NewState(diff string, selectedLineIdx int, selectedRealLineIdx int, view *gocui.View, oldState *State, useHunkModeByDefault bool, selectLineInDefaultMode bool) *State {
 	if oldState != nil && diff == oldState.diff && selectedLineIdx == -1 {
 		// if we're here then we can return the old state. If selectedLineIdx was not -1
 		// then that would mean we were trying to click and potentially drag a range, which
@@ -60,6 +60,14 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 	}
 
 	viewLineIndices, patchLineIndices := wrapPatchLines(diff, view)
+
+	if selectedRealLineIdx != -1 {
+		// PatchLineForLineNumber returns a patch line index, but selectedLineIdx
+		// is in view-line (wrapped) space, so convert it. Without this the
+		// landing line is off by the number of wrapped lines above it.
+		patchLineIdx := patch.PatchLineForLineNumber(selectedRealLineIdx)
+		selectedLineIdx = viewLineIndices[lo.Clamp(patchLineIdx, 0, len(viewLineIndices)-1)]
+	}
 
 	rangeStartLineIdx := 0
 	if oldState != nil {
@@ -76,14 +84,28 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 		userEnabledHunkMode = oldState.userEnabledHunkMode
 	}
 
-	// if we have clicked from the outside to focus the main view we'll pass in a non-negative line index so that we can instantly select that line
+	// A non-negative line index means we were given a specific line to select:
+	// either by clicking or pressing enter on a line in a focused main view, or
+	// by clicking directly on the patch explorer view to focus it.
 	if selectedLineIdx >= 0 {
 		// Clamp to the number of wrapped view lines; index might be out of
 		// bounds if a custom pager is being used which produces more lines
-		selectedLineIdx = min(selectedLineIdx, len(viewLineIndices)-1)
+		selectedLineIdx = min(selectedLineIdx, len(patchLineIndices)-1)
 
-		selectMode = RANGE
-		rangeStartLineIdx = selectedLineIdx
+		if selectLineInDefaultMode {
+			// Diving in from a focused main view: keep the default select mode
+			// computed above. In hunk mode the selection covers the block of
+			// changes around the line, so snap to a change line if the given one
+			// is a context line (just as toggling hunk mode does).
+			if selectMode == HUNK {
+				selectedLineIdx = viewLineIndices[patch.GetNextChangeIdx(patchLineIndices[selectedLineIdx])]
+			}
+		} else {
+			// Clicking directly on the view starts a range selection that can be
+			// extended by dragging.
+			selectMode = RANGE
+			rangeStartLineIdx = selectedLineIdx
+		}
 	} else if oldState != nil {
 		// if we previously had a selectMode of RANGE, we want that to now be line again (or hunk, if that's the default)
 		if oldState.selectMode != RANGE {

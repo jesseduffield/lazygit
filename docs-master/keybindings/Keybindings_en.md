@@ -223,6 +223,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel up> (fn+down) `` | Scroll up |  |
 | `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` <space> `` | Show/hide selection |  |
 | `` / `` | Search the current view by text |  |
 
 ## Main panel (patch building)
@@ -328,6 +329,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` <space> `` | Show/hide selection |  |
 | `` / `` | Search the current view by text |  |
 
 ## Stash

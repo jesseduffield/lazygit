@@ -1,0 +1,614 @@
+# Focused main view — session notes
+
+A working document capturing everything we discussed, built, and learned in this
+session. It is meant as a **starting point for future sessions**, which might:
+
+1. **Continue** solving the problem we were in the middle of (restoring scroll +
+   selection when escaping back to a focused main view) — still at prototype
+   quality.
+2. **Enhance** the prototype with a few more missing pieces.
+3. **Productionize** the whole thing: better quality, a clean commit history, and
+   tests. (We did *not* make that plan; this doc gives a future session enough
+   context to make it.)
+
+> Status at end of **session 3** (the latest): branch
+> `use-delta-hyperlinks-for-clicking-in-diff`. The escape scroll/selection
+> restore is **implemented and committed** — at normal speed there is **no
+> visible flicker**. Session 3 implemented §6's proposed fix (a cmd/pty analogue
+> of `RenderStringWithScrollTask`), discovered and fixed a *second* cause of the
+> top-flicker (the scroll-reset loop in `refreshMainViews` ran *before*
+> `CopyContent`), and corrected session 2's belief that the `onNewKey`
+> suppression could be dropped (it can't — it's folded into the same mechanism).
+> Full story in the new **§11**, which supersedes §6's "correct fix" subsection.
+> The working tree is now **clean** (everything committed); the tree builds, is
+> `gofumpt`-clean, unit tests pass, and `e2e-all` is green except one
+> pre-existing **direnv-environmental** worktree test.
+>
+> **What's left before productionizing:** under `LAZYGIT_SLOW_RENDER` a few
+> imperfect intermediate frames still appear *occasionally* — real timing races
+> we agreed to investigate and eliminate (not paper over with "fine at normal
+> speed"). See §11 "Remaining timing races". Memory:
+> `focused-main-view-flicker-timing-races`.
+
+---
+
+## 1. The big picture: what this feature is
+
+lazygit has a "focused main view": you press `0` (`Universal.FocusMainView`),
+or click, to move focus from a side panel (files, commits, commit-files,
+stash, branches, …) **into the main view** that shows its diff, so you can
+scroll and interact with the diff itself. The branch builds this out into a
+real interaction model:
+
+- A **selection** can be shown in the focused main view (a highlighted line),
+  toggled on demand.
+- With a selection showing you can:
+  - **`enter` / double-click** → dive into staging (files) or patch building
+    (commits / commit-files) **for the clicked line**.
+  - **`e`** → edit that line in your editor (like the staging view's `e`).
+  - **`G`** → open the selected line in the current branch's GitHub PR diff
+    (so you can comment on it).
+- **Clicking** sets the selection at the clicked line; **double-click**
+  activates (dives in). `0` focuses *without* a selection (scroll mode).
+
+This all relies on `delta` emitting `lazygit-edit://<path>:<line>` OSC-8
+hyperlinks in the rendered diff (hence the branch name); lazygit parses those
+to know which file/line a view line corresponds to.
+
+---
+
+## 2. Branch state
+
+Branch: `use-delta-hyperlinks-for-clicking-in-diff` (off lazygit master). **The
+working tree is clean — everything is committed.** The branch was **rebased**
+in session 3 (SHAs below are current): the `LAZYGIT_SLOW_RENDER` knob was moved
+to the **base** of the branch (so it can be tested against master), and the
+`SetOriginX/Y` chokepoint refactor was squashed into one commit.
+
+### Current commit list (most recent first), `master..HEAD`:
+
+```
+625e7dbad Restore scroll and selection seamlessly when escaping to a focused main view   ← session 3
+054d139fe Let a cmd/pty task restore a saved scroll position at its first paint           ← session 3
+7f547a5a3 Reset other main views' scroll after copying content, not before                ← session 3
+fe79d18b6 Route all view origin writes through SetOriginX and SetOriginY                  ← session 3 (chokepoint refactor; candidate for master)
+89e6f6b14 Session notes: corrected flicker diagnosis and the 3 bug fixes
+86f4b3486 Fire queued ReadToEnd callbacks when the initial read reaches EOF               ← session 2 bug fix
+b7470af27 Don't scroll a view up to fill blank space while its content is loading         ← session 2 bug fix
+788d959ad Lock the view and guard the line index when reading a hyperlink                 ← session 2 bug fix
+63221c3dd Session notes
+5f500893a WIP FocusedMainViewSnapshot approach                                            ← WIP (needs rework)
+207927e0d WIP New click behavior                                                          ← WIP (needs rework)
+385d2e9dd Open a browser at the selected line in the diff of the current branch's PR
+c5dd8ddc6 Press `e` in focused main view (when selection is showing) to edit that line
+55922f81a Replace gui.showSelectionInFocusedMainView config with on-demand selection
+877812c6a WIP After going straight to patch building from main view, esc goes all the way back out  ← WIP (needs rework)
+0088f26c1 Press enter in main view of commits panel to enter patch building for clicked line
+ec50f3122 Extract some functions from CommitFilesController to a new CommitFilesHelper
+ed2015cac Press enter in main view of files/commitFiles to enter staging/patch-building
+1e5f31dd6 Select line that is in the middle of the screen
+fff7a0d19 Press enter in focused main view when user config is on
+8a26bebbb Add user config gui.showSelectionInFocusedMainView
+ed48988a9 Add LAZYGIT_SLOW_RENDER debug knob for watching async render frames               ← base; candidate for master
+```
+
+The three **`WIP`** commits and the heavily-iterated `FocusedMainViewSnapshot`
+machinery will need re-sequencing for productionization (see §8). The two
+clearly-standalone, master-worthy commits (`ed48988a9` slow-render at the base,
+`fe79d18b6` the `SetOriginX/Y` chokepoint) are deliberately isolated so they can
+be cherry-picked off.
+
+---
+
+## 3. Architecture primer (what we learned about lazygit internals)
+
+### Contexts, the stack, and `NextInStack`
+
+- Each panel/view is a **context**. The `ContextMgr` keeps a **stack**
+  (`pkg/gui/context.go`). `Push`/`Pop` manage it. Kinds: `SIDE_CONTEXT`,
+  `MAIN_CONTEXT`, popups, etc.
+- Pushing a `SIDE_CONTEXT` **wipes the stack** down to just it. Pushing a
+  `MAIN_CONTEXT` **evicts other main contexts** but keeps non-main ones beneath.
+  Only **one main context** is ever on the stack at a time.
+- A focused main view's "side panel" is found via
+  **`ContextMgr.NextInStack(ctx)`** — the entry just below it on the stack.
+  This was introduced on master in commit `bbd17abc43a`
+  ("Add ContextMgr.NextInStack…") specifically to **stop abusing the
+  parent-context mechanism** for this. Earlier prototype code on this branch
+  assumed the focused main view's *parent context* was its side panel; that
+  assumption is gone now — use `NextInStack`. (Memory:
+  `worktree-path-vs-repo-path` is unrelated; this is a different gotcha.)
+
+### The focused main view contexts vs. the patch-explorer contexts
+
+`pkg/gui/context/setup.go`:
+
+- `Normal` → `Main` view, window `"main"`; `NormalSecondary` → `Secondary`
+  view, window `"secondary"`. These are `MainContext` (a `SimpleContext`).
+  **This is the focused main view.**
+- `Staging` → `Staging` view, window `"main"`; `StagingSecondary` →
+  `StagingSecondary` view, window `"secondary"`; `CustomPatchBuilder` →
+  `PatchBuilding` view, window `"main"`. These are `PatchExplorerContext`
+  (also `MAIN_CONTEXT`).
+- **Crucial:** `Normal` and `Staging`/`CustomPatchBuilder` share the same
+  *window* but are **separate gocui views**. Only one view per window is shown
+  at a time; the others are hidden **but retain their buffer (content, scroll,
+  selection)**. So entering staging *hides* the `Main` view rather than
+  overwriting it — its scroll/selection survive **unless something explicitly
+  re-renders the `Main` view** (see "the clobber" below).
+
+### Dispatch: `GetOnClickFocusedMainView`
+
+- Controllers expose `GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error`.
+- `pkg/gui/controllers/attach.go` registers it on the context
+  (`AddOnClickFocusedMainViewFn`).
+- `MainViewController.enterForLine` / `onClickInAlreadyFocusedView` call
+  `NextInStack(self.context).GetOnClickFocusedMainView()(viewName, lineIdx)`.
+- Implementers: `FilesController` (→ staging), `CommitFilesController` (→ patch
+  building), `SwitchToDiffFilesController` (commits/stash → patch building).
+- The line/file is resolved from the `lazygit-edit://` hyperlink via
+  `StagingHelper.GetFileAndLineForClickedDiffLine(viewName, lineIdx)` — this
+  reads the hyperlink on the given **view line** (so it accounts for wrapping)
+  and parses `lazygit-edit://<path>:<line>`.
+
+### The async render-task system (`pkg/tasks/tasks.go`) — the crux of our blocker
+
+Rendering a diff into a view is **asynchronous** and **lazy**:
+
+- A view has a `ViewBufferManager`. `RenderToMainViews` → a **cmd task** keyed
+  on the **command string**.
+- The initial render reads only **`linesToReadFromCmdTask(view)` lines (one
+  screenful, ~37)**, then the task **waits** on its `readLines` channel for
+  more (e.g. when you scroll down, `ViewSelectionController` requests more).
+- `ViewBufferManager.ReadToEnd(then)` sends `{Total:-1, Then:then}` to
+  `readLines`; the loop reads to EOF, runs `onEndOfInput`, then calls `then`.
+  **But** if `self.readLines == nil` (no live task), `ReadToEnd` calls `then()`
+  **immediately/synchronously** — this is a premature-fire trap.
+- A task's `readLines` is created **inside the task goroutine** (async), so
+  right after `Push`/render the channel may not exist yet.
+- `onNewKey` (`view.SetOrigin(0,0)`) runs at task start **iff the key changed**.
+  Same command/key ⇒ origin preserved; different key ⇒ origin reset to top.
+- `view.Reset()` (beforeStart) rewinds the write pointer; it does **not** reset
+  origin. `onEndOfInput` clamps origin if the new content is shorter.
+- `MainViewController.openSearch` is the existing precedent that uses
+  `GetViewBufferManagerForView(view).ReadToEnd(func(){ OnUIThread(...) })`
+  — but it does so on a view that's **already focused with a live task**, which
+  is exactly the precondition we keep failing to establish.
+
+### Gocui view bits we used
+
+- `view.OriginY()` / `view.SetOrigin(x,y)` — scroll. `SetOrigin` clamps `<0`
+  only (not to content length).
+- `view.SelectedLineIdx()` = `OriginY + CursorY` (absolute view-line).
+- `view.FocusPoint(cx, cy, scrollIntoView)` — sets cursor to absolute `cy`
+  (`v.cy = cy - v.oy`); with `scrollIntoView` it adjusts origin via
+  `calculateNewOrigin`. **Returns early if `cy < 0 || cy > lineCount`** — so it
+  silently no-ops if the content isn't loaded that far. (This is why a deep
+  selection "doesn't take" when only a screenful is loaded.)
+- `view.Highlight` / `view.HighlightInactive` — whether/how the selection is
+  drawn. `SimpleContext.HandleFocusLost` sets `Highlight=false` (so the
+  focused-main selection is cleared whenever the view loses focus). We added
+  `MainViewController.GetOnFocus` to reset `HighlightInactive=false` on the way
+  back in.
+
+---
+
+## 4. The decided UX (don't relitigate without reason)
+
+- **Click = point at a line ⇒ select it.** Single-click sets/moves the
+  selection to the clicked line and does nothing else. **Double-click** = the
+  "activate/open" gesture ⇒ dive into staging/patch building for that line.
+  Clicking an unfocused view focuses **and** selects (one click → ready for
+  `e`/`G`/enter). `0` focuses with **no** selection (scroll mode) — because it
+  doesn't point at a line.
+- **Escape from staging/patch-building should return to the focused main view
+  you came from**, showing the **same main-view content** again (fresh, not
+  stale), with the **same scroll position and selection**, and with the **main
+  view focused** (not the side panel). One `enter` in → one `esc` out.
+- For commits/stash, "the same content" means the **whole-commit diff** you were
+  looking at — **not** a different focused main view (e.g. not the
+  commit-files file diff). Landing on a *different* focused main view was
+  explicitly rejected.
+- "Stale content is out of the question" — when the underlying file changed
+  (e.g. after staging), the returned main view must re-render fresh. (We accept
+  that the selection may then be slightly off, since the diff changed — no fix
+  planned.)
+
+### Keybindings (focused main view, when a selection is showing)
+
+In `MainViewController.GetKeybindings`: `Universal.Select` (space) toggles
+selection; `Universal.GoInto` (enter) dives in; `Universal.Edit` (`e`) edits;
+`Commits.OpenPullRequestInBrowser` (`G`) opens the PR line;
+`Universal.Return` (esc) hides selection / exits. `<`/`>` are goto top/bottom
+(so `G` is free).
+
+---
+
+## 5. The GitHub PR-line feature (working, committed `77157c5ad`)
+
+`MainViewController.openPullRequestForSelectedLine`:
+
+- URL form: `<pr.Url>/changes/<commitSha>#diff-<sha256(relPath)>R<line>`.
+  - `<commitSha>` = `DiffableContext.RefForAdjustingLineNumberInDiff()` of the
+    side panel (selected commit / the commit-files "to" ref). Using the
+    specific commit's view means the right-side line numbers match what's shown,
+    so **no `AdjustLineNumber` needed** here (unlike `e`).
+  - `relPath` = repo-relative path via
+    `filepath.Rel(RepoPaths.WorktreePath(), abs)` then `filepath.ToSlash`.
+    **The anchor is `sha256(relPath)` — exact bytes, forward slashes, original
+    case, no trailing newline.** (Verified empirically; the `#diff-…` hash is
+    SHA-256 of the new-file path. `R<line>` = right/new side; `L` = left/old.)
+- Branch resolution (`branchForPullRequest`): `commits` → `CheckedOutBranch`;
+  `subCommits` → `SubCommits.GetRef().RefName()`; `commitFiles` → recurse into
+  its parent context. GitHub-only (driven by `Model().PullRequestsMap`).
+
+### GOTCHA recorded to memory
+
+`WorktreePath()` vs `RepoPath()`: to make a working-tree path repo-relative use
+`RepoPaths.WorktreePath()`, **not** `RepoPath()` — they differ in **linked
+worktrees** (this dev setup uses `.worktrees/scratch`), and `RepoPath()`
+silently produced the wrong relative path → wrong `sha256` anchor. See memory
+`worktree-path-vs-repo-path`.
+
+---
+
+## 6. THE IN-PROGRESS PROBLEM (where to resume)
+
+**Goal:** escaping staging/patch building that was entered from a focused main
+view should return to that focused main view, fresh content, **scroll +
+selection restored**, main view focused.
+
+### The mechanism (now committed + a little still uncommitted)
+
+- `types.FocusedMainViewSnapshot { SidePanel, SidePanelSelectedLineIdx,
+  MainView, OriginY, SelectedLineIdx }` (`pkg/gui/types/context.go`).
+- Stored on `PatchExplorerContext.focusedMainViewSnapshot` (`nil` ⇒ entered the
+  normal way ⇒ plain `Pop()`), captured at entry in `focusedMainViewSnapshot(…)`
+  (`main_view_controller.go`), threaded through `FilesController.EnterFile` /
+  `CommitFilesHelper.EnterCommitFile`. All of this is committed in `d901a9711`.
+- **Escape**: `helpers.EscapeFromPatchExplorer(c, ctx)` restores the side panel's
+  selection, `Push(SidePanel)`, `Push(MainView)`, then restores origin +
+  selection. The current version of this (the `ReadToEnd`-based restore plus the
+  `keepOrigin` machinery below) is the **uncommitted** part left in the working
+  tree — it's WIP because the flicker isn't fully solved.
+
+### Where session 2 landed: the flicker is fully diagnosed; 3 bug fixes committed
+
+Restoring scroll + selection on escape **works** (the final state is correct).
+What remained was a **flicker on the way in**: a brief intermediate frame before
+the view settles at the saved position. Chasing it uncovered three genuine,
+independent bugs (all now committed on top of `e5326c3a6`):
+
+1. **`6c7d9a295` Lock the view + guard the line index in `HyperLinkInLine`.**
+   It read `v.lines`/`v.viewLines` with no `writeMutex`, racing a concurrent
+   re-render, and indexed `v.lines[viewLines[y].linesY]` after only checking `y`
+   against `len(viewLines)`. Because `refreshViewLinesIfNeeded` overwrites
+   `viewLines` *in place without truncating*, the tail keeps stale entries
+   whose `linesY` points past a shrunk `v.lines` → out-of-range panic on `enter`
+   while a shorter diff was still loading.
+2. **`3b31cfe01` Don't scroll a view up to fill blank space while loading.**
+   The layout's scroll-up clamp ([`layout.go`], added in `6114f69ee5ef`) clamps
+   a view's origin to `TotalContentHeight()` — which for a main view is just the
+   **lines loaded so far**. During an async re-render that's a fraction of the
+   eventual content, so it yanked the view to the top. Fix: a synchronously-set
+   `ViewBufferManager.loading` flag (set in the cmd/pty wrappers *before* the
+   layout pass, cleared at EOF but **not** on stop), and the layout skips the
+   clamp while loading.
+3. **`a4b72a6f6` Fire queued `ReadToEnd` callbacks when the initial read hits
+   EOF.** The read loop processes one request at a time; the initial request has
+   no `Then` and a large line count, so if the content is shorter it hits EOF on
+   that request and `break`s out, abandoning any queued `ReadToEnd` request in
+   the channel → its `Then` silently dropped (this was session 1's "ReadToEnd's
+   `then` never fired" mystery!). Fix: drain queued requests and fire their
+   `Then`s on EOF.
+
+### Corrected diagnosis (session 1's §6 diagnosis was WRONG in its mechanism)
+
+Session 1 said "on restore only the initial screenful (`height=37`) is loaded,
+so `FocusPoint` returns early." **That was inaccurate.** The truth, confirmed by
+instrumenting **every** write to the main view's `oy` (see Debug tooling §10):
+
+- `linesToReadFromCmdTask` reads `height*(height-1)+oy` lines (≈1332+, capped at
+  5000) — **not** one screenful. For typical diffs the whole thing loads quickly.
+- The scroll wasn't failing because content was unloaded at *restore* time (the
+  `ReadToEnd` restore, once the drain fix above made it fire, sets the final
+  position correctly). It was failing because the **layout clamp** (bug #2) was
+  resetting `oy` to 0 on *every layout pass* during the async load, until the
+  content caught up. That is the real cause of "scroll resets to the top."
+
+### The full origin-reset chain on escape (and how each is handled now)
+
+Tracing every `oy` write during a commits-scrolled-down escape, three different
+things were all moving the origin off the saved value:
+
+1. **`onNewKey`** (`tasks_adapter.go`) resets `oy` to 0 when the re-render's
+   command key differs from the last one (it does, because the commit-files
+   render clobbered the main view on entry). → handled by
+   `ViewBufferManager.KeepOriginForNextTask()` (uncommitted feature machinery),
+   which suppresses that one reset.
+2. **`CopyContent`** (`view.go`, via `moveMainContextToTop`) copies the
+   *previous top view's* buffer **and origin** into the main view to avoid a
+   blank frame. → handled by re-asserting `SetOrigin(saved)` after the pushes.
+3. **The layout scroll-up clamp** → handled by bug fix #2 (the `loading` flag).
+
+### The one remaining flicker (and the correct fix — IMPLEMENTED in session 3, see §11)
+
+> **Update (session 3):** the fix described below was implemented, but the
+> diagnosis here was *incomplete* in two ways that §11 corrects: (a) the
+> `onNewKey` suppression could **not** be dropped, and (b) there was a **second**
+> source of the top-flicker — the scroll-reset loop in `refreshMainViews`. Read
+> §11 as the current truth; the text below is session 2's understanding.
+
+With all three handled, the *scroll no longer jumps*. But there's still a brief
+intermediate frame, and we found exactly what it is: **`CopyContent` seeds the
+main view with the patch-building view's buffer**, and since we set the origin
+to the saved position (far down) while that placeholder is shorter, the draw
+shows the placeholder's *last line* at the top with blank below — until the pty
+task finishes loading the real diff and repaints at the saved position. (It
+"appears scrolled up by a varying amount" purely because what shows at the saved
+`oy` depends on the patch's *length*, via `min(oy, patchLines-1)`.)
+
+**NOTE — a rejected red herring:** "avoid clobbering the main view on entry"
+does **not** fix this. `CopyContent` overwrites the main view's buffer
+regardless of what was there, so preserving the original commit diff on entry
+wouldn't change the placeholder frame.
+
+**The correct fix (user's conclusion, agreed):** we're applying the saved origin
+*too early*. It must be applied *exactly* when the pty task does its first
+repaint (when it has read enough to fill the view at the saved scroll). The
+catch: `InitialRefreshAfter` — which decides *when* that first repaint happens —
+is computed from the view's `OriginY` **at task-creation time**. So the target
+origin must be known at creation (so the task reads enough), but the view must
+keep showing the placeholder until that first paint, and only snap to the saved
+position *as part of* that paint. Concretely: **a cmd/pty analogue of
+`RenderStringWithScrollTask`** — "render this command and scroll to Y once
+you've read enough" — applying the origin at the `InitialRefreshAfter` refresh
+rather than up front. This is the concrete next step; it's bounded but real
+work, and likely lets us drop the `keepOrigin` + after-push `SetOrigin`
+machinery (they'd be subsumed by the task setting the origin itself).
+
+---
+
+## 7. Prototype enhancements still missing (for an "enhance" session)
+
+- **Directory case follow-up:** entering staging from a files/commit-files
+  **directory** selection expands the tree and changes the selection to the
+  clicked file. We restore the side panel's selected line on exit
+  (`SidePanelSelectedLineIdx`) so the main view shows the directory's combined
+  diff again — but we **don't restore the tree's expanded/collapsed state**, so
+  the panel comes back more expanded than it was. Decide whether to restore that
+  too. Also, the directory case shares the scroll/selection-restore bug above.
+- **`onClickInOtherViewOfMainViewPair`** (clicking the other pane of a main
+  view pair) now also selects + double-click-stages for consistency; double-check
+  this is desired and that the secondary-pane paths behave.
+- **Stale selection after stage/unstage:** explicitly accepted as out of scope;
+  no fix planned.
+- **No integration tests** exist for any of the focused-main-view interactions
+  (click/double-click/`enter`/`e`/`G`/escape-restore). They were skipped on
+  purpose during prototyping.
+
+---
+
+## 8. Productionization notes (for a future planning session — do NOT plan yet)
+
+Context a planning session will need:
+
+- **Commit history needs rework.** Two `WIP` commits (`673b90c10` "esc goes all
+  the way back out", `30e625a8d` "New click behavior") plus the large
+  uncommitted escape/restore change. AGENTS.md (this repo) mandates: small,
+  self-contained, compiling, `gofumpt`-clean commits; "why not what" messages;
+  prep-refactors split from behavior changes; `fixup!`/`amend!` against the
+  right commit and `git rebase --autosquash`; no conventional-commit prefixes.
+  The escape/restore work especially will want to be re-sequenced into clean
+  commits (and the `escapeContext` → `FocusedMainViewSnapshot` evolution
+  collapsed, since it was iterated heavily).
+- **Demonstrate-bugs-before-fixing** pattern (AGENTS.md) with `EXPECTED`/`ACTUAL`
+  — relevant if any of this lands as bug-fix-shaped commits.
+- **Tests:** integration tests live under `pkg/integration/tests/...`; conventions
+  in AGENTS.md (chain `t.Views().<View>()` fluently, no local view vars; use
+  `stretchr/testify`). A unit-testable seam worth noting: the scroll/selection
+  restore and the GitHub-anchor URL builder
+  (`githubPullRequestLineURL`) are pure-ish and could be unit-tested; the patch
+  index↔view line wrapping logic lives in `pkg/gui/patch_exploring/state.go`.
+- **Config:** `gui.showSelectionInFocusedMainView` was added then **removed**
+  (`c4aba31c9`) in favor of on-demand selection — don't reintroduce a config
+  toggle for this without reason.
+- **Commands:** use the `justfile` recipes (`just generate` regenerates the test
+  list + cheatsheets and CI fails if stale; `just format`, `just build`,
+  `just unit-test`, `just e2e-all`, `just lint`). Prefer `just` over `make`.
+  Adding/renaming a keybinding ⇒ run `just generate` and commit the result
+  (note: gated descriptions — the focused-main bindings use empty descriptions
+  when no selection is shown, so they don't appear in cheatsheets, matching the
+  existing `enter` binding).
+- The unrelated `M AGENTS.md` in the working tree is the "Common commands"
+  section documenting `just` — keep or commit separately.
+
+---
+
+## 9. Key files (quick map)
+
+- `pkg/gui/controllers/main_view_controller.go` — the focused main view
+  controller: keybindings, `toggleSelection`, `enter`/`enterForLine`, `editLine`,
+  `openPullRequestForSelectedLine`, `branchForPullRequest`, click handlers,
+  `showSelectionAtLine`, `focusedMainViewContextForViewName`,
+  `focusedMainViewSnapshot`, `githubPullRequestLineURL`.
+- `pkg/gui/controllers/switch_to_focused_main_view_controller.go` — focuses the
+  main view from a side panel (`0` / click); click passes a line so it selects,
+  `0` passes -1 so it doesn't.
+- `pkg/gui/controllers/switch_to_diff_files_controller.go` — commits/stash →
+  patch building entry (`GetOnClickFocusedMainView`, `enter`).
+- `pkg/gui/controllers/files_controller.go` — files → staging entry
+  (`GetOnClickFocusedMainView`, `EnterFile`).
+- `pkg/gui/controllers/commits_files_controller.go` — commit-files → patch
+  building entry.
+- `pkg/gui/controllers/helpers/commit_files_helper.go` — `EnterCommitFile`.
+- `pkg/gui/controllers/helpers/patch_building_helper.go` — `Escape` +
+  `EscapeFromPatchExplorer` (the shared escape/restore logic).
+- `pkg/gui/controllers/staging_controller.go` — `Escape` (calls
+  `EscapeFromPatchExplorer`).
+- `pkg/gui/context/patch_explorer_context.go` — `FocusedMainViewSnapshot`
+  storage.
+- `pkg/gui/types/context.go` — `FocusedMainViewSnapshot`, `IPatchExplorerContext`
+  additions.
+- `pkg/gui/controllers/helpers/staging_helper.go` —
+  `GetFileAndLineForClickedDiffLine` (hyperlink parsing).
+- `pkg/tasks/tasks.go` — the async render-task system (`ViewBufferManager`,
+  `ReadToEnd`, the read loop). Session 3 added `ScrollToOriginYForNextTask` /
+  `GetScrollToOriginYForNextTask`, `LinesToRead.ApplyInitialScroll`, the
+  first-paint apply in the read loop, and the `onNewKey` suppression (§11). Also
+  hosts the committed `LAZYGIT_SLOW_RENDER` knob.
+- `pkg/gui/tasks_adapter.go` + `pkg/gui/pty.go` — cmd/pty task wrappers; both now
+  peek the manager's pending scroll and pass it to
+  `linesToReadFromCmdTask(view, targetOriginY)` (`view_helpers.go`).
+- `pkg/gui/main_panels.go` — `refreshMainViews` (the scroll-reset loop, **now
+  after** `moveMainContextPairToTop`, §11) and `moveMainContextToTop` →
+  `CopyContent`.
+- `pkg/gui/layout.go` — the scroll-up-to-fill clamp (`setViewFromDimensions`);
+  skipped while a view's task `IsLoading()`.
+- `pkg/gocui/view.go` — `SetOriginX`/`SetOriginY` are now the **single
+  chokepoints** for all `ox`/`oy` writes (`fe79d18b6`); ideal breakpoint spot.
+
+---
+
+## 10. Debug tooling
+
+### Slow down rendering (`LAZYGIT_SLOW_RENDER=<ms>`) — now COMMITTED
+
+This is no longer a paste-back snippet: it's committed at the **base** of the
+branch (`ed48988a9`). Sleeps `<ms>` after each line written to a view, so the
+frames of an async re-render become visible. No effect when unset. Run as
+`LAZYGIT_SLOW_RENDER=40 just debug` (with `just print-log` in another tab).
+**This is the tool that makes the remaining timing races (§11) visible** — they
+are essentially invisible at normal speed.
+
+### Trace every change to a view's scroll position — now a single chokepoint
+
+Session 3's `SetOriginX`/`SetOriginY` refactor (`fe79d18b6`) routed **every**
+write to `v.oy`/`v.ox` through `SetOriginY`/`SetOriginX`. So you no longer need
+to scatter the tracer across `SetOrigin`/`CopyContent`/`FocusPoint`/`draw`/
+`ScrollUp`/`ScrollDown` — **set one breakpoint (or one log line) inside
+`SetOriginY` in `pkg/gocui/view.go`** and you catch all of them, with the
+`bt`/Call-Stack giving the caller. (This is exactly how session 3 found the
+`refreshMainViews` reset-loop cause — see §11.) The old multi-site
+`debugMainOriginReset(v, newY)` helper still works if you want a `/tmp` log with
+a trimmed call stack; drop it into `SetOriginY` and filter by `v.name`:
+
+```go
+func debugMainOriginReset(v *View, newY int) {
+    if v.name != "main" || newY == v.oy {
+        return
+    }
+    pc := make([]uintptr, 6)
+    n := runtime.Callers(3, pc)
+    frames := runtime.CallersFrames(pc[:n])
+    var b strings.Builder
+    for i := 0; i < 4; i++ {
+        fr, more := frames.Next()
+        fmt.Fprintf(&b, " <- %s:%d", fr.File[strings.LastIndex(fr.File, "/")+1:], fr.Line)
+        if !more {
+            break
+        }
+    }
+    if f, err := os.OpenFile("/tmp/fmvs_origin.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644); err == nil {
+        fmt.Fprintf(f, "main oy %d->%d%s\n", v.oy, newY, b.String())
+        f.Close()
+    }
+}
+```
+
+---
+
+## 11. Session 3: the flicker fix (implemented) + remaining timing races
+
+Session 3 turned §6's proposal into working, committed code, and corrected the
+diagnosis twice along the way. At **normal speed the escape is now flicker-free**.
+
+### What "applying the saved scroll at first paint" became (commit `054d139fe`)
+
+The cmd/pty analogue of `RenderStringWithScrollTask`, driven by one field on
+`ViewBufferManager`:
+
+- **`ScrollToOriginYForNextTask(originY int)`** sets `scrollToOriginYForNextTask
+  *int`. The escape calls it on the main view's manager **before** the re-render
+  is triggered. It has *two* effects on the next cmd/pty task:
+  1. **Suppresses the start-of-task origin reset** (`onNewKey`) — so the
+     `CopyContent` placeholder keeps showing at *its* scroll instead of being
+     yanked to the top. (This is the part session 2 thought we could drop. We
+     can't — see below.)
+  2. **Sizes the initial read to `originY`** (`linesToReadFromCmdTask(view,
+     targetOriginY *int)` uses it instead of the view's current `OriginY`) **and
+     scrolls there at the first refresh** via a new `LinesToRead.ApplyInitialScroll`
+     callback, applied once (guarded by `sync.Once`) — at the `InitialRefreshAfter`
+     point, and in the EOF branch *before* `onEndOfInput` (so a now-shorter diff
+     gets clamped back into range).
+- The field is **peeked** (`GetScrollToOriginYForNextTask`) by the cmd/pty
+  wrappers (`tasks_adapter.go`, `pty.go`) to size the read, and **cleared in
+  `NewTask`** after the `onNewKey` decision — so it survives long enough to drive
+  both effects, and applies to exactly one task. (Per-view managers, so the
+  secondary view isn't affected.)
+- Behaviour-preserving until a caller sets it.
+
+### Escape wiring simplified (commit `625e7dbad`)
+
+`EscapeFromPatchExplorer` now just calls `ScrollToOriginYForNextTask(snapshot.OriginY)`
+before the pushes, and restores the **selection only** (`FocusPoint` + highlight)
+via `ReadToEnd` once the diff is fully loaded. The session-2 dance — up-front
+`SetOrigin`, after-push `SetOrigin`, and `KeepOriginForNextTask` — is **gone**;
+the task owns the scroll now.
+
+### Correction #1: `onNewKey` suppression could NOT be dropped
+
+§6 predicted the new mechanism would let us drop the `onNewKey` suppression. It
+didn't. `CopyContent`'s entire purpose is that the newly-revealed view keeps
+showing the previous view's content **at its scroll** ("as if nothing changed")
+until the real content paints. Letting `onNewKey` reset that to the top *is* a
+flicker. So the suppression is kept — folded into the same
+`scrollToOriginYForNextTask` field (effect #1 above) rather than a separate
+`keepOrigin` flag.
+
+### Correction #2: there was a SECOND cause of the top-flicker — `refreshMainViews` (commit `7f547a5a3`)
+
+Even with `onNewKey` suppressed, the placeholder still flicked to the top under
+slow render. A `SetOriginY` breakpoint (trivial now, thanks to the chokepoint
+refactor) caught it: `refreshMainViews` (`main_panels.go`) reset the scroll of
+every *other* main view at the **top** of the function — i.e. it zeroed the
+patch-building view's origin **before** `moveMainContextPairToTop` →
+`CopyContent` copied that view (now at origin 0) into the Normal view. So the 0
+came from the reset feeding `CopyContent`, *independent of* `onNewKey`.
+
+**Fix:** move the reset loop to **after** `moveMainContextPairToTop`. End state is
+unchanged (every other main still ends at 0, and the destination always
+re-renders), but `CopyContent` now copies the source at its real scroll, so the
+placeholder stays put. This also makes *every* cross-pair transition's
+placeholder seamless, not just our escape.
+
+### Verification
+
+- `just build` / `just lint` / `just unit-test` all green. (`TestNewCmdTaskInstantStop`
+  is a **pre-existing timing flake** that only trips under the full suite's
+  parallel load; passes 10/10 in isolation, and the session-3 task changes are
+  inert on its instant-stop path.)
+- `just e2e-all`: green **except** `worktree/associate_branch_rebase`, which
+  fails *environmentally* — `cd`-ing into the linked worktree triggers lazygit's
+  direnv integration to pop a "Press <enter> to run 'direnv allow'" confirmation
+  (this checkout's `.envrc` is blocked), stealing focus from the `.Focus()`
+  assertion. Run `direnv allow` (or confirm it fails the same on `master`).
+
+### Remaining timing races (DO THIS before productionizing)
+
+At normal speed there's no visible flicker, but under `LAZYGIT_SLOW_RENDER`
+**occasional** imperfect intermediate frames remain. The user's explicit call:
+these point to **real timing races** in the async render/scroll path, and we
+should *eliminate* them rather than rely on normal timing masking them. Not yet
+characterised — next session should:
+
+- Reproduce under `LAZYGIT_SLOW_RENDER` (try a range of values; the races are
+  intermittent) across the three transitions (files→staging, commit→patch-building,
+  and the escape), all while **scrolled down**.
+- Use the single `SetOriginY` chokepoint + `bt` and/or the §10 tracer, plus the
+  `ReadToEnd`/`InitialRefreshAfter`/`ApplyInitialScroll` ordering, to pin which
+  interleavings produce a bad frame. Suspects worth scrutinising: the ordering
+  between the task's first `ApplyInitialScroll` paint and the `ReadToEnd`-driven
+  selection restore; the `afterLayout`-deferred pty task creation racing a layout
+  pass; and `CopyContent` vs. the task's first write.
+- Memory: `focused-main-view-flicker-timing-races`.

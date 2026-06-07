@@ -205,6 +205,34 @@ type IPatchExplorerContext interface {
 	NavigateTo(selectedLineIdx int)
 	GetMutex() *deadlock.Mutex
 	IsPatchExplorerContext() // used for type switch
+
+	// See FocusedMainViewSnapshot. Nil unless this patch explorer was entered
+	// from a focused main view.
+	GetFocusedMainViewSnapshot() *FocusedMainViewSnapshot
+	SetFocusedMainViewSnapshot(*FocusedMainViewSnapshot)
+}
+
+// FocusedMainViewSnapshot records where a focused main view was when we dived
+// into a patch explorer (staging or patch building) from it, so that escaping
+// returns us to the same place with the main view focused again. It is nil when
+// the patch explorer was entered the normal way (through a side panel), in which
+// case escape just pops to that side panel.
+type FocusedMainViewSnapshot struct {
+	// The side panel to land on first; pushing it re-renders the original
+	// content into the main view. For commits/stash this is the originating side
+	// panel (skipping the commit files panel we passed through), preserving the
+	// pre-existing "escape all the way out" behavior.
+	SidePanel Context
+	// The side panel's selected line, to restore before re-rendering it. Diving
+	// into staging can change the side panel's selection (e.g. from a directory
+	// to a file in the files panel); restoring it makes the main view show the
+	// same content again. -1 if the side panel isn't a list.
+	SidePanelSelectedLineIdx int
+	// The focused main view context to focus afterwards.
+	MainView Context
+	// The scroll position and selected line to restore in the main view.
+	OriginY         int
+	SelectedLineIdx int
 }
 
 type IViewTrait interface {
@@ -227,8 +255,20 @@ type IViewTrait interface {
 }
 
 type OnFocusOpts struct {
-	ClickedWindowName       string
-	ClickedViewLineIdx      int
+	ClickedWindowName  string
+	ClickedViewLineIdx int
+
+	// If not -1, takes precedence over ClickedViewLineIdx.
+	ClickedViewRealLineIdx int
+
+	// When entering a patch explorer (staging or patch building) by clicking or
+	// pressing enter on a line in a focused main view, we select that line using
+	// the default select mode (hunk or line, per the UseHunkModeInStagingView
+	// config), the same as when entering through the side panel. Clicking
+	// directly on the patch explorer view instead starts a range selection that
+	// can be extended by dragging.
+	SelectLineInDefaultMode bool
+
 	ScrollSelectionIntoView bool
 }
 

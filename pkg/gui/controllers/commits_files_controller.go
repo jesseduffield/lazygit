@@ -442,7 +442,7 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 	toggle := func() error {
 		return self.c.WithWaitingStatus(self.c.Tr.UpdatingPatch, func(gocui.Task) error {
 			if !self.c.Git().Patch.PatchBuilder.Active() {
-				if err := self.startPatchBuilder(); err != nil {
+				if err := self.c.Helpers().CommitFiles.StartPatchBuilder(); err != nil {
 					return err
 				}
 			}
@@ -485,7 +485,7 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 		})
 	}
 
-	from, to, reverse := self.currentFromToReverseForPatchBuilding()
+	from, to, reverse := self.c.Helpers().CommitFiles.CurrentFromToReverseForPatchBuilding()
 	mustDiscardPatch := self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse)
 	return self.c.ConfirmIf(mustDiscardPatch, types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardPatch,
@@ -505,68 +505,8 @@ func (self *CommitFilesController) toggleAllForPatch(_ *filetree.CommitFileNode)
 	return self.toggleForPatch([]*filetree.CommitFileNode{root})
 }
 
-func (self *CommitFilesController) startPatchBuilder() error {
-	commitFilesContext := self.context()
-
-	canRebase := commitFilesContext.GetCanRebase()
-	from, to, reverse := self.currentFromToReverseForPatchBuilding()
-
-	self.c.Git().Patch.PatchBuilder.Start(from, to, reverse, canRebase)
-	return nil
-}
-
-func (self *CommitFilesController) currentFromToReverseForPatchBuilding() (string, string, bool) {
-	commitFilesContext := self.context()
-
-	from, to := commitFilesContext.GetFromAndToForDiff()
-	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
-	return from, to, reverse
-}
-
 func (self *CommitFilesController) enter(node *filetree.CommitFileNode) error {
-	return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
-}
-
-func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode, opts types.OnFocusOpts) error {
-	if node.File == nil {
-		return self.handleToggleCommitFileDirCollapsed(node)
-	}
-
-	if self.c.UserConfig().Git.DiffContextSize == 0 {
-		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextForCustomPatch,
-			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
-	}
-
-	from, to, reverse := self.currentFromToReverseForPatchBuilding()
-	mustDiscardPatch := self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse)
-	return self.c.ConfirmIf(mustDiscardPatch, types.ConfirmOpts{
-		Title:  self.c.Tr.DiscardPatch,
-		Prompt: self.c.Tr.DiscardPatchConfirm,
-		HandleConfirm: func() error {
-			if mustDiscardPatch {
-				self.c.Git().Patch.PatchBuilder.Reset()
-			}
-
-			if !self.c.Git().Patch.PatchBuilder.Active() {
-				if err := self.startPatchBuilder(); err != nil {
-					return err
-				}
-			}
-
-			self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
-			self.c.Helpers().PatchBuilding.ShowHunkStagingHint()
-
-			return nil
-		},
-	})
-}
-
-func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *filetree.CommitFileNode) error {
-	self.context().CommitFileTreeViewModel.ToggleCollapsed(node.GetInternalPath())
-
-	self.c.PostRefreshUpdate(self.context())
-
-	return nil
+	return self.c.Helpers().CommitFiles.EnterCommitFile(node, nil, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1, ClickedViewRealLineIdx: -1})
 }
 
 // NOTE: this is very similar to handleToggleFileTreeView, could be DRY'd with generics
@@ -595,11 +535,39 @@ func (self *CommitFilesController) expandAll() error {
 
 func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
 	return func(mainViewName string, clickedLineIdx int) error {
-		node := self.getSelectedItem()
-		if node != nil && node.File != nil {
-			return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
+		// Capture before any mutation below that might re-render the main view.
+		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context(), clickedLineIdx)
+
+		clickedFile, line, ok := self.c.Helpers().Staging.GetFileAndLineForClickedDiffLine(mainViewName, clickedLineIdx)
+		if !ok {
+			line = -1
 		}
-		return nil
+
+		node := self.getSelectedItem()
+		if node == nil {
+			return nil
+		}
+
+		if !node.IsFile() && ok {
+			relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), clickedFile)
+			if err != nil {
+				return err
+			}
+			relativePath = "./" + relativePath
+			self.context().CommitFileTreeViewModel.ExpandToPath(relativePath)
+			self.c.PostRefreshUpdate(self.context())
+
+			idx, ok := self.context().CommitFileTreeViewModel.GetIndexForPath(relativePath)
+			if ok {
+				self.context().SetSelectedLineIdx(idx)
+				self.context().GetViewTrait().FocusPoint(
+					self.context().ModelIndexToViewIndex(idx), false)
+				node = self.context().GetSelected()
+			}
+		}
+
+		// Entered from the focused main view, so escaping returns there.
+		return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, SelectLineInDefaultMode: true})
 	}
 }
 

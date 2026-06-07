@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
+	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -43,6 +46,27 @@ type ViewBufferManager struct {
 	taskKey      string
 	onNewKey     func()
 
+	// When non-nil, the next cmd/pty task restores this scroll position. Used
+	// when re-rendering content the user was already scrolled into (e.g. when
+	// returning to a focused main view on escape). It has two effects:
+	//
+	//   - The task does not reset the view's origin to the top at start, even if
+	//     its command key differs from the previous task's. This keeps the
+	//     placeholder that CopyContent left in the view showing at its current
+	//     scroll position (i.e. "as if nothing changed") until the real content
+	//     is ready, rather than flicking it to the top.
+	//   - The task sizes its initial read to this position and scrolls there as
+	//     part of its first refresh, so the saved scroll is applied in the same
+	//     paint that shows the real content.
+	//
+	// Cleared once the next task has started.
+	scrollToOriginYForNextTask *int
+
+	// Whether a command task is currently reading content into the view. While
+	// this is true the content is still growing, so callers (e.g. the layout)
+	// must not clamp the view's scroll position to the amount loaded so far.
+	loading atomic.Bool
+
 	// beforeStart is the function that is called before starting a new task
 	beforeStart  func()
 	refreshView  func()
@@ -69,6 +93,12 @@ type LinesToRead struct {
 	// do an initial refresh. Only set for the initial read request; -1 for
 	// subsequent requests.
 	InitialRefreshAfter int
+
+	// When set, called once, just before the view is first refreshed, to scroll
+	// it to a saved position. Used so that content the user was scrolled into is
+	// painted at the saved scroll position the first time it appears, rather than
+	// at the top. Only set for the initial read request.
+	ApplyInitialScroll func()
 
 	// Function to call after reading the lines is done
 	Then func()
@@ -105,6 +135,37 @@ func (self *ViewBufferManager) ReadLines(n int) {
 			self.readLines <- LinesToRead{Total: n, InitialRefreshAfter: -1}
 		})
 	}
+}
+
+// ScrollToOriginYForNextTask makes the next cmd/pty task restore the given
+// scroll position instead of rendering at the top. Call this right before
+// triggering a re-render of content the view is already scrolled into (e.g.
+// when returning to a focused main view on escape). See the field doc for the
+// two effects this has. It is cleared once the next task starts.
+func (self *ViewBufferManager) ScrollToOriginYForNextTask(originY int) {
+	self.scrollToOriginYForNextTask = &originY
+}
+
+// GetScrollToOriginYForNextTask returns the scroll position requested by a
+// preceding ScrollToOriginYForNextTask call, or nil if none. It does not clear
+// it; the task clears it when it starts.
+func (self *ViewBufferManager) GetScrollToOriginYForNextTask() *int {
+	return self.scrollToOriginYForNextTask
+}
+
+// IsLoading reports whether a command task is currently reading content into the
+// view, meaning the content is still growing.
+func (self *ViewBufferManager) IsLoading() bool {
+	return self.loading.Load()
+}
+
+// StartLoading marks the view as loading content. It must be called
+// synchronously when a command/pty task is started, before the task's goroutine
+// runs, so that a layout pass happening in between doesn't clamp the scroll
+// position to the not-yet-loaded content. It is cleared when the task reaches
+// the end of its input.
+func (self *ViewBufferManager) StartLoading() {
+	self.loading.Store(true)
 }
 
 func (self *ViewBufferManager) ReadToEnd(then func()) {
@@ -248,6 +309,29 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				}
 			}
 
+			// The initial read request carries an optional scroll-to function (see
+			// LinesToRead.ApplyInitialScroll). We apply it exactly once, right before
+			// the view is first refreshed, so that content the user was scrolled into
+			// is painted at the saved position the first time it appears.
+			initialScroll := linesToRead.ApplyInitialScroll
+			var applyInitialScrollOnce sync.Once
+			applyInitialScroll := func() {
+				if initialScroll != nil {
+					applyInitialScrollOnce.Do(initialScroll)
+				}
+			}
+
+			// Set LAZYGIT_SLOW_RENDER=<milliseconds> to sleep that long after each
+			// line is written to the view, stretching async loads out so the frames
+			// of a re-render become visible. Useful for debugging scroll/flicker
+			// behaviour; has no effect when the variable is unset.
+			var slowRenderPerLine time.Duration
+			if v := os.Getenv("LAZYGIT_SLOW_RENDER"); v != "" {
+				if ms, err := strconv.Atoi(v); err == nil {
+					slowRenderPerLine = time.Duration(ms) * time.Millisecond
+				}
+			}
+
 		outer:
 			for {
 				select {
@@ -282,18 +366,48 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 
 						if !ok {
 							// if we're here then there's nothing left to scan from the source
-							// so we're at the EOF and can flush the stale content
+							// so we're at the EOF and can flush the stale content. Apply the
+							// saved scroll first (if any) so that onEndOfInput clamps it back
+							// into range when the new content turned out shorter than expected.
+							applyInitialScroll()
 							self.onEndOfInput()
+							// The content is fully loaded now, so it's safe again for the
+							// layout to clamp the scroll position to it. We deliberately
+							// don't clear this when stopped (rather than EOF'd), because that
+							// means a newer task is taking over and is still loading.
+							self.loading.Store(false)
 							callThen()
+							// Any read requests that were queued while we were reading are
+							// now trivially satisfied, since we've read everything. Fire
+							// their callbacks instead of dropping them when we break out of
+							// the loop below (and nil out readLines).
+						drain:
+							for {
+								select {
+								case queued := <-self.readLines:
+									if queued.Then != nil {
+										queued.Then()
+									}
+								default:
+									break drain
+								}
+							}
 							break outer
 						}
 						writeToView(append(line, '\n'))
 						lineWrittenChan <- struct{}{}
 
+						if slowRenderPerLine > 0 {
+							time.Sleep(slowRenderPerLine)
+						}
+
 						if i+1 == linesToRead.InitialRefreshAfter {
 							// We have read enough lines to fill the view, so do a first refresh
-							// here to show what we have. Continue reading and refresh again at
-							// the end to make sure the scrollbar has the right size.
+							// here to show what we have. Apply the saved scroll first (if any)
+							// so the first paint already lands at it. Continue reading and
+							// refresh again at the end to make sure the scrollbar has the right
+							// size.
+							applyInitialScroll()
 							refreshViewIfStale()
 						}
 					}
@@ -388,9 +502,14 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		self.newTaskID++
 		taskID := self.newTaskID
 
-		if self.GetTaskKey() != key && self.onNewKey != nil {
+		// Reset the origin to the top when the command changed, unless a caller
+		// asked us to restore a scroll position: in that case we keep the
+		// placeholder showing at its current scroll until the task scrolls to the
+		// saved position as part of its first paint (see scrollToOriginYForNextTask).
+		if self.GetTaskKey() != key && self.onNewKey != nil && self.scrollToOriginYForNextTask == nil {
 			self.onNewKey()
 		}
+		self.scrollToOriginYForNextTask = nil
 		self.taskKey = key
 
 		self.taskIDMutex.Unlock()

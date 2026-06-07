@@ -383,7 +383,7 @@ func (v *View) FocusPoint(cx int, cy int, scrollIntoView bool) {
 
 	if scrollIntoView {
 		height := v.InnerHeight()
-		v.oy = calculateNewOrigin(cy, v.oy, lineCount, height)
+		v.SetOriginY(calculateNewOrigin(cy, v.oy, lineCount, height))
 	}
 
 	v.cx = cx
@@ -645,15 +645,8 @@ func (v *View) CursorY() int {
 // implement Horizontal and Vertical scrolling with just incrementing
 // or decrementing ox and oy.
 func (v *View) SetOrigin(x, y int) {
-	if x < 0 {
-		x = 0
-	}
-	if y < 0 {
-		y = 0
-	}
-
-	v.ox = x
-	v.oy = y
+	v.SetOriginX(x)
+	v.SetOriginY(y)
 }
 
 func (v *View) SetOriginX(x int) {
@@ -1062,8 +1055,8 @@ func (v *View) CopyContent(from *View) {
 
 	v.lines = from.lines
 	v.viewLines = from.viewLines
-	v.ox = from.ox
-	v.oy = from.oy
+	v.SetOriginX(from.ox)
+	v.SetOriginY(from.oy)
 	v.cx = from.cx
 	v.cy = from.cy
 }
@@ -1228,14 +1221,14 @@ func (v *View) draw() {
 		if maxX == 0 {
 			return
 		}
-		v.ox = 0
+		v.SetOriginX(0)
 	}
 
 	v.refreshViewLinesIfNeeded()
 
 	visibleViewLinesHeight := v.viewLineLengthIgnoringTrailingBlankLines()
 	if v.Autoscroll && visibleViewLinesHeight > maxY {
-		v.oy = visibleViewLinesHeight - maxY
+		v.SetOriginY(visibleViewLinesHeight - maxY)
 	}
 
 	if len(v.viewLines) == 0 {
@@ -1508,6 +1501,35 @@ func (v *View) Word(x, y int) (string, bool) {
 		nr = nr + x
 	}
 	return str[nl:nr], true
+}
+
+func (v *View) HyperLinkInLine(y int, urlScheme string) (string, bool) {
+	// Take the lock so we don't race a concurrent re-render that is rebuilding the
+	// buffer.
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+
+	if y < 0 || y >= len(v.viewLines) {
+		return "", false
+	}
+
+	// refreshViewLinesIfNeeded overwrites viewLines in place without truncating,
+	// so while a shorter re-render is loading, the tail of viewLines can still
+	// hold stale entries pointing past the (shrunk) v.lines. Guard against that.
+	linesY := v.viewLines[y].linesY
+	if linesY >= len(v.lines) {
+		return "", false
+	}
+
+	for _, c := range v.lines[linesY] {
+		if strings.HasPrefix(c.hyperlink, urlScheme) {
+			return c.hyperlink, true
+		}
+	}
+
+	return "", false
 }
 
 // indexFunc allows to split lines by words taking into account spaces
@@ -1855,7 +1877,7 @@ func (v *View) ScrollUp(amount int) {
 	}
 
 	if amount != 0 {
-		v.oy -= amount
+		v.SetOriginY(v.oy - amount)
 		v.cy += amount
 
 		v.clearHover()
@@ -1867,7 +1889,7 @@ func (v *View) ScrollUp(amount int) {
 func (v *View) ScrollDown(amount int) {
 	adjustedAmount := v.adjustDownwardScrollAmount(amount)
 	if adjustedAmount > 0 {
-		v.oy += adjustedAmount
+		v.SetOriginY(v.oy + adjustedAmount)
 		v.cy -= adjustedAmount
 
 		v.clearHover()
@@ -1881,7 +1903,7 @@ func (v *View) ScrollLeft(amount int) {
 		newOx = 0
 	}
 	if newOx != v.ox {
-		v.ox = newOx
+		v.SetOriginX(newOx)
 
 		v.clearHover()
 	}
@@ -1889,7 +1911,7 @@ func (v *View) ScrollLeft(amount int) {
 
 // not applying any limits to this
 func (v *View) ScrollRight(amount int) {
-	v.ox += amount
+	v.SetOriginX(v.ox + amount)
 
 	v.clearHover()
 }
