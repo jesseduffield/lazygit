@@ -1737,7 +1737,7 @@ func EnglishTranslationSet() *TranslationSet {
 		NextScreenMode:                   "Next screen mode (normal/half/fullscreen)",
 		PrevScreenMode:                   "Prev screen mode",
 		CyclePagers:                      "Cycle pagers",
-		CyclePagersTooltip:               "Choose the next pager in the list of configured pagers",
+		CyclePagersTooltip:               "Choose the next pager in the list of configured pagers.",
 		CyclePagersDisabledReason:        "No other pagers configured",
 		StartSearch:                      "Search the current view by text",
 		StartFilter:                      "Filter the current view by text",

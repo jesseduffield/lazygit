@@ -22,7 +22,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | Atualizar | Atualize o estado do git (ou seja, execute `git status`, `git branch`, etc em segundo plano para atualizar o conteúdo de painéis). Isso não executa `git fetch`. |
 | `` + `` | Modo de tela seguinte (normal/metade/tela cheia) |  |
 | `` _ `` | Modo de tela anterior |  |
-| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers. |
 | `` <esc> `` | Cancelar |  |
 | `` ? `` | Abrir o menu de atalhos do teclado |  |
 | `` <ctrl+s> `` | Ver opções de filtro | View options for filtering the commit log, so that only commits matching the filter are shown. |
