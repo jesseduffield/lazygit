@@ -834,6 +834,35 @@ func (gui *Gui) initGocui(headless bool, test integrationTypes.IntegrationTest) 
 }
 
 func (gui *Gui) viewTabMap() map[string][]context.TabView {
+	filesTabs := []context.TabView{
+		{
+			Tab:      gui.c.Tr.FilesTitle,
+			ViewName: "files",
+		},
+	}
+	if gui.c.UserConfig().Gui.ShowFileChangeTabs {
+		filesTabs = append(filesTabs,
+			context.TabView{
+				Tab:      gui.c.Tr.UnstagedChanges,
+				ViewName: "files",
+			},
+			context.TabView{
+				Tab:      gui.c.Tr.StagedChanges,
+				ViewName: "files",
+			},
+		)
+	}
+	filesTabs = append(filesTabs,
+		context.TabView{
+			Tab:      gui.c.Tr.WorktreesTitle,
+			ViewName: "worktrees",
+		},
+		context.TabView{
+			Tab:      gui.c.Tr.SubmodulesTitle,
+			ViewName: "submodules",
+		},
+	)
+
 	result := map[string][]context.TabView{
 		"branches": {
 			{
@@ -859,20 +888,7 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 				ViewName: "reflogCommits",
 			},
 		},
-		"files": {
-			{
-				Tab:      gui.c.Tr.FilesTitle,
-				ViewName: "files",
-			},
-			context.TabView{
-				Tab:      gui.c.Tr.WorktreesTitle,
-				ViewName: "worktrees",
-			},
-			{
-				Tab:      gui.c.Tr.SubmodulesTitle,
-				ViewName: "submodules",
-			},
-		},
+		"files": filesTabs,
 	}
 
 	return result
