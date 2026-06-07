@@ -361,6 +361,9 @@ git:
   #   # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
   #   useExternalDiffGitConfig: false
   #
+  # 'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' are mutually
+  # exclusive; set at most one per entry.
+  #
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
   # for more information.
   pagers: []
