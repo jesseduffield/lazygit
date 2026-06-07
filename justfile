@@ -46,6 +46,10 @@ e2e-tui *args:
 e2e-all:
     go test pkg/integration/clients/*.go
 
+# Run some tests on the current commit, similar to what CI does.
+check:
+    ./scripts/check_commit.sh
+
 bump-gocui:
     scripts/bump_gocui.sh
 

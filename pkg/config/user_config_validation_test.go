@@ -323,3 +323,34 @@ func TestUserConfigValidate_spinnerFrames(t *testing.T) {
 		})
 	}
 }
+
+func TestUserConfigValidate_pagers(t *testing.T) {
+	scenarios := []struct {
+		name  string
+		pager PagingConfig
+		valid bool
+	}{
+		{name: "empty", pager: PagingConfig{}, valid: true},
+		{name: "pager only", pager: PagingConfig{Pager: "delta"}, valid: true},
+		{name: "external diff command only", pager: PagingConfig{ExternalDiffCommand: "difft"}, valid: true},
+		{name: "git config external diff only", pager: PagingConfig{UseExternalDiffGitConfig: true}, valid: true},
+		{name: "pager and external diff command", pager: PagingConfig{Pager: "delta", ExternalDiffCommand: "difft"}, valid: false},
+		{name: "pager and git config external diff", pager: PagingConfig{Pager: "delta", UseExternalDiffGitConfig: true}, valid: false},
+		{name: "both external diff mechanisms", pager: PagingConfig{ExternalDiffCommand: "difft", UseExternalDiffGitConfig: true}, valid: false},
+		{name: "all three", pager: PagingConfig{Pager: "delta", ExternalDiffCommand: "difft", UseExternalDiffGitConfig: true}, valid: false},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			config := GetDefaultConfig()
+			config.Git.Pagers = []PagingConfig{s.pager}
+			err := config.Validate()
+
+			if s.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}

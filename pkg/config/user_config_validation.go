@@ -46,6 +46,9 @@ func (config *UserConfig) Validate() error {
 		[]string{"always", "never", "when-maximised"}); err != nil {
 		return err
 	}
+	if err := validatePagers(config.Git.Pagers); err != nil {
+		return err
+	}
 	if err := validateKeybindings(config.Keybinding); err != nil {
 		return err
 	}
@@ -67,6 +70,30 @@ func validateSpinner(spinner SpinnerConfig) error {
 		return utils.StringWidth(frame) != firstWidth
 	}) {
 		return errors.New("All gui.spinner.frames entries must have the same width.")
+	}
+	return nil
+}
+
+// validatePagers rejects pager entries that combine more than one diff
+// mechanism. A pager (GIT_PAGER) formats the diff that git produces, whereas
+// externalDiffCommand and useExternalDiffGitConfig change how git produces the
+// diff in the first place; piping one through the other almost always yields
+// garbled output, so we treat the three as mutually exclusive.
+func validatePagers(pagers []PagingConfig) error {
+	for i, pager := range pagers {
+		count := 0
+		if pager.Pager != "" {
+			count++
+		}
+		if pager.ExternalDiffCommand != "" {
+			count++
+		}
+		if pager.UseExternalDiffGitConfig {
+			count++
+		}
+		if count > 1 {
+			return fmt.Errorf("git.pagers[%d]: at most one of 'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' may be set; they are mutually exclusive", i)
+		}
 	}
 	return nil
 }
