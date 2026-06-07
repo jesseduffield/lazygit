@@ -1068,6 +1068,12 @@ keybinding:
     edit: <disabled> # disable 'edit file'
 ```
 
+### Overriding the platform for default keybindings
+
+A few keybindings have different defaults on macOS than on Linux and Windows (e.g. word-wise cursor movement in text inputs uses `alt` on macOS but `ctrl` elsewhere). Lazygit picks these based on the OS it's running on, but you can override that with the `LAZYGIT_KEYBINDING_PLATFORM` environment variable. Set it to `darwin`, `linux`, or `windows`; any other value is ignored and the actual OS is used.
+
+This is useful when running lazygit in a Linux container that you access over ssh from a Mac, where you'd rather use the macOS keybindings.
+
 ### Example Keybindings For Colemak Users
 
 ```yaml
