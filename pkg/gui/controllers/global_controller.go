@@ -159,6 +159,13 @@ func (self *GlobalController) prevScreenMode() error {
 
 func (self *GlobalController) cyclePagers() error {
 	self.c.State().GetPagerConfig().CyclePagers()
+	self.onPagerChanged()
+	return nil
+}
+
+// onPagerChanged re-renders the main view so the newly selected pager takes
+// effect, and shows a toast naming it.
+func (self *GlobalController) onPagerChanged() {
 	currentSide := self.c.Context().CurrentSide()
 	currentKey := self.c.Context().Current().GetKey()
 	if currentSide.GetKey() == currentKey ||
@@ -182,7 +189,6 @@ func (self *GlobalController) cyclePagers() error {
 		"current": strconv.Itoa(current + 1),
 		"total":   strconv.Itoa(total),
 	}))
-	return nil
 }
 
 func (self *GlobalController) canCyclePagers() *types.DisabledReason {
