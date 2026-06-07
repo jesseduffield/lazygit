@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
@@ -11,9 +12,11 @@ import (
 // unified diff.
 const diffFilePrefix = "diff --git "
 
-// parsedDiffLine is what parseDiffLineFromBuffer recovers about a rendered diff
-// row. RelPath is repo-relative (as the diff header spells it); the caller turns
-// it into the absolute path of types.DiffLineInfo.
+// parsedDiffLine is what a backend recovers about a rendered diff row. RelPath
+// is the path as the source spells it — repo-relative from the diff header for
+// the buffer parser (#1), or whatever the pager emitted (possibly absolute) for
+// the OSC metadata (#2); the caller turns it into the absolute path of
+// types.DiffLineInfo.
 type parsedDiffLine struct {
 	RelPath string
 	Type    types.DiffLineType
@@ -151,4 +154,48 @@ func pathFromDiffGitLine(line string) string {
 		return rest[idx+len(" b/"):]
 	}
 	return ""
+}
+
+// parseDiffLineMetadata parses mechanism #2's OSC 456 payload (v1):
+// version;type;new-line;old-line;file — positional and ';'-delimited, with the
+// file last (so it may itself contain ';') and old-line empty unless the line is
+// a deletion. See diff-line-metadata-notes.md §9.2. ok is false for a payload of
+// an unknown version or shape, so the caller can fall back to another backend.
+func parseDiffLineMetadata(payload string) (parsedDiffLine, bool) {
+	fields := strings.SplitN(payload, ";", 5)
+	if len(fields) < 5 || fields[0] != "1" {
+		return parsedDiffLine{}, false
+	}
+
+	lineType, ok := diffLineTypeFromMetadata(fields[1])
+	if !ok {
+		return parsedDiffLine{}, false
+	}
+
+	newLine, err := strconv.Atoi(fields[2])
+	if err != nil {
+		return parsedDiffLine{}, false
+	}
+
+	oldLine := 0
+	if fields[3] != "" {
+		if oldLine, err = strconv.Atoi(fields[3]); err != nil {
+			return parsedDiffLine{}, false
+		}
+	}
+
+	return parsedDiffLine{RelPath: fields[4], Type: lineType, NewLine: newLine, OldLine: oldLine}, true
+}
+
+func diffLineTypeFromMetadata(typeField string) (types.DiffLineType, bool) {
+	switch typeField {
+	case "c":
+		return types.DiffLineContext, true
+	case "a":
+		return types.DiffLineAdded, true
+	case "d":
+		return types.DiffLineDeleted, true
+	default:
+		return types.DiffLineOther, false
+	}
 }

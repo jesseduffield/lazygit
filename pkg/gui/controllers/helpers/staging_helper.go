@@ -146,23 +146,57 @@ func (self *StagingHelper) mainStagingFocused() bool {
 // patch explorer consumers go through to act on the line the user is pointing
 // at, and the strategy behind it is swappable (see diff-line-metadata-notes.md).
 //
-// Today it first parses the decolorized view buffer (mechanism #1), which serves
-// the structure-preserving renderings (no pager, git diff --color,
-// delta --color-only, diff-so-fancy --patch). When that fails — e.g. a pager
-// restructured the diff, as delta's default mode does — it falls back to delta's
-// lazygit-edit:// hyperlinks. The hyperlink can't convey the side, so its result
-// is reported as a non-deletion content line. A future backend reading #2's
-// per-cell OSC metadata would slot in ahead of these, behind the same shape.
+// It tries three backends in order of fidelity. First, mechanism #2: per-line
+// OSC metadata emitted by a patched pager (delta), which carries the side
+// directly and so serves the renderings #1 can't parse — delta's default mode,
+// --line-numbers, diff-so-fancy. Failing that, mechanism #1: parsing the
+// decolorized view buffer, which serves the structure-preserving renderings (no
+// pager, git diff --color, delta --color-only, diff-so-fancy --patch). Failing
+// that, delta's lazygit-edit:// hyperlinks; the hyperlink can't convey the side,
+// so its result is reported as a non-deletion content line.
 func (self *StagingHelper) GetDiffLineInfo(windowName string, viewLineIdx int) (types.DiffLineInfo, bool) {
 	v, _ := self.c.GocuiGui().View(self.windowHelper.GetViewNameForWindow(windowName))
 	if v == nil {
 		return types.DiffLineInfo{}, false
 	}
 
+	if info, ok := self.diffLineInfoFromMetadata(v, viewLineIdx); ok {
+		return info, true
+	}
 	if info, ok := self.diffLineInfoFromBuffer(v, viewLineIdx); ok {
 		return info, true
 	}
 	return self.diffLineInfoFromHyperlink(v, viewLineIdx)
+}
+
+// diffLineInfoFromMetadata reads mechanism #2's per-line OSC metadata. The
+// payload is positional and ';'-delimited — version;type;new-line;old-line;file
+// — with the file last so it may itself contain ';', and old-line empty unless
+// the line is a deletion. See diff-line-metadata-notes.md §9.2.
+func (self *StagingHelper) diffLineInfoFromMetadata(v *gocui.View, viewLineIdx int) (types.DiffLineInfo, bool) {
+	payload, ok := v.DiffLineMetadataInLine(viewLineIdx)
+	if !ok {
+		return types.DiffLineInfo{}, false
+	}
+
+	parsed, ok := parseDiffLineMetadata(payload)
+	if !ok {
+		return types.DiffLineInfo{}, false
+	}
+
+	// The pager may emit an absolute or a repo-relative path (whichever is
+	// convenient for it); normalize to the absolute path the consumers expect.
+	path := parsed.RelPath
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(self.c.Git().RepoPaths.WorktreePath(), path)
+	}
+
+	return types.DiffLineInfo{
+		Path:    path,
+		Type:    parsed.Type,
+		NewLine: parsed.NewLine,
+		OldLine: parsed.OldLine,
+	}, true
 }
 
 func (self *StagingHelper) diffLineInfoFromBuffer(v *gocui.View, viewLineIdx int) (types.DiffLineInfo, bool) {

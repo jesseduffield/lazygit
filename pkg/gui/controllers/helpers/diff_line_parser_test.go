@@ -90,3 +90,44 @@ index 1111111..2222222 100644
 	_, ok := parseDiffLineFromBuffer(mangled, 6)
 	assert.False(t, ok)
 }
+
+func TestParseDiffLineMetadata(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		payload  string
+		expected parsedDiffLine
+		expectOk bool
+	}{
+		// These payloads are exactly what the patched delta emits (verified
+		// against the real binary; see diff-line-metadata-notes.md §9).
+		{"context", "1;c;1;;foo.txt", parsedDiffLine{RelPath: "foo.txt", Type: types.DiffLineContext, NewLine: 1}, true},
+		{"added", "1;a;3;;foo.txt", parsedDiffLine{RelPath: "foo.txt", Type: types.DiffLineAdded, NewLine: 3}, true},
+		// A deletion carries both numbers; two consecutive deletions share the
+		// new-file line and differ only in the old-file line.
+		{"first deletion", "1;d;2;2;foo.txt", parsedDiffLine{RelPath: "foo.txt", Type: types.DiffLineDeleted, NewLine: 2, OldLine: 2}, true},
+		{"second deletion", "1;d;2;3;foo.txt", parsedDiffLine{RelPath: "foo.txt", Type: types.DiffLineDeleted, NewLine: 2, OldLine: 3}, true},
+		// A whole-file deletion has new-file position 0 and the old path.
+		{"deleted file", "1;d;0;1;gone.txt", parsedDiffLine{RelPath: "gone.txt", Type: types.DiffLineDeleted, NewLine: 0, OldLine: 1}, true},
+		// The path is the last field, so a ';' within it is preserved.
+		{"path with semicolon", "1;c;5;;weird;name.txt", parsedDiffLine{RelPath: "weird;name.txt", Type: types.DiffLineContext, NewLine: 5}, true},
+		// A pager may emit an absolute path; the parser keeps it verbatim (the
+		// caller decides whether to join the worktree path).
+		{"absolute path", "1;a;7;;/abs/foo.txt", parsedDiffLine{RelPath: "/abs/foo.txt", Type: types.DiffLineAdded, NewLine: 7}, true},
+
+		{"unknown version", "2;c;1;;foo.txt", parsedDiffLine{}, false},
+		{"unknown type", "1;x;1;;foo.txt", parsedDiffLine{}, false},
+		{"too few fields", "1;c;1", parsedDiffLine{}, false},
+		{"non-numeric new-line", "1;c;x;;foo.txt", parsedDiffLine{}, false},
+		{"non-numeric old-line", "1;d;2;y;foo.txt", parsedDiffLine{}, false},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			result, ok := parseDiffLineMetadata(s.payload)
+			assert.Equal(t, s.expectOk, ok)
+			if s.expectOk {
+				assert.Equal(t, s.expected, result)
+			}
+		})
+	}
+}
