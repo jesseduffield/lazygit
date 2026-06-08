@@ -497,6 +497,8 @@ type TranslationSet struct {
 	ShellCommand                          string
 	CommitChangesWithoutHook              string
 	ResetTo                               string
+	ResetToCustomRef                      string
+	EnterRefToResetTo                     string
 	ResetSoftTooltip                      string
 	ResetMixedTooltip                     string
 	ResetHardTooltip                      string
@@ -1635,6 +1637,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ShellCommand:                         "Shell command:",
 		CommitChangesWithoutHook:             "Commit changes without pre-commit hook",
 		ResetTo:                              `Reset to`,
+		ResetToCustomRef:                     "Reset to custom ref",
+		EnterRefToResetTo:                    "Enter ref to reset to:",
 		PressEnterToReturn:                   "Press enter to return to lazygit",
 		ViewStashOptions:                     "View stash options",
 		ViewStashOptionsTooltip:              "View stash options (e.g. stash all, stash staged, stash unstaged).",
