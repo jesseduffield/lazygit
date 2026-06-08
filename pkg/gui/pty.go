@@ -115,6 +115,10 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		}
 
 		linesToRead := gui.linesToReadFromCmdTask(view, targetOriginY)
+		// As in newCmdTask: let the task run any requested after-load callback at
+		// the end of its initial read (e.g. restoring a focused main view's
+		// selection on escape). The task clears the request when it starts.
+		linesToRead.Then = manager.GetThenForNextTask()
 		return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr)
 	})
 
