@@ -82,6 +82,14 @@ func TestSyncPush(t *testing.T) {
 			},
 		},
 		{
+			testName: "Push with no-verify",
+			opts:     PushOpts{NoVerify: true},
+			test: func(cmdObj *oscommands.CmdObj, err error) {
+				assert.Equal(t, cmdObj.Args(), []string{"git", "push", "--no-verify"})
+				assert.NoError(t, err)
+			},
+		},
+		{
 			testName: "Push with remote branch but no origin",
 			opts: PushOpts{
 				ForceWithLease: true,
