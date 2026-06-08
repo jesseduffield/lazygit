@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"log"
+	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -30,16 +31,18 @@ func (self *JumpToSideWindowController) Context() types.Context {
 
 func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	windows := self.c.Helpers().Window.SideWindows()
+	jumpBindings := opts.Config.Universal.JumpToBlock
 
-	if len(opts.Config.Universal.JumpToBlock) != len(windows) {
-		log.Fatal("Jump to block keybindings cannot be set. Exactly 5 keybindings must be supplied.")
+	// Auto-extend jump bindings if there are more windows than bindings
+	for len(jumpBindings) < len(windows) {
+		jumpBindings = append(jumpBindings, config.Keybinding{fmt.Sprintf("%d", len(jumpBindings)+1)})
 	}
 
 	return lo.Map(windows, func(window string, index int) *types.Binding {
 		return &types.Binding{
 			ViewName: "",
 			// by default the keys are 1, 2, 3, etc
-			Keys:    opts.GetKeys(opts.Config.Universal.JumpToBlock[index]),
+			Keys:    opts.GetKeys(jumpBindings[index]),
 			Handler: opts.Guards.NoPopupPanel(self.goToSideWindow(window)),
 		}
 	})
