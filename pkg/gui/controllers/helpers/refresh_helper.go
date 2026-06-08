@@ -973,7 +973,7 @@ func (self *RefreshHelper) savePullRequestsToCache(prs []*models.GithubPullReque
 		return config.CachedPullRequest{
 			HeadRefName:         pr.HeadRefName,
 			Number:              pr.Number,
-			Title:               pr.Title,
+			Title:               strings.TrimSpace(pr.Title),
 			State:               pr.State,
 			Url:                 pr.Url,
 			HeadRepositoryOwner: pr.HeadRepositoryOwner.Login,
