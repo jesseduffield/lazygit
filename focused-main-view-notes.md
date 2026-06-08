@@ -870,14 +870,37 @@ the content is loaded that far and **no-ops** (it returns early when
 ### 13.5 Status / what's left
 
 - §8 staleness: **fixed** (this session).
-- Race B (selection premature-fire): **fix designed** (thread restore into the
-  task); implement as part of part 3's one-mechanism restore, or land standalone
-  first if desired. Needs interactive verification.
-- Race A (coherence during load): **fix designed** (suppress-rebuild-until-first-
-  paint, gated; and/or the (b) no-clobber lever). Touches the delicate draw path
-  and must be verified with the interactive tracer; deliberately *not* patched
-  blind this session, and most naturally built into part 3's reworked first-paint
-  machinery.
+- Race B (selection premature-fire): **fixed** (this session). The restore now
+  rides the re-render task via a `thenForNextTask` hook on the buffer manager,
+  folded into the cmd/pty task's initial-read `Then`; the `OnUIThread → ReadToEnd`
+  dance is gone. This is the one-mechanism part 3 generalizes.
+- Race A (coherence during load): **fixed** (this session) with the gated
+  `holdViewLines` mechanism: while a scroll-restore task is loading, the view holds
+  its placeholder view lines (no rebuild from the half-loaded buffer) until the
+  first paint, which applies the saved scroll and releases the hold in one step.
+  Gated on a scroll-restore being pending, so the normal load-from-top case is
+  untouched. The (b) no-clobber lever (reuse the destination's own retained buffer
+  instead of CopyContent) is **not** done — it's the stronger part-3 improvement
+  that would make the common unchanged-content escape an invisible swap.
+
+> **Verification caveat (important):** both race fixes were implemented and
+> reasoned through, with unit tests locking the gocui primitives' contracts
+> (`TestHoldViewLines`, `TestBufferLineForViewLineStaleTail`), but **were NOT
+> visually confirmed** — session 4 ran headless, and the faithful repro is the
+> interactive app (§13.1: the headless harness uses the cmd path and blocks
+> `LAZYGIT_SLOW_RENDER`). Before relying on them, confirm with `just debug` +
+> `just print-log`, scrolled down, across a range of `LAZYGIT_SLOW_RENDER` values,
+> for all three transitions. If a fix is wrong it would be visible there.
+
+**Part 3 interplay (carry forward):** Race A's `holdViewLines` makes the
+view-line→buffer-line mapping report no result while held. Part 3's predicate
+scroll, which scans loaded rows *during* the load, must therefore scan the buffer
+(`v.lines`) cells **directly** for their metadata, not via the view-line readers
+(`DiffLineMetadataInLine(viewLineIdx)` / `bufferLineForViewLine`) — those are for
+acting on the *displayed* (held placeholder) content. Converting a found buffer
+line to a scroll target (buffer-line→view-line) needs consistent view lines and so
+happens after release. The §8 #1 two-call atomicity constraint
+(diff-line-metadata-notes.md §8) applies to the same scan.
 
 Memory: `focused-main-view-flicker-timing-races` (updated — races now
-characterized, not just observed).
+characterized and fixed, pending interactive verification).
