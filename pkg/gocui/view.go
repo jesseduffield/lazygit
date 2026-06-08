@@ -1546,22 +1546,11 @@ func (v *View) Word(x, y int) (string, bool) {
 }
 
 func (v *View) HyperLinkInLine(y int, urlScheme string) (string, bool) {
-	// Take the lock so we don't race a concurrent re-render that is rebuilding the
-	// buffer.
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	v.refreshViewLinesIfNeeded()
-
-	if y < 0 || y >= len(v.viewLines) {
-		return "", false
-	}
-
-	// refreshViewLinesIfNeeded overwrites viewLines in place without truncating,
-	// so while a shorter re-render is loading, the tail of viewLines can still
-	// hold stale entries pointing past the (shrunk) v.lines. Guard against that.
-	linesY := v.viewLines[y].linesY
-	if linesY >= len(v.lines) {
+	linesY, ok := v.bufferLineForViewLine(y)
+	if !ok {
 		return "", false
 	}
 
@@ -1579,22 +1568,11 @@ func (v *View) HyperLinkInLine(y int, urlScheme string) (string, bool) {
 // single-column case every cell of the line carries the same payload, so the
 // first non-empty one is the answer. See diff-line-metadata-notes.md.
 func (v *View) DiffLineMetadataInLine(y int) (string, bool) {
-	// Take the lock so we don't race a concurrent re-render that is rebuilding the
-	// buffer.
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	v.refreshViewLinesIfNeeded()
-
-	if y < 0 || y >= len(v.viewLines) {
-		return "", false
-	}
-
-	// refreshViewLinesIfNeeded overwrites viewLines in place without truncating,
-	// so while a shorter re-render is loading, the tail of viewLines can still
-	// hold stale entries pointing past the (shrunk) v.lines. Guard against that.
-	linesY := v.viewLines[y].linesY
-	if linesY >= len(v.lines) {
+	linesY, ok := v.bufferLineForViewLine(y)
+	if !ok {
 		return "", false
 	}
 
@@ -1612,11 +1590,21 @@ func (v *View) DiffLineMetadataInLine(y int) (string, bool) {
 // returned by BufferLines). Several view lines can map to the same buffer line
 // when wrapping is on. Returns false if the view line is out of range.
 func (v *View) BufferLineForViewLine(y int) (int, bool) {
-	// Take the lock so we don't race a concurrent re-render that is rebuilding
-	// the buffer.
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
+	return v.bufferLineForViewLine(y)
+}
+
+// bufferLineForViewLine maps a (wrapped) view line index to the index of the
+// corresponding line in the unwrapped internal buffer (v.lines). It is the
+// shared core of the public readers that look up information about the buffer
+// line under a given view line (its buffer index, its hyperlink, its diff
+// metadata); they all need the same view-line→buffer-line mapping to stay
+// consistent with the buffer they then read. The caller must hold writeMutex,
+// so that the mapping and the subsequent read of v.lines see the same buffer
+// even if a concurrent re-render is rebuilding it.
+func (v *View) bufferLineForViewLine(y int) (int, bool) {
 	v.refreshViewLinesIfNeeded()
 
 	if y < 0 || y >= len(v.viewLines) {
