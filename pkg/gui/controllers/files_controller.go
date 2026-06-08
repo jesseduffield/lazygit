@@ -1615,8 +1615,10 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 		),
 	}
 
-	if !someNodesHaveStagedChanges(selectedNodes) || !someNodesHaveUnstagedChanges(selectedNodes) {
-		discardUnstagedChangesItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.DiscardUnstagedDisabled}
+	if !someNodesHaveUnstagedChanges(selectedNodes) {
+		discardUnstagedChangesItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.DiscardUnstagedDisabledNoUnstaged}
+	} else if !someNodesHaveStagedChanges(selectedNodes) {
+		discardUnstagedChangesItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.DiscardUnstagedDisabledNoStaged}
 	}
 
 	menuItems := []*types.MenuItem{
