@@ -773,6 +773,7 @@ type TranslationSet struct {
 	ToggleWhitespaceInDiffView               string
 	ToggleWhitespaceInDiffViewTooltip        string
 	IgnoreWhitespaceDiffViewSubTitle         string
+	CommitSignatureVerifiedSubTitle          string
 	IgnoreWhitespaceNotSupportedHere         string
 	IncreaseContextInDiffView                string
 	IncreaseContextInDiffViewTooltip         string
@@ -1904,6 +1905,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleWhitespaceInDiffView:               "Toggle whitespace",
 		ToggleWhitespaceInDiffViewTooltip:        "Toggle whether or not whitespace changes are shown in the diff view.\n\nThe default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'.",
 		IgnoreWhitespaceDiffViewSubTitle:         "(ignoring whitespace)",
+		CommitSignatureVerifiedSubTitle:          "Verified",
 		IgnoreWhitespaceNotSupportedHere:         "Ignoring whitespace is not supported in this view",
 		IncreaseContextInDiffView:                "Increase diff context size",
 		IncreaseContextInDiffViewTooltip:         "Increase the amount of the context shown around changes in the diff view.\n\nThe default can be changed in the config file with the key 'git.diffContextSize'.",
