@@ -39,8 +39,25 @@ type Branch struct {
 	// How far we have fallen behind our base branch. 0 means either not
 	// determined yet, or up to date with base branch. (We don't need to
 	// distinguish the two, as we don't draw anything in both cases.)
+	// Negative values are sentinels for the ambiguous case where we can't
+	// pick a single base; see BehindBase* constants below.
 	BehindBaseBranch atomic.Int32
 }
+
+// Sentinel values stored in Branch.BehindBaseBranch when the base branch
+// is ambiguous (more than one configured main branch tied at the closest
+// position) and the candidates disagree on the behind count.
+const (
+	// BehindBaseAmbiguousMaybeUpToDate means at least one candidate has
+	// the branch up to date and at least one has it behind; we don't
+	// know which. Rendered as "?".
+	BehindBaseAmbiguousMaybeUpToDate int32 = -1
+
+	// BehindBaseAmbiguousDefinitelyBehind means every candidate has the
+	// branch behind by a non-zero amount, but the amounts differ — so we
+	// know the branch is behind, just not by how much. Rendered as "↓?".
+	BehindBaseAmbiguousDefinitelyBehind int32 = -2
+)
 
 func (b *Branch) FullRefName() string {
 	if b.DetachedHead {
