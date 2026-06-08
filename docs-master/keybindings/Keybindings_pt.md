@@ -82,6 +82,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
 | `` 0 `` | Focar visualização principal |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Branches locais
@@ -111,6 +112,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` 0 `` | Focar visualização principal |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Ver commits |  |
 | `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
@@ -130,6 +132,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` 0 `` | Focar visualização principal |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Ver commits |  |
 | `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
@@ -152,6 +155,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
 | `` 0 `` | Focar visualização principal |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Commits
@@ -192,6 +196,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focar visualização principal |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Ver arquivos |  |
 | `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Pesquisar na visualização atual por texto |  |
@@ -208,6 +213,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` 0 `` | Focar visualização principal |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Ver commits |  |
 | `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
@@ -235,6 +241,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel up> (fn+down) `` | Rolar para cima |  |
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` 0 `` | Focar visualização principal |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Painel Principal (preparação)
@@ -315,6 +323,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focar visualização principal |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Ver commits |  |
 | `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
@@ -337,6 +346,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` 0 `` | Focar visualização principal |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Stash
@@ -349,6 +360,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` n `` | Nova branch | Criar um novo ramo a partir da entrada de lixo selecionada. Isso funciona verificando o commit do qual a entrada de lixo foi criada, criar um novo branch a partir desse commit e, em seguida, aplicar a entrada de lixo ao novo branch como um commit adicional. |
 | `` r `` | Renomear o stash |  |
 | `` 0 `` | Focar visualização principal |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Ver arquivos |  |
 | `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
@@ -364,6 +376,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Mostrar/ciclo todos os logs de filiais |  |
 | `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | Focar visualização principal |  |
+| `` 9 `` | Focus secondary view |  |
 
 ## Sub-commits
 
@@ -381,6 +394,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focar visualização principal |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | Ver arquivos |  |
 | `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Pesquisar na visualização atual por texto |  |

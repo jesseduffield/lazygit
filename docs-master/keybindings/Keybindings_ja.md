@@ -96,6 +96,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` * `` | 現在のブランチのコミットを選択 |  |
 | `` 0 `` | メインビューにフォーカス |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | ファイルを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
@@ -118,6 +119,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | すべてのファイルを折りたたむ | ファイルツリー内のすべてのディレクトリを折りたたみます |
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
 | `` 0 `` | メインビューにフォーカス |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
 
 ## コミット概要
@@ -143,6 +145,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` * `` | 現在のブランチのコミットを選択 |  |
 | `` 0 `` | メインビューにフォーカス |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | ファイルを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
@@ -171,6 +174,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` n `` | 新しいブランチ | 選択したスタッシュエントリから新しいブランチを作成します。これは、スタッシュエントリが作成されたコミットをgitがチェックアウトし、そのコミットから新しいブランチを作成した後、スタッシュエントリを追加のコミットとして新しいブランチに適用することで機能します。 |
 | `` r `` | スタッシュの名前を変更 |  |
 | `` 0 `` | メインビューにフォーカス |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | ファイルを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
@@ -186,6 +190,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | ブランチログの表示モードを順に切り替え |  |
 | `` A `` | Show/cycle all branch logs (reverse) |  |
 | `` 0 `` | メインビューにフォーカス |  |
+| `` 9 `` | Focus secondary view |  |
 
 ## セカンダリ
 
@@ -193,6 +198,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
 | `` <esc> `` | サイドパネルに戻る |  |
+| `` 0 `` | メインビューにフォーカス |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## タグ
@@ -207,6 +214,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` 0 `` | メインビューにフォーカス |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | コミットを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
@@ -242,6 +250,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | すべてのファイルを折りたたむ | ファイルツリー内のすべてのディレクトリを折りたたみます |
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
 | `` 0 `` | メインビューにフォーカス |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
 
 ## メインパネル（ステージング）
@@ -306,6 +315,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel up> (fn+down) `` | 上にスクロール |  |
 | `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
 | `` <esc> `` | サイドパネルに戻る |  |
+| `` 0 `` | メインビューにフォーカス |  |
+| `` 9 `` | Focus secondary view |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## メニュー
@@ -332,6 +343,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` * `` | 現在のブランチのコミットを選択 |  |
 | `` 0 `` | メインビューにフォーカス |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | コミットを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
@@ -363,6 +375,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` 0 `` | メインビューにフォーカス |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | コミットを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
@@ -394,6 +407,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` u `` | アップストリームオプションを表示 | ブランチのアップストリームに関連するオプションを表示します（例：アップストリームの設定/解除やアップストリームへのリセット）。 |
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` 0 `` | メインビューにフォーカス |  |
+| `` 9 `` | Focus secondary view |  |
 | `` <enter> `` | コミットを表示 |  |
 | `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
