@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -34,7 +35,7 @@ func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpt
 
 	// Auto-extend jump bindings if there are more windows than bindings
 	for len(jumpBindings) < len(windows) {
-		jumpBindings = append(jumpBindings, fmt.Sprintf("%d", len(jumpBindings)+1))
+		jumpBindings = append(jumpBindings, config.Keybinding{fmt.Sprintf("%d", len(jumpBindings)+1)})
 	}
 
 	return lo.Map(windows, func(window string, index int) *types.Binding {

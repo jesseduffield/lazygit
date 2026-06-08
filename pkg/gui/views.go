@@ -222,7 +222,7 @@ func (gui *Gui) configureViewProperties() {
 
 		// Auto-extend jump bindings if there are more windows than bindings
 		for len(jumpBindings) < len(sideWindows) {
-			jumpBindings = append(jumpBindings, fmt.Sprintf("%d", len(jumpBindings)+1))
+			jumpBindings = append(jumpBindings, config.Keybinding{fmt.Sprintf("%d", len(jumpBindings)+1)})
 		}
 
 		jumpLabels := lo.Map(jumpBindings, func(binding config.Keybinding, _ int) string {
