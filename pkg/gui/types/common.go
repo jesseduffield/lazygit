@@ -59,6 +59,10 @@ type IGuiCommon interface {
 	Suspend() error
 	Resume() error
 
+	// Pause or resume the background routines. Calls nest, so every pause must be balanced
+	// by a resume.
+	PauseBackgroundRefreshes(pause bool)
+
 	Context() IContextMgr
 	ContextForKey(key ContextKey) Context
 
