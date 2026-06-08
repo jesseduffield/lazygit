@@ -28,7 +28,7 @@ func (self *ReflogCommitLoader) GetReflogCommits(hashPool *utils.StringPool, las
 	cmdArgs := NewGitCmd("log").
 		Config("log.showSignature=false").
 		Arg("-g").
-		Arg("--format=+%H%x00%ct%x00%gs%x00%P").
+		Arg("--format=+%H%x00%at%x00%ct%x00%gs%x00%P").
 		ArgIf(filterAuthor != "", "--author="+filterAuthor).
 		ArgIf(filterPath != "", "--follow", "--name-status", "--", filterPath).
 		ToArgv()
@@ -63,18 +63,19 @@ func (self *ReflogCommitLoader) GetReflogCommits(hashPool *utils.StringPool, las
 }
 
 func (self *ReflogCommitLoader) sameReflogCommit(a *models.Commit, b *models.Commit) bool {
-	return a.Hash() == b.Hash() && a.UnixTimestamp == b.UnixTimestamp && a.Name == b.Name
+	return a.Hash() == b.Hash() && a.UnixTimestamp == b.UnixTimestamp && a.CommitterDate == b.CommitterDate && a.Name == b.Name
 }
 
 func (self *ReflogCommitLoader) parseLine(hashPool *utils.StringPool, line string) (*models.Commit, bool) {
-	fields := strings.SplitN(line, "\x00", 4)
-	if len(fields) <= 3 {
+	fields := strings.SplitN(line, "\x00", 5)
+	if len(fields) <= 4 {
 		return nil, false
 	}
 
 	unixTimestamp, _ := strconv.Atoi(fields[1])
+	committerDate, _ := strconv.Atoi(fields[2])
 
-	parentHashes := fields[3]
+	parentHashes := fields[4]
 	parents := []string{}
 	if len(parentHashes) > 0 {
 		parents = strings.Split(parentHashes, " ")
@@ -82,8 +83,9 @@ func (self *ReflogCommitLoader) parseLine(hashPool *utils.StringPool, line strin
 
 	return models.NewCommit(hashPool, models.NewCommitOpts{
 		Hash:          fields[0],
-		Name:          fields[2],
+		Name:          fields[3],
 		UnixTimestamp: int64(unixTimestamp),
+		CommitterDate: int64(committerDate),
 		Status:        models.StatusReflog,
 		Parents:       parents,
 	}), true
