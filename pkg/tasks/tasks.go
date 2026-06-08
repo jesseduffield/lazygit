@@ -85,6 +85,19 @@ type ViewBufferManager struct {
 	// Cleared once the next task has started.
 	scrollToOriginYForNextTask *int
 
+	// When non-nil, run once after the next cmd/pty task has read enough of its
+	// content (the end of its initial read). Used to restore state that depends
+	// on the re-rendered content being loaded — e.g. the selection in a focused
+	// main view we're returning to on escape — by riding the task's own
+	// lifecycle rather than a separate post-hoc ReadToEnd. A ReadToEnd issued
+	// right after triggering the re-render can fire synchronously, because the
+	// freshly-created task's read channel isn't live yet (it is created inside
+	// the task goroutine, after the previous task has been stopped); that would
+	// run the restore before any content is loaded and silently drop it.
+	//
+	// Cleared once the next task has started.
+	thenForNextTask func()
+
 	// Whether a command task is currently reading content into the view. While
 	// this is true the content is still growing, so callers (e.g. the layout)
 	// must not clamp the view's scroll position to the amount loaded so far.
@@ -191,6 +204,22 @@ func (self *ViewBufferManager) ScrollToOriginYForNextTask(originY int) {
 // it; the task clears it when it starts.
 func (self *ViewBufferManager) GetScrollToOriginYForNextTask() *int {
 	return self.scrollToOriginYForNextTask
+}
+
+// ThenForNextTask makes the next cmd/pty task run the given function once it has
+// read enough of its content (the end of its initial read). Call this right
+// before triggering a re-render whose loaded content the function depends on.
+// See the field doc for why this is preferable to a separate ReadToEnd. It is
+// cleared once the next task starts.
+func (self *ViewBufferManager) ThenForNextTask(then func()) {
+	self.thenForNextTask = then
+}
+
+// GetThenForNextTask returns the function requested by a preceding
+// ThenForNextTask call, or nil if none. It does not clear it; the task clears it
+// when it starts.
+func (self *ViewBufferManager) GetThenForNextTask() func() {
+	return self.thenForNextTask
 }
 
 // IsLoading reports whether a command task is currently reading content into the
@@ -608,6 +637,7 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		// saved position as part of its first paint (see scrollToOriginYForNextTask).
 		resetOrigin := self.GetTaskKey() != key && self.onNewKey != nil && self.scrollToOriginYForNextTask == nil
 		self.scrollToOriginYForNextTask = nil
+		self.thenForNextTask = nil
 		self.taskKey = key
 
 		self.taskIDMutex.Unlock()

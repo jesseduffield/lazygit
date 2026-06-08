@@ -61,15 +61,34 @@ func EscapeFromPatchExplorer(c *HelperCommon, context types.IPatchExplorerContex
 
 	view := snapshot.MainView.GetView()
 
-	// Ask the upcoming re-render to restore the scroll position. Pushing the side
-	// panel re-renders its content into the main view via a cmd/pty task. Until
-	// that content is ready, the main view keeps showing the placeholder that
-	// CopyContent left in it (the view we're leaving) at its current scroll; the
-	// task then scrolls to the saved position as part of the first paint that
-	// shows the real content. Doing it this way (rather than setting the origin up
-	// front) avoids both a jump to the top and a misplaced placeholder frame.
-	if manager := c.GetViewBufferManagerForView(view); manager != nil {
+	restore := func() {
+		view.FocusPoint(0, snapshot.SelectedLineIdx, false)
+		view.Highlight = true
+		view.HighlightInactive = false
+	}
+
+	// Ask the upcoming re-render to restore the scroll position and selection.
+	// Pushing the side panel re-renders its content into the main view via a
+	// cmd/pty task. Until that content is ready, the main view keeps showing the
+	// placeholder that CopyContent left in it (the view we're leaving) at its
+	// current scroll; the task then scrolls to the saved position as part of the
+	// first paint that shows the real content (rather than setting the origin up
+	// front, which would jump to the top or show a misplaced placeholder frame).
+	// The selection needs the content loaded down to the selected line, so it
+	// rides the same task and fires at the end of its initial read. Threading it
+	// through the task (rather than a ReadToEnd issued after the pushes) avoids a
+	// race: ReadToEnd fires synchronously when the freshly-created task's read
+	// channel isn't live yet, which would run FocusPoint before the content is
+	// loaded and silently drop the selection.
+	manager := c.GetViewBufferManagerForView(view)
+	if manager != nil {
 		manager.ScrollToOriginYForNextTask(snapshot.OriginY)
+		manager.ThenForNextTask(func() {
+			c.OnUIThread(func() error {
+				restore()
+				return nil
+			})
+		})
 	}
 
 	// Land on the side panel first (this re-renders the original content into the
@@ -77,31 +96,10 @@ func EscapeFromPatchExplorer(c *HelperCommon, context types.IPatchExplorerContex
 	c.Context().Push(snapshot.SidePanel, types.OnFocusOpts{})
 	c.Context().Push(snapshot.MainView, types.OnFocusOpts{})
 
-	restore := func() {
-		view.FocusPoint(0, snapshot.SelectedLineIdx, false)
-		view.Highlight = true
-		view.HighlightInactive = false
+	// Without a buffer manager there is no re-render task to ride, so restore now.
+	if manager == nil {
+		restore()
 	}
-
-	// The scroll position is handled by the re-render above, but the selection
-	// still needs the content loaded down to the selected line, which happens
-	// asynchronously. Wait until the diff has been fully read before restoring
-	// it. We do this on the next UI tick, by which point the re-render task is
-	// live and ReadToEnd can hook into it.
-	c.OnUIThread(func() error {
-		manager := c.GetViewBufferManagerForView(view)
-		if manager == nil {
-			restore()
-			return nil
-		}
-		manager.ReadToEnd(func() {
-			c.OnUIThread(func() error {
-				restore()
-				return nil
-			})
-		})
-		return nil
-	})
 }
 
 // kills the custom patch and returns us back to the commit files panel if needed

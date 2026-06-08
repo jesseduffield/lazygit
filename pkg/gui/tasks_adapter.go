@@ -61,6 +61,11 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	}
 
 	linesToRead := gui.linesToReadFromCmdTask(view, targetOriginY)
+	// If a caller asked us to run something once this re-render has loaded (e.g.
+	// restoring a focused main view's selection on escape), let the task own it,
+	// firing at the end of its initial read. The task clears the request when it
+	// starts.
+	linesToRead.Then = manager.GetThenForNextTask()
 	if err := manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr); err != nil {
 		gui.c.Log.Error(err)
 	}
