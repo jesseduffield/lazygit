@@ -84,8 +84,10 @@ func renderAux[T any](
 	}
 
 	isRoot := treeDepth == -1
+	hasChildren := len(node.Children) > 0
 
-	if node.IsFile() {
+	// Pure file node (no children) - render and return
+	if node.IsFile() && !hasChildren {
 		if isRoot {
 			return []string{}
 		}
@@ -128,6 +130,7 @@ func getFileLine(
 	var nameColor style.TextStyle
 
 	file := node.File
+	hasChildren := len(node.Children) > 0
 
 	indentation := strings.Repeat("  ", visualDepth)
 
@@ -140,7 +143,8 @@ func getFileLine(
 	}
 
 	if file == nil {
-		output += indentation + ""
+		// Pure directory node
+		output += indentation
 		arrow := EXPANDED_ARROW
 		if isCollapsed {
 			arrow = COLLAPSED_ARROW
@@ -149,7 +153,17 @@ func getFileLine(
 		arrowStyle := nameColor
 
 		output += arrowStyle.Sprint(arrow) + " "
+	} else if hasChildren {
+		// Node with both file and children (e.g., deleted symlink replaced with directory)
+		// Show file status followed by expand/collapse arrow
+		output += indentation + formatFileStatus(file, nameColor) + nameColor.Sprint(" ")
+		arrow := EXPANDED_ARROW
+		if isCollapsed {
+			arrow = COLLAPSED_ARROW
+		}
+		output += nameColor.Sprint(arrow) + " "
 	} else {
+		// Pure file node
 		// Sprinting the space at the end in the specific style is for the sake of
 		// when a reverse style is used in the theme, which looks ugly if you just
 		// use the default style
@@ -158,7 +172,7 @@ func getFileLine(
 
 	isSubmodule := file != nil && file.IsSubmodule(submoduleConfigs)
 	isLinkedWorktree := file != nil && file.IsWorktree
-	isDirectory := file == nil
+	isDirectory := file == nil || hasChildren
 
 	if showFileIcons {
 		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory, customIconsConfig)
@@ -231,7 +245,8 @@ func getCommitFileLine(
 	commitFile := node.File
 	output := indentation
 
-	isDirectory := commitFile == nil
+	hasChildren := len(node.Children) > 0
+	isDirectory := commitFile == nil || hasChildren
 
 	nameColor := theme.DefaultTextColor
 
@@ -244,7 +259,8 @@ func getCommitFileLine(
 		nameColor = theme.DefaultTextColor
 	}
 
-	if isDirectory {
+	if commitFile == nil {
+		// Pure directory node
 		arrow := EXPANDED_ARROW
 		if isCollapsed {
 			arrow = COLLAPSED_ARROW
@@ -252,6 +268,7 @@ func getCommitFileLine(
 
 		output += nameColor.Sprint(arrow) + " "
 	} else {
+		// Node with file (with or without children)
 		var symbol string
 		symbolStyle := nameColor
 
@@ -266,6 +283,14 @@ func getCommitFileLine(
 		}
 
 		output += symbolStyle.Sprint(symbol) + " "
+
+		if hasChildren {
+			arrow := EXPANDED_ARROW
+			if isCollapsed {
+				arrow = COLLAPSED_ARROW
+			}
+			output += nameColor.Sprint(arrow) + " "
+		}
 	}
 
 	name = utils.EscapeSpecialChars(name)
