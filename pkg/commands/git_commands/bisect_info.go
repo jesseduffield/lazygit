@@ -32,8 +32,13 @@ type BisectInfo struct {
 	// map of commit hashes to their status
 	statusMap map[string]BisectStatus
 
-	// the hash of the commit that's under test
+	// the hash of the commit that git bisect expects to be under test
+	// (from BISECT_EXPECTED_REV)
 	current string
+
+	// the actual HEAD hash, which may differ from current if the user
+	// manually checked out a different commit during bisect
+	headHash string
 }
 
 type BisectStatus int
@@ -61,6 +66,12 @@ func (self *BisectInfo) GetNewHash() string {
 
 func (self *BisectInfo) GetCurrentHash() string {
 	return self.current
+}
+
+// GetHeadHash returns the actual HEAD commit hash. During bisect this may
+// differ from GetCurrentHash() if the user manually checked out a commit.
+func (self *BisectInfo) GetHeadHash() string {
+	return self.headHash
 }
 
 func (self *BisectInfo) GetStartHash() string {

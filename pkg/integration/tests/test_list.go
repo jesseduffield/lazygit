@@ -36,6 +36,7 @@ import (
 
 var tests = []*components.IntegrationTest{
 	bisect.Basic,
+	bisect.CheckoutDuringBisect,
 	bisect.ChooseTerms,
 	bisect.FromOtherBranch,
 	bisect.Skip,
