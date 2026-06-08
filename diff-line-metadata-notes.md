@@ -384,19 +384,35 @@ fall-through) `delta --color-only --line-numbers`, `diff-so-fancy`, delta defaul
   unusual paths is **not** handled (prototype). #2 should carry the path
   explicitly (it already does, §3.2) and the production #1 path should decode
   quoting.
-- **`View.BufferLineForViewLine` (and `HyperLinkInLine`, which it mirrors) can
-  return *stale* data, not only panic — fix when productionizing.** The guard
-  only rejects a `linesY` that's gone out of range of a shrunk `v.lines`. But if
-  a newer render task has *refilled* `v.lines` while `v.viewLines` still holds
-  the previous task's entries (kept deliberately, to avoid flicker), a `linesY`
-  that is still in range now points at the *new* buffer's content at that index —
-  so we silently map to the wrong line, no panic. Harmless in the prototype (the
-  focused main view is static while the user clicks/presses enter), but the
-  productionized read needs the view-line→buffer-line mapping to be consistent
-  with the buffer it then reads: e.g. snapshot `viewLines` *and* `lines` under one
-  lock and parse from that snapshot, or tie the read to the task that produced the
-  buffer. Both #1 (this mapping) and the #2 per-cell attachment read have to get
-  this right.
+- **`View.BufferLineForViewLine` (and the `HyperLinkInLine` /
+  `DiffLineMetadataInLine` readers that mirror it) could return *stale* data, not
+  only panic — FIXED in the prototype (session 4).** The old guard only rejected a
+  `linesY` that had gone out of range of a shrunk `v.lines`. But if a re-render
+  produced *fewer* view lines than the previous one, `refreshViewLinesIfNeeded`
+  (which overwrites `viewLines` in place without truncating, to keep the tail
+  visible for flicker-avoidance) left stale entries from the previous render in the
+  tail; with **wrapping**, such an entry's `linesY` could still be *in range* of
+  the new, shorter, less-wrapped buffer, so the guard passed and a view line that
+  no longer existed mapped onto the wrong buffer line. This is a *single-threaded,
+  deterministic* defect, not just a concurrency one (the non-truncating refresh is
+  enough; see the unit test `TestBufferLineForViewLineStaleTail`).
+  - **The fix:** `refreshViewLinesIfNeeded` records `freshViewLineCount` — how many
+    leading `viewLines` entries it built from the current buffer — and the three
+    readers (unified onto one `bufferLineForViewLine` helper) bound on that instead
+    of `len(viewLines)`. Within the fresh range each entry was just built from
+    `v.lines`, so its index is guaranteed in range and the old in-range guard is
+    gone. Commits: unify-readers → demonstrate → fix.
+  - **Still a part-3 constraint, NOT yet fixed:** mechanism #1's host-side parse
+    (`diffLineInfoFromBuffer`) maps the view line and reads the buffer text in *two
+    separate* locked gocui calls (`BufferLineForViewLine` then `BufferLines`), so a
+    re-render between them could desync the index from the text. Harmless for the
+    forward consumers (the focused main view is static while the user clicks/presses
+    enter) and harmless for the planned inverse **predicate scan** *iff* that scan
+    runs inside the render task's own goroutine (no concurrent writer, since tasks
+    don't overlap). So the safe rule for the part-3 reader is: scan on the task
+    goroutine, or take a single buffer+index snapshot under one lock. The metadata
+    (#2) and hyperlink readers already map-and-read under one lock, so they are
+    atomic today.
 - Still open (untouched by #1): the §3.x #2 wire-format questions, headers
   carrying line numbers, difftastic specifics.
 
