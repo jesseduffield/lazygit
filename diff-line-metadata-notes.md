@@ -32,6 +32,18 @@ several consumers, not a click-to-stage helper:
    (`ScrollToOriginYForNextTask`, commits `054d139fe`/`625e7dbad`). Anchor on
    the **nearest change line**, which survives any `-U` change (context lines
    don't).
+6. **Restore selection/scroll when escaping back from staging / patch building**
+   — land on the line the explorer view was *currently* selecting at escape
+   (after its auto-advance), not the line you entered on, since you may have
+   staged/dropped hunks meanwhile. Replaces the brittle numeric-index restore;
+   see focused-main-view-notes.md §12 (incl. the escape-routing special cases).
+
+Consumers **1–4** use the primitive in the **forward** direction (rendered row →
+identity). Consumers **5–6** use the **inverse** (identity → rendered row): they
+scan the rendered rows' metadata for the one matching a target patch identity,
+which the host does *as the buffer loads* via a predicate generalization of
+`ScrollToOriginYForNextTask` (focused-main-view-notes.md §12.3). The inverse
+direction is what motivates solving the §8 staleness trap up front.
 
 Because it's one primitive, it's worth building as a clean standalone
 capability rather than welding it to staging.

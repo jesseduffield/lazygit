@@ -612,3 +612,103 @@ characterised — next session should:
   selection restore; the `afterLayout`-deferred pty task creation racing a layout
   pass; and `CopyContent` vs. the task's first write.
 - Memory: `focused-main-view-flicker-timing-races`.
+
+---
+
+## 12. Restore by patch identity, escape routing, and the plan to solve the three entangled problems
+
+A design discussion (it did **not** result in code; the implementation is for a
+**new session**). Three things came out of it: a better model for the escape
+restore, a set of escape-routing cases the current prototype gets wrong, and a
+decision about *when* to solve the hard async problems.
+
+### 12.1 The restore should anchor on a patch identity, not a numeric scroll/index
+
+The current escape (§6/§11) saves the main view's `OriginY` + selection **index**
+and replays them. That's only right when the content is unchanged. But the whole
+reason you'd escape *after doing something* in the staging/patch view is that you
+changed the content — you staged a hunk, or `d`-dropped one — so a numeric index
+now points at a different line. (§4 already conceded "the selection may be
+slightly off; no fix planned.")
+
+The right model: on escape, read the explorer view's **current selection at that
+moment** as a patch identity `(file, type, source-line, side)` — *after* the
+host's auto-advance has already moved it to a still-valid line — then find that
+identity in the freshly re-rendered main view and scroll it into view. This is
+the **inverse** of the diff-line-metadata primitive (identity → rendered row,
+rather than row → identity), and it is the **same operation** as the `-U`
+context-change scroll-preservation consumer (see diff-line-metadata-notes.md §1
+item 5). It also lets the `FocusedMainViewSnapshot` store *less* (the `OriginY` +
+main-view `SelectedLineIdx` become derivable), which is a simplification.
+
+Note the difference from the `-U` case's "anchor on the nearest surviving change
+line" fallback: that's for when context lines genuinely vanish. For staging-escape
+the host's auto-advance normally hands us a valid line directly; the
+nearest-surviving fallback is only for the degenerate cases below.
+
+### 12.2 Escape routing — which half to return to, or whether to at all
+
+The escape target is really `(context, identity)`: which focused-main half
+corresponds to where the explorer's selection ended up. The current prototype
+gets several cases wrong:
+
+- **Stage a non-last hunk** — selection auto-advances within unstaged → restore
+  there. The common, already-conceptually-fine case.
+- **Stage the *last* unstaged hunk** — unstaged becomes empty and the selection
+  crosses to the **staged** panel → escape should land in the **staged half**
+  (the secondary view), not unstaged. *Currently lands in the files panel — bug.*
+- **`<tab>` between unstaged/staged inside the staging view** — escape should
+  return to the half matching the side you're on. *Currently broken — bug.*
+- **Drop the last unstaged hunk with nothing staged** — the staging view
+  auto-closes; focus goes to the files panel. *Correct as-is*: the main view
+  would only show "No changed files", so there's no point focusing it. (Probably
+  not deliberate in the prototype, but it's the right outcome.)
+- **Drop a hunk in the custom patch builder (dropping it from the commit), or
+  "Remove patch from original commit" from the custom-patch menu** — the patch
+  builder *always* closes (it can't mutate the commit from within it), not just on
+  the last hunk. Re-focusing the main view is right, but here there is **no host
+  auto-advance**, so we'd have to advance the selection ourselves. Since these are
+  infrequent, acceptably focusing the **side panel** instead is a fine shortcut.
+
+So the return target is: unstaged-selection → main; staged-selection → secondary;
+no valid selection / empty → files panel; custom-patch-builder → side panel
+(shortcut) or self-advance.
+
+### 12.3 Decision: solve the three entangled problems in the prototype (next session)
+
+The new restore mechanism, the **§11 timing races**, and the
+**`BufferLineForViewLine` staleness trap** (diff-line-metadata-notes.md §8) are
+entangled: the identity-based restore reads/parses the buffer *while it is still
+loading*, which is exactly where both the races and the staleness bite. We
+decided **not** to defer these to productionization. A production plan written
+around three unsolved, entangled mechanisms isn't a plan; the prototype exists to
+retire that unknown cheaply (build-order §7). Resolve them here, and
+productionization becomes transcription.
+
+Attack order (dependency-first, to keep it from ballooning):
+
+1. **§8 staleness fix first.** A bounded *correctness* fix with a known shape
+   (snapshot `viewLines`+`lines` under one lock, or tie the read to the task that
+   produced the buffer). Needed regardless, and it's what makes
+   reading/parsing-during-load safe — which everything else depends on.
+2. **Characterize the §11 races early, timeboxed, before designing around them.**
+   The one real sink risk is that they're not yet characterised: we don't know if
+   each is a specific bad interleaving (bounded fix) or a fundamental tension in
+   the async-lazy-render model (e.g. no flicker-free first paint without buffering
+   a screenful first). That distinction changes the restore design *and* is itself
+   a key production-plan input, so pin it cheaply up front. This is "understand the
+   race to choose the right fix", not "decide whether to fix it" (we fix it).
+3. **The new restore mechanism**, which splits:
+   - **sync half** — the §12.2 routing (which context / side panel); largely
+     independent of timing, can progress in parallel.
+   - **async half** — a *predicate* scroll: generalize
+     `ScrollToOriginYForNextTask(y)` (§11) to "scroll to the row matching this
+     predicate, applied the first refresh at which it's satisfiable" (the read
+     loop scans the lines read so far via the metadata primitive; the fixed-`y`
+     case is then just a trivial predicate). This is the "keep parsing as it
+     loads" piece and is the part that sits on §8+§11.
+
+### 12.4 Memory
+
+`focused-main-view-flicker-timing-races` already covers the races. The escape
+restore reworking and the three-problem plan above are recorded here.
