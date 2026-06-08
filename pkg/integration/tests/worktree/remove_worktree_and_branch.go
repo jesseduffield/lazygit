@@ -5,7 +5,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var RemoveWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
+var RemoveWorktreeAndBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Remove a worktree from the branches view",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
@@ -53,7 +53,9 @@ var RemoveWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("mybranch"),
-				Contains("newbranch").DoesNotContain("(worktree)").IsSelected(),
+			).
+			Content(
+				DoesNotContain("newbranch"),
 			)
 
 		t.Views().Worktrees().
