@@ -342,6 +342,11 @@ gui:
 git:
   # Array of pagers. Each entry has the following format:
   #
+  #   # A name for the pager, shown in the notification when cycling pagers.
+  #   # If not set, the name is derived from the first word of the pager
+  #   # command (or of the external diff command).
+  #   name: ""
+  #
   #   # Value of the --color arg in the git diff command. Some pagers want
   #   # this to be set to 'always' and some want it set to 'never'
   #   colorArg: "always"
@@ -360,6 +365,9 @@ git:
   #   # configured per file type in .gitattributes; see
   #   # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
   #   useExternalDiffGitConfig: false
+  #
+  # 'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' are mutually
+  # exclusive; set at most one per entry.
   #
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
   # for more information.
@@ -670,6 +678,7 @@ keybinding:
     nextScreenMode: +
     prevScreenMode: _
     cyclePagers: '|'
+    cyclePagersReverse: \
     undo: z
     redo: Z
     filteringMenu: <ctrl+s>

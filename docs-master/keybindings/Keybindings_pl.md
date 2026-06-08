@@ -22,7 +22,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | Odśwież | Odśwież stan git (tj. uruchom `git status`, `git branch`, itp. w tle, aby zaktualizować zawartość paneli). To nie uruchamia `git fetch`. |
 | `` + `` | Następny tryb ekranu (normalny/półpełny/pełnoekranowy) |  |
 | `` _ `` | Poprzedni tryb ekranu |  |
-| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers. |
+| `` \ `` | Cycle pagers (reverse) | Choose the previous pager in the list of configured pagers. |
 | `` <esc> `` | Anuluj |  |
 | `` ? `` | Otwórz menu przypisań klawiszy |  |
 | `` <ctrl+s> `` | Pokaż opcje filtrowania | Pokaż opcje filtrowania dziennika commitów, tak aby pokazywane były tylko commity pasujące do filtra. |

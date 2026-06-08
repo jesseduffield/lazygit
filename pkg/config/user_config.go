@@ -256,6 +256,11 @@ type GitConfig struct {
 	// Array of pagers. Each entry has the following format:
 	// [dev] The following documentation is duplicated from the PagingConfig struct below.
 	//
+	//   # A name for the pager, shown in the notification when cycling pagers.
+	//   # If not set, the name is derived from the first word of the pager
+	//   # command (or of the external diff command).
+	//   name: ""
+	//
 	//   # Value of the --color arg in the git diff command. Some pagers want
 	//   # this to be set to 'always' and some want it set to 'never'
 	//   colorArg: "always"
@@ -274,6 +279,8 @@ type GitConfig struct {
 	//   # configured per file type in .gitattributes; see
 	//   # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
 	//   useExternalDiffGitConfig: false
+	//
+	// 'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' are mutually exclusive; set at most one per entry.
 	//
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md for more information.
 	Pagers []PagingConfig `yaml:"pagers"`
@@ -345,6 +352,8 @@ func (PagerType) JSONSchemaExtend(schema *jsonschema.Schema) {
 
 // [dev] This documentation is duplicated in the GitConfig struct. If you make changes here, make them there too.
 type PagingConfig struct {
+	// A name for the pager, shown in the notification when cycling pagers. If not set, the name is derived from the first word of the pager command (or of the external diff command).
+	Name string `yaml:"name"`
 	// Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'
 	ColorArg string `yaml:"colorArg" jsonschema:"enum=always,enum=never"`
 	// e.g.
@@ -502,6 +511,7 @@ type KeybindingUniversalConfig struct {
 	NextScreenMode          Keybinding `yaml:"nextScreenMode"`
 	PrevScreenMode          Keybinding `yaml:"prevScreenMode"`
 	CyclePagers             Keybinding `yaml:"cyclePagers"`
+	CyclePagersReverse      Keybinding `yaml:"cyclePagersReverse"`
 	Undo                    Keybinding `yaml:"undo"`
 	Redo                    Keybinding `yaml:"redo"`
 	FilteringMenu           Keybinding `yaml:"filteringMenu"`
@@ -1015,6 +1025,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				NextScreenMode:                    Keybinding{"+"},
 				PrevScreenMode:                    Keybinding{"_"},
 				CyclePagers:                       Keybinding{"|"},
+				CyclePagersReverse:                Keybinding{"\\"},
 				Undo:                              Keybinding{"z"},
 				Redo:                              Keybinding{"Z"},
 				FilteringMenu:                     Keybinding{"<ctrl+s>"},
