@@ -27,6 +27,13 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// The task clears the request and suppresses the origin reset when it starts.
 	targetOriginY := manager.GetScrollToOriginYForNextTask()
 
+	// While restoring a scroll position, hold the placeholder currently in the
+	// view until the first paint, so a layout pass landing mid-load can't draw
+	// half-loaded content at the not-yet-restored scroll. Released by the first
+	// paint (ApplyInitialScroll). A render without a scroll to restore clears any
+	// leftover hold so its content reveals normally.
+	view.SetHoldViewLines(targetOriginY != nil)
+
 	var r io.ReadCloser
 	start := func() (*exec.Cmd, io.Reader) {
 		var err error

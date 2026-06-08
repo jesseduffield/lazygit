@@ -75,6 +75,21 @@ type View struct {
 	// ignore them; this is the count of the entries they may trust.
 	freshViewLineCount int
 
+	// While true, refreshViewLinesIfNeeded leaves the current view lines in
+	// place instead of rebuilding them from the (changing) buffer, so the view
+	// keeps drawing the previous render in full. This is a stronger form of the
+	// viewLines retention described above: rather than revealing new content
+	// line-by-line as it loads, it holds the *whole* previous render until told
+	// to release. It is used when re-rendering content the view is already
+	// scrolled into (escaping to a focused main view): the placeholder left in
+	// the view is held, coherent, at its scroll until the re-render task's first
+	// paint scrolls to the saved position and releases the hold, swapping to the
+	// loaded content in one step — so a layout pass landing mid-load can't draw
+	// half-loaded content at the not-yet-restored scroll. While held, the view
+	// lines are a placeholder that need not match the buffer, so the
+	// view-line→buffer-line mapping reports no result.
+	holdViewLines bool
+
 	// If the last character written was a newline, we don't write it but
 	// instead set pendingNewline to true. If more text is written, we write the
 	// newline then. This is to avoid having an extra blank at the end of the view.
@@ -1126,6 +1141,18 @@ func (v *View) FlushStaleCells() {
 	v.clearViewLines()
 }
 
+// SetHoldViewLines controls whether refreshViewLinesIfNeeded holds the current
+// view lines instead of rebuilding them from the buffer (see holdViewLines). A
+// re-render task sets it while restoring a scroll position and releases it at
+// its first paint, so the view keeps showing the coherent placeholder until the
+// loaded content is shown at the restored scroll in one step.
+func (v *View) SetHoldViewLines(hold bool) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.holdViewLines = hold
+}
+
 func (v *View) rewind() {
 	v.ei.reset()
 
@@ -1340,6 +1367,9 @@ func (v *View) draw() {
 }
 
 func (v *View) refreshViewLinesIfNeeded() {
+	if v.holdViewLines {
+		return
+	}
 	if v.tainted {
 		maxX := v.InnerWidth()
 		lineIdx := 0
@@ -1618,6 +1648,13 @@ func (v *View) BufferLineForViewLine(y int) (int, bool) {
 // even if a concurrent re-render is rebuilding it.
 func (v *View) bufferLineForViewLine(y int) (int, bool) {
 	v.refreshViewLinesIfNeeded()
+
+	// While holding the previous render (see holdViewLines), the displayed view
+	// lines are a placeholder that need not correspond to the loading buffer, so
+	// there is no valid mapping to return.
+	if v.holdViewLines {
+		return 0, false
+	}
 
 	// Bound on freshViewLineCount rather than len(v.viewLines): the entries past
 	// it are a stale tail retained for flicker-avoidance (see freshViewLineCount)
