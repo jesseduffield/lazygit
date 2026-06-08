@@ -230,10 +230,7 @@ func TestBufferLineForViewLineStaleTail(t *testing.T) {
 	// buffer, so the mapping must fail. (On the buggy code it instead maps to
 	// buffer line 1, the stale entry's lingering index.)
 	_, ok = v.BufferLineForViewLine(4)
-	/* EXPECTED:
 	assert.False(t, ok)
-	ACTUAL: */
-	assert.True(t, ok)
 }
 
 func TestContainsColoredText(t *testing.T) {
