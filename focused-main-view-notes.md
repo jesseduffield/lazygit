@@ -712,3 +712,172 @@ Attack order (dependency-first, to keep it from ballooning):
 
 `focused-main-view-flicker-timing-races` already covers the races. The escape
 restore reworking and the three-problem plan above are recorded here.
+
+---
+
+## 13. Session 4: characterizing the §11 timing races
+
+Session 4 did §12.3 step 1 (the §8 staleness fix — see diff-line-metadata-notes.md
+§8) and this characterization (step 2). The conclusion drives part 3.
+
+### 13.1 Why the faithful repro is the *interactive* app, not a headless test
+
+The §11 method (LAZYGIT_SLOW_RENDER + the `SetOriginY` chokepoint tracer via
+`just debug` / `just print-log`) is inherently interactive, and that is not an
+accident of tooling — the headless integration harness **cannot reproduce the
+pager-path races** for two structural reasons:
+
+- **cmd vs. pty path.** With a real pager configured (delta), the main-view
+  re-render goes through `newPtyTask` (`pkg/gui/pty.go`), which marks the view
+  loading synchronously but **defers the actual task creation to `afterLayout`**.
+  The default test setup has no pager, so it takes `newCmdTask`
+  (`tasks_adapter.go`), which creates the task **synchronously**. The
+  `afterLayout` deferral is one of the race ingredients (§13.3), so the cmd path
+  doesn't exercise it.
+- **env allowlist.** `pkg/integration/components/env.go` passes only a strict
+  allowlist (`PATH`, `TERM`, `HOME`, git config) to the lazygit subprocess, so
+  `LAZYGIT_SLOW_RENDER` doesn't even reach it without patching the harness.
+
+So the characterization below is **code-grounded and mechanically conclusive**,
+not visually confirmed in this session. The fixes it prescribes still want a
+confirming tracer run on the interactive app (real pager, scrolled down, a range
+of slow-render values). The two races are *mechanisms in the code*, not guesses
+about flaky values — which is the standard the two prior misdiagnoses (§11
+corrections #1/#2) failed to meet.
+
+### 13.2 The escape origin/content timeline (commit→patch-building→escape, scrolled to S)
+
+`EscapeFromPatchExplorer` (`patch_building_helper.go`), with the main view's saved
+scroll = S and the patch view's current scroll = P:
+
+1. `ScrollToOriginYForNextTask(S)` — sets the manager's pending-scroll field
+   (not a view write yet).
+2. `Push(SidePanel)` — focusing the side panel runs its `onRenderToMainFn`, which
+   calls `RenderToMainViews(Normal pair)`. Inside `refreshMainViews`
+   (`main_panels.go`):
+   - `RefreshMainView(Normal)` → `runTaskForView` → `newPtyTask`/`newCmdTask`:
+     `StartLoading()` (sync) and read the pending scroll; the pty path **defers
+     task creation to `afterLayout`**.
+   - `moveMainContextPairToTop(Normal)` → `moveMainContextToTop(Normal)` →
+     **`CopyContent(topView = the patch view, Normal)`** → `Normal.oy = P`, and
+     Normal's buffer becomes the *patch* content. (`onNewKey`'s top-reset is
+     suppressed because the pending-scroll field is set.)
+   - the reset loop sets the *other* mains (incl. the patch view) to oy 0 —
+     **after** CopyContent, so it no longer feeds 0 into the copy (the §11
+     correction #2 fix).
+3. `Push(MainView=Normal)` — just focuses/highlights; **no second re-render**.
+4. Next layout pass → `afterLayoutFuncs` drained → the pty task is actually
+   created (`NewTask` → goroutine → creates `readLines`, reads lines).
+5. At `InitialRefreshAfter` (= height + S + 10 lines read) the task's
+   `ApplyInitialScroll` sets `Normal.oy = S` and does its first refresh — the
+   first paint that shows the real commit diff at S.
+6. The escape's `OnUIThread(…)` → `ReadToEnd(restore)` restores the **selection**
+   (`FocusPoint`, no origin change) once the diff is read.
+
+The flicker window is **between step 2 (oy=P, buffer=patch placeholder) and step 5
+(oy=S, buffer=commit diff)**. Layout-driven draws that land in it show whatever is
+in `(oy, viewLines)` at that instant.
+
+### 13.3 The two races, classified
+
+**Race A — partial content drawn at the placeholder scroll during load
+(content/scroll). BOUNDED interleaving over a FUNDAMENTAL constraint.**
+
+Between the task's first write (step 4) and its first official paint (step 5),
+`oy` is still P and the buffer is being overwritten from the top with the commit
+diff. Layout passes call `draw`, and because each write sets `tainted`, the draw's
+`refreshViewLinesIfNeeded` rebuilds the view lines from the *partial* commit diff
+(plus the retained patch tail past `freshViewLineCount`). So a draw in this window
+shows a Frankenstein frame: the **top of the commit diff at the wrong scroll P**
+(or partial content / stale patch tail), before it snaps to S. Intermittent
+because whether a layout pass lands in the window, and at what load fraction,
+depends on scheduling; at normal speed the load finishes before a layout pass
+lands there.
+
+- **Bounded:** the *specific* fix is to keep the placeholder **coherent** until the
+  first official paint, instead of letting partial content leak in. The task
+  already controls *its* refreshes; the leak is that *layout* draws also rebuild
+  from the half-written buffer. Suppressing the view-line rebuild **only while a
+  scroll-restore is pending its first paint** (gated on the pending-scroll field,
+  so the normal load-from-top case is untouched) keeps the draw showing the
+  retained placeholder at P until step 5 swaps atomically to the commit diff at S.
+  No scroll jump, no Frankenstein frame.
+- **…over a fundamental constraint:** you still see *something* during the load —
+  with the fix it's the coherent placeholder (the patch) rather than a broken
+  frame. There is **no flicker-free first paint of the target content at S without
+  first having that screenful buffered.** This is the key production-plan input the
+  §12.3 step-2 question asked for: the model can only choose *what* the pre-paint
+  frame shows, not eliminate it. The two coherent choices:
+  - (a) keep the outgoing view's content (the patch, via CopyContent) as the
+    placeholder — coherent but the *wrong* content shown briefly; or
+  - (b) **don't clobber the destination's own buffer.** On escape, the Normal
+    view's buffer *already held the commit diff at S* (it was only hidden when we
+    entered the patch explorer, never cleared — §3). `CopyContent` overwrites that
+    perfectly-good content with the patch. If `moveMainContextToTop` did **not**
+    copy over a view that already holds appropriate content, and the re-render kept
+    that old buffer as the placeholder until its first paint (Reset already retains
+    the view lines for flicker-avoidance), the placeholder would *be* the commit
+    diff at S and the swap to fresh content would be invisible. (b) is the strong
+    lever and supersedes §6's "avoid clobbering doesn't help" — that was about
+    *entry*; on *escape* the destination's stale buffer is exactly what we want.
+
+**Race B — the selection restore can fire before the task is live (selection).
+BOUNDED bad interleaving.**
+
+The selection restore is scheduled as `OnUIThread → ReadToEnd(restore)`.
+`ReadToEnd` fires its callback **synchronously and immediately when
+`manager.readLines == nil`** (tasks.go) — the documented premature-fire trap (§3).
+The escape's re-render task is created by `Push`, but its `readLines` channel is
+created later, inside the task goroutine (and only *after* it has stopped the
+previous task, which blocks on `notifyStopped`). The restore is deferred one UI
+tick to let the task become live — but `OnUIThread` (`g.Update`) runs on a later
+main-loop iteration whose ordering against the task goroutine reaching
+`readLines = make(...)` is **not guaranteed**. If the tick wins the race,
+`ReadToEnd` fires `restore` immediately, `FocusPoint(SelectedLineIdx)` runs before
+the content is loaded that far and **no-ops** (it returns early when
+`cy > lineCount`), and the selection is **silently not restored**. Intermittent.
+
+- **Bounded:** thread the after-load callback **into the task's lifecycle** the
+  same way the scroll restore is (a field on the manager that the next cmd/pty task
+  folds into its initial `LinesToRead.Then`, set at creation), instead of a
+  separate post-hoc `ReadToEnd`. Then it always fires when *that* task's initial
+  read completes — never against a nil channel. This is the same one-mechanism
+  ("do X after the re-render") part 3 needs for its identity-based restore, so it
+  is foundational, not throwaway. Ordering is safe: `ApplyInitialScroll` (oy=S)
+  fires at `InitialRefreshAfter`, which is < the initial read total, so the scroll
+  is already applied when the `Then` runs.
+
+### 13.4 Implications for part 3 (the restore rework)
+
+- **One restore mechanism, threaded into the task.** Both the scroll restore
+  (already done via `scrollToOriginYForNextTask` → `ApplyInitialScroll`) and the
+  selection restore should ride the *same* next-task hook, eliminating the separate
+  `ReadToEnd` and Race B. Part 3 generalizes the scroll half to a **predicate**
+  ("scroll to the row matching this identity, at the first refresh it's
+  satisfiable"); the selection restore becomes "once loaded far enough, focus that
+  same identity's row." Build them as one "after the re-render, reconcile to this
+  identity" callback.
+- **Prefer (b): reuse the destination's own buffer as the placeholder.** Part 3
+  should investigate not clobbering the focused main view's retained buffer on
+  escape, which makes the common "content unchanged" escape genuinely
+  flicker-free (invisible swap) and reduces Race A to the rare "content actually
+  changed" case. (Freshness still requires the re-render; the win is the
+  *placeholder* being right.)
+- **Race A's coherence fix (suppress rebuild while a scroll/predicate restore is
+  pending its first paint) is gated on the pending field**, so it's safe for the
+  normal case and carries into the predicate generalization unchanged.
+
+### 13.5 Status / what's left
+
+- §8 staleness: **fixed** (this session).
+- Race B (selection premature-fire): **fix designed** (thread restore into the
+  task); implement as part of part 3's one-mechanism restore, or land standalone
+  first if desired. Needs interactive verification.
+- Race A (coherence during load): **fix designed** (suppress-rebuild-until-first-
+  paint, gated; and/or the (b) no-clobber lever). Touches the delicate draw path
+  and must be verified with the interactive tracer; deliberately *not* patched
+  blind this session, and most naturally built into part 3's reworked first-paint
+  machinery.
+
+Memory: `focused-main-view-flicker-timing-races` (updated — races now
+characterized, not just observed).
