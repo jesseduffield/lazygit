@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"runtime"
 	"strings"
 )
 
@@ -55,8 +56,15 @@ func returnBool(a bool) func() bool { return (func() bool { return a }) }
 // IF YOU ADD A PRESET TO THIS FUNCTION YOU MUST UPDATE THE `Supported presets` SECTION OF docs/Config.md
 func getPreset(shell string, osConfig *OSConfig, guessDefaultEditor func() string) *editPreset {
 	var nvimRemoteEditTemplate, nvimRemoteEditAtLineTemplate, nvimRemoteOpenDirInEditorTemplate string
-	// By default fish doesn't have SHELL variable set, but it does have FISH_VERSION since Nov 2012.
-	if (strings.HasSuffix(shell, "fish")) || (os.Getenv("FISH_VERSION") != "") {
+	if runtime.GOOS == "windows" {
+		// Windows requires PowerShell due to environment variable syntax and conditional logic.
+		// We use Start-Process to launch separate PowerShell process because otherwise lazygit will keep waiting for PowerShell and won't process the quit key
+		// See: https://github.com/jesseduffield/lazygit/issues/3467
+		nvimRemoteEditTemplate = `powershell -NoProfile -Command "if ($env:NVIM) { $cmd = 'nvim --server ' + $env:NVIM + ' --remote-send q; nvim --server ' + $env:NVIM + ' --remote-tab ''{{filename}}'''; Start-Process powershell -ArgumentList '-NoProfile','-Command',$cmd -WindowStyle Hidden } else { nvim -- '{{filename}}' }"`
+		nvimRemoteEditAtLineTemplate = `powershell -NoProfile -Command "if ($env:NVIM) { $cmd = 'nvim --server ' + $env:NVIM + ' --remote-send q; nvim --server ' + $env:NVIM + ' --remote-tab ''{{filename}}''; nvim --server ' + $env:NVIM + ' --remote-send ('':{{line}}'' + [char]13)'; Start-Process powershell -ArgumentList '-NoProfile','-Command',$cmd -WindowStyle Hidden } else { nvim +{{line}} -- '{{filename}}' }"`
+		nvimRemoteOpenDirInEditorTemplate = `powershell -NoProfile -Command "if ($env:NVIM) { $cmd = 'nvim --server ' + $env:NVIM + ' --remote-send q; nvim --server ' + $env:NVIM + ' --remote-tab ''{{dir}}'''; Start-Process powershell -ArgumentList '-NoProfile','-Command',$cmd -WindowStyle Hidden } else { nvim -- '{{dir}}' }"`
+	} else if (strings.HasSuffix(shell, "fish")) || (os.Getenv("FISH_VERSION") != "") {
+		// By default fish doesn't have SHELL variable set, but it does have FISH_VERSION since Nov 2012.
 		nvimRemoteEditTemplate = `begin; if test -z "$NVIM"; nvim -- {{filename}}; else; nvim --server "$NVIM" --remote-send "q"; nvim --server "$NVIM" --remote-tab {{filename}}; end; end`
 		nvimRemoteEditAtLineTemplate = `begin; if test -z "$NVIM"; nvim +{{line}} -- {{filename}}; else; nvim --server "$NVIM" --remote-send "q"; nvim --server "$NVIM" --remote-tab {{filename}}; nvim --server "$NVIM" --remote-send ":{{line}}<CR>"; end; end`
 		nvimRemoteOpenDirInEditorTemplate = `begin; if test -z "$NVIM"; nvim -- {{dir}}; else; nvim --server "$NVIM" --remote-send "q"; nvim --server "$NVIM" --remote-tab {{dir}}; end; end`
