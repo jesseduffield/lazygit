@@ -196,6 +196,46 @@ func TestDiffLineMetadata(t *testing.T) {
 	assert.Equal(t, "@@ a header line with no metadata @@", v.BufferLines()[3])
 }
 
+// When a re-render produces fewer view lines than the previous one,
+// refreshViewLinesIfNeeded overwrites viewLines in place without truncating, so
+// the tail keeps the previous render's entries (deliberately, so the view keeps
+// showing old content until the new content catches up). A reader must not map
+// a view line in that stale tail to a buffer line. With wrapping, the stale
+// entry's buffer index can still be in range of the new (shorter, less-wrapped)
+// buffer, so the in-range guard alone lets it through and maps a view line that
+// no longer exists onto the wrong buffer line. See diff-line-metadata-notes.md
+// §8.
+func TestBufferLineForViewLineStaleTail(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// First render: two lines that each wrap into three view lines, so the
+	// buffer has 2 lines but there are 6 view lines.
+	v.writeString(strings.Repeat("a", 27) + "\n" + strings.Repeat("b", 27))
+	assert.Equal(t, 6, v.ViewLinesHeight())
+
+	// Re-render with shorter content the flicker-avoidance way: rewind (which
+	// keeps the old view lines) and overwrite from the top with three short,
+	// unwrapped lines. There are now only 3 real view lines, but the previous
+	// render's view lines 3..5 linger in the tail.
+	v.Reset()
+	v.writeString("aaa\nbbb\nccc")
+
+	// A real view line maps to its buffer line as usual.
+	bufferLine, ok := v.BufferLineForViewLine(1)
+	assert.True(t, ok)
+	assert.Equal(t, 1, bufferLine)
+
+	// View line 4 is in the stale tail: it no longer exists in the current
+	// buffer, so the mapping must fail. (On the buggy code it instead maps to
+	// buffer line 1, the stale entry's lingering index.)
+	_, ok = v.BufferLineForViewLine(4)
+	/* EXPECTED:
+	assert.False(t, ok)
+	ACTUAL: */
+	assert.True(t, ok)
+}
+
 func TestContainsColoredText(t *testing.T) {
 	hexColor := func(text string, hexStr string) []cell {
 		cells := make([]cell, len(text))
