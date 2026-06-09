@@ -396,12 +396,15 @@ fall-through) `delta --color-only --line-numbers`, `diff-so-fancy`, delta defaul
   no longer existed mapped onto the wrong buffer line. This is a *single-threaded,
   deterministic* defect, not just a concurrency one (the non-truncating refresh is
   enough; see the unit test `TestBufferLineForViewLineStaleTail`).
-  - **The fix:** `refreshViewLinesIfNeeded` records `freshViewLineCount` — how many
-    leading `viewLines` entries it built from the current buffer — and the three
-    readers (unified onto one `bufferLineForViewLine` helper) bound on that instead
-    of `len(viewLines)`. Within the fresh range each entry was just built from
-    `v.lines`, so its index is guaranteed in range and the old in-range guard is
-    gone. Commits: unify-readers → demonstrate → fix.
+  - **The fix (reworked):** a first cut added `freshViewLineCount` (bound the readers
+    on the count of view lines built from the current buffer). That was then
+    **reverted** in favour of the **off-screen render** (focused-main-view-notes.md
+    §13.5): a re-render builds into a second `viewBuffer` and swaps it in wholesale,
+    so `refreshViewLinesIfNeeded` simply **truncates** `viewLines` to the current
+    buffer and no stale tail ever forms. The displayed buffer is always a complete
+    render, so the three readers (unified onto one `bufferLineForViewLine` helper)
+    are consistent by construction. `TestBufferLineForViewLineStaleTail` now guards
+    the truncation.
   - **Still a part-3 constraint, NOT yet fixed:** mechanism #1's host-side parse
     (`diffLineInfoFromBuffer`) maps the view line and reads the buffer text in *two
     separate* locked gocui calls (`BufferLineForViewLine` then `BufferLines`), so a
