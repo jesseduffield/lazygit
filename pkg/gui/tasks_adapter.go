@@ -21,6 +21,11 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// and before the next layout pass) so the layout doesn't clamp the scroll
 	// position to the not-yet-loaded content.
 	manager.StartLoading()
+	// Hold the scrollbar at the height the view has now (the previous render),
+	// while it still shows that render: once the re-render swaps in its first
+	// partial paint the displayed buffer is briefly short, and we don't want the
+	// thumb to shrink and snap back as the rest loads.
+	view.FreezeScrollbarHeight()
 
 	// If a caller asked us to restore a scroll position for this render, size the
 	// initial read to it (below) and let the task scroll there at its first paint.
@@ -123,18 +128,21 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			gui.Log,
 			view,
 			func() {
-				// we could clear here, but that actually has the effect of causing a flicker
-				// where the view may contain no content momentarily as the gui refreshes.
-				// Instead, we're rewinding the write pointer so that we will just start
-				// overwriting the existing content from the top down. Once we've reached
-				// the end of the content do display, we call view.FlushStaleCells() to
-				// clear out the remaining content from the previous render.
+				// Called before showing the "loading..." indicator: clear the
+				// displayed buffer so only "loading..." is shown. The actual content
+				// is rendered off-screen (beginRender below) and swapped in, so it
+				// never overwrites the displayed buffer incrementally.
 				view.Reset()
 			},
 			func() {
 				gui.render()
 			},
 			func() {
+				// The content is fully loaded now, so let the scrollbar track it
+				// directly again (it was held at the previous render's height while
+				// loading, see FreezeScrollbarHeight).
+				view.UnfreezeScrollbarHeight()
+
 				// Need to check if the content of the view is well past the origin.
 				linesHeight := view.ViewLinesHeight()
 				_, originY := view.Origin()
@@ -149,6 +157,8 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			func() {
 				view.SetOrigin(0, 0)
 			},
+			view.BeginOffscreenRender,
+			view.SwapInOffscreenRender,
 			func() gocui.Task {
 				return gui.c.GocuiGui().NewTask()
 			},

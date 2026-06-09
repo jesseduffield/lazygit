@@ -59,6 +59,10 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// without this the next layout pass would clamp the scroll position to the
 	// not-yet-loaded content.
 	gui.getManager(view).StartLoading()
+	// Hold the scrollbar at its current height while the re-render loads, so the
+	// thumb doesn't shrink and snap back when the first partial paint swaps in
+	// (see the matching call in newCmdTask).
+	view.FreezeScrollbarHeight()
 
 	// Read any requested scroll-restore now so we can size the initial read to it
 	// in afterLayout; the task itself clears the request and applies the scroll at

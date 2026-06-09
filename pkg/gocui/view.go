@@ -57,10 +57,17 @@ type View struct {
 	outMode        OutputMode
 
 	// buf bundles the view's cell buffer and the cursor / escape-parser state
-	// used to write into it (see the viewBuffer type). Bundling these makes it
-	// possible to build a second, off-screen buffer during a re-render and swap
-	// it in atomically once ready, so no reader ever sees a half-written buffer.
+	// used to write into it (see the viewBuffer type). It is the buffer every
+	// reader sees.
 	buf *viewBuffer
+
+	// While non-nil, writes go here instead of buf, so an async re-render can
+	// build its new content without disturbing what readers (draw, clicks,
+	// scrolling, the diff-line readers, …) see. The task swaps it into buf once
+	// it has read enough to paint (SwapInOffscreenRender), so the displayed
+	// content jumps straight from the previous render to the new one with no
+	// half-written frame in between. nil during normal (non-async) writes.
+	offscreen *viewBuffer
 	// The y position of the first line of a range selection.
 	// This is not relative to the view's origin: it is relative to the first line
 	// of the view's content, so you can scroll the view and this value will remain
@@ -90,6 +97,17 @@ type View struct {
 	// rendering new content or if the view is resized) we should set tainted to
 	// true and viewLines to nil
 	viewLines []viewLine
+
+	// While a re-render is loading new content (see offscreen), the displayed
+	// buffer is only partially filled once we've swapped the off-screen render
+	// in: the task keeps appending lines after the first paint, up to the count
+	// needed for an accurate scrollbar. Sizing the scrollbar from that partial
+	// view-line count would make the thumb shrink and snap back as the rest
+	// streams in. So while a load is in progress we hold the scrollbar's height
+	// at this value — the height the view had when the load began — and let it
+	// grow only if the new content turns out taller. Zero means no load is in
+	// progress and the scrollbar tracks the content directly.
+	scrollbarHeightFloor int
 
 	// writeMutex protects locks the write process
 	writeMutex sync.Mutex
@@ -828,6 +846,14 @@ func (v *View) Write(p []byte) (n int, err error) {
 }
 
 func (v *View) write(p []byte) {
+	// An async re-render builds into the off-screen buffer (see View.offscreen)
+	// until it swaps in; until then the displayed buffer, and so everything
+	// readers see, is left untouched.
+	if v.offscreen != nil {
+		v.offscreen.write(v, p)
+		return
+	}
+
 	v.tainted = true
 	v.clearHover()
 
@@ -1079,6 +1105,15 @@ func (v *View) clear() {
 	v.rewind()
 	v.buf.lines = nil
 	v.clearViewLines()
+	// Abandon any in-progress off-screen render: a synchronous SetContent/Clear
+	// is taking over the displayed buffer, so writes must go there, not into a
+	// stale off-screen buffer left by a stopped task.
+	v.offscreen = nil
+	// Likewise release any held scrollbar height: the new content is defined
+	// synchronously (e.g. a string render superseding a still-loading diff), so
+	// there's no async growth left to smooth over and the scrollbar should track
+	// the new content directly.
+	v.scrollbarHeightFloor = 0
 }
 
 // Clear empties the view's internal buffer.
@@ -1128,6 +1163,9 @@ func (v *View) Reset() {
 
 	v.rewind()
 	v.buf.lines = nil
+	// As in clear(): abandon any in-progress off-screen render so writes after a
+	// reset go to the displayed buffer.
+	v.offscreen = nil
 }
 
 // This is for when we've done a restart for the sake of avoiding a flicker and
@@ -1139,6 +1177,73 @@ func (v *View) FlushStaleCells() {
 	defer v.writeMutex.Unlock()
 
 	v.clearViewLines()
+}
+
+// BeginOffscreenRender starts building a re-render into an off-screen buffer.
+// Until SwapInOffscreenRender promotes it, writes go to that buffer and the
+// displayed buffer — what every reader sees — is left as it was. This is how an
+// async re-render avoids exposing a half-written buffer: it accumulates
+// off-screen and swaps in once it has read enough to paint.
+func (v *View) BeginOffscreenRender() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.offscreen = &viewBuffer{ei: newEscapeInterpreter(v.outMode)}
+}
+
+// SwapInOffscreenRender promotes the off-screen buffer (see BeginOffscreenRender)
+// to the displayed buffer in one step, so the view jumps straight from the
+// previous render to the new one with no half-written frame. Writes after this
+// append to the now-displayed buffer directly. It is a no-op if no off-screen
+// render is in progress, so it is safe to call more than once (e.g. again at EOF
+// after an earlier paint already swapped).
+func (v *View) SwapInOffscreenRender() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.offscreen == nil {
+		return
+	}
+	v.buf = v.offscreen
+	v.offscreen = nil
+	v.tainted = true
+	v.clearHover()
+}
+
+// FreezeScrollbarHeight records the view's current content height so the
+// scrollbar keeps that size while a re-render loads, instead of shrinking and
+// snapping back as the partially-loaded content streams in past the first paint
+// (see scrollbarHeightFloor). Call it when a load begins, while the view still
+// shows the previous render; UnfreezeScrollbarHeight clears it when the load
+// ends.
+func (v *View) FreezeScrollbarHeight() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+	v.scrollbarHeightFloor = len(v.viewLines)
+}
+
+// UnfreezeScrollbarHeight clears the height held by FreezeScrollbarHeight, so
+// the scrollbar tracks the view's content directly again. Call it when a load
+// ends.
+func (v *View) UnfreezeScrollbarHeight() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.scrollbarHeightFloor = 0
+}
+
+// scrollbarContentHeight is the view-line height the scrollbar is sized from.
+// While a re-render is loading it is held at the height the view had when the
+// load began (see FreezeScrollbarHeight), so the thumb doesn't shrink and jump
+// as partially-loaded content streams in.
+func (v *View) scrollbarContentHeight() int {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+	return max(len(v.viewLines), v.scrollbarHeightFloor)
 }
 
 func (v *View) rewind() {
@@ -1395,6 +1500,13 @@ func (v *View) refreshViewLinesIfNeeded() {
 				lineIdx++
 			}
 		}
+		// Truncate any entries left over from a previous, longer render. An async
+		// re-render builds its content off-screen and swaps it in whole (see
+		// View.offscreen), so the buffer this rebuilds from is always a complete
+		// render — there is no half-loaded shorter buffer whose tail we'd need to
+		// keep showing to avoid a flicker, and a leftover tail would just be stale
+		// lines mapping to the wrong buffer rows.
+		v.viewLines = v.viewLines[:lineIdx]
 		v.tainted = false
 	}
 }
