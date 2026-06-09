@@ -91,16 +91,6 @@ type View struct {
 	// true and viewLines to nil
 	viewLines []viewLine
 
-	// Number of leading entries in viewLines that correspond to the current
-	// buffer (v.buf.lines), as built by the most recent refreshViewLinesIfNeeded.
-	// refreshViewLinesIfNeeded overwrites viewLines in place without truncating,
-	// so when a re-render is shorter than the previous one the tail keeps stale
-	// entries from that previous render (drawn deliberately, to avoid flicker
-	// while the new content loads). Those entries don't correspond to the
-	// current buffer, so readers that map a view line to a buffer line must
-	// ignore them; this is the count of the entries they may trust.
-	freshViewLineCount int
-
 	// writeMutex protects locks the write process
 	writeMutex sync.Mutex
 
@@ -231,7 +221,6 @@ type pos struct {
 func (v *View) clearViewLines() {
 	v.tainted = true
 	v.viewLines = nil
-	v.freshViewLineCount = 0
 	v.clearHover()
 }
 
@@ -1406,7 +1395,6 @@ func (v *View) refreshViewLinesIfNeeded() {
 				lineIdx++
 			}
 		}
-		v.freshViewLineCount = lineIdx
 		v.tainted = false
 	}
 }
@@ -1645,15 +1633,19 @@ func (v *View) BufferLineForViewLine(y int) (int, bool) {
 func (v *View) bufferLineForViewLine(y int) (int, bool) {
 	v.refreshViewLinesIfNeeded()
 
-	// Bound on freshViewLineCount rather than len(v.viewLines): the entries past
-	// it are a stale tail retained for flicker-avoidance (see freshViewLineCount)
-	// and don't correspond to the current buffer. Within the fresh range every
-	// entry's linesY was just built from v.buf.lines, so it is guaranteed in range.
-	if y < 0 || y >= v.freshViewLineCount {
+	if y < 0 || y >= len(v.viewLines) {
 		return 0, false
 	}
 
-	return v.viewLines[y].linesY, true
+	// refreshViewLinesIfNeeded overwrites viewLines in place without truncating,
+	// so while a shorter re-render is loading, the tail of viewLines can still
+	// hold stale entries pointing past the (shrunk) v.buf.lines. Guard against that.
+	linesY := v.viewLines[y].linesY
+	if linesY >= len(v.buf.lines) {
+		return 0, false
+	}
+
+	return linesY, true
 }
 
 // indexFunc allows to split lines by words taking into account spaces
