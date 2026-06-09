@@ -33,10 +33,6 @@ func (gui *Gui) linesToReadFromCmdTask(v *gocui.View, targetOriginY *int) tasks.
 		oy = *targetOriginY
 		applyInitialScroll = func() {
 			v.SetOrigin(v.OriginX(), *targetOriginY)
-			// Release the placeholder hold (set when this scroll-restore task
-			// started): the next refresh now reveals the loaded content at the
-			// restored scroll in one step. See View.holdViewLines.
-			v.SetHoldViewLines(false)
 		}
 	}
 
