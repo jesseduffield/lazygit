@@ -869,38 +869,58 @@ the content is loaded that far and **no-ops** (it returns early when
 
 ### 13.5 Status / what's left
 
-- §8 staleness: **fixed** (this session).
-- Race B (selection premature-fire): **fixed** (this session). The restore now
-  rides the re-render task via a `thenForNextTask` hook on the buffer manager,
-  folded into the cmd/pty task's initial-read `Then`; the `OnUIThread → ReadToEnd`
-  dance is gone. This is the one-mechanism part 3 generalizes.
-- Race A (coherence during load): **fixed** (this session) with the gated
-  `holdViewLines` mechanism: while a scroll-restore task is loading, the view holds
-  its placeholder view lines (no rebuild from the half-loaded buffer) until the
-  first paint, which applies the saved scroll and releases the hold in one step.
-  Gated on a scroll-restore being pending, so the normal load-from-top case is
-  untouched. The (b) no-clobber lever (reuse the destination's own retained buffer
-  instead of CopyContent) is **not** done — it's the stronger part-3 improvement
-  that would make the common unchanged-content escape an invisible swap.
+> **Update — the Race A fix was reworked.** The session-4 first cut used the
+> gated `holdViewLines` flag (suppress the view-line rebuild during a
+> scroll-restore load). The user judged that — and the §8 `freshViewLineCount`
+> guard — as patches that work *around* a broken invariant rather than restoring
+> it: many readers (`BufferLines`, `ViewLinesHeight`, the diff-line readers, …)
+> would each have to know which buffer to trust. Both patches were **reverted**
+> and replaced by an **off-screen render** (see below). `holdViewLines` and
+> `freshViewLineCount` no longer exist.
 
-> **Verification caveat (important):** both race fixes were implemented and
-> reasoned through, with unit tests locking the gocui primitives' contracts
-> (`TestHoldViewLines`, `TestBufferLineForViewLineStaleTail`), but **were NOT
-> visually confirmed** — session 4 ran headless, and the faithful repro is the
-> interactive app (§13.1: the headless harness uses the cmd path and blocks
-> `LAZYGIT_SLOW_RENDER`). Before relying on them, confirm with `just debug` +
-> `just print-log`, scrolled down, across a range of `LAZYGIT_SLOW_RENDER` values,
-> for all three transitions. If a fix is wrong it would be visible there.
+- Race B (selection premature-fire): **fixed**. The restore rides the re-render
+  task via a `thenForNextTask` hook on the buffer manager, folded into the cmd/pty
+  task's initial-read `Then`; the `OnUIThread → ReadToEnd` dance is gone. (Unchanged
+  by the rework.)
+- Race A (coherence during load) **and** §8 (stale-tail mapping): **fixed together**
+  by the off-screen render. A cmd/pty task now `BeginOffscreenRender()`s — writes go
+  into a second `viewBuffer` (`View.offscreen`) while the displayed buffer, and so
+  everything every reader sees, stays the previous render. At its first-paint point
+  (`InitialRefreshAfter`, or EOF for short content) the task `SwapInOffscreenRender()`s:
+  the off-screen buffer becomes the displayed buffer in one atomic step and the saved
+  scroll is applied in the same step. So no reader ever sees a half-written buffer at
+  the wrong scroll (Race A), and because the swap is a wholesale replace,
+  `refreshViewLinesIfNeeded` now **truncates** the view lines — the stale tail (§8)
+  can't form. `clear()`/`Reset()` abandon any in-progress off-screen render so a
+  synchronous `SetContent` after a stopped task writes to the display. The mechanism
+  is **unified** (every async render uses it), not gated on scroll-restore. The swap
+  holds `writeMutex` for now; per [[main-thread-over-mutexes-direction]] it could
+  later become a main-thread bounce.
+- The (b) no-clobber lever (don't `CopyContent` over the focused main view's own
+  retained buffer on escape, so the placeholder *is* the right content) is **not**
+  done — still the stronger part-3 improvement for the common unchanged-content
+  escape.
 
-**Part 3 interplay (carry forward):** Race A's `holdViewLines` makes the
-view-line→buffer-line mapping report no result while held. Part 3's predicate
-scroll, which scans loaded rows *during* the load, must therefore scan the buffer
-(`v.lines`) cells **directly** for their metadata, not via the view-line readers
-(`DiffLineMetadataInLine(viewLineIdx)` / `bufferLineForViewLine`) — those are for
-acting on the *displayed* (held placeholder) content. Converting a found buffer
-line to a scroll target (buffer-line→view-line) needs consistent view lines and so
-happens after release. The §8 #1 two-call atomicity constraint
-(diff-line-metadata-notes.md §8) applies to the same scan.
+Prep history (clean commits): extract `viewBuffer` → make the writing methods
+operate on a `viewBuffer` → revert the two patches (separately) → off-screen render.
 
-Memory: `focused-main-view-flicker-timing-races` (updated — races now
-characterized and fixed, pending interactive verification).
+> **Verification caveat (important):** all of this was reasoned through and is
+> covered by gocui unit tests (`TestOffscreenRender`, `TestBufferLineForViewLineStaleTail`)
+> + green `e2e-all`, but the **flicker behaviour was NOT visually confirmed** —
+> session 4 ran headless, and the faithful repro is the interactive app (§13.1: the
+> headless harness uses the cmd path and blocks `LAZYGIT_SLOW_RENDER`). Confirm with
+> `just debug` + `just print-log`, scrolled down, across a range of
+> `LAZYGIT_SLOW_RENDER` values, for all three transitions.
+
+**Part 3 interplay (carry forward):** with the off-screen render, the *loading*
+content lives in `View.offscreen`, while `v.buf`/`viewLines` and the view-line
+readers (`DiffLineMetadataInLine` / `bufferLineForViewLine`) keep describing the
+*displayed* (previous) render. Part 3's predicate scroll, which inspects rows *as
+they load* to decide when to swap, must therefore scan the **off-screen** buffer's
+cells (a new accessor), and the swap point generalizes from "InitialRefreshAfter
+lines" to "the first read at which the predicate is satisfied on the off-screen
+content". The §8 #1 two-call atomicity constraint (diff-line-metadata-notes.md §8)
+applies to that scan.
+
+Memory: `focused-main-view-flicker-timing-races` (updated — off-screen render),
+`isolate-new-concepts-from-clients`, `main-thread-over-mutexes-direction`.
