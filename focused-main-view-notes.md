@@ -1015,6 +1015,38 @@ applies to that scan.
   fixed here; (b) is confirmed as a part-3-owned item and deferred. The
   characterization itself is cheap and is exactly the kind of entangled unknown the
   prototype exists to retire ([[resolve-hard-unknowns-in-prototype]]).
+
+  **Characterization done (session 5) — the dominant artifact was a third thing,
+  simpler than either (a) or (b).** Method: throwaway `[CHAR]` logging at every task
+  lifecycle point (render request, `NewTask` consume/bail/run, swap@first-paint,
+  swap@EOF, stop) + interactive repro under `LAZYGIT_SLOW_RENDER=20`,
+  `refreshInterval=3`, scrolled down. The logs showed the glitch even with **no
+  escape present** — it's the periodic refresh re-rendering the main view faster than
+  it loads, overlapping *itself*. Smoking gun: `swap @EOF i=1 stopped=true` on a
+  ~147-line diff — a **stopped task taking the end-of-input branch and finalizing**
+  (swap its 1-line off-screen buffer in, clamp the origin to 1, clear `loading`). Root
+  cause: when a task is stopped, `opts.Stop` closes *and* the scanner closes
+  `lineChan`, so the read loop's `select` is a coin-flip; ~half the time a stopped
+  task lands in the `!ok`/EOF branch instead of the stop branch. Pre-existing (the EOF
+  branch always clamped via `onEndOfInput`), but the off-screen render made it far
+  worse by also swapping a truncated buffer in. **FIXED** (commit "Don't run
+  end-of-input handling for a render that was stopped"): the EOF branch now re-checks
+  `opts.Stop` and bails like the explicit stop case. Confirmed by the follow-up log:
+  every stopped task now logs `EOF-but-STOPPED breaking clean`, no more truncated
+  swaps, and the content stays put through refresh churn. Not deterministically
+  unit-testable (the bug *is* the non-deterministic select; a test would be flaky on
+  the old code), so no test — a rare justified skip of demonstrate-the-bug-first.
+
+  My original **(a)** theory (the `afterLayout` double-queue letting a refresh consume
+  the escape's pending scroll/`then`) was **not** what the logs showed: escape tasks
+  consistently consumed their *own* `scroll`/`then` (`consumedScroll=true
+  consumedThen=true`). What remains of the escape race is plain **(b)**: the escape
+  task is stopped mid-read by a refresh *before* it reaches its first-paint swap (seen
+  as `target=93 thenPending=true` consumed, then the task stopped at i<InitialRefresh),
+  so the scroll/selection restore never applies. Still open, still part-3-owned (the
+  restore must survive task replacement — re-assert on the new task, or let the pending
+  state outlive the stopped task). Decide with the user whether to do a bounded version
+  now or defer with part 3.
 - **Flicker-avoidance has inherent limits at staging transitions (record, not
   fix).** Two cases (user-observed, session 5) where painting the old content as a
   placeholder can't be seamless, so blanking might actually read better than showing
