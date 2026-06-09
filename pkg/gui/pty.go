@@ -65,14 +65,6 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// its first paint.
 	targetOriginY := gui.getManager(view).GetScrollToOriginYForNextTask()
 
-	// While restoring a scroll position, hold the placeholder currently in the
-	// view until the first paint (released by ApplyInitialScroll), so a layout
-	// pass landing mid-load can't draw half-loaded content at the not-yet-restored
-	// scroll. Set synchronously here (before the layout pass that drains
-	// afterLayout) for the same reason StartLoading is. A render without a scroll
-	// to restore clears any leftover hold.
-	view.SetHoldViewLines(targetOriginY != nil)
-
 	// Run the pty after layout so that it gets the correct size
 	gui.afterLayout(func() error {
 		// Need to get the width and the pager again because the layout might have

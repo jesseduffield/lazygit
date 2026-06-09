@@ -233,36 +233,6 @@ func TestBufferLineForViewLineStaleTail(t *testing.T) {
 	assert.False(t, ok)
 }
 
-// While holding the view lines, the view keeps drawing the previous render even
-// as the buffer is overwritten, so a re-render that is restoring a scroll
-// position can keep showing the coherent placeholder until its first paint
-// reveals the loaded content in one step. See View.holdViewLines.
-func TestHoldViewLines(t *testing.T) {
-	v := NewView("name", 0, 0, 80, 10, OutputNormal)
-
-	v.writeString("a\nb\nc")
-	assert.Equal(t, []string{"a", "b", "c"}, v.ViewBufferLines())
-
-	v.SetHoldViewLines(true)
-
-	// Re-render the flicker-avoidance way (rewind, then overwrite from the top).
-	v.Reset()
-	v.writeString("w\nx\ny\nz")
-
-	// The new content is in the buffer, but while held the view keeps showing the
-	// previous render, and the view-line→buffer-line mapping reports no result.
-	assert.Equal(t, []string{"a", "b", "c"}, v.ViewBufferLines())
-	_, ok := v.BufferLineForViewLine(0)
-	assert.False(t, ok)
-
-	// Releasing the hold reveals the loaded content.
-	v.SetHoldViewLines(false)
-	assert.Equal(t, []string{"w", "x", "y", "z"}, v.ViewBufferLines())
-	bufferLine, ok := v.BufferLineForViewLine(0)
-	assert.True(t, ok)
-	assert.Equal(t, 0, bufferLine)
-}
-
 func TestContainsColoredText(t *testing.T) {
 	hexColor := func(text string, hexStr string) []cell {
 		cells := make([]cell, len(text))
