@@ -101,13 +101,13 @@ func TestWriteString(t *testing.T) {
 	for _, test := range tests {
 		v := NewView("name", 0, 0, 10, 10, OutputNormal)
 		for _, l := range test.existingLines {
-			v.lines = append(v.lines, lineType{cells: stringToCells(l)})
+			v.buf.lines = append(v.buf.lines, lineType{cells: stringToCells(l)})
 		}
 		for _, s := range test.stringsToWrite {
 			v.writeString(s)
 		}
 		var resultingLines [][]string
-		for _, l := range v.lines {
+		for _, l := range v.buf.lines {
 			resultingLines = append(resultingLines, cellsToStrings(l.cells))
 		}
 		assert.Equal(t, test.expectedLines, resultingLines)
@@ -144,19 +144,19 @@ func TestAutoRenderingHyperlinks(t *testing.T) {
 
 	v.writeString("htt")
 	// No hyperlinks are generated for incomplete URLs
-	assert.Equal(t, "", v.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "", v.buf.lines[0].cells[0].hyperlink)
 	// Writing more characters to the same line makes the link complete (even
 	// though we didn't see a newline yet)
 	v.writeString("ps://example.com")
-	assert.Equal(t, "https://example.com", v.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
 
 	v.Clear()
 	// Valid but incomplete URL
 	v.writeString("https://exa")
-	assert.Equal(t, "https://exa", v.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://exa", v.buf.lines[0].cells[0].hyperlink)
 	// Writing more characters to the same fixes the link
 	v.writeString("mple.com")
-	assert.Equal(t, "https://example.com", v.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
 }
 
 func TestDiffLineMetadata(t *testing.T) {
@@ -178,8 +178,8 @@ func TestDiffLineMetadata(t *testing.T) {
 		payload string
 		ok      bool
 	}
-	got := make([]result, len(v.lines))
-	for y := range v.lines {
+	got := make([]result, len(v.buf.lines))
+	for y := range v.buf.lines {
 		payload, ok := v.DiffLineMetadataInLine(y)
 		got[y] = result{payload, ok}
 	}
@@ -337,7 +337,7 @@ func TestContainsColoredText(t *testing.T) {
 		for j, cells := range test.lines {
 			lines[j] = lineType{cells: cells}
 		}
-		v := &View{lines: lines}
+		v := &View{buf: &viewBuffer{lines: lines}}
 		assert.Equal(t, test.expected, v.ContainsColoredText(test.fgColorStr, test.text), "Test %d failed", i)
 	}
 }
