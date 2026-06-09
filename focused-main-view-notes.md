@@ -924,7 +924,7 @@ applies to that scan.
 
 ### 13.6 Follow-ups discovered after the off-screen render landed
 
-- **Scrollbar regression (open — being handed to the next session).** With the
+- **Scrollbar regression (FIXED — session 5).** With the
   off-screen render, the swap happens at the *first-paint* point
   (`InitialRefreshAfter` = `height + oy + 10` lines), but the scrollbar is sized
   from the *displayed* buffer's height (`ViewLinesHeight()` →
@@ -936,12 +936,42 @@ applies to that scan.
   masked this: the non-truncating `viewLines` tail kept the height at the *previous*
   render's value until EOF, so the bar stayed put. Reproduces clearly under
   `LAZYGIT_SLOW_RENDER=2` on the files panel's 10s auto-refresh while scrolled down
-  (main content stays stable — good — but the bar flickers). Candidate directions:
-  swap only once enough is read for an accurate scrollbar (the off-screen render
-  already shows the old content meanwhile, so the viewport-fill first-paint may no
-  longer be worth a separate, earlier swap); or keep the scrollbar from shrinking
-  while loading (hold the pre-load height until EOF). The next session should
-  decide which, after checking it isn't a symptom of something more fundamental.
+  (main content stays stable — good — but the bar flickers).
+
+  **Resolution (session 5).** Not something more fundamental about the *swap* —
+  the off-screen render correctly fixed content coherence. The actual point: the
+  scrollbar reads a **strictly later quantity** than the viewport-fill paint. The
+  first paint needs only `oy + height` lines (enough to show the scroll position);
+  an accurate scrollbar needs the *total* height, known only near end-of-read. So
+  no single early swap can have both the content and the scrollbar right — they
+  depend on different read amounts. Delaying the swap to the scrollbar-accurate
+  point (the first candidate direction) was **rejected**: it would regress
+  *flicking latency* for large diffs (the new diff wouldn't appear until ~1332
+  lines read instead of a screenful) and the *no-placeholder first render* (a
+  blank/"loading…" view until the full read, since the off-screen render only shows
+  *old* content when there is some). Instead we took the second direction: **hold
+  the scrollbar height while a load is in progress.** `FreezeScrollbarHeight`
+  (gocui) records the view's height when the load begins (captured at
+  `StartLoading`, while the view still shows the previous render — for escape this
+  is *before* `CopyContent`, so it's the retained commit-diff height, i.e. the
+  correct final height); the scrollbar is sized from `max(displayed height,
+  scrollbarHeightFloor)` until `UnfreezeScrollbarHeight` releases it at EOF
+  (`onEndOfInput`). `clear()` also releases it, so a synchronous string render
+  superseding a still-loading diff (main views can render either, see
+  `runTaskForView`) doesn't leave a stale floor. This is the **same class** as the
+  layout scroll-up clamp, which already ignores the partial content height while
+  `IsLoading()` — only one reader (the scrollbar calc) sees the floored height, all
+  other `ViewLinesHeight()` callers stay oblivious ([[isolate-new-concepts-from-clients]]).
+  Landed as an **`amend!` against the off-screen-render commit** (`1fd1325c2`),
+  since that commit introduced the regression (AGENTS.md: don't sequence a branch
+  so an earlier commit regresses and a later repairs); the message gained a
+  paragraph on the scrollbar. Covered by `TestScrollbarHeightHeldWhileLoading` and
+  `TestScrollbarHeightReleasedWhenContentReplaced` (both fail on the un-floored
+  code). **Verification caveat:** mechanically unit-tested and `e2e-all` green, but
+  the visual flicker fix was **not** confirmed interactively this session (headless
+  can't repro, §13.1) — still wants a `LAZYGIT_SLOW_RENDER=2` `just debug` pass,
+  scrolled down, across the 10s refresh, escape-from-staging, commit→patch-building,
+  and plain commit-flicking.
 - **10s auto-refresh vs. the identity-based restore (note for productionizing
   part 3).** The files panel (and others) do a periodic background refresh
   (default 10s) that re-renders the main view by starting a *new* task. This can
