@@ -985,5 +985,54 @@ applies to that scan.
   productionization of part 3 must handle it — e.g. let the pending restore survive
   task replacement, or have the refresh re-assert it.
 
+  **Session 5 update — it's worse than "restore dropped".** Testing the scrollbar
+  fix under `LAZYGIT_SLOW_RENDER=2`/`20` with autoRefresh **on**, the escape↔refresh
+  overlap produces visible **rendering artifacts / glitches**, not merely a dropped
+  restore — two re-renders (escape + the periodic refresh) of the *same* view
+  interleaving, made far more likely by slow render. With autoRefresh **off** there
+  is no flicker at all; without slow-render the artifacts have **not** been
+  reproducible even once. The open decision (raised with the user): do we harden
+  this in the prototype or defer to production? The pivotal unknown is **which kind**
+  of problem it is, and we don't know yet:
+  - **(a) a soundness hole in the off-screen-render / task lifecycle** — two
+    re-renders of one view leaving *shared `View` state* half-applied: a stopped
+    escape task can leave `v.offscreen` non-nil (stopped between
+    `BeginOffscreenRender` and the swap); the pty `afterLayout` deferral can queue
+    *two* task-creations from one layout cycle, and the manager's pending fields
+    (`scrollToOriginYForNextTask`, `thenForNextTask`, and now the
+    `FreezeScrollbarHeight` floor) are read at different instants by each, so the
+    refresh task can re-capture the floor / re-read the pending scroll mid-escape.
+    If this is the cause it would surface beyond escape (any two rapid re-renders of
+    a view), so it's a defect in the mechanism we just built — **must** be fixed in
+    the prototype (AGENTS.md: a known race is not "live with it").
+  - **(b) "merely" the dropped restore** (the issue already described above) plus the
+    consequent old-content-then-jump being drawn — in which case the *mechanism* is
+    sound and the real fix is part 3's "one restore that survives task replacement",
+    where a throwaway prototype patch would likely be discarded.
+
+  Lean (session 5): **characterize now, timeboxed** (§12.3 step 2 — "understand the
+  race to choose the right fix"), then let the finding pick the fix's home. (a) gets
+  fixed here; (b) is confirmed as a part-3-owned item and deferred. The
+  characterization itself is cheap and is exactly the kind of entangled unknown the
+  prototype exists to retire ([[resolve-hard-unknowns-in-prototype]]).
+- **Flicker-avoidance has inherent limits at staging transitions (record, not
+  fix).** Two cases (user-observed, session 5) where painting the old content as a
+  placeholder can't be seamless, so blanking might actually read better than showing
+  the old content in the wrong place:
+  - **Layout changes across the transition.** Going in/out of staging often changes
+    the layout (single main view ↔ split main+secondary). The content jumps position
+    regardless of any placeholder, and the old content may even *wrap differently* in
+    a split view than unsplit — so keeping it shown buys little; blanking when the
+    layout changes may be cleaner.
+  - **The escape highlight/selection sequence.** On escape we first remove the
+    staging selection highlight (keeping the old content), then later paint the main
+    view (no selection), then later still paint the restored selection. With a large
+    hunk selected (a big highlighted region) this three-step reveal is pronounced
+    under slow-render; barely noticeable at normal speed — but possibly visible on a
+    slow machine.
+
+  Neither needs fixing in the prototype, and likely not in production either;
+  recorded for completeness.
+
 Memory: `focused-main-view-flicker-timing-races` (updated — off-screen render),
 `isolate-new-concepts-from-clients`, `main-thread-over-mutexes-direction`.
