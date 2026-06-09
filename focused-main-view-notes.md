@@ -922,5 +922,38 @@ lines" to "the first read at which the predicate is satisfied on the off-screen
 content". The §8 #1 two-call atomicity constraint (diff-line-metadata-notes.md §8)
 applies to that scan.
 
+### 13.6 Follow-ups discovered after the off-screen render landed
+
+- **Scrollbar regression (open — being handed to the next session).** With the
+  off-screen render, the swap happens at the *first-paint* point
+  (`InitialRefreshAfter` = `height + oy + 10` lines), but the scrollbar is sized
+  from the *displayed* buffer's height (`ViewLinesHeight()` →
+  `calcRealScrollbarStartEnd` in `gui.go`). So at the swap the displayed buffer is
+  only a viewport-and-a-bit tall, while the task keeps reading up to
+  `linesToReadForAccurateScrollbar` (`min(height*(height-1)+oy, 5000)`, far more);
+  the scrollbar thumb therefore jumps to reflect the short content and then grows
+  back to its former position as the rest loads. The old incremental mechanism
+  masked this: the non-truncating `viewLines` tail kept the height at the *previous*
+  render's value until EOF, so the bar stayed put. Reproduces clearly under
+  `LAZYGIT_SLOW_RENDER=2` on the files panel's 10s auto-refresh while scrolled down
+  (main content stays stable — good — but the bar flickers). Candidate directions:
+  swap only once enough is read for an accurate scrollbar (the off-screen render
+  already shows the old content meanwhile, so the viewport-fill first-paint may no
+  longer be worth a separate, earlier swap); or keep the scrollbar from shrinking
+  while loading (hold the pre-load height until EOF). The next session should
+  decide which, after checking it isn't a symptom of something more fundamental.
+- **10s auto-refresh vs. the identity-based restore (note for productionizing
+  part 3).** The files panel (and others) do a periodic background refresh
+  (default 10s) that re-renders the main view by starting a *new* task. This can
+  fire just after escaping staging, while the escape's re-render task is still
+  reading toward the restore target (the saved scroll/selection now, the target
+  patch line in part 3). The refresh's task **stops and replaces** the escape task
+  and knows nothing about the restore — `scrollToOriginYForNextTask` /
+  `thenForNextTask` were already consumed (cleared in `NewTask`) by the escape
+  task, so the replacement only preserves the current scroll and the
+  identity-restore is silently dropped. Not urgent (the window is small), but
+  productionization of part 3 must handle it — e.g. let the pending restore survive
+  task replacement, or have the refresh re-assert it.
+
 Memory: `focused-main-view-flicker-timing-races` (updated — off-screen render),
 `isolate-new-concepts-from-clients`, `main-thread-over-mutexes-direction`.
