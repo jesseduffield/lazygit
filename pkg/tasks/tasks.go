@@ -477,10 +477,26 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 						loadingMutex.Unlock()
 
 						if !ok {
-							// We're at EOF before reaching InitialRefreshAfter (the content was
-							// shorter than a screenful), so swap in whatever we read now. Apply
-							// the saved scroll first (if any) so that onEndOfInput clamps it back
-							// into range when the new content turned out shorter than expected.
+							// lineChan is closed. At a genuine end of input we swap in what we
+							// read and finalize. But lineChan is also closed when this task has
+							// been stopped to make way for a newer one: stopping closes
+							// opts.Stop, and the scanner goroutine then closes lineChan, so the
+							// select above can land here instead of on the opts.Stop case. A
+							// stopped task is being replaced and must leave the view to the
+							// incoming task — swapping in its half-read buffer, applying the
+							// saved scroll, clamping the origin, or clearing `loading` would all
+							// corrupt what that task is about to render. So bail out here, the
+							// same as the explicit stop case above.
+							select {
+							case <-opts.Stop:
+								break outer
+							default:
+							}
+							// Genuine end of input: swap in whatever we read (the content was
+							// shorter than a screenful, so we never hit the InitialRefreshAfter
+							// swap). Apply the saved scroll first (if any) so that onEndOfInput
+							// clamps it back into range when the content turned out shorter than
+							// expected.
 							// onEndOfInput reads the view's dimensions (to decide
 							// whether to scroll) and sets the origin, both of which
 							// are UI-thread-only, so run it there.
