@@ -197,14 +197,12 @@ func TestDiffLineMetadata(t *testing.T) {
 }
 
 // When a re-render produces fewer view lines than the previous one,
-// refreshViewLinesIfNeeded overwrites viewLines in place without truncating, so
-// the tail keeps the previous render's entries (deliberately, so the view keeps
-// showing old content until the new content catches up). A reader must not map
-// a view line in that stale tail to a buffer line. With wrapping, the stale
-// entry's buffer index can still be in range of the new (shorter, less-wrapped)
-// buffer, so the in-range guard alone lets it through and maps a view line that
-// no longer exists onto the wrong buffer line. See diff-line-metadata-notes.md
-// §8.
+// refreshViewLinesIfNeeded must truncate viewLines to the new content. If it
+// didn't (it used to overwrite in place and keep the tail), a reader could map a
+// view line that no longer exists onto the wrong buffer line — and with wrapping
+// the stale entry's buffer index can still be in range of the new, shorter,
+// less-wrapped buffer, so an in-range guard alone wouldn't catch it. See
+// diff-line-metadata-notes.md §8.
 func TestBufferLineForViewLineStaleTail(t *testing.T) {
 	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
 	v.Wrap = true
@@ -214,26 +212,100 @@ func TestBufferLineForViewLineStaleTail(t *testing.T) {
 	v.writeString(strings.Repeat("a", 27) + "\n" + strings.Repeat("b", 27))
 	assert.Equal(t, 6, v.ViewLinesHeight())
 
-	// Re-render with shorter content the flicker-avoidance way: rewind (which
-	// keeps the old view lines) and overwrite from the top with three short,
-	// unwrapped lines. There are now only 3 real view lines, but the previous
-	// render's view lines 3..5 linger in the tail.
+	// Re-render with shorter content (rewind, then overwrite from the top with
+	// three short, unwrapped lines). There are now only 3 view lines.
 	v.Reset()
 	v.writeString("aaa\nbbb\nccc")
+	assert.Equal(t, 3, v.ViewLinesHeight())
 
 	// A real view line maps to its buffer line as usual.
 	bufferLine, ok := v.BufferLineForViewLine(1)
 	assert.True(t, ok)
 	assert.Equal(t, 1, bufferLine)
 
-	// View line 4 is in the stale tail: it no longer exists in the current
-	// buffer, so the mapping must fail. (On the buggy code it instead maps to
-	// buffer line 1, the stale entry's lingering index.)
+	// View line 4 no longer exists in the current buffer, so the mapping must
+	// fail rather than land on a stale entry from the previous render.
 	_, ok = v.BufferLineForViewLine(4)
-	/* EXPECTED:
 	assert.False(t, ok)
-	ACTUAL: */
+}
+
+// An async re-render builds into an off-screen buffer and swaps it in once it
+// has enough to paint, so readers keep seeing the previous render — coherent and
+// consistent — until the new content appears in one step. See View.offscreen.
+func TestOffscreenRender(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	v.writeString("a\nb\nc")
+	assert.Equal(t, []string{"a", "b", "c"}, v.ViewBufferLines())
+
+	// Render new, longer content off-screen.
+	v.BeginOffscreenRender()
+	v.writeString("w\nx\ny\nz")
+
+	// The displayed buffer is untouched: readers still see the previous render,
+	// and the view-line→buffer-line mapping stays consistent with it.
+	assert.Equal(t, []string{"a", "b", "c"}, v.ViewBufferLines())
+	bufferLine, ok := v.BufferLineForViewLine(1)
 	assert.True(t, ok)
+	assert.Equal(t, 1, bufferLine)
+
+	// Swapping in reveals the new content in one step.
+	v.SwapInOffscreenRender()
+	assert.Equal(t, []string{"w", "x", "y", "z"}, v.ViewBufferLines())
+
+	// A further write now appends to the displayed buffer directly.
+	v.writeString("\nmore")
+	assert.Equal(t, []string{"w", "x", "y", "z", "more"}, v.ViewBufferLines())
+}
+
+// While an async re-render loads, it swaps in only a partially-filled buffer at
+// its first paint and keeps appending lines afterwards. The scrollbar must keep
+// using the pre-load height until the load ends, so the thumb doesn't shrink and
+// snap back as the rest streams in. See View.scrollbarHeightFloor.
+func TestScrollbarHeightHeldWhileLoading(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 12, OutputNormal)
+
+	// Initial render: 100 lines, scrolled well down.
+	v.writeString(strings.Repeat("x\n", 100))
+	v.SetOrigin(0, 80)
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// A re-render begins while the previous render is still shown: hold the
+	// scrollbar height at the current value.
+	v.FreezeScrollbarHeight()
+
+	// The off-screen render swaps in only a screenful at its first paint.
+	v.BeginOffscreenRender()
+	v.writeString(strings.Repeat("y\n", 30))
+	v.SwapInOffscreenRender()
+
+	// The displayed buffer is now short, but the scrollbar height stays held, so
+	// the thumb keeps its position instead of jumping.
+	assert.Equal(t, 30, v.ViewLinesHeight())
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// The rest of the content streams in.
+	v.writeString(strings.Repeat("y\n", 70))
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// Once the load ends, the scrollbar tracks the real content directly again.
+	v.UnfreezeScrollbarHeight()
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+}
+
+// If a synchronous render (e.g. a string render) supersedes a still-loading diff
+// before it reaches its end, the held scrollbar height must be released, so the
+// scrollbar reflects the new content rather than the abandoned load's height.
+func TestScrollbarHeightReleasedWhenContentReplaced(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 12, OutputNormal)
+
+	v.writeString(strings.Repeat("x\n", 100))
+	v.FreezeScrollbarHeight()
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// A synchronous render replaces the content before the (notional) load ends.
+	v.SetContent("just a few\nshort lines\nhere")
+	assert.Equal(t, 3, v.scrollbarContentHeight())
 }
 
 func TestContainsColoredText(t *testing.T) {
