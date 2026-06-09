@@ -27,15 +27,41 @@ const (
 
 // A View is a window. It maintains its own internal buffer and cursor
 // position.
+// viewBuffer holds a view's content as cells, together with the cursor and
+// escape-sequence decoder state used to turn incoming bytes into those cells.
+// A view normally has a single buffer (the one it displays), but bundling this
+// state lets a re-render build a second, off-screen buffer and swap it in
+// atomically once the new content is ready, so no reader ever sees a
+// half-written buffer.
+type viewBuffer struct {
+	// the view's content: one []cell per unwrapped line
+	lines []lineType
+
+	// write cursor into lines
+	wx, wy int
+
+	// decodes ESC sequences as bytes are written
+	ei *escapeInterpreter
+
+	// If the last character written was a newline, we don't write it but instead
+	// set pendingNewline to true. If more text is written, we write the newline
+	// then. This avoids an extra blank line at the end of the view.
+	pendingNewline bool
+}
+
 type View struct {
 	name           string
-	x0, y0, x1, y1 int        // left top right bottom
-	ox, oy         int        // view offsets
-	cx, cy         int        // cursor position
-	rx, ry         int        // Read() offsets
-	wx, wy         int        // Write() offsets
-	lines          []lineType // All the data
+	x0, y0, x1, y1 int // left top right bottom
+	ox, oy         int // view offsets
+	cx, cy         int // cursor position
+	rx, ry         int // Read() offsets
 	outMode        OutputMode
+
+	// buf bundles the view's cell buffer and the cursor / escape-parser state
+	// used to write into it (see the viewBuffer type). Bundling these makes it
+	// possible to build a second, off-screen buffer during a re-render and swap
+	// it in atomically once ready, so no reader ever sees a half-written buffer.
+	buf *viewBuffer
 	// The y position of the first line of a range selection.
 	// This is not relative to the view's origin: it is relative to the first line
 	// of the view's content, so you can scroll the view and this value will remain
@@ -75,7 +101,7 @@ type View struct {
 	viewLines []viewLine
 
 	// Number of leading entries in viewLines that correspond to the current
-	// buffer (v.lines), as built by the most recent refreshViewLinesIfNeeded.
+	// buffer (v.buf.lines), as built by the most recent refreshViewLinesIfNeeded.
 	// refreshViewLinesIfNeeded overwrites viewLines in place without truncating,
 	// so when a re-render is shorter than the previous one the tail keeps stale
 	// entries from that previous render (drawn deliberately, to avoid flicker
@@ -99,16 +125,8 @@ type View struct {
 	// view-line→buffer-line mapping reports no result.
 	holdViewLines bool
 
-	// If the last character written was a newline, we don't write it but
-	// instead set pendingNewline to true. If more text is written, we write the
-	// newline then. This is to avoid having an extra blank at the end of the view.
-	pendingNewline bool
-
 	// writeMutex protects locks the write process
 	writeMutex sync.Mutex
-
-	// ei is used to decode ESC sequences on Write
-	ei *escapeInterpreter
 
 	// Visible specifies whether the view is visible.
 	Visible bool
@@ -487,7 +505,7 @@ type SearchPosition struct {
 }
 
 type viewLine struct {
-	linesX, linesY int // coordinates relative to v.lines
+	linesX, linesY int // coordinates relative to v.buf.lines
 	line           []cell
 
 	// Colors used to extend the bg past this wrapped segment's content.
@@ -565,7 +583,7 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 		Editor:            DefaultEditor,
 		tainted:           true,
 		outMode:           mode,
-		ei:                newEscapeInterpreter(mode),
+		buf:               &viewBuffer{ei: newEscapeInterpreter(mode)},
 		searcher:          &searcher{},
 		TextArea:          &TextArea{},
 		rangeSelectStartY: -1,
@@ -576,7 +594,7 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 	v.SelFgColor, v.SelBgColor = ColorDefault, ColorDefault
 	v.InactiveViewSelBgColor = ColorDefault
 	v.TitleColor, v.FrameColor = ColorDefault, ColorDefault
-	v.ei.screenColMax = v.InnerWidth()
+	v.buf.ei.screenColMax = v.InnerWidth()
 	return v
 }
 
@@ -587,7 +605,7 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 // content can consult this snapshot instead of reading the view's live
 // dimensions (which the UI thread mutates during layout).
 func (v *View) SetContentWidth(width int) {
-	v.ei.screenColMax = width
+	v.buf.ei.screenColMax = width
 }
 
 // Dimensions returns the dimensions of the View
@@ -777,16 +795,16 @@ func (v *View) SetWritePos(x, y int) {
 		y = 0
 	}
 
-	v.wx = x
-	v.wy = y
+	v.buf.wx = x
+	v.buf.wy = y
 
 	// Changing the write position makes a pending newline obsolete
-	v.pendingNewline = false
+	v.buf.pendingNewline = false
 }
 
 // WritePos returns the current write position of the view's internal buffer.
 func (v *View) WritePos() (x, y int) {
-	return v.wx, v.wy
+	return v.buf.wx, v.buf.wy
 }
 
 // SetReadPos sets the read position of the view's internal buffer.
@@ -814,52 +832,52 @@ func (v *View) makeWriteable(x, y int) {
 	// TODO: make this more efficient
 
 	// line `y` must be index-able (that's why `<=`)
-	for len(v.lines) <= y {
-		if cap(v.lines) > len(v.lines) {
-			newLen := cap(v.lines)
+	for len(v.buf.lines) <= y {
+		if cap(v.buf.lines) > len(v.buf.lines) {
+			newLen := cap(v.buf.lines)
 			if newLen > y {
 				newLen = y + 1
 			}
-			v.lines = v.lines[:newLen]
+			v.buf.lines = v.buf.lines[:newLen]
 		} else {
-			v.lines = append(v.lines, lineType{})
+			v.buf.lines = append(v.buf.lines, lineType{})
 		}
 	}
 	// cell `x` need not be index-able (that's why `<`)
 	// append should be used by `lines[y]` user if he wants to write beyond `x`
-	for len(v.lines[y].cells) < x {
-		if cap(v.lines[y].cells) > len(v.lines[y].cells) {
-			newLen := cap(v.lines[y].cells)
+	for len(v.buf.lines[y].cells) < x {
+		if cap(v.buf.lines[y].cells) > len(v.buf.lines[y].cells) {
+			newLen := cap(v.buf.lines[y].cells)
 			if newLen > x {
 				newLen = x
 			}
-			v.lines[y].cells = v.lines[y].cells[:newLen]
+			v.buf.lines[y].cells = v.buf.lines[y].cells[:newLen]
 		} else {
-			v.lines[y].cells = append(v.lines[y].cells, cell{})
+			v.buf.lines[y].cells = append(v.buf.lines[y].cells, cell{})
 		}
 	}
 }
 
-// writeCells copies []cell to (v.wx, v.wy), and advances v.wx accordingly.
+// writeCells copies []cell to (v.buf.wx, v.buf.wy), and advances v.buf.wx accordingly.
 // !!! caller MUST ensure that specified location (x, y) is writeable by calling makeWriteable
 func (v *View) writeCells(cells []cell) {
 	var newLen int
 	// use maximum len available
-	line := v.lines[v.wy].cells[:cap(v.lines[v.wy].cells)]
-	maxCopy := len(line) - v.wx
+	line := v.buf.lines[v.buf.wy].cells[:cap(v.buf.lines[v.buf.wy].cells)]
+	maxCopy := len(line) - v.buf.wx
 	if maxCopy < len(cells) {
-		copy(line[v.wx:], cells[:maxCopy])
+		copy(line[v.buf.wx:], cells[:maxCopy])
 		line = append(line, cells[maxCopy:]...)
 		newLen = len(line)
 	} else { // maxCopy >= len(cells)
-		copy(line[v.wx:], cells)
-		newLen = v.wx + len(cells)
-		if newLen < len(v.lines[v.wy].cells) {
-			newLen = len(v.lines[v.wy].cells)
+		copy(line[v.buf.wx:], cells)
+		newLen = v.buf.wx + len(cells)
+		if newLen < len(v.buf.lines[v.buf.wy].cells) {
+			newLen = len(v.buf.lines[v.buf.wy].cells)
 		}
 	}
-	v.lines[v.wy].cells = line[:newLen]
-	v.wx += len(cells)
+	v.buf.lines[v.buf.wy].cells = line[:newLen]
+	v.buf.wx += len(cells)
 }
 
 // Write appends a byte slice into the view's internal buffer. Because
@@ -879,37 +897,37 @@ func (v *View) write(p []byte) {
 	v.tainted = true
 	// write only ever touches lines from v.wy onwards, so any cached wrapping
 	// below that stays valid.
-	v.firstDirtyLine = min(v.firstDirtyLine, v.wy)
+	v.firstDirtyLine = min(v.firstDirtyLine, v.buf.wy)
 	v.clearHover()
 
 	// Fill with empty cells, if writing outside current view buffer
-	v.makeWriteable(v.wx, v.wy)
+	v.makeWriteable(v.buf.wx, v.buf.wy)
 
 	finishLine := func() {
 		v.autoRenderHyperlinksInCurrentLine()
 	}
 
 	advanceToNextLine := func() {
-		v.wx = 0
-		v.wy++
-		if v.wy >= len(v.lines) {
-			v.lines = append(v.lines, lineType{})
+		v.buf.wx = 0
+		v.buf.wy++
+		if v.buf.wy >= len(v.buf.lines) {
+			v.buf.lines = append(v.buf.lines, lineType{})
 		}
 		// An OSC 456 diff-metadata sequence applies only to the line it prefixes
 		// (the pager re-emits one per line and never closes it), so drop it at the
 		// line boundary rather than letting it carry onto a line with no metadata.
-		v.ei.metadata.Reset()
+		v.buf.ei.metadata.Reset()
 	}
 
-	if v.pendingNewline {
+	if v.buf.pendingNewline {
 		advanceToNextLine()
-		v.ei.notifyRowAdvance()
-		v.pendingNewline = false
+		v.buf.ei.notifyRowAdvance()
+		v.buf.pendingNewline = false
 	}
 
 	until := len(p)
 	if !v.Editable && until > 0 && p[until-1] == '\n' {
-		v.pendingNewline = true
+		v.buf.pendingNewline = true
 		until--
 	}
 
@@ -925,15 +943,15 @@ func (v *View) write(p []byte) {
 		case characterEquals(chr, '\n') || isCRLF(chr):
 			finishLine()
 			advanceToNextLine()
-			v.ei.notifyRowAdvance()
+			v.buf.ei.notifyRowAdvance()
 		case characterEquals(chr, '\r'):
 			finishLine()
-			v.wx = 0
-			v.ei.notifyColumnReset()
+			v.buf.wx = 0
+			v.buf.ei.notifyColumnReset()
 		default:
-			truncateLine, cells := v.parseInput(chr, width, v.wx, v.wy)
-			if cd, ok := v.ei.instruction.(cursorDown); ok {
-				v.ei.instructionRead()
+			truncateLine, cells := v.parseInput(chr, width, v.buf.wx, v.buf.wy)
+			if cd, ok := v.buf.ei.instruction.(cursorDown); ok {
+				v.buf.ei.instructionRead()
 				for range cd.n {
 					v.autoRenderHyperlinksInCurrentLine()
 					advanceToNextLine()
@@ -944,7 +962,7 @@ func (v *View) write(p []byte) {
 			}
 			v.writeCells(cells)
 			if truncateLine {
-				v.lines[v.wy].cells = v.lines[v.wy].cells[:v.wx]
+				v.buf.lines[v.buf.wy].cells = v.buf.lines[v.buf.wy].cells[:v.buf.wx]
 			}
 			// Soft-wrap tracking. truncateLine is true exactly when the
 			// cells are from \x1b[K filling to end of line — ConPTY
@@ -955,12 +973,12 @@ func (v *View) write(p []byte) {
 				for _, c := range cells {
 					totalWidth += c.width
 				}
-				v.ei.notifyCellsWritten(totalWidth)
+				v.buf.ei.notifyCellsWritten(totalWidth)
 			}
 		}
 	}
 
-	if v.pendingNewline {
+	if v.buf.pendingNewline {
 		finishLine()
 	} else {
 		v.autoRenderHyperlinksInCurrentLine()
@@ -1014,7 +1032,7 @@ func (v *View) autoRenderHyperlinksInCurrentLine() {
 		return
 	}
 
-	line := v.lines[v.wy].cells
+	line := v.buf.lines[v.buf.wy].cells
 	start := 0
 	for {
 		linkStart := findLinkStart(line[start:])
@@ -1031,7 +1049,7 @@ func (v *View) autoRenderHyperlinksInCurrentLine() {
 			link.WriteString(line[linkEnd].chr)
 		}
 		for i := linkStart; i < linkEnd; i++ {
-			v.lines[v.wy].cells[i].hyperlink = link.String()
+			v.buf.lines[v.buf.wy].cells[i].hyperlink = link.String()
 		}
 		start = linkEnd
 	}
@@ -1044,9 +1062,9 @@ func (v *View) parseInput(ch []byte, width int, x int, _ int) (bool, []cell) {
 	cells := []cell{}
 	truncateLine := false
 
-	isEscape, err := v.ei.parseOne(ch)
+	isEscape, err := v.buf.ei.parseOne(ch)
 	if err != nil {
-		for _, chr := range v.ei.characters() {
+		for _, chr := range v.buf.ei.characters() {
 			c := cell{
 				fgColor: v.FgColor,
 				bgColor: v.BgColor,
@@ -1055,28 +1073,28 @@ func (v *View) parseInput(ch []byte, width int, x int, _ int) (bool, []cell) {
 			}
 			cells = append(cells, c)
 		}
-		v.ei.reset()
+		v.buf.ei.reset()
 	} else {
 		repeatCount := 1
-		if _, ok := v.ei.instruction.(eraseInLineFromCursor); ok {
+		if _, ok := v.buf.ei.instruction.(eraseInLineFromCursor); ok {
 			// Discard any old content past the cursor and record the
 			// fill colors so draw() paints the trailing area with them.
 			// This extends the bg to the right edge in both the
 			// content-fits and content-wraps cases — for the latter,
 			// the metadata is what reaches every wrapped segment past
 			// the last word.
-			v.ei.instructionRead()
+			v.buf.ei.instructionRead()
 			truncateLine = true
-			v.lines[v.wy].trailingFillAttributes = &trailingFillAttributes{
-				fg: v.ei.curFgColor,
-				bg: v.ei.curBgColor,
+			v.buf.lines[v.buf.wy].trailingFillAttributes = &trailingFillAttributes{
+				fg: v.buf.ei.curFgColor,
+				bg: v.buf.ei.curBgColor,
 			}
 			return truncateLine, []cell{}
-		} else if cf, ok := v.ei.instruction.(cursorForward); ok {
+		} else if cf, ok := v.buf.ei.instruction.(cursorForward); ok {
 			// emit `n` space cells under the parser-tracked SGR — used
 			// to materialize ConPTY's compressed runs of spaces (which
 			// it emits as ECH+CUF instead of literal whitespace).
-			v.ei.instructionRead()
+			v.buf.ei.instructionRead()
 			repeatCount = cf.n
 			ch = []byte{' '}
 			width = 1
@@ -1094,10 +1112,10 @@ func (v *View) parseInput(ch []byte, width int, x int, _ int) (bool, []cell) {
 			repeatCount = tabWidth - (x % tabWidth)
 		}
 		c := cell{
-			fgColor:   v.ei.curFgColor,
-			bgColor:   v.ei.curBgColor,
-			hyperlink: v.ei.hyperlink.String(),
-			metadata:  v.ei.metadata.String(),
+			fgColor:   v.buf.ei.curFgColor,
+			bgColor:   v.buf.ei.curBgColor,
+			hyperlink: v.buf.ei.hyperlink.String(),
+			metadata:  v.buf.ei.metadata.String(),
 			chr:       string(ch),
 			width:     width,
 		}
@@ -1125,9 +1143,9 @@ func (v *View) Read(p []byte) (n int, err error) {
 		}
 		v.readBuffer = nil
 	}
-	for v.ry < len(v.lines) {
-		for v.rx < len(v.lines[v.ry].cells) {
-			s := v.lines[v.ry].cells[v.rx].chr
+	for v.ry < len(v.buf.lines) {
+		for v.rx < len(v.buf.lines[v.ry].cells) {
+			s := v.buf.lines[v.ry].cells[v.rx].chr
 			count := len(s)
 			copy(p[offset:], s)
 			v.rx++
@@ -1149,7 +1167,7 @@ func (v *View) Read(p []byte) (n int, err error) {
 // only use this if the calling function has a lock on writeMutex
 func (v *View) clear() {
 	v.rewind()
-	v.lines = nil
+	v.buf.lines = nil
 	v.clearViewLines()
 }
 
@@ -1191,7 +1209,7 @@ func (v *View) CopyContent(from *View) {
 	// This is a shallow clone -- the per-row cell data is immutable once written
 	// and stays shared, so the cost is proportional to the number of rows, not
 	// their contents.
-	v.lines = slices.Clone(from.lines)
+	v.buf.lines = slices.Clone(from.buf.lines)
 	v.viewLines = slices.Clone(from.viewLines)
 	v.SetOriginX(from.ox)
 	v.SetOriginY(from.oy)
@@ -1214,13 +1232,13 @@ func (v *View) Reset() {
 	defer v.writeMutex.Unlock()
 
 	v.rewind()
-	v.lines = nil
+	v.buf.lines = nil
 }
 
 // This is for when we've done a restart for the sake of avoiding a flicker and
 // we've reached the end of the new content to display: we need to clear the remaining
 // content from the previous round. We do this by setting v.viewLines to nil so that
-// we just render the new content from v.lines directly
+// we just render the new content from v.buf.lines directly
 func (v *View) FlushStaleCells() {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
@@ -1241,8 +1259,8 @@ func (v *View) SetHoldViewLines(hold bool) {
 }
 
 func (v *View) rewind() {
-	v.ei.reset()
-	v.ei.resetScreenCursor()
+	v.buf.ei.reset()
+	v.buf.ei.resetScreenCursor()
 
 	v.SetReadPos(0, 0)
 	v.SetWritePos(0, 0)
@@ -1314,14 +1332,14 @@ func (v *View) updateSearchPositions() {
 			for _, result := range v.searcher.modelSearchResults {
 				// This code only works when v.Wrap is false.
 
-				if result.Y >= len(v.lines) {
+				if result.Y >= len(v.buf.lines) {
 					break
 				}
 
 				// If a view line exists for this line index:
-				if v.lines[result.Y].cells != nil {
+				if v.buf.lines[result.Y].cells != nil {
 					// search this view line for the search string
-					positions := searchPositionsForLine(v.lines[result.Y].cells, result.Y)
+					positions := searchPositionsForLine(v.buf.lines[result.Y].cells, result.Y)
 					if len(positions) > 0 {
 						// If we found any occurrences, add them
 						v.searcher.searchPositions = append(v.searcher.searchPositions, positions...)
@@ -1472,7 +1490,7 @@ func (v *View) refreshViewLinesIfNeeded() {
 	}
 
 	lineIdx := 0
-	lines := v.lines
+	lines := v.buf.lines
 	for i := range lines {
 		line := &lines[i]
 
@@ -1597,8 +1615,8 @@ func (v *View) BufferLines() []string {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	lines := make([]string, len(v.lines))
-	for i, l := range v.lines {
+	lines := make([]string, len(v.buf.lines))
+	for i, l := range v.buf.lines {
 		lines[i] = l.cells.String()
 	}
 	return lines
@@ -1610,7 +1628,7 @@ func (v *View) Buffer() string {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	return linesToString(v.lines)
+	return linesToString(v.buf.lines)
 }
 
 // ViewBufferLines returns the lines in the view's internal
@@ -1630,7 +1648,7 @@ func (v *View) ViewBufferLines() []string {
 
 // LinesHeight is the count of view lines (i.e. lines excluding wrapping)
 func (v *View) LinesHeight() int {
-	return len(v.lines)
+	return len(v.buf.lines)
 }
 
 // ViewLinesHeight is the count of view lines (i.e. lines including wrapping)
@@ -1661,11 +1679,11 @@ func (v *View) Line(y int) (string, bool) {
 		return "", false
 	}
 
-	if y < 0 || y >= len(v.lines) {
+	if y < 0 || y >= len(v.buf.lines) {
 		return "", false
 	}
 
-	return v.lines[y].cells.String(), true
+	return v.buf.lines[y].cells.String(), true
 }
 
 // Word returns a string with the word of the view's internal buffer
@@ -1676,11 +1694,11 @@ func (v *View) Word(x, y int) (string, bool) {
 		return "", false
 	}
 
-	if x < 0 || y < 0 || y >= len(v.lines) || x >= len(v.lines[y].cells) {
+	if x < 0 || y < 0 || y >= len(v.buf.lines) || x >= len(v.buf.lines[y].cells) {
 		return "", false
 	}
 
-	str := v.lines[y].cells.String()
+	str := v.buf.lines[y].cells.String()
 
 	nl := strings.LastIndexFunc(str[:x], indexFunc)
 	if nl == -1 {
@@ -1706,7 +1724,7 @@ func (v *View) HyperLinkInLine(y int, urlScheme string) (string, bool) {
 		return "", false
 	}
 
-	for _, c := range v.lines[linesY].cells {
+	for _, c := range v.buf.lines[linesY].cells {
 		if strings.HasPrefix(c.hyperlink, urlScheme) {
 			return c.hyperlink, true
 		}
@@ -1728,7 +1746,7 @@ func (v *View) DiffLineMetadataInLine(y int) (string, bool) {
 		return "", false
 	}
 
-	for _, c := range v.lines[linesY].cells {
+	for _, c := range v.buf.lines[linesY].cells {
 		if c.metadata != "" {
 			return c.metadata, true
 		}
@@ -1749,12 +1767,12 @@ func (v *View) BufferLineForViewLine(y int) (int, bool) {
 }
 
 // bufferLineForViewLine maps a (wrapped) view line index to the index of the
-// corresponding line in the unwrapped internal buffer (v.lines). It is the
+// corresponding line in the unwrapped internal buffer (v.buf.lines). It is the
 // shared core of the public readers that look up information about the buffer
 // line under a given view line (its buffer index, its hyperlink, its diff
 // metadata); they all need the same view-line→buffer-line mapping to stay
 // consistent with the buffer they then read. The caller must hold writeMutex,
-// so that the mapping and the subsequent read of v.lines see the same buffer
+// so that the mapping and the subsequent read of v.buf.lines see the same buffer
 // even if a concurrent re-render is rebuilding it.
 func (v *View) bufferLineForViewLine(y int) (int, bool) {
 	v.refreshViewLinesIfNeeded()
@@ -1769,7 +1787,7 @@ func (v *View) bufferLineForViewLine(y int) (int, bool) {
 	// Bound on freshViewLineCount rather than len(v.viewLines): the entries past
 	// it are a stale tail retained for flicker-avoidance (see freshViewLineCount)
 	// and don't correspond to the current buffer. Within the fresh range every
-	// entry's linesY was just built from v.lines, so it is guaranteed in range.
+	// entry's linesY was just built from v.buf.lines, so it is guaranteed in range.
 	if y < 0 || y >= v.freshViewLineCount {
 		return 0, false
 	}
@@ -1786,12 +1804,12 @@ func indexFunc(r rune) bool {
 // SetHighlight toggles highlighting of separate lines, for custom lists
 // or multiple selection in views.
 func (v *View) SetHighlight(y int, on bool) {
-	if y < 0 || y >= len(v.lines) {
+	if y < 0 || y >= len(v.buf.lines) {
 		return
 	}
 
-	cells := make([]cell, 0, len(v.lines[y].cells))
-	for _, c := range v.lines[y].cells {
+	cells := make([]cell, 0, len(v.buf.lines[y].cells))
+	for _, c := range v.buf.lines[y].cells {
 		if on {
 			c.bgColor = v.SelBgColor
 			c.fgColor = v.SelFgColor
@@ -1803,7 +1821,7 @@ func (v *View) SetHighlight(y int, on bool) {
 	}
 	v.tainted = true
 	v.firstDirtyLine = min(v.firstDirtyLine, y)
-	v.lines[y].cells = cells
+	v.buf.lines[y].cells = cells
 	v.clearHover()
 }
 
@@ -1915,7 +1933,7 @@ func (v *View) SelectedLine() string {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	if len(v.lines) == 0 {
+	if len(v.buf.lines) == 0 {
 		return ""
 	}
 
@@ -1927,7 +1945,7 @@ func (v *View) SelectedLines() []string {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	if len(v.lines) == 0 {
+	if len(v.buf.lines) == 0 {
 		return nil
 	}
 
@@ -1942,7 +1960,7 @@ func (v *View) SelectedLines() []string {
 }
 
 func (v *View) lineContentAtIdx(idx int) string {
-	return v.lines[idx].cells.String()
+	return v.buf.lines[idx].cells.String()
 }
 
 func (v *View) SelectedPoint() (int, int) {
@@ -2015,8 +2033,8 @@ func (v *View) ClearTextArea() {
 
 func (v *View) overwriteLines(y int, content string) {
 	// break by newline, then for each line, write it, then add that erase command
-	v.wx = 0
-	v.wy = y
+	v.buf.wx = 0
+	v.buf.wy = y
 	v.clearViewLines()
 
 	lines := strings.ReplaceAll(content, "\n", "\x1b[K\n")
@@ -2028,7 +2046,7 @@ func (v *View) overwriteLines(y int, content string) {
 	v.writeString(lines)
 }
 
-// only call this function if you don't care where v.wx and v.wy end up
+// only call this function if you don't care where v.buf.wx and v.buf.wy end up
 func (v *View) OverwriteLines(y int, content string) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
@@ -2036,7 +2054,7 @@ func (v *View) OverwriteLines(y int, content string) {
 	v.overwriteLines(y, content)
 }
 
-// only call this function if you don't care where v.wx and v.wy end up
+// only call this function if you don't care where v.buf.wx and v.buf.wy end up
 func (v *View) OverwriteLinesAndClearEverythingElse(lineCount int, y int, content string) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
@@ -2046,11 +2064,11 @@ func (v *View) OverwriteLinesAndClearEverythingElse(lineCount int, y int, conten
 	v.overwriteLines(y, content)
 
 	for i := range y {
-		v.lines[i] = lineType{}
+		v.buf.lines[i] = lineType{}
 	}
 
-	for i := v.wy + 1; i < len(v.lines); i += 1 {
-		v.lines[i] = lineType{}
+	for i := v.buf.wy + 1; i < len(v.buf.lines); i += 1 {
+		v.buf.lines[i] = lineType{}
 	}
 }
 
@@ -2058,7 +2076,7 @@ func (v *View) setContentLineCount(lineCount int) {
 	if lineCount > 0 {
 		v.makeWriteable(0, lineCount-1)
 	}
-	v.lines = v.lines[:lineCount]
+	v.buf.lines = v.buf.lines[:lineCount]
 }
 
 // If the current search result is no longer visible after a scroll up, select the last search
@@ -2192,7 +2210,7 @@ func (v *View) scrollMargin() int {
 // Returns true if the view contains a line containing the given text with the given
 // foreground color
 func (v *View) ContainsColoredText(fgColor string, text string) bool {
-	for _, line := range v.lines {
+	for _, line := range v.buf.lines {
 		if containsColoredTextInLine(fgColor, text, line.cells) {
 			return true
 		}

@@ -1441,7 +1441,7 @@ func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
 
 // drawListFooter draws the footer of a list view, showing something like '1 of 10'
 func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
-	if len(v.lines) == 0 {
+	if len(v.buf.lines) == 0 {
 		return nil
 	}
 
@@ -1668,13 +1668,13 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			if newY < 0 {
 				newY = 0
 				newCy = -v.oy
-			} else if newY >= len(v.lines) {
-				newY = len(v.lines) - 1
+			} else if newY >= len(v.buf.lines) {
+				newY = len(v.buf.lines) - 1
 				newCy = newY - v.oy
 			}
 
 			visibleLineWidth := 0
-			for _, c := range v.lines[newY].cells {
+			for _, c := range v.buf.lines[newY].cells {
 				visibleLineWidth += c.width
 			}
 			if visibleLineWidth < newX {
