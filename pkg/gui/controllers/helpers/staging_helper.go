@@ -160,22 +160,50 @@ func (self *StagingHelper) GetDiffLineInfo(windowName string, viewLineIdx int) (
 		return types.DiffLineInfo{}, false
 	}
 
-	if info, ok := self.diffLineInfoFromMetadata(v, viewLineIdx); ok {
+	// A click/cursor lands on a (wrapped) view line; resolve it to the unwrapped
+	// buffer line all three backends key off, then read that buffer line's content.
+	bufferLineIdx, ok := v.BufferLineForViewLine(viewLineIdx)
+	if !ok {
+		return types.DiffLineInfo{}, false
+	}
+	return self.diffLineInfoFromContents(v.DiffLineContents(), bufferLineIdx)
+}
+
+// diffLineInfoFromContents recovers the patch-space identity of the buffer line
+// at idx within a snapshot of a diff's per-line content (see gocui.DiffLineContent).
+// It is the single resolver behind both directions of the diff-line primitive —
+// the forward consumers (click/enter/edit/PR, via GetDiffLineInfo on the displayed
+// view) and the inverse identity scan that finds a target line in a focused main
+// view as it re-renders (escape restore, via the loading off-screen content). It
+// tries three backends in order of fidelity:
+//
+//   - mechanism #2: per-line OSC metadata emitted by a patched pager (delta),
+//     which carries the side directly and so serves the renderings #1 can't parse
+//     (delta's default mode, --line-numbers, diff-so-fancy);
+//   - mechanism #1: parsing the decolorized buffer, which serves structure-
+//     preserving renderings (no pager, git diff --color, delta --color-only);
+//   - delta's lazygit-edit:// hyperlinks; the hyperlink can't convey the side, so
+//     its result is reported as a non-deletion content line.
+func (self *StagingHelper) diffLineInfoFromContents(contents []gocui.DiffLineContent, idx int) (types.DiffLineInfo, bool) {
+	if idx < 0 || idx >= len(contents) {
+		return types.DiffLineInfo{}, false
+	}
+
+	if info, ok := self.diffLineInfoFromMetadata(contents[idx].Metadata); ok {
 		return info, true
 	}
-	if info, ok := self.diffLineInfoFromBuffer(v, viewLineIdx); ok {
+	if info, ok := self.diffLineInfoFromBuffer(contents, idx); ok {
 		return info, true
 	}
-	return self.diffLineInfoFromHyperlink(v, viewLineIdx)
+	return self.diffLineInfoFromHyperlink(contents[idx].Hyperlink)
 }
 
 // diffLineInfoFromMetadata reads mechanism #2's per-line OSC metadata. The
 // payload is positional and ';'-delimited — version;type;new-line;old-line;file
 // — with the file last so it may itself contain ';', and old-line empty unless
 // the line is a deletion. See diff-line-metadata-notes.md §9.2.
-func (self *StagingHelper) diffLineInfoFromMetadata(v *gocui.View, viewLineIdx int) (types.DiffLineInfo, bool) {
-	payload, ok := v.DiffLineMetadataInLine(viewLineIdx)
-	if !ok {
+func (self *StagingHelper) diffLineInfoFromMetadata(payload string) (types.DiffLineInfo, bool) {
+	if payload == "" {
 		return types.DiffLineInfo{}, false
 	}
 
@@ -199,13 +227,13 @@ func (self *StagingHelper) diffLineInfoFromMetadata(v *gocui.View, viewLineIdx i
 	}, true
 }
 
-func (self *StagingHelper) diffLineInfoFromBuffer(v *gocui.View, viewLineIdx int) (types.DiffLineInfo, bool) {
-	bufferLineIdx, ok := v.BufferLineForViewLine(viewLineIdx)
-	if !ok {
-		return types.DiffLineInfo{}, false
+func (self *StagingHelper) diffLineInfoFromBuffer(contents []gocui.DiffLineContent, idx int) (types.DiffLineInfo, bool) {
+	texts := make([]string, len(contents))
+	for i, c := range contents {
+		texts[i] = c.Text
 	}
 
-	parsed, ok := parseDiffLineFromBuffer(v.BufferLines(), bufferLineIdx)
+	parsed, ok := parseDiffLineFromBuffer(texts, idx)
 	if !ok {
 		return types.DiffLineInfo{}, false
 	}
@@ -218,12 +246,7 @@ func (self *StagingHelper) diffLineInfoFromBuffer(v *gocui.View, viewLineIdx int
 	}, true
 }
 
-func (self *StagingHelper) diffLineInfoFromHyperlink(v *gocui.View, viewLineIdx int) (types.DiffLineInfo, bool) {
-	hyperlink, ok := v.HyperLinkInLine(viewLineIdx, "lazygit-edit:")
-	if !ok {
-		return types.DiffLineInfo{}, false
-	}
-
+func (self *StagingHelper) diffLineInfoFromHyperlink(hyperlink string) (types.DiffLineInfo, bool) {
 	matches := lazygitEditURLRegexp.FindStringSubmatch(hyperlink)
 	if matches == nil {
 		return types.DiffLineInfo{}, false
