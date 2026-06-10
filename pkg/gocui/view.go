@@ -1723,6 +1723,48 @@ func (v *View) DiffLineMetadataInLine(y int) (string, bool) {
 	return "", false
 }
 
+// DiffLineContent is the raw per-line material the diff-line backends parse to
+// recover a rendered row's patch-space identity (see diff-line-metadata-notes.md):
+// the decolorized text (for host-side parsing, mechanism #1), the OSC-456
+// metadata payload a pager emitted (#2), and the line's hyperlink (delta's
+// lazygit-edit fallback). It is indexed by unwrapped buffer line, so one entry
+// covers all the (wrapped) view lines that line maps to.
+type DiffLineContent struct {
+	Text      string
+	Metadata  string
+	Hyperlink string
+}
+
+// DiffLineContents returns the per-line diff material (see DiffLineContent) for
+// every line of the displayed buffer. It is the snapshot the diff-line backends
+// scan: taken under the write lock in one call, so the text, metadata and
+// hyperlink of a given line stay consistent with each other even if a concurrent
+// re-render is rebuilding the buffer.
+func (v *View) DiffLineContents() []DiffLineContent {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	return diffLineContents(v.buf)
+}
+
+func diffLineContents(buf *viewBuffer) []DiffLineContent {
+	contents := make([]DiffLineContent, len(buf.lines))
+	for i, line := range buf.lines {
+		text := strings.ReplaceAll(line.cells.String(), "\x00", "")
+		var metadata, hyperlink string
+		for _, c := range line.cells {
+			if metadata == "" {
+				metadata = c.metadata
+			}
+			if hyperlink == "" {
+				hyperlink = c.hyperlink
+			}
+		}
+		contents[i] = DiffLineContent{Text: text, Metadata: metadata, Hyperlink: hyperlink}
+	}
+	return contents
+}
+
 // BufferLineForViewLine maps a view line index (which counts wrapped lines) to
 // the index of the corresponding line in the unwrapped internal buffer (as
 // returned by BufferLines). Several view lines can map to the same buffer line
