@@ -1288,12 +1288,15 @@ restructures the diff.
 
 **Next prototype work (each a new session):**
 
+> **Update (session 7):** steps 1 and 2 below are **done** — see §16. Remaining: step
+> 3 (side-by-side delta) and the OSC spec draft.
+
 1. **Preserve scroll/selection when `{`/`}` change the `-U` context size** (diff-line
-   consumer #5). Reuses the identity-restore machinery directly: capture the
+   consumer #5). **[done — §16.1]** Reuses the identity-restore machinery directly: capture the
    nearest *change* line (survives context changes, unlike context lines), re-render,
    restore it — the escape restore's sibling, triggered by the context-size change
    instead of escape.
-2. **File/hunk navigation in the focused main view.** Agreed model:
+2. **File/hunk navigation in the focused main view.** **[done — §16.2]** Agreed model:
    - **keys**: `n`/`N` = next/previous file; `<left>`/`<right>` = next/previous
      hunk — the **exact bindings the staging view already uses** for hunk nav (so
      no horizontal-scroll clash to worry about; the focused main view's `<`/`>` stay
@@ -1338,3 +1341,173 @@ top of #1; (d) escape-restore-by-identity; (e) #2 OSC reader behind an "if the p
 emits it" gate, gated externally on the delta patch being upstreamed. Drop the
 hyperlink backend (§14.5). The delta dependency means the feature can't fully ship
 to delta users until the OSC patch lands — decide whether to ship #1-only first.
+
+---
+
+## 16. Session 7: the two showcase consumers (#4 hunk/file nav, #5 context preserve)
+
+Built the §15 step-1 and step-2 prototype consumers — the ones that make the OSC
+pitch concrete, because both are impossible once a pager restructures the diff
+unless it emits per-line metadata. Both reuse the diff-line primitive (the
+`diffLineInfoFromContents` resolver and the gocui scan accessors from §14), so they
+paired in one session as predicted. Commits (most recent last), all green on
+`build`/`unit-test`/`e2e-all`/`lint`:
+
+1. *Extract the identity-based restore into a context-neutral helper* — prep
+   refactor. `restoreDiffLinePositionOnRerender(view, target, place)` is the escape
+   restore's scan/swap machinery (`RenderRestore` + `FindDiffLine` +
+   `OffscreenDiffLineContents`/`ViewLineForBufferLine`) with the *positioning* split
+   out behind a `place(viewLine)` callback. Behavior-preserving: escape passes the
+   same FocusPoint-and-select closure the inline `Apply` used.
+2. *Preserve the diff scroll and selection when the context size changes* —
+   consumer #5.
+3. *Navigate the focused main view by file and hunk* — consumer #4 (+ a fixup on #2,
+   the visibility guard below).
+
+### 16.1 Consumer #5 — preserve scroll/selection across an `-U` context change
+
+`ContextLinesController.applyChange`'s `default` branch (the focused main view and
+every side panel, which all render their diff into the **"main"** window view) now
+calls `StagingHelper.PreserveDiffPositionOnRerender(Contexts().Normal.GetView())`
+right before `HandleRenderToMain()`. The increase/decrease-context keybindings
+re-render with a different `git diff -U<n>` command, so the command key changes and
+the render *would* reset to the top; the preserve installs a restore that suppresses
+that (same `restore == nil` gate on `ResetOrigin` the escape uses) and re-establishes
+the position.
+
+- **Anchor on the nearest *surviving* line, preferring the anchor itself** (refined
+  after interactive feedback — see §16.5). We'd like to keep the anchor line (the
+  selection if one shows, else the top visible line), but it may not survive: a
+  context line vanishes when the context shrinks. So `nearbyDiffLines` captures a
+  *prioritized candidate list* — the anchor first, then outward (at-or-below
+  preferred), each direction stopping at the first change line (a guaranteed survivor,
+  so the list always contains one). `restoreDiffLinePositionOnRerender` was
+  generalized to take that list and land on the first candidate the re-render still
+  contains: the anchor itself if it survived (so a still-present context line stays
+  put, or stays selected), else the nearest surviving line, minimizing scrolling.
+  (The single-candidate case is exactly §12.1's "nearest surviving change line"; the
+  escape path passes a one-element list.)
+- **Offset-preserving placement.** `place` puts the landed line back at the *same
+  screen row* it was on (`SetOrigin(0, viewLine - row)`, `row` clamped into the
+  view), so the view barely moves — unlike the escape's `FocusPoint` (centre-if-off),
+  which is right for "navigate to" but would jump for "stay put". A showing selection
+  is re-established on the line (`FocusPoint` scrollIntoView=false + `Highlight`);
+  with no selection the view stays in scroll mode.
+- **Early swap only for the anchor; fallback resolved at EOF.** The candidate list
+  isn't in load order (a nearer candidate can load after a farther one), so the
+  incremental `FirstPaintReady` only early-paints when the *primary* (anchor)
+  candidate is reachable; any fallback is resolved against the complete content at the
+  guaranteed EOF swap (`firstPaint` runs `Apply` at end of input regardless). For a
+  context change — a "stay put" redraw — the slightly later swap when the anchor
+  didn't survive is imperceptible.
+- **Scope: the "main" window view only** (covers the focused main view *and* the
+  side-panel diffs — they share the render path, which is the clean generalization
+  the task asked for). The secondary focused main view (`NormalSecondary`) is **out
+  of scope**: changing context while focused on it still jumps. Noted, not fixed.
+- **Visibility guard (fixup on #2).** `PreserveDiffPositionOnRerender` bails if the
+  view isn't `Visible`. Otherwise, pressing `{`/`}` while a non-diff main context
+  occupies the "main" window (merge conflicts) would set a restore on the hidden
+  `Normal` view that never re-renders, so it would linger and wrongly suppress a
+  *later* render's scroll reset. (In the reachable cases — side panel or `Normal`
+  focused — `Normal`'s view is the visible one and re-renders immediately, consuming
+  the restore, so this only bites the merge-conflicts edge.)
+
+### 16.2 Consumer #4 — file/hunk navigation in the focused main view
+
+`MainViewController` gains four bindings, exactly the staging view's hunk keys plus
+`n`/`N` for files: `<left>`/`h` = previous hunk, `<right>`/`l` = next hunk (reusing
+`Main.PrevHunk`/`NextHunk`), `n` = next file, `N` = previous file (literal
+`config.Keybinding{...}`, no new userConfig field — matching the branch's
+config-removal trend). The focused main view's `<`/`>` stay goto-top/bottom.
+
+- **"Hunk" = lazygit's change block, not git's `@@`.** A run of consecutive
+  added/deleted lines separated by context. `AdjacentChangeBlock` resolves each
+  rendered row's type via the diff-line primitive, builds an `isChange` bool slice,
+  and the pure `changeBlockStart` mirrors `State.SelectNextHunk`/`SelectPreviousHunk`
+  line-for-line (previous-from-mid-block goes to the *previous* block's start).
+- **File nav targets where the metadata `file` changes.** `AdjacentFile` builds a
+  per-row `paths` slice; the pure `fileStart` finds where the path changes, then backs
+  up over the neighbouring file's *untagged* header rows (`backUpOverHeader`) so both
+  directions land on the **top of the file** — the `diff --git`/`@@` header when the
+  buffer is parseable, or the pager's file-header rows when only content carries
+  metadata. This back-up is the bit that's impossible without the metadata: once delta
+  restructures, the host can't otherwise tell which rows belong to which file.
+  - **The anchor's file is found by scanning *down* (`anchorFilePath`), refined after
+    feedback (§16.5).** Landing on a file header puts an *untagged* row at the top, so
+    the next nav's anchor doesn't itself carry a path. The row whose path identifies
+    the file you're "in" is the first tagged row at-or-below the top (the file's
+    content), not the nearest tagged row in either direction — which would be the
+    *previous* file's content just above the header, making a second `n` jump back
+    into the file just left instead of advancing.
+- **Effect (decided model, §15):** anchor = selection if showing, else top visible
+  line. Selection showing → move the selection to the target and **scroll it into
+  view** (`showSelectionAtLine` gained a `scrollIntoView` param; clicks still pass
+  false). No selection → **scroll the target to the top** (`SetOrigin`) and do **not**
+  create a selection — stays in scroll mode.
+- The `changeBlockStart`/`fileStart`/`anchorFilePath` index arithmetic is pulled into
+  pure functions and **unit-tested** (`diff_line_navigation_test.go`), covering both
+  the parseable (every row tagged) and restructuring-pager (only content tagged)
+  shapes, including navigating from a middle file's untagged header.
+
+### 16.3 Verification status — first interactive pass done (§16.5); headless green
+
+`build`/`unit-test` (incl. the new pure-scan tests)/`e2e-all`/`lint` all pass. As in
+§13.1/§14.2 the headless harness can't repro the pager paths (cmd path, no
+`afterLayout` deferral, `LAZYGIT_SLOW_RENDER` blocked) and there is no
+focused-main-view e2e harness to extend, so the user ran the **interactive** pass
+(`just debug` + `just print-log`, scrolled, patched-delta and no-pager). The first
+pass worked except for two issues, both now fixed — see §16.5. Re-verify those after
+the fixes, plus the standing checks:
+- #5: `{`/`}` keeps the view roughly put (offset-preserving) instead of jumping to the
+  top, both in scroll mode and with a selection; a still-present context line now stays
+  put / stays selected (§16.5).
+- #4: `<left>`/`<right>` jump hunks, `n`/`N` jump files (landing on the file header);
+  selection-vs-scroll-mode effect matches the staging view; under metadata delta the
+  file nav works where buffer-parse can't (delta default mode), including repeated `n`
+  across several files (§16.5).
+- The hyperlink backend is being **dropped** (§14.5) — ignore it.
+
+### 16.4 Known limitations (productionization input)
+
+- **Scan cost.** Both consumers resolve *every* rendered row through
+  `diffLineInfoFromContents` per action (`PreserveDiffPositionOnRerender` via the
+  outward `nearbyDiffLines`, the nav via full `isChange`/`paths` slices), and the
+  buffer-parse backend re-parses per call → ~O(n²) per keypress. Fine for a prototype
+  keypress; productionize with an incremental scan and a pinned backend (same note as
+  §14.5's restore scan).
+- **Nav only sees loaded content.** The nav scans the *displayed* buffer, so a target
+  beyond the lazily-loaded portion isn't found (no-op). The initial read pulls
+  ~`height*(height-1)` lines, so typical diffs are fully loaded; a target deep in a
+  very large diff would need a `ReadToEnd` first (like `openSearch`).
+- **`NormalSecondary` context-change not preserved** (§16.1).
+
+### 16.5 First interactive feedback (fixed)
+
+The user's first interactive pass found the navigation solid with a plain diff and
+hunk nav solid under patched delta, plus three behaviours to refine — all fixed:
+
+- **#5 anchored too eagerly on a change line.** Original: always restore the nearest
+  *change* line, even when the anchor was a context line still in the patch — so the
+  view jumped to the next `+`/`-` line past surviving context, and a selection on a
+  context line moved off it. **Fix:** `nearbyDiffLines` builds a prioritized candidate
+  list (anchor first, outward, stopping at the first change line each side), and the
+  restore lands on the nearest *surviving* one — keeping the anchor line itself when it
+  survives (context line stays put / stays selected, increase or decrease), only
+  falling back outward when it doesn't. Generalized `restoreDiffLinePositionOnRerender`
+  to a candidate list (escape passes one); fallback is resolved at the EOF swap since
+  candidates aren't in load order. See §16.1.
+- **#4 file nav stalled under patched delta on the second `n`.** After the first `n`
+  landed on a file header (an *untagged* row under delta), the next `n`'s anchor row
+  carried no path; the old `nearestPath` then picked the *previous* file's content just
+  above the header and "advanced" back into the file just left. **Fix:** `anchorFilePath`
+  determines the anchor's file by scanning **down** first (the content at/below the
+  top), not the nearest tagged row in either direction. No delta change needed — the
+  metadata on content lines is enough. New unit cases cover the middle-file-header case.
+
+Commits: a `fixup!` on #4 (`anchorFilePath` + tests) and an `amend!` on #5 (the
+candidate-list anchoring; the message was updated since "anchor on a change line" no
+longer described it). The #5 amend! also carries the shared-helper generalization
+(`restoreDiffLinePositionOnRerender` → candidate list), which strictly belongs to the
+prep-refactor commit but can't be split out non-interactively (same file, and the
+context-change caller it adapts didn't exist at the prep commit) — fold or re-split as
+preferred.
