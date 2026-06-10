@@ -33,6 +33,15 @@ type DiffLineInfo struct {
 	OldLine int
 }
 
+// IsChange reports whether the row is an added or deleted line, as opposed to a
+// context line or a header. It mirrors patch.PatchLine.IsChange, and is how both
+// the context-change scroll preservation (anchor on a surviving change line) and
+// the focused main view's hunk navigation (a "hunk" is a block of consecutive
+// change lines) classify a rendered row.
+func (self DiffLineInfo) IsChange() bool {
+	return self.Type == DiffLineAdded || self.Type == DiffLineDeleted
+}
+
 // PatchSelectLine returns the source line to land on when diving into the patch
 // explorer for this row, in source-line-number space so it survives the patch
 // being regenerated. For a deletion it is the old-file line number — two

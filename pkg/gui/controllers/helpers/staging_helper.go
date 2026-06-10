@@ -216,7 +216,7 @@ func (self *StagingHelper) RestoreFocusedMainViewOnEscape(explorerView, mainView
 		return
 	}
 
-	self.restoreDiffLinePositionOnRerender(mainView, target, func(viewLine int) {
+	self.restoreDiffLinePositionOnRerender(mainView, []diffLineAnchor{{identity: target}}, func(_ diffLineAnchor, viewLine int) {
 		// scrollIntoView centres the line if it's off-screen, and leaves the scroll
 		// untouched if it's already visible — so for the common unchanged-content
 		// escape (the placeholder is the same content at the same scroll) nothing
@@ -227,69 +227,191 @@ func (self *StagingHelper) RestoreFocusedMainViewOnEscape(explorerView, mainView
 	})
 }
 
+// diffLineAnchor is a candidate line for a restore to land on after a re-render: a
+// patch identity to find the line by, plus the screen row (offset from the view's
+// top) it was on when captured, for a restore that wants to put it back there.
+type diffLineAnchor struct {
+	identity types.DiffLineInfo
+	row      int
+}
+
 // restoreDiffLinePositionOnRerender installs a restore on view's render manager so
-// that, as view next re-renders, it lands on the row whose patch identity matches
-// target. It scans the incoming content as it loads off-screen and, once that row
-// (and a screenful below it) is reachable, has the render swap in and calls place
-// with the matched view line to position and/or select it. If the identity never
-// turns up in the re-render — the content changed out from under it — place is not
-// called and the view just re-renders normally.
+// that, as view next re-renders, it lands on a row matching one of the given
+// candidate identities, and calls place with that candidate and its view line to
+// position and/or select it. candidates are in priority order (nearest first); the
+// restore lands on the first one that the re-render still contains. If none turns up
+// (the content changed out from under all of them) place is not called and the view
+// just re-renders normally.
 //
 // It is the context-neutral core behind both restoring the focused main view on
-// escape (place scrolls to and selects the line the patch explorer had selected) and
-// preserving a diff view's position when its -U context size changes (place puts the
-// anchor change line back where it was; see PreserveDiffPositionOnRerender).
-func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, target types.DiffLineInfo, place func(viewLine int)) {
+// escape (one candidate — the line the patch explorer had selected — placed by
+// scrolling to and selecting it) and preserving a diff view's position when its -U
+// context size changes (several candidates around the anchor, placed back where they
+// were; see PreserveDiffPositionOnRerender).
+func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, candidates []diffLineAnchor, place func(anchor diffLineAnchor, viewLine int)) {
+	if len(candidates) == 0 {
+		return
+	}
 	manager := self.c.GetViewBufferManagerForView(view)
 	if manager == nil {
 		return
 	}
 
-	// targetBufferLine is found once: either incrementally as the content loads
-	// (scanned tracks how far we've scanned, so each line is checked once), or — if
-	// the incremental scan can't resolve it — once more on the complete content
-	// when we swap in (see Apply).
-	targetBufferLine := -1
+	// The primary (nearest) candidate is found incrementally as the content loads
+	// (scanned tracks how far we've scanned, so each line is checked once), letting
+	// us paint early when it survives — the common case. A fallback to a farther
+	// candidate is resolved only on the complete content at the EOF swap (see Apply),
+	// because candidates aren't in load order, so a nearer one can load after a
+	// farther one and we mustn't commit to the farther one prematurely.
+	primaryBufferLine := -1
 	scanned := 0
 	manager.SetRestoreForNextTask(&tasks.RenderRestore{
 		FirstPaintReady: func() bool {
-			// Scan the incoming content for the target as it loads, so we can paint
-			// at the saved position as soon as it's reachable. This finds the line
-			// for backends that resolve a row on its own — OSC metadata, lazygit-edit
-			// hyperlinks. The buffer-parse backend can't resolve here: it parses whole
-			// hunks against their @@ lengths, and the trailing hunk is incomplete
-			// while loading, so the parse is rejected as not-well-formed until the
-			// diff is fully read. That case is handled in Apply instead.
-			if targetBufferLine == -1 {
+			// Scan the incoming content for the primary candidate as it loads. This
+			// finds it for backends that resolve a row on its own — OSC metadata,
+			// lazygit-edit hyperlinks. The buffer-parse backend can't resolve here: it
+			// parses whole hunks against their @@ lengths, and the trailing hunk is
+			// incomplete while loading, so the parse is rejected as not-well-formed
+			// until the diff is fully read. That (and any fallback) is handled in Apply.
+			if primaryBufferLine == -1 {
 				contents := view.OffscreenDiffLineContents()
-				targetBufferLine = self.FindDiffLine(contents, target, scanned)
+				primaryBufferLine = self.FindDiffLine(contents, candidates[0].identity, scanned)
 				scanned = len(contents)
-				if targetBufferLine == -1 {
+				if primaryBufferLine == -1 {
 					return false
 				}
 			}
-			return view.OffscreenLineCount() >= targetBufferLine+view.InnerHeight()
+			return view.OffscreenLineCount() >= primaryBufferLine+view.InnerHeight()
 		},
 		Apply: func() {
 			// The off-screen render has just been swapped in, so the displayed buffer
-			// now holds it. If the incremental scan never found the target — the
-			// common case for buffer-parse, which only becomes well-formed once the
-			// whole diff has loaded, at which point the swap happens at end of input —
-			// scan the now-complete content once more.
-			if targetBufferLine == -1 {
-				targetBufferLine = self.FindDiffLine(view.DiffLineContents(), target, 0)
+			// now holds it. Land on the nearest candidate it still contains: the
+			// primary one if the incremental scan found it, otherwise scan the now-
+			// complete content in priority order (the common path for buffer-parse,
+			// which only becomes well-formed once the whole diff has loaded, at which
+			// point the swap happens at end of input).
+			matched, bufferLine := -1, primaryBufferLine
+			if bufferLine != -1 {
+				matched = 0
+			} else {
+				contents := view.DiffLineContents()
+				for i, candidate := range candidates {
+					if line := self.FindDiffLine(contents, candidate.identity, 0); line != -1 {
+						matched, bufferLine = i, line
+						break
+					}
+				}
 			}
-			// If the target line still isn't there (the content changed and the line
-			// is gone), leave the scroll and selection as they are rather than acting
-			// on a line that no longer means what it did.
-			if targetBufferLine != -1 {
-				if viewLine, ok := view.ViewLineForBufferLine(targetBufferLine); ok {
-					place(viewLine)
+			// If no candidate is there (the content changed and they're all gone),
+			// leave the scroll and selection as they are rather than acting on a line
+			// that no longer means what it did.
+			if matched != -1 {
+				if viewLine, ok := view.ViewLineForBufferLine(bufferLine); ok {
+					place(candidates[matched], viewLine)
 				}
 			}
 			manager.ClearRestoreForNextTask()
 		},
 	})
+}
+
+// PreserveDiffPositionOnRerender remembers where a diff view is anchored and, when
+// it next re-renders, restores that position instead of letting it jump to the top.
+// It is the diff-line primitive's context-change consumer: the increase/decrease
+// context-size keybindings re-render the diff with a different git command, which
+// otherwise resets the scroll. Call it on the view about to be re-rendered, right
+// before triggering the re-render.
+//
+// The anchor is the selected line if a selection is showing, otherwise the top
+// visible line. We'd like to keep the anchor line itself, but it may not survive the
+// re-render: a context line vanishes when the context size shrinks. So we collect the
+// lines around the anchor as fallbacks (nearest first; see nearbyDiffLines) and land
+// on the nearest one that survives — the anchor itself when it does, otherwise the
+// closest surviving line, which minimises scrolling. Each is put back at the same
+// screen row it was on. A showing selection is re-established on the landed line;
+// otherwise the view stays in scroll mode.
+func (self *StagingHelper) PreserveDiffPositionOnRerender(view *gocui.View) {
+	// If the view isn't the one currently shown in its window it won't be the one
+	// re-rendered (e.g. the merge-conflicts view occupies the main window), so a
+	// restore set on it would linger and wrongly suppress a later render's scroll
+	// reset. There's nothing to preserve then.
+	if !view.Visible {
+		return
+	}
+
+	showSelection := view.Highlight
+	anchorViewLine := view.OriginY()
+	if showSelection {
+		anchorViewLine = view.SelectedLineIdx()
+	}
+
+	self.restoreDiffLinePositionOnRerender(view, self.nearbyDiffLines(view, anchorViewLine), func(anchor diffLineAnchor, viewLine int) {
+		// Put the landed line back on the screen row it was captured on, clamped into
+		// the view in case it was off-screen (a fallback line can be), so the restore
+		// always lands somewhere visible.
+		row := max(0, min(anchor.row, view.InnerHeight()-1))
+		view.SetOrigin(0, viewLine-row)
+		if showSelection {
+			// SetOrigin already placed the row, so don't scroll again; just move the
+			// cursor onto it and turn the selection back on.
+			view.FocusPoint(0, viewLine, false)
+			view.Highlight = true
+			view.HighlightInactive = false
+		}
+	})
+}
+
+// nearbyDiffLines collects the resolvable diff lines around the given view line in
+// view's displayed diff, as restore candidates ordered by proximity (the anchor line
+// itself first, then outward, preferring at-or-below on ties), each tagged with the
+// screen row it was on. Expansion in each direction stops once it reaches a change
+// line (addition/deletion), which always survives a context-size change — so the list
+// always ends in a guaranteed survivor, while still offering the nearer context lines
+// as preferred candidates. The restore (see restoreDiffLinePositionOnRerender) lands
+// on the first of these the re-render still contains.
+func (self *StagingHelper) nearbyDiffLines(view *gocui.View, anchorViewLine int) []diffLineAnchor {
+	contents := view.DiffLineContents()
+	anchor, ok := view.BufferLineForViewLine(anchorViewLine)
+	if !ok {
+		return nil
+	}
+	originY := view.OriginY()
+
+	var anchors []diffLineAnchor
+	// collect appends the line at bufferLine if it resolves, and reports whether it's
+	// a change line (a guaranteed survivor, so expansion past it isn't needed).
+	collect := func(bufferLine int) (atChangeLine bool) {
+		info, ok := self.diffLineInfoFromContents(contents, bufferLine)
+		if !ok {
+			return false
+		}
+		if viewLine, ok := view.ViewLineForBufferLine(bufferLine); ok {
+			anchors = append(anchors, diffLineAnchor{identity: info, row: viewLine - originY})
+		}
+		return info.IsChange()
+	}
+
+	if collect(anchor) {
+		return anchors
+	}
+	below, above := anchor+1, anchor-1
+	for below < len(contents) || above >= 0 {
+		if below < len(contents) {
+			if collect(below) {
+				below = len(contents) // stop expanding past the first change line below
+			} else {
+				below++
+			}
+		}
+		if above >= 0 {
+			if collect(above) {
+				above = -1 // stop expanding past the first change line above
+			} else {
+				above--
+			}
+		}
+	}
+	return anchors
 }
 
 // diffLineInfoFromContents recovers the patch-space identity of the buffer line
