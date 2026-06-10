@@ -216,7 +216,31 @@ func (self *StagingHelper) RestoreFocusedMainViewOnEscape(explorerView, mainView
 		return
 	}
 
-	manager := self.c.GetViewBufferManagerForView(mainView)
+	self.restoreDiffLinePositionOnRerender(mainView, target, func(viewLine int) {
+		// scrollIntoView centres the line if it's off-screen, and leaves the scroll
+		// untouched if it's already visible — so for the common unchanged-content
+		// escape (the placeholder is the same content at the same scroll) nothing
+		// moves.
+		mainView.FocusPoint(0, viewLine, true)
+		mainView.Highlight = true
+		mainView.HighlightInactive = false
+	})
+}
+
+// restoreDiffLinePositionOnRerender installs a restore on view's render manager so
+// that, as view next re-renders, it lands on the row whose patch identity matches
+// target. It scans the incoming content as it loads off-screen and, once that row
+// (and a screenful below it) is reachable, has the render swap in and calls place
+// with the matched view line to position and/or select it. If the identity never
+// turns up in the re-render — the content changed out from under it — place is not
+// called and the view just re-renders normally.
+//
+// It is the context-neutral core behind both restoring the focused main view on
+// escape (place scrolls to and selects the line the patch explorer had selected) and
+// preserving a diff view's position when its -U context size changes (place puts the
+// anchor change line back where it was; see PreserveDiffPositionOnRerender).
+func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, target types.DiffLineInfo, place func(viewLine int)) {
+	manager := self.c.GetViewBufferManagerForView(view)
 	if manager == nil {
 		return
 	}
@@ -237,14 +261,14 @@ func (self *StagingHelper) RestoreFocusedMainViewOnEscape(explorerView, mainView
 			// while loading, so the parse is rejected as not-well-formed until the
 			// diff is fully read. That case is handled in Apply instead.
 			if targetBufferLine == -1 {
-				contents := mainView.OffscreenDiffLineContents()
+				contents := view.OffscreenDiffLineContents()
 				targetBufferLine = self.FindDiffLine(contents, target, scanned)
 				scanned = len(contents)
 				if targetBufferLine == -1 {
 					return false
 				}
 			}
-			return mainView.OffscreenLineCount() >= targetBufferLine+mainView.InnerHeight()
+			return view.OffscreenLineCount() >= targetBufferLine+view.InnerHeight()
 		},
 		Apply: func() {
 			// The off-screen render has just been swapped in, so the displayed buffer
@@ -253,20 +277,14 @@ func (self *StagingHelper) RestoreFocusedMainViewOnEscape(explorerView, mainView
 			// whole diff has loaded, at which point the swap happens at end of input —
 			// scan the now-complete content once more.
 			if targetBufferLine == -1 {
-				targetBufferLine = self.FindDiffLine(mainView.DiffLineContents(), target, 0)
+				targetBufferLine = self.FindDiffLine(view.DiffLineContents(), target, 0)
 			}
 			// If the target line still isn't there (the content changed and the line
-			// is gone), leave the scroll and selection as they are rather than showing
-			// a selection on a line that no longer means what it did.
+			// is gone), leave the scroll and selection as they are rather than acting
+			// on a line that no longer means what it did.
 			if targetBufferLine != -1 {
-				if viewLine, ok := mainView.ViewLineForBufferLine(targetBufferLine); ok {
-					// scrollIntoView centres the line if it's off-screen, and leaves the
-					// scroll untouched if it's already visible — so for the common
-					// unchanged-content escape (the placeholder is the same content at
-					// the same scroll) nothing moves.
-					mainView.FocusPoint(0, viewLine, true)
-					mainView.Highlight = true
-					mainView.HighlightInactive = false
+				if viewLine, ok := view.ViewLineForBufferLine(targetBufferLine); ok {
+					place(viewLine)
 				}
 			}
 			manager.ClearRestoreForNextTask()
