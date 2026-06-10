@@ -176,7 +176,7 @@ golang.org/x/exp/constraints
 golang.org/x/exp/slices
 # golang.org/x/net v0.47.0
 ## explicit; go 1.24.0
-# golang.org/x/sync v0.20.0
+# golang.org/x/sync v0.21.0
 ## explicit; go 1.25.0
 golang.org/x/sync/errgroup
 # golang.org/x/sys v0.45.0
