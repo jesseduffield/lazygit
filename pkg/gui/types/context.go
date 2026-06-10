@@ -228,11 +228,11 @@ type FocusedMainViewSnapshot struct {
 	// to a file in the files panel); restoring it makes the main view show the
 	// same content again. -1 if the side panel isn't a list.
 	SidePanelSelectedLineIdx int
-	// The focused main view context to focus afterwards.
+	// The focused main view context to focus afterwards. Where in it to scroll to
+	// and select is not captured here: on escape we land on the line the patch
+	// explorer ended up selecting, found by its patch identity in the re-rendered
+	// content, which survives the diff changing in a way a saved index wouldn't.
 	MainView Context
-	// The scroll position and selected line to restore in the main view.
-	OriginY         int
-	SelectedLineIdx int
 }
 
 type IViewTrait interface {

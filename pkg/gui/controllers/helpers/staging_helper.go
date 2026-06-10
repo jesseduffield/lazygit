@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -159,7 +160,14 @@ func (self *StagingHelper) GetDiffLineInfo(windowName string, viewLineIdx int) (
 	if v == nil {
 		return types.DiffLineInfo{}, false
 	}
+	return self.GetDiffLineInfoForView(v, viewLineIdx)
+}
 
+// GetDiffLineInfoForView is GetDiffLineInfo against a specific view rather than
+// one looked up by window. It is used to read the identity of the line the patch
+// explorer currently has selected when escaping back to the focused main view,
+// where we hold the explorer's view directly.
+func (self *StagingHelper) GetDiffLineInfoForView(v *gocui.View, viewLineIdx int) (types.DiffLineInfo, bool) {
 	// A click/cursor lands on a (wrapped) view line; resolve it to the unwrapped
 	// buffer line all three backends key off, then read that buffer line's content.
 	bufferLineIdx, ok := v.BufferLineForViewLine(viewLineIdx)
@@ -167,6 +175,103 @@ func (self *StagingHelper) GetDiffLineInfo(windowName string, viewLineIdx int) (
 		return types.DiffLineInfo{}, false
 	}
 	return self.diffLineInfoFromContents(v.DiffLineContents(), bufferLineIdx)
+}
+
+// FindDiffLine returns the index of the first buffer line, at or after from,
+// whose patch identity matches target (see types.DiffLineInfo.SamePatchLine), or
+// -1 if none does. It is the inverse direction of the diff-line primitive:
+// instead of resolving the line under a cursor, it scans a rendered diff for a
+// known identity. The escape restore uses it to locate, in the focused main view
+// it is returning to, the line the patch explorer had selected — scanning the
+// re-render's content as it loads off-screen. (from lets the caller resume the
+// scan as more content arrives without re-checking lines already scanned; the
+// backends still see all of contents, so a buffer-parse match can look back to
+// its file/hunk headers.)
+func (self *StagingHelper) FindDiffLine(contents []gocui.DiffLineContent, target types.DiffLineInfo, from int) int {
+	for i := from; i < len(contents); i++ {
+		if info, ok := self.diffLineInfoFromContents(contents, i); ok && info.SamePatchLine(target) {
+			return i
+		}
+	}
+	return -1
+}
+
+// RestoreFocusedMainViewOnEscape arranges, when escaping a patch explorer back to
+// the focused main view it was entered from, for that view to re-render and then
+// land on the line the explorer currently has selected. After staging or dropping
+// hunks the explorer's selection auto-advances, so the line the user ended up on
+// is more useful to return to than the one they entered on — and, since the diff
+// has changed, more reliable than replaying a numeric scroll/index.
+//
+// It reads that line's patch identity from the explorer now (explorerView,
+// explorerSelectedLineIdx), then installs a restore that, as the main view
+// re-renders, scans the incoming content for the row matching that identity and —
+// once it and a screenful below have loaded — swaps in, scrolls there and selects
+// it. If the identity can't be read, or the line never turns up in the re-render
+// (the content changed out from under it), no restore is applied and the view
+// just re-renders normally.
+func (self *StagingHelper) RestoreFocusedMainViewOnEscape(explorerView, mainView *gocui.View, explorerSelectedLineIdx int) {
+	target, ok := self.GetDiffLineInfoForView(explorerView, explorerSelectedLineIdx)
+	if !ok {
+		return
+	}
+
+	manager := self.c.GetViewBufferManagerForView(mainView)
+	if manager == nil {
+		return
+	}
+
+	// targetBufferLine is found once: either incrementally as the content loads
+	// (scanned tracks how far we've scanned, so each line is checked once), or — if
+	// the incremental scan can't resolve it — once more on the complete content
+	// when we swap in (see Apply).
+	targetBufferLine := -1
+	scanned := 0
+	manager.SetRestoreForNextTask(&tasks.RenderRestore{
+		FirstPaintReady: func() bool {
+			// Scan the incoming content for the target as it loads, so we can paint
+			// at the saved position as soon as it's reachable. This finds the line
+			// for backends that resolve a row on its own — OSC metadata, lazygit-edit
+			// hyperlinks. The buffer-parse backend can't resolve here: it parses whole
+			// hunks against their @@ lengths, and the trailing hunk is incomplete
+			// while loading, so the parse is rejected as not-well-formed until the
+			// diff is fully read. That case is handled in Apply instead.
+			if targetBufferLine == -1 {
+				contents := mainView.OffscreenDiffLineContents()
+				targetBufferLine = self.FindDiffLine(contents, target, scanned)
+				scanned = len(contents)
+				if targetBufferLine == -1 {
+					return false
+				}
+			}
+			return mainView.OffscreenLineCount() >= targetBufferLine+mainView.InnerHeight()
+		},
+		Apply: func() {
+			// The off-screen render has just been swapped in, so the displayed buffer
+			// now holds it. If the incremental scan never found the target — the
+			// common case for buffer-parse, which only becomes well-formed once the
+			// whole diff has loaded, at which point the swap happens at end of input —
+			// scan the now-complete content once more.
+			if targetBufferLine == -1 {
+				targetBufferLine = self.FindDiffLine(mainView.DiffLineContents(), target, 0)
+			}
+			// If the target line still isn't there (the content changed and the line
+			// is gone), leave the scroll and selection as they are rather than showing
+			// a selection on a line that no longer means what it did.
+			if targetBufferLine != -1 {
+				if viewLine, ok := mainView.ViewLineForBufferLine(targetBufferLine); ok {
+					// scrollIntoView centres the line if it's off-screen, and leaves the
+					// scroll untouched if it's already visible — so for the common
+					// unchanged-content escape (the placeholder is the same content at
+					// the same scroll) nothing moves.
+					mainView.FocusPoint(0, viewLine, true)
+					mainView.Highlight = true
+					mainView.HighlightInactive = false
+				}
+			}
+			manager.ClearRestoreForNextTask()
+		},
+	})
 }
 
 // diffLineInfoFromContents recovers the patch-space identity of the buffer line

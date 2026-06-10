@@ -53,8 +53,8 @@ func (gui *Gui) resetHelpersAndControllers() {
 	gpgHelper := helpers.NewGpgHelper(helperCommon)
 	viewHelper := helpers.NewViewHelper(helperCommon, gui.State.Contexts)
 	windowHelper := helpers.NewWindowHelper(helperCommon, viewHelper)
-	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon)
 	stagingHelper := helpers.NewStagingHelper(helperCommon, windowHelper)
+	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon, stagingHelper)
 	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon)
 	searchHelper := helpers.NewSearchHelper(helperCommon)
 

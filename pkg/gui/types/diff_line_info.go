@@ -45,6 +45,25 @@ func (self DiffLineInfo) PatchSelectLine() (lineNumber int, isDeletion bool) {
 	return self.NewLine, false
 }
 
+// SamePatchLine reports whether two identities point at the same source line of
+// the same file. It is how the escape restore matches the line the patch explorer
+// had selected against the rows of the focused main view as it re-renders: the
+// comparison is in source-line-number space (PatchSelectLine), which survives the
+// diff being regenerated, rather than a fragile view-line index.
+//
+// A backend that can't determine the side (delta's lazygit-edit hyperlinks report
+// DiffLineOther) yields a non-deletion identity, so a deletion captured from a
+// full-fidelity backend won't match such a row — the restore then just doesn't
+// find its line, which is the acceptable degradation for that pager config.
+func (self DiffLineInfo) SamePatchLine(other DiffLineInfo) bool {
+	if self.Path != other.Path {
+		return false
+	}
+	selfLine, selfIsDeletion := self.PatchSelectLine()
+	otherLine, otherIsDeletion := other.PatchSelectLine()
+	return selfLine == otherLine && selfIsDeletion == otherIsDeletion
+}
+
 // PullRequestAnchor returns the side ("L"/"R") and line number to anchor a
 // GitHub PR deep-link at: the left/old side for a deletion, the right/new side
 // otherwise.

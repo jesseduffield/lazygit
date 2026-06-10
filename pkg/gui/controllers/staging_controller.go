@@ -176,7 +176,7 @@ func (self *StagingController) Escape() error {
 		return nil
 	}
 
-	helpers.EscapeFromPatchExplorer(self.c.HelperCommon, self.context)
+	helpers.EscapeFromPatchExplorer(self.c.HelperCommon, self.c.Helpers().Staging, self.context)
 	return nil
 }
 

@@ -19,22 +19,9 @@ func (gui *Gui) resetViewOrigin(v *gocui.View) {
 // Returns the number of lines that we should read initially from a cmd task so
 // that the scrollbar has the correct size, along with the number of lines after
 // which the view is filled and we can do a first refresh.
-//
-// If targetOriginY is non-nil, the read is sized to that scroll position rather
-// than the view's current one, and the returned LinesToRead carries an
-// ApplyInitialScroll that scrolls the view there at the first refresh. This is
-// used when re-rendering content the user was already scrolled into, so the
-// saved position is applied exactly when the content first paints.
-func (gui *Gui) linesToReadFromCmdTask(v *gocui.View, targetOriginY *int) tasks.LinesToRead {
+func (gui *Gui) linesToReadFromCmdTask(v *gocui.View) tasks.LinesToRead {
 	height := v.InnerHeight()
 	oy := v.OriginY()
-	var applyInitialScroll func()
-	if targetOriginY != nil {
-		oy = *targetOriginY
-		applyInitialScroll = func() {
-			v.SetOrigin(v.OriginX(), *targetOriginY)
-		}
-	}
 
 	linesForFirstRefresh := height + oy + 10
 
@@ -50,7 +37,6 @@ func (gui *Gui) linesToReadFromCmdTask(v *gocui.View, targetOriginY *int) tasks.
 	return tasks.LinesToRead{
 		Total:               linesToReadForAccurateScrollbar,
 		InitialRefreshAfter: linesForFirstRefresh,
-		ApplyInitialScroll:  applyInitialScroll,
 	}
 }
 
