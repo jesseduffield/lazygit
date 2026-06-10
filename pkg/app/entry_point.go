@@ -51,6 +51,8 @@ type BuildInfo struct {
 }
 
 func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTest) {
+	applyNestedTerminalKeyboardWorkaround()
+
 	cliArgs := parseCliArgsAndEnvVars()
 	mergeBuildInfo(buildInfo)
 
