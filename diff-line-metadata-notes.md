@@ -507,12 +507,12 @@ emits V1 when the advertised list contains `V1`.
 - **Wrapped continuation rows** (`Hunk*Wrapped`) get no attachment in the prototype
   — only the primary content row does. Fine for the normal case (gocui's own
   wrapping is handled host-side by the view-line→buffer-line mapping); delta-level
-  wrapping of one logical line into several rows is the unhandled case. **This is
-  now confirmed a real bug** (via the difftastic prototype, §10.8): when the *pager*
+  wrapping of one logical line into several rows is the unhandled case. **This was
+  confirmed a real bug** (via the difftastic prototype, §10.8): when the *pager*
   wraps, each row is a distinct host buffer line and needs its own record, so `e`/
-  `enter`/hunk-nav break on continuation rows. difftastic was fixed to tag every
-  wrapped row; **delta needs the same fix** (`wrap-max-lines`) when its patch is
-  revisited.
+  `enter`/hunk-nav break on continuation rows. **Now FIXED in delta too** (§10.8):
+  delta wraps only in side-by-side mode, and each wrapped row now re-emits its
+  primary line's record (no counter advance). difftastic was fixed the same way.
 - **Header rows** (`@@`, `diff --git`, `---`/`+++`) get no attachment; acting on a
   header row falls through to #1, then to no-selection.
 
@@ -774,7 +774,14 @@ record at the start of **every output row** it produces for that line, including
 its own wrapped continuations.* The host attaches per buffer line, so it just
 works; pagers that rely on terminal wrapping emit one row and are unaffected.
 
-**Delta has the same latent bug** (§9.3 noted wrapped rows get no attachment "in
-the prototype"; with `wrap-max-lines` delta emits multiple rows too). Not yet
-fixed there — when the delta patch is revisited, apply the same change: emit the
-record on every wrapped output row, not just the first.
+**Delta had the same bug — now FIXED** (§9.3). Delta wraps **only in side-by-side
+mode** (`wrap_minusplus_block`/`wrap_zero_block` are called nowhere else; unified
+mode truncates instead), so the bug was SxS-only, but it was real there. The fix
+is the same idea adapted to delta's counter-based emitter: a wrapped continuation
+row (`HunkZeroWrapped`/`HunkMinusWrapped`/`HunkPlusWrapped`) **re-emits the record
+of the primary line it continues, without advancing the counters** — so the next
+line's numbers stay correct (verified: a context line after a 5-row wrapped line
+still reports the right new-line). `osc_for_line` is the single chokepoint, so the
+one change covers both SxS emit paths (the minus/plus precompute and the
+`paint_zero_lines_side_by_side` context path). Landed as an `amend!` into the
+delta side-by-side commit, with a unit test (`test_wrapped_rows_reemit_…`).

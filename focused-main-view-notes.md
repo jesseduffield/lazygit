@@ -1549,10 +1549,12 @@ rows carry **no** OSC. So a changed line — a paired minus/plus on one visual r
 
 > **Correction (after the difftastic prototype, see diff-line-metadata-notes.md §10.8):**
 > "wrapped continuation rows carry no OSC" is a **bug**, not a feature, whenever the
-> *pager* does the wrapping (delta with `wrap-max-lines`, difftastic side-by-side):
+> *pager* does the wrapping (delta in side-by-side mode, difftastic side-by-side):
 > each wrapped row is a distinct host buffer line, so `e`/`enter`/hunk-nav break on
 > the un-tagged continuations. The fix — emit the line's record on **every** wrapped
-> output row — was applied to difftastic; **delta still needs it** here.
+> output row — was applied to **both** difftastic and delta (delta re-emits the
+> primary's record without advancing its line-number counters). See
+> diff-line-metadata-notes.md §10.8.
 
 ### 17.2 The verdict: v1 needs NO addition for side-by-side
 
