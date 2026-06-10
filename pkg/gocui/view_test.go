@@ -258,6 +258,56 @@ func TestOffscreenRender(t *testing.T) {
 	assert.Equal(t, []string{"w", "x", "y", "z", "more"}, v.ViewBufferLines())
 }
 
+// The escape restore scans the *incoming* content of a re-render as it loads,
+// before it is swapped in, so it can find the row matching a target identity and
+// decide when to swap. That means reading the off-screen buffer's loaded rows
+// (text, metadata, hyperlink) while the displayed buffer still shows the old
+// render. See View.offscreen / OffscreenDiffLineContents.
+func TestOffscreenDiffLineContents(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// No off-screen render in progress: nothing to scan.
+	assert.Nil(t, v.OffscreenDiffLineContents())
+
+	osc := func(payload string) string { return "\x1b]456;" + payload + "\x1b\\" }
+	v.BeginOffscreenRender()
+	v.writeString(strings.Join([]string{
+		osc("1;c;1;;foo.txt") + "context",
+		osc("1;a;2;;foo.txt") + "added",
+	}, "\n"))
+
+	contents := v.OffscreenDiffLineContents()
+	assert.Equal(t, []DiffLineContent{
+		{Text: "context", Metadata: "1;c;1;;foo.txt"},
+		{Text: "added", Metadata: "1;a;2;;foo.txt"},
+	}, contents)
+
+	// The displayed buffer is still empty; the scan reads the off-screen render.
+	assert.Empty(t, v.BufferLines())
+}
+
+// The escape restore matches a target identity against a buffer line, then needs
+// the view line that renders it to scroll there and select it. ViewLineForBufferLine
+// is that inverse mapping, and it must point at the *first* of the (wrapped) view
+// lines a buffer line spans.
+func TestViewLineForBufferLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// Buffer line 0 is short (one view line); buffer line 1 wraps into three view
+	// lines (view lines 1, 2, 3); buffer line 2 is short again (view line 4).
+	v.writeString("short\n" + strings.Repeat("b", 27) + "\nlast")
+
+	for bufferLine, wantViewLine := range map[int]int{0: 0, 1: 1, 2: 4} {
+		viewLine, ok := v.ViewLineForBufferLine(bufferLine)
+		assert.True(t, ok)
+		assert.Equal(t, wantViewLine, viewLine)
+	}
+
+	_, ok := v.ViewLineForBufferLine(3)
+	assert.False(t, ok)
+}
+
 // While an async re-render loads, it swaps in only a partially-filled buffer at
 // its first paint and keeps appending lines afterwards. The scrollbar must keep
 // using the pre-load height until the load ends, so the thumb doesn't shrink and
