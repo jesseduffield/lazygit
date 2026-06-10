@@ -190,6 +190,14 @@ func (self *GlobalController) onPagerChanged() {
 	if currentSide.GetKey() == currentKey ||
 		currentKey == context.NORMAL_MAIN_CONTEXT_KEY ||
 		currentKey == context.NORMAL_SECONDARY_CONTEXT_KEY {
+		// Switching pagers re-renders the diff. Keep it anchored on the same patch
+		// line across the switch, restoring by patch identity rather than raw line
+		// number: two pagers can structure the same diff very differently (side-by-
+		// side vs inline), so the same screen line means something different after.
+		// Without this a plain pager swap keeps the old origin (the git command is
+		// unchanged) but now pointing at the wrong content, while an entry with its
+		// own externalDiffCommand changes the git command and so resets to the top.
+		self.c.Helpers().Staging.PreserveDiffPositionOnRerender(self.c.Contexts().Normal.GetView())
 		currentSide.HandleRenderToMain()
 	}
 
