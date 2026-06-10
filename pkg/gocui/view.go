@@ -2304,6 +2304,14 @@ func (v *View) onMouseMove(x int, y int) {
 		return
 	}
 
+	// Reading v.viewLines (here and in findHyperlinkAt) must hold writeMutex like
+	// every other reader: this runs on the event-handling goroutine, and a
+	// concurrent re-render on the task goroutine can rebuild or shrink viewLines
+	// between the bounds check below and the indexing in findHyperlinkAt — which
+	// panicked with an out-of-range index.
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	// newCx and newCy are relative to the view port, i.e. to the visible area of the view
 	newCx := x - v.x0 - 1
 	newCy := y - v.y0 - 1
