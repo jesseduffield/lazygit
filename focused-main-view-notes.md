@@ -1624,3 +1624,79 @@ cell or the pair. Out of scope for the prototype; flagged for productionization.
   truncation, `--syntax-theme=none`, wrapping, and `--keep-plus-minus-markers`; full suite
   (437 tests) green. **Host (lazygit) consumption of SxS output is a separate, later
   step** — not done here.
+
+---
+
+## 18. Session 8: preserve scroll/selection when switching pagers
+
+A small new consumer of the identity-based restore (diff-line-metadata-notes.md §1
+item 7) — the sibling of §16.1's `-U` context-size preserve, triggered by a pager
+change instead. The branch already has a **cycle-pagers** feature (`|` / `\`,
+`GlobalController.cyclePagers`/`cyclePagersBackward` → `onPagerChanged`); this hangs
+the restore off it. One commit: *Preserve the diff scroll position when switching
+pagers* (`2c8dfa13b`).
+
+### 18.1 The change
+
+`onPagerChanged` (`global_controller.go`) re-renders the current side's diff into the
+**"main" window** view when the focused context is that side panel or the focused
+`Normal`/`NormalSecondary` main view. Right before that `HandleRenderToMain()`, it now
+calls `Staging.PreserveDiffPositionOnRerender(Contexts().Normal.GetView())` — the exact
+same one-liner §16.1's `default` branch uses. No new machinery; the producer
+(`PreserveDiffPositionOnRerender` → `restoreDiffLinePositionOnRerender`) already exists
+and this is just a third caller ([[isolate-new-concepts-from-clients]]).
+
+### 18.2 Why it's needed in *both* cases (and what each did before)
+
+How a pager is applied decides the async task's command **key** (`cmdStr`, which gates
+`onNewKey`'s top-reset), and the two kinds of pager entry differ:
+
+- **Plain `pager:` entry** (e.g. delta ↔ cat). The pager is handed to git via the
+  **`GIT_PAGER` env var** (`pty.go`), *not* baked into the command args — so `cmdStr` is
+  unchanged across the switch, `ResetOrigin` is false, and the old origin simply
+  survived. That looks like "scroll preserved", but it's preserved **by raw line
+  number**, which is wrong the moment the two pagers structure the diff differently
+  (side-by-side ↔ inline): the same screen line is now a different patch line.
+- **`externalDiffCommand` entry.** This *is* baked into the git command
+  (`diff.external=…` + `--ext-diff`, `diff.go`), so `cmdStr` **changes**, `ResetOrigin`
+  is true, and the re-render **jumped to the top**. (This is the case the user flagged.)
+
+The identity restore fixes both at once: setting `restoreForNextTask` makes
+`ResetOrigin = restore == nil && …` false (no top-jump for the externalDiffCommand
+case), and `Apply` re-anchors on the same patch line by identity (right anchor for the
+plain-pager case when the structure changed). When the structure *doesn't* change it's a
+no-op relative to before — the anchor lands at the same screen row.
+
+### 18.3 Scope, fallback, and the one real limitation
+
+- **"main" window only**, exactly like §16.1: `NormalSecondary` is not preserved (still
+  jumps). Same accepted limitation.
+- **Staging/patch-building untouched.** `onPagerChanged`'s condition is false when those
+  are focused (`CurrentSide()` is the side panel, not the staging main context, and the
+  key isn't a `NORMAL_*` one), so cycling pagers there doesn't re-render — correct, since
+  the staging/patch views render their patch directly, not through a pager.
+- **Graceful fallback.** `nearbyDiffLines` only collects candidates that the diff-line
+  primitive can resolve in the *old* pager's output, and `FindDiffLine` only lands if it
+  can resolve them in the *new* one. If a pager's output is unresolvable (e.g. `cat -n`:
+  buffer-parse fails its integrity check, no metadata/hyperlinks), the restore either
+  installs no candidates or finds no match → harmless no-op, degrading to the pre-change
+  behaviour (stay put for a plain pager, reset for externalDiffCommand). No crash.
+- **The headline structural win (side-by-side ↔ inline) is wired but not yet fully
+  realized.** Matching across that switch needs the host to resolve the *target* pager's
+  output. For side-by-side delta that's the **row+column→identity** resolver that
+  §17.4 flags as still a separate, un-built step (`diffLineInfoFromContents` must accept
+  two OSCs per line). So today the restore works wherever the primitive already resolves
+  both renderings (no-pager, `--color`, single-column patched-delta, hyperlinks), and
+  no-ops on side-by-side until §17.4 lands. The wiring here is complete and correct; the
+  remaining gap is the shared SxS resolver, not this consumer.
+
+### 18.4 Verification
+
+`build` / `format` / `lint` / `unit-test` green. Headless e2e: `diff/cycle_pagers` and
+`staging/diff_context_change` both pass (the former exercises the new call with `cat` /
+`cat -n` / default pagers and confirms the no-op fallback doesn't break cycling).
+**Interactive sign-off still pending** — as established (§13.1) the headless harness uses
+the cmd path, defers no `afterLayout`, and blocks `LAZYGIT_SLOW_RENDER`, so the pager
+re-render path and any flicker aren't reproducible there. Confirm with `just debug`,
+scrolled down, cycling between a side-by-side and an inline pager and between a `pager:`
+entry and an `externalDiffCommand` entry.

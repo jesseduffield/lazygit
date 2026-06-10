@@ -37,9 +37,15 @@ several consumers, not a click-to-stage helper:
    (after its auto-advance), not the line you entered on, since you may have
    staged/dropped hunks meanwhile. Replaces the brittle numeric-index restore;
    see focused-main-view-notes.md §12 (incl. the escape-routing special cases).
+7. **Preserve scroll/selection when switching pagers** (cycling `git.paging.pagers`
+   with `|`/`\`) — the same as #5 but triggered by a pager change instead of a
+   context-size change: re-anchor on the same patch line in the new pager's
+   rendering. Built; see focused-main-view-notes.md §18. The line-number anchor is
+   *especially* wrong here — switching a side-by-side pager for an inline one
+   restructures the diff, so the old line number points at unrelated content.
 
 Consumers **1–4** use the primitive in the **forward** direction (rendered row →
-identity). Consumers **5–6** use the **inverse** (identity → rendered row): they
+identity). Consumers **5–7** use the **inverse** (identity → rendered row): they
 scan the rendered rows' metadata for the one matching a target patch identity,
 which the host does *as the buffer loads* via a predicate generalization of
 `ScrollToOriginYForNextTask` (focused-main-view-notes.md §12.3). The inverse
