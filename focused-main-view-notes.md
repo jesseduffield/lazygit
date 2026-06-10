@@ -1294,6 +1294,13 @@ restructures the diff.
 > **Update (parallel session, 2026-06-10):** step 3 is **done** too — see §17. The
 > side-by-side prototype shows **v1 needs no format change** (correcting the guess
 > below that it "will likely add payload/format"); only the OSC spec draft remains.
+>
+> **Update (difftastic, 2026-06-10):** a further pager — **difftastic** — is now
+> prototyped in **both** its modes (side-by-side + inline), the categorical
+> #2-only case. Details and findings in diff-line-metadata-notes.md §10. v1 still
+> holds, but difftastic surfaced a **token-vs-line model mismatch** (§10.2) the
+> unified-diff pagers hid — the spec draft should speak to it. Emitter lives on
+> `prototype-osc-metadata` in `/Users/stk/Stk/Dev/Builds/difftastic`.
 
 1. **Preserve scroll/selection when `{`/`}` change the `-U` context size** (diff-line
    consumer #5). **[done — §16.1]** Reuses the identity-restore machinery directly: capture the
