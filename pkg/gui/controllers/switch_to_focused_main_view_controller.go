@@ -81,7 +81,7 @@ func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext typ
 	}
 	self.c.Context().Push(mainViewContext, types.OnFocusOpts{})
 	if clickedLineIdx >= 0 {
-		showSelectionAtLine(mainViewContext.GetView(), clickedLineIdx)
+		showSelectionAtLine(mainViewContext.GetView(), clickedLineIdx, false)
 	}
 	return nil
 }

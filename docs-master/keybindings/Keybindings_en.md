@@ -225,6 +225,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Show/hide selection |  |
+| `` <left>, h `` | Go to previous hunk |  |
+| `` <right>, l `` | Go to next hunk |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` / `` | Search the current view by text |  |
 
 ## Main panel (patch building)
@@ -331,6 +335,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Show/hide selection |  |
+| `` <left>, h `` | Go to previous hunk |  |
+| `` <right>, l `` | Go to next hunk |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` / `` | Search the current view by text |  |
 
 ## Stash

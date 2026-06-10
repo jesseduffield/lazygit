@@ -86,6 +86,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Show/hide selection |  |
+| `` <left>, h `` | 이전 hunk를 선택 |  |
+| `` <right>, l `` | 다음 hunk를 선택 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` / `` | 검색 시작 |  |
 
 ## Stash
@@ -165,6 +169,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Show/hide selection |  |
+| `` <left>, h `` | 이전 hunk를 선택 |  |
+| `` <right>, l `` | 다음 hunk를 선택 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` / `` | 검색 시작 |  |
 
 ## 메인 패널 (Patch Building)

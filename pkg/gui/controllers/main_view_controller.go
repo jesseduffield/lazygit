@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -95,6 +96,26 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Tooltip:     openPullRequestTooltip,
 		},
 		{
+			Keys:        opts.GetKeys(opts.Config.Main.PrevHunk),
+			Handler:     self.prevChangeBlock,
+			Description: self.c.Tr.PrevHunk,
+		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Main.NextHunk),
+			Handler:     self.nextChangeBlock,
+			Description: self.c.Tr.NextHunk,
+		},
+		{
+			Keys:        opts.GetKeys(config.Keybinding{"N"}),
+			Handler:     self.prevFile,
+			Description: self.c.Tr.PrevFile,
+		},
+		{
+			Keys:        opts.GetKeys(config.Keybinding{"n"}),
+			Handler:     self.nextFile,
+			Description: self.c.Tr.NextFile,
+		},
+		{
 			// overriding this because we want to read all of the task's output before we start searching
 			Keys:        opts.GetKeys(opts.Config.Universal.StartSearch),
 			Handler:     self.openSearch,
@@ -161,7 +182,7 @@ func (self *MainViewController) toggleSelection() error {
 		return nil
 	}
 	// Start the selection in the middle of the visible area.
-	showSelectionAtLine(v, v.OriginY()+v.InnerHeight()/2)
+	showSelectionAtLine(v, v.OriginY()+v.InnerHeight()/2, false)
 	return nil
 }
 
@@ -184,12 +205,56 @@ func (self *MainViewController) enterForLine(lineIdx int) error {
 }
 
 // showSelectionAtLine turns on the focused main view's selection and moves it to
-// the given view line, clamped to the content.
-func showSelectionAtLine(view *gocui.View, lineIdx int) {
+// the given view line, clamped to the content. scrollIntoView scrolls the line into
+// view if it's off-screen (used when navigating to it); a click leaves it false, the
+// clicked line being visible already.
+func showSelectionAtLine(view *gocui.View, lineIdx int, scrollIntoView bool) {
 	view.Highlight = true
 	view.HighlightInactive = false
 	lineIdx = lo.Clamp(lineIdx, 0, view.ViewLinesHeight()-1)
-	view.FocusPoint(0, lineIdx, false)
+	view.FocusPoint(0, lineIdx, scrollIntoView)
+}
+
+// navigate jumps the focused main view by file or change block (hunk), using find to
+// locate the target row from the current anchor. The anchor is the selected line if a
+// selection is showing, otherwise the top visible line. With a selection showing we
+// move it to the target and scroll it into view, like the staging view; with none we
+// stay in scroll mode, bringing the target to the top without selecting anything.
+func (self *MainViewController) navigate(find func(*gocui.View, int, bool) (int, bool), forward bool) error {
+	v := self.context.GetView()
+	showSelection := v.Highlight
+	anchor := v.OriginY()
+	if showSelection {
+		anchor = v.SelectedLineIdx()
+	}
+
+	target, ok := find(v, anchor, forward)
+	if !ok {
+		return nil
+	}
+
+	if showSelection {
+		showSelectionAtLine(v, target, true)
+	} else {
+		v.SetOrigin(0, target)
+	}
+	return nil
+}
+
+func (self *MainViewController) nextChangeBlock() error {
+	return self.navigate(self.c.Helpers().Staging.AdjacentChangeBlock, true)
+}
+
+func (self *MainViewController) prevChangeBlock() error {
+	return self.navigate(self.c.Helpers().Staging.AdjacentChangeBlock, false)
+}
+
+func (self *MainViewController) nextFile() error {
+	return self.navigate(self.c.Helpers().Staging.AdjacentFile, true)
+}
+
+func (self *MainViewController) prevFile() error {
+	return self.navigate(self.c.Helpers().Staging.AdjacentFile, false)
 }
 
 // focusedMainViewContextForViewName maps a focused main view's view name (as
@@ -333,7 +398,7 @@ func githubPullRequestLineURL(prURL string, commitSha string, relativePath strin
 func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
 	// A click points at a line, so it sets the selection there; a double-click
 	// additionally dives into staging/patch-building for that line.
-	showSelectionAtLine(self.context.GetView(), opts.Y)
+	showSelectionAtLine(self.context.GetView(), opts.Y, false)
 	if opts.IsDoubleClick {
 		return self.enterForLine(opts.Y)
 	}
@@ -342,7 +407,7 @@ func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouse
 
 func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.ViewMouseBindingOpts) error {
 	self.c.Context().Push(self.context, types.OnFocusOpts{})
-	showSelectionAtLine(self.context.GetView(), opts.Y)
+	showSelectionAtLine(self.context.GetView(), opts.Y, false)
 	if opts.IsDoubleClick {
 		return self.enterForLine(opts.Y)
 	}
