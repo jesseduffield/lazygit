@@ -779,9 +779,14 @@ func (self *FilesController) EnterFile(focusedMainViewSnapshot *types.FocusedMai
 	}
 
 	context := lo.Ternary(opts.ClickedWindowName == "secondary", self.c.Contexts().StagingSecondary, self.c.Contexts().Staging)
-	// Set on every entry (so it can't leak from a previous main-view entry into a
-	// subsequent normal one), right as we push the staging view.
-	context.SetFocusedMainViewSnapshot(focusedMainViewSnapshot)
+	// Record the focused-main-view return on *both* staging halves, not just the
+	// one we're entering: staging the last unstaged hunk (or tabbing) moves the
+	// selection to the other half, and escaping from there must still know to
+	// return to the focused main view rather than falling back to the files panel.
+	// Set on every entry (nil for a normal entry through the files panel) so a
+	// snapshot can't leak from a previous main-view entry into a subsequent normal one.
+	self.c.Contexts().Staging.SetFocusedMainViewSnapshot(focusedMainViewSnapshot)
+	self.c.Contexts().StagingSecondary.SetFocusedMainViewSnapshot(focusedMainViewSnapshot)
 	self.c.Context().Push(context, opts)
 	self.c.Helpers().PatchBuilding.ShowHunkStagingHint()
 

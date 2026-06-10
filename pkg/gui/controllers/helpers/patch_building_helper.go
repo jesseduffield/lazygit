@@ -53,7 +53,13 @@ func EscapeFromPatchExplorer(c *HelperCommon, stagingHelper *StagingHelper, cont
 		return
 	}
 
+	// Clear the snapshot wherever it was set. The staging view records it on both
+	// its halves (see FilesController.EnterFile) so escape works after the selection
+	// crosses between them; clear both so a stale one can't linger. For patch
+	// building it's only on the context we're escaping from.
 	context.SetFocusedMainViewSnapshot(nil)
+	c.Contexts().Staging.SetFocusedMainViewSnapshot(nil)
+	c.Contexts().StagingSecondary.SetFocusedMainViewSnapshot(nil)
 
 	// Restore the side panel's selection before we render it, so it shows the
 	// same content the main view had (diving into staging can change it, e.g.
