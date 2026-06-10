@@ -1068,3 +1068,273 @@ applies to that scan.
 
 Memory: `focused-main-view-flicker-timing-races` (updated — off-screen render),
 `isolate-new-concepts-from-clients`, `main-thread-over-mutexes-direction`.
+
+---
+
+## 14. Session 6: the identity-based restore (part 3)
+
+Built §12.3 step 3: the escape restore now anchors on a **patch identity** read
+from the explorer's current selection, found in the re-rendered main view by
+scanning its content as it loads — replacing the numeric scroll/index replay.
+Items 1 (async predicate scroll) and 3 (#1, survive task replacement) of the
+part-3 plan are done and turned out to be **one mechanism**, as §13.6 predicted.
+Item 2 (escape routing, §12.2) is partially done; the (b) no-clobber lever is
+analysed but not done. Commits (most recent last):
+
+1. *Resolve a diff line's identity from a content snapshot, not the live view* —
+   prep refactor. `StagingHelper.GetDiffLineInfo` now resolves the identity from a
+   `[]gocui.DiffLineContent` snapshot (text + metadata + hyperlink per unwrapped
+   buffer line) via one buffer-agnostic resolver, instead of the displayed view's
+   per-view-line readers. Behavior-preserving; lets the same resolver run against
+   the *loading off-screen* buffer (the inverse consumer).
+2. *Add gocui accessors for scanning a loading off-screen render* —
+   `OffscreenDiffLineContents` (the loaded off-screen rows), `ViewLineForBufferLine`
+   (inverse of `BufferLineForViewLine`, to turn a matched buffer line into the view
+   line to scroll/select), and `OffscreenLineCount`. Unit-tested.
+3. *Restore the focused main view by patch identity on escape* — the core.
+4. *(routing)* — see §14.3.
+
+### 14.1 The mechanism (items 1 + 3 are one design)
+
+- **`tasks.RenderRestore{FirstPaintReady func() bool; Apply func()}`** replaces the
+  numeric `scrollToOriginYForNextTask`/`thenForNextTask` pair and
+  `LinesToRead.ApplyInitialScroll`. The read loop, when a restore is set, asks
+  `FirstPaintReady()` after each line instead of the `InitialRefreshAfter` count;
+  the first time it's true it swaps the off-screen render in and calls `Apply()`.
+- **`StagingHelper.RestoreFocusedMainViewOnEscape`** builds the restore. It reads
+  the explorer's selected `(file, type, source-line)` *now* (forward primitive on
+  the explorer view), then:
+  - `FirstPaintReady`: scan the off-screen rows (`OffscreenDiffLineContents`) for
+    the first row matching the identity (`FindDiffLine` → `SamePatchLine`,
+    comparing path + `PatchSelectLine`); once found *and* a screenful below it has
+    loaded (`OffscreenLineCount`), ready. This gives an **early** mid-load swap for
+    backends that resolve a row on its own — OSC metadata and lazygit-edit
+    hyperlinks.
+  - `Apply`: convert the matched buffer line → view line, `FocusPoint(…, scrollIntoView=true)`
+    (scroll + select in one step), set `Highlight`, and clear the pending restore.
+- **Buffer-parse can't resolve incrementally — it must wait for the complete diff
+  (verification finding, no pager).** The first interactive test showed the
+  restore worked with the patched (OSC-metadata) delta but failed *every time*
+  with no pager: the main view landed at the top with no selection. Cause: the
+  buffer-parse backend parses whole hunks and checks them against their `@@`
+  lengths (`Patch.IsWellFormed`); while the diff streams in, the trailing hunk is
+  incomplete, so the parse is rejected as not-well-formed. The incremental scan
+  checks each line once, *as it loads* (i.e. while it's the last line and the diff
+  is still partial), so it rejected every line and never found the target — whereas
+  metadata/hyperlinks resolve per-line and worked. **Fix:** keep the incremental
+  scan (it's what gives metadata/hyperlinks their early swap), but have `Apply`
+  re-scan the **complete** content once the off-screen render is swapped in (for
+  buffer-parse the swap happens at end of input, so the displayed buffer is whole
+  and well-formed by then). So buffer-parse restores correctly, just with a
+  later (EOF) swap rather than an early one. Wasteful detail to fix in production:
+  the incremental scan still does (failing) buffer-parse work on every partial line
+  (~O(n²)); pin the backend, or skip incremental scanning when it's buffer-parse.
+- **`FocusPoint(scrollIntoView)` unifies scroll and selection** at the first
+  paint. This is a deliberate deviation from the task's literal "thread the
+  selection restore through `thenForNextTask`": §13.4 also said "build them as one
+  callback", and folding both into one `Apply` at the swap removes the separate
+  selection hook entirely (and with it Race B's premature-fire window — there is no
+  post-load `Then` for the selection any more). `LinesToRead.Then` survives only
+  for `ReadToEnd` (search).
+- **#1 (survive task replacement) falls out of the identity model**, not a separate
+  fix. `restoreForNextTask` lives on the `ViewBufferManager` and is **not cleared
+  when a task starts**, so a periodic refresh that stops the escape's re-render
+  before first paint just hands the still-pending restore to its replacement task.
+  It is **not gated on the command key** — and that gate, which the first cut had,
+  was actively wrong: returning after staging the last unstaged hunk re-renders
+  `git diff` as `git diff --cached`, a different key, yet the line to land on is
+  right there in the new content. The restore **validates itself** instead: its
+  scan finds the target line only if the content still contains it, so applying it
+  to a genuinely different item (a different file ⇒ different path) is a harmless
+  no-op. A task clears it once it has applied it — found *or not* — in `Apply`, so
+  it lives for exactly one re-render: it survives stop-and-replace, but doesn't
+  re-apply on every later render. This is the "clear on content change, keep across
+  same-content replacement" of §13.6, achieved by the identity rather than the key.
+- **The snapshot stores less** (§12.1): `FocusedMainViewSnapshot` dropped `OriginY`
+  and `SelectedLineIdx` (and the `clickedLineIdx` thread into it) — the position is
+  derived from the explorer's live selection at escape.
+
+### 14.2 Verification status — first interactive pass done; broader sign-off remains
+
+`just build` / `unit-test` / `e2e-all` / `lint` / `format` all green; new unit
+tests cover the gocui scan primitives and the read-loop restore mechanism. The
+agent couldn't drive the full-screen TUI (no tmux), so the **user** ran the first
+interactive pass (`LAZYGIT_SLOW_RENDER=5`, `refreshInterval: 3`):
+
+- **Works well.** In/out of staging with the patched (OSC-metadata) delta — no
+  flicker, no artifacts.
+- **No-pager was broken, now fixed.** See §14.1: buffer-parse can't resolve a
+  partial diff, so the incremental scan missed; `Apply` now re-scans the complete
+  content. Confirmed fixed.
+- **Hunk-mode escape lands on the *first* line of the hunk** now, not the last:
+  the cursor sits at the selection's end in hunk/range mode, so the escape anchors
+  on `State.SelectedViewRange()`'s start instead of the view cursor.
+- **Pre-existing crash fixed (incidentally):** hovering during a re-render could
+  panic in `findHyperlinkAt` (`index out of range … length 0`) — `onMouseMove`
+  read `viewLines` without `writeMutex`, racing the rebuild. Now locked. On master,
+  but the off-screen render's extra task-goroutine rebuilds widened the window.
+
+Second pass (user, slow render): the session-5 sign-offs were **confirmed** — the
+scrollbar and diff content both stay put across the 3 s refresh, no glitches or
+truncated frames. Two further issues surfaced, both on content *change* (not the
+same-content refresh):
+
+- **Switching items scrolled the old content to the top before the new swapped in
+  — FIXED.** With the off-screen render the previous content stays displayed until
+  the swap, but the scroll-to-top reset fired when the task *started*, so the old
+  content jumped to the top first. Deferred the reset to the first paint (see
+  "Reset the scroll to the top at first paint"); the old content now stays at its
+  scroll until the new content takes its place.
+- **Scrollbar starts large then shrinks while a *new* diff loads — pre-existing,
+  not fixed.** Confirmed on master: the first paint is one screenful, and the thumb
+  is sized from the displayed height, which grows toward the full count as more
+  lines load → the thumb shrinks. `linesToReadForAccurateScrollbar` doesn't prevent
+  this; it only keeps the thumb stable *while scrolling* (it reads enough that
+  scrolling further won't resize it), not during the initial load. `FreezeScrollbarHeight`
+  hides it for a *same-content* re-render (held height matches) but can't for a new
+  diff (held height is the old one), and the new total is unknown until ~EOF. Only
+  visible under slow render; judged not worth addressing.
+
+Still pending: the slow-render matrix under the **hyperlink** backend is being
+skipped — the user leans to dropping that backend in production (§14.5).
+
+### 14.3 Escape routing (§12.2) — partial
+
+Done: the snapshot is now recorded on **both** staging halves (`FilesController.EnterFile`)
+and cleared on both at escape, so staging the *last* unstaged hunk — which pushes
+`StagingSecondary` (confirmed in `RefreshStagingPanel`: `mainState == nil &&
+!secondaryFocused` ⇒ `Push(secondaryContext)`) — no longer escapes to the files
+panel. It returns to the focused main view (`snapshot.MainView`, i.e. `Normal`),
+and the identity restore lands on the staged line there: with the last unstaged
+hunk gone the file has only staged changes, so the files panel renders the staged
+diff into `Normal` (no split), which *contains* that line.
+
+Remaining (deferred — intricate, and a wrong move regresses the core staging
+escape; do with full understanding + interactive verification):
+- **Return to `NormalSecondary` for the split + `<tab>`-to-staged case.** When the
+  file has *both* unstaged and staged changes the files panel splits (`Normal` =
+  unstaged, `NormalSecondary` = staged). If you tab to the staged half and escape,
+  the staged-line identity is in `NormalSecondary`, but we currently return to
+  `Normal` and set the restore on `Normal`'s manager, so the scan won't find it
+  there. The fix is to choose the target focused-main context from the **escaping
+  explorer half's window** (`context.GetWindowName()`: secondary ⇒ `NormalSecondary`)
+  — but it must reckon with the post-action **split state** (the staged content is
+  in `NormalSecondary` only when a split survives; otherwise it's in `Normal`), so
+  it's not a pure window-name map.
+- **Custom patch builder drop → side panel** (§12.2): the builder always closes and
+  there's no host auto-advance, so the accepted shortcut is to focus the side panel
+  rather than self-advance. Not implemented; patch-builder escape currently runs the
+  same identity restore against `Normal`.
+
+### 14.4 (b) no-clobber lever — analysed, NOT done
+
+§13.4 framed (b) as "skip `CopyContent` over the focused main view's retained
+buffer on escape, so the placeholder *is* the right content and the swap is
+invisible". Skipping the copy is easy (gate `moveMainContextToTop`'s `CopyContent`
+on a pending restore via a `HasPendingRestore` check). **But it isn't sufficient on
+its own:** `refreshMainViews` resets every *other* main pair's origin to 0 when a
+pair is moved to the top, so entering the patch explorer already zeroed `Normal`'s
+`oy`. So on escape `Normal`'s buffer is the right *content* but at scroll 0, not at
+the saved scroll S — the swap+`FocusPoint` would still visibly scroll from the top.
+A genuinely invisible unchanged-content swap needs the placeholder kept at S too:
+either don't zero the focused-main pair's origin on entry, or re-establish it before
+the re-render. Left for a follow-up; §13.3's "(b) supersedes (a)" still holds as the
+target, just with this extra requirement. (Without (b), the escape currently shows
+the `CopyContent`ed patch as a coherent placeholder until the swap — option (a).)
+
+### 14.5 Known prototype limitations (productionization input)
+
+- **Match fidelity under the hyperlink backend.** `SamePatchLine` compares path +
+  `PatchSelectLine` (source line + is-deletion). The dev config's default pager is
+  delta with `--line-numbers --hyperlinks` → the main-view scan uses the
+  **hyperlink** backend, which can't tell the side (`DiffLineOther`), so a
+  **deletion** selected in the explorer won't match a scanned row and the restore
+  won't find its line (scroll/selection then just isn't restored — no crash). #2's
+  OSC metadata (the "patched delta" pager) gives full fidelity. Additions/context
+  match fine. Acceptable for the prototype; **productionization lean (user,
+  session 6): drop the hyperlink backend entirely** rather than support it
+  imperfectly — rely on OSC metadata (the planned delta patch) and have users on an
+  old delta update their pager. That also removes the side-less `DiffLineOther`
+  identity, so every match carries a real side and the deletion case just works.
+- **Scan cost.** `FirstPaintReady` re-snapshots the off-screen buffer each line
+  until the target is found (then it's O(1) via `OffscreenLineCount`), and
+  `diffLineInfoFromContents` attempts the buffer-parse backend (building a texts
+  slice) even when the hyperlink backend will answer — so the search phase is ~O(n²)
+  in the loaded line count. Invisible in the common unchanged-content escape (the
+  target is at the saved scroll and the swap is coherent regardless), bounded for
+  shallow targets, but a deep target in a large changed diff would lag. Productionize
+  with an incremental scan (don't rebuild the snapshot; resolve the newest line; pin
+  the backend once).
+- **No fallback when the identity can't be read** (e.g. the explorer's selected line
+  doesn't parse): the re-render then has no restore and resets to the top. In
+  practice the auto-advance lands on a parseable change line, so this is rare.
+
+Memory to update: `focused-main-view-flicker-timing-races` (identity restore +
+#1 landed; interactive sign-off still pending), `resolve-hard-unknowns-in-prototype`
+(the entangled async unknown — scanning during load — is retired), and a new note
+that part-3 routing (§12.2) and the (b) lever are the remaining prototype work.
+
+---
+
+## 15. Next steps agreed at the end of session 6
+
+The core async unknown is retired, so productionization is *transcription-ready*
+(decomposition sketch below). But we're **deferring productionization** deliberately
+to do more prototyping first — not because we need to learn more, but to make the
+prototype **compelling for pitching the OSC protocol to pager developers** ("here
+are the lazygit features you unlock by implementing it"). File/hunk navigation is
+the strongest such demo: it's impossible without the metadata once a pager
+restructures the diff.
+
+**Next prototype work (each a new session):**
+
+1. **Preserve scroll/selection when `{`/`}` change the `-U` context size** (diff-line
+   consumer #5). Reuses the identity-restore machinery directly: capture the
+   nearest *change* line (survives context changes, unlike context lines), re-render,
+   restore it — the escape restore's sibling, triggered by the context-size change
+   instead of escape.
+2. **File/hunk navigation in the focused main view.** Agreed model:
+   - **keys**: `n`/`N` = next/previous file; `<left>`/`<right>` = next/previous
+     hunk — the **exact bindings the staging view already uses** for hunk nav (so
+     no horizontal-scroll clash to worry about; the focused main view's `<`/`>` stay
+     goto-top/bottom).
+   - **"hunk" means lazygit's notion, not git's.** Not the `@@`-delimited section,
+     but a **block of consecutive added/deleted lines separated by context** — there
+     can be several within one git hunk. These are exactly the blocks the staging
+     panel jumps between (`State.SelectNextHunk`/`SelectPreviousHunk` /
+     `patch.GetNextChangeIdx`), and the main view should match.
+   - **anchor** = the selected line if a selection is showing, else the **top
+     visible line** (works for change-blocks too — the next block is the next run of
+     change lines below the anchor, found from the per-line metadata `type`).
+   - **target** = scan rendered rows via the diff-line primitive for the start of
+     the next/previous change block (file nav: where metadata `file` changes).
+   - **effect** = selection showing → move the selection to the target + scroll into
+     view (like the staging view); **no selection → scroll the target to the top and
+     do *not* create a selection** (stays in scroll mode). [decided]
+   - "Previous" when the anchor is mid-block mirrors `State.SelectPreviousHunk`
+     semantics.
+   - #1 and #2 share the "scan rows for a metadata boundary/identity" core, so they
+     pair in one session (#5 = restore-across-rerender path; nav = immediate path).
+3. **Side-by-side delta mode** — prototype in **parallel, in the delta repo**
+   (doesn't touch lazygit). Feeds the spec (below).
+
+**OSC spec write-up:** a **draft**, not final — present it to pager devs *for
+feedback*. The unified single-column wire format is validated (§9.2) and can be
+presented confidently; the two open items to flag are the **OSC number** (456 is a
+placeholder) and **side-by-side** (the parallel prototype will likely add
+payload/format). Write it after/alongside side-by-side so it speaks to both modes.
+
+**Decisions locked (session 6):** concurrency stays **mutex-based**, including for
+productionization (the main-thread-mutation rework is a separate, later effort — do
+not design around it now); the **(b) no-clobber** lever is **dropped** (escape is
+already flicker-free); **§12.2 split+tab routing** is **deferred to productionization**.
+
+**Productionization decomposition (sketch, for when we get there):** land as a
+bottom-up stack of independently-reviewable PRs — (a) the gocui async-render
+improvements (off-screen render + scrollbar hold + stopped-task fix + mouse-move
+lock, several master-worthy on their own); (b) diff-line primitive #1 (host-side
+buffer parse, serves no-pager/`--color-only`); (c) the focused-main-view feature on
+top of #1; (d) escape-restore-by-identity; (e) #2 OSC reader behind an "if the pager
+emits it" gate, gated externally on the delta patch being upstreamed. Drop the
+hyperlink backend (§14.5). The delta dependency means the feature can't fully ship
+to delta users until the OSC patch lands — decide whether to ship #1-only first.
