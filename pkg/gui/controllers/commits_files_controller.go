@@ -546,7 +546,7 @@ func (self *CommitFilesController) expandAll() error {
 func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
 	return func(mainViewName string, clickedLineIdx int) error {
 		// Capture before any mutation below that might re-render the main view.
-		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context(), clickedLineIdx)
+		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context())
 
 		info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, clickedLineIdx)
 		line := -1

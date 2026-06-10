@@ -1873,6 +1873,22 @@ func (v *View) OffscreenDiffLineContents() []DiffLineContent {
 	return diffLineContents(v.offscreen)
 }
 
+// OffscreenLineCount returns the number of unwrapped buffer lines read so far
+// into an in-progress off-screen re-render (see BeginOffscreenRender), or 0 if
+// none is underway. The escape restore uses it to tell, cheaply, once it has
+// found its target line, when a screenful below it has loaded too — so the swap
+// shows the target with context rather than at the very bottom of a part-filled
+// view.
+func (v *View) OffscreenLineCount() int {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.offscreen == nil {
+		return 0
+	}
+	return len(v.offscreen.lines)
+}
+
 func diffLineContents(buf *viewBuffer) []DiffLineContent {
 	contents := make([]DiffLineContent, len(buf.lines))
 	for i, line := range buf.lines {

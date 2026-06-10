@@ -63,7 +63,7 @@ func (self *SwitchToDiffFilesController) GetOnClickFocusedMainView() func(mainVi
 		// Capture before self.enter() pushes the commit files panel, which
 		// re-renders the main view. We escape "all the way out" to this side
 		// panel (skipping the commit files panel), then focus the main view.
-		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context, clickedLineIdx)
+		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context)
 
 		if err := self.enter(); err != nil {
 			return err

@@ -9,14 +9,17 @@ import (
 )
 
 type PatchBuildingHelper struct {
-	c *HelperCommon
+	c             *HelperCommon
+	stagingHelper *StagingHelper
 }
 
 func NewPatchBuildingHelper(
 	c *HelperCommon,
+	stagingHelper *StagingHelper,
 ) *PatchBuildingHelper {
 	return &PatchBuildingHelper{
-		c: c,
+		c:             c,
+		stagingHelper: stagingHelper,
 	}
 }
 
@@ -35,15 +38,15 @@ func (self *PatchBuildingHelper) ShowHunkStagingHint() {
 // takes us from the patch building panel back to the commit files panel, or to
 // the focused main view if that's where we entered it from
 func (self *PatchBuildingHelper) Escape() {
-	EscapeFromPatchExplorer(self.c, self.c.Contexts().CustomPatchBuilder)
+	EscapeFromPatchExplorer(self.c, self.stagingHelper, self.c.Contexts().CustomPatchBuilder)
 }
 
 // EscapeFromPatchExplorer returns from a patch explorer context (staging or
 // patch building). If we entered it from a focused main view, we go back to
 // where we came from (re-rendering the side panel's content into the main view,
-// like the plain escape does), then focus the main view and restore its scroll
-// position and selection. Otherwise we just pop to the side panel.
-func EscapeFromPatchExplorer(c *HelperCommon, context types.IPatchExplorerContext) {
+// like the plain escape does), then focus the main view and land on the line the
+// explorer currently has selected. Otherwise we just pop to the side panel.
+func EscapeFromPatchExplorer(c *HelperCommon, stagingHelper *StagingHelper, context types.IPatchExplorerContext) {
 	snapshot := context.GetFocusedMainViewSnapshot()
 	if snapshot == nil {
 		c.Context().Pop()
@@ -59,47 +62,26 @@ func EscapeFromPatchExplorer(c *HelperCommon, context types.IPatchExplorerContex
 		listContext.GetList().SetSelectedLineIdx(snapshot.SidePanelSelectedLineIdx)
 	}
 
-	view := snapshot.MainView.GetView()
-
-	restore := func() {
-		view.FocusPoint(0, snapshot.SelectedLineIdx, false)
-		view.Highlight = true
-		view.HighlightInactive = false
+	// Ask the upcoming re-render of the main view to land on the line the explorer
+	// currently has selected. Read that identity now, before the pushes: pushing
+	// the side panel re-renders its content into the main view, and the restore
+	// rides that re-render — finding the matching row as it loads and scrolling to
+	// and selecting it as the content first appears. See RestoreFocusedMainViewOnEscape.
+	//
+	// Anchor on the *first* line of the explorer's selection: in hunk or range mode
+	// the selection spans several lines and its cursor sits at the last one, but
+	// returning to the start of the hunk is what reads as "the same place".
+	selectedViewLine := context.GetView().SelectedLineIdx()
+	if state := context.GetState(); state != nil {
+		selectedViewLine, _ = state.SelectedViewRange()
 	}
-
-	// Ask the upcoming re-render to restore the scroll position and selection.
-	// Pushing the side panel re-renders its content into the main view via a
-	// cmd/pty task. Until that content is ready, the main view keeps showing the
-	// placeholder that CopyContent left in it (the view we're leaving) at its
-	// current scroll; the task then scrolls to the saved position as part of the
-	// first paint that shows the real content (rather than setting the origin up
-	// front, which would jump to the top or show a misplaced placeholder frame).
-	// The selection needs the content loaded down to the selected line, so it
-	// rides the same task and fires at the end of its initial read. Threading it
-	// through the task (rather than a ReadToEnd issued after the pushes) avoids a
-	// race: ReadToEnd fires synchronously when the freshly-created task's read
-	// channel isn't live yet, which would run FocusPoint before the content is
-	// loaded and silently drop the selection.
-	manager := c.GetViewBufferManagerForView(view)
-	if manager != nil {
-		manager.ScrollToOriginYForNextTask(snapshot.OriginY)
-		manager.ThenForNextTask(func() {
-			c.OnUIThread(func() error {
-				restore()
-				return nil
-			})
-		})
-	}
+	stagingHelper.RestoreFocusedMainViewOnEscape(
+		context.GetView(), snapshot.MainView.GetView(), selectedViewLine)
 
 	// Land on the side panel first (this re-renders the original content into the
 	// main view), then focus the main view on top of it.
 	c.Context().Push(snapshot.SidePanel, types.OnFocusOpts{})
 	c.Context().Push(snapshot.MainView, types.OnFocusOpts{})
-
-	// Without a buffer manager there is no re-render task to ride, so restore now.
-	if manager == nil {
-		restore()
-	}
 }
 
 // kills the custom patch and returns us back to the commit files panel if needed

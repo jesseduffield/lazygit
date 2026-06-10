@@ -12,6 +12,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func getCounter() (func(), func() int) {
@@ -171,6 +172,71 @@ func TestNewCmdTask(t *testing.T) {
 
 // A dummy reader that simply yields as many blank lines as requested. The only
 // thing we want to do with the output is count the number of lines.
+// When a RenderRestore is set, the first paint is driven by its FirstPaintReady
+// predicate rather than the InitialRefreshAfter line count, and Apply runs exactly
+// once, right after the off-screen render is swapped in. This is the read-loop
+// half of the escape restore: scroll to and select the saved position as the new
+// content first appears. See RenderRestore.
+func TestNewCmdTaskRestore(t *testing.T) {
+	writer := bytes.NewBuffer(nil)
+	linesWritten := func() int { return strings.Count(writer.String(), "\n") }
+
+	swapped := false
+	applyCount := 0
+	applyAtLines := -1
+	applyAfterSwap := true
+
+	task := gocui.NewFakeTask()
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		writer,
+		func() {},                 // beforeStart
+		func() {},                 // refreshView
+		func() {},                 // onEndOfInput
+		func() {},                 // onNewKey
+		func() {},                 // beginRender
+		func() { swapped = true }, // swapInRender
+		func() gocui.Task { return task },
+		// no UI thread in the test; run the view mutations inline
+		func(f func() error) error { return f() },
+	)
+
+	restore := &RenderRestore{
+		// Ready once five lines have loaded — well before InitialRefreshAfter (30).
+		FirstPaintReady: func() bool { return linesWritten() >= 5 },
+		Apply: func() {
+			applyCount++
+			applyAtLines = linesWritten()
+			if !swapped {
+				applyAfterSwap = false
+			}
+		},
+	}
+
+	stop := make(chan struct{})
+	reader := BlankLineReader{totalLinesToYield: 50}
+	start := func() (Cmd, io.Reader) {
+		cmd := exec.Command("blah")
+		return ExecCmd{Cmd: cmd}, &reader
+	}
+	fn := manager.NewCmdTask(start, "", LinesToRead{Total: 50, InitialRefreshAfter: 30, Restore: restore}, func() {})
+
+	wg := sync.WaitGroup{}
+	wg.Go(func() {
+		time.Sleep(100 * time.Millisecond)
+		close(stop)
+	})
+	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: func() { task.Done() }})
+	wg.Wait()
+
+	assert.Equal(t, 1, applyCount, "Apply should run exactly once")
+	assert.True(t, applyAfterSwap, "Apply should run after the off-screen render is swapped in")
+	// The first paint was driven by FirstPaintReady (>=5 lines), not by
+	// InitialRefreshAfter (30).
+	assert.GreaterOrEqual(t, applyAtLines, 5)
+	assert.Less(t, applyAtLines, 30)
+}
+
 type BlankLineReader struct {
 	totalLinesToYield int
 	linesYielded      int
