@@ -64,11 +64,6 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// (see the matching call in newCmdTask).
 	view.FreezeScrollbarHeight()
 
-	// Read any requested scroll-restore now so we can size the initial read to it
-	// in afterLayout; the task itself clears the request and applies the scroll at
-	// its first paint.
-	targetOriginY := gui.getManager(view).GetScrollToOriginYForNextTask()
-
 	// Run the pty after layout so that it gets the correct size
 	gui.afterLayout(func() error {
 		// Need to get the width and the pager again because the layout might have
@@ -118,11 +113,15 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 			gui.Mutexes.PtyMutex.Unlock()
 		}
 
-		linesToRead := gui.linesToReadFromCmdTask(view, targetOriginY)
-		// As in newCmdTask: let the task run any requested after-load callback at
-		// the end of its initial read (e.g. restoring a focused main view's
-		// selection on escape). The task clears the request when it starts.
-		linesToRead.Then = manager.GetThenForNextTask()
+		linesToRead := gui.linesToReadFromCmdTask(view)
+		// As in newCmdTask: if a restore is pending for this content (returning to a
+		// focused main view on escape), let the task re-establish the scroll
+		// position and selection as it first paints, reading to end of input so a
+		// deep target line is found and the scrollbar ends up accurate.
+		if restore := manager.GetRestoreForNextTask(); restore != nil {
+			linesToRead.Restore = restore
+			linesToRead.Total = -1
+		}
 		return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr)
 	})
 

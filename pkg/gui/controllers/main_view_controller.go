@@ -201,14 +201,15 @@ func focusedMainViewContextForViewName(c *ControllerCommon, viewName string) typ
 	return c.Contexts().Normal
 }
 
-// focusedMainViewSnapshot captures where a focused main view is (scroll +
-// selected line) when diving into a patch explorer from it, so escaping can
-// return there with the main view focused. sidePanel is the panel to land on
-// first (which re-renders the content); for commits/stash it's the originating
-// panel, skipping the commit files panel we pass through. selectedLineIdx is the
-// view line that was selected in the focused main view. Call this before any
-// mutation that might re-render the main view.
-func focusedMainViewSnapshot(c *ControllerCommon, mainViewName string, sidePanel types.Context, selectedLineIdx int) *types.FocusedMainViewSnapshot {
+// focusedMainViewSnapshot records the focused main view to return to when diving
+// into a patch explorer from it, so escaping can come back with the main view
+// focused. sidePanel is the panel to land on first (which re-renders the
+// content); for commits/stash it's the originating panel, skipping the commit
+// files panel we pass through. Where to scroll to and select on return isn't
+// captured: escape lands on the line the explorer ended up on (see
+// EscapeFromPatchExplorer). Call this before any mutation that might re-render
+// the main view.
+func focusedMainViewSnapshot(c *ControllerCommon, mainViewName string, sidePanel types.Context) *types.FocusedMainViewSnapshot {
 	mainView := focusedMainViewContextForViewName(c, mainViewName)
 	sidePanelSelectedLineIdx := -1
 	if listContext, ok := sidePanel.(types.IListContext); ok {
@@ -218,8 +219,6 @@ func focusedMainViewSnapshot(c *ControllerCommon, mainViewName string, sidePanel
 		SidePanel:                sidePanel,
 		SidePanelSelectedLineIdx: sidePanelSelectedLineIdx,
 		MainView:                 mainView,
-		OriginY:                  mainView.GetView().OriginY(),
-		SelectedLineIdx:          selectedLineIdx,
 	}
 }
 

@@ -46,34 +46,20 @@ type ViewBufferManager struct {
 	taskKey      string
 	onNewKey     func()
 
-	// When non-nil, the next cmd/pty task restores this scroll position. Used
-	// when re-rendering content the user was already scrolled into (e.g. when
-	// returning to a focused main view on escape). It has two effects:
+	// When non-nil, the next cmd/pty task re-establishes the view's scroll
+	// position and selection once it has re-rendered the content (returning to a
+	// focused main view on escape). The task does not reset the view's origin to
+	// the top at start: instead it keeps the placeholder showing at its current
+	// scroll until the restore can show the saved position as part of the first
+	// paint, rather than flicking to the top. See RenderRestore.
 	//
-	//   - The task does not reset the view's origin to the top at start, even if
-	//     its command key differs from the previous task's. This keeps the
-	//     placeholder that CopyContent left in the view showing at its current
-	//     scroll position (i.e. "as if nothing changed") until the real content
-	//     is ready, rather than flicking it to the top.
-	//   - The task sizes its initial read to this position and scrolls there as
-	//     part of its first refresh, so the saved scroll is applied in the same
-	//     paint that shows the real content.
-	//
-	// Cleared once the next task has started.
-	scrollToOriginYForNextTask *int
-
-	// When non-nil, run once after the next cmd/pty task has read enough of its
-	// content (the end of its initial read). Used to restore state that depends
-	// on the re-rendered content being loaded — e.g. the selection in a focused
-	// main view we're returning to on escape — by riding the task's own
-	// lifecycle rather than a separate post-hoc ReadToEnd. A ReadToEnd issued
-	// right after triggering the re-render can fire synchronously, because the
-	// freshly-created task's read channel isn't live yet (it is created inside
-	// the task goroutine, after the previous task has been stopped); that would
-	// run the restore before any content is loaded and silently drop it.
-	//
-	// Cleared once the next task has started.
-	thenForNextTask func()
+	// It is set just before triggering the re-render. Unlike a per-task field, it
+	// is *not* cleared when a task starts: it must survive a task being stopped
+	// and replaced (a periodic refresh can stop the escape's re-render before it
+	// first-paints), so it is kept until a task successfully applies it, or until
+	// the content key changes (a different item was selected, so the saved
+	// position no longer applies). Guarded by taskIDMutex, like the task key.
+	restoreForNextTask *RenderRestore
 
 	// Whether a command task is currently reading content into the view. While
 	// this is true the content is still growing, so callers (e.g. the layout)
@@ -114,14 +100,36 @@ type LinesToRead struct {
 	// subsequent requests.
 	InitialRefreshAfter int
 
-	// When set, called once, just before the view is first refreshed, to scroll
-	// it to a saved position. Used so that content the user was scrolled into is
-	// painted at the saved scroll position the first time it appears, rather than
-	// at the top. Only set for the initial read request.
-	ApplyInitialScroll func()
+	// When set, re-establishes the view's scroll position and selection as the
+	// re-render first paints (returning to a focused main view on escape). When
+	// set, it — rather than InitialRefreshAfter — also decides when the first
+	// paint happens, since the saved position may be reachable only after more
+	// than a screenful has loaded. Only set for the initial read request. See
+	// RenderRestore.
+	Restore *RenderRestore
 
 	// Function to call after reading the lines is done
 	Then func()
+}
+
+// RenderRestore re-establishes a view's scroll position and selection after it
+// re-renders content the user was already looking at (returning to a focused main
+// view on escape). The render task reads the new content into an off-screen
+// buffer; RenderRestore decides, as that buffer fills, when the task has read far
+// enough to show the saved position (FirstPaintReady), and then — once the
+// off-screen buffer has been swapped in — scrolls there and restores the
+// selection (Apply). It is a predicate rather than a fixed scroll position so the
+// target can be a row matching a patch identity, located by scanning the loading
+// content, rather than a line number that the changed content may have moved.
+type RenderRestore struct {
+	// FirstPaintReady reports whether the task has now read enough of the new
+	// (off-screen) content to first-paint at the saved position. Evaluated after
+	// each line is read.
+	FirstPaintReady func() bool
+
+	// Apply runs once, just after the off-screen render is swapped in at the first
+	// paint, to scroll to the saved position and restore the selection.
+	Apply func()
 }
 
 func (self *ViewBufferManager) GetTaskKey() string {
@@ -161,36 +169,40 @@ func (self *ViewBufferManager) ReadLines(n int) {
 	}
 }
 
-// ScrollToOriginYForNextTask makes the next cmd/pty task restore the given
-// scroll position instead of rendering at the top. Call this right before
-// triggering a re-render of content the view is already scrolled into (e.g.
-// when returning to a focused main view on escape). See the field doc for the
-// two effects this has. It is cleared once the next task starts.
-func (self *ViewBufferManager) ScrollToOriginYForNextTask(originY int) {
-	self.scrollToOriginYForNextTask = &originY
+// SetRestoreForNextTask makes the next cmd/pty task re-establish the view's
+// scroll position and selection once it has re-rendered the content. Call this
+// right before triggering a re-render of content the view was already showing
+// (returning to a focused main view on escape). See the field doc and RenderRestore.
+func (self *ViewBufferManager) SetRestoreForNextTask(restore *RenderRestore) {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	self.restoreForNextTask = restore
 }
 
-// GetScrollToOriginYForNextTask returns the scroll position requested by a
-// preceding ScrollToOriginYForNextTask call, or nil if none. It does not clear
-// it; the task clears it when it starts.
-func (self *ViewBufferManager) GetScrollToOriginYForNextTask() *int {
-	return self.scrollToOriginYForNextTask
+// GetRestoreForNextTask returns the pending restore, or nil. It is not gated on
+// the command key: returning to a focused main view after staging changes the
+// command (e.g. the unstaged diff becomes the staged one once the last unstaged
+// hunk is gone), yet the line to land on is still in the new content. The restore
+// validates itself instead — its scan simply doesn't find the target line when
+// the content no longer contains it (a different item was selected), in which case
+// applying it is a no-op. So it is safe to hand to whatever renders next.
+func (self *ViewBufferManager) GetRestoreForNextTask() *RenderRestore {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	return self.restoreForNextTask
 }
 
-// ThenForNextTask makes the next cmd/pty task run the given function once it has
-// read enough of its content (the end of its initial read). Call this right
-// before triggering a re-render whose loaded content the function depends on.
-// See the field doc for why this is preferable to a separate ReadToEnd. It is
-// cleared once the next task starts.
-func (self *ViewBufferManager) ThenForNextTask(then func()) {
-	self.thenForNextTask = then
-}
+// ClearRestoreForNextTask drops the pending restore. A task clears it once it has
+// first-painted and applied it (whether or not it found its target line), so that
+// it lives for exactly one re-render — surviving a task being stopped and replaced
+// before it could paint, but not re-applying on every later render.
+func (self *ViewBufferManager) ClearRestoreForNextTask() {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
 
-// GetThenForNextTask returns the function requested by a preceding
-// ThenForNextTask call, or nil if none. It does not clear it; the task clears it
-// when it starts.
-func (self *ViewBufferManager) GetThenForNextTask() func() {
-	return self.thenForNextTask
+	self.restoreForNextTask = nil
 }
 
 // IsLoading reports whether a command task is currently reading content into the
@@ -364,15 +376,23 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				}
 			}
 
-			// The initial read request carries an optional scroll-to function (see
-			// LinesToRead.ApplyInitialScroll). We apply it exactly once, right before
-			// the view is first refreshed, so that content the user was scrolled into
-			// is painted at the saved position the first time it appears.
-			initialScroll := linesToRead.ApplyInitialScroll
-			var applyInitialScrollOnce sync.Once
-			applyInitialScroll := func() {
-				if initialScroll != nil {
-					applyInitialScrollOnce.Do(initialScroll)
+			// The first paint swaps the off-screen render in to reveal the new
+			// content. When a restore is pending (returning to a focused main view on
+			// escape, see RenderRestore), it scrolls to the saved position and
+			// restores the selection in the same step, so the real content first
+			// appears already at the right place rather than at the top. firstPaint
+			// happens once, either when we've read far enough (below) or at end of
+			// input for content shorter than that.
+			restore := linesToRead.Restore
+			painted := false
+			firstPaint := func() {
+				if painted {
+					return
+				}
+				painted = true
+				self.swapInRender()
+				if restore != nil {
+					restore.Apply()
 				}
 			}
 
@@ -445,13 +465,12 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 								break outer
 							default:
 							}
-							// Genuine end of input: swap in whatever we read (the content was
-							// shorter than a screenful, so we never hit the InitialRefreshAfter
-							// swap). Apply the saved scroll first (if any) so that onEndOfInput
-							// clamps it back into range when the content turned out shorter than
-							// expected.
-							self.swapInRender()
-							applyInitialScroll()
+							// Genuine end of input: do the first paint now if it hasn't happened
+							// yet — the content was shorter than the first-paint point, or a
+							// restore's target line was never found. firstPaint swaps in whatever
+							// we read and, for a restore, scrolls to the saved position before
+							// onEndOfInput clamps the origin back into range for short content.
+							firstPaint()
 							self.onEndOfInput()
 							// The content is fully loaded now, so it's safe again for the
 							// layout to clamp the scroll position to it. We deliberately
@@ -483,15 +502,24 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 							time.Sleep(slowRenderPerLine)
 						}
 
-						if i+1 == linesToRead.InitialRefreshAfter {
-							// We have read enough lines to fill the view, so swap the off-screen
-							// content in and do a first refresh to show it. Apply the saved
-							// scroll first (if any) so the first paint already lands at it.
-							// Continue reading and refresh again at the end to make sure the
-							// scrollbar has the right size.
-							self.swapInRender()
-							applyInitialScroll()
-							refreshViewIfStale()
+						// Do the first paint as soon as we've read far enough: for a restore,
+						// when it can show the saved position (RenderRestore.FirstPaintReady,
+						// e.g. its target line plus a screenful below it have loaded); otherwise
+						// when we've read enough lines to fill the view (InitialRefreshAfter).
+						// This swaps the off-screen content in and refreshes; we keep reading
+						// afterwards and refresh again at the end so the scrollbar ends up the
+						// right size.
+						if !painted {
+							var ready bool
+							if restore != nil {
+								ready = restore.FirstPaintReady()
+							} else {
+								ready = linesToRead.InitialRefreshAfter > 0 && i+1 >= linesToRead.InitialRefreshAfter
+							}
+							if ready {
+								firstPaint()
+								refreshViewIfStale()
+							}
 						}
 					}
 					refreshViewIfStale()
@@ -585,15 +613,17 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		self.newTaskID++
 		taskID := self.newTaskID
 
-		// Reset the origin to the top when the command changed, unless a caller
-		// asked us to restore a scroll position: in that case we keep the
-		// placeholder showing at its current scroll until the task scrolls to the
-		// saved position as part of its first paint (see scrollToOriginYForNextTask).
-		if self.GetTaskKey() != key && self.onNewKey != nil && self.scrollToOriginYForNextTask == nil {
+		// Reset the origin to the top when the command changed, unless a restore is
+		// pending: a restore re-establishes the scroll position itself (and we keep
+		// the placeholder showing at its current scroll until it does), so resetting
+		// to the top would just flicker. The restore isn't cleared here: it must
+		// outlive a task being stopped and replaced before it could paint, and it
+		// validates itself against the content it lands in (see restoreForNextTask),
+		// so a stale one can't apply to the wrong place — it's cleared once a task
+		// has applied it.
+		if self.GetTaskKey() != key && self.onNewKey != nil && self.restoreForNextTask == nil {
 			self.onNewKey()
 		}
-		self.scrollToOriginYForNextTask = nil
-		self.thenForNextTask = nil
 		self.taskKey = key
 
 		self.taskIDMutex.Unlock()

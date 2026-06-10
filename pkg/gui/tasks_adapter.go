@@ -27,11 +27,6 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// thumb to shrink and snap back as the rest loads.
 	view.FreezeScrollbarHeight()
 
-	// If a caller asked us to restore a scroll position for this render, size the
-	// initial read to it (below) and let the task scroll there at its first paint.
-	// The task clears the request and suppresses the origin reset when it starts.
-	targetOriginY := manager.GetScrollToOriginYForNextTask()
-
 	var r io.ReadCloser
 	start := func() (*exec.Cmd, io.Reader) {
 		var err error
@@ -56,12 +51,15 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		}
 	}
 
-	linesToRead := gui.linesToReadFromCmdTask(view, targetOriginY)
-	// If a caller asked us to run something once this re-render has loaded (e.g.
-	// restoring a focused main view's selection on escape), let the task own it,
-	// firing at the end of its initial read. The task clears the request when it
-	// starts.
-	linesToRead.Then = manager.GetThenForNextTask()
+	linesToRead := gui.linesToReadFromCmdTask(view)
+	// If a restore is pending for this content (returning to a focused main view
+	// on escape), let the task re-establish the scroll position and selection as
+	// it first paints. It also reads to end of input so a deep target line is
+	// found and the scrollbar ends up accurate. See RenderRestore.
+	if restore := manager.GetRestoreForNextTask(); restore != nil {
+		linesToRead.Restore = restore
+		linesToRead.Total = -1
+	}
 	if err := manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr); err != nil {
 		gui.c.Log.Error(err)
 	}

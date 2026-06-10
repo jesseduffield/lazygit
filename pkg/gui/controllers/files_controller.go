@@ -419,7 +419,7 @@ func (self *FilesController) GetOnDoubleClick() func() error {
 func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
 	return func(mainViewName string, clickedLineIdx int) error {
 		// Capture before any mutation below that might re-render the main view.
-		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context(), clickedLineIdx)
+		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context())
 
 		info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, clickedLineIdx)
 		line := -1
