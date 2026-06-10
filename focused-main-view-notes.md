@@ -1290,6 +1290,10 @@ restructures the diff.
 
 > **Update (session 7):** steps 1 and 2 below are **done** — see §16. Remaining: step
 > 3 (side-by-side delta) and the OSC spec draft.
+>
+> **Update (parallel session, 2026-06-10):** step 3 is **done** too — see §17. The
+> side-by-side prototype shows **v1 needs no format change** (correcting the guess
+> below that it "will likely add payload/format"); only the OSC spec draft remains.
 
 1. **Preserve scroll/selection when `{`/`}` change the `-U` context size** (diff-line
    consumer #5). **[done — §16.1]** Reuses the identity-restore machinery directly: capture the
@@ -1319,13 +1323,14 @@ restructures the diff.
    - #1 and #2 share the "scan rows for a metadata boundary/identity" core, so they
      pair in one session (#5 = restore-across-rerender path; nav = immediate path).
 3. **Side-by-side delta mode** — prototype in **parallel, in the delta repo**
-   (doesn't touch lazygit). Feeds the spec (below).
+   (doesn't touch lazygit). Feeds the spec (below). **[done — §17; v1 suffices, no
+   format change]**
 
 **OSC spec write-up:** a **draft**, not final — present it to pager devs *for
 feedback*. The unified single-column wire format is validated (§9.2) and can be
-presented confidently; the two open items to flag are the **OSC number** (456 is a
-placeholder) and **side-by-side** (the parallel prototype will likely add
-payload/format). Write it after/alongside side-by-side so it speaks to both modes.
+presented confidently; **side-by-side is now validated too** (§17 — v1 needs no
+addition), so the draft speaks to both modes. The one remaining open item to flag is
+the **OSC number** (456 is a placeholder, pending a terminal-allocation audit).
 
 **Decisions locked (session 6):** concurrency stays **mutex-based**, including for
 productionization (the main-thread-mutation rework is a separate, later effort — do
@@ -1511,3 +1516,95 @@ longer described it). The #5 amend! also carries the shared-helper generalizatio
 prep-refactor commit but can't be split out non-interactively (same file, and the
 context-change caller it adapts didn't exist at the prep commit) — fold or re-split as
 preferred.
+
+---
+
+## 17. Side-by-side delta prototype (parallel session) — feeds the OSC spec
+
+§15 step 3: extend delta's per-line metadata emission to **side-by-side** mode. Done in
+the delta repo (`prototype-osc-metadata`, commit `bbec9b5`), parallel to session 7 and
+independent of lazygit. This is the input the OSC spec draft was waiting on for its
+second open item — and the answer turned the open item into a *closed* one.
+
+### 17.1 What it does — per-cell attachment
+
+Unified delta funnels every content line through one emit point (`Painter::paint_lines`),
+so the metadata rode there. Side-by-side doesn't: it paints each visual row as **two
+panel halves** via `Painter::paint_line` (singular), so the OSC is attached **per cell**:
+
+- **left half → the minus line's identity** (`d`, carries new+old numbers),
+- **right half → the plus line's identity** (`a`, carries new),
+- **a context line — shown in both halves → the same `c` record before each half.**
+
+Empty counterpart cells (the blank half of a pure add/delete) and wrapped continuation
+rows carry **no** OSC. So a changed line — a paired minus/plus on one visual row — carries
+**two** records on that row: `d` before the left gutter, `a` before the right.
+
+### 17.2 The verdict: v1 needs NO addition for side-by-side
+
+This **resolves** the spec's side-by-side open item and **corrects** §15's guess that the
+parallel prototype "will likely add payload/format" — it doesn't. The v1 wire format
+(`version ; type ; new-line ; old-line ; file`) suffices, **with no column/side
+discriminator**, because:
+
+- **`type` already implies the column**: `a` (added) is inherently the new/right side, `d`
+  (deleted) the old/left side. The host needs no extra field to know which column an
+  `a`/`d` cell belongs to.
+- **context (`c`) is symmetric**: the same record is emitted before both halves, so the two
+  columns are indistinguishable *by payload* — but they don't need to be, because they're
+  the same logical line. The host tells the columns apart **by position**, which it does
+  anyway.
+
+A side discriminator would only earn its keep to disambiguate the `c` case, and that case
+needs no disambiguation. So: don't add one to v1.
+
+### 17.3 The one latent v1 gap (shared with unified, not SxS-specific)
+
+Side-by-side makes one v1 limitation *visible* that unified hid: **context and addition
+records carry no old-file line number** (the `old-line` field is empty for `c` and `a`). In
+side-by-side the old/left column is right there on screen, so the temptation to read an
+old-file number off a left-column cell is real — but the metadata doesn't carry it.
+Concretely, with a net insertion above a context line so old≠new:
+
+```
+{{OSC 1;c;3;;b/b.py}}│  2 │ctx_b   {{OSC 1;c;3;;b/b.py}}│  3 │ctx_b
+```
+
+the left gutter shows old line **2**, but both halves' OSC says `new=3`. A host reading the
+left cell gets the *new* number, not the old.
+
+This is **not forced by side-by-side** — unified's `c` record has the same empty
+`old-line`. It's a pre-existing v1 property that SxS merely surfaces. If we ever need
+per-column-exact numbers, the fix is **carry both numbers on every record** (a v2 change
+applying to *both* modes), not a side-only tag. For now nothing in the host needs the
+old-file number (the §16 consumers key on `type`/`file`/change-block structure and the
+new-file line), so v1 stays as is.
+
+### 17.4 Implication for the lazygit reader (when productionized)
+
+The host's row→identity model must become **row+column→identity** for side-by-side: a
+single rendered row can carry two records (the changed-line case), keyed by which column
+the OSC precedes. The §16 consumers (nav, restore) were prototyped and tested against
+**unified-shaped** output only — one record per row — and have **not** been exercised
+against side-by-side delta output. Two things to check when that's wired up: the resolver
+(`diffLineInfoFromContents`) must accept two OSCs on one line and bucket them by column,
+and the change-block/file scanning (§16.2) must decide whether a "row" is a left-or-right
+cell or the pair. Out of scope for the prototype; flagged for productionization.
+
+### 17.5 Implementation gotcha + verification
+
+- **Counter ordering.** Side-by-side advances delta's line-number counters **per aligned
+  row** (with increment flags and post-hoc fixups), *not* in the unified
+  "all-minus-then-all-plus" order the emitter's counter arithmetic assumes. So the OSC
+  strings can't be produced inline at each panel paint — they're **precomputed** over the
+  whole minus block, then the whole plus block (the unified order), and looked up by index
+  during painting. Context lines also had to be threaded through
+  `paint_zero_lines_side_by_side`, which previously never saw the emitter — without that
+  the counters would desync across context lines. Records come out byte-identical to the
+  single-column emitter.
+- **Verified in delta**: payloads correct per column (incl. the paired-row two-record case
+  and wrapped continuations carrying none); stripping the OSC456 sequences yields
+  **byte-identical** output to unpatched delta across `spaces`/`ansi` fill, narrow-width
+  truncation, `--syntax-theme=none`, wrapping, and `--keep-plus-minus-markers`; full suite
+  (437 tests) green. **Host (lazygit) consumption of SxS output is a separate, later
+  step** — not done here.
