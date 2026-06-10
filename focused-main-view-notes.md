@@ -1547,6 +1547,13 @@ Empty counterpart cells (the blank half of a pure add/delete) and wrapped contin
 rows carry **no** OSC. So a changed line — a paired minus/plus on one visual row — carries
 **two** records on that row: `d` before the left gutter, `a` before the right.
 
+> **Correction (after the difftastic prototype, see diff-line-metadata-notes.md §10.8):**
+> "wrapped continuation rows carry no OSC" is a **bug**, not a feature, whenever the
+> *pager* does the wrapping (delta with `wrap-max-lines`, difftastic side-by-side):
+> each wrapped row is a distinct host buffer line, so `e`/`enter`/hunk-nav break on
+> the un-tagged continuations. The fix — emit the line's record on **every** wrapped
+> output row — was applied to difftastic; **delta still needs it** here.
+
 ### 17.2 The verdict: v1 needs NO addition for side-by-side
 
 This **resolves** the spec's side-by-side open item and **corrects** §15's guess that the
