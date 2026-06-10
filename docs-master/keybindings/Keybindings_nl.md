@@ -233,6 +233,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Show/hide selection |  |
+| `` <left>, h `` | Selecteer de vorige hunk |  |
+| `` <right>, l `` | Selecteer de volgende hunk |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` / `` | Start met zoeken |  |
 
 ## Patch bouwen
@@ -309,6 +313,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Show/hide selection |  |
+| `` <left>, h `` | Selecteer de vorige hunk |  |
+| `` <right>, l `` | Selecteer de volgende hunk |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` / `` | Start met zoeken |  |
 
 ## Staging

@@ -389,6 +389,8 @@ type TranslationSet struct {
 	AskQuestion                           string
 	PrevHunk                              string
 	NextHunk                              string
+	PrevFile                              string
+	NextFile                              string
 	PrevConflict                          string
 	NextConflict                          string
 	SelectPrevHunk                        string
@@ -1529,6 +1531,8 @@ func EnglishTranslationSet() *TranslationSet {
 		AskQuestion:                          "Ask Question",
 		PrevHunk:                             "Go to previous hunk",
 		NextHunk:                             "Go to next hunk",
+		PrevFile:                             "Go to previous file",
+		NextFile:                             "Go to next file",
 		PrevConflict:                         "Previous conflict",
 		NextConflict:                         "Next conflict",
 		SelectPrevHunk:                       "Previous hunk",

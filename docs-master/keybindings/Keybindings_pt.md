@@ -237,6 +237,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Show/hide selection |  |
+| `` <left>, h `` | Ir para o local anterior |  |
+| `` <right>, l `` | Ir para o próximo trecho |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Painel Principal (preparação)
@@ -340,6 +344,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Show/hide selection |  |
+| `` <left>, h `` | Ir para o local anterior |  |
+| `` <right>, l `` | Ir para o próximo trecho |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Stash

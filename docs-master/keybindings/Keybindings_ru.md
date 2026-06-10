@@ -76,6 +76,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Show/hide selection |  |
+| `` <left>, h `` | Выбрать предыдущую часть |  |
+| `` <right>, l `` | Выбрать следующую часть |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` / `` | Найти |  |
 
 ## Главная панель (Индексирование)
@@ -109,6 +113,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Show/hide selection |  |
+| `` <left>, h `` | Выбрать предыдущую часть |  |
+| `` <right>, l `` | Выбрать следующую часть |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` / `` | Найти |  |
 
 ## Главная панель (Слияние)
