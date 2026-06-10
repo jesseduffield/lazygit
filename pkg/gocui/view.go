@@ -1747,6 +1747,23 @@ func (v *View) DiffLineContents() []DiffLineContent {
 	return diffLineContents(v.buf)
 }
 
+// OffscreenDiffLineContents returns the per-line diff material (see
+// DiffLineContent) for the lines read so far into an in-progress off-screen
+// re-render (see BeginOffscreenRender), or nil when no off-screen render is
+// underway. While a focused main view re-renders, its displayed buffer still
+// holds the previous render; this is how the escape restore scans the *incoming*
+// content as it loads, to find the row matching a target patch identity and
+// decide when it has read far enough to swap in and scroll there.
+func (v *View) OffscreenDiffLineContents() []DiffLineContent {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.offscreen == nil {
+		return nil
+	}
+	return diffLineContents(v.offscreen)
+}
+
 func diffLineContents(buf *viewBuffer) []DiffLineContent {
 	contents := make([]DiffLineContent, len(buf.lines))
 	for i, line := range buf.lines {
@@ -1800,6 +1817,24 @@ func (v *View) bufferLineForViewLine(y int) (int, bool) {
 	}
 
 	return linesY, true
+}
+
+// ViewLineForBufferLine maps an unwrapped buffer line index to the index of the
+// first (wrapped) view line that renders it — the inverse of BufferLineForViewLine.
+// The escape restore uses it to turn the buffer line it matched against a target
+// patch identity into the view line to scroll to and select. Returns false if the
+// buffer line isn't currently rendered into any view line.
+func (v *View) ViewLineForBufferLine(bufferLineIdx int) (int, bool) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+	for i, vl := range v.viewLines {
+		if vl.linesY == bufferLineIdx {
+			return i, true
+		}
+	}
+	return 0, false
 }
 
 // indexFunc allows to split lines by words taking into account spaces
