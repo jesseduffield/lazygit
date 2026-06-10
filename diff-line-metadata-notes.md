@@ -113,7 +113,8 @@ fidelity out of delta's default rendering.
 | `delta --color-only --line-numbers` | ❌ (gutter; see note above) | ✅ if patched |
 | `diff-so-fancy` / `--patch` (strips `+`/`-`) | ❌ | ✅ if patched |
 | delta default (color-conveyed side, gutters) | ❌ | ✅ if patched |
-| difftastic / side-by-side | ❌ | ✅ if patched |
+| difftastic / side-by-side | ❌ | ✅ **prototyped, §10** |
+| difftastic / inline | ❌ | ✅ **prototyped, §10** |
 | `git --word-diff` | ❌ | ✅ if patched (out of scope) |
 
 `#2 attachment present → use it; else parse the buffer (#1); else give up
@@ -282,8 +283,11 @@ patch-find for added/context, PR `R` anchor).
   new-start, but hunk boundaries are also derivable from coordinate
   discontinuities in the content lines, so it may be unnecessary. `file-header`
   needs no line numbers (the `file` field already attributes every line).
-- **difftastic specifics:** how many regions per row in practice, and where
-  exactly it should emit each attachment.
+- ~~**difftastic specifics:**~~ **RESOLVED (#2 difftastic prototype, §10).** Two
+  regions per row (one per side-by-side column), not N — token-level novelty is
+  sub-cell colouring, not separate identity (§10.3). Each is emitted at the start
+  of its column, before the line-number gutter. The prototype also surfaced a
+  token-vs-line **model mismatch** (§10.2) the unified-diff pagers hid.
 - ~~**v1 wire format:**~~ **RESOLVED (#2 prototype, §9).** Positional, `;`-delimited,
   `file` last so it may itself contain `;`; an absent `old-line` is the empty field.
 - **Should the pager always emit, or only when the env var is set?** Leaning
@@ -298,9 +302,13 @@ The prototype is a learning vehicle, not production code: its two jobs are to
 feedback) and to **inform a from-scratch production plan**.
 
 > **Status:** steps 1–4 are done and step 5 is end-to-end verified for the
-> NORMAL (unified, single-column) case — see §8 (#1) and §9 (#2). What remains of
-> step 5 is the *deliverables*: finalize and publish the spec, and write the
-> production plan. Side-by-side and difftastic are untouched.
+> NORMAL (unified, single-column) case — see §8 (#1) and §9 (#2). Side-by-side
+> delta is prototyped (focused-main-view-notes.md §17) and **difftastic is
+> prototyped in both modes (§10)** — so the emitter side now spans the full
+> coverage table. What remains of step 5 is the *deliverables*: finalize and
+> publish the spec (now informed by difftastic's §10.2 model-mismatch finding),
+> and write the production plan. Host *consumption* of side-by-side / difftastic
+> output is still a separate, later step.
 
 Sequence:
 
@@ -552,3 +560,172 @@ advertises `EMIT_OSC456_METADATA=V1` on the pager subprocess in `newPtyTask`.
 pager developers (after the §3.4 terminal audit picks the real OSC number), and
 write the from-scratch production plan. Then extend coverage to side-by-side and
 difftastic (multiple regions per row, §3.1), which this iteration ignored.
+
+> **Update (difftastic prototype, 2026-06-10):** difftastic is now prototyped too
+> — see §10. It is the **categorical** #2-only case (no `@@`/`+`/`-` to parse in
+> *either* of its modes), and it stress-tested the format against a model #2 was
+> never built around. Headline: v1 holds, but difftastic surfaces a real
+> **token-vs-line model mismatch** the unified-diff pagers hid (§10.2).
+
+---
+
+## 10. difftastic emitter prototype — built & verified
+
+§15 step 3's sibling: extend the #2 emitter to **difftastic**, the one pager #1
+*categorically* cannot serve (it restructures the diff in every mode). Done in
+the difftastic repo on branch `prototype-osc-metadata` (two commits: side-by-side,
+then inline), parallel to and independent of lazygit, mirroring the delta work
+(§9). It emits the **same v1 wire format** (§9.2) under the **same
+`EMIT_OSC456_METADATA` handshake**, so one host reader consumes either pager.
+
+### 10.1 What was built, and why it was *simpler* than delta
+
+Both of difftastic's text modes now emit per-cell metadata:
+
+- **Side-by-side (default/signature mode)** — `src/display/side_by_side.rs`. The
+  left (old-file) column carries the deleted/old line's record, the right
+  (new-file) column the added/new line's; a modification — one aligned row, old
+  left / new right — emits **two records** (`d` left, `a` right), exactly as a
+  unified diff splits a change into a `-` and a `+`. Context lines (shown on both
+  sides) emit the same `c` before each half. Wrapped continuation rows and the
+  blank counterpart half of a pure add/delete carry none. The whole-file
+  single-column add/delete path is covered too (`d` with new-line **0** for a
+  deleted file, matching delta's `@@ -1,N +0,0 @@`).
+- **Inline mode** — `src/display/inline.rs` (§10.5).
+- **Shared emitter** — `src/display/diff_line_metadata.rs`: `negotiated_version()`
+  (a verbatim port of delta's handshake) plus pure `left_cell`/`right_cell`/
+  `single_column_cell` formatters. Unit-tested (7 cases).
+
+**It was markedly less code than delta**, and that itself is a finding about how
+well-matched the format is to a structural tool:
+
+- **difftastic already has the line numbers natively.** It *always* renders
+  old/new gutters, so each row arrives as an aligned
+  `(Option<LineNumber>, Option<LineNumber>)`. delta had to track its *own* old/new
+  counters seeded from each `@@` header (delta's counters are dormant unless
+  `--line-numbers`); difftastic needs **no counter tracking at all** — each
+  record falls straight out of the row's two line numbers and its novelty.
+- **The file path is a parameter** (`display_path`), not parsed from a `+++`
+  header, so the emitter is created once per file with the path fixed — no
+  hunk-header plumbing.
+- **Purely additive**, like delta: only injects OSC bytes. With the var unset the
+  output is **byte-for-byte identical** to stock difftastic (verified by stripping
+  the OSC456 sequences and `cmp` across side-by-side, inline, and whole-file
+  cases; all 127 unit + 23 integration tests green).
+
+### 10.2 THE headline finding: a token-vs-line model mismatch v1 can't fully express
+
+The unified-diff pagers (git, delta, diff-so-fancy) all derive from git's
+**line-granular** patch, where a modified line is *by construction* a `-` line
+plus a `+` line. The c/a/d type set was shaped by that model and fits it exactly.
+difftastic is **token-granular**: it aligns an old line with a new line and marks
+novelty *per token*. That produces aligned rows the line model has no clean slot
+for. Concretely (real output, `let x=1; println!("{}", x);` → `let x=2; let y=3;
+println!("{}", x + y);`):
+
+```
+{OSC ...;c;4;;src/lib.rs}3     println!("{}", x);   {OSC ...;a;4;;src/lib.rs}4     println!("{}", x + y);
+```
+
+The old line `println!("{}", x);` has **no novel tokens** (all of them survive
+into the new line; difftastic colours it as plain context, not novel-red),
+while the new line added `+ y`. So difftastic's faithful per-cell verdict is
+**`c` on the left, `a` on the right** — the *same aligned row* carries a context
+record and an addition record. There is no `d` for the old side, because by
+difftastic's model nothing was deleted.
+
+Consequence for a host mapping cells to git's patch (lazygit stages against the
+real `git diff`, the same change being `-println!("{}", x);` / `+…x + y);`):
+
+- the **right/added** cell resolves correctly (`a; new=4` → git's `+` line);
+- the **left/old** cell resolves as **context at the *new* line 4**, *not* git's
+  `-` line for old line 3. Its old-file deletion identity is not recoverable from
+  the record.
+
+Practical impact is small — users click the changed (green) side, and `e` (edit)
+on the left still opens new-file line 4 — but it is a genuine semantic gap, and
+exactly the kind of thing the prototype exists to find. **The faithful emission
+was chosen deliberately** (it surfaces the mismatch rather than hiding it).
+
+Options to flag for the spec / production, none taken now:
+- **Host-side:** treat an old-column cell that is aligned with a novel new line as
+  the `-` side of a modification (the host knows it's the left column).
+- **Emitter-side:** difftastic could emit `d` for the old side of *any* aligned
+  changed row (v1-compatible — no format change). But that re-imposes the
+  line-granular model difftastic exists to escape, and discards its more precise
+  "this content was not removed" judgement. Probably wrong to force.
+- **A `modified`/`m` type** (v2) that means "aligned, changed, present on both
+  sides" would name the case directly — but it splits the clean c/a/d staging
+  mapping (§4) and every pager would have to agree when to use it. Not obviously
+  worth it; record as a v2 candidate, not a v1 gap.
+
+### 10.3 "N regions per row" was an over-estimate — it's 2, same as delta SxS
+
+§3.1 worried difftastic would need the per-cell carrier to hold **N** attachments
+per row. It doesn't. A side-by-side visual row is exactly **two columns → at most
+two records** (one per column), identical to delta's side-by-side (§17). What is
+genuinely N-ary in difftastic — token-level novelty — is **sub-cell colouring, not
+separate identity regions**: a row's left cell is one patch line however many
+tokens are highlighted within it. So the existing per-cell mechanism (§3.1) and
+the host's row+column→identity model (§17.4) already suffice; **no N-region
+machinery is needed.** (Resolves the §6 "difftastic specifics: how many regions
+per row" open question: two.)
+
+### 10.4 §17.3 amplified — context/added records carrying no old-line bites harder here
+
+The delta-SxS finding (§17.3: `c`/`a` carry no `old-line`) is **worse** for
+difftastic, and unavoidable rather than latent:
+
+- difftastic's left column **always** shows real old-file line numbers (it's the
+  primary mode, not an opt-in), so the temptation/need to read an old number off a
+  left cell is constant.
+- old ≠ new is the **norm**, and the offset is **not constant** — it follows
+  difftastic's structural alignment, not a per-hunk delta. In the example above the
+  left context cell shows old line **3** but its record is `c; new=4`; old=3 is
+  **not derivable** from new=4 (with delta it would be new minus a per-hunk
+  constant). So for difftastic, "carry both numbers on every record" (the v2 move
+  §17.3 floated) is the *only* way to make a left-column old number available.
+
+Still: nothing in the §16 host consumers needs the old number today (they key on
+`type`/`file`/new-line), so v1 stays as is — but difftastic is the strongest
+argument yet for the v2 "both numbers always".
+
+### 10.5 The one synthesized field, and the inline grouped-layout demo
+
+- **A pure deletion's `new-line` is the only derived field.** Having no linear
+  new-file counter, difftastic computes it from the *previous aligned new line*
+  (`prev_rhs + 1`), mirroring delta's "a deletion sits at the following new line".
+  Verified correct for the common case; it can drift across hunk boundaries or with
+  `num_context_lines = 0` (the previous new line is then far away). Documented, not
+  a blocker — the deletion's *old*-line (its real identity for staging) is always
+  exact; only the editor-target new-line is approximate.
+- **Inline mode proves the metadata's worth beyond layout.** Inline groups **all
+  old-side lines, then all new-side lines** (not interleaved like git). A
+  modification's `d` (deletions group) and `a` (additions group) are therefore
+  emitted *far apart* in the stream — yet both reference the same new-file line and
+  the `d` carries the old line, so the host reconstructs each line's identity from
+  the numbers alone. A positional or structural re-parse of inline output could not
+  pair them. (The inline type comes from the novel-line sets, not the all-or-nothing
+  novelty difftastic uses for *colouring*, so a context line inside a hunk is tagged
+  `c`.)
+
+### 10.6 Verification
+
+- **Bytes** (`cat -v` on the real debug binary): correct per-cell records across
+  context / modification / pure addition / pure deletion in **both** modes; the
+  asymmetric `c`+`a` row above; wrapped lines (only the first visual row tagged);
+  whole-file add (`a`) and delete (`d; new=0`). Byte-identical to stock difftastic
+  when the var is unset (multiple `cmp` checks).
+- **Realistic invocation**: driven as `GIT_EXTERNAL_DIFF` on a Rust file (how
+  lazygit would invoke it) — the `file` field is git's repo-relative path
+  (`src/lib.rs`), which the host normalises via `WorktreePath()` as for delta.
+- **Tests**: 7 new emitter unit tests + the existing 30 display + full suite (127
+  unit, 23 integration) all green; `cargo fmt` clean.
+
+### 10.7 Host consumption is still a separate, later step (as for delta SxS)
+
+Not done here, same as §17.4. When wired up, difftastic is exactly the
+**row+column→identity** case (§17.4): a single visual row carries up to two records
+keyed by column. Its max-two-per-row shape is identical to delta side-by-side, so
+the same host work covers both. The §10.2 model mismatch is a host-design input,
+not a carrier/parser change.
