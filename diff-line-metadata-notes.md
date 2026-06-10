@@ -507,7 +507,12 @@ emits V1 when the advertised list contains `V1`.
 - **Wrapped continuation rows** (`Hunk*Wrapped`) get no attachment in the prototype
   — only the primary content row does. Fine for the normal case (gocui's own
   wrapping is handled host-side by the view-line→buffer-line mapping); delta-level
-  wrapping of one logical line into several rows is the unhandled case.
+  wrapping of one logical line into several rows is the unhandled case. **This is
+  now confirmed a real bug** (via the difftastic prototype, §10.8): when the *pager*
+  wraps, each row is a distinct host buffer line and needs its own record, so `e`/
+  `enter`/hunk-nav break on continuation rows. difftastic was fixed to tag every
+  wrapped row; **delta needs the same fix** (`wrap-max-lines`) when its patch is
+  revisited.
 - **Header rows** (`@@`, `diff --git`, `---`/`+++`) get no attachment; acting on a
   header row falls through to #1, then to no-selection.
 
@@ -587,10 +592,12 @@ Both of difftastic's text modes now emit per-cell metadata:
   (new-file) column the added/new line's; a modification — one aligned row, old
   left / new right — emits **two records** (`d` left, `a` right), exactly as a
   unified diff splits a change into a `-` and a `+`. Context lines (shown on both
-  sides) emit the same `c` before each half. Wrapped continuation rows and the
-  blank counterpart half of a pure add/delete carry none. The whole-file
-  single-column add/delete path is covered too (`d` with new-line **0** for a
-  deleted file, matching delta's `@@ -1,N +0,0 @@`).
+  sides) emit the same `c` before each half. **Every visual row of a
+  difftastic-wrapped line carries its record** (not just the first — §10.8); only
+  a side's padding rows once its wrapped content is exhausted, and the blank
+  counterpart half of a pure add/delete, carry none. The whole-file single-column
+  add/delete path is covered too (`d` with new-line **0** for a deleted file,
+  matching delta's `@@ -1,N +0,0 @@`).
 - **Inline mode** — `src/display/inline.rs` (§10.5).
 - **Shared emitter** — `src/display/diff_line_metadata.rs`: `negotiated_version()`
   (a verbatim port of delta's handshake) plus pure `left_cell`/`right_cell`/
@@ -713,7 +720,8 @@ argument yet for the v2 "both numbers always".
 
 - **Bytes** (`cat -v` on the real debug binary): correct per-cell records across
   context / modification / pure addition / pure deletion in **both** modes; the
-  asymmetric `c`+`a` row above; wrapped lines (only the first visual row tagged);
+  asymmetric `c`+`a` row above; wrapped lines (**every** visual row tagged, the
+  exhausted side's padding rows excepted — §10.8);
   whole-file add (`a`) and delete (`d; new=0`). Byte-identical to stock difftastic
   when the var is unset (multiple `cmp` checks).
 - **Realistic invocation**: driven as `GIT_EXTERNAL_DIFF` on a Rust file (how
@@ -729,3 +737,44 @@ Not done here, same as §17.4. When wired up, difftastic is exactly the
 keyed by column. Its max-two-per-row shape is identical to delta side-by-side, so
 the same host work covers both. The §10.2 model mismatch is a host-design input,
 not a carrier/parser change.
+
+### 10.8 Pager-level wrapping must tag *every* row — a spec correction (and a delta bug)
+
+Found by the user testing the prototype in lazygit. The first cut followed the
+delta convention "wrapped continuation rows carry no attachment" (§3.1, §9.3,
+§17.1). **That convention is wrong whenever the *pager itself* wraps a long line**,
+and it produced two concrete bugs in lazygit on difftastic side-by-side output:
+pressing `e`/`enter` on a continuation row did nothing (no metadata to resolve),
+and hunk navigation (`<right>`) stopped on *every* row because the un-tagged
+continuation rows broke each wrapped change line into one block per visual row.
+
+The root distinction the original convention missed:
+
+- **Terminal/host wrapping** — the pager emits *one* line and the terminal (or
+  gocui) wraps it into several *view* lines of *one buffer line*. Here only the
+  primary row needs metadata; the host's view-line→buffer-line mapping already
+  routes every view line of that buffer line to it. This is the case §3.1 had in
+  mind, and it's correct *for that case*.
+- **Pager wrapping** — the pager emits *several* lines (several `\n`s) for one
+  logical line, as difftastic's side-by-side does (and delta does with
+  `wrap-max-lines`). Now each wrapped row is a **distinct buffer line** to the
+  host; there is nothing tying row N+1 back to row N, so each must carry its own
+  metadata or it has none.
+
+**Fix (difftastic):** every visual row of a wrapped line now carries the same
+record (`amend!` into the side-by-side commit). A side that has run out of
+wrapped content carries none on its padding rows (no content there to identify);
+the still-wrapping side carries the record on each. Verified: a 6-row wrapped
+modification tags all six (`d`/`a`), and an uneven wrap tags only the side still
+producing content. So `e`/`enter` resolve on any row and nav treats the wrapped
+line as one block.
+
+**Spec consequence:** state the rule positively — *the pager emits the line's
+record at the start of **every output row** it produces for that line, including
+its own wrapped continuations.* The host attaches per buffer line, so it just
+works; pagers that rely on terminal wrapping emit one row and are unaffected.
+
+**Delta has the same latent bug** (§9.3 noted wrapped rows get no attachment "in
+the prototype"; with `wrap-max-lines` delta emits multiple rows too). Not yet
+fixed there — when the delta patch is revisited, apply the same change: emit the
+record on every wrapped output row, not just the first.
