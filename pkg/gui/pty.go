@@ -150,10 +150,14 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		// focused main view on escape), let the task re-establish the scroll
 		// position and selection as it first paints, reading to end of input so a
 		// deep target line is found and the scrollbar ends up accurate.
-		if restore := manager.GetRestoreForNextTask(); restore != nil {
+		restore := manager.GetRestoreForNextTask()
+		if restore != nil {
 			linesToRead.Restore = restore
 			linesToRead.Total = -1
 		}
+		// New content scrolls back to the top at the first paint; same content keeps
+		// its scroll, and a restore places the scroll itself. See LinesToRead.ResetOrigin.
+		linesToRead.ResetOrigin = restore == nil && cmdStr != manager.GetTaskKey()
 		return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr)
 	})
 

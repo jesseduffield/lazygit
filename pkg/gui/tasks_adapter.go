@@ -65,10 +65,15 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// on escape), let the task re-establish the scroll position and selection as
 	// it first paints. It also reads to end of input so a deep target line is
 	// found and the scrollbar ends up accurate. See RenderRestore.
-	if restore := manager.GetRestoreForNextTask(); restore != nil {
+	restore := manager.GetRestoreForNextTask()
+	if restore != nil {
 		linesToRead.Restore = restore
 		linesToRead.Total = -1
 	}
+	// New content (a different command than the view last showed) scrolls back to
+	// the top, at the first paint; same content keeps its scroll, and a restore
+	// places the scroll itself. See LinesToRead.ResetOrigin.
+	linesToRead.ResetOrigin = restore == nil && cmdStr != manager.GetTaskKey()
 	if err := manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr); err != nil {
 		gui.c.Log.Error(err)
 	}
