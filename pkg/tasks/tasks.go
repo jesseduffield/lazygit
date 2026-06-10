@@ -44,7 +44,14 @@ type ViewBufferManager struct {
 	newTaskID    int
 	readLines    chan LinesToRead
 	taskKey      string
-	onNewKey     func()
+
+	// Resets the view's scroll position to the top. A render whose content is
+	// different from what the view last showed (a different command key) calls
+	// this — but at its *first paint*, not when the task starts: the off-screen
+	// render leaves the previous content displayed until the swap, so resetting
+	// the origin up front would scroll that still-displayed content to the top
+	// before the new content replaces it. See LinesToRead.ResetOrigin.
+	resetOrigin func()
 
 	// When non-nil, the next cmd/pty task re-establishes the view's scroll
 	// position and selection once it has re-rendered the content (returning to a
@@ -108,6 +115,15 @@ type LinesToRead struct {
 	// RenderRestore.
 	Restore *RenderRestore
 
+	// When true, the view's scroll position is reset to the top at the first paint
+	// (the swap), because this render's content differs from what the view last
+	// showed. Set for a new command key with no Restore; left false when
+	// re-rendering the same content (keep the scroll) or when a Restore will place
+	// the scroll itself. Doing it at the first paint rather than at task start
+	// keeps the previous content, still displayed off-screen until the swap, from
+	// visibly jumping to the top first.
+	ResetOrigin bool
+
 	// Function to call after reading the lines is done
 	Then func()
 }
@@ -142,7 +158,7 @@ func NewViewBufferManager(
 	beforeStart func(),
 	refreshView func(),
 	onEndOfInput func(),
-	onNewKey func(),
+	resetOrigin func(),
 	beginRender func(),
 	swapInRender func(),
 	newGocuiTask func() gocui.Task,
@@ -154,7 +170,7 @@ func NewViewBufferManager(
 		refreshView:  refreshView,
 		onEndOfInput: onEndOfInput,
 		readLines:    nil,
-		onNewKey:     onNewKey,
+		resetOrigin:  resetOrigin,
 		beginRender:  beginRender,
 		swapInRender: swapInRender,
 		newGocuiTask: newGocuiTask,
@@ -341,6 +357,13 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				loadingMutex.Lock()
 				if !loaded {
 					self.beforeStart()
+					// beforeStart cleared the previous content to show "loading...". If
+					// this is new content, reset the scroll to the top now so the message
+					// is visible (beforeStart doesn't touch the origin); for a same-content
+					// re-render we keep the scroll, as the first paint will too.
+					if linesToRead.ResetOrigin && self.resetOrigin != nil {
+						self.resetOrigin()
+					}
 					_, _ = self.writer.Write([]byte("loading..."))
 					self.refreshView()
 				}
@@ -377,12 +400,14 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 			}
 
 			// The first paint swaps the off-screen render in to reveal the new
-			// content. When a restore is pending (returning to a focused main view on
-			// escape, see RenderRestore), it scrolls to the saved position and
-			// restores the selection in the same step, so the real content first
-			// appears already at the right place rather than at the top. firstPaint
-			// happens once, either when we've read far enough (below) or at end of
-			// input for content shorter than that.
+			// content, and settles the scroll position in the same step — so the new
+			// content first appears already where it belongs. A restore (returning to
+			// a focused main view on escape, see RenderRestore) scrolls to its saved
+			// position and restores the selection; otherwise, if this is new content
+			// (ResetOrigin), the scroll resets to the top. Either way it happens at
+			// the swap, not before, so the previous content — displayed until the swap
+			// — doesn't visibly jump first. firstPaint happens once, either when we've
+			// read far enough (below) or at end of input for content shorter than that.
 			restore := linesToRead.Restore
 			painted := false
 			firstPaint := func() {
@@ -393,6 +418,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				self.swapInRender()
 				if restore != nil {
 					restore.Apply()
+				} else if linesToRead.ResetOrigin && self.resetOrigin != nil {
+					self.resetOrigin()
 				}
 			}
 
@@ -613,17 +640,14 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		self.newTaskID++
 		taskID := self.newTaskID
 
-		// Reset the origin to the top when the command changed, unless a restore is
-		// pending: a restore re-establishes the scroll position itself (and we keep
-		// the placeholder showing at its current scroll until it does), so resetting
-		// to the top would just flicker. The restore isn't cleared here: it must
-		// outlive a task being stopped and replaced before it could paint, and it
-		// validates itself against the content it lands in (see restoreForNextTask),
-		// so a stale one can't apply to the wrong place — it's cleared once a task
-		// has applied it.
-		if self.GetTaskKey() != key && self.onNewKey != nil && self.restoreForNextTask == nil {
-			self.onNewKey()
-		}
+		// Note we don't reset the origin here even when the command key changed:
+		// that's deferred to the task's first paint (see resetOrigin / the task's
+		// ResetOrigin), so the previous content — left displayed off-screen until
+		// the swap — doesn't visibly jump to the top before the new content appears.
+		// The restore isn't cleared here either: it must outlive a task being stopped
+		// and replaced before it could paint, and it validates itself against the
+		// content it lands in (see restoreForNextTask), so a stale one can't apply to
+		// the wrong place — it's cleared once a task has applied it.
 		self.taskKey = key
 
 		self.taskIDMutex.Unlock()
