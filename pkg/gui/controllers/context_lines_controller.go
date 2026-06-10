@@ -83,6 +83,12 @@ func (self *ContextLinesController) applyChange() error {
 	case context.STAGING_MAIN_CONTEXT_KEY, context.STAGING_SECONDARY_CONTEXT_KEY:
 		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STAGING}})
 	default:
+		// The new context size re-renders the diff with a different git command, which
+		// would otherwise reset the main view to the top. Preserve where it was
+		// scrolled (and its selection, if the focused main view is showing one)
+		// instead. This covers both the focused main view and the side panels, since
+		// they all render their diff into the same "main" view.
+		self.c.Helpers().Staging.PreserveDiffPositionOnRerender(self.c.Contexts().Normal.GetView())
 		currentContext.HandleRenderToMain()
 	}
 	return nil
