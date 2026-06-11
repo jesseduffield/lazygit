@@ -218,17 +218,30 @@ through `Diff.AdjustLineNumber` before opening the editor, exactly as today
   OSC the same way). The metadata flowing through a real terminal must be
   harmless — this is a hard requirement, since pagers run outside lazygit too.
 
-### 3.4 The OSC number
+### 3.4 The OSC number — RESOLVED: `1717`
 
-No central registry, but allocations are rare; pick a **high, distinctive**
-number (the iTerm2 `1337` convention) and **verify against the sources of
-xterm, VTE, kitty, foot, WezTerm, iTerm2, Windows Terminal** before committing.
-`456` is a placeholder. Known-used slots to avoid (from memory, against a
-knowledge cutoff — re-check): `0/1/2` (title/icon), `4`+`104` (palette),
-`7` (cwd), `8` (hyperlinks), `9` (notifications; `9;4` progress), `10–12`+
-`110–119` (colors), `50` (font), `52` (clipboard), `99` (kitty notifications),
-`133` (semantic prompt), `633` (VS Code shell integration), `777` (urxvt),
-`1337` (iTerm2).
+> **RESOLVED (audit done).** The final number is **`1717`**, replacing the `456`
+> placeholder. There is no central registry; the convention is to pick a high,
+> distinctive number and verify no real terminal *acts on* it (an unknown OSC is
+> skipped by conformant terminals, but a *recognized* one can fire a visible
+> side-effect — e.g. `OSC 555` flashes foot, `OSC 777` raises a desktop
+> notification — which is exactly the wire-safety hazard the audit exists to
+> avoid). Audited the live OSC allocations of **xterm, VTE, kitty, foot, WezTerm,
+> iTerm2, Windows Terminal, Ghostty, VS Code, ConEmu, urxvt**; `1717` collides with
+> none and sits in the large empty 1400–5000 band (only iTerm2's `1337` is nearby).
+> The full danger list is in the spec appendix (`diff-line-metadata-osc-spec.md`).
+> **The prototype code (delta/difftastic/gocui/lazygit + the `EMIT_OSC456_METADATA`
+> env var) still uses `456`** — renaming `456`→`1717` across the three repos is a
+> tracked follow-up, not yet done.
+
+Known-used slots to avoid (verified in the audit): `0–3` (title/icon/X11),
+`4/5/6` (palette/special/tab color), `7` (cwd), `8` (hyperlinks), `9`
+(notifications; `9;4` progress, `9;9` cwd), `10–19` (dynamic colors), `21/22`
+(color query / pointer shape), `46/50/51/52` (logfile/font/Emacs/clipboard), `66`
+(text sizing), `99` (kitty notifications), `104–106`+`110–119` (reset colors),
+`133` (semantic prompt), `176` (foot app id), `555` (foot flash), `633` (VS Code),
+`777` (rxvt notify), `1337` (iTerm2), `5522` (kitty clipboard), `30001/30101`
+(kitty color stack).
 
 ### 3.5 Pagers to patch
 
@@ -311,9 +324,11 @@ feedback) and to **inform a from-scratch production plan**.
 > NORMAL (unified, single-column) case — see §8 (#1) and §9 (#2). Side-by-side
 > delta is prototyped (focused-main-view-notes.md §17) and **difftastic is
 > prototyped in both modes (§10)** — so the emitter side now spans the full
-> coverage table. What remains of step 5 is the *deliverables*: finalize and
-> publish the spec (now informed by difftastic's §10.2 model-mismatch finding),
-> and write the production plan. Host *consumption* of side-by-side / difftastic
+> coverage table. What remains of step 5 is the *deliverables*: the **OSC spec
+> draft is written** (`diff-line-metadata-osc-spec.md`, OSC number finalized to
+> `1717` — §3.4 — and it speaks to difftastic's §10.2 model-mismatch finding), ready
+> to circulate to pager developers; what's left is gathering that feedback and
+> writing the production plan. Host *consumption* of side-by-side / difftastic
 > output is still a separate, later step.
 
 Sequence:
@@ -339,8 +354,9 @@ Sequence:
 4. **#2 emitter side** — the delta patch; this is what stress-tests the spec
    against reality, side-by-side being the hard case (§3.5).
 5. **End-to-end → finalize the spec (publish for feedback) → write the
-   production plan.** End-to-end is **done** (§9.4); the spec and production
-   plan are the remaining deliverables.
+   production plan.** End-to-end is **done** (§9.4); the **spec draft is written**
+   (`diff-line-metadata-osc-spec.md`, OSC `1717`). Circulating it for feedback and
+   the production plan are the remaining deliverables.
 
 **Parallel de-risking (any time, doesn't block #1):** confirm by reading delta's
 source that it can produce the fields per region — for `-` lines and in
@@ -482,10 +498,14 @@ layout changes. A **dedicated, purely-additive emitter** (only injects OSC bytes
 never touches styling/width/wrapping) is both safer and cleaner, and its counter
 logic is a near-copy of `linenumbers_and_styles`.
 
-### 9.2 Pinned v1 wire format (placeholder OSC `456`)
+### 9.2 Pinned v1 wire format (final OSC `1717`; prototype code still uses `456`)
+
+> The number was finalized to **`1717`** after the terminal audit (§3.4); the
+> prototype code still emits `456` (rename is a tracked follow-up). The published
+> spec (`diff-line-metadata-osc-spec.md`) uses `1717`.
 
 ```
-ESC ] 456 ; <version> ; <type> ; <new-line> ; <old-line> ; <file> ST
+ESC ] 1717 ; <version> ; <type> ; <new-line> ; <old-line> ; <file> ST
 ```
 
 - `ESC` = `0x1b`; `ST` = `ESC \` (`0x1b 0x5c`) — same framing as delta's OSC-8.
@@ -507,9 +527,11 @@ emits V1 when the advertised list contains `V1`.
 
 ### 9.3 Deferred / known prototype limitations
 
-- **Terminal-source audit of the OSC number is DEFERRED** (§3.4). `456` is a
-  placeholder; before publishing, verify it against xterm/VTE/kitty/foot/WezTerm/
-  iTerm2/Windows Terminal and pick a high, distinctive final number.
+- **Terminal-source audit of the OSC number is DONE** (§3.4). Final number is
+  **`1717`** (audited against xterm/VTE/kitty/foot/WezTerm/iTerm2/Windows Terminal/
+  Ghostty/VS Code/ConEmu/urxvt; danger list in the spec appendix). The prototype
+  code still emits the `456` placeholder — the `456`→`1717` rename across
+  delta/difftastic/gocui/lazygit + the env var is a tracked follow-up.
 - **Wrapped continuation rows** (`Hunk*Wrapped`) get no attachment in the prototype
   — only the primary content row does. Fine for the normal case (gocui's own
   wrapping is handled host-side by the view-line→buffer-line mapping); delta-level

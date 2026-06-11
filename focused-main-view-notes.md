@@ -1333,11 +1333,15 @@ restructures the diff.
    (doesn't touch lazygit). Feeds the spec (below). **[done — §17; v1 suffices, no
    format change]**
 
-**OSC spec write-up:** a **draft**, not final — present it to pager devs *for
-feedback*. The unified single-column wire format is validated (§9.2) and can be
-presented confidently; **side-by-side is now validated too** (§17 — v1 needs no
-addition), so the draft speaks to both modes. The one remaining open item to flag is
-the **OSC number** (456 is a placeholder, pending a terminal-allocation audit).
+**OSC spec write-up:** **DONE — draft written** (`diff-line-metadata-osc-spec.md`
+at the worktree root). It's a draft for pager-dev *feedback*, not final. The
+unified single-column wire format is validated (§9.2), side-by-side is validated
+(§17 — v1 needs no addition), and the draft speaks to difftastic's token-vs-line
+mismatch (diff-line-metadata-notes.md §10.2). The **OSC number is resolved to
+`1717`** after a terminal-allocation audit (diff-line-metadata-notes.md §3.4 +
+the spec appendix); `456` is retired as the placeholder. **Still pending:** the
+`456`→`1717` rename across the prototype code (delta/difftastic/gocui/lazygit + the
+`EMIT_OSC456_METADATA` env var), and circulating the draft for feedback.
 
 **Decisions locked (session 6):** concurrency stays **mutex-based**, including for
 productionization (the main-thread-mutation rework is a separate, later effort — do
