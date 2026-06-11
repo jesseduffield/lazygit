@@ -44,7 +44,6 @@ var CherryPickAcrossWorktrees = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.PasteCommits)
 
-		/* EXPECTED:
 		t.ExpectPopup().Alert().
 			Title(Equals("Cherry-pick")).
 			Content(Contains("Are you sure you want to cherry-pick the 1 copied commit(s) onto this branch?")).
@@ -57,7 +56,5 @@ var CherryPickAcrossWorktrees = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("one"),
 				Contains("base").IsSelected(),
 			)
-		ACTUAL: */
-		t.ExpectToast(Equals("Disabled: No copied commits"))
 	},
 })
