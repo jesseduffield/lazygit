@@ -585,6 +585,11 @@
           "description": "The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.",
           "default": 2
         },
+        "expandedFocusedSidePanelFitsContent": {
+          "type": "boolean",
+          "description": "If true, the expanded side panel will only expand as much as its content requires. Only relevant if `expandFocusedSidePanel` is true.",
+          "default": false
+        },
         "mainPanelSplitMode": {
           "type": "string",
           "enum": [
