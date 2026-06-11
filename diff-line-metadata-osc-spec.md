@@ -408,8 +408,8 @@ per-line identity and is not addressed.
 
 ## 10. Reference implementations (prototype)
 
-All three are at prototype quality and emit the v1 format described here (modulo
-the placeholder OSC number, which these used `456` for before `1717` was chosen):
+All three are at prototype quality and emit the v1 format described here, over
+OSC `1717`:
 
 - **delta** — a dedicated additive emitter that injects only OSC bytes (no change
   to styling, width, or wrapping); with the env var unset, output is byte-for-byte

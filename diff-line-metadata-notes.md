@@ -230,9 +230,9 @@ through `Diff.AdjustLineNumber` before opening the editor, exactly as today
 > iTerm2, Windows Terminal, Ghostty, VS Code, ConEmu, urxvt**; `1717` collides with
 > none and sits in the large empty 1400–5000 band (only iTerm2's `1337` is nearby).
 > The full danger list is in the spec appendix (`diff-line-metadata-osc-spec.md`).
-> **The prototype code (delta/difftastic/gocui/lazygit + the `EMIT_OSC456_METADATA`
-> env var) still uses `456`** — renaming `456`→`1717` across the three repos is a
-> tracked follow-up, not yet done.
+> **The prototype code has been renamed `456`→`1717`** across all three repos
+> (delta/difftastic/gocui/lazygit), and the handshake env var is now
+> `EMIT_OSC1717_METADATA`; builds + the metadata unit tests are green in each.
 
 Known-used slots to avoid (verified in the audit): `0–3` (title/icon/X11),
 `4/5/6` (palette/special/tab color), `7` (cwd), `8` (hyperlinks), `9`
@@ -501,8 +501,8 @@ logic is a near-copy of `linenumbers_and_styles`.
 ### 9.2 Pinned v1 wire format (final OSC `1717`; prototype code still uses `456`)
 
 > The number was finalized to **`1717`** after the terminal audit (§3.4); the
-> prototype code still emits `456` (rename is a tracked follow-up). The published
-> spec (`diff-line-metadata-osc-spec.md`) uses `1717`.
+> prototype code has been renamed from the `456` placeholder to emit `1717`. The
+> published spec (`diff-line-metadata-osc-spec.md`) uses `1717`.
 
 ```
 ESC ] 1717 ; <version> ; <type> ; <new-line> ; <old-line> ; <file> ST
@@ -530,8 +530,8 @@ emits V1 when the advertised list contains `V1`.
 - **Terminal-source audit of the OSC number is DONE** (§3.4). Final number is
   **`1717`** (audited against xterm/VTE/kitty/foot/WezTerm/iTerm2/Windows Terminal/
   Ghostty/VS Code/ConEmu/urxvt; danger list in the spec appendix). The prototype
-  code still emits the `456` placeholder — the `456`→`1717` rename across
-  delta/difftastic/gocui/lazygit + the env var is a tracked follow-up.
+  code has been renamed `456`→`1717` across delta/difftastic/gocui/lazygit + the
+  `EMIT_OSC1717_METADATA` env var; builds and metadata unit tests green in each.
 - **Wrapped continuation rows** (`Hunk*Wrapped`) get no attachment in the prototype
   — only the primary content row does. Fine for the normal case (gocui's own
   wrapping is handled host-side by the view-line→buffer-line mapping); delta-level

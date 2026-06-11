@@ -1339,9 +1339,11 @@ unified single-column wire format is validated (§9.2), side-by-side is validate
 (§17 — v1 needs no addition), and the draft speaks to difftastic's token-vs-line
 mismatch (diff-line-metadata-notes.md §10.2). The **OSC number is resolved to
 `1717`** after a terminal-allocation audit (diff-line-metadata-notes.md §3.4 +
-the spec appendix); `456` is retired as the placeholder. **Still pending:** the
-`456`→`1717` rename across the prototype code (delta/difftastic/gocui/lazygit + the
-`EMIT_OSC456_METADATA` env var), and circulating the draft for feedback.
+the spec appendix); `456` is retired as the placeholder. The `456`→`1717` rename
+across the prototype code (delta/difftastic/gocui/lazygit + the env var, now
+`EMIT_OSC1717_METADATA`) is **done** — builds + metadata unit tests green in each
+repo, and fresh delta/difftastic release binaries built. **Still pending:**
+circulating the draft for feedback.
 
 **Decisions locked (session 6):** concurrency stays **mutex-based**, including for
 productionization (the main-thread-mutation rework is a separate, later effort — do

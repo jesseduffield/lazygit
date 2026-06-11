@@ -22,7 +22,7 @@ type escapeInterpreter struct {
 
 	// the OSC number being accumulated while we don't yet know which OSC this is
 	oscNumber strings.Builder
-	// the payload of an OSC 456 per-line diff-metadata sequence (see
+	// the payload of an OSC 1717 per-line diff-metadata sequence (see
 	// diff-line-metadata-notes.md), accumulated like hyperlink
 	metadata strings.Builder
 
@@ -435,7 +435,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 	case stateOSC:
 		// Accumulate the OSC number until its terminating ';', then dispatch on
 		// it. (The previous code only recognised the single-digit '8'; a number
-		// like 456 needs more than one character.)
+		// like 1717 needs more than one character.)
 		switch {
 		case len(ch) == 1 && ch[0] >= '0' && ch[0] <= '9':
 			ei.oscNumber.WriteByte(ch[0])
@@ -445,7 +445,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			case "8":
 				ei.hyperlink.Reset()
 				ei.state = stateOSCParams
-			case "456":
+			case "1717":
 				ei.metadata.Reset()
 				ei.state = stateOSCMetadata
 			default:
