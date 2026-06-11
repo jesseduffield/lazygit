@@ -72,6 +72,8 @@ type WindowArrangementArgs struct {
 	InSearchPrompt bool
 	// One of '' (not searching), 'Search: ', and 'Filter: '
 	SearchPrefix string
+	// The height of the content of the currently focused side window
+	CurrentSideContextContentHeight int
 }
 
 func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
@@ -85,21 +87,27 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 		searchPrefix = self.c.Tr.SearchPrefix
 	}
 
+	currentSideContentHeight := 0
+	if currentSide := self.c.Context().CurrentSide(); currentSide != nil {
+		currentSideContentHeight = currentSide.TotalContentHeight()
+	}
+
 	args := WindowArrangementArgs{
-		Width:             width,
-		Height:            height,
-		UserConfig:        self.c.UserConfig(),
-		CurrentWindow:     self.c.Context().CurrentStatic().GetWindowName(),
-		CurrentSideWindow: self.c.Context().CurrentSide().GetWindowName(),
-		SplitMainPanel:    repoState.GetSplitMainPanel(),
-		ScreenMode:        repoState.GetScreenMode(),
-		AppStatus:         appStatus,
-		InformationStr:    informationStr,
-		ShowExtrasWindow:  self.c.State().GetShowExtrasWindow(),
-		InDemo:            self.c.InDemo(),
-		IsAnyModeActive:   self.modeHelper.IsAnyModeActive(),
-		InSearchPrompt:    repoState.InSearchPrompt(),
-		SearchPrefix:      searchPrefix,
+		Width:                           width,
+		Height:                          height,
+		UserConfig:                      self.c.UserConfig(),
+		CurrentWindow:                   self.c.Context().CurrentStatic().GetWindowName(),
+		CurrentSideWindow:               self.c.Context().CurrentSide().GetWindowName(),
+		SplitMainPanel:                  repoState.GetSplitMainPanel(),
+		ScreenMode:                      repoState.GetScreenMode(),
+		AppStatus:                       appStatus,
+		InformationStr:                  informationStr,
+		ShowExtrasWindow:                self.c.State().GetShowExtrasWindow(),
+		InDemo:                          self.c.InDemo(),
+		IsAnyModeActive:                 self.modeHelper.IsAnyModeActive(),
+		InSearchPrompt:                  repoState.InSearchPrompt(),
+		SearchPrefix:                    searchPrefix,
+		CurrentSideContextContentHeight: currentSideContentHeight,
 	}
 
 	return GetWindowDimensions(args)
@@ -447,6 +455,26 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 			accordionMode := args.UserConfig.Gui.ExpandFocusedSidePanel
 			accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
 				if accordionMode && defaultBox.Window == args.CurrentSideWindow {
+					staticSpace := 3 // status
+					numWeightedPanels := 3 // files, branches, commits
+					if args.CurrentSideWindow == "stash" {
+						numWeightedPanels = 4
+					} else {
+						staticSpace += 3 // stash is static when not focused
+					}
+					
+					totalWeight := float64(args.UserConfig.Gui.ExpandedSidePanelWeight + numWeightedPanels - 1)
+					availableSpace := height - staticSpace
+					maxHeight := int(float64(availableSpace) * float64(args.UserConfig.Gui.ExpandedSidePanelWeight) / totalWeight)
+					contentHeight := args.CurrentSideContextContentHeight + 2 // +2 for borders
+
+					if contentHeight < maxHeight {
+						return &boxlayout.Box{
+							Window: defaultBox.Window,
+							Size:   contentHeight,
+						}
+					}
+
 					return &boxlayout.Box{
 						Window: defaultBox.Window,
 						Weight: args.UserConfig.Gui.ExpandedSidePanelWeight,

@@ -125,6 +125,7 @@ func TestGetWindowDimensions(t *testing.T) {
 			name: "expandFocusedSidePanel",
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.UserConfig.Gui.ExpandFocusedSidePanel = true
+				args.CurrentSideContextContentHeight = 1000
 			},
 			expected: `
 			╭status─────────────────╮╭main────────────────────────────────────────────╮
@@ -166,6 +167,7 @@ func TestGetWindowDimensions(t *testing.T) {
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.UserConfig.Gui.ExpandFocusedSidePanel = true
 				args.UserConfig.Gui.ExpandedSidePanelWeight = 4
+				args.CurrentSideContextContentHeight = 1000
 			},
 			expected: `
 			╭status─────────────────╮╭main────────────────────────────────────────────╮
