@@ -139,6 +139,28 @@ func (self *MainViewController) GetMouseKeybindings(opts types.KeybindingsOpts) 
 			Handler:     self.onClickInOtherViewOfMainViewPair,
 			FocusedView: self.otherContext.GetViewName(),
 		},
+		{
+			// Alt- or shift-click anywhere on a diff line opens it in the editor,
+			// without focusing the view or creating a selection. Two modifiers
+			// because no single one survives every terminal: Ghostty forwards Alt
+			// (and keeps shift for text selection), iTerm2 forwards only shift, and
+			// VS Code forwards both. Whichever the terminal delivers triggers the
+			// edit; the one it keeps for itself never arrives. No FocusedView, so it
+			// fires whatever has focus, and HandleWhenPopupPanelFocused so it stays
+			// live when a popup (e.g. the commit-message panel) is in front.
+			ViewName:                    self.context.GetViewName(),
+			Key:                         gocui.MouseLeft,
+			Modifier:                    gocui.ModAlt,
+			Handler:                     self.editClickedLine,
+			HandleWhenPopupPanelFocused: true,
+		},
+		{
+			ViewName:                    self.context.GetViewName(),
+			Key:                         gocui.MouseLeft,
+			Modifier:                    gocui.ModShift,
+			Handler:                     self.editClickedLine,
+			HandleWhenPopupPanelFocused: true,
+		},
 	}
 }
 
@@ -407,6 +429,10 @@ func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouse
 		return self.enterForLine(opts.Y)
 	}
 	return nil
+}
+
+func (self *MainViewController) editClickedLine(opts gocui.ViewMouseBindingOpts) error {
+	return self.editDiffLine(opts.Y)
 }
 
 func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.ViewMouseBindingOpts) error {
