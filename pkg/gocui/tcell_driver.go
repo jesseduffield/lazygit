@@ -347,6 +347,11 @@ func (g *Gui) pollEvent() GocuiEvent {
 		if button != tcell.ButtonNone && lastMouseKey == tcell.ButtonNone {
 			lastMouseKey = button
 			lastMouseMod = tev.Modifiers()
+			// A click is reported on the press, so the keyboard modifier has to
+			// ride the press event; lastMouseMod is only applied on release, which
+			// is reported as a move and discarded. Without this, modified clicks
+			// (e.g. alt/shift-click) reach handlers as plain clicks.
+			mouseMod = Modifier(tev.Modifiers())
 			switch button {
 			case tcell.ButtonPrimary:
 				mouseKey = MouseLeft
