@@ -86,6 +86,14 @@ type ViewMouseBinding struct {
 
 	// must be a mouse key
 	Key KeyName
+
+	// If true, this binding is dispatched before ShouldHandleMouseEvent is
+	// consulted, so it fires even when a popup panel is focused and the click
+	// lands on a view other than that panel (which is normally swallowed). This
+	// is the same early phase that hyperlink clicks are handled in; use it for
+	// clicks that must stay live behind a popup, e.g. opening a diff line in the
+	// editor from the main view behind the commit-message panel.
+	HandleWhenPopupPanelFocused bool
 }
 
 type ViewMouseBindingOpts struct {
@@ -1691,6 +1699,22 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 		}
 
+		var mouseOpts ViewMouseBindingOpts
+		if IsMouseKey(ev.Key) {
+			isDoubleClick := g.recordClickInfo(newX, newY, ev.Key.KeyName(), v)
+			mouseOpts = ViewMouseBindingOpts{X: newX, Y: newY, Key: ev.Key.KeyName(), IsDoubleClick: isDoubleClick}
+
+			// Dispatch bindings that opt into firing while a popup panel is focused
+			// before the gate below gets a chance to reject the click.
+			matched, err := g.execMouseKeybindings(v, ev, mouseOpts, true)
+			if err != nil {
+				return err
+			}
+			if matched {
+				return nil
+			}
+		}
+
 		if g.ShouldHandleMouseEvent != nil {
 			if !g.ShouldHandleMouseEvent(v, ev.Key.KeyName()) {
 				// Give clients a chance to reject clicks, for example clicks in inactive views
@@ -1727,9 +1751,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		}
 
 		if IsMouseKey(ev.Key) {
-			isDoubleClick := g.recordClickInfo(newX, newY, ev.Key.KeyName(), v)
-			opts := ViewMouseBindingOpts{X: newX, Y: newY, Key: ev.Key.KeyName(), IsDoubleClick: isDoubleClick}
-			matched, err := g.execMouseKeybindings(v, ev, opts)
+			matched, err := g.execMouseKeybindings(v, ev, mouseOpts, false)
 			if err != nil {
 				return err
 			}
@@ -1787,11 +1809,12 @@ func (g *Gui) recordClickInfo(x, y int, key KeyName, v *View) bool {
 	return isDoubleClick
 }
 
-func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBindingOpts) (bool, error) {
+func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBindingOpts, handleWhenPopupPanelFocused bool) (bool, error) {
 	isMatch := func(binding *ViewMouseBinding) bool {
 		return binding.ViewName == view.Name() &&
 			ev.Key.KeyName() == binding.Key &&
-			ev.Key.Mod() == binding.Modifier
+			ev.Key.Mod() == binding.Modifier &&
+			binding.HandleWhenPopupPanelFocused == handleWhenPopupPanelFocused
 	}
 
 	// first pass looks for ones that match the focused view
