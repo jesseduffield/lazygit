@@ -259,7 +259,8 @@ func (self *ViewDriver) assertLines(offset int, matchers ...*TextMatcher) *ViewD
 		lineIdx := matcherIndex + offset
 		expectSelected, matcher := matcher.checkIsSelected()
 
-		self.t.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", view.Name()),
+		self.t.matchString(
+			matcher, fmt.Sprintf("Unexpected content in view '%s'.", view.Name()),
 			func() string {
 				return view.BufferLines()[lineIdx]
 			},
@@ -304,7 +305,8 @@ func formatLineRange(from int, to int) string {
 
 // asserts on the content of the view i.e. the stuff within the view's frame.
 func (self *ViewDriver) Content(matcher *TextMatcher) *ViewDriver {
-	self.t.matchString(matcher, fmt.Sprintf("%s: Unexpected content.", self.context),
+	self.t.matchString(
+		matcher, fmt.Sprintf("%s: Unexpected content.", self.context),
 		func() string {
 			return self.getView().Buffer()
 		},

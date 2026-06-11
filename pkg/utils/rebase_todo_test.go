@@ -171,15 +171,16 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		t.Run(s.testName, func(t *testing.T) {
-			rearrangedTodos, err := moveTodoDown(s.todos, s.todoToMoveDown, s.isInRebase)
-			if s.expectedErr == "" {
-				assert.NoError(t, err)
-			} else {
-				assert.ErrorContains(t, err, s.expectedErr)
-			}
-			assert.Equal(t, s.expectedTodos, rearrangedTodos)
-		},
+		t.Run(
+			s.testName, func(t *testing.T) {
+				rearrangedTodos, err := moveTodoDown(s.todos, s.todoToMoveDown, s.isInRebase)
+				if s.expectedErr == "" {
+					assert.NoError(t, err)
+				} else {
+					assert.ErrorContains(t, err, s.expectedErr)
+				}
+				assert.Equal(t, s.expectedTodos, rearrangedTodos)
+			},
 		)
 	}
 }
@@ -346,15 +347,16 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		t.Run(s.testName, func(t *testing.T) {
-			rearrangedTodos, err := moveTodoUp(s.todos, s.todoToMoveUp, s.isInRebase)
-			if s.expectedErr == "" {
-				assert.NoError(t, err)
-			} else {
-				assert.ErrorContains(t, err, s.expectedErr)
-			}
-			assert.Equal(t, s.expectedTodos, rearrangedTodos)
-		},
+		t.Run(
+			s.testName, func(t *testing.T) {
+				rearrangedTodos, err := moveTodoUp(s.todos, s.todoToMoveUp, s.isInRebase)
+				if s.expectedErr == "" {
+					assert.NoError(t, err)
+				} else {
+					assert.ErrorContains(t, err, s.expectedErr)
+				}
+				assert.Equal(t, s.expectedTodos, rearrangedTodos)
+			},
 		)
 	}
 }

@@ -91,7 +91,8 @@ func (self *ListRenderer) renderLines(startIdx int, endIdx int) string {
 	}
 	lines, columnPositions := utils.RenderDisplayStrings(
 		self.getDisplayStrings(startModelIdx, endModelIdx),
-		columnAlignments)
+		columnAlignments,
+	)
 	self.columnPositions = columnPositions
 	lines = self.insertNonModelItems(nonModelItems, endIdx, startIdx, lines, columnPositions)
 	return strings.Join(lines, "\n")
@@ -107,7 +108,8 @@ func (self *ListRenderer) prepareConversionArrays(nonModelItems []*NonModelItem)
 			viewIndicesByModelIndex[i]++
 		}
 		modelIndicesByViewIndex = slices.Insert(
-			modelIndicesByViewIndex, item.Index+offset, modelIndicesByViewIndex[item.Index+offset])
+			modelIndicesByViewIndex, item.Index+offset, modelIndicesByViewIndex[item.Index+offset],
+		)
 		offset++
 	}
 	self.viewIndicesByModelIndex = viewIndicesByModelIndex

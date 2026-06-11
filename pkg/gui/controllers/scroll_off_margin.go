@@ -12,7 +12,8 @@ func checkScrollUp(view types.IViewTrait, userConfig *config.UserConfig, lineIdx
 		viewPortStart, viewPortHeight := view.ViewPortYBounds()
 
 		linesToScroll := calculateLinesToScrollUp(
-			viewPortStart, viewPortHeight, userConfig.Gui.ScrollOffMargin, lineIdxBefore, lineIdxAfter)
+			viewPortStart, viewPortHeight, userConfig.Gui.ScrollOffMargin, lineIdxBefore, lineIdxAfter,
+		)
 		if linesToScroll != 0 {
 			view.ScrollUp(linesToScroll)
 		}
@@ -26,7 +27,8 @@ func checkScrollDown(view types.IViewTrait, userConfig *config.UserConfig, lineI
 		viewPortStart, viewPortHeight := view.ViewPortYBounds()
 
 		linesToScroll := calculateLinesToScrollDown(
-			viewPortStart, viewPortHeight, userConfig.Gui.ScrollOffMargin, lineIdxBefore, lineIdxAfter)
+			viewPortStart, viewPortHeight, userConfig.Gui.ScrollOffMargin, lineIdxBefore, lineIdxAfter,
+		)
 		if linesToScroll != 0 {
 			view.ScrollDown(linesToScroll)
 		}

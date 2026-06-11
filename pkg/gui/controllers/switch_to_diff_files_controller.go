@@ -98,7 +98,8 @@ func (self *SwitchToDiffFilesController) enter() error {
 			path = filterPath
 		}
 		commitFilesContext.CommitFileTreeViewModel.SelectPath(
-			filepath.ToSlash(path), self.c.UserConfig().Gui.ShowRootItemInFileTree)
+			filepath.ToSlash(path), self.c.UserConfig().Gui.ShowRootItemInFileTree,
+		)
 	}
 
 	self.c.Context().Push(commitFilesContext, types.OnFocusOpts{})

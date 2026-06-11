@@ -55,7 +55,8 @@ func TestGetRepoPaths(t *testing.T) {
 				runner.ExpectGitArgs(
 					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
 					strings.Join(mockOutput, "\n"),
-					nil)
+					nil,
+				)
 			},
 			Path: "/path/to/repo",
 			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
@@ -103,7 +104,8 @@ func TestGetRepoPaths(t *testing.T) {
 				runner.ExpectGitArgs(
 					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
 					strings.Join(mockOutput, "\n"),
-					nil)
+					nil,
+				)
 			},
 			Path: "/path/to/repo",
 			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
@@ -152,7 +154,8 @@ func TestGetRepoPaths(t *testing.T) {
 				runner.ExpectGitArgs(
 					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
 					strings.Join(mockOutput, "\n"),
-					nil)
+					nil,
+				)
 			},
 			Path: "/path/to/repo/submodule1",
 			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
@@ -178,7 +181,8 @@ func TestGetRepoPaths(t *testing.T) {
 				runner.ExpectGitArgs(
 					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
 					"",
-					errors.New("fatal: invalid gitfile format: /path/to/repo/worktree2/.git"))
+					errors.New("fatal: invalid gitfile format: /path/to/repo/worktree2/.git"),
+				)
 			},
 			Path:     "/path/to/repo/worktree2",
 			Expected: nil,

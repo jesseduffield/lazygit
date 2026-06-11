@@ -43,7 +43,8 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 	currentContextKeys := set.NewFromSlice(
 		lo.FlatMap(currentContextBindings, func(binding *types.Binding, _ int) []gocui.Key {
 			return binding.Keys
-		}))
+		}),
+	)
 
 	allBindings := append(currentContextBindings, lo.Filter(globalBindings, func(b *types.Binding, _ int) bool {
 		return len(b.Keys) > 0 && !currentContextKeys.Includes(b.Keys[0])

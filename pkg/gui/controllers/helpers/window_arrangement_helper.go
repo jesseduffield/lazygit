@@ -455,14 +455,14 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 			accordionMode := args.UserConfig.Gui.ExpandFocusedSidePanel
 			accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
 				if accordionMode && defaultBox.Window == args.CurrentSideWindow {
-					staticSpace := 3 // status
+					staticSpace := 3       // status
 					numWeightedPanels := 3 // files, branches, commits
 					if args.CurrentSideWindow == "stash" {
 						numWeightedPanels = 4
 					} else {
 						staticSpace += 3 // stash is static when not focused
 					}
-					
+
 					totalWeight := float64(args.UserConfig.Gui.ExpandedSidePanelWeight + numWeightedPanels - 1)
 					availableSpace := height - staticSpace
 					maxHeight := int(float64(availableSpace) * float64(args.UserConfig.Gui.ExpandedSidePanelWeight) / totalWeight)

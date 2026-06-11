@@ -111,7 +111,8 @@ func setComment(yamlNode *yaml.Node, description string) {
 			}
 			return "# " + s
 		}),
-		"\n")
+		"\n",
+	)
 }
 
 func (n *Node) MarshalYAML() (any, error) {

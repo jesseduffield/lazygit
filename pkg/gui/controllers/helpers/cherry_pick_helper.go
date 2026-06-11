@@ -80,7 +80,8 @@ func (self *CherryPickHelper) Paste() error {
 			self.c.Tr.SureCherryPick,
 			map[string]string{
 				"numCommits": strconv.Itoa(len(self.getData().CherryPickedCommits)),
-			}),
+			},
+		),
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatusSync(self.c.Tr.CherryPickingStatus, func() error {
 				mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)

@@ -81,7 +81,8 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 					c.Model().Commits, func(c *models.Commit) bool {
 						return c.Status == models.StatusCherryPickingOrReverting ||
 							c.Status == models.StatusConflicted
-					})
+					},
+				)
 				if !found {
 					firstCherryPickOrRevertTodo = 0
 				}
@@ -97,7 +98,8 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			_, firstRealCommit, found := lo.FindIndexOf(
 				c.Model().Commits, func(c *models.Commit) bool {
 					return !c.IsTODO()
-				})
+				},
+			)
 			if !found {
 				firstRealCommit = 0
 			}

@@ -14,7 +14,8 @@ func GetWorktreeDisplayStrings(tr *i18n.TranslationSet, worktrees []*models.Work
 	return lo.Map(worktrees, func(worktree *models.Worktree, _ int) []string {
 		return GetWorktreeDisplayString(
 			tr,
-			worktree)
+			worktree,
+		)
 	})
 }
 

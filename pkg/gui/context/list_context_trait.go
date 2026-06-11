@@ -47,7 +47,8 @@ func (self *ListContextTrait) FocusLine(scrollIntoView bool) {
 		oldOrigin, _ := self.GetViewTrait().ViewPortYBounds()
 
 		self.GetViewTrait().FocusPoint(
-			self.ModelIndexToViewIndex(self.list.GetSelectedLineIdx()), scrollIntoView)
+			self.ModelIndexToViewIndex(self.list.GetSelectedLineIdx()), scrollIntoView,
+		)
 		if !inOnSearchSelect {
 			self.GetView().SetNearestSearchPosition()
 		}

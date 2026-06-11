@@ -262,7 +262,8 @@ func parseGitArg(gitArg string) appTypes.GitArg {
 		string(appTypes.GitArgStash),
 	}
 
-	log.Fatalf("Invalid git arg value: '%s'. Must be one of the following values: %s. e.g. 'lazygit status'. See 'lazygit --help'.",
+	log.Fatalf(
+		"Invalid git arg value: '%s'. Must be one of the following values: %s. e.g. 'lazygit status'. See 'lazygit --help'.",
 		gitArg,
 		strings.Join(permittedValues, ", "),
 	)

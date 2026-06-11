@@ -41,7 +41,8 @@ var AutoWrapMessage = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Tap(func() {
 				t.Views().Main().Content(Contains(
-					"subject\n    \n    Lorem ipsum dolor\n    sit amet,\n    consectetur\n    adipiscing elit."))
+					"subject\n    \n    Lorem ipsum dolor\n    sit amet,\n    consectetur\n    adipiscing elit.",
+				))
 			}).
 			Press(keys.Commits.RenameCommit)
 

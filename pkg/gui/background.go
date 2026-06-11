@@ -36,7 +36,8 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 		} else {
 			self.gui.c.Log.Errorf(
 				"Value of config option 'refresher.fetchInterval' (%d) is invalid, disabling auto-fetch",
-				fetchInterval)
+				fetchInterval,
+			)
 		}
 	}
 
@@ -47,7 +48,8 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 		} else {
 			self.gui.c.Log.Errorf(
 				"Value of config option 'refresher.refreshInterval' (%d) is invalid, disabling auto-refresh",
-				refreshInterval)
+				refreshInterval,
+			)
 		}
 	}
 

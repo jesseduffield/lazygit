@@ -27,7 +27,8 @@ func NewMainContext(
 				Key:              key,
 				Focusable:        true,
 				HighlightOnFocus: false,
-			})),
+			}),
+		),
 		SearchTrait: NewSearchTrait(c),
 	}
 

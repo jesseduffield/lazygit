@@ -287,7 +287,8 @@ func TestBranchCurrentBranchInfo(t *testing.T) {
 					[]string{"branch", "--points-at=HEAD", "--format=%(HEAD)%00%(objectname)%00%(refname)"},
 					"*\x00679b0456f3db7c505b398def84e7d023e5b55a8d\x00（头指针在 679b0456 分离）\n"+
 						" \x00679b0456f3db7c505b398def84e7d023e5b55a8d\x00refs/heads/master\n",
-					nil),
+					nil,
+				),
 			func(info BranchInfo, err error) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, "679b0456f3db7c505b398def84e7d023e5b55a8d", info.RefName)
