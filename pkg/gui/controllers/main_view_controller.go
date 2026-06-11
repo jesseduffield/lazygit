@@ -291,9 +291,13 @@ func (self *MainViewController) editLine() error {
 	if !self.context.GetView().Highlight {
 		return nil
 	}
-	// Figure out the clicked file and line the same way entering staging does.
-	info, ok := self.c.Helpers().Staging.GetDiffLineInfo(
-		self.context.GetViewName(), self.context.GetView().SelectedLineIdx())
+	return self.editDiffLine(self.context.GetView().SelectedLineIdx())
+}
+
+// editDiffLine opens the file the given diff line belongs to in the editor, at
+// that line. The file and line are resolved the same way entering staging does.
+func (self *MainViewController) editDiffLine(viewLineIdx int) error {
+	info, ok := self.c.Helpers().Staging.GetDiffLineInfo(self.context.GetViewName(), viewLineIdx)
 	if !ok {
 		return nil
 	}
