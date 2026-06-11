@@ -87,7 +87,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		// an OSC sequence we can read back (see diff-line-metadata-notes.md). A
 		// pager that doesn't understand it ignores the variable, so this is safe to
 		// set unconditionally.
-		cmd.Env = append(cmd.Env, "EMIT_OSC456_METADATA=V1")
+		cmd.Env = append(cmd.Env, "EMIT_OSC1717_METADATA=V1")
 
 		manager := gui.getManager(view)
 
