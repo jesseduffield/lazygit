@@ -538,7 +538,7 @@ type cell struct {
 	width            int    // number of terminal cells occupied by chr (always 1 or 2)
 	bgColor, fgColor Attribute
 	hyperlink        string
-	// per-line diff metadata from an OSC 456 sequence (see
+	// per-line diff metadata from an OSC 1717 sequence (see
 	// diff-line-metadata-notes.md); empty unless a pager emitted it
 	metadata string
 }
@@ -923,7 +923,7 @@ func (b *viewBuffer) write(v *View, p []byte) {
 		if b.wy >= len(b.lines) {
 			b.lines = append(b.lines, lineType{})
 		}
-		// An OSC 456 diff-metadata sequence applies only to the line it prefixes
+		// An OSC 1717 diff-metadata sequence applies only to the line it prefixes
 		// (the pager re-emits one per line and never closes it), so drop it at the
 		// line boundary rather than letting it carry onto a line with no metadata.
 		b.ei.metadata.Reset()
@@ -1810,7 +1810,7 @@ func (v *View) HyperLinkInLine(y int, urlScheme string) (string, bool) {
 	return "", false
 }
 
-// DiffLineMetadataInLine returns the OSC 456 per-line diff metadata payload
+// DiffLineMetadataInLine returns the OSC 1717 per-line diff metadata payload
 // attached to the given (wrapped) view line, if a pager emitted one. In the
 // single-column case every cell of the line carries the same payload, so the
 // first non-empty one is the answer. See diff-line-metadata-notes.md.
@@ -1834,7 +1834,7 @@ func (v *View) DiffLineMetadataInLine(y int) (string, bool) {
 
 // DiffLineContent is the raw per-line material the diff-line backends parse to
 // recover a rendered row's patch-space identity (see diff-line-metadata-notes.md):
-// the decolorized text (for host-side parsing, mechanism #1), the OSC-456
+// the decolorized text (for host-side parsing, mechanism #1), the OSC-1717
 // metadata payload a pager emitted (#2), and the line's hyperlink (delta's
 // lazygit-edit fallback). It is indexed by unwrapped buffer line, so one entry
 // covers all the (wrapped) view lines that line maps to.

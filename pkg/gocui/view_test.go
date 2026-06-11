@@ -163,10 +163,10 @@ func TestDiffLineMetadata(t *testing.T) {
 	v := NewView("name", 0, 0, 80, 10, OutputNormal)
 
 	// Synthetic delta-style output: each content line is prefixed with an
-	// OSC 456 sequence carrying version;type;new;old;file (old empty unless a
+	// OSC 1717 sequence carrying version;type;new;old;file (old empty unless a
 	// deletion), and the OSC bytes themselves must not become visible cells. The
 	// final line is a header with no OSC, to prove the metadata doesn't bleed.
-	osc := func(payload string) string { return "\x1b]456;" + payload + "\x1b\\" }
+	osc := func(payload string) string { return "\x1b]1717;" + payload + "\x1b\\" }
 	v.writeString(strings.Join([]string{
 		osc("1;c;1;;foo.txt") + "line1",
 		osc("1;d;2;2;foo.txt") + "old2",
@@ -269,7 +269,7 @@ func TestOffscreenDiffLineContents(t *testing.T) {
 	// No off-screen render in progress: nothing to scan.
 	assert.Nil(t, v.OffscreenDiffLineContents())
 
-	osc := func(payload string) string { return "\x1b]456;" + payload + "\x1b\\" }
+	osc := func(payload string) string { return "\x1b]1717;" + payload + "\x1b\\" }
 	v.BeginOffscreenRender()
 	v.writeString(strings.Join([]string{
 		osc("1;c;1;;foo.txt") + "context",

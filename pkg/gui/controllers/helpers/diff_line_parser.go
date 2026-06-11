@@ -156,7 +156,7 @@ func pathFromDiffGitLine(line string) string {
 	return ""
 }
 
-// parseDiffLineMetadata parses mechanism #2's OSC 456 payload (v1):
+// parseDiffLineMetadata parses mechanism #2's OSC 1717 payload (v1):
 // version;type;new-line;old-line;file — positional and ';'-delimited, with the
 // file last (so it may itself contain ';') and old-line empty unless the line is
 // a deletion. See diff-line-metadata-notes.md §9.2. ok is false for a payload of
