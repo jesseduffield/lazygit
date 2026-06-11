@@ -92,7 +92,8 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Handler:           self.withItems(self.toggleForPatch),
 			GetDisabledReason: self.require(self.itemsSelected()),
 			Description:       self.c.Tr.ToggleAddToPatch,
-			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.ToggleAddToPatchTooltip,
+			Tooltip: utils.ResolvePlaceholderString(
+				self.c.Tr.ToggleAddToPatchTooltip,
 				map[string]string{"doc": constants.Links.Docs.CustomPatchDemo},
 			),
 			DisplayOnScreen: true,
@@ -101,7 +102,8 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Keys:        opts.GetKeys(opts.Config.Files.ToggleStagedAll),
 			Handler:     self.withItem(self.toggleAllForPatch),
 			Description: self.c.Tr.ToggleAllInPatch,
-			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.ToggleAllInPatchTooltip,
+			Tooltip: utils.ResolvePlaceholderString(
+				self.c.Tr.ToggleAllInPatchTooltip,
 				map[string]string{"doc": constants.Links.Docs.CustomPatchDemo},
 			),
 		},
@@ -294,7 +296,8 @@ func (self *CommitFilesController) openCopyMenu() error {
 					}
 				}
 				return nil
-			}))(),
+			},
+		))(),
 		Keys: menuKey('c'),
 	}
 
@@ -429,7 +432,8 @@ func (self *CommitFilesController) openDiffTool(node *filetree.CommitFileNode) e
 			Reverse:     reverse,
 			IsDirectory: !node.IsFile(),
 			Staged:      false,
-		}))
+		},
+	))
 	return err
 }
 

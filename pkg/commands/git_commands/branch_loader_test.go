@@ -442,7 +442,8 @@ func TestGetBehindBaseBranchValuesForAllBranches_FastPath_ClearsStaleValueWhenBr
 	}
 
 	err := loader.GetBehindBaseBranchValuesForAllBranches(
-		[]*models.Branch{feat, ghost}, mainBranches, func() {})
+		[]*models.Branch{feat, ghost}, mainBranches, func() {},
+	)
 	assert.NoError(t, err)
 
 	assert.Equal(t, int32(5), feat.BehindBaseBranch.Load(), "feat-x should be updated to fresh value")

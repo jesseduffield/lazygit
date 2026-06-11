@@ -42,14 +42,16 @@ func formatSecondsAgo(secondsAgo int64) string {
 		}
 
 		if secondsAgo < period.secondsInPeriod {
-			return fmt.Sprintf("%d%s",
+			return fmt.Sprintf(
+				"%d%s",
 				secondsAgo/periods[i-1].secondsInPeriod,
 				periods[i-1].label,
 			)
 		}
 	}
 
-	return fmt.Sprintf("%d%s",
+	return fmt.Sprintf(
+		"%d%s",
 		secondsAgo/periods[len(periods)-1].secondsInPeriod,
 		periods[len(periods)-1].label,
 	)

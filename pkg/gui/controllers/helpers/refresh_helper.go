@@ -503,7 +503,8 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 				self.refreshStatus()
 				return nil
 			})
-		})
+		},
+	)
 	if err != nil {
 		self.c.Log.Error(err)
 	}

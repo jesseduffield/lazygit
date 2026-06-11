@@ -42,7 +42,8 @@ func (gui *Gui) resetHelpersAndControllers() {
 	getUnwrappedCommitDescription := func() string {
 		return gui.Views.CommitDescription.TextArea.GetUnwrappedContent()
 	}
-	commitsHelper := helpers.NewCommitsHelper(helperCommon,
+	commitsHelper := helpers.NewCommitsHelper(
+		helperCommon,
 		getCommitSummary,
 		setCommitSummary,
 		getCommitDescription,
@@ -284,133 +285,162 @@ func (gui *Gui) resetHelpersAndControllers() {
 		controllers.AttachControllers(context, controllers.NewBasicCommitsController(common, context))
 	}
 
-	controllers.AttachControllers(gui.State.Contexts.ReflogCommits,
+	controllers.AttachControllers(
+		gui.State.Contexts.ReflogCommits,
 		reflogCommitsController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.SubCommits,
+	controllers.AttachControllers(
+		gui.State.Contexts.SubCommits,
 		subCommitsController,
 	)
 
 	// TODO: add scroll controllers for main panels (need to bring some more functionality across for that e.g. reading more from the currently displayed git command)
-	controllers.AttachControllers(gui.State.Contexts.Staging,
+	controllers.AttachControllers(
+		gui.State.Contexts.Staging,
 		stagingController,
 		patchExplorerControllerFactory.Create(gui.State.Contexts.Staging),
 		verticalScrollControllerFactory.Create(gui.State.Contexts.Staging),
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.StagingSecondary,
+	controllers.AttachControllers(
+		gui.State.Contexts.StagingSecondary,
 		stagingSecondaryController,
 		patchExplorerControllerFactory.Create(gui.State.Contexts.StagingSecondary),
 		verticalScrollControllerFactory.Create(gui.State.Contexts.StagingSecondary),
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.CustomPatchBuilder,
+	controllers.AttachControllers(
+		gui.State.Contexts.CustomPatchBuilder,
 		patchBuildingController,
 		patchExplorerControllerFactory.Create(gui.State.Contexts.CustomPatchBuilder),
 		verticalScrollControllerFactory.Create(gui.State.Contexts.CustomPatchBuilder),
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.CustomPatchBuilderSecondary,
+	controllers.AttachControllers(
+		gui.State.Contexts.CustomPatchBuilderSecondary,
 		verticalScrollControllerFactory.Create(gui.State.Contexts.CustomPatchBuilderSecondary),
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.MergeConflicts,
+	controllers.AttachControllers(
+		gui.State.Contexts.MergeConflicts,
 		mergeConflictsController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Normal,
+	controllers.AttachControllers(
+		gui.State.Contexts.Normal,
 		mainViewController,
 		verticalScrollControllerFactory.Create(gui.State.Contexts.Normal),
 		viewSelectionControllerFactory.Create(gui.State.Contexts.Normal),
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.NormalSecondary,
+	controllers.AttachControllers(
+		gui.State.Contexts.NormalSecondary,
 		secondaryViewController,
 		verticalScrollControllerFactory.Create(gui.State.Contexts.NormalSecondary),
 		viewSelectionControllerFactory.Create(gui.State.Contexts.NormalSecondary),
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Files,
+	controllers.AttachControllers(
+		gui.State.Contexts.Files,
 		filesController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Tags,
+	controllers.AttachControllers(
+		gui.State.Contexts.Tags,
 		tagsController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Submodules,
+	controllers.AttachControllers(
+		gui.State.Contexts.Submodules,
 		submodulesController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Branches,
+	controllers.AttachControllers(
+		gui.State.Contexts.Branches,
 		branchesController,
 		gitFlowController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.LocalCommits,
+	controllers.AttachControllers(
+		gui.State.Contexts.LocalCommits,
 		localCommitsController,
 		bisectController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.CommitFiles,
+	controllers.AttachControllers(
+		gui.State.Contexts.CommitFiles,
 		commitFilesController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Remotes,
+	controllers.AttachControllers(
+		gui.State.Contexts.Remotes,
 		remotesController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Worktrees,
+	controllers.AttachControllers(
+		gui.State.Contexts.Worktrees,
 		worktreesController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Stash,
+	controllers.AttachControllers(
+		gui.State.Contexts.Stash,
 		stashController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Menu,
+	controllers.AttachControllers(
+		gui.State.Contexts.Menu,
 		menuController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.CommitMessage,
+	controllers.AttachControllers(
+		gui.State.Contexts.CommitMessage,
 		commitMessageController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.CommitDescription,
+	controllers.AttachControllers(
+		gui.State.Contexts.CommitDescription,
 		commitDescriptionController,
 		verticalScrollControllerFactory.Create(gui.State.Contexts.CommitDescription),
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.RemoteBranches,
+	controllers.AttachControllers(
+		gui.State.Contexts.RemoteBranches,
 		remoteBranchesController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Status,
+	controllers.AttachControllers(
+		gui.State.Contexts.Status,
 		statusController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.CommandLog,
+	controllers.AttachControllers(
+		gui.State.Contexts.CommandLog,
 		commandLogController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Confirmation,
+	controllers.AttachControllers(
+		gui.State.Contexts.Confirmation,
 		confirmationController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Prompt,
+	controllers.AttachControllers(
+		gui.State.Contexts.Prompt,
 		promptController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Suggestions,
+	controllers.AttachControllers(
+		gui.State.Contexts.Suggestions,
 		suggestionsController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Search,
+	controllers.AttachControllers(
+		gui.State.Contexts.Search,
 		controllers.NewSearchPromptController(common),
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Global,
+	controllers.AttachControllers(
+		gui.State.Contexts.Global,
 		undoController,
 		globalController,
 		contextLinesController,
@@ -419,7 +449,8 @@ func (gui *Gui) resetHelpersAndControllers() {
 		syncController,
 	)
 
-	controllers.AttachControllers(gui.State.Contexts.Snake,
+	controllers.AttachControllers(
+		gui.State.Contexts.Snake,
 		snakeController,
 	)
 

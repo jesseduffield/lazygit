@@ -185,7 +185,8 @@ func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {
 			Reverse:     reverse,
 			IsDirectory: true,
 			Staged:      false,
-		}))
+		},
+	))
 	return err
 }
 

@@ -138,7 +138,8 @@ func TestListRenderer_renderLines(t *testing.T) {
 
 			expectedOutput := strings.Join(lo.Map(
 				strings.Split(strings.TrimPrefix(s.expectedOutput, "\n"), "\n"),
-				func(line string, _ int) string { return strings.TrimSpace(line) }), "\n")
+				func(line string, _ int) string { return strings.TrimSpace(line) },
+			), "\n")
 
 			assert.Equal(t, expectedOutput, self.renderLines(s.startIdx, s.endIdx))
 		})

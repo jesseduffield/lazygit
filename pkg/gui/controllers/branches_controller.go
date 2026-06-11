@@ -554,30 +554,31 @@ func (self *BranchesController) checkoutPreviousBranch() error {
 }
 
 func (self *BranchesController) checkoutByName() error {
-	self.c.Prompt(types.PromptOpts{
-		Title:               self.c.Tr.BranchName + ":",
-		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRefsSuggestionsFunc(),
-		HandleConfirm: func(response string) error {
-			self.c.LogAction("Checkout branch")
-			_, branchName, found := self.c.Helpers().Refs.ParseRemoteBranchName(response)
-			if found {
-				return self.c.Helpers().Refs.CheckoutRemoteBranch(response, branchName)
-			}
-			return self.c.Helpers().Refs.CheckoutRef(response, types.CheckoutRefOptions{
-				OnRefNotFound: func(ref string) error {
-					self.c.Confirm(types.ConfirmOpts{
-						Title:  self.c.Tr.BranchNotFoundTitle,
-						Prompt: fmt.Sprintf("%s %s%s", self.c.Tr.BranchNotFoundPrompt, ref, "?"),
-						HandleConfirm: func() error {
-							return self.createNewBranchWithName(ref)
-						},
-					})
+	self.c.Prompt(
+		types.PromptOpts{
+			Title:               self.c.Tr.BranchName + ":",
+			FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRefsSuggestionsFunc(),
+			HandleConfirm: func(response string) error {
+				self.c.LogAction("Checkout branch")
+				_, branchName, found := self.c.Helpers().Refs.ParseRemoteBranchName(response)
+				if found {
+					return self.c.Helpers().Refs.CheckoutRemoteBranch(response, branchName)
+				}
+				return self.c.Helpers().Refs.CheckoutRef(response, types.CheckoutRefOptions{
+					OnRefNotFound: func(ref string) error {
+						self.c.Confirm(types.ConfirmOpts{
+							Title:  self.c.Tr.BranchNotFoundTitle,
+							Prompt: fmt.Sprintf("%s %s%s", self.c.Tr.BranchNotFoundPrompt, ref, "?"),
+							HandleConfirm: func() error {
+								return self.createNewBranchWithName(ref)
+							},
+						})
 
-					return nil
-				},
-			})
+						return nil
+					},
+				})
+			},
 		},
-	},
 	)
 
 	return nil
@@ -755,7 +756,8 @@ func (self *BranchesController) createSortMenu() error {
 			}
 			return nil
 		},
-		self.c.UserConfig().Git.LocalBranchSortOrder)
+		self.c.UserConfig().Git.LocalBranchSortOrder,
+	)
 }
 
 func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) error {
@@ -853,7 +855,8 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 	}
 
 	if selectedBranch != checkedOutBranch {
-		menuItems = append(menuItems,
+		menuItems = append(
+			menuItems,
 			&types.MenuItem{
 				LabelColumns: fromToLabelColumns(checkedOutBranch.Name, selectedBranch.Name),
 				OnPress: func() error {

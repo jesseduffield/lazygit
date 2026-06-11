@@ -297,10 +297,13 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() {
 						self.c.Tr.UpdateRefHere,
 						map[string]string{
 							"ref": strings.TrimPrefix(commit.Name, "refs/heads/"),
-						}))
+						},
+					),
+				)
 			} else if commit.Action == todo.Exec {
 				task = types.NewRenderStringTask(
-					self.c.Tr.ExecCommandHere + "\n\n" + commit.Name)
+					self.c.Tr.ExecCommandHere + "\n\n" + commit.Name,
+				)
 			} else {
 				refRange := self.context().GetSelectedRefRangeForDiffFiles()
 				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange)
@@ -451,7 +454,8 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepath string) error {
 	if self.isSelectedHeadCommit() {
 		return self.c.RunSubprocessAndRefresh(
-			self.c.Git().Commit.RewordLastCommitInEditorWithMessageFileCmdObj(filepath))
+			self.c.Git().Commit.RewordLastCommitInEditorWithMessageFileCmdObj(filepath),
+		)
 	}
 
 	err := self.c.Git().Rebase.BeginInteractiveRebaseForCommit(self.c.Model().Commits, self.context().GetSelectedLineIdx(), false)
@@ -461,7 +465,8 @@ func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepat
 
 	// now the selected commit should be our head so we'll amend it with the new message
 	err = self.c.RunSubprocessAndRefresh(
-		self.c.Git().Commit.RewordLastCommitInEditorWithMessageFileCmdObj(filepath))
+		self.c.Git().Commit.RewordLastCommitInEditorWithMessageFileCmdObj(filepath),
+	)
 	if err != nil {
 		return err
 	}
@@ -598,7 +603,8 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, start
 				Mode: types.BLOCK_UI, Then: func() {
 					self.restoreSelectionRangeAndMode(selectionRangeAndMode)
 				},
-			})
+			},
+		)
 	}
 
 	return self.startInteractiveRebaseWithEdit(selectedCommits)
@@ -638,7 +644,8 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 				}
 
 				self.restoreSelectionRangeAndMode(selectionRangeAndMode)
-			}})
+			}},
+		)
 	})
 }
 
@@ -780,7 +787,8 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
-			err, types.RefreshOptions{Mode: types.SYNC})
+			err, types.RefreshOptions{Mode: types.SYNC},
+		)
 	})
 }
 
@@ -806,7 +814,8 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
-			err, types.RefreshOptions{Mode: types.SYNC})
+			err, types.RefreshOptions{Mode: types.SYNC},
+		)
 	})
 }
 
@@ -941,7 +950,8 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 			self.c.Tr.ConfirmRevertCommit,
 			map[string]string{
 				"selectedCommit": commits[0].ShortHash(),
-			})
+			},
+		)
 	} else {
 		promptText = self.c.Tr.ConfirmRevertCommitRange
 	}
@@ -1168,7 +1178,8 @@ func (self *LocalCommitsController) squashFixupsImpl(commit *models.Commit, reba
 		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
 		self.context().MoveSelectedLine(-selectionOffset)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
-			err, types.RefreshOptions{Mode: types.SYNC})
+			err, types.RefreshOptions{Mode: types.SYNC},
+		)
 	})
 }
 

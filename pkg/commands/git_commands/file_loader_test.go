@@ -30,11 +30,13 @@ func TestFileGetStatusFiles(t *testing.T) {
 			testName:            "Several files found",
 			similarityThreshold: 50,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
+				ExpectGitArgs(
+					[]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
 					"MM file1.txt\x00A  file3.txt\x00AM file2.txt\x00?? file4.txt\x00UU file5.txt",
 					nil,
 				).
-				ExpectGitArgs([]string{"diff", "--numstat", "-z", "HEAD"},
+				ExpectGitArgs(
+					[]string{"diff", "--numstat", "-z", "HEAD"},
 					"4\t1\tfile1.txt\x001\t0\tfile2.txt\x002\t2\tfile3.txt\x000\t2\tfile4.txt\x002\t2\tfile5.txt",
 					nil,
 				),
@@ -136,7 +138,8 @@ func TestFileGetStatusFiles(t *testing.T) {
 			testName:            "Renamed files",
 			similarityThreshold: 50,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
+				ExpectGitArgs(
+					[]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
 					"R  after1.txt\x00before1.txt\x00RM after2.txt\x00before2.txt",
 					nil,
 				),
@@ -173,7 +176,8 @@ func TestFileGetStatusFiles(t *testing.T) {
 			testName:            "File with arrow in name",
 			similarityThreshold: 50,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
+				ExpectGitArgs(
+					[]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
 					`?? a -> b.txt`,
 					nil,
 				),
@@ -196,7 +200,8 @@ func TestFileGetStatusFiles(t *testing.T) {
 			testName:            "Copied files",
 			similarityThreshold: 50,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
+				ExpectGitArgs(
+					[]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
 					"C  copy1.txt\x00original.txt\x00CM copy2.txt\x00original.txt",
 					nil,
 				),

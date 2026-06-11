@@ -35,7 +35,7 @@ var Crud = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Worktree")).
-					Select(Contains(`Create worktree from ref`).DoesNotContain(("detached"))).
+					Select(Contains(`Create worktree from ref`).DoesNotContain("detached")).
 					Confirm()
 
 				t.ExpectPopup().Prompt().
