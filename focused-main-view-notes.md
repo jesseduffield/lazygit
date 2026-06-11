@@ -1706,3 +1706,88 @@ the cmd path, defers no `afterLayout`, and blocks `LAZYGIT_SLOW_RENDER`, so the 
 re-render path and any flicker aren't reproducible there. Confirm with `just debug`,
 scrolled down, cycling between a side-by-side and an inline pager and between a `pager:`
 entry and an `externalDiffCommand` entry.
+
+---
+
+## 19. Session 9: alt/shift-click a diff line to jump to the editor
+
+A small standalone interaction, only loosely related to the rest of the branch:
+a modifier-click in the main view that opens the diff line under the cursor in
+the editor — without focusing the view, creating a selection, or being blocked
+by a popup. It's the gesture replacement for delta's clickable line-number
+gutter (`--line-numbers --hyperlinks`), whose three gripes were: a small/fiddly
+target, the horizontal space the gutter costs, and that it's only on
+added/context lines. **Interactively signed off** in Ghostty, iTerm2, and VS
+Code.
+
+Commits (most recent last):
+
+1. *Let a mouse binding opt into firing while a popup panel is focused* — gocui.
+2. *Extract editDiffLine from editLine* — prep refactor.
+3. *Carry the keyboard modifier on mouse click events* — gocui fix.
+4. *Alt- or shift-click a diff line to open it in the editor* — the feature.
+
+### 19.1 Why alt + shift (the terminal wall)
+
+The original instinct was a single modifier-click or right-click; **a per-terminal
+probe killed every single-gesture option** (temporary instrumentation that logged
+raw tcell button+modifier for each click — removed after). The findings, which are
+the durable lesson here:
+
+- The only mouse input reliably delivered to a TUI is a **plain left-click** (and
+  the wheel). Right-click is claimed for context menus (iTerm2, VS Code) or simply
+  not forwarded; modifiers are stripped (Ghostty drops ctrl), repurposed for text
+  selection (shift/alt bypass mouse capture), or promoted to a secondary click
+  (macOS ctrl-click). The SGR mouse protocol can't even carry Cmd/Super.
+- **No single chord survives all three terminals.** Ghostty forwards alt (keeps
+  shift for selection); iTerm2 forwards only shift; VS Code forwards both. So we
+  bind **both alt-left and shift-left** to the same handler: whichever a terminal
+  delivers fires the edit, the one it keeps for itself never arrives. (Right-click
+  *does* reach Ghostty — see the bug below — but is unusable in iTerm2/VS Code, so
+  it was dropped in favour of the alt/shift pair.)
+
+### 19.2 The two gocui pieces
+
+- **Popup-bypass for mouse bindings** (`HandleWhenPopupPanelFocused` on
+  `ViewMouseBinding`). Clicks on a non-popup view are normally swallowed by the
+  `ShouldHandleMouseEvent` gate; hyperlink clicks already dodge it by being handled
+  in an earlier phase. The flag generalizes that: flagged bindings are dispatched
+  before the gate, so the edit-click stays live behind the commit-message panel
+  (the case the gutter hyperlinks handled and the `e` keybinding can't). One flag on
+  the producer; existing bindings stay oblivious ([[isolate-new-concepts-from-clients]]).
+- **Modifier-on-press fix.** A click is reported on the button *press*, but the
+  driver only applied the keyboard modifier on *release* — which it turns into a
+  discarded mouse-move. So modified clicks reached handlers stripped to a plain
+  click; the alt/shift binding couldn't have matched without this. **Behavior
+  change, global:** every modified click in every view now carries its modifier, so
+  an unbound modified click is a no-op rather than silently acting as a plain click.
+  Nothing in the tree bound a click modifier before, so nothing relied on the old
+  behavior. (A *separate* latent bug surfaced during the probe and was **not** kept:
+  the driver converts right/middle-button presses into mouse-move events, so they're
+  never dispatched — fixable in ~3 lines if right/middle clicks are ever wanted.)
+
+### 19.3 It's another diff-line-metadata consumer
+
+The handler resolves the clicked whole line via `StagingHelper.GetDiffLineInfo`
+(the same primitive the focused-main-view click/`e`/escape-restore use), then
+`Files.EditFileAtLine`. So it inherits the backends' fidelity exactly: full
+whole-line + deletion support under the OSC-metadata and no-pager/buffer-parse
+backends; the plain `--hyperlinks` backend only resolves lines that *carry* a
+hyperlink (added/context). So even before delta's gutter is turned off this beats
+the gutter click for those lines (whole line, behind popups); turning off
+`--line-numbers --hyperlinks` and relying on the metadata backend is what unlocks
+deletions and reclaims the gutter.
+
+### 19.4 Productionization placement (planning hint)
+
+Land this as a **separate PR at the very end** of the productionization stack
+(§15's decomposition), after the focused-main-view feature and the diff-line
+primitive are in — it's an *additional consumer*, not a dependency of anything
+else, so it shouldn't gate the rest. Two of its commits are independently
+master-worthy and could even go ahead on their own, decoupled from the
+metadata work: the `HandleWhenPopupPanelFocused` capability and the
+modifier-on-press fix (the latter carries the global behavior-change note above,
+so flag it in its own PR description). Still pending for that PR: a confirming
+slow-render/interactive pass isn't needed (no async render path here), but it
+wants integration-test coverage like the rest of the focused-main-view
+interactions (§7 — none exist yet).
