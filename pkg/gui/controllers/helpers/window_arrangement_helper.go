@@ -468,7 +468,7 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 					maxHeight := int(float64(availableSpace) * float64(args.UserConfig.Gui.ExpandedSidePanelWeight) / totalWeight)
 					contentHeight := args.CurrentSideContextContentHeight + 2 // +2 for borders
 
-					if args.UserConfig.Gui.ExpandFocusedSidePanelFitContent && contentHeight < maxHeight {
+					if args.UserConfig.Gui.ExpandedFocusedSidePanelFitsContent && contentHeight < maxHeight {
 						return &boxlayout.Box{
 							Window: defaultBox.Window,
 							Size:   contentHeight,

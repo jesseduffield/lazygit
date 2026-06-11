@@ -122,10 +122,10 @@ func TestGetWindowDimensions(t *testing.T) {
 			`,
 		},
 		{
-			name: "expandFocusedSidePanelFitContent",
+			name: "expandedFocusedSidePanelFitsContent",
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.UserConfig.Gui.ExpandFocusedSidePanel = true
-				args.UserConfig.Gui.ExpandFocusedSidePanelFitContent = true
+				args.UserConfig.Gui.ExpandedFocusedSidePanelFitsContent = true
 				args.CurrentSideContextContentHeight = 2
 			},
 			expected: `
