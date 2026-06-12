@@ -5,7 +5,9 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spf13/afero"
@@ -40,6 +42,10 @@ type CommitMessageViewModel struct {
 	onConfirm func(string, string) error
 	// invoked when pressing the switch-to-editor key binding
 	onSwitchToEditor func(string) error
+
+	generatingCommitMessage       bool
+	cancelingCommitMessage        bool
+	cancelGenerateCommitMessageFn func()
 
 	// the following two fields are used for the display of the "hooks disabled" subtitle
 	forceSkipHooks  bool
@@ -164,13 +170,70 @@ func (self *CommitMessageContext) SetPanelState(
 	self.GetView().Title = summaryTitle
 	self.c.Views().CommitDescription.Title = descriptionTitle
 
+	self.RenderCommitDescriptionSubtitle()
+
+	self.c.Views().CommitDescription.Visible = true
+}
+
+func (self *CommitMessageContext) StartGeneratingCommitMessage(cancel func()) {
+	self.viewModel.generatingCommitMessage = true
+	self.viewModel.cancelingCommitMessage = false
+	self.viewModel.cancelGenerateCommitMessageFn = cancel
+	self.c.Views().CommitMessage.Editable = false
+	self.c.Views().CommitDescription.Editable = false
+	self.RenderCommitDescriptionSubtitle()
+}
+
+func (self *CommitMessageContext) StopGeneratingCommitMessage() {
+	self.viewModel.generatingCommitMessage = false
+	self.viewModel.cancelingCommitMessage = false
+	self.viewModel.cancelGenerateCommitMessageFn = nil
+	self.c.Views().CommitMessage.Editable = true
+	self.c.Views().CommitDescription.Editable = true
+	self.RenderCommitDescriptionSubtitle()
+}
+
+func (self *CommitMessageContext) IsGeneratingCommitMessage() bool {
+	return self.viewModel.generatingCommitMessage
+}
+
+func (self *CommitMessageContext) CancelGenerateCommitMessage() bool {
+	if !self.viewModel.generatingCommitMessage {
+		return false
+	}
+
+	if !self.viewModel.cancelingCommitMessage {
+		self.viewModel.cancelingCommitMessage = true
+		if self.viewModel.cancelGenerateCommitMessageFn != nil {
+			self.viewModel.cancelGenerateCommitMessageFn()
+		}
+	}
+	self.RenderCommitDescriptionSubtitle()
+	return true
+}
+
+func (self *CommitMessageContext) RenderCommitDescriptionSubtitle() {
+	if self.viewModel.generatingCommitMessage {
+		loader := presentation.Loader(time.Now(), self.c.UserConfig().Gui.Spinner)
+		if self.viewModel.cancelingCommitMessage {
+			self.c.Views().CommitDescription.Subtitle = utils.ResolvePlaceholderString(self.c.Tr.CancelingGenerateCommitMessageSubTitle,
+				map[string]string{"spinner": loader})
+			return
+		}
+
+		self.c.Views().CommitDescription.Subtitle = utils.ResolvePlaceholderString(self.c.Tr.GenerateCommitMessageSubTitle,
+			map[string]string{
+				"spinner":   loader,
+				"cancelKey": self.c.UserConfig().Keybinding.Universal.Return.String(),
+			})
+		return
+	}
+
 	self.c.Views().CommitDescription.Subtitle = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionSubTitle,
 		map[string]string{
 			"togglePanelKeyBinding": self.c.UserConfig().Keybinding.Universal.TogglePanel.String(),
 			"commitMenuKeybinding":  self.c.UserConfig().Keybinding.CommitMessage.CommitMenu.String(),
 		})
-
-	self.c.Views().CommitDescription.Visible = true
 }
 
 func (self *CommitMessageContext) RenderSubtitle() {

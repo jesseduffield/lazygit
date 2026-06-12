@@ -30,6 +30,10 @@ func (self *fakeGuiDriver) PressKey(key string) {
 	self.pressedKeys = append(self.pressedKeys, key)
 }
 
+func (self *fakeGuiDriver) PressKeyWithoutWaiting(key string) {
+	self.pressedKeys = append(self.pressedKeys, key)
+}
+
 func (self *fakeGuiDriver) Click(x, y int) {
 	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
 }

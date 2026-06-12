@@ -10,6 +10,10 @@
           "description": "If true, pass '--signoff' flag when committing",
           "default": false
         },
+        "messageGeneratorCommand": {
+          "type": "string",
+          "description": "Command that generates a commit message. Lazygit appends the current git project root as the final argument and uses stdout as the editable commit message."
+        },
         "autoWrapCommitMessage": {
           "type": "boolean",
           "description": "Automatic WYSIWYG wrapping of the commit message as you type",

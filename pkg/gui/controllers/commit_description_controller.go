@@ -87,6 +87,10 @@ func (self *CommitDescriptionController) switchToCommitMessage() error {
 }
 
 func (self *CommitDescriptionController) handleTogglePanel() error {
+	if self.c.Contexts().CommitMessage.IsGeneratingCommitMessage() {
+		return nil
+	}
+
 	// The default keybinding for this action is "<tab>", which means that we
 	// also get here when pasting multi-line text that contains tabs. In that
 	// case we don't want to toggle the panel, but insert the tab as a character
@@ -113,15 +117,27 @@ func (self *CommitDescriptionController) handleTogglePanel() error {
 }
 
 func (self *CommitDescriptionController) close() error {
+	if self.c.Contexts().CommitMessage.CancelGenerateCommitMessage() {
+		return nil
+	}
+
 	self.c.Helpers().Commits.CloseCommitMessagePanel()
 	return nil
 }
 
 func (self *CommitDescriptionController) confirm() error {
+	if self.c.Contexts().CommitMessage.IsGeneratingCommitMessage() {
+		return nil
+	}
+
 	return self.c.Helpers().Commits.HandleCommitConfirm()
 }
 
 func (self *CommitDescriptionController) openCommitMenu() error {
+	if self.c.Contexts().CommitMessage.IsGeneratingCommitMessage() {
+		return nil
+	}
+
 	authorSuggestion := self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc()
 	return self.c.Helpers().Commits.OpenCommitMenu(authorSuggestion)
 }

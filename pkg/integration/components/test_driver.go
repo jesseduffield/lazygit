@@ -56,6 +56,11 @@ func (self *TestDriver) GlobalPress(key config.Keybinding) {
 	self.press(key[0])
 }
 
+// For cases where a keypress is expected to cancel an in-flight background task.
+func (self *TestDriver) GlobalPressWithoutWaiting(key config.Keybinding) {
+	self.gui.PressKeyWithoutWaiting(key[0])
+}
+
 func (self *TestDriver) typeContent(content string) {
 	for _, char := range content {
 		self.pressFast(string(char))

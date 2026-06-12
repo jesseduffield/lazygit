@@ -370,6 +370,8 @@ type PagingConfig struct {
 type CommitConfig struct {
 	// If true, pass '--signoff' flag when committing
 	SignOff bool `yaml:"signOff"`
+	// Command that generates a commit message. Lazygit appends the current git project root as the final argument and uses stdout as the editable commit message.
+	MessageGeneratorCommand string `yaml:"messageGeneratorCommand"`
 	// Automatic WYSIWYG wrapping of the commit message as you type
 	AutoWrapCommitMessage bool `yaml:"autoWrapCommitMessage"`
 	// If autoWrapCommitMessage is true, the width to wrap to
@@ -902,9 +904,10 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 		},
 		Git: GitConfig{
 			Commit: CommitConfig{
-				SignOff:               false,
-				AutoWrapCommitMessage: true,
-				AutoWrapWidth:         72,
+				SignOff:                 false,
+				MessageGeneratorCommand: "",
+				AutoWrapCommitMessage:   true,
+				AutoWrapWidth:           72,
 			},
 			Merging: MergingConfig{
 				ManualCommit:       false,

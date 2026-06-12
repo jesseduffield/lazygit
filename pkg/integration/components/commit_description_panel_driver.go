@@ -63,6 +63,12 @@ func (self *CommitDescriptionPanelDriver) Title(expected *TextMatcher) *CommitDe
 	return self
 }
 
+func (self *CommitDescriptionPanelDriver) Subtitle(expected *TextMatcher) *CommitDescriptionPanelDriver {
+	self.getViewDriver().Subtitle(expected)
+
+	return self
+}
+
 func (self *CommitDescriptionPanelDriver) Cancel() {
 	self.getViewDriver().PressEscape()
 }

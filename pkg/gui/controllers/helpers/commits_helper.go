@@ -1,12 +1,16 @@
 package helpers
 
 import (
+	"bytes"
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -231,25 +235,159 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 			Keys:           menuKey('e'),
 			DisabledReason: disabledReasonForOpenInEditor,
 		},
-		{
+	}
+
+	if strings.TrimSpace(self.c.UserConfig().Git.Commit.MessageGeneratorCommand) != "" {
+		menuItems = append(menuItems, &types.MenuItem{
+			Label: self.c.Tr.GenerateCommitMessage,
+			OnPress: func() error {
+				return self.generateCommitMessage()
+			},
+			Keys: menuKey('g'),
+		})
+	}
+
+	menuItems = append(menuItems,
+		&types.MenuItem{
 			Label: self.c.Tr.AddCoAuthor,
 			OnPress: func() error {
 				return self.addCoAuthor(suggestionFunc)
 			},
 			Keys: menuKey('c'),
 		},
-		{
+		&types.MenuItem{
 			Label: self.c.Tr.PasteCommitMessageFromClipboard,
 			OnPress: func() error {
 				return self.pasteCommitMessageFromClipboard()
 			},
 			Keys: menuKey('p'),
 		},
-	}
+	)
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.CommitMenuTitle,
 		Items: menuItems,
 	})
+}
+
+func (self *CommitsHelper) generateCommitMessage() error {
+	if self.c.Contexts().CommitMessage.IsGeneratingCommitMessage() {
+		return nil
+	}
+
+	command := strings.TrimSpace(self.c.UserConfig().Git.Commit.MessageGeneratorCommand)
+	repoRoot := self.c.Git().RepoPaths.WorktreePath()
+	commandWithRepoRoot := command + " " + self.c.OS().Quote(repoRoot)
+
+	cmdObj := self.c.OS().Cmd.NewShell(commandWithRepoRoot, self.c.UserConfig().OS.ShellFunctionsFile).SetWd(repoRoot)
+	cmd := cmdObj.GetCmd()
+
+	var stdoutBuffer, stderrBuffer bytes.Buffer
+	cmd.Stdout = &stdoutBuffer
+	cmd.Stderr = &stderrBuffer
+
+	var mutex sync.Mutex
+	cancelled := false
+	var process *os.Process
+	done := make(chan struct{})
+
+	cancel := func() {
+		mutex.Lock()
+		if cancelled {
+			mutex.Unlock()
+			return
+		}
+		cancelled = true
+		processToTerminate := process
+		mutex.Unlock()
+
+		if processToTerminate == nil {
+			return
+		}
+
+		if err := oscommands.TerminateProcessGracefully(cmd); err != nil {
+			self.c.Log.Errorf("error when trying to terminate commit message generator: %v; Command: %v %v", err, cmd.Path, cmd.Args)
+		}
+
+		go func() {
+			select {
+			case <-done:
+			case <-time.After(2 * time.Second):
+				_ = processToTerminate.Kill()
+			}
+		}()
+	}
+
+	self.c.Contexts().CommitMessage.StartGeneratingCommitMessage(cancel)
+	stopRendering := self.renderGeneratingCommitMessageStatus()
+
+	return self.c.WithWaitingStatus(self.c.Tr.GeneratingCommitMessageStatus, func(gocui.Task) error {
+		defer close(done)
+		defer close(stopRendering)
+
+		err := cmd.Start()
+		mutex.Lock()
+		if err == nil {
+			process = cmd.Process
+		}
+		shouldTerminate := cancelled && process != nil
+		mutex.Unlock()
+
+		if shouldTerminate {
+			_ = oscommands.TerminateProcessGracefully(cmd)
+		}
+
+		if err == nil {
+			err = cmd.Wait()
+		}
+
+		mutex.Lock()
+		wasCancelled := cancelled
+		mutex.Unlock()
+
+		self.c.OnUIThread(func() error {
+			self.c.Contexts().CommitMessage.StopGeneratingCommitMessage()
+			if wasCancelled {
+				return nil
+			}
+
+			if err != nil {
+				message := strings.TrimSpace(stderrBuffer.String())
+				if message == "" {
+					message = err.Error()
+				}
+				self.c.Alert(self.c.Tr.GenerateCommitMessageFailed, message)
+				return nil
+			}
+
+			self.SetMessageAndDescriptionInView(stdoutBuffer.String())
+			return nil
+		})
+
+		return nil
+	})
+}
+
+func (self *CommitsHelper) renderGeneratingCommitMessageStatus() chan struct{} {
+	stop := make(chan struct{})
+
+	self.c.OnWorker(func(gocui.Task) error {
+		ticker := time.NewTicker(time.Millisecond * time.Duration(self.c.UserConfig().Gui.Spinner.Rate))
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-stop:
+				return nil
+			case <-ticker.C:
+				self.c.OnUIThreadContentOnly(func() error {
+					self.c.Contexts().CommitMessage.RenderCommitDescriptionSubtitle()
+					return nil
+				})
+			}
+		}
+	})
+
+	return stop
 }
 
 func (self *CommitsHelper) addCoAuthor(suggestionFunc func(string) []*types.Suggestion) error {

@@ -378,6 +378,11 @@ git:
     # If true, pass '--signoff' flag when committing
     signOff: false
 
+    # Command that generates a commit message. Lazygit appends the current git
+    # project root as the final argument and uses stdout as the editable commit
+    # message.
+    messageGeneratorCommand: ""
+
     # Automatic WYSIWYG wrapping of the commit message as you type
     autoWrapCommitMessage: true
 
