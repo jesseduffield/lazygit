@@ -380,7 +380,8 @@ git:
 
     # Command that generates a commit message. Lazygit appends the current git
     # project root as the final argument and uses stdout as the editable commit
-    # message.
+    # message. If the command fails, stderr is shown to the user. See
+    # https://github.com/jesseduffield/lazygit/blob/master/docs/Generated_Commit_Messages.md.
     messageGeneratorCommand: ""
 
     # Automatic WYSIWYG wrapping of the commit message as you type

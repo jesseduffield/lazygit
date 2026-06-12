@@ -2,6 +2,7 @@
 
 * [Configuration](./Config.md).
 * [Custom Commands](./Custom_Command_Keybindings.md)
+* [Generated Commit Messages](./Generated_Commit_Messages.md)
 * [Custom Pagers](./Custom_Pagers.md)
 * [Dev docs](./dev)
 * [Keybindings](./keybindings)
