@@ -276,9 +276,8 @@ func (self *CommitsHelper) generateCommitMessage() error {
 
 	command := strings.TrimSpace(self.c.UserConfig().Git.Commit.MessageGeneratorCommand)
 	repoRoot := self.c.Git().RepoPaths.WorktreePath()
-	commandWithRepoRoot := command + " " + self.c.OS().Quote(repoRoot)
 
-	cmdObj := self.c.OS().Cmd.NewShell(commandWithRepoRoot, self.c.UserConfig().OS.ShellFunctionsFile).SetWd(repoRoot)
+	cmdObj := self.c.OS().Cmd.NewShell(command, self.c.UserConfig().OS.ShellFunctionsFile).SetWd(repoRoot)
 	cmd := cmdObj.GetCmd()
 
 	var stdoutBuffer, stderrBuffer bytes.Buffer

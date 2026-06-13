@@ -8,7 +8,7 @@ import (
 var GenerateCommitMessage = NewIntegrationTest(NewIntegrationTestArgs{
 	Description: "Generate a commit message from a configured command",
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Git.Commit.MessageGeneratorCommand = `sh -c 'printf "generated subject\n\nroot: %s" "$(basename "$1")"' sh`
+		config.GetUserConfig().Git.Commit.MessageGeneratorCommand = `sh -c 'printf "generated subject\n\nroot: %s\nargs: %s" "$(basename "$PWD")" "$#"' sh`
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file", "file content")
@@ -28,6 +28,6 @@ var GenerateCommitMessage = NewIntegrationTest(NewIntegrationTestArgs{
 		t.ExpectPopup().CommitMessagePanel().
 			Content(Equals("generated subject")).
 			SwitchToDescription().
-			Content(Equals("root: repo"))
+			Content(Equals("root: repo\nargs: 0"))
 	},
 })

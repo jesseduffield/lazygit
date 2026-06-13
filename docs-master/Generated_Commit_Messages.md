@@ -14,7 +14,7 @@ When this option is set, the commit menu shows `Generate Commit Message`. Select
 
 ## Command Contract
 
-Lazygit appends the Git project root as the final argument to the configured command. For example, if your config contains:
+Lazygit runs the configured command from the Git project root. For example, if your config contains:
 
 ```yaml
 git:
@@ -25,7 +25,7 @@ git:
 Lazygit runs it like this:
 
 ```sh
-~/bin/generate-staged-commit-message.sh --style conventional /path/to/repo
+(cd /path/to/repo && ~/bin/generate-staged-commit-message.sh --style conventional)
 ```
 
 The command should write only the commit message to stdout. If stdout contains a blank line, Lazygit treats the first paragraph as the commit summary and the rest as the commit description.
@@ -40,15 +40,13 @@ This example uses the staged file summary to build a basic message:
 #!/usr/bin/env sh
 set -eu
 
-repo_root=$1
-
-if git -C "$repo_root" diff --cached --quiet --exit-code; then
+if git diff --cached --quiet --exit-code; then
   echo "no staged changes" >&2
   exit 1
 fi
 
-files=$(git -C "$repo_root" diff --cached --name-only | sed -n '1,3p' | paste -sd ', ' -)
-count=$(git -C "$repo_root" diff --cached --name-only | wc -l | tr -d ' ')
+files=$(git diff --cached --name-only | sed -n '1,3p' | paste -sd ', ' -)
+count=$(git diff --cached --name-only | wc -l | tr -d ' ')
 
 if [ "$count" -eq 1 ]; then
   printf 'update %s\n' "$files"
@@ -71,7 +69,7 @@ git:
 
 ## Codex Example
 
-This example asks `codex exec` to inspect the staged diff and output only a commit message. It accepts the repo root that Lazygit passes as the final argument, checks that staged changes exist, and lets you override the model or add extra `codex exec` arguments with environment variables.
+This example asks `codex exec` to inspect the staged diff and output only a commit message. It checks that staged changes exist in the current Git repository and lets you override the model or add extra `codex exec` arguments with environment variables.
 
 ```sh
 #!/usr/bin/env bash
@@ -79,10 +77,10 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: generate-staged-commit-message.sh <git-base-dir>
+Usage: generate-staged-commit-message.sh
 
 Calls Codex to generate a commit message for the currently staged changes in
-the given Git repository.
+the current Git repository.
 
 Environment:
   CODEX_MODEL       Optional model name passed to `codex exec -m`.
@@ -100,7 +98,7 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
-[[ $# -eq 1 ]] || {
+[[ $# -eq 0 ]] || {
   usage
   exit 2
 }
@@ -108,11 +106,8 @@ fi
 command -v git >/dev/null 2>&1 || die "git is not installed or not on PATH"
 command -v codex >/dev/null 2>&1 || die "codex is not installed or not on PATH"
 
-git_base_dir=$1
-[[ -d "$git_base_dir" ]] || die "not a directory: $git_base_dir"
-
-repo_root=$(git -C "$git_base_dir" rev-parse --show-toplevel 2>/dev/null) ||
-  die "not a Git repository: $git_base_dir"
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null) ||
+  die "not a Git repository: $PWD"
 
 if git -C "$repo_root" diff --cached --quiet --exit-code; then
   die "no staged changes found in $repo_root"
@@ -177,4 +172,4 @@ Keep the command non-interactive because Lazygit captures stdout and stderr. If 
 
 Make the command fail when it cannot produce a useful message. Lazygit will show stderr and leave the current message intact.
 
-Quote paths inside scripts. Lazygit appends the repo root as an argument, and repo paths can contain spaces.
+Quote paths inside scripts. Repository paths can contain spaces.
