@@ -744,6 +744,13 @@ argument yet for the v2 "both numbers always".
   `num_context_lines = 0` (the previous new line is then far away). Documented, not
   a blocker — the deletion's *old*-line (its real identity for staging) is always
   exact; only the editor-target new-line is approximate.
+  - **Session 9: re-verified empirically and dropped from the published spec as too
+    marginal.** A single mid-file pure deletion emits `d;4;4` (exact) at default
+    context but `d;1;4` (new-line drifted low by the elided count) at `--context 0`;
+    `old-line` is exact in both. Since lazygit renders at default context, the drift
+    isn't reachable in normal use, and even at zero context the only effect is `e` on
+    a *deleted* line opening the new file a few lines off (inherently approximate).
+    So it's no longer a spec §8 item.
 - **Inline mode proves the metadata's worth beyond layout.** Inline groups **all
   old-side lines, then all new-side lines** (not interleaved like git). A
   modification's `d` (deletions group) and `a` (additions group) are therefore
