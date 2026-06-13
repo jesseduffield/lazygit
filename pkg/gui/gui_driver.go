@@ -27,7 +27,16 @@ var _ integrationTypes.GuiDriver = &GuiDriver{}
 
 func (self *GuiDriver) PressKey(keyStr string) {
 	self.CheckAllToastsAcknowledged()
+	self.pressKeyWithoutWaiting(keyStr)
+	self.waitTillIdle()
+}
 
+func (self *GuiDriver) PressKeyWithoutWaiting(keyStr string) {
+	self.CheckAllToastsAcknowledged()
+	self.pressKeyWithoutWaiting(keyStr)
+}
+
+func (self *GuiDriver) pressKeyWithoutWaiting(keyStr string) {
 	key, ok := config.KeyFromLabel(keyStr)
 	if !ok {
 		self.Fail("Unrecognized key: " + keyStr)
@@ -37,8 +46,6 @@ func (self *GuiDriver) PressKey(keyStr string) {
 		tcell.NewEventKey(tcell.Key(key.KeyName()), key.Str(), tcell.ModMask(key.Mod())),
 		0,
 	)
-
-	self.waitTillIdle()
 }
 
 func (self *GuiDriver) Click(x, y int) {
