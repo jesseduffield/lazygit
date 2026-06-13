@@ -41,13 +41,8 @@ the pager.
 But the moment a pager **restructures** the diff, the unified-diff structure the
 parse relies on is gone:
 
-- `delta` in its default mode conveys the side (added/removed) purely by
-  background color and prefixes a line-number gutter, so there is no `+`/`-`
-  marker to read and no parseable `@@` body;
-- `delta --color-only --line-numbers` (the configuration people actually use)
-  pushes the `+`/`-` marker off the start of the line behind the gutter, so a
-  naive parse is *confidently wrong*;
-- `diff-so-fancy` rewrites the headers and strips the `+`/`-` markers entirely;
+- `delta` (default mode) and `diff-so-fancy` drop or hide the `+`/`-` markers and
+  convey the side with color, leaving no parseable unified-diff structure;
 - `difftastic` is token-granular and side-by-side — there is no unified-diff line
   structure left in *either* of its modes.
 
@@ -131,10 +126,14 @@ Raw bytes, for a context line at new-file line 10 of `src/foo.go`:
 | field | presence | meaning |
 |---|---|---|
 | `version` | always | decimal protocol version; `1` for v1. Carried in every record so attachments are self-describing. |
-| `type` | always | one character — see §5.1. v1 emits `c` (context), `a` (added), `d` (deleted). |
-| `new-line` | content lines | new-file line number, in the **diff's new-file space** (see §5.2). |
+| `type` | always | one character — see §5.1. v1 emits `c` (context), `a` (added), `d` (deleted), `f` (file header), `h` (hunk header). |
+| `new-line` | content & header lines | new-file line number, in the **diff's new-file space** (see §5.2). |
 | `old-line` | only `type=d` | old-file line number. **Empty** for `c` and `a`. |
 | `file` | always | the file path the line belongs to; absolute or repo-root-relative (the host normalizes — emit whichever is convenient). Carried on **every** record so a single record is a complete answer. |
+
+For a **renamed** file, `file` is the **new** path (git's `+++ b/…` side); the old
+path is not carried. A pure rename with no content change emits no records at all
+(it has no content lines, only header rows).
 
 ### 4.3 Examples
 
@@ -144,7 +143,9 @@ Raw bytes, for a context line at new-file line 10 of `src/foo.go`:
 | addition, new line 11 | `1717;1;a;11;;src/foo.go` |
 | deletion, old line 9, sits at new pos 11 | `1717;1;d;11;9;src/foo.go` |
 | two consecutive deletions | `…;d;11;9;…` then `…;d;11;10;…` (same `new-line`, different `old-line` — see §5.3) |
-| whole-file deletion | `1717;1;d;0;9;old/path` (`new-line` 0 — see §5.5) |
+| whole-file deletion | `1717;1;d;0;9;old/path` (`new-line` 0 — see §5.4) |
+| file header | `1717;1;f;10;;src/foo.go` (`new-line` = the file's first hunk line — §5.2) |
+| hunk header | `1717;1;h;10;;src/foo.go` |
 
 ---
 
@@ -152,24 +153,30 @@ Raw bytes, for a context line at new-file line 10 of `src/foo.go`:
 
 ### 5.1 Type
 
-`type` is one character. v1 defines and emits three (the content-line types):
+`type` is one character. v1 defines five, and a conforming pager emits each
+wherever the corresponding row exists:
 
 - `c` — context (unchanged) line
 - `a` — added line
 - `d` — deleted line
+- `f` — file header — the row a pager renders to announce a file
+- `h` — hunk header — the row announcing a hunk (e.g. a `@@ … @@` line)
 
-Reserved for future use (v1 emitters do **not** emit these; header rows simply
-carry no record and the host falls back):
+`c`/`a`/`d` are the content-line types. `f`/`h` mark the structural rows so the
+host can place every file and hunk **exactly** — for navigation, and for acting on
+a header — instead of inferring structure from layout, the one thing it cannot do.
+They are not optional: a pager emits `f` on each file-header row and `h` on each
+hunk-header row it renders (a pager that renders no hunk-header rows, e.g.
+difftastic, simply has none to tag). See §6.4.
 
-- `h` — hunk header (`@@ … @@`)
-- `f` — file header (`diff --git`, `---`, `+++`)
-- `o` — other
+A host **must ignore a `type` it does not recognize** (treat the row as
+non-actionable) rather than reject the record, so the set can grow later without a
+version bump.
 
-**`type` is load-bearing and cannot be inferred from the other fields.** Under the
-coordinate rules, `added` and `context` both carry `{new-line present, old-line
-absent}`, so presence alone cannot distinguish them — yet the host must (scroll
-preservation anchors specifically on *change* lines, so it has to tell `added`
-from `context`). Hence an explicit type rather than an inferred one.
+**`type` is load-bearing and cannot be inferred from the other fields.** `added`
+and `context` both carry `{new-line present, old-line absent}`, so presence alone
+cannot distinguish them — yet the host must (scroll preservation anchors
+specifically on *change* lines). Hence an explicit type.
 
 ### 5.2 Line-number spaces
 
@@ -179,6 +186,11 @@ from `context`). Hence an explicit type rather than an inferred one.
   expected to re-map this through its own diff↔worktree adjustment; the pager
   should emit the number as it appears in the diff it is rendering.
 - `old-line` is the old-file line number, present **only** for deletions.
+- On a **header** record (`f`/`h`), `new-line` is the new-file line of the first
+  line of the hunk it heads — for `h` that hunk, for `f` the file's first hunk —
+  and `old-line` is empty. This is what lets `e` ("open in editor") on a header
+  land at the top of what the user is looking at. (A round-trip *through* staging
+  from a header is therefore only approximate, which is an accepted trade.)
 
 ### 5.3 The deleted-line convention (both numbers)
 
@@ -202,15 +214,7 @@ them) and are told apart only by `old-line`. Example — two deletions at old li
 A host uses `old-line` to find a deletion's patch line and its old-side
 (review/PR `L`) anchor, and `new-line` for the editor target.
 
-### 5.4 Why the side must be carried at all
-
-It is tempting to think the side (added vs deleted) is redundant with the rendered
-glyph. It is not: in `delta`'s default rendering there are **no `+`/`-` glyphs** —
-the side is conveyed purely by background color, which a host reading decolorized
-text cannot recover. The pager therefore has to state the side explicitly, which
-is what the `a`/`d` type does.
-
-### 5.5 Whole-file add / delete
+### 5.4 Whole-file add / delete
 
 A deleted file's lines carry `new-line` = `0` (mirroring git's `@@ -1,N +0,0 @@`);
 an added file's lines carry the new-file numbers normally and `type=a`.
@@ -241,12 +245,6 @@ one before each column:
   half.**
 
 The blank counterpart of a pure add/delete (the empty half) carries **no** record.
-
-A side-by-side row carries **at most two** records — one per column. (An earlier
-draft worried token-level tools might need *N* records per row; they do not.
-Token-level novelty is *sub-cell coloring*, not separate identity: a column's cell
-is one source line however many tokens within it are highlighted. Two columns →
-at most two records.)
 
 **v1 needs no column/side discriminator field for this.** `type` already implies
 the column — `a` is inherently the new/right side, `d` the old/left side — and a
@@ -279,22 +277,33 @@ record on its padding rows.
 
 Getting this wrong is not theoretical: without per-row records, acting on a
 wrapped continuation row does nothing, and hunk/file navigation breaks because the
-untagged rows fragment a wrapped line into one block per visual row. Both delta and
-difftastic had this bug in their prototypes and were fixed to emit per-row.
+untagged rows fragment a wrapped line into one block per visual row.
 
 ### 6.4 Header rows
 
-Hunk headers (`@@`), file headers (`diff --git`, `---`, `+++`), and any other
-non-content rows carry **no** record in v1 (the `h`/`f`/`o` types are reserved but
-unused). A host acting on a header row falls back to whatever non-metadata path it
-has, or to no action.
+File-header and hunk-header rows carry records too, and these are **mandatory**:
+`f` on each file-header row, `h` on each hunk-header row (§5.1). With them the host
+places every file and hunk exactly — file/hunk navigation lands on the header, and
+`e` on a header opens at the hunk's first line — with no layout guessing.
+
+Where a header spans **several rows** — delta boxes a file name in divider/name/
+divider lines; a pager might draw a rule under a hunk header — the recommendation
+is that **every row of that block carry the same record** (all three box lines get
+the file's `f`; a hunk header and its rule get that hunk's `h`), exactly as a
+wrapped content line re-emits its record on every row (§6.3). That leaves no dead
+rows in a header block — the user can press `e` anywhere on it and land in the same
+place. The pager has the final say over what counts as its header block and which
+row "is" the heading; this is the recommended default, not a hard rule.
+
+A pager with no hunk-header rows (e.g. difftastic) has no `h` to emit. A row a pager
+genuinely leaves un-recorded is treated by the host as non-actionable.
 
 ---
 
 ## 7. How the host consumes it (informative)
 
-This section is not normative — it describes how lazygit's prototype consumes the
-protocol, to make the emit rules concrete.
+This section is not normative — it sketches the access model the per-cell carrier
+is designed for, to make the emit rules concrete.
 
 - The host attaches each record to the following cell, like an OSC-8 hyperlink. If
   a record has no following cell (a genuinely empty rendered line), the host adds
@@ -302,8 +311,10 @@ protocol, to make the emit rules concrete.
 - **Row-granular action** (e.g. a keyboard "act on this line"): use the **first**
   record on the row. In side-by-side this is the left column — fine, since the two
   sides of a change are one hunk for staging purposes.
-- **Point-granular action** (a mouse click): use the **nearest record at or to the
-  left of the click column** → lands in the column actually clicked.
+- **Point-granular action** (a mouse click): the per-cell attachment lets a host
+  use the **nearest record at or to the left of the click column**, landing in the
+  column actually clicked. (A host may equally resolve clicks at row granularity;
+  the carrier supports either.)
 - The host normalizes `file` (resolving it relative to the repository working
   tree) and otherwise treats the record as opaque identity.
 
@@ -311,63 +322,28 @@ protocol, to make the emit rules concrete.
 
 ## 8. Known limitations and v2 candidates — feedback wanted
 
-These are surfaced honestly because the protocol is a draft. None blocks v1; each
-is a place where pager-author input would shape v2.
+None of these blocks v1; each is a place where input would shape a future version.
 
-### 8.1 `c` and `a` records carry no old-file number
+### 8.1 The token-vs-line model mismatch (difftastic, AST mode)
 
-For context and addition records, `old-line` is empty. This is invisible in a
-single-column rendering, but **side-by-side makes it visible**: the old/left
-column shows a real old-file line number on screen, yet the record for that cell
-reports only `new-line`. With difftastic it bites hardest — difftastic *always*
-shows old-file numbers, old ≠ new is the norm, and the offset is **not constant**
-(it follows structural alignment, not a per-hunk delta), so the old number is not
-even derivable from the new one.
+Our `c`/`a`/`d` set is git's **line-granular** shape: a modified line is a `-` plus
+a `+`. difftastic, when it parses the language (its **AST/token mode**), is finer —
+it aligns lines and marks novelty per token. A line changed *only by added tokens*
+(e.g. `println!("{}", x);` → `println!("{}", x + y);`) then has **no novelty on the
+old side**, so difftastic renders that old line as context (dimmed, not red) and the
+record faithfully says `c`, not `d`; only the new line gets `a`. (In difftastic's
+line/Text fallback — e.g. an unparseable file — it diffs by line and emits `d`/`a`
+as expected.)
 
-Nothing in the current host consumers needs the old number for `c`/`a`, so v1
-leaves it empty. The clean v2 fix, if needed, is **carry both numbers on every
-record** (applies to both single-column and side-by-side) — *not* a side-only tag.
+Because the record matches what difftastic shows, this isn't visible within
+difftastic itself. The consequence is only for a host mapping cells back to git's
+*line* diff: that old cell reports context at the new line, so its old-side `-`
+identity isn't recoverable (impact small — `e` opens the right new-file line, and
+users act on the changed side). A `modified`/`m` type — "aligned, changed, present
+on both sides" — would name the case directly but splits the clean `c`/`a`/`d`
+mapping; recorded as a v2 candidate, not taken (§9).
 
-### 8.2 The token-vs-line model mismatch (difftastic)
-
-The unified-diff pagers (git, delta, diff-so-fancy) derive from git's
-**line-granular** patch, where a modified line is by construction a `-` line plus a
-`+` line. The `c`/`a`/`d` type set fits that model exactly.
-
-difftastic is **token-granular**: it aligns an old line with a new line and marks
-novelty *per token*. That produces aligned rows the line model has no clean slot
-for. Real example — `let x=1; println!("{}", x);` changed to
-`let x=2; let y=3; println!("{}", x + y);`:
-
-```
-…;c;4;;src/lib.rs 3     println!("{}", x);      …;a;4;;src/lib.rs 4     println!("{}", x + y);
-```
-
-The old line `println!("{}", x);` has no novel tokens (they all survive into the
-new line), while the new line added `+ y`. So difftastic's faithful per-cell
-verdict is **`c` on the left, `a` on the right** — the same aligned row carrying a
-context record and an addition record, with **no `d`**, because by difftastic's
-model nothing was deleted.
-
-A host mapping cells to git's line-granular patch then resolves the right/added
-cell correctly, but the left/old cell resolves as *context at the new line*, not
-as git's `-` line — its old-side deletion identity is not recoverable from the
-record. Practical impact is small (users click the changed side; an editor target
-on the left still opens the right new-file line), but it is a genuine semantic gap.
-
-Options, none taken in v1, all wanted-as-feedback:
-
-- **Host-side:** treat an old-column cell aligned with a novel new line as the `-`
-  side of a modification (the host knows it is the left column).
-- **Emitter-side, v1-compatible:** difftastic could emit `d` for the old side of
-  *any* aligned changed row — but that re-imposes the very line-granular model
-  difftastic exists to escape, discarding its more precise "this was not removed"
-  judgement. Probably wrong to force.
-- **A `modified` / `m` type (v2):** names the case directly — "aligned, changed,
-  present on both sides" — but splits the clean `c`/`a`/`d` staging mapping and
-  needs every pager to agree when to use it. Recorded as a v2 candidate.
-
-### 8.3 Pure-deletion `new-line` in token tools is synthesized
+### 8.2 Pure-deletion `new-line` in token tools is synthesized
 
 A line-granular pager always knows the new-file position a deletion sits at. A
 token tool without a linear new-file counter (difftastic) computes it from the
@@ -375,11 +351,6 @@ previous aligned new line (`prev_rhs + 1`). This is exact for the common case bu
 can drift across hunk boundaries or with zero context lines. The deletion's
 *old*-line (its real identity for staging) is always exact; only the editor-target
 `new-line` is approximate. Pagers should emit the most precise `new-line` they can.
-
-### 8.4 Out of scope for v1
-
-`git --word-diff` (inline `[-…-]{+…+}` markup, no per-line `+`/`-`) has no clean
-per-line identity and is not addressed.
 
 ---
 
@@ -392,17 +363,15 @@ per-line identity and is not addressed.
    central registry, so this is "verified unused across the terminals that matter,"
    not "allocated." If you know of a terminal that interprets `1717`, please say so.
 2. **The env-var name and grammar** (`EMIT_OSC1717_METADATA=V1,…`).
-3. **The both-numbers question** (§8.1) — is per-column-exact old/new numbering
-   worth a v2, or is it never needed?
-4. **The token-vs-line mismatch** (§8.2) — should there be an `m` type, or is
+3. **The token-vs-line mismatch** (§8.1) — should there be an `m` type, or is
    host-side inference the right home for it?
-5. **Can your pager actually produce all four fields per region?** In particular
+4. **Can your pager actually produce all four fields per region?** In particular
    the side for deleted lines, and in side-by-side mode. (delta needed to track
    its own old/new counters because its line-number counters are dormant unless
    `--line-numbers` is on; difftastic had them natively. Your mileage may vary.)
-6. **Optional trailing fields within a version** — a cheap, additive escape valve
-   short of a version bump: a consumer stops at the fields it knows. Is this worth
-   blessing in v1, or should all growth go through the version field?
+5. **Is emitting `f`/`h` on header rows a burden?** v1 makes them mandatory (§5.1,
+   §6.4); it should be cheap — the pager already knows the file and the hunk's
+   start line — but tell us if your format makes it awkward.
 
 ---
 

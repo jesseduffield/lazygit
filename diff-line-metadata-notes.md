@@ -682,6 +682,16 @@ on the left still opens new-file line 4 — but it is a genuine semantic gap, an
 exactly the kind of thing the prototype exists to find. **The faithful emission
 was chosen deliberately** (it surfaces the mismatch rather than hiding it).
 
+> **Note (session 9): the one user-visible bite is cross-pager selection
+> preservation (#7).** Within difftastic this is invisible — it *renders* the old
+> line as dim context, matching the `c` record. But it only happens in difftastic's
+> **AST mode**; in its line/Text fallback (e.g. our test file with `let x=1;` in a
+> `.go`, which fails the Go parse) difftastic diffs by line and emits `d`/`a` like a
+> unified diff. The bite: select the old line in delta (where it is a red `d`), then
+> `|` to difftastic AST mode, where the same patch line is now `c` — the identity
+> restore (#7) can't match `d` against `c`, so the selection is dropped. Minor in
+> practice; a host concern, not a pager-spec one (kept out of the spec).
+
 Options to flag for the spec / production, none taken now:
 - **Host-side:** treat an old-column cell that is aligned with a novel new line as
   the `-` side of a modification (the host knows it's the left column).
