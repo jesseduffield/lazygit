@@ -320,13 +320,12 @@ is designed for, to make the emit rules concrete.
 
 ---
 
-## 8. Known limitations and v2 candidates — feedback wanted
+## 8. A known limitation and v2 candidate — feedback wanted
 
-None of these blocks v1; each is a place where input would shape a future version.
+This doesn't block v1; it's a place where input would shape a future version.
 
-### 8.1 The token-vs-line model mismatch (difftastic, AST mode)
-
-Our `c`/`a`/`d` set is git's **line-granular** shape: a modified line is a `-` plus
+**The token-vs-line model mismatch (difftastic, AST mode).** Our `c`/`a`/`d` set
+is git's **line-granular** shape: a modified line is a `-` plus
 a `+`. difftastic, when it parses the language (its **AST/token mode**), is finer —
 it aligns lines and marks novelty per token. A line changed *only by added tokens*
 (e.g. `println!("{}", x);` → `println!("{}", x + y);`) then has **no novelty on the
@@ -343,15 +342,6 @@ users act on the changed side). A `modified`/`m` type — "aligned, changed, pre
 on both sides" — would name the case directly but splits the clean `c`/`a`/`d`
 mapping; recorded as a v2 candidate, not taken (§9).
 
-### 8.2 Pure-deletion `new-line` in token tools is synthesized
-
-A line-granular pager always knows the new-file position a deletion sits at. A
-token tool without a linear new-file counter (difftastic) computes it from the
-previous aligned new line (`prev_rhs + 1`). This is exact for the common case but
-can drift across hunk boundaries or with zero context lines. The deletion's
-*old*-line (its real identity for staging) is always exact; only the editor-target
-`new-line` is approximate. Pagers should emit the most precise `new-line` they can.
-
 ---
 
 ## 9. Where feedback is most wanted
@@ -363,7 +353,7 @@ can drift across hunk boundaries or with zero context lines. The deletion's
    central registry, so this is "verified unused across the terminals that matter,"
    not "allocated." If you know of a terminal that interprets `1717`, please say so.
 2. **The env-var name and grammar** (`EMIT_OSC1717_METADATA=V1,…`).
-3. **The token-vs-line mismatch** (§8.1) — should there be an `m` type, or is
+3. **The token-vs-line mismatch** (§8) — should there be an `m` type, or is
    host-side inference the right home for it?
 4. **Can your pager actually produce all four fields per region?** In particular
    the side for deleted lines, and in side-by-side mode. (delta needed to track
