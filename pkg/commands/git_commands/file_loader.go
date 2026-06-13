@@ -30,20 +30,37 @@ func NewFileLoader(gitCommon *GitCommon, cmd oscommands.ICmdObjBuilder, config F
 	}
 }
 
+type ShowUntrackedMode int
+
+const (
+	// Use the value from git config (show all if not set)
+	ShowUntrackedModeAuto ShowUntrackedMode = iota
+	// Show untracked files regardless of git config. Useful for users with bare
+	// repos for dotfiles who default to hiding untracked files, but want to
+	// occasionally see them to `git add` a new file.
+	ShowUntrackedModeOn
+	// Hide untracked files regardless of git config.
+	ShowUntrackedModeOff
+)
+
 type GetStatusFileOptions struct {
-	NoRenames bool
-	// If true, we'll show untracked files even if the user has set the config to hide them.
-	// This is useful for users with bare repos for dotfiles who default to hiding untracked files,
-	// but want to occasionally see them to `git add` a new file.
-	ForceShowUntracked bool
+	NoRenames     bool
+	ShowUntracked ShowUntrackedMode
 }
 
 func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 	// check if config wants us ignoring untracked files
 	untrackedFilesSetting := self.config.GetShowUntrackedFiles()
 
-	if opts.ForceShowUntracked || untrackedFilesSetting == "" {
+	switch opts.ShowUntracked {
+	case ShowUntrackedModeOn:
 		untrackedFilesSetting = "all"
+	case ShowUntrackedModeOff:
+		untrackedFilesSetting = "no"
+	default: // ShowUntrackedModeAuto
+		if untrackedFilesSetting == "" {
+			untrackedFilesSetting = "all"
+		}
 	}
 	untrackedFilesArg := fmt.Sprintf("--untracked-files=%s", untrackedFilesSetting)
 
