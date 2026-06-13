@@ -22,16 +22,23 @@ func (gui *Gui) desiredPtySize(view *gocui.View) *pty.Winsize {
 
 func (gui *Gui) onResize() error {
 	gui.Mutexes.PtyMutex.Lock()
-	defer gui.Mutexes.PtyMutex.Unlock()
+	hasPtyViews := len(gui.viewPtmxMap) > 0
 
 	for viewName, ptmx := range gui.viewPtmxMap {
-		// TODO: handle resizing properly: we need to actually clear the main view
-		// and re-read the output from our pty. Or we could just re-run the original
-		// command from scratch
+		// Resize any active ptys first so they match the new view dimensions.
 		view, _ := gui.g.View(viewName)
 		if err := pty.Setsize(ptmx, gui.desiredPtySize(view)); err != nil {
+			gui.Mutexes.PtyMutex.Unlock()
 			return utils.WrapError(err)
 		}
+	}
+
+	gui.Mutexes.PtyMutex.Unlock()
+
+	if hasPtyViews {
+		// Custom pagers can render based on width. Re-running the current side's main
+		// render after a resize ensures the diff output is regenerated for the new size.
+		gui.c.Context().CurrentSide().HandleRenderToMain()
 	}
 
 	return nil
