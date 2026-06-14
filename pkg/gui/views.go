@@ -9,7 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 )
 
 type viewNameMapping struct {
@@ -249,19 +248,27 @@ func (gui *Gui) configureViewProperties() {
 		gui.Views.Main.TitlePrefix = ""
 	}
 
-	for _, view := range gui.g.Views() {
-		// if the view is in our mapping, we'll set the tabs and the tab index
-		for _, values := range gui.viewTabMap() {
-			index := slices.IndexFunc(values, func(tabContext context.TabView) bool {
-				return tabContext.ViewName == view.Name()
-			})
-
-			if index != -1 {
-				view.Tabs = lo.Map(values, func(tabContext context.TabView, _ int) string {
-					return tabContext.Tab
-				})
-				view.TabIndex = index
-			}
+	// Index the tab strips by view so we can both set them on views that are
+	// part of a multi-tab panel and clear them on views that no longer are
+	// (which matters when the config is reloaded and a tab becomes a standalone
+	// panel).
+	type viewTabs struct {
+		tabs  []string
+		index int
+	}
+	tabsByView := map[string]viewTabs{}
+	for _, values := range gui.viewTabMap() {
+		labels := lo.Map(values, func(tabContext context.TabView, _ int) string {
+			return tabContext.Tab
+		})
+		for index, tabContext := range values {
+			tabsByView[tabContext.ViewName] = viewTabs{tabs: labels, index: index}
 		}
+	}
+
+	for _, view := range gui.g.Views() {
+		vt := tabsByView[view.Name()]
+		view.Tabs = vt.tabs
+		view.TabIndex = vt.index
 	}
 }
