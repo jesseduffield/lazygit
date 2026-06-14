@@ -254,6 +254,10 @@ func (gui *Gui) onRepoViewReset() error {
 		}
 	}
 
+	// The loop above orders views by a fixed list, which doesn't necessarily put
+	// each panel's first configured tab on top.
+	gui.moveDefaultTabsToTop()
+
 	return nil
 }
 
