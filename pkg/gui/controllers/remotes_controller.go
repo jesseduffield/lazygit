@@ -140,6 +140,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	remoteBranchesContext.SetSelection(newSelectedLine)
 	remoteBranchesContext.SetTitleRef(remote.Name)
 	remoteBranchesContext.SetParentContext(self.Context())
+	remoteBranchesContext.SetWindowName(self.Context().GetWindowName())
 	remoteBranchesContext.GetView().TitlePrefix = self.Context().GetView().TitlePrefix
 
 	self.c.PostRefreshUpdate(remoteBranchesContext)
