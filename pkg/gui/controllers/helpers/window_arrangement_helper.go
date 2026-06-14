@@ -50,6 +50,11 @@ type WindowArrangementArgs struct {
 	// Name of the current side window (i.e. the current window in the left
 	// section of the UI)
 	CurrentSideWindow string
+	// Returns the view currently shown in the given window. When a window holds
+	// several tabbed views this is the selected tab, which is what the status and
+	// stash height special-cases key off (rather than the window itself, whose
+	// name is just its first tab).
+	ActiveViewForWindow func(window string) string
 	// Whether the main panel is split (as is the case e.g. when a file has both
 	// staged and unstaged changes)
 	SplitMainPanel bool
@@ -86,20 +91,21 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 	}
 
 	args := WindowArrangementArgs{
-		Width:             width,
-		Height:            height,
-		UserConfig:        self.c.UserConfig(),
-		CurrentWindow:     self.c.Context().CurrentStatic().GetWindowName(),
-		CurrentSideWindow: self.c.Context().CurrentSide().GetWindowName(),
-		SplitMainPanel:    repoState.GetSplitMainPanel(),
-		ScreenMode:        repoState.GetScreenMode(),
-		AppStatus:         appStatus,
-		InformationStr:    informationStr,
-		ShowExtrasWindow:  self.c.State().GetShowExtrasWindow(),
-		InDemo:            self.c.InDemo(),
-		IsAnyModeActive:   self.modeHelper.IsAnyModeActive(),
-		InSearchPrompt:    repoState.InSearchPrompt(),
-		SearchPrefix:      searchPrefix,
+		Width:               width,
+		Height:              height,
+		UserConfig:          self.c.UserConfig(),
+		CurrentWindow:       self.c.Context().CurrentStatic().GetWindowName(),
+		CurrentSideWindow:   self.c.Context().CurrentSide().GetWindowName(),
+		ActiveViewForWindow: self.windowHelper.GetViewNameForWindow,
+		SplitMainPanel:      repoState.GetSplitMainPanel(),
+		ScreenMode:          repoState.GetScreenMode(),
+		AppStatus:           appStatus,
+		InformationStr:      informationStr,
+		ShowExtrasWindow:    self.c.State().GetShowExtrasWindow(),
+		InDemo:              self.c.InDemo(),
+		IsAnyModeActive:     self.modeHelper.IsAnyModeActive(),
+		InSearchPrompt:      repoState.InSearchPrompt(),
+		SearchPrefix:        searchPrefix,
 	}
 
 	return GetWindowDimensions(args)
@@ -403,14 +409,15 @@ func getExtrasWindowSize(args WindowArrangementArgs) int {
 	return baseSize + frameSize
 }
 
-// The stash window by default only contains one line so that it's not hogging
+// The stash view by default only contains one line so that it's not hogging
 // too much space, but if you access it it should take up some space. This is
 // the default behaviour when accordion mode is NOT in effect. If it is in effect
-// then when it's accessed it will have weight 2, not 1.
-func getDefaultStashWindowBox(args WindowArrangementArgs) *boxlayout.Box {
-	box := &boxlayout.Box{Window: "stash"}
-	// if the stash window is anywhere in our stack we should enlargen it
-	if args.CurrentSideWindow == "stash" {
+// then when it's accessed it will have weight 2, not 1. The window is passed in
+// because stash may be a tab of a window named after a different first tab.
+func getDefaultStashWindowBox(args WindowArrangementArgs, window string) *boxlayout.Box {
+	box := &boxlayout.Box{Window: window}
+	// if the window showing stash is focused we should enlargen it
+	if args.CurrentSideWindow == window {
 		box.Weight = 1
 	} else {
 		box.Size = 3
@@ -421,6 +428,16 @@ func getDefaultStashWindowBox(args WindowArrangementArgs) *boxlayout.Box {
 
 func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) []*boxlayout.Box {
 	return func(width int, height int) []*boxlayout.Box {
+		windows := []string{"status", "files", "branches", "commits", "stash"}
+
+		boxForEachWindow := func(boxForWindow func(window string) *boxlayout.Box) []*boxlayout.Box {
+			boxes := make([]*boxlayout.Box, 0, len(windows))
+			for _, window := range windows {
+				boxes = append(boxes, boxForWindow(window))
+			}
+			return boxes
+		}
+
 		if args.ScreenMode == types.SCREEN_FULL || args.ScreenMode == types.SCREEN_HALF {
 			fullHeightBox := func(window string) *boxlayout.Box {
 				if window == args.CurrentSideWindow {
@@ -436,13 +453,7 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				}
 			}
 
-			return []*boxlayout.Box{
-				fullHeightBox("status"),
-				fullHeightBox("files"),
-				fullHeightBox("branches"),
-				fullHeightBox("commits"),
-				fullHeightBox("stash"),
-			}
+			return boxForEachWindow(fullHeightBox)
 		} else if height >= 28 {
 			accordionMode := args.UserConfig.Gui.ExpandFocusedSidePanel
 			accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
@@ -456,16 +467,23 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				return defaultBox
 			}
 
-			return []*boxlayout.Box{
-				{
-					Window: "status",
-					Size:   3,
-				},
-				accordionBox(&boxlayout.Box{Window: "files", Weight: 1}),
-				accordionBox(&boxlayout.Box{Window: "branches", Weight: 1}),
-				accordionBox(&boxlayout.Box{Window: "commits", Weight: 1}),
-				accordionBox(getDefaultStashWindowBox(args)),
+			normalBox := func(window string) *boxlayout.Box {
+				// The status and stash sizing is a property of those views, so we key
+				// off the tab the window is currently showing, not the window's name
+				// (its first tab): otherwise grouping other tabs behind status or
+				// stash would wrongly impose their compact height on those tabs.
+				switch args.ActiveViewForWindow(window) {
+				case "status":
+					// The status view has a fixed height and is not expanded by accordion mode.
+					return &boxlayout.Box{Window: window, Size: 3}
+				case "stash":
+					return accordionBox(getDefaultStashWindowBox(args, window))
+				default:
+					return accordionBox(&boxlayout.Box{Window: window, Weight: 1})
+				}
 			}
+
+			return boxForEachWindow(normalBox)
 		}
 
 		squashedHeight := 1
@@ -487,12 +505,6 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 			}
 		}
 
-		return []*boxlayout.Box{
-			squashedSidePanelBox("status"),
-			squashedSidePanelBox("files"),
-			squashedSidePanelBox("branches"),
-			squashedSidePanelBox("commits"),
-			squashedSidePanelBox("stash"),
-		}
+		return boxForEachWindow(squashedSidePanelBox)
 	}
 }
