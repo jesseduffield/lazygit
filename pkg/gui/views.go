@@ -210,50 +210,41 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.CommitDescription.TextArea.AutoWrap = gui.c.UserConfig().Git.Commit.AutoWrapCommitMessage
 	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig().Git.Commit.AutoWrapWidth
 
-	if gui.c.UserConfig().Gui.ShowPanelJumps {
-		keyToTitlePrefix := func(binding config.Keybinding) string {
-			if len(binding) == 0 {
-				return ""
-			}
-			return fmt.Sprintf("[%s]", binding[0])
+	keyToTitlePrefix := func(binding config.Keybinding) string {
+		if len(binding) == 0 {
+			return ""
 		}
-		jumpBindings := gui.c.UserConfig().Keybinding.Universal.JumpToBlock
-		jumpLabels := lo.Map(jumpBindings, func(binding config.Keybinding, _ int) string {
-			return keyToTitlePrefix(binding)
-		})
+		return fmt.Sprintf("[%s]", binding[0])
+	}
 
-		gui.Views.Status.TitlePrefix = jumpLabels[0]
+	// The views that make up each side panel, in panel order. The whole group
+	// shares the panel's jump label.
+	panelViewGroups := [][]*gocui.View{
+		{gui.Views.Status},
+		{gui.Views.Files, gui.Views.Worktrees, gui.Views.Submodules},
+		{gui.Views.Branches, gui.Views.Remotes, gui.Views.Tags},
+		{gui.Views.Commits, gui.Views.ReflogCommits},
+		{gui.Views.Stash},
+	}
 
-		gui.Views.Files.TitlePrefix = jumpLabels[1]
-		gui.Views.Worktrees.TitlePrefix = jumpLabels[1]
-		gui.Views.Submodules.TitlePrefix = jumpLabels[1]
+	jumpBindings := gui.c.UserConfig().Keybinding.Universal.JumpToBlock
+	jumpLabelForPanel := func(panelIndex int) string {
+		if !gui.c.UserConfig().Gui.ShowPanelJumps || panelIndex >= len(jumpBindings) {
+			return ""
+		}
+		return keyToTitlePrefix(jumpBindings[panelIndex])
+	}
 
-		gui.Views.Branches.TitlePrefix = jumpLabels[2]
-		gui.Views.Remotes.TitlePrefix = jumpLabels[2]
-		gui.Views.Tags.TitlePrefix = jumpLabels[2]
+	for panelIndex, views := range panelViewGroups {
+		prefix := jumpLabelForPanel(panelIndex)
+		for _, view := range views {
+			view.TitlePrefix = prefix
+		}
+	}
 
-		gui.Views.Commits.TitlePrefix = jumpLabels[3]
-		gui.Views.ReflogCommits.TitlePrefix = jumpLabels[3]
-
-		gui.Views.Stash.TitlePrefix = jumpLabels[4]
-
+	if gui.c.UserConfig().Gui.ShowPanelJumps {
 		gui.Views.Main.TitlePrefix = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusMainView)
 	} else {
-		gui.Views.Status.TitlePrefix = ""
-
-		gui.Views.Files.TitlePrefix = ""
-		gui.Views.Worktrees.TitlePrefix = ""
-		gui.Views.Submodules.TitlePrefix = ""
-
-		gui.Views.Branches.TitlePrefix = ""
-		gui.Views.Remotes.TitlePrefix = ""
-		gui.Views.Tags.TitlePrefix = ""
-
-		gui.Views.Commits.TitlePrefix = ""
-		gui.Views.ReflogCommits.TitlePrefix = ""
-
-		gui.Views.Stash.TitlePrefix = ""
-
 		gui.Views.Main.TitlePrefix = ""
 	}
 
