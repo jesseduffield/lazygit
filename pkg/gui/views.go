@@ -182,10 +182,12 @@ func (gui *Gui) configureViewProperties() {
 
 	gui.Views.Stash.Title = gui.c.Tr.StashTitle
 	gui.Views.Commits.Title = gui.c.Tr.CommitsTitle
+	gui.Views.ReflogCommits.Title = gui.c.Tr.ReflogCommitsTitle
 	gui.Views.CommitFiles.Title = gui.c.Tr.CommitFiles
 	gui.Views.Branches.Title = gui.c.Tr.BranchesTitle
 	gui.Views.Remotes.Title = gui.c.Tr.RemotesTitle
 	gui.Views.Worktrees.Title = gui.c.Tr.WorktreesTitle
+	gui.Views.Submodules.Title = gui.c.Tr.SubmodulesTitle
 	gui.Views.Tags.Title = gui.c.Tr.TagsTitle
 	gui.Views.Files.Title = gui.c.Tr.FilesTitle
 	gui.Views.PatchBuilding.Title = gui.c.Tr.Patch
