@@ -162,6 +162,7 @@ var tests = []*components.IntegrationTest{
 	config.CustomCommandsInPerRepoConfig,
 	config.NegativeRefspec,
 	config.RemoteNamedStar,
+	config.SidePanelsInPerRepoConfig,
 	conflicts.Filter,
 	conflicts.MergeFileBoth,
 	conflicts.MergeFileCurrent,
