@@ -1,0 +1,90 @@
+package gui
+
+import (
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
+
+// sidePanelViewNames maps each gui.sidePanels name to the gocui view it controls.
+// A panel's window name is the name of its first tab, so for a panel's first tab
+// this also gives the default view of its window. The keys must match
+// config.ValidSidePanelTabs (enforced by a test).
+var sidePanelViewNames = map[string]string{
+	"status":     "status",
+	"files":      "files",
+	"worktrees":  "worktrees",
+	"submodules": "submodules",
+	"branches":   "localBranches",
+	"remotes":    "remotes",
+	"tags":       "tags",
+	"commits":    "commits",
+	"reflog":     "reflogCommits",
+	"stash":      "stash",
+}
+
+// sidePanelTabTitles maps each gui.sidePanels name to the title shown on its tab.
+func (gui *Gui) sidePanelTabTitles() map[string]string {
+	tr := gui.c.Tr
+	return map[string]string{
+		"status":     tr.StatusTitle,
+		"files":      tr.FilesTitle,
+		"worktrees":  tr.WorktreesTitle,
+		"submodules": tr.SubmodulesTitle,
+		"branches":   tr.LocalBranchesTitle,
+		"remotes":    tr.RemotesTitle,
+		"tags":       tr.TagsTitle,
+		"commits":    tr.CommitsTitle,
+		"reflog":     tr.ReflogCommitsTitle,
+		"stash":      tr.StashTitle,
+	}
+}
+
+// sidePanelContexts maps each gui.sidePanels name to the context it controls.
+func sidePanelContexts(contextTree *context.ContextTree) map[string]types.Context {
+	return map[string]types.Context{
+		"status":     contextTree.Status,
+		"files":      contextTree.Files,
+		"worktrees":  contextTree.Worktrees,
+		"submodules": contextTree.Submodules,
+		"branches":   contextTree.Branches,
+		"remotes":    contextTree.Remotes,
+		"tags":       contextTree.Tags,
+		"commits":    contextTree.LocalCommits,
+		"reflog":     contextTree.ReflogCommits,
+		"stash":      contextTree.Stash,
+	}
+}
+
+// applySidePanelConfig (re)assigns each side context's window and resets each
+// window's default view from the current gui.sidePanels config. It runs against
+// the current repo's contexts, so gui.State must already be set. We call it on
+// every repo entry (a repo's per-repo config can differ from the previous one's).
+func (gui *Gui) applySidePanelConfig() {
+	contextTree := gui.State.Contexts
+	gui.assignSidePanelWindows(contextTree)
+	gui.State.WindowViewNameMap = gui.initialWindowViewNameMap(contextTree)
+}
+
+// assignSidePanelWindows sets each side context's window name from the config so
+// that contexts grouped into one panel share a window (the window name being the
+// panel's first tab). Side panels the user hasn't listed get their own window
+// name; since the layout produces no dimensions for those windows, their views
+// stay hidden rather than overlapping a visible panel.
+func (gui *Gui) assignSidePanelWindows(contextTree *context.ContextTree) {
+	contexts := sidePanelContexts(contextTree)
+	assigned := make(map[string]bool, len(contexts))
+
+	for _, panel := range gui.c.UserConfig().Gui.SidePanels {
+		windowName := panel[0]
+		for _, name := range panel {
+			contexts[name].SetWindowName(windowName)
+			assigned[name] = true
+		}
+	}
+
+	for name, ctx := range contexts {
+		if !assigned[name] {
+			ctx.SetWindowName(name)
+		}
+	}
+}
