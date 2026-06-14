@@ -58,6 +58,42 @@ func (config *UserConfig) Validate() error {
 	if err := validateSpinner(config.Gui.Spinner); err != nil {
 		return err
 	}
+	if err := validateSidePanels(config.Gui.SidePanels); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateSidePanels(panels []SidePanel) error {
+	seen := map[string]bool{}
+	total := 0
+	for _, panel := range panels {
+		if len(panel) == 0 {
+			return errors.New("gui.sidePanels: a side panel must have at least one tab.")
+		}
+		for _, name := range panel {
+			if !slices.Contains(ValidSidePanelTabs, name) {
+				return fmt.Errorf("gui.sidePanels: unknown side panel '%s'. Allowed values: %s",
+					name, strings.Join(ValidSidePanelTabs, ", "))
+			}
+			if seen[name] {
+				return fmt.Errorf("gui.sidePanels: '%s' is listed more than once; each side panel may appear only once.", name)
+			}
+			seen[name] = true
+			total++
+		}
+	}
+	if total == 0 {
+		return errors.New("gui.sidePanels must not be empty.")
+	}
+	// A lot of code focuses these panels directly (e.g. after resolving a
+	// conflict or popping a stash), so they must always be present; otherwise
+	// that code would focus a hidden panel.
+	for _, required := range []string{"files", "branches", "commits"} {
+		if !seen[required] {
+			return fmt.Errorf("gui.sidePanels: '%s' must be included; it can't be hidden.", required)
+		}
+	}
 	return nil
 }
 

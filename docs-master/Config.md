@@ -110,6 +110,21 @@ gui:
   # is true.
   expandedSidePanelWeight: 2
 
+  # The side panels, in the order they appear from top to bottom.
+  # Each entry is either a single panel name, or a list of names that share one
+  # panel as tabs (cycle through them with the next-tab/previous-tab keys).
+  # Omit a name to hide it; give a name its own entry to promote a tab to a
+  # top-level panel.
+  # Valid names are: 'status', 'files', 'worktrees', 'submodules', 'branches',
+  # 'remotes', 'tags', 'commits', 'reflog', 'stash'. 'files', 'branches', and
+  # 'commits' must always be included; they can't be hidden.
+  sidePanels:
+    - status
+    - [files, worktrees, submodules]
+    - [branches, remotes, tags]
+    - [commits, reflog]
+    - stash
+
   # Sometimes the main window is split in two (e.g. when the selected file has
   # both staged and unstaged changes). This setting controls how the two sections
   # are split.

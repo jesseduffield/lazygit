@@ -585,6 +585,35 @@
           "description": "The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.",
           "default": 2
         },
+        "sidePanels": {
+          "items": {
+            "$ref": "#/$defs/SidePanel"
+          },
+          "type": "array",
+          "description": "The side panels, in the order they appear from top to bottom.\nEach entry is either a single panel name, or a list of names that share one panel as tabs (cycle through them with the next-tab/previous-tab keys).\nOmit a name to hide it; give a name its own entry to promote a tab to a top-level panel.\nValid names are: 'status', 'files', 'worktrees', 'submodules', 'branches', 'remotes', 'tags', 'commits', 'reflog', 'stash'. 'files', 'branches', and 'commits' must always be included; they can't be hidden.",
+          "default": [
+            [
+              "status"
+            ],
+            [
+              "files",
+              "worktrees",
+              "submodules"
+            ],
+            [
+              "branches",
+              "remotes",
+              "tags"
+            ],
+            [
+              "commits",
+              "reflog"
+            ],
+            [
+              "stash"
+            ]
+          ]
+        },
         "mainPanelSplitMode": {
           "type": "string",
           "enum": [
@@ -3553,6 +3582,43 @@
       "additionalProperties": false,
       "type": "object",
       "description": "Background refreshes"
+    },
+    "SidePanel": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "status",
+            "files",
+            "worktrees",
+            "submodules",
+            "branches",
+            "remotes",
+            "tags",
+            "commits",
+            "reflog",
+            "stash"
+          ]
+        },
+        {
+          "items": {
+            "type": "string",
+            "enum": [
+              "status",
+              "files",
+              "worktrees",
+              "submodules",
+              "branches",
+              "remotes",
+              "tags",
+              "commits",
+              "reflog",
+              "stash"
+            ]
+          },
+          "type": "array"
+        }
+      ]
     },
     "SpinnerConfig": {
       "properties": {
