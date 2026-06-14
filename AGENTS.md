@@ -137,6 +137,22 @@ commit. If you have two independent refinements for the same target, make
 two separate fixups. Reviewability of the intermediate state matters even
 when the end state after autosquash would be identical.
 
+## Surface mid-implementation decisions; decide them together
+
+Planning can't anticipate everything. When a decision surfaces while you're
+implementing — a design choice, a tradeoff, a scope cut, a "this turned out
+harder than expected, so maybe X" — don't quietly make the call and keep
+going, even if you have a clear recommendation and even if the call seems
+small. Stop, lay out the options and your recommendation, and let me weigh in.
+I want to make these calls _with_ you, not discover them after the fact in the
+diff.
+
+This isn't a request to stop and ask about every trivial detail; obvious
+mechanical choices with one sensible answer don't need a checkpoint. It's about
+genuine forks — the ones where a reasonable person might pick differently, or
+where you'd be trading away something the plan assumed (scope, UX, performance,
+reload behavior, …). When in doubt, surface it.
+
 ## Prefer the cleaner design over the smaller diff
 
 When a task could be implemented either by tacking onto existing code or by
