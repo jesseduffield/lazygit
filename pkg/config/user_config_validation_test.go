@@ -134,11 +134,12 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				})
 			},
 			testCases: []testCase{
-				{value: "", valid: false},
-				{value: "1,2,3", valid: false},
+				// The number of entries no longer has to match the number of side
+				// panels, so only the validity of the individual keys matters.
+				{value: "1,2,3", valid: true},
 				{value: "1,2,3,4,5", valid: true},
+				{value: "1,2,3,4,5,6", valid: true},
 				{value: "1,2,3,4,invalid", valid: false},
-				{value: "1,2,3,4,5,6", valid: false},
 			},
 		},
 		{

@@ -1,10 +1,7 @@
 package controllers
 
 import (
-	"log"
-
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/samber/lo"
 )
 
 type JumpToSideWindowController struct {
@@ -30,19 +27,23 @@ func (self *JumpToSideWindowController) Context() types.Context {
 
 func (self *JumpToSideWindowController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	windows := self.c.Helpers().Window.SideWindows()
+	jumpKeys := opts.Config.Universal.JumpToBlock
 
-	if len(opts.Config.Universal.JumpToBlock) != len(windows) {
-		log.Fatal("Jump to block keybindings cannot be set. Exactly 5 keybindings must be supplied.")
-	}
-
-	return lo.Map(windows, func(window string, index int) *types.Binding {
-		return &types.Binding{
+	// Assign jump keys to panels positionally (by default 1 to the first panel,
+	// 2 to the second, etc.), for as many panels as there are keys. If there are
+	// more panels than keys the extra panels just have no jump key, and if there
+	// are more keys than panels the extra keys are unused; either way panels stay
+	// reachable via the next/previous-panel keys.
+	count := min(len(windows), len(jumpKeys))
+	bindings := make([]*types.Binding, 0, count)
+	for i := range count {
+		bindings = append(bindings, &types.Binding{
 			ViewName: "",
-			// by default the keys are 1, 2, 3, etc
-			Keys:    opts.GetKeys(opts.Config.Universal.JumpToBlock[index]),
-			Handler: opts.Guards.NoPopupPanel(self.goToSideWindow(window)),
-		}
-	})
+			Keys:     opts.GetKeys(jumpKeys[i]),
+			Handler:  opts.Guards.NoPopupPanel(self.goToSideWindow(windows[i])),
+		})
+	}
+	return bindings
 }
 
 func (self *JumpToSideWindowController) goToSideWindow(window string) func() error {
