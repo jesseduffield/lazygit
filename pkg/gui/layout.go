@@ -133,7 +133,12 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	minimumHeight := 9
+	// When the screen is too short the side panels are squashed, with the
+	// unfocused ones taking one row each and the focused one taking the rest. The
+	// more panels there are, the more rows the unfocused ones reserve, so the
+	// floor below which there's no room left for the focused panel grows with the
+	// panel count. Keep the historical floor of 9 for the default five panels.
+	minimumHeight := max(9, len(gui.helpers.Window.SideWindows())+4)
 	minimumWidth := 10
 	gui.Views.Limit.Visible = height < minimumHeight || width < minimumWidth
 
