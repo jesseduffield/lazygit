@@ -219,13 +219,12 @@ func (gui *Gui) configureViewProperties() {
 
 	// The views that make up each side panel, in panel order. The whole group
 	// shares the panel's jump label.
-	panelViewGroups := [][]*gocui.View{
-		{gui.Views.Status},
-		{gui.Views.Files, gui.Views.Worktrees, gui.Views.Submodules},
-		{gui.Views.Branches, gui.Views.Remotes, gui.Views.Tags},
-		{gui.Views.Commits, gui.Views.ReflogCommits},
-		{gui.Views.Stash},
-	}
+	panelViewGroups := lo.Map(gui.c.UserConfig().Gui.SidePanels, func(panel config.SidePanel, _ int) []*gocui.View {
+		return lo.Map(panel, func(name string, _ int) *gocui.View {
+			view, _ := gui.g.View(sidePanelViewNames[name])
+			return view
+		})
+	})
 
 	jumpBindings := gui.c.UserConfig().Keybinding.Universal.JumpToBlock
 	jumpLabelForPanel := func(panelIndex int) string {

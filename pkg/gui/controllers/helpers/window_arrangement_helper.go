@@ -421,7 +421,7 @@ func getDefaultStashWindowBox(args WindowArrangementArgs) *boxlayout.Box {
 
 func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) []*boxlayout.Box {
 	return func(width int, height int) []*boxlayout.Box {
-		windows := []string{"status", "files", "branches", "commits", "stash"}
+		windows := sideWindowNames(args.UserConfig)
 
 		boxForEachWindow := func(boxForWindow func(window string) *boxlayout.Box) []*boxlayout.Box {
 			boxes := make([]*boxlayout.Box, 0, len(windows))

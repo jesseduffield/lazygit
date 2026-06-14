@@ -122,6 +122,98 @@ func TestGetWindowDimensions(t *testing.T) {
 			`,
 		},
 		{
+			name: "worktrees promoted to its own side panel",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.SidePanels = []config.SidePanel{
+					{"status"},
+					{"files", "submodules"},
+					{"worktrees"},
+					{"branches", "remotes", "tags"},
+					{"commits", "reflog"},
+					{"stash"},
+				}
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭worktrees──────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭branches───────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "stash side panel hidden",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.SidePanels = []config.SidePanel{
+					{"status"},
+					{"files", "worktrees", "submodules"},
+					{"branches", "remotes", "tags"},
+					{"commits", "reflog"},
+				}
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭branches───────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
 			name: "expandFocusedSidePanel",
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.UserConfig.Gui.ExpandFocusedSidePanel = true
