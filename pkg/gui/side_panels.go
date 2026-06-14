@@ -65,6 +65,17 @@ func (gui *Gui) applySidePanelConfig() {
 	gui.State.WindowViewNameMap = gui.initialWindowViewNameMap(contextTree)
 }
 
+// moveDefaultTabsToTop brings each panel's first configured tab to the top of
+// its window, so the configured default tab is the one shown when a panel hasn't
+// been focused yet (the view z-order is otherwise set from a fixed list that
+// need not match the configured tab order).
+func (gui *Gui) moveDefaultTabsToTop() {
+	contexts := sidePanelContexts(gui.State.Contexts)
+	for _, panel := range gui.c.UserConfig().Gui.SidePanels {
+		gui.helpers.Window.MoveToTopOfWindow(contexts[panel[0]])
+	}
+}
+
 // assignSidePanelWindows sets each side context's window name from the config so
 // that contexts grouped into one panel share a window (the window name being the
 // panel's first tab). Side panels the user hasn't listed get their own window
