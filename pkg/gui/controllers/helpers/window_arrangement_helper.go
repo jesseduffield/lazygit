@@ -421,6 +421,16 @@ func getDefaultStashWindowBox(args WindowArrangementArgs) *boxlayout.Box {
 
 func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) []*boxlayout.Box {
 	return func(width int, height int) []*boxlayout.Box {
+		windows := []string{"status", "files", "branches", "commits", "stash"}
+
+		boxForEachWindow := func(boxForWindow func(window string) *boxlayout.Box) []*boxlayout.Box {
+			boxes := make([]*boxlayout.Box, 0, len(windows))
+			for _, window := range windows {
+				boxes = append(boxes, boxForWindow(window))
+			}
+			return boxes
+		}
+
 		if args.ScreenMode == types.SCREEN_FULL || args.ScreenMode == types.SCREEN_HALF {
 			fullHeightBox := func(window string) *boxlayout.Box {
 				if window == args.CurrentSideWindow {
@@ -436,13 +446,7 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				}
 			}
 
-			return []*boxlayout.Box{
-				fullHeightBox("status"),
-				fullHeightBox("files"),
-				fullHeightBox("branches"),
-				fullHeightBox("commits"),
-				fullHeightBox("stash"),
-			}
+			return boxForEachWindow(fullHeightBox)
 		} else if height >= 28 {
 			accordionMode := args.UserConfig.Gui.ExpandFocusedSidePanel
 			accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
@@ -456,16 +460,19 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 				return defaultBox
 			}
 
-			return []*boxlayout.Box{
-				{
-					Window: "status",
-					Size:   3,
-				},
-				accordionBox(&boxlayout.Box{Window: "files", Weight: 1}),
-				accordionBox(&boxlayout.Box{Window: "branches", Weight: 1}),
-				accordionBox(&boxlayout.Box{Window: "commits", Weight: 1}),
-				accordionBox(getDefaultStashWindowBox(args)),
+			normalBox := func(window string) *boxlayout.Box {
+				switch window {
+				case "status":
+					// The status window has a fixed height and is not expanded by accordion mode.
+					return &boxlayout.Box{Window: "status", Size: 3}
+				case "stash":
+					return accordionBox(getDefaultStashWindowBox(args))
+				default:
+					return accordionBox(&boxlayout.Box{Window: window, Weight: 1})
+				}
 			}
+
+			return boxForEachWindow(normalBox)
 		}
 
 		squashedHeight := 1
@@ -487,12 +494,6 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 			}
 		}
 
-		return []*boxlayout.Box{
-			squashedSidePanelBox("status"),
-			squashedSidePanelBox("files"),
-			squashedSidePanelBox("branches"),
-			squashedSidePanelBox("commits"),
-			squashedSidePanelBox("stash"),
-		}
+		return boxForEachWindow(squashedSidePanelBox)
 	}
 }
