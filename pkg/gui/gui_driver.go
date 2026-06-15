@@ -153,6 +153,12 @@ func (self *GuiDriver) View(viewName string) *gocui.View {
 	return view
 }
 
+// TopViewInWindow returns the frontmost visible view in the given window, i.e.
+// the tab that is currently shown when a window holds several tabbed views.
+func (self *GuiDriver) TopViewInWindow(windowName string) *gocui.View {
+	return self.gui.helpers.Window.TopViewInWindow(windowName, false)
+}
+
 func (self *GuiDriver) SetCaption(caption string) {
 	self.gui.setCaption(caption)
 	self.waitTillIdle()

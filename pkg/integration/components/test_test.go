@@ -75,6 +75,10 @@ func (self *fakeGuiDriver) View(viewName string) *gocui.View {
 	return nil
 }
 
+func (self *fakeGuiDriver) TopViewInWindow(windowName string) *gocui.View {
+	return nil
+}
+
 func (self *fakeGuiDriver) SetCaption(string) {
 }
 
