@@ -481,6 +481,7 @@ var tests = []*components.IntegrationTest{
 	ui.OpenLinkFailure,
 	ui.PromoteTabToSidePanel,
 	ui.RangeSelect,
+	ui.ReloadSidePanels,
 	ui.ReorderSidePanels,
 	ui.SwitchTabFromMenu,
 	ui.SwitchTabWithPanelJumpKeys,

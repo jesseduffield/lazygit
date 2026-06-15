@@ -3,6 +3,7 @@ package gui
 import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 // sidePanelViewNames maps each gui.sidePanels name to the gocui view it controls.
@@ -58,7 +59,8 @@ func sidePanelContexts(contextTree *context.ContextTree) map[string]types.Contex
 // applySidePanelConfig (re)assigns each side context's window and resets each
 // window's default view from the current gui.sidePanels config. It runs against
 // the current repo's contexts, so gui.State must already be set. We call it on
-// every repo entry (a repo's per-repo config can differ from the previous one's).
+// every repo entry (a repo's per-repo config can differ from the previous one's)
+// and on a live config reload.
 func (gui *Gui) applySidePanelConfig() {
 	contextTree := gui.State.Contexts
 	gui.assignSidePanelWindows(contextTree)
@@ -73,6 +75,31 @@ func (gui *Gui) moveDefaultTabsToTop() {
 	contexts := sidePanelContexts(gui.State.Contexts)
 	for _, panel := range gui.c.UserConfig().Gui.SidePanels {
 		gui.helpers.Window.MoveToTopOfWindow(contexts[panel[0]])
+	}
+}
+
+// reloadSidePanels re-applies the side panel config to the current repo after a
+// live config reload: it reassigns windows and default views, restores each
+// panel's default tab, and keeps the focused panel in a consistent state.
+func (gui *Gui) reloadSidePanels() {
+	gui.applySidePanelConfig()
+	gui.moveDefaultTabsToTop()
+
+	// applySidePanelConfig reset every window to show its first configured tab,
+	// which would leave the focused tab hidden behind its panel's default tab
+	// (the panel would look unfocused even though its tab is selected). Re-focus
+	// the current context so its tab stays shown and highlighted. If the new
+	// config has hidden the focused panel entirely, move focus to the default
+	// side panel instead.
+	current := gui.c.Context().Current()
+	if current.GetKind() != types.SIDE_CONTEXT {
+		return
+	}
+
+	if lo.Contains(gui.helpers.Window.SideWindows(), current.GetWindowName()) {
+		gui.c.Context().Activate(current, types.OnFocusOpts{})
+	} else {
+		gui.c.Context().Push(gui.defaultSideContext(), types.OnFocusOpts{})
 	}
 }
 
