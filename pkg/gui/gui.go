@@ -357,6 +357,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			if didChange && reloadErr == nil {
 				gui.c.Log.Info("User config changed - reloading")
 				reloadErr = gui.onUserConfigLoaded()
+				gui.reloadSidePanels()
 				if err := gui.resetKeybindings(); err != nil {
 					return err
 				}
