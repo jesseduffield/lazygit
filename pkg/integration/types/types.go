@@ -24,6 +24,9 @@ type IntegrationTest interface {
 type GuiDriver interface {
 	PressKey(string)
 	Click(int, int)
+	// Simulate the terminal window regaining focus (which triggers a reload of
+	// changed config files)
+	FocusIn()
 	Keys() config.KeybindingConfig
 	CurrentContext() types.Context
 	ContextForView(viewName string) types.Context

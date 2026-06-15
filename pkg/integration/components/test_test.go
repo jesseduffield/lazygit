@@ -34,6 +34,9 @@ func (self *fakeGuiDriver) Click(x, y int) {
 	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
 }
 
+func (self *fakeGuiDriver) FocusIn() {
+}
+
 func (self *fakeGuiDriver) Keys() config.KeybindingConfig {
 	return config.KeybindingConfig{}
 }
