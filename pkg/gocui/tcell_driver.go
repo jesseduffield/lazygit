@@ -266,6 +266,22 @@ func (wrapper TcellResizeEventWrapper) toTcellEvent() tcell.Event {
 	return tcell.NewEventResize(wrapper.Width, wrapper.Height)
 }
 
+type TcellFocusEventWrapper struct {
+	Timestamp int64
+	Focused   bool
+}
+
+func NewTcellFocusEventWrapper(event *tcell.EventFocus, timestamp int64) *TcellFocusEventWrapper {
+	return &TcellFocusEventWrapper{
+		Timestamp: timestamp,
+		Focused:   event.Focused,
+	}
+}
+
+func (wrapper TcellFocusEventWrapper) toTcellEvent() tcell.Event {
+	return tcell.NewEventFocus(wrapper.Focused)
+}
+
 // pollEvent get tcell.Event and transform it into gocuiEvent
 func (g *Gui) pollEvent() GocuiEvent {
 	var tev tcell.Event
@@ -276,6 +292,8 @@ func (g *Gui) pollEvent() GocuiEvent {
 		case ev := <-g.ReplayedEvents.Resizes:
 			tev = (ev).toTcellEvent()
 		case ev := <-g.ReplayedEvents.MouseEvents:
+			tev = (ev).toTcellEvent()
+		case ev := <-g.ReplayedEvents.FocusEvents:
 			tev = (ev).toTcellEvent()
 		}
 	} else {

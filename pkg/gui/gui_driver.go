@@ -56,6 +56,18 @@ func (self *GuiDriver) Click(x, y int) {
 	self.waitTillIdle()
 }
 
+// FocusIn simulates the terminal window regaining focus, which is how lazygit
+// learns to reload changed config files. Tests use it to exercise the live
+// config-reload path.
+func (self *GuiDriver) FocusIn() {
+	self.gui.g.ReplayedEvents.FocusEvents <- gocui.NewTcellFocusEventWrapper(
+		tcell.NewEventFocus(true),
+		0,
+	)
+
+	self.waitTillIdle()
+}
+
 // wait until lazygit is idle (i.e. all processing is done) before continuing
 func (self *GuiDriver) waitTillIdle() {
 	<-self.isIdleChan
