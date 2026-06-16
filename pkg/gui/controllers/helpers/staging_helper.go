@@ -322,9 +322,11 @@ func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, c
 // otherwise resets the scroll. Call it on the view about to be re-rendered, right
 // before triggering the re-render.
 //
-// The anchor is the selected line if a selection is showing, otherwise the top
-// visible line. We'd like to keep the anchor line itself, but it may not survive the
-// re-render: a context line vanishes when the context size shrinks. So we collect the
+// The anchor is the selected line if a selection is showing, otherwise the line in
+// the middle of the visible content (so what stays put is the line you're most likely
+// looking at, not the top edge). We'd like to keep the anchor line itself, but it may
+// not survive the re-render: a context line vanishes when the context size shrinks. So
+// we collect the
 // lines around the anchor as fallbacks (nearest first; see nearbyDiffLines) and land
 // on the nearest one that survives — the anchor itself when it does, otherwise the
 // closest surviving line, which minimises scrolling. Each is put back at the same
@@ -340,7 +342,7 @@ func (self *StagingHelper) PreserveDiffPositionOnRerender(view *gocui.View) {
 	}
 
 	showSelection := view.Highlight
-	anchorViewLine := view.OriginY()
+	anchorViewLine := view.MiddleVisibleLineIdx()
 	if showSelection {
 		anchorViewLine = view.SelectedLineIdx()
 	}
