@@ -203,8 +203,8 @@ func (self *MainViewController) toggleSelection() error {
 		v.Highlight = false
 		return nil
 	}
-	// Start the selection in the middle of the visible area.
-	showSelectionAtLine(v, v.OriginY()+v.InnerHeight()/2, false)
+	// Start the selection in the middle of the visible content.
+	showSelectionAtLine(v, v.MiddleVisibleLineIdx(), false)
 	return nil
 }
 
