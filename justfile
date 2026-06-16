@@ -22,7 +22,12 @@ unit-test:
     go test ./... -short
 
 # Run both unit tests and integration tests.
+[unix]
 test: unit-test e2e-all
+
+# On Windows, integration tests are not supported right now
+[windows]
+test: unit-test
 
 # Generate all our auto-generated files (test list, cheatsheets, json schema, maybe other things in the future)
 generate:
