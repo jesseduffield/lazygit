@@ -1985,6 +1985,16 @@ func (v *View) SelectedLineIdx() int {
 	return seletedLineIdx
 }
 
+// MiddleVisibleLineIdx returns the index of the view line at the middle of the
+// content currently on screen. When the content is taller than the viewport this is
+// the middle row of the viewport; when it's shorter, it's the middle of the content,
+// so the result lands within the content rather than in the empty space below it.
+func (v *View) MiddleVisibleLineIdx() int {
+	top := v.OriginY()
+	bottom := min(top+v.InnerHeight(), v.ViewLinesHeight())
+	return (top + bottom) / 2
+}
+
 // expected to only be used in tests
 func (v *View) SelectedLine() string {
 	v.writeMutex.Lock()
