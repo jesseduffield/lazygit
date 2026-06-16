@@ -75,10 +75,7 @@ func TestOSCommandQuoteWindows(t *testing.T) {
 
 	actual := osCommand.Quote(`hello "test" 'test2'`)
 
-	/* EXPECTED:
 	expected := `"hello \"test\" 'test2'"`
-	ACTUAL: */
-	expected := `\"hello "'"'"test"'"'" 'test2'\"`
 
 	assert.EqualValues(t, expected, actual)
 }
@@ -93,10 +90,7 @@ func TestNewShellWindowsPassesMetacharactersVerbatim(t *testing.T) {
 	command := `echo a && echo b | sort > out.txt < in.txt %PATH%`
 
 	assert.Equal(t,
-		/* EXPECTED:
 		[]string{"cmd", "/s", "/c", command},
-		ACTUAL: */
-		[]string{"cmd", "/c", "echo", "a", "^&^&", "echo", "b", "^|", "sort", "^>", "out.txt", "^<", "in.txt", "^%PATH^%"},
 		osCommand.Cmd.NewShell(command, "").Args(),
 	)
 }

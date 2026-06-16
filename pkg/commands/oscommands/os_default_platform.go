@@ -40,6 +40,11 @@ func (c *OSCommand) UpdateWindowTitle() error {
 	return nil
 }
 
+// setRawCmdLine is the non-Windows no-op counterpart of the Windows shim
+// (see the comment there). NewShell's shell-building logic is portable, so
+// this call is reached on every host; only the Windows build does anything.
+func setRawCmdLine(cmd *exec.Cmd, cmdLine string) {}
+
 func TerminateProcessGracefully(cmd *exec.Cmd) error {
 	if cmd.Process == nil {
 		return nil
