@@ -83,6 +83,24 @@ func TestOSCommandQuoteWindows(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
+// On Windows, NewShell must hand the command to cmd.exe verbatim.
+func TestNewShellWindowsPassesMetacharactersVerbatim(t *testing.T) {
+	osCommand := NewDummyOSCommand()
+	platform := &Platform{OS: "windows", Shell: "cmd", ShellArg: "/c"}
+	osCommand.Platform = platform
+	osCommand.Cmd.platform = platform
+
+	command := `echo a && echo b | sort > out.txt < in.txt %PATH%`
+
+	assert.Equal(t,
+		/* EXPECTED:
+		[]string{"cmd", "/s", "/c", command},
+		ACTUAL: */
+		[]string{"cmd", "/c", "echo", "a", "^&^&", "echo", "b", "^|", "sort", "^>", "out.txt", "^<", "in.txt", "^%PATH^%"},
+		osCommand.Cmd.NewShell(command, "").Args(),
+	)
+}
+
 func TestOSCommandFileType(t *testing.T) {
 	type scenario struct {
 		path  string
