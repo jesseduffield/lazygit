@@ -1791,3 +1791,120 @@ so flag it in its own PR description). Still pending for that PR: a confirming
 slow-render/interactive pass isn't needed (no async render path here), but it
 wants integration-test coverage like the rest of the focused-main-view
 interactions (§7 — none exist yet).
+
+---
+
+## 20. Session 10: the diff-line scan was O(n²) — batched to O(n)
+
+Also in this session: the space-selection and `-U`-preserve anchor both moved to
+the **middle visible line** (`gocui.View.MiddleVisibleLineIdx`: middle of the
+viewport when the content overflows it, middle of the content when it doesn't).
+Small and signed off interactively ("feels much better"). The substantial work
+was a performance fix.
+
+### 20.1 The problem (user-reported)
+
+Changing the `-U` context size (`{`/`}`) or switching pagers (`|`/`\`) while
+scrolled down in a long diff was **extremely slow**: a 1700-line diff took ~2s
+with no pager / ~3s with delta; a 9600-line diff took ~33s / ~70s. Both
+consumers preserve the scroll position by scanning the re-rendered diff for the
+line to land on, so the cost was in the scan. The 5.6× line-count increase
+(1700→9600) gave a ~16× time increase — quadratic.
+
+### 20.2 Root cause — three stacked O(n²) passes
+
+The position restore (§16.1) and the file/hunk navigation (§16.2) both resolve
+*every* rendered row's identity, and did so **one line at a time**:
+
+1. **Per-line whole-section re-parse.** The buffer-parse backend
+   (`parseDiffLineFromBuffer`) parses the target line's *entire* file section with
+   `patch.Parse` on every call — O(n) per line for a single-file diff. It was
+   called once per line in the incremental load scan *and* again in the EOF
+   `Apply` scan (`FindDiffLine` from 0). Two O(n²) passes.
+2. **Per-line full snapshot rebuild.** The incremental scan called
+   `OffscreenDiffLineContents()` (rebuilds a snapshot of *all* loaded rows) after
+   every loaded line — O(n²), and it hit *every* backend, including patched delta
+   when scrolled to the end (so it wasn't just a no-pager problem).
+3. (Wasted work for delta: the buffer-parse backend was attempted per line even
+   when metadata/hyperlinks would answer.)
+
+Confirmed with a throwaway benchmark: a single whole-buffer scan of a synthetic
+single-file diff took 115ms at 1700 lines, 3.9s at 9600 — matching the
+user's wall-clock once the two-or-three stacked passes are accounted for.
+
+### 20.3 The fix
+
+A single **batch resolver**, `StagingHelper.resolveDiffLines`, parses each file
+section exactly once (`parseAllDiffLinesFromBuffer` →
+`parseFileSection`/`fileSectionBounds`, extracted from the single-line parser so
+both share it — `parseDiffLineFromBuffer` now delegates to it) and applies the
+metadata/buffer/hyperlink precedence on top. All whole-buffer scans route through
+it: `nearbyDiffLines`, the EOF `Apply` (now `findResolvedDiffLine`, a pure scan
+over the resolved table), and **both** navigation scans (`AdjacentChangeBlock`,
+`AdjacentFile`) — which had the identical bug. O(n).
+
+The incremental load scan was made O(n) too: it now resolves only the rows that
+arrived since it last looked (`gocui.View.OffscreenDiffLineContentsFrom(from)`
+instead of re-snapshotting the whole off-screen buffer) and resolves each on its
+own via `diffLineInfoPerRow` (metadata/hyperlink only — the per-row backends).
+The buffer-parse backend can't resolve a partial diff anyway (the trailing hunk
+isn't well-formed mid-load), so it's no longer attempted during the load; the
+no-pager case still settles at the EOF swap (`firstPaint` → `Apply`), exactly as
+before — only the wasted O(n²) work is gone, the swap timing is unchanged.
+
+The single-line forward resolver (clicks/`e`/`enter`/PR, via `GetDiffLineInfo`)
+is behaviorally unchanged.
+
+### 20.4 Verification
+
+- A throwaway test proved the batch parser is **byte-identical** to the per-line
+  parser across a multi-file diff (incl. lines outside any section). A throwaway
+  perf test showed the whole-buffer scan drop from **1.7s → 1ms** at 1700 lines
+  and **~107s → 15ms** at 6800, linear in the line count. Both removed afterward.
+- `build` / `format` / `lint` (0 issues) / full `-short` unit suite /
+  `diff`+`staging`+`cycle_pagers`+`diff_context_change` e2e all green.
+  (`TestNewCmdTaskInstantStop` is the documented pre-existing flake — passes in
+  isolation; tasks.go was not touched.)
+- Interactive: user confirmed "not entirely instant, but definitely good enough."
+
+This **retires the scan-cost productionization note** flagged in §14.5 and §16.4
+(resolved in the prototype, per [[resolve-hard-unknowns-in-prototype]]).
+
+Commits (most recent last): *Add a batch buffer-diff parser that parses each file
+section once* (prep), *Add gocui accessor for the newly-loaded rows of an
+off-screen render* (prep), *Resolve diff lines in one batch pass instead of once
+per line* (the fix). (Plus the two middle-line commits.)
+
+### 20.5 Follow-up surfaced by the speedup: a context-change flicker (no pager)
+
+The user then noticed: changing `-U` context with **no pager** while scrolled
+down in the long diff shows a **pronounced flicker — a brief frame at a
+different scroll position, random run-to-run**. **Not** reproducible with delta.
+
+Analysis so far (not yet pinned — avoid a third §11-style misdiagnosis):
+
+- **The single-render path is clean.** `ContextLinesController.applyChange` does
+  one `HandleRenderToMain`; `linesToReadFromCmdTask` doesn't touch the origin;
+  the off-screen render keeps the *previous* content displayed at scroll S until
+  the EOF swap, at which point `Apply` sets the preserved origin in the same step.
+  For no-pager, `FirstPaintReady` never fires (no per-row backend), so the swap is
+  at EOF — unchanged by the perf fix.
+- **The speedup unmasked it.** Before, the O(n²) scan throttled the read loop, so
+  the off-screen load took ~33s during which the old content sat *stably* at S —
+  hiding any startup/overlap transient. Now the load is instant, so a transient
+  frame around task start or the swap is suddenly visible.
+- **no-pager vs delta is the cmd-vs-pty tell** (§13.1): no-pager takes the
+  *synchronous* `newCmdTask`; delta takes `newPtyTask`, which defers task creation
+  to `afterLayout`. So the suspect is something the synchronous path does (or
+  allows to overlap) that the deferred path coalesces away.
+- **Suspects, unconfirmed:** (a) the 200ms loading-indicator goroutine firing
+  `beforeStart()` (`view.Reset()`) — but that flashes *blank* ("loading..." sits
+  above the viewport at scroll S), which doesn't match "a scroll position"; (b) a
+  second render overlapping the first (cf. §13.6's escape↔refresh overlap), the
+  better fit for a *random* scroll position.
+- **Next step:** the §10 `SetOriginY` chokepoint tracer (`debugMainOriginReset`),
+  run at **normal speed** — `LAZYGIT_SLOW_RENDER` would *hide* this (it re-stretches
+  the load back out to a stable old-content frame). The log of origin writes +
+  callers during the flicker will pin which interleaving draws the bad frame.
+  Then fix per [[focused-main-view-flicker-timing-races]] (a known race gets a
+  real fix, not "live with it").
