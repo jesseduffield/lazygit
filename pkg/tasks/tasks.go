@@ -132,20 +132,22 @@ type LinesToRead struct {
 // re-renders content the user was already looking at (returning to a focused main
 // view on escape). The render task reads the new content into an off-screen
 // buffer; RenderRestore decides, as that buffer fills, when the task has read far
-// enough to show the saved position (FirstPaintReady), and then — once the
-// off-screen buffer has been swapped in — scrolls there and restores the
-// selection (Apply). It is a predicate rather than a fixed scroll position so the
-// target can be a row matching a patch identity, located by scanning the loading
-// content, rather than a line number that the changed content may have moved.
+// enough to show the saved position (FirstPaintReady), and then locates the target
+// and reveals it (Apply). It is a predicate rather than a fixed scroll position so
+// the target can be a row matching a patch identity, located by scanning the
+// loading content, rather than a line number that the changed content may have moved.
 type RenderRestore struct {
 	// FirstPaintReady reports whether the task has now read enough of the new
 	// (off-screen) content to first-paint at the saved position. Evaluated after
 	// each line is read.
 	FirstPaintReady func() bool
 
-	// Apply runs once, just after the off-screen render is swapped in at the first
-	// paint, to scroll to the saved position and restore the selection.
-	Apply func()
+	// Apply runs once at the first paint. It locates the target in the not-yet-
+	// displayed off-screen content, then calls swapIn to promote that content to
+	// the display and settles the scroll/selection onto the target. Doing the
+	// (potentially whole-diff) scan before swapIn keeps the previous content shown
+	// while it runs, so the new content is never briefly drawn at the old scroll.
+	Apply func(swapIn func())
 }
 
 func (self *ViewBufferManager) GetTaskKey() string {
@@ -415,11 +417,17 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 					return
 				}
 				painted = true
-				self.swapInRender()
 				if restore != nil {
-					restore.Apply()
-				} else if linesToRead.ResetOrigin && self.resetOrigin != nil {
-					self.resetOrigin()
+					// Apply locates the target in the off-screen content, swaps it in,
+					// and settles the scroll in one step — so the scan it may run first
+					// happens while the previous content is still displayed, never the
+					// new content at the old scroll.
+					restore.Apply(self.swapInRender)
+				} else {
+					self.swapInRender()
+					if linesToRead.ResetOrigin && self.resetOrigin != nil {
+						self.resetOrigin()
+					}
 				}
 			}
 
