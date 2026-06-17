@@ -1873,6 +1873,23 @@ func (v *View) OffscreenDiffLineContents() []DiffLineContent {
 	return diffLineContents(v.offscreen)
 }
 
+// OffscreenDiffLineContentsFrom is OffscreenDiffLineContents restricted to the
+// rows from index `from` onward (relative to the off-screen buffer's start, so
+// result[0] is buffer line `from`). It lets a scan that tracks how far it has read
+// process only the lines that have arrived since, instead of re-snapshotting the
+// whole off-screen buffer on every line — the difference between an O(n) and an
+// O(n²) restore scan on a large diff. Returns nil when no off-screen render is
+// underway or `from` is past the lines read so far.
+func (v *View) OffscreenDiffLineContentsFrom(from int) []DiffLineContent {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.offscreen == nil || from < 0 || from >= len(v.offscreen.lines) {
+		return nil
+	}
+	return diffLineContentsFrom(v.offscreen, from)
+}
+
 // OffscreenLineCount returns the number of unwrapped buffer lines read so far
 // into an in-progress off-screen re-render (see BeginOffscreenRender), or 0 if
 // none is underway. The escape restore uses it to tell, cheaply, once it has
@@ -1890,8 +1907,13 @@ func (v *View) OffscreenLineCount() int {
 }
 
 func diffLineContents(buf *viewBuffer) []DiffLineContent {
-	contents := make([]DiffLineContent, len(buf.lines))
-	for i, line := range buf.lines {
+	return diffLineContentsFrom(buf, 0)
+}
+
+func diffLineContentsFrom(buf *viewBuffer, from int) []DiffLineContent {
+	lines := buf.lines[from:]
+	contents := make([]DiffLineContent, len(lines))
+	for i, line := range lines {
 		text := strings.ReplaceAll(line.cells.String(), "\x00", "")
 		var metadata, hyperlink string
 		for _, c := range line.cells {
