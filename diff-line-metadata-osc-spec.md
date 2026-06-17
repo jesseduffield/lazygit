@@ -126,8 +126,8 @@ Raw bytes, for a context line at new-file line 10 of `src/foo.go`:
 | field | presence | meaning |
 |---|---|---|
 | `version` | always | decimal protocol version; `1` for v1. Carried in every record so attachments are self-describing. |
-| `type` | always | one character — see §5.1. v1 emits `c` (context), `a` (added), `d` (deleted), `f` (file header), `h` (hunk header). |
-| `new-line` | content & header lines | new-file line number, in the **diff's new-file space** (see §5.2). |
+| `type` | always | one character — see §5.1. v1 emits `c` (context), `a` (added), `d` (deleted). |
+| `new-line` | always | new-file line number, in the **diff's new-file space** (see §5.2). |
 | `old-line` | only `type=d` | old-file line number. **Empty** for `c` and `a`. |
 | `file` | always | the file path the line belongs to; absolute or repo-root-relative (the host normalizes — emit whichever is convenient). Carried on **every** record so a single record is a complete answer. |
 
@@ -144,8 +144,6 @@ path is not carried. A pure rename with no content change emits no records at al
 | deletion, old line 9, sits at new pos 11 | `1717;1;d;11;9;src/foo.go` |
 | two consecutive deletions | `…;d;11;9;…` then `…;d;11;10;…` (same `new-line`, different `old-line` — see §5.3) |
 | whole-file deletion | `1717;1;d;0;9;old/path` (`new-line` 0 — see §5.4) |
-| file header | `1717;1;f;10;;src/foo.go` (`new-line` = the file's first hunk line — §5.2) |
-| hunk header | `1717;1;h;10;;src/foo.go` |
 
 ---
 
@@ -153,21 +151,17 @@ path is not carried. A pure rename with no content change emits no records at al
 
 ### 5.1 Type
 
-`type` is one character. v1 defines five, and a conforming pager emits each
-wherever the corresponding row exists:
+`type` is one character. v1 defines three, all of them **content-line** types, and
+a conforming pager emits one before every content line it renders:
 
 - `c` — context (unchanged) line
 - `a` — added line
 - `d` — deleted line
-- `f` — file header — the row a pager renders to announce a file
-- `h` — hunk header — the row announcing a hunk (e.g. a `@@ … @@` line)
 
-`c`/`a`/`d` are the content-line types. `f`/`h` mark the structural rows so the
-host can place every file and hunk **exactly** — for navigation, and for acting on
-a header — instead of inferring structure from layout, the one thing it cannot do.
-They are not optional: a pager emits `f` on each file-header row and `h` on each
-hunk-header row it renders (a pager that renders no hunk-header rows, e.g.
-difftastic, simply has none to tag). See §6.4.
+**There is deliberately no file-header or hunk-header type — see §5.5.** The
+protocol annotates content lines only; the host recovers file and hunk *structure*
+from the content records themselves (the `file` field and `new-line`
+discontinuities), and treats the pager's header/decoration rows as non-actionable.
 
 A host **must ignore a `type` it does not recognize** (treat the row as
 non-actionable) rather than reject the record, so the set can grow later without a
@@ -186,11 +180,6 @@ specifically on *change* lines). Hence an explicit type.
   expected to re-map this through its own diff↔worktree adjustment; the pager
   should emit the number as it appears in the diff it is rendering.
 - `old-line` is the old-file line number, present **only** for deletions.
-- On a **header** record (`f`/`h`), `new-line` is the new-file line of the first
-  line of the hunk it heads — for `h` that hunk, for `f` the file's first hunk —
-  and `old-line` is empty. This is what lets `e` ("open in editor") on a header
-  land at the top of what the user is looking at. (A round-trip *through* staging
-  from a header is therefore only approximate, which is an accepted trade.)
 
 ### 5.3 The deleted-line convention (both numbers)
 
@@ -218,6 +207,51 @@ A host uses `old-line` to find a deletion's patch line and its old-side
 
 A deleted file's lines carry `new-line` = `0` (mirroring git's `@@ -1,N +0,0 @@`);
 an added file's lines carry the new-file numbers normally and `type=a`.
+
+### 5.5 Non-goal: header and decoration rows are not annotated
+
+The protocol covers **content lines only**. A pager's file-header and hunk-header
+rows — delta's boxed file name and hunk-header box, difftastic's per-hunk banner,
+diff-so-fancy's `── file ──` rule — carry **no** record, and there is no `f`/`h`
+(or "file-header"/"hunk-header") type. The host treats every un-annotated row as
+non-actionable.
+
+This is deliberate. The host does not need header records to recover diff
+structure, because the structure is already implicit in the content records:
+
+- **File boundaries** — the `file` field changes between consecutive content
+  records, so the first content record carrying a new path *is* that file's entry.
+- **Hunk boundaries** — `new-line` jumps by more than one between consecutive
+  content records of a file (lines were skipped), so a discontinuity marks a new
+  hunk. (Two consecutive deletions share a `new-line` by §5.3, so compute the gap
+  from the last *advancing* line.)
+
+So file/hunk navigation, "jump to the top of this file/hunk", and the rest are all
+served by content records plus a trivial scan; the host lands navigation on a
+hunk/file's first **content** row, backing up over any un-annotated header rows the
+pager drew above it (a few lines of host code, needed anyway — see below).
+
+**Why not annotate headers, even optionally?** An earlier draft made `f`/`h`
+mandatory; prototyping them in delta and difftastic (preserved in the design
+notes) showed the cost is real and the benefit marginal:
+
+- It adds genuine pager-side friction. delta draws the file header when it parses
+  the `+++` line, *before* it has seen the first `@@`, so it cannot know the
+  header's hunk line without buffering or abandoning streaming. difftastic has no
+  separate header rows at all — one per-hunk banner is *both* a file and a hunk
+  header — so neither `f` nor `h` maps cleanly onto it. For a protocol whose whole
+  pitch is "emit one OSC per content line," this roughly doubles the conceptual
+  surface for the next pager author.
+- Making them *optional* is the worst of both: a host can't rely on them, so it
+  must implement the "header row is un-annotated → back up to the nearest content
+  row" fallback regardless — and then maintain two code paths forever. Dropping
+  the types entirely leaves the host **one** path, exercised for every pager.
+
+The only thing genuinely lost is files that emit **no content records** at all —
+pure renames, pure mode changes, binary files (§4.2). These become invisible to
+the identity layer (navigation can't anchor on them). That is acceptable: they
+have nothing to stage/edit/open, and remain reachable by ordinary cursor movement
+over the rendered buffer.
 
 ---
 
@@ -279,24 +313,12 @@ Getting this wrong is not theoretical: without per-row records, acting on a
 wrapped continuation row does nothing, and hunk/file navigation breaks because the
 untagged rows fragment a wrapped line into one block per visual row.
 
-### 6.4 Header rows
+### 6.4 Header and decoration rows — emit nothing
 
-File-header and hunk-header rows carry records too, and these are **mandatory**:
-`f` on each file-header row, `h` on each hunk-header row (§5.1). With them the host
-places every file and hunk exactly — file/hunk navigation lands on the header, and
-`e` on a header opens at the hunk's first line — with no layout guessing.
-
-Where a header spans **several rows** — delta boxes a file name in divider/name/
-divider lines; a pager might draw a rule under a hunk header — the recommendation
-is that **every row of that block carry the same record** (all three box lines get
-the file's `f`; a hunk header and its rule get that hunk's `h`), exactly as a
-wrapped content line re-emits its record on every row (§6.3). That leaves no dead
-rows in a header block — the user can press `e` anywhere on it and land in the same
-place. The pager has the final say over what counts as its header block and which
-row "is" the heading; this is the recommended default, not a hard rule.
-
-A pager with no hunk-header rows (e.g. difftastic) has no `h` to emit. A row a pager
-genuinely leaves un-recorded is treated by the host as non-actionable.
+A pager's header and decoration rows (file headers, hunk headers, dividers,
+padding) carry **no** record — there is no header type to emit (§5.1, §5.5). The
+host derives file and hunk structure from the content records and treats every
+un-annotated row as non-actionable.
 
 ---
 
@@ -359,9 +381,15 @@ mapping; recorded as a v2 candidate, not taken (§9).
    the side for deleted lines, and in side-by-side mode. (delta needed to track
    its own old/new counters because its line-number counters are dormant unless
    `--line-numbers` is on; difftastic had them natively. Your mileage may vary.)
-5. **Is emitting `f`/`h` on header rows a burden?** v1 makes them mandatory (§5.1,
-   §6.4); it should be cheap — the pager already knows the file and the hunk's
-   start line — but tell us if your format makes it awkward.
+5. **Content-lines-only scope (§5.5) — is anything lost for your pager?** We
+   deliberately dropped header annotations: an earlier draft made file/hunk-header
+   types mandatory, but prototyping them in delta and difftastic showed real
+   pager-side friction (delta draws the file header before it has parsed the first
+   `@@`; difftastic has no separate header rows, only a combined per-hunk banner)
+   for benefit the host can get by deriving structure from content records. If your
+   pager has a structure where the host genuinely *cannot* reconstruct file/hunk
+   boundaries from content records, tell us — that would argue for bringing header
+   types back.
 
 ---
 
@@ -373,7 +401,9 @@ OSC `1717`:
 - **delta** — a dedicated additive emitter that injects only OSC bytes (no change
   to styling, width, or wrapping); with the env var unset, output is byte-for-byte
   identical to stock delta. Covers unified and side-by-side modes, including
-  wrapped rows.
+  wrapped rows. (A `f`/`h` header-record variant was also prototyped before headers
+  were dropped from the spec — see §5.5 / the design notes — but is not part of
+  this content-line-only protocol.)
 - **difftastic** — the categorical case (#1 host-side parsing cannot serve it in
   either mode). Emits the same v1 format under the same handshake; markedly less
   code than delta because difftastic carries old/new line numbers natively. Covers

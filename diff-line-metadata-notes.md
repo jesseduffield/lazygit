@@ -176,7 +176,7 @@ Fields per attachment:
 | field | presence | meaning |
 |---|---|---|
 | `version` | always | self-describing (see §3.3) |
-| `type` | always | `file-header \| hunk-header \| context \| added \| deleted \| other` |
+| `type` | always | `context \| added \| deleted` only — header types (`file-header`/`hunk-header`) were considered here but **dropped**; content-lines-only (§11, spec §5.5). (#1's host-side parser still classifies parsed rows internally; that's separate from the #2 wire type.) |
 | `file` | always | absolute or repo-root-relative path (the host normalizes — pagers may emit whichever is convenient); on **every** attachment so search-left yields a complete answer without scanning back to the file header |
 | `new-line` | always (content lines) | new-file line number, in the **diff's** new-file space |
 | `old-line` | **only** when `type = deleted` | old-file line number |
@@ -298,10 +298,11 @@ patch-find for added/context, PR `R` anchor).
   index is just `targetBufferIdx − fileStartIdx`. New/old line numbers and the
   type then fall straight out of the patch arithmetic. The file path comes from
   the section's `+++ b/…` line (falling back to `--- a/…`, then `diff --git`).
-- **Do headers carry line numbers?** `hunk-header` *could* carry old-start /
-  new-start, but hunk boundaries are also derivable from coordinate
-  discontinuities in the content lines, so it may be unnecessary. `file-header`
-  needs no line numbers (the `file` field already attributes every line).
+- ~~**Do headers carry line numbers?**~~ **RESOLVED — headers carry *nothing*; the
+  spec is content-lines-only (§11 outcome, spec §5.5).** Hunk boundaries are
+  derivable from coordinate discontinuities in the content lines and file
+  boundaries from the `file` field, so header records were dropped entirely rather
+  than carry (or not carry) line numbers.
 - ~~**difftastic specifics:**~~ **RESOLVED (#2 difftastic prototype, §10).** Two
   regions per row (one per side-by-side column), not N — token-level novelty is
   sub-cell colouring, not separate identity (§10.3). Each is emitted at the start
@@ -541,8 +542,12 @@ emits V1 when the advertised list contains `V1`.
   `enter`/hunk-nav break on continuation rows. **Now FIXED in delta too** (§10.8):
   delta wraps only in side-by-side mode, and each wrapped row now re-emits its
   primary line's record (no counter advance). difftastic was fixed the same way.
-- **Header rows** (`@@`, `diff --git`, `---`/`+++`) get no attachment; acting on a
-  header row falls through to #1, then to no-selection.
+- **Header rows** (`@@`, `diff --git`, `---`/`+++`, decorations) get no attachment;
+  acting on a header row falls through to #1, then to no-selection. This is now the
+  **intended, permanent** design: `f`/`h` header records were prototyped (§11) and
+  then **dropped from the spec** — the protocol is content-lines-only, and the host
+  derives file/hunk structure from content records and backs up over un-annotated
+  header rows (consumer #4 already does this). See §11's outcome banner + spec §5.5.
 
 ### 9.4 What was built, and how it was verified
 
@@ -830,3 +835,103 @@ still reports the right new-line). `osc_for_line` is the single chokepoint, so t
 one change covers both SxS emit paths (the minus/plus precompute and the
 `paint_zero_lines_side_by_side` context path). Landed as an `amend!` into the
 delta side-by-side commit, with a unit test (`test_wrapped_rows_reemit_…`).
+
+---
+
+## 11. `f`/`h` header-record prototype — built, then dropped from the spec
+
+> **OUTCOME (decided after this prototype):** `f`/`h` are **removed from the spec
+> entirely** — the protocol is now **content-lines-only** (`c`/`a`/`d`). This
+> section is kept as the *evidence* for that decision; it is no longer a
+> description of the spec. The reasoning: the host derives file/hunk structure
+> from content records (the `file` field changes → new file; a `new-line`
+> discontinuity → new hunk), and it needs the "back up over un-annotated header
+> rows" fallback *regardless* (consumer #4 already does this), so making `f`/`h`
+> optional would be the worst of both worlds and making them mandatory adds the
+> real pager-side friction documented below. The one thing lost — files that emit
+> no content records (pure renames, mode changes, binaries) are invisible to the
+> identity layer — is acceptable (nothing to act on; still reachable by cursor).
+> See spec §5.5. **The emitter code is preserved on WIP commits** (delta +
+> difftastic `prototype-osc-metadata`) for future reference, not folded into the
+> content-line emitters.
+
+Extends the #2 emitter to the **structural rows** — `f` (file header) and `h`
+(hunk header) — in both delta and difftastic, to pressure-test the spec's claim
+that this is cheap. Both built on `prototype-osc-metadata`, both byte-identical to
+stock with the env unset (verified by stripping the OSC and `diff`), both with new
+unit tests; all delta tests (444) and difftastic tests (129 unit + 23 integration)
+green. Headline: **the claim mostly holds, but two real shapes bent the spec** —
+delta can't populate `f`'s `new-line`, and difftastic's only header row is a
+*combined* file+hunk banner. Spec edited (§4.2/§4.3/§5.1/§5.2/§6.4/§9.5/§10).
+
+### 11.1 delta — `h` trivial, `f` cannot carry its `new-line`
+
+- **`h` (easy).** At `emit_hunk_header_line`, `initialize_hunk` has just seeded
+  the new-file start *which is the hunk's first line*, so `h`'s `new-line` is in
+  hand exactly when the box is drawn. `osc_for_hunk_header()` reads it; verified
+  `h;8`, `h;41`, `h;1`, and `h;0` for a deleted file (`@@ -1,N +0,0 @@`).
+- **`f` (the ordering finding the task predicted).** delta boxes the file name
+  when it parses the `+++` line — **before** it has seen the first `@@`. At that
+  moment its counters are 0 (first file) or *stale from the previous file's last
+  hunk*, so the first-hunk line is genuinely not known. Carrying it would require
+  buffering the whole file header until the first `@@`, i.e. abandoning delta's
+  line-by-line streaming. So **delta emits `f` with an empty `new-line`**
+  (`1717;1;f;;;src/foo.go`), and **the spec now relaxes `f`'s `new-line` to
+  optional** (§5.2): the host falls back to the first content record after the
+  header. The path isn't on the emitter yet either (it's learned at the first
+  hunk), so the `StateMachine` supplies it, with the same `plus_file`/`minus_file`
+  selection the hunk header uses (`diff_header_osc()`).
+- **Multi-row blocks + mode-independence (clean).** The file header is 2 rows
+  (name + underline), the hunk header 3 (box). A `Write` adapter
+  (`OscLinePrefixer` / `write_with_header_osc` in `diff_line_metadata.rs`) injects
+  the record after every newline, so every row of the block carries it — the same
+  rule wrapped content rows follow. And both headers are **full-width decorations
+  rendered by the same code in unified *and* side-by-side** (the column split is
+  content-only), so f/h emission is mode-independent — verified identical byte
+  offsets in `-s`. No SxS-specific work.
+- **Awkward (minor):** the OSC is threaded as a `&str` through the shared draw
+  helpers (`write_line_of_code_with_optional_path_and_line_number` is shared with
+  ripgrep output, which passes `""`; `write_generic_diff_header_header_line` has
+  four call sites). Small, explicit, no behavior change when empty.
+
+### 11.2 difftastic — the spec's "no hunk headers" assumption was wrong
+
+The spec/notes assumed difftastic renders no hunk headers (only a file name), so
+it would emit "only `f`". **Not so.** difftastic prints **one banner per hunk** —
+`path --- N/total --- Format` (via `style::header`, in both side-by-side and
+inline) — that announces the file *and* the hunk (with a hunk counter). So:
+
+- there is **no standalone file-name row** distinct from the hunk, and
+- there is **no `@@`-style hunk row** — but there **is** a per-hunk header (the
+  banner). This is the §10.2 token-vs-line model mismatch reappearing at the
+  header level: one row is *both* a file header and a hunk header.
+
+**Mapping chosen (now the spec's rule for combined headers, §5.1):** first hunk's
+banner → `f` (the file's entry; `new-line` = the first hunk's first line); each
+later hunk's banner → `h` (that hunk's first line). **One record per banner row** —
+*not* an `f` and an `h` before the same cell, because a row-granular action (first
+record on the row, §7) and a click (nearest record left of the point) would then
+disagree. A single-hunk file emits one `f` and no `h` (its banner shows no
+counter) — which *looks* like the predicted "only `f`", but for a different reason.
+
+- **`new-line` is free (opposite of delta).** difftastic builds the whole diff
+  (`hunks: &[Hunk]`) before rendering, so the banner knows its hunk's aligned
+  lines; `f`/`h` carry a real `new-line`. Verified `f;1` + `h;16` (SxS), `f;1` +
+  `h;15` (inline), whole-file add `f;1`, whole-file delete `f;0`, AST-mode Rust
+  `f;1` with no `@@` rows.
+- **Multi-row banner handled.** Normally one row, two when the first hunk also
+  shows a rename's old path; `header_banner` prefixes every row (spec §6.4).
+- **Less code than delta**, same reason as §10.1: line numbers native, path is a
+  parameter, no streaming-order problem.
+
+### 11.3 Files touched
+
+- **delta** (`prototype-osc-metadata`): `features/diff_line_metadata.rs`
+  (`osc_for_hunk_header`/`osc_for_file_header`/`header_osc`, `OscLinePrefixer`,
+  `write_with_header_osc`, 4 tests); `handlers/hunk_header.rs` (`h` thread +
+  wrap); `handlers/diff_header.rs` (`diff_header_osc` + `f` thread + wrap);
+  `handlers/mod.rs`, `handlers/grep.rs` (signature follow-through).
+- **difftastic** (`prototype-osc-metadata`): `display/diff_line_metadata.rs`
+  (`header_banner`, 2 tests); `display/side_by_side.rs` (`hunk_first_new_line`,
+  banner f/h in `print`, `f` in `display_single_column`); `display/inline.rs`
+  (banner f/h, reordered so the first-new-line is known before printing).
