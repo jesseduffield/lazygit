@@ -392,6 +392,14 @@ func (self *TextArea) GetUnwrappedContent() string {
 	return self.content
 }
 
+func (self *TextArea) GetContentWidth() int {
+	if len(self.cells) == 0 {
+		return 0
+	}
+	last := self.cells[len(self.cells)-1]
+	return last.x + last.width
+}
+
 func (self *TextArea) ToggleOverwrite() {
 	self.overwrite = !self.overwrite
 }

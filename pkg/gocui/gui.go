@@ -327,6 +327,17 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 				newViewCursorX, newOriginX := updatedCursorAndOrigin(0, v.InnerWidth(), cursorX)
 				newViewCursorY, newOriginY := updatedCursorAndOrigin(0, v.InnerHeight(), cursorY)
 
+				contentWidth := v.TextArea.GetContentWidth()
+				usableWidth := v.InnerWidth() - 1
+				maxOriginX := contentWidth - usableWidth
+				if maxOriginX < 0 {
+					maxOriginX = 0
+				}
+				if newOriginX > maxOriginX {
+					newOriginX = maxOriginX
+					newViewCursorX = cursorX - newOriginX
+				}
+
 				v.SetCursor(newViewCursorX, newViewCursorY)
 				v.SetOrigin(newOriginX, newOriginY)
 			}

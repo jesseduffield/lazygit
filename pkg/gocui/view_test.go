@@ -120,6 +120,40 @@ func TestUpdatedCursorAndOrigin(t *testing.T) {
 	}
 }
 
+func TestRenderTextAreaClampsScrollOffset(t *testing.T) {
+	// View with inner width 10: x0=0, x1=11 → Width=12, InnerWidth=10
+	v := NewView("name", 0, 0, 11, 0, OutputNormal)
+	v.Editable = true
+
+	// Type 15 characters to overflow the viewport
+	for i := 0; i < 15; i++ {
+		v.TextArea.TypeCharacter("a")
+	}
+	// Cursor is at position 15, content width is 15
+	cursorX, _ := v.TextArea.GetCursorXY()
+	assert.Equal(t, 15, cursorX)
+
+	// Simulate scrolling: set origin so viewport shows positions 6-15
+	v.SetOrigin(6, 0)
+	v.RenderTextArea()
+	originX, _ := v.Origin()
+	assert.Equal(t, 6, originX)
+
+	// Now delete 11 characters so content is only 4 chars wide
+	for i := 0; i < 11; i++ {
+		v.TextArea.BackSpaceChar()
+	}
+	// Cursor is at position 4, content width is 4
+	cursorX, _ = v.TextArea.GetCursorXY()
+	assert.Equal(t, 4, cursorX)
+	assert.Equal(t, 4, v.TextArea.GetContentWidth())
+
+	// After rendering, origin should be clamped to 0 since content (4) < viewport (10)
+	v.RenderTextArea()
+	originX, _ = v.Origin()
+	assert.Equal(t, 0, originX, "origin should be clamped to 0 when content is narrower than viewport")
+}
+
 func TestAutoRenderingHyperlinks(t *testing.T) {
 	v := NewView("name", 0, 0, 10, 10, OutputNormal)
 	v.AutoRenderHyperLinks = true
