@@ -19,11 +19,10 @@ func (self *StagingHelper) AdjacentChangeBlock(view *gocui.View, anchorViewLine 
 		return 0, false
 	}
 
-	isChange := make([]bool, len(contents))
-	for i := range contents {
-		if info, ok := self.diffLineInfoFromContents(contents, i); ok {
-			isChange[i] = info.IsChange()
-		}
+	resolved := self.resolveDiffLines(contents)
+	isChange := make([]bool, len(resolved))
+	for i, r := range resolved {
+		isChange[i] = r.ok && r.info.IsChange()
 	}
 
 	target, ok := changeBlockStart(isChange, anchor, forward)
@@ -44,10 +43,11 @@ func (self *StagingHelper) AdjacentFile(view *gocui.View, anchorViewLine int, fo
 		return 0, false
 	}
 
-	paths := make([]string, len(contents))
-	for i := range contents {
-		if info, ok := self.diffLineInfoFromContents(contents, i); ok {
-			paths[i] = info.Path
+	resolved := self.resolveDiffLines(contents)
+	paths := make([]string, len(resolved))
+	for i, r := range resolved {
+		if r.ok {
+			paths[i] = r.info.Path
 		}
 	}
 
