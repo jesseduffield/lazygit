@@ -24,15 +24,22 @@ type parsedDiffLine struct {
 	OldLine int
 }
 
+// bufferLineParse is the buffer-parse backend's result for one buffer line: the
+// recovered identity and whether the line could be resolved (false for a line in
+// an unparseable or restructured section, or outside any file section).
+type bufferLineParse struct {
+	parsed parsedDiffLine
+	ok     bool
+}
+
 // parseDiffLineFromBuffer recovers a rendered diff row's patch-space identity by
 // parsing the decolorized diff buffer (mechanism #1 in diff-line-metadata-notes.md).
 //
 // bufferLines is the full unwrapped view buffer; targetIdx is the buffer line to
-// resolve. A commit diff spans multiple files, so we first split on the
-// "diff --git" boundaries to isolate the file section containing targetIdx, then
-// reuse patch.Parse on that single-file section: its patch line indices line up
-// 1:1 with the section's buffer lines, so the type and old/new line numbers fall
-// straight out of the patch arithmetic.
+// resolve. A commit diff spans multiple files, so we isolate the file section
+// containing targetIdx and parse just that one (see parseFileSection). Use this for
+// a single line (e.g. a click); to resolve every line of a buffer, prefer
+// parseAllDiffLinesFromBuffer, which parses each section only once.
 //
 // ok is false when the buffer isn't a parseable unified diff at targetIdx (e.g.
 // a pager that restructures the diff, like delta's default mode), so the caller
@@ -41,56 +48,96 @@ func parseDiffLineFromBuffer(bufferLines []string, targetIdx int) (parsedDiffLin
 	if targetIdx < 0 || targetIdx >= len(bufferLines) {
 		return parsedDiffLine{}, false
 	}
+	start, end := fileSectionBounds(bufferLines, targetIdx)
+	if start == -1 {
+		return parsedDiffLine{}, false
+	}
+	r := parseFileSection(bufferLines[start:end])[targetIdx-start]
+	return r.parsed, r.ok
+}
 
-	// Find the file section containing the target: the nearest "diff --git" at or
-	// above it, up to the next one (or the end of the buffer).
-	fileStart := -1
+// parseAllDiffLinesFromBuffer resolves every line of a (possibly multi-file) diff
+// buffer in one pass, parsing each file section exactly once. It is the batch form
+// of parseDiffLineFromBuffer for callers that scan the whole buffer (the position-
+// restore and navigation scans): resolving line-by-line would re-parse each section
+// once per line — O(n²) on a large single-file diff — whereas this is O(n). The
+// returned slice is indexed 1:1 with bufferLines; a line in an unparseable section,
+// or before the first "diff --git", is left ok=false.
+func parseAllDiffLinesFromBuffer(bufferLines []string) []bufferLineParse {
+	result := make([]bufferLineParse, len(bufferLines))
+	for i := 0; i < len(bufferLines); {
+		if !strings.HasPrefix(bufferLines[i], diffFilePrefix) {
+			i++ // not in a file section yet; leave it unresolved
+			continue
+		}
+		_, end := fileSectionBounds(bufferLines, i)
+		copy(result[i:end], parseFileSection(bufferLines[i:end]))
+		i = end
+	}
+	return result
+}
+
+// fileSectionBounds returns the half-open range [start, end) of the file section
+// containing targetIdx: the nearest "diff --git" at or above it, up to the next one
+// (or the end of the buffer). start is -1 when targetIdx is before the first file
+// section.
+func fileSectionBounds(bufferLines []string, targetIdx int) (start, end int) {
+	start = -1
 	for i := targetIdx; i >= 0; i-- {
 		if strings.HasPrefix(bufferLines[i], diffFilePrefix) {
-			fileStart = i
+			start = i
 			break
 		}
 	}
-	if fileStart == -1 {
-		return parsedDiffLine{}, false
+	if start == -1 {
+		return -1, -1
 	}
-	fileEnd := len(bufferLines)
-	for i := fileStart + 1; i < len(bufferLines); i++ {
+	end = len(bufferLines)
+	for i := start + 1; i < len(bufferLines); i++ {
 		if strings.HasPrefix(bufferLines[i], diffFilePrefix) {
-			fileEnd = i
+			end = i
 			break
 		}
 	}
+	return start, end
+}
 
-	fileLines := bufferLines[fileStart:fileEnd]
+// parseFileSection parses one file's diff section (fileLines, starting at its
+// "diff --git" line) a single time and returns the resolved identity for each of
+// its lines, indexed 1:1 with fileLines. patch.Parse's line indices line up with
+// the section's buffer lines, so the type and old/new line numbers fall straight
+// out of the patch arithmetic. Every line is left ok=false when the section has no
+// recoverable path or isn't a well-formed unified diff — the rendering restructured
+// it (e.g. delta's line-number gutters push the +/- marker off the start of the
+// line, so every body line reads as context), and trusting the mis-parse would land
+// us on the wrong line, so the caller should fall back to another backend.
+func parseFileSection(fileLines []string) []bufferLineParse {
+	result := make([]bufferLineParse, len(fileLines))
+
 	relPath := pathFromDiffHeader(fileLines)
 	if relPath == "" {
-		return parsedDiffLine{}, false
+		return result
 	}
-
 	p := patch.Parse(strings.Join(fileLines, "\n"))
-	// Bail if the body doesn't match the hunk headers: the rendering restructured
-	// the diff (e.g. delta's line-number gutters push the +/- marker off the
-	// start of the line, so every body line reads as context), and trusting the
-	// mis-parse would land us on the wrong line. Better to fall back.
 	if !p.IsWellFormed() {
-		return parsedDiffLine{}, false
+		return result
 	}
 	patchLines := p.Lines()
-	patchLineIdx := targetIdx - fileStart
-	if patchLineIdx < 0 || patchLineIdx >= len(patchLines) {
-		return parsedDiffLine{}, false
+	for i := range fileLines {
+		if i >= len(patchLines) {
+			break
+		}
+		parsed := parsedDiffLine{
+			RelPath: relPath,
+			Type:    diffLineTypeForKind(patchLines[i].Kind),
+			NewLine: p.LineNumberOfLine(i),
+		}
+		if parsed.Type == types.DiffLineDeleted {
+			parsed.OldLine = p.OldLineNumberOfLine(i)
+		}
+		result[i] = bufferLineParse{parsed, true}
 	}
-
-	result := parsedDiffLine{
-		RelPath: relPath,
-		Type:    diffLineTypeForKind(patchLines[patchLineIdx].Kind),
-		NewLine: p.LineNumberOfLine(patchLineIdx),
-	}
-	if result.Type == types.DiffLineDeleted {
-		result.OldLine = p.OldLineNumberOfLine(patchLineIdx)
-	}
-	return result, true
+	return result
 }
 
 func diffLineTypeForKind(kind patch.PatchLineKind) types.DiffLineType {
