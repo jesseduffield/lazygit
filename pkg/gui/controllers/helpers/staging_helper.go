@@ -177,19 +177,15 @@ func (self *StagingHelper) GetDiffLineInfoForView(v *gocui.View, viewLineIdx int
 	return self.diffLineInfoFromContents(v.DiffLineContents(), bufferLineIdx)
 }
 
-// FindDiffLine returns the index of the first buffer line, at or after from,
-// whose patch identity matches target (see types.DiffLineInfo.SamePatchLine), or
-// -1 if none does. It is the inverse direction of the diff-line primitive:
-// instead of resolving the line under a cursor, it scans a rendered diff for a
-// known identity. The escape restore uses it to locate, in the focused main view
-// it is returning to, the line the patch explorer had selected — scanning the
-// re-render's content as it loads off-screen. (from lets the caller resume the
-// scan as more content arrives without re-checking lines already scanned; the
-// backends still see all of contents, so a buffer-parse match can look back to
-// its file/hunk headers.)
-func (self *StagingHelper) FindDiffLine(contents []gocui.DiffLineContent, target types.DiffLineInfo, from int) int {
-	for i := from; i < len(contents); i++ {
-		if info, ok := self.diffLineInfoFromContents(contents, i); ok && info.SamePatchLine(target) {
+// findResolvedDiffLine returns the index of the first line, at or after from, whose
+// patch identity matches target (see types.DiffLineInfo.SamePatchLine), or -1 if
+// none does. It is the inverse direction of the diff-line primitive: instead of
+// resolving the line under a cursor, it scans a rendered diff (resolved once via
+// resolveDiffLines) for a known identity. The position restore uses it to locate,
+// in the re-rendered view, the line it wants to land on.
+func findResolvedDiffLine(resolved []resolvedDiffLine, target types.DiffLineInfo, from int) int {
+	for i := from; i < len(resolved); i++ {
+		if resolved[i].ok && resolved[i].info.SamePatchLine(target) {
 			return i
 		}
 	}
@@ -267,16 +263,22 @@ func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, c
 	scanned := 0
 	manager.SetRestoreForNextTask(&tasks.RenderRestore{
 		FirstPaintReady: func() bool {
-			// Scan the incoming content for the primary candidate as it loads. This
-			// finds it for backends that resolve a row on its own — OSC metadata,
-			// lazygit-edit hyperlinks. The buffer-parse backend can't resolve here: it
-			// parses whole hunks against their @@ lengths, and the trailing hunk is
-			// incomplete while loading, so the parse is rejected as not-well-formed
-			// until the diff is fully read. That (and any fallback) is handled in Apply.
+			// Scan the rows that have loaded since we last looked for the primary
+			// candidate, resolving each on its own (diffLineInfoPerRow: OSC metadata
+			// or a lazygit-edit hyperlink). The buffer-parse backend can't resolve
+			// here — it parses whole hunks against their @@ lengths, and the trailing
+			// hunk is incomplete while loading, so the parse is rejected until the diff
+			// is fully read; that (and any fallback) is handled in Apply. Scanning only
+			// the new rows each time keeps this O(n) over the whole load.
 			if primaryBufferLine == -1 {
-				contents := view.OffscreenDiffLineContents()
-				primaryBufferLine = self.FindDiffLine(contents, candidates[0].identity, scanned)
-				scanned = len(contents)
+				newRows := view.OffscreenDiffLineContentsFrom(scanned)
+				for j, content := range newRows {
+					if info, ok := self.diffLineInfoPerRow(content); ok && info.SamePatchLine(candidates[0].identity) {
+						primaryBufferLine = scanned + j
+						break
+					}
+				}
+				scanned += len(newRows)
 				if primaryBufferLine == -1 {
 					return false
 				}
@@ -294,9 +296,9 @@ func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, c
 			if bufferLine != -1 {
 				matched = 0
 			} else {
-				contents := view.DiffLineContents()
+				resolved := self.resolveDiffLines(view.DiffLineContents())
 				for i, candidate := range candidates {
-					if line := self.FindDiffLine(contents, candidate.identity, 0); line != -1 {
+					if line := findResolvedDiffLine(resolved, candidate.identity, 0); line != -1 {
 						matched, bufferLine = i, line
 						break
 					}
@@ -377,20 +379,21 @@ func (self *StagingHelper) nearbyDiffLines(view *gocui.View, anchorViewLine int)
 	if !ok {
 		return nil
 	}
+	resolved := self.resolveDiffLines(contents)
 	originY := view.OriginY()
 
 	var anchors []diffLineAnchor
 	// collect appends the line at bufferLine if it resolves, and reports whether it's
 	// a change line (a guaranteed survivor, so expansion past it isn't needed).
 	collect := func(bufferLine int) (atChangeLine bool) {
-		info, ok := self.diffLineInfoFromContents(contents, bufferLine)
-		if !ok {
+		r := resolved[bufferLine]
+		if !r.ok {
 			return false
 		}
 		if viewLine, ok := view.ViewLineForBufferLine(bufferLine); ok {
-			anchors = append(anchors, diffLineAnchor{identity: info, row: viewLine - originY})
+			anchors = append(anchors, diffLineAnchor{identity: r.info, row: viewLine - originY})
 		}
-		return info.IsChange()
+		return r.info.IsChange()
 	}
 
 	if collect(anchor) {
@@ -416,33 +419,87 @@ func (self *StagingHelper) nearbyDiffLines(view *gocui.View, anchorViewLine int)
 	return anchors
 }
 
-// diffLineInfoFromContents recovers the patch-space identity of the buffer line
-// at idx within a snapshot of a diff's per-line content (see gocui.DiffLineContent).
-// It is the single resolver behind both directions of the diff-line primitive —
-// the forward consumers (click/enter/edit/PR, via GetDiffLineInfo on the displayed
-// view) and the inverse identity scan that finds a target line in a focused main
-// view as it re-renders (escape restore, via the loading off-screen content). It
-// tries three backends in order of fidelity:
-//
-//   - mechanism #2: per-line OSC metadata emitted by a patched pager (delta),
-//     which carries the side directly and so serves the renderings #1 can't parse
-//     (delta's default mode, --line-numbers, diff-so-fancy);
-//   - mechanism #1: parsing the decolorized buffer, which serves structure-
-//     preserving renderings (no pager, git diff --color, delta --color-only);
-//   - delta's lazygit-edit:// hyperlinks; the hyperlink can't convey the side, so
-//     its result is reported as a non-deletion content line.
+// resolvedDiffLine is one line's resolved patch identity plus whether it could be
+// resolved, the element of the table resolveDiffLines produces.
+type resolvedDiffLine struct {
+	info types.DiffLineInfo
+	ok   bool
+}
+
+// resolveDiffLines recovers the patch-space identity of every line of a diff's
+// per-line content (see gocui.DiffLineContent) in one pass, indexed 1:1 with
+// contents. It is the batch form of the inverse diff-line primitive, used by the
+// whole-buffer scans — the position restore (nearbyDiffLines / Apply) and the
+// focused main view's navigation. Resolving line-by-line would re-run the buffer-
+// parse backend's whole-section parse once per line (O(n²) on a large single-file
+// diff); this parses the buffer-parse backend once for the whole buffer
+// (parseAllDiffLinesFromBuffer) and applies the per-line backend precedence
+// (resolveDiffLine) on top.
+func (self *StagingHelper) resolveDiffLines(contents []gocui.DiffLineContent) []resolvedDiffLine {
+	bufferParsed := parseAllDiffLinesFromBuffer(diffLineTexts(contents))
+	resolved := make([]resolvedDiffLine, len(contents))
+	for i, content := range contents {
+		info, ok := self.resolveDiffLine(content, bufferParsed[i])
+		resolved[i] = resolvedDiffLine{info, ok}
+	}
+	return resolved
+}
+
+// diffLineInfoFromContents recovers the patch-space identity of a single buffer
+// line at idx (see resolveDiffLine for the backend precedence). It is the forward
+// consumers' resolver (click/enter/edit/PR, via GetDiffLineInfo on the displayed
+// view); to resolve every line of a buffer, use resolveDiffLines, which parses the
+// buffer-parse backend once rather than once per line.
 func (self *StagingHelper) diffLineInfoFromContents(contents []gocui.DiffLineContent, idx int) (types.DiffLineInfo, bool) {
 	if idx < 0 || idx >= len(contents) {
 		return types.DiffLineInfo{}, false
 	}
+	parsed, ok := parseDiffLineFromBuffer(diffLineTexts(contents), idx)
+	return self.resolveDiffLine(contents[idx], bufferLineParse{parsed, ok})
+}
 
-	if info, ok := self.diffLineInfoFromMetadata(contents[idx].Metadata); ok {
+// resolveDiffLine applies the diff-line backends to one rendered row in order of
+// fidelity, given the row's content and the buffer-parse backend's already-computed
+// result for it:
+//
+//   - mechanism #2: per-line OSC metadata emitted by a patched pager (delta),
+//     which carries the side directly and so serves the renderings #1 can't parse
+//     (delta's default mode, --line-numbers, diff-so-fancy);
+//   - mechanism #1: parsing the decolorized buffer (bufferParsed), which serves
+//     structure-preserving renderings (no pager, git diff --color, delta --color-only);
+//   - delta's lazygit-edit:// hyperlinks; the hyperlink can't convey the side, so
+//     its result is reported as a non-deletion content line.
+func (self *StagingHelper) resolveDiffLine(content gocui.DiffLineContent, bufferParsed bufferLineParse) (types.DiffLineInfo, bool) {
+	if info, ok := self.diffLineInfoFromMetadata(content.Metadata); ok {
 		return info, true
 	}
-	if info, ok := self.diffLineInfoFromBuffer(contents, idx); ok {
+	if bufferParsed.ok {
+		return self.diffLineInfoFromParsed(bufferParsed.parsed), true
+	}
+	return self.diffLineInfoFromHyperlink(content.Hyperlink)
+}
+
+// diffLineInfoPerRow resolves a single rendered row using only the backends that can
+// place it from material carried on the row itself — OSC metadata or a lazygit-edit
+// hyperlink. It omits the buffer-parse backend, which needs the surrounding
+// file/hunk lines and so can't resolve a row while the diff is still streaming in;
+// the incremental restore scan uses this, and resolves the buffer-parse case once
+// the diff is complete (see restoreDiffLinePositionOnRerender's Apply).
+func (self *StagingHelper) diffLineInfoPerRow(content gocui.DiffLineContent) (types.DiffLineInfo, bool) {
+	if info, ok := self.diffLineInfoFromMetadata(content.Metadata); ok {
 		return info, true
 	}
-	return self.diffLineInfoFromHyperlink(contents[idx].Hyperlink)
+	return self.diffLineInfoFromHyperlink(content.Hyperlink)
+}
+
+// diffLineTexts extracts the decolorized text of each row — the input the
+// buffer-parse backend (mechanism #1) works on.
+func diffLineTexts(contents []gocui.DiffLineContent) []string {
+	texts := make([]string, len(contents))
+	for i, content := range contents {
+		texts[i] = content.Text
+	}
+	return texts
 }
 
 // diffLineInfoFromMetadata reads mechanism #2's per-line OSC metadata. The
@@ -474,23 +531,15 @@ func (self *StagingHelper) diffLineInfoFromMetadata(payload string) (types.DiffL
 	}, true
 }
 
-func (self *StagingHelper) diffLineInfoFromBuffer(contents []gocui.DiffLineContent, idx int) (types.DiffLineInfo, bool) {
-	texts := make([]string, len(contents))
-	for i, c := range contents {
-		texts[i] = c.Text
-	}
-
-	parsed, ok := parseDiffLineFromBuffer(texts, idx)
-	if !ok {
-		return types.DiffLineInfo{}, false
-	}
-
+// diffLineInfoFromParsed turns the buffer parser's repo-relative result into the
+// absolute-path identity the consumers expect (mechanism #1).
+func (self *StagingHelper) diffLineInfoFromParsed(parsed parsedDiffLine) types.DiffLineInfo {
 	return types.DiffLineInfo{
 		Path:    filepath.Join(self.c.Git().RepoPaths.WorktreePath(), parsed.RelPath),
 		Type:    parsed.Type,
 		NewLine: parsed.NewLine,
 		OldLine: parsed.OldLine,
-	}, true
+	}
 }
 
 func (self *StagingHelper) diffLineInfoFromHyperlink(hyperlink string) (types.DiffLineInfo, bool) {
