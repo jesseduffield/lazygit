@@ -174,9 +174,10 @@ func TestNewCmdTask(t *testing.T) {
 // thing we want to do with the output is count the number of lines.
 // When a RenderRestore is set, the first paint is driven by its FirstPaintReady
 // predicate rather than the InitialRefreshAfter line count, and Apply runs exactly
-// once, right after the off-screen render is swapped in. This is the read-loop
-// half of the escape restore: scroll to and select the saved position as the new
-// content first appears. See RenderRestore.
+// once. Apply controls when the off-screen render is swapped in (it calls swapIn
+// after locating the target), so its scan runs while the previous content is still
+// displayed rather than revealing the new content at the old scroll. This is the
+// read-loop half of the escape restore. See RenderRestore.
 func TestNewCmdTaskRestore(t *testing.T) {
 	writer := bytes.NewBuffer(nil)
 	linesWritten := func() int { return strings.Count(writer.String(), "\n") }
@@ -184,7 +185,8 @@ func TestNewCmdTaskRestore(t *testing.T) {
 	swapped := false
 	applyCount := 0
 	applyAtLines := -1
-	applyAfterSwap := true
+	swappedBeforeApply := false
+	swappedByApply := false
 
 	task := gocui.NewFakeTask()
 	manager := NewViewBufferManager(
@@ -204,12 +206,15 @@ func TestNewCmdTaskRestore(t *testing.T) {
 	restore := &RenderRestore{
 		// Ready once five lines have loaded — well before InitialRefreshAfter (30).
 		FirstPaintReady: func() bool { return linesWritten() >= 5 },
-		Apply: func() {
+		Apply: func(swapIn func()) {
 			applyCount++
 			applyAtLines = linesWritten()
-			if !swapped {
-				applyAfterSwap = false
+			// The render must not be swapped in until Apply asks for it.
+			if swapped {
+				swappedBeforeApply = true
 			}
+			swapIn()
+			swappedByApply = swapped
 		},
 	}
 
@@ -230,7 +235,8 @@ func TestNewCmdTaskRestore(t *testing.T) {
 	wg.Wait()
 
 	assert.Equal(t, 1, applyCount, "Apply should run exactly once")
-	assert.True(t, applyAfterSwap, "Apply should run after the off-screen render is swapped in")
+	assert.False(t, swappedBeforeApply, "the off-screen render should not be swapped in before Apply runs")
+	assert.True(t, swappedByApply, "Apply should swap the off-screen render in via swapIn")
 	// The first paint was driven by FirstPaintReady (>=5 lines), not by
 	// InitialRefreshAfter (30).
 	assert.GreaterOrEqual(t, applyAtLines, 5)

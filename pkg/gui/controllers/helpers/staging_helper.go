@@ -285,18 +285,21 @@ func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, c
 			}
 			return view.OffscreenLineCount() >= primaryBufferLine+view.InnerHeight()
 		},
-		Apply: func() {
-			// The off-screen render has just been swapped in, so the displayed buffer
-			// now holds it. Land on the nearest candidate it still contains: the
-			// primary one if the incremental scan found it, otherwise scan the now-
-			// complete content in priority order (the common path for buffer-parse,
-			// which only becomes well-formed once the whole diff has loaded, at which
-			// point the swap happens at end of input).
+		Apply: func(swapIn func()) {
+			// Find the candidate to land on, then swap the off-screen content in and
+			// place it. The find runs against the *off-screen* buffer, before the swap,
+			// so the (possibly whole-diff) scan happens while the previous content is
+			// still displayed — otherwise the new content would be drawn at the old
+			// scroll for the duration of the scan. Land on the nearest candidate the
+			// content still contains: the primary one if the incremental scan found it,
+			// otherwise scan the now-complete content in priority order (the common path
+			// for buffer-parse, which only becomes well-formed once the whole diff has
+			// loaded, so its swap is at end of input and the off-screen buffer is whole).
 			matched, bufferLine := -1, primaryBufferLine
 			if bufferLine != -1 {
 				matched = 0
 			} else {
-				resolved := self.resolveDiffLines(view.DiffLineContents())
+				resolved := self.resolveDiffLines(view.OffscreenDiffLineContents())
 				for i, candidate := range candidates {
 					if line := findResolvedDiffLine(resolved, candidate.identity, 0); line != -1 {
 						matched, bufferLine = i, line
@@ -304,6 +307,9 @@ func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, c
 					}
 				}
 			}
+
+			swapIn()
+
 			// If no candidate is there (the content changed and they're all gone),
 			// leave the scroll and selection as they are rather than acting on a line
 			// that no longer means what it did.
