@@ -1875,36 +1875,64 @@ section once* (prep), *Add gocui accessor for the newly-loaded rows of an
 off-screen render* (prep), *Resolve diff lines in one batch pass instead of once
 per line* (the fix). (Plus the two middle-line commits.)
 
-### 20.5 Follow-up surfaced by the speedup: a context-change flicker (no pager)
+### 20.5 Follow-up surfaced by the speedup: a context-change flicker (no pager) — FIXED
 
-The user then noticed: changing `-U` context with **no pager** while scrolled
-down in the long diff shows a **pronounced flicker — a brief frame at a
-different scroll position, random run-to-run**. **Not** reproducible with delta.
+Changing `-U` context with **no pager** while scrolled down in the long diff
+showed a **pronounced flicker — a brief frame at a different scroll position,
+random run-to-run**; **not** reproducible with delta. The speedup didn't cause
+it — it *unmasked* it: the old O(n²) scan throttled the read loop so the load
+took ~33s, during which the old content sat stably on screen and hid the
+transient; once the load was instant, the transient stood out.
 
-Analysis so far (not yet pinned — avoid a third §11-style misdiagnosis):
+**Pinned with the §10 `SetOriginY` tracer, at normal speed** (slow render would
+have hidden it — it re-stretches the load to a stable old-content frame). The
+log showed, every keypress, `SwapIn` then `SetOriginY` **~35ms later**:
 
-- **The single-render path is clean.** `ContextLinesController.applyChange` does
-  one `HandleRenderToMain`; `linesToReadFromCmdTask` doesn't touch the origin;
-  the off-screen render keeps the *previous* content displayed at scroll S until
-  the EOF swap, at which point `Apply` sets the preserved origin in the same step.
-  For no-pager, `FirstPaintReady` never fires (no per-row backend), so the swap is
-  at EOF — unchanged by the perf fix.
-- **The speedup unmasked it.** Before, the O(n²) scan throttled the read loop, so
-  the off-screen load took ~33s during which the old content sat *stably* at S —
-  hiding any startup/overlap transient. Now the load is instant, so a transient
-  frame around task start or the swap is suddenly visible.
-- **no-pager vs delta is the cmd-vs-pty tell** (§13.1): no-pager takes the
-  *synchronous* `newCmdTask`; delta takes `newPtyTask`, which defers task creation
-  to `afterLayout`. So the suspect is something the synchronous path does (or
-  allows to overlap) that the deferred path coalesces away.
-- **Suspects, unconfirmed:** (a) the 200ms loading-indicator goroutine firing
-  `beforeStart()` (`view.Reset()`) — but that flashes *blank* ("loading..." sits
-  above the viewport at scroll S), which doesn't match "a scroll position"; (b) a
-  second render overlapping the first (cf. §13.6's escape↔refresh overlap), the
-  better fit for a *random* scroll position.
-- **Next step:** the §10 `SetOriginY` chokepoint tracer (`debugMainOriginReset`),
-  run at **normal speed** — `LAZYGIT_SLOW_RENDER` would *hide* this (it re-stretches
-  the load back out to a stable old-content frame). The log of origin writes +
-  callers during the flicker will pin which interleaving draws the bad frame.
-  Then fix per [[focused-main-view-flicker-timing-races]] (a known race gets a
-  real fix, not "live with it").
+```
+.647  SwapIn             new content displayed, oy still 10354 (the old scroll)
+.682  SetOriginY ->9865  Apply finally sets the preserved origin
+```
+
+**Cause:** `firstPaint` swapped the off-screen content in *then* ran
+`RenderRestore.Apply`, which for the buffer-parse backend re-scans the whole
+diff (the O(n) `resolveDiffLines`, tens of ms on a big diff) to find the line to
+land on. For that window the new content was displayed at the **stale**
+(now out-of-range) scroll; a layout draw landing there drew the bad frame. Delta
+didn't flicker because its metadata/hyperlink backend resolves the target
+*during* the load (`primaryBufferLine` set), so its `Apply` is instant — no scan
+after the swap. (My initial guesses — the loading-ticker `Reset`, or a render
+overlap — were both wrong; the tracer is what kept this from being a third
+§11-style misdiagnosis. The single-render path *was* clean; the bug was the scan
+on the wrong side of the swap.)
+
+**Fix (commit *Scan for the restore target before revealing the new content*):**
+`RenderRestore.Apply` now takes a `swapIn func()` and owns the swap — it resolves
+the target against the still-**off-screen** (and, at EOF, complete) buffer
+*first*, then calls `swapIn`, then settles the scroll. The scan runs while the
+previous content is still displayed, so the new content is revealed already at
+the right position — the same flicker-free shape the early-resolving backends
+always had.
+
+#### Productionization notes (keep in mind)
+
+- **The resolve-then-swap ordering is a real invariant of the restore mechanism,
+  not an incidental tweak.** When the gocui async-render improvements are
+  productionized (§15 decomposition (a)), `RenderRestore.Apply` must keep doing
+  its target resolution against the off-screen buffer *before* swapping in.
+  Reordering back to swap-then-resolve reintroduces the flicker for any backend
+  whose resolution isn't instant (i.e. buffer-parse / no-pager). The read-loop
+  unit test `TestNewCmdTaskRestore` guards this (asserts the render is *not*
+  swapped in before `Apply` runs).
+- **A small post-swap window is irreducible in this design.** Mapping a matched
+  buffer line to a view line (`ViewLineForBufferLine`) needs the wrapped view
+  lines, which only exist after the swap, so the `swapIn → SetOrigin` step is
+  necessarily post-swap (~1ms). Delta has the same window and it's imperceptible;
+  not worth chasing to zero (would need swap+map+SetOrigin under one lock).
+- **General lesson for the async-render PR: making renders fast unmasks latent
+  ordering/timing transients that slowness was hiding.** Re-test the restore
+  consumers (escape, `-U`, pager-switch) at **normal speed** after any perf work;
+  `LAZYGIT_SLOW_RENDER` *hides* this whole class by stretching the load back out.
+- The batch `resolveDiffLines` is O(n) and "good enough" (user-confirmed), but the
+  §14.5/§16.4 *pinned-backend / incremental* optimization is still available if a
+  very large changed diff ever lags: today it parses every file section even when
+  metadata would answer, and re-snapshots per restore.
