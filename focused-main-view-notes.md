@@ -2272,3 +2272,83 @@ is fine). Grounded findings:
 Suggested commit shape for the feature: it may split into (a) mode state + rendering +
 mode-aware nav + keys (the selection model) and (b) range-aware staging — or land as one
 feature commit; decide when the diff takes shape.
+
+### 21.11 Session 13 (2026-06-18): Step 3 implemented + committed (range + hunk selection)
+
+**Committed (branch, not pushed), most recent last:**
+
+```
+c4827a269 Select and stage ranges and hunks from the focused main view   (the feature: selection model + range staging)
+a9eee242a Select the first hunk when focusing the main view in hunk mode  (the config-default-on-focus)
+```
+
+Landed as **one feature commit + one default-on-focus commit**, not the (a)/(b) split:
+the selection model and range staging are coupled (a hunk you can select but `space`
+stages only one line is an incoherent intermediate — the no-regression rule), so they
+go together. The hunk-default-on-focus is genuinely separable and came second.
+
+**How the settled design actually landed:**
+
+- **State home = MainContext, NOT MainViewController** (deviates from §21.10; decided
+  with the user — [[diff-selection-state-home]]). `MainContext.DiffSelectState()` holds
+  `{Mode (Line/Range/Hunk), RangeIsSticky, UserEnabledHunkMode}`. Reason: three sites
+  need a pane's mode (the controller, `focusMainView`, and `togglePanel` setting the
+  *other* pane) and only the context is reachable from all three. Mirrors how
+  `patch_exploring.State` lives on the patch-explorer context.
+- **No new highlight machinery, confirmed.** The selected line + range anchor stay in
+  the gocui view (cursor + `rangeSelectStartY`); the controller only flips the mode and
+  re-derives the view's range. LINE = `CancelRangeSelect`; RANGE = anchor fixed, cursor
+  is the moving end; HUNK = cursor on the block's first line, anchor on its last (so the
+  cursor sits at one end — gocui can't highlight a block with the cursor in the middle;
+  invisible anyway since the whole block is highlighted). Block bounds come from the
+  metadata `isChange` run via a new `StagingHelper.ChangeBlockBounds` (view-line space,
+  reuses `resolveDiffLines`), never `patch.Lines()`.
+- **Mode-aware nav:** ↑/↓ — hunk mode steps hunk-to-hunk (`AdjacentChangeBlock`), a
+  non-sticky range collapses on a plain move, a sticky range extends. ←/→ (hunk nav) and
+  n/N (file nav) already existed and now re-expand in hunk mode. Pages/top/bottom drop
+  hunk mode + collapse non-sticky range, like the staging view's `AdjustSelectedLineIdx`.
+- **Keys added:** `v` (`ToggleRangeSelect`, sticky), `a` (`ToggleSelectHunk`),
+  shift-↑/↓ (`RangeSelectUp/Down`, non-sticky extend). Clicks reset to a single-line
+  LINE selection.
+- **Range-aware staging:** `GetOnStageFocusedMainView` signature changed from one
+  `viewLineIdx` to `(firstLineIdx, lastLineIdx)` (the view's `SelectedLineRange`).
+  `StagingHelper.ChangeLinesInViewRange` collects the change lines across the rows;
+  `FilesController.stageDiffLines` applies **one** `Transform`.
+
+**The one real surprise — patch-line resolution had to change (`PatchLineFor*LineNumber`
+is the wrong primitive for ranges).** Resolving each selected change line's patch index
+with `PatchLineForLineNumber(newLine)` / `PatchLineForOldLineNumber(oldLine)` is quirky at
+hunk boundaries: it returns the @@ header for a change on the *first* line of a hunk (no
+leading context — e.g. a change on line 1 of a file), and for a *modified* line (a `-`/`+`
+pair) the new-line lookup lands on the deletion, not the addition. A range routinely spans
+both. Fix: `stageDiffLines` keys each selected change line by `(file line number,
+deletion?)` and **scans the parsed patch**, matching body lines by identity via the
+quirk-free inverse maps `LineNumberOfLine` / `OldLineNumberOfLine`. Side effect: this also
+**fixes staging a change on the first line of a file** (a latent step-1 bug in the
+single-line path, which used the same primitive). Folded into the feature commit because
+robust resolution is *required* for ranges, not optional polish.
+
+**Tests (all green; full `e2e-all` green):** `stage_range_from_main_view` (range over a
+deletion + its replacement + context, exercising the resolution fix),
+`stage_hunk_from_main_view` (`a` toggle from line mode, hunk-off config),
+`select_hunk_on_focusing_main_view` (hunk-default-on-focus selects the first block).
+
+**Deferred / open (carry forward):**
+
+- **Post-stage selection isn't re-anchored** — after `space` the diff re-renders and the
+  cursor/range are left where they were (stale). This is the step-5 "post-stage reveal"
+  (restore-by-identity, consumer #6); not done here, matches step 1's level. Known rough
+  edge; the tests stage from a fresh focus to stay deterministic.
+- **`IsSingleHunkForWholeFile` refinement skipped.** Hunk-default-on-focus keys purely off
+  `UseHunkModeInStagingView`, so a whole-file-single-block diff (new/deleted file, no
+  context) defaults to hunk = select-everything rather than dropping to line mode like the
+  staging view. Computing it from metadata at focus (diff maybe multi-file / still
+  streaming) is awkward; deferred.
+- **SxS multi-record-per-row + multi-file staging = step 4** (unchanged). Step 3 stays
+  single-column, single-file (`stageDiffLines` bails on a directory node).
+- **Unstage-from-secondary via the main view** (`<tab>` to NormalSecondary, `space`)
+  reuses the same path with `reverse=true` but wasn't interactively/e2e verified this
+  session.
+- **Interactive sign-off pending** (per §21.9, single increments only become testable once
+  this is in; the user evaluates the feel — e.g. hunk-default jump-on-focus, delta's
+  background-conveyed side under the highlight per §21.9).
