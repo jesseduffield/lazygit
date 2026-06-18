@@ -389,6 +389,7 @@ var tests = []*components.IntegrationTest{
 	shell_commands.EditHistory,
 	shell_commands.History,
 	shell_commands.OmitFromHistory,
+	staging.AdvanceToNextHunkAfterStagingShiftsLineNumbers,
 	staging.DiffChangeScreenMode,
 	staging.DiffContextChange,
 	staging.DiscardAllChanges,
