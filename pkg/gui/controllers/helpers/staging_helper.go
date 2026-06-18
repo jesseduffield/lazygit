@@ -308,11 +308,15 @@ func (self *StagingHelper) RestoreFocusedMainViewOnEscape(explorerView, mainView
 // pushing the staged remainder to the secondary half — in which case the candidate
 // lines, captured from sourceView, are found again in targetView's re-render.
 //
-// The candidates, in priority order, are the change block after the selection, then
+// The candidates, in priority order, are the change line after the selection, then
 // the one before it (both survive staging — only the selection itself was staged),
 // then the selection's own first line, which only turns up when the whole side was
-// staged and the view flips to show the other (staged) side. If none survives, place
-// isn't called and the view re-renders without moving the selection.
+// staged and the view flips to show the other (staged) side. Adjacent change *line*,
+// not block: staging a single line should land on the next line of the same block,
+// while staging a whole block lands on the next block (its last line is followed by
+// context, so the next change line is the next block's). place — line- or hunk-mode —
+// then selects from there. If none survives, place isn't called and the view
+// re-renders without moving the selection.
 func (self *StagingHelper) RevealSelectionAfterStaging(sourceView *gocui.View, targetView *gocui.View, firstLine int, lastLine int, place func(viewLine int)) {
 	var candidates []diffLineAnchor
 	addByViewLine := func(viewLine int) {
@@ -321,10 +325,10 @@ func (self *StagingHelper) RevealSelectionAfterStaging(sourceView *gocui.View, t
 		}
 	}
 
-	if next, ok := self.AdjacentChangeBlock(sourceView, lastLine, true); ok {
+	if next, ok := self.AdjacentChangeLine(sourceView, lastLine, true); ok {
 		addByViewLine(next)
 	}
-	if prev, ok := self.AdjacentChangeBlock(sourceView, firstLine, false); ok {
+	if prev, ok := self.AdjacentChangeLine(sourceView, firstLine, false); ok {
 		addByViewLine(prev)
 	}
 	addByViewLine(firstLine)

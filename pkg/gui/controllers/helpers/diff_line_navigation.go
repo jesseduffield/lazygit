@@ -32,6 +32,32 @@ func (self *StagingHelper) AdjacentChangeBlock(view *gocui.View, anchorViewLine 
 	return view.ViewLineForBufferLine(target)
 }
 
+// AdjacentChangeLine returns the view line of the first change line strictly
+// after (forward) or before anchorViewLine in view's displayed diff, or ok=false
+// when there's none. Unlike AdjacentChangeBlock it doesn't skip the rest of the
+// anchor's own block: the next change line after a line in the middle of a block is
+// the very next line of that block. The post-stage reveal uses it so that staging a
+// single line advances to the next line of the same block, while staging a whole
+// block (whose last line is followed by context) still advances to the next block.
+func (self *StagingHelper) AdjacentChangeLine(view *gocui.View, anchorViewLine int, forward bool) (int, bool) {
+	anchor, ok := view.BufferLineForViewLine(anchorViewLine)
+	if !ok {
+		return 0, false
+	}
+
+	resolved := self.resolveDiffLines(view.DiffLineContents())
+	step := 1
+	if !forward {
+		step = -1
+	}
+	for i := anchor + step; i >= 0 && i < len(resolved); i += step {
+		if resolved[i].ok && resolved[i].info.IsChange() {
+			return view.ViewLineForBufferLine(i)
+		}
+	}
+	return 0, false
+}
+
 // AdjacentFile returns the view line to move to for next/previous file navigation in
 // view's (possibly multi-file) displayed diff, starting from anchorViewLine: the
 // first row belonging to the next/previous file, found where the per-row metadata's
