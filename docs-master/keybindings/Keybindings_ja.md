@@ -193,7 +193,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
 | `` <esc> `` | サイドパネルに戻る |  |
-| `` <space> `` | Show/hide selection |  |
+| `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
 | `` <left>, h `` | 前のハンクに移動 |  |
 | `` <right>, l `` | 次のハンクに移動 |  |
 | `` N `` | Go to previous file |  |
@@ -311,7 +311,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel up> (fn+down) `` | 上にスクロール |  |
 | `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
 | `` <esc> `` | サイドパネルに戻る |  |
-| `` <space> `` | Show/hide selection |  |
+| `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
 | `` <left>, h `` | 前のハンクに移動 |  |
 | `` <right>, l `` | 次のハンクに移動 |  |
 | `` N `` | Go to previous file |  |

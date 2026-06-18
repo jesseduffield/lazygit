@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -463,6 +464,72 @@ func (self *FilesController) diffSplitState(node *filetree.FileNode) (split bool
 	split = self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 	mainShowsStaged = !split && node.GetHasStagedChanges()
 	return split, mainShowsStaged
+}
+
+func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName string, viewLineIdx int) error {
+	return func(mainViewName string, viewLineIdx int) error {
+		if self.c.UserConfig().Git.DiffContextSize == 0 {
+			return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToStage,
+				self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
+		}
+
+		node := self.context().GetSelected()
+		if node == nil || !node.IsFile() {
+			// Staging a line of a multi-file (directory) diff is a later step; for
+			// now only single-file diffs are stageable from the focused main view.
+			return nil
+		}
+
+		info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, viewLineIdx)
+		if !ok {
+			return nil
+		}
+
+		// The staged diff is shown in the secondary half of a split, and in the main
+		// half when the file has only staged changes; in those cases space unstages,
+		// otherwise it stages.
+		_, mainShowsStaged := self.diffSplitState(node)
+		staged := mainShowsStaged || mainViewName == self.c.Contexts().NormalSecondary.GetViewName()
+
+		return self.stageDiffLine(node.File, info, staged)
+	}
+}
+
+// stageDiffLine stages, or when reverse is true unstages, the single diff line
+// identified by info. It builds a one-line patch from the file's diff and applies
+// it the same way the staging view does, but resolves the patch line from the
+// diff-line metadata rather than from a patch-explorer selection. A context or
+// header line yields an empty patch and is a no-op.
+func (self *FilesController) stageDiffLine(file *models.File, info types.DiffLineInfo, reverse bool) error {
+	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, true, reverse))
+
+	lineNumber, isDeletion := info.PatchSelectLine()
+	patchLineIdx := parsedPatch.PatchLineForLineNumber(lineNumber)
+	if isDeletion {
+		patchLineIdx = parsedPatch.PatchLineForOldLineNumber(lineNumber)
+	}
+
+	patchToApply := parsedPatch.
+		Transform(patch.TransformOpts{
+			Reverse:             reverse,
+			IncludedLineIndices: []int{patchLineIdx},
+			FileNameOverride:    file.GetPath(),
+		}).
+		FormatPlain()
+	if patchToApply == "" {
+		return nil
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.ApplyPatch)
+	if err := self.c.Git().Patch.ApplyPatch(patchToApply, git_commands.ApplyPatchOpts{
+		Reverse: reverse,
+		Cached:  true,
+	}); err != nil {
+		return err
+	}
+
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
+	return nil
 }
 
 // if we are dealing with a status for which there is no key in this map,

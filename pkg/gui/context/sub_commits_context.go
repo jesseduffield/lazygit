@@ -22,10 +22,13 @@ type SubCommitsContext struct {
 }
 
 var (
-	_ types.IListContext       = (*SubCommitsContext)(nil)
-	_ types.DiffableContext    = (*SubCommitsContext)(nil)
-	_ types.ISearchableContext = (*SubCommitsContext)(nil)
+	_ types.IListContext        = (*SubCommitsContext)(nil)
+	_ types.DiffableContext     = (*SubCommitsContext)(nil)
+	_ types.ISearchableContext  = (*SubCommitsContext)(nil)
+	_ types.DiffMainViewContext = (*SubCommitsContext)(nil)
 )
+
+func (self *SubCommitsContext) IsDiffMainViewContext() {}
 
 func NewSubCommitsContext(
 	c *ContextCommon,

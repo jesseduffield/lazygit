@@ -23,6 +23,10 @@ func (self *baseController) GetOnClickFocusedMainView() func(mainViewName string
 	return nil
 }
 
+func (self *baseController) GetOnStageFocusedMainView() func(mainViewName string, viewLineIdx int) error {
+	return nil
+}
+
 func (self *baseController) GetOnClick() func(opts gocui.ViewMouseBindingOpts) error {
 	return nil
 }

@@ -38,9 +38,10 @@ func NewMainViewController(
 }
 
 func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
-	// When a selection is shown, we surface the bindings that act on it
+	// A selection is shown whenever the main view holds a diff (see
+	// sidePanelShowsDiff); we surface the bindings that act on it
 	// (enter to dive into staging, e to edit the selected line, G to open the
-	// line in the branch's pull request, escape to hide the selection).
+	// line in the branch's pull request).
 	selectionShown := self.context.GetView().Highlight
 
 	var enterDescription string
@@ -73,9 +74,10 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		},
 		{
 			Keys:            opts.GetKeys(opts.Config.Universal.Select),
-			Handler:         self.toggleSelection,
-			Description:     self.c.Tr.ToggleSelectionInFocusedMainView,
-			DisplayOnScreen: !selectionShown,
+			Handler:         self.stageSelectedLine,
+			Description:     self.c.Tr.Stage,
+			Tooltip:         self.c.Tr.StageSelectionTooltip,
+			DisplayOnScreen: selectionShown,
 		},
 		{
 			Keys:            opts.GetKeys(opts.Config.Universal.GoInto),
@@ -180,32 +182,57 @@ func (self *MainViewController) GetOnFocus() func(types.OnFocusOpts) {
 }
 
 func (self *MainViewController) togglePanel() error {
-	if self.otherContext.GetView().Visible {
-		self.c.Context().Push(self.otherContext, types.OnFocusOpts{})
+	if !self.otherContext.GetView().Visible {
+		return nil
 	}
 
+	// Capture diff-view-ness while our context is still the focused main view (so
+	// NextInStack finds the side panel beneath it), before pushing the other pane.
+	isDiff := self.isDiffView()
+	self.c.Context().Push(self.otherContext, types.OnFocusOpts{})
+	if isDiff {
+		showInitialDiffSelection(self.c, self.otherContext.GetView())
+	}
 	return nil
 }
 
-func (self *MainViewController) escape() error {
-	v := self.context.GetView()
-	if v.Highlight {
-		v.Highlight = false
-		return nil
+// showInitialDiffSelection turns on the focused main view's selection when entering
+// a diff view without pointing at a specific line: on the first change line already
+// visible (so the view doesn't jump), falling back to the current top line when none
+// is visible (scrolled into trailing context, or not loaded that far yet).
+func showInitialDiffSelection(c *ControllerCommon, view *gocui.View) {
+	target, ok := c.Helpers().Staging.FirstChangeLineInView(view)
+	if !ok {
+		target = view.OriginY()
 	}
+	showSelectionAtLine(view, target, true)
+}
+
+func (self *MainViewController) escape() error {
 	self.c.Context().Pop()
 	return nil
 }
 
-func (self *MainViewController) toggleSelection() error {
-	v := self.context.GetView()
-	if v.Highlight {
-		v.Highlight = false
+// isDiffView reports whether the focused main view currently shows a diff (so we
+// show a selection in it). See sidePanelShowsDiff.
+func (self *MainViewController) isDiffView() bool {
+	return sidePanelShowsDiff(self.c.Context().NextInStack(self.context))
+}
+
+// stageSelectedLine stages (or unstages) the selected diff line, delegating to the
+// side panel beneath the focused main view since what "stage" means is the panel's
+// business (the working tree stages; later, commits add to a custom patch). Panels
+// whose diff isn't stageable register no handler, so this is a no-op there.
+func (self *MainViewController) stageSelectedLine() error {
+	sidePanelContext := self.c.Context().NextInStack(self.context)
+	if sidePanelContext == nil {
 		return nil
 	}
-	// Start the selection in the middle of the visible content.
-	showSelectionAtLine(v, v.MiddleVisibleLineIdx(), false)
-	return nil
+	handler := sidePanelContext.GetOnStageFocusedMainView()
+	if handler == nil {
+		return nil
+	}
+	return handler(self.context.GetViewName(), self.context.GetView().SelectedLineIdx())
 }
 
 func (self *MainViewController) enter() error {
@@ -277,6 +304,16 @@ func (self *MainViewController) nextFile() error {
 
 func (self *MainViewController) prevFile() error {
 	return self.navigate(self.c.Helpers().Staging.AdjacentFile, false)
+}
+
+// sidePanelShowsDiff reports whether the given side panel's focused main view
+// shows a diff, which is when we show a selection in it (so the user can stage a
+// line, edit it, jump by hunk/file, or open it in a PR). Panels whose main view
+// shows non-diff content (a branch's commit log, the status dashboard, …) show no
+// selection because there's nothing to act on. See types.DiffMainViewContext.
+func sidePanelShowsDiff(sidePanel types.Context) bool {
+	_, ok := sidePanel.(types.DiffMainViewContext)
+	return ok
 }
 
 // focusedMainViewContextForViewName maps a focused main view's view name (as
@@ -422,6 +459,9 @@ func githubPullRequestLineURL(prURL string, commitSha string, relativePath strin
 }
 
 func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
+	if !self.isDiffView() {
+		return nil
+	}
 	// A click points at a line, so it sets the selection there; a double-click
 	// additionally dives into staging/patch-building for that line.
 	showSelectionAtLine(self.context.GetView(), opts.Y, false)
@@ -437,6 +477,9 @@ func (self *MainViewController) editClickedLine(opts gocui.ViewMouseBindingOpts)
 
 func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.ViewMouseBindingOpts) error {
 	self.c.Context().Push(self.context, types.OnFocusOpts{})
+	if !self.isDiffView() {
+		return nil
+	}
 	showSelectionAtLine(self.context.GetView(), opts.Y, false)
 	if opts.IsDoubleClick {
 		return self.enterForLine(opts.Y)

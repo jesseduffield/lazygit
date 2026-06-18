@@ -58,6 +58,29 @@ func (self *StagingHelper) AdjacentFile(view *gocui.View, anchorViewLine int, fo
 	return view.ViewLineForBufferLine(target)
 }
 
+// FirstChangeLineInView returns the view line of the first change line at or below
+// the top of the viewport, for placing the initial selection when focusing the main
+// view: we select the first change the user can already see rather than jumping to
+// the top of the diff (which would be jarring when the view is scrolled down). If
+// the top visible line is itself mid-change-block, that line is returned, so the
+// selection stays put. ok is false when no change line is loaded at or below the top
+// (e.g. scrolled into trailing context, or the diff isn't loaded that far yet),
+// leaving the caller to fall back.
+func (self *StagingHelper) FirstChangeLineInView(view *gocui.View) (int, bool) {
+	top, ok := view.BufferLineForViewLine(view.OriginY())
+	if !ok {
+		return 0, false
+	}
+
+	resolved := self.resolveDiffLines(view.DiffLineContents())
+	for i := top; i < len(resolved); i++ {
+		if resolved[i].ok && resolved[i].info.IsChange() {
+			return view.ViewLineForBufferLine(i)
+		}
+	}
+	return 0, false
+}
+
 // changeBlockStart finds, in a diff whose lines are flagged by isChange, the first
 // line of the change block adjacent to `from` in the given direction. It is the pure
 // index arithmetic behind AdjacentChangeBlock, mirroring the staging view's

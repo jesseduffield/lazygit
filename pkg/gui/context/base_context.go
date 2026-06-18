@@ -18,6 +18,7 @@ type BaseContext struct {
 	onDoubleClickFn          func() error
 	onClickFn                func(opts gocui.ViewMouseBindingOpts) error
 	onClickFocusedMainViewFn onClickFocusedMainViewFn
+	onStageFocusedMainViewFn onStageFocusedMainViewFn
 	onRenderToMainFn         func()
 	onFocusFns               []onFocusFn
 	onFocusLostFns           []onFocusLostFn
@@ -37,6 +38,7 @@ type (
 	onFocusFn                = func(types.OnFocusOpts)
 	onFocusLostFn            = func(types.OnFocusLostOpts)
 	onClickFocusedMainViewFn = func(mainViewName string, clickedLineIdx int) error
+	onStageFocusedMainViewFn = func(mainViewName string, viewLineIdx int) error
 )
 
 var _ types.IBaseContext = &BaseContext{}
@@ -146,6 +148,7 @@ func (self *BaseContext) ClearAllAttachedControllerFunctions() {
 	self.onDoubleClickFn = nil
 	self.onClickFn = nil
 	self.onClickFocusedMainViewFn = nil
+	self.onStageFocusedMainViewFn = nil
 	self.onRenderToMainFn = nil
 }
 
@@ -186,6 +189,19 @@ func (self *BaseContext) GetOnClick() func(opts gocui.ViewMouseBindingOpts) erro
 
 func (self *BaseContext) GetOnClickFocusedMainView() onClickFocusedMainViewFn {
 	return self.onClickFocusedMainViewFn
+}
+
+func (self *BaseContext) AddOnStageFocusedMainViewFn(fn onStageFocusedMainViewFn) {
+	if fn != nil {
+		if self.onStageFocusedMainViewFn != nil {
+			panic("only one controller is allowed to set an onStageFocusedMainViewFn")
+		}
+		self.onStageFocusedMainViewFn = fn
+	}
+}
+
+func (self *BaseContext) GetOnStageFocusedMainView() onStageFocusedMainViewFn {
+	return self.onStageFocusedMainViewFn
 }
 
 func (self *BaseContext) AddOnRenderToMainFn(fn func()) {
