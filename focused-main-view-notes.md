@@ -2593,3 +2593,17 @@ off-screen render; could panic). User fixed it (`ba3389562`, fixup).
 **Status:** all three repos' tests green (`unit-test`, `e2e-all`, `lint`). Step-5 staging now holds
 up under delta on diffs with blank changed lines and line-count-changing hunks. User to re-test for
 any remaining reveal misfires (their original report predates both fixes).
+
+### 21.16 Session 15 (cont.): line-mode reveal — advance to the next line, not the next block
+
+Hunk-mode reveal signed off as perfect after §21.15. **Line mode** had a remaining bug (user:
+"kind of important"): staging the first line of a multi-line block jumped to the *next block*
+instead of the next (now first) line of the *same* block. Cause: the reveal's primary candidate
+was `AdjacentChangeBlock` (next change *block*), which skips the rest of the acted-on line's block —
+right for hunk mode (whole block staged), wrong for line mode (one line staged, rest remains). Fix
+(`cb784bde3`): new `AdjacentChangeLine` (first change line strictly after/before the selection) for
+the next/prev candidates. Unifies both modes — after a whole block (last line followed by context)
+the next change line *is* the next block's first line, so hunk mode is unchanged; after a single
+line it's the next line of the same block. `place` stays mode-aware (hunk-expand vs single line).
+Regression test `select_next_line_after_staging_line_from_main_view` (note: line mode needs
+`UseHunkModeInStagingView: false` — hunk mode is the default). All green.
