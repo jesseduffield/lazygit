@@ -2430,16 +2430,43 @@ consumes it). Works for both stage (from Normal) and unstage (from NormalSeconda
 code path, `reverse` differs. Tests: `select_next_hunk_after_staging_from_main_view`,
 `select_next_hunk_after_unstaging_from_main_view`. Full `e2e-all` green.
 
-**Step 5 part 2 — STILL OPEN: focused-pane-empties → focus switch.** When you unstage the
-*last* staged hunk from `NormalSecondary`, the staged side empties → the split collapses
-(`SplitMainPanel=false`) → `NormalSecondary` hides, but focus stays on the now-hidden pane
-(the staging view handles this in `RefreshStagingPanel`: `if secondaryState==nil &&
-secondaryFocused { Push(mainContext) }`). Part 1's reveal can't help — there's no surviving
-candidate in the empty pane. The fix belongs in the **stage flow** (post-operation state
-check + `Push(Normal)`), NOT in `FilesController.GetOnRenderToMain` (a broad render callback
-that fires when not even focused on the main view). Open design Qs: where exactly to hook,
-and whether `Refresh(FILES)` updates the files model synchronously (so the node's
-HasStagedChanges is readable right after the handler returns) — needs checking. The
-symmetric stage-everything-from-Normal case is already fine (Normal flips to show the staged
-diff via `mainShowsStaged`; the reveal's self-candidate lands there). Narrower scenario than
-part 1; deferred for fresh budget + interactive confirmation it's a real pain point.
+**Part 1 signed off (session 13, user): "selection invisible" symptom gone, works very well.**
+
+**Step 5 part 2 — STILL OPEN, and it UNIFIES with a bug the user found while testing.** Both
+are the same issue: *after stage/unstage, focus should follow the side you were acting on,
+but doesn't.*
+
+- **User-reported bug:** a file with **only staged changes** → `Normal` shows the *staged*
+  diff (`mainShowsStaged`, no split). Unstaging the *first* hunk makes the file
+  staged+unstaged → split appears → `Normal` flips to show *unstaged* and the staged content
+  jumps to `NormalSecondary`, but focus stays on `Normal`. Wrong: should stay with the staged
+  content (i.e. follow it to `NormalSecondary`) until it's empty.
+- **The original part-2 case:** unstaging the *last* staged hunk from `NormalSecondary`
+  empties the staged side → split collapses → `NormalSecondary` hides, focus stuck on it.
+
+**Why they're one issue:** the staging *view* has fixed panes (Staging=unstaged,
+StagingSecondary=staged) so focus-follow is trivial; the merged `Normal` shows *either* side
+(per `mainShowsStaged`), so a stage/unstage that changes the split reassigns which pane holds
+the side you care about. **Unified rule:** after the op, focus `NormalSecondary` iff
+(unstaging AND post-op state is split), else `Normal`. Covers the bug (only-staged → unstage
+one → split → NormalSecondary), original part 2 (unstage last → no split → Normal), and all
+stage cases (→ Normal). Stage-everything-from-Normal is already fine (Normal flips to staged
+via `mainShowsStaged`; part-1 reveal's self-candidate lands there).
+
+**Why it's not a quick patch — the async coordination:** the reveal must ride the post-stage
+re-render, so the target pane must be known *before* the re-render fires; but the split state
+is only known *after* `Refresh` updates the model. **Open Q to resolve FIRST next session:** is
+the post-`Refresh` main-view re-render *queued* (runs after `stageSelectedLine` returns) or
+synchronous? If queued, install the reveal + switch focus *after* the handler (model updated →
+split known) and it still rides the queued render. If synchronous, need a different hook (e.g.
+predict split, or restructure so `stageSelectedLine` owns the refresh). The fix belongs in the
+**stage flow**, NOT `FilesController.GetOnRenderToMain` (broad callback, fires unfocused).
+Deferred for fresh budget — subtle async work, long session.
+
+**Usability note (user, don't fix now — possible future special-case):** in a multi-file diff
+containing a **deleted file**, stepping through hunks and staging them stages the deletion of
+the file's *content* but not the *file entry* → you land on `MD` status, not `D`. Same as the
+staging panel could produce, but there you had to deliberately enter staging on the deleted
+file, so it was unlikely; here it happens easily. Consider special-casing: when a deleted
+file's *entire content* is selected/staged, stage the file deletion itself (→ `D`). Belongs
+near the per-file apply loop in `stageDiffLines`/the handler.
