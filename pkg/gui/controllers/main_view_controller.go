@@ -293,19 +293,42 @@ func (self *MainViewController) stageSelectedLine() error {
 		sel.RangeIsSticky = false
 	}
 
-	// The diff re-renders after staging; install a restore (before the handler
-	// triggers that re-render) so the selection lands on the next change rather than
-	// at a now-meaningless position.
-	self.c.Helpers().Staging.RevealSelectionAfterStaging(v, v, first, last, func(viewLine int) {
-		if self.sel().Mode == context.DiffSelectModeHunk {
-			self.selectHunkAround(viewLine)
+	// Staging updates the model synchronously and queues the main-view re-render, and
+	// reports which pane should hold focus afterwards (staging/unstaging can move the
+	// acted-on side to the other pane). "" means nothing was staged.
+	focusViewName, err := handler(self.context.GetViewName(), first, last)
+	if err != nil {
+		return err
+	}
+	if focusViewName == "" {
+		return nil
+	}
+
+	// Re-select in whichever pane now holds the acted-on side, and focus it. The
+	// candidate change lines are read from the pane we acted in (its content is still
+	// the pre-staging diff until the queued re-render), and found again in the target
+	// pane's re-render. The target inherits our select mode (line/hunk).
+	targetContext := self.context
+	if focusViewName == self.otherContext.GetViewName() {
+		targetContext = self.otherContext
+	}
+	*targetContext.DiffSelectState() = *sel
+	targetView := targetContext.GetView()
+
+	self.c.Helpers().Staging.RevealSelectionAfterStaging(v, targetView, first, last, func(viewLine int) {
+		if sel.Mode == context.DiffSelectModeHunk {
+			selectDiffHunk(self.c, targetContext, viewLine)
 		} else {
-			v.CancelRangeSelect()
-			showSelectionAtLine(v, viewLine, true)
+			targetView.CancelRangeSelect()
+			showSelectionAtLine(targetView, viewLine, true)
 		}
 	})
 
-	return handler(self.context.GetViewName(), first, last)
+	if targetContext != self.context {
+		self.c.Context().Push(targetContext, types.OnFocusOpts{})
+	}
+
+	return nil
 }
 
 func (self *MainViewController) enter() error {
