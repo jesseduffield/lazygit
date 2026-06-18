@@ -408,6 +408,7 @@ var tests = []*components.IntegrationTest{
 	staging.SelectNextHunkAfterUnstagingFromMainView,
 	staging.SelectNextLineAfterStagingInTwoHunkDiff,
 	staging.SelectNextLineAfterStagingIsolatedAddedLine,
+	staging.SelectNextLineAfterStagingLineFromMainView,
 	staging.StageHunkFromMainView,
 	staging.StageHunks,
 	staging.StageLines,
