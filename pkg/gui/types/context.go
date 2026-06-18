@@ -98,9 +98,11 @@ type IBaseContext interface {
 	// Likewise for the focused main view: we need this to communicate between a
 	// side panel controller and the focused main view controller.
 	AddOnClickFocusedMainViewFn(func(mainViewName string, clickedLineIdx int) error)
-	// And for staging the selected line directly from the focused main view (space),
-	// delegated to the side panel that owns the diff being shown.
-	AddOnStageFocusedMainViewFn(func(mainViewName string, viewLineIdx int) error)
+	// And for staging the selected line(s) directly from the focused main view
+	// (space), delegated to the side panel that owns the diff being shown. The
+	// inclusive view-line range is the current selection (a single line, a range, or
+	// a hunk).
+	AddOnStageFocusedMainViewFn(func(mainViewName string, firstLineIdx int, lastLineIdx int) error)
 	// Adding on to the above, this is so that a list-specific handler can register
 	// a hook for doing additional click handling
 	AddOnClickFn(func(opts gocui.ViewMouseBindingOpts) error)
@@ -333,9 +335,10 @@ type HasKeybindings interface {
 	GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error
 
 	// Implement this in a side-panel controller to stage/unstage (or, later, add to
-	// the custom patch) the selected diff line when the user presses space in the
-	// focused main view. Return nil to do nothing.
-	GetOnStageFocusedMainView() func(mainViewName string, viewLineIdx int) error
+	// the custom patch) the selected diff line(s) when the user presses space in the
+	// focused main view. The inclusive view-line range is the current selection (a
+	// single line, a range, or a hunk). Return nil to do nothing.
+	GetOnStageFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error
 }
 
 type IController interface {

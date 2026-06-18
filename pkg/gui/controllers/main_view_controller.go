@@ -98,6 +98,24 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Tooltip:     openPullRequestTooltip,
 		},
 		{
+			Keys:        opts.GetKeys(opts.Config.Main.ToggleSelectHunk),
+			Handler:     self.toggleSelectHunk,
+			Description: self.c.Tr.ToggleSelectHunk,
+			DescriptionFunc: func() string {
+				if self.sel().Mode == context.DiffSelectModeHunk {
+					return self.c.Tr.SelectLineByLine
+				}
+				return self.c.Tr.SelectHunk
+			},
+			Tooltip:         self.c.Tr.ToggleSelectHunkTooltip,
+			DisplayOnScreen: selectionShown,
+		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Universal.ToggleRangeSelect),
+			Handler:     self.toggleRangeSelect,
+			Description: self.c.Tr.ToggleRangeSelect,
+		},
+		{
 			Keys:        opts.GetKeys(opts.Config.Main.PrevHunk),
 			Handler:     self.prevChangeBlock,
 			Description: self.c.Tr.PrevHunk,
@@ -126,6 +144,8 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.PrevItem), Handler: self.handlePrevLine},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextItem), Handler: self.handleNextLine},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.RangeSelectUp), Handler: self.extendRangeUp, Description: self.c.Tr.RangeSelectUp},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.RangeSelectDown), Handler: self.extendRangeDown, Description: self.c.Tr.RangeSelectDown},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.PrevPage), Handler: self.handlePrevPage, Description: self.c.Tr.PrevPage},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextPage), Handler: self.handleNextPage, Description: self.c.Tr.NextPage},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoTop), Handler: self.handleGotoTop, Description: self.c.Tr.GotoTop},
@@ -197,7 +217,7 @@ func (self *MainViewController) togglePanel() error {
 	isDiff := self.isDiffView()
 	self.c.Context().Push(self.otherContext, types.OnFocusOpts{})
 	if isDiff {
-		showInitialDiffSelection(self.c, self.otherContext.GetView())
+		showInitialDiffSelection(self.c, self.otherContext)
 	}
 	return nil
 }
@@ -205,13 +225,28 @@ func (self *MainViewController) togglePanel() error {
 // showInitialDiffSelection turns on the focused main view's selection when entering
 // a diff view without pointing at a specific line: on the first change line already
 // visible (so the view doesn't jump), falling back to the current top line when none
-// is visible (scrolled into trailing context, or not loaded that far yet).
-func showInitialDiffSelection(c *ControllerCommon, view *gocui.View) {
+// is visible (scrolled into trailing context, or not loaded that far yet). The
+// select mode is reset to its default (a single line).
+func showInitialDiffSelection(c *ControllerCommon, mainContext *context.MainContext) {
+	resetDiffSelectMode(mainContext)
+	view := mainContext.GetView()
 	target, ok := c.Helpers().Staging.FirstChangeLineInView(view)
 	if !ok {
 		target = view.OriginY()
 	}
 	showSelectionAtLine(view, target, true)
+}
+
+// resetDiffSelectMode returns the focused main view to its default select mode — a
+// single line, no range — used whenever the selection is (re-)established from
+// scratch (on focus, on a click). The view's range anchor is cleared too so the
+// next render highlights only the cursor line.
+func resetDiffSelectMode(mainContext *context.MainContext) {
+	sel := mainContext.DiffSelectState()
+	sel.Mode = context.DiffSelectModeLine
+	sel.RangeIsSticky = false
+	sel.UserEnabledHunkMode = false
+	mainContext.GetView().CancelRangeSelect()
 }
 
 func (self *MainViewController) escape() error {
@@ -225,10 +260,11 @@ func (self *MainViewController) isDiffView() bool {
 	return sidePanelShowsDiff(self.c.Context().NextInStack(self.context))
 }
 
-// stageSelectedLine stages (or unstages) the selected diff line, delegating to the
-// side panel beneath the focused main view since what "stage" means is the panel's
-// business (the working tree stages; later, commits add to a custom patch). Panels
-// whose diff isn't stageable register no handler, so this is a no-op there.
+// stageSelectedLine stages (or unstages) the selected diff line(s) — a single line,
+// a range, or a hunk — delegating to the side panel beneath the focused main view
+// since what "stage" means is the panel's business (the working tree stages; later,
+// commits add to a custom patch). Panels whose diff isn't stageable register no
+// handler, so this is a no-op there.
 func (self *MainViewController) stageSelectedLine() error {
 	sidePanelContext := self.c.Context().NextInStack(self.context)
 	if sidePanelContext == nil {
@@ -238,7 +274,8 @@ func (self *MainViewController) stageSelectedLine() error {
 	if handler == nil {
 		return nil
 	}
-	return handler(self.context.GetViewName(), self.context.GetView().SelectedLineIdx())
+	first, last := self.context.GetView().SelectedLineRange()
+	return handler(self.context.GetViewName(), first, last)
 }
 
 func (self *MainViewController) enter() error {
@@ -270,114 +307,276 @@ func showSelectionAtLine(view *gocui.View, lineIdx int, scrollIntoView bool) {
 	view.FocusPoint(0, lineIdx, scrollIntoView)
 }
 
+// sel returns our pane's diff selection mode state.
+func (self *MainViewController) sel() *context.DiffSelectState {
+	return self.context.DiffSelectState()
+}
+
 // navigate jumps the focused main view by file or change block (hunk), using find to
 // locate the target row from the current anchor. The anchor is the selected line if a
 // selection is showing, otherwise the top visible line. With a selection showing we
-// move it to the target and scroll it into view, like the staging view; with none we
-// stay in scroll mode, bringing the target to the top without selecting anything.
-func (self *MainViewController) navigate(find func(*gocui.View, int, bool) (int, bool), forward bool) error {
+// move it to the target and scroll it into view, like the staging view — re-selecting
+// the whole block in hunk mode; with none we stay in scroll mode, bringing the target
+// to the top without selecting anything.
+func (self *MainViewController) navigate(find func(*gocui.View, int, bool) (int, bool), forward bool) {
 	v := self.context.GetView()
-	showSelection := v.Highlight
-	anchor := v.OriginY()
-	if showSelection {
-		anchor = v.SelectedLineIdx()
+	if !v.Highlight {
+		if target, ok := find(v, v.OriginY(), forward); ok {
+			v.SetOrigin(0, target)
+		}
+		return
 	}
 
-	target, ok := find(v, anchor, forward)
+	target, ok := find(v, v.SelectedLineIdx(), forward)
 	if !ok {
+		return
+	}
+	if self.sel().Mode == context.DiffSelectModeHunk {
+		self.selectHunkAround(target)
+	} else {
+		// Line mode leaves a single-line selection at the target; an active range
+		// extends to it, since the anchor is untouched.
+		showSelectionAtLine(v, target, true)
+	}
+}
+
+func (self *MainViewController) nextChangeBlock() error {
+	self.navigate(self.c.Helpers().Staging.AdjacentChangeBlock, true)
+	return nil
+}
+
+func (self *MainViewController) prevChangeBlock() error {
+	self.navigate(self.c.Helpers().Staging.AdjacentChangeBlock, false)
+	return nil
+}
+
+func (self *MainViewController) nextFile() error {
+	self.navigate(self.c.Helpers().Staging.AdjacentFile, true)
+	return nil
+}
+
+func (self *MainViewController) prevFile() error {
+	self.navigate(self.c.Helpers().Staging.AdjacentFile, false)
+	return nil
+}
+
+// selectHunkAround re-selects the whole change block around the given change line,
+// for hunk mode: the cursor goes to the block's first line and the range anchor to
+// its last, so the native range highlight spans the block. With no change block
+// there (the line is trailing context) it falls back to a single-line selection.
+func (self *MainViewController) selectHunkAround(changeViewLine int) {
+	v := self.context.GetView()
+	start, end, ok := self.c.Helpers().Staging.ChangeBlockBounds(v, changeViewLine)
+	if !ok {
+		self.sel().Mode = context.DiffSelectModeLine
+		v.CancelRangeSelect()
+		showSelectionAtLine(v, changeViewLine, true)
+		return
+	}
+	v.SetRangeSelectStart(end)
+	showSelectionAtLine(v, start, true)
+}
+
+// moveCursor moves the selection cursor by delta view lines (negative = up), with
+// the configured scroll-off margin, reading more content in first when moving down.
+// The range anchor is left untouched, so in a range this extends/contracts it; in
+// line mode it just moves the selected line.
+func (self *MainViewController) moveCursor(delta int) {
+	v := self.context.GetView()
+	if delta > 0 {
+		if manager := self.c.GetViewBufferManagerForView(v); manager != nil {
+			manager.ReadLines(delta)
+		}
+	}
+	before := v.SelectedLineIdx()
+	after := lo.Clamp(before+delta, 0, v.ViewLinesHeight()-1)
+	if delta == -1 {
+		checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig(), before, after)
+	} else if delta == 1 {
+		checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig(), before, after)
+	}
+	v.FocusPoint(0, after, true)
+}
+
+// scroll moves the view by delta lines without a selection, for non-diff main
+// content where there's nothing to select.
+func (self *MainViewController) scroll(delta int) {
+	v := self.context.GetView()
+	if delta > 0 {
+		if manager := self.c.GetViewBufferManagerForView(v); manager != nil {
+			manager.ReadLines(delta)
+		}
+		v.ScrollDown(delta)
+	} else {
+		v.ScrollUp(-delta)
+	}
+}
+
+// collapseForLineMove drops hunk mode, and a non-sticky range, back to a single-line
+// selection — what a plain (non-shift, non-hunk-step) move does before moving. A
+// sticky range is kept so the move extends it.
+func (self *MainViewController) collapseForLineMove() {
+	sel := self.sel()
+	if sel.Mode == context.DiffSelectModeHunk ||
+		(sel.Mode == context.DiffSelectModeRange && !sel.RangeIsSticky) {
+		sel.Mode = context.DiffSelectModeLine
+		self.context.GetView().CancelRangeSelect()
+	}
+}
+
+// adjustSelection moves the selection by delta view lines for the plain up/down and
+// page keys. In hunk mode a single-line step (delta ±1) jumps to the adjacent hunk; a
+// larger page step drops out of hunk mode first, like the staging view. A non-sticky
+// range collapses back to a single line on a plain move. With no selection (non-diff
+// content) it scrolls.
+func (self *MainViewController) adjustSelection(delta int) {
+	v := self.context.GetView()
+	if !v.Highlight {
+		self.scroll(delta)
+		return
+	}
+	if self.sel().Mode == context.DiffSelectModeHunk && (delta == 1 || delta == -1) {
+		self.navigate(self.c.Helpers().Staging.AdjacentChangeBlock, delta > 0)
+		return
+	}
+	self.collapseForLineMove()
+	self.moveCursor(delta)
+}
+
+// selectAbsoluteLine moves the selection to a specific view line (the top or bottom
+// of the diff), dropping hunk mode and a non-sticky range like a plain move does.
+func (self *MainViewController) selectAbsoluteLine(target int) {
+	self.collapseForLineMove()
+	v := self.context.GetView()
+	v.FocusPoint(0, lo.Clamp(target, 0, v.ViewLinesHeight()-1), true)
+}
+
+// selectingRange reports whether a range selection is currently active: we're in
+// range mode and either it's sticky or the anchor and cursor differ (a non-sticky
+// range that has actually been extended).
+func (self *MainViewController) selectingRange() bool {
+	if self.sel().Mode != context.DiffSelectModeRange {
+		return false
+	}
+	start, end := self.context.GetView().SelectedLineRange()
+	return self.sel().RangeIsSticky || start != end
+}
+
+// toggleSelectHunk switches between selecting the change block (hunk) around the
+// cursor and a single line, mirroring the staging view's `a`.
+func (self *MainViewController) toggleSelectHunk() error {
+	v := self.context.GetView()
+	if !v.Highlight {
 		return nil
 	}
-
-	if showSelection {
-		showSelectionAtLine(v, target, true)
+	sel := self.sel()
+	if sel.Mode == context.DiffSelectModeHunk {
+		sel.Mode = context.DiffSelectModeLine
+		v.CancelRangeSelect()
 	} else {
-		v.SetOrigin(0, target)
+		sel.Mode = context.DiffSelectModeHunk
+		sel.UserEnabledHunkMode = true
+		self.selectHunkAround(v.SelectedLineIdx())
 	}
 	return nil
 }
 
-func (self *MainViewController) nextChangeBlock() error {
-	return self.navigate(self.c.Helpers().Staging.AdjacentChangeBlock, true)
-}
-
-func (self *MainViewController) prevChangeBlock() error {
-	return self.navigate(self.c.Helpers().Staging.AdjacentChangeBlock, false)
-}
-
-func (self *MainViewController) nextFile() error {
-	return self.navigate(self.c.Helpers().Staging.AdjacentFile, true)
-}
-
-func (self *MainViewController) prevFile() error {
-	return self.navigate(self.c.Helpers().Staging.AdjacentFile, false)
-}
-
-func (self *MainViewController) handleLineChange(delta int) {
+// toggleRangeSelect starts or cancels a sticky range selection (extended by plain
+// up/down), mirroring the staging view's `v`.
+func (self *MainViewController) toggleRangeSelect() error {
 	v := self.context.GetView()
-	if v.Highlight {
-		lineIdxBefore := v.CursorY() + v.OriginY()
-		lineIdxAfter := lo.Clamp(lineIdxBefore+delta, 0, v.ViewLinesHeight()-1)
-		if delta == -1 {
-			checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig(), lineIdxBefore, lineIdxAfter)
-		} else if delta == 1 {
-			checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig(), lineIdxBefore, lineIdxAfter)
-		}
-		v.FocusPoint(0, lineIdxAfter, true)
-	} else {
-		if delta < 0 {
-			v.ScrollUp(-delta)
-		} else {
-			v.ScrollDown(delta)
-			self.c.ReadLinesToFillView(v)
-		}
+	if !v.Highlight {
+		return nil
 	}
+	sel := self.sel()
+	if self.selectingRange() {
+		sel.Mode = context.DiffSelectModeLine
+		sel.RangeIsSticky = false
+		v.CancelRangeSelect()
+	} else {
+		sel.Mode = context.DiffSelectModeRange
+		sel.RangeIsSticky = true
+		v.SetRangeSelectStart(v.SelectedLineIdx())
+	}
+	return nil
+}
+
+// extendRange grows a (non-sticky) range selection by one line in response to
+// shift+up/down, starting one at the cursor if there isn't one yet. Mirrors the
+// staging view's range-select keys.
+func (self *MainViewController) extendRange(forward bool) error {
+	v := self.context.GetView()
+	if !v.Highlight {
+		return nil
+	}
+	sel := self.sel()
+	if !self.selectingRange() {
+		sel.Mode = context.DiffSelectModeRange
+		v.SetRangeSelectStart(v.SelectedLineIdx())
+	}
+	sel.RangeIsSticky = false
+	delta := 1
+	if !forward {
+		delta = -1
+	}
+	self.moveCursor(delta)
+	return nil
+}
+
+func (self *MainViewController) extendRangeUp() error {
+	return self.extendRange(false)
+}
+
+func (self *MainViewController) extendRangeDown() error {
+	return self.extendRange(true)
 }
 
 func (self *MainViewController) handlePrevLine() error {
-	self.handleLineChange(-1)
+	self.adjustSelection(-1)
 	return nil
 }
 
 func (self *MainViewController) handleNextLine() error {
-	self.handleLineChange(1)
+	self.adjustSelection(1)
 	return nil
 }
 
 func (self *MainViewController) handlePrevPage() error {
-	self.handleLineChange(-self.context.GetViewTrait().PageDelta())
+	self.adjustSelection(-self.context.GetViewTrait().PageDelta())
 	return nil
 }
 
 func (self *MainViewController) handleNextPage() error {
-	self.handleLineChange(self.context.GetViewTrait().PageDelta())
+	self.adjustSelection(self.context.GetViewTrait().PageDelta())
 	return nil
 }
 
 func (self *MainViewController) handleGotoTop() error {
 	v := self.context.GetView()
-	if v.Highlight {
-		v.FocusPoint(0, 0, true)
-	} else {
-		self.handleLineChange(-v.ViewLinesHeight())
+	if !v.Highlight {
+		self.scroll(-v.ViewLinesHeight())
+		return nil
 	}
+	self.selectAbsoluteLine(0)
 	return nil
 }
 
 func (self *MainViewController) handleGotoBottom() error {
-	if manager := self.c.GetViewBufferManagerForView(self.context.GetView()); manager != nil {
-		manager.ReadToEnd(func() {
-			self.c.OnUIThread(func() error {
-				v := self.context.GetView()
-				if v.Highlight {
-					v.FocusPoint(0, v.ViewLinesHeight()-1, true)
-				} else {
-					self.handleLineChange(v.ViewLinesHeight())
-				}
-				return nil
-			})
-		})
+	manager := self.c.GetViewBufferManagerForView(self.context.GetView())
+	if manager == nil {
+		return nil
 	}
-
+	manager.ReadToEnd(func() {
+		self.c.OnUIThread(func() error {
+			v := self.context.GetView()
+			if !v.Highlight {
+				self.scroll(v.ViewLinesHeight())
+				return nil
+			}
+			self.selectAbsoluteLine(v.ViewLinesHeight() - 1)
+			return nil
+		})
+	})
 	return nil
 }
 
@@ -537,8 +736,9 @@ func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouse
 	if !self.isDiffView() {
 		return nil
 	}
-	// A click points at a line, so it sets the selection there; a double-click
-	// additionally dives into staging/patch-building for that line.
+	// A click points at a line, so it sets a single-line selection there; a
+	// double-click additionally dives into staging/patch-building for that line.
+	resetDiffSelectMode(self.context)
 	showSelectionAtLine(self.context.GetView(), opts.Y, false)
 	if opts.IsDoubleClick {
 		return self.enterForLine(opts.Y)
@@ -555,6 +755,7 @@ func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.View
 	if !self.isDiffView() {
 		return nil
 	}
+	resetDiffSelectMode(self.context)
 	showSelectionAtLine(self.context.GetView(), opts.Y, false)
 	if opts.IsDoubleClick {
 		return self.enterForLine(opts.Y)

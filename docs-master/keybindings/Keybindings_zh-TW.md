@@ -84,6 +84,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 切換拖曳選擇 |  |
 | `` <left>, h `` | 選擇上一段 |  |
 | `` <right>, l `` | 選擇下一段 |  |
 | `` N `` | Go to previous file |  |
@@ -370,6 +372,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 切換拖曳選擇 |  |
 | `` <left>, h `` | 選擇上一段 |  |
 | `` <right>, l `` | 選擇下一段 |  |
 | `` N `` | Go to previous file |  |
