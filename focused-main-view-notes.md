@@ -2217,3 +2217,58 @@ rough edges to surface as we go; the ones known so far are below.
   of line is selected. Needs a different way to mark the selected line(s) (e.g. a
   gutter marker, a foreground/border treatment, or reserving a column — cf. the §21.5
   inclusion overlay, same class of problem). Not for this prototype; keep in mind.
+
+### 21.10 Step 1 committed; Step 3 design settled, fold done (resume here)
+
+**Committed (branch, not pushed), most recent last:**
+
+```
+f660567cb Extract diffSplitState from the files diff renderer            (prep)
+d196d4e78 Stage the selected diff line from the focused main view         (step 1: always-show selection at first visible change + single-line directional staging + the <tab> fix)
+d0f72cfb8 Session notes: plan to merge staging into the main view, and step 1
+4fab0a7c6 Fold ViewSelectionController into MainViewController            (step 3 prep)
+```
+
+So **steps 1 + 2-of-the-plan are done** (always-show selection + single-line
+staging), and **step 3's prep is done** (the `ViewSelectionController` fold).
+`build`/`lint`/`unit-test`/`format` green throughout; `just generate` was run for
+the keybinding cheatsheets. Not interactively re-tested since the `<tab>` fix.
+
+**Step 3 design — SETTLED, ready to build (the feature increment):** range + hunk
+selection in the focused main view, built fresh (own type, not shared with
+`patch_exploring.State` — the explorer is going away, so the temporary duplication
+is fine). Grounded findings:
+
+- **gocui renders a range selection natively** — `View.SetRangeSelectStart(y)` +
+  `Highlight` + cursor highlights the span (`view.go:607-615`); `CancelRangeSelect()`
+  resets. So LINE = cancel range-select (cursor highlight); RANGE/HUNK = range-select
+  from anchor to cursor. **No new highlight machinery.**
+- **Mirror the staging mode machine** (`patch_exploring/state.go`): `selectMode`
+  (LINE/RANGE/HUNK), sticky vs non-sticky range, `userEnabledHunkMode` (config-default
+  hunk vs user-toggled — matters for escape), default HUNK when
+  `UseHunkModeInStagingView && !IsSingleHunkForWholeFile`. Reimplement in **view-line
+  space** with hunk bounds from the **metadata `isChange` array** (reuse
+  `resolveDiffLines`/`changeBlockStart`/`AdjacentChangeBlock`), **not** `patch.Lines()`.
+- **State home:** fields on `MainViewController` (two instances — Normal &
+  NormalSecondary — each owns its mode). The nav handlers (`handleLineChange` etc.)
+  now live there (the fold), so mode-aware ↑/↓ has its home.
+- **↑/↓ are already selection-move** (the folded `handleLineChange`: Highlight → move
+  selection, else scroll). Extend: **hunk mode → move to prev/next hunk**
+  (`AdjacentChangeBlock`); line mode → by line (today); range mode → extend. `a`
+  (`Main.ToggleSelectHunk`) toggles to line mode for line-granular movement.
+- **Keys to add, mirroring staging:** `Universal.ToggleRangeSelect` (`v`, sticky range),
+  `Main.ToggleSelectHunk` (toggle hunk/line), `Universal.RangeSelectUp`/`RangeSelectDown`
+  (shift-↑/↓, extend non-sticky range). `<left>`/`<right>` hunk nav + `n`/`N` file nav
+  already exist.
+- **Config default:** select the first *visible* hunk on focus when hunk mode is the
+  default (grow `FirstChangeLineInView`/`showInitialDiffSelection` to expand to the
+  block bounds, not just the first change line).
+- **Range-aware staging:** `GetOnStageFocusedMainView` currently takes a single
+  `viewLineIdx`; make it take the selected row range (or read the view's range-select),
+  collect the change-line patch indices across the rows, and apply **one** `Transform`
+  with the set (`Transform` already handles arbitrary/non-contiguous index sets — §21.3).
+  Side-by-side "all records on a row" is still step 4; step 3 stays single-column.
+
+Suggested commit shape for the feature: it may split into (a) mode state + rendering +
+mode-aware nav + keys (the selection model) and (b) range-aware staging — or land as one
+feature commit; decide when the diff takes shape.
