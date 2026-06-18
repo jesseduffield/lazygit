@@ -2398,8 +2398,18 @@ user's call. Both green; full `e2e-all` green.
   `TestDiffLineMetadataPayloads` for the accessor; the full chain needs interactive
   sign-off with the patched delta in SxS mode.
 
+**Interactive sign-off, session 13 (user):**
+
+- **Steps 3–4 staging verified good**, including **SxS staging from BOTH patched delta AND
+  difftastic's side-by-side view** — so the per-cell multi-payload path holds across both
+  conforming pagers, not delta-specific.
+- **Unstaging works but loses the selection / has focus problems** (user's words). Expected
+  to be resolved by step 5 (the post-stage reveal + selection lifecycle). Concrete repro
+  cases not yet captured — get them at step-5 start to target the exact symptoms rather
+  than guessing.
+
 **NEXT: step 5** — staged/unstaged split + post-stage reveal (stage from Normal / unstage
 from NormalSecondary, `<tab>`, synchronous next-hunk decision + restore-by-identity reveal).
 **Milestone: the working-tree staging panel is functionally replaced.** This is where the
-deferred post-stage selection re-anchor (§21.11) finally lands. Still pending:
-interactive sign-off of steps 3–4 (incl. SxS), and the unstage-from-secondary path.
+deferred post-stage selection re-anchor (§21.11) AND the just-reported unstage focus/
+selection-loss both land.
