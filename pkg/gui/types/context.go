@@ -98,6 +98,9 @@ type IBaseContext interface {
 	// Likewise for the focused main view: we need this to communicate between a
 	// side panel controller and the focused main view controller.
 	AddOnClickFocusedMainViewFn(func(mainViewName string, clickedLineIdx int) error)
+	// And for staging the selected line directly from the focused main view (space),
+	// delegated to the side panel that owns the diff being shown.
+	AddOnStageFocusedMainViewFn(func(mainViewName string, viewLineIdx int) error)
 	// Adding on to the above, this is so that a list-specific handler can register
 	// a hook for doing additional click handling
 	AddOnClickFn(func(opts gocui.ViewMouseBindingOpts) error)
@@ -172,6 +175,20 @@ type DiffableContext interface {
 	// we need to pass the first commit of the range. This is used by
 	// DiffHelper.AdjustLineNumber.
 	RefForAdjustingLineNumberInDiff() string
+}
+
+// DiffMainViewContext is implemented by the side panel contexts whose focused
+// main view shows a unified diff — files, local commits, sub-commits, reflog,
+// stash, and commit files — as opposed to a commit log or other non-diff content
+// (branches, tags, status, …). It is distinct from DiffableContext, which is
+// about producing a diff between two refs for the diff menu. This is the signal
+// for whether to show a selection in the focused main view: a selection is only
+// meaningful where there are diff lines to act on (stage, edit, jump by hunk,
+// open in a pull request).
+type DiffMainViewContext interface {
+	Context
+
+	IsDiffMainViewContext()
 }
 
 type IListContext interface {
@@ -314,6 +331,11 @@ type HasKeybindings interface {
 	// Implement this in a side-panel controller to get called when there's a click in the main view
 	// that belongs to your panel while the main view is already focused.
 	GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error
+
+	// Implement this in a side-panel controller to stage/unstage (or, later, add to
+	// the custom patch) the selected diff line when the user presses space in the
+	// focused main view. Return nil to do nothing.
+	GetOnStageFocusedMainView() func(mainViewName string, viewLineIdx int) error
 }
 
 type IController interface {

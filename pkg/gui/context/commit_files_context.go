@@ -19,10 +19,13 @@ type CommitFilesContext struct {
 }
 
 var (
-	_ types.IListContext       = (*CommitFilesContext)(nil)
-	_ types.DiffableContext    = (*CommitFilesContext)(nil)
-	_ types.IFilterableContext = (*CommitFilesContext)(nil)
+	_ types.IListContext        = (*CommitFilesContext)(nil)
+	_ types.DiffableContext     = (*CommitFilesContext)(nil)
+	_ types.IFilterableContext  = (*CommitFilesContext)(nil)
+	_ types.DiffMainViewContext = (*CommitFilesContext)(nil)
 )
+
+func (self *CommitFilesContext) IsDiffMainViewContext() {}
 
 func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 	viewModel := filetree.NewCommitFileTreeViewModel(

@@ -69,9 +69,11 @@ func (self *SwitchToFocusedMainViewController) onClickSecondary(opts gocui.ViewM
 }
 
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
-	// Focusing by keyboard doesn't point at any particular line, so we don't
-	// show a selection; the user is free to scroll. Clicking does point at a
-	// line, so it selects it (see focusMainView's clickedLineIdx).
+	// Focusing by keyboard doesn't point at any particular line: in a diff view
+	// we start at the first change block (like entering the staging view), in a
+	// non-diff view we show no selection and the user just scrolls. Clicking does
+	// point at a line, so it selects that line instead (focusMainView's
+	// clickedLineIdx).
 	return self.focusMainView(self.c.Contexts().Normal, -1)
 }
 
@@ -80,8 +82,18 @@ func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext typ
 		context.ClearSearchString()
 	}
 	self.c.Context().Push(mainViewContext, types.OnFocusOpts{})
+
+	if !sidePanelShowsDiff(self.context) {
+		// Non-diff main content (e.g. a branch's commit log): focus only, no
+		// selection, since there's nothing to act on.
+		return nil
+	}
+
+	view := mainViewContext.GetView()
 	if clickedLineIdx >= 0 {
-		showSelectionAtLine(mainViewContext.GetView(), clickedLineIdx, false)
+		showSelectionAtLine(view, clickedLineIdx, false)
+	} else {
+		showInitialDiffSelection(self.c, view)
 	}
 	return nil
 }

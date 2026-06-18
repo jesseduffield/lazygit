@@ -14,9 +14,12 @@ type ReflogCommitsContext struct {
 }
 
 var (
-	_ types.IListContext    = (*ReflogCommitsContext)(nil)
-	_ types.DiffableContext = (*ReflogCommitsContext)(nil)
+	_ types.IListContext        = (*ReflogCommitsContext)(nil)
+	_ types.DiffableContext     = (*ReflogCommitsContext)(nil)
+	_ types.DiffMainViewContext = (*ReflogCommitsContext)(nil)
 )
+
+func (self *ReflogCommitsContext) IsDiffMainViewContext() {}
 
 func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 	viewModel := NewFilteredListViewModel(

@@ -287,7 +287,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <tab> `` | 切换到其他面板 | 切换到其他视图（已暂存/未暂存的变更） |
 | `` <esc> `` | 退出回到侧边面板 |  |
-| `` <space> `` | Show/hide selection |  |
+| `` <space> `` | 切换暂存状态 | 切换行暂存状态 |
 | `` <left>, h `` | 选择上一个区块 |  |
 | `` <right>, l `` | 选择下一个区块 |  |
 | `` N `` | Go to previous file |  |
@@ -340,7 +340,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel up> (fn+down) `` | 向上滚动 |  |
 | `` <tab> `` | 切换到其他面板 | 切换到其他视图（已暂存/未暂存的变更） |
 | `` <esc> `` | 退出回到侧边面板 |  |
-| `` <space> `` | Show/hide selection |  |
+| `` <space> `` | 切换暂存状态 | 切换行暂存状态 |
 | `` <left>, h `` | 选择上一个区块 |  |
 | `` <right>, l `` | 选择下一个区块 |  |
 | `` N `` | Go to previous file |  |

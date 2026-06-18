@@ -15,9 +15,12 @@ type WorkingTreeContext struct {
 }
 
 var (
-	_ types.IListContext       = (*WorkingTreeContext)(nil)
-	_ types.IFilterableContext = (*WorkingTreeContext)(nil)
+	_ types.IListContext        = (*WorkingTreeContext)(nil)
+	_ types.IFilterableContext  = (*WorkingTreeContext)(nil)
+	_ types.DiffMainViewContext = (*WorkingTreeContext)(nil)
 )
+
+func (self *WorkingTreeContext) IsDiffMainViewContext() {}
 
 func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	viewModel := filetree.NewFileTreeViewModel(

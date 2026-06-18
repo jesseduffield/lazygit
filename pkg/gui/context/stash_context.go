@@ -12,9 +12,12 @@ type StashContext struct {
 }
 
 var (
-	_ types.IListContext    = (*StashContext)(nil)
-	_ types.DiffableContext = (*StashContext)(nil)
+	_ types.IListContext        = (*StashContext)(nil)
+	_ types.DiffableContext     = (*StashContext)(nil)
+	_ types.DiffMainViewContext = (*StashContext)(nil)
 )
+
+func (self *StashContext) IsDiffMainViewContext() {}
 
 func NewStashContext(
 	c *ContextCommon,
