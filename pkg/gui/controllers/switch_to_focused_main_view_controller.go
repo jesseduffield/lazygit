@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -77,10 +78,8 @@ func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
 	return self.focusMainView(self.c.Contexts().Normal, -1)
 }
 
-func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext types.Context, clickedLineIdx int) error {
-	if context, ok := mainViewContext.(types.ISearchableContext); ok {
-		context.ClearSearchString()
-	}
+func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext *context.MainContext, clickedLineIdx int) error {
+	mainViewContext.ClearSearchString()
 	self.c.Context().Push(mainViewContext, types.OnFocusOpts{})
 
 	if !sidePanelShowsDiff(self.context) {
@@ -89,11 +88,13 @@ func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext typ
 		return nil
 	}
 
-	view := mainViewContext.GetView()
 	if clickedLineIdx >= 0 {
-		showSelectionAtLine(view, clickedLineIdx, false)
+		// A click points at a specific line, so select it directly (in the default
+		// single-line mode).
+		resetDiffSelectMode(mainViewContext)
+		showSelectionAtLine(mainViewContext.GetView(), clickedLineIdx, false)
 	} else {
-		showInitialDiffSelection(self.c, view)
+		showInitialDiffSelection(self.c, mainViewContext)
 	}
 	return nil
 }
