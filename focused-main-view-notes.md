@@ -2352,3 +2352,16 @@ deletion + its replacement + context, exercising the resolution fix),
 - **Interactive sign-off pending** (per §21.9, single increments only become testable once
   this is in; the user evaluates the feel — e.g. hunk-default jump-on-focus, delta's
   background-conveyed side under the highlight per §21.9).
+
+**Interactive feedback, session 13 (user; both OK to leave for now):**
+
+- **delta + hunk selection makes the §21.9 colour problem worse.** With a whole hunk
+  selected you see one solid block of blue with no boundary between the deleted and added
+  lines — delta conveys add/delete purely by background, which the selection overrides.
+  Worse than the single-line case. Still deferred (same class as the §21.5 overlay — a
+  gutter marker / foreground treatment / reserved column is the eventual answer).
+- **`a` on a context line below the last hunk diverges from the staging panel.** The
+  staging panel selects the *last* hunk (searches backward when there's nothing forward);
+  ours keeps the single line (`ChangeBlockBounds` only snaps *forward* to the first block
+  at/after the anchor, finds none, falls back to a single-line selection). Minor; to match,
+  `ChangeBlockBounds` would fall back to the nearest block *above* when none is at/below.
