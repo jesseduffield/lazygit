@@ -296,7 +296,7 @@ func (self *MainViewController) stageSelectedLine() error {
 	// The diff re-renders after staging; install a restore (before the handler
 	// triggers that re-render) so the selection lands on the next change rather than
 	// at a now-meaningless position.
-	self.c.Helpers().Staging.RevealSelectionAfterStaging(v, first, last, func(viewLine int) {
+	self.c.Helpers().Staging.RevealSelectionAfterStaging(v, v, first, last, func(viewLine int) {
 		if self.sel().Mode == context.DiffSelectModeHunk {
 			self.selectHunkAround(viewLine)
 		} else {
