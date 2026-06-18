@@ -148,6 +148,8 @@ type View struct {
 	// instead of Sel{Bg,Fg}Colors for highlighting selected lines.
 	HighlightInactive bool
 
+	HighlightInset int
+
 	// If Frame is true, a border will be drawn around the view.
 	Frame bool
 
@@ -635,7 +637,8 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute) {
 			rangeSelectEnd = max(relativeRangeSelectStart, v.cy)
 		}
 
-		if y >= rangeSelectStart && y <= rangeSelectEnd {
+		inset := v.HighlightInset
+		if y >= rangeSelectStart && y <= rangeSelectEnd && x >= inset && x < v.InnerWidth()-inset {
 			// this ensures we use the bright variant of a colour upon highlight
 			fgColorComponent := fgColor & ^AttrAll
 			if fgColorComponent >= AttrIsValidColor && fgColorComponent < AttrIsValidColor+8 {
