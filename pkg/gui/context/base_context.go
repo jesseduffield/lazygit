@@ -38,7 +38,7 @@ type (
 	onFocusFn                = func(types.OnFocusOpts)
 	onFocusLostFn            = func(types.OnFocusLostOpts)
 	onClickFocusedMainViewFn = func(mainViewName string, clickedLineIdx int) error
-	onStageFocusedMainViewFn = func(mainViewName string, firstLineIdx int, lastLineIdx int) error
+	onStageFocusedMainViewFn = func(mainViewName string, firstLineIdx int, lastLineIdx int) (focusViewName string, err error)
 )
 
 var _ types.IBaseContext = &BaseContext{}

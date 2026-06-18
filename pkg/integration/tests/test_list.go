@@ -392,6 +392,8 @@ var tests = []*components.IntegrationTest{
 	staging.DiffChangeScreenMode,
 	staging.DiffContextChange,
 	staging.DiscardAllChanges,
+	staging.FocusFollowsStagedSideToSecondaryAfterUnstaging,
+	staging.FocusReturnsToMainAfterUnstagingLastStagedHunk,
 	staging.Search,
 	staging.SelectHunkOnFocusingMainView,
 	staging.SelectNextHunkAfterStagingFromMainView,

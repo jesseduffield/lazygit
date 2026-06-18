@@ -466,21 +466,21 @@ func (self *FilesController) diffSplitState(node *filetree.FileNode) (split bool
 	return split, mainShowsStaged
 }
 
-func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
-	return func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) (string, error) {
+	return func(mainViewName string, firstLineIdx int, lastLineIdx int) (string, error) {
 		if self.c.UserConfig().Git.DiffContextSize == 0 {
-			return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToStage,
+			return "", fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToStage,
 				self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
 		}
 
 		node := self.context().GetSelected()
 		if node == nil {
-			return nil
+			return "", nil
 		}
 
 		infos := self.c.Helpers().Staging.ChangeLinesInViewRange(mainViewName, firstLineIdx, lastLineIdx)
 		if len(infos) == 0 {
-			return nil
+			return "", nil
 		}
 
 		// The whole diff shown in the main view is on one side — the staged diff in
@@ -501,12 +501,28 @@ func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName strin
 				continue
 			}
 			if err := self.stageDiffLines(file, fileInfos, reverse); err != nil {
-				return err
+				return "", err
 			}
 		}
 
 		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
-		return nil
+
+		// Focus follows the side that was acted on. Staging keeps it in the main half
+		// (which always holds the unstaged side, or the staged side once the file has
+		// only staged changes). Unstaging keeps it on the staged side, which lives in
+		// the secondary half once the file is split into staged + unstaged, and moves
+		// back to the main half when the staged side empties and the split collapses.
+		// The model is up to date now (Refresh above is synchronous), so the post-op
+		// split is read from the freshly selected node.
+		focusViewName := self.c.Contexts().Normal.GetViewName()
+		if reverse {
+			if node := self.context().GetSelected(); node != nil {
+				if split, _ := self.diffSplitState(node); split {
+					focusViewName = self.c.Contexts().NormalSecondary.GetViewName()
+				}
+			}
+		}
+		return focusViewName, nil
 	}
 }
 
