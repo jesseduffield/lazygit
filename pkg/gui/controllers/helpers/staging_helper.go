@@ -266,6 +266,40 @@ func (self *StagingHelper) RestoreFocusedMainViewOnEscape(explorerView, mainView
 	})
 }
 
+// RevealSelectionAfterStaging arranges, after staging or unstaging re-renders the
+// focused main view's diff, for the selection to land on the change nearest the one
+// just acted on rather than at a stale (and possibly off-content) position — the same
+// "advance to the next change" the staging view does. firstLine and lastLine bound
+// the just-staged selection in the current (pre-staging) diff; place positions and
+// re-selects the landed line in the current select mode. Install it before triggering
+// the re-render: it rides the next render of view, like RestoreFocusedMainViewOnEscape.
+//
+// The candidates, in priority order, are the change block after the selection, then
+// the one before it (both survive staging — only the selection itself was staged),
+// then the selection's own first line, which only turns up when the whole side was
+// staged and the view flips to show the other (staged) side. If none survives, place
+// isn't called and the view re-renders without moving the selection.
+func (self *StagingHelper) RevealSelectionAfterStaging(view *gocui.View, firstLine int, lastLine int, place func(viewLine int)) {
+	var candidates []diffLineAnchor
+	addByViewLine := func(viewLine int) {
+		if info, ok := self.GetDiffLineInfoForView(view, viewLine); ok {
+			candidates = append(candidates, diffLineAnchor{identity: info})
+		}
+	}
+
+	if next, ok := self.AdjacentChangeBlock(view, lastLine, true); ok {
+		addByViewLine(next)
+	}
+	if prev, ok := self.AdjacentChangeBlock(view, firstLine, false); ok {
+		addByViewLine(prev)
+	}
+	addByViewLine(firstLine)
+
+	self.restoreDiffLinePositionOnRerender(view, candidates, func(_ diffLineAnchor, viewLine int) {
+		place(viewLine)
+	})
+}
+
 // diffLineAnchor is a candidate line for a restore to land on after a re-render: a
 // patch identity to find the line by, plus the screen row (offset from the view's
 // top) it was on when captured, for a restore that wants to put it back there.
