@@ -365,8 +365,7 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	self.c.Helpers().MergeConflicts.ResetMergeState()
 
-	split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
-	mainShowsStaged := !split && node.GetHasStagedChanges()
+	split, mainShowsStaged := self.diffSplitState(node)
 
 	pathOverrides := self.pathOverridesForDiff(node)
 	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, pathOverrides)
@@ -443,6 +442,18 @@ func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName strin
 
 		return self.EnterFile(snapshot, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, ClickedViewRealLineIsDeletion: isDeletion, SelectLineInDefaultMode: true})
 	}
+}
+
+// diffSplitState reports, for the given file node, how the focused main view lays
+// out its diff: whether it's split into unstaged (Normal) and staged
+// (NormalSecondary) halves, and — when not split — whether the single Normal view
+// shows the staged diff (which happens when the file has only staged changes).
+// GetOnRenderToMain and GetOnStageFocusedMainView share this so the staging
+// direction can't drift from what's on screen.
+func (self *FilesController) diffSplitState(node *filetree.FileNode) (split bool, mainShowsStaged bool) {
+	split = self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
+	mainShowsStaged = !split && node.GetHasStagedChanges()
+	return split, mainShowsStaged
 }
 
 // if we are dealing with a status for which there is no key in this map,
