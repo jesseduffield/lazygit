@@ -124,6 +124,12 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Description: self.c.Tr.StartSearch,
 			Tag:         "navigation",
 		},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.PrevItem), Handler: self.handlePrevLine},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextItem), Handler: self.handleNextLine},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.PrevPage), Handler: self.handlePrevPage, Description: self.c.Tr.PrevPage},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextPage), Handler: self.handleNextPage, Description: self.c.Tr.NextPage},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoTop), Handler: self.handleGotoTop, Description: self.c.Tr.GotoTop},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoBottom), Handler: self.handleGotoBottom, Description: self.c.Tr.GotoBottom},
 	}
 }
 
@@ -304,6 +310,75 @@ func (self *MainViewController) nextFile() error {
 
 func (self *MainViewController) prevFile() error {
 	return self.navigate(self.c.Helpers().Staging.AdjacentFile, false)
+}
+
+func (self *MainViewController) handleLineChange(delta int) {
+	v := self.context.GetView()
+	if v.Highlight {
+		lineIdxBefore := v.CursorY() + v.OriginY()
+		lineIdxAfter := lo.Clamp(lineIdxBefore+delta, 0, v.ViewLinesHeight()-1)
+		if delta == -1 {
+			checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig(), lineIdxBefore, lineIdxAfter)
+		} else if delta == 1 {
+			checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig(), lineIdxBefore, lineIdxAfter)
+		}
+		v.FocusPoint(0, lineIdxAfter, true)
+	} else {
+		if delta < 0 {
+			v.ScrollUp(-delta)
+		} else {
+			v.ScrollDown(delta)
+			self.c.ReadLinesToFillView(v)
+		}
+	}
+}
+
+func (self *MainViewController) handlePrevLine() error {
+	self.handleLineChange(-1)
+	return nil
+}
+
+func (self *MainViewController) handleNextLine() error {
+	self.handleLineChange(1)
+	return nil
+}
+
+func (self *MainViewController) handlePrevPage() error {
+	self.handleLineChange(-self.context.GetViewTrait().PageDelta())
+	return nil
+}
+
+func (self *MainViewController) handleNextPage() error {
+	self.handleLineChange(self.context.GetViewTrait().PageDelta())
+	return nil
+}
+
+func (self *MainViewController) handleGotoTop() error {
+	v := self.context.GetView()
+	if v.Highlight {
+		v.FocusPoint(0, 0, true)
+	} else {
+		self.handleLineChange(-v.ViewLinesHeight())
+	}
+	return nil
+}
+
+func (self *MainViewController) handleGotoBottom() error {
+	if manager := self.c.GetViewBufferManagerForView(self.context.GetView()); manager != nil {
+		manager.ReadToEnd(func() {
+			self.c.OnUIThread(func() error {
+				v := self.context.GetView()
+				if v.Highlight {
+					v.FocusPoint(0, v.ViewLinesHeight()-1, true)
+				} else {
+					self.handleLineChange(v.ViewLinesHeight())
+				}
+				return nil
+			})
+		})
+	}
+
+	return nil
 }
 
 // sidePanelShowsDiff reports whether the given side panel's focused main view
