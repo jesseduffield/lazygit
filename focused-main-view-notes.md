@@ -1936,3 +1936,284 @@ always had.
   §14.5/§16.4 *pinned-backend / incremental* optimization is still available if a
   very large changed diff ever lags: today it parses every file section even when
   metadata would answer, and re-snapshots per restore.
+
+---
+
+## 21. Session 11: merge staging + patch-building INTO the main view (the big reframe)
+
+A design discussion (no code yet). The realization that drives it: with the
+diff-line-metadata primitive (diff-line-metadata-notes.md), **the pager can now be
+used in the staging panel**, which was the long-standing blocker ("the staging
+panel needs to parse the diff; a pager breaks that, so I always said no"). And once
+that falls, a bigger one follows: if the staging view and the focused main view
+render identically and both carry a selection, **why have two views at all?** Fold
+staging *and* custom-patch-building directly into the main view — `space` stages the
+selected line/hunk/range in place, even in a multi-file diff. The separate
+`Staging`/`StagingSecondary`/`CustomPatchBuilder` views go away; `commitFiles` (and
+`files`) stay as *browsers*, but `enter` on a file just focuses the main view at
+that file's diff. This **changes the scope of the whole project**: the metadata
+primitive stops being a navigation nicety and becomes **load-bearing for core
+staging**.
+
+Decision (user, session 11): **prototype the whole package** rather than
+productionize the pre-session-11 state and defer the merge to a later release. The
+end state is far more coherent, and §15's stated reason for staying in prototype
+(make it a compelling OSC pitch) is *stronger* here — "stage against any conforming
+pager" beats "navigate a restructured diff" as a pitch.
+
+### 21.1 The core insight: we never needed to parse the *rendered* diff
+
+The old "can't use a pager in staging" objection was a *parsing* objection, but the
+staging path never actually parsed the rendered bytes. `applySelection`
+(`staging_controller.go:237-281`) does:
+
+```
+state.SelectedPatchRange() → patch.Parse(state.GetDiff()).Transform({IncludedLineIndices}).FormatPlain() → ApplyPatch
+```
+
+`state.GetDiff()` is the **raw `git diff`**, which lazygit already holds in full —
+it's the very input it feeds to the pager. The rendered view was only ever used to
+**map the user's on-screen selection to patch-line indices**. That mapping is
+*exactly* the diff-line-metadata primitive (`GetDiffLineInfo`,
+`PatchLineForLineNumber`/`PatchLineForOldLineNumber`, the row→identity resolvers).
+So the new chain is:
+
+```
+rendered row → (file, type, new/old-line)  [metadata]
+            → patch-line index in the raw diff  [PatchLineFor*LineNumber]
+            → existing Transform / ApplyPatch
+```
+
+Every link except the selection model already exists and is tested. The raw diff is
+kept regardless of how it's rendered, so the patch arithmetic is unchanged.
+
+### 21.2 Two risk tiers — don't lump staging and patch-building
+
+- **Staging merge (tractable).** The `Staging`/`StagingSecondary` contexts pass
+  `getIncludedLineIndices: nil` (`context/setup.go:44-57`) — staging needs **no
+  inclusion highlighting**. It needs only: range + hunk selection on rendered rows,
+  `space`-to-stage, and the row→patch-line mapping above. Hunk boundaries are
+  already derived from metadata (`AdjacentChangeBlock`, §16.2); the unstaged/staged
+  split + `<tab>` already exists as `Normal`/`NormalSecondary` (§14.3). Bounded,
+  mostly-built primitives.
+- **Patch-building merge (one genuinely new capability).** The `CustomPatchBuilder`
+  view renders *itself* via `state.RenderForLineIndices(included)` → `FormatView`
+  adds a green background to included lines (`patch/format.go:122-145`). **A pager
+  precludes this** — the pager owns the bytes and knows nothing about inclusion
+  state. So patch-building needs a **metadata-driven inclusion overlay** (§21.5),
+  the single biggest *new* piece. Isolate it.
+
+### 21.3 Resolved technical questions (grounded in the code)
+
+- **Transform copes with non-contiguous selections — confirmed by reading
+  `transform.go`.** `Transform` tests `IncludedLineIndices` membership **per body
+  line** (`lo.Contains`, `transform.go:150`); there is no contiguity requirement.
+  Today's contiguity is purely the *caller* passing `ExpandRange(first, last)`
+  (`staging_controller.go:252`). The `pendingContext` /
+  `didSeeUnselectedNewFileLine` machinery (`transform.go:137-200`) exists precisely
+  to handle a *partial* subset of a change block. Tracing the SxS case (select one
+  side-by-side row = `{−deleted_1, +added_1}`, skipping `−deleted_2`/`+added_2`)
+  yields a valid hunk: selected −/+ kept, the unselected deletion buffered as
+  context after the addition. So the user's "collect all records on the row, union,
+  feed to Transform" approach works **as-is**.
+- **SxS needs only an "all records on this row" accessor — NOT §17.4's row+column
+  bucketing resolver.** Staging collects *every* metadata record on a selected
+  rendered row and includes them all (left-column `d` + right-column `a` → stage
+  both). You can't stage just one side in a side-by-side rendering; **accepted
+  restriction** (uncommon; switch to a single-column pager or none to do it). This
+  *downgrades* the §17.4 resolver: the heavy bucketing is only needed for the
+  act-on-one-side gesture we're forgoing, so it gates **neither** staging nor
+  patch-building. The light per-row collector covers both.
+- **Only change-line (+/−) indices are needed.** Context lines are emitted
+  regardless of selection (`transform.go:152-157` doesn't check membership), so the
+  new model can ignore context entirely when building the included set.
+- **Async post-stage selection: the *decision* stays synchronous.** "What's the next
+  stageable hunk" is a patch-space computation over the new `git diff`, fetched
+  synchronously on refresh (as `RefreshStagingPanel` does today). Only *revealing*
+  it — scrolling the pager-rendered view there — is async, and that's the
+  restore-by-identity consumer (#6) already built: compute the target identity from
+  the new raw diff, install it as the pending restore, let the async render land on
+  it. No new async machinery; it rides `restoreDiffLinePositionOnRerender`.
+- **Multi-file staging is structural.** Metadata carries `file` per row, the patch
+  builder is file-keyed, and #1 already does multi-file splitting. A multi-file range
+  just loops per-file `Transform`/`ApplyPatch`. New loop, bounded.
+
+### 21.4 The metadata-reach boundary — the one real product unknown
+
+This is the part with no clean answer, and it's qualitatively different from
+everything before: until now every metadata feature was **optional** (old pager →
+lose the nicety, still use lazygit normally). Removing the staging panel makes a
+conforming rendering **required to stage at all**. The boundary, sharpened:
+
+- **First-class (no metadata pager needed):** no pager, `git diff --color`,
+  `delta --color-only` (no line numbers) — all served by buffer-parse (#1).
+- **Served via metadata:** any restructuring pager that emits the OSC (patched
+  delta/difftastic).
+- **The gap:** a **restructuring pager that does *not* emit metadata** (stock
+  delta-default, diff-so-fancy, plain difftastic). Only this bucket loses staging.
+
+Fallback options for that bucket, none chosen (deferred past the prototype — depends
+on protocol adoption, and the prototype proves the concept with a conforming pager
+regardless):
+
+- *Keep the staging panel as a fallback* — user's verdict: **bad**, resurrects the
+  whole second code path and forfeits the unification win.
+- *Render diffs without the pager when staging is possible* — note this is **not** a
+  dynamic switch (staging is possible whenever the main view is focused, so it would
+  fire essentially always / on focus, which is strange UX). Realistically it's a
+  *static* "this pager can't emit metadata → lazygit never uses it for diff views,"
+  decided once — i.e. the user's restructuring pager is simply unused inside
+  lazygit. A real loss, recorded honestly as an open question, not a clean fallback.
+- *Require a conforming rendering, hard* — simplest; excludes that bucket from
+  staging.
+
+**This is the decision that most needs the user's judgement, and it can wait.**
+
+### 21.5 The inclusion overlay (patch-building only) — reserved left column
+
+The new capability patch-building needs. Instead of `FormatView`'s first-char green
+background (impossible over pager output), lazygit paints **its own inclusion marker
+in a reserved left column**, driven by the per-row metadata identity checked against
+the included set. This stays **layout-agnostic** (works over any pager) and the user
+considers it a UI *improvement* over today's green overlay.
+
+- **The one-cell shift is intrinsic, not avoidable.** Staging the first hunk into a
+  custom patch *is* what creates the patch (and the column); unstaging the last *is*
+  what removes it. There is no persistent "patch-building context" to pre-reserve
+  during — the operations enter/exit it implicitly. Reserving the column
+  unconditionally in any view where a patch is *possible* would avoid the shift but
+  is a worse trade. Verdict: shift is inherent, probably fine.
+- **Highest-uncertainty NEW piece**, and independent of the staging selection
+  mechanics (needs only the metadata primitive + a gocui rendering change) → good
+  early de-risk spike (§21.7 step 2).
+
+### 21.6 Decided UX change: always show the selection, anchored at the first hunk
+
+Today the focused-main selection is **on-demand** (`space` toggles it, §4) and
+anchored at the **middle visible line** (§20). New model: **the selection is always
+shown**, and on focus it **starts at the first hunk** (exactly as entering the
+staging view does). This frees `space` for staging with no conflict, and is itself a
+**unification win** — the main view now behaves like the staging view (which always
+has a selection), the direction we're merging toward.
+
+- **Reverses two earlier decisions:** §4 ("`0` focuses with no selection / scroll
+  mode; `space` toggles") and §20 (middle-line anchor). Scrolling still works with a
+  selection shown (as in the staging view today); whether a no-selection scroll mode
+  survives at all is a step-0 detail.
+- Applies only to **diff** main views (files / commits / commit-files / stash),
+  **not** to non-diff main content (branch log, reflog, tags, …) where there is
+  nothing to act on — there the selection stays off (refined session 11; the
+  predicate is "is the main view showing a diff", e.g. via the side panel's
+  `DiffableContext`-ness — confirm the exact seam during step 1). Within diff views
+  `space` only *stages* where staging applies (files / commits-patch); `e`/`G`/`enter`,
+  currently gated on "selection showing," become always available there.
+
+### 21.7 The prototype sequence (linear — one session each, no parallel sessions)
+
+Dependency-first; the genuinely-unproven *capability* (the overlay) pulled early as
+a sequential de-risk spike. "Replaces the staging panel" milestone at step 5.
+
+- **Step 0 — Pin the interaction model + the selection-model fork (cheap, on
+  paper).** Keys (`space` = stage/unstage, range-select, hunk-toggle, `<tab>`
+  unstaged↔staged); fold in §21.6 (always-show selection at first hunk). The one real
+  fork: **adapt `patch_exploring.State` to be backend-agnostic vs. build a fresh
+  selection model on the main view keyed to rendered rows + metadata.** Lean:
+  build-fresh, reusing State's hunk arithmetic — but decide deliberately, it shapes
+  everything after.
+- **Step 1 — Single-line stage/unstage from the focused main view (working tree).**
+  Smallest end-to-end proof of the thesis: rendered row → `(file, patch-line)` →
+  `Transform` → `ApplyPatch`, no new selection model (single-line resolution already
+  works). Retires the central unknown for almost no code. **Start here.**
+- **Step 2 — Inclusion overlay in a reserved column (de-risk spike).** The one new
+  *capability*; independent of staging mechanics. Prove a metadata-driven left-column
+  marker over pager output. Done early because it's the biggest unknown — if it
+  fights us, we've spent little and learned the crux. (This is the "parallel" item
+  from the discussion, run linearly.)
+- **Step 3 — Range + hunk selection, single-column.** Build the step-0 selection
+  model; map a range/hunk → change-line index set → `Transform`. Validate on
+  single-column renderings (no pager, unified metadata-delta), one record per row.
+- **Step 4 — Multi-record-per-row (SxS) + multi-file.** Add the "all records on the
+  row" accessor (light SxS path, §21.3) and the per-file apply loop. Staging now
+  works over any conforming rendering.
+- **Step 5 — Staged/unstaged split + post-stage reveal.** Stage from `Normal` /
+  unstage from `NormalSecondary`, `<tab>`, synchronous next-hunk decision +
+  restore-by-identity reveal. **Milestone: the working-tree staging panel is
+  functionally replaced.** The escape-from-staging routing (§12.2 + the snapshot)
+  starts dissolving here.
+- **Step 6 — Patch-building from the main view.** Reframe `PatchBuilder` interaction
+  in identity terms; add/remove hunks from the commits/commitFiles main view, with
+  step 2's overlay showing membership.
+- **Step 7 — `enter` on a file focuses the main view, for *both* `commitFiles` and
+  `files`.** The browsers stay; `enter` focuses the main view at that file's diff
+  (with selection at the first hunk) instead of opening a separate explorer. Plus
+  patch-building from the whole-commit / per-file diff.
+- **Step 8 — Tear out the separate explorer views + escape/snapshot machinery.**
+  Cleanup, last, once nothing depends on them.
+
+**Decision gate after step 2:** if the overlay is clean and step 1 confirms the core
+chain, the rest is bounded execution.
+
+### 21.8 Decisions locked / open / memory
+
+- **Locked:** prototype the whole merge (don't stop-and-productionize first); SxS
+  staging includes all records on the row (no single-side gesture); inclusion overlay
+  = reserved left column (shift is intrinsic); selection always shown, anchored at the
+  first hunk (reverses §4 + §20); step 7 covers `files` *and* `commitFiles`; linear
+  sessions.
+- **Open (the real product unknown):** the §21.4 metadata-reach fallback for a
+  restructuring-pager-without-metadata user. Deferred past the prototype; depends on
+  OSC adoption.
+- **Carried forward:** the identity-restore machinery (`restoreDiffLinePositionOnRerender`)
+  stays — staging mutates the diff, so "stay put after staging" is the same consumer,
+  now *un*-entangled from a context switch. Concurrency stays mutex-based for now
+  ([[main-thread-over-mutexes-direction]]). Keep new concepts off existing clients
+  ([[isolate-new-concepts-from-clients]]). Resolve the overlay unknown in the
+  prototype ([[resolve-hard-unknowns-in-prototype]]).
+
+### 21.9 Session 12 (2026-06-18): Step 1 implemented + findings
+
+Steps 1+2-worth of behavior built (uncommitted, all green): **always-show selection
+in diff views, anchored at the first visible change line**, and **single-line
+directional staging on `space`**. Two corrections applied from interactive feedback:
+the predicate became the `types.DiffMainViewContext` marker interface (tagged on
+Files/LocalCommits/SubCommits/Stash/CommitFiles/ReflogCommits — *not* the
+`GetOnClickFocusedMainView`-sniffing first cut, which conflated "stageable" with
+"shows a diff"; reflog shows a diff via `git show` but isn't stageable), and the `0`
+anchor became "first change line at or below the viewport top" (`FirstChangeLineInView`)
+rather than jumping to the diff top.
+
+**Signed off as good-enough:** the `0`-while-scrolled anchor (will change anyway once
+hunk selection lands and is on by default); the one-hunk-stage case (only the tab
+title + the files-panel ` M`→`M ` status change — identical to pressing `space` on
+the file in the files panel, so fine).
+
+**Fixed this session:** `<tab>` between the unstaged/staged panes left *no* selection
+in either (leaving pane cleared `Highlight`; landing pane established none). Now
+`togglePanel` anchors the landing pane on its first visible change line via a shared
+`showInitialDiffSelection` helper (also used by `focusMainView`). Per-pane selection
+*memory* (like the staging view keeps) is not done — we re-anchor on each switch;
+fine for now.
+
+**The big-picture caveat the user raised:** Step 1 alone is *not* a usable experience
+— single-feature increments don't become testable until range/hunk selection (Step 3,
+hunk-select on by default) and the selection-lifecycle polish are in. Expect more
+rough edges to surface as we go; the ones known so far are below.
+
+**Two findings to carry forward (not fixed now):**
+
+- **The `GetOnStageFocusedMainView` handler-channel doesn't scale (architecture
+  debt, revisit for the real implementation).** The staging panel has *many* commands
+  beyond `space` (`d` discard a hunk, edit, and more); routing each through its own
+  side-panel handler channel (interface method + `BaseContext` field + `attach.go`
+  registration + `baseController` default) is too much boilerplate per command.
+  Accepted as a prototype expedient (user OK'd continuing for now), but the real
+  design wants a better mechanism — e.g. the focused main view *hosting* the
+  patch-explorer command set directly, or a shared staging-command controller bound
+  to the diff main contexts, rather than N bespoke delegation channels. Flag for
+  Step 8 / productionization.
+- **Delta's background-conveyed side is invisible under the selection highlight
+  (usability, future).** delta indicates added/deleted/context purely by background
+  colour, and the selection takes over the background — so you can't tell what kind
+  of line is selected. Needs a different way to mark the selected line(s) (e.g. a
+  gutter marker, a foreground/border treatment, or reserving a column — cf. the §21.5
+  inclusion overlay, same class of problem). Not for this prototype; keep in mind.
