@@ -196,6 +196,27 @@ func TestDiffLineMetadata(t *testing.T) {
 	assert.Equal(t, "@@ a header line with no metadata @@", v.BufferLines()[3])
 }
 
+func TestDiffLineMetadataPayloads(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	osc := func(payload string) string { return "\x1b]1717;" + payload + "\x1b\\" }
+	v.writeString(strings.Join([]string{
+		// A single-column row: one payload tags the whole line.
+		osc("1;c;1;;foo.txt") + "context",
+		// A side-by-side change row: the deletion tags the left half and the
+		// addition replacing it tags the right half of the same rendered line.
+		osc("1;d;2;2;foo.txt") + "old2  " + osc("1;a;2;;foo.txt") + "new2",
+		// A header line with no metadata.
+		"@@ header @@",
+	}, "\n"))
+
+	assert.Equal(t, [][]string{
+		{"1;c;1;;foo.txt"},
+		{"1;d;2;2;foo.txt", "1;a;2;;foo.txt"},
+		nil,
+	}, v.DiffLineMetadataPayloads())
+}
+
 // When a re-render produces fewer view lines than the previous one,
 // refreshViewLinesIfNeeded must truncate viewLines to the new content. If it
 // didn't (it used to overwrite in place and keep the tail), a reader could map a
