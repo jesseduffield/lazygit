@@ -281,7 +281,30 @@ func (self *MainViewController) stageSelectedLine() error {
 	if handler == nil {
 		return nil
 	}
-	first, last := self.context.GetView().SelectedLineRange()
+
+	v := self.context.GetView()
+	first, last := v.SelectedLineRange()
+
+	// Staging consumes the selected range, so a range selection collapses back to a
+	// single line; hunk mode stays on, to land on the next hunk.
+	sel := self.sel()
+	if sel.Mode == context.DiffSelectModeRange {
+		sel.Mode = context.DiffSelectModeLine
+		sel.RangeIsSticky = false
+	}
+
+	// The diff re-renders after staging; install a restore (before the handler
+	// triggers that re-render) so the selection lands on the next change rather than
+	// at a now-meaningless position.
+	self.c.Helpers().Staging.RevealSelectionAfterStaging(v, first, last, func(viewLine int) {
+		if self.sel().Mode == context.DiffSelectModeHunk {
+			self.selectHunkAround(viewLine)
+		} else {
+			v.CancelRangeSelect()
+			showSelectionAtLine(v, viewLine, true)
+		}
+	})
+
 	return handler(self.context.GetViewName(), first, last)
 }
 

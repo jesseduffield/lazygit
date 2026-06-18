@@ -401,6 +401,8 @@ var tests = []*components.IntegrationTest{
 	staging.DiscardAllChanges,
 	staging.Search,
 	staging.SelectHunkOnFocusingMainView,
+	staging.SelectNextHunkAfterStagingFromMainView,
+	staging.SelectNextHunkAfterUnstagingFromMainView,
 	staging.SelectNextLineAfterStagingInTwoHunkDiff,
 	staging.SelectNextLineAfterStagingIsolatedAddedLine,
 	staging.StageHunkFromMainView,
