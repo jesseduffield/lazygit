@@ -220,19 +220,46 @@ func (self *StagingHelper) GetDiffLineInfoForView(v *gocui.View, viewLineIdx int
 	return self.diffLineInfoFromContents(v.DiffLineContents(), bufferLineIdx)
 }
 
-// findResolvedDiffLine returns the index of the first line, at or after from, whose
-// patch identity matches target (see types.DiffLineInfo.SamePatchLine), or -1 if
-// none does. It is the inverse direction of the diff-line primitive: instead of
-// resolving the line under a cursor, it scans a rendered diff (resolved once via
-// resolveDiffLines) for a known identity. The position restore uses it to locate,
-// in the re-rendered view, the line it wants to land on.
-func findResolvedDiffLine(resolved []resolvedDiffLine, target types.DiffLineInfo, from int) int {
+// findResolvedDiffLine returns the index of the first line, at or after from, that
+// match accepts as the target, or -1 if none does. It is the inverse direction of the
+// diff-line primitive: instead of resolving the line under a cursor, it scans a
+// rendered diff (resolved once via resolveDiffLines) for a known identity. The
+// position restore uses it to locate, in the re-rendered view, the line it wants to
+// land on; match is how that restore decides a row is the target (see diffLineMatch).
+func findResolvedDiffLine(resolved []resolvedDiffLine, target types.DiffLineInfo, match diffLineMatch, from int) int {
 	for i := from; i < len(resolved); i++ {
-		if resolved[i].ok && resolved[i].info.SamePatchLine(target) {
+		if resolved[i].ok && match(target, resolved[i].info) {
 			return i
 		}
 	}
 	return -1
+}
+
+// diffLineMatch decides whether a re-rendered row is the target a restore is looking
+// for. The right notion of "same line" depends on what changed between the captured
+// identity and the re-render — see matchByPatchLine and matchByWorktreeChange.
+type diffLineMatch func(target, row types.DiffLineInfo) bool
+
+// matchByPatchLine matches by source-line number (DiffLineInfo.SamePatchLine). It is
+// for restores whose target keeps its source-line number across the re-render — the
+// escape restore and the context-size preserve, which re-render the same
+// staged/unstaged state, so only context lines (not change lines) can come or go.
+func matchByPatchLine(target, row types.DiffLineInfo) bool {
+	return row.SamePatchLine(target)
+}
+
+// matchByWorktreeChange matches a change line by its worktree (new-file) line number
+// and side (deletion vs addition). It is for the post-stage reveal: staging shifts the
+// index-side line numbers of the hunks below it, so matchByPatchLine — which keys a
+// deletion on its old-file number — would miss the next hunk; but staging never moves
+// the worktree, so the new-file number is stable. Requiring a change line also keeps a
+// candidate from colliding with a header or context row. Landing anywhere in the right
+// block is enough (selectHunkAround expands to the whole block), so the new-file
+// number's ambiguity between two consecutive deletions doesn't matter here.
+func matchByWorktreeChange(target, row types.DiffLineInfo) bool {
+	return target.IsChange() && row.IsChange() &&
+		row.NewLine == target.NewLine &&
+		(row.Type == types.DiffLineDeleted) == (target.Type == types.DiffLineDeleted)
 }
 
 // RestoreFocusedMainViewOnEscape arranges, when escaping a patch explorer back to
@@ -255,7 +282,7 @@ func (self *StagingHelper) RestoreFocusedMainViewOnEscape(explorerView, mainView
 		return
 	}
 
-	self.restoreDiffLinePositionOnRerender(mainView, []diffLineAnchor{{identity: target}}, func(_ diffLineAnchor, viewLine int) {
+	self.restoreDiffLinePositionOnRerender(mainView, []diffLineAnchor{{identity: target}}, matchByPatchLine, func(_ diffLineAnchor, viewLine int) {
 		// scrollIntoView centres the line if it's off-screen, and leaves the scroll
 		// untouched if it's already visible — so for the common unchanged-content
 		// escape (the placeholder is the same content at the same scroll) nothing
@@ -302,7 +329,7 @@ func (self *StagingHelper) RevealSelectionAfterStaging(sourceView *gocui.View, t
 	}
 	addByViewLine(firstLine)
 
-	self.restoreDiffLinePositionOnRerender(targetView, candidates, func(_ diffLineAnchor, viewLine int) {
+	self.restoreDiffLinePositionOnRerender(targetView, candidates, matchByWorktreeChange, func(_ diffLineAnchor, viewLine int) {
 		place(viewLine)
 	})
 }
@@ -316,19 +343,21 @@ type diffLineAnchor struct {
 }
 
 // restoreDiffLinePositionOnRerender installs a restore on view's render manager so
-// that, as view next re-renders, it lands on a row matching one of the given
-// candidate identities, and calls place with that candidate and its view line to
+// that, as view next re-renders, it lands on a row that match accepts as one of the
+// given candidate identities, and calls place with that candidate and its view line to
 // position and/or select it. candidates are in priority order (nearest first); the
-// restore lands on the first one that the re-render still contains. If none turns up
-// (the content changed out from under all of them) place is not called and the view
-// just re-renders normally.
+// restore lands on the first one the re-render still contains. If none turns up (the
+// content changed out from under all of them) place is not called and the view just
+// re-renders normally. match decides what "still contains" means, since the stable
+// notion of identity differs by what changed in the re-render (see diffLineMatch).
 //
-// It is the context-neutral core behind both restoring the focused main view on
-// escape (one candidate — the line the patch explorer had selected — placed by
-// scrolling to and selecting it) and preserving a diff view's position when its -U
-// context size changes (several candidates around the anchor, placed back where they
-// were; see PreserveDiffPositionOnRerender).
-func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, candidates []diffLineAnchor, place func(anchor diffLineAnchor, viewLine int)) {
+// It is the context-neutral core behind the three position restores: the post-stage
+// reveal (candidates around the staged line, matched by worktree change so they
+// survive the index-side line-number shift), restoring the focused main view on escape
+// (one candidate — the line the patch explorer had selected), and preserving a diff
+// view's position when its -U context size changes (several candidates around the
+// anchor, placed back where they were; see PreserveDiffPositionOnRerender).
+func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, candidates []diffLineAnchor, match diffLineMatch, place func(anchor diffLineAnchor, viewLine int)) {
 	if len(candidates) == 0 {
 		return
 	}
@@ -360,7 +389,7 @@ func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, c
 			if primaryBufferLine == -1 {
 				newRows := view.OffscreenDiffLineContentsFrom(scanned)
 				for j, content := range newRows {
-					if info, ok := self.diffLineInfoPerRow(content); ok && info.SamePatchLine(candidates[0].identity) {
+					if info, ok := self.diffLineInfoPerRow(content); ok && match(candidates[0].identity, info) {
 						primaryBufferLine = scanned + j
 						break
 					}
@@ -388,7 +417,7 @@ func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, c
 			} else {
 				resolved := self.resolveDiffLines(view.OffscreenDiffLineContents())
 				for i, candidate := range candidates {
-					if line := findResolvedDiffLine(resolved, candidate.identity, 0); line != -1 {
+					if line := findResolvedDiffLine(resolved, candidate.identity, match, 0); line != -1 {
 						matched, bufferLine = i, line
 						break
 					}
@@ -442,7 +471,7 @@ func (self *StagingHelper) PreserveDiffPositionOnRerender(view *gocui.View) {
 		anchorViewLine = view.SelectedLineIdx()
 	}
 
-	self.restoreDiffLinePositionOnRerender(view, self.nearbyDiffLines(view, anchorViewLine), func(anchor diffLineAnchor, viewLine int) {
+	self.restoreDiffLinePositionOnRerender(view, self.nearbyDiffLines(view, anchorViewLine), matchByPatchLine, func(anchor diffLineAnchor, viewLine int) {
 		// Put the landed line back on the screen row it was captured on, clamped into
 		// the view in case it was off-screen (a fallback line can be), so the restore
 		// always lands somewhere visible.
