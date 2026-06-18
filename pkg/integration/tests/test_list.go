@@ -403,6 +403,7 @@ var tests = []*components.IntegrationTest{
 	staging.StagePartialBlockOfChangesLastLines,
 	staging.StagePartialBlockOfChangesMiddleLines,
 	staging.StageRangeFromMainView,
+	staging.StageRangeSpanningFilesFromMainView,
 	staging.StageRanges,
 	stash.Apply,
 	stash.ApplyPatch,

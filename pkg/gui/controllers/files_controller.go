@@ -474,9 +474,7 @@ func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName strin
 		}
 
 		node := self.context().GetSelected()
-		if node == nil || !node.IsFile() {
-			// Staging from a multi-file (directory) diff is a later step; for now
-			// only single-file diffs are stageable from the focused main view.
+		if node == nil {
 			return nil
 		}
 
@@ -485,22 +483,51 @@ func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName strin
 			return nil
 		}
 
-		// The staged diff is shown in the secondary half of a split, and in the main
-		// half when the file has only staged changes; in those cases space unstages,
-		// otherwise it stages.
+		// The whole diff shown in the main view is on one side — the staged diff in
+		// the secondary half of a split, and in the main half when there are only
+		// staged changes; in those cases space unstages, otherwise it stages. The
+		// direction is the same for every file in a multi-file (directory) diff.
 		_, mainShowsStaged := self.diffSplitState(node)
-		staged := mainShowsStaged || mainViewName == self.c.Contexts().NormalSecondary.GetViewName()
+		reverse := mainShowsStaged || mainViewName == self.c.Contexts().NormalSecondary.GetViewName()
 
-		return self.stageDiffLines(node.File, infos, staged)
+		// A directory diff spans several files; group the selected change lines by
+		// file and apply one patch per file.
+		infosByFile := lo.GroupBy(infos, func(info types.DiffLineInfo) string { return info.Path })
+
+		self.c.LogAction(self.c.Tr.Actions.ApplyPatch)
+		for path, fileInfos := range infosByFile {
+			file := self.fileForDiffLinePath(path)
+			if file == nil {
+				continue
+			}
+			if err := self.stageDiffLines(file, fileInfos, reverse); err != nil {
+				return err
+			}
+		}
+
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
+		return nil
 	}
 }
 
+// fileForDiffLinePath maps a diff line's absolute file path (as carried by the
+// diff-line metadata) to the working-tree file it belongs to, or nil if it isn't a
+// tracked working-tree file.
+func (self *FilesController) fileForDiffLinePath(path string) *models.File {
+	relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), path)
+	if err != nil {
+		return nil
+	}
+	return self.context().FileTreeViewModel.GetFile(filepath.ToSlash(relativePath))
+}
+
 // stageDiffLines stages, or when reverse is true unstages, the diff lines identified
-// by infos (a single line, a range, or a hunk). It builds one patch from the file's
-// diff including all the selected change lines and applies it the same way the
-// staging view does, but identifies the patch lines from the diff-line metadata
-// rather than from a patch-explorer selection. A selection covering no change lines
-// yields an empty patch and is a no-op.
+// by infos (a single line, a range, or a hunk) — all belonging to file. It builds one
+// patch from the file's diff including all the selected change lines and applies it
+// the same way the staging view does, but identifies the patch lines from the
+// diff-line metadata rather than from a patch-explorer selection. A selection
+// covering no change lines yields an empty patch and is a no-op. The caller logs the
+// action and refreshes, once, around the (possibly several) files it stages.
 //
 // Each selected change line is keyed by its (file line number, deletion?) identity,
 // and the freshly parsed patch is scanned for the body lines matching those
@@ -549,16 +576,10 @@ func (self *FilesController) stageDiffLines(file *models.File, infos []types.Dif
 		return nil
 	}
 
-	self.c.LogAction(self.c.Tr.Actions.ApplyPatch)
-	if err := self.c.Git().Patch.ApplyPatch(patchToApply, git_commands.ApplyPatchOpts{
+	return self.c.Git().Patch.ApplyPatch(patchToApply, git_commands.ApplyPatchOpts{
 		Reverse: reverse,
 		Cached:  true,
-	}); err != nil {
-		return err
-	}
-
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
-	return nil
+	})
 }
 
 // if we are dealing with a status for which there is no key in this map,
