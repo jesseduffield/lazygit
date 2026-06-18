@@ -2544,3 +2544,52 @@ pager-agnostic), but a quick confirm doesn't hurt.
 **Still open (unchanged):** the deleted-file usability note above (`MD` vs `D`); §12.2's
 custom-patch-builder escape routing is a *patch-building* concern, not part of the merged
 working-tree staging milestone.
+
+### 21.15 Session 15 (2026-06-18): rebased onto the wrapped-fill branch; two step-5 reveal bugs fixed
+
+Step-5-part-2 interactive testing surfaced two bugs, both fixed. First, though, the prototype
+was **rebased onto master after merging `fix-coloring-of-wrapped-delta-lines`** (the `lineType`
+struct, sentinel removal, draw-time `trailingFillAttributes` fill). The user dropped that branch's
+"inline finishLine" commit so `finishLine` survives as the home for the metadata fix below
+([[clean-history-no-back-and-forth]]).
+
+**Bug 1 — blank changed lines lost their metadata under delta (commit `03b747739`).** With a
+**colored** input diff (which lazygit feeds delta via `--color=always`), delta renders some blank
+deleted/added lines as just the OSC 1717 metadata + an empty line — either no fill at all, or a
+background + `ESC[0K` that the wrapped-fill branch now turns into a draw-time attribute rather than
+content cells. Either way the line has **no cells**, so its metadata had nowhere to live and the
+line resolved to "not a change" — splitting a hunk at the blank line (`0` selected only the part
+above it). Fix: `finishLine` keeps a content-less sentinel cell **only when there's pending OSC
+metadata** to carry (not the old unconditional sentinel + `prevFgColor` coupling that `7dc18f3eb`
+removed). Reproduced offline only after matching the real pipeline exactly: **colored** git diff,
+`TERM=dumb`, truecolor (`COLORTERM` is passed through to the pager — lazygit strips only `TERM*`),
+and a `gocui.View` in `OutputTrue` mode. (256-color SGR leaking was a *test artifact* of using
+`OutputNormal`; under `OutputTrue` it parses fine, so no real gap. `swallow-unknown-escape-sequences`
+is orthogonal — it stops *unknown* sequences leaking under lower modes.)
+
+**Bug 2 — the post-stage reveal jumped to an earlier hunk (commit `9fb3c11cc`).** The reveal
+captured the next/prev change block as a patch identity and matched it in the re-render via
+`SamePatchLine`, which keys a **deletion** on its **old-file (index) line number**. Staging a hunk
+that changes the line count shifts the index-side numbers of every hunk below it, so a deletion-led
+"next hunk" candidate no longer matched; the reveal fell back to a worse candidate, often colliding
+with a header/context row (`findResolvedDiffLine` didn't require a change line) and, in hunk mode,
+snapping to the *first* change block — i.e. an earlier hunk. (Proven by instrumenting the match:
+candidate `-e` was `{NewLine:7, OldLine:5}` pre-stage, `{NewLine:7, OldLine:7}` post-stage.) Fix: a
+**reveal-specific matcher `matchByWorktreeChange`** — match a change line by its worktree (new-file)
+number, which staging never moves, requiring the same side. Safe because the reveal only targets
+change blocks and `selectHunkAround` expands the whole block, so the new-file number's
+consecutive-deletion ambiguity (the reason `SamePatchLine` uses old-file) doesn't matter. The
+matching is now a `diffLineMatch` parameter of `restoreDiffLinePositionOnRerender`; the **escape
+restore and `-U` preserve keep `matchByPatchLine`** (same staged state → no shift; `-U` deliberately
+anchors on context lines). Regression test:
+`advance_to_next_hunk_after_staging_shifts_line_numbers` (lands on the earlier hunk without the fix).
+The escape restore has the same staging-shift exposure but is **left as-is** — it dissolves with the
+staging panel when this feature lands.
+
+**Also:** a latent bug the prototype's off-screen render exposed in the rebased wrapped-fill code —
+`parseInput` wrote `trailingFillAttributes` to `v.buf` instead of `b` (wrong buffer during an
+off-screen render; could panic). User fixed it (`ba3389562`, fixup).
+
+**Status:** all three repos' tests green (`unit-test`, `e2e-all`, `lint`). Step-5 staging now holds
+up under delta on diffs with blank changed lines and line-count-changing hunks. User to re-test for
+any remaining reveal misfires (their original report predates both fixes).
