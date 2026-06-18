@@ -2470,3 +2470,77 @@ staging panel could produce, but there you had to deliberately enter staging on 
 file, so it was unlikely; here it happens easily. Consider special-casing: when a deleted
 file's *entire content* is selected/staged, stage the file deletion itself (→ `D`). Belongs
 near the per-file apply loop in `stageDiffLines`/the handler.
+
+### 21.14 Session 14 (2026-06-18): Step 5 part 2 done — focus follows the acted-on side
+
+**Milestone reached: the working-tree staging panel is functionally replaced.** Committed
+(most recent last):
+
+```
+e36b6ceaa Let the post-stage reveal target a different pane than the one acted on   (prep)
+2b3ac3017 Follow the acted-on side to the right pane after staging from the main view (behavior + tests)
+```
+
+**Open Q resolved: the re-render is QUEUED, the model is updated SYNCHRONOUSLY.** The handler
+(`FilesController.GetOnStageFocusedMainView`) calls `Refresh({FILES, STAGING})` in the default
+**SYNC** mode, whose files goroutine updates `Model().Files` + `SetTree()` synchronously and is
+`wg.Wait()`ed on — so by the time the handler returns, `node.GetHasStagedChanges()` /
+`GetHasUnstagedChanges()` (hence `diffSplitState`) reflect the post-op state. But the *main-view
+re-render* is deferred: `refreshFilesAndSubmodules` → `OnUIThread(refreshView(Files))` →
+`OnUIThread(postRefreshUpdate(Files))` → (we're focused on a `NORMAL`/`NORMAL_SECONDARY` context,
+so [`view_helpers.go`] `postRefreshUpdate` line ~146 takes the `NextInStack` branch) →
+`Files.HandleRenderToMain()` → `FilesController.GetOnRenderToMain`'s closure renders both panes.
+All on later UI-loop iterations, after `stageSelectedLine` returns. So §21.13's "if queued"
+branch holds: **decide focus + install the reveal after the handler returns; the reveal rides the
+queued render.**
+
+**The unified rule (as predicted in §21.13), implemented:** the handler returns the
+focused-main view name that should hold focus — `NormalSecondary` iff (unstaging **and** post-op
+split), else `Normal` — and `MainViewController.stageSelectedLine` re-selects in that pane and
+`Push`es it. The decision is files-specific (reverse + split), so it lives in the handler; the
+GUI mechanics (focus switch, select mode, reveal install) stay in the controller. The
+`onStageFocusedMainViewFn` signature gained a `(focusViewName string, err error)` return; `""`
+= nothing staged (skip the reveal — also fixes a latent part-1 wart where a no-op stage left a
+lingering restore).
+
+**The cross-pane wrinkle (decision I made; wasn't fully spelled out in §21.13):** when focus
+crosses to the other pane, the **selection follows too** — a focused pane with no selection is
+exactly the "invisible selection" bug part 1 fixed. So the reveal's candidate change lines are
+read from the pane we **acted in** (still showing the pre-staging diff until the queued render),
+but the restore is installed on, and re-selects in, the **target** pane. Two enabling pieces, in
+the prep commit:
+- `RevealSelectionAfterStaging(sourceView, targetView, …)` — candidates from `sourceView`, restore
+  on `targetView`. Identity matching survives the stage/unstage flip because `SamePatchLine` keys
+  on (path, source-line, isDeletion) — **not** the staged/unstaged side — so a staged hunk's
+  identity is found again in the unstaged re-render and vice-versa.
+- **Get-or-create the target's buffer manager** (`GetOrCreateViewBufferManagerForView` on
+  IGuiCommon → `gui.getManager`). The only-staged→split case focuses `NormalSecondary`, which may
+  never have rendered, so its manager doesn't exist yet; `SetRestoreForNextTask` needs it to exist
+  before the queued render reuses it. Verified safe to pre-create: a fresh manager is
+  `!IsLoading()` and its `ReadLines` no-ops (nil `readLines` channel), so the layout clamp
+  ([`layout.go`]) behaves identically. The target also inherits the source's `DiffSelectState`
+  (line/hunk mode) via a struct copy (`*target = *source`; a no-op self-copy in the same-pane case).
+
+**`Push`ing a MainContext is render-safe:** Normal/NormalSecondary have no `onRenderToMainFn`
+(SimpleContext.HandleFocus only fires `onFocusFns` for them — `GetOnFocus` resets
+`HighlightInactive`), so the focus switch can't render prematurely or consume the restore. The
+queued `postRefreshUpdate` does the render, and `NextInStack(NormalSecondary)` is still Files, so
+both panes re-render.
+
+**Tests (both cross-pane; same-pane cases already covered by the part-1 tests):**
+`focus_follows_staged_side_to_secondary_after_unstaging` (the user-reported bug: only-staged →
+unstage first hunk → split → focus + selection move to `Secondary` on the next staged hunk) and
+`focus_returns_to_main_after_unstaging_last_staged_hunk` (original part-2: unstage the only
+staged hunk from `Secondary` → split collapses → focus + selection return to `Main` on the
+now-unstaged change). Full `e2e-all` green (incl. the previously direnv-flaky worktree test),
+`unit-test` + `lint` clean.
+
+**Interactive sign-off pending.** Not yet eyeballed in the real app. Worth a live pass on: the two
+cross-pane cases above; the same-pane cases still feel right; and the **multi-file directory
+diff** focus-follow (handler reads the *directory* node's aggregate split — should be correct but
+isn't e2e-tested). The SxS/delta paths aren't affected by this change (focus logic is
+pager-agnostic), but a quick confirm doesn't hurt.
+
+**Still open (unchanged):** the deleted-file usability note above (`MD` vs `D`); §12.2's
+custom-patch-builder escape routing is a *patch-building* concern, not part of the merged
+working-tree staging milestone.
