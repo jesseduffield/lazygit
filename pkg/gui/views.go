@@ -106,6 +106,9 @@ func (gui *Gui) createAllViews() error {
 		view.AutoRenderHyperLinks = true
 	}
 
+	gui.Views.Main.HighlightInset = 3
+	gui.Views.Secondary.HighlightInset = 3
+
 	gui.Views.Staging.Wrap = true
 	gui.Views.StagingSecondary.Wrap = true
 	gui.Views.PatchBuilding.Wrap = true
