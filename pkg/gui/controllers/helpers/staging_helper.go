@@ -270,32 +270,39 @@ func (self *StagingHelper) RestoreFocusedMainViewOnEscape(explorerView, mainView
 // focused main view's diff, for the selection to land on the change nearest the one
 // just acted on rather than at a stale (and possibly off-content) position — the same
 // "advance to the next change" the staging view does. firstLine and lastLine bound
-// the just-staged selection in the current (pre-staging) diff; place positions and
-// re-selects the landed line in the current select mode. Install it before triggering
-// the re-render: it rides the next render of view, like RestoreFocusedMainViewOnEscape.
+// the just-staged selection in sourceView's current (pre-staging) diff; place
+// positions and re-selects the landed line in the current select mode. Install it
+// before triggering the re-render: it rides the next render of targetView, like
+// RestoreFocusedMainViewOnEscape.
+//
+// sourceView is the pane the user acted in; targetView is the pane to re-select in.
+// They are usually the same, but staging or unstaging can move the acted-on side to
+// the other pane — e.g. unstaging the first hunk of an only-staged file splits it,
+// pushing the staged remainder to the secondary half — in which case the candidate
+// lines, captured from sourceView, are found again in targetView's re-render.
 //
 // The candidates, in priority order, are the change block after the selection, then
 // the one before it (both survive staging — only the selection itself was staged),
 // then the selection's own first line, which only turns up when the whole side was
 // staged and the view flips to show the other (staged) side. If none survives, place
 // isn't called and the view re-renders without moving the selection.
-func (self *StagingHelper) RevealSelectionAfterStaging(view *gocui.View, firstLine int, lastLine int, place func(viewLine int)) {
+func (self *StagingHelper) RevealSelectionAfterStaging(sourceView *gocui.View, targetView *gocui.View, firstLine int, lastLine int, place func(viewLine int)) {
 	var candidates []diffLineAnchor
 	addByViewLine := func(viewLine int) {
-		if info, ok := self.GetDiffLineInfoForView(view, viewLine); ok {
+		if info, ok := self.GetDiffLineInfoForView(sourceView, viewLine); ok {
 			candidates = append(candidates, diffLineAnchor{identity: info})
 		}
 	}
 
-	if next, ok := self.AdjacentChangeBlock(view, lastLine, true); ok {
+	if next, ok := self.AdjacentChangeBlock(sourceView, lastLine, true); ok {
 		addByViewLine(next)
 	}
-	if prev, ok := self.AdjacentChangeBlock(view, firstLine, false); ok {
+	if prev, ok := self.AdjacentChangeBlock(sourceView, firstLine, false); ok {
 		addByViewLine(prev)
 	}
 	addByViewLine(firstLine)
 
-	self.restoreDiffLinePositionOnRerender(view, candidates, func(_ diffLineAnchor, viewLine int) {
+	self.restoreDiffLinePositionOnRerender(targetView, candidates, func(_ diffLineAnchor, viewLine int) {
 		place(viewLine)
 	})
 }
@@ -325,7 +332,10 @@ func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, c
 	if len(candidates) == 0 {
 		return
 	}
-	manager := self.c.GetViewBufferManagerForView(view)
+	// Get-or-create: the target pane may not have rendered yet (the secondary half
+	// when a stage/unstage first splits the diff), so the restore has to be set on a
+	// manager that the upcoming render will then reuse.
+	manager := self.c.GetOrCreateViewBufferManagerForView(view)
 	if manager == nil {
 		return
 	}
