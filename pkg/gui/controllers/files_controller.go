@@ -457,8 +457,8 @@ func (self *FilesController) diffSplitState(node *filetree.FileNode) (split bool
 	return split, mainShowsStaged
 }
 
-func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName string, viewLineIdx int) error {
-	return func(mainViewName string, viewLineIdx int) error {
+func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+	return func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
 		if self.c.UserConfig().Git.DiffContextSize == 0 {
 			return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToStage,
 				self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
@@ -466,13 +466,13 @@ func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName strin
 
 		node := self.context().GetSelected()
 		if node == nil || !node.IsFile() {
-			// Staging a line of a multi-file (directory) diff is a later step; for
-			// now only single-file diffs are stageable from the focused main view.
+			// Staging from a multi-file (directory) diff is a later step; for now
+			// only single-file diffs are stageable from the focused main view.
 			return nil
 		}
 
-		info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, viewLineIdx)
-		if !ok {
+		infos := self.c.Helpers().Staging.ChangeLinesInViewRange(mainViewName, firstLineIdx, lastLineIdx)
+		if len(infos) == 0 {
 			return nil
 		}
 
@@ -482,28 +482,57 @@ func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName strin
 		_, mainShowsStaged := self.diffSplitState(node)
 		staged := mainShowsStaged || mainViewName == self.c.Contexts().NormalSecondary.GetViewName()
 
-		return self.stageDiffLine(node.File, info, staged)
+		return self.stageDiffLines(node.File, infos, staged)
 	}
 }
 
-// stageDiffLine stages, or when reverse is true unstages, the single diff line
-// identified by info. It builds a one-line patch from the file's diff and applies
-// it the same way the staging view does, but resolves the patch line from the
-// diff-line metadata rather than from a patch-explorer selection. A context or
-// header line yields an empty patch and is a no-op.
-func (self *FilesController) stageDiffLine(file *models.File, info types.DiffLineInfo, reverse bool) error {
+// stageDiffLines stages, or when reverse is true unstages, the diff lines identified
+// by infos (a single line, a range, or a hunk). It builds one patch from the file's
+// diff including all the selected change lines and applies it the same way the
+// staging view does, but identifies the patch lines from the diff-line metadata
+// rather than from a patch-explorer selection. A selection covering no change lines
+// yields an empty patch and is a no-op.
+//
+// Each selected change line is keyed by its (file line number, deletion?) identity,
+// and the freshly parsed patch is scanned for the body lines matching those
+// identities. Scanning the patch and matching identities — rather than looking each
+// line number up with PatchLineForLineNumber — is what makes a modified line work: a
+// deletion and the addition replacing it share a position but have distinct
+// identities, and the line-number lookup can't tell an addition at the start of a
+// hunk from the deletion above it.
+func (self *FilesController) stageDiffLines(file *models.File, infos []types.DiffLineInfo, reverse bool) error {
 	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, true, reverse))
 
-	lineNumber, isDeletion := info.PatchSelectLine()
-	patchLineIdx := parsedPatch.PatchLineForLineNumber(lineNumber)
-	if isDeletion {
-		patchLineIdx = parsedPatch.PatchLineForOldLineNumber(lineNumber)
+	type changeLineKey struct {
+		lineNumber int
+		isDeletion bool
+	}
+	selected := make(map[changeLineKey]bool, len(infos))
+	for _, info := range infos {
+		lineNumber, isDeletion := info.PatchSelectLine()
+		selected[changeLineKey{lineNumber, isDeletion}] = true
+	}
+
+	var patchLineIndices []int
+	for idx, line := range parsedPatch.Lines() {
+		var key changeLineKey
+		switch {
+		case line.IsAddition():
+			key = changeLineKey{parsedPatch.LineNumberOfLine(idx), false}
+		case line.IsDeletion():
+			key = changeLineKey{parsedPatch.OldLineNumberOfLine(idx), true}
+		default:
+			continue
+		}
+		if selected[key] {
+			patchLineIndices = append(patchLineIndices, idx)
+		}
 	}
 
 	patchToApply := parsedPatch.
 		Transform(patch.TransformOpts{
 			Reverse:             reverse,
-			IncludedLineIndices: []int{patchLineIdx},
+			IncludedLineIndices: patchLineIndices,
 			FileNameOverride:    file.GetPath(),
 		}).
 		FormatPlain()

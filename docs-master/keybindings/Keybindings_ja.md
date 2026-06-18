@@ -194,6 +194,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
 | `` <esc> `` | サイドパネルに戻る |  |
 | `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
+| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 範囲選択を切り替え |  |
 | `` <left>, h `` | 前のハンクに移動 |  |
 | `` <right>, l `` | 次のハンクに移動 |  |
 | `` N `` | Go to previous file |  |
@@ -312,6 +314,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
 | `` <esc> `` | サイドパネルに戻る |  |
 | `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
+| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 範囲選択を切り替え |  |
 | `` <left>, h `` | 前のハンクに移動 |  |
 | `` <right>, l `` | 次のハンクに移動 |  |
 | `` N `` | Go to previous file |  |

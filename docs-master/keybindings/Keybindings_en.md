@@ -225,6 +225,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Stage | Toggle selection staged / unstaged. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | Toggle range select |  |
 | `` <left>, h `` | Go to previous hunk |  |
 | `` <right>, l `` | Go to next hunk |  |
 | `` N `` | Go to previous file |  |
@@ -335,6 +337,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Stage | Toggle selection staged / unstaged. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | Toggle range select |  |
 | `` <left>, h `` | Go to previous hunk |  |
 | `` <right>, l `` | Go to next hunk |  |
 | `` N `` | Go to previous file |  |

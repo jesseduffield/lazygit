@@ -81,6 +81,60 @@ func (self *StagingHelper) FirstChangeLineInView(view *gocui.View) (int, bool) {
 	return 0, false
 }
 
+// ChangeBlockBounds returns the view-line range [start, end] of the change block
+// (lazygit's notion of a hunk; see AdjacentChangeBlock) to select when entering or
+// moving in hunk mode in view's displayed diff. The block is the one containing
+// anchorViewLine, or — when that line is context — the first block at or below it
+// (matching how toggling hunk mode in the staging view snaps to the next change).
+// ok is false when no change line lies at or below the anchor (e.g. scrolled into
+// trailing context, or the diff isn't loaded that far yet).
+func (self *StagingHelper) ChangeBlockBounds(view *gocui.View, anchorViewLine int) (int, int, bool) {
+	anchor, ok := view.BufferLineForViewLine(anchorViewLine)
+	if !ok {
+		return 0, 0, false
+	}
+
+	resolved := self.resolveDiffLines(view.DiffLineContents())
+	isChange := make([]bool, len(resolved))
+	for i, r := range resolved {
+		isChange[i] = r.ok && r.info.IsChange()
+	}
+
+	// Snap to the first change line at or after the anchor, then expand over the
+	// whole contiguous run of change lines around it.
+	start := anchor
+	for start < len(isChange) && !isChange[start] {
+		start++
+	}
+	if start >= len(isChange) {
+		return 0, 0, false
+	}
+	end := start
+	for start > 0 && isChange[start-1] {
+		start--
+	}
+	for end < len(isChange)-1 && isChange[end+1] {
+		end++
+	}
+
+	startView, ok1 := view.ViewLineForBufferLine(start)
+	endView, ok2 := view.ViewLineForBufferLine(end)
+	if !ok1 || !ok2 {
+		return 0, 0, false
+	}
+	// ViewLineForBufferLine gives the first view line of the block's last buffer
+	// line; extend over any further view lines it wrapped to, so the highlight
+	// covers the whole block.
+	for endView < view.ViewLinesHeight()-1 {
+		next, ok := view.BufferLineForViewLine(endView + 1)
+		if !ok || next != end {
+			break
+		}
+		endView++
+	}
+	return startView, endView, true
+}
+
 // changeBlockStart finds, in a diff whose lines are flagged by isChange, the first
 // line of the change block adjacent to `from` in the given direction. It is the pure
 // index arithmetic behind AdjacentChangeBlock, mirroring the staging view's

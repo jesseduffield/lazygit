@@ -163,6 +163,35 @@ func (self *StagingHelper) GetDiffLineInfo(windowName string, viewLineIdx int) (
 	return self.GetDiffLineInfoForView(v, viewLineIdx)
 }
 
+// ChangeLinesInViewRange resolves every change line (addition/deletion) in the
+// inclusive view-line range [first, last] of the diff shown in the given window, as
+// the patch-space identities to stage. It is the range form of GetDiffLineInfo,
+// behind staging a selection from the focused main view. Context and header lines
+// are skipped (Transform emits context regardless of the included set, so only
+// change lines need collecting — see §21.3), and view lines that wrap to the same
+// buffer line are de-duplicated.
+func (self *StagingHelper) ChangeLinesInViewRange(windowName string, first int, last int) []types.DiffLineInfo {
+	v, _ := self.c.GocuiGui().View(self.windowHelper.GetViewNameForWindow(windowName))
+	if v == nil {
+		return nil
+	}
+
+	resolved := self.resolveDiffLines(v.DiffLineContents())
+	var infos []types.DiffLineInfo
+	lastBufferLine := -1
+	for viewLine := first; viewLine <= last; viewLine++ {
+		bufferLine, ok := v.BufferLineForViewLine(viewLine)
+		if !ok || bufferLine == lastBufferLine {
+			continue
+		}
+		lastBufferLine = bufferLine
+		if bufferLine < len(resolved) && resolved[bufferLine].ok && resolved[bufferLine].info.IsChange() {
+			infos = append(infos, resolved[bufferLine].info)
+		}
+	}
+	return infos
+}
+
 // GetDiffLineInfoForView is GetDiffLineInfo against a specific view rather than
 // one looked up by window. It is used to read the identity of the line the patch
 // explorer currently has selected when escaping back to the focused main view,

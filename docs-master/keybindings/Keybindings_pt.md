@@ -237,6 +237,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
+| `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
+| `` v `` | Toggle range select |  |
 | `` <left>, h `` | Ir para o local anterior |  |
 | `` <right>, l `` | Ir para o próximo trecho |  |
 | `` N `` | Go to previous file |  |
@@ -344,6 +346,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
+| `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
+| `` v `` | Toggle range select |  |
 | `` <left>, h `` | Ir para o local anterior |  |
 | `` <right>, l `` | Ir para o próximo trecho |  |
 | `` N `` | Go to previous file |  |
