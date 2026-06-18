@@ -8,9 +8,27 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 	"github.com/rivo/uniseg"
 	"github.com/stretchr/testify/assert"
 )
+
+// WithSimulationScreen swaps the package-level Screen for a tcell
+// terminfo-backed mock terminal so tests can call view.draw() and
+// inspect rendered cells via Screen.Get(). The previous Screen is
+// restored on test cleanup.
+func WithSimulationScreen(t *testing.T, width, height int) {
+	t.Helper()
+	saved := Screen
+	if err := (&Gui{}).tcellInitSimulation(width, height); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		Screen.Fini()
+		Screen = saved
+	})
+}
 
 func TestWriteString(t *testing.T) {
 	tests := []struct {
@@ -26,17 +44,17 @@ func TestWriteString(t *testing.T) {
 		{
 			[]string{},
 			[]string{"1\n"},
-			[][]string{{"1", ""}},
+			[][]string{{"1"}},
 		},
 		{
 			[]string{},
 			[]string{"1\n", "2\n"},
-			[][]string{{"1", ""}, {"2", ""}},
+			[][]string{{"1"}, {"2"}},
 		},
 		{
 			[]string{"a"},
 			[]string{"1\n"},
-			[][]string{{"1", ""}},
+			[][]string{{"1"}},
 		},
 		{
 			[]string{"a\x00"},
@@ -56,12 +74,12 @@ func TestWriteString(t *testing.T) {
 		{
 			[]string{},
 			[]string{"1\r"},
-			[][]string{{"1", ""}},
+			[][]string{{"1"}},
 		},
 		{
 			[]string{"a"},
 			[]string{"1\r"},
-			[][]string{{"1", ""}},
+			[][]string{{"1"}},
 		},
 		{
 			[]string{"a\x00"},
@@ -83,14 +101,14 @@ func TestWriteString(t *testing.T) {
 	for _, test := range tests {
 		v := NewView("name", 0, 0, 10, 10, OutputNormal)
 		for _, l := range test.existingLines {
-			v.lines = append(v.lines, stringToCells(l))
+			v.lines = append(v.lines, lineType{cells: stringToCells(l)})
 		}
 		for _, s := range test.stringsToWrite {
 			v.writeString(s)
 		}
 		var resultingLines [][]string
 		for _, l := range v.lines {
-			resultingLines = append(resultingLines, cellsToStrings(l))
+			resultingLines = append(resultingLines, cellsToStrings(l.cells))
 		}
 		assert.Equal(t, test.expectedLines, resultingLines)
 	}
@@ -126,19 +144,19 @@ func TestAutoRenderingHyperlinks(t *testing.T) {
 
 	v.writeString("htt")
 	// No hyperlinks are generated for incomplete URLs
-	assert.Equal(t, "", v.lines[0][0].hyperlink)
+	assert.Equal(t, "", v.lines[0].cells[0].hyperlink)
 	// Writing more characters to the same line makes the link complete (even
 	// though we didn't see a newline yet)
 	v.writeString("ps://example.com")
-	assert.Equal(t, "https://example.com", v.lines[0][0].hyperlink)
+	assert.Equal(t, "https://example.com", v.lines[0].cells[0].hyperlink)
 
 	v.Clear()
 	// Valid but incomplete URL
 	v.writeString("https://exa")
-	assert.Equal(t, "https://exa", v.lines[0][0].hyperlink)
+	assert.Equal(t, "https://exa", v.lines[0].cells[0].hyperlink)
 	// Writing more characters to the same fixes the link
 	v.writeString("mple.com")
-	assert.Equal(t, "https://example.com", v.lines[0][0].hyperlink)
+	assert.Equal(t, "https://example.com", v.lines[0].cells[0].hyperlink)
 }
 
 func TestContainsColoredText(t *testing.T) {
@@ -211,7 +229,11 @@ func TestContainsColoredText(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		v := &View{lines: test.lines}
+		lines := make([]lineType, len(test.lines))
+		for j, cells := range test.lines {
+			lines[j] = lineType{cells: cells}
+		}
+		v := &View{lines: lines}
 		assert.Equal(t, test.expected, v.ContainsColoredText(test.fgColorStr, test.text), "Test %d failed", i)
 	}
 }
@@ -411,5 +433,149 @@ func TestLineWrap(t *testing.T) {
 
 			assert.EqualValues(t, tc.expected, resultStrings)
 		})
+	}
+}
+
+// TestNewlineTerminatedLineClearsTrailingBg verifies that a '\n' resets
+// any attributes (e.g. AttrReverse-driven background) past the line's
+// content, so a reversed cell at the end doesn't bleed into the empty
+// area to the right.
+func TestNewlineTerminatedLineClearsTrailingBg(t *testing.T) {
+	WithSimulationScreen(t, 14, 5)
+
+	v := NewView("name", 0, 0, 11, 4, OutputNormal)
+
+	// \x1b[7m sets reverse; \x1b[31m sets fg=red. With reverse the cell
+	// renders with bg=red. The trailing area past "foo" must NOT extend
+	// the red bg because '\n' marks the line as cleanly terminated.
+	v.writeString("\x1b[7m\x1b[31mfoo\x1b[0m\n")
+	v.draw()
+
+	// First row: cells 1..3 are "foo" (render with red bg via reverse),
+	// cells 4..10 are trailing and should be plain default.
+	for x := 4; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 1)
+		assert.Equal(t, tcell.ColorDefault, style.GetForeground(),
+			"trailing cell at (%d, 1) should have default fg", x)
+		assert.False(t, style.HasReverse(),
+			"trailing cell at (%d, 1) should not have reverse attribute", x)
+	}
+}
+
+// TestUnterminatedReverseLineDoesNotExtend verifies that an unterminated
+// line ending with an AttrReverse cell does NOT propagate the reversed
+// background past the line's content — matching real terminal behavior
+// (try `print '\x1b[7m\x1b[31mfoo'` in a shell). The trailing area
+// is rendered as plain default.
+func TestUnterminatedReverseLineDoesNotExtend(t *testing.T) {
+	WithSimulationScreen(t, 14, 5)
+
+	v := NewView("name", 0, 0, 11, 4, OutputNormal)
+
+	// Reverse + red fg, "foo", no termination. The trailing cells past
+	// "foo" should be plain default, NOT a continuation of the red bg.
+	v.writeString("\x1b[7m\x1b[31mfoo")
+	v.draw()
+
+	// Cells 4..10 are trailing and should be default with no reverse.
+	for x := 4; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 1)
+		assert.Equal(t, tcell.ColorDefault, style.GetForeground(),
+			"trailing cell at (%d, 1) should have default fg", x)
+		assert.False(t, style.HasReverse(),
+			"trailing cell at (%d, 1) should not have reverse attribute", x)
+	}
+}
+
+// TestShortFilledLineExtendsBgWithoutWrap verifies that '\x1b[K' fills
+// the rest of the line with the current bg color for a line that's
+// short enough to fit within the view's inner width.
+func TestShortFilledLineExtendsBgWithoutWrap(t *testing.T) {
+	WithSimulationScreen(t, 14, 5)
+
+	v := NewView("name", 0, 0, 11, 4, OutputNormal)
+
+	// \x1b[41m sets bg=red. "hi" fits within InnerWidth=10; \x1b[K should
+	// fill the remaining 8 cells with red.
+	v.writeString("\x1b[41mhi\x1b[K\x1b[0m\n")
+	v.draw()
+
+	// All ten cells at (1..10, 1) should have red bg.
+	for x := 1; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 1)
+		assert.Equal(t, color.Maroon, style.GetBackground(),
+			"cell at (%d, 1) should have red bg", x)
+	}
+}
+
+// TestWrappedFilledLineExtendsBgToEdge verifies that when a line is
+// filled to the edge with \x1b[K (the pattern used by `delta` for diff
+// lines) but exceeds the view's inner width, every wrapped segment
+// extends the fill background past its content to the right edge.
+func TestWrappedFilledLineExtendsBgToEdge(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	// View dimensions: Width=12 (x0=0..x1=11), Height=6; InnerWidth=10,
+	// InnerHeight=4. Frame inset of 1 places content cells at screen
+	// (1..10, 1..4).
+	v := NewView("name", 0, 0, 11, 5, OutputNormal)
+	v.Wrap = true
+
+	// Content with spaces so word wrap ends each segment before the
+	// right edge: "aaa bbb ccc ddd eee" wraps at InnerWidth=10 to three
+	// segments — "aaa bbb" / "ccc ddd" / "eee". Each row's trailing area
+	// must pick up the red fill from \x1b[K.
+	v.writeString("\x1b[41m" + "aaa bbb ccc ddd eee" + "\x1b[0m\x1b[41m\x1b[K\x1b[0m\n")
+	v.draw()
+
+	// All three wrapped rows should have the red fill background across
+	// the full InnerWidth, including the trailing cells past each row's
+	// last word.
+	for y := 1; y <= 3; y++ {
+		for x := 1; x <= 10; x++ {
+			_, style, _ := Screen.Get(x, y)
+			assert.Equal(t, color.Maroon, style.GetBackground(),
+				"cell at (%d, %d) should have red bg", x, y)
+		}
+	}
+}
+
+// TestMulticolorWrappedFillUsesLastCellOfEachSegment demonstrates that
+// when a wrapped line switches bg color part-way through and ends with
+// \x1b[K, the trailing area on each wrapped row should match the bg
+// that was active where that row's content ended — not the \x1b[K bg,
+// which would bleed the color from the end of the logical line back
+// into the earlier wrapped rows.
+func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	// View dimensions: Width=12 (x0=0..x1=11), Height=6; InnerWidth=10,
+	// InnerHeight=4. Frame inset of 1 places content cells at screen
+	// (1..10, 1..4).
+	v := NewView("name", 0, 0, 11, 5, OutputNormal)
+	v.Wrap = true
+
+	// Content "aaa bbb ccc" is 11 cells; lineWrap breaks at the space
+	// between "bbb" and "ccc" (index 7) so segment 1 is "aaa bbb" (red,
+	// last cell red) and segment 2 is "ccc" (green, last cell green).
+	// \x1b[K records the green bg on the source line.
+	v.writeString("\x1b[41maaa bbb\x1b[42m ccc\x1b[K\x1b[0m\n")
+	v.draw()
+
+	// Row 1's content ends with a red cell at x=7, so trailing columns
+	// 8..10 should pick up red rather than the \x1b[K's green.
+	for x := 8; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 1)
+		assert.Equal(t, color.Maroon, style.GetBackground(),
+			"trailing cell at (%d, 1) should have red bg (matching segment's last cell)", x)
+	}
+
+	// Row 2's content ends with a green cell at x=3, so trailing
+	// columns 4..10 should pick up green (matching both the segment's
+	// last cell and the \x1b[K bg — these happen to agree here).
+	for x := 4; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 2)
+		assert.Equal(t, color.Green, style.GetBackground(),
+			"trailing cell at (%d, 2) should have green bg", x)
 	}
 }
