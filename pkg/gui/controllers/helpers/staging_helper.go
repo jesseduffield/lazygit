@@ -170,6 +170,12 @@ func (self *StagingHelper) GetDiffLineInfo(windowName string, viewLineIdx int) (
 // are skipped (Transform emits context regardless of the included set, so only
 // change lines need collecting — see §21.3), and view lines that wrap to the same
 // buffer line are de-duplicated.
+//
+// A side-by-side rendering carries more than one record per row — a deletion on the
+// left, the addition replacing it on the right — and staging includes both (you
+// can't stage one side of a side-by-side row; accepted restriction). So each row's
+// metadata payloads are all resolved; rows without metadata (no pager, or the
+// buffer-parse / hyperlink backends) fall back to their single resolved record.
 func (self *StagingHelper) ChangeLinesInViewRange(windowName string, first int, last int) []types.DiffLineInfo {
 	v, _ := self.c.GocuiGui().View(self.windowHelper.GetViewNameForWindow(windowName))
 	if v == nil {
@@ -177,6 +183,7 @@ func (self *StagingHelper) ChangeLinesInViewRange(windowName string, first int, 
 	}
 
 	resolved := self.resolveDiffLines(v.DiffLineContents())
+	payloadsByLine := v.DiffLineMetadataPayloads()
 	var infos []types.DiffLineInfo
 	lastBufferLine := -1
 	for viewLine := first; viewLine <= last; viewLine++ {
@@ -185,7 +192,14 @@ func (self *StagingHelper) ChangeLinesInViewRange(windowName string, first int, 
 			continue
 		}
 		lastBufferLine = bufferLine
-		if bufferLine < len(resolved) && resolved[bufferLine].ok && resolved[bufferLine].info.IsChange() {
+
+		if bufferLine < len(payloadsByLine) && len(payloadsByLine[bufferLine]) > 0 {
+			for _, payload := range payloadsByLine[bufferLine] {
+				if info, ok := self.diffLineInfoFromMetadata(payload); ok && info.IsChange() {
+					infos = append(infos, info)
+				}
+			}
+		} else if bufferLine < len(resolved) && resolved[bufferLine].ok && resolved[bufferLine].info.IsChange() {
 			infos = append(infos, resolved[bufferLine].info)
 		}
 	}
