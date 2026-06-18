@@ -2365,3 +2365,41 @@ deletion + its replacement + context, exercising the resolution fix),
   ours keeps the single line (`ChangeBlockBounds` only snaps *forward* to the first block
   at/after the anchor, finds none, falls back to a single-line selection). Minor; to match,
   `ChangeBlockBounds` would fall back to the nearest block *above* when none is at/below.
+
+### 21.12 Session 13 (cont.): Step 4 done — SxS multi-record + multi-file staging
+
+**Committed (most recent last):**
+
+```
+533046c5e Stage a selection spanning several files from the focused main view  (multi-file)
+c63266113 Stage both sides of a side-by-side row from the focused main view     (SxS multi-record)
+```
+
+Built **multi-file first** (testable), then **SxS** (interactive-verify only), per the
+user's call. Both green; full `e2e-all` green.
+
+- **Multi-file.** The focused main view of a directory node already renders a multi-file
+  diff (`WorktreeFileDiffCmdObj` takes a directory). Dropped the `!node.IsFile()` bail;
+  the handler now groups the selected change lines by `info.Path`, maps each path back to
+  its `models.File` via `FileTreeViewModel.GetFile(ToSlash(rel(WorktreePath, absPath)))`,
+  and applies one patch per file. `stageDiffLines` no longer logs/refreshes — the handler
+  does both once around the batch. Direction is uniform (the whole diff is one side), so
+  it's decided once. Single-file now goes through the same path-lookup (no special-case),
+  exercised by the existing step-3 tests. New test: `stage_range_spanning_files_from_main_view`.
+- **SxS multi-record-per-row.** `gocui.DiffLineContent.Metadata` keeps only the *first*
+  payload per row — drops the right side of a side-by-side row. Added
+  `View.DiffLineMetadataPayloads() [][]string` (distinct payloads per buffer line; new
+  accessor, left the single-payload one for the nav/restore consumers per
+  [[isolate-new-concepts-from-clients]]). `ChangeLinesInViewRange` now resolves *all* a
+  row's payloads when it has metadata, else falls back to the single resolved record
+  (no-pager / buffer-parse / hyperlink) — so single-column is unchanged. Both sides of a
+  SxS row stage together (can't stage one side; accepted §21.3 restriction). **Not
+  e2e-testable** (harness has no real delta SxS); covered by a gocui unit test
+  `TestDiffLineMetadataPayloads` for the accessor; the full chain needs interactive
+  sign-off with the patched delta in SxS mode.
+
+**NEXT: step 5** — staged/unstaged split + post-stage reveal (stage from Normal / unstage
+from NormalSecondary, `<tab>`, synchronous next-hunk decision + restore-by-identity reveal).
+**Milestone: the working-tree staging panel is functionally replaced.** This is where the
+deferred post-stage selection re-anchor (§21.11) finally lands. Still pending:
+interactive sign-off of steps 3–4 (incl. SxS), and the unstage-from-secondary path.
