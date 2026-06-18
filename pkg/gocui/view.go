@@ -7,6 +7,7 @@ package gocui
 import (
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"sync"
 	"unicode"
@@ -1721,6 +1722,33 @@ func (v *View) DiffLineMetadataInLine(y int) (string, bool) {
 	}
 
 	return "", false
+}
+
+// DiffLineMetadataPayloads returns, per unwrapped buffer line, the distinct
+// OSC-1717 metadata payloads carried by that line's cells, in left-to-right order.
+// A single-column rendering tags every cell of a line with the same payload (one
+// entry); a side-by-side rendering tags each side differently, so a changed row
+// yields one payload per side (and a context row, where both sides match, still
+// one). It is the multi-record counterpart of DiffLineContent.Metadata, which keeps
+// only the first payload — enough to identify a single-column row, but it drops the
+// other side of a side-by-side row. Staging a selection uses this to act on every
+// change a row covers. Taken under the write lock in one pass so the payloads stay
+// consistent with the buffer even if a concurrent re-render is rebuilding it.
+func (v *View) DiffLineMetadataPayloads() [][]string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	result := make([][]string, len(v.buf.lines))
+	for i, line := range v.buf.lines {
+		var payloads []string
+		for _, c := range line.cells {
+			if c.metadata != "" && !slices.Contains(payloads, c.metadata) {
+				payloads = append(payloads, c.metadata)
+			}
+		}
+		result[i] = payloads
+	}
+	return result
 }
 
 // DiffLineContent is the raw per-line material the diff-line backends parse to
