@@ -915,6 +915,15 @@ func (b *viewBuffer) write(v *View, p []byte) {
 
 	finishLine := func() {
 		b.autoRenderHyperlinksInCurrentLine(v)
+		// A pager can render a blank changed line as just its OSC 1717 metadata
+		// followed by an empty line — delta does this for some empty deleted/added
+		// lines. Keep a content-less cell to carry that metadata, so the line is
+		// still recognized as a change; without it the line resolves to nothing and
+		// breaks a change block in two (e.g. when selecting a hunk in the focused
+		// main view).
+		if len(b.lines[b.wy].cells) == 0 && b.ei.metadata.Len() > 0 {
+			b.writeCells([]cell{{metadata: b.ei.metadata.String()}})
+		}
 	}
 
 	advanceToNextLine := func() {
