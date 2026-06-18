@@ -2413,3 +2413,33 @@ from NormalSecondary, `<tab>`, synchronous next-hunk decision + restore-by-ident
 **Milestone: the working-tree staging panel is functionally replaced.** This is where the
 deferred post-stage selection re-anchor (§21.11) AND the just-reported unstage focus/
 selection-loss both land.
+
+### 21.13 Session 13 (cont.): Step 5 part 1 — post-stage reveal (selection advances)
+
+**Committed:** `c0c91d10b` Advance the selection to the next change after staging from the
+main view.
+
+Fixes the user-reported "selection lands outside the content / looks like there's none"
+after stage/unstage. `MainViewController.stageSelectedLine` now installs a restore
+(`StagingHelper.RevealSelectionAfterStaging`, sibling to `RestoreFocusedMainViewOnEscape`)
+*before* the handler triggers the post-stage re-render. Candidates, priority order:
+change block after the selection → before it → the acted-on line itself (only survives the
+all-staged flip). Rides the existing `restoreDiffLinePositionOnRerender`. Re-selects in the
+current mode (hunk → walks hunk-to-hunk); a range collapses to a line first (staging
+consumes it). Works for both stage (from Normal) and unstage (from NormalSecondary) — same
+code path, `reverse` differs. Tests: `select_next_hunk_after_staging_from_main_view`,
+`select_next_hunk_after_unstaging_from_main_view`. Full `e2e-all` green.
+
+**Step 5 part 2 — STILL OPEN: focused-pane-empties → focus switch.** When you unstage the
+*last* staged hunk from `NormalSecondary`, the staged side empties → the split collapses
+(`SplitMainPanel=false`) → `NormalSecondary` hides, but focus stays on the now-hidden pane
+(the staging view handles this in `RefreshStagingPanel`: `if secondaryState==nil &&
+secondaryFocused { Push(mainContext) }`). Part 1's reveal can't help — there's no surviving
+candidate in the empty pane. The fix belongs in the **stage flow** (post-operation state
+check + `Push(Normal)`), NOT in `FilesController.GetOnRenderToMain` (a broad render callback
+that fires when not even focused on the main view). Open design Qs: where exactly to hook,
+and whether `Refresh(FILES)` updates the files model synchronously (so the node's
+HasStagedChanges is readable right after the handler returns) — needs checking. The
+symmetric stage-everything-from-Normal case is already fine (Normal flips to show the staged
+diff via `mainShowsStaged`; the reveal's self-candidate lands there). Narrower scenario than
+part 1; deferred for fresh budget + interactive confirmation it's a real pain point.
