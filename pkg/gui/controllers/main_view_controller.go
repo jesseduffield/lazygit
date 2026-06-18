@@ -223,16 +223,23 @@ func (self *MainViewController) togglePanel() error {
 }
 
 // showInitialDiffSelection turns on the focused main view's selection when entering
-// a diff view without pointing at a specific line: on the first change line already
-// visible (so the view doesn't jump), falling back to the current top line when none
-// is visible (scrolled into trailing context, or not loaded that far yet). The
-// select mode is reset to its default (a single line).
+// a diff view without pointing at a specific line, anchored on the first change line
+// already visible (so the view barely moves), falling back to the current top line
+// when none is visible (scrolled into trailing context, or not loaded that far yet).
+// With hunk mode configured as the default it selects the whole change block around
+// that line, like entering the staging view does; otherwise a single line.
 func showInitialDiffSelection(c *ControllerCommon, mainContext *context.MainContext) {
 	resetDiffSelectMode(mainContext)
 	view := mainContext.GetView()
 	target, ok := c.Helpers().Staging.FirstChangeLineInView(view)
 	if !ok {
-		target = view.OriginY()
+		showSelectionAtLine(view, view.OriginY(), true)
+		return
+	}
+	if c.UserConfig().Gui.UseHunkModeInStagingView {
+		mainContext.DiffSelectState().Mode = context.DiffSelectModeHunk
+		selectDiffHunk(c, mainContext, target)
+		return
 	}
 	showSelectionAtLine(view, target, true)
 }
@@ -365,16 +372,22 @@ func (self *MainViewController) prevFile() error {
 // its last, so the native range highlight spans the block. With no change block
 // there (the line is trailing context) it falls back to a single-line selection.
 func (self *MainViewController) selectHunkAround(changeViewLine int) {
-	v := self.context.GetView()
-	start, end, ok := self.c.Helpers().Staging.ChangeBlockBounds(v, changeViewLine)
+	selectDiffHunk(self.c, self.context, changeViewLine)
+}
+
+// selectDiffHunk is the body of selectHunkAround, as a free function so the focus
+// entry point (showInitialDiffSelection) can establish a hunk selection too.
+func selectDiffHunk(c *ControllerCommon, mainContext *context.MainContext, changeViewLine int) {
+	view := mainContext.GetView()
+	start, end, ok := c.Helpers().Staging.ChangeBlockBounds(view, changeViewLine)
 	if !ok {
-		self.sel().Mode = context.DiffSelectModeLine
-		v.CancelRangeSelect()
-		showSelectionAtLine(v, changeViewLine, true)
+		mainContext.DiffSelectState().Mode = context.DiffSelectModeLine
+		view.CancelRangeSelect()
+		showSelectionAtLine(view, changeViewLine, true)
 		return
 	}
-	v.SetRangeSelectStart(end)
-	showSelectionAtLine(v, start, true)
+	view.SetRangeSelectStart(end)
+	showSelectionAtLine(view, start, true)
 }
 
 // moveCursor moves the selection cursor by delta view lines (negative = up), with
