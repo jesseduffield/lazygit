@@ -2607,3 +2607,37 @@ the next change line *is* the next block's first line, so hunk mode is unchanged
 line it's the next line of the same block. `place` stays mode-aware (hunk-expand vs single line).
 Regression test `select_next_line_after_staging_line_from_main_view` (note: line mode needs
 `UseHunkModeInStagingView: false` — hunk mode is the default). All green.
+
+### 21.17 Session 16 (2026-06-19): reveal reworked to preserve the change-line ordinal
+
+Two more reveal bugs (user, line mode): staging a deletion in the *middle* of a deletion block
+jumped to the block's first line; and unstaging a modification's deletion jumped back to an
+earlier block. Root cause (confirmed by instrumenting the matcher): **no line-number identity is
+stable AND unique across a stage.** Deletions in a block all share the same new-file number (so
+matchByWorktreeChange's findResolvedDiffLine returned the first); and in the **staged** pane the
+new side is the index, which staging/unstaging shifts, so an addition candidate's new-file number
+moves and the match misses → falls back to a prev-block/header. The §21.15 worktree-line match and
+the §21.16 adjacent-change-*line* each fixed one case and left another.
+
+**Fix (`cd27c07e2`): preserve the selection's ordinal among change lines** — exactly what the
+staging view does with its patch-line index. Read the acted-on line's change-line ordinal from the
+source pane before the op; after the re-render, select the change line at that ordinal in the
+target pane (clamped to the last). The op removes the acted-on change line(s), so that ordinal then
+holds the next surviving change (next line of the same block, or next block when a whole block was
+staged). No reasoning about which side's numbers are stable → deletions and the staged pane are
+handled uniformly. `matchByWorktreeChange` and `AdjacentChangeLine` are gone; the identity restore
+(escape, -U) and the new positional restore now share an extracted `installDiffLineRestore`.
+Regression tests `select_next_deletion_after_staging_within_a_block`,
+`select_next_change_after_unstaging_a_deletion`. All three repos green.
+
+**Open nuance — the collapse case.** When the acted-on side *empties* (e.g. unstage the last staged
+hunk → focus moves to the unstaged pane), the source and target are now *different* diffs, so the
+preserved ordinal lands on whatever change sits at that ordinal in the other side rather than
+specifically on the just-acted line. `focus_returns_to_main_after_unstaging_last_staged_hunk` still
+passes (there the just-unstaged change *is* the first one), but it'd differ if a pre-existing
+unstaged change sat above it. Left as-is pending the user's call; restoring the old self-identity
+behavior there would need a "the acted-on side emptied" signal threaded from the stage handler.
+
+**History note:** `cd27c07e2` supersedes the *mechanisms* of `cb784bde3` (§21.16) and `9fb3c11cc`
+(§21.15) — both their matchers are deleted here, though their tests survive. The three reveal
+commits would collapse cleanly into one if the user wants to rewrite (their call).
