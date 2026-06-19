@@ -349,6 +349,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.ApplyInReverseWithConflict,
 	patch_building.ApplyWithModifiedFileConflict,
 	patch_building.ApplyWithModifiedFileNoConflict,
+	patch_building.BuildFromMainView,
 	patch_building.DiscardLinesFromCommit,
 	patch_building.EditLineInPatchBuildingPanel,
 	patch_building.MoveRangeToIndex,
