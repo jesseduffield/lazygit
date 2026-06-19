@@ -49,6 +49,11 @@ func (self *SubCommitsController) GetOnRenderToMain() func() {
 				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange)
 			}
 
+			// Keep the inclusion gutter in step with the content as this diff
+			// (re-)renders; a no-op unless the main view is focused and a patch is being
+			// built from this panel. See LocalCommitsController.GetOnRenderToMain.
+			self.c.Helpers().Staging.RefreshInclusionGutter()
+
 			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
@@ -56,6 +61,7 @@ func (self *SubCommitsController) GetOnRenderToMain() func() {
 					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 					Task:     task,
 				},
+				Secondary: secondaryPatchPanelUpdateOpts(self.c),
 			})
 		})
 	}

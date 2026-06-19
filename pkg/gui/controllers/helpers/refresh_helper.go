@@ -620,6 +620,14 @@ func (self *RefreshHelper) RefreshAuthors(commits []*models.Commit) {
 }
 
 func (self *RefreshHelper) refreshCommitFilesContext() error {
+	// The commit files context may have no ref associated with it yet — e.g. a custom
+	// patch was started straight from the commits panel's main view without ever entering
+	// the commit files panel. There are then no commit files to load (and deriving a diff
+	// range from a nil ref would panic), so there's nothing to refresh.
+	if self.c.Contexts().CommitFiles.GetRef() == nil && self.c.Contexts().CommitFiles.GetRefRange() == nil {
+		return nil
+	}
+
 	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
