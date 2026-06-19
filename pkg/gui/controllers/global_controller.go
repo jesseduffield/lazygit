@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"fmt"
+	"strconv"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type GlobalController struct {
@@ -66,6 +67,13 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			GetDisabledReason: self.canCyclePagers,
 			Description:       self.c.Tr.CyclePagers,
 			Tooltip:           self.c.Tr.CyclePagersTooltip,
+		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Universal.CyclePagersReverse),
+			Handler:           opts.Guards.NoPopupPanel(self.cyclePagersBackward),
+			GetDisabledReason: self.canCyclePagers,
+			Description:       self.c.Tr.CyclePagersReverse,
+			Tooltip:           self.c.Tr.CyclePagersReverseTooltip,
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Return),
@@ -158,6 +166,19 @@ func (self *GlobalController) prevScreenMode() error {
 
 func (self *GlobalController) cyclePagers() error {
 	self.c.State().GetPagerConfig().CyclePagers()
+	self.onPagerChanged()
+	return nil
+}
+
+func (self *GlobalController) cyclePagersBackward() error {
+	self.c.State().GetPagerConfig().CyclePagersBackward()
+	self.onPagerChanged()
+	return nil
+}
+
+// onPagerChanged re-renders the main view so the newly selected pager takes
+// effect, and shows a toast naming it.
+func (self *GlobalController) onPagerChanged() {
 	currentSide := self.c.Context().CurrentSide()
 	currentKey := self.c.Context().Current().GetKey()
 	if currentSide.GetKey() == currentKey ||
@@ -166,9 +187,21 @@ func (self *GlobalController) cyclePagers() error {
 		currentSide.HandleRenderToMain()
 	}
 
-	current, total := self.c.State().GetPagerConfig().CurrentPagerIndex()
-	self.c.Toast(fmt.Sprintf("Selected pager %d of %d", current+1, total))
-	return nil
+	pagerConfig := self.c.State().GetPagerConfig()
+	current, total := pagerConfig.CurrentPagerIndex()
+	name := pagerConfig.CurrentPagerName()
+	if name == "" {
+		if pagerConfig.CurrentPagerUsesGitConfigDiff() {
+			name = self.c.Tr.ExternalDiffPagerName
+		} else {
+			name = self.c.Tr.DefaultPagerName
+		}
+	}
+	self.c.Toast(utils.ResolvePlaceholderString(self.c.Tr.SelectedPager, map[string]string{
+		"name":    name,
+		"current": strconv.Itoa(current + 1),
+		"total":   strconv.Itoa(total),
+	}))
 }
 
 func (self *GlobalController) canCyclePagers() *types.DisabledReason {

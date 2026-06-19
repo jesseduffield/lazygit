@@ -71,7 +71,7 @@ git:
     - externalDiffCommand: difft --color=always
 ```
 
-The `colorArg` and `pager` options are not used in this case.
+The `colorArg` option is not used in this case.
 
 You can add whatever extra arguments you prefer for your difftool; for instance
 
@@ -90,6 +90,8 @@ git:
 ```
 
 This can be useful if you also want to use it for diffs on the command line, and it also has the advantage that you can configure it per file type in `.gitattributes`; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
+
+`pager`, `externalDiffCommand`, and `useExternalDiffGitConfig` are alternative ways of producing the diff, so a pager entry may use at most one of them.
 
 ## Emulating custom pagers on Windows
 

@@ -22,7 +22,12 @@ unit-test:
     go test ./... -short
 
 # Run both unit tests and integration tests.
+[unix]
 test: unit-test e2e-all
+
+# On Windows, integration tests are not supported right now
+[windows]
+test: unit-test
 
 # Generate all our auto-generated files (test list, cheatsheets, json schema, maybe other things in the future)
 generate:
@@ -45,6 +50,10 @@ e2e-tui *args:
 # Run all integration tests headlessly (without a visible UI).
 e2e-all:
     go test pkg/integration/clients/*.go
+
+# Run some tests on the current commit, similar to what CI does.
+check:
+    ./scripts/check_commit.sh
 
 bump-gocui:
     scripts/bump_gocui.sh
