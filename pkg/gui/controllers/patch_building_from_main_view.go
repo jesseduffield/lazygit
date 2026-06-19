@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -125,6 +127,99 @@ func togglePatchLines(c *ControllerCommon, infos []types.DiffLineInfo) error {
 			return err
 		}
 	}
+	return nil
+}
+
+// discardFromCommitDisabledReason reports why discarding lines from the commit shown in
+// the focused main view is unavailable, or nil when it's available. It mirrors the patch
+// builder's own guard: the diff must be a local commit's (canRebase), no rebase may be in
+// progress, and the diff context size must be non-zero (a patch can't be built from a
+// zero-context diff). Stash and sub-commits of another branch are never rebaseable, so
+// they always get the local-commits reason.
+func discardFromCommitDisabledReason(c *ControllerCommon, canRebase bool) *types.DisabledReason {
+	if !canRebase {
+		return &types.DisabledReason{Text: c.Tr.CanOnlyDiscardFromLocalCommits}
+	}
+	if c.Git().Status.WorkingTreeState().Any() {
+		return &types.DisabledReason{Text: c.Tr.CantPatchWhileRebasingError}
+	}
+	if c.UserConfig().Git.DiffContextSize == 0 {
+		return &types.DisabledReason{Text: fmt.Sprintf(c.Tr.Actions.NotEnoughContextToRemoveLines,
+			c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)}
+	}
+	return nil
+}
+
+// discardSelectionFromCommit discards the selected diff line(s) — a single line, a
+// range, or a hunk — from the commit whose diff the focused main view shows, by building
+// a one-off patch from the selection and removing it from the commit via a rebase. It is
+// the patch-building counterpart of the working-tree discard the files panel does, and
+// mirrors the patch builder's own "discard lines from commit": any in-progress custom
+// patch is reset first (the confirm prompt warns when one exists), then a fresh patch
+// holding exactly the selection is built for (from, to, reverse) and removed from the
+// commit. The caller has already established (via canRebase) that the commit is on a
+// local branch; the target commit is the one identified by `to`.
+func discardSelectionFromCommit(
+	c *ControllerCommon,
+	mainViewName string,
+	firstLineIdx int,
+	lastLineIdx int,
+	from string,
+	to string,
+	reverse bool,
+	canRebase bool,
+) error {
+	infos := c.Helpers().Staging.ChangeLinesInViewRange(mainViewName, firstLineIdx, lastLineIdx)
+	if len(infos) == 0 {
+		return nil
+	}
+
+	commitIndex := -1
+	for i, commit := range c.Model().Commits {
+		if commit.Hash() == to {
+			commitIndex = i
+			break
+		}
+	}
+	if commitIndex == -1 {
+		return nil
+	}
+
+	patchBuilder := c.Git().Patch.PatchBuilder
+	prompt := lo.Ternary(patchBuilder.Active(),
+		c.Tr.DiscardLinesFromCommitPromptWithReset,
+		c.Tr.DiscardLinesFromCommitPrompt)
+
+	c.Confirm(types.ConfirmOpts{
+		Title:  c.Tr.DiscardLinesFromCommitTitle,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			// Build a fresh patch holding exactly the selection: reset any active patch,
+			// then add the selected lines (togglePatchLines adds them, the patch being empty).
+			if patchBuilder.Active() {
+				patchBuilder.Reset()
+			}
+			patchBuilder.Start(from, to, reverse, canRebase)
+			if err := togglePatchLines(c, infos); err != nil {
+				return err
+			}
+			if patchBuilder.IsEmpty() {
+				return nil
+			}
+
+			return c.WithWaitingStatusBlockingInput(c.Tr.RebasingStatus, func(gocui.Task) error {
+				c.LogAction(c.Tr.Actions.RemovePatchFromCommit)
+				err := c.Git().Patch.DeletePatchesFromCommit(c.Model().Commits, commitIndex)
+				// The rebase removes the selected lines, so the commit's diff shrinks
+				// there. Re-establish the selection at its change-line ordinal once the
+				// refresh below re-renders the diff, advancing to the next surviving change
+				// just like staging — installed before the refresh so the re-render rides
+				// it. The diff stays in the same pane, so source and target are the same.
+				revealSelectionAfterPrimaryAction(c, mainViewName, mainViewName, firstLineIdx)
+				return c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+			})
+		},
+	})
 	return nil
 }
 

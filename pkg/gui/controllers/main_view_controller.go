@@ -80,6 +80,14 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen: selectionShown,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
+			Handler:           self.discardSelection,
+			GetDisabledReason: self.discardSelectionDisabledReason,
+			Description:       self.c.Tr.DiscardSelection,
+			Tooltip:           self.c.Tr.DiscardSelectionTooltip,
+			DisplayOnScreen:   selectionShown,
+		},
+		{
 			Keys:            opts.GetKeys(opts.Config.Universal.GoInto),
 			Handler:         self.enter,
 			Description:     enterDescription,
@@ -304,6 +312,29 @@ func (self *MainViewController) primaryAction() error {
 	v := self.context.GetView()
 	first, last := v.SelectedLineRange()
 	return actions.PrimaryAction(self.context.GetViewName(), first, last)
+}
+
+// discardSelection discards the selected diff line(s), delegating to the panel beneath
+// (working-tree discard for files, line-removal from the commit for the commit panels).
+// As with the primary action, the handler does its own re-render. A no-op when the panel
+// beneath offers no actions; discardSelectionDisabledReason gates the cases where the
+// panel has discard but it isn't applicable right now.
+func (self *MainViewController) discardSelection() error {
+	actions := self.focusedMainViewActions()
+	if actions == nil {
+		return nil
+	}
+	v := self.context.GetView()
+	first, last := v.SelectedLineRange()
+	return actions.DiscardSelection(self.context.GetViewName(), first, last)
+}
+
+func (self *MainViewController) discardSelectionDisabledReason() *types.DisabledReason {
+	actions := self.focusedMainViewActions()
+	if actions == nil {
+		return nil
+	}
+	return actions.DiscardSelectionDisabledReason()
 }
 
 // revealSelectionAfterPrimaryAction re-establishes the focused-main-view selection after a
