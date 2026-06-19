@@ -259,6 +259,11 @@ func (self *FilesController) GetOnRenderToMain() func() {
 		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			node := self.context().GetSelected()
 
+			// Default the focused-main-view selection off; the real-diff branch below
+			// turns it back on. Every other outcome (no file, merge conflict) renders
+			// non-diff content with nothing to select.
+			updateFocusedMainViewSelectionVisibility(self.c, false, false)
+
 			if node == nil {
 				self.renderToMainWithTask(types.NewRenderStringTask(self.c.Tr.NoChangedFiles))
 				return
@@ -406,6 +411,11 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
 		}
 	}
+
+	// A real diff is being shown, so the focused main view has something to select:
+	// restore the selection on whichever pane is focused (the secondary only when
+	// the diff is split across both).
+	updateFocusedMainViewSelectionVisibility(self.c, true, split)
 
 	self.c.RenderToMainViews(refreshOpts)
 }
