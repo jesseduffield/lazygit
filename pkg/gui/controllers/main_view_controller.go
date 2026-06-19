@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -86,6 +87,12 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Description:       self.c.Tr.DiscardSelection,
 			Tooltip:           self.c.Tr.DiscardSelectionTooltip,
 			DisplayOnScreen:   selectionShown,
+		},
+		{
+			Keys:            opts.GetKeys(opts.Config.Universal.CopyToClipboard),
+			Handler:         self.copySelection,
+			Description:     self.c.Tr.CopySelectedTextToClipboard,
+			DisplayOnScreen: selectionShown,
 		},
 		{
 			Keys:            opts.GetKeys(opts.Config.Universal.GoInto),
@@ -360,6 +367,67 @@ func (self *MainViewController) discardSelectionDisabledReason() *types.Disabled
 		return nil
 	}
 	return actions.DiscardSelectionDisabledReason()
+}
+
+// copySelection copies the selected diff line(s) to the clipboard. Unlike the primary
+// action and discard, this is the same for every diff panel (it just reads the text the
+// focused main view shows), so it lives here rather than on FocusedMainViewActions — and
+// so it works over panels with no actions, like the reflog. A no-op when there's no
+// selection (non-diff content).
+//
+// With no pager the main view shows the raw diff, so the +/-/space column is stripped
+// from a homogeneous selection (dropDiffPrefix) to ease pasting into code, mirroring the
+// staging view's copy. With a pager configured we can't assume that column is present —
+// some pagers keep it and only colorize (e.g. ydiff), others drop or restructure it (e.g.
+// delta) — and we can't tell which, so we conservatively don't strip and copy verbatim.
+// (The cost is missing the convenience for column-preserving pagers.)
+func (self *MainViewController) copySelection() error {
+	v := self.context.GetView()
+	if !v.Highlight {
+		return nil
+	}
+
+	// The selection is in (wrapped) view-line space; map it to the unwrapped buffer lines
+	// it covers and copy those, so a wrapped line is copied whole and once — not indexed
+	// into the buffer by a view-line number (which copies the wrong line, or panics when
+	// the view line is past the buffer's length).
+	firstView, lastView := v.SelectedLineRange()
+	firstBuffer, ok := v.BufferLineForViewLine(firstView)
+	if !ok {
+		return nil
+	}
+	lastBuffer, ok := v.BufferLineForViewLine(lastView)
+	if !ok {
+		return nil
+	}
+
+	contents := v.DiffLineContents()
+	lastBuffer = min(lastBuffer, len(contents)-1)
+	if firstBuffer > lastBuffer {
+		return nil
+	}
+	lines := make([]string, 0, lastBuffer-firstBuffer+1)
+	for i := firstBuffer; i <= lastBuffer; i++ {
+		lines = append(lines, contents[i].Text)
+	}
+
+	// Trailing newline included so the last line is terminated too (dropDiffPrefix keeps
+	// it; the pager-verbatim path needs it added here).
+	selected := strings.Join(lines, "\n") + "\n"
+	if !self.usingExternalDiff() {
+		selected = dropDiffPrefix(selected)
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.CopySelectedTextToClipboard)
+	return self.c.OS().CopyToClipboard(selected)
+}
+
+// usingExternalDiff reports whether the focused main view's diff is produced by an
+// external diff command (a pager), in which case the rendered lines may not carry the raw
+// +/-/space column (see copySelection).
+func (self *MainViewController) usingExternalDiff() bool {
+	pagerConfig := self.c.State().GetPagerConfig()
+	return pagerConfig.GetExternalDiffCommand() != "" || pagerConfig.GetUseExternalDiffGitConfig()
 }
 
 // revealSelectionAfterPrimaryAction re-establishes the focused-main-view selection after a
