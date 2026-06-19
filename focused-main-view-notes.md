@@ -2817,3 +2817,42 @@ patch_building/staging suites green.
 **This removes the big §21.20 limitation.** Remaining (carry forward): scoped to commit-files; no
 auto-advance after a toggle; streaming. Committed as fixups on `1aed9428a` (note `0ce3cc378`'s
 unconditional reset is superseded by the conditional version — fold accordingly).
+
+### 21.22 Session 17 (cont.): first interactive feedback on the gutter — 4 of 5 fixed
+
+User tested step 6 interactively ("works mostly well"). Five issues; fixed 1, 2, 3, 5, recorded 4 for
+later (user's call: 6c matters more).
+
+- **(1) gutter/secondary visibility disagreed.** Gutter was gated `Active && !IsEmpty`, secondary on
+  `Active` — so unstaging the last hunk left the secondary (empty patch) but hid the gutter. Now the
+  gutter follows the secondary's criterion (dropped `IsEmpty`).
+- **(3) gutter shown inconsistently while unfocused.** Decided (user): the gutter is a **focused-main-
+  view affordance** — show it only while the main view holds focus. So the model is now: *gutter
+  visible iff a patch is active AND the Normal main view is the current context.* `RefreshInclusionGutter`
+  became parameterless and self-contained (targets `Contexts().Normal`, checks `CurrentStatic()`, then
+  `NextInStack` for the panel — **focus checked first, since `NextInStack` panics if the context isn't
+  in the stack**, which it is exactly when current). Recompute moved to `MainViewController.GetOnFocus`
+  (+ a new `GetOnFocusLost` that hides it), dropped from `focusMainView`. This also **removed the fragile
+  `strings.Join(cmd.Args)` content-equality hack** from §21.21: while focused, the only re-render is the
+  same-diff toggle, so recomputing over the current content is always valid; unfocused → hidden.
+- **(2) selection drifted when the split appeared** (user: "looks pretty broken"). Root cause: the
+  focused-main-view selection is **view-line-based**, so when the secondary view appears the main
+  halves in width, the diff re-wraps, and the cursor lands on the wrong content (the gutter marks are
+  fine — they're keyed by *buffer* line, width-independent). Fix: after the toggle's re-render, re-select
+  the same content by **change-line ordinal** (reuse `RevealSelectionAfterStaging`; the line isn't
+  consumed so the ordinal is unchanged, and ordinals are width-independent), re-expanding the hunk. The
+  handler installs it after the `Refresh` (so it works for both the sync path and the async
+  discard-confirm path, and never lingers — a `Refresh` always follows). A range collapses to a line,
+  as a staged range does.
+- **(5) checkmark only on the first wrapped segment.** Now drawn on every wrapped segment (dropped the
+  `linesX == 0` guard); gocui test renamed `TestInclusionGutterMarkerOnEverySegment`.
+- **(4) DEFERRED — pager switch shifts the checkmarks.** Switching pagers keeps the **same git command**
+  (the pager is an env var, not an arg) but yields a **different buffer-line structure**, so marks
+  computed from the pre-switch buffer no longer align. The proper fix recomputes the gutter from the
+  **new** buffer at render completion — needs a post-render hook we don't have, and pager-switching
+  mid-build is uncommon. Left unfixed (a refresh fixes it); revisit if it annoys.
+
+All fixes are fixups on `1aed9428a` / `67906ae47`; `e2e-all` green (modulo the empty-pathspec flake).
+
+**NEXT: 6c** — register the toggle handler on commits / sub-commits / stash main views (whole-commit
+multi-file diff). Then step 7, step 8.
