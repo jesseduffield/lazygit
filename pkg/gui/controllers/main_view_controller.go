@@ -305,9 +305,9 @@ func (self *MainViewController) stageSelectedLine() error {
 	}
 
 	// Re-select in whichever pane now holds the acted-on side, and focus it. The
-	// candidate change lines are read from the pane we acted in (its content is still
-	// the pre-staging diff until the queued re-render), and found again in the target
-	// pane's re-render. The target inherits our select mode (line/hunk).
+	// acted-on line's change-line ordinal is read from the pane we acted in (its
+	// content is still the pre-staging diff until the queued re-render) and re-applied
+	// in the target pane's re-render. The target inherits our select mode (line/hunk).
 	targetContext := self.context
 	if focusViewName == self.otherContext.GetViewName() {
 		targetContext = self.otherContext
@@ -315,7 +315,7 @@ func (self *MainViewController) stageSelectedLine() error {
 	*targetContext.DiffSelectState() = *sel
 	targetView := targetContext.GetView()
 
-	self.c.Helpers().Staging.RevealSelectionAfterStaging(v, targetView, first, last, func(viewLine int) {
+	self.c.Helpers().Staging.RevealSelectionAfterStaging(v, targetView, first, func(viewLine int) {
 		if sel.Mode == context.DiffSelectModeHunk {
 			selectDiffHunk(self.c, targetContext, viewLine)
 		} else {

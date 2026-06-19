@@ -236,8 +236,9 @@ func findResolvedDiffLine(resolved []resolvedDiffLine, target types.DiffLineInfo
 }
 
 // diffLineMatch decides whether a re-rendered row is the target a restore is looking
-// for. The right notion of "same line" depends on what changed between the captured
-// identity and the re-render — see matchByPatchLine and matchByWorktreeChange.
+// for. matchByPatchLine is currently the only one — the post-stage reveal, the other
+// case where a line's number can change across the re-render, matches by ordinal
+// instead (see RevealSelectionAfterStaging).
 type diffLineMatch func(target, row types.DiffLineInfo) bool
 
 // matchByPatchLine matches by source-line number (DiffLineInfo.SamePatchLine). It is
@@ -246,20 +247,6 @@ type diffLineMatch func(target, row types.DiffLineInfo) bool
 // staged/unstaged state, so only context lines (not change lines) can come or go.
 func matchByPatchLine(target, row types.DiffLineInfo) bool {
 	return row.SamePatchLine(target)
-}
-
-// matchByWorktreeChange matches a change line by its worktree (new-file) line number
-// and side (deletion vs addition). It is for the post-stage reveal: staging shifts the
-// index-side line numbers of the hunks below it, so matchByPatchLine — which keys a
-// deletion on its old-file number — would miss the next hunk; but staging never moves
-// the worktree, so the new-file number is stable. Requiring a change line also keeps a
-// candidate from colliding with a header or context row. Landing anywhere in the right
-// block is enough (selectHunkAround expands to the whole block), so the new-file
-// number's ambiguity between two consecutive deletions doesn't matter here.
-func matchByWorktreeChange(target, row types.DiffLineInfo) bool {
-	return target.IsChange() && row.IsChange() &&
-		row.NewLine == target.NewLine &&
-		(row.Type == types.DiffLineDeleted) == (target.Type == types.DiffLineDeleted)
 }
 
 // RestoreFocusedMainViewOnEscape arranges, when escaping a patch explorer back to
@@ -296,46 +283,48 @@ func (self *StagingHelper) RestoreFocusedMainViewOnEscape(explorerView, mainView
 // RevealSelectionAfterStaging arranges, after staging or unstaging re-renders the
 // focused main view's diff, for the selection to land on the change nearest the one
 // just acted on rather than at a stale (and possibly off-content) position — the same
-// "advance to the next change" the staging view does. firstLine and lastLine bound
-// the just-staged selection in sourceView's current (pre-staging) diff; place
-// positions and re-selects the landed line in the current select mode. Install it
-// before triggering the re-render: it rides the next render of targetView, like
-// RestoreFocusedMainViewOnEscape.
+// "advance to the next change" the staging view does. Install it before triggering the
+// re-render: it rides the next render of targetView, like RestoreFocusedMainViewOnEscape.
+// place re-selects the landed line in the current select mode.
 //
-// sourceView is the pane the user acted in; targetView is the pane to re-select in.
-// They are usually the same, but staging or unstaging can move the acted-on side to
-// the other pane — e.g. unstaging the first hunk of an only-staged file splits it,
-// pushing the staged remainder to the secondary half — in which case the candidate
-// lines, captured from sourceView, are found again in targetView's re-render.
+// It works by preserving the selection's ordinal among change lines, exactly as the
+// staging view preserves its patch-line index: the acted-on line's ordinal is read
+// from sourceView (the pane the user acted in) before the op, and after the re-render
+// the change line at that ordinal in targetView is selected. Because the op removes the
+// acted-on change line(s), that ordinal then holds the next surviving change — the next
+// line of the same block when one line was staged, the next block when a whole block
+// was. This sidesteps matching by line number, which can't identify the target across a
+// stage: a deletion shares its new-file number with the rest of its block, and in the
+// staged pane the new-file number is the index, which the op shifts.
 //
-// The candidates, in priority order, are the change line after the selection, then
-// the one before it (both survive staging — only the selection itself was staged),
-// then the selection's own first line, which only turns up when the whole side was
-// staged and the view flips to show the other (staged) side. Adjacent change *line*,
-// not block: staging a single line should land on the next line of the same block,
-// while staging a whole block lands on the next block (its last line is followed by
-// context, so the next change line is the next block's). place — line- or hunk-mode —
-// then selects from there. If none survives, place isn't called and the view
-// re-renders without moving the selection.
-func (self *StagingHelper) RevealSelectionAfterStaging(sourceView *gocui.View, targetView *gocui.View, firstLine int, lastLine int, place func(viewLine int)) {
-	var candidates []diffLineAnchor
-	addByViewLine := func(viewLine int) {
-		if info, ok := self.GetDiffLineInfoForView(sourceView, viewLine); ok {
-			candidates = append(candidates, diffLineAnchor{identity: info})
+// sourceView and targetView are usually the same pane, but staging or unstaging can move
+// the acted-on side to the other pane (e.g. unstaging the first hunk of an only-staged
+// file splits it, pushing the staged remainder to the secondary half); the ordinal is
+// preserved across that move since both panes show the same side.
+func (self *StagingHelper) RevealSelectionAfterStaging(sourceView *gocui.View, targetView *gocui.View, firstLine int, place func(viewLine int)) {
+	ordinal, ok := self.changeLineOrdinal(sourceView, firstLine)
+	if !ok {
+		return
+	}
+	self.revealChangeLineAtOrdinal(targetView, ordinal, place)
+}
+
+// changeLineOrdinal returns how many change lines precede the (change) line at
+// viewLine in view's displayed diff — i.e. that line's index among the diff's change
+// lines. ok is false when viewLine maps to no buffer line.
+func (self *StagingHelper) changeLineOrdinal(view *gocui.View, viewLine int) (int, bool) {
+	bufferLine, ok := view.BufferLineForViewLine(viewLine)
+	if !ok {
+		return 0, false
+	}
+	resolved := self.resolveDiffLines(view.DiffLineContents())
+	ordinal := 0
+	for i := 0; i < bufferLine && i < len(resolved); i++ {
+		if resolved[i].ok && resolved[i].info.IsChange() {
+			ordinal++
 		}
 	}
-
-	if next, ok := self.AdjacentChangeLine(sourceView, lastLine, true); ok {
-		addByViewLine(next)
-	}
-	if prev, ok := self.AdjacentChangeLine(sourceView, firstLine, false); ok {
-		addByViewLine(prev)
-	}
-	addByViewLine(firstLine)
-
-	self.restoreDiffLinePositionOnRerender(targetView, candidates, matchByWorktreeChange, func(_ diffLineAnchor, viewLine int) {
-		place(viewLine)
-	})
+	return ordinal, true
 }
 
 // diffLineAnchor is a candidate line for a restore to land on after a re-render: a
@@ -346,25 +335,27 @@ type diffLineAnchor struct {
 	row      int
 }
 
-// restoreDiffLinePositionOnRerender installs a restore on view's render manager so
-// that, as view next re-renders, it lands on a row that match accepts as one of the
-// given candidate identities, and calls place with that candidate and its view line to
-// position and/or select it. candidates are in priority order (nearest first); the
-// restore lands on the first one the re-render still contains. If none turns up (the
-// content changed out from under all of them) place is not called and the view just
-// re-renders normally. match decides what "still contains" means, since the stable
-// notion of identity differs by what changed in the re-render (see diffLineMatch).
+// installDiffLineRestore is the shared core of the position restores. It sets a
+// restore on view's render manager that, as view next re-renders, locates a target
+// buffer line and places it: findEarly is given the rows that have loaded since the
+// previous call (resolvable on their own via OSC metadata or a lazygit-edit hyperlink)
+// so the target can be found and painted early when possible; findComplete is given
+// the whole resolved diff at the EOF swap for the definitive target (and the
+// buffer-parse fallback, which only resolves once whole hunks have loaded). Each
+// returns the anchor to hand back to place — the matched candidate for an identity
+// restore, a zero anchor for a positional one — and the target buffer line. place
+// receives that anchor and the target's view line; if neither finder produces a
+// target, place isn't called and the view re-renders normally.
 //
-// It is the context-neutral core behind the three position restores: the post-stage
-// reveal (candidates around the staged line, matched by worktree change so they
-// survive the index-side line-number shift), restoring the focused main view on escape
-// (one candidate — the line the patch explorer had selected), and preserving a diff
-// view's position when its -U context size changes (several candidates around the
-// anchor, placed back where they were; see PreserveDiffPositionOnRerender).
-func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, candidates []diffLineAnchor, match diffLineMatch, place func(anchor diffLineAnchor, viewLine int)) {
-	if len(candidates) == 0 {
-		return
-	}
+// The find runs against the off-screen buffer before the swap, so the (possibly
+// whole-diff) scan happens while the previous content is still displayed; otherwise
+// the new content would be drawn at the old scroll for the scan's duration.
+func (self *StagingHelper) installDiffLineRestore(
+	view *gocui.View,
+	findEarly func(rows []gocui.DiffLineContent, offset int) (diffLineAnchor, int, bool),
+	findComplete func(resolved []resolvedDiffLine) (diffLineAnchor, int, bool),
+	place func(anchor diffLineAnchor, viewLine int),
+) {
 	// Get-or-create: the target pane may not have rendered yet (the secondary half
 	// when a stage/unstage first splits the diff), so the restore has to be set on a
 	// manager that the upcoming render will then reuse.
@@ -373,30 +364,17 @@ func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, c
 		return
 	}
 
-	// The primary (nearest) candidate is found incrementally as the content loads
-	// (scanned tracks how far we've scanned, so each line is checked once), letting
-	// us paint early when it survives — the common case. A fallback to a farther
-	// candidate is resolved only on the complete content at the EOF swap (see Apply),
-	// because candidates aren't in load order, so a nearer one can load after a
-	// farther one and we mustn't commit to the farther one prematurely.
+	// scanned tracks how far findEarly has looked, so each line is checked once
+	// (keeping the incremental scan O(n) over the whole load).
+	primaryAnchor := diffLineAnchor{}
 	primaryBufferLine := -1
 	scanned := 0
 	manager.SetRestoreForNextTask(&tasks.RenderRestore{
 		FirstPaintReady: func() bool {
-			// Scan the rows that have loaded since we last looked for the primary
-			// candidate, resolving each on its own (diffLineInfoPerRow: OSC metadata
-			// or a lazygit-edit hyperlink). The buffer-parse backend can't resolve
-			// here — it parses whole hunks against their @@ lengths, and the trailing
-			// hunk is incomplete while loading, so the parse is rejected until the diff
-			// is fully read; that (and any fallback) is handled in Apply. Scanning only
-			// the new rows each time keeps this O(n) over the whole load.
 			if primaryBufferLine == -1 {
 				newRows := view.OffscreenDiffLineContentsFrom(scanned)
-				for j, content := range newRows {
-					if info, ok := self.diffLineInfoPerRow(content); ok && match(candidates[0].identity, info) {
-						primaryBufferLine = scanned + j
-						break
-					}
+				if anchor, line, ok := findEarly(newRows, scanned); ok {
+					primaryAnchor, primaryBufferLine = anchor, line
 				}
 				scanned += len(newRows)
 				if primaryBufferLine == -1 {
@@ -406,41 +384,100 @@ func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, c
 			return view.OffscreenLineCount() >= primaryBufferLine+view.InnerHeight()
 		},
 		Apply: func(swapIn func()) {
-			// Find the candidate to land on, then swap the off-screen content in and
-			// place it. The find runs against the *off-screen* buffer, before the swap,
-			// so the (possibly whole-diff) scan happens while the previous content is
-			// still displayed — otherwise the new content would be drawn at the old
-			// scroll for the duration of the scan. Land on the nearest candidate the
-			// content still contains: the primary one if the incremental scan found it,
-			// otherwise scan the now-complete content in priority order (the common path
-			// for buffer-parse, which only becomes well-formed once the whole diff has
-			// loaded, so its swap is at end of input and the off-screen buffer is whole).
-			matched, bufferLine := -1, primaryBufferLine
-			if bufferLine != -1 {
-				matched = 0
-			} else {
-				resolved := self.resolveDiffLines(view.OffscreenDiffLineContents())
-				for i, candidate := range candidates {
-					if line := findResolvedDiffLine(resolved, candidate.identity, match, 0); line != -1 {
-						matched, bufferLine = i, line
-						break
-					}
+			anchor, bufferLine := primaryAnchor, primaryBufferLine
+			if bufferLine == -1 {
+				if a, line, ok := findComplete(self.resolveDiffLines(view.OffscreenDiffLineContents())); ok {
+					anchor, bufferLine = a, line
 				}
 			}
 
 			swapIn()
 
-			// If no candidate is there (the content changed and they're all gone),
-			// leave the scroll and selection as they are rather than acting on a line
-			// that no longer means what it did.
-			if matched != -1 {
+			if bufferLine != -1 {
 				if viewLine, ok := view.ViewLineForBufferLine(bufferLine); ok {
-					place(candidates[matched], viewLine)
+					place(anchor, viewLine)
 				}
 			}
 			manager.ClearRestoreForNextTask()
 		},
 	})
+}
+
+// restoreDiffLinePositionOnRerender installs a restore that, as view next re-renders,
+// lands on a row that match accepts as one of the given candidate identities, and calls
+// place with that candidate and its view line. candidates are in priority order
+// (nearest first); the restore lands on the first the re-render still contains, found
+// incrementally for the nearest and at the EOF swap for any farther fallback (candidates
+// aren't in load order, so a nearer one can load after a farther one and we mustn't
+// commit prematurely). If none turns up, place isn't called. match decides what "still
+// contains" means, since the stable notion of identity differs by what changed in the
+// re-render (see diffLineMatch).
+//
+// It is the identity-matched restore behind escaping back to the focused main view (one
+// candidate — the line the patch explorer had selected) and preserving a diff view's
+// position across a -U context-size change (several candidates around the anchor, placed
+// back where they were; see PreserveDiffPositionOnRerender). The post-stage reveal uses
+// the positional restore instead (see revealChangeLineAtOrdinal).
+func (self *StagingHelper) restoreDiffLinePositionOnRerender(view *gocui.View, candidates []diffLineAnchor, match diffLineMatch, place func(anchor diffLineAnchor, viewLine int)) {
+	if len(candidates) == 0 {
+		return
+	}
+	self.installDiffLineRestore(view,
+		func(rows []gocui.DiffLineContent, offset int) (diffLineAnchor, int, bool) {
+			for j, content := range rows {
+				if info, ok := self.diffLineInfoPerRow(content); ok && match(candidates[0].identity, info) {
+					return candidates[0], offset + j, true
+				}
+			}
+			return diffLineAnchor{}, 0, false
+		},
+		func(resolved []resolvedDiffLine) (diffLineAnchor, int, bool) {
+			for _, candidate := range candidates {
+				if line := findResolvedDiffLine(resolved, candidate.identity, match, 0); line != -1 {
+					return candidate, line, true
+				}
+			}
+			return diffLineAnchor{}, 0, false
+		},
+		place,
+	)
+}
+
+// revealChangeLineAtOrdinal installs a restore that, as view next re-renders, selects
+// the change line at the given ordinal among the diff's change lines (clamped to the
+// last when the re-render has fewer). It is the positional restore behind the post-stage
+// reveal: see RevealSelectionAfterStaging for why an ordinal, not an identity.
+func (self *StagingHelper) revealChangeLineAtOrdinal(view *gocui.View, ordinal int, place func(viewLine int)) {
+	seen := 0 // change lines counted so far by the incremental scan
+	self.installDiffLineRestore(view,
+		func(rows []gocui.DiffLineContent, offset int) (diffLineAnchor, int, bool) {
+			for j, content := range rows {
+				if info, ok := self.diffLineInfoPerRow(content); ok && info.IsChange() {
+					if seen == ordinal {
+						return diffLineAnchor{}, offset + j, true
+					}
+					seen++
+				}
+			}
+			return diffLineAnchor{}, 0, false
+		},
+		func(resolved []resolvedDiffLine) (diffLineAnchor, int, bool) {
+			last, count := -1, 0
+			for i, r := range resolved {
+				if r.ok && r.info.IsChange() {
+					last = i
+					if count == ordinal {
+						return diffLineAnchor{}, i, true
+					}
+					count++
+				}
+			}
+			// Fewer change lines than the ordinal (the acted-on line was at or near the
+			// end): clamp to the last surviving change.
+			return diffLineAnchor{}, last, last != -1
+		},
+		func(_ diffLineAnchor, viewLine int) { place(viewLine) },
+	)
 }
 
 // PreserveDiffPositionOnRerender remembers where a diff view is anchored and, when
