@@ -3005,3 +3005,61 @@ not a "can't." (Once the (A) dispatch refactor lands, this likely becomes "reflo
 `FocusedMainViewActions` the commit panels do.")
 
 **NEXT: (A) the dispatch refactor** (new session), then (B) `d`, (C) `ctrl+o`, (D) the pager fallback.
+
+### 21.25 Session 19 (2026-06-19): (A) the dispatch refactor — DONE
+
+The per-command delegation channels are collapsed into one. Committed (most recent last; both
+behaviour-preserving):
+
+```
+b694f4573 Push the staging focus-follow into the side-panel handler            (prep)
+55ba6e0d7 Collapse the focused-main-view handler channels into one             (A)
+```
+
+**Prep — unify the handler signatures to `error` (sub-decision (i)).** The two `space` handlers were
+asymmetric: the patch-toggle handler did its own re-render + reveal and returned `error`, while the
+staging handler returned a `focusViewName` so the dispatcher (`MainViewController.stageRange`) could do
+the reveal-and-focus dance on its behalf — different return types, which blocks merging them. Pushed the
+focus-follow into `FilesController` (now `PrimaryAction`): it does the post-staging reveal and pane
+focus itself. Extracted the reveal/select-mode logic the two handlers shared (collapse a range to a
+line, preserve the change-line ordinal across the re-render, re-expand a hunk) into
+`revealSelectionAfterPrimaryAction(c, sourceViewName, targetViewName, firstLineIdx)`, with
+`mainContextForViewName` resolving a view name to its `*MainContext`. This *replaced* the old
+`revealSelectionAfterPatchToggle` (toggle now calls the shared helper with source==target) and deleted
+`stageRange`. Dispatcher is now uniform: read the selected range, hand it to the handler.
+
+**(A) — one channel.** Replaced the three channels (`onClick/onStage/onTogglePatch FocusedMainViewFn`,
+each = HasKeybindings getter + IBaseContext `Add` + BaseContext field/getter + baseController nil default
++ attach.go registration ≈ 5 touch points/command) with a single `FocusedMainViewActions` interface
+(`OnClick`, `PrimaryAction`) exposed via `GetFocusedMainViewActions()` (nil for non-actionable panels).
+The 2-3 controllers implement the interface directly and `return self`; `MainViewController` fetches the
+actions from the panel beneath and calls the method. **Adding a command is now: one interface method +
+implement in the 2-3 controllers + one keybinding — no plumbing.** Kept the underlying BaseContext
+function-attachment mechanism (per §21.24, the user scratched replacing it).
+
+**The patch-building classification (gutter signal).** `RefreshInclusionGutter` used
+`GetOnTogglePatchFocusedMainView() != nil` as a proxy for "the panel beneath builds a custom patch" (so
+the inclusion gutter shows beneath commits/stash/commitFiles but not the staging files panel, nor reflog
+which has no toggle today). Collapsing the channels erased that proxy. First restored as a separate
+marker interface, then (user's call) folded into the existing `DiffMainViewContext`: its bare
+`IsDiffMainViewContext()` marker became `GetDiffMainViewType() DiffMainViewType` returning
+`None | Staging | PatchBuilding` — one classifier instead of two marker interfaces. The gutter shows iff
+the panel's type is `PatchBuilding` (commitFiles / localCommits / subCommits / stash); files = `Staging`,
+reflog = `None` (diff shown, selection editable, but no `space` action — the deferred patch-building
+gap). Only `PatchBuilding` is read today; the other values document the taxonomy and keep reflog honest
+(it'll flip to `PatchBuilding` once wired).
+
+**Tests:** `just build` + `unit-test` + `lint` + **`e2e-all` all green** (one transient
+`build_from_main_view` failure under parallel load on the first batch run — the known empty-pathspec
+flake; passed in isolation and on every rerun). The staging/patch_building from-main-view suite
+(`stage_{hunk,range,range_spanning_files}_from_main_view`, `select_*_from_main_view`,
+`build_{,multi_file_}from_whole_commit_main_view`, `build_from_main_view`, `reset_patch_built_from_main_view`)
+covers the dispatch + reveal paths and stays green.
+
+**Carry-forward unchanged:** the gutter is draw-time so no e2e covers its appearance (interactive
+sign-off still pending per §21.23); reflog patch-building still a deferred gap (and now trivially:
+reflog would return the same `FocusedMainViewActions` + implement the marker).
+
+**NEXT: (B) `d` (discard a hunk)** — different backend per panel (working-tree discard vs patch-building
+variant); the (A) handler accommodates it (add `DiscardSelection` to `FocusedMainViewActions`). Then (C)
+`ctrl+o` copy, (D) the pager fallback.
