@@ -3147,3 +3147,44 @@ after the last change was discarded or changes vanished outside lazygit. Fix has
   `hide_selection_after_discarding_last_change`.
 
 `build` + `unit` + `lint` + **`e2e-all` all green.**
+
+### 21.28 Session 19 (cont.): (C) `ctrl+o` — copy parts of a diff — DONE
+
+`ctrl+o` in the focused main view copies the selected diff line(s) to the clipboard. Committed
+`16035437d`.
+
+**Design decision (user-confirmed, deviates from §21.24): copy is a direct `MainViewController` command,
+NOT a `FocusedMainViewActions` method.** Unlike stage/discard, copy is panel-*independent* — it just reads
+the text the focused main view shows + the pager config, no per-panel backend. Routing it through the
+interface would (a) give three identical implementations (no real polymorphism) and (b) exclude the
+**reflog**, which is a diff panel with nil actions. As a `MainViewController` binding gated on `Highlight`
+it works over every diff panel including reflog, with no duplication. (So §21.24's "add `CopySelection` to
+the interface" was wrong for this command; the interface is for things with per-panel backends.)
+
+**`dropDiffPrefix` / pager (the §21.27-adjacent concern user raised).** The staging view strips the
++/-/space column when copying, safe because it's always a raw diff. The focused main view can't assume
+that: under a pager the +/-/space column may or may not survive (delta drops/restructures it, ydiff keeps
+it and only colorizes) and we can't tell which, so stripping the first char might eat content.
+Fix: `usingExternalDiff()` (pager configured?) gates the strip — no pager → `dropDiffPrefix` (raw diff,
+strip homogeneous selections); pager → copy verbatim (cost: missing the strip for column-preserving pagers). Reused the existing `dropDiffPrefix` (same-package
+free function). **Deferred (user said optional):** refining the raw-diff strip to classify header lines by
+diff-line metadata `Type` instead of the text's first char — that would fix commit `159bbb0825`'s
+`--- a/file` → `-- a/file` edge case "for free", but it's complicated by line-wrapping (SelectedLines is
+view lines; metadata is per buffer line), so not "easy" enough for now.
+
+**Test** `copy_from_main_view` (homogeneous addition hunk → clipboard has the `+` stripped; uses the
+`OS.CopyToClipboardCmd`→file emulation). The pager-verbatim branch needs interactive sign-off (no real
+pager in the harness, cf. the gutter). `build` + `unit` + `lint` + **`e2e-all` green.**
+
+**Bug fix (user review, fixup on the feature commit).** The first cut used `gocui.View.SelectedLines()`,
+which is a **test-only** helper: it indexes `buf.lines` (unwrapped) by the selection's `cy+oy`
+(view-line, wrapped) space, so any wrapped line → wrong content, and a view line past the buffer length →
+out-of-range panic. Fixed by mapping the selected view-line range to buffer lines via
+`BufferLineForViewLine` and reading `DiffLineContents()[bufferIdx].Text` — copies each wrapped line whole
+and once. (Lesson: don't use `SelectedLines()`/`SelectedLine()` in production; they assume no wrapping.)
+Also append a trailing `\n` so the last copied line is terminated (the pager-verbatim path and
+`dropDiffPrefix`'s keep-prefix branch don't add one).
+
+**NEXT: (D) the no-OSC-pager raw fallback** — the last and biggest production unknown (see §21.24(D)):
+fall back to raw (no-pager) rendering at focus time for a pager that emits no metadata, with a one-time
+capability probe and best-effort click-to-focus by view-line index.
