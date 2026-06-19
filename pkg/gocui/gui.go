@@ -1345,7 +1345,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 
 			visibleLineWidth := 0
-			for _, c := range v.lines[newY] {
+			for _, c := range v.lines[newY].cells {
 				visibleLineWidth += c.width
 			}
 			if visibleLineWidth < newX {

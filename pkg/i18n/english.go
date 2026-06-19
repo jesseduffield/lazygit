@@ -608,7 +608,12 @@ type TranslationSet struct {
 	PrevScreenMode                        string
 	CyclePagers                           string
 	CyclePagersTooltip                    string
+	CyclePagersReverse                    string
+	CyclePagersReverseTooltip             string
 	CyclePagersDisabledReason             string
+	SelectedPager                         string
+	DefaultPagerName                      string
+	ExternalDiffPagerName                 string
 	StartSearch                           string
 	StartFilter                           string
 	SelectRemoteRepository                string
@@ -893,6 +898,8 @@ type TranslationSet struct {
 	CreateWorktreeFromDetached               string
 	LcWorktree                               string
 	ChangingDirectoryTo                      string
+	DirenvApprovalTitle                      string
+	DirenvApprovalPrompt                     string
 	Name                                     string
 	Branch                                   string
 	Path                                     string
@@ -917,6 +924,7 @@ type TranslationSet struct {
 	SelectedItemIsNotABranch                 string
 	SelectedItemDoesNotHaveFiles             string
 	MultiSelectNotSupportedForSubmodules     string
+	NothingToStageForSubmodule               string
 	CommandDoesNotSupportOpeningInEditor     string
 	CustomCommands                           string
 	NoApplicableCommandsInThisContext        string
@@ -1738,8 +1746,13 @@ func EnglishTranslationSet() *TranslationSet {
 		NextScreenMode:                   "Next screen mode (normal/half/fullscreen)",
 		PrevScreenMode:                   "Prev screen mode",
 		CyclePagers:                      "Cycle pagers",
-		CyclePagersTooltip:               "Choose the next pager in the list of configured pagers",
+		CyclePagersTooltip:               "Choose the next pager in the list of configured pagers.",
+		CyclePagersReverse:               "Cycle pagers (reverse)",
+		CyclePagersReverseTooltip:        "Choose the previous pager in the list of configured pagers.",
 		CyclePagersDisabledReason:        "No other pagers configured",
+		SelectedPager:                    "Pager: {{.name}} ({{.current}} of {{.total}})",
+		DefaultPagerName:                 "(default)",
+		ExternalDiffPagerName:            "(external diff)",
 		StartSearch:                      "Search the current view by text",
 		StartFilter:                      "Filter the current view by text",
 		SelectRemoteRepository:           "Select base repository for pull requests",
@@ -2017,6 +2030,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CreateWorktreeFromDetached:               "Create worktree from {{.ref}} (detached)",
 		LcWorktree:                               "worktree",
 		ChangingDirectoryTo:                      "Changing directory to {{.path}}",
+		DirenvApprovalTitle:                      "Approve .envrc?",
+		DirenvApprovalPrompt:                     "Press {{.confirmKey}} to run 'direnv allow' and load the environment.\nPress {{.cancelKey}} to skip.\n\n{{.content}}",
 		Name:                                     "Name",
 		Branch:                                   "Branch",
 		Path:                                     "Path",
@@ -2039,6 +2054,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SelectedItemIsNotABranch:                 "Selected item is not a branch",
 		SelectedItemDoesNotHaveFiles:             "Selected item does not have files to view",
 		MultiSelectNotSupportedForSubmodules:     "Multiselection not supported for submodules",
+		NothingToStageForSubmodule:               "Nothing to stage: the parent repo can only stage a new submodule commit, not the uncommitted changes inside a submodule. Commit inside the submodule first.",
 		CommandDoesNotSupportOpeningInEditor:     "This command doesn't support switching to the editor",
 		CustomCommands:                           "Custom commands",
 		NoApplicableCommandsInThisContext:        "(No applicable commands in this context)",
