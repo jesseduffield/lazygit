@@ -280,80 +280,59 @@ func (self *MainViewController) isDiffView() bool {
 }
 
 // stageSelectedLine acts on the selected diff line(s) — a single line, a range, or a
-// hunk — delegating to the side panel beneath the focused main view, since what the
-// action means is the panel's business: the working tree stages, while commits build a
-// custom patch. Panels whose diff supports neither register no handler, so this is a
-// no-op there.
+// hunk — delegating the primary action to the side panel beneath the focused main view,
+// since what the action means is the panel's business: the working tree stages, while
+// commits toggle the selection into a custom patch. Each handler does its own re-render
+// and re-establishes the selection afterwards (see revealSelectionAfterPrimaryAction), so
+// the dispatcher just hands over the selected range. Panels whose diff supports neither
+// register no handler, so this is a no-op there.
 func (self *MainViewController) stageSelectedLine() error {
 	sidePanelContext := self.c.Context().NextInStack(self.context)
 	if sidePanelContext == nil {
 		return nil
 	}
+	v := self.context.GetView()
+	first, last := v.SelectedLineRange()
 	if handler := sidePanelContext.GetOnStageFocusedMainView(); handler != nil {
-		return self.stageRange(handler)
+		return handler(self.context.GetViewName(), first, last)
 	}
 	if handler := sidePanelContext.GetOnTogglePatchFocusedMainView(); handler != nil {
-		// Toggling the selection into the custom patch leaves the diff unchanged (the
-		// handler repaints the inclusion gutter itself), so unlike staging there's no
-		// re-render to ride and the selection stays where it is.
-		v := self.context.GetView()
-		first, last := v.SelectedLineRange()
 		return handler(self.context.GetViewName(), first, last)
 	}
 	return nil
 }
 
-// stageRange stages (or unstages) the current selection through the side panel's
-// staging handler. Staging mutates the working tree, so the diff re-renders
-// asynchronously and the selection is re-revealed once it lands.
-func (self *MainViewController) stageRange(handler func(mainViewName string, firstLineIdx int, lastLineIdx int) (string, error)) error {
-	v := self.context.GetView()
-	first, last := v.SelectedLineRange()
+// revealSelectionAfterPrimaryAction re-establishes the focused-main-view selection after a
+// primary action (staging or a patch toggle) re-renders the diff. The selection's
+// change-line ordinal is read from the source pane (still showing the pre-action diff
+// until the queued re-render) and re-applied once the target pane re-renders — so the
+// selection lands on the change nearest the one acted on rather than at a stale position.
+// sourceViewName and targetViewName are usually the same pane, but staging can move the
+// acted-on side to the other pane (passing that pane as the target). The target inherits
+// the (collapsed) select mode; a range collapses back to a single line, hunk mode stays
+// on to land on the next hunk.
+func revealSelectionAfterPrimaryAction(c *ControllerCommon, sourceViewName string, targetViewName string, firstLineIdx int) {
+	sourceContext := mainContextForViewName(c, sourceViewName)
+	targetContext := mainContextForViewName(c, targetViewName)
 
-	// Staging consumes the selected range, so a range selection collapses back to a
-	// single line; hunk mode stays on, to land on the next hunk.
-	sel := self.sel()
+	sel := sourceContext.DiffSelectState()
 	if sel.Mode == context.DiffSelectModeRange {
 		sel.Mode = context.DiffSelectModeLine
 		sel.RangeIsSticky = false
 	}
-
-	// Staging updates the model synchronously and queues the main-view re-render, and
-	// reports which pane should hold focus afterwards (staging/unstaging can move the
-	// acted-on side to the other pane). "" means nothing was staged.
-	focusViewName, err := handler(self.context.GetViewName(), first, last)
-	if err != nil {
-		return err
-	}
-	if focusViewName == "" {
-		return nil
-	}
-
-	// Re-select in whichever pane now holds the acted-on side, and focus it. The
-	// acted-on line's change-line ordinal is read from the pane we acted in (its
-	// content is still the pre-staging diff until the queued re-render) and re-applied
-	// in the target pane's re-render. The target inherits our select mode (line/hunk).
-	targetContext := self.context
-	if focusViewName == self.otherContext.GetViewName() {
-		targetContext = self.otherContext
-	}
 	*targetContext.DiffSelectState() = *sel
-	targetView := targetContext.GetView()
+	mode := sel.Mode
 
-	self.c.Helpers().Staging.RevealSelectionAfterStaging(v, targetView, first, func(viewLine int) {
-		if sel.Mode == context.DiffSelectModeHunk {
-			selectDiffHunk(self.c, targetContext, viewLine)
+	sourceView := sourceContext.GetView()
+	targetView := targetContext.GetView()
+	c.Helpers().Staging.RevealSelectionAfterStaging(sourceView, targetView, firstLineIdx, func(viewLine int) {
+		if mode == context.DiffSelectModeHunk {
+			selectDiffHunk(c, targetContext, viewLine)
 		} else {
 			targetView.CancelRangeSelect()
 			showSelectionAtLine(targetView, viewLine, true)
 		}
 	})
-
-	if targetContext != self.context {
-		self.c.Context().Push(targetContext, types.OnFocusOpts{})
-	}
-
-	return nil
 }
 
 func (self *MainViewController) enter() error {
@@ -674,13 +653,20 @@ func sidePanelShowsDiff(sidePanel types.Context) bool {
 	return ok
 }
 
-// focusedMainViewContextForViewName maps a focused main view's view name (as
-// passed to GetOnClickFocusedMainView) to its context.
-func focusedMainViewContextForViewName(c *ControllerCommon, viewName string) types.Context {
+// mainContextForViewName maps a focused main view's view name (as passed to the
+// side-panel handlers) to its main context — the secondary pane for the secondary
+// view name, the primary pane otherwise.
+func mainContextForViewName(c *ControllerCommon, viewName string) *context.MainContext {
 	if viewName == c.Contexts().NormalSecondary.GetViewName() {
 		return c.Contexts().NormalSecondary
 	}
 	return c.Contexts().Normal
+}
+
+// focusedMainViewContextForViewName is mainContextForViewName as a types.Context, for
+// callers that only need the interface.
+func focusedMainViewContextForViewName(c *ControllerCommon, viewName string) types.Context {
+	return mainContextForViewName(c, viewName)
 }
 
 // focusedMainViewSnapshot records the focused main view to return to when diving

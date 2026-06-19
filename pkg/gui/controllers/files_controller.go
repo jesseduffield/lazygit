@@ -457,21 +457,21 @@ func (self *FilesController) diffSplitState(node *filetree.FileNode) (split bool
 	return split, mainShowsStaged
 }
 
-func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) (string, error) {
-	return func(mainViewName string, firstLineIdx int, lastLineIdx int) (string, error) {
+func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+	return func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
 		if self.c.UserConfig().Git.DiffContextSize == 0 {
-			return "", fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToStage,
+			return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToStage,
 				self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
 		}
 
 		node := self.context().GetSelected()
 		if node == nil {
-			return "", nil
+			return nil
 		}
 
 		infos := self.c.Helpers().Staging.ChangeLinesInViewRange(mainViewName, firstLineIdx, lastLineIdx)
 		if len(infos) == 0 {
-			return "", nil
+			return nil
 		}
 
 		// The whole diff shown in the main view is on one side — the staged diff in
@@ -492,7 +492,7 @@ func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName strin
 				continue
 			}
 			if err := self.stageDiffLines(file, fileInfos, reverse); err != nil {
-				return "", err
+				return err
 			}
 		}
 
@@ -513,7 +513,15 @@ func (self *FilesController) GetOnStageFocusedMainView() func(mainViewName strin
 				}
 			}
 		}
-		return focusViewName, nil
+
+		// The staging Refresh above queued the main-view re-render; re-establish the
+		// selection in whichever pane now holds the acted-on side once that render lands,
+		// and focus that pane if staging moved it there.
+		revealSelectionAfterPrimaryAction(self.c, mainViewName, focusViewName, firstLineIdx)
+		if focusViewName != mainViewName {
+			self.c.Context().Push(mainContextForViewName(self.c, focusViewName), types.OnFocusOpts{})
+		}
+		return nil
 	}
 }
 
