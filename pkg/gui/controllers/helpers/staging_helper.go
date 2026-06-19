@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -703,6 +704,68 @@ func (self *StagingHelper) diffLineInfoFromParsed(parsed parsedDiffLine) types.D
 		NewLine: parsed.NewLine,
 		OldLine: parsed.OldLine,
 	}
+}
+
+// RefreshInclusionGutter updates the focused main view's inclusion gutter to reflect
+// the custom patch being built. The gutter — a marker in a reserved left column on
+// every change line currently in the patch — is shown only while the main view holds
+// focus AND the panel beneath it builds a patch (commits / commit files) with a patch
+// active; otherwise it's hidden and the diff renders flush left. It is a focused-main-
+// view affordance: browsing the side panel, where the main view shows a preview, shows
+// no markers, and it tracks the secondary patch view's visibility (a patch that's
+// active but momentarily empty still shows the gutter). Call it whenever focus, the
+// patch membership, or the displayed content changes. It only repaints the gutter over
+// the existing content — the diff is unaffected by patch membership, so it never
+// re-renders.
+func (self *StagingHelper) RefreshInclusionGutter() {
+	mainContext := self.c.Contexts().Normal
+	v := mainContext.GetView()
+
+	// Check focus first: the gutter only shows while the main view holds focus, and
+	// NextInStack below requires the context to be in the stack — which it is exactly
+	// when it's the current one.
+	patchBuilder := self.c.Git().Patch.PatchBuilder
+	focused := self.c.Context().CurrentStatic().GetKey() == mainContext.GetKey()
+	if !focused || !patchBuilder.Active() {
+		v.SetInclusionGutter(false, nil)
+		return
+	}
+
+	sidePanel := self.c.Context().NextInStack(mainContext)
+	if sidePanel == nil || sidePanel.GetOnTogglePatchFocusedMainView() == nil {
+		v.SetInclusionGutter(false, nil)
+		return
+	}
+
+	resolved := self.resolveDiffLines(v.DiffLineContents())
+
+	// The patch builder keys files by their repo-relative path; gather each shown
+	// file's included change-line identities once, keyed by the absolute path the
+	// resolved rows carry.
+	includedByPath := map[string]map[patch.LineIdentity]bool{}
+	includedFor := func(absPath string) map[patch.LineIdentity]bool {
+		if existing, ok := includedByPath[absPath]; ok {
+			return existing
+		}
+		identities := map[patch.LineIdentity]bool{}
+		if relPath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), absPath); err == nil {
+			for _, id := range patchBuilder.IncludedLineIdentities(filepath.ToSlash(relPath)) {
+				identities[id] = true
+			}
+		}
+		includedByPath[absPath] = identities
+		return identities
+	}
+
+	marks := make([]bool, len(resolved))
+	for i, r := range resolved {
+		if !r.ok || !r.info.IsChange() {
+			continue
+		}
+		lineNumber, isDeletion := r.info.PatchSelectLine()
+		marks[i] = includedFor(r.info.Path)[patch.LineIdentity{LineNumber: lineNumber, IsDeletion: isDeletion}]
+	}
+	v.SetInclusionGutter(true, marks)
 }
 
 func (self *StagingHelper) diffLineInfoFromHyperlink(hyperlink string) (types.DiffLineInfo, bool) {

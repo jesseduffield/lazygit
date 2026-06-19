@@ -204,6 +204,18 @@ func (self *MainViewController) Context() types.Context {
 func (self *MainViewController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
 		self.context.GetView().HighlightInactive = false
+		// The inclusion gutter is shown only while the focused main view holds focus, so
+		// (re-)establish it now (a no-op unless the panel beneath builds a custom patch).
+		self.c.Helpers().Staging.RefreshInclusionGutter()
+	}
+}
+
+// GetOnFocusLost hides the inclusion gutter when the focused main view loses focus —
+// it's a focused-main-view affordance, so it shouldn't linger in the side panel's diff
+// preview. A no-op when no gutter is shown.
+func (self *MainViewController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
+		self.context.GetView().SetInclusionGutter(false, nil)
 	}
 }
 
@@ -279,6 +291,14 @@ func (self *MainViewController) stageSelectedLine() error {
 	}
 	if handler := sidePanelContext.GetOnStageFocusedMainView(); handler != nil {
 		return self.stageRange(handler)
+	}
+	if handler := sidePanelContext.GetOnTogglePatchFocusedMainView(); handler != nil {
+		// Toggling the selection into the custom patch leaves the diff unchanged (the
+		// handler repaints the inclusion gutter itself), so unlike staging there's no
+		// re-render to ride and the selection stays where it is.
+		v := self.context.GetView()
+		first, last := v.SelectedLineRange()
+		return handler(self.context.GetViewName(), first, last)
 	}
 	return nil
 }

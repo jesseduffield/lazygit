@@ -13,16 +13,17 @@ type BaseContext struct {
 	windowName      string
 	onGetOptionsMap func() map[string]string
 
-	keybindingsFns           []types.KeybindingsFn
-	mouseKeybindingsFns      []types.MouseKeybindingsFn
-	onDoubleClickFn          func() error
-	onClickFn                func(opts gocui.ViewMouseBindingOpts) error
-	onClickFocusedMainViewFn onClickFocusedMainViewFn
-	onStageFocusedMainViewFn onStageFocusedMainViewFn
-	onRenderToMainFn         func()
-	onFocusFns               []onFocusFn
-	onFocusLostFns           []onFocusLostFn
-	onQuitFns                []func()
+	keybindingsFns                 []types.KeybindingsFn
+	mouseKeybindingsFns            []types.MouseKeybindingsFn
+	onDoubleClickFn                func() error
+	onClickFn                      func(opts gocui.ViewMouseBindingOpts) error
+	onClickFocusedMainViewFn       onClickFocusedMainViewFn
+	onStageFocusedMainViewFn       onStageFocusedMainViewFn
+	onTogglePatchFocusedMainViewFn onTogglePatchFocusedMainViewFn
+	onRenderToMainFn               func()
+	onFocusFns                     []onFocusFn
+	onFocusLostFns                 []onFocusLostFn
+	onQuitFns                      []func()
 
 	focusable                   bool
 	transient                   bool
@@ -35,10 +36,11 @@ type BaseContext struct {
 }
 
 type (
-	onFocusFn                = func(types.OnFocusOpts)
-	onFocusLostFn            = func(types.OnFocusLostOpts)
-	onClickFocusedMainViewFn = func(mainViewName string, clickedLineIdx int) error
-	onStageFocusedMainViewFn = func(mainViewName string, firstLineIdx int, lastLineIdx int) (focusViewName string, err error)
+	onFocusFn                      = func(types.OnFocusOpts)
+	onFocusLostFn                  = func(types.OnFocusLostOpts)
+	onClickFocusedMainViewFn       = func(mainViewName string, clickedLineIdx int) error
+	onStageFocusedMainViewFn       = func(mainViewName string, firstLineIdx int, lastLineIdx int) (focusViewName string, err error)
+	onTogglePatchFocusedMainViewFn = func(mainViewName string, firstLineIdx int, lastLineIdx int) error
 )
 
 var _ types.IBaseContext = &BaseContext{}
@@ -149,6 +151,7 @@ func (self *BaseContext) ClearAllAttachedControllerFunctions() {
 	self.onClickFn = nil
 	self.onClickFocusedMainViewFn = nil
 	self.onStageFocusedMainViewFn = nil
+	self.onTogglePatchFocusedMainViewFn = nil
 	self.onRenderToMainFn = nil
 }
 
@@ -202,6 +205,19 @@ func (self *BaseContext) AddOnStageFocusedMainViewFn(fn onStageFocusedMainViewFn
 
 func (self *BaseContext) GetOnStageFocusedMainView() onStageFocusedMainViewFn {
 	return self.onStageFocusedMainViewFn
+}
+
+func (self *BaseContext) AddOnTogglePatchFocusedMainViewFn(fn onTogglePatchFocusedMainViewFn) {
+	if fn != nil {
+		if self.onTogglePatchFocusedMainViewFn != nil {
+			panic("only one controller is allowed to set an onTogglePatchFocusedMainViewFn")
+		}
+		self.onTogglePatchFocusedMainViewFn = fn
+	}
+}
+
+func (self *BaseContext) GetOnTogglePatchFocusedMainView() onTogglePatchFocusedMainViewFn {
+	return self.onTogglePatchFocusedMainViewFn
 }
 
 func (self *BaseContext) AddOnRenderToMainFn(fn func()) {

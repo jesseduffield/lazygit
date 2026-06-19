@@ -96,5 +96,8 @@ func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext *co
 	} else {
 		showInitialDiffSelection(self.c, mainViewContext)
 	}
+
+	// The inclusion gutter is refreshed by the main view's focus handler (it's shown
+	// only while focused, so it tracks focus changes there).
 	return nil
 }

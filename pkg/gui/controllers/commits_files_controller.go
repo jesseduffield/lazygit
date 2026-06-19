@@ -179,6 +179,12 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
 
+		// Keep the inclusion gutter in step with the content as this diff (re-)renders.
+		// It's a no-op unless the main view is focused and a patch is being built (see
+		// RefreshInclusionGutter); a patch toggle re-renders this same diff, so the marks
+		// recomputed over the current content stay valid through the swap.
+		self.c.Helpers().Staging.RefreshInclusionGutter()
+
 		self.c.RenderToMainViews(types.RefreshMainOpts{
 			Pair: self.c.MainViewPairs().Normal,
 			Main: &types.ViewUpdateOpts{
@@ -581,6 +587,165 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 		// Entered from the focused main view, so escaping returns there.
 		return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, ClickedViewRealLineIsDeletion: isDeletion, SelectLineInDefaultMode: true})
 	}
+}
+
+// GetOnTogglePatchFocusedMainView toggles the selected diff line(s) into or out of the
+// custom patch when space is pressed in the focused main view of a commit's files. It
+// is the patch-building counterpart of the files panel's staging handler: it resolves
+// the selection to change-line identities (shared with staging), maps them to the patch
+// builder's per-file line indices, and adds or removes them. The commit's diff is
+// unchanged by the toggle, but it refreshes so the browser indicator and the secondary
+// patch view update (and the layout splits); the selection is re-established afterwards
+// since that re-render (and its layout re-wrap) is in view-line space.
+func (self *CommitFilesController) GetOnTogglePatchFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+	return func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+		infos := self.c.Helpers().Staging.ChangeLinesInViewRange(mainViewName, firstLineIdx, lastLineIdx)
+		if len(infos) == 0 {
+			return nil
+		}
+
+		// Building a patch needs the patch builder started for this commit; if a patch
+		// for a different commit is active, confirm before discarding it (as entering
+		// the patch builder from the commit files panel does).
+		from, to, reverse := self.c.Helpers().CommitFiles.CurrentFromToReverseForPatchBuilding()
+		mustDiscardPatch := self.c.Git().Patch.PatchBuilder.Active() &&
+			self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse)
+		return self.c.ConfirmIf(mustDiscardPatch, types.ConfirmOpts{
+			Title:  self.c.Tr.DiscardPatch,
+			Prompt: self.c.Tr.DiscardPatchConfirm,
+			HandleConfirm: func() error {
+				if mustDiscardPatch {
+					self.c.Git().Patch.PatchBuilder.Reset()
+				}
+				if !self.c.Git().Patch.PatchBuilder.Active() {
+					if err := self.c.Helpers().CommitFiles.StartPatchBuilder(); err != nil {
+						return err
+					}
+				}
+
+				if err := self.togglePatchLines(infos); err != nil {
+					return err
+				}
+
+				// Refresh normally: this updates the file's patch-status indicator in
+				// the browser and the cumulative patch in the secondary view (splitting
+				// the layout when the patch first becomes non-empty), and re-renders this
+				// diff. The diff is unchanged, so the re-render keeps its scroll (same
+				// command) and the inclusion gutter is recomputed over it (see
+				// GetOnRenderToMain).
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMIT_FILES}})
+
+				// The re-render — and the layout re-wrap when the secondary view first
+				// appears — is in view-line space, which moves the selection. Re-select
+				// the same content by its (unchanged, width-independent) change-line
+				// ordinal once the re-render lands.
+				self.revealSelectionAfterPatchToggle(mainViewName, firstLineIdx)
+				return nil
+			},
+		})
+	}
+}
+
+// togglePatchLines toggles the change lines identified by infos into or out of the
+// custom patch. The direction is decided once, from the first selected change line (in
+// view order) — already in the patch means remove the whole selection, otherwise add it
+// — and applied to every file the selection spans, mirroring how the patch explorer
+// toggles a range.
+func (self *CommitFilesController) togglePatchLines(infos []types.DiffLineInfo) error {
+	patchBuilder := self.c.Git().Patch.PatchBuilder
+
+	// Group the selected change lines by file (in view order), then resolve each file's
+	// identities to patch-line indices in one pass.
+	var order []string
+	identitiesByFile := map[string][]patch.LineIdentity{}
+	for _, info := range infos {
+		filename := self.patchFilename(info.Path)
+		if filename == "" {
+			continue
+		}
+		if _, seen := identitiesByFile[filename]; !seen {
+			order = append(order, filename)
+		}
+		lineNumber, isDeletion := info.PatchSelectLine()
+		identitiesByFile[filename] = append(identitiesByFile[filename],
+			patch.LineIdentity{LineNumber: lineNumber, IsDeletion: isDeletion})
+	}
+	if len(order) == 0 {
+		return nil
+	}
+
+	indicesByFile := map[string][]int{}
+	for filename, identities := range identitiesByFile {
+		indices, err := patchBuilder.PatchLineIndicesForLines(filename, identities)
+		if err != nil {
+			return err
+		}
+		indicesByFile[filename] = indices
+	}
+
+	// Decide the direction from the first selected change line.
+	firstFile := order[0]
+	included, err := patchBuilder.GetFileIncLineIndices(firstFile, "")
+	if err != nil {
+		return err
+	}
+	remove := len(indicesByFile[firstFile]) > 0 && lo.Contains(included, indicesByFile[firstFile][0])
+	toggle := patchBuilder.AddFileLineRange
+	if remove {
+		toggle = patchBuilder.RemoveFileLineRange
+	}
+
+	for _, filename := range order {
+		indices := indicesByFile[filename]
+		if len(indices) == 0 {
+			continue
+		}
+		if err := toggle(filename, "", indices); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// revealSelectionAfterPatchToggle re-establishes the selection after a toggle's
+// re-render. Toggling doesn't change the diff, so the same content is still there — but
+// the re-render (and the layout re-wrap when the secondary view first appears) is in
+// view-line space, which moves the selection. We preserve the selection's change-line
+// ordinal, which is unchanged (the line isn't consumed, unlike staging) and
+// width-independent, re-expanding the hunk in hunk mode. A range collapses to a line,
+// as a staged range does.
+func (self *CommitFilesController) revealSelectionAfterPatchToggle(mainViewName string, firstLineIdx int) {
+	mainContext := self.c.Contexts().Normal
+	if mainViewName == self.c.Contexts().NormalSecondary.GetViewName() {
+		mainContext = self.c.Contexts().NormalSecondary
+	}
+	view := mainContext.GetView()
+
+	sel := mainContext.DiffSelectState()
+	if sel.Mode == context.DiffSelectModeRange {
+		sel.Mode = context.DiffSelectModeLine
+		sel.RangeIsSticky = false
+	}
+	mode := sel.Mode
+
+	self.c.Helpers().Staging.RevealSelectionAfterStaging(view, view, firstLineIdx, func(viewLine int) {
+		if mode == context.DiffSelectModeHunk {
+			selectDiffHunk(self.c, mainContext, viewLine)
+		} else {
+			view.CancelRangeSelect()
+			showSelectionAtLine(view, viewLine, true)
+		}
+	})
+}
+
+// patchFilename maps a diff line's absolute path to the key the patch builder stores
+// the file under — its repo-relative, slash-separated path.
+func (self *CommitFilesController) patchFilename(absPath string) string {
+	relPath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), absPath)
+	if err != nil {
+		return ""
+	}
+	return filepath.ToSlash(relPath)
 }
 
 // pathsForDiff returns the file paths to use for a diff command. When a text
