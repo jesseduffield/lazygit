@@ -213,6 +213,10 @@ type GuiConfig struct {
 	SwitchToFilesAfterStashApply bool `yaml:"switchToFilesAfterStashApply"`
 	// If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead
 	SwitchTabsWithPanelJumpKeys bool `yaml:"switchTabsWithPanelJumpKeys"`
+	// Format string for the terminal window title. Supports placeholders:
+	// - {{repoName}}: Name of the current repository
+	// Set to empty string to disable terminal title updates.
+	TerminalTitle string `yaml:"terminalTitle"`
 }
 
 func (c *GuiConfig) UseFuzzySearch() bool {
@@ -908,6 +912,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			SwitchToFilesAfterStashPop:   true,
 			SwitchToFilesAfterStashApply: true,
 			SwitchTabsWithPanelJumpKeys:  false,
+			TerminalTitle:                "lazygit::{{repoName}}",
 		},
 		Git: GitConfig{
 			Commit: CommitConfig{

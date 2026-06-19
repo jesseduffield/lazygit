@@ -36,10 +36,6 @@ func getUserShell() string {
 	return "bash"
 }
 
-func (c *OSCommand) UpdateWindowTitle() error {
-	return nil
-}
-
 func TerminateProcessGracefully(cmd *exec.Cmd) error {
 	if cmd.Process == nil {
 		return nil
