@@ -4,7 +4,6 @@ import (
 	"path/filepath"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -59,7 +58,10 @@ func togglePatchFromFocusedMainView(
 			}
 
 			refresh()
-			revealSelectionAfterPatchToggle(c, mainViewName, firstLineIdx)
+			// A toggle doesn't change the diff, so source and target are the same pane;
+			// the re-render (and the layout re-wrap when the secondary view first appears)
+			// still moves the selection in view-line space, so re-establish it.
+			revealSelectionAfterPrimaryAction(c, mainViewName, mainViewName, firstLineIdx)
 			return nil
 		},
 	})
@@ -124,37 +126,6 @@ func togglePatchLines(c *ControllerCommon, infos []types.DiffLineInfo) error {
 		}
 	}
 	return nil
-}
-
-// revealSelectionAfterPatchToggle re-establishes the selection after a toggle's
-// re-render. Toggling doesn't change the diff, so the same content is still there — but
-// the re-render (and the layout re-wrap when the secondary view first appears) is in
-// view-line space, which moves the selection. We preserve the selection's change-line
-// ordinal, which is unchanged (the line isn't consumed, unlike staging) and
-// width-independent, re-expanding the hunk in hunk mode. A range collapses to a line,
-// as a staged range does.
-func revealSelectionAfterPatchToggle(c *ControllerCommon, mainViewName string, firstLineIdx int) {
-	mainContext := c.Contexts().Normal
-	if mainViewName == c.Contexts().NormalSecondary.GetViewName() {
-		mainContext = c.Contexts().NormalSecondary
-	}
-	view := mainContext.GetView()
-
-	sel := mainContext.DiffSelectState()
-	if sel.Mode == context.DiffSelectModeRange {
-		sel.Mode = context.DiffSelectModeLine
-		sel.RangeIsSticky = false
-	}
-	mode := sel.Mode
-
-	c.Helpers().Staging.RevealSelectionAfterStaging(view, view, firstLineIdx, func(viewLine int) {
-		if mode == context.DiffSelectModeHunk {
-			selectDiffHunk(c, mainContext, viewLine)
-		} else {
-			view.CancelRangeSelect()
-			showSelectionAtLine(view, viewLine, true)
-		}
-	})
 }
 
 // patchFilename maps a diff line's absolute path to the key the patch builder stores

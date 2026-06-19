@@ -23,7 +23,7 @@ func (self *baseController) GetOnClickFocusedMainView() func(mainViewName string
 	return nil
 }
 
-func (self *baseController) GetOnStageFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) (focusViewName string, err error) {
+func (self *baseController) GetOnStageFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
 	return nil
 }
 
