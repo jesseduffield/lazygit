@@ -218,7 +218,8 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 				Prompt:              opts.Prompt,
 				FindSuggestionsFunc: opts.FindSuggestionsFunc,
 				Mask:                opts.Mask,
-			})
+			},
+		)
 
 		context = self.c.Contexts().Prompt
 
@@ -234,7 +235,8 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 			types.ConfirmOpts{
 				Title:  opts.Title,
 				Prompt: opts.Prompt,
-			})
+			},
+		)
 
 		context = self.c.Contexts().Confirmation
 

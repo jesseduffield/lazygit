@@ -175,7 +175,8 @@ func getBranchDisplayStrings(
 	if fullDescription {
 		res = append(
 			res,
-			fmt.Sprintf("%s %s",
+			fmt.Sprintf(
+				"%s %s",
 				style.FgYellow.Sprint(b.UpstreamRemote),
 				style.FgYellow.Sprint(b.UpstreamBranch),
 			),

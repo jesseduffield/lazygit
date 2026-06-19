@@ -50,7 +50,8 @@ func (self *FilesController) createResetMenu() error {
 							)
 							return nil
 						},
-					})
+					},
+				)
 				return nil
 			},
 			Keys:    menuKey('x'),

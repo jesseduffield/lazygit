@@ -35,7 +35,8 @@ func TestGetStashEntries(t *testing.T) {
 			"",
 			oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"stash", "list", "-z", "--pretty=%H|%ct|%gs"},
-					fmt.Sprintf("fa1afe1|%d|WIP on add-pkg-commands-test: 55c6af2 increase parallel build\x00deadbeef|%d|WIP on master: bb86a3f update github template\x00",
+					fmt.Sprintf(
+						"fa1afe1|%d|WIP on add-pkg-commands-test: 55c6af2 increase parallel build\x00deadbeef|%d|WIP on master: bb86a3f update github template\x00",
 						hoursAgo,
 						daysAgo,
 					), nil),

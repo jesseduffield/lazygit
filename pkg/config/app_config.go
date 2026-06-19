@@ -449,7 +449,8 @@ func migrateAllBranchesLogCmd(rootNode *yaml.Node, changes *ChangesSet) error {
 			// We will later populate it with the individual allBranchesLogCmd record
 			cmdsKeyNode = &yaml.Node{Kind: yaml.ScalarNode, Value: "allBranchesLogCmds"}
 			cmdsValueNode = &yaml.Node{Kind: yaml.SequenceNode, Content: []*yaml.Node{}}
-			gitNode.Content = append(gitNode.Content,
+			gitNode.Content = append(
+				gitNode.Content,
 				cmdsKeyNode,
 				cmdsValueNode,
 			)

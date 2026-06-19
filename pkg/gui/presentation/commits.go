@@ -85,7 +85,8 @@ func GetCommitListDisplayStrings(
 			allGraphLines := []string{}
 
 			_, localSectionStart, found := lo.FindIndexOf(
-				commits, func(c *models.Commit) bool { return c.Divergence == models.DivergenceLeft })
+				commits, func(c *models.Commit) bool { return c.Divergence == models.DivergenceLeft },
+			)
 			if !found {
 				localSectionStart = len(commits)
 			}
@@ -409,7 +410,8 @@ func displayCommit(
 			// Don't show branch head on a "pick" todo if the rebase.updateRefs config is on
 			!(commit.IsTODO() && hasRebaseUpdateRefsConfig) {
 			tagString = style.FgCyan.SetBold().Sprint(
-				lo.Ternary(icons.IsIconEnabled(), icons.BRANCH_ICON, "*") + " " + tagString)
+				lo.Ternary(icons.IsIconEnabled(), icons.BRANCH_ICON, "*") + " " + tagString,
+			)
 		}
 	}
 

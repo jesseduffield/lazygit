@@ -282,7 +282,8 @@ func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 	}
 
 	if self.context.RangeSelectEnabled() {
-		bindings = append(bindings,
+		bindings = append(
+			bindings,
 			[]*types.Binding{
 				{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.ToggleRangeSelect), Handler: self.HandleToggleRangeSelect, Description: self.c.Tr.ToggleRangeSelect},
 				{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.RangeSelectDown), Handler: self.HandleRangeSelectDown, Description: self.c.Tr.RangeSelectDown},

@@ -296,7 +296,8 @@ func (self *WorkingTreeCommands) removeEmptyDirs(removedFilePaths []string, sele
 		lo.FilterMap(removedFilePaths, func(filePath string, _ int) (string, bool) {
 			dir := path.Dir(filePath)
 			return dir, dir != "." && isUnderSelectedDir(dir, selectedDirs)
-		}))
+		}),
+	)
 
 	for {
 		var removed []string

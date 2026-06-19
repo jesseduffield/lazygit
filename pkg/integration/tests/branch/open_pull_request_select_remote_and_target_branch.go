@@ -50,7 +50,8 @@ var OpenPullRequestSelectRemoteAndTargetBranch = NewIntegrationTest(NewIntegrati
 			Title(Equals("Select target remote")).
 			SuggestionLines(
 				Equals("origin"),
-				Equals("upstream")).
+				Equals("upstream"),
+			).
 			ConfirmSuggestion(Equals("upstream"))
 
 		// Verify that we're prompted to enter the target branch and that only those branches
@@ -60,7 +61,8 @@ var OpenPullRequestSelectRemoteAndTargetBranch = NewIntegrationTest(NewIntegrati
 			Title(Equals("branch-2 → upstream/")).
 			SuggestionLines(
 				Equals("branch-1"),
-				Equals("master")).
+				Equals("master"),
+			).
 			ConfirmSuggestion(Equals("master"))
 
 		// Verify that the expected URL is used (by checking the openlink file)
@@ -69,6 +71,7 @@ var OpenPullRequestSelectRemoteAndTargetBranch = NewIntegrationTest(NewIntegrati
 		// the link is not yet correct. Thus, this test is expected to fail once this is fixed.
 		t.FileSystem().FileContent(
 			"/tmp/openlink",
-			Equals("https://github.com/my-personal-fork/lazygit/compare/master...branch-2?expand=1\n"))
+			Equals("https://github.com/my-personal-fork/lazygit/compare/master...branch-2?expand=1\n"),
+		)
 	},
 })

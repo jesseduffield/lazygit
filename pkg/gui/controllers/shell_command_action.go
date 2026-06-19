@@ -49,7 +49,8 @@ func (self *ShellCommandAction) Call() error {
 			}
 
 			self.c.GetAppState().ShellCommandsHistory = slices.Delete(
-				self.c.GetAppState().ShellCommandsHistory, fullIndex, fullIndex+1)
+				self.c.GetAppState().ShellCommandsHistory, fullIndex, fullIndex+1,
+			)
 			self.c.SaveAppStateAndLogError()
 			self.c.Contexts().Suggestions.RefreshSuggestions()
 			return nil

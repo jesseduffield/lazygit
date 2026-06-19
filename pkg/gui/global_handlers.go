@@ -131,7 +131,8 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 
 func (gui *Gui) handleCopySelectedSideContextItemCommitHashToClipboard() error {
 	return gui.handleCopySelectedSideContextItemToClipboardWithTruncation(
-		gui.UserConfig().Git.TruncateCopiedCommitHashesTo)
+		gui.UserConfig().Git.TruncateCopiedCommitHashesTo,
+	)
 }
 
 func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWidth int) error {

@@ -24,7 +24,8 @@ func ResolveTemplate(templateStr string, object any, funcs template.FuncMap) (st
 func ResolvePlaceholderString(str string, arguments map[string]string) string {
 	oldnews := make([]string, 0, len(arguments)*4)
 	for key, value := range arguments {
-		oldnews = append(oldnews,
+		oldnews = append(
+			oldnews,
 			"{{"+key+"}}", value,
 			"{{."+key+"}}", value,
 		)

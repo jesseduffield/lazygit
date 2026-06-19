@@ -204,7 +204,8 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 				UpstreamRemote: opts.upstreamRemote,
 				UpstreamBranch: opts.upstreamBranch,
 				SetUpstream:    opts.setUpstream,
-			})
+			},
+		)
 		if err != nil {
 			if !opts.force && !opts.forceWithLease && strings.Contains(err.Error(), "Updates were rejected") {
 				if opts.remoteBranchStoredLocally {

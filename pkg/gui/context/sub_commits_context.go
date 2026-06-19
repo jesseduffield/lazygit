@@ -84,7 +84,8 @@ func NewSubCommitsContext(
 		result := []*NonModelItem{}
 		if viewModel.GetRefToShowDivergenceFrom() != "" {
 			_, upstreamIdx, found := lo.FindIndexOf(
-				c.Model().SubCommits, func(c *models.Commit) bool { return c.Divergence == models.DivergenceRight })
+				c.Model().SubCommits, func(c *models.Commit) bool { return c.Divergence == models.DivergenceRight },
+			)
 			if !found {
 				upstreamIdx = 0
 			}
@@ -94,7 +95,8 @@ func NewSubCommitsContext(
 			})
 
 			_, localIdx, found := lo.FindIndexOf(
-				c.Model().SubCommits, func(c *models.Commit) bool { return c.Divergence == models.DivergenceLeft })
+				c.Model().SubCommits, func(c *models.Commit) bool { return c.Divergence == models.DivergenceLeft },
+			)
 			if !found {
 				localIdx = len(c.Model().SubCommits)
 			}

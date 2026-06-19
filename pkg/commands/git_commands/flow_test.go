@@ -65,7 +65,8 @@ func TestStartCmdObj(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildFlowCommands(commonDeps{})
 
-			assert.Equal(t,
+			assert.Equal(
+				t,
 				instance.StartCmdObj(s.branchType, s.branchName).Args(),
 				s.expected,
 			)

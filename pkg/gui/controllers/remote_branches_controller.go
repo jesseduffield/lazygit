@@ -156,7 +156,8 @@ func (self *RemoteBranchesController) createSortMenu() error {
 			}
 			return nil
 		},
-		self.c.UserConfig().Git.RemoteBranchSortOrder)
+		self.c.UserConfig().Git.RemoteBranchSortOrder,
+	)
 }
 
 func (self *RemoteBranchesController) createResetMenu(selectedBranch *models.RemoteBranch) error {

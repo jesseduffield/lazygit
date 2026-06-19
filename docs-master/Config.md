@@ -110,6 +110,10 @@ gui:
   # is true.
   expandedSidePanelWeight: 2
 
+  # If true, the expanded side panel will only expand as much as its content
+  # requires. Only relevant if `expandFocusedSidePanel` is true.
+  expandedFocusedSidePanelFitsContent: false
+
   # Sometimes the main window is split in two (e.g. when the selected file has
   # both staged and unstaged changes). This setting controls how the two sections
   # are split.

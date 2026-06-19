@@ -36,7 +36,8 @@ func (gui *Gui) handleTestMode() {
 
 			toastChan := make(chan string, 100)
 			gui.PopupHandler.(*popup.PopupHandler).SetToastFunc(
-				func(message string, kind types.ToastKind) { toastChan <- message })
+				func(message string, kind types.ToastKind) { toastChan <- message },
+			)
 
 			test.Run(&GuiDriver{gui: gui, isIdleChan: isIdleChan, toastChan: toastChan, headless: Headless()})
 

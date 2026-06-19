@@ -107,7 +107,8 @@ func (self *TestDriver) ExpectToast(matcher *TextMatcher) *TestDriver {
 	if t == nil {
 		self.gui.Fail("Expected toast, but didn't get one")
 	} else {
-		self.matchString(matcher, "Unexpected toast message",
+		self.matchString(
+			matcher, "Unexpected toast message",
 			func() string {
 				return *t
 			},
