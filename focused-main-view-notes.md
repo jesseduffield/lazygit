@@ -3063,3 +3063,50 @@ reflog would return the same `FocusedMainViewActions` + implement the marker).
 **NEXT: (B) `d` (discard a hunk)** — different backend per panel (working-tree discard vs patch-building
 variant); the (A) handler accommodates it (add `DiscardSelection` to `FocusedMainViewActions`). Then (C)
 `ctrl+o` copy, (D) the pager fallback.
+
+### 21.26 Session 19 (cont.): (B) `d` — discard a hunk — DONE
+
+`d` in the focused main view now discards the selection, mirroring each explorer. Committed (most recent
+last):
+
+```
+3719a0412 amend! Generalize FilesController.stageDiffLines to applyDiffLines   (prep — folds into 2414f3eab)
+19d4b8f66 Discard the selected diff line(s) from the focused main view          (B + 2 e2e tests)
+```
+
+**Prep — `applyDiffLines` generalized.** `stageDiffLines` used one `reverse` flag for *both* "which diff
+to read" (it's the `cached` arg of `WorktreeFileDiff`) and "reverse the apply"; that only works because
+those coincide for stage/unstage. Working-tree discard breaks it: read the **unstaged** diff (the side
+shown), but apply a **reverse, not-cached** patch. So split them — `applyDiffLines(file, infos,
+sourceCached, ApplyPatchOpts)`. Found via the failing staging-discard e2e (no lines matched, because it
+was reading the empty staged diff). The prep commit as first written had the wrong signature; corrected
+in place with an `amend!` so the prep introduces the final shape (per [[clean-history-no-back-and-forth]]).
+
+**(B) — `DiscardSelection` + disabled reason on `FocusedMainViewActions`** (user picked full
+explorer-parity disabled-reason UX over silent-no-op/handler-error). The dispatcher binds `Universal.Remove`
+and forwards to the panel beneath; per panel:
+- **files** → working-tree discard, mirroring the staging view's `d`: reverse-apply **not cached** on the
+  unstaged side (destructive → confirm unless `SkipDiscardChangeWarning`), reverse-apply **cached** on the
+  staged side (= unstage). Always available (zero-context = inline error, like the staging view), so its
+  `DiscardSelectionDisabledReason` is nil.
+- **commit panels** (commitFiles + the whole-commit diff of localCommits/subCommits/stash) → remove the
+  selected lines from the commit via rebase, mirroring the patch builder's "discard lines from commit":
+  reset any active patch, build a one-off patch from the selection (reusing `togglePatchLines`), then
+  `DeletePatchesFromCommit`. Shared free functions `discardSelectionFromCommit` + `discardFromCommitDisabledReason`
+  in `patch_building_from_main_view.go`, paralleling the toggle. Only rebaseable on a **local branch**, so
+  the disabled reason greys `d` on stash + other-branch sub-commits (never rebaseable) and mid-rebase —
+  treated all the same (user OK'd; the "never applicable ⇒ hide entirely" hair isn't worth it).
+
+**Tests:** `staging/discard_from_main_view` (discard one hunk of a two-hunk working-tree file from the
+files main view; the other hunk stays) and `patch_building/discard_lines_from_commit_main_view` (discard
+one line from a local commit straight from the commits main view → rebase → commit keeps the other lines).
+`build` + `unit` + `lint` + **`e2e-all` all green**.
+
+**Needs interactive sign-off / carry-forward:** the commit-discard's post-rebase re-render isn't given a
+special reveal (the SYNC refresh re-renders; selection lands wherever it falls) — fine for a destructive
+op, revisit if it feels off. Files-discard reveals same-pane by ordinal; the rare staged-side-collapse
+case (discard-on-staged = unstage, secondary pane empties) isn't special-cased. Reflog `d` no-ops (nil
+actions), like its `space`.
+
+**NEXT: (C) `ctrl+o` (copy parts of a diff to the clipboard)** — supported by every diff panel; add
+`CopySelection` to `FocusedMainViewActions`. Then (D) the pager fallback.
