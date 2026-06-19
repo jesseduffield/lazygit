@@ -87,6 +87,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Staged 전환 | 선택한 행을 staged / unstaged |
 | `` d `` | 변경을 삭제 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | 드래그 선택 전환 |  |
 | `` <left>, h `` | 이전 hunk를 선택 |  |
@@ -173,6 +174,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Staged 전환 | 선택한 행을 staged / unstaged |
 | `` d `` | 변경을 삭제 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | 드래그 선택 전환 |  |
 | `` <left>, h `` | 이전 hunk를 선택 |  |

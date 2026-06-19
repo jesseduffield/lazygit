@@ -195,6 +195,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | サイドパネルに戻る |  |
 | `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
 | `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
+| `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
 | `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | 範囲選択を切り替え |  |
 | `` <left>, h `` | 前のハンクに移動 |  |
@@ -316,6 +317,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | サイドパネルに戻る |  |
 | `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
 | `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
+| `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
 | `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | 範囲選択を切り替え |  |
 | `` <left>, h `` | 前のハンクに移動 |  |

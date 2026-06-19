@@ -289,6 +289,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | 退出回到侧边面板 |  |
 | `` <space> `` | 切换暂存状态 | 切换行暂存状态 |
 | `` d `` | 取消变更(git reset) | 当选择未暂存的变更时，使用git reset丢弃该变更。当选择已暂存的变更时，取消暂存该变更 |
+| `` <ctrl+o> `` | 复制选中文本到剪贴板 |  |
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` v `` | 切换拖动选择 |  |
 | `` <left>, h `` | 选择上一个区块 |  |
@@ -345,6 +346,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | 退出回到侧边面板 |  |
 | `` <space> `` | 切换暂存状态 | 切换行暂存状态 |
 | `` d `` | 取消变更(git reset) | 当选择未暂存的变更时，使用git reset丢弃该变更。当选择已暂存的变更时，取消暂存该变更 |
+| `` <ctrl+o> `` | 复制选中文本到剪贴板 |  |
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` v `` | 切换拖动选择 |  |
 | `` <left>, h `` | 选择上一个区块 |  |

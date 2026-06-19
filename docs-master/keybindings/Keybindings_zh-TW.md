@@ -85,6 +85,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
 | `` d `` | 刪除變更 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | 切換拖曳選擇 |  |
 | `` <left>, h `` | 選擇上一段 |  |
@@ -374,6 +375,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
 | `` d `` | 刪除變更 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | 切換拖曳選擇 |  |
 | `` <left>, h `` | 選擇上一段 |  |
