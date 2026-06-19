@@ -2856,3 +2856,68 @@ All fixes are fixups on `1aed9428a` / `67906ae47`; `e2e-all` green (modulo the e
 
 **NEXT: 6c** — register the toggle handler on commits / sub-commits / stash main views (whole-commit
 multi-file diff). Then step 7, step 8.
+
+### 21.23 Session 18 (2026-06-19): step 6c done — patch building from the whole-commit main view
+
+`space` now builds a custom patch straight from the **whole-commit (multi-file) diff** the
+commits / sub-commits / stash main views show, without first diving into the commit files panel.
+Committed (most recent last; the multi-file test is a fixup on the behavior commit):
+
+```
+66224c84f Extract the patch-toggle back end out of CommitFilesController        (prep)
+f9669f6f1 Build a custom patch from the commits / sub-commits / stash main views  (6c; +fixup: multi-file e2e)
+```
+
+**Prep — the toggle back end is now panel-agnostic.** The 6b handler lived entirely on
+`CommitFilesController`. Pulled the panel-agnostic parts (`togglePatchFromFocusedMainView` skeleton,
+`togglePatchLines`, `revealSelectionAfterPatchToggle`, `patchFilename`) into shared free functions in
+`patch_building_from_main_view.go`. The skeleton now takes the **patch target**
+(`from/to/reverse/canRebase`) and a **refresh callback** as params instead of reading the commit files
+context + hardcoding `Refresh({COMMIT_FILES})`. The commit files handler passes exactly what it did
+before — behaviour-preserving (`build_from_main_view` still green). It also stopped going through
+`CommitFilesHelper.StartPatchBuilder()` and now calls `PatchBuilder.Start(from,to,reverse,canRebase)`
+directly with the passed values (the patch builder is self-contained after `Start`, §patch_builder).
+
+**6c — the handler lives on `SwitchToDiffFilesController`** (already bound to exactly
+LocalCommits/SubCommits/Stash, and already deriving the ref/range/canRebase for these panels in
+`enter()`). Two decisions, made with the user:
+- **Patch target: derived directly from the panel's selected ref**, *not* by re-pointing the commit
+  files context (user: "go with whatever is easier" + a half-baked feeling the patch-from-commits UX
+  may change). Keeps the commits toggle decoupled from `CommitFilesContext` — less to unwind if the UX
+  shifts. To avoid duplicating the from/to arithmetic, extracted `context.FromAndToForDiff(ref, refRange)`
+  (shared with `CommitFilesContext.GetFromAndToForDiff`) and a private `canRebase(ref, refRange)` shared
+  with `enter()`. The target matches the diff the main view shows (`git show <hash>` for a single commit
+  ≈ `git diff <hash>^ <hash> -- <file>` for non-merge commits — the same assumption the explorer relies
+  on; identities are pager/header-independent).
+- **Refresh: the cheap one** (user: refreshing commits per hunk-stage is too expensive, and unneeded —
+  no per-file indicators to rerender here, unlike commit-files). The callback is
+  `OnUIThread(PostRefreshUpdate(panelContext))`, re-rendering just that panel's **own** main + secondary
+  views (same diff command → scroll preserved; gutter rides via the panel's `GetOnRenderToMain`), with
+  **no commit-list reload**. Order stays toggle → refresh → reveal: both refresh callbacks *queue* the
+  render (Refresh via its OnUIThread; ours explicitly), so the reveal-by-ordinal restore is installed
+  before the queued render consumes it — works for the sync path and the rare discard-confirm popup path.
+
+**Sub-commits and stash didn't render the secondary patch view at all** (only LocalCommits did); gave
+them the same `secondaryPatchPanelUpdateOpts` + a `RefreshInclusionGutter()` in their `GetOnRenderToMain`
+(also added the gutter call to LocalCommits'), so the cumulative patch + gutter track the toggle. The
+gutter (`RefreshInclusionGutter`) was already generic — it lights up for any panel beneath `Normal`
+registering `GetOnTogglePatchFocusedMainView`, so it now works for all three for free. Routing is safe:
+only Files registers a *stage* handler, so these panels hit the toggle path in `stageSelectedLine`.
+
+**Tests:** `build_from_whole_commit_main_view` (toggle one file's hunk from a two-file commit diff in the
+sub-commits main view → only that file lands, the other stays out) and `build_multi_file_from_whole_commit_main_view`
+(hunk-mode `↓` moves across the file boundary to file2's block; toggle both → patch spans both files →
+apply lands both). The multi-file-range/accumulation path (`togglePatchLines`' group-by-file) was
+untested by e2e in 6b too; now covered. unit + lint + the patch_building/staging/commit/stash/rebase/
+cherry-pick/diff suites green. (Files line-count after apply uses `ContainsLines`, not exact `Lines` — a
+transient `.patch` file in the repo dir can add a row.)
+
+**Needs interactive sign-off** (draw-time gutter, no real delta in the harness): the gutter / secondary /
+on-demand appear-disappear on the **whole-commit multi-file** diff under delta + no-pager + difftastic;
+and the **LocalCommits** path specifically (canRebase=true → the full apply-options menu, not just
+"Apply patch"; the e2e covers SubCommits, canRebase=false). Carry-forward limitations unchanged from
+§21.22: no auto-advance after a toggle; streaming; the §21.22(4) pager-switch checkmark shift.
+
+**NEXT: step 7** — `enter` on a file focuses the main view (for *both* `files` and `commitFiles`)
+instead of opening a separate explorer, plus patch building from the per-file diff reached that way.
+Then step 8 (tear out the explorer views + escape/snapshot machinery).
