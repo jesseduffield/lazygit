@@ -799,3 +799,76 @@ func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
 			"trailing cell at (%d, 2) should have green bg", x)
 	}
 }
+
+// TestInclusionGutter verifies the on-demand inclusion gutter reserves a
+// left-hand column, draws the marker glyph on marked lines only, and shifts the
+// content right past it.
+func TestInclusionGutter(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	// InnerWidth=10; the frame inset of 1 places view x=0 at screen x=1.
+	v := NewView("name", 0, 0, 11, 5, OutputNormal)
+	v.Wrap = true
+	v.InclusionGutterMarker = "✓"
+
+	v.writeString("aaa\nbbb\nccc\n")
+
+	// The gutter is 2 columns wide (marker + separator); mark the middle line.
+	v.SetInclusionGutter(true, []bool{false, true, false})
+	v.draw()
+
+	// The marker appears at the gutter's first column (view x=0 → screen x=1) on
+	// the marked line only.
+	chr, _, _ := Screen.Get(1, 1)
+	assert.Equal(t, " ", chr, "unmarked line has no gutter marker")
+	chr, _, _ = Screen.Get(1, 2)
+	assert.Equal(t, "✓", chr, "marked line shows the gutter marker")
+	chr, _, _ = Screen.Get(1, 3)
+	assert.Equal(t, " ", chr, "unmarked line has no gutter marker")
+
+	// The content is shifted right past the 2-column gutter (view x=2 → screen x=3).
+	chr, _, _ = Screen.Get(3, 1)
+	assert.Equal(t, "a", chr, "content is shifted past the gutter")
+	chr, _, _ = Screen.Get(3, 2)
+	assert.Equal(t, "b", chr)
+	chr, _, _ = Screen.Get(3, 3)
+	assert.Equal(t, "c", chr)
+
+	// Hiding the gutter again returns the content flush left (view x=0 → screen x=1).
+	v.SetInclusionGutter(false, nil)
+	v.draw()
+	chr, _, _ = Screen.Get(1, 1)
+	assert.Equal(t, "a", chr, "content is flush left with no gutter")
+}
+
+// TestInclusionGutterMarkerOnEverySegment verifies that a marked buffer line that
+// wraps shows the marker on every wrapped segment, and that the gutter narrows the
+// content wrap width.
+func TestInclusionGutterMarkerOnEverySegment(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth=10
+	v.Wrap = true
+	v.InclusionGutterMarker = "✓"
+
+	// 10 cells; with a 2-column gutter the content wrap width is 8, so this wraps
+	// to "01234567" / "89".
+	v.writeString("0123456789\n")
+	v.SetInclusionGutter(true, []bool{true})
+	v.draw()
+
+	// First segment: marker present, content starts at screen x=3 and the eighth
+	// content cell ("7") sits at the right edge (screen x=10).
+	chr, _, _ := Screen.Get(1, 1)
+	assert.Equal(t, "✓", chr)
+	chr, _, _ = Screen.Get(3, 1)
+	assert.Equal(t, "0", chr)
+	chr, _, _ = Screen.Get(10, 1)
+	assert.Equal(t, "7", chr)
+
+	// Continuation segment: marker too, content resumes at screen x=3.
+	chr, _, _ = Screen.Get(1, 2)
+	assert.Equal(t, "✓", chr, "continuation segment also shows the marker")
+	chr, _, _ = Screen.Get(3, 2)
+	assert.Equal(t, "8", chr)
+}

@@ -150,6 +150,17 @@ type View struct {
 
 	HighlightInset int
 
+	// InclusionGutterMarker is the glyph drawn in the on-demand inclusion gutter
+	// (see SetInclusionGutter) on marked lines; InclusionGutterMarkerColor is its
+	// color. Both are set once at view creation.
+	InclusionGutterMarker      string
+	InclusionGutterMarkerColor Attribute
+	// showInclusionGutter reserves the gutter column at the left of every line, and
+	// inclusionGutterMarks (indexed by buffer line) selects which lines get the
+	// marker. Set together via SetInclusionGutter.
+	showInclusionGutter  bool
+	inclusionGutterMarks []bool
+
 	// If Frame is true, a border will be drawn around the view.
 	Frame bool
 
@@ -613,6 +624,31 @@ func (v *View) InnerHeight() int {
 // Name returns the name of the view.
 func (v *View) Name() string {
 	return v.name
+}
+
+// SetInclusionGutter configures the on-demand inclusion marker gutter: a fixed-width
+// column reserved at the left of every line, used by the custom-patch inclusion
+// overlay to show which change lines are in the patch. When show is true the gutter
+// is reserved and the content is shifted right to make room; marks, indexed by
+// buffer line, selects which lines get InclusionGutterMarker drawn (on every wrapped
+// segment of the line). It is pure draw-time decoration — the content buffer (and so the
+// diff-line metadata, click resolution, etc.) is untouched. Toggling show changes the
+// wrap width, so the view is re-wrapped.
+func (v *View) SetInclusionGutter(show bool, marks []bool) {
+	if v.showInclusionGutter != show {
+		v.showInclusionGutter = show
+		v.tainted = true
+	}
+	v.inclusionGutterMarks = marks
+}
+
+// inclusionGutterWidth is the number of columns the inclusion gutter occupies when
+// shown (the marker glyph plus a one-cell separator), or 0 when hidden.
+func (v *View) inclusionGutterWidth() int {
+	if !v.showInclusionGutter {
+		return 0
+	}
+	return uniseg.StringWidth(v.InclusionGutterMarker) + 1
 }
 
 // setCharacter sets a character (grapheme cluster) at the given point relative to the view. It applies
@@ -1411,6 +1447,10 @@ func (v *View) draw() {
 
 	emptyCell := cell{chr: " ", width: 1, fgColor: ColorDefault, bgColor: ColorDefault}
 
+	// The inclusion gutter (when shown) reserves the leftmost columns; content is
+	// drawn shifted right past it. See SetInclusionGutter.
+	gutterWidth := v.inclusionGutterWidth()
+
 	for y, vline := range v.viewLines[start:] {
 		if y >= maxY {
 			break
@@ -1425,10 +1465,21 @@ func (v *View) draw() {
 			trailingCell.bgColor = attrs.bg
 		}
 
+		// Paint the inclusion gutter: blanks across its width, with the marker on
+		// every wrapped segment of a marked buffer line.
+		if gutterWidth > 0 {
+			for gx := range gutterWidth {
+				v.setCharacter(gx, y, " ", v.FgColor, v.BgColor)
+			}
+			if vline.linesY < len(v.inclusionGutterMarks) && v.inclusionGutterMarks[vline.linesY] {
+				v.setCharacter(0, y, v.InclusionGutterMarker, v.InclusionGutterMarkerColor, v.BgColor)
+			}
+		}
+
 		// x tracks the current x position in the view, and cellIdx tracks the
 		// index of the cell. If we print a double-sized rune, we increment cellIdx
 		// by one but x by two.
-		x := -v.ox
+		x := gutterWidth - v.ox
 		cellIdx := 0
 
 		var c cell
@@ -1474,7 +1525,7 @@ func (v *View) draw() {
 
 func (v *View) refreshViewLinesIfNeeded() {
 	if v.tainted {
-		maxX := v.InnerWidth()
+		maxX := v.InnerWidth() - v.inclusionGutterWidth()
 		lineIdx := 0
 		lines := v.buf.lines
 		for i, line := range lines {
