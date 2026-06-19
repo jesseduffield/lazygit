@@ -2786,3 +2786,34 @@ real delta): the gutter look/feel under delta + no-pager + difftastic; the check
 (whole-commit multi-file diff); then step 7 (`enter` focuses the main view for files AND commit-files)
 and step 8 (tear out the explorer views + escape machinery). Consider auto-advance and live
 browser/secondary updates as polish.
+
+### 21.21 Session 17 (cont.): toggle refreshes normally — secondary + indicators update live
+
+The §21.20 "browser indicators / secondary patch summary don't update live on a toggle" was the
+wrong tradeoff (user: it makes patch-building unusable, and updating just the list model wouldn't fix
+the secondary anyway). **The toggle now refreshes normally** (`Refresh({COMMIT_FILES})`), which
+re-renders the commit-files browser (the file's ◐/● status), the secondary view (the cumulative
+patch — and the layout splits to show it when the patch first becomes non-empty), and the main diff.
+
+**Scroll/selection are preserved for free** — the realization the user pushed on: a patch toggle
+re-renders the **same diff command**, and the render pipeline already keeps the scroll when the
+command is unchanged (`pty.go`: `ResetOrigin = restore == nil && cmdStr != GetTaskKey()`). So no
+`PreserveDiffPositionOnRerender` is needed (unlike the `-U` context-size change, which *changes* the
+command and so must preserve explicitly). The selection (cursor + range anchor) survives the re-render
+too — it's view state the task doesn't touch.
+
+**The gutter rides the same re-render** without the restore machinery, by recomputing in
+`GetOnRenderToMain` keyed on the **same content-equality test the pipeline uses**: if the diff command
+equals the manager's current task key (a toggle re-rendering the same diff), recompute the gutter over
+the current content — identical to the incoming content, so the marks are valid and survive the swap;
+otherwise (a different file is loading) clear the gutter, recomputed when the main view is focused.
+This replaces the §21.20 unconditional reset-on-preview-render. (Coupling note: the equality test
+duplicates `newPtyTask`'s `strings.Join(cmd.Args, " ")` key derivation — flagged for productionization.)
+
+Test `build_from_main_view` strengthened: after the toggle it asserts the selection is unchanged
+**and** the secondary view shows the cumulative patch (the toggled block only). unit + lint + the
+patch_building/staging suites green.
+
+**This removes the big §21.20 limitation.** Remaining (carry forward): scoped to commit-files; no
+auto-advance after a toggle; streaming. Committed as fixups on `1aed9428a` (note `0ce3cc378`'s
+unconditional reset is superseded by the conditional version — fold accordingly).
