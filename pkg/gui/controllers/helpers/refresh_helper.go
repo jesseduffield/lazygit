@@ -200,7 +200,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		if scopeSet.Includes(types.FILES) {
 			fileWg.Add(1)
 			refresh("files", func() {
-				_ = self.refreshFilesAndSubmodules()
+				_ = self.refreshFilesAndSubmodules(options.Background)
 				fileWg.Done()
 			})
 		}
@@ -624,7 +624,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	self.refreshStatus()
 }
 
-func (self *RefreshHelper) refreshFilesAndSubmodules() error {
+func (self *RefreshHelper) refreshFilesAndSubmodules(background bool) error {
 	self.c.Mutexes().RefreshingFilesMutex.Lock()
 	self.c.State().SetIsRefreshingFiles(true)
 	defer func() {
@@ -636,7 +636,7 @@ func (self *RefreshHelper) refreshFilesAndSubmodules() error {
 		return err
 	}
 
-	if err := self.refreshStateFiles(); err != nil {
+	if err := self.refreshStateFiles(background); err != nil {
 		return err
 	}
 
@@ -649,7 +649,7 @@ func (self *RefreshHelper) refreshFilesAndSubmodules() error {
 	return nil
 }
 
-func (self *RefreshHelper) refreshStateFiles() error {
+func (self *RefreshHelper) refreshStateFiles(background bool) error {
 	fileTreeViewModel := self.c.Contexts().Files.FileTreeViewModel
 
 	prevConflictFileCount := 0
@@ -687,6 +687,7 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	files := self.c.Git().Loaders.FileLoader.
 		GetStatusFiles(git_commands.GetStatusFileOptions{
 			ForceShowUntracked: self.c.Contexts().Files.ForceShowUntracked(),
+			Background:         background,
 		})
 
 	conflictFileCount := 0

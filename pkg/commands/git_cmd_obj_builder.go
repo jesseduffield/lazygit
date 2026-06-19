@@ -28,14 +28,12 @@ func NewGitCmdObjBuilder(log *logrus.Entry, innerBuilder *oscommands.CmdObjBuild
 	}
 }
 
-var defaultEnvVar = "GIT_OPTIONAL_LOCKS=0"
-
 func (self *gitCmdObjBuilder) New(args []string) *oscommands.CmdObj {
-	return self.innerBuilder.New(args).AddEnvVars(defaultEnvVar)
+	return self.innerBuilder.New(args)
 }
 
 func (self *gitCmdObjBuilder) NewShell(cmdStr string, shellFunctionsFile string) *oscommands.CmdObj {
-	return self.innerBuilder.NewShell(cmdStr, shellFunctionsFile).AddEnvVars(defaultEnvVar)
+	return self.innerBuilder.NewShell(cmdStr, shellFunctionsFile)
 }
 
 func (self *gitCmdObjBuilder) Quote(str string) string {
