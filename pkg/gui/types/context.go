@@ -373,6 +373,14 @@ type FocusedMainViewActions interface {
 	// the selection itself (staging can move the acted-on side to the other pane,
 	// which the handler then focuses).
 	PrimaryAction(mainViewName string, firstLineIdx int, lastLineIdx int) error
+
+	// DiscardSelection discards the selected diff line(s) when the user presses the
+	// remove key: from the working tree for the files panel, or from the commit (via a
+	// rebase) for the commit panels. DiscardSelectionDisabledReason reports why discard
+	// is unavailable here — e.g. the diff isn't a local commit's, or a rebase is in
+	// progress — or nil when it's available.
+	DiscardSelection(mainViewName string, firstLineIdx int, lastLineIdx int) error
+	DiscardSelectionDisabledReason() *DisabledReason
 }
 
 type IController interface {

@@ -597,6 +597,18 @@ func (self *CommitFilesController) PrimaryAction(mainViewName string, firstLineI
 		})
 }
 
+// DiscardSelection removes the selected diff line(s) from the commit the focused main
+// view shows the files of, via a rebase. Same target derivation as the patch toggle.
+func (self *CommitFilesController) DiscardSelection(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+	from, to, reverse := self.c.Helpers().CommitFiles.CurrentFromToReverseForPatchBuilding()
+	canRebase := self.context().GetCanRebase()
+	return discardSelectionFromCommit(self.c, mainViewName, firstLineIdx, lastLineIdx, from, to, reverse, canRebase)
+}
+
+func (self *CommitFilesController) DiscardSelectionDisabledReason() *types.DisabledReason {
+	return discardFromCommitDisabledReason(self.c, self.context().GetCanRebase())
+}
+
 // pathsForDiff returns the file paths to use for a diff command. When a text
 // filter is active and the node is a directory, only the visible (filtered)
 // file paths are returned so the diff reflects what the user sees.
