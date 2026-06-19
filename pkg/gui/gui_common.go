@@ -50,6 +50,10 @@ func (self *guiCommon) Resume() error {
 	return self.gui.resume()
 }
 
+func (self *guiCommon) PauseBackgroundRefreshes(pause bool) {
+	self.gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(pause)
+}
+
 func (self *guiCommon) Context() types.IContextMgr {
 	return self.gui.State.ContextMgr
 }
