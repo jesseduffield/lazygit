@@ -103,6 +103,10 @@ type IBaseContext interface {
 	// inclusive view-line range is the current selection (a single line, a range, or
 	// a hunk).
 	AddOnStageFocusedMainViewFn(func(mainViewName string, firstLineIdx int, lastLineIdx int) (focusViewName string, err error))
+	// And for toggling the selected line(s) into/out of the custom patch from the
+	// focused main view (space), when the panel beneath builds a patch rather than
+	// staging.
+	AddOnTogglePatchFocusedMainViewFn(func(mainViewName string, firstLineIdx int, lastLineIdx int) error)
 	// Adding on to the above, this is so that a list-specific handler can register
 	// a hook for doing additional click handling
 	AddOnClickFn(func(opts gocui.ViewMouseBindingOpts) error)
@@ -342,6 +346,15 @@ type HasKeybindings interface {
 	// side to the other pane — or "" when nothing was done. Return a nil func to do
 	// nothing.
 	GetOnStageFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) (focusViewName string, err error)
+
+	// Implement this in a side-panel controller to toggle the selected diff line(s)
+	// into or out of the custom patch when the user presses space in the focused main
+	// view. It is the patch-building counterpart of GetOnStageFocusedMainView: the
+	// commit's diff is unchanged by the toggle (only the inclusion set changes), so
+	// unlike staging it does its work synchronously and the focused main view does
+	// nothing further. The inclusive view-line range is the current selection. Return
+	// a nil func to do nothing.
+	GetOnTogglePatchFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error
 }
 
 type IController interface {

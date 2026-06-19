@@ -109,6 +109,12 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Main.HighlightInset = 3
 	gui.Views.Secondary.HighlightInset = 3
 
+	// The on-demand inclusion gutter marker for custom-patch building.
+	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary} {
+		view.InclusionGutterMarker = "✓"
+		view.InclusionGutterMarkerColor = gocui.ColorGreen
+	}
+
 	gui.Views.Staging.Wrap = true
 	gui.Views.StagingSecondary.Wrap = true
 	gui.Views.PatchBuilding.Wrap = true
