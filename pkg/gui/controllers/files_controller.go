@@ -494,7 +494,9 @@ func (self *FilesController) PrimaryAction(mainViewName string, firstLineIdx int
 		if file == nil {
 			continue
 		}
-		if err := self.stageDiffLines(file, fileInfos, reverse); err != nil {
+		// Staging reads the side being acted on (unstaged when staging, staged when
+		// unstaging — both = reverse here) and applies to the index either way.
+		if err := self.applyDiffLines(file, fileInfos, reverse, git_commands.ApplyPatchOpts{Reverse: reverse, Cached: true}); err != nil {
 			return err
 		}
 	}
@@ -538,13 +540,19 @@ func (self *FilesController) fileForDiffLinePath(path string) *models.File {
 	return self.context().FileTreeViewModel.GetFile(filepath.ToSlash(relativePath))
 }
 
-// stageDiffLines stages, or when reverse is true unstages, the diff lines identified
-// by infos (a single line, a range, or a hunk) — all belonging to file. It builds one
-// patch from the file's diff including all the selected change lines and applies it
-// the same way the staging view does, but identifies the patch lines from the
-// diff-line metadata rather than from a patch-explorer selection. A selection
-// covering no change lines yields an empty patch and is a no-op. The caller logs the
-// action and refreshes, once, around the (possibly several) files it stages.
+// applyDiffLines applies, to the diff lines identified by infos (a single line, a
+// range, or a hunk) — all belonging to file — a patch built from the file's staged or
+// unstaged diff (sourceCached: the side the selection was made on) and applied per opts:
+//   - stage:   read unstaged, apply forward to the index    (sourceCached=false, Reverse=false, Cached=true)
+//   - unstage: read staged,   apply reverse to the index    (sourceCached=true,  Reverse=true,  Cached=true)
+//   - discard: read the shown side, apply reverse — not cached on the unstaged side
+//     removes the change from the working tree, cached on the staged side just unstages it.
+//
+// The read side and the apply direction are independent (they only coincide for
+// staging/unstaging), so they're passed separately: the patch lines are matched in the
+// diff actually shown, then Transform reverses them to match opts. A selection covering
+// no change lines yields an empty patch and is a no-op. The caller logs the action and
+// refreshes, once, around the (possibly several) files it touches.
 //
 // Each selected change line is keyed by its (file line number, deletion?) identity,
 // and the freshly parsed patch is scanned for the body lines matching those
@@ -553,8 +561,8 @@ func (self *FilesController) fileForDiffLinePath(path string) *models.File {
 // deletion and the addition replacing it share a position but have distinct
 // identities, and the line-number lookup can't tell an addition at the start of a
 // hunk from the deletion above it.
-func (self *FilesController) stageDiffLines(file *models.File, infos []types.DiffLineInfo, reverse bool) error {
-	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, true, reverse))
+func (self *FilesController) applyDiffLines(file *models.File, infos []types.DiffLineInfo, sourceCached bool, opts git_commands.ApplyPatchOpts) error {
+	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, true, sourceCached))
 
 	type changeLineKey struct {
 		lineNumber int
@@ -584,7 +592,7 @@ func (self *FilesController) stageDiffLines(file *models.File, infos []types.Dif
 
 	patchToApply := parsedPatch.
 		Transform(patch.TransformOpts{
-			Reverse:             reverse,
+			Reverse:             opts.Reverse,
 			IncludedLineIndices: patchLineIndices,
 			FileNameOverride:    file.GetPath(),
 		}).
@@ -593,10 +601,7 @@ func (self *FilesController) stageDiffLines(file *models.File, infos []types.Dif
 		return nil
 	}
 
-	return self.c.Git().Patch.ApplyPatch(patchToApply, git_commands.ApplyPatchOpts{
-		Reverse: reverse,
-		Cached:  true,
-	})
+	return self.c.Git().Patch.ApplyPatch(patchToApply, opts)
 }
 
 // if we are dealing with a status for which there is no key in this map,
