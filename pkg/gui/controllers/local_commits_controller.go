@@ -305,6 +305,12 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() {
 				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange)
 			}
 
+			// Keep the inclusion gutter in step with the content as this diff
+			// (re-)renders. It's a no-op unless the main view is focused and a patch is
+			// being built from this panel; a patch toggle re-renders this same diff, so
+			// the marks recomputed over the current content stay valid through the swap.
+			self.c.Helpers().Staging.RefreshInclusionGutter()
+
 			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
