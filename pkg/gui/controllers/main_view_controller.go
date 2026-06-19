@@ -267,21 +267,26 @@ func (self *MainViewController) isDiffView() bool {
 	return sidePanelShowsDiff(self.c.Context().NextInStack(self.context))
 }
 
-// stageSelectedLine stages (or unstages) the selected diff line(s) — a single line,
-// a range, or a hunk — delegating to the side panel beneath the focused main view
-// since what "stage" means is the panel's business (the working tree stages; later,
-// commits add to a custom patch). Panels whose diff isn't stageable register no
-// handler, so this is a no-op there.
+// stageSelectedLine acts on the selected diff line(s) — a single line, a range, or a
+// hunk — delegating to the side panel beneath the focused main view, since what the
+// action means is the panel's business: the working tree stages, while commits build a
+// custom patch. Panels whose diff supports neither register no handler, so this is a
+// no-op there.
 func (self *MainViewController) stageSelectedLine() error {
 	sidePanelContext := self.c.Context().NextInStack(self.context)
 	if sidePanelContext == nil {
 		return nil
 	}
-	handler := sidePanelContext.GetOnStageFocusedMainView()
-	if handler == nil {
-		return nil
+	if handler := sidePanelContext.GetOnStageFocusedMainView(); handler != nil {
+		return self.stageRange(handler)
 	}
+	return nil
+}
 
+// stageRange stages (or unstages) the current selection through the side panel's
+// staging handler. Staging mutates the working tree, so the diff re-renders
+// asynchronously and the selection is re-revealed once it lands.
+func (self *MainViewController) stageRange(handler func(mainViewName string, firstLineIdx int, lastLineIdx int) (string, error)) error {
 	v := self.context.GetView()
 	first, last := v.SelectedLineRange()
 
