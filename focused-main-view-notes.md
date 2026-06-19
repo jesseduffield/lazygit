@@ -2668,3 +2668,56 @@ metadata-driven **inclusion overlay** (§21.5) — the reserved left column show
 the patch — the one genuinely new capability and the highest-uncertainty piece. Start from §21.5 +
 the §21.7 plan. After step 6: step 7 (enter focuses the main view for files AND commitFiles), step 8
 (tear out the explorer views + escape machinery).
+
+### 21.19 Session 17 (2026-06-19): step 6 design + plan (the inclusion gutter)
+
+The §21.7 **step-2 de-risk spike (the inclusion overlay) was skipped** — the implementation
+sessions ran 1 → 3 → 4 → 5. So step 6 is two pieces: (1) the inclusion overlay (§21.5) — the
+genuinely-new capability, never built — and (2) the patch-building toggle handler.
+
+**The shaping insight — staging is async, patch-building is sync.** Staging mutates the diff →
+the content re-renders (async) → the post-stage reveal rides that render
+(`RevealSelectionAfterStaging`, ordinal model, §21.17). **Patch-building mutates only the
+inclusion set — the commit's diff is unchanged — so there is no content re-render.** Toggling a
+line into the patch just recomputes the gutter, redraws, and advances the selection, all
+**synchronously**. Re-running the pager per toggle is exactly what the draw-time gutter exists to
+avoid (§21.5). So `space` in `MainViewController.stageSelectedLine` branches on the panel beneath:
+files → stage (async, exists); commits/commitFiles → toggle patch (sync, new). The selection
+front end (`ChangeLinesInViewRange`) is shared; only the back end and post-action differ.
+
+**Included-set mapping (solved on paper).** `PatchBuilder` stores `includedLineIndices` (patch-line
+indices into the file's parsed diff). Invert `stageDiffLines`: parse the same diff, map each
+included index → change-line identity `(path, lineNumber, isDeletion)` via
+`LineNumberOfLine`/`OldLineNumberOfLine`, build a set, check each rendered row's resolved identity
+against it. Rendering-independent, so it holds over delta / no-pager identically. (`mode == WHOLE`
+= all change lines included.)
+
+**Gutter decisions (user, this session):**
+- **On-demand.** The gutter is shown **only while a custom patch is being built** for the shown
+  commit; hidden otherwise. The diff renders flush-left until the first line is toggled in (the
+  intrinsic one-cell shift, §21.5), and goes away when the patch empties.
+- **Inclusion-only.** It is **not** the fix for the §21.9 selection-bg-under-delta problem:
+  staging from the files panel never has a gutter yet has the same problem, so that needs a
+  *separate* solution (deferred). (This corrected a wrong framing — the two were lumped as "same
+  class of problem" in §21.9/§21.11; they are not solvable by the same gutter.)
+- **Marker = a checkmark** (maybe colored). `+` is out — it collides with raw `git diff`'s `+` for
+  additions (delta has none). Trivial to change later; don't over-invest now.
+
+**gocui rendering (the de-risk spike).** Both main views are `Wrap=true` (so `ox` is pinned to 0 —
+no horizontal-scroll complication). The gutter is a **draw-time decoration**: the `View` gains a
+gutter width + a per-buffer-line marker array; `draw()` reserves the left N columns, paints the
+marker on the **first wrapped segment** (`viewLine.linesX == 0`) of marked buffer lines, and shifts
+content right by N; `refreshViewLinesIfNeeded` reduces the wrap width by N. The buffer/cells/metadata
+are untouched (the gutter is pure decoration), so `DiffLineContents`/`BufferLineForViewLine`/the
+resolvers keep operating on the unshifted buffer.
+
+**Marker recompute (lazygit side).** Markers derive from (a) the buffer's resolved diff-line
+identities (stable per buffer line once loaded) and (b) `PatchBuilder`'s included set (changes on
+toggle). Recompute on toggle (sync) and on content render (navigating commits/files re-renders the
+main view). Streaming (markers for not-yet-loaded lines of a large diff) is a known follow-up —
+likely recompute on render-complete; the toggle-recompute covers the core demo for the spike.
+
+**Decomposition (linear):** 6a — the gocui reserved-column gutter (de-risk first; gocui unit test).
+6b — single-line + hunk toggle, single file, wired to `PatchBuilder` + the sync selection advance.
+6c — range + multi-file (reuses the step-4 group-by-file machinery). Whole-commit (multi-file) diff
+and `enter`-focuses-the-main-view bleed into step 7.
