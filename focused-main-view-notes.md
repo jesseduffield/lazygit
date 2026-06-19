@@ -3110,3 +3110,40 @@ actions), like its `space`.
 
 **NEXT: (C) `ctrl+o` (copy parts of a diff to the clipboard)** — supported by every diff panel; add
 `CopySelection` to `FocusedMainViewActions`. Then (D) the pager fallback.
+
+### 21.27 Session 19 (cont.): discard bug fixes (user review) + selection visibility
+
+User reviewed (B) and found three discard bugs + one pre-existing selection-visibility bug. All fixed;
+the §21.26 "carry-forward" items above are now resolved. Bugs 1-3 are fixups on `19d4b8f66`; bug 4 is its
+own commit (`f06c64366`).
+
+**Bug 1+2 — files discard must reuse the primary action's focus-follow.** Discard on the staged side *is*
+unstaging (reverse + cached → index), so it must behave identically to `space` there: the selection
+advances to the next staged hunk, focus follows the staged side (secondary when split), etc. My naive
+same-pane reveal got this wrong (lost focus / selection on last-staged-hunk; moved focus to unstaged when
+discarding the first hunk of an only-staged file). Fix: extracted `applyDiffLineSelection` (apply +
+refresh + focus-follow + reveal) and route both `PrimaryAction` and `DiscardSelection` through it;
+`diffLineSelection` resolves the selection + which side. The only real difference is the `ApplyPatchOpts`
+(stage = forward/index, unstage = reverse/index, discard-unstaged = reverse/not-cached) and the confirm
+(unstaged discard only). Test `discard_from_staged_main_view`.
+
+**Bug 3 — commit-discard must reveal the next hunk** (I'd hand-waved "fine for a destructive op"; user
+disagreed, correctly). Install `revealSelectionAfterPrimaryAction` before the rebase's
+`CheckMergeOrRebaseWithRefreshOptions(SYNC)` so the ordinal-reveal rides that re-render, exactly like
+staging. Verified it rides the rebase refresh (test now asserts the selection lands on the next surviving
+line).
+
+**Bug 4 (pre-existing) — hide the selection when the focused main view has no diff.** It always showed a
+selection while focused, even over "No changed files" / a merge message; and a stale selection lingered
+after the last change was discarded or changes vanished outside lazygit. Fix has two moments (focus
+*reuses* the rendered content rather than re-rendering, so one hook can't cover both):
+- **Focus:** `showInitialDiffSelection` leaves the selection off when `ViewHasChangeLines` is false.
+- **Render:** the panel's render-to-main is where diff-vs-placeholder is decided (user's pointer), so
+  `updateFocusedMainViewSelectionVisibility` sets the selection there — shown only on the focused pane and
+  only when a diff is rendered. Covers the refresh cases focus can't: discard-to-empty + external
+  changes both ways. Wired into `FilesController.GetOnRenderToMain` (placeholders → off, diff → on);
+  commit panels always render a diff. New `SelectionIsShown/Hidden` e2e assertion (reads the view's
+  `Highlight`, since `SelectedLines` ignores it); tests `no_selection_when_no_changes` +
+  `hide_selection_after_discarding_last_change`.
+
+`build` + `unit` + `lint` + **`e2e-all` all green.**
