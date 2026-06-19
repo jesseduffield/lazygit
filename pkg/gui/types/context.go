@@ -95,18 +95,10 @@ type IBaseContext interface {
 	// that the generic ListController can be specialized by view-specific controllers.
 	// We'll need to think of a better way to do this.
 	AddOnDoubleClickFn(func() error)
-	// Likewise for the focused main view: we need this to communicate between a
-	// side panel controller and the focused main view controller.
-	AddOnClickFocusedMainViewFn(func(mainViewName string, clickedLineIdx int) error)
-	// And for staging the selected line(s) directly from the focused main view
-	// (space), delegated to the side panel that owns the diff being shown. The
-	// inclusive view-line range is the current selection (a single line, a range, or
-	// a hunk).
-	AddOnStageFocusedMainViewFn(func(mainViewName string, firstLineIdx int, lastLineIdx int) error)
-	// And for toggling the selected line(s) into/out of the custom patch from the
-	// focused main view (space), when the panel beneath builds a patch rather than
-	// staging.
-	AddOnTogglePatchFocusedMainViewFn(func(mainViewName string, firstLineIdx int, lastLineIdx int) error)
+	// Likewise for the focused main view: this is how a side panel controller exposes
+	// the actions its diff supports there (diving in, staging, patch toggling, …) to
+	// the focused main view controller. nil for panels with no such actions.
+	AddFocusedMainViewActions(FocusedMainViewActions)
 	// Adding on to the above, this is so that a list-specific handler can register
 	// a hook for doing additional click handling
 	AddOnClickFn(func(opts gocui.ViewMouseBindingOpts) error)
@@ -187,15 +179,37 @@ type DiffableContext interface {
 // main view shows a unified diff — files, local commits, sub-commits, reflog,
 // stash, and commit files — as opposed to a commit log or other non-diff content
 // (branches, tags, status, …). It is distinct from DiffableContext, which is
-// about producing a diff between two refs for the diff menu. This is the signal
-// for whether to show a selection in the focused main view: a selection is only
-// meaningful where there are diff lines to act on (stage, edit, jump by hunk,
-// open in a pull request).
+// about producing a diff between two refs for the diff menu. Implementing it is
+// the signal for whether to show a selection in the focused main view: a selection
+// is only meaningful where there are diff lines to act on (stage, edit, jump by
+// hunk, open in a pull request). The returned type additionally classifies what the
+// primary action (space) does there.
 type DiffMainViewContext interface {
 	Context
 
-	IsDiffMainViewContext()
+	GetDiffMainViewType() DiffMainViewType
 }
+
+// DiffMainViewType classifies what the primary action (space) does in a side panel's
+// focused main view — and, for DiffMainViewTypePatchBuilding, that the focused main
+// view shows the inclusion gutter (it marks which change lines are in the patch, so
+// it's meaningful only beneath a patch-building panel, and even then only while a
+// patch is active).
+type DiffMainViewType int
+
+const (
+	// DiffMainViewTypeNone: a diff is shown — so the focused main view still has a
+	// selection to edit, jump by hunk, or open in a pull request — but the primary
+	// action does nothing. Currently the reflog (building a patch from it is a deferred
+	// gap).
+	DiffMainViewTypeNone DiffMainViewType = iota
+	// DiffMainViewTypeStaging: the primary action stages/unstages into the working tree
+	// (the files panel).
+	DiffMainViewTypeStaging
+	// DiffMainViewTypePatchBuilding: the primary action toggles the selection into a
+	// custom patch (the commit files / commits / sub-commits / stash panels).
+	DiffMainViewTypePatchBuilding
+)
 
 type IListContext interface {
 	Context
@@ -334,26 +348,31 @@ type HasKeybindings interface {
 	// decides not to do anything with the click.
 	GetOnClick() func(opts gocui.ViewMouseBindingOpts) error
 
-	// Implement this in a side-panel controller to get called when there's a click in the main view
-	// that belongs to your panel while the main view is already focused.
-	GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error
+	// Implement this in a side-panel controller to expose the actions its diff
+	// supports when shown in the focused main view (see FocusedMainViewActions).
+	// Return nil for a panel whose diff offers none.
+	GetFocusedMainViewActions() FocusedMainViewActions
+}
 
-	// Implement this in a side-panel controller to stage/unstage the selected diff
-	// line(s) when the user presses space in the focused main view. The inclusive
-	// view-line range is the current selection (a single line, a range, or a hunk).
-	// The handler re-renders the diff and re-establishes the selection itself
-	// (staging/unstaging can move the acted-on side to the other pane, which the
-	// handler then focuses). Return a nil func to do nothing.
-	GetOnStageFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error
+// FocusedMainViewActions is the set of actions a side panel offers on its diff while
+// that diff is shown in the focused main view. The focused main view controller owns
+// the keybindings and the selection mechanics and dispatches to whichever panel is
+// beneath it; what each action means is the panel's business — the working-tree files
+// panel stages, the commit panels toggle the selection into a custom patch. The
+// inclusive view-line range passed to the action methods is the current selection (a
+// single line, a range, or a hunk). mainViewName identifies which of the two main
+// panes the user acted in.
+type FocusedMainViewActions interface {
+	// OnClick dives into staging / patch-building for the clicked line, the same way a
+	// click in the panel's own view does. Also used by enter (on the selected line).
+	OnClick(mainViewName string, clickedLineIdx int) error
 
-	// Implement this in a side-panel controller to toggle the selected diff line(s)
-	// into or out of the custom patch when the user presses space in the focused main
-	// view. It is the patch-building counterpart of GetOnStageFocusedMainView: the
-	// commit's diff is unchanged by the toggle (only the inclusion set changes), so
-	// unlike staging it does its work synchronously and the focused main view does
-	// nothing further. The inclusive view-line range is the current selection. Return
-	// a nil func to do nothing.
-	GetOnTogglePatchFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error
+	// PrimaryAction acts on the selected diff line(s) when the user presses space:
+	// stage/unstage for the working-tree files panel, toggle into/out of the custom
+	// patch for the commit panels. The handler re-renders the diff and re-establishes
+	// the selection itself (staging can move the acted-on side to the other pane,
+	// which the handler then focuses).
+	PrimaryAction(mainViewName string, firstLineIdx int, lastLineIdx int) error
 }
 
 type IController interface {

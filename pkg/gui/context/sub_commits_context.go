@@ -28,7 +28,9 @@ var (
 	_ types.DiffMainViewContext = (*SubCommitsContext)(nil)
 )
 
-func (self *SubCommitsContext) IsDiffMainViewContext() {}
+func (self *SubCommitsContext) GetDiffMainViewType() types.DiffMainViewType {
+	return types.DiffMainViewTypePatchBuilding
+}
 
 func NewSubCommitsContext(
 	c *ContextCommon,

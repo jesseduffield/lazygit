@@ -74,7 +74,7 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		},
 		{
 			Keys:            opts.GetKeys(opts.Config.Universal.Select),
-			Handler:         self.stageSelectedLine,
+			Handler:         self.primaryAction,
 			Description:     self.c.Tr.Stage,
 			Tooltip:         self.c.Tr.StageSelectionTooltip,
 			DisplayOnScreen: selectionShown,
@@ -279,27 +279,31 @@ func (self *MainViewController) isDiffView() bool {
 	return sidePanelShowsDiff(self.c.Context().NextInStack(self.context))
 }
 
-// stageSelectedLine acts on the selected diff line(s) — a single line, a range, or a
-// hunk — delegating the primary action to the side panel beneath the focused main view,
-// since what the action means is the panel's business: the working tree stages, while
-// commits toggle the selection into a custom patch. Each handler does its own re-render
-// and re-establishes the selection afterwards (see revealSelectionAfterPrimaryAction), so
-// the dispatcher just hands over the selected range. Panels whose diff supports neither
-// register no handler, so this is a no-op there.
-func (self *MainViewController) stageSelectedLine() error {
+// focusedMainViewActions returns the actions the side panel beneath the focused main
+// view offers on its diff (diving in, staging, patch toggling), or nil when there is no
+// panel beneath or its diff offers none.
+func (self *MainViewController) focusedMainViewActions() types.FocusedMainViewActions {
 	sidePanelContext := self.c.Context().NextInStack(self.context)
 	if sidePanelContext == nil {
 		return nil
 	}
+	return sidePanelContext.GetFocusedMainViewActions()
+}
+
+// primaryAction acts on the selected diff line(s) — a single line, a range, or a hunk —
+// delegating to the side panel beneath the focused main view, since what the action means
+// is the panel's business: the working tree stages, while commits toggle the selection
+// into a custom patch. The handler does its own re-render and re-establishes the selection
+// afterwards (see revealSelectionAfterPrimaryAction), so the dispatcher just hands over
+// the selected range. A no-op when the panel beneath offers no actions.
+func (self *MainViewController) primaryAction() error {
+	actions := self.focusedMainViewActions()
+	if actions == nil {
+		return nil
+	}
 	v := self.context.GetView()
 	first, last := v.SelectedLineRange()
-	if handler := sidePanelContext.GetOnStageFocusedMainView(); handler != nil {
-		return handler(self.context.GetViewName(), first, last)
-	}
-	if handler := sidePanelContext.GetOnTogglePatchFocusedMainView(); handler != nil {
-		return handler(self.context.GetViewName(), first, last)
-	}
-	return nil
+	return actions.PrimaryAction(self.context.GetViewName(), first, last)
 }
 
 // revealSelectionAfterPrimaryAction re-establishes the focused-main-view selection after a
@@ -343,12 +347,11 @@ func (self *MainViewController) enter() error {
 }
 
 // enterForLine dives into staging/patch-building for the given line, by
-// delegating to the side panel beneath the focused main view (the same handler
-// used when clicking).
+// delegating to the side panel beneath the focused main view (the same action
+// taken when clicking).
 func (self *MainViewController) enterForLine(lineIdx int) error {
-	sidePanelContext := self.c.Context().NextInStack(self.context)
-	if sidePanelContext != nil && sidePanelContext.GetOnClickFocusedMainView() != nil {
-		return sidePanelContext.GetOnClickFocusedMainView()(self.context.GetViewName(), lineIdx)
+	if actions := self.focusedMainViewActions(); actions != nil {
+		return actions.OnClick(self.context.GetViewName(), lineIdx)
 	}
 	return nil
 }
