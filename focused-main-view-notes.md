@@ -2721,3 +2721,68 @@ likely recompute on render-complete; the toggle-recompute covers the core demo f
 6b — single-line + hunk toggle, single file, wired to `PatchBuilder` + the sync selection advance.
 6c — range + multi-file (reuses the step-4 group-by-file machinery). Whole-commit (multi-file) diff
 and `enter`-focuses-the-main-view bleed into step 7.
+
+### 21.20 Session 17 (cont.): step 6 built — gutter + patch toggle (6a/6b done)
+
+Committed (most recent last; fixups noted):
+
+```
+67906ae47 Add an on-demand inclusion gutter to gocui views                       (6a; +fixup intrange)
+f8b37370d Add identity-based line accessors to PatchBuilder                       (prep)
+185ddeea9 Extract stageRange from stageSelectedLine in the main view             (prep)
+1aed9428a Build a custom patch from the focused main view of a commit's files     (6b; +fixups: e2e test, reset stale gutter on preview re-render)
+```
+
+**6a — the gocui gutter (de-risk spike, clean, no fight).** `View.SetInclusionGutter(show, marks
+[]bool)` reserves a left column, paints `InclusionGutterMarker` ("✓", green) on the **first wrapped
+segment** of marked buffer lines, shifts content right, and narrows the wrap width while shown. Pure
+draw-time decoration — the content buffer, metadata, click resolution and wrap inputs are untouched;
+both main views are `Wrap=true` so `ox` is pinned to 0 (no h-scroll complication). gocui unit tests:
+`TestInclusionGutter`, `TestInclusionGutterMarkerOnFirstSegmentOnly`. The de-risk verdict: the
+reserved-column-over-pager rendering is straightforward — the spike did not fight us.
+
+**6b — patch toggle from the commit-files main view.** `space` routes to staging (files panel) or
+patch toggle (commit-files panel) by **which handler the panel registers** — a new
+`onTogglePatchFocusedMainView` channel, kept separate from `onStageFocusedMainView` because the
+post-action differs (sync gutter repaint vs async reveal); its presence also gates the gutter.
+`CommitFilesController.GetOnTogglePatchFocusedMainView` resolves the selection to change-line
+identities (the shared `ChangeLinesInViewRange`), maps them to patch-builder indices
+(`PatchBuilder.PatchLineIndicesForLines`), decides add/remove from the first selected line (like the
+explorer's `toggleSelection`), toggles, then repaints the gutter — no refresh, so the pager is never
+re-run. It starts the patch builder if inactive (with the discard confirmation when a patch for a
+different commit is active). The included-set → gutter mapping is `StagingHelper.RefreshInclusionGutter`:
+resolve each rendered change row's identity and mark it when `PatchBuilder.IncludedLineIdentities(file)`
+contains it. Recomputed on focus (`focusMainView`) and on toggle; reset on preview re-render
+(commit-files `GetOnRenderToMain`). End-to-end test `patch_building/build_from_main_view` (toggle one
+hunk → apply → only that hunk lands). unit + lint green; `e2e-all` green modulo the known
+empty-pathspec flake (`diff/diff_non_sticky_range` etc.).
+
+**The §21.5 / §21.19 insight held:** patch-building is **synchronous** — a toggle changes only the
+inclusion set, the commit's diff is unchanged, so the gutter repaints in place and the pager is never
+re-run. This is the whole reason the draw-time gutter exists, now realized.
+
+**Needs interactive sign-off** (the gutter is draw-time, so not e2e-assertable, and the harness has no
+real delta): the gutter look/feel under delta + no-pager + difftastic; the checkmark glyph/color
+(trivial to change); and the on-demand appear/disappear as the patch is created/emptied.
+
+**Known limitations (carry forward):**
+- **Scoped to commit-files.** Commits / sub-commits / stash main views (the whole-commit multi-file
+  diff) register no toggle handler yet → `space` is a no-op there, no gutter. That's 6c / step 7.
+- **No auto-advance after a toggle** — the selection stays on the toggled hunk (so `space` again
+  toggles it off; navigate by hand). The explorer auto-advances
+  (`SelectNextStageableLineOfSameIncludedState`); deliberate first-cut simplification (and it sidesteps
+  the removed `AdjacentChangeLine`).
+- **The browser ◐/● indicators and the secondary patch summary don't update live on a toggle** — the
+  toggle deliberately does *not* refresh `COMMIT_FILES`/`PATCH_BUILDING`, because that refresh
+  re-renders (re-runs the pager on) the main view via the `NextInStack` branch and would reset the
+  gutter + scroll. They catch up the next time the browser/secondary naturally renders. A real gap;
+  productionization (step 8) wants a way to update a list model without re-rendering the main view.
+- **Streaming**: marks for not-yet-loaded lines of a large diff appear once loaded + recomputed
+  (next focus/toggle).
+- `togglePatchLines` already groups by file (multi-file-ready), but only commit-files registers the
+  handler and the add/remove direction is decided once from the first selected line.
+
+**NEXT (6c / step 7):** register the toggle handler on commits / sub-commits / stash main views
+(whole-commit multi-file diff); then step 7 (`enter` focuses the main view for files AND commit-files)
+and step 8 (tear out the explorer views + escape machinery). Consider auto-advance and live
+browser/secondary updates as polish.
