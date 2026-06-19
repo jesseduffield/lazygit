@@ -37,7 +37,9 @@ var (
 	_ types.DiffMainViewContext = (*LocalCommitsContext)(nil)
 )
 
-func (self *LocalCommitsContext) IsDiffMainViewContext() {}
+func (self *LocalCommitsContext) GetDiffMainViewType() types.DiffMainViewType {
+	return types.DiffMainViewTypePatchBuilding
+}
 
 func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	dropIndicator := &commitDropIndicator{insertionIndex: -1}

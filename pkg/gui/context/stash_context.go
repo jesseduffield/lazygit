@@ -17,7 +17,9 @@ var (
 	_ types.DiffMainViewContext = (*StashContext)(nil)
 )
 
-func (self *StashContext) IsDiffMainViewContext() {}
+func (self *StashContext) GetDiffMainViewType() types.DiffMainViewType {
+	return types.DiffMainViewTypePatchBuilding
+}
 
 func NewStashContext(
 	c *ContextCommon,

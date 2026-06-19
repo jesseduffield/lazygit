@@ -53,45 +53,47 @@ func (self *SwitchToDiffFilesController) GetKeybindings(opts types.KeybindingsOp
 	return bindings
 }
 
-func (self *SwitchToDiffFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
-	return func(mainViewName string, clickedLineIdx int) error {
-		info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, clickedLineIdx)
-		if !ok {
-			return nil
-		}
-		line, isDeletion := info.PatchSelectLine()
+func (self *SwitchToDiffFilesController) GetFocusedMainViewActions() types.FocusedMainViewActions {
+	return self
+}
 
-		// Capture before self.enter() pushes the commit files panel, which
-		// re-renders the main view. We escape "all the way out" to this side
-		// panel (skipping the commit files panel), then focus the main view.
-		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context)
-
-		if err := self.enter(); err != nil {
-			return err
-		}
-
-		context := self.c.Contexts().CommitFiles
-		var node *filetree.CommitFileNode
-
-		relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), info.Path)
-		if err != nil {
-			return err
-		}
-		relativePath = "./" + relativePath
-		context.CommitFileTreeViewModel.ExpandToPath(relativePath)
-		self.c.PostRefreshUpdate(context)
-
-		idx, ok := context.CommitFileTreeViewModel.GetIndexForPath(relativePath)
-		if !ok {
-			return nil
-		}
-
-		context.SetSelectedLineIdx(idx)
-		context.GetViewTrait().FocusPoint(
-			context.ModelIndexToViewIndex(idx), false)
-		node = context.GetSelected()
-		return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, ClickedViewRealLineIsDeletion: isDeletion, SelectLineInDefaultMode: true})
+func (self *SwitchToDiffFilesController) OnClick(mainViewName string, clickedLineIdx int) error {
+	info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, clickedLineIdx)
+	if !ok {
+		return nil
 	}
+	line, isDeletion := info.PatchSelectLine()
+
+	// Capture before self.enter() pushes the commit files panel, which
+	// re-renders the main view. We escape "all the way out" to this side
+	// panel (skipping the commit files panel), then focus the main view.
+	snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context)
+
+	if err := self.enter(); err != nil {
+		return err
+	}
+
+	context := self.c.Contexts().CommitFiles
+	var node *filetree.CommitFileNode
+
+	relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), info.Path)
+	if err != nil {
+		return err
+	}
+	relativePath = "./" + relativePath
+	context.CommitFileTreeViewModel.ExpandToPath(relativePath)
+	self.c.PostRefreshUpdate(context)
+
+	idx, ok := context.CommitFileTreeViewModel.GetIndexForPath(relativePath)
+	if !ok {
+		return nil
+	}
+
+	context.SetSelectedLineIdx(idx)
+	context.GetViewTrait().FocusPoint(
+		context.ModelIndexToViewIndex(idx), false)
+	node = context.GetSelected()
+	return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, ClickedViewRealLineIsDeletion: isDeletion, SelectLineInDefaultMode: true})
 }
 
 func (self *SwitchToDiffFilesController) Context() types.Context {
@@ -159,35 +161,33 @@ func (self *SwitchToDiffFilesController) canRebase(ref models.Ref, refsRange *ty
 	return canRebase
 }
 
-// GetOnTogglePatchFocusedMainView toggles the selected line(s) of the whole-commit diff
-// into or out of the custom patch when space is pressed in the focused main view of the
-// commits / sub-commits / stash panels. The patch target is the panel's selected ref (or
-// range), matching the diff the main view shows. Unlike the commit files panel there are
-// no per-file patch indicators to update, so the toggle refreshes cheaply: it re-renders
-// just this panel's main + secondary views (leaving the commit list untouched, which a
-// list refresh would needlessly reload on every keystroke), re-running the same diff
-// command (scroll preserved) and repainting the inclusion gutter.
-func (self *SwitchToDiffFilesController) GetOnTogglePatchFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
-	return func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
-		ref := self.context.GetSelectedRef()
-		if ref == nil {
-			return nil
-		}
-		refsRange := self.context.GetSelectedRefRangeForDiffFiles()
-
-		from, to := context.FromAndToForDiff(ref, refsRange)
-		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
-		canRebase := self.canRebase(ref, refsRange)
-
-		return togglePatchFromFocusedMainView(self.c, mainViewName, firstLineIdx, lastLineIdx,
-			from, to, reverse, canRebase,
-			func() {
-				self.c.OnUIThread(func() error {
-					self.c.PostRefreshUpdate(self.context)
-					return nil
-				})
-			})
+// PrimaryAction toggles the selected line(s) of the whole-commit diff into or out of the
+// custom patch when space is pressed in the focused main view of the commits / sub-commits
+// / stash panels. The patch target is the panel's selected ref (or range), matching the
+// diff the main view shows. Unlike the commit files panel there are no per-file patch
+// indicators to update, so the toggle refreshes cheaply: it re-renders just this panel's
+// main + secondary views (leaving the commit list untouched, which a list refresh would
+// needlessly reload on every keystroke), re-running the same diff command (scroll
+// preserved) and repainting the inclusion gutter.
+func (self *SwitchToDiffFilesController) PrimaryAction(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+	ref := self.context.GetSelectedRef()
+	if ref == nil {
+		return nil
 	}
+	refsRange := self.context.GetSelectedRefRangeForDiffFiles()
+
+	from, to := context.FromAndToForDiff(ref, refsRange)
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
+	canRebase := self.canRebase(ref, refsRange)
+
+	return togglePatchFromFocusedMainView(self.c, mainViewName, firstLineIdx, lastLineIdx,
+		from, to, reverse, canRebase,
+		func() {
+			self.c.OnUIThread(func() error {
+				self.c.PostRefreshUpdate(self.context)
+				return nil
+			})
+		})
 }
 
 func (self *SwitchToDiffFilesController) canEnter() *types.DisabledReason {
