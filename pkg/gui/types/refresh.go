@@ -44,4 +44,12 @@ type RefreshOptions struct {
 	// keeps the selection index the same. Useful after checking out a detached
 	// head, and selecting index 0.
 	KeepBranchSelectionIndex bool
+
+	// When true, this refresh was initiated by a background routine rather than
+	// by a user action. We use it to keep background `git status` calls from
+	// taking optional git locks, so they don't contend for index.lock with git
+	// commands the user runs in a terminal. The cost is that such a status won't
+	// persist git's refreshed stat-cache, which is the right trade-off for
+	// unattended work; foreground refreshes leave this false so they do persist.
+	Background bool
 }

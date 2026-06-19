@@ -133,7 +133,7 @@ func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh() {
 
 	userConfig := self.gui.UserConfig()
 	self.goEvery(userConfig.Refresher.RefreshIntervalDuration(), self.gui.stopChan, func(_ bool) error {
-		self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+		self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Background: true})
 		return nil
 	})
 }
@@ -184,7 +184,7 @@ func (self *BackgroundRoutineMgr) checkForExternalChanges() {
 
 	// No need to update the stored snapshot here; Refresh does that.
 	self.gui.c.Log.Info("External ref change detected — refreshing")
-	self.gui.c.Refresh(types.RefreshOptions{})
+	self.gui.c.Refresh(types.RefreshOptions{Background: true})
 }
 
 // returns a channel that can be used to trigger the callback immediately
@@ -226,7 +226,7 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
 	err = self.gui.git.Sync.FetchBackground()
 
-	return self.gui.helpers.BranchesHelper.PostFetchRefresh(err)
+	return self.gui.helpers.BranchesHelper.PostFetchRefresh(err, true)
 }
 
 func (self *BackgroundRoutineMgr) triggerImmediateFetch() {

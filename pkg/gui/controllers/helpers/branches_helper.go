@@ -285,7 +285,7 @@ func (self *BranchesHelper) deleteRemoteBranches(remoteBranches []*models.Remote
 	return nil
 }
 
-func (self *BranchesHelper) PostFetchRefresh(fetchErr error) error {
+func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool) error {
 	scope := []types.RefreshableView{
 		types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS, types.PULL_REQUESTS,
 	}
@@ -293,7 +293,7 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error) error {
 	if self.c.UserConfig().Git.AutoForwardBranches != "none" {
 		scope = append(scope, types.WORKTREES)
 	}
-	self.c.Refresh(types.RefreshOptions{Scope: scope, Mode: types.SYNC})
+	self.c.Refresh(types.RefreshOptions{Scope: scope, Mode: types.SYNC, Background: background})
 	if fetchErr != nil {
 		return fetchErr
 	}
