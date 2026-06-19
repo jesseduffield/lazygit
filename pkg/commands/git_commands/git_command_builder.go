@@ -38,6 +38,22 @@ func (self *GitCommandBuilder) ArgIfElse(condition bool, ifTrue string, ifFalse 
 	return self.Arg(ifFalse)
 }
 
+// GlobalArg adds top-level options for git itself (e.g. --no-optional-locks).
+// Unlike Arg, these are prepended before the command, where git expects them.
+func (self *GitCommandBuilder) GlobalArg(args ...string) *GitCommandBuilder {
+	self.args = append(append([]string{}, args...), self.args...)
+
+	return self
+}
+
+func (self *GitCommandBuilder) GlobalArgIf(condition bool, args ...string) *GitCommandBuilder {
+	if condition {
+		self.GlobalArg(args...)
+	}
+
+	return self
+}
+
 func (self *GitCommandBuilder) Config(value string) *GitCommandBuilder {
 	// config settings come before the command
 	self.args = append([]string{"-c", value}, self.args...)
