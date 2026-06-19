@@ -252,6 +252,76 @@ func (p *PatchBuilder) GetFileIncLineIndices(filename string) ([]int, error) {
 	return info.includedLineIndices, nil
 }
 
+// LineIdentity identifies a change line (an addition or deletion) by its file line
+// number and whether it's a deletion, independently of the line's index in the parsed
+// patch. It is the identity the diff-line metadata resolves a rendered row to (see
+// types.DiffLineInfo.PatchSelectLine), and lets the focused main view toggle patch
+// membership and drive the inclusion gutter without dealing in patch-line indices —
+// which differ between the raw diff and however a pager renders it.
+type LineIdentity struct {
+	LineNumber int
+	IsDeletion bool
+}
+
+// changeLineIndexByIdentity scans a parsed diff and returns, for each change line, its
+// index in the patch keyed by the line's identity. An addition is keyed by its new-file
+// line number, a deletion by its old-file line number, so each change line has a
+// distinct identity (two consecutive deletions share a new-file number but differ in
+// the old-file one).
+func changeLineIndexByIdentity(parsed *Patch) map[LineIdentity]int {
+	byIdentity := map[LineIdentity]int{}
+	for idx, line := range parsed.Lines() {
+		switch {
+		case line.IsAddition():
+			byIdentity[LineIdentity{parsed.LineNumberOfLine(idx), false}] = idx
+		case line.IsDeletion():
+			byIdentity[LineIdentity{parsed.OldLineNumberOfLine(idx), true}] = idx
+		}
+	}
+	return byIdentity
+}
+
+// PatchLineIndicesForLines maps the given change-line identities to their indices in
+// filename's parsed diff — the index form that AddFileLineRange / RemoveFileLineRange
+// and GetFileIncLineIndices work in. Identities that don't correspond to a change line
+// (e.g. a context line) are skipped. It is how the focused main view, which knows a
+// selection only as metadata identities, drives patch building.
+func (p *PatchBuilder) PatchLineIndicesForLines(filename string, lines []LineIdentity) ([]int, error) {
+	info, err := p.getFileInfo(filename)
+	if err != nil {
+		return nil, err
+	}
+	byIdentity := changeLineIndexByIdentity(Parse(info.diff))
+	indices := make([]int, 0, len(lines))
+	for _, line := range lines {
+		if idx, ok := byIdentity[line]; ok {
+			indices = append(indices, idx)
+		}
+	}
+	return indices, nil
+}
+
+// IncludedLineIdentities returns the identities of the change lines currently included
+// in the patch for filename — the identity space the inclusion gutter matches rendered
+// rows against. Empty when the file isn't part of the patch.
+func (p *PatchBuilder) IncludedLineIdentities(filename string) []LineIdentity {
+	info, ok := p.fileInfoMap[filename]
+	if !ok || info.mode == UNSELECTED {
+		return nil
+	}
+	includedIdx := make(map[int]bool, len(info.includedLineIndices))
+	for _, idx := range info.includedLineIndices {
+		includedIdx[idx] = true
+	}
+	var identities []LineIdentity
+	for identity, idx := range changeLineIndexByIdentity(Parse(info.diff)) {
+		if includedIdx[idx] {
+			identities = append(identities, identity)
+		}
+	}
+	return identities
+}
+
 // clears the patch
 func (p *PatchBuilder) Reset() {
 	p.To = ""
