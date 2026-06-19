@@ -251,6 +251,12 @@ func (self *MainViewController) togglePanel() error {
 func showInitialDiffSelection(c *ControllerCommon, mainContext *context.MainContext) {
 	resetDiffSelectMode(mainContext)
 	view := mainContext.GetView()
+	// Nothing to act on (the main view shows "No changed files" or another non-diff
+	// placeholder): show no selection at all rather than highlighting a stray line.
+	if !c.Helpers().Staging.ViewHasChangeLines(view) {
+		view.Highlight = false
+		return
+	}
 	target, ok := c.Helpers().Staging.FirstChangeLineInView(view)
 	if !ok {
 		showSelectionAtLine(view, view.OriginY(), true)
@@ -262,6 +268,25 @@ func showInitialDiffSelection(c *ControllerCommon, mainContext *context.MainCont
 		return
 	}
 	showSelectionAtLine(view, target, true)
+}
+
+// updateFocusedMainViewSelectionVisibility shows or hides the focused-main-view selection
+// to match what a side panel is rendering into the main view, called from the panel's
+// render-to-main so the selection tracks content changes (a refresh after the last change
+// is discarded, or changes vanishing / appearing outside lazygit). A selection is shown
+// only on the main pane that currently holds focus, and only when it's rendering a diff
+// (something to act on) — never over "No changed files" or a merge-conflict message.
+// normalHasDiff/secondaryHasDiff say whether each pane is being given a diff; the caller
+// knows this from which content it's about to render (the rendered content can't be read
+// here, since the render it triggers is asynchronous). Initial keyboard/click focus is
+// handled separately by showInitialDiffSelection, since focusing reuses the already-
+// rendered content rather than re-rendering.
+func updateFocusedMainViewSelectionVisibility(c *ControllerCommon, normalHasDiff bool, secondaryHasDiff bool) {
+	focusedKey := c.Context().CurrentStatic().GetKey()
+	normal := c.Contexts().Normal
+	secondary := c.Contexts().NormalSecondary
+	normal.GetView().Highlight = normalHasDiff && focusedKey == normal.GetKey()
+	secondary.GetView().Highlight = secondaryHasDiff && focusedKey == secondary.GetKey()
 }
 
 // resetDiffSelectMode returns the focused main view to its default select mode — a

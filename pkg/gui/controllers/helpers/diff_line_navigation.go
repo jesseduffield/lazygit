@@ -81,6 +81,20 @@ func (self *StagingHelper) FirstChangeLineInView(view *gocui.View) (int, bool) {
 	return 0, false
 }
 
+// ViewHasChangeLines reports whether view's displayed diff contains any change line
+// (an addition or deletion), i.e. whether there's anything to select. It's false when
+// the main view shows a non-diff placeholder ("No changed files", a merge message) or a
+// diff that is somehow all context — the cases where the focused main view should show
+// no selection.
+func (self *StagingHelper) ViewHasChangeLines(view *gocui.View) bool {
+	for _, resolved := range self.resolveDiffLines(view.DiffLineContents()) {
+		if resolved.ok && resolved.info.IsChange() {
+			return true
+		}
+	}
+	return false
+}
+
 // ChangeBlockBounds returns the view-line range [start, end] of the change block
 // (lazygit's notion of a hunk; see AdjacentChangeBlock) to select when entering or
 // moving in hunk mode in view's displayed diff. The block is the one containing
