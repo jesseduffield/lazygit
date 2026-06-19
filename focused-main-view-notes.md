@@ -2155,11 +2155,11 @@ a sequential de-risk spike. "Replaces the staging panel" milestone at step 5.
   in identity terms; add/remove hunks from the commits/commitFiles main view, with
   step 2's overlay showing membership.
 - **Step 7 — `enter` on a file focuses the main view, for *both* `commitFiles` and
-  `files`.** The browsers stay; `enter` focuses the main view at that file's diff
-  (with selection at the first hunk) instead of opening a separate explorer. Plus
-  patch-building from the whole-commit / per-file diff.
+  `files`.** *(SUPERSEDED — DROPPED; see §21.24.)* The browsers stay; `enter` focuses
+  the main view at that file's diff instead of opening a separate explorer.
 - **Step 8 — Tear out the separate explorer views + escape/snapshot machinery.**
-  Cleanup, last, once nothing depends on them.
+  *(SUPERSEDED — DROPPED; see §21.24. The explorer views are kept on purpose as a
+  testing reference.)*
 
 **Decision gate after step 2:** if the overlay is clean and step 1 confirms the core
 chain, the rest is bounded execution.
@@ -2935,6 +2935,73 @@ and the **LocalCommits** path specifically (canRebase=true → the full apply-op
 "Apply patch"; the e2e covers SubCommits, canRebase=false). Carry-forward limitations unchanged from
 §21.22: no auto-advance after a toggle; streaming; the §21.22(4) pager-switch checkmark shift.
 
-**NEXT: step 7** — `enter` on a file focuses the main view (for *both* `files` and `commitFiles`)
-instead of opening a separate explorer, plus patch building from the per-file diff reached that way.
-Then step 8 (tear out the explorer views + escape/snapshot machinery).
+### 21.24 Session 18 (cont.): revised forward plan — drop steps 7/8, add explorer commands + dispatch refactor + pager fallback
+
+**Steps 7 and 8 are dropped** (user). Rationale: (1) little to learn — `enter`-focuses-the-main-view and
+tearing out the explorer/escape/snapshot machinery are integration mechanics, not prototype unknowns;
+(2) keeping the old staging / patch-builder explorer views is actively useful as a **behavioral
+reference** while testing the merged view — when something feels off, an A/B against the old panels tells
+us fast whether it's a regression or always-been-thus. So `enter` keeps its current meaning, the explorer
+views stay, and the §12.2 escape/snapshot machinery stays untouched (no teardown). Cost: we don't prove
+the "main view fully replaces the explorers" endgame — but that's a production integration detail, not a
+prototype unknown.
+
+Instead the prototype gains the staging/patch-building commands the merged view still lacks, plus two
+productionization de-risks. New sequence (linear):
+
+**(A) Dispatch refactor — collapse the per-command delegation channels into one.** PREREQ for B/C; do
+first. Today each focused-main-view command the side panel handles needs its own channel: a
+`types.Context` interface method + a `BaseContext` field + an `attach.go` registration + a
+`baseController` default (`onClickFocusedMainViewFn`, `onStageFocusedMainViewFn`,
+`onTogglePatchFocusedMainViewFn` so far) — ~4 touch points per command, doesn't scale to `d`/`ctrl+o`/…
+(the §21.9 debt). Replace with ONE channel: a side-panel context exposes `GetFocusedMainViewActions()`
+returning a single interface (nil for non-actionable panels) with a method per command (`OnClick`,
+`PrimaryAction` = stage|toggle, `DiscardSelection`, `CopySelection`, …). `MainViewController` becomes a
+thin dispatcher (owns the keybindings + GUI mechanics — select mode, reveal — fetches the handler from
+the panel beneath, calls the method). Adding a command = one interface method + implement in the 2-3
+controllers + one keybinding; no plumbing.
+- **Keep the underlying BaseContext function-attachment mechanism** (`AddOnFocusFn` & friends). The user
+  half-wanted to replace that whole mechanism with something better, but explicitly **scratched it**:
+  the prototype is already huge, no concrete better mechanism in mind, out of scope. We collapse to one
+  channel *using* the existing mechanism, not replace the mechanism.
+- **Sub-decisions for implementation:** (i) unify signatures to `error` — push step-5's `focusViewName`
+  focus-follow into the handler (calling the shared reveal/focus helpers) so the dispatcher stays dumb;
+  it's a real change to that path, not free. (ii) Partial support is mostly polymorphism, not optionality
+  (`d`/`ctrl+o` work on every diff panel, just different backends; `PrimaryAction` = stage for files,
+  toggle for commits). The one real partial case is reflog — see below.
+
+**(B) `d` — discard a hunk.** Different backend per panel: working-tree discard (files) vs the
+patch-building variant (commits/commitFiles). Pin the exact semantics in each at implementation time; the
+(A) handler design accommodates it by construction (each panel implements `DiscardSelection`).
+
+**(C) `ctrl+o` — copy parts of a diff to the clipboard.** Supported by every diff panel.
+
+**(D) No-OSC-pager fallback (LAST — the biggest production unknown).** The focused main view *is* the
+staging view, so it must be stageable; a pager that emits no metadata forces a fallback. Decided shape:
+- **Fall back to the raw (no-pager) rendering at focus time** for an unsupported pager — keep the pretty
+  pager output for *browsing* (the unfocused preview), switch to raw only when you focus to act. (Not
+  always-raw: don't degrade browsing for everyone to spare unsupported-pager users one re-render.)
+- **Detection = treat metadata as a pager capability, not a per-render observation.** Lean (user deferred
+  the pick to me): a one-time **probe** — run the pager on a small synthetic diff, check for OSC 1717,
+  cache the verdict, re-probe on config change — so each focus renders raw-or-pager *directly*, never
+  double-rendering. (Capability is binary+config-dependent, not content-dependent, so one probe is valid.
+  A lazy "probe on first focus of an unknown pager, cache" variant is an acceptable simpler alternative.
+  We *could* also detect at render time without a probe — lazygit holds the raw diff, so "raw has change
+  lines but rendered output emitted no metadata ⇒ unsupported" is decidable — but that double-renders on
+  first focus, hence the probe.)
+- **Click-to-focus on an unsupported pager: best-effort by view line number** (user's call). We can't
+  resolve *which* line was clicked (that resolution IS the metadata we don't have), so on the fallback
+  re-render land the selection on the **same view-line index** that was clicked — if the pager
+  restructured the diff only slightly, the same Y is the best chance of landing near where you clicked —
+  rather than jumping to the first hunk. Keyboard-focus is unaffected beyond the re-render. Building this
+  is the point: it answers both technical feasibility and how the focus re-render *feels*.
+
+**Reflog patch-building (note, not now).** Not supporting custom-patch-building from the reflog panel's
+diff was an **oversight, not a deliberate limitation** (user). The reflog already shows a specific
+commit's diff; building a patch from that commit should work and shouldn't be hard (reflog uses
+`SwitchToSubCommitsController` today, so it'd want the 6c-style toggle handler wired up for it too). The
+technical challenges aren't interesting, so it's deferred — but it's a real gap to close in production,
+not a "can't." (Once the (A) dispatch refactor lands, this likely becomes "reflog returns the same
+`FocusedMainViewActions` the commit panels do.")
+
+**NEXT: (A) the dispatch refactor** (new session), then (B) `d`, (C) `ctrl+o`, (D) the pager fallback.
