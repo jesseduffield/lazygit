@@ -539,62 +539,62 @@ func (self *CommitFilesController) expandAll() error {
 	return nil
 }
 
-func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
-	return func(mainViewName string, clickedLineIdx int) error {
-		// Capture before any mutation below that might re-render the main view.
-		snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context())
-
-		info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, clickedLineIdx)
-		line := -1
-		isDeletion := false
-		if ok {
-			line, isDeletion = info.PatchSelectLine()
-		}
-
-		node := self.getSelectedItem()
-		if node == nil {
-			return nil
-		}
-
-		if !node.IsFile() && ok {
-			relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), info.Path)
-			if err != nil {
-				return err
-			}
-			relativePath = "./" + relativePath
-			self.context().CommitFileTreeViewModel.ExpandToPath(relativePath)
-			self.c.PostRefreshUpdate(self.context())
-
-			idx, ok := self.context().CommitFileTreeViewModel.GetIndexForPath(relativePath)
-			if ok {
-				self.context().SetSelectedLineIdx(idx)
-				self.context().GetViewTrait().FocusPoint(
-					self.context().ModelIndexToViewIndex(idx), false)
-				node = self.context().GetSelected()
-			}
-		}
-
-		// Entered from the focused main view, so escaping returns there.
-		return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, ClickedViewRealLineIsDeletion: isDeletion, SelectLineInDefaultMode: true})
-	}
+func (self *CommitFilesController) GetFocusedMainViewActions() types.FocusedMainViewActions {
+	return self
 }
 
-// GetOnTogglePatchFocusedMainView toggles the selected diff line(s) into or out of the
-// custom patch when space is pressed in the focused main view of a commit's files. The
-// per-file diff's patch target comes from the commit files context. It refreshes
-// normally afterwards so the file's patch-status indicator in the browser updates along
-// with the secondary patch view (the commits / sub-commits / stash panels, which build
-// from the whole-commit diff, have no such indicator and refresh more cheaply).
-func (self *CommitFilesController) GetOnTogglePatchFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
-	return func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
-		from, to, reverse := self.c.Helpers().CommitFiles.CurrentFromToReverseForPatchBuilding()
-		canRebase := self.context().GetCanRebase()
-		return togglePatchFromFocusedMainView(self.c, mainViewName, firstLineIdx, lastLineIdx,
-			from, to, reverse, canRebase,
-			func() {
-				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMIT_FILES}})
-			})
+func (self *CommitFilesController) OnClick(mainViewName string, clickedLineIdx int) error {
+	// Capture before any mutation below that might re-render the main view.
+	snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context())
+
+	info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, clickedLineIdx)
+	line := -1
+	isDeletion := false
+	if ok {
+		line, isDeletion = info.PatchSelectLine()
 	}
+
+	node := self.getSelectedItem()
+	if node == nil {
+		return nil
+	}
+
+	if !node.IsFile() && ok {
+		relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), info.Path)
+		if err != nil {
+			return err
+		}
+		relativePath = "./" + relativePath
+		self.context().CommitFileTreeViewModel.ExpandToPath(relativePath)
+		self.c.PostRefreshUpdate(self.context())
+
+		idx, ok := self.context().CommitFileTreeViewModel.GetIndexForPath(relativePath)
+		if ok {
+			self.context().SetSelectedLineIdx(idx)
+			self.context().GetViewTrait().FocusPoint(
+				self.context().ModelIndexToViewIndex(idx), false)
+			node = self.context().GetSelected()
+		}
+	}
+
+	// Entered from the focused main view, so escaping returns there.
+	return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, ClickedViewRealLineIsDeletion: isDeletion, SelectLineInDefaultMode: true})
+}
+
+// PrimaryAction toggles the selected diff line(s) into or out of the custom patch when
+// space is pressed in the focused main view of a commit's files. The per-file diff's
+// patch target comes from the commit files context. It refreshes normally afterwards so
+// the file's patch-status indicator in the browser updates along with the secondary patch
+// view (the commits / sub-commits / stash panels, which build from the whole-commit diff,
+// have no such indicator and refresh more cheaply).
+func (self *CommitFilesController) PrimaryAction(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+	from, to, reverse := self.c.Helpers().CommitFiles.CurrentFromToReverseForPatchBuilding()
+	canRebase := self.context().GetCanRebase()
+	return togglePatchFromFocusedMainView(self.c, mainViewName, firstLineIdx, lastLineIdx,
+		from, to, reverse, canRebase,
+		func() {
+			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMIT_FILES}})
+		})
 }
 
 // pathsForDiff returns the file paths to use for a diff command. When a text

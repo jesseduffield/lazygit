@@ -25,7 +25,9 @@ var (
 	_ types.DiffMainViewContext = (*CommitFilesContext)(nil)
 )
 
-func (self *CommitFilesContext) IsDiffMainViewContext() {}
+func (self *CommitFilesContext) GetDiffMainViewType() types.DiffMainViewType {
+	return types.DiffMainViewTypePatchBuilding
+}
 
 func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 	viewModel := filetree.NewCommitFileTreeViewModel(

@@ -19,15 +19,7 @@ func (self *baseController) GetOnDoubleClick() func() error {
 	return nil
 }
 
-func (self *baseController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
-	return nil
-}
-
-func (self *baseController) GetOnStageFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
-	return nil
-}
-
-func (self *baseController) GetOnTogglePatchFocusedMainView() func(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+func (self *baseController) GetFocusedMainViewActions() types.FocusedMainViewActions {
 	return nil
 }
 

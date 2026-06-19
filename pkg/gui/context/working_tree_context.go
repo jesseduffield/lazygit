@@ -20,7 +20,9 @@ var (
 	_ types.DiffMainViewContext = (*WorkingTreeContext)(nil)
 )
 
-func (self *WorkingTreeContext) IsDiffMainViewContext() {}
+func (self *WorkingTreeContext) GetDiffMainViewType() types.DiffMainViewType {
+	return types.DiffMainViewTypeStaging
+}
 
 func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	viewModel := filetree.NewFileTreeViewModel(

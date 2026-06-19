@@ -732,7 +732,8 @@ func (self *StagingHelper) RefreshInclusionGutter() {
 	}
 
 	sidePanel := self.c.Context().NextInStack(mainContext)
-	if sidePanel == nil || sidePanel.GetOnTogglePatchFocusedMainView() == nil {
+	diffMainView, ok := sidePanel.(types.DiffMainViewContext)
+	if !ok || diffMainView.GetDiffMainViewType() != types.DiffMainViewTypePatchBuilding {
 		v.SetInclusionGutter(false, nil)
 		return
 	}
