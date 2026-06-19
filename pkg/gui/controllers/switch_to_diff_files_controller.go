@@ -190,6 +190,32 @@ func (self *SwitchToDiffFilesController) PrimaryAction(mainViewName string, firs
 		})
 }
 
+// DiscardSelection removes the selected line(s) of the whole-commit diff from the commit,
+// via a rebase. Same target derivation as the patch toggle; only enabled for local
+// commits (see DiscardSelectionDisabledReason), so stash and other-branch sub-commits
+// don't reach the rebase.
+func (self *SwitchToDiffFilesController) DiscardSelection(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+	ref := self.context.GetSelectedRef()
+	if ref == nil {
+		return nil
+	}
+	refsRange := self.context.GetSelectedRefRangeForDiffFiles()
+
+	from, to := context.FromAndToForDiff(ref, refsRange)
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
+	canRebase := self.canRebase(ref, refsRange)
+
+	return discardSelectionFromCommit(self.c, mainViewName, firstLineIdx, lastLineIdx, from, to, reverse, canRebase)
+}
+
+func (self *SwitchToDiffFilesController) DiscardSelectionDisabledReason() *types.DisabledReason {
+	canRebase := false
+	if ref := self.context.GetSelectedRef(); ref != nil {
+		canRebase = self.canRebase(ref, self.context.GetSelectedRefRangeForDiffFiles())
+	}
+	return discardFromCommitDisabledReason(self.c, canRebase)
+}
+
 func (self *SwitchToDiffFilesController) canEnter() *types.DisabledReason {
 	refRange := self.context.GetSelectedRefRangeForDiffFiles()
 	if refRange != nil {

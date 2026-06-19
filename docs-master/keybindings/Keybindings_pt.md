@@ -237,6 +237,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
+| `` d `` | Descartar | Quando a mudança não desejada for selecionada, descarte a mudança usando `git reset`. Quando a mudança em fase é selecionada, despare a mudança. |
 | `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
 | `` v `` | Toggle range select |  |
 | `` <left>, h `` | Ir para o local anterior |  |
@@ -346,6 +347,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
 | `` <esc> `` | Exit back to side panel |  |
 | `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
+| `` d `` | Descartar | Quando a mudança não desejada for selecionada, descarte a mudança usando `git reset`. Quando a mudança em fase é selecionada, despare a mudança. |
 | `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
 | `` v `` | Toggle range select |  |
 | `` <left>, h `` | Ir para o local anterior |  |
