@@ -2912,6 +2912,23 @@ untested by e2e in 6b too; now covered. unit + lint + the patch_building/staging
 cherry-pick/diff suites green. (Files line-count after apply uses `ContainsLines`, not exact `Lines` — a
 transient `.patch` file in the repo dir can add a row.)
 
+**Signed off (user): "works very well."**
+
+**Crash fixed (same session, fixup on `f9669f6f1`).** 6c broke a latent invariant: before it, an
+**active patch implied the commit files context was set up** (the only way to start a patch was to
+enter the commit files panel, which `ReInit`s its ref). 6c starts the patch builder directly from the
+commits panel *without* touching `CommitFilesContext` (the deliberate decoupling), so its ref stays
+**nil**. Then any `Refresh({COMMIT_FILES})` while such a patch is active — e.g. ctrl+p → **Reset patch**
+(`PatchBuildingHelper.Reset`) — hit `refreshCommitFilesContext` → `GetFromAndToForDiff` →
+`FromAndToForDiff(nil, nil)` → `ref.ParentRefName()` on a nil ref → SIGSEGV. Fix: guard
+`refreshCommitFilesContext` to no-op when the context has neither a ref nor a refRange (nothing to
+load). Correct independent of 6c, and covers the whole class (the rebase-y menu actions operate on the
+commits model + patch builder, not `CommitFilesContext`, and their post-op refreshes route through the
+same guard). `FromAndToForDiff` keeps assuming a valid ref — a crash there is more debuggable than a
+silent empty range, and every other caller has a ref by construction. Regression test
+`reset_patch_built_from_main_view` (build from sub-commits main view → never enter commit files → ctrl+p
+Reset → no crash, patch gone); it reproduced the exact panic before the guard.
+
 **Needs interactive sign-off** (draw-time gutter, no real delta in the harness): the gutter / secondary /
 on-demand appear-disappear on the **whole-commit multi-file** diff under delta + no-pager + difftastic;
 and the **LocalCommits** path specifically (canRebase=true → the full apply-options menu, not just
