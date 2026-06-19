@@ -1,5 +1,16 @@
 # Focused main view — session notes
 
+> **⚠️ THIS BRANCH (`use-delta-hyperlinks-for-clicking-in-diff`) IS A THROWAWAY
+> PROTOTYPE.** It will never land. When we productionize, we start over from
+> scratch on a new branch and re-implement cleanly with tests. So **do not sweat
+> the commit history here**: no need for fixups against the right commit, no
+> squashing, no avoiding "added then reworked" churn, no agonizing over superseded
+> commits. Just commit working, green increments as you go. (The general
+> [[clean-history-no-back-and-forth]] preference is *suspended* for this branch;
+> it applies again when productionizing.) Commits should still compile and pass
+> tests — that's it. The value of this branch is the *knowledge* captured in this
+> doc, not the code or its history.
+
 A working document capturing everything we discussed, built, and learned in this
 session. It is meant as a **starting point for future sessions**, which might:
 
@@ -2641,3 +2652,19 @@ behavior there would need a "the acted-on side emptied" signal threaded from the
 **History note:** `cd27c07e2` supersedes the *mechanisms* of `cb784bde3` (§21.16) and `9fb3c11cc`
 (§21.15) — both their matchers are deleted here, though their tests survive. The three reveal
 commits would collapse cleanly into one if the user wants to rewrite (their call).
+
+### 21.18 Session 16 (cont.): step 5 signed off — MILESTONE reached; step 6 next (new session)
+
+**Step 5 fully signed off (user): "works perfectly."** The working-tree staging panel is now
+functionally replaced by the focused main view — single-line / range / hunk / multi-file / SxS
+staging and unstaging, the staged/unstaged split with focus following the acted-on side, and the
+post-stage reveal (change-line-ordinal model, §21.17) all working under delta, including the
+collapse case (acted-on side empties → jump to the first change of the other pane; confirmed fine,
+matches the old staging panel — no change wanted).
+
+**NEXT: step 6 — patch-building from the main view (a new session).** This is the higher-risk tier
+(§21.2): commits / commit-files panels build a *custom patch* rather than staging, which needs the
+metadata-driven **inclusion overlay** (§21.5) — the reserved left column showing which lines are in
+the patch — the one genuinely new capability and the highest-uncertainty piece. Start from §21.5 +
+the §21.7 plan. After step 6: step 7 (enter focuses the main view for files AND commitFiles), step 8
+(tear out the explorer views + escape machinery).
