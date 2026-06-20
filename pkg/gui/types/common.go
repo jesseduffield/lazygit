@@ -284,6 +284,10 @@ type MenuItem struct {
 	// and refuse to invoke the command
 	DisabledReason *DisabledReason
 
+	// If non-nil, evaluated when rendering and invoking the menu item. Takes
+	// precedence over DisabledReason when set.
+	GetDisabledReason func() *DisabledReason
+
 	// Can be used to group menu items into sections with headers. MenuItems
 	// with the same Section should be contiguous, and will automatically get a
 	// section header. If nil, the item is not part of a section.
@@ -297,6 +301,14 @@ type MenuItem struct {
 // in list contexts.
 func (self *MenuItem) ID() string {
 	return self.Label
+}
+
+func (self *MenuItem) DisabledReasonAtUse() *DisabledReason {
+	if self.GetDisabledReason != nil {
+		return self.GetDisabledReason()
+	}
+
+	return self.DisabledReason
 }
 
 type Model struct {

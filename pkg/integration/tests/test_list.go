@@ -333,6 +333,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.SwapWithConflict,
 	interactive_rebase.ViewFilesOfTodoEntries,
 	misc.ConfirmOnQuit,
+	misc.CopyAllGitOutputToClipboard,
 	misc.CopyConfirmationMessageToClipboard,
 	misc.CopyGitOutputToClipboard,
 	misc.CopyToClipboard,

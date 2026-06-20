@@ -20,6 +20,13 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 		return &types.DisabledReason{Text: gui.c.Tr.NoGitOutputToCopy}
 	}
 
+	noCommandLogDisabledReason := func() *types.DisabledReason {
+		if gui.hasCommandLogEntries() {
+			return nil
+		}
+		return &types.DisabledReason{Text: gui.c.Tr.NoCommandLogToOpenInEditor}
+	}
+
 	return gui.c.Menu(types.CreateMenuOptions{
 		Title: gui.c.Tr.CommandLog,
 		Items: []*types.MenuItem{
@@ -44,21 +51,22 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 				OnPress: gui.handleFocusCommandLog,
 			},
 			{
-				Label:          gui.c.Tr.CopyGitOutputToClipboard,
-				Keys:           []gocui.Key{gocui.NewKeyRune('c')},
-				OnPress:        gui.handleCopyLastGitOutputToClipboard,
-				DisabledReason: noGitOutputDisabledReason(),
+				Label:             gui.c.Tr.CopyGitOutputToClipboard,
+				Keys:              []gocui.Key{gocui.NewKeyRune('c')},
+				OnPress:           gui.handleCopyLastGitOutputToClipboard,
+				GetDisabledReason: noGitOutputDisabledReason,
 			},
 			{
-				Label:          gui.c.Tr.CopyAllGitOutputToClipboard,
-				Keys:           []gocui.Key{gocui.NewKeyRune('a')},
-				OnPress:        gui.handleCopyAllGitOutputToClipboard,
-				DisabledReason: noGitOutputDisabledReason(),
+				Label:             gui.c.Tr.CopyAllGitOutputToClipboard,
+				Keys:              []gocui.Key{gocui.NewKeyRune('a')},
+				OnPress:           gui.handleCopyAllGitOutputToClipboard,
+				GetDisabledReason: noGitOutputDisabledReason,
 			},
 			{
-				Label:   gui.c.Tr.OpenCommandLogInEditor,
-				Keys:    []gocui.Key{gocui.NewKeyRune('o')},
-				OnPress: gui.handleOpenCommandLogInEditor,
+				Label:             gui.c.Tr.OpenCommandLogInEditor,
+				Keys:              []gocui.Key{gocui.NewKeyRune('o')},
+				OnPress:           gui.handleOpenCommandLogInEditor,
+				GetDisabledReason: noCommandLogDisabledReason,
 			},
 		},
 	})
@@ -107,7 +115,12 @@ func (gui *Gui) handleOpenCommandLogInEditor() error {
 		return err
 	}
 
-	return gui.Helpers().Files.EditFiles([]string{filepath})
+	if err := gui.Helpers().Files.EditFiles([]string{filepath}); err != nil {
+		return err
+	}
+
+	gui.c.Toast(gui.c.Tr.CommandLogOpenedInEditor)
+	return nil
 }
 
 func (gui *Gui) handleFocusCommandLog() error {

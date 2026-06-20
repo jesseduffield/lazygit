@@ -5,13 +5,12 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var OpenCommandLogInEditor = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Open the full command log in the user's editor",
+var CopyAllGitOutputToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Copy all streamed git outputs from the command log to the clipboard",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().OS.Edit = "cp {{filename}} editor-output.txt"
-		config.GetUserConfig().Gui.ShowRandomTip = false
+		config.GetUserConfig().OS.CopyToClipboardCmd = "printf '%s' {{text}} > clipboard"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")
@@ -33,15 +32,14 @@ var OpenCommandLogInEditor = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Command log")).
-			Select(Contains("Open command log in editor")).
+			Select(Contains("Copy all git outputs to clipboard")).
 			Confirm()
 
-		t.ExpectToast(Equals("Command log opened in editor"))
+		t.ExpectToast(Equals("Git output copied to clipboard"))
 
-		t.FileSystem().FileContent("editor-output.txt",
-			Contains("Push").
+		t.FileSystem().FileContent("clipboard",
+			Contains("master -> master").
 				Contains("git push").
-				Contains("master -> master").
-				DoesNotContain("You can hide/focus"))
+				Contains("Push"))
 	},
 })

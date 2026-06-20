@@ -37,7 +37,11 @@ func (gui *Gui) gitOutputBlocksFromView() []string {
 	if gui.Views.Extras == nil {
 		return nil
 	}
-	return gitOutputBlocksFromCommandLogLines(gui.Views.Extras.BufferLines(), gui.c.Tr.GitOutput)
+	return gitOutputBlocksFromCommandLogLines(
+		gui.Views.Extras.BufferLines(),
+		gui.c.Tr.GitOutput,
+		gui.isCopyToClipboardLogLine,
+	)
 }
 
 func (gui *Gui) lastGitOutput() string {
@@ -56,14 +60,69 @@ func (gui *Gui) hasGitOutput() bool {
 	return gui.lastGitOutput() != ""
 }
 
+func (gui *Gui) hasCommandLogEntries() bool {
+	return gui.commandLogContent() != ""
+}
+
 func (gui *Gui) commandLogContent() string {
 	if gui.Views.Extras == nil {
 		return ""
 	}
-	return strings.TrimRight(gui.Views.Extras.Buffer(), "\n")
+
+	introLine := gui.commandLogIntroLine()
+	var filtered []string
+	for _, line := range gui.Views.Extras.BufferLines() {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			if len(filtered) > 0 {
+				filtered = append(filtered, "")
+			}
+			continue
+		}
+		if trimmed == introLine {
+			continue
+		}
+		if strings.HasPrefix(trimmed, gui.c.Tr.RandomTip+":") {
+			continue
+		}
+		if gui.isCopyToClipboardLogLine(line) {
+			continue
+		}
+		if gui.isCreateFileLogLine(line) {
+			continue
+		}
+		filtered = append(filtered, line)
+	}
+
+	return strings.TrimRight(strings.Join(filtered, "\n"), "\n")
 }
 
-func gitOutputBlocksFromCommandLogLines(lines []string, gitOutputHeader string) []string {
+func (gui *Gui) commandLogIntroLine() string {
+	return strings.TrimSpace(fmt.Sprintf(
+		gui.c.Tr.CommandLogHeader,
+		gui.c.UserConfig().Keybinding.Universal.ExtrasMenu,
+	))
+}
+
+func (gui *Gui) isCopyToClipboardLogLine(line string) bool {
+	return logLineMatchesTemplate(line, gui.c.Tr.Log.CopyToClipboard, "{{.str}}")
+}
+
+func (gui *Gui) isCreateFileLogLine(line string) bool {
+	return logLineMatchesTemplate(line, gui.c.Tr.Log.CreateFileWithContent, "{{.path}}")
+}
+
+func logLineMatchesTemplate(line string, template string, placeholder string) bool {
+	parts := strings.Split(template, placeholder)
+	if len(parts) != 2 {
+		return false
+	}
+
+	trimmed := strings.TrimSpace(line)
+	return strings.HasPrefix(trimmed, parts[0]) && strings.HasSuffix(trimmed, parts[1])
+}
+
+func gitOutputBlocksFromCommandLogLines(lines []string, gitOutputHeader string, isCopyToClipboardLogLine func(string) bool) []string {
 	var blocks []string
 
 	for i, line := range lines {
@@ -71,12 +130,12 @@ func gitOutputBlocksFromCommandLogLines(lines []string, gitOutputHeader string) 
 			continue
 		}
 
-		block := commandLogEntryBeforeGitOutput(lines, i, gitOutputHeader)
+		block := commandLogEntryBeforeGitOutput(lines, i, gitOutputHeader, isCopyToClipboardLogLine)
 		if len(block) > 0 {
 			block = append(block, "")
 		}
 		block = append(block, gitOutputHeader)
-		block = append(block, gitOutputLinesAfterHeader(lines, i+1, gitOutputHeader)...)
+		block = append(block, gitOutputLinesAfterHeader(lines, i+1, gitOutputHeader, isCopyToClipboardLogLine)...)
 
 		if trimmed := strings.TrimRight(strings.Join(block, "\n"), "\n"); trimmed != "" {
 			blocks = append(blocks, trimmed)
@@ -86,7 +145,7 @@ func gitOutputBlocksFromCommandLogLines(lines []string, gitOutputHeader string) 
 	return blocks
 }
 
-func commandLogEntryBeforeGitOutput(lines []string, headerIdx int, gitOutputHeader string) []string {
+func commandLogEntryBeforeGitOutput(lines []string, headerIdx int, gitOutputHeader string, isCopyToClipboardLogLine func(string) bool) []string {
 	i := headerIdx - 1
 	for i >= 0 && lines[i] == "" {
 		i--
@@ -115,7 +174,7 @@ func commandLogEntryBeforeGitOutput(lines []string, headerIdx int, gitOutputHead
 	return entry
 }
 
-func gitOutputLinesAfterHeader(lines []string, startIdx int, gitOutputHeader string) []string {
+func gitOutputLinesAfterHeader(lines []string, startIdx int, gitOutputHeader string, isCopyToClipboardLogLine func(string) bool) []string {
 	output := make([]string, 0, len(lines)-startIdx)
 
 	for i := startIdx; i < len(lines); i++ {
@@ -126,7 +185,7 @@ func gitOutputLinesAfterHeader(lines []string, startIdx int, gitOutputHeader str
 		if isCopyToClipboardLogLine(line) {
 			continue
 		}
-		if isStartOfNewCommandLogEntry(lines, i) {
+		if isStartOfNewCommandLogEntry(lines, i, isCopyToClipboardLogLine) {
 			break
 		}
 		output = append(output, line)
@@ -135,12 +194,7 @@ func gitOutputLinesAfterHeader(lines []string, startIdx int, gitOutputHeader str
 	return output
 }
 
-func isCopyToClipboardLogLine(line string) bool {
-	trimmed := strings.TrimSpace(line)
-	return strings.HasPrefix(trimmed, "Copying '") && strings.HasSuffix(trimmed, "' to clipboard")
-}
-
-func isStartOfNewCommandLogEntry(lines []string, i int) bool {
+func isStartOfNewCommandLogEntry(lines []string, i int, isCopyToClipboardLogLine func(string) bool) bool {
 	line := lines[i]
 	if line == "" || strings.HasPrefix(line, "  ") {
 		return false
@@ -153,13 +207,13 @@ func isStartOfNewCommandLogEntry(lines []string, i int) bool {
 		if isCopyToClipboardLogLine(lines[j]) {
 			continue
 		}
-		return isLazygitCommandLogLine(lines[j])
+		return isLazygitCommandLogLine(lines[j], isCopyToClipboardLogLine)
 	}
 
 	return false
 }
 
-func isLazygitCommandLogLine(line string) bool {
+func isLazygitCommandLogLine(line string, isCopyToClipboardLogLine func(string) bool) bool {
 	return isCopyToClipboardLogLine(line) || strings.HasPrefix(line, "  git ")
 }
 
