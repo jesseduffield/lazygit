@@ -472,6 +472,7 @@ func (gui *Gui) onUserConfigLoaded() error {
 
 	gui.setColorScheme()
 	gui.configureViewProperties()
+	gui.applyCurrentPagerSelectionStyle()
 
 	gui.g.SearchEscapeKeys = config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.Return)
 	gui.g.NextSearchMatchKeys = config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.NextMatch)

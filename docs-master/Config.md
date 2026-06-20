@@ -366,6 +366,12 @@ git:
   #   # this to be set to 'always' and some want it set to 'never'
   #   colorArg: "always"
   #
+  #   # If greater than zero, selected diff lines are highlighted only at the
+  #   # left and right edges of the view, with this many columns painted on
+  #   # each side. Useful for pagers whose own line background colors should
+  #   # remain visible.
+  #   selectionBgColorEdgeWidth: 0
+  #
   #   # e.g.
   #   # diff-so-fancy
   #   # delta --dark --paging=never

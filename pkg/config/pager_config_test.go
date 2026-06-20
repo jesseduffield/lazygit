@@ -56,6 +56,20 @@ func TestCurrentPagerNameWithoutPagers(t *testing.T) {
 	assert.Equal(t, "", config.CurrentPagerName())
 }
 
+func TestGetSelectionBgColorEdgeWidth(t *testing.T) {
+	userConfig := &UserConfig{}
+	userConfig.Git.Pagers = []PagingConfig{{SelectionBgColorEdgeWidth: 12}}
+	config := NewPagerConfig(func() *UserConfig { return userConfig })
+
+	assert.Equal(t, 12, config.GetSelectionBgColorEdgeWidth())
+}
+
+func TestGetSelectionBgColorEdgeWidthWithoutPagers(t *testing.T) {
+	config := NewPagerConfig(func() *UserConfig { return &UserConfig{} })
+
+	assert.Equal(t, 0, config.GetSelectionBgColorEdgeWidth())
+}
+
 func TestCyclePagers(t *testing.T) {
 	userConfig := &UserConfig{}
 	userConfig.Git.Pagers = []PagingConfig{{Name: "a"}, {Name: "b"}, {Name: "c"}}
