@@ -88,8 +88,8 @@ func (self *PatchCommands) SaveTemporaryPatch(patch string) (string, error) {
 }
 
 // DeletePatchesFromCommit applies a patch in reverse for a commit
-func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, commitIndex int) error {
-	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIndex, false); err != nil {
+func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, commitIndex int, parentIdx int) error {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIndex, parentIdx, false); err != nil {
 		return err
 	}
 
@@ -113,12 +113,12 @@ func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, com
 	return self.rebase.ContinueRebase()
 }
 
-func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitIdx int, destinationCommitIdx int) error {
+func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitIdx int, destinationCommitIdx int, parentIdx int) error {
 	if sourceCommitIdx < destinationCommitIdx {
 		// Passing true for keepCommitsThatBecomeEmpty: if the moved-from
 		// commit becomes empty, we want to keep it, mainly for consistency with
 		// moving the patch to a *later* commit, which behaves the same.
-		if err := self.rebase.BeginInteractiveRebaseForCommit(commits, destinationCommitIdx, true); err != nil {
+		if err := self.rebase.BeginInteractiveRebaseForCommit(commits, destinationCommitIdx, parentIdx, true); err != nil {
 			return err
 		}
 
@@ -217,14 +217,14 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	return self.rebase.ContinueRebase()
 }
 
-func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, stash bool) error {
+func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, parentIdx int, stash bool) error {
 	if stash {
 		if err := self.stash.Push(fmt.Sprintf(self.Tr.AutoStashForMovingPatchToIndex, commits[commitIdx].ShortHash())); err != nil {
 			return err
 		}
 	}
 
-	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx, false); err != nil {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx, parentIdx, false); err != nil {
 		return err
 	}
 
@@ -275,10 +275,11 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 func (self *PatchCommands) PullPatchIntoNewCommit(
 	commits []*models.Commit,
 	commitIdx int,
+	parentIdx int,
 	commitSummary string,
 	commitDescription string,
 ) error {
-	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx, false); err != nil {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx, parentIdx, false); err != nil {
 		return err
 	}
 
@@ -318,10 +319,11 @@ func (self *PatchCommands) PullPatchIntoNewCommit(
 func (self *PatchCommands) PullPatchIntoNewCommitBefore(
 	commits []*models.Commit,
 	commitIdx int,
+	parentIdx int,
 	commitSummary string,
 	commitDescription string,
 ) error {
-	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx+1, true); err != nil {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx+1, parentIdx, true); err != nil {
 		return err
 	}
 
