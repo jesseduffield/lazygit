@@ -3419,7 +3419,7 @@ guard is what holds it to the clicked line) — a click should select where you 
 "click a context line, press `e`" path working. **No tests** (prototype tweaks the user is feeling out; may
 change). User's verdict on part 1 after manual testing: "feels much better, I like it a lot."
 
-Two follow-up bugs the testing surfaced, both fixed (no tests, prototype):
+Follow-up bugs the testing surfaced, all fixed (no tests, prototype):
 
 3. **First cross-pane click dropped hunk mode** (`04de0384e`). Clicking the *other* main pane (the staged
    side you weren't focused on) selected a single line the first time even in hunk mode, because that pane's
@@ -3441,3 +3441,16 @@ Two follow-up bugs the testing surfaced, both fixed (no tests, prototype):
    primary (`Normal`) pane is preserved on a pager switch (both callers pass `Contexts().Normal.GetView()`), so
    a selection on the *focused secondary* pane still isn't preserved — a pre-existing, broader gap (its scroll
    isn't preserved either), left as-is.
+5. **Click-and-drag range anchored wrong / dead on context lines** (`8c3d52cca`). Dragging after a click turns
+   a hunk selection into a range, but it was anchored at the change block's far end (where selecting a hunk
+   leaves the gocui range anchor), and on a context line — where the click leaves no range anchor — dragging
+   just moved the single selected line. Root cause: a click can show a whole hunk, so the gocui range anchor
+   holds the block's far end, not the clicked line, and the clicked line can't be read back. Fix: remember each
+   mouse-down's view line on `MainContext.dragAnchorViewLine` (set in both click entry points —
+   `placeOrHideInitialDiffSelection` for the focus click, `selectClickedDiffLine` for the already-focused/
+   cross-pane click), and a new `MouseLeft`+`ModMotion` binding (`onDragInFocusedView`) re-anchors the range
+   there (Mode→Range, hunk off) while gocui's own `SetCursor` tracks the dragged end. Works for the focus click
+   and the already-focused click, on change and context lines. Drag anchor is a plain view line (no re-wrap
+   between mouse-down and its drag, so no patch-identity needed). The old (buggy) behaviour came for free from
+   `selectDiffHunk` leaving a range anchor + gocui moving the cursor on drag; nothing handled the drag
+   explicitly before.
