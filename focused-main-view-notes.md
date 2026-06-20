@@ -3188,3 +3188,96 @@ Also append a trailing `\n` so the last copied line is terminated (the pager-ver
 **NEXT: (D) the no-OSC-pager raw fallback** — the last and biggest production unknown (see §21.24(D)):
 fall back to raw (no-pager) rendering at focus time for a pager that emits no metadata, with a one-time
 capability probe and best-effort click-to-focus by view-line index.
+
+### 21.29 Session 20 (2026-06-20): (D) the no-OSC-pager raw fallback — DONE
+
+The focused main view now falls back to the raw (no-pager) diff when focused under a pager whose output
+we can't resolve to patch-space, so it stays stageable. Committed (most recent last; the fixup folds into
+the first):
+
+```
+904a2543e Fall back to the raw diff when focusing a main view under an unresolvable pager   (files panel)
+9e3bf7e07 Thread ignoreExternalDiff through the remaining diff-cmd builders                  (prep)
+6a1cf98a1 Extend the raw-diff fallback to the commit/stash/patch-building panels
+8c969eaf9 fixup! Fall back to the raw diff ...                                               (threading fix)
+```
+
+**Detection: DECIDED AGAINST the §21.24 synthetic OSC probe — observe-at-focus instead** (discussed and
+agreed with the user). The §21.24 lean ("run the pager on a synthetic diff, grep for OSC 1717, cache")
+has a fatal flaw: the capability we need isn't "emits OSC", it's "we can resolve the rendered diff's
+change lines", which is metadata #2 **OR** buffer-parse #1. A pure-OSC probe would misclassify every
+structure-preserving non-OSC pager (`delta --color-only`, `git diff --color`, `diff-so-fancy --patch`) as
+unsupported and force needless raw re-renders, even though buffer-parse stages them fine. A correct probe
+would have to run the full resolver on faithfully-reproduced pager output (PTY for the GIT_PAGER route,
+ext-diff config, env), which is a lot of fragile machinery. So instead we **observe the diff lazygit
+already rendered for browsing**, at focus: zero new machinery, zero fidelity gap, and it can't
+misclassify.
+
+**The verdict is the load-bearing state (not just an optimization).** Per-pager `diffPagerSupport`
+(`unknown|yes|no`) on `StagingHelper`, keyed on a pager signature (index + extDiffCmd +
+useExtDiffGitConfig + pager template) so it resets when the pager cycles/reloads. It's required for
+**re-renders while focused** (after staging a hunk, the SYNC refresh re-renders the diff — it must render
+raw again, which `verdict==No` makes happen upfront). `DiffMainViewShouldRenderRaw() = focusedOnMainView()
+&& verdict==No`; every diff panel's `GetOnRenderToMain` reads it (so browse=pretty, focus=raw, and the
+re-render stays raw).
+
+**Bypassing the pager needs BOTH routes** (this was the subtle part): a pager reaches the diff either as
+an external diff command (in the cmd via `--ext-diff -c diff.external=…`) **or** as a stdin pager
+(`GIT_PAGER`, applied by `newPtyTask`, *not* in the cmd). So `plain` on the cmd builders doesn't suffice.
+The fix: a new `ignoreExternalDiff` arg on the diff-cmd builders forces `--no-ext-diff` while keeping
+git's colour (unlike `plain`, which also drops colour — we want a *coloured* raw diff for display); and
+`types.NewMainViewDiffTask(renderRaw, …)` renders via a `RunCommandTask` (→ `newCmdTask`, no GIT_PAGER)
+instead of `RunPtyTask` when raw. Lives in `types` because the commit-diff panels build through
+`DiffHelper`, which can't reach `StagingHelper` (helpers don't cross-reference), so the panel computes
+`renderRaw` and threads it in.
+
+**Focus flow** (`establishFocusedDiffSelection`, replacing the old `showInitialDiffSelection`; both
+keyboard `0` and click go through it, and `togglePanel`):
+- The rendered diff resolves change lines → place the selection on it; note the pager supported (but only
+  when we're *not* already showing the raw fallback — else tabbing to an already-raw secondary pane would
+  wrongly flip the verdict to Yes).
+- Resolves nothing + no pager → genuinely nothing to act on, no selection (the old behaviour).
+- Resolves nothing + a pager → `FallBackToRawDiff`: set verdict No (so `GetOnRenderToMain` renders raw),
+  install a restore, trigger `sidePanel.HandleRenderToMain()`. The restore fires at the raw render's EOF
+  swap: if it now resolves, place the selection; if the raw diff *also* has no change lines (a **binary
+  file** — the one genuinely-ambiguous case the user flagged), revert the verdict to Unknown (binary is no
+  evidence against the pager) and show no selection.
+- **No placeholder problem** (the "No changed files" worry): those are string tasks, never the pager, so
+  `GetOnRenderToMain` never even reaches the diff branch — the fallback only ever applies to the real
+  `git diff` task.
+- **Click-to-focus by view-line index** (§21.24's best-effort): the click's view-line index is replayed
+  on the raw re-render (clamped), since we can't resolve *which* line was clicked under the bad pager.
+
+**Threading fix (fixup `8c969eaf9`).** The restore's `Apply` runs on the task goroutine (`go utils.Safe`
+in tasks.go), so the verdict write + selection placement there would race the UI thread's
+`GetOnRenderToMain` read. Hop to `OnUIThread` for that work (per [[main-thread-over-mutexes-direction]]);
+`swapIn`/`ClearRestoreForNextTask` stay inline, matching the existing restores.
+
+**Tests** (the real win: a pager renders in the headless harness, so this is the first CI coverage of the
+pager path). `cat -n` is the ideal unsupported pager — it numbers every line (so buffer-parse fails) and
+emits no metadata, and it's a GIT_PAGER-route pager (so it exercises the `RunCommandTask` bypass, not the
+cmd-arg one). `staging/stage_from_main_view_with_unsupported_pager` (browse shows `cat -n` numbering →
+focus falls back → stage a hunk, split persists) and
+`patch_building/build_from_main_view_with_unsupported_pager` (same, toggling into a custom patch from the
+commits panel). `build` + `unit` + `lint` + **`e2e-all` all green** (one `diff/diff_commits` flake under
+parallel load on the first `e2e-all`; passed in isolation and on the rerun — the known parallel-load
+flake, not this change).
+
+**Carry-forward / known edges (interactive sign-off pending — no patched delta in CI, so the *feel* of the
+focus re-render and the metadata path are unverified):**
+- **Mid-stream focus mislatch** (accepted): focusing a *supported* pager's diff before it finishes
+  streaming could resolve nothing yet → fall back → latch No → that pager renders raw-while-focused until
+  the pager changes. Rare (you focus a diff you're looking at, which has loaded); degraded-not-broken.
+- **Binary-first** (the user's flagged case): focusing a binary file under an unknown pager does one
+  speculative raw re-render then reverts the verdict to Unknown (re-decided on the next text focus). The
+  cmd-arg bypass (`ignoreExternalDiff`, for delta-as-external-diff) isn't exercised by CI — only the
+  GIT_PAGER bypass (`cat -n`) is.
+- **Diffing mode** (`DiffHelper.RenderDiff`, the `W` ref-compare) is **not** wired to the fallback (left
+  `ignoreExternalDiff=false`); focusing a diffing-mode diff under an unsupported pager wouldn't be
+  stageable. A gap, deferred (diffing-mode staging is its own question).
+- **Reflog** is wired (it's a `DiffMainViewContext`), but it's read-only — the fallback only helps its
+  edit/copy/navigate, not staging (it has nil actions).
+
+**This completes the §21.24 (A)-(D) sequence.** Remaining known production gaps from the plan: reflog
+custom-patch-building (§21.24, an oversight not a limitation), and the steps 7/8 explorer-teardown that
+were deliberately dropped (§21.24). History on this branch is throwaway — see [[prototype-branch-throwaway]].
