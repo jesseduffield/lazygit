@@ -970,17 +970,7 @@ func githubPullRequestLineURL(prURL string, commitSha string, relativePath strin
 }
 
 func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
-	if !self.isDiffView() {
-		return nil
-	}
-	// A click points at a line, so it sets a single-line selection there; a
-	// double-click additionally dives into staging/patch-building for that line.
-	resetDiffSelectMode(self.context)
-	showSelectionAtLine(self.context.GetView(), opts.Y, false)
-	if opts.IsDoubleClick {
-		return self.enterForLine(opts.Y)
-	}
-	return nil
+	return self.selectClickedDiffLine(opts)
 }
 
 func (self *MainViewController) editClickedLine(opts gocui.ViewMouseBindingOpts) error {
@@ -989,11 +979,26 @@ func (self *MainViewController) editClickedLine(opts gocui.ViewMouseBindingOpts)
 
 func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.ViewMouseBindingOpts) error {
 	self.c.Context().Push(self.context, types.OnFocusOpts{})
+	return self.selectClickedDiffLine(opts)
+}
+
+// selectClickedDiffLine sets the focused main view's selection from a click at view
+// line opts.Y. In hunk mode a click on a change line keeps hunk mode and selects that
+// whole block, so clicking from hunk to hunk stays ready to stage; a click on context
+// drops to a single line, as does any click when we weren't in hunk mode — the click
+// points at the line precisely (e.g. to edit it). A double-click additionally dives
+// into staging/patch-building for that line.
+func (self *MainViewController) selectClickedDiffLine(opts gocui.ViewMouseBindingOpts) error {
 	if !self.isDiffView() {
 		return nil
 	}
-	resetDiffSelectMode(self.context)
-	showSelectionAtLine(self.context.GetView(), opts.Y, false)
+	view := self.context.GetView()
+	if self.sel().Mode == context.DiffSelectModeHunk && self.c.Helpers().Staging.IsChangeLine(view, opts.Y) {
+		self.selectHunkAround(opts.Y)
+	} else {
+		resetDiffSelectMode(self.context)
+		showSelectionAtLine(view, opts.Y, false)
+	}
 	if opts.IsDoubleClick {
 		return self.enterForLine(opts.Y)
 	}
