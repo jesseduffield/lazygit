@@ -3191,6 +3191,14 @@ capability probe and best-effort click-to-focus by view-line index.
 
 ### 21.29 Session 20 (2026-06-20): (D) the no-OSC-pager raw fallback — DONE
 
+> **SUPERSEDED by §21.30:** the *detection* mechanism described below (observe the
+> already-rendered diff at focus, infer support from whether change lines resolve) was
+> replaced by a probe after the user found it broke for binary files. The rendering/bypass
+> machinery (`ignoreExternalDiff`, `NewMainViewDiffTask`, the panel wiring, the raw
+> re-render) is unchanged. Read §21.30 for the final detection mechanism; the commits fold
+> to the probe (the observe code never lands).
+
+
 The focused main view now falls back to the raw (no-pager) diff when focused under a pager whose output
 we can't resolve to patch-space, so it stays stageable. Committed (most recent last; the fixup folds into
 the first):
@@ -3281,3 +3289,76 @@ focus re-render and the metadata path are unverified):**
 **This completes the §21.24 (A)-(D) sequence.** Remaining known production gaps from the plan: reflog
 custom-patch-building (§21.24, an oversight not a limitation), and the steps 7/8 explorer-teardown that
 were deliberately dropped (§21.24). History on this branch is throwaway — see [[prototype-branch-throwaway]].
+
+### 21.30 Session 21 (2026-06-20): (D) detection reworked — observe → probe for a handshake
+
+User reviewed (D) and found the §21.29 observe approach **broken for binary files**. Repro: an unstaged
+binary + an unsupported pager (unpatched diff-so-fancy). Focus → raw (ok); next 10s auto-refresh →
+**back to pager** (wrong); the focused view kept flip-flopping pretty/raw. **Root cause:** the
+binary-revert. I inferred "pager supported?" from diff *content* (`ViewHasChangeLines`); a binary file has
+no change lines under *any* pager, so it carries no signal — yet my "raw also empty ⇒ don't latch ⇒ revert
+verdict to Unknown" un-cached the verdict, so the next refresh rendered pretty again. Content-based
+detection forces a lose-lose: revert → flip-flop; don't-revert → a binary-first focus mislatches a
+*supported* pager. Not auto-refresh ignoring us — it respected the verdict; the verdict got reset.
+
+**Fix (discussed + agreed): detect by PROBING the pager for a handshake, not by observing renders.** A
+metadata-aware pager emits a **version-only OSC 1717 record as its first output** (a handshake announcing
+"I speak the protocol"). The probe runs the pager on **empty input** and greps for it. This is a
+**pager-level, content-independent** fact (a binary can't mislead it) **known before we render** (so we
+never render pretty then discover mid-flight we needed raw — the bug a "No changed files" → external-change
+→ auto-refresh sequence would hit with observe, since observe has nothing rendered to learn from yet).
+
+The user pushed for the probe over my observe-on-the-handshake idea, and I conceded — their reasons hold:
+(1) empty-input probe is fast → run it synchronously on first need, cached; (2) observe can't know before
+the first render (the dance above); (3) **no PTY needed** — git needs a tty to *decide to invoke* a pager,
+but the pager *emits* the handshake whenever `EMIT_OSC1717_METADATA` is set, so we run it directly;
+(4) external diff commands: invoke with git's 7-arg diff-driver convention on two empty temp files;
+(5) `useExternalDiffGitConfig` — driver is per-file via `.gitattributes`, a single diff can mix drivers,
+so no one pager to probe → treated as **unsupported (always raw when focused)**, a documented limitation
+(the whole-diff fallback can't express per-file mixing; raw is always stageable).
+
+**Mechanism (commits below):**
+- **gocui** (`f3e480ff6`, new): `escapeInterpreter.dropMetadataIfHandshake` drops any OSC 1717 payload with
+  no fields at its terminator, so the handshake (seen on *every* render of a conforming pager) is swallowed
+  — no phantom line, no bleed onto the diff header. Per-line payloads always have fields, so they're kept.
+  Unit test `TestDiffLineMetadataHandshakeSwallowed`.
+- **probe** (`DiffCommands.ProbePagerEmitsDiffMetadata`): empty-input run of the pager (stdin pager via
+  `NewShell`) or the external diff command (7-arg convention on two empty temp files), env
+  `EMIT_OSC1717_METADATA=V1`, grep stdout for the `\x1b]1717` handshake. `useExternalDiffGitConfig` → false.
+- **verdict** (`StagingHelper`): `pagerMetadataSupport *bool` cached per pager signature, probed lazily on
+  first need. `DiffMainViewShouldRenderRaw() = focusedOnMainView && pagerConfigured && !supported`.
+- **focus flow simplified**: the observe/`FallBackToRawDiff`/binary-revert/`NotePagerSupportsStaging` are
+  gone. `establishFocusedDiffSelection`: if `DiffMainViewShouldRenderRaw` (probed, known up front)
+  → `RenderFocusedMainViewRaw` (install a restore that places the selection after the raw re-render — still
+  `OnUIThread`, since `Apply` runs on the task goroutine — then trigger the side panel); else place on the
+  diff directly. `placeOrHideInitialDiffSelection` hides the selection when there are no change lines
+  (binary/placeholder), so a binary under an unsupported pager is **stable** (raw, no selection, no
+  flip-flop) — the verdict no longer depends on content.
+
+**Commits:** `f3e480ff6` (gocui swallow, new) + `75c98e4e5` (fixup → `904a2543e`, the probe rework) +
+`0b8fefeb3` (amend! → `904a2543e`, rewrites its body from observe to probe; subject unchanged so the two
+fixups still match). After the user folds, `904a2543e` is the probe-based fallback; observe never lands.
+
+**The handshake trade (user agreed):** the handshake signals metadata-support (#2) only, not
+buffer-parseability (#1). So a *structure-preserving but non-emitting* pager (unpatched `delta
+--color-only`) now falls back to raw **while focused** (loses its pretty rendering during focus; browse
+unchanged), where §21.29's observe kept it pretty via #1. Predictable opt-in rule ("speak the protocol to
+be first-class in the focused view"); diff-so-fancy restructures anyway, so it's unaffected.
+
+**Tests:** `cat -n` (unsupported, GIT_PAGER route → exercises the probe's "no handshake" verdict + the
+`RunCommandTask` bypass) keeps the two §21.29 tests; new `staging/stage_from_main_view_with_conforming_pager`
+— a fake pager `printf '<handshake>MARKER\n'; cat` (handshake + a marker line + passthrough) — proves the
+probe trusts it (no raw fallback: the MARKER survives focus) and the handshake is swallowed cleanly. `build`
++ `unit` + `lint` + **`e2e-all` green**.
+
+**Scope beyond this repo (not done here):** the OSC spec must define the handshake record, and the **three**
+emitters (delta, difftastic, and now diff-so-fancy — OSC support added to it in a separate session, to be
+recorded in that flow) must emit it. Those are other repos/sessions; CI here covers the unsupported path
+(`cat -n`) and the supported path (the fake conforming pager), so no patched pager is needed to test.
+
+**Still pending interactive sign-off** (no patched real pager in CI): the *feel* of the focus re-render,
+and a re-check of the user's binary repro now that the flip-flop root cause (the content-based verdict) is
+removed. Carry-forward edges from §21.29 that the probe **resolves**: the mid-stream mislatch (the verdict
+is no longer derived from a render, so an incomplete render can't mislatch) and the binary flip-flop.
+Carry-forward edges that **remain**: diffing-mode (`W`) not wired; reflog wired but read-only;
+`useExternalDiffGitConfig` always-raw.
