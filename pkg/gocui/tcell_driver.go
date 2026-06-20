@@ -395,6 +395,12 @@ func (g *Gui) pollEvent() GocuiEvent {
 			case MAYBE_DRAGGING:
 				if x != lastX || y != lastY {
 					dragState = DRAGGING
+					// This first movement is itself the first drag event, so report it as
+					// one (like the DRAGGING case below). Otherwise it falls through as a
+					// stray MouseRelease: the cursor still moves, but drag handlers don't
+					// fire until the *second* moved-to line, so the first one is mishandled.
+					mouseMod = ModMotion
+					mouseKey = MouseLeft
 				}
 			case DRAGGING:
 				mouseMod = ModMotion
