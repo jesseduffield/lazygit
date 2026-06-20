@@ -185,6 +185,8 @@ func (self *GlobalController) cycleDiffRenderersBackward() error {
 // onDiffRenderersChanged re-renders the main view so the newly selected diff renderer
 // takes effect, and shows a toast naming it.
 func (self *GlobalController) onDiffRenderersChanged() {
+	self.applyCurrentPagerSelectionStyle()
+
 	currentSide := self.c.Context().CurrentSide()
 	currentKey := self.c.Context().Current().GetKey()
 	if currentSide.GetKey() == currentKey ||
@@ -209,6 +211,12 @@ func (self *GlobalController) onDiffRenderersChanged() {
 		"current": strconv.Itoa(current + 1),
 		"total":   strconv.Itoa(total),
 	}))
+}
+
+func (self *GlobalController) applyCurrentPagerSelectionStyle() {
+	edgeWidth := self.c.State().GetDiffRendererConfigManager().GetSelectionBgColorEdgeWidth()
+	self.c.Contexts().Normal.GetView().SelectedLineBgColorEdgeWidth = edgeWidth
+	self.c.Contexts().NormalSecondary.GetView().SelectedLineBgColorEdgeWidth = edgeWidth
 }
 
 func (self *GlobalController) canCycleDiffRenderers() *types.DisabledReason {

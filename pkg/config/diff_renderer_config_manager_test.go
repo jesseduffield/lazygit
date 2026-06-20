@@ -70,6 +70,20 @@ func TestCurrentDiffRendererNameWithoutDiffRenderers(t *testing.T) {
 	assert.Equal(t, tr.DefaultDiffRendererName, config.CurrentDiffRendererName(tr))
 }
 
+func TestGetSelectionBgColorEdgeWidth(t *testing.T) {
+	userConfig := &UserConfig{}
+	userConfig.Git.DiffRenderers = []DiffRendererConfig{{SelectionBgColorEdgeWidth: 12}}
+	config := NewDiffRendererConfigManager(func() *UserConfig { return userConfig })
+
+	assert.Equal(t, 12, config.GetSelectionBgColorEdgeWidth())
+}
+
+func TestGetSelectionBgColorEdgeWidthWithoutPagers(t *testing.T) {
+	config := NewDiffRendererConfigManager(func() *UserConfig { return &UserConfig{} })
+
+	assert.Equal(t, 0, config.GetSelectionBgColorEdgeWidth())
+}
+
 func TestCycleDiffRenderers(t *testing.T) {
 	userConfig := &UserConfig{}
 	userConfig.Git.DiffRenderers = []DiffRendererConfig{{Name: "a"}, {Name: "b"}, {Name: "c"}}

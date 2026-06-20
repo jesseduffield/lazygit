@@ -281,6 +281,12 @@ type GitConfig struct {
 	//   # renderer command.
 	//   name: ""
 	//
+	//   # If greater than zero, selected diff lines are highlighted only at the
+	//   # left and right edges of the view, with this many columns painted on
+	//   # each side. Useful for pagers whose own line background colors should
+	//   # remain visible.
+	//   selectionBgColorEdgeWidth: 0
+	//
 	//   # Value of the --color arg in the git diff command. Only used for type
 	//   # 'stdinFilter'. Some renderers want this to be set to 'always' and some
 	//   # want it set to 'never'.
@@ -377,6 +383,8 @@ type DiffRendererConfig struct {
 	Type string `yaml:"type" jsonschema:"enum=stdinFilter,enum=extDiff,enum=rawGit"`
 	// A name for the diff renderer, shown in the notification when cycling renderers. If not set, the name is derived from the first word of the renderer command.
 	Name string `yaml:"name"`
+	// If greater than zero, selected diff lines are highlighted only at the left and right edges of the view, with this many columns painted on each side. Useful for pagers whose own line background colors should remain visible.
+	SelectionBgColorEdgeWidth int `yaml:"selectionBgColorEdgeWidth" jsonschema:"minimum=0"`
 	// Value of the --color arg in the git diff command. Only used for type 'stdinFilter'. Some renderers want this to be set to 'always' and some want it set to 'never'.
 	ColorArg string `yaml:"colorArg" jsonschema:"enum=always,enum=never"`
 	// The command to use for rendering diffs. This is either a stdinFilter or an external diff command, depending on the type field; not applicable if the type is 'rawGit'.

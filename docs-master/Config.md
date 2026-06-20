@@ -371,6 +371,12 @@ git:
   #   # renderer command.
   #   name: ""
   #
+  #   # If greater than zero, selected diff lines are highlighted only at the
+  #   # left and right edges of the view, with this many columns painted on
+  #   # each side. Useful for pagers whose own line background colors should
+  #   # remain visible.
+  #   selectionBgColorEdgeWidth: 0
+  #
   #   # Value of the --color arg in the git diff command. Only used for type
   #   # 'stdinFilter'. Some renderers want this to be set to 'always' and some
   #   # want it set to 'never'.
