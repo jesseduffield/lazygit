@@ -978,6 +978,12 @@ func (self *MainViewController) editClickedLine(opts gocui.ViewMouseBindingOpts)
 }
 
 func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.ViewMouseBindingOpts) error {
+	// Carry the select mode over from the pane we're leaving, so clicking into the
+	// other pane keeps hunk mode even the first time we enter it — without this its
+	// mode would still be the default single line until it had been focused at least
+	// once (e.g. by tabbing to it). selectClickedDiffLine then preserves or collapses
+	// that mode depending on where we clicked.
+	*self.context.DiffSelectState() = *self.otherContext.DiffSelectState()
 	self.c.Context().Push(self.context, types.OnFocusOpts{})
 	return self.selectClickedDiffLine(opts)
 }
