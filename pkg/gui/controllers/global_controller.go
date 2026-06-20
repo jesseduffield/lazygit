@@ -185,6 +185,8 @@ func (self *GlobalController) cyclePagersBackward() error {
 // onPagerChanged re-renders the main view so the newly selected pager takes
 // effect, and shows a toast naming it.
 func (self *GlobalController) onPagerChanged() {
+	self.applyCurrentPagerSelectionStyle()
+
 	currentSide := self.c.Context().CurrentSide()
 	currentKey := self.c.Context().Current().GetKey()
 	if currentSide.GetKey() == currentKey ||
@@ -216,6 +218,12 @@ func (self *GlobalController) onPagerChanged() {
 		"current": strconv.Itoa(current + 1),
 		"total":   strconv.Itoa(total),
 	}))
+}
+
+func (self *GlobalController) applyCurrentPagerSelectionStyle() {
+	edgeWidth := self.c.State().GetPagerConfig().GetSelectionBgColorEdgeWidth()
+	self.c.Contexts().Normal.GetView().SelectedLineBgColorEdgeWidth = edgeWidth
+	self.c.Contexts().NormalSecondary.GetView().SelectedLineBgColorEdgeWidth = edgeWidth
 }
 
 func (self *GlobalController) canCyclePagers() *types.DisabledReason {

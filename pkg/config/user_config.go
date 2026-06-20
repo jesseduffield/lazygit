@@ -281,6 +281,12 @@ type GitConfig struct {
 	//   # this to be set to 'always' and some want it set to 'never'
 	//   colorArg: "always"
 	//
+	//   # If greater than zero, selected diff lines are highlighted only at the
+	//   # left and right edges of the view, with this many columns painted on
+	//   # each side. Useful for pagers whose own line background colors should
+	//   # remain visible.
+	//   selectionBgColorEdgeWidth: 0
+	//
 	//   # e.g.
 	//   # diff-so-fancy
 	//   # delta --dark --paging=never
@@ -374,6 +380,8 @@ type PagingConfig struct {
 	Name string `yaml:"name"`
 	// Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'
 	ColorArg string `yaml:"colorArg" jsonschema:"enum=always,enum=never"`
+	// If greater than zero, selected diff lines are highlighted only at the left and right edges of the view, with this many columns painted on each side. Useful for pagers whose own line background colors should remain visible.
+	SelectionBgColorEdgeWidth int `yaml:"selectionBgColorEdgeWidth" jsonschema:"minimum=0"`
 	// e.g.
 	// diff-so-fancy
 	// delta --dark --paging=never

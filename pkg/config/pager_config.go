@@ -58,6 +58,14 @@ func (self *PagerConfig) GetColorArg() string {
 	return colorArg
 }
 
+func (self *PagerConfig) GetSelectionBgColorEdgeWidth() int {
+	currentPagerConfig := self.currentPagerConfig()
+	if currentPagerConfig == nil {
+		return 0
+	}
+	return currentPagerConfig.SelectionBgColorEdgeWidth
+}
+
 func (self *PagerConfig) GetExternalDiffCommand() string {
 	currentPagerConfig := self.currentPagerConfig()
 	if currentPagerConfig == nil {

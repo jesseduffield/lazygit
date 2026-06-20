@@ -156,7 +156,9 @@ type View struct {
 	// instead of Sel{Bg,Fg}Colors for highlighting selected lines.
 	HighlightInactive bool
 
-	HighlightInset int
+	// If SelectedLineBgColorEdgeWidth is greater than zero, selection background
+	// color is painted only at the left and right edges of highlighted lines.
+	SelectedLineBgColorEdgeWidth int
 
 	// InclusionGutterMarker is the glyph drawn in the on-demand inclusion gutter
 	// (see SetInclusionGutter) on marked lines; InclusionGutterMarkerColor is its
@@ -712,8 +714,8 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute) {
 			rangeSelectEnd = max(relativeRangeSelectStart, v.cy)
 		}
 
-		inset := v.HighlightInset
-		if y >= rangeSelectStart && y <= rangeSelectEnd && x >= inset && x < v.InnerWidth()-inset {
+		edgeWidth := v.SelectedLineBgColorEdgeWidth
+		if y >= rangeSelectStart && y <= rangeSelectEnd && (edgeWidth == 0 || x < edgeWidth || x >= v.InnerWidth()-edgeWidth) {
 			// this ensures we use the bright variant of a colour upon highlight
 			fgColorComponent := fgColor & ^AttrAll
 			if fgColorComponent >= AttrIsValidColor && fgColorComponent < AttrIsValidColor+8 {

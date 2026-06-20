@@ -106,8 +106,7 @@ func (gui *Gui) createAllViews() error {
 		view.AutoRenderHyperLinks = true
 	}
 
-	gui.Views.Main.HighlightInset = 3
-	gui.Views.Secondary.HighlightInset = 3
+	gui.applyCurrentPagerSelectionStyle()
 
 	// The on-demand inclusion gutter marker for custom-patch building.
 	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary} {
@@ -162,6 +161,16 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Snake.FgColor = gocui.ColorGreen
 
 	return nil
+}
+
+func (gui *Gui) applyCurrentPagerSelectionStyle() {
+	edgeWidth := 0
+	if gui.stateAccessor != nil && gui.stateAccessor.GetPagerConfig() != nil {
+		edgeWidth = gui.stateAccessor.GetPagerConfig().GetSelectionBgColorEdgeWidth()
+	}
+
+	gui.Views.Main.SelectedLineBgColorEdgeWidth = edgeWidth
+	gui.Views.Secondary.SelectedLineBgColorEdgeWidth = edgeWidth
 }
 
 func (gui *Gui) configureViewProperties() {
