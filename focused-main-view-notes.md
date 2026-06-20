@@ -3362,3 +3362,30 @@ removed. Carry-forward edges from §21.29 that the probe **resolves**: the mid-s
 is no longer derived from a render, so an incomplete render can't mislatch) and the binary flip-flop.
 Carry-forward edges that **remain**: diffing-mode (`W`) not wired; reflog wired but read-only;
 `useExternalDiffGitConfig` always-raw.
+
+### 21.31 Session 21 (cont.): the three pager emitters patched + the spec
+
+Closes the cross-repo loop §21.30 left open — there were no conforming pagers, so every real pager fell
+back to raw. The handshake is now defined in the spec and emitted by all three reference pagers:
+
+- **spec** (`diff-line-metadata-osc-spec.md`, this repo, commit `323b8224e`): new §4.4 defines the
+  version-only handshake record (`ESC ] 1717 ; <version> ST`, no further fields), emitted first; §6 notes it
+  precedes the per-line records. A host distinguishes it from a per-line record by field count.
+- **delta** (`/Users/stk/Stk/Dev/Builds/delta`): emit the handshake at the top of `delta()` before
+  consuming the diff; flushes via the normal-return writer drop. + a `handshake_for_version` unit test.
+- **difftastic** (`/Users/stk/Stk/Dev/Builds/difftastic`): emit once (a `std::sync::Once`) at the top of
+  `print_diff_result`, **explicitly flushed** (difftastic exits via `process::exit`, which skips the
+  implicit flush — without it the lone handshake of an empty-diff probe is lost). + a unit test.
+- **diff-so-fancy** (`/Users/stk/Stk/Dev/Builds/diff-so-fancy`): emit before the main stdin loop;
+  `osc_records` test helper now skips the handshake so the per-line assertions are unchanged, + two new
+  bats tests (handshake first; handshake on an empty diff).
+
+Each was verified manually to emit `\x1b]1717` on the *exact* empty-input invocation the lazygit probe
+uses (delta/diff-so-fancy on empty stdin; difftastic via the 7-arg git diff-driver convention on two empty
+temp files), and to stay byte-silent without `EMIT_OSC1717_METADATA`. So the lazygit probe
+(`ProbePagerEmitsDiffMetadata`, which greps that invocation's output for `\x1b]1717`) now classifies all
+three as **supported** — no raw fallback, stage on their pretty output via the per-line metadata (#2). The
+delta/difftastic binaries must be **rebuilt** for this to take effect (`cargo build`); diff-so-fancy is a
+script. The full real-pager render+stage in lazygit remains the interactive sign-off (CI still can't run a
+patched pager; it covers the unsupported path via `cat -n` and the supported path via the conforming-pager
+fake from §21.30).
