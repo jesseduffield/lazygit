@@ -88,14 +88,10 @@ func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext *co
 		return nil
 	}
 
-	if clickedLineIdx >= 0 {
-		// A click points at a specific line, so select it directly (in the default
-		// single-line mode).
-		resetDiffSelectMode(mainViewContext)
-		showSelectionAtLine(mainViewContext.GetView(), clickedLineIdx, false)
-	} else {
-		showInitialDiffSelection(self.c, mainViewContext)
-	}
+	// A click points at a specific line (clickedLineIdx); keyboard focus (-1) starts at
+	// the first change block. Either way, if the pager produced an unresolvable diff
+	// this re-renders it raw first (see establishFocusedDiffSelection).
+	establishFocusedDiffSelection(self.c, mainViewContext, clickedLineIdx)
 
 	// The inclusion gutter is refreshed by the main view's focus handler (it's shown
 	// only while focused, so it tracks focus changes there).

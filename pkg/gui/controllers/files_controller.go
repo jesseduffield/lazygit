@@ -382,8 +382,13 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 
 	split, mainShowsStaged := self.diffSplitState(node)
 
+	// When the focused main view needs to act on a diff the configured pager
+	// can't resolve, render it raw (no pager) so it's stageable; browsing keeps
+	// the pretty pager output. See StagingHelper.DiffMainViewShouldRenderRaw.
+	renderRaw := self.c.Helpers().Staging.DiffMainViewShouldRenderRaw()
+
 	pathOverrides := self.pathOverridesForDiff(node)
-	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, pathOverrides)
+	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, renderRaw, pathOverrides)
 	title := self.c.Tr.UnstagedChanges
 	if mainShowsStaged {
 		title = self.c.Tr.StagedChanges
@@ -391,14 +396,14 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	refreshOpts := types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
-			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+			Task:     diffMainViewTask(renderRaw, cmdObj.GetCmd()),
 			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 			Title:    title,
 		},
 	}
 
 	if split {
-		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, pathOverrides)
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, renderRaw, pathOverrides)
 
 		title := self.c.Tr.StagedChanges
 		if mainShowsStaged {
@@ -408,7 +413,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 		refreshOpts.Secondary = &types.ViewUpdateOpts{
 			Title:    title,
 			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+			Task:     diffMainViewTask(renderRaw, cmdObj.GetCmd()),
 		}
 	}
 
