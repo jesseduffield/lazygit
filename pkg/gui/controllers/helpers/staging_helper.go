@@ -507,6 +507,13 @@ func (self *StagingHelper) revealChangeLineAtOrdinal(view *gocui.View, ordinal i
 // closest surviving line, which minimises scrolling. Each is put back at the same
 // screen row it was on. A showing selection is re-established on the landed line;
 // otherwise the view stays in scroll mode.
+//
+// A range or hunk selection has two ends, so its far end (the range anchor opposite the
+// cursor) is remembered by patch identity too and put back by that identity in the
+// re-render — not by screen line, which a restructuring pager (e.g. delta side-by-side)
+// makes mean something different. So the selection still spans the same lines even when
+// the diff is laid out differently. Restoring the cursor is enough for a single-line
+// selection; this just extends the same restore to the other end.
 func (self *StagingHelper) PreserveDiffPositionOnRerender(view *gocui.View) {
 	// If the view isn't the one currently shown in its window it won't be the one
 	// re-rendered (e.g. the merge-conflicts view occupies the main window), so a
@@ -522,6 +529,13 @@ func (self *StagingHelper) PreserveDiffPositionOnRerender(view *gocui.View) {
 		anchorViewLine = view.SelectedLineIdx()
 	}
 
+	// The far end of a range/hunk selection, by patch identity, to re-establish below;
+	// not set (false) for a single-line selection.
+	farEnd, hasFarEnd := types.DiffLineInfo{}, false
+	if showSelection {
+		farEnd, hasFarEnd = self.selectionFarEndIdentity(view)
+	}
+
 	self.restoreDiffLinePositionOnRerender(view, self.nearbyDiffLines(view, anchorViewLine), matchByPatchLine, func(anchor diffLineAnchor, viewLine int) {
 		// Put the landed line back on the screen row it was captured on, clamped into
 		// the view in case it was off-screen (a fallback line can be), so the restore
@@ -529,13 +543,50 @@ func (self *StagingHelper) PreserveDiffPositionOnRerender(view *gocui.View) {
 		row := max(0, min(anchor.row, view.InnerHeight()-1))
 		view.SetOrigin(0, viewLine-row)
 		if showSelection {
-			// SetOrigin already placed the row, so don't scroll again; just move the
-			// cursor onto it and turn the selection back on.
+			// Re-establish the range's far end (by the identity captured above) before
+			// placing the cursor, so the selection spans the same lines again. Start from
+			// a clean slate; if the far end didn't survive the re-render, leave a single
+			// line. SetOrigin already placed the row, so the cursor move mustn't scroll.
+			view.CancelRangeSelect()
+			if hasFarEnd {
+				if farViewLine, ok := self.findDiffLine(view, farEnd); ok {
+					view.SetRangeSelectStart(farViewLine)
+				}
+			}
 			view.FocusPoint(0, viewLine, false)
 			view.Highlight = true
 			view.HighlightInactive = false
 		}
 	})
+}
+
+// selectionFarEndIdentity returns the patch identity of a range or hunk selection's far
+// end — the range anchor opposite the cursor — so a re-render can put the range back over
+// the same lines (see PreserveDiffPositionOnRerender). ok is false for a single-line
+// selection, or when that end doesn't resolve to a diff line.
+func (self *StagingHelper) selectionFarEndIdentity(view *gocui.View) (types.DiffLineInfo, bool) {
+	first, last := view.SelectedLineRange()
+	if first == last {
+		return types.DiffLineInfo{}, false
+	}
+	farEnd := last
+	if view.SelectedLineIdx() == last {
+		farEnd = first
+	}
+	return self.GetDiffLineInfoForView(view, farEnd)
+}
+
+// findDiffLine returns the view line of the first row in view's currently displayed diff
+// whose patch identity matches the given one, or false if none does — the lookup behind
+// restoring a remembered position (a range selection's far end) once the diff has
+// re-rendered.
+func (self *StagingHelper) findDiffLine(view *gocui.View, identity types.DiffLineInfo) (int, bool) {
+	resolved := self.resolveDiffLines(view.DiffLineContents())
+	line := findResolvedDiffLine(resolved, identity, matchByPatchLine, 0)
+	if line == -1 {
+		return 0, false
+	}
+	return view.ViewLineForBufferLine(line)
 }
 
 // nearbyDiffLines collects the resolvable diff lines around the given view line in
