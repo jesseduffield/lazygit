@@ -240,15 +240,16 @@ func (self *CommitCommands) AmendHeadCmdObj() *oscommands.CmdObj {
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *CommitCommands) ShowCmdObj(hash string, filterPaths []string) *oscommands.CmdObj {
+func (self *CommitCommands) ShowCmdObj(hash string, filterPaths []string, ignoreExternalDiff bool) *oscommands.CmdObj {
 	contextSize := self.UserConfig().Git.DiffContextSize
 
 	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
-	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig()
+	useExtDiff := extDiffCmd != "" && !ignoreExternalDiff
+	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !ignoreExternalDiff
 	cmdArgs := NewGitCmd("show").
 		Config("diff.noprefix=false").
-		ConfigIf(extDiffCmd != "", "diff.external="+extDiffCmd).
-		ArgIfElse(extDiffCmd != "" || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
+		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
+		ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
 		Arg("--submodule").
 		Arg("--color="+self.pagerConfig.GetColorArg()).
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).

@@ -442,10 +442,10 @@ func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bo
 	if previousPath != "" {
 		fileNames = append(fileNames, previousPath)
 	}
-	return self.ShowFileDiffCmdObj(from, to, reverse, fileNames, plain).RunWithOutput()
+	return self.ShowFileDiffCmdObj(from, to, reverse, fileNames, plain, false).RunWithOutput()
 }
 
-func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool) *oscommands.CmdObj {
+func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool, ignoreExternalDiff bool) *oscommands.CmdObj {
 	contextSize := self.UserConfig().Git.DiffContextSize
 
 	colorArg := self.pagerConfig.GetColorArg()
@@ -454,8 +454,8 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 	}
 
 	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
-	useExtDiff := extDiffCmd != "" && !plain
-	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
+	useExtDiff := extDiffCmd != "" && !plain && !ignoreExternalDiff
+	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain && !ignoreExternalDiff
 
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").

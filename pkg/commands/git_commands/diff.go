@@ -86,11 +86,13 @@ func (self *DiffCommands) probeEmitsMetadata(cmdObj *oscommands.CmdObj) bool {
 }
 
 // This is for generating diffs to be shown in the UI (e.g. rendering a range
-// diff to the main view). It uses a custom pager if one is configured.
-func (self *DiffCommands) DiffCmdObj(diffArgs []string) *oscommands.CmdObj {
+// diff to the main view). It uses a custom pager if one is configured, unless
+// ignoreExternalDiff is set (the focused main view's raw-diff fallback; keeps the
+// colour, unlike a plain diff).
+func (self *DiffCommands) DiffCmdObj(diffArgs []string, ignoreExternalDiff bool) *oscommands.CmdObj {
 	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
-	useExtDiff := extDiffCmd != ""
-	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig()
+	useExtDiff := extDiffCmd != "" && !ignoreExternalDiff
+	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !ignoreExternalDiff
 	ignoreWhitespace := self.UserConfig().Git.IgnoreWhitespaceInDiffView
 
 	return self.cmd.New(
