@@ -436,10 +436,10 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
 // but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
 func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error) {
-	return self.ShowFileDiffCmdObj(from, to, reverse, []string{fileName}, plain).RunWithOutput()
+	return self.ShowFileDiffCmdObj(from, to, reverse, []string{fileName}, plain, false).RunWithOutput()
 }
 
-func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool) *oscommands.CmdObj {
+func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool, ignoreExternalDiff bool) *oscommands.CmdObj {
 	contextSize := self.UserConfig().Git.DiffContextSize
 
 	colorArg := self.pagerConfig.GetColorArg()
@@ -448,8 +448,8 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 	}
 
 	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
-	useExtDiff := extDiffCmd != "" && !plain
-	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
+	useExtDiff := extDiffCmd != "" && !plain && !ignoreExternalDiff
+	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain && !ignoreExternalDiff
 
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").

@@ -72,12 +72,12 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 				args = append(args, filterPath)
 			}
 		}
-		cmdObj := self.c.Git().Diff.DiffCmdObj(args)
+		cmdObj := self.c.Git().Diff.DiffCmdObj(args, false)
 		prefix := style.FgYellow.Sprintf("%s %s-%s\n\n", self.c.Tr.ShowingDiffForRange, from.ShortRefName(), to.ShortRefName())
 		return types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix)
 	}
 
-	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit))
+	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit), false)
 	return types.NewRunPtyTask(cmdObj.GetCmd())
 }
 
@@ -100,7 +100,7 @@ func (self *DiffHelper) ExitDiffMode() error {
 
 func (self *DiffHelper) RenderDiff() {
 	args := self.DiffArgs()
-	cmdObj := self.c.Git().Diff.DiffCmdObj(args)
+	cmdObj := self.c.Git().Diff.DiffCmdObj(args, false)
 	prefix := style.FgMagenta.Sprintf(
 		"%s %s\n\n",
 		self.c.Tr.ShowingGitDiff,

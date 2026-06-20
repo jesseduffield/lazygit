@@ -362,7 +362,7 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 	message := self.conflictResolutionHint(node.File.GetMergeStateDescription(self.c.Tr))
 
 	if node.File.ShortStatus == "DU" || node.File.ShortStatus == "UD" {
-		cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()})
+		cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()}, false)
 		prefix := message + "\n\n"
 		if node.File.ShortStatus == "DU" {
 			prefix += self.c.Tr.MergeConflictIncomingDiff
@@ -396,7 +396,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	refreshOpts := types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
-			Task:     diffMainViewTask(renderRaw, cmdObj.GetCmd()),
+			Task:     types.NewMainViewDiffTask(renderRaw, cmdObj.GetCmd()),
 			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 			Title:    title,
 		},
@@ -413,7 +413,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 		refreshOpts.Secondary = &types.ViewUpdateOpts{
 			Title:    title,
 			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-			Task:     diffMainViewTask(renderRaw, cmdObj.GetCmd()),
+			Task:     types.NewMainViewDiffTask(renderRaw, cmdObj.GetCmd()),
 		}
 	}
 

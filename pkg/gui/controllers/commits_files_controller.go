@@ -176,7 +176,7 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
 		paths := self.pathsForDiff(node)
-		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false)
+		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false, false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
 
 		// Keep the inclusion gutter in step with the content as this diff (re-)renders.
@@ -201,7 +201,7 @@ func (self *CommitFilesController) copyDiffToClipboard(path string, toastMessage
 	from, to := self.context().GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, []string{path}, true)
+	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, []string{path}, true, false)
 	diff, err := cmdObj.RunWithOutput()
 	if err != nil {
 		return err

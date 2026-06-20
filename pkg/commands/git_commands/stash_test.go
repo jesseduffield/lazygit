@@ -174,7 +174,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			}
 			instance := buildStashCommands(commonDeps{userConfig: userConfig, appState: &config.AppState{}, repoPaths: &repoPaths})
 
-			cmdStr := instance.ShowStashEntryCmdObj(s.index).Args()
+			cmdStr := instance.ShowStashEntryCmdObj(s.index, false).Args()
 			assert.Equal(t, s.expected, cmdStr)
 		})
 	}
