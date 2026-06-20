@@ -302,7 +302,8 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() {
 					self.c.Tr.ExecCommandHere + "\n\n" + commit.Name)
 			} else {
 				refRange := self.context().GetSelectedRefRangeForDiffFiles()
-				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange)
+				renderRaw := self.c.Helpers().Staging.DiffMainViewShouldRenderRaw()
+				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange, renderRaw)
 			}
 
 			// Keep the inclusion gutter in step with the content as this diff

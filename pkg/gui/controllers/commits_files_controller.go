@@ -176,8 +176,9 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
 		paths := self.pathsForDiff(node)
-		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false, false)
-		task := types.NewRunPtyTask(cmdObj.GetCmd())
+		renderRaw := self.c.Helpers().Staging.DiffMainViewShouldRenderRaw()
+		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false, renderRaw)
+		task := types.NewMainViewDiffTask(renderRaw, cmdObj.GetCmd())
 
 		// Keep the inclusion gutter in step with the content as this diff (re-)renders.
 		// It's a no-op unless the main view is focused and a patch is being built (see
