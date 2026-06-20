@@ -217,6 +217,42 @@ func TestDiffLineMetadataPayloads(t *testing.T) {
 	}, v.DiffLineMetadataPayloads())
 }
 
+func TestDiffLineMetadataHandshakeSwallowed(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// A metadata-aware pager emits a version-only handshake (an OSC 1717 with no
+	// fields) as its first output, immediately before the diff, to announce it speaks
+	// the protocol. It must be swallowed whole: no visible bytes, no phantom line, and
+	// crucially it must not attach as metadata to the diff header that follows it.
+	osc := func(payload string) string { return "\x1b]1717;" + payload + "\x1b\\" }
+	v.writeString(osc("1") + strings.Join([]string{
+		"diff --git a/foo.txt b/foo.txt",
+		osc("1;a;1;;foo.txt") + "added",
+	}, "\n"))
+
+	// The handshake produced no phantom line and no visible bytes.
+	assert.Equal(t, []string{
+		"diff --git a/foo.txt b/foo.txt",
+		"added",
+	}, v.BufferLines())
+
+	// The handshake didn't bleed onto the header line, and the real per-line metadata
+	// after it still applies.
+	type result struct {
+		payload string
+		ok      bool
+	}
+	got := make([]result, len(v.buf.lines))
+	for y := range v.buf.lines {
+		payload, ok := v.DiffLineMetadataInLine(y)
+		got[y] = result{payload, ok}
+	}
+	assert.Equal(t, []result{
+		{"", false},
+		{"1;a;1;;foo.txt", true},
+	}, got)
+}
+
 // When a re-render produces fewer view lines than the previous one,
 // refreshViewLinesIfNeeded must truncate viewLines to the new content. If it
 // didn't (it used to overwrite in place and keep the tail), a reader could map a
