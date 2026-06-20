@@ -119,9 +119,6 @@ func gitOutputLinesAfterHeader(lines []string, startIdx int, gitOutputHeader str
 		if isCopyToClipboardLogLine(line) {
 			continue
 		}
-		if strings.HasPrefix(line, "  ") {
-			continue
-		}
 		if isStartOfNewCommandLogEntry(lines, i) {
 			break
 		}

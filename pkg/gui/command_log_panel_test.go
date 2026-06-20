@@ -23,6 +23,21 @@ func TestGitOutputBlocksFromCommandLogLines(t *testing.T) {
 	assert.Equal(t, []string{"Push\n  git push\n\nGit output:\nline1\nline2"}, gitOutputBlocksFromCommandLogLines(lines, gitOutputHeader))
 }
 
+func TestGitOutputBlocksIncludeIndentedStderr(t *testing.T) {
+	t.Parallel()
+
+	lines := []string{
+		"Push",
+		"  git push",
+		gitOutputHeader,
+		"  at foo.go:10",
+		"  at bar.go:20",
+		"hook failed",
+	}
+
+	assert.Equal(t, []string{"Push\n  git push\n\nGit output:\n  at foo.go:10\n  at bar.go:20\nhook failed"}, gitOutputBlocksFromCommandLogLines(lines, gitOutputHeader))
+}
+
 func TestGitOutputBlocksSkipCopyNotifications(t *testing.T) {
 	t.Parallel()
 
