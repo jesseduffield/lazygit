@@ -46,7 +46,8 @@ func (self *SubCommitsController) GetOnRenderToMain() func() {
 				task = types.NewRenderStringTask("No commits")
 			} else {
 				refRange := self.context().GetSelectedRefRangeForDiffFiles()
-				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange)
+				renderRaw := self.c.Helpers().Staging.DiffMainViewShouldRenderRaw()
+				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange, renderRaw)
 			}
 
 			// Keep the inclusion gutter in step with the content as this diff
