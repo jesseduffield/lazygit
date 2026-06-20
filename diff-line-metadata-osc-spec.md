@@ -145,6 +145,33 @@ path is not carried. A pure rename with no content change emits no records at al
 | two consecutive deletions | `…;d;11;9;…` then `…;d;11;10;…` (same `new-line`, different `old-line` — see §5.3) |
 | whole-file deletion | `1717;1;d;0;9;old/path` (`new-line` 0 — see §5.4) |
 
+### 4.4 The handshake record
+
+A conforming pager emits, as the **very first thing it writes** and **once per run**,
+a **version-only** record naming the version it negotiated:
+
+```
+ESC ] 1717 ; <version> ST
+```
+
+i.e. the OSC introducer and the version field **with no further fields** —
+`\x1b]1717;1\x1b\` for v1. It is emitted whenever the handshake (§3) negotiates a
+version, *before* any diff content (and before the first per-line record).
+
+Its purpose is to let the host **probe** a pager cheaply and definitively: run it on an
+**empty diff** (no changed content) and look for this record. Without it, "does this
+pager speak the protocol?" could only be inferred from the per-line records — but a
+diff with no content lines (a binary file, or the empty diff a probe would use) emits
+none, so the absence of records would be indistinguishable from an unsupported pager.
+The handshake is **content-independent** (it precedes, and does not depend on, any
+diff), so a single probe is conclusive and a binary file can't be mistaken for an
+unsupported pager. It also tells the host the negotiated version up front.
+
+A host distinguishes it from a per-line record (§4.1) by **field count**: the handshake
+carries only the version (no `;` after it); a per-line record always has the full five
+fields. A host that doesn't care about probing may simply ignore any record it can't
+parse as five fields — so the handshake is harmless to existing parsers.
+
 ---
 
 ## 5. Semantics
@@ -256,6 +283,9 @@ over the rendered buffer.
 ---
 
 ## 6. Emit rules (placement)
+
+The pager first emits the handshake record (§4.4) — once, before any other output —
+then a per-line record before each region as follows.
 
 ### 6.1 One record per region, at the region's start
 
