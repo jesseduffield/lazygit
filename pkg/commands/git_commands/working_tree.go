@@ -434,10 +434,10 @@ func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bo
 	if previousPath != "" {
 		fileNames = append(fileNames, previousPath)
 	}
-	return self.ShowFileDiffCmdObj(from, to, reverse, fileNames, plain).RunWithOutput()
+	return self.ShowFileDiffCmdObj(from, to, reverse, fileNames, plain, false).RunWithOutput()
 }
 
-func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool) *oscommands.CmdObj {
+func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool, ignoreExternalDiff bool) *oscommands.CmdObj {
 	colorArg := self.diffRendererConfigManager.GetColorArg()
 	if plain {
 		colorArg = "never"
@@ -445,7 +445,7 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").
-		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain && !ignoreExternalDiff).
 		Arg("--submodule").
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
 		Arg(from).

@@ -83,12 +83,14 @@ func (self *DiffCommands) probeEmitsMetadata(cmdObj *oscommands.CmdObj) bool {
 }
 
 // This is for generating diffs to be shown in the UI (e.g. rendering a range
-// diff to the main view). It uses a custom diff renderer if one is configured.
-func (self *DiffCommands) DiffCmdObj(diffArgs []string) *oscommands.CmdObj {
+// diff to the main view). It uses a custom diff renderer if one is configured, unless
+// ignoreExternalDiff is set (the focused main view's raw-diff fallback; keeps the
+// colour, unlike a plain diff).
+func (self *DiffCommands) DiffCmdObj(diffArgs []string, ignoreExternalDiff bool) *oscommands.CmdObj {
 	return self.cmd.New(
 		NewGitCmd("diff").
 			Config("diff.noprefix=false").
-			AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), true).
+			AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !ignoreExternalDiff).
 			Arg("--submodule").
 			Arg(fmt.Sprintf("--color=%s", self.diffRendererConfigManager.GetColorArg())).
 			Arg(diffArgs...).

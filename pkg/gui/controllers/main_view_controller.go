@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -308,20 +307,6 @@ func placeOrHideInitialDiffSelection(c *ControllerCommon, mainContext *context.M
 		return
 	}
 	showSelectionAtLine(view, target, true)
-}
-
-// diffMainViewTask builds the task a side panel uses to render its diff into the main
-// view, choosing between the normal pty task and the raw-diff fallback. When renderRaw
-// is set (the focused main view needs to act on a diff the configured pager can't
-// resolve, see StagingHelper.DiffMainViewShouldRenderRaw) it uses a plain command task,
-// which — unlike the pty task — doesn't pipe the diff through a stdin pager (GIT_PAGER);
-// the external diff command, if any, is suppressed in the cmd itself. The caller passes
-// the same renderRaw to the diff-cmd builder so the two stay in step.
-func diffMainViewTask(renderRaw bool, cmd *exec.Cmd) types.UpdateTask {
-	if renderRaw {
-		return types.NewRunCommandTask(cmd)
-	}
-	return types.NewRunPtyTask(cmd)
 }
 
 // updateFocusedMainViewSelectionVisibility shows or hides the focused-main-view selection

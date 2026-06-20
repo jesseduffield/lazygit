@@ -240,10 +240,10 @@ func (self *CommitCommands) AmendHeadCmdObj() *oscommands.CmdObj {
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *CommitCommands) ShowCmdObj(hash string, filterPaths []string) *oscommands.CmdObj {
+func (self *CommitCommands) ShowCmdObj(hash string, filterPaths []string, ignoreExternalDiff bool) *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("show").
 		Config("diff.noprefix=false").
-		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), true).
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !ignoreExternalDiff).
 		Arg("--submodule").
 		Arg("--color=" + self.diffRendererConfigManager.GetColorArg()).
 		Arg("--stat").
