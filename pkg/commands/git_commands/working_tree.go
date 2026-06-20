@@ -385,14 +385,17 @@ func (self *WorkingTreeCommands) Exclude(filename string) error {
 // WorktreeFileDiff returns the diff of a file
 func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached, nil).RunWithOutput()
+	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached, false, nil).RunWithOutput()
 	return s
 }
 
 // WorktreeFileDiffCmdObj returns a command object for diffing a file or directory
 // in the working tree. When pathOverrides is non-empty, those paths are used instead of
 // the node's path (used to diff only filtered/visible files within a directory).
-func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool, pathOverrides []string) *oscommands.CmdObj {
+// ignoreExternalDiff forces git's own (coloured) diff regardless of a configured
+// external diff command, for the focused main view's raw-diff fallback (see
+// StagingHelper.DiffMainViewShouldRenderRaw); unlike plain it keeps the colour.
+func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool, ignoreExternalDiff bool, pathOverrides []string) *oscommands.CmdObj {
 	colorArg := self.diffRendererConfigManager.GetColorArg()
 	if plain {
 		colorArg = "never"
@@ -407,7 +410,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	}
 
 	cmdArgs := NewGitCmd("diff").
-		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain && !ignoreExternalDiff).
 		Arg("--submodule").
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
 		ArgIf(cached, "--cached").
