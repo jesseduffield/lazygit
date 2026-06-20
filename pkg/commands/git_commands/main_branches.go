@@ -46,10 +46,17 @@ func (self *MainBranches) Get() []string {
 
 	if self.existingMainBranches == nil || !slices.Equal(self.previousMainBranches, configuredMainBranches) {
 		self.existingMainBranches = self.determineMainBranches(configuredMainBranches)
-		self.previousMainBranches = configuredMainBranches
+		self.previousMainBranches = slices.Clone(configuredMainBranches)
 	}
 
 	return self.existingMainBranches
+}
+
+func (self *MainBranches) Invalidate() {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	self.existingMainBranches = nil
 }
 
 // Return the merge base of the given refName with the closest main branch.
@@ -66,8 +73,8 @@ func (self *MainBranches) GetMergeBase(refName string) string {
 	// error is because one of the main branches has been deleted since the last
 	// call to determineMainBranches, or because the refName has no common
 	// history with any of the main branches. Since the former should happen
-	// very rarely, users must quit and restart lazygit to fix it; the latter is
-	// also not very common, but can totally happen and is not an error.
+	// very rarely and will be fixed on the next branch/commit refresh, we treat
+	// both cases as no merge base for now.
 
 	output, _, _ := self.cmd.New(
 		NewGitCmd("merge-base").Arg(refName).Arg(mainBranches...).

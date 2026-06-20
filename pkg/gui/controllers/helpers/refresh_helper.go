@@ -136,6 +136,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		// refreshing; the risk is one potential extra refresh, but capturing the
 		// snapshot at the end would risk missing one, which is worse.
 		self.updateRefsSnapshotIfRelevant(scopeSet)
+		self.invalidateMainBranchesIfRelevant(scopeSet)
 
 		wg := sync.WaitGroup{}
 		refresh := func(name string, f func()) {
@@ -306,7 +307,7 @@ func (self *RefreshHelper) RefsSnapshotChangedSince(snapshot string) bool {
 // top of Refresh has already added these whenever REFLOG or BISECT_INFO are
 // in scope, and whenever a nil scope was passed.
 func (self *RefreshHelper) updateRefsSnapshotIfRelevant(scopeSet *set.Set[types.RefreshableView]) {
-	if !scopeSet.Includes(types.COMMITS) && !scopeSet.Includes(types.BRANCHES) {
+	if !refreshesRefs(scopeSet) {
 		return
 	}
 
@@ -316,6 +317,16 @@ func (self *RefreshHelper) updateRefsSnapshotIfRelevant(scopeSet *set.Set[types.
 		return
 	}
 	self.SetRefsSnapshot(snapshot)
+}
+
+func (self *RefreshHelper) invalidateMainBranchesIfRelevant(scopeSet *set.Set[types.RefreshableView]) {
+	if refreshesRefs(scopeSet) {
+		self.c.Model().MainBranches.Invalidate()
+	}
+}
+
+func refreshesRefs(scopeSet *set.Set[types.RefreshableView]) bool {
+	return scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES)
 }
 
 func getScopeNames(scopes []types.RefreshableView) []string {
