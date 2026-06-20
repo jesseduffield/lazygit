@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"errors"
 	"io"
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -10,6 +11,13 @@ import (
 )
 
 func (gui *Gui) handleCreateExtrasMenuPanel() error {
+	noGitOutputDisabledReason := func() *types.DisabledReason {
+		if gui.hasGitOutput() {
+			return nil
+		}
+		return &types.DisabledReason{Text: gui.c.Tr.NoGitOutputToCopy}
+	}
+
 	return gui.c.Menu(types.CreateMenuOptions{
 		Title: gui.c.Tr.CommandLog,
 		Items: []*types.MenuItem{
@@ -33,8 +41,48 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 				Keys:    []gocui.Key{gocui.NewKeyRune('f')},
 				OnPress: gui.handleFocusCommandLog,
 			},
+			{
+				Label:          gui.c.Tr.CopyGitOutputToClipboard,
+				Keys:           []gocui.Key{gocui.NewKeyRune('c')},
+				OnPress:        gui.handleCopyLastGitOutputToClipboard,
+				DisabledReason: noGitOutputDisabledReason(),
+			},
+			{
+				Label:          gui.c.Tr.CopyAllGitOutputToClipboard,
+				Keys:           []gocui.Key{gocui.NewKeyRune('a')},
+				OnPress:        gui.handleCopyAllGitOutputToClipboard,
+				DisabledReason: noGitOutputDisabledReason(),
+			},
 		},
 	})
+}
+
+func (gui *Gui) handleCopyLastGitOutputToClipboard() error {
+	output := gui.lastGitOutput()
+	if output == "" {
+		return errors.New(gui.c.Tr.NoGitOutputToCopy)
+	}
+
+	if err := gui.os.CopyToClipboardQuiet(output); err != nil {
+		return err
+	}
+
+	gui.c.Toast(gui.c.Tr.GitOutputCopiedToClipboard)
+	return nil
+}
+
+func (gui *Gui) handleCopyAllGitOutputToClipboard() error {
+	output := gui.allGitOutput()
+	if output == "" {
+		return errors.New(gui.c.Tr.NoGitOutputToCopy)
+	}
+
+	if err := gui.os.CopyToClipboardQuiet(output); err != nil {
+		return err
+	}
+
+	gui.c.Toast(gui.c.Tr.GitOutputCopiedToClipboard)
+	return nil
 }
 
 func (gui *Gui) handleFocusCommandLog() error {
@@ -94,7 +142,10 @@ func (gui *Gui) goToExtrasPanelBottom() error {
 }
 
 func (gui *Gui) getCmdWriter() io.Writer {
-	return &prefixWriter{writer: gui.Views.Extras, prefix: style.FgMagenta.Sprintf("\n\n%s\n", gui.c.Tr.GitOutput)}
+	return &prefixWriter{
+		writer: gui.Views.Extras,
+		prefix: style.FgMagenta.Sprintf("\n\n%s\n", gui.c.Tr.GitOutput),
+	}
 }
 
 // Ensures that the first write is preceded by writing a prefix.

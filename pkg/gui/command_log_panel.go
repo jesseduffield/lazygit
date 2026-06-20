@@ -33,6 +33,128 @@ func (gui *Gui) LogAction(action string) {
 	fmt.Fprint(gui.Views.Extras, "\n"+style.FgYellow.Sprint(action))
 }
 
+func (gui *Gui) gitOutputBlocksFromView() []string {
+	if gui.Views.Extras == nil {
+		return nil
+	}
+	return gitOutputBlocksFromCommandLogLines(gui.Views.Extras.BufferLines(), gui.c.Tr.GitOutput)
+}
+
+func (gui *Gui) lastGitOutput() string {
+	blocks := gui.gitOutputBlocksFromView()
+	if len(blocks) == 0 {
+		return ""
+	}
+	return blocks[len(blocks)-1]
+}
+
+func (gui *Gui) allGitOutput() string {
+	return strings.Join(gui.gitOutputBlocksFromView(), "\n\n")
+}
+
+func (gui *Gui) hasGitOutput() bool {
+	return gui.lastGitOutput() != ""
+}
+
+func gitOutputBlocksFromCommandLogLines(lines []string, gitOutputHeader string) []string {
+	var blocks []string
+
+	for i, line := range lines {
+		if line != gitOutputHeader {
+			continue
+		}
+
+		block := commandLogEntryBeforeGitOutput(lines, i, gitOutputHeader)
+		if len(block) > 0 {
+			block = append(block, "")
+		}
+		block = append(block, gitOutputHeader)
+		block = append(block, gitOutputLinesAfterHeader(lines, i+1, gitOutputHeader)...)
+
+		if trimmed := strings.TrimRight(strings.Join(block, "\n"), "\n"); trimmed != "" {
+			blocks = append(blocks, trimmed)
+		}
+	}
+
+	return blocks
+}
+
+func commandLogEntryBeforeGitOutput(lines []string, headerIdx int, gitOutputHeader string) []string {
+	i := headerIdx - 1
+	for i >= 0 && lines[i] == "" {
+		i--
+	}
+
+	var commands []string
+	for i >= 0 && strings.HasPrefix(lines[i], "  ") && !isCopyToClipboardLogLine(lines[i]) {
+		commands = append([]string{lines[i]}, commands...)
+		i--
+	}
+
+	if len(commands) == 0 {
+		return nil
+	}
+
+	for i >= 0 && lines[i] == "" {
+		i--
+	}
+
+	var entry []string
+	if i >= 0 && !strings.HasPrefix(lines[i], "  ") && lines[i] != gitOutputHeader {
+		entry = append(entry, lines[i])
+	}
+	entry = append(entry, commands...)
+
+	return entry
+}
+
+func gitOutputLinesAfterHeader(lines []string, startIdx int, gitOutputHeader string) []string {
+	output := make([]string, 0, len(lines)-startIdx)
+
+	for i := startIdx; i < len(lines); i++ {
+		line := lines[i]
+		if line == gitOutputHeader {
+			break
+		}
+		if isCopyToClipboardLogLine(line) {
+			continue
+		}
+		if strings.HasPrefix(line, "  ") {
+			continue
+		}
+		if isStartOfNewCommandLogEntry(lines, i) {
+			break
+		}
+		output = append(output, line)
+	}
+
+	return output
+}
+
+func isCopyToClipboardLogLine(line string) bool {
+	trimmed := strings.TrimSpace(line)
+	return strings.HasPrefix(trimmed, "Copying '") && strings.HasSuffix(trimmed, "' to clipboard")
+}
+
+func isStartOfNewCommandLogEntry(lines []string, i int) bool {
+	line := lines[i]
+	if line == "" || strings.HasPrefix(line, "  ") {
+		return false
+	}
+
+	for j := i + 1; j < len(lines); j++ {
+		if lines[j] == "" {
+			continue
+		}
+		if isCopyToClipboardLogLine(lines[j]) {
+			continue
+		}
+		return strings.HasPrefix(lines[j], "  ")
+	}
+
+	return false
+}
+
 func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
 	if gui.Views.Extras == nil {
 		return

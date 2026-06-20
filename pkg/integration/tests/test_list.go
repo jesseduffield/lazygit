@@ -334,6 +334,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.ViewFilesOfTodoEntries,
 	misc.ConfirmOnQuit,
 	misc.CopyConfirmationMessageToClipboard,
+	misc.CopyGitOutputToClipboard,
 	misc.CopyToClipboard,
 	misc.DirenvApprovesEnvrc,
 	misc.DirenvLoadedOnRepoSwitch,

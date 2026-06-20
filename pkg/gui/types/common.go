@@ -114,6 +114,9 @@ type IGuiCommon interface {
 
 	ResetKeybindings() error
 
+	LastGitOutput() string
+	AllGitOutput() string
+
 	// hopefully we can remove this once we've moved all our keybinding stuff out of the gui god struct.
 	GetInitialKeybindingsWithCustomCommands() ([]*Binding, []*gocui.ViewMouseBinding)
 
