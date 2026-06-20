@@ -3389,3 +3389,32 @@ delta/difftastic binaries must be **rebuilt** for this to take effect (`cargo bu
 script. The full real-pager render+stage in lazygit remains the interactive sign-off (CI still can't run a
 patched pager; it covers the unsupported path via `cat -n` and the supported path via the conforming-pager
 fake from §21.30).
+
+### 21.32 Session 22 (2026-06-20): exploratory UX tweaks — hunk-on-click in the focused main view
+
+The (A)-(D) sequence is done and the feature is functionally complete; before circulating the spec to pager
+authors and writing the production plan, a round of small UX tweaks to make the focused main view feel right.
+First tweak (two parts), both gated on `gui.useHunkModeInStagingView` semantics and **main-view only** (the
+old staging/patch-building explorer views are left alone):
+
+1. **Click-to-focus selects the clicked hunk.** Clicking the unfocused main view to focus it used to drop a
+   single-line selection at the click; the common intent is "stage this block", so it needed a follow-up `a`.
+   Now, when `useHunkModeInStagingView` is on, a click on a **change line** selects that line's whole change
+   block (hunk mode), matching what keyboard focus already did (`bf2aa45a6`). A click on **context** still
+   selects just that line (so it stays editable with `e`). The single source is
+   `placeOrHideInitialDiffSelection`'s `clickedViewLine >= 0` branch; new predicate
+   `StagingHelper.IsChangeLine(view, viewLine)` (wraps `GetDiffLineInfoForView(...).IsChange()`) names the
+   "is the clicked line stageable" test, shared by this branch and the keyboard one. Commit `292d5ede3`.
+2. **Clicking another hunk keeps hunk mode.** A pre-existing wart (inherited from staging/patch-building):
+   once in hunk mode, clicking another change line reset to a single line. Now a click on a change line while
+   in hunk mode re-selects that whole block; a click on context — or any click when not in hunk mode — drops
+   to a single line. The two click handlers (`onClickInAlreadyFocusedView`, `onClickInOtherViewOfMainViewPair`)
+   shared an identical selection body, so they were unified into one `selectClickedDiffLine` helper and the
+   change made once. The decision keys off the **current** select mode (preserve hunk), not the config
+   (which only seeds the *initial* mode on focus) — the two compose. Commit `ac7ab0650`.
+
+**Open question resolved (user decided):** clicking a context line in part 1 stays in **line mode** rather
+than snapping to the next hunk below (`selectDiffHunk`/`ChangeBlockBounds` *would* snap, so the `IsChangeLine`
+guard is what holds it to the clicked line) — a click should select where you point, and it keeps the
+"click a context line, press `e`" path working. **No tests** (prototype tweaks the user is feeling out; may
+change). User's verdict on part 1 after manual testing: "feels much better, I like it a lot."
