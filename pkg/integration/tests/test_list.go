@@ -421,6 +421,8 @@ var tests = []*components.IntegrationTest{
 	staging.SelectNextLineAfterStagingInTwoHunkDiff,
 	staging.SelectNextLineAfterStagingIsolatedAddedLine,
 	staging.SelectNextLineAfterStagingLineFromMainView,
+	staging.StageFromMainViewWithConformingPager,
+	staging.StageFromMainViewWithUnsupportedPager,
 	staging.StageHunkFromMainView,
 	staging.StageHunks,
 	staging.StageLines,

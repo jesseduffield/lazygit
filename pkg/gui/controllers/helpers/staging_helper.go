@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"path/filepath"
 	"regexp"
 
@@ -18,6 +19,14 @@ var lazygitEditURLRegexp = regexp.MustCompile(`^lazygit-edit://(.+?):(\d+)$`)
 type StagingHelper struct {
 	c            *HelperCommon
 	windowHelper *WindowHelper
+
+	// pagerMetadataSupport caches whether the configured pager speaks the
+	// diff-line-metadata protocol (nil until first probed), so the focused main view
+	// knows whether it can act on the pager's diff or must render it raw (see
+	// DiffMainViewShouldRenderRaw). Keyed on pagerSupportSig; re-probed when the pager
+	// changes (a cycle or a config reload).
+	pagerMetadataSupport *bool
+	pagerSupportSig      string
 }
 
 func NewStagingHelper(
@@ -783,4 +792,100 @@ func (self *StagingHelper) diffLineInfoFromHyperlink(hyperlink string) (types.Di
 		Type:    types.DiffLineOther,
 		NewLine: utils.MustConvertToInt(matches[2]),
 	}, true
+}
+
+// --- The raw-diff fallback for unsupported pagers ---
+//
+// The focused main view is the staging surface, so it must be able to resolve the
+// diff it shows to patch-space. A pager that restructures the diff without emitting
+// our metadata (stock delta-default, plain difftastic, `cat -n`) produces output we
+// can't resolve, so when such a diff is focused we re-render it raw (git's own
+// colour, no pager) — the same content a no-pager setup shows, which the buffer
+// parser handles. Browsing keeps the pretty pager output; only focusing to act
+// switches to raw.
+//
+// Whether a pager is usable is decided by probing it for the metadata handshake (see
+// DiffCommands.ProbePagerEmitsDiffMetadata) — a pager-level, content-independent fact,
+// so the verdict is stable (a binary file, which has no change lines under any pager,
+// can't mislead it) and known before we render, so we never render pretty only to
+// discover mid-flight that we should have rendered raw.
+
+// pagerSupportsMetadata returns whether the current pager speaks the metadata
+// protocol, probing it once and caching the result, re-probing when the pager changes.
+func (self *StagingHelper) pagerSupportsMetadata() bool {
+	sig := self.currentPagerSignature()
+	if self.pagerMetadataSupport == nil || sig != self.pagerSupportSig {
+		result := self.c.Git().Diff.ProbePagerEmitsDiffMetadata()
+		self.pagerMetadataSupport = &result
+		self.pagerSupportSig = sig
+	}
+	return *self.pagerMetadataSupport
+}
+
+// currentPagerSignature identifies the current pager, so the cached verdict resets
+// when it changes (the user cycles pagers, or reloads a changed config). The pager
+// command's width placeholder is irrelevant to its identity, so a fixed width is used.
+func (self *StagingHelper) currentPagerSignature() string {
+	pc := self.c.State().GetPagerConfig()
+	index, _ := pc.CurrentPagerIndex()
+	return fmt.Sprintf("%d\x00%s\x00%v\x00%s",
+		index, pc.GetExternalDiffCommand(), pc.GetUseExternalDiffGitConfig(), pc.GetPagerCommand(0))
+}
+
+// MainViewPagerConfigured reports whether any custom pager is in effect for the
+// focused main view's diff — an external diff command, git's diff.external config,
+// or a stdin pager. With no pager the diff is already raw and resolvable, so the
+// raw-diff fallback only applies when one is configured.
+func (self *StagingHelper) MainViewPagerConfigured() bool {
+	pc := self.c.State().GetPagerConfig()
+	return pc.GetExternalDiffCommand() != "" || pc.GetUseExternalDiffGitConfig() || pc.GetPagerCommand(0) != ""
+}
+
+// DiffMainViewShouldRenderRaw reports whether a side panel rendering its diff into
+// the focused main view should bypass the pager and render the raw (git-coloured)
+// diff. This holds while the main view holds focus and the configured pager doesn't
+// speak the metadata protocol. Side panels consult it when building their main-view
+// diff (see e.g. FilesController.GetOnRenderToMain) so that a re-render while focused
+// — after staging a hunk, say — stays raw.
+func (self *StagingHelper) DiffMainViewShouldRenderRaw() bool {
+	return self.focusedOnMainView() && self.MainViewPagerConfigured() && !self.pagerSupportsMetadata()
+}
+
+func (self *StagingHelper) focusedOnMainView() bool {
+	current := self.c.Context().CurrentStatic().GetKey()
+	return current == self.c.Contexts().Normal.GetKey() ||
+		current == self.c.Contexts().NormalSecondary.GetKey()
+}
+
+// RenderFocusedMainViewRaw installs a restore that calls place once the focused main
+// view's raw re-render lands, then triggers that re-render via the side panel beneath.
+// It's used when focusing a diff under a pager that doesn't speak the protocol:
+// DiffMainViewShouldRenderRaw is already true (the verdict is probed, not derived from
+// this render), so the side panel renders raw; place then establishes the selection on
+// the result.
+func (self *StagingHelper) RenderFocusedMainViewRaw(view *gocui.View, sidePanel types.Context, place func()) {
+	manager := self.c.GetOrCreateViewBufferManagerForView(view)
+	if manager == nil {
+		return
+	}
+
+	manager.SetRestoreForNextTask(&tasks.RenderRestore{
+		// Hold the first paint until end of input so the whole diff is read before we
+		// place the selection (a change line near the end would otherwise be missed).
+		FirstPaintReady: func() bool { return false },
+		Apply: func(swapIn func()) {
+			swapIn()
+			manager.ClearRestoreForNextTask()
+			// Apply runs on the task's goroutine; hop to the UI thread to place the
+			// selection, which reads the swapped-in content and touches view state.
+			self.c.OnUIThread(func() error {
+				place()
+				return nil
+			})
+		},
+	})
+
+	if sidePanel != nil {
+		sidePanel.HandleRenderToMain()
+	}
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -249,19 +250,51 @@ func (self *MainViewController) togglePanel() error {
 	return nil
 }
 
-// showInitialDiffSelection turns on the focused main view's selection when entering
-// a diff view without pointing at a specific line, anchored on the first change line
-// already visible (so the view barely moves), falling back to the current top line
-// when none is visible (scrolled into trailing context, or not loaded that far yet).
-// With hunk mode configured as the default it selects the whole change block around
-// that line, like entering the staging view does; otherwise a single line.
+// showInitialDiffSelection turns on the focused main view's selection when entering a
+// diff view by keyboard, without pointing at a specific line. See
+// establishFocusedDiffSelection, which it defers to (clicks go through there too,
+// passing the clicked line).
 func showInitialDiffSelection(c *ControllerCommon, mainContext *context.MainContext) {
+	establishFocusedDiffSelection(c, mainContext, -1)
+}
+
+// establishFocusedDiffSelection turns on the focused main view's selection after the
+// view is focused. Under a pager that doesn't speak the metadata protocol (probed, so
+// known up front; see StagingHelper.DiffMainViewShouldRenderRaw) the diff on screen was
+// rendered pretty for browsing and isn't resolvable, so it re-renders it raw and places
+// the selection once that lands; otherwise it places the selection on the diff directly.
+// clickedViewLine is the view line a click pointed at, or -1 for keyboard focus (start
+// at the first change block).
+func establishFocusedDiffSelection(c *ControllerCommon, mainContext *context.MainContext, clickedViewLine int) {
+	staging := c.Helpers().Staging
 	resetDiffSelectMode(mainContext)
+
+	if staging.DiffMainViewShouldRenderRaw() {
+		sidePanel := c.Context().NextInStack(mainContext)
+		staging.RenderFocusedMainViewRaw(mainContext.GetView(), sidePanel, func() {
+			placeOrHideInitialDiffSelection(c, mainContext, clickedViewLine, true)
+		})
+		return
+	}
+
+	placeOrHideInitialDiffSelection(c, mainContext, clickedViewLine, clickedViewLine < 0)
+}
+
+// placeOrHideInitialDiffSelection puts the focused main view's selection on the clicked
+// line (clickedViewLine >= 0) or, for keyboard focus, on the first change line at or
+// below the top of the viewport — so the view barely moves — falling back to the top
+// line when none is visible. With hunk mode configured as the default, keyboard focus
+// selects the whole change block around that line, like entering the staging view does.
+// When the diff has nothing to act on (a placeholder, a binary file, an all-context
+// diff) it shows no selection rather than highlighting a stray line.
+func placeOrHideInitialDiffSelection(c *ControllerCommon, mainContext *context.MainContext, clickedViewLine int, scrollIntoView bool) {
 	view := mainContext.GetView()
-	// Nothing to act on (the main view shows "No changed files" or another non-diff
-	// placeholder): show no selection at all rather than highlighting a stray line.
 	if !c.Helpers().Staging.ViewHasChangeLines(view) {
 		view.Highlight = false
+		return
+	}
+	if clickedViewLine >= 0 {
+		showSelectionAtLine(view, clickedViewLine, scrollIntoView)
 		return
 	}
 	target, ok := c.Helpers().Staging.FirstChangeLineInView(view)
@@ -275,6 +308,20 @@ func showInitialDiffSelection(c *ControllerCommon, mainContext *context.MainCont
 		return
 	}
 	showSelectionAtLine(view, target, true)
+}
+
+// diffMainViewTask builds the task a side panel uses to render its diff into the main
+// view, choosing between the normal pty task and the raw-diff fallback. When renderRaw
+// is set (the focused main view needs to act on a diff the configured pager can't
+// resolve, see StagingHelper.DiffMainViewShouldRenderRaw) it uses a plain command task,
+// which — unlike the pty task — doesn't pipe the diff through a stdin pager (GIT_PAGER);
+// the external diff command, if any, is suppressed in the cmd itself. The caller passes
+// the same renderRaw to the diff-cmd builder so the two stay in step.
+func diffMainViewTask(renderRaw bool, cmd *exec.Cmd) types.UpdateTask {
+	if renderRaw {
+		return types.NewRunCommandTask(cmd)
+	}
+	return types.NewRunPtyTask(cmd)
 }
 
 // updateFocusedMainViewSelectionVisibility shows or hides the focused-main-view selection
