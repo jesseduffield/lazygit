@@ -3,6 +3,8 @@ package gui
 import (
 	"errors"
 	"io"
+	"path/filepath"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -53,6 +55,11 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 				OnPress:        gui.handleCopyAllGitOutputToClipboard,
 				DisabledReason: noGitOutputDisabledReason(),
 			},
+			{
+				Label:   gui.c.Tr.OpenCommandLogInEditor,
+				Keys:    []gocui.Key{gocui.NewKeyRune('o')},
+				OnPress: gui.handleOpenCommandLogInEditor,
+			},
 		},
 	})
 }
@@ -83,6 +90,24 @@ func (gui *Gui) handleCopyAllGitOutputToClipboard() error {
 
 	gui.c.Toast(gui.c.Tr.GitOutputCopiedToClipboard)
 	return nil
+}
+
+func (gui *Gui) handleOpenCommandLogInEditor() error {
+	content := gui.commandLogContent()
+	if content == "" {
+		return errors.New(gui.c.Tr.NoCommandLogToOpenInEditor)
+	}
+
+	filepath := filepath.Join(
+		gui.os.GetTempDir(),
+		gui.c.Git().RepoPaths.RepoName(),
+		time.Now().Format("Jan _2 15.04.05.000000000")+"-command-log.txt",
+	)
+	if err := gui.os.CreateFileWithContent(filepath, content); err != nil {
+		return err
+	}
+
+	return gui.Helpers().Files.EditFiles([]string{filepath})
 }
 
 func (gui *Gui) handleFocusCommandLog() error {

@@ -772,6 +772,8 @@ type TranslationSet struct {
 	CopyAllGitOutputToClipboard              string
 	NoGitOutputToCopy                        string
 	GitOutputCopiedToClipboard               string
+	OpenCommandLogInEditor                   string
+	NoCommandLogToOpenInEditor               string
 	CommandLogHeader                         string
 	RandomTip                                string
 	ToggleWhitespaceInDiffView               string
@@ -1907,6 +1909,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CopyAllGitOutputToClipboard:              "Copy all git outputs to clipboard",
 		NoGitOutputToCopy:                        "No git output to copy",
 		GitOutputCopiedToClipboard:               "Git output copied to clipboard",
+		OpenCommandLogInEditor:                   "Open command log in editor",
+		NoCommandLogToOpenInEditor:               "No command log to open in editor",
 		CommandLogHeader:                         "You can hide/focus this panel by pressing '%s'\n",
 		RandomTip:                                "Random tip",
 		ToggleWhitespaceInDiffView:               "Toggle whitespace",

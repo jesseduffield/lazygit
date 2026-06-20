@@ -340,6 +340,7 @@ var tests = []*components.IntegrationTest{
 	misc.DirenvLoadedOnRepoSwitch,
 	misc.DirenvUnloadsOnBlockedEnvrc,
 	misc.InitialOpen,
+	misc.OpenCommandLogInEditor,
 	misc.RecentReposOnLaunch,
 	patch_building.Apply,
 	patch_building.ApplyInReverse,

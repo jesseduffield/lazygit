@@ -56,6 +56,13 @@ func (gui *Gui) hasGitOutput() bool {
 	return gui.lastGitOutput() != ""
 }
 
+func (gui *Gui) commandLogContent() string {
+	if gui.Views.Extras == nil {
+		return ""
+	}
+	return strings.TrimRight(gui.Views.Extras.Buffer(), "\n")
+}
+
 func gitOutputBlocksFromCommandLogLines(lines []string, gitOutputHeader string) []string {
 	var blocks []string
 
