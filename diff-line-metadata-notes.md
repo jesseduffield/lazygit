@@ -935,3 +935,99 @@ counter) — which *looks* like the predicted "only `f`", but for a different re
   (`header_banner`, 2 tests); `display/side_by_side.rs` (`hunk_first_new_line`,
   banner f/h in `print`, `f` in `display_single_column`); `display/inline.rs`
   (banner f/h, reordered so the first-new-line is known before printing).
+
+## 12. diff-so-fancy emitter prototype — built & verified
+
+The **third** pager emitter, completing the set delta / difftastic / diff-so-fancy
+(§3.5). Done in the diff-so-fancy repo on branch `prototype-osc-metadata`
+(commit `c397cd6`), parallel to and independent of lazygit, mirroring the delta and
+difftastic work. It emits the **same v1 wire format** under the **same
+`EMIT_OSC1717_METADATA` handshake**, so the one host reader consumes all three.
+
+diff-so-fancy is the **same #2 category as delta's default** — it strips the
+`+`/`-` markers and conveys the side by color, so host-side parsing (#1) can't
+recover identity — but two things make it unlike the other two: it is a
+**line-oriented Perl filter** (~1700-line script, no structured renderer), and it
+is **unified single-column only** (no side-by-side). So this was the *simplest*
+emitter: no SxS, no wrapping, no per-cell two-column logic — one record before each
+content line, like delta's unified path.
+
+### 12.1 What was built
+
+Three subs added to the `diff-so-fancy` script, plus call sites:
+
+- `negotiated_osc_version()` — the handshake, a direct port of delta's
+  `negotiated_version`: parse `EMIT_OSC1717_METADATA` (`V1,…`), return the highest
+  version ≤ what we emit (1), else `undef` → emit nothing.
+- `osc_seed_hunk($line)` — called at each `@@` hunk-header branch; parses the
+  header (reusing the existing `parse_hunk_header`) to seed the old/new line
+  counters and snapshots the file path. **Like delta and unlike difftastic,
+  diff-so-fancy has no native line numbers** — it only parsed the `@@` header to
+  compute a *display* start line — so the emitter tracks its own counters.
+- `osc_for_content_line($line)` — called in the catch-all "regular line" `else`
+  branch; classifies the line by its leading `+`/`-`/space, advances the counters
+  (context advances both, addition the new side, deletion the old side and carries
+  both numbers), and returns the record. Returns `""` for un-annotated hunks and
+  non-content lines.
+
+### 12.2 diff-so-fancy specifics / findings
+
+- **`sanitize_display` strips OSC sequences.** diff-so-fancy defensively scrubs
+  terminal escapes (OSC, DCS/PM/APC, cursor moves) from the content it prints. So
+  the record can't be embedded in the line that goes through `sanitize_display` —
+  it is **prepended** to the already-sanitized line (`print $osc . sanitize_display($line)`).
+  A wrinkle delta/difftastic didn't have (they control their own output bytes). The
+  record still lands before the line's first cell, as the carrier requires.
+- **The path: prefer new, fall back to old — *not* `$last_file_seen`.** The obvious
+  source for the file field, `$last_file_seen`, is **empty for a noprefix deletion**:
+  diff-so-fancy only updates it from the `+++ b/…` side (which is `/dev/null` for a
+  deletion), and a `diff.noprefix` diff's `diff --git` line has no `a/`/`b/` to fall
+  back on. So the emitter derives the path from the file-scoped `$file_1`/`$file_2`
+  (old/new from the `---`/`+++` lines), preferring the new path and falling back to
+  the old for a deletion — the same preference the host's `pathFromDiffHeader` applies.
+  Caught by the `single-line-remove` fixture (a noprefix whole-file delete).
+- **Combined/merge diffs (`@@@`) are skipped**, like delta — multiple old-file
+  sides, a different line-number model. `osc_seed_hunk` detects `@@@` and sets a
+  skip flag for the hunk. (The `complex-hunks` fixture is a `diff --cc`; it emits
+  nothing.)
+- **Chunk-spanning hunks are free.** diff-so-fancy buffers input in ~100-line
+  chunks and calls `do_dsf_stuff` repeatedly; a long hunk can span calls. The
+  counters are **file-scope globals** (like the existing `$in_hunk`,
+  `$last_file_seen`, `$columns_to_remove`), so state persists across calls — no
+  per-call reset, a hunk that straddles a chunk boundary keeps counting.
+- **Classification mirrors `strip_leading_indicators`.** The type is read from the
+  leading `+`/`-`/space *after any leading ANSI* (`^${ansi_color_regex}([ +-])`),
+  the same shape the existing strip code uses — so whatever line diff-so-fancy can
+  strip, the emitter can classify, and the `\ No newline at end of file` marker and
+  stray blanks (no leading indicator) correctly get no record and **don't advance
+  the counters**. The classification happens *before* `mark_empty_line` /
+  `strip_leading_indicators` rewrite the line.
+
+### 12.3 Verification
+
+- **Byte-identical with the env unset** — confirmed across all 34 `test/fixtures`
+  and several real multi-file `git diff`s (compare HEAD~1's diff-so-fancy vs.
+  HEAD's, both run on the same input; `md5` matches). Strictly additive.
+- **Records verified** for add / delete / modify / context, whole-file add &
+  delete (`new-line` 0 on the delete, §5.4), two consecutive deletions sharing a
+  `new-line` (§5.3), the no-newline-marker skip, hunk discontinuity (new-line jumps
+  41→57 across hunks), combined-diff skip, the noprefix-delete path fallback, and
+  version negotiation (`V2`-only → silence, `V0,V1,V2` → V1, junk → silence).
+- **7 new bats tests** in `test/osc-metadata.bats`; full suite **58 green** (51
+  existing + 7). The `diff-so-fancy` script runs directly (interpreted Perl) — no
+  fatpack `dist/` rebuild needed to wire it into lazygit, just point a pager at it.
+- **Signed off interactively** by the user (lazygit, patched diff-so-fancy pager).
+
+### 12.4 Handshake follow-up (other session)
+
+The **version-only handshake record** (spec §4.4 — `\x1b]1717;1\x1b\` emitted as
+the first output, even on an empty diff, so a host can *probe* a pager) was added
+to diff-so-fancy in a follow-up coordinated commit (`9cd1fb5`), part of the
+protocol-wide handshake change, not this emitter commit.
+
+### 12.5 Files touched
+
+- **diff-so-fancy** (`prototype-osc-metadata`): the `diff-so-fancy` script
+  (`negotiated_osc_version`, `osc_seed_hunk`, `osc_for_content_line`, the four
+  `$osc_*` globals, seed calls in both `@@` branches, the prepend in the content
+  `else` branch); `test/osc-metadata.bats` (new, 7 tests).
