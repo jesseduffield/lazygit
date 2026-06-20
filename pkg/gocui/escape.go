@@ -485,8 +485,10 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 	case stateOSCMetadata:
 		switch {
 		case characterEquals(ch, 0x07):
+			ei.dropMetadataIfHandshake()
 			ei.state = stateNone
 		case characterEquals(ch, 0x1b):
+			ei.dropMetadataIfHandshake()
 			ei.state = stateOSCEndEscape
 		default:
 			ei.metadata.Write(ch)
@@ -505,6 +507,18 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+// dropMetadataIfHandshake discards a just-completed OSC 1717 payload that carries no
+// fields (no ';'). A metadata-aware pager emits such a version-only record once, as
+// its first output, to announce it speaks the protocol (so we can probe it; see the
+// raw-diff fallback in the lazygit staging helper). It isn't per-line metadata, so it
+// must not linger in the accumulator and attach to the following line. Per-line
+// payloads always have fields, so they're kept.
+func (ei *escapeInterpreter) dropMetadataIfHandshake() {
+	if !strings.Contains(ei.metadata.String(), ";") {
+		ei.metadata.Reset()
+	}
 }
 
 func (ei *escapeInterpreter) outputCSI() error {
