@@ -146,10 +146,14 @@ func isStartOfNewCommandLogEntry(lines []string, i int) bool {
 		if isCopyToClipboardLogLine(lines[j]) {
 			continue
 		}
-		return strings.HasPrefix(lines[j], "  ")
+		return isLazygitCommandLogLine(lines[j])
 	}
 
 	return false
+}
+
+func isLazygitCommandLogLine(line string) bool {
+	return isCopyToClipboardLogLine(line) || strings.HasPrefix(line, "  git ")
 }
 
 func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {

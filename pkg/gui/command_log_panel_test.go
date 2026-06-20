@@ -38,6 +38,28 @@ func TestGitOutputBlocksIncludeIndentedStderr(t *testing.T) {
 	assert.Equal(t, []string{"Push\n  git push\n\nGit output:\n  at foo.go:10\n  at bar.go:20\nhook failed"}, gitOutputBlocksFromCommandLogLines(lines, gitOutputHeader))
 }
 
+func TestGitOutputBlocksIncludeToolErrorWithIndentedContext(t *testing.T) {
+	t.Parallel()
+
+	lines := []string{
+		"Push",
+		"  git push",
+		gitOutputHeader,
+		"Error: validation failed",
+		"  line 42: syntax error",
+		"more output",
+		"Stage file",
+		"  git add foo",
+		gitOutputHeader,
+		"second command output",
+	}
+
+	assert.Equal(t, []string{
+		"Push\n  git push\n\nGit output:\nError: validation failed\n  line 42: syntax error\nmore output",
+		"Stage file\n  git add foo\n\nGit output:\nsecond command output",
+	}, gitOutputBlocksFromCommandLogLines(lines, gitOutputHeader))
+}
+
 func TestGitOutputBlocksSkipCopyNotifications(t *testing.T) {
 	t.Parallel()
 
