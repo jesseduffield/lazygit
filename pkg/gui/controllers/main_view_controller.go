@@ -183,6 +183,14 @@ func (self *MainViewController) GetMouseKeybindings(opts types.KeybindingsOpts) 
 			FocusedView: self.otherContext.GetViewName(),
 		},
 		{
+			// Dragging after a click extends a range selection from the clicked line.
+			ViewName:    self.context.GetViewName(),
+			Key:         gocui.MouseLeft,
+			Modifier:    gocui.ModMotion,
+			Handler:     self.onDragInFocusedView,
+			FocusedView: self.context.GetViewName(),
+		},
+		{
 			// Alt- or shift-click anywhere on a diff line opens it in the editor,
 			// without focusing the view or creating a selection. Two modifiers
 			// because no single one survives every terminal: Ghostty forwards Alt
@@ -296,6 +304,9 @@ func placeOrHideInitialDiffSelection(c *ControllerCommon, mainContext *context.M
 		return
 	}
 	if clickedViewLine >= 0 {
+		// Remember where the click landed so a drag that follows anchors its range there,
+		// even when the click selects a whole hunk (whose anchor is the block's far end).
+		mainContext.SetDragAnchorViewLine(clickedViewLine)
 		if c.UserConfig().Gui.UseHunkModeInStagingView && c.Helpers().Staging.IsChangeLine(view, clickedViewLine) {
 			mainContext.DiffSelectState().Mode = context.DiffSelectModeHunk
 			selectDiffHunk(c, mainContext, clickedViewLine)
@@ -999,6 +1010,9 @@ func (self *MainViewController) selectClickedDiffLine(opts gocui.ViewMouseBindin
 		return nil
 	}
 	view := self.context.GetView()
+	// Remember where the click landed so a drag that follows anchors its range there,
+	// even when this click selects a whole hunk (whose anchor is the block's far end).
+	self.context.SetDragAnchorViewLine(opts.Y)
 	if self.sel().Mode == context.DiffSelectModeHunk && self.c.Helpers().Staging.IsChangeLine(view, opts.Y) {
 		self.selectHunkAround(opts.Y)
 	} else {
@@ -1008,6 +1022,25 @@ func (self *MainViewController) selectClickedDiffLine(opts gocui.ViewMouseBindin
 	if opts.IsDoubleClick {
 		return self.enterForLine(opts.Y)
 	}
+	return nil
+}
+
+// onDragInFocusedView extends a range selection as the mouse is dragged after a click,
+// anchored at the line the click landed on (DragAnchorViewLine) — not wherever the click
+// left the selection, since a click can select a whole hunk whose far end would otherwise
+// become the anchor. Dragging turns hunk mode off: you get a plain range from the clicked
+// line to the line under the cursor, which gocui has already moved here. A no-op when the
+// view holds no selectable diff.
+func (self *MainViewController) onDragInFocusedView(gocui.ViewMouseBindingOpts) error {
+	view := self.context.GetView()
+	if !self.isDiffView() || !view.Highlight {
+		return nil
+	}
+	sel := self.sel()
+	sel.Mode = context.DiffSelectModeRange
+	sel.RangeIsSticky = false
+	sel.UserEnabledHunkMode = false
+	view.SetRangeSelectStart(self.context.DragAnchorViewLine())
 	return nil
 }
 
