@@ -425,8 +425,8 @@ mapping; recorded as a v2 candidate, not taken (§9).
 
 ## 10. Reference implementations (prototype)
 
-All three are at prototype quality and emit the v1 format described here, over
-OSC `1717`:
+Three pager emitters and one host carrier, all at prototype quality, emit or
+consume the v1 format described here, over OSC `1717`:
 
 - **delta** — a dedicated additive emitter that injects only OSC bytes (no change
   to styling, width, or wrapping); with the env var unset, output is byte-for-byte
@@ -438,12 +438,21 @@ OSC `1717`:
   either mode). Emits the same v1 format under the same handshake; markedly less
   code than delta because difftastic carries old/new line numbers natively. Covers
   side-by-side and inline modes.
+- **diff-so-fancy** — the same #2 case as delta's default (it strips the `+`/`-`
+  markers and conveys the side by color), but a line-oriented Perl filter rather
+  than a structured renderer, and the simplest of the three: unified single-column
+  only (no side-by-side). Classifies each line by its leading `+`/`-` before its
+  existing code strips that marker, tracking its own old/new counters seeded from
+  each `@@` header (like delta, it has no native line numbers). Combined/merge
+  diffs are not annotated. Because diff-so-fancy defensively strips terminal escape
+  sequences from the content it renders, the record is *prepended* to the line
+  rather than embedded in it.
 - **host carrier** — gocui (lazygit's TUI library) accumulates the OSC number,
   collects the payload, and stamps it per-cell like a hyperlink, cleared at each
   line boundary so it cannot bleed onto an untagged following line.
 
-A key validated property in both pagers: **with the handshake absent, output is
-byte-identical to the unpatched pager** — the protocol is strictly additive.
+A key validated property in all three pagers: **with the handshake absent, output
+is byte-identical to the unpatched pager** — the protocol is strictly additive.
 
 ---
 
