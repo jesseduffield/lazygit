@@ -10,6 +10,10 @@ type MainContext struct {
 	*SearchTrait
 
 	diffSelect DiffSelectState
+	// dragAnchorViewLine is the view line a mouse-down landed on, remembered so a drag
+	// that follows can anchor its range there. The click can show a whole hunk (a range
+	// with a different anchor), so the clicked line can't be read back from the view.
+	dragAnchorViewLine int
 }
 
 var _ types.ISearchableContext = (*MainContext)(nil)
@@ -46,6 +50,17 @@ type DiffSelectState struct {
 // controllers to read and mutate directly.
 func (self *MainContext) DiffSelectState() *DiffSelectState {
 	return &self.diffSelect
+}
+
+// SetDragAnchorViewLine records the view line a mouse-down landed on, so a drag that
+// follows can anchor its range there (see dragAnchorViewLine).
+func (self *MainContext) SetDragAnchorViewLine(viewLine int) {
+	self.dragAnchorViewLine = viewLine
+}
+
+// DragAnchorViewLine returns the view line the last mouse-down landed on.
+func (self *MainContext) DragAnchorViewLine() int {
+	return self.dragAnchorViewLine
 }
 
 func NewMainContext(
