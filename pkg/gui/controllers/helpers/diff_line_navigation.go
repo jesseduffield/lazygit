@@ -95,6 +95,14 @@ func (self *StagingHelper) ViewHasChangeLines(view *gocui.View) bool {
 	return false
 }
 
+// IsChangeLine reports whether the given view line of view's displayed diff is a
+// change line (an addition or deletion) rather than context, a header, or an
+// unparseable row — i.e. whether a click there points at something stageable.
+func (self *StagingHelper) IsChangeLine(view *gocui.View, viewLineIdx int) bool {
+	info, ok := self.GetDiffLineInfoForView(view, viewLineIdx)
+	return ok && info.IsChange()
+}
+
 // ChangeBlockBounds returns the view-line range [start, end] of the change block
 // (lazygit's notion of a hunk; see AdjacentChangeBlock) to select when entering or
 // moving in hunk mode in view's displayed diff. The block is the one containing
