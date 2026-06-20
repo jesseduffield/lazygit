@@ -282,8 +282,11 @@ func establishFocusedDiffSelection(c *ControllerCommon, mainContext *context.Mai
 // placeOrHideInitialDiffSelection puts the focused main view's selection on the clicked
 // line (clickedViewLine >= 0) or, for keyboard focus, on the first change line at or
 // below the top of the viewport — so the view barely moves — falling back to the top
-// line when none is visible. With hunk mode configured as the default, keyboard focus
-// selects the whole change block around that line, like entering the staging view does.
+// line when none is visible. With hunk mode configured as the default the selection
+// widens to the whole change block, like entering the staging view does: keyboard focus
+// snaps to the block at the first visible change, and a click on a change line selects
+// that line's block, ready to stage. A click on context still selects just that line —
+// the click points at it precisely, so it can be edited (e) rather than staged.
 // When the diff has nothing to act on (a placeholder, a binary file, an all-context
 // diff) it shows no selection rather than highlighting a stray line.
 func placeOrHideInitialDiffSelection(c *ControllerCommon, mainContext *context.MainContext, clickedViewLine int, scrollIntoView bool) {
@@ -293,6 +296,11 @@ func placeOrHideInitialDiffSelection(c *ControllerCommon, mainContext *context.M
 		return
 	}
 	if clickedViewLine >= 0 {
+		if c.UserConfig().Gui.UseHunkModeInStagingView && c.Helpers().Staging.IsChangeLine(view, clickedViewLine) {
+			mainContext.DiffSelectState().Mode = context.DiffSelectModeHunk
+			selectDiffHunk(c, mainContext, clickedViewLine)
+			return
+		}
 		showSelectionAtLine(view, clickedViewLine, scrollIntoView)
 		return
 	}
