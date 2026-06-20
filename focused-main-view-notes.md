@@ -3418,3 +3418,26 @@ than snapping to the next hunk below (`selectDiffHunk`/`ChangeBlockBounds` *woul
 guard is what holds it to the clicked line) — a click should select where you point, and it keeps the
 "click a context line, press `e`" path working. **No tests** (prototype tweaks the user is feeling out; may
 change). User's verdict on part 1 after manual testing: "feels much better, I like it a lot."
+
+Two follow-up bugs the testing surfaced, both fixed (no tests, prototype):
+
+3. **First cross-pane click dropped hunk mode** (`04de0384e`). Clicking the *other* main pane (the staged
+   side you weren't focused on) selected a single line the first time even in hunk mode, because that pane's
+   `DiffSelectState` was still its default until it had been focused once — tabbing to it and back was the
+   workaround the user found. Fix: `onClickInOtherViewOfMainViewPair` now copies the leaving pane's
+   `DiffSelectState` to the clicked pane before `selectClickedDiffLine` runs, so the very first click there
+   behaves like every later one. (The two panes keep independent select state; this seeds the target.)
+4. **A selection's far end not preserved across a pager switch** (`0e53b3785`).
+   `PreserveDiffPositionOnRerender` restored the cursor by patch identity but left the selection's *other* end
+   (the range anchor) pinned to its old view line; a restructuring pager (normal delta → delta **side-by-side**
+   is the clear repro) then left the selection spanning the wrong patch lines. Fix (general, not hunk-specific
+   — the user pushed for this): remember the far end by patch identity too (`selectionFarEndIdentity`, the
+   range anchor opposite the cursor) and put it back via `SetRangeSelectStart` after the re-render, found by
+   `findDiffLine` (a `findResolvedDiffLine` + `matchByPatchLine` lookup, which works for context ends as well
+   as change ends). So **one** mechanism restores both ends and covers hunk *and* range/sticky selections —
+   no `reselectHunkOnRerender` fixup, no callback param; `PreserveDiffPositionOnRerender(view)` stays
+   single-arg. If the far end didn't survive the re-render it collapses to the single cursor line. Both callers
+   (pager cycle `onPagerChanged`, `-U` context-size change) get it for free. **Scope unchanged:** only the
+   primary (`Normal`) pane is preserved on a pager switch (both callers pass `Contexts().Normal.GetView()`), so
+   a selection on the *focused secondary* pane still isn't preserved — a pre-existing, broader gap (its scroll
+   isn't preserved either), left as-is.
