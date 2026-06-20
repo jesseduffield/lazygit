@@ -3454,3 +3454,12 @@ Follow-up bugs the testing surfaced, all fixed (no tests, prototype):
    between mouse-down and its drag, so no patch-identity needed). The old (buggy) behaviour came for free from
    `selectDiffHunk` leaving a range anchor + gocui moving the cursor on drag; nothing handled the drag
    explicitly before.
+   **Follow-on (`e74a33880`), a gocui driver bug the above exposed:** the *first* drag-movement event was
+   reported as `MouseRelease`, not `MouseLeft`+`ModMotion` — the tcell driver's `MAYBE_DRAGGING → DRAGGING`
+   transition (`tcell_driver.go`) set the state but left `mouseKey`/`mouseMod` at their defaults. gocui still
+   moved the cursor for it, but `onDragInFocusedView` didn't fire until the *second* moved-to line, so the
+   first line of a drag showed the stale hunk-end anchor (range from block end → cursor) before re-anchoring.
+   Symptom the user reported: "drag down one line → range from block end to here; one more line → snaps to
+   anchored-at-click, correct thereafter." Fix: mark that first movement as a drag like every later one. No
+   `MouseRelease` consumers exist (only `MouseLeft`/`ModMotion`), and it also tightens the patch explorer's
+   drag (its selection now grows from the first dragged line, not the second).
