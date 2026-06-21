@@ -31,6 +31,21 @@ func (self *GpgHelper) WithGpgHandling(
 		cmdObj, configKey, waitingStatus, onSuccess, refreshOptions, refreshOptions)
 }
 
+// WithGpgHandlingAndSelectHeadCommit is like WithGpgHandling, but on success it
+// selects the new HEAD commit rather than restoring the previous selection. For
+// committing, where the commit we just created is the one we want selected.
+func (self *GpgHelper) WithGpgHandlingAndSelectHeadCommit(
+	cmdObj *oscommands.CmdObj,
+	configKey git_commands.GpgConfigKey,
+	waitingStatus string,
+	onSuccess func() error,
+) error {
+	failureRefreshOptions := types.RefreshOptions{Mode: types.ASYNC}
+	successRefreshOptions := types.RefreshOptions{Mode: types.ASYNC, CommitSelection: types.SelectHeadCommit}
+	return self.withGpgHandling(
+		cmdObj, configKey, waitingStatus, onSuccess, failureRefreshOptions, successRefreshOptions)
+}
+
 // Currently there is a bug where if we switch to a subprocess from within
 // WithWaitingStatus we get stuck there and can't return to lazygit. We could
 // fix this bug, or just stop running subprocesses from within there, given that

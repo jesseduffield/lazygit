@@ -95,6 +95,8 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	}
 
 	commandType := status.CommandName()
+	selectHeadCommitOnSuccess := command == REBASE_OPTION_CONTINUE &&
+		effectiveStatus == models.WORKING_TREE_STATE_MERGING
 
 	// we should end up with a command like 'git merge --continue'
 
@@ -106,12 +108,29 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 
 	if needsSubprocess {
 		// TODO: see if we should be calling more of the code from self.Git.Rebase.GenericMergeOrRebaseAction
-		return self.c.RunSubprocessAndRefresh(
-			self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command),
-		)
+		success, err := self.c.RunSubprocess(self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command))
+		self.c.Refresh(types.RefreshOptions{
+			Mode:            types.ASYNC,
+			CommitSelection: commitSelectionAfterMerge(success && selectHeadCommitOnSuccess),
+		})
+		return err
 	}
 	result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
-	return self.CheckMergeOrRebase(result)
+	return self.CheckMergeOrRebaseWithRefreshOptions(result,
+		types.RefreshOptions{
+			Mode:            types.ASYNC,
+			CommitSelection: commitSelectionAfterMerge(result == nil && selectHeadCommitOnSuccess),
+		})
+}
+
+// commitSelectionAfterMerge maps whether a merge/rebase/pull created a new
+// commit at HEAD to the corresponding commit-selection behavior: select that
+// new commit, or otherwise keep the previous selection by hash.
+func commitSelectionAfterMerge(createdNewCommit bool) types.CommitSelectionBehavior {
+	if createdNewCommit {
+		return types.SelectHeadCommit
+	}
+	return types.KeepCommitSelectionByHash
 }
 
 func (self *MergeAndRebaseHelper) hasExecTodos() bool {
@@ -164,6 +183,15 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 
 func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
 	return self.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.ASYNC})
+}
+
+// Like CheckMergeOrRebase, but for operations that create a new commit at HEAD
+// (a merge, or a pull that merges): on success it selects that new commit,
+// which the keep-selection-by-hash logic can't do since the commit didn't exist
+// before the refresh.
+func (self *MergeAndRebaseHelper) CheckMergeOrRebaseAndSelectHeadCommit(result error) error {
+	return self.CheckMergeOrRebaseWithRefreshOptions(result,
+		types.RefreshOptions{Mode: types.ASYNC, CommitSelection: commitSelectionAfterMerge(result == nil)})
 }
 
 func (self *MergeAndRebaseHelper) CheckForConflicts(result error) error {
@@ -489,7 +517,7 @@ func (self *MergeAndRebaseHelper) RegularMerge(refName string, variant git_comma
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.Merge)
 		err := self.c.Git().Branch.Merge(refName, variant)
-		return self.CheckMergeOrRebase(err)
+		return self.CheckMergeOrRebaseAndSelectHeadCommit(err)
 	}
 }
 

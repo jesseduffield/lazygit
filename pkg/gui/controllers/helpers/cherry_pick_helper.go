@@ -100,16 +100,6 @@ func (self *CherryPickHelper) Paste() error {
 					return result
 				}
 
-				// Move the selection down by the number of commits we just
-				// cherry-picked, to keep the same commit selected as before.
-				// Don't do this if a rebase todo is selected, because in this
-				// case we are in a rebase and the cherry-picked commits end up
-				// below the selection.
-				if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && !commit.IsTODO() {
-					self.c.Contexts().LocalCommits.MoveSelection(len(cherryPickedCommits))
-					self.c.Contexts().LocalCommits.FocusLine(true)
-				}
-
 				// If we're in the cherry-picking state at this point, it must
 				// be because there were conflicts. Don't clear the copied
 				// commits in this case, since we might want to abort and try
