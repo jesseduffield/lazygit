@@ -130,6 +130,19 @@ func TestFindLocalCommitSelectionRange(t *testing.T) {
 				found:         true,
 			},
 		},
+		{
+			name: "falls back to a todo entry when the selected commit became one",
+			commits: []*models.Commit{
+				makeTodoCommitWithHash("b", todo.Pick),
+				makeCommits("c")[0],
+			},
+			expected: expectation{
+				selectedIdx:   0,
+				rangeStartIdx: 1,
+				moved:         true,
+				found:         true,
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
