@@ -19,16 +19,29 @@ func NewGpgHelper(c *HelperCommon) *GpgHelper {
 	}
 }
 
-// Currently there is a bug where if we switch to a subprocess from within
-// WithWaitingStatus we get stuck there and can't return to lazygit. We could
-// fix this bug, or just stop running subprocesses from within there, given that
-// we don't need to see a loading status if we're in a subprocess.
 func (self *GpgHelper) WithGpgHandling(
 	cmdObj *oscommands.CmdObj,
 	configKey git_commands.GpgConfigKey,
 	waitingStatus string,
 	onSuccess func() error,
 	refreshScope []types.RefreshableView,
+) error {
+	refreshOptions := types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope}
+	return self.withGpgHandling(
+		cmdObj, configKey, waitingStatus, onSuccess, refreshOptions, refreshOptions)
+}
+
+// Currently there is a bug where if we switch to a subprocess from within
+// WithWaitingStatus we get stuck there and can't return to lazygit. We could
+// fix this bug, or just stop running subprocesses from within there, given that
+// we don't need to see a loading status if we're in a subprocess.
+func (self *GpgHelper) withGpgHandling(
+	cmdObj *oscommands.CmdObj,
+	configKey git_commands.GpgConfigKey,
+	waitingStatus string,
+	onSuccess func() error,
+	failureRefreshOptions types.RefreshOptions,
+	successRefreshOptions types.RefreshOptions,
 ) error {
 	useSubprocess := self.c.Git().Config.NeedsGpgSubprocess(configKey)
 	if useSubprocess {
@@ -38,23 +51,29 @@ func (self *GpgHelper) WithGpgHandling(
 				return err
 			}
 		}
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope})
+		if success {
+			self.c.Refresh(successRefreshOptions)
+		} else {
+			self.c.Refresh(failureRefreshOptions)
+		}
 
 		return err
 	}
 
-	return self.runAndStream(cmdObj, waitingStatus, onSuccess, refreshScope)
+	return self.runAndStream(
+		cmdObj, waitingStatus, onSuccess, failureRefreshOptions, successRefreshOptions)
 }
 
 func (self *GpgHelper) runAndStream(
 	cmdObj *oscommands.CmdObj,
 	waitingStatus string,
 	onSuccess func() error,
-	refreshScope []types.RefreshableView,
+	failureRefreshOptions types.RefreshOptions,
+	successRefreshOptions types.RefreshOptions,
 ) error {
 	return self.c.WithWaitingStatus(waitingStatus, func(gocui.Task) error {
 		if err := cmdObj.StreamOutput().Run(); err != nil {
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope})
+			self.c.Refresh(failureRefreshOptions)
 			return fmt.Errorf(
 				self.c.Tr.GitCommandFailed, self.c.UserConfig().Keybinding.Universal.ExtrasMenu,
 			)
@@ -66,7 +85,7 @@ func (self *GpgHelper) runAndStream(
 			}
 		}
 
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope})
+		self.c.Refresh(successRefreshOptions)
 		return nil
 	})
 }
