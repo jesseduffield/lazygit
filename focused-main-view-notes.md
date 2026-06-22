@@ -3461,5 +3461,13 @@ Follow-up bugs the testing surfaced, all fixed (no tests, prototype):
    first line of a drag showed the stale hunk-end anchor (range from block end → cursor) before re-anchoring.
    Symptom the user reported: "drag down one line → range from block end to here; one more line → snaps to
    anchored-at-click, correct thereafter." Fix: mark that first movement as a drag like every later one. No
-   `MouseRelease` consumers exist (only `MouseLeft`/`ModMotion`), and it also tightens the patch explorer's
-   drag (its selection now grows from the first dragged line, not the second).
+   `MouseRelease` consumers exist (only `MouseLeft`/`ModMotion`).
+   **Why the old staging panel (patch explorer) never showed this**, despite the same driver bug and its own
+   drag-select: its mouse-down anchors the range *at the click* (`HandleMouseDown` → `SelectNewLineForRange` →
+   `FocusSelection` → `view.SetRangeSelectStart(click)`), so the native anchor is correct from the start; the
+   skipped first-move event still drew a correct `[click, cursor]` range (it only delayed that panel's internal
+   `State` sync by one move, identical end state). The bug bites only when the anchor must *change* at
+   drag-start — the main view's case, where a click anchors at the hunk's far end. So the driver fix is
+   effectively a no-op for the patch explorer; it's needed only for the main view. (An earlier draft of this
+   note wrongly said it "tightens" the patch explorer's drag — it doesn't; the commit message never claimed
+   that.)
