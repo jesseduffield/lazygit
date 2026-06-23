@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -164,7 +165,9 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			// whenever we change commits, we should update branches because the upstream/downstream
 			// counts can change. Whenever we change branches we should also change commits
 			// e.g. in the case of switching branches.
-			refresh("commits and commit files", self.refreshCommitsAndCommitFiles)
+			refresh("commits and commit files", func() {
+				self.refreshCommitsAndCommitFiles(options.CommitSelection)
+			})
 
 			includeWorktreesWithBranches = scopeSet.Includes(types.WORKTREES)
 			if self.c.UserConfig().Git.LocalBranchSortOrder == "recency" {
@@ -385,8 +388,8 @@ func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepB
 	self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex, loadBehindCounts)
 }
 
-func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
-	_ = self.refreshCommitsWithLimit()
+func (self *RefreshHelper) refreshCommitsAndCommitFiles(commitSelection types.CommitSelectionBehavior) {
+	_ = self.refreshCommitsWithLimit(commitSelection)
 	ctx := self.c.Contexts().CommitFiles.GetParentContext()
 	if ctx != nil && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
 		// This makes sense when we've e.g. just amended a commit, meaning we get a new commit hash at the same position.
@@ -430,9 +433,15 @@ func (self *RefreshHelper) determineCheckedOutRef() models.Ref {
 	return nil
 }
 
-func (self *RefreshHelper) refreshCommitsWithLimit() error {
+func (self *RefreshHelper) refreshCommitsWithLimit(commitSelection types.CommitSelectionBehavior) error {
 	self.c.Mutexes().LocalCommitsMutex.Lock()
 	defer self.c.Mutexes().LocalCommitsMutex.Unlock()
+
+	var selectionRange *localCommitSelectionRange
+	if commitSelection == types.KeepCommitSelectionByHash {
+		selectedIdx, rangeStartIdx, rangeSelectMode := self.c.Contexts().LocalCommits.GetSelectionRangeAndMode()
+		selectionRange = captureLocalCommitSelectionRange(self.c.Model().Commits, selectedIdx, rangeStartIdx, rangeSelectMode)
+	}
 
 	checkedOutRef := self.determineCheckedOutRef()
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
@@ -460,8 +469,108 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 		self.c.Model().CheckedOutBranch = ""
 	}
 
+	scrollSelectionIntoView := false
+	switch commitSelection {
+	case types.SelectHeadCommit:
+		if headCommitIdx := models.HeadCommitIdx(commits); headCommitIdx >= 0 {
+			self.c.Contexts().LocalCommits.SetSelection(headCommitIdx)
+			scrollSelectionIntoView = true
+		}
+	case types.KeepCommitSelectionByHash:
+		if selectionRange != nil {
+			selectedIdx, rangeStartIdx, didMove, found := findLocalCommitSelectionRange(commits, selectionRange)
+			if found {
+				self.c.Contexts().LocalCommits.SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, selectionRange.mode)
+				scrollSelectionIntoView = didMove
+			}
+		}
+	case types.KeepCommitSelectionIndex:
+		// The caller set the selection index deliberately; leave it untouched.
+	}
+
 	self.refreshView(self.c.Contexts().LocalCommits)
+	if scrollSelectionIntoView {
+		self.c.OnUIThread(func() error {
+			self.c.Contexts().LocalCommits.FocusLine(true)
+			return nil
+		})
+	}
 	return nil
+}
+
+type localCommitSelectionRange struct {
+	selectedHash     string
+	selectedIsTODO   bool
+	rangeStartHash   string
+	rangeStartIsTODO bool
+	selectedIdx      int
+	rangeStartIdx    int
+	mode             traits.RangeSelectMode
+}
+
+func captureLocalCommitSelectionRange(
+	commits []*models.Commit,
+	selectedIdx int,
+	rangeStartIdx int,
+	mode traits.RangeSelectMode,
+) *localCommitSelectionRange {
+	if !hasRestorableCommitHash(commits, selectedIdx) || !hasRestorableCommitHash(commits, rangeStartIdx) {
+		return nil
+	}
+
+	return &localCommitSelectionRange{
+		selectedHash:     commits[selectedIdx].Hash(),
+		selectedIsTODO:   commits[selectedIdx].IsTODO(),
+		rangeStartHash:   commits[rangeStartIdx].Hash(),
+		rangeStartIsTODO: commits[rangeStartIdx].IsTODO(),
+		selectedIdx:      selectedIdx,
+		rangeStartIdx:    rangeStartIdx,
+		mode:             mode,
+	}
+}
+
+func findLocalCommitSelectionRange(
+	commits []*models.Commit,
+	selectionRange *localCommitSelectionRange,
+) (int, int, bool, bool) {
+	selectedIdx, foundSelected := findCommitByHashPreferringTODOStatus(
+		commits, selectionRange.selectedHash, selectionRange.selectedIsTODO)
+	rangeStartIdx, foundRangeStart := findCommitByHashPreferringTODOStatus(
+		commits, selectionRange.rangeStartHash, selectionRange.rangeStartIsTODO)
+	if !foundSelected || !foundRangeStart {
+		return 0, 0, false, false
+	}
+
+	didMove := selectedIdx != selectionRange.selectedIdx || rangeStartIdx != selectionRange.rangeStartIdx
+	return selectedIdx, rangeStartIdx, didMove, true
+}
+
+// findCommitByHashPreferringTODOStatus finds the commit with the given hash.
+// When both a TODO and a non-TODO commit share that hash - which happens while
+// reverting or cherry-picking, where the rebase TODO entry has the same hash as
+// the real commit - it returns the one whose TODO status matches isTODO. When
+// only one commit has the hash, it is returned regardless of its TODO status,
+// so that a selected commit which turned into a TODO entry across the refresh is
+// still found (e.g. when starting an interactive rebase that stops to edit it).
+func findCommitByHashPreferringTODOStatus(commits []*models.Commit, hash string, isTODO bool) (int, bool) {
+	fallbackIdx := -1
+	for idx, commit := range commits {
+		if commit.Hash() != hash {
+			continue
+		}
+		if commit.IsTODO() == isTODO {
+			return idx, true
+		}
+		if fallbackIdx == -1 {
+			fallbackIdx = idx
+		}
+	}
+
+	return fallbackIdx, fallbackIdx != -1
+}
+
+func hasRestorableCommitHash(commits []*models.Commit, idx int) bool {
+	return idx >= 0 && idx < len(commits) && commits[idx].Hash() != ""
 }
 
 func (self *RefreshHelper) refreshSubCommitsWithLimit() error {

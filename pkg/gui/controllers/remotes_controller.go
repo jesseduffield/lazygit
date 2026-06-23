@@ -374,6 +374,7 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 				self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
 				self.c.Helpers().Refs.SelectFirstBranchAndFirstCommit()
 				refreshOptions.KeepBranchSelectionIndex = true
+				refreshOptions.CommitSelection = types.KeepCommitSelectionIndex
 			}
 		}
 		self.c.Refresh(refreshOptions)

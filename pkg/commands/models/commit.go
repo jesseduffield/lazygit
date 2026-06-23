@@ -160,3 +160,13 @@ func (c *Commit) IsTODO() bool {
 func IsHeadCommit(commits []*Commit, index int) bool {
 	return !commits[index].IsTODO() && (index == 0 || commits[index-1].IsTODO())
 }
+
+func HeadCommitIdx(commits []*Commit) int {
+	for index, commit := range commits {
+		if !commit.IsTODO() {
+			return index
+		}
+	}
+
+	return -1
+}
