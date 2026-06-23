@@ -2,21 +2,21 @@
 
 The pkg/integration package is for integration testing: that is, actually running a real lazygit session and having a robot pretend to be a human user and then making assertions that everything works as expected.
 
-TL;DR: integration tests live in pkg/integration/tests. Run integration tests with:
+TL;DR: integration tests live in pkg/integration/tests, and we run them through the [`just`](https://github.com/casey/just) recipes in the repo's `justfile`. Run the whole suite headlessly with:
 
 ```sh
-go run cmd/integration_test/main.go tui
+just e2e
 ```
 
-or
+or open a terminal UI to browse and run individual tests with:
 
 ```sh
-go run cmd/integration_test/main.go cli [--slow or --sandbox] [testname or testpath...]
+just e2e-tui
 ```
 
 ## Writing tests
 
-The tests live in pkg/integration/tests. Each test is registered in `pkg/integration/tests/test_list.go` which is an auto-generated file. You can re-generate that file by running `go generate ./...` at the root of the Lazygit repo.
+The tests live in pkg/integration/tests. Each test is registered in `pkg/integration/tests/test_list.go` which is an auto-generated file. You can re-generate that file by running `just generate` at the root of the Lazygit repo.
 
 Each test has two important steps: the setup step and the run step.
 
@@ -38,19 +38,18 @@ The run step has two arguments passed in:
 
 ## Running tests
 
-There are three ways to invoke a test:
+We drive the integration tests through the [`just`](https://github.com/casey/just) recipes in the repo's `justfile`, so you'll want `just` installed to run them as described here. (The recipes are thin wrappers, so if you can't install `just`, the underlying commands are right there in the `justfile`.)
 
-1. go run cmd/integration_test/main.go cli [--slow or --sandbox] [testname or testpath...]
-2. go run cmd/integration_test/main.go tui
-3. go test pkg/integration/clients/*.go
+- `just e2e` — run the whole suite headlessly, with no visible UI. This is what CI does, and the fastest way to run everything.
+- `just e2e <name>` — run a single test headlessly, e.g. `just e2e commit/new_branch`; the fastest way to run one test. You can pass several names at once, or a full file path like `pkg/integration/tests/commit/new_branch.go`.
+- `just e2e-cli [--slow|--sandbox|--debug] <name>` — run a single test in a *visible* lazygit UI, so you can watch it (see slow mode below, and sandbox mode and debugging in the following sections).
+- `just e2e-tui` — open a terminal UI for browsing and running tests; the easiest way to find and run a test without having to type its name.
 
-The first, the test runner, is for directly running a test from the command line. If you pass no arguments, it runs all tests.
-The second, the TUI, is for running tests from a terminal UI where it's easier to find a test and run it without having to copy it's name and paste it into the terminal. This is the easiest approach by far.
-The third, the go-test command, intended only for use in CI, to be run along with the other `go test` tests. This runs the tests in headless mode so there's no visual output.
+The name of a test is based on its path, so the name of the test at `pkg/integration/tests/commit/new_branch.go` is `commit/new_branch`.
 
-The name of a test is based on its path, so the name of the test at `pkg/integration/tests/commit/new_branch.go` is commit/new_branch. So to run it with our test runner you would run `go run cmd/integration_test/main.go cli commit/new_branch`.
+zsh users can get tab-completion of these test names — `just e2e sub<Tab>` expands to `submodule/…` — by sourcing `scripts/just_e2e_completion.zsh` from their `.zshrc`; see the comment at the top of that file for details.
 
-You can pass the INPUT_DELAY env var to the test runner in order to set a delay in milliseconds between keypresses or mouse clicks, which helps for watching a test at a realistic speed to understand what it's doing. Or you can pass the '--slow' flag which sets a pre-set 'slow' key delay. In the tui you can press 't' to run the test in slow mode.
+To watch a test run at a realistic speed, pass `--slow` to `just e2e-cli`; it sets a pre-set delay between keypresses and mouse clicks. For finer control, set the `INPUT_DELAY` env var to a number of milliseconds instead, e.g. `INPUT_DELAY=200 just e2e-cli commit/new_branch`. In the TUI you can press 't' to run a test in slow mode.
 
 The resultant repo will be stored in `test/_results`, so if you're not sure what went wrong you can go there and inspect the repo.
 
@@ -67,8 +66,8 @@ The test will run in a VSCode terminal:
 
 Debugging an integration test is possible in two ways:
 
-1. Use the -debug option of the integration test runner's "cli" command, e.g. `go run cmd/integration_test/main.go cli -debug tag/reset.go`
-2. Select a test in the "tui" runner and hit "d" to debug it.
+1. Pass `--debug` to `just e2e-cli`, e.g. `just e2e-cli --debug tag/reset`.
+2. Select a test in `just e2e-tui` and hit "d" to debug it.
 
 In both cases the test runner will print to the console that it is waiting for a debugger to attach, so now you need to tell your debugger to attach to a running process with the name "test_lazygit". If you are using Visual Studio Code, an easy way to do that is to use the "Attach to integration test runner" debug configuration. The test runner will resume automatically when it detects that a debugger was attached. Don't forget to set a breakpoint in the code that you want to step through, otherwise the test will just finish (i.e. it doesn't stop in the debugger automatically).
 
@@ -76,7 +75,7 @@ In both cases the test runner will print to the console that it is waiting for a
 
 Say you want to do a manual test of how lazygit handles merge-conflicts, but you can't be bothered actually finding a way to create merge conflicts in a repo. To make your life easier, you can simply run a merge-conflicts test in sandbox mode, meaning the setup step is run for you, and then instead of the test driving the lazygit session, you're allowed to drive it yourself.
 
-To run a test in sandbox mode you can press 's' on a test in the test TUI or in the test runner pass the --sandbox argument.
+To run a test in sandbox mode, press 's' on a test in `just e2e-tui`, or pass `--sandbox` to `just e2e-cli`, e.g. `just e2e-cli --sandbox conflicts/resolve_multiple_files`.
 
 ## Tips for writing tests
 
