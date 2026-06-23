@@ -312,6 +312,11 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() {
 			// the marks recomputed over the current content stay valid through the swap.
 			self.c.Helpers().Staging.RefreshInclusionGutter()
 
+			// If this re-render is a commit rewrite under the focused main view (drop,
+			// move-patch-out, undo, …), keep the selection on a surviving change rather
+			// than leaving the stale range painted.
+			preserveFocusedMainViewSelectionAcrossContentChange(self.c, task)
+
 			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{

@@ -514,6 +514,67 @@ func revealSelectionAfterPrimaryAction(c *ControllerCommon, sourceViewName strin
 	})
 }
 
+// preserveFocusedMainViewSelectionAcrossContentChange keeps the focused main view's
+// selection sensible when its diff is about to re-render with *different* content — e.g. a
+// commit's diff shrinking after the custom patch built from it is moved into the index, or
+// the whole diff changing after an undo. Those mutations don't run through the
+// focused-main-view action handlers (which install their own reveal; see
+// revealSelectionAfterPrimaryAction), so without this the stale selection — often a large,
+// now-meaningless range — would be left painted over the new content.
+//
+// It is the command-agnostic counterpart of revealSelectionAfterPrimaryAction: rather than
+// teaching every mutating command to capture the selection, the focused main view preserves
+// it itself, by its change-line ordinal, as the diff re-renders. Call it from a diff side
+// panel's render-to-main with the task about to render into the main pane, before
+// triggering the render so the restore rides it.
+//
+// It stands down — leaving the selection exactly as is — unless all of these hold, so it
+// neither fights a more precise restore nor disturbs the selection needlessly:
+//   - the focused main view is the current context and shows a selection;
+//   - no precise restore is already pending (escape / post-stage reveal / context-size),
+//     which places the selection more precisely than an ordinal can;
+//   - the diff command is changing. A plain refresh re-renders the *same* commit's diff,
+//     identical content under an identical command, and there the selection — range and
+//     all — must be left alone; only a command change (e.g. a rebase rewriting the commit's
+//     hash) means the content, and so the old selection's position, actually moved.
+func preserveFocusedMainViewSelectionAcrossContentChange(c *ControllerCommon, mainTask types.UpdateTask) {
+	mainContext := c.Contexts().Normal
+	if c.Context().Current() != mainContext {
+		return
+	}
+	view := mainContext.GetView()
+	if !view.Highlight {
+		return
+	}
+	manager := c.GetViewBufferManagerForView(view)
+	if manager == nil || manager.GetRestoreForNextTask() != nil {
+		return
+	}
+	newKey, ok := diffTaskCommandKey(mainTask)
+	if !ok || newKey == manager.GetTaskKey() {
+		return
+	}
+
+	// Anchor on the selection's first line, matching every revealSelectionAfterPrimaryAction
+	// caller, so a range collapses to its top and the ordinal lands on the nearest surviving
+	// change there.
+	first, _ := view.SelectedLineRange()
+	revealSelectionAfterPrimaryAction(c, mainContext.GetViewName(), mainContext.GetViewName(), first)
+}
+
+// diffTaskCommandKey returns the buffer-manager task key a diff render task will register
+// under — the joined command line, as newCmdTask/newPtyTask derive it — or false for a
+// non-command task (a placeholder string), which has no command to compare.
+func diffTaskCommandKey(task types.UpdateTask) (string, bool) {
+	switch t := task.(type) {
+	case *types.RunCommandTask:
+		return strings.Join(t.Cmd.Args, " "), true
+	case *types.RunPtyTask:
+		return strings.Join(t.Cmd.Args, " "), true
+	}
+	return "", false
+}
+
 func (self *MainViewController) enter() error {
 	if !self.context.GetView().Highlight {
 		return nil
