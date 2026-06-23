@@ -3400,18 +3400,18 @@ old staging/patch-building explorer views are left alone):
 1. **Click-to-focus selects the clicked hunk.** Clicking the unfocused main view to focus it used to drop a
    single-line selection at the click; the common intent is "stage this block", so it needed a follow-up `a`.
    Now, when `useHunkModeInStagingView` is on, a click on a **change line** selects that line's whole change
-   block (hunk mode), matching what keyboard focus already did (`bf2aa45a6`). A click on **context** still
+   block (hunk mode), matching what keyboard focus already did. A click on **context** still
    selects just that line (so it stays editable with `e`). The single source is
    `placeOrHideInitialDiffSelection`'s `clickedViewLine >= 0` branch; new predicate
    `StagingHelper.IsChangeLine(view, viewLine)` (wraps `GetDiffLineInfoForView(...).IsChange()`) names the
-   "is the clicked line stageable" test, shared by this branch and the keyboard one. Commit `292d5ede3`.
+   "is the clicked line stageable" test, shared by this branch and the keyboard one.
 2. **Clicking another hunk keeps hunk mode.** A pre-existing wart (inherited from staging/patch-building):
    once in hunk mode, clicking another change line reset to a single line. Now a click on a change line while
    in hunk mode re-selects that whole block; a click on context — or any click when not in hunk mode — drops
    to a single line. The two click handlers (`onClickInAlreadyFocusedView`, `onClickInOtherViewOfMainViewPair`)
    shared an identical selection body, so they were unified into one `selectClickedDiffLine` helper and the
    change made once. The decision keys off the **current** select mode (preserve hunk), not the config
-   (which only seeds the *initial* mode on focus) — the two compose. Commit `ac7ab0650`.
+   (which only seeds the *initial* mode on focus) — the two compose.
 
 **Open question resolved (user decided):** clicking a context line in part 1 stays in **line mode** rather
 than snapping to the next hunk below (`selectDiffHunk`/`ChangeBlockBounds` *would* snap, so the `IsChangeLine`
@@ -3421,13 +3421,13 @@ change). User's verdict on part 1 after manual testing: "feels much better, I li
 
 Follow-up bugs the testing surfaced, all fixed (no tests, prototype):
 
-3. **First cross-pane click dropped hunk mode** (`04de0384e`). Clicking the *other* main pane (the staged
+3. **First cross-pane click dropped hunk mode.** Clicking the *other* main pane (the staged
    side you weren't focused on) selected a single line the first time even in hunk mode, because that pane's
    `DiffSelectState` was still its default until it had been focused once — tabbing to it and back was the
    workaround the user found. Fix: `onClickInOtherViewOfMainViewPair` now copies the leaving pane's
    `DiffSelectState` to the clicked pane before `selectClickedDiffLine` runs, so the very first click there
    behaves like every later one. (The two panes keep independent select state; this seeds the target.)
-4. **A selection's far end not preserved across a pager switch** (`0e53b3785`).
+4. **A selection's far end not preserved across a pager switch.**
    `PreserveDiffPositionOnRerender` restored the cursor by patch identity but left the selection's *other* end
    (the range anchor) pinned to its old view line; a restructuring pager (normal delta → delta **side-by-side**
    is the clear repro) then left the selection spanning the wrong patch lines. Fix (general, not hunk-specific
@@ -3441,7 +3441,7 @@ Follow-up bugs the testing surfaced, all fixed (no tests, prototype):
    primary (`Normal`) pane is preserved on a pager switch (both callers pass `Contexts().Normal.GetView()`), so
    a selection on the *focused secondary* pane still isn't preserved — a pre-existing, broader gap (its scroll
    isn't preserved either), left as-is.
-5. **Click-and-drag range anchored wrong / dead on context lines** (`8c3d52cca`). Dragging after a click turns
+5. **Click-and-drag range anchored wrong / dead on context lines.** Dragging after a click turns
    a hunk selection into a range, but it was anchored at the change block's far end (where selecting a hunk
    leaves the gocui range anchor), and on a context line — where the click leaves no range anchor — dragging
    just moved the single selected line. Root cause: a click can show a whole hunk, so the gocui range anchor
@@ -3454,7 +3454,7 @@ Follow-up bugs the testing surfaced, all fixed (no tests, prototype):
    between mouse-down and its drag, so no patch-identity needed). The old (buggy) behaviour came for free from
    `selectDiffHunk` leaving a range anchor + gocui moving the cursor on drag; nothing handled the drag
    explicitly before.
-   **Follow-on (`e74a33880`), a gocui driver bug the above exposed:** the *first* drag-movement event was
+   **Follow-on, a gocui driver bug the above exposed:** the *first* drag-movement event was
    reported as `MouseRelease`, not `MouseLeft`+`ModMotion` — the tcell driver's `MAYBE_DRAGGING → DRAGGING`
    transition (`tcell_driver.go`) set the state but left `mouseKey`/`mouseMod` at their defaults. gocui still
    moved the cursor for it, but `onDragInFocusedView` didn't fire until the *second* moved-to line, so the
