@@ -46,7 +46,7 @@ while still being meaningful and self-contained.
 
 - **Every commit must compile and pass all tests.** No "WIP" commits, no
   commits that leave the tree broken and rely on a follow-up to fix it.
-- **Every commit must be `gofumpt`-formatted.** Run `make format` before
+- **Every commit must be `gofumpt`-formatted.** Run `just format` before
   committing.
 - **Commit messages explain _why_, not _what_.** The diff already shows what
   changed; the message should capture the motivation, the constraint, or the
@@ -284,7 +284,7 @@ So:
 - For changes to `userConfig` fields specifically, don't edit
   `docs-master/Config.md` by hand either — the relevant section is
   auto-generated from the struct field doc comments. After editing the
-  struct, run `make generate` and include the regenerated
+  struct, run `just generate` and include the regenerated
   `docs-master/Config.md` (and `schema-master/config.json`) in your commit.
 - Don't hard-wrap the doc comments on `userConfig` fields. This applies
   *only* to `userConfig`, because those comments are fed through the doc
