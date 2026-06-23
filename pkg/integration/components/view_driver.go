@@ -408,6 +408,28 @@ func (self *ViewDriver) IsFocused() *ViewDriver {
 	return self
 }
 
+// asserts that the view is the one currently shown in its window, i.e. it's the
+// active tab of its panel (drawn in front of the window's other tabs). Unlike
+// IsFocused, this is about what's displayed rather than which view has keyboard
+// focus; the two can disagree, e.g. if a config reload reshuffles the tabs.
+func (self *ViewDriver) IsActiveTab() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		expected := self.getView().Name()
+		context := self.t.gui.ContextForView(expected)
+		if context == nil {
+			return false, fmt.Sprintf("%s: Could not find context for view, so can't determine its window", expected)
+		}
+		topView := self.t.gui.TopViewInWindow(context.GetWindowName())
+		actual := ""
+		if topView != nil {
+			actual = topView.Name()
+		}
+		return actual == expected, fmt.Sprintf("%s: Expected view to be the active tab of its window, but it was %s", expected, actual)
+	})
+
+	return self
+}
+
 func (self *ViewDriver) Press(key config.Keybinding) *ViewDriver {
 	self.IsFocused()
 

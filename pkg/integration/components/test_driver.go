@@ -56,6 +56,14 @@ func (self *TestDriver) GlobalPress(key config.Keybinding) {
 	self.press(key[0])
 }
 
+// FocusIn simulates the terminal window regaining focus, which causes lazygit
+// to reload any config files that changed while it was in the background.
+func (self *TestDriver) FocusIn() {
+	self.SetCaption("Focusing window")
+	self.gui.FocusIn()
+	self.Wait(self.inputDelay)
+}
+
 func (self *TestDriver) typeContent(content string) {
 	for _, char := range content {
 		self.pressFast(string(char))
