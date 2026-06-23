@@ -3471,3 +3471,54 @@ Follow-up bugs the testing surfaced, all fixed (no tests, prototype):
    effectively a no-op for the patch explorer; it's needed only for the main view. (An earlier draft of this
    note wrongly said it "tightens" the patch explorer's drag — it doesn't; the commit message never claimed
    that.)
+
+### 21.33 Session 23 (2026-06-23): preserve the selection across commit rewrites (not just `d`)
+
+`d` re-establishes the focused-main-view selection on the next surviving change (§21.26/§21.27), and it feels
+great — but it was the *only* path that did. Other operations that rewrite the commit under the focused main
+view (move-patch-out-into-index from the custom patch menu, undo/redo right after a `d` or a patch move)
+don't run through the focused-main-view action handlers, so nothing preserved the selection: the stale gocui
+selection (cursor/origin/anchor) was left painted over the new content — often a large, now-meaningless range.
+
+**Decision (with the user): a centralised, command-agnostic net, not per-command wiring.** Rather than teach
+every mutating command (move-patch ×N, undo, redo, future ones) to capture+restore the selection, the focused
+main view preserves it *itself*, by change-line ordinal, as the diff re-renders — the command-agnostic twin of
+`revealSelectionAfterPrimaryAction`. New free function `preserveFocusedMainViewSelectionAcrossContentChange`
+(main_view_controller.go, beside the per-action reveal), called from the four commit-diff side panels'
+`GetOnRenderToMain` (localCommits / subCommits / commitFiles / stash) right before `RenderToMainViews`, so the
+restore it installs rides the upcoming re-render. (No single controllers-layer render chokepoint exists, and
+the gui-layer one — `refreshMainViews` — can't reach the controllers-package reveal; four one-line calls to one
+shared fn was the clean option. Files panel deliberately excluded: stable diff command, see the gate.)
+
+**The load-bearing gate (the design's crux, refined mid-discussion).** It stands down unless ALL hold, so it
+neither fights a more precise restore nor disturbs a selection needlessly:
+- the focused main view (`Contexts().Normal`) is the current context and shows a selection (`Highlight`);
+- no precise restore is already pending (`manager.GetRestoreForNextTask() == nil`) — escape / post-stage reveal
+  / `-U` context-size place the selection more precisely than an ordinal can, so defer to them;
+- **the diff command is actually changing** (`diffTaskCommandKey(task) != manager.GetTaskKey()`). This is the
+  one I missed in the original pitch: a plain background refresh re-renders the *same* commit's diff unchanged,
+  and there a live range (mid-selection) must be left alone — only a command change (a rebase rewriting the
+  commit's hash; `ShowCmdObj(commit.Hash())`) means the content, and the selection's position, moved. The gate
+  also neatly scopes the net to exactly the commit-rewriting ops. Handles both `RunCommandTask` and
+  `RunPtyTask` (pager), since both honour the restore (pty.go) and key on `strings.Join(cmd.Args, " ")`.
+
+**Anchor = the selection's first line** (`SelectedLineRange()`'s first), matching every existing
+`revealSelectionAfterPrimaryAction` caller — *not* the literal cursor end. (We'd discussed "cursor's ordinal";
+this is the finer reconciliation. Identical for a single line; for a range it collapses to the top. It honours
+"the selection, not the patch" either way, is consistent, and made the bespoke `d` reveal exactly redundant.)
+
+**Why the popup case works:** `MenuContext.OnMenuPress` pops the menu (`Context().Pop()`) *before* running the
+item's `OnPress`, so by the time move-patch's refresh re-renders, `Current()` is the focused main view again.
+Undo is a Global keybinding, so it fires while the main view holds focus.
+
+**Removed the bespoke commit-discard reveal** (the §21.27 bug-3 install in `discardSelectionFromCommit`): its
+rebase rewrites the commit → the net now fires with the same anchor → the install was redundant. Behaviour-
+preserving (the existing `discard_lines_from_commit_main_view` e2e still passes, now driven by the net).
+**Files-discard keeps its reveal**: stable diff command (net never fires there) + it has staging's focus-follow
+to the secondary pane. Stage / unstage / patch-toggle keep theirs too (toggle doesn't change the command).
+
+**Tests** (both verified meaningful by neutering the net → both fail): `patch_building/
+keep_selection_after_moving_patch_out_main_view` (build a 1-line patch, leave a multi-line range, move out →
+range collapses to the surviving `+two`) and `undo/undo_keeps_focused_main_view_selection` (discard a line,
+leave a range, undo → range collapses to the restored `+one`). Two commits (feature, then the removal).
+`build` + `unit` + `lint` + **full `e2e` all green.**
