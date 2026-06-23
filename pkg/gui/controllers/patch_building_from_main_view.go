@@ -209,12 +209,9 @@ func discardSelectionFromCommit(
 			return c.WithWaitingStatusSync(c.Tr.RebasingStatus, func() error {
 				c.LogAction(c.Tr.Actions.RemovePatchFromCommit)
 				err := c.Git().Patch.DeletePatchesFromCommit(c.Model().Commits, commitIndex)
-				// The rebase removes the selected lines, so the commit's diff shrinks
-				// there. Re-establish the selection at its change-line ordinal once the
-				// refresh below re-renders the diff, advancing to the next surviving change
-				// just like staging — installed before the refresh so the re-render rides
-				// it. The diff stays in the same pane, so source and target are the same.
-				revealSelectionAfterPrimaryAction(c, mainViewName, mainViewName, firstLineIdx)
+				// The rebase rewrites the commit, so the focused main view's selection is
+				// re-established on the next surviving change as the diff re-renders (see
+				// preserveFocusedMainViewSelectionAcrossContentChange).
 				return c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 					err, types.RefreshOptions{Mode: types.SYNC})
 			})
