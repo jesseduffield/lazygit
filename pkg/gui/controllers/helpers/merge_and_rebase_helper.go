@@ -111,10 +111,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 		)
 	}
 	result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
-	if err := self.CheckMergeOrRebase(result); err != nil {
-		return err
-	}
-	return nil
+	return self.CheckMergeOrRebase(result)
 }
 
 func (self *MergeAndRebaseHelper) hasExecTodos() bool {
