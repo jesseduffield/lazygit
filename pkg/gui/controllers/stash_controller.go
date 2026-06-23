@@ -105,6 +105,10 @@ func (self *StashController) GetOnRenderToMain() func() {
 			// built from this panel. See LocalCommitsController.GetOnRenderToMain.
 			self.c.Helpers().Staging.RefreshInclusionGutter()
 
+			// Preserve the focused-main-view selection across a content change. See
+			// LocalCommitsController.GetOnRenderToMain.
+			preserveFocusedMainViewSelectionAcrossContentChange(self.c, task)
+
 			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
