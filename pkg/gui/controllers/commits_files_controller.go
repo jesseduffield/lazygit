@@ -186,6 +186,10 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		// recomputed over the current content stay valid through the swap.
 		self.c.Helpers().Staging.RefreshInclusionGutter()
 
+		// Preserve the focused-main-view selection across a commit rewrite. See
+		// LocalCommitsController.GetOnRenderToMain.
+		preserveFocusedMainViewSelectionAcrossContentChange(self.c, task)
+
 		self.c.RenderToMainViews(types.RefreshMainOpts{
 			Pair: self.c.MainViewPairs().Normal,
 			Main: &types.ViewUpdateOpts{
