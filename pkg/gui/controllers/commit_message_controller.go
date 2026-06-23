@@ -98,10 +98,16 @@ func (self *CommitMessageController) context() *context.CommitMessageContext {
 }
 
 func (self *CommitMessageController) handlePreviousCommit() error {
+	if self.context().IsGeneratingCommitMessage() {
+		return nil
+	}
 	return self.handleCommitIndexChange(1)
 }
 
 func (self *CommitMessageController) handleNextCommit() error {
+	if self.context().IsGeneratingCommitMessage() {
+		return nil
+	}
 	if self.context().GetSelectedIndex() == context.NoCommitIndex {
 		return nil
 	}
@@ -114,6 +120,10 @@ func (self *CommitMessageController) switchToCommitDescription() error {
 }
 
 func (self *CommitMessageController) handleTogglePanel() error {
+	if self.context().IsGeneratingCommitMessage() {
+		return nil
+	}
+
 	// The default keybinding for this action is "<tab>", which means that we
 	// also get here when pasting multi-line text that contains tabs. In that
 	// case we don't want to toggle the panel, but insert the tab as a character
@@ -174,6 +184,10 @@ func (self *CommitMessageController) setCommitMessageAtIndex(index int) (bool, e
 }
 
 func (self *CommitMessageController) confirm() error {
+	if self.context().IsGeneratingCommitMessage() {
+		return nil
+	}
+
 	// The default keybinding for this action is "<enter>", which means that we
 	// also get here when pasting multi-line text that contains newlines. In
 	// that case we don't want to confirm the commit, but switch to the
@@ -192,11 +206,19 @@ func (self *CommitMessageController) confirm() error {
 }
 
 func (self *CommitMessageController) close() error {
+	if self.context().CancelGenerateCommitMessage() {
+		return nil
+	}
+
 	self.c.Helpers().Commits.CloseCommitMessagePanel()
 	return nil
 }
 
 func (self *CommitMessageController) openCommitMenu() error {
+	if self.context().IsGeneratingCommitMessage() {
+		return nil
+	}
+
 	authorSuggestion := self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc()
 	return self.c.Helpers().Commits.OpenCommitMenu(authorSuggestion)
 }
