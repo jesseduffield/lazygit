@@ -21,8 +21,9 @@ Windows box has only `just`).
 - `just format` — `gofumpt -l -w .`. Run before every commit.
 - `just build` — build the binary.
 - `just unit-test` — `go test ./... -short`.
-- `just e2e-all` — run all integration tests headlessly (`just e2e <name>` runs a
-  single one with a visible UI).
+- `just e2e` — run all integration tests headlessly; `just e2e <name>` runs a
+  single one headlessly too. `just e2e-cli <name>` runs one with a visible UI
+  (most useful with `--sandbox` or `--slow`).
 - `just lint` — run golangci-lint.
 
 ## When to commit
