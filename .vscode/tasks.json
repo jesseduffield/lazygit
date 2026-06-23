@@ -24,7 +24,7 @@
     {
       "label": "Run current file integration test",
       "type": "shell",
-      "command": "go run cmd/integration_test/main.go cli ${relativeFile}",
+      "command": "just e2e ${relativeFile}",
       "problemMatcher": [],
       "group": {
         "kind": "test",
