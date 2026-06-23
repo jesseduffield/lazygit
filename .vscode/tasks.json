@@ -62,18 +62,6 @@
       }
     },
     {
-      "label": "Open deprecated test TUI",
-      "type": "shell",
-      "command": "go run pkg/integration/deprecated/cmd/tui/main.go",
-      "problemMatcher": [],
-      "group": {
-        "kind": "test",
-      },
-      "presentation": {
-        "focus": true
-      }
-    },
-    {
       "label": "Sync tests list",
       "type": "shell",
       "command": "go generate pkg/integration/tests/tests.go",
