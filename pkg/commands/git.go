@@ -121,7 +121,7 @@ func NewGitCommandAux(
 			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, previousPath, plain)
 		},
 		func() (string, error) {
-			return os.MkdirTemp("", "lazygit-custom-patch-")
+			return os.MkdirTemp(osCommand.GetTempDir(), "custom-patch-")
 		})
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)
