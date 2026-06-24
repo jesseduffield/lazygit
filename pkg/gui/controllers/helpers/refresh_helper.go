@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -19,6 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"github.com/sasha-s/go-deadlock"
 )
 
 type RefreshHelper struct {
@@ -36,6 +38,12 @@ type RefreshHelper struct {
 	// Keyed by repo path so that switching to a different repo while lazygit is running
 	// still triggers the prompt there.
 	githubBaseRemotePromptDismissed map[string]bool
+
+	// Last observed refs+HEAD fingerprint, used by the background poller to
+	// decide whether a real refresh is needed. Written at the end of every
+	// refresh that re-read refs/commits, read by the poller.
+	refsSnapshotMutex deadlock.Mutex
+	refsSnapshot      string
 }
 
 func NewRefreshHelper(
@@ -106,6 +114,30 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			scopeSet = set.NewFromSlice(options.Scope)
 		}
 
+		// Expand co-refreshing scopes up front so downstream conditions can be
+		// simple single-scope checks. The relationships are:
+		//   - whenever the reflog or bisect info changes, commits and branches
+		//     can change too (e.g. switching branches updates the reflog and
+		//     can move HEAD), so refresh commits + branches alongside
+		//   - submodules are refreshed as part of the files refresh
+		//   - merge conflicts are part of what the files refresh produces
+		if scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
+			scopeSet.Add(types.COMMITS, types.BRANCHES)
+		}
+		if scopeSet.Includes(types.SUBMODULES) {
+			scopeSet.Add(types.FILES)
+		}
+		if scopeSet.Includes(types.FILES) {
+			scopeSet.Add(types.MERGE_CONFLICTS)
+		}
+
+		// Capture the refs snapshot now, before we start reading git's state
+		// below, rather than after. This is important to guard against the race
+		// of git's state changing externally while (or right after) we are
+		// refreshing; the risk is one potential extra refresh, but capturing the
+		// snapshot at the end would risk missing one, which is worse.
+		self.updateRefsSnapshotIfRelevant(scopeSet)
+
 		wg := sync.WaitGroup{}
 		refresh := func(name string, f func()) {
 			// if we're in a demo we don't want any async refreshes because
@@ -129,11 +161,13 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 
 		branchesAndRemotesWg := sync.WaitGroup{}
 		includeWorktreesWithBranches := false
-		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) || scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
+		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) {
 			// whenever we change commits, we should update branches because the upstream/downstream
 			// counts can change. Whenever we change branches we should also change commits
 			// e.g. in the case of switching branches.
-			refresh("commits and commit files", self.refreshCommitsAndCommitFiles)
+			refresh("commits and commit files", func() {
+				self.refreshCommitsAndCommitFiles(options.CommitSelection)
+			})
 
 			includeWorktreesWithBranches = scopeSet.Includes(types.WORKTREES)
 			if self.c.UserConfig().Git.LocalBranchSortOrder == "recency" {
@@ -166,10 +200,10 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		}
 
 		fileWg := sync.WaitGroup{}
-		if scopeSet.Includes(types.FILES) || scopeSet.Includes(types.SUBMODULES) {
+		if scopeSet.Includes(types.FILES) {
 			fileWg.Add(1)
 			refresh("files", func() {
-				_ = self.refreshFilesAndSubmodules()
+				_ = self.refreshFilesAndSubmodules(options.Background)
 				fileWg.Done()
 			})
 		}
@@ -212,7 +246,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			refresh("patch building", func() { self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{}) })
 		}
 
-		if scopeSet.Includes(types.MERGE_CONFLICTS) || scopeSet.Includes(types.FILES) {
+		if scopeSet.Includes(types.MERGE_CONFLICTS) {
 			refresh("merge conflicts", func() { _ = self.mergeConflictsHelper.RefreshMergeState() })
 		}
 
@@ -234,6 +268,57 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 	}
 
 	f()
+}
+
+// SetRefsSnapshot stores the given snapshot as the last observed refs state.
+// Called externally by the background poller at startup to seed the snapshot,
+// and internally by Refresh at the end of a refs-touching refresh.
+func (self *RefreshHelper) SetRefsSnapshot(snapshot string) {
+	self.refsSnapshotMutex.Lock()
+	defer self.refsSnapshotMutex.Unlock()
+	self.refsSnapshot = snapshot
+}
+
+// RefsSnapshotChangedSince reports whether the given snapshot differs from
+// the last observed one. Pure read; does not update internal state.
+func (self *RefreshHelper) RefsSnapshotChangedSince(snapshot string) bool {
+	self.refsSnapshotMutex.Lock()
+	defer self.refsSnapshotMutex.Unlock()
+
+	// An empty stored snapshot means no refresh has captured one yet, so we
+	// have no baseline to compare against and report "unchanged" rather than
+	// firing a spurious refresh. This can only be the unset zero value: a
+	// snapshot we actually computed is never empty, because its HEAD component
+	// is always non-empty (a branch ref when attached, a hash when detached —
+	// even a repo with no commits yields "ref: refs/heads/main").
+	if self.refsSnapshot == "" {
+		return false
+	}
+
+	return snapshot != self.refsSnapshot
+}
+
+// updateRefsSnapshotIfRelevant captures a fresh refs snapshot from disk at the
+// start of a refresh that re-reads refs/commits (see the call site for why we
+// capture before reading the model rather than after). This keeps the
+// background poller's stored snapshot in sync with what's been observed by the
+// UI, so in-app commands and focus-in refreshes don't cause the next poll to
+// spuriously re-trigger.
+//
+// We check just COMMITS and BRANCHES because the scope-expansion step at the
+// top of Refresh has already added these whenever REFLOG or BISECT_INFO are
+// in scope, and whenever a nil scope was passed.
+func (self *RefreshHelper) updateRefsSnapshotIfRelevant(scopeSet *set.Set[types.RefreshableView]) {
+	if !scopeSet.Includes(types.COMMITS) && !scopeSet.Includes(types.BRANCHES) {
+		return
+	}
+
+	snapshot, err := self.c.Git().Status.RefsSnapshot()
+	if err != nil {
+		self.c.Log.Warnf("RefsSnapshot failed during refresh: %v", err)
+		return
+	}
+	self.SetRefsSnapshot(snapshot)
 }
 
 func getScopeNames(scopes []types.RefreshableView) []string {
@@ -303,8 +388,8 @@ func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepB
 	self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex, loadBehindCounts)
 }
 
-func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
-	_ = self.refreshCommitsWithLimit()
+func (self *RefreshHelper) refreshCommitsAndCommitFiles(commitSelection types.CommitSelectionBehavior) {
+	_ = self.refreshCommitsWithLimit(commitSelection)
 	ctx := self.c.Contexts().CommitFiles.GetParentContext()
 	if ctx != nil && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
 		// This makes sense when we've e.g. just amended a commit, meaning we get a new commit hash at the same position.
@@ -348,9 +433,15 @@ func (self *RefreshHelper) determineCheckedOutRef() models.Ref {
 	return nil
 }
 
-func (self *RefreshHelper) refreshCommitsWithLimit() error {
+func (self *RefreshHelper) refreshCommitsWithLimit(commitSelection types.CommitSelectionBehavior) error {
 	self.c.Mutexes().LocalCommitsMutex.Lock()
 	defer self.c.Mutexes().LocalCommitsMutex.Unlock()
+
+	var selectionRange *localCommitSelectionRange
+	if commitSelection == types.KeepCommitSelectionByHash {
+		selectedIdx, rangeStartIdx, rangeSelectMode := self.c.Contexts().LocalCommits.GetSelectionRangeAndMode()
+		selectionRange = captureLocalCommitSelectionRange(self.c.Model().Commits, selectedIdx, rangeStartIdx, rangeSelectMode)
+	}
 
 	checkedOutRef := self.determineCheckedOutRef()
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
@@ -378,8 +469,108 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 		self.c.Model().CheckedOutBranch = ""
 	}
 
+	scrollSelectionIntoView := false
+	switch commitSelection {
+	case types.SelectHeadCommit:
+		if headCommitIdx := models.HeadCommitIdx(commits); headCommitIdx >= 0 {
+			self.c.Contexts().LocalCommits.SetSelection(headCommitIdx)
+			scrollSelectionIntoView = true
+		}
+	case types.KeepCommitSelectionByHash:
+		if selectionRange != nil {
+			selectedIdx, rangeStartIdx, didMove, found := findLocalCommitSelectionRange(commits, selectionRange)
+			if found {
+				self.c.Contexts().LocalCommits.SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, selectionRange.mode)
+				scrollSelectionIntoView = didMove
+			}
+		}
+	case types.KeepCommitSelectionIndex:
+		// The caller set the selection index deliberately; leave it untouched.
+	}
+
 	self.refreshView(self.c.Contexts().LocalCommits)
+	if scrollSelectionIntoView {
+		self.c.OnUIThread(func() error {
+			self.c.Contexts().LocalCommits.FocusLine(true)
+			return nil
+		})
+	}
 	return nil
+}
+
+type localCommitSelectionRange struct {
+	selectedHash     string
+	selectedIsTODO   bool
+	rangeStartHash   string
+	rangeStartIsTODO bool
+	selectedIdx      int
+	rangeStartIdx    int
+	mode             traits.RangeSelectMode
+}
+
+func captureLocalCommitSelectionRange(
+	commits []*models.Commit,
+	selectedIdx int,
+	rangeStartIdx int,
+	mode traits.RangeSelectMode,
+) *localCommitSelectionRange {
+	if !hasRestorableCommitHash(commits, selectedIdx) || !hasRestorableCommitHash(commits, rangeStartIdx) {
+		return nil
+	}
+
+	return &localCommitSelectionRange{
+		selectedHash:     commits[selectedIdx].Hash(),
+		selectedIsTODO:   commits[selectedIdx].IsTODO(),
+		rangeStartHash:   commits[rangeStartIdx].Hash(),
+		rangeStartIsTODO: commits[rangeStartIdx].IsTODO(),
+		selectedIdx:      selectedIdx,
+		rangeStartIdx:    rangeStartIdx,
+		mode:             mode,
+	}
+}
+
+func findLocalCommitSelectionRange(
+	commits []*models.Commit,
+	selectionRange *localCommitSelectionRange,
+) (int, int, bool, bool) {
+	selectedIdx, foundSelected := findCommitByHashPreferringTODOStatus(
+		commits, selectionRange.selectedHash, selectionRange.selectedIsTODO)
+	rangeStartIdx, foundRangeStart := findCommitByHashPreferringTODOStatus(
+		commits, selectionRange.rangeStartHash, selectionRange.rangeStartIsTODO)
+	if !foundSelected || !foundRangeStart {
+		return 0, 0, false, false
+	}
+
+	didMove := selectedIdx != selectionRange.selectedIdx || rangeStartIdx != selectionRange.rangeStartIdx
+	return selectedIdx, rangeStartIdx, didMove, true
+}
+
+// findCommitByHashPreferringTODOStatus finds the commit with the given hash.
+// When both a TODO and a non-TODO commit share that hash - which happens while
+// reverting or cherry-picking, where the rebase TODO entry has the same hash as
+// the real commit - it returns the one whose TODO status matches isTODO. When
+// only one commit has the hash, it is returned regardless of its TODO status,
+// so that a selected commit which turned into a TODO entry across the refresh is
+// still found (e.g. when starting an interactive rebase that stops to edit it).
+func findCommitByHashPreferringTODOStatus(commits []*models.Commit, hash string, isTODO bool) (int, bool) {
+	fallbackIdx := -1
+	for idx, commit := range commits {
+		if commit.Hash() != hash {
+			continue
+		}
+		if commit.IsTODO() == isTODO {
+			return idx, true
+		}
+		if fallbackIdx == -1 {
+			fallbackIdx = idx
+		}
+	}
+
+	return fallbackIdx, fallbackIdx != -1
+}
+
+func hasRestorableCommitHash(commits []*models.Commit, idx int) bool {
+	return idx >= 0 && idx < len(commits) && commits[idx].Hash() != ""
 }
 
 func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
@@ -542,7 +733,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	self.refreshStatus()
 }
 
-func (self *RefreshHelper) refreshFilesAndSubmodules() error {
+func (self *RefreshHelper) refreshFilesAndSubmodules(background bool) error {
 	self.c.Mutexes().RefreshingFilesMutex.Lock()
 	self.c.State().SetIsRefreshingFiles(true)
 	defer func() {
@@ -554,7 +745,7 @@ func (self *RefreshHelper) refreshFilesAndSubmodules() error {
 		return err
 	}
 
-	if err := self.refreshStateFiles(); err != nil {
+	if err := self.refreshStateFiles(background); err != nil {
 		return err
 	}
 
@@ -567,7 +758,7 @@ func (self *RefreshHelper) refreshFilesAndSubmodules() error {
 	return nil
 }
 
-func (self *RefreshHelper) refreshStateFiles() error {
+func (self *RefreshHelper) refreshStateFiles(background bool) error {
 	fileTreeViewModel := self.c.Contexts().Files.FileTreeViewModel
 
 	prevConflictFileCount := 0
@@ -605,6 +796,7 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	files := self.c.Git().Loaders.FileLoader.
 		GetStatusFiles(git_commands.GetStatusFileOptions{
 			ForceShowUntracked: self.c.Contexts().Files.ForceShowUntracked(),
+			Background:         background,
 		})
 
 	conflictFileCount := 0

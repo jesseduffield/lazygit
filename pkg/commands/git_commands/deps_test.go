@@ -168,6 +168,12 @@ func buildBranchCommands(deps commonDeps) *BranchCommands {
 	return NewBranchCommands(gitCommon)
 }
 
+func buildStatusCommands(deps commonDeps) *StatusCommands {
+	gitCommon := buildGitCommon(deps)
+
+	return NewStatusCommands(gitCommon)
+}
+
 func buildFlowCommands(deps commonDeps) *FlowCommands {
 	gitCommon := buildGitCommon(deps)
 

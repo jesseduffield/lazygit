@@ -24,15 +24,18 @@ func TestGetWindowDimensions(t *testing.T) {
 			UserConfig:        config.GetDefaultConfig(),
 			CurrentWindow:     "files",
 			CurrentSideWindow: "files",
-			SplitMainPanel:    false,
-			ScreenMode:        types.SCREEN_NORMAL,
-			AppStatus:         "",
-			InformationStr:    "information",
-			ShowExtrasWindow:  false,
-			InDemo:            false,
-			IsAnyModeActive:   false,
-			InSearchPrompt:    false,
-			SearchPrefix:      "",
+			// Each panel shows its first tab by default; for the special-cased
+			// panels (status, stash) the view name matches the window name.
+			ActiveViewForWindow: func(window string) string { return window },
+			SplitMainPanel:      false,
+			ScreenMode:          types.SCREEN_NORMAL,
+			AppStatus:           "",
+			InformationStr:      "information",
+			ShowExtrasWindow:    false,
+			InDemo:              false,
+			IsAnyModeActive:     false,
+			InSearchPrompt:      false,
+			SearchPrefix:        "",
 		}
 	}
 
@@ -111,6 +114,152 @@ func TestGetWindowDimensions(t *testing.T) {
 			│                       ││                                                │
 			╰───────────────────────╯│                                                │
 			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "worktrees promoted to its own side panel",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.SidePanels = []config.SidePanel{
+					{"status"},
+					{"files", "submodules"},
+					{"worktrees"},
+					{"branches", "remotes", "tags"},
+					{"commits", "reflog"},
+					{"stash"},
+				}
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭worktrees──────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭branches───────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "stash side panel hidden",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.SidePanels = []config.SidePanel{
+					{"status"},
+					{"files", "worktrees", "submodules"},
+					{"branches", "remotes", "tags"},
+					{"commits", "reflog"},
+				}
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭branches───────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "stash leading a grouped panel doesn't squash its other tabs",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.SidePanels = []config.SidePanel{
+					{"status"},
+					{"files", "worktrees", "submodules"},
+					{"stash", "branches", "remotes", "tags"},
+					{"commits", "reflog"},
+				}
+				// The third panel is named after its first tab, stash, but is
+				// currently showing the branches tab, which must get full height
+				// rather than stash's compact height.
+				args.ActiveViewForWindow = func(window string) string {
+					if window == "stash" {
+						return "branches"
+					}
+					return window
+				}
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
 			│                       ││                                                │
 			│                       ││                                                │
 			│                       ││                                                │

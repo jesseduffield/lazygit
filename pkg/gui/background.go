@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 	"runtime"
+	"sync/atomic"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -13,17 +14,27 @@ import (
 type BackgroundRoutineMgr struct {
 	gui *Gui
 
-	// if we've suspended the gui (e.g. because we've switched to a subprocess)
-	// we typically want to pause some things that are running like background
-	// file refreshes
-	pauseBackgroundRefreshes bool
+	// When this is greater than zero, the background routines (e.g. file refresh)
+	// skip their work. We pause them while the gui is suspended (e.g. for a
+	// subprocess) and while lazygit is itself driving a git operation that would
+	// otherwise be caught mid-flight (see the waiting-status helpers). It's a
+	// count rather than a bool because these pause scopes can overlap.
+	pauseRefreshesCount atomic.Int32
 
 	// a channel to trigger an immediate background fetch; we use this when switching repos
 	triggerFetch chan struct{}
 }
 
 func (self *BackgroundRoutineMgr) PauseBackgroundRefreshes(pause bool) {
-	self.pauseBackgroundRefreshes = pause
+	if pause {
+		self.pauseRefreshesCount.Add(1)
+	} else {
+		self.pauseRefreshesCount.Add(-1)
+	}
+}
+
+func (self *BackgroundRoutineMgr) backgroundRefreshesPaused() bool {
+	return self.pauseRefreshesCount.Load() > 0
 }
 
 func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
@@ -48,6 +59,17 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 			self.gui.c.Log.Errorf(
 				"Value of config option 'refresher.refreshInterval' (%d) is invalid, disabling auto-refresh",
 				refreshInterval)
+		}
+	}
+
+	if userConfig.Git.AutoDetectExternalChanges {
+		interval := userConfig.Refresher.ExternalChangeCheckInterval
+		if interval > 0 {
+			go utils.Safe(self.startBackgroundExternalChangeDetection)
+		} else {
+			self.gui.c.Log.Errorf(
+				"Value of config option 'refresher.externalChangeCheckInterval' (%d) is invalid, disabling external change detection",
+				interval)
 		}
 	}
 
@@ -111,9 +133,58 @@ func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh() {
 
 	userConfig := self.gui.UserConfig()
 	self.goEvery(userConfig.Refresher.RefreshIntervalDuration(), self.gui.stopChan, func(_ bool) error {
-		self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+		self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Background: true})
 		return nil
 	})
+}
+
+func (self *BackgroundRoutineMgr) startBackgroundExternalChangeDetection() {
+	self.gui.waitForIntro.Wait()
+
+	// We don't seed the snapshot here. The startup refresh captures one on
+	// entry (like every refs-touching refresh), and until one has been
+	// captured RefsSnapshotChangedSince treats the empty baseline as
+	// "unchanged", so we never fire a spurious refresh before a baseline
+	// exists — no need to depend on the timing of that startup refresh.
+
+	userConfig := self.gui.UserConfig()
+	self.goEvery(
+		userConfig.Refresher.ExternalChangeCheckIntervalDuration(),
+		self.gui.stopChan,
+		func(_ bool) error {
+			self.checkForExternalChanges()
+			return nil
+		},
+	)
+}
+
+func (self *BackgroundRoutineMgr) checkForExternalChanges() {
+	current, err := self.gui.git.Status.RefsSnapshot()
+	if err != nil {
+		// Transient error (e.g. git process couldn't start). Don't update the
+		// stored snapshot; we'll retry next tick.
+		self.gui.c.Log.Warnf("RefsSnapshot failed: %v", err)
+		return
+	}
+
+	if !self.gui.helpers.Refresh.RefsSnapshotChangedSince(current) {
+		return
+	}
+
+	// goEvery checks the pause count before starting us, but a git operation
+	// may have begun (and paused refreshes) after that check, while we were
+	// reading the snapshot above. In that case the change we detected is the
+	// operation's own intermediate state, so back off: the operation will
+	// refresh and re-snapshot when it finishes, and if the change was really
+	// external we'll catch it on the next tick after the pause lifts. We don't
+	// update the stored snapshot, so nothing is swallowed.
+	if self.backgroundRefreshesPaused() {
+		return
+	}
+
+	// No need to update the stored snapshot here; Refresh does that.
+	self.gui.c.Log.Info("External ref change detected — refreshing")
+	self.gui.c.Refresh(types.RefreshOptions{Background: true})
 }
 
 // returns a channel that can be used to trigger the callback immediately
@@ -124,7 +195,7 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 		doit := func(retriggered bool) {
-			if self.pauseBackgroundRefreshes {
+			if self.backgroundRefreshesPaused() {
 				return
 			}
 			self.gui.c.OnWorker(func(gocui.Task) error {
@@ -155,7 +226,7 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
 	err = self.gui.git.Sync.FetchBackground()
 
-	return self.gui.helpers.BranchesHelper.PostFetchRefresh(err)
+	return self.gui.helpers.BranchesHelper.PostFetchRefresh(err, true)
 }
 
 func (self *BackgroundRoutineMgr) triggerImmediateFetch() {

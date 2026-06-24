@@ -358,6 +358,11 @@
           "description": "If true, periodically refresh files and submodules",
           "default": true
         },
+        "autoDetectExternalChanges": {
+          "type": "boolean",
+          "description": "If true, poll the repo periodically for external ref changes (commits, branch updates, checkouts made outside lazygit) and refresh when one is detected. Independent of autoRefresh, which only governs the files panel.",
+          "default": true
+        },
         "autoForwardBranches": {
           "type": "string",
           "enum": [
@@ -584,6 +589,35 @@
           "type": "integer",
           "description": "The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.",
           "default": 2
+        },
+        "sidePanels": {
+          "items": {
+            "$ref": "#/$defs/SidePanel"
+          },
+          "type": "array",
+          "description": "The side panels, in the order they appear from top to bottom.\nEach entry is a list of one or more names that share a single panel as tabs (cycle through them with the next-tab/previous-tab keys).\nOmit a name to hide it; give a name its own one-element list to promote a tab to a top-level panel.\nValid names are: 'status', 'files', 'worktrees', 'submodules', 'branches', 'remotes', 'tags', 'commits', 'reflog', 'stash'. 'files', 'branches', and 'commits' must always be included; they can't be hidden.",
+          "default": [
+            [
+              "status"
+            ],
+            [
+              "files",
+              "worktrees",
+              "submodules"
+            ],
+            [
+              "branches",
+              "remotes",
+              "tags"
+            ],
+            [
+              "commits",
+              "reflog"
+            ],
+            [
+              "stash"
+            ]
+          ]
         },
         "mainPanelSplitMode": {
           "type": "string",
@@ -3539,20 +3573,44 @@
       "properties": {
         "refreshInterval": {
           "type": "integer",
-          "minimum": 0,
+          "exclusiveMinimum": 0,
           "description": "File/submodule refresh interval in seconds.\nAuto-refresh can be disabled via option 'git.autoRefresh'.",
           "default": 10
         },
         "fetchInterval": {
           "type": "integer",
-          "minimum": 0,
+          "exclusiveMinimum": 0,
           "description": "Re-fetch interval in seconds.\nAuto-fetch can be disabled via option 'git.autoFetch'.",
           "default": 60
+        },
+        "externalChangeCheckInterval": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "Interval in seconds at which lazygit polls for external ref changes (commits, branch updates, checkouts made outside lazygit).\nDetection can be disabled via option 'git.autoDetectExternalChanges'.",
+          "default": 2
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "Background refreshes"
+    },
+    "SidePanel": {
+      "items": {
+        "type": "string",
+        "enum": [
+          "status",
+          "files",
+          "worktrees",
+          "submodules",
+          "branches",
+          "remotes",
+          "tags",
+          "commits",
+          "reflog",
+          "stash"
+        ]
+      },
+      "type": "array"
     },
     "SpinnerConfig": {
       "properties": {
