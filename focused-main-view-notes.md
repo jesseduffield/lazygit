@@ -2228,6 +2228,7 @@ rough edges to surface as we go; the ones known so far are below.
   of line is selected. Needs a different way to mark the selected line(s) (e.g. a
   gutter marker, a foreground/border treatment, or reserving a column — cf. the §21.5
   inclusion overlay, same class of problem). Not for this prototype; keep in mind.
+  **Resolved §21.34** (`narrowSelectionHighlight`: a narrow selection bar at the left edge only).
 
 ### 21.10 Step 1 committed; Step 3 design settled, fold done (resume here)
 
@@ -2371,6 +2372,7 @@ deletion + its replacement + context, exercising the resolution fix),
   lines — delta conveys add/delete purely by background, which the selection overrides.
   Worse than the single-line case. Still deferred (same class as the §21.5 overlay — a
   gutter marker / foreground treatment / reserved column is the eventual answer).
+  **Resolved §21.34.**
 - **`a` on a context line below the last hunk diverges from the staging panel.** The
   staging panel selects the *last* hunk (searches backward when there's nothing forward);
   ours keeps the single line (`ChangeBlockBounds` only snaps *forward* to the first block
@@ -3522,3 +3524,35 @@ keep_selection_after_moving_patch_out_main_view` (build a 1-line patch, leave a 
 range collapses to the surviving `+two`) and `undo/undo_keeps_focused_main_view_selection` (discard a line,
 leave a range, undo → range collapses to the restored `+one`). Two commits (feature, then the removal).
 `build` + `unit` + `lint` + **full `e2e` all green.**
+
+### 21.34 Session 24 (2026-06-24): the delta-vs-selection bg fight resolved — `narrowSelectionHighlight`
+
+The §21.9 / §21.9b rough edge — delta conveys add/delete/context purely by background colour, so a full-width
+selection highlight takes the background over and you can't tell what kind of line(s) are selected — is now
+addressed by a per-pager config option. Three tries got here:
+
+- **`HighlightInset = 3`** (be776c653): selection bg only in the *middle*, a 3-col gap at each edge for the
+  pager to show through. Hard-coded, both sides.
+- **`selectionBgColorEdgeWidth`** (8367750f9): inverted — selection bg only on the two outer N columns, pager
+  shows through the middle. Configurable int, per pager. Read as two fat bars bracketing the line; the user
+  couldn't get used to it.
+- **`narrowSelectionHighlight`** (6e4f21bbe, this session): a bool. The selection is a narrow bar (2 cols,
+  fixed) at the **left edge only**; the rest of the line keeps the pager's own background. gocui field renamed
+  `SelectedLineBgColorEdgeWidth` → `SelectedLineBgColorWidth` (an int "paint the left N cols"; the gui layer
+  maps the bool → 2 in `applyCurrentPagerSelectionStyle`, so the magic number has one home). The predicate in
+  `setCharacter` dropped the right-edge clause.
+
+**Two alternatives considered and rejected (with the user):**
+
+- **Blend the pager bg toward the selection colour** (lerp per cell, preserving the add/remove hue difference).
+  Rejected as not general: for a 24-bit colour (delta) we have the real RGB, but for a *palette* colour the
+  terminal owns the palette — lazygit can't know the actual RGB (tcell's `Hex()` only maps through its own
+  *assumed* palette), and forcing an explicit RGB cell would make the selected line's tint stop tracking the
+  terminal's palette as the unselected lines still do. A pager *could* emit palette colours, so blend can't be
+  the general answer.
+- **Dither / checkerboard** (selection bg on alternating cells ≈ a cheap 50% blend). The user tried it: looks
+  terrible in practice (screen-door texture, shimmers on scroll). Out.
+
+Left-only over both-sides: every "this row is special over coloured content" convention (git/editor change
+bars, diff gutters, selection gutters) puts the marker on the left; both-sides reads as heavier framing, which
+was most of what looked off about the edge-width version.
