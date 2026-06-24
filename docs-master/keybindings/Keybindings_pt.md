@@ -357,7 +357,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` o `` | Abrir o ficheiro de config | Abrir arquivo no aplicativo padrão. |
 | `` e `` | Editar arquivo de configuração | Abrir arquivo no editor externo. |
 | `` u `` | Verificar atualização |  |
 | `` <enter> `` | Mudar para um repositório recente |  |

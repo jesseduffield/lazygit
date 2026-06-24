@@ -237,7 +237,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` o `` | 설정 파일 열기 | Open file in default application. |
 | `` e `` | 설정 파일 수정 | Open file in external editor. |
 | `` u `` | 업데이트 확인 |  |
 | `` <enter> `` | 최근에 사용한 저장소로 전환 |  |

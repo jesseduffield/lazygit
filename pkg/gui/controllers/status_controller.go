@@ -34,12 +34,6 @@ func NewStatusController(
 func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Keys:        opts.GetKeys(opts.Config.Universal.OpenFile),
-			Handler:     self.openConfig,
-			Description: self.c.Tr.OpenConfig,
-			Tooltip:     self.c.Tr.OpenFileTooltip,
-		},
-		{
 			Keys:            opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:         self.editConfig,
 			Description:     self.c.Tr.EditConfig,
@@ -170,10 +164,6 @@ func (self *StatusController) askForConfigFile(action func(file string) error) e
 			Items: menuItems,
 		})
 	}
-}
-
-func (self *StatusController) openConfig() error {
-	return self.askForConfigFile(self.c.Helpers().Files.OpenFile)
 }
 
 func (self *StatusController) editConfig() error {

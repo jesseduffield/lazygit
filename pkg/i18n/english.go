@@ -231,7 +231,6 @@ type TranslationSet struct {
 	StashChanges                          string
 	RenameStash                           string
 	RenameStashPrompt                     string
-	OpenConfig                            string
 	EditConfig                            string
 	ForcePush                             string
 	ForcePushPrompt                       string
@@ -1357,7 +1356,6 @@ func EnglishTranslationSet() *TranslationSet {
 		StashChanges:                         "Stash changes",
 		RenameStash:                          "Rename stash",
 		RenameStashPrompt:                    "Rename stash: {{.stashName}}",
-		OpenConfig:                           "Open config file",
 		EditConfig:                           "Edit config file",
 		ForcePush:                            "Force push",
 		ForcePushPrompt:                      "Your branch has diverged from the remote branch. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to force push.",

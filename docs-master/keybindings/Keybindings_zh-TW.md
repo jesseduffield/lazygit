@@ -369,7 +369,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` o `` | 開啟設定檔案 | 使用預設軟體開啟 |
 | `` e `` | 編輯設定檔案 | 使用外部編輯器開啟 |
 | `` u `` | 檢查更新 |  |
 | `` <enter> `` | 切換到最近使用的版本庫 |  |

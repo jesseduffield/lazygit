@@ -340,7 +340,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` o `` | 打开配置文件 | 使用默认程序打开该文件 |
 | `` e `` | 编辑配置文件 | 使用外部编辑器打开文件 |
 | `` u `` | 检查更新 |  |
 | `` <enter> `` | 切换到最近的仓库 |  |

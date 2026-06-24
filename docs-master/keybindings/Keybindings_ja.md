@@ -179,7 +179,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` o `` | 設定ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
 | `` e `` | 設定ファイルを編集 | 外部エディタでファイルを開きます。 |
 | `` u `` | 更新を確認 |  |
 | `` <enter> `` | 最近のリポジトリをチェックアウト |  |
