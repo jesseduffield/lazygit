@@ -134,11 +134,12 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				})
 			},
 			testCases: []testCase{
-				{value: "", valid: false},
-				{value: "1,2,3", valid: false},
+				// The number of entries no longer has to match the number of side
+				// panels, so only the validity of the individual keys matters.
+				{value: "1,2,3", valid: true},
 				{value: "1,2,3,4,5", valid: true},
+				{value: "1,2,3,4,5,6", valid: true},
 				{value: "1,2,3,4,invalid", valid: false},
-				{value: "1,2,3,4,5,6", valid: false},
 			},
 		},
 		{
@@ -313,6 +314,42 @@ func TestUserConfigValidate_spinnerFrames(t *testing.T) {
 		t.Run(s.name, func(t *testing.T) {
 			config := GetDefaultConfig()
 			config.Gui.Spinner.Frames = s.frames
+			err := config.Validate()
+
+			if s.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}
+
+func TestUserConfigValidate_sidePanels(t *testing.T) {
+	scenarios := []struct {
+		name   string
+		panels []SidePanel
+		valid  bool
+	}{
+		{name: "default layout", panels: []SidePanel{{"status"}, {"files", "worktrees", "submodules"}, {"branches", "remotes", "tags"}, {"commits", "reflog"}, {"stash"}}, valid: true},
+		{name: "reordered", panels: []SidePanel{{"status"}, {"files"}, {"commits"}, {"branches"}, {"stash"}}, valid: true},
+		{name: "hidden stash panel", panels: []SidePanel{{"status"}, {"files"}, {"branches"}, {"commits"}}, valid: true},
+		{name: "promoted tab", panels: []SidePanel{{"files", "submodules"}, {"worktrees"}, {"branches"}, {"commits"}}, valid: true},
+		{name: "core panels only", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}}, valid: true},
+		{name: "empty", panels: []SidePanel{}, valid: false},
+		{name: "empty panel", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}, {}}, valid: false},
+		{name: "unknown name", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}, {"bogus"}}, valid: false},
+		{name: "duplicate within panel", panels: []SidePanel{{"files", "files"}, {"branches"}, {"commits"}}, valid: false},
+		{name: "duplicate across panels", panels: []SidePanel{{"files"}, {"branches", "files"}, {"commits"}}, valid: false},
+		{name: "missing files", panels: []SidePanel{{"branches"}, {"commits"}}, valid: false},
+		{name: "missing branches", panels: []SidePanel{{"files"}, {"commits"}}, valid: false},
+		{name: "missing commits", panels: []SidePanel{{"files"}, {"branches"}}, valid: false},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			config := GetDefaultConfig()
+			config.Gui.SidePanels = s.panels
 			err := config.Validate()
 
 			if s.valid {

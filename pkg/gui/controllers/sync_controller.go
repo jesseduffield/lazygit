@@ -175,7 +175,7 @@ func (self *SyncController) pullWithLock(task gocui.Task, opts PullFilesOptions)
 		},
 	)
 
-	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseAndSelectHeadCommit(err)
 }
 
 type pushOpts struct {

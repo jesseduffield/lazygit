@@ -24,6 +24,9 @@ type IntegrationTest interface {
 type GuiDriver interface {
 	PressKey(string)
 	Click(int, int)
+	// Simulate the terminal window regaining focus (which triggers a reload of
+	// changed config files)
+	FocusIn()
 	Keys() config.KeybindingConfig
 	CurrentContext() types.Context
 	ContextForView(viewName string) types.Context
@@ -41,6 +44,8 @@ type GuiDriver interface {
 	// e.g. when we're showing both staged and unstaged changes
 	SecondaryView() *gocui.View
 	View(viewName string) *gocui.View
+	// the frontmost visible view in the given window, i.e. the currently shown tab
+	TopViewInWindow(windowName string) *gocui.View
 	SetCaption(caption string)
 	SetCaptionPrefix(prefix string)
 	// Pop the next toast that was displayed; returns nil if there was none

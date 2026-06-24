@@ -357,6 +357,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			if didChange && reloadErr == nil {
 				gui.c.Log.Info("User config changed - reloading")
 				reloadErr = gui.onUserConfigLoaded()
+				gui.reloadSidePanels()
 				if err := gui.resetKeybindings(); err != nil {
 					return err
 				}
@@ -515,8 +516,10 @@ func (gui *Gui) checkForChangedConfigsThatDontAutoReload(oldConfig *config.UserC
 	configsThatDontAutoReload := []string{
 		"Git.AutoFetch",
 		"Git.AutoRefresh",
+		"Git.AutoDetectExternalChanges",
 		"Refresher.RefreshInterval",
 		"Refresher.FetchInterval",
+		"Refresher.ExternalChangeCheckInterval",
 		"Update.Method",
 		"Update.Days",
 	}
@@ -579,8 +582,9 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 		gui.State = state
 		gui.State.ViewsSetup = false
 
-		contextTree := gui.State.Contexts
-		gui.State.WindowViewNameMap = initialWindowViewNameMap(contextTree)
+		// The repo we're switching to may have a per-repo config with a different
+		// side panel layout, so re-apply it to this repo's contexts.
+		gui.applySidePanelConfig()
 
 		// setting this to nil so we don't get stuck based on a popup that was
 		// previously opened
@@ -620,13 +624,14 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 		},
 		ScreenMode: initialScreenMode,
 		// TODO: only use contexts from context manager
-		ContextMgr:        NewContextMgr(gui, contextTree),
-		Contexts:          contextTree,
-		WindowViewNameMap: initialWindowViewNameMap(contextTree),
-		SearchState:       types.NewSearchState(),
+		ContextMgr:  NewContextMgr(gui, contextTree),
+		Contexts:    contextTree,
+		SearchState: types.NewSearchState(),
 	}
 
 	gui.RepoStateMap[Repo(worktreePath)] = gui.State
+
+	gui.applySidePanelConfig()
 
 	return initialContext(contextTree, startArgs)
 }
@@ -658,11 +663,17 @@ func (gui *Gui) getViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferM
 	return manager
 }
 
-func initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSafeMap[string, string] {
+func (gui *Gui) initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSafeMap[string, string] {
 	result := utils.NewThreadSafeMap[string, string]()
 
 	for _, context := range contextTree.Flatten() {
 		result.Set(context.GetWindowName(), context.GetViewName())
+	}
+
+	// A side panel's window shows its first configured tab by default, which is
+	// not necessarily the context that won the loop above.
+	for _, panel := range gui.c.UserConfig().Gui.SidePanels {
+		result.Set(panel[0], sidePanelViewNames[panel[0]])
 	}
 
 	return result
@@ -834,45 +845,19 @@ func (gui *Gui) initGocui(headless bool, test integrationTypes.IntegrationTest) 
 }
 
 func (gui *Gui) viewTabMap() map[string][]context.TabView {
-	result := map[string][]context.TabView{
-		"branches": {
-			{
-				Tab:      gui.c.Tr.LocalBranchesTitle,
-				ViewName: "localBranches",
-			},
-			{
-				Tab:      gui.c.Tr.RemotesTitle,
-				ViewName: "remotes",
-			},
-			{
-				Tab:      gui.c.Tr.TagsTitle,
-				ViewName: "tags",
-			},
-		},
-		"commits": {
-			{
-				Tab:      gui.c.Tr.CommitsTitle,
-				ViewName: "commits",
-			},
-			{
-				Tab:      gui.c.Tr.ReflogCommitsTitle,
-				ViewName: "reflogCommits",
-			},
-		},
-		"files": {
-			{
-				Tab:      gui.c.Tr.FilesTitle,
-				ViewName: "files",
-			},
-			context.TabView{
-				Tab:      gui.c.Tr.WorktreesTitle,
-				ViewName: "worktrees",
-			},
-			{
-				Tab:      gui.c.Tr.SubmodulesTitle,
-				ViewName: "submodules",
-			},
-		},
+	titles := gui.sidePanelTabTitles()
+	result := map[string][]context.TabView{}
+	for _, panel := range gui.c.UserConfig().Gui.SidePanels {
+		if len(panel) < 2 {
+			// A single-tab panel shows its view's own title, not a tab strip.
+			continue
+		}
+		result[panel[0]] = lo.Map(panel, func(name string, _ int) context.TabView {
+			return context.TabView{
+				Tab:      titles[name],
+				ViewName: sidePanelViewNames[name],
+			}
+		})
 	}
 
 	return result
