@@ -214,9 +214,12 @@ func (self *GlobalController) onDiffRenderersChanged() {
 }
 
 func (self *GlobalController) applyCurrentPagerSelectionStyle() {
-	edgeWidth := self.c.State().GetDiffRendererConfigManager().GetSelectionBgColorEdgeWidth()
-	self.c.Contexts().Normal.GetView().SelectedLineBgColorEdgeWidth = edgeWidth
-	self.c.Contexts().NormalSecondary.GetView().SelectedLineBgColorEdgeWidth = edgeWidth
+	bgColorWidth := 0
+	if self.c.State().GetDiffRendererConfigManager().GetNarrowSelectionHighlight() {
+		bgColorWidth = 2
+	}
+	self.c.Contexts().Normal.GetView().SelectedLineBgColorWidth = bgColorWidth
+	self.c.Contexts().NormalSecondary.GetView().SelectedLineBgColorWidth = bgColorWidth
 }
 
 func (self *GlobalController) canCycleDiffRenderers() *types.DisabledReason {

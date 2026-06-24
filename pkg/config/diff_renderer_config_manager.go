@@ -87,12 +87,12 @@ func (self *DiffRendererConfigManager) GetColorArg() string {
 	return colorArg
 }
 
-func (self *DiffRendererConfigManager) GetSelectionBgColorEdgeWidth() int {
+func (self *DiffRendererConfigManager) GetNarrowSelectionHighlight() bool {
 	currentDiffRendererConfig := self.currentDiffRendererConfig()
 	if currentDiffRendererConfig == nil {
-		return 0
+		return false
 	}
-	return currentDiffRendererConfig.SelectionBgColorEdgeWidth
+	return currentDiffRendererConfig.NarrowSelectionHighlight
 }
 
 func (self *DiffRendererConfigManager) GetExternalDiffCommand(diffContext uint64) string {

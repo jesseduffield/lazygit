@@ -164,13 +164,14 @@ func (gui *Gui) createAllViews() error {
 }
 
 func (gui *Gui) applyCurrentPagerSelectionStyle() {
-	edgeWidth := 0
-	if gui.stateAccessor != nil && gui.stateAccessor.GetDiffRendererConfigManager() != nil {
-		edgeWidth = gui.stateAccessor.GetDiffRendererConfigManager().GetSelectionBgColorEdgeWidth()
+	bgColorWidth := 0
+	if  gui.stateAccessor != nil && gui.stateAccessor.GetDiffRendererConfigManager() != nil &&
+		gui.stateAccessor.GetDiffRendererConfigManager().GetNarrowSelectionHighlight() {
+		bgColorWidth = 2
 	}
 
-	gui.Views.Main.SelectedLineBgColorEdgeWidth = edgeWidth
-	gui.Views.Secondary.SelectedLineBgColorEdgeWidth = edgeWidth
+	gui.Views.Main.SelectedLineBgColorWidth = bgColorWidth
+	gui.Views.Secondary.SelectedLineBgColorWidth = bgColorWidth
 }
 
 func (gui *Gui) configureViewProperties() {
