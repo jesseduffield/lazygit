@@ -159,21 +159,21 @@ func TestAutoRenderingHyperlinks(t *testing.T) {
 	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
 }
 
-func TestSelectedLineBgColorEdgeWidth(t *testing.T) {
+func TestSelectedLineBgColorWidth(t *testing.T) {
 	tests := []struct {
-		name      string
-		edgeWidth int
-		selected  func(screenX int) bool
+		name         string
+		bgColorWidth int
+		selected     func(screenX int) bool
 	}{
 		{
-			name:      "zero uses full-width selection background",
-			edgeWidth: 0,
-			selected:  func(_ int) bool { return true },
+			name:         "zero uses full-width selection background",
+			bgColorWidth: 0,
+			selected:     func(_ int) bool { return true },
 		},
 		{
-			name:      "non-zero uses edge-only selection background",
-			edgeWidth: 2,
-			selected:  func(screenX int) bool { return screenX <= 2 || screenX >= 9 },
+			name:         "non-zero uses left-edge selection background",
+			bgColorWidth: 2,
+			selected:     func(screenX int) bool { return screenX <= 2 },
 		},
 	}
 
@@ -184,7 +184,7 @@ func TestSelectedLineBgColorEdgeWidth(t *testing.T) {
 			v := NewView("name", 0, 0, 11, 3, OutputNormal) // InnerWidth=10
 			v.Highlight = true
 			v.SelBgColor = ColorBlue
-			v.SelectedLineBgColorEdgeWidth = test.edgeWidth
+			v.SelectedLineBgColorWidth = test.bgColorWidth
 			v.writeString("0123456789\n")
 			v.draw()
 
