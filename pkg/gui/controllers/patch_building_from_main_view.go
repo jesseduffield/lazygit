@@ -75,9 +75,10 @@ func removePatchLinesFromFocusedMainView(
 	}
 
 	refresh()
-	// A removal doesn't change the diff command, so source and target are the same pane;
-	// the re-render still moves the selection in view-line space, so re-establish it.
-	revealSelectionAfterPrimaryAction(c, mainViewName, mainViewName, firstLineIdx)
+	// A removal shrinks the patch shown in the secondary, so the removed lines are consumed
+	// from its diff; preserving the ordinal (advanceBy 0) lands on the next surviving line,
+	// like unstaging.
+	revealSelectionAfterPrimaryAction(c, mainViewName, mainViewName, firstLineIdx, 0)
 	return nil
 }
 
@@ -131,10 +132,12 @@ func togglePatchFromFocusedMainView(
 			}
 
 			refresh()
-			// A toggle doesn't change the diff, so source and target are the same pane;
-			// the re-render (and the layout re-wrap when the secondary view first appears)
-			// still moves the selection in view-line space, so re-establish it.
-			revealSelectionAfterPrimaryAction(c, mainViewName, mainViewName, firstLineIdx)
+			// A toggle doesn't change the diff, so source and target are the same pane; the
+			// re-render (and the layout re-wrap when the secondary view first appears) still
+			// moves the selection in view-line space, so re-establish it — advanced past the
+			// just-toggled change lines to the next stageable hunk/line, since they aren't
+			// consumed (the diff is unchanged), unlike staging.
+			revealSelectionAfterPrimaryAction(c, mainViewName, mainViewName, firstLineIdx, len(infos))
 			return nil
 		},
 	})

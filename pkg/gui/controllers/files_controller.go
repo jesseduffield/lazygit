@@ -601,7 +601,7 @@ func (self *FilesController) applyDiffLineSelection(mainViewName string, firstLi
 	// The Refresh above queued the main-view re-render; re-establish the selection at its
 	// change-line ordinal once that render lands, and focus the pane now holding the
 	// acted-on side.
-	revealSelectionAfterPrimaryAction(self.c, mainViewName, focusViewName, firstLineIdx)
+	revealSelectionAfterPrimaryAction(self.c, mainViewName, focusViewName, firstLineIdx, 0)
 	if focusViewName != mainViewName {
 		self.c.Context().Push(mainContextForViewName(self.c, focusViewName), types.OnFocusOpts{})
 	}

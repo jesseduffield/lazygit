@@ -353,12 +353,18 @@ func (self *StagingHelper) RestoreFocusedMainViewOnEscape(explorerView, mainView
 // the acted-on side to the other pane (e.g. unstaging the first hunk of an only-staged
 // file splits it, pushing the staged remainder to the secondary half); the ordinal is
 // preserved across that move since both panes show the same side.
-func (self *StagingHelper) RevealSelectionAfterStaging(sourceView *gocui.View, targetView *gocui.View, firstLine int, place func(viewLine int)) {
+//
+// advanceBy shifts the landed ordinal forward by that many change lines. Staging and
+// unstaging consume the acted-on lines, so the preserved ordinal (advanceBy 0) already
+// lands on the next change. A custom-patch toggle leaves the diff unchanged, so preserving
+// the ordinal would land back on the just-toggled lines; passing the toggled change-line
+// count advances past them to the next stageable hunk/line, matching the staging feel.
+func (self *StagingHelper) RevealSelectionAfterStaging(sourceView *gocui.View, targetView *gocui.View, firstLine int, advanceBy int, place func(viewLine int)) {
 	ordinal, ok := self.changeLineOrdinal(sourceView, firstLine)
 	if !ok {
 		return
 	}
-	self.revealChangeLineAtOrdinal(targetView, ordinal, place)
+	self.revealChangeLineAtOrdinal(targetView, ordinal+advanceBy, place)
 }
 
 // changeLineOrdinal returns how many change lines precede the (change) line at

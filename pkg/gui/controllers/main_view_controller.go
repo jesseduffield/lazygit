@@ -489,8 +489,11 @@ func (self *MainViewController) usingExternalDiff() bool {
 // sourceViewName and targetViewName are usually the same pane, but staging can move the
 // acted-on side to the other pane (passing that pane as the target). The target inherits
 // the (collapsed) select mode; a range collapses back to a single line, hunk mode stays
-// on to land on the next hunk.
-func revealSelectionAfterPrimaryAction(c *ControllerCommon, sourceViewName string, targetViewName string, firstLineIdx int) {
+// on to land on the next hunk. advanceBy is forwarded to RevealSelectionAfterStaging: 0 for
+// staging/removal (the acted-on lines are consumed), the toggled change-line count for a
+// custom-patch toggle (which leaves the diff intact, so the selection must be advanced past
+// the just-toggled lines to land on the next stageable hunk).
+func revealSelectionAfterPrimaryAction(c *ControllerCommon, sourceViewName string, targetViewName string, firstLineIdx int, advanceBy int) {
 	sourceContext := mainContextForViewName(c, sourceViewName)
 	targetContext := mainContextForViewName(c, targetViewName)
 
@@ -504,7 +507,7 @@ func revealSelectionAfterPrimaryAction(c *ControllerCommon, sourceViewName strin
 
 	sourceView := sourceContext.GetView()
 	targetView := targetContext.GetView()
-	c.Helpers().Staging.RevealSelectionAfterStaging(sourceView, targetView, firstLineIdx, func(viewLine int) {
+	c.Helpers().Staging.RevealSelectionAfterStaging(sourceView, targetView, firstLineIdx, advanceBy, func(viewLine int) {
 		if mode == context.DiffSelectModeHunk {
 			selectDiffHunk(c, targetContext, viewLine)
 		} else {
@@ -559,7 +562,7 @@ func preserveFocusedMainViewSelectionAcrossContentChange(c *ControllerCommon, ma
 	// caller, so a range collapses to its top and the ordinal lands on the nearest surviving
 	// change there.
 	first, _ := view.SelectedLineRange()
-	revealSelectionAfterPrimaryAction(c, mainContext.GetViewName(), mainContext.GetViewName(), first)
+	revealSelectionAfterPrimaryAction(c, mainContext.GetViewName(), mainContext.GetViewName(), first, 0)
 }
 
 // diffTaskCommandKey returns the buffer-manager task key a diff render task will register
