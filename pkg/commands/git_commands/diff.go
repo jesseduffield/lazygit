@@ -110,6 +110,33 @@ func (self *DiffCommands) DiffCmdObj(diffArgs []string, ignoreExternalDiff bool)
 	)
 }
 
+// CustomPatchDiffCmdObj builds the command that renders the custom patch shown in the
+// secondary pane: a `git diff --no-index` of the two file trees PatchCommands materialized
+// under dir (a/ = before, b/ = after; see WriteCustomPatchDiffTrees). It uses the same pager
+// wiring as DiffCmdObj so the patch renders exactly like any other diff — through a stdin
+// pager, an external diff tool, or (when ignoreExternalDiff is set, the focused main view's
+// raw-diff fallback) git's own colour. --no-prefix is used because the a/ and b/ tree names
+// already stand in for git's conventional a//b/ path prefixes, so the diff's paths come out
+// as the real repo-relative paths.
+func (self *DiffCommands) CustomPatchDiffCmdObj(dir string, ignoreExternalDiff bool) *oscommands.CmdObj {
+	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
+	useExtDiff := extDiffCmd != "" && !ignoreExternalDiff
+	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !ignoreExternalDiff
+
+	return self.cmd.New(
+		NewGitCmd("diff").
+			ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
+			ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
+			Arg("--no-index").
+			Arg("--no-prefix").
+			Arg(fmt.Sprintf("--color=%s", self.pagerConfig.GetColorArg())).
+			Arg(fmt.Sprintf("--unified=%d", self.UserConfig().Git.DiffContextSize)).
+			Arg("a", "b").
+			Dir(dir).
+			ToArgv(),
+	)
+}
+
 // This is a basic generic diff command that can be used for any diff operation
 // (e.g. copying a diff to the clipboard). It will not use a custom pager, and
 // does not use user configs such as ignore whitespace.
