@@ -233,12 +233,14 @@ func (self *MainViewController) GetOnFocus() func(types.OnFocusOpts) {
 	}
 }
 
-// GetOnFocusLost hides the inclusion gutter when the focused main view loses focus —
-// it's a focused-main-view affordance, so it shouldn't linger in the side panel's diff
-// preview. A no-op when no gutter is shown.
+// GetOnFocusLost re-evaluates the inclusion gutter as the focused main view loses focus.
+// It's a focused-main-view affordance of the whole pair, so it must persist when tabbing
+// between the two panes but hide when focus leaves the pair entirely. By the time this runs
+// the new context is already current, so RefreshInclusionGutter decides correctly (and so
+// the gutter doesn't flicker off-then-on across a pane switch).
 func (self *MainViewController) GetOnFocusLost() func(types.OnFocusLostOpts) {
 	return func(types.OnFocusLostOpts) {
-		self.context.GetView().SetInclusionGutter(false, nil)
+		self.c.Helpers().Staging.RefreshInclusionGutter()
 	}
 }
 
