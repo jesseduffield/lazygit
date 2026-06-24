@@ -826,20 +826,24 @@ func (self *StagingHelper) diffLineInfoFromParsed(parsed parsedDiffLine) types.D
 // the existing content — the diff is unaffected by patch membership, so it never
 // re-renders.
 func (self *StagingHelper) RefreshInclusionGutter() {
-	mainContext := self.c.Contexts().Normal
-	v := mainContext.GetView()
+	// The gutter is painted on the Normal (commit-diff) pane, but it's a focused-main-view
+	// affordance of the whole pair: it stays visible while either pane holds focus, so it
+	// doesn't vanish when you tab to the secondary custom-patch pane.
+	v := self.c.Contexts().Normal.GetView()
 
-	// Check focus first: the gutter only shows while the main view holds focus, and
-	// NextInStack below requires the context to be in the stack — which it is exactly
-	// when it's the current one.
+	// Check focus first: the gutter only shows while the focused main view holds focus, and
+	// NextInStack below requires the context to be in the stack — which it is exactly when
+	// it's the current one. The side panel is found beneath whichever pane is current.
 	patchBuilder := self.c.Git().Patch.PatchBuilder
-	focused := self.c.Context().CurrentStatic().GetKey() == mainContext.GetKey()
+	current := self.c.Context().CurrentStatic()
+	focused := current.GetKey() == self.c.Contexts().Normal.GetKey() ||
+		current.GetKey() == self.c.Contexts().NormalSecondary.GetKey()
 	if !focused || !patchBuilder.Active() {
 		v.SetInclusionGutter(false, nil)
 		return
 	}
 
-	sidePanel := self.c.Context().NextInStack(mainContext)
+	sidePanel := self.c.Context().NextInStack(current)
 	diffMainView, ok := sidePanel.(types.DiffMainViewContext)
 	if !ok || diffMainView.GetDiffMainViewType() != types.DiffMainViewTypePatchBuilding {
 		v.SetInclusionGutter(false, nil)
