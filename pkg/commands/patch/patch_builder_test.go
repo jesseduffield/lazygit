@@ -13,7 +13,8 @@ func newTestPatchBuilder(diff string) *PatchBuilder {
 	pb := NewPatchBuilder(logrus.New().WithField("test", "test"),
 		func(from, to string, reverse bool, filename string, plain bool) (string, error) {
 			return diff, nil
-		})
+		},
+		nil)
 	pb.Start("from", "to", false, true)
 	return pb
 }

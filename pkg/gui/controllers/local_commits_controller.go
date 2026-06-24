@@ -331,16 +331,35 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() {
 }
 
 func secondaryPatchPanelUpdateOpts(c *ControllerCommon) *types.ViewUpdateOpts {
-	if c.Git().Patch.PatchBuilder.Active() {
-		patch := c.Git().Patch.PatchBuilder.RenderAggregatedPatch(false)
+	patchBuilder := c.Git().Patch.PatchBuilder
+	if !patchBuilder.Active() {
+		return nil
+	}
 
+	// Bring the patch's diff trees up to date if the patch changed since they were last
+	// built (a no-op on a plain re-render, e.g. navigating commits).
+	if err := c.Git().Patch.EnsureCustomPatchDiffTrees(); err != nil {
+		c.Log.Error(err)
+	}
+
+	if patchBuilder.TempDir() == "" {
+		// The patch wasn't materialized (its temp dir couldn't be created); fall back to
+		// rendering the aggregated patch directly with git's own colours.
 		return &types.ViewUpdateOpts{
-			Task:  types.NewRenderStringWithoutScrollTask(patch),
+			Task:  types.NewRenderStringWithoutScrollTask(patchBuilder.RenderAggregatedPatch(false)),
 			Title: c.Tr.CustomPatch,
 		}
 	}
 
-	return nil
+	// Render the custom patch the same way the main view renders its diff — through the
+	// pager, or raw (git's own colour) under the raw-diff fallback / when no pager is
+	// configured — by re-diffing the two file trees the patch was materialized into.
+	renderRaw := c.Helpers().Staging.DiffMainViewShouldRenderRaw()
+	cmdObj := c.Git().Diff.CustomPatchDiffCmdObj(patchBuilder.TempDir(), renderRaw)
+	return &types.ViewUpdateOpts{
+		Task:  types.NewMainViewDiffTask(renderRaw, cmdObj.GetCmd()),
+		Title: c.Tr.CustomPatch,
+	}
 }
 
 func (self *LocalCommitsController) squashDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {

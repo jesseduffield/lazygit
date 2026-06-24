@@ -1,6 +1,7 @@
 package patch
 
 import (
+	"os"
 	"sort"
 	"strings"
 
@@ -48,21 +49,75 @@ type PatchBuilder struct {
 
 	// loadFileDiff loads the diff of a file, for a given to (typically a commit hash)
 	loadFileDiff loadFileDiffFunc
+
+	// newTempDir creates a fresh temp dir for the current patch, into which the patch is
+	// materialized as two file trees so it can be rendered through any pager (see
+	// PatchCommands.WriteCustomPatchDiffTrees). The patch builder owns its lifetime: a dir
+	// is created on Start and removed on Reset. Nil in tests that don't render the patch.
+	newTempDir func() (string, error)
+	tempDir    string
+
+	// generation is bumped on every change to the patch's contents, so a consumer that
+	// materializes the patch (the secondary pane's two file trees) can tell when it's stale
+	// and rebuild only then — covering every path that mutates the patch (the focused main
+	// view and the old explorer alike) without rebuilding on mere navigation.
+	generation int
 }
 
-func NewPatchBuilder(log *logrus.Entry, loadFileDiff loadFileDiffFunc) *PatchBuilder {
+func NewPatchBuilder(log *logrus.Entry, loadFileDiff loadFileDiffFunc, newTempDir func() (string, error)) *PatchBuilder {
 	return &PatchBuilder{
 		Log:          log,
 		loadFileDiff: loadFileDiff,
+		newTempDir:   newTempDir,
 	}
 }
 
 func (p *PatchBuilder) Start(from, to string, reverse bool, canRebase bool) {
+	p.generation++
+	p.removeTempDir()
+	if p.newTempDir != nil {
+		if dir, err := p.newTempDir(); err != nil {
+			p.Log.Error(err)
+		} else {
+			p.tempDir = dir
+		}
+	}
 	p.To = to
 	p.From = from
 	p.reverse = reverse
 	p.CanRebase = canRebase
 	p.fileInfoMap = map[string]*fileInfo{}
+}
+
+// TempDir is the directory the current patch is materialized into for rendering, or "" if
+// none was created. See PatchCommands.WriteCustomPatchDiffTrees.
+func (p *PatchBuilder) TempDir() string {
+	return p.tempDir
+}
+
+// Generation is bumped each time the patch's contents change; see the field comment.
+func (p *PatchBuilder) Generation() int {
+	return p.generation
+}
+
+func (p *PatchBuilder) removeTempDir() {
+	if p.tempDir != "" {
+		_ = os.RemoveAll(p.tempDir)
+		p.tempDir = ""
+	}
+}
+
+// ActiveFilenames returns the files currently part of the patch (mode != UNSELECTED), in
+// sorted order — the files to materialize when rendering the patch.
+func (p *PatchBuilder) ActiveFilenames() []string {
+	filenames := make([]string, 0, len(p.fileInfoMap))
+	for filename, info := range p.fileInfoMap {
+		if info.mode != UNSELECTED {
+			filenames = append(filenames, filename)
+		}
+	}
+	sort.Strings(filenames)
+	return filenames
 }
 
 func (p *PatchBuilder) PatchToApply(reverse bool, turnAddedFilesIntoDiffAgainstEmptyFile bool) string {
@@ -108,6 +163,7 @@ func (p *PatchBuilder) AddFileWhole(filename string) error {
 		return err
 	}
 
+	p.generation++
 	p.addFileWhole(info)
 
 	return nil
@@ -118,6 +174,8 @@ func (p *PatchBuilder) RemoveFile(filename string) error {
 	if err != nil {
 		return err
 	}
+
+	p.generation++
 
 	p.removeFile(info)
 
@@ -149,6 +207,7 @@ func (p *PatchBuilder) AddFileLineRange(filename string, lineIndices []int) erro
 	if err != nil {
 		return err
 	}
+	p.generation++
 	info.mode = PART
 	info.includedLineIndices = lo.Union(info.includedLineIndices, lineIndices)
 
@@ -160,6 +219,7 @@ func (p *PatchBuilder) RemoveFileLineRange(filename string, lineIndices []int) e
 	if err != nil {
 		return err
 	}
+	p.generation++
 	info.mode = PART
 	info.includedLineIndices, _ = lo.Difference(info.includedLineIndices, lineIndices)
 	if len(info.includedLineIndices) == 0 {
@@ -349,6 +409,8 @@ func (p *PatchBuilder) IncludedLineIdentities(filename string) []LineIdentity {
 
 // clears the patch
 func (p *PatchBuilder) Reset() {
+	p.generation++
+	p.removeTempDir()
 	p.To = ""
 	p.fileInfoMap = map[string]*fileInfo{}
 }
