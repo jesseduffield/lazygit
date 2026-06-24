@@ -197,7 +197,7 @@ func (self *trailerMatcher) addCharacter(chr string) {
 	if self.lineStr.Len() == 0 {
 		// If this is the first character, see if it could possibly match any supported trailer; if
 		// not, we can fail early and stop tracking further characters for this line.
-		if !anyOf(supportedTrailers, func(trailer string) bool { return trailer[0] == chr[0] }) {
+		if !slices.ContainsFunc(supportedTrailers, func(trailer string) bool { return trailer[0] == chr[0] }) {
 			self.didFailToMatch = true
 			return
 		}
@@ -216,7 +216,7 @@ func (self *trailerMatcher) isTrailer() bool {
 	}
 
 	line := self.lineStr.String()
-	if anyOf(supportedTrailers, func(trailer string) bool { return line == trailer }) {
+	if slices.ContainsFunc(supportedTrailers, func(trailer string) bool { return line == trailer }) {
 		self.didMatch = true
 		return true
 	}
@@ -229,16 +229,6 @@ func (self *trailerMatcher) reset() {
 	self.lineStr.Reset()
 	self.didFailToMatch = false
 	self.didMatch = false
-}
-
-func anyOf(strings []string, predicate func(s string) bool) bool {
-	for _, s := range strings {
-		if predicate(s) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (self *TextArea) updateCells() {
