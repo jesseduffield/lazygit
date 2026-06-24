@@ -142,19 +142,19 @@ func lazygitTitle() string {
                |___/ |___/       `
 }
 
-func (self *StatusController) askForConfigFile(action func(file string) error) error {
+func (self *StatusController) editConfig() error {
 	confPaths := self.c.GetConfig().GetUserConfigPaths()
 	switch len(confPaths) {
 	case 0:
 		return errors.New(self.c.Tr.NoConfigFileFoundErr)
 	case 1:
-		return action(confPaths[0])
+		return self.c.Helpers().Files.EditFiles(confPaths)
 	default:
 		menuItems := lo.Map(confPaths, func(path string, _ int) *types.MenuItem {
 			return &types.MenuItem{
 				Label: path,
 				OnPress: func() error {
-					return action(path)
+					return self.c.Helpers().Files.EditFiles([]string{path})
 				},
 			}
 		})
@@ -164,12 +164,6 @@ func (self *StatusController) askForConfigFile(action func(file string) error) e
 			Items: menuItems,
 		})
 	}
-}
-
-func (self *StatusController) editConfig() error {
-	return self.askForConfigFile(func(file string) error {
-		return self.c.Helpers().Files.EditFiles([]string{file})
-	})
 }
 
 func (self *StatusController) showAllBranchLogs() {
