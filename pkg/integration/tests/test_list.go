@@ -380,6 +380,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.MoveToNewCommitInLastCommitOfStackedBranch,
 	patch_building.MoveToNewCommitPartialHunk,
 	patch_building.RemoveFromCommit,
+	patch_building.RemoveLinesFromMainViewSecondary,
 	patch_building.RemovePartsOfAddedFile,
 	patch_building.RenameSimilarityThresholdChange,
 	patch_building.RenamedFilePartial,

@@ -180,7 +180,7 @@ func (self *SwitchToDiffFilesController) PrimaryAction(mainViewName string, firs
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 	canRebase := self.canRebase(ref, refsRange)
 
-	return togglePatchFromFocusedMainView(self.c, mainViewName, firstLineIdx, lastLineIdx,
+	return primaryPatchActionFromFocusedMainView(self.c, mainViewName, firstLineIdx, lastLineIdx,
 		from, to, reverse, canRebase,
 		func() {
 			self.c.OnUIThread(func() error {
@@ -208,12 +208,12 @@ func (self *SwitchToDiffFilesController) DiscardSelection(mainViewName string, f
 	return discardSelectionFromCommit(self.c, mainViewName, firstLineIdx, lastLineIdx, from, to, reverse, canRebase)
 }
 
-func (self *SwitchToDiffFilesController) DiscardSelectionDisabledReason() *types.DisabledReason {
+func (self *SwitchToDiffFilesController) DiscardSelectionDisabledReason(mainViewName string) *types.DisabledReason {
 	canRebase := false
 	if ref := self.context.GetSelectedRef(); ref != nil {
 		canRebase = self.canRebase(ref, self.context.GetSelectedRefRangeForDiffFiles())
 	}
-	return discardFromCommitDisabledReason(self.c, canRebase)
+	return discardFromCommitDisabledReason(self.c, mainViewName, canRebase)
 }
 
 func (self *SwitchToDiffFilesController) canEnter() *types.DisabledReason {

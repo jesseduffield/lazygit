@@ -605,7 +605,7 @@ func (self *CommitFilesController) OnClick(mainViewName string, clickedLineIdx i
 func (self *CommitFilesController) PrimaryAction(mainViewName string, firstLineIdx int, lastLineIdx int) error {
 	from, to, reverse := self.c.Helpers().CommitFiles.CurrentFromToReverseForPatchBuilding()
 	canRebase := self.context().GetCanRebase()
-	return togglePatchFromFocusedMainView(self.c, mainViewName, firstLineIdx, lastLineIdx,
+	return primaryPatchActionFromFocusedMainView(self.c, mainViewName, firstLineIdx, lastLineIdx,
 		from, to, reverse, canRebase,
 		func() {
 			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMIT_FILES}})
@@ -620,8 +620,8 @@ func (self *CommitFilesController) DiscardSelection(mainViewName string, firstLi
 	return discardSelectionFromCommit(self.c, mainViewName, firstLineIdx, lastLineIdx, from, to, reverse, canRebase)
 }
 
-func (self *CommitFilesController) DiscardSelectionDisabledReason() *types.DisabledReason {
-	return discardFromCommitDisabledReason(self.c, self.context().GetCanRebase())
+func (self *CommitFilesController) DiscardSelectionDisabledReason(mainViewName string) *types.DisabledReason {
+	return discardFromCommitDisabledReason(self.c, mainViewName, self.context().GetCanRebase())
 }
 
 // pathsForDiff returns the file paths to use for a diff command. When a text

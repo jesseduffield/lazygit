@@ -380,7 +380,7 @@ type FocusedMainViewActions interface {
 	// is unavailable here — e.g. the diff isn't a local commit's, or a rebase is in
 	// progress — or nil when it's available.
 	DiscardSelection(mainViewName string, firstLineIdx int, lastLineIdx int) error
-	DiscardSelectionDisabledReason() *DisabledReason
+	DiscardSelectionDisabledReason(mainViewName string) *DisabledReason
 }
 
 type IController interface {
