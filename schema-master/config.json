@@ -3388,6 +3388,20 @@
             }
           ],
           "default": "\u003cctrl+t\u003e"
+        },
+        "editConfig": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003calt+shift+c\u003e"
         }
       },
       "additionalProperties": false,
