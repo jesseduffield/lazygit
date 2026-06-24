@@ -3556,3 +3556,72 @@ addressed by a per-pager config option. Three tries got here:
 Left-only over both-sides: every "this row is special over coloured content" convention (git/editor change
 bars, diff gutters, selection gutters) puts the marker on the left; both-sides reads as heavier framing, which
 was most of what looked off about the edge-width version.
+
+### 21.35 Session 25 (2026-06-24): the patch-building secondary pane — `space` removes correctly + it renders through the pager
+
+Two problems with the **custom-patch secondary pane** (the `NormalSecondary` pane, which previews the patch
+being built). Both committed (`72543cb4d` then `073070db9`).
+
+**(1) `space` in the secondary used the wrong indices.** The pane became actionable in the merge (the old
+explorer's secondary was inert, so this was never thought through). `space` routed through the same toggle
+handler as the main pane (`togglePatchFromFocusedMainView`), resolving the selection against the secondary's
+diff and mapping it to patch-builder indices **by line number**. But the secondary shows the *aggregated* patch,
+which **renumbers included additions** whenever an earlier addition in the same hunk is excluded
+(`transformHunkHeader` recomputes each hunk's `+start`). So the shifted number resolved to the wrong line in the
+original diff — often *adding* an unrelated line instead of removing the selected one (deletions, keyed by the
+stable old-file number, and fully-included hunks happened to work — hence "often does something").
+
+Fix: resolve a secondary selection by its **ordinal among the change lines shown**, not by line number — the
+custom-patch view renders exactly the included change lines in order, so the k-th shown change line of a file is
+that file's k-th included change line (`PatchBuilder.IncludedChangeLineIndices`,
+`StagingHelper.ChangeLineOrdinalsInViewRange`, routed via `primaryPatchActionFromFocusedMainView` →
+`removePatchLinesFromFocusedMainView`). `space` in the secondary now only ever *removes*, mirroring `space` in
+the staging view's staged pane. **`d` (discard-from-commit) is disabled in the secondary** (user's call — it'd
+act on lines shown only as the patch, and `space` already removes them; `discardFromCommitDisabledReason` gained
+a `mainViewName` arg and `DiscardSelectionDisabledReason(mainViewName)` was threaded through the
+`FocusedMainViewActions` interface). e2e: `remove_lines_from_main_view_secondary` (3 adds, include 2 with a
+shift, remove one from the secondary, assert the right one survived + `d` toast; it fails on the pre-fix toggle
+path).
+
+**(2) The secondary rendered raw (`FormatView`), not through the pager.** User pushed back on "infeasible for
+external diff" and was right. **The unified mechanism (built, user-approved over the simpler stdin-only
+alternative):** materialize the patch as two real file trees under a temp dir — `a/` = each file's `from`-side
+blob, `b/` = that blob with the patch applied (`git apply`) — and render with `git diff --no-index --no-prefix
+a b`, reusing the main view's pager wiring (`DiffCommands.CustomPatchDiffCmdObj` mirrors `DiffCmdObj`).
+`--no-index` honors **both** `GIT_PAGER` (stdin pagers) **and** `--ext-diff`/`diff.external` (difftastic) —
+verified empirically — so every pager renders it like any diff. Used **always**, even raw (no pager →
+git-coloured), replacing `FormatView`; the user wanted git's own (correct) context lines, and it also makes the
+**post-removal reveal work** (the secondary is now an async diff task, so the reveal's restore is consumed —
+before, on a string task, it silently no-op'd).
+
+Design decisions and gotchas (all resolved in the prototype):
+- **Lifetime:** `PatchBuilder` owns the temp dir — created in `Start`, removed in `Reset` (user's framing). No
+  signature caching; instead a **generation counter** bumped on every mutation drives a lazy rebuild
+  (`PatchCommands.EnsureCustomPatchDiffTrees`, called from `secondaryPatchPanelUpdateOpts`). This was a
+  *necessary* refinement to the user's "rebuild at the single mutation point" plan: the **old explorer shares
+  the same secondary** (`secondaryPatchPanelUpdateOpts`) and mutates the patch via its own paths (`AddFileWhole`
+  etc.), so a counter covering every path is required — but it still only rebuilds on change, never on
+  navigation.
+- **Clean paths:** the `a`/`b` dir names masquerade as git's conventional `a/`/`b/` prefixes, so `--no-prefix`
+  yields output byte-identical in shape to a normal git diff with **real repo-relative paths** — meaning the
+  existing buffer-parse resolver (which strips `a/`/`b/`) attributes change lines correctly with no special-
+  casing.
+- **Added files (the fiddly bit):** seed `a/<file>` **empty** (not absent) but leave `b/<file>` **absent**;
+  apply `PatchToApply(false, false)` (added files as `--- /dev/null` creations, NOT
+  `TurnAddedFilesIntoDiffAgainstEmptyFile`'s `--- a/file`, which would make the *atomic* `git apply` fail
+  expecting the file to exist). Result: the displayed diff pairs `a/file`(empty) with `b/file`(content) → real
+  paths, no git "added in b" header mangling. (WHOLE-mode added files return the raw `--- /dev/null` diff and
+  bypass `TurnAdded` entirely, which is what forced this scheme — `RenderAggregatedPatch(true)` does *not* work
+  here.)
+- `git apply` and `git diff --no-index` both work **outside a repo** via `-C <tempdir>` (verified). `--no-index`
+  exits 1 on differences; the task runner only logs that, no popup.
+- Test churn: only `specific_selection` needed updating — git recomputes hunk context (`@@ -1,4 +1,4 @@` with 3
+  context lines vs `FormatView`'s `@@ -1,6 +1,6 @@`), exactly the improvement the user wanted.
+
+**Needs interactive sign-off** (harness has no real metadata pager, per the standing pattern): the secondary
+under delta / difftastic / no-pager; that the pager-emitted metadata path resolves a secondary removal to the
+right file (the masquerade's `a/`/`b/` prefix is stripped host-side for buffer-parse, but a metadata pager emits
+its own path string — delta strips `a/`/`b/` by convention, so it *should* be clean, but verify); and the
+post-removal reveal feel. Carry-forward limitation: building a patch in the *old explorer* then escaping to the
+merged view shows a current secondary (the generation counter covers it), but `e`/click in the secondary would
+resolve hyperlinks to temp-tree paths (edge; the secondary isn't an edit surface).
