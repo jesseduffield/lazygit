@@ -221,9 +221,12 @@ func (self *GlobalController) onPagerChanged() {
 }
 
 func (self *GlobalController) applyCurrentPagerSelectionStyle() {
-	edgeWidth := self.c.State().GetPagerConfig().GetSelectionBgColorEdgeWidth()
-	self.c.Contexts().Normal.GetView().SelectedLineBgColorEdgeWidth = edgeWidth
-	self.c.Contexts().NormalSecondary.GetView().SelectedLineBgColorEdgeWidth = edgeWidth
+	bgColorWidth := 0
+	if self.c.State().GetPagerConfig().GetNarrowSelectionHighlight() {
+		bgColorWidth = 2
+	}
+	self.c.Contexts().Normal.GetView().SelectedLineBgColorWidth = bgColorWidth
+	self.c.Contexts().NormalSecondary.GetView().SelectedLineBgColorWidth = bgColorWidth
 }
 
 func (self *GlobalController) canCyclePagers() *types.DisabledReason {
