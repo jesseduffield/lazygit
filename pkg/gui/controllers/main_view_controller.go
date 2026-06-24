@@ -417,7 +417,7 @@ func (self *MainViewController) discardSelectionDisabledReason() *types.Disabled
 	if actions == nil {
 		return nil
 	}
-	return actions.DiscardSelectionDisabledReason()
+	return actions.DiscardSelectionDisabledReason(self.context.GetViewName())
 }
 
 // copySelection copies the selected diff line(s) to the clipboard. Unlike the primary
