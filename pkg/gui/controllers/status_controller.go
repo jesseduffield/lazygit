@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -12,7 +11,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/samber/lo"
 )
 
 type StatusController struct {
@@ -143,27 +141,7 @@ func lazygitTitle() string {
 }
 
 func (self *StatusController) editConfig() error {
-	confPaths := self.c.GetConfig().GetUserConfigPaths()
-	switch len(confPaths) {
-	case 0:
-		return errors.New(self.c.Tr.NoConfigFileFoundErr)
-	case 1:
-		return self.c.Helpers().Files.EditFiles(confPaths)
-	default:
-		menuItems := lo.Map(confPaths, func(path string, _ int) *types.MenuItem {
-			return &types.MenuItem{
-				Label: path,
-				OnPress: func() error {
-					return self.c.Helpers().Files.EditFiles([]string{path})
-				},
-			}
-		})
-
-		return self.c.Menu(types.CreateMenuOptions{
-			Title: self.c.Tr.SelectConfigFile,
-			Items: menuItems,
-		})
-	}
+	return (&EditConfigAction{c: self.c}).Call()
 }
 
 func (self *StatusController) showAllBranchLogs() {
