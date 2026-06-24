@@ -3625,3 +3625,28 @@ its own path string — delta strips `a/`/`b/` by convention, so it *should* be 
 post-removal reveal feel. Carry-forward limitation: building a patch in the *old explorer* then escaping to the
 merged view shows a current secondary (the generation counter covers it), but `e`/click in the secondary would
 resolve hyperlinks to temp-tree paths (edge; the secondary isn't an edit surface).
+
+**Follow-ups (same session, user QoL requests after sign-off — three small commits).**
+
+- **Temp dir under lazygit's own (`a73e0ddfa`).** `os.MkdirTemp("", …)` → `os.MkdirTemp(osCommand.GetTempDir(),
+  "custom-patch-")`. `GetTempDir()` is lazygit's per-session `/tmp/lazygit-*` (created at startup, cleaned on
+  exit), so the custom-patch trees honor the configured temp dir and get cleaned up with everything else.
+- **Inclusion gutter stays visible when the secondary pane is focused (`59ac5e267`).** It was gated on the
+  *Normal* pane being current, so tabbing to the secondary hid it. Now `RefreshInclusionGutter` shows it while
+  *either* pane of the pair is current, finding the side panel via `NextInStack(current)` (not `NextInStack(Normal)`,
+  which panics when Normal isn't on the stack — tabbing to the secondary evicts Normal). `GetOnFocusLost` now
+  *re-evaluates* (calls `RefreshInclusionGutter`) instead of unconditionally hiding — key realization: in
+  `ContextMgr.Push`/`Pop` the stack is updated to the new context *before* `HandleFocusLost` fires, so during
+  focus-lost `Current()` is already the destination; RefreshInclusionGutter thus keeps it shown on a pane-switch
+  and hides it only when focus truly leaves the pair (no flicker). Gutter is draw-time → not e2e-assertable
+  (interactive sign-off), as before.
+- **Auto-advance to the next hunk after a toggle (`da08df8a8`).** Staging advances because the staged lines are
+  *consumed* from the diff (preserved ordinal lands on the next change); a patch toggle leaves the diff
+  unchanged, so the same ordinal landed back on the just-toggled hunk. Fix: `RevealSelectionAfterStaging` gained
+  an `advanceBy int` (reveals at `ordinal+advanceBy`, clamped); the toggle passes the toggled change-line count
+  (`len(infos)`), landing on the next stageable hunk (hunk mode) or next change line (line mode); staging,
+  unstaging, secondary-removal, and the preserve-net all pass 0. e2e: updated `build_from_main_view` (→ NINE),
+  `build_from_whole_commit_main_view` (→ file2 BETA), `build_multi_file_from_whole_commit_main_view` (the explicit
+  cross-file `NextItem` is now the auto-advance), `keep_selection_after_moving_patch_out_main_view` (navigate back
+  to `+one` after the toggle to span it). Not done (possible refinement): the explorer's smarter "next line of the
+  same included-state" (skip already-included hunks when adding); plain next-hunk is fine for top-to-bottom builds.
