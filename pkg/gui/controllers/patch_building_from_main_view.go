@@ -9,6 +9,78 @@ import (
 	"github.com/samber/lo"
 )
 
+// primaryPatchActionFromFocusedMainView routes the primary action (space) in a commit
+// panel's focused main view by which pane it was pressed in: the main pane toggles the
+// selection into or out of the custom patch, while the secondary pane — which previews the
+// patch being built — removes the selection from the patch (mirroring how space in the
+// staging view's staged pane unstages). Both commit-panel controllers go through here so
+// the routing lives in one place.
+func primaryPatchActionFromFocusedMainView(
+	c *ControllerCommon,
+	mainViewName string,
+	firstLineIdx int,
+	lastLineIdx int,
+	from string,
+	to string,
+	reverse bool,
+	canRebase bool,
+	refresh func(),
+) error {
+	if mainViewName == c.Contexts().NormalSecondary.GetViewName() {
+		return removePatchLinesFromFocusedMainView(c, mainViewName, firstLineIdx, lastLineIdx, refresh)
+	}
+	return togglePatchFromFocusedMainView(c, mainViewName, firstLineIdx, lastLineIdx,
+		from, to, reverse, canRebase, refresh)
+}
+
+// removePatchLinesFromFocusedMainView removes the selected change line(s) from the custom
+// patch when space is pressed in the secondary pane (the custom-patch preview). Every line
+// shown there is already in the patch, so this only ever removes — unlike the main pane's
+// toggle. The selection is mapped to patch-line indices by its ordinal among the shown
+// change lines (see ChangeLineOrdinalsInViewRange / IncludedChangeLineIndices) rather than
+// by line number, which the aggregated patch renumbers (so matching additions by number is
+// unreliable). Refresh then re-renders the smaller patch and the selection is re-established
+// by its change-line ordinal, like the toggle path.
+func removePatchLinesFromFocusedMainView(
+	c *ControllerCommon,
+	mainViewName string,
+	firstLineIdx int,
+	lastLineIdx int,
+	refresh func(),
+) error {
+	ordinalsByFile := c.Helpers().Staging.ChangeLineOrdinalsInViewRange(mainViewName, firstLineIdx, lastLineIdx)
+	if len(ordinalsByFile) == 0 {
+		return nil
+	}
+
+	patchBuilder := c.Git().Patch.PatchBuilder
+	for absPath, ordinals := range ordinalsByFile {
+		filename := patchFilename(c, absPath)
+		if filename == "" {
+			continue
+		}
+		included := patchBuilder.IncludedChangeLineIndices(filename)
+		indices := make([]int, 0, len(ordinals))
+		for _, ordinal := range ordinals {
+			if ordinal >= 0 && ordinal < len(included) {
+				indices = append(indices, included[ordinal])
+			}
+		}
+		if len(indices) == 0 {
+			continue
+		}
+		if err := patchBuilder.RemoveFileLineRange(filename, indices); err != nil {
+			return err
+		}
+	}
+
+	refresh()
+	// A removal doesn't change the diff command, so source and target are the same pane;
+	// the re-render still moves the selection in view-line space, so re-establish it.
+	revealSelectionAfterPrimaryAction(c, mainViewName, mainViewName, firstLineIdx)
+	return nil
+}
+
 // togglePatchFromFocusedMainView toggles the selected diff line(s) — a single line, a
 // range, or a hunk — into or out of the custom patch being built for (from, to,
 // reverse). It is the patch-building counterpart of the files panel's staging handler,
@@ -135,7 +207,14 @@ func togglePatchLines(c *ControllerCommon, infos []types.DiffLineInfo) error {
 // progress, and the diff context size must be non-zero (a patch can't be built from a
 // zero-context diff). Stash and sub-commits of another branch are never rebaseable, so
 // they always get the local-commits reason.
-func discardFromCommitDisabledReason(c *ControllerCommon, canRebase bool) *types.DisabledReason {
+//
+// Discard is never offered in the secondary pane: it previews the custom patch, so
+// discarding "from the commit" there would act on lines shown only as the patch — and
+// space already removes them from the patch — which would be confusing.
+func discardFromCommitDisabledReason(c *ControllerCommon, mainViewName string, canRebase bool) *types.DisabledReason {
+	if mainViewName == c.Contexts().NormalSecondary.GetViewName() {
+		return &types.DisabledReason{Text: c.Tr.CannotDiscardFromCustomPatchView}
+	}
 	if !canRebase {
 		return &types.DisabledReason{Text: c.Tr.CanOnlyDiscardFromLocalCommits}
 	}

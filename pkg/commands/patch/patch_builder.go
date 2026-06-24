@@ -301,6 +301,31 @@ func (p *PatchBuilder) PatchLineIndicesForLines(filename string, lines []LineIde
 	return indices, nil
 }
 
+// IncludedChangeLineIndices returns the patch-line indices of the change lines (additions
+// and deletions) currently included in the patch for filename, in ascending order. These
+// are exactly the change lines the aggregated patch renders for the file, in the same
+// order, so the k-th change line shown in the custom-patch (secondary) view corresponds to
+// the k-th index here. That correspondence lets the focused main view remove a selection
+// from the patch by its ordinal among the shown change lines, sidestepping the line-number
+// renumbering the aggregated patch applies (which makes matching by identity unreliable for
+// additions). Empty when the file isn't part of the patch.
+func (p *PatchBuilder) IncludedChangeLineIndices(filename string) []int {
+	info, ok := p.fileInfoMap[filename]
+	if !ok || info.mode == UNSELECTED {
+		return nil
+	}
+	lines := Parse(info.diff).Lines()
+	included := append([]int{}, info.includedLineIndices...)
+	sort.Ints(included)
+	result := make([]int, 0, len(included))
+	for _, idx := range included {
+		if idx >= 0 && idx < len(lines) && (lines[idx].IsAddition() || lines[idx].IsDeletion()) {
+			result = append(result, idx)
+		}
+	}
+	return result
+}
+
 // IncludedLineIdentities returns the identities of the change lines currently included
 // in the patch for filename — the identity space the inclusion gutter matches rendered
 // rows against. Empty when the file isn't part of the patch.

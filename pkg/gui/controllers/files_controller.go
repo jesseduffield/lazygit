@@ -505,7 +505,10 @@ func (self *FilesController) PrimaryAction(mainViewName string, firstLineIdx int
 // DiscardSelectionDisabledReason: discarding from the working tree is always available
 // (a zero-context diff is reported as an error from DiscardSelection itself, matching the
 // staging view).
-func (self *FilesController) DiscardSelectionDisabledReason() *types.DisabledReason {
+// DiscardSelectionDisabledReason ignores which pane the action came from: discarding from
+// the working tree is meaningful in both the unstaged and staged (secondary) panes (the
+// staged side just unstages), unlike the commit panels' custom-patch preview.
+func (self *FilesController) DiscardSelectionDisabledReason(mainViewName string) *types.DisabledReason {
 	return nil
 }
 

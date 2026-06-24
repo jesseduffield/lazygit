@@ -216,6 +216,48 @@ func (self *StagingHelper) ChangeLinesInViewRange(windowName string, first int, 
 	return infos
 }
 
+// ChangeLineOrdinalsInViewRange resolves the selected view-line range [first, last] of a
+// custom-patch (secondary) diff to, per file, the ordinals of the selected change lines
+// among that file's change lines (0-based, in displayed order), keyed by the file's
+// absolute path. The custom-patch view shows exactly the change lines included in the
+// patch, in order, so the k-th change line of a file maps to that file's k-th included
+// change line — which PatchBuilder.IncludedChangeLineIndices turns into a patch-line index
+// to remove. This is how the focused main view removes lines from the custom patch without
+// matching by line number, which the aggregated patch renumbers (unreliable for additions).
+//
+// The whole buffer is scanned to count each file's change lines from its start; only the
+// lines inside the selected range are reported. View lines that wrap to the same buffer
+// line are de-duplicated by the buffer-line walk.
+func (self *StagingHelper) ChangeLineOrdinalsInViewRange(windowName string, first int, last int) map[string][]int {
+	v, _ := self.c.GocuiGui().View(self.windowHelper.GetViewNameForWindow(windowName))
+	if v == nil {
+		return nil
+	}
+	firstBuffer, ok := v.BufferLineForViewLine(first)
+	if !ok {
+		return nil
+	}
+	lastBuffer, ok := v.BufferLineForViewLine(last)
+	if !ok {
+		return nil
+	}
+
+	resolved := self.resolveDiffLines(v.DiffLineContents())
+	countByFile := map[string]int{}
+	result := map[string][]int{}
+	for i, r := range resolved {
+		if !r.ok || !r.info.IsChange() {
+			continue
+		}
+		ordinal := countByFile[r.info.Path]
+		countByFile[r.info.Path]++
+		if i >= firstBuffer && i <= lastBuffer {
+			result[r.info.Path] = append(result[r.info.Path], ordinal)
+		}
+	}
+	return result
+}
+
 // GetDiffLineInfoForView is GetDiffLineInfo against a specific view rather than
 // one looked up by window. It is used to read the identity of the line the patch
 // explorer currently has selected when escaping back to the focused main view,
