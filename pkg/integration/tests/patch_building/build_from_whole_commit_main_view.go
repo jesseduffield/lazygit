@@ -61,12 +61,12 @@ var BuildFromWholeCommitMainView = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("+THREE"),
 			).
 			PressPrimaryAction().
-			// The selection is re-established on the same block after the toggle's
-			// re-render (which, when the secondary view first appears, re-wraps the
-			// narrower diff).
+			// After toggling the block in, the selection advances to the next stageable
+			// block — file2's BETA block — across the re-render (which, when the secondary
+			// view first appears, re-wraps the narrower diff).
 			SelectedLines(
-				Contains("-three"),
-				Contains("+THREE"),
+				Contains("-beta"),
+				Contains("+BETA"),
 			)
 
 		t.Views().Information().Content(Contains("Building patch"))

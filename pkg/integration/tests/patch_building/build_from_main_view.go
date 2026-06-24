@@ -62,12 +62,13 @@ var BuildFromMainView = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("+THREE"),
 			).
 			PressPrimaryAction().
-			// The selection is re-established on the same hunk after the toggle's
+			// After toggling the block in, the selection advances to the next stageable
+			// hunk (the NINE block) — like staging advances to the next hunk — across the
 			// re-render (which, when the secondary view first appears, also re-wraps the
 			// narrower diff).
 			SelectedLines(
-				Contains("-three"),
-				Contains("+THREE"),
+				Contains("-nine"),
+				Contains("+NINE"),
 			)
 
 		t.Views().Information().Content(Contains("Building patch"))
