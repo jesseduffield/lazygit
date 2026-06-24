@@ -37,8 +37,10 @@ var KeepSelectionAfterMovingPatchOutMainView = NewIntegrationTest(NewIntegration
 			// Toggle just the first line into a custom patch, then leave a multi-line
 			// range selected — the patch move below doesn't go through the focused-main-
 			// view action handlers, so without the preserve net this stale range would be
-			// left painted over the shrunk diff.
+			// left painted over the shrunk diff. (Toggling advances the selection to the
+			// next line, so go back to 'one' to anchor a range that spans the toggled line.)
 			PressPrimaryAction().
+			NavigateToLine(Contains("+one")).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("+four")).
 			SelectedLines(

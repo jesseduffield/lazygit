@@ -48,12 +48,8 @@ var BuildMultiFileFromWholeCommitMainView = NewIntegrationTest(NewIntegrationTes
 				Contains("+THREE"),
 			).
 			PressPrimaryAction().
-			SelectedLines(
-				Contains("-three"),
-				Contains("+THREE"),
-			).
-			// Move to the next change block, which is in file2, and toggle it in too.
-			Press(keys.Universal.NextItem).
+			// Toggling the block in advances the selection to the next stageable block,
+			// which crosses the file boundary into file2's BETA block; toggle it in too.
 			SelectedLines(
 				Contains("-beta"),
 				Contains("+BETA"),
