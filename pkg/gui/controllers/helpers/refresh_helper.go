@@ -534,9 +534,11 @@ func findLocalCommitSelectionRange(
 	selectionRange *localCommitSelectionRange,
 ) (int, int, bool, bool) {
 	selectedIdx, foundSelected := findCommitByHashPreferringTODOStatus(
-		commits, selectionRange.selectedHash, selectionRange.selectedIsTODO)
+		commits, selectionRange.selectedHash, selectionRange.selectedIsTODO,
+	)
 	rangeStartIdx, foundRangeStart := findCommitByHashPreferringTODOStatus(
-		commits, selectionRange.rangeStartHash, selectionRange.rangeStartIsTODO)
+		commits, selectionRange.rangeStartHash, selectionRange.rangeStartIsTODO,
+	)
 	if !foundSelected || !foundRangeStart {
 		return 0, 0, false, false
 	}
@@ -694,7 +696,8 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 				self.refreshStatus()
 				return nil
 			})
-		})
+		},
+	)
 	if err != nil {
 		self.c.Log.Error(err)
 	}
@@ -1004,7 +1007,7 @@ func (self *RefreshHelper) refreshGithubPullRequests() {
 	self.c.Mutexes().RefreshingPullRequestsMutex.Lock()
 	defer self.c.Mutexes().RefreshingPullRequestsMutex.Unlock()
 
-	githubRemotes := getAuthenticatedGithubRemotes(self.getGithubRemotes(), self.c.Git().GitHub.GetAuthToken)
+	githubRemotes := getAuthenticatedGithubRemotes(getGithubRemotes(self.c), self.c.Git().GitHub.GetAuthToken)
 	if len(githubRemotes) == 0 {
 		self.c.Model().PullRequests = nil
 		self.c.Model().PullRequestsMap = nil
@@ -1031,12 +1034,12 @@ type githubRemoteInfo struct {
 	authToken   string
 }
 
-func (self *RefreshHelper) getGithubRemotes() []githubRemoteInfo {
-	return lo.FilterMap(self.c.Model().Remotes, func(remote *models.Remote, _ int) (githubRemoteInfo, bool) {
+func getGithubRemotes(c *HelperCommon) []githubRemoteInfo {
+	return lo.FilterMap(c.Model().Remotes, func(remote *models.Remote, _ int) (githubRemoteInfo, bool) {
 		if len(remote.Urls) == 0 {
 			return githubRemoteInfo{}, false
 		}
-		serviceInfo, err := self.c.Git().HostingService.GetServiceInfo(remote.Urls[0])
+		serviceInfo, err := c.Git().HostingService.GetServiceInfo(remote.Urls[0])
 		if err != nil || serviceInfo.Provider != "github" {
 			return githubRemoteInfo{}, false
 		}
