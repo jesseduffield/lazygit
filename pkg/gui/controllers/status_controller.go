@@ -18,6 +18,16 @@ import (
 type StatusController struct {
 	baseController
 	c *ControllerCommon
+
+	// Deployments are fetched from GitHub lazily, the first time the status
+	// panel's deployments view is shown for a repo, and then cached for the rest
+	// of the session. This avoids a network round-trip (and the git/gh-auth work
+	// needed to set it up) on every refresh while the panel is focused. All of
+	// these fields are only ever touched on the UI thread, so they need no lock.
+	deploymentsRepoPath string // the repo deploymentsContent belongs to
+	deploymentsContent  string // rendered content, valid once deploymentsFetched
+	deploymentsFetched  bool   // a fetch has completed for deploymentsRepoPath
+	deploymentsFetching bool   // a fetch is currently in flight
 }
 
 var _ types.IController = &StatusController{}
@@ -90,8 +100,10 @@ func (self *StatusController) GetOnRenderToMain() func() {
 			self.showDashboard()
 		case "allBranchesLog":
 			self.showAllBranchLogs()
+		case "deployments":
+			self.showDeployments()
 		default:
-			self.showDashboard()
+			self.showDeployments()
 		}
 	}
 }
@@ -243,13 +255,114 @@ func (self *StatusController) showDashboard() {
 			fmt.Sprintf("Raise an Issue: %s", constants.Links.Issues),
 			fmt.Sprintf("Release Notes: %s", constants.Links.Releases),
 			style.FgMagenta.Sprintf("Become a sponsor: %s", constants.Links.Donate), // caffeine ain't free
-		}, "\n\n") + "\n"
+		}, "\n\n",
+	) + "\n"
 
 	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
 			Title: self.c.Tr.StatusTitle,
 			Task:  types.NewRenderStringTask(dashboardString),
+		},
+	})
+}
+
+// showDeployments shows the environment deployment statuses for the repo,
+// fetched from GitHub. This runs on the UI thread on every render-to-main (i.e.
+// on every refresh while the status panel is focused), so it must be cheap: the
+// only synchronous work it does is a subprocess-free check for a GitHub remote
+// (to fall back to the dashboard for non-GitHub repos). The expensive work
+// (resolving the base remote + auth token, and the network request) happens
+// once per repo on a worker, and the result is cached and re-rendered from
+// there on subsequent calls.
+func (self *StatusController) showDeployments() {
+	repoPath := self.c.Git().RepoPaths.RepoPath()
+	if repoPath != self.deploymentsRepoPath {
+		// Switched repos: drop the previous repo's cache.
+		self.deploymentsRepoPath = repoPath
+		self.deploymentsContent = ""
+		self.deploymentsFetched = false
+		self.deploymentsFetching = false
+	}
+
+	if !self.c.Helpers().Host.HasGithubRemote() {
+		self.showDashboard()
+		return
+	}
+
+	if self.deploymentsFetched {
+		self.renderToStatusMain(self.deploymentsContent)
+		return
+	}
+
+	self.renderToStatusMain(self.c.Tr.FetchingDeploymentsStatus)
+
+	if self.deploymentsFetching {
+		return
+	}
+	self.deploymentsFetching = true
+
+	fetchRepoPath := repoPath
+	self.c.OnWorker(func(_ gocui.Task) error {
+		content := self.fetchDeploymentsContent()
+
+		self.c.OnUIThread(func() error {
+			// Discard the result if the user switched repos while we were fetching.
+			if self.deploymentsRepoPath != fetchRepoPath {
+				return nil
+			}
+			self.deploymentsFetching = false
+			self.deploymentsFetched = true
+			self.deploymentsContent = content
+
+			// Only render if the status panel is still showing its deployments view;
+			// the user may have navigated away or switched to the all-branches log
+			// (which renders into the same main view) while we were fetching.
+			if self.statusMainShowsDeployments() {
+				self.renderToStatusMain(content)
+			}
+			return nil
+		})
+		return nil
+	})
+}
+
+// fetchDeploymentsContent runs on a worker. It resolves the GitHub base remote
+// and auth token (which shells out to git and reads gh's config) and performs
+// the network request, then turns the outcome into a renderable string.
+func (self *StatusController) fetchDeploymentsContent() string {
+	serviceInfo, token, ok := self.c.Helpers().Host.GithubBaseRemote()
+	if !ok {
+		return self.c.Tr.DeploymentsNotAuthenticated
+	}
+
+	deployments, err := self.c.Git().GitHub.FetchDeployments(&serviceInfo, token)
+	switch {
+	case err != nil:
+		self.c.Log.Error("error fetching deployments from GitHub: " + err.Error())
+		return fmt.Sprintf(self.c.Tr.FetchingDeploymentsError, err.Error())
+	case len(deployments) == 0:
+		return self.c.Tr.NoDeploymentsFound
+	default:
+		return presentation.GetDeploymentsContent(deployments, self.c.Tr)
+	}
+}
+
+// statusMainShowsDeployments reports whether the status panel is focused and its
+// main view is currently showing the deployments/status content (as opposed to
+// the all-branches log, which the user can switch to with a keybinding and which
+// renders into the same main view with a different title).
+func (self *StatusController) statusMainShowsDeployments() bool {
+	return self.c.Context().IsCurrent(self.Context()) &&
+		self.c.Views().Main.Title == self.c.Tr.StatusTitle
+}
+
+func (self *StatusController) renderToStatusMain(str string) {
+	self.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: self.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: self.c.Tr.StatusTitle,
+			Task:  types.NewRenderStringTask(str),
 		},
 	})
 }

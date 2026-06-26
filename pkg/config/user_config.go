@@ -210,8 +210,8 @@ type GuiConfig struct {
 	// Config relating to the spinner.
 	Spinner SpinnerConfig `yaml:"spinner"`
 	// Status panel view.
-	// One of 'dashboard' (default) | 'allBranchesLog'
-	StatusPanelView string `yaml:"statusPanelView" jsonschema:"enum=dashboard,enum=allBranchesLog"`
+	// One of 'deployments' (default) | 'dashboard' | 'allBranchesLog'
+	StatusPanelView string `yaml:"statusPanelView" jsonschema:"enum=deployments,enum=dashboard,enum=allBranchesLog"`
 	// If true, jump to the Files panel after popping a stash
 	SwitchToFilesAfterStashPop bool `yaml:"switchToFilesAfterStashPop"`
 	// If true, jump to the Files panel after applying a stash
@@ -916,7 +916,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				Frames: []string{"|", "/", "-", "\\"},
 				Rate:   50,
 			},
-			StatusPanelView:              "dashboard",
+			StatusPanelView:              "deployments",
 			SwitchToFilesAfterStashPop:   true,
 			SwitchToFilesAfterStashApply: true,
 			SwitchTabsWithPanelJumpKeys:  false,

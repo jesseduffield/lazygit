@@ -34,6 +34,27 @@ func (self *HostHelper) GetCommitURL(commitHash string) (string, error) {
 	return mgr.GetCommitURL(commitHash)
 }
 
+// HasGithubRemote reports whether the repo has any GitHub remote. It's cheap
+// (it only parses the remote URLs already in the model) and, unlike
+// GithubBaseRemote, doesn't shell out to git or look up an auth token, so it's
+// safe to call on the UI thread.
+func (self *HostHelper) HasGithubRemote() bool {
+	return len(getGithubRemotes(self.c)) > 0
+}
+
+// GithubBaseRemote resolves the GitHub remote that this repository's pull
+// requests and deployments are made against, along with an auth token for its
+// host. It returns ok == false when there is no GitHub remote or no token is
+// available for it.
+func (self *HostHelper) GithubBaseRemote() (hosting_service.ServiceInfo, string, bool) {
+	githubRemotes := getAuthenticatedGithubRemotes(getGithubRemotes(self.c), self.c.Git().GitHub.GetAuthToken)
+	baseRemote := getGithubBaseRemote(githubRemotes, self.c.Git().GitHub.ConfiguredBaseRemoteName())
+	if baseRemote == nil {
+		return hosting_service.ServiceInfo{}, "", false
+	}
+	return baseRemote.serviceInfo, baseRemote.authToken, true
+}
+
 // getting this on every request rather than storing it in state in case our remoteURL changes
 // from one invocation to the next.
 func (self *HostHelper) getHostingServiceMgr() (*hosting_service.HostingServiceMgr, error) {

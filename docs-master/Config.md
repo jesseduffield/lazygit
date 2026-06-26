@@ -340,8 +340,8 @@ gui:
     rate: 50
 
   # Status panel view.
-  # One of 'dashboard' (default) | 'allBranchesLog'
-  statusPanelView: dashboard
+  # One of 'deployments' (default) | 'dashboard' | 'allBranchesLog'
+  statusPanelView: deployments
 
   # If true, jump to the Files panel after popping a stash
   switchToFilesAfterStashPop: true

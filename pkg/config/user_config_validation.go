@@ -15,7 +15,7 @@ import (
 
 func (config *UserConfig) Validate() error {
 	if err := validateEnum("gui.statusPanelView", config.Gui.StatusPanelView,
-		[]string{"dashboard", "allBranchesLog"}); err != nil {
+		[]string{"deployments", "dashboard", "allBranchesLog"}); err != nil {
 		return err
 	}
 	if err := validateEnum("gui.showDivergenceFromBaseBranch", config.Gui.ShowDivergenceFromBaseBranch,
@@ -160,7 +160,8 @@ func validateKeybindingsRecurse(path string, node any) error {
 	} else if value.Kind() == reflect.Slice {
 		for i := range value.Len() {
 			if err := validateKeybindingsRecurse(
-				fmt.Sprintf("%s[%d]", path, i), value.Index(i).Interface()); err != nil {
+				fmt.Sprintf("%s[%d]", path, i), value.Index(i).Interface(),
+			); err != nil {
 				return err
 			}
 		}

@@ -856,11 +856,12 @@
         "statusPanelView": {
           "type": "string",
           "enum": [
+            "deployments",
             "dashboard",
             "allBranchesLog"
           ],
-          "description": "Status panel view.\nOne of 'dashboard' (default) | 'allBranchesLog'",
-          "default": "dashboard"
+          "description": "Status panel view.\nOne of 'deployments' (default) | 'dashboard' | 'allBranchesLog'",
+          "default": "deployments"
         },
         "switchToFilesAfterStashPop": {
           "type": "boolean",

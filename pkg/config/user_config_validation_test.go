@@ -25,6 +25,7 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				config.Gui.StatusPanelView = value
 			},
 			testCases: []testCase{
+				{value: "deployments", valid: true},
 				{value: "dashboard", valid: true},
 				{value: "allBranchesLog", valid: true},
 				{value: "", valid: false},
