@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -253,6 +254,162 @@ func (self *GitHubCommands) fetchRecentPRsAux(endpoint string, repoOwner string,
 	}
 
 	return prs, nil
+}
+
+type deploymentsResponse struct {
+	Data struct {
+		Repository struct {
+			Deployments struct {
+				Nodes []deploymentNode `json:"nodes"`
+			} `json:"deployments"`
+		} `json:"repository"`
+	} `json:"data"`
+	// GitHub's GraphQL API reports query-level failures (e.g. an insufficient
+	// token scope or a hidden repo) as HTTP 200 with a populated "errors" array
+	// rather than a non-200 status, so we have to check this explicitly.
+	Errors []struct {
+		Message string `json:"message"`
+	} `json:"errors"`
+}
+
+type deploymentNode struct {
+	Environment string `json:"environment"`
+	State       string `json:"state"`
+	Description string `json:"description"`
+	UpdatedAt   string `json:"updatedAt"`
+	Ref         *struct {
+		Name string `json:"name"`
+	} `json:"ref"`
+	Commit *struct {
+		AbbreviatedOid string `json:"abbreviatedOid"`
+	} `json:"commit"`
+	LatestStatus *struct {
+		State string `json:"state"`
+	} `json:"latestStatus"`
+}
+
+// We order by CREATED_AT descending and fetch the first 100 so that the first
+// node we see for each environment is its most recent deployment. Note that the
+// window is the 100 most recent deployments across all environments combined;
+// an environment that hasn't been deployed to within that window won't appear.
+// In practice 100 is plenty for the handful of environments a repo typically
+// has, and showing the most recently active environments is the desired
+// behaviour anyway.
+const deploymentsQuery = `query($owner: String!, $repo: String!) {
+  repository(owner: $owner, name: $repo) {
+    deployments(first: 100, orderBy: {field: CREATED_AT, direction: DESC}) {
+      nodes {
+        environment
+        state
+        description
+        updatedAt
+        ref { name }
+        commit { abbreviatedOid }
+        latestStatus { state }
+      }
+    }
+  }
+}`
+
+// FetchDeployments fetches the most recent deployment for each environment of
+// the repository using GitHub's GraphQL API. serviceInfo identifies the GitHub
+// instance (github.com or a GitHub Enterprise Server) and the owner/repo to
+// query against.
+func (self *GitHubCommands) FetchDeployments(serviceInfo *hosting_service.ServiceInfo, token string) ([]*models.GithubDeployment, error) {
+	endpoint := graphQLEndpoint(serviceInfo.WebDomain)
+
+	variables := map[string]string{"owner": serviceInfo.Owner, "repo": serviceInfo.Repository}
+	bodyBytes, err := json.Marshal(graphQLRequest{Query: deploymentsQuery, Variables: variables})
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "token "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := (&http.Client{}).Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyStr := new(bytes.Buffer)
+		_, _ = bodyStr.ReadFrom(resp.Body)
+		return nil, fmt.Errorf("GraphQL query failed with status: %s. Body: %s", resp.Status, bodyStr.String())
+	}
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result deploymentsResponse
+	if err := json.Unmarshal(respBytes, &result); err != nil {
+		return nil, err
+	}
+
+	if len(result.Errors) > 0 {
+		messages := make([]string, len(result.Errors))
+		for i, e := range result.Errors {
+			messages[i] = e.Message
+		}
+		return nil, fmt.Errorf("GraphQL query failed: %s", strings.Join(messages, "; "))
+	}
+
+	return latestDeploymentPerEnvironment(result.Data.Repository.Deployments.Nodes), nil
+}
+
+// latestDeploymentPerEnvironment keeps only the most recent deployment for each
+// environment. The nodes are expected newest-first, so the first node seen for
+// an environment is the most recent one. The result is sorted by environment
+// name for a stable display.
+func latestDeploymentPerEnvironment(nodes []deploymentNode) []*models.GithubDeployment {
+	seen := map[string]bool{}
+	deployments := []*models.GithubDeployment{}
+	for _, node := range nodes {
+		if seen[node.Environment] {
+			continue
+		}
+		seen[node.Environment] = true
+
+		// Prefer the latest reported status; fall back to the deployment's own
+		// state when no status has been posted yet.
+		state := node.State
+		if node.LatestStatus != nil && node.LatestStatus.State != "" {
+			state = node.LatestStatus.State
+		}
+
+		ref := ""
+		if node.Ref != nil {
+			ref = node.Ref.Name
+		}
+		sha := ""
+		if node.Commit != nil {
+			sha = node.Commit.AbbreviatedOid
+		}
+
+		updatedAt, _ := time.Parse(time.RFC3339, node.UpdatedAt)
+
+		deployments = append(deployments, &models.GithubDeployment{
+			Environment: node.Environment,
+			State:       state,
+			Ref:         ref,
+			Sha:         sha,
+			Description: node.Description,
+			UpdatedAt:   updatedAt,
+		})
+	}
+
+	sort.Slice(deployments, func(i, j int) bool {
+		return deployments[i].Environment < deployments[j].Environment
+	})
+
+	return deployments
 }
 
 // returns a map from branch name to pull request

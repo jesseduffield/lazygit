@@ -617,6 +617,11 @@ type TranslationSet struct {
 	StartFilter                           string
 	SelectRemoteRepository                string
 	FetchingPullRequests                  string
+	DeploymentsTitle                      string
+	FetchingDeploymentsStatus             string
+	FetchingDeploymentsError              string
+	NoDeploymentsFound                    string
+	DeploymentsNotAuthenticated           string
 	Keybindings                           string
 	KeybindingsMenuSectionLocal           string
 	KeybindingsMenuSectionGlobal          string
@@ -1753,6 +1758,11 @@ func EnglishTranslationSet() *TranslationSet {
 		StartFilter:                      "Filter the current view by text",
 		SelectRemoteRepository:           "Select base repository for pull requests",
 		FetchingPullRequests:             "Fetching pull requests",
+		DeploymentsTitle:                 "Deployments",
+		FetchingDeploymentsStatus:        "Fetching deployments...",
+		FetchingDeploymentsError:         "Failed to fetch deployments: %s",
+		NoDeploymentsFound:               "No deployments found for this repository",
+		DeploymentsNotAuthenticated:      "Not authenticated with GitHub. Run 'gh auth login' to view deployment statuses.",
 		RenameBranch:                     "Rename branch",
 		BranchUpstreamOptionsTitle:       "Upstream options",
 		ViewBranchUpstreamOptions:        "View upstream options",

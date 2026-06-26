@@ -1,7 +1,9 @@
 package git_commands
 
 import (
+	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -379,4 +381,70 @@ func TestGenerateGithubPullRequestMap(t *testing.T) {
 			assert.Equal(t, c.expected, result)
 		})
 	}
+}
+
+func TestLatestDeploymentPerEnvironment(t *testing.T) {
+	// A realistic GraphQL payload, newest-first, with two deployments to
+	// "production" (only the newest should survive), a null ref/commit/status on
+	// "preview", and environments out of alphabetical order.
+	jsonResponse := `{"data":{"repository":{"deployments":{"nodes":[
+		{"environment":"production","state":"ACTIVE","updatedAt":"2026-06-26T10:00:00Z","ref":{"name":"main"},"commit":{"abbreviatedOid":"aaaaaaa"},"latestStatus":{"state":"SUCCESS"}},
+		{"environment":"staging","state":"ACTIVE","updatedAt":"2026-06-26T09:00:00Z","ref":{"name":"develop"},"commit":{"abbreviatedOid":"bbbbbbb"},"latestStatus":{"state":"IN_PROGRESS"}},
+		{"environment":"production","state":"INACTIVE","updatedAt":"2026-06-25T10:00:00Z","ref":{"name":"main"},"commit":{"abbreviatedOid":"ccccccc"},"latestStatus":{"state":"SUCCESS"}},
+		{"environment":"preview","state":"ERROR","updatedAt":"2026-06-26T08:00:00Z","ref":null,"commit":null,"latestStatus":null}
+	]}}}}`
+
+	var result deploymentsResponse
+	err := json.Unmarshal([]byte(jsonResponse), &result)
+	assert.NoError(t, err)
+	assert.Empty(t, result.Errors)
+
+	deployments := latestDeploymentPerEnvironment(result.Data.Repository.Deployments.Nodes)
+
+	expected := []*models.GithubDeployment{
+		{
+			Environment: "preview",
+			State:       "ERROR", // falls back to the deployment state when latestStatus is null
+			Ref:         "",      // null ref
+			Sha:         "",      // null commit
+			UpdatedAt:   time.Date(2026, 6, 26, 8, 0, 0, 0, time.UTC),
+		},
+		{
+			Environment: "production",
+			State:       "SUCCESS", // latestStatus is preferred over the deployment state
+			Ref:         "main",
+			Sha:         "aaaaaaa", // the newer of the two production deployments, not "ccccccc"
+			UpdatedAt:   time.Date(2026, 6, 26, 10, 0, 0, 0, time.UTC),
+		},
+		{
+			Environment: "staging",
+			State:       "IN_PROGRESS",
+			Ref:         "develop",
+			Sha:         "bbbbbbb",
+			UpdatedAt:   time.Date(2026, 6, 26, 9, 0, 0, 0, time.UTC),
+		},
+	}
+
+	assert.Len(t, deployments, len(expected))
+	for i := range expected {
+		assert.Equal(t, expected[i].Environment, deployments[i].Environment)
+		assert.Equal(t, expected[i].State, deployments[i].State)
+		assert.Equal(t, expected[i].Ref, deployments[i].Ref)
+		assert.Equal(t, expected[i].Sha, deployments[i].Sha)
+		assert.True(t, deployments[i].UpdatedAt.Equal(expected[i].UpdatedAt),
+			"environment %s: expected %s, got %s", expected[i].Environment, expected[i].UpdatedAt, deployments[i].UpdatedAt)
+	}
+}
+
+func TestDeploymentsResponseSurfacesGraphQLErrors(t *testing.T) {
+	// GitHub returns query-level failures as HTTP 200 with a populated "errors"
+	// array; the response struct must expose them so the caller can detect this.
+	jsonResponse := `{"data":{"repository":null},"errors":[{"message":"Could not resolve to a Repository with the name 'x/y'."}]}`
+
+	var result deploymentsResponse
+	err := json.Unmarshal([]byte(jsonResponse), &result)
+	assert.NoError(t, err)
+	assert.Len(t, result.Errors, 1)
+	assert.Equal(t, "Could not resolve to a Repository with the name 'x/y'.", result.Errors[0].Message)
+	assert.Empty(t, latestDeploymentPerEnvironment(result.Data.Repository.Deployments.Nodes))
 }
