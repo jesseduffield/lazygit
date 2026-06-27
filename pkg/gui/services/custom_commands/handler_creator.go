@@ -73,7 +73,7 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 			switch prompt.Type {
 			case "input":
 				f = func() error {
-					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
+					resolvedPrompt, err := self.resolvePrompt(&prompt, resolveTemplate)
 					if err != nil {
 						return err
 					}
@@ -81,7 +81,7 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 				}
 			case "menu":
 				f = func() error {
-					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
+					resolvedPrompt, err := self.resolvePrompt(&prompt, resolveTemplate)
 					if err != nil {
 						return err
 					}
@@ -89,7 +89,7 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 				}
 			case "menuFromCommand":
 				f = func() error {
-					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
+					resolvedPrompt, err := self.resolvePrompt(&prompt, resolveTemplate)
 					if err != nil {
 						return err
 					}
@@ -97,7 +97,7 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 				}
 			case "confirm":
 				f = func() error {
-					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
+					resolvedPrompt, err := self.resolvePrompt(&prompt, resolveTemplate)
 					if err != nil {
 						return err
 					}
@@ -141,6 +141,27 @@ func resolveCondition(condition string, resolveTemplate func(string) (string, er
 	return strings.TrimSpace(resolved) != "" && strings.TrimSpace(resolved) != "false", nil
 }
 
+func (self *HandlerCreator) resolvePrompt(
+	prompt *config.CustomCommandPrompt,
+	resolveTemplate func(string) (string, error),
+) (*config.CustomCommandPrompt, error) {
+	var resolvedPrompt *config.CustomCommandPrompt
+	err := self.withPromptLoading(prompt, func() error {
+		var err error
+		resolvedPrompt, err = self.resolver.resolvePrompt(prompt, resolveTemplate)
+		return err
+	})
+	return resolvedPrompt, err
+}
+
+func (self *HandlerCreator) withPromptLoading(prompt *config.CustomCommandPrompt, f func() error) error {
+	if prompt.LoadingText == "" {
+		return f()
+	}
+
+	return self.c.WithWaitingStatusSync(prompt.LoadingText, f)
+}
+
 func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
 	findSuggestionsFn, err := self.generateFindSuggestionsFunc(prompt)
 	if err != nil {
@@ -171,17 +192,19 @@ func (self *HandlerCreator) generateFindSuggestionsFunc(prompt *config.CustomCom
 	} else if prompt.Suggestions.Preset != "" {
 		return self.getPresetSuggestionsFn(prompt.Suggestions.Preset)
 	} else if prompt.Suggestions.Command != "" {
-		return self.getCommandSuggestionsFn(prompt.Suggestions.Command)
+		return self.getCommandSuggestionsFn(prompt)
 	}
 
 	return nil, nil
 }
 
-func (self *HandlerCreator) getCommandSuggestionsFn(command string) (func(string) []*types.Suggestion, error) {
+func (self *HandlerCreator) getCommandSuggestionsFn(prompt *config.CustomCommandPrompt) (func(string) []*types.Suggestion, error) {
 	lines := []*types.Suggestion{}
-	err := self.c.OS().Cmd.NewShell(command, self.c.UserConfig().OS.ShellFunctionsFile).RunAndProcessLines(func(line string) (bool, error) {
-		lines = append(lines, &types.Suggestion{Value: line, Label: line})
-		return false, nil
+	err := self.withPromptLoading(prompt, func() error {
+		return self.c.OS().Cmd.NewShell(prompt.Suggestions.Command, self.c.UserConfig().OS.ShellFunctionsFile).RunAndProcessLines(func(line string) (bool, error) {
+			lines = append(lines, &types.Suggestion{Value: line, Label: line})
+			return false, nil
+		})
 	})
 	if err != nil {
 		return nil, err
@@ -241,7 +264,7 @@ func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrapp
 
 func (self *HandlerCreator) menuPromptFromCommand(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
 	// Run and save output
-	message, err := self.c.Git().Custom.RunWithOutput(prompt.Command)
+	message, err := self.runMenuPromptCommand(prompt)
 	if err != nil {
 		return err
 	}
@@ -262,6 +285,16 @@ func (self *HandlerCreator) menuPromptFromCommand(prompt *config.CustomCommandPr
 	})
 
 	return self.c.Menu(types.CreateMenuOptions{Title: prompt.Title, Items: menuItems})
+}
+
+func (self *HandlerCreator) runMenuPromptCommand(prompt *config.CustomCommandPrompt) (string, error) {
+	var message string
+	err := self.withPromptLoading(prompt, func() error {
+		var err error
+		message, err = self.c.Git().Custom.RunWithOutput(prompt.Command)
+		return err
+	})
+	return message, err
 }
 
 type CustomCommandObjects struct {

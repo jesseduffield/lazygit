@@ -102,6 +102,7 @@ These fields are applicable to all prompts.
 | type              | One of 'input', 'confirm', 'menu', 'menuFromCommand'                                                           | yes        |
 | title             | The title to display in the popup panel                                                        | no         |
 | key | Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command | yes |
+| loadingText       | Text to display while resolving the prompt, loading suggestions, or generating `menuFromCommand` options | no |
 | condition         | A Go template expression; if it resolves to empty string or `false`, the prompt is skipped. See [Conditional prompts](#conditional-prompts) | no |
 
 ### Input
@@ -160,6 +161,21 @@ customCommands:
       title: 'Remote:'
       key: 'Remote'
       initialValue: "{{.SelectedRemote.Name}}"
+```
+
+If the initial value depends on a slow command, you can show a waiting status while the value is generated:
+
+```yml
+customCommands:
+  - key: 'a'
+    command: 'git commit -m {{.Form.Message | quote}}'
+    context: 'files'
+    prompts:
+    - type: 'input'
+      title: 'Commit message'
+      key: 'Message'
+      loadingText: 'Generating commit message'
+      initialValue: '{{ runCommand "ai-commit-message" }}'
 ```
 
 ### Confirm

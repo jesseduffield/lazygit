@@ -748,6 +748,8 @@ type CustomCommandPrompt struct {
 	Key string `yaml:"key"`
 	// The title to display in the popup panel
 	Title string `yaml:"title"`
+	// Text to display while resolving the prompt, loading suggestions, or generating menuFromCommand options.
+	LoadingText string `yaml:"loadingText" jsonschema:"example=Loading..."`
 
 	// The initial value to appear in the text box.
 	// Only for input prompts.

@@ -206,6 +206,13 @@
           "type": "string",
           "description": "The title to display in the popup panel"
         },
+        "loadingText": {
+          "type": "string",
+          "description": "Text to display while resolving the prompt, loading suggestions, or generating menuFromCommand options.",
+          "examples": [
+            "Loading..."
+          ]
+        },
         "initialValue": {
           "type": "string",
           "description": "The initial value to appear in the text box.\nOnly for input prompts."
