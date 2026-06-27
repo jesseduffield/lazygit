@@ -23,6 +23,7 @@ type HandlerCreator struct {
 	menuGenerator        *MenuGenerator
 	suggestionsHelper    *helpers.SuggestionsHelper
 	mergeAndRebaseHelper *helpers.MergeAndRebaseHelper
+	workingTreeHelper    *helpers.WorkingTreeHelper
 }
 
 func NewHandlerCreator(
@@ -30,6 +31,7 @@ func NewHandlerCreator(
 	sessionStateLoader *SessionStateLoader,
 	suggestionsHelper *helpers.SuggestionsHelper,
 	mergeAndRebaseHelper *helpers.MergeAndRebaseHelper,
+	workingTreeHelper *helpers.WorkingTreeHelper,
 ) *HandlerCreator {
 	resolver := NewResolver(c.Common)
 	menuGenerator := NewMenuGenerator(c.Common)
@@ -41,6 +43,7 @@ func NewHandlerCreator(
 		menuGenerator:        menuGenerator,
 		suggestionsHelper:    suggestionsHelper,
 		mergeAndRebaseHelper: mergeAndRebaseHelper,
+		workingTreeHelper:    workingTreeHelper,
 	}
 }
 
@@ -336,6 +339,26 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		loadingText = self.c.Tr.RunningCustomCommandStatus
 	}
 
+	if customCommand.Output == "commitMessagePanel" {
+		if self.workingTreeHelper == nil {
+			return errors.New("custom command output 'commitMessagePanel' requires the working tree helper")
+		}
+
+		var output string
+		err := self.c.WithWaitingStatusSync(loadingText, func() error {
+			self.c.LogAction(self.c.Tr.Actions.CustomCommand)
+
+			var err error
+			output, err = cmdObj.RunWithOutput()
+			return err
+		})
+		if err != nil {
+			return self.handleCommandError(customCommand, err)
+		}
+
+		return self.workingTreeHelper.HandleCommitPressWithMessage(strings.TrimRight(output, "\r\n"), false)
+	}
+
 	return self.c.WithWaitingStatus(loadingText, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.CustomCommand)
 
@@ -350,11 +373,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 
 		if err != nil {
-			if customCommand.After != nil && customCommand.After.CheckForConflicts {
-				return self.mergeAndRebaseHelper.CheckForConflicts(err)
-			}
-
-			return err
+			return self.handleCommandError(customCommand, err)
 		}
 
 		if customCommand.Output == "popup" {
@@ -374,4 +393,12 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 
 		return nil
 	})
+}
+
+func (self *HandlerCreator) handleCommandError(customCommand config.CustomCommand, err error) error {
+	if customCommand.After != nil && customCommand.After.CheckForConflicts {
+		return self.mergeAndRebaseHelper.CheckForConflicts(err)
+	}
+
+	return err
 }

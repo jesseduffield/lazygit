@@ -222,7 +222,7 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 			}
 
 			if err := validateEnum("customCommand.output", customCommand.Output,
-				[]string{"", "none", "terminal", "log", "logWithPty", "popup"}); err != nil {
+				[]string{"", "none", "terminal", "log", "logWithPty", "popup", "commitMessagePanel"}); err != nil {
 				return err
 			}
 		}

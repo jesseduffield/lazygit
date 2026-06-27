@@ -56,7 +56,7 @@ For a given custom command, here are the allowed fields:
 | prompts | A list of prompts that will request user input before running the final command | no |
 | loadingText | Text to display while waiting for command to finish | no |
 | description | Label for the custom command when displayed in the keybindings menu | no |
-| output | Where the output of the command should go. 'none' discards it, 'terminal' suspends lazygit and runs the command in the terminal (useful for commands that require user input), 'log' streams it to the command log, 'logWithPty' is like 'log' but runs the command in a pseudo terminal (can be useful for commands that produce colored output when the output is a terminal), and 'popup' shows it in a popup. | no |
+| output | Where the output of the command should go. 'none' discards it, 'terminal' suspends lazygit and runs the command in the terminal (useful for commands that require user input), 'log' streams it to the command log, 'logWithPty' is like 'log' but runs the command in a pseudo terminal (can be useful for commands that produce colored output when the output is a terminal), 'popup' shows it in a popup, and 'commitMessagePanel' opens the commit message panel with the command output as the initial message. | no |
 | outputTitle | The title to display in the popup panel if output is set to 'popup'. If left unset, the command will be used as the title. | no |
 | after | Actions to take after the command has completed | no |
 

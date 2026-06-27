@@ -131,9 +131,10 @@
             "terminal",
             "log",
             "logWithPty",
-            "popup"
+            "popup",
+            "commitMessagePanel"
           ],
-          "description": "Where the output of the command should go. 'none' discards it, 'terminal' suspends lazygit and runs the command in the terminal (useful for commands that require user input), 'log' streams it to the command log, 'logWithPty' is like 'log' but runs the command in a pseudo terminal (can be useful for commands that produce colored output when the output is a terminal), and 'popup' shows it in a popup."
+          "description": "Where the output of the command should go. 'none' discards it, 'terminal' suspends lazygit and runs the command in the terminal (useful for commands that require user input), 'log' streams it to the command log, 'logWithPty' is like 'log' but runs the command in a pseudo terminal (can be useful for commands that produce colored output when the output is a terminal), 'popup' shows it in a popup, and 'commitMessagePanel' opens the commit message panel with the command output as the initial message."
         },
         "outputTitle": {
           "type": "string",

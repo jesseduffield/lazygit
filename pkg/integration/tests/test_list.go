@@ -176,6 +176,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.AccessCommitProperties,
 	custom_commands.BasicCommand,
 	custom_commands.CheckForConflicts,
+	custom_commands.CommitMessagePanelOutput,
 	custom_commands.ConditionalPromptFalseString,
 	custom_commands.ConditionalPromptFalseValue,
 	custom_commands.ConditionalPrompts,
