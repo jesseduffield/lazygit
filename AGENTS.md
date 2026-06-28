@@ -252,6 +252,30 @@ keep the call site fluent.
 Prefer `assert.Equal` (and friends) over hand-rolled `if` checks. The failure
 messages are more useful and the intent is clearer at a glance.
 
+## Translatable strings use Go templates, not `%s`
+
+Never put `fmt.Sprintf`-style placeholders (`%s`, `%d`, …) in translatable
+strings — the fields of `TranslationSet` and `Actions` in
+`pkg/i18n/english.go`. Use named Go-template placeholders and fill them in with
+`utils.ResolvePlaceholderString`:
+
+```go
+// in english.go
+DeleteBranchTitle: "Delete branch '{{.selectedBranchName}}'?",
+
+// at the call site
+utils.ResolvePlaceholderString(
+    self.c.Tr.DeleteBranchTitle,
+    map[string]string{"selectedBranchName": branchName},
+)
+```
+
+Named placeholders tell localizers what each value is (a bare `%s` says
+nothing, and translators can't safely reorder positional verbs across
+languages), and the map form extends cleanly when a string later needs more
+than one placeholder. This holds for every user-facing string, including short
+ones like disabled-action reasons and toasts.
+
 ## Code comments are for future readers, not development history
 
 Comments in source code explain *why this code is shaped the way it is*. They
