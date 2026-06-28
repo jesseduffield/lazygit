@@ -101,6 +101,7 @@ type TranslationSet struct {
 	MergeConflictPressEnterToResolve      string
 	MergeConflictKeepFile                 string
 	MergeConflictDeleteFile               string
+	StageConflictsRangeDisabled           string
 	Checkout                              string
 	CheckoutTooltip                       string
 	CantCheckoutBranchWhilePulling        string
@@ -1200,6 +1201,7 @@ func EnglishTranslationSet() *TranslationSet {
 		MergeConflictPressEnterToResolve:     "Press %s to resolve.",
 		MergeConflictKeepFile:                "Keep file",
 		MergeConflictDeleteFile:              "Delete file",
+		StageConflictsRangeDisabled:          "Cannot stage a selection that includes files with merge conflicts; resolve them individually with {{.goIntoKey}} first.",
 		Checkout:                             "Checkout",
 		CheckoutTooltip:                      "Checkout selected item.",
 		CantCheckoutBranchWhilePulling:       "You cannot checkout another branch while pulling the current branch",

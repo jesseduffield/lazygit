@@ -172,6 +172,7 @@ var tests = []*components.IntegrationTest{
 	conflicts.ResolveNoAutoStage,
 	conflicts.ResolveNonTextualConflicts,
 	conflicts.ResolveWithoutTrailingLf,
+	conflicts.SpaceOnNonTextualConflict,
 	conflicts.UndoChooseHunk,
 	custom_commands.AccessCommitProperties,
 	custom_commands.BasicCommand,

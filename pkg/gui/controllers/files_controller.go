@@ -44,7 +44,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Select),
 			Handler:           self.withItems(self.press),
-			GetDisabledReason: self.require(self.withFileTreeViewModelMutex(self.itemsSelected())),
+			GetDisabledReason: self.require(self.withFileTreeViewModelMutex(self.itemsSelected(self.canStageSelection))),
 			Description:       self.c.Tr.Stage,
 			Tooltip:           self.c.Tr.StageTooltip,
 			DisplayOnScreen:   true,
@@ -583,6 +583,12 @@ func (self *FilesController) pressWithLock(selectedNodes []*filetree.FileNode) e
 }
 
 func (self *FilesController) press(nodes []*filetree.FileNode) error {
+	// A single file with a conflict that can only be resolved through a dialog
+	// can't be staged; route it to the same picker that `enter` uses instead.
+	if len(nodes) == 1 && self.conflictNeedsResolutionDialog(nodes[0].File) {
+		return self.openConflictResolutionMenu(nodes[0].File)
+	}
+
 	if err := self.pressWithLock(nodes); err != nil {
 		return err
 	}
@@ -714,6 +720,27 @@ func (self *FilesController) conflictNeedsResolutionDialog(file *models.File) bo
 	}
 
 	return !file.HasInlineMergeConflicts
+}
+
+// canStageSelection disables staging when a multiple selection includes a file
+// with a conflict that must be resolved through a dialog; those have to be
+// resolved one at a time.
+func (self *FilesController) canStageSelection(nodes []*filetree.FileNode) *types.DisabledReason {
+	if len(nodes) > 1 {
+		for _, node := range nodes {
+			if node.SomeFile(self.conflictNeedsResolutionDialog) {
+				return &types.DisabledReason{
+					Text: utils.ResolvePlaceholderString(
+						self.c.Tr.StageConflictsRangeDisabled, map[string]string{
+							"goIntoKey": self.c.UserConfig().Keybinding.Universal.GoInto.String(),
+						},
+					),
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func (self *FilesController) openConflictResolutionMenu(file *models.File) error {
