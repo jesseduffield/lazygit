@@ -520,6 +520,8 @@
   "NewTagTooltip": "Crie uma nova etiqueta a partir do commit atual. Você será solicitado a digitar um nome e uma descrição opcional.",
   "CreatingTag": "Criando etiqueta",
   "ForceTag": "Forçar Etiqueta",
+  "FilterHideMerges": "Ocultar commits de merge",
+  "FilterHideMergesTooltip": "Excluir commits de merge da lista",
   "GitFlowOptions": "Exibir opções do git-flow",
   "NewBranchNamePrompt": "Digite o novo nome da branch",
   "IgnoreTracked": "Ignorar o arquivo rastreado",

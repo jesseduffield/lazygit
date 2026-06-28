@@ -658,6 +658,8 @@ type TranslationSet struct {
 	ExitFilterMode                        string
 	FilterPathOption                      string
 	FilterAuthorOption                    string
+	FilterHideMerges                      string
+	FilterHideMergesTooltip               string
 	EnterFileName                         string
 	EnterAuthor                           string
 	FilteringMenuTitle                    string
@@ -1794,6 +1796,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ExitFilterMode:                   "Stop filtering",
 		FilterPathOption:                 "Enter path to filter by",
 		FilterAuthorOption:               "Enter author to filter by",
+		FilterHideMerges:                 "Hide merge commits",
+		FilterHideMergesTooltip:          "Exclude merge commits from the list",
 		EnterFileName:                    "Enter path:",
 		EnterAuthor:                      "Enter author:",
 		FilteringMenuTitle:               "Filtering",
