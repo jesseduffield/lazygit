@@ -259,134 +259,155 @@ func (self *FilesController) GetOnRenderToMain() func() {
 			node := self.context().GetSelected()
 
 			if node == nil {
-				self.c.RenderToMainViews(types.RefreshMainOpts{
-					Pair: self.c.MainViewPairs().Normal,
-					Main: &types.ViewUpdateOpts{
-						Title:    self.c.Tr.DiffTitle,
-						SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-						Task:     types.NewRenderStringTask(self.c.Tr.NoChangedFiles),
-					},
-				})
+				self.renderToMainWithTask(types.NewRenderStringTask(self.c.Tr.NoChangedFiles))
 				return
 			}
 
 			if self.isSubmoduleCommitConflict(node.File) {
-				self.c.Helpers().MergeConflicts.ResetMergeState()
-
-				path := node.GetPath()
-				_, ours, theirs, err := self.c.Git().Submodule.GetConflictCommits(path)
-				if err != nil {
-					return
-				}
-
-				// Show the commits each side added relative to their common
-				// ancestor as two separate, indented logs, so it's clear which is
-				// which. If a side added nothing of its own (e.g. it was rewound to
-				// an ancestor of the other), show the commit it points at instead.
-				sideBlock := func(header string, side string, otherSide string) string {
-					log, err := self.c.Git().Submodule.ConflictSideLog(path, side, otherSide)
-					if err != nil {
-						return header
-					}
-					if log = strings.TrimRight(log, "\n"); log == "" {
-						if log, err = self.c.Git().Submodule.GetCommitSummary(path, side); err != nil {
-							return header
-						}
-					}
-					return header + "\n\n  " + strings.ReplaceAll(log, "\n", "\n  ")
-				}
-
-				message := strings.Join([]string{
-					self.conflictResolutionHint(utils.ResolvePlaceholderString(self.c.Tr.SubmoduleMergeConflictDescription, map[string]string{"path": path})),
-					sideBlock(self.c.Tr.MergeConflictCurrentDiff, ours, theirs),
-					sideBlock(self.c.Tr.MergeConflictIncomingDiff, theirs, ours),
-				}, "\n\n")
-
-				self.c.RenderToMainViews(types.RefreshMainOpts{
-					Pair: self.c.MainViewPairs().Normal,
-					Main: &types.ViewUpdateOpts{
-						Title:    self.c.Tr.DiffTitle,
-						SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-						Task:     types.NewRenderStringTask(message),
-					},
-				})
+				self.renderSubmoduleConflict(node)
 				return
 			}
 
 			if node.File != nil && node.File.HasInlineMergeConflicts {
-				hasConflicts, err := self.c.Helpers().MergeConflicts.SetMergeState(node.GetPath())
-				if err != nil {
+				if self.renderInlineMergeConflict(node) {
 					return
 				}
-
-				if hasConflicts {
-					self.c.Helpers().MergeConflicts.Render()
-					return
-				}
+				// The file is marked as conflicted but has no conflict markers (it
+				// was resolved in an editor), so fall through to show its diff.
 			} else if node.File != nil && node.File.HasMergeConflicts {
-				opts := types.RefreshMainOpts{
-					Pair: self.c.MainViewPairs().Normal,
-					Main: &types.ViewUpdateOpts{
-						Title:    self.c.Tr.DiffTitle,
-						SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-					},
-				}
-				message := self.conflictResolutionHint(node.File.GetMergeStateDescription(self.c.Tr))
-				if node.File.ShortStatus == "DU" || node.File.ShortStatus == "UD" {
-					cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()})
-					prefix := message + "\n\n"
-					if node.File.ShortStatus == "DU" {
-						prefix += self.c.Tr.MergeConflictIncomingDiff
-					} else {
-						prefix += self.c.Tr.MergeConflictCurrentDiff
-					}
-					prefix += "\n\n"
-					opts.Main.Task = types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix)
-				} else {
-					opts.Main.Task = types.NewRenderStringTask(message)
-				}
-				self.c.RenderToMainViews(opts)
+				self.renderNonTextualConflict(node)
 				return
 			}
 
-			self.c.Helpers().MergeConflicts.ResetMergeState()
-
-			split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
-			mainShowsStaged := !split && node.GetHasStagedChanges()
-
-			pathOverrides := self.pathOverridesForDiff(node)
-			cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, pathOverrides)
-			title := self.c.Tr.UnstagedChanges
-			if mainShowsStaged {
-				title = self.c.Tr.StagedChanges
-			}
-			refreshOpts := types.RefreshMainOpts{
-				Pair: self.c.MainViewPairs().Normal,
-				Main: &types.ViewUpdateOpts{
-					Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
-					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-					Title:    title,
-				},
-			}
-
-			if split {
-				cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, pathOverrides)
-
-				title := self.c.Tr.StagedChanges
-				if mainShowsStaged {
-					title = self.c.Tr.UnstagedChanges
-				}
-
-				refreshOpts.Secondary = &types.ViewUpdateOpts{
-					Title:    title,
-					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-					Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
-				}
-			}
-
-			self.c.RenderToMainViews(refreshOpts)
+			self.renderWorkingTreeDiff(node)
 		})
 	}
+}
+
+// renderToMainWithTask renders the given task to the main view with the standard
+// diff title and subtitle.
+func (self *FilesController) renderToMainWithTask(task types.UpdateTask) {
+	self.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: self.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title:    self.c.Tr.DiffTitle,
+			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			Task:     task,
+		},
+	})
+}
+
+// renderSubmoduleConflict shows, for a conflicted submodule, an explanation plus
+// the commits each side added relative to their common ancestor as two separate,
+// indented logs. If a side added nothing of its own (e.g. it was rewound to an
+// ancestor of the other), the commit it points at is shown instead.
+func (self *FilesController) renderSubmoduleConflict(node *filetree.FileNode) {
+	self.c.Helpers().MergeConflicts.ResetMergeState()
+
+	path := node.GetPath()
+	_, ours, theirs, err := self.c.Git().Submodule.GetConflictCommits(path)
+	if err != nil {
+		return
+	}
+
+	sideBlock := func(header string, side string, otherSide string) string {
+		log, err := self.c.Git().Submodule.ConflictSideLog(path, side, otherSide)
+		if err != nil {
+			return header
+		}
+		if log = strings.TrimRight(log, "\n"); log == "" {
+			if log, err = self.c.Git().Submodule.GetCommitSummary(path, side); err != nil {
+				return header
+			}
+		}
+		return header + "\n\n  " + strings.ReplaceAll(log, "\n", "\n  ")
+	}
+
+	message := strings.Join([]string{
+		self.conflictResolutionHint(utils.ResolvePlaceholderString(self.c.Tr.SubmoduleMergeConflictDescription, map[string]string{"path": path})),
+		sideBlock(self.c.Tr.MergeConflictCurrentDiff, ours, theirs),
+		sideBlock(self.c.Tr.MergeConflictIncomingDiff, theirs, ours),
+	}, "\n\n")
+
+	self.renderToMainWithTask(types.NewRenderStringTask(message))
+}
+
+// renderInlineMergeConflict renders the merge-conflict view for a file with
+// inline conflict markers. It returns false if the file has no actual markers
+// (it was resolved in an editor), in which case the caller should fall back to
+// showing the file's diff.
+func (self *FilesController) renderInlineMergeConflict(node *filetree.FileNode) bool {
+	hasConflicts, err := self.c.Helpers().MergeConflicts.SetMergeState(node.GetPath())
+	if err != nil {
+		return true
+	}
+
+	if !hasConflicts {
+		return false
+	}
+
+	self.c.Helpers().MergeConflicts.Render()
+	return true
+}
+
+// renderNonTextualConflict shows the resolution hint for a non-textual text-file
+// conflict (DD/AU/UA/UD/DU), plus the base diff for the modify/delete cases.
+func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
+	message := self.conflictResolutionHint(node.File.GetMergeStateDescription(self.c.Tr))
+
+	if node.File.ShortStatus == "DU" || node.File.ShortStatus == "UD" {
+		cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()})
+		prefix := message + "\n\n"
+		if node.File.ShortStatus == "DU" {
+			prefix += self.c.Tr.MergeConflictIncomingDiff
+		} else {
+			prefix += self.c.Tr.MergeConflictCurrentDiff
+		}
+		prefix += "\n\n"
+		self.renderToMainWithTask(types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix))
+		return
+	}
+
+	self.renderToMainWithTask(types.NewRenderStringTask(message))
+}
+
+func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
+	self.c.Helpers().MergeConflicts.ResetMergeState()
+
+	split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
+	mainShowsStaged := !split && node.GetHasStagedChanges()
+
+	pathOverrides := self.pathOverridesForDiff(node)
+	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, pathOverrides)
+	title := self.c.Tr.UnstagedChanges
+	if mainShowsStaged {
+		title = self.c.Tr.StagedChanges
+	}
+	refreshOpts := types.RefreshMainOpts{
+		Pair: self.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			Title:    title,
+		},
+	}
+
+	if split {
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, pathOverrides)
+
+		title := self.c.Tr.StagedChanges
+		if mainShowsStaged {
+			title = self.c.Tr.UnstagedChanges
+		}
+
+		refreshOpts.Secondary = &types.ViewUpdateOpts{
+			Title:    title,
+			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+		}
+	}
+
+	self.c.RenderToMainViews(refreshOpts)
 }
 
 func (self *FilesController) GetOnDoubleClick() func() error {
