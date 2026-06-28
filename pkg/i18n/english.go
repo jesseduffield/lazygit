@@ -101,6 +101,9 @@ type TranslationSet struct {
 	MergeConflictPressEnterToResolve      string
 	MergeConflictKeepFile                 string
 	MergeConflictDeleteFile               string
+	MergeConflictTakeCurrentCommit        string
+	MergeConflictTakeIncomingCommit       string
+	SubmoduleMergeConflictDescription     string
 	StageConflictsRangeDisabled           string
 	Checkout                              string
 	CheckoutTooltip                       string
@@ -1028,6 +1031,8 @@ type Actions struct {
 	StageAllFiles                    string
 	ResolveConflictByKeepingFile     string
 	ResolveConflictByDeletingFile    string
+	TakeCurrentSubmoduleCommit       string
+	TakeIncomingSubmoduleCommit      string
 	NotEnoughContextToStage          string
 	NotEnoughContextToDiscard        string
 	NotEnoughContextToRemoveLines    string
@@ -1201,6 +1206,9 @@ func EnglishTranslationSet() *TranslationSet {
 		MergeConflictPressEnterToResolve:     "Press %s to resolve.",
 		MergeConflictKeepFile:                "Keep file",
 		MergeConflictDeleteFile:              "Delete file",
+		MergeConflictTakeCurrentCommit:       "Take current commit",
+		MergeConflictTakeIncomingCommit:      "Take incoming commit",
+		SubmoduleMergeConflictDescription:    "Conflict: the submodule '{{.path}}' was set to a different commit in the current and the incoming changes. Pick which commit to keep.",
 		StageConflictsRangeDisabled:          "Cannot stage a selection that includes files with merge conflicts; resolve them individually with {{.goIntoKey}} first.",
 		Checkout:                             "Checkout",
 		CheckoutTooltip:                      "Checkout selected item.",
@@ -2116,6 +2124,8 @@ func EnglishTranslationSet() *TranslationSet {
 			StageAllFiles:                    "Stage all files",
 			ResolveConflictByKeepingFile:     "Resolve by keeping file",
 			ResolveConflictByDeletingFile:    "Resolve by deleting file",
+			TakeCurrentSubmoduleCommit:       "Resolve submodule conflict by taking current commit",
+			TakeIncomingSubmoduleCommit:      "Resolve submodule conflict by taking incoming commit",
 			NotEnoughContextToStage:          "Staging or unstaging changes is not possible with a diff context size of 0. Increase the context using '%s'.",
 			NotEnoughContextToDiscard:        "Discarding changes is not possible with a diff context size of 0. Increase the context using '%s'.",
 			NotEnoughContextToRemoveLines:    "Removing lines from a commit is not possible with a diff context size of 0. Increase the context using '%s'.",

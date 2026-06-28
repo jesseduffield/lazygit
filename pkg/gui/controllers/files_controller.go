@@ -712,11 +712,18 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 
 // conflictNeedsResolutionDialog reports whether a file's merge conflict can only
 // be resolved through a dialog that picks one side, as opposed to editing
-// conflict markers in the merge view. These are the "non-textual" conflicts,
-// e.g. one side modified a file while the other deleted it (DD/AU/UA/UD/DU).
+// conflict markers in the merge view. These are the "non-textual" conflicts:
+// text files where one side modified and the other deleted/renamed the file
+// (DD/AU/UA/UD/DU), and submodules where both sides moved the gitlink (UU).
 func (self *FilesController) conflictNeedsResolutionDialog(file *models.File) bool {
 	if file == nil || !file.HasMergeConflicts {
 		return false
+	}
+
+	// A conflicted submodule has no conflict markers to edit; it's resolved by
+	// picking which commit to point at.
+	if file.IsSubmodule(self.c.Model().Submodules) {
+		return true
 	}
 
 	return !file.HasInlineMergeConflicts
@@ -743,7 +750,24 @@ func (self *FilesController) canStageSelection(nodes []*filetree.FileNode) *type
 	return nil
 }
 
+// isSubmoduleCommitConflict reports whether the file is a submodule whose commit
+// pointer conflicts (status UU or AA): both sides recorded a different commit,
+// with no base content to merge. These are resolved by picking one side's
+// commit. Other submodule conflicts (e.g. modify/delete) are handled like
+// ordinary non-textual conflicts, with the keep/delete picker.
+func (self *FilesController) isSubmoduleCommitConflict(file *models.File) bool {
+	return file != nil && file.HasInlineMergeConflicts && file.IsSubmodule(self.c.Model().Submodules)
+}
+
 func (self *FilesController) openConflictResolutionMenu(file *models.File) error {
+	if self.isSubmoduleCommitConflict(file) {
+		return self.openSubmoduleConflictMenu(file)
+	}
+
+	return self.openFileConflictMenu(file)
+}
+
+func (self *FilesController) openFileConflictMenu(file *models.File) error {
 	handle := func(command func(command string) error, logText string) error {
 		self.c.LogAction(logText)
 		if err := command(file.GetPath()); err != nil {
@@ -787,6 +811,52 @@ func (self *FilesController) openConflictResolutionMenu(file *models.File) error
 		Title:  self.c.Tr.MergeConflictsTitle,
 		Prompt: file.GetMergeStateDescription(self.c.Tr),
 		Items:  items,
+	})
+}
+
+func (self *FilesController) openSubmoduleConflictMenu(file *models.File) error {
+	path := file.GetPath()
+	_, ours, theirs, err := self.c.Git().Submodule.GetConflictCommits(path)
+	if err != nil {
+		return err
+	}
+
+	resolve := func(sha string, logAction string) error {
+		self.c.LogAction(logAction)
+		if err := self.c.Git().Submodule.CheckoutConflictCommit(path, sha); err != nil {
+			return err
+		}
+		if err := self.c.Git().WorkingTree.StageFile(path); err != nil {
+			return err
+		}
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+		return nil
+	}
+
+	// Append the commit summary to the label so the user can tell the two
+	// candidates apart, falling back to the bare label if we can't read it.
+	label := func(text string, sha string) string {
+		if summary, err := self.c.Git().Submodule.GetCommitSummary(path, sha); err == nil && summary != "" {
+			return fmt.Sprintf("%s (%s)", text, summary)
+		}
+		return text
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title:  self.c.Tr.MergeConflictsTitle,
+		Prompt: utils.ResolvePlaceholderString(self.c.Tr.SubmoduleMergeConflictDescription, map[string]string{"path": path}),
+		Items: []*types.MenuItem{
+			{
+				Label:   label(self.c.Tr.MergeConflictTakeCurrentCommit, ours),
+				OnPress: func() error { return resolve(ours, self.c.Tr.Actions.TakeCurrentSubmoduleCommit) },
+				Keys:    menuKey('c'),
+			},
+			{
+				Label:   label(self.c.Tr.MergeConflictTakeIncomingCommit, theirs),
+				OnPress: func() error { return resolve(theirs, self.c.Tr.Actions.TakeIncomingSubmoduleCommit) },
+				Keys:    menuKey('i'),
+			},
+		},
 	})
 }
 

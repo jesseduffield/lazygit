@@ -430,6 +430,7 @@ var tests = []*components.IntegrationTest{
 	submodule.RemoveNested,
 	submodule.Reset,
 	submodule.ResetFolder,
+	submodule.ResolveConflict,
 	submodule.Stage,
 	submodule.StageAllWithDirtySubmodule,
 	submodule.StageDirtyOnly,
