@@ -683,6 +683,10 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 
 	file := node.File
 
+	if self.conflictNeedsResolutionDialog(file) {
+		return self.openConflictResolutionMenu(file)
+	}
+
 	submoduleConfigs := self.c.Model().Submodules
 	if file.IsSubmodule(submoduleConfigs) {
 		submoduleConfig := file.SubmoduleConfig(submoduleConfigs)
@@ -692,9 +696,6 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 	if file.HasInlineMergeConflicts {
 		return self.switchToMerge()
 	}
-	if file.HasMergeConflicts {
-		return self.handleNonInlineConflict(file)
-	}
 
 	context := lo.Ternary(opts.ClickedWindowName == "secondary", self.c.Contexts().StagingSecondary, self.c.Contexts().Staging)
 	self.c.Context().Push(context, opts)
@@ -703,7 +704,19 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 	return nil
 }
 
-func (self *FilesController) handleNonInlineConflict(file *models.File) error {
+// conflictNeedsResolutionDialog reports whether a file's merge conflict can only
+// be resolved through a dialog that picks one side, as opposed to editing
+// conflict markers in the merge view. These are the "non-textual" conflicts,
+// e.g. one side modified a file while the other deleted it (DD/AU/UA/UD/DU).
+func (self *FilesController) conflictNeedsResolutionDialog(file *models.File) bool {
+	if file == nil || !file.HasMergeConflicts {
+		return false
+	}
+
+	return !file.HasInlineMergeConflicts
+}
+
+func (self *FilesController) openConflictResolutionMenu(file *models.File) error {
 	handle := func(command func(command string) error, logText string) error {
 		self.c.LogAction(logText)
 		if err := command(file.GetPath()); err != nil {
