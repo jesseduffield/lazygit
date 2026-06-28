@@ -165,6 +165,18 @@ func (self *SubmoduleCommands) CheckoutConflictCommit(path string, sha string) e
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// ConflictSideLog returns a oneline log, run inside the submodule, of the commits
+// that `side` has but `otherSide` does not (i.e. `otherSide..side`) — the commits
+// unique to one side of a commit conflict, relative to their common ancestor. It
+// is empty if `side` is an ancestor of `otherSide` (e.g. that side was rewound).
+func (self *SubmoduleCommands) ConflictSideLog(path string, side string, otherSide string) (string, error) {
+	cmdArgs := NewGitCmd("log").Dir(path).
+		Arg("--oneline", "--color=always", otherSide+".."+side).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+}
+
 func (self *SubmoduleCommands) Stash(submodule *models.SubmoduleConfig) error {
 	// if the path does not exist then it hasn't yet been initialized so we'll swallow the error
 	// because the intention here is to have no dirty worktree state

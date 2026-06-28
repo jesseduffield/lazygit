@@ -270,6 +270,49 @@ func (self *FilesController) GetOnRenderToMain() func() {
 				return
 			}
 
+			if self.isSubmoduleCommitConflict(node.File) {
+				self.c.Helpers().MergeConflicts.ResetMergeState()
+
+				path := node.GetPath()
+				_, ours, theirs, err := self.c.Git().Submodule.GetConflictCommits(path)
+				if err != nil {
+					return
+				}
+
+				// Show the commits each side added relative to their common
+				// ancestor as two separate, indented logs, so it's clear which is
+				// which. If a side added nothing of its own (e.g. it was rewound to
+				// an ancestor of the other), show the commit it points at instead.
+				sideBlock := func(header string, side string, otherSide string) string {
+					log, err := self.c.Git().Submodule.ConflictSideLog(path, side, otherSide)
+					if err != nil {
+						return header
+					}
+					if log = strings.TrimRight(log, "\n"); log == "" {
+						if log, err = self.c.Git().Submodule.GetCommitSummary(path, side); err != nil {
+							return header
+						}
+					}
+					return header + "\n\n  " + strings.ReplaceAll(log, "\n", "\n  ")
+				}
+
+				message := strings.Join([]string{
+					self.conflictResolutionHint(utils.ResolvePlaceholderString(self.c.Tr.SubmoduleMergeConflictDescription, map[string]string{"path": path})),
+					sideBlock(self.c.Tr.MergeConflictCurrentDiff, ours, theirs),
+					sideBlock(self.c.Tr.MergeConflictIncomingDiff, theirs, ours),
+				}, "\n\n")
+
+				self.c.RenderToMainViews(types.RefreshMainOpts{
+					Pair: self.c.MainViewPairs().Normal,
+					Main: &types.ViewUpdateOpts{
+						Title:    self.c.Tr.DiffTitle,
+						SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+						Task:     types.NewRenderStringTask(message),
+					},
+				})
+				return
+			}
+
 			if node.File != nil && node.File.HasInlineMergeConflicts {
 				hasConflicts, err := self.c.Helpers().MergeConflicts.SetMergeState(node.GetPath())
 				if err != nil {
@@ -288,14 +331,7 @@ func (self *FilesController) GetOnRenderToMain() func() {
 						SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 					},
 				}
-				message := node.File.GetMergeStateDescription(self.c.Tr)
-				message += "\n\n" + fmt.Sprintf(self.c.Tr.MergeConflictPressEnterToResolve,
-					self.c.UserConfig().Keybinding.Universal.GoInto)
-				if self.c.Views().Main.InnerWidth() > 70 {
-					// If the main view is very wide, wrap the message to increase readability
-					lines, _, _ := utils.WrapViewLinesToWidth(true, false, message, 70, 4)
-					message = strings.Join(lines, "\n")
-				}
+				message := self.conflictResolutionHint(node.File.GetMergeStateDescription(self.c.Tr))
 				if node.File.ShortStatus == "DU" || node.File.ShortStatus == "UD" {
 					cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()})
 					prefix := message + "\n\n"
@@ -708,6 +744,19 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 	self.c.Helpers().PatchBuilding.ShowHunkStagingHint()
 
 	return nil
+}
+
+// conflictResolutionHint formats a conflict description for the main view,
+// appending the "press <enter> to resolve" hint and wrapping it when the view is
+// wide enough that long lines would otherwise hurt readability.
+func (self *FilesController) conflictResolutionHint(description string) string {
+	message := description + "\n\n" + fmt.Sprintf(self.c.Tr.MergeConflictPressEnterToResolve,
+		self.c.UserConfig().Keybinding.Universal.GoInto)
+	if self.c.Views().Main.InnerWidth() > 70 {
+		lines, _, _ := utils.WrapViewLinesToWidth(true, false, message, 70, 4)
+		message = strings.Join(lines, "\n")
+	}
+	return message
 }
 
 // conflictNeedsResolutionDialog reports whether a file's merge conflict can only

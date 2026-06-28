@@ -431,6 +431,7 @@ var tests = []*components.IntegrationTest{
 	submodule.Reset,
 	submodule.ResetFolder,
 	submodule.ResolveConflict,
+	submodule.ResolveConflictRewoundSide,
 	submodule.Stage,
 	submodule.StageAllWithDirtySubmodule,
 	submodule.StageDirtyOnly,

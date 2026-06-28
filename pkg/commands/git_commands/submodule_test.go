@@ -79,3 +79,14 @@ func TestSubmoduleCheckoutConflictCommit(t *testing.T) {
 	assert.NoError(t, instance.CheckoutConflictCommit("mysub", "bbbbbbb"))
 	runner.CheckForMissingCalls()
 }
+
+func TestSubmoduleConflictSideLog(t *testing.T) {
+	runner := oscommands.NewFakeRunner(t).
+		ExpectGitArgs([]string{"-C", "mysub", "log", "--oneline", "--color=always", "ccccccc..bbbbbbb"}, "bbbbbbb left\n", nil)
+	instance := buildSubmoduleCommands(commonDeps{runner: runner})
+
+	output, err := instance.ConflictSideLog("mysub", "bbbbbbb", "ccccccc")
+	assert.NoError(t, err)
+	assert.Equal(t, "bbbbbbb left\n", output)
+	runner.CheckForMissingCalls()
+}

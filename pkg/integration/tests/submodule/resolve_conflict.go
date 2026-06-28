@@ -48,6 +48,15 @@ var ResolveConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("UU my_submodule_path (submodule)").IsSelected(),
 			).
+			Tap(func() {
+				// The main view explains the conflict and shows each side's
+				// commits as separate "current" and "incoming" logs.
+				t.Views().Main().Content(
+					Contains("Conflict: the submodule").
+						Contains("Current changes:").Contains("left").
+						Contains("Incoming changes:").Contains("right"),
+				)
+			}).
 			// Enter opens the resolution menu instead of entering the submodule.
 			// The two candidate commits are shown with their summaries.
 			Press(keys.Universal.GoInto).
