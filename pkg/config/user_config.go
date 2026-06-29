@@ -11,6 +11,8 @@ type UserConfig struct {
 	Gui GuiConfig `yaml:"gui"`
 	// Config relating to git
 	Git GitConfig `yaml:"git"`
+	// Config relating to git worktrees
+	Worktree WorktreeConfig `yaml:"worktree"`
 	// Periodic update checks
 	Update UpdateConfig `yaml:"update"`
 	// Background refreshes
@@ -420,6 +422,12 @@ type CommitPrefixConfig struct {
 	Pattern string `yaml:"pattern" jsonschema:"example=^\\w+\\/(\\w+-\\w+).*"`
 	// Replace directive. E.g. for 'feature/AB-123' to start the commit message with 'AB-123 ' use "[$1] "
 	Replace string `yaml:"replace" jsonschema:"example=[$1]"`
+}
+
+type WorktreeConfig struct {
+	// Default parent directory for new worktrees. It is offered as a candidate location alongside the parent directories of any worktrees you already have.
+	// A relative path is resolved against the repository's root directory, so "../worktrees" sits beside the repo and ".worktrees" sits inside it.
+	DefaultPath string `yaml:"defaultPath"`
 }
 
 type UpdateConfig struct {
@@ -958,6 +966,9 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			BranchPrefix:                 "",
 			ParseEmoji:                   false,
 			TruncateCopiedCommitHashesTo: 12,
+		},
+		Worktree: WorktreeConfig{
+			DefaultPath: "",
 		},
 		Refresher: RefresherConfig{
 			RefreshInterval:             10,
