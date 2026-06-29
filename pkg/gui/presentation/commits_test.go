@@ -39,6 +39,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		selectedCommitHashPtr     *string
 		startIdx                  int
 		endIdx                    int
+		showGpg                   bool
 		showGraph                 bool
 		bisectInfo                *git_commands.BisectInfo
 		expected                  string
@@ -87,6 +88,24 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			expected: formatExpected(`
 		hash1 tag1 tag2 commit1
 		hash2 commit2
+						`),
+		},
+		{
+			testName: "show gpg status when enabled",
+			commitOpts: []models.NewCommitOpts{
+				{Name: "commit1", Hash: "hash1", GpgStatus: "G"},
+				{Name: "commit2", Hash: "hash2", GpgStatus: "N"},
+			},
+			startIdx:                  0,
+			endIdx:                    2,
+			showGpg:                   true,
+			showGraph:                 false,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		hash1 ✓ commit1
+		hash2 - commit2
 						`),
 		},
 		{
@@ -543,6 +562,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		if !focusing || s.focus {
 			t.Run(s.testName, func(t *testing.T) {
 				hashPool := &utils.StringPool{}
+				common.UserConfig().Gui.ShowGpgSigningStatus = s.showGpg
 
 				commits := lo.Map(s.commitOpts,
 					func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })

@@ -27,6 +27,8 @@ var commitsOutput = strings.ReplaceAll(`+0eea75e8c631fba6b58135697835d58ba4c18db
 
 var singleCommitOutput = strings.ReplaceAll(`+0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield|jessedduffield@gmail.com|b21997d6b4cbdf84b149|>|HEAD -> better-tests|better typing for rebase mode`, "|", "\x00")
 
+var singleCommitOutputWithGpg = strings.ReplaceAll(`+0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield|jessedduffield@gmail.com|b21997d6b4cbdf84b149|>|HEAD -> better-tests|G|better typing for rebase mode`, "|", "\x00")
+
 func TestGetCommits(t *testing.T) {
 	type scenario struct {
 		testName           string
@@ -34,6 +36,7 @@ func TestGetCommits(t *testing.T) {
 		expectedCommitOpts []models.NewCommitOpts
 		expectedError      error
 		logOrder           string
+		showGpg            bool
 		opts               GetCommitsOptions
 		mainBranches       []string
 	}
@@ -60,6 +63,30 @@ func TestGetCommits(t *testing.T) {
 
 			expectedCommitOpts: []models.NewCommitOpts{},
 			expectedError:      nil,
+		},
+		{
+			testName: "should return commits with gpg status when enabled",
+			logOrder: "topo-order",
+			showGpg:  true,
+			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "0eea75e8c631fba6b58135697835d58ba4c18dbc\n", nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%G?%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutputWithGpg, nil),
+
+			expectedCommitOpts: []models.NewCommitOpts{{
+				Hash:          "0eea75e8c631fba6b58135697835d58ba4c18dbc",
+				Name:          "better typing for rebase mode",
+				Status:        models.StatusUnpushed,
+				Action:        models.ActionNone,
+				Tags:          nil,
+				ExtraInfo:     "(HEAD -> better-tests)",
+				AuthorName:    "Jesse Duffield",
+				AuthorEmail:   "jessedduffield@gmail.com",
+				UnixTimestamp: 1640826609,
+				Parents:       []string{"b21997d6b4cbdf84b149"},
+				GpgStatus:     "G",
+			}},
+			expectedError: nil,
 		},
 		{
 			testName:     "should return commits if they are present",
@@ -300,6 +327,7 @@ func TestGetCommits(t *testing.T) {
 		t.Run(scenario.testName, func(t *testing.T) {
 			common := common.NewDummyCommon()
 			common.UserConfig().Git.Log.Order = scenario.logOrder
+			common.UserConfig().Gui.ShowGpgSigningStatus = scenario.showGpg
 			cmd := oscommands.NewDummyCmdObjBuilder(scenario.runner)
 
 			builder := &CommitLoader{
@@ -331,6 +359,42 @@ func TestGetCommits(t *testing.T) {
 			scenario.runner.CheckForMissingCalls()
 		})
 	}
+}
+
+func TestCommitLoader_getHydratedTodoCommitsWithGpgStatus(t *testing.T) {
+	common := common.NewDummyCommon()
+	common.UserConfig().Gui.ShowGpgSigningStatus = true
+	runner := oscommands.NewFakeRunner(t).
+		ExpectGitArgs([]string{"-c", "log.showSignature=false", "show", "--no-patch", "--oneline", "--abbrev=20", prettyFormatWithGpg, "0eea75e8c631fba6b58135697835d58ba4c18dbc"}, singleCommitOutputWithGpg, nil)
+
+	hashPool := &utils.StringPool{}
+	loader := &CommitLoader{
+		Common: common,
+		cmd:    oscommands.NewDummyCmdObjBuilder(runner),
+	}
+
+	todoCommits := []*models.Commit{models.NewCommit(hashPool, models.NewCommitOpts{
+		Hash:   "0eea75e8c631fba6b58135697835d58ba4c18dbc",
+		Status: models.StatusRebasing,
+		Action: todo.Pick,
+	})}
+
+	commits, err := loader.getHydratedTodoCommits(hashPool, todoCommits, false)
+
+	assert.NoError(t, err)
+	assert.Equal(t, []*models.Commit{models.NewCommit(hashPool, models.NewCommitOpts{
+		Hash:          "0eea75e8c631fba6b58135697835d58ba4c18dbc",
+		Name:          "better typing for rebase mode",
+		Status:        models.StatusRebasing,
+		Action:        todo.Pick,
+		ExtraInfo:     "(HEAD -> better-tests)",
+		AuthorName:    "Jesse Duffield",
+		AuthorEmail:   "jessedduffield@gmail.com",
+		UnixTimestamp: 1640826609,
+		Parents:       []string{"b21997d6b4cbdf84b149"},
+		GpgStatus:     "G",
+	})}, commits)
+	runner.CheckForMissingCalls()
 }
 
 func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
@@ -605,6 +669,7 @@ func TestCommitLoader_extractCommitFromLine(t *testing.T) {
 		testName       string
 		line           string
 		showDivergence bool
+		showGpg        bool
 		expectedCommit *models.Commit
 	}{
 		{
@@ -760,6 +825,24 @@ func TestCommitLoader_extractCommitFromLine(t *testing.T) {
 			}),
 		},
 		{
+			testName:       "valid line with gpg status",
+			line:           "hash\x00timestamp\x00author\x00email\x00parents\x00<\x00extraInfo\x00G\x00message",
+			showDivergence: true,
+			showGpg:        true,
+			expectedCommit: models.NewCommit(hashPool, models.NewCommitOpts{
+				Hash:          "hash",
+				Name:          "message",
+				Tags:          nil,
+				ExtraInfo:     "(extraInfo)",
+				UnixTimestamp: 0,
+				AuthorName:    "author",
+				AuthorEmail:   "email",
+				Parents:       []string{"parents"},
+				Divergence:    models.DivergenceLeft,
+				GpgStatus:     "G",
+			}),
+		},
+		{
 			testName:       "empty line",
 			line:           "",
 			showDivergence: false,
@@ -785,7 +868,7 @@ func TestCommitLoader_extractCommitFromLine(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.testName, func(t *testing.T) {
-			result := loader.extractCommitFromLine(hashPool, scenario.line, scenario.showDivergence)
+			result := loader.extractCommitFromLine(hashPool, scenario.line, scenario.showDivergence, scenario.showGpg)
 			if scenario.expectedCommit == nil {
 				assert.Nil(t, result)
 			} else {

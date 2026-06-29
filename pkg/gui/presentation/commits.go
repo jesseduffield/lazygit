@@ -393,6 +393,20 @@ func displayCommit(
 		actionString = actionColorMap(commit.Action, commit.Status).Sprint(actionStr)
 	}
 
+	gpgString := ""
+	if common.UserConfig().Gui.ShowGpgSigningStatus {
+		switch commit.GpgStatus {
+		case "G", "U":
+			gpgString = style.FgGreen.Sprint("✓")
+		case "B", "R", "X", "Y":
+			gpgString = style.FgRed.Sprint("✗")
+		case "E":
+			gpgString = style.FgYellow.Sprint("~")
+		default:
+			gpgString = style.FgBlue.Sprint("-")
+		}
+	}
+
 	tagString := ""
 	if fullDescription {
 		if commit.ExtraInfo != "" {
@@ -439,11 +453,12 @@ func displayCommit(
 	}
 	author := authors.AuthorWithLength(commit.AuthorName, authorLength)
 
-	cols := make([]string, 0, 7)
+	cols := make([]string, 0, 8)
 	cols = append(
 		cols,
 		divergenceString,
 		hashString,
+		gpgString,
 		bisectString,
 		descriptionString,
 		actionString,
