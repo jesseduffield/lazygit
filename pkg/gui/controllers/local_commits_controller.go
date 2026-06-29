@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -590,15 +589,9 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, start
 
 	commits := self.c.Model().Commits
 	if !commits[endIdx].IsMerge() {
-		selectionRangeAndMode := self.getSelectionRangeAndMode()
 		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit, "")
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
-			err,
-			types.RefreshOptions{
-				Mode: types.BLOCK_UI, Then: func() {
-					self.restoreSelectionRangeAndMode(selectionRangeAndMode)
-				},
-			})
+			err, types.RefreshOptions{Mode: types.BLOCK_UI})
 	}
 
 	return self.startInteractiveRebaseWithEdit(selectedCommits)
@@ -618,7 +611,6 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 ) error {
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
-		selectionRangeAndMode := self.getSelectionRangeAndMode()
 		err := self.c.Git().Rebase.EditRebase(commitsToEdit[len(commitsToEdit)-1].Hash())
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
@@ -636,40 +628,8 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 						self.c.Log.Errorf("error when updating todos: %v", err)
 					}
 				}
-
-				self.restoreSelectionRangeAndMode(selectionRangeAndMode)
 			}})
 	})
-}
-
-type SelectionRangeAndMode struct {
-	selectedHash   string
-	rangeStartHash string
-	mode           traits.RangeSelectMode
-}
-
-func (self *LocalCommitsController) getSelectionRangeAndMode() SelectionRangeAndMode {
-	selectedIdx, rangeStartIdx, rangeSelectMode := self.context().GetSelectionRangeAndMode()
-	commits := self.c.Model().Commits
-	selectedHash := commits[selectedIdx].Hash()
-	rangeStartHash := commits[rangeStartIdx].Hash()
-	return SelectionRangeAndMode{selectedHash, rangeStartHash, rangeSelectMode}
-}
-
-func (self *LocalCommitsController) restoreSelectionRangeAndMode(selectionRangeAndMode SelectionRangeAndMode) {
-	// We need to select the same commit range again because after starting a rebase,
-	// new lines can be added for update-ref commands in the TODO file, due to
-	// stacked branches. So the selected commits may be in different positions in the list.
-	_, newSelectedIdx, ok1 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
-		return c.Hash() == selectionRangeAndMode.selectedHash
-	})
-	_, newRangeStartIdx, ok2 := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
-		return c.Hash() == selectionRangeAndMode.rangeStartHash
-	})
-	if ok1 && ok2 {
-		self.context().SetSelectionRangeAndMode(newSelectedIdx, newRangeStartIdx, selectionRangeAndMode.mode)
-		self.context().HandleFocus(types.OnFocusOpts{})
-	}
 }
 
 func (self *LocalCommitsController) findCommitForQuickStartInteractiveRebase() (*models.Commit, error) {
@@ -767,7 +727,9 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 		self.c.Refresh(types.RefreshOptions{
-			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
+			Mode:            types.SYNC,
+			Scope:           []types.RefreshableView{types.REBASE_COMMITS},
+			CommitSelection: types.KeepCommitSelectionIndex,
 		})
 		return nil
 	}
@@ -780,7 +742,7 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
-			err, types.RefreshOptions{Mode: types.SYNC})
+			err, types.RefreshOptions{Mode: types.SYNC, CommitSelection: types.KeepCommitSelectionIndex})
 	})
 }
 
@@ -793,7 +755,9 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 		self.c.Refresh(types.RefreshOptions{
-			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
+			Mode:            types.SYNC,
+			Scope:           []types.RefreshableView{types.REBASE_COMMITS},
+			CommitSelection: types.KeepCommitSelectionIndex,
 		})
 		return nil
 	}
@@ -806,7 +770,7 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
-			err, types.RefreshOptions{Mode: types.SYNC})
+			err, types.RefreshOptions{Mode: types.SYNC, CommitSelection: types.KeepCommitSelectionIndex})
 	})
 }
 
@@ -966,8 +930,6 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC}); err != nil {
 					return err
 				}
-				self.context().MoveSelection(len(commits))
-				self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 				if mustStash {
 					if err := self.c.Git().Stash.Pop(0); err != nil {
@@ -1013,7 +975,6 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 								return err
 							}
 
-							self.context().MoveSelectedLine(1)
 							self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
 							return nil
 						})
@@ -1114,7 +1075,6 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 						return err
 					}
 
-					self.context().MoveSelectedLine(1)
 					self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
 					return nil
 				})

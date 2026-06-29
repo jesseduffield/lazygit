@@ -5,15 +5,13 @@
 
 set -e
 
-git diff --quiet || {
-  echo "Error: there are unstaged changes. Please stage or stash them before running this script."
-  exit 1
-}
-
 just test
 just lint
+
+status_before_generate=$(git status --porcelain=v1)
 just generate
-git diff --quiet || {
+status_after_generate=$(git status --porcelain=v1)
+if [[ "$status_after_generate" != "$status_before_generate" ]]; then
   echo "Error: auto-generated files not up to date."
   exit 1
-}
+fi

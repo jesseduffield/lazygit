@@ -654,6 +654,12 @@ git:
   # If true, periodically refresh files and submodules
   autoRefresh: true
 
+  # If true, poll the repo periodically for external ref changes (commits,
+  # branch updates, checkouts made outside lazygit) and refresh when one
+  # is detected. Independent of autoRefresh, which only governs the files
+  # panel.
+  autoDetectExternalChanges: true
+
   # If true, pass the --all arg to git fetch
   fetchAll: true
 
@@ -722,6 +728,11 @@ refresher:
   # Re-fetch interval in seconds.
   # Auto-fetch can be disabled via option 'git.autoFetch'.
   fetchInterval: 60
+
+  # Interval in seconds at which lazygit polls for external ref changes
+  # (commits, branch updates, checkouts made outside lazygit).
+  # Detection can be disabled via option 'git.autoDetectExternalChanges'.
+  externalChangeCheckInterval: 2
 
 # If true, show a confirmation popup before quitting Lazygit
 confirmOnQuit: false

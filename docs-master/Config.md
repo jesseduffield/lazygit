@@ -110,6 +110,21 @@ gui:
   # is true.
   expandedSidePanelWeight: 2
 
+  # The side panels, in the order they appear from top to bottom.
+  # Each entry is a list of one or more names that share a single panel as tabs
+  # (cycle through them with the next-tab/previous-tab keys).
+  # Omit a name to hide it; give a name its own one-element list to promote a tab
+  # to a top-level panel.
+  # Valid names are: 'status', 'files', 'worktrees', 'submodules', 'branches',
+  # 'remotes', 'tags', 'commits', 'reflog', 'stash'. 'files', 'branches', and
+  # 'commits' must always be included; they can't be hidden.
+  sidePanels:
+    - [status]
+    - [files, worktrees, submodules]
+    - [branches, remotes, tags]
+    - [commits, reflog]
+    - [stash]
+
   # Sometimes the main window is split in two (e.g. when the selected file has
   # both staged and unstaged changes). This setting controls how the two sections
   # are split.
@@ -414,6 +429,11 @@ git:
   # If true, periodically refresh files and submodules
   autoRefresh: true
 
+  # If true, poll the repo periodically for external ref changes (commits, branch
+  # updates, checkouts made outside lazygit) and refresh when one is detected.
+  # Independent of autoRefresh, which only governs the files panel.
+  autoDetectExternalChanges: true
+
   # If not "none", lazygit will automatically fast-forward local branches to match
   # their upstream after fetching. Applies to branches that are not the currently
   # checked out branch, and only to those that are strictly behind their upstream
@@ -524,6 +544,11 @@ refresher:
   # Re-fetch interval in seconds.
   # Auto-fetch can be disabled via option 'git.autoFetch'.
   fetchInterval: 60
+
+  # Interval in seconds at which lazygit polls for external ref changes (commits,
+  # branch updates, checkouts made outside lazygit).
+  # Detection can be disabled via option 'git.autoDetectExternalChanges'.
+  externalChangeCheckInterval: 2
 
 # If true, show a confirmation popup before quitting Lazygit
 confirmOnQuit: false
@@ -693,6 +718,7 @@ keybinding:
     increaseRenameSimilarityThreshold: )
     decreaseRenameSimilarityThreshold: (
     openDiffTool: <ctrl+t>
+    editConfig: <alt+shift+c>
   status:
     checkForUpdate: u
     recentRepos: <enter>

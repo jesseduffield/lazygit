@@ -103,6 +103,7 @@ type replayedEvents struct {
 	Keys        chan *TcellKeyEventWrapper
 	Resizes     chan *TcellResizeEventWrapper
 	MouseEvents chan *TcellMouseEventWrapper
+	FocusEvents chan *TcellFocusEventWrapper
 }
 
 type RecordingConfig struct {
@@ -245,6 +246,7 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 			Keys:        make(chan *TcellKeyEventWrapper),
 			Resizes:     make(chan *TcellResizeEventWrapper),
 			MouseEvents: make(chan *TcellMouseEventWrapper),
+			FocusEvents: make(chan *TcellFocusEventWrapper),
 		}
 	}
 
@@ -1345,7 +1347,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 
 			visibleLineWidth := 0
-			for _, c := range v.lines[newY] {
+			for _, c := range v.lines[newY].cells {
 				visibleLineWidth += c.width
 			}
 			if visibleLineWidth < newX {

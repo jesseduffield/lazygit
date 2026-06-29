@@ -140,6 +140,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	remoteBranchesContext.SetSelection(newSelectedLine)
 	remoteBranchesContext.SetTitleRef(remote.Name)
 	remoteBranchesContext.SetParentContext(self.Context())
+	remoteBranchesContext.SetWindowName(self.Context().GetWindowName())
 	remoteBranchesContext.GetView().TitlePrefix = self.Context().GetView().TitlePrefix
 
 	self.c.PostRefreshUpdate(remoteBranchesContext)
@@ -374,6 +375,7 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 				self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
 				self.c.Helpers().Refs.SelectFirstBranchAndFirstCommit()
 				refreshOptions.KeepBranchSelectionIndex = true
+				refreshOptions.CommitSelection = types.KeepCommitSelectionIndex
 			}
 		}
 		self.c.Refresh(refreshOptions)

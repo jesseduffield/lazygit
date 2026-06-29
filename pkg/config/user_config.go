@@ -44,10 +44,13 @@ type UserConfig struct {
 type RefresherConfig struct {
 	// File/submodule refresh interval in seconds.
 	// Auto-refresh can be disabled via option 'git.autoRefresh'.
-	RefreshInterval int `yaml:"refreshInterval" jsonschema:"minimum=0"`
+	RefreshInterval int `yaml:"refreshInterval" jsonschema:"exclusiveMinimum=0"`
 	// Re-fetch interval in seconds.
 	// Auto-fetch can be disabled via option 'git.autoFetch'.
-	FetchInterval int `yaml:"fetchInterval" jsonschema:"minimum=0"`
+	FetchInterval int `yaml:"fetchInterval" jsonschema:"exclusiveMinimum=0"`
+	// Interval in seconds at which lazygit polls for external ref changes (commits, branch updates, checkouts made outside lazygit).
+	// Detection can be disabled via option 'git.autoDetectExternalChanges'.
+	ExternalChangeCheckInterval int `yaml:"externalChangeCheckInterval" jsonschema:"exclusiveMinimum=0"`
 }
 
 func (c *RefresherConfig) RefreshIntervalDuration() time.Duration {
@@ -56,6 +59,10 @@ func (c *RefresherConfig) RefreshIntervalDuration() time.Duration {
 
 func (c *RefresherConfig) FetchIntervalDuration() time.Duration {
 	return time.Second * time.Duration(c.FetchInterval)
+}
+
+func (c *RefresherConfig) ExternalChangeCheckIntervalDuration() time.Duration {
+	return time.Second * time.Duration(c.ExternalChangeCheckInterval)
 }
 
 type GuiConfig struct {
@@ -102,6 +109,11 @@ type GuiConfig struct {
 	ExpandFocusedSidePanel bool `yaml:"expandFocusedSidePanel"`
 	// The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
 	ExpandedSidePanelWeight int `yaml:"expandedSidePanelWeight"`
+	// The side panels, in the order they appear from top to bottom.
+	// Each entry is a list of one or more names that share a single panel as tabs (cycle through them with the next-tab/previous-tab keys).
+	// Omit a name to hide it; give a name its own one-element list to promote a tab to a top-level panel.
+	// Valid names are: 'status', 'files', 'worktrees', 'submodules', 'branches', 'remotes', 'tags', 'commits', 'reflog', 'stash'. 'files', 'branches', and 'commits' must always be included; they can't be hidden.
+	SidePanels []SidePanel `yaml:"sidePanels"`
 	// Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.
 	// Options are:
 	// - 'horizontal': split the window horizontally
@@ -296,6 +308,8 @@ type GitConfig struct {
 	AutoFetch bool `yaml:"autoFetch"`
 	// If true, periodically refresh files and submodules
 	AutoRefresh bool `yaml:"autoRefresh"`
+	// If true, poll the repo periodically for external ref changes (commits, branch updates, checkouts made outside lazygit) and refresh when one is detected. Independent of autoRefresh, which only governs the files panel.
+	AutoDetectExternalChanges bool `yaml:"autoDetectExternalChanges"`
 	// If not "none", lazygit will automatically fast-forward local branches to match their upstream after fetching. Applies to branches that are not the currently checked out branch, and only to those that are strictly behind their upstream (as opposed to diverged).
 	// Possible values: 'none' | 'onlyMainBranches' | 'allBranches'
 	AutoForwardBranches string `yaml:"autoForwardBranches" jsonschema:"enum=none,enum=onlyMainBranches,enum=allBranches"`
@@ -528,6 +542,7 @@ type KeybindingUniversalConfig struct {
 	IncreaseRenameSimilarityThreshold Keybinding `yaml:"increaseRenameSimilarityThreshold"`
 	DecreaseRenameSimilarityThreshold Keybinding `yaml:"decreaseRenameSimilarityThreshold"`
 	OpenDiffTool                      Keybinding `yaml:"openDiffTool"`
+	EditConfig                        Keybinding `yaml:"editConfig"`
 }
 
 type KeybindingStatusConfig struct {
@@ -844,6 +859,13 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			SidePanelWidth:           0.3333,
 			ExpandFocusedSidePanel:   false,
 			ExpandedSidePanelWeight:  2,
+			SidePanels: []SidePanel{
+				{"status"},
+				{"files", "worktrees", "submodules"},
+				{"branches", "remotes", "tags"},
+				{"commits", "reflog"},
+				{"stash"},
+			},
 			MainPanelSplitMode:       "flexible",
 			EnlargedSideViewLocation: "left",
 			WrapLinesInStagingView:   true,
@@ -927,6 +949,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			MainBranches:                 []string{"master", "main"},
 			AutoFetch:                    true,
 			AutoRefresh:                  true,
+			AutoDetectExternalChanges:    true,
 			AutoForwardBranches:          "onlyMainBranches",
 			FetchAll:                     true,
 			AutoStageResolvedConflicts:   true,
@@ -942,8 +965,9 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			TruncateCopiedCommitHashesTo: 12,
 		},
 		Refresher: RefresherConfig{
-			RefreshInterval: 10,
-			FetchInterval:   60,
+			RefreshInterval:             10,
+			FetchInterval:               60,
+			ExternalChangeCheckInterval: 2,
 		},
 		Update: UpdateConfig{
 			Method: "prompt",
@@ -1040,6 +1064,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				IncreaseRenameSimilarityThreshold: Keybinding{")"},
 				DecreaseRenameSimilarityThreshold: Keybinding{"("},
 				OpenDiffTool:                      Keybinding{"<ctrl+t>"},
+				EditConfig:                        Keybinding{"<alt+shift+c>"},
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate:             Keybinding{"u"},

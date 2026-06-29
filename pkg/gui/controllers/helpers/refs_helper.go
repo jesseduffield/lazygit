@@ -66,7 +66,12 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		if options.RefreshPullRequests {
 			scope = append(scope, types.PULL_REQUESTS)
 		}
-		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, Scope: scope, KeepBranchSelectionIndex: true})
+		self.c.Refresh(types.RefreshOptions{
+			Mode:                     types.BLOCK_UI,
+			Scope:                    scope,
+			KeepBranchSelectionIndex: true,
+			CommitSelection:          types.KeepCommitSelectionIndex,
+		})
 	}
 
 	localBranch, found := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
@@ -209,7 +214,7 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 	// loading a heap of commits is slow so we limit them whenever doing a reset
 	self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS}})
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS}, CommitSelection: types.KeepCommitSelectionIndex})
 
 	return nil
 }
@@ -370,7 +375,11 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 
 		self.SelectFirstBranchAndFirstCommit()
 
-		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+		self.c.Refresh(types.RefreshOptions{
+			Mode:                     types.BLOCK_UI,
+			KeepBranchSelectionIndex: true,
+			CommitSelection:          types.KeepCommitSelectionIndex,
+		})
 	}
 
 	self.c.Prompt(types.PromptOpts{
@@ -525,7 +534,11 @@ func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchNa
 
 	self.SelectFirstBranchAndFirstCommit()
 
-	self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+	self.c.Refresh(types.RefreshOptions{
+		Mode:                     types.BLOCK_UI,
+		KeepBranchSelectionIndex: true,
+		CommitSelection:          types.KeepCommitSelectionIndex,
+	})
 	return nil
 }
 
@@ -563,7 +576,11 @@ func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName stri
 
 	self.SelectFirstBranchAndFirstCommit()
 
-	self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+	self.c.Refresh(types.RefreshOptions{
+		Mode:                     types.BLOCK_UI,
+		KeepBranchSelectionIndex: true,
+		CommitSelection:          types.KeepCommitSelectionIndex,
+	})
 	return nil
 }
 

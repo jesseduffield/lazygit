@@ -21,8 +21,9 @@ Windows box has only `just`).
 - `just format` — `gofumpt -l -w .`. Run before every commit.
 - `just build` — build the binary.
 - `just unit-test` — `go test ./... -short`.
-- `just e2e-all` — run all integration tests headlessly (`just e2e <name>` runs a
-  single one with a visible UI).
+- `just e2e` — run all integration tests headlessly; `just e2e <name>` runs a
+  single one headlessly too. `just e2e-cli <name>` runs one with a visible UI
+  (most useful with `--sandbox` or `--slow`).
 - `just lint` — run golangci-lint.
 
 ## When to commit
@@ -45,7 +46,7 @@ while still being meaningful and self-contained.
 
 - **Every commit must compile and pass all tests.** No "WIP" commits, no
   commits that leave the tree broken and rely on a follow-up to fix it.
-- **Every commit must be `gofumpt`-formatted.** Run `make format` before
+- **Every commit must be `gofumpt`-formatted.** Run `just format` before
   committing.
 - **Commit messages explain _why_, not _what_.** The diff already shows what
   changed; the message should capture the motivation, the constraint, or the
@@ -136,6 +137,22 @@ changes must not be combined just because they happen to target the same
 commit. If you have two independent refinements for the same target, make
 two separate fixups. Reviewability of the intermediate state matters even
 when the end state after autosquash would be identical.
+
+## Surface mid-implementation decisions; decide them together
+
+Planning can't anticipate everything. When a decision surfaces while you're
+implementing — a design choice, a tradeoff, a scope cut, a "this turned out
+harder than expected, so maybe X" — don't quietly make the call and keep
+going, even if you have a clear recommendation and even if the call seems
+small. Stop, lay out the options and your recommendation, and let me weigh in.
+I want to make these calls _with_ you, not discover them after the fact in the
+diff.
+
+This isn't a request to stop and ask about every trivial detail; obvious
+mechanical choices with one sensible answer don't need a checkpoint. It's about
+genuine forks — the ones where a reasonable person might pick differently, or
+where you'd be trading away something the plan assumed (scope, UX, performance,
+reload behavior, …). When in doubt, surface it.
 
 ## Prefer the cleaner design over the smaller diff
 
@@ -235,6 +252,30 @@ keep the call site fluent.
 Prefer `assert.Equal` (and friends) over hand-rolled `if` checks. The failure
 messages are more useful and the intent is clearer at a glance.
 
+## Translatable strings use Go templates, not `%s`
+
+Never put `fmt.Sprintf`-style placeholders (`%s`, `%d`, …) in translatable
+strings — the fields of `TranslationSet` and `Actions` in
+`pkg/i18n/english.go`. Use named Go-template placeholders and fill them in with
+`utils.ResolvePlaceholderString`:
+
+```go
+// in english.go
+DeleteBranchTitle: "Delete branch '{{.selectedBranchName}}'?",
+
+// at the call site
+utils.ResolvePlaceholderString(
+    self.c.Tr.DeleteBranchTitle,
+    map[string]string{"selectedBranchName": branchName},
+)
+```
+
+Named placeholders tell localizers what each value is (a bare `%s` says
+nothing, and translators can't safely reorder positional verbs across
+languages), and the map form extends cleanly when a string later needs more
+than one placeholder. This holds for every user-facing string, including short
+ones like disabled-action reasons and toasts.
+
 ## Code comments are for future readers, not development history
 
 Comments in source code explain *why this code is shaped the way it is*. They
@@ -283,7 +324,7 @@ So:
 - For changes to `userConfig` fields specifically, don't edit
   `docs-master/Config.md` by hand either — the relevant section is
   auto-generated from the struct field doc comments. After editing the
-  struct, run `make generate` and include the regenerated
+  struct, run `just generate` and include the regenerated
   `docs-master/Config.md` (and `schema-master/config.json`) in your commit.
 - Don't hard-wrap the doc comments on `userConfig` fields. This applies
   *only* to `userConfig`, because those comments are fed through the doc

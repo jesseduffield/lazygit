@@ -22,7 +22,12 @@ unit-test:
     go test ./... -short
 
 # Run both unit tests and integration tests.
-test: unit-test e2e-all
+[unix]
+test: unit-test e2e
+
+# On Windows, integration tests are not supported right now
+[windows]
+test: unit-test
 
 # Generate all our auto-generated files (test list, cheatsheets, json schema, maybe other things in the future)
 generate:
@@ -34,17 +39,28 @@ format:
 lint:
     ./scripts/golangci-lint-shim.sh run
 
-# Run integration tests with a visible UI. Most useful for running a single test; for running all tests, use `e2e-all` instead.
+e2e-test-command := "go test pkg/integration/clients/*.go"
+
+# Run integration tests headlessly: no args runs all tests, a test name (or path) runs just that one. Use e2e-cli for a visible UI.
 e2e *args:
+    {{ if args == "" { e2e-test-command } else { \
+        e2e-test-command + " -run 'TestIntegration/" + \
+        replace( \
+            replace_regex( \
+                replace_regex(args, '\S*pkg/integration/tests/', ''), \
+                '\.go( |$)', '${1}' \
+            ), \
+            " ", "$' && " + e2e-test-command + " -run 'TestIntegration/" \
+        ) + "$'" \
+    } }}
+
+# Run a single integration test with a visible UI; most useful with --sandbox or --slow.
+e2e-cli *args:
     go run cmd/integration_test/main.go cli {{ args }}
 
 # Open the TUI for running integration tests.
 e2e-tui *args:
     go run cmd/integration_test/main.go tui {{ args }}
-
-# Run all integration tests headlessly (without a visible UI).
-e2e-all:
-    go test pkg/integration/clients/*.go
 
 # Run some tests on the current commit, similar to what CI does.
 check:

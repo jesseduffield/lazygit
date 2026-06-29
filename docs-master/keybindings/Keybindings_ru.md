@@ -31,6 +31,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` q, <ctrl+c> `` | Выйти |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | Переключить отображение изменении пробелов в просмотрщике сравнении | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <alt+shift+c> `` | Редактировать файл конфигурации | Open file in external editor. |
 | `` z `` | Отменить (через reflog) (экспериментальный) | Журнал ссылок (reflog) будет использоваться для определения того, какую команду git запустить, чтобы отменить последнюю команду git. Сюда не входят изменения в рабочем дереве; учитываются только коммиты. |
 | `` Z `` | Повторить (через reflog) (экспериментальный) | Журнал ссылок (reflog) будет использоваться для определения того, какую команду git нужно запустить, чтобы повторить последнюю команду git. Сюда не входят изменения в рабочем дереве; учитываются только коммиты. |
 
@@ -314,7 +315,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` o `` | Открыть файл конфигурации | Open file in default application. |
 | `` e `` | Редактировать файл конфигурации | Open file in external editor. |
 | `` u `` | Проверить обновления |  |
 | `` <enter> `` | Переключиться на последний репозиторий |  |

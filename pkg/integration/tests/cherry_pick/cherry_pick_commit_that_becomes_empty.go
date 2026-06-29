@@ -73,25 +73,11 @@ var CherryPickCommitThatBecomesEmpty = NewIntegrationTest(NewIntegrationTestArgs
 			// Cherry-picked commit is empty
 			t.Views().Main().Content(DoesNotContain("diff --git"))
 		} else {
+			// Older git versions drop the commit that became empty
 			t.Views().Commits().
-				// We have a bug with how the selection is updated in this case; normally you would
-				// expect the "two changes in one commit" commit to be selected because it was
-				// selected before pasting, and we try to maintain that selection. This is broken
-				// for two reasons:
-				// 1. We increment the selected line index after pasting by the number of pasted
-				// commits; this is wrong because we skipped the commit that became empty. So
-				// according to this bug, the "base" commit should be selected.
-				// 2. We only update the selected line index after pasting if the currently selected
-				// commit is not a rebase TODO commit, on the assumption that if it is, we are in a
-				// rebase and the cherry-picked commits end up below the selection. In this case,
-				// however, we still think we are cherry-picking because the final refresh after the
-				// CheckMergeOrRebase in CherryPickHelper.Paste is async and hasn't completed yet;
-				// so the "unrelated change" still has a "pick" action.
-				//
-				// Since this only happens for older git versions, we don't bother fixing it.
 				Lines(
-					Contains("unrelated change").IsSelected(),
-					Contains("two changes in one commit"),
+					Contains("unrelated change"),
+					Contains("two changes in one commit").IsSelected(),
 					Contains("base"),
 				)
 		}
