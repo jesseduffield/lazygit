@@ -90,7 +90,7 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Tooltip:           self.c.Tr.MoveCommitsToNewBranchTooltip,
 		},
 		{
-			Keys:        opts.GetKeys(opts.Config.Worktrees.ViewWorktreeOptions),
+			Keys:        opts.GetKeys(opts.Config.Universal.NewWorktree),
 			Handler:     self.withItem(self.c.Helpers().Worktree.NewWorktreeMenuForCommit),
 			Description: self.c.Tr.NewWorktree,
 			OpensMenu:   true,

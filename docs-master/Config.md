@@ -689,6 +689,7 @@ keybinding:
     confirmInEditor: [<ctrl+enter>, <ctrl+s>]
     remove: d
     new: "n"
+    newWorktree: w
     edit: e
     openFile: o
     scrollUpMain: [<pgup>, K, <ctrl+u>]
@@ -769,8 +770,6 @@ keybinding:
     fetchRemote: f
     addForkRemote: F
     sortOrder: s
-  worktrees:
-    viewWorktreeOptions: w
   commits:
     squashDown: s
     renameCommit: r

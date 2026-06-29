@@ -24,7 +24,7 @@ var AddFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("initial commit"),
 			).
 			NavigateToLine(Contains("initial commit")).
-			Press(keys.Worktrees.ViewWorktreeOptions).
+			Press(keys.Universal.NewWorktree).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("New worktree")).

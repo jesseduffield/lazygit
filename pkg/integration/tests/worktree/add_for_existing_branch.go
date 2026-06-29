@@ -26,7 +26,7 @@ var AddForExistingBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			// the current branch is checked out by this worktree, so "Worktree
 			// for 'mybranch'" is disabled
-			Press(keys.Worktrees.ViewWorktreeOptions).
+			Press(keys.Universal.NewWorktree).
 			Tap(func() {
 				t.ExpectPopup().
 					Menu().
@@ -41,7 +41,7 @@ var AddForExistingBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			// otherbranch is not checked out anywhere, so we can make a worktree for it
 			NavigateToLine(Contains("otherbranch")).
-			Press(keys.Worktrees.ViewWorktreeOptions).
+			Press(keys.Universal.NewWorktree).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("New worktree")).

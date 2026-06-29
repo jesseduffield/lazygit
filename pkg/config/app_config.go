@@ -287,6 +287,26 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		}
 	}
 
+	pathsToMove := []struct {
+		oldPath []string
+		newPath []string
+	}{
+		{
+			[]string{"keybinding", "worktrees", "viewWorktreeOptions"},
+			[]string{"keybinding", "universal", "newWorktree"},
+		},
+	}
+
+	for _, pathToMove := range pathsToMove {
+		err, didMove := yaml_utils.MoveYamlKey(&rootNode, pathToMove.oldPath, pathToMove.newPath)
+		if err != nil {
+			return nil, false, fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %w", path, strings.Join(pathToMove.oldPath, "."), err)
+		}
+		if didMove {
+			changes.Add(fmt.Sprintf("Moved '%s' to '%s'", strings.Join(pathToMove.oldPath, "."), strings.Join(pathToMove.newPath, ".")))
+		}
+	}
+
 	err = changeNullKeybindingsToDisabled(&rootNode, changes)
 	if err != nil {
 		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
@@ -449,7 +469,8 @@ func migrateAllBranchesLogCmd(rootNode *yaml.Node, changes *ChangesSet) error {
 			// We will later populate it with the individual allBranchesLogCmd record
 			cmdsKeyNode = &yaml.Node{Kind: yaml.ScalarNode, Value: "allBranchesLogCmds"}
 			cmdsValueNode = &yaml.Node{Kind: yaml.SequenceNode, Content: []*yaml.Node{}}
-			gitNode.Content = append(gitNode.Content,
+			gitNode.Content = append(
+				gitNode.Content,
 				cmdsKeyNode,
 				cmdsValueNode,
 			)

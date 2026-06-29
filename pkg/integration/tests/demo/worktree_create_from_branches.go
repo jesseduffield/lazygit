@@ -34,7 +34,7 @@ var WorktreeCreateFromBranches = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			NavigateToLine(Contains("master")).
 			Wait(500).
-			Press(keys.Worktrees.ViewWorktreeOptions).
+			Press(keys.Universal.NewWorktree).
 			Tap(func() {
 				t.Wait(500)
 

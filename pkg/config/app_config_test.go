@@ -78,6 +78,73 @@ keybinding:
 	}
 }
 
+func TestMigrationOfMovedKeys(t *testing.T) {
+	scenarios := []struct {
+		name              string
+		input             string
+		expected          string
+		expectedDidChange bool
+		expectedChanges   []string
+	}{
+		{
+			name:              "Empty String",
+			input:             "",
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "No move needed",
+			input: `foo:
+  bar: 5
+`,
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "Move worktree keybinding into the universal section",
+			input: `keybinding:
+  universal:
+    quit: q
+  worktrees:
+    viewWorktreeOptions: w
+`,
+			expected: `keybinding:
+  universal:
+    quit: q
+    newWorktree: w
+`,
+			expectedDidChange: true,
+			expectedChanges:   []string{"Moved 'keybinding.worktrees.viewWorktreeOptions' to 'keybinding.universal.newWorktree'"},
+		},
+		{
+			name: "Create the universal section if it doesn't exist",
+			input: `keybinding:
+  worktrees:
+    viewWorktreeOptions: w
+`,
+			expected: `keybinding:
+  universal:
+    newWorktree: w
+`,
+			expectedDidChange: true,
+			expectedChanges:   []string{"Moved 'keybinding.worktrees.viewWorktreeOptions' to 'keybinding.universal.newWorktree'"},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			changes := NewChangesSet()
+			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input), changes)
+			assert.NoError(t, err)
+			assert.Equal(t, s.expectedDidChange, didChange)
+			if didChange {
+				assert.Equal(t, s.expected, string(actual))
+			}
+			assert.Equal(t, s.expectedChanges, changes.ToSliceFromOldest())
+		})
+	}
+}
+
 func TestMigrateNullKeybindingsToDisabled(t *testing.T) {
 	scenarios := []struct {
 		name              string
