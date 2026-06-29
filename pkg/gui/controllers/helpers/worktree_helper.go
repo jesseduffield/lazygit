@@ -57,103 +57,56 @@ func (self *WorktreeHelper) GetLinkedWorktreeName() string {
 }
 
 func (self *WorktreeHelper) NewWorktree() error {
-	branch := self.refsHelper.GetCheckedOutRef()
-	currentBranchName := branch.RefName()
-
-	f := func(detached bool) {
-		self.c.Prompt(types.PromptOpts{
-			Title:               self.c.Tr.NewWorktreeBase,
-			InitialContent:      currentBranchName,
-			FindSuggestionsFunc: self.suggestionsHelper.GetRefsSuggestionsFunc(),
-			HandleConfirm: func(base string) error {
-				// we assume that the base can be checked out
-				canCheckoutBase := true
-				return self.NewWorktreeCheckout(base, canCheckoutBase, detached, context.WORKTREES_CONTEXT_KEY)
-			},
-		})
-	}
-
-	placeholders := map[string]string{"ref": "ref"}
-
-	return self.c.Menu(types.CreateMenuOptions{
-		Title: self.c.Tr.WorktreeTitle,
-		Items: []*types.MenuItem{
-			{
-				LabelColumns: []string{utils.ResolvePlaceholderString(self.c.Tr.CreateWorktreeFrom, placeholders)},
-				OnPress: func() error {
-					f(false)
-					return nil
-				},
-			},
-			{
-				LabelColumns: []string{utils.ResolvePlaceholderString(self.c.Tr.CreateWorktreeFromDetached, placeholders)},
-				OnPress: func() error {
-					f(true)
-					return nil
-				},
-			},
-		},
-	})
-}
-
-func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase bool, detached bool, contextKey types.ContextKey) error {
-	opts := git_commands.NewWorktreeOpts{
-		Base:   base,
-		Detach: detached,
-	}
-
-	f := func() error {
-		return self.c.WithWaitingStatus(self.c.Tr.AddingWorktree, func(gocui.Task) error {
-			self.c.LogAction(self.c.Tr.Actions.AddWorktree)
-			if err := self.c.Git().Worktree.New(opts); err != nil {
-				return err
-			}
-
-			return self.reposHelper.DispatchSwitchTo(opts.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
-		})
-	}
-
 	self.c.Prompt(types.PromptOpts{
-		Title: self.c.Tr.NewWorktreePath,
-		HandleConfirm: func(path string) error {
-			opts.Path = path
-
-			if detached {
-				return f()
-			}
-
-			if canCheckoutBase {
-				title := utils.ResolvePlaceholderString(self.c.Tr.NewBranchNameLeaveBlank, map[string]string{"default": base})
-				// prompt for the new branch name where a blank means we just check out the branch
-				self.c.Prompt(types.PromptOpts{
-					Title: title,
-					HandleConfirm: func(branchName string) error {
-						opts.Branch = branchName
-
-						return f()
-					},
-					AllowEmptyInput: true,
-				})
-
-				return nil
-			}
-
-			// prompt for the new branch name
-			self.c.Prompt(types.PromptOpts{
-				Title: self.c.Tr.NewBranchName,
-				HandleConfirm: func(branchName string) error {
-					opts.Branch = branchName
-
-					return f()
-				},
-				AllowEmptyInput: false,
-			})
-
-			return nil
+		Title:               self.c.Tr.NewWorktreeForBranchTitle,
+		FindSuggestionsFunc: self.suggestionsHelper.GetWorktreeBranchNameSuggestionsFunc(),
+		HandleConfirm: func(value string) error {
+			return self.newWorktreeForPickerValue(value)
 		},
 	})
 
 	return nil
+}
+
+// newWorktreeForPickerValue classifies the value the user picked or typed in the
+// worktrees-panel picker and routes to the matching creation flow:
+//   - an existing local branch -> a worktree that checks it out;
+//   - a remote branch -> a new local tracking branch + worktree;
+//   - anything else -> a new branch off the current ref + worktree.
+//
+// All three then feed the shared location menu. The picker filters out branches
+// already checked out somewhere, but a verbatim type-in is still guarded here.
+func (self *WorktreeHelper) newWorktreeForPickerValue(value string) error {
+	if branch, ok := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
+		return branch.Name == value
+	}); ok {
+		if worktree, ok := git_commands.WorktreeForBranch(branch, self.c.Model().Worktrees); ok {
+			return errors.New(utils.ResolvePlaceholderString(self.c.Tr.BranchCheckedOutByWorktree,
+				map[string]string{"branchName": branch.Name, "worktreeName": worktree.Name}))
+		}
+
+		prompt := utils.ResolvePlaceholderString(self.c.Tr.WorktreeLocationPromptCheckout,
+			map[string]string{"branchName": branch.Name})
+		return self.promptForWorktreeLocation(branch.Name, prompt, func(path string) error {
+			return self.createWorktree(git_commands.NewWorktreeOpts{Path: path, Base: branch.RefName()}, context.WORKTREES_CONTEXT_KEY)
+		})
+	}
+
+	if _, branchName, ok := self.refsHelper.ParseRemoteBranchName(value); ok {
+		prompt := utils.ResolvePlaceholderString(self.c.Tr.WorktreeLocationPromptTrackingBranch,
+			map[string]string{"name": branchName, "ref": value})
+		return self.promptForWorktreeLocation(branchName, prompt, func(path string) error {
+			return self.createWorktree(git_commands.NewWorktreeOpts{Path: path, Base: value, Branch: branchName}, context.WORKTREES_CONTEXT_KEY)
+		})
+	}
+
+	name := SanitizedBranchName(value)
+	base := self.refsHelper.GetCheckedOutRef().RefName()
+	prompt := utils.ResolvePlaceholderString(self.c.Tr.WorktreeLocationPromptNewBranch,
+		map[string]string{"name": name, "base": base})
+	return self.promptForWorktreeLocation(name, prompt, func(path string) error {
+		return self.createWorktree(git_commands.NewWorktreeOpts{Path: path, Base: base, Branch: name}, context.WORKTREES_CONTEXT_KEY)
+	})
 }
 
 func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.ContextKey) error {
@@ -339,7 +292,7 @@ func (self *WorktreeHelper) newLocalBranchAndWorktreeItem(remoteBranch *models.R
 func (self *WorktreeHelper) startNewBranchWorktree(nameInitialContent string, base string, locationPrompt func(name string) string) error {
 	return self.promptForName(self.c.Tr.NewBranchAndWorktreeName, nameInitialContent, func(name string) error {
 		return self.promptForWorktreeLocation(name, locationPrompt(name), func(path string) error {
-			return self.createWorktree(git_commands.NewWorktreeOpts{Path: path, Base: base, Branch: name})
+			return self.createWorktree(git_commands.NewWorktreeOpts{Path: path, Base: base, Branch: name}, context.LOCAL_BRANCHES_CONTEXT_KEY)
 		})
 	})
 }
@@ -354,7 +307,7 @@ func (self *WorktreeHelper) worktreeForBranchItem(branch *models.Branch) *types.
 			prompt := utils.ResolvePlaceholderString(self.c.Tr.WorktreeLocationPromptCheckout,
 				map[string]string{"branchName": branch.Name})
 			return self.promptForWorktreeLocation(branch.Name, prompt, func(path string) error {
-				return self.createWorktree(git_commands.NewWorktreeOpts{Path: path, Base: branch.RefName()})
+				return self.createWorktree(git_commands.NewWorktreeOpts{Path: path, Base: branch.RefName()}, context.LOCAL_BRANCHES_CONTEXT_KEY)
 			})
 		},
 		DisabledReason: self.branchCheckedOutDisabledReason(branch),
@@ -368,7 +321,7 @@ func (self *WorktreeHelper) worktreeForBranchItem(branch *models.Branch) *types.
 func (self *WorktreeHelper) detachedWorktreeItem(ref string, base string, defaultDirName string) *types.MenuItem {
 	prompt := utils.ResolvePlaceholderString(self.c.Tr.WorktreeLocationPromptDetached, map[string]string{"ref": ref})
 	create := func(path string) error {
-		return self.createWorktree(git_commands.NewWorktreeOpts{Path: path, Base: base, Detach: true})
+		return self.createWorktree(git_commands.NewWorktreeOpts{Path: path, Base: base, Detach: true}, context.LOCAL_BRANCHES_CONTEXT_KEY)
 	}
 
 	return &types.MenuItem{
@@ -458,13 +411,13 @@ func (self *WorktreeHelper) promptForWorktreeLocation(dirName string, prompt str
 	})
 }
 
-func (self *WorktreeHelper) createWorktree(opts git_commands.NewWorktreeOpts) error {
+func (self *WorktreeHelper) createWorktree(opts git_commands.NewWorktreeOpts, contextKey types.ContextKey) error {
 	return self.c.WithWaitingStatus(self.c.Tr.AddingWorktree, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.AddWorktree)
 		if err := self.c.Git().Worktree.New(opts); err != nil {
 			return err
 		}
 
-		return self.reposHelper.DispatchSwitchTo(opts.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, context.LOCAL_BRANCHES_CONTEXT_KEY)
+		return self.reposHelper.DispatchSwitchTo(opts.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
 	})
 }

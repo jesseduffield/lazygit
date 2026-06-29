@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -82,6 +83,28 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 			}
 		})
 	}
+}
+
+// GetWorktreeBranchNameSuggestionsFunc suggests branches you can base a new
+// worktree on: local branches that aren't checked out in any worktree (you can't
+// make a second worktree for them), plus remote branches that don't yet have a
+// local branch of the same name. Picking a remote branch creates a new local
+// tracking branch, which would fail if that local branch already existed (whether
+// or not it's checked out), so we leave those out and you reach the branch via its
+// local entry instead.
+func (self *SuggestionsHelper) GetWorktreeBranchNameSuggestionsFunc() func(string) []*types.Suggestion {
+	localBranchNames := lo.FilterMap(self.c.Model().Branches, func(branch *models.Branch, _ int) (string, bool) {
+		_, checkedOut := git_commands.WorktreeForBranch(branch, self.c.Model().Worktrees)
+		return branch.Name, !checkedOut
+	})
+
+	existingLocalBranches := set.NewFromSlice(self.getBranchNames())
+	remoteBranchNames := lo.Filter(self.getRemoteBranchNames("/"), func(remoteBranchName string, _ int) bool {
+		_, branchName, _ := strings.Cut(remoteBranchName, "/")
+		return !existingLocalBranches.Includes(branchName)
+	})
+
+	return FilterFunc(append(localBranchNames, remoteBranchNames...), self.c.UserConfig().Gui.UseFuzzySearch())
 }
 
 // here we asynchronously fetch the latest set of paths in the repo and store in
