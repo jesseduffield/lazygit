@@ -5,8 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var AddFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Create a new branch and worktree from a commit via the commits view",
+var AddFromTag = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Create a detached worktree at a tag, entering a worktree name",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -14,42 +14,41 @@ var AddFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.NewBranch("mybranch")
 		shell.CreateFileAndAdd("README.md", "hello world")
 		shell.Commit("initial commit")
-		shell.EmptyCommit("commit two")
+		shell.CreateLightweightTag("v1.0", "HEAD")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Commits().
+		t.Views().Tags().
 			Focus().
 			Lines(
-				Contains("commit two").IsSelected(),
-				Contains("initial commit"),
+				Contains("v1.0").IsSelected(),
 			).
-			NavigateToLine(Contains("initial commit")).
 			Press(keys.Worktrees.ViewWorktreeOptions).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("New worktree")).
-					Select(Contains("New branch and worktree from")).
+					Select(Contains("New detached worktree at 'v1.0'")).
 					Confirm()
 
+				// a tag has no good name to derive, so we're asked for one
 				t.ExpectPopup().Prompt().
-					Title(Equals("New branch and worktree name")).
-					Type("newbranch").
+					Title(Equals("New worktree name")).
+					Type("tag-worktree").
 					Confirm()
 
 				t.ExpectPopup().Menu().
 					Title(Equals("Worktree location")).
 					Confirm()
-			}).
-			Lines(
-				Contains("initial commit"),
-			)
+			})
 
-		// Confirm we're now in the branches view
+		// we've switched into the new worktree, with a detached head
 		t.Views().Branches().
 			IsFocused().
 			Lines(
-				Contains("newbranch").IsSelected(),
+				Contains("(no branch)").IsSelected(),
 				Contains("mybranch (worktree repo)"),
 			)
+
+		t.Views().Status().
+			Content(Contains("repo(tag-worktree)"))
 	},
 })

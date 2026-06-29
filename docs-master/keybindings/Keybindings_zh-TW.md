@@ -141,6 +141,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 在瀏覽器中開啟提交 |  |
 | `` n `` | 從提交建立新分支 |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | New worktree |  |
 | `` g `` | 檢視重設選項 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 複製提交 (揀選) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <ctrl+r> `` | 重設選定的揀選 (複製) 提交 |  |
@@ -148,7 +149,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
-| `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
 
 ## 子模組
@@ -208,13 +208,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 在瀏覽器中開啟提交 |  |
 | `` n `` | 從提交建立新分支 |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | New worktree |  |
 | `` g `` | 檢視重設選項 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 複製提交 (揀選) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
-| `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
 
 ## 提交摘要
@@ -252,10 +252,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | 還原 | Apply the stash entry to your working directory and remove the stash entry. |
 | `` d `` | 捨棄 | Remove the stash entry from the stash list. |
 | `` n `` | 新分支 | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
+| `` w `` | New worktree |  |
 | `` r `` | 重新命名收藏 |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
-| `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
 
 ## 日誌
@@ -268,6 +268,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 在瀏覽器中開啟提交 |  |
 | `` n `` | 從提交建立新分支 |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | New worktree |  |
 | `` g `` | 檢視重設選項 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 複製提交 (揀選) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <ctrl+r> `` | 重設選定的揀選 (複製) 提交 |  |
@@ -275,7 +276,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視提交 |  |
-| `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
 
 ## 本地分支
@@ -287,6 +287,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | 檢出 | 檢出選定的項目。 |
 | `` n `` | 新分支 |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | New worktree |  |
 | `` o `` | 建立拉取請求 |  |
 | `` O `` | 建立拉取請求選項 |  |
 | `` G `` | Open pull request in browser |  |
@@ -306,7 +307,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視提交 |  |
-| `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
 
 ## 標籤
@@ -316,13 +316,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | Copy tag to clipboard |  |
 | `` <space> `` | 檢出 | Checkout the selected tag as a detached HEAD. |
 | `` n `` | 建立標籤 | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
+| `` w `` | New worktree |  |
 | `` d `` | 刪除 | View delete options for local/remote tag. |
 | `` P `` | 推送標籤 | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | 重設 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視提交 |  |
-| `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |
 
 ## 檔案
@@ -404,6 +404,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | 複製分支名稱到剪貼簿 |  |
 | `` <space> `` | 檢出 | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | 新分支 |  |
+| `` w `` | New worktree |  |
 | `` M `` | 合併到當前檢出的分支 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` r `` | 將已檢出的分支變基至此分支 | Rebase the checked-out branch onto the selected branch. |
 | `` d `` | 刪除 | Delete the remote branch from the remote. |
@@ -413,5 +414,4 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視提交 |  |
-| `` w `` | 檢視工作目錄選項 |  |
 | `` / `` | 搜尋 |  |

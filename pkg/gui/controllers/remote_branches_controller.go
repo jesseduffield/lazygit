@@ -49,6 +49,12 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Description:       self.c.Tr.NewBranch,
 		},
 		{
+			Keys:        opts.GetKeys(opts.Config.Worktrees.ViewWorktreeOptions),
+			Handler:     self.withItem(self.c.Helpers().Worktree.NewWorktreeMenuForRemoteBranch),
+			Description: self.c.Tr.NewWorktree,
+			OpensMenu:   true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Branches.MergeIntoCurrentBranch),
 			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.merge)),
 			GetDisabledReason: self.require(self.singleItemSelected()),

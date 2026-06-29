@@ -67,6 +67,12 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Tooltip:           self.c.Tr.NewBranchFromStashTooltip,
 		},
 		{
+			Keys:        opts.GetKeys(opts.Config.Worktrees.ViewWorktreeOptions),
+			Handler:     self.withItem(self.c.Helpers().Worktree.NewWorktreeMenuForStash),
+			Description: self.c.Tr.NewWorktree,
+			OpensMenu:   true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Stash.RenameStash),
 			Handler:           self.withItem(self.handleRenameStashEntry),
 			GetDisabledReason: self.require(self.singleItemSelected()),
