@@ -540,6 +540,9 @@ gui:
   # Length of commit hash in commits view. 0 shows '*' if NF icons aren't on.
   commitHashLength: 8
 
+  # If true, show commit signature indicators in the commits list and patch subtitle.
+  showCommitSignature: false
+
   # If true, show commit hashes alongside branch names in the branches view.
   showBranchCommitHash: false
 
