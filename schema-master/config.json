@@ -3834,6 +3834,10 @@
           "$ref": "#/$defs/GitConfig",
           "description": "Config relating to git"
         },
+        "worktree": {
+          "$ref": "#/$defs/WorktreeConfig",
+          "description": "Config relating to git worktrees"
+        },
         "update": {
           "$ref": "#/$defs/UpdateConfig",
           "description": "Periodic update checks"
@@ -3899,6 +3903,17 @@
       },
       "additionalProperties": false,
       "type": "object"
+    },
+    "WorktreeConfig": {
+      "properties": {
+        "defaultPath": {
+          "type": "string",
+          "description": "Default parent directory for new worktrees. It is offered as a candidate location alongside the parent directories of any worktrees you already have.\nA relative path is resolved against the repository's root directory, so \"../worktrees\" sits beside the repo and \".worktrees\" sits inside it."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to git worktrees"
     }
   }
 }
