@@ -1746,19 +1746,21 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 	discardAllChangesItem := types.MenuItem{
 		Label: self.c.Tr.DiscardAllChanges,
 		OnPress: func() error {
-			self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
+			return self.c.WithWaitingStatus(self.c.Tr.DiscardAllChanges, func(gocui.Task) error {
+				self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
 
-			if self.context().IsSelectingRange() {
-				defer self.context().CancelRangeSelect()
-			}
+				if self.context().IsSelectingRange() {
+					defer self.context().CancelRangeSelect()
+				}
 
-			nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
-			if err := self.c.Git().WorkingTree.DiscardAllDirChanges(nodes); err != nil {
-				return err
-			}
+				nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
+				if err := self.c.Git().WorkingTree.DiscardAllDirChanges(nodes); err != nil {
+					return err
+				}
 
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
-			return nil
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+				return nil
+			})
 		},
 		Keys: self.c.KeybindingsOpts().GetKeys(self.c.UserConfig().Keybinding.Files.ConfirmDiscard),
 		Tooltip: utils.ResolvePlaceholderString(
@@ -1772,19 +1774,21 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 	discardUnstagedChangesItem := types.MenuItem{
 		Label: self.c.Tr.DiscardUnstagedChanges,
 		OnPress: func() error {
-			self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
+			return self.c.WithWaitingStatus(self.c.Tr.DiscardUnstagedChanges, func(gocui.Task) error {
+				self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
 
-			if self.context().IsSelectingRange() {
-				defer self.context().CancelRangeSelect()
-			}
+				if self.context().IsSelectingRange() {
+					defer self.context().CancelRangeSelect()
+				}
 
-			nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
-			if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(nodes); err != nil {
-				return err
-			}
+				nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
+				if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(nodes); err != nil {
+					return err
+				}
 
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
-			return nil
+				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+				return nil
+			})
 		},
 		Keys: menuKey('u'),
 		Tooltip: utils.ResolvePlaceholderString(
