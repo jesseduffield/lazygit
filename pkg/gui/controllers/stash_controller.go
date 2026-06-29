@@ -67,7 +67,7 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Tooltip:           self.c.Tr.NewBranchFromStashTooltip,
 		},
 		{
-			Keys:        opts.GetKeys(opts.Config.Worktrees.ViewWorktreeOptions),
+			Keys:        opts.GetKeys(opts.Config.Universal.NewWorktree),
 			Handler:     self.withItem(self.c.Helpers().Worktree.NewWorktreeMenuForStash),
 			Description: self.c.Tr.NewWorktree,
 			OpensMenu:   true,

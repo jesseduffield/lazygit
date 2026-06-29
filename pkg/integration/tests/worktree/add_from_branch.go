@@ -21,7 +21,7 @@ var AddFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("mybranch"),
 			).
-			Press(keys.Worktrees.ViewWorktreeOptions).
+			Press(keys.Universal.NewWorktree).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("New worktree")).

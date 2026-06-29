@@ -30,7 +30,7 @@ var AddFromRemoteBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().RemoteBranches().
 			IsFocused().
 			NavigateToLine(Contains("feature")).
-			Press(keys.Worktrees.ViewWorktreeOptions).
+			Press(keys.Universal.NewWorktree).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("New worktree")).

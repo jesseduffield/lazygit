@@ -22,7 +22,7 @@ var AddFromTag = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("v1.0").IsSelected(),
 			).
-			Press(keys.Worktrees.ViewWorktreeOptions).
+			Press(keys.Universal.NewWorktree).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("New worktree")).

@@ -23,7 +23,7 @@ var AddFromStash = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("my stash").IsSelected(),
 			).
-			Press(keys.Worktrees.ViewWorktreeOptions).
+			Press(keys.Universal.NewWorktree).
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("New worktree")).

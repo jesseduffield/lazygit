@@ -70,7 +70,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Tooltip:           self.c.Tr.MoveCommitsToNewBranchTooltip,
 		},
 		{
-			Keys:        opts.GetKeys(opts.Config.Worktrees.ViewWorktreeOptions),
+			Keys:        opts.GetKeys(opts.Config.Universal.NewWorktree),
 			Handler:     self.withItem(self.c.Helpers().Worktree.NewWorktreeMenuForBranch),
 			Description: self.c.Tr.NewWorktree,
 			OpensMenu:   true,

@@ -49,7 +49,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Description:       self.c.Tr.NewBranch,
 		},
 		{
-			Keys:        opts.GetKeys(opts.Config.Worktrees.ViewWorktreeOptions),
+			Keys:        opts.GetKeys(opts.Config.Universal.NewWorktree),
 			Handler:     self.withItem(self.c.Helpers().Worktree.NewWorktreeMenuForRemoteBranch),
 			Description: self.c.Tr.NewWorktree,
 			OpensMenu:   true,

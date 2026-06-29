@@ -1658,9 +1658,6 @@
         "branches": {
           "$ref": "#/$defs/KeybindingBranchesConfig"
         },
-        "worktrees": {
-          "$ref": "#/$defs/KeybindingWorktreesConfig"
-        },
         "commits": {
           "$ref": "#/$defs/KeybindingCommitsConfig"
         },
@@ -2881,6 +2878,20 @@
           ],
           "default": "n"
         },
+        "newWorktree": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "w"
+        },
         "edit": {
           "oneOf": [
             {
@@ -3402,26 +3413,6 @@
             }
           ],
           "default": "\u003calt+shift+c\u003e"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "KeybindingWorktreesConfig": {
-      "properties": {
-        "viewWorktreeOptions": {
-          "oneOf": [
-            {
-              "type": "string"
-            },
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          ],
-          "default": "w"
         }
       },
       "additionalProperties": false,
