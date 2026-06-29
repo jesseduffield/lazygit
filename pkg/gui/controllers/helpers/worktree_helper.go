@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"errors"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -10,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type WorktreeHelper struct {
@@ -217,6 +219,38 @@ func (self *WorktreeHelper) Detach(worktree *models.Worktree) error {
 		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
 		return nil
 	})
+}
+
+// worktreeParentDirCandidates returns the candidate parent directories in which
+// to create a new worktree, in priority order and de-duplicated:
+//
+//  1. the parent directory of each existing linked worktree (in worktree order);
+//  2. the configured default path (relative paths are resolved against repoPath);
+//  3. the repo's parent directory, if nothing else is available.
+//
+// repoPath is RepoPaths.RepoPath(), which is stable regardless of which worktree
+// we're currently standing in. All returned paths are absolute.
+func worktreeParentDirCandidates(repoPath string, linkedWorktreePaths []string, defaultPath string) []string {
+	candidates := lo.Map(linkedWorktreePaths, func(path string, _ int) string {
+		return filepath.Dir(path)
+	})
+
+	if defaultPath != "" {
+		if filepath.IsAbs(defaultPath) {
+			defaultPath = filepath.Clean(defaultPath)
+		} else {
+			defaultPath = filepath.Join(repoPath, defaultPath)
+		}
+		candidates = append(candidates, defaultPath)
+	}
+
+	candidates = lo.Uniq(candidates)
+
+	if len(candidates) == 0 {
+		candidates = append(candidates, filepath.Dir(repoPath))
+	}
+
+	return candidates
 }
 
 func (self *WorktreeHelper) ViewWorktreeOptions(context types.IListContext, ref string) error {
