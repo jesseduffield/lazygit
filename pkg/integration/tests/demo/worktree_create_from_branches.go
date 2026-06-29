@@ -39,18 +39,24 @@ var WorktreeCreateFromBranches = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Wait(500)
 
 				t.ExpectPopup().Menu().
-					Title(Equals("Worktree")).
-					Select(Contains("Create worktree from master").DoesNotContain("detached")).
+					Title(Equals("New worktree")).
+					Select(Contains("New branch and worktree from 'master'")).
+					Confirm()
+
+				t.ExpectPopup().Prompt().
+					Title(Equals("New branch and worktree name")).
+					Type("hotfix/db-on-fire").
+					Confirm()
+
+				t.ExpectPopup().Menu().
+					Title(Equals("Worktree location")).
+					Select(Contains("Other…")).
 					Confirm()
 
 				t.ExpectPopup().Prompt().
 					Title(Equals("New worktree path")).
+					Clear().
 					Type("../hotfix").
-					Confirm()
-
-				t.ExpectPopup().Prompt().
-					Title(Contains("New branch name")).
-					Type("hotfix/db-on-fire").
 					Confirm()
 			})
 	},

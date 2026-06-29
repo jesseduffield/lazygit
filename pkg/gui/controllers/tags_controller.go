@@ -54,6 +54,12 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			DisplayOnScreen: true,
 		},
 		{
+			Keys:        opts.GetKeys(opts.Config.Worktrees.ViewWorktreeOptions),
+			Handler:     self.withItem(self.c.Helpers().Worktree.NewWorktreeMenuForTag),
+			Description: self.c.Tr.NewWorktree,
+			OpensMenu:   true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.delete),
 			Description:       self.c.Tr.Delete,
