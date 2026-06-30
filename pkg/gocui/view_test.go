@@ -238,6 +238,27 @@ func TestContainsColoredText(t *testing.T) {
 	}
 }
 
+func TestWriteCursorPositionEscape(t *testing.T) {
+	// ConPTY presents its child's output as a screen buffer and uses cursor
+	// positioning escapes (CUP, `\x1b[<row>;<col>H`) to skip over blank rows
+	// rather than emitting empty LFs for them. The escape interpreter must
+	// synthesize the row advances those CUPs imply; otherwise non-blank rows
+	// that the child separated with blank lines end up adjacent in the view.
+	v := NewView("name", 0, 0, 20, 10, OutputNormal)
+	// "a", then "skip to row 3" (i.e. one blank row), then "b".
+	v.writeString("a\r\n\x1b[3;1Hb\r\n")
+
+	got := make([][]string, 0, len(v.lines))
+	for _, l := range v.lines {
+		got = append(got, cellsToStrings(l.cells))
+	}
+
+	/* EXPECTED:
+	assert.Equal(t, [][]string{{"a"}, {}, {"b"}}, got)
+	ACTUAL: */
+	assert.Equal(t, [][]string{{"a"}, {"b"}}, got)
+}
+
 func stringToCells(s string) []cell {
 	var cells []cell
 	state := -1
