@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -32,7 +31,12 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 			return errors.New(self.c.Tr.SomeBranchesCheckedOutByWorktreeError)
 		}
 	} else if self.checkedOutByOtherWorktree(branches[0]) {
-		return self.promptWorktreeBranchDelete(branches[0])
+		return self.promptWorktreeBranchDelete(
+			branches[0],
+			self.c.Tr.RemoveWorktreeAndDeleteBranch,
+			self.c.Tr.DetachWorktreeAndDeleteBranch,
+			self.deleteLocalBranchesContinuation(branches),
+		)
 	}
 
 	return self.confirmForceIfUnmerged(branches, func() error {
@@ -160,8 +164,18 @@ func (self *BranchesHelper) worktreeForBranch(branch *models.Branch) (*models.Wo
 	return git_commands.WorktreeForBranch(branch, self.c.Model().Worktrees)
 }
 
-func (self *BranchesHelper) promptWorktreeBranchDelete(selectedBranch *models.Branch) error {
-	worktree, ok := self.worktreeForBranch(selectedBranch)
+// promptWorktreeBranchDelete handles deleting a branch that's checked out by
+// another worktree: the worktree has to be removed or detached first to free the
+// branch, so we offer both as menu items. Either way the branch is deleted
+// afterwards (that's what the user asked for), via deleteBranches, which knows
+// whether to delete just the local branch or the remote one too.
+func (self *BranchesHelper) promptWorktreeBranchDelete(
+	branch *models.Branch,
+	removeLabel string,
+	detachLabel string,
+	deleteBranches func(gocui.Task) error,
+) error {
+	worktree, ok := self.worktreeForBranch(branch)
 	if !ok {
 		self.c.Log.Error("promptWorktreeBranchDelete out of sync with list of worktrees")
 		return nil
@@ -169,28 +183,28 @@ func (self *BranchesHelper) promptWorktreeBranchDelete(selectedBranch *models.Br
 
 	title := utils.ResolvePlaceholderString(self.c.Tr.BranchCheckedOutByWorktree, map[string]string{
 		"worktreeName": worktree.Name,
-		"branchName":   selectedBranch.Name,
+		"branchName":   branch.Name,
 	})
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: title,
 		Items: []*types.MenuItem{
 			{
-				Label: self.c.Tr.SwitchToWorktree,
+				Label: removeLabel,
+				Keys:  menuKey('r'),
 				OnPress: func() error {
-					return self.worktreeHelper.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
+					return self.confirmForceIfUnmerged([]*models.Branch{branch}, func() error {
+						return self.worktreeHelper.remove(worktree, false, deleteBranches)
+					})
 				},
 			},
 			{
-				Label:   self.c.Tr.DetachWorktree,
+				Label:   detachLabel,
+				Keys:    menuKey('d'),
 				Tooltip: self.c.Tr.DetachWorktreeTooltip,
 				OnPress: func() error {
-					return self.worktreeHelper.Detach(worktree, nil)
-				},
-			},
-			{
-				Label: self.c.Tr.RemoveWorktree,
-				OnPress: func() error {
-					return self.worktreeHelper.Remove(worktree)
+					return self.confirmForceIfUnmerged([]*models.Branch{branch}, func() error {
+						return self.worktreeHelper.Detach(worktree, deleteBranches)
+					})
 				},
 			},
 		},
@@ -248,6 +262,23 @@ func (self *BranchesHelper) doDeleteLocalAndRemoteBranches(task gocui.Task, bran
 	}
 
 	return self.doDeleteLocalBranches(branches)
+}
+
+// deleteLocalBranchesContinuation returns a worktree-removal continuation that
+// deletes the local branches and refreshes once the worktree is out of the way.
+func (self *BranchesHelper) deleteLocalBranchesContinuation(branches []*models.Branch) func(gocui.Task) error {
+	return func(gocui.Task) error {
+		if err := self.doDeleteLocalBranches(branches); err != nil {
+			return err
+		}
+
+		self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+		self.c.Refresh(types.RefreshOptions{
+			Mode:  types.ASYNC,
+			Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES},
+		})
+		return nil
+	}
 }
 
 func (self *BranchesHelper) allBranchesMerged(branches []*models.Branch) (bool, error) {
