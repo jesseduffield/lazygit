@@ -19,7 +19,7 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	manager := gui.getManager(view)
 
 	var r io.ReadCloser
-	start := func() (*exec.Cmd, io.Reader) {
+	start := func() (tasks.Cmd, io.Reader) {
 		var err error
 		r, err = cmd.StdoutPipe()
 		if err != nil {
@@ -32,7 +32,7 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 			gui.c.Log.Error(err)
 		}
 
-		return cmd, r
+		return tasks.ExecCmd{Cmd: cmd}, r
 	}
 
 	onClose := func() {

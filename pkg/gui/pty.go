@@ -11,6 +11,7 @@ import (
 
 	"github.com/creack/pty"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -82,7 +83,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		manager := gui.getManager(view)
 
 		var ptmx *os.File
-		start := func() (*exec.Cmd, io.Reader) {
+		start := func() (tasks.Cmd, io.Reader) {
 			var err error
 			ptmx, err = pty.StartWithSize(cmd, gui.desiredPtySize(view))
 			if err != nil {
@@ -93,7 +94,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 			gui.viewPtmxMap[view.Name()] = ptmx
 			gui.Mutexes.PtyMutex.Unlock()
 
-			return cmd, ptmx
+			return tasks.ExecCmd{Cmd: cmd}, ptmx
 		}
 
 		onClose := func() {
