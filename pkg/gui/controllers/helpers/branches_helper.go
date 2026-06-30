@@ -184,13 +184,13 @@ func (self *BranchesHelper) promptWorktreeBranchDelete(selectedBranch *models.Br
 				Label:   self.c.Tr.DetachWorktree,
 				Tooltip: self.c.Tr.DetachWorktreeTooltip,
 				OnPress: func() error {
-					return self.worktreeHelper.Detach(worktree)
+					return self.worktreeHelper.Detach(worktree, nil)
 				},
 			},
 			{
 				Label: self.c.Tr.RemoveWorktree,
 				OnPress: func() error {
-					return self.worktreeHelper.Remove(worktree, false)
+					return self.worktreeHelper.Remove(worktree)
 				},
 			},
 		},
