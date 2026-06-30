@@ -153,17 +153,16 @@ func TestParseOneColours(t *testing.T) {
 
 func TestParseOneIgnoresUnknownSequences(t *testing.T) {
 	// Escape sequences the interpreter doesn't implement -- whether well-formed-but-unsupported
-	// (cursor movement, private modes, DECSCUSR, …) or outright malformed -- must be silently
+	// (private modes, DECSCUSR, …) or outright malformed -- must be silently
 	// consumed rather than leaked into the view as literal text.
 	scenarios := []string{
 		"\x1b[?9001h",                            // DEC private-mode set (?-prefix)
 		"\x1b[?25l",                              // hide cursor
 		"\x1b[?25h",                              // show cursor
 		"\x1b[2;J",                               // erase display (unusual 2;J variant)
-		"\x1b[H",                                 // cursor home — final byte immediately after [
-		"\x1b[5;1;H",                             // cursor position with multiple params
+		"\x1b[H",                                 // cursor home — re-anchors to row 1 (no-op when already there)
 		"\x1bc",                                  // RIS — single-char ESC sequence
-		"\x1b[;5H",                               // empty first param (';' immediately after '[')
+		"\x1b[;5H",                               // empty first param — defaults to row 1, no-op
 		"\x1b[ q",                                // intermediate byte with no params (DECSCUSR family)
 		"\x1b[0 q",                               // intermediate byte after a param
 		"\x1b[1;;m",                              // malformed SGR: empty middle param
@@ -181,6 +180,66 @@ func TestParseOneIgnoresUnknownSequences(t *testing.T) {
 		assert.True(t, noop, "input %q left a pending instruction", input)
 		assert.Equal(t, ColorDefault, ei.curFgColor, "input %q mutated fg color", input)
 		assert.Equal(t, ColorDefault, ei.curBgColor, "input %q mutated bg color", input)
+	}
+}
+
+func TestParseOneCursorPositioning(t *testing.T) {
+	// Cursor-positioning escapes that advance the row forward emit a
+	// cursorDown instruction; backward / same-row moves are ignored
+	// because the view's buffer is line-based.
+	scenarios := []struct {
+		input       string
+		startRow    int // parser's screenRow before parsing
+		wantAdvance int // 0 means "no instruction emitted"
+	}{
+		{"\x1b[5;1H", 1, 4}, // CUP — absolute row 5 from row 1
+		{"\x1b[5H", 1, 4},   // CUP with only the row param
+		{"\x1b[5;1H", 5, 0}, // CUP to the same row we're on — no-op
+		{"\x1b[2;1H", 5, 0}, // CUP backward — ignored
+		{"\x1b[5;1f", 1, 4}, // HVP alias for CUP
+		{"\x1b[5d", 1, 4},   // VPA — absolute row
+		{"\x1b[2d", 5, 0},   // VPA backward — ignored
+		{"\x1b[3B", 1, 3},   // CUD — relative
+		{"\x1b[B", 1, 1},    // CUD with default param of 1
+		{"\x1b[2E", 1, 2},   // CNL — relative
+	}
+
+	for _, s := range scenarios {
+		ei := newEscapeInterpreter(OutputNormal)
+		ei.screenRow = s.startRow
+		parseEscRunes(t, ei, s.input)
+		if s.wantAdvance == 0 {
+			_, noop := ei.instruction.(noInstruction)
+			assert.True(t, noop, "input %q at row %d should be a no-op", s.input, s.startRow)
+		} else {
+			cd, ok := ei.instruction.(cursorDown)
+			if assert.True(t, ok, "input %q at row %d should emit cursorDown", s.input, s.startRow) {
+				assert.Equal(t, s.wantAdvance, cd.n, "input %q at row %d", s.input, s.startRow)
+			}
+		}
+	}
+}
+
+func TestParseOneCursorHomeReanchors(t *testing.T) {
+	// ConPTY emits cursor-home ([H) after [2J at the start of every screen.
+	// In a view that isn't rewound in lockstep with ConPTY (the command log)
+	// screenRow has drifted, so home must re-anchor it to the current write
+	// position rather than be dropped as a backward move — otherwise the
+	// absolute CUPs that follow compute negative, dropped advances and the
+	// rows ConPTY positioned with collapse together.
+	ei := newEscapeInterpreter(OutputNormal)
+	ei.screenRow = 12 // accumulated drift from earlier command-log output
+
+	parseEscRunes(t, ei, "\x1b[H")
+	assert.Equal(t, 1, ei.screenRow, "home should re-anchor screenRow")
+	_, noop := ei.instruction.(noInstruction)
+	assert.True(t, noop, "home should not emit an instruction")
+
+	// A subsequent CUP now advances relative to the re-anchored origin.
+	parseEscRunes(t, ei, "\x1b[3;1H")
+	cd, ok := ei.instruction.(cursorDown)
+	if assert.True(t, ok, "CUP after home should emit cursorDown") {
+		assert.Equal(t, 2, cd.n)
 	}
 }
 
