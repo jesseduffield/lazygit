@@ -3,6 +3,7 @@
 package gui
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -45,6 +46,12 @@ func (gui *Gui) onResize() error {
 // command.
 func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
 	width := view.InnerWidth()
+
+	// LAZYGIT_COLUMNS is documented in docs/Custom_Pagers.md for pager
+	// scripts that can't query the terminal width directly. We set it on
+	// every platform so those scripts remain portable.
+	cmd.Env = append(cmd.Env, fmt.Sprintf("LAZYGIT_COLUMNS=%d", width))
+
 	pager := gui.stateAccessor.GetPagerConfig().GetPagerCommand(width)
 	externalDiffCommand := gui.stateAccessor.GetPagerConfig().GetExternalDiffCommand()
 	useExtDiffGitConfig := gui.stateAccessor.GetPagerConfig().GetUseExternalDiffGitConfig()
