@@ -378,7 +378,7 @@ func (self *WorktreeHelper) promptForWorktreeLocation(dirName string, prompt str
 	parentDirs := worktreeParentDirCandidates(
 		self.c.Git().RepoPaths.RepoPath(),
 		linkedWorktreePaths,
-		self.c.UserConfig().Worktree.DefaultPath,
+		utils.ExpandTilde(self.c.UserConfig().Worktree.DefaultPath),
 	)
 
 	targets := lo.Map(parentDirs, func(parentDir string, _ int) string {
@@ -398,7 +398,9 @@ func (self *WorktreeHelper) promptForWorktreeLocation(dirName string, prompt str
 			self.c.Prompt(types.PromptOpts{
 				Title:          self.c.Tr.NewWorktreePath,
 				InitialContent: targets[0],
-				HandleConfirm:  onConfirm,
+				HandleConfirm: func(response string) error {
+					return onConfirm(utils.ExpandTilde(response))
+				},
 			})
 			return nil
 		},
