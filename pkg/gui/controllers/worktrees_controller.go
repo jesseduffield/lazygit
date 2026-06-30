@@ -130,7 +130,7 @@ func (self *WorktreesController) remove(worktree *models.Worktree) error {
 		return errors.New(self.c.Tr.CantDeleteCurrentWorktree)
 	}
 
-	return self.c.Helpers().Worktree.Remove(worktree, false)
+	return self.c.Helpers().Worktree.Remove(worktree)
 }
 
 func (self *WorktreesController) GetOnDoubleClick() func() error {
