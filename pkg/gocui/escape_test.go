@@ -243,6 +243,29 @@ func TestParseOneCursorHomeReanchors(t *testing.T) {
 	}
 }
 
+func TestParseOneCursorForward(t *testing.T) {
+	// CUF (\x1b[NC) emits a cursorForward instruction so the view can
+	// materialize the N-cell gap as spaces. ConPTY uses this (often
+	// paired with ECH) to encode runs of default-colored spaces.
+	scenarios := []struct {
+		input string
+		wantN int
+	}{
+		{"\x1b[5C", 5},
+		{"\x1b[1C", 1},
+		{"\x1b[C", 1}, // no param defaults to 1
+	}
+
+	for _, s := range scenarios {
+		ei := newEscapeInterpreter(OutputNormal)
+		parseEscRunes(t, ei, s.input)
+		cf, ok := ei.instruction.(cursorForward)
+		if assert.True(t, ok, "input %q should emit cursorForward", s.input) {
+			assert.Equal(t, s.wantN, cf.n, "input %q", s.input)
+		}
+	}
+}
+
 func parseEscRunes(t *testing.T, ei *escapeInterpreter, runes string) {
 	t.Helper()
 	for _, b := range []byte(runes) {

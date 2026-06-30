@@ -1003,6 +1003,14 @@ func (v *View) parseInput(ch []byte, width int, x int, _ int) (bool, []cell) {
 				bg: v.ei.curBgColor,
 			}
 			return truncateLine, []cell{}
+		} else if cf, ok := v.ei.instruction.(cursorForward); ok {
+			// emit `n` space cells under the parser-tracked SGR — used
+			// to materialize ConPTY's compressed runs of spaces (which
+			// it emits as ECH+CUF instead of literal whitespace).
+			v.ei.instructionRead()
+			repeatCount = cf.n
+			ch = []byte{' '}
+			width = 1
 		} else if isEscape {
 			// do not output anything
 			return truncateLine, nil
