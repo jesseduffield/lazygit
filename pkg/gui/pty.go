@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -99,9 +98,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 			cols, rows := gui.desiredPtySize(view)
 			sp, err := oscommands.StartPty(cmd, cols, rows)
 			if err != nil {
-				if !errors.Is(err, oscommands.ErrPtyUnsupported) {
-					gui.c.Log.Error(err)
-				}
+				gui.c.Log.Error(err)
 				return tasks.ExecCmd{Cmd: cmd}, nil
 			}
 			p = sp.Pty

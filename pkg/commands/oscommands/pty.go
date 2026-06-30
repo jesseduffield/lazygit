@@ -1,7 +1,6 @@
 package oscommands
 
 import (
-	"errors"
 	"io"
 	"os"
 )
@@ -28,10 +27,6 @@ type StartedPty struct {
 	// nonzero exit status, matching *exec.Cmd.Wait semantics.
 	Wait func() error
 }
-
-// ErrPtyUnsupported is returned by StartPty on platforms without a pty
-// implementation. Callers may fall back to running the command without a pty.
-var ErrPtyUnsupported = errors.New("pty not supported on this platform")
 
 // StartPty runs cmd in a pseudo-terminal with the given initial dimensions.
 // Implemented per-platform in pty_unix.go / pty_windows.go.
