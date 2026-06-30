@@ -19,6 +19,21 @@ type escapeInterpreter struct {
 	mode                   OutputMode
 	instruction            instruction
 	hyperlink              strings.Builder
+
+	// ConPTY emits cursor-positioning escapes (CUP) to skip over blank
+	// rows rather than emitting LFs for them. To convert those into row
+	// advances the view can act on, we track where in the pseudo-terminal
+	// screen the cursor currently is. 1-based to match the escape
+	// sequences.
+	//
+	// We also have to track the column, but only well enough to count
+	// soft-wraps when written content runs past the right edge: ConPTY's
+	// CUPs are addressed against its post-wrap screen, so a logical line
+	// long enough to wrap in ConPTY's screen counts for two rows from the
+	// next CUP's perspective. Column accuracy past wrap-counting isn't
+	// modelled — we don't track the col argument of CUPs, and most
+	// pager-style emitters use col 1 anyway.
+	screenRow, screenCol int
 }
 
 type (
@@ -31,6 +46,13 @@ type instruction interface{ isInstruction() }
 type eraseInLineFromCursor struct{}
 
 func (self eraseInLineFromCursor) isInstruction() {}
+
+// cursorDown asks the view to advance N rows. Emitted when CUP / CUD /
+// CNL / VPA targets a row past the current one; backward moves are
+// ignored because the view's buffer is line-based and can't undo.
+type cursorDown struct{ n int }
+
+func (self cursorDown) isInstruction() {}
 
 type noInstruction struct{}
 
@@ -99,16 +121,94 @@ func newEscapeInterpreter(mode OutputMode) *escapeInterpreter {
 		curBgColor:  ColorDefault,
 		mode:        mode,
 		instruction: noInstruction{},
+		screenRow:   1,
+		screenCol:   1,
 	}
 	return ei
 }
 
-// reset sets the escapeInterpreter in initial state.
+// reset sets the escapeInterpreter in initial state. Note: this only resets
+// escape-parsing state. Screen cursor state survives so that mid-stream
+// malformed escapes don't desync the row tracking from the view.
 func (ei *escapeInterpreter) reset() {
 	ei.state = stateNone
 	ei.curFgColor = ColorDefault
 	ei.curBgColor = ColorDefault
 	ei.csiParam = nil
+}
+
+// resetScreenCursor returns the screen-cursor tracking to the top of the
+// pseudo-terminal screen. Called when the view is rewound before a fresh pty
+// render, and on cursor-home (which ConPTY emits at the start of each screen)
+// for views that aren't rewound in lockstep — see the CUP handling in parseOne.
+func (ei *escapeInterpreter) resetScreenCursor() {
+	ei.screenRow = 1
+	ei.screenCol = 1
+}
+
+// notifyRowAdvance must be called by the view whenever it advances to the
+// next row in response to an LF / CRLF outside of an escape sequence
+// (i.e. the row transitions the parser doesn't see directly). Keeps the
+// parser's notion of the current screen row in sync with the view.
+func (ei *escapeInterpreter) notifyRowAdvance() {
+	ei.screenRow++
+	ei.screenCol = 1
+}
+
+// notifyColumnReset must be called when the view processes a bare CR
+// (column reset without row advance). Keeps screenCol in sync so wrap
+// counting starts over from col 1.
+func (ei *escapeInterpreter) notifyColumnReset() {
+	ei.screenCol = 1
+}
+
+// notifyCellsWritten must be called after the view writes visible cells
+// to its buffer. Advances the parser's idea of the cursor by `width`
+// columns; if that crosses the right edge of a `screenColMax`-wide pty
+// screen, the corresponding number of soft-wraps are added to screenRow
+// so subsequent CUPs land on the right line.
+func (ei *escapeInterpreter) notifyCellsWritten(width, screenColMax int) {
+	if screenColMax <= 0 {
+		return
+	}
+	// One column at a time: matches ConPTY's "pending wrap" semantics
+	// where the cursor stays at col max+1 after writing the rightmost
+	// cell and only wraps on the next cell. Loops over individual
+	// columns rather than doing the math in one shot so wide cells on a
+	// row boundary still wrap cleanly.
+	for range width {
+		if ei.screenCol > screenColMax {
+			ei.screenRow++
+			ei.screenCol = 1
+		}
+		ei.screenCol++
+	}
+}
+
+// emitCursorAdvance schedules a cursorDown instruction for the next time
+// the view checks ei.instruction, advancing the parser's screen row by
+// the same amount. n <= 0 is a no-op (backward / same-row CUPs are
+// ignored — the view's buffer is line-based and can't undo).
+func (ei *escapeInterpreter) emitCursorAdvance(n int) {
+	if n <= 0 {
+		return
+	}
+	ei.instruction = cursorDown{n: n}
+	ei.screenRow += n
+	ei.screenCol = 1
+}
+
+// firstParamOrDefault returns the first CSI parameter parsed as an int,
+// or dflt if it's absent / empty / unparseable.
+func (ei *escapeInterpreter) firstParamOrDefault(dflt int) int {
+	if len(ei.csiParam) == 0 || ei.csiParam[0] == "" {
+		return dflt
+	}
+	n, err := strconv.Atoi(ei.csiParam[0])
+	if err != nil {
+		return dflt
+	}
+	return n
 }
 
 func (ei *escapeInterpreter) instructionRead() {
@@ -170,8 +270,12 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			ei.csiParam = append(ei.csiParam, "")
 		case characterEquals(ch, 'm'):
 			ei.csiParam = append(ei.csiParam, "0")
-		case characterEquals(ch, 'K'):
-			// fall through
+		case characterEquals(ch, 'K'),
+			characterEquals(ch, 'H'), characterEquals(ch, 'f'), characterEquals(ch, 'd'),
+			characterEquals(ch, 'B'), characterEquals(ch, 'E'):
+			// fall through — let stateParams handle these with default
+			// params (CUP/VPA default to row 1, CUD/CNL default to advance
+			// by 1).
 		case characterEquals(ch, ';'):
 			// Empty first param ([;Xm ≡ [0;Xm). Seed a slot for the
 			// empty param; stateParams will append the next one when it
@@ -240,6 +344,35 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 				ei.instruction = noInstruction{}
 			}
 
+			ei.state = stateNone
+			ei.csiParam = nil
+			return true, nil
+		case characterEquals(ch, 'H'), characterEquals(ch, 'f'),
+			characterEquals(ch, 'd'):
+			// CUP / HVP (absolute (row, col), col ignored) or VPA (absolute row).
+			targetRow := ei.firstParamOrDefault(1)
+			if targetRow <= 1 {
+				// Cursor home. ConPTY emits this (after [2J) at the start of
+				// every screen, so it marks where ConPTY's coordinate origin
+				// now sits. Re-anchor our row tracking to the current write
+				// position rather than treating it as a backward move: a view
+				// that isn't rewound in lockstep with ConPTY's screen (the
+				// command log) would otherwise carry stale drift, making every
+				// later absolute CUP compute a negative, dropped advance and
+				// collapsing the blank rows ConPTY positioned with.
+				ei.resetScreenCursor()
+			} else {
+				// Skip forward to the target row; ignore backward moves.
+				ei.emitCursorAdvance(targetRow - ei.screenRow)
+			}
+			ei.state = stateNone
+			ei.csiParam = nil
+			return true, nil
+		case characterEquals(ch, 'B'), characterEquals(ch, 'E'):
+			// CUD / CNL — relative row advance by N. CNL also resets
+			// the column, which we don't track, so the two are
+			// equivalent for our purposes.
+			ei.emitCursorAdvance(ei.firstParamOrDefault(1))
 			ei.state = stateNone
 			ei.csiParam = nil
 			return true, nil

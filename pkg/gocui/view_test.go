@@ -253,10 +253,7 @@ func TestWriteCursorPositionEscape(t *testing.T) {
 		got = append(got, cellsToStrings(l.cells))
 	}
 
-	/* EXPECTED:
 	assert.Equal(t, [][]string{{"a"}, {}, {"b"}}, got)
-	ACTUAL: */
-	assert.Equal(t, [][]string{{"a"}, {"b"}}, got)
 }
 
 func stringToCells(s string) []cell {
