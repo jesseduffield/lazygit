@@ -1,10 +1,25 @@
 package helpers
 
 import (
+	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
+
+// nativePath rewrites a forward-slash test path into one that is valid on the
+// host OS, so the scenarios below can be written with readable Unix-style
+// paths. On Windows a leading slash is not absolute (filepath.IsAbs wants a
+// drive letter), so we graft one on; relative paths are left untouched.
+func nativePath(p string) string {
+	if runtime.GOOS == "windows" && strings.HasPrefix(p, "/") {
+		p = "C:" + p
+	}
+	return filepath.FromSlash(p)
+}
 
 func TestWorktreeParentDirCandidates(t *testing.T) {
 	scenarios := []struct {
@@ -67,8 +82,13 @@ func TestWorktreeParentDirCandidates(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			result := worktreeParentDirCandidates(s.repoPath, s.linkedWorktreePaths, s.defaultPath)
-			assert.Equal(t, s.expected, result)
+			result := worktreeParentDirCandidates(
+				nativePath(s.repoPath),
+				lo.Map(s.linkedWorktreePaths, func(p string, _ int) string { return nativePath(p) }),
+				nativePath(s.defaultPath),
+			)
+			expected := lo.Map(s.expected, func(p string, _ int) string { return nativePath(p) })
+			assert.Equal(t, expected, result)
 		})
 	}
 }
