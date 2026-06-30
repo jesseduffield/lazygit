@@ -54,6 +54,14 @@ type cursorDown struct{ n int }
 
 func (self cursorDown) isInstruction() {}
 
+// cursorForward asks the view to materialize N space cells. Emitted
+// when CUF advances the cursor right — ConPTY uses CUF (often paired
+// with ECH) to encode runs of default-colored spaces compactly, so we
+// have to render the gap, not just bump a counter.
+type cursorForward struct{ n int }
+
+func (self cursorForward) isInstruction() {}
+
 type noInstruction struct{}
 
 func (self noInstruction) isInstruction() {}
@@ -272,10 +280,11 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			ei.csiParam = append(ei.csiParam, "0")
 		case characterEquals(ch, 'K'),
 			characterEquals(ch, 'H'), characterEquals(ch, 'f'), characterEquals(ch, 'd'),
-			characterEquals(ch, 'B'), characterEquals(ch, 'E'):
+			characterEquals(ch, 'B'), characterEquals(ch, 'E'),
+			characterEquals(ch, 'C'):
 			// fall through — let stateParams handle these with default
-			// params (CUP/VPA default to row 1, CUD/CNL default to advance
-			// by 1).
+			// params (CUP/VPA default to row 1, CUD/CNL/CUF default to
+			// advance by 1).
 		case characterEquals(ch, ';'):
 			// Empty first param ([;Xm ≡ [0;Xm). Seed a slot for the
 			// empty param; stateParams will append the next one when it
@@ -373,6 +382,14 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			// the column, which we don't track, so the two are
 			// equivalent for our purposes.
 			ei.emitCursorAdvance(ei.firstParamOrDefault(1))
+			ei.state = stateNone
+			ei.csiParam = nil
+			return true, nil
+		case characterEquals(ch, 'C'):
+			// CUF — cursor forward N. Emit space cells so the gap
+			// renders. (screenCol is updated by the view via
+			// notifyCellsWritten as those spaces are emitted.)
+			ei.instruction = cursorForward{n: ei.firstParamOrDefault(1)}
 			ei.state = stateNone
 			ei.csiParam = nil
 			return true, nil
