@@ -248,8 +248,26 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				}
 			}
 
+			// Go's select picks randomly among ready cases, so once opts.Stop is
+			// closed the selects below could still service a ready data channel
+			// instead of bailing. Check stop explicitly first to give it priority:
+			// a task that's been stopped (it's being replaced by a newer one) must
+			// not touch the view here — beforeStart clears it and the prefix gets
+			// written, clobbering what the incoming task is about to render.
+			stopped := func() bool {
+				select {
+				case <-opts.Stop:
+					return true
+				default:
+					return false
+				}
+			}
+
 		outer:
 			for {
+				if stopped() {
+					break outer
+				}
 				select {
 				case <-opts.Stop:
 					break outer
@@ -260,6 +278,10 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 						}
 					}
 					for i := 0; linesToRead.Total == -1 || i < linesToRead.Total; i++ {
+						if stopped() {
+							callThen()
+							break outer
+						}
 						var ok bool
 						var line []byte
 						select {
