@@ -63,6 +63,9 @@ while still being meaningful and self-contained.
   preceding commit, by staging hunks or resetting and recommitting in order.
 - **Do not use conventional commits** (no `feat:`/`fix:`/`chore:` prefixes).
   Match the plain English imperative style of the existing history.
+- **Wrap message body to 72 characters**. The subject is allowed to go up to 80
+  characters, or even a little more if needed to convey a good single-line
+  summary; the body should be wrapped at 72 exactly, no more, no less.
 
 ## Iterate with `fixup!` commits
 
