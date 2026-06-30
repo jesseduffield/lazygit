@@ -427,6 +427,7 @@ type CommitPrefixConfig struct {
 type WorktreeConfig struct {
 	// Default parent directory for new worktrees. It is offered as a candidate location alongside the parent directories of any worktrees you already have.
 	// A relative path is resolved against the repository's root directory, so "../worktrees" sits beside the repo and ".worktrees" sits inside it.
+	// A leading "~" is expanded to your home directory, so "~/worktrees" works.
 	DefaultPath string `yaml:"defaultPath"`
 }
 

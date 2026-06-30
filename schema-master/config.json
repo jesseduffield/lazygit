@@ -3899,7 +3899,7 @@
       "properties": {
         "defaultPath": {
           "type": "string",
-          "description": "Default parent directory for new worktrees. It is offered as a candidate location alongside the parent directories of any worktrees you already have.\nA relative path is resolved against the repository's root directory, so \"../worktrees\" sits beside the repo and \".worktrees\" sits inside it."
+          "description": "Default parent directory for new worktrees. It is offered as a candidate location alongside the parent directories of any worktrees you already have.\nA relative path is resolved against the repository's root directory, so \"../worktrees\" sits beside the repo and \".worktrees\" sits inside it.\nA leading \"~\" is expanded to your home directory, so \"~/worktrees\" works."
         }
       },
       "additionalProperties": false,

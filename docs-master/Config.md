@@ -533,6 +533,7 @@ worktree:
   # location alongside the parent directories of any worktrees you already have.
   # A relative path is resolved against the repository's root directory, so
   # "../worktrees" sits beside the repo and ".worktrees" sits inside it.
+  # A leading "~" is expanded to your home directory, so "~/worktrees" works.
   defaultPath: ""
 
 # Periodic update checks
