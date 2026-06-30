@@ -35,17 +35,9 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 		return self.promptWorktreeBranchDelete(branches[0])
 	}
 
-	allBranchesMerged, err := self.allBranchesMerged(branches)
-	if err != nil {
-		return err
-	}
-
-	doDelete := func() error {
+	return self.confirmForceIfUnmerged(branches, func() error {
 		return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(_ gocui.Task) error {
-			self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
-			self.logBranchHashes(branches)
-			branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
-			if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
+			if err := self.doDeleteLocalBranches(branches); err != nil {
 				return err
 			}
 
@@ -53,34 +45,7 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 			return nil
 		})
-	}
-
-	if allBranchesMerged {
-		return doDelete()
-	}
-
-	title := self.c.Tr.ForceDeleteBranchTitle
-	var message string
-	if len(branches) == 1 {
-		message = utils.ResolvePlaceholderString(
-			self.c.Tr.ForceDeleteBranchMessage,
-			map[string]string{
-				"selectedBranchName": branches[0].Name,
-			},
-		)
-	} else {
-		message = self.c.Tr.ForceDeleteBranchesMessage
-	}
-
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  title,
-		Prompt: message,
-		HandleConfirm: func() error {
-			return doDelete()
-		},
 	})
-
-	return nil
 }
 
 func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteBranch, resetRemoteBranchesSelection bool) error {
@@ -169,19 +134,7 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
-				// Delete the remote branches first so that we keep the local ones
-				// in case of failure
-				remoteBranches := lo.Map(branches, func(branch *models.Branch, _ int) *models.RemoteBranch {
-					return &models.RemoteBranch{Name: branch.UpstreamBranch, RemoteName: branch.UpstreamRemote}
-				})
-				if err := self.deleteRemoteBranches(remoteBranches, task); err != nil {
-					return err
-				}
-
-				self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
-				self.logBranchHashes(branches)
-				branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
-				if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
+				if err := self.doDeleteLocalAndRemoteBranches(task, branches); err != nil {
 					return err
 				}
 
@@ -242,6 +195,59 @@ func (self *BranchesHelper) promptWorktreeBranchDelete(selectedBranch *models.Br
 			},
 		},
 	})
+}
+
+// confirmForceIfUnmerged runs onConfirm directly if all the branches are fully
+// merged, and otherwise shows the force-delete warning first and runs onConfirm
+// when the user confirms it.
+func (self *BranchesHelper) confirmForceIfUnmerged(branches []*models.Branch, onConfirm func() error) error {
+	allBranchesMerged, err := self.allBranchesMerged(branches)
+	if err != nil {
+		return err
+	}
+	if allBranchesMerged {
+		return onConfirm()
+	}
+
+	var message string
+	if len(branches) == 1 {
+		message = utils.ResolvePlaceholderString(
+			self.c.Tr.ForceDeleteBranchMessage,
+			map[string]string{
+				"selectedBranchName": branches[0].Name,
+			},
+		)
+	} else {
+		message = self.c.Tr.ForceDeleteBranchesMessage
+	}
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:         self.c.Tr.ForceDeleteBranchTitle,
+		Prompt:        message,
+		HandleConfirm: onConfirm,
+	})
+
+	return nil
+}
+
+func (self *BranchesHelper) doDeleteLocalBranches(branches []*models.Branch) error {
+	self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
+	self.logBranchHashes(branches)
+	branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
+	return self.c.Git().Branch.LocalDelete(branchNames, true)
+}
+
+func (self *BranchesHelper) doDeleteLocalAndRemoteBranches(task gocui.Task, branches []*models.Branch) error {
+	// Delete the remote branches first so that we keep the local ones
+	// in case of failure
+	remoteBranches := lo.Map(branches, func(branch *models.Branch, _ int) *models.RemoteBranch {
+		return &models.RemoteBranch{Name: branch.UpstreamBranch, RemoteName: branch.UpstreamRemote}
+	})
+	if err := self.deleteRemoteBranches(remoteBranches, task); err != nil {
+		return err
+	}
+
+	return self.doDeleteLocalBranches(branches)
 }
 
 func (self *BranchesHelper) allBranchesMerged(branches []*models.Branch) (bool, error) {
