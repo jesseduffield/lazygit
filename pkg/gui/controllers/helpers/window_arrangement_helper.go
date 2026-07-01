@@ -430,6 +430,15 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 	return func(width int, height int) []*boxlayout.Box {
 		windows := sideWindowNames(args.UserConfig)
 
+		// These thresholds were originally tuned for the default five side panels.
+		// With fewer panels there's less to fit, so scale them down proportionally
+		// to keep using the proportional layout at smaller heights rather than
+		// squashing unnecessarily. We only ever scale down: making more panels
+		// squash sooner tends to work against the reason people add panels.
+		const defaultSidePanelCount = 5
+		minHeightForNormalLayout := min(28, 28*len(windows)/defaultSidePanelCount)
+		minHeightForTallSquashedPanels := min(21, 21*len(windows)/defaultSidePanelCount)
+
 		boxForEachWindow := func(boxForWindow func(window string) *boxlayout.Box) []*boxlayout.Box {
 			boxes := make([]*boxlayout.Box, 0, len(windows))
 			for _, window := range windows {
@@ -454,7 +463,7 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 			}
 
 			return boxForEachWindow(fullHeightBox)
-		} else if height >= 28 {
+		} else if height >= minHeightForNormalLayout {
 			accordionMode := args.UserConfig.Gui.ExpandFocusedSidePanel
 			accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
 				if accordionMode && defaultBox.Window == args.CurrentSideWindow {
@@ -487,7 +496,7 @@ func sidePanelChildren(args WindowArrangementArgs) func(width int, height int) [
 		}
 
 		squashedHeight := 1
-		if height >= 21 {
+		if height >= minHeightForTallSquashedPanels {
 			squashedHeight = 3
 		}
 
