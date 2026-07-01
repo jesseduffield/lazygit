@@ -97,8 +97,17 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteB
 }
 
 func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branch) error {
-	if lo.SomeBy(branches, func(branch *models.Branch) bool { return self.checkedOutByOtherWorktree(branch) }) {
-		return errors.New(self.c.Tr.SomeBranchesCheckedOutByWorktreeError)
+	if len(branches) > 1 {
+		if lo.SomeBy(branches, func(branch *models.Branch) bool { return self.checkedOutByOtherWorktree(branch) }) {
+			return errors.New(self.c.Tr.SomeBranchesCheckedOutByWorktreeError)
+		}
+	} else if self.checkedOutByOtherWorktree(branches[0]) {
+		return self.promptWorktreeBranchDelete(
+			branches[0],
+			self.c.Tr.RemoveWorktreeAndDeleteBothBranches,
+			self.c.Tr.DetachWorktreeAndDeleteBothBranches,
+			self.deleteLocalAndRemoteBranchesContinuation(branches),
+		)
 	}
 
 	allBranchesMerged, err := self.allBranchesMerged(branches)
@@ -276,6 +285,24 @@ func (self *BranchesHelper) deleteLocalBranchesContinuation(branches []*models.B
 		self.c.Refresh(types.RefreshOptions{
 			Mode:  types.ASYNC,
 			Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES},
+		})
+		return nil
+	}
+}
+
+// deleteLocalAndRemoteBranchesContinuation returns a worktree-removal
+// continuation that deletes the local and remote branches and refreshes once the
+// worktree is out of the way.
+func (self *BranchesHelper) deleteLocalAndRemoteBranchesContinuation(branches []*models.Branch) func(gocui.Task) error {
+	return func(task gocui.Task) error {
+		if err := self.doDeleteLocalAndRemoteBranches(task, branches); err != nil {
+			return err
+		}
+
+		self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+		self.c.Refresh(types.RefreshOptions{
+			Mode:  types.ASYNC,
+			Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.REMOTES, types.FILES},
 		})
 		return nil
 	}
