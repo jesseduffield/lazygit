@@ -259,6 +259,7 @@ func (self *WorktreeHelper) worktreeMenu(items ...*types.MenuItem) error {
 func (self *WorktreeHelper) newBranchAndWorktreeItem(ref string, base string) *types.MenuItem {
 	return &types.MenuItem{
 		Label: utils.ResolvePlaceholderString(self.c.Tr.NewBranchAndWorktreeFromRef, map[string]string{"ref": ref}),
+		Keys:  menuKey('b'),
 		OnPress: func() error {
 			return self.startNewBranchWorktree("", base, func(name string) string {
 				return utils.ResolvePlaceholderString(self.c.Tr.WorktreeLocationPromptNewBranch,
@@ -274,6 +275,7 @@ func (self *WorktreeHelper) newBranchAndWorktreeItem(ref string, base string) *t
 func (self *WorktreeHelper) newLocalBranchAndWorktreeItem(remoteBranch *models.RemoteBranch, strippedName string) *types.MenuItem {
 	return &types.MenuItem{
 		Label: utils.ResolvePlaceholderString(self.c.Tr.NewLocalBranchAndWorktreeFromRef, map[string]string{"ref": remoteBranch.FullName()}),
+		Keys:  menuKey('b'),
 		OnPress: func() error {
 			return self.startNewBranchWorktree(strippedName, remoteBranch.FullName(), func(name string) string {
 				return utils.ResolvePlaceholderString(self.c.Tr.WorktreeLocationPromptTrackingBranch,
@@ -300,6 +302,7 @@ func (self *WorktreeHelper) startNewBranchWorktree(nameInitialContent string, ba
 func (self *WorktreeHelper) worktreeForBranchItem(branch *models.Branch) *types.MenuItem {
 	return &types.MenuItem{
 		Label: utils.ResolvePlaceholderString(self.c.Tr.WorktreeForRef, map[string]string{"ref": branch.Name}),
+		Keys:  menuKey('w'),
 		OnPress: func() error {
 			prompt := utils.ResolvePlaceholderString(self.c.Tr.WorktreeLocationPromptCheckout,
 				map[string]string{"branchName": branch.Name})
@@ -323,6 +326,7 @@ func (self *WorktreeHelper) detachedWorktreeItem(ref string, base string, defaul
 
 	return &types.MenuItem{
 		Label: utils.ResolvePlaceholderString(self.c.Tr.DetachedWorktreeAtRef, map[string]string{"ref": ref}),
+		Keys:  menuKey('d'),
 		OnPress: func() error {
 			if defaultDirName != "" {
 				return self.promptForWorktreeLocation(defaultDirName, prompt, create)
