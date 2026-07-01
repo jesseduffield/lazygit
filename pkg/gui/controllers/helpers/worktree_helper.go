@@ -119,30 +119,16 @@ func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.C
 	return self.reposHelper.DispatchSwitchTo(worktree.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
 }
 
-func (self *WorktreeHelper) Remove(worktree *models.Worktree) error {
-	message := utils.ResolvePlaceholderString(
-		self.c.Tr.RemoveWorktreePrompt,
-		map[string]string{
-			"worktreeName": worktree.Name,
-		},
-	)
-
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.RemoveWorktreeTitle,
-		Prompt: message,
-		HandleConfirm: func() error {
-			return self.remove(worktree, false, nil)
-		},
-	})
-
-	return nil
+// Remove deletes the worktree without confirming first; callers are expected to
+// have confirmed (or shown a menu) already. If git refuses because the worktree
+// is dirty or contains submodules, we ask for confirmation and retry with
+// --force. When then is non-nil it runs in place of the default refresh after a
+// successful removal, letting callers chain further work such as deleting the
+// worktree's branch.
+func (self *WorktreeHelper) Remove(worktree *models.Worktree, then func(gocui.Task) error) error {
+	return self.remove(worktree, false, then)
 }
 
-// remove deletes the worktree without confirming first; callers must have done
-// so (or shown a menu) already. If git refuses because the worktree is dirty or
-// contains submodules, we ask for confirmation and retry with --force. When then
-// is non-nil it runs in place of the default refresh after a successful removal,
-// letting callers chain further work such as deleting the worktree's branch.
 func (self *WorktreeHelper) remove(worktree *models.Worktree, force bool, then func(gocui.Task) error) error {
 	return self.c.WithWaitingStatus(self.c.Tr.RemovingWorktree, func(task gocui.Task) error {
 		self.c.LogAction(self.c.Tr.RemoveWorktree)

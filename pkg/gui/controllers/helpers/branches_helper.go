@@ -202,7 +202,7 @@ func (self *BranchesHelper) promptWorktreeBranchDelete(
 				Keys:  menuKey('r'),
 				OnPress: func() error {
 					return self.confirmForceIfUnmerged([]*models.Branch{branch}, func() error {
-						return self.worktreeHelper.remove(worktree, false, deleteBranches)
+						return self.worktreeHelper.Remove(worktree, deleteBranches)
 					})
 				},
 			},
@@ -217,6 +217,36 @@ func (self *BranchesHelper) promptWorktreeBranchDelete(
 				},
 			},
 		},
+	})
+}
+
+// RemoveWorktreeAndDeleteBranch removes the worktree and deletes the local branch
+// it has checked out, force-warning first if the branch isn't fully merged. It's
+// the worktrees-panel counterpart to deleting a worktree-checked-out branch from
+// the branches panel.
+func (self *BranchesHelper) RemoveWorktreeAndDeleteBranch(
+	worktree *models.Worktree, branch *models.Branch,
+) error {
+	branches := []*models.Branch{branch}
+	return self.removeWorktreeAndDelete(worktree, branches,
+		self.deleteLocalBranchesContinuation(branches))
+}
+
+// RemoveWorktreeAndDeleteBothBranches is like RemoveWorktreeAndDeleteBranch but
+// also deletes the branch's upstream.
+func (self *BranchesHelper) RemoveWorktreeAndDeleteBothBranches(
+	worktree *models.Worktree, branch *models.Branch,
+) error {
+	branches := []*models.Branch{branch}
+	return self.removeWorktreeAndDelete(worktree, branches,
+		self.deleteLocalAndRemoteBranchesContinuation(branches))
+}
+
+func (self *BranchesHelper) removeWorktreeAndDelete(
+	worktree *models.Worktree, branches []*models.Branch, deleteBranches func(gocui.Task) error,
+) error {
+	return self.confirmForceIfUnmerged(branches, func() error {
+		return self.worktreeHelper.Remove(worktree, deleteBranches)
 	})
 }
 
