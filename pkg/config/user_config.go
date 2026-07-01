@@ -109,6 +109,8 @@ type GuiConfig struct {
 	ExpandFocusedSidePanel bool `yaml:"expandFocusedSidePanel"`
 	// The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
 	ExpandedSidePanelWeight int `yaml:"expandedSidePanelWeight"`
+	// If true, don't give a side panel more height than it needs to show its content; when all panels fit, the leftover height is shared among them so that they still fill the screen.
+	ShrinkSidePanelsToContent bool `yaml:"shrinkSidePanelsToContent"`
 	// The side panels, in the order they appear from top to bottom.
 	// Each entry is a list of one or more names that share a single panel as tabs (cycle through them with the next-tab/previous-tab keys).
 	// Omit a name to hide it; give a name its own one-element list to promote a tab to a top-level panel.
@@ -842,18 +844,19 @@ func GetDefaultConfig() *UserConfig {
 func GetDefaultConfigForPlatform(platform string) *UserConfig {
 	return &UserConfig{
 		Gui: GuiConfig{
-			ScrollHeight:             2,
-			ScrollPastBottom:         true,
-			ScrollOffMargin:          2,
-			ScrollOffBehavior:        "margin",
-			TabWidth:                 4,
-			MouseEvents:              true,
-			SkipAmendWarning:         false,
-			SkipDiscardChangeWarning: false,
-			SkipStashWarning:         false,
-			SidePanelWidth:           0.3333,
-			ExpandFocusedSidePanel:   false,
-			ExpandedSidePanelWeight:  2,
+			ScrollHeight:              2,
+			ScrollPastBottom:          true,
+			ScrollOffMargin:           2,
+			ScrollOffBehavior:         "margin",
+			TabWidth:                  4,
+			MouseEvents:               true,
+			SkipAmendWarning:          false,
+			SkipDiscardChangeWarning:  false,
+			SkipStashWarning:          false,
+			SidePanelWidth:            0.3333,
+			ExpandFocusedSidePanel:    false,
+			ExpandedSidePanelWeight:   2,
+			ShrinkSidePanelsToContent: false,
 			SidePanels: []SidePanel{
 				{"status"},
 				{"files", "worktrees", "submodules"},

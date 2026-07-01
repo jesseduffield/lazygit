@@ -590,6 +590,11 @@
           "description": "The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.",
           "default": 2
         },
+        "shrinkSidePanelsToContent": {
+          "type": "boolean",
+          "description": "If true, don't give a side panel more height than it needs to show its content; when all panels fit, the leftover height is shared among them so that they still fill the screen.",
+          "default": false
+        },
         "sidePanels": {
           "items": {
             "$ref": "#/$defs/SidePanel"
