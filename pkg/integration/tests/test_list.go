@@ -521,6 +521,7 @@ var tests = []*components.IntegrationTest{
 	worktree.NewWorktreePicker,
 	worktree.NewWorktreePickerRemote,
 	worktree.RemoveWorktreeAndBothBranches,
+	worktree.RemoveWorktreeAndBranch,
 	worktree.RemoveWorktreeAndDeleteLocalAndRemoteBranch,
 	worktree.RemoveWorktreeFromBranch,
 	worktree.ResetWindowTabs,

@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type WorktreesController struct {
@@ -130,7 +131,53 @@ func (self *WorktreesController) remove(worktree *models.Worktree) error {
 		return errors.New(self.c.Tr.CantDeleteCurrentWorktree)
 	}
 
-	return self.c.Helpers().Worktree.Remove(worktree)
+	removeWorktreeItem := &types.MenuItem{
+		Label: self.c.Tr.RemoveWorktree,
+		Keys:  menuKey('w'),
+		OnPress: func() error {
+			return self.c.Helpers().Worktree.Remove(worktree, nil)
+		},
+	}
+
+	branch, branchFound := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
+		return branch.Name == worktree.Branch
+	})
+	// A worktree with a detached HEAD has no branch to delete
+	detachedReason := &types.DisabledReason{Text: self.c.Tr.WorktreeNotCheckedOutOnBranch}
+
+	removeWorktreeAndBranchItem := &types.MenuItem{
+		Label: self.c.Tr.RemoveWorktreeAndDeleteBranch,
+		Keys:  menuKey('b'),
+		OnPress: func() error {
+			return self.c.Helpers().BranchesHelper.RemoveWorktreeAndDeleteBranch(worktree, branch)
+		},
+	}
+	if !branchFound {
+		removeWorktreeAndBranchItem.DisabledReason = detachedReason
+	}
+
+	removeWorktreeAndBothBranchesItem := &types.MenuItem{
+		Label: self.c.Tr.RemoveWorktreeAndDeleteBothBranches,
+		Keys:  menuKey('r'),
+		OnPress: func() error {
+			return self.c.Helpers().BranchesHelper.RemoveWorktreeAndDeleteBothBranches(worktree, branch)
+		},
+	}
+	if !branchFound {
+		removeWorktreeAndBothBranchesItem.DisabledReason = detachedReason
+	} else if !branch.IsTrackingRemote() || branch.UpstreamGone {
+		removeWorktreeAndBothBranchesItem.DisabledReason = &types.DisabledReason{
+			Text: self.c.Tr.UpstreamNotSetError,
+		}
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: utils.ResolvePlaceholderString(
+			self.c.Tr.RemoveWorktreeMenuTitle,
+			map[string]string{"worktreeName": worktree.Name},
+		),
+		Items: []*types.MenuItem{removeWorktreeItem, removeWorktreeAndBranchItem, removeWorktreeAndBothBranchesItem},
+	})
 }
 
 func (self *WorktreesController) GetOnDoubleClick() func() error {
