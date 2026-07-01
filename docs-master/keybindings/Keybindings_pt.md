@@ -273,7 +273,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | Escolha o local |  |
-| `` b `` | Pegar todos os pedaços |  |
+| `` b `` | Pick both hunks |  |
 | `` <up>, k `` | Trecho anterior |  |
 | `` <down>, j `` | Próximo trecho |  |
 | `` <left>, h `` | Conflito anterior |  |

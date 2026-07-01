@@ -209,7 +209,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | Wybierz fragment |  |
-| `` b `` | Wybierz wszystkie fragmenty |  |
+| `` b `` | Pick both hunks |  |
 | `` <up>, k `` | Poprzedni fragment |  |
 | `` <down>, j `` | Następny fragment |  |
 | `` <left>, h `` | Poprzedni konflikt |  |

@@ -205,7 +205,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | Pick hunk |  |
-| `` b `` | Pick all hunks |  |
+| `` b `` | Pick both hunks |  |
 | `` <up>, k `` | Previous hunk |  |
 | `` <down>, j `` | Next hunk |  |
 | `` <left>, h `` | Previous conflict |  |

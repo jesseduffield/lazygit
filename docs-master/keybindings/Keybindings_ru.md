@@ -114,7 +114,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | Выбрать эту часть |  |
-| `` b `` | Выбрать все части |  |
+| `` b `` | Pick both hunks |  |
 | `` <up>, k `` | Выбрать предыдущую часть |  |
 | `` <down>, j `` | Выбрать следующую часть |  |
 | `` <left>, h `` | Выбрать предыдущий конфликт |  |

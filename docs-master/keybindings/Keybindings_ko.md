@@ -144,7 +144,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | Pick hunk |  |
-| `` b `` | Pick all hunks |  |
+| `` b `` | Pick both hunks |  |
 | `` <up>, k `` | 이전 hunk를 선택 |  |
 | `` <down>, j `` | 다음 hunk를 선택 |  |
 | `` <left>, h `` | 이전 충돌을 선택 |  |

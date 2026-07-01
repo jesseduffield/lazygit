@@ -294,7 +294,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | 选中区块 |  |
-| `` b `` | 选中所有区块 |  |
+| `` b `` | Pick both hunks |  |
 | `` <up>, k `` | 选择顶部块 |  |
 | `` <down>, j `` | 选择底部块 |  |
 | `` <left>, h `` | 选择上一个冲突 |  |
