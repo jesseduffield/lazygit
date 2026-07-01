@@ -36,9 +36,6 @@ var PickBothHunksDiff3 = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().IsEmpty()
 
 		t.FileSystem().FileContent("file",
-			/* EXPECTED:
-			Equals("\nThis\nIs\nThe\nFirst Change\nSecond Change\nFile\n")
-			ACTUAL: */
-			Equals("\nThis\nIs\nThe\nFirst Change\nOriginal\nSecond Change\nFile\n"))
+			Equals("\nThis\nIs\nThe\nFirst Change\nSecond Change\nFile\n"))
 	},
 })

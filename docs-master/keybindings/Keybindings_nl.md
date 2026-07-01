@@ -213,7 +213,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | Kies stuk |  |
-| `` b `` | Kies beide stukken |  |
+| `` b `` | Pick both hunks |  |
 | `` <up>, k `` | Selecteer bovenste hunk |  |
 | `` <down>, j `` | Selecteer onderste hunk |  |
 | `` <left>, h `` | Selecteer voorgaand conflict |  |

@@ -287,7 +287,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | ハンクを選択 |  |
-| `` b `` | すべてのハンクを選択 |  |
+| `` b `` | Pick both hunks |  |
 | `` <up>, k `` | 前のハンク |  |
 | `` <down>, j `` | 次のハンク |  |
 | `` <left>, h `` | 前のコンフリクト |  |

@@ -90,7 +90,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | 挑選程式碼片段 |  |
-| `` b `` | 挑選所有程式碼片段 |  |
+| `` b `` | Pick both hunks |  |
 | `` <up>, k `` | 選擇上一段 |  |
 | `` <down>, j `` | 選擇下一段 |  |
 | `` <left>, h `` | 選擇上一個衝突 |  |

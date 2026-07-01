@@ -320,7 +320,7 @@ type TranslationSet struct {
 	ViewConflictsMenuItem                 string
 	AbortMenuItem                         string
 	PickHunk                              string
-	PickAllHunks                          string
+	PickBothHunks                         string
 	ViewMergeRebaseOptions                string
 	ViewMergeRebaseOptionsTooltip         string
 	ViewMergeOptions                      string
@@ -1338,7 +1338,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RewordCommitEditor:                   "Reword with editor",
 		Error:                                "Error",
 		PickHunk:                             "Pick hunk",
-		PickAllHunks:                         "Pick all hunks",
+		PickBothHunks:                        "Pick both hunks",
 		Undo:                                 "Undo",
 		UndoReflog:                           "Undo",
 		RedoReflog:                           "Redo",
