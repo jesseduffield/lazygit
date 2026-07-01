@@ -167,6 +167,7 @@ var tests = []*components.IntegrationTest{
 	conflicts.MergeFileBoth,
 	conflicts.MergeFileCurrent,
 	conflicts.MergeFileIncoming,
+	conflicts.PickBothHunksDiff3,
 	conflicts.ResolveExternally,
 	conflicts.ResolveMultipleFiles,
 	conflicts.ResolveNoAutoStage,
