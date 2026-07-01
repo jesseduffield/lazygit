@@ -279,6 +279,29 @@ languages), and the map form extends cleanly when a string later needs more
 than one placeholder. This holds for every user-facing string, including short
 ones like disabled-action reasons and toasts.
 
+## Only edit the English translations
+
+`pkg/i18n/english.go` is the one translation file you edit; add, change, and
+remove strings there. The other languages under `pkg/i18n/translations/` are
+maintained by Crowdin and synced automatically — never edit them by hand, not
+even to add a key you just introduced or to delete one you just removed. A
+removed English string simply leaves an orphan key in those files, which
+Crowdin cleans up on its own; an unknown key in a translation file is ignored
+at load time, so it does no harm in the meantime.
+
+## Try to keep new english.go strings within the existing column alignment
+
+`gofumpt` aligns the `TranslationSet` struct fields and the `EnglishTranslationSet`
+literal into columns, so a new field whose name is longer than the widest one in
+its alignment block re-indents every line in that block. When there are several
+feature branches in flight that all add strings, that reformatting churn turns
+english.go into a rebase-conflict magnet. So when it's cheap to do so, make an
+effort to keep a new field name within the current widest name in the block
+(measure it; it's around 40 characters today), shortening the Go field name to
+fit. This is a soft preference, not a rule: the usual "best name wins" still
+applies, so don't mangle a name past the point of readability just to save a
+column. Applies only to `pkg/i18n/english.go`.
+
 ## Code comments are for future readers, not development history
 
 Comments in source code explain *why this code is shaped the way it is*. They
