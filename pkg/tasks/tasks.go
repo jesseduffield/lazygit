@@ -403,12 +403,29 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		})
 	}
 
+	// Assign the taskID synchronously so it reflects NewTask call order
+	// rather than the order in which the spawned goroutines happen to be
+	// scheduled. Otherwise two NewTask calls in quick succession can have
+	// their goroutines race, with the later-called task ending up with the
+	// lower taskID and losing the staleness check below.
+	self.taskIDMutex.Lock()
+	self.newTaskID++
+	taskID := self.newTaskID
+	self.taskIDMutex.Unlock()
+
 	go utils.Safe(func() {
 		defer completeGocuiTask()
 
 		self.taskIDMutex.Lock()
-		self.newTaskID++
-		taskID := self.newTaskID
+
+		// Bail out before touching shared view state if a newer task has
+		// already been queued: if we ran onNewKey here we'd reset the view
+		// for a task that's about to exit, potentially wiping output the
+		// winning task has already written.
+		if taskID < self.newTaskID {
+			self.taskIDMutex.Unlock()
+			return
+		}
 
 		if self.GetTaskKey() != key && self.onNewKey != nil {
 			self.onNewKey()
@@ -419,6 +436,8 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 
 		self.waitingMutex.Lock()
 
+		// Re-check staleness after acquiring waitingMutex: a newer task
+		// may have arrived while we were blocked here.
 		self.taskIDMutex.Lock()
 		if taskID < self.newTaskID {
 			self.waitingMutex.Unlock()
