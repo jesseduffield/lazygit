@@ -377,8 +377,6 @@ type IStateAccessor interface {
 	// tells us whether we're currently updating lazygit
 	GetUpdating() bool
 	SetUpdating(bool)
-	SetIsRefreshingFiles(bool)
-	GetIsRefreshingFiles() bool
 	GetShowExtrasWindow() bool
 	SetShowExtrasWindow(bool)
 	GetRetainOriginalDir() bool

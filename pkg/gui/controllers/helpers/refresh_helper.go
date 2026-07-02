@@ -735,11 +735,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 
 func (self *RefreshHelper) refreshFilesAndSubmodules(background bool) error {
 	self.c.Mutexes().RefreshingFilesMutex.Lock()
-	self.c.State().SetIsRefreshingFiles(true)
-	defer func() {
-		self.c.State().SetIsRefreshingFiles(false)
-		self.c.Mutexes().RefreshingFilesMutex.Unlock()
-	}()
+	defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
 
 	if err := self.refreshStateSubmoduleConfigs(); err != nil {
 		return err

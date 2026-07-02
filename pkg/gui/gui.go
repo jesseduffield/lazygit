@@ -111,8 +111,6 @@ type Gui struct {
 
 	PopupHandler types.IPopupHandler
 
-	IsRefreshingFiles bool
-
 	// we use this to decide whether we'll return to the original directory that
 	// lazygit was opened in, or if we'll retain the one we're currently in.
 	RetainOriginalDir bool
@@ -173,14 +171,6 @@ func (self *StateAccessor) GetRepoState() types.IRepoStateAccessor {
 
 func (self *StateAccessor) GetPagerConfig() *config.PagerConfig {
 	return self.gui.pagerConfig
-}
-
-func (self *StateAccessor) GetIsRefreshingFiles() bool {
-	return self.gui.IsRefreshingFiles
-}
-
-func (self *StateAccessor) SetIsRefreshingFiles(value bool) {
-	self.gui.IsRefreshingFiles = value
 }
 
 func (self *StateAccessor) GetShowExtrasWindow() bool {
