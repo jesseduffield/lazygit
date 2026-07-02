@@ -76,7 +76,11 @@ type Gui struct {
 	// this is a mapping of repos to gui states, so that we can restore the original
 	// gui state when returning from a subrepo.
 	// In repos with multiple worktrees, we store a separate repo state per worktree.
-	RepoStateMap         map[Repo]*GuiRepoState
+	RepoStateMap map[Repo]*GuiRepoState
+	// Holds state shared between all worktrees of the same repo, keyed by the
+	// repo's common git dir (one entry per repo, where RepoStateMap has one
+	// entry per worktree).
+	sharedRepoStateMap   map[Repo]*SharedRepoState
 	Config               config.AppConfigurer
 	Updater              *updates.Updater
 	statusManager        *status.StatusManager
@@ -258,6 +262,14 @@ type GuiRepoState struct {
 }
 
 var _ types.IRepoStateAccessor = new(GuiRepoState)
+
+// SharedRepoState is state shared between all worktrees of the same repo.
+// Unlike GuiRepoState, of which we keep one instance per worktree, there is
+// only one instance of this per repo; e.g. commits copied for cherry-picking
+// in one worktree can be pasted in another.
+type SharedRepoState struct {
+	CherryPicking *cherrypicking.CherryPicking
+}
 
 func (self *GuiRepoState) GetViewsSetup() bool {
 	return self.ViewsSetup
@@ -595,6 +607,15 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 		return gui.c.Context().Current()
 	}
 
+	repoGitDirPath := gui.git.RepoPaths.RepoGitDirPath()
+	sharedState := gui.sharedRepoStateMap[Repo(repoGitDirPath)]
+	if sharedState == nil {
+		sharedState = &SharedRepoState{
+			CherryPicking: cherrypicking.New(),
+		}
+		gui.sharedRepoStateMap[Repo(repoGitDirPath)] = sharedState
+	}
+
 	contextTree := gui.contextTree()
 
 	initialScreenMode := initialScreenMode(startArgs, gui.Config)
@@ -618,7 +639,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 		},
 		Modes: &types.Modes{
 			Filtering:        filtering.New(startArgs.FilterPath, ""),
-			CherryPicking:    cherrypicking.New(),
+			CherryPicking:    sharedState.CherryPicking,
 			Diffing:          diffing.New(),
 			MarkedBaseCommit: marked_base_commit.New(),
 		},
@@ -749,6 +770,7 @@ func NewGui(
 		showRecentRepos:      showRecentRepos,
 		RepoPathStack:        &utils.StringStack{},
 		RepoStateMap:         map[Repo]*GuiRepoState{},
+		sharedRepoStateMap:   map[Repo]*SharedRepoState{},
 		GuiLog:               []string{},
 
 		// initializing this to true for the time being; it will be reset to the
