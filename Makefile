@@ -40,6 +40,7 @@ format:
 
 .PHONY: lint
 lint:
+	./scripts/gofumpt-check.sh
 	./scripts/golangci-lint-shim.sh run
 
 # For more details about integration test, see https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md.

@@ -37,6 +37,7 @@ format:
     go tool gofumpt -l -w .
 
 lint:
+    ./scripts/gofumpt-check.sh
     ./scripts/golangci-lint-shim.sh run
 
 e2e-test-command := "go test pkg/integration/clients/*.go"

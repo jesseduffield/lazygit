@@ -167,7 +167,12 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: 1.25.x
+      - name: Check formatting
+        run: ./scripts/gofumpt-check.sh
       - name: Lint
+        # Run even if the formatting check failed, so that both sets of
+        # problems are reported in a single CI run.
+        if: ${{ !cancelled() }}
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           # If you change this, make sure to also update scripts/golangci-lint-shim.sh
