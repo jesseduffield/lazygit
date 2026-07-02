@@ -309,27 +309,30 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 			// but this is not supported by all terminals or on all platforms.
 			self.c.Refresh(types.RefreshOptions{
 				Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES},
+				Then: func() error {
+					unstagedFiles := GetUnstagedFilesExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
+					if len(unstagedFiles) > 0 {
+						self.c.Confirm(types.ConfirmOpts{
+							Title:  self.c.Tr.Continue,
+							Prompt: self.c.Tr.UnstagedFilesAfterConflictsResolved,
+							HandleConfirm: func() error {
+								self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
+								if err := self.c.Git().WorkingTree.StageFiles(unstagedFiles, []string{}); err != nil {
+									return err
+								}
+
+								return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
+							},
+						})
+
+						return nil
+					}
+
+					return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
+				},
 			})
 
-			unstagedFiles := GetUnstagedFilesExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
-			if len(unstagedFiles) > 0 {
-				self.c.Confirm(types.ConfirmOpts{
-					Title:  self.c.Tr.Continue,
-					Prompt: self.c.Tr.UnstagedFilesAfterConflictsResolved,
-					HandleConfirm: func() error {
-						self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-						if err := self.c.Git().WorkingTree.StageFiles(unstagedFiles, []string{}); err != nil {
-							return err
-						}
-
-						return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
-					},
-				})
-
-				return nil
-			}
-
-			return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
+			return nil
 		},
 	})
 
