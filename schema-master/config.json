@@ -337,7 +337,7 @@
           },
           "type": "array",
           "uniqueItems": true,
-          "description": "list of branches that are considered 'main' branches, used when displaying commits",
+          "description": "list of branches that are considered 'main' branches, used when displaying commits and for determining each branch's base. Lazygit prompts when a branch could be based on more than one of these (typical when one is regularly merged into another).",
           "default": [
             "master",
             "main"

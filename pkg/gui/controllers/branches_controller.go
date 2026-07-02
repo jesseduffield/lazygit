@@ -285,18 +285,26 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 	}
 
 	var disabledReason *types.DisabledReason
-	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(selectedBranch, self.c.Model().MainBranches)
+	baseBranch, baseAmbiguous, baseCandidates, err := self.c.Helpers().BaseBranch.ResolveBaseBranch(selectedBranch)
 	if err != nil {
 		return err
 	}
-	if baseBranch == "" {
-		baseBranch = self.c.Tr.CouldNotDetermineBaseBranch
+	baseBranchLabel := helpers.BaseBranchDisplayName(baseBranch)
+	switch {
+	case baseBranch == "":
+		baseBranchLabel = self.c.Tr.CouldNotDetermineBaseBranch
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CouldNotDetermineBaseBranch}
+	case baseAmbiguous:
+		shortNames := lo.Map(baseCandidates, func(ref string, _ int) string {
+			return helpers.BaseBranchDisplayName(ref)
+		})
+		baseBranchLabel = utils.ResolvePlaceholderString(self.c.Tr.PickBaseBranchLabel,
+			map[string]string{"candidates": strings.Join(shortNames, ", ")},
+		)
 	}
-	shortBaseBranchName := helpers.ShortBranchName(baseBranch)
 	label := utils.ResolvePlaceholderString(
 		self.c.Tr.ViewDivergenceFromBaseBranch,
-		map[string]string{"baseBranch": shortBaseBranchName},
+		map[string]string{"baseBranch": baseBranchLabel},
 	)
 	viewDivergenceFromBaseBranchItem := &types.MenuItem{
 		LabelColumns: []string{label},
@@ -306,14 +314,19 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 			if branch == nil {
 				return nil
 			}
-
-			return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
-				Ref:                     branch,
-				TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), shortBaseBranchName),
-				RefToShowDivergenceFrom: baseBranch,
-				Context:                 self.context(),
-				ShowBranchHeads:         false,
-			})
+			showDivergence := func(base string) error {
+				return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
+					Ref:                     branch,
+					TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), helpers.BaseBranchDisplayName(base)),
+					RefToShowDivergenceFrom: base,
+					Context:                 self.context(),
+					ShowBranchHeads:         false,
+				})
+			}
+			if baseAmbiguous {
+				return self.c.Helpers().BaseBranch.ShowPicker(branch, baseCandidates, showDivergence)
+			}
+			return showDivergence(baseBranch)
 		},
 		DisabledReason: disabledReason,
 	}

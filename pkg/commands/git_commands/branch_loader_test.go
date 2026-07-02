@@ -142,7 +142,7 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 			expected: []branchAheadBehind{
 				{
 					refName:      "refs/heads/feat",
-					aheadBehinds: []aheadBehind{{ahead: 2, behind: 5}},
+					aheadBehinds: []aheadBehind{{ahead: 2, behind: 5, valid: true}},
 				},
 			},
 		},
@@ -155,15 +155,15 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 				{
 					refName: "refs/heads/feat",
 					aheadBehinds: []aheadBehind{
-						{ahead: 2, behind: 5},
-						{ahead: 10, behind: 1},
+						{ahead: 2, behind: 5, valid: true},
+						{ahead: 10, behind: 1, valid: true},
 					},
 				},
 				{
 					refName: "refs/heads/main",
 					aheadBehinds: []aheadBehind{
-						{ahead: 0, behind: 0},
-						{ahead: 0, behind: 0},
+						{ahead: 0, behind: 0, valid: true},
+						{ahead: 0, behind: 0, valid: true},
 					},
 				},
 			},
@@ -176,7 +176,8 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 				{
 					refName: "refs/heads/feat",
 					aheadBehinds: []aheadBehind{
-						{ahead: 2, behind: 5},
+						{valid: false},
+						{ahead: 2, behind: 5, valid: true},
 					},
 				},
 			},
@@ -188,7 +189,7 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 			expected: []branchAheadBehind{
 				{
 					refName:      "refs/heads/feat/foo-bar",
-					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2}},
+					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2, valid: true}},
 				},
 			},
 		},
@@ -199,7 +200,7 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 			expected: []branchAheadBehind{
 				{
 					refName:      "refs/heads/feat",
-					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2}},
+					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2, valid: true}},
 				},
 			},
 		},
@@ -212,11 +213,11 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 			expected: []branchAheadBehind{
 				{
 					refName:      "refs/heads/good",
-					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2}},
+					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2, valid: true}},
 				},
 				{
 					refName:      "refs/heads/also_good",
-					aheadBehinds: []aheadBehind{{ahead: 3, behind: 4}},
+					aheadBehinds: []aheadBehind{{ahead: 3, behind: 4, valid: true}},
 				},
 			},
 		},
@@ -227,7 +228,7 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 			expected: []branchAheadBehind{
 				{
 					refName:      "refs/heads/feat",
-					aheadBehinds: []aheadBehind{},
+					aheadBehinds: []aheadBehind{{valid: false}},
 				},
 			},
 		},
@@ -247,26 +248,58 @@ func TestParseAheadBehindForEachRefOutput(t *testing.T) {
 	}
 }
 
-func TestSelectBehindForBranch(t *testing.T) {
+func TestClassifyBehind(t *testing.T) {
 	type scenario struct {
-		testName     string
-		aheadBehinds []aheadBehind
-		expected     int
+		testName string
+		behinds  []int
+		expected int32
+	}
+
+	scenarios := []scenario{
+		{"empty", nil, 0},
+		{"single zero", []int{0}, 0},
+		{"single non-zero", []int{5}, 5},
+		{"all equal zero", []int{0, 0, 0}, 0},
+		{"all equal non-zero", []int{7, 7}, 7},
+		{"mixed zero and non-zero → ?", []int{0, 5}, models.BehindBaseAmbiguousMaybeUpToDate},
+		{"mixed zero and non-zero, reversed → ?", []int{5, 0}, models.BehindBaseAmbiguousMaybeUpToDate},
+		{"all non-zero, different → ↓?", []int{3, 5}, models.BehindBaseAmbiguousDefinitelyBehind},
+		{"all non-zero, different (three) → ↓?", []int{3, 5, 7}, models.BehindBaseAmbiguousDefinitelyBehind},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			assert.Equal(t, s.expected, classifyBehind(s.behinds))
+		})
+	}
+}
+
+func TestSelectBaseForBranch(t *testing.T) {
+	type scenario struct {
+		testName           string
+		aheadBehinds       []aheadBehind
+		mainRefs           []string
+		expectedCandidates []string
+		expectedBehinds    []int
 	}
 
 	scenarios := []scenario{
 		{
-			testName:     "single base, valid value",
-			aheadBehinds: []aheadBehind{{ahead: 3, behind: 7}},
-			expected:     7,
+			testName:           "single base, valid value",
+			aheadBehinds:       []aheadBehind{{ahead: 3, behind: 7, valid: true}},
+			mainRefs:           []string{"refs/heads/master"},
+			expectedCandidates: []string{"refs/heads/master"},
+			expectedBehinds:    []int{7},
 		},
 		{
 			testName: "multi-base, clear winner by ahead",
 			aheadBehinds: []aheadBehind{
-				{ahead: 50, behind: 10}, // master
-				{ahead: 5, behind: 2},   // develop  ← smallest ahead
+				{ahead: 50, behind: 10, valid: true}, // master
+				{ahead: 5, behind: 2, valid: true},   // develop  ← smallest ahead
 			},
-			expected: 2,
+			mainRefs:           []string{"refs/heads/master", "refs/heads/develop"},
+			expectedCandidates: []string{"refs/heads/develop"},
+			expectedBehinds:    []int{2},
 		},
 		{
 			testName: "develop forked from master case (ancestor-of-each-other)",
@@ -275,42 +308,60 @@ func TestSelectBehindForBranch(t *testing.T) {
 			// ahead vs master = 5 + 50 = 55; behind vs master = 0
 			// ahead vs develop = 5;          behind vs develop = 5
 			aheadBehinds: []aheadBehind{
-				{ahead: 55, behind: 0}, // master
-				{ahead: 5, behind: 5},  // develop  ← smallest ahead
+				{ahead: 55, behind: 0, valid: true}, // master
+				{ahead: 5, behind: 5, valid: true},  // develop  ← smallest ahead
 			},
-			expected: 5,
+			mainRefs:           []string{"refs/heads/master", "refs/heads/develop"},
+			expectedCandidates: []string{"refs/heads/develop"},
+			expectedBehinds:    []int{5},
 		},
 		{
-			testName: "tie on ahead - first base wins (config order)",
+			testName: "tie on ahead - both candidates returned in config order",
 			aheadBehinds: []aheadBehind{
-				{ahead: 5, behind: 10}, // first
-				{ahead: 5, behind: 99}, // second, same ahead
+				{ahead: 5, behind: 10, valid: true}, // first
+				{ahead: 5, behind: 99, valid: true}, // second, same ahead
 			},
-			expected: 10,
+			mainRefs: []string{"refs/heads/main", "refs/heads/develop"},
+			expectedCandidates: []string{
+				"refs/heads/main",
+				"refs/heads/develop",
+			},
+			expectedBehinds: []int{10, 99},
 		},
 		{
 			testName: "first base invalid, second valid",
 			aheadBehinds: []aheadBehind{
-				{ahead: 3, behind: 8},
+				{valid: false},
+				{ahead: 3, behind: 8, valid: true},
 			},
-			expected: 8,
+			mainRefs:           []string{"refs/heads/master", "refs/heads/develop"},
+			expectedCandidates: []string{"refs/heads/develop"},
+			expectedBehinds:    []int{8},
 		},
 		{
-			testName:     "all invalid - returns 0",
-			aheadBehinds: []aheadBehind{},
-			expected:     0,
+			testName: "all invalid - returns empty",
+			aheadBehinds: []aheadBehind{
+				{valid: false},
+				{valid: false},
+			},
+			mainRefs:           []string{"refs/heads/master", "refs/heads/develop"},
+			expectedCandidates: nil,
+			expectedBehinds:    nil,
 		},
 		{
-			testName:     "empty - returns 0",
-			aheadBehinds: nil,
-			expected:     0,
+			testName:           "empty - returns empty",
+			aheadBehinds:       nil,
+			mainRefs:           nil,
+			expectedCandidates: nil,
+			expectedBehinds:    nil,
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			result := selectBehindForBranch(s.aheadBehinds)
-			assert.Equal(t, s.expected, result)
+			candidates, behinds := selectBaseForBranch(s.aheadBehinds, s.mainRefs)
+			assert.Equal(t, s.expectedCandidates, candidates)
+			assert.Equal(t, s.expectedBehinds, behinds)
 		})
 	}
 }
@@ -458,8 +509,8 @@ func TestGetBehindBaseBranchValuesForAllBranches_LegacyPath(t *testing.T) {
 		{Name: "feat-x"},
 	}
 
-	// In legacy path: per-branch GetBaseBranch (merge-base + for-each-ref --contains)
-	// then rev-list --left-right --count.
+	// In legacy path: per-branch GetBaseBranchCandidates (merge-base +
+	// for-each-ref --contains) then rev-list --left-right --count.
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"merge-base", "refs/heads/feat-x", "refs/heads/master"}, "abc123\n", nil).
 		ExpectGitArgs([]string{"for-each-ref", "--contains", "abc123", "--format=%(refname)", "refs/heads/master"}, "refs/heads/master\n", nil).
@@ -488,6 +539,101 @@ func TestGetBehindBaseBranchValuesForAllBranches_LegacyPath(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, rendered)
 	assert.Equal(t, int32(7), branches[0].BehindBaseBranch.Load())
+
+	runner.CheckForMissingCalls()
+}
+
+// When the branch's merge-base is contained in more than one configured main
+// branch and the ahead counts are equal, the candidate list must preserve
+// the user's configured order rather than the alphabetical order of
+// for-each-ref's output.
+func TestGetBaseBranchCandidates_AmbiguousReturnsAllInConfigOrder(t *testing.T) {
+	mainBranchRefs := []string{"refs/heads/main", "refs/heads/develop"}
+	branch := &models.Branch{Name: "feat-x"}
+
+	runner := oscommands.NewFakeRunner(t).
+		ExpectGitArgs(
+			[]string{"merge-base", "refs/heads/feat-x", "refs/heads/main", "refs/heads/develop"},
+			"abc123\n", nil).
+		ExpectGitArgs(
+			[]string{
+				"for-each-ref", "--contains", "abc123", "--format=%(refname)",
+				"refs/heads/main", "refs/heads/develop",
+			},
+			"refs/heads/develop\nrefs/heads/main\n", nil).
+		ExpectGitArgs(
+			[]string{"rev-list", "--left-right", "--count", "refs/heads/feat-x...refs/heads/main"},
+			"5\t10\n", nil).
+		ExpectGitArgs(
+			[]string{"rev-list", "--left-right", "--count", "refs/heads/feat-x...refs/heads/develop"},
+			"5\t8\n", nil)
+
+	gitCommon := buildGitCommon(commonDeps{runner: runner})
+
+	loader := &BranchLoader{
+		Common:    gitCommon.Common,
+		GitCommon: gitCommon,
+		cmd:       gitCommon.cmd,
+	}
+
+	mainBranches := &MainBranches{
+		c:                    gitCommon.Common,
+		cmd:                  gitCommon.cmd,
+		existingMainBranches: mainBranchRefs,
+		previousMainBranches: gitCommon.Common.UserConfig().Git.MainBranches,
+	}
+
+	candidates, err := loader.GetBaseBranchCandidates(branch, mainBranches)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"refs/heads/main", "refs/heads/develop"}, candidates)
+
+	runner.CheckForMissingCalls()
+}
+
+// When a configured main branch has a strictly smaller ahead count than any
+// other (e.g. the branch was forked off `main` after main's last merge into
+// `develop`, so `develop` doesn't yet contain the fork point's recent main
+// history), that base wins outright regardless of config order, so only
+// that one ref is returned.
+func TestGetBaseBranchCandidates_UnambiguousReturnsSmallestAheadOnly(t *testing.T) {
+	mainBranchRefs := []string{"refs/heads/develop", "refs/heads/main"}
+	branch := &models.Branch{Name: "feat-x"}
+
+	runner := oscommands.NewFakeRunner(t).
+		ExpectGitArgs(
+			[]string{"merge-base", "refs/heads/feat-x", "refs/heads/develop", "refs/heads/main"},
+			"abc123\n", nil).
+		ExpectGitArgs(
+			[]string{
+				"for-each-ref", "--contains", "abc123", "--format=%(refname)",
+				"refs/heads/develop", "refs/heads/main",
+			},
+			"refs/heads/develop\nrefs/heads/main\n", nil).
+		ExpectGitArgs(
+			[]string{"rev-list", "--left-right", "--count", "refs/heads/feat-x...refs/heads/develop"},
+			"8\t3\n", nil).
+		ExpectGitArgs(
+			[]string{"rev-list", "--left-right", "--count", "refs/heads/feat-x...refs/heads/main"},
+			"5\t10\n", nil)
+
+	gitCommon := buildGitCommon(commonDeps{runner: runner})
+
+	loader := &BranchLoader{
+		Common:    gitCommon.Common,
+		GitCommon: gitCommon,
+		cmd:       gitCommon.cmd,
+	}
+
+	mainBranches := &MainBranches{
+		c:                    gitCommon.Common,
+		cmd:                  gitCommon.cmd,
+		existingMainBranches: mainBranchRefs,
+		previousMainBranches: gitCommon.Common.UserConfig().Git.MainBranches,
+	}
+
+	candidates, err := loader.GetBaseBranchCandidates(branch, mainBranches)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"refs/heads/main"}, candidates)
 
 	runner.CheckForMissingCalls()
 }
