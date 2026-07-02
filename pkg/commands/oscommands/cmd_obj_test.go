@@ -5,7 +5,28 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/stretchr/testify/assert"
 )
+
+func TestRemoveEnvVar(t *testing.T) {
+	cmd := exec.Command("git", "status")
+	cmd.Env = []string{
+		"PATH=/usr/bin",
+		"GIT_OPTIONAL_LOCKS=0",
+		"GIT_OPTIONAL_LOCKS_OTHER=1", // name is a prefix of ours but not the same var
+		"GIT_OPTIONAL_LOCKS=0",       // duplicates must all be removed
+		"HOME=/home/me",
+	}
+	cmdObj := &CmdObj{cmd: cmd}
+
+	cmdObj.RemoveEnvVar("GIT_OPTIONAL_LOCKS")
+
+	assert.Equal(t, []string{
+		"PATH=/usr/bin",
+		"GIT_OPTIONAL_LOCKS_OTHER=1",
+		"HOME=/home/me",
+	}, cmdObj.GetEnvVars())
+}
 
 func TestCmdObjToString(t *testing.T) {
 	quote := func(s string) string {
