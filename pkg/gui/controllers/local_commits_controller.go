@@ -967,7 +967,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 					return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 						self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
 						return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
-							if err := self.c.Git().Commit.CreateFixupCommit(commit.Hash()); err != nil {
+							if err := self.c.Git().Commit.CreateFixupCommit(commit.Hash(), commit.Name); err != nil {
 								return err
 							}
 
