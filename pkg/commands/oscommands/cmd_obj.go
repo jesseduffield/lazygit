@@ -144,7 +144,7 @@ func (self *CmdObj) ShouldStreamOutput() bool {
 }
 
 // when you call this, then call Run(), we'll use a PTY to run the command. Only
-// has an effect if StreamOutput() was also called. Ignored on Windows.
+// has an effect if StreamOutput() was also called.
 func (self *CmdObj) UsePty() *CmdObj {
 	self.usePty = true
 

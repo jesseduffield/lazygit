@@ -834,6 +834,7 @@ func (v *View) write(p []byte) {
 
 	if v.pendingNewline {
 		advanceToNextLine()
+		v.ei.notifyRowAdvance()
 		v.pendingNewline = false
 	}
 
@@ -855,17 +856,37 @@ func (v *View) write(p []byte) {
 		case characterEquals(chr, '\n') || isCRLF(chr):
 			finishLine()
 			advanceToNextLine()
+			v.ei.notifyRowAdvance()
 		case characterEquals(chr, '\r'):
 			finishLine()
 			v.wx = 0
+			v.ei.notifyColumnReset()
 		default:
 			truncateLine, cells := v.parseInput(chr, width, v.wx, v.wy)
+			if cd, ok := v.ei.instruction.(cursorDown); ok {
+				v.ei.instructionRead()
+				for range cd.n {
+					v.autoRenderHyperlinksInCurrentLine()
+					advanceToNextLine()
+				}
+			}
 			if cells == nil {
 				continue
 			}
 			v.writeCells(cells)
 			if truncateLine {
 				v.lines[v.wy].cells = v.lines[v.wy].cells[:v.wx]
+			}
+			// Soft-wrap tracking. truncateLine is true exactly when the
+			// cells are from \x1b[K filling to end of line — ConPTY
+			// doesn't advance the cursor for that, so we shouldn't count
+			// it toward wraps either.
+			if !truncateLine {
+				totalWidth := 0
+				for _, c := range cells {
+					totalWidth += c.width
+				}
+				v.ei.notifyCellsWritten(totalWidth, v.InnerWidth())
 			}
 		}
 	}
@@ -982,6 +1003,14 @@ func (v *View) parseInput(ch []byte, width int, x int, _ int) (bool, []cell) {
 				bg: v.ei.curBgColor,
 			}
 			return truncateLine, []cell{}
+		} else if cf, ok := v.ei.instruction.(cursorForward); ok {
+			// emit `n` space cells under the parser-tracked SGR — used
+			// to materialize ConPTY's compressed runs of spaces (which
+			// it emits as ECH+CUF instead of literal whitespace).
+			v.ei.instructionRead()
+			repeatCount = cf.n
+			ch = []byte{' '}
+			width = 1
 		} else if isEscape {
 			// do not output anything
 			return truncateLine, nil
@@ -1116,6 +1145,7 @@ func (v *View) FlushStaleCells() {
 
 func (v *View) rewind() {
 	v.ei.reset()
+	v.ei.resetScreenCursor()
 
 	v.SetReadPos(0, 0)
 	v.SetWritePos(0, 0)
