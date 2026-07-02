@@ -890,13 +890,21 @@ type TranslationSet struct {
 	MainWorktree                             string
 	NewWorktree                              string
 	NewWorktreePath                          string
-	NewWorktreeBase                          string
 	RemoveWorktreeTooltip                    string
 	NewBranchName                            string
-	NewBranchNameLeaveBlank                  string
-	ViewWorktreeOptions                      string
-	CreateWorktreeFrom                       string
-	CreateWorktreeFromDetached               string
+	NewWorktreeName                          string
+	NewWorktreeForBranchTitle                string
+	NewBranchAndWorktreeName                 string
+	NewBranchAndWorktreeFromRef              string
+	NewLocalBranchAndWorktreeFromRef         string
+	WorktreeForRef                           string
+	DetachedWorktreeAtRef                    string
+	WorktreeLocationTitle                    string
+	WorktreeLocationOther                    string
+	WorktreeLocationPromptNewBranch          string
+	WorktreeLocationPromptTrackingBranch     string
+	WorktreeLocationPromptCheckout           string
+	WorktreeLocationPromptDetached           string
 	LcWorktree                               string
 	ChangingDirectoryTo                      string
 	DirenvApprovalTitle                      string
@@ -2024,13 +2032,21 @@ func EnglishTranslationSet() *TranslationSet {
 		MainWorktree:                             "(main worktree)",
 		NewWorktree:                              "New worktree",
 		NewWorktreePath:                          "New worktree path",
-		NewWorktreeBase:                          "New worktree base ref",
 		RemoveWorktreeTooltip:                    "Remove the selected worktree. This will both delete the worktree's directory, as well as metadata about the worktree in the .git directory.",
 		NewBranchName:                            "New branch name",
-		NewBranchNameLeaveBlank:                  "New branch name (leave blank to checkout {{.default}})",
-		ViewWorktreeOptions:                      "View worktree options",
-		CreateWorktreeFrom:                       "Create worktree from {{.ref}}",
-		CreateWorktreeFromDetached:               "Create worktree from {{.ref}} (detached)",
+		NewWorktreeName:                          "New worktree name",
+		NewWorktreeForBranchTitle:                "New worktree for branch",
+		NewBranchAndWorktreeName:                 "New branch and worktree name",
+		NewBranchAndWorktreeFromRef:              "New branch and worktree from '{{.ref}}'",
+		NewLocalBranchAndWorktreeFromRef:         "New local branch and worktree from '{{.ref}}'",
+		WorktreeForRef:                           "New worktree for '{{.ref}}'",
+		DetachedWorktreeAtRef:                    "New detached worktree at '{{.ref}}'",
+		WorktreeLocationTitle:                    "Worktree location",
+		WorktreeLocationOther:                    "Other…",
+		WorktreeLocationPromptNewBranch:          "New branch '{{.name}}' from '{{.base}}':",
+		WorktreeLocationPromptTrackingBranch:     "New branch '{{.name}}' tracking '{{.ref}}':",
+		WorktreeLocationPromptCheckout:           "Worktree for branch '{{.branchName}}':",
+		WorktreeLocationPromptDetached:           "Detached worktree at '{{.ref}}':",
 		LcWorktree:                               "worktree",
 		ChangingDirectoryTo:                      "Changing directory to {{.path}}",
 		DirenvApprovalTitle:                      "Approve .envrc?",
