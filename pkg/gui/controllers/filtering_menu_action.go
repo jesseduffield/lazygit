@@ -122,9 +122,10 @@ func (self *FilteringMenuAction) setFiltering() error {
 
 	self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
 
-	self.c.Refresh(types.RefreshOptions{Scope: helpers.ScopesToRefreshWhenFilteringModeChanges(), Then: func() {
+	self.c.Refresh(types.RefreshOptions{Scope: helpers.ScopesToRefreshWhenFilteringModeChanges(), Then: func() error {
 		self.c.Contexts().LocalCommits.SetSelection(0)
 		self.c.Contexts().LocalCommits.HandleFocus(types.OnFocusOpts{})
+		return nil
 	}})
 
 	return nil

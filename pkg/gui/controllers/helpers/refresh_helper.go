@@ -255,7 +255,13 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		wg.Wait()
 
 		if options.Then != nil {
-			options.Then()
+			// Queue Then via OnUIThread so it runs *after* the refresh-scope
+			// functions' model-update bounces (which are already queued by
+			// now), not synchronously here — at this point the workers have
+			// returned but their bounces haven't been processed yet, so
+			// invoking Then synchronously would run it on a model that's
+			// still pre-refresh.
+			self.c.OnUIThread(options.Then)
 		}
 	}
 
