@@ -34,7 +34,7 @@ generate:
     go generate ./...
 
 format:
-    gofumpt -l -w .
+    go tool gofumpt -l -w .
 
 lint:
     ./scripts/golangci-lint-shim.sh run

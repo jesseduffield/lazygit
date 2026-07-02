@@ -36,7 +36,7 @@ generate:
 
 .PHONY: format
 format:
-	gofumpt -l -w .
+	go tool gofumpt -l -w .
 
 .PHONY: lint
 lint:
