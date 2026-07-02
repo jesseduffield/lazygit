@@ -2,7 +2,6 @@ package filetree
 
 import (
 	"strings"
-	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -26,7 +25,6 @@ type ICommitFileTreeViewModel interface {
 }
 
 type CommitFileTreeViewModel struct {
-	sync.RWMutex
 	types.IListCursor
 	ICommitFileTree
 
