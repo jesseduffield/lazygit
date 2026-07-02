@@ -56,7 +56,7 @@ For a given custom command, here are the allowed fields:
 | prompts | A list of prompts that will request user input before running the final command | no |
 | loadingText | Text to display while waiting for command to finish | no |
 | description | Label for the custom command when displayed in the keybindings menu | no |
-| output | Where the output of the command should go. 'none' discards it, 'terminal' suspends lazygit and runs the command in the terminal (useful for commands that require user input), 'log' streams it to the command log, 'logWithPty' is like 'log' but runs the command in a pseudo terminal (can be useful for commands that produce colored output when the output is a terminal), and 'popup' shows it in a popup. | no |
+| output | Where the output of the command should go. 'none' discards it, 'terminal' suspends lazygit and runs the command in the terminal (useful for commands that require user input), 'log' streams it to the command log, 'logWithPty' is like 'log' but runs the command in a pseudo terminal (can be useful for commands that produce colored output when the output is a terminal), 'popup' shows it in a popup, and 'commitMessagePanel' opens the commit message panel with the command output as the initial message. | no |
 | outputTitle | The title to display in the popup panel if output is set to 'popup'. If left unset, the command will be used as the title. | no |
 | after | Actions to take after the command has completed | no |
 
@@ -102,6 +102,7 @@ These fields are applicable to all prompts.
 | type              | One of 'input', 'confirm', 'menu', 'menuFromCommand'                                                           | yes        |
 | title             | The title to display in the popup panel                                                        | no         |
 | key | Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command | yes |
+| loadingText       | Text to display while resolving the prompt, loading suggestions, or generating `menuFromCommand` options | no |
 | condition         | A Go template expression; if it resolves to empty string or `false`, the prompt is skipped. See [Conditional prompts](#conditional-prompts) | no |
 
 ### Input
@@ -160,6 +161,21 @@ customCommands:
       title: 'Remote:'
       key: 'Remote'
       initialValue: "{{.SelectedRemote.Name}}"
+```
+
+If the initial value depends on a slow command, you can show a waiting status while the value is generated:
+
+```yml
+customCommands:
+  - key: 'a'
+    command: 'git commit -m {{.Form.Message | quote}}'
+    context: 'files'
+    prompts:
+    - type: 'input'
+      title: 'Commit message'
+      key: 'Message'
+      loadingText: 'Generating commit message'
+      initialValue: '{{ runCommand "ai-commit-message" }}'
 ```
 
 ### Confirm

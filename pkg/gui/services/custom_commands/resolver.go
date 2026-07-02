@@ -22,6 +22,7 @@ func (self *Resolver) resolvePrompt(
 	result := &config.CustomCommandPrompt{
 		ValueFormat: prompt.ValueFormat,
 		LabelFormat: prompt.LabelFormat,
+		LoadingText: prompt.LoadingText,
 	}
 
 	result.Title, err = resolveTemplate(prompt.Title)
