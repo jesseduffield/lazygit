@@ -12,6 +12,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func getCounter() (func(), func() int) {
@@ -25,6 +26,8 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 	refreshView, getRefreshViewCallCount := getCounter()
 	onEndOfInput, getOnEndOfInputCallCount := getCounter()
 	onNewKey, getOnNewKeyCallCount := getCounter()
+	beginRender, getBeginRenderCallCount := getCounter()
+	swapInRender, getSwapInRenderCallCount := getCounter()
 	onDone, getOnDoneCallCount := getCounter()
 	task := gocui.NewFakeTask()
 	newTask := func() gocui.Task {
@@ -38,6 +41,8 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		refreshView,
 		onEndOfInput,
 		onNewKey,
+		beginRender,
+		swapInRender,
 		newTask,
 	)
 
@@ -52,7 +57,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		return cmd, reader
 	}
 
-	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{20, -1, nil}, onDone)
+	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{Total: 20, InitialRefreshAfter: -1}, onDone)
 
 	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: func() { task.Done() }})
 
@@ -65,6 +70,8 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		{1, getRefreshViewCallCount(), "refreshView"},
 		{0, getOnEndOfInputCallCount(), "onEndOfInput"},
 		{0, getOnNewKeyCallCount(), "onNewKey"},
+		{0, getBeginRenderCallCount(), "beginRender"},
+		{0, getSwapInRenderCallCount(), "swapInRender"},
 		{1, getOnDoneCallCount(), "onDone"},
 	}
 	for _, expectation := range callCountExpectations {
@@ -90,6 +97,8 @@ func TestNewCmdTask(t *testing.T) {
 	refreshView, getRefreshViewCallCount := getCounter()
 	onEndOfInput, getOnEndOfInputCallCount := getCounter()
 	onNewKey, getOnNewKeyCallCount := getCounter()
+	beginRender, getBeginRenderCallCount := getCounter()
+	swapInRender, getSwapInRenderCallCount := getCounter()
 	onDone, getOnDoneCallCount := getCounter()
 	task := gocui.NewFakeTask()
 	newTask := func() gocui.Task {
@@ -103,6 +112,8 @@ func TestNewCmdTask(t *testing.T) {
 		refreshView,
 		onEndOfInput,
 		onNewKey,
+		beginRender,
+		swapInRender,
 		newTask,
 	)
 
@@ -115,7 +126,7 @@ func TestNewCmdTask(t *testing.T) {
 		return cmd, reader
 	}
 
-	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{20, -1, nil}, onDone)
+	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{Total: 20, InitialRefreshAfter: -1}, onDone)
 	wg := sync.WaitGroup{}
 	wg.Go(func() {
 		time.Sleep(100 * time.Millisecond)
@@ -130,10 +141,12 @@ func TestNewCmdTask(t *testing.T) {
 		actual   int
 		name     string
 	}{
-		{1, getBeforeStartCallCount(), "beforeStart"},
+		{0, getBeforeStartCallCount(), "beforeStart"},
 		{1, getRefreshViewCallCount(), "refreshView"},
 		{1, getOnEndOfInputCallCount(), "onEndOfInput"},
 		{0, getOnNewKeyCallCount(), "onNewKey"},
+		{1, getBeginRenderCallCount(), "beginRender"},
+		{1, getSwapInRenderCallCount(), "swapInRender"},
 		{1, getOnDoneCallCount(), "onDone"},
 	}
 	for _, expectation := range callCountExpectations {
@@ -155,6 +168,74 @@ func TestNewCmdTask(t *testing.T) {
 
 // A dummy reader that simply yields as many blank lines as requested. The only
 // thing we want to do with the output is count the number of lines.
+// When a RenderRestore is set, the first paint is driven by its FirstPaintReady
+// predicate rather than the InitialRefreshAfter line count, and Apply runs exactly
+// once. Apply controls when the off-screen render is swapped in (it calls swapIn
+// after locating the target), so its scan runs while the previous content is still
+// displayed rather than revealing the new content at the old scroll. This is the
+// read-loop half of the escape restore. See RenderRestore.
+func TestNewCmdTaskRestore(t *testing.T) {
+	writer := bytes.NewBuffer(nil)
+	linesWritten := func() int { return strings.Count(writer.String(), "\n") }
+
+	swapped := false
+	applyCount := 0
+	applyAtLines := -1
+	swappedBeforeApply := false
+	swappedByApply := false
+
+	task := gocui.NewFakeTask()
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		writer,
+		func() {},                 // beforeStart
+		func() {},                 // refreshView
+		func() {},                 // onEndOfInput
+		func() {},                 // onNewKey
+		func() {},                 // beginRender
+		func() { swapped = true }, // swapInRender
+		func() gocui.Task { return task },
+	)
+
+	restore := &RenderRestore{
+		// Ready once five lines have loaded — well before InitialRefreshAfter (30).
+		FirstPaintReady: func() bool { return linesWritten() >= 5 },
+		Apply: func(swapIn func()) {
+			applyCount++
+			applyAtLines = linesWritten()
+			// The render must not be swapped in until Apply asks for it.
+			if swapped {
+				swappedBeforeApply = true
+			}
+			swapIn()
+			swappedByApply = swapped
+		},
+	}
+
+	stop := make(chan struct{})
+	reader := BlankLineReader{totalLinesToYield: 50}
+	start := func() (*exec.Cmd, io.Reader) {
+		return exec.Command("blah"), &reader
+	}
+	fn := manager.NewCmdTask(start, "", LinesToRead{Total: 50, InitialRefreshAfter: 30, Restore: restore}, func() {})
+
+	wg := sync.WaitGroup{}
+	wg.Go(func() {
+		time.Sleep(100 * time.Millisecond)
+		close(stop)
+	})
+	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: func() { task.Done() }})
+	wg.Wait()
+
+	assert.Equal(t, 1, applyCount, "Apply should run exactly once")
+	assert.False(t, swappedBeforeApply, "the off-screen render should not be swapped in before Apply runs")
+	assert.True(t, swappedByApply, "Apply should swap the off-screen render in via swapIn")
+	// The first paint was driven by FirstPaintReady (>=5 lines), not by
+	// InitialRefreshAfter (30).
+	assert.GreaterOrEqual(t, applyAtLines, 5)
+	assert.Less(t, applyAtLines, 30)
+}
+
 type BlankLineReader struct {
 	totalLinesToYield int
 	linesYielded      int
@@ -182,37 +263,37 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 		{
 			"total < initialRefreshAfter",
 			150,
-			LinesToRead{100, 120, nil},
+			LinesToRead{Total: 100, InitialRefreshAfter: 120},
 			[]int{100},
 		},
 		{
 			"total == initialRefreshAfter",
 			150,
-			LinesToRead{100, 100, nil},
+			LinesToRead{Total: 100, InitialRefreshAfter: 100},
 			[]int{100},
 		},
 		{
 			"total > initialRefreshAfter",
 			150,
-			LinesToRead{100, 50, nil},
+			LinesToRead{Total: 100, InitialRefreshAfter: 50},
 			[]int{50, 100},
 		},
 		{
 			"initialRefreshAfter == -1",
 			150,
-			LinesToRead{100, -1, nil},
+			LinesToRead{Total: 100, InitialRefreshAfter: -1},
 			[]int{100},
 		},
 		{
 			"totalTaskLines < initialRefreshAfter",
 			25,
-			LinesToRead{100, 50, nil},
+			LinesToRead{Total: 100, InitialRefreshAfter: 50},
 			[]int{25},
 		},
 		{
 			"totalTaskLines between total and initialRefreshAfter",
 			75,
-			LinesToRead{100, 50, nil},
+			LinesToRead{Total: 100, InitialRefreshAfter: 50},
 			[]int{50, 75},
 		},
 	}
@@ -234,6 +315,8 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 			writer,
 			func() {},
 			refreshView,
+			func() {},
+			func() {},
 			func() {},
 			func() {},
 			newTask,

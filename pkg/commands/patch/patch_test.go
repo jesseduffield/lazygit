@@ -104,6 +104,20 @@ index 9320895..6d79956 100644
  lemon
 `
 
+// Two deletions with no line between them: they share a new-file line number
+// (both sit at the same new-file position), so only their old-file line numbers
+// distinguish them.
+const consecutiveDeletions = `diff --git a/filename b/filename
+index 9320895..6d79956 100644
+--- a/filename
++++ b/filename
+@@ -1,4 +1,2 @@
+ apple
+-grape
+-pear
+ lemon
+`
+
 const newFile = `diff --git a/newfile b/newfile
 new file mode 100644
 index 0000000..4e680cc
@@ -625,6 +639,95 @@ func TestLineNumberOfLine(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestOldLineNumberOfLine(t *testing.T) {
+	type scenario struct {
+		testName  string
+		patchStr  string
+		indexes   []int
+		expecteds []int
+	}
+
+	scenarios := []scenario{
+		{
+			testName:  "twoChangesInOneHunk",
+			patchStr:  twoChangesInOneHunk,
+			indexes:   []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1000},
+			expecteds: []int{1, 1, 1, 1, 1, 1, 2, 3, 3, 4, 5, 5, 5},
+		},
+		{
+			testName:  "consecutiveDeletions",
+			patchStr:  consecutiveDeletions,
+			indexes:   []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 1000},
+			expecteds: []int{1, 1, 1, 1, 1, 1, 2, 3, 4, 4},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			for i, idx := range s.indexes {
+				patch := Parse(s.patchStr)
+				result := patch.OldLineNumberOfLine(idx)
+				assert.Equal(t, s.expecteds[i], result)
+			}
+		})
+	}
+}
+
+func TestPatchLineForOldLineNumber(t *testing.T) {
+	type scenario struct {
+		testName    string
+		patchStr    string
+		lineNumbers []int
+		expecteds   []int
+	}
+
+	scenarios := []scenario{
+		{
+			// The two consecutive deletions (grape, pear) sit at patch line
+			// indices 6 and 7; their old-file line numbers (2 and 3) keep them
+			// distinct even though their new-file line numbers are both 2.
+			testName:    "consecutiveDeletions",
+			patchStr:    consecutiveDeletions,
+			lineNumbers: []int{0, 1, 2, 3, 4, 5},
+			expecteds:   []int{4, 4, 6, 7, 8, 8},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			for i, lineNumber := range s.lineNumbers {
+				patch := Parse(s.patchStr)
+				result := patch.PatchLineForOldLineNumber(lineNumber)
+				assert.Equal(t, s.expecteds[i], result)
+			}
+		})
+	}
+}
+
+func TestIsWellFormed(t *testing.T) {
+	assert.True(t, Parse(simpleDiff).IsWellFormed())
+	assert.True(t, Parse(twoHunks).IsWellFormed())
+	assert.True(t, Parse(consecutiveDeletions).IsWellFormed())
+	assert.True(t, Parse(newFile).IsWellFormed())
+	assert.True(t, Parse(deletedFile).IsWellFormed())
+	assert.True(t, Parse(addNewlineToEndOfFile).IsWellFormed())
+
+	// A diff whose body has been mangled so the +/- markers no longer start each
+	// line (as delta's line-number gutters do) reads as all-context, so the body
+	// lengths no longer match the header.
+	gutterMangled := `diff --git a/filename b/filename
+index 9320895..6d79956 100644
+--- a/filename
++++ b/filename
+@@ -1,4 +1,2 @@
+ apple
+ grape
+ pear
+ lemon
+`
+	assert.False(t, Parse(gutterMangled).IsWellFormed())
 }
 
 func TestGetNextStageableLineIndex(t *testing.T) {

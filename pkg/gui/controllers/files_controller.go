@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -258,6 +259,11 @@ func (self *FilesController) GetOnRenderToMain() func() {
 		self.c.Helpers().Diff.WithDiffModeCheck(func() {
 			node := self.context().GetSelected()
 
+			// Default the focused-main-view selection off; the real-diff branch below
+			// turns it back on. Every other outcome (no file, merge conflict) renders
+			// non-diff content with nothing to select.
+			updateFocusedMainViewSelectionVisibility(self.c, false, false)
+
 			if node == nil {
 				self.renderToMainWithTask(types.NewRenderStringTask(self.c.Tr.NoChangedFiles))
 				return
@@ -356,7 +362,7 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 	message := self.conflictResolutionHint(node.File.GetMergeStateDescription(self.c.Tr))
 
 	if node.File.ShortStatus == "DU" || node.File.ShortStatus == "UD" {
-		cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()})
+		cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()}, false)
 		prefix := message + "\n\n"
 		if node.File.ShortStatus == "DU" {
 			prefix += self.c.Tr.MergeConflictIncomingDiff
@@ -374,11 +380,15 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	self.c.Helpers().MergeConflicts.ResetMergeState()
 
-	split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
-	mainShowsStaged := !split && node.GetHasStagedChanges()
+	split, mainShowsStaged := self.diffSplitState(node)
+
+	// When the focused main view needs to act on a diff the configured pager
+	// can't resolve, render it raw (no pager) so it's stageable; browsing keeps
+	// the pretty pager output. See StagingHelper.DiffMainViewShouldRenderRaw.
+	renderRaw := self.c.Helpers().Staging.DiffMainViewShouldRenderRaw()
 
 	pathOverrides := self.pathOverridesForDiff(node)
-	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, pathOverrides)
+	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, renderRaw, pathOverrides)
 	title := self.c.Tr.UnstagedChanges
 	if mainShowsStaged {
 		title = self.c.Tr.StagedChanges
@@ -386,14 +396,14 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	refreshOpts := types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
-			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+			Task:     types.NewMainViewDiffTask(renderRaw, cmdObj.GetCmd()),
 			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 			Title:    title,
 		},
 	}
 
 	if split {
-		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, pathOverrides)
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, renderRaw, pathOverrides)
 
 		title := self.c.Tr.StagedChanges
 		if mainShowsStaged {
@@ -403,9 +413,14 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 		refreshOpts.Secondary = &types.ViewUpdateOpts{
 			Title:    title,
 			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+			Task:     types.NewMainViewDiffTask(renderRaw, cmdObj.GetCmd()),
 		}
 	}
+
+	// A real diff is being shown, so the focused main view has something to select:
+	// restore the selection on whichever pane is focused (the secondary only when
+	// the diff is split across both).
+	updateFocusedMainViewSelectionVisibility(self.c, true, split)
 
 	self.c.RenderToMainViews(refreshOpts)
 }
@@ -416,14 +431,256 @@ func (self *FilesController) GetOnDoubleClick() func() error {
 	})
 }
 
-func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
-	return func(mainViewName string, clickedLineIdx int) error {
-		node := self.getSelectedItem()
-		if node != nil && node.File != nil {
-			return self.EnterFile(types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
-		}
+func (self *FilesController) GetFocusedMainViewActions() types.FocusedMainViewActions {
+	return self
+}
+
+func (self *FilesController) OnClick(mainViewName string, clickedLineIdx int) error {
+	// Capture before any mutation below that might re-render the main view.
+	snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context())
+
+	info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, clickedLineIdx)
+	line := -1
+	isDeletion := false
+	if ok {
+		line, isDeletion = info.PatchSelectLine()
+	}
+
+	node := self.context().GetSelected()
+	if node == nil {
 		return nil
 	}
+
+	if !node.IsFile() && ok {
+		relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), info.Path)
+		if err != nil {
+			return err
+		}
+		relativePath = "./" + relativePath
+		self.context().FileTreeViewModel.ExpandToPath(relativePath)
+		self.c.PostRefreshUpdate(self.context())
+
+		idx, ok := self.context().FileTreeViewModel.GetIndexForPath(relativePath)
+		if ok {
+			self.context().SetSelectedLineIdx(idx)
+			self.context().GetViewTrait().FocusPoint(
+				self.context().ModelIndexToViewIndex(idx), false)
+		}
+	}
+
+	return self.EnterFile(snapshot, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, ClickedViewRealLineIsDeletion: isDeletion, SelectLineInDefaultMode: true})
+}
+
+// diffSplitState reports, for the given file node, how the focused main view lays
+// out its diff: whether it's split into unstaged (Normal) and staged
+// (NormalSecondary) halves, and — when not split — whether the single Normal view
+// shows the staged diff (which happens when the file has only staged changes).
+// GetOnRenderToMain and PrimaryAction share this so the staging direction
+// can't drift from what's on screen.
+func (self *FilesController) diffSplitState(node *filetree.FileNode) (split bool, mainShowsStaged bool) {
+	split = self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
+	mainShowsStaged = !split && node.GetHasStagedChanges()
+	return split, mainShowsStaged
+}
+
+// PrimaryAction stages (or unstages) the selected diff line(s) when space is pressed in
+// the focused main view of the working-tree files panel.
+func (self *FilesController) PrimaryAction(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
+		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToStage,
+			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
+	}
+
+	infos, onStagedSide, ok := self.diffLineSelection(mainViewName, firstLineIdx, lastLineIdx)
+	if !ok {
+		return nil
+	}
+
+	// The whole diff shown in the main view is on one side; space unstages when that's
+	// the staged side (reverse), otherwise it stages. Either way it applies to the index.
+	return self.applyDiffLineSelection(mainViewName, firstLineIdx, infos, onStagedSide,
+		git_commands.ApplyPatchOpts{Reverse: onStagedSide, Cached: true})
+}
+
+// DiscardSelectionDisabledReason: discarding from the working tree is always available
+// (a zero-context diff is reported as an error from DiscardSelection itself, matching the
+// staging view).
+// DiscardSelectionDisabledReason ignores which pane the action came from: discarding from
+// the working tree is meaningful in both the unstaged and staged (secondary) panes (the
+// staged side just unstages), unlike the commit panels' custom-patch preview.
+func (self *FilesController) DiscardSelectionDisabledReason(mainViewName string) *types.DisabledReason {
+	return nil
+}
+
+func (self *FilesController) DiscardSelection(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
+		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToDiscard,
+			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
+	}
+
+	infos, onStagedSide, ok := self.diffLineSelection(mainViewName, firstLineIdx, lastLineIdx)
+	if !ok {
+		return nil
+	}
+
+	// Discarding always reverses the change. On the staged side that's just unstaging
+	// (apply reverse to the index) — same as space there — so it follows the identical
+	// path and isn't destructive, hence no confirm. On the unstaged side it removes the
+	// change from the working tree (reverse, not cached), which is destructive.
+	return self.c.ConfirmIf(!onStagedSide && !self.c.UserConfig().Gui.SkipDiscardChangeWarning,
+		types.ConfirmOpts{
+			Title:  self.c.Tr.DiscardChangeTitle,
+			Prompt: self.c.Tr.DiscardChangePrompt,
+			HandleConfirm: func() error {
+				return self.applyDiffLineSelection(mainViewName, firstLineIdx, infos, onStagedSide,
+					git_commands.ApplyPatchOpts{Reverse: true, Cached: onStagedSide})
+			},
+		})
+}
+
+// diffLineSelection resolves the change lines the user has selected in the focused main
+// view and which side of the diff they're on. onStagedSide is true when the diff shown
+// is the staged side — the secondary half of a split, or the main half of an only-staged
+// file; it's the same for every file in a multi-file (directory) diff. ok is false when
+// there's no file or the selection covers no change lines (the caller does nothing).
+func (self *FilesController) diffLineSelection(mainViewName string, firstLineIdx int, lastLineIdx int) (infos []types.DiffLineInfo, onStagedSide bool, ok bool) {
+	node := self.context().GetSelected()
+	if node == nil {
+		return nil, false, false
+	}
+
+	infos = self.c.Helpers().Staging.ChangeLinesInViewRange(mainViewName, firstLineIdx, lastLineIdx)
+	if len(infos) == 0 {
+		return nil, false, false
+	}
+
+	_, mainShowsStaged := self.diffSplitState(node)
+	onStagedSide = mainShowsStaged || mainViewName == self.c.Contexts().NormalSecondary.GetViewName()
+	return infos, onStagedSide, true
+}
+
+// applyDiffLineSelection applies the selected change lines (grouped per file for a
+// multi-file diff) with opts, then re-establishes the selection and focus the way the
+// staging view does — shared by the primary action (stage/unstage) and discard, since
+// discarding on the staged side is just unstaging and must follow the identical path.
+// onStagedSide names which diff each file's patch is read from and drives the focus-
+// follow; opts says how to apply it.
+func (self *FilesController) applyDiffLineSelection(mainViewName string, firstLineIdx int, infos []types.DiffLineInfo, onStagedSide bool, opts git_commands.ApplyPatchOpts) error {
+	// A directory diff spans several files; group the selected change lines by
+	// file and apply one patch per file.
+	infosByFile := lo.GroupBy(infos, func(info types.DiffLineInfo) string { return info.Path })
+
+	self.c.LogAction(self.c.Tr.Actions.ApplyPatch)
+	for path, fileInfos := range infosByFile {
+		file := self.fileForDiffLinePath(path)
+		if file == nil {
+			continue
+		}
+		if err := self.applyDiffLines(file, fileInfos, onStagedSide, opts); err != nil {
+			return err
+		}
+	}
+
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
+
+	// Focus follows the side that was acted on. The unstaged side stays in the main half
+	// (which always holds the unstaged side, or the staged side once the file has only
+	// staged changes). The staged side lives in the secondary half once the file is split
+	// into staged + unstaged, and moves back to the main half when the staged side empties
+	// and the split collapses. The model is up to date now (Refresh above is synchronous),
+	// so the post-op split is read from the freshly selected node.
+	focusViewName := self.c.Contexts().Normal.GetViewName()
+	if onStagedSide {
+		if node := self.context().GetSelected(); node != nil {
+			if split, _ := self.diffSplitState(node); split {
+				focusViewName = self.c.Contexts().NormalSecondary.GetViewName()
+			}
+		}
+	}
+
+	// The Refresh above queued the main-view re-render; re-establish the selection at its
+	// change-line ordinal once that render lands, and focus the pane now holding the
+	// acted-on side.
+	revealSelectionAfterPrimaryAction(self.c, mainViewName, focusViewName, firstLineIdx, 0)
+	if focusViewName != mainViewName {
+		self.c.Context().Push(mainContextForViewName(self.c, focusViewName), types.OnFocusOpts{})
+	}
+	return nil
+}
+
+// fileForDiffLinePath maps a diff line's absolute file path (as carried by the
+// diff-line metadata) to the working-tree file it belongs to, or nil if it isn't a
+// tracked working-tree file.
+func (self *FilesController) fileForDiffLinePath(path string) *models.File {
+	relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), path)
+	if err != nil {
+		return nil
+	}
+	return self.context().FileTreeViewModel.GetFile(filepath.ToSlash(relativePath))
+}
+
+// applyDiffLines applies, to the diff lines identified by infos (a single line, a
+// range, or a hunk) — all belonging to file — a patch built from the file's staged or
+// unstaged diff (sourceCached: the side the selection was made on) and applied per opts:
+//   - stage:   read unstaged, apply forward to the index    (sourceCached=false, Reverse=false, Cached=true)
+//   - unstage: read staged,   apply reverse to the index    (sourceCached=true,  Reverse=true,  Cached=true)
+//   - discard: read the shown side, apply reverse — not cached on the unstaged side
+//     removes the change from the working tree, cached on the staged side just unstages it.
+//
+// The read side and the apply direction are independent (they only coincide for
+// staging/unstaging), so they're passed separately: the patch lines are matched in the
+// diff actually shown, then Transform reverses them to match opts. A selection covering
+// no change lines yields an empty patch and is a no-op. The caller logs the action and
+// refreshes, once, around the (possibly several) files it touches.
+//
+// Each selected change line is keyed by its (file line number, deletion?) identity,
+// and the freshly parsed patch is scanned for the body lines matching those
+// identities. Scanning the patch and matching identities — rather than looking each
+// line number up with PatchLineForLineNumber — is what makes a modified line work: a
+// deletion and the addition replacing it share a position but have distinct
+// identities, and the line-number lookup can't tell an addition at the start of a
+// hunk from the deletion above it.
+func (self *FilesController) applyDiffLines(file *models.File, infos []types.DiffLineInfo, sourceCached bool, opts git_commands.ApplyPatchOpts) error {
+	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, true, sourceCached))
+
+	type changeLineKey struct {
+		lineNumber int
+		isDeletion bool
+	}
+	selected := make(map[changeLineKey]bool, len(infos))
+	for _, info := range infos {
+		lineNumber, isDeletion := info.PatchSelectLine()
+		selected[changeLineKey{lineNumber, isDeletion}] = true
+	}
+
+	var patchLineIndices []int
+	for idx, line := range parsedPatch.Lines() {
+		var key changeLineKey
+		switch {
+		case line.IsAddition():
+			key = changeLineKey{parsedPatch.LineNumberOfLine(idx), false}
+		case line.IsDeletion():
+			key = changeLineKey{parsedPatch.OldLineNumberOfLine(idx), true}
+		default:
+			continue
+		}
+		if selected[key] {
+			patchLineIndices = append(patchLineIndices, idx)
+		}
+	}
+
+	patchToApply := parsedPatch.
+		Transform(patch.TransformOpts{
+			Reverse:             opts.Reverse,
+			IncludedLineIndices: patchLineIndices,
+			FileNameOverride:    file.GetPath(),
+		}).
+		FormatPlain()
+	if patchToApply == "" {
+		return nil
+	}
+
+	return self.c.Git().Patch.ApplyPatch(patchToApply, opts)
 }
 
 // if we are dealing with a status for which there is no key in this map,
@@ -715,7 +972,7 @@ func (self *FilesController) getSelectedFile() *models.File {
 }
 
 func (self *FilesController) enter() error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
+	return self.EnterFile(nil, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1, ClickedViewRealLineIdx: -1})
 }
 
 func (self *FilesController) collapseAll() error {
@@ -734,7 +991,11 @@ func (self *FilesController) expandAll() error {
 	return nil
 }
 
-func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
+// focusedMainViewSnapshot records the focused main view to return to when
+// escaping the staging view, for the case where we're entering it straight from
+// there; it's nil for the normal flow that goes through the files panel. See
+// types.FocusedMainViewSnapshot.
+func (self *FilesController) EnterFile(focusedMainViewSnapshot *types.FocusedMainViewSnapshot, opts types.OnFocusOpts) error {
 	node := self.context().GetSelected()
 	if node == nil {
 		return nil
@@ -761,6 +1022,14 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 	}
 
 	context := lo.Ternary(opts.ClickedWindowName == "secondary", self.c.Contexts().StagingSecondary, self.c.Contexts().Staging)
+	// Record the focused-main-view return on *both* staging halves, not just the
+	// one we're entering: staging the last unstaged hunk (or tabbing) moves the
+	// selection to the other half, and escaping from there must still know to
+	// return to the focused main view rather than falling back to the files panel.
+	// Set on every entry (nil for a normal entry through the files panel) so a
+	// snapshot can't leak from a previous main-view entry into a subsequent normal one.
+	self.c.Contexts().Staging.SetFocusedMainViewSnapshot(focusedMainViewSnapshot)
+	self.c.Contexts().StagingSecondary.SetFocusedMainViewSnapshot(focusedMainViewSnapshot)
 	self.c.Context().Push(context, opts)
 	self.c.Helpers().PatchBuilding.ShowHunkStagingHint()
 
@@ -1540,7 +1809,7 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 }
 
 func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
+	return self.EnterFile(nil, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
 }
 
 func (self *FilesController) fetch() error {

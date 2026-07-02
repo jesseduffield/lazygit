@@ -222,6 +222,7 @@ M file1
 				func(from string, to string, reverse bool, filename string, plain bool) (string, error) {
 					return "", nil
 				},
+				nil,
 			)
 			patchBuilder.Start("from", "to", false, false)
 			result := RenderCommitFileTree(viewModel, patchBuilder, false, &config.CustomIconsConfig{})

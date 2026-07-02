@@ -17,6 +17,15 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	).Debug("RunCommand")
 
 	manager := gui.getManager(view)
+	// Mark the view as loading synchronously (before the task's goroutine runs
+	// and before the next layout pass) so the layout doesn't clamp the scroll
+	// position to the not-yet-loaded content.
+	manager.StartLoading()
+	// Hold the scrollbar at the height the view has now (the previous render),
+	// while it still shows that render: once the re-render swaps in its first
+	// partial paint the displayed buffer is briefly short, and we don't want the
+	// thumb to shrink and snap back as the rest loads.
+	view.FreezeScrollbarHeight()
 
 	var r io.ReadCloser
 	start := func() (*exec.Cmd, io.Reader) {
@@ -43,6 +52,19 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	}
 
 	linesToRead := gui.linesToReadFromCmdTask(view)
+	// If a restore is pending for this content (returning to a focused main view
+	// on escape), let the task re-establish the scroll position and selection as
+	// it first paints. It also reads to end of input so a deep target line is
+	// found and the scrollbar ends up accurate. See RenderRestore.
+	restore := manager.GetRestoreForNextTask()
+	if restore != nil {
+		linesToRead.Restore = restore
+		linesToRead.Total = -1
+	}
+	// New content (a different command than the view last showed) scrolls back to
+	// the top, at the first paint; same content keeps its scroll, and a restore
+	// places the scroll itself. See LinesToRead.ResetOrigin.
+	linesToRead.ResetOrigin = restore == nil && cmdStr != manager.GetTaskKey()
 	if err := manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr); err != nil {
 		gui.c.Log.Error(err)
 	}
@@ -109,18 +131,21 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			gui.Log,
 			view,
 			func() {
-				// we could clear here, but that actually has the effect of causing a flicker
-				// where the view may contain no content momentarily as the gui refreshes.
-				// Instead, we're rewinding the write pointer so that we will just start
-				// overwriting the existing content from the top down. Once we've reached
-				// the end of the content do display, we call view.FlushStaleCells() to
-				// clear out the remaining content from the previous render.
+				// Called before showing the "loading..." indicator: clear the
+				// displayed buffer so only "loading..." is shown. The actual content
+				// is rendered off-screen (beginRender below) and swapped in, so it
+				// never overwrites the displayed buffer incrementally.
 				view.Reset()
 			},
 			func() {
 				gui.render()
 			},
 			func() {
+				// The content is fully loaded now, so let the scrollbar track it
+				// directly again (it was held at the previous render's height while
+				// loading, see FreezeScrollbarHeight).
+				view.UnfreezeScrollbarHeight()
+
 				// Need to check if the content of the view is well past the origin.
 				linesHeight := view.ViewLinesHeight()
 				_, originY := view.Origin()
@@ -135,6 +160,8 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			func() {
 				view.SetOrigin(0, 0)
 			},
+			view.BeginOffscreenRender,
+			view.SwapInOffscreenRender,
 			func() gocui.Task {
 				return gui.c.GocuiGui().NewTask()
 			},

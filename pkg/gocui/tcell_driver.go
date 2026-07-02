@@ -347,6 +347,11 @@ func (g *Gui) pollEvent() GocuiEvent {
 		if button != tcell.ButtonNone && lastMouseKey == tcell.ButtonNone {
 			lastMouseKey = button
 			lastMouseMod = tev.Modifiers()
+			// A click is reported on the press, so the keyboard modifier has to
+			// ride the press event; lastMouseMod is only applied on release, which
+			// is reported as a move and discarded. Without this, modified clicks
+			// (e.g. alt/shift-click) reach handlers as plain clicks.
+			mouseMod = Modifier(tev.Modifiers())
 			switch button {
 			case tcell.ButtonPrimary:
 				mouseKey = MouseLeft
@@ -390,6 +395,12 @@ func (g *Gui) pollEvent() GocuiEvent {
 			case MAYBE_DRAGGING:
 				if x != lastX || y != lastY {
 					dragState = DRAGGING
+					// This first movement is itself the first drag event, so report it as
+					// one (like the DRAGGING case below). Otherwise it falls through as a
+					// stray MouseRelease: the cursor still moves, but drag handlers don't
+					// fire until the *second* moved-to line, so the first one is mishandled.
+					mouseMod = ModMotion
+					mouseKey = MouseLeft
 				}
 			case DRAGGING:
 				mouseMod = ModMotion

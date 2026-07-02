@@ -389,6 +389,8 @@ type TranslationSet struct {
 	AskQuestion                           string
 	PrevHunk                              string
 	NextHunk                              string
+	PrevFile                              string
+	NextFile                              string
 	PrevConflict                          string
 	NextConflict                          string
 	SelectPrevHunk                        string
@@ -441,6 +443,7 @@ type TranslationSet struct {
 	CheckoutCommitFileTooltip             string
 	CannotCheckoutWithModifiedFilesErr    string
 	CanOnlyDiscardFromLocalCommits        string
+	CannotDiscardFromCustomPatchView      string
 	CannotDiscardFromMultipleCommits      string
 	Remove                                string
 	DiscardOldFileChangeTooltip           string
@@ -533,8 +536,10 @@ type TranslationSet struct {
 	EmptyPatchError                       string
 	EnterCommitFile                       string
 	EnterCommitFileTooltip                string
+	EnterStaging                          string
 	ExitCustomPatchBuilder                string
 	ExitFocusedMainView                   string
+	ToggleSelectionInFocusedMainView      string
 	EnterUpstream                         string
 	InvalidUpstream                       string
 	NewRemote                             string
@@ -818,7 +823,6 @@ type TranslationSet struct {
 	SortOrderPrompt                          string
 	SortCommits                              string
 	SortCommitsTooltip                       string
-	CantChangeContextSizeError               string
 	OpenCommitInBrowser                      string
 	ViewBisectOptions                        string
 	ConfirmRevertCommit                      string
@@ -1527,6 +1531,8 @@ func EnglishTranslationSet() *TranslationSet {
 		AskQuestion:                          "Ask Question",
 		PrevHunk:                             "Go to previous hunk",
 		NextHunk:                             "Go to next hunk",
+		PrevFile:                             "Go to previous file",
+		NextFile:                             "Go to next file",
 		PrevConflict:                         "Previous conflict",
 		NextConflict:                         "Next conflict",
 		SelectPrevHunk:                       "Previous hunk",
@@ -1579,6 +1585,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CheckoutCommitFileTooltip:            "Checkout file. This replaces the file in your working tree with the version from the selected commit.",
 		CannotCheckoutWithModifiedFilesErr:   "You have local modifications for the file(s) you are trying to check out. You need to stash or discard these first.",
 		CanOnlyDiscardFromLocalCommits:       "Changes can only be discarded from local commits",
+		CannotDiscardFromCustomPatchView:     "Cannot discard from the custom patch view; press space to remove lines from the patch instead",
 		CannotDiscardFromMultipleCommits:     "Changes cannot be discarded from a multiselection of commits",
 		Remove:                               "Remove",
 		DiscardOldFileChangeTooltip:          "Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file.",
@@ -1672,8 +1679,10 @@ func EnglishTranslationSet() *TranslationSet {
 		EmptyPatchError:                      "Patch is still empty. Add some files or lines to your patch first.",
 		EnterCommitFile:                      "Enter file / Toggle directory collapsed",
 		EnterCommitFileTooltip:               "If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory.",
+		EnterStaging:                         "Enter staging/patch building",
 		ExitCustomPatchBuilder:               `Exit custom patch builder`,
 		ExitFocusedMainView:                  "Exit back to side panel",
+		ToggleSelectionInFocusedMainView:     "Show/hide selection",
 		EnterUpstream:                        `Enter upstream as '<remote> <branchname>'`,
 		InvalidUpstream:                      "Invalid upstream. Must be in the format '<remote> <branchname>'",
 		NewRemote:                            `New remote`,
@@ -1952,7 +1961,6 @@ func EnglishTranslationSet() *TranslationSet {
 		SortBasedOnReflog:                        "(based on reflog)",
 		SortCommits:                              "Commit sort order",
 		SortCommitsTooltip:                       "Change the sort order of the commits in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.sortOrder'.",
-		CantChangeContextSizeError:               "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
 		OpenCommitInBrowser:                      "Open commit in browser",
 		ViewBisectOptions:                        "View bisect options",
 		ConfirmRevertCommit:                      "Are you sure you want to revert {{.selectedCommit}}?",

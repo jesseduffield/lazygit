@@ -119,6 +119,9 @@ func NewGitCommandAux(
 	patchBuilder := patch.NewPatchBuilder(cmn.Log,
 		func(from string, to string, reverse bool, filename string, plain bool) (string, error) {
 			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, plain)
+		},
+		func() (string, error) {
+			return os.MkdirTemp(osCommand.GetTempDir(), "custom-patch-")
 		})
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)

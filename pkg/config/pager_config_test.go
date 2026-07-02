@@ -56,6 +56,20 @@ func TestCurrentPagerNameWithoutPagers(t *testing.T) {
 	assert.Equal(t, "", config.CurrentPagerName())
 }
 
+func TestGetNarrowSelectionHighlight(t *testing.T) {
+	userConfig := &UserConfig{}
+	userConfig.Git.Pagers = []PagingConfig{{NarrowSelectionHighlight: true}}
+	config := NewPagerConfig(func() *UserConfig { return userConfig })
+
+	assert.Equal(t, true, config.GetNarrowSelectionHighlight())
+}
+
+func TestGetNarrowSelectionHighlightWithoutPagers(t *testing.T) {
+	config := NewPagerConfig(func() *UserConfig { return &UserConfig{} })
+
+	assert.Equal(t, false, config.GetNarrowSelectionHighlight())
+}
+
 func TestCyclePagers(t *testing.T) {
 	userConfig := &UserConfig{}
 	userConfig.Git.Pagers = []PagingConfig{{Name: "a"}, {Name: "b"}, {Name: "c"}}

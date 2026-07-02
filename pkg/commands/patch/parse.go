@@ -7,7 +7,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-var hunkHeaderRegexp = regexp.MustCompile(`(?m)^@@ -(\d+)[^\+]+\+(\d+)[^@]+@@(.*)$`)
+// Captures, in order: old start, old length (omitted when 1), new start, new
+// length (omitted when 1), and the trailing context.
+var hunkHeaderRegexp = regexp.MustCompile(`(?m)^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(.*)$`)
 
 func Parse(patchStr string) *Patch {
 	// ignore trailing newline.
@@ -19,13 +21,15 @@ func Parse(patchStr string) *Patch {
 	var currentHunk *Hunk
 	for _, line := range lines {
 		if strings.HasPrefix(line, "@@") {
-			oldStart, newStart, headerContext := headerInfo(line)
+			oldStart, oldLength, newStart, newLength, headerContext := headerInfo(line)
 
 			currentHunk = &Hunk{
-				oldStart:      oldStart,
-				newStart:      newStart,
-				headerContext: headerContext,
-				bodyLines:     []*PatchLine{},
+				oldStart:          oldStart,
+				newStart:          newStart,
+				declaredOldLength: oldLength,
+				declaredNewLength: newLength,
+				headerContext:     headerContext,
+				bodyLines:         []*PatchLine{},
 			}
 			hunks = append(hunks, currentHunk)
 		} else if currentHunk != nil {
@@ -41,14 +45,25 @@ func Parse(patchStr string) *Patch {
 	}
 }
 
-func headerInfo(header string) (int, int, string) {
+func headerInfo(header string) (oldStart int, oldLength int, newStart int, newLength int, headerContext string) {
 	match := hunkHeaderRegexp.FindStringSubmatch(header)
 
-	oldStart := utils.MustConvertToInt(match[1])
-	newStart := utils.MustConvertToInt(match[2])
-	headerContext := match[3]
+	oldStart = utils.MustConvertToInt(match[1])
+	oldLength = declaredLength(match[2])
+	newStart = utils.MustConvertToInt(match[3])
+	newLength = declaredLength(match[4])
+	headerContext = match[5]
 
-	return oldStart, newStart, headerContext
+	return oldStart, oldLength, newStart, newLength, headerContext
+}
+
+// declaredLength parses a hunk header length capture, which git omits when it
+// is 1 (e.g. "@@ -0,0 +1 @@").
+func declaredLength(match string) int {
+	if match == "" {
+		return 1
+	}
+	return utils.MustConvertToInt(match)
 }
 
 func newHunkLine(line string) *PatchLine {

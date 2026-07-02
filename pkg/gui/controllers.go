@@ -52,8 +52,9 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	gpgHelper := helpers.NewGpgHelper(helperCommon)
 	viewHelper := helpers.NewViewHelper(helperCommon, gui.State.Contexts)
-	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon)
-	stagingHelper := helpers.NewStagingHelper(helperCommon)
+	windowHelper := helpers.NewWindowHelper(helperCommon, viewHelper)
+	stagingHelper := helpers.NewStagingHelper(helperCommon, windowHelper)
+	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon, stagingHelper)
 	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon)
 	searchHelper := helpers.NewSearchHelper(helperCommon)
 
@@ -73,7 +74,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 		rebaseHelper,
 	)
 	bisectHelper := helpers.NewBisectHelper(helperCommon)
-	windowHelper := helpers.NewWindowHelper(helperCommon, viewHelper)
 	modeHelper := helpers.NewModeHelper(
 		helperCommon,
 		diffHelper,
@@ -108,6 +108,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		FixupHelper:     helpers.NewFixupHelper(helperCommon),
 		Commits:         commitsHelper,
 		SuspendResume:   helpers.NewSuspendResumeHelper(helperCommon),
+		CommitFiles:     helpers.NewCommitFilesHelper(helperCommon, patchBuildingHelper),
 		Snake:           helpers.NewSnakeHelper(helperCommon),
 		Diff:            diffHelper,
 		Repos:           reposHelper,
@@ -173,7 +174,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 	contextLinesController := controllers.NewContextLinesController(common)
 	renameSimilarityThresholdController := controllers.NewRenameSimilarityThresholdController(common)
 	verticalScrollControllerFactory := controllers.NewVerticalScrollControllerFactory(common)
-	viewSelectionControllerFactory := controllers.NewViewSelectionControllerFactory(common)
 
 	branchesController := controllers.NewBranchesController(common)
 	gitFlowController := controllers.NewGitFlowController(common)
@@ -322,13 +322,11 @@ func (gui *Gui) resetHelpersAndControllers() {
 	controllers.AttachControllers(gui.State.Contexts.Normal,
 		mainViewController,
 		verticalScrollControllerFactory.Create(gui.State.Contexts.Normal),
-		viewSelectionControllerFactory.Create(gui.State.Contexts.Normal),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.NormalSecondary,
 		secondaryViewController,
 		verticalScrollControllerFactory.Create(gui.State.Contexts.NormalSecondary),
-		viewSelectionControllerFactory.Create(gui.State.Contexts.NormalSecondary),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Files,

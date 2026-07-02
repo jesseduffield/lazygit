@@ -54,6 +54,16 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		return gui.newCmdTask(view, cmd, prefix)
 	}
 
+	// Mark the view as loading synchronously now, before the layout pass: the
+	// actual task is created in afterLayout (below), which runs after layout, so
+	// without this the next layout pass would clamp the scroll position to the
+	// not-yet-loaded content.
+	gui.getManager(view).StartLoading()
+	// Hold the scrollbar at its current height while the re-render loads, so the
+	// thumb doesn't shrink and snap back when the first partial paint swaps in
+	// (see the matching call in newCmdTask).
+	view.FreezeScrollbarHeight()
+
 	// Run the pty after layout so that it gets the correct size
 	gui.afterLayout(func() error {
 		// Need to get the width and the pager again because the layout might have
@@ -71,6 +81,13 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		cmd.Env = append(cmd.Env, "TERM=dumb")
 
 		cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
+
+		// Advertise to a metadata-aware pager (e.g. a patched delta) the diff-line
+		// metadata protocol versions we understand, so it annotates each line with
+		// an OSC sequence we can read back (see diff-line-metadata-notes.md). A
+		// pager that doesn't understand it ignores the variable, so this is safe to
+		// set unconditionally.
+		cmd.Env = append(cmd.Env, "EMIT_OSC1717_METADATA=V1")
 
 		manager := gui.getManager(view)
 
@@ -97,6 +114,18 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		}
 
 		linesToRead := gui.linesToReadFromCmdTask(view)
+		// As in newCmdTask: if a restore is pending for this content (returning to a
+		// focused main view on escape), let the task re-establish the scroll
+		// position and selection as it first paints, reading to end of input so a
+		// deep target line is found and the scrollbar ends up accurate.
+		restore := manager.GetRestoreForNextTask()
+		if restore != nil {
+			linesToRead.Restore = restore
+			linesToRead.Total = -1
+		}
+		// New content scrolls back to the top at the first paint; same content keeps
+		// its scroll, and a restore places the scroll itself. See LinesToRead.ResetOrigin.
+		linesToRead.ResetOrigin = restore == nil && cmdStr != manager.GetTaskKey()
 		return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr)
 	})
 
