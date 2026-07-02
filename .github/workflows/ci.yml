@@ -172,9 +172,6 @@ jobs:
         with:
           # If you change this, make sure to also update scripts/golangci-lint-shim.sh
           version: v2.4.0
-      - name: errors
-        run: golangci-lint run
-        if: ${{ failure() }}
   upload-coverage:
     # List all jobs that produce coverage files
     needs: [unit-tests, integration-tests]
