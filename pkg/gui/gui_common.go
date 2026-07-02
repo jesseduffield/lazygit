@@ -189,3 +189,11 @@ func (self *guiCommon) WithInlineStatus(item types.HasUrn, operation types.ItemO
 	self.gui.helpers.InlineStatus.WithInlineStatus(helpers.InlineStatusOpts{Item: item, Operation: operation, ContextKey: contextKey}, f)
 	return nil
 }
+
+func (self *guiCommon) LastGitOutput() string {
+	return self.gui.lastGitOutput()
+}
+
+func (self *guiCommon) AllGitOutput() string {
+	return self.gui.allGitOutput()
+}

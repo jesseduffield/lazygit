@@ -771,6 +771,13 @@ type TranslationSet struct {
 	CommandLog                               string
 	ToggleShowCommandLog                     string
 	FocusCommandLog                          string
+	CopyGitOutputToClipboard                 string
+	CopyAllGitOutputToClipboard              string
+	NoGitOutputToCopy                        string
+	GitOutputCopiedToClipboard               string
+	OpenCommandLogInEditor                   string
+	NoCommandLogToOpenInEditor               string
+	CommandLogOpenedInEditor                 string
 	CommandLogHeader                         string
 	RandomTip                                string
 	ToggleWhitespaceInDiffView               string
@@ -1907,6 +1914,13 @@ func EnglishTranslationSet() *TranslationSet {
 		ErrWorktreeMovedOrRemoved:                "Cannot find worktree. It might have been moved or removed ¯\\_(ツ)_/¯",
 		ToggleShowCommandLog:                     "Toggle show/hide command log",
 		FocusCommandLog:                          "Focus command log",
+		CopyGitOutputToClipboard:                 "Copy last git output to clipboard",
+		CopyAllGitOutputToClipboard:              "Copy all git outputs to clipboard",
+		NoGitOutputToCopy:                        "No git output to copy",
+		GitOutputCopiedToClipboard:               "Git output copied to clipboard",
+		OpenCommandLogInEditor:                   "Open command log in editor",
+		NoCommandLogToOpenInEditor:               "No command log to open in editor",
+		CommandLogOpenedInEditor:                 "Command log opened in editor",
 		CommandLogHeader:                         "You can hide/focus this panel by pressing '%s'\n",
 		RandomTip:                                "Random tip",
 		ToggleWhitespaceInDiffView:               "Toggle whitespace",

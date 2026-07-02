@@ -267,6 +267,15 @@ func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
 }
 
 func (c *OSCommand) CopyToClipboard(str string) error {
+	c.logCopyToClipboard(str)
+	return c.writeToClipboard(str)
+}
+
+func (c *OSCommand) CopyToClipboardQuiet(str string) error {
+	return c.writeToClipboard(str)
+}
+
+func (c *OSCommand) logCopyToClipboard(str string) {
 	escaped := strings.ReplaceAll(str, "\n", "\\n")
 	truncated := utils.TruncateWithEllipsis(escaped, 40)
 
@@ -277,6 +286,9 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 		},
 	)
 	c.LogCommand(msg, false)
+}
+
+func (c *OSCommand) writeToClipboard(str string) error {
 	if c.UserConfig().OS.CopyToClipboardCmd != "" {
 		cmdStr := utils.ResolvePlaceholderString(c.UserConfig().OS.CopyToClipboardCmd, map[string]string{
 			"text": c.Cmd.Quote(str),
