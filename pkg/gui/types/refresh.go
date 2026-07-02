@@ -72,10 +72,11 @@ type RefreshOptions struct {
 	CommitSelection CommitSelectionBehavior
 
 	// When true, this refresh was initiated by a background routine rather than
-	// by a user action. We use it to keep background `git status` calls from
-	// taking optional git locks, so they don't contend for index.lock with git
-	// commands the user runs in a terminal. The cost is that such a status won't
-	// persist git's refreshed stat-cache, which is the right trade-off for
-	// unattended work; foreground refreshes leave this false so they do persist.
+	// by a user action. Every git command suppresses optional locks by default
+	// so it can't contend for index.lock (see git_commands.OptionalLocksEnvVar);
+	// a foreground files refresh (this false) is the one command that opts back
+	// in, so it persists git's refreshed stat-cache and keeps later status calls
+	// fast. Background refreshes leave the suppression in place: not persisting
+	// the stat-cache is the right trade-off for unattended work.
 	Background bool
 }
