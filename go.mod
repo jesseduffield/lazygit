@@ -26,7 +26,7 @@ require (
 	github.com/mgutz/str v1.2.0
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/rivo/uniseg v0.4.7
-	github.com/sahilm/fuzzy v0.1.2
+	github.com/sahilm/fuzzy v0.1.3
 	github.com/samber/lo v1.53.0
 	github.com/sanity-io/litter v1.5.8
 	github.com/sasha-s/go-deadlock v0.3.9
