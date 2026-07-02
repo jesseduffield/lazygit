@@ -46,7 +46,7 @@ jobs:
           fi
 
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: jesseduffield/lazygit
           token: ${{ secrets.LAZYGIT_RELEASE_PAT }}

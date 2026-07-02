@@ -10,7 +10,7 @@ jobs:
     if: ${{ github.repository == 'jesseduffield/lazygit' }}
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Generate Sponsors 💖
         uses: JamesIves/github-sponsors-readme-action@2fd9142e765f755780202122261dc85e78459405 # v1.6.0
