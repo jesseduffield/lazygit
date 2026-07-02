@@ -1000,6 +1000,20 @@
           ],
           "default": "\u003cctrl+y\u003e"
         },
+        "copyBranchURL": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "y"
+        },
         "checkoutBranchByName": {
           "oneOf": [
             {

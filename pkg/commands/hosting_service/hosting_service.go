@@ -109,6 +109,15 @@ func (self *HostingServiceMgr) GetServiceInfo() (ServiceInfo, error) {
 	}, nil
 }
 
+func (self *HostingServiceMgr) GetBranchURL(branchName string) (string, error) {
+	gitService, err := self.getService()
+	if err != nil {
+		return "", err
+	}
+
+	return gitService.getBranchURL(url.QueryEscape(branchName)), nil
+}
+
 func (self *HostingServiceMgr) getService() (*Service, error) {
 	serviceDomain, err := self.getServiceDomain(self.remoteURL)
 	if err != nil {
@@ -196,6 +205,7 @@ type ServiceDefinition struct {
 	pullRequestURLIntoTargetBranch  string
 	commitURL                       string
 	urlRegexps                      []*regexp.Regexp
+	branchURL                       string
 
 	// can expect 'webdomain' to be passed in. Otherwise, you get to pick what we match in the regex
 	repoURLTemplate  string
@@ -271,6 +281,10 @@ func (self *Service) getPullRequestURLIntoTargetBranch(from string, to string) s
 
 func (self *Service) getCommitURL(commitHash string) string {
 	return self.resolveUrl(self.commitURL, map[string]string{"CommitHash": commitHash})
+}
+
+func (self *Service) getBranchURL(branchName string) string {
+	return self.resolveUrl(self.branchURL, map[string]string{"BranchName": branchName})
 }
 
 func (self *Service) resolveUrl(templateString string, args map[string]string) string {

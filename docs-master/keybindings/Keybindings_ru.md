@@ -216,6 +216,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` O `` | Создать параметры запроса принятие изменений |  |
 | `` G `` | Open pull request in browser |  |
 | `` <ctrl+y> `` | Скопировать URL запроса на принятие изменений в буфер обмена |  |
+| `` y `` | Copy branch URL to clipboard |  |
 | `` c `` | Переключить по названию | Checkout by name. In the input box you can enter '-' to switch to the previous branch. |
 | `` - `` | Checkout previous branch |  |
 | `` F `` | Принудительное переключение | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |

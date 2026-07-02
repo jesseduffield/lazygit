@@ -231,6 +231,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` O `` | 创建拉取请求选项 |  |
 | `` G `` | 在浏览器中打开拉取请求 |  |
 | `` <ctrl+y> `` | 复制拉取请求 URL 到剪贴板 |  |
+| `` y `` | Copy branch URL to clipboard |  |
 | `` c `` | 按名称检出 | 按名称检出。在输入框中，您可以输入'-' 来切换到最后一个分支。 |
 | `` - `` | 签出上一个分支 |  |
 | `` F `` | 强制检出 | 强制检出所选分支。这将在检出所选分支之前放弃工作目录中的所有本地更改。 |
