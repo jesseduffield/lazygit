@@ -119,56 +119,68 @@ func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.C
 	return self.reposHelper.DispatchSwitchTo(worktree.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
 }
 
-func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error {
-	title := self.c.Tr.RemoveWorktreeTitle
-	var templateStr string
-	if force {
-		templateStr = self.c.Tr.ForceRemoveWorktreePrompt
-	} else {
-		templateStr = self.c.Tr.RemoveWorktreePrompt
-	}
-	message := utils.ResolvePlaceholderString(
-		templateStr,
-		map[string]string{
-			"worktreeName": worktree.Name,
-		},
-	)
-
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  title,
-		Prompt: message,
-		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.RemovingWorktree, func(gocui.Task) error {
-				self.c.LogAction(self.c.Tr.RemoveWorktree)
-				if err := self.c.Git().Worktree.Delete(worktree.Path, force); err != nil {
-					errMessage := err.Error()
-					if !strings.Contains(errMessage, "--force") &&
-						!strings.Contains(errMessage, "fatal: working trees containing submodules cannot be moved or removed") {
-						return err
-					}
-
-					if !force {
-						return self.Remove(worktree, true)
-					}
-					return err
-				}
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
-				return nil
-			})
-		},
-	})
-
-	return nil
+// Remove deletes the worktree without confirming first; callers are expected to
+// have confirmed (or shown a menu) already. If git refuses because the worktree
+// is dirty or contains submodules, we ask for confirmation and retry with
+// --force. When then is non-nil it runs in place of the default refresh after a
+// successful removal, letting callers chain further work such as deleting the
+// worktree's branch.
+func (self *WorktreeHelper) Remove(worktree *models.Worktree, then func(gocui.Task) error) error {
+	return self.remove(worktree, false, then)
 }
 
-func (self *WorktreeHelper) Detach(worktree *models.Worktree) error {
-	return self.c.WithWaitingStatus(self.c.Tr.DetachingWorktree, func(gocui.Task) error {
+func (self *WorktreeHelper) remove(worktree *models.Worktree, force bool, then func(gocui.Task) error) error {
+	return self.c.WithWaitingStatus(self.c.Tr.RemovingWorktree, func(task gocui.Task) error {
+		self.c.LogAction(self.c.Tr.RemoveWorktree)
+		if err := self.c.Git().Worktree.Delete(worktree.Path, force); err != nil {
+			errMessage := err.Error()
+			if !strings.Contains(errMessage, "--force") &&
+				!strings.Contains(errMessage, "fatal: working trees containing submodules cannot be moved or removed") {
+				return err
+			}
+
+			if force {
+				return err
+			}
+
+			message := utils.ResolvePlaceholderString(
+				self.c.Tr.ForceRemoveWorktreePrompt,
+				map[string]string{
+					"worktreeName": worktree.Name,
+				},
+			)
+			self.c.Confirm(types.ConfirmOpts{
+				Title:  self.c.Tr.RemoveWorktreeTitle,
+				Prompt: message,
+				HandleConfirm: func() error {
+					return self.remove(worktree, true, then)
+				},
+			})
+			return nil
+		}
+
+		if then != nil {
+			return then(task)
+		}
+
+		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
+		return nil
+	})
+}
+
+func (self *WorktreeHelper) Detach(worktree *models.Worktree, then func(gocui.Task) error) error {
+	return self.c.WithWaitingStatus(self.c.Tr.DetachingWorktree, func(task gocui.Task) error {
 		self.c.LogAction(self.c.Tr.RemovingWorktree)
 
 		err := self.c.Git().Worktree.Detach(worktree.Path)
 		if err != nil {
 			return err
 		}
+
+		if then != nil {
+			return then(task)
+		}
+
 		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
 		return nil
 	})

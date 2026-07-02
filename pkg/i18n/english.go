@@ -874,11 +874,16 @@ type TranslationSet struct {
 	Switching                                string
 	RemoveWorktree                           string
 	RemoveWorktreeTitle                      string
+	RemoveWorktreeMenuTitle                  string
+	RemoveWorktreeAndDeleteBranch            string
+	RemoveWorktreeAndDeleteBothBranches      string
+	WorktreeNotCheckedOutOnBranch            string
 	DetachWorktree                           string
+	DetachWorktreeAndDeleteBranch            string
+	DetachWorktreeAndDeleteBothBranches      string
 	DetachingWorktree                        string
 	WorktreesTitle                           string
 	WorktreeTitle                            string
-	RemoveWorktreePrompt                     string
 	ForceRemoveWorktreePrompt                string
 	RemovingWorktree                         string
 	AddingWorktree                           string
@@ -2018,10 +2023,15 @@ func EnglishTranslationSet() *TranslationSet {
 		Switching:                                "Switching",
 		RemoveWorktree:                           "Remove worktree",
 		RemoveWorktreeTitle:                      "Remove worktree",
-		RemoveWorktreePrompt:                     "Are you sure you want to remove worktree '{{.worktreeName}}'?",
+		RemoveWorktreeMenuTitle:                  "Remove worktree '{{.worktreeName}}'?",
+		RemoveWorktreeAndDeleteBranch:            "Remove worktree and delete branch",
+		RemoveWorktreeAndDeleteBothBranches:      "Remove worktree and delete local and remote branch",
+		WorktreeNotCheckedOutOnBranch:            "This worktree is not checked out on a branch",
 		ForceRemoveWorktreePrompt:                "'{{.worktreeName}}' contains modified or untracked files, or submodules (or all of these). Are you sure you want to remove it?",
 		RemovingWorktree:                         "Deleting worktree",
 		DetachWorktree:                           "Detach worktree",
+		DetachWorktreeAndDeleteBranch:            "Detach worktree and delete branch",
+		DetachWorktreeAndDeleteBothBranches:      "Detach worktree and delete local and remote branch",
 		DetachingWorktree:                        "Detaching worktree",
 		AddingWorktree:                           "Adding worktree",
 		CantDeleteCurrentWorktree:                "You cannot remove the current worktree!",
