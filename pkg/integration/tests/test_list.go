@@ -44,6 +44,7 @@ var tests = []*components.IntegrationTest{
 	branch.CheckoutPreviousBranch,
 	branch.CreateTag,
 	branch.Delete,
+	branch.DeleteAfterMainBranch,
 	branch.DeleteMultiple,
 	branch.DeleteRemoteBranchWhenTagWithSameNameExists,
 	branch.DeleteRemoteBranchWithCredentialPrompt,
