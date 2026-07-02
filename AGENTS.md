@@ -48,6 +48,9 @@ while still being meaningful and self-contained.
   commits that leave the tree broken and rely on a follow-up to fix it.
 - **Every commit must be `gofumpt`-formatted.** Run `just format` before
   committing.
+- **Every commit must be lint-clean.** Run `just lint` before committing —
+  don't introduce a lint warning in one commit and rely on a later commit
+  (or the user) to clean it up.
 - **Commit messages explain _why_, not _what_.** The diff already shows what
   changed; the message should capture the motivation, the constraint, or the
   bug being fixed. If the reason is obvious from a one-line subject, no body
@@ -156,6 +159,16 @@ mechanical choices with one sensible answer don't need a checkpoint. It's about
 genuine forks — the ones where a reasonable person might pick differently, or
 where you'd be trading away something the plan assumed (scope, UX, performance,
 reload behavior, …). When in doubt, surface it.
+
+This applies with equal force to unforeseen _discoveries_, not just to
+decisions you set out to make. If you find something the plan didn't account
+for — a latent bug, a race, a wrong assumption, a case that turns out
+unhandled — stop and raise it before designing or writing a fix, even when the
+fix seems obvious and even when it's "just correctness." Finding the problem is
+itself the fork: whether to fix it here or in a separate change, how generally
+to solve it, and whether it reshapes the current work are all calls for me to
+make with you. Don't quietly fold a self-directed fix for a newly-found problem
+into the branch and let me discover it in the diff.
 
 ## Prefer the cleaner design over the smaller diff
 
