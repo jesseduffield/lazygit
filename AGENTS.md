@@ -18,7 +18,7 @@ Windows box has only `just`).
   list and the keybinding cheatsheets in `docs-master/keybindings/`). Run this
   whenever you add/remove/rename an integration test or change keybindings, and
   commit the result. CI fails if these are stale.
-- `just format` — `gofumpt -l -w .`. Run before every commit.
+- `just format` — `go tool gofumpt -l -w .`. Run before every commit.
 - `just build` — build the binary.
 - `just unit-test` — `go test ./... -short`.
 - `just e2e` — run all integration tests headlessly; `just e2e <name>` runs a
