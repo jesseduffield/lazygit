@@ -63,7 +63,7 @@ jobs:
       - name: Restore Git cache
         if: matrix.git-version != 'latest'
         id: cache-git-restore
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: ~/git-${{matrix.git-version}}
           key: ${{runner.os}}-git-${{matrix.git-version}}
@@ -80,7 +80,7 @@ jobs:
         run: sudo make -C "$HOME/git-${{matrix.git-version}}" -j install
       - name: Save Git cache
         if: steps.cache-git-restore.outputs.cache-hit != 'true' && matrix.git-version != 'latest'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: ~/git-${{matrix.git-version}}
           key: ${{runner.os}}-git-${{matrix.git-version}}
