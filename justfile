@@ -75,4 +75,4 @@ demo *args:
     demo/record_demo.sh {{ args }}
 
 vendor:
-    go mod vendor && go mod tidy
+    go mod tidy && go mod vendor
