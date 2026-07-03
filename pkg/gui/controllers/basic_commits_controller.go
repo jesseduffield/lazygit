@@ -90,6 +90,12 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Tooltip:           self.c.Tr.MoveCommitsToNewBranchTooltip,
 		},
 		{
+			Keys:        opts.GetKeys(opts.Config.Universal.NewWorktree),
+			Handler:     self.withItem(self.c.Helpers().Worktree.NewWorktreeMenuForCommit),
+			Description: self.c.Tr.NewWorktree,
+			OpensMenu:   true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Commits.ViewResetOptions),
 			Handler:           self.withItem(self.createResetMenu),
 			GetDisabledReason: self.require(self.singleItemSelected()),

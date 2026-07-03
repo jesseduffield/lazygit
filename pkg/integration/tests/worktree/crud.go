@@ -33,24 +33,22 @@ var Crud = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.New).
 			Tap(func() {
-				t.ExpectPopup().Menu().
-					Title(Equals("Worktree")).
-					Select(Contains(`Create worktree from ref`).DoesNotContain(("detached"))).
+				// a name that isn't an existing branch creates a new branch off
+				// the current one
+				t.ExpectPopup().Prompt().
+					Title(Equals("New worktree for branch")).
+					Type("newbranch").
 					Confirm()
 
-				t.ExpectPopup().Prompt().
-					Title(Equals("New worktree base ref")).
-					InitialText(Equals("mybranch")).
+				t.ExpectPopup().Menu().
+					Title(Equals("Worktree location")).
+					Select(Contains("Other…")).
 					Confirm()
 
 				t.ExpectPopup().Prompt().
 					Title(Equals("New worktree path")).
+					Clear().
 					Type("../linked-worktree").
-					Confirm()
-
-				t.ExpectPopup().Prompt().
-					Title(Equals("New branch name (leave blank to checkout mybranch)")).
-					Type("newbranch").
 					Confirm()
 			}).
 			Lines(

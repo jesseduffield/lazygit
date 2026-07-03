@@ -527,6 +527,15 @@ git:
   # to 40 to disable truncation.
   truncateCopiedCommitHashesTo: 12
 
+# Config relating to git worktrees
+worktree:
+  # Default parent directory for new worktrees. It is offered as a candidate
+  # location alongside the parent directories of any worktrees you already have.
+  # A relative path is resolved against the repository's root directory, so
+  # "../worktrees" sits beside the repo and ".worktrees" sits inside it.
+  # A leading "~" is expanded to your home directory, so "~/worktrees" works.
+  defaultPath: ""
+
 # Periodic update checks
 update:
   # One of: 'prompt' (default) | 'background' | 'never'
@@ -681,6 +690,7 @@ keybinding:
     confirmInEditor: [<ctrl+enter>, <ctrl+s>]
     remove: d
     new: "n"
+    newWorktree: w
     edit: e
     openFile: o
     scrollUpMain: [<pgup>, K, <ctrl+u>]
@@ -761,8 +771,6 @@ keybinding:
     fetchRemote: f
     addForkRemote: F
     sortOrder: s
-  worktrees:
-    viewWorktreeOptions: w
   commits:
     squashDown: s
     renameCommit: r

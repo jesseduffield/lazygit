@@ -102,6 +102,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | Uitchecken | Checkout selected item. |
 | `` n `` | Nieuwe branch |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | New worktree |  |
 | `` o `` | Maak een pull-request |  |
 | `` O `` | Bekijk opties voor pull-aanvraag |  |
 | `` G `` | Open pull request in browser |  |
@@ -121,7 +122,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
-| `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
 ## Commit bericht
@@ -184,13 +184,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | Open commit in browser |  |
 | `` n `` | Creëer nieuwe branch van commit |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | New worktree |  |
 | `` g `` | Bekijk reset opties | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Kopieer commit (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
-| `` w `` | View worktree options |  |
 | `` / `` | Start met zoeken |  |
 
 ## Input prompt
@@ -260,6 +260,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | Open commit in browser |  |
 | `` n `` | Creëer nieuwe branch van commit |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | New worktree |  |
 | `` g `` | Bekijk reset opties | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Kopieer commit (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <ctrl+r> `` | Reset cherry-picked (gekopieerde) commits selectie |  |
@@ -267,7 +268,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
-| `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
 ## Remote branches
@@ -277,6 +277,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | Kopieer branch name naar klembord |  |
 | `` <space> `` | Uitchecken | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | Nieuwe branch |  |
+| `` w `` | New worktree |  |
 | `` M `` | Merge in met huidige checked out branch | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` r `` | Rebase branch | Rebase the checked-out branch onto the selected branch. |
 | `` d `` | Delete | Delete the remote branch from the remote. |
@@ -286,7 +287,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
-| `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
 ## Remotes
@@ -339,10 +339,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Pop | Apply the stash entry to your working directory and remove the stash entry. |
 | `` d `` | Laten vallen | Remove the stash entry from the stash list. |
 | `` n `` | Nieuwe branch | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
+| `` w `` | New worktree |  |
 | `` r `` | Rename stash |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
-| `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
 ## Status
@@ -366,6 +366,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | Open commit in browser |  |
 | `` n `` | Creëer nieuwe branch van commit |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | New worktree |  |
 | `` g `` | Bekijk reset opties | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | Kopieer commit (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <ctrl+r> `` | Reset cherry-picked (gekopieerde) commits selectie |  |
@@ -373,7 +374,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
-| `` w `` | View worktree options |  |
 | `` / `` | Start met zoeken |  |
 
 ## Submodules
@@ -397,13 +397,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | Copy tag to clipboard |  |
 | `` <space> `` | Uitchecken | Checkout the selected tag as a detached HEAD. |
 | `` n `` | Creëer tag | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
+| `` w `` | New worktree |  |
 | `` d `` | Delete | View delete options for local/remote tag. |
 | `` P `` | Push tag | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
-| `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
 ## Worktrees
