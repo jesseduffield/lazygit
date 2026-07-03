@@ -93,6 +93,8 @@ func (self *fakeGuiDriver) CheckAllToastsAcknowledged() {}
 
 func (self *fakeGuiDriver) Headless() bool { return false }
 
+func (self *fakeGuiDriver) PretendMergeOrRebaseStartedInLazygit() {}
+
 func TestManualFailure(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,

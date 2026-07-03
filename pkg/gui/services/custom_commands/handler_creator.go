@@ -318,6 +318,10 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 
 		if err != nil {
 			if customCommand.After != nil && customCommand.After.CheckForConflicts {
+				// The custom command may have started a rebase/merge/etc.; if so,
+				// it's one we consider started in lazygit, so that we offer to
+				// continue it once its conflicts are resolved.
+				self.mergeAndRebaseHelper.RecordWhetherMergeOrRebaseStartedInLazygit()
 				return self.mergeAndRebaseHelper.CheckForConflicts(err)
 			}
 

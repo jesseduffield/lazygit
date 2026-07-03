@@ -255,6 +255,14 @@ type GuiRepoState struct {
 	CurrentPopupOpts *types.CreatePopupPanelOpts
 
 	LastBackgroundFetchTime time.Time
+
+	// Whether the rebase/merge/cherry-pick/revert that's currently in progress
+	// was started from within lazygit (as opposed to being started externally,
+	// e.g. in another terminal or by a coding agent). We only auto-prompt to
+	// continue such an operation once its conflicts are resolved if we started
+	// it ourselves; for an externally started one, popping up unbidden would be
+	// confusing. Reset whenever we observe that no operation is in progress.
+	mergeOrRebaseStartedInLazygit bool
 }
 
 var _ types.IRepoStateAccessor = new(GuiRepoState)
@@ -281,6 +289,14 @@ func (self *GuiRepoState) GetCurrentPopupOpts() *types.CreatePopupPanelOpts {
 
 func (self *GuiRepoState) SetCurrentPopupOpts(value *types.CreatePopupPanelOpts) {
 	self.CurrentPopupOpts = value
+}
+
+func (self *GuiRepoState) GetMergeOrRebaseStartedInLazygit() bool {
+	return self.mergeOrRebaseStartedInLazygit
+}
+
+func (self *GuiRepoState) SetMergeOrRebaseStartedInLazygit(value bool) {
+	self.mergeOrRebaseStartedInLazygit = value
 }
 
 func (self *GuiRepoState) GetScreenMode() types.ScreenMode {

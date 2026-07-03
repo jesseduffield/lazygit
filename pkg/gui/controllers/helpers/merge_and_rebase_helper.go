@@ -18,6 +18,13 @@ import (
 
 type MergeAndRebaseHelper struct {
 	c *HelperCommon
+
+	// Whether the "continue the rebase/merge?" prompt is currently on screen.
+	// We use this to auto-dismiss it if the operation stops being in the state
+	// that the prompt is offering to act on (e.g. it was continued or aborted
+	// externally), so the user isn't left with a stale prompt. Only accessed on
+	// the UI thread.
+	continueRebasePromptShowing bool
 }
 
 func NewMergeAndRebaseHelper(
@@ -113,6 +120,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 			Mode:            types.ASYNC,
 			CommitSelection: commitSelectionAfterMerge(success && selectHeadCommitOnSuccess),
 		})
+		self.RecordWhetherMergeOrRebaseStartedInLazygit()
 		return err
 	}
 	result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
@@ -165,8 +173,20 @@ func isMergeConflictErr(errStr string) bool {
 	return false
 }
 
+// RecordWhetherMergeOrRebaseStartedInLazygit is called right after we run a
+// merge/rebase/cherry-pick/revert step. If it left an operation in progress,
+// that operation is one we started, which is what later lets us auto-prompt to
+// continue it once its conflicts are resolved. If nothing is in progress
+// anymore (the step completed or aborted the operation), we clear the flag.
+func (self *MergeAndRebaseHelper) RecordWhetherMergeOrRebaseStartedInLazygit() {
+	self.c.State().GetRepoState().SetMergeOrRebaseStartedInLazygit(
+		self.c.Git().Status.WorkingTreeState().Any())
+}
+
 func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result error, refreshOptions types.RefreshOptions) error {
 	self.c.Refresh(refreshOptions)
+
+	self.RecordWhetherMergeOrRebaseStartedInLazygit()
 
 	if result == nil {
 		return nil
@@ -246,10 +266,17 @@ func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 
 // PromptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
 func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
+	self.continueRebasePromptShowing = true
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.Continue,
 		Prompt: fmt.Sprintf(self.c.Tr.ConflictsResolved, self.c.Git().Status.WorkingTreeState().CommandName()),
+		HandleClose: func() error {
+			self.continueRebasePromptShowing = false
+			return nil
+		},
 		HandleConfirm: func() error {
+			self.continueRebasePromptShowing = false
+
 			// By the time we get here, we might have unstaged changes again,
 			// e.g. if the user had to fix build errors after resolving the
 			// conflicts, but after lazygit opened the prompt already. Ask again
@@ -285,6 +312,27 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 	})
 
 	return nil
+}
+
+// DismissContinueRebasePromptIfShowing closes the "continue the rebase/merge?"
+// prompt if it's currently on screen. It's called when the operation is no
+// longer in the state the prompt is offering to act on (e.g. it was continued
+// or aborted outside lazygit, or new conflicts have appeared), so that the
+// user isn't left with a prompt whose "continue" would now be wrong or fail.
+// Must be called on the UI thread.
+func (self *MergeAndRebaseHelper) DismissContinueRebasePromptIfShowing() {
+	if !self.continueRebasePromptShowing {
+		return
+	}
+
+	self.continueRebasePromptShowing = false
+
+	// Guard against popping something else: while our prompt is up no other
+	// popup can open, and confirming or closing it would have cleared the flag,
+	// so if it's set the confirmation context is ours.
+	if self.c.Context().Current() == self.c.Contexts().Confirmation {
+		self.c.Context().Pop()
+	}
 }
 
 func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
