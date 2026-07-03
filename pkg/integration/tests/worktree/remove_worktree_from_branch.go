@@ -38,7 +38,7 @@ var RemoveWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Branch newbranch is checked out by worktree linked-worktree")).
-					Select(Equals("Remove worktree")).
+					Select(Contains("Remove worktree")).
 					Confirm()
 
 				t.ExpectPopup().Confirmation().
