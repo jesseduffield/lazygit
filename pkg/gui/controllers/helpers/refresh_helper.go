@@ -1048,6 +1048,8 @@ func (self *RefreshHelper) refreshStatus() {
 	self.c.Mutexes().RefreshingStatusMutex.Lock()
 	defer self.c.Mutexes().RefreshingStatusMutex.Unlock()
 
+	generation := self.c.State().GetRepoGeneration()
+
 	currentBranch := self.refsHelper.GetCheckedOutRef()
 	if currentBranch == nil {
 		// need to wait for branches to refresh
@@ -1061,7 +1063,10 @@ func (self *RefreshHelper) refreshStatus() {
 
 	status := presentation.FormatStatus(repoName, currentBranch, types.ItemOperationNone, linkedWorktreeName, workingTreeState, self.c.Tr, self.c.UserConfig())
 
-	self.c.SetViewContent(self.c.Views().Status, status)
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		self.c.SetViewContent(self.c.Views().Status, status)
+		return nil
+	})
 }
 
 func (self *RefreshHelper) refForLog() string {
