@@ -177,9 +177,6 @@ func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey
 			self.c.Log.Errorf("error recording current directory: %v", err)
 		}
 
-		self.c.Mutexes().RefreshingFilesMutex.Lock()
-		defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
-
 		if err := self.onNewRepo(appTypes.StartArgs{}, contextKey); err != nil {
 			return err
 		}

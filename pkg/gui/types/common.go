@@ -338,7 +338,6 @@ type Model struct {
 }
 
 type Mutexes struct {
-	RefreshingFilesMutex        deadlock.Mutex
 	RefreshingBranchesMutex     deadlock.Mutex
 	RefreshingStatusMutex       deadlock.Mutex
 	RefreshingPullRequestsMutex deadlock.Mutex
