@@ -338,15 +338,10 @@ type Model struct {
 }
 
 type Mutexes struct {
-	RefreshingBranchesMutex     deadlock.Mutex
-	RefreshingStatusMutex       deadlock.Mutex
-	RefreshingPullRequestsMutex deadlock.Mutex
-	LocalCommitsMutex           deadlock.Mutex
-	SubCommitsMutex             deadlock.Mutex
-	AuthorsMutex                deadlock.Mutex
-	SubprocessMutex             deadlock.Mutex
-	PopupMutex                  deadlock.Mutex
-	PtyMutex                    deadlock.Mutex
+	RefreshingBranchesMutex deadlock.Mutex
+	SubprocessMutex         deadlock.Mutex
+	PopupMutex              deadlock.Mutex
+	PtyMutex                deadlock.Mutex
 }
 
 // A long-running operation associated with an item. For example, we'll show

@@ -472,9 +472,6 @@ func (self *RefreshHelper) determineCheckedOutRef() models.Ref {
 }
 
 func (self *RefreshHelper) refreshCommitsWithLimit(commitSelection types.CommitSelectionBehavior) error {
-	self.c.Mutexes().LocalCommitsMutex.Lock()
-	defer self.c.Mutexes().LocalCommitsMutex.Unlock()
-
 	generation := self.c.State().GetRepoGeneration()
 
 	var selectionRange *localCommitSelectionRange
@@ -629,9 +626,6 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 		return nil
 	}
 
-	self.c.Mutexes().SubCommitsMutex.Lock()
-	defer self.c.Mutexes().SubCommitsMutex.Unlock()
-
 	generation := self.c.State().GetRepoGeneration()
 
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
@@ -661,9 +655,6 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 }
 
 func (self *RefreshHelper) RefreshAuthors(commits []*models.Commit) {
-	self.c.Mutexes().AuthorsMutex.Lock()
-	defer self.c.Mutexes().AuthorsMutex.Unlock()
-
 	authors := self.c.Model().Authors
 	for _, commit := range commits {
 		if _, ok := authors[commit.AuthorEmail]; !ok {
@@ -694,9 +685,6 @@ func (self *RefreshHelper) refreshCommitFilesContext() error {
 }
 
 func (self *RefreshHelper) refreshRebaseCommits() error {
-	self.c.Mutexes().LocalCommitsMutex.Lock()
-	defer self.c.Mutexes().LocalCommitsMutex.Unlock()
-
 	generation := self.c.State().GetRepoGeneration()
 
 	updatedCommits, err := self.c.Git().Loaders.CommitLoader.MergeRebasingCommits(self.c.Model().HashPool, self.c.Model().Commits)
@@ -795,9 +783,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 
 		// Need to re-render the commits view because the visualization of local
 		// branch heads might have changed
-		self.c.Mutexes().LocalCommitsMutex.Lock()
 		self.c.Contexts().LocalCommits.HandleRender()
-		self.c.Mutexes().LocalCommitsMutex.Unlock()
 		return nil
 	})
 
@@ -1075,9 +1061,6 @@ func (self *RefreshHelper) refreshStashEntries() {
 
 // never call this on its own, it should only be called from within refreshCommits()
 func (self *RefreshHelper) refreshStatus() {
-	self.c.Mutexes().RefreshingStatusMutex.Lock()
-	defer self.c.Mutexes().RefreshingStatusMutex.Unlock()
-
 	generation := self.c.State().GetRepoGeneration()
 
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
@@ -1147,9 +1130,6 @@ func (self *RefreshHelper) refreshView(context types.Context) {
 }
 
 func (self *RefreshHelper) refreshGithubPullRequests() {
-	self.c.Mutexes().RefreshingPullRequestsMutex.Lock()
-	defer self.c.Mutexes().RefreshingPullRequestsMutex.Unlock()
-
 	generation := self.c.State().GetRepoGeneration()
 
 	clearPullRequests := func() {
