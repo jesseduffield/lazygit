@@ -819,6 +819,7 @@ type TranslationSet struct {
 	SortCommits                              string
 	SortCommitsTooltip                       string
 	CantChangeContextSizeError               string
+	CantChangeRenameThresholdError           string
 	OpenCommitInBrowser                      string
 	ViewBisectOptions                        string
 	ConfirmRevertCommit                      string
@@ -1966,6 +1967,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SortCommits:                              "Commit sort order",
 		SortCommitsTooltip:                       "Change the sort order of the commits in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.sortOrder'.",
 		CantChangeContextSizeError:               "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
+		CantChangeRenameThresholdError:           "Cannot change the rename similarity threshold while in patch building mode, because the custom patch can't cope with a rename turning into a delete and add underneath it.",
 		OpenCommitInBrowser:                      "Open commit in browser",
 		ViewBisectOptions:                        "View bisect options",
 		ConfirmRevertCommit:                      "Are you sure you want to revert {{.selectedCommit}}?",

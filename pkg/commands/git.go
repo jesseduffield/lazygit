@@ -117,8 +117,8 @@ func NewGitCommandAux(
 	rebaseCommands := git_commands.NewRebaseCommands(gitCommon, commitCommands, workingTreeCommands)
 	stashCommands := git_commands.NewStashCommands(gitCommon, fileLoader, workingTreeCommands)
 	patchBuilder := patch.NewPatchBuilder(cmn.Log,
-		func(from string, to string, reverse bool, filename string, plain bool) (string, error) {
-			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, plain)
+		func(from string, to string, reverse bool, filename string, previousPath string, plain bool) (string, error) {
+			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, previousPath, plain)
 		})
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)

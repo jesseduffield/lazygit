@@ -191,11 +191,11 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 	}
 }
 
-func (self *CommitFilesController) copyDiffToClipboard(path string, toastMessage string) error {
+func (self *CommitFilesController) copyDiffToClipboard(paths []string, toastMessage string) error {
 	from, to := self.context().GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, []string{path}, true)
+	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, true)
 	diff, err := cmdObj.RunWithOutput()
 	if err != nil {
 		return err
@@ -263,7 +263,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyFileDiffItem := &types.MenuItem{
 		Label: self.c.Tr.CopySelectedDiff,
 		OnPress: func() error {
-			return self.copyDiffToClipboard(node.GetPath(), self.c.Tr.FileDiffCopiedToast)
+			return self.copyDiffToClipboard(self.pathsForDiff(node), self.c.Tr.FileDiffCopiedToast)
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
 		Keys:           menuKey('s'),
@@ -271,7 +271,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyAllDiff := &types.MenuItem{
 		Label: self.c.Tr.CopyAllFilesDiff,
 		OnPress: func() error {
-			return self.copyDiffToClipboard(".", self.c.Tr.AllFilesDiffCopiedToast)
+			return self.copyDiffToClipboard([]string{"."}, self.c.Tr.AllFilesDiffCopiedToast)
 		},
 		DisabledReason: self.require(self.itemsSelected())(),
 		Keys:           menuKey('a'),
@@ -348,7 +348,10 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 
 				for _, node := range selectedNodes {
 					_ = node.ForEachFile(func(file *models.CommitFile) error {
-						filePaths = append(filePaths, file.GetPath())
+						// For a rename we discard both the new and the old path,
+						// so that the new file is removed and the old one is
+						// restored.
+						filePaths = append(filePaths, file.Names()...)
 						return nil
 					})
 				}
@@ -465,7 +468,7 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 
 			for _, node := range selectedNodes {
 				err := node.ForEachFile(func(file *models.CommitFile) error {
-					return patchOperationFunction(file.Path)
+					return patchOperationFunction(file.Path, file.PreviousPath)
 				})
 				if err != nil {
 					return err
@@ -610,10 +613,15 @@ func (self *CommitFilesController) pathsForDiff(node *filetree.CommitFileNode) [
 	if !node.IsFile() && self.context().IsFiltering() {
 		var paths []string
 		_ = node.ForEachFile(func(file *models.CommitFile) error {
-			paths = append(paths, file.Path)
+			// For a rename we need to pass both paths so that git detects it as
+			// a rename rather than an unrelated delete and add.
+			paths = append(paths, file.Names()...)
 			return nil
 		})
 		return paths
+	}
+	if file := node.GetFile(); file != nil {
+		return file.Names()
 	}
 	return []string{node.GetPath()}
 }
