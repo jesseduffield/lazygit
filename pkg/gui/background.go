@@ -114,7 +114,7 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 		if self.gui.UserConfig().Gui.ShowBottomLine || firstTimeOrRetriggered {
 			return self.gui.helpers.AppStatus.WithWaitingStatusImpl(self.gui.Tr.FetchingStatus, func(gocui.Task) error {
 				return self.backgroundFetch()
-			}, nil)
+			}, nil, true)
 		}
 
 		return self.backgroundFetch()
@@ -198,7 +198,10 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 			if self.backgroundRefreshesPaused() {
 				return
 			}
-			self.gui.c.OnWorker(func(gocui.Task) error {
+			// OnWorkerBackground, not OnWorker: these routines and the refreshes
+			// they trigger must not count towards lazygit being busy, or they'd
+			// spuriously block a repo switch every time one happens to be running.
+			self.gui.c.OnWorkerBackground(func(gocui.Task) error {
 				_ = function(retriggered)
 				done <- struct{}{}
 				return nil

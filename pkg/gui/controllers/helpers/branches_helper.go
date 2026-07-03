@@ -398,7 +398,7 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool) er
 			if fetchErr != nil {
 				return nil
 			}
-			err := self.AutoForwardBranches()
+			err := self.AutoForwardBranches(background)
 			if background && err != nil {
 				// The background poller discards this return value, so surface
 				// the error in the log rather than as a popup for background work.
@@ -411,7 +411,7 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool) er
 	return fetchErr
 }
 
-func (self *BranchesHelper) AutoForwardBranches() error {
+func (self *BranchesHelper) AutoForwardBranches(background bool) error {
 	if self.c.UserConfig().Git.AutoForwardBranches == "none" {
 		return nil
 	}
@@ -443,7 +443,7 @@ func (self *BranchesHelper) AutoForwardBranches() error {
 	self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
 	err := self.c.Git().Branch.UpdateBranchRefs(updateCommands)
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Mode: types.SYNC})
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Mode: types.SYNC, Background: background})
 
 	return err
 }
