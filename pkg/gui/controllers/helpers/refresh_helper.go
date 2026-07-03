@@ -807,16 +807,30 @@ func (self *RefreshHelper) refreshStateFiles(background bool) error {
 	}
 
 	repoState := self.c.State().GetRepoState()
-	if self.c.Git().Status.WorkingTreeState().None() {
+	workingTreeState := self.c.Git().Status.WorkingTreeState()
+	if workingTreeState.None() {
 		// No operation is in progress (any more), so forget that we started one.
 		// This also covers an operation that was finished or aborted externally.
 		repoState.SetMergeOrRebaseStartedInLazygit(false)
-	} else if conflictFileCount == 0 && prevConflictFileCount > 0 && repoState.GetMergeOrRebaseStartedInLazygit() {
-		// The conflicts of an operation we started have just been resolved (e.g.
-		// in the user's editor). Offer to continue it. We only do this for
-		// operations we started ourselves; prompting for one that was started
-		// outside lazygit (e.g. by a coding agent) would be confusing.
-		self.c.OnUIThread(func() error { return self.mergeAndRebaseHelper.PromptToContinueRebase() })
+	}
+
+	if workingTreeState.Any() && conflictFileCount == 0 {
+		if prevConflictFileCount > 0 && repoState.GetMergeOrRebaseStartedInLazygit() {
+			// The conflicts of an operation we started have just been resolved
+			// (e.g. in the user's editor). Offer to continue it. We only do this
+			// for operations we started ourselves; prompting for one that was
+			// started outside lazygit (e.g. by a coding agent) would be confusing.
+			self.c.OnUIThread(func() error { return self.mergeAndRebaseHelper.PromptToContinueRebase() })
+		}
+	} else {
+		// Either there's no operation in progress any more, or new conflicts have
+		// appeared. Either way, a "continue?" prompt we're showing is now stale
+		// (e.g. the operation was continued or aborted outside lazygit), so
+		// dismiss it rather than leave the user with a prompt that would fail.
+		self.c.OnUIThread(func() error {
+			self.mergeAndRebaseHelper.DismissContinueRebasePromptIfShowing()
+			return nil
+		})
 	}
 
 	fileTreeViewModel.RWMutex.Lock()

@@ -163,6 +163,7 @@ var tests = []*components.IntegrationTest{
 	config.NegativeRefspec,
 	config.RemoteNamedStar,
 	config.SidePanelsInPerRepoConfig,
+	conflicts.ContinuePromptDismissedWhenResolvedExternally,
 	conflicts.Filter,
 	conflicts.MergeFileBoth,
 	conflicts.MergeFileCurrent,
