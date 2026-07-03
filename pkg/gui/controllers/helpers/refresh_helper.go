@@ -238,7 +238,14 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		if scopeSet.Includes(types.STAGING) {
 			refresh("staging", func() {
 				fileWg.Wait()
-				self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
+				// Bounce onto the UI thread so this runs after the files
+				// scope's model-update bounce — RefreshStagingPanel reads
+				// Model.Files (via Files.GetSelected) and would otherwise
+				// see the pre-refresh model.
+				self.c.OnUIThread(func() error {
+					self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
+					return nil
+				})
 			})
 		}
 
@@ -667,15 +674,8 @@ func (self *RefreshHelper) refreshTags() error {
 	return nil
 }
 
-func (self *RefreshHelper) refreshStateSubmoduleConfigs() error {
-	configs, err := self.c.Git().Submodule.GetConfigs(nil)
-	if err != nil {
-		return err
-	}
-
-	self.c.Model().Submodules = configs
-
-	return nil
+func (self *RefreshHelper) refreshStateSubmoduleConfigs() ([]*models.SubmoduleConfig, error) {
+	return self.c.Git().Submodule.GetConfigs(nil)
 }
 
 // self.refreshStatus is called at the end of this because that's when we can
@@ -743,25 +743,40 @@ func (self *RefreshHelper) refreshFilesAndSubmodules(background bool) error {
 	self.c.Mutexes().RefreshingFilesMutex.Lock()
 	defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
 
-	if err := self.refreshStateSubmoduleConfigs(); err != nil {
+	configs, err := self.refreshStateSubmoduleConfigs()
+	if err != nil {
 		return err
 	}
 
-	if err := self.refreshStateFiles(background); err != nil {
+	if err := self.refreshStateFiles(background, configs); err != nil {
 		return err
 	}
 
-	self.c.OnUIThread(func() error {
-		self.refreshView(self.c.Contexts().Submodules)
-		self.refreshView(self.c.Contexts().Files)
-		return nil
-	})
+	self.refreshView(self.c.Contexts().Submodules)
+	self.refreshView(self.c.Contexts().Files)
 
 	return nil
 }
 
-func (self *RefreshHelper) refreshStateFiles(background bool) error {
+// onUIThreadUnlessRepoChanged bounces a refresh's model/view update onto the UI
+// thread, but drops it if the repo was switched while the refresh was in flight.
+// Refresh workers do their git work off the UI thread and enqueue their model
+// writes here; a repo switch (which replaces the whole model and context tree)
+// bumps the generation, so a write captured under the old generation must not
+// clobber the new repo's state. Callers capture the generation with
+// State().GetRepoGeneration() before doing their git work and pass it in.
+func (self *RefreshHelper) onUIThreadUnlessRepoChanged(generation int, f func() error) {
+	self.c.OnUIThread(func() error {
+		if self.c.State().GetRepoGeneration() != generation {
+			return nil
+		}
+		return f()
+	})
+}
+
+func (self *RefreshHelper) refreshStateFiles(background bool, submoduleConfigs []*models.SubmoduleConfig) error {
 	fileTreeViewModel := self.c.Contexts().Files.FileTreeViewModel
+	generation := self.c.State().GetRepoGeneration()
 
 	prevConflictFileCount := 0
 	if self.c.UserConfig().Git.AutoStageResolvedConflicts {
@@ -822,7 +837,9 @@ func (self *RefreshHelper) refreshStateFiles(background bool) error {
 			// (e.g. in the user's editor). Offer to continue it. We only do this
 			// for operations we started ourselves; prompting for one that was
 			// started outside lazygit (e.g. by a coding agent) would be confusing.
-			self.c.OnUIThread(func() error { return self.mergeAndRebaseHelper.PromptToContinueRebase() })
+			self.onUIThreadUnlessRepoChanged(generation, func() error {
+				return self.mergeAndRebaseHelper.PromptToContinueRebase()
+			})
 		}
 	} else {
 		// Either there's no operation in progress any more, or new conflicts have
@@ -835,22 +852,23 @@ func (self *RefreshHelper) refreshStateFiles(background bool) error {
 		})
 	}
 
-	fileTreeViewModel.RWMutex.Lock()
-
-	// only taking over the filter if it hasn't already been set by the user.
-	if conflictFileCount > 0 && prevConflictFileCount == 0 {
-		if fileTreeViewModel.GetStatusFilter() == filetree.DisplayAll {
-			fileTreeViewModel.SetStatusFilter(filetree.DisplayConflicted)
-			self.c.Contexts().Files.GetView().Subtitle = self.c.Tr.FilterLabelConflictingFiles
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		// only taking over the filter if it hasn't already been set by the user.
+		if conflictFileCount > 0 && prevConflictFileCount == 0 {
+			if fileTreeViewModel.GetStatusFilter() == filetree.DisplayAll {
+				fileTreeViewModel.SetStatusFilter(filetree.DisplayConflicted)
+				self.c.Contexts().Files.GetView().Subtitle = self.c.Tr.FilterLabelConflictingFiles
+			}
+		} else if conflictFileCount == 0 && fileTreeViewModel.GetStatusFilter() == filetree.DisplayConflicted {
+			fileTreeViewModel.SetStatusFilter(filetree.DisplayAll)
+			self.c.Contexts().Files.GetView().Subtitle = ""
 		}
-	} else if conflictFileCount == 0 && fileTreeViewModel.GetStatusFilter() == filetree.DisplayConflicted {
-		fileTreeViewModel.SetStatusFilter(filetree.DisplayAll)
-		self.c.Contexts().Files.GetView().Subtitle = ""
-	}
 
-	self.c.Model().Files = files
-	fileTreeViewModel.SetTree()
-	fileTreeViewModel.RWMutex.Unlock()
+		self.c.Model().Submodules = submoduleConfigs
+		self.c.Model().Files = files
+		fileTreeViewModel.SetTree()
+		return nil
+	})
 
 	return nil
 }

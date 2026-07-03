@@ -307,6 +307,10 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 			// Need to refresh the files to be really sure if this is the case.
 			// We would otherwise be relying on lazygit's auto-refresh on focus,
 			// but this is not supported by all terminals or on all platforms.
+			//
+			// The model.Files update is bounced onto the UI thread, so we have
+			// to read it in Then; reading it inline here would see the previous
+			// model.
 			self.c.Refresh(types.RefreshOptions{
 				Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES},
 				Then: func() error {

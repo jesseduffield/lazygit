@@ -384,6 +384,13 @@ type IStateAccessor interface {
 	GetItemOperation(item HasUrn) ItemOperation
 	SetItemOperation(item HasUrn, operation ItemOperation)
 	ClearItemOperation(item HasUrn)
+
+	// A counter that is bumped every time we switch to a different repository
+	// (see Gui.resetState). Refresh workers capture it before doing their git
+	// work and pass it to onUIThreadUnlessRepoChanged, so that a model update
+	// computed for one repo can be dropped rather than applied to another if the
+	// user switched repos while the refresh was in flight.
+	GetRepoGeneration() int
 }
 
 type IRepoStateAccessor interface {
