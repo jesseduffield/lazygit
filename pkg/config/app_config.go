@@ -136,8 +136,23 @@ func findOrCreateConfigDir() (string, error) {
 	return folder, os.MkdirAll(folder, 0o755)
 }
 
+// KeybindingPlatform returns the platform whose default keybindings should be
+// used. Normally this is the OS we're running on, but it can be overridden with
+// the LAZYGIT_KEYBINDING_PLATFORM environment variable; this is useful e.g. when
+// running lazygit in a Linux container that you access over ssh from a Mac, and
+// you'd rather use the Mac keybindings. An unrecognized value falls back to the
+// real OS, which gives meaningful bindings, rather than to the (arbitrary)
+// non-darwin defaults.
+func KeybindingPlatform() string {
+	platform := os.Getenv("LAZYGIT_KEYBINDING_PLATFORM")
+	if lo.Contains([]string{"darwin", "linux", "windows"}, platform) {
+		return platform
+	}
+	return runtime.GOOS
+}
+
 func loadUserConfigWithDefaults(configFiles []*ConfigFile, isGuiInitialized bool) (*UserConfig, error) {
-	return loadUserConfig(configFiles, GetDefaultConfigForPlatform(runtime.GOOS), isGuiInitialized)
+	return loadUserConfig(configFiles, GetDefaultConfigForPlatform(KeybindingPlatform()), isGuiInitialized)
 }
 
 func loadUserConfig(configFiles []*ConfigFile, base *UserConfig, isGuiInitialized bool) (*UserConfig, error) {
