@@ -979,8 +979,15 @@ func (self *RefreshHelper) refreshWorktrees() {
 }
 
 func (self *RefreshHelper) refreshStashEntries() {
-	self.c.Model().StashEntries = self.c.Git().Loaders.StashLoader.
+	generation := self.c.State().GetRepoGeneration()
+
+	stashEntries := self.c.Git().Loaders.StashLoader.
 		GetStashEntries(self.c.Modes().Filtering.GetPath())
+
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		self.c.Model().StashEntries = stashEntries
+		return nil
+	})
 
 	self.refreshView(self.c.Contexts().Stash)
 }
