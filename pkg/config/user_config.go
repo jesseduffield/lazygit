@@ -724,8 +724,8 @@ type CustomCommand struct {
 	LoadingText string `yaml:"loadingText" jsonschema:"example=Loading..."`
 	// Label for the custom command when displayed in the keybindings menu
 	Description string `yaml:"description"`
-	// Where the output of the command should go. 'none' discards it, 'terminal' suspends lazygit and runs the command in the terminal (useful for commands that require user input), 'log' streams it to the command log, 'logWithPty' is like 'log' but runs the command in a pseudo terminal (can be useful for commands that produce colored output when the output is a terminal), and 'popup' shows it in a popup.
-	Output string `yaml:"output" jsonschema:"enum=none,enum=terminal,enum=log,enum=logWithPty,enum=popup"`
+	// Where the output of the command should go. 'none' discards it, 'terminal' suspends lazygit and runs the command in the terminal (useful for commands that require user input), 'log' streams it to the command log, 'logWithPty' is like 'log' but runs the command in a pseudo terminal (can be useful for commands that produce colored output when the output is a terminal), 'popup' shows it in a popup, and 'commitMessagePanel' opens the commit message panel with the command output as the initial message.
+	Output string `yaml:"output" jsonschema:"enum=none,enum=terminal,enum=log,enum=logWithPty,enum=popup,enum=commitMessagePanel"`
 	// The title to display in the popup panel if output is set to 'popup'. If left unset, the command will be used as the title.
 	OutputTitle string `yaml:"outputTitle"`
 	// Actions to take after the command has completed
@@ -748,6 +748,8 @@ type CustomCommandPrompt struct {
 	Key string `yaml:"key"`
 	// The title to display in the popup panel
 	Title string `yaml:"title"`
+	// Text to display while resolving the prompt, loading suggestions, or generating menuFromCommand options.
+	LoadingText string `yaml:"loadingText" jsonschema:"example=Loading..."`
 
 	// The initial value to appear in the text box.
 	// Only for input prompts.

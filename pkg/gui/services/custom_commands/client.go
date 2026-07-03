@@ -26,6 +26,7 @@ func NewClient(
 		sessionStateLoader,
 		helpers.Suggestions,
 		helpers.MergeAndRebase,
+		helpers.WorkingTree,
 	)
 	keybindingCreator := NewKeybindingCreator(c)
 
