@@ -918,44 +918,53 @@ func (self *RefreshHelper) refreshStateFiles(background bool, submoduleConfigs [
 // that a subsequent branches refresh can use them for recency sorting without
 // having to read them back out of the model.
 func (self *RefreshHelper) refreshReflogCommits() ([]*models.Commit, error) {
+	generation := self.c.State().GetRepoGeneration()
 	// pulling state into its own variable in case it gets swapped out for another state
 	// and we get an out of bounds exception
 	model := self.c.Model()
 
-	refresh := func(stateCommits *[]*models.Commit, filterPath string, filterAuthor string) error {
+	// load does the git work on the worker and returns the new value for a
+	// reflog slice, reading the existing slice for the incremental fetch. The
+	// caller writes the result in the bounce.
+	load := func(existing []*models.Commit, filterPath string, filterAuthor string) ([]*models.Commit, error) {
 		var lastReflogCommit *models.Commit
-		if filterPath == "" && filterAuthor == "" && len(*stateCommits) > 0 {
-			lastReflogCommit = (*stateCommits)[0]
+		if filterPath == "" && filterAuthor == "" && len(existing) > 0 {
+			lastReflogCommit = existing[0]
 		}
 
 		commits, onlyObtainedNewReflogCommits, err := self.c.Git().Loaders.ReflogCommitLoader.
-			GetReflogCommits(self.c.Model().HashPool, lastReflogCommit, filterPath, filterAuthor)
+			GetReflogCommits(model.HashPool, lastReflogCommit, filterPath, filterAuthor)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if onlyObtainedNewReflogCommits {
-			*stateCommits = append(commits, *stateCommits...)
-		} else {
-			*stateCommits = commits
+			return append(commits, existing...), nil
 		}
-		return nil
+		return commits, nil
 	}
 
-	if err := refresh(&model.ReflogCommits, "", ""); err != nil {
+	reflogCommits, err := load(model.ReflogCommits, "", "")
+	if err != nil {
 		return nil, err
 	}
 
+	filteredReflogCommits := reflogCommits
 	if self.c.Modes().Filtering.Active() {
-		if err := refresh(&model.FilteredReflogCommits, self.c.Modes().Filtering.GetPath(), self.c.Modes().Filtering.GetAuthor()); err != nil {
+		filteredReflogCommits, err = load(model.FilteredReflogCommits, self.c.Modes().Filtering.GetPath(), self.c.Modes().Filtering.GetAuthor())
+		if err != nil {
 			return nil, err
 		}
-	} else {
-		model.FilteredReflogCommits = model.ReflogCommits
 	}
 
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		model.ReflogCommits = reflogCommits
+		model.FilteredReflogCommits = filteredReflogCommits
+		return nil
+	})
+
 	self.refreshView(self.c.Contexts().ReflogCommits)
-	return model.ReflogCommits, nil
+	return reflogCommits, nil
 }
 
 func (self *RefreshHelper) refreshRemotes() error {
