@@ -942,6 +942,7 @@ func (self *RefreshHelper) refreshReflogCommits() error {
 }
 
 func (self *RefreshHelper) refreshRemotes() error {
+	generation := self.c.State().GetRepoGeneration()
 	prevSelectedRemote := self.c.Contexts().Remotes.GetSelected()
 
 	remotes, err := self.c.Git().Loaders.RemoteLoader.GetRemotes()
@@ -949,25 +950,28 @@ func (self *RefreshHelper) refreshRemotes() error {
 		return err
 	}
 
-	self.c.Model().Remotes = remotes
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		self.c.Model().Remotes = remotes
 
-	hadPrs := len(self.c.Model().PullRequestsMap) != 0
-	self.rebuildPullRequestsMap()
-	if !hadPrs && len(self.c.Model().PullRequestsMap) != 0 {
-		// if we didn't have PRs in the map before but now we do, we need to redraw the branches view
-		self.refreshView(self.c.Contexts().Branches)
-	}
+		hadPrs := len(self.c.Model().PullRequestsMap) != 0
+		self.rebuildPullRequestsMap()
+		if !hadPrs && len(self.c.Model().PullRequestsMap) != 0 {
+			// if we didn't have PRs in the map before but now we do, we need to redraw the branches view
+			self.refreshView(self.c.Contexts().Branches)
+		}
 
-	// we need to ensure our selected remote branches aren't now outdated
-	if prevSelectedRemote != nil && self.c.Model().RemoteBranches != nil {
-		// find remote now
-		for _, remote := range remotes {
-			if remote.Name == prevSelectedRemote.Name {
-				self.c.Model().RemoteBranches = remote.Branches
-				break
+		// we need to ensure our selected remote branches aren't now outdated
+		if prevSelectedRemote != nil && self.c.Model().RemoteBranches != nil {
+			// find remote now
+			for _, remote := range remotes {
+				if remote.Name == prevSelectedRemote.Name {
+					self.c.Model().RemoteBranches = remote.Branches
+					break
+				}
 			}
 		}
-	}
+		return nil
+	})
 
 	self.refreshView(self.c.Contexts().Remotes)
 	self.refreshView(self.c.Contexts().RemoteBranches)

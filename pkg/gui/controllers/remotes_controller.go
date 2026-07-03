@@ -156,24 +156,28 @@ func (self *RemotesController) addAndCheckoutRemote(remoteName string, remoteUrl
 		return err
 	}
 
-	// Do a sync refresh of the remotes so that we can select
-	// the new one. Loading remotes is not expensive, so we can
-	// afford it.
+	// Refresh the remotes so that we can select the new one. The remotes model
+	// update is bounced onto the UI thread, so the selection (which reads
+	// Model.Remotes) has to run in Then; reading it inline here would see the
+	// previous model. Loading remotes is not expensive, so a sync refresh is
+	// affordable.
 	self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.REMOTES},
 		Mode:  types.SYNC,
+		Then: func() error {
+			// Select the remote
+			for idx, remote := range self.c.Model().Remotes {
+				if remote.Name == remoteName {
+					self.c.Contexts().Remotes.SetSelection(idx)
+					break
+				}
+			}
+
+			// Fetch the remote
+			return self.fetchAndCheckout(self.c.Contexts().Remotes.GetSelected(), branchToCheckout)
+		},
 	})
-
-	// Select the remote
-	for idx, remote := range self.c.Model().Remotes {
-		if remote.Name == remoteName {
-			self.c.Contexts().Remotes.SetSelection(idx)
-			break
-		}
-	}
-
-	// Fetch the remote
-	return self.fetchAndCheckout(self.c.Contexts().Remotes.GetSelected(), branchToCheckout)
+	return nil
 }
 
 // Ensures the fork remote exists (matching the given URL).
