@@ -416,6 +416,7 @@ func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepB
 }
 
 func (self *RefreshHelper) refreshCommitsAndCommitFiles(commitSelection types.CommitSelectionBehavior) {
+	generation := self.c.State().GetRepoGeneration()
 	_ = self.refreshCommitsWithLimit(commitSelection)
 	ctx := self.c.Contexts().CommitFiles.GetParentContext()
 	if ctx != nil && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
@@ -425,12 +426,22 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles(commitSelection types.Co
 		// Ideally we would know when to refresh the commit files context and when not to,
 		// or perhaps we could just pop that context off the stack whenever cycling windows.
 		// For now the awkwardness remains.
-		commit := self.c.Contexts().LocalCommits.GetSelected()
-		if commit != nil && commit.RefName() != "" {
-			refRange := self.c.Contexts().LocalCommits.GetSelectedRefRangeForDiffFiles()
-			self.c.Contexts().CommitFiles.ReInit(commit, refRange)
-			_ = self.refreshCommitFilesContext()
-		}
+		//
+		// The commit selection is restored in refreshCommitsWithLimit's bounce,
+		// so read it on the UI thread after that bounce; then load the commit
+		// files back on a worker (refreshCommitFilesContext does git work).
+		self.onUIThreadUnlessRepoChanged(generation, func() error {
+			commit := self.c.Contexts().LocalCommits.GetSelected()
+			if commit != nil && commit.RefName() != "" {
+				refRange := self.c.Contexts().LocalCommits.GetSelectedRefRangeForDiffFiles()
+				self.c.Contexts().CommitFiles.ReInit(commit, refRange)
+				self.c.OnWorker(func(gocui.Task) error {
+					_ = self.refreshCommitFilesContext()
+					return nil
+				})
+			}
+			return nil
+		})
 	}
 }
 
@@ -464,6 +475,8 @@ func (self *RefreshHelper) refreshCommitsWithLimit(commitSelection types.CommitS
 	self.c.Mutexes().LocalCommitsMutex.Lock()
 	defer self.c.Mutexes().LocalCommitsMutex.Unlock()
 
+	generation := self.c.State().GetRepoGeneration()
+
 	var selectionRange *localCommitSelectionRange
 	if commitSelection == types.KeepCommitSelectionByHash {
 		selectedIdx, rangeStartIdx, rangeSelectMode := self.c.Contexts().LocalCommits.GetSelectionRangeAndMode()
@@ -471,13 +484,14 @@ func (self *RefreshHelper) refreshCommitsWithLimit(commitSelection types.CommitS
 	}
 
 	checkedOutRef := self.determineCheckedOutRef()
+	refName, bisectInfo := self.refForLog()
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
 			Limit:                self.c.Contexts().LocalCommits.GetLimitCommits(),
 			FilterPath:           self.c.Modes().Filtering.GetPath(),
 			FilterAuthor:         self.c.Modes().Filtering.GetAuthor(),
 			IncludeRebaseCommits: true,
-			RefName:              self.refForLog(),
+			RefName:              refName,
 			RefForPushedStatus:   checkedOutRef,
 			All:                  self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
 			MainBranches:         self.c.Model().MainBranches,
@@ -487,41 +501,51 @@ func (self *RefreshHelper) refreshCommitsWithLimit(commitSelection types.CommitS
 	if err != nil {
 		return err
 	}
-	self.c.Model().Commits = commits
-	self.RefreshAuthors(commits)
-	self.c.Model().WorkingTreeStateAtLastCommitRefresh = self.c.Git().Status.WorkingTreeState()
-	if checkedOutRef != nil {
-		self.c.Model().CheckedOutBranch = checkedOutRef.RefName()
-	} else {
-		self.c.Model().CheckedOutBranch = ""
-	}
+	workingTreeState := self.c.Git().Status.WorkingTreeState()
 
-	scrollSelectionIntoView := false
-	switch commitSelection {
-	case types.SelectHeadCommit:
-		if headCommitIdx := models.HeadCommitIdx(commits); headCommitIdx >= 0 {
-			self.c.Contexts().LocalCommits.SetSelection(headCommitIdx)
-			scrollSelectionIntoView = true
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		self.c.Model().BisectInfo = bisectInfo
+		self.c.Model().Commits = commits
+		self.RefreshAuthors(commits)
+		self.c.Model().WorkingTreeStateAtLastCommitRefresh = workingTreeState
+		if checkedOutRef != nil {
+			self.c.Model().CheckedOutBranch = checkedOutRef.RefName()
+		} else {
+			self.c.Model().CheckedOutBranch = ""
 		}
-	case types.KeepCommitSelectionByHash:
-		if selectionRange != nil {
-			selectedIdx, rangeStartIdx, didMove, found := findLocalCommitSelectionRange(commits, selectionRange)
-			if found {
-				self.c.Contexts().LocalCommits.SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, selectionRange.mode)
-				scrollSelectionIntoView = didMove
+
+		scrollSelectionIntoView := false
+		switch commitSelection {
+		case types.SelectHeadCommit:
+			if headCommitIdx := models.HeadCommitIdx(commits); headCommitIdx >= 0 {
+				self.c.Contexts().LocalCommits.SetSelection(headCommitIdx)
+				scrollSelectionIntoView = true
 			}
+		case types.KeepCommitSelectionByHash:
+			if selectionRange != nil {
+				selectedIdx, rangeStartIdx, didMove, found := findLocalCommitSelectionRange(commits, selectionRange)
+				if found {
+					self.c.Contexts().LocalCommits.SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, selectionRange.mode)
+					scrollSelectionIntoView = didMove
+				}
+			}
+		case types.KeepCommitSelectionIndex:
+			// The caller set the selection index deliberately; leave it untouched.
 		}
-	case types.KeepCommitSelectionIndex:
-		// The caller set the selection index deliberately; leave it untouched.
-	}
+
+		if scrollSelectionIntoView {
+			// Enqueued from within this bounce so it runs after refreshView's
+			// render below (which was enqueued first), matching the previous
+			// ordering where FocusLine ran after the view was re-rendered.
+			self.onUIThreadUnlessRepoChanged(generation, func() error {
+				self.c.Contexts().LocalCommits.FocusLine(true)
+				return nil
+			})
+		}
+		return nil
+	})
 
 	self.refreshView(self.c.Contexts().LocalCommits)
-	if scrollSelectionIntoView {
-		self.c.OnUIThread(func() error {
-			self.c.Contexts().LocalCommits.FocusLine(true)
-			return nil
-		})
-	}
 	return nil
 }
 
@@ -1069,20 +1093,23 @@ func (self *RefreshHelper) refreshStatus() {
 	})
 }
 
-func (self *RefreshHelper) refForLog() string {
+// refForLog returns the ref to log commits from, along with the bisect info it
+// read to decide that. The caller writes the bisect info to the model (in its
+// bounce) rather than refForLog doing it, so the model write stays on the UI
+// thread.
+func (self *RefreshHelper) refForLog() (string, *git_commands.BisectInfo) {
 	bisectInfo := self.c.Git().Bisect.GetInfo()
-	self.c.Model().BisectInfo = bisectInfo
 
 	if !bisectInfo.Started() {
-		return "HEAD"
+		return "HEAD", bisectInfo
 	}
 
 	// need to see if our bisect's current commit is reachable from our 'new' ref.
 	if bisectInfo.Bisecting() && !self.c.Git().Bisect.ReachableFromStart(bisectInfo) {
-		return bisectInfo.GetNewHash()
+		return bisectInfo.GetNewHash(), bisectInfo
 	}
 
-	return bisectInfo.GetStartHash()
+	return bisectInfo.GetStartHash(), bisectInfo
 }
 
 func (self *RefreshHelper) refreshView(context types.Context) {
