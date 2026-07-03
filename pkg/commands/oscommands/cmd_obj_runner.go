@@ -219,6 +219,10 @@ type cmdHandler struct {
 	stdoutPipe io.Reader
 	stdinPipe  io.Writer
 	close      func() error
+	// wait blocks until the child process exits. Needed as a separate
+	// field because the pty path on Windows spawns via CreateProcess and
+	// never runs *exec.Cmd.Start — so cmd.Wait wouldn't work there.
+	wait func() error
 }
 
 func (self *cmdObjRunner) runAndStream(cmdObj *CmdObj) error {
@@ -274,7 +278,7 @@ func (self *cmdObjRunner) runAndStreamAux(
 
 	onRun(handler, cmdWriter)
 
-	err = cmd.Wait()
+	err = handler.wait()
 
 	self.log.Infof("%s (%s)", cmdObj.ToString(), time.Since(t))
 
@@ -376,9 +380,7 @@ func (self *cmdObjRunner) processOutput(
 			responseChan := promptUserForCredential(askFor)
 			if responseChan == nil {
 				// Returning a nil channel means we should terminate the process.
-				// We achieve this by closing the pty that it's running in. Note that this won't
-				// work for the case where we're not running in a pty (i.e. on Windows), but
-				// in that case we'll never be prompted for credentials, so it's not a concern.
+				// We achieve this by closing the pty that it's running in.
 				if err := closeFunc(); err != nil {
 					self.log.Error(err)
 				}
@@ -481,5 +483,21 @@ func (self *cmdObjRunner) getCmdHandlerNonPty(cmd *exec.Cmd) (*cmdHandler, error
 		stdoutPipe: stdoutReader,
 		stdinPipe:  buf,
 		close:      func() error { return nil },
+		wait:       cmd.Wait,
+	}, nil
+}
+
+func (self *cmdObjRunner) getCmdHandlerPty(cmd *exec.Cmd) (*cmdHandler, error) {
+	// Size will be adjusted by the caller if it cares; this just avoids a
+	// zero-size pty.
+	sp, err := StartPty(cmd, 80, 24)
+	if err != nil {
+		return nil, err
+	}
+	return &cmdHandler{
+		stdoutPipe: sp.Pty,
+		stdinPipe:  sp.Pty,
+		close:      sp.Pty.Close,
+		wait:       sp.Wait,
 	}, nil
 }

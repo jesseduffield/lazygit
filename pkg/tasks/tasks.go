@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -14,6 +15,25 @@ import (
 	"github.com/sasha-s/go-deadlock"
 	"github.com/sirupsen/logrus"
 )
+
+// Cmd abstracts over a started external process. *exec.Cmd satisfies the bulk
+// of it via ExecCmd, but pty implementations can supply their own types — on
+// Windows, ConPTY has to spawn via CreateProcess directly and can't use
+// *exec.Cmd (see golang/go#62708).
+type Cmd interface {
+	Wait() error
+	String() string
+	GetProcess() *os.Process
+}
+
+// ExecCmd adapts *exec.Cmd to Cmd.
+type ExecCmd struct {
+	*exec.Cmd
+}
+
+func (c ExecCmd) GetProcess() *os.Process {
+	return c.Process
+}
 
 // This file revolves around running commands that will be output to the main panel
 // in the gui. If we're flicking through the commits panel, we want to invoke a
@@ -117,7 +137,7 @@ func (self *ViewBufferManager) ReadToEnd(then func()) {
 	}
 }
 
-func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
+func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
 	return func(opts TaskOpts) error {
 		var onDoneOnce sync.Once
 		var onFirstPageShownOnce sync.Once
@@ -173,8 +193,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				//
 				// Unfortunately this will do nothing on Windows, so Windows users will have to live
 				// with the higher CPU usage.
-				if err := oscommands.TerminateProcessGracefully(cmd); err != nil {
-					self.Log.Errorf("error when trying to terminate cmd task: %v; Command: %v %v", err, cmd.Path, cmd.Args)
+				if err := oscommands.TerminateProcessGracefully(cmd.GetProcess()); err != nil {
+					self.Log.Errorf("error when trying to terminate cmd task: %v; Command: %v", err, cmd.String())
 				}
 
 				// close the task's stdout pipe (or the pty if we're using one) to make the command terminate
@@ -338,7 +358,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				go func() { _ = cmd.Wait() }()
 			default:
 				if err := cmd.Wait(); err != nil {
-					self.Log.Errorf("Unexpected error when running cmd task: %v; Failed command: %v %v", err, cmd.Path, cmd.Args)
+					self.Log.Errorf("Unexpected error when running cmd task: %v; Failed command: %v", err, cmd.String())
 				}
 			}
 

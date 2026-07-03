@@ -43,13 +43,13 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 
 	stop := make(chan struct{})
 	reader := bytes.NewBufferString("test")
-	start := func() (*exec.Cmd, io.Reader) {
+	start := func() (Cmd, io.Reader) {
 		// not actually starting this because it's not necessary
 		cmd := exec.Command("blah")
 
 		close(stop)
 
-		return cmd, reader
+		return ExecCmd{Cmd: cmd}, reader
 	}
 
 	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{20, -1, nil}, onDone)
@@ -108,11 +108,11 @@ func TestNewCmdTask(t *testing.T) {
 
 	stop := make(chan struct{})
 	reader := bytes.NewBufferString("test")
-	start := func() (*exec.Cmd, io.Reader) {
+	start := func() (Cmd, io.Reader) {
 		// not actually starting this because it's not necessary
 		cmd := exec.Command("blah")
 
-		return cmd, reader
+		return ExecCmd{Cmd: cmd}, reader
 	}
 
 	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{20, -1, nil}, onDone)
@@ -241,11 +241,11 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 
 		stop := make(chan struct{})
 		reader := BlankLineReader{totalLinesToYield: s.totalTaskLines}
-		start := func() (*exec.Cmd, io.Reader) {
+		start := func() (Cmd, io.Reader) {
 			// not actually starting this because it's not necessary
 			cmd := exec.Command("blah")
 
-			return cmd, &reader
+			return ExecCmd{Cmd: cmd}, &reader
 		}
 
 		fn := manager.NewCmdTask(start, "", s.linesToRead, func() {})
