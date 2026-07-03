@@ -387,11 +387,28 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool) er
 	if self.c.UserConfig().Git.AutoForwardBranches != "none" {
 		scope = append(scope, types.WORKTREES)
 	}
-	self.c.Refresh(types.RefreshOptions{Scope: scope, Mode: types.SYNC, Background: background})
-	if fetchErr != nil {
-		return fetchErr
-	}
-	return self.AutoForwardBranches()
+	// AutoForwardBranches reads Model.Branches, which the branches refresh writes
+	// via a bounce, so it has to run in Then rather than right after Refresh
+	// returns (where it would still see the previous branches).
+	self.c.Refresh(types.RefreshOptions{
+		Scope:      scope,
+		Mode:       types.SYNC,
+		Background: background,
+		Then: func() error {
+			if fetchErr != nil {
+				return nil
+			}
+			err := self.AutoForwardBranches()
+			if background && err != nil {
+				// The background poller discards this return value, so surface
+				// the error in the log rather than as a popup for background work.
+				self.c.Log.Error(err)
+				return nil
+			}
+			return err
+		},
+	})
+	return fetchErr
 }
 
 func (self *BranchesHelper) AutoForwardBranches() error {

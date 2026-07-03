@@ -742,6 +742,8 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	self.c.Mutexes().RefreshingBranchesMutex.Lock()
 	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
 
+	generation := self.c.State().GetRepoGeneration()
+
 	branches, err := self.c.Git().Loaders.BranchLoader.Load(
 		reflogCommits,
 		self.c.Model().MainBranches,
@@ -753,7 +755,7 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 			})
 		},
 		func() {
-			self.c.OnUIThread(func() error {
+			self.onUIThreadUnlessRepoChanged(generation, func() error {
 				self.c.Contexts().Branches.HandleRender()
 				self.refreshStatus()
 				return nil
@@ -765,37 +767,41 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 
 	prevSelectedBranch := self.c.Contexts().Branches.GetSelected()
 
-	self.c.Model().Branches = branches
-	self.rebuildPullRequestsMap()
-
+	var worktrees []*models.Worktree
 	if refreshWorktrees {
-		// TODO: this synchronous worker write goes away when refreshBranches is
-		// itself migrated to bouncing; for now it matches the rest of this
-		// not-yet-bounced function.
-		self.c.Model().Worktrees = self.loadWorktrees()
-		self.refreshView(self.c.Contexts().Worktrees)
+		worktrees = self.loadWorktrees()
 	}
 
-	if !keepBranchSelectionIndex && prevSelectedBranch != nil {
-		self.searchHelper.ReApplyFilter(self.c.Contexts().Branches)
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		self.c.Model().Branches = branches
+		// Rebuilding here (rather than on the worker) means the map is built from
+		// the branches we just wrote, on the UI thread.
+		self.rebuildPullRequestsMap()
 
-		_, idx, found := lo.FindIndexOf(self.c.Contexts().Branches.GetItems(),
-			func(b *models.Branch) bool { return b.Name == prevSelectedBranch.Name })
-		if found {
-			self.c.Contexts().Branches.SetSelectedLineIdx(idx)
+		if refreshWorktrees {
+			self.c.Model().Worktrees = worktrees
+			self.refreshView(self.c.Contexts().Worktrees)
 		}
-	}
 
-	self.refreshView(self.c.Contexts().Branches)
+		if !keepBranchSelectionIndex && prevSelectedBranch != nil {
+			self.searchHelper.ReApplyFilter(self.c.Contexts().Branches)
 
-	// Need to re-render the commits view because the visualization of local
-	// branch heads might have changed
-	self.c.OnUIThread(func() error {
+			_, idx, found := lo.FindIndexOf(self.c.Contexts().Branches.GetItems(),
+				func(b *models.Branch) bool { return b.Name == prevSelectedBranch.Name })
+			if found {
+				self.c.Contexts().Branches.SetSelectedLineIdx(idx)
+			}
+		}
+
+		// Need to re-render the commits view because the visualization of local
+		// branch heads might have changed
 		self.c.Mutexes().LocalCommitsMutex.Lock()
 		self.c.Contexts().LocalCommits.HandleRender()
 		self.c.Mutexes().LocalCommitsMutex.Unlock()
 		return nil
 	})
+
+	self.refreshView(self.c.Contexts().Branches)
 
 	self.refreshStatus()
 }
@@ -1074,20 +1080,22 @@ func (self *RefreshHelper) refreshStatus() {
 
 	generation := self.c.State().GetRepoGeneration()
 
-	currentBranch := self.refsHelper.GetCheckedOutRef()
-	if currentBranch == nil {
-		// need to wait for branches to refresh
-		return
-	}
-
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
-	linkedWorktreeName := self.worktreeHelper.GetLinkedWorktreeName()
-
 	repoName := self.c.Git().RepoPaths.RepoName()
 
-	status := presentation.FormatStatus(repoName, currentBranch, types.ItemOperationNone, linkedWorktreeName, workingTreeState, self.c.Tr, self.c.UserConfig())
-
 	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		// Read the checked-out branch and the linked worktree name here on the UI
+		// thread: both derive from models (Branches, Worktrees) that their
+		// refreshes now write via bounces, so reading them on the worker would
+		// see stale values from before those bounces applied.
+		currentBranch := self.refsHelper.GetCheckedOutRef()
+		if currentBranch == nil {
+			// need to wait for branches to refresh
+			return nil
+		}
+		linkedWorktreeName := self.worktreeHelper.GetLinkedWorktreeName()
+
+		status := presentation.FormatStatus(repoName, currentBranch, types.ItemOperationNone, linkedWorktreeName, workingTreeState, self.c.Tr, self.c.UserConfig())
 		self.c.SetViewContent(self.c.Views().Status, status)
 		return nil
 	})

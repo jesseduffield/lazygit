@@ -783,19 +783,24 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 					return err
 				}
 
-				// need to find where the branch is now so that we can re-select it. That means we need to refetch the branches synchronously and then find our branch
+				// need to find where the branch is now so that we can re-select it. That means we need to
+				// refetch the branches and then find our branch. The branches model update is bounced
+				// onto the UI thread, so the re-selection (which reads Model.Branches) has to run in
+				// Then; reading it inline here would see the previous model.
 				self.c.Refresh(types.RefreshOptions{
 					Mode:  types.SYNC,
 					Scope: []types.RefreshableView{types.BRANCHES, types.WORKTREES},
+					Then: func() error {
+						// now that we've got our stuff again we need to find that branch and reselect it.
+						for i, newBranch := range self.c.Model().Branches {
+							if newBranch.Name == newBranchName {
+								self.context().SetSelection(i)
+								self.context().HandleRender()
+							}
+						}
+						return nil
+					},
 				})
-
-				// now that we've got our stuff again we need to find that branch and reselect it.
-				for i, newBranch := range self.c.Model().Branches {
-					if newBranch.Name == newBranchName {
-						self.context().SetSelection(i)
-						self.context().HandleRender()
-					}
-				}
 
 				return nil
 			},
