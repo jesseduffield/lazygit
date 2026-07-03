@@ -75,13 +75,22 @@ type IGuiCommon interface {
 	// Only necessary to call if you're not already on the UI thread i.e. you're inside a goroutine.
 	// All controller handlers are executed on the UI thread.
 	OnUIThread(f func() error)
+	// Like OnUIThread, but for work triggered by a background routine, so it
+	// doesn't count towards lazygit being busy (see the *Background methods on
+	// gocui.Gui and repo-switch safety).
+	OnUIThreadBackground(f func() error)
 	// Like OnUIThread, but signals that the callback only modifies view
 	// content (e.g. spinner), allows the event loop to skip
 	// the expensive layout recalculation when only content changed.
 	OnUIThreadContentOnly(f func() error)
+	// Like OnUIThreadContentOnly, but for background work (see OnUIThreadBackground).
+	OnUIThreadContentOnlyBackground(f func() error)
 	// Runs a function in a goroutine. Use this whenever you want to run a goroutine and keep track of the fact
 	// that lazygit is still busy. See docs/dev/Busy.md
 	OnWorker(f func(gocui.Task) error)
+	// Like OnWorker, but for a background routine (or work it triggers), so it
+	// doesn't count towards lazygit being busy (see OnUIThreadBackground).
+	OnWorkerBackground(f func(gocui.Task) error)
 	// Function to call at the end of our 'layout' function which renders views
 	// For example, you may want a view's line to be focused only after that view is
 	// resized, if in accordion mode.

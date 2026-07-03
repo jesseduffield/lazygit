@@ -124,12 +124,24 @@ func (self *guiCommon) OnUIThread(f func() error) {
 	self.gui.onUIThread(f)
 }
 
+func (self *guiCommon) OnUIThreadBackground(f func() error) {
+	self.gui.onUIThreadBackground(f)
+}
+
 func (self *guiCommon) OnUIThreadContentOnly(f func() error) {
 	self.gui.onUIThreadContentOnly(f)
 }
 
+func (self *guiCommon) OnUIThreadContentOnlyBackground(f func() error) {
+	self.gui.onUIThreadContentOnlyBackground(f)
+}
+
 func (self *guiCommon) OnWorker(f func(gocui.Task) error) {
 	self.gui.onWorker(f)
+}
+
+func (self *guiCommon) OnWorkerBackground(f func(gocui.Task) error) {
+	self.gui.onWorkerBackground(f)
 }
 
 func (self *guiCommon) RenderToMainViews(opts types.RefreshMainOpts) {

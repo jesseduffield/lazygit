@@ -1194,14 +1194,30 @@ func (gui *Gui) onUIThread(f func() error) {
 	})
 }
 
+func (gui *Gui) onUIThreadBackground(f func() error) {
+	gui.g.UpdateBackground(func(*gocui.Gui) error {
+		return f()
+	})
+}
+
 func (gui *Gui) onUIThreadContentOnly(f func() error) {
 	gui.g.UpdateContentOnly(func(*gocui.Gui) error {
 		return f()
 	})
 }
 
+func (gui *Gui) onUIThreadContentOnlyBackground(f func() error) {
+	gui.g.UpdateContentOnlyBackground(func(*gocui.Gui) error {
+		return f()
+	})
+}
+
 func (gui *Gui) onWorker(f func(gocui.Task) error) {
 	gui.g.OnWorker(f)
+}
+
+func (gui *Gui) onWorkerBackground(f func(gocui.Task) error) {
+	gui.g.OnWorkerBackground(f)
 }
 
 func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
