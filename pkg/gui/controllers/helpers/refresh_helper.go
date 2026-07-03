@@ -3,6 +3,7 @@ package helpers
 import (
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/jesseduffield/generics/set"
@@ -44,6 +45,15 @@ type RefreshHelper struct {
 	// refresh that re-read refs/commits, read by the poller.
 	refsSnapshotMutex deadlock.Mutex
 	refsSnapshot      string
+
+	// branchLoadSeq hands out a monotonically increasing sequence number to
+	// each branch load (via Add, on the worker); appliedBranchLoadSeq is the
+	// highest sequence whose result has been written to the model (touched only
+	// on the UI thread, inside the bounce). Together they let a branch load's
+	// bounce drop its write if a later-started load has already applied, so
+	// concurrent branch loads don't clobber each other out of order.
+	branchLoadSeq        atomic.Int64
+	appliedBranchLoadSeq int64
 }
 
 func NewRefreshHelper(
@@ -384,6 +394,11 @@ func getModeName(mode types.RefreshMode) string {
 // i.e. not by recency), then load the reflog on a worker and refresh the
 // branches again, this time recency-sorted. From then on we're in the COMPLETE
 // phase and load the reflog synchronously before refreshing the branches.
+//
+// The immediate refresh must run before we spawn the async one, not after: that
+// order gives the immediate (non-recency) load a lower branch-load sequence
+// than the async (recency) load, so the sequence guard in refreshBranches keeps
+// the recency-sorted result even if the two loads' bounces land out of order.
 func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepBranchSelectionIndex bool) {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
@@ -714,8 +729,7 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs() ([]*models.SubmoduleCo
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
 func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSelectionIndex bool, loadBehindCounts bool, reflogCommits []*models.Commit) {
-	self.c.Mutexes().RefreshingBranchesMutex.Lock()
-	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
+	loadSeq := self.branchLoadSeq.Add(1)
 
 	generation := self.c.State().GetRepoGeneration()
 
@@ -748,6 +762,16 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	}
 
 	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		// Drop this write if a branch load that started later has already applied
+		// its result. At the INITIAL startup stage an immediate load (not
+		// recency-sorted) and an async recency-sorted load run concurrently; this
+		// makes the later-started (recency-sorted) one win regardless of which
+		// finishes first, so its result isn't clobbered by the stale immediate one.
+		if loadSeq < self.appliedBranchLoadSeq {
+			return nil
+		}
+		self.appliedBranchLoadSeq = loadSeq
+
 		self.c.Model().Branches = branches
 		// Rebuilding here (rather than on the worker) means the map is built from
 		// the branches we just wrote, on the UI thread.

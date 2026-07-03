@@ -338,10 +338,9 @@ type Model struct {
 }
 
 type Mutexes struct {
-	RefreshingBranchesMutex deadlock.Mutex
-	SubprocessMutex         deadlock.Mutex
-	PopupMutex              deadlock.Mutex
-	PtyMutex                deadlock.Mutex
+	SubprocessMutex deadlock.Mutex
+	PopupMutex      deadlock.Mutex
+	PtyMutex        deadlock.Mutex
 }
 
 // A long-running operation associated with an item. For example, we'll show
