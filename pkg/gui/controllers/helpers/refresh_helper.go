@@ -654,12 +654,19 @@ func (self *RefreshHelper) refreshRebaseCommits() error {
 	self.c.Mutexes().LocalCommitsMutex.Lock()
 	defer self.c.Mutexes().LocalCommitsMutex.Unlock()
 
+	generation := self.c.State().GetRepoGeneration()
+
 	updatedCommits, err := self.c.Git().Loaders.CommitLoader.MergeRebasingCommits(self.c.Model().HashPool, self.c.Model().Commits)
 	if err != nil {
 		return err
 	}
-	self.c.Model().Commits = updatedCommits
-	self.c.Model().WorkingTreeStateAtLastCommitRefresh = self.c.Git().Status.WorkingTreeState()
+	workingTreeState := self.c.Git().Status.WorkingTreeState()
+
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		self.c.Model().Commits = updatedCommits
+		self.c.Model().WorkingTreeStateAtLastCommitRefresh = workingTreeState
+		return nil
+	})
 
 	self.refreshView(self.c.Contexts().LocalCommits)
 	return nil
