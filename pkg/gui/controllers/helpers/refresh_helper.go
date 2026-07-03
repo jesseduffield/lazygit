@@ -594,6 +594,8 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 	self.c.Mutexes().SubCommitsMutex.Lock()
 	defer self.c.Mutexes().SubCommitsMutex.Unlock()
 
+	generation := self.c.State().GetRepoGeneration()
+
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
 			Limit:                   self.c.Contexts().SubCommits.GetLimitCommits(),
@@ -610,8 +612,11 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 	if err != nil {
 		return err
 	}
-	self.c.Model().SubCommits = commits
-	self.RefreshAuthors(commits)
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		self.c.Model().SubCommits = commits
+		self.RefreshAuthors(commits)
+		return nil
+	})
 
 	self.refreshView(self.c.Contexts().SubCommits)
 	return nil
