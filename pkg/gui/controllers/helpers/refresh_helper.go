@@ -377,19 +377,18 @@ func getModeName(mode types.RefreshMode) string {
 	}
 }
 
-// during startup, the bottleneck is fetching the reflog entries. We need these
-// on startup to sort the branches by recency. So we have two phases: INITIAL, and COMPLETE.
-// In the initial phase we don't get any reflog commits, but we asynchronously get them
-// and refresh the branches after that
-// refreshReflogCommitsConsideringStartup returns the reflog commits that the
-// caller should hand to refreshBranches for recency sorting. In the COMPLETE
-// (normal) case that's the freshly-loaded reflog; in the INITIAL case the
-// reflog is loaded asynchronously (and drives its own branches refresh once
-// ready), so we return the current model value for the immediate,
-// non-recency-sorted branches refresh the caller does in the meantime.
-func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() []*models.Commit {
+// During startup, the bottleneck is fetching the reflog entries, which we need
+// in order to sort the branches by recency. So we have two phases: INITIAL and
+// COMPLETE. In the INITIAL phase we don't have any reflog commits yet, so we
+// show the branches right away sorted by whatever we have (typically nothing,
+// i.e. not by recency), then load the reflog on a worker and refresh the
+// branches again, this time recency-sorted. From then on we're in the COMPLETE
+// phase and load the reflog synchronously before refreshing the branches.
+func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepBranchSelectionIndex bool) {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
+		self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex, false, self.c.Model().ReflogCommits)
+
 		self.c.OnWorker(func(_ gocui.Task) error {
 			reflogCommits, _ := self.refreshReflogCommits()
 			self.refreshBranches(false, true, true, reflogCommits)
@@ -397,22 +396,10 @@ func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() []*models.Co
 			return nil
 		})
 
-		return self.c.Model().ReflogCommits
-
 	case types.COMPLETE:
 		reflogCommits, _ := self.refreshReflogCommits()
-		return reflogCommits
+		self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex, true, reflogCommits)
 	}
-
-	return self.c.Model().ReflogCommits
-}
-
-func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepBranchSelectionIndex bool) {
-	loadBehindCounts := self.c.State().GetRepoState().GetStartupStage() == types.COMPLETE
-
-	reflogCommits := self.refreshReflogCommitsConsideringStartup()
-
-	self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex, loadBehindCounts, reflogCommits)
 }
 
 func (self *RefreshHelper) refreshCommitsAndCommitFiles(commitSelection types.CommitSelectionBehavior) {
