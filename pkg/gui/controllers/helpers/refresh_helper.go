@@ -635,14 +635,17 @@ func (self *RefreshHelper) RefreshAuthors(commits []*models.Commit) {
 func (self *RefreshHelper) refreshCommitFilesContext() error {
 	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
+	generation := self.c.State().GetRepoGeneration()
 
 	files, err := self.c.Git().Loaders.CommitFileLoader.GetFilesInDiff(from, to, reverse)
 	if err != nil {
 		return err
 	}
-	self.c.Model().CommitFiles = files
-	self.c.Contexts().CommitFiles.CommitFileTreeViewModel.SetTree()
-
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		self.c.Model().CommitFiles = files
+		self.c.Contexts().CommitFiles.CommitFileTreeViewModel.SetTree()
+		return nil
+	})
 	self.refreshView(self.c.Contexts().CommitFiles)
 	return nil
 }
