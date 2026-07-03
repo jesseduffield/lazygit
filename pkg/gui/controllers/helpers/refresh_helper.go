@@ -719,7 +719,10 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 	self.rebuildPullRequestsMap()
 
 	if refreshWorktrees {
-		self.loadWorktrees()
+		// TODO: this synchronous worker write goes away when refreshBranches is
+		// itself migrated to bouncing; for now it matches the rest of this
+		// not-yet-bounced function.
+		self.c.Model().Worktrees = self.loadWorktrees()
 		self.refreshView(self.c.Contexts().Worktrees)
 	}
 
@@ -959,18 +962,24 @@ func (self *RefreshHelper) refreshRemotes() error {
 	return nil
 }
 
-func (self *RefreshHelper) loadWorktrees() {
+func (self *RefreshHelper) loadWorktrees() []*models.Worktree {
 	worktrees, err := self.c.Git().Loaders.Worktrees.GetWorktrees()
 	if err != nil {
 		self.c.Log.Error(err)
-		self.c.Model().Worktrees = []*models.Worktree{}
-	} else {
-		self.c.Model().Worktrees = worktrees
+		return []*models.Worktree{}
 	}
+	return worktrees
 }
 
 func (self *RefreshHelper) refreshWorktrees() {
-	self.loadWorktrees()
+	generation := self.c.State().GetRepoGeneration()
+
+	worktrees := self.loadWorktrees()
+
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		self.c.Model().Worktrees = worktrees
+		return nil
+	})
 
 	// need to refresh branches because the branches view shows worktrees against
 	// branches
