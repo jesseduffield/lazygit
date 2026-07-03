@@ -52,4 +52,9 @@ type GuiDriver interface {
 	NextToast() *string
 	CheckAllToastsAcknowledged()
 	Headless() bool
+	// Record that the in-progress rebase/merge/etc. is to be treated as one
+	// that was started from within lazygit. Lets a test that starts an
+	// operation by running git directly (rather than through the UI) still get
+	// the "continue?" prompt when its conflicts are resolved.
+	PretendMergeOrRebaseStartedInLazygit()
 }

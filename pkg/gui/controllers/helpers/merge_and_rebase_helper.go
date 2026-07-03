@@ -113,6 +113,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 			Mode:            types.ASYNC,
 			CommitSelection: commitSelectionAfterMerge(success && selectHeadCommitOnSuccess),
 		})
+		self.RecordWhetherMergeOrRebaseStartedInLazygit()
 		return err
 	}
 	result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
@@ -165,8 +166,20 @@ func isMergeConflictErr(errStr string) bool {
 	return false
 }
 
+// RecordWhetherMergeOrRebaseStartedInLazygit is called right after we run a
+// merge/rebase/cherry-pick/revert step. If it left an operation in progress,
+// that operation is one we started, which is what later lets us auto-prompt to
+// continue it once its conflicts are resolved. If nothing is in progress
+// anymore (the step completed or aborted the operation), we clear the flag.
+func (self *MergeAndRebaseHelper) RecordWhetherMergeOrRebaseStartedInLazygit() {
+	self.c.State().GetRepoState().SetMergeOrRebaseStartedInLazygit(
+		self.c.Git().Status.WorkingTreeState().Any())
+}
+
 func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result error, refreshOptions types.RefreshOptions) error {
 	self.c.Refresh(refreshOptions)
+
+	self.RecordWhetherMergeOrRebaseStartedInLazygit()
 
 	if result == nil {
 		return nil

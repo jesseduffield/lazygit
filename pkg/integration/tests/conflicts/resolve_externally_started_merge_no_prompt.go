@@ -6,17 +6,18 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/shared"
 )
 
-var ResolveExternally = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Ensures that when merge conflicts are resolved outside of lazygit, lazygit prompts you to continue",
+var ResolveExternallyStartedMergeNoPrompt = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "When a merge started outside lazygit has its conflicts resolved, don't prompt to continue it",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
+		// Start the merge by running git directly and never tell lazygit it was
+		// the one to start it, so from lazygit's point of view it was started
+		// externally (e.g. by a coding agent in another terminal).
 		shared.CreateMergeConflictFile(shell)
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Common().PretendMergeOrRebaseStartedInLazygit()
-
 		t.Views().Files().
 			IsFocused().
 			Lines(
@@ -27,9 +28,14 @@ var ResolveExternally = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Press(keys.Universal.Refresh)
 
-		t.Common().ContinueOnConflictsResolved("merge")
-
+		// No prompt to continue the merge appears; we stay in the files view
+		// with the conflict resolved and the merge still in progress.
 		t.Views().Files().
-			IsEmpty()
+			IsFocused().
+			Lines(
+				Contains("M  file"),
+			)
+
+		t.Views().Information().Content(Contains("Merging"))
 	},
 })

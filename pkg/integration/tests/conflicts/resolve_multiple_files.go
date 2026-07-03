@@ -15,6 +15,8 @@ var ResolveMultipleFiles = NewIntegrationTest(NewIntegrationTestArgs{
 		shared.CreateMergeConflictFiles(shell)
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Common().PretendMergeOrRebaseStartedInLazygit()
+
 		t.Views().Files().
 			IsFocused().
 			Lines(

@@ -401,6 +401,8 @@ type IRepoStateAccessor interface {
 	GetSearchState() *SearchState
 	SetSplitMainPanel(bool)
 	GetSplitMainPanel() bool
+	GetMergeOrRebaseStartedInLazygit() bool
+	SetMergeOrRebaseStartedInLazygit(bool)
 }
 
 // startup stages so we don't need to load everything at once

@@ -68,6 +68,15 @@ func (self *GuiDriver) FocusIn() {
 	self.waitTillIdle()
 }
 
+func (self *GuiDriver) PretendMergeOrRebaseStartedInLazygit() {
+	self.gui.onUIThread(func() error {
+		self.gui.State.SetMergeOrRebaseStartedInLazygit(true)
+		return nil
+	})
+
+	self.waitTillIdle()
+}
+
 // wait until lazygit is idle (i.e. all processing is done) before continuing
 func (self *GuiDriver) waitTillIdle() {
 	<-self.isIdleChan
