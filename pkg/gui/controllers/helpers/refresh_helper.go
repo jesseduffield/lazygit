@@ -179,10 +179,13 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			} else {
 				branchesAndRemotesWg.Add(1)
 				refresh("branches", func() {
-					self.refreshBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex, true)
+					// Not a recency sort, so branches doesn't depend on the reflog
+					// being fresh; it runs concurrently with the reflog refresh
+					// below and reads whatever's in the model, as it always has.
+					self.refreshBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex, true, self.c.Model().ReflogCommits)
 					branchesAndRemotesWg.Done()
 				})
-				refresh("reflog", func() { _ = self.refreshReflogCommits() })
+				refresh("reflog", func() { _, _ = self.refreshReflogCommits() })
 			}
 		} else if scopeSet.Includes(types.REBASE_COMMITS) {
 			// the above block handles rebase commits so we only need to call this one
@@ -378,27 +381,38 @@ func getModeName(mode types.RefreshMode) string {
 // on startup to sort the branches by recency. So we have two phases: INITIAL, and COMPLETE.
 // In the initial phase we don't get any reflog commits, but we asynchronously get them
 // and refresh the branches after that
-func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
+// refreshReflogCommitsConsideringStartup returns the reflog commits that the
+// caller should hand to refreshBranches for recency sorting. In the COMPLETE
+// (normal) case that's the freshly-loaded reflog; in the INITIAL case the
+// reflog is loaded asynchronously (and drives its own branches refresh once
+// ready), so we return the current model value for the immediate,
+// non-recency-sorted branches refresh the caller does in the meantime.
+func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() []*models.Commit {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
 		self.c.OnWorker(func(_ gocui.Task) error {
-			_ = self.refreshReflogCommits()
-			self.refreshBranches(false, true, true)
+			reflogCommits, _ := self.refreshReflogCommits()
+			self.refreshBranches(false, true, true, reflogCommits)
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)
 			return nil
 		})
 
+		return self.c.Model().ReflogCommits
+
 	case types.COMPLETE:
-		_ = self.refreshReflogCommits()
+		reflogCommits, _ := self.refreshReflogCommits()
+		return reflogCommits
 	}
+
+	return self.c.Model().ReflogCommits
 }
 
 func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepBranchSelectionIndex bool) {
 	loadBehindCounts := self.c.State().GetRepoState().GetStartupStage() == types.COMPLETE
 
-	self.refreshReflogCommitsConsideringStartup()
+	reflogCommits := self.refreshReflogCommitsConsideringStartup()
 
-	self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex, loadBehindCounts)
+	self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex, loadBehindCounts, reflogCommits)
 }
 
 func (self *RefreshHelper) refreshCommitsAndCommitFiles(commitSelection types.CommitSelectionBehavior) {
@@ -700,12 +714,12 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs() ([]*models.SubmoduleCo
 
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
-func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSelectionIndex bool, loadBehindCounts bool) {
+func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSelectionIndex bool, loadBehindCounts bool, reflogCommits []*models.Commit) {
 	self.c.Mutexes().RefreshingBranchesMutex.Lock()
 	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
 
 	branches, err := self.c.Git().Loaders.BranchLoader.Load(
-		self.c.Model().ReflogCommits,
+		reflogCommits,
 		self.c.Model().MainBranches,
 		self.c.Model().Branches,
 		loadBehindCounts,
@@ -900,7 +914,10 @@ func (self *RefreshHelper) refreshStateFiles(background bool, submoduleConfigs [
 // This method also manages two things: ReflogCommits and FilteredReflogCommits.
 // FilteredReflogCommits are rendered in the reflogs panel, and ReflogCommits
 // are used by the branches panel to obtain recency values for sorting.
-func (self *RefreshHelper) refreshReflogCommits() error {
+// refreshReflogCommits returns the (non-filtered) ReflogCommits it loaded, so
+// that a subsequent branches refresh can use them for recency sorting without
+// having to read them back out of the model.
+func (self *RefreshHelper) refreshReflogCommits() ([]*models.Commit, error) {
 	// pulling state into its own variable in case it gets swapped out for another state
 	// and we get an out of bounds exception
 	model := self.c.Model()
@@ -926,19 +943,19 @@ func (self *RefreshHelper) refreshReflogCommits() error {
 	}
 
 	if err := refresh(&model.ReflogCommits, "", ""); err != nil {
-		return err
+		return nil, err
 	}
 
 	if self.c.Modes().Filtering.Active() {
 		if err := refresh(&model.FilteredReflogCommits, self.c.Modes().Filtering.GetPath(), self.c.Modes().Filtering.GetAuthor()); err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		model.FilteredReflogCommits = model.ReflogCommits
 	}
 
 	self.refreshView(self.c.Contexts().ReflogCommits)
-	return nil
+	return model.ReflogCommits, nil
 }
 
 func (self *RefreshHelper) refreshRemotes() error {
