@@ -432,6 +432,12 @@ func (self *WorktreeHelper) createWorktree(opts git_commands.NewWorktreeOpts, co
 			return err
 		}
 
-		return self.reposHelper.DispatchSwitchTo(opts.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
+		// The switch swaps gui.State and must run on the UI thread, but
+		// we're on a worker here (creating the worktree is git work), so
+		// dispatch it rather than calling it directly.
+		self.c.OnUIThread(func() error {
+			return self.reposHelper.DispatchSwitchTo(opts.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
+		})
+		return nil
 	})
 }

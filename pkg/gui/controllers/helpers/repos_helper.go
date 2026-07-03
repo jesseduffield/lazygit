@@ -13,7 +13,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/direnv"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/env"
-	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -145,52 +144,53 @@ func (self *ReposHelper) DispatchSwitchToRepo(path string, contextKey types.Cont
 	return self.DispatchSwitchTo(path, self.c.Tr.ErrRepositoryMovedOrDeleted, contextKey)
 }
 
+// DispatchSwitchTo switches lazygit to the repository (or worktree) at the
+// given path. It runs synchronously on the UI thread: the switch swaps
+// gui.State (in resetState) and reassigns gui.git and the process cwd, all of
+// which the UI thread also reads, so doing it here rather than on a worker
+// avoids racing those reads. The heavy data loading is still dispatched
+// asynchronously by the refresh that onNewRepo kicks off.
 func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey types.ContextKey) error {
-	return self.c.WithWaitingStatus(self.c.Tr.Switching, func(gocui.Task) error {
-		env.UnsetGitLocationEnvVars()
-		originalPath, err := os.Getwd()
-		if err != nil {
-			return nil
+	env.UnsetGitLocationEnvVars()
+	originalPath, err := os.Getwd()
+	if err != nil {
+		return nil
+	}
+
+	msg := utils.ResolvePlaceholderString(self.c.Tr.ChangingDirectoryTo, map[string]string{"path": path})
+	self.c.LogCommand(msg, false)
+
+	if err := os.Chdir(path); err != nil {
+		if os.IsNotExist(err) {
+			return errors.New(errMsg)
 		}
+		return err
+	}
 
-		msg := utils.ResolvePlaceholderString(self.c.Tr.ChangingDirectoryTo, map[string]string{"path": path})
-		self.c.LogCommand(msg, false)
-
-		if err := os.Chdir(path); err != nil {
-			if os.IsNotExist(err) {
-				return errors.New(errMsg)
-			}
+	if err := commands.VerifyInGitRepo(self.c.OS()); err != nil {
+		if err := os.Chdir(originalPath); err != nil {
 			return err
 		}
 
-		if err := commands.VerifyInGitRepo(self.c.OS()); err != nil {
-			if err := os.Chdir(originalPath); err != nil {
-				return err
-			}
+		return err
+	}
 
-			return err
-		}
+	direnvResult := self.logDirenvResult(direnv.Load(self.c.OS().Cmd))
 
-		direnvResult := self.logDirenvResult(direnv.Load(self.c.OS().Cmd))
+	if err := self.recordDirectoryHelper.RecordCurrentDirectory(); err != nil {
+		self.c.Log.Errorf("error recording current directory: %v", err)
+	}
 
-		if err := self.recordDirectoryHelper.RecordCurrentDirectory(); err != nil {
-			self.c.Log.Errorf("error recording current directory: %v", err)
-		}
+	if err := self.onNewRepo(appTypes.StartArgs{}, contextKey); err != nil {
+		return err
+	}
 
-		if err := self.onNewRepo(appTypes.StartArgs{}, contextKey); err != nil {
-			return err
-		}
+	if direnvResult.Blocked {
+		self.promptDirenvApproval(direnvResult.EnvrcPath)
+		return nil
+	}
 
-		if direnvResult.Blocked {
-			self.c.OnUIThread(func() error {
-				self.promptDirenvApproval(direnvResult.EnvrcPath)
-				return nil
-			})
-			return nil
-		}
-
-		return direnvResult.Err
-	})
+	return direnvResult.Err
 }
 
 // logDirenvResult writes whatever direnv emitted to the command log and the
