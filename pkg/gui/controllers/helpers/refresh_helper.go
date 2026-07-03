@@ -666,12 +666,17 @@ func (self *RefreshHelper) refreshRebaseCommits() error {
 }
 
 func (self *RefreshHelper) refreshTags() error {
+	generation := self.c.State().GetRepoGeneration()
+
 	tags, err := self.c.Git().Loaders.TagLoader.GetTags()
 	if err != nil {
 		return err
 	}
 
-	self.c.Model().Tags = tags
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		self.c.Model().Tags = tags
+		return nil
+	})
 
 	self.refreshView(self.c.Contexts().Tags)
 	return nil
