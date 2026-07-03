@@ -1115,17 +1115,25 @@ func (self *RefreshHelper) refreshGithubPullRequests() {
 	self.c.Mutexes().RefreshingPullRequestsMutex.Lock()
 	defer self.c.Mutexes().RefreshingPullRequestsMutex.Unlock()
 
+	generation := self.c.State().GetRepoGeneration()
+
+	clearPullRequests := func() {
+		self.onUIThreadUnlessRepoChanged(generation, func() error {
+			self.c.Model().PullRequests = nil
+			self.c.Model().PullRequestsMap = nil
+			return nil
+		})
+	}
+
 	githubRemotes := getAuthenticatedGithubRemotes(self.getGithubRemotes(), self.c.Git().GitHub.GetAuthToken)
 	if len(githubRemotes) == 0 {
-		self.c.Model().PullRequests = nil
-		self.c.Model().PullRequestsMap = nil
+		clearPullRequests()
 		return
 	}
 
 	baseInfo := getGithubBaseRemote(githubRemotes, self.c.Git().GitHub.ConfiguredBaseRemoteName())
 	if baseInfo == nil {
-		self.c.Model().PullRequests = nil
-		self.c.Model().PullRequestsMap = nil
+		clearPullRequests()
 
 		if !self.githubBaseRemotePromptDismissed[self.c.Git().RepoPaths.RepoPath()] {
 			self.promptForBaseGithubRepo(githubRemotes)
@@ -1243,6 +1251,8 @@ func (self *RefreshHelper) rebuildPullRequestsMap() {
 }
 
 func (self *RefreshHelper) setGithubPullRequests(baseInfo *githubRemoteInfo) {
+	generation := self.c.State().GetRepoGeneration()
+
 	if len(self.c.Model().Branches) == 0 {
 		return
 	}
@@ -1260,11 +1270,14 @@ func (self *RefreshHelper) setGithubPullRequests(baseInfo *githubRemoteInfo) {
 		return
 	}
 
-	self.c.Model().PullRequests = prs
 	self.savePullRequestsToCache(prs)
-	self.rebuildPullRequestsMap()
 
-	self.c.OnUIThread(func() error {
+	self.onUIThreadUnlessRepoChanged(generation, func() error {
+		self.c.Model().PullRequests = prs
+		// Rebuilding here rather than on the worker means the map is built from
+		// the branches and remotes as they are on the UI thread, after their
+		// own refreshes' bounces have applied.
+		self.rebuildPullRequestsMap()
 		self.c.PostRefreshUpdate(self.c.Contexts().Branches)
 		return nil
 	})
