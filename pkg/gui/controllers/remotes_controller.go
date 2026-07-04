@@ -376,10 +376,19 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 		if branchName != "" {
 			err = self.c.Git().Branch.New(branchName, remote.Name+"/"+branchName)
 			if err == nil {
-				self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
-				self.c.Helpers().Refs.SelectFirstBranchAndFirstCommit()
-				refreshOptions.KeepBranchSelectionIndex = true
-				refreshOptions.CommitSelection = types.KeepCommitSelectionIndex
+				// Branch.New checks the new branch out, so HEAD moves: refresh the
+				// reflog (and, via scope expansion, the commits) as well, and select
+				// the newly checked-out branch and its head commit.
+				refreshOptions.Scope = append(refreshOptions.Scope, types.REFLOG)
+				refreshOptions.BranchSelection = types.SelectCheckedOutBranch
+				refreshOptions.CommitSelection = types.SelectHeadCommit
+				refreshOptions.SelectTopReflogCommit = true
+				// Focus the branches panel on the UI thread once the refresh has
+				// selected the newly checked-out branch.
+				refreshOptions.Then = func() error {
+					self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
+					return nil
+				}
 			}
 		}
 		self.c.Refresh(refreshOptions)

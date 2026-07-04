@@ -183,7 +183,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			if self.c.UserConfig().Git.LocalBranchSortOrder == "recency" {
 				branchesAndRemotesWg.Add(1)
 				refresh("reflog and branches", func() {
-					self.refreshReflogAndBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex, options.Background)
+					self.refreshReflogAndBranches(includeWorktreesWithBranches, options.BranchSelection, options.SelectTopReflogCommit, options.Background)
 					branchesAndRemotesWg.Done()
 				})
 			} else {
@@ -192,10 +192,10 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 					// Not a recency sort, so branches doesn't depend on the reflog
 					// being fresh; it runs concurrently with the reflog refresh
 					// below and reads whatever's in the model, as it always has.
-					self.refreshBranches(includeWorktreesWithBranches, options.KeepBranchSelectionIndex, true, self.c.Model().ReflogCommits, options.Background)
+					self.refreshBranches(includeWorktreesWithBranches, options.BranchSelection, true, self.c.Model().ReflogCommits, options.Background)
 					branchesAndRemotesWg.Done()
 				})
-				refresh("reflog", func() { _, _ = self.refreshReflogCommits(options.Background) })
+				refresh("reflog", func() { _, _ = self.refreshReflogCommits(options.Background, options.SelectTopReflogCommit) })
 			}
 		} else if scopeSet.Includes(types.REBASE_COMMITS) {
 			// the above block handles rebase commits so we only need to call this one
@@ -399,21 +399,21 @@ func getModeName(mode types.RefreshMode) string {
 // order gives the immediate (non-recency) load a lower branch-load sequence
 // than the async (recency) load, so the sequence guard in refreshBranches keeps
 // the recency-sorted result even if the two loads' bounces land out of order.
-func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, keepBranchSelectionIndex bool, background bool) {
+func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, branchSelection types.BranchSelectionBehavior, selectTopReflogCommit bool, background bool) {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
-		self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex, false, self.c.Model().ReflogCommits, background)
+		self.refreshBranches(refreshWorktrees, branchSelection, false, self.c.Model().ReflogCommits, background)
 
 		self.onWorker(background, func(_ gocui.Task) error {
-			reflogCommits, _ := self.refreshReflogCommits(background)
-			self.refreshBranches(false, true, true, reflogCommits, background)
+			reflogCommits, _ := self.refreshReflogCommits(background, false)
+			self.refreshBranches(false, types.SelectCheckedOutBranch, true, reflogCommits, background)
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)
 			return nil
 		})
 
 	case types.COMPLETE:
-		reflogCommits, _ := self.refreshReflogCommits(background)
-		self.refreshBranches(refreshWorktrees, keepBranchSelectionIndex, true, reflogCommits, background)
+		reflogCommits, _ := self.refreshReflogCommits(background, selectTopReflogCommit)
+		self.refreshBranches(refreshWorktrees, branchSelection, true, reflogCommits, background)
 	}
 }
 
@@ -728,7 +728,7 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs() ([]*models.SubmoduleCo
 
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
-func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSelectionIndex bool, loadBehindCounts bool, reflogCommits []*models.Commit, background bool) {
+func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, branchSelection types.BranchSelectionBehavior, loadBehindCounts bool, reflogCommits []*models.Commit, background bool) {
 	loadSeq := self.branchLoadSeq.Add(1)
 
 	generation := self.c.State().GetRepoGeneration()
@@ -754,8 +754,6 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 		self.c.Log.Error(err)
 	}
 
-	prevSelectedBranch := self.c.Contexts().Branches.GetSelected()
-
 	var worktrees []*models.Worktree
 	if refreshWorktrees {
 		worktrees = self.loadWorktrees()
@@ -772,6 +770,11 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 		}
 		self.appliedBranchLoadSeq = loadSeq
 
+		// Read the currently-selected branch before overwriting the list, so we
+		// can restore it by name below. Reading it here in the bounce keeps it on
+		// the UI thread.
+		prevSelectedBranch := self.c.Contexts().Branches.GetSelected()
+
 		self.c.Model().Branches = branches
 		// Rebuilding here (rather than on the worker) means the map is built from
 		// the branches we just wrote, on the UI thread.
@@ -782,14 +785,25 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, keepBranchSele
 			self.refreshView(self.c.Contexts().Worktrees, background)
 		}
 
-		if !keepBranchSelectionIndex && prevSelectedBranch != nil {
-			self.searchHelper.ReApplyFilter(self.c.Contexts().Branches)
+		// Setting the selection here, in the same bounce that writes the list,
+		// keeps it on the UI thread and keeps the list and selection updating in
+		// the same frame.
+		switch branchSelection {
+		case types.KeepBranchSelectionByName:
+			if prevSelectedBranch != nil {
+				self.searchHelper.ReApplyFilter(self.c.Contexts().Branches)
 
-			_, idx, found := lo.FindIndexOf(self.c.Contexts().Branches.GetItems(),
-				func(b *models.Branch) bool { return b.Name == prevSelectedBranch.Name })
-			if found {
-				self.c.Contexts().Branches.SetSelectedLineIdx(idx)
+				_, idx, found := lo.FindIndexOf(self.c.Contexts().Branches.GetItems(),
+					func(b *models.Branch) bool { return b.Name == prevSelectedBranch.Name })
+				if found {
+					self.c.Contexts().Branches.SetSelectedLineIdx(idx)
+				}
 			}
+		case types.SelectCheckedOutBranch:
+			// The checked-out branch is always at the top of the list. Setting
+			// the selection doesn't scroll the view, so also reset the origin.
+			self.c.Contexts().Branches.SetSelectedLineIdx(0)
+			self.c.Contexts().Branches.GetView().SetOriginY(0)
 		}
 
 		// Need to re-render the commits view because the visualization of local
@@ -965,7 +979,7 @@ func (self *RefreshHelper) refreshStateFiles(background bool, submoduleConfigs [
 // refreshReflogCommits returns the (non-filtered) ReflogCommits it loaded, so
 // that a subsequent branches refresh can use them for recency sorting without
 // having to read them back out of the model.
-func (self *RefreshHelper) refreshReflogCommits(background bool) ([]*models.Commit, error) {
+func (self *RefreshHelper) refreshReflogCommits(background bool, selectTopEntry bool) ([]*models.Commit, error) {
 	generation := self.c.State().GetRepoGeneration()
 	// pulling state into its own variable in case it gets swapped out for another state
 	// and we get an out of bounds exception
@@ -1008,6 +1022,13 @@ func (self *RefreshHelper) refreshReflogCommits(background bool) ([]*models.Comm
 	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
 		model.ReflogCommits = reflogCommits
 		model.FilteredReflogCommits = filteredReflogCommits
+		// Setting the selection here, in the same bounce that writes the list,
+		// keeps it on the UI thread and atomic with the list update. Setting the
+		// selection doesn't scroll the view, so also reset the origin.
+		if selectTopEntry {
+			self.c.Contexts().ReflogCommits.SetSelectedLineIdx(0)
+			self.c.Contexts().ReflogCommits.GetView().SetOriginY(0)
+		}
 		return nil
 	})
 

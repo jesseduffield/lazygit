@@ -55,21 +55,40 @@ const (
 	SelectHeadCommit
 )
 
+// BranchSelectionBehavior controls which local branch is selected after the
+// branches list is reloaded by a refresh.
+type BranchSelectionBehavior int
+
+const (
+	// Keep the same branch selected by name, restoring it at its new position if
+	// the order changed. This is the right default whenever the list reloads
+	// underneath a selection the user hasn't deliberately changed.
+	KeepBranchSelectionByName BranchSelectionBehavior = iota
+
+	// Select the checked-out branch (the one at the top of the list). Used after
+	// operations that check something out - checkout, creating a branch, moving
+	// commits to a new branch - so the newly checked-out ref ends up selected.
+	SelectCheckedOutBranch
+)
+
 type RefreshOptions struct {
 	Then  func() error
 	Scope []RefreshableView // e.g. []RefreshableView{COMMITS, BRANCHES}. Leave empty to refresh everything
 	Mode  RefreshMode       // one of SYNC (default), ASYNC, and BLOCK_UI
 
-	// Normally a refresh of the branches tries to keep the same branch selected
-	// (by name); this is usually important in case the order of branches
-	// changes. Passing true for KeepBranchSelectionIndex suppresses this and
-	// keeps the selection index the same. Useful after checking out a detached
-	// head, and selecting index 0.
-	KeepBranchSelectionIndex bool
+	// Controls which local branch is selected after the refresh. Defaults to
+	// KeepBranchSelectionByName.
+	BranchSelection BranchSelectionBehavior
 
 	// Controls which local commit is selected after the refresh. Defaults to
 	// KeepCommitSelectionByHash.
 	CommitSelection CommitSelectionBehavior
+
+	// When true, select the top (most recent) reflog entry after the refresh.
+	// Used alongside SelectCheckedOutBranch by operations that check something
+	// out, since the checkout adds a new reflog entry at the top. Defaults to
+	// keeping the reflog selection where it is.
+	SelectTopReflogCommit bool
 
 	// When true, this refresh was initiated by a background routine rather than
 	// by a user action. Every git command suppresses optional locks by default
