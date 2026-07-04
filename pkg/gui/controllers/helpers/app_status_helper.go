@@ -34,7 +34,12 @@ func (self *AppStatusHelper) Toast(message string, kind types.ToastKind) {
 
 	self.statusMgr().AddToastStatus(message, kind)
 
-	self.renderAppStatus(false)
+	// Render the toast in the background: it's a transient notification, not
+	// lazygit driving an operation, so it must not count towards being busy —
+	// otherwise a toast (e.g. the "can't switch, operation in progress" one)
+	// would itself block a repo switch until it faded. A real operation showing
+	// a toast still keeps its own foreground task busy independently.
+	self.renderAppStatus(true)
 }
 
 // A custom task for WithWaitingStatus calls; it wraps the original one and
