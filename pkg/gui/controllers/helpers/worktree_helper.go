@@ -426,6 +426,13 @@ func (self *WorktreeHelper) promptForWorktreeLocation(dirName string, prompt str
 }
 
 func (self *WorktreeHelper) createWorktree(opts git_commands.NewWorktreeOpts, contextKey types.ContextKey) error {
+	// Check now, before we create the worktree, rather than when we come to
+	// switch to it afterwards: by then this operation's own waiting-status
+	// spinner would make Busy() true and refuse our own switch.
+	if self.reposHelper.switchRefusedBecauseBusy() {
+		return nil
+	}
+
 	return self.c.WithWaitingStatus(self.c.Tr.AddingWorktree, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.AddWorktree)
 		if err := self.c.Git().Worktree.New(opts); err != nil {
@@ -434,9 +441,11 @@ func (self *WorktreeHelper) createWorktree(opts git_commands.NewWorktreeOpts, co
 
 		// The switch swaps gui.State and must run on the UI thread, but
 		// we're on a worker here (creating the worktree is git work), so
-		// dispatch it rather than calling it directly.
+		// dispatch it. It's unguarded (switchTo, not DispatchSwitchTo)
+		// because we checked above and creating the worktree is now
+		// complete, so switching to it is safe.
 		self.c.OnUIThread(func() error {
-			return self.reposHelper.DispatchSwitchTo(opts.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
+			return self.reposHelper.switchTo(opts.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
 		})
 		return nil
 	})
