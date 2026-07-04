@@ -25,10 +25,14 @@ type fileInfo struct {
 	mode                PatchStatus
 	includedLineIndices []int
 	diff                string
+	// For a renamed file, the path it was renamed from; empty otherwise. We
+	// need to keep hold of it so we can re-render the file's patch (which is
+	// keyed by the new path) without the caller having to supply it again.
+	previousPath string
 }
 
 type (
-	loadFileDiffFunc func(from string, to string, reverse bool, filename string, plain bool) (string, error)
+	loadFileDiffFunc func(from string, to string, reverse bool, filename string, previousPath string, plain bool) (string, error)
 )
 
 // PatchBuilder manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
@@ -75,6 +79,7 @@ func (p *PatchBuilder) PatchToApply(reverse bool, turnAddedFilesIntoDiffAgainstE
 
 		patch.WriteString(p.RenderPatchForFile(RenderPatchForFileOpts{
 			Filename:                               filename,
+			PreviousPath:                           info.previousPath,
 			Plain:                                  true,
 			Reverse:                                reverse,
 			TurnAddedFilesIntoDiffAgainstEmptyFile: turnAddedFilesIntoDiffAgainstEmptyFile,
@@ -102,8 +107,8 @@ func (p *PatchBuilder) removeFile(info *fileInfo) {
 	info.includedLineIndices = nil
 }
 
-func (p *PatchBuilder) AddFileWhole(filename string) error {
-	info, err := p.getFileInfo(filename)
+func (p *PatchBuilder) AddFileWhole(filename string, previousPath string) error {
+	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
 		return err
 	}
@@ -113,8 +118,8 @@ func (p *PatchBuilder) AddFileWhole(filename string) error {
 	return nil
 }
 
-func (p *PatchBuilder) RemoveFile(filename string) error {
-	info, err := p.getFileInfo(filename)
+func (p *PatchBuilder) RemoveFile(filename string, previousPath string) error {
+	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
 		return err
 	}
@@ -124,19 +129,20 @@ func (p *PatchBuilder) RemoveFile(filename string) error {
 	return nil
 }
 
-func (p *PatchBuilder) getFileInfo(filename string) (*fileInfo, error) {
+func (p *PatchBuilder) getFileInfo(filename string, previousPath string) (*fileInfo, error) {
 	info, ok := p.fileInfoMap[filename]
 	if ok {
 		return info, nil
 	}
 
-	diff, err := p.loadFileDiff(p.From, p.To, p.reverse, filename, true)
+	diff, err := p.loadFileDiff(p.From, p.To, p.reverse, filename, previousPath, true)
 	if err != nil {
 		return nil, err
 	}
 	info = &fileInfo{
-		mode: UNSELECTED,
-		diff: diff,
+		mode:         UNSELECTED,
+		diff:         diff,
+		previousPath: previousPath,
 	}
 
 	p.fileInfoMap[filename] = info
@@ -144,8 +150,8 @@ func (p *PatchBuilder) getFileInfo(filename string) (*fileInfo, error) {
 	return info, nil
 }
 
-func (p *PatchBuilder) AddFileLineRange(filename string, lineIndices []int) error {
-	info, err := p.getFileInfo(filename)
+func (p *PatchBuilder) AddFileLineRange(filename string, previousPath string, lineIndices []int) error {
+	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
 		return err
 	}
@@ -155,8 +161,8 @@ func (p *PatchBuilder) AddFileLineRange(filename string, lineIndices []int) erro
 	return nil
 }
 
-func (p *PatchBuilder) RemoveFileLineRange(filename string, lineIndices []int) error {
-	info, err := p.getFileInfo(filename)
+func (p *PatchBuilder) RemoveFileLineRange(filename string, previousPath string, lineIndices []int) error {
+	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
 		return err
 	}
@@ -171,13 +177,14 @@ func (p *PatchBuilder) RemoveFileLineRange(filename string, lineIndices []int) e
 
 type RenderPatchForFileOpts struct {
 	Filename                               string
+	PreviousPath                           string
 	Plain                                  bool
 	Reverse                                bool
 	TurnAddedFilesIntoDiffAgainstEmptyFile bool
 }
 
 func (p *PatchBuilder) RenderPatchForFile(opts RenderPatchForFileOpts) string {
-	info, err := p.getFileInfo(opts.Filename)
+	info, err := p.getFileInfo(opts.Filename, opts.PreviousPath)
 	if err != nil {
 		p.Log.Error(err)
 		return ""
@@ -198,7 +205,12 @@ func (p *PatchBuilder) RenderPatchForFile(opts RenderPatchForFileOpts) string {
 		Transform(TransformOpts{
 			Reverse:                                opts.Reverse,
 			TurnAddedFilesIntoDiffAgainstEmptyFile: opts.TurnAddedFilesIntoDiffAgainstEmptyFile,
-			IncludedLineIndices:                    info.includedLineIndices,
+			// For a partial selection of a renamed file we keep only the
+			// content change and drop the rename, so that the rename stays in
+			// the commit. A whole-file selection keeps the rename (and short-
+			// circuits before this for plain output).
+			StripRename:         info.mode == PART && info.previousPath != "",
+			IncludedLineIndices: info.includedLineIndices,
 		})
 
 	if opts.Plain {
@@ -215,6 +227,7 @@ func (p *PatchBuilder) renderEachFilePatch(plain bool) []string {
 	patches := lo.Map(filenames, func(filename string, _ int) string {
 		return p.RenderPatchForFile(RenderPatchForFileOpts{
 			Filename:                               filename,
+			PreviousPath:                           p.fileInfoMap[filename].previousPath,
 			Plain:                                  plain,
 			Reverse:                                false,
 			TurnAddedFilesIntoDiffAgainstEmptyFile: true,
@@ -244,8 +257,8 @@ func (p *PatchBuilder) GetFileStatus(filename string, parent string) PatchStatus
 	return info.mode
 }
 
-func (p *PatchBuilder) GetFileIncLineIndices(filename string) ([]int, error) {
-	info, err := p.getFileInfo(filename)
+func (p *PatchBuilder) GetFileIncLineIndices(filename string, previousPath string) ([]int, error) {
+	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
 		return nil, err
 	}

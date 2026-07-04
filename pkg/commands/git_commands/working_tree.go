@@ -432,8 +432,14 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
 // but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
-func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error) {
-	return self.ShowFileDiffCmdObj(from, to, reverse, []string{fileName}, plain).RunWithOutput()
+// For a renamed file, previousPath is the path it was renamed from (empty otherwise);
+// both paths must be passed to git for the rename to be detected.
+func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bool, fileName string, previousPath string, plain bool) (string, error) {
+	fileNames := []string{fileName}
+	if previousPath != "" {
+		fileNames = append(fileNames, previousPath)
+	}
+	return self.ShowFileDiffCmdObj(from, to, reverse, fileNames, plain).RunWithOutput()
 }
 
 func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool) *oscommands.CmdObj {
@@ -454,7 +460,7 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 		ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
 		Arg("--submodule").
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
-		Arg("--no-renames").
+		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
 		Arg(from).
 		Arg(to).
