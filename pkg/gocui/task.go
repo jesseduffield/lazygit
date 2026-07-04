@@ -20,10 +20,14 @@ type TaskImpl struct {
 	withMutex func(func())
 	// Background tasks don't count towards the program being "busy" for the
 	// purpose of deciding whether a repo switch is safe (see
-	// TaskManager.hasBusyForegroundTaskExcept). They're the ongoing background
-	// routines (auto-fetch, files refresh, external-change detection) and the
-	// refreshes they trigger, whose model writes are already guarded against a
-	// concurrent repo switch by the repo generation.
+	// TaskManager.hasBusyForegroundTaskExcept). Two kinds of work are tagged
+	// this way: the ongoing background routines (auto-fetch, files refresh,
+	// external-change detection) and the refreshes they trigger, whose model
+	// writes are already guarded against a concurrent repo switch by the repo
+	// generation; and view-buffer content rendering, which only paints a view
+	// and so is harmless to leave running across a switch. What stays
+	// foreground is lazygit driving a git operation and applying its results
+	// to the model — exactly the work a repo switch must not run underneath.
 	background bool
 }
 

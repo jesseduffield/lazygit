@@ -282,6 +282,13 @@ func (g *Gui) NewTask() *TaskImpl {
 	return g.taskManager.NewTask(false)
 }
 
+// NewBackgroundTask creates a task that is tracked for idle detection but does
+// not count towards the program being busy for repo-switch safety. See
+// TaskImpl.background.
+func (g *Gui) NewBackgroundTask() *TaskImpl {
+	return g.taskManager.NewTask(true)
+}
+
 // Busy reports whether any foreground work is in flight, ignoring the event
 // currently being processed on the main goroutine (see currentTask). Background
 // routines (auto-fetch etc.) don't count. It's used to decide whether it's safe
