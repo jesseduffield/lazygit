@@ -110,6 +110,26 @@ gui:
   # is true.
   expandedSidePanelWeight: 2
 
+  # If true, don't give a side panel more height than it needs to show its
+  # content; when all panels fit, the leftover height is shared among them so that
+  # they still fill the screen.
+  shrinkSidePanelsToContent: false
+
+  # The side panels, in the order they appear from top to bottom.
+  # Each entry is a list of one or more names that share a single panel as tabs
+  # (cycle through them with the next-tab/previous-tab keys).
+  # Omit a name to hide it; give a name its own one-element list to promote a tab
+  # to a top-level panel.
+  # Valid names are: 'status', 'files', 'worktrees', 'submodules', 'branches',
+  # 'remotes', 'tags', 'commits', 'reflog', 'stash'. 'files', 'branches', and
+  # 'commits' must always be included; they can't be hidden.
+  sidePanels:
+    - [status]
+    - [files, worktrees, submodules]
+    - [branches, remotes, tags]
+    - [commits, reflog]
+    - [stash]
+
   # Sometimes the main window is split in two (e.g. when the selected file has
   # both staged and unstaged changes). This setting controls how the two sections
   # are split.
@@ -342,6 +362,11 @@ gui:
 git:
   # Array of pagers. Each entry has the following format:
   #
+  #   # A name for the pager, shown in the notification when cycling pagers.
+  #   # If not set, the name is derived from the first word of the pager
+  #   # command (or of the external diff command).
+  #   name: ""
+  #
   #   # Value of the --color arg in the git diff command. Some pagers want
   #   # this to be set to 'always' and some want it set to 'never'
   #   colorArg: "always"
@@ -360,6 +385,9 @@ git:
   #   # configured per file type in .gitattributes; see
   #   # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
   #   useExternalDiffGitConfig: false
+  #
+  # 'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' are mutually
+  # exclusive; set at most one per entry.
   #
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
   # for more information.
@@ -405,6 +433,11 @@ git:
 
   # If true, periodically refresh files and submodules
   autoRefresh: true
+
+  # If true, poll the repo periodically for external ref changes (commits, branch
+  # updates, checkouts made outside lazygit) and refresh when one is detected.
+  # Independent of autoRefresh, which only governs the files panel.
+  autoDetectExternalChanges: true
 
   # If not "none", lazygit will automatically fast-forward local branches to match
   # their upstream after fetching. Applies to branches that are not the currently
@@ -499,6 +532,15 @@ git:
   # to 40 to disable truncation.
   truncateCopiedCommitHashesTo: 12
 
+# Config relating to git worktrees
+worktree:
+  # Default parent directory for new worktrees. It is offered as a candidate
+  # location alongside the parent directories of any worktrees you already have.
+  # A relative path is resolved against the repository's root directory, so
+  # "../worktrees" sits beside the repo and ".worktrees" sits inside it.
+  # A leading "~" is expanded to your home directory, so "~/worktrees" works.
+  defaultPath: ""
+
 # Periodic update checks
 update:
   # One of: 'prompt' (default) | 'background' | 'never'
@@ -516,6 +558,11 @@ refresher:
   # Re-fetch interval in seconds.
   # Auto-fetch can be disabled via option 'git.autoFetch'.
   fetchInterval: 60
+
+  # Interval in seconds at which lazygit polls for external ref changes (commits,
+  # branch updates, checkouts made outside lazygit).
+  # Detection can be disabled via option 'git.autoDetectExternalChanges'.
+  externalChangeCheckInterval: 2
 
 # If true, show a confirmation popup before quitting Lazygit
 confirmOnQuit: false
@@ -648,6 +695,7 @@ keybinding:
     confirmInEditor: [<ctrl+enter>, <ctrl+s>]
     remove: d
     new: "n"
+    newWorktree: w
     edit: e
     openFile: o
     scrollUpMain: [<pgup>, K, <ctrl+u>]
@@ -667,6 +715,7 @@ keybinding:
     nextScreenMode: +
     prevScreenMode: _
     cyclePagers: '|'
+    cyclePagersReverse: \
     undo: z
     redo: Z
     filteringMenu: <ctrl+s>
@@ -681,6 +730,7 @@ keybinding:
     increaseRenameSimilarityThreshold: )
     decreaseRenameSimilarityThreshold: (
     openDiffTool: <ctrl+t>
+    editConfig: <alt+shift+c>
   status:
     checkForUpdate: u
     recentRepos: <enter>
@@ -726,8 +776,6 @@ keybinding:
     fetchRemote: f
     addForkRemote: F
     sortOrder: s
-  worktrees:
-    viewWorktreeOptions: w
   commits:
     squashDown: s
     renameCommit: r
@@ -1058,6 +1106,12 @@ keybinding:
   universal:
     edit: <disabled> # disable 'edit file'
 ```
+
+### Overriding the platform for default keybindings
+
+A few keybindings have different defaults on macOS than on Linux and Windows (e.g. word-wise cursor movement in text inputs uses `alt` on macOS but `ctrl` elsewhere). Lazygit picks these based on the OS it's running on, but you can override that with the `LAZYGIT_KEYBINDING_PLATFORM` environment variable. Set it to `darwin`, `linux`, or `windows`; any other value is ignored and the actual OS is used.
+
+This is useful when running lazygit in a Linux container that you access over ssh from a Mac, where you'd rather use the macOS keybindings.
 
 ### Example Keybindings For Colemak Users
 
