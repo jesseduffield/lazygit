@@ -1,24 +1,30 @@
 # Diff Line Metadata over OSC 1717 — draft specification (v1)
 
 **Status: draft, for feedback.** This document describes a small terminal
-escape-sequence protocol by which a diff pager (delta, difftastic, diff-so-fancy,
+escape-sequence protocol by which a diff renderer (delta, difftastic, diff-so-fancy,
 …) annotates each rendered line of a diff with the patch-space identity it
-represents, so that a host program rendering the pager's output can map a screen
+represents, so that a host program rendering the diff renderer's output can map a screen
 row (and column) back to *the exact line in the underlying diff*.
 
-It is published to gather feedback from pager authors before anything is
+It is published to gather feedback from diff renderer authors before anything is
 finalized. The wire format, the negotiation handshake, and the OSC number are all
 open to revision — §9 lists the points where feedback is most wanted.
 
 The protocol grew out of [lazygit](https://github.com/jesseduffield/lazygit), but
 nothing in it is lazygit-specific; "the host" below means any program that runs a
-pager and consumes its output.
+diff renderer and consumes its output.
+
+About terminology: Lazygit has been using the term "pager" for what we call
+"diff renderer" here. This is incorrect, a pager is something like less; but
+it's unlikely to change soon, so be aware that the terms "pager" (or "custom
+pager") and "diff renderer" can be used interchangeably in some discussions
+about this. For the rest of this document, we avoid the term "pager" though.
 
 ---
 
 ## 1. Motivation — what this enables, and why parsing isn't enough
 
-A host that shows a diff rendered by a pager often wants to act on the line the
+A host that shows a diff rendered by a diff renderer often wants to act on the line the
 user is pointing at:
 
 - **dive into staging / patch-building** for that hunk line,
@@ -26,19 +32,19 @@ user is pointing at:
 - **open that line in a code-review / PR web view** (needs the side — old vs new),
 - **navigate by hunk or by file** within the rendered diff,
 - **preserve the scroll position and selection** across a re-render (the diff is
-  re-rendered with a different context size, or a different pager, and the host
+  re-rendered with a different context size, or a different renderer, and the host
   wants to keep the user anchored on the same patch line).
 
 Every one of these needs the same primitive: **given a rendered row, recover
 `(file, side, line)`** — the precise line of the unified diff that row stands for.
 
-For *structure-preserving* renderings (no pager, `git diff --color`, or
+For *structure-preserving* renderings (no diff renderer, `git diff --color`, or
 `delta --color-only` without line numbers) the host can recover this by parsing
 the on-screen text: walk up to the nearest `@@` and `diff --git`, count `+`/` `
 lines, read the leading `+`/`-`/space. That works and needs no cooperation from
-the pager.
+the renderer.
 
-But the moment a pager **restructures** the diff, the unified-diff structure the
+But the moment a renderer **restructures** the diff, the unified-diff structure the
 parse relies on is gone:
 
 - `delta` (default mode) and `diff-so-fancy` drop or hide the `+`/`-` markers and
@@ -46,16 +52,16 @@ parse relies on is gone:
 - `difftastic` is token-granular and side-by-side — there is no unified-diff line
   structure left in *either* of its modes.
 
-In all of these the **pager is the only component that still knows** which file,
+In all of these the **diff renderer is the only component that still knows** which file,
 side, and line each rendered cell belongs to — it computed exactly that to render
-the diff. This protocol asks the pager to *state* that knowledge inline, in a form
+the diff. This protocol asks the renderer to *state* that knowledge inline, in a form
 the host can read back and that is harmless everywhere else.
 
 ---
 
 ## 2. Design at a glance
 
-1. The pager emits one OSC sequence carrying
+1. The diff renderer emits one OSC sequence carrying
    `(version, type, new-line, old-line, file)` **immediately before** each
    rendered region (a region is "one source line's worth of content in one
    column" — see §6).
@@ -64,12 +70,12 @@ the host can read back and that is harmless everywhere else.
    survive terminal wrapping and multi-column layouts **without the host ever
    reasoning about layout** — it just reads the nearest preceding attachment.
 3. The whole thing is gated behind an **environment-variable handshake**, so a
-   pager run outside a participating host (in a raw terminal, `less`, `tmux`, a
+   renderer run outside a participating host (in a raw terminal, `less`, `tmux`, a
    CI log) emits nothing and behaves byte-for-byte as before.
 
 The protocol is **layout-agnostic on the host side by construction**: all layout
 knowledge (where a column starts, where a gutter ends, how a long line wraps)
-stays in the pager, which is the only component that has it.
+stays in the diff renderer, which is the only component that has it.
 
 ---
 
@@ -79,12 +85,12 @@ stays in the pager, which is the only component that has it.
 OSC1717_METADATA = V1[,V2,…]
 ```
 
-- The **host** sets this environment variable on the pager subprocess to the list
+- The **host** sets this environment variable on the diff renderer subprocess to the list
   of protocol versions it understands, highest-preferred first is *not* required —
   the list is a set.
-- The **pager** emits the **highest version present in both** its own supported
+- The **diff renderer** emits the **highest version present in both** its own supported
   set and the advertised set. If the variable is unset, empty, or shares no
-  version with the pager, the pager **emits nothing** and its output is unchanged.
+  version with the renderer, the renderer **emits nothing** and its output is unchanged.
 
 Why a handshake, and why it must exist in v1 even though v1's payload is tiny:
 
@@ -147,7 +153,7 @@ path is not carried. A pure rename with no content change emits no records at al
 
 ### 4.4 The handshake record
 
-A conforming pager emits, as the **very first thing it writes** and **once per run**,
+A conforming diff renderer emits, as the **very first thing it writes** and **once per run**,
 a **version-only** record naming the version it negotiated:
 
 ```
@@ -158,14 +164,14 @@ i.e. the OSC introducer and the version field **with no further fields** —
 `\x1b]1717;1\x1b\` for v1. It is emitted whenever the handshake (§3) negotiates a
 version, *before* any diff content (and before the first per-line record).
 
-Its purpose is to let the host **probe** a pager cheaply and definitively: run it on an
+Its purpose is to let the host **probe** a diff renderer cheaply and definitively: run it on an
 **empty diff** (no changed content) and look for this record. Without it, "does this
-pager speak the protocol?" could only be inferred from the per-line records — but a
+renderer speak the protocol?" could only be inferred from the per-line records — but a
 diff with no content lines (a binary file, or the empty diff a probe would use) emits
-none, so the absence of records would be indistinguishable from an unsupported pager.
+none, so the absence of records would be indistinguishable from an unsupported renderer.
 The handshake is **content-independent** (it precedes, and does not depend on, any
 diff), so a single probe is conclusive and a binary file can't be mistaken for an
-unsupported pager. It also tells the host the negotiated version up front.
+unsupported renderer. It also tells the host the negotiated version up front.
 
 A host distinguishes it from a per-line record (§4.1) by **field count**: the handshake
 carries only the version (no `;` after it); a per-line record always has the full five
@@ -179,7 +185,7 @@ parse as five fields — so the handshake is harmless to existing parsers.
 ### 5.1 Type
 
 `type` is one character. v1 defines three, all of them **content-line** types, and
-a conforming pager emits one before every content line it renders:
+a conforming diff renderer emits one before every content line it renders:
 
 - `c` — context (unchanged) line
 - `a` — added line
@@ -188,7 +194,7 @@ a conforming pager emits one before every content line it renders:
 **There is deliberately no file-header or hunk-header type — see §5.5.** The
 protocol annotates content lines only; the host recovers file and hunk *structure*
 from the content records themselves (the `file` field and `new-line`
-discontinuities), and treats the pager's header/decoration rows as non-actionable.
+discontinuities), and treats the renderer's header/decoration rows as non-actionable.
 
 A host **must ignore a `type` it does not recognize** (treat the row as
 non-actionable) rather than reject the record, so the set can grow later without a
@@ -204,7 +210,7 @@ specifically on *change* lines). Hence an explicit type.
 - `new-line` is the line number in the **diff's new-file space** — i.e. the
   new-file line numbering the diff itself uses, *not* necessarily the working-tree
   file (the diff may be against staged content). A host that opens an editor is
-  expected to re-map this through its own diff↔worktree adjustment; the pager
+  expected to re-map this through its own diff↔worktree adjustment; the renderer
   should emit the number as it appears in the diff it is rendering.
 - `old-line` is the old-file line number, present **only** for deletions.
 
@@ -217,7 +223,7 @@ A `d` record carries **both** numbers:
   number of added/context lines above it within the hunk. This is exactly what
   `git`'s patch arithmetic already computes for a removed line.
 
-Consequence, which all pagers must implement identically: **two consecutive
+Consequence, which all diff renderers must implement identically: **two consecutive
 deletions share the same `new-line`** (nothing new-file-side advances between
 them) and are told apart only by `old-line`. Example — two deletions at old lines
 9 and 10, both sitting at new position 11:
@@ -237,7 +243,7 @@ an added file's lines carry the new-file numbers normally and `type=a`.
 
 ### 5.5 Non-goal: header and decoration rows are not annotated
 
-The protocol covers **content lines only**. A pager's file-header and hunk-header
+The protocol covers **content lines only**. A diff renderer's file-header and hunk-header
 rows — delta's boxed file name and hunk-header box, difftastic's per-hunk banner,
 diff-so-fancy's `── file ──` rule — carry **no** record, and there is no `f`/`h`
 (or "file-header"/"hunk-header") type. The host treats every un-annotated row as
@@ -256,23 +262,23 @@ structure, because the structure is already implicit in the content records:
 So file/hunk navigation, "jump to the top of this file/hunk", and the rest are all
 served by content records plus a trivial scan; the host lands navigation on a
 hunk/file's first **content** row, backing up over any un-annotated header rows the
-pager drew above it (a few lines of host code, needed anyway — see below).
+renderer drew above it (a few lines of host code, needed anyway — see below).
 
 **Why not annotate headers, even optionally?** An earlier draft made `f`/`h`
 mandatory; prototyping them in delta and difftastic (preserved in the design
 notes) showed the cost is real and the benefit marginal:
 
-- It adds genuine pager-side friction. delta draws the file header when it parses
+- It adds genuine renderer-side friction. delta draws the file header when it parses
   the `+++` line, *before* it has seen the first `@@`, so it cannot know the
   header's hunk line without buffering or abandoning streaming. difftastic has no
   separate header rows at all — one per-hunk banner is *both* a file and a hunk
   header — so neither `f` nor `h` maps cleanly onto it. For a protocol whose whole
   pitch is "emit one OSC per content line," this roughly doubles the conceptual
-  surface for the next pager author.
+  surface for the next diff renderer author.
 - Making them *optional* is the worst of both: a host can't rely on them, so it
   must implement the "header row is un-annotated → back up to the nearest content
   row" fallback regardless — and then maintain two code paths forever. Dropping
-  the types entirely leaves the host **one** path, exercised for every pager.
+  the types entirely leaves the host **one** path, exercised for every diff renderer.
 
 The only thing genuinely lost is files that emit **no content records** at all —
 pure renames, pure mode changes, binary files (§4.2). These become invisible to
@@ -284,15 +290,15 @@ over the rendered buffer.
 
 ## 6. Emit rules (placement)
 
-The pager first emits the handshake record (§4.4) — once, before any other output —
+The diff renderer first emits the handshake record (§4.4) — once, before any other output —
 then a per-line record before each region as follows.
 
 ### 6.1 One record per region, at the region's start
 
-The pager emits each region's record at the **start of that region**. Everything
+The diff renderer emits each region's record at the **start of that region**. Everything
 from there until the next region's record (or end of line) belongs to that
-record — *including* any line-number gutter or other embellishment the pager
-considers part of the region. Where a region "really" starts is the pager's
+record — *including* any line-number gutter or other embellishment the renderer
+considers part of the region. Where a region "really" starts is the renderer's
 call, not the host's. The single firm requirement:
 
 > **The record must precede the region's first cell**, so that a host searching
@@ -319,17 +325,17 @@ disambiguation.
 
 ### 6.3 Wrapping — emit on every output row
 
-> **The pager emits a line's record at the start of *every output row* it produces
+> **The diff renderer emits a line's record at the start of *every output row* it produces
 > for that line, including its own wrapped continuations.**
 
 There are two distinct kinds of wrapping, and the rule differs:
 
-- **Terminal/host wrapping** — the pager emits *one* line (one `\n`) and the
+- **Terminal/host wrapping** — the renderer emits *one* line (one `\n`) and the
   terminal (or the host's view) wraps it onto several visual rows. Here only the
   primary row needs a record; the host's own row→line mapping routes every visual
-  row of that line back to it. A pager that relies on terminal wrapping emits one
+  row of that line back to it. A renderer that relies on terminal wrapping emits one
   record and is fine.
-- **Pager wrapping** — the pager itself emits *several* lines (several `\n`s) for
+- **Diff renderer wrapping** — the renderer itself emits *several* lines (several `\n`s) for
   one logical line, as difftastic's side-by-side does and as delta does in
   side-by-side with `wrap-max-lines`. Now each wrapped row is a **distinct line**
   to the host, with nothing tying row *N+1* back to row *N* — so each must carry
@@ -345,7 +351,7 @@ untagged rows fragment a wrapped line into one block per visual row.
 
 ### 6.4 Header and decoration rows — emit nothing
 
-A pager's header and decoration rows (file headers, hunk headers, dividers,
+A diff renderer's header and decoration rows (file headers, hunk headers, dividers,
 padding) carry **no** record — there is no header type to emit (§5.1, §5.5). The
 host derives file and hunk structure from the content records and treats every
 un-annotated row as non-actionable.
@@ -407,17 +413,17 @@ mapping; recorded as a v2 candidate, not taken (§9).
 2. **The env-var name and grammar** (`OSC1717_METADATA=V1,…`).
 3. **The token-vs-line mismatch** (§8) — should there be an `m` type, or is
    host-side inference the right home for it?
-4. **Can your pager actually produce all four fields per region?** In particular
+4. **Can your diff renderer actually produce all four fields per region?** In particular
    the side for deleted lines, and in side-by-side mode. (delta needed to track
    its own old/new counters because its line-number counters are dormant unless
    `--line-numbers` is on; difftastic had them natively. Your mileage may vary.)
-5. **Content-lines-only scope (§5.5) — is anything lost for your pager?** We
+5. **Content-lines-only scope (§5.5) — is anything lost for your diff renderer?** We
    deliberately dropped header annotations: an earlier draft made file/hunk-header
    types mandatory, but prototyping them in delta and difftastic showed real
-   pager-side friction (delta draws the file header before it has parsed the first
+   renderer-side friction (delta draws the file header before it has parsed the first
    `@@`; difftastic has no separate header rows, only a combined per-hunk banner)
    for benefit the host can get by deriving structure from content records. If your
-   pager has a structure where the host genuinely *cannot* reconstruct file/hunk
+   renderer has a structure where the host genuinely *cannot* reconstruct file/hunk
    boundaries from content records, tell us — that would argue for bringing header
    types back.
 
@@ -425,7 +431,7 @@ mapping; recorded as a v2 candidate, not taken (§9).
 
 ## 10. Reference implementations (prototype)
 
-Three pager emitters and one host carrier, all at prototype quality, emit or
+Three diff renderer emitters and one host carrier, all at prototype quality, emit or
 consume the v1 format described here, over OSC `1717`:
 
 - **delta** — a dedicated additive emitter that injects only OSC bytes (no change
@@ -451,8 +457,8 @@ consume the v1 format described here, over OSC `1717`:
   collects the payload, and stamps it per-cell like a hyperlink, cleared at each
   line boundary so it cannot bleed onto an untagged following line.
 
-A key validated property in all three pagers: **with the handshake absent, output
-is byte-identical to the unpatched pager** — the protocol is strictly additive.
+A key validated property in all three renderers: **with the handshake absent, output
+is byte-identical to the unpatched renderer** — the protocol is strictly additive.
 
 ---
 
