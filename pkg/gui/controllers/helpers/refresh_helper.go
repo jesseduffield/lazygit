@@ -131,6 +131,8 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		//     can move HEAD), so refresh commits + branches alongside
 		//   - submodules are refreshed as part of the files refresh
 		//   - merge conflicts are part of what the files refresh produces
+		//   - pull requests are fetched for the tracking branches against the
+		//     remotes, so refresh both alongside to fetch against fresh data
 		if scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
 			scopeSet.Add(types.COMMITS, types.BRANCHES)
 		}
@@ -139,6 +141,9 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		}
 		if scopeSet.Includes(types.FILES) {
 			scopeSet.Add(types.MERGE_CONFLICTS)
+		}
+		if scopeSet.Includes(types.PULL_REQUESTS) {
+			scopeSet.Add(types.BRANCHES, types.REMOTES)
 		}
 
 		// Capture the refs snapshot now, before we start reading git's state
