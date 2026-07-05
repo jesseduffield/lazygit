@@ -89,8 +89,9 @@ OSC1717_METADATA = V1[,V2,…]
   of protocol versions it understands, highest-preferred first is *not* required —
   the list is a set.
 - The **diff renderer** emits the **highest version present in both** its own supported
-  set and the advertised set. If the variable is unset, empty, or shares no
-  version with the renderer, the renderer **emits nothing** and its output is unchanged.
+  set and the advertised set (see section 4.4 for the format of the handshake
+  record it emits). If the variable is unset, empty, or shares no version with
+  the renderer, the renderer **emits nothing** and its output is unchanged.
 
 Why a handshake, and why it must exist in v1 even though v1's payload is tiny:
 
