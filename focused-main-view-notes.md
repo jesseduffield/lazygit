@@ -3650,3 +3650,46 @@ resolve hyperlinks to temp-tree paths (edge; the secondary isn't an edit surface
   cross-file `NextItem` is now the auto-advance), `keep_selection_after_moving_patch_out_main_view` (navigate back
   to `+one` after the toggle to span it). Not done (possible refinement): the explorer's smarter "next line of the
   same included-state" (skip already-included hunks when adding); plain next-hunk is fine for top-to-bottom builds.
+
+### 21.36 Session 26 (2026-07-05): rebased onto master's rename support — two rename gaps for productionization
+
+Rebased the branch onto a newer master, which now carries `f84ada494` **"Show renamed files in the custom
+patch builder."** That commit switched the commit-file loader to `--find-renames`, taught `models.CommitFile`
+a `PreviousPath` (+`GetPreviousPath()`), and threaded a `previousPath` through the patch builder
+(`AddFileWhole`/`AddFileLineRange`/`RemoveFileLineRange`/`GetFileIncLineIndices`/`RenderPatchForFile` all
+gained the parameter) plus `transform.go`'s `StripRename` so a **whole**-file selection carries the rename
+while a **partial** one strips it and points the header at the new path. This branch forked *before* that
+work, so its focused-main-view patch code is rename-blind. Two gaps to fix when productionizing — **neither
+fixed in the prototype** (deliberately; the prototype only needs to demonstrate the mechanism):
+
+- **(1) The conflict resolutions hardcode `previousPath = ""`** — `patch_building_from_main_view.go:72`
+  (`RemoveFileLineRange`), `:185` (`GetFileIncLineIndices`), `:200` (`AddFileLineRange`/`RemoveFileLineRange`
+  via the `toggle` alias). Each is the new patch-builder parameter, filled with `""` just to make the rebase
+  compile. Correct for a non-rename, **wrong for a rename**: `getFileInfo(filename, "")` loads the diff for
+  the new path only, so git emits no rename record → a whole-file selection loses the rename, and
+  `StripRename` (which fires only when `mode == PART && previousPath != ""`) can never trigger, so a partial
+  selection can't strip it either. **Production fix:** thread the file's previous path here. Unlike the
+  explorer paths, this code resolves files by absolute path off the diff lines (`patchFilename`), not from a
+  `CommitFile`, so it must look the `CommitFile` up by path and read `GetPreviousPath()` — mirroring the two
+  existing call sites that already do it right: `commits_files_controller.toggleForPatch`
+  (`AddFileWhole/RemoveFile(file.Path, file.PreviousPath)`) and
+  `patch_building_helper.RefreshPatchBuildingPanel` (`ShowFileDiff` + `RenderPatchForFile` both pass
+  `file.PreviousPath`). Reflog patch-building (a separate deferred gap, §21.24/§21.29) needs the same.
+
+- **(2) The failing e2e `patch_building/renamed_file_whole`** (added by `f84ada494`) — **not** gap (1), and
+  **not** a patch-*build* regression. It drives the **old explorer** flow (CommitFiles list →
+  `PressPrimaryAction` → `toggleForPatch`, which passes `file.PreviousPath` correctly), and the built patch is
+  correct: the main **Patch** pane renders the full rename, and whole-file apply/removal is fine because
+  `RenderPatchForFile` short-circuits to the raw `info.diff` for `mode == WHOLE && plain`. What's broken is
+  only the **non-plain view rendering**: the secondary "Custom patch" preview
+  (`patch_building_helper.go:136`, `RenderPatchForFile` with `Plain: false` →
+  `Parse().Transform().FormatView()`) renders the rename as a mangled `diff --git a/renamed a/renamed` /
+  `deleted file mode 100644` / `index e69de29..0000000` instead of the rename header + hunk. **Verified passes
+  on master (`ce5a8b61b`), fails on this branch** — so it's this branch's patch-package changes (§ the
+  `parse.go` hunk-length capture, `patch.go`'s new line-number helpers + `IsWellFormed`, `hunk.go`), which
+  predate rename support and don't reproduce a rename header/body through the view formatter. **Production
+  fix:** make `Parse`/`Transform`/`FormatView` rename-aware so `RenderPatchForFile(plain=false)` reproduces
+  the rename; and re-check **partial** rename selections while at it — their *applied* patch also goes through
+  this path (plain, no short-circuit) with `StripRename`, so it's exposed to the same rendering code, not just
+  the preview. Bottom line: the failing test is an expected casualty of "prototype predates renames," same
+  root as (1), not a surprise to worry about.
