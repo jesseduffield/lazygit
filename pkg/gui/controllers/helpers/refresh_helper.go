@@ -175,6 +175,14 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		}
 
 		branchesAndRemotesWg := sync.WaitGroup{}
+		// The pull-request fetch (below) needs the just-loaded branches and
+		// remotes. Their model writes are bounced onto the UI thread, so the
+		// fetch worker can't read them back from the model without racing (and
+		// would see the pre-refresh values); instead the branches and remotes
+		// loads stash what they loaded here, and the wait on
+		// branchesAndRemotesWg gives the fetch the happens-before to read them.
+		var loadedBranches []*models.Branch
+		var loadedRemotes []*models.Remote
 		includeWorktreesWithBranches := false
 		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) {
 			// whenever we change commits, we should update branches because the upstream/downstream
@@ -188,7 +196,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			if self.c.UserConfig().Git.LocalBranchSortOrder == "recency" {
 				branchesAndRemotesWg.Add(1)
 				refresh("reflog and branches", func() {
-					self.refreshReflogAndBranches(includeWorktreesWithBranches, options.BranchSelection, options.SelectTopReflogCommit, options.Background)
+					loadedBranches = self.refreshReflogAndBranches(includeWorktreesWithBranches, options.BranchSelection, options.SelectTopReflogCommit, options.Background)
 					branchesAndRemotesWg.Done()
 				})
 			} else {
@@ -197,7 +205,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 					// Not a recency sort, so branches doesn't depend on the reflog
 					// being fresh; it runs concurrently with the reflog refresh
 					// below and reads whatever's in the model, as it always has.
-					self.refreshBranches(includeWorktreesWithBranches, options.BranchSelection, true, self.c.Model().ReflogCommits, options.Background)
+					loadedBranches = self.refreshBranches(includeWorktreesWithBranches, options.BranchSelection, true, self.c.Model().ReflogCommits, options.Background)
 					branchesAndRemotesWg.Done()
 				})
 				refresh("reflog", func() { _, _ = self.refreshReflogCommits(options.Background, options.SelectTopReflogCommit) })
@@ -237,7 +245,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		if scopeSet.Includes(types.REMOTES) {
 			branchesAndRemotesWg.Add(1)
 			refresh("remotes", func() {
-				_ = self.refreshRemotes(options.Background)
+				loadedRemotes, _ = self.refreshRemotes(options.Background)
 				branchesAndRemotesWg.Done()
 			})
 		}
@@ -245,7 +253,11 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 		if scopeSet.Includes(types.PULL_REQUESTS) {
 			refresh("pull requests", func() {
 				branchesAndRemotesWg.Wait()
-				self.refreshGithubPullRequests(options.Background)
+				// Use the branches and remotes the loads above stashed, not
+				// Model().Branches/Remotes: those writes are bounced onto the
+				// UI thread and may not have landed on this worker yet. The
+				// wait above orders us after both loads have stashed theirs.
+				self.refreshGithubPullRequests(loadedBranches, loadedRemotes, options.Background)
 			})
 		}
 
@@ -404,10 +416,13 @@ func getModeName(mode types.RefreshMode) string {
 // order gives the immediate (non-recency) load a lower branch-load sequence
 // than the async (recency) load, so the sequence guard in refreshBranches keeps
 // the recency-sorted result even if the two loads' bounces land out of order.
-func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, branchSelection types.BranchSelectionBehavior, selectTopReflogCommit bool, background bool) {
+func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, branchSelection types.BranchSelectionBehavior, selectTopReflogCommit bool, background bool) []*models.Branch {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
-		self.refreshBranches(refreshWorktrees, branchSelection, false, self.c.Model().ReflogCommits, background)
+		// Return the immediate (non-recency) load's branches; the recency-sorted
+		// reload below runs on its own worker after we return. Both hold the same
+		// set of branches, which is all the caller (the PR fetch) needs.
+		branches := self.refreshBranches(refreshWorktrees, branchSelection, false, self.c.Model().ReflogCommits, background)
 
 		self.onWorker(background, func(_ gocui.Task) error {
 			reflogCommits, _ := self.refreshReflogCommits(background, false)
@@ -416,10 +431,14 @@ func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, branc
 			return nil
 		})
 
+		return branches
+
 	case types.COMPLETE:
 		reflogCommits, _ := self.refreshReflogCommits(background, selectTopReflogCommit)
-		self.refreshBranches(refreshWorktrees, branchSelection, true, reflogCommits, background)
+		return self.refreshBranches(refreshWorktrees, branchSelection, true, reflogCommits, background)
 	}
+
+	return nil
 }
 
 func (self *RefreshHelper) refreshCommitsAndCommitFiles(commitSelection types.CommitSelectionBehavior, background bool) {
@@ -733,7 +752,7 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs() ([]*models.SubmoduleCo
 
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
-func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, branchSelection types.BranchSelectionBehavior, loadBehindCounts bool, reflogCommits []*models.Commit, background bool) {
+func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, branchSelection types.BranchSelectionBehavior, loadBehindCounts bool, reflogCommits []*models.Commit, background bool) []*models.Branch {
 	loadSeq := self.branchLoadSeq.Add(1)
 
 	generation := self.c.State().GetRepoGeneration()
@@ -820,6 +839,10 @@ func (self *RefreshHelper) refreshBranches(refreshWorktrees bool, branchSelectio
 	self.refreshView(self.c.Contexts().Branches, background)
 
 	self.refreshStatus(background)
+
+	// Return the freshly-loaded branches so the caller can hand them to the PR
+	// fetch without reading them back from the (bounce-written) model.
+	return branches
 }
 
 func (self *RefreshHelper) refreshFilesAndSubmodules(background bool) error {
@@ -1041,13 +1064,13 @@ func (self *RefreshHelper) refreshReflogCommits(background bool, selectTopEntry 
 	return reflogCommits, nil
 }
 
-func (self *RefreshHelper) refreshRemotes(background bool) error {
+func (self *RefreshHelper) refreshRemotes(background bool) ([]*models.Remote, error) {
 	generation := self.c.State().GetRepoGeneration()
 	prevSelectedRemote := self.c.Contexts().Remotes.GetSelected()
 
 	remotes, err := self.c.Git().Loaders.RemoteLoader.GetRemotes()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
@@ -1075,7 +1098,7 @@ func (self *RefreshHelper) refreshRemotes(background bool) error {
 
 	self.refreshView(self.c.Contexts().Remotes, background)
 	self.refreshView(self.c.Contexts().RemoteBranches, background)
-	return nil
+	return remotes, nil
 }
 
 func (self *RefreshHelper) loadWorktrees() []*models.Worktree {
@@ -1187,7 +1210,7 @@ func (self *RefreshHelper) refreshView(context types.Context, background bool) {
 	})
 }
 
-func (self *RefreshHelper) refreshGithubPullRequests(background bool) {
+func (self *RefreshHelper) refreshGithubPullRequests(branches []*models.Branch, remotes []*models.Remote, background bool) {
 	generation := self.c.State().GetRepoGeneration()
 
 	clearPullRequests := func() {
@@ -1198,7 +1221,7 @@ func (self *RefreshHelper) refreshGithubPullRequests(background bool) {
 		})
 	}
 
-	githubRemotes := getAuthenticatedGithubRemotes(self.getGithubRemotes(), self.c.Git().GitHub.GetAuthToken)
+	githubRemotes := getAuthenticatedGithubRemotes(self.getGithubRemotes(remotes), self.c.Git().GitHub.GetAuthToken)
 	if len(githubRemotes) == 0 {
 		clearPullRequests()
 		return
@@ -1209,12 +1232,12 @@ func (self *RefreshHelper) refreshGithubPullRequests(background bool) {
 		clearPullRequests()
 
 		if !self.githubBaseRemotePromptDismissed[self.c.Git().RepoPaths.RepoPath()] {
-			self.promptForBaseGithubRepo(githubRemotes)
+			self.promptForBaseGithubRepo(githubRemotes, branches)
 		}
 		return
 	}
 
-	self.setGithubPullRequests(baseInfo, background)
+	self.setGithubPullRequests(baseInfo, branches, background)
 }
 
 type githubRemoteInfo struct {
@@ -1223,8 +1246,8 @@ type githubRemoteInfo struct {
 	authToken   string
 }
 
-func (self *RefreshHelper) getGithubRemotes() []githubRemoteInfo {
-	return lo.FilterMap(self.c.Model().Remotes, func(remote *models.Remote, _ int) (githubRemoteInfo, bool) {
+func (self *RefreshHelper) getGithubRemotes(remotes []*models.Remote) []githubRemoteInfo {
+	return lo.FilterMap(remotes, func(remote *models.Remote, _ int) (githubRemoteInfo, bool) {
 		if len(remote.Urls) == 0 {
 			return githubRemoteInfo{}, false
 		}
@@ -1285,7 +1308,7 @@ func getGithubBaseRemote(githubRemotes []githubRemoteInfo, configuredRemoteName 
 	return nil
 }
 
-func (self *RefreshHelper) promptForBaseGithubRepo(githubRemotes []githubRemoteInfo) {
+func (self *RefreshHelper) promptForBaseGithubRepo(githubRemotes []githubRemoteInfo, branches []*models.Branch) {
 	menuItems := lo.Map(githubRemotes, func(info githubRemoteInfo, _ int) *types.MenuItem {
 		return &types.MenuItem{
 			LabelColumns: []string{info.remote.Name, style.FgCyan.Sprint(info.serviceInfo.RepoName)},
@@ -1295,7 +1318,7 @@ func (self *RefreshHelper) promptForBaseGithubRepo(githubRemotes []githubRemoteI
 						self.c.Log.Error(err)
 					}
 
-					self.setGithubPullRequests(&info, false)
+					self.setGithubPullRequests(&info, branches, false)
 					return nil
 				})
 			},
@@ -1323,17 +1346,17 @@ func (self *RefreshHelper) rebuildPullRequestsMap() {
 	)
 }
 
-func (self *RefreshHelper) setGithubPullRequests(baseInfo *githubRemoteInfo, background bool) {
+func (self *RefreshHelper) setGithubPullRequests(baseInfo *githubRemoteInfo, branches []*models.Branch, background bool) {
 	generation := self.c.State().GetRepoGeneration()
 
-	if len(self.c.Model().Branches) == 0 {
+	if len(branches) == 0 {
 		return
 	}
 
-	branches := lo.Filter(self.c.Model().Branches, func(branch *models.Branch, _ int) bool {
+	trackingBranches := lo.Filter(branches, func(branch *models.Branch, _ int) bool {
 		return branch.IsTrackingRemote()
 	})
-	branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string {
+	branchNames := lo.Map(trackingBranches, func(branch *models.Branch, _ int) string {
 		return branch.UpstreamBranch
 	})
 
