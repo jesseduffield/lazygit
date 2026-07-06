@@ -424,6 +424,8 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 		return err
 	}
 
+	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
+
 	withNewBranchNamePrompt := func(baseBranchName string, f func(string) error) error {
 		prompt := utils.ResolvePlaceholderString(
 			self.c.Tr.NewBranchNameBranchOff,
@@ -462,7 +464,9 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 			Title:  self.c.Tr.MoveCommitsToNewBranch,
 			Prompt: prompt,
 			HandleConfirm: func() error {
-				return withNewBranchNamePrompt(currentBranch.Name, self.moveCommitsToNewBranchStackedOnCurrentBranch)
+				return withNewBranchNamePrompt(currentBranch.Name, func(newBranchName string) error {
+					return self.moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName, mustStash)
+				})
 			},
 		})
 		return nil
@@ -482,27 +486,31 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 			{
 				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchFromBaseItem, shortBaseBranchName),
 				OnPress: func() error {
+					commitsToCherryPick := lo.Filter(self.c.Model().Commits, func(commit *models.Commit, _ int) bool {
+						return commit.Status == models.StatusUnpushed
+					})
 					return withNewBranchNamePrompt(shortBaseBranchName, func(newBranchName string) error {
-						return self.moveCommitsToNewBranchOffOfMainBranch(newBranchName, baseBranchRef)
+						return self.moveCommitsToNewBranchOffOfMainBranch(newBranchName, baseBranchRef, commitsToCherryPick, mustStash)
 					})
 				},
 			},
 			{
 				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchStackedItem, currentBranch.Name),
 				OnPress: func() error {
-					return withNewBranchNamePrompt(currentBranch.Name, self.moveCommitsToNewBranchStackedOnCurrentBranch)
+					return withNewBranchNamePrompt(currentBranch.Name, func(newBranchName string) error {
+						return self.moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName, mustStash)
+					})
 				},
 			},
 		},
 	})
 }
 
-func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName string) error {
+func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName string, mustStash bool) error {
 	if err := self.c.Git().Branch.NewWithoutCheckout(newBranchName, "HEAD"); err != nil {
 		return err
 	}
 
-	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 	if mustStash {
 		if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 			return err
@@ -532,12 +540,7 @@ func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchNa
 	return nil
 }
 
-func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName string, baseBranchRef string) error {
-	commitsToCherryPick := lo.Filter(self.c.Model().Commits, func(commit *models.Commit, _ int) bool {
-		return commit.Status == models.StatusUnpushed
-	})
-
-	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
+func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName string, baseBranchRef string, commitsToCherryPick []*models.Commit, mustStash bool) error {
 	if mustStash {
 		if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 			return err
