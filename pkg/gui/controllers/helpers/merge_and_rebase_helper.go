@@ -79,6 +79,18 @@ func (self *MergeAndRebaseHelper) ContinueRebase() error {
 }
 
 func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
+	return self.genericMergeCommandImpl(command, true)
+}
+
+// genericMergeCommandImpl runs a merge/rebase continue/skip/abort and handles
+// the result. Continuing can be slow (it may replay many commits), so the
+// non-subprocess path runs on a worker with a waiting status.
+//
+// showWaitingStatus is false only for the recursive auto-skip in
+// CheckMergeOrRebaseWithRefreshOptions: that call already runs on the caller's
+// thread (the worker of the enclosing waiting status, or the UI thread for the
+// synchronous callers), so it must not spin up a second one.
+func (self *MergeAndRebaseHelper) genericMergeCommandImpl(command string, showWaitingStatus bool) error {
 	status := self.c.Git().Status.WorkingTreeState()
 
 	if status.None() {
@@ -123,12 +135,22 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 		self.RecordWhetherMergeOrRebaseStartedInLazygit()
 		return err
 	}
-	result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
-	return self.CheckMergeOrRebaseWithRefreshOptions(result,
-		types.RefreshOptions{
-			Mode:            types.ASYNC,
-			CommitSelection: commitSelectionAfterMerge(result == nil && selectHeadCommitOnSuccess),
+
+	runAction := func() error {
+		result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
+		return self.CheckMergeOrRebaseWithRefreshOptions(result,
+			types.RefreshOptions{
+				Mode:            types.ASYNC,
+				CommitSelection: commitSelectionAfterMerge(result == nil && selectHeadCommitOnSuccess),
+			})
+	}
+
+	if showWaitingStatus {
+		return self.c.WithWaitingStatus(status.Title(self.c.Tr), func(gocui.Task) error {
+			return runAction()
 		})
+	}
+	return runAction()
 }
 
 // commitSelectionAfterMerge maps whether a merge/rebase/pull created a new
@@ -191,9 +213,9 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 	if result == nil {
 		return nil
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
-		return self.genericMergeCommand(REBASE_OPTION_SKIP)
+		return self.genericMergeCommandImpl(REBASE_OPTION_SKIP, false)
 	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") {
-		return self.genericMergeCommand(REBASE_OPTION_SKIP)
+		return self.genericMergeCommandImpl(REBASE_OPTION_SKIP, false)
 	} else if strings.Contains(result.Error(), "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
