@@ -46,7 +46,7 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 			}
 
 			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+			self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 			return nil
 		})
 	})
@@ -84,7 +84,7 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteB
 				if err := self.deleteRemoteBranches(remoteBranches, task); err != nil {
 					return err
 				}
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 				if resetRemoteBranchesSelection {
 					self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
 				}
@@ -152,7 +152,7 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 				}
 
 				self.c.Contexts().Branches.CollapseRangeSelectionToTop()
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 				return nil
 			})
 		},
@@ -312,7 +312,7 @@ func (self *BranchesHelper) deleteLocalBranchesContinuation(branches []*models.B
 		}
 
 		self.c.Contexts().Branches.CollapseRangeSelectionToTop()
-		self.c.Refresh(types.RefreshOptions{
+		self.c.RefreshFromWorker(types.RefreshOptions{
 			Mode:  types.ASYNC,
 			Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES},
 		})
@@ -330,7 +330,7 @@ func (self *BranchesHelper) deleteLocalAndRemoteBranchesContinuation(branches []
 		}
 
 		self.c.Contexts().Branches.CollapseRangeSelectionToTop()
-		self.c.Refresh(types.RefreshOptions{
+		self.c.RefreshFromWorker(types.RefreshOptions{
 			Mode:  types.ASYNC,
 			Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.REMOTES, types.FILES},
 		})
@@ -390,7 +390,7 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool) er
 	// AutoForwardBranches reads Model.Branches, which the branches refresh writes
 	// via a bounce, so it has to run in Then rather than right after Refresh
 	// returns (where it would still see the previous branches).
-	self.c.Refresh(types.RefreshOptions{
+	self.c.RefreshFromWorker(types.RefreshOptions{
 		Scope:      scope,
 		Mode:       types.SYNC,
 		Background: background,

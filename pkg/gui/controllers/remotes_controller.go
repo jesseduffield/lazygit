@@ -391,7 +391,7 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 				}
 			}
 		}
-		self.c.Refresh(refreshOptions)
+		self.c.RefreshFromWorker(refreshOptions)
 		return err
 	})
 }

@@ -30,6 +30,12 @@ type IGuiCommon interface {
 	LogCommand(cmdStr string, isCommandLine bool)
 	// we call this when we want to refetch some models and render the result. Internally calls PostRefreshUpdate
 	Refresh(RefreshOptions)
+	// Like Refresh, but for callers running on a worker goroutine (e.g. inside
+	// a WithWaitingStatus handler) rather than the UI thread. The refresh
+	// captures the model/context state it needs on the UI thread before doing
+	// its git work; knowing which thread the caller is on lets it capture
+	// inline (UI thread) or hop across (worker) without racing or deadlocking.
+	RefreshFromWorker(RefreshOptions)
 	// we call this when we've changed something in the view model but not the actual model,
 	// e.g. expanding or collapsing a folder in a file view. Calling 'Refresh' in this
 	// case would be overkill, although refresh will internally call 'PostRefreshUpdate'

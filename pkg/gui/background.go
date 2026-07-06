@@ -184,7 +184,7 @@ func (self *BackgroundRoutineMgr) checkForExternalChanges() {
 
 	// No need to update the stored snapshot here; Refresh does that.
 	self.gui.c.Log.Info("External ref change detected — refreshing")
-	self.gui.c.Refresh(types.RefreshOptions{Background: true})
+	self.gui.c.RefreshFromWorker(types.RefreshOptions{Background: true})
 }
 
 // returns a channel that can be used to trigger the callback immediately

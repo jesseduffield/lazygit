@@ -30,6 +30,10 @@ func (self *guiCommon) Refresh(opts types.RefreshOptions) {
 	self.gui.helpers.Refresh.Refresh(opts)
 }
 
+func (self *guiCommon) RefreshFromWorker(opts types.RefreshOptions) {
+	self.gui.helpers.Refresh.RefreshFromWorker(opts)
+}
+
 func (self *guiCommon) PostRefreshUpdate(context types.Context) {
 	self.gui.postRefreshUpdate(context)
 }

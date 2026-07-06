@@ -55,7 +55,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		if options.RefreshPullRequests {
 			scope = append(scope, types.PULL_REQUESTS)
 		}
-		self.c.Refresh(types.RefreshOptions{
+		self.c.RefreshFromWorker(types.RefreshOptions{
 			Mode:                  types.BLOCK_UI,
 			Scope:                 scope,
 			BranchSelection:       types.SelectCheckedOutBranch,
@@ -204,7 +204,7 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 	// loading a heap of commits is slow so we limit them whenever doing a reset
 	self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS}, CommitSelection: types.KeepCommitSelectionIndex})
+	self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS}, CommitSelection: types.KeepCommitSelectionIndex})
 
 	return nil
 }
@@ -523,7 +523,7 @@ func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchNa
 		}
 	}
 
-	self.c.Refresh(types.RefreshOptions{
+	self.c.RefreshFromWorker(types.RefreshOptions{
 		Mode:                  types.BLOCK_UI,
 		BranchSelection:       types.SelectCheckedOutBranch,
 		CommitSelection:       types.SelectHeadCommit,
@@ -564,7 +564,7 @@ func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName stri
 		}
 	}
 
-	self.c.Refresh(types.RefreshOptions{
+	self.c.RefreshFromWorker(types.RefreshOptions{
 		Mode:                  types.BLOCK_UI,
 		BranchSelection:       types.SelectCheckedOutBranch,
 		CommitSelection:       types.SelectHeadCommit,

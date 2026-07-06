@@ -487,7 +487,7 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 		if err != nil {
 			return err
 		}
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
 		return nil
 	})
 }
@@ -854,7 +854,7 @@ func (self *LocalCommitsController) resetAuthor(start, end int) error {
 			return err
 		}
 
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
 		return nil
 	})
 }
@@ -870,7 +870,7 @@ func (self *LocalCommitsController) setAuthor(start, end int) error {
 					return err
 				}
 
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
 				return nil
 			})
 		},
@@ -889,7 +889,7 @@ func (self *LocalCommitsController) addCoAuthor(start, end int) error {
 				if err := self.c.Git().Rebase.AddCommitCoAuthor(self.c.Model().Commits, start, end, value); err != nil {
 					return err
 				}
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
 				return nil
 			})
 		},

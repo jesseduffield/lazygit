@@ -79,6 +79,17 @@ func NewRefreshHelper(
 }
 
 func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
+	self.performRefresh(options, false)
+}
+
+// RefreshFromWorker is Refresh for callers already running on a worker
+// goroutine (e.g. inside a WithWaitingStatus handler) rather than the UI
+// thread. See IGuiCommon.RefreshFromWorker.
+func (self *RefreshHelper) RefreshFromWorker(options types.RefreshOptions) {
+	self.performRefresh(options, true)
+}
+
+func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFromWorker bool) {
 	if options.Mode == types.ASYNC && options.Then != nil {
 		panic("RefreshOptions.Then doesn't work with mode ASYNC")
 	}
@@ -100,6 +111,13 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			strings.Join(getScopeNames(options.Scope), ","),
 		)
 	}
+
+	// f runs on the UI thread when the refresh was initiated there, and also for
+	// BLOCK_UI, which dispatches f onto the UI thread regardless of the caller.
+	// Only a SYNC/ASYNC refresh initiated from a worker runs f on that worker.
+	// This, not calledFromWorker alone, is what decides whether a scope capture
+	// runs inline or has to hop (see captureOnUIThread).
+	fRunsOnUIThread := options.Mode == types.BLOCK_UI || !calledFromWorker
 
 	f := func() {
 		var scopeSet *set.Set[types.RefreshableView]
@@ -188,8 +206,16 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
 			// whenever we change commits, we should update branches because the upstream/downstream
 			// counts can change. Whenever we change branches we should also change commits
 			// e.g. in the case of switching branches.
+			// Capture the commits refresh's model/context/mode inputs on the UI
+			// thread, before the git work is dispatched to a worker, so the
+			// worker computes from an immutable snapshot instead of reading
+			// state the UI thread concurrently mutates.
+			var capturedCommits capturedCommitState
+			self.captureOnUIThread(fRunsOnUIThread, options.Background, func() {
+				capturedCommits = self.captureCommitsState(options.CommitSelection)
+			})
 			refresh("commits and commit files", func() {
-				self.refreshCommitsAndCommitFiles(options.CommitSelection, options.Background)
+				self.refreshCommitsAndCommitFiles(capturedCommits, options.CommitSelection, options.Background)
 			})
 
 			includeWorktreesWithBranches = scopeSet.Includes(types.WORKTREES)
@@ -441,11 +467,49 @@ func (self *RefreshHelper) refreshReflogAndBranches(refreshWorktrees bool, branc
 	return nil
 }
 
-func (self *RefreshHelper) refreshCommitsAndCommitFiles(commitSelection types.CommitSelectionBehavior, background bool) {
+// capturedCommitState holds everything the commits refresh reads from the
+// model, contexts, and modes. It is gathered on the UI thread (see
+// captureCommitsState) before the git work is dispatched to a worker, so the
+// worker computes from an immutable snapshot rather than reading state the UI
+// thread concurrently mutates.
+type capturedCommitState struct {
+	selectionRange       *localCommitSelectionRange
+	limitCommits         bool
+	showWholeGitGraph    bool
+	filterPath           string
+	filterAuthor         string
+	mainBranches         *git_commands.MainBranches
+	hashPool             *utils.StringPool
+	parentIsLocalCommits bool
+}
+
+// captureCommitsState reads the commits refresh's model/context/mode inputs
+// into an immutable snapshot. It must run on the UI thread.
+func (self *RefreshHelper) captureCommitsState(commitSelection types.CommitSelectionBehavior) capturedCommitState {
+	var selectionRange *localCommitSelectionRange
+	if commitSelection == types.KeepCommitSelectionByHash {
+		selectedIdx, rangeStartIdx, rangeSelectMode := self.c.Contexts().LocalCommits.GetSelectionRangeAndMode()
+		selectionRange = captureLocalCommitSelectionRange(self.c.Model().Commits, selectedIdx, rangeStartIdx, rangeSelectMode)
+	}
+
+	parentCtx := self.c.Contexts().CommitFiles.GetParentContext()
+
+	return capturedCommitState{
+		selectionRange:       selectionRange,
+		limitCommits:         self.c.Contexts().LocalCommits.GetLimitCommits(),
+		showWholeGitGraph:    self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
+		filterPath:           self.c.Modes().Filtering.GetPath(),
+		filterAuthor:         self.c.Modes().Filtering.GetAuthor(),
+		mainBranches:         self.c.Model().MainBranches,
+		hashPool:             self.c.Model().HashPool,
+		parentIsLocalCommits: parentCtx != nil && parentCtx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY,
+	}
+}
+
+func (self *RefreshHelper) refreshCommitsAndCommitFiles(captured capturedCommitState, commitSelection types.CommitSelectionBehavior, background bool) {
 	generation := self.c.State().GetRepoGeneration()
-	_ = self.refreshCommitsWithLimit(commitSelection, background)
-	ctx := self.c.Contexts().CommitFiles.GetParentContext()
-	if ctx != nil && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
+	_ = self.refreshCommitsWithLimit(captured, commitSelection, background)
+	if captured.parentIsLocalCommits {
 		// This makes sense when we've e.g. just amended a commit, meaning we get a new commit hash at the same position.
 		// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
 		// showing the contents of a different commit than the one we initially entered.
@@ -497,28 +561,22 @@ func (self *RefreshHelper) determineCheckedOutRef() models.Ref {
 	return nil
 }
 
-func (self *RefreshHelper) refreshCommitsWithLimit(commitSelection types.CommitSelectionBehavior, background bool) error {
+func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState, commitSelection types.CommitSelectionBehavior, background bool) error {
 	generation := self.c.State().GetRepoGeneration()
-
-	var selectionRange *localCommitSelectionRange
-	if commitSelection == types.KeepCommitSelectionByHash {
-		selectedIdx, rangeStartIdx, rangeSelectMode := self.c.Contexts().LocalCommits.GetSelectionRangeAndMode()
-		selectionRange = captureLocalCommitSelectionRange(self.c.Model().Commits, selectedIdx, rangeStartIdx, rangeSelectMode)
-	}
 
 	checkedOutRef := self.determineCheckedOutRef()
 	refName, bisectInfo := self.refForLog()
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                self.c.Contexts().LocalCommits.GetLimitCommits(),
-			FilterPath:           self.c.Modes().Filtering.GetPath(),
-			FilterAuthor:         self.c.Modes().Filtering.GetAuthor(),
+			Limit:                captured.limitCommits,
+			FilterPath:           captured.filterPath,
+			FilterAuthor:         captured.filterAuthor,
 			IncludeRebaseCommits: true,
 			RefName:              refName,
 			RefForPushedStatus:   checkedOutRef,
-			All:                  self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
-			MainBranches:         self.c.Model().MainBranches,
-			HashPool:             self.c.Model().HashPool,
+			All:                  captured.showWholeGitGraph,
+			MainBranches:         captured.mainBranches,
+			HashPool:             captured.hashPool,
 		},
 	)
 	if err != nil {
@@ -545,10 +603,10 @@ func (self *RefreshHelper) refreshCommitsWithLimit(commitSelection types.CommitS
 				scrollSelectionIntoView = true
 			}
 		case types.KeepCommitSelectionByHash:
-			if selectionRange != nil {
-				selectedIdx, rangeStartIdx, didMove, found := findLocalCommitSelectionRange(commits, selectionRange)
+			if captured.selectionRange != nil {
+				selectedIdx, rangeStartIdx, didMove, found := findLocalCommitSelectionRange(commits, captured.selectionRange)
 				if found {
-					self.c.Contexts().LocalCommits.SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, selectionRange.mode)
+					self.c.Contexts().LocalCommits.SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, captured.selectionRange.mode)
 					scrollSelectionIntoView = didMove
 				}
 			}
@@ -895,6 +953,36 @@ func (self *RefreshHelper) onUIThread(background bool, f func() error) {
 		self.c.OnUIThreadBackground(f)
 	} else {
 		self.c.OnUIThread(f)
+	}
+}
+
+// captureOnUIThread runs fn on the UI thread and returns once it has run. fn
+// reads the model/context/mode state a refresh scope needs into locals, so the
+// worker that follows computes from an immutable snapshot instead of reading
+// state the UI thread concurrently mutates. When the enclosing refresh function
+// runs on the UI thread (fRunsOnUIThread is true) fn runs inline; when it runs
+// on a worker, fn is dispatched to the UI thread and we block for it.
+//
+// The inline case matters for correctness as much as the hop: a SYNC or
+// BLOCK_UI refresh parks the UI thread in a wg.Wait while its scope workers
+// run, so a scope worker that tried to hop to the UI thread there would
+// deadlock. Capturing before those workers are spawned — inline, on the UI
+// thread — avoids that entirely. This is why BLOCK_UI (which always runs on the
+// UI thread, even from a worker caller) captures inline rather than hopping.
+func (self *RefreshHelper) captureOnUIThread(fRunsOnUIThread bool, background bool, fn func()) {
+	if fRunsOnUIThread {
+		fn()
+		return
+	}
+
+	wrapped := func() error {
+		fn()
+		return nil
+	}
+	if background {
+		_ = self.c.GocuiGui().OnUIThreadAndWaitBackground(wrapped)
+	} else {
+		_ = self.c.GocuiGui().OnUIThreadAndWait(wrapped)
 	}
 }
 
