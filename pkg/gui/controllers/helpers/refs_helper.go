@@ -288,7 +288,9 @@ func (self *RefsHelper) CreateGitResetMenu(name string, ref string) error {
 						Prompt: self.c.Tr.ResetHardConfirmation,
 						HandleConfirm: func() error {
 							self.c.LogAction("Reset")
-							return self.ResetToRef(ref, row.strength, []string{})
+							return self.c.WithWaitingStatus(self.c.Tr.ResettingStatus, func(gocui.Task) error {
+								return self.ResetToRef(ref, row.strength, []string{})
+							})
 						},
 					})
 			},

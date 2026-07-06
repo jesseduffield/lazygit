@@ -79,6 +79,18 @@ func (self *MergeAndRebaseHelper) ContinueRebase() error {
 }
 
 func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
+	return self.genericMergeCommandImpl(command, true)
+}
+
+// genericMergeCommandImpl runs a merge/rebase continue/skip/abort and handles
+// the result. Continuing can be slow (it may replay many commits), so the
+// non-subprocess path runs on a worker with a waiting status.
+//
+// showWaitingStatus is false only for the recursive auto-skip in
+// CheckMergeOrRebaseWithRefreshOptions: that call already runs on the caller's
+// thread (the worker of the enclosing waiting status, or the UI thread for the
+// synchronous callers), so it must not spin up a second one.
+func (self *MergeAndRebaseHelper) genericMergeCommandImpl(command string, showWaitingStatus bool) error {
 	status := self.c.Git().Status.WorkingTreeState()
 
 	if status.None() {
@@ -123,12 +135,22 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 		self.RecordWhetherMergeOrRebaseStartedInLazygit()
 		return err
 	}
-	result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
-	return self.CheckMergeOrRebaseWithRefreshOptions(result,
-		types.RefreshOptions{
-			Mode:            types.ASYNC,
-			CommitSelection: commitSelectionAfterMerge(result == nil && selectHeadCommitOnSuccess),
+
+	runAction := func() error {
+		result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
+		return self.CheckMergeOrRebaseWithRefreshOptions(result,
+			types.RefreshOptions{
+				Mode:            types.ASYNC,
+				CommitSelection: commitSelectionAfterMerge(result == nil && selectHeadCommitOnSuccess),
+			})
+	}
+
+	if showWaitingStatus {
+		return self.c.WithWaitingStatus(status.Title(self.c.Tr), func(gocui.Task) error {
+			return runAction()
 		})
+	}
+	return runAction()
 }
 
 // commitSelectionAfterMerge maps whether a merge/rebase/pull created a new
@@ -191,9 +213,9 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 	if result == nil {
 		return nil
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
-		return self.genericMergeCommand(REBASE_OPTION_SKIP)
+		return self.genericMergeCommandImpl(REBASE_OPTION_SKIP, false)
 	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") {
-		return self.genericMergeCommand(REBASE_OPTION_SKIP)
+		return self.genericMergeCommandImpl(REBASE_OPTION_SKIP, false)
 	} else if strings.Contains(result.Error(), "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
@@ -386,21 +408,23 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			Tooltip:        self.c.Tr.InteractiveRebaseTooltip,
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
-				baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
-				var err error
-				if baseCommit != "" {
-					err = self.c.Git().Rebase.EditRebaseFromBaseCommit(ref, baseCommit)
-				} else {
-					err = self.c.Git().Rebase.EditRebase(ref)
-				}
-				if err = self.CheckMergeOrRebase(err); err != nil {
-					return err
-				}
-				if err = self.ResetMarkedBaseCommit(); err != nil {
-					return err
-				}
-				self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
-				return nil
+				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(task gocui.Task) error {
+					baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
+					var err error
+					if baseCommit != "" {
+						err = self.c.Git().Rebase.EditRebaseFromBaseCommit(ref, baseCommit)
+					} else {
+						err = self.c.Git().Rebase.EditRebase(ref)
+					}
+					if err = self.CheckMergeOrRebase(err); err != nil {
+						return err
+					}
+					if err = self.ResetMarkedBaseCommit(); err != nil {
+						return err
+					}
+					self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
+					return nil
+				})
 			},
 		},
 		{
@@ -564,36 +588,42 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 func (self *MergeAndRebaseHelper) RegularMerge(refName string, variant git_commands.MergeVariant) func() error {
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.Merge)
-		err := self.c.Git().Branch.Merge(refName, variant)
-		return self.CheckMergeOrRebaseAndSelectHeadCommit(err)
+		return self.c.WithWaitingStatus(self.c.Tr.MergingStatus, func(gocui.Task) error {
+			err := self.c.Git().Branch.Merge(refName, variant)
+			return self.CheckMergeOrRebaseAndSelectHeadCommit(err)
+		})
 	}
 }
 
 func (self *MergeAndRebaseHelper) SquashMergeUncommitted(refName string) func() error {
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.SquashMerge)
-		err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_SQUASH)
-		return self.CheckMergeOrRebase(err)
+		return self.c.WithWaitingStatus(self.c.Tr.MergingStatus, func(gocui.Task) error {
+			err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_SQUASH)
+			return self.CheckMergeOrRebase(err)
+		})
 	}
 }
 
 func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranchName string) func() error {
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.SquashMerge)
-		err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_SQUASH)
-		if err = self.CheckMergeOrRebase(err); err != nil {
-			return err
-		}
-		message := utils.ResolvePlaceholderString(self.c.UserConfig().Git.Merging.SquashMergeMessage, map[string]string{
-			"selectedRef":   refName,
-			"currentBranch": checkedOutBranchName,
+		return self.c.WithWaitingStatus(self.c.Tr.MergingStatus, func(gocui.Task) error {
+			err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_SQUASH)
+			if err = self.CheckMergeOrRebase(err); err != nil {
+				return err
+			}
+			message := utils.ResolvePlaceholderString(self.c.UserConfig().Git.Merging.SquashMergeMessage, map[string]string{
+				"selectedRef":   refName,
+				"currentBranch": checkedOutBranchName,
+			})
+			err = self.c.Git().Commit.CommitCmdObj(message, "", false).Run()
+			if err != nil {
+				return err
+			}
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return nil
 		})
-		err = self.c.Git().Commit.CommitCmdObj(message, "", false).Run()
-		if err != nil {
-			return err
-		}
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
-		return nil
 	}
 }
 
