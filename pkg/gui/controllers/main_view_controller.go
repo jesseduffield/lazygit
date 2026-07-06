@@ -45,6 +45,11 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 	// line in the branch's pull request).
 	selectionShown := self.context.GetView().Highlight
 
+	// The commit and find-fixup-base commands act on the working tree, so — like the
+	// old staging panel, which was always the working-tree diff — we only surface them
+	// while the focused main view plays that role (see workingTreeAction).
+	stagingMode := self.diffMainViewType() == types.DiffMainViewTypeStaging
+
 	var enterDescription string
 	var editDescription string
 	var editTooltip string
@@ -57,6 +62,21 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		// TODO: i18n-ize these
 		openPullRequestDescription = "Open pull request for selected line"
 		openPullRequestTooltip = "Open a browser at the selected line in the diff of the current branch's pull request, so that you can comment on it. Only works for local branches that have a pull request on GitHub."
+	}
+
+	var commitDescription string
+	var commitTooltip string
+	var commitWithoutHookDescription string
+	var commitWithEditorDescription string
+	var findBaseCommitDescription string
+	var findBaseCommitTooltip string
+	if stagingMode {
+		commitDescription = self.c.Tr.Commit
+		commitTooltip = self.c.Tr.CommitTooltip
+		commitWithoutHookDescription = self.c.Tr.CommitChangesWithoutHook
+		commitWithEditorDescription = self.c.Tr.CommitChangesWithEditor
+		findBaseCommitDescription = self.c.Tr.FindBaseCommitForFixup
+		findBaseCommitTooltip = self.c.Tr.FindBaseCommitForFixupTooltip
 	}
 
 	return []*types.Binding{
@@ -111,6 +131,28 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Handler:     self.openPullRequestForSelectedLine,
 			Description: openPullRequestDescription,
 			Tooltip:     openPullRequestTooltip,
+		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Files.CommitChanges),
+			Handler:     self.workingTreeAction(self.c.Helpers().WorkingTree.HandleCommitPress),
+			Description: commitDescription,
+			Tooltip:     commitTooltip,
+		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Files.CommitChangesWithoutHook),
+			Handler:     self.workingTreeAction(self.c.Helpers().WorkingTree.HandleWIPCommitPress),
+			Description: commitWithoutHookDescription,
+		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Files.CommitChangesWithEditor),
+			Handler:     self.workingTreeAction(self.c.Helpers().WorkingTree.HandleCommitEditorPress),
+			Description: commitWithEditorDescription,
+		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Files.FindBaseCommitForFixup),
+			Handler:     self.workingTreeAction(self.c.Helpers().FixupHelper.HandleFindBaseCommitForFixupPress),
+			Description: findBaseCommitDescription,
+			Tooltip:     findBaseCommitTooltip,
 		},
 		{
 			Keys:        opts.GetKeys(opts.Config.Main.ToggleSelectHunk),
@@ -381,6 +423,37 @@ func (self *MainViewController) focusedMainViewActions() types.FocusedMainViewAc
 		return nil
 	}
 	return sidePanelContext.GetFocusedMainViewActions()
+}
+
+// diffMainViewType reports what the side panel beneath the focused main view makes its
+// primary action mean — staging (the working tree), patch-building, or nothing — or
+// DiffMainViewTypeNone when this pane isn't focused or has no diff panel beneath it. The
+// IsInStack guard is essential: NextInStack panics for a context that isn't in the stack,
+// and GetKeybindings (which calls this) runs for off-stack panes too — at startup and
+// during cheatsheet generation, where the stack is empty.
+func (self *MainViewController) diffMainViewType() types.DiffMainViewType {
+	if !self.c.Context().IsInStack(self.context) {
+		return types.DiffMainViewTypeNone
+	}
+	if diffContext, ok := self.c.Context().NextInStack(self.context).(types.DiffMainViewContext); ok {
+		return diffContext.GetDiffMainViewType()
+	}
+	return types.DiffMainViewTypeNone
+}
+
+// workingTreeAction wraps a working-tree command (commit, find-fixup-base) so it runs
+// only while the focused main view shows the working-tree diff — the role the staging
+// panel used to play, and the only place these commands mean anything. Over any other
+// diff (a commit, a stash) the key is a no-op, so committing can't be triggered by
+// accident while browsing history. Re-checks on each press rather than capturing the
+// state at keybinding-registration time.
+func (self *MainViewController) workingTreeAction(action func() error) func() error {
+	return func() error {
+		if self.diffMainViewType() != types.DiffMainViewTypeStaging {
+			return nil
+		}
+		return action()
+	}
 }
 
 // primaryAction acts on the selected diff line(s) — a single line, a range, or a hunk —
