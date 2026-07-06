@@ -3,6 +3,9 @@ package controllers
 import (
 	"time"
 
+	"path/filepath"
+
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
@@ -137,6 +140,13 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Handler:           self.nextFile,
 			Description:       self.c.Tr.NextFileInDiff,
 			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.NextFileInDiff),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+		},
+		{
+			Keys:              opts.GetKeys(config.Keybinding{"f"}),
+			Handler:           self.openJumpToFileMenu,
+			Description:       "Jump to file",
+			DescriptionFunc:   self.diffSelectionDescriptionText("Jump to file"),
 			GetDisabledReason: self.diffSelectionDisabledReason,
 		},
 		{
@@ -713,6 +723,60 @@ func (self *MainViewController) placeNavigationTarget(target int) {
 	// Line mode leaves a single-line selection at the target; an active range extends
 	// to it, the anchor being untouched.
 	self.c.Helpers().DiffLine.ShowSelectionAtLine(v, target, true)
+}
+
+// openJumpToFileMenu pops up a menu listing the files in the focused main view's diff, in
+// the order they appear, as repo-relative paths; picking one jumps straight to it. It's a
+// complement to n / N for a diff that spans many files. A no-op when the main view holds
+// no diff (nothing to list).
+//
+// The diff loads lazily, so we read it to the end first — otherwise a file past the loaded
+// portion of a long diff would be missing from the menu (and have no view line to jump to).
+// Same as handleGotoBottom.
+func (self *MainViewController) openJumpToFileMenu() error {
+	manager := self.c.GetViewBufferManagerForView(self.context.GetView())
+	if manager == nil {
+		return nil
+	}
+	manager.ReadToEnd(func() {
+		self.c.OnUIThread(func() error {
+			return self.showJumpToFileMenu()
+		})
+	})
+	return nil
+}
+
+func (self *MainViewController) showJumpToFileMenu() error {
+	files := self.c.Helpers().DiffLine.FilesInDiff(self.context.GetView())
+	if len(files) == 0 {
+		return nil
+	}
+
+	worktreePath := self.c.Git().RepoPaths.WorktreePath()
+	menuItems := lo.Map(files, func(file helpers.DiffFile, index int) *types.MenuItem {
+		label := file.Path
+		if rel, err := filepath.Rel(worktreePath, file.Path); err == nil {
+			label = rel
+		}
+		firstViewLine := file.FirstViewLine
+		return &types.MenuItem{
+			Label:   label,
+			OnPress: func() error { self.jumpToFile(firstViewLine); return nil },
+		}
+	})
+
+	// TODO: i18n-ize this title
+	return self.c.Menu(types.CreateMenuOptions{Title: "Jump to file", Items: menuItems, HideCancel: true, FilterAsYouType: true})
+}
+
+// jumpToFile moves the focused main view to the given view line exactly the way
+// next/previous-file navigation does (see navigate), so jumping from the menu and
+// stepping with n / N land identically — scrolling the file to the top with no selection,
+// or moving the selection (or hunk selection) to it when one is showing.
+func (self *MainViewController) jumpToFile(firstViewLine int) {
+	self.navigate(func(*gocui.View, int, bool) (int, bool) {
+		return firstViewLine, true
+	}, true)
 }
 
 // moveCursor moves the selection cursor by delta view lines (negative = up), with the

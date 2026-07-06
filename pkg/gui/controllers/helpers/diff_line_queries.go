@@ -456,3 +456,32 @@ func changeBlockStart(isChange []bool, from int, forward bool) (int, bool) {
 	}
 	return i, true
 }
+
+// DiffFile is a file shown in a (possibly multi-file) diff: its absolute path and the
+// view line its section starts at — the row that next/previous-file navigation lands on.
+type DiffFile struct {
+	Path          string
+	FirstViewLine int
+}
+
+// FilesInDiff lists the files shown in view's diff, in display order, each paired with
+// the view line its section starts at. It is the jump-to-file menu's source: jumping to
+// a file goes to its FirstViewLine, computed the same way (backUpOverHeader) that
+// AdjacentFile lands on a file, so the menu and n/N agree on where each file begins. A
+// file whose start row isn't currently mapped to a view line (not loaded yet) is skipped.
+func (self *DiffLineHelper) FilesInDiff(view *gocui.View) []DiffFile {
+	paths := self.filePaths(view)
+
+	var files []DiffFile
+	prevPath := ""
+	for i, path := range paths {
+		if path == "" || path == prevPath {
+			continue
+		}
+		prevPath = path
+		if viewLine, ok := view.ViewLineForBufferLine(i); ok {
+			files = append(files, DiffFile{Path: path, FirstViewLine: viewLine})
+		}
+	}
+	return files
+}
