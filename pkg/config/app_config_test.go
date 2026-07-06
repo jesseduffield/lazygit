@@ -749,7 +749,7 @@ git:
     # The commit message to use for a squash merge commit. Can contain "{{selectedRef}}" and "{{currentBranch}}" placeholders.
     squashMergeMessage: Squash merge {{selectedRef}} into {{currentBranch}}
 
-  # list of branches that are considered 'main' branches, used when displaying commits
+  # list of branches that are considered 'main' branches, used when displaying commits and for determining each branch's base. Lazygit prompts when a branch could be based on more than one of these (typical when one is regularly merged into another).
   mainBranches:
     - master
     - main

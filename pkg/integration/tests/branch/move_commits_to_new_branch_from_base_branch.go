@@ -37,11 +37,11 @@ var MoveCommitsToNewBranchFromBaseBranch = NewIntegrationTest(NewIntegrationTest
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Move commits to new branch")).
-			Select(Contains("New branch from base branch (origin/master)")).
+			Select(Contains("New branch from base branch (master)")).
 			Confirm()
 
 		t.ExpectPopup().Prompt().
-			Title(Equals("New branch name (branch is off of 'origin/master')")).
+			Title(Equals("New branch name (branch is off of 'master')")).
 			Type("new branch").
 			Confirm()
 

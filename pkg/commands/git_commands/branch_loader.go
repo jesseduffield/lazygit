@@ -156,7 +156,7 @@ func (self *BranchLoader) GetBehindBaseBranchValuesForAllBranches(
 	}
 
 	if self.version.IsAtLeast(2, 41, 0) {
-		return self.getBehindBaseBranchValuesFast(branches, mainBranchRefs, renderFunc)
+		return self.getBehindBaseBranchValuesFast(branches, mainBranches, renderFunc)
 	}
 	return self.getBehindBaseBranchValuesLegacy(branches, mainBranches, renderFunc)
 }
@@ -171,31 +171,11 @@ func (self *BranchLoader) getBehindBaseBranchValuesLegacy(
 
 	for _, branch := range branches {
 		errg.Go(func() error {
-			baseBranch, err := self.GetBaseBranch(branch, mainBranches)
+			_, behinds, err := self.baseBranchCandidatesAndBehinds(branch, mainBranches)
 			if err != nil {
 				return err
 			}
-			behind := 0 // prime it in case something below fails
-			if baseBranch != "" {
-				output, err := self.cmd.New(
-					NewGitCmd("rev-list").
-						Arg("--left-right").
-						Arg("--count").
-						Arg(fmt.Sprintf("%s...%s", branch.FullRefName(), baseBranch)).
-						ToArgv(),
-				).DontLog().RunWithOutput()
-				if err != nil {
-					return err
-				}
-				// The format of the output is "<ahead>\t<behind>"
-				aheadBehindStr := strings.Split(strings.TrimSpace(output), "\t")
-				if len(aheadBehindStr) == 2 {
-					if value, err := strconv.Atoi(aheadBehindStr[1]); err == nil {
-						behind = value
-					}
-				}
-			}
-			branch.BehindBaseBranch.Store(int32(behind))
+			branch.BehindBaseBranch.Store(classifyBehind(behinds))
 			return nil
 		})
 	}
@@ -206,9 +186,13 @@ func (self *BranchLoader) getBehindBaseBranchValuesLegacy(
 	return err
 }
 
-// Holds parsed values from a single %(ahead-behind:<base>) field.
+// Holds parsed values from a single %(ahead-behind:<base>) field. `valid`
+// is false when the field failed to parse (e.g. the base was unreachable
+// from this ref); the entry is preserved so that the slice stays index-
+// aligned with the configured main branches.
 type aheadBehind struct {
 	ahead, behind int
+	valid         bool
 }
 
 type branchAheadBehind struct {
@@ -222,7 +206,7 @@ type branchAheadBehind struct {
 //
 // Lines whose NUL-split column count doesn't match (1 + numBases) are dropped.
 // Blank lines are ignored.
-// Individual malformed ahead-behind fields produce {valid: false} entries
+// Individual malformed ahead-behind fields produce {valid: false} entries.
 func parseAheadBehindForEachRefOutput(
 	output string,
 	numBases int, // number of %(ahead-behind:...) tokens
@@ -238,7 +222,7 @@ func parseAheadBehindForEachRefOutput(
 			continue
 		}
 		refName := cols[0]
-		aheadBehinds := lo.FilterMap(cols[1:], func(col string, _ int) (aheadBehind, bool) {
+		aheadBehinds := lo.Map(cols[1:], func(col string, _ int) aheadBehind {
 			return parseAheadBehindField(col)
 		})
 		entry := branchAheadBehind{
@@ -250,27 +234,77 @@ func parseAheadBehindForEachRefOutput(
 	return result
 }
 
-func parseAheadBehindField(s string) (aheadBehind, bool) {
+func parseAheadBehindField(s string) aheadBehind {
 	parts := strings.Fields(s)
 	if len(parts) != 2 {
-		return aheadBehind{}, false
+		return aheadBehind{}
 	}
 	ahead, err1 := strconv.Atoi(parts[0])
 	behind, err2 := strconv.Atoi(parts[1])
 	if err1 != nil || err2 != nil {
-		return aheadBehind{}, false
+		return aheadBehind{}
 	}
-	return aheadBehind{ahead: ahead, behind: behind}, true
+	return aheadBehind{ahead: ahead, behind: behind, valid: true}
 }
 
-// Picks the "closest" base by smallest ahead value (commits the branch
-// has that the base doesn't = roughly "since fork point") and returns
-// its behind value.
-// Ties are broken by index order
-func selectBehindForBranch(aheadBehinds []aheadBehind) int {
-	return lo.MinBy(aheadBehinds, func(a, b aheadBehind) bool {
-		return a.ahead < b.ahead
-	}).behind
+// selectBaseForBranch picks the closest base(s) for a branch given
+// (ahead, behind) measurements against each configured main branch.
+// "Closest" = smallest ahead value (fewest branch commits not in the
+// base). Ties are broken by the order of mainRefs (i.e. config order).
+//
+// aheadBehinds must be index-aligned with mainRefs; invalid entries are
+// skipped. Returns parallel slices: the refs tied at the minimum ahead
+// (in config order) and their behind values. The caller picks
+// candidates[0] for a single answer, or detects ambiguity via
+// `len(candidates) > 1`.
+func selectBaseForBranch(
+	aheadBehinds []aheadBehind, mainRefs []string,
+) (candidates []string, behinds []int) {
+	bestAhead := -1
+	for i, ab := range aheadBehinds {
+		if !ab.valid {
+			continue
+		}
+		switch {
+		case bestAhead < 0 || ab.ahead < bestAhead:
+			bestAhead = ab.ahead
+			candidates = []string{mainRefs[i]}
+			behinds = []int{ab.behind}
+		case ab.ahead == bestAhead:
+			candidates = append(candidates, mainRefs[i])
+			behinds = append(behinds, ab.behind)
+		}
+	}
+	return candidates, behinds
+}
+
+// classifyBehind condenses per-candidate behind values into the single
+// number stored on Branch.BehindBaseBranch for column display. When the
+// candidates all agree (possibly on 0), return that value; otherwise
+// return one of the BehindBaseAmbiguous* sentinels so the renderer can
+// show "?" or "↓?" instead of a misleadingly precise count.
+func classifyBehind(behinds []int) int32 {
+	if len(behinds) == 0 {
+		return 0
+	}
+	first := behinds[0]
+	allEqual := true
+	anyZero := first == 0
+	for _, b := range behinds[1:] {
+		if b != first {
+			allEqual = false
+		}
+		if b == 0 {
+			anyZero = true
+		}
+	}
+	if allEqual {
+		return int32(first)
+	}
+	if anyZero {
+		return models.BehindBaseAmbiguousMaybeUpToDate
+	}
+	return models.BehindBaseAmbiguousDefinitelyBehind
 }
 
 // The output format is:
@@ -296,11 +330,12 @@ func buildAheadBehindForEachRefArgs(mainBranchRefs []string) []string {
 
 func (self *BranchLoader) getBehindBaseBranchValuesFast(
 	branches []*models.Branch,
-	mainBranchRefs []string,
+	mainBranches *MainBranches,
 	renderFunc func(),
 ) error {
 	t := time.Now()
 
+	mainBranchRefs := mainBranches.Get()
 	output, err := self.cmd.New(
 		buildAheadBehindForEachRefArgs(mainBranchRefs),
 	).DontLog().RunWithOutput()
@@ -313,8 +348,8 @@ func (self *BranchLoader) getBehindBaseBranchValuesFast(
 
 	for _, p := range parsed {
 		if branch, ok := branchByRef[p.refName]; ok {
-			behind := selectBehindForBranch(p.aheadBehinds)
-			branch.BehindBaseBranch.Store(int32(behind))
+			_, behinds := selectBaseForBranch(p.aheadBehinds, mainBranchRefs)
+			branch.BehindBaseBranch.Store(classifyBehind(behinds))
 			delete(branchByRef, p.refName)
 		}
 	}
@@ -329,37 +364,83 @@ func (self *BranchLoader) getBehindBaseBranchValuesFast(
 	return nil
 }
 
-// Find the base branch for the given branch (i.e. the main branch that the
-// given branch was forked off of)
-//
-// Note that this function may return an empty string even if the returned error
-// is nil, e.g. when none of the configured main branches exist. This is not
-// considered an error condition, so callers need to check both the returned
-// error and whether the returned base branch is empty (and possibly react
-// differently in both cases).
-func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *MainBranches) (string, error) {
+// GetBaseBranchCandidates returns the configured main branches that are the
+// closest base for the given branch — typically a single ref, but more
+// when the closeness rule (smallest ahead value) leaves a tie. Candidates
+// are returned in config order, so callers wanting one answer can use
+// candidates[0] as the config-order tiebreak. An empty slice (with nil
+// error) means no configured main branch contains the branch's merge-base.
+func (self *BranchLoader) GetBaseBranchCandidates(branch *models.Branch, mainBranches *MainBranches) ([]string, error) {
+	candidates, _, err := self.baseBranchCandidatesAndBehinds(branch, mainBranches)
+	return candidates, err
+}
+
+// baseBranchCandidatesAndBehinds is the full computation behind
+// GetBaseBranchCandidates: it also reports the behind count for each
+// returned candidate, which the legacy behind-base loader needs in order
+// to classify the column display when the candidates disagree. Slices
+// are parallel and in config order.
+func (self *BranchLoader) baseBranchCandidatesAndBehinds(branch *models.Branch, mainBranches *MainBranches) ([]string, []int, error) {
 	mergeBase := mainBranches.GetMergeBase(branch.FullRefName())
 	if mergeBase == "" {
-		return "", nil
+		return nil, nil, nil
 	}
 
+	mainBranchRefs := mainBranches.Get()
 	output, err := self.cmd.New(
 		NewGitCmd("for-each-ref").
 			Arg("--contains").
 			Arg(mergeBase).
 			Arg("--format=%(refname)").
-			Arg(mainBranches.Get()...).
+			Arg(mainBranchRefs...).
 			ToArgv(),
 	).DontLog().RunWithOutput()
 	if err != nil {
-		return "", err
+		return nil, nil, err
 	}
 	trimmedOutput := strings.TrimSpace(output)
-	split := strings.Split(trimmedOutput, "\n")
-	if len(split) == 0 || split[0] == "" {
-		return "", nil
+	if trimmedOutput == "" {
+		return nil, nil, nil
 	}
-	return split[0], nil
+	contained := strings.Split(trimmedOutput, "\n")
+
+	// for-each-ref sorts its output alphabetically by refname regardless of
+	// the order we passed the refs in. Restore the user's configured order so
+	// it can serve as the natural tiebreaker.
+	containing := lo.Filter(mainBranchRefs, func(ref string, _ int) bool {
+		return lo.Contains(contained, ref)
+	})
+	if len(containing) == 0 {
+		return nil, nil, nil
+	}
+
+	// Measure ahead/behind against each containing ref and hand off to
+	// selectBaseForBranch — the same selector the fast path uses — so
+	// both paths agree on the closeness rule and the config-order
+	// tiebreak. We do this even when there's only one containing ref,
+	// because the legacy column display still needs the behind value.
+	aheadBehinds := make([]aheadBehind, len(containing))
+	for i, ref := range containing {
+		revListOutput, err := self.cmd.New(
+			NewGitCmd("rev-list").
+				Arg("--left-right").
+				Arg("--count").
+				Arg(fmt.Sprintf("%s...%s", branch.FullRefName(), ref)).
+				ToArgv(),
+		).DontLog().RunWithOutput()
+		if err != nil {
+			return nil, nil, err
+		}
+		aheadBehinds[i] = parseAheadBehindField(strings.TrimSpace(revListOutput))
+	}
+
+	candidates, behinds := selectBaseForBranch(aheadBehinds, containing)
+	if len(candidates) == 0 {
+		// Every rev-list output was malformed; fall back to config order
+		// with no reliable behinds.
+		return containing, nil, nil
+	}
+	return candidates, behinds, nil
 }
 
 func (self *BranchLoader) obtainBranches() []*models.Branch {

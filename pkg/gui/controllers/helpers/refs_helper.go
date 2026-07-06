@@ -18,16 +18,19 @@ import (
 type RefsHelper struct {
 	c *HelperCommon
 
-	rebaseHelper *MergeAndRebaseHelper
+	rebaseHelper     *MergeAndRebaseHelper
+	baseBranchHelper *BaseBranchHelper
 }
 
 func NewRefsHelper(
 	c *HelperCommon,
 	rebaseHelper *MergeAndRebaseHelper,
+	baseBranchHelper *BaseBranchHelper,
 ) *RefsHelper {
 	return &RefsHelper{
-		c:            c,
-		rebaseHelper: rebaseHelper,
+		c:                c,
+		rebaseHelper:     rebaseHelper,
+		baseBranchHelper: baseBranchHelper,
 	}
 }
 
@@ -430,7 +433,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 
 func (self *RefsHelper) MoveCommitsToNewBranch() error {
 	currentBranch := self.c.Model().Branches[0]
-	baseBranchRef, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(currentBranch, self.c.Model().MainBranches)
+	baseBranchRef, baseAmbiguous, baseCandidates, err := self.baseBranchHelper.ResolveBaseBranch(currentBranch)
 	if err != nil {
 		return err
 	}
@@ -479,11 +482,19 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 		return nil
 	}
 
-	shortBaseBranchName := ShortBranchName(baseBranchRef)
+	baseBranchLabel := BaseBranchDisplayName(baseBranchRef)
+	if baseAmbiguous {
+		shortNames := lo.Map(baseCandidates, func(ref string, _ int) string {
+			return BaseBranchDisplayName(ref)
+		})
+		baseBranchLabel = utils.ResolvePlaceholderString(self.c.Tr.PickBaseBranchLabel,
+			map[string]string{"candidates": strings.Join(shortNames, ", ")},
+		)
+	}
 	prompt := utils.ResolvePlaceholderString(
 		self.c.Tr.MoveCommitsToNewBranchMenuPrompt,
 		map[string]string{
-			"baseBranchName": shortBaseBranchName,
+			"baseBranchName": baseBranchLabel,
 		},
 	)
 	return self.c.Menu(types.CreateMenuOptions{
@@ -491,11 +502,17 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 		Prompt: prompt,
 		Items: []*types.MenuItem{
 			{
-				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchFromBaseItem, shortBaseBranchName),
+				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchFromBaseItem, baseBranchLabel),
 				OnPress: func() error {
-					return withNewBranchNamePrompt(shortBaseBranchName, func(newBranchName string) error {
-						return self.moveCommitsToNewBranchOffOfMainBranch(newBranchName, baseBranchRef)
-					})
+					moveOff := func(base string) error {
+						return withNewBranchNamePrompt(BaseBranchDisplayName(base), func(newBranchName string) error {
+							return self.moveCommitsToNewBranchOffOfMainBranch(newBranchName, base)
+						})
+					}
+					if baseAmbiguous {
+						return self.baseBranchHelper.ShowPicker(currentBranch, baseCandidates, moveOff)
+					}
+					return moveOff(baseBranchRef)
 				},
 			},
 			{

@@ -19,6 +19,8 @@ import (
 type MergeAndRebaseHelper struct {
 	c *HelperCommon
 
+	baseBranchHelper *BaseBranchHelper
+
 	// Whether the "continue the rebase/merge?" prompt is currently on screen.
 	// We use this to auto-dismiss it if the operation stops being in the state
 	// that the prompt is offering to act on (e.g. it was continued or aborted
@@ -29,9 +31,11 @@ type MergeAndRebaseHelper struct {
 
 func NewMergeAndRebaseHelper(
 	c *HelperCommon,
+	baseBranchHelper *BaseBranchHelper,
 ) *MergeAndRebaseHelper {
 	return &MergeAndRebaseHelper{
-		c: c,
+		c:                c,
+		baseBranchHelper: baseBranchHelper,
 	}
 }
 
@@ -365,13 +369,22 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
 	}
 
-	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(checkedOutBranch, self.c.Model().MainBranches)
+	baseBranch, baseAmbiguous, baseCandidates, err := self.baseBranchHelper.ResolveBaseBranch(checkedOutBranch)
 	if err != nil {
 		return err
 	}
-	if baseBranch == "" {
-		baseBranch = self.c.Tr.CouldNotDetermineBaseBranch
+	baseBranchLabel := BaseBranchDisplayName(baseBranch)
+	switch {
+	case baseBranch == "":
+		baseBranchLabel = self.c.Tr.CouldNotDetermineBaseBranch
 		baseBranchDisabledReason = &types.DisabledReason{Text: self.c.Tr.CouldNotDetermineBaseBranch}
+	case baseAmbiguous:
+		shortNames := lo.Map(baseCandidates, func(ref string, _ int) string {
+			return BaseBranchDisplayName(ref)
+		})
+		baseBranchLabel = utils.ResolvePlaceholderString(self.c.Tr.PickBaseBranchLabel,
+			map[string]string{"candidates": strings.Join(shortNames, ", ")},
+		)
 	}
 
 	menuItems := []*types.MenuItem{
@@ -429,27 +442,33 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 		},
 		{
 			Label: utils.ResolvePlaceholderString(self.c.Tr.RebaseOntoBaseBranch,
-				map[string]string{"baseBranch": ShortBranchName(baseBranch)},
+				map[string]string{"baseBranch": baseBranchLabel},
 			),
 			Keys:           menuKey('b'),
 			DisabledReason: baseBranchDisabledReason,
 			Tooltip:        self.c.Tr.RebaseOntoBaseBranchTooltip,
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
-				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(task gocui.Task) error {
-					baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
-					var err error
-					if baseCommit != "" {
-						err = self.c.Git().Rebase.RebaseBranchFromBaseCommit(baseBranch, baseCommit)
-					} else {
-						err = self.c.Git().Rebase.RebaseBranch(baseBranch)
-					}
-					err = self.CheckMergeOrRebase(err)
-					if err == nil {
-						return self.ResetMarkedBaseCommit()
-					}
-					return err
-				})
+				doRebase := func(base string) error {
+					self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
+					return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(task gocui.Task) error {
+						baseCommit := self.c.Modes().MarkedBaseCommit.GetHash()
+						var err error
+						if baseCommit != "" {
+							err = self.c.Git().Rebase.RebaseBranchFromBaseCommit(base, baseCommit)
+						} else {
+							err = self.c.Git().Rebase.RebaseBranch(base)
+						}
+						err = self.CheckMergeOrRebase(err)
+						if err == nil {
+							return self.ResetMarkedBaseCommit()
+						}
+						return err
+					})
+				}
+				if baseAmbiguous {
+					return self.baseBranchHelper.ShowPicker(checkedOutBranch, baseCandidates, doRebase)
+				}
+				return doRebase(baseBranch)
 			},
 		},
 	}
