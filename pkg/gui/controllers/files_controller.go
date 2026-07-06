@@ -1791,10 +1791,10 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 }
 
 func (self *FilesController) ResetSubmodule(submodule *models.SubmoduleConfig) error {
+	file := self.c.Helpers().WorkingTree.FileForSubmodule(submodule)
 	return self.c.WithWaitingStatus(self.c.Tr.ResettingSubmoduleStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.ResetSubmodule)
 
-		file := self.c.Helpers().WorkingTree.FileForSubmodule(submodule)
 		if file != nil {
 			if err := self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
 				return err
