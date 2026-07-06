@@ -260,16 +260,29 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		} else if scopeSet.Includes(types.REBASE_COMMITS) {
 			// the above block handles rebase commits so we only need to call this one
 			// if we've asked specifically for rebase commits and not those other things
-			refresh("rebase commits", func() { _ = self.refreshRebaseCommits(options.Background) })
+			var rebaseHashPool *utils.StringPool
+			var rebaseCommits []*models.Commit
+			self.captureOnUIThread(fRunsOnUIThread, options.Background, func() {
+				rebaseHashPool, rebaseCommits = self.captureRebaseCommitState()
+			})
+			refresh("rebase commits", func() { _ = self.refreshRebaseCommits(rebaseHashPool, rebaseCommits, options.Background) })
 		}
 
 		if scopeSet.Includes(types.SUB_COMMITS) {
-			refresh("sub commits", func() { _ = self.refreshSubCommitsWithLimit(options.Background) })
+			var capturedSubCommits capturedSubCommitState
+			self.captureOnUIThread(fRunsOnUIThread, options.Background, func() {
+				capturedSubCommits = self.captureSubCommitState()
+			})
+			refresh("sub commits", func() { _ = self.refreshSubCommitsWithLimit(capturedSubCommits, options.Background) })
 		}
 
 		// reason we're not doing this if the COMMITS type is included is that if the COMMITS type _is_ included we will refresh the commit files context anyway
 		if scopeSet.Includes(types.COMMIT_FILES) && !scopeSet.Includes(types.COMMITS) {
-			refresh("commit files", func() { _ = self.refreshCommitFilesContext(options.Background) })
+			var capturedCommitFiles capturedCommitFilesState
+			self.captureOnUIThread(fRunsOnUIThread, options.Background, func() {
+				capturedCommitFiles = self.captureCommitFilesState()
+			})
+			refresh("commit files", func() { _ = self.refreshCommitFilesContext(capturedCommitFiles, options.Background) })
 		}
 
 		fileWg := sync.WaitGroup{}
@@ -290,9 +303,16 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		}
 
 		if scopeSet.Includes(types.REMOTES) {
+			// Capture the previously-selected remote on the UI thread; the worker
+			// needs it to keep the remote-branches selection valid, and reading
+			// the Remotes context off the UI thread races its render.
+			var prevSelectedRemote *models.Remote
+			self.captureOnUIThread(fRunsOnUIThread, options.Background, func() {
+				prevSelectedRemote = self.c.Contexts().Remotes.GetSelected()
+			})
 			branchesAndRemotesWg.Add(1)
 			refresh("remotes", func() {
-				loadedRemotes, _ = self.refreshRemotes(options.Background)
+				loadedRemotes, _ = self.refreshRemotes(prevSelectedRemote, options.Background)
 				branchesAndRemotesWg.Done()
 			})
 		}
@@ -546,8 +566,11 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles(captured capturedCommitS
 			if commit != nil && commit.RefName() != "" {
 				refRange := self.c.Contexts().LocalCommits.GetSelectedRefRangeForDiffFiles()
 				self.c.Contexts().CommitFiles.ReInit(commit, refRange)
+				// Capture the diff endpoints here, on the UI thread and after
+				// ReInit has set them, before dispatching the git work.
+				capturedCommitFiles := self.captureCommitFilesState()
 				self.onWorker(background, func(gocui.Task) error {
-					_ = self.refreshCommitFilesContext(background)
+					_ = self.refreshCommitFilesContext(capturedCommitFiles, background)
 					return nil
 				})
 			}
@@ -726,8 +749,35 @@ func hasRestorableCommitHash(commits []*models.Commit, idx int) bool {
 	return idx >= 0 && idx < len(commits) && commits[idx].Hash() != ""
 }
 
-func (self *RefreshHelper) refreshSubCommitsWithLimit(background bool) error {
-	if self.c.Contexts().SubCommits.GetRef() == nil {
+// capturedSubCommitState holds the sub-commits refresh's model/context/mode
+// inputs, gathered on the UI thread (see captureSubCommitState) before the git
+// work is dispatched to a worker.
+type capturedSubCommitState struct {
+	ref                     models.Ref
+	limitCommits            bool
+	refToShowDivergenceFrom string
+	filterPath              string
+	filterAuthor            string
+	mainBranches            *git_commands.MainBranches
+	hashPool                *utils.StringPool
+}
+
+// captureSubCommitState reads the sub-commits refresh's inputs into an immutable
+// snapshot. It must run on the UI thread.
+func (self *RefreshHelper) captureSubCommitState() capturedSubCommitState {
+	return capturedSubCommitState{
+		ref:                     self.c.Contexts().SubCommits.GetRef(),
+		limitCommits:            self.c.Contexts().SubCommits.GetLimitCommits(),
+		refToShowDivergenceFrom: self.c.Contexts().SubCommits.GetRefToShowDivergenceFrom(),
+		filterPath:              self.c.Modes().Filtering.GetPath(),
+		filterAuthor:            self.c.Modes().Filtering.GetAuthor(),
+		mainBranches:            self.c.Model().MainBranches,
+		hashPool:                self.c.Model().HashPool,
+	}
+}
+
+func (self *RefreshHelper) refreshSubCommitsWithLimit(captured capturedSubCommitState, background bool) error {
+	if captured.ref == nil {
 		return nil
 	}
 
@@ -735,15 +785,15 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit(background bool) error {
 
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                   self.c.Contexts().SubCommits.GetLimitCommits(),
-			FilterPath:              self.c.Modes().Filtering.GetPath(),
-			FilterAuthor:            self.c.Modes().Filtering.GetAuthor(),
+			Limit:                   captured.limitCommits,
+			FilterPath:              captured.filterPath,
+			FilterAuthor:            captured.filterAuthor,
 			IncludeRebaseCommits:    false,
-			RefName:                 self.c.Contexts().SubCommits.GetRef().FullRefName(),
-			RefToShowDivergenceFrom: self.c.Contexts().SubCommits.GetRefToShowDivergenceFrom(),
-			RefForPushedStatus:      self.c.Contexts().SubCommits.GetRef(),
-			MainBranches:            self.c.Model().MainBranches,
-			HashPool:                self.c.Model().HashPool,
+			RefName:                 captured.ref.FullRefName(),
+			RefToShowDivergenceFrom: captured.refToShowDivergenceFrom,
+			RefForPushedStatus:      captured.ref,
+			MainBranches:            captured.mainBranches,
+			HashPool:                captured.hashPool,
 		},
 	)
 	if err != nil {
@@ -771,12 +821,26 @@ func (self *RefreshHelper) RefreshAuthors(commits []*models.Commit) {
 	}
 }
 
-func (self *RefreshHelper) refreshCommitFilesContext(background bool) error {
+// capturedCommitFilesState holds the commit-files refresh's context/mode inputs
+// (the diff endpoints), gathered on the UI thread before the git work runs.
+type capturedCommitFilesState struct {
+	from    string
+	to      string
+	reverse bool
+}
+
+// captureCommitFilesState reads the commit-files refresh's diff endpoints into
+// an immutable snapshot. It must run on the UI thread.
+func (self *RefreshHelper) captureCommitFilesState() capturedCommitFilesState {
 	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
+	return capturedCommitFilesState{from: from, to: to, reverse: reverse}
+}
+
+func (self *RefreshHelper) refreshCommitFilesContext(captured capturedCommitFilesState, background bool) error {
 	generation := self.c.State().GetRepoGeneration()
 
-	files, err := self.c.Git().Loaders.CommitFileLoader.GetFilesInDiff(from, to, reverse)
+	files, err := self.c.Git().Loaders.CommitFileLoader.GetFilesInDiff(captured.from, captured.to, captured.reverse)
 	if err != nil {
 		return err
 	}
@@ -789,10 +853,16 @@ func (self *RefreshHelper) refreshCommitFilesContext(background bool) error {
 	return nil
 }
 
-func (self *RefreshHelper) refreshRebaseCommits(background bool) error {
+// captureRebaseCommitState reads the rebase-commits refresh's model inputs into
+// an immutable snapshot. It must run on the UI thread.
+func (self *RefreshHelper) captureRebaseCommitState() (hashPool *utils.StringPool, commits []*models.Commit) {
+	return self.c.Model().HashPool, self.c.Model().Commits
+}
+
+func (self *RefreshHelper) refreshRebaseCommits(hashPool *utils.StringPool, commits []*models.Commit, background bool) error {
 	generation := self.c.State().GetRepoGeneration()
 
-	updatedCommits, err := self.c.Git().Loaders.CommitLoader.MergeRebasingCommits(self.c.Model().HashPool, self.c.Model().Commits)
+	updatedCommits, err := self.c.Git().Loaders.CommitLoader.MergeRebasingCommits(hashPool, commits)
 	if err != nil {
 		return err
 	}
@@ -1173,9 +1243,8 @@ func (self *RefreshHelper) refreshReflogCommits(background bool, selectTopEntry 
 	return reflogCommits, nil
 }
 
-func (self *RefreshHelper) refreshRemotes(background bool) ([]*models.Remote, error) {
+func (self *RefreshHelper) refreshRemotes(prevSelectedRemote *models.Remote, background bool) ([]*models.Remote, error) {
 	generation := self.c.State().GetRepoGeneration()
-	prevSelectedRemote := self.c.Contexts().Remotes.GetSelected()
 
 	remotes, err := self.c.Git().Loaders.RemoteLoader.GetRemotes()
 	if err != nil {
