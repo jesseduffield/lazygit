@@ -337,6 +337,8 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 		Title:  self.c.Tr.DiscardFileChangesTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {
+			commits := self.c.Model().Commits
+			selectedLineIdx := self.c.Contexts().LocalCommits.GetSelectedLineIdx()
 			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 				var filePaths []string
 				selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
@@ -356,7 +358,7 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 					})
 				}
 
-				err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), filePaths)
+				err := self.c.Git().Rebase.DiscardOldFileChanges(commits, selectedLineIdx, filePaths)
 				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 					return err
 				}
@@ -442,20 +444,16 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
 	}
 
+	refName := self.context().GetRef().RefName()
+
 	toggle := func() error {
 		return self.c.WithWaitingStatus(self.c.Tr.UpdatingPatch, func(gocui.Task) error {
-			if !self.c.Git().Patch.PatchBuilder.Active() {
-				if err := self.startPatchBuilder(); err != nil {
-					return err
-				}
-			}
-
 			selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
 
 			// Find if any file in the selection is unselected or partially added
 			adding := lo.SomeBy(selectedNodes, func(node *filetree.CommitFileNode) bool {
 				return node.SomeFile(func(file *models.CommitFile) bool {
-					fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Path, self.context().GetRef().RefName())
+					fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Path, refName)
 					return fileStatus == patch.PART || fileStatus == patch.UNSELECTED
 				})
 			})
@@ -496,6 +494,12 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 		HandleConfirm: func() error {
 			if mustDiscardPatch {
 				self.c.Git().Patch.PatchBuilder.Reset()
+			}
+
+			if !self.c.Git().Patch.PatchBuilder.Active() {
+				if err := self.startPatchBuilder(); err != nil {
+					return err
+				}
 			}
 
 			return toggle()
