@@ -119,6 +119,15 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	// runs inline or has to hop (see captureOnUIThread).
 	fRunsOnUIThread := options.Mode == types.BLOCK_UI || !calledFromWorker
 
+	// Record the caller's own goroutine now, before a BLOCK_UI refresh dispatches
+	// f onto the UI thread, so the debug assertion below can verify the caller
+	// picked the entry point matching its thread regardless of the mode. Only
+	// read in debug (goid stays out of production control flow).
+	callerIsUIThread := false
+	if self.c.GetConfig().GetDebug() {
+		callerIsUIThread = self.c.GocuiGui().IsUIThread()
+	}
+
 	f := func() {
 		var scopeSet *set.Set[types.RefreshableView]
 		if len(options.Scope) == 0 {
@@ -203,6 +212,18 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		var loadedRemotes []*models.Remote
 		includeWorktreesWithBranches := false
 		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) {
+			// Debug-only guard: the caller must have picked the entry point that
+			// matches its goroutine — Refresh on the UI thread, RefreshFromWorker
+			// on a worker. We check the caller's own thread (captured above,
+			// before any BLOCK_UI dispatch), so it holds regardless of the mode.
+			// It's scoped to the commits refresh for now, the one scope whose
+			// worker reads have moved to the UI-thread capture below; once the
+			// other scopes are converted too it can move up to guard every
+			// refresh unconditionally.
+			if self.c.GetConfig().GetDebug() && callerIsUIThread == calledFromWorker {
+				panic("Refresh called from a worker, or RefreshFromWorker called from the UI thread")
+			}
+
 			// whenever we change commits, we should update branches because the upstream/downstream
 			// counts can change. Whenever we change branches we should also change commits
 			// e.g. in the case of switching branches.
