@@ -133,7 +133,7 @@ func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh() {
 
 	userConfig := self.gui.UserConfig()
 	self.goEvery(userConfig.Refresher.RefreshIntervalDuration(), self.gui.stopChan, func(_ bool) error {
-		self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Background: true})
+		self.gui.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Background: true})
 		return nil
 	})
 }

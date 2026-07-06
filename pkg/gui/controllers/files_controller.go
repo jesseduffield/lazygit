@@ -1808,7 +1808,7 @@ func (self *FilesController) ResetSubmodule(submodule *models.SubmoduleConfig) e
 			return err
 		}
 
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.SUBMODULES}})
+		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.SUBMODULES}})
 		return nil
 	})
 }
