@@ -58,6 +58,41 @@ func (self *StagingHelper) AdjacentFile(view *gocui.View, anchorViewLine int, fo
 	return view.ViewLineForBufferLine(target)
 }
 
+// DiffFile is a file shown in a (possibly multi-file) diff: its absolute path and the
+// view line its section starts at — the row that next/previous-file navigation lands on.
+type DiffFile struct {
+	Path          string
+	FirstViewLine int
+}
+
+// FilesInDiff lists the files shown in view's diff, in display order, each paired with
+// the view line its section starts at. It is the jump-to-file menu's source: jumping to
+// a file goes to its FirstViewLine, computed the same way (backUpOverHeader) that
+// AdjacentFile lands on a file, so the menu and n/N agree on where each file begins. A
+// file whose start row isn't currently mapped to a view line (not loaded yet) is skipped.
+func (self *StagingHelper) FilesInDiff(view *gocui.View) []DiffFile {
+	resolved := self.resolveDiffLines(view.DiffLineContents())
+	paths := make([]string, len(resolved))
+	for i, r := range resolved {
+		if r.ok {
+			paths[i] = r.info.Path
+		}
+	}
+
+	var files []DiffFile
+	seen := map[string]bool{}
+	for i, path := range paths {
+		if path == "" || seen[path] {
+			continue
+		}
+		seen[path] = true
+		if viewLine, ok := view.ViewLineForBufferLine(backUpOverHeader(paths, i)); ok {
+			files = append(files, DiffFile{Path: path, FirstViewLine: viewLine})
+		}
+	}
+	return files
+}
+
 // FirstChangeLineInView returns the view line of the first change line at or below
 // the top of the viewport, for placing the initial selection when focusing the main
 // view: we select the first change the user can already see rather than jumping to

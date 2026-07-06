@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -55,6 +56,7 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 	var editTooltip string
 	var openPullRequestDescription string
 	var openPullRequestTooltip string
+	var jumpToFileDescription string
 	if selectionShown {
 		enterDescription = self.c.Tr.EnterStaging
 		editDescription = self.c.Tr.EditFile
@@ -62,6 +64,7 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		// TODO: i18n-ize these
 		openPullRequestDescription = "Open pull request for selected line"
 		openPullRequestTooltip = "Open a browser at the selected line in the diff of the current branch's pull request, so that you can comment on it. Only works for local branches that have a pull request on GitHub."
+		jumpToFileDescription = "Jump to file"
 	}
 
 	var commitDescription string
@@ -191,6 +194,11 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Keys:        opts.GetKeys(config.Keybinding{"n"}),
 			Handler:     self.nextFile,
 			Description: self.c.Tr.NextFile,
+		},
+		{
+			Keys:        opts.GetKeys(config.Keybinding{"f"}),
+			Handler:     self.openJumpToFileMenu,
+			Description: jumpToFileDescription,
 		},
 		{
 			// overriding this because we want to read all of the task's output before we start searching
@@ -732,6 +740,65 @@ func (self *MainViewController) nextFile() error {
 func (self *MainViewController) prevFile() error {
 	self.navigate(self.c.Helpers().Staging.AdjacentFile, false)
 	return nil
+}
+
+// openJumpToFileMenu pops up a menu listing the files in the focused main view's diff, in
+// the order they appear, as repo-relative paths; picking one jumps straight to it. It's a
+// complement to n / N for a diff that spans many files. A no-op when the main view holds
+// no diff (nothing to list).
+//
+// The diff loads lazily, so we read it to the end first — otherwise a file past the loaded
+// portion of a long diff would be missing from the menu (and have no view line to jump to).
+// Same as handleGotoBottom.
+func (self *MainViewController) openJumpToFileMenu() error {
+	manager := self.c.GetViewBufferManagerForView(self.context.GetView())
+	if manager == nil {
+		return nil
+	}
+	manager.ReadToEnd(func() {
+		self.c.OnUIThread(func() error {
+			return self.showJumpToFileMenu()
+		})
+	})
+	return nil
+}
+
+func (self *MainViewController) showJumpToFileMenu() error {
+	files := self.c.Helpers().Staging.FilesInDiff(self.context.GetView())
+	if len(files) == 0 {
+		return nil
+	}
+
+	worktreePath := self.c.Git().RepoPaths.WorktreePath()
+	menuItems := lo.Map(files, func(file helpers.DiffFile, index int) *types.MenuItem {
+		label := file.Path
+		if rel, err := filepath.Rel(worktreePath, file.Path); err == nil {
+			label = rel
+		}
+		var keys []gocui.Key
+		if index < 9 {
+			keys = menuKey(rune(index + 1 + '0')) // Convert 1-based index to key
+		}
+		firstViewLine := file.FirstViewLine
+		return &types.MenuItem{
+			Label:   label,
+			Keys:    keys,
+			OnPress: func() error { self.jumpToFile(firstViewLine); return nil },
+		}
+	})
+
+	// TODO: i18n-ize this title
+	return self.c.Menu(types.CreateMenuOptions{Title: "Jump to file", Items: menuItems, HideCancel: true})
+}
+
+// jumpToFile moves the focused main view to the given view line exactly the way
+// next/previous-file navigation does (see navigate), so jumping from the menu and
+// stepping with n / N land identically — scrolling the file to the top with no selection,
+// or moving the selection (or hunk selection) to it when one is showing.
+func (self *MainViewController) jumpToFile(firstViewLine int) {
+	self.navigate(func(*gocui.View, int, bool) (int, bool) {
+		return firstViewLine, true
+	}, true)
 }
 
 // selectHunkAround re-selects the whole change block around the given change line,
