@@ -234,8 +234,11 @@ type GuiRepoState struct {
 
 	SplitMainPanel bool
 
-	SearchState  *types.SearchState
-	StartupStage types.StartupStage // Allows us to not load everything at once
+	SearchState *types.SearchState
+	// Lets us not load everything at once. Written and read from refresh
+	// workers (the reflog/branches load transitions it INITIAL->COMPLETE), so
+	// it's atomic. Holds a types.StartupStage.
+	startupStage atomic.Int32
 
 	ContextMgr *ContextMgr
 	Contexts   *context.ContextTree
@@ -262,7 +265,11 @@ type GuiRepoState struct {
 	// continue such an operation once its conflicts are resolved if we started
 	// it ourselves; for an externally started one, popping up unbidden would be
 	// confusing. Reset whenever we observe that no operation is in progress.
-	mergeOrRebaseStartedInLazygit bool
+	//
+	// Written from both the files refresh worker and the merge/rebase result
+	// path (which runs on a worker for the async callers), and read from the
+	// files refresh worker, so it's atomic.
+	mergeOrRebaseStartedInLazygit atomic.Bool
 }
 
 var _ types.IRepoStateAccessor = new(GuiRepoState)
@@ -276,11 +283,11 @@ func (self *GuiRepoState) GetWindowViewNameMap() *utils.ThreadSafeMap[string, st
 }
 
 func (self *GuiRepoState) GetStartupStage() types.StartupStage {
-	return self.StartupStage
+	return types.StartupStage(self.startupStage.Load())
 }
 
 func (self *GuiRepoState) SetStartupStage(value types.StartupStage) {
-	self.StartupStage = value
+	self.startupStage.Store(int32(value))
 }
 
 func (self *GuiRepoState) GetCurrentPopupOpts() *types.CreatePopupPanelOpts {
@@ -292,11 +299,11 @@ func (self *GuiRepoState) SetCurrentPopupOpts(value *types.CreatePopupPanelOpts)
 }
 
 func (self *GuiRepoState) GetMergeOrRebaseStartedInLazygit() bool {
-	return self.mergeOrRebaseStartedInLazygit
+	return self.mergeOrRebaseStartedInLazygit.Load()
 }
 
 func (self *GuiRepoState) SetMergeOrRebaseStartedInLazygit(value bool) {
-	self.mergeOrRebaseStartedInLazygit = value
+	self.mergeOrRebaseStartedInLazygit.Store(value)
 }
 
 func (self *GuiRepoState) GetScreenMode() types.ScreenMode {
