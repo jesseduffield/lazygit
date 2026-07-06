@@ -79,7 +79,9 @@ func (self *MergeAndRebaseHelper) ContinueRebase() error {
 }
 
 func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
-	return self.genericMergeCommandImpl(command, true)
+	// The menu/prompt/confirm handlers that reach here run on the UI thread and
+	// spin up a worker (via the waiting status below) to do the actual work.
+	return self.genericMergeCommandImpl(command, true, false)
 }
 
 // genericMergeCommandImpl runs a merge/rebase continue/skip/abort and handles
@@ -87,10 +89,12 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 // non-subprocess path runs on a worker with a waiting status.
 //
 // showWaitingStatus is false only for the recursive auto-skip in
-// CheckMergeOrRebaseWithRefreshOptions: that call already runs on the caller's
-// thread (the worker of the enclosing waiting status, or the UI thread for the
-// synchronous callers), so it must not spin up a second one.
-func (self *MergeAndRebaseHelper) genericMergeCommandImpl(command string, showWaitingStatus bool) error {
+// checkMergeOrRebaseImpl: that call already runs on the caller's thread (the
+// worker of the enclosing waiting status, or the UI thread for the synchronous
+// callers), so it must not spin up a second one. calledFromWorker says which of
+// those two the body runs on, so the post-action refresh picks Refresh vs
+// RefreshFromWorker correctly.
+func (self *MergeAndRebaseHelper) genericMergeCommandImpl(command string, showWaitingStatus bool, calledFromWorker bool) error {
 	status := self.c.Git().Status.WorkingTreeState()
 
 	if status.None() {
@@ -128,29 +132,30 @@ func (self *MergeAndRebaseHelper) genericMergeCommandImpl(command string, showWa
 	if needsSubprocess {
 		// TODO: see if we should be calling more of the code from self.Git.Rebase.GenericMergeOrRebaseAction
 		success, err := self.c.RunSubprocess(self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command))
-		self.c.Refresh(types.RefreshOptions{
+		self.refreshAfterMergeOrRebase(types.RefreshOptions{
 			Mode:            types.ASYNC,
 			CommitSelection: commitSelectionAfterMerge(success && selectHeadCommitOnSuccess),
-		})
+		}, calledFromWorker)
 		self.RecordWhetherMergeOrRebaseStartedInLazygit()
 		return err
 	}
 
-	runAction := func() error {
+	runAction := func(calledFromWorker bool) error {
 		result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
-		return self.CheckMergeOrRebaseWithRefreshOptions(result,
+		return self.checkMergeOrRebaseImpl(result,
 			types.RefreshOptions{
 				Mode:            types.ASYNC,
 				CommitSelection: commitSelectionAfterMerge(result == nil && selectHeadCommitOnSuccess),
-			})
+			}, calledFromWorker)
 	}
 
 	if showWaitingStatus {
 		return self.c.WithWaitingStatus(status.Title(self.c.Tr), func(gocui.Task) error {
-			return runAction()
+			// The waiting status ran runAction on a worker.
+			return runAction(true)
 		})
 	}
-	return runAction()
+	return runAction(calledFromWorker)
 }
 
 // commitSelectionAfterMerge maps whether a merge/rebase/pull created a new
@@ -205,22 +210,51 @@ func (self *MergeAndRebaseHelper) RecordWhetherMergeOrRebaseStartedInLazygit() {
 		self.c.Git().Status.WorkingTreeState().Any())
 }
 
+// CheckMergeOrRebaseWithRefreshOptions handles the result of a merge/rebase
+// step and refreshes. It's for callers running on a worker (the
+// WithWaitingStatus / WithInlineStatus handlers), which is the large majority;
+// UI-thread callers use CheckMergeOrRebaseWithRefreshOptionsFromUIThread.
 func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result error, refreshOptions types.RefreshOptions) error {
-	self.c.Refresh(refreshOptions)
+	return self.checkMergeOrRebaseImpl(result, refreshOptions, true)
+}
+
+// CheckMergeOrRebaseWithRefreshOptionsFromUIThread is like
+// CheckMergeOrRebaseWithRefreshOptions, but for the callers that run the
+// merge/rebase synchronously on the UI thread (the WithWaitingStatusSync
+// move/revert/squash-fixups/cherry-pick-paste/patch-discard handlers, kept sync
+// so rapid key presses batch) rather than on a worker.
+func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptionsFromUIThread(result error, refreshOptions types.RefreshOptions) error {
+	return self.checkMergeOrRebaseImpl(result, refreshOptions, false)
+}
+
+func (self *MergeAndRebaseHelper) checkMergeOrRebaseImpl(result error, refreshOptions types.RefreshOptions, calledFromWorker bool) error {
+	self.refreshAfterMergeOrRebase(refreshOptions, calledFromWorker)
 
 	self.RecordWhetherMergeOrRebaseStartedInLazygit()
 
 	if result == nil {
 		return nil
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
-		return self.genericMergeCommandImpl(REBASE_OPTION_SKIP, false)
+		return self.genericMergeCommandImpl(REBASE_OPTION_SKIP, false, calledFromWorker)
 	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") {
-		return self.genericMergeCommandImpl(REBASE_OPTION_SKIP, false)
+		return self.genericMergeCommandImpl(REBASE_OPTION_SKIP, false, calledFromWorker)
 	} else if strings.Contains(result.Error(), "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
 	}
 	return self.CheckForConflicts(result)
+}
+
+// refreshAfterMergeOrRebase issues the post-action refresh on the entry point
+// that matches the thread the merge/rebase ran on: RefreshFromWorker for the
+// worker callers, Refresh for the ones that stayed synchronously on the UI
+// thread.
+func (self *MergeAndRebaseHelper) refreshAfterMergeOrRebase(refreshOptions types.RefreshOptions, calledFromWorker bool) {
+	if calledFromWorker {
+		self.c.RefreshFromWorker(refreshOptions)
+	} else {
+		self.c.Refresh(refreshOptions)
+	}
 }
 
 func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
@@ -628,7 +662,7 @@ func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranch
 			if err != nil {
 				return err
 			}
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
 			return nil
 		})
 	}

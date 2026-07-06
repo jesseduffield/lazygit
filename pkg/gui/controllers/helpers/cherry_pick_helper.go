@@ -95,7 +95,7 @@ func (self *CherryPickHelper) Paste() error {
 
 				cherryPickedCommits := self.getData().CherryPickedCommits
 				result := self.c.Git().Rebase.CherryPickCommits(cherryPickedCommits)
-				err := self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC})
+				err := self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(result, types.RefreshOptions{Mode: types.SYNC})
 				if err != nil {
 					return result
 				}

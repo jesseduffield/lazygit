@@ -741,7 +741,7 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 			self.context().MoveSelection(1)
 			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
 			err, types.RefreshOptions{Mode: types.SYNC, CommitSelection: types.KeepCommitSelectionIndex})
 	})
 }
@@ -769,7 +769,7 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 			self.context().MoveSelection(-1)
 			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
 			err, types.RefreshOptions{Mode: types.SYNC, CommitSelection: types.KeepCommitSelectionIndex})
 	})
 }
@@ -927,7 +927,7 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 				}
 
 				result := self.c.Git().Commit.Revert(hashes, isMerge)
-				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC}); err != nil {
+				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(result, types.RefreshOptions{Mode: types.SYNC}); err != nil {
 					return err
 				}
 
@@ -1127,7 +1127,7 @@ func (self *LocalCommitsController) squashFixupsImpl(commit *models.Commit, reba
 		self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
 		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
 		self.context().MoveSelectedLine(-selectionOffset)
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
 			err, types.RefreshOptions{Mode: types.SYNC})
 	})
 }
