@@ -475,7 +475,9 @@ func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepat
 }
 
 func (self *LocalCommitsController) handleReword(summary string, description string) error {
-	if models.IsHeadCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx()) {
+	commits := self.c.Model().Commits
+	selectedIdx := self.c.Contexts().LocalCommits.GetSelectedLineIdx()
+	if models.IsHeadCommit(commits, selectedIdx) {
 		// we've selected the top commit so no rebase is required
 		return self.c.Helpers().GPG.WithGpgHandling(self.c.Git().Commit.RewordLastCommit(summary, description),
 			git_commands.CommitGpgSign,
@@ -483,7 +485,7 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 	}
 
 	return self.c.WithWaitingStatus(self.c.Tr.RewordingStatus, func(gocui.Task) error {
-		err := self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), summary, description)
+		err := self.c.Git().Rebase.RewordCommit(commits, selectedIdx, summary, description)
 		if err != nil {
 			return err
 		}
@@ -788,11 +790,13 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 			})
 		}
 	} else {
+		commits := self.c.Model().Commits
+		selectedIdx := self.context().GetView().SelectedLineIdx()
 		handleCommit = func() error {
 			return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 				return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 					self.c.LogAction(self.c.Tr.Actions.AmendCommit)
-					err := self.c.Git().Rebase.AmendTo(self.c.Model().Commits, self.context().GetView().SelectedLineIdx())
+					err := self.c.Git().Rebase.AmendTo(commits, selectedIdx)
 					return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 				})
 			})
@@ -820,26 +824,30 @@ func (self *LocalCommitsController) canAmend(_ *models.Commit) *types.DisabledRe
 	return self.canAmendRange(self.c.Model().Commits, idx, idx)
 }
 
-func (self *LocalCommitsController) amendAttribute(commits []*models.Commit, start, end int) error {
+func (self *LocalCommitsController) amendAttribute(_ []*models.Commit, start, end int) error {
+	// The author operations index into the full commit list by absolute
+	// start/end, so capture that here on the UI thread rather than reading
+	// Model().Commits from the worker the menu items dispatch to.
+	commits := self.c.Model().Commits
 	opts := self.c.KeybindingsOpts()
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: "Amend commit attribute",
 		Items: []*types.MenuItem{
 			{
 				Label:   self.c.Tr.ResetAuthor,
-				OnPress: func() error { return self.resetAuthor(start, end) },
+				OnPress: func() error { return self.resetAuthor(commits, start, end) },
 				Keys:    opts.GetKeys(opts.Config.AmendAttribute.ResetAuthor),
 				Tooltip: self.c.Tr.ResetAuthorTooltip,
 			},
 			{
 				Label:   self.c.Tr.SetAuthor,
-				OnPress: func() error { return self.setAuthor(start, end) },
+				OnPress: func() error { return self.setAuthor(commits, start, end) },
 				Keys:    opts.GetKeys(opts.Config.AmendAttribute.SetAuthor),
 				Tooltip: self.c.Tr.SetAuthorTooltip,
 			},
 			{
 				Label:   self.c.Tr.AddCoAuthor,
-				OnPress: func() error { return self.addCoAuthor(start, end) },
+				OnPress: func() error { return self.addCoAuthor(commits, start, end) },
 				Keys:    opts.GetKeys(opts.Config.AmendAttribute.AddCoAuthor),
 				Tooltip: self.c.Tr.AddCoAuthorTooltip,
 			},
@@ -847,10 +855,10 @@ func (self *LocalCommitsController) amendAttribute(commits []*models.Commit, sta
 	})
 }
 
-func (self *LocalCommitsController) resetAuthor(start, end int) error {
+func (self *LocalCommitsController) resetAuthor(commits []*models.Commit, start, end int) error {
 	return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.ResetCommitAuthor)
-		if err := self.c.Git().Rebase.ResetCommitAuthor(self.c.Model().Commits, start, end); err != nil {
+		if err := self.c.Git().Rebase.ResetCommitAuthor(commits, start, end); err != nil {
 			return err
 		}
 
@@ -859,14 +867,14 @@ func (self *LocalCommitsController) resetAuthor(start, end int) error {
 	})
 }
 
-func (self *LocalCommitsController) setAuthor(start, end int) error {
+func (self *LocalCommitsController) setAuthor(commits []*models.Commit, start, end int) error {
 	self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.SetAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SetCommitAuthor)
-				if err := self.c.Git().Rebase.SetCommitAuthor(self.c.Model().Commits, start, end, value); err != nil {
+				if err := self.c.Git().Rebase.SetCommitAuthor(commits, start, end, value); err != nil {
 					return err
 				}
 
@@ -879,14 +887,14 @@ func (self *LocalCommitsController) setAuthor(start, end int) error {
 	return nil
 }
 
-func (self *LocalCommitsController) addCoAuthor(start, end int) error {
+func (self *LocalCommitsController) addCoAuthor(commits []*models.Commit, start, end int) error {
 	self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.AddCoAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.AddCommitCoAuthor)
-				if err := self.c.Git().Rebase.AddCommitCoAuthor(self.c.Model().Commits, start, end, value); err != nil {
+				if err := self.c.Git().Rebase.AddCommitCoAuthor(commits, start, end, value); err != nil {
 					return err
 				}
 				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
