@@ -586,36 +586,42 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 func (self *MergeAndRebaseHelper) RegularMerge(refName string, variant git_commands.MergeVariant) func() error {
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.Merge)
-		err := self.c.Git().Branch.Merge(refName, variant)
-		return self.CheckMergeOrRebaseAndSelectHeadCommit(err)
+		return self.c.WithWaitingStatus(self.c.Tr.MergingStatus, func(gocui.Task) error {
+			err := self.c.Git().Branch.Merge(refName, variant)
+			return self.CheckMergeOrRebaseAndSelectHeadCommit(err)
+		})
 	}
 }
 
 func (self *MergeAndRebaseHelper) SquashMergeUncommitted(refName string) func() error {
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.SquashMerge)
-		err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_SQUASH)
-		return self.CheckMergeOrRebase(err)
+		return self.c.WithWaitingStatus(self.c.Tr.MergingStatus, func(gocui.Task) error {
+			err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_SQUASH)
+			return self.CheckMergeOrRebase(err)
+		})
 	}
 }
 
 func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranchName string) func() error {
 	return func() error {
 		self.c.LogAction(self.c.Tr.Actions.SquashMerge)
-		err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_SQUASH)
-		if err = self.CheckMergeOrRebase(err); err != nil {
-			return err
-		}
-		message := utils.ResolvePlaceholderString(self.c.UserConfig().Git.Merging.SquashMergeMessage, map[string]string{
-			"selectedRef":   refName,
-			"currentBranch": checkedOutBranchName,
+		return self.c.WithWaitingStatus(self.c.Tr.MergingStatus, func(gocui.Task) error {
+			err := self.c.Git().Branch.Merge(refName, git_commands.MERGE_VARIANT_SQUASH)
+			if err = self.CheckMergeOrRebase(err); err != nil {
+				return err
+			}
+			message := utils.ResolvePlaceholderString(self.c.UserConfig().Git.Merging.SquashMergeMessage, map[string]string{
+				"selectedRef":   refName,
+				"currentBranch": checkedOutBranchName,
+			})
+			err = self.c.Git().Commit.CommitCmdObj(message, "", false).Run()
+			if err != nil {
+				return err
+			}
+			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return nil
 		})
-		err = self.c.Git().Commit.CommitCmdObj(message, "", false).Run()
-		if err != nil {
-			return err
-		}
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
-		return nil
 	}
 }
 
