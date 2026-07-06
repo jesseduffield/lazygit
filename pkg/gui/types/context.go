@@ -441,6 +441,7 @@ type IContextMgr interface {
 	CurrentSide() Context
 	CurrentPopup() []Context
 	NextInStack(context Context) Context
+	IsInStack(c Context) bool
 	IsCurrent(c Context) bool
 	IsCurrentOrParent(c Context) bool
 	ForEach(func(Context))
