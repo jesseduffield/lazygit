@@ -9,11 +9,13 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/generics/set"
+	"github.com/petermattis/goid"
 	"github.com/rivo/uniseg"
 	"github.com/samber/lo"
 )
@@ -200,6 +202,11 @@ type Gui struct {
 	currentTask Task
 
 	lastHoverView *View
+
+	// uiThreadID is the goroutine id of the main event loop, recorded when
+	// MainLoop starts. IsUIThread compares against it. Written once, read from
+	// worker goroutines, so it's atomic.
+	uiThreadID atomic.Int64
 }
 
 type NewGuiOpts struct {
@@ -684,6 +691,46 @@ func (g *Gui) updateContentOnly(f func(*Gui) error, background bool) {
 	g.userEvents <- userEvent{f: f, task: task, contentOnly: true}
 }
 
+// IsUIThread reports whether the caller is running on the main event-loop
+// goroutine (the one running MainLoop). It calls goid.Get, so use it only for
+// debug assertions, not to drive production control flow.
+func (g *Gui) IsUIThread() bool {
+	return goid.Get() == g.uiThreadID.Load()
+}
+
+// OnUIThreadAndWait runs f on the main event-loop goroutine and blocks the
+// caller until f has run, returning f's error. Use it to read UI-thread-owned
+// state (the model, contexts) from a worker without racing the UI thread.
+//
+// It must be called from a worker goroutine, never from the UI thread itself:
+// the UI thread would block waiting for a callback only it can run, which
+// deadlocks. Callers arrange this by construction (see the refresh helper's
+// RefreshFromWorker); a debug-only assertion there guards against getting it
+// wrong.
+func (g *Gui) OnUIThreadAndWait(f func() error) error {
+	return g.onUIThreadAndWait(f, false)
+}
+
+// Like OnUIThreadAndWait, but the enqueued work belongs to a background routine,
+// so it doesn't count towards the program being busy (see UpdateBackground).
+func (g *Gui) OnUIThreadAndWaitBackground(f func() error) error {
+	return g.onUIThreadAndWait(f, true)
+}
+
+func (g *Gui) onUIThreadAndWait(f func() error, background bool) error {
+	enqueue := g.Update
+	if background {
+		enqueue = g.UpdateBackground
+	}
+
+	result := make(chan error, 1)
+	enqueue(func(*Gui) error {
+		result <- f()
+		return nil
+	})
+	return <-result
+}
+
 // Calls a function in a goroutine. Handles panics gracefully and tracks
 // number of background tasks.
 // Always use this when you want to spawn a goroutine and you want lazygit to
@@ -766,6 +813,8 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
+	g.uiThreadID.Store(goid.Get())
+
 	go func() {
 		for {
 			select {
