@@ -589,9 +589,11 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, start
 
 	commits := self.c.Model().Commits
 	if !commits[endIdx].IsMerge() {
-		err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit, "")
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
-			err, types.RefreshOptions{Mode: types.BLOCK_UI})
+		return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+			err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit, "")
+			return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+				err, types.RefreshOptions{Mode: types.BLOCK_UI})
+		})
 	}
 
 	return self.startInteractiveRebaseWithEdit(selectedCommits)
