@@ -45,7 +45,10 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 				return err
 			}
 
-			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+			self.c.OnUIThread(func() error {
+				self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+				return nil
+			})
 			self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 			return nil
 		})
@@ -86,7 +89,10 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteB
 				}
 				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 				if resetRemoteBranchesSelection {
-					self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
+					self.c.OnUIThread(func() error {
+						self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
+						return nil
+					})
 				}
 				return nil
 			})
@@ -151,7 +157,10 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 					return err
 				}
 
-				self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+				self.c.OnUIThread(func() error {
+					self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+					return nil
+				})
 				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 				return nil
 			})
@@ -311,7 +320,10 @@ func (self *BranchesHelper) deleteLocalBranchesContinuation(branches []*models.B
 			return err
 		}
 
-		self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+		self.c.OnUIThread(func() error {
+			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+			return nil
+		})
 		self.c.RefreshFromWorker(types.RefreshOptions{
 			Mode:  types.ASYNC,
 			Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES},
@@ -329,7 +341,10 @@ func (self *BranchesHelper) deleteLocalAndRemoteBranchesContinuation(branches []
 			return err
 		}
 
-		self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+		self.c.OnUIThread(func() error {
+			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+			return nil
+		})
 		self.c.RefreshFromWorker(types.RefreshOptions{
 			Mode:  types.ASYNC,
 			Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.REMOTES, types.FILES},
