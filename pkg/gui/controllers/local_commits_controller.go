@@ -340,9 +340,11 @@ func (self *LocalCommitsController) squashDown(selectedCommits []*models.Commit,
 		Title:  self.c.Tr.Squash,
 		Prompt: self.c.Tr.SureSquashThisCommit,
 		HandleConfirm: func() error {
+			commits := self.c.Model().Commits
+			self.selectRebaseResultCommit(startIdx)
 			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SquashCommitDown)
-				return self.interactiveRebase(todo.Squash, startIdx, endIdx)
+				return self.interactiveRebase(commits, todo.Squash, startIdx, endIdx)
 			})
 		},
 	})
@@ -362,9 +364,11 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 				Label: self.c.Tr.Fixup,
 				Keys:  menuKey('f'),
 				OnPress: func() error {
+					commits := self.c.Model().Commits
+					self.selectRebaseResultCommit(startIdx)
 					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.FixupCommit)
-						return self.interactiveRebase(todo.Fixup, startIdx, endIdx)
+						return self.interactiveRebase(commits, todo.Fixup, startIdx, endIdx)
 					})
 				},
 				Tooltip: self.c.Tr.FixupTooltip,
@@ -373,9 +377,11 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 				Label: self.c.Tr.FixupKeepMessage,
 				Keys:  menuKey('c'),
 				OnPress: func() error {
+					commits := self.c.Model().Commits
+					self.selectRebaseResultCommit(startIdx)
 					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.FixupCommitKeepMessage)
-						return self.interactiveRebaseWithFlag(todo.Fixup, startIdx, endIdx, "-C")
+						return self.interactiveRebaseWithFlag(commits, todo.Fixup, startIdx, endIdx, "-C")
 					})
 				},
 				Tooltip: self.c.Tr.FixupKeepMessageTooltip,
@@ -566,12 +572,16 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 		Title:  self.c.Tr.DropCommitTitle,
 		Prompt: lo.Ternary(isMerge, self.c.Tr.DropMergeCommitPrompt, self.c.Tr.DropCommitPrompt),
 		HandleConfirm: func() error {
+			commits := self.c.Model().Commits
+			if !isMerge {
+				self.selectRebaseResultCommit(startIdx)
+			}
 			return self.c.WithWaitingStatus(self.c.Tr.DroppingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DropCommit)
 				if isMerge {
-					return self.dropMergeCommit(startIdx)
+					return self.dropMergeCommit(commits, startIdx)
 				}
-				return self.interactiveRebase(todo.Drop, startIdx, endIdx)
+				return self.interactiveRebase(commits, todo.Drop, startIdx, endIdx)
 			})
 		},
 	})
@@ -579,8 +589,8 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 	return nil
 }
 
-func (self *LocalCommitsController) dropMergeCommit(commitIdx int) error {
-	err := self.c.Git().Rebase.DropMergeCommit(self.c.Model().Commits, commitIdx)
+func (self *LocalCommitsController) dropMergeCommit(commits []*models.Commit, commitIdx int) error {
+	err := self.c.Git().Rebase.DropMergeCommit(commits, commitIdx)
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
 
@@ -658,20 +668,23 @@ func (self *LocalCommitsController) pick(selectedCommits []*models.Commit) error
 	panic("should be disabled when not rebasing")
 }
 
-func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, startIdx int, endIdx int) error {
-	return self.interactiveRebaseWithFlag(action, startIdx, endIdx, "")
+func (self *LocalCommitsController) interactiveRebase(commits []*models.Commit, action todo.TodoCommand, startIdx int, endIdx int) error {
+	return self.interactiveRebaseWithFlag(commits, action, startIdx, endIdx, "")
 }
 
-func (self *LocalCommitsController) interactiveRebaseWithFlag(action todo.TodoCommand, startIdx int, endIdx int, flag string) error {
-	// When performing an action that will remove the selected commits, we need to select the
-	// next commit down (which will end up at the start index after the action is performed)
-	if action == todo.Drop || action == todo.Fixup || action == todo.Squash {
-		self.context().SetSelection(startIdx)
-	}
-
-	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, startIdx, endIdx, action, flag)
+func (self *LocalCommitsController) interactiveRebaseWithFlag(commits []*models.Commit, action todo.TodoCommand, startIdx int, endIdx int, flag string) error {
+	err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, action, flag)
 
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+}
+
+// selectRebaseResultCommit selects the commit that a drop/fixup/squash starting
+// at startIdx will leave there. It must run on the UI thread before the rebase:
+// the commit currently at startIdx is removed, so the refresh's
+// keep-selection-by-hash can't restore it and falls back to the index, which by
+// then holds the commit that shifted up into its place.
+func (self *LocalCommitsController) selectRebaseResultCommit(startIdx int) {
+	self.context().SetSelection(startIdx)
 }
 
 // updateTodos sees if the selected commit is in fact a rebasing
