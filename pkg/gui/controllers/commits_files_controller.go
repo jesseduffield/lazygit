@@ -363,9 +363,12 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 					return err
 				}
 
-				if self.context().RangeSelectEnabled() {
-					self.context().GetList().CancelRangeSelect()
-				}
+				self.c.OnUIThread(func() error {
+					if self.context().RangeSelectEnabled() {
+						self.context().GetList().CancelRangeSelect()
+					}
+					return nil
+				})
 
 				return nil
 			})
