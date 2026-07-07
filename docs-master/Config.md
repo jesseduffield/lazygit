@@ -468,6 +468,11 @@ git:
   # `<ctrl+w>`.
   ignoreWhitespaceInDiffView: false
 
+  # If true, git diffs are rendered with the `--word-diff=color` flag, which
+  # highlights changes at word granularity rather than line granularity. Can be
+  # toggled from within Lazygit with `<ctrl+g>`.
+  wordDiffInDiffView: false
+
   # The number of lines of context to show around each diff hunk. Can be changed
   # from within Lazygit with the `{` and `}` keys.
   diffContextSize: 3
@@ -725,6 +730,7 @@ keybinding:
     submitEditorText: <enter>
     extrasMenu: '@'
     toggleWhitespaceInDiffView: <ctrl+w>
+    toggleWordDiffInDiffView: <c-g>
     increaseContextInDiffView: '}'
     decreaseContextInDiffView: '{'
     increaseRenameSimilarityThreshold: )

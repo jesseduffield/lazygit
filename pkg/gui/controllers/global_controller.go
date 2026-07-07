@@ -137,6 +137,12 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Tooltip:     self.c.Tr.ToggleWhitespaceInDiffViewTooltip,
 		},
 		{
+			Keys:        opts.GetKeys(opts.Config.Universal.ToggleWordDiffInDiffView),
+			Handler:     self.toggleWordDiff,
+			Description: self.c.Tr.ToggleWordDiff,
+			Tooltip:     self.c.Tr.ToggleWordDiffTooltip,
+		},
+		{
 			Keys:        opts.GetKeys(opts.Config.Universal.EditConfig),
 			Handler:     self.editConfig,
 			Description: self.c.Tr.EditConfig,
@@ -271,6 +277,10 @@ func (self *GlobalController) escapeEnabled() *types.DisabledReason {
 
 func (self *GlobalController) toggleWhitespace() error {
 	return (&ToggleWhitespaceAction{c: self.c}).Call()
+}
+
+func (self *GlobalController) toggleWordDiff() error {
+	return (&ToggleWordDiffAction{c: self.c}).Call()
 }
 
 func (self *GlobalController) editConfig() error {

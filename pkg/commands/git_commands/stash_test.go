@@ -103,6 +103,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 		contextSize         uint64
 		similarityThreshold int
 		ignoreWhitespace    bool
+		wordDiff            bool
 		pagerConfig         *config.PagingConfig
 		expected            []string
 	}
@@ -158,12 +159,21 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			ignoreWhitespace:    true,
 			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--no-ext-diff", "--color=always", "--unified=3", "--ignore-all-space", "--find-renames=50%", "refs/stash@{5}"},
 		},
+		{
+			testName:            "Show diff with word diff",
+			index:               5,
+			contextSize:         3,
+			similarityThreshold: 50,
+			wordDiff:            true,
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--no-ext-diff", "--color=always", "--unified=3", "--word-diff=color", "--find-renames=50%", "refs/stash@{5}"},
+		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
+			userConfig.Git.WordDiffInDiffView = s.wordDiff
 			userConfig.Git.DiffContextSize = s.contextSize
 			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
 			if s.pagerConfig != nil {

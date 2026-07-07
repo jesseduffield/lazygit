@@ -257,6 +257,7 @@ func (self *CommitCommands) ShowCmdObj(hash string, filterPaths []string) *oscom
 		Arg("-p").
 		Arg(hash).
 		ArgIf(self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		ArgIf(self.UserConfig().Git.WordDiffInDiffView, "--word-diff=color").
 		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
 		Arg("--").
 		Arg(filterPaths...).

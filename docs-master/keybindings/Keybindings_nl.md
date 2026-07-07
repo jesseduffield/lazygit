@@ -31,6 +31,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` q, <ctrl+c> `` | Afsluiten |  |
 | `` <ctrl+z> `` | Pauzeer de applicatie |  |
 | `` <ctrl+w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <ctrl+g> `` | Toggle word diff | Toggle between line-level and word-level highlighting of changes in the diff view (git's --word-diff=color).<br><br>The default can be changed in the config file with the key 'git.wordDiffInDiffView'. |
 | `` <alt+shift+c> `` | Verander config bestand | Open bestand in externe editor. |
 | `` z `` | Ongedaan maken (via reflog) (experimenteel) | The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 | `` Z `` | Redo (via reflog) (experimenteel) | The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |

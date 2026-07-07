@@ -31,6 +31,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` q, <ctrl+c> `` | Wyjdź |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | Przełącz białe znaki | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <ctrl+g> `` | Toggle word diff | Toggle between line-level and word-level highlighting of changes in the diff view (git's --word-diff=color).<br><br>The default can be changed in the config file with the key 'git.wordDiffInDiffView'. |
 | `` <alt+shift+c> `` | Edytuj plik konfiguracyjny | Otwórz plik w zewnętrznym edytorze. |
 | `` z `` | Cofnij | Dziennik reflog zostanie użyty do określenia, jakie polecenie git należy uruchomić, aby cofnąć ostatnie polecenie git. Nie obejmuje to zmian w drzewie roboczym; brane są pod uwagę tylko commity. |
 | `` Z `` | Ponów | Dziennik reflog zostanie użyty do określenia, jakie polecenie git należy uruchomić, aby ponowić ostatnie polecenie git. Nie obejmuje to zmian w drzewie roboczym; brane są pod uwagę tylko commity. |

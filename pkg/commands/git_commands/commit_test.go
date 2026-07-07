@@ -255,6 +255,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 		contextSize         uint64
 		similarityThreshold int
 		ignoreWhitespace    bool
+		wordDiff            bool
 		pagerConfig         *config.PagingConfig
 		expected            []string
 	}
@@ -306,6 +307,15 @@ func TestCommitShowCmdObj(t *testing.T) {
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890", "--ignore-all-space", "--find-renames=50%", "--"},
 		},
 		{
+			testName:            "Show diff with word diff",
+			filterPaths:         []string{},
+			contextSize:         3,
+			similarityThreshold: 50,
+			wordDiff:            true,
+			pagerConfig:         nil,
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--word-diff=color", "--find-renames=50%", "--"},
+		},
+		{
 			testName:            "Show diff with external diff command",
 			filterPaths:         []string{},
 			contextSize:         3,
@@ -332,6 +342,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 				userConfig.Git.Pagers = []config.PagingConfig{*s.pagerConfig}
 			}
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
+			userConfig.Git.WordDiffInDiffView = s.wordDiff
 			userConfig.Git.DiffContextSize = s.contextSize
 			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
 

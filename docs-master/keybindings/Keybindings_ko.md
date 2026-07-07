@@ -31,6 +31,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` q, <ctrl+c> `` | 종료 |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | 공백문자를 Diff 뷰에서 표시 여부 전환 | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <ctrl+g> `` | Toggle word diff | Toggle between line-level and word-level highlighting of changes in the diff view (git's --word-diff=color).<br><br>The default can be changed in the config file with the key 'git.wordDiffInDiffView'. |
 | `` <alt+shift+c> `` | 설정 파일 수정 | Open file in external editor. |
 | `` z `` | 되돌리기 (reflog) (실험적) | The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 | `` Z `` | 다시 실행 (reflog) (실험적) | The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |

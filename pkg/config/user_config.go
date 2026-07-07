@@ -327,6 +327,8 @@ type GitConfig struct {
 	AllBranchesLogCmds []string `yaml:"allBranchesLogCmds"`
 	// If true, git diffs are rendered with the `--ignore-all-space` flag, which ignores whitespace changes. Can be toggled from within Lazygit with `<ctrl+w>`.
 	IgnoreWhitespaceInDiffView bool `yaml:"ignoreWhitespaceInDiffView"`
+	// If true, git diffs are rendered with the `--word-diff=color` flag, which highlights changes at word granularity rather than line granularity. Can be toggled from within Lazygit with `<ctrl+g>`.
+	WordDiffInDiffView bool `yaml:"wordDiffInDiffView"`
 	// The number of lines of context to show around each diff hunk. Can be changed from within Lazygit with the `{` and `}` keys.
 	DiffContextSize uint64 `yaml:"diffContextSize"`
 	// The threshold for considering a file to be renamed, in percent. Can be changed from within Lazygit with the `(` and `)` keys.
@@ -548,6 +550,7 @@ type KeybindingUniversalConfig struct {
 	SubmitEditorText                  Keybinding `yaml:"submitEditorText"`
 	ExtrasMenu                        Keybinding `yaml:"extrasMenu"`
 	ToggleWhitespaceInDiffView        Keybinding `yaml:"toggleWhitespaceInDiffView"`
+	ToggleWordDiffInDiffView          Keybinding `yaml:"toggleWordDiffInDiffView"`
 	IncreaseContextInDiffView         Keybinding `yaml:"increaseContextInDiffView"`
 	DecreaseContextInDiffView         Keybinding `yaml:"decreaseContextInDiffView"`
 	IncreaseRenameSimilarityThreshold Keybinding `yaml:"increaseRenameSimilarityThreshold"`
@@ -959,6 +962,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			BranchLogCmd:                 "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
 			AllBranchesLogCmds:           []string{"git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium"},
 			IgnoreWhitespaceInDiffView:   false,
+			WordDiffInDiffView:           false,
 			DiffContextSize:              3,
 			RenameSimilarityThreshold:    50,
 			DisableForcePushing:          false,
@@ -1066,6 +1070,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				SubmitEditorText:                  Keybinding{"<enter>"},
 				ExtrasMenu:                        Keybinding{"@"},
 				ToggleWhitespaceInDiffView:        Keybinding{"<ctrl+w>"},
+				ToggleWordDiffInDiffView:          Keybinding{"<c-g>"},
 				IncreaseContextInDiffView:         Keybinding{"}"},
 				DecreaseContextInDiffView:         Keybinding{"{"},
 				IncreaseRenameSimilarityThreshold: Keybinding{")"},

@@ -200,6 +200,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 		plain               bool
 		cached              bool
 		ignoreWhitespace    bool
+		wordDiff            bool
 		contextSize         uint64
 		similarityThreshold int
 		runner              *oscommands.FakeCmdObjRunner
@@ -284,6 +285,21 @@ func TestWorkingTreeDiff(t *testing.T) {
 				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--color=always", "--ignore-all-space", "--find-renames=50%", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
+			testName: "Default case (word diff)",
+			file: &models.File{
+				Path:             "test.txt",
+				HasStagedChanges: false,
+				Tracked:          true,
+			},
+			plain:               false,
+			cached:              false,
+			wordDiff:            true,
+			contextSize:         3,
+			similarityThreshold: 50,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--color=always", "--word-diff=color", "--find-renames=50%", "--", "test.txt"}, expectedResult, nil),
+		},
+		{
 			testName: "Show diff with custom context size",
 			file: &models.File{
 				Path:             "test.txt",
@@ -319,6 +335,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
+			userConfig.Git.WordDiffInDiffView = s.wordDiff
 			userConfig.Git.DiffContextSize = s.contextSize
 			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
 			repoPaths := RepoPaths{
@@ -343,6 +360,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 		previousPath     string
 		plain            bool
 		ignoreWhitespace bool
+		wordDiff         bool
 		contextSize      uint64
 		runner           *oscommands.FakeCmdObjRunner
 	}
@@ -387,6 +405,18 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 				ExpectGitArgs([]string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--find-renames=50%", "--color=always", "1234567890", "0987654321", "--ignore-all-space", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
+			testName:    "Default case (word diff)",
+			from:        "1234567890",
+			to:          "0987654321",
+			reverse:     false,
+			fileName:    "test.txt",
+			plain:       false,
+			wordDiff:    true,
+			contextSize: 3,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--find-renames=50%", "--color=always", "1234567890", "0987654321", "--word-diff=color", "--", "test.txt"}, expectedResult, nil),
+		},
+		{
 			testName:         "Renamed file passes both paths so the rename is detected",
 			from:             "1234567890",
 			to:               "0987654321",
@@ -405,6 +435,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
+			userConfig.Git.WordDiffInDiffView = s.wordDiff
 			userConfig.Git.DiffContextSize = s.contextSize
 			repoPaths := RepoPaths{
 				worktreePath: "/path/to/worktree",
