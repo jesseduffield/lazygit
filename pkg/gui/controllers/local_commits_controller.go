@@ -604,7 +604,7 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, start
 		return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 			err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit, "")
 			return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
-				err, types.RefreshOptions{Mode: types.BLOCK_UI})
+				err, types.RefreshOptions{BatchUIUpdates: true})
 		})
 	}
 
@@ -628,7 +628,7 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 		err := self.c.Git().Rebase.EditRebase(commitsToEdit[len(commitsToEdit)-1].Hash())
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
-			types.RefreshOptions{Mode: types.BLOCK_UI, Then: func() error {
+			types.RefreshOptions{BatchUIUpdates: true, Then: func() error {
 				todos := make([]*models.Commit, 0, len(commitsToEdit)-1)
 				for _, c := range commitsToEdit[:len(commitsToEdit)-1] {
 					// Merge commits can't be set to "edit", so just skip them

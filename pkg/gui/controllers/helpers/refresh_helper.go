@@ -96,6 +96,49 @@ type refreshEnv struct {
 
 	// the repo generation captured when the refresh started
 	generation int
+
+	// When non-nil, each scope's UI-thread bounce is collected here instead of
+	// being dispatched as it's produced, so they can all be applied in a single
+	// frame once the whole refresh is done (see RefreshOptions.BatchUIUpdates).
+	// Held by pointer so the copies of env that flow through the scope functions
+	// all share the one batch.
+	batch *refreshBounceBatch
+}
+
+// refreshBounceBatch collects the UI-thread bounces of a batched refresh so they
+// can be applied together in one frame rather than one scope at a time. The
+// scopes run on separate worker goroutines and add concurrently, hence the
+// mutex. Once the refresh starts flushing it closes the batch, so that any
+// bounces enqueued afterwards — the nested ones a flushed bounce produces in
+// turn, e.g. scrolling the selection into view — are dispatched immediately as
+// ordinary follow-ups instead of being collected into a batch that nothing
+// will drain.
+type refreshBounceBatch struct {
+	mutex  deadlock.Mutex
+	funcs  []func()
+	closed bool
+}
+
+// add collects f and returns true. Once the batch is closed it collects nothing
+// and returns false, telling the caller to dispatch f immediately instead.
+func (self *refreshBounceBatch) add(f func()) bool {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	if self.closed {
+		return false
+	}
+	self.funcs = append(self.funcs, f)
+	return true
+}
+
+// close marks the batch flushed and returns everything collected so far.
+func (self *refreshBounceBatch) close() []func() {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	self.closed = true
+	return self.funcs
 }
 
 func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFromWorker bool) {
@@ -121,18 +164,15 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		)
 	}
 
-	// f runs on the UI thread when the refresh was initiated there, and also for
-	// BLOCK_UI, which dispatches f onto the UI thread regardless of the caller.
-	// Only a SYNC/ASYNC refresh initiated from a worker runs f on that worker.
-	// This, not calledFromWorker alone, is what decides whether a scope capture
-	// runs inline or has to hop (see captureOnUIThread).
-	fRunsOnUIThread := options.Mode == types.BLOCK_UI || !calledFromWorker
+	// f runs on the UI thread when the refresh was initiated there (Refresh); a
+	// refresh initiated from a worker (RefreshFromWorker) runs f on that worker.
+	// This decides whether a scope capture runs inline or has to hop (see
+	// captureOnUIThread).
+	fRunsOnUIThread := !calledFromWorker
 
 	// Debug-only guard: every refresh must be issued from the entry point that
 	// matches its goroutine — Refresh on the UI thread, RefreshFromWorker on a
-	// worker. We check the caller's own goroutine here, before a BLOCK_UI
-	// refresh dispatches f onto the UI thread, so it holds regardless of the
-	// mode. goid stays out of production control flow (debug only).
+	// worker. goid stays out of production control flow (debug only).
 	if self.c.GetConfig().GetDebug() && self.c.GocuiGui().IsUIThread() == calledFromWorker {
 		panic("Refresh called from a worker, or RefreshFromWorker called from the UI thread")
 	}
@@ -143,6 +183,9 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		env := refreshEnv{
 			background: options.Background,
 			generation: self.c.State().GetRepoGeneration(),
+		}
+		if options.BatchUIUpdates {
+			env.batch = &refreshBounceBatch{}
 		}
 
 		var scopeSet *set.Set[types.RefreshableView]
@@ -376,6 +419,20 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 
 		wg.Wait()
 
+		if env.batch != nil {
+			// Apply all the scopes' collected bounces in a single UI-thread task,
+			// so they land in one frame: gocui drains every queued event before it
+			// redraws, so one task means one repaint. Bounces enqueued from within
+			// these (see refreshBounceBatch) run as ordinary follow-ups.
+			bounces := env.batch.close()
+			self.onUIThread(env.background, func() error {
+				for _, bounce := range bounces {
+					bounce()
+				}
+				return nil
+			})
+		}
+
 		if options.Then != nil {
 			// Queue Then via OnUIThread so it runs *after* the refresh-scope
 			// functions' model-update bounces (which are already queued by
@@ -385,14 +442,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			// still pre-refresh.
 			self.onUIThread(env.background, options.Then)
 		}
-	}
-
-	if options.Mode == types.BLOCK_UI {
-		self.c.OnUIThread(func() error {
-			f()
-			return nil
-		})
-		return
 	}
 
 	f()
@@ -482,8 +531,6 @@ func getModeName(mode types.RefreshMode) string {
 		return "sync"
 	case types.ASYNC:
 		return "async"
-	case types.BLOCK_UI:
-		return "block-ui"
 	default:
 		return "unknown mode"
 	}
@@ -1057,13 +1104,21 @@ func (self *RefreshHelper) refreshFilesAndSubmodules(captured capturedFilesState
 // clobber the new repo's state. The generation is captured once at the start of
 // the refresh and carried in env (see refreshEnv).
 func (self *RefreshHelper) onUIThreadUnlessRepoChanged(env refreshEnv, f func()) {
-	self.onUIThread(env.background, func() error {
+	wrapper := func() {
 		if self.c.State().GetRepoGeneration() != env.generation {
-			return nil
+			return
 		}
 		f()
-		return nil
-	})
+	}
+
+	// A batched refresh collects its bounces and fires them together at the end
+	// (see refreshBounceBatch); add reports false once the batch is flushing, so
+	// bounces enqueued from within a flushed bounce dispatch immediately.
+	if env.batch != nil && env.batch.add(wrapper) {
+		return
+	}
+
+	self.onUIThread(env.background, func() error { wrapper(); return nil })
 }
 
 // onWorker and onUIThread pick the foreground or background variant of the
@@ -1094,12 +1149,11 @@ func (self *RefreshHelper) onUIThread(background bool, f func() error) {
 // runs on the UI thread (fRunsOnUIThread is true) fn runs inline; when it runs
 // on a worker, fn is dispatched to the UI thread and we block for it.
 //
-// The inline case matters for correctness as much as the hop: a SYNC or
-// BLOCK_UI refresh parks the UI thread in a wg.Wait while its scope workers
-// run, so a scope worker that tried to hop to the UI thread there would
+// The inline case matters for correctness as much as the hop: a SYNC refresh
+// initiated on the UI thread parks that thread in a wg.Wait while its scope
+// workers run, so a scope worker that tried to hop to the UI thread there would
 // deadlock. Capturing before those workers are spawned — inline, on the UI
-// thread — avoids that entirely. This is why BLOCK_UI (which always runs on the
-// UI thread, even from a worker caller) captures inline rather than hopping.
+// thread — avoids that entirely.
 func (self *RefreshHelper) captureOnUIThread(fRunsOnUIThread bool, background bool, fn func()) {
 	if fRunsOnUIThread {
 		fn()

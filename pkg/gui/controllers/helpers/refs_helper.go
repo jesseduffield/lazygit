@@ -56,7 +56,8 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 			scope = append(scope, types.PULL_REQUESTS)
 		}
 		self.c.RefreshFromWorker(types.RefreshOptions{
-			Mode:                  types.BLOCK_UI,
+			Mode:                  types.SYNC,
+			BatchUIUpdates:        true,
 			Scope:                 scope,
 			BranchSelection:       types.SelectCheckedOutBranch,
 			CommitSelection:       types.SelectHeadCommit,
@@ -368,7 +369,8 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		}
 
 		self.c.Refresh(types.RefreshOptions{
-			Mode:                  types.BLOCK_UI,
+			Mode:                  types.SYNC,
+			BatchUIUpdates:        true,
 			BranchSelection:       types.SelectCheckedOutBranch,
 			CommitSelection:       types.SelectHeadCommit,
 			SelectTopReflogCommit: true,
@@ -534,7 +536,8 @@ func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchNa
 	}
 
 	self.c.RefreshFromWorker(types.RefreshOptions{
-		Mode:                  types.BLOCK_UI,
+		Mode:                  types.SYNC,
+		BatchUIUpdates:        true,
 		BranchSelection:       types.SelectCheckedOutBranch,
 		CommitSelection:       types.SelectHeadCommit,
 		SelectTopReflogCommit: true,
@@ -570,7 +573,8 @@ func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName stri
 	}
 
 	self.c.RefreshFromWorker(types.RefreshOptions{
-		Mode:                  types.BLOCK_UI,
+		Mode:                  types.SYNC,
+		BatchUIUpdates:        true,
 		BranchSelection:       types.SelectCheckedOutBranch,
 		CommitSelection:       types.SelectHeadCommit,
 		SelectTopReflogCommit: true,
