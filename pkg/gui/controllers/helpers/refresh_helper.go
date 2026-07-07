@@ -356,8 +356,9 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 				// Bounce onto the UI thread so this runs after the files
 				// scope's model-update bounce — RefreshStagingPanel reads
 				// Model.Files (via Files.GetSelected) and would otherwise
-				// see the pre-refresh model.
-				self.onUIThread(env.background, func() error {
+				// see the pre-refresh model. Guard on the generation so a
+				// repo switch mid-refresh drops it, like the model bounces.
+				self.onUIThreadUnlessRepoChanged(env, func() error {
 					self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
 					return nil
 				})
@@ -1214,7 +1215,10 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 		// appeared. Either way, a "continue?" prompt we're showing is now stale
 		// (e.g. the operation was continued or aborted outside lazygit), so
 		// dismiss it rather than leave the user with a prompt that would fail.
-		self.c.OnUIThread(func() error {
+		// Guard on the generation like the sibling PromptToContinueRebase
+		// bounce above: if the repo was switched while this refresh was in
+		// flight, a prompt showing now belongs to the new repo, so leave it be.
+		self.onUIThreadUnlessRepoChanged(env, func() error {
 			self.mergeAndRebaseHelper.DismissContinueRebasePromptIfShowing()
 			return nil
 		})
@@ -1420,8 +1424,12 @@ func (self *RefreshHelper) refForLog() (string, *git_commands.BisectInfo) {
 
 func (self *RefreshHelper) refreshView(context types.Context, env refreshEnv) {
 	// refreshView is called from the worker goroutine that drives async
-	// refreshes, so bounce to the UI thread before mutating view content.
-	self.onUIThread(env.background, func() error {
+	// refreshes, so bounce to the UI thread before mutating view content. Guard
+	// on the generation like the model-update bounces do: if the repo was
+	// switched while the refresh was in flight, its model write was already
+	// dropped, so there's nothing fresh to render — and the captured context
+	// belongs to the old repo's now-replaced context tree anyway.
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		// Re-applying the filter must be done before re-rendering the view, so that
 		// the filtered list model is up to date for rendering.
 		self.searchHelper.ReApplyFilter(context)
