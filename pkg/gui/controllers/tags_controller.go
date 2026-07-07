@@ -332,15 +332,7 @@ func (self *TagsController) push(tag *models.Tag) error {
 		HandleConfirm: func(response string) error {
 			return self.c.WithInlineStatus(tag, types.ItemOperationPushing, context.TAGS_CONTEXT_KEY, func(task gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.PushTag)
-				err := self.c.Git().Tag.Push(task, response, tag.Name)
-
-				// Render again to remove the inline status:
-				self.c.OnUIThread(func() error {
-					self.c.Contexts().Tags.HandleRender()
-					return nil
-				})
-
-				return err
+				return self.c.Git().Tag.Push(task, response, tag.Name)
 			})
 		},
 	})
