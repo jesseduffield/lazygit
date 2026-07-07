@@ -48,6 +48,9 @@ while still being meaningful and self-contained.
   commits that leave the tree broken and rely on a follow-up to fix it.
 - **Every commit must be `gofumpt`-formatted.** Run `just format` before
   committing.
+- **Every commit must be lint-clean.** Run `just lint` before committing —
+  don't introduce a lint warning in one commit and rely on a later commit
+  (or the user) to clean it up.
 - **Commit messages explain _why_, not _what_.** The diff already shows what
   changed; the message should capture the motivation, the constraint, or the
   bug being fixed. If the reason is obvious from a one-line subject, no body
@@ -157,6 +160,16 @@ genuine forks — the ones where a reasonable person might pick differently, or
 where you'd be trading away something the plan assumed (scope, UX, performance,
 reload behavior, …). When in doubt, surface it.
 
+This applies with equal force to unforeseen _discoveries_, not just to
+decisions you set out to make. If you find something the plan didn't account
+for — a latent bug, a race, a wrong assumption, a case that turns out
+unhandled — stop and raise it before designing or writing a fix, even when the
+fix seems obvious and even when it's "just correctness." Finding the problem is
+itself the fork: whether to fix it here or in a separate change, how generally
+to solve it, and whether it reshapes the current work are all calls for me to
+make with you. Don't quietly fold a self-directed fix for a newly-found problem
+into the branch and let me discover it in the diff.
+
 ## Prefer the cleaner design over the smaller diff
 
 When a task could be implemented either by tacking onto existing code or by
@@ -242,6 +255,34 @@ for pre-existing bugs, not for one an earlier commit on your own branch created.
 Follow this even when the need for the refactor is only discovered in the middle
 of working on the branch; suggest to the user to rewrite the history to move the
 refactor to an earlier commit (but don't do it without asking first).
+
+## Don't read model state right after a `Refresh`
+
+A `Refresh` (or `RefreshFromWorker`) does its git work on a worker and then
+*enqueues* the model update onto the UI thread. So when `Refresh` returns, the
+model is **not** updated yet — the write is still queued. Reading a field
+synchronously right after refreshing its scope reads the stale, pre-refresh
+value (and this is true even for SYNC refreshes):
+
+```go
+self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+files := self.c.Model().Files // BUG: still the pre-refresh value
+```
+
+Put the read in `RefreshOptions.Then` instead — it's queued after the scope's
+model writes, so it sees the fresh value:
+
+```go
+self.c.Refresh(types.RefreshOptions{
+    Scope: []types.RefreshableView{types.FILES},
+    Then: func() error {
+        files := self.c.Model().Files // fresh
+        return nil
+    },
+})
+```
+
+`Then` is a `func() error` and works with any non-`ASYNC` mode.
 
 ## Integration test conventions
 

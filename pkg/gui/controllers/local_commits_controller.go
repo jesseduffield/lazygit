@@ -340,9 +340,11 @@ func (self *LocalCommitsController) squashDown(selectedCommits []*models.Commit,
 		Title:  self.c.Tr.Squash,
 		Prompt: self.c.Tr.SureSquashThisCommit,
 		HandleConfirm: func() error {
+			commits := self.c.Model().Commits
+			self.selectRebaseResultCommit(startIdx)
 			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SquashCommitDown)
-				return self.interactiveRebase(todo.Squash, startIdx, endIdx)
+				return self.interactiveRebase(commits, todo.Squash, startIdx, endIdx)
 			})
 		},
 	})
@@ -362,9 +364,11 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 				Label: self.c.Tr.Fixup,
 				Keys:  menuKey('f'),
 				OnPress: func() error {
+					commits := self.c.Model().Commits
+					self.selectRebaseResultCommit(startIdx)
 					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.FixupCommit)
-						return self.interactiveRebase(todo.Fixup, startIdx, endIdx)
+						return self.interactiveRebase(commits, todo.Fixup, startIdx, endIdx)
 					})
 				},
 				Tooltip: self.c.Tr.FixupTooltip,
@@ -373,9 +377,11 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 				Label: self.c.Tr.FixupKeepMessage,
 				Keys:  menuKey('c'),
 				OnPress: func() error {
+					commits := self.c.Model().Commits
+					self.selectRebaseResultCommit(startIdx)
 					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.FixupCommitKeepMessage)
-						return self.interactiveRebaseWithFlag(todo.Fixup, startIdx, endIdx, "-C")
+						return self.interactiveRebaseWithFlag(commits, todo.Fixup, startIdx, endIdx, "-C")
 					})
 				},
 				Tooltip: self.c.Tr.FixupKeepMessageTooltip,
@@ -475,7 +481,9 @@ func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepat
 }
 
 func (self *LocalCommitsController) handleReword(summary string, description string) error {
-	if models.IsHeadCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx()) {
+	commits := self.c.Model().Commits
+	selectedIdx := self.c.Contexts().LocalCommits.GetSelectedLineIdx()
+	if models.IsHeadCommit(commits, selectedIdx) {
 		// we've selected the top commit so no rebase is required
 		return self.c.Helpers().GPG.WithGpgHandling(self.c.Git().Commit.RewordLastCommit(summary, description),
 			git_commands.CommitGpgSign,
@@ -483,11 +491,11 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 	}
 
 	return self.c.WithWaitingStatus(self.c.Tr.RewordingStatus, func(gocui.Task) error {
-		err := self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), summary, description)
+		err := self.c.Git().Rebase.RewordCommit(commits, selectedIdx, summary, description)
 		if err != nil {
 			return err
 		}
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
 		return nil
 	})
 }
@@ -564,12 +572,16 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 		Title:  self.c.Tr.DropCommitTitle,
 		Prompt: lo.Ternary(isMerge, self.c.Tr.DropMergeCommitPrompt, self.c.Tr.DropCommitPrompt),
 		HandleConfirm: func() error {
+			commits := self.c.Model().Commits
+			if !isMerge {
+				self.selectRebaseResultCommit(startIdx)
+			}
 			return self.c.WithWaitingStatus(self.c.Tr.DroppingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DropCommit)
 				if isMerge {
-					return self.dropMergeCommit(startIdx)
+					return self.dropMergeCommit(commits, startIdx)
 				}
-				return self.interactiveRebase(todo.Drop, startIdx, endIdx)
+				return self.interactiveRebase(commits, todo.Drop, startIdx, endIdx)
 			})
 		},
 	})
@@ -577,8 +589,8 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 	return nil
 }
 
-func (self *LocalCommitsController) dropMergeCommit(commitIdx int) error {
-	err := self.c.Git().Rebase.DropMergeCommit(self.c.Model().Commits, commitIdx)
+func (self *LocalCommitsController) dropMergeCommit(commits []*models.Commit, commitIdx int) error {
+	err := self.c.Git().Rebase.DropMergeCommit(commits, commitIdx)
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
 
@@ -616,7 +628,7 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 		err := self.c.Git().Rebase.EditRebase(commitsToEdit[len(commitsToEdit)-1].Hash())
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
-			types.RefreshOptions{Mode: types.BLOCK_UI, Then: func() {
+			types.RefreshOptions{Mode: types.BLOCK_UI, Then: func() error {
 				todos := make([]*models.Commit, 0, len(commitsToEdit)-1)
 				for _, c := range commitsToEdit[:len(commitsToEdit)-1] {
 					// Merge commits can't be set to "edit", so just skip them
@@ -625,11 +637,9 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 					}
 				}
 				if len(todos) > 0 {
-					err := self.updateTodos(todo.Edit, todos)
-					if err != nil {
-						self.c.Log.Errorf("error when updating todos: %v", err)
-					}
+					return self.updateTodos(todo.Edit, todos)
 				}
+				return nil
 			}})
 	})
 }
@@ -658,20 +668,23 @@ func (self *LocalCommitsController) pick(selectedCommits []*models.Commit) error
 	panic("should be disabled when not rebasing")
 }
 
-func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand, startIdx int, endIdx int) error {
-	return self.interactiveRebaseWithFlag(action, startIdx, endIdx, "")
+func (self *LocalCommitsController) interactiveRebase(commits []*models.Commit, action todo.TodoCommand, startIdx int, endIdx int) error {
+	return self.interactiveRebaseWithFlag(commits, action, startIdx, endIdx, "")
 }
 
-func (self *LocalCommitsController) interactiveRebaseWithFlag(action todo.TodoCommand, startIdx int, endIdx int, flag string) error {
-	// When performing an action that will remove the selected commits, we need to select the
-	// next commit down (which will end up at the start index after the action is performed)
-	if action == todo.Drop || action == todo.Fixup || action == todo.Squash {
-		self.context().SetSelection(startIdx)
-	}
-
-	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, startIdx, endIdx, action, flag)
+func (self *LocalCommitsController) interactiveRebaseWithFlag(commits []*models.Commit, action todo.TodoCommand, startIdx int, endIdx int, flag string) error {
+	err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, action, flag)
 
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+}
+
+// selectRebaseResultCommit selects the commit that a drop/fixup/squash starting
+// at startIdx will leave there. It must run on the UI thread before the rebase:
+// the commit currently at startIdx is removed, so the refresh's
+// keep-selection-by-hash can't restore it and falls back to the index, which by
+// then holds the commit that shifted up into its place.
+func (self *LocalCommitsController) selectRebaseResultCommit(startIdx int) {
+	self.context().SetSelection(startIdx)
 }
 
 // updateTodos sees if the selected commit is in fact a rebasing
@@ -743,7 +756,7 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 			self.context().MoveSelection(1)
 			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
 			err, types.RefreshOptions{Mode: types.SYNC, CommitSelection: types.KeepCommitSelectionIndex})
 	})
 }
@@ -771,7 +784,7 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 			self.context().MoveSelection(-1)
 			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
 			err, types.RefreshOptions{Mode: types.SYNC, CommitSelection: types.KeepCommitSelectionIndex})
 	})
 }
@@ -790,11 +803,13 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 			})
 		}
 	} else {
+		commits := self.c.Model().Commits
+		selectedIdx := self.context().GetView().SelectedLineIdx()
 		handleCommit = func() error {
 			return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 				return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 					self.c.LogAction(self.c.Tr.Actions.AmendCommit)
-					err := self.c.Git().Rebase.AmendTo(self.c.Model().Commits, self.context().GetView().SelectedLineIdx())
+					err := self.c.Git().Rebase.AmendTo(commits, selectedIdx)
 					return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 				})
 			})
@@ -822,26 +837,30 @@ func (self *LocalCommitsController) canAmend(_ *models.Commit) *types.DisabledRe
 	return self.canAmendRange(self.c.Model().Commits, idx, idx)
 }
 
-func (self *LocalCommitsController) amendAttribute(commits []*models.Commit, start, end int) error {
+func (self *LocalCommitsController) amendAttribute(_ []*models.Commit, start, end int) error {
+	// The author operations index into the full commit list by absolute
+	// start/end, so capture that here on the UI thread rather than reading
+	// Model().Commits from the worker the menu items dispatch to.
+	commits := self.c.Model().Commits
 	opts := self.c.KeybindingsOpts()
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: "Amend commit attribute",
 		Items: []*types.MenuItem{
 			{
 				Label:   self.c.Tr.ResetAuthor,
-				OnPress: func() error { return self.resetAuthor(start, end) },
+				OnPress: func() error { return self.resetAuthor(commits, start, end) },
 				Keys:    opts.GetKeys(opts.Config.AmendAttribute.ResetAuthor),
 				Tooltip: self.c.Tr.ResetAuthorTooltip,
 			},
 			{
 				Label:   self.c.Tr.SetAuthor,
-				OnPress: func() error { return self.setAuthor(start, end) },
+				OnPress: func() error { return self.setAuthor(commits, start, end) },
 				Keys:    opts.GetKeys(opts.Config.AmendAttribute.SetAuthor),
 				Tooltip: self.c.Tr.SetAuthorTooltip,
 			},
 			{
 				Label:   self.c.Tr.AddCoAuthor,
-				OnPress: func() error { return self.addCoAuthor(start, end) },
+				OnPress: func() error { return self.addCoAuthor(commits, start, end) },
 				Keys:    opts.GetKeys(opts.Config.AmendAttribute.AddCoAuthor),
 				Tooltip: self.c.Tr.AddCoAuthorTooltip,
 			},
@@ -849,30 +868,30 @@ func (self *LocalCommitsController) amendAttribute(commits []*models.Commit, sta
 	})
 }
 
-func (self *LocalCommitsController) resetAuthor(start, end int) error {
+func (self *LocalCommitsController) resetAuthor(commits []*models.Commit, start, end int) error {
 	return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.ResetCommitAuthor)
-		if err := self.c.Git().Rebase.ResetCommitAuthor(self.c.Model().Commits, start, end); err != nil {
+		if err := self.c.Git().Rebase.ResetCommitAuthor(commits, start, end); err != nil {
 			return err
 		}
 
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
 		return nil
 	})
 }
 
-func (self *LocalCommitsController) setAuthor(start, end int) error {
+func (self *LocalCommitsController) setAuthor(commits []*models.Commit, start, end int) error {
 	self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.SetAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SetCommitAuthor)
-				if err := self.c.Git().Rebase.SetCommitAuthor(self.c.Model().Commits, start, end, value); err != nil {
+				if err := self.c.Git().Rebase.SetCommitAuthor(commits, start, end, value); err != nil {
 					return err
 				}
 
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
 				return nil
 			})
 		},
@@ -881,17 +900,17 @@ func (self *LocalCommitsController) setAuthor(start, end int) error {
 	return nil
 }
 
-func (self *LocalCommitsController) addCoAuthor(start, end int) error {
+func (self *LocalCommitsController) addCoAuthor(commits []*models.Commit, start, end int) error {
 	self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.AddCoAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.AddCommitCoAuthor)
-				if err := self.c.Git().Rebase.AddCommitCoAuthor(self.c.Model().Commits, start, end, value); err != nil {
+				if err := self.c.Git().Rebase.AddCommitCoAuthor(commits, start, end, value); err != nil {
 					return err
 				}
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
 				return nil
 			})
 		},
@@ -929,7 +948,7 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 				}
 
 				result := self.c.Git().Commit.Revert(hashes, isMerge)
-				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC}); err != nil {
+				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(result, types.RefreshOptions{Mode: types.SYNC}); err != nil {
 					return err
 				}
 
@@ -1129,7 +1148,7 @@ func (self *LocalCommitsController) squashFixupsImpl(commit *models.Commit, reba
 		self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
 		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
 		self.context().MoveSelectedLine(-selectionOffset)
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
 			err, types.RefreshOptions{Mode: types.SYNC})
 	})
 }

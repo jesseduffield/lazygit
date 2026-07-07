@@ -31,15 +31,6 @@ func NewRefsHelper(
 	}
 }
 
-func (self *RefsHelper) SelectFirstBranchAndFirstCommit() {
-	self.c.Contexts().Branches.SetSelection(0)
-	self.c.Contexts().ReflogCommits.SetSelection(0)
-	self.c.Contexts().LocalCommits.SetSelection(0)
-	self.c.Contexts().Branches.GetView().SetOriginY(0)
-	self.c.Contexts().ReflogCommits.GetView().SetOriginY(0)
-	self.c.Contexts().LocalCommits.GetView().SetOriginY(0)
-}
-
 func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions) error {
 	waitingStatus := options.WaitingStatus
 	if waitingStatus == "" {
@@ -49,8 +40,6 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	refresh := func() {
-		self.SelectFirstBranchAndFirstCommit()
-
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
@@ -66,11 +55,12 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 		if options.RefreshPullRequests {
 			scope = append(scope, types.PULL_REQUESTS)
 		}
-		self.c.Refresh(types.RefreshOptions{
-			Mode:                     types.BLOCK_UI,
-			Scope:                    scope,
-			KeepBranchSelectionIndex: true,
-			CommitSelection:          types.KeepCommitSelectionIndex,
+		self.c.RefreshFromWorker(types.RefreshOptions{
+			Mode:                  types.BLOCK_UI,
+			Scope:                 scope,
+			BranchSelection:       types.SelectCheckedOutBranch,
+			CommitSelection:       types.SelectHeadCommit,
+			SelectTopReflogCommit: true,
 		})
 	}
 
@@ -209,12 +199,14 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 		return err
 	}
 
-	self.c.Contexts().LocalCommits.SetSelection(0)
-	self.c.Contexts().ReflogCommits.SetSelection(0)
 	// loading a heap of commits is slow so we limit them whenever doing a reset
 	self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS}, CommitSelection: types.KeepCommitSelectionIndex})
+	self.c.RefreshFromWorker(types.RefreshOptions{
+		Scope:                 []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS},
+		CommitSelection:       types.SelectHeadCommit,
+		SelectTopReflogCommit: true,
+	})
 
 	return nil
 }
@@ -375,12 +367,11 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 			self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
 		}
 
-		self.SelectFirstBranchAndFirstCommit()
-
 		self.c.Refresh(types.RefreshOptions{
-			Mode:                     types.BLOCK_UI,
-			KeepBranchSelectionIndex: true,
-			CommitSelection:          types.KeepCommitSelectionIndex,
+			Mode:                  types.BLOCK_UI,
+			BranchSelection:       types.SelectCheckedOutBranch,
+			CommitSelection:       types.SelectHeadCommit,
+			SelectTopReflogCommit: true,
 		})
 	}
 
@@ -435,6 +426,8 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 		return err
 	}
 
+	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
+
 	withNewBranchNamePrompt := func(baseBranchName string, f func(string) error) error {
 		prompt := utils.ResolvePlaceholderString(
 			self.c.Tr.NewBranchNameBranchOff,
@@ -473,7 +466,9 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 			Title:  self.c.Tr.MoveCommitsToNewBranch,
 			Prompt: prompt,
 			HandleConfirm: func() error {
-				return withNewBranchNamePrompt(currentBranch.Name, self.moveCommitsToNewBranchStackedOnCurrentBranch)
+				return withNewBranchNamePrompt(currentBranch.Name, func(newBranchName string) error {
+					return self.moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName, mustStash)
+				})
 			},
 		})
 		return nil
@@ -493,27 +488,31 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 			{
 				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchFromBaseItem, shortBaseBranchName),
 				OnPress: func() error {
+					commitsToCherryPick := lo.Filter(self.c.Model().Commits, func(commit *models.Commit, _ int) bool {
+						return commit.Status == models.StatusUnpushed
+					})
 					return withNewBranchNamePrompt(shortBaseBranchName, func(newBranchName string) error {
-						return self.moveCommitsToNewBranchOffOfMainBranch(newBranchName, baseBranchRef)
+						return self.moveCommitsToNewBranchOffOfMainBranch(newBranchName, baseBranchRef, commitsToCherryPick, mustStash)
 					})
 				},
 			},
 			{
 				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchStackedItem, currentBranch.Name),
 				OnPress: func() error {
-					return withNewBranchNamePrompt(currentBranch.Name, self.moveCommitsToNewBranchStackedOnCurrentBranch)
+					return withNewBranchNamePrompt(currentBranch.Name, func(newBranchName string) error {
+						return self.moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName, mustStash)
+					})
 				},
 			},
 		},
 	})
 }
 
-func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName string) error {
+func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName string, mustStash bool) error {
 	if err := self.c.Git().Branch.NewWithoutCheckout(newBranchName, "HEAD"); err != nil {
 		return err
 	}
 
-	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 	if mustStash {
 		if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 			return err
@@ -534,22 +533,16 @@ func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchNa
 		}
 	}
 
-	self.SelectFirstBranchAndFirstCommit()
-
-	self.c.Refresh(types.RefreshOptions{
-		Mode:                     types.BLOCK_UI,
-		KeepBranchSelectionIndex: true,
-		CommitSelection:          types.KeepCommitSelectionIndex,
+	self.c.RefreshFromWorker(types.RefreshOptions{
+		Mode:                  types.BLOCK_UI,
+		BranchSelection:       types.SelectCheckedOutBranch,
+		CommitSelection:       types.SelectHeadCommit,
+		SelectTopReflogCommit: true,
 	})
 	return nil
 }
 
-func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName string, baseBranchRef string) error {
-	commitsToCherryPick := lo.Filter(self.c.Model().Commits, func(commit *models.Commit, _ int) bool {
-		return commit.Status == models.StatusUnpushed
-	})
-
-	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
+func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName string, baseBranchRef string, commitsToCherryPick []*models.Commit, mustStash bool) error {
 	if mustStash {
 		if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 			return err
@@ -576,12 +569,11 @@ func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName stri
 		}
 	}
 
-	self.SelectFirstBranchAndFirstCommit()
-
-	self.c.Refresh(types.RefreshOptions{
-		Mode:                     types.BLOCK_UI,
-		KeepBranchSelectionIndex: true,
-		CommitSelection:          types.KeepCommitSelectionIndex,
+	self.c.RefreshFromWorker(types.RefreshOptions{
+		Mode:                  types.BLOCK_UI,
+		BranchSelection:       types.SelectCheckedOutBranch,
+		CommitSelection:       types.SelectHeadCommit,
+		SelectTopReflogCommit: true,
 	})
 	return nil
 }

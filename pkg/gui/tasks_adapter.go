@@ -136,7 +136,14 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 				view.SetOrigin(0, 0)
 			},
 			func() gocui.Task {
-				return gui.c.GocuiGui().NewTask()
+				// A background task: rendering content into a view is display
+				// work, not lazygit driving a git operation, so it must not
+				// count towards being busy and block a repo switch. These
+				// renders fire on nearly every focus/selection change, including
+				// the context activation that happens right before a menu/prompt
+				// handler runs (e.g. confirming worktree creation), which would
+				// otherwise make the switch that handler triggers refuse itself.
+				return gui.c.GocuiGui().NewBackgroundTask()
 			},
 		)
 		gui.viewBufferManagerMap[view.Name()] = manager

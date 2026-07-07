@@ -156,24 +156,28 @@ func (self *RemotesController) addAndCheckoutRemote(remoteName string, remoteUrl
 		return err
 	}
 
-	// Do a sync refresh of the remotes so that we can select
-	// the new one. Loading remotes is not expensive, so we can
-	// afford it.
+	// Refresh the remotes so that we can select the new one. The remotes model
+	// update is bounced onto the UI thread, so the selection (which reads
+	// Model.Remotes) has to run in Then; reading it inline here would see the
+	// previous model. Loading remotes is not expensive, so a sync refresh is
+	// affordable.
 	self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.REMOTES},
 		Mode:  types.SYNC,
+		Then: func() error {
+			// Select the remote
+			for idx, remote := range self.c.Model().Remotes {
+				if remote.Name == remoteName {
+					self.c.Contexts().Remotes.SetSelection(idx)
+					break
+				}
+			}
+
+			// Fetch the remote
+			return self.fetchAndCheckout(self.c.Contexts().Remotes.GetSelected(), branchToCheckout)
+		},
 	})
-
-	// Select the remote
-	for idx, remote := range self.c.Model().Remotes {
-		if remote.Name == remoteName {
-			self.c.Contexts().Remotes.SetSelection(idx)
-			break
-		}
-	}
-
-	// Fetch the remote
-	return self.fetchAndCheckout(self.c.Contexts().Remotes.GetSelected(), branchToCheckout)
+	return nil
 }
 
 // Ensures the fork remote exists (matching the given URL).
@@ -372,13 +376,22 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 		if branchName != "" {
 			err = self.c.Git().Branch.New(branchName, remote.Name+"/"+branchName)
 			if err == nil {
-				self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
-				self.c.Helpers().Refs.SelectFirstBranchAndFirstCommit()
-				refreshOptions.KeepBranchSelectionIndex = true
-				refreshOptions.CommitSelection = types.KeepCommitSelectionIndex
+				// Branch.New checks the new branch out, so HEAD moves: refresh the
+				// reflog (and, via scope expansion, the commits) as well, and select
+				// the newly checked-out branch and its head commit.
+				refreshOptions.Scope = append(refreshOptions.Scope, types.REFLOG)
+				refreshOptions.BranchSelection = types.SelectCheckedOutBranch
+				refreshOptions.CommitSelection = types.SelectHeadCommit
+				refreshOptions.SelectTopReflogCommit = true
+				// Focus the branches panel on the UI thread once the refresh has
+				// selected the newly checked-out branch.
+				refreshOptions.Then = func() error {
+					self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
+					return nil
+				}
 			}
 		}
-		self.c.Refresh(refreshOptions)
+		self.c.RefreshFromWorker(refreshOptions)
 		return err
 	})
 }

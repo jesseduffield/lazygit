@@ -599,11 +599,11 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 		return err
 	}
 
-	self.c.Helpers().Refs.SelectFirstBranchAndFirstCommit()
 	self.c.Refresh(types.RefreshOptions{
-		Mode:                     types.ASYNC,
-		KeepBranchSelectionIndex: true,
-		CommitSelection:          types.KeepCommitSelectionIndex,
+		Mode:                  types.ASYNC,
+		BranchSelection:       types.SelectCheckedOutBranch,
+		CommitSelection:       types.SelectHeadCommit,
+		SelectTopReflogCommit: true,
 	})
 	return nil
 }
@@ -710,9 +710,9 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 	}
 
 	action := self.c.Tr.Actions.FastForwardBranch
+	worktree, ok := self.worktreeForBranch(branch)
 
 	return self.c.WithInlineStatus(branch, types.ItemOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
-		worktree, ok := self.worktreeForBranch(branch)
 		if ok {
 			self.c.LogAction(action)
 
@@ -734,7 +734,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 					WorktreePath:    worktreePath,
 				},
 			)
-			self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
+			self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.SYNC})
 			return err
 		}
 
@@ -743,7 +743,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 		err := self.c.Git().Sync.FastForward(
 			task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
 		)
-		self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 		return err
 	})
 }
@@ -783,19 +783,24 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 					return err
 				}
 
-				// need to find where the branch is now so that we can re-select it. That means we need to refetch the branches synchronously and then find our branch
+				// need to find where the branch is now so that we can re-select it. That means we need to
+				// refetch the branches and then find our branch. The branches model update is bounced
+				// onto the UI thread, so the re-selection (which reads Model.Branches) has to run in
+				// Then; reading it inline here would see the previous model.
 				self.c.Refresh(types.RefreshOptions{
 					Mode:  types.SYNC,
 					Scope: []types.RefreshableView{types.BRANCHES, types.WORKTREES},
+					Then: func() error {
+						// now that we've got our stuff again we need to find that branch and reselect it.
+						for i, newBranch := range self.c.Model().Branches {
+							if newBranch.Name == newBranchName {
+								self.context().SetSelection(i)
+								self.context().HandleRender()
+							}
+						}
+						return nil
+					},
 				})
-
-				// now that we've got our stuff again we need to find that branch and reselect it.
-				for i, newBranch := range self.c.Model().Branches {
-					if newBranch.Name == newBranchName {
-						self.context().SetSelection(i)
-						self.context().HandleRender()
-					}
-				}
 
 				return nil
 			},

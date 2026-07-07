@@ -164,7 +164,7 @@ func (self *SubmodulesController) add() error {
 									return err
 								}
 
-								self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+								self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
 								return nil
 							})
 						},
@@ -193,7 +193,7 @@ func (self *SubmodulesController) editURL(submodule *models.SubmoduleConfig) err
 					return err
 				}
 
-				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+				self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
 				return nil
 			})
 		},
@@ -210,7 +210,7 @@ func (self *SubmodulesController) init(submodule *models.SubmoduleConfig) error 
 			return err
 		}
 
-		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
 		return nil
 	})
 }
@@ -229,7 +229,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 							return err
 						}
 
-						self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+						self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
 						return nil
 					})
 				},
@@ -244,7 +244,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 							return err
 						}
 
-						self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+						self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
 						return nil
 					})
 				},
@@ -259,7 +259,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 							return err
 						}
 
-						self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+						self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
 						return nil
 					})
 				},
@@ -274,7 +274,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 							return err
 						}
 
-						self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+						self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
 						return nil
 					})
 				},
@@ -292,7 +292,7 @@ func (self *SubmodulesController) update(submodule *models.SubmoduleConfig) erro
 			return err
 		}
 
-		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
 		return nil
 	})
 }

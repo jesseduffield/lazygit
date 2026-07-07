@@ -149,7 +149,12 @@ func (self *WorkingTreeHelper) handleCommit(summary string, description string, 
 	self.c.LogAction(self.c.Tr.Actions.Commit)
 	return self.gpgHelper.WithGpgHandlingAndSelectHeadCommit(cmdObj, git_commands.CommitGpgSign, self.c.Tr.CommittingStatus,
 		func() error {
-			self.commitsHelper.ClearPreservedCommitMessage()
+			// This runs on a worker when the commit output is streamed, so
+			// bounce the preserved-message write to the UI thread.
+			self.c.OnUIThread(func() error {
+				self.commitsHelper.ClearPreservedCommitMessage()
+				return nil
+			})
 			return nil
 		})
 }
@@ -222,15 +227,24 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 }
 
 func (self *WorkingTreeHelper) WithEnsureCommittableFiles(handler func() error) error {
-	if err := self.prepareFilesForCommit(); err != nil {
-		return err
-	}
-
 	if len(self.c.Model().Files) == 0 {
 		return errors.New(self.c.Tr.NoFilesStagedTitle)
 	}
 
 	if !self.AnyStagedFiles() {
+		if self.c.UserConfig().Gui.SkipNoStagedFilesWarning {
+			self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
+			if err := self.c.Git().WorkingTree.StageAll(false); err != nil {
+				return err
+			}
+			self.c.Refresh(types.RefreshOptions{
+				Mode:  types.SYNC,
+				Scope: []types.RefreshableView{types.FILES},
+				Then:  handler,
+			})
+			return nil
+		}
+
 		return self.promptToStageAllAndRetry(handler)
 	}
 
@@ -246,31 +260,11 @@ func (self *WorkingTreeHelper) promptToStageAllAndRetry(retry func() error) erro
 			if err := self.c.Git().WorkingTree.StageAll(false); err != nil {
 				return err
 			}
-			self.syncRefresh()
+			self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
 
 			return retry()
 		},
 	})
-
-	return nil
-}
-
-// for when you need to refetch files before continuing an action. Runs synchronously.
-func (self *WorkingTreeHelper) syncRefresh() {
-	self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
-}
-
-func (self *WorkingTreeHelper) prepareFilesForCommit() error {
-	noStagedFiles := !self.AnyStagedFiles()
-	if noStagedFiles && self.c.UserConfig().Gui.SkipNoStagedFilesWarning {
-		self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-		err := self.c.Git().WorkingTree.StageAll(false)
-		if err != nil {
-			return err
-		}
-
-		self.syncRefresh()
-	}
 
 	return nil
 }

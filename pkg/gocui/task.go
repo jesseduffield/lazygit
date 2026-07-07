@@ -8,8 +8,9 @@ type Task interface {
 	Done()
 	Pause()
 	Continue()
-	// not exporting because we don't need to
+	// not exporting these because we don't need to
 	isBusy() bool
+	isBackground() bool
 }
 
 type TaskImpl struct {
@@ -17,6 +18,17 @@ type TaskImpl struct {
 	busy      bool
 	onDone    func()
 	withMutex func(func())
+	// Background tasks don't count towards the program being "busy" for the
+	// purpose of deciding whether a repo switch is safe (see
+	// TaskManager.hasBusyForegroundTaskExcept). Two kinds of work are tagged
+	// this way: the ongoing background routines (auto-fetch, files refresh,
+	// external-change detection) and the refreshes they trigger, whose model
+	// writes are already guarded against a concurrent repo switch by the repo
+	// generation; and view-buffer content rendering, which only paints a view
+	// and so is harmless to leave running across a switch. What stays
+	// foreground is lazygit driving a git operation and applying its results
+	// to the model — exactly the work a repo switch must not run underneath.
+	background bool
 }
 
 func (self *TaskImpl) Done() {
@@ -37,6 +49,10 @@ func (self *TaskImpl) Continue() {
 
 func (self *TaskImpl) isBusy() bool {
 	return self.busy
+}
+
+func (self *TaskImpl) isBackground() bool {
+	return self.background
 }
 
 type TaskStatus int
@@ -71,6 +87,10 @@ func (self *FakeTask) Continue() {
 
 func (self *FakeTask) isBusy() bool {
 	return self.status == TaskStatusBusy
+}
+
+func (self *FakeTask) isBackground() bool {
+	return false
 }
 
 func (self *FakeTask) Status() TaskStatus {

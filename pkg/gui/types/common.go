@@ -30,6 +30,12 @@ type IGuiCommon interface {
 	LogCommand(cmdStr string, isCommandLine bool)
 	// we call this when we want to refetch some models and render the result. Internally calls PostRefreshUpdate
 	Refresh(RefreshOptions)
+	// Like Refresh, but for callers running on a worker goroutine (e.g. inside
+	// a WithWaitingStatus handler) rather than the UI thread. The refresh
+	// captures the model/context state it needs on the UI thread before doing
+	// its git work; knowing which thread the caller is on lets it capture
+	// inline (UI thread) or hop across (worker) without racing or deadlocking.
+	RefreshFromWorker(RefreshOptions)
 	// we call this when we've changed something in the view model but not the actual model,
 	// e.g. expanding or collapsing a folder in a file view. Calling 'Refresh' in this
 	// case would be overkill, although refresh will internally call 'PostRefreshUpdate'
@@ -75,13 +81,22 @@ type IGuiCommon interface {
 	// Only necessary to call if you're not already on the UI thread i.e. you're inside a goroutine.
 	// All controller handlers are executed on the UI thread.
 	OnUIThread(f func() error)
+	// Like OnUIThread, but for work triggered by a background routine, so it
+	// doesn't count towards lazygit being busy (see the *Background methods on
+	// gocui.Gui and repo-switch safety).
+	OnUIThreadBackground(f func() error)
 	// Like OnUIThread, but signals that the callback only modifies view
 	// content (e.g. spinner), allows the event loop to skip
 	// the expensive layout recalculation when only content changed.
 	OnUIThreadContentOnly(f func() error)
+	// Like OnUIThreadContentOnly, but for background work (see OnUIThreadBackground).
+	OnUIThreadContentOnlyBackground(f func() error)
 	// Runs a function in a goroutine. Use this whenever you want to run a goroutine and keep track of the fact
 	// that lazygit is still busy. See docs/dev/Busy.md
 	OnWorker(f func(gocui.Task) error)
+	// Like OnWorker, but for a background routine (or work it triggers), so it
+	// doesn't count towards lazygit being busy (see OnUIThreadBackground).
+	OnWorkerBackground(f func(gocui.Task) error)
 	// Function to call at the end of our 'layout' function which renders views
 	// For example, you may want a view's line to be focused only after that view is
 	// resized, if in accordion mode.
@@ -338,16 +353,9 @@ type Model struct {
 }
 
 type Mutexes struct {
-	RefreshingFilesMutex        deadlock.Mutex
-	RefreshingBranchesMutex     deadlock.Mutex
-	RefreshingStatusMutex       deadlock.Mutex
-	RefreshingPullRequestsMutex deadlock.Mutex
-	LocalCommitsMutex           deadlock.Mutex
-	SubCommitsMutex             deadlock.Mutex
-	AuthorsMutex                deadlock.Mutex
-	SubprocessMutex             deadlock.Mutex
-	PopupMutex                  deadlock.Mutex
-	PtyMutex                    deadlock.Mutex
+	SubprocessMutex deadlock.Mutex
+	PopupMutex      deadlock.Mutex
+	PtyMutex        deadlock.Mutex
 }
 
 // A long-running operation associated with an item. For example, we'll show
@@ -377,8 +385,6 @@ type IStateAccessor interface {
 	// tells us whether we're currently updating lazygit
 	GetUpdating() bool
 	SetUpdating(bool)
-	SetIsRefreshingFiles(bool)
-	GetIsRefreshingFiles() bool
 	GetShowExtrasWindow() bool
 	SetShowExtrasWindow(bool)
 	GetRetainOriginalDir() bool
@@ -386,6 +392,13 @@ type IStateAccessor interface {
 	GetItemOperation(item HasUrn) ItemOperation
 	SetItemOperation(item HasUrn, operation ItemOperation)
 	ClearItemOperation(item HasUrn)
+
+	// A counter that is bumped every time we switch to a different repository
+	// (see Gui.resetState). A refresh captures it when it starts and carries it
+	// through to onUIThreadUnlessRepoChanged, so that a model update computed for
+	// one repo can be dropped rather than applied to another if the user switched
+	// repos while the refresh was in flight.
+	GetRepoGeneration() int
 }
 
 type IRepoStateAccessor interface {

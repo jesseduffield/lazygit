@@ -114,7 +114,7 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 		if self.gui.UserConfig().Gui.ShowBottomLine || firstTimeOrRetriggered {
 			return self.gui.helpers.AppStatus.WithWaitingStatusImpl(self.gui.Tr.FetchingStatus, func(gocui.Task) error {
 				return self.backgroundFetch()
-			}, nil)
+			}, nil, true)
 		}
 
 		return self.backgroundFetch()
@@ -133,7 +133,7 @@ func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh() {
 
 	userConfig := self.gui.UserConfig()
 	self.goEvery(userConfig.Refresher.RefreshIntervalDuration(), self.gui.stopChan, func(_ bool) error {
-		self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Background: true})
+		self.gui.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Background: true})
 		return nil
 	})
 }
@@ -184,7 +184,7 @@ func (self *BackgroundRoutineMgr) checkForExternalChanges() {
 
 	// No need to update the stored snapshot here; Refresh does that.
 	self.gui.c.Log.Info("External ref change detected — refreshing")
-	self.gui.c.Refresh(types.RefreshOptions{Background: true})
+	self.gui.c.RefreshFromWorker(types.RefreshOptions{Background: true})
 }
 
 // returns a channel that can be used to trigger the callback immediately
@@ -198,7 +198,10 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 			if self.backgroundRefreshesPaused() {
 				return
 			}
-			self.gui.c.OnWorker(func(gocui.Task) error {
+			// OnWorkerBackground, not OnWorker: these routines and the refreshes
+			// they trigger must not count towards lazygit being busy, or they'd
+			// spuriously block a repo switch every time one happens to be running.
+			self.gui.c.OnWorkerBackground(func(gocui.Task) error {
 				_ = function(retriggered)
 				done <- struct{}{}
 				return nil

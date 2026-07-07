@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -142,7 +143,9 @@ type LocalCommitsViewModel struct {
 
 	// If this is true we limit the amount of commits we load, for the sake of keeping things fast.
 	// If the user attempts to scroll past the end of the list, we will load more commits.
-	limitCommits bool
+	// Atomic because a checkout or reset sets it from a worker goroutine while the
+	// commits refresh reads it on the UI thread to decide how many commits to load.
+	limitCommits atomic.Bool
 
 	// If this is true we'll use git log --all when fetching the commits.
 	showWholeGitGraph bool
@@ -151,9 +154,9 @@ type LocalCommitsViewModel struct {
 func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon) *LocalCommitsViewModel {
 	self := &LocalCommitsViewModel{
 		ListViewModel:     NewListViewModel(getModel),
-		limitCommits:      true,
 		showWholeGitGraph: c.UserConfig().Git.Log.ShowWholeGraph,
 	}
+	self.limitCommits.Store(true)
 
 	return self
 }
@@ -225,11 +228,11 @@ func (self *LocalCommitsContext) ModelSearchResults(searchStr string, caseSensit
 }
 
 func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {
-	self.limitCommits = value
+	self.limitCommits.Store(value)
 }
 
 func (self *LocalCommitsViewModel) GetLimitCommits() bool {
-	return self.limitCommits
+	return self.limitCommits.Load()
 }
 
 func (self *LocalCommitsViewModel) SetShowWholeGitGraph(value bool) {

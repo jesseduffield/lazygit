@@ -51,11 +51,17 @@ func (self *MergeConflictsHelper) resetMergeState() {
 	self.context().GetState().Reset()
 }
 
-func (self *MergeConflictsHelper) EscapeMerge() error {
+func (self *MergeConflictsHelper) EscapeMerge(background bool) error {
 	self.resetMergeState()
 
 	// doing this in separate UI thread so that we're not still holding the lock by the time refresh the file
-	self.c.OnUIThread(func() error {
+	onUIThread := self.c.OnUIThread
+	if background {
+		// Reached from a background files refresh; keep it off the busy count
+		// (see the *Background dispatch methods) so it doesn't block a repo switch.
+		onUIThread = self.c.OnUIThreadBackground
+	}
+	onUIThread(func() error {
 		// There is a race condition here: refreshing the files scope can trigger the
 		// confirmation context to be pushed if all conflicts are resolved (prompting
 		// to continue the merge/rebase. In that case, we don't want to then push the
@@ -120,7 +126,7 @@ func (self *MergeConflictsHelper) Render() {
 	})
 }
 
-func (self *MergeConflictsHelper) RefreshMergeState() error {
+func (self *MergeConflictsHelper) RefreshMergeState(background bool) error {
 	self.c.Contexts().MergeConflicts.GetMutex().Lock()
 	defer self.c.Contexts().MergeConflicts.GetMutex().Unlock()
 
@@ -134,7 +140,7 @@ func (self *MergeConflictsHelper) RefreshMergeState() error {
 	}
 
 	if !hasConflicts {
-		return self.EscapeMerge()
+		return self.EscapeMerge(background)
 	}
 
 	return nil

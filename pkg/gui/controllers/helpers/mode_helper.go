@@ -191,7 +191,7 @@ func (self *ModeHelper) ClearFiltering() error {
 
 	self.c.Refresh(types.RefreshOptions{
 		Scope: ScopesToRefreshWhenFilteringModeChanges(),
-		Then: func() {
+		Then: func() error {
 			// Find the commit that was last selected in filtering mode, and select it again after refreshing
 			if !self.c.Contexts().LocalCommits.SelectCommitByHash(selectedCommitHash) {
 				// If we couldn't find it (either because no commit was selected
@@ -202,6 +202,7 @@ func (self *ModeHelper) ClearFiltering() error {
 			}
 
 			self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+			return nil
 		},
 	})
 	return nil

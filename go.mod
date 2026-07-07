@@ -25,6 +25,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.4.0
 	github.com/mgutz/str v1.2.0
 	github.com/mitchellh/go-ps v1.0.0
+	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe
 	github.com/rivo/uniseg v0.4.7
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/samber/lo v1.53.0
@@ -62,7 +63,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.34.1 // indirect
-	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	golang.org/x/mod v0.35.0 // indirect

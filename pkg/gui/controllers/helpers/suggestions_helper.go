@@ -137,10 +137,12 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 			trie.Insert(patricia.Prefix(file), file)
 		}
 
-		// cache the trie for future use
-		self.c.Model().FilesTrie = trie
-
-		self.c.Contexts().Suggestions.RefreshSuggestions()
+		self.c.OnUIThread(func() error {
+			// cache the trie for future use
+			self.c.Model().FilesTrie = trie
+			self.c.Contexts().Suggestions.RefreshSuggestions()
+			return nil
+		})
 
 		return err
 	})

@@ -45,8 +45,11 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 				return err
 			}
 
-			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+			self.c.OnUIThread(func() error {
+				self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+				return nil
+			})
+			self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 			return nil
 		})
 	})
@@ -84,9 +87,12 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteB
 				if err := self.deleteRemoteBranches(remoteBranches, task); err != nil {
 					return err
 				}
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 				if resetRemoteBranchesSelection {
-					self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
+					self.c.OnUIThread(func() error {
+						self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
+						return nil
+					})
 				}
 				return nil
 			})
@@ -151,8 +157,11 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 					return err
 				}
 
-				self.c.Contexts().Branches.CollapseRangeSelectionToTop()
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				self.c.OnUIThread(func() error {
+					self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+					return nil
+				})
+				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 				return nil
 			})
 		},
@@ -311,8 +320,11 @@ func (self *BranchesHelper) deleteLocalBranchesContinuation(branches []*models.B
 			return err
 		}
 
-		self.c.Contexts().Branches.CollapseRangeSelectionToTop()
-		self.c.Refresh(types.RefreshOptions{
+		self.c.OnUIThread(func() error {
+			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+			return nil
+		})
+		self.c.RefreshFromWorker(types.RefreshOptions{
 			Mode:  types.ASYNC,
 			Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES},
 		})
@@ -329,8 +341,11 @@ func (self *BranchesHelper) deleteLocalAndRemoteBranchesContinuation(branches []
 			return err
 		}
 
-		self.c.Contexts().Branches.CollapseRangeSelectionToTop()
-		self.c.Refresh(types.RefreshOptions{
+		self.c.OnUIThread(func() error {
+			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+			return nil
+		})
+		self.c.RefreshFromWorker(types.RefreshOptions{
 			Mode:  types.ASYNC,
 			Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.REMOTES, types.FILES},
 		})
@@ -387,14 +402,31 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool) er
 	if self.c.UserConfig().Git.AutoForwardBranches != "none" {
 		scope = append(scope, types.WORKTREES)
 	}
-	self.c.Refresh(types.RefreshOptions{Scope: scope, Mode: types.SYNC, Background: background})
-	if fetchErr != nil {
-		return fetchErr
-	}
-	return self.AutoForwardBranches()
+	// AutoForwardBranches reads Model.Branches, which the branches refresh writes
+	// via a bounce, so it has to run in Then rather than right after Refresh
+	// returns (where it would still see the previous branches).
+	self.c.RefreshFromWorker(types.RefreshOptions{
+		Scope:      scope,
+		Mode:       types.SYNC,
+		Background: background,
+		Then: func() error {
+			if fetchErr != nil {
+				return nil
+			}
+			err := self.AutoForwardBranches(background)
+			if background && err != nil {
+				// The background poller discards this return value, so surface
+				// the error in the log rather than as a popup for background work.
+				self.c.Log.Error(err)
+				return nil
+			}
+			return err
+		},
+	})
+	return fetchErr
 }
 
-func (self *BranchesHelper) AutoForwardBranches() error {
+func (self *BranchesHelper) AutoForwardBranches(background bool) error {
 	if self.c.UserConfig().Git.AutoForwardBranches == "none" {
 		return nil
 	}
@@ -426,7 +458,7 @@ func (self *BranchesHelper) AutoForwardBranches() error {
 	self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
 	err := self.c.Git().Branch.UpdateBranchRefs(updateCommands)
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Mode: types.SYNC})
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Mode: types.SYNC, Background: background})
 
 	return err
 }
