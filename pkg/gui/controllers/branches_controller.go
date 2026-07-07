@@ -734,7 +734,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 					WorktreePath:    worktreePath,
 				},
 			)
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
 			return err
 		}
 
@@ -743,7 +743,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 		err := self.c.Git().Sync.FastForward(
 			task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
 		)
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+		self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 		return err
 	})
 }

@@ -210,7 +210,7 @@ func (self *TagsController) remoteDelete(tag *models.Tag) error {
 							return err
 						}
 						self.c.Toast(self.c.Tr.RemoteTagDeletedMessage)
-						self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+						self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 						return nil
 					})
 				},
@@ -264,7 +264,7 @@ func (self *TagsController) localAndRemoteDelete(tag *models.Tag) error {
 						if err := self.c.Git().Tag.LocalDelete(tag.Name); err != nil {
 							return err
 						}
-						self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+						self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 						return nil
 					})
 				},

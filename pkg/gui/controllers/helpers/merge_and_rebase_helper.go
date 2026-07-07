@@ -233,7 +233,7 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
 // before the refresh.
 func (self *MergeAndRebaseHelper) CheckMergeOrRebaseAndSelectHeadCommit(result error) error {
 	return self.CheckMergeOrRebaseWithRefreshOptions(result,
-		types.RefreshOptions{Mode: types.ASYNC, CommitSelection: commitSelectionAfterMerge(result == nil)})
+		types.RefreshOptions{Mode: types.SYNC, CommitSelection: commitSelectionAfterMerge(result == nil)})
 }
 
 func (self *MergeAndRebaseHelper) CheckForConflicts(result error) error {
