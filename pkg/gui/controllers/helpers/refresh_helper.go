@@ -89,6 +89,15 @@ func (self *RefreshHelper) RefreshFromWorker(options types.RefreshOptions) {
 	self.performRefresh(options, true)
 }
 
+type refreshEnv struct {
+	// whether this is a background refresh (which selects the dispatch variant that
+	// doesn't count towards lazygit being busy)
+	background bool
+
+	// the repo generation captured when the refresh started
+	generation int
+}
+
 func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFromWorker bool) {
 	if options.Mode == types.ASYNC && options.Then != nil {
 		panic("RefreshOptions.Then doesn't work with mode ASYNC")
@@ -129,6 +138,13 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	}
 
 	f := func() {
+		// Capture the repo generation once, here at the start, so every scope's
+		// bounce is guarded against the same baseline.
+		env := refreshEnv{
+			background: options.Background,
+			generation: self.c.State().GetRepoGeneration(),
+		}
+
 		var scopeSet *set.Set[types.RefreshableView]
 		if len(options.Scope) == 0 {
 			// not refreshing staging/patch-building unless explicitly requested because we only need
@@ -186,7 +202,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			// everything happens fast and it's better to have everything update
 			// in the one frame
 			if !self.c.InDemo() && options.Mode == types.ASYNC {
-				self.onWorker(options.Background, func(t gocui.Task) error {
+				self.onWorker(env.background, func(t gocui.Task) error {
 					f()
 					return nil
 				})
@@ -222,20 +238,20 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			var capturedCommits capturedCommitState
 			var capturedReflog capturedReflogState
 			var capturedBranches capturedBranchState
-			self.captureOnUIThread(fRunsOnUIThread, options.Background, func() {
+			self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
 				capturedCommits = self.captureCommitsState(options.CommitSelection)
 				capturedReflog = self.captureReflogState()
 				capturedBranches = self.captureBranchState()
 			})
 			refresh("commits and commit files", func() {
-				self.refreshCommitsAndCommitFiles(capturedCommits, options.CommitSelection, options.Background)
+				self.refreshCommitsAndCommitFiles(capturedCommits, options.CommitSelection, env)
 			})
 
 			includeWorktreesWithBranches = scopeSet.Includes(types.WORKTREES)
 			if self.c.UserConfig().Git.LocalBranchSortOrder == "recency" {
 				branchesAndRemotesWg.Add(1)
 				refresh("reflog and branches", func() {
-					loadedBranches = self.refreshReflogAndBranches(capturedReflog, capturedBranches, includeWorktreesWithBranches, options.BranchSelection, options.SelectTopReflogCommit, options.Background)
+					loadedBranches = self.refreshReflogAndBranches(capturedReflog, capturedBranches, includeWorktreesWithBranches, options.BranchSelection, options.SelectTopReflogCommit, env)
 					branchesAndRemotesWg.Done()
 				})
 			} else {
@@ -244,11 +260,11 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 					// Not a recency sort, so branches doesn't depend on the reflog
 					// being fresh; it runs concurrently with the reflog refresh
 					// below and uses the reflog we captured up front, as it always has.
-					loadedBranches = self.refreshBranches(capturedBranches, includeWorktreesWithBranches, options.BranchSelection, true, capturedReflog.reflogCommits, options.Background)
+					loadedBranches = self.refreshBranches(capturedBranches, includeWorktreesWithBranches, options.BranchSelection, true, capturedReflog.reflogCommits, env)
 					branchesAndRemotesWg.Done()
 				})
 				refresh("reflog", func() {
-					_, _ = self.refreshReflogCommits(capturedReflog, options.Background, options.SelectTopReflogCommit)
+					_, _ = self.refreshReflogCommits(capturedReflog, env, options.SelectTopReflogCommit)
 				})
 			}
 		} else if scopeSet.Includes(types.REBASE_COMMITS) {
@@ -256,52 +272,52 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			// if we've asked specifically for rebase commits and not those other things
 			var rebaseHashPool *utils.StringPool
 			var rebaseCommits []*models.Commit
-			self.captureOnUIThread(fRunsOnUIThread, options.Background, func() {
+			self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
 				rebaseHashPool, rebaseCommits = self.captureRebaseCommitState()
 			})
-			refresh("rebase commits", func() { _ = self.refreshRebaseCommits(rebaseHashPool, rebaseCommits, options.Background) })
+			refresh("rebase commits", func() { _ = self.refreshRebaseCommits(rebaseHashPool, rebaseCommits, env) })
 		}
 
 		if scopeSet.Includes(types.SUB_COMMITS) {
 			var capturedSubCommits capturedSubCommitState
-			self.captureOnUIThread(fRunsOnUIThread, options.Background, func() {
+			self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
 				capturedSubCommits = self.captureSubCommitState()
 			})
-			refresh("sub commits", func() { _ = self.refreshSubCommitsWithLimit(capturedSubCommits, options.Background) })
+			refresh("sub commits", func() { _ = self.refreshSubCommitsWithLimit(capturedSubCommits, env) })
 		}
 
 		// reason we're not doing this if the COMMITS type is included is that if the COMMITS type _is_ included we will refresh the commit files context anyway
 		if scopeSet.Includes(types.COMMIT_FILES) && !scopeSet.Includes(types.COMMITS) {
 			var capturedCommitFiles capturedCommitFilesState
-			self.captureOnUIThread(fRunsOnUIThread, options.Background, func() {
+			self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
 				capturedCommitFiles = self.captureCommitFilesState()
 			})
-			refresh("commit files", func() { _ = self.refreshCommitFilesContext(capturedCommitFiles, options.Background) })
+			refresh("commit files", func() { _ = self.refreshCommitFilesContext(capturedCommitFiles, env) })
 		}
 
 		fileWg := sync.WaitGroup{}
 		if scopeSet.Includes(types.FILES) {
 			var capturedFiles capturedFilesState
-			self.captureOnUIThread(fRunsOnUIThread, options.Background, func() {
+			self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
 				capturedFiles = self.captureFilesState()
 			})
 			fileWg.Add(1)
 			refresh("files", func() {
-				_ = self.refreshFilesAndSubmodules(capturedFiles, options.Background)
+				_ = self.refreshFilesAndSubmodules(capturedFiles, env)
 				fileWg.Done()
 			})
 		}
 
 		if scopeSet.Includes(types.STASH) {
 			var stashFilterPath string
-			self.captureOnUIThread(fRunsOnUIThread, options.Background, func() {
+			self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
 				stashFilterPath = self.c.Modes().Filtering.GetPath()
 			})
-			refresh("stash", func() { self.refreshStashEntries(stashFilterPath, options.Background) })
+			refresh("stash", func() { self.refreshStashEntries(stashFilterPath, env) })
 		}
 
 		if scopeSet.Includes(types.TAGS) {
-			refresh("tags", func() { _ = self.refreshTags(options.Background) })
+			refresh("tags", func() { _ = self.refreshTags(env) })
 		}
 
 		if scopeSet.Includes(types.REMOTES) {
@@ -309,12 +325,12 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			// needs it to keep the remote-branches selection valid, and reading
 			// the Remotes context off the UI thread races its render.
 			var prevSelectedRemote *models.Remote
-			self.captureOnUIThread(fRunsOnUIThread, options.Background, func() {
+			self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
 				prevSelectedRemote = self.c.Contexts().Remotes.GetSelected()
 			})
 			branchesAndRemotesWg.Add(1)
 			refresh("remotes", func() {
-				loadedRemotes, _ = self.refreshRemotes(prevSelectedRemote, options.Background)
+				loadedRemotes, _ = self.refreshRemotes(prevSelectedRemote, env)
 				branchesAndRemotesWg.Done()
 			})
 		}
@@ -326,12 +342,12 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 				// Model().Branches/Remotes: those writes are bounced onto the
 				// UI thread and may not have landed on this worker yet. The
 				// wait above orders us after both loads have stashed theirs.
-				self.refreshGithubPullRequests(loadedBranches, loadedRemotes, options.Background)
+				self.refreshGithubPullRequests(loadedBranches, loadedRemotes, env)
 			})
 		}
 
 		if scopeSet.Includes(types.WORKTREES) && !includeWorktreesWithBranches {
-			refresh("worktrees", func() { self.refreshWorktrees(options.Background) })
+			refresh("worktrees", func() { self.refreshWorktrees(env) })
 		}
 
 		if scopeSet.Includes(types.STAGING) {
@@ -341,7 +357,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 				// scope's model-update bounce — RefreshStagingPanel reads
 				// Model.Files (via Files.GetSelected) and would otherwise
 				// see the pre-refresh model.
-				self.onUIThread(options.Background, func() error {
+				self.onUIThread(env.background, func() error {
 					self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
 					return nil
 				})
@@ -353,10 +369,10 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		}
 
 		if scopeSet.Includes(types.MERGE_CONFLICTS) {
-			refresh("merge conflicts", func() { _ = self.mergeConflictsHelper.RefreshMergeState(options.Background) })
+			refresh("merge conflicts", func() { _ = self.mergeConflictsHelper.RefreshMergeState(env.background) })
 		}
 
-		self.refreshStatus(options.Background)
+		self.refreshStatus(env)
 
 		wg.Wait()
 
@@ -367,7 +383,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			// returned but their bounces haven't been processed yet, so
 			// invoking Then synchronously would run it on a model that's
 			// still pre-refresh.
-			self.onUIThread(options.Background, options.Then)
+			self.onUIThread(env.background, options.Then)
 		}
 	}
 
@@ -528,17 +544,17 @@ func (self *RefreshHelper) captureBranchState() capturedBranchState {
 	}
 }
 
-func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflogState, capturedBranches capturedBranchState, refreshWorktrees bool, branchSelection types.BranchSelectionBehavior, selectTopReflogCommit bool, background bool) []*models.Branch {
+func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflogState, capturedBranches capturedBranchState, refreshWorktrees bool, branchSelection types.BranchSelectionBehavior, selectTopReflogCommit bool, env refreshEnv) []*models.Branch {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
 		// Return the immediate (non-recency) load's branches; the recency-sorted
 		// reload below runs on its own worker after we return. Both hold the same
 		// set of branches, which is all the caller (the PR fetch) needs.
-		branches := self.refreshBranches(capturedBranches, refreshWorktrees, branchSelection, false, capturedReflog.reflogCommits, background)
+		branches := self.refreshBranches(capturedBranches, refreshWorktrees, branchSelection, false, capturedReflog.reflogCommits, env)
 
-		self.onWorker(background, func(_ gocui.Task) error {
-			reflogCommits, _ := self.refreshReflogCommits(capturedReflog, background, false)
-			self.refreshBranches(capturedBranches, false, types.SelectCheckedOutBranch, true, reflogCommits, background)
+		self.onWorker(env.background, func(_ gocui.Task) error {
+			reflogCommits, _ := self.refreshReflogCommits(capturedReflog, env, false)
+			self.refreshBranches(capturedBranches, false, types.SelectCheckedOutBranch, true, reflogCommits, env)
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)
 			return nil
 		})
@@ -546,8 +562,8 @@ func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflo
 		return branches
 
 	case types.COMPLETE:
-		reflogCommits, _ := self.refreshReflogCommits(capturedReflog, background, selectTopReflogCommit)
-		return self.refreshBranches(capturedBranches, refreshWorktrees, branchSelection, true, reflogCommits, background)
+		reflogCommits, _ := self.refreshReflogCommits(capturedReflog, env, selectTopReflogCommit)
+		return self.refreshBranches(capturedBranches, refreshWorktrees, branchSelection, true, reflogCommits, env)
 	}
 
 	return nil
@@ -592,9 +608,8 @@ func (self *RefreshHelper) captureCommitsState(commitSelection types.CommitSelec
 	}
 }
 
-func (self *RefreshHelper) refreshCommitsAndCommitFiles(captured capturedCommitState, commitSelection types.CommitSelectionBehavior, background bool) {
-	generation := self.c.State().GetRepoGeneration()
-	_ = self.refreshCommitsWithLimit(captured, commitSelection, background)
+func (self *RefreshHelper) refreshCommitsAndCommitFiles(captured capturedCommitState, commitSelection types.CommitSelectionBehavior, env refreshEnv) {
+	_ = self.refreshCommitsWithLimit(captured, commitSelection, env)
 	if captured.parentIsLocalCommits {
 		// This makes sense when we've e.g. just amended a commit, meaning we get a new commit hash at the same position.
 		// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
@@ -606,7 +621,7 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles(captured capturedCommitS
 		// The commit selection is restored in refreshCommitsWithLimit's bounce,
 		// so read it on the UI thread after that bounce; then load the commit
 		// files back on a worker (refreshCommitFilesContext does git work).
-		self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+		self.onUIThreadUnlessRepoChanged(env, func() error {
 			commit := self.c.Contexts().LocalCommits.GetSelected()
 			if commit != nil && commit.RefName() != "" {
 				refRange := self.c.Contexts().LocalCommits.GetSelectedRefRangeForDiffFiles()
@@ -614,8 +629,8 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles(captured capturedCommitS
 				// Capture the diff endpoints here, on the UI thread and after
 				// ReInit has set them, before dispatching the git work.
 				capturedCommitFiles := self.captureCommitFilesState()
-				self.onWorker(background, func(gocui.Task) error {
-					_ = self.refreshCommitFilesContext(capturedCommitFiles, background)
+				self.onWorker(env.background, func(gocui.Task) error {
+					_ = self.refreshCommitFilesContext(capturedCommitFiles, env)
 					return nil
 				})
 			}
@@ -650,9 +665,7 @@ func (self *RefreshHelper) determineCheckedOutRef() models.Ref {
 	return nil
 }
 
-func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState, commitSelection types.CommitSelectionBehavior, background bool) error {
-	generation := self.c.State().GetRepoGeneration()
-
+func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState, commitSelection types.CommitSelectionBehavior, env refreshEnv) error {
 	checkedOutRef := self.determineCheckedOutRef()
 	refName, bisectInfo := self.refForLog()
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
@@ -673,7 +686,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 	}
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		self.c.Model().BisectInfo = bisectInfo
 		self.c.Model().Commits = commits
 		self.RefreshAuthors(commits)
@@ -707,7 +720,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 			// Enqueued from within this bounce so it runs after refreshView's
 			// render below (which was enqueued first), matching the previous
 			// ordering where FocusLine ran after the view was re-rendered.
-			self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+			self.onUIThreadUnlessRepoChanged(env, func() error {
 				self.c.Contexts().LocalCommits.FocusLine(true)
 				return nil
 			})
@@ -715,7 +728,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 		return nil
 	})
 
-	self.refreshView(self.c.Contexts().LocalCommits, background)
+	self.refreshView(self.c.Contexts().LocalCommits, env)
 	return nil
 }
 
@@ -821,12 +834,10 @@ func (self *RefreshHelper) captureSubCommitState() capturedSubCommitState {
 	}
 }
 
-func (self *RefreshHelper) refreshSubCommitsWithLimit(captured capturedSubCommitState, background bool) error {
+func (self *RefreshHelper) refreshSubCommitsWithLimit(captured capturedSubCommitState, env refreshEnv) error {
 	if captured.ref == nil {
 		return nil
 	}
-
-	generation := self.c.State().GetRepoGeneration()
 
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
@@ -844,13 +855,13 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit(captured capturedSubCommit
 	if err != nil {
 		return err
 	}
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		self.c.Model().SubCommits = commits
 		self.RefreshAuthors(commits)
 		return nil
 	})
 
-	self.refreshView(self.c.Contexts().SubCommits, background)
+	self.refreshView(self.c.Contexts().SubCommits, env)
 	return nil
 }
 
@@ -882,19 +893,17 @@ func (self *RefreshHelper) captureCommitFilesState() capturedCommitFilesState {
 	return capturedCommitFilesState{from: from, to: to, reverse: reverse}
 }
 
-func (self *RefreshHelper) refreshCommitFilesContext(captured capturedCommitFilesState, background bool) error {
-	generation := self.c.State().GetRepoGeneration()
-
+func (self *RefreshHelper) refreshCommitFilesContext(captured capturedCommitFilesState, env refreshEnv) error {
 	files, err := self.c.Git().Loaders.CommitFileLoader.GetFilesInDiff(captured.from, captured.to, captured.reverse)
 	if err != nil {
 		return err
 	}
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		self.c.Model().CommitFiles = files
 		self.c.Contexts().CommitFiles.CommitFileTreeViewModel.SetTree()
 		return nil
 	})
-	self.refreshView(self.c.Contexts().CommitFiles, background)
+	self.refreshView(self.c.Contexts().CommitFiles, env)
 	return nil
 }
 
@@ -904,39 +913,35 @@ func (self *RefreshHelper) captureRebaseCommitState() (hashPool *utils.StringPoo
 	return self.c.Model().HashPool, self.c.Model().Commits
 }
 
-func (self *RefreshHelper) refreshRebaseCommits(hashPool *utils.StringPool, commits []*models.Commit, background bool) error {
-	generation := self.c.State().GetRepoGeneration()
-
+func (self *RefreshHelper) refreshRebaseCommits(hashPool *utils.StringPool, commits []*models.Commit, env refreshEnv) error {
 	updatedCommits, err := self.c.Git().Loaders.CommitLoader.MergeRebasingCommits(hashPool, commits)
 	if err != nil {
 		return err
 	}
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		self.c.Model().Commits = updatedCommits
 		self.c.Model().WorkingTreeStateAtLastCommitRefresh = workingTreeState
 		return nil
 	})
 
-	self.refreshView(self.c.Contexts().LocalCommits, background)
+	self.refreshView(self.c.Contexts().LocalCommits, env)
 	return nil
 }
 
-func (self *RefreshHelper) refreshTags(background bool) error {
-	generation := self.c.State().GetRepoGeneration()
-
+func (self *RefreshHelper) refreshTags(env refreshEnv) error {
 	tags, err := self.c.Git().Loaders.TagLoader.GetTags()
 	if err != nil {
 		return err
 	}
 
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		self.c.Model().Tags = tags
 		return nil
 	})
 
-	self.refreshView(self.c.Contexts().Tags, background)
+	self.refreshView(self.c.Contexts().Tags, env)
 	return nil
 }
 
@@ -946,10 +951,8 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs() ([]*models.SubmoduleCo
 
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
-func (self *RefreshHelper) refreshBranches(captured capturedBranchState, refreshWorktrees bool, branchSelection types.BranchSelectionBehavior, loadBehindCounts bool, reflogCommits []*models.Commit, background bool) []*models.Branch {
+func (self *RefreshHelper) refreshBranches(captured capturedBranchState, refreshWorktrees bool, branchSelection types.BranchSelectionBehavior, loadBehindCounts bool, reflogCommits []*models.Commit, env refreshEnv) []*models.Branch {
 	loadSeq := self.branchLoadSeq.Add(1)
-
-	generation := self.c.State().GetRepoGeneration()
 
 	branches, err := self.c.Git().Loaders.BranchLoader.Load(
 		reflogCommits,
@@ -957,14 +960,14 @@ func (self *RefreshHelper) refreshBranches(captured capturedBranchState, refresh
 		captured.oldBranches,
 		loadBehindCounts,
 		func(f func() error) {
-			self.onWorker(background, func(_ gocui.Task) error {
+			self.onWorker(env.background, func(_ gocui.Task) error {
 				return f()
 			})
 		},
 		func() {
-			self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+			self.onUIThreadUnlessRepoChanged(env, func() error {
 				self.c.Contexts().Branches.HandleRender()
-				self.refreshStatus(background)
+				self.refreshStatus(env)
 				return nil
 			})
 		})
@@ -977,7 +980,7 @@ func (self *RefreshHelper) refreshBranches(captured capturedBranchState, refresh
 		worktrees = self.loadWorktrees()
 	}
 
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		// Drop this write if a branch load that started later has already applied
 		// its result. At the INITIAL startup stage an immediate load (not
 		// recency-sorted) and an async recency-sorted load run concurrently; this
@@ -1000,7 +1003,7 @@ func (self *RefreshHelper) refreshBranches(captured capturedBranchState, refresh
 
 		if refreshWorktrees {
 			self.c.Model().Worktrees = worktrees
-			self.refreshView(self.c.Contexts().Worktrees, background)
+			self.refreshView(self.c.Contexts().Worktrees, env)
 		}
 
 		// Setting the selection here, in the same bounce that writes the list,
@@ -1030,27 +1033,27 @@ func (self *RefreshHelper) refreshBranches(captured capturedBranchState, refresh
 		return nil
 	})
 
-	self.refreshView(self.c.Contexts().Branches, background)
+	self.refreshView(self.c.Contexts().Branches, env)
 
-	self.refreshStatus(background)
+	self.refreshStatus(env)
 
 	// Return the freshly-loaded branches so the caller can hand them to the PR
 	// fetch without reading them back from the (bounce-written) model.
 	return branches
 }
 
-func (self *RefreshHelper) refreshFilesAndSubmodules(captured capturedFilesState, background bool) error {
+func (self *RefreshHelper) refreshFilesAndSubmodules(captured capturedFilesState, env refreshEnv) error {
 	configs, err := self.refreshStateSubmoduleConfigs()
 	if err != nil {
 		return err
 	}
 
-	if err := self.refreshStateFiles(captured, background, configs); err != nil {
+	if err := self.refreshStateFiles(captured, env, configs); err != nil {
 		return err
 	}
 
-	self.refreshView(self.c.Contexts().Submodules, background)
-	self.refreshView(self.c.Contexts().Files, background)
+	self.refreshView(self.c.Contexts().Submodules, env)
+	self.refreshView(self.c.Contexts().Files, env)
 
 	return nil
 }
@@ -1060,11 +1063,11 @@ func (self *RefreshHelper) refreshFilesAndSubmodules(captured capturedFilesState
 // Refresh workers do their git work off the UI thread and enqueue their model
 // writes here; a repo switch (which replaces the whole model and context tree)
 // bumps the generation, so a write captured under the old generation must not
-// clobber the new repo's state. Callers capture the generation with
-// State().GetRepoGeneration() before doing their git work and pass it in.
-func (self *RefreshHelper) onUIThreadUnlessRepoChanged(generation int, background bool, f func() error) {
-	self.onUIThread(background, func() error {
-		if self.c.State().GetRepoGeneration() != generation {
+// clobber the new repo's state. The generation is captured once at the start of
+// the refresh and carried in env (see refreshEnv).
+func (self *RefreshHelper) onUIThreadUnlessRepoChanged(env refreshEnv, f func() error) {
+	self.onUIThread(env.background, func() error {
+		if self.c.State().GetRepoGeneration() != env.generation {
 			return nil
 		}
 		return f()
@@ -1140,9 +1143,8 @@ func (self *RefreshHelper) captureFilesState() capturedFilesState {
 	}
 }
 
-func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, background bool, submoduleConfigs []*models.SubmoduleConfig) error {
+func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env refreshEnv, submoduleConfigs []*models.SubmoduleConfig) error {
 	fileTreeViewModel := self.c.Contexts().Files.FileTreeViewModel
-	generation := self.c.State().GetRepoGeneration()
 
 	prevConflictFileCount := 0
 	if self.c.UserConfig().Git.AutoStageResolvedConflicts {
@@ -1179,7 +1181,7 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, backgr
 	files := self.c.Git().Loaders.FileLoader.
 		GetStatusFiles(git_commands.GetStatusFileOptions{
 			ForceShowUntracked: captured.forceShowUntracked,
-			Background:         background,
+			Background:         env.background,
 		})
 
 	conflictFileCount := 0
@@ -1203,7 +1205,7 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, backgr
 			// (e.g. in the user's editor). Offer to continue it. We only do this
 			// for operations we started ourselves; prompting for one that was
 			// started outside lazygit (e.g. by a coding agent) would be confusing.
-			self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+			self.onUIThreadUnlessRepoChanged(env, func() error {
 				return self.mergeAndRebaseHelper.PromptToContinueRebase()
 			})
 		}
@@ -1218,7 +1220,7 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, backgr
 		})
 	}
 
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		// only taking over the filter if it hasn't already been set by the user.
 		if conflictFileCount > 0 && prevConflictFileCount == 0 {
 			if fileTreeViewModel.GetStatusFilter() == filetree.DisplayAll {
@@ -1249,8 +1251,7 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, backgr
 // refreshReflogCommits returns the (non-filtered) ReflogCommits it loaded, so
 // that a subsequent branches refresh can use them for recency sorting without
 // having to read them back out of the model.
-func (self *RefreshHelper) refreshReflogCommits(captured capturedReflogState, background bool, selectTopEntry bool) ([]*models.Commit, error) {
-	generation := self.c.State().GetRepoGeneration()
+func (self *RefreshHelper) refreshReflogCommits(captured capturedReflogState, env refreshEnv, selectTopEntry bool) ([]*models.Commit, error) {
 	// pulling state into its own variable in case it gets swapped out for another state
 	// and we get an out of bounds exception
 	model := self.c.Model()
@@ -1289,7 +1290,7 @@ func (self *RefreshHelper) refreshReflogCommits(captured capturedReflogState, ba
 		}
 	}
 
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		model.ReflogCommits = reflogCommits
 		model.FilteredReflogCommits = filteredReflogCommits
 		// Setting the selection here, in the same bounce that writes the list,
@@ -1302,26 +1303,24 @@ func (self *RefreshHelper) refreshReflogCommits(captured capturedReflogState, ba
 		return nil
 	})
 
-	self.refreshView(self.c.Contexts().ReflogCommits, background)
+	self.refreshView(self.c.Contexts().ReflogCommits, env)
 	return reflogCommits, nil
 }
 
-func (self *RefreshHelper) refreshRemotes(prevSelectedRemote *models.Remote, background bool) ([]*models.Remote, error) {
-	generation := self.c.State().GetRepoGeneration()
-
+func (self *RefreshHelper) refreshRemotes(prevSelectedRemote *models.Remote, env refreshEnv) ([]*models.Remote, error) {
 	remotes, err := self.c.Git().Loaders.RemoteLoader.GetRemotes()
 	if err != nil {
 		return nil, err
 	}
 
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		self.c.Model().Remotes = remotes
 
 		hadPrs := len(self.c.Model().PullRequestsMap) != 0
 		self.rebuildPullRequestsMap()
 		if !hadPrs && len(self.c.Model().PullRequestsMap) != 0 {
 			// if we didn't have PRs in the map before but now we do, we need to redraw the branches view
-			self.refreshView(self.c.Contexts().Branches, background)
+			self.refreshView(self.c.Contexts().Branches, env)
 		}
 
 		// we need to ensure our selected remote branches aren't now outdated
@@ -1337,8 +1336,8 @@ func (self *RefreshHelper) refreshRemotes(prevSelectedRemote *models.Remote, bac
 		return nil
 	})
 
-	self.refreshView(self.c.Contexts().Remotes, background)
-	self.refreshView(self.c.Contexts().RemoteBranches, background)
+	self.refreshView(self.c.Contexts().Remotes, env)
+	self.refreshView(self.c.Contexts().RemoteBranches, env)
 	return remotes, nil
 }
 
@@ -1351,44 +1350,38 @@ func (self *RefreshHelper) loadWorktrees() []*models.Worktree {
 	return worktrees
 }
 
-func (self *RefreshHelper) refreshWorktrees(background bool) {
-	generation := self.c.State().GetRepoGeneration()
-
+func (self *RefreshHelper) refreshWorktrees(env refreshEnv) {
 	worktrees := self.loadWorktrees()
 
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		self.c.Model().Worktrees = worktrees
 		return nil
 	})
 
 	// need to refresh branches because the branches view shows worktrees against
 	// branches
-	self.refreshView(self.c.Contexts().Branches, background)
-	self.refreshView(self.c.Contexts().Worktrees, background)
+	self.refreshView(self.c.Contexts().Branches, env)
+	self.refreshView(self.c.Contexts().Worktrees, env)
 }
 
-func (self *RefreshHelper) refreshStashEntries(filterPath string, background bool) {
-	generation := self.c.State().GetRepoGeneration()
-
+func (self *RefreshHelper) refreshStashEntries(filterPath string, env refreshEnv) {
 	stashEntries := self.c.Git().Loaders.StashLoader.
 		GetStashEntries(filterPath)
 
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		self.c.Model().StashEntries = stashEntries
 		return nil
 	})
 
-	self.refreshView(self.c.Contexts().Stash, background)
+	self.refreshView(self.c.Contexts().Stash, env)
 }
 
 // never call this on its own, it should only be called from within refreshCommits()
-func (self *RefreshHelper) refreshStatus(background bool) {
-	generation := self.c.State().GetRepoGeneration()
-
+func (self *RefreshHelper) refreshStatus(env refreshEnv) {
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	repoName := self.c.Git().RepoPaths.RepoName()
 
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		// Read the checked-out branch and the linked worktree name here on the UI
 		// thread: both derive from models (Branches, Worktrees) that their
 		// refreshes now write via bounces, so reading them on the worker would
@@ -1425,10 +1418,10 @@ func (self *RefreshHelper) refForLog() (string, *git_commands.BisectInfo) {
 	return bisectInfo.GetStartHash(), bisectInfo
 }
 
-func (self *RefreshHelper) refreshView(context types.Context, background bool) {
+func (self *RefreshHelper) refreshView(context types.Context, env refreshEnv) {
 	// refreshView is called from the worker goroutine that drives async
 	// refreshes, so bounce to the UI thread before mutating view content.
-	self.onUIThread(background, func() error {
+	self.onUIThread(env.background, func() error {
 		// Re-applying the filter must be done before re-rendering the view, so that
 		// the filtered list model is up to date for rendering.
 		self.searchHelper.ReApplyFilter(context)
@@ -1451,11 +1444,9 @@ func (self *RefreshHelper) refreshView(context types.Context, background bool) {
 	})
 }
 
-func (self *RefreshHelper) refreshGithubPullRequests(branches []*models.Branch, remotes []*models.Remote, background bool) {
-	generation := self.c.State().GetRepoGeneration()
-
+func (self *RefreshHelper) refreshGithubPullRequests(branches []*models.Branch, remotes []*models.Remote, env refreshEnv) {
 	clearPullRequests := func() {
-		self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+		self.onUIThreadUnlessRepoChanged(env, func() error {
 			self.c.Model().PullRequests = nil
 			self.c.Model().PullRequestsMap = nil
 			return nil
@@ -1478,7 +1469,7 @@ func (self *RefreshHelper) refreshGithubPullRequests(branches []*models.Branch, 
 		return
 	}
 
-	self.setGithubPullRequests(baseInfo, branches, background)
+	self.setGithubPullRequests(baseInfo, branches, env)
 }
 
 type githubRemoteInfo struct {
@@ -1559,7 +1550,11 @@ func (self *RefreshHelper) promptForBaseGithubRepo(githubRemotes []githubRemoteI
 						self.c.Log.Error(err)
 					}
 
-					self.setGithubPullRequests(&info, branches, false)
+					// This fetch runs on its own worker after the user picked a
+					// base remote, so it's not part of a performRefresh and has no
+					// ambient env; build a foreground one now, capturing the
+					// current generation as the guard baseline.
+					self.setGithubPullRequests(&info, branches, refreshEnv{generation: self.c.State().GetRepoGeneration()})
 					return nil
 				})
 			},
@@ -1587,9 +1582,7 @@ func (self *RefreshHelper) rebuildPullRequestsMap() {
 	)
 }
 
-func (self *RefreshHelper) setGithubPullRequests(baseInfo *githubRemoteInfo, branches []*models.Branch, background bool) {
-	generation := self.c.State().GetRepoGeneration()
-
+func (self *RefreshHelper) setGithubPullRequests(baseInfo *githubRemoteInfo, branches []*models.Branch, env refreshEnv) {
 	if len(branches) == 0 {
 		return
 	}
@@ -1609,7 +1602,7 @@ func (self *RefreshHelper) setGithubPullRequests(baseInfo *githubRemoteInfo, bra
 
 	self.savePullRequestsToCache(prs)
 
-	self.onUIThreadUnlessRepoChanged(generation, background, func() error {
+	self.onUIThreadUnlessRepoChanged(env, func() error {
 		self.c.Model().PullRequests = prs
 		// Rebuilding here rather than on the worker means the map is built from
 		// the branches and remotes as they are on the UI thread, after their

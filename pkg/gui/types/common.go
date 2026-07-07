@@ -394,10 +394,10 @@ type IStateAccessor interface {
 	ClearItemOperation(item HasUrn)
 
 	// A counter that is bumped every time we switch to a different repository
-	// (see Gui.resetState). Refresh workers capture it before doing their git
-	// work and pass it to onUIThreadUnlessRepoChanged, so that a model update
-	// computed for one repo can be dropped rather than applied to another if the
-	// user switched repos while the refresh was in flight.
+	// (see Gui.resetState). A refresh captures it when it starts and carries it
+	// through to onUIThreadUnlessRepoChanged, so that a model update computed for
+	// one repo can be dropped rather than applied to another if the user switched
+	// repos while the refresh was in flight.
 	GetRepoGeneration() int
 }
 
