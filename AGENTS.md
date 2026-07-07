@@ -256,6 +256,34 @@ Follow this even when the need for the refactor is only discovered in the middle
 of working on the branch; suggest to the user to rewrite the history to move the
 refactor to an earlier commit (but don't do it without asking first).
 
+## Don't read model state right after a `Refresh`
+
+A `Refresh` (or `RefreshFromWorker`) does its git work on a worker and then
+*enqueues* the model update onto the UI thread. So when `Refresh` returns, the
+model is **not** updated yet — the write is still queued. Reading a field
+synchronously right after refreshing its scope reads the stale, pre-refresh
+value (and this is true even for SYNC refreshes):
+
+```go
+self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+files := self.c.Model().Files // BUG: still the pre-refresh value
+```
+
+Put the read in `RefreshOptions.Then` instead — it's queued after the scope's
+model writes, so it sees the fresh value:
+
+```go
+self.c.Refresh(types.RefreshOptions{
+    Scope: []types.RefreshableView{types.FILES},
+    Then: func() error {
+        files := self.c.Model().Files // fresh
+        return nil
+    },
+})
+```
+
+`Then` is a `func() error` and works with any non-`ASYNC` mode.
+
 ## Integration test conventions
 
 Don't bind views to local variables. Always chain method calls directly from
