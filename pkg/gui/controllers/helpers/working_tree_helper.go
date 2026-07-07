@@ -149,7 +149,12 @@ func (self *WorkingTreeHelper) handleCommit(summary string, description string, 
 	self.c.LogAction(self.c.Tr.Actions.Commit)
 	return self.gpgHelper.WithGpgHandlingAndSelectHeadCommit(cmdObj, git_commands.CommitGpgSign, self.c.Tr.CommittingStatus,
 		func() error {
-			self.commitsHelper.ClearPreservedCommitMessage()
+			// This runs on a worker when the commit output is streamed, so
+			// bounce the preserved-message write to the UI thread.
+			self.c.OnUIThread(func() error {
+				self.commitsHelper.ClearPreservedCommitMessage()
+				return nil
+			})
 			return nil
 		})
 }
