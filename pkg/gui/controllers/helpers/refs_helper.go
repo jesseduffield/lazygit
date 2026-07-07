@@ -199,12 +199,14 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 		return err
 	}
 
-	self.c.Contexts().LocalCommits.SetSelection(0)
-	self.c.Contexts().ReflogCommits.SetSelection(0)
 	// loading a heap of commits is slow so we limit them whenever doing a reset
 	self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
-	self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS}, CommitSelection: types.KeepCommitSelectionIndex})
+	self.c.RefreshFromWorker(types.RefreshOptions{
+		Scope:                 []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS},
+		CommitSelection:       types.SelectHeadCommit,
+		SelectTopReflogCommit: true,
+	})
 
 	return nil
 }
