@@ -291,7 +291,7 @@ func (self *FilesController) renderToMainWithTask(task types.UpdateTask) {
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
 			Title:    self.c.Tr.DiffTitle,
-			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			SubTitle: self.c.Helpers().Diff.DiffViewSubtitle(),
 			Task:     task,
 		},
 	})
@@ -387,7 +387,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
 			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
-			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			SubTitle: self.c.Helpers().Diff.DiffViewSubtitle(),
 			Title:    title,
 		},
 	}
@@ -402,7 +402,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 
 		refreshOpts.Secondary = &types.ViewUpdateOpts{
 			Title:    title,
-			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			SubTitle: self.c.Helpers().Diff.DiffViewSubtitle(),
 			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
 		}
 	}

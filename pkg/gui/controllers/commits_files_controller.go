@@ -183,7 +183,7 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 			Pair: self.c.MainViewPairs().Normal,
 			Main: &types.ViewUpdateOpts{
 				Title:    self.c.Tr.Patch,
-				SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+				SubTitle: self.c.Helpers().Diff.DiffViewSubtitle(),
 				Task:     task,
 			},
 			Secondary: secondaryPatchPanelUpdateOpts(self.c),

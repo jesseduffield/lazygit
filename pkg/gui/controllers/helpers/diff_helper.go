@@ -112,7 +112,7 @@ func (self *DiffHelper) RenderDiff() {
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
 			Title:    "Diff",
-			SubTitle: self.IgnoringWhitespaceSubTitle(),
+			SubTitle: self.DiffViewSubtitle(),
 			Task:     task,
 		},
 	})
@@ -166,12 +166,19 @@ func (self *DiffHelper) WithDiffModeCheck(f func()) {
 	}
 }
 
-func (self *DiffHelper) IgnoringWhitespaceSubTitle() string {
+// DiffViewSubtitle reports which diff-view rendering options are currently
+// active (ignoring whitespace, word-diff), as a subtitle for the main diff
+// view. Returns the empty string when none are active.
+func (self *DiffHelper) DiffViewSubtitle() string {
+	var tags []string
 	if self.c.UserConfig().Git.IgnoreWhitespaceInDiffView {
-		return self.c.Tr.IgnoreWhitespaceDiffViewSubTitle
+		tags = append(tags, self.c.Tr.IgnoreWhitespaceDiffViewSubTitle)
+	}
+	if self.c.UserConfig().Git.WordDiffInDiffView {
+		tags = append(tags, self.c.Tr.WordDiffDiffViewSubTitle)
 	}
 
-	return ""
+	return strings.Join(tags, " ")
 }
 
 func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {

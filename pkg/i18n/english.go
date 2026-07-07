@@ -778,6 +778,7 @@ type TranslationSet struct {
 	ToggleWordDiff                           string
 	ToggleWordDiffTooltip                    string
 	IgnoreWhitespaceDiffViewSubTitle         string
+	WordDiffDiffViewSubTitle                 string
 	IgnoreWhitespaceNotSupportedHere         string
 	WordDiffNotSupportedHere                 string
 	IncreaseContextInDiffView                string
@@ -1931,6 +1932,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleWordDiff:                           "Toggle word diff",
 		ToggleWordDiffTooltip:                    "Toggle between line-level and word-level highlighting of changes in the diff view (git's --word-diff=color).\n\nThe default can be changed in the config file with the key 'git.wordDiffInDiffView'.",
 		IgnoreWhitespaceDiffViewSubTitle:         "(ignoring whitespace)",
+		WordDiffDiffViewSubTitle:                 "(word diff)",
 		IgnoreWhitespaceNotSupportedHere:         "Ignoring whitespace is not supported in this view",
 		WordDiffNotSupportedHere:                 "Word diff is not supported in this view",
 		IncreaseContextInDiffView:                "Increase diff context size",

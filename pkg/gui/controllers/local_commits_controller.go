@@ -309,7 +309,7 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() {
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
 					Title:    "Patch",
-					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					SubTitle: self.c.Helpers().Diff.DiffViewSubtitle(),
 					Task:     task,
 				},
 				Secondary: secondaryPatchPanelUpdateOpts(self.c),
