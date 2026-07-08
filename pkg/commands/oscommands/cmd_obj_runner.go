@@ -244,6 +244,10 @@ func (self *cmdObjRunner) runAndStreamAux(
 	} else {
 		cmdWriter = self.guiIO.newCmdWriterFn()
 	}
+	// The command's stdout and stderr are streamed to cmdWriter concurrently
+	// from separate goroutines (stderr via the MultiWriter below, stdout via
+	// onRun), so it must be safe for concurrent writes.
+	cmdWriter = &synchronizedWriter{writer: cmdWriter}
 
 	if cmdObj.ShouldLog() {
 		self.logCmdObj(cmdObj)
@@ -449,6 +453,20 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 		}
 		return 0, false
 	}
+}
+
+// synchronizedWriter serializes writes to its underlying writer so that it can
+// be written from multiple goroutines at once (see runAndStreamAux, which
+// streams a command's stdout and stderr to one writer from two goroutines).
+type synchronizedWriter struct {
+	mutex  deadlock.Mutex
+	writer io.Writer
+}
+
+func (self *synchronizedWriter) Write(p []byte) (int, error) {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+	return self.writer.Write(p)
 }
 
 type Buffer struct {
