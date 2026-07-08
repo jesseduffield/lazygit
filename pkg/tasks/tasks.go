@@ -88,8 +88,9 @@ type ViewBufferManager struct {
 	// if the user flicks through a heap of items, with each one
 	// spawning a process to render something to the main view,
 	// it can slow things down quite a bit. In these situations we
-	// want to throttle the spawning of processes.
-	throttle bool
+	// want to throttle the spawning of processes. Atomic because it's set
+	// from one task's stop goroutine and read when the next task starts.
+	throttle atomic.Bool
 }
 
 type LinesToRead struct {
@@ -177,7 +178,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			onFirstPageShown()
 		}
 
-		if self.throttle {
+		if self.throttle.Load() {
 			self.Log.Info("throttling task")
 			time.Sleep(THROTTLE_TIME)
 		}
@@ -200,13 +201,13 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			case <-done:
 				// The command finished and did not have to be preemptively stopped before the next command.
 				// No need to throttle.
-				self.throttle = false
+				self.throttle.Store(false)
 			case <-opts.Stop:
 				// we use the time it took to start the program as a way of checking if things
 				// are running slow at the moment. This is admittedly a crude estimate, but
 				// the point is that we only want to throttle when things are running slow
 				// and the user is flicking through a bunch of items.
-				self.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
+				self.throttle.Store(time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD)
 
 				// Kill the still-running command. The only reason to do this is to save CPU usage
 				// when flicking through several very long diffs when diff.algorithm = histogram is
