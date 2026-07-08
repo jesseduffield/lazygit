@@ -55,27 +55,47 @@ const (
 	SelectHeadCommit
 )
 
+// BranchSelectionBehavior controls which local branch is selected after the
+// branches list is reloaded by a refresh.
+type BranchSelectionBehavior int
+
+const (
+	// Keep the same branch selected by name, restoring it at its new position if
+	// the order changed. This is the right default whenever the list reloads
+	// underneath a selection the user hasn't deliberately changed.
+	KeepBranchSelectionByName BranchSelectionBehavior = iota
+
+	// Select the checked-out branch (the one at the top of the list). Used after
+	// operations that check something out - checkout, creating a branch, moving
+	// commits to a new branch - so the newly checked-out ref ends up selected.
+	SelectCheckedOutBranch
+)
+
 type RefreshOptions struct {
-	Then  func()
+	Then  func() error
 	Scope []RefreshableView // e.g. []RefreshableView{COMMITS, BRANCHES}. Leave empty to refresh everything
 	Mode  RefreshMode       // one of SYNC (default), ASYNC, and BLOCK_UI
 
-	// Normally a refresh of the branches tries to keep the same branch selected
-	// (by name); this is usually important in case the order of branches
-	// changes. Passing true for KeepBranchSelectionIndex suppresses this and
-	// keeps the selection index the same. Useful after checking out a detached
-	// head, and selecting index 0.
-	KeepBranchSelectionIndex bool
+	// Controls which local branch is selected after the refresh. Defaults to
+	// KeepBranchSelectionByName.
+	BranchSelection BranchSelectionBehavior
 
 	// Controls which local commit is selected after the refresh. Defaults to
 	// KeepCommitSelectionByHash.
 	CommitSelection CommitSelectionBehavior
 
+	// When true, select the top (most recent) reflog entry after the refresh.
+	// Used alongside SelectCheckedOutBranch by operations that check something
+	// out, since the checkout adds a new reflog entry at the top. Defaults to
+	// keeping the reflog selection where it is.
+	SelectTopReflogCommit bool
+
 	// When true, this refresh was initiated by a background routine rather than
-	// by a user action. We use it to keep background `git status` calls from
-	// taking optional git locks, so they don't contend for index.lock with git
-	// commands the user runs in a terminal. The cost is that such a status won't
-	// persist git's refreshed stat-cache, which is the right trade-off for
-	// unattended work; foreground refreshes leave this false so they do persist.
+	// by a user action. Every git command suppresses optional locks by default
+	// so it can't contend for index.lock (see git_commands.OptionalLocksEnvVar);
+	// a foreground files refresh (this false) is the one command that opts back
+	// in, so it persists git's refreshed stat-cache and keeps later status calls
+	// fast. Background refreshes leave the suppression in place: not persisting
+	// the stat-cache is the right trade-off for unattended work.
 	Background bool
 }

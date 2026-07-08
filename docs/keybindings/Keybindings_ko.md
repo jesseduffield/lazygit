@@ -22,7 +22,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | 새로고침 | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
 | `` + `` | 다음 스크린 모드 (normal/half/fullscreen) |  |
 | `` _ `` | 이전 스크린 모드 |  |
-| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers. |
+| `` \ `` | Cycle pagers (reverse) | Choose the previous pager in the list of configured pagers. |
 | `` <esc> `` | 취소 |  |
 | `` ? `` | 매뉴 열기 |  |
 | `` <ctrl+s> `` | View filter-by-path options | View options for filtering the commit log, so that only commits matching the filter are shown. |
@@ -30,6 +31,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` q, <ctrl+c> `` | 종료 |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | 공백문자를 Diff 뷰에서 표시 여부 전환 | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <alt+shift+c> `` | 설정 파일 수정 | Open file in external editor. |
 | `` z `` | 되돌리기 (reflog) (실험적) | The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 | `` Z `` | 다시 실행 (reflog) (실험적) | The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 
@@ -67,6 +69,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 브라우저에서 커밋 열기 |  |
 | `` n `` | 커밋에서 새 브랜치를 만듭니다. |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | New worktree |  |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <ctrl+r> `` | Reset cherry-picked (copied) commits selection |  |
@@ -74,7 +77,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
-| `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
 ## Secondary
@@ -93,10 +95,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Pop | Apply the stash entry to your working directory and remove the stash entry. |
 | `` d `` | Drop | Remove the stash entry from the stash list. |
 | `` n `` | 새 브랜치 생성 | Create a new branch from the selected stash entry. This works by git checking out the commit that the stash entry was created from, creating a new branch from that commit, then applying the stash entry to the new branch as an additional commit. |
+| `` w `` | New worktree |  |
 | `` r `` | Rename stash |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View selected item's files |  |
-| `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
 ## Sub-commits
@@ -109,6 +111,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 브라우저에서 커밋 열기 |  |
 | `` n `` | 커밋에서 새 브랜치를 만듭니다. |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | New worktree |  |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <ctrl+r> `` | Reset cherry-picked (copied) commits selection |  |
@@ -116,7 +119,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View selected item's files |  |
-| `` w `` | View worktree options |  |
 | `` / `` | 검색 시작 |  |
 
 ## Worktrees
@@ -142,7 +144,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | Pick hunk |  |
-| `` b `` | Pick all hunks |  |
+| `` b `` | Pick both hunks |  |
 | `` <up>, k `` | 이전 hunk를 선택 |  |
 | `` <down>, j `` | 다음 hunk를 선택 |  |
 | `` <left>, h `` | 이전 충돌을 선택 |  |
@@ -210,6 +212,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | 체크아웃 | Checkout selected item. |
 | `` n `` | 새 브랜치 생성 |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | New worktree |  |
 | `` o `` | 풀 리퀘스트 생성 |  |
 | `` O `` | 풀 리퀘스트 생성 옵션 |  |
 | `` G `` | Open pull request in browser |  |
@@ -229,14 +232,12 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
-| `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
 ## 상태
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` o `` | 설정 파일 열기 | Open file in default application. |
 | `` e `` | 설정 파일 수정 | Open file in external editor. |
 | `` u `` | 업데이트 확인 |  |
 | `` <enter> `` | 최근에 사용한 저장소로 전환 |  |
@@ -277,6 +278,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | 브랜치명을 클립보드에 복사 |  |
 | `` <space> `` | 체크아웃 | Checkout a new local branch based on the selected remote branch, or the remote branch as a detached head. |
 | `` n `` | 새 브랜치 생성 |  |
+| `` w `` | New worktree |  |
 | `` M `` | 현재 브랜치에 병합 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` r `` | 체크아웃된 브랜치를 이 브랜치에 리베이스 | Rebase the checked-out branch onto the selected branch. |
 | `` d `` | 삭제 | Delete the remote branch from the remote. |
@@ -286,7 +288,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
-| `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
 ## 커밋
@@ -322,13 +323,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 브라우저에서 커밋 열기 |  |
 | `` n `` | 커밋에서 새 브랜치를 만듭니다. |  |
 | `` N `` | Move commits to new branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | New worktree |  |
 | `` g `` | View reset options | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` C `` | 커밋을 복사 (cherry-pick) | Mark commit as copied. Then, within the local commits view, you can press `V` to paste (cherry-pick) the copied commit(s) into your checked out branch. At any time you can press `<esc>` to cancel the selection. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View selected item's files |  |
-| `` w `` | View worktree options |  |
 | `` / `` | 검색 시작 |  |
 
 ## 커밋 파일
@@ -365,13 +366,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | Copy tag to clipboard |  |
 | `` <space> `` | 체크아웃 | Checkout the selected tag as a detached HEAD. |
 | `` n `` | 태그를 생성 | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
+| `` w `` | New worktree |  |
 | `` d `` | 삭제 | View delete options for local/remote tag. |
 | `` P `` | 태그를 push | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | 초기화 | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
-| `` w `` | View worktree options |  |
 | `` / `` | Filter the current view by text |  |
 
 ## 파일

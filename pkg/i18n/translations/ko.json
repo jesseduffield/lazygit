@@ -101,7 +101,6 @@
   "StashApply": "Stash 적용",
   "SureApplyStashEntry": "정말로 Stash를 적용하시겠습니까?",
   "StashChanges": "변경을 Stash",
-  "OpenConfig": "설정 파일 열기",
   "EditConfig": "설정 파일 수정",
   "ForcePush": "강제 푸시",
   "ForcePushPrompt": "브랜치가 원격 브랜치에서 분기하고 있습니다. 'esc'를 눌러 취소하거나, 'enter'를 눌러 강제로 푸시하세요.",

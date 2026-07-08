@@ -138,8 +138,8 @@ func (self *PatchBuildingController) toggleSelection() error {
 	self.context().GetMutex().Lock()
 	defer self.context().GetMutex().Unlock()
 
-	filename := self.c.Contexts().CommitFiles.GetSelectedPath()
-	if filename == "" {
+	file := self.c.Contexts().CommitFiles.GetSelectedFile()
+	if file == nil {
 		return nil
 	}
 
@@ -152,7 +152,7 @@ func (self *PatchBuildingController) toggleSelection() error {
 		return nil
 	}
 
-	includedLineIndices, err := self.c.Git().Patch.PatchBuilder.GetFileIncLineIndices(filename)
+	includedLineIndices, err := self.c.Git().Patch.PatchBuilder.GetFileIncLineIndices(file.Path, file.PreviousPath)
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func (self *PatchBuildingController) toggleSelection() error {
 	}
 
 	// add range of lines to those set for the file
-	if err := toggleFunc(filename, lineIndicesToToggle); err != nil {
+	if err := toggleFunc(file.Path, file.PreviousPath, lineIndicesToToggle); err != nil {
 		// might actually want to return an error here
 		self.c.Log.Error(err)
 	}
@@ -228,7 +228,7 @@ func (self *PatchBuildingController) discardSelectionFromCommit() error {
 		self.c.LogAction(self.c.Tr.Actions.RemovePatchFromCommit)
 		err := self.c.Git().Patch.DeletePatchesFromCommit(self.c.Model().Commits, commitIndex)
 		self.c.Helpers().PatchBuilding.Escape()
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
 			err, types.RefreshOptions{Mode: types.SYNC})
 	})
 }

@@ -88,7 +88,7 @@ func (self *GpgHelper) runAndStream(
 ) error {
 	return self.c.WithWaitingStatus(waitingStatus, func(gocui.Task) error {
 		if err := cmdObj.StreamOutput().Run(); err != nil {
-			self.c.Refresh(failureRefreshOptions)
+			self.c.RefreshFromWorker(failureRefreshOptions)
 			return fmt.Errorf(
 				self.c.Tr.GitCommandFailed, self.c.UserConfig().Keybinding.Universal.ExtrasMenu,
 			)
@@ -100,7 +100,7 @@ func (self *GpgHelper) runAndStream(
 			}
 		}
 
-		self.c.Refresh(successRefreshOptions)
+		self.c.RefreshFromWorker(successRefreshOptions)
 		return nil
 	})
 }

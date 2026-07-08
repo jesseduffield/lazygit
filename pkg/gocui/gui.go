@@ -9,11 +9,13 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/generics/set"
+	"github.com/petermattis/goid"
 	"github.com/rivo/uniseg"
 	"github.com/samber/lo"
 )
@@ -193,7 +195,18 @@ type Gui struct {
 
 	taskManager *TaskManager
 
+	// The task of the event currently being processed on the main goroutine, if
+	// any. Only touched from the main goroutine (in processEvent). It's excluded
+	// from the Busy() check so that an event handler asking "is anything else
+	// busy?" doesn't count itself.
+	currentTask Task
+
 	lastHoverView *View
+
+	// uiThreadID is the goroutine id of the main event loop, recorded when
+	// MainLoop starts. IsUIThread compares against it. Written once, read from
+	// worker goroutines, so it's atomic.
+	uiThreadID atomic.Int64
 }
 
 type NewGuiOpts struct {
@@ -238,7 +251,12 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g.stop = make(chan struct{})
 
 	g.gEvents = make(chan GocuiEvent, 20)
-	g.userEvents = make(chan userEvent, 20)
+	// Update does a non-blocking send and panics on a full channel rather than
+	// blocking (which would deadlock the UI goroutine against itself) or
+	// silently reordering. The buffer is sized well above the peak occupancy we
+	// see in practice, so the panic stays unreachable in normal use; if it ever
+	// fires, that's a real anomaly to investigate, not a cue to grow the buffer.
+	g.userEvents = make(chan userEvent, 256)
 	g.taskManager = newTaskManager()
 
 	if opts.PlayRecording {
@@ -268,7 +286,22 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 }
 
 func (g *Gui) NewTask() *TaskImpl {
-	return g.taskManager.NewTask()
+	return g.taskManager.NewTask(false)
+}
+
+// NewBackgroundTask creates a task that is tracked for idle detection but does
+// not count towards the program being busy for repo-switch safety. See
+// TaskImpl.background.
+func (g *Gui) NewBackgroundTask() *TaskImpl {
+	return g.taskManager.NewTask(true)
+}
+
+// Busy reports whether any foreground work is in flight, ignoring the event
+// currently being processed on the main goroutine (see currentTask). Background
+// routines (auto-fetch etc.) don't count. It's used to decide whether it's safe
+// to switch repos. Must be called on the main goroutine.
+func (g *Gui) Busy() bool {
+	return g.taskManager.hasBusyForegroundTaskExcept(g.currentTask)
 }
 
 // An idle listener listens for when the program is idle. This is useful for
@@ -613,34 +646,89 @@ type userEvent struct {
 	contentOnly bool
 }
 
-// Update executes the passed function. This method can be called safely from a
-// goroutine in order to update the GUI. It is important to note that the
-// passed function won't be executed immediately, instead it will be added to
-// the user events queue. Given that Update spawns a goroutine, the order in
-// which the user events will be handled is not guaranteed.
+// Update enqueues f on the user-events channel for the UI loop to run on its
+// next iteration. Multiple Update calls from the same goroutine arrive in
+// source order via the channel's FIFO. The send is non-blocking — if the
+// channel is full we panic rather than block or silently reorder, since a
+// blocked send from the UI goroutine would deadlock against itself and
+// silently switching to inline execution would break the ordering guarantee
+// callers rely on. The buffer is sized generously enough that this should
+// never fire in practice; if it does, that's a signal to investigate, not
+// to grow the buffer reflexively.
 func (g *Gui) Update(f func(*Gui) error) {
-	task := g.NewTask()
-
-	go g.updateAsyncAux(f, task)
+	g.update(f, false)
 }
 
-// UpdateAsync is a version of Update that does not spawn a go routine, it can
-// be a bit more efficient in cases where Update is called many times like when
-// tailing a file.  In general you should use Update()
-func (g *Gui) UpdateAsync(f func(*Gui) error) {
-	task := g.NewTask()
-
-	g.updateAsyncAux(f, task)
+// Like Update, but the enqueued work is a background routine (or triggered by
+// one), so it doesn't count towards the program being busy for repo-switch
+// safety. See TaskImpl.background.
+func (g *Gui) UpdateBackground(f func(*Gui) error) {
+	g.update(f, true)
 }
 
-func (g *Gui) updateAsyncAux(f func(*Gui) error, task Task) {
-	g.userEvents <- userEvent{f: f, task: task}
+func (g *Gui) update(f func(*Gui) error, background bool) {
+	task := g.taskManager.NewTask(background)
+
+	select {
+	case g.userEvents <- userEvent{f: f, task: task}:
+	default:
+		panic("gocui: userEvents channel full; refusing to block or reorder")
+	}
 }
 
 // Like Update, but signals that the callback only modifies content.
 func (g *Gui) UpdateContentOnly(f func(*Gui) error) {
-	task := g.NewTask()
+	g.updateContentOnly(f, false)
+}
+
+// Like UpdateContentOnly, but for background work (see UpdateBackground).
+func (g *Gui) UpdateContentOnlyBackground(f func(*Gui) error) {
+	g.updateContentOnly(f, true)
+}
+
+func (g *Gui) updateContentOnly(f func(*Gui) error, background bool) {
+	task := g.taskManager.NewTask(background)
 	g.userEvents <- userEvent{f: f, task: task, contentOnly: true}
+}
+
+// IsUIThread reports whether the caller is running on the main event-loop
+// goroutine (the one running MainLoop). It calls goid.Get, so use it only for
+// debug assertions, not to drive production control flow.
+func (g *Gui) IsUIThread() bool {
+	return goid.Get() == g.uiThreadID.Load()
+}
+
+// OnUIThreadAndWait runs f on the main event-loop goroutine and blocks the
+// caller until f has run, returning f's error. Use it to read UI-thread-owned
+// state (the model, contexts) from a worker without racing the UI thread.
+//
+// It must be called from a worker goroutine, never from the UI thread itself:
+// the UI thread would block waiting for a callback only it can run, which
+// deadlocks. Callers arrange this by construction (see the refresh helper's
+// RefreshFromWorker); a debug-only assertion there guards against getting it
+// wrong.
+func (g *Gui) OnUIThreadAndWait(f func() error) error {
+	return g.onUIThreadAndWait(f, false)
+}
+
+// Like OnUIThreadAndWait, but the enqueued work belongs to a background routine,
+// so it doesn't count towards the program being busy (see UpdateBackground).
+func (g *Gui) OnUIThreadAndWaitBackground(f func() error) error {
+	return g.onUIThreadAndWait(f, true)
+}
+
+func (g *Gui) onUIThreadAndWait(f func() error, background bool) error {
+	enqueue := g.Update
+	if background {
+		enqueue = g.UpdateBackground
+	}
+
+	result := make(chan error, 1)
+	enqueue(func(*Gui) error {
+		result <- f()
+		return nil
+	})
+	return <-result
 }
 
 // Calls a function in a goroutine. Handles panics gracefully and tracks
@@ -650,7 +738,18 @@ func (g *Gui) UpdateContentOnly(f func(*Gui) error) {
 // background goroutines where you wouldn't want lazygit to be considered busy
 // (i.e. when you wouldn't want a loader to be shown to the user)
 func (g *Gui) OnWorker(f func(Task) error) {
-	task := g.NewTask()
+	g.onWorker(f, false)
+}
+
+// Like OnWorker, but for a background routine (or work triggered by one), so it
+// doesn't count towards the program being busy for repo-switch safety. See
+// TaskImpl.background.
+func (g *Gui) OnWorkerBackground(f func(Task) error) {
+	g.onWorker(f, true)
+}
+
+func (g *Gui) onWorker(f func(Task) error, background bool) {
+	task := g.taskManager.NewTask(background)
 	go func() {
 		g.onWorkerAux(f, task)
 		task.Done()
@@ -714,6 +813,8 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
+	g.uiThreadID.Store(goid.Get())
+
 	go func() {
 		for {
 			select {
@@ -758,17 +859,25 @@ func (g *Gui) handleError(err error) error {
 func (g *Gui) processEvent() error {
 	contentOnly := false
 
+	// currentTask is the task of the event we're about to handle; recording it
+	// lets Busy() ignore it, so a handler asking "is anything else busy?" (the
+	// repo-switch guard does) doesn't count itself. Handlers of the remaining
+	// events drained below run with currentTask still set to this primary event;
+	// that's fine because the only Busy() callers are keybinding handlers, which
+	// are always the primary event here.
 	select {
 	case ev := <-g.gEvents:
 		task := g.NewTask()
-		defer func() { task.Done() }()
+		g.currentTask = task
+		defer func() { g.currentTask = nil; task.Done() }()
 
 		if err := g.handleError(g.handleEvent(&ev)); err != nil {
 			return err
 		}
 	case ev := <-g.userEvents:
 		contentOnly = ev.contentOnly
-		defer func() { ev.task.Done() }()
+		g.currentTask = ev.task
+		defer func() { g.currentTask = nil; ev.task.Done() }()
 
 		if err := g.handleError(ev.f(g)); err != nil {
 			return err

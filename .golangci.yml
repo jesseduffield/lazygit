@@ -1,6 +1,10 @@
 version: "2"
 run:
   go: "1.25"
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  uniq-by-line: false
 linters:
   enable:
     - copyloopvar
@@ -102,7 +106,9 @@ linters:
       - vendor/
 formatters:
   enable:
-    - gofumpt
+    # gofumpt is intentionally not listed here: golangci-lint bundles its own
+    # gofumpt version, which drifts from the one we pin in go.mod. We run that
+    # pinned version separately via scripts/gofumpt-check.sh instead.
     - goimports
   exclusions:
     generated: lax

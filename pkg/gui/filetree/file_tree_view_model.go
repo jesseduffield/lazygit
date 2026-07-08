@@ -2,7 +2,6 @@ package filetree
 
 import (
 	"strings"
-	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -22,7 +21,6 @@ type IFileTreeViewModel interface {
 // which item is selected. It also contains logic for repositioning that cursor
 // after the files are refreshed
 type FileTreeViewModel struct {
-	sync.RWMutex
 	types.IListCursor
 	IFileTree
 	searchHistory *utils.HistoryBuffer[string]

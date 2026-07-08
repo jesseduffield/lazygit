@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
@@ -123,17 +122,6 @@ func (self *TestDriver) ExpectToast(matcher *TextMatcher) *TestDriver {
 	}
 
 	return self
-}
-
-func (self *TestDriver) ExpectClipboard(matcher *TextMatcher) {
-	self.assertWithRetries(func() (bool, string) {
-		text, err := clipboard.ReadAll()
-		if err != nil {
-			return false, "Error occurred when reading from clipboard: " + err.Error()
-		}
-		ok, _ := matcher.test(text)
-		return ok, fmt.Sprintf("Expected clipboard to match %s, but got %s", matcher.name(), text)
-	})
 }
 
 func (self *TestDriver) ExpectSearch() *SearchDriver {

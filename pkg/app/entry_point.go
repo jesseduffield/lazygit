@@ -102,7 +102,7 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 	if cliArgs.PrintDefaultConfig {
 		var buf bytes.Buffer
 		encoder := yaml.NewEncoder(&buf)
-		err := encoder.Encode(config.GetDefaultConfigForPlatform(runtime.GOOS))
+		err := encoder.Encode(config.GetDefaultConfigForPlatform(config.KeybindingPlatform()))
 		if err != nil {
 			log.Fatal(err.Error())
 		}

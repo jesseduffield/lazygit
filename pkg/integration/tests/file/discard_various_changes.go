@@ -16,6 +16,8 @@ var DiscardVariousChanges = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Common().PretendMergeOrRebaseStartedInLazygit()
+
 		type statusFile struct {
 			status string
 			label  string

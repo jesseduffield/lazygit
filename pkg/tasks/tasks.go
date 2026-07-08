@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -14,6 +15,25 @@ import (
 	"github.com/sasha-s/go-deadlock"
 	"github.com/sirupsen/logrus"
 )
+
+// Cmd abstracts over a started external process. *exec.Cmd satisfies the bulk
+// of it via ExecCmd, but pty implementations can supply their own types — on
+// Windows, ConPTY has to spawn via CreateProcess directly and can't use
+// *exec.Cmd (see golang/go#62708).
+type Cmd interface {
+	Wait() error
+	String() string
+	GetProcess() *os.Process
+}
+
+// ExecCmd adapts *exec.Cmd to Cmd.
+type ExecCmd struct {
+	*exec.Cmd
+}
+
+func (c ExecCmd) GetProcess() *os.Process {
+	return c.Process
+}
 
 // This file revolves around running commands that will be output to the main panel
 // in the gui. If we're flicking through the commits panel, we want to invoke a
@@ -117,7 +137,7 @@ func (self *ViewBufferManager) ReadToEnd(then func()) {
 	}
 }
 
-func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
+func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
 	return func(opts TaskOpts) error {
 		var onDoneOnce sync.Once
 		var onFirstPageShownOnce sync.Once
@@ -173,8 +193,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				//
 				// Unfortunately this will do nothing on Windows, so Windows users will have to live
 				// with the higher CPU usage.
-				if err := oscommands.TerminateProcessGracefully(cmd); err != nil {
-					self.Log.Errorf("error when trying to terminate cmd task: %v; Command: %v %v", err, cmd.Path, cmd.Args)
+				if err := oscommands.TerminateProcessGracefully(cmd.GetProcess()); err != nil {
+					self.Log.Errorf("error when trying to terminate cmd task: %v; Command: %v", err, cmd.String())
 				}
 
 				// close the task's stdout pipe (or the pty if we're using one) to make the command terminate
@@ -248,8 +268,26 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				}
 			}
 
+			// Go's select picks randomly among ready cases, so once opts.Stop is
+			// closed the selects below could still service a ready data channel
+			// instead of bailing. Check stop explicitly first to give it priority:
+			// a task that's been stopped (it's being replaced by a newer one) must
+			// not touch the view here — beforeStart clears it and the prefix gets
+			// written, clobbering what the incoming task is about to render.
+			stopped := func() bool {
+				select {
+				case <-opts.Stop:
+					return true
+				default:
+					return false
+				}
+			}
+
 		outer:
 			for {
+				if stopped() {
+					break outer
+				}
 				select {
 				case <-opts.Stop:
 					break outer
@@ -260,6 +298,10 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 						}
 					}
 					for i := 0; linesToRead.Total == -1 || i < linesToRead.Total; i++ {
+						if stopped() {
+							callThen()
+							break outer
+						}
 						var ok bool
 						var line []byte
 						select {
@@ -316,7 +358,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				go func() { _ = cmd.Wait() }()
 			default:
 				if err := cmd.Wait(); err != nil {
-					self.Log.Errorf("Unexpected error when running cmd task: %v; Failed command: %v %v", err, cmd.Path, cmd.Args)
+					self.Log.Errorf("Unexpected error when running cmd task: %v; Failed command: %v", err, cmd.String())
 				}
 			}
 
@@ -381,12 +423,29 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		})
 	}
 
+	// Assign the taskID synchronously so it reflects NewTask call order
+	// rather than the order in which the spawned goroutines happen to be
+	// scheduled. Otherwise two NewTask calls in quick succession can have
+	// their goroutines race, with the later-called task ending up with the
+	// lower taskID and losing the staleness check below.
+	self.taskIDMutex.Lock()
+	self.newTaskID++
+	taskID := self.newTaskID
+	self.taskIDMutex.Unlock()
+
 	go utils.Safe(func() {
 		defer completeGocuiTask()
 
 		self.taskIDMutex.Lock()
-		self.newTaskID++
-		taskID := self.newTaskID
+
+		// Bail out before touching shared view state if a newer task has
+		// already been queued: if we ran onNewKey here we'd reset the view
+		// for a task that's about to exit, potentially wiping output the
+		// winning task has already written.
+		if taskID < self.newTaskID {
+			self.taskIDMutex.Unlock()
+			return
+		}
 
 		if self.GetTaskKey() != key && self.onNewKey != nil {
 			self.onNewKey()
@@ -397,6 +456,8 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 
 		self.waitingMutex.Lock()
 
+		// Re-check staleness after acquiring waitingMutex: a newer task
+		// may have arrived while we were blocked here.
 		self.taskIDMutex.Lock()
 		if taskID < self.newTaskID {
 			self.waitingMutex.Unlock()

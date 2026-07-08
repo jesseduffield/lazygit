@@ -34,9 +34,10 @@ generate:
     go generate ./...
 
 format:
-    gofumpt -l -w .
+    go tool gofumpt -l -w .
 
 lint:
+    ./scripts/gofumpt-check.sh
     ./scripts/golangci-lint-shim.sh run
 
 e2e-test-command := "go test pkg/integration/clients/*.go"
@@ -74,4 +75,4 @@ demo *args:
     demo/record_demo.sh {{ args }}
 
 vendor:
-    go mod vendor && go mod tidy
+    go mod tidy && go mod vendor

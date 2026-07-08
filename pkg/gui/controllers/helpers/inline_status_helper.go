@@ -138,22 +138,18 @@ func (self *InlineStatusHelper) stop(opts InlineStatusOpts) {
 
 	self.c.State().ClearItemOperation(opts.Item)
 
-	// When recording a demo we need to re-render the context again here to
-	// remove the inline status. In normal usage we don't want to do this
-	// because in the case of pushing a branch this would first reveal the ↑3↓7
-	// status from before the push for a brief moment, to be replaced by a green
-	// checkmark a moment later when the async refresh is done. This looks
-	// jarring, so normally we rely on the async refresh to redraw with the
-	// status removed. (In some rare cases, where there's no refresh at all, we
-	// need to redraw manually in the controller; see TagsController.push() for
-	// an example.)
-	//
-	// In demos, however, we turn all async refreshes into sync ones, because
-	// this looks better in demos. In this case the refresh happens while the
-	// status is still set, so we need to render again after removing it.
-	if self.c.InDemo() {
-		self.renderContext(opts.ContextKey)
-	}
+	// Re-render the context to remove the inline status now that the operation
+	// finished. Any refresh it triggered must be synchronous, not async: by the
+	// time we get here a synchronous refresh has already updated the model and
+	// queued its own re-render, and since UI-thread callbacks run in order, the
+	// render we queue here runs after it and draws the up-to-date model without
+	// the inline status. An async refresh might not have updated the model yet,
+	// so this render could briefly show the stale, pre-operation model: when
+	// pushing a branch, for example, it would flash the old ↑3↓7 ahead/behind
+	// counts for a moment before the refresh replaced them with a green
+	// checkmark. (Operations that don't refresh at all are fine too: there's
+	// nothing stale to show, so this just drops the status.)
+	self.renderContext(opts.ContextKey)
 }
 
 func (self *InlineStatusHelper) renderContext(contextKey types.ContextKey) {

@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/jesseduffield/lazycore/pkg/boxlayout"
@@ -85,7 +86,7 @@ type Gui struct {
 	// holds a mapping of view names to ptmx's. This is for rendering command outputs
 	// from within a pty. The point of keeping track of them is so that if we re-size
 	// the window, we can tell the pty it needs to resize accordingly.
-	viewPtmxMap map[string]*os.File
+	viewPtmxMap map[string]oscommands.Pty
 	stopChan    chan struct{}
 
 	// when lazygit is opened outside a git directory we want to open to the most
@@ -111,7 +112,10 @@ type Gui struct {
 
 	PopupHandler types.IPopupHandler
 
-	IsRefreshingFiles bool
+	// Bumped every time we switch to a different repository (in resetState).
+	// Used to drop refresh results that were computed for a repo we've since
+	// navigated away from. See RefreshHelper.onUIThreadUnlessRepoChanged.
+	repoGeneration atomic.Int32
 
 	// we use this to decide whether we'll return to the original directory that
 	// lazygit was opened in, or if we'll retain the one we're currently in.
@@ -171,16 +175,12 @@ func (self *StateAccessor) GetRepoState() types.IRepoStateAccessor {
 	return self.gui.State
 }
 
+func (self *StateAccessor) GetRepoGeneration() int {
+	return int(self.gui.repoGeneration.Load())
+}
+
 func (self *StateAccessor) GetPagerConfig() *config.PagerConfig {
 	return self.gui.pagerConfig
-}
-
-func (self *StateAccessor) GetIsRefreshingFiles() bool {
-	return self.gui.IsRefreshingFiles
-}
-
-func (self *StateAccessor) SetIsRefreshingFiles(value bool) {
-	self.gui.IsRefreshingFiles = value
 }
 
 func (self *StateAccessor) GetShowExtrasWindow() bool {
@@ -234,8 +234,11 @@ type GuiRepoState struct {
 
 	SplitMainPanel bool
 
-	SearchState  *types.SearchState
-	StartupStage types.StartupStage // Allows us to not load everything at once
+	SearchState *types.SearchState
+	// Lets us not load everything at once. Written and read from refresh
+	// workers (the reflog/branches load transitions it INITIAL->COMPLETE), so
+	// it's atomic. Holds a types.StartupStage.
+	startupStage atomic.Int32
 
 	ContextMgr *ContextMgr
 	Contexts   *context.ContextTree
@@ -255,6 +258,18 @@ type GuiRepoState struct {
 	CurrentPopupOpts *types.CreatePopupPanelOpts
 
 	LastBackgroundFetchTime time.Time
+
+	// Whether the rebase/merge/cherry-pick/revert that's currently in progress
+	// was started from within lazygit (as opposed to being started externally,
+	// e.g. in another terminal or by a coding agent). We only auto-prompt to
+	// continue such an operation once its conflicts are resolved if we started
+	// it ourselves; for an externally started one, popping up unbidden would be
+	// confusing. Reset whenever we observe that no operation is in progress.
+	//
+	// Written from both the files refresh worker and the merge/rebase result
+	// path (which runs on a worker for the async callers), and read from the
+	// files refresh worker, so it's atomic.
+	mergeOrRebaseStartedInLazygit atomic.Bool
 }
 
 var _ types.IRepoStateAccessor = new(GuiRepoState)
@@ -268,11 +283,11 @@ func (self *GuiRepoState) GetWindowViewNameMap() *utils.ThreadSafeMap[string, st
 }
 
 func (self *GuiRepoState) GetStartupStage() types.StartupStage {
-	return self.StartupStage
+	return types.StartupStage(self.startupStage.Load())
 }
 
 func (self *GuiRepoState) SetStartupStage(value types.StartupStage) {
-	self.StartupStage = value
+	self.startupStage.Store(int32(value))
 }
 
 func (self *GuiRepoState) GetCurrentPopupOpts() *types.CreatePopupPanelOpts {
@@ -281,6 +296,14 @@ func (self *GuiRepoState) GetCurrentPopupOpts() *types.CreatePopupPanelOpts {
 
 func (self *GuiRepoState) SetCurrentPopupOpts(value *types.CreatePopupPanelOpts) {
 	self.CurrentPopupOpts = value
+}
+
+func (self *GuiRepoState) GetMergeOrRebaseStartedInLazygit() bool {
+	return self.mergeOrRebaseStartedInLazygit.Load()
+}
+
+func (self *GuiRepoState) SetMergeOrRebaseStartedInLazygit(value bool) {
+	self.mergeOrRebaseStartedInLazygit.Store(value)
 }
 
 func (self *GuiRepoState) GetScreenMode() types.ScreenMode {
@@ -569,6 +592,11 @@ func (gui *Gui) checkForChangedConfigsThatDontAutoReload(oldConfig *config.UserC
 // resetState reuses the repo state from our repo state map, if the repo was
 // open before; otherwise it creates a new one.
 func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
+	// Bump the repo generation so that any refresh still in flight for the
+	// previous repo drops its model update instead of applying it here (see
+	// RefreshHelper.onUIThreadUnlessRepoChanged).
+	gui.repoGeneration.Add(1)
+
 	// Un-highlight the current view if there is one. The reason we do this is
 	// that the repo we are switching to might have a different view focused,
 	// and would then show an inactive highlight for the previous view.
@@ -745,7 +773,7 @@ func NewGui(
 		Updater:              updater,
 		statusManager:        status.NewStatusManager(),
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
-		viewPtmxMap:          map[string]*os.File{},
+		viewPtmxMap:          map[string]oscommands.Pty{},
 		showRecentRepos:      showRecentRepos,
 		RepoPathStack:        &utils.StringStack{},
 		RepoStateMap:         map[Repo]*GuiRepoState{},
@@ -1173,14 +1201,30 @@ func (gui *Gui) onUIThread(f func() error) {
 	})
 }
 
+func (gui *Gui) onUIThreadBackground(f func() error) {
+	gui.g.UpdateBackground(func(*gocui.Gui) error {
+		return f()
+	})
+}
+
 func (gui *Gui) onUIThreadContentOnly(f func() error) {
 	gui.g.UpdateContentOnly(func(*gocui.Gui) error {
 		return f()
 	})
 }
 
+func (gui *Gui) onUIThreadContentOnlyBackground(f func() error) {
+	gui.g.UpdateContentOnlyBackground(func(*gocui.Gui) error {
+		return f()
+	})
+}
+
 func (gui *Gui) onWorker(f func(gocui.Task) error) {
 	gui.g.OnWorker(f)
+}
+
+func (gui *Gui) onWorkerBackground(f func(gocui.Task) error) {
+	gui.g.OnWorkerBackground(f)
 }
 
 func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {

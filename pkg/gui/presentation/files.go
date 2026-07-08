@@ -328,13 +328,28 @@ func fileNameAtDepth(node *filetree.Node[models.File], depth int, showRootItem b
 
 func commitFileNameAtDepth(node *filetree.Node[models.CommitFile], depth int) string {
 	splitName := split(node.GetInternalPath())
-	if depth == 0 && splitName[0] == "." {
+	showRootItem := splitName[0] == "."
+	if depth == 0 && showRootItem {
 		if len(splitName) == 1 {
 			return "/"
 		}
 		depth = 1
 	}
 	name := join(splitName[depth:])
+
+	if node.File != nil && node.File.IsRename() {
+		splitPrevName := filetree.SplitFileTreePath(node.File.PreviousPath, showRootItem)
+
+		prevName := node.File.PreviousPath
+		// if the file has just been renamed inside the same directory, we can shave off
+		// the prefix for the previous path too. Otherwise we'll keep it unchanged
+		sameParentDir := len(splitName) == len(splitPrevName) && join(splitName[0:depth]) == join(splitPrevName[0:depth])
+		if sameParentDir {
+			prevName = join(splitPrevName[depth:])
+		}
+
+		return prevName + " → " + name
+	}
 
 	return name
 }

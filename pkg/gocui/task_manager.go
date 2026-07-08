@@ -22,7 +22,7 @@ func newTaskManager() *TaskManager {
 	}
 }
 
-func (self *TaskManager) NewTask() *TaskImpl {
+func (self *TaskManager) NewTask(background bool) *TaskImpl {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 
@@ -30,10 +30,32 @@ func (self *TaskManager) NewTask() *TaskImpl {
 	taskId := self.nextId
 
 	onDone := func() { self.delete(taskId) }
-	task := &TaskImpl{id: taskId, busy: true, onDone: onDone, withMutex: self.withMutex}
+	task := &TaskImpl{id: taskId, busy: true, background: background, onDone: onDone, withMutex: self.withMutex}
 	self.tasks[taskId] = task
 
 	return task
+}
+
+// hasBusyForegroundTaskExcept reports whether any task other than `ignore` is
+// currently busy and not a background task. It's used to decide whether a repo
+// switch is safe: a foreground operation (or the refresh it triggers, or that
+// refresh's follow-up callbacks) still in flight means the switch must wait, so
+// it doesn't run against a repo that's about to be swapped out.
+//
+// `ignore` is the event currently being processed on the UI thread — the switch
+// attempt itself — which is always busy and so must not count as a reason to
+// refuse itself.
+func (self *TaskManager) hasBusyForegroundTaskExcept(ignore Task) bool {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	for _, task := range self.tasks {
+		if task != ignore && task.isBusy() && !task.isBackground() {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (self *TaskManager) addIdleListener(c chan struct{}) {
