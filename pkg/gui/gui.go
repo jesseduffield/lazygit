@@ -812,13 +812,25 @@ func NewGui(
 
 	gui.PopupHandler = popup.NewPopupHandler(
 		cmn,
+		// Raising a popup or menu pushes a context and mutates the popup views,
+		// and it can be triggered from a worker goroutine (e.g. a
+		// WithWaitingStatus handler that hits a merge conflict and asks the user
+		// how to proceed). Bounce the creation onto the UI thread so it can't
+		// race the layout/draw code. Doing it here, at the one point where these
+		// producers are injected, keeps every caller oblivious to the threading.
 		func(ctx goContext.Context, opts types.CreatePopupPanelOpts) {
-			gui.helpers.Confirmation.CreatePopupPanel(ctx, opts)
+			gui.onUIThread(func() error {
+				gui.helpers.Confirmation.CreatePopupPanel(ctx, opts)
+				return nil
+			})
 		},
 		func() error { gui.c.Refresh(types.RefreshOptions{}); return nil },
 		func() { gui.State.ContextMgr.Pop() },
 		func() types.Context { return gui.State.ContextMgr.Current() },
-		gui.createMenu,
+		func(opts types.CreateMenuOptions) error {
+			gui.onUIThread(func() error { return gui.createMenu(opts) })
+			return nil
+		},
 		func(message string, f func(gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
 		func(message string, f func(gocui.Task) error) {
 			gui.helpers.AppStatus.WithWaitingStatusBlockingInput(message, f)
