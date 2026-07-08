@@ -353,8 +353,14 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 
 						if !ok {
 							// if we're here then there's nothing left to scan from the source
-							// so we're at the EOF and can flush the stale content
-							self.onEndOfInput()
+							// so we're at the EOF and can flush the stale content.
+							// onEndOfInput reads the view's dimensions (to decide
+							// whether to scroll) and sets the origin, both of which
+							// are UI-thread-only, so run it there.
+							_ = self.onUIThread(func() error {
+								self.onEndOfInput()
+								return nil
+							})
 							callThen()
 							break outer
 						}
