@@ -164,12 +164,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		)
 	}
 
-	// f runs on the UI thread when the refresh was initiated there (Refresh); a
-	// refresh initiated from a worker (RefreshFromWorker) runs f on that worker.
-	// This decides whether a scope capture runs inline or has to hop (see
-	// captureOnUIThread).
-	fRunsOnUIThread := !calledFromWorker
-
 	// Debug-only guard: every refresh must be issued from the entry point that
 	// matches its goroutine — Refresh on the UI thread, RefreshFromWorker on a
 	// worker. goid stays out of production control flow (debug only).
@@ -280,7 +274,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		var capturedCommits capturedCommitState
 		var capturedReflog capturedReflogState
 		var capturedBranches capturedBranchState
-		self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
+		self.captureOnUIThread(calledFromWorker, env.background, func() {
 			capturedCommits = self.captureCommitsState(options.CommitSelection)
 			capturedReflog = self.captureReflogState()
 			capturedBranches = self.captureBranchState()
@@ -314,7 +308,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		// if we've asked specifically for rebase commits and not those other things
 		var rebaseHashPool *utils.StringPool
 		var rebaseCommits []*models.Commit
-		self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
+		self.captureOnUIThread(calledFromWorker, env.background, func() {
 			rebaseHashPool, rebaseCommits = self.captureRebaseCommitState()
 		})
 		refresh("rebase commits", func() { _ = self.refreshRebaseCommits(rebaseHashPool, rebaseCommits, env) })
@@ -322,7 +316,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 
 	if scopeSet.Includes(types.SUB_COMMITS) {
 		var capturedSubCommits capturedSubCommitState
-		self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
+		self.captureOnUIThread(calledFromWorker, env.background, func() {
 			capturedSubCommits = self.captureSubCommitState()
 		})
 		refresh("sub commits", func() { _ = self.refreshSubCommitsWithLimit(capturedSubCommits, env) })
@@ -331,7 +325,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	// reason we're not doing this if the COMMITS type is included is that if the COMMITS type _is_ included we will refresh the commit files context anyway
 	if scopeSet.Includes(types.COMMIT_FILES) && !scopeSet.Includes(types.COMMITS) {
 		var capturedCommitFiles capturedCommitFilesState
-		self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
+		self.captureOnUIThread(calledFromWorker, env.background, func() {
 			capturedCommitFiles = self.captureCommitFilesState()
 		})
 		refresh("commit files", func() { _ = self.refreshCommitFilesContext(capturedCommitFiles, env) })
@@ -340,7 +334,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	fileWg := sync.WaitGroup{}
 	if scopeSet.Includes(types.FILES) {
 		var capturedFiles capturedFilesState
-		self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
+		self.captureOnUIThread(calledFromWorker, env.background, func() {
 			capturedFiles = self.captureFilesState()
 		})
 		fileWg.Add(1)
@@ -352,7 +346,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 
 	if scopeSet.Includes(types.STASH) {
 		var stashFilterPath string
-		self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
+		self.captureOnUIThread(calledFromWorker, env.background, func() {
 			stashFilterPath = self.c.Modes().Filtering.GetPath()
 		})
 		refresh("stash", func() { self.refreshStashEntries(stashFilterPath, env) })
@@ -367,7 +361,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		// needs it to keep the remote-branches selection valid, and reading
 		// the Remotes context off the UI thread races its render.
 		var prevSelectedRemote *models.Remote
-		self.captureOnUIThread(fRunsOnUIThread, env.background, func() {
+		self.captureOnUIThread(calledFromWorker, env.background, func() {
 			prevSelectedRemote = self.c.Contexts().Remotes.GetSelected()
 		})
 		branchesAndRemotesWg.Add(1)
@@ -1142,7 +1136,7 @@ func (self *RefreshHelper) onUIThread(background bool, f func() error) {
 // reads the model/context/mode state a refresh scope needs into locals, so the
 // worker that follows computes from an immutable snapshot instead of reading
 // state the UI thread concurrently mutates. When the enclosing refresh function
-// runs on the UI thread (fRunsOnUIThread is true) fn runs inline; when it runs
+// runs on the UI thread (calledFromWorker is false) fn runs inline; when it runs
 // on a worker, fn is dispatched to the UI thread and we block for it.
 //
 // The inline case matters for correctness as much as the hop: a SYNC refresh
@@ -1150,8 +1144,8 @@ func (self *RefreshHelper) onUIThread(background bool, f func() error) {
 // workers run, so a scope worker that tried to hop to the UI thread there would
 // deadlock. Capturing before those workers are spawned — inline, on the UI
 // thread — avoids that entirely.
-func (self *RefreshHelper) captureOnUIThread(fRunsOnUIThread bool, background bool, fn func()) {
-	if fRunsOnUIThread {
+func (self *RefreshHelper) captureOnUIThread(calledFromWorker bool, background bool, fn func()) {
+	if !calledFromWorker {
 		fn()
 		return
 	}
