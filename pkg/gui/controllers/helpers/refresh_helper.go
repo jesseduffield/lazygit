@@ -142,10 +142,6 @@ func (self *refreshBounceBatch) close() []func() {
 }
 
 func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFromWorker bool) {
-	if options.Mode == types.ASYNC && options.Then != nil {
-		panic("RefreshOptions.Then doesn't work with mode ASYNC")
-	}
-
 	t := time.Now()
 	defer func() {
 		self.c.Log.Infof("Refresh took %s", time.Since(t))
@@ -234,16 +230,18 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 
 	wg := sync.WaitGroup{}
 	refresh := func(name string, f func()) {
+		wg.Add(1)
+
 		// if we're in a demo we don't want any async refreshes because
 		// everything happens fast and it's better to have everything update
 		// in the one frame
 		if !self.c.InDemo() && options.Mode == types.ASYNC {
 			self.onWorker(env.background, func(t gocui.Task) error {
+				defer wg.Done()
 				f()
 				return nil
 			})
 		} else {
-			wg.Add(1)
 			go utils.Safe(func() {
 				t := time.Now()
 				defer wg.Done()
@@ -410,30 +408,41 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 
 	self.refreshStatus(env)
 
-	wg.Wait()
+	waitAndFinalize := func() {
+		wg.Wait()
 
-	if env.batch != nil {
-		// Apply all the scopes' collected bounces in a single UI-thread task,
-		// so they land in one frame: gocui drains every queued event before it
-		// redraws, so one task means one repaint. Bounces enqueued from within
-		// these (see refreshBounceBatch) run as ordinary follow-ups.
-		bounces := env.batch.close()
-		self.onUIThread(env.background, func() error {
-			for _, bounce := range bounces {
-				bounce()
-			}
-			return nil
-		})
+		if env.batch != nil {
+			// Apply all the scopes' collected bounces in a single UI-thread task,
+			// so they land in one frame: gocui drains every queued event before it
+			// redraws, so one task means one repaint. Bounces enqueued from within
+			// these (see refreshBounceBatch) run as ordinary follow-ups.
+			bounces := env.batch.close()
+			self.onUIThread(env.background, func() error {
+				for _, bounce := range bounces {
+					bounce()
+				}
+				return nil
+			})
+		}
+
+		if options.Then != nil {
+			// Queue Then via OnUIThread so it runs *after* the refresh-scope
+			// functions' model-update bounces (which are already queued by
+			// now), not synchronously here — at this point the workers have
+			// returned but their bounces haven't been processed yet, so
+			// invoking Then synchronously would run it on a model that's
+			// still pre-refresh.
+			self.onUIThread(env.background, options.Then)
+		}
 	}
 
-	if options.Then != nil {
-		// Queue Then via OnUIThread so it runs *after* the refresh-scope
-		// functions' model-update bounces (which are already queued by
-		// now), not synchronously here — at this point the workers have
-		// returned but their bounces haven't been processed yet, so
-		// invoking Then synchronously would run it on a model that's
-		// still pre-refresh.
-		self.onUIThread(env.background, options.Then)
+	if options.Mode == types.SYNC {
+		waitAndFinalize()
+	} else {
+		self.onWorker(env.background, func(t gocui.Task) error {
+			waitAndFinalize()
+			return nil
+		})
 	}
 }
 
