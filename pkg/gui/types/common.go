@@ -358,7 +358,6 @@ type Model struct {
 
 type Mutexes struct {
 	SubprocessMutex deadlock.Mutex
-	PopupMutex      deadlock.Mutex
 	PtyMutex        deadlock.Mutex
 }
 

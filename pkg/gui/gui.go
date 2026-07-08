@@ -620,9 +620,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 
 		// setting this to nil so we don't get stuck based on a popup that was
 		// previously opened
-		gui.Mutexes.PopupMutex.Lock()
 		gui.State.CurrentPopupOpts = nil
-		gui.Mutexes.PopupMutex.Unlock()
 
 		return gui.c.Context().Current()
 	}
