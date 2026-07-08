@@ -321,7 +321,7 @@ func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 }
 
 // PromptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
-func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
+func (self *MergeAndRebaseHelper) PromptToContinueRebase() {
 	self.continueRebasePromptShowing = true
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.Continue,
@@ -373,8 +373,6 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 			return nil
 		},
 	})
-
-	return nil
 }
 
 // DismissContinueRebasePromptIfShowing closes the "continue the rebase/merge?"

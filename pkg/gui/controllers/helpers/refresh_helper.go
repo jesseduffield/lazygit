@@ -1220,7 +1220,8 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 					self.mergeConflictsHelper.ResetMergeState()
 					self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
 				}
-				return self.mergeAndRebaseHelper.PromptToContinueRebase()
+				self.mergeAndRebaseHelper.PromptToContinueRebase()
+				return nil
 			})
 		}
 	} else {
