@@ -232,10 +232,13 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	refresh := func(name string, f func()) {
 		wg.Add(1)
 
-		// if we're in a demo we don't want any async refreshes because
-		// everything happens fast and it's better to have everything update
-		// in the one frame
-		if !self.c.InDemo() && options.Mode == types.ASYNC {
+		// A refresh issued from the UI thread must not block it, so its scopes
+		// run as their own worker tasks and the caller returns immediately (the
+		// finishing step below is dispatched to a worker too). A refresh issued
+		// from a worker blocks that worker instead, running its scopes as plain
+		// goroutines that it joins. In a demo we always take the blocking path
+		// so everything updates in a single, deterministic frame.
+		if !self.c.InDemo() && !calledFromWorker {
 			self.onWorker(env.background, func(t gocui.Task) error {
 				defer wg.Done()
 				f()
@@ -436,7 +439,10 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		}
 	}
 
-	if options.Mode == types.SYNC {
+	// waitAndFinalize blocks until every scope is done. Run it inline when we're
+	// already on a worker (or in a demo, for a deterministic single frame); when
+	// we're on the UI thread, dispatch it to a worker so it doesn't block the UI.
+	if calledFromWorker || self.c.InDemo() {
 		waitAndFinalize()
 	} else {
 		self.onWorker(env.background, func(t gocui.Task) error {
