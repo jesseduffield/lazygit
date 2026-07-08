@@ -86,6 +86,30 @@ func (self *AppStatusHelper) WithWaitingStatusImpl(message string, f func(gocui.
 	})
 }
 
+// WithWaitingStatusBlockingInput is like WithWaitingStatus, but it also blocks
+// keyboard input for the whole duration of the operation: keys the user presses
+// while it runs are buffered and replayed against the post-operation state (see
+// gocui.BeginBlockingEvents). Use it for operations that manipulate an
+// in-progress rebase or otherwise rewrite commits, where a racing keypress
+// would target the wrong commit or todo.
+//
+// Must be called on the UI thread: the block is begun synchronously here, before
+// the operation is dispatched to a worker, so no keypress can slip through in
+// between.
+func (self *AppStatusHelper) WithWaitingStatusBlockingInput(message string, f func(gocui.Task) error) {
+	self.c.GocuiGui().BeginBlockingEvents()
+	self.c.OnWorker(func(task gocui.Task) error {
+		// End the block once the operation and its refresh have applied their UI
+		// updates: OnUIThread queues this after the refresh's model bounces and
+		// Then (which RefreshFromWorker has already enqueued by the time f
+		// returns), so the replayed keys act on the refreshed state.
+		defer self.c.OnUIThread(func() error {
+			return self.c.GocuiGui().EndBlockingEvents()
+		})
+		return self.WithWaitingStatusImpl(message, f, task, false)
+	})
+}
+
 func (self *AppStatusHelper) WithWaitingStatusSync(message string, f func() error) error {
 	self.c.PauseBackgroundRefreshes(true)
 	defer self.c.PauseBackgroundRefreshes(false)
