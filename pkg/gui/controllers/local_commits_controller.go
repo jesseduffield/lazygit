@@ -748,15 +748,24 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 		return nil
 	}
 
-	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
+	commits := self.c.Model().Commits
+	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.MovingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
-		err := self.c.Git().Rebase.MoveCommitsDown(self.c.Model().Commits, startIdx, endIdx)
-		if err == nil {
-			self.context().MoveSelection(1)
-			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
-		}
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
-			err, types.RefreshOptions{CommitSelection: types.KeepCommitSelectionIndex})
+		err := self.c.Git().Rebase.MoveCommitsDown(commits, startIdx, endIdx)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{
+				BatchUIUpdates:  true,
+				CommitSelection: types.KeepCommitSelectionIndex,
+				// Move the selection to follow the moved commit, in Then so it
+				// lands in the same frame as the refreshed commit list.
+				Then: func() error {
+					if err == nil {
+						self.context().MoveSelection(1)
+						self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
+					}
+					return nil
+				},
+			})
 	})
 }
 
@@ -775,15 +784,24 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 		return nil
 	}
 
-	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
+	commits := self.c.Model().Commits
+	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.MovingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
-		err := self.c.Git().Rebase.MoveCommitsUp(self.c.Model().Commits, startIdx, endIdx)
-		if err == nil {
-			self.context().MoveSelection(-1)
-			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
-		}
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
-			err, types.RefreshOptions{CommitSelection: types.KeepCommitSelectionIndex})
+		err := self.c.Git().Rebase.MoveCommitsUp(commits, startIdx, endIdx)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{
+				BatchUIUpdates:  true,
+				CommitSelection: types.KeepCommitSelectionIndex,
+				// Move the selection to follow the moved commit, in Then so it
+				// lands in the same frame as the refreshed commit list.
+				Then: func() error {
+					if err == nil {
+						self.context().MoveSelection(-1)
+						self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
+					}
+					return nil
+				},
+			})
 	})
 }
 
@@ -936,9 +954,8 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 		Prompt: promptText,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RevertCommit)
-			return self.c.WithWaitingStatusSync(self.c.Tr.RevertingStatus, func() error {
-				mustStash := helpers.IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
-
+			mustStash := helpers.IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
+			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RevertingStatus, func(gocui.Task) error {
 				if mustStash {
 					if err := self.c.Git().Stash.Push(self.c.Tr.AutoStashForReverting); err != nil {
 						return err
@@ -946,7 +963,8 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 				}
 
 				result := self.c.Git().Commit.Revert(hashes, isMerge)
-				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(result, types.RefreshOptions{}); err != nil {
+				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(result,
+					types.RefreshOptions{BatchUIUpdates: true}); err != nil {
 					return err
 				}
 
@@ -954,7 +972,7 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 					if err := self.c.Git().Stash.Pop(0); err != nil {
 						return err
 					}
-					self.c.Refresh(types.RefreshOptions{
+					self.c.RefreshFromWorker(types.RefreshOptions{
 						Scope: []types.RefreshableView{types.STASH, types.FILES},
 					})
 				}
@@ -988,7 +1006,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 						selectedIdx := self.context().GetSelectedLineIdx()
 						commits := self.c.Model().Commits
 						branches := self.c.Model().Branches
-						return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
+						return self.c.WithWaitingStatusBlockingInput(self.c.Tr.CreatingFixupCommitStatus, func(gocui.Task) error {
 							if err := self.c.Git().Commit.CreateFixupCommit(commit.Hash()); err != nil {
 								return err
 							}
@@ -997,7 +1015,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 								return err
 							}
 
-							self.c.Refresh(types.RefreshOptions{})
+							self.c.RefreshFromWorker(types.RefreshOptions{BatchUIUpdates: true})
 							return nil
 						})
 					})
@@ -1096,7 +1114,7 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 				selectedIdx := self.context().GetSelectedLineIdx()
 				commits := self.c.Model().Commits
 				branches := self.c.Model().Branches
-				return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
+				return self.c.WithWaitingStatusBlockingInput(self.c.Tr.CreatingFixupCommitStatus, func(gocui.Task) error {
 					if err := self.c.Git().Commit.CreateAmendCommit(originalSubject, summary, description, includeFileChanges); err != nil {
 						return err
 					}
@@ -1105,7 +1123,7 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 						return err
 					}
 
-					self.c.Refresh(types.RefreshOptions{})
+					self.c.RefreshFromWorker(types.RefreshOptions{BatchUIUpdates: true})
 					return nil
 				})
 			},
@@ -1153,12 +1171,28 @@ func (self *LocalCommitsController) squashAllFixupsInCurrentBranch() error {
 
 func (self *LocalCommitsController) squashFixupsImpl(commit *models.Commit, rebaseStartIdx int) error {
 	selectionOffset := countSquashableCommitsAbove(self.c.Model().Commits, self.context().GetSelectedLineIdx(), rebaseStartIdx)
-	return self.c.WithWaitingStatusSync(self.c.Tr.SquashingStatus, func() error {
+	// The squashed fixups above the selection are removed, so the selection moves
+	// up by that many rows to stay on the same commit. Compute the target as an
+	// absolute index now, on the current list.
+	targetIdx := self.context().GetSelectedLineIdx() - selectionOffset
+	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.SquashingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
 		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
-		self.context().MoveSelectedLine(-selectionOffset)
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
-			err, types.RefreshOptions{})
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{
+				BatchUIUpdates: true,
+				// Set the selection in Then so it lands in the same frame as the
+				// refreshed commit list. It has to be an absolute index: the new
+				// list is shorter, so a relative move from the (clamped) old index
+				// could overshoot. PostRefreshUpdate repaints the moved selection.
+				Then: func() error {
+					if err == nil {
+						self.context().SetSelectedLineIdx(targetIdx)
+						self.c.PostRefreshUpdate(self.context())
+					}
+					return nil
+				},
+			})
 	})
 }
 

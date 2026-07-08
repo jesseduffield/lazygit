@@ -223,12 +223,18 @@ func (self *PatchBuildingController) discardSelectionFromCommit() error {
 		return nil
 	}
 
-	return self.c.WithWaitingStatusSync(self.c.Tr.RebasingStatus, func() error {
-		commitIndex := self.getPatchCommitIndex()
+	commits := self.c.Model().Commits
+	commitIndex := self.getPatchCommitIndex()
+	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.RemovePatchFromCommit)
-		err := self.c.Git().Patch.DeletePatchesFromCommit(self.c.Model().Commits, commitIndex)
-		self.c.Helpers().PatchBuilding.Escape()
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
+		err := self.c.Git().Patch.DeletePatchesFromCommit(commits, commitIndex)
+		// Escape pops the patch-building context, so run it on the UI thread
+		// before the refresh below.
+		_ = self.c.GocuiGui().OnUIThreadAndWait(func() error {
+			self.c.Helpers().PatchBuilding.Escape()
+			return nil
+		})
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err, types.RefreshOptions{})
 	})
 }
