@@ -985,12 +985,15 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 				OnPress: func() error {
 					return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 						self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
+						selectedIdx := self.context().GetSelectedLineIdx()
+						commits := self.c.Model().Commits
+						branches := self.c.Model().Branches
 						return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
 							if err := self.c.Git().Commit.CreateFixupCommit(commit.Hash()); err != nil {
 								return err
 							}
 
-							if err := self.moveFixupCommitToOwnerStackedBranch(commit); err != nil {
+							if err := self.moveFixupCommitToOwnerStackedBranch(commit, selectedIdx, commits, branches); err != nil {
 								return err
 							}
 
@@ -1023,7 +1026,12 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 	})
 }
 
-func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(targetCommit *models.Commit) error {
+// moveFixupCommitToOwnerStackedBranch takes state captured on the UI thread
+// (the selected index and the commits and branches models) so that it can run
+// its rebase on a worker without reading the model there.
+func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(
+	targetCommit *models.Commit, selectedIdx int, commits []*models.Commit, branches []*models.Branch,
+) error {
 	if self.c.Git().Version.IsOlderThan(2, 38, 0) {
 		// Git 2.38.0 introduced the `rebase.updateRefs` config option. Don't
 		// move the commit down with older versions, as it would break the stack.
@@ -1051,9 +1059,9 @@ func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(targetCo
 	}
 
 	headOfOwnerBranchIdx := -1
-	for i := self.context().GetSelectedLineIdx(); i > 0; i-- {
-		if lo.SomeBy(self.c.Model().Branches, func(b *models.Branch) bool {
-			return b.CommitHash == self.c.Model().Commits[i].Hash()
+	for i := selectedIdx; i > 0; i-- {
+		if lo.SomeBy(branches, func(b *models.Branch) bool {
+			return b.CommitHash == commits[i].Hash()
 		}) {
 			headOfOwnerBranchIdx = i
 			break
@@ -1064,7 +1072,7 @@ func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(targetCo
 		return nil
 	}
 
-	return self.c.Git().Rebase.MoveFixupCommitDown(self.c.Model().Commits, headOfOwnerBranchIdx)
+	return self.c.Git().Rebase.MoveFixupCommitDown(commits, headOfOwnerBranchIdx)
 }
 
 func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, includeFileChanges bool) error {
@@ -1085,12 +1093,15 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 			PreserveMessage:  false,
 			OnConfirm: func(summary string, description string) error {
 				self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
+				selectedIdx := self.context().GetSelectedLineIdx()
+				commits := self.c.Model().Commits
+				branches := self.c.Model().Branches
 				return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
 					if err := self.c.Git().Commit.CreateAmendCommit(originalSubject, summary, description, includeFileChanges); err != nil {
 						return err
 					}
 
-					if err := self.moveFixupCommitToOwnerStackedBranch(commit); err != nil {
+					if err := self.moveFixupCommitToOwnerStackedBranch(commit, selectedIdx, commits, branches); err != nil {
 						return err
 					}
 
