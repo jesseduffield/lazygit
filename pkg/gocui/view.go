@@ -214,6 +214,16 @@ func (v *View) clearViewLines() {
 	v.clearHover()
 }
 
+// ClearViewLines is clearViewLines guarded by writeMutex. It's for callers on
+// the UI thread (the layout pass) that touch a view whose content a task
+// goroutine may be writing concurrently: viewLines/tainted/hover are all
+// buffer state that writeMutex protects.
+func (v *View) ClearViewLines() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+	v.clearViewLines()
+}
+
 type searcher struct {
 	searchString       string
 	searchPositions    []SearchPosition
@@ -1287,6 +1297,8 @@ func (v *View) updateSearchPositions() {
 
 // IsTainted tells us if the view is tainted
 func (v *View) IsTainted() bool {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
 	return v.tainted
 }
 
@@ -1535,6 +1547,9 @@ func (v *View) BufferLines() []string {
 // Buffer returns a string with the contents of the view's internal
 // buffer.
 func (v *View) Buffer() string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	return linesToString(v.lines)
 }
 
