@@ -476,7 +476,7 @@ func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepat
 		return err
 	}
 
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{})
 	return nil
 }
 
@@ -495,7 +495,7 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 		if err != nil {
 			return err
 		}
-		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.RefreshFromWorker(types.RefreshOptions{})
 		return nil
 	})
 }
@@ -700,7 +700,7 @@ func (self *LocalCommitsController) updateTodosWithFlag(action todo.TodoCommand,
 	}
 
 	self.c.Refresh(types.RefreshOptions{
-		Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
+		Scope: []types.RefreshableView{types.REBASE_COMMITS},
 	})
 
 	return nil
@@ -742,7 +742,6 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 		self.c.Refresh(types.RefreshOptions{
-			Mode:            types.SYNC,
 			Scope:           []types.RefreshableView{types.REBASE_COMMITS},
 			CommitSelection: types.KeepCommitSelectionIndex,
 		})
@@ -757,7 +756,7 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
-			err, types.RefreshOptions{Mode: types.SYNC, CommitSelection: types.KeepCommitSelectionIndex})
+			err, types.RefreshOptions{CommitSelection: types.KeepCommitSelectionIndex})
 	})
 }
 
@@ -770,7 +769,6 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 		self.c.Refresh(types.RefreshOptions{
-			Mode:            types.SYNC,
 			Scope:           []types.RefreshableView{types.REBASE_COMMITS},
 			CommitSelection: types.KeepCommitSelectionIndex,
 		})
@@ -785,7 +783,7 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 		}
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
-			err, types.RefreshOptions{Mode: types.SYNC, CommitSelection: types.KeepCommitSelectionIndex})
+			err, types.RefreshOptions{CommitSelection: types.KeepCommitSelectionIndex})
 	})
 }
 
@@ -798,7 +796,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 				if err := self.c.Helpers().AmendHelper.AmendHead(); err != nil {
 					return err
 				}
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				self.c.Refresh(types.RefreshOptions{})
 				return nil
 			})
 		}
@@ -875,7 +873,7 @@ func (self *LocalCommitsController) resetAuthor(commits []*models.Commit, start,
 			return err
 		}
 
-		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.RefreshFromWorker(types.RefreshOptions{})
 		return nil
 	})
 }
@@ -891,7 +889,7 @@ func (self *LocalCommitsController) setAuthor(commits []*models.Commit, start, e
 					return err
 				}
 
-				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
+				self.c.RefreshFromWorker(types.RefreshOptions{})
 				return nil
 			})
 		},
@@ -910,7 +908,7 @@ func (self *LocalCommitsController) addCoAuthor(commits []*models.Commit, start,
 				if err := self.c.Git().Rebase.AddCommitCoAuthor(commits, start, end, value); err != nil {
 					return err
 				}
-				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
+				self.c.RefreshFromWorker(types.RefreshOptions{})
 				return nil
 			})
 		},
@@ -948,7 +946,7 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 				}
 
 				result := self.c.Git().Commit.Revert(hashes, isMerge)
-				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(result, types.RefreshOptions{Mode: types.SYNC}); err != nil {
+				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(result, types.RefreshOptions{}); err != nil {
 					return err
 				}
 
@@ -996,7 +994,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 								return err
 							}
 
-							self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
+							self.c.Refresh(types.RefreshOptions{})
 							return nil
 						})
 					})
@@ -1096,7 +1094,7 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 						return err
 					}
 
-					self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
+					self.c.Refresh(types.RefreshOptions{})
 					return nil
 				})
 			},
@@ -1149,7 +1147,7 @@ func (self *LocalCommitsController) squashFixupsImpl(commit *models.Commit, reba
 		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
 		self.context().MoveSelectedLine(-selectionOffset)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
-			err, types.RefreshOptions{Mode: types.SYNC})
+			err, types.RefreshOptions{})
 	})
 }
 
@@ -1196,7 +1194,7 @@ func (self *LocalCommitsController) openSearch() error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if self.context().GetLimitCommits() {
 		self.context().SetLimitCommits(false)
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS}})
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
 	}
 
 	return self.c.Helpers().Search.OpenSearchPrompt(self.context())
@@ -1217,7 +1215,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 
 					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
 						self.c.Refresh(
-							types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}},
+							types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}},
 						)
 						return nil
 					})
@@ -1271,7 +1269,6 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 							return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
 								self.c.Refresh(
 									types.RefreshOptions{
-										Mode:  types.SYNC,
 										Scope: []types.RefreshableView{types.COMMITS},
 									},
 								)
@@ -1316,7 +1313,7 @@ func (self *LocalCommitsController) GetOnFocus() func(types.OnFocusOpts) {
 		context := self.context()
 		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
 			context.SetLimitCommits(false)
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS}})
+			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
 		}
 	}
 }

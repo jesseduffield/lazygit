@@ -163,7 +163,6 @@ func (self *RemotesController) addAndCheckoutRemote(remoteName string, remoteUrl
 	// affordable.
 	self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.REMOTES},
-		Mode:  types.SYNC,
 		Then: func() error {
 			// Select the remote
 			for idx, remote := range self.c.Model().Remotes {
@@ -371,7 +370,6 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 		}
 		refreshOptions := types.RefreshOptions{
 			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
-			Mode:  types.SYNC,
 		}
 		if branchName != "" {
 			err = self.c.Git().Branch.New(branchName, remote.Name+"/"+branchName)

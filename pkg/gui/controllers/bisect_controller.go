@@ -282,7 +282,7 @@ func (self *BisectController) afterBisectMarkRefresh(selectCurrent bool, waitToR
 	}
 
 	if waitToReselect {
-		self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{}, Then: selectFn})
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{}, Then: selectFn})
 		return nil
 	}
 

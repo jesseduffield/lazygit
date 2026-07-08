@@ -56,7 +56,6 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 			scope = append(scope, types.PULL_REQUESTS)
 		}
 		self.c.RefreshFromWorker(types.RefreshOptions{
-			Mode:                  types.SYNC,
 			BatchUIUpdates:        true,
 			Scope:                 scope,
 			BranchSelection:       types.SelectCheckedOutBranch,
@@ -161,7 +160,6 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 					// Do a sync refresh to make sure the new branch is visible,
 					// so that we see an inline status when checking it out
 					self.c.Refresh(types.RefreshOptions{
-						Mode:  types.SYNC,
 						Scope: []types.RefreshableView{types.BRANCHES},
 					})
 					return checkout(localBranchName, true)
@@ -365,7 +363,6 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 
 	refresh := func() {
 		self.c.RefreshFromWorker(types.RefreshOptions{
-			Mode:                  types.SYNC,
 			BatchUIUpdates:        true,
 			BranchSelection:       types.SelectCheckedOutBranch,
 			CommitSelection:       types.SelectHeadCommit,
@@ -552,7 +549,6 @@ func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchNa
 	}
 
 	self.c.RefreshFromWorker(types.RefreshOptions{
-		Mode:                  types.SYNC,
 		BatchUIUpdates:        true,
 		BranchSelection:       types.SelectCheckedOutBranch,
 		CommitSelection:       types.SelectHeadCommit,
@@ -577,7 +573,7 @@ func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName stri
 	}
 
 	err := self.c.Git().Rebase.CherryPickCommits(commitsToCherryPick)
-	err = self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(err, types.RefreshOptions{Mode: types.SYNC})
+	err = self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(err, types.RefreshOptions{})
 	if err != nil {
 		return err
 	}
@@ -589,7 +585,6 @@ func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName stri
 	}
 
 	self.c.RefreshFromWorker(types.RefreshOptions{
-		Mode:                  types.SYNC,
 		BatchUIUpdates:        true,
 		BranchSelection:       types.SelectCheckedOutBranch,
 		CommitSelection:       types.SelectHeadCommit,

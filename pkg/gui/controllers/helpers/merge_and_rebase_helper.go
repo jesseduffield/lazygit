@@ -133,7 +133,6 @@ func (self *MergeAndRebaseHelper) genericMergeCommandImpl(command string, showWa
 		// TODO: see if we should be calling more of the code from self.Git.Rebase.GenericMergeOrRebaseAction
 		success, err := self.c.RunSubprocess(self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command))
 		self.refreshAfterMergeOrRebase(types.RefreshOptions{
-			Mode:            types.ASYNC,
 			CommitSelection: commitSelectionAfterMerge(success && selectHeadCommitOnSuccess),
 		}, calledFromWorker)
 		self.RecordWhetherMergeOrRebaseStartedInLazygit()
@@ -144,7 +143,6 @@ func (self *MergeAndRebaseHelper) genericMergeCommandImpl(command string, showWa
 		result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
 		return self.checkMergeOrRebaseImpl(result,
 			types.RefreshOptions{
-				Mode:            types.ASYNC,
 				CommitSelection: commitSelectionAfterMerge(result == nil && selectHeadCommitOnSuccess),
 			}, calledFromWorker)
 	}
@@ -258,7 +256,7 @@ func (self *MergeAndRebaseHelper) refreshAfterMergeOrRebase(refreshOptions types
 }
 
 func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
-	return self.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.ASYNC})
+	return self.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{})
 }
 
 // Like CheckMergeOrRebase, but for operations that create a new commit at HEAD
@@ -267,7 +265,7 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
 // before the refresh.
 func (self *MergeAndRebaseHelper) CheckMergeOrRebaseAndSelectHeadCommit(result error) error {
 	return self.CheckMergeOrRebaseWithRefreshOptions(result,
-		types.RefreshOptions{Mode: types.SYNC, CommitSelection: commitSelectionAfterMerge(result == nil)})
+		types.RefreshOptions{CommitSelection: commitSelectionAfterMerge(result == nil)})
 }
 
 func (self *MergeAndRebaseHelper) CheckForConflicts(result error) error {
@@ -346,7 +344,7 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() {
 			// to read it in Then; reading it inline here would see the previous
 			// model.
 			self.c.Refresh(types.RefreshOptions{
-				Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES},
+				Scope: []types.RefreshableView{types.FILES},
 				Then: func() error {
 					unstagedFiles := GetUnstagedFilesExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 					if len(unstagedFiles) > 0 {
@@ -667,7 +665,7 @@ func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranch
 			if err != nil {
 				return err
 			}
-			self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
+			self.c.RefreshFromWorker(types.RefreshOptions{})
 			return nil
 		})
 	}

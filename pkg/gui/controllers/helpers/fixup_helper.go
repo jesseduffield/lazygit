@@ -137,7 +137,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 				if err := self.c.Git().WorkingTree.StageAll(true); err != nil {
 					return err
 				}
-				self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 			}
 
 			self.c.Contexts().LocalCommits.SetSelection(index)

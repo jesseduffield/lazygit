@@ -324,7 +324,7 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 		return err
 	}
 
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{})
 	return nil
 }
 

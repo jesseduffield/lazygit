@@ -331,7 +331,6 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 				return err
 			}
 			self.c.Refresh(types.RefreshOptions{
-				Mode: types.SYNC,
 				Scope: []types.RefreshableView{
 					types.BRANCHES,
 					types.COMMITS,
@@ -355,7 +354,6 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 					return err
 				}
 				self.c.Refresh(types.RefreshOptions{
-					Mode: types.SYNC,
 					Scope: []types.RefreshableView{
 						types.BRANCHES,
 						types.COMMITS,
@@ -546,7 +544,7 @@ func (self *BranchesController) forceCheckout() error {
 			if err := self.c.Git().Branch.Checkout(branch.Name, git_commands.CheckoutOptions{Force: true}); err != nil {
 				return err
 			}
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			self.c.Refresh(types.RefreshOptions{})
 			return nil
 		},
 	})
@@ -600,7 +598,6 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 	}
 
 	self.c.Refresh(types.RefreshOptions{
-		Mode:                  types.ASYNC,
 		BranchSelection:       types.SelectCheckedOutBranch,
 		CommitSelection:       types.SelectHeadCommit,
 		SelectTopReflogCommit: true,
@@ -734,7 +731,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 					WorktreePath:    worktreePath,
 				},
 			)
-			self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.SYNC})
+			self.c.RefreshFromWorker(types.RefreshOptions{})
 			return err
 		}
 
@@ -743,7 +740,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 		err := self.c.Git().Sync.FastForward(
 			task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
 		)
-		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}})
 		return err
 	})
 }
@@ -760,7 +757,7 @@ func (self *BranchesController) createSortMenu() error {
 			if self.c.UserConfig().Git.LocalBranchSortOrder != sortOrder {
 				self.c.UserConfig().Git.LocalBranchSortOrder = sortOrder
 				self.c.Contexts().Branches.SetSelection(0)
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}})
 				return nil
 			}
 			return nil
@@ -788,7 +785,6 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 				// onto the UI thread, so the re-selection (which reads Model.Branches) has to run in
 				// Then; reading it inline here would see the previous model.
 				self.c.Refresh(types.RefreshOptions{
-					Mode:  types.SYNC,
 					Scope: []types.RefreshableView{types.BRANCHES, types.WORKTREES},
 					Then: func() error {
 						// now that we've got our stuff again we need to find that branch and reselect it.

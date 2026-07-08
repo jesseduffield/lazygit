@@ -147,15 +147,18 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		self.c.Log.Infof("Refresh took %s", time.Since(t))
 	}()
 
+	// A refresh from a worker blocks that worker until it's done; one from the
+	// UI thread returns immediately and finishes in the background.
+	syncOrAsync := "async"
+	if calledFromWorker {
+		syncOrAsync = "sync"
+	}
 	if options.Scope == nil {
-		self.c.Log.Infof(
-			"refreshing all scopes in %s mode",
-			getModeName(options.Mode),
-		)
+		self.c.Log.Infof("refreshing all scopes (%s)", syncOrAsync)
 	} else {
 		self.c.Log.Infof(
-			"refreshing the following scopes in %s mode: %s",
-			getModeName(options.Mode),
+			"refreshing the following scopes (%s): %s",
+			syncOrAsync,
 			strings.Join(getScopeNames(options.Scope), ","),
 		)
 	}
@@ -528,17 +531,6 @@ func getScopeNames(scopes []types.RefreshableView) []string {
 	return lo.Map(scopes, func(scope types.RefreshableView, _ int) string {
 		return scopeNameMap[scope]
 	})
-}
-
-func getModeName(mode types.RefreshMode) string {
-	switch mode {
-	case types.SYNC:
-		return "sync"
-	case types.ASYNC:
-		return "async"
-	default:
-		return "unknown mode"
-	}
 }
 
 // During startup, the bottleneck is fetching the reflog entries, which we need

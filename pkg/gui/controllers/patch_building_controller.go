@@ -229,7 +229,7 @@ func (self *PatchBuildingController) discardSelectionFromCommit() error {
 		err := self.c.Git().Patch.DeletePatchesFromCommit(self.c.Model().Commits, commitIndex)
 		self.c.Helpers().PatchBuilding.Escape()
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
-			err, types.RefreshOptions{Mode: types.SYNC})
+			err, types.RefreshOptions{})
 	})
 }
 
