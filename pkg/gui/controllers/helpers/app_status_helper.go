@@ -98,28 +98,21 @@ func (self *AppStatusHelper) WithWaitingStatusImpl(message string, f func(gocui.
 // between.
 func (self *AppStatusHelper) WithWaitingStatusBlockingInput(message string, f func(gocui.Task) error) {
 	self.c.GocuiGui().BeginBlockingEvents()
+	// Hide the rebasing-mode indicator (and its reset button) while we drive the
+	// rebase ourselves; it reflects the transient on-disk state and would
+	// otherwise flash on for the duration of the operation.
+	self.modeHelper.SetSuppressRebasingMode(true)
 	self.c.OnWorker(func(task gocui.Task) error {
-		// End the block once the operation and its refresh have applied their UI
-		// updates: OnUIThread queues this after the refresh's model bounces and
-		// Then (which RefreshFromWorker has already enqueued by the time f
-		// returns), so the replayed keys act on the refreshed state.
+		// End the block and restore the mode indicator once the operation and its
+		// refresh have applied their UI updates: OnUIThread queues this after the
+		// refresh's model bounces and Then (which RefreshFromWorker has already
+		// enqueued by the time f returns), so the replayed keys act on the
+		// refreshed state and any resulting rebase state shows correctly.
 		defer self.c.OnUIThread(func() error {
+			self.modeHelper.SetSuppressRebasingMode(false)
 			return self.c.GocuiGui().EndBlockingEvents()
 		})
 		return self.WithWaitingStatusImpl(message, f, task, false)
-	})
-}
-
-func (self *AppStatusHelper) WithWaitingStatusSync(message string, f func() error) error {
-	self.c.PauseBackgroundRefreshes(true)
-	defer self.c.PauseBackgroundRefreshes(false)
-
-	return self.statusMgr().WithWaitingStatus(message, func() {}, func(*status.WaitingStatusHandle) error {
-		stop := make(chan struct{})
-		defer func() { close(stop) }()
-		self.renderAppStatusSync(stop)
-
-		return f()
 	})
 }
 
@@ -173,58 +166,4 @@ func (self *AppStatusHelper) renderAppStatus(background bool) {
 		}
 		return nil
 	})
-}
-
-func (self *AppStatusHelper) renderAppStatusSync(stop chan struct{}) {
-	go func() {
-		ticker := time.NewTicker(time.Millisecond * time.Duration(self.c.UserConfig().Gui.Spinner.Rate))
-		defer ticker.Stop()
-
-		// Write the status into the view before the first layout below, so that
-		// layout (which sizes the bottom line based on the actual content of the
-		// AppStatus view) leaves room for it and it shows right away. The ticker
-		// only updates the spinner frame using ForceFlushViewsContentOnly, so this
-		// doesn't re-layout.
-		self.setAppStatusContent()
-
-		// Forcing a re-layout and redraw after we added the waiting status;
-		// this is needed in case the gui.showBottomLine config is set to false,
-		// to make sure the bottom line appears. It's also useful for redrawing
-		// once after each of several consecutive keypresses, e.g. pressing
-		// ctrl-j to move a commit down several steps.
-		_ = self.c.GocuiGui().ForceLayoutAndRedraw()
-
-		self.modeHelper.SetSuppressRebasingMode(true)
-		defer func() { self.modeHelper.SetSuppressRebasingMode(false) }()
-
-	outer:
-		for {
-			select {
-			case <-ticker.C:
-				self.setAppStatusContent()
-				// Redraw all views of the bottom line:
-				bottomLineViews := []*gocui.View{
-					self.c.Views().AppStatus, self.c.Views().Options, self.c.Views().Information,
-					self.c.Views().StatusSpacer1, self.c.Views().StatusSpacer2,
-				}
-				_ = self.c.GocuiGui().ForceFlushViewsContentOnly(bottomLineViews)
-			case <-stop:
-				// Clear the status from the view and re-layout, otherwise the
-				// stale content would keep layout reserving room for it forever.
-				// The UI thread is free again at this point, so we go through
-				// OnUIThread like the async renderAppStatus does.
-				self.c.OnUIThread(func() error {
-					self.c.SetViewContent(self.c.Views().AppStatus, "")
-					return nil
-				})
-				break outer
-			}
-		}
-	}()
-}
-
-func (self *AppStatusHelper) setAppStatusContent() {
-	appStatus, color := self.statusMgr().GetStatusString(self.c.UserConfig())
-	self.c.Views().AppStatus.FgColor = color
-	self.c.SetViewContent(self.c.Views().AppStatus, appStatus)
 }

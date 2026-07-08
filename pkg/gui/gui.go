@@ -823,9 +823,6 @@ func NewGui(
 		func(message string, f func(gocui.Task) error) {
 			gui.helpers.AppStatus.WithWaitingStatusBlockingInput(message, f)
 		},
-		func(message string, f func() error) error {
-			return gui.helpers.AppStatus.WithWaitingStatusSync(message, f)
-		},
 		func(message string, kind types.ToastKind) { gui.helpers.AppStatus.Toast(message, kind) },
 		func() string { return gui.Views.Prompt.TextArea.GetContent() },
 		func() bool { return gui.c.InDemo() },
