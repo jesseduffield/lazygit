@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -59,9 +60,13 @@ type ViewBufferManager struct {
 	taskIDMutex  deadlock.Mutex
 	Log          *logrus.Entry
 	newTaskID    int
-	readLines    chan LinesToRead
-	taskKey      string
-	onNewKey     func()
+	// The channel by which the currently-running task is told to read more
+	// lines (e.g. as the user scrolls). Held in an atomic because it's swapped
+	// out as tasks come and go while ReadLines/ReadToEnd read it from the UI
+	// thread; nil when no task is running.
+	readLines atomic.Pointer[chan LinesToRead]
+	taskKey   string
+	onNewKey  func()
 
 	// beforeStart is the function that is called before starting a new task
 	beforeStart  func()
@@ -124,7 +129,6 @@ func NewViewBufferManager(
 		beforeStart:  beforeStart,
 		refreshView:  refreshView,
 		onEndOfInput: onEndOfInput,
-		readLines:    nil,
 		onNewKey:     onNewKey,
 		newGocuiTask: newGocuiTask,
 		onUIThread:   onUIThread,
@@ -136,17 +140,19 @@ func NewViewBufferManager(
 // (e.g. as the user scrolls down, back up, and down again) don't re-read lines
 // that have already been read: the task only ever reads the shortfall.
 func (self *ViewBufferManager) ReadLines(totalLines int) {
-	if self.readLines != nil {
+	if ch := self.readLines.Load(); ch != nil {
+		readLines := *ch
 		go utils.Safe(func() {
-			self.readLines <- LinesToRead{Total: totalLines, InitialRefreshAfter: -1}
+			readLines <- LinesToRead{Total: totalLines, InitialRefreshAfter: -1}
 		})
 	}
 }
 
 func (self *ViewBufferManager) ReadToEnd(then func()) {
-	if self.readLines != nil {
+	if ch := self.readLines.Load(); ch != nil {
+		readLines := *ch
 		go utils.Safe(func() {
-			self.readLines <- LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: then}
+			readLines <- LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: then}
 		})
 	} else if then != nil {
 		then()
@@ -220,7 +226,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 
 		loadingMutex := deadlock.Mutex{}
 
-		self.readLines = make(chan LinesToRead, 1024)
+		readLines := make(chan LinesToRead, 1024)
+		self.readLines.Store(&readLines)
 
 		scanner := bufio.NewScanner(r)
 		scanner.Split(utils.ScanLinesAndTruncateWhenLongerThanBuffer(bufio.MaxScanTokenSize))
@@ -312,7 +319,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				select {
 				case <-opts.Stop:
 					break outer
-				case linesToRead := <-self.readLines:
+				case linesToRead := <-readLines:
 					callThen := func() {
 						if linesToRead.Then != nil {
 							linesToRead.Then()
@@ -367,7 +374,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				}
 			}
 
-			self.readLines = nil
+			self.readLines.Store(nil)
 
 			refreshViewIfStale()
 
@@ -391,7 +398,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			close(lineWrittenChan)
 		})
 
-		self.readLines <- linesToRead
+		readLines <- linesToRead
 
 		<-done
 
@@ -509,7 +516,7 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 			self.stopCurrentTask()
 		}
 
-		self.readLines = nil
+		self.readLines.Store(nil)
 
 		stop := make(chan struct{})
 		notifyStopped := make(chan struct{})
