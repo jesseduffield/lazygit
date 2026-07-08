@@ -342,7 +342,7 @@ func (self *LocalCommitsController) squashDown(selectedCommits []*models.Commit,
 		HandleConfirm: func() error {
 			commits := self.c.Model().Commits
 			self.selectRebaseResultCommit(startIdx)
-			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.SquashingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SquashCommitDown)
 				return self.interactiveRebase(commits, todo.Squash, startIdx, endIdx)
 			})
@@ -366,7 +366,7 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 				OnPress: func() error {
 					commits := self.c.Model().Commits
 					self.selectRebaseResultCommit(startIdx)
-					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
+					return self.c.WithWaitingStatusBlockingInput(self.c.Tr.FixingStatus, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.FixupCommit)
 						return self.interactiveRebase(commits, todo.Fixup, startIdx, endIdx)
 					})
@@ -379,7 +379,7 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 				OnPress: func() error {
 					commits := self.c.Model().Commits
 					self.selectRebaseResultCommit(startIdx)
-					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
+					return self.c.WithWaitingStatusBlockingInput(self.c.Tr.FixingStatus, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.FixupCommitKeepMessage)
 						return self.interactiveRebaseWithFlag(commits, todo.Fixup, startIdx, endIdx, "-C")
 					})
@@ -490,7 +490,7 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 			self.c.Tr.RewordingStatus, nil, nil)
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.RewordingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RewordingStatus, func(gocui.Task) error {
 		err := self.c.Git().Rebase.RewordCommit(commits, selectedIdx, summary, description)
 		if err != nil {
 			return err
@@ -576,7 +576,7 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 			if !isMerge {
 				self.selectRebaseResultCommit(startIdx)
 			}
-			return self.c.WithWaitingStatus(self.c.Tr.DroppingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.DroppingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DropCommit)
 				if isMerge {
 					return self.dropMergeCommit(commits, startIdx)
@@ -601,7 +601,7 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, start
 
 	commits := self.c.Model().Commits
 	if !commits[endIdx].IsMerge() {
-		return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+		return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 			err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit, "")
 			return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 				err, types.RefreshOptions{BatchUIUpdates: true})
@@ -623,7 +623,7 @@ func (self *LocalCommitsController) quickStartInteractiveRebase() error {
 func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 	commitsToEdit []*models.Commit,
 ) error {
-	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
 		err := self.c.Git().Rebase.EditRebase(commitsToEdit[len(commitsToEdit)-1].Hash())
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
@@ -823,7 +823,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		selectedIdx := self.context().GetView().SelectedLineIdx()
 		handleCommit = func() error {
 			return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
-				return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+				return self.c.WithWaitingStatusBlockingInput(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 					self.c.LogAction(self.c.Tr.Actions.AmendCommit)
 					err := self.c.Git().Rebase.AmendTo(commits, selectedIdx)
 					return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
@@ -885,7 +885,7 @@ func (self *LocalCommitsController) amendAttribute(_ []*models.Commit, start, en
 }
 
 func (self *LocalCommitsController) resetAuthor(commits []*models.Commit, start, end int) error {
-	return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.ResetCommitAuthor)
 		if err := self.c.Git().Rebase.ResetCommitAuthor(commits, start, end); err != nil {
 			return err
@@ -901,7 +901,7 @@ func (self *LocalCommitsController) setAuthor(commits []*models.Commit, start, e
 		Title:               self.c.Tr.SetAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
-			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SetCommitAuthor)
 				if err := self.c.Git().Rebase.SetCommitAuthor(commits, start, end, value); err != nil {
 					return err
@@ -921,7 +921,7 @@ func (self *LocalCommitsController) addCoAuthor(commits []*models.Commit, start,
 		Title:               self.c.Tr.AddCoAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
-			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.AddCommitCoAuthor)
 				if err := self.c.Git().Rebase.AddCommitCoAuthor(commits, start, end, value); err != nil {
 					return err
