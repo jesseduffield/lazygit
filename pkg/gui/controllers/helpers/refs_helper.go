@@ -364,16 +364,22 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 	}
 
 	refresh := func() {
-		if self.c.Context().Current() != self.c.Contexts().Branches {
-			self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
-		}
-
-		self.c.Refresh(types.RefreshOptions{
+		self.c.RefreshFromWorker(types.RefreshOptions{
 			Mode:                  types.SYNC,
 			BatchUIUpdates:        true,
 			BranchSelection:       types.SelectCheckedOutBranch,
 			CommitSelection:       types.SelectHeadCommit,
 			SelectTopReflogCommit: true,
+			Then: func() error {
+				// Switch to the branches panel only now, in the same batched
+				// frame that applies the refreshed data, so the panel switch
+				// and the new branch appear together rather than flashing the
+				// old branch list while the checkout is still in progress.
+				if self.c.Context().Current() != self.c.Contexts().Branches {
+					self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
+				}
+				return nil
+			},
 		})
 	}
 
@@ -387,34 +393,44 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 			if newBranchName != suggestedBranchName {
 				newBranchFunc = self.c.Git().Branch.NewWithoutTracking
 			}
-			if err := newBranchFunc(newBranchName, from); err != nil {
-				if IsSwitchBranchUncommittedChangesError(err) {
-					// offer to autostash changes
-					self.c.Confirm(types.ConfirmOpts{
-						Title:  self.c.Tr.AutoStashTitle,
-						Prompt: self.c.Tr.AutoStashPrompt,
-						HandleConfirm: func() error {
-							if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
-								return err
-							}
-							if err := newBranchFunc(newBranchName, from); err != nil {
-								return err
-							}
-							err := self.c.Git().Stash.Pop(0)
-							// Branch switch successful so re-render the UI even if the pop operation failed (e.g. conflict).
-							refresh()
-							return err
-						},
-					})
 
-					return nil
+			// Creating the branch checks it out, which can take a while when
+			// the ref we're branching off is distant, so do it on a worker.
+			return self.c.WithWaitingStatus(self.c.Tr.CreatingBranchStatus, func(gocui.Task) error {
+				if err := newBranchFunc(newBranchName, from); err != nil {
+					if IsSwitchBranchUncommittedChangesError(err) {
+						// offer to autostash changes
+						self.c.OnUIThread(func() error {
+							self.c.Confirm(types.ConfirmOpts{
+								Title:  self.c.Tr.AutoStashTitle,
+								Prompt: self.c.Tr.AutoStashPrompt,
+								HandleConfirm: func() error {
+									return self.c.WithWaitingStatus(self.c.Tr.CreatingBranchStatus, func(gocui.Task) error {
+										if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
+											return err
+										}
+										if err := newBranchFunc(newBranchName, from); err != nil {
+											return err
+										}
+										err := self.c.Git().Stash.Pop(0)
+										// Branch switch successful so re-render the UI even if the pop operation failed (e.g. conflict).
+										refresh()
+										return err
+									})
+								},
+							})
+							return nil
+						})
+
+						return nil
+					}
+
+					return err
 				}
 
-				return err
-			}
-
-			refresh()
-			return nil
+				refresh()
+				return nil
+			})
 		},
 	})
 
