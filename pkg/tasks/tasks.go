@@ -74,6 +74,12 @@ type ViewBufferManager struct {
 	// whereas the tasks in this file are about rendering content to a view.
 	newGocuiTask func() gocui.Task
 
+	// Runs f on the UI thread and blocks until it has completed. All mutations
+	// of the view happen through this, so that the view is only ever touched on
+	// the UI thread (where it is also laid out and drawn), never on the task's
+	// own goroutine.
+	onUIThread func(f func() error) error
+
 	// if the user flicks through a heap of items, with each one
 	// spawning a process to render something to the main view,
 	// it can slow things down quite a bit. In these situations we
@@ -110,6 +116,7 @@ func NewViewBufferManager(
 	onEndOfInput func(),
 	onNewKey func(),
 	newGocuiTask func() gocui.Task,
+	onUIThread func(f func() error) error,
 ) *ViewBufferManager {
 	return &ViewBufferManager{
 		Log:          log,
@@ -120,6 +127,7 @@ func NewViewBufferManager(
 		readLines:    nil,
 		onNewKey:     onNewKey,
 		newGocuiTask: newGocuiTask,
+		onUIThread:   onUIThread,
 	}
 }
 
@@ -460,20 +468,30 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		self.taskIDMutex.Lock()
 
 		// Bail out before touching shared view state if a newer task has
-		// already been queued: if we ran onNewKey here we'd reset the view
-		// for a task that's about to exit, potentially wiping output the
-		// winning task has already written.
+		// already been queued: if we reset the view here we'd do it for a task
+		// that's about to exit, potentially wiping output the winning task has
+		// already written.
 		if taskID < self.newTaskID {
 			self.taskIDMutex.Unlock()
 			return
 		}
 
-		if self.GetTaskKey() != key && self.onNewKey != nil {
-			self.onNewKey()
-		}
+		resetOrigin := self.GetTaskKey() != key && self.onNewKey != nil
 		self.taskKey = key
 
 		self.taskIDMutex.Unlock()
+
+		if resetOrigin {
+			// onNewKey resets the view's scroll origin, which is view state the
+			// UI thread reads while laying out and drawing, so do it there. This
+			// must happen after releasing taskIDMutex: it blocks until the UI
+			// thread runs it, and a NewTask call on the UI thread takes
+			// taskIDMutex, so holding it here would deadlock.
+			_ = self.onUIThread(func() error {
+				self.onNewKey()
+				return nil
+			})
+		}
 
 		self.waitingMutex.Lock()
 

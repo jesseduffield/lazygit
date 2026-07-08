@@ -156,6 +156,9 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 				// otherwise make the switch that handler triggers refuse itself.
 				return gui.c.GocuiGui().NewBackgroundTask()
 			},
+			// Rendering is background work too (see above), so the view mutations
+			// it bounces onto the UI thread mustn't count towards being busy.
+			gui.g.OnUIThreadAndWaitBackground,
 		)
 		gui.viewBufferManagerMap[view.Name()] = manager
 	}
