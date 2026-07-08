@@ -82,7 +82,11 @@ type ViewBufferManager struct {
 }
 
 type LinesToRead struct {
-	// Total number of lines to read
+	// The total number of lines the task should have read once this request is
+	// satisfied. This is an absolute count from the start of the task, not a
+	// delta: the task keeps track of how many lines it has already read and only
+	// reads the shortfall, so a request for a total at or below what has already
+	// been read reads nothing. -1 means read all the way to the end.
 	Total int
 
 	// Number of lines after which we have read enough to fill the view, and can
@@ -119,10 +123,14 @@ func NewViewBufferManager(
 	}
 }
 
-func (self *ViewBufferManager) ReadLines(n int) {
+// ReadLines asks the task to ensure it has read at least totalLines lines in
+// total. Because the count is absolute rather than a delta, repeated requests
+// (e.g. as the user scrolls down, back up, and down again) don't re-read lines
+// that have already been read: the task only ever reads the shortfall.
+func (self *ViewBufferManager) ReadLines(totalLines int) {
 	if self.readLines != nil {
 		go utils.Safe(func() {
-			self.readLines <- LinesToRead{Total: n, InitialRefreshAfter: -1}
+			self.readLines <- LinesToRead{Total: totalLines, InitialRefreshAfter: -1}
 		})
 	}
 }
@@ -283,6 +291,11 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				}
 			}
 
+			// The total number of lines we have read so far. Requests specify an
+			// absolute target total (see LinesToRead.Total), so we compare against
+			// this to work out how many more lines, if any, we still need to read.
+			linesRead := 0
+
 		outer:
 			for {
 				if stopped() {
@@ -297,7 +310,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							linesToRead.Then()
 						}
 					}
-					for i := 0; linesToRead.Total == -1 || i < linesToRead.Total; i++ {
+					for linesToRead.Total == -1 || linesRead < linesToRead.Total {
 						if stopped() {
 							callThen()
 							break outer
@@ -331,8 +344,9 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 						}
 						writeToView(append(line, '\n'))
 						lineWrittenChan <- struct{}{}
+						linesRead++
 
-						if i+1 == linesToRead.InitialRefreshAfter {
+						if linesRead == linesToRead.InitialRefreshAfter {
 							// We have read enough lines to fill the view, so do a first refresh
 							// here to show what we have. Continue reading and refresh again at
 							// the end to make sure the scrollbar has the right size.

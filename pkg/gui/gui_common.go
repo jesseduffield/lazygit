@@ -165,6 +165,10 @@ func (self *guiCommon) GetViewBufferManagerForView(view *gocui.View) *tasks.View
 	return self.gui.getViewBufferManagerForView(view)
 }
 
+func (self *guiCommon) ReadLinesToFillView(view *gocui.View) {
+	self.gui.readLinesToFillView(view)
+}
+
 func (self *guiCommon) State() types.IStateAccessor {
 	return self.gui.stateAccessor
 }

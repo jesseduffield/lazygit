@@ -58,6 +58,10 @@ type IGuiCommon interface {
 	// return the view buffer manager for the given view, or nil if it doesn't have one
 	GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
 
+	// read enough lines into the given view's buffer to fill it at its current
+	// scroll position, plus some read-ahead for smooth scrolling
+	ReadLinesToFillView(view *gocui.View)
+
 	// returns true if command completed successfully
 	RunSubprocess(cmdObj *oscommands.CmdObj) (bool, error)
 	RunSubprocessAndRefresh(*oscommands.CmdObj) error
