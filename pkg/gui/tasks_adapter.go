@@ -118,7 +118,12 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 				view.Reset()
 			},
 			func() {
-				gui.render()
+				// As the task reads more lines, the only thing that changes is the
+				// view's content (and its scrollbar); the window layout doesn't. So a
+				// content-only render is enough, and it's much cheaper than a full
+				// layout-and-redraw on every read - which matters a lot when reading
+				// a long diff, where reads happen repeatedly as the user scrolls.
+				gui.renderContentOnly()
 			},
 			func() {
 				// Need to check if the content of the view is well past the origin.
