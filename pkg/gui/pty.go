@@ -93,9 +93,18 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 		manager := gui.getManager(view)
 
+		// Size the pty from the view's dimensions here, on the UI thread; the
+		// start func below runs on the task's goroutine, which must not read the
+		// view's live dimensions while the UI thread is laying it out.
+		cols, rows := gui.desiredPtySize(view)
+
 		var p oscommands.Pty
 		start := func() (tasks.Cmd, io.Reader) {
-			cols, rows := gui.desiredPtySize(view)
+			// The pty (and pager) wrap to this width; apply it here, on the
+			// task's goroutine once the previous task has stopped, so it doesn't
+			// race that task's writes (see View.SetContentWidth).
+			view.SetContentWidth(width)
+
 			sp, err := oscommands.StartPty(cmd, cols, rows)
 			if err != nil {
 				gui.c.Log.Error(err)

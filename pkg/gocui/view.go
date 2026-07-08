@@ -536,7 +536,18 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 	v.SelFgColor, v.SelBgColor = ColorDefault, ColorDefault
 	v.InactiveViewSelBgColor = ColorDefault
 	v.TitleColor, v.FrameColor = ColorDefault, ColorDefault
+	v.ei.screenColMax = v.InnerWidth()
 	return v
+}
+
+// SetContentWidth tells the view the screen width that content written to it
+// should count soft-wraps against (see escapeInterpreter.notifyCellsWritten).
+// Callers pass the view's InnerWidth; it's a separate call, made on the UI
+// thread when a render starts, so that the task goroutine that streams the
+// content can consult this snapshot instead of reading the view's live
+// dimensions (which the UI thread mutates during layout).
+func (v *View) SetContentWidth(width int) {
+	v.ei.screenColMax = width
 }
 
 // Dimensions returns the dimensions of the View
@@ -907,7 +918,7 @@ func (v *View) write(p []byte) {
 				for _, c := range cells {
 					totalWidth += c.width
 				}
-				v.ei.notifyCellsWritten(totalWidth, v.InnerWidth())
+				v.ei.notifyCellsWritten(totalWidth)
 			}
 		}
 	}

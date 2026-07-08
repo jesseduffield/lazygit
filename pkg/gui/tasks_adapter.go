@@ -18,8 +18,17 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 	manager := gui.getManager(view)
 
+	// Snapshot the view width here, on the UI thread, so the task goroutine
+	// doesn't read the view's live dimensions while it streams output. It's
+	// applied inside start() below rather than now, because start() runs once
+	// the previous task has stopped -- applying it here would race that task's
+	// still-running writes (see View.SetContentWidth).
+	contentWidth := view.InnerWidth()
+
 	var r io.ReadCloser
 	start := func() (tasks.Cmd, io.Reader) {
+		view.SetContentWidth(contentWidth)
+
 		var err error
 		r, err = cmd.StdoutPipe()
 		if err != nil {
