@@ -227,9 +227,7 @@ type cmdHandler struct {
 
 func (self *cmdObjRunner) runAndStream(cmdObj *CmdObj) error {
 	return self.runAndStreamAux(cmdObj, func(handler *cmdHandler, cmdWriter io.Writer) {
-		go func() {
-			_, _ = io.Copy(cmdWriter, handler.stdoutPipe)
-		}()
+		_, _ = io.Copy(cmdWriter, handler.stdoutPipe)
 	})
 }
 
@@ -280,9 +278,28 @@ func (self *cmdObjRunner) runAndStreamAux(
 
 	t := time.Now()
 
-	onRun(handler, cmdWriter)
+	// Stream the command's output on a goroutine while it runs, but keep a
+	// handle on it: the buffers it fills (stdout, and combinedOutput when
+	// output is suppressed) must not be read below until it has finished.
+	streamingDone := make(chan struct{})
+	go utils.Safe(func() {
+		defer close(streamingDone)
+		onRun(handler, cmdWriter)
+	})
 
 	err = handler.wait()
+
+	// The command has exited; wait for the streaming goroutine to drain the
+	// last of its output before reading those buffers. A pty reader reaches
+	// EOF on its own now the process is gone, but the non-pty pipe never does,
+	// so close it to unblock the reader — the pipe is synchronous, so all
+	// output has already been read by now and nothing is lost.
+	if !cmdObj.ShouldUsePty() {
+		if closeErr := handler.close(); closeErr != nil {
+			self.log.Error(closeErr)
+		}
+	}
+	<-streamingDone
 
 	self.log.Infof("%s (%s)", cmdObj.ToString(), time.Since(t))
 
@@ -358,10 +375,7 @@ func (self *cmdObjRunner) runAndDetectCredentialRequest(
 
 	return self.runAndStreamAux(cmdObj, func(handler *cmdHandler, cmdWriter io.Writer) {
 		tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
-
-		go utils.Safe(func() {
-			self.processOutput(tr, handler.stdinPipe, promptUserForCredential, handler.close, cmdObj)
-		})
+		self.processOutput(tr, handler.stdinPipe, promptUserForCredential, handler.close, cmdObj)
 	})
 }
 
@@ -500,8 +514,11 @@ func (self *cmdObjRunner) getCmdHandlerNonPty(cmd *exec.Cmd) (*cmdHandler, error
 	return &cmdHandler{
 		stdoutPipe: stdoutReader,
 		stdinPipe:  buf,
-		close:      func() error { return nil },
-		wait:       cmd.Wait,
+		// Closing the read end makes a blocked read on it return, which is how
+		// runAndStreamAux unblocks and joins the streaming goroutine once the
+		// command has finished (the pipe delivers no EOF of its own).
+		close: func() error { return stdoutReader.Close() },
+		wait:  cmd.Wait,
 	}, nil
 }
 
