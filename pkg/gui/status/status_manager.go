@@ -70,6 +70,9 @@ func (self *StatusManager) AddToastStatus(message string, kind types.ToastKind) 
 }
 
 func (self *StatusManager) GetStatusString(userConfig *config.UserConfig) (string, gocui.Attribute) {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
 	if len(self.statuses) == 0 {
 		return "", gocui.ColorDefault
 	}
@@ -81,6 +84,9 @@ func (self *StatusManager) GetStatusString(userConfig *config.UserConfig) (strin
 }
 
 func (self *StatusManager) HasStatus() bool {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
 	return len(self.statuses) > 0
 }
 
