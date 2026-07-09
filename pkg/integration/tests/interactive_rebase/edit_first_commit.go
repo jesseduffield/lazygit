@@ -18,23 +18,23 @@ var EditFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			).
-			NavigateToLine(Contains("commit 01")).
+			NavigateToLine(Contains("commit-01")).
 			Press(keys.Universal.Edit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("commit 02"),
+				Contains("commit-02"),
 				Contains("--- Commits ---"),
-				Contains("commit 01").IsSelected(),
+				Contains("commit-01").IsSelected(),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()
 			}).
 			Lines(
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			)
 	},
 })

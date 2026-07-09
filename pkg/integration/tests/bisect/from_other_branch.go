@@ -24,17 +24,17 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			TopLines(
-				MatchesRegexp(`<-- bad.*commit 08`),
-				MatchesRegexp(`<-- current.*commit 07`),
-				MatchesRegexp(`\?.*commit 06`),
-				MatchesRegexp(`<-- good.*commit 05`),
+				MatchesRegexp(`<-- bad.*commit-08`),
+				MatchesRegexp(`<-- current.*commit-07`),
+				MatchesRegexp(`\?.*commit-06`),
+				MatchesRegexp(`<-- good.*commit-05`),
 			).
 			SelectNextItem().
 			Press(keys.Commits.ViewBisectOptions).
 			Tap(func() {
 				t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`Mark .* as good`)).Confirm()
 
-				t.ExpectPopup().Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 08.*Do you want to reset")).Confirm()
+				t.ExpectPopup().Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit-08.*Do you want to reset")).Confirm()
 
 				t.Views().Information().Content(DoesNotContain("Bisecting"))
 			}).

@@ -15,12 +15,12 @@ var MoveToNewCommitInLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrati
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.
-			EmptyCommit("commit 01").
+			EmptyCommit("commit-01").
 			NewBranch("branch1").
-			EmptyCommit("commit 02").
+			EmptyCommit("commit-02").
 			CreateFileAndAdd("file1", "file1 content").
 			CreateFileAndAdd("file2", "file2 content").
-			Commit("commit 03").
+			Commit("commit-03").
 			NewBranch("branch2").
 			CreateNCommitsStartingAt(2, 4)
 
@@ -30,13 +30,13 @@ var MoveToNewCommitInLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrati
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI commit 05").IsSelected(),
-				Contains("CI commit 04"),
-				Contains("CI * commit 03"),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
+				Contains("CI commit-05").IsSelected(),
+				Contains("CI commit-04"),
+				Contains("CI * commit-03"),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
 			).
-			NavigateToLine(Contains("commit 03")).
+			NavigateToLine(Contains("commit-03")).
 			PressEnter()
 
 		t.Views().CommitFiles().
@@ -61,12 +61,12 @@ var MoveToNewCommitInLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrati
 		t.Views().Commits().
 			IsFocused().
 			Lines(
-				Contains("CI commit 05"),
-				Contains("CI commit 04"),
+				Contains("CI commit-05"),
+				Contains("CI commit-04"),
 				Contains("CI * new commit").IsSelected(),
-				Contains("CI commit 03"),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
+				Contains("CI commit-03"),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
 			)
 	},
 })
