@@ -365,13 +365,17 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	}
 
 	if scopeSet.Includes(types.PULL_REQUESTS) {
-		refresh("pull requests", func() {
+		self.onWorker(env.background, func(gocui.Task) error {
 			branchesAndRemotesWg.Wait()
+
+			t := time.Now()
 			// Use the branches and remotes the loads above stashed, not
 			// Model().Branches/Remotes: those writes are bounced onto the
 			// UI thread and may not have landed on this worker yet. The
 			// wait above orders us after both loads have stashed theirs.
 			self.refreshGithubPullRequests(loadedBranches, loadedRemotes, env)
+			self.c.Log.Infof("refreshed pull requests in %s", time.Since(t))
+			return nil
 		})
 	}
 
