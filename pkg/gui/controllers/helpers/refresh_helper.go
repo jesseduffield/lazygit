@@ -234,27 +234,19 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	wg := sync.WaitGroup{}
 	refresh := func(name string, f func()) {
 		wg.Add(1)
-
-		// A refresh issued from the UI thread must not block it, so its scopes
-		// run as their own worker tasks and the caller returns immediately (the
-		// finishing step below is dispatched to a worker too). A refresh issued
-		// from a worker blocks that worker instead, running its scopes as plain
-		// goroutines that it joins. In a demo we always take the blocking path
-		// so everything updates in a single, deterministic frame.
-		if !self.c.InDemo() && !calledFromWorker {
-			self.onWorker(env.background, func(t gocui.Task) error {
-				defer wg.Done()
-				f()
-				return nil
-			})
-		} else {
-			go utils.Safe(func() {
-				t := time.Now()
-				defer wg.Done()
-				f()
-				self.c.Log.Infof("refreshed %s in %s", name, time.Since(t))
-			})
-		}
+		// Each scope runs on its own goroutine, joined by the wg.Wait in
+		// waitAndFinalize. They don't need to be registered as gocui tasks for
+		// repo-switch safety: performRefresh always runs under a task that stays
+		// busy until that wg.Wait returns — the calling worker's task when
+		// called from a worker, or the waitAndFinalize worker task when called
+		// from the UI thread (created before the triggering event's task ends,
+		// so there's no gap) — and that task already covers the whole refresh.
+		go utils.Safe(func() {
+			t := time.Now()
+			defer wg.Done()
+			f()
+			self.c.Log.Infof("refreshed %s in %s", name, time.Since(t))
+		})
 	}
 
 	branchesAndRemotesWg := sync.WaitGroup{}
