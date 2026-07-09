@@ -27,10 +27,20 @@ func (gui *Gui) LogAction(action string) {
 		return
 	}
 
-	gui.Views.Extras.Autoscroll = true
+	// LogAction and LogCommand are called both from the UI thread and from git
+	// worker goroutines, so bounce the writes onto the UI thread: they touch the
+	// view's autoscroll flag and the GuiLog slice, which the layout/draw code
+	// reads. Ordering between successive log calls is preserved by the FIFO the
+	// bounce enqueues onto. It's a background bounce because writing the command
+	// log is incidental display work that must not count towards lazygit being
+	// busy (otherwise it could block a repo switch).
+	gui.onUIThreadBackground(func() error {
+		gui.Views.Extras.Autoscroll = true
 
-	gui.GuiLog = append(gui.GuiLog, action)
-	fmt.Fprint(gui.Views.Extras, "\n"+style.FgYellow.Sprint(action))
+		gui.GuiLog = append(gui.GuiLog, action)
+		fmt.Fprint(gui.Views.Extras, "\n"+style.FgYellow.Sprint(action))
+		return nil
+	})
 }
 
 func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
@@ -38,17 +48,23 @@ func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
 		return
 	}
 
-	gui.Views.Extras.Autoscroll = true
-
 	textStyle := theme.DefaultTextColor
 	if !commandLine {
 		// if we're not dealing with a direct command that could be run on the command line,
 		// we style it differently to communicate that
 		textStyle = style.FgMagenta
 	}
-	gui.GuiLog = append(gui.GuiLog, cmdStr)
 	indentedCmdStr := "  " + strings.ReplaceAll(cmdStr, "\n", "\n  ")
-	fmt.Fprint(gui.Views.Extras, "\n"+textStyle.Sprint(indentedCmdStr))
+
+	// See the comment in LogAction: bounce onto the UI thread since we may be
+	// called from a git worker, in the background so it can't block a repo switch.
+	gui.onUIThreadBackground(func() error {
+		gui.Views.Extras.Autoscroll = true
+
+		gui.GuiLog = append(gui.GuiLog, cmdStr)
+		fmt.Fprint(gui.Views.Extras, "\n"+textStyle.Sprint(indentedCmdStr))
+		return nil
+	})
 }
 
 func (gui *Gui) printCommandLogHeader() {
