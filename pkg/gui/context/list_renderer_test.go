@@ -254,9 +254,6 @@ func TestListRenderer_ModelIndexToViewIndex_and_back(t *testing.T) {
 				getNonModelItems: getNonModelItems,
 			}
 
-			// Need to render first so that it knows the non-model items
-			self.renderLines(-1, -1)
-
 			for i := range len(s.modelIndices) {
 				assert.Equal(t, s.expectedViewIndices[i], self.ModelIndexToViewIndex(s.modelIndices[i]))
 			}
@@ -288,10 +285,6 @@ func TestListRenderer_IndexConversionsAreRenderIndependent(t *testing.T) {
 	}
 
 	// Deliberately convert without rendering first.
-	/* EXPECTED:
 	assert.Equal(t, 2, self.ModelIndexToViewIndex(1))
 	assert.Equal(t, 1, self.ViewIndexToModelIndex(2))
-	ACTUAL: */
-	assert.Equal(t, 1, self.ModelIndexToViewIndex(1))
-	assert.Equal(t, 2, self.ViewIndexToModelIndex(2))
 }
