@@ -28,23 +28,23 @@ var EditLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI commit 05").IsSelected(),
-				Contains("CI commit 04"),
-				Contains("CI * commit 03"),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
+				Contains("CI commit-05").IsSelected(),
+				Contains("CI commit-04"),
+				Contains("CI * commit-03"),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
 			).
-			NavigateToLine(Contains("commit 03")).
+			NavigateToLine(Contains("commit-03")).
 			Press(keys.Universal.Edit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("pick").Contains("CI commit 05"),
-				Contains("pick").Contains("CI commit 04"),
+				Contains("pick").Contains("CI commit-05"),
+				Contains("pick").Contains("CI commit-04"),
 				Contains("update-ref").Contains("branch1"),
 				Contains("--- Commits ---"),
-				Contains("CI * commit 03").IsSelected(),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
+				Contains("CI * commit-03").IsSelected(),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
 			)
 
 		t.Shell().CreateFile("fixup-file", "fixup content")
@@ -66,11 +66,11 @@ var EditLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI commit 05"),
-				Contains("CI commit 04"),
-				Contains("CI * commit 03"),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
+				Contains("CI commit-05"),
+				Contains("CI commit-04"),
+				Contains("CI * commit-03"),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
 			)
 	},
 })

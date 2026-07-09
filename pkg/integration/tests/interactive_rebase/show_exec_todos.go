@@ -33,10 +33,10 @@ var ShowExecTodos = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("--- Pending rebase todos ---"),
 				Contains("exec").Contains("false"),
-				Contains("pick").Contains("CI commit 03"),
+				Contains("pick").Contains("CI commit-03"),
 				Contains("--- Commits ---"),
-				Contains("CI ○ commit 02"),
-				Contains("CI ○ commit 01"),
+				Contains("CI ○ commit-02"),
+				Contains("CI ○ commit-01"),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()
@@ -45,17 +45,17 @@ var ShowExecTodos = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("--- Pending rebase todos ---"),
 				Contains("--- Commits ---"),
-				Contains("CI ○ commit 03"),
-				Contains("CI ○ commit 02"),
-				Contains("CI ○ commit 01"),
+				Contains("CI ○ commit-03"),
+				Contains("CI ○ commit-02"),
+				Contains("CI ○ commit-01"),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()
 			}).
 			Lines(
-				Contains("CI ○ commit 03"),
-				Contains("CI ○ commit 02"),
-				Contains("CI ○ commit 01"),
+				Contains("CI ○ commit-03"),
+				Contains("CI ○ commit-02"),
+				Contains("CI ○ commit-01"),
 			)
 	},
 })

@@ -29,14 +29,14 @@ var SelectAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			IsFocused().
 			Lines(
-				Contains("commit 7"),
-				Contains("commit 6"),
-				Contains("commit 5"),
-				Contains("commit 4"),
-				Contains("commit 3"),
-				Contains("commit 2"),
-				Contains("commit 1"),
-				Contains("commit 0"),
+				Contains("commit-7"),
+				Contains("commit-6"),
+				Contains("commit-5"),
+				Contains("commit-4"),
+				Contains("commit-3"),
+				Contains("commit-2"),
+				Contains("commit-1"),
+				Contains("commit-0"),
 			)
 
 		t.Views().Information().Content(Contains("Filtering by 'Paul Oberstein <paul.oberstein@email.com>'"))
@@ -51,7 +51,7 @@ var SelectAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			IsFocused().
-			NavigateToLine(Contains("SK commit 0")).
+			NavigateToLine(Contains("SK commit-0")).
 			Press(keys.Universal.FilteringMenu)
 
 		t.ExpectPopup().Menu().
@@ -62,7 +62,7 @@ var SelectAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			IsFocused().
 			Lines(
-				Contains("commit 0"),
+				Contains("commit-0"),
 			)
 
 		t.Views().Information().Content(Contains("Filtering by 'Siegfried Kircheis <siegfried.kircheis@email.com>'"))

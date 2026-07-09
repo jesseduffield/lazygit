@@ -18,11 +18,11 @@ var SquashDownSecondCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			).
-			NavigateToLine(Contains("commit 02")).
+			NavigateToLine(Contains("commit-02")).
 			Press(keys.Commits.SquashDown).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
@@ -31,12 +31,12 @@ var SquashDownSecondCommit = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("commit 03"),
-				Contains("commit 01").IsSelected(),
+				Contains("commit-03"),
+				Contains("commit-01").IsSelected(),
 			)
 
 		t.Views().Main().
-			Content(Contains("    commit 01\n    \n    commit 02")).
+			Content(Contains("    commit-01\n    \n    commit-02")).
 			Content(Contains("+file01 content")).
 			Content(Contains("+file02 content"))
 	},

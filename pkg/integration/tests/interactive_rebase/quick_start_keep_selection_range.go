@@ -29,31 +29,31 @@ var QuickStartKeepSelectionRange = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
-			NavigateToLine(Contains("commit 04")).
+			NavigateToLine(Contains("commit-04")).
 			Press(keys.Universal.RangeSelectDown).
 			Press(keys.Universal.RangeSelectDown).
 			Lines(
-				Contains("CI commit 07"),
-				Contains("CI commit 06"),
-				Contains("CI * commit 05"),
-				Contains("CI commit 04").IsSelected(),
-				Contains("CI * commit 03").IsSelected(),
-				Contains("CI commit 02").IsSelected(),
-				Contains("CI commit 01"),
+				Contains("CI commit-07"),
+				Contains("CI commit-06"),
+				Contains("CI * commit-05"),
+				Contains("CI commit-04").IsSelected(),
+				Contains("CI * commit-03").IsSelected(),
+				Contains("CI commit-02").IsSelected(),
+				Contains("CI commit-01"),
 			).
 			Press(keys.Commits.StartInteractiveRebase).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("CI commit 07"),
-				Contains("CI commit 06"),
+				Contains("CI commit-07"),
+				Contains("CI commit-06"),
 				Contains("update-ref").Contains("branch2"),
-				Contains("CI commit 05"),
-				Contains("CI commit 04").IsSelected(),
+				Contains("CI commit-05"),
+				Contains("CI commit-04").IsSelected(),
 				Contains("update-ref").Contains("branch1").IsSelected(),
-				Contains("CI commit 03").IsSelected(),
-				Contains("CI commit 02").IsSelected(),
+				Contains("CI commit-03").IsSelected(),
+				Contains("CI commit-02").IsSelected(),
 				Contains("--- Commits ---"),
-				Contains("CI commit 01"),
+				Contains("CI commit-01"),
 			)
 	},
 })

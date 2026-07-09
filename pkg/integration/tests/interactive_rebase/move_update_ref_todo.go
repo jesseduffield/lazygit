@@ -23,43 +23,43 @@ var MoveUpdateRefTodo = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
-			NavigateToLine(Contains("commit 01")).
+			NavigateToLine(Contains("commit-01")).
 			Press(keys.Universal.Edit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("pick").Contains("CI commit 06"),
-				Contains("pick").Contains("CI commit 05"),
-				Contains("pick").Contains("CI commit 04"),
+				Contains("pick").Contains("CI commit-06"),
+				Contains("pick").Contains("CI commit-05"),
+				Contains("pick").Contains("CI commit-04"),
 				Contains("update-ref").Contains("branch1"),
-				Contains("pick").Contains("CI commit 03"),
-				Contains("pick").Contains("CI commit 02"),
+				Contains("pick").Contains("CI commit-03"),
+				Contains("pick").Contains("CI commit-02"),
 				Contains("--- Commits ---"),
-				Contains("CI ○ commit 01"),
+				Contains("CI ○ commit-01"),
 			).
 			NavigateToLine(Contains("update-ref")).
 			Press(keys.Commits.MoveUpCommit).
 			Press(keys.Commits.MoveUpCommit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("pick").Contains("CI commit 06"),
+				Contains("pick").Contains("CI commit-06"),
 				Contains("update-ref").Contains("branch1"),
-				Contains("pick").Contains("CI commit 05"),
-				Contains("pick").Contains("CI commit 04"),
-				Contains("pick").Contains("CI commit 03"),
-				Contains("pick").Contains("CI commit 02"),
+				Contains("pick").Contains("CI commit-05"),
+				Contains("pick").Contains("CI commit-04"),
+				Contains("pick").Contains("CI commit-03"),
+				Contains("pick").Contains("CI commit-02"),
 				Contains("--- Commits ---"),
-				Contains("CI ○ commit 01"),
+				Contains("CI ○ commit-01"),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()
 			}).
 			Lines(
-				Contains("CI ○ commit 06"),
-				Contains("CI ○ * commit 05"),
-				Contains("CI ○ commit 04"),
-				Contains("CI ○ commit 03"),
-				Contains("CI ○ commit 02"),
-				Contains("CI ○ commit 01"),
+				Contains("CI ○ commit-06"),
+				Contains("CI ○ * commit-05"),
+				Contains("CI ○ commit-04"),
+				Contains("CI ○ commit-03"),
+				Contains("CI ○ commit-02"),
+				Contains("CI ○ commit-01"),
 			)
 	},
 })

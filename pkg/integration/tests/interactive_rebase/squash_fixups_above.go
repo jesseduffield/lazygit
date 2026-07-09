@@ -19,11 +19,11 @@ var SquashFixupsAbove = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			).
-			NavigateToLine(Contains("commit 02")).
+			NavigateToLine(Contains("commit-02")).
 			Press(keys.Commits.CreateFixupCommit).
 			Tap(func() {
 				t.ExpectPopup().Menu().
@@ -32,10 +32,10 @@ var SquashFixupsAbove = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("fixup! commit 02"),
-				Contains("commit 03"),
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01"),
+				Contains("fixup! commit-02"),
+				Contains("commit-03"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01"),
 			).
 			Press(keys.Commits.SquashAboveCommits).
 			Tap(func() {
@@ -45,9 +45,9 @@ var SquashFixupsAbove = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("commit 03"),
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit-03"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01"),
 			)
 
 		t.Views().Main().

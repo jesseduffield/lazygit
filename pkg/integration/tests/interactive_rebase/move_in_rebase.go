@@ -17,39 +17,39 @@ var MoveInRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 04").IsSelected(),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-04").IsSelected(),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			).
-			NavigateToLine(Contains("commit 01")).
+			NavigateToLine(Contains("commit-01")).
 			Press(keys.Universal.Edit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("commit 04"),
-				Contains("commit 03"),
-				Contains("commit 02"),
+				Contains("commit-04"),
+				Contains("commit-03"),
+				Contains("commit-02"),
 				Contains("--- Commits ---"),
-				Contains("commit 01").IsSelected(),
+				Contains("commit-01").IsSelected(),
 			).
 			SelectPreviousItem().
 			Press(keys.Commits.MoveUpCommit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("commit 04"),
-				Contains("commit 02").IsSelected(),
-				Contains("commit 03"),
+				Contains("commit-04"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-03"),
 				Contains("--- Commits ---"),
-				Contains("commit 01"),
+				Contains("commit-01"),
 			).
 			Press(keys.Commits.MoveUpCommit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("commit 02").IsSelected(),
-				Contains("commit 04"),
-				Contains("commit 03"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-04"),
+				Contains("commit-03"),
 				Contains("--- Commits ---"),
-				Contains("commit 01"),
+				Contains("commit-01"),
 			).
 			// assert we can't move past the top
 			Press(keys.Commits.MoveUpCommit).
@@ -58,29 +58,29 @@ var MoveInRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("commit 02").IsSelected(),
-				Contains("commit 04"),
-				Contains("commit 03"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-04"),
+				Contains("commit-03"),
 				Contains("--- Commits ---"),
-				Contains("commit 01"),
+				Contains("commit-01"),
 			).
 			Press(keys.Commits.MoveDownCommit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("commit 04"),
-				Contains("commit 02").IsSelected(),
-				Contains("commit 03"),
+				Contains("commit-04"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-03"),
 				Contains("--- Commits ---"),
-				Contains("commit 01"),
+				Contains("commit-01"),
 			).
 			Press(keys.Commits.MoveDownCommit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("commit 04"),
-				Contains("commit 03"),
-				Contains("commit 02").IsSelected(),
+				Contains("commit-04"),
+				Contains("commit-03"),
+				Contains("commit-02").IsSelected(),
 				Contains("--- Commits ---"),
-				Contains("commit 01"),
+				Contains("commit-01"),
 			).
 			// assert we can't move past the bottom
 			Press(keys.Commits.MoveDownCommit).
@@ -89,30 +89,30 @@ var MoveInRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("commit 04"),
-				Contains("commit 03"),
-				Contains("commit 02").IsSelected(),
+				Contains("commit-04"),
+				Contains("commit-03"),
+				Contains("commit-02").IsSelected(),
 				Contains("--- Commits ---"),
-				Contains("commit 01"),
+				Contains("commit-01"),
 			).
 			// move it back up one so that we land in a different order than we started with
 			Press(keys.Commits.MoveUpCommit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("commit 04"),
-				Contains("commit 02").IsSelected(),
-				Contains("commit 03"),
+				Contains("commit-04"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-03"),
 				Contains("--- Commits ---"),
-				Contains("commit 01"),
+				Contains("commit-01"),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()
 			}).
 			Lines(
-				Contains("commit 04"),
-				Contains("commit 02").IsSelected(),
-				Contains("commit 03"),
-				Contains("commit 01"),
+				Contains("commit-04"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-03"),
+				Contains("commit-01"),
 			)
 	},
 })
