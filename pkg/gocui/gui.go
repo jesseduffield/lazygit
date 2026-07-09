@@ -148,6 +148,10 @@ type Gui struct {
 	maxX, maxY               int
 	outputMode               OutputMode
 	stop                     chan struct{}
+	// loopExited is closed when MainLoop returns, so callers (e.g. the
+	// integration-test harness) can wait for the event loop to actually finish
+	// rather than polling or sleeping a fixed interval.
+	loopExited chan struct{}
 
 	// BgColor and FgColor allow to configure the background and foreground
 	// colors of the GUI.
@@ -260,6 +264,7 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g.outputMode = opts.OutputMode
 
 	g.stop = make(chan struct{})
+	g.loopExited = make(chan struct{})
 
 	g.gEvents = make(chan GocuiEvent, 20)
 	g.userEvents = newUserEventQueue()
@@ -346,6 +351,11 @@ func (g *Gui) WaitUntilIdle() {
 func (g *Gui) Close() {
 	close(g.stop)
 	Screen.Fini()
+}
+
+// LoopExited returns a channel that is closed once MainLoop has returned.
+func (g *Gui) LoopExited() <-chan struct{} {
+	return g.loopExited
 }
 
 // Size returns the terminal's size.
@@ -965,6 +975,8 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
+	defer close(g.loopExited)
+
 	g.uiThreadID.Store(goid.Get())
 
 	go func() {
