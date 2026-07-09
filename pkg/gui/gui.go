@@ -691,6 +691,23 @@ func (gui *Gui) getViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferM
 	return manager
 }
 
+// When scrolling a lazy-loaded view, we read enough lines to fill the viewport
+// plus this many extra screenfuls, so that further scrolling has some runway
+// and doesn't have to block on reading (and re-rendering) more lines on every
+// wheel notch.
+const scrollReadAheadScreenfuls = 3
+
+// readLinesToFillView reads enough lines into the view's buffer to cover
+// everything currently scrolled into view, plus a few screenfuls of read-ahead.
+// Reading is idempotent (see ViewBufferManager.ReadLines), so if the buffer
+// already extends far enough this does nothing.
+func (gui *Gui) readLinesToFillView(view *gocui.View) {
+	if manager := gui.getViewBufferManagerForView(view); manager != nil {
+		viewportBottom := view.OriginY() + view.InnerHeight()
+		manager.ReadLines(viewportBottom + scrollReadAheadScreenfuls*view.InnerHeight())
+	}
+}
+
 func (gui *Gui) initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSafeMap[string, string] {
 	result := utils.NewThreadSafeMap[string, string]()
 
