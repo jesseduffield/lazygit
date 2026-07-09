@@ -142,10 +142,7 @@ func (self *refreshBounceBatch) close() []func() {
 }
 
 func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFromWorker bool) {
-	t := time.Now()
-	defer func() {
-		self.c.Log.Infof("Refresh took %s", time.Since(t))
-	}()
+	startTime := time.Now()
 
 	// A refresh from a worker blocks that worker until it's done; one from the
 	// UI thread returns immediately and finishes in the background.
@@ -432,6 +429,8 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			// still pre-refresh.
 			self.onUIThread(env.background, options.Then)
 		}
+
+		self.c.Log.Infof("Refresh took %s", time.Since(startTime))
 	}
 
 	// waitAndFinalize blocks until every scope is done. Run it inline when we're
