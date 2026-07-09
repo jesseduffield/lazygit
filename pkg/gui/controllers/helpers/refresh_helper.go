@@ -398,7 +398,16 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	}
 
 	if scopeSet.Includes(types.PATCH_BUILDING) {
-		refresh("patch building", func() { self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{}) })
+		refresh("patch building", func() {
+			// Bounce onto the UI thread, like the staging panel above:
+			// RefreshPatchBuildingPanel reads the commit-files selection and
+			// sets the patch view's origin, neither of which may run off the UI
+			// thread. Guard on the generation so a repo switch mid-refresh drops
+			// it, like the model bounces.
+			self.onUIThreadUnlessRepoChanged(env, func() {
+				self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{})
+			})
+		})
 	}
 
 	if scopeSet.Includes(types.MERGE_CONFLICTS) {
