@@ -603,6 +603,13 @@ func (g *Gui) SetRenderSearchStatusFunc(renderSearchStatusFunc func(*View, int, 
 	g.renderSearchStatusFunc = renderSearchStatusFunc
 }
 
+// SetUpdateQueueHighWaterMarkHandler registers a diagnostic callback invoked
+// with the new depth whenever the queue of pending Update callbacks reaches a
+// new maximum. It may be called from any goroutine.
+func (g *Gui) SetUpdateQueueHighWaterMarkHandler(f func(depth int)) {
+	g.userEvents.setHighWaterMarkHandler(f)
+}
+
 // userEvent represents an event triggered by the user.
 type userEvent struct {
 	f    func(*Gui) error
@@ -639,6 +646,13 @@ type userEventQueue struct {
 	mutex    sync.Mutex
 	events   []userEvent
 	doorbell chan struct{}
+
+	// highWaterMark is the deepest the queue has ever been, and
+	// onHighWaterMark (if set) is called with the new depth each time that
+	// record is broken. Purely diagnostic: it lets us see how deep the queue
+	// gets in practice (see SetUpdateQueueHighWaterMarkHandler).
+	highWaterMark   int
+	onHighWaterMark func(int)
 }
 
 func newUserEventQueue() *userEventQueue {
@@ -649,12 +663,30 @@ func newUserEventQueue() *userEventQueue {
 func (q *userEventQueue) enqueue(ev userEvent) {
 	q.mutex.Lock()
 	q.events = append(q.events, ev)
+	newHighWaterMark := 0
+	if len(q.events) > q.highWaterMark {
+		q.highWaterMark = len(q.events)
+		newHighWaterMark = q.highWaterMark
+	}
+	onHighWaterMark := q.onHighWaterMark
 	q.mutex.Unlock()
+
+	// Report outside the lock: the handler does I/O (logging) and must not
+	// stall other producers or the draining loop.
+	if newHighWaterMark > 0 && onHighWaterMark != nil {
+		onHighWaterMark(newHighWaterMark)
+	}
 
 	select {
 	case q.doorbell <- struct{}{}:
 	default:
 	}
+}
+
+func (q *userEventQueue) setHighWaterMarkHandler(f func(int)) {
+	q.mutex.Lock()
+	q.onHighWaterMark = f
+	q.mutex.Unlock()
 }
 
 // dequeue pops the oldest event, reporting false when the queue is empty.

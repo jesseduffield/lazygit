@@ -414,6 +414,10 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		return nil
 	})
 
+	gui.g.SetUpdateQueueHighWaterMarkHandler(func(depth int) {
+		gui.c.Log.Infof("User-event queue reached a new high-water mark: %d", depth)
+	})
+
 	gui.g.SetOnSelectSearchResultFunc(func(v *gocui.View, selectedLineIdx int) {
 		ctx, ok := gui.helpers.View.ContextForView(v.Name())
 		if ok {

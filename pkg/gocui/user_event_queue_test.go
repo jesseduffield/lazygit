@@ -36,6 +36,37 @@ func TestUpdateIsUnboundedAndPreservesOrder(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
+// The high-water-mark handler fires only when the queue reaches a new maximum
+// depth, reporting that depth. It does not reset when the queue drains.
+func TestUpdateQueueHighWaterMark(t *testing.T) {
+	g := newTestGui(t)
+
+	var marks []int
+	g.SetUpdateQueueHighWaterMarkHandler(func(depth int) { marks = append(marks, depth) })
+
+	noop := func(*Gui) error { return nil }
+
+	// Three enqueues with no drain: new highs 1, 2, 3.
+	g.Update(noop)
+	g.Update(noop)
+	g.Update(noop)
+	_, err := g.processRemainingEvents()
+	assert.NoError(t, err)
+
+	// Two enqueues stay below the previous high of 3: no new marks.
+	g.Update(noop)
+	g.Update(noop)
+	_, err = g.processRemainingEvents()
+	assert.NoError(t, err)
+
+	// Four enqueues with no drain: only depth 4 beats the previous high.
+	for range 4 {
+		g.Update(noop)
+	}
+
+	assert.Equal(t, []int{1, 2, 3, 4}, marks)
+}
+
 // Concurrent producers must be able to enqueue safely (run under -race). Only
 // same-goroutine order is guaranteed, so we check that every event is delivered
 // exactly once and that each producer's own events stay in order.
