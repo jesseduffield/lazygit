@@ -45,9 +45,10 @@ func (gui *Gui) handleTestMode() {
 		}()
 
 		if os.Getenv(components.WAIT_FOR_DEBUGGER_ENV_VAR) == "" {
+			timeout := 40 * time.Second * testTimeoutMultiplier
 			go utils.Safe(func() {
-				time.Sleep(time.Second * 40)
-				log.Fatal("40 seconds is up, lazygit recording took too long to complete")
+				time.Sleep(timeout)
+				log.Fatalf("%v is up, lazygit integration test took too long to complete", timeout)
 			})
 		}
 	}
