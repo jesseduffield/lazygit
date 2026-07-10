@@ -170,11 +170,16 @@ func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) 
 		Prompt: self.c.Tr.SureDropStashEntry,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.DropStash)
+			// Refresh once at the end rather than after each drop: an async
+			// refresh from the UI thread finishes in the background, so firing
+			// one per iteration lets the workers race and an earlier, stale
+			// result can land last. The indices are captured up front and we
+			// drop highest-first, so the remaining lower indices stay valid
+			// without an intervening refresh.
+			defer self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			for i := len(stashEntries) - 1; i >= 0; i-- {
 				self.c.LogCommand(fmt.Sprintf(self.c.Tr.Log.DroppingStash, stashEntries[i].Hash), false)
-				err := self.c.Git().Stash.Drop(stashEntries[i].Index)
-				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
-				if err != nil {
+				if err := self.c.Git().Stash.Drop(stashEntries[i].Index); err != nil {
 					return err
 				}
 			}
