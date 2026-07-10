@@ -1313,10 +1313,6 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 // that a subsequent branches refresh can use them for recency sorting without
 // having to read them back out of the model.
 func (self *RefreshHelper) refreshReflogCommits(captured capturedReflogState, env refreshEnv, selectTopEntry bool) ([]*models.Commit, error) {
-	// pulling state into its own variable in case it gets swapped out for another state
-	// and we get an out of bounds exception
-	model := self.c.Model()
-
 	// load does the git work on the worker and returns the new value for a
 	// reflog slice, reading the existing slice (captured on the UI thread) for
 	// the incremental fetch. The caller writes the result in the bounce.
@@ -1352,8 +1348,8 @@ func (self *RefreshHelper) refreshReflogCommits(captured capturedReflogState, en
 	}
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
-		model.ReflogCommits = reflogCommits
-		model.FilteredReflogCommits = filteredReflogCommits
+		self.c.Model().ReflogCommits = reflogCommits
+		self.c.Model().FilteredReflogCommits = filteredReflogCommits
 		// Setting the selection here, in the same bounce that writes the list,
 		// keeps it on the UI thread and atomic with the list update. Setting the
 		// selection doesn't scroll the view, so also reset the origin.
