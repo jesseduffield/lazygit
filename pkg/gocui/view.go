@@ -7,6 +7,7 @@ package gocui
 import (
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"sync"
 	"unicode"
@@ -1146,10 +1147,25 @@ func (v *View) CopyContent(from *View) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
+	// A background task may be streaming output into the source view's buffer
+	// via Write, so read it under its own lock. The source is always a
+	// different view than the destination (see the sole caller,
+	// moveMainContextToTop), and no other code holds two view write locks at
+	// once, so this can't deadlock.
+	from.writeMutex.Lock()
+	defer from.writeMutex.Unlock()
+
 	v.clear()
 
-	v.lines = from.lines
-	v.viewLines = from.viewLines
+	// Clone the row slices rather than sharing them: the source view stays
+	// live (its streaming task keeps appending rows, and refreshViewLinesIfNeeded
+	// fills each row's wrapping cache in place via &lines[i]), so sharing the
+	// backing arrays would race those writes against this view's own rendering.
+	// This is a shallow clone -- the per-row cell data is immutable once written
+	// and stays shared, so the cost is proportional to the number of rows, not
+	// their contents.
+	v.lines = slices.Clone(from.lines)
+	v.viewLines = slices.Clone(from.viewLines)
 	v.ox = from.ox
 	v.oy = from.oy
 	v.cx = from.cx
