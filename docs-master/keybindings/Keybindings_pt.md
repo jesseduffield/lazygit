@@ -182,6 +182,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` t `` | Reverter | Crie um commit reverter para o commit selecionado, que aplica as alterações do commit selecionado em reverso. |
 | `` T `` | Etiquetar commit | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
 | `` <ctrl+l> `` | View log options | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
+| `` ~ `` | Toggle overview mode | Only show merge commits, and commits that a local or remote branch, a tag, or HEAD points to; hide all other commits. Useful for getting a high-level view of the history. |
 | `` G `` | Open pull request in browser |  |
 | `` <space> `` | Verificar | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |

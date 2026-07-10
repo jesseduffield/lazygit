@@ -316,17 +316,26 @@ func (self *MenuItem) ID() string {
 }
 
 type Model struct {
-	CommitFiles     []*models.CommitFile
-	Files           []*models.File
-	Submodules      []*models.SubmoduleConfig
-	Branches        []*models.Branch
-	Commits         []*models.Commit
-	StashEntries    []*models.StashEntry
-	SubCommits      []*models.Commit
-	Remotes         []*models.Remote
-	Worktrees       []*models.Worktree
-	PullRequests    []*models.GithubPullRequest
-	PullRequestsMap map[string]*models.GithubPullRequest
+	CommitFiles  []*models.CommitFile
+	Files        []*models.File
+	Submodules   []*models.SubmoduleConfig
+	Branches     []*models.Branch
+	Commits      []*models.Commit
+	StashEntries []*models.StashEntry
+
+	// When the commits panel's overview mode is active, Commits contains only
+	// the rows the overview shows; OverviewCommitsSource then holds the full
+	// commit list, and OverviewCommitIndices holds, for each entry of Commits,
+	// its index in OverviewCommitsSource. The graph is rendered from the full
+	// list so that hiding rows doesn't change its shape. Both are nil while
+	// overview mode is off.
+	OverviewCommitsSource []*models.Commit
+	OverviewCommitIndices []int
+	SubCommits            []*models.Commit
+	Remotes               []*models.Remote
+	Worktrees             []*models.Worktree
+	PullRequests          []*models.GithubPullRequest
+	PullRequestsMap       map[string]*models.GithubPullRequest
 
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// When in filtering mode we only include the ones that match the given path

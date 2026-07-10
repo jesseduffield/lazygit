@@ -579,6 +579,7 @@ type capturedCommitState struct {
 	selectionRange       *localCommitSelectionRange
 	limitCommits         bool
 	showWholeGitGraph    bool
+	overviewMode         bool
 	filterPath           string
 	filterAuthor         string
 	mainBranches         *git_commands.MainBranches
@@ -601,6 +602,7 @@ func (self *RefreshHelper) captureCommitsState(commitSelection types.CommitSelec
 		selectionRange:       selectionRange,
 		limitCommits:         self.c.Contexts().LocalCommits.GetLimitCommits(),
 		showWholeGitGraph:    self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
+		overviewMode:         self.c.Contexts().LocalCommits.GetOverviewMode(),
 		filterPath:           self.c.Modes().Filtering.GetPath(),
 		filterAuthor:         self.c.Modes().Filtering.GetAuthor(),
 		mainBranches:         self.c.Model().MainBranches,
@@ -685,11 +687,21 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 	if err != nil {
 		return err
 	}
+
+	var overviewSource []*models.Commit
+	var overviewIndices []int
+	if captured.overviewMode {
+		overviewSource = commits
+		commits, overviewIndices = filterCommitsForOverview(commits)
+	}
+
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 
 	self.onUIThreadUnlessRepoChanged(env, func() error {
 		self.c.Model().BisectInfo = bisectInfo
 		self.c.Model().Commits = commits
+		self.c.Model().OverviewCommitsSource = overviewSource
+		self.c.Model().OverviewCommitIndices = overviewIndices
 		self.RefreshAuthors(commits)
 		self.c.Model().WorkingTreeStateAtLastCommitRefresh = workingTreeState
 		if checkedOutRef != nil {
@@ -731,6 +743,30 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 
 	self.refreshView(self.c.Contexts().LocalCommits, env)
 	return nil
+}
+
+// commitShownInOverview says whether the commits panel's overview mode shows
+// the given commit: merge commits, commits that a ref points to, and rebase
+// todo entries.
+func commitShownInOverview(commit *models.Commit) bool {
+	return commit.IsTODO() || commit.IsMerge() || commit.ExtraInfo != ""
+}
+
+// filterCommitsForOverview returns only the commits that overview mode shows.
+// The second return value holds, for each kept commit, its index in the full
+// slice; the graph is rendered from the full slice so that hiding rows
+// doesn't change its shape.
+func filterCommitsForOverview(commits []*models.Commit) ([]*models.Commit, []int) {
+	kept := make([]*models.Commit, 0, len(commits))
+	indices := make([]int, 0, len(commits))
+	for i, commit := range commits {
+		if commitShownInOverview(commit) {
+			kept = append(kept, commit)
+			indices = append(indices, i)
+		}
+	}
+
+	return kept, indices
 }
 
 type localCommitSelectionRange struct {

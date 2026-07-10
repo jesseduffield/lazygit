@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -93,6 +94,16 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 			Reset: self.ExitFilterMode,
 		},
 		{
+			IsActive: self.c.Contexts().LocalCommits.GetOverviewMode,
+			InfoLabel: func() string {
+				return self.withResetButton(self.c.Tr.OverviewModeStatus, style.FgBlue)
+			},
+			CancelLabel: func() string {
+				return self.c.Tr.ExitOverviewMode
+			},
+			Reset: self.ExitOverviewMode,
+		},
+		{
 			IsActive: self.c.Modes().MarkedBaseCommit.Active,
 			InfoLabel: func() string {
 				return self.withResetButton(
@@ -180,6 +191,94 @@ func (self *ModeHelper) IsAnyModeActive() bool {
 
 func (self *ModeHelper) ExitFilterMode() error {
 	return self.ClearFiltering()
+}
+
+// updateCommitsViewTitle gives the commits view's title and tab label an
+// "(overview)" suffix while overview mode is on. The tab strip is shared by
+// all views of the panel, so updating the commits view's own tab entry is
+// enough for the label to show whichever tab is selected.
+func (self *ModeHelper) updateCommitsViewTitle() {
+	view := self.c.Views().Commits
+	title := lo.Ternary(self.c.Contexts().LocalCommits.GetOverviewMode(),
+		self.c.Tr.CommitsOverviewTitle, self.c.Tr.CommitsTitle)
+	view.Title = title
+	if len(view.Tabs) > 0 {
+		view.Tabs[view.TabIndex] = title
+	}
+}
+
+func (self *ModeHelper) EnterOverviewMode() error {
+	commitsContext := self.c.Contexts().LocalCommits
+
+	// If the selected commit is about to be hidden, remember it and move the
+	// selection to the nearest commit above it that stays visible (or the top
+	// one); exiting the mode jumps back to it if the selection hasn't moved
+	// in the meantime.
+	hiddenSelectionHash := ""
+	autoSelectHash := ""
+	if selected := commitsContext.GetSelected(); selected != nil && !commitShownInOverview(selected) {
+		hiddenSelectionHash = selected.Hash()
+		commits := self.c.Model().Commits
+		for i := commitsContext.GetSelectedLineIdx() - 1; i >= 0; i-- {
+			if commitShownInOverview(commits[i]) {
+				autoSelectHash = commits[i].Hash()
+				break
+			}
+		}
+	}
+
+	commitsContext.SetOverviewMode(true)
+	self.updateCommitsViewTitle()
+	// The condensed list can have far fewer rows than the threshold of the
+	// "load more commits when the selection approaches the end of the list"
+	// heuristic, which would then never kick in; load the whole history
+	// instead.
+	commitsContext.SetLimitCommits(false)
+
+	return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
+		self.c.RefreshFromWorker(types.RefreshOptions{
+			Mode:  types.SYNC,
+			Scope: []types.RefreshableView{types.COMMITS},
+			Then: func() error {
+				if hiddenSelectionHash == "" {
+					return nil
+				}
+				if autoSelectHash == "" || !commitsContext.SelectCommitByHash(autoSelectHash) {
+					commitsContext.SetSelection(0)
+				}
+				commitsContext.SetOverviewReturnHashes(
+					hiddenSelectionHash, commitsContext.GetSelectedCommitHash())
+				self.c.PostRefreshUpdate(commitsContext)
+				commitsContext.FocusLine(true)
+				return nil
+			},
+		})
+		return nil
+	})
+}
+
+func (self *ModeHelper) ExitOverviewMode() error {
+	commitsContext := self.c.Contexts().LocalCommits
+
+	returnHash, autoSelectedHash := commitsContext.GetOverviewReturnHashes()
+	jumpBack := returnHash != "" && commitsContext.GetSelectedCommitHash() == autoSelectedHash
+
+	commitsContext.SetOverviewMode(false)
+	commitsContext.SetOverviewReturnHashes("", "")
+	self.updateCommitsViewTitle()
+
+	self.c.Refresh(types.RefreshOptions{
+		Scope: []types.RefreshableView{types.COMMITS},
+		Then: func() error {
+			if jumpBack {
+				commitsContext.SelectCommitByHash(returnHash)
+				self.c.PostRefreshUpdate(commitsContext)
+				commitsContext.FocusLine(true)
+			}
+			return nil
+		},
+	})
+	return nil
 }
 
 func (self *ModeHelper) ClearFiltering() error {

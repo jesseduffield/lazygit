@@ -630,6 +630,7 @@ type KeybindingCommitsConfig struct {
 	ResetCherryPick                Keybinding `yaml:"resetCherryPick"`
 	CopyCommitAttributeToClipboard Keybinding `yaml:"copyCommitAttributeToClipboard"`
 	OpenLogMenu                    Keybinding `yaml:"openLogMenu"`
+	ToggleOverviewMode             Keybinding `yaml:"toggleOverviewMode"`
 	OpenInBrowser                  Keybinding `yaml:"openInBrowser"`
 	OpenPullRequestInBrowser       Keybinding `yaml:"openPullRequestInBrowser"`
 	ViewBisectOptions              Keybinding `yaml:"viewBisectOptions"`
@@ -1144,6 +1145,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				ResetCherryPick:                Keybinding{"<ctrl+r>"},
 				CopyCommitAttributeToClipboard: Keybinding{"y"},
 				OpenLogMenu:                    Keybinding{"<ctrl+l>"},
+				ToggleOverviewMode:             Keybinding{"~"},
 				OpenInBrowser:                  Keybinding{"o"},
 				OpenPullRequestInBrowser:       Keybinding{"G"},
 				ViewBisectOptions:              Keybinding{"b"},

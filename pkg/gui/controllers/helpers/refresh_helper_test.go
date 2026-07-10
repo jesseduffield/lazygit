@@ -160,6 +160,43 @@ func TestFindLocalCommitSelectionRange(t *testing.T) {
 	}
 }
 
+func TestFilterCommitsForOverview(t *testing.T) {
+	hashPool := &utils.StringPool{}
+
+	commit := func(hash string, extraInfo string, parents ...string) *models.Commit {
+		return models.NewCommit(hashPool, models.NewCommitOpts{
+			Hash:      hash,
+			ExtraInfo: extraInfo,
+			Parents:   parents,
+		})
+	}
+
+	commits := []*models.Commit{
+		commit("master3", "(HEAD -> master)", "master2"),
+		commit("master2", "", "M"),
+		commit("M", "", "master1", "feature2"),
+		commit("feature2", "(feature)", "feature1"),
+		commit("feature1", "", "base"),
+		commit("master1", "", "base"),
+		commit("base", "(tag: v1)"),
+	}
+	todoCommit := models.NewCommit(hashPool, models.NewCommitOpts{Hash: "todo", Action: todo.Pick})
+	commits = append([]*models.Commit{todoCommit}, commits...)
+
+	kept, indices := filterCommitsForOverview(commits)
+
+	// merge commits, ref tips, and rebase todo entries are kept; everything
+	// else is hidden
+	assert.Equal(t, []string{"todo", "master3", "M", "feature2", "base"},
+		lo.Map(kept, func(commit *models.Commit, _ int) string { return commit.Hash() }))
+
+	// each kept commit's index points back at it in the full slice
+	assert.Equal(t, []int{0, 1, 3, 4, 7}, indices)
+	for i, modelIdx := range indices {
+		assert.Same(t, commits[modelIdx], kept[i])
+	}
+}
+
 func TestGetGithubBaseRemote(t *testing.T) {
 	cases := []struct {
 		name             string

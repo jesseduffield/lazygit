@@ -54,6 +54,11 @@ func GetCommitListDisplayStrings(
 	selectedCommitHashPtr *string,
 	startIdx int,
 	endIdx int,
+	// If non-nil, the indices into commits of the rows to render (ascending,
+	// already windowed), overriding startIdx/endIdx; used by the commits
+	// panel's overview mode to omit rows while the graph is still rendered
+	// from the full list. Must be nil for a divergence log.
+	displayIndices []int,
 	showGraph bool,
 	bisectInfo *git_commands.BisectInfo,
 ) [][]string {
@@ -64,14 +69,21 @@ func GetCommitListDisplayStrings(
 		return nil
 	}
 
-	if startIdx >= len(commits) {
-		return nil
+	if displayIndices == nil {
+		if startIdx >= len(commits) {
+			return nil
+		}
+		displayIndices = lo.RangeFrom(startIdx, endIdx-startIdx)
+	} else {
+		if len(displayIndices) == 0 {
+			return nil
+		}
+		startIdx = displayIndices[0]
+		endIdx = displayIndices[len(displayIndices)-1] + 1
 	}
 
 	// this is where my non-TODO commits begin
 	rebaseOffset := min(indexOfFirstNonTODOCommit(commits), endIdx)
-
-	filteredCommits := commits[startIdx:endIdx]
 
 	bisectBounds := getbisectBounds(commits, bisectInfo)
 
@@ -129,24 +141,29 @@ func GetCommitListDisplayStrings(
 				return allGraphLines[idx-startIdx]
 			}
 		} else {
-			// this is where the graph begins (may be beyond the TODO commits depending on startIdx,
-			// but we'll never include TODO commits as part of the graph because it'll be messy)
-			graphOffset := max(startIdx, rebaseOffset)
-
+			// the graph never includes TODO commits because it'll be messy,
+			// so only render rows from the first non-TODO commit on
 			pipeSets := loadPipesets(commits[rebaseOffset:])
-			pipeSetOffset := max(startIdx-rebaseOffset, 0)
-			graphPipeSets := pipeSets[pipeSetOffset:max(endIdx-rebaseOffset, 0)]
-			graphCommits := commits[graphOffset:endIdx]
+			graphIndices := lo.Filter(displayIndices, func(idx int, _ int) bool {
+				return idx >= rebaseOffset
+			})
+			graphPipeSets := lo.Map(graphIndices, func(idx int, _ int) []graph.Pipe {
+				return pipeSets[idx-rebaseOffset]
+			})
+			graphCommits := lo.Map(graphIndices, func(idx int, _ int) *models.Commit {
+				return commits[idx]
+			})
 			graphLines := graph.RenderAux(
 				graphPipeSets,
 				graphCommits,
 				selectedCommitHashPtr,
 			)
+			graphLineByIndex := make(map[int]string, len(graphIndices))
+			for i, idx := range graphIndices {
+				graphLineByIndex[idx] = graphLines[i]
+			}
 			getGraphLine = func(idx int) string {
-				if idx >= graphOffset {
-					return graphLines[idx-graphOffset]
-				}
-				return ""
+				return graphLineByIndex[idx]
 			}
 		}
 	} else {
@@ -177,11 +194,11 @@ func GetCommitListDisplayStrings(
 					(hasRebaseUpdateRefsConfig || b.CommitHash != commits[0].Hash())
 		}))
 
-	lines := make([][]string, 0, len(filteredCommits))
+	lines := make([][]string, 0, len(displayIndices))
 	var bisectStatus BisectStatus
 	willBeRebased := markedBaseCommit == ""
-	for i, commit := range filteredCommits {
-		unfilteredIdx := i + startIdx
+	for _, unfilteredIdx := range displayIndices {
+		commit := commits[unfilteredIdx]
 		bisectStatus = getBisectStatus(unfilteredIdx, commit.Hash(), bisectInfo, bisectBounds)
 		isMarkedBaseCommit := commit.Hash() != "" && commit.Hash() == markedBaseCommit
 		if isMarkedBaseCommit {

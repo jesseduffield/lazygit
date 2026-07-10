@@ -202,6 +202,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` t `` | 還原 | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
 | `` T `` | 打標籤到提交 | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
 | `` <ctrl+l> `` | 開啟記錄選單 | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
+| `` ~ `` | Toggle overview mode | Only show merge commits, and commits that a local or remote branch, a tag, or HEAD points to; hide all other commits. Useful for getting a high-level view of the history. |
 | `` G `` | Open pull request in browser |  |
 | `` <space> `` | 檢出 | Checkout the selected commit as a detached HEAD. |
 | `` y `` | 複製提交屬性 | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
