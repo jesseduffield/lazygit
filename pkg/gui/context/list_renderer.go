@@ -32,32 +32,74 @@ type ListRenderer struct {
 	getNonModelItems func() []*NonModelItem
 
 	// The remaining fields are private and shouldn't be initialized by clients
-	numNonModelItems        int
-	viewIndicesByModelIndex []int
-	modelIndicesByViewIndex []int
-	columnPositions         []int
+	columnPositions []int
 }
 
 func (self *ListRenderer) GetList() types.IList {
 	return self.list
 }
 
-func (self *ListRenderer) ModelIndexToViewIndex(modelIndex int) int {
-	modelIndex = lo.Clamp(modelIndex, 0, self.list.Len())
-	if self.viewIndicesByModelIndex != nil {
-		return self.viewIndicesByModelIndex[modelIndex]
+func (self *ListRenderer) getNonModelItemList() []*NonModelItem {
+	if self.getNonModelItems == nil {
+		return nil
 	}
+	return self.getNonModelItems()
+}
 
-	return modelIndex
+func (self *ListRenderer) ModelIndexToViewIndex(modelIndex int) int {
+	return modelIndexToViewIndex(self.list.Len(), self.getNonModelItemList(), modelIndex)
 }
 
 func (self *ListRenderer) ViewIndexToModelIndex(viewIndex int) int {
-	viewIndex = lo.Clamp(viewIndex, 0, self.list.Len()+self.numNonModelItems)
-	if self.modelIndicesByViewIndex != nil {
-		return self.modelIndicesByViewIndex[viewIndex]
-	}
+	return viewIndexToModelIndex(self.list.Len(), self.getNonModelItemList(), viewIndex)
+}
 
+// modelToViewIndexConverter returns a model-to-view index conversion that
+// reuses a single snapshot of the non-model items. Callers that convert many
+// indices in a row (e.g. search, which converts every commit) should use this
+// rather than calling ModelIndexToViewIndex per index, which would rebuild the
+// non-model items each time.
+func (self *ListRenderer) modelToViewIndexConverter() func(modelIndex int) int {
+	listLength := self.list.Len()
+	nonModelItems := self.getNonModelItemList()
+	return func(modelIndex int) int {
+		return modelIndexToViewIndex(listLength, nonModelItems, modelIndex)
+	}
+}
+
+// The view shows the model items with the non-model items (e.g. section
+// headers) inserted at their model indices. The two conversions below are
+// computed directly from the current list length and non-model items, so they
+// don't depend on the list having been rendered, and they can never be stale
+// with respect to a model that changed since the last render (which used to
+// cause both wrong results and index-out-of-range panics).
+//
+// The non-model items are assumed to be ordered by their Index, which is how
+// all producers build them; the i-th one therefore ends up at view index
+// Index+i.
+func modelIndexToViewIndex(listLength int, nonModelItems []*NonModelItem, modelIndex int) int {
+	modelIndex = lo.Clamp(modelIndex, 0, listLength)
+	// Each non-model item inserted at or before this model item pushes it down
+	// by one row in the view.
+	viewIndex := modelIndex
+	for _, item := range nonModelItems {
+		if item.Index <= modelIndex {
+			viewIndex++
+		}
+	}
 	return viewIndex
+}
+
+func viewIndexToModelIndex(listLength int, nonModelItems []*NonModelItem, viewIndex int) int {
+	viewIndex = lo.Clamp(viewIndex, 0, listLength+len(nonModelItems))
+	// Subtract the non-model items that appear before this view index.
+	modelIndex := viewIndex
+	for i, item := range nonModelItems {
+		if item.Index+i < viewIndex {
+			modelIndex--
+		}
+	}
+	return modelIndex
 }
 
 func (self *ListRenderer) ColumnPositions() []int {
@@ -71,23 +113,18 @@ func (self *ListRenderer) renderLines(startIdx int, endIdx int) string {
 	if self.getColumnAlignments != nil {
 		columnAlignments = self.getColumnAlignments()
 	}
-	nonModelItems := []*NonModelItem{}
-	self.numNonModelItems = 0
-	if self.getNonModelItems != nil {
-		nonModelItems = self.getNonModelItems()
-		self.prepareConversionArrays(nonModelItems)
-	}
+	nonModelItems := self.getNonModelItemList()
 	startModelIdx := 0
 	if startIdx == -1 {
 		startIdx = 0
 	} else {
-		startModelIdx = self.ViewIndexToModelIndex(startIdx)
+		startModelIdx = viewIndexToModelIndex(self.list.Len(), nonModelItems, startIdx)
 	}
 	endModelIdx := self.list.Len()
 	if endIdx == -1 {
 		endIdx = endModelIdx + len(nonModelItems)
 	} else {
-		endModelIdx = self.ViewIndexToModelIndex(endIdx)
+		endModelIdx = viewIndexToModelIndex(self.list.Len(), nonModelItems, endIdx)
 	}
 	lines, columnPositions := utils.RenderDisplayStrings(
 		self.getDisplayStrings(startModelIdx, endModelIdx),
@@ -95,23 +132,6 @@ func (self *ListRenderer) renderLines(startIdx int, endIdx int) string {
 	self.columnPositions = columnPositions
 	lines = self.insertNonModelItems(nonModelItems, endIdx, startIdx, lines, columnPositions)
 	return strings.Join(lines, "\n")
-}
-
-func (self *ListRenderer) prepareConversionArrays(nonModelItems []*NonModelItem) {
-	self.numNonModelItems = len(nonModelItems)
-	viewIndicesByModelIndex := lo.Range(self.list.Len() + 1)
-	modelIndicesByViewIndex := lo.Range(self.list.Len() + 1)
-	offset := 0
-	for _, item := range nonModelItems {
-		for i := item.Index; i <= self.list.Len(); i++ {
-			viewIndicesByModelIndex[i]++
-		}
-		modelIndicesByViewIndex = slices.Insert(
-			modelIndicesByViewIndex, item.Index+offset, modelIndicesByViewIndex[item.Index+offset])
-		offset++
-	}
-	self.viewIndicesByModelIndex = viewIndicesByModelIndex
-	self.modelIndicesByViewIndex = modelIndicesByViewIndex
 }
 
 func (self *ListRenderer) insertNonModelItems(

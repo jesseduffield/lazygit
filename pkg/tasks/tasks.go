@@ -393,14 +393,21 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 
 // Close closes the task manager, killing whatever task may currently be running
 func (self *ViewBufferManager) Close() {
-	if self.stopCurrentTask == nil {
+	// stopCurrentTask is written by NewTask's goroutine under waitingMutex (and
+	// so is the sync.Once it closes over), so read it under the lock and call
+	// the captured value; a task starting on shutdown must not race us here.
+	self.waitingMutex.Lock()
+	stopCurrentTask := self.stopCurrentTask
+	self.waitingMutex.Unlock()
+
+	if stopCurrentTask == nil {
 		return
 	}
 
 	c := make(chan struct{})
 
 	go utils.Safe(func() {
-		self.stopCurrentTask()
+		stopCurrentTask()
 		c <- struct{}{}
 	})
 
