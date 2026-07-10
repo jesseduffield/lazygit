@@ -33,11 +33,30 @@ func (self *gitCmdObjRunner) Run(cmdObj *oscommands.CmdObj) error {
 }
 
 func (self *gitCmdObjRunner) RunWithOutput(cmdObj *oscommands.CmdObj) (string, error) {
+	return self.retryOnLockError(func() (string, error) {
+		return self.innerRunner.RunWithOutput(cmdObj.Clone())
+	})
+}
+
+func (self *gitCmdObjRunner) RunWithOutputs(cmdObj *oscommands.CmdObj) (string, string, error) {
+	var stdout, stderr string
+	_, err := self.retryOnLockError(func() (string, error) {
+		var runErr error
+		stdout, stderr, runErr = self.innerRunner.RunWithOutputs(cmdObj.Clone())
+		return stdout + stderr, runErr
+	})
+	return stdout, stderr, err
+}
+
+// retryOnLockError runs the given function, retrying if it fails with a
+// transient lock error (see isRetryableError). The string returned by run is
+// the command output we inspect to classify the failure. We clone the command
+// for each attempt (inside run) because an *exec.Cmd can only be run once.
+func (self *gitCmdObjRunner) retryOnLockError(run func() (string, error)) (string, error) {
 	var output string
 	var err error
 	for range RetryCount {
-		newCmdObj := cmdObj.Clone()
-		output, err = self.innerRunner.RunWithOutput(newCmdObj)
+		output, err = run()
 
 		if err == nil || !isRetryableError(output) {
 			return output, err
@@ -49,25 +68,6 @@ func (self *gitCmdObjRunner) RunWithOutput(cmdObj *oscommands.CmdObj) (string, e
 	}
 
 	return output, err
-}
-
-func (self *gitCmdObjRunner) RunWithOutputs(cmdObj *oscommands.CmdObj) (string, string, error) {
-	var stdout, stderr string
-	var err error
-	for range RetryCount {
-		newCmdObj := cmdObj.Clone()
-		stdout, stderr, err = self.innerRunner.RunWithOutputs(newCmdObj)
-
-		if err == nil || !isRetryableError(stdout+stderr) {
-			return stdout, stderr, err
-		}
-
-		// if we have an error based on a lock, we should wait a bit and then retry
-		self.log.Warn("lock error prevented command from running. Retrying command after a small wait")
-		time.Sleep(WaitTime)
-	}
-
-	return stdout, stderr, err
 }
 
 // Retry logic not implemented here, but these commands typically don't need to obtain a lock.
