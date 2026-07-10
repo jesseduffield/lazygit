@@ -137,6 +137,12 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Tooltip:     self.c.Tr.ToggleWhitespaceInDiffViewTooltip,
 		},
 		{
+			Keys:        opts.GetKeys(opts.Config.Universal.ToggleMouseCapture),
+			Handler:     self.toggleMouseCapture,
+			Description: self.c.Tr.ToggleMouseCapture,
+			Tooltip:     self.c.Tr.ToggleMouseCaptureTooltip,
+		},
+		{
 			Keys:        opts.GetKeys(opts.Config.Universal.EditConfig),
 			Handler:     self.editConfig,
 			Description: self.c.Tr.EditConfig,
@@ -271,6 +277,20 @@ func (self *GlobalController) escapeEnabled() *types.DisabledReason {
 
 func (self *GlobalController) toggleWhitespace() error {
 	return (&ToggleWhitespaceAction{c: self.c}).Call()
+}
+
+func (self *GlobalController) toggleMouseCapture() error {
+	userConfig := self.c.UserConfig()
+	userConfig.Gui.MouseEvents = !userConfig.Gui.MouseEvents
+	self.c.GocuiGui().Mouse = userConfig.Gui.MouseEvents
+
+	if userConfig.Gui.MouseEvents {
+		self.c.Toast(self.c.Tr.MouseCaptureEnabled)
+	} else {
+		self.c.Toast(self.c.Tr.MouseCaptureDisabled)
+	}
+
+	return nil
 }
 
 func (self *GlobalController) editConfig() error {

@@ -347,6 +347,7 @@ var tests = []*components.IntegrationTest{
 	misc.DirenvUnloadsOnBlockedEnvrc,
 	misc.InitialOpen,
 	misc.RecentReposOnLaunch,
+	misc.ToggleMouseCapture,
 	patch_building.Apply,
 	patch_building.ApplyInReverse,
 	patch_building.ApplyInReverseWithConflict,

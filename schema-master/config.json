@@ -540,7 +540,7 @@
         },
         "mouseEvents": {
           "type": "boolean",
-          "description": "If true, capture mouse events.\nWhen mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.",
+          "description": "If true, capture mouse events.\nWhen mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.\nMouse capture can also be toggled at runtime with the 'toggleMouseCapture' keybinding ('%' by default).",
           "default": true
         },
         "skipAmendWarning": {
@@ -3334,6 +3334,20 @@
             }
           ],
           "default": "\u003cctrl+w\u003e"
+        },
+        "toggleMouseCapture": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "%"
         },
         "increaseContextInDiffView": {
           "oneOf": [

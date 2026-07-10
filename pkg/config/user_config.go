@@ -91,6 +91,7 @@ type GuiConfig struct {
 	TabWidth int `yaml:"tabWidth" jsonschema:"minimum=1"`
 	// If true, capture mouse events.
 	// When mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.
+	// Mouse capture can also be toggled at runtime with the 'toggleMouseCapture' keybinding ('%' by default).
 	MouseEvents bool `yaml:"mouseEvents"`
 	// If true, do not show a warning when amending a commit.
 	SkipAmendWarning bool `yaml:"skipAmendWarning"`
@@ -548,6 +549,7 @@ type KeybindingUniversalConfig struct {
 	SubmitEditorText                  Keybinding `yaml:"submitEditorText"`
 	ExtrasMenu                        Keybinding `yaml:"extrasMenu"`
 	ToggleWhitespaceInDiffView        Keybinding `yaml:"toggleWhitespaceInDiffView"`
+	ToggleMouseCapture                Keybinding `yaml:"toggleMouseCapture"`
 	IncreaseContextInDiffView         Keybinding `yaml:"increaseContextInDiffView"`
 	DecreaseContextInDiffView         Keybinding `yaml:"decreaseContextInDiffView"`
 	IncreaseRenameSimilarityThreshold Keybinding `yaml:"increaseRenameSimilarityThreshold"`
@@ -1066,6 +1068,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				SubmitEditorText:                  Keybinding{"<enter>"},
 				ExtrasMenu:                        Keybinding{"@"},
 				ToggleWhitespaceInDiffView:        Keybinding{"<ctrl+w>"},
+				ToggleMouseCapture:                Keybinding{"%"},
 				IncreaseContextInDiffView:         Keybinding{"}"},
 				DecreaseContextInDiffView:         Keybinding{"{"},
 				IncreaseRenameSimilarityThreshold: Keybinding{")"},
