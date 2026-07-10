@@ -56,7 +56,7 @@ func TestIntegration(t *testing.T) {
 		CodeCoverageDir: codeCoverageDir,
 		InputDelay:      0,
 		// Allow two attempts at each test to get around flakiness
-		MaxAttempts: 2,
+		MaxAttempts: 1,
 	})
 
 	assert.NoError(t, err)
