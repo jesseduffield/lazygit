@@ -24,12 +24,17 @@ type gitCmdObjRunner struct {
 // lock-related condition that may succeed on retry. The lock message can reach
 // us either in the command's captured output or, for streamed commands whose
 // output we don't capture, only in the returned error, so we check both.
+//
+// We match the bare "index.lock" fragment rather than a fuller path or message
+// so we catch the lock wherever git puts it: the main .git dir, a linked
+// worktree's git dir (.git/worktrees/<name>/index.lock), or a submodule's git
+// dir.
 func isRetryableError(output string, err error) bool {
 	text := output
 	if err != nil {
 		text += "\n" + err.Error()
 	}
-	return strings.Contains(text, ".git/index.lock") ||
+	return strings.Contains(text, "index.lock") ||
 		strings.Contains(text, "cannot lock ref")
 }
 

@@ -105,3 +105,18 @@ func TestRunWithOutputRetriesWhenLockErrorIsOnlyInError(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 2, inner.calls)
 }
+
+func TestRunWithOutputRetriesLockErrorInLinkedWorktree(t *testing.T) {
+	// In a linked worktree the lock lives at .git/worktrees/<name>/index.lock
+	// rather than .git/index.lock, so only matching the bare "index.lock"
+	// fragment lets the retry fire there too.
+	inner := &scriptedRunner{results: []runnerResult{
+		{output: "", err: errors.New("fatal: Unable to create '/repo/.git/worktrees/feature/index.lock': File exists.")},
+		{output: "", err: nil},
+	}}
+
+	_, err := newTestRunner(inner).RunWithOutput(dummyCmdObj())
+
+	assert.NoError(t, err)
+	assert.Equal(t, 2, inner.calls)
+}
