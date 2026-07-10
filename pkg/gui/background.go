@@ -190,7 +190,11 @@ func (self *BackgroundRoutineMgr) checkForExternalChanges() {
 // returns a channel that can be used to trigger the callback immediately
 func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan struct{}, function func(bool) error) chan struct{} {
 	done := make(chan struct{})
-	retrigger := make(chan struct{})
+	// Buffered so that a retrigger arriving while the callback is running is
+	// latched rather than lost: the loop below doesn't receive again until the
+	// callback has finished, and the callback (a fetch) may be for the wrong
+	// repo if the retrigger came from a repo switch.
+	retrigger := make(chan struct{}, 1)
 	go utils.Safe(func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
@@ -234,6 +238,16 @@ func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
 
 func (self *BackgroundRoutineMgr) triggerImmediateFetch() {
 	if self.triggerFetch != nil {
-		self.triggerFetch <- struct{}{}
+		// This runs on the UI thread, which must never block waiting for a
+		// background routine; in particular, the goEvery loop only receives
+		// between callbacks, and an in-flight fetch can itself be waiting for
+		// the UI thread to perform its post-fetch refresh, so a blocking send
+		// here would deadlock. The channel has a buffer of one, so the trigger
+		// is latched even when the loop isn't currently receiving; if one is
+		// already pending, the two coalesce.
+		select {
+		case self.triggerFetch <- struct{}{}:
+		default:
+		}
 	}
 }
