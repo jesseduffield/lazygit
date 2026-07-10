@@ -53,8 +53,16 @@ jobs:
           - 2.38.2 # first version that supports the rebase.updateRefs config
           - 2.44.0
           - latest # We rely on github to have the latest version installed on their VMs
+        race:
+          - false
+        # Additionally run the whole suite once under the race detector. Data
+        # races live in lazygit's own Go code rather than in git, so a single
+        # git version is enough; use the latest to skip the git-build steps.
+        include:
+          - git-version: latest
+            race: true
     runs-on: ubuntu-latest
-    name: "Integration Tests - git ${{matrix.git-version}}"
+    name: "Integration Tests - git ${{matrix.git-version}}${{ matrix.race && ' (race)' || '' }}"
     env:
       GOFLAGS: -mod=vendor
     steps:
@@ -92,12 +100,20 @@ jobs:
         run: git --version
       - name: Test code
         env:
-          # See https://go.dev/blog/integration-test-coverage
-          LAZYGIT_GOCOVERDIR: /tmp/code_coverage
+          # See https://go.dev/blog/integration-test-coverage. The race variant
+          # skips coverage: it's redundant with the non-race latest job and
+          # would only slow the -race build down further. Leaving the dir unset
+          # makes run_integration_tests.sh take its non-coverage path.
+          LAZYGIT_GOCOVERDIR: ${{ !matrix.race && '/tmp/code_coverage' || '' }}
+          # Only set for the race variant. The race detector needs cgo; it's on
+          # by default on the Linux runner, but we set it explicitly to be safe.
+          LAZYGIT_RACE_DETECTOR: ${{ matrix.race && '1' || '' }}
+          CGO_ENABLED: ${{ matrix.race && '1' || '' }}
         run: |
           mkdir -p /tmp/code_coverage
           ./scripts/run_integration_tests.sh
       - name: Upload code coverage artifacts
+        if: ${{ !matrix.race }}
         uses: actions/upload-artifact@v7
         with:
           name: coverage-integration-${{ matrix.git-version }}-${{ github.run_id }}
