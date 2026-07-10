@@ -3,6 +3,7 @@ package gui
 import (
 	"log"
 	"os"
+	"runtime/pprof"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -48,6 +49,10 @@ func (gui *Gui) handleTestMode() {
 			timeout := 40 * time.Second * testTimeoutMultiplier
 			go utils.Safe(func() {
 				time.Sleep(timeout)
+				// Dump all goroutine stacks before dying, so a hung test shows
+				// where it got stuck rather than just that it timed out. The
+				// test harness surfaces this process's stderr on failure.
+				_ = pprof.Lookup("goroutine").WriteTo(os.Stderr, 2)
 				log.Fatalf("%v is up, lazygit integration test took too long to complete", timeout)
 			})
 		}
