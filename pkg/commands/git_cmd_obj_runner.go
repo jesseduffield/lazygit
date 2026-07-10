@@ -11,13 +11,24 @@ import (
 // here we're wrapping the default command runner in some git-specific stuff e.g. retry logic if we get an error due to the presence of .git/index.lock
 
 const (
-	WaitTime   = 50 * time.Millisecond
-	RetryCount = 5
+	// defaultInitialRetryDelay is how long we wait before the first retry of a
+	// command that failed with a transient lock error. We double it before each
+	// subsequent retry (see retryOnLockError), so across maxRetries attempts we
+	// wait for a bit over a second in total. That's long enough to outlast the
+	// brief window during which another git process holds a lock we need —
+	// typically our own foreground `git status` refresh, which takes index.lock
+	// to persist its refreshed stat-cache.
+	defaultInitialRetryDelay = 20 * time.Millisecond
+	maxRetries               = 7
 )
 
 type gitCmdObjRunner struct {
 	log         *logrus.Entry
 	innerRunner oscommands.ICmdObjRunner
+	// initialRetryDelay is the wait before the first lock-error retry. It's a
+	// field rather than the constant directly so tests can set it to zero and
+	// not actually sleep.
+	initialRetryDelay time.Duration
 }
 
 // isRetryableError returns true if a failed command hit a transient
@@ -64,18 +75,21 @@ func (self *gitCmdObjRunner) RunWithOutputs(cmdObj *oscommands.CmdObj) (string, 
 // the command output we inspect to classify the failure. We clone the command
 // for each attempt (inside run) because an *exec.Cmd can only be run once.
 func (self *gitCmdObjRunner) retryOnLockError(run func() (string, error)) (string, error) {
+	delay := self.initialRetryDelay
 	var output string
 	var err error
-	for range RetryCount {
+	for attempt := range maxRetries {
 		output, err = run()
 
 		if err == nil || !isRetryableError(output, err) {
-			return output, err
+			break
 		}
 
-		// if we have an error based on a lock, we should wait a bit and then retry
-		self.log.Warn("lock error prevented command from running. Retrying command after a small wait")
-		time.Sleep(WaitTime)
+		if attempt < maxRetries-1 {
+			self.log.Warnf("lock error prevented command from running; retrying in %s", delay)
+			time.Sleep(delay)
+			delay *= 2
+		}
 	}
 
 	return output, err

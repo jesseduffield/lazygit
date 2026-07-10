@@ -50,6 +50,8 @@ func newTestRunner(inner *scriptedRunner) *gitCmdObjRunner {
 	return &gitCmdObjRunner{
 		log:         utils.NewDummyLog(),
 		innerRunner: inner,
+		// don't actually sleep between retries
+		initialRetryDelay: 0,
 	}
 }
 
@@ -104,6 +106,19 @@ func TestRunWithOutputRetriesWhenLockErrorIsOnlyInError(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 2, inner.calls)
+}
+
+func TestRunWithOutputGivesUpAfterMaxRetries(t *testing.T) {
+	results := make([]runnerResult, maxRetries)
+	for i := range results {
+		results[i] = runnerResult{err: errors.New("fatal: Unable to create '/repo/.git/index.lock': File exists.")}
+	}
+	inner := &scriptedRunner{results: results}
+
+	_, err := newTestRunner(inner).RunWithOutput(dummyCmdObj())
+
+	assert.Error(t, err)
+	assert.Equal(t, maxRetries, inner.calls)
 }
 
 func TestRunWithOutputRetriesLockErrorInLinkedWorktree(t *testing.T) {
