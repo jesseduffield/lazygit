@@ -775,6 +775,36 @@ type TranslationSet struct {
 	FocusCommandLog                          string
 	CommandLogHeader                         string
 	RandomTip                                string
+	RandomTipForcePush                       string
+	RandomTipFilterCommitsByPath             string
+	RandomTipStartInteractiveRebase          string
+	RandomTipFlatFileView                    string
+	RandomTipJoinTeam                        string
+	RandomTipUndoRedo                        string
+	RandomTipHardReset                       string
+	RandomTipPushTag                         string
+	RandomTipViewStashFiles                  string
+	RandomTipDiffCommits                     string
+	RandomTipDropCommit                      string
+	RandomTipResolveMergeConflicts           string
+	RandomTipRevertCommit                    string
+	RandomTipExitMode                        string
+	RandomTipPagePanel                       string
+	RandomTipJumpPanel                       string
+	RandomTipToggleDirectory                 string
+	RandomTipAmendToCommit                   string
+	RandomTipAmendLastCommit                 string
+	RandomTipNavigateSidePanels              string
+	RandomTipBareRepo                        string
+	RandomTipCommitSaveGame                  string
+	RandomTipSeparateRefactors               string
+	RandomTipExperimentBranch                string
+	RandomTipReviewDiff                      string
+	RandomTipReflog                          string
+	RandomTipStashDebugSnippets              string
+	RandomTipDelta                           string
+	RandomTipCustomCommands                  string
+	RandomTipReportBug                       string
 	ToggleWhitespaceInDiffView               string
 	ToggleWhitespaceInDiffViewTooltip        string
 	IgnoreWhitespaceDiffViewSubTitle         string
@@ -1927,6 +1957,36 @@ func EnglishTranslationSet() *TranslationSet {
 		FocusCommandLog:                          "Focus command log",
 		CommandLogHeader:                         "You can hide/focus this panel by pressing '%s'\n",
 		RandomTip:                                "Random tip",
+		RandomTipForcePush:                       "To force push, press '{{.pushKey}}' and then if the push is rejected you will be asked if you want to force push",
+		RandomTipFilterCommitsByPath:             "To filter commits by path, press '{{.filteringMenuKey}}'",
+		RandomTipStartInteractiveRebase:          "To start an interactive rebase, press '{{.editKey}}' on a commit. You can always abort the rebase by pressing '{{.rebaseOptionsKey}}' and selecting 'abort'",
+		RandomTipFlatFileView:                    "In flat file view, merge conflicts are sorted to the top. To switch to flat file view press '{{.toggleTreeViewKey}}'",
+		RandomTipJoinTeam:                        "If you want to learn Go and can think of ways to improve lazygit, join the team! Click 'Ask Question' and express your interest",
+		RandomTipUndoRedo:                        "If you press '{{.undoKey}}'/'{{.redoKey}}' you can undo/redo your changes. Be wary though, this only applies to branches/commits, so only do this if your worktree is clear.\nDocs: {{.undoingDocsLink}}",
+		RandomTipHardReset:                       "to hard reset onto your current upstream branch, press '{{.resetOptionsKey}}' in the files panel",
+		RandomTipPushTag:                         "To push a tag, navigate to the tag in the tags tab and press '{{.pushTagKey}}'",
+		RandomTipViewStashFiles:                  "You can view the individual files of a stash entry by pressing '{{.goIntoKey}}'",
+		RandomTipDiffCommits:                     "You can diff two commits by pressing '{{.diffingMenuKey}}' on one commit and then navigating to the other. You can then press '{{.goIntoKey}}' to view the files of the diff",
+		RandomTipDropCommit:                      "press '{{.removeKey}}' on a commit to drop it (delete it)",
+		RandomTipResolveMergeConflicts:           "If you need to pull out the big guns to resolve merge conflicts, you can press '{{.mergeOptionsKey}}' in the files panel to open merge options",
+		RandomTipRevertCommit:                    "To revert a commit, press '{{.revertKey}}' on that commit",
+		RandomTipExitMode:                        "To escape a mode, for example cherry-picking, patch-building, diffing, or filtering mode, you can just spam the '{{.returnKey}}' button. Unless of course you have `quitOnTopLevelReturn` enabled in your config",
+		RandomTipPagePanel:                       "You can page through the items of a panel using '{{.prevPageKey}}' and '{{.nextPageKey}}'",
+		RandomTipJumpPanel:                       "You can jump to the top/bottom of a panel using '{{.gotoTopKey}}' and '{{.gotoBottomKey}}'",
+		RandomTipToggleDirectory:                 "To collapse/expand a directory, press '{{.goIntoKey}}'",
+		RandomTipAmendToCommit:                   "You can append your staged changes to an older commit by pressing '{{.amendToCommitKey}}' on that commit",
+		RandomTipAmendLastCommit:                 "You can amend the last commit with your new file changes by pressing '{{.amendLastCommitKey}}' in the files panel",
+		RandomTipNavigateSidePanels:              "You can now navigate the side panels with '{{.nextBlockAlt2Key}}' and '{{.prevBlockAlt2Key}}'",
+		RandomTipBareRepo:                        "You can use lazygit with a bare repo by passing the --git-dir and --work-tree arguments as you would for the git CLI",
+		RandomTipCommitSaveGame:                  "`git commit` is really just the programmer equivalent of saving your game. Always do it before embarking on an ambitious change!",
+		RandomTipSeparateRefactors:               "Try to separate commits that refactor code from commits that add new functionality: if they're squashed into one commit, it can be hard to spot what's new.",
+		RandomTipExperimentBranch:                "If you ever want to experiment, it's easy to create a new branch off your current one and go nuts, then delete it afterwards",
+		RandomTipReviewDiff:                      "Always read through the diff of your changes before assigning somebody to review your code. Better for you to catch any silly mistakes than your colleagues!",
+		RandomTipReflog:                          "If something goes wrong, you can always checkout a commit from your reflog to return to an earlier state",
+		RandomTipStashDebugSnippets:              "The stash is a good place to save snippets of code that you always find yourself adding when debugging.",
+		RandomTipDelta:                           "If you want a git diff with syntax colouring, check out lazygit's integration with delta:\n{{.customPagersDocsLink}}",
+		RandomTipCustomCommands:                  "You can build your own custom menus and commands to run from within lazygit. For examples see:\n{{.customCommandsDocsLink}}",
+		RandomTipReportBug:                       "If you ever find a bug, do not hesitate to raise an issue on the repo:\n{{.issuesLink}}",
 		ToggleWhitespaceInDiffView:               "Toggle whitespace",
 		ToggleWhitespaceInDiffViewTooltip:        "Toggle whether or not whitespace changes are shown in the diff view.\n\nThe default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'.",
 		IgnoreWhitespaceDiffViewSubTitle:         "(ignoring whitespace)",
