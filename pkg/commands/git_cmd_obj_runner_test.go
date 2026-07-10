@@ -90,3 +90,22 @@ func TestRunWithOutputRetriesWhenLockErrorIsInOutput(t *testing.T) {
 	assert.Equal(t, "done", output)
 	assert.Equal(t, 2, inner.calls)
 }
+
+func TestRunWithOutputRetriesWhenLockErrorIsOnlyInError(t *testing.T) {
+	// A streamed command (e.g. an amend run through the gpg helper) doesn't
+	// capture its output, so a lock failure surfaces only in the returned error
+	// with an empty output string. The retry logic must still recognize it.
+	inner := &scriptedRunner{results: []runnerResult{
+		{output: "", err: errors.New("fatal: Unable to create '/repo/.git/index.lock': File exists.")},
+		{output: "", err: nil},
+	}}
+
+	_, err := newTestRunner(inner).RunWithOutput(dummyCmdObj())
+
+	/* EXPECTED:
+	assert.NoError(t, err)
+	assert.Equal(t, 2, inner.calls)
+	ACTUAL: */
+	assert.Error(t, err)
+	assert.Equal(t, 1, inner.calls)
+}
