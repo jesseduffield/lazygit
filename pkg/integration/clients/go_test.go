@@ -30,6 +30,7 @@ func TestIntegration(t *testing.T) {
 	parallelTotal := tryConvert(os.Getenv("PARALLEL_TOTAL"), 1)
 	parallelIndex := tryConvert(os.Getenv("PARALLEL_INDEX"), 0)
 	raceDetector := os.Getenv("LAZYGIT_RACE_DETECTOR") != ""
+	logTimingsPath := os.Getenv("LAZYGIT_TEST_TIMING")
 	// LAZYGIT_GOCOVERDIR is the directory where we write coverage files to. If this directory
 	// is defined, go binaries built with the -cover flag will write coverage files to
 	// to it.
@@ -58,7 +59,8 @@ func TestIntegration(t *testing.T) {
 		CodeCoverageDir: codeCoverageDir,
 		InputDelay:      0,
 		// Allow two attempts at each test to get around flakiness
-		MaxAttempts: 1,
+		MaxAttempts:    1,
+		LogTimingsPath: logTimingsPath,
 	})
 
 	assert.NoError(t, err)

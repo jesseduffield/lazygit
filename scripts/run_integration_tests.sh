@@ -37,4 +37,12 @@ if test -f ~/.gitconfig.lazygit.bak; then
   mv ~/.gitconfig.lazygit.bak ~/.gitconfig
 fi
 
+# If per-test timings were collected (LAZYGIT_TEST_TIMING points at the file the
+# harness appends to), print them sorted by slowest first so they show up in the
+# CI log.
+if [ -n "$LAZYGIT_TEST_TIMING" ] && [ -f "$LAZYGIT_TEST_TIMING" ]; then
+  echo "Test timings (seconds):"
+  sort -rn "$LAZYGIT_TEST_TIMING"
+fi
+
 exit $EXITCODE

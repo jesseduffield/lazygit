@@ -109,6 +109,9 @@ jobs:
           # by default on the Linux runner, but we set it explicitly to be safe.
           LAZYGIT_RACE_DETECTOR: ${{ matrix.race && '1' || '' }}
           CGO_ENABLED: ${{ matrix.race && '1' || '' }}
+          # Append each test's duration to this file; run_integration_tests.sh
+          # prints the slowest at the end, to spot slow/anomalous tests.
+          LAZYGIT_TEST_TIMING: /tmp/test_timings.txt
         run: |
           mkdir -p /tmp/code_coverage
           ./scripts/run_integration_tests.sh
