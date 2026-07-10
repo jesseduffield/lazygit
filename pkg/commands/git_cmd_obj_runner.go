@@ -20,11 +20,17 @@ type gitCmdObjRunner struct {
 	innerRunner oscommands.ICmdObjRunner
 }
 
-// isRetryableError returns true if the error output indicates a transient
-// lock-related error that may succeed on retry
-func isRetryableError(output string) bool {
-	return strings.Contains(output, ".git/index.lock") ||
-		strings.Contains(output, "cannot lock ref")
+// isRetryableError returns true if a failed command hit a transient
+// lock-related condition that may succeed on retry. The lock message can reach
+// us either in the command's captured output or, for streamed commands whose
+// output we don't capture, only in the returned error, so we check both.
+func isRetryableError(output string, err error) bool {
+	text := output
+	if err != nil {
+		text += "\n" + err.Error()
+	}
+	return strings.Contains(text, ".git/index.lock") ||
+		strings.Contains(text, "cannot lock ref")
 }
 
 func (self *gitCmdObjRunner) Run(cmdObj *oscommands.CmdObj) error {
@@ -58,7 +64,7 @@ func (self *gitCmdObjRunner) retryOnLockError(run func() (string, error)) (strin
 	for range RetryCount {
 		output, err = run()
 
-		if err == nil || !isRetryableError(output) {
+		if err == nil || !isRetryableError(output, err) {
 			return output, err
 		}
 

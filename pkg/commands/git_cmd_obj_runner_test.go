@@ -102,10 +102,6 @@ func TestRunWithOutputRetriesWhenLockErrorIsOnlyInError(t *testing.T) {
 
 	_, err := newTestRunner(inner).RunWithOutput(dummyCmdObj())
 
-	/* EXPECTED:
 	assert.NoError(t, err)
 	assert.Equal(t, 2, inner.calls)
-	ACTUAL: */
-	assert.Error(t, err)
-	assert.Equal(t, 1, inner.calls)
 }
