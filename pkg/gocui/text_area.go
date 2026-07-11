@@ -310,6 +310,10 @@ func (self *TextArea) MoveCursorRight() {
 	self.cursor += len(s)
 }
 
+func isASCIIChar(ch string) bool {
+	return len(ch) == 1 && ch[0] <= 127
+}
+
 func (self *TextArea) newCursorForMoveLeftWord() int {
 	if self.cursor == 0 {
 		return 0
@@ -328,8 +332,14 @@ func (self *TextArea) newCursorForMoveLeftWord() int {
 		separators = true
 	}
 	if !separators {
-		for cellCursor > 0 && self.cells[cellCursor-1].char != "\n" && !strings.Contains(WHITESPACES+WORD_SEPARATORS, self.cells[cellCursor-1].char) {
+		if cellCursor > 0 && self.cells[cellCursor-1].char != "\n" && !strings.Contains(WHITESPACES+WORD_SEPARATORS, self.cells[cellCursor-1].char) {
+			isASCII := isASCIIChar(self.cells[cellCursor-1].char)
+			// skip the first char regardless of isAscii.
 			cellCursor--
+			for cellCursor > 0 && self.cells[cellCursor-1].char != "\n" && !strings.Contains(WHITESPACES+WORD_SEPARATORS, self.cells[cellCursor-1].char) && isASCIIChar(self.cells[cellCursor-1].char) == isASCII {
+				// skip consecutive characters of the same kind (ASCII or  non-ASCII) as the first character.
+				cellCursor--
+			}
 		}
 	}
 
@@ -358,8 +368,14 @@ func (self *TextArea) newCursorForMoveRightWord() int {
 		separators = true
 	}
 	if !separators {
-		for cellCursor < len(self.cells) && self.cells[cellCursor].char != "\n" && !strings.Contains(WHITESPACES+WORD_SEPARATORS, self.cells[cellCursor].char) {
+		if cellCursor < len(self.cells) && self.cells[cellCursor].char != "\n" && !strings.Contains(WHITESPACES+WORD_SEPARATORS, self.cells[cellCursor].char) {
+			isASCII := isASCIIChar(self.cells[cellCursor].char)
+			// skip the first char regardless of isAscii.
 			cellCursor++
+			for cellCursor < len(self.cells) && self.cells[cellCursor].char != "\n" && !strings.Contains(WHITESPACES+WORD_SEPARATORS, self.cells[cellCursor].char) && isASCIIChar(self.cells[cellCursor].char) == isASCII {
+				// skip consecutive characters of the same kind (ASCII or  non-ASCII) as the first character.
+				cellCursor++
+			}
 		}
 	}
 
