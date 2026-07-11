@@ -43,6 +43,11 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 	if userConfig.Git.AutoFetch {
 		fetchInterval := userConfig.Refresher.FetchInterval
 		if fetchInterval > 0 {
+			// The channel must be created here, on the UI thread and before
+			// the fetch goroutine spawns, so that triggerImmediateFetch (also
+			// running on the UI thread) can read the field without racing the
+			// write. See triggerImmediateFetch for why it is buffered.
+			self.triggerFetch = make(chan struct{}, 1)
 			go utils.Safe(self.startBackgroundFetch)
 		} else {
 			self.gui.c.Log.Errorf(
@@ -74,7 +79,7 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 	}
 
 	if self.gui.Config.GetDebug() {
-		self.goEvery(time.Second*time.Duration(10), self.gui.stopChan, func(_ bool) error {
+		self.goEvery(time.Second*time.Duration(10), self.gui.stopChan, nil, func(_ bool) error {
 			formatBytes := func(b uint64) string {
 				const unit = 1000
 				if b < unit {
@@ -125,14 +130,14 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	_ = fetch(true)
 
 	userConfig := self.gui.UserConfig()
-	self.triggerFetch = self.goEvery(userConfig.Refresher.FetchIntervalDuration(), self.gui.stopChan, fetch)
+	self.goEvery(userConfig.Refresher.FetchIntervalDuration(), self.gui.stopChan, self.triggerFetch, fetch)
 }
 
 func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh() {
 	self.gui.waitForIntro.Wait()
 
 	userConfig := self.gui.UserConfig()
-	self.goEvery(userConfig.Refresher.RefreshIntervalDuration(), self.gui.stopChan, func(_ bool) error {
+	self.goEvery(userConfig.Refresher.RefreshIntervalDuration(), self.gui.stopChan, nil, func(_ bool) error {
 		self.gui.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Background: true})
 		return nil
 	})
@@ -151,6 +156,7 @@ func (self *BackgroundRoutineMgr) startBackgroundExternalChangeDetection() {
 	self.goEvery(
 		userConfig.Refresher.ExternalChangeCheckIntervalDuration(),
 		self.gui.stopChan,
+		nil,
 		func(_ bool) error {
 			self.checkForExternalChanges()
 			return nil
@@ -187,10 +193,10 @@ func (self *BackgroundRoutineMgr) checkForExternalChanges() {
 	self.gui.c.RefreshFromWorker(types.RefreshOptions{Background: true})
 }
 
-// returns a channel that can be used to trigger the callback immediately
-func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan struct{}, function func(bool) error) chan struct{} {
+// Runs function every interval until stop is closed. A send on retrigger (if
+// non-nil) runs the callback immediately and restarts the interval.
+func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop, retrigger chan struct{}, function func(bool) error) {
 	done := make(chan struct{})
-	retrigger := make(chan struct{})
 	go utils.Safe(func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
@@ -223,7 +229,6 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 			}
 		}
 	})
-	return retrigger
 }
 
 func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
@@ -234,6 +239,16 @@ func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
 
 func (self *BackgroundRoutineMgr) triggerImmediateFetch() {
 	if self.triggerFetch != nil {
-		self.triggerFetch <- struct{}{}
+		// This runs on the UI thread, which must never block waiting for a
+		// background routine; in particular, the goEvery loop only receives
+		// between callbacks, and an in-flight fetch can itself be waiting for
+		// the UI thread to perform its post-fetch refresh, so a blocking send
+		// here would deadlock. The channel has a buffer of one, so the trigger
+		// is latched even when the loop isn't currently receiving; if one is
+		// already pending, the two coalesce.
+		select {
+		case self.triggerFetch <- struct{}{}:
+		default:
+		}
 	}
 }
