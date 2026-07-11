@@ -285,9 +285,30 @@ func (self *HandlerCreator) getResolveTemplateFn(form map[string]string, promptR
 	return func(templateStr string) (string, error) { return utils.ResolveTemplate(templateStr, objects, funcs) }
 }
 
+// getCommandResolveTemplateFn returns a template resolver that auto-shell-quotes
+// all string values from git-derived session state, preventing command injection.
+func (self *HandlerCreator) getCommandResolveTemplateFn(form map[string]string, promptResponses []string, sessionState *SessionState) func(string) (string, error) {
+	objects := CustomCommandObjects{
+		SessionState:    sessionState,
+		PromptResponses: promptResponses,
+		Form:            form,
+	}
+
+	quoteFn := self.c.OS().Quote
+	funcs := template.FuncMap{
+		"quote":      quoteFn,
+		"runCommand": self.c.Git().Custom.TemplateFunctionRunCommand,
+	}
+
+	return func(templateStr string) (string, error) {
+		return utils.ResolveCommandTemplate(templateStr, objects, funcs, quoteFn)
+	}
+}
+
 func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, sessionState *SessionState, promptResponses []string, form map[string]string) error {
 	resolveTemplate := self.getResolveTemplateFn(form, promptResponses, sessionState)
-	cmdStr, err := resolveTemplate(customCommand.Command)
+	resolveCommandTemplate := self.getCommandResolveTemplateFn(form, promptResponses, sessionState)
+	cmdStr, err := resolveCommandTemplate(customCommand.Command)
 	if err != nil {
 		return err
 	}
