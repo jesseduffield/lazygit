@@ -482,6 +482,8 @@ git:
   # still spawns a subprocess) when your gpg-agent is configured with a
   # terminal-based pinentry (pinentry-tty/pinentry-curses), since drawing the
   # prompt directly on the TTY would otherwise corrupt Lazygit's UI.
+  # See docs-master/GPG_Signing.md for more about how Lazygit handles GPG
+  # passphrase prompts.
   overrideGpg: false
 
   # If true, do not allow force pushes
