@@ -600,11 +600,7 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute) {
 		return
 	}
 
-	if v.Mask != "" {
-		fgColor = v.FgColor
-		bgColor = v.BgColor
-		ch = v.Mask
-	} else if v.Highlight {
+	if v.Highlight {
 		rangeSelectStart := v.cy
 		rangeSelectEnd := v.cy
 		if v.rangeSelectStartY != -1 {
@@ -1352,7 +1348,8 @@ func (v *View) draw() {
 			}
 
 			// if we're out of cells to write, we'll just print empty cells.
-			if cellIdx > len(vline.line)-1 {
+			isContent := cellIdx <= len(vline.line)-1
+			if !isContent {
 				c = trailingCell
 			} else {
 				c = vline.line[cellIdx]
@@ -1370,7 +1367,18 @@ func (v *View) draw() {
 				fgColor |= AttrUnderline
 			}
 
-			v.setCharacter(x, y, c.chr, fgColor, bgColor)
+			ch := c.chr
+			// Only mask cells that hold actual typed content; trailing
+			// padding cells stretch to the view's full width regardless of
+			// how much has been typed, so masking them too would make an
+			// empty or partially-filled input look fully populated.
+			if v.Mask != "" && isContent {
+				ch = v.Mask
+				fgColor = v.FgColor
+				bgColor = v.BgColor
+			}
+
+			v.setCharacter(x, y, ch, fgColor, bgColor)
 
 			x += c.width
 			cellIdx++
