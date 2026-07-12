@@ -1,8 +1,13 @@
 package git_commands
 
 import (
+	"os"
+	"os/exec"
+	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -19,6 +24,11 @@ type ConfigCommands struct {
 	*common.Common
 
 	gitConfig git_config.IGitConfig
+
+	// usesTerminalPinentryOnce lazily determines, once per instance, whether
+	// the user's gpg-agent is configured to use a terminal-based pinentry
+	// program (pinentry-tty/pinentry-curses).
+	usesTerminalPinentryOnce func() bool
 }
 
 func NewConfigCommands(
@@ -26,8 +36,9 @@ func NewConfigCommands(
 	gitConfig git_config.IGitConfig,
 ) *ConfigCommands {
 	return &ConfigCommands{
-		Common:    common,
-		gitConfig: gitConfig,
+		Common:                   common,
+		gitConfig:                gitConfig,
+		usesTerminalPinentryOnce: sync.OnceValue(usesTerminalPinentry),
 	}
 }
 
@@ -43,7 +54,11 @@ const (
 // enter their password every time a GPG action is taken
 func (self *ConfigCommands) NeedsGpgSubprocess(key GpgConfigKey) bool {
 	overrideGpg := self.UserConfig().Git.OverrideGpg
-	if overrideGpg {
+	// A terminal-based pinentry (pinentry-tty/pinentry-curses) draws directly
+	// on the TTY, which corrupts Lazygit's own screen buffer unless we hand
+	// off the terminal via a subprocess. In that case we must ignore
+	// overrideGpg, since honoring it would break the UI.
+	if overrideGpg && !self.usesTerminalPinentryOnce() {
 		return false
 	}
 
@@ -193,4 +208,118 @@ func (self *ConfigCommands) GetMergeFF() string {
 
 func (self *ConfigCommands) DropConfigCache() {
 	self.gitConfig.DropCache()
+}
+
+// usesTerminalPinentry determines whether the configured pinentry program is
+// terminal-based (pinentry-tty/pinentry-curses), by asking gpgconf, falling
+// back to reading gpg-agent.conf directly if gpgconf isn't available.
+func usesTerminalPinentry() bool {
+	program := pinentryProgramFromGpgConf()
+	if program == "" {
+		program = pinentryProgramFromGpgAgentConfFile(gpgAgentConfPath())
+	}
+
+	return isTerminalPinentryProgram(program)
+}
+
+// isTerminalPinentryProgram returns true if the given pinentry binary name
+// looks like a terminal-based pinentry program.
+func isTerminalPinentryProgram(program string) bool {
+	if program == "" {
+		return false
+	}
+
+	name := strings.ToLower(filepath.Base(program))
+	return strings.Contains(name, "tty") || strings.Contains(name, "curses")
+}
+
+// pinentryProgramFromGpgConf asks gpgconf for the configured pinentry-program
+// option of gpg-agent, returning "" if it can't be determined.
+func pinentryProgramFromGpgConf() string {
+	output, err := exec.Command("gpgconf", "--list-options", "gpg-agent").Output()
+	if err != nil {
+		return ""
+	}
+
+	return parseGpgConfPinentryProgram(string(output))
+}
+
+// parseGpgConfPinentryProgram parses the output of
+// `gpgconf --list-options gpg-agent`, which consists of colon-separated
+// lines of the form:
+//
+//	name:flags:level:description:type:alt-type:argname:default:argdef:value
+//
+// where "value" is percent-encoded if present, and holds the pinentry program
+// path when the user has overridden it.
+func parseGpgConfPinentryProgram(output string) string {
+	for line := range strings.Lines(output) {
+		line = strings.TrimSuffix(line, "\n")
+		fields := strings.Split(line, ":")
+		if len(fields) < 10 || fields[0] != "pinentry-program" {
+			continue
+		}
+
+		return gpgConfUnescape(fields[9])
+	}
+
+	return ""
+}
+
+// gpgConfUnescape decodes the %XX percent-encoding used by gpgconf's
+// colon-separated output format.
+func gpgConfUnescape(s string) string {
+	var builder strings.Builder
+	for i := 0; i < len(s); i++ {
+		if s[i] == '%' && i+2 < len(s) {
+			if b, err := strconv.ParseUint(s[i+1:i+3], 16, 8); err == nil {
+				builder.WriteByte(byte(b))
+				i += 2
+				continue
+			}
+		}
+		builder.WriteByte(s[i])
+	}
+
+	return builder.String()
+}
+
+// gpgAgentConfPath returns the path to the user's gpg-agent.conf, or "" if
+// the home directory can't be determined.
+func gpgAgentConfPath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+
+	return filepath.Join(home, ".gnupg", "gpg-agent.conf")
+}
+
+// pinentryProgramFromGpgAgentConfFile reads the pinentry-program setting out
+// of a gpg-agent.conf file, returning "" if the file doesn't exist or doesn't
+// set it.
+func pinentryProgramFromGpgAgentConfFile(path string) string {
+	if path == "" {
+		return ""
+	}
+
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+
+	return parseGpgAgentConfPinentryProgram(string(content))
+}
+
+var pinentryProgramLineRe = regexp.MustCompile(`(?m)^\s*pinentry-program\s+(\S+)\s*$`)
+
+// parseGpgAgentConfPinentryProgram extracts the value of the pinentry-program
+// option from the contents of a gpg-agent.conf file.
+func parseGpgAgentConfPinentryProgram(content string) string {
+	match := pinentryProgramLineRe.FindStringSubmatch(content)
+	if match == nil {
+		return ""
+	}
+
+	return match[1]
 }

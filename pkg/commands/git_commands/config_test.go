@@ -125,3 +125,106 @@ func TestGetGitFlowPrefixMap(t *testing.T) {
 		})
 	}
 }
+
+func TestIsTerminalPinentryProgram(t *testing.T) {
+	scenarios := []struct {
+		testName string
+		program  string
+		expected bool
+	}{
+		{testName: "empty", program: "", expected: false},
+		{testName: "gtk", program: "/usr/bin/pinentry-gtk-2", expected: false},
+		{testName: "qt", program: "/usr/bin/pinentry-qt", expected: false},
+		{testName: "mac", program: "/usr/local/bin/pinentry-mac", expected: false},
+		{testName: "plain pinentry (curses fallback binary)", program: "/usr/bin/pinentry", expected: false},
+		{testName: "tty", program: "/usr/bin/pinentry-tty", expected: true},
+		{testName: "curses", program: "/usr/bin/pinentry-curses", expected: true},
+		{testName: "case insensitive", program: "/usr/bin/Pinentry-TTY", expected: true},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			assert.Equal(t, s.expected, isTerminalPinentryProgram(s.program))
+		})
+	}
+}
+
+func TestParseGpgConfPinentryProgram(t *testing.T) {
+	scenarios := []struct {
+		testName string
+		output   string
+		expected string
+	}{
+		{
+			testName: "empty output",
+			output:   "",
+			expected: "",
+		},
+		{
+			testName: "no pinentry-program line",
+			output:   "gpg-agent-name:0:0:0:1:0:0:0:0:\n",
+			expected: "",
+		},
+		{
+			testName: "value unset",
+			output:   "pinentry-program:0:24:Pinentry to use for password entry:1:path:0:0:0:\n",
+			expected: "",
+		},
+		{
+			testName: "plain path",
+			output:   "pinentry-program:0:24:Pinentry to use for password entry:1:path:0:0:0:/usr/bin/pinentry-curses\n",
+			expected: "/usr/bin/pinentry-curses",
+		},
+		{
+			testName: "percent-encoded path with spaces and colons",
+			output:   `pinentry-program:0:24:Pinentry to use for password entry:1:path:0:0:0:/usr/local/my%20agent/pinentry-tty%3av2`,
+			expected: "/usr/local/my agent/pinentry-tty:v2",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			assert.Equal(t, s.expected, parseGpgConfPinentryProgram(s.output))
+		})
+	}
+}
+
+func TestParseGpgAgentConfPinentryProgram(t *testing.T) {
+	scenarios := []struct {
+		testName string
+		content  string
+		expected string
+	}{
+		{
+			testName: "empty file",
+			content:  "",
+			expected: "",
+		},
+		{
+			testName: "no pinentry-program setting",
+			content:  "# a comment\ndefault-cache-ttl 600\n",
+			expected: "",
+		},
+		{
+			testName: "simple setting",
+			content:  "pinentry-program /usr/bin/pinentry-curses\n",
+			expected: "/usr/bin/pinentry-curses",
+		},
+		{
+			testName: "setting among other lines, with leading whitespace",
+			content:  "default-cache-ttl 600\n  pinentry-program /usr/bin/pinentry-tty\nmax-cache-ttl 7200\n",
+			expected: "/usr/bin/pinentry-tty",
+		},
+		{
+			testName: "commented out setting is ignored",
+			content:  "# pinentry-program /usr/bin/pinentry-tty\n",
+			expected: "",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			assert.Equal(t, s.expected, parseGpgAgentConfPinentryProgram(s.content))
+		})
+	}
+}

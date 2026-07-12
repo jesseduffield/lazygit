@@ -331,7 +331,8 @@ type GitConfig struct {
 	DiffContextSize uint64 `yaml:"diffContextSize"`
 	// The threshold for considering a file to be renamed, in percent. Can be changed from within Lazygit with the `(` and `)` keys.
 	RenameSimilarityThreshold int `yaml:"renameSimilarityThreshold" jsonschema:"minimum=0,maximum=100"`
-	// If true, do not spawn a separate process when using GPG
+	// If true, do not spawn a separate process when using GPG.
+	// Only enable this if your gpg-agent caches your passphrase or uses a GUI pinentry (pinentry-gtk-2/pinentry-qt/pinentry-mac); it is ignored (Lazygit still spawns a subprocess) when your gpg-agent is configured with a terminal-based pinentry (pinentry-tty/pinentry-curses), since drawing the prompt directly on the TTY would otherwise corrupt Lazygit's UI.
 	OverrideGpg bool `yaml:"overrideGpg"`
 	// If true, do not allow force pushes
 	DisableForcePushing bool `yaml:"disableForcePushing"`
