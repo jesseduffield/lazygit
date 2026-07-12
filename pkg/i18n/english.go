@@ -30,6 +30,7 @@ type TranslationSet struct {
 	CredentialsUsername                   string
 	CredentialsPassword                   string
 	CredentialsPassphrase                 string
+	CredentialsGpgPassphrase              string
 	CredentialsPIN                        string
 	CredentialsToken                      string
 	PassUnameWrong                        string
@@ -1177,6 +1178,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CredentialsUsername:                  "Username",
 		CredentialsPassword:                  "Password",
 		CredentialsPassphrase:                "Enter passphrase for SSH key",
+		CredentialsGpgPassphrase:             "Enter GPG passphrase",
 		CredentialsPIN:                       "Enter PIN for SSH key",
 		CredentialsToken:                     "Enter Token for SSH key",
 		PassUnameWrong:                       "Password, passphrase and/or username wrong",
