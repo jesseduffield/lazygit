@@ -228,3 +228,91 @@ func TestParseGpgAgentConfPinentryProgram(t *testing.T) {
 		})
 	}
 }
+
+func TestParseGpgVersion(t *testing.T) {
+	scenarios := []struct {
+		testName      string
+		output        string
+		expectedMajor int
+		expectedMinor int
+		expectedOk    bool
+	}{
+		{
+			testName:   "empty output",
+			output:     "",
+			expectedOk: false,
+		},
+		{
+			testName:      "standard GnuPG output",
+			output:        "gpg (GnuPG) 2.2.27\nlibgcrypt 1.8.5\n...",
+			expectedMajor: 2,
+			expectedMinor: 2,
+			expectedOk:    true,
+		},
+		{
+			testName:      "macOS GnuPG/MacGPG2 output",
+			output:        "gpg (GnuPG/MacGPG2) 2.4.5\nlibgcrypt 1.10.3\n...",
+			expectedMajor: 2,
+			expectedMinor: 4,
+			expectedOk:    true,
+		},
+		{
+			testName:      "old 1.x version",
+			output:        "gpg (GnuPG) 1.4.23\n...",
+			expectedMajor: 1,
+			expectedMinor: 4,
+			expectedOk:    true,
+		},
+		{
+			testName:   "unrecognized output",
+			output:     "some random program 2.2.27\n",
+			expectedOk: false,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			major, minor, ok := parseGpgVersion(s.output)
+			assert.Equal(t, s.expectedOk, ok)
+			if ok {
+				assert.Equal(t, s.expectedMajor, major)
+				assert.Equal(t, s.expectedMinor, minor)
+			}
+		})
+	}
+}
+
+func TestParseGpgConfNoAllowLoopbackPinentry(t *testing.T) {
+	scenarios := []struct {
+		testName string
+		output   string
+		expected bool
+	}{
+		{
+			testName: "empty output",
+			output:   "",
+			expected: false,
+		},
+		{
+			testName: "option not present",
+			output:   "pinentry-program:0:24:Pinentry to use for password entry:1:path:0:0:0:\n",
+			expected: false,
+		},
+		{
+			testName: "option present but unset",
+			output:   "no-allow-loopback-pinentry:0:24:Disallow the use of the loopback pinentry:0:0:0:0:0:\n",
+			expected: false,
+		},
+		{
+			testName: "option set",
+			output:   "no-allow-loopback-pinentry:0:24:Disallow the use of the loopback pinentry:0:0:0:0:0:1\n",
+			expected: true,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			assert.Equal(t, s.expected, parseGpgConfNoAllowLoopbackPinentry(s.output))
+		})
+	}
+}

@@ -58,7 +58,13 @@ func (self *GpgHelper) withGpgHandling(
 	failureRefreshOptions types.RefreshOptions,
 	successRefreshOptions types.RefreshOptions,
 ) error {
-	useSubprocess := self.c.Git().Config.NeedsGpgSubprocess(configKey)
+	needsGpg := self.c.Git().Config.IsGpgSignEnabled(configKey)
+	if needsGpg && self.c.Git().Config.CanUseGpgLoopback() {
+		return self.runWithLoopbackPinentry(
+			cmdObj, waitingStatus, onSuccess, failureRefreshOptions, successRefreshOptions)
+	}
+
+	useSubprocess := needsGpg && self.c.Git().Config.NeedsGpgSubprocess(configKey)
 	if useSubprocess {
 		success, err := self.c.RunSubprocess(cmdObj)
 		if success && onSuccess != nil {
@@ -77,6 +83,39 @@ func (self *GpgHelper) withGpgHandling(
 
 	return self.runAndStream(
 		cmdObj, waitingStatus, onSuccess, failureRefreshOptions, successRefreshOptions)
+}
+
+// runWithLoopbackPinentry runs cmdObj with gpg's `--pinentry-mode=loopback`
+// enabled (via AddGpgLoopbackEnvVars), so that a passphrase prompt appears as
+// plain text on gpg's own stdio. We detect that prompt using the same
+// mechanism as e.g. SSH credential prompts, and answer it from our own popup,
+// so signing never has to hand off the terminal.
+func (self *GpgHelper) runWithLoopbackPinentry(
+	cmdObj *oscommands.CmdObj,
+	waitingStatus string,
+	onSuccess func() error,
+	failureRefreshOptions types.RefreshOptions,
+	successRefreshOptions types.RefreshOptions,
+) error {
+	self.c.Git().Config.AddGpgLoopbackEnvVars(cmdObj)
+
+	return self.c.WithWaitingStatus(waitingStatus, func(task gocui.Task) error {
+		if err := cmdObj.PromptOnCredentialRequest(task).Run(); err != nil {
+			self.c.RefreshFromWorker(failureRefreshOptions)
+			return fmt.Errorf(
+				self.c.Tr.GitCommandFailed, self.c.UserConfig().Keybinding.Universal.ExtrasMenu,
+			)
+		}
+
+		if onSuccess != nil {
+			if err := onSuccess(); err != nil {
+				return err
+			}
+		}
+
+		self.c.RefreshFromWorker(successRefreshOptions)
+		return nil
+	})
 }
 
 func (self *GpgHelper) runAndStream(
