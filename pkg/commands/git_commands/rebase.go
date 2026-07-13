@@ -298,7 +298,7 @@ func (self *RebaseCommands) getHashOfLastCommitMade() (string, error) {
 func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) error {
 	commit := commits[commitIndex]
 
-	if err := self.commit.CreateFixupCommit(commit.Hash()); err != nil {
+	if err := self.commit.CreateFixupCommit(commit.Hash(), commit.Name); err != nil {
 		return err
 	}
 
