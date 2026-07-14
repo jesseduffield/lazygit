@@ -411,7 +411,15 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	}
 
 	if scopeSet.Includes(types.MERGE_CONFLICTS) {
-		refresh("merge conflicts", func() { _ = self.mergeConflictsHelper.RefreshMergeState(env.background) })
+		refresh("merge conflicts", func() {
+			// Bounce onto the UI thread, like the staging and patch-building
+			// panels above: RefreshMergeState reads the current context and
+			// renders (or escapes) the merge-conflicts view, none of which may
+			// run off the UI thread.
+			self.onUIThreadUnlessRepoChanged(env, func() {
+				_ = self.mergeConflictsHelper.RefreshMergeState()
+			})
+		})
 	}
 
 	self.refreshStatus(env)
