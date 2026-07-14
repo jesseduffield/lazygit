@@ -127,7 +127,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommandImpl(command string, showWa
 	needsSubprocess := (effectiveStatus == models.WORKING_TREE_STATE_MERGING && command != REBASE_OPTION_ABORT && self.c.UserConfig().Git.Merging.ManualCommit) ||
 		// but we'll also use a subprocess if we have exec todos; those are likely to be lengthy build
 		// tasks whose output the user will want to see in the terminal
-		(effectiveStatus == models.WORKING_TREE_STATE_REBASING && command != REBASE_OPTION_ABORT && self.hasExecTodos())
+		(effectiveStatus == models.WORKING_TREE_STATE_REBASING && command != REBASE_OPTION_ABORT && self.hasExecTodos(calledFromWorker))
 
 	if needsSubprocess {
 		// TODO: see if we should be calling more of the code from self.Git.Rebase.GenericMergeOrRebaseAction
@@ -168,16 +168,31 @@ func commitSelectionAfterMerge(createdNewCommit bool) types.CommitSelectionBehav
 	return types.KeepCommitSelectionByHash
 }
 
-func (self *MergeAndRebaseHelper) hasExecTodos() bool {
-	for _, commit := range self.c.Model().Commits {
-		if !commit.IsTODO() {
-			break
+func (self *MergeAndRebaseHelper) hasExecTodos(calledFromWorker bool) bool {
+	check := func() bool {
+		for _, commit := range self.c.Model().Commits {
+			if !commit.IsTODO() {
+				break
+			}
+			if commit.Action == todo.Exec {
+				return true
+			}
 		}
-		if commit.Action == todo.Exec {
-			return true
-		}
+		return false
 	}
-	return false
+
+	// This reads the model, which is only safe on the UI thread, so bounce there
+	// when we're being called from a worker.
+	if !calledFromWorker {
+		return check()
+	}
+
+	result := false
+	_ = self.c.GocuiGui().OnUIThreadAndWait(func() error {
+		result = check()
+		return nil
+	})
+	return result
 }
 
 var conflictStrings = []string{
