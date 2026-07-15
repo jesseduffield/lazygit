@@ -300,6 +300,10 @@ func (g *Gui) pollEvent() GocuiEvent {
 		tev = <-Screen.EventQ()
 	}
 
+	return gocuiEventFromTcellEvent(tev)
+}
+
+func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 	switch tev := tev.(type) {
 	case *tcell.EventInterrupt:
 		return GocuiEvent{Type: eventInterrupt}
