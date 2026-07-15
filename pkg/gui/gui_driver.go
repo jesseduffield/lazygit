@@ -33,10 +33,10 @@ func (self *GuiDriver) PressKey(keyStr string) {
 		self.Fail("Unrecognized key: " + keyStr)
 	}
 
-	self.gui.g.ReplayedEvents.Keys <- gocui.NewTcellKeyEventWrapper(
+	self.gui.g.ReplayKeyEvent(gocui.NewTcellKeyEventWrapper(
 		tcell.NewEventKey(tcell.Key(key.KeyName()), key.Str(), tcell.ModMask(key.Mod())),
 		0,
-	)
+	))
 
 	self.waitTillIdle()
 }
@@ -44,15 +44,15 @@ func (self *GuiDriver) PressKey(keyStr string) {
 func (self *GuiDriver) Click(x, y int) {
 	self.CheckAllToastsAcknowledged()
 
-	self.gui.g.ReplayedEvents.MouseEvents <- gocui.NewTcellMouseEventWrapper(
+	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
 		tcell.NewEventMouse(x, y, tcell.ButtonPrimary, 0),
 		0,
-	)
+	))
 	self.waitTillIdle()
-	self.gui.g.ReplayedEvents.MouseEvents <- gocui.NewTcellMouseEventWrapper(
+	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
 		tcell.NewEventMouse(x, y, tcell.ButtonNone, 0),
 		0,
-	)
+	))
 	self.waitTillIdle()
 }
 
@@ -60,10 +60,10 @@ func (self *GuiDriver) Click(x, y int) {
 // learns to reload changed config files. Tests use it to exercise the live
 // config-reload path.
 func (self *GuiDriver) FocusIn() {
-	self.gui.g.ReplayedEvents.FocusEvents <- gocui.NewTcellFocusEventWrapper(
+	self.gui.g.ReplayFocusEvent(gocui.NewTcellFocusEventWrapper(
 		tcell.NewEventFocus(true),
 		0,
-	)
+	))
 
 	self.waitTillIdle()
 }
