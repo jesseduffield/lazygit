@@ -23,12 +23,8 @@ func (gui *Gui) handleTestMode() {
 	}
 
 	if test != nil {
-		isIdleChan := make(chan struct{})
-
-		gui.c.GocuiGui().AddIdleListener(isIdleChan)
-
 		waitUntilIdle := func() {
-			<-isIdleChan
+			gui.c.GocuiGui().WaitUntilIdle()
 		}
 
 		go func() {
@@ -38,7 +34,7 @@ func (gui *Gui) handleTestMode() {
 			gui.PopupHandler.(*popup.PopupHandler).SetToastFunc(
 				func(message string, kind types.ToastKind) { toastChan <- message })
 
-			test.Run(&GuiDriver{gui: gui, isIdleChan: isIdleChan, toastChan: toastChan, headless: Headless()})
+			test.Run(&GuiDriver{gui: gui, toastChan: toastChan, headless: Headless()})
 
 			gui.g.Update(func(*gocui.Gui) error {
 				return gocui.ErrQuit

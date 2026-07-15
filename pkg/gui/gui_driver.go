@@ -17,10 +17,9 @@ import (
 // this gives our integration test a way of interacting with the gui for sending keypresses
 // and reading state.
 type GuiDriver struct {
-	gui        *Gui
-	isIdleChan chan struct{}
-	toastChan  chan string
-	headless   bool
+	gui       *Gui
+	toastChan chan string
+	headless  bool
 }
 
 var _ integrationTypes.GuiDriver = &GuiDriver{}
@@ -79,7 +78,7 @@ func (self *GuiDriver) PretendMergeOrRebaseStartedInLazygit() {
 
 // wait until lazygit is idle (i.e. all processing is done) before continuing
 func (self *GuiDriver) waitTillIdle() {
-	<-self.isIdleChan
+	self.gui.g.WaitUntilIdle()
 }
 
 func (self *GuiDriver) CheckAllToastsAcknowledged() {

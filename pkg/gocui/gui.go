@@ -326,11 +326,11 @@ func (g *Gui) Busy() bool {
 	return g.taskManager.hasBusyForegroundTaskExcept(g.currentTask)
 }
 
-// An idle listener listens for when the program is idle. This is useful for
-// integration tests which can wait for the program to be idle before taking
-// the next step in the test.
-func (g *Gui) AddIdleListener(c chan struct{}) {
-	g.taskManager.addIdleListener(c)
+// WaitUntilIdle blocks until the program is idle (no busy tasks). This is
+// useful for integration tests which want to wait for the program to finish
+// processing before taking the next step in the test.
+func (g *Gui) WaitUntilIdle() {
+	g.taskManager.WaitUntilIdle()
 }
 
 // Close finalizes the library. It should be called after a successful
