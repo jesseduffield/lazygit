@@ -13,10 +13,10 @@ on:
         description: 'Version bump type'
         type: choice
         required: true
-        default: 'patch'
+        default: 'minor (normal)'
         options:
-          - minor
-          - patch
+          - minor (normal)
+          - patch (hotfix)
       branch:
         description: 'Branch to release from'
         type: string
@@ -127,7 +127,7 @@ jobs:
           IFS='.' read -r major minor patch <<< "$LATEST_TAG"
 
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            if [[ "$VERSION_BUMP" == "patch" ]]; then
+            if [[ "$VERSION_BUMP" == "patch (hotfix)" ]]; then
               patch=$((patch + 1))
             else
               minor=$((minor + 1))
