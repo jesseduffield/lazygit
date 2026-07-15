@@ -7,6 +7,7 @@ import (
 	"sync"
 	"unsafe"
 
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"golang.org/x/sys/windows"
 )
 
@@ -15,15 +16,13 @@ type winPty struct {
 	inWrite *os.File
 	outRead *os.File
 
-	// mu guards the teardown state below and serializes it against Resize.
-	// hpcClosed gates ClosePseudoConsole (it must run exactly once) and also
-	// keeps Resize from touching the HPCON once it's been freed: the
-	// background waiter in StartPty closes the pseudoconsole on child exit,
-	// which would otherwise race a concurrent onResize and hand
-	// ResizePseudoConsole a freed handle.
+	// mu guards hpcClosed, which gates ClosePseudoConsole (it must run
+	// exactly once) and also keeps Resize from touching the HPCON once it's
+	// been freed: the background waiter in StartPty closes the pseudoconsole
+	// on child exit, which would otherwise race a concurrent onResize and
+	// hand ResizePseudoConsole a freed handle.
 	mu        sync.Mutex
 	hpcClosed bool
-	closed    bool
 }
 
 func (p *winPty) Read(buf []byte) (int, error)  { return p.outRead.Read(buf) }
@@ -49,11 +48,6 @@ func (p *winPty) Resize(cols, rows uint16) error {
 func (p *winPty) closeHpc() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	p.closeHpcLocked()
-}
-
-// closeHpcLocked closes the pseudoconsole; the caller must hold p.mu.
-func (p *winPty) closeHpcLocked() {
 	if p.hpcClosed {
 		return
 	}
@@ -61,18 +55,31 @@ func (p *winPty) closeHpcLocked() {
 	windows.ClosePseudoConsole(p.hpc)
 }
 
+// Close tears the pty down without waiting for it: the teardown runs on a
+// background goroutine and Close returns immediately.
+//
+// It has to, because ClosePseudoConsole can block for a long time: before
+// Windows 11 24H2 it waits for the console host to exit, and since closing
+// only delivers CTRL_CLOSE_EVENT to the attached client without terminating
+// it, a client that keeps running (git still computing an expensive diff, a
+// pager waiting for input) keeps the host — and with it ClosePseudoConsole —
+// alive arbitrarily long. Close is called while holding the global PtyMutex
+// and while the task's onDone once is executing, where blocking wedges every
+// subsequent task for the view (and with it the UI), so none of this may
+// happen on the caller's thread.
+//
+// Within the teardown, the pipe ends must be closed before the
+// pseudoconsole, and without holding p.mu: closing the pseudoconsole flushes
+// the client's pending output into the out pipe, and with the task stopped
+// nobody is reading anymore, so that flush can only complete once the pipe
+// is broken. The background waiter's closeHpc may already be wedged in such
+// a flush while holding p.mu; closing the pipes is what unblocks it.
 func (p *winPty) Close() error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.closed {
-		return nil
-	}
-	p.closed = true
-	// Closing the pseudoconsole breaks the pipes; the child's next write
-	// fails and it exits. Then we close our ends of the pipes.
-	p.closeHpcLocked()
-	p.inWrite.Close()
-	p.outRead.Close()
+	go utils.Safe(func() {
+		p.inWrite.Close()
+		p.outRead.Close()
+		p.closeHpc()
+	})
 	return nil
 }
 
