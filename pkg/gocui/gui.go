@@ -293,6 +293,12 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 
 	g.playRecording = opts.PlayRecording
 
+	// Record the UI thread here, at construction. This assumes NewGui is called
+	// on the same goroutine that will run MainLoop, which holds for all our
+	// callers -- and it means IsUIThread is already correct for the UI work that
+	// runs during startup, before we reach MainLoop.
+	g.uiThreadID.Store(goid.Get())
+
 	return g, nil
 }
 
@@ -976,8 +982,6 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
 	defer close(g.loopExited)
-
-	g.uiThreadID.Store(goid.Get())
 
 	go func() {
 		for {
