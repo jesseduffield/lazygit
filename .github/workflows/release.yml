@@ -17,6 +17,11 @@ on:
         options:
           - minor
           - patch
+      branch:
+        description: 'Branch to release from'
+        type: string
+        required: true
+        default: 'master'
       ignore_blocks:
         description: 'Ignore blocking PRs/issues'
         type: boolean
@@ -49,6 +54,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: jesseduffield/lazygit
+          ref: ${{ inputs.branch }}
           token: ${{ secrets.LAZYGIT_RELEASE_PAT }}
           fetch-depth: 0
 
