@@ -133,7 +133,7 @@ type Gui struct {
 	viewMouseBindings        []*ViewMouseBinding
 	lastClick                *clickInfo
 	gEvents                  chan GocuiEvent
-	userEvents               chan userEvent
+	userEvents               *userEventQueue
 	views                    []*View
 	currentView              *View
 	managers                 []Manager
@@ -251,12 +251,7 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g.stop = make(chan struct{})
 
 	g.gEvents = make(chan GocuiEvent, 20)
-	// Update does a non-blocking send and panics on a full channel rather than
-	// blocking (which would deadlock the UI goroutine against itself) or
-	// silently reordering. The buffer is sized well above the peak occupancy we
-	// see in practice, so the panic stays unreachable in normal use; if it ever
-	// fires, that's a real anomaly to investigate, not a cue to grow the buffer.
-	g.userEvents = make(chan userEvent, 256)
+	g.userEvents = newUserEventQueue()
 	g.taskManager = newTaskManager()
 
 	if opts.PlayRecording {
@@ -636,6 +631,13 @@ func (g *Gui) SetRenderSearchStatusFunc(renderSearchStatusFunc func(*View, int, 
 	g.renderSearchStatusFunc = renderSearchStatusFunc
 }
 
+// SetUpdateQueueHighWaterMarkHandler registers a diagnostic callback invoked
+// with the new depth whenever the queue of pending Update callbacks reaches a
+// new maximum. It may be called from any goroutine.
+func (g *Gui) SetUpdateQueueHighWaterMarkHandler(f func(depth int)) {
+	g.userEvents.setHighWaterMarkHandler(f)
+}
+
 // userEvent represents an event triggered by the user.
 type userEvent struct {
 	f    func(*Gui) error
@@ -646,15 +648,99 @@ type userEvent struct {
 	contentOnly bool
 }
 
-// Update enqueues f on the user-events channel for the UI loop to run on its
-// next iteration. Multiple Update calls from the same goroutine arrive in
-// source order via the channel's FIFO. The send is non-blocking — if the
-// channel is full we panic rather than block or silently reorder, since a
-// blocked send from the UI goroutine would deadlock against itself and
-// silently switching to inline execution would break the ordering guarantee
-// callers rely on. The buffer is sized generously enough that this should
-// never fire in practice; if it does, that's a signal to investigate, not
-// to grow the buffer reflexively.
+// userEventQueue is an unbounded, order-preserving FIFO of work enqueued by
+// Update and friends for the main loop to run.
+//
+// It's unbounded (rather than a fixed-size channel) because producers must
+// never block or lose work. Update can be called from the UI goroutine itself,
+// where a blocking send would deadlock against the loop that drains the queue;
+// and it can be called from arbitrary worker goroutines that may enqueue faster
+// than the loop drains. That happens while the loop is stalled — suspended for
+// a subprocess (the editor runs on the UI thread), or hung in a long handler —
+// and also when a long-running worker operation emits a steady stream of
+// updates that outpaces the loop (e.g. the waiting-status spinner ticks while a
+// large directory is toggled into a custom patch). A fixed channel forces a
+// choice between blocking (deadlock), dropping or reordering, and panicking on
+// overflow; an unbounded queue avoids all three while preserving FIFO order.
+//
+// enqueue appends under the mutex and rings the doorbell; the main loop selects
+// on the doorbell to wake, then drains the slice to empty. The doorbell is
+// buffered(1) and rung with a non-blocking send, so it's a coalescing "work
+// pending" flag rather than a per-event signal: a burst of appends leaves at
+// most one token, and the loop drains everything the token represents on a
+// single wake. A token left over after a drain (because the drain happened to
+// empty the slice after the ring) just causes one harmless empty wake.
+type userEventQueue struct {
+	mutex    sync.Mutex
+	events   []userEvent
+	doorbell chan struct{}
+
+	// highWaterMark is the deepest the queue has ever been, and
+	// onHighWaterMark (if set) is called with the new depth each time that
+	// record is broken. Purely diagnostic: it lets us see how deep the queue
+	// gets in practice (see SetUpdateQueueHighWaterMarkHandler).
+	highWaterMark   int
+	onHighWaterMark func(int)
+}
+
+func newUserEventQueue() *userEventQueue {
+	return &userEventQueue{doorbell: make(chan struct{}, 1)}
+}
+
+// enqueue appends an event and wakes the main loop. It never blocks.
+func (q *userEventQueue) enqueue(ev userEvent) {
+	q.mutex.Lock()
+	q.events = append(q.events, ev)
+	newHighWaterMark := 0
+	if len(q.events) > q.highWaterMark {
+		q.highWaterMark = len(q.events)
+		newHighWaterMark = q.highWaterMark
+	}
+	onHighWaterMark := q.onHighWaterMark
+	q.mutex.Unlock()
+
+	// Report outside the lock: the handler does I/O (logging) and must not
+	// stall other producers or the draining loop.
+	if newHighWaterMark > 0 && onHighWaterMark != nil {
+		onHighWaterMark(newHighWaterMark)
+	}
+
+	select {
+	case q.doorbell <- struct{}{}:
+	default:
+	}
+}
+
+func (q *userEventQueue) setHighWaterMarkHandler(f func(int)) {
+	q.mutex.Lock()
+	q.onHighWaterMark = f
+	q.mutex.Unlock()
+}
+
+// dequeue pops the oldest event, reporting false when the queue is empty.
+func (q *userEventQueue) dequeue() (userEvent, bool) {
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
+
+	if len(q.events) == 0 {
+		return userEvent{}, false
+	}
+	ev := q.events[0]
+	if len(q.events) == 1 {
+		// Release the backing array whenever the queue drains, so a one-off
+		// burst doesn't pin its peak size for the rest of the session.
+		q.events = nil
+	} else {
+		q.events[0] = userEvent{}
+		q.events = q.events[1:]
+	}
+	return ev, true
+}
+
+// Update enqueues f for the UI loop to run on its next iteration. Multiple
+// Update calls from the same goroutine arrive in source order (the queue is
+// FIFO). The enqueue never blocks and never drops work; see userEventQueue for
+// why the queue is unbounded.
 func (g *Gui) Update(f func(*Gui) error) {
 	g.update(f, false)
 }
@@ -668,12 +754,7 @@ func (g *Gui) UpdateBackground(f func(*Gui) error) {
 
 func (g *Gui) update(f func(*Gui) error, background bool) {
 	task := g.taskManager.NewTask(background)
-
-	select {
-	case g.userEvents <- userEvent{f: f, task: task}:
-	default:
-		panic("gocui: userEvents channel full; refusing to block or reorder")
-	}
+	g.userEvents.enqueue(userEvent{f: f, task: task})
 }
 
 // Like Update, but signals that the callback only modifies content.
@@ -688,7 +769,7 @@ func (g *Gui) UpdateContentOnlyBackground(f func(*Gui) error) {
 
 func (g *Gui) updateContentOnly(f func(*Gui) error, background bool) {
 	task := g.taskManager.NewTask(background)
-	g.userEvents <- userEvent{f: f, task: task, contentOnly: true}
+	g.userEvents.enqueue(userEvent{f: f, task: task, contentOnly: true})
 }
 
 // IsUIThread reports whether the caller is running on the main event-loop
@@ -874,7 +955,14 @@ func (g *Gui) processEvent() error {
 		if err := g.handleError(g.handleEvent(&ev)); err != nil {
 			return err
 		}
-	case ev := <-g.userEvents:
+	case <-g.userEvents.doorbell:
+		ev, ok := g.userEvents.dequeue()
+		if !ok {
+			// A leftover doorbell token whose events were already drained by a
+			// previous iteration's processRemainingEvents: nothing to run and
+			// nothing new to render.
+			return nil
+		}
 		contentOnly = ev.contentOnly
 		g.currentTask = ev.task
 		defer func() { g.currentTask = nil; ev.task.Done() }()
@@ -907,15 +995,20 @@ func (g *Gui) processRemainingEvents() (bool, error) {
 			if err := g.handleError(g.handleEvent(&ev)); err != nil {
 				return false, err
 			}
-		case ev := <-g.userEvents:
+		default:
+			// No gui event is pending; drain a queued user event instead.
+			// gui events take priority so input stays responsive, but they're
+			// bounded (buffer of 20), so this can't starve the user-event queue.
+			ev, ok := g.userEvents.dequeue()
+			if !ok {
+				return contentOnly, nil
+			}
 			contentOnly = ev.contentOnly && contentOnly
 			err := g.handleError(ev.f(g))
 			ev.task.Done()
 			if err != nil {
 				return false, err
 			}
-		default:
-			return contentOnly, nil
 		}
 	}
 }
