@@ -13,10 +13,15 @@ on:
         description: 'Version bump type'
         type: choice
         required: true
-        default: 'patch'
+        default: 'minor (normal)'
         options:
-          - minor
-          - patch
+          - minor (normal)
+          - patch (hotfix)
+      branch:
+        description: 'Branch to release from'
+        type: string
+        required: true
+        default: 'master'
       ignore_blocks:
         description: 'Ignore blocking PRs/issues'
         type: boolean
@@ -49,12 +54,13 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: jesseduffield/lazygit
+          ref: ${{ inputs.branch }}
           token: ${{ secrets.LAZYGIT_RELEASE_PAT }}
           fetch-depth: 0
 
       - name: Get Latest Tag
         run: |
-          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
+          latest_tag=$(git describe --tags --abbrev=0 || echo "v0.0.0")
 
           if ! [[ $latest_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Error: Tag format is invalid. Expected format: vX.X.X"
@@ -121,7 +127,7 @@ jobs:
           IFS='.' read -r major minor patch <<< "$LATEST_TAG"
 
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            if [[ "$VERSION_BUMP" == "patch" ]]; then
+            if [[ "$VERSION_BUMP" == "patch (hotfix)" ]]; then
               patch=$((patch + 1))
             else
               minor=$((minor + 1))
@@ -151,7 +157,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "$NEW_TAG" -a -m "Release $NEW_TAG"
-          git push origin "$NEW_TAG"
+          git push origin "refs/tags/$NEW_TAG"
 
       - name: Setup Go
         uses: actions/setup-go@v6
