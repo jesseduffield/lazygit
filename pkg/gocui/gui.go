@@ -125,8 +125,11 @@ type clickInfo struct {
 // and keybindings.
 type Gui struct {
 	RecordingConfig
-	// ReplayedEvents is for passing pre-recorded input events, for the purposes of testing
-	ReplayedEvents replayedEvents
+	// replayedEvents is for passing simulated input events, for the purposes
+	// of testing. Events must be submitted through the Replay* methods, which
+	// attach a task to each event; pushing into the channels directly would
+	// bypass the busy-tracking that integration tests rely on.
+	replayedEvents replayedEvents
 	playRecording  bool
 
 	tabClickBindings         []*tabClickBinding
@@ -255,7 +258,7 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g.taskManager = newTaskManager()
 
 	if opts.PlayRecording {
-		g.ReplayedEvents = replayedEvents{
+		g.replayedEvents = replayedEvents{
 			Keys:        make(chan *TcellKeyEventWrapper),
 			Resizes:     make(chan *TcellResizeEventWrapper),
 			MouseEvents: make(chan *TcellMouseEventWrapper),
@@ -291,6 +294,30 @@ func (g *Gui) NewBackgroundTask() *TaskImpl {
 	return g.taskManager.NewTask(true)
 }
 
+// ReplayKeyEvent simulates a key press, as if the user had typed it. It's used
+// by integration tests. The event carries a task, so that the program counts
+// as busy from before the event is submitted until the main loop has fully
+// processed it; the test driver relies on this when it waits for the program
+// to go idle after submitting an event. (If the task were only created once
+// the main loop picks the event up, there would be a window in which the event
+// is still in flight but nothing counts as busy.)
+func (g *Gui) ReplayKeyEvent(ev *TcellKeyEventWrapper) {
+	ev.task = g.NewTask()
+	g.replayedEvents.Keys <- ev
+}
+
+// ReplayMouseEvent is like ReplayKeyEvent, but for mouse events.
+func (g *Gui) ReplayMouseEvent(ev *TcellMouseEventWrapper) {
+	ev.task = g.NewTask()
+	g.replayedEvents.MouseEvents <- ev
+}
+
+// ReplayFocusEvent is like ReplayKeyEvent, but for focus events.
+func (g *Gui) ReplayFocusEvent(ev *TcellFocusEventWrapper) {
+	ev.task = g.NewTask()
+	g.replayedEvents.FocusEvents <- ev
+}
+
 // Busy reports whether any foreground work is in flight, ignoring the event
 // currently being processed on the main goroutine (see currentTask). Background
 // routines (auto-fetch etc.) don't count. It's used to decide whether it's safe
@@ -299,11 +326,11 @@ func (g *Gui) Busy() bool {
 	return g.taskManager.hasBusyForegroundTaskExcept(g.currentTask)
 }
 
-// An idle listener listens for when the program is idle. This is useful for
-// integration tests which can wait for the program to be idle before taking
-// the next step in the test.
-func (g *Gui) AddIdleListener(c chan struct{}) {
-	g.taskManager.addIdleListener(c)
+// WaitUntilIdle blocks until the program is idle (no busy tasks). This is
+// useful for integration tests which want to wait for the program to finish
+// processing before taking the next step in the test.
+func (g *Gui) WaitUntilIdle() {
+	g.taskManager.WaitUntilIdle()
 }
 
 // Close finalizes the library. It should be called after a successful
@@ -948,7 +975,12 @@ func (g *Gui) processEvent() error {
 	// are always the primary event here.
 	select {
 	case ev := <-g.gEvents:
-		task := g.NewTask()
+		// Replayed test events already carry their task (see ReplayKeyEvent);
+		// organic events get theirs here.
+		task := ev.task
+		if task == nil {
+			task = g.NewTask()
+		}
 		g.currentTask = task
 		defer func() { g.currentTask = nil; task.Done() }()
 
@@ -992,7 +1024,11 @@ func (g *Gui) processRemainingEvents() (bool, error) {
 		select {
 		case ev := <-g.gEvents:
 			contentOnly = false
-			if err := g.handleError(g.handleEvent(&ev)); err != nil {
+			err := g.handleError(g.handleEvent(&ev))
+			if ev.task != nil {
+				ev.task.Done()
+			}
+			if err != nil {
 				return false, err
 			}
 		default:
