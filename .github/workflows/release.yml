@@ -54,7 +54,7 @@ jobs:
 
       - name: Get Latest Tag
         run: |
-          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
+          latest_tag=$(git describe --tags --abbrev=0 || echo "v0.0.0")
 
           if ! [[ $latest_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Error: Tag format is invalid. Expected format: vX.X.X"
