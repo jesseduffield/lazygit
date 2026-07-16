@@ -133,14 +133,14 @@ Raw bytes, for a context line at new-file line 10 of `src/foo.go`:
 | field | presence | meaning |
 |---|---|---|
 | `version` | always | decimal protocol version; `1` for v1. Carried in every record so attachments are self-describing. |
-| `type` | always | one character — see §5.1. v1 emits `c` (context), `a` (added), `d` (deleted). |
-| `new-line` | always | new-file line number, in the **diff's new-file space** (see §5.2). |
-| `old-line` | only `type=d` | old-file line number. **Empty** for `c` and `a`. |
+| `type` | always | one character — see §5.1. v1 emits `c` (context), `a` (added), `d` (deleted), `f` (file header), `h` (hunk header). |
+| `new-line` | all types except `f` | new-file line number, in the **diff's new-file space** (see §5.2). **Never present on `f`** — see §5.5. |
+| `old-line` | only `type=d` | old-file line number. **Empty** for all other types. |
 | `file` | always | the file path the line belongs to; absolute or repo-root-relative (the host normalizes — emit whichever is convenient). Carried on **every** record so a single record is a complete answer. |
 
 For a **renamed** file, `file` is the **new** path (git's `+++ b/…` side); the old
-path is not carried. A pure rename with no content change emits no records at all
-(it has no content lines, only header rows).
+path is not carried. A pure rename with no content change emits only its `f`
+record (it has header rows but no content lines).
 
 ### 4.3 Examples
 
@@ -151,6 +151,8 @@ path is not carried. A pure rename with no content change emits no records at al
 | deletion, old line 9, sits at new pos 11 | `1717;1;d;11;9;src/foo.go` |
 | two consecutive deletions | `…;d;11;9;…` then `…;d;11;10;…` (same `new-line`, different `old-line` — see §5.3) |
 | whole-file deletion | `1717;1;d;0;9;old/path` (`new-line` 0 — see §5.4) |
+| file header | `1717;1;f;;;src/foo.go` (never a line number — see §5.5) |
+| hunk header, hunk starting at new line 10 | `1717;1;h;10;;src/foo.go` |
 
 ### 4.4 The handshake record
 
@@ -185,17 +187,25 @@ parse as five fields — so the handshake is harmless to existing parsers.
 
 ### 5.1 Type
 
-`type` is one character. v1 defines three, all of them **content-line** types, and
-a conforming diff renderer emits one before every content line it renders:
+`type` is one character. v1 defines five. The first three are the **content-line**
+types, and a conforming diff renderer emits one before every content line it
+renders:
 
 - `c` — context (unchanged) line
 - `a` — added line
 - `d` — deleted line
 
-**There is deliberately no file-header or hunk-header type — see §5.5.** The
-protocol annotates content lines only; the host recovers file and hunk *structure*
-from the content records themselves (the `file` field and `new-line`
-discontinuities), and treats the renderer's header/decoration rows as non-actionable.
+The other two are the **header** types, emitted before the structural rows:
+
+- `f` — file header — the row(s) a renderer prints to announce a file. Carries
+  **no line numbers**, ever — see §5.5.
+- `h` — hunk header — the row(s) announcing a hunk (e.g. a reformatted
+  `@@ … @@` line). Always carries `new-line` — the hunk's first line (§5.2).
+
+The header types are not optional: a renderer emits `f` on each file-header row
+and `h` on each hunk-header row it renders. A renderer that has no such rows
+simply has none to tag, and a single row that announces both a file *and* a hunk
+(difftastic's per-hunk banner) carries **both** records — see §5.5.
 
 A host **must ignore a `type` it does not recognize** (treat the row as
 non-actionable) rather than reject the record, so the set can grow later without a
@@ -214,6 +224,11 @@ specifically on *change* lines). Hence an explicit type.
   expected to re-map this through its own diff↔worktree adjustment; the renderer
   should emit the number as it appears in the diff it is rendering.
 - `old-line` is the old-file line number, present **only** for deletions.
+- On an `h` record, `new-line` is the new-file line of the **first line of the
+  hunk it heads** (for the hunk of a whole-file deletion that is `0`, matching
+  §5.4), and `old-line` is empty. This is what lets "open in editor" on a hunk
+  header land at the top of what the user is looking at.
+- An `f` record carries no line numbers at all — both fields are empty (§5.5).
 
 ### 5.3 The deleted-line convention (both numbers)
 
@@ -242,50 +257,61 @@ A host uses `old-line` to find a deletion's patch line and its old-side
 A deleted file's lines carry `new-line` = `0` (mirroring git's `@@ -1,N +0,0 @@`);
 an added file's lines carry the new-file numbers normally and `type=a`.
 
-### 5.5 Non-goal: header and decoration rows are not annotated
+### 5.5 Header records: `f` never carries a line number, `h` always does
 
-The protocol covers **content lines only**. A diff renderer's file-header and hunk-header
-rows — delta's boxed file name and hunk-header box, difftastic's per-hunk banner,
-diff-so-fancy's `── file ──` rule — carry **no** record, and there is no `f`/`h`
-(or "file-header"/"hunk-header") type. The host treats every un-annotated row as
-non-actionable.
+The two header types deliberately differ in payload, and the difference is fixed
+by the spec rather than left to the renderer:
 
-This is deliberate. The host does not need header records to recover diff
-structure, because the structure is already implicit in the content records:
+- An `f` record's `new-line` and `old-line` are **always empty**. Its payload is
+  the file path.
+- An `h` record **always** carries `new-line` — the first line of the hunk it
+  heads (§5.2).
 
-- **File boundaries** — the `file` field changes between consecutive content
-  records, so the first content record carrying a new path *is* that file's entry.
-- **Hunk boundaries** — `new-line` jumps by more than one between consecutive
-  content records of a file (lines were skipped), so a discontinuity marks a new
-  hunk. (Two consecutive deletions share a `new-line` by §5.3, so compute the gap
-  from the last *advancing* line.)
+**Why fixed per type, not "emit a line number if you have one"?** Because a field
+the renderer *may* populate is a field the host can never rely on — every consumer
+would need a fallback for the empty case anyway, and renderers would diverge on
+what they emit. Making presence a function of the type alone keeps every record's
+shape predictable from its first two fields.
 
-So file/hunk navigation, "jump to the top of this file/hunk", and the rest are all
-served by content records plus a trivial scan; the host lands navigation on a
-hunk/file's first **content** row, backing up over any un-annotated header rows the
-renderer drew above it (a few lines of host code, needed anyway — see below).
+**Why can't `f` require a line number?** A streaming renderer genuinely doesn't
+have one at that point: delta draws its file header when it parses the `+++`
+line, *before* it has seen the first `@@`, so the file's first hunk line is
+unknown unless it buffered the header — abandoning its streaming design for one
+field. And a file header doesn't need a line number: the actions it anchors
+(open the file, jump to the file, list the files) are file-granular. A host that
+wants a line anyway can scan forward to the file's first record that carries one.
 
-**Why not annotate headers, even optionally?** An earlier draft made `f`/`h`
-mandatory; prototyping them in delta and difftastic (preserved in the design
-notes) showed the cost is real and the benefit marginal:
+**Why can `h` require one?** Every renderer knows a hunk's start line at the
+moment it renders that hunk's header — it is right there in the `@@` line being
+reformatted, or (for a renderer like difftastic that builds the whole diff before
+rendering) in the hunk structure itself.
 
-- It adds genuine renderer-side friction. delta draws the file header when it parses
-  the `+++` line, *before* it has seen the first `@@`, so it cannot know the
-  header's hunk line without buffering or abandoning streaming. difftastic has no
-  separate header rows at all — one per-hunk banner is *both* a file and a hunk
-  header — so neither `f` nor `h` maps cleanly onto it. For a protocol whose whole
-  pitch is "emit one OSC per content line," this roughly doubles the conceptual
-  surface for the next diff renderer author.
-- Making them *optional* is the worst of both: a host can't rely on them, so it
-  must implement the "header row is un-annotated → back up to the nearest content
-  row" fallback regardless — and then maintain two code paths forever. Dropping
-  the types entirely leaves the host **one** path, exercised for every diff renderer.
+**Combined file+hunk headers emit both records.** Some renderers have no separate
+file-header row: difftastic prints one banner per hunk (`path --- N/M --- lang`),
+and the first hunk's banner is the only row announcing the file. The rule: a row
+that announces both a file and a hunk carries **both** records — the `f` first,
+then the `h` (the file is the outer structure). difftastic's first-hunk banner
+thus carries an `f` and an `h`; its later banners carry only an `h`. A consequence
+is that a row can carry several records even outside side-by-side mode, and not
+all of them carry a line number — §7 lists what a consuming host should be aware
+of.
 
-The only thing genuinely lost is files that emit **no content records** at all —
-pure renames, pure mode changes, binary files (§4.2). These become invisible to
-the identity layer (navigation can't anchor on them). That is acceptable: they
-have nothing to stage/edit/open, and remain reachable by ordinary cursor movement
-over the rendered buffer.
+Two useful invariants follow from all of this:
+
+- every file in the diff has exactly one `f` (a multi-row header repeats it per
+  row — §6.4 — but it is one logical record), and every hunk exactly one `h`, so
+  file/hunk navigation and a "files in this diff" list fall directly out of the
+  records;
+- files with **no content lines** — pure renames, mode-only changes, binary files
+  (§4.2) — still emit their `f`, so they stay visible to the identity layer:
+  navigation can anchor on them and a file list includes them, even though there
+  is no content to act on.
+
+(Hosts that consume only content records can still recover the structure without
+headers: the `file` field changes between consecutive content records at a file
+boundary, and within a file a `new-line` jump of more than one marks a new hunk —
+two consecutive deletions share a `new-line` by §5.3, so compute the gap from the
+last *advancing* line. This remains valid, but it cannot see content-less files.)
 
 ---
 
@@ -304,6 +330,9 @@ call, not the host's. The single firm requirement:
 
 > **The record must precede the region's first cell**, so that a host searching
 > leftward from any cell lands in the correct region.
+
+A combined file+hunk header row (§5.5, §6.4) is the one case where *two* records
+precede the same region — both before its first cell, `f` then `h`.
 
 ### 6.2 Multiple regions per row (side-by-side)
 
@@ -350,12 +379,24 @@ Getting this wrong is not theoretical: without per-row records, acting on a
 wrapped continuation row does nothing, and hunk/file navigation breaks because the
 untagged rows fragment a wrapped line into one block per visual row.
 
-### 6.4 Header and decoration rows — emit nothing
+### 6.4 Header rows
 
-A diff renderer's header and decoration rows (file headers, hunk headers, dividers,
-padding) carry **no** record — there is no header type to emit (§5.1, §5.5). The
-host derives file and hunk structure from the content records and treats every
-un-annotated row as non-actionable.
+File-header and hunk-header rows carry records too, and these are **mandatory**:
+`f` on each file-header row, `h` on each hunk-header row (§5.1, §5.5). A row that
+announces both a file and a hunk carries both, `f` before `h`.
+
+Where a header spans **several rows** — delta boxes a file name in divider/name/
+divider lines; a renderer might draw a rule under a hunk header — **every row of
+that block carries the same record(s)**: all three box rows get the file's `f`, a
+hunk header and its rule both get that hunk's `h`, exactly as a wrapped content
+line re-emits its record on every row (§6.3). That leaves no dead rows in a
+header block — the user can act anywhere on it and land in the same place. The
+renderer has the final say over what counts as its header block and which rows it
+tags; this is the recommended default, not a hard rule.
+
+Rows that belong to no header — dividers between files, padding, other pure
+decoration — carry no record, and the host treats every un-annotated row as
+non-actionable.
 
 ---
 
@@ -367,13 +408,31 @@ is designed for, to make the emit rules concrete.
 - The host attaches each record to the following cell, like an OSC-8 hyperlink. If
   a record has no following cell (a genuinely empty rendered line), the host adds
   a content-less cell to hold it.
-- **Row-granular action** (e.g. a keyboard "act on this line"): use the **first**
-  record on the row. In side-by-side this is the left column — fine, since the two
-  sides of a change are one hunk for staging purposes.
 - **Point-granular action** (a mouse click): the per-cell attachment lets a host
   use the **nearest record at or to the left of the click column**, landing in the
   column actually clicked. (A host may equally resolve clicks at row granularity;
   the carrier supports either.)
+- **Row-granular action** (e.g. a keyboard "act on this line"): a row can carry
+  **more than one** record, so the host picks. The spec doesn't prescribe which —
+  the right choice depends on the action — but these are the situations to be
+  aware of:
+  - A **side-by-side** row carries one record per column (§6.2). The two records
+    are one logical change, but their fields differ: the left `d` records of a
+    change block all sit at the block's first new line (§5.3), so the right
+    column's `a` record has the more precise `new-line`, while the left one is
+    the only carrier of the old-side identity.
+  - A **combined file+hunk header** carries an `f` and an `h` (§5.5). Only the
+    `h` has a line number, so a line-oriented action (open the editor at a line)
+    wants the `h`, while a file-oriented one (open the file, build a file list)
+    anchors on the `f`.
+  - When several records precede the same cell (the combined header), a
+    click resolved by "nearest at or left of the point" lands on the **last**
+    record emitted before that cell — the `h`. A host that wants keyboard and
+    mouse actions to agree on such rows should account for that.
+- An `f` record has no line number. What an action does with that is the host's
+  choice — e.g. "open in editor" can open the file without jumping anywhere
+  (useful in itself), or scan forward for the file's first record that carries a
+  line number.
 - The host normalizes `file` (resolving it relative to the repository working
   tree) and otherwise treats the record as opaque identity.
 
@@ -418,15 +477,15 @@ mapping; recorded as a v2 candidate, not taken (§9).
    the side for deleted lines, and in side-by-side mode. (delta needed to track
    its own old/new counters because its line-number counters are dormant unless
    `--line-numbers` is on; difftastic had them natively. Your mileage may vary.)
-5. **Content-lines-only scope (§5.5) — is anything lost for your diff renderer?** We
-   deliberately dropped header annotations: an earlier draft made file/hunk-header
-   types mandatory, but prototyping them in delta and difftastic showed real
-   renderer-side friction (delta draws the file header before it has parsed the first
-   `@@`; difftastic has no separate header rows, only a combined per-hunk banner)
-   for benefit the host can get by deriving structure from content records. If your
-   renderer has a structure where the host genuinely *cannot* reconstruct file/hunk
-   boundaries from content records, tell us — that would argue for bringing header
-   types back.
+5. **The header types' fixed payloads (§5.5).** `f` never carries a line number,
+   `h` always does, and a combined file+hunk row emits both records. This shape
+   came out of prototyping in delta and difftastic: delta streams and draws its
+   file header before it has parsed the first `@@` (so `f` cannot promise a
+   line), while every renderer knows a hunk's start line at its hunk header (so
+   `h` can); difftastic's per-hunk banner is both headers at once (so combined
+   rows emit both). Does this fit your renderer — do you have a header shape
+   where `h`'s line number is *not* in hand, or a combined row the both-records
+   rule doesn't cover?
 
 ---
 
@@ -438,19 +497,22 @@ consume the v1 format described here, over OSC `1717`:
 - **delta** — a dedicated additive emitter that injects only OSC bytes (no change
   to styling, width, or wrapping); with the env var unset, output is byte-for-byte
   identical to stock delta. Covers unified and side-by-side modes, including
-  wrapped rows. (A `f`/`h` header-record variant was also prototyped before headers
-  were dropped from the spec — see §5.5 / the design notes — but is not part of
-  this content-line-only protocol.)
+  wrapped rows, and the multi-row file/hunk-header decorations (every row of a
+  header block carries its `f`/`h` — §6.4; delta's `f` is the case that cannot
+  carry a line number, §5.5).
 - **difftastic** — the categorical case (#1 host-side parsing cannot serve it in
   either mode). Emits the same v1 format under the same handshake; markedly less
   code than delta because difftastic carries old/new line numbers natively. Covers
-  side-by-side and inline modes.
+  side-by-side and inline modes. Its per-hunk banner is the combined file+hunk
+  header of §5.5: the first hunk's banner carries `f` and `h`, later banners `h`.
 - **diff-so-fancy** — the same #2 case as delta's default (it strips the `+`/`-`
   markers and conveys the side by color), but a line-oriented Perl filter rather
   than a structured renderer, and the simplest of the three: unified single-column
   only (no side-by-side). Classifies each line by its leading `+`/`-` before its
   existing code strips that marker, tracking its own old/new counters seeded from
-  each `@@` header (like delta, it has no native line numbers). Combined/merge
+  each `@@` header (like delta, it has no native line numbers); its reformatted
+  file rule carries `f` and its hunk-header line `h` (the `@@` line it reformats
+  has the hunk's start in hand). Combined/merge
   diffs are not annotated. Because diff-so-fancy defensively strips terminal escape
   sequences from the content it renders, the record is *prepended* to the line
   rather than embedded in it.
