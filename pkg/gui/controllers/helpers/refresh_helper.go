@@ -1207,6 +1207,19 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 			// for operations we started ourselves; prompting for one that was
 			// started outside lazygit (e.g. by a coding agent) would be confusing.
 			self.onUIThreadUnlessRepoChanged(env, func() error {
+				// The merge-conflicts scope of this refresh also notices that
+				// the conflicts are gone and escapes from the merge conflicts
+				// view to the files context (see RefreshMergeState), but it
+				// runs concurrently with us, and its escape refuses to push
+				// the files context over a popup. So if our prompt opens
+				// first, the escape does nothing, and closing the prompt
+				// would land the user in the dead merge conflicts view.
+				// Escape it ourselves before opening the prompt, so that the
+				// prompt always opens on top of the files context.
+				if self.c.Context().IsCurrent(self.c.Contexts().MergeConflicts) {
+					self.mergeConflictsHelper.ResetMergeState()
+					self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
+				}
 				return self.mergeAndRebaseHelper.PromptToContinueRebase()
 			})
 		}
