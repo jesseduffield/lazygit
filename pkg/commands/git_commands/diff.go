@@ -34,7 +34,7 @@ const metadataHandshake = "\x1b]1717"
 // caches it per pager.
 //
 // No PTY is needed: git needs a terminal to decide to invoke a pager, but the pager
-// itself emits the handshake whenever OSC1717_METADATA is set, so we can run it
+// itself emits the handshake whenever OSC1717 is set, so we can run it
 // directly with empty input.
 //
 // A git-config external diff driver (useExternalDiffGitConfig) is chosen per file via
@@ -78,7 +78,7 @@ func (self *DiffCommands) externalDiffEmitsMetadata(extDiffCmd string) bool {
 }
 
 func (self *DiffCommands) probeEmitsMetadata(cmdObj *oscommands.CmdObj) bool {
-	cmdObj.AddEnvVars("OSC1717_METADATA=V1")
+	cmdObj.AddEnvVars("OSC1717=V1")
 	// The pager may exit non-zero on the synthetic input; we only care about whether
 	// it emitted the handshake first, and the output is captured either way.
 	output, _ := cmdObj.RunWithOutput()
