@@ -28,3 +28,23 @@ func TestSidePanelLookupsCoverAllValidTabs(t *testing.T) {
 	assert.Equal(t, want, sortedKeys(gui.sidePanelTabTitles()))
 	assert.Equal(t, want, sortedKeys(sidePanelContexts(gui.contextTree())))
 }
+
+// The transient contexts must end up in windows that exist under the configured
+// panel layout, or their views would be laid out for a window that is never
+// shown.
+func TestAssignSidePanelWindowsCoversTransientContexts(t *testing.T) {
+	gui := NewDummyGui()
+	gui.c.UserConfig().Gui.SidePanels = []config.SidePanel{
+		{"worktrees", "branches", "remotes"},
+		{"files"},
+		{"tags", "commits"},
+		{"stash"},
+	}
+
+	contextTree := gui.contextTree()
+	gui.assignSidePanelWindows(contextTree)
+
+	assert.Equal(t, "worktrees", contextTree.RemoteBranches.GetWindowName())
+	assert.Equal(t, "worktrees", contextTree.SubCommits.GetWindowName())
+	assert.Equal(t, "tags", contextTree.CommitFiles.GetWindowName())
+}
