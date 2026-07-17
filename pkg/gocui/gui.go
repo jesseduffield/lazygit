@@ -1470,6 +1470,11 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 
 // flush updates the gui, re-drawing frames and buffers.
 func (g *Gui) flush() error {
+	// The screen must not be touched while suspended (see Suspend).
+	if g.isSuspended() {
+		return nil
+	}
+
 	// pretty sure we don't need this, but keeping it here in case we get weird visual artifacts
 	// g.clear(g.FgColor, g.BgColor)
 
@@ -1502,6 +1507,11 @@ func (g *Gui) flush() error {
 // actually-changed cells are emitted to the terminal.
 // Will also redraw any views that overlap tainted views
 func (g *Gui) flushContentOnly(views []*View) error {
+	// The screen must not be touched while suspended (see Suspend).
+	if g.isSuspended() {
+		return nil
+	}
+
 	for _, v := range viewsToRedrawContentOnly(views) {
 		if err := g.draw(v); err != nil {
 			return err
@@ -1555,10 +1565,6 @@ func (g *Gui) ForceFlushViewsContentOnly(views []*View) error {
 
 // draw manages the cursor and calls the draw function of a view.
 func (g *Gui) draw(v *View) error {
-	if g.suspended {
-		return nil
-	}
-
 	if !v.Visible || v.y1 < v.y0 || v.x1 < v.x0 {
 		return nil
 	}
@@ -1930,6 +1936,14 @@ func (g *Gui) onFocus(ev *GocuiEvent) error {
 	return nil
 }
 
+// While g.suspended is true, nothing must be drawn to the screen: tcell
+// releases the screen's cell buffer when disengaging, and drawing to a
+// disengaged screen spins forever inside tcell while holding the screen lock,
+// which then blocks Resume (and with it all further input) forever. For the
+// flag to guarantee that, it must only ever be false while the screen is
+// engaged: Suspend sets it before disengaging, and Resume clears it only
+// after re-engaging.
+
 func (g *Gui) Suspend() error {
 	g.suspendedMutex.Lock()
 	defer g.suspendedMutex.Unlock()
@@ -1940,7 +1954,12 @@ func (g *Gui) Suspend() error {
 
 	g.suspended = true
 
-	return g.screen.Suspend()
+	if err := g.screen.Suspend(); err != nil {
+		g.suspended = false
+		return err
+	}
+
+	return nil
 }
 
 func (g *Gui) Resume() error {
@@ -1951,9 +1970,20 @@ func (g *Gui) Resume() error {
 		return errors.New("Cannot resume because we are not suspended")
 	}
 
+	if err := g.screen.Resume(); err != nil {
+		return err
+	}
+
 	g.suspended = false
 
-	return g.screen.Resume()
+	return nil
+}
+
+func (g *Gui) isSuspended() bool {
+	g.suspendedMutex.Lock()
+	defer g.suspendedMutex.Unlock()
+
+	return g.suspended
 }
 
 // matchView returns if the keybinding matches the current view (and the view's context)
