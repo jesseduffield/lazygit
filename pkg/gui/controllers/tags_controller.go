@@ -168,7 +168,7 @@ func (self *TagsController) localDelete(tag *models.Tag) error {
 	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.DeleteLocalTag)
 		err := self.c.Git().Tag.LocalDelete(tag.Name)
-		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 		return err
 	})
 }
@@ -210,7 +210,7 @@ func (self *TagsController) remoteDelete(tag *models.Tag) error {
 							return err
 						}
 						self.c.Toast(self.c.Tr.RemoteTagDeletedMessage)
-						self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+						self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 						return nil
 					})
 				},
@@ -264,7 +264,7 @@ func (self *TagsController) localAndRemoteDelete(tag *models.Tag) error {
 						if err := self.c.Git().Tag.LocalDelete(tag.Name); err != nil {
 							return err
 						}
-						self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+						self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 						return nil
 					})
 				},

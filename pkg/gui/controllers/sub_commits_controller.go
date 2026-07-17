@@ -66,7 +66,7 @@ func (self *SubCommitsController) GetOnFocus() func(types.OnFocusOpts) {
 		context := self.context()
 		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
 			context.SetLimitCommits(false)
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.SUB_COMMITS}})
+			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUB_COMMITS}})
 		}
 	}
 }

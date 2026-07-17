@@ -314,7 +314,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		}
 		output, err := cmdObj.RunWithOutput()
 
-		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.RefreshFromWorker(types.RefreshOptions{})
 
 		if err != nil {
 			if customCommand.After != nil && customCommand.After.CheckForConflicts {
