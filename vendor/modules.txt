@@ -183,7 +183,7 @@ golang.org/x/mod/module
 golang.org/x/mod/semver
 # golang.org/x/net v0.55.0
 ## explicit; go 1.25.0
-# golang.org/x/sync v0.21.0
+# golang.org/x/sync v0.22.0
 ## explicit; go 1.25.0
 golang.org/x/sync/errgroup
 golang.org/x/sync/semaphore
