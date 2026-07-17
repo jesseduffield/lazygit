@@ -119,7 +119,7 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 		if self.gui.UserConfig().Gui.ShowBottomLine || firstTimeOrRetriggered {
 			return self.gui.helpers.AppStatus.WithWaitingStatusImpl(self.gui.Tr.FetchingStatus, func(gocui.Task) error {
 				return self.backgroundFetch()
-			}, nil, true)
+			}, nil)
 		}
 
 		return self.backgroundFetch()

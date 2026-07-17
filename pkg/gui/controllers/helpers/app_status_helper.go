@@ -34,12 +34,7 @@ func (self *AppStatusHelper) Toast(message string, kind types.ToastKind) {
 
 	self.statusMgr().AddToastStatus(message, kind)
 
-	// Render the toast in the background: it's a transient notification, not
-	// lazygit driving an operation, so it must not count towards being busy —
-	// otherwise a toast (e.g. the "can't switch, operation in progress" one)
-	// would itself block a repo switch until it faded. A real operation showing
-	// a toast still keeps its own foreground task busy independently.
-	self.renderAppStatus(true)
+	self.renderAppStatus()
 }
 
 // A custom task for WithWaitingStatus calls; it wraps the original one and
@@ -66,14 +61,15 @@ func (self appStatusHelperTask) Continue() {
 // WithWaitingStatus wraps a function and shows a waiting status while the function is still executing
 func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task) error) {
 	self.c.OnWorker(func(task gocui.Task) error {
-		return self.WithWaitingStatusImpl(message, f, task, false)
+		return self.WithWaitingStatusImpl(message, f, task)
 	})
 }
 
-// background reports whether this waiting status belongs to a background routine
-// (the auto-fetch poller); when it does, the spinner it drives must not count
-// towards lazygit being busy, or it'd block repo switches while a fetch runs.
-func (self *AppStatusHelper) WithWaitingStatusImpl(message string, f func(gocui.Task) error, task gocui.Task, background bool) error {
+// WithWaitingStatusImpl is WithWaitingStatus for callers that already run on a
+// goroutine of their own (e.g. the auto-fetch poller) rather than wanting the
+// work dispatched to a worker. task is used to hide the status while the task
+// is paused; it may be nil for callers whose f ignores its task.
+func (self *AppStatusHelper) WithWaitingStatusImpl(message string, f func(gocui.Task) error, task gocui.Task) error {
 	// A waiting status means lazygit is driving a git operation itself (often
 	// one that internally runs a rebase and continues it). Pause the background
 	// routines for its duration so they don't refresh from an intermediate
@@ -81,7 +77,7 @@ func (self *AppStatusHelper) WithWaitingStatusImpl(message string, f func(gocui.
 	self.c.PauseBackgroundRefreshes(true)
 	defer self.c.PauseBackgroundRefreshes(false)
 
-	return self.statusMgr().WithWaitingStatus(message, func() { self.renderAppStatus(background) }, func(waitingStatusHandle *status.WaitingStatusHandle) error {
+	return self.statusMgr().WithWaitingStatus(message, self.renderAppStatus, func(waitingStatusHandle *status.WaitingStatusHandle) error {
 		return f(appStatusHelperTask{task, waitingStatusHandle})
 	})
 }
@@ -112,7 +108,7 @@ func (self *AppStatusHelper) WithWaitingStatusBlockingInput(message string, f fu
 			self.modeHelper.SetSuppressRebasingMode(false)
 			return self.c.GocuiGui().EndBlockingEvents()
 		})
-		return self.WithWaitingStatusImpl(message, f, task, false)
+		return self.WithWaitingStatusImpl(message, f, task)
 	})
 }
 
@@ -125,33 +121,36 @@ func (self *AppStatusHelper) GetStatusString() string {
 	return appStatus
 }
 
-func (self *AppStatusHelper) renderAppStatus(background bool) {
-	// A background waiting status (auto-fetch) must not count towards lazygit
-	// being busy, so its spinner worker and per-frame UI updates go through the
-	// background variants.
-	onWorker := self.c.OnWorker
-	onUIThread := self.c.OnUIThread
-	onUIThreadContentOnly := self.c.OnUIThreadContentOnly
-	if background {
-		onWorker = self.c.OnWorkerBackground
-		onUIThread = self.c.OnUIThreadBackground
-		onUIThreadContentOnly = self.c.OnUIThreadContentOnlyBackground
+// renderAppStatus ensures the render loop that keeps the app-status view up to
+// date is running. There is one loop for the whole status stack, no matter how
+// many statuses are showing: it draws whatever the top status currently is,
+// and exits after drawing a final empty frame once the last status is removed.
+//
+// The loop always runs as a background task, regardless of what kind of
+// operation owns a status: rendering runs no git commands, so it must never
+// count towards lazygit being busy — otherwise it would block repo switching
+// for as long as anything is showing (e.g. for the whole duration of a hung
+// background fetch, or of a toast fading). A foreground operation's busy-ness
+// is carried by its own worker task, not by the renderer.
+func (self *AppStatusHelper) renderAppStatus() {
+	if !self.statusMgr().ClaimRenderLoop() {
+		return
 	}
 
-	onWorker(func(_ gocui.Task) error {
+	self.c.OnWorkerBackground(func(_ gocui.Task) error {
 		ticker := time.NewTicker(time.Millisecond * time.Duration(self.c.UserConfig().Gui.Spinner.Rate))
 		defer ticker.Stop()
 		prevAppStatus := ""
 		for range ticker.C {
 			appStatus, color := self.statusMgr().GetStatusString(self.c.UserConfig())
 
-			update := onUIThreadContentOnly
+			update := self.c.OnUIThreadContentOnlyBackground
 			if utils.StringWidth(appStatus) != utils.StringWidth(prevAppStatus) {
 				// Need a full layout whenever the width of the status string changes. This can't
 				// happen during normal spinning because we validate that all spinner frames have
 				// the same width, so typically this will only be triggered at the beginning and end
 				// of a status, or if the status string changes midway for some reason.
-				update = onUIThread
+				update = self.c.OnUIThreadBackground
 			}
 			update(func() error {
 				self.c.Views().AppStatus.FgColor = color
@@ -160,7 +159,9 @@ func (self *AppStatusHelper) renderAppStatus(background bool) {
 			})
 			prevAppStatus = appStatus
 
-			if appStatus == "" {
+			// Checked after rendering, so that the frame which clears the view
+			// has already been drawn when we exit.
+			if self.statusMgr().ReleaseRenderLoopIfEmpty() {
 				break
 			}
 		}
