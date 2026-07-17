@@ -72,12 +72,18 @@ func (cb *CellBuffer) put(x int, y int, str string, style Style) (string, int) {
 	if x >= 0 && y >= 0 && x < cb.w && y < cb.h {
 		var cl string
 		c := &cb.cells[(y*cb.w)+x]
-		g := textWidthOptions.StringGraphemes(str)
-		for width == 0 && g.Next() {
-			cluster := g.Value()
-			cl += cluster
-			width = g.Width()
-			str = str[len(cluster):]
+		if str == c.currStr && c.width > 0 {
+			// Identical re-Put (a full-screen redraw): the grapheme split is
+			// unchanged, so reuse the measured width instead of segmenting.
+			cl, width, str = str, c.width, ""
+		} else {
+			g := textWidthOptions.StringGraphemes(str)
+			for width == 0 && g.Next() {
+				cluster := g.Value()
+				cl += cluster
+				width = g.Width()
+				str = str[len(cluster):]
+			}
 		}
 
 		// Wide characters: we want to mark the "wide" cells
