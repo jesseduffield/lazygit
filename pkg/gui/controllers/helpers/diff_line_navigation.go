@@ -67,9 +67,9 @@ type DiffFile struct {
 
 // FilesInDiff lists the files shown in view's diff, in display order, each paired with
 // the view line its section starts at. It is the jump-to-file menu's source: jumping to
-// a file goes to its FirstViewLine, computed the same way (backUpOverHeader) that
-// AdjacentFile lands on a file, so the menu and n/N agree on where each file begins. A
-// file whose start row isn't currently mapped to a view line (not loaded yet) is skipped.
+// a file goes to its FirstViewLine — the file's first located row, the same row that
+// AdjacentFile lands on, so the menu and n/N agree on where each file begins. A file
+// whose start row isn't currently mapped to a view line (not loaded yet) is skipped.
 func (self *StagingHelper) FilesInDiff(view *gocui.View) []DiffFile {
 	resolved := self.resolveDiffLines(view.DiffLineContents())
 	paths := make([]string, len(resolved))
@@ -86,7 +86,7 @@ func (self *StagingHelper) FilesInDiff(view *gocui.View) []DiffFile {
 			continue
 		}
 		seen[path] = true
-		if viewLine, ok := view.ViewLineForBufferLine(backUpOverHeader(paths, i)); ok {
+		if viewLine, ok := view.ViewLineForBufferLine(i); ok {
 			files = append(files, DiffFile{Path: path, FirstViewLine: viewLine})
 		}
 	}
@@ -228,13 +228,17 @@ func changeBlockStart(isChange []bool, from int, forward bool) (int, bool) {
 }
 
 // fileStart finds, in a diff whose lines carry the file path they belong to (empty
-// for a row no backend could place, e.g. a restructuring pager's file headers), the
-// top row of the file adjacent to `from` in the given direction. It is the pure
-// index arithmetic behind AdjacentFile. A file is identified by its path, so we find
-// where the path changes and then back up over the neighbouring file's unplaced
-// header rows, landing on its first row — the `diff --git`/`@@` header when the
-// buffer is parseable, or whatever the pager renders above the file's first tagged
-// line otherwise.
+// for a row no backend could place), the first located row of the file adjacent to
+// `from` in the given direction — the row file navigation lands on. It is the pure
+// index arithmetic behind AdjacentFile. A file is identified by its path, so we
+// find where the path changes, skipping unlocated rows: those are blank separator
+// rows between files, or the header rows of a pager that doesn't emit `f`/`h`
+// records. So the landing row is the file's header for any conforming source (a
+// parseable buffer, or a pager tagging its headers), and the first content line
+// under a pager that leaves its headers untagged — an accepted degradation. (An
+// earlier version instead backed up over the untagged rows above the first located
+// one, to reach the file's top under such pagers; but that overshoots onto the
+// blank line above the header whenever the headers themselves are tagged.)
 func fileStart(paths []string, from int, forward bool) (int, bool) {
 	anchorPath, ok := anchorFilePath(paths, from)
 	if !ok {
@@ -244,14 +248,15 @@ func fileStart(paths []string, from int, forward bool) (int, bool) {
 	if forward {
 		for i := from; i < len(paths); i++ {
 			if paths[i] != "" && paths[i] != anchorPath {
-				return backUpOverHeader(paths, i), true
+				return i, true
 			}
 		}
 		return 0, false
 	}
 
-	// Walk back past the current file (its rows and any unplaced rows) to the
-	// previous file's last located row, then back over that whole file to its top.
+	// Walk back past the current file (its rows and any unlocated rows) to the
+	// previous file's last located row, then back over that whole file, landing
+	// on its first located row.
 	i := from
 	for i >= 0 && (paths[i] == "" || paths[i] == anchorPath) {
 		i--
@@ -263,18 +268,10 @@ func fileStart(paths []string, from int, forward bool) (int, bool) {
 	for i > 0 && (paths[i-1] == "" || paths[i-1] == prevPath) {
 		i--
 	}
-	return i, true
-}
-
-// backUpOverHeader moves from a file's first located row up over the unplaced header
-// rows directly above it, to the file's top. It stops at the previous file's last
-// located row, so it never crosses into it.
-func backUpOverHeader(paths []string, firstLocated int) int {
-	i := firstLocated
-	for i > 0 && paths[i-1] == "" {
-		i--
+	for paths[i] != prevPath {
+		i++
 	}
-	return i
+	return i, true
 }
 
 // anchorFilePath returns the path of the file the anchor sits in: the first row at or

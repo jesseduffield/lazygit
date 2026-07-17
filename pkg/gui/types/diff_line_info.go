@@ -27,7 +27,10 @@ type DiffLineInfo struct {
 	Path string
 	Type DiffLineType
 	// NewLine is the line's position in the new file. Set for all content lines
-	// (for a deletion it is the new-file position the deletion sits at).
+	// (for a deletion it is the new-file position the deletion sits at) and for
+	// hunk headers (the first line of the hunk they head). Not meaningful for
+	// file headers: a pager's `f` record carries no line number (so the OSC
+	// backend reports 0), and the buffer parser reports 1.
 	NewLine int
 	// OldLine is the line's position in the old file. Set only for deletions.
 	OldLine int
@@ -64,13 +67,28 @@ func (self DiffLineInfo) PatchSelectLine() (lineNumber int, isDeletion bool) {
 // DiffLineOther) yields a non-deletion identity, so a deletion captured from a
 // full-fidelity backend won't match such a row — the restore then just doesn't
 // find its line, which is the acceptable degradation for that pager config.
+//
+// A header row shares its line number with a content row — a hunk header carries
+// the hunk's first line — so headers only match headers of the same kind:
+// otherwise a restore aiming at a hunk's first content line would land one row up
+// on the header above it (or vice versa).
 func (self DiffLineInfo) SamePatchLine(other DiffLineInfo) bool {
 	if self.Path != other.Path {
+		return false
+	}
+	if self.isHeader() != other.isHeader() {
+		return false
+	}
+	if self.isHeader() && self.Type != other.Type {
 		return false
 	}
 	selfLine, selfIsDeletion := self.PatchSelectLine()
 	otherLine, otherIsDeletion := other.PatchSelectLine()
 	return selfLine == otherLine && selfIsDeletion == otherIsDeletion
+}
+
+func (self DiffLineInfo) isHeader() bool {
+	return self.Type == DiffLineFileHeader || self.Type == DiffLineHunkHeader
 }
 
 // PullRequestAnchor returns the side ("L"/"R") and line number to anchor a

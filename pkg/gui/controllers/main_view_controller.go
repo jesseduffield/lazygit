@@ -1083,10 +1083,16 @@ func (self *MainViewController) editLine() error {
 
 // editDiffLine opens the file the given diff line belongs to in the editor, at
 // that line. The file and line are resolved the same way entering staging does.
+// A file-header row points at the file as a whole, not at a line in it, so it
+// opens the file without jumping anywhere — the same behavior as pressing edit
+// on a file in a side panel.
 func (self *MainViewController) editDiffLine(viewLineIdx int) error {
 	info, ok := self.c.Helpers().Staging.GetDiffLineInfo(self.context.GetViewName(), viewLineIdx)
 	if !ok {
 		return nil
+	}
+	if info.Type == types.DiffLineFileHeader {
+		return self.c.Helpers().Files.EditFiles([]string{info.Path})
 	}
 	lineNumber := self.c.Helpers().Diff.AdjustLineNumber(info.Path, info.NewLine, self.context.GetViewName())
 	return self.c.Helpers().Files.EditFileAtLine(info.Path, lineNumber)

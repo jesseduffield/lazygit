@@ -51,8 +51,9 @@ func TestFileStart(t *testing.T) {
 	// included), as the buffer parser reports.
 	parseable := []string{"a", "a", "a", "a", "b", "b", "b", "b"}
 
-	// The same diff as a restructuring pager emits it: only content lines carry the
-	// path; the file/hunk header rows above each file are untagged (empty).
+	// The same diff as a pager without `f`/`h` header records emits it: only content
+	// lines carry the path; the file/hunk header rows above each file are untagged
+	// (empty), so navigation can only land on each file's first content line.
 	tagged := []string{"", "", "a", "a", "", "", "b", "b"}
 
 	// Three such files, to exercise navigating from one file's untagged header to the
@@ -60,6 +61,15 @@ func TestFileStart(t *testing.T) {
 	// found by scanning down (b), not up (a) — otherwise next-file would jump back
 	// into b and a second `n` couldn't advance.
 	taggedThree := []string{"", "", "a", "a", "", "", "b", "b", "", "", "c", "c"}
+
+	// A pager that tags its header rows with `f`/`h` records (delta): the two-row
+	// file header and the hunk-header box carry the file's path, but the blank
+	// separator rows — above each file header, and between it and the first hunk
+	// header — carry nothing. Navigation must land on the header's first row, not
+	// the blank line above it.
+	//    0 blank   1 file hdr   2 file hdr   3 blank   4-6 hunk hdr box   7 content
+	//    8 blank   9 file hdr  10 file hdr  11 blank  12-13 hunk hdr box  14 content
+	headerTagged := []string{"", "a", "a", "", "a", "a", "a", "a", "", "b", "b", "", "b", "b", "b"}
 
 	scenarios := []struct {
 		name     string
@@ -74,17 +84,24 @@ func TestFileStart(t *testing.T) {
 		{"parseable: previous file lands on its header", parseable, 5, false, 0, true},
 		{"parseable: previous from the first file finds nothing", parseable, 1, false, 0, false},
 
-		// With only content tagged, both directions still land on the file's top
-		// (the untagged header rows), so navigation feels the same.
-		{"tagged: next file lands on its header, not its first content", tagged, 2, true, 4, true},
-		{"tagged: next from an untagged header still advances", tagged, 0, true, 4, true},
-		{"tagged: previous file lands on its header", tagged, 7, false, 0, true},
+		// With only content tagged, both directions land on the file's first content
+		// line — the untagged header rows above it can't be told apart from the
+		// blank separator rows, so they are never a landing spot.
+		{"tagged: next file lands on its first content line", tagged, 2, true, 6, true},
+		{"tagged: next from an untagged header still advances", tagged, 0, true, 6, true},
+		{"tagged: previous file lands on its first content line", tagged, 7, false, 2, true},
 		{"tagged: previous from the first file finds nothing", tagged, 2, false, 0, false},
 
 		// From b's untagged header (row 4), the anchor file is b (below), so next goes
 		// to c and previous goes to a — neither sticks on b.
-		{"tagged: next from a middle file's header advances past it", taggedThree, 4, true, 8, true},
-		{"tagged: previous from a middle file's header lands on the prior file", taggedThree, 4, false, 0, true},
+		{"tagged: next from a middle file's header advances past it", taggedThree, 4, true, 10, true},
+		{"tagged: previous from a middle file's header lands on the prior file", taggedThree, 4, false, 2, true},
+
+		// With headers tagged, both directions land on the header's first row —
+		// crucially not on the blank separator row above it.
+		{"header-tagged: next file lands on the header, not the blank above it", headerTagged, 7, true, 9, true},
+		{"header-tagged: next from inside a file's header advances", headerTagged, 2, true, 9, true},
+		{"header-tagged: previous file lands on the header, not the blank above it", headerTagged, 14, false, 1, true},
 	}
 
 	for _, s := range scenarios {
