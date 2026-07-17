@@ -24,9 +24,6 @@ var CommitsNotFirstTab = NewIntegrationTest(NewIntegrationTestArgs{
 		// The commit files view is only shown after drilling into a commit; at
 		// startup it must be hidden, or it'd cover the side panels.
 		t.Views().CommitFiles().
-			/* EXPECTED:
 			IsInvisible()
-			ACTUAL: */
-			IsVisible()
 	},
 })

@@ -25,10 +25,7 @@ var BranchesNotFirstTab = NewIntegrationTest(NewIntegrationTestArgs{
 		// drilling into a remote or a branch; at startup both must be hidden,
 		// or they'd cover the side panels.
 		t.Views().RemoteBranches().
-			/* EXPECTED:
 			IsInvisible()
-			ACTUAL: */
-			IsVisible()
 		t.Views().SubCommits().IsInvisible()
 	},
 })
