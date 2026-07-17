@@ -113,12 +113,26 @@ func TestParseDiffLineMetadata(t *testing.T) {
 		// A pager may emit an absolute path; the parser keeps it verbatim (the
 		// caller decides whether to join the worktree path).
 		{"absolute path", "1;a;7;;/abs/foo.txt", parsedDiffLine{RelPath: "/abs/foo.txt", Type: types.DiffLineAdded, NewLine: 7}, true},
+		// A file header carries no line numbers; a hunk header carries the
+		// new-file line of the hunk's first line (0 for a whole-file deletion,
+		// mirroring `@@ -1,N +0,0 @@`).
+		{"file header", "1;f;;;foo.txt", parsedDiffLine{RelPath: "foo.txt", Type: types.DiffLineFileHeader}, true},
+		{"hunk header", "1;h;10;;foo.txt", parsedDiffLine{RelPath: "foo.txt", Type: types.DiffLineHunkHeader, NewLine: 10}, true},
+		{"hunk header of a deleted file", "1;h;0;;gone.txt", parsedDiffLine{RelPath: "gone.txt", Type: types.DiffLineHunkHeader, NewLine: 0}, true},
+		// The spec leaves a file header's new-line always empty, but the parser
+		// doesn't police a number being there — it just carries it along.
+		{"file header with a line number (tolerated)", "1;f;10;;foo.txt", parsedDiffLine{RelPath: "foo.txt", Type: types.DiffLineFileHeader, NewLine: 10}, true},
 
 		{"unknown version", "2;c;1;;foo.txt", parsedDiffLine{}, false},
 		{"unknown type", "1;x;1;;foo.txt", parsedDiffLine{}, false},
 		{"too few fields", "1;c;1", parsedDiffLine{}, false},
 		{"non-numeric new-line", "1;c;x;;foo.txt", parsedDiffLine{}, false},
 		{"non-numeric old-line", "1;d;2;y;foo.txt", parsedDiffLine{}, false},
+		// Only a file header may omit the new-line; on any other type an empty
+		// new-line is a malformed record, and rejecting it makes the row fall
+		// back to the other backends rather than acting on wrong data.
+		{"empty new-line on a content line", "1;c;;;foo.txt", parsedDiffLine{}, false},
+		{"empty new-line on a hunk header", "1;h;;;foo.txt", parsedDiffLine{}, false},
 	}
 
 	for _, s := range scenarios {

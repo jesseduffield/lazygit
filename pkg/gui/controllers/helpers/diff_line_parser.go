@@ -205,9 +205,10 @@ func pathFromDiffGitLine(line string) string {
 
 // parseDiffLineMetadata parses mechanism #2's OSC 1717 payload (v1):
 // version;type;new-line;old-line;file — positional and ';'-delimited, with the
-// file last (so it may itself contain ';') and old-line empty unless the line is
-// a deletion. See diff-line-metadata-notes.md §9.2. ok is false for a payload of
-// an unknown version or shape, so the caller can fall back to another backend.
+// file last (so it may itself contain ';'), old-line empty unless the line is a
+// deletion, and new-line empty on a file header (the one type that carries no
+// line number). See diff-line-metadata-notes.md §9.2. ok is false for a payload
+// of an unknown version or shape, so the caller can fall back to another backend.
 func parseDiffLineMetadata(payload string) (parsedDiffLine, bool) {
 	fields := strings.SplitN(payload, ";", 5)
 	if len(fields) < 5 || fields[0] != "1" {
@@ -219,13 +220,19 @@ func parseDiffLineMetadata(payload string) (parsedDiffLine, bool) {
 		return parsedDiffLine{}, false
 	}
 
-	newLine, err := strconv.Atoi(fields[2])
-	if err != nil {
+	newLine := 0
+	if fields[2] != "" {
+		var err error
+		if newLine, err = strconv.Atoi(fields[2]); err != nil {
+			return parsedDiffLine{}, false
+		}
+	} else if lineType != types.DiffLineFileHeader {
 		return parsedDiffLine{}, false
 	}
 
 	oldLine := 0
 	if fields[3] != "" {
+		var err error
 		if oldLine, err = strconv.Atoi(fields[3]); err != nil {
 			return parsedDiffLine{}, false
 		}
@@ -242,6 +249,10 @@ func diffLineTypeFromMetadata(typeField string) (types.DiffLineType, bool) {
 		return types.DiffLineAdded, true
 	case "d":
 		return types.DiffLineDeleted, true
+	case "f":
+		return types.DiffLineFileHeader, true
+	case "h":
+		return types.DiffLineHunkHeader, true
 	default:
 		return types.DiffLineOther, false
 	}
