@@ -365,7 +365,17 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	}
 
 	if scopeSet.Includes(types.PULL_REQUESTS) {
-		self.onWorker(env.background, func(gocui.Task) error {
+		// Fetching pull requests talks to the GitHub API over the network; on
+		// a bad connection that request can stall for a long time. It runs no
+		// git commands against the repo, and its model writes are guarded by
+		// the repo generation (a repo switch mid-fetch simply drops the
+		// result), so it is safe to run as a background task even when the
+		// enclosing refresh is a foreground one — a foreground task would
+		// block repo switching for as long as the request takes. The env copy
+		// makes the downstream UI-thread bounces background as well.
+		prEnv := env
+		prEnv.background = true
+		self.c.OnWorkerBackground(func(gocui.Task) error {
 			branchesAndRemotesWg.Wait()
 
 			t := time.Now()
@@ -373,7 +383,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			// Model().Branches/Remotes: those writes are bounced onto the
 			// UI thread and may not have landed on this worker yet. The
 			// wait above orders us after both loads have stashed theirs.
-			self.refreshGithubPullRequests(loadedBranches, loadedRemotes, env)
+			self.refreshGithubPullRequests(loadedBranches, loadedRemotes, prEnv)
 			self.c.Log.Infof("refreshed pull requests in %s", time.Since(t))
 			return nil
 		})
