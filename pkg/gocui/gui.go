@@ -1976,6 +1976,11 @@ func (g *Gui) Resume() error {
 
 	g.suspended = false
 
+	// Schedule a redraw of the whole screen. Nothing else guarantees one:
+	// flushes are skipped while suspended, and after re-engaging the screen
+	// the terminal shows nothing until we draw again.
+	go func() { g.gEvents <- GocuiEvent{Type: eventResize} }()
+
 	return nil
 }
 

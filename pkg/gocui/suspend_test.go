@@ -64,9 +64,6 @@ func TestResumeSchedulesRedraw(t *testing.T) {
 	case <-time.After(100 * time.Millisecond):
 	}
 
-	/* EXPECTED:
 	assert.Equal(t, eventResize, ev.Type,
 		"resuming must schedule a redraw; without one the screen stays blank until the next event arrives")
-	ACTUAL: */
-	assert.Equal(t, eventNone, ev.Type)
 }
