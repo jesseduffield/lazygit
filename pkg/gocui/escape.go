@@ -34,6 +34,14 @@ type escapeInterpreter struct {
 	// modelled — we don't track the col argument of CUPs, and most
 	// pager-style emitters use col 1 anyway.
 	screenRow, screenCol int
+
+	// The screen width that soft-wraps are counted against (see
+	// notifyCellsWritten). It's a snapshot of the view's InnerWidth taken on
+	// the UI thread (in NewView, and refreshed per render via
+	// View.SetContentWidth), rather than read live from the view's dimensions:
+	// a view's output is written from a task goroutine, and reading the live
+	// dimensions there would race the UI thread updating them during layout.
+	screenColMax int
 }
 
 type (
@@ -175,8 +183,8 @@ func (ei *escapeInterpreter) notifyColumnReset() {
 // columns; if that crosses the right edge of a `screenColMax`-wide pty
 // screen, the corresponding number of soft-wraps are added to screenRow
 // so subsequent CUPs land on the right line.
-func (ei *escapeInterpreter) notifyCellsWritten(width, screenColMax int) {
-	if screenColMax <= 0 {
+func (ei *escapeInterpreter) notifyCellsWritten(width int) {
+	if ei.screenColMax <= 0 {
 		return
 	}
 	// One column at a time: matches ConPTY's "pending wrap" semantics
@@ -185,7 +193,7 @@ func (ei *escapeInterpreter) notifyCellsWritten(width, screenColMax int) {
 	// columns rather than doing the math in one shot so wide cells on a
 	// row boundary still wrap cleanly.
 	for range width {
-		if ei.screenCol > screenColMax {
+		if ei.screenCol > ei.screenColMax {
 			ei.screenRow++
 			ei.screenCol = 1
 		}

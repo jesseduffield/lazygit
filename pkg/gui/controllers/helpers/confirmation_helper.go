@@ -77,9 +77,7 @@ func (self *ConfirmationHelper) wrappedPromptConfirmationFunction(
 }
 
 func (self *ConfirmationHelper) DeactivateConfirmation() {
-	self.c.Mutexes().PopupMutex.Lock()
 	self.c.State().GetRepoState().SetCurrentPopupOpts(nil)
-	self.c.Mutexes().PopupMutex.Unlock()
 
 	self.c.Views().Confirmation.Visible = false
 
@@ -87,9 +85,7 @@ func (self *ConfirmationHelper) DeactivateConfirmation() {
 }
 
 func (self *ConfirmationHelper) DeactivatePrompt() {
-	self.c.Mutexes().PopupMutex.Lock()
 	self.c.State().GetRepoState().SetCurrentPopupOpts(nil)
-	self.c.Mutexes().PopupMutex.Unlock()
 
 	self.c.Views().Prompt.Visible = false
 	self.c.Views().Suggestions.Visible = false
@@ -188,9 +184,6 @@ func characterForMask(mask bool) string {
 }
 
 func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts types.CreatePopupPanelOpts) {
-	self.c.Mutexes().PopupMutex.Lock()
-	defer self.c.Mutexes().PopupMutex.Unlock()
-
 	_, cancel := goContext.WithCancel(ctx)
 
 	// we don't allow interruptions of non-loader popups in case we get stuck somehow

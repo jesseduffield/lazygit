@@ -40,11 +40,8 @@ func (gui *Gui) handleTestMode() {
 				return gocui.ErrQuit
 			})
 
-			waitUntilIdle()
-
-			time.Sleep(time.Second * 1)
-
-			log.Fatal("gocui should have already exited")
+			// Wait for the event loop to actually exit.
+			<-gui.g.LoopExited()
 		}()
 
 		if os.Getenv(components.WAIT_FOR_DEBUGGER_ENV_VAR) == "" {

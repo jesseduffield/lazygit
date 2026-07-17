@@ -148,6 +148,10 @@ type Gui struct {
 	maxX, maxY               int
 	outputMode               OutputMode
 	stop                     chan struct{}
+	// loopExited is closed when MainLoop returns, so callers (e.g. the
+	// integration-test harness) can wait for the event loop to actually finish
+	// rather than polling or sleeping a fixed interval.
+	loopExited chan struct{}
 
 	// BgColor and FgColor allow to configure the background and foreground
 	// colors of the GUI.
@@ -260,6 +264,7 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g.outputMode = opts.OutputMode
 
 	g.stop = make(chan struct{})
+	g.loopExited = make(chan struct{})
 
 	g.gEvents = make(chan GocuiEvent, 20)
 	g.userEvents = newUserEventQueue()
@@ -287,6 +292,12 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g.PrevSearchMatchKeys = []Key{NewKeyRune('N')}
 
 	g.playRecording = opts.PlayRecording
+
+	// Record the UI thread here, at construction. This assumes NewGui is called
+	// on the same goroutine that will run MainLoop, which holds for all our
+	// callers -- and it means IsUIThread is already correct for the UI work that
+	// runs during startup, before we reach MainLoop.
+	g.uiThreadID.Store(goid.Get())
 
 	return g, nil
 }
@@ -348,6 +359,11 @@ func (g *Gui) Close() {
 	Screen.Fini()
 }
 
+// LoopExited returns a channel that is closed once MainLoop has returned.
+func (g *Gui) LoopExited() <-chan struct{} {
+	return g.loopExited
+}
+
 // Size returns the terminal's size.
 func (g *Gui) Size() (x, y int) {
 	return g.maxX, g.maxY
@@ -385,7 +401,7 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 		v.y1 = y1
 
 		if sizeChanged {
-			v.clearViewLines()
+			v.ClearViewLines()
 
 			if v.Editable {
 				cursorX, cursorY := v.TextArea.GetCursorXY()
@@ -965,7 +981,7 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
-	g.uiThreadID.Store(goid.Get())
+	defer close(g.loopExited)
 
 	go func() {
 		for {
@@ -1461,7 +1477,7 @@ func (g *Gui) flush() error {
 	// if GUI's size has changed, we need to redraw all views
 	if maxX != g.maxX || maxY != g.maxY {
 		for _, v := range g.views {
-			v.clearViewLines()
+			v.ClearViewLines()
 		}
 	}
 	g.maxX, g.maxY = maxX, maxY
@@ -1500,7 +1516,7 @@ func viewsToRedrawContentOnly(views []*View) []*View {
 	redrawIndexes := set.New[int]()
 
 	for i, v := range views {
-		if !v.tainted && !redrawIndexes.Includes(i) {
+		if !v.IsTainted() && !redrawIndexes.Includes(i) {
 			continue
 		}
 

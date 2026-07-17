@@ -92,7 +92,10 @@ func (self *GuiDriver) Keys() config.KeybindingConfig {
 }
 
 func (self *GuiDriver) CurrentContext() types.Context {
-	return self.gui.c.Context().Current()
+	// Read the context manager directly rather than through c.Context(): the
+	// driver runs on the test goroutine, not the UI thread, so it must bypass
+	// the UI-thread assertion that accessor carries.
+	return self.gui.State.ContextMgr.Current()
 }
 
 func (self *GuiDriver) ContextForView(viewName string) types.Context {

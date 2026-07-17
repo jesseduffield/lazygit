@@ -398,11 +398,28 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	}
 
 	if scopeSet.Includes(types.PATCH_BUILDING) {
-		refresh("patch building", func() { self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{}) })
+		refresh("patch building", func() {
+			// Bounce onto the UI thread, like the staging panel above:
+			// RefreshPatchBuildingPanel reads the commit-files selection and
+			// sets the patch view's origin, neither of which may run off the UI
+			// thread. Guard on the generation so a repo switch mid-refresh drops
+			// it, like the model bounces.
+			self.onUIThreadUnlessRepoChanged(env, func() {
+				self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{})
+			})
+		})
 	}
 
 	if scopeSet.Includes(types.MERGE_CONFLICTS) {
-		refresh("merge conflicts", func() { _ = self.mergeConflictsHelper.RefreshMergeState(env.background) })
+		refresh("merge conflicts", func() {
+			// Bounce onto the UI thread, like the staging and patch-building
+			// panels above: RefreshMergeState reads the current context and
+			// renders (or escapes) the merge-conflicts view, none of which may
+			// run off the UI thread.
+			self.onUIThreadUnlessRepoChanged(env, func() {
+				_ = self.mergeConflictsHelper.RefreshMergeState()
+			})
+		})
 	}
 
 	self.refreshStatus(env)
@@ -1304,10 +1321,6 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 // that a subsequent branches refresh can use them for recency sorting without
 // having to read them back out of the model.
 func (self *RefreshHelper) refreshReflogCommits(captured capturedReflogState, env refreshEnv, selectTopEntry bool) ([]*models.Commit, error) {
-	// pulling state into its own variable in case it gets swapped out for another state
-	// and we get an out of bounds exception
-	model := self.c.Model()
-
 	// load does the git work on the worker and returns the new value for a
 	// reflog slice, reading the existing slice (captured on the UI thread) for
 	// the incremental fetch. The caller writes the result in the bounce.
@@ -1343,8 +1356,8 @@ func (self *RefreshHelper) refreshReflogCommits(captured capturedReflogState, en
 	}
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
-		model.ReflogCommits = reflogCommits
-		model.FilteredReflogCommits = filteredReflogCommits
+		self.c.Model().ReflogCommits = reflogCommits
+		self.c.Model().FilteredReflogCommits = filteredReflogCommits
 		// Setting the selection here, in the same bounce that writes the list,
 		// keeps it on the UI thread and atomic with the list update. Setting the
 		// selection doesn't scroll the view, so also reset the origin.

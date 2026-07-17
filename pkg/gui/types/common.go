@@ -11,7 +11,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
-	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
 type HelperCommon struct {
@@ -348,9 +347,6 @@ type Model struct {
 
 	MainBranches *git_commands.MainBranches
 
-	// for displaying suggestions while typing in a file name
-	FilesTrie *patricia.Trie
-
 	Authors map[string]*models.Author
 
 	HashPool *utils.StringPool
@@ -358,7 +354,6 @@ type Model struct {
 
 type Mutexes struct {
 	SubprocessMutex deadlock.Mutex
-	PopupMutex      deadlock.Mutex
 	PtyMutex        deadlock.Mutex
 }
 
