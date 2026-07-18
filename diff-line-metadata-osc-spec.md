@@ -150,6 +150,7 @@ record (it has header rows but no content lines).
 | addition, new line 11 | `1717;1;a;11;;src/foo.go` |
 | deletion, old line 9, sits at new pos 11 | `1717;1;d;11;9;src/foo.go` |
 | two consecutive deletions | `…;d;11;9;…` then `…;d;11;10;…` (same `new-line`, different `old-line` — see §5.3) |
+| modification rendered as one row | `…;d;11;9;…` then `…;a;11;;…` back-to-back (both halves of the row — see §6.2) |
 | whole-file deletion | `1717;1;d;0;9;old/path` (`new-line` 0 — see §5.4) |
 | file header | `1717;1;f;;;src/foo.go` (never a line number — see §5.5) |
 | hunk header, hunk starting at new line 10 | `1717;1;h;10;;src/foo.go` |
@@ -194,6 +195,16 @@ renders:
 - `c` — context (unchanged) line
 - `a` — added line
 - `d` — deleted line
+
+These are **patch-space** types, and the renderer classifies in patch space —
+not by its own display model. Concretely: `c` only for a line whose old and new
+contents are byte-identical; a pair of aligned lines whose contents differ is a
+`d` plus an `a`, and a line present on only one side is a `d` or `a` — however
+the renderer paints them. This matters for renderers finer-grained than git's
+line model (difftastic marks novelty per *token*, so a line changed only by
+added tokens has nothing highlighted on its old side, and a blank line has no
+tokens at all) — classifying by highlighting would tag such lines `c`, and a
+host staging by the records would drop one half of the modification. See §8.
 
 The other two are the **header** types, emitted before the structural rows:
 
@@ -331,8 +342,12 @@ call, not the host's. The single firm requirement:
 > **The record must precede the region's first cell**, so that a host searching
 > leftward from any cell lands in the correct region.
 
-A combined file+hunk header row (§5.5, §6.4) is the one case where *two* records
-precede the same region — both before its first cell, `f` then `h`.
+A region can be **zero-width**: several records may precede the same cells, each
+immediately following the last. This happens on a combined file+hunk header row
+(§5.5, §6.4 — `f` then `h` before its first cell) and on a modification rendered
+as a single row (§6.2 — `d` then `a`). A host must keep *every* record of a row,
+not just the one nearest its cells — a record followed directly by another
+record still names one of the row's identities (see §7).
 
 ### 6.2 Multiple regions per row (side-by-side)
 
@@ -352,6 +367,16 @@ context line's two halves are the *same* logical line, so the host tells the two
 `c` columns apart by position (which it does anyway). A side field would only earn
 its keep to disambiguate the symmetric `c` case, and that case needs no
 disambiguation.
+
+**A modification rendered as a single row carries both records.** A renderer may
+show an aligned changed row as *one* column — difftastic collapses a hunk whose
+changes are all one-sided, printing a modified row's content once. The row still
+*represents* both patch lines, so it carries the pair anyway: the `d`, then the
+`a`, emitted consecutively at the row's start (patch order — deletions first; the
+`d`'s region is zero-width, §6.1). This is what lets a host act on the whole
+change from the one row it can see — staging it stages both halves, exactly as
+for the two-column rendering of the same row. A collapsed *context* row is one
+logical line and carries its `c` **once**, not per absent column.
 
 ### 6.3 Wrapping — emit on every output row
 
@@ -406,8 +431,10 @@ This section is not normative — it sketches the access model the per-cell carr
 is designed for, to make the emit rules concrete.
 
 - The host attaches each record to the following cell, like an OSC-8 hyperlink. If
-  a record has no following cell (a genuinely empty rendered line), the host adds
-  a content-less cell to hold it.
+  a record has no following cell of its own — a genuinely empty rendered line, or
+  a zero-width region whose record is immediately followed by the next record
+  (§6.1) — the host adds a content-less cell to hold it, so no record of a row is
+  lost to the one after it.
 - **Point-granular action** (a mouse click): the per-cell attachment lets a host
   use the **nearest record at or to the left of the click column**, landing in the
   column actually clicked. (A host may equally resolve clicks at row granularity;
@@ -421,6 +448,10 @@ is designed for, to make the emit rules concrete.
     change block all sit at the block's first new line (§5.3), so the right
     column's `a` record has the more precise `new-line`, while the left one is
     the only carrier of the old-side identity.
+  - A **modification collapsed to a single row** (§6.2) carries the same `d`+`a`
+    pair, just back-to-back at the row's start. A host that acts on every record
+    of a row (the natural choice for staging) handles the two renderings
+    identically without telling them apart.
   - A **combined file+hunk header** carries an `f` and an `h` (§5.5). Only the
     `h` has a line number, so a line-oriented action (open the editor at a line)
     wants the `h`, while a file-oriented one (open the file, build a file list)
@@ -438,27 +469,49 @@ is designed for, to make the emit rules concrete.
 
 ---
 
-## 8. A known limitation and v2 candidate — feedback wanted
+## 8. The token-vs-line model mismatch — how v1 resolves it, and the residue
 
-This doesn't block v1; it's a place where input would shape a future version.
+**The mismatch (difftastic, AST mode).** Our `c`/`a`/`d` set is git's
+**line-granular** shape: a modified line is a `-` plus a `+`. difftastic, when it
+parses the language (its **AST/token mode**), is finer — it aligns lines and
+marks novelty per token. A line changed *only by added tokens* (e.g.
+`println!("{}", x);` → `println!("{}", x + y);`) then has **no novelty on the old
+side** — difftastic renders that old line with nothing highlighted (dimmed like
+context, or not at all when it collapses the hunk to a single column) — and a
+blank line has no tokens to be novel in the first place. (In difftastic's
+line/Text fallback — e.g. an unparseable file — it diffs by line and the mismatch
+doesn't arise.)
 
-**The token-vs-line model mismatch (difftastic, AST mode).** Our `c`/`a`/`d` set
-is git's **line-granular** shape: a modified line is a `-` plus
-a `+`. difftastic, when it parses the language (its **AST/token mode**), is finer —
-it aligns lines and marks novelty per token. A line changed *only by added tokens*
-(e.g. `println!("{}", x);` → `println!("{}", x + y);`) then has **no novelty on the
-old side**, so difftastic renders that old line as context (dimmed, not red) and the
-record faithfully says `c`, not `d`; only the new line gets `a`. (In difftastic's
-line/Text fallback — e.g. an unparseable file — it diffs by line and emits `d`/`a`
-as expected.)
+**The resolution: classify in patch space (§5.1).** An early draft let the
+record follow the display's highlighting — the old line of such a modification
+said `c`. That reads consistently *within* difftastic, but it hands the host a
+lie in patch space, and the lie is load-bearing: a host staging by the records
+then staged only the `a` half of the modification, inserting the new line while
+keeping the old (or, mirrored — a line changed only by *removed* tokens — only
+the `d` half, deleting the line without its replacement). So v1 requires the
+renderer to compare the aligned lines' *contents*: a differing pair is a `d`
+plus an `a` whatever the display highlights, and a row that is the only rendered
+representative of both halves carries both records (§6.2). Genuinely identical
+lines inside a hunk still compare equal and stay `c`.
 
-Because the record matches what difftastic shows, this isn't visible within
-difftastic itself. The consequence is only for a host mapping cells back to git's
-*line* diff: that old cell reports context at the new line, so its old-side `-`
-identity isn't recoverable (impact small — `e` opens the right new-file line, and
-users act on the changed side). A `modified`/`m` type — "aligned, changed, present
-on both sides" — would name the case directly but splits the clean `c`/`a`/`d`
-mapping; recorded as a v2 candidate, not taken (§9).
+**The residue: changes the renderer never renders.** The records can only
+describe rows that exist:
+
+- difftastic treats whitespace-only line changes as no change at all — a file
+  whose only edit is reindentation, or a lone deleted blank line, reports "no
+  syntactic changes" and renders nothing — so there is no row to carry a record.
+- an aligned pair differing only in whitespace that falls in a *context region*
+  of difftastic's inline mode is rendered on one side only (before-context shows
+  the old file's text, after-context the new file's); its record stays `c`,
+  because a one-sided `d` would hand the host a deletion whose `a` half no
+  rendered row can ever carry.
+
+Both are inherent to a renderer whose diff model is coarser than git's in the
+whitespace dimension; a host that needs those changes falls back on the raw
+diff. A `modified`/`m` type — "aligned, changed, present on both sides" — remains
+a v2 candidate (§9): it would name a single-row modification in one record
+rather than a back-to-back pair, but splits the clean `c`/`a`/`d` mapping, and
+the pair already carries both identities.
 
 ---
 
@@ -471,8 +524,10 @@ mapping; recorded as a v2 candidate, not taken (§9).
    central registry, so this is "verified unused across the terminals that matter,"
    not "allocated." If you know of a terminal that interprets `1717`, please say so.
 2. **The env-var name and grammar** (`OSC1717_METADATA=V1,…`).
-3. **The token-vs-line mismatch** (§8) — should there be an `m` type, or is
-   host-side inference the right home for it?
+3. **The token-vs-line mismatch** (§8) — v1 resolves it by classifying in patch
+   space (a content-differing aligned pair is `d`+`a`, emitted together when only
+   one row renders it). Is the back-to-back pair right, or should a v2 `m` type
+   name the single-row modification directly?
 4. **Can your diff renderer actually produce all four fields per region?** In particular
    the side for deleted lines, and in side-by-side mode. (delta needed to track
    its own old/new counters because its line-number counters are dormant unless
@@ -503,8 +558,11 @@ consume the v1 format described here, over OSC `1717`:
 - **difftastic** — the categorical case (#1 host-side parsing cannot serve it in
   either mode). Emits the same v1 format under the same handshake; markedly less
   code than delta because difftastic carries old/new line numbers natively. Covers
-  side-by-side and inline modes. Its per-hunk banner is the combined file+hunk
-  header of §5.5: the first hunk's banner carries `f` and `h`, later banners `h`.
+  side-by-side and inline modes, classifying in patch space by comparing the
+  aligned lines' contents (§5.1/§8) — its collapsed single-column rows are where
+  the back-to-back `d`+`a` of §6.2 comes from. Its per-hunk banner is the combined
+  file+hunk header of §5.5: the first hunk's banner carries `f` and `h`, later
+  banners `h`.
 - **diff-so-fancy** — the same #2 case as delta's default (it strips the `+`/`-`
   markers and conveys the side by color), but a line-oriented Perl filter rather
   than a structured renderer, and the simplest of the three: unified single-column
@@ -518,7 +576,10 @@ consume the v1 format described here, over OSC `1717`:
   rather than embedded in it.
 - **host carrier** — gocui (lazygit's TUI library) accumulates the OSC number,
   collects the payload, and stamps it per-cell like a hyperlink, cleared at each
-  line boundary so it cannot bleed onto an untagged following line.
+  line boundary so it cannot bleed onto an untagged following line. A record
+  that no cell consumed — a zero-width region (§6.1), or a record right before
+  the line end — is kept in a content-less carrier cell, so a row's records
+  survive complete.
 
 A key validated property in all three renderers: **with the handshake absent, output
 is byte-identical to the unpatched renderer** — the protocol is strictly additive.
