@@ -332,14 +332,15 @@ Commits:
    rows: `View.DiffLineMetadataPayloads()` returns *all* distinct payloads per
    buffer line (side-by-side rows carry two — N§17.1, N§21.12). Unit tests
    incl. wrapped rows (every renderer-wrapped output row carries the record —
-   M§10.8). Refs: 1cc7ecbbb, e8385b3cf, 13595f0a8, 3018289e8 (gocui half).
-   **Note:** at planning time (2026-07-18) the prototype has *uncommitted*
-   gocui work in flight extending this to **zero-width record regions**
-   (back-to-back records with no cells between them — e.g. difftastic's
-   combined file+hunk banner, or a modification pair collapsed to one column;
-   orphaned payloads are drained into content-less carrier cells so every
-   record on a row stays discoverable). Check its committed state when
-   transcribing and include the final shape.
+   M§10.8). Include the **zero-width record regions** handling ("Keep OSC
+   1717 records whose region is zero-width", fe8022827): back-to-back records
+   with no cells between them — e.g. difftastic's combined file+hunk banner,
+   or a modification pair collapsed to one column — get their orphaned
+   payloads drained into content-less carrier cells, so every record on a row
+   stays discoverable. Without it the `d` half of a collapsed modification
+   row is invisible to every consumer (PR 8's secondary-pane identity bridge
+   relies on it). Refs: 1cc7ecbbb, e8385b3cf, 13595f0a8, 3018289e8 (gocui
+   half), fe8022827.
 2. **The metadata backend, slotted ahead of buffer-parse** — resolve
    `a`/`d`/`c` records to `DiffLineInfo`; **accept the `f`/`h` header
    records** (file header: no line number; hunk header: first line of its
@@ -353,7 +354,9 @@ Commits:
 
 Cross-repo note: the reference emitters live on `osc-1717-metadata` branches
 in `/Users/stk/Stk/Dev/Builds/{delta,difftastic,diff-so-fancy}`; nothing is
-upstreamed yet. lazygit must remain fully functional without any conforming
+upstreamed yet. difftastic's emitter commits were rewritten (2026-07-18) to
+emit patch-space `d`+`a` records for collapsed modification rows — rebuild
+before verifying. lazygit must remain fully functional without any conforming
 renderer (buffer-parse + PR 7's raw fallback guarantee this). Interactive
 verification of this PR needs locally built patched renderers.
 
@@ -622,19 +625,53 @@ Commits:
    (stash, other-branch sub-commits, mid-rebase) and in the secondary pane.
    e2e: `discard_lines_from_commit_main_view`. Refs: eaec32b2b (commit half),
    b4270b7d9 (secondary-disable).
-7. **The secondary patch pane: correct removal + renderer-based preview** —
-   removal by **ordinal among shown change lines** (the aggregated patch
-   renumbers additions — line numbers are wrong, N§21.35(1)); render the
-   patch as a real diff: materialize `a/`+`b/` temp trees under lazygit's
-   temp dir (from-side blobs; `git apply` of the patch; added files: empty
-   `a/<file>`, absent `b/<file>`, `PatchToApply(false,false)`), render
-   `git diff --no-index --no-prefix a b` through the normal diff-renderer
-   wiring; generation counter drives lazy rebuilds. **Open sub-item:
-   verify/handle renames in the temp-tree rendering** (a renamed file
+7. **The secondary patch pane: preview through the renderer + removal by
+   identity** — the preview: render the patch as a real diff by materializing
+   `a/`+`b/` temp trees under lazygit's temp dir (from-side blobs; `git
+   apply` of the patch; added files: empty `a/<file>`, absent `b/<file>`,
+   `PatchToApply(false,false)`), rendered via `git diff --no-index
+   --no-prefix a b` through the normal diff-renderer wiring; a generation
+   counter drives lazy rebuilds.
+   **Removal: build the identity bridge, NOT the prototype's ordinal
+   bridge.** Matching by line number against the original diff is out (the
+   aggregated patch renumbers included additions, N§21.35(1)), and the
+   prototype's ordinal bridge (`ChangeLineOrdinalsInViewRange` →
+   `included[ordinal]`) is **broken under difftastic** (diagnosed
+   2026-07-18, works under delta — memory [[merge-staging-into-main-view]]):
+   it assumes the displayed change lines equal the patch's change lines in
+   order and multiplicity, but difftastic's inline mode groups all deletions
+   before all additions per hunk, and a collapsed modification row carries
+   `d`+`a` while `DiffLineContents` keeps only the first payload per row.
+   Production: resolve **all** payloads per row
+   (`DiffLineMetadataPayloads`), match each `(type, new, old)` identity
+   against the identities computed from the **raw temp-tree diff** (the same
+   patch arithmetic as `parseFileSection`), and map the k-th match to
+   `included[k]`. The gutter and the main-pane toggle already match by
+   identity — reuse that machinery. This also makes change lines a renderer
+   never displays (whitespace-only under difftastic) harmless instead of
+   ordinal-shifting.
+   **Open sub-item — the a/b path leak over the temp trees:** an external
+   diff tool receives the literal `a/…`/`b/…` paths, so difftastic emits
+   `file=b/<path>` in its records and renders a "Renamed from a/… to b/…"
+   banner; the host's `patchFilename` lookup then finds no patch-builder
+   file and the removal silently no-ops. The `--no-prefix` masquerade only
+   cleans the *textual* diff (buffer-parse and delta are fine). Production
+   must normalize the tree prefix when resolving records emitted over the
+   temp trees — and decide whether the rename banner is acceptable
+   cosmetically. Diagnosis is assessed, no fix chosen yet; decide with the
+   user.
+   Prereqs (both landed 2026-07-18): difftastic's rewritten patch-space
+   `d`+`a` emitter (its `osc-1717-metadata` branch) and the gocui
+   zero-width-record carrier (PR 4 commit 1) — without them the `d` half of
+   a collapsed modification row is invisible to any bridge.
+   **Open sub-item — renames in the temp-tree rendering** (a renamed file
    materializes at two paths; check what `--no-index` shows and whether
    `--find-renames` is needed) — resolve during implementation, ask the user
-   if it's ugly. e2e: `remove_lines_from_main_view_secondary`. Refs:
-   b4270b7d9, e0cde9b88, 957952566, N§21.35.
+   if it's ugly. e2e: `remove_lines_from_main_view_secondary`, plus a
+   reordered/multi-record case if expressible headlessly (a fake conforming
+   renderer à la PR 7's handshake fake can emit difftastic-shaped records).
+   Refs: b4270b7d9 (removal — the ordinal version, superseded), e0cde9b88,
+   957952566, N§21.35.
 8. **Preserve the selection across commit rewrites** — the command-agnostic
    net: the four commit-diff panels install an ordinal restore before
    `RenderToMainViews` when (main view focused + selection shown + no restore
@@ -742,7 +779,7 @@ user pass before merge:
 | 5 | Selection feel under delta (narrowSelectionHighlight); hunk-on-click; drag; nav under metadata delta incl. repeated `n` across files |
 | 6 | `{`/`}` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ext-diff route (difftastic) |
 | 7 | Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro) |
-| 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; metadata path resolves secondary removals to the right file (a/b masquerade — N§21.35 caveat) |
+| 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
 | 10 | Ghostty, iTerm2, VS Code |
 
 Patched renderer builds: `cargo build` in delta/difftastic worktrees
@@ -779,6 +816,7 @@ review with the user when the relevant PR starts:
 | patch pkg rename-aware Parse/Transform/FormatView (N§21.36(2)) | **Fix in PR 2 commit 1** (mandatory; `renamed_file_whole` guards it) |
 | Reflog patch-building (N§21.24) | **Fix in PR 8 commit 5** |
 | Renames in the custom-patch temp trees (new, this plan) | Resolve during PR 8 commit 7 |
+| Secondary-pane removal broken under difftastic — ordinal bridge + a/b record-path leak (diagnosed 2026-07-18, memory) | **Fix in PR 8 commit 7**: identity bridge instead of ordinals; path normalization decided with the user |
 | Diffing mode (`W`) not wired to the raw fallback → not stageable (N§21.29) | Defer; note in PR 7 description ("diffing-mode staging is its own question") |
 | `useExternalDiffGitConfig` always-raw when focused (N§21.30) | Keep; document |
 | Per-pane selection memory on `<tab>` (re-anchors each switch, N§21.9) | Defer; follow-up candidate |
@@ -801,7 +839,10 @@ review with the user when the relevant PR starts:
 2. **PR 5:** proper keybinding config entries for `n`/`N`/`f`? (lean: yes)
 3. **PR 9:** new names for `useHunkModeInStagingView` / `wrapLinesInStagingView`
    + config migration.
-4. **PR 8:** renames in the custom-patch temp-tree rendering (see §8).
+4. **PR 8:** the two temp-tree sub-items of commit 7 — renames in the
+   temp-tree rendering, and how to normalize the `a/`/`b/` tree prefix for
+   records an external diff tool emits over the temp trees (+ whether its
+   "Renamed from a/… to b/…" banner is acceptable).
 5. **PR titles**: drafts in §4 — the user finalizes wording at PR-open time
    (they're the release-notes lines).
 6. **Cross-repo timing** (outside this plan): circulating the OSC 1717 spec,
