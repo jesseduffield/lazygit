@@ -956,13 +956,18 @@ func (b *viewBuffer) write(v *View, p []byte) {
 
 	finishLine := func() {
 		b.autoRenderHyperlinksInCurrentLine(v)
-		// A pager can render a blank changed line as just its OSC 1717 metadata
-		// followed by an empty line — delta does this for some empty deleted/added
-		// lines. Keep a content-less cell to carry that metadata, so the line is
-		// still recognized as a change; without it the line resolves to nothing and
-		// breaks a change block in two (e.g. when selecting a hunk in the focused
-		// main view).
-		if len(b.lines[b.wy].cells) == 0 && b.ei.metadata.Len() > 0 {
+		// A record whose region reached the line end without covering any cell
+		// still belongs to this line: a zero-width record region (see
+		// escapeInterpreter.orphanedMetadata), or a blank changed line that a
+		// pager renders as just its OSC 1717 metadata followed by the newline —
+		// delta does this for some empty deleted/added lines. Keep content-less
+		// cells to carry those payloads, so the line is still recognized as a
+		// change; without them the line resolves to nothing and breaks a change
+		// block in two (e.g. when selecting a hunk in the focused main view).
+		for _, payload := range b.ei.takeOrphanedMetadata() {
+			b.writeCells([]cell{{metadata: payload}})
+		}
+		if b.ei.metadata.Len() > 0 && !b.ei.metadataConsumed {
 			b.writeCells([]cell{{metadata: b.ei.metadata.String()}})
 		}
 	}
@@ -1121,6 +1126,15 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 	truncateLine := false
 
 	isEscape, err := b.ei.parseOne(ch)
+
+	// An OSC 1717 record superseded before any cell consumed it (a zero-width
+	// record region — see escapeInterpreter.orphanedMetadata) still belongs to
+	// this line: materialize each such payload as a content-less carrier cell,
+	// in emission order, ahead of whatever this byte produces.
+	for _, payload := range b.ei.takeOrphanedMetadata() {
+		cells = append(cells, cell{metadata: payload})
+	}
+
 	if err != nil {
 		for _, chr := range b.ei.characters() {
 			c := cell{
@@ -1147,7 +1161,7 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 				fg: b.ei.curFgColor,
 				bg: b.ei.curBgColor,
 			}
-			return truncateLine, []cell{}
+			return truncateLine, cells
 		} else if cf, ok := b.ei.instruction.(cursorForward); ok {
 			// emit `n` space cells under the parser-tracked SGR — used
 			// to materialize ConPTY's compressed runs of spaces (which
@@ -1157,8 +1171,11 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			ch = []byte{' '}
 			width = 1
 		} else if isEscape {
-			// do not output anything
-			return truncateLine, nil
+			// no visible output — but carrier cells still need writing
+			if len(cells) == 0 {
+				return truncateLine, nil
+			}
+			return truncateLine, cells
 		} else if characterEquals(ch, '\t') {
 			// fill tab-sized space
 			tabWidth := v.TabWidth
@@ -1176,6 +1193,9 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			metadata:  b.ei.metadata.String(),
 			chr:       string(ch),
 			width:     width,
+		}
+		if c.metadata != "" {
+			b.ei.metadataConsumed = true
 		}
 		for range repeatCount {
 			cells = append(cells, c)

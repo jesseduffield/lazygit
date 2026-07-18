@@ -259,6 +259,48 @@ func TestDiffLineMetadataPayloads(t *testing.T) {
 	}, v.DiffLineMetadataPayloads())
 }
 
+func TestDiffLineMetadataZeroWidthRecords(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// A row can carry several records back-to-back with nothing rendered in
+	// between, making all but the last record's region zero-width. Those
+	// payloads must survive as payloads of the row (via content-less carrier
+	// cells) rather than being clobbered by the record that follows.
+	osc := func(payload string) string { return "\x1b]1717;" + payload + "\x1b\\" }
+	v.writeString(strings.Join([]string{
+		// difftastic's combined file+hunk banner: the f is immediately
+		// followed by the h.
+		osc("1;f;;;foo.txt") + osc("1;h;5;;foo.txt") + "foo.txt --- Go",
+		// A modification row collapsed to a single column carries its
+		// deletion and its addition back-to-back before the row's content.
+		osc("1;d;5;5;foo.txt") + osc("1;a;5;;foo.txt") + "595 new content",
+		// A record emitted right before the line end covers no cell either.
+		"trailing" + osc("1;d;6;6;foo.txt"),
+	}, "\n") + "\n")
+
+	assert.Equal(t, [][]string{
+		{"1;f;;;foo.txt", "1;h;5;;foo.txt"},
+		{"1;d;5;5;foo.txt", "1;a;5;;foo.txt"},
+		{"1;d;6;6;foo.txt"},
+	}, v.DiffLineMetadataPayloads())
+
+	// The carrier cells are invisible: the rendered text is unchanged.
+	assert.Equal(t, []string{
+		"foo.txt --- Go",
+		"595 new content",
+		"trailing",
+	}, v.BufferLines())
+
+	// A row's single-payload identity is its first record: the f of a banner,
+	// the d of a collapsed modification row.
+	payload, ok := v.DiffLineMetadataInLine(0)
+	assert.True(t, ok)
+	assert.Equal(t, "1;f;;;foo.txt", payload)
+	payload, ok = v.DiffLineMetadataInLine(1)
+	assert.True(t, ok)
+	assert.Equal(t, "1;d;5;5;foo.txt", payload)
+}
+
 func TestDiffLineMetadataHandshakeSwallowed(t *testing.T) {
 	v := NewView("name", 0, 0, 80, 10, OutputNormal)
 
