@@ -25,6 +25,18 @@ type escapeInterpreter struct {
 	// the payload of an OSC 1717 per-line diff-metadata sequence (see
 	// diff-line-metadata-notes.md), accumulated like hyperlink
 	metadata strings.Builder
+	// OSC 1717 payloads that were superseded by the next record before any
+	// cell consumed them. A row can carry several records back-to-back with
+	// nothing rendered in between — difftastic's combined file+hunk banner, or
+	// the deletion+addition pair of a modification row collapsed to a single
+	// column — so a record's region can be zero-width. The write loop drains
+	// these into content-less carrier cells, keeping every record of the row
+	// discoverable instead of only the last one.
+	orphanedMetadata []string
+	// whether the payload currently in metadata has been stamped onto at
+	// least one cell; an unconsumed payload is orphaned rather than dropped
+	// when the next record arrives or the line ends
+	metadataConsumed bool
 
 	// ConPTY emits cursor-positioning escapes (CUP) to skip over blank
 	// rows rather than emitting LFs for them. To convert those into row
@@ -446,7 +458,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 				ei.hyperlink.Reset()
 				ei.state = stateOSCParams
 			case "1717":
-				ei.metadata.Reset()
+				ei.orphanUnconsumedMetadata()
 				ei.state = stateOSCMetadata
 			default:
 				ei.state = stateOSCSkipUnknown
@@ -507,6 +519,26 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+// orphanUnconsumedMetadata prepares the metadata accumulator for a new OSC 1717
+// record. If the previous record's payload never made it onto a cell (its region
+// is zero-width because the next record follows immediately — see
+// orphanedMetadata), it is kept as an orphan rather than dropped.
+func (ei *escapeInterpreter) orphanUnconsumedMetadata() {
+	if ei.metadata.Len() > 0 && !ei.metadataConsumed {
+		ei.orphanedMetadata = append(ei.orphanedMetadata, ei.metadata.String())
+	}
+	ei.metadata.Reset()
+	ei.metadataConsumed = false
+}
+
+// takeOrphanedMetadata hands the accumulated zero-width-record payloads (see
+// orphanedMetadata) to the caller and clears the list.
+func (ei *escapeInterpreter) takeOrphanedMetadata() []string {
+	result := ei.orphanedMetadata
+	ei.orphanedMetadata = nil
+	return result
 }
 
 // dropMetadataIfHandshake discards a just-completed OSC 1717 payload that carries no
