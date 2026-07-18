@@ -20,6 +20,18 @@ current: check off commits as they land, record deviations, and add findings.
   `amend!` for iteration, no conventional-commit prefixes, `just generate`
   after keybinding/test changes, docs in `docs-master/` only, translatable
   strings via Go templates, no PRs created by agents (the user opens them).
+- **Terminology: say "diff renderer", never "pager".** "Pager" is a misnomer
+  that leaked out of the implementation (the `GIT_PAGER` env var); the OSC 1717
+  spec now says "diff renderer" throughout, and so do we — in code identifiers,
+  commit messages, PR descriptions, docs, and user-facing strings. The
+  prototype's identifiers and test names still say "pager"
+  (`ProbePagerEmitsDiffMetadata`, `onPagerChanged`,
+  `stage_from_main_view_with_unsupported_pager`, …); rename them during
+  transcription. `GIT_PAGER` itself and the "stdin-pager invocation route" (as
+  opposed to `externalDiffCommand`) keep their technical names where the
+  mechanism is literally meant. PR 3 renames the user-facing config.
+- **Threading:** master has the landed main-thread rework — see §2.8 for the
+  contract every PR must honor. The prototype is already rebased on top of it.
 - **Prototype references** are given as *subject line* plus short SHA. The
   prototype branch gets rebased; **find commits by subject, not SHA**. When a
   plan item says "reference: X", read that prototype commit (message + diff)
@@ -33,32 +45,32 @@ current: check off commits as they land, record deviations, and add findings.
 - **Branch naming/stacking:** each PR gets its own branch; PR N+1 branches off
   PR N's branch (linear stack). Rebase the stack when a PR merges.
 - **Verification:** every PR runs `just build`, `just unit-test`, `just lint`,
-  `just e2e`. PRs touching the async render or pager paths additionally need
-  the interactive sign-off listed in §6 — the headless harness cannot exercise
-  the pty/pager path (N§13.1: cmd-path only, env allowlist blocks
+  `just e2e`. PRs touching the async render or diff-renderer paths additionally
+  need the interactive sign-off listed in §6 — the headless harness cannot
+  exercise the pty/renderer path (N§13.1: cmd-path only, env allowlist blocks
   `LAZYGIT_SLOW_RENDER`).
 
 ## 2. Locked scope decisions (do not relitigate)
 
-Decided with the user (2026-07-17 planning session, plus earlier locked
+Decided with the user (2026-07-17/18 planning sessions, plus earlier locked
 decisions from the notes):
 
 1. **The staging and patch-building panels are removed.** `enter` on a file
    (files panel and commit-files panel) focuses the main view at that file's
    diff. The `Staging`/`StagingSecondary`/`CustomPatchBuilder` contexts, views,
-   and `patch_exploring` machinery are deleted (PR 8). The prototype kept them
+   and `patch_exploring` machinery are deleted (PR 9). The prototype kept them
    as an A/B reference (N§21.24) — production does not.
 2. **`enter` / double-click in the focused main view are dropped.** With the
    explorers gone the dive gesture has no target. Enter is unbound there;
    double-click behaves like a single click (select). Esc exits; space/d/e act
    on the selection.
 3. **Sequencing:** stacked PRs, merged in quick succession; **no release ships
-   with both staging UIs**. Brief coexistence on master between PR 6/7 and
-   PR 8 is fine.
+   with both staging UIs**. Brief coexistence on master between PRs 7/8 and
+   PR 9 is fine.
 4. **The nav/selection and position-preserve features land as their own PRs
-   before the staging series** (PRs 4 and 5), independently releasable.
+   before the staging series** (PRs 5 and 6), independently releasable.
 5. **Both extras are in scope** as final small PRs: alt/shift-click-to-edit
-   (PR 9) and open-PR-at-selected-line (PR 10).
+   (PR 10) and open-PR-at-selected-line (PR 11).
 6. **The hyperlink backend is dropped** (N§14.5): no `lazygit-edit://`-based
    line identity resolution. (Master's existing click-a-delta-hyperlink feature
    in `pkg/gui/gui.go` is untouched — only the prototype's use of hyperlinks as
@@ -66,14 +78,32 @@ decisions from the notes):
 7. **Selection is always shown in diff main views** (N§21.6), anchored at the
    first visible change line / hunk; no on-demand toggle, no config for it.
    Non-diff main views (branch log, …) keep no selection.
-8. **Concurrency stays mutex-based** (N§15 locked); the main-thread-mutation
-   rework is a separate later effort. Do not design around it now.
+8. **Follow master's landed threading contract.** The main-thread-mutation
+   rework has landed on master (Front A #5767; "Synchronize async view
+   rendering" #5791; the popup, command-log, and status fronts;
+   `RefreshFromWorker` + captured refresh inputs; `BatchUIUpdates` replacing
+   BLOCK_UI), and the prototype is rebased on top of it (merge-base
+   `4cf12a5b7`). The contract for all new code: **model/context/selection
+   mutations are UI-thread-only** (asserted in `-debug` builds); **view
+   geometry and origin (`ox`/`oy`) are UI-thread-only**; the view's **write
+   buffer may be written off-thread under `writeMutex`, which is kept
+   permanently** (the batch-to-UI-thread attempt deadlocked and was
+   abandoned); task-side origin/dimension work bounces via
+   `ViewBufferManager.onUIThread`; worker-issued refreshes use
+   `RefreshFromWorker` with UI-owned inputs captured up front; incidental
+   display work bounces as *background* tasks so it doesn't count toward
+   `Busy()` and block repo switches. The prototype tree is already adapted
+   (atomic `loading` flag, bounced `onEndOfInput`/`onNewKey`, `OnUIThread`
+   hops in restore `Apply`, off-screen swap under `writeMutex`) — transcribe
+   it as-is; where a threading question comes up, the answer is "match the
+   current tree / master's contract". See memory
+   [[main-thread-over-mutexes-direction]] and `docs/dev/Repo_Switch_Safety.md`.
 9. **Side-by-side staging includes all records on a row** — no stage-one-side
    gesture (N§21.3, accepted restriction).
-10. **Pager capability detection is the empty-input handshake probe**
-    (N§21.30), not render observation. Non-conforming pagers get the raw-diff
-    fallback at focus time; `useExternalDiffGitConfig` is always-raw when
-    focused (documented limitation).
+10. **Diff-renderer capability detection is the empty-input handshake probe**
+    (N§21.30), not render observation. Non-conforming renderers get the
+    raw-diff fallback at focus time; `useExternalDiffGitConfig` is always-raw
+    when focused (documented limitation).
 11. **The escape/snapshot machinery is never built** (`FocusedMainViewSnapshot`,
     `EscapeFromPatchExplorer`, the N§12.2 escape routing): it existed only to
     return *from the explorers*, which no longer exist.
@@ -86,18 +116,19 @@ The branch contains superseded/reverted work. Do not transcribe any of these
 | Not ported | Superseded by / reason |
 |---|---|
 | `gui.showSelectionInFocusedMainView` config; on-demand space-toggled selection | always-shown selection (N§21.6) |
-| Middle-visible-line as the *selection* anchor ("Select the line in the middle…") | first-visible-change/hunk anchor. (`MiddleVisibleLineIdx` itself survives as the `-U`-preserve anchor when no selection shows — PR 5) |
+| Middle-visible-line as the *selection* anchor ("Select the line in the middle…") | first-visible-change/hunk anchor. (`MiddleVisibleLineIdx` itself survives as the `-U`-preserve anchor when no selection shows — PR 6) |
 | `enter`/double-click dive into staging/patch-building at a line; `CommitFilesHelper.EnterCommitFile` threading | gesture dropped (§2.2) |
 | `FocusedMainViewSnapshot`, `EscapeFromPatchExplorer`, escape-restore-by-identity, N§12.2 routing | explorers removed (§2.11) |
 | Hyperlink identity backend (`GetFileAndLineForClickedDiffLine` hyperlink parsing, `HyperLinkInLine` as a *backend*) | buffer-parse + OSC metadata only (§2.6) |
-| `ScrollToOriginYForNextTask` / `thenForNextTask` / `KeepOriginForNextTask` / `LinesToRead.ApplyInitialScroll` | `RenderRestore` (PR 5) — build the final mechanism directly |
+| `ScrollToOriginYForNextTask` / `thenForNextTask` / `KeepOriginForNextTask` / `LinesToRead.ApplyInitialScroll` | `RenderRestore` (PR 6) — build the final mechanism directly |
 | "Hold the placeholder until first paint" + `freshViewLineCount` stale-tail guard (both reverted on the branch too) | off-screen render (PR 1) |
-| Observe-at-focus pager detection (N§21.29) | handshake probe (N§21.30) |
+| Observe-at-focus diff-renderer detection (N§21.29) | handshake probe (N§21.30) |
 | `HighlightInset` and `selectionBgColorEdgeWidth` experiments | `narrowSelectionHighlight` (N§21.34) |
 | `matchByWorktreeChange` and `AdjacentChangeLine` reveal matchers | change-line-ordinal reveal (N§21.17) |
 | The three separate handler channels (`onClick`/`onStage`/`onTogglePatch FocusedMainViewFn`) | build `FocusedMainViewActions` directly in its final one-interface shape (N§21.25) |
 | Unconditional gutter reset-on-preview-render + the `strings.Join(cmd.Args)` content-equality hack | focused-pair-only gutter model (N§21.22(3), N§21.35) |
 | `backUpOverHeader` file-nav landing | land on the first located row; f/h header records make headers resolvable ("Parse the f/h header records…", af98be48d) |
+| "Pager" naming in identifiers, strings, docs | "diff renderer" (§1 terminology; PR 3 renames the config) |
 | OSC number `456`, env vars `EMIT_OSC1717_METADATA`/`OSC1717_METADATA` | OSC **1717**, env var **`OSC1717`** (final rename, 665149b11) |
 | The in-repo spec file | the spec lives on the `osc-1717-spec` branch / worktree (fe3c5ac21) |
 | Session-notes commits, `.claude/settings.json` commits, WIP commits | n/a |
@@ -105,21 +136,22 @@ The branch contains superseded/reverted work. Do not transcribe any of these
 ## 4. The PR stack (overview)
 
 PR titles become release-notes lines — they are written for users. Order is
-dependency order; 1–5 are independently releasable; 6–8 merge in quick
-succession (§2.3); 9–10 any time after their dependencies.
+dependency order; 1–6 are independently releasable; 7–9 merge in quick
+succession (§2.3); 10–11 any time after their dependencies.
 
 | # | Title (draft) | Depends on | Nature |
 |---|---|---|---|
 | 1 | Fix flicker, scroll glitches, and crashes in async diff rendering | — | fixes, gocui/tasks |
 | 2 | Internal: resolve diff lines to (file, line, kind) identities | 1 | infra |
-| 3 | Support pagers that emit OSC 1717 diff line metadata | 2 | infra + protocol |
-| 4 | Select, navigate, edit and copy diff lines in the focused main view | 2 (3 for pagers) | feature |
-| 5 | Keep your position in the diff when changing context size or switching pagers | 1, 2, 4 | feature |
-| 6 | Stage, unstage and discard changes directly from the focused main view | 3, 4, 5 | feature |
-| 7 | Build custom patches directly from a commit's diff view | 6 | feature |
-| 8 | Replace the staging and patch-building panels with the focused main view | 6, 7 | removal + migration |
-| 9 | Alt- or shift-click a diff line to open it in your editor | 2, 3 | feature |
-| 10 | Open the selected diff line in the branch's GitHub PR | 4 | feature |
+| 3 | Rename the "pagers" config to "diff renderers" | — | rename + migration |
+| 4 | Support diff renderers that emit OSC 1717 diff line metadata | 2, 3 | infra + protocol |
+| 5 | Select, navigate, edit and copy diff lines in the focused main view | 2 (4 for renderers) | feature |
+| 6 | Keep your position in the diff when changing context size or switching diff renderers | 1, 2, 5 | feature |
+| 7 | Stage, unstage and discard changes directly from the focused main view | 4, 5, 6 | feature |
+| 8 | Build custom patches directly from a commit's diff view | 7 | feature |
+| 9 | Replace the staging and patch-building panels with the focused main view | 7, 8 | removal + migration |
+| 10 | Alt- or shift-click a diff line to open it in your editor | 2, 4 | feature |
+| 11 | Open the selected diff line in the branch's GitHub PR | 5 | feature |
 
 ---
 
@@ -131,6 +163,13 @@ All standalone master-worthy fixes; users benefit regardless of the rest of
 the series. Everything here lives in `pkg/gocui`, `pkg/tasks`, and the gui
 layout/render plumbing.
 
+**Re-validate each fix against current master before transcribing.** The
+landed rework (#5791) restructured exactly this area — the read loop now
+bounces `onEndOfInput`/`onNewKey` to the UI thread, `readLines` is an atomic
+pointer, several buffer accessors gained locks. The prototype commits are
+rebased on top of all that and are the authoritative shapes, but a fix may
+have been absorbed or may need reshaping; check before porting.
+
 Commits (in order):
 
 1. **Route all view origin writes through `SetOriginX`/`SetOriginY`** — pure
@@ -138,50 +177,58 @@ Commits (in order):
 2. **Add `LAZYGIT_SLOW_RENDER` debug knob** — sleeps N ms per written line so
    async render frames become visible; inert when unset. Needed by reviewers
    to see what the later commits fix. Ref: e8682b3fd.
-3. **Lock the view and guard the line index when reading a hyperlink** —
-   fixes a real master panic (`HyperLinkInLine` reads `v.lines`/`v.viewLines`
-   without `writeMutex` and can index a stale tail). Use the
-   demonstrate-then-fix pattern if a deterministic test is feasible.
-   Ref: 2cc42fc81.
-4. **Lock the view while reading viewLines on mouse move** — same class,
-   `onMouseMove`/`findHyperlinkAt` panic. Ref: a44bf5d05.
-5. **Fire queued ReadToEnd callbacks when the initial read reaches EOF** —
+3. **Lock the event-thread viewLines readers that still skip `writeMutex`** —
+   task goroutines rebuild `viewLines` under `writeMutex`; master still reads
+   them unlocked on the event-handling thread in the click-path hyperlink
+   lookup (`pkg/gocui/gui.go` ~1686, `viewLines[newY].line[newX].hyperlink`)
+   and in `onMouseMove`/`findHyperlinkAt` (hover) — the rework locked
+   `ClearViewLines`/`IsTainted`/`Buffer` but not these; audit for any others.
+   The prototype fixed this class in its own `HyperLinkInLine` reader (part of
+   the dropped hyperlink backend) and in `onMouseMove`; transcribe the lock
+   pattern onto the readers master actually has. Use the demonstrate-then-fix
+   pattern if a deterministic test is feasible. Refs: 2cc42fc81, a44bf5d05.
+4. **Fire queued ReadToEnd callbacks when the initial read reaches EOF** —
    the read loop abandoned queued `{Total:-1}` requests when the initial
    request hit EOF, silently dropping their `Then`. Ref: b6f99abc6.
-6. **Don't scroll a view up to fill blank space while its content is loading**
-   — the layout clamp used the partially-loaded height; add the synchronous
-   `loading` flag and skip the clamp while `IsLoading()`. Ref: 695842291.
-7. **Reset other main views' scroll after copying content, not before** —
+5. **Don't scroll a view up to fill blank space while its content is loading**
+   — the layout clamp used the partially-loaded height; add the `loading`
+   flag (an `atomic.Bool` in the rebased shape) and skip the clamp while
+   `IsLoading()`. Ref: 695842291.
+6. **Reset other main views' scroll after copying content, not before** —
    `refreshMainViews` zeroed the source view's origin before `CopyContent`
-   used it, so every cross-pair placeholder jumped to the top. Ref: c35c9316c.
-8. **Bundle a view's cell buffer and write state into a `viewBuffer`** — prep.
+   used it, so every cross-pair placeholder jumped to the top. *(Verified
+   against master 2026-07-18: still needed — `CopyContent` still copies the
+   source's `ox`/`oy` and `refreshMainViews` still resets first; master's
+   `1efcfcc14` only stopped sharing the buffer slices.)* Ref: c35c9316c.
+7. **Bundle a view's cell buffer and write state into a `viewBuffer`** — prep.
    Ref: fd858cd98.
-9. **Make the buffer-writing methods operate on a `viewBuffer`** — prep.
+8. **Make the buffer-writing methods operate on a `viewBuffer`** — prep.
    Ref: 2cfc0e24d.
-10. **Render async content into an off-screen buffer and swap it in** — the
-    core mechanism: cmd/pty tasks write to `View.offscreen`; at first-paint
-    (or EOF) the buffer swaps in atomically; `refreshViewLinesIfNeeded`
-    truncates view lines on swap (kills the stale-tail class);
-    `clear()`/`Reset()` abandon an in-progress off-screen render. Includes the
-    **scrollbar height freeze** (`FreezeScrollbarHeight` at `StartLoading`,
-    release at EOF and in `clear()`) — in the prototype this was an `amend!`
-    into the same commit precisely because the off-screen render introduces
-    the scrollbar regression; keep them together here too. Tests:
-    `TestOffscreenRender`, `TestBufferLineForViewLineStaleTail`,
-    `TestScrollbarHeightHeldWhileLoading`,
-    `TestScrollbarHeightReleasedWhenContentReplaced`. Refs: 27ce0a6bc + its
-    scrollbar amend, N§13.5, N§13.6.
-11. **Don't run end-of-input handling for a render that was stopped** — the
+9. **Render async content into an off-screen buffer and swap it in** — the
+   core mechanism: cmd/pty tasks write to `View.offscreen`; at first-paint
+   (or EOF) the buffer swaps in atomically (under `writeMutex` — buffer
+   writes are the writeMutex domain per §2.8); `refreshViewLinesIfNeeded`
+   truncates view lines on swap (kills the stale-tail class);
+   `clear()`/`Reset()` abandon an in-progress off-screen render. Includes the
+   **scrollbar height freeze** (`FreezeScrollbarHeight` at `StartLoading`,
+   release at EOF and in `clear()`) — in the prototype this was an `amend!`
+   into the same commit precisely because the off-screen render introduces
+   the scrollbar regression; keep them together here too. Tests:
+   `TestOffscreenRender`, `TestBufferLineForViewLineStaleTail`,
+   `TestScrollbarHeightHeldWhileLoading`,
+   `TestScrollbarHeightReleasedWhenContentReplaced`. Refs: 27ce0a6bc + its
+   scrollbar amend, N§13.5, N§13.6.
+10. **Don't run end-of-input handling for a render that was stopped** — the
     stopped-task EOF coin-flip (`select` between stop and closed `lineChan`)
     let a stopped task swap in a truncated buffer. No deterministic test (the
     bug *is* the nondeterministic select) — justified skip, N§13.6. Ref:
     8e3dc3eff.
-12. **Reset the scroll to the top at first paint, not when the task starts** —
+11. **Reset the scroll to the top at first paint, not when the task starts** —
     with the off-screen render the old content stays visible until the swap;
     resetting oy at task start made it jump first. Ref: 411681502.
 
 Notes:
-- If commit 10's stale-tail test needs `BufferLineForViewLine`, introduce that
+- If commit 9's stale-tail test needs `BufferLineForViewLine`, introduce that
   accessor here (PR 2 then reuses it) rather than contorting the test.
 - Gotcha for the future: **fast renders unmask ordering transients that slow
   renders hide** (N§20.5). Re-test at normal speed *and* under slow render.
@@ -195,8 +242,8 @@ flicking through commits/files scrolled down; the 10 s auto-refresh with
 The host-side primitive: rendered row → `(path, kind, new/old line)`. No
 user-visible change; the PR description should say what it enables. Backends
 in this PR: **buffer-parse only** (raw / `--color` / structure-preserving
-pager output). Precedence seam is built here; the metadata backend slots in
-via PR 3.
+renderer output). Precedence seam is built here; the metadata backend slots
+in via PR 4.
 
 Commits:
 
@@ -222,9 +269,9 @@ Commits:
    one parse per file section — **O(n), never per-line**; the single-line
    resolver delegates to it), `StagingHelper.resolveDiffLines` /
    `GetDiffLineInfo` seam with backend precedence (metadata → buffer-parse;
-   metadata arrives in PR 3). Port the prototype's unit tests
+   metadata arrives in PR 4). Port the prototype's unit tests
    (`diff_line_parser_test.go`, `diff_line_info_test.go`,
-   `diff_line_navigation_test.go` comes with PR 4). Refs: 7cf9b5037,
+   `diff_line_navigation_test.go` comes with PR 5). Refs: 7cf9b5037,
    9c0bb5357, 556ba1213 (final O(n) shape — build it O(n) directly; N§20).
 4. **Decode C-quoted paths in the buffer parser** — flagged as an unclosed
    prototype gap (M§8): git C-quotes unusual paths in `diff --git` headers;
@@ -236,12 +283,43 @@ Gotchas:
   and index together (the `DiffLineContents` snapshot approach does this).
 - Multi-file diffs: `fileSectionBounds` handles rows outside any file section.
 
-### PR 3 — Support pagers that emit OSC 1717 diff line metadata
+### PR 3 — Rename the "pagers" config to "diff renderers"
 
-Reads the protocol; sets the env var so conforming pagers emit. No consumer
-behavior changes yet (consumers land in PRs 4–7), but the PR is the public
-face of the protocol on the lazygit side — write the description for pager
-authors, link the spec (osc-1717-spec branch).
+A small standalone PR, before the protocol/feature PRs so their user-facing
+text is consistent. "Pager" is an implementation-detail name (`GIT_PAGER`);
+what these programs actually are is diff renderers, and the OSC 1717 spec
+already uses that term throughout. No behavior change.
+
+Commits:
+
+1. **Rename the config with migration** — `git.pagers` → `git.diffRenderers`
+   (yaml key + struct/field: `Pagers []PagingConfig` → e.g.
+   `DiffRenderers []DiffRendererConfig`), and the keybindings
+   `keybinding.universal.cyclePagers`/`cyclePagersReverse` → e.g.
+   `cycleDiffRenderers`/`cycleDiffRenderersReverse` — both via lazygit's
+   config-migration mechanism (`pkg/config`; follow the existing migration
+   precedents) so user config files keep working/are rewritten. Reword the
+   affected i18n strings (`CyclePagers`(+Tooltip), status-bar text) in
+   english.go only.
+2. **Rename internal identifiers** — mechanical sweep (`PagingConfig`,
+   `usingExternalDiff` neighbors, helper names) as far as reasonable; keep
+   `GIT_PAGER` and the pty "stdin-pager route" naming where the mechanism is
+   meant (§1 terminology).
+3. **Docs** — rename/rewrite `docs-master/Custom_Pagers.md` (→
+   `Custom_Diff_Renderers.md`; fix inbound links; leave `docs/` alone per
+   AGENTS.md), `just generate` for Config.md/schema and cheatsheets.
+
+Open question (resolve with the user at PR start): does the per-entry
+`pager:` field keep its name? It specifically selects the GIT_PAGER
+invocation route (vs `externalDiffCommand`), so a rename there trades
+consistency against precision.
+
+### PR 4 — Support diff renderers that emit OSC 1717 diff line metadata
+
+Reads the protocol; sets the env var so conforming renderers emit. No
+consumer behavior changes yet (consumers land in PRs 5–8), but the PR is the
+public face of the protocol on the lazygit side — write the description for
+diff-renderer authors, link the spec (osc-1717-spec branch).
 
 Commits:
 
@@ -253,8 +331,15 @@ Commits:
    record** (N§21.30, `TestDiffLineMetadataHandshakeSwallowed`); multi-record
    rows: `View.DiffLineMetadataPayloads()` returns *all* distinct payloads per
    buffer line (side-by-side rows carry two — N§17.1, N§21.12). Unit tests
-   incl. wrapped rows (every pager-wrapped output row carries the record —
+   incl. wrapped rows (every renderer-wrapped output row carries the record —
    M§10.8). Refs: 1cc7ecbbb, e8385b3cf, 13595f0a8, 3018289e8 (gocui half).
+   **Note:** at planning time (2026-07-18) the prototype has *uncommitted*
+   gocui work in flight extending this to **zero-width record regions**
+   (back-to-back records with no cells between them — e.g. difftastic's
+   combined file+hunk banner, or a modification pair collapsed to one column;
+   orphaned payloads are drained into content-less carrier cells so every
+   record on a row stays discoverable). Check its committed state when
+   transcribing and include the final shape.
 2. **The metadata backend, slotted ahead of buffer-parse** — resolve
    `a`/`d`/`c` records to `DiffLineInfo`; **accept the `f`/`h` header
    records** (file header: no line number; hunk header: first line of its
@@ -262,17 +347,17 @@ Commits:
    `SamePatchLine` requires header kinds to match (a hunk header shares its
    number with the hunk's first content line — af98be48d's message has the
    full reasoning). Refs: 836f768cb, af98be48d.
-3. **Advertise the protocol to pagers** — set `OSC1717=V1` in the environment
-   of pager/ext-diff invocations (pty task env + ext-diff cmd env). Ref:
-   9975a8fac + 665149b11 (final name: `OSC1717`).
+3. **Advertise the protocol to diff renderers** — set `OSC1717=V1` in the
+   environment of renderer/ext-diff invocations (pty task env + ext-diff cmd
+   env). Ref: 9975a8fac + 665149b11 (final name: `OSC1717`).
 
 Cross-repo note: the reference emitters live on `osc-1717-metadata` branches
 in `/Users/stk/Stk/Dev/Builds/{delta,difftastic,diff-so-fancy}`; nothing is
 upstreamed yet. lazygit must remain fully functional without any conforming
-pager (buffer-parse + PR 6's raw fallback guarantee this). Interactive
-verification of this PR needs locally built patched pagers.
+renderer (buffer-parse + PR 7's raw fallback guarantee this). Interactive
+verification of this PR needs locally built patched renderers.
 
-### PR 4 — Select, navigate, edit and copy diff lines in the focused main view
+### PR 5 — Select, navigate, edit and copy diff lines in the focused main view
 
 The focused main view (already reachable via `0`/click on master) gains a
 real selection and line-level interactions. After this PR: diff main views
@@ -289,7 +374,7 @@ Commits:
    `GetDiffMainViewType() DiffMainViewType` (`None|Staging|PatchBuilding`) on
    the side-panel contexts (files=Staging; commitFiles/localCommits/
    subCommits/stash=PatchBuilding; reflog=PatchBuilding **from day one** —
-   see PR 7 reflog item; others None). In this PR only "≠ None" is read (is
+   see PR 8 reflog item; others None). In this PR only "≠ None" is read (is
    this a diff main view). Refs: f470d870f (marker origin), a760f9ef5
    (classifier final shape), N§21.25.
 3. **The selection model** — `DiffSelectState` on `MainContext`
@@ -309,7 +394,7 @@ Commits:
    content; hide when changes vanish (render-side hook in the panel's
    render-to-main + focus-side check via `ViewHasChangeLines`). e2e:
    `no_selection_when_no_changes`, `hide_selection_after_discarding_last_change`
-   (adapt: discard via files panel until PR 6). Ref: 7901de3d4, N§21.27
+   (adapt: discard via files panel until PR 7). Ref: 7901de3d4, N§21.27
    bug 4.
 5. **Drag-to-range** — `dragAnchorViewLine` on MainContext; `MouseLeft` +
    `ModMotion` binding re-anchors at the mouse-down line. **Includes the gocui
@@ -332,9 +417,9 @@ Commits:
 9. **Copy the selection (`ctrl+o`)** — map the selected *view* range to
    buffer lines via `BufferLineForViewLine` (never `SelectedLines()` — it's
    wrapping-unaware, N§21.28), copy each wrapped line once, trailing `\n`;
-   `dropDiffPrefix` only when no pager is configured. e2e:
+   `dropDiffPrefix` only when no diff renderer is configured. e2e:
    `copy_from_main_view`. Ref: 99f14162c + its fixup.
-10. **`narrowSelectionHighlight` per-pager config** — gocui
+10. **`narrowSelectionHighlight` per-renderer config** — gocui
     `SelectedLineBgColorWidth` (left N columns only), gui maps bool→2;
     docs via `just generate`. Ref: cc90accde, N§21.34.
 
@@ -342,14 +427,14 @@ Open item to resolve with the user during this PR: whether `n`/`N`/`f` get
 proper keybinding config entries (prototype used hardcoded literals,
 N§16.2) — lean: add config entries, matching lazygit convention.
 
-Note: `space` is deliberately **not** bound here — staging arrives in PR 6.
-Under a non-conforming restructuring pager, nav/e simply no-op until PR 6's
-raw fallback lands; acceptable interim (same release).
+Note: `space` is deliberately **not** bound here — staging arrives in PR 7.
+Under a non-conforming restructuring renderer, nav/e simply no-op until
+PR 7's raw fallback lands; acceptable interim (same release).
 
-### PR 5 — Keep your position in the diff when changing context size or switching pagers
+### PR 6 — Keep your position in the diff when changing context size or switching diff renderers
 
 The `RenderRestore` mechanism plus its two standalone consumers. After this
-PR: `{`/`}` (context size) and `|`/`\` (pager cycle) keep your scroll
+PR: `{`/`}` (context size) and `|`/`\` (renderer cycle) keep your scroll
 position and selection instead of jumping to the top.
 
 Commits:
@@ -364,8 +449,9 @@ Commits:
    command-key changed`; **not cleared when a task starts** (survives
    stop-and-replace by the periodic refresh), cleared in `Apply` (found or
    not) — N§14.1; `Apply` work that touches gui state hops to `OnUIThread`
-   (it runs on the task goroutine, N§21.29 threading fix). Refs: 2e3a3ae5b
-   (mechanism parts), 3b597a0f2, N§14.1, N§20.5.
+   (it runs on the task goroutine, N§21.29 threading fix; origin writes are
+   UI-thread-only per §2.8 — the rebased prototype shows the exact shape).
+   Refs: 2e3a3ae5b (mechanism parts), 3b597a0f2, N§14.1, N§20.5.
 2. **gocui: off-screen scan accessors** — `OffscreenDiffLineContents` /
    `OffscreenDiffLineContentsFrom(from)` (incremental — the O(n) load scan),
    `OffscreenLineCount`, `MiddleVisibleLineIdx`. Refs: 792c7a294, 3e5b52b8f,
@@ -383,11 +469,11 @@ Commits:
    (same screen row); visibility guard (don't install on a hidden Normal
    view — merge-conflict edge, N§16.1). e2e: extend
    `staging/diff_context_change`-adjacent coverage. Ref: 24a95e965.
-5. **Preserve position when switching pagers** — same one-liner in
-   `onPagerChanged`; fixes both the ext-diff top-jump and the wrong-line
-   "preserved by raw line number" cases (N§18.2); graceful no-op fallback for
-   unresolvable pagers. e2e: `diff/cycle_pagers` keeps passing. Ref:
-   a21c5841a.
+5. **Preserve position when switching diff renderers** — same one-liner in
+   the renderer-cycle handler (prototype: `onPagerChanged`); fixes both the
+   ext-diff top-jump and the wrong-line "preserved by raw line number" cases
+   (N§18.2); graceful no-op fallback for unresolvable renderers. e2e:
+   `diff/cycle_pagers` keeps passing (rename per PR 3). Ref: a21c5841a.
 6. **Preserve the selection's far end too** — `selectionFarEndIdentity`
    restored via `SetRangeSelectStart`; collapses to the cursor line when the
    far end didn't survive. Ref: 0412046c4, N§21.32(4).
@@ -395,13 +481,13 @@ Commits:
 Known limitation (keep, document in PR): `NormalSecondary` is not preserved
 (N§16.1, N§18.3).
 
-### PR 6 — Stage, unstage and discard changes directly from the focused main view
+### PR 7 — Stage, unstage and discard changes directly from the focused main view
 
 The headline PR. After it: in the files panel's focused main view, `space`
 stages/unstages the selected line/range/hunk (multi-file, side-by-side aware),
 `d` discards, the split follows the acted-on side, the selection advances to
-the next change, commit keys work there, and a non-conforming pager falls
-back to a raw diff at focus time so staging always works.
+the next change, commit keys work there, and a non-conforming diff renderer
+falls back to a raw diff at focus time so staging always works.
 
 Commits:
 
@@ -453,26 +539,29 @@ Commits:
    `DiffMainViewTypeStaging`; gate re-checked per press;
    `IsInStack`-guarded `NextInStack` lookup for cheatsheet generation. Ref:
    4b54223f4.
-9. **Raw-diff fallback for non-conforming pagers + the handshake probe** —
-   `ProbePagerEmitsDiffMetadata` (empty-input pager run / 7-arg ext-diff
-   convention on two empty temp files; `OSC1717=V1`; grep for the handshake);
-   verdict cached per pager signature; `useExternalDiffGitConfig` → always
-   raw when focused; `DiffMainViewShouldRenderRaw` read by every diff panel's
-   render-to-main; `ignoreExternalDiff` threaded through the diff-cmd
-   builders (`--no-ext-diff`, keep color); `types.NewMainViewDiffTask` routes
-   raw renders through `RunCommandTask` (bypasses `GIT_PAGER`); focus flow
+9. **Raw-diff fallback for non-conforming diff renderers + the handshake
+   probe** — the probe (prototype: `ProbePagerEmitsDiffMetadata`; rename per
+   §1) runs the renderer on empty input (stdin route via `NewShell`; ext-diff
+   via git's 7-arg convention on two empty temp files), env `OSC1717=V1`,
+   greps for the handshake; verdict cached per renderer signature;
+   `useExternalDiffGitConfig` → always raw when focused;
+   `DiffMainViewShouldRenderRaw` read by every diff panel's render-to-main;
+   `ignoreExternalDiff` threaded through the diff-cmd builders
+   (`--no-ext-diff`, keep color); `types.NewMainViewDiffTask` routes raw
+   renders through `RunCommandTask` (bypasses `GIT_PAGER`); focus flow
    installs a restore to place the selection after the raw re-render;
-   click-to-focus replays the clicked view-line index (best effort). e2e:
-   `stage_from_main_view_with_unsupported_pager`,
-   `build`-variant comes with PR 7, `stage_from_main_view_with_conforming_pager`
-   (fake handshake pager). Refs: 98881fc9e, 17cfd567e, bf18778e9; the probe
-   detection is N§21.30 (the observe mechanism never lands — §3).
+   click-to-focus replays the clicked view-line index (best effort). e2e
+   (rename per PR 3): `stage_from_main_view_with_unsupported_pager`, the
+   `build`-variant comes with PR 8,
+   `stage_from_main_view_with_conforming_pager` (fake handshake renderer).
+   Refs: 98881fc9e, 17cfd567e, bf18778e9; the probe detection is N§21.30
+   (the observe mechanism never lands — §3).
 10. **Port the remaining prototype staging e2e tests** (whichever aren't
     already in earlier commits): `stage_hunk/range/range_spanning_files…`,
     `select_hunk_on_focusing_main_view`, `select_next_*`,
     `advance_to_next_hunk_after_staging_shifts_line_numbers`,
     `focus_follows…`/`focus_returns…`, `no_selection…`/`hide_selection…` (if
-    deferred from PR 4).
+    deferred from PR 5).
 
 Design seam to keep (separate-lists input, §7): the focus-follow decision and
 the "which side does this pane show" logic must stay **localized** (the
@@ -480,12 +569,12 @@ handler + `diffSplitState`), not smeared across call sites — the parked
 separate-lists design will want to re-derive "side" from list-section
 membership and may want a different focus-follow rule.
 
-### PR 7 — Build custom patches directly from a commit's diff view
+### PR 8 — Build custom patches directly from a commit's diff view
 
 After it: `space` over a commit's diff (commit-files, commits, sub-commits,
 stash, reflog) toggles lines into a custom patch, a checkmark gutter shows
-membership, the secondary pane previews the patch through your pager, `d`
-removes lines from the commit, and moving/undoing patches keeps your
+membership, the secondary pane previews the patch through your diff renderer,
+`d` removes lines from the commit, and moving/undoing patches keeps your
 selection.
 
 Commits:
@@ -501,7 +590,9 @@ Commits:
    three call sites after the rename rebase (N§21.36(1)); production looks
    up the `CommitFile` by path and passes `GetPreviousPath()`, mirroring
    `toggleForPatch`/`RefreshPatchBuildingPanel`. Refs: e57135979, b4270b7d9
-   (accessor half), N§21.36(1).
+   (accessor half), N§21.36(1). Note master's `33b8d497c` added a mutex to
+   PatchBuilder (worker `Reset()` vs UI-thread readers) — keep the new
+   accessors within that locking discipline.
 3. **Toggle from the commit-files main view** — `space` routes to the patch
    toggle (per the panel's `PrimaryAction`); decides add/remove from the
    first selected line; starts the builder if inactive (discard-confirm when
@@ -531,19 +622,19 @@ Commits:
    (stash, other-branch sub-commits, mid-rebase) and in the secondary pane.
    e2e: `discard_lines_from_commit_main_view`. Refs: eaec32b2b (commit half),
    b4270b7d9 (secondary-disable).
-7. **The secondary patch pane: correct removal + pager rendering** —
+7. **The secondary patch pane: correct removal + renderer-based preview** —
    removal by **ordinal among shown change lines** (the aggregated patch
    renumbers additions — line numbers are wrong, N§21.35(1)); render the
    patch as a real diff: materialize `a/`+`b/` temp trees under lazygit's
    temp dir (from-side blobs; `git apply` of the patch; added files: empty
    `a/<file>`, absent `b/<file>`, `PatchToApply(false,false)`), render
-   `git diff --no-index --no-prefix a b` through the normal pager wiring;
-   generation counter drives lazy rebuilds. **Open sub-item: verify/handle
-   renames in the temp-tree rendering** (a renamed file materializes at two
-   paths; check what `--no-index` shows and whether `--find-renames` is
-   needed) — resolve during implementation, ask the user if it's ugly.
-   e2e: `remove_lines_from_main_view_secondary`. Refs: b4270b7d9, e0cde9b88,
-   957952566, N§21.35.
+   `git diff --no-index --no-prefix a b` through the normal diff-renderer
+   wiring; generation counter drives lazy rebuilds. **Open sub-item:
+   verify/handle renames in the temp-tree rendering** (a renamed file
+   materializes at two paths; check what `--no-index` shows and whether
+   `--find-renames` is needed) — resolve during implementation, ask the user
+   if it's ugly. e2e: `remove_lines_from_main_view_secondary`. Refs:
+   b4270b7d9, e0cde9b88, 957952566, N§21.35.
 8. **Preserve the selection across commit rewrites** — the command-agnostic
    net: the four commit-diff panels install an ordinal restore before
    `RenderToMainViews` when (main view focused + selection shown + no restore
@@ -555,15 +646,15 @@ Commits:
 9. **Allow changing context size during custom patch building** — ref:
    10bb69d80 (read its message for the rationale/constraints).
 
-Deferred, recorded not fixed (N§21.22(4)): a pager *switch* mid-build shifts
-the checkmarks until the next refresh (needs a post-render recompute hook).
-Note it in the PR description.
+Deferred, recorded not fixed (N§21.22(4)): a renderer *switch* mid-build
+shifts the checkmarks until the next refresh (needs a post-render recompute
+hook). Note it in the PR description.
 
-### PR 8 — Replace the staging and patch-building panels with the focused main view
+### PR 9 — Replace the staging and patch-building panels with the focused main view
 
 The removal PR. Also the PR whose title tells users the big story — consider
 making *this* the umbrella release-notes headline ("staging now happens
-directly in the diff view") since PRs 6/7 titles already describe the
+directly in the diff view") since PRs 7/8 titles already describe the
 mechanics.
 
 Sequencing inside the PR (every commit green):
@@ -580,13 +671,13 @@ Sequencing inside the PR (every commit green):
    panel: `enter` (and double-click on the file row) pushes the focused main
    view anchored at that file's diff (multi-file/directory diff → anchor at
    the file's first row via the jump-to-file landing logic). Selection
-   anchors per PR 4 rules.
+   anchors per PR 5 rules.
 3. **Remove the explorer machinery** — contexts (`Staging`,
    `StagingSecondary`, `CustomPatchBuilder`), their views/windows in
    `context/setup.go` and layout, `StagingController`,
    `PatchBuildingController` (explorer half), `patch_exploring` package,
    `RefreshStagingPanel`/`RefreshPatchBuildingPanel` (keep/rewire the
-   *secondary patch panel* update path — PR 7's pager-rendered preview stays,
+   *secondary patch panel* update path — PR 8's renderer-based preview stays,
    fed by `secondaryPatchPanelUpdateOpts`), escape/`EscapeFromPatchExplorer`
    remnants, `IPatchExplorerContext`. Multiple commits: this is the risky
    demolition — go subsystem by subsystem.
@@ -604,9 +695,9 @@ Risk note: this PR is where hidden couplings surface (things that push
 commands, `git bisect` edge flows). Grep for every reference to the removed
 contexts/views before starting; expect a long tail of small fixes.
 
-### PR 9 — Alt- or shift-click a diff line to open it in your editor
+### PR 10 — Alt- or shift-click a diff line to open it in your editor
 
-Self-contained; after PR 3 (uses `GetDiffLineInfo`). Commits (N§19):
+Self-contained; after PR 4 (uses `GetDiffLineInfo`). Commits (N§19):
 
 1. **gocui: let a mouse binding opt into firing while a popup is focused**
    (`HandleWhenPopupPanelFocused`). Ref: ac85a90ed.
@@ -622,9 +713,9 @@ Self-contained; after PR 3 (uses `GetDiffLineInfo`). Commits (N§19):
 Interactive sign-off: Ghostty, iTerm2, VS Code (already done once for the
 prototype; re-confirm the transcription).
 
-### PR 10 — Open the selected diff line in the branch's GitHub PR
+### PR 11 — Open the selected diff line in the branch's GitHub PR
 
-Self-contained; after PR 4. One or two commits (N§5):
+Self-contained; after PR 5. One or two commits (N§5):
 
 - `openPullRequestForSelectedLine` on `Commits.OpenPullRequestInBrowser` in
   the focused main view: URL `<pr.Url>/changes/<commitSha>#diff-<sha256(relPath)>R<line>`;
@@ -640,21 +731,21 @@ Self-contained; after PR 4. One or two commits (N§5):
 
 ## 6. Interactive sign-off matrix
 
-The headless harness cannot run real pagers, `LAZYGIT_SLOW_RENDER`, or the
-pty path (N§13.1), and the gutter is draw-time-only. Each PR needs a user
-pass before merge:
+The headless harness cannot run real diff renderers, `LAZYGIT_SLOW_RENDER`,
+or the pty path (N§13.1), and the gutter is draw-time-only. Each PR needs a
+user pass before merge:
 
 | PR | What to verify interactively |
 |---|---|
 | 1 | Slow-render matrix (N§11/§13): flick commits/files scrolled down; 10 s auto-refresh (`refreshInterval: 3`) — no content/scrollbar flicker; **also re-test at normal speed** (N§20.5) |
-| 3 | Patched delta/difftastic/diff-so-fancy emit + render cleanly; handshake swallowed (no phantom line) |
-| 4 | Selection feel under delta (narrowSelectionHighlight); hunk-on-click; drag; nav under metadata delta incl. repeated `n` across files |
-| 5 | `{`/`}` and pager-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ext-diff pager route (difftastic) |
-| 6 | Full staging matrix under no-pager / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro) |
-| 7 | Gutter under delta/no-pager/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane rendering per pager; metadata path resolves secondary removals to the right file (a/b masquerade — N§21.35 caveat) |
-| 9 | Ghostty, iTerm2, VS Code |
+| 4 | Patched delta/difftastic/diff-so-fancy emit + render cleanly; handshake swallowed (no phantom line) |
+| 5 | Selection feel under delta (narrowSelectionHighlight); hunk-on-click; drag; nav under metadata delta incl. repeated `n` across files |
+| 6 | `{`/`}` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ext-diff route (difftastic) |
+| 7 | Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro) |
+| 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; metadata path resolves secondary removals to the right file (a/b masquerade — N§21.35 caveat) |
+| 10 | Ghostty, iTerm2, VS Code |
 
-Patched pager builds: `cargo build` in delta/difftastic worktrees
+Patched renderer builds: `cargo build` in delta/difftastic worktrees
 (`osc-1717-metadata` branches); diff-so-fancy is a script.
 
 ## 7. Compatibility with the parked separate-lists design
@@ -684,48 +775,52 @@ review with the user when the relevant PR starts:
 
 | Gap | Disposition |
 |---|---|
-| Rename support in the from-main-view patch paths (N§21.36(1)) | **Fix in PR 7 commit 2** (mandatory — regression vs master otherwise) |
+| Rename support in the from-main-view patch paths (N§21.36(1)) | **Fix in PR 8 commit 2** (mandatory — regression vs master otherwise) |
 | patch pkg rename-aware Parse/Transform/FormatView (N§21.36(2)) | **Fix in PR 2 commit 1** (mandatory; `renamed_file_whole` guards it) |
-| Reflog patch-building (N§21.24) | **Fix in PR 7 commit 5** |
-| Renames in the custom-patch temp trees (new, this plan) | Resolve during PR 7 commit 7 |
-| Diffing mode (`W`) not wired to the raw fallback → not stageable (N§21.29) | Defer; note in PR 6 description ("diffing-mode staging is its own question") |
+| Reflog patch-building (N§21.24) | **Fix in PR 8 commit 5** |
+| Renames in the custom-patch temp trees (new, this plan) | Resolve during PR 8 commit 7 |
+| Diffing mode (`W`) not wired to the raw fallback → not stageable (N§21.29) | Defer; note in PR 7 description ("diffing-mode staging is its own question") |
 | `useExternalDiffGitConfig` always-raw when focused (N§21.30) | Keep; document |
 | Per-pane selection memory on `<tab>` (re-anchors each switch, N§21.9) | Defer; follow-up candidate |
 | `IsSingleHunkForWholeFile` hunk-default refinement (N§21.11) | Defer; follow-up candidate |
-| `a` on a context line below the last hunk doesn't snap back like staging did (N§21.11) | Fix cheaply in PR 4 commit 3 if trivial (`ChangeBlockBounds` falls back to the block above); else defer |
-| Deleted-file `MD`-vs-`D` staging special case (N§21.13) | Defer; record as follow-up in PR 6 description |
-| `NormalSecondary` not preserved on `-U`/pager change (N§16.1) | Keep as documented limitation |
+| `a` on a context line below the last hunk doesn't snap back like staging did (N§21.11) | Fix cheaply in PR 5 commit 3 if trivial (`ChangeBlockBounds` falls back to the block above); else defer |
+| Deleted-file `MD`-vs-`D` staging special case (N§21.13) | Defer; record as follow-up in PR 7 description |
+| `NormalSecondary` not preserved on `-U`/renderer change (N§16.1) | Keep as documented limitation |
 | Gutter marks for not-yet-loaded lines of huge diffs (N§21.20) | Keep (marks appear on next recompute); note |
-| Pager switch mid-patch-build shifts checkmarks (N§21.22(4)) | Defer; note in PR 7 |
-| Copy: metadata-typed prefix stripping under column-preserving pagers (N§21.28) | Defer |
+| Renderer switch mid-patch-build shifts checkmarks (N§21.22(4)) | Defer; note in PR 8 |
+| Copy: metadata-typed prefix stripping under column-preserving renderers (N§21.28) | Defer |
 | Nav only sees loaded content (deep targets in huge diffs, N§16.4) | Keep; note (openSearch-style ReadToEnd is the known shape if wanted) |
 | Toggle auto-advance: no "skip already-included" smarts (N§21.35) | Keep plain next-hunk |
 | difftastic token-vs-line `c`-at-new-line mismatch (M§10.2) | Protocol v2 candidate; nothing to do host-side |
 
 ## 9. Open questions (resolve before/during the marked PR)
 
-1. **PR 4:** proper keybinding config entries for `n`/`N`/`f`? (lean: yes)
-2. **PR 8:** new names for `useHunkModeInStagingView` / `wrapLinesInStagingView`
+1. **PR 3:** does the per-entry `pager:` config field keep its name (it
+   selects the GIT_PAGER invocation route, vs `externalDiffCommand`), or is
+   it renamed too?
+2. **PR 5:** proper keybinding config entries for `n`/`N`/`f`? (lean: yes)
+3. **PR 9:** new names for `useHunkModeInStagingView` / `wrapLinesInStagingView`
    + config migration.
-3. **PR 7:** renames in the custom-patch temp-tree rendering (see §8).
-4. **PR titles**: drafts in §4 — the user finalizes wording at PR-open time
+4. **PR 8:** renames in the custom-patch temp-tree rendering (see §8).
+5. **PR titles**: drafts in §4 — the user finalizes wording at PR-open time
    (they're the release-notes lines).
-5. **Cross-repo timing** (outside this plan): circulating the OSC 1717 spec,
-   upstreaming the three pager patches. lazygit ships fully functional
-   without them; revisit pitching once PRs 1–7 exist as evidence.
+6. **Cross-repo timing** (outside this plan): circulating the OSC 1717 spec,
+   upstreaming the three renderer patches. lazygit ships fully functional
+   without them; revisit pitching once PRs 1–8 exist as evidence.
 
 ## 10. Progress
 
 - [ ] PR 1 — async render fixes
 - [ ] PR 2 — diff-line identity primitive
-- [ ] PR 3 — OSC 1717 support
-- [ ] PR 4 — selection & navigation
-- [ ] PR 5 — position preserve
-- [ ] PR 6 — staging from the main view
-- [ ] PR 7 — custom patches from the main view
-- [ ] PR 8 — panel removal
-- [ ] PR 9 — alt/shift-click edit
-- [ ] PR 10 — open PR at line
+- [ ] PR 3 — rename pagers → diff renderers
+- [ ] PR 4 — OSC 1717 support
+- [ ] PR 5 — selection & navigation
+- [ ] PR 6 — position preserve
+- [ ] PR 7 — staging from the main view
+- [ ] PR 8 — custom patches from the main view
+- [ ] PR 9 — panel removal
+- [ ] PR 10 — alt/shift-click edit
+- [ ] PR 11 — open PR at line
 
 (Add per-commit checkboxes inside each PR section as work starts; record
 deviations from this plan inline, dated.)
