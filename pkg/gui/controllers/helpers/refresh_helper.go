@@ -1039,7 +1039,18 @@ func (self *RefreshHelper) refreshBranches(captured capturedBranchState, refresh
 		loadBehindCounts,
 		func(f func() error) {
 			self.onWorker(env.background, func(_ gocui.Task) error {
-				return f()
+				err := f()
+				if err != nil && self.c.State().GetRepoGeneration() != env.generation {
+					// An error returned from a worker is shown in a popup. Don't
+					// do that if the repo was switched while this worker was in
+					// flight: its results are dropped anyway, and the error
+					// concerns a repo the user has already left — e.g. failing to
+					// compute the behind-counts for a worktree that was deleted
+					// after switching away from it.
+					self.c.Log.Warnf("dropping error from a stale refresh worker after a repo switch: %v", err)
+					return nil
+				}
+				return err
 			})
 		},
 		func() {
