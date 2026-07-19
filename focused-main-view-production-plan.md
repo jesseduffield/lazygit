@@ -390,7 +390,18 @@ Commits:
    sticky extends), `v`, `a`, shift-↑/↓; pages/top/bottom drop hunk mode;
    clicks select (hunk-on-click when in hunk mode / config default, context
    lines stay single-line — N§21.32); `<tab>` seeds the landing pane's
-   anchor and select state. Refs: f470d870f, f4d5c79da (selection-model
+   anchor and select state. **Mandatory: the hunk-default must implement the
+   staging view's `IsSingleHunkForWholeFile` refinement** (a whole-file
+   single-block diff — new/deleted file, no context — drops to line mode
+   instead of select-everything); skipping it would regress vs master
+   (decided 2026-07-19; overrides N§21.11's deferral). Whether the diff is a
+   single file is known from the **side panel's selection** — don't derive
+   that from the rendered content. For the single-block computation the lean
+   is to compute it **in patch space from the file's raw diff**, fetched
+   synchronously at focus (the same "the decision is synchronous" shape as
+   N§21.3); the accepted fallback is a ReadToEnd of the rendered content on
+   focus (user has OK'd the cost). Decide at implementation; surface other
+   options if any appear. Refs: f470d870f, f4d5c79da (selection-model
    half), 5312357ce, 5688e8b87, 4e78aa4c4, 9b8249a60, N§21.10–21.11, N§21.32,
    [[diff-selection-state-home]].
 4. **Selection visibility rules** — no selection over placeholders/no-diff
@@ -409,19 +420,43 @@ Commits:
    first located row (header under conforming sources; first content line
    otherwise — no `backUpOverHeader`), anchor's file found by scanning *down*
    (`anchorFilePath`, N§16.5); selection showing → move+scroll-into-view; the
-   pure index arithmetic unit-tested (`diff_line_navigation_test.go`). Refs:
-   559955f7c, af98be48d (landing changes), N§16.2.
+   pure index arithmetic unit-tested (`diff_line_navigation_test.go`).
+   **Mandatory: a target beyond the lazily-loaded portion must be found, not
+   silently no-op'd** (decided 2026-07-19; overrides N§16.4's deferral): when
+   the scan exhausts the loaded content without a match, ReadToEnd and
+   re-scan (the `openSearch` shape). If commit 3's `IsSingleHunkForWholeFile`
+   solution ends up reading to the end on focus anyway, this comes for free.
+   Applies equally to the jump-to-file menu (commit 7 — its file list must
+   cover the whole diff). Refs: 559955f7c, af98be48d (landing changes),
+   N§16.2.
 7. **Jump-to-file menu (`f`)** — menu of the diff's files in order,
    repo-relative; reuses the file-nav landing logic. **Production must add
    proper i18n strings** (prototype hardcoded English). Ref: 27b1012e1.
 8. **Edit the selected line (`e`)** — resolve via `GetDiffLineInfo`,
    `AdjustLineNumber`, open editor; editing a file-header row opens the file
    without a line. Refs: 467806fba, af98be48d (header case).
-9. **Copy the selection (`ctrl+o`)** — map the selected *view* range to
-   buffer lines via `BufferLineForViewLine` (never `SelectedLines()` — it's
-   wrapping-unaware, N§21.28), copy each wrapped line once, trailing `\n`;
-   `dropDiffPrefix` only when no diff renderer is configured. e2e:
-   `copy_from_main_view`. Ref: 99f14162c + its fixup.
+9. **Copy the selection as raw diff lines (`ctrl+o`)** — copy the
+   corresponding lines of the **original raw diff**, never the renderer's
+   output (decided 2026-07-19; supersedes the prototype's verbatim copy with
+   renderer-gated `dropDiffPrefix`, N§21.28 — you don't want a renderer's
+   restructured text on your clipboard, and this dissolves the
+   "can't tell whether the renderer preserves the +/− column" problem).
+   Mechanism, all synchronous from existing pieces: selected view rows →
+   buffer rows via `BufferLineForViewLine` (never `SelectedLines()`, it's
+   wrapping-unaware) → identities (all payloads per row, so SxS rows yield
+   both sides) → fetch the plain diff synchronously (the same diff command
+   the view renders, plain colorArg / no ext-diff, existing builders) →
+   parse and locate each identity with the same quirk-free scan the staging
+   path uses (`LineNumberOfLine`/`OldLineNumberOfLine`) → copy those raw
+   lines, trailing `\n`, with the staging view's `dropDiffPrefix` semantics
+   (always applicable now — it's always a raw diff). Sub-decisions at
+   implementation: copy the contiguous raw span between the first and last
+   matched identity vs. only the matched rows (matters for renderer-hidden
+   lines, e.g. difftastic's whitespace-only lines, and reordered rows);
+   header rows; unresolvable rows (renderer decoration) at the selection
+   edges. e2e: `copy_from_main_view` (rewrite for the new semantics; add a
+   case where rendered text ≠ raw text via a fake renderer). Ref: 99f14162c
+   (superseded in approach; its row-mapping survives as the first step).
 10. **`narrowSelectionHighlight` per-renderer config** — gocui
     `SelectedLineBgColorWidth` (left N columns only), gui maps bool→2;
     docs via `just generate`. Ref: cc90accde, N§21.34.
@@ -515,14 +550,24 @@ Commits:
    direction from the pane (Normal=stage, NormalSecondary=unstage);
    multi-file and directory diffs supported. Refs: f470d870f, f4d5c79da,
    a187eab63, 3018289e8, N§21.11–21.12.
-5. **Post-action reveal by change-line ordinal** — capture the selection's
+5. **Stage a fully-selected deleted file as a file deletion** — staging a
+   deleted file's entire content must yield `D`, not `MD` (stage the file
+   deletion itself, not just the content removal). In the explorer this case
+   required deliberately entering a deleted file, so it was rare; in the
+   merged view hunk-stepping through a multi-file diff hits it routinely.
+   Mandatory (decided 2026-07-19; overrides N§21.13's deferral). Belongs in
+   the per-file apply loop / files handler: when every change line of a
+   deleted file is selected, stage the file itself instead of applying a
+   content patch. e2e: multi-file diff containing a deleted file, stage its
+   block → status `D`, not `MD`.
+6. **Post-action reveal by change-line ordinal** — capture the selection's
    first line's ordinal among change lines before the op; after the re-render
    select the change line at that ordinal in the target pane (clamped),
    re-expanding in hunk mode; a range collapses to a line first. Rides
    `restoreDiffLinePositionOnRerender` with an ordinal-based place. Refs:
    e98e73382, 0cd3a5886 (final model — skip the two superseded matchers),
    N§21.17.
-6. **Focus follows the acted-on side** — unified rule: focus
+7. **Focus follows the acted-on side** — unified rule: focus
    `NormalSecondary` iff (unstaging AND post-op split), else `Normal`; the
    handler decides (it owns the split knowledge) and does the reveal/focus
    itself, returning only `error`; selection state copies to the target pane;
@@ -532,17 +577,17 @@ Commits:
    install the reveal after the refresh returns, and it rides the queued
    render. e2e: the two cross-pane tests + the four reveal tests from the
    prototype. Refs: b9bbd1955, 498784558, 02b08eb73, N§21.13–21.14.
-7. **Discard the selection (`d`)** — files backend: discard-unstaged =
+8. **Discard the selection (`d`)** — files backend: discard-unstaged =
    reverse apply not-cached (confirm prompt), discard-staged = unstage; both
    route through the same `applyDiffLineSelection` path as `space` so
    focus-follow/reveal behave identically (N§21.27 bugs 1+2). e2e:
    `discard_from_main_view`, `discard_from_staged_main_view`. Refs:
    eaec32b2b + fixups.
-8. **Commit and find-fixup-base from the focused main view** — gated on
+9. **Commit and find-fixup-base from the focused main view** — gated on
    `DiffMainViewTypeStaging`; gate re-checked per press;
    `IsInStack`-guarded `NextInStack` lookup for cheatsheet generation. Ref:
    4b54223f4.
-9. **Raw-diff fallback for non-conforming diff renderers + the handshake
+10. **Raw-diff fallback for non-conforming diff renderers + the handshake
    probe** — the probe (prototype: `ProbePagerEmitsDiffMetadata`; rename per
    §1) runs the renderer on empty input (stdin route via `NewShell`; ext-diff
    via git's 7-arg convention on two empty temp files), env `OSC1717=V1`,
@@ -559,7 +604,7 @@ Commits:
    `stage_from_main_view_with_conforming_pager` (fake handshake renderer).
    Refs: 98881fc9e, 17cfd567e, bf18778e9; the probe detection is N§21.30
    (the observe mechanism never lands — §3).
-10. **Port the remaining prototype staging e2e tests** (whichever aren't
+11. **Port the remaining prototype staging e2e tests** (whichever aren't
     already in earlier commits): `stage_hunk/range/range_spanning_files…`,
     `select_hunk_on_focusing_main_view`, `select_next_*`,
     `advance_to_next_hunk_after_staging_shifts_line_numbers`,
@@ -682,10 +727,16 @@ Commits:
    N§21.33.
 9. **Allow changing context size during custom patch building** — ref:
    10bb69d80 (read its message for the rationale/constraints).
-
-Deferred, recorded not fixed (N§21.22(4)): a renderer *switch* mid-build
-shifts the checkmarks until the next refresh (needs a post-render recompute
-hook). Note it in the PR description.
+10. **Recompute the inclusion gutter when a renderer switch re-renders the
+    diff** — switching renderers keeps the same git command but yields a
+    different buffer-line structure, so marks computed from the pre-switch
+    buffer misalign. The prototype deferred this (N§21.22(4)); mandatory for
+    production — it looks too broken to ship (decided 2026-07-19). The
+    recompute must run against the *new* buffer at render completion;
+    candidate mechanisms: ride the renderer-switch restore's `Apply` (PR 6
+    installs one on the Normal view on every renderer cycle) or a general
+    post-swap hook on the buffer manager. Decide at implementation. Not
+    e2e-assertable (draw-time) — interactive sign-off (§6).
 
 ### PR 9 — Replace the staging and patch-building panels with the focused main view
 
@@ -807,8 +858,10 @@ sections of one files panel. Keep these seams clean so it stays cheap:
 
 ## 8. Known gaps and their dispositions
 
-Shortcuts the prototype deliberately took. Dispositions proposed here —
-review with the user when the relevant PR starts:
+Shortcuts the prototype deliberately took. Dispositions **reviewed with the
+user (2026-07-19)**: rows marked **Fix** are mandatory scope — "the prototype
+deferred it" never meant "optional", only "not addressed while prototyping".
+The remaining rows are agreed as keep/defer:
 
 | Gap | Disposition |
 |---|---|
@@ -820,14 +873,14 @@ review with the user when the relevant PR starts:
 | Diffing mode (`W`) not wired to the raw fallback → not stageable (N§21.29) | Defer; note in PR 7 description ("diffing-mode staging is its own question") |
 | `useExternalDiffGitConfig` always-raw when focused (N§21.30) | Keep; document |
 | Per-pane selection memory on `<tab>` (re-anchors each switch, N§21.9) | Defer; follow-up candidate |
-| `IsSingleHunkForWholeFile` hunk-default refinement (N§21.11) | Defer; follow-up candidate |
+| `IsSingleHunkForWholeFile` hunk-default refinement (N§21.11) | **Fix in PR 5 commit 3** (mandatory — regression vs master) |
 | `a` on a context line below the last hunk doesn't snap back like staging did (N§21.11) | Fix cheaply in PR 5 commit 3 if trivial (`ChangeBlockBounds` falls back to the block above); else defer |
-| Deleted-file `MD`-vs-`D` staging special case (N§21.13) | Defer; record as follow-up in PR 7 description |
+| Deleted-file `MD`-vs-`D` staging special case (N§21.13) | **Fix in PR 7 commit 5** (mandatory) |
 | `NormalSecondary` not preserved on `-U`/renderer change (N§16.1) | Keep as documented limitation |
 | Gutter marks for not-yet-loaded lines of huge diffs (N§21.20) | Keep (marks appear on next recompute); note |
-| Renderer switch mid-patch-build shifts checkmarks (N§21.22(4)) | Defer; note in PR 8 |
-| Copy: metadata-typed prefix stripping under column-preserving renderers (N§21.28) | Defer |
-| Nav only sees loaded content (deep targets in huge diffs, N§16.4) | Keep; note (openSearch-style ReadToEnd is the known shape if wanted) |
+| Renderer switch mid-patch-build shifts checkmarks (N§21.22(4)) | **Fix in PR 8 commit 10** (mandatory — looks too broken otherwise) |
+| Copy copies the renderer's output verbatim under a renderer (N§21.28) | **Fix in PR 5 commit 9** (mandatory): copy the corresponding *raw diff* lines instead — dissolves the prefix-stripping problem entirely |
+| Nav only sees loaded content (deep targets in huge diffs, N§16.4) | **Fix in PR 5 commit 6** (mandatory): ReadToEnd-then-retry; free if commit 3's solution reads to end on focus |
 | Toggle auto-advance: no "skip already-included" smarts (N§21.35) | Keep plain next-hunk |
 | difftastic token-vs-line `c`-at-new-line mismatch (M§10.2) | Protocol v2 candidate; nothing to do host-side |
 
