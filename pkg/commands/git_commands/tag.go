@@ -43,7 +43,7 @@ func (self *TagCommands) HasTag(tagName string) bool {
 		Arg("refs/tags/" + tagName).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run() == nil
+	return self.cmd.New(cmdArgs).DontLog().Run() == nil
 }
 
 func (self *TagCommands) LocalDelete(tagName string) error {
@@ -74,7 +74,7 @@ func (self *TagCommands) ShowAnnotationInfo(tagName string) (string, error) {
 		Arg("refs/tags/" + tagName).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).RunWithOutput()
+	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
 func (self *TagCommands) IsTagAnnotated(tagName string) (bool, error) {
@@ -83,6 +83,6 @@ func (self *TagCommands) IsTagAnnotated(tagName string) (bool, error) {
 		Arg("refs/tags/" + tagName).
 		ToArgv()
 
-	output, err := self.cmd.New(cmdArgs).RunWithOutput()
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	return strings.TrimSpace(output) == "tag", err
 }
