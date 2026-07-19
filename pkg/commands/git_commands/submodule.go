@@ -213,51 +213,51 @@ func (self *SubmoduleCommands) UpdateAll() error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// runInParentModule runs the given command in the submodule's parent module's
+// directory when the submodule is nested: its path arguments (and the
+// .gitmodules file the config commands touch) are relative to the parent
+// module. The directory is set on the command itself rather than by
+// temporarily chdir-ing the process there, which would leak the parent
+// module's directory into whatever other commands run concurrently (e.g. a
+// background refresh's).
+func (self *SubmoduleCommands) runInParentModule(submodule *models.SubmoduleConfig, cmdObj *oscommands.CmdObj) error {
+	if submodule.ParentModule != nil {
+		cmdObj.SetWd(submodule.ParentModule.FullPath())
+	}
+	return cmdObj.Run()
+}
+
 func (self *SubmoduleCommands) Delete(submodule *models.SubmoduleConfig) error {
 	// based on https://gist.github.com/myusuf3/7f645819ded92bda6677
 
-	if submodule.ParentModule != nil {
-		wd, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-
-		err = os.Chdir(submodule.ParentModule.FullPath())
-		if err != nil {
-			return err
-		}
-
-		defer func() { _ = os.Chdir(wd) }()
-	}
-
-	if err := self.cmd.New(
+	if err := self.runInParentModule(submodule, self.cmd.New(
 		NewGitCmd("submodule").
 			Arg("deinit", "--force", "--", submodule.Path).ToArgv(),
-	).Run(); err != nil {
+	)); err != nil {
 		if !strings.Contains(err.Error(), "did not match any file(s) known to git") {
 			return err
 		}
 
-		if err := self.cmd.New(
+		if err := self.runInParentModule(submodule, self.cmd.New(
 			NewGitCmd("config").
 				Arg("--file", ".gitmodules", "--remove-section", "submodule."+submodule.Path).
 				ToArgv(),
-		).Run(); err != nil {
+		)); err != nil {
 			return err
 		}
 
-		if err := self.cmd.New(
+		if err := self.runInParentModule(submodule, self.cmd.New(
 			NewGitCmd("config").
 				Arg("--remove-section", "submodule."+submodule.Path).
 				ToArgv(),
-		).Run(); err != nil {
+		)); err != nil {
 			return err
 		}
 	}
 
-	if err := self.cmd.New(
+	if err := self.runInParentModule(submodule, self.cmd.New(
 		NewGitCmd("rm").Arg("--force", "-r", submodule.Path).ToArgv(),
-	).Run(); err != nil {
+	)); err != nil {
 		// if the directory isn't there then that's fine
 		self.Log.Error(err)
 	}
@@ -282,20 +282,6 @@ func (self *SubmoduleCommands) Add(name string, path string, url string) error {
 }
 
 func (self *SubmoduleCommands) UpdateUrl(submodule *models.SubmoduleConfig, newUrl string) error {
-	if submodule.ParentModule != nil {
-		wd, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-
-		err = os.Chdir(submodule.ParentModule.FullPath())
-		if err != nil {
-			return err
-		}
-
-		defer func() { _ = os.Chdir(wd) }()
-	}
-
 	setUrlCmdStr := NewGitCmd("config").
 		Arg(
 			"--file", ".gitmodules", "submodule."+submodule.Name+".url", newUrl,
@@ -303,14 +289,14 @@ func (self *SubmoduleCommands) UpdateUrl(submodule *models.SubmoduleConfig, newU
 		ToArgv()
 
 	// the set-url command is only for later git versions so we're doing it manually here
-	if err := self.cmd.New(setUrlCmdStr).Run(); err != nil {
+	if err := self.runInParentModule(submodule, self.cmd.New(setUrlCmdStr)); err != nil {
 		return err
 	}
 
 	syncCmdStr := NewGitCmd("submodule").Arg("sync", "--", submodule.Path).
 		ToArgv()
 
-	if err := self.cmd.New(syncCmdStr).Run(); err != nil {
+	if err := self.runInParentModule(submodule, self.cmd.New(syncCmdStr)); err != nil {
 		return err
 	}
 
