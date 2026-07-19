@@ -411,3 +411,12 @@ Never run `find` (or similar) from `/` or other paths outside the project. All
 third-party code we use is vendored under `vendor/`, so dependency sources are
 reachable from inside the working tree — search there instead of the host
 filesystem.
+
+## gocui is in-tree, not a dependency
+
+The `gocui` TUI library is a fork maintained directly in this repo under
+`pkg/gocui` — it's an ordinary package, not a Go module dependency. Don't look
+for it in `go.mod`/`go.sum` or the module cache (`$GOMODCACHE`); it isn't
+there. When you need to read or change gocui internals (the task manager, the
+event loop, worker/UI-thread dispatch, view rendering), edit `pkg/gocui`
+directly.

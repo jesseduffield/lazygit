@@ -154,7 +154,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != nil && !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
-		view.Visible = gui.helpers.Window.GetViewNameForWindow(context.GetWindowName()) == context.GetViewName()
+		// A transient view is visible if it is the view its window is currently
+		// showing — but only if that window is part of the layout at all. For a
+		// window without dimensions, setViewFromDimensions parks the view at full
+		// screen size in the background, so making it visible would cover all
+		// windows below it.
+		_, windowHasDimensions := viewDimensions[context.GetWindowName()]
+		view.Visible = windowHasDimensions &&
+			gui.helpers.Window.GetViewNameForWindow(context.GetWindowName()) == context.GetViewName()
 	}
 
 	if gui.PrevLayout.Information != informationStr {

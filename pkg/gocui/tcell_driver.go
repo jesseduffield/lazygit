@@ -172,6 +172,12 @@ type GocuiEvent struct {
 	Focused bool
 	Start   bool
 	N       int
+
+	// task tracks the processing of this event for idle detection. Events
+	// replayed by integration tests carry a task from the moment they are
+	// submitted (see Gui.ReplayKeyEvent); for organic events it is nil, and
+	// the main loop creates a task when it picks the event up.
+	task Task
 }
 
 // Event types.
@@ -208,6 +214,8 @@ type TcellKeyEventWrapper struct {
 	Mod       tcell.ModMask
 	Key       tcell.Key
 	Ch        string
+
+	task Task // see GocuiEvent.task
 }
 
 func NewTcellKeyEventWrapper(event *tcell.EventKey, timestamp int64) *TcellKeyEventWrapper {
@@ -229,6 +237,8 @@ type TcellMouseEventWrapper struct {
 	Y          int
 	ButtonMask tcell.ButtonMask
 	ModMask    tcell.ModMask
+
+	task Task // see GocuiEvent.task
 }
 
 func NewTcellMouseEventWrapper(event *tcell.EventMouse, timestamp int64) *TcellMouseEventWrapper {
@@ -269,6 +279,8 @@ func (wrapper TcellResizeEventWrapper) toTcellEvent() tcell.Event {
 type TcellFocusEventWrapper struct {
 	Timestamp int64
 	Focused   bool
+
+	task Task // see GocuiEvent.task
 }
 
 func NewTcellFocusEventWrapper(event *tcell.EventFocus, timestamp int64) *TcellFocusEventWrapper {
@@ -285,21 +297,31 @@ func (wrapper TcellFocusEventWrapper) toTcellEvent() tcell.Event {
 // pollEvent get tcell.Event and transform it into gocuiEvent
 func (g *Gui) pollEvent() GocuiEvent {
 	var tev tcell.Event
+	var task Task
 	if g.playRecording {
 		select {
-		case ev := <-g.ReplayedEvents.Keys:
+		case ev := <-g.replayedEvents.Keys:
 			tev = (ev).toTcellEvent()
-		case ev := <-g.ReplayedEvents.Resizes:
+			task = ev.task
+		case ev := <-g.replayedEvents.Resizes:
 			tev = (ev).toTcellEvent()
-		case ev := <-g.ReplayedEvents.MouseEvents:
+		case ev := <-g.replayedEvents.MouseEvents:
 			tev = (ev).toTcellEvent()
-		case ev := <-g.ReplayedEvents.FocusEvents:
+			task = ev.task
+		case ev := <-g.replayedEvents.FocusEvents:
 			tev = (ev).toTcellEvent()
+			task = ev.task
 		}
 	} else {
 		tev = <-Screen.EventQ()
 	}
 
+	event := gocuiEventFromTcellEvent(tev)
+	event.task = task
+	return event
+}
+
+func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 	switch tev := tev.(type) {
 	case *tcell.EventInterrupt:
 		return GocuiEvent{Type: eventInterrupt}

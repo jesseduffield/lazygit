@@ -229,7 +229,7 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 			}
 			return err
 		}
-		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.SYNC})
+		self.c.RefreshFromWorker(types.RefreshOptions{})
 		return nil
 	})
 }

@@ -26,7 +26,7 @@ func (self *GpgHelper) WithGpgHandling(
 	onSuccess func() error,
 	refreshScope []types.RefreshableView,
 ) error {
-	refreshOptions := types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope}
+	refreshOptions := types.RefreshOptions{Scope: refreshScope}
 	return self.withGpgHandling(
 		cmdObj, configKey, waitingStatus, onSuccess, refreshOptions, refreshOptions)
 }
@@ -40,8 +40,8 @@ func (self *GpgHelper) WithGpgHandlingAndSelectHeadCommit(
 	waitingStatus string,
 	onSuccess func() error,
 ) error {
-	failureRefreshOptions := types.RefreshOptions{Mode: types.ASYNC}
-	successRefreshOptions := types.RefreshOptions{Mode: types.ASYNC, CommitSelection: types.SelectHeadCommit}
+	failureRefreshOptions := types.RefreshOptions{}
+	successRefreshOptions := types.RefreshOptions{CommitSelection: types.SelectHeadCommit}
 	return self.withGpgHandling(
 		cmdObj, configKey, waitingStatus, onSuccess, failureRefreshOptions, successRefreshOptions)
 }

@@ -31,5 +31,5 @@ func (self *BisectHelper) Reset() error {
 }
 
 func (self *BisectHelper) PostBisectCommandRefresh() {
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{}})
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{}})
 }

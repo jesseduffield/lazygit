@@ -25,14 +25,6 @@ const (
 	PULL_REQUESTS
 )
 
-type RefreshMode int
-
-const (
-	SYNC     RefreshMode = iota // wait until everything is done before returning
-	ASYNC                       // return immediately, allowing each independent thing to update itself
-	BLOCK_UI                    // wrap code in an update call to ensure UI updates all at once and keybindings aren't executed till complete
-)
-
 // CommitSelectionBehavior controls which local commit is selected after the
 // commits list is reloaded by a refresh.
 type CommitSelectionBehavior int
@@ -74,7 +66,11 @@ const (
 type RefreshOptions struct {
 	Then  func() error
 	Scope []RefreshableView // e.g. []RefreshableView{COMMITS, BRANCHES}. Leave empty to refresh everything
-	Mode  RefreshMode       // one of SYNC (default), ASYNC, and BLOCK_UI
+
+	// If true, hold off on updating the UI until all scopes have finished
+	// refreshing and then apply them together in a single frame, rather than
+	// letting each scope update the UI as soon as it's done.
+	BatchUIUpdates bool
 
 	// Controls which local branch is selected after the refresh. Defaults to
 	// KeepBranchSelectionByName.

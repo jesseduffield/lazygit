@@ -7,6 +7,7 @@ package gocui
 import (
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"sync"
 	"unicode"
@@ -212,6 +213,16 @@ func (v *View) clearViewLines() {
 	v.tainted = true
 	v.viewLines = nil
 	v.clearHover()
+}
+
+// ClearViewLines is clearViewLines guarded by writeMutex. It's for callers on
+// the UI thread (the layout pass) that touch a view whose content a task
+// goroutine may be writing concurrently: viewLines/tainted/hover are all
+// buffer state that writeMutex protects.
+func (v *View) ClearViewLines() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+	v.clearViewLines()
 }
 
 type searcher struct {
@@ -536,7 +547,18 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 	v.SelFgColor, v.SelBgColor = ColorDefault, ColorDefault
 	v.InactiveViewSelBgColor = ColorDefault
 	v.TitleColor, v.FrameColor = ColorDefault, ColorDefault
+	v.ei.screenColMax = v.InnerWidth()
 	return v
+}
+
+// SetContentWidth tells the view the screen width that content written to it
+// should count soft-wraps against (see escapeInterpreter.notifyCellsWritten).
+// Callers pass the view's InnerWidth; it's a separate call, made on the UI
+// thread when a render starts, so that the task goroutine that streams the
+// content can consult this snapshot instead of reading the view's live
+// dimensions (which the UI thread mutates during layout).
+func (v *View) SetContentWidth(width int) {
+	v.ei.screenColMax = width
 }
 
 // Dimensions returns the dimensions of the View
@@ -907,7 +929,7 @@ func (v *View) write(p []byte) {
 				for _, c := range cells {
 					totalWidth += c.width
 				}
-				v.ei.notifyCellsWritten(totalWidth, v.InnerWidth())
+				v.ei.notifyCellsWritten(totalWidth)
 			}
 		}
 	}
@@ -1125,10 +1147,25 @@ func (v *View) CopyContent(from *View) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
+	// A background task may be streaming output into the source view's buffer
+	// via Write, so read it under its own lock. The source is always a
+	// different view than the destination (see the sole caller,
+	// moveMainContextToTop), and no other code holds two view write locks at
+	// once, so this can't deadlock.
+	from.writeMutex.Lock()
+	defer from.writeMutex.Unlock()
+
 	v.clear()
 
-	v.lines = from.lines
-	v.viewLines = from.viewLines
+	// Clone the row slices rather than sharing them: the source view stays
+	// live (its streaming task keeps appending rows, and refreshViewLinesIfNeeded
+	// fills each row's wrapping cache in place via &lines[i]), so sharing the
+	// backing arrays would race those writes against this view's own rendering.
+	// This is a shallow clone -- the per-row cell data is immutable once written
+	// and stays shared, so the cost is proportional to the number of rows, not
+	// their contents.
+	v.lines = slices.Clone(from.lines)
+	v.viewLines = slices.Clone(from.viewLines)
 	v.ox = from.ox
 	v.oy = from.oy
 	v.cx = from.cx
@@ -1276,6 +1313,8 @@ func (v *View) updateSearchPositions() {
 
 // IsTainted tells us if the view is tainted
 func (v *View) IsTainted() bool {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
 	return v.tainted
 }
 
@@ -1524,6 +1563,9 @@ func (v *View) BufferLines() []string {
 // Buffer returns a string with the contents of the view's internal
 // buffer.
 func (v *View) Buffer() string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	return linesToString(v.lines)
 }
 

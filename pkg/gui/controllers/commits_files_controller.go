@@ -324,7 +324,7 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 		return err
 	}
 
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{})
 	return nil
 }
 
@@ -339,7 +339,7 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 		HandleConfirm: func() error {
 			commits := self.c.Model().Commits
 			selectedLineIdx := self.c.Contexts().LocalCommits.GetSelectedLineIdx()
-			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 				var filePaths []string
 				selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
 

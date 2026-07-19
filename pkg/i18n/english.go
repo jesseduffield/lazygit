@@ -428,6 +428,7 @@ type TranslationSet struct {
 	UndoingStatus                         string
 	RedoingStatus                         string
 	CheckingOutStatus                     string
+	CreatingBranchStatus                  string
 	CommittingStatus                      string
 	RewordingStatus                       string
 	RevertingStatus                       string
@@ -1133,12 +1134,7 @@ Thanks for using lazygit! Seriously you rock. Three things to share with you:
  2) Be sure to read the latest release notes at:
       https://github.com/jesseduffield/lazygit/releases
 
- 3) If you're using git, that makes you a programmer! With your help we can make
-    lazygit better, so consider becoming a contributor and joining the fun at
-      https://github.com/jesseduffield/lazygit
-    Or even just star the repo to share the love!
-
- 4) If lazygit has made your life easier, you can say thanks by clicking the
+ 3) If lazygit has made your life easier, you can say thanks by clicking the
     donate button at the bottom right. Donation does not grant priority support,
     but it is much appreciated.
 
@@ -1585,6 +1581,7 @@ func EnglishTranslationSet() *TranslationSet {
 		UndoingStatus:                        "Undoing",
 		RedoingStatus:                        "Redoing",
 		CheckingOutStatus:                    "Checking out",
+		CreatingBranchStatus:                 "Creating branch",
 		CommittingStatus:                     "Committing",
 		RewordingStatus:                      "Rewording",
 		RevertingStatus:                      "Reverting",
