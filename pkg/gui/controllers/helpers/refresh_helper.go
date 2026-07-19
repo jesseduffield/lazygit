@@ -91,9 +91,18 @@ func (self *RefreshHelper) RefreshFromWorker(options types.RefreshOptions) {
 }
 
 type refreshEnv struct {
-	// whether this is a background refresh (which selects the dispatch variant that
-	// doesn't count towards lazygit being busy)
+	// Whether everything this refresh dispatches uses the background task
+	// variants, which don't count towards lazygit being busy — so the refresh
+	// doesn't block switching repos. Set for refreshes initiated by a
+	// background routine, and for foreground ones that opted in via
+	// RefreshOptions.DontBlockRepoSwitch.
 	background bool
+
+	// Whether the refresh was initiated by an unattended background routine
+	// (RefreshOptions.Background) rather than by user activity. The files
+	// refresh uses this to decide whether git may take optional locks and
+	// persist its refreshed stat cache.
+	backgroundRoutine bool
 
 	// the repo generation captured when the refresh started
 	generation int
@@ -175,6 +184,13 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		panic("Refresh called from a worker, or RefreshFromWorker called from the UI thread")
 	}
 
+	if options.Then != nil && options.DontBlockRepoSwitch {
+		// Then is not generation-guarded, so if a switch crossed the refresh it
+		// would run against the newly switched-to repo. A refresh carrying a
+		// Then must keep blocking switches.
+		panic("a refresh with a Then callback must not set DontBlockRepoSwitch")
+	}
+
 	// Capture the refresh's baseline once, here at the start: the repo
 	// generation that every scope's bounce is guarded against, and the git
 	// command instance the scopes run their commands through. The two are
@@ -186,9 +202,10 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	// against the repo it started in, and the generation guard drops its
 	// writes.
 	env := refreshEnv{
-		background: options.Background,
+		background:        options.Background || options.DontBlockRepoSwitch,
+		backgroundRoutine: options.Background,
 	}
-	self.captureOnUIThread(calledFromWorker, options.Background, func() {
+	self.captureOnUIThread(calledFromWorker, env.background, func() {
 		env.generation = self.c.State().GetRepoGeneration()
 		env.git = self.c.Git()
 	})
@@ -1276,7 +1293,7 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 	files := env.git.Loaders.FileLoader.
 		GetStatusFiles(git_commands.GetStatusFileOptions{
 			ForceShowUntracked: captured.forceShowUntracked,
-			Background:         env.background,
+			Background:         env.backgroundRoutine,
 		})
 
 	conflictFileCount := 0

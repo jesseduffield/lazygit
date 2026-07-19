@@ -390,7 +390,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			}
 
 			gui.c.Log.Info("Receiving focus - refreshing")
-			gui.helpers.Refresh.Refresh(types.RefreshOptions{})
+			gui.helpers.Refresh.Refresh(types.RefreshOptions{DontBlockRepoSwitch: true})
 			return reloadErr
 		}
 
@@ -1031,7 +1031,7 @@ func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *oscommands.CmdOb
 		return err
 	}
 
-	gui.c.Refresh(types.RefreshOptions{})
+	gui.c.Refresh(types.RefreshOptions{DontBlockRepoSwitch: true})
 
 	return nil
 }
@@ -1108,7 +1108,7 @@ func (gui *Gui) loadNewRepo() error {
 		return err
 	}
 
-	gui.c.Refresh(types.RefreshOptions{})
+	gui.c.Refresh(types.RefreshOptions{DontBlockRepoSwitch: true})
 
 	if err := gui.os.UpdateWindowTitle(); err != nil {
 		return err
