@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"strings"
+	"sync/atomic"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -28,14 +29,20 @@ import (
 
 type SuggestionsHelper struct {
 	c *HelperCommon
+
+	// filesTrie holds the repo's file paths for file-path suggestions. It's
+	// rebuilt asynchronously and read from the suggestions worker goroutine, so
+	// it lives here as an atomic pointer rather than in the (UI-thread-only)
+	// model.
+	filesTrie atomic.Pointer[patricia.Trie]
 }
 
 func NewSuggestionsHelper(
 	c *HelperCommon,
 ) *SuggestionsHelper {
-	return &SuggestionsHelper{
-		c: c,
-	}
+	self := &SuggestionsHelper{c: c}
+	self.filesTrie.Store(patricia.NewTrie())
+	return self
 }
 
 func (self *SuggestionsHelper) getRemoteNames() []string {
@@ -137,9 +144,9 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 			trie.Insert(patricia.Prefix(file), file)
 		}
 
+		// cache the trie for future use
+		self.filesTrie.Store(trie)
 		self.c.OnUIThread(func() error {
-			// cache the trie for future use
-			self.c.Model().FilesTrie = trie
 			self.c.Contexts().Suggestions.RefreshSuggestions()
 			return nil
 		})
@@ -148,9 +155,10 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 	})
 
 	return func(input string) []*types.Suggestion {
+		filesTrie := self.filesTrie.Load()
 		matchingNames := []string{}
 		if self.c.UserConfig().Gui.UseFuzzySearch() {
-			_ = self.c.Model().FilesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
+			_ = filesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
 				matchingNames = append(matchingNames, item.(string))
 				return nil
 			})
@@ -159,7 +167,7 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 			matchingNames = utils.FilterStrings(input, matchingNames, true)
 		} else {
 			substrings := strings.Fields(input)
-			_ = self.c.Model().FilesTrie.Visit(func(prefix patricia.Prefix, item patricia.Item) error {
+			_ = filesTrie.Visit(func(prefix patricia.Prefix, item patricia.Item) error {
 				for _, sub := range substrings {
 					if !utils.CaseAwareContains(item.(string), sub) {
 						return nil

@@ -238,7 +238,6 @@ func (self *WorkingTreeHelper) WithEnsureCommittableFiles(handler func() error) 
 				return err
 			}
 			self.c.Refresh(types.RefreshOptions{
-				Mode:  types.SYNC,
 				Scope: []types.RefreshableView{types.FILES},
 				Then:  handler,
 			})
@@ -260,7 +259,7 @@ func (self *WorkingTreeHelper) promptToStageAllAndRetry(retry func() error) erro
 			if err := self.c.Git().WorkingTree.StageAll(false); err != nil {
 				return err
 			}
-			self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
+			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 
 			return retry()
 		},
@@ -360,7 +359,7 @@ func (self *WorkingTreeHelper) CreateMergeConflictMenu(selectedFilepaths []strin
 		}
 
 		err := self.c.Git().WorkingTree.StageFiles(selectedFilepaths, nil)
-		self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 		return err
 	}
 

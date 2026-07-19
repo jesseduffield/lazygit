@@ -18,8 +18,17 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 	manager := gui.getManager(view)
 
+	// Snapshot the view width here, on the UI thread, so the task goroutine
+	// doesn't read the view's live dimensions while it streams output. It's
+	// applied inside start() below rather than now, because start() runs once
+	// the previous task has stopped -- applying it here would race that task's
+	// still-running writes (see View.SetContentWidth).
+	contentWidth := view.InnerWidth()
+
 	var r io.ReadCloser
 	start := func() (tasks.Cmd, io.Reader) {
+		view.SetContentWidth(contentWidth)
+
 		var err error
 		r, err = cmd.StdoutPipe()
 		if err != nil {
@@ -59,8 +68,10 @@ func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 	manager := gui.getManager(view)
 
 	f := func(tasks.TaskOpts) error {
-		gui.c.SetViewContent(view, str)
-		return nil
+		return gui.g.OnUIThreadAndWaitBackground(func() error {
+			gui.c.SetViewContent(view, str)
+			return nil
+		})
 	}
 
 	if err := manager.NewTask(f, manager.GetTaskKey()); err != nil {
@@ -74,9 +85,11 @@ func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX in
 	manager := gui.getManager(view)
 
 	f := func(tasks.TaskOpts) error {
-		gui.c.SetViewContent(view, str)
-		view.SetOrigin(originX, originY)
-		return nil
+		return gui.g.OnUIThreadAndWaitBackground(func() error {
+			gui.c.SetViewContent(view, str)
+			view.SetOrigin(originX, originY)
+			return nil
+		})
 	}
 
 	if err := manager.NewTask(f, manager.GetTaskKey()); err != nil {
@@ -90,9 +103,11 @@ func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) e
 	manager := gui.getManager(view)
 
 	f := func(tasks.TaskOpts) error {
-		gui.c.ResetViewOrigin(view)
-		gui.c.SetViewContent(view, str)
-		return nil
+		return gui.g.OnUIThreadAndWaitBackground(func() error {
+			gui.c.ResetViewOrigin(view)
+			gui.c.SetViewContent(view, str)
+			return nil
+		})
 	}
 
 	if err := manager.NewTask(f, key); err != nil {
@@ -150,6 +165,9 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 				// otherwise make the switch that handler triggers refuse itself.
 				return gui.c.GocuiGui().NewBackgroundTask()
 			},
+			// Rendering is background work too (see above), so the view mutations
+			// it bounces onto the UI thread mustn't count towards being busy.
+			gui.g.OnUIThreadAndWaitBackground,
 		)
 		gui.viewBufferManagerMap[view.Name()] = manager
 	}

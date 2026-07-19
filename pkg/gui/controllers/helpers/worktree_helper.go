@@ -163,7 +163,7 @@ func (self *WorktreeHelper) remove(worktree *models.Worktree, force bool, then f
 			return then(task)
 		}
 
-		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
 		return nil
 	})
 }
@@ -181,7 +181,7 @@ func (self *WorktreeHelper) Detach(worktree *models.Worktree, then func(gocui.Ta
 			return then(task)
 		}
 
-		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
 		return nil
 	})
 }

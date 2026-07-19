@@ -158,7 +158,7 @@ func (self *RemoteBranchesController) createSortMenu() error {
 			if self.c.UserConfig().Git.RemoteBranchSortOrder != sortOrder {
 				self.c.UserConfig().Git.RemoteBranchSortOrder = sortOrder
 				self.c.Contexts().RemoteBranches.SetSelection(0)
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.REMOTES}})
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.REMOTES}})
 			}
 			return nil
 		},

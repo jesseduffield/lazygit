@@ -22,7 +22,7 @@ func (self *DiffingMenuAction) Call() error {
 				OnPress: func() error {
 					self.c.Modes().Diffing.Ref = name
 					// can scope this down based on current view but too lazy right now
-					self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+					self.c.Refresh(types.RefreshOptions{})
 					return nil
 				},
 			},
@@ -38,7 +38,7 @@ func (self *DiffingMenuAction) Call() error {
 					FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRefsSuggestionsFunc(),
 					HandleConfirm: func(response string) error {
 						self.c.Modes().Diffing.Ref = response
-						self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+						self.c.Refresh(types.RefreshOptions{})
 						return nil
 					},
 				})
@@ -54,7 +54,7 @@ func (self *DiffingMenuAction) Call() error {
 				Label: self.c.Tr.SwapDiff,
 				OnPress: func() error {
 					self.c.Modes().Diffing.Reverse = !self.c.Modes().Diffing.Reverse
-					self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+					self.c.Refresh(types.RefreshOptions{})
 					return nil
 				},
 			},
@@ -62,7 +62,7 @@ func (self *DiffingMenuAction) Call() error {
 				Label: self.c.Tr.ExitDiffMode,
 				OnPress: func() error {
 					self.c.Modes().Diffing = diffing.New()
-					self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+					self.c.Refresh(types.RefreshOptions{})
 					return nil
 				},
 			},
