@@ -72,6 +72,10 @@ func NewGitCommand(
 		return nil, utils.WrapError(err)
 	}
 
+	// Pin the config reads to the repo directory like all other git commands
+	// (see NewGitCmdObjBuilder); the config commands run outside that builder.
+	gitConfig.SetDir(repoPaths.WorktreePath())
+
 	return NewGitCommandAux(
 		cmn,
 		version,

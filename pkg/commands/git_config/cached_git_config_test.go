@@ -116,3 +116,20 @@ func TestGet(t *testing.T) {
 	assert.Equal(t, "blah", result)
 	assert.Equal(t, 1, count)
 }
+
+// The config commands run in the directory set by SetDir rather than in the
+// process's current directory: lazygit chdirs when switching repos, and config
+// reads issued for the previous repo after that must keep addressing the repo
+// they were created for.
+func TestSetDirPinsCommandsToDirectory(t *testing.T) {
+	real := NewCachedGitConfig(
+		func(cmd *exec.Cmd) (string, error) {
+			assert.Equal(t, "/path/to/repo", cmd.Dir)
+			return "blah", nil
+		},
+		utils.NewDummyLog(),
+	)
+	real.SetDir("/path/to/repo")
+	real.Get("commit.gpgsign")
+	real.GetGeneral("--local --get-regexp foo")
+}
