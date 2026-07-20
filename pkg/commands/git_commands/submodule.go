@@ -28,10 +28,15 @@ func NewSubmoduleCommands(gitCommon *GitCommon) *SubmoduleCommands {
 }
 
 func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) ([]*models.SubmoduleConfig, error) {
-	gitModulesPath := ".gitmodules"
+	// Resolve the path against the repo this commands object was created for
+	// rather than the process working directory, so that a read from a
+	// still-running refresh keeps addressing that repo after the user
+	// switched to another one.
+	dir := self.repoPaths.WorktreePath()
 	if parentModule != nil {
-		gitModulesPath = filepath.Join(parentModule.FullPath(), gitModulesPath)
+		dir = filepath.Join(dir, parentModule.FullPath())
 	}
+	gitModulesPath := filepath.Join(dir, ".gitmodules")
 	file, err := os.Open(gitModulesPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -180,7 +185,7 @@ func (self *SubmoduleCommands) ConflictSideLog(path string, side string, otherSi
 func (self *SubmoduleCommands) Stash(submodule *models.SubmoduleConfig) error {
 	// if the path does not exist then it hasn't yet been initialized so we'll swallow the error
 	// because the intention here is to have no dirty worktree state
-	if _, err := os.Stat(submodule.Path); os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(self.repoPaths.WorktreePath(), submodule.FullPath())); os.IsNotExist(err) {
 		self.Log.Infof("submodule path %s does not exist, returning", submodule.FullPath())
 		return nil
 	}

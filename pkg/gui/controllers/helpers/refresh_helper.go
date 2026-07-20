@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -1273,7 +1274,11 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 				prevConflictFileCount++
 			}
 			if file.HasInlineMergeConflicts {
-				hasConflicts, err := mergeconflicts.FileHasConflictMarkers(file.Path)
+				// Join with the refresh's repo root rather than relying on the
+				// process working directory, which may already point at another
+				// repo if the user switched while this refresh was in flight.
+				hasConflicts, err := mergeconflicts.FileHasConflictMarkers(
+					filepath.Join(env.git.RepoPaths.WorktreePath(), file.Path))
 				if err != nil {
 					self.c.Log.Error(err)
 				} else if !hasConflicts {
