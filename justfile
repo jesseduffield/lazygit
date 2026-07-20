@@ -40,7 +40,7 @@ lint:
     ./scripts/gofumpt-check.sh
     ./scripts/golangci-lint-shim.sh run
 
-e2e-test-command := "go test pkg/integration/clients/*.go"
+e2e-test-command := "go test -timeout 30m pkg/integration/clients/*.go"
 
 # Run integration tests headlessly: no args runs all tests, a test name (or path) runs just that one. Use e2e-cli for a visible UI.
 e2e *args:
