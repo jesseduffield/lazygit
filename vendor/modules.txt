@@ -96,8 +96,8 @@ github.com/karimkhaleel/jsonschema
 # github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
 ## explicit
 github.com/kr/logfmt
-# github.com/kyokomi/emoji/v2 v2.2.13
-## explicit; go 1.14
+# github.com/kyokomi/emoji/v2 v2.2.14
+## explicit; go 1.21
 github.com/kyokomi/emoji/v2
 # github.com/lucasb-eyer/go-colorful v1.4.0
 ## explicit; go 1.12
