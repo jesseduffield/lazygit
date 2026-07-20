@@ -1536,7 +1536,7 @@ func (self *RefreshHelper) refreshGithubPullRequests(branches []*models.Branch, 
 		clearPullRequests()
 
 		if !self.githubBaseRemotePromptDismissed[self.c.Git().RepoPaths.RepoPath()] {
-			self.promptForBaseGithubRepo(githubRemotes, branches)
+			self.promptForBaseGithubRepo(githubRemotes)
 		}
 		return
 	}
@@ -1612,7 +1612,7 @@ func getGithubBaseRemote(githubRemotes []githubRemoteInfo, configuredRemoteName 
 	return nil
 }
 
-func (self *RefreshHelper) promptForBaseGithubRepo(githubRemotes []githubRemoteInfo, branches []*models.Branch) {
+func (self *RefreshHelper) promptForBaseGithubRepo(githubRemotes []githubRemoteInfo) {
 	menuItems := lo.Map(githubRemotes, func(info githubRemoteInfo, _ int) *types.MenuItem {
 		return &types.MenuItem{
 			LabelColumns: []string{info.remote.Name, style.FgCyan.Sprint(info.serviceInfo.RepoName)},
@@ -1622,11 +1622,7 @@ func (self *RefreshHelper) promptForBaseGithubRepo(githubRemotes []githubRemoteI
 						self.c.Log.Error(err)
 					}
 
-					// This fetch runs on its own worker after the user picked a
-					// base remote, so it's not part of a performRefresh and has no
-					// ambient env; build a foreground one now, capturing the
-					// current generation as the guard baseline.
-					self.setGithubPullRequests(&info, branches, refreshEnv{generation: self.c.State().GetRepoGeneration()})
+					self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.PULL_REQUESTS}})
 					return nil
 				})
 			},
