@@ -16,10 +16,7 @@ func TestStartPtyWithZeroSize(t *testing.T) {
 	// in place of handles to the attached pseudoconsole, so command output
 	// would bypass the pty and pollute the test log.
 	sp, err := StartPty(exec.Command("cmd", "/c", "exit 0"), 0, 0)
-	/* EXPECTED:
 	assert.NoError(t, err)
-	ACTUAL: */
-	assert.Error(t, err)
 
 	if err == nil {
 		_ = sp.Wait()
