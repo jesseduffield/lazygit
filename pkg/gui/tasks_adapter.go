@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
+	"github.com/sirupsen/logrus"
 )
 
 func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
@@ -29,19 +30,9 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	start := func() (tasks.Cmd, io.Reader) {
 		view.SetContentWidth(contentWidth)
 
-		var err error
-		r, err = cmd.StdoutPipe()
-		if err != nil {
-			gui.c.Log.Error(err)
-			r = nil
-		}
-		cmd.Stderr = cmd.Stdout
-
-		if err := cmd.Start(); err != nil {
-			gui.c.Log.Error(err)
-		}
-
-		return tasks.ExecCmd{Cmd: cmd}, r
+		execCmd, pipe := startCmdWithPipe(cmd, gui.c.Log)
+		r = pipe
+		return execCmd, pipe
 	}
 
 	onClose := func() {
@@ -57,6 +48,24 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	}
 
 	return nil
+}
+
+// startCmdWithPipe starts cmd with its stdout and stderr going to a single
+// pipe, and returns the command along with the pipe's read end, in the shape
+// that NewCmdTask expects from its start func.
+func startCmdWithPipe(cmd *exec.Cmd, log *logrus.Entry) (tasks.Cmd, io.ReadCloser) {
+	r, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Error(err)
+		r = nil
+	}
+	cmd.Stderr = cmd.Stdout
+
+	if err := cmd.Start(); err != nil {
+		log.Error(err)
+	}
+
+	return tasks.ExecCmd{Cmd: cmd}, r
 }
 
 func (gui *Gui) newStringTask(view *gocui.View, str string) error {
