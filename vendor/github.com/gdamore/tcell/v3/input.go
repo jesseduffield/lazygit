@@ -222,6 +222,7 @@ var csiAllKeys = map[csiParamMode]keyMap{
 	{M: 'L'}:         {Key: KeyInsert},
 	{M: 'P'}:         {Key: KeyF1}, // except for aixterm, where this is Delete
 	{M: 'Q'}:         {Key: KeyF2},
+	{M: 'R'}:         {Key: KeyF3},
 	{M: 'S'}:         {Key: KeyF4},
 	{M: 'Z'}:         {Key: KeyBacktab},
 	{M: 'a'}:         {Key: KeyUp, Mod: ModShift},
