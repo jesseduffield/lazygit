@@ -6,7 +6,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -106,23 +108,35 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	self.gui.waitForIntro.Wait()
 
 	fetch := func(firstTimeOrRetriggered bool) error {
-		// Do this on the UI thread so that we don't have to deal with synchronization around the
-		// access of the repo state.
-		self.gui.onUIThread(func() error {
-			// There's a race here, where we might be recording the time stamp for a different repo
-			// than where the fetch actually ran. It's not very likely though, and not harmful if it
-			// does happen; guarding against it would be more effort than it's worth.
+		// Capture what the fetch needs from the gui's per-repo state in a
+		// single UI-thread hop: gui.git, gui.helpers and gui.State are all
+		// replaced on a repo switch (which runs on the UI thread), so reading
+		// them from this background goroutine would race the reassignment.
+		// Capturing them together also ties the fetch, the post-fetch
+		// refresh's generation baseline, and the recorded fetch time to the
+		// same repo.
+		var git *commands.GitCommand
+		var appStatusHelper *helpers.AppStatusHelper
+		var branchesHelper *helpers.BranchesHelper
+		var fetchGeneration int
+		if err := self.gui.g.OnUIThreadAndWaitBackground(func() error {
+			git = self.gui.git
+			appStatusHelper = self.gui.helpers.AppStatus
+			branchesHelper = self.gui.helpers.BranchesHelper
+			fetchGeneration = self.gui.c.State().GetRepoGeneration()
 			self.gui.State.LastBackgroundFetchTime = time.Now()
 			return nil
-		})
+		}); err != nil {
+			return err
+		}
 
 		if self.gui.UserConfig().Gui.ShowBottomLine || firstTimeOrRetriggered {
-			return self.gui.helpers.AppStatus.WithWaitingStatusImpl(self.gui.Tr.FetchingStatus, func(gocui.Task) error {
-				return self.backgroundFetch()
+			return appStatusHelper.WithWaitingStatusImpl(self.gui.Tr.FetchingStatus, func(gocui.Task) error {
+				return self.backgroundFetch(git, branchesHelper, fetchGeneration)
 			}, nil)
 		}
 
-		return self.backgroundFetch()
+		return self.backgroundFetch(git, branchesHelper, fetchGeneration)
 	}
 
 	// We want an immediate fetch at startup, and since goEvery starts by
@@ -165,7 +179,20 @@ func (self *BackgroundRoutineMgr) startBackgroundExternalChangeDetection() {
 }
 
 func (self *BackgroundRoutineMgr) checkForExternalChanges() {
-	current, err := self.gui.git.Status.RefsSnapshot()
+	// Capture the per-repo objects in a UI-thread hop, like the background
+	// fetch does: gui.git and gui.helpers are replaced on a repo switch, so
+	// reading them from this background goroutine would race the reassignment.
+	var git *commands.GitCommand
+	var refreshHelper *helpers.RefreshHelper
+	if err := self.gui.g.OnUIThreadAndWaitBackground(func() error {
+		git = self.gui.git
+		refreshHelper = self.gui.helpers.Refresh
+		return nil
+	}); err != nil {
+		return
+	}
+
+	current, err := git.Status.RefsSnapshot()
 	if err != nil {
 		// Transient error (e.g. git process couldn't start). Don't update the
 		// stored snapshot; we'll retry next tick.
@@ -173,7 +200,7 @@ func (self *BackgroundRoutineMgr) checkForExternalChanges() {
 		return
 	}
 
-	if !self.gui.helpers.Refresh.RefsSnapshotChangedSince(current) {
+	if !refreshHelper.RefsSnapshotChangedSince(current) {
 		return
 	}
 
@@ -231,15 +258,14 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop, retrigge
 	})
 }
 
-func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
-	// Captured before the fetch, not after: the fetch is a network call during
-	// which the user may switch repos, and the post-fetch refresh needs to be
-	// able to tell (see PostFetchRefresh).
-	fetchGeneration := self.gui.c.State().GetRepoGeneration()
+// The parameters are captured by the caller before the fetch starts, not read
+// here after it: the fetch is a network call during which the user may switch
+// repos, and the post-fetch refresh needs to be able to tell (see
+// PostFetchRefresh).
+func (self *BackgroundRoutineMgr) backgroundFetch(git *commands.GitCommand, branchesHelper *helpers.BranchesHelper, fetchGeneration int) error {
+	err := git.Sync.FetchBackground()
 
-	err = self.gui.git.Sync.FetchBackground()
-
-	return self.gui.helpers.BranchesHelper.PostFetchRefresh(err, true, fetchGeneration)
+	return branchesHelper.PostFetchRefresh(err, true, fetchGeneration)
 }
 
 func (self *BackgroundRoutineMgr) triggerImmediateFetch() {
