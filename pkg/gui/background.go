@@ -232,9 +232,14 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop, retrigge
 }
 
 func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
+	// Captured before the fetch, not after: the fetch is a network call during
+	// which the user may switch repos, and the post-fetch refresh needs to be
+	// able to tell (see PostFetchRefresh).
+	fetchGeneration := self.gui.c.State().GetRepoGeneration()
+
 	err = self.gui.git.Sync.FetchBackground()
 
-	return self.gui.helpers.BranchesHelper.PostFetchRefresh(err, true)
+	return self.gui.helpers.BranchesHelper.PostFetchRefresh(err, true, fetchGeneration)
 }
 
 func (self *BackgroundRoutineMgr) triggerImmediateFetch() {
