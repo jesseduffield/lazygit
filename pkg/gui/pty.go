@@ -100,6 +100,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		cols, rows := gui.desiredPtySize(view)
 
 		var p oscommands.Pty
+		var fallbackPipe io.ReadCloser
 		start := func() (tasks.Cmd, io.Reader) {
 			// The pty (and pager) wrap to this width; apply it here, on the
 			// task's goroutine once the previous task has stopped, so it doesn't
@@ -109,7 +110,11 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 			sp, err := oscommands.StartPty(cmd, cols, rows)
 			if err != nil {
 				gui.c.Log.Error(err)
-				return tasks.ExecCmd{Cmd: cmd}, nil
+				// Fall back to running the command without a pty: the pager is
+				// lost, but the command's output still renders.
+				execCmd, pipe := startCmdWithPipe(cmd, gui.c.Log)
+				fallbackPipe = pipe
+				return execCmd, pipe
 			}
 			p = sp.Pty
 
@@ -124,6 +129,10 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 			gui.Mutexes.PtyMutex.Lock()
 			if p != nil {
 				p.Close()
+			}
+			if fallbackPipe != nil {
+				fallbackPipe.Close()
+				fallbackPipe = nil
 			}
 			delete(gui.viewPtmxMap, view.Name())
 			gui.Mutexes.PtyMutex.Unlock()

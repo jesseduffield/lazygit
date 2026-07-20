@@ -20,8 +20,5 @@ func TestStartCmdWithPipeWhenPipeCannotBeCreated(t *testing.T) {
 
 	// NewCmdTask's scanner panics on a nil reader, so startCmdWithPipe must
 	// not return one even when it can't create the pipe.
-	/* EXPECTED:
 	assert.NotNil(t, r)
-	ACTUAL: */
-	assert.Nil(t, r)
 }

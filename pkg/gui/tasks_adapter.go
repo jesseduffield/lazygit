@@ -52,12 +52,15 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 // startCmdWithPipe starts cmd with its stdout and stderr going to a single
 // pipe, and returns the command along with the pipe's read end, in the shape
-// that NewCmdTask expects from its start func.
+// that NewCmdTask expects from its start func. It never returns a nil reader,
+// because NewCmdTask's scanner panics on one: when the pipe can't be created
+// the command isn't started at all, and an empty reader is returned so that
+// the task shuts down cleanly with the error in the log.
 func startCmdWithPipe(cmd *exec.Cmd, log *logrus.Entry) (tasks.Cmd, io.ReadCloser) {
 	r, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Error(err)
-		r = nil
+		return tasks.ExecCmd{Cmd: cmd}, io.NopCloser(strings.NewReader(""))
 	}
 	cmd.Stderr = cmd.Stdout
 
