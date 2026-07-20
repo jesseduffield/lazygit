@@ -79,6 +79,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` t `` | Cofnij | Utwórz commit cofający dla wybranego commita, który stosuje zmiany wybranego commita w odwrotnej kolejności. |
 | `` T `` | Otaguj commit | Utwórz nowy tag wskazujący na wybrany commit. Zostaniesz poproszony o wprowadzenie nazwy tagu i opcjonalnego opisu. |
 | `` <ctrl+l> `` | Zobacz opcje logów | Zobacz opcje dla logów commitów, np. zmiana kolejności sortowania, ukrywanie grafu gita, pokazywanie całego grafu gita. |
+| `` ~ `` | Toggle overview mode | Only show merge commits, and commits that a local or remote branch, a tag, or HEAD points to; hide all other commits. Useful for getting a high-level view of the history. |
 | `` G `` | Otwórz żądanie ściągnięcia w przeglądarce |  |
 | `` <space> `` | Przełącz | Przełącz wybrany commit jako odłączoną HEAD. |
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |

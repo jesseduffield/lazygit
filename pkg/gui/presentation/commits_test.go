@@ -39,6 +39,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		selectedCommitHashPtr     *string
 		startIdx                  int
 		endIdx                    int
+		displayIndices            []int
 		showGraph                 bool
 		bisectInfo                *git_commands.BisectInfo
 		expected                  string
@@ -208,6 +209,51 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		hash4 ○ commit4
 		hash5 ○ commit5
 						`),
+		},
+		{
+			testName: "showing graph with display indices, keeping the shape of the full graph",
+			commitOpts: []models.NewCommitOpts{
+				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2", "hash3"}},
+				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}},
+				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}},
+				{Name: "commit4", Hash: "hash4", Parents: []string{"hash5"}},
+				{Name: "commit5", Hash: "hash5", Parents: []string{"hash7"}},
+			},
+			startIdx:                  0,
+			endIdx:                    5,
+			displayIndices:            []int{0, 2, 4},
+			showGraph:                 true,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		hash1 ◎─╮ commit1
+		hash3 ○─╯ commit3
+		hash5 ○ commit5
+						`),
+		},
+		{
+			testName: "showing graph with display indices, including rebase commits",
+			commitOpts: []models.NewCommitOpts{
+				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2", "hash3"}, Action: todo.Pick},
+				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}, Action: todo.Pick},
+				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}},
+				{Name: "commit4", Hash: "hash4", Parents: []string{"hash5"}},
+				{Name: "commit5", Hash: "hash5", Parents: []string{"hash7"}},
+			},
+			startIdx:                  0,
+			endIdx:                    5,
+			displayIndices:            []int{0, 1, 2, 4},
+			showGraph:                 true,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		hash1 pick commit1
+		hash2 pick commit2
+		hash3      ○ commit3
+		hash5      ○ commit5
+				`),
 		},
 		{
 			testName: "showing graph, including rebase commits",
@@ -564,6 +610,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.selectedCommitHashPtr,
 					s.startIdx,
 					s.endIdx,
+					s.displayIndices,
 					s.showGraph,
 					s.bisectInfo,
 				)

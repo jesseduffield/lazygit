@@ -799,6 +799,7 @@ keybinding:
     resetCherryPick: <ctrl+r>
     copyCommitAttributeToClipboard: "y"
     openLogMenu: <ctrl+l>
+    toggleOverviewMode: "~"
     openInBrowser: o
     openPullRequestInBrowser: G
     viewBisectOptions: b

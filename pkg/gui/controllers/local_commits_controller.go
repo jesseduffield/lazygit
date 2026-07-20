@@ -56,7 +56,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 	bindings := []*types.Binding{
 		{
 			Keys:    opts.GetKeys(opts.Config.Commits.SquashDown),
-			Handler: opts.Guards.OutsideFilterMode(self.withItemsRange(self.squashDown)),
+			Handler: opts.Guards.OutsideFilterMode(self.outsideOverviewMode(self.withItemsRange(self.squashDown))),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(
 					self.midRebaseCommandEnabled,
@@ -69,7 +69,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:    opts.GetKeys(opts.Config.Commits.MarkCommitAsFixup),
-			Handler: opts.Guards.OutsideFilterMode(self.withItemsRange(self.fixup)),
+			Handler: opts.Guards.OutsideFilterMode(self.outsideOverviewMode(self.withItemsRange(self.fixup))),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(
 					self.midRebaseCommandEnabled,
@@ -91,7 +91,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:    opts.GetKeys(opts.Config.Commits.RenameCommit),
-			Handler: self.withItem(self.reword),
+			Handler: self.outsideOverviewMode(self.withItem(self.reword)),
 			GetDisabledReason: self.require(
 				self.singleItemSelected(self.rewordEnabled),
 			),
@@ -102,7 +102,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:    opts.GetKeys(opts.Config.Commits.RenameCommitWithEditor),
-			Handler: self.withItem(self.rewordEditor),
+			Handler: self.outsideOverviewMode(self.withItem(self.rewordEditor)),
 			GetDisabledReason: self.require(
 				self.singleItemSelected(self.rewordEnabled),
 			),
@@ -110,7 +110,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:    opts.GetKeys(opts.Config.Universal.Remove),
-			Handler: self.withItemsRange(self.drop),
+			Handler: self.outsideOverviewMode(self.withItemsRange(self.drop)),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(
 					self.canDropCommits,
@@ -122,7 +122,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:    opts.GetKeys(editCommitKey),
-			Handler: opts.Guards.OutsideFilterMode(self.withItemsRange(self.edit)),
+			Handler: opts.Guards.OutsideFilterMode(self.outsideOverviewMode(self.withItemsRange(self.edit))),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(self.midRebaseCommandEnabled),
 			),
@@ -136,7 +136,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			// we're calling it 'quick-start interactive rebase' to differentiate it from
 			// when you manually select the base commit.
 			Keys:              opts.GetKeys(opts.Config.Commits.StartInteractiveRebase),
-			Handler:           opts.Guards.OutsideFilterMode(self.quickStartInteractiveRebase),
+			Handler:           opts.Guards.OutsideFilterMode(self.outsideOverviewMode(self.quickStartInteractiveRebase)),
 			GetDisabledReason: self.require(self.notMidRebase(self.c.Tr.AlreadyRebasing), self.canFindCommitForQuickStart),
 			Description:       self.c.Tr.QuickStartInteractiveRebase,
 			Tooltip: utils.ResolvePlaceholderString(self.c.Tr.QuickStartInteractiveRebaseTooltip, map[string]string{
@@ -145,7 +145,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:    opts.GetKeys(opts.Config.Commits.PickCommit),
-			Handler: opts.Guards.OutsideFilterMode(self.withItems(self.pick)),
+			Handler: opts.Guards.OutsideFilterMode(self.outsideOverviewMode(self.withItems(self.pick))),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(self.pickEnabled),
 			),
@@ -154,7 +154,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Commits.CreateFixupCommit),
-			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.createFixupCommit)),
+			Handler:           opts.Guards.OutsideFilterMode(self.outsideOverviewMode(self.withItem(self.createFixupCommit))),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.CreateFixupCommit,
 			Tooltip: utils.ResolvePlaceholderString(
@@ -166,7 +166,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:    opts.GetKeys(opts.Config.Commits.SquashAboveCommits),
-			Handler: opts.Guards.OutsideFilterMode(self.squashFixupCommits),
+			Handler: opts.Guards.OutsideFilterMode(self.outsideOverviewMode(self.squashFixupCommits)),
 			GetDisabledReason: self.require(
 				self.notMidRebase(self.c.Tr.AlreadyRebasing),
 			),
@@ -176,7 +176,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:    opts.GetKeys(opts.Config.Commits.MoveDownCommit),
-			Handler: opts.Guards.OutsideFilterMode(self.withItemsRange(self.moveDown)),
+			Handler: opts.Guards.OutsideFilterMode(self.outsideOverviewMode(self.withItemsRange(self.moveDown))),
 			GetDisabledReason: self.require(self.itemRangeSelected(
 				self.midRebaseMoveCommandEnabled,
 				self.canMoveDown,
@@ -185,7 +185,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:    opts.GetKeys(opts.Config.Commits.MoveUpCommit),
-			Handler: opts.Guards.OutsideFilterMode(self.withItemsRange(self.moveUp)),
+			Handler: opts.Guards.OutsideFilterMode(self.outsideOverviewMode(self.withItemsRange(self.moveUp))),
 			GetDisabledReason: self.require(self.itemRangeSelected(
 				self.midRebaseMoveCommandEnabled,
 				self.canMoveUp,
@@ -194,14 +194,14 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Commits.PasteCommits),
-			Handler:           opts.Guards.OutsideFilterMode(self.paste),
+			Handler:           opts.Guards.OutsideFilterMode(self.outsideOverviewMode(self.paste)),
 			GetDisabledReason: self.require(self.canPaste),
 			Description:       self.c.Tr.PasteCommits,
 			DisplayStyle:      &style.FgCyan,
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Commits.MarkCommitAsBaseForRebase),
-			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.markAsBaseCommit)),
+			Handler:           opts.Guards.OutsideFilterMode(self.outsideOverviewMode(self.withItem(self.markAsBaseCommit))),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.MarkAsBaseCommit,
 			Tooltip:           self.c.Tr.MarkAsBaseCommitTooltip,
@@ -216,7 +216,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Commits.AmendToCommit),
-			Handler:           self.withItem(self.amendTo),
+			Handler:           self.outsideOverviewMode(self.withItem(self.amendTo)),
 			GetDisabledReason: self.require(self.singleItemSelected(self.canAmend)),
 			Description:       self.c.Tr.Amend,
 			Tooltip:           self.c.Tr.AmendCommitTooltip,
@@ -224,7 +224,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Commits.ResetCommitAuthor),
-			Handler:           self.withItemsRange(self.amendAttribute),
+			Handler:           self.outsideOverviewMode(self.withItemsRange(self.amendAttribute)),
 			GetDisabledReason: self.require(self.itemRangeSelected(self.canAmendRange)),
 			Description:       self.c.Tr.AmendCommitAttribute,
 			Tooltip:           self.c.Tr.AmendCommitAttributeTooltip,
@@ -250,6 +250,12 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description: self.c.Tr.OpenLogMenu,
 			Tooltip:     self.c.Tr.OpenLogMenuTooltip,
 			OpensMenu:   true,
+		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Commits.ToggleOverviewMode),
+			Handler:     self.toggleOverviewMode,
+			Description: self.c.Tr.ToggleOverviewMode,
+			Tooltip:     self.c.Tr.ToggleOverviewModeTooltip,
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Commits.OpenPullRequestInBrowser),
@@ -1245,6 +1251,32 @@ func (self *LocalCommitsController) openSearch() error {
 	return self.c.Helpers().Search.OpenSearchPrompt(self.context())
 }
 
+// Commands that pick the rebase base from the position of the selection in
+// the commits list would operate relative to commits that overview mode
+// hides, so require exiting the mode first (like filter mode does).
+func (self *LocalCommitsController) outsideOverviewMode(f func() error) func() error {
+	return func() error {
+		if !self.context().GetOverviewMode() {
+			return f()
+		}
+
+		self.c.Confirm(types.ConfirmOpts{
+			Title:         self.c.Tr.MustExitFilterModeTitle,
+			Prompt:        self.c.Tr.MustExitOverviewModePrompt,
+			HandleConfirm: self.c.Helpers().Mode.ExitOverviewMode,
+		})
+
+		return nil
+	}
+}
+
+func (self *LocalCommitsController) toggleOverviewMode() error {
+	if self.context().GetOverviewMode() {
+		return self.c.Helpers().Mode.ExitOverviewMode()
+	}
+	return self.c.Helpers().Mode.EnterOverviewMode()
+}
+
 func (self *LocalCommitsController) handleOpenLogMenu() error {
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.LogMenuTitle,
@@ -1265,6 +1297,11 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 						return nil
 					})
 				},
+			},
+			{
+				Label:   self.c.Tr.ToggleOverviewMode,
+				Tooltip: self.c.Tr.ToggleOverviewModeTooltip,
+				OnPress: self.toggleOverviewMode,
 			},
 			{
 				Label:     self.c.Tr.ShowGitGraph,

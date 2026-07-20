@@ -86,6 +86,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` t `` | リバート | 選択したコミットの変更を逆に適用する、リバートコミットを作成します。 |
 | `` T `` | コミットにタグを付ける | 選択したコミットを指すタグを新規作成します。タグ名とオプションの説明を入力するよう促されます。 |
 | `` <ctrl+l> `` | ログオプションを表示 | コミットログのオプションを表示します（例：並び順の変更、Gitグラフの非表示、Gitグラフ全体の表示）。 |
+| `` ~ `` | Toggle overview mode | Only show merge commits, and commits that a local or remote branch, a tag, or HEAD points to; hide all other commits. Useful for getting a high-level view of the history. |
 | `` G `` | Open pull request in browser |  |
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択したコミットをデタッチドヘッド（特定のブランチに属さない状態）としてチェックアウトします。 |
 | `` y `` | コミット属性をクリップボードにコピー | コミット属性をクリップボードにコピーします（例：ハッシュ、URL、差分、メッセージ、作者）。 |

@@ -143,6 +143,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` t `` | 撤销(Revert) | 为所选提交创建还原提交，这会反向应用所选提交的更改。 |
 | `` T `` | 标签提交 | 创建一个新标签指向所选提交。您可以在弹窗中输入标签名称和描述(可选)。 |
 | `` <ctrl+l> `` | 打开日志菜单 | 查看提交日志的选项，例如更改排序顺序、隐藏 git graph、显示整个 git graph。 |
+| `` ~ `` | Toggle overview mode | Only show merge commits, and commits that a local or remote branch, a tag, or HEAD points to; hide all other commits. Useful for getting a high-level view of the history. |
 | `` G `` | 在浏览器中打开拉取请求 |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |

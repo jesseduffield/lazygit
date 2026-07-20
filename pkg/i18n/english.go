@@ -666,6 +666,10 @@ type TranslationSet struct {
 	WillCancelExistingFilterTooltip       string
 	MustExitFilterModeTitle               string
 	MustExitFilterModePrompt              string
+	MustExitOverviewModePrompt            string
+	OverviewModeStatus                    string
+	ExitOverviewMode                      string
+	CommitsOverviewTitle                  string
 	Diff                                  string
 	EnterRefToDiff                        string
 	EnterRefName                          string
@@ -809,6 +813,8 @@ type TranslationSet struct {
 	OpenLogMenuTooltip                       string
 	LogMenuTitle                             string
 	ToggleShowGitGraphAll                    string
+	ToggleOverviewMode                       string
+	ToggleOverviewModeTooltip                string
 	ShowGitGraph                             string
 	ShowGitGraphTooltip                      string
 	SortOrder                                string
@@ -1814,6 +1820,10 @@ func EnglishTranslationSet() *TranslationSet {
 		WillCancelExistingFilterTooltip:  "Note: this will cancel the existing filter",
 		MustExitFilterModeTitle:          "Command not available",
 		MustExitFilterModePrompt:         "Command not available in filter-by-path mode. Exit filter-by-path mode?",
+		MustExitOverviewModePrompt:       "Command not available in overview mode. Exit overview mode?",
+		OverviewModeStatus:               "Showing commits overview",
+		ExitOverviewMode:                 "Exit overview mode",
+		CommitsOverviewTitle:             "Commits (overview)",
 		Diff:                             "Diff",
 		EnterRefToDiff:                   "Enter ref to diff",
 		EnterRefName:                     "Enter ref:",
@@ -1956,6 +1966,8 @@ func EnglishTranslationSet() *TranslationSet {
 		OpenLogMenuTooltip:                       "View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph.",
 		LogMenuTitle:                             "Commit Log Options",
 		ToggleShowGitGraphAll:                    "Toggle show whole git graph (pass the `--all` flag to `git log`)",
+		ToggleOverviewMode:                       "Toggle overview mode",
+		ToggleOverviewModeTooltip:                "Only show merge commits, and commits that a local or remote branch, a tag, or HEAD points to; hide all other commits. Useful for getting a high-level view of the history.",
 		ShowGitGraph:                             "Show git graph",
 		ShowGitGraphTooltip:                      "Show or hide the git graph in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.showGraph'.",
 		SortOrder:                                "Sort order",

@@ -44,9 +44,18 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 
 		hasRebaseUpdateRefsConfig := c.Git().Config.GetRebaseUpdateRefs()
 
+		// In overview mode the model only holds the displayed subset of the
+		// commits; the graph is rendered from the full list so that hiding
+		// rows doesn't change its shape.
+		commits := c.Model().Commits
+		displayIndices := overviewDisplayIndices(c, startIdx, endIdx)
+		if displayIndices != nil {
+			commits = c.Model().OverviewCommitsSource
+		}
+
 		return presentation.GetCommitListDisplayStrings(
 			c.Common,
-			c.Model().Commits,
+			commits,
 			c.Model().Branches,
 			c.Model().CheckedOutBranch,
 			hasRebaseUpdateRefsConfig,
@@ -61,6 +70,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			selectedCommitHashPtr,
 			startIdx,
 			endIdx,
+			displayIndices,
 			shouldShowGraph(c),
 			c.Model().BisectInfo,
 		)
@@ -149,6 +159,17 @@ type LocalCommitsViewModel struct {
 
 	// If this is true we'll use git log --all when fetching the commits.
 	showWholeGitGraph bool
+
+	// If this is true we only show merge commits and commits that a local or
+	// remote branch, a tag, or HEAD points to.
+	overviewMode bool
+
+	// When enabling overview mode hides the selected commit, we remember it
+	// here, along with the commit the selection was moved to, so that
+	// disabling the mode can jump back to it if the selection hasn't moved
+	// in the meantime.
+	overviewReturnHash       string
+	overviewAutoSelectedHash string
 }
 
 func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon) *LocalCommitsViewModel {
@@ -243,8 +264,58 @@ func (self *LocalCommitsViewModel) GetShowWholeGitGraph() bool {
 	return self.showWholeGitGraph
 }
 
+func (self *LocalCommitsViewModel) SetOverviewMode(value bool) {
+	self.overviewMode = value
+}
+
+func (self *LocalCommitsViewModel) GetOverviewMode() bool {
+	return self.overviewMode
+}
+
+func (self *LocalCommitsViewModel) SetOverviewReturnHashes(returnHash string, autoSelectedHash string) {
+	self.overviewReturnHash = returnHash
+	self.overviewAutoSelectedHash = autoSelectedHash
+}
+
+func (self *LocalCommitsViewModel) GetOverviewReturnHashes() (string, string) {
+	return self.overviewReturnHash, self.overviewAutoSelectedHash
+}
+
 func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
 	return self.getModel()
+}
+
+// overviewDisplayIndices returns, for the given window of displayed rows, the
+// indices of those rows in Model().OverviewCommitsSource, or nil when overview
+// mode is off. It validates that the mapping matches the displayed commits and
+// returns nil on a mismatch (which can happen transiently when something other
+// than a commits refresh replaces Model().Commits, e.g. the mid-rebase todo
+// refresh), so the caller falls back to rendering from the displayed list.
+func overviewDisplayIndices(c *ContextCommon, startIdx int, endIdx int) []int {
+	indices := c.Model().OverviewCommitIndices
+	if indices == nil {
+		return nil
+	}
+
+	displayed := c.Model().Commits
+	source := c.Model().OverviewCommitsSource
+	if len(indices) != len(displayed) {
+		return nil
+	}
+
+	endIdx = min(endIdx, len(displayed))
+	if startIdx >= endIdx {
+		return []int{}
+	}
+
+	window := indices[startIdx:endIdx]
+	for i, modelIdx := range window {
+		if modelIdx >= len(source) || source[modelIdx] != displayed[startIdx+i] {
+			return nil
+		}
+	}
+
+	return window
 }
 
 func shouldShowGraph(c *ContextCommon) bool {
