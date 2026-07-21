@@ -58,6 +58,7 @@ func (p ptyCmd) GetProcess() *os.Process { return p.process }
 // command.
 func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
 	width := view.InnerWidth()
+	diffContext := gui.UserConfig().Git.DiffContextSize
 
 	// LAZYGIT_COLUMNS is documented in docs/Custom_Pagers.md for pager
 	// scripts that can't query the terminal width directly. We set it on
@@ -65,7 +66,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	cmd.Env = append(cmd.Env, fmt.Sprintf("LAZYGIT_COLUMNS=%d", width))
 
 	pager := gui.stateAccessor.GetPagerConfig().GetPagerCommand(width)
-	externalDiffCommand := gui.stateAccessor.GetPagerConfig().GetExternalDiffCommand()
+	externalDiffCommand := gui.stateAccessor.GetPagerConfig().GetExternalDiffCommand(diffContext)
 	useExtDiffGitConfig := gui.stateAccessor.GetPagerConfig().GetUseExternalDiffGitConfig()
 
 	if pager == "" && externalDiffCommand == "" && !useExtDiffGitConfig {

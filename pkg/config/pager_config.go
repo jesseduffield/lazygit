@@ -58,12 +58,17 @@ func (self *PagerConfig) GetColorArg() string {
 	return colorArg
 }
 
-func (self *PagerConfig) GetExternalDiffCommand() string {
+func (self *PagerConfig) GetExternalDiffCommand(diffContext uint64) string {
 	currentPagerConfig := self.currentPagerConfig()
 	if currentPagerConfig == nil {
 		return ""
 	}
-	return currentPagerConfig.ExternalDiffCommand
+
+	templateValues := map[string]string{
+		"diffContext": strconv.Itoa(int(diffContext)),
+	}
+
+	return utils.ResolvePlaceholderString(currentPagerConfig.ExternalDiffCommand, templateValues)
 }
 
 func (self *PagerConfig) GetUseExternalDiffGitConfig() bool {
