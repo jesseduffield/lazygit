@@ -1216,11 +1216,11 @@ func (self *RefreshHelper) onUIThread(background bool, f func() error) {
 // runs on the UI thread (calledFromWorker is false) fn runs inline; when it runs
 // on a worker, fn is dispatched to the UI thread and we block for it.
 //
-// The inline case matters for correctness as much as the hop: a SYNC refresh
-// initiated on the UI thread parks that thread in a wg.Wait while its scope
-// workers run, so a scope worker that tried to hop to the UI thread there would
-// deadlock. Capturing before those workers are spawned — inline, on the UI
-// thread — avoids that entirely.
+// The inline case matters for correctness as much as the hop: OnUIThreadAndWait
+// must not be called from the UI thread itself (it would park the thread
+// waiting for a callback that only it can run), and capturing inline also
+// guarantees the snapshot reflects the state at the moment Refresh was called,
+// before the calling handler regains control and can mutate it.
 func (self *RefreshHelper) captureOnUIThread(calledFromWorker bool, background bool, fn func()) {
 	if !calledFromWorker {
 		fn()
