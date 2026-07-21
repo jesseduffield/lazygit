@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -40,6 +41,15 @@ func (self *TestDriver) pressFast(keyStr string) {
 	self.SetCaption("")
 	self.gui.PressKey(keyStr)
 	self.Wait(self.inputDelay / 5)
+}
+
+// presses the keys in immediate succession, without waiting for lazygit to
+// become idle in between, to simulate a user typing faster than lazygit
+// processes the input
+func (self *TestDriver) pressRapidly(keyStrs []string) {
+	self.SetCaption(fmt.Sprintf("Pressing %s", strings.Join(keyStrs, ", ")))
+	self.gui.PressKeysRapidly(keyStrs...)
+	self.Wait(self.inputDelay)
 }
 
 func (self *TestDriver) click(x, y int) {

@@ -25,17 +25,27 @@ type GuiDriver struct {
 var _ integrationTypes.GuiDriver = &GuiDriver{}
 
 func (self *GuiDriver) PressKey(keyStr string) {
+	self.PressKeysRapidly(keyStr)
+}
+
+// PressKeysRapidly presses the given keys in immediate succession, waiting for
+// lazygit to become idle only after the last one. Keys pressed this way can
+// arrive while the previous key's processing is still in flight, like a user
+// typing faster than lazygit handles the input.
+func (self *GuiDriver) PressKeysRapidly(keyStrs ...string) {
 	self.CheckAllToastsAcknowledged()
 
-	key, ok := config.KeyFromLabel(keyStr)
-	if !ok {
-		self.Fail("Unrecognized key: " + keyStr)
-	}
+	for _, keyStr := range keyStrs {
+		key, ok := config.KeyFromLabel(keyStr)
+		if !ok {
+			self.Fail("Unrecognized key: " + keyStr)
+		}
 
-	self.gui.g.ReplayKeyEvent(gocui.NewTcellKeyEventWrapper(
-		tcell.NewEventKey(tcell.Key(key.KeyName()), key.Str(), tcell.ModMask(key.Mod())),
-		0,
-	))
+		self.gui.g.ReplayKeyEvent(gocui.NewTcellKeyEventWrapper(
+			tcell.NewEventKey(tcell.Key(key.KeyName()), key.Str(), tcell.ModMask(key.Mod())),
+			0,
+		))
+	}
 
 	self.waitTillIdle()
 }
