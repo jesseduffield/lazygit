@@ -36,7 +36,6 @@ var StageHunksWithRapidKeypresses = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			PressRapidly(keys.Universal.Select, keys.Universal.Select)
 
-		/* EXPECTED:
 		t.Views().StagingSecondary().
 			IsFocused().
 			ContainsLines(
@@ -46,24 +45,6 @@ var StageHunksWithRapidKeypresses = NewIntegrationTest(NewIntegrationTestArgs{
 			ContainsLines(
 				Contains("+3b"),
 				Contains("+4b"),
-			)
-		ACTUAL: */
-		t.ExpectPopup().Alert().
-			Title(Equals("Error")).
-			Content(Contains("patch does not apply")).
-			Confirm()
-
-		t.Views().Staging().
-			IsFocused().
-			ContainsLines(
-				Contains("+3b"),
-				Contains("+4b"),
-			)
-
-		t.Views().StagingSecondary().
-			ContainsLines(
-				Contains("+1b"),
-				Contains("+2b"),
 			)
 	},
 })

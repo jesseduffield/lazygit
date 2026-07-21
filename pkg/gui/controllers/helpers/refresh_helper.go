@@ -81,14 +81,20 @@ func NewRefreshHelper(
 }
 
 func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
-	self.performRefresh(options, false)
+	self.performRefresh(options, false, false)
+}
+
+// RefreshBlockingInput is Refresh for handlers whose next keypress may depend
+// on the state the refresh produces. See IGuiCommon.RefreshBlockingInput.
+func (self *RefreshHelper) RefreshBlockingInput(options types.RefreshOptions) {
+	self.performRefresh(options, false, true)
 }
 
 // RefreshFromWorker is Refresh for callers already running on a worker
 // goroutine (e.g. inside a WithWaitingStatus handler) rather than the UI
 // thread. See IGuiCommon.RefreshFromWorker.
 func (self *RefreshHelper) RefreshFromWorker(options types.RefreshOptions) {
-	self.performRefresh(options, true)
+	self.performRefresh(options, true, false)
 }
 
 type refreshEnv struct {
@@ -159,7 +165,7 @@ func (self *refreshBounceBatch) close() []func() {
 	return self.funcs
 }
 
-func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFromWorker bool) {
+func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFromWorker bool, blockInput bool) {
 	startTime := time.Now()
 
 	// A refresh from a worker blocks that worker until it's done; one from the
@@ -190,6 +196,17 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		// would run against the newly switched-to repo. A refresh carrying a
 		// Then must keep blocking switches.
 		panic("a refresh with a Then callback must not set DontBlockRepoSwitch")
+	}
+
+	// A RefreshBlockingInput caller wants keyboard input withheld until the
+	// refreshed state is in place (see IGuiCommon.RefreshBlockingInput). Begin
+	// the block synchronously here in the calling handler, so that no keypress
+	// can slip through before it; the finishing step ends it from a callback
+	// queued behind the refresh's own updates (see waitAndFinalize). Demos
+	// take the blocking inline path below and need none of this.
+	blockInputUntilDone := blockInput && !self.c.InDemo()
+	if blockInputUntilDone {
+		self.c.GocuiGui().BeginBlockingEvents()
 	}
 
 	// Capture the refresh's baseline once, here at the start: the repo
@@ -496,6 +513,15 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			// invoking Then synchronously would run it on a model that's
 			// still pre-refresh.
 			self.onUIThread(env.background, options.Then)
+		}
+
+		if blockInputUntilDone {
+			// Queued after the scopes' model bounces and Then, so by the time
+			// this runs — and the keys buffered during the refresh replay —
+			// the refreshed state is in place.
+			self.c.OnUIThread(func() error {
+				return self.c.GocuiGui().EndBlockingEvents()
+			})
 		}
 
 		self.c.Log.Infof("Refresh took %s", time.Since(startTime))
