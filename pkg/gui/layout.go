@@ -37,13 +37,18 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	if prevMainView != nil {
 		prevMainHeight := prevMainView.Height()
 		newMainHeight := viewDimensions["main"].Y1 - viewDimensions["main"].Y0 + 1
-		heightDiff := newMainHeight - prevMainHeight
-		if heightDiff > 0 {
+		if newMainHeight > prevMainHeight {
+			// The main views have grown taller, so make sure enough lines are
+			// loaded to fill them. The views haven't been resized yet at this
+			// point, so we can't rely on their current height; compute the target
+			// total from the new height instead. (Reading past the actual content
+			// is harmless: ReadLines stops at the end of input.)
+			linesToRead := prevMainView.OriginY() + newMainHeight
 			if manager := gui.getViewBufferManagerForView(gui.Views.Main); manager != nil {
-				manager.ReadLines(heightDiff)
+				manager.ReadLines(linesToRead)
 			}
 			if manager := gui.getViewBufferManagerForView(gui.Views.Secondary); manager != nil {
-				manager.ReadLines(heightDiff)
+				manager.ReadLines(linesToRead)
 			}
 		}
 	}
@@ -149,7 +154,14 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != nil && !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
-		view.Visible = gui.helpers.Window.GetViewNameForWindow(context.GetWindowName()) == context.GetViewName()
+		// A transient view is visible if it is the view its window is currently
+		// showing — but only if that window is part of the layout at all. For a
+		// window without dimensions, setViewFromDimensions parks the view at full
+		// screen size in the background, so making it visible would cover all
+		// windows below it.
+		_, windowHasDimensions := viewDimensions[context.GetWindowName()]
+		view.Visible = windowHasDimensions &&
+			gui.helpers.Window.GetViewNameForWindow(context.GetWindowName()) == context.GetViewName()
 	}
 
 	if gui.PrevLayout.Information != informationStr {

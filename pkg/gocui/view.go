@@ -7,6 +7,7 @@ package gocui
 import (
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"sync"
 	"unicode"
@@ -49,6 +50,14 @@ type View struct {
 
 	// tained is true if the viewLines must be updated
 	tainted bool
+
+	// firstDirtyLine is the index of the lowest line in `lines` that has been
+	// written to or highlighted since viewLines was last refreshed, and whose
+	// cached wrapping (lineType.wrappedCells) may therefore be stale. Lines
+	// below it are unchanged and can reuse their cached wrapping instead of
+	// being re-wrapped, which keeps refreshViewLinesIfNeeded cheap while
+	// scrolling appends new lines to a long buffer.
+	firstDirtyLine int
 
 	// the last position that the mouse was hovering over; nil if the mouse is outside of
 	// this view, or not hovering over a cell
@@ -204,6 +213,16 @@ func (v *View) clearViewLines() {
 	v.tainted = true
 	v.viewLines = nil
 	v.clearHover()
+}
+
+// ClearViewLines is clearViewLines guarded by writeMutex. It's for callers on
+// the UI thread (the layout pass) that touch a view whose content a task
+// goroutine may be writing concurrently: viewLines/tainted/hover are all
+// buffer state that writeMutex protects.
+func (v *View) ClearViewLines() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+	v.clearViewLines()
 }
 
 type searcher struct {
@@ -457,6 +476,16 @@ type viewLine struct {
 type lineType struct {
 	cells                  cells
 	trailingFillAttributes *trailingFillAttributes
+
+	// wrappedCells caches the result of wrapping `cells` to `wrappedColumns`
+	// columns, so that unchanged lines don't have to be re-wrapped on every
+	// refreshViewLinesIfNeeded (which runs on every scroll event, via
+	// ViewLinesHeight). Wrapping measures every cell's width and allocates, so
+	// for a long buffer that dominates the cost of scrolling. The cache is used
+	// only for lines below View.firstDirtyLine whose wrappedColumns still
+	// matches the current width; nil means nothing is cached yet.
+	wrappedCells   [][]cell
+	wrappedColumns int
 }
 
 // trailingFillAttributes describes the fg/bg colors that draw() should
@@ -518,7 +547,18 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 	v.SelFgColor, v.SelBgColor = ColorDefault, ColorDefault
 	v.InactiveViewSelBgColor = ColorDefault
 	v.TitleColor, v.FrameColor = ColorDefault, ColorDefault
+	v.ei.screenColMax = v.InnerWidth()
 	return v
+}
+
+// SetContentWidth tells the view the screen width that content written to it
+// should count soft-wraps against (see escapeInterpreter.notifyCellsWritten).
+// Callers pass the view's InnerWidth; it's a separate call, made on the UI
+// thread when a render starts, so that the task goroutine that streams the
+// content can consult this snapshot instead of reading the view's live
+// dimensions (which the UI thread mutates during layout).
+func (v *View) SetContentWidth(width int) {
+	v.ei.screenColMax = width
 }
 
 // Dimensions returns the dimensions of the View
@@ -815,6 +855,9 @@ func (v *View) Write(p []byte) (n int, err error) {
 
 func (v *View) write(p []byte) {
 	v.tainted = true
+	// write only ever touches lines from v.wy onwards, so any cached wrapping
+	// below that stays valid.
+	v.firstDirtyLine = min(v.firstDirtyLine, v.wy)
 	v.clearHover()
 
 	// Fill with empty cells, if writing outside current view buffer
@@ -886,7 +929,7 @@ func (v *View) write(p []byte) {
 				for _, c := range cells {
 					totalWidth += c.width
 				}
-				v.ei.notifyCellsWritten(totalWidth, v.InnerWidth())
+				v.ei.notifyCellsWritten(totalWidth)
 			}
 		}
 	}
@@ -1104,10 +1147,25 @@ func (v *View) CopyContent(from *View) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
+	// A background task may be streaming output into the source view's buffer
+	// via Write, so read it under its own lock. The source is always a
+	// different view than the destination (see the sole caller,
+	// moveMainContextToTop), and no other code holds two view write locks at
+	// once, so this can't deadlock.
+	from.writeMutex.Lock()
+	defer from.writeMutex.Unlock()
+
 	v.clear()
 
-	v.lines = from.lines
-	v.viewLines = from.viewLines
+	// Clone the row slices rather than sharing them: the source view stays
+	// live (its streaming task keeps appending rows, and refreshViewLinesIfNeeded
+	// fills each row's wrapping cache in place via &lines[i]), so sharing the
+	// backing arrays would race those writes against this view's own rendering.
+	// This is a shallow clone -- the per-row cell data is immutable once written
+	// and stays shared, so the cost is proportional to the number of rows, not
+	// their contents.
+	v.lines = slices.Clone(from.lines)
+	v.viewLines = slices.Clone(from.viewLines)
 	v.ox = from.ox
 	v.oy = from.oy
 	v.cx = from.cx
@@ -1255,6 +1313,8 @@ func (v *View) updateSearchPositions() {
 
 // IsTainted tells us if the view is tainted
 func (v *View) IsTainted() bool {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
 	return v.tainted
 }
 
@@ -1358,48 +1418,64 @@ func (v *View) draw() {
 }
 
 func (v *View) refreshViewLinesIfNeeded() {
-	if v.tainted {
-		maxX := v.InnerWidth()
-		lineIdx := 0
-		lines := v.lines
-		for i, line := range lines {
-			wrap := 0
-			if v.Wrap {
-				wrap = maxX
-			}
-
-			ls := lineWrap(line.cells, wrap)
-			for j := range ls {
-				// Per-segment trailing fill. When the source line opted in
-				// via '\x1b[K', the LAST wrapped segment uses those colors
-				// directly; earlier segments use the colors of their own
-				// last cell, so the trailing area matches the bg active
-				// where that segment ended rather than bleeding the
-				// '\x1b[K' bg back across color changes in the line.
-				var attrs *trailingFillAttributes
-				if line.trailingFillAttributes != nil {
-					if j == len(ls)-1 {
-						attrs = line.trailingFillAttributes
-					} else if len(ls[j]) > 0 {
-						last := ls[j][len(ls[j])-1]
-						attrs = &trailingFillAttributes{fg: last.fgColor, bg: last.bgColor}
-					}
-				}
-				vline := viewLine{
-					linesX: j, linesY: i, line: ls[j],
-					trailingFillAttributes: attrs,
-				}
-
-				if lineIdx > len(v.viewLines)-1 {
-					v.viewLines = append(v.viewLines, vline)
-				} else {
-					v.viewLines[lineIdx] = vline
-				}
-				lineIdx++
-			}
-		}
-		v.tainted = false
+	if !v.tainted {
+		return
 	}
+
+	maxX := v.InnerWidth()
+	wrap := 0
+	if v.Wrap {
+		wrap = maxX
+	}
+
+	lineIdx := 0
+	lines := v.lines
+	for i := range lines {
+		line := &lines[i]
+
+		// Reuse the previously wrapped result for lines that haven't changed
+		// since the last refresh (i.e. below firstDirtyLine) and were wrapped at
+		// the current width. Wrapping is expensive and this loop runs on every
+		// scroll event, so only the lines that were actually just read (or
+		// re-highlighted) should be wrapped afresh.
+		if line.wrappedCells == nil || line.wrappedColumns != wrap || i >= v.firstDirtyLine {
+			line.wrappedCells = lineWrap(line.cells, wrap)
+			line.wrappedColumns = wrap
+		}
+		ls := line.wrappedCells
+
+		for j := range ls {
+			// Per-segment trailing fill. When the source line opted in
+			// via '\x1b[K', the LAST wrapped segment uses those colors
+			// directly; earlier segments use the colors of their own
+			// last cell, so the trailing area matches the bg active
+			// where that segment ended rather than bleeding the
+			// '\x1b[K' bg back across color changes in the line.
+			var attrs *trailingFillAttributes
+			if line.trailingFillAttributes != nil {
+				if j == len(ls)-1 {
+					attrs = line.trailingFillAttributes
+				} else if len(ls[j]) > 0 {
+					last := ls[j][len(ls[j])-1]
+					attrs = &trailingFillAttributes{fg: last.fgColor, bg: last.bgColor}
+				}
+			}
+			vline := viewLine{
+				linesX: j, linesY: i, line: ls[j],
+				trailingFillAttributes: attrs,
+			}
+
+			if lineIdx > len(v.viewLines)-1 {
+				v.viewLines = append(v.viewLines, vline)
+			} else {
+				v.viewLines[lineIdx] = vline
+			}
+			lineIdx++
+		}
+	}
+
+	v.firstDirtyLine = len(lines)
+	v.tainted = false
 }
 
 // if autoscroll is enabled but we only have a single row of cells shown to the
@@ -1487,6 +1563,9 @@ func (v *View) BufferLines() []string {
 // Buffer returns a string with the contents of the view's internal
 // buffer.
 func (v *View) Buffer() string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	return linesToString(v.lines)
 }
 
@@ -1599,6 +1678,7 @@ func (v *View) SetHighlight(y int, on bool) {
 		cells = append(cells, c)
 	}
 	v.tainted = true
+	v.firstDirtyLine = min(v.firstDirtyLine, y)
 	v.lines[y].cells = cells
 	v.clearHover()
 }

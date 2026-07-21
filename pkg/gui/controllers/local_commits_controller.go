@@ -342,7 +342,7 @@ func (self *LocalCommitsController) squashDown(selectedCommits []*models.Commit,
 		HandleConfirm: func() error {
 			commits := self.c.Model().Commits
 			self.selectRebaseResultCommit(startIdx)
-			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.SquashingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SquashCommitDown)
 				return self.interactiveRebase(commits, todo.Squash, startIdx, endIdx)
 			})
@@ -366,7 +366,7 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 				OnPress: func() error {
 					commits := self.c.Model().Commits
 					self.selectRebaseResultCommit(startIdx)
-					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
+					return self.c.WithWaitingStatusBlockingInput(self.c.Tr.FixingStatus, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.FixupCommit)
 						return self.interactiveRebase(commits, todo.Fixup, startIdx, endIdx)
 					})
@@ -379,7 +379,7 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 				OnPress: func() error {
 					commits := self.c.Model().Commits
 					self.selectRebaseResultCommit(startIdx)
-					return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
+					return self.c.WithWaitingStatusBlockingInput(self.c.Tr.FixingStatus, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.FixupCommitKeepMessage)
 						return self.interactiveRebaseWithFlag(commits, todo.Fixup, startIdx, endIdx, "-C")
 					})
@@ -476,7 +476,7 @@ func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepat
 		return err
 	}
 
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{})
 	return nil
 }
 
@@ -490,12 +490,12 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 			self.c.Tr.RewordingStatus, nil, nil)
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.RewordingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RewordingStatus, func(gocui.Task) error {
 		err := self.c.Git().Rebase.RewordCommit(commits, selectedIdx, summary, description)
 		if err != nil {
 			return err
 		}
-		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.RefreshFromWorker(types.RefreshOptions{})
 		return nil
 	})
 }
@@ -576,7 +576,7 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 			if !isMerge {
 				self.selectRebaseResultCommit(startIdx)
 			}
-			return self.c.WithWaitingStatus(self.c.Tr.DroppingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.DroppingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DropCommit)
 				if isMerge {
 					return self.dropMergeCommit(commits, startIdx)
@@ -601,10 +601,10 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, start
 
 	commits := self.c.Model().Commits
 	if !commits[endIdx].IsMerge() {
-		return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+		return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 			err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit, "")
 			return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
-				err, types.RefreshOptions{Mode: types.BLOCK_UI})
+				err, types.RefreshOptions{BatchUIUpdates: true})
 		})
 	}
 
@@ -623,12 +623,12 @@ func (self *LocalCommitsController) quickStartInteractiveRebase() error {
 func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 	commitsToEdit []*models.Commit,
 ) error {
-	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
 		err := self.c.Git().Rebase.EditRebase(commitsToEdit[len(commitsToEdit)-1].Hash())
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err,
-			types.RefreshOptions{Mode: types.BLOCK_UI, Then: func() error {
+			types.RefreshOptions{BatchUIUpdates: true, Then: func() error {
 				todos := make([]*models.Commit, 0, len(commitsToEdit)-1)
 				for _, c := range commitsToEdit[:len(commitsToEdit)-1] {
 					// Merge commits can't be set to "edit", so just skip them
@@ -700,7 +700,7 @@ func (self *LocalCommitsController) updateTodosWithFlag(action todo.TodoCommand,
 	}
 
 	self.c.Refresh(types.RefreshOptions{
-		Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
+		Scope: []types.RefreshableView{types.REBASE_COMMITS},
 	})
 
 	return nil
@@ -742,22 +742,30 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 		self.c.Refresh(types.RefreshOptions{
-			Mode:            types.SYNC,
 			Scope:           []types.RefreshableView{types.REBASE_COMMITS},
 			CommitSelection: types.KeepCommitSelectionIndex,
 		})
 		return nil
 	}
 
-	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
+	commits := self.c.Model().Commits
+	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.MovingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
-		err := self.c.Git().Rebase.MoveCommitsDown(self.c.Model().Commits, startIdx, endIdx)
-		if err == nil {
-			self.context().MoveSelection(1)
-			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
-		}
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
-			err, types.RefreshOptions{Mode: types.SYNC, CommitSelection: types.KeepCommitSelectionIndex})
+		err := self.c.Git().Rebase.MoveCommitsDown(commits, startIdx, endIdx)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{
+				BatchUIUpdates:  true,
+				CommitSelection: types.KeepCommitSelectionIndex,
+				// Move the selection to follow the moved commit, in Then so it
+				// lands in the same frame as the refreshed commit list.
+				Then: func() error {
+					if err == nil {
+						self.context().MoveSelection(1)
+						self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
+					}
+					return nil
+				},
+			})
 	})
 }
 
@@ -770,22 +778,30 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 		self.c.Refresh(types.RefreshOptions{
-			Mode:            types.SYNC,
 			Scope:           []types.RefreshableView{types.REBASE_COMMITS},
 			CommitSelection: types.KeepCommitSelectionIndex,
 		})
 		return nil
 	}
 
-	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
+	commits := self.c.Model().Commits
+	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.MovingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
-		err := self.c.Git().Rebase.MoveCommitsUp(self.c.Model().Commits, startIdx, endIdx)
-		if err == nil {
-			self.context().MoveSelection(-1)
-			self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
-		}
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
-			err, types.RefreshOptions{Mode: types.SYNC, CommitSelection: types.KeepCommitSelectionIndex})
+		err := self.c.Git().Rebase.MoveCommitsUp(commits, startIdx, endIdx)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{
+				BatchUIUpdates:  true,
+				CommitSelection: types.KeepCommitSelectionIndex,
+				// Move the selection to follow the moved commit, in Then so it
+				// lands in the same frame as the refreshed commit list.
+				Then: func() error {
+					if err == nil {
+						self.context().MoveSelection(-1)
+						self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
+					}
+					return nil
+				},
+			})
 	})
 }
 
@@ -798,7 +814,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 				if err := self.c.Helpers().AmendHelper.AmendHead(); err != nil {
 					return err
 				}
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				self.c.Refresh(types.RefreshOptions{})
 				return nil
 			})
 		}
@@ -807,7 +823,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		selectedIdx := self.context().GetView().SelectedLineIdx()
 		handleCommit = func() error {
 			return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
-				return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+				return self.c.WithWaitingStatusBlockingInput(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 					self.c.LogAction(self.c.Tr.Actions.AmendCommit)
 					err := self.c.Git().Rebase.AmendTo(commits, selectedIdx)
 					return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
@@ -869,13 +885,13 @@ func (self *LocalCommitsController) amendAttribute(_ []*models.Commit, start, en
 }
 
 func (self *LocalCommitsController) resetAuthor(commits []*models.Commit, start, end int) error {
-	return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.ResetCommitAuthor)
 		if err := self.c.Git().Rebase.ResetCommitAuthor(commits, start, end); err != nil {
 			return err
 		}
 
-		self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.RefreshFromWorker(types.RefreshOptions{})
 		return nil
 	})
 }
@@ -885,13 +901,13 @@ func (self *LocalCommitsController) setAuthor(commits []*models.Commit, start, e
 		Title:               self.c.Tr.SetAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
-			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SetCommitAuthor)
 				if err := self.c.Git().Rebase.SetCommitAuthor(commits, start, end, value); err != nil {
 					return err
 				}
 
-				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
+				self.c.RefreshFromWorker(types.RefreshOptions{})
 				return nil
 			})
 		},
@@ -905,12 +921,12 @@ func (self *LocalCommitsController) addCoAuthor(commits []*models.Commit, start,
 		Title:               self.c.Tr.AddCoAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
-			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.AddCommitCoAuthor)
 				if err := self.c.Git().Rebase.AddCommitCoAuthor(commits, start, end, value); err != nil {
 					return err
 				}
-				self.c.RefreshFromWorker(types.RefreshOptions{Mode: types.ASYNC})
+				self.c.RefreshFromWorker(types.RefreshOptions{})
 				return nil
 			})
 		},
@@ -938,9 +954,8 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 		Prompt: promptText,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RevertCommit)
-			return self.c.WithWaitingStatusSync(self.c.Tr.RevertingStatus, func() error {
-				mustStash := helpers.IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
-
+			mustStash := helpers.IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
+			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RevertingStatus, func(gocui.Task) error {
 				if mustStash {
 					if err := self.c.Git().Stash.Push(self.c.Tr.AutoStashForReverting); err != nil {
 						return err
@@ -948,7 +963,8 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 				}
 
 				result := self.c.Git().Commit.Revert(hashes, isMerge)
-				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(result, types.RefreshOptions{Mode: types.SYNC}); err != nil {
+				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(result,
+					types.RefreshOptions{BatchUIUpdates: true}); err != nil {
 					return err
 				}
 
@@ -956,7 +972,7 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 					if err := self.c.Git().Stash.Pop(0); err != nil {
 						return err
 					}
-					self.c.Refresh(types.RefreshOptions{
+					self.c.RefreshFromWorker(types.RefreshOptions{
 						Scope: []types.RefreshableView{types.STASH, types.FILES},
 					})
 				}
@@ -987,16 +1003,19 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 				OnPress: func() error {
 					return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
 						self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
-						return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
+						selectedIdx := self.context().GetSelectedLineIdx()
+						commits := self.c.Model().Commits
+						branches := self.c.Model().Branches
+						return self.c.WithWaitingStatusBlockingInput(self.c.Tr.CreatingFixupCommitStatus, func(gocui.Task) error {
 							if err := self.c.Git().Commit.CreateFixupCommit(commit.Hash()); err != nil {
 								return err
 							}
 
-							if err := self.moveFixupCommitToOwnerStackedBranch(commit); err != nil {
+							if err := self.moveFixupCommitToOwnerStackedBranch(commit, selectedIdx, commits, branches); err != nil {
 								return err
 							}
 
-							self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
+							self.c.RefreshFromWorker(types.RefreshOptions{BatchUIUpdates: true})
 							return nil
 						})
 					})
@@ -1025,7 +1044,12 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 	})
 }
 
-func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(targetCommit *models.Commit) error {
+// moveFixupCommitToOwnerStackedBranch takes state captured on the UI thread
+// (the selected index and the commits and branches models) so that it can run
+// its rebase on a worker without reading the model there.
+func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(
+	targetCommit *models.Commit, selectedIdx int, commits []*models.Commit, branches []*models.Branch,
+) error {
 	if self.c.Git().Version.IsOlderThan(2, 38, 0) {
 		// Git 2.38.0 introduced the `rebase.updateRefs` config option. Don't
 		// move the commit down with older versions, as it would break the stack.
@@ -1053,9 +1077,9 @@ func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(targetCo
 	}
 
 	headOfOwnerBranchIdx := -1
-	for i := self.context().GetSelectedLineIdx(); i > 0; i-- {
-		if lo.SomeBy(self.c.Model().Branches, func(b *models.Branch) bool {
-			return b.CommitHash == self.c.Model().Commits[i].Hash()
+	for i := selectedIdx; i > 0; i-- {
+		if lo.SomeBy(branches, func(b *models.Branch) bool {
+			return b.CommitHash == commits[i].Hash()
 		}) {
 			headOfOwnerBranchIdx = i
 			break
@@ -1066,7 +1090,7 @@ func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(targetCo
 		return nil
 	}
 
-	return self.c.Git().Rebase.MoveFixupCommitDown(self.c.Model().Commits, headOfOwnerBranchIdx)
+	return self.c.Git().Rebase.MoveFixupCommitDown(commits, headOfOwnerBranchIdx)
 }
 
 func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, includeFileChanges bool) error {
@@ -1087,16 +1111,19 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 			PreserveMessage:  false,
 			OnConfirm: func(summary string, description string) error {
 				self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
-				return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
+				selectedIdx := self.context().GetSelectedLineIdx()
+				commits := self.c.Model().Commits
+				branches := self.c.Model().Branches
+				return self.c.WithWaitingStatusBlockingInput(self.c.Tr.CreatingFixupCommitStatus, func(gocui.Task) error {
 					if err := self.c.Git().Commit.CreateAmendCommit(originalSubject, summary, description, includeFileChanges); err != nil {
 						return err
 					}
 
-					if err := self.moveFixupCommitToOwnerStackedBranch(commit); err != nil {
+					if err := self.moveFixupCommitToOwnerStackedBranch(commit, selectedIdx, commits, branches); err != nil {
 						return err
 					}
 
-					self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
+					self.c.RefreshFromWorker(types.RefreshOptions{BatchUIUpdates: true})
 					return nil
 				})
 			},
@@ -1144,12 +1171,28 @@ func (self *LocalCommitsController) squashAllFixupsInCurrentBranch() error {
 
 func (self *LocalCommitsController) squashFixupsImpl(commit *models.Commit, rebaseStartIdx int) error {
 	selectionOffset := countSquashableCommitsAbove(self.c.Model().Commits, self.context().GetSelectedLineIdx(), rebaseStartIdx)
-	return self.c.WithWaitingStatusSync(self.c.Tr.SquashingStatus, func() error {
+	// The squashed fixups above the selection are removed, so the selection moves
+	// up by that many rows to stay on the same commit. Compute the target as an
+	// absolute index now, on the current list.
+	targetIdx := self.context().GetSelectedLineIdx() - selectionOffset
+	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.SquashingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
 		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
-		self.context().MoveSelectedLine(-selectionOffset)
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptionsFromUIThread(
-			err, types.RefreshOptions{Mode: types.SYNC})
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{
+				BatchUIUpdates: true,
+				// Set the selection in Then so it lands in the same frame as the
+				// refreshed commit list. It has to be an absolute index: the new
+				// list is shorter, so a relative move from the (clamped) old index
+				// could overshoot. PostRefreshUpdate repaints the moved selection.
+				Then: func() error {
+					if err == nil {
+						self.context().SetSelectedLineIdx(targetIdx)
+						self.c.PostRefreshUpdate(self.context())
+					}
+					return nil
+				},
+			})
 	})
 }
 
@@ -1196,7 +1239,7 @@ func (self *LocalCommitsController) openSearch() error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if self.context().GetLimitCommits() {
 		self.context().SetLimitCommits(false)
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS}})
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
 	}
 
 	return self.c.Helpers().Search.OpenSearchPrompt(self.context())
@@ -1217,7 +1260,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 
 					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
 						self.c.Refresh(
-							types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}},
+							types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}},
 						)
 						return nil
 					})
@@ -1271,7 +1314,6 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 							return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
 								self.c.Refresh(
 									types.RefreshOptions{
-										Mode:  types.SYNC,
 										Scope: []types.RefreshableView{types.COMMITS},
 									},
 								)
@@ -1316,7 +1358,7 @@ func (self *LocalCommitsController) GetOnFocus() func(types.OnFocusOpts) {
 		context := self.context()
 		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
 			context.SetLimitCommits(false)
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS}})
+			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
 		}
 	}
 }

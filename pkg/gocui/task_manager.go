@@ -6,20 +6,23 @@ import "sync"
 // the main goroutine or a worker goroutine). Used by integration tests
 // to wait until the program is idle before progressing.
 type TaskManager struct {
-	// each of these listeners will be notified when the program goes from busy to idle
-	idleListeners []chan struct{}
-	tasks         map[int]Task
+	tasks map[int]Task
 	// auto-incrementing id for new tasks
 	nextId int
 
 	mutex sync.Mutex
+	// signalled whenever the program transitions from busy to idle; used by
+	// WaitUntilIdle
+	idleCond *sync.Cond
 }
 
 func newTaskManager() *TaskManager {
-	return &TaskManager{
-		tasks:         make(map[int]Task),
-		idleListeners: []chan struct{}{},
+	self := &TaskManager{
+		tasks: make(map[int]Task),
 	}
+	self.idleCond = sync.NewCond(&self.mutex)
+
+	return self
 }
 
 func (self *TaskManager) NewTask(background bool) *TaskImpl {
@@ -58,8 +61,26 @@ func (self *TaskManager) hasBusyForegroundTaskExcept(ignore Task) bool {
 	return false
 }
 
-func (self *TaskManager) addIdleListener(c chan struct{}) {
-	self.idleListeners = append(self.idleListeners, c)
+// WaitUntilIdle blocks until no task is busy. Integration tests use it to wait
+// for the program to finish processing before taking the next step.
+func (self *TaskManager) WaitUntilIdle() {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	for self.hasBusyTask() {
+		self.idleCond.Wait()
+	}
+}
+
+// caller must hold self.mutex
+func (self *TaskManager) hasBusyTask() bool {
+	for _, task := range self.tasks {
+		if task.isBusy() {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (self *TaskManager) withMutex(f func()) {
@@ -68,17 +89,12 @@ func (self *TaskManager) withMutex(f func()) {
 
 	f()
 
-	// Check if all tasks are done
-	for _, task := range self.tasks {
-		if task.isBusy() {
-			return
-		}
-	}
-
-	// If we get here, all tasks are done, so
-	// notify listeners that the program is idle
-	for _, listener := range self.idleListeners {
-		listener <- struct{}{}
+	// Wake up any goroutine blocked in WaitUntilIdle. This must not block on
+	// the waiter (we hold the mutex, and the waiter may itself be trying to
+	// acquire it, e.g. by creating a task, before it next waits) — which is
+	// exactly what Broadcast guarantees.
+	if !self.hasBusyTask() {
+		self.idleCond.Broadcast()
 	}
 }
 

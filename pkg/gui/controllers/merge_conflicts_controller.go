@@ -302,7 +302,7 @@ func (self *MergeConflictsController) resolveConflict(selection mergeconflicts.S
 func (self *MergeConflictsController) onLastConflictResolved() {
 	// as part of refreshing files, we handle the situation where a file has had
 	// its merge conflicts resolved.
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 }
 
 func (self *MergeConflictsController) openMergeConflictMenu() error {

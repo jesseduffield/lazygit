@@ -58,7 +58,18 @@ func (self *guiCommon) PauseBackgroundRefreshes(pause bool) {
 	self.gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(pause)
 }
 
+// assertOnUIThread panics (in debug builds) if called from a worker goroutine.
+// Use it to guard accessors for state that only the UI thread may touch, so
+// that a stray worker access fails deterministically -- and points at itself --
+// rather than surfacing later as a probabilistic data race.
+func (self *guiCommon) assertOnUIThread(accessor string) {
+	if self.GetConfig().GetDebug() && !self.GocuiGui().IsUIThread() {
+		panic(accessor + " accessed from a worker")
+	}
+}
+
 func (self *guiCommon) Context() types.IContextMgr {
+	self.assertOnUIThread("Context()")
 	return self.gui.State.ContextMgr
 }
 
@@ -113,6 +124,7 @@ func (self *guiCommon) Modes() *types.Modes {
 }
 
 func (self *guiCommon) Model() *types.Model {
+	self.assertOnUIThread("Model()")
 	return self.gui.State.Model
 }
 
@@ -163,6 +175,10 @@ func (self *guiCommon) MainViewPairs() types.MainViewPairs {
 
 func (self *guiCommon) GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager {
 	return self.gui.getViewBufferManagerForView(view)
+}
+
+func (self *guiCommon) ReadLinesToFillView(view *gocui.View) {
+	self.gui.readLinesToFillView(view)
 }
 
 func (self *guiCommon) State() types.IStateAccessor {

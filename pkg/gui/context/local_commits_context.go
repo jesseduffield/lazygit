@@ -224,7 +224,7 @@ func (self *LocalCommitsContext) RefForAdjustingLineNumberInDiff() string {
 }
 
 func (self *LocalCommitsContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
-	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), self.ModelIndexToViewIndex, searchStr)
+	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), self.modelToViewIndexConverter(), searchStr)
 }
 
 func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {

@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -59,9 +60,13 @@ type ViewBufferManager struct {
 	taskIDMutex  deadlock.Mutex
 	Log          *logrus.Entry
 	newTaskID    int
-	readLines    chan LinesToRead
-	taskKey      string
-	onNewKey     func()
+	// The channel by which the currently-running task is told to read more
+	// lines (e.g. as the user scrolls). Held in an atomic because it's swapped
+	// out as tasks come and go while ReadLines/ReadToEnd read it from the UI
+	// thread; nil when no task is running.
+	readLines atomic.Pointer[chan LinesToRead]
+	taskKey   string
+	onNewKey  func()
 
 	// beforeStart is the function that is called before starting a new task
 	beforeStart  func()
@@ -74,15 +79,26 @@ type ViewBufferManager struct {
 	// whereas the tasks in this file are about rendering content to a view.
 	newGocuiTask func() gocui.Task
 
+	// Runs f on the UI thread and blocks until it has completed. All mutations
+	// of the view happen through this, so that the view is only ever touched on
+	// the UI thread (where it is also laid out and drawn), never on the task's
+	// own goroutine.
+	onUIThread func(f func() error) error
+
 	// if the user flicks through a heap of items, with each one
 	// spawning a process to render something to the main view,
 	// it can slow things down quite a bit. In these situations we
-	// want to throttle the spawning of processes.
-	throttle bool
+	// want to throttle the spawning of processes. Atomic because it's set
+	// from one task's stop goroutine and read when the next task starts.
+	throttle atomic.Bool
 }
 
 type LinesToRead struct {
-	// Total number of lines to read
+	// The total number of lines the task should have read once this request is
+	// satisfied. This is an absolute count from the start of the task, not a
+	// delta: the task keeps track of how many lines it has already read and only
+	// reads the shortfall, so a request for a total at or below what has already
+	// been read reads nothing. -1 means read all the way to the end.
 	Total int
 
 	// Number of lines after which we have read enough to fill the view, and can
@@ -106,6 +122,7 @@ func NewViewBufferManager(
 	onEndOfInput func(),
 	onNewKey func(),
 	newGocuiTask func() gocui.Task,
+	onUIThread func(f func() error) error,
 ) *ViewBufferManager {
 	return &ViewBufferManager{
 		Log:          log,
@@ -113,24 +130,30 @@ func NewViewBufferManager(
 		beforeStart:  beforeStart,
 		refreshView:  refreshView,
 		onEndOfInput: onEndOfInput,
-		readLines:    nil,
 		onNewKey:     onNewKey,
 		newGocuiTask: newGocuiTask,
+		onUIThread:   onUIThread,
 	}
 }
 
-func (self *ViewBufferManager) ReadLines(n int) {
-	if self.readLines != nil {
+// ReadLines asks the task to ensure it has read at least totalLines lines in
+// total. Because the count is absolute rather than a delta, repeated requests
+// (e.g. as the user scrolls down, back up, and down again) don't re-read lines
+// that have already been read: the task only ever reads the shortfall.
+func (self *ViewBufferManager) ReadLines(totalLines int) {
+	if ch := self.readLines.Load(); ch != nil {
+		readLines := *ch
 		go utils.Safe(func() {
-			self.readLines <- LinesToRead{Total: n, InitialRefreshAfter: -1}
+			readLines <- LinesToRead{Total: totalLines, InitialRefreshAfter: -1}
 		})
 	}
 }
 
 func (self *ViewBufferManager) ReadToEnd(then func()) {
-	if self.readLines != nil {
+	if ch := self.readLines.Load(); ch != nil {
+		readLines := *ch
 		go utils.Safe(func() {
-			self.readLines <- LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: then}
+			readLines <- LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: then}
 		})
 	} else if then != nil {
 		then()
@@ -155,7 +178,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			onFirstPageShown()
 		}
 
-		if self.throttle {
+		if self.throttle.Load() {
 			self.Log.Info("throttling task")
 			time.Sleep(THROTTLE_TIME)
 		}
@@ -178,13 +201,13 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			case <-done:
 				// The command finished and did not have to be preemptively stopped before the next command.
 				// No need to throttle.
-				self.throttle = false
+				self.throttle.Store(false)
 			case <-opts.Stop:
 				// we use the time it took to start the program as a way of checking if things
 				// are running slow at the moment. This is admittedly a crude estimate, but
 				// the point is that we only want to throttle when things are running slow
 				// and the user is flicking through a bunch of items.
-				self.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
+				self.throttle.Store(time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD)
 
 				// Kill the still-running command. The only reason to do this is to save CPU usage
 				// when flicking through several very long diffs when diff.algorithm = histogram is
@@ -204,7 +227,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 
 		loadingMutex := deadlock.Mutex{}
 
-		self.readLines = make(chan LinesToRead, 1024)
+		readLines := make(chan LinesToRead, 1024)
+		self.readLines.Store(&readLines)
 
 		scanner := bufio.NewScanner(r)
 		scanner.Split(utils.ScanLinesAndTruncateWhenLongerThanBuffer(bufio.MaxScanTokenSize))
@@ -283,6 +307,11 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				}
 			}
 
+			// The total number of lines we have read so far. Requests specify an
+			// absolute target total (see LinesToRead.Total), so we compare against
+			// this to work out how many more lines, if any, we still need to read.
+			linesRead := 0
+
 		outer:
 			for {
 				if stopped() {
@@ -291,13 +320,13 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				select {
 				case <-opts.Stop:
 					break outer
-				case linesToRead := <-self.readLines:
+				case linesToRead := <-readLines:
 					callThen := func() {
 						if linesToRead.Then != nil {
 							linesToRead.Then()
 						}
 					}
-					for i := 0; linesToRead.Total == -1 || i < linesToRead.Total; i++ {
+					for linesToRead.Total == -1 || linesRead < linesToRead.Total {
 						if stopped() {
 							callThen()
 							break outer
@@ -324,15 +353,22 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 
 						if !ok {
 							// if we're here then there's nothing left to scan from the source
-							// so we're at the EOF and can flush the stale content
-							self.onEndOfInput()
+							// so we're at the EOF and can flush the stale content.
+							// onEndOfInput reads the view's dimensions (to decide
+							// whether to scroll) and sets the origin, both of which
+							// are UI-thread-only, so run it there.
+							_ = self.onUIThread(func() error {
+								self.onEndOfInput()
+								return nil
+							})
 							callThen()
 							break outer
 						}
 						writeToView(append(line, '\n'))
 						lineWrittenChan <- struct{}{}
+						linesRead++
 
-						if i+1 == linesToRead.InitialRefreshAfter {
+						if linesRead == linesToRead.InitialRefreshAfter {
 							// We have read enough lines to fill the view, so do a first refresh
 							// here to show what we have. Continue reading and refresh again at
 							// the end to make sure the scrollbar has the right size.
@@ -345,7 +381,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				}
 			}
 
-			self.readLines = nil
+			self.readLines.Store(nil)
 
 			refreshViewIfStale()
 
@@ -369,7 +405,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			close(lineWrittenChan)
 		})
 
-		self.readLines <- linesToRead
+		readLines <- linesToRead
 
 		<-done
 
@@ -379,14 +415,21 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 
 // Close closes the task manager, killing whatever task may currently be running
 func (self *ViewBufferManager) Close() {
-	if self.stopCurrentTask == nil {
+	// stopCurrentTask is written by NewTask's goroutine under waitingMutex (and
+	// so is the sync.Once it closes over), so read it under the lock and call
+	// the captured value; a task starting on shutdown must not race us here.
+	self.waitingMutex.Lock()
+	stopCurrentTask := self.stopCurrentTask
+	self.waitingMutex.Unlock()
+
+	if stopCurrentTask == nil {
 		return
 	}
 
 	c := make(chan struct{})
 
 	go utils.Safe(func() {
-		self.stopCurrentTask()
+		stopCurrentTask()
 		c <- struct{}{}
 	})
 
@@ -439,20 +482,30 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		self.taskIDMutex.Lock()
 
 		// Bail out before touching shared view state if a newer task has
-		// already been queued: if we ran onNewKey here we'd reset the view
-		// for a task that's about to exit, potentially wiping output the
-		// winning task has already written.
+		// already been queued: if we reset the view here we'd do it for a task
+		// that's about to exit, potentially wiping output the winning task has
+		// already written.
 		if taskID < self.newTaskID {
 			self.taskIDMutex.Unlock()
 			return
 		}
 
-		if self.GetTaskKey() != key && self.onNewKey != nil {
-			self.onNewKey()
-		}
+		resetOrigin := self.GetTaskKey() != key && self.onNewKey != nil
 		self.taskKey = key
 
 		self.taskIDMutex.Unlock()
+
+		if resetOrigin {
+			// onNewKey resets the view's scroll origin, which is view state the
+			// UI thread reads while laying out and drawing, so do it there. This
+			// must happen after releasing taskIDMutex: it blocks until the UI
+			// thread runs it, and a NewTask call on the UI thread takes
+			// taskIDMutex, so holding it here would deadlock.
+			_ = self.onUIThread(func() error {
+				self.onNewKey()
+				return nil
+			})
+		}
 
 		self.waitingMutex.Lock()
 
@@ -470,7 +523,7 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 			self.stopCurrentTask()
 		}
 
-		self.readLines = nil
+		self.readLines.Store(nil)
 
 		stop := make(chan struct{})
 		notifyStopped := make(chan struct{})

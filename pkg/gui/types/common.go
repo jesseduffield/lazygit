@@ -11,7 +11,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
-	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
 type HelperCommon struct {
@@ -57,6 +56,10 @@ type IGuiCommon interface {
 
 	// return the view buffer manager for the given view, or nil if it doesn't have one
 	GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
+
+	// read enough lines into the given view's buffer to fill it at its current
+	// scroll position, plus some read-ahead for smooth scrolling
+	ReadLinesToFillView(view *gocui.View)
 
 	// returns true if command completed successfully
 	RunSubprocess(cmdObj *oscommands.CmdObj) (bool, error)
@@ -157,7 +160,7 @@ type IPopupHandler interface {
 	// Shows a popup prompting the user for input.
 	Prompt(opts PromptOpts)
 	WithWaitingStatus(message string, f func(gocui.Task) error) error
-	WithWaitingStatusSync(message string, f func() error) error
+	WithWaitingStatusBlockingInput(message string, f func(gocui.Task) error) error
 	Menu(opts CreateMenuOptions) error
 	Toast(message string)
 	ErrorToast(message string)
@@ -344,9 +347,6 @@ type Model struct {
 
 	MainBranches *git_commands.MainBranches
 
-	// for displaying suggestions while typing in a file name
-	FilesTrie *patricia.Trie
-
 	Authors map[string]*models.Author
 
 	HashPool *utils.StringPool
@@ -354,7 +354,6 @@ type Model struct {
 
 type Mutexes struct {
 	SubprocessMutex deadlock.Mutex
-	PopupMutex      deadlock.Mutex
 	PtyMutex        deadlock.Mutex
 }
 

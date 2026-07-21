@@ -243,6 +243,7 @@ type tScreen struct {
 	legacy             bool
 	hasClipboard       bool // true if OSC 52 reported via DA1
 	finiOnce           sync.Once
+	initFiniLock       sync.Mutex
 	enterUrl           string
 	exitUrl            string
 	setWinSize         string
@@ -258,6 +259,7 @@ type tScreen struct {
 	running            bool
 	startTime          time.Time
 	wg                 sync.WaitGroup
+	eventWg            sync.WaitGroup
 	mouseFlags         MouseFlags
 	pasteEnabled       bool
 	focusEnabled       bool
@@ -355,6 +357,20 @@ func (t *tScreen) applyEnvironmentOverrides() {
 }
 
 func (t *tScreen) Init() error {
+	t.initFiniLock.Lock()
+	defer t.initFiniLock.Unlock()
+
+	t.Lock()
+	if t.fini {
+		t.Unlock()
+		return errors.New("screen finalized")
+	}
+	if t.running {
+		t.Unlock()
+		return errors.New("already initialized")
+	}
+	t.Unlock()
+
 	if e := t.initialize(); e != nil {
 		return e
 	}
@@ -525,7 +541,9 @@ func (t *tScreen) processInitQ() {
 
 func (t *tScreen) filterEvents() chan Event {
 	inQ := make(chan Event, 128)
+	t.eventWg.Add(1)
 	go func() {
+		defer t.eventWg.Done()
 		for {
 			var ev Event
 			select {
@@ -541,7 +559,11 @@ func (t *tScreen) filterEvents() chan Event {
 				}
 
 			default:
-				t.eventQ <- ev
+				select {
+				case t.eventQ <- ev:
+				case <-t.quit:
+					return
+				}
 			}
 		}
 	}()
@@ -596,6 +618,9 @@ func (t *tScreen) prepareCursorStyles() {
 }
 
 func (t *tScreen) Fini() {
+	t.initFiniLock.Lock()
+	defer t.initFiniLock.Unlock()
+
 	// Ensure that enough time passes for terminals to  finish sending
 	// their initial response (gnome-terminal sends terminal dimensions
 	// asynchronously later than the response to primary DA for some reason.)
@@ -984,6 +1009,13 @@ func (t *tScreen) hideCursor() {
 }
 
 func (t *tScreen) draw() {
+	if !t.running {
+		// While disengaged (e.g. suspended) the terminal belongs to some
+		// other application, so we must not emit anything; also the cell
+		// buffer is released, so there is nothing valid to draw from.
+		return
+	}
+
 	// clobber cursor position, because we're going to change it all
 	t.cx = -1
 	t.cy = -1
@@ -1015,6 +1047,10 @@ func (t *tScreen) draw() {
 					// actually will *draw* it.
 					t.cells.SetDirty(x+1, y, true)
 				}
+			} else if width < 1 {
+				// drawCell reports width 0 for coordinates outside the
+				// cell buffer; never let the scan stall
+				width = 1
 			}
 			x += width - 1
 		}
@@ -1659,6 +1695,7 @@ func (t *tScreen) Beep() error {
 func (t *tScreen) finalize() {
 	t.disengage()
 	_ = t.tty.Close()
+	t.eventWg.Wait()
 	close(t.eventQ)
 }
 

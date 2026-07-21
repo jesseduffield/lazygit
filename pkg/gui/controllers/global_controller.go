@@ -158,7 +158,7 @@ func (self *GlobalController) createCustomPatchOptionsMenu() error {
 }
 
 func (self *GlobalController) refresh() error {
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{})
 	return nil
 }
 

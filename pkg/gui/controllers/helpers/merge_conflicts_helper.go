@@ -51,32 +51,28 @@ func (self *MergeConflictsHelper) resetMergeState() {
 	self.context().GetState().Reset()
 }
 
-func (self *MergeConflictsHelper) EscapeMerge(background bool) error {
-	self.resetMergeState()
+// EscapeMerge returns from the merge conflicts view to the files context. It
+// must be called on the UI thread, without the merge-conflicts mutex held:
+// pushing the files context renders the newly focused file to the main view,
+// which can take the mutex again (via SetMergeState).
+func (self *MergeConflictsHelper) EscapeMerge() {
+	self.ResetMergeState()
 
-	// doing this in separate UI thread so that we're not still holding the lock by the time refresh the file
-	onUIThread := self.c.OnUIThread
-	if background {
-		// Reached from a background files refresh; keep it off the busy count
-		// (see the *Background dispatch methods) so it doesn't block a repo switch.
-		onUIThread = self.c.OnUIThreadBackground
+	// The files refresh may already have opened the prompt to continue the
+	// rebase/merge on top of us (if all conflicts are resolved); in that case
+	// don't push the files context over it.
+	if self.c.Context().IsCurrent(self.c.Contexts().MergeConflicts) {
+		self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
 	}
-	onUIThread(func() error {
-		// There is a race condition here: refreshing the files scope can trigger the
-		// confirmation context to be pushed if all conflicts are resolved (prompting
-		// to continue the merge/rebase. In that case, we don't want to then push the
-		// files context over it.
-		// So long as both places call OnUIThread, we're fine.
-		if self.c.Context().IsCurrent(self.c.Contexts().MergeConflicts) {
-			self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
-		}
-		return nil
-	})
-	return nil
 }
 
-func (self *MergeConflictsHelper) SetConflictsAndRender(path string) (bool, error) {
-	hasConflicts, err := self.setMergeStateWithoutLock(path)
+// SetConflictsAndRender re-reads the file being merged and re-renders the
+// merge conflicts view. Returns whether the file still has conflicts.
+func (self *MergeConflictsHelper) SetConflictsAndRender() (bool, error) {
+	self.context().GetMutex().Lock()
+	defer self.context().GetMutex().Unlock()
+
+	hasConflicts, err := self.setMergeStateWithoutLock(self.context().GetState().GetPath())
 	if err != nil {
 		return false, err
 	}
@@ -126,21 +122,18 @@ func (self *MergeConflictsHelper) Render() {
 	})
 }
 
-func (self *MergeConflictsHelper) RefreshMergeState(background bool) error {
-	self.c.Contexts().MergeConflicts.GetMutex().Lock()
-	defer self.c.Contexts().MergeConflicts.GetMutex().Unlock()
-
+func (self *MergeConflictsHelper) RefreshMergeState() error {
 	if self.c.Context().Current().GetKey() != context.MERGE_CONFLICTS_CONTEXT_KEY {
 		return nil
 	}
 
-	hasConflicts, err := self.SetConflictsAndRender(self.c.Contexts().MergeConflicts.GetState().GetPath())
+	hasConflicts, err := self.SetConflictsAndRender()
 	if err != nil {
 		return err
 	}
 
 	if !hasConflicts {
-		return self.EscapeMerge(background)
+		self.EscapeMerge()
 	}
 
 	return nil

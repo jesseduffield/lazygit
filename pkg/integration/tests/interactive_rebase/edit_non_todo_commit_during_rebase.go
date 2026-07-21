@@ -18,17 +18,17 @@ var EditNonTodoCommitDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01"),
 			).
 			Press(keys.Universal.Edit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
 				Contains("--- Commits ---"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			).
-			NavigateToLine(Contains("commit 01")).
+			NavigateToLine(Contains("commit-01")).
 			Press(keys.Universal.Edit)
 
 		t.ExpectToast(Contains("Disabled: When rebasing, this action only works on a selection of TODO commits."))

@@ -79,6 +79,22 @@ git:
     - externalDiffCommand: difft --color=always --display=inline --syntax-highlight=off
 ```
 
+This can also be used for normal git diffs with custom parameters, such as `--color-words` or `--word-diff` which some people find useful. To do that, save a script like this to, say, `~/bin/color-words.sh`:
+
+```sh
+#!/bin/sh
+
+git diff --color-words --no-index --color=always --no-ext-diff "$2" "$5"
+```
+
+And then use it in your git config like so:
+
+```yaml
+git:
+  pagers:
+    - externalDiffCommand: ~/bin/color-words.sh
+```
+
 Instead of setting this command in lazygit's `externalDiffCommand` config, you can also tell lazygit to use the external diff command that is configured in git itself (`diff.external`), by using
 
 ```yaml

@@ -125,15 +125,18 @@ type clickInfo struct {
 // and keybindings.
 type Gui struct {
 	RecordingConfig
-	// ReplayedEvents is for passing pre-recorded input events, for the purposes of testing
-	ReplayedEvents replayedEvents
+	// replayedEvents is for passing simulated input events, for the purposes
+	// of testing. Events must be submitted through the Replay* methods, which
+	// attach a task to each event; pushing into the channels directly would
+	// bypass the busy-tracking that integration tests rely on.
+	replayedEvents replayedEvents
 	playRecording  bool
 
 	tabClickBindings         []*tabClickBinding
 	viewMouseBindings        []*ViewMouseBinding
 	lastClick                *clickInfo
 	gEvents                  chan GocuiEvent
-	userEvents               chan userEvent
+	userEvents               *userEventQueue
 	views                    []*View
 	currentView              *View
 	managers                 []Manager
@@ -145,6 +148,10 @@ type Gui struct {
 	maxX, maxY               int
 	outputMode               OutputMode
 	stop                     chan struct{}
+	// loopExited is closed when MainLoop returns, so callers (e.g. the
+	// integration-test harness) can wait for the event loop to actually finish
+	// rather than polling or sleeping a fixed interval.
+	loopExited chan struct{}
 
 	// BgColor and FgColor allow to configure the background and foreground
 	// colors of the GUI.
@@ -207,6 +214,14 @@ type Gui struct {
 	// MainLoop starts. IsUIThread compares against it. Written once, read from
 	// worker goroutines, so it's atomic.
 	uiThreadID atomic.Int64
+
+	// blockInputCount, when greater than zero, withholds keyboard input from
+	// the handlers: key events are buffered into bufferedKeyEvents and replayed
+	// once the count drops back to zero, while mouse clicks and hover are
+	// dropped outright. It's a counter so blocking can nest. Both fields are
+	// only touched on the UI thread. See BeginBlockingEvents.
+	blockInputCount   int
+	bufferedKeyEvents []GocuiEvent
 }
 
 type NewGuiOpts struct {
@@ -249,18 +264,14 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g.outputMode = opts.OutputMode
 
 	g.stop = make(chan struct{})
+	g.loopExited = make(chan struct{})
 
 	g.gEvents = make(chan GocuiEvent, 20)
-	// Update does a non-blocking send and panics on a full channel rather than
-	// blocking (which would deadlock the UI goroutine against itself) or
-	// silently reordering. The buffer is sized well above the peak occupancy we
-	// see in practice, so the panic stays unreachable in normal use; if it ever
-	// fires, that's a real anomaly to investigate, not a cue to grow the buffer.
-	g.userEvents = make(chan userEvent, 256)
+	g.userEvents = newUserEventQueue()
 	g.taskManager = newTaskManager()
 
 	if opts.PlayRecording {
-		g.ReplayedEvents = replayedEvents{
+		g.replayedEvents = replayedEvents{
 			Keys:        make(chan *TcellKeyEventWrapper),
 			Resizes:     make(chan *TcellResizeEventWrapper),
 			MouseEvents: make(chan *TcellMouseEventWrapper),
@@ -282,6 +293,12 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 
 	g.playRecording = opts.PlayRecording
 
+	// Record the UI thread here, at construction. This assumes NewGui is called
+	// on the same goroutine that will run MainLoop, which holds for all our
+	// callers -- and it means IsUIThread is already correct for the UI work that
+	// runs during startup, before we reach MainLoop.
+	g.uiThreadID.Store(goid.Get())
+
 	return g, nil
 }
 
@@ -296,6 +313,30 @@ func (g *Gui) NewBackgroundTask() *TaskImpl {
 	return g.taskManager.NewTask(true)
 }
 
+// ReplayKeyEvent simulates a key press, as if the user had typed it. It's used
+// by integration tests. The event carries a task, so that the program counts
+// as busy from before the event is submitted until the main loop has fully
+// processed it; the test driver relies on this when it waits for the program
+// to go idle after submitting an event. (If the task were only created once
+// the main loop picks the event up, there would be a window in which the event
+// is still in flight but nothing counts as busy.)
+func (g *Gui) ReplayKeyEvent(ev *TcellKeyEventWrapper) {
+	ev.task = g.NewTask()
+	g.replayedEvents.Keys <- ev
+}
+
+// ReplayMouseEvent is like ReplayKeyEvent, but for mouse events.
+func (g *Gui) ReplayMouseEvent(ev *TcellMouseEventWrapper) {
+	ev.task = g.NewTask()
+	g.replayedEvents.MouseEvents <- ev
+}
+
+// ReplayFocusEvent is like ReplayKeyEvent, but for focus events.
+func (g *Gui) ReplayFocusEvent(ev *TcellFocusEventWrapper) {
+	ev.task = g.NewTask()
+	g.replayedEvents.FocusEvents <- ev
+}
+
 // Busy reports whether any foreground work is in flight, ignoring the event
 // currently being processed on the main goroutine (see currentTask). Background
 // routines (auto-fetch etc.) don't count. It's used to decide whether it's safe
@@ -304,11 +345,11 @@ func (g *Gui) Busy() bool {
 	return g.taskManager.hasBusyForegroundTaskExcept(g.currentTask)
 }
 
-// An idle listener listens for when the program is idle. This is useful for
-// integration tests which can wait for the program to be idle before taking
-// the next step in the test.
-func (g *Gui) AddIdleListener(c chan struct{}) {
-	g.taskManager.addIdleListener(c)
+// WaitUntilIdle blocks until the program is idle (no busy tasks). This is
+// useful for integration tests which want to wait for the program to finish
+// processing before taking the next step in the test.
+func (g *Gui) WaitUntilIdle() {
+	g.taskManager.WaitUntilIdle()
 }
 
 // Close finalizes the library. It should be called after a successful
@@ -316,6 +357,11 @@ func (g *Gui) AddIdleListener(c chan struct{}) {
 func (g *Gui) Close() {
 	close(g.stop)
 	Screen.Fini()
+}
+
+// LoopExited returns a channel that is closed once MainLoop has returned.
+func (g *Gui) LoopExited() <-chan struct{} {
+	return g.loopExited
 }
 
 // Size returns the terminal's size.
@@ -355,7 +401,7 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 		v.y1 = y1
 
 		if sizeChanged {
-			v.clearViewLines()
+			v.ClearViewLines()
 
 			if v.Editable {
 				cursorX, cursorY := v.TextArea.GetCursorXY()
@@ -636,6 +682,13 @@ func (g *Gui) SetRenderSearchStatusFunc(renderSearchStatusFunc func(*View, int, 
 	g.renderSearchStatusFunc = renderSearchStatusFunc
 }
 
+// SetUpdateQueueHighWaterMarkHandler registers a diagnostic callback invoked
+// with the new depth whenever the queue of pending Update callbacks reaches a
+// new maximum. It may be called from any goroutine.
+func (g *Gui) SetUpdateQueueHighWaterMarkHandler(f func(depth int)) {
+	g.userEvents.setHighWaterMarkHandler(f)
+}
+
 // userEvent represents an event triggered by the user.
 type userEvent struct {
 	f    func(*Gui) error
@@ -646,15 +699,99 @@ type userEvent struct {
 	contentOnly bool
 }
 
-// Update enqueues f on the user-events channel for the UI loop to run on its
-// next iteration. Multiple Update calls from the same goroutine arrive in
-// source order via the channel's FIFO. The send is non-blocking — if the
-// channel is full we panic rather than block or silently reorder, since a
-// blocked send from the UI goroutine would deadlock against itself and
-// silently switching to inline execution would break the ordering guarantee
-// callers rely on. The buffer is sized generously enough that this should
-// never fire in practice; if it does, that's a signal to investigate, not
-// to grow the buffer reflexively.
+// userEventQueue is an unbounded, order-preserving FIFO of work enqueued by
+// Update and friends for the main loop to run.
+//
+// It's unbounded (rather than a fixed-size channel) because producers must
+// never block or lose work. Update can be called from the UI goroutine itself,
+// where a blocking send would deadlock against the loop that drains the queue;
+// and it can be called from arbitrary worker goroutines that may enqueue faster
+// than the loop drains. That happens while the loop is stalled — suspended for
+// a subprocess (the editor runs on the UI thread), or hung in a long handler —
+// and also when a long-running worker operation emits a steady stream of
+// updates that outpaces the loop (e.g. the waiting-status spinner ticks while a
+// large directory is toggled into a custom patch). A fixed channel forces a
+// choice between blocking (deadlock), dropping or reordering, and panicking on
+// overflow; an unbounded queue avoids all three while preserving FIFO order.
+//
+// enqueue appends under the mutex and rings the doorbell; the main loop selects
+// on the doorbell to wake, then drains the slice to empty. The doorbell is
+// buffered(1) and rung with a non-blocking send, so it's a coalescing "work
+// pending" flag rather than a per-event signal: a burst of appends leaves at
+// most one token, and the loop drains everything the token represents on a
+// single wake. A token left over after a drain (because the drain happened to
+// empty the slice after the ring) just causes one harmless empty wake.
+type userEventQueue struct {
+	mutex    sync.Mutex
+	events   []userEvent
+	doorbell chan struct{}
+
+	// highWaterMark is the deepest the queue has ever been, and
+	// onHighWaterMark (if set) is called with the new depth each time that
+	// record is broken. Purely diagnostic: it lets us see how deep the queue
+	// gets in practice (see SetUpdateQueueHighWaterMarkHandler).
+	highWaterMark   int
+	onHighWaterMark func(int)
+}
+
+func newUserEventQueue() *userEventQueue {
+	return &userEventQueue{doorbell: make(chan struct{}, 1)}
+}
+
+// enqueue appends an event and wakes the main loop. It never blocks.
+func (q *userEventQueue) enqueue(ev userEvent) {
+	q.mutex.Lock()
+	q.events = append(q.events, ev)
+	newHighWaterMark := 0
+	if len(q.events) > q.highWaterMark {
+		q.highWaterMark = len(q.events)
+		newHighWaterMark = q.highWaterMark
+	}
+	onHighWaterMark := q.onHighWaterMark
+	q.mutex.Unlock()
+
+	// Report outside the lock: the handler does I/O (logging) and must not
+	// stall other producers or the draining loop.
+	if newHighWaterMark > 0 && onHighWaterMark != nil {
+		onHighWaterMark(newHighWaterMark)
+	}
+
+	select {
+	case q.doorbell <- struct{}{}:
+	default:
+	}
+}
+
+func (q *userEventQueue) setHighWaterMarkHandler(f func(int)) {
+	q.mutex.Lock()
+	q.onHighWaterMark = f
+	q.mutex.Unlock()
+}
+
+// dequeue pops the oldest event, reporting false when the queue is empty.
+func (q *userEventQueue) dequeue() (userEvent, bool) {
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
+
+	if len(q.events) == 0 {
+		return userEvent{}, false
+	}
+	ev := q.events[0]
+	if len(q.events) == 1 {
+		// Release the backing array whenever the queue drains, so a one-off
+		// burst doesn't pin its peak size for the rest of the session.
+		q.events = nil
+	} else {
+		q.events[0] = userEvent{}
+		q.events = q.events[1:]
+	}
+	return ev, true
+}
+
+// Update enqueues f for the UI loop to run on its next iteration. Multiple
+// Update calls from the same goroutine arrive in source order (the queue is
+// FIFO). The enqueue never blocks and never drops work; see userEventQueue for
+// why the queue is unbounded.
 func (g *Gui) Update(f func(*Gui) error) {
 	g.update(f, false)
 }
@@ -668,12 +805,7 @@ func (g *Gui) UpdateBackground(f func(*Gui) error) {
 
 func (g *Gui) update(f func(*Gui) error, background bool) {
 	task := g.taskManager.NewTask(background)
-
-	select {
-	case g.userEvents <- userEvent{f: f, task: task}:
-	default:
-		panic("gocui: userEvents channel full; refusing to block or reorder")
-	}
+	g.userEvents.enqueue(userEvent{f: f, task: task})
 }
 
 // Like Update, but signals that the callback only modifies content.
@@ -688,7 +820,7 @@ func (g *Gui) UpdateContentOnlyBackground(f func(*Gui) error) {
 
 func (g *Gui) updateContentOnly(f func(*Gui) error, background bool) {
 	task := g.taskManager.NewTask(background)
-	g.userEvents <- userEvent{f: f, task: task, contentOnly: true}
+	g.userEvents.enqueue(userEvent{f: f, task: task, contentOnly: true})
 }
 
 // IsUIThread reports whether the caller is running on the main event-loop
@@ -696,6 +828,42 @@ func (g *Gui) updateContentOnly(f func(*Gui) error, background bool) {
 // debug assertions, not to drive production control flow.
 func (g *Gui) IsUIThread() bool {
 	return goid.Get() == g.uiThreadID.Load()
+}
+
+// BeginBlockingEvents starts withholding keyboard input from the handlers, so a
+// long-running operation can't be disrupted by keys the user presses while it
+// runs. Keys are buffered and replayed once EndBlockingEvents balances this
+// call; mouse clicks and hover are dropped for the duration. Scrolling,
+// resizing, focus changes and all rendering keep working throughout. It's a
+// counter, so blocking nests; every call must be paired with EndBlockingEvents.
+//
+// Must be called on the UI thread. Callers arrange this by beginning the block
+// synchronously from the keybinding handler, before dispatching the operation
+// to a worker — beginning it from the worker would race the next queued
+// keypress, which is exactly the input we mean to withhold.
+func (g *Gui) BeginBlockingEvents() {
+	g.blockInputCount++
+}
+
+// EndBlockingEvents balances a BeginBlockingEvents call. When the last nested
+// block ends, the keys buffered while blocked are replayed in order through the
+// normal dispatch path, so they act on the now-current context (a key whose
+// binding no longer exists is simply ignored, just as if it had been pressed
+// now). Must be called on the UI thread.
+func (g *Gui) EndBlockingEvents() error {
+	g.blockInputCount--
+	if g.blockInputCount > 0 {
+		return nil
+	}
+
+	buffered := g.bufferedKeyEvents
+	g.bufferedKeyEvents = nil
+	for i := range buffered {
+		if err := g.handleEvent(&buffered[i]); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // OnUIThreadAndWait runs f on the main event-loop goroutine and blocks the
@@ -813,7 +981,7 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
-	g.uiThreadID.Store(goid.Get())
+	defer close(g.loopExited)
 
 	go func() {
 		for {
@@ -867,14 +1035,26 @@ func (g *Gui) processEvent() error {
 	// are always the primary event here.
 	select {
 	case ev := <-g.gEvents:
-		task := g.NewTask()
+		// Replayed test events already carry their task (see ReplayKeyEvent);
+		// organic events get theirs here.
+		task := ev.task
+		if task == nil {
+			task = g.NewTask()
+		}
 		g.currentTask = task
 		defer func() { g.currentTask = nil; task.Done() }()
 
 		if err := g.handleError(g.handleEvent(&ev)); err != nil {
 			return err
 		}
-	case ev := <-g.userEvents:
+	case <-g.userEvents.doorbell:
+		ev, ok := g.userEvents.dequeue()
+		if !ok {
+			// A leftover doorbell token whose events were already drained by a
+			// previous iteration's processRemainingEvents: nothing to run and
+			// nothing new to render.
+			return nil
+		}
 		contentOnly = ev.contentOnly
 		g.currentTask = ev.task
 		defer func() { g.currentTask = nil; ev.task.Done() }()
@@ -904,18 +1084,27 @@ func (g *Gui) processRemainingEvents() (bool, error) {
 		select {
 		case ev := <-g.gEvents:
 			contentOnly = false
-			if err := g.handleError(g.handleEvent(&ev)); err != nil {
+			err := g.handleError(g.handleEvent(&ev))
+			if ev.task != nil {
+				ev.task.Done()
+			}
+			if err != nil {
 				return false, err
 			}
-		case ev := <-g.userEvents:
+		default:
+			// No gui event is pending; drain a queued user event instead.
+			// gui events take priority so input stays responsive, but they're
+			// bounded (buffer of 20), so this can't starve the user-event queue.
+			ev, ok := g.userEvents.dequeue()
+			if !ok {
+				return contentOnly, nil
+			}
 			contentOnly = ev.contentOnly && contentOnly
 			err := g.handleError(ev.f(g))
 			ev.task.Done()
 			if err != nil {
 				return false, err
 			}
-		default:
-			return contentOnly, nil
 		}
 	}
 }
@@ -923,6 +1112,17 @@ func (g *Gui) processRemainingEvents() (bool, error) {
 // handleEvent handles an event, based on its type (key-press, error,
 // etc.)
 func (g *Gui) handleEvent(ev *GocuiEvent) error {
+	if g.blockInputCount > 0 && eventWithheldWhileBlocking(ev) {
+		if ev.Type == eventKey {
+			// Buffer keys so they replay against fresh state on unblock.
+			g.bufferedKeyEvents = append(g.bufferedKeyEvents, *ev)
+		}
+		// Mouse clicks and hover fall through to here without being buffered:
+		// replaying them once the operation has changed the layout underneath
+		// them would target the wrong thing, so we drop them outright.
+		return nil
+	}
+
 	switch ev.Type {
 	case eventKey, eventMouse, eventMouseMove:
 		return g.onKey(ev)
@@ -938,6 +1138,24 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 		return nil
 	default:
 		return nil
+	}
+}
+
+// eventWithheldWhileBlocking reports whether an event must not reach the
+// handlers while input is blocked (see BeginBlockingEvents). Key events are
+// withheld (buffered for replay); mouse clicks and hover are withheld (dropped).
+// Everything else — mouse scrolling, resize, focus, paste, errors — flows
+// through as usual.
+func eventWithheldWhileBlocking(ev *GocuiEvent) bool {
+	switch ev.Type {
+	case eventKey:
+		return true
+	case eventMouse:
+		return !IsMouseScrollKey(ev.Key.KeyName())
+	case eventMouseMove:
+		return true
+	default:
+		return false
 	}
 }
 
@@ -1252,6 +1470,11 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 
 // flush updates the gui, re-drawing frames and buffers.
 func (g *Gui) flush() error {
+	// The screen must not be touched while suspended (see Suspend).
+	if g.isSuspended() {
+		return nil
+	}
+
 	// pretty sure we don't need this, but keeping it here in case we get weird visual artifacts
 	// g.clear(g.FgColor, g.BgColor)
 
@@ -1259,7 +1482,7 @@ func (g *Gui) flush() error {
 	// if GUI's size has changed, we need to redraw all views
 	if maxX != g.maxX || maxY != g.maxY {
 		for _, v := range g.views {
-			v.clearViewLines()
+			v.ClearViewLines()
 		}
 	}
 	g.maxX, g.maxY = maxX, maxY
@@ -1284,6 +1507,11 @@ func (g *Gui) flush() error {
 // actually-changed cells are emitted to the terminal.
 // Will also redraw any views that overlap tainted views
 func (g *Gui) flushContentOnly(views []*View) error {
+	// The screen must not be touched while suspended (see Suspend).
+	if g.isSuspended() {
+		return nil
+	}
+
 	for _, v := range viewsToRedrawContentOnly(views) {
 		if err := g.draw(v); err != nil {
 			return err
@@ -1298,7 +1526,7 @@ func viewsToRedrawContentOnly(views []*View) []*View {
 	redrawIndexes := set.New[int]()
 
 	for i, v := range views {
-		if !v.tainted && !redrawIndexes.Includes(i) {
+		if !v.IsTainted() && !redrawIndexes.Includes(i) {
 			continue
 		}
 
@@ -1337,10 +1565,6 @@ func (g *Gui) ForceFlushViewsContentOnly(views []*View) error {
 
 // draw manages the cursor and calls the draw function of a view.
 func (g *Gui) draw(v *View) error {
-	if g.suspended {
-		return nil
-	}
-
 	if !v.Visible || v.y1 < v.y0 || v.x1 < v.x0 {
 		return nil
 	}
@@ -1712,6 +1936,14 @@ func (g *Gui) onFocus(ev *GocuiEvent) error {
 	return nil
 }
 
+// While g.suspended is true, nothing must be drawn to the screen: tcell
+// releases the screen's cell buffer when disengaging, and drawing to a
+// disengaged screen spins forever inside tcell while holding the screen lock,
+// which then blocks Resume (and with it all further input) forever. For the
+// flag to guarantee that, it must only ever be false while the screen is
+// engaged: Suspend sets it before disengaging, and Resume clears it only
+// after re-engaging.
+
 func (g *Gui) Suspend() error {
 	g.suspendedMutex.Lock()
 	defer g.suspendedMutex.Unlock()
@@ -1722,7 +1954,12 @@ func (g *Gui) Suspend() error {
 
 	g.suspended = true
 
-	return g.screen.Suspend()
+	if err := g.screen.Suspend(); err != nil {
+		g.suspended = false
+		return err
+	}
+
+	return nil
 }
 
 func (g *Gui) Resume() error {
@@ -1733,9 +1970,25 @@ func (g *Gui) Resume() error {
 		return errors.New("Cannot resume because we are not suspended")
 	}
 
+	if err := g.screen.Resume(); err != nil {
+		return err
+	}
+
 	g.suspended = false
 
-	return g.screen.Resume()
+	// Schedule a redraw of the whole screen. Nothing else guarantees one:
+	// flushes are skipped while suspended, and after re-engaging the screen
+	// the terminal shows nothing until we draw again.
+	go func() { g.gEvents <- GocuiEvent{Type: eventResize} }()
+
+	return nil
+}
+
+func (g *Gui) isSuspended() bool {
+	g.suspendedMutex.Lock()
+	defer g.suspendedMutex.Unlock()
+
+	return g.suspended
 }
 
 // matchView returns if the keybinding matches the current view (and the view's context)

@@ -13,22 +13,22 @@ var AmendFixupCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupRepo: func(shell *Shell) {
 		shell.
 			CreateNCommits(1).
-			CreateFileAndAdd("first-fixup-file", "").Commit("fixup! commit 01").
+			CreateFileAndAdd("first-fixup-file", "").Commit("fixup! commit-01").
 			CreateNCommitsStartingAt(2, 2).
-			CreateFileAndAdd("unrelated-fixup-file", "fixup 03").Commit("fixup! commit 03").
+			CreateFileAndAdd("unrelated-fixup-file", "fixup 03").Commit("fixup! commit-03").
 			CreateFileAndAdd("fixup-file", "fixup 01")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("fixup! commit 03"),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("fixup! commit 01"),
-				Contains("commit 01"),
+				Contains("fixup! commit-03"),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("fixup! commit-01"),
+				Contains("commit-01"),
 			).
-			NavigateToLine(Contains("fixup! commit 01")).
+			NavigateToLine(Contains("fixup! commit-01")).
 			Press(keys.Commits.AmendToCommit).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
@@ -37,11 +37,11 @@ var AmendFixupCommit = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("fixup! commit 03"),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("fixup! commit 01").IsSelected(),
-				Contains("commit 01"),
+				Contains("fixup! commit-03"),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("fixup! commit-01").IsSelected(),
+				Contains("commit-01"),
 			)
 
 		t.Views().Main().
