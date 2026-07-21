@@ -50,18 +50,10 @@ var MoveTodoDownWithRapidKeypresses = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.Common().ContinueRebase()
 			}).
-			/* EXPECTED:
 			Lines(
 				Contains("commit-03"),
 				Contains("commit-02"),
 				Contains("commit-04"),
-				Contains("commit-01"),
-			)
-			ACTUAL: */
-			Lines(
-				Contains("commit-04"),
-				Contains("commit-03"),
-				Contains("commit-02"),
 				Contains("commit-01"),
 			)
 	},
