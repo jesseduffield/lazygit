@@ -403,6 +403,7 @@ var tests = []*components.IntegrationTest{
 	staging.SelectNextLineAfterStagingInTwoHunkDiff,
 	staging.SelectNextLineAfterStagingIsolatedAddedLine,
 	staging.StageHunks,
+	staging.StageHunksWithRapidKeypresses,
 	staging.StageLines,
 	staging.StagePartialBlockOfChangesFirstLines,
 	staging.StagePartialBlockOfChangesLastLines,
