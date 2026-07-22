@@ -149,6 +149,10 @@ type LocalCommitsViewModel struct {
 
 	// If this is true we'll use git log --all when fetching the commits.
 	showWholeGitGraph bool
+
+	// If non-empty, the git graph is restricted to these refs (plus HEAD)
+	// instead of showing just the current branch or the whole graph.
+	filterRefs []string
 }
 
 func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon) *LocalCommitsViewModel {
@@ -241,6 +245,14 @@ func (self *LocalCommitsViewModel) SetShowWholeGitGraph(value bool) {
 
 func (self *LocalCommitsViewModel) GetShowWholeGitGraph() bool {
 	return self.showWholeGitGraph
+}
+
+func (self *LocalCommitsViewModel) SetFilterRefs(refs []string) {
+	self.filterRefs = refs
+}
+
+func (self *LocalCommitsViewModel) GetFilterRefs() []string {
+	return self.filterRefs
 }
 
 func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
