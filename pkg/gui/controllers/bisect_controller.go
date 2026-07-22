@@ -68,7 +68,13 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	// Originally we were allowing the user to, from the bisect menu, select whether
 	// they were talking about the selected commit or the current bisect commit,
 	// and that was a bit confusing (and required extra keypresses).
-	selectCurrentAfter := info.GetCurrentHash() == "" || info.GetCurrentHash() == commit.Hash()
+	// Use actual HEAD to determine the current commit, since the user may have
+	// manually checked out a different commit during bisect.
+	headHash := info.GetHeadHash()
+	if headHash == "" {
+		headHash = info.GetCurrentHash()
+	}
+	selectCurrentAfter := info.GetCurrentHash() == "" || headHash == commit.Hash()
 	// we need to wait to reselect if our bisect commits aren't ancestors of our 'start'
 	// ref, because we'll be reloading our commits in that case.
 	waitToReselect := selectCurrentAfter && !self.c.Git().Bisect.ReachableFromStart(info)
@@ -78,7 +84,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	// use the selected commit in that case.
 
 	bisecting := info.GetCurrentHash() != ""
-	hashToMark := lo.Ternary(bisecting, info.GetCurrentHash(), commit.Hash())
+	hashToMark := lo.Ternary(bisecting, headHash, commit.Hash())
 	shortHashToMark := utils.ShortHash(hashToMark)
 
 	// For marking a commit as bad, when we're not already bisecting, we require
@@ -130,7 +136,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Keys:           menuKey('s'),
 		},
 	}
-	if info.GetCurrentHash() != "" && info.GetCurrentHash() != commit.Hash() {
+	if info.GetCurrentHash() != "" && headHash != commit.Hash() {
 		menuItems = append(menuItems, lo.ToPtr(types.MenuItem{
 			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipSelected, commit.ShortHash()),
 			OnPress: func() error {

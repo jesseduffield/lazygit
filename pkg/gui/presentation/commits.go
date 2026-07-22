@@ -287,7 +287,14 @@ func getBisectStatus(index int, commitHash string, bisectInfo *git_commands.Bise
 		return BisectStatusNone
 	}
 
-	if bisectInfo.GetCurrentHash() == commitHash {
+	// Use actual HEAD hash to determine the current position, since the user
+	// may have manually checked out a different commit during bisect.
+	// Fall back to BISECT_EXPECTED_REV if HEAD hash is not available.
+	currentHash := bisectInfo.GetHeadHash()
+	if currentHash == "" {
+		currentHash = bisectInfo.GetCurrentHash()
+	}
+	if currentHash == commitHash {
 		return BisectStatusCurrent
 	}
 
