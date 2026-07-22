@@ -2822,6 +2822,36 @@
           ],
           "default": "\u003center\u003e"
         },
+        "confirmSearch": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Key for confirming the search/filter prompt (the one opened with `startSearch`).",
+          "default": "\u003center\u003e"
+        },
+        "confirmPrompt": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Key for confirming a text input prompt (e.g. when naming a stash or a new branch).",
+          "default": "\u003center\u003e"
+        },
         "confirmInEditor": {
           "oneOf": [
             {

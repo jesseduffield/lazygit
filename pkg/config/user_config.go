@@ -507,7 +507,11 @@ type KeybindingUniversalConfig struct {
 	Confirm           Keybinding   `yaml:"confirm"`
 	ConfirmMenu       Keybinding   `yaml:"confirmMenu"`
 	ConfirmSuggestion Keybinding   `yaml:"confirmSuggestion"`
-	ConfirmInEditor   Keybinding   `yaml:"confirmInEditor"` // <meta+enter> on Mac
+	// Key for confirming the search/filter prompt (the one opened with `startSearch`).
+	ConfirmSearch Keybinding `yaml:"confirmSearch"`
+	// Key for confirming a text input prompt (e.g. when naming a stash or a new branch).
+	ConfirmPrompt   Keybinding `yaml:"confirmPrompt"`
+	ConfirmInEditor Keybinding `yaml:"confirmInEditor"` // <meta+enter> on Mac
 	// Deprecated: add the key to `confirmInEditor` instead.
 	ConfirmInEditorAlt Keybinding `yaml:"confirmInEditor-alt"`
 	Remove             Keybinding `yaml:"remove"`
@@ -1031,6 +1035,8 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				Confirm:                           Keybinding{"<enter>"},
 				ConfirmMenu:                       Keybinding{"<enter>"},
 				ConfirmSuggestion:                 Keybinding{"<enter>"},
+				ConfirmSearch:                     Keybinding{"<enter>"},
+				ConfirmPrompt:                     Keybinding{"<enter>"},
 				ConfirmInEditor:                   Keybinding{platformKeyBinding(platform, map[string]string{"darwin": "<meta+enter>"}, "<ctrl+enter>")},
 				ConfirmInEditorAlt:                Keybinding{"<ctrl+s>"},
 				Remove:                            Keybinding{"d"},
