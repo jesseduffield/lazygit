@@ -73,6 +73,8 @@ gui:
   # If true, capture mouse events.
   # When mouse events are captured, it's a little harder to select text: e.g.
   # requiring you to hold the option key when on macOS.
+  # Mouse capture can also be toggled at runtime with the 'toggleMouseCapture'
+  # keybinding ('%' by default).
   mouseEvents: true
 
   # If true, do not show a warning when amending a commit.
@@ -725,6 +727,7 @@ keybinding:
     submitEditorText: <enter>
     extrasMenu: '@'
     toggleWhitespaceInDiffView: <ctrl+w>
+    toggleMouseCapture: '%'
     increaseContextInDiffView: '}'
     decreaseContextInDiffView: '{'
     increaseRenameSimilarityThreshold: )
