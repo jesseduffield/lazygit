@@ -184,10 +184,10 @@ func (self *ModeHelper) ExitFilterMode() error {
 
 func (self *ModeHelper) ClearFiltering() error {
 	selectedCommitHash := self.c.Contexts().LocalCommits.GetSelectedCommitHash()
-	self.c.Modes().Filtering.Reset()
-	if self.c.State().GetRepoState().GetScreenMode() == types.SCREEN_HALF {
+	if self.c.Modes().Filtering.ScreenModeChanged() && self.c.State().GetRepoState().GetScreenMode() == types.SCREEN_HALF {
 		self.c.State().GetRepoState().SetScreenMode(types.SCREEN_NORMAL)
 	}
+	self.c.Modes().Filtering.Reset()
 
 	self.c.Refresh(types.RefreshOptions{
 		Scope: ScopesToRefreshWhenFilteringModeChanges(),
