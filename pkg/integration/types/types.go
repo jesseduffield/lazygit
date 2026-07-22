@@ -28,6 +28,9 @@ type GuiDriver interface {
 	// user typing faster than lazygit processes the input.
 	PressKeysRapidly(...string)
 	Click(int, int)
+	ClickAndHold(int, int)
+	MouseMove(int, int)
+	MouseRelease(int, int)
 	// Simulate the terminal window regaining focus (which triggers a reload of
 	// changed config files)
 	FocusIn()

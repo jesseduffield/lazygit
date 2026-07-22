@@ -483,6 +483,38 @@ func (self *ViewDriver) FocusInAndClick(x, y int) *ViewDriver {
 	return self
 }
 
+func (self *ViewDriver) MouseMoveToView(target *ViewDriver, x, y int) *ViewDriver {
+	offsetX, offsetY, _, _ := target.getView().Dimensions()
+	self.t.mouseMove(offsetX+1+x, offsetY+1+y)
+	return self
+}
+
+func (self *ViewDriver) Drag(fromX, fromY, toX, toY int) *ViewDriver {
+	return self.ClickAndHold(fromX, fromY).MouseMove(toX, toY).MouseRelease()
+}
+
+func (self *ViewDriver) ClickAndHold(x, y int) *ViewDriver {
+	offsetX, offsetY, _, _ := self.getView().Dimensions()
+	self.t.clickAndHold(offsetX+1+x, offsetY+1+y)
+	return self
+}
+
+func (self *ViewDriver) MouseMove(x, y int) *ViewDriver {
+	offsetX, offsetY, _, _ := self.getView().Dimensions()
+	self.t.mouseMove(offsetX+1+x, offsetY+1+y)
+	return self
+}
+
+func (self *ViewDriver) RepeatMouseMove() *ViewDriver {
+	self.t.repeatMouseMove()
+	return self
+}
+
+func (self *ViewDriver) MouseRelease() *ViewDriver {
+	self.t.mouseRelease()
+	return self
+}
+
 // i.e. pressing down arrow
 func (self *ViewDriver) SelectNextItem() *ViewDriver {
 	return self.PressFast(self.t.keys.Universal.NextItem)

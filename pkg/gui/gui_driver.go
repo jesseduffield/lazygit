@@ -57,6 +57,22 @@ func (self *GuiDriver) Click(x, y int) {
 	self.replayMouseEvent(x, y, tcell.ButtonNone)
 }
 
+func (self *GuiDriver) ClickAndHold(x, y int) {
+	self.CheckAllToastsAcknowledged()
+	self.replayMouseEvent(x, y, tcell.ButtonPrimary)
+}
+
+// MouseMove reports the mouse at a new position with the left button still
+// held down, i.e. a drag movement. (No test needs pointer motion without a
+// button held, so that variant doesn't exist.)
+func (self *GuiDriver) MouseMove(x, y int) {
+	self.replayMouseEvent(x, y, tcell.ButtonPrimary)
+}
+
+func (self *GuiDriver) MouseRelease(x, y int) {
+	self.replayMouseEvent(x, y, tcell.ButtonNone)
+}
+
 func (self *GuiDriver) replayMouseEvent(x, y int, buttons tcell.ButtonMask) {
 	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
 		tcell.NewEventMouse(x, y, buttons, 0),
