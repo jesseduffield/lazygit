@@ -880,7 +880,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				ActiveBorderColor:               []string{"green", "bold"},
 				SearchingActiveBorderColor:      []string{"cyan", "bold"},
 				InactiveBorderColor:             []string{"default"},
-				OptionsTextColor:                []string{"blue"},
+				OptionsTextColor:                []string{"white"},
 				SelectedLineBgColor:             []string{"blue"},
 				InactiveViewSelectedLineBgColor: []string{"bold"},
 				CherryPickedCommitBgColor:       []string{"cyan"},
