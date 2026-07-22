@@ -1271,6 +1271,28 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 				},
 			},
 			{
+				Label:   self.c.Tr.FilterGraphByRefs,
+				Tooltip: self.c.Tr.FilterGraphByRefsTooltip,
+				OnPress: func() error {
+					self.c.Prompt(types.PromptOpts{
+						Title:               self.c.Tr.FilterGraphByRefsPrompt,
+						InitialContent:      strings.Join(self.context().GetFilterRefs(), " "),
+						FindSuggestionsFunc: self.c.Helpers().Suggestions.GetMultiRefsSuggestionsFunc(),
+						AllowEmptyInput:     true,
+						HandleConfirm: func(response string) error {
+							self.context().SetFilterRefs(strings.Fields(response))
+							return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
+								self.c.Refresh(
+									types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}},
+								)
+								return nil
+							})
+						},
+					})
+					return nil
+				},
+			},
+			{
 				Label:     self.c.Tr.ShowGitGraph,
 				Tooltip:   self.c.Tr.ShowGitGraphTooltip,
 				OpensMenu: true,

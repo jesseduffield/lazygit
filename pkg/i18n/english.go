@@ -821,6 +821,9 @@ type TranslationSet struct {
 	SortOrderPrompt                          string
 	SortCommits                              string
 	SortCommitsTooltip                       string
+	FilterGraphByRefs                        string
+	FilterGraphByRefsTooltip                 string
+	FilterGraphByRefsPrompt                  string
 	CantChangeContextSizeError               string
 	CantChangeRenameThresholdError           string
 	OpenCommitInBrowser                      string
@@ -1967,6 +1970,9 @@ func EnglishTranslationSet() *TranslationSet {
 		SortBasedOnReflog:                        "(based on reflog)",
 		SortCommits:                              "Commit sort order",
 		SortCommitsTooltip:                       "Change the sort order of the commits in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.sortOrder'.",
+		FilterGraphByRefs:                        "Filter graph by refs",
+		FilterGraphByRefsTooltip:                 "Restrict the git graph in the commits panel to the given refs (branches, tags, remote branches) in addition to the current branch. Leave empty to reset.",
+		FilterGraphByRefsPrompt:                  "Refs to show in the graph (space-separated, empty to reset):",
 		CantChangeContextSizeError:               "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
 		CantChangeRenameThresholdError:           "Cannot change the rename similarity threshold while in patch building mode, because the custom patch can't cope with a rename turning into a delete and add underneath it.",
 		OpenCommitInBrowser:                      "Open commit in browser",
