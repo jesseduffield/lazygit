@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -107,6 +108,13 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Handler:     self.c.Helpers().FixupHelper.HandleFindBaseCommitForFixupPress,
 			Description: self.c.Tr.FindBaseCommitForFixup,
 			Tooltip:     self.c.Tr.FindBaseCommitForFixupTooltip,
+		},
+		{
+			Keys:            opts.GetKeys(opts.Config.Files.ViewStashOptions),
+			Handler:         self.stashOptions,
+			Description:     self.c.Tr.Stash,
+			Tooltip:         self.c.Tr.Stash,
+			DisplayOnScreen: true,
 		},
 	}
 }
@@ -350,4 +358,82 @@ func (self *StagingController) editHunk() error {
 
 func (self *StagingController) FilePath() string {
 	return self.c.Contexts().Files.GetSelectedPath()
+}
+
+func (self *StagingController) handleStash(stashFunc func(message string) error, action string) error {
+	self.c.Prompt(types.PromptOpts{
+		Title: self.c.Tr.StashChanges,
+		HandleConfirm: func(stashComment string) error {
+			self.c.LogAction(action)
+			if err := stashFunc(stashComment); err != nil {
+				return err
+			}
+
+			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.STAGING}})
+			return nil
+		},
+		AllowEmptyInput: true,
+	})
+	return nil
+}
+
+func (self *StagingController) stashOptions() error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.StashOptions,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.StashAllChanges,
+				OnPress: func() error {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
+						return errors.New(self.c.Tr.NoFilesToStash)
+					}
+					return self.handleStash(self.c.Git().Stash.Push, self.c.Tr.Actions.StashAllChanges)
+				},
+				Keys: menuKey('a'),
+			},
+			{
+				Label: self.c.Tr.StashAllChangesKeepIndex,
+				OnPress: func() error {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
+						return errors.New(self.c.Tr.NoFilesToStash)
+					}
+					return self.handleStash(self.c.Git().Stash.StashAndKeepIndex, self.c.Tr.Actions.StashAllChangesKeepIndex)
+				},
+				Keys: menuKey('i'),
+			},
+
+			{
+				Label: self.c.Tr.StashIncludeUntrackedChanges,
+				OnPress: func() error {
+					return self.handleStash(self.c.Git().Stash.StashIncludeUntrackedChanges, self.c.Tr.Actions.StashIncludeUntrackedChanges)
+				},
+				Keys: menuKey('U'),
+			},
+			{
+				Label: self.c.Tr.StashStagedChanges,
+				OnPress: func() error {
+					// there must be something in staging otherwise the current implementation mucks the stash up
+					if !self.c.Helpers().WorkingTree.AnyStagedFilesExceptSubmodules() {
+						return errors.New(self.c.Tr.NoTrackedStagedFilesStash)
+					}
+					return self.handleStash(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
+				},
+				Keys: menuKey('s'),
+			},
+			{
+				Label: self.c.Tr.StashUnstagedChanges,
+				OnPress: func() error {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
+						return errors.New(self.c.Tr.NoFilesToStash)
+					}
+					if self.c.Helpers().WorkingTree.AnyStagedFilesExceptSubmodules() {
+						return self.handleStash(self.c.Git().Stash.StashUnstagedChanges, self.c.Tr.Actions.StashUnstagedChanges)
+					}
+					// ordinary stash
+					return self.handleStash(self.c.Git().Stash.Push, self.c.Tr.Actions.StashUnstagedChanges)
+				},
+				Keys: menuKey('u'),
+			},
+		},
+	})
 }
