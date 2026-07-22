@@ -151,6 +151,13 @@ func getPreset(shell string, osConfig *OSConfig, guessDefaultEditor func() strin
 			openDirInEditorTemplate:   "B {{dir}}",
 			suspend:                   returnBool(false),
 		},
+		"mate": {
+			editTemplate:              "mate -- {{filename}}",
+			editAtLineTemplate:        "mate --line {{line}} -- {{filename}}",
+			editAtLineAndWaitTemplate: "mate --wait --line {{line}} -- {{filename}}",
+			openDirInEditorTemplate:   "mate -- {{dir}}",
+			suspend:                   returnBool(false),
+		},
 	}
 
 	// Some of our presets have a different name than the editor they are using.
