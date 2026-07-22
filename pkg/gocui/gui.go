@@ -86,6 +86,14 @@ type ViewMouseBinding struct {
 
 	// must be a mouse key
 	Key KeyName
+
+	// If true, this binding is dispatched before ShouldHandleMouseEvent is
+	// consulted, so it fires even when a popup panel is focused and the click
+	// lands on a view other than that panel (which is normally swallowed). This
+	// is the same early phase that hyperlink clicks are handled in; use it for
+	// clicks that must stay live behind a popup, e.g. opening a diff line in the
+	// editor from the main view behind the commit-message panel.
+	HandleWhenPopupPanelFocused bool
 }
 
 type ViewMouseBindingOpts struct {
@@ -1220,7 +1228,7 @@ func calcScrollbarRune(
 
 func calcRealScrollbarStartEnd(v *View) (bool, int, int) {
 	height := v.InnerHeight()
-	fullHeight := v.ViewLinesHeight() - v.scrollMargin()
+	fullHeight := v.scrollbarContentHeight() - v.scrollMargin()
 
 	if v.CanScrollPastBottom {
 		fullHeight += height
@@ -1441,7 +1449,7 @@ func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
 
 // drawListFooter draws the footer of a list view, showing something like '1 of 10'
 func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
-	if len(v.lines) == 0 {
+	if len(v.buf.lines) == 0 {
 		return nil
 	}
 
@@ -1674,13 +1682,13 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			if newY < 0 {
 				newY = 0
 				newCy = -v.oy
-			} else if newY >= len(v.lines) {
-				newY = len(v.lines) - 1
+			} else if newY >= len(v.buf.lines) {
+				newY = len(v.buf.lines) - 1
 				newCy = newY - v.oy
 			}
 
 			visibleLineWidth := 0
-			for _, c := range v.lines[newY].cells {
+			for _, c := range v.buf.lines[newY].cells {
 				visibleLineWidth += c.width
 			}
 			if visibleLineWidth < newX {
@@ -1694,6 +1702,22 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 				if link := v.viewLines[newY].line[newX].hyperlink; link != "" {
 					return g.openHyperlink(link, v.name)
 				}
+			}
+		}
+
+		var mouseOpts ViewMouseBindingOpts
+		if IsMouseKey(ev.Key) {
+			isDoubleClick := g.recordClickInfo(newX, newY, ev.Key.KeyName(), v)
+			mouseOpts = ViewMouseBindingOpts{X: newX, Y: newY, Key: ev.Key.KeyName(), IsDoubleClick: isDoubleClick}
+
+			// Dispatch bindings that opt into firing while a popup panel is focused
+			// before the gate below gets a chance to reject the click.
+			matched, err := g.execMouseKeybindings(v, ev, mouseOpts, true)
+			if err != nil {
+				return err
+			}
+			if matched {
+				return nil
 			}
 		}
 
@@ -1733,9 +1757,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		}
 
 		if IsMouseKey(ev.Key) {
-			isDoubleClick := g.recordClickInfo(newX, newY, ev.Key.KeyName(), v)
-			opts := ViewMouseBindingOpts{X: newX, Y: newY, Key: ev.Key.KeyName(), IsDoubleClick: isDoubleClick}
-			matched, err := g.execMouseKeybindings(v, ev, opts)
+			matched, err := g.execMouseKeybindings(v, ev, mouseOpts, false)
 			if err != nil {
 				return err
 			}
@@ -1793,11 +1815,12 @@ func (g *Gui) recordClickInfo(x, y int, key KeyName, v *View) bool {
 	return isDoubleClick
 }
 
-func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBindingOpts) (bool, error) {
+func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBindingOpts, handleWhenPopupPanelFocused bool) (bool, error) {
 	isMatch := func(binding *ViewMouseBinding) bool {
 		return binding.ViewName == view.Name() &&
 			ev.Key.KeyName() == binding.Key &&
-			ev.Key.Mod() == binding.Modifier
+			ev.Key.Mod() == binding.Modifier &&
+			binding.HandleWhenPopupPanelFocused == handleWhenPopupPanelFocused
 	}
 
 	// first pass looks for ones that match the focused view

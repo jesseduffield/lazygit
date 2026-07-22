@@ -58,6 +58,14 @@ func (self *PagerConfig) GetColorArg() string {
 	return colorArg
 }
 
+func (self *PagerConfig) GetNarrowSelectionHighlight() bool {
+	currentPagerConfig := self.currentPagerConfig()
+	if currentPagerConfig == nil {
+		return false
+	}
+	return currentPagerConfig.NarrowSelectionHighlight
+}
+
 func (self *PagerConfig) GetExternalDiffCommand() string {
 	currentPagerConfig := self.currentPagerConfig()
 	if currentPagerConfig == nil {

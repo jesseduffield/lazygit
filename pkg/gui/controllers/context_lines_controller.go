@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"math"
 
@@ -51,10 +50,6 @@ func (self *ContextLinesController) Context() types.Context {
 }
 
 func (self *ContextLinesController) Increase() error {
-	if err := self.checkCanChangeContext(); err != nil {
-		return err
-	}
-
 	if self.c.UserConfig().Git.DiffContextSize < math.MaxUint64 {
 		self.c.UserConfig().Git.DiffContextSize++
 	}
@@ -62,10 +57,6 @@ func (self *ContextLinesController) Increase() error {
 }
 
 func (self *ContextLinesController) Decrease() error {
-	if err := self.checkCanChangeContext(); err != nil {
-		return err
-	}
-
 	if self.c.UserConfig().Git.DiffContextSize > 0 {
 		self.c.UserConfig().Git.DiffContextSize--
 	}
@@ -83,15 +74,13 @@ func (self *ContextLinesController) applyChange() error {
 	case context.STAGING_MAIN_CONTEXT_KEY, context.STAGING_SECONDARY_CONTEXT_KEY:
 		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STAGING}})
 	default:
+		// The new context size re-renders the diff with a different git command, which
+		// would otherwise reset the main view to the top. Preserve where it was
+		// scrolled (and its selection, if the focused main view is showing one)
+		// instead. This covers both the focused main view and the side panels, since
+		// they all render their diff into the same "main" view.
+		self.c.Helpers().Staging.PreserveDiffPositionOnRerender(self.c.Contexts().Normal.GetView())
 		currentContext.HandleRenderToMain()
 	}
-	return nil
-}
-
-func (self *ContextLinesController) checkCanChangeContext() error {
-	if self.c.Git().Patch.PatchBuilder.Active() {
-		return errors.New(self.c.Tr.CantChangeContextSizeError)
-	}
-
 	return nil
 }

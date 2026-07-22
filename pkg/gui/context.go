@@ -373,3 +373,15 @@ func (self *ContextMgr) NextInStack(c types.Context) types.Context {
 
 	panic("context not in stack")
 }
+
+// IsInStack reports whether the given context is somewhere in the context stack.
+// Unlike NextInStack it never panics, so it's safe to call before dereferencing
+// the stack from a caller that might run with the context off-stack.
+func (self *ContextMgr) IsInStack(c types.Context) bool {
+	self.RLock()
+	defer self.RUnlock()
+
+	return lo.ContainsBy(self.ContextStack, func(other types.Context) bool {
+		return other.GetKey() == c.GetKey()
+	})
+}

@@ -101,13 +101,13 @@ func TestWriteString(t *testing.T) {
 	for _, test := range tests {
 		v := NewView("name", 0, 0, 10, 10, OutputNormal)
 		for _, l := range test.existingLines {
-			v.lines = append(v.lines, lineType{cells: stringToCells(l)})
+			v.buf.lines = append(v.buf.lines, lineType{cells: stringToCells(l)})
 		}
 		for _, s := range test.stringsToWrite {
 			v.writeString(s)
 		}
 		var resultingLines [][]string
-		for _, l := range v.lines {
+		for _, l := range v.buf.lines {
 			resultingLines = append(resultingLines, cellsToStrings(l.cells))
 		}
 		assert.Equal(t, test.expectedLines, resultingLines)
@@ -144,19 +144,359 @@ func TestAutoRenderingHyperlinks(t *testing.T) {
 
 	v.writeString("htt")
 	// No hyperlinks are generated for incomplete URLs
-	assert.Equal(t, "", v.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "", v.buf.lines[0].cells[0].hyperlink)
 	// Writing more characters to the same line makes the link complete (even
 	// though we didn't see a newline yet)
 	v.writeString("ps://example.com")
-	assert.Equal(t, "https://example.com", v.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
 
 	v.Clear()
 	// Valid but incomplete URL
 	v.writeString("https://exa")
-	assert.Equal(t, "https://exa", v.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://exa", v.buf.lines[0].cells[0].hyperlink)
 	// Writing more characters to the same fixes the link
 	v.writeString("mple.com")
-	assert.Equal(t, "https://example.com", v.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
+}
+
+func TestSelectedLineBgColorWidth(t *testing.T) {
+	tests := []struct {
+		name         string
+		bgColorWidth int
+		selected     func(screenX int) bool
+	}{
+		{
+			name:         "zero uses full-width selection background",
+			bgColorWidth: 0,
+			selected:     func(_ int) bool { return true },
+		},
+		{
+			name:         "non-zero uses left-edge selection background",
+			bgColorWidth: 2,
+			selected:     func(screenX int) bool { return screenX <= 2 },
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			WithSimulationScreen(t, 14, 4)
+
+			v := NewView("name", 0, 0, 11, 3, OutputNormal) // InnerWidth=10
+			v.Highlight = true
+			v.SelBgColor = ColorBlue
+			v.SelectedLineBgColorWidth = test.bgColorWidth
+			v.writeString("0123456789\n")
+			v.draw()
+
+			selectedBg := getTcellColor(ColorBlue, OutputNormal)
+			for screenX := 1; screenX <= 10; screenX++ {
+				_, style, _ := Screen.Get(screenX, 1)
+				if test.selected(screenX) {
+					assert.Equal(t, selectedBg, style.GetBackground(), "cell %d should show the selection background", screenX)
+				} else {
+					assert.Equal(t, tcell.ColorDefault, style.GetBackground(), "cell %d should keep its original background", screenX)
+				}
+			}
+		})
+	}
+}
+
+func TestDiffLineMetadata(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// Synthetic delta-style output: each content line is prefixed with an
+	// OSC 1717 sequence carrying version;type;new;old;file (old empty unless a
+	// deletion), and the OSC bytes themselves must not become visible cells. The
+	// final line is a header with no OSC, to prove the metadata doesn't bleed.
+	osc := func(payload string) string { return "\x1b]1717;" + payload + "\x1b\\" }
+	v.writeString(strings.Join([]string{
+		osc("1;c;1;;foo.txt") + "line1",
+		osc("1;d;2;2;foo.txt") + "old2",
+		osc("1;a;2;;foo.txt") + "new2",
+		"@@ a header line with no metadata @@",
+	}, "\n"))
+
+	type result struct {
+		payload string
+		ok      bool
+	}
+	got := make([]result, len(v.buf.lines))
+	for y := range v.buf.lines {
+		payload, ok := v.DiffLineMetadataInLine(y)
+		got[y] = result{payload, ok}
+	}
+
+	assert.Equal(t, []result{
+		{"1;c;1;;foo.txt", true},
+		{"1;d;2;2;foo.txt", true},
+		{"1;a;2;;foo.txt", true},
+		{"", false}, // the header line carries no metadata (no bleed)
+	}, got)
+
+	// The OSC sequence is consumed as an escape, so the visible text is intact.
+	assert.Equal(t, "line1", v.BufferLines()[0])
+	assert.Equal(t, "@@ a header line with no metadata @@", v.BufferLines()[3])
+}
+
+func TestDiffLineMetadataPayloads(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	osc := func(payload string) string { return "\x1b]1717;" + payload + "\x1b\\" }
+	v.writeString(strings.Join([]string{
+		// A single-column row: one payload tags the whole line.
+		osc("1;c;1;;foo.txt") + "context",
+		// A side-by-side change row: the deletion tags the left half and the
+		// addition replacing it tags the right half of the same rendered line.
+		osc("1;d;2;2;foo.txt") + "old2  " + osc("1;a;2;;foo.txt") + "new2",
+		// A header line with no metadata.
+		"@@ header @@",
+	}, "\n"))
+
+	assert.Equal(t, [][]string{
+		{"1;c;1;;foo.txt"},
+		{"1;d;2;2;foo.txt", "1;a;2;;foo.txt"},
+		nil,
+	}, v.DiffLineMetadataPayloads())
+}
+
+func TestDiffLineMetadataZeroWidthRecords(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// A row can carry several records back-to-back with nothing rendered in
+	// between, making all but the last record's region zero-width. Those
+	// payloads must survive as payloads of the row (via content-less carrier
+	// cells) rather than being clobbered by the record that follows.
+	osc := func(payload string) string { return "\x1b]1717;" + payload + "\x1b\\" }
+	v.writeString(strings.Join([]string{
+		// difftastic's combined file+hunk banner: the f is immediately
+		// followed by the h.
+		osc("1;f;;;foo.txt") + osc("1;h;5;;foo.txt") + "foo.txt --- Go",
+		// A modification row collapsed to a single column carries its
+		// deletion and its addition back-to-back before the row's content.
+		osc("1;d;5;5;foo.txt") + osc("1;a;5;;foo.txt") + "595 new content",
+		// A record emitted right before the line end covers no cell either.
+		"trailing" + osc("1;d;6;6;foo.txt"),
+	}, "\n") + "\n")
+
+	assert.Equal(t, [][]string{
+		{"1;f;;;foo.txt", "1;h;5;;foo.txt"},
+		{"1;d;5;5;foo.txt", "1;a;5;;foo.txt"},
+		{"1;d;6;6;foo.txt"},
+	}, v.DiffLineMetadataPayloads())
+
+	// The carrier cells are invisible: the rendered text is unchanged.
+	assert.Equal(t, []string{
+		"foo.txt --- Go",
+		"595 new content",
+		"trailing",
+	}, v.BufferLines())
+
+	// A row's single-payload identity is its first record: the f of a banner,
+	// the d of a collapsed modification row.
+	payload, ok := v.DiffLineMetadataInLine(0)
+	assert.True(t, ok)
+	assert.Equal(t, "1;f;;;foo.txt", payload)
+	payload, ok = v.DiffLineMetadataInLine(1)
+	assert.True(t, ok)
+	assert.Equal(t, "1;d;5;5;foo.txt", payload)
+}
+
+func TestDiffLineMetadataHandshakeSwallowed(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// A metadata-aware pager emits a version-only handshake (an OSC 1717 with no
+	// fields) as its first output, immediately before the diff, to announce it speaks
+	// the protocol. It must be swallowed whole: no visible bytes, no phantom line, and
+	// crucially it must not attach as metadata to the diff header that follows it.
+	osc := func(payload string) string { return "\x1b]1717;" + payload + "\x1b\\" }
+	v.writeString(osc("1") + strings.Join([]string{
+		"diff --git a/foo.txt b/foo.txt",
+		osc("1;a;1;;foo.txt") + "added",
+	}, "\n"))
+
+	// The handshake produced no phantom line and no visible bytes.
+	assert.Equal(t, []string{
+		"diff --git a/foo.txt b/foo.txt",
+		"added",
+	}, v.BufferLines())
+
+	// The handshake didn't bleed onto the header line, and the real per-line metadata
+	// after it still applies.
+	type result struct {
+		payload string
+		ok      bool
+	}
+	got := make([]result, len(v.buf.lines))
+	for y := range v.buf.lines {
+		payload, ok := v.DiffLineMetadataInLine(y)
+		got[y] = result{payload, ok}
+	}
+	assert.Equal(t, []result{
+		{"", false},
+		{"1;a;1;;foo.txt", true},
+	}, got)
+}
+
+// When a re-render produces fewer view lines than the previous one,
+// refreshViewLinesIfNeeded must truncate viewLines to the new content. If it
+// didn't (it used to overwrite in place and keep the tail), a reader could map a
+// view line that no longer exists onto the wrong buffer line — and with wrapping
+// the stale entry's buffer index can still be in range of the new, shorter,
+// less-wrapped buffer, so an in-range guard alone wouldn't catch it. See
+// diff-line-metadata-notes.md §8.
+func TestBufferLineForViewLineStaleTail(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// First render: two lines that each wrap into three view lines, so the
+	// buffer has 2 lines but there are 6 view lines.
+	v.writeString(strings.Repeat("a", 27) + "\n" + strings.Repeat("b", 27))
+	assert.Equal(t, 6, v.ViewLinesHeight())
+
+	// Re-render with shorter content (rewind, then overwrite from the top with
+	// three short, unwrapped lines). There are now only 3 view lines.
+	v.Reset()
+	v.writeString("aaa\nbbb\nccc")
+	assert.Equal(t, 3, v.ViewLinesHeight())
+
+	// A real view line maps to its buffer line as usual.
+	bufferLine, ok := v.BufferLineForViewLine(1)
+	assert.True(t, ok)
+	assert.Equal(t, 1, bufferLine)
+
+	// View line 4 no longer exists in the current buffer, so the mapping must
+	// fail rather than land on a stale entry from the previous render.
+	_, ok = v.BufferLineForViewLine(4)
+	assert.False(t, ok)
+}
+
+// An async re-render builds into an off-screen buffer and swaps it in once it
+// has enough to paint, so readers keep seeing the previous render — coherent and
+// consistent — until the new content appears in one step. See View.offscreen.
+func TestOffscreenRender(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	v.writeString("a\nb\nc")
+	assert.Equal(t, []string{"a", "b", "c"}, v.ViewBufferLines())
+
+	// Render new, longer content off-screen.
+	v.BeginOffscreenRender()
+	v.writeString("w\nx\ny\nz")
+
+	// The displayed buffer is untouched: readers still see the previous render,
+	// and the view-line→buffer-line mapping stays consistent with it.
+	assert.Equal(t, []string{"a", "b", "c"}, v.ViewBufferLines())
+	bufferLine, ok := v.BufferLineForViewLine(1)
+	assert.True(t, ok)
+	assert.Equal(t, 1, bufferLine)
+
+	// Swapping in reveals the new content in one step.
+	v.SwapInOffscreenRender()
+	assert.Equal(t, []string{"w", "x", "y", "z"}, v.ViewBufferLines())
+
+	// A further write now appends to the displayed buffer directly.
+	v.writeString("\nmore")
+	assert.Equal(t, []string{"w", "x", "y", "z", "more"}, v.ViewBufferLines())
+}
+
+// The escape restore scans the *incoming* content of a re-render as it loads,
+// before it is swapped in, so it can find the row matching a target identity and
+// decide when to swap. That means reading the off-screen buffer's loaded rows
+// (text, metadata, hyperlink) while the displayed buffer still shows the old
+// render. See View.offscreen / OffscreenDiffLineContents.
+func TestOffscreenDiffLineContents(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// No off-screen render in progress: nothing to scan.
+	assert.Nil(t, v.OffscreenDiffLineContents())
+
+	osc := func(payload string) string { return "\x1b]1717;" + payload + "\x1b\\" }
+	v.BeginOffscreenRender()
+	v.writeString(strings.Join([]string{
+		osc("1;c;1;;foo.txt") + "context",
+		osc("1;a;2;;foo.txt") + "added",
+	}, "\n"))
+
+	contents := v.OffscreenDiffLineContents()
+	assert.Equal(t, []DiffLineContent{
+		{Text: "context", Metadata: "1;c;1;;foo.txt"},
+		{Text: "added", Metadata: "1;a;2;;foo.txt"},
+	}, contents)
+
+	// The displayed buffer is still empty; the scan reads the off-screen render.
+	assert.Empty(t, v.BufferLines())
+}
+
+// The escape restore matches a target identity against a buffer line, then needs
+// the view line that renders it to scroll there and select it. ViewLineForBufferLine
+// is that inverse mapping, and it must point at the *first* of the (wrapped) view
+// lines a buffer line spans.
+func TestViewLineForBufferLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// Buffer line 0 is short (one view line); buffer line 1 wraps into three view
+	// lines (view lines 1, 2, 3); buffer line 2 is short again (view line 4).
+	v.writeString("short\n" + strings.Repeat("b", 27) + "\nlast")
+
+	for bufferLine, wantViewLine := range map[int]int{0: 0, 1: 1, 2: 4} {
+		viewLine, ok := v.ViewLineForBufferLine(bufferLine)
+		assert.True(t, ok)
+		assert.Equal(t, wantViewLine, viewLine)
+	}
+
+	_, ok := v.ViewLineForBufferLine(3)
+	assert.False(t, ok)
+}
+
+// While an async re-render loads, it swaps in only a partially-filled buffer at
+// its first paint and keeps appending lines afterwards. The scrollbar must keep
+// using the pre-load height until the load ends, so the thumb doesn't shrink and
+// snap back as the rest streams in. See View.scrollbarHeightFloor.
+func TestScrollbarHeightHeldWhileLoading(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 12, OutputNormal)
+
+	// Initial render: 100 lines, scrolled well down.
+	v.writeString(strings.Repeat("x\n", 100))
+	v.SetOrigin(0, 80)
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// A re-render begins while the previous render is still shown: hold the
+	// scrollbar height at the current value.
+	v.FreezeScrollbarHeight()
+
+	// The off-screen render swaps in only a screenful at its first paint.
+	v.BeginOffscreenRender()
+	v.writeString(strings.Repeat("y\n", 30))
+	v.SwapInOffscreenRender()
+
+	// The displayed buffer is now short, but the scrollbar height stays held, so
+	// the thumb keeps its position instead of jumping.
+	assert.Equal(t, 30, v.ViewLinesHeight())
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// The rest of the content streams in.
+	v.writeString(strings.Repeat("y\n", 70))
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// Once the load ends, the scrollbar tracks the real content directly again.
+	v.UnfreezeScrollbarHeight()
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+}
+
+// If a synchronous render (e.g. a string render) supersedes a still-loading diff
+// before it reaches its end, the held scrollbar height must be released, so the
+// scrollbar reflects the new content rather than the abandoned load's height.
+func TestScrollbarHeightReleasedWhenContentReplaced(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 12, OutputNormal)
+
+	v.writeString(strings.Repeat("x\n", 100))
+	v.FreezeScrollbarHeight()
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// A synchronous render replaces the content before the (notional) load ends.
+	v.SetContent("just a few\nshort lines\nhere")
+	assert.Equal(t, 3, v.scrollbarContentHeight())
 }
 
 func TestContainsColoredText(t *testing.T) {
@@ -233,7 +573,7 @@ func TestContainsColoredText(t *testing.T) {
 		for j, cells := range test.lines {
 			lines[j] = lineType{cells: cells}
 		}
-		v := &View{lines: lines}
+		v := &View{buf: &viewBuffer{lines: lines}}
 		assert.Equal(t, test.expected, v.ContainsColoredText(test.fgColorStr, test.text), "Test %d failed", i)
 	}
 }
@@ -248,8 +588,8 @@ func TestWriteCursorPositionEscape(t *testing.T) {
 	// "a", then "skip to row 3" (i.e. one blank row), then "b".
 	v.writeString("a\r\n\x1b[3;1Hb\r\n")
 
-	got := make([][]string, 0, len(v.lines))
-	for _, l := range v.lines {
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
 		got = append(got, cellsToStrings(l.cells))
 	}
 
@@ -269,8 +609,8 @@ func TestWriteCursorPositionEscapeAcrossWrites(t *testing.T) {
 	// ConPTY is on row 3 here; CUP to row 5 should skip exactly one row.
 	v.writeString("c\x1b[5;1Hd\n")
 
-	got := make([][]string, 0, len(v.lines))
-	for _, l := range v.lines {
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
 		got = append(got, cellsToStrings(l.cells))
 	}
 	assert.Equal(t, [][]string{
@@ -292,8 +632,8 @@ func TestWriteCursorForwardEscape(t *testing.T) {
 	// "a" + ECH 5 + CUF 5 + "b" — visually "a     b".
 	v.writeString("a\x1b[5X\x1b[5Cb\n")
 
-	got := make([][]string, 0, len(v.lines))
-	for _, l := range v.lines {
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
 		got = append(got, cellsToStrings(l.cells))
 	}
 
@@ -312,8 +652,8 @@ func TestWriteCursorPositionEscapeWithSoftWraps(t *testing.T) {
 	v.writeString("abcdefghij\n")
 	v.writeString("\x1b[4;1Hxyz\n")
 
-	got := make([][]string, 0, len(v.lines))
-	for _, l := range v.lines {
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
 		got = append(got, cellsToStrings(l.cells))
 	}
 	assert.Equal(t, [][]string{
@@ -663,4 +1003,77 @@ func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
 		assert.Equal(t, color.Green, style.GetBackground(),
 			"trailing cell at (%d, 2) should have green bg", x)
 	}
+}
+
+// TestInclusionGutter verifies the on-demand inclusion gutter reserves a
+// left-hand column, draws the marker glyph on marked lines only, and shifts the
+// content right past it.
+func TestInclusionGutter(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	// InnerWidth=10; the frame inset of 1 places view x=0 at screen x=1.
+	v := NewView("name", 0, 0, 11, 5, OutputNormal)
+	v.Wrap = true
+	v.InclusionGutterMarker = "✓"
+
+	v.writeString("aaa\nbbb\nccc\n")
+
+	// The gutter is 2 columns wide (marker + separator); mark the middle line.
+	v.SetInclusionGutter(true, []bool{false, true, false})
+	v.draw()
+
+	// The marker appears at the gutter's first column (view x=0 → screen x=1) on
+	// the marked line only.
+	chr, _, _ := Screen.Get(1, 1)
+	assert.Equal(t, " ", chr, "unmarked line has no gutter marker")
+	chr, _, _ = Screen.Get(1, 2)
+	assert.Equal(t, "✓", chr, "marked line shows the gutter marker")
+	chr, _, _ = Screen.Get(1, 3)
+	assert.Equal(t, " ", chr, "unmarked line has no gutter marker")
+
+	// The content is shifted right past the 2-column gutter (view x=2 → screen x=3).
+	chr, _, _ = Screen.Get(3, 1)
+	assert.Equal(t, "a", chr, "content is shifted past the gutter")
+	chr, _, _ = Screen.Get(3, 2)
+	assert.Equal(t, "b", chr)
+	chr, _, _ = Screen.Get(3, 3)
+	assert.Equal(t, "c", chr)
+
+	// Hiding the gutter again returns the content flush left (view x=0 → screen x=1).
+	v.SetInclusionGutter(false, nil)
+	v.draw()
+	chr, _, _ = Screen.Get(1, 1)
+	assert.Equal(t, "a", chr, "content is flush left with no gutter")
+}
+
+// TestInclusionGutterMarkerOnEverySegment verifies that a marked buffer line that
+// wraps shows the marker on every wrapped segment, and that the gutter narrows the
+// content wrap width.
+func TestInclusionGutterMarkerOnEverySegment(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth=10
+	v.Wrap = true
+	v.InclusionGutterMarker = "✓"
+
+	// 10 cells; with a 2-column gutter the content wrap width is 8, so this wraps
+	// to "01234567" / "89".
+	v.writeString("0123456789\n")
+	v.SetInclusionGutter(true, []bool{true})
+	v.draw()
+
+	// First segment: marker present, content starts at screen x=3 and the eighth
+	// content cell ("7") sits at the right edge (screen x=10).
+	chr, _, _ := Screen.Get(1, 1)
+	assert.Equal(t, "✓", chr)
+	chr, _, _ = Screen.Get(3, 1)
+	assert.Equal(t, "0", chr)
+	chr, _, _ = Screen.Get(10, 1)
+	assert.Equal(t, "7", chr)
+
+	// Continuation segment: marker too, content resumes at screen x=3.
+	chr, _, _ = Screen.Get(1, 2)
+	assert.Equal(t, "✓", chr, "continuation segment also shows the marker")
+	chr, _, _ = Screen.Get(3, 2)
+	assert.Equal(t, "8", chr)
 }

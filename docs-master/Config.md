@@ -371,6 +371,12 @@ git:
   #   # this to be set to 'always' and some want it set to 'never'
   #   colorArg: "always"
   #
+  #   # If true, selected diff lines are highlighted only with a narrow bar
+  #   # at the left edge of the view, rather than across the whole width.
+  #   # Useful for pagers whose own line background colors should remain
+  #   # visible.
+  #   narrowSelectionHighlight: false
+  #
   #   # e.g.
   #   # diff-so-fancy
   #   # delta --dark --paging=never

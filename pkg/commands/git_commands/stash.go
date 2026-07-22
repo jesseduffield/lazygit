@@ -80,17 +80,18 @@ func (self *StashCommands) Hash(index int) (string, error) {
 	return strings.Trim(hash, "\r\n"), err
 }
 
-func (self *StashCommands) ShowStashEntryCmdObj(index int) *oscommands.CmdObj {
+func (self *StashCommands) ShowStashEntryCmdObj(index int, ignoreExternalDiff bool) *oscommands.CmdObj {
 	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
-	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig()
+	useExtDiff := extDiffCmd != "" && !ignoreExternalDiff
+	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !ignoreExternalDiff
 
 	// "-u" is the same as "--include-untracked", but the latter fails in older git versions for some reason
 	cmdArgs := NewGitCmd("stash").Arg("show").
 		Arg("-p").
 		Arg("--stat").
 		Arg("-u").
-		ConfigIf(extDiffCmd != "", "diff.external="+extDiffCmd).
-		ArgIfElse(extDiffCmd != "" || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
+		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
+		ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
 		Arg(fmt.Sprintf("--color=%s", self.pagerConfig.GetColorArg())).
 		Arg(fmt.Sprintf("--unified=%d", self.UserConfig().Git.DiffContextSize)).
 		ArgIf(self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").

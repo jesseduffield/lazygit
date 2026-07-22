@@ -79,6 +79,23 @@ func (self *Patch) HunkEndIdx(hunkIndex int) int {
 	return self.HunkStartIdx(hunkIndex) + self.hunks[hunkIndex].lineCount() - 1
 }
 
+// IsWellFormed reports whether every hunk's body matches the lengths declared
+// in its header. A faithful unified diff always satisfies this. A rendering that
+// restructured the diff body does not — e.g. delta with line-number gutters
+// shifts the +/- marker off the start of each line, so every body line reads as
+// context and the computed lengths no longer match the header. This lets a
+// parser tell a real unified diff from a mangled one and fall back rather than
+// trust a mis-parse. Only meaningful for patches produced by Parse (the lengths
+// are read from the header there).
+func (self *Patch) IsWellFormed() bool {
+	for _, hunk := range self.hunks {
+		if hunk.oldLength() != hunk.declaredOldLength || hunk.newLength() != hunk.declaredNewLength {
+			return false
+		}
+	}
+	return true
+}
+
 func (self *Patch) ContainsChanges() bool {
 	return lo.SomeBy(self.hunks, func(hunk *Hunk) bool {
 		return hunk.containsChanges()
@@ -112,6 +129,105 @@ func (self *Patch) LineNumberOfLine(idx int) int {
 	lines := hunk.bodyLines[:idxInHunk-1]
 	offset := nLinesWithKind(lines, []PatchLineKind{ADDITION, CONTEXT})
 	return hunk.newStart + offset
+}
+
+// Takes a line index in the patch and returns the line number in the old file.
+// This is the old-file counterpart of LineNumberOfLine; for a deletion it gives
+// the line's position in the old file (additions get the position they sit at).
+// If the line is a header line, returns 1.
+// If the line is a hunk header line, returns the first old-file line number in
+// that hunk.
+// If the line is out of range below, returns the last old-file line number in
+// the last hunk.
+func (self *Patch) OldLineNumberOfLine(idx int) int {
+	if idx < len(self.header) || len(self.hunks) == 0 {
+		return 1
+	}
+
+	hunkIdx := self.HunkContainingLine(idx)
+	// cursor out of range, return last file line number
+	if hunkIdx == -1 {
+		lastHunk := self.hunks[len(self.hunks)-1]
+		return lastHunk.oldStart + lastHunk.oldLength() - 1
+	}
+
+	hunk := self.hunks[hunkIdx]
+	hunkStartIdx := self.HunkStartIdx(hunkIdx)
+	idxInHunk := idx - hunkStartIdx
+
+	if idxInHunk == 0 {
+		return hunk.oldStart
+	}
+
+	lines := hunk.bodyLines[:idxInHunk-1]
+	offset := nLinesWithKind(lines, []PatchLineKind{DELETION, CONTEXT})
+	return hunk.oldStart + offset
+}
+
+// Takes a line number in the new file and returns the line index in the patch.
+// This is the opposite of LineNumberOfLine.
+// If the line number is not contained in any of the hunks, it returns the
+// closest position.
+func (self *Patch) PatchLineForLineNumber(lineNumber int) int {
+	if len(self.hunks) == 0 {
+		return len(self.header)
+	}
+
+	for hunkIdx, hunk := range self.hunks {
+		if lineNumber <= hunk.newStart {
+			return self.HunkStartIdx(hunkIdx)
+		}
+
+		if lineNumber < hunk.newStart+hunk.newLength() {
+			lines := hunk.bodyLines
+			offset := lineNumber - hunk.newStart
+			for i, line := range lines {
+				if offset == 0 {
+					return self.HunkStartIdx(hunkIdx) + i + 1
+				}
+
+				if line.Kind == ADDITION || line.Kind == CONTEXT {
+					offset--
+				}
+			}
+		}
+	}
+
+	return self.LineCount() - 1
+}
+
+// Takes a line number in the old file and returns the line index in the patch.
+// This is the old-file counterpart of PatchLineForLineNumber. It is what lets us
+// land on the right patch line for a deletion: two consecutive deletions share a
+// new-file line number, so only the old-file number tells them apart.
+// If the line number is not contained in any of the hunks, it returns the
+// closest position.
+func (self *Patch) PatchLineForOldLineNumber(lineNumber int) int {
+	if len(self.hunks) == 0 {
+		return len(self.header)
+	}
+
+	for hunkIdx, hunk := range self.hunks {
+		if lineNumber <= hunk.oldStart {
+			return self.HunkStartIdx(hunkIdx)
+		}
+
+		if lineNumber < hunk.oldStart+hunk.oldLength() {
+			lines := hunk.bodyLines
+			offset := lineNumber - hunk.oldStart
+			for i, line := range lines {
+				if offset == 0 {
+					return self.HunkStartIdx(hunkIdx) + i + 1
+				}
+
+				if line.Kind == DELETION || line.Kind == CONTEXT {
+					offset--
+				}
+			}
+		}
+	}
+
+	return self.LineCount() - 1
 }
 
 // Returns hunk index containing the line at the given patch line index

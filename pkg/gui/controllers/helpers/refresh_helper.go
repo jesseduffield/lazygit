@@ -354,11 +354,13 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 
 	// reason we're not doing this if the COMMITS type is included is that if the COMMITS type _is_ included we will refresh the commit files context anyway
 	if scopeSet.Includes(types.COMMIT_FILES) && !scopeSet.Includes(types.COMMITS) {
-		var capturedCommitFiles capturedCommitFilesState
+		var capturedCommitFiles *capturedCommitFilesState
 		self.captureOnUIThread(calledFromWorker, env.background, func() {
 			capturedCommitFiles = self.captureCommitFilesState()
 		})
-		refresh("commit files", func() { _ = self.refreshCommitFilesContext(capturedCommitFiles, env) })
+		if capturedCommitFiles != nil {
+			refresh("commit files", func() { _ = self.refreshCommitFilesContext(*capturedCommitFiles, env) })
+		}
 	}
 
 	fileWg := sync.WaitGroup{}
@@ -732,10 +734,12 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles(captured capturedCommitS
 				// Capture the diff endpoints here, on the UI thread and after
 				// ReInit has set them, before dispatching the git work.
 				capturedCommitFiles := self.captureCommitFilesState()
-				self.onWorker(env.background, func(gocui.Task) error {
-					_ = self.refreshCommitFilesContext(capturedCommitFiles, env)
-					return nil
-				})
+				if capturedCommitFiles != nil {
+					self.onWorker(env.background, func(gocui.Task) error {
+						_ = self.refreshCommitFilesContext(*capturedCommitFiles, env)
+						return nil
+					})
+				}
 			}
 		})
 	}
@@ -986,10 +990,18 @@ type capturedCommitFilesState struct {
 
 // captureCommitFilesState reads the commit-files refresh's diff endpoints into
 // an immutable snapshot. It must run on the UI thread.
-func (self *RefreshHelper) captureCommitFilesState() capturedCommitFilesState {
+func (self *RefreshHelper) captureCommitFilesState() *capturedCommitFilesState {
+	// The commit files context may have no ref associated with it yet — e.g. a custom
+	// patch was started straight from the commits panel's main view without ever entering
+	// the commit files panel. There are then no commit files to load (and deriving a diff
+	// range from a nil ref would panic), so there's nothing to refresh.
+	if self.c.Contexts().CommitFiles.GetRef() == nil && self.c.Contexts().CommitFiles.GetRefRange() == nil {
+		return nil
+	}
+
 	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
-	return capturedCommitFilesState{from: from, to: to, reverse: reverse}
+	return &capturedCommitFilesState{from: from, to: to, reverse: reverse}
 }
 
 func (self *RefreshHelper) refreshCommitFilesContext(captured capturedCommitFilesState, env refreshEnv) error {

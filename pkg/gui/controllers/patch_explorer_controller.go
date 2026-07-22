@@ -141,9 +141,17 @@ func (self *PatchExplorerController) GetMouseKeybindings(opts types.KeybindingsO
 					return self.withRenderAndFocus(self.HandleMouseDown)()
 				}
 
+				line := -1
+				isDeletion := false
+				if info, ok := self.c.Helpers().Staging.GetDiffLineInfo(self.context.GetWindowName(), opts.Y); ok {
+					line, isDeletion = info.PatchSelectLine()
+				}
+
 				self.c.Context().Push(self.context, types.OnFocusOpts{
-					ClickedWindowName:  self.context.GetWindowName(),
-					ClickedViewLineIdx: opts.Y,
+					ClickedWindowName:             self.context.GetWindowName(),
+					ClickedViewLineIdx:            opts.Y,
+					ClickedViewRealLineIdx:        line,
+					ClickedViewRealLineIsDeletion: isDeletion,
 				})
 
 				return nil

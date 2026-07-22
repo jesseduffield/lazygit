@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "/Users/stk/Stk/Dev/Builds/delta",
+      "/Users/stk/Stk/Dev/Builds/difftastic"
+    ]
+  }
+}
