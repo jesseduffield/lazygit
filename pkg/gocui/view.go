@@ -1856,6 +1856,17 @@ func (v *View) RenderTextArea() {
 	newViewCursorX, newOriginX := updatedCursorAndOrigin(prevOriginX, width, cursorX)
 	newViewCursorY, newOriginY := updatedCursorAndOrigin(prevOriginY, height, cursorY)
 
+	contentWidth := v.TextArea.GetContentWidth()
+	usableWidth := width - 1
+	maxOriginX := contentWidth - usableWidth
+	if maxOriginX < 0 {
+		maxOriginX = 0
+	}
+	if newOriginX > maxOriginX {
+		newOriginX = maxOriginX
+		newViewCursorX = cursorX - newOriginX
+	}
+
 	v.SetCursor(newViewCursorX, newViewCursorY)
 	v.SetOrigin(newOriginX, newOriginY)
 }
