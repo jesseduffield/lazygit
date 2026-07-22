@@ -257,6 +257,15 @@ func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 	return nil
 }
 
+func (self *ListController) HandleDrag(opts gocui.ViewMouseBindingOpts) error {
+	list := self.context.GetList()
+	newSelectedLineIdx := self.context.ViewIndexToModelIndex(opts.Y)
+	list.ExpandNonStickyRange(newSelectedLineIdx - list.GetSelectedLineIdx())
+
+	self.context.HandleFocus(types.OnFocusOpts{})
+	return nil
+}
+
 func (self *ListController) pushContextIfNotFocused() error {
 	if !self.isFocused() {
 		self.c.Context().Push(self.context, types.OnFocusOpts{})
@@ -295,7 +304,7 @@ func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 }
 
 func (self *ListController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
-	return []*gocui.ViewMouseBinding{
+	bindings := []*gocui.ViewMouseBinding{
 		{
 			ViewName: self.context.GetViewName(),
 			Key:      gocui.MouseWheelUp,
@@ -312,4 +321,15 @@ func (self *ListController) GetMouseKeybindings(opts types.KeybindingsOpts) []*g
 			Handler:  func(gocui.ViewMouseBindingOpts) error { return self.HandleScrollDown() },
 		},
 	}
+
+	if self.context.RangeSelectEnabled() {
+		bindings = append(bindings, &gocui.ViewMouseBinding{
+			ViewName: self.context.GetViewName(),
+			Key:      gocui.MouseLeft,
+			Modifier: gocui.ModMotion,
+			Handler:  self.HandleDrag,
+		})
+	}
+
+	return bindings
 }
