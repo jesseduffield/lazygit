@@ -741,7 +741,10 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 		self.context().MoveSelection(1)
 		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
-		self.c.Refresh(types.RefreshOptions{
+		// Block input until the refresh has landed: a quick second press must
+		// read the moved todo from the refreshed model, not grab whatever the
+		// advanced selection index points at in the stale one.
+		self.c.RefreshBlockingInput(types.RefreshOptions{
 			Scope:           []types.RefreshableView{types.REBASE_COMMITS},
 			CommitSelection: types.KeepCommitSelectionIndex,
 		})
@@ -777,7 +780,8 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 		self.context().MoveSelection(-1)
 		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
-		self.c.Refresh(types.RefreshOptions{
+		// Block input for the same reason as in moveDown.
+		self.c.RefreshBlockingInput(types.RefreshOptions{
 			Scope:           []types.RefreshableView{types.REBASE_COMMITS},
 			CommitSelection: types.KeepCommitSelectionIndex,
 		})
