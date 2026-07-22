@@ -30,7 +30,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: 1.25.x
       - name: Test code
@@ -93,7 +93,7 @@ jobs:
           path: ~/git-${{matrix.git-version}}
           key: ${{runner.os}}-git-${{matrix.git-version}}
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: 1.25.x
       - name: Print git version
@@ -130,7 +130,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: 1.25.x
       - name: Build linux binary
@@ -157,7 +157,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: 1.25.x
       - name: Check Vendor Directory
@@ -183,7 +183,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: 1.25.x
       - name: Check formatting
@@ -206,7 +206,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: 1.25.x
 
