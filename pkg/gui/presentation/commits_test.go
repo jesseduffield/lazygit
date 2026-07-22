@@ -566,6 +566,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.endIdx,
 					s.showGraph,
 					s.bisectInfo,
+					"normal",
 				)
 
 				renderedLines, _ := utils.RenderDisplayStrings(result, nil)

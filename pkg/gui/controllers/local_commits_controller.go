@@ -1303,6 +1303,42 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 				},
 			},
 			{
+				Label:     self.c.Tr.CommitDisplayFormat,
+				Tooltip:   self.c.Tr.CommitDisplayFormatTooltip,
+				OpensMenu: true,
+				OnPress: func() error {
+					currentValue := self.c.UserConfig().Git.Log.CommitDisplayFormat
+					onPress := func(value string) func() error {
+						return func() error {
+							self.c.UserConfig().Git.Log.CommitDisplayFormat = value
+							self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+							self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
+							return nil
+						}
+					}
+					return self.c.Menu(types.CreateMenuOptions{
+						Title: self.c.Tr.CommitDisplayFormat,
+						Items: []*types.MenuItem{
+							{
+								Label:   "normal",
+								OnPress: onPress("normal"),
+								Widget:  types.MakeMenuRadioButton(currentValue == "normal"),
+							},
+							{
+								Label:   "comfortable",
+								OnPress: onPress("comfortable"),
+								Widget:  types.MakeMenuRadioButton(currentValue == "comfortable"),
+							},
+							{
+								Label:   "spacious",
+								OnPress: onPress("spacious"),
+								Widget:  types.MakeMenuRadioButton(currentValue == "spacious"),
+							},
+						},
+					})
+				},
+			},
+			{
 				Label:     self.c.Tr.SortCommits,
 				Tooltip:   self.c.Tr.SortCommitsTooltip,
 				OpensMenu: true,

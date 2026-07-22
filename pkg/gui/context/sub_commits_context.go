@@ -77,6 +77,7 @@ func NewSubCommitsContext(
 			endIdx,
 			shouldShowGraph(c),
 			git_commands.NewNullBisectInfo(),
+			c.UserConfig().Git.Log.CommitDisplayFormat,
 		)
 	}
 
@@ -103,6 +104,14 @@ func NewSubCommitsContext(
 				Content: fmt.Sprintf("--- %s ---", c.Tr.DivergenceSectionHeaderLocal),
 			})
 		}
+
+		var selectedCommitHashPtr *string
+		if c.Context().Current().GetKey() == SUB_COMMITS_CONTEXT_KEY {
+			if selectedCommit := viewModel.GetSelected(); selectedCommit != nil {
+				selectedCommitHashPtr = selectedCommit.HashPtr()
+			}
+		}
+		result = appendCommitDetailItems(c, c.Model().SubCommits, selectedCommitHashPtr, result)
 
 		return result
 	}
