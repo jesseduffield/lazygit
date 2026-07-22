@@ -6,6 +6,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -240,7 +241,7 @@ func (self *BasicCommitsController) copyCommitHashToClipboard(commit *models.Com
 }
 
 func (self *BasicCommitsController) copyCommitURLToClipboard(commit *models.Commit) error {
-	url, err := self.c.Helpers().Host.GetCommitURL(commit.Hash())
+	url, err := self.getCommitURL(commit)
 	if err != nil {
 		return err
 	}
@@ -339,7 +340,7 @@ func (self *BasicCommitsController) copyCommitTagsToClipboard(commit *models.Com
 }
 
 func (self *BasicCommitsController) openInBrowser(commit *models.Commit) error {
-	url, err := self.c.Helpers().Host.GetCommitURL(commit.Hash())
+	url, err := self.getCommitURL(commit)
 	if err != nil {
 		return err
 	}
@@ -429,4 +430,22 @@ func (self *BasicCommitsController) selectCommitsOfCurrentBranch() error {
 	self.context.SetSelectionRangeAndMode(0, index-1, mode)
 	self.context.HandleFocus(types.OnFocusOpts{})
 	return nil
+}
+
+func (self *BasicCommitsController) getCommitURL(commit *models.Commit) (string, error) {
+	remoteName := self.remoteNameFromContext()
+	return self.c.Helpers().Host.GetCommitURLForRemote(commit.Hash(), remoteName)
+}
+
+// When viewing commits under a specific remote branch, return that remote's
+// name so we build the URL from the right remote. Falls back to "origin".
+func (self *BasicCommitsController) remoteNameFromContext() string {
+	if subCommitsCtx, ok := self.context.(*context.SubCommitsContext); ok {
+		if ref := subCommitsCtx.GetRef(); ref != nil {
+			if remoteBranch, ok := ref.(*models.RemoteBranch); ok {
+				return remoteBranch.RemoteName
+			}
+		}
+	}
+	return "origin"
 }
