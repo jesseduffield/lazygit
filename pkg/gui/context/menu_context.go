@@ -138,7 +138,7 @@ func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 
 	return lo.Map(menuItems, func(item *types.MenuItem, _ int) []string {
 		displayStrings := item.LabelColumns
-		if item.DisabledReason != nil {
+		if item.DisabledReasonAtUse() != nil {
 			displayStrings[0] = style.FgDefault.SetStrikethrough().Sprint(displayStrings[0])
 		}
 
@@ -237,13 +237,15 @@ func (self *MenuContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Bin
 }
 
 func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
-	if selectedItem != nil && selectedItem.DisabledReason != nil {
-		if selectedItem.DisabledReason.ShowErrorInPanel {
-			return errors.New(selectedItem.DisabledReason.Text)
-		}
+	if selectedItem != nil {
+		if disabledReason := selectedItem.DisabledReasonAtUse(); disabledReason != nil {
+			if disabledReason.ShowErrorInPanel {
+				return errors.New(disabledReason.Text)
+			}
 
-		self.c.ErrorToast(self.c.Tr.DisabledMenuItemPrefix + selectedItem.DisabledReason.Text)
-		return nil
+			self.c.ErrorToast(self.c.Tr.DisabledMenuItemPrefix + disabledReason.Text)
+			return nil
+		}
 	}
 
 	self.c.Context().Pop()
