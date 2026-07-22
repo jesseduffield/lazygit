@@ -366,7 +366,9 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 
 		// process button events (not wheel events)
 		button &= tcell.ButtonMask(0xff)
+		newButtonPress := false
 		if button != tcell.ButtonNone && lastMouseKey == tcell.ButtonNone {
+			newButtonPress = true
 			lastMouseKey = button
 			lastMouseMod = tev.Modifiers()
 			switch button {
@@ -410,9 +412,23 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 				}
 			// if we haven't released the left mouse button and we've moved the cursor then we're dragging
 			case MAYBE_DRAGGING:
-				if x != lastX || y != lastY {
-					dragState = DRAGGING
+				if x == lastX && y == lastY {
+					// Deliver the button press itself, but swallow held-button
+					// motion events within the same cell: they carry no new
+					// information, and if they fell through they would be
+					// delivered with the default MouseRelease key.
+					if !newButtonPress {
+						return GocuiEvent{Type: eventNone}
+					}
+					break
 				}
+				// The first movement is already part of the drag; give it the
+				// same key and modifier as the DRAGGING events below so it
+				// reaches drag bindings instead of being delivered with the
+				// default MouseRelease key.
+				dragState = DRAGGING
+				mouseMod = ModMotion
+				mouseKey = MouseLeft
 			case DRAGGING:
 				mouseMod = ModMotion
 				mouseKey = MouseLeft
