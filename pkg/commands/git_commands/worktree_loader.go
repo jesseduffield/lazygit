@@ -68,10 +68,14 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 				GitDir: "",
 			}
 		} else if strings.HasPrefix(splitLine, "HEAD ") {
-			current.Head = strings.SplitN(splitLine, " ", 2)[1]
+			if current != nil {
+				current.Head = strings.SplitN(splitLine, " ", 2)[1]
+			}
 		} else if strings.HasPrefix(splitLine, "branch ") {
-			branch := strings.SplitN(splitLine, " ", 2)[1]
-			current.Branch = strings.TrimPrefix(branch, "refs/heads/")
+			if current != nil {
+				branch := strings.SplitN(splitLine, " ", 2)[1]
+				current.Branch = strings.TrimPrefix(branch, "refs/heads/")
+			}
 		}
 	}
 
