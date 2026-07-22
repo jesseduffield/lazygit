@@ -1111,7 +1111,7 @@ func (gui *Gui) loadNewRepo() error {
 	gui.c.Refresh(types.RefreshOptions{DontBlockRepoSwitch: true})
 
 	if err := gui.os.UpdateWindowTitle(); err != nil {
-		return err
+		gui.c.Log.Warnf("Failed to update window title: %v", err)
 	}
 
 	return nil
