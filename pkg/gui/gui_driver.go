@@ -53,13 +53,13 @@ func (self *GuiDriver) PressKeysRapidly(keyStrs ...string) {
 func (self *GuiDriver) Click(x, y int) {
 	self.CheckAllToastsAcknowledged()
 
+	self.replayMouseEvent(x, y, tcell.ButtonPrimary)
+	self.replayMouseEvent(x, y, tcell.ButtonNone)
+}
+
+func (self *GuiDriver) replayMouseEvent(x, y int, buttons tcell.ButtonMask) {
 	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
-		tcell.NewEventMouse(x, y, tcell.ButtonPrimary, 0),
-		0,
-	))
-	self.waitTillIdle()
-	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
-		tcell.NewEventMouse(x, y, tcell.ButtonNone, 0),
+		tcell.NewEventMouse(x, y, buttons, 0),
 		0,
 	))
 	self.waitTillIdle()
