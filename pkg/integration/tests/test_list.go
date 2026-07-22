@@ -360,6 +360,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.MoveToEarlierCommitFromAddedFile,
 	patch_building.MoveToIndex,
 	patch_building.MoveToIndexFromAddedFileWithConflict,
+	patch_building.MoveToIndexFromSubcommit,
 	patch_building.MoveToIndexPartOfAdjacentAddedLines,
 	patch_building.MoveToIndexPartial,
 	patch_building.MoveToIndexWithConflict,
