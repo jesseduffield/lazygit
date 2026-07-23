@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"strings"
+	"time"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -20,6 +21,10 @@ import (
 // after selecting the 200th commit, we'll load in all the rest
 const COMMIT_THRESHOLD = 200
 
+// How long a commit move may take before the drop indicator switches to a
+// "moving commits here" spinner; quick moves stay free of flicker.
+const commitDragMovingIndicatorDelay = 200 * time.Millisecond
+
 type (
 	PullFilesFn func() error
 )
@@ -29,9 +34,10 @@ type LocalCommitsController struct {
 	*ListControllerTrait[*models.Commit]
 	c *ControllerCommon
 
-	pullFiles        PullFilesFn
-	commitDrag       *commitDragState
-	dragAutoscroller *helpers.DragAutoscroller
+	pullFiles                  PullFilesFn
+	commitDrag                 *commitDragState
+	dragAutoscroller           *helpers.DragAutoscroller
+	movingCommitsIndicatorStop chan struct{}
 }
 
 // commitDragState tracks a mouse drag that moves the selected commits. It is
@@ -253,15 +259,16 @@ func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindi
 	state := self.commitDrag
 	self.dragAutoscroller.Cancel()
 	self.commitDrag = nil
-	self.context().ClearDropInsertionIndex()
 
 	if !state.hasMoved {
+		self.context().ClearDropInsertionIndex()
 		self.context().SetSelection(state.pressedIndex)
 		self.c.PostRefreshUpdate(self.context())
 		return nil
 	}
-	self.c.PostRefreshUpdate(self.context())
 	if state.insertionIndex < 0 {
+		self.context().ClearDropInsertionIndex()
+		self.c.PostRefreshUpdate(self.context())
 		return nil
 	}
 
@@ -273,6 +280,8 @@ func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindi
 		self.context().GetItems(), state.commitIdentities,
 	)
 	if !found {
+		self.context().ClearDropInsertionIndex()
+		self.c.PostRefreshUpdate(self.context())
 		return nil
 	}
 	self.context().SetSelectionRangeAndMode(
@@ -280,7 +289,69 @@ func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindi
 		startIndex+state.rangeStartOffset,
 		state.rangeSelectMode,
 	)
-	return self.move(selectedCommits, startIndex, endIndex, offset)
+	self.startMovingCommitsIndicator(state.insertionIndex)
+	if err := self.move(selectedCommits, startIndex, endIndex, offset,
+		func() error { self.stopMovingCommitsIndicator(); return nil }); err != nil {
+		self.stopMovingCommitsIndicator()
+		return err
+	}
+	return nil
+}
+
+// startMovingCommitsIndicator keeps the drop indicator visible while the move
+// is running, turning it into a spinner once the grace period elapses. The
+// ticker goroutine only ever touches state from the UI thread, where the
+// comparison against the current stop channel makes late callbacks harmless.
+func (self *LocalCommitsController) startMovingCommitsIndicator(insertionIndex int) {
+	self.stopMovingCommitsIndicatorTicker()
+	stop := make(chan struct{})
+	self.movingCommitsIndicatorStop = stop
+	go utils.Safe(func() {
+		graceTimer := time.NewTimer(commitDragMovingIndicatorDelay)
+		defer graceTimer.Stop()
+		select {
+		case <-graceTimer.C:
+			self.c.OnUIThreadContentOnlyBackground(func() error {
+				if self.movingCommitsIndicatorStop == stop {
+					self.context().SetMovingCommitsInsertionIndex(insertionIndex)
+					self.context().HandleRender()
+				}
+				return nil
+			})
+		case <-stop:
+			return
+		}
+
+		rate := time.Millisecond * time.Duration(self.c.UserConfig().Gui.Spinner.Rate)
+		ticker := time.NewTicker(rate)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				self.c.OnUIThreadContentOnlyBackground(func() error {
+					if self.movingCommitsIndicatorStop == stop {
+						self.context().HandleRender()
+					}
+					return nil
+				})
+			case <-stop:
+				return
+			}
+		}
+	})
+}
+
+func (self *LocalCommitsController) stopMovingCommitsIndicator() {
+	self.stopMovingCommitsIndicatorTicker()
+	self.context().ClearDropInsertionIndex()
+	self.c.PostRefreshUpdate(self.context())
+}
+
+func (self *LocalCommitsController) stopMovingCommitsIndicatorTicker() {
+	if self.movingCommitsIndicatorStop != nil {
+		close(self.movingCommitsIndicatorStop)
+		self.movingCommitsIndicatorStop = nil
+	}
 }
 
 func commitDragIdentityForCommit(commit *models.Commit) commitDragIdentity {
@@ -1064,14 +1135,16 @@ func (self *LocalCommitsController) isCherryPickingOrReverting() bool {
 }
 
 func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
-	return self.move(selectedCommits, startIdx, endIdx, 1)
+	return self.move(selectedCommits, startIdx, endIdx, 1, nil)
 }
 
 func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
-	return self.move(selectedCommits, startIdx, endIdx, -1)
+	return self.move(selectedCommits, startIdx, endIdx, -1, nil)
 }
 
-func (self *LocalCommitsController) move(selectedCommits []*models.Commit, startIdx int, endIdx int, offset int) error {
+func (self *LocalCommitsController) move(
+	selectedCommits []*models.Commit, startIdx int, endIdx int, offset int, onComplete func() error,
+) error {
 	if self.isRebasing() {
 		if err := self.c.Git().Rebase.MoveTodos(selectedCommits, offset); err != nil {
 			return err
@@ -1085,6 +1158,7 @@ func (self *LocalCommitsController) move(selectedCommits []*models.Commit, start
 		self.c.RefreshBlockingInput(types.RefreshOptions{
 			Scope:           []types.RefreshableView{types.REBASE_COMMITS},
 			CommitSelection: types.KeepCommitSelectionIndex,
+			Then:            onComplete,
 		})
 		return nil
 	}
@@ -1107,6 +1181,9 @@ func (self *LocalCommitsController) move(selectedCommits []*models.Commit, start
 					if err == nil {
 						self.context().MoveSelection(offset)
 						self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
+					}
+					if onComplete != nil {
+						return onComplete()
 					}
 					return nil
 				},

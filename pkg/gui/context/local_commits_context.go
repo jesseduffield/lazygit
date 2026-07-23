@@ -1,6 +1,7 @@
 package context
 
 import (
+	"fmt"
 	"log"
 	"slices"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -25,6 +27,7 @@ type LocalCommitsContext struct {
 
 type commitDropIndicator struct {
 	insertionIndex int
+	moving         bool
 }
 
 var (
@@ -103,7 +106,14 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				})
 			}
 
-			result = addCommitDropIndicator(result, dropIndicator, c.Tr.MoveCommitsHere)
+			result = addCommitDropIndicator(
+				result,
+				dropIndicator,
+				c.Tr.MoveCommitsHere,
+				c.Tr.MovingCommitsHere,
+				c.UserConfig().Gui.Spinner,
+				time.Now(),
+			)
 
 			_, firstRealCommit, found := lo.FindIndexOf(
 				c.Model().Commits, func(c *models.Commit) bool {
@@ -117,7 +127,14 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				Content: formatListSectionHeader(c.Tr.CommitsSectionHeader),
 			})
 		} else {
-			result = addCommitDropIndicator(result, dropIndicator, c.Tr.MoveCommitsHere)
+			result = addCommitDropIndicator(
+				result,
+				dropIndicator,
+				c.Tr.MoveCommitsHere,
+				c.Tr.MovingCommitsHere,
+				c.UserConfig().Gui.Spinner,
+				time.Now(),
+			)
 		}
 
 		return result
@@ -152,10 +169,19 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 }
 
 func addCommitDropIndicator(
-	items []*NonModelItem, indicator *commitDropIndicator, label string,
+	items []*NonModelItem,
+	indicator *commitDropIndicator,
+	dropLabel string,
+	movingLabel string,
+	spinnerConfig config.SpinnerConfig,
+	now time.Time,
 ) []*NonModelItem {
 	if indicator.insertionIndex < 0 {
 		return items
+	}
+	label := dropLabel
+	if indicator.moving {
+		label = fmt.Sprintf("%s %s", movingLabel, presentation.Loader(now, spinnerConfig))
 	}
 
 	insertAt := len(items)
@@ -175,10 +201,17 @@ func addCommitDropIndicator(
 
 func (self *LocalCommitsContext) SetDropInsertionIndex(index int) {
 	self.dropIndicator.insertionIndex = index
+	self.dropIndicator.moving = false
+}
+
+func (self *LocalCommitsContext) SetMovingCommitsInsertionIndex(index int) {
+	self.dropIndicator.insertionIndex = index
+	self.dropIndicator.moving = true
 }
 
 func (self *LocalCommitsContext) ClearDropInsertionIndex() {
 	self.dropIndicator.insertionIndex = -1
+	self.dropIndicator.moving = false
 }
 
 type LocalCommitsViewModel struct {

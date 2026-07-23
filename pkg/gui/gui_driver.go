@@ -73,16 +73,28 @@ func (self *GuiDriver) MouseRelease(x, y int) {
 	self.replayMouseEvent(x, y, tcell.ButtonNone)
 }
 
+func (self *GuiDriver) MouseReleaseWithoutWaiting(x, y int) {
+	self.replayMouseEventWithoutWaiting(x, y, tcell.ButtonNone)
+}
+
+func (self *GuiDriver) WaitUntilIdle() {
+	self.waitTillIdle()
+}
+
 func (self *GuiDriver) OnUIThreadAndWait(f func()) {
 	_ = self.gui.g.OnUIThreadAndWait(func() error { f(); return nil })
 }
 
 func (self *GuiDriver) replayMouseEvent(x, y int, buttons tcell.ButtonMask) {
+	self.replayMouseEventWithoutWaiting(x, y, buttons)
+	self.waitTillIdle()
+}
+
+func (self *GuiDriver) replayMouseEventWithoutWaiting(x, y int, buttons tcell.ButtonMask) {
 	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
 		tcell.NewEventMouse(x, y, buttons, 0),
 		0,
 	))
-	self.waitTillIdle()
 }
 
 // FocusIn simulates the terminal window regaining focus, which is how lazygit
