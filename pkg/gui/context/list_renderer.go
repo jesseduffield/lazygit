@@ -11,7 +11,7 @@ import (
 )
 
 func formatListSectionHeader(label string) string {
-	return fmt.Sprintf("--- %s ---", label)
+	return fmt.Sprintf("─── %s", label)
 }
 
 type NonModelItem struct {

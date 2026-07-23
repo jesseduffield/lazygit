@@ -45,12 +45,12 @@ var RevertSingleCommitInInteractiveRebase = NewIntegrationTest(NewIntegrationTes
 					Cancel() // stay in commits panel
 			}).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("CI unrelated change 2"),
 				Contains("CI unrelated change 1"),
-				Contains("--- Pending reverts ---"),
+				Contains("─── Pending reverts"),
 				Contains("revert").Contains("CI <-- CONFLICT --- add first line"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("CI ○ add second line"),
 				Contains("CI ○ add first line").IsSelected(),
 				Contains("CI ○ add empty file"),
@@ -84,10 +84,10 @@ var RevertSingleCommitInInteractiveRebase = NewIntegrationTest(NewIntegrationTes
 
 		t.Views().Commits().
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("pick").Contains("CI unrelated change 2"),
 				Contains("pick").Contains("CI unrelated change 1"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains(`CI ○ Revert "add first line"`),
 				Contains("CI ○ add second line"),
 				Contains("CI ○ add first line"),
