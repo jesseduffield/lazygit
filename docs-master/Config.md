@@ -869,6 +869,8 @@ os:
 
 Specify an external command to invoke when copying to clipboard is requested. `{{text}` will be replaced by text to be copied. Default is to copy to system clipboard.
 
+Note that when no command is configured and no native clipboard utility (e.g. `xclip`, `xsel`, `wl-copy`) is available — as is typical on a headless host over SSH — lazygit falls back to using the clipboard of the surrounding tmux session (bidirectional, requires `set-clipboard on` in tmux for forwarding to the system clipboard), or, outside tmux, to emitting an OSC52 escape sequence for terminals that support it. Since most terminals refuse OSC52 clipboard reads for security reasons, pasting in the OSC52 case returns the last value copied within the lazygit session. So on such hosts a custom command is only needed if these fallbacks don't fit your setup.
+
 If you are working on a terminal that supports OSC52, the following command will let you take advantage of it:
 
 ```yaml

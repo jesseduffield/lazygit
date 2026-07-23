@@ -31,6 +31,13 @@ type OSCommand struct {
 	Cmd *CmdObjBuilder
 
 	tempDir string
+
+	// osc52Clipboard remembers the last value copied through the OSC 52
+	// fallback. OSC 52 has no reliable, widely-supported read-back, so paste
+	// returns this remembered value instead of querying the terminal. See
+	// osc52_clipboard.go.
+	osc52Clipboard      string
+	osc52ClipboardMutex sync.Mutex
 }
 
 // Platform stores the os state
@@ -284,16 +291,36 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 		return c.Cmd.NewShell(cmdStr, c.UserConfig().OS.ShellFunctionsFile).Run()
 	}
 
+	// When no native clipboard utility is available (e.g. a headless SSH host
+	// with no xclip/xsel/wl-copy) but we are inside tmux, drive tmux as the
+	// clipboard so copying still works. See tmux_clipboard.go.
+	if clipboard.Unsupported && c.inTmux() {
+		return c.copyToClipboardTmux(str)
+	}
+
+	// Last resort with no native utility and no tmux: emit an OSC 52 escape so
+	// terminals that support it still receive the copy. See osc52_clipboard.go.
+	if clipboard.Unsupported {
+		return c.copyToClipboardOSC52(str)
+	}
+
 	return clipboard.WriteAll(str)
 }
 
 func (c *OSCommand) PasteFromClipboard() (string, error) {
 	var s string
 	var err error
-	if c.UserConfig().OS.CopyToClipboardCmd != "" {
+	switch {
+	case c.UserConfig().OS.CopyToClipboardCmd != "":
 		cmdStr := c.UserConfig().OS.ReadFromClipboardCmd
 		s, err = c.Cmd.NewShell(cmdStr, c.UserConfig().OS.ShellFunctionsFile).RunWithOutput()
-	} else {
+	case clipboard.Unsupported && c.inTmux():
+		// Mirror the copy path: read back the tmux paste buffer we wrote to.
+		s, err = c.pasteFromClipboardTmux()
+	case clipboard.Unsupported:
+		// OSC 52 read-back is unreliable, so return the value we last copied.
+		s = c.pasteFromClipboardOSC52()
+	default:
 		s, err = clipboard.ReadAll()
 	}
 
