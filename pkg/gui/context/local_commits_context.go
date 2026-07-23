@@ -2,6 +2,7 @@ package context
 
 import (
 	"log"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -17,6 +19,12 @@ type LocalCommitsContext struct {
 	*LocalCommitsViewModel
 	*ListContextTrait
 	*SearchTrait
+
+	dropIndicator *commitDropIndicator
+}
+
+type commitDropIndicator struct {
+	insertionIndex int
 }
 
 var (
@@ -26,6 +34,7 @@ var (
 )
 
 func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
+	dropIndicator := &commitDropIndicator{insertionIndex: -1}
 	viewModel := NewLocalCommitsViewModel(
 		func() []*models.Commit { return c.Model().Commits },
 		c,
@@ -94,6 +103,8 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				})
 			}
 
+			result = addCommitDropIndicator(result, dropIndicator, c.Tr.MoveCommitsHere)
+
 			_, firstRealCommit, found := lo.FindIndexOf(
 				c.Model().Commits, func(c *models.Commit) bool {
 					return !c.IsTODO()
@@ -105,6 +116,8 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				Index:   firstRealCommit,
 				Content: formatListSectionHeader(c.Tr.CommitsSectionHeader),
 			})
+		} else {
+			result = addCommitDropIndicator(result, dropIndicator, c.Tr.MoveCommitsHere)
 		}
 
 		return result
@@ -113,6 +126,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	ctx := &LocalCommitsContext{
 		LocalCommitsViewModel: viewModel,
 		SearchTrait:           NewSearchTrait(c),
+		dropIndicator:         dropIndicator,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				View:                        c.Views().Commits,
@@ -135,6 +149,36 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	}
 
 	return ctx
+}
+
+func addCommitDropIndicator(
+	items []*NonModelItem, indicator *commitDropIndicator, label string,
+) []*NonModelItem {
+	if indicator.insertionIndex < 0 {
+		return items
+	}
+
+	insertAt := len(items)
+	for i, item := range items {
+		if item.Index > indicator.insertionIndex {
+			insertAt = i
+			break
+		}
+	}
+
+	return slices.Insert(items, insertAt, &NonModelItem{
+		Index:   indicator.insertionIndex,
+		Content: style.FgCyan.SetBold().Sprintf("━━━━━━ %s ━━━━━━", label),
+		Column:  6, // align with the commit subject
+	})
+}
+
+func (self *LocalCommitsContext) SetDropInsertionIndex(index int) {
+	self.dropIndicator.insertionIndex = index
+}
+
+func (self *LocalCommitsContext) ClearDropInsertionIndex() {
+	self.dropIndicator.insertionIndex = -1
 }
 
 type LocalCommitsViewModel struct {
