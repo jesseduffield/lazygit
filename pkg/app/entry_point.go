@@ -51,8 +51,19 @@ type BuildInfo struct {
 }
 
 func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTest) {
-	cliArgs := parseCliArgsAndEnvVars()
 	mergeBuildInfo(buildInfo)
+
+	// Daemon instructions (e.g. the gpg wrapper) may be invoked with
+	// arguments belonging to the program they're wrapping (e.g. gpg's own
+	// flags like --status-fd), which our own CLI flag parser below doesn't
+	// understand and would reject. So check for daemon mode first, and skip
+	// our own flag parsing entirely in that case.
+	if daemon.InDaemonMode() {
+		runDaemon(buildInfo, integrationTest)
+		return
+	}
+
+	cliArgs := parseCliArgsAndEnvVars()
 
 	if cliArgs.RepoPath != "" {
 		if cliArgs.WorkTree != "" || cliArgs.GitDir != "" {
@@ -159,11 +170,6 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 		log.Fatal(err)
 	}
 
-	if daemon.InDaemonMode() {
-		daemon.Handle(common)
-		return
-	}
-
 	if cliArgs.Profile {
 		go func() {
 			if err := http.ListenAndServe("localhost:6060", nil); err != nil {
@@ -175,6 +181,40 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 	parsedGitArg := parseGitArg(cliArgs.GitArg)
 
 	Run(appConfig, common, appTypes.NewStartArgs(cliArgs.FilterPath, parsedGitArg, cliArgs.ScreenMode, integrationTest))
+}
+
+// runDaemon builds just enough app state to run a daemon instruction (temp
+// dir, AppConfig, Common), deliberately skipping our own CLI flag parsing:
+// some daemon instructions (e.g. the gpg wrapper) are invoked with arguments
+// belonging to the program they wrap, which our flag parser doesn't
+// understand and would reject.
+func runDaemon(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTest) {
+	tempDirBase := getTempDirBase()
+	tempDir, err := os.MkdirTemp(tempDirBase, "lazygit-*")
+	if err != nil {
+		if os.IsPermission(err) {
+			log.Fatalf("Your temp directory (%s) is not writeable. Try if rebooting your machine fixes this.", tempDirBase)
+		}
+
+		log.Fatal(err.Error())
+	}
+	defer os.RemoveAll(tempDir)
+
+	appConfig, err := config.NewAppConfig("lazygit", buildInfo.Version, buildInfo.Commit, buildInfo.Date, buildInfo.BuildSource, false, tempDir)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	if integrationTest != nil {
+		integrationTest.SetupConfig(appConfig)
+	}
+
+	common, err := NewCommon(appConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	daemon.Handle(common)
 }
 
 func parseCliArgsAndEnvVars() *cliArgs {

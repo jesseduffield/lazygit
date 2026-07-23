@@ -39,6 +39,7 @@ const (
 	DaemonKindDropMergeCommit
 	DaemonKindMoveFixupCommitDown
 	DaemonKindWriteRebaseTodo
+	DaemonKindGpgWrapper
 )
 
 const (
@@ -61,6 +62,7 @@ func getInstruction() Instruction {
 		DaemonKindMoveTodosDown:                   deserializeInstruction[*MoveTodosDownInstruction],
 		DaemonKindInsertBreak:                     deserializeInstruction[*InsertBreakInstruction],
 		DaemonKindWriteRebaseTodo:                 deserializeInstruction[*WriteRebaseTodoInstruction],
+		DaemonKindGpgWrapper:                      deserializeInstruction[*GpgWrapperInstruction],
 	}
 
 	return mapping[getDaemonKind()](jsonData)
@@ -364,4 +366,41 @@ func (self *WriteRebaseTodoInstruction) run(common *common.Common) error {
 	return handleInteractiveRebase(common, func(path string) error {
 		return os.WriteFile(path, self.TodosFileContent, 0o644)
 	})
+}
+
+// GpgWrapperInstruction makes lazygit act as a thin wrapper around the real
+// gpg program, inserting `--pinentry-mode=loopback` so that gpg prints a
+// plain textual passphrase prompt on its own stdio instead of invoking a
+// pinentry program. We install this as `gpg.program` (via GIT_CONFIG_*
+// env vars) instead of running the real gpg directly, so that lazygit can
+// prompt for the passphrase from its own popup (see gpg_helper.go) rather
+// than having to hand off the terminal.
+type GpgWrapperInstruction struct {
+	RealGpgProgram string
+}
+
+func NewGpgWrapperInstruction(realGpgProgram string) Instruction {
+	return &GpgWrapperInstruction{RealGpgProgram: realGpgProgram}
+}
+
+func (self *GpgWrapperInstruction) Kind() DaemonKind {
+	return DaemonKindGpgWrapper
+}
+
+func (self *GpgWrapperInstruction) SerializedInstructions() string {
+	return serializeInstruction(self)
+}
+
+func (self *GpgWrapperInstruction) run(common *common.Common) error {
+	args := append([]string{"--pinentry-mode=loopback"}, os.Args[1:]...)
+	cmd := exec.Command(self.RealGpgProgram, args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// git only cares whether the gpg subprocess exited zero or non-zero, so
+	// returning cmd.Run()'s error as-is (which log.Fatal will report and
+	// exit(1) on) is sufficient; we don't need to propagate its exact exit
+	// code.
+	return cmd.Run()
 }

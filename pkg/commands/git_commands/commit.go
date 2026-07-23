@@ -92,6 +92,7 @@ func (self *CommitCommands) CommitCmdObj(summary string, description string, for
 	cmdArgs := NewGitCmd("commit").
 		ArgIf(forceSkipHooks || (skipHookPrefix != "" && strings.HasPrefix(summary, skipHookPrefix)), "--no-verify").
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
+		ArgIf(self.gpgSignFlag() != "", self.gpgSignFlag()).
 		Arg(messageArgs...).
 		ToArgv()
 
@@ -113,6 +114,7 @@ func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile s
 		Arg("--edit").
 		Arg("--file="+tmpMessageFile).
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
+		ArgIf(self.gpgSignFlag() != "", self.gpgSignFlag()).
 		ToArgv())
 }
 
@@ -122,6 +124,7 @@ func (self *CommitCommands) RewordLastCommit(summary string, description string)
 
 	cmdArgs := NewGitCmd("commit").
 		Arg("--allow-empty", "--amend", "--only").
+		ArgIf(self.gpgSignFlag() != "", self.gpgSignFlag()).
 		Arg(messageArgs...).
 		ToArgv()
 
@@ -142,6 +145,7 @@ func (self *CommitCommands) commitMessageArgs(summary string, description string
 func (self *CommitCommands) CommitEditorCmdObj() *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("commit").
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
+		ArgIf(self.gpgSignFlag() != "", self.gpgSignFlag()).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs)
@@ -150,6 +154,17 @@ func (self *CommitCommands) CommitEditorCmdObj() *oscommands.CmdObj {
 func (self *CommitCommands) signoffFlag() string {
 	if self.UserConfig().Git.Commit.SignOff {
 		return "--signoff"
+	}
+	return ""
+}
+
+// gpgSignFlag returns "--gpg-sign" when the user has commit.gpgSign enabled,
+// so that the actual git command shown in the Command Log makes it obvious
+// that the commit will be signed (git would otherwise apply commit.gpgSign
+// silently, without ever displaying the flag).
+func (self *CommitCommands) gpgSignFlag() string {
+	if self.config.IsGpgSignEnabled(CommitGpgSign) {
+		return "--gpg-sign"
 	}
 	return ""
 }
@@ -235,6 +250,7 @@ func (self *CommitCommands) AmendHead() error {
 func (self *CommitCommands) AmendHeadCmdObj() *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("commit").
 		Arg("--amend", "--no-edit", "--allow-empty", "--allow-empty-message").
+		ArgIf(self.gpgSignFlag() != "", self.gpgSignFlag()).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs)

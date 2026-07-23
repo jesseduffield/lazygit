@@ -353,11 +353,21 @@ func (c *OSCommand) GetTempDir() string {
 	return c.tempDir
 }
 
-// GetLazygitPath returns the path of the currently executed file
-func GetLazygitPath() string {
+// GetLazygitExecutablePath returns the unquoted, slash-normalized path of the
+// currently executing lazygit binary. Use this when the consumer does its own
+// argv-style invocation (e.g. git config values like gpg.program, which git
+// does not pass through a shell). Use GetLazygitPath instead for values that
+// git does invoke via a shell (e.g. GIT_EDITOR).
+func GetLazygitExecutablePath() string {
 	ex, err := os.Executable() // get the executable path for git to use
 	if err != nil {
 		ex = os.Args[0] // fallback to the first call argument if needed
 	}
-	return `"` + filepath.ToSlash(ex) + `"`
+	return filepath.ToSlash(ex)
+}
+
+// GetLazygitPath returns the path of the currently executed file, quoted for
+// use in a shell command line.
+func GetLazygitPath() string {
+	return `"` + GetLazygitExecutablePath() + `"`
 }

@@ -30,6 +30,7 @@ type TranslationSet struct {
 	CredentialsUsername                   string
 	CredentialsPassword                   string
 	CredentialsPassphrase                 string
+	CredentialsGpgPassphrase              string
 	CredentialsPIN                        string
 	CredentialsToken                      string
 	PassUnameWrong                        string
@@ -1173,6 +1174,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CredentialsUsername:                  "Username",
 		CredentialsPassword:                  "Password",
 		CredentialsPassphrase:                "Enter passphrase for SSH key",
+		CredentialsGpgPassphrase:             "Enter GPG passphrase",
 		CredentialsPIN:                       "Enter PIN for SSH key",
 		CredentialsToken:                     "Enter Token for SSH key",
 		PassUnameWrong:                       "Password, passphrase and/or username wrong",
@@ -1599,7 +1601,7 @@ func EnglishTranslationSet() *TranslationSet {
 		DiscardFileChangesTitle:              "Discard file changes",
 		DiscardFileChangesPrompt:             "Are you sure you want to discard changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.",
 		DiscardFileChangesPromptResetPatch:   "Are you sure you want to discard changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.\n\nNote: This will reset the active custom patch!",
-		DisabledForGPG:                       "Feature not available for users using GPG.\n\nIf you are using a passphrase agent (e.g. gpg-agent) so that you don't have to type your passphrase when signing, you can enable this feature by adding\n\ngit:\n  overrideGpg: true\n\nto your lazygit config file.",
+		DisabledForGPG:                       "Feature not available for users using GPG.\n\nIf you are using a passphrase agent (e.g. gpg-agent) so that you don't have to type your passphrase when signing, you can enable this feature by adding\n\ngit:\n  overrideGpg: true\n\nto your lazygit config file.\n\nOnly use overrideGpg: true if your gpg-agent caches your passphrase or uses a GUI pinentry (pinentry-gtk-2/pinentry-qt/pinentry-mac). If you use a terminal-based pinentry (pinentry-tty/pinentry-curses), leave this setting as false (default) so Lazygit can properly hand off the terminal.",
 		CreateRepo:                           "Not in a git repository. Create a new git repository? (y/N): ",
 		BareRepo:                             "You've attempted to open Lazygit in a bare repo but Lazygit does not yet support bare repos. Open most recent repo? (y/n) ",
 		InitialBranch:                        "Branch name? (leave empty for git's default): ",
