@@ -404,6 +404,13 @@ git:
     # If autoWrapCommitMessage is true, the width to wrap to
     autoWrapWidth: 72
 
+    # Shell command that generates a commit message from a diff piped to stdin.
+    # The command's stdout is used as the commit message (markdown fences are
+    # stripped automatically).
+    # Accessible via the commit menu (<c-o> then 'g').
+    # Example: "claude -p 'Generate a conventional commit message for this diff:'"
+    generateCommand: ""
+
   # Config relating to merging
   merging:
     # If true, run merges in a subprocess so that if a commit message is required,
