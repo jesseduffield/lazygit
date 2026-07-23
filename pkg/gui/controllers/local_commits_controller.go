@@ -743,13 +743,7 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 
 func (self *LocalCommitsController) move(selectedCommits []*models.Commit, startIdx int, endIdx int, offset int) error {
 	if self.isRebasing() {
-		var err error
-		if offset > 0 {
-			err = self.c.Git().Rebase.MoveTodosDown(selectedCommits)
-		} else {
-			err = self.c.Git().Rebase.MoveTodosUp(selectedCommits)
-		}
-		if err != nil {
+		if err := self.c.Git().Rebase.MoveTodos(selectedCommits, offset); err != nil {
 			return err
 		}
 		self.context().MoveSelection(offset)
@@ -767,14 +761,12 @@ func (self *LocalCommitsController) move(selectedCommits []*models.Commit, start
 
 	commits := self.c.Model().Commits
 	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.MovingStatus, func(gocui.Task) error {
-		var err error
 		if offset > 0 {
 			self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
-			err = self.c.Git().Rebase.MoveCommitsDown(commits, startIdx, endIdx)
 		} else {
 			self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
-			err = self.c.Git().Rebase.MoveCommitsUp(commits, startIdx, endIdx)
 		}
+		err := self.c.Git().Rebase.MoveCommits(commits, startIdx, endIdx, offset)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err, types.RefreshOptions{
 				BatchUIUpdates:  true,
