@@ -329,12 +329,25 @@ func (self *LocalCommitsController) GetOnFocusLost() func(types.OnFocusLostOpts)
 			return
 		}
 
-		self.dragAutoscroller.Cancel()
-		self.commitDrag = nil
-		self.c.GocuiGui().CancelMouseCapture()
-		self.context().ClearDropInsertionIndex()
-		self.c.PostRefreshUpdate(self.context())
+		self.cancelCommitDrag()
 	}
+}
+
+func (self *LocalCommitsController) cancelCommitDrag() {
+	self.dragAutoscroller.Cancel()
+	self.commitDrag = nil
+	self.c.GocuiGui().CancelMouseCapture()
+	self.context().ClearDropInsertionIndex()
+	self.c.PostRefreshUpdate(self.context())
+}
+
+func (self *LocalCommitsController) handleCommitDragCancel() error {
+	if self.commitDrag == nil {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	self.cancelCommitDrag()
+	return nil
 }
 
 // Stop autoscrolling once the insertion point has reached the end of the
@@ -367,6 +380,10 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 	editCommitKey := opts.Config.Universal.Edit
 
 	bindings := []*types.Binding{
+		{
+			Keys:    opts.GetKeys(opts.Config.Universal.Return),
+			Handler: self.handleCommitDragCancel,
+		},
 		{
 			Keys:    opts.GetKeys(opts.Config.Commits.SquashDown),
 			Handler: opts.Guards.OutsideFilterMode(self.withItemsRange(self.squashDown)),

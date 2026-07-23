@@ -25,6 +25,33 @@ var DragToReorder = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit-01"),
 			).
 			ClickAndHold(1, 1).
+			MouseMove(1, 3).
+			TopLines(
+				Contains("commit-05").IsSelected(),
+				Contains("commit-04").IsSelected(),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("drop here"),
+				Contains("commit-01"),
+			).
+			PressEscape().
+			TopLines(
+				Contains("commit-05").IsSelected(),
+				Contains("commit-04").IsSelected(),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
+			).
+			MouseMove(1, 4).
+			TopLines(
+				Contains("commit-05").IsSelected(),
+				Contains("commit-04").IsSelected(),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
+			).
+			MouseRelease().
+			ClickAndHold(1, 1).
 			TopLines(
 				Contains("commit-05").IsSelected(),
 				Contains("commit-04").IsSelected(),
