@@ -86,7 +86,12 @@ func GetRepoPathsForDir(
 ) (*RepoPaths, error) {
 	gitDirOutput, err := callGitRevParseWithDir(cmd, dir, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
 	if err != nil {
-		return nil, err
+		// --show-toplevel fails when running from inside a bare repository
+		// with no active working tree (e.g. the user invokes lazygit from
+		// the bare-repo root that uses worktrees). Fall back to a query
+		// that does not require a working tree so we can still discover
+		// the repo paths in that case.
+		return getRepoPathsForBareDir(dir, cmd, err)
 	}
 
 	gitDirResults := strings.Split(utils.NormalizeLinefeeds(gitDirOutput), "\n")
@@ -117,6 +122,46 @@ func GetRepoPathsForDir(
 		repoGitDirPath:     repoGitDirPath,
 		repoName:           repoName,
 		isBareRepo:         isBareRepo,
+	}, nil
+}
+
+// getRepoPathsForBareDir is the fallback used when the full rev-parse
+// query fails because --show-toplevel cannot run without a working
+// tree. It re-queries without --show-toplevel and, if the repository
+// turns out to be bare, synthesises the worktree path from the git
+// dir's parent so the rest of lazygit has somewhere sensible to chdir
+// to. originalErr is surfaced unchanged when the fallback also fails
+// or when the repo is not actually bare.
+func getRepoPathsForBareDir(
+	dir string,
+	cmd oscommands.ICmdObjBuilder,
+	originalErr error,
+) (*RepoPaths, error) {
+	out, err := callGitRevParseWithDir(cmd, dir, "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
+	if err != nil {
+		return nil, originalErr
+	}
+	results := strings.Split(utils.NormalizeLinefeeds(out), "\n")
+	if len(results) < 3 {
+		return nil, originalErr
+	}
+	worktreeGitDirPath := results[0]
+	repoGitDirPath := results[1]
+	isBareRepo := results[2] == "true"
+	if !isBareRepo {
+		// --show-toplevel failed for some other reason than a bare repo;
+		// preserve the original error so callers see the real cause.
+		return nil, originalErr
+	}
+
+	repoPath := filepath.Dir(repoGitDirPath)
+	return &RepoPaths{
+		worktreePath:       repoPath,
+		worktreeGitDirPath: worktreeGitDirPath,
+		repoPath:           repoPath,
+		repoGitDirPath:     repoGitDirPath,
+		repoName:           filepath.Base(repoPath),
+		isBareRepo:         true,
 	}, nil
 }
 
