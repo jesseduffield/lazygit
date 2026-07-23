@@ -734,11 +734,25 @@ func (self *LocalCommitsController) isCherryPickingOrReverting() bool {
 }
 
 func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
+	return self.move(selectedCommits, startIdx, endIdx, 1)
+}
+
+func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
+	return self.move(selectedCommits, startIdx, endIdx, -1)
+}
+
+func (self *LocalCommitsController) move(selectedCommits []*models.Commit, startIdx int, endIdx int, offset int) error {
 	if self.isRebasing() {
-		if err := self.c.Git().Rebase.MoveTodosDown(selectedCommits); err != nil {
+		var err error
+		if offset > 0 {
+			err = self.c.Git().Rebase.MoveTodosDown(selectedCommits)
+		} else {
+			err = self.c.Git().Rebase.MoveTodosUp(selectedCommits)
+		}
+		if err != nil {
 			return err
 		}
-		self.context().MoveSelection(1)
+		self.context().MoveSelection(offset)
 		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 
 		// Block input until the refresh has landed: a quick second press must
@@ -753,45 +767,14 @@ func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, s
 
 	commits := self.c.Model().Commits
 	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.MovingStatus, func(gocui.Task) error {
-		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
-		err := self.c.Git().Rebase.MoveCommitsDown(commits, startIdx, endIdx)
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
-			err, types.RefreshOptions{
-				BatchUIUpdates:  true,
-				CommitSelection: types.KeepCommitSelectionIndex,
-				// Move the selection to follow the moved commit, in Then so it
-				// lands in the same frame as the refreshed commit list.
-				Then: func() error {
-					if err == nil {
-						self.context().MoveSelection(1)
-						self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
-					}
-					return nil
-				},
-			})
-	})
-}
-
-func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
-	if self.isRebasing() {
-		if err := self.c.Git().Rebase.MoveTodosUp(selectedCommits); err != nil {
-			return err
+		var err error
+		if offset > 0 {
+			self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
+			err = self.c.Git().Rebase.MoveCommitsDown(commits, startIdx, endIdx)
+		} else {
+			self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
+			err = self.c.Git().Rebase.MoveCommitsUp(commits, startIdx, endIdx)
 		}
-		self.context().MoveSelection(-1)
-		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
-
-		// Block input for the same reason as in moveDown.
-		self.c.RefreshBlockingInput(types.RefreshOptions{
-			Scope:           []types.RefreshableView{types.REBASE_COMMITS},
-			CommitSelection: types.KeepCommitSelectionIndex,
-		})
-		return nil
-	}
-
-	commits := self.c.Model().Commits
-	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.MovingStatus, func(gocui.Task) error {
-		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
-		err := self.c.Git().Rebase.MoveCommitsUp(commits, startIdx, endIdx)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err, types.RefreshOptions{
 				BatchUIUpdates:  true,
@@ -800,7 +783,7 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 				// lands in the same frame as the refreshed commit list.
 				Then: func() error {
 					if err == nil {
-						self.context().MoveSelection(-1)
+						self.context().MoveSelection(offset)
 						self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
 					}
 					return nil
