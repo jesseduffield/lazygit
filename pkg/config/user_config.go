@@ -922,8 +922,8 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			PortraitModeAutoMinHeight:           46,
 			FilterMode:                          "substring",
 			Spinner: SpinnerConfig{
-				Frames: []string{"|", "/", "-", "\\"},
-				Rate:   50,
+				Frames: []string{"●∙∙", "∙●∙", "∙∙●", "∙●∙"},
+				Rate:   180,
 			},
 			StatusPanelView:              "dashboard",
 			SwitchToFilesAfterStashPop:   true,

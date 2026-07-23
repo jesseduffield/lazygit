@@ -162,7 +162,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "", "branch_name Pushing |"},
+			expected:             []string{"1m", "", "branch_name Pushing ●∙∙"},
 		},
 		{
 			branch: &models.Branch{
@@ -282,7 +282,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "", "branc… Pushing |"},
+			expected:             []string{"1m", "", "bra… Pushing ●∙∙"},
 		},
 		{
 			branch:               &models.Branch{Name: "abc", Recency: "1m"},
@@ -292,7 +292,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "", "abc Pushing |"},
+			expected:             []string{"1m", "", "abc Pushing ●∙∙"},
 		},
 		{
 			branch:               &models.Branch{Name: "ab", Recency: "1m"},
@@ -302,7 +302,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "", "ab Pushing |"},
+			expected:             []string{"1m", "", "ab Pushing ●∙∙"},
 		},
 		{
 			branch:               &models.Branch{Name: "a", Recency: "1m"},
@@ -312,7 +312,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			useIcons:             false,
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "none",
-			expected:             []string{"1m", "", "a Pushing |"},
+			expected:             []string{"1m", "", "a Pushing ●∙∙"},
 		},
 		{
 			branch: &models.Branch{
