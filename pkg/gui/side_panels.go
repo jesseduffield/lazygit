@@ -125,4 +125,13 @@ func (gui *Gui) assignSidePanelWindows(contextTree *context.ContextTree) {
 			ctx.SetWindowName(name)
 		}
 	}
+
+	// The transient contexts take over the window of the context they are
+	// drilled into from, but they need a valid initial window before their
+	// first use. Assign the window hosting branches or commits, respectively;
+	// unlike e.g. remotes, those tabs can't be hidden, so their windows are
+	// always part of the layout.
+	contextTree.RemoteBranches.SetWindowName(contextTree.Branches.GetWindowName())
+	contextTree.SubCommits.SetWindowName(contextTree.Branches.GetWindowName())
+	contextTree.CommitFiles.SetWindowName(contextTree.LocalCommits.GetWindowName())
 }

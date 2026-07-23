@@ -2,9 +2,9 @@ package components
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
@@ -41,6 +41,15 @@ func (self *TestDriver) pressFast(keyStr string) {
 	self.SetCaption("")
 	self.gui.PressKey(keyStr)
 	self.Wait(self.inputDelay / 5)
+}
+
+// presses the keys in immediate succession, without waiting for lazygit to
+// become idle in between, to simulate a user typing faster than lazygit
+// processes the input
+func (self *TestDriver) pressRapidly(keyStrs []string) {
+	self.SetCaption(fmt.Sprintf("Pressing %s", strings.Join(keyStrs, ", ")))
+	self.gui.PressKeysRapidly(keyStrs...)
+	self.Wait(self.inputDelay)
 }
 
 func (self *TestDriver) click(x, y int) {
@@ -123,17 +132,6 @@ func (self *TestDriver) ExpectToast(matcher *TextMatcher) *TestDriver {
 	}
 
 	return self
-}
-
-func (self *TestDriver) ExpectClipboard(matcher *TextMatcher) {
-	self.assertWithRetries(func() (bool, string) {
-		text, err := clipboard.ReadAll()
-		if err != nil {
-			return false, "Error occurred when reading from clipboard: " + err.Error()
-		}
-		ok, _ := matcher.test(text)
-		return ok, fmt.Sprintf("Expected clipboard to match %s, but got %s", matcher.name(), text)
-	})
 }
 
 func (self *TestDriver) ExpectSearch() *SearchDriver {

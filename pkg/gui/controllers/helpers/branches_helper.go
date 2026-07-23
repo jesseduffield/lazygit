@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -32,55 +31,28 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 			return errors.New(self.c.Tr.SomeBranchesCheckedOutByWorktreeError)
 		}
 	} else if self.checkedOutByOtherWorktree(branches[0]) {
-		return self.promptWorktreeBranchDelete(branches[0])
+		return self.promptWorktreeBranchDelete(
+			branches[0],
+			self.c.Tr.RemoveWorktreeAndDeleteBranch,
+			self.c.Tr.DetachWorktreeAndDeleteBranch,
+			self.deleteLocalBranchesContinuation(branches),
+		)
 	}
 
-	allBranchesMerged, err := self.allBranchesMerged(branches)
-	if err != nil {
-		return err
-	}
-
-	doDelete := func() error {
+	return self.confirmForceIfUnmerged(branches, func() error {
 		return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(_ gocui.Task) error {
-			self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
-			self.logBranchHashes(branches)
-			branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
-			if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
+			if err := self.doDeleteLocalBranches(branches); err != nil {
 				return err
 			}
 
-			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+			self.c.OnUIThread(func() error {
+				self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+				return nil
+			})
+			self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}})
 			return nil
 		})
-	}
-
-	if allBranchesMerged {
-		return doDelete()
-	}
-
-	title := self.c.Tr.ForceDeleteBranchTitle
-	var message string
-	if len(branches) == 1 {
-		message = utils.ResolvePlaceholderString(
-			self.c.Tr.ForceDeleteBranchMessage,
-			map[string]string{
-				"selectedBranchName": branches[0].Name,
-			},
-		)
-	} else {
-		message = self.c.Tr.ForceDeleteBranchesMessage
-	}
-
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  title,
-		Prompt: message,
-		HandleConfirm: func() error {
-			return doDelete()
-		},
 	})
-
-	return nil
 }
 
 func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteBranch, resetRemoteBranchesSelection bool) error {
@@ -115,9 +87,12 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteB
 				if err := self.deleteRemoteBranches(remoteBranches, task); err != nil {
 					return err
 				}
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 				if resetRemoteBranchesSelection {
-					self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
+					self.c.OnUIThread(func() error {
+						self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
+						return nil
+					})
 				}
 				return nil
 			})
@@ -128,8 +103,17 @@ func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteB
 }
 
 func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branch) error {
-	if lo.SomeBy(branches, func(branch *models.Branch) bool { return self.checkedOutByOtherWorktree(branch) }) {
-		return errors.New(self.c.Tr.SomeBranchesCheckedOutByWorktreeError)
+	if len(branches) > 1 {
+		if lo.SomeBy(branches, func(branch *models.Branch) bool { return self.checkedOutByOtherWorktree(branch) }) {
+			return errors.New(self.c.Tr.SomeBranchesCheckedOutByWorktreeError)
+		}
+	} else if self.checkedOutByOtherWorktree(branches[0]) {
+		return self.promptWorktreeBranchDelete(
+			branches[0],
+			self.c.Tr.RemoveWorktreeAndDeleteBothBranches,
+			self.c.Tr.DetachWorktreeAndDeleteBothBranches,
+			self.deleteLocalAndRemoteBranchesContinuation(branches),
+		)
 	}
 
 	allBranchesMerged, err := self.allBranchesMerged(branches)
@@ -169,24 +153,15 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
-				// Delete the remote branches first so that we keep the local ones
-				// in case of failure
-				remoteBranches := lo.Map(branches, func(branch *models.Branch, _ int) *models.RemoteBranch {
-					return &models.RemoteBranch{Name: branch.UpstreamBranch, RemoteName: branch.UpstreamRemote}
+				if err := self.doDeleteLocalAndRemoteBranches(task, branches); err != nil {
+					return err
+				}
+
+				self.c.OnUIThread(func() error {
+					self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+					return nil
 				})
-				if err := self.deleteRemoteBranches(remoteBranches, task); err != nil {
-					return err
-				}
-
-				self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
-				self.logBranchHashes(branches)
-				branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
-				if err := self.c.Git().Branch.LocalDelete(branchNames, true); err != nil {
-					return err
-				}
-
-				self.c.Contexts().Branches.CollapseRangeSelectionToTop()
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 				return nil
 			})
 		},
@@ -207,8 +182,18 @@ func (self *BranchesHelper) worktreeForBranch(branch *models.Branch) (*models.Wo
 	return git_commands.WorktreeForBranch(branch, self.c.Model().Worktrees)
 }
 
-func (self *BranchesHelper) promptWorktreeBranchDelete(selectedBranch *models.Branch) error {
-	worktree, ok := self.worktreeForBranch(selectedBranch)
+// promptWorktreeBranchDelete handles deleting a branch that's checked out by
+// another worktree: the worktree has to be removed or detached first to free the
+// branch, so we offer both as menu items. Either way the branch is deleted
+// afterwards (that's what the user asked for), via deleteBranches, which knows
+// whether to delete just the local branch or the remote one too.
+func (self *BranchesHelper) promptWorktreeBranchDelete(
+	branch *models.Branch,
+	removeLabel string,
+	detachLabel string,
+	deleteBranches func(gocui.Task) error,
+) error {
+	worktree, ok := self.worktreeForBranch(branch)
 	if !ok {
 		self.c.Log.Error("promptWorktreeBranchDelete out of sync with list of worktrees")
 		return nil
@@ -216,32 +201,154 @@ func (self *BranchesHelper) promptWorktreeBranchDelete(selectedBranch *models.Br
 
 	title := utils.ResolvePlaceholderString(self.c.Tr.BranchCheckedOutByWorktree, map[string]string{
 		"worktreeName": worktree.Name,
-		"branchName":   selectedBranch.Name,
+		"branchName":   branch.Name,
 	})
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: title,
 		Items: []*types.MenuItem{
 			{
-				Label: self.c.Tr.SwitchToWorktree,
+				Label: removeLabel,
+				Keys:  menuKey('r'),
 				OnPress: func() error {
-					return self.worktreeHelper.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
+					return self.confirmForceIfUnmerged([]*models.Branch{branch}, func() error {
+						return self.worktreeHelper.Remove(worktree, deleteBranches)
+					})
 				},
 			},
 			{
-				Label:   self.c.Tr.DetachWorktree,
+				Label:   detachLabel,
+				Keys:    menuKey('d'),
 				Tooltip: self.c.Tr.DetachWorktreeTooltip,
 				OnPress: func() error {
-					return self.worktreeHelper.Detach(worktree)
-				},
-			},
-			{
-				Label: self.c.Tr.RemoveWorktree,
-				OnPress: func() error {
-					return self.worktreeHelper.Remove(worktree, false)
+					return self.confirmForceIfUnmerged([]*models.Branch{branch}, func() error {
+						return self.worktreeHelper.Detach(worktree, deleteBranches)
+					})
 				},
 			},
 		},
 	})
+}
+
+// RemoveWorktreeAndDeleteBranch removes the worktree and deletes the local branch
+// it has checked out, force-warning first if the branch isn't fully merged. It's
+// the worktrees-panel counterpart to deleting a worktree-checked-out branch from
+// the branches panel.
+func (self *BranchesHelper) RemoveWorktreeAndDeleteBranch(
+	worktree *models.Worktree, branch *models.Branch,
+) error {
+	branches := []*models.Branch{branch}
+	return self.removeWorktreeAndDelete(worktree, branches,
+		self.deleteLocalBranchesContinuation(branches))
+}
+
+// RemoveWorktreeAndDeleteBothBranches is like RemoveWorktreeAndDeleteBranch but
+// also deletes the branch's upstream.
+func (self *BranchesHelper) RemoveWorktreeAndDeleteBothBranches(
+	worktree *models.Worktree, branch *models.Branch,
+) error {
+	branches := []*models.Branch{branch}
+	return self.removeWorktreeAndDelete(worktree, branches,
+		self.deleteLocalAndRemoteBranchesContinuation(branches))
+}
+
+func (self *BranchesHelper) removeWorktreeAndDelete(
+	worktree *models.Worktree, branches []*models.Branch, deleteBranches func(gocui.Task) error,
+) error {
+	return self.confirmForceIfUnmerged(branches, func() error {
+		return self.worktreeHelper.Remove(worktree, deleteBranches)
+	})
+}
+
+// confirmForceIfUnmerged runs onConfirm directly if all the branches are fully
+// merged, and otherwise shows the force-delete warning first and runs onConfirm
+// when the user confirms it.
+func (self *BranchesHelper) confirmForceIfUnmerged(branches []*models.Branch, onConfirm func() error) error {
+	allBranchesMerged, err := self.allBranchesMerged(branches)
+	if err != nil {
+		return err
+	}
+	if allBranchesMerged {
+		return onConfirm()
+	}
+
+	var message string
+	if len(branches) == 1 {
+		message = utils.ResolvePlaceholderString(
+			self.c.Tr.ForceDeleteBranchMessage,
+			map[string]string{
+				"selectedBranchName": branches[0].Name,
+			},
+		)
+	} else {
+		message = self.c.Tr.ForceDeleteBranchesMessage
+	}
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:         self.c.Tr.ForceDeleteBranchTitle,
+		Prompt:        message,
+		HandleConfirm: onConfirm,
+	})
+
+	return nil
+}
+
+func (self *BranchesHelper) doDeleteLocalBranches(branches []*models.Branch) error {
+	self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
+	self.logBranchHashes(branches)
+	branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
+	return self.c.Git().Branch.LocalDelete(branchNames, true)
+}
+
+func (self *BranchesHelper) doDeleteLocalAndRemoteBranches(task gocui.Task, branches []*models.Branch) error {
+	// Delete the remote branches first so that we keep the local ones
+	// in case of failure
+	remoteBranches := lo.Map(branches, func(branch *models.Branch, _ int) *models.RemoteBranch {
+		return &models.RemoteBranch{Name: branch.UpstreamBranch, RemoteName: branch.UpstreamRemote}
+	})
+	if err := self.deleteRemoteBranches(remoteBranches, task); err != nil {
+		return err
+	}
+
+	return self.doDeleteLocalBranches(branches)
+}
+
+// deleteLocalBranchesContinuation returns a worktree-removal continuation that
+// deletes the local branches and refreshes once the worktree is out of the way.
+func (self *BranchesHelper) deleteLocalBranchesContinuation(branches []*models.Branch) func(gocui.Task) error {
+	return func(gocui.Task) error {
+		if err := self.doDeleteLocalBranches(branches); err != nil {
+			return err
+		}
+
+		self.c.OnUIThread(func() error {
+			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+			return nil
+		})
+		self.c.RefreshFromWorker(types.RefreshOptions{
+			Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES},
+		})
+		return nil
+	}
+}
+
+// deleteLocalAndRemoteBranchesContinuation returns a worktree-removal
+// continuation that deletes the local and remote branches and refreshes once the
+// worktree is out of the way.
+func (self *BranchesHelper) deleteLocalAndRemoteBranchesContinuation(branches []*models.Branch) func(gocui.Task) error {
+	return func(task gocui.Task) error {
+		if err := self.doDeleteLocalAndRemoteBranches(task, branches); err != nil {
+			return err
+		}
+
+		self.c.OnUIThread(func() error {
+			self.c.Contexts().Branches.CollapseRangeSelectionToTop()
+			return nil
+		})
+		self.c.RefreshFromWorker(types.RefreshOptions{
+			Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.REMOTES, types.FILES},
+		})
+		return nil
+	}
 }
 
 func (self *BranchesHelper) allBranchesMerged(branches []*models.Branch) (bool, error) {
@@ -285,7 +392,11 @@ func (self *BranchesHelper) deleteRemoteBranches(remoteBranches []*models.Remote
 	return nil
 }
 
-func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool) error {
+// fetchGeneration must be the repo generation from when the fetch started,
+// captured by the caller before running the fetch: the background fetch
+// doesn't block repo switching and is a network call, so the window in which
+// the user can switch repos spans the whole fetch, not just this refresh.
+func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool, fetchGeneration int) error {
 	scope := []types.RefreshableView{
 		types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS, types.PULL_REQUESTS,
 	}
@@ -293,14 +404,36 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool) er
 	if self.c.UserConfig().Git.AutoForwardBranches != "none" {
 		scope = append(scope, types.WORKTREES)
 	}
-	self.c.Refresh(types.RefreshOptions{Scope: scope, Mode: types.SYNC, Background: background})
-	if fetchErr != nil {
-		return fetchErr
-	}
-	return self.AutoForwardBranches()
+	// AutoForwardBranches reads Model.Branches, which the branches refresh writes
+	// via a bounce, so it has to run in Then rather than right after Refresh
+	// returns (where it would still see the previous branches).
+	self.c.RefreshFromWorker(types.RefreshOptions{
+		Scope:      scope,
+		Background: background,
+		Then: func() error {
+			if fetchErr != nil {
+				return nil
+			}
+			// Then callbacks are not generation-guarded, so check explicitly:
+			// if the repo was switched since the fetch started, don't forward
+			// this repo's branches on the strength of another repo's fetch.
+			if self.c.State().GetRepoGeneration() != fetchGeneration {
+				return nil
+			}
+			err := self.AutoForwardBranches(background)
+			if background && err != nil {
+				// The background poller discards this return value, so surface
+				// the error in the log rather than as a popup for background work.
+				self.c.Log.Error(err)
+				return nil
+			}
+			return err
+		},
+	})
+	return fetchErr
 }
 
-func (self *BranchesHelper) AutoForwardBranches() error {
+func (self *BranchesHelper) AutoForwardBranches(background bool) error {
 	if self.c.UserConfig().Git.AutoForwardBranches == "none" {
 		return nil
 	}
@@ -332,7 +465,7 @@ func (self *BranchesHelper) AutoForwardBranches() error {
 	self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
 	err := self.c.Git().Branch.UpdateBranchRefs(updateCommands)
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Mode: types.SYNC})
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Background: background})
 
 	return err
 }

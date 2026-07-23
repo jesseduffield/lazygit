@@ -54,6 +54,12 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			DisplayOnScreen: true,
 		},
 		{
+			Keys:        opts.GetKeys(opts.Config.Universal.NewWorktree),
+			Handler:     self.withItem(self.c.Helpers().Worktree.NewWorktreeMenuForTag),
+			Description: self.c.Tr.NewWorktree,
+			OpensMenu:   true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.delete),
 			Description:       self.c.Tr.Delete,
@@ -162,7 +168,7 @@ func (self *TagsController) localDelete(tag *models.Tag) error {
 	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.DeleteLocalTag)
 		err := self.c.Git().Tag.LocalDelete(tag.Name)
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 		return err
 	})
 }
@@ -204,7 +210,7 @@ func (self *TagsController) remoteDelete(tag *models.Tag) error {
 							return err
 						}
 						self.c.Toast(self.c.Tr.RemoteTagDeletedMessage)
-						self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+						self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 						return nil
 					})
 				},
@@ -258,7 +264,7 @@ func (self *TagsController) localAndRemoteDelete(tag *models.Tag) error {
 						if err := self.c.Git().Tag.LocalDelete(tag.Name); err != nil {
 							return err
 						}
-						self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+						self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 						return nil
 					})
 				},
@@ -326,15 +332,7 @@ func (self *TagsController) push(tag *models.Tag) error {
 		HandleConfirm: func(response string) error {
 			return self.c.WithInlineStatus(tag, types.ItemOperationPushing, context.TAGS_CONTEXT_KEY, func(task gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.PushTag)
-				err := self.c.Git().Tag.Push(task, response, tag.Name)
-
-				// Render again to remove the inline status:
-				self.c.OnUIThread(func() error {
-					self.c.Contexts().Tags.HandleRender()
-					return nil
-				})
-
-				return err
+				return self.c.Git().Tag.Push(task, response, tag.Name)
 			})
 		},
 	})

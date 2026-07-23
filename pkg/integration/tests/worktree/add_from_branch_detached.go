@@ -6,7 +6,7 @@ import (
 )
 
 var AddFromBranchDetached = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Add a detached worktree via the branches view",
+	Description:  "Add a detached worktree at a branch via the branches view, choosing a custom location",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -21,15 +21,24 @@ var AddFromBranchDetached = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("mybranch"),
 			).
-			Press(keys.Worktrees.ViewWorktreeOptions).
+			Press(keys.Universal.NewWorktree).
 			Tap(func() {
 				t.ExpectPopup().Menu().
-					Title(Equals("Worktree")).
-					Select(Contains(`Create worktree from mybranch (detached)`)).
+					Title(Equals("New worktree")).
+					Select(Contains("New detached worktree at 'mybranch'")).
+					Confirm()
+
+				// the location menu defaults the directory name to the branch
+				// name; pick "Other…" to type a different path instead
+				t.ExpectPopup().Menu().
+					Title(Equals("Worktree location")).
+					Select(Contains("Other…")).
 					Confirm()
 
 				t.ExpectPopup().Prompt().
 					Title(Equals("New worktree path")).
+					InitialText(Contains("mybranch")).
+					Clear().
 					Type("../linked-worktree").
 					Confirm()
 			}).

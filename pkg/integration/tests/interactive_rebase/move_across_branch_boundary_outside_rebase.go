@@ -28,20 +28,20 @@ var MoveAcrossBranchBoundaryOutsideRebase = NewIntegrationTest(NewIntegrationTes
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI commit 05").IsSelected(),
-				Contains("CI commit 04"),
-				Contains("CI * commit 03"),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
+				Contains("CI commit-05").IsSelected(),
+				Contains("CI commit-04"),
+				Contains("CI * commit-03"),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
 			).
-			NavigateToLine(Contains("commit 04")).
+			NavigateToLine(Contains("commit-04")).
 			Press(keys.Commits.MoveDownCommit).
 			Lines(
-				Contains("CI commit 05"),
-				Contains("CI * commit 03"),
-				Contains("CI commit 04").IsSelected(),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
+				Contains("CI commit-05"),
+				Contains("CI * commit-03"),
+				Contains("CI commit-04").IsSelected(),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
 			)
 	},
 })

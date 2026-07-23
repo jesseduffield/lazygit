@@ -66,20 +66,21 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 	}
 
 	// get diff from commit file that's currently selected
-	path := self.c.Contexts().CommitFiles.GetSelectedPath()
-	if path == "" {
+	file := self.c.Contexts().CommitFiles.GetSelectedFile()
+	if file == nil {
 		return
 	}
 
 	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
-	diff, err := self.c.Git().WorkingTree.ShowFileDiff(from, to, reverse, path, true)
+	diff, err := self.c.Git().WorkingTree.ShowFileDiff(from, to, reverse, file.Path, file.PreviousPath, true)
 	if err != nil {
 		return
 	}
 
 	secondaryDiff := self.c.Git().Patch.PatchBuilder.RenderPatchForFile(patch.RenderPatchForFileOpts{
-		Filename:                               path,
+		Filename:                               file.Path,
+		PreviousPath:                           file.PreviousPath,
 		Plain:                                  false,
 		Reverse:                                false,
 		TurnAddedFilesIntoDiffAgainstEmptyFile: true,

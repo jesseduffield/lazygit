@@ -23,6 +23,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` + `` | 下一屏模式(正常/半屏/全屏) |  |
 | `` _ `` | 上一屏模式 |  |
 | `` \| `` | 切换分页器 | 从已配置的分页器列表中选择下一个分页器 |
+| `` \ `` | Cycle pagers (reverse) | Choose the previous pager in the list of configured pagers. |
 | `` <esc> `` | 取消 |  |
 | `` ? `` | 打开菜单 |  |
 | `` <ctrl+s> `` | 查看按路径过滤选项 | 查看用于过滤提交日志的选项，以便仅显示与过滤器匹配的提交。 |
@@ -30,6 +31,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` q, <ctrl+c> `` | 退出 |  |
 | `` <ctrl+z> `` | 挂起应用程序 |  |
 | `` <ctrl+w> `` | 切换是否在差异视图中显示空白字符差异 | 切换是否在差异视图中显示空白字符更改。<br><br>默认值可在配置文件中通过键 'git.ignoreWhitespaceInDiffView' 更改。 |
+| `` <alt+shift+c> `` | 编辑配置文件 | 使用外部编辑器打开文件 |
 | `` z `` | 撤销 | Reflog将用于确定运行哪个git命令来撤消最后一个git命令。这并不包括对工作树的更改，只考虑提交。 |
 | `` Z `` | 重做 | Reflog将用于确定运行哪个git命令来重做上一个git命令。这并不包括对工作树的更改，只考虑提交。 |
 
@@ -60,6 +62,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 在浏览器中打开提交 |  |
 | `` n `` | 从提交创建新分支 |  |
 | `` N `` | 移动提交至新分支 | 创建一个新分支，并将当前分支未推送的提交移动到该分支。如果您打算开始新工作但忘记先创建新分支，这会很有用。<br><br>请注意，此操作忽略选择，新分支总是从主分支创建或堆叠在当前分支之上（您可以选择哪种方式）。 |
+| `` w `` | 新建工作树 |  |
 | `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，您可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
 | `` <ctrl+r> `` | 重置已拣选(复制)的提交 |  |
@@ -67,7 +70,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` * `` | 选择当前分支的提交 |  |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交的文件 |  |
-| `` w `` | 查看工作区选项 |  |
 | `` / `` | 开始搜索 |  |
 
 ## 子模块
@@ -104,6 +106,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 在浏览器中打开提交 |  |
 | `` n `` | 从提交创建新分支 |  |
 | `` N `` | 移动提交至新分支 | 创建一个新分支，并将当前分支未推送的提交移动到该分支。如果您打算开始新工作但忘记先创建新分支，这会很有用。<br><br>请注意，此操作忽略选择，新分支总是从主分支创建或堆叠在当前分支之上（您可以选择哪种方式）。 |
+| `` w `` | 新建工作树 |  |
 | `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，您可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
 | `` <ctrl+r> `` | 重置已拣选(复制)的提交 |  |
@@ -111,7 +114,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` * `` | 选择当前分支的提交 |  |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |
-| `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
 
 ## 提交
@@ -147,13 +149,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 在浏览器中打开提交 |  |
 | `` n `` | 从提交创建新分支 |  |
 | `` N `` | 移动提交至新分支 | 创建一个新分支，并将当前分支未推送的提交移动到该分支。如果您打算开始新工作但忘记先创建新分支，这会很有用。<br><br>请注意，此操作忽略选择，新分支总是从主分支创建或堆叠在当前分支之上（您可以选择哪种方式）。 |
+| `` w `` | 新建工作树 |  |
 | `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` C `` | 复制提交(拣选) | 标记提交为已复制。然后，在本地提交视图中，您可以按 `V` (Cherry-Pick) 将已复制的提交粘贴到已检出的分支中。任何时候都可以按 `<esc>` 来取消选择。 |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` * `` | 选择当前分支的提交 |  |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交的文件 |  |
-| `` w `` | 查看工作区选项 |  |
 | `` / `` | 开始搜索 |  |
 
 ## 提交信息
@@ -225,6 +227,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | 检出 | 检出选中的项目 |
 | `` n `` | 新分支 |  |
 | `` N `` | 移动提交至新分支 | 创建一个新分支，并将当前分支未推送的提交移动到该分支。如果您打算开始新工作但忘记先创建新分支，这会很有用。<br><br>请注意，此操作忽略选择，新分支总是从主分支创建或堆叠在当前分支之上（您可以选择哪种方式）。 |
+| `` w `` | 新建工作树 |  |
 | `` o `` | 创建拉取请求 |  |
 | `` O `` | 创建拉取请求选项 |  |
 | `` G `` | 在浏览器中打开拉取请求 |  |
@@ -244,7 +247,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |
-| `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
 
 ## 构建补丁中
@@ -270,13 +272,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | 复制标签到剪贴板 |  |
 | `` <space> `` | 检出 | 检出选择的标签作为分离的HEAD |
 | `` n `` | 创建标签 | 基于当前提交创建一个新标签。您将在弹窗中输入标签名称和描述(可选)。 |
+| `` w `` | 新建工作树 |  |
 | `` d `` | 删除 | 查看本地/远程标签的删除选项 |
 | `` P `` | 推送标签 | 推送选择的标签到远端。您将在弹窗中选择一个远端。 |
 | `` g `` | 重置 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |
-| `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
 
 ## 次要
@@ -292,7 +294,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | 选中区块 |  |
-| `` b `` | 选中所有区块 |  |
+| `` b `` | Pick both hunks |  |
 | `` <up>, k `` | 选择顶部块 |  |
 | `` <down>, j `` | 选择底部块 |  |
 | `` <left>, h `` | 选择上一个冲突 |  |
@@ -339,7 +341,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` o `` | 打开配置文件 | 使用默认程序打开该文件 |
 | `` e `` | 编辑配置文件 | 使用外部编辑器打开文件 |
 | `` u `` | 检查更新 |  |
 | `` <enter> `` | 切换到最近的仓库 |  |
@@ -371,10 +372,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | 应用并删除 | 将存储项应用到工作目录并删除存储项。 |
 | `` d `` | 删除 | 从贮藏列表中删除该贮藏项 |
 | `` n `` | 新分支 | 从选定的贮藏项创建一个新分支。这是通过 git 检查创建贮藏项的提交，从该提交创建一个新分支，然后将贮藏项作为附加提交应用到新分支来实现的。 |
+| `` w `` | 新建工作树 |  |
 | `` r `` | 重命名贮藏 |  |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交的文件 |  |
-| `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
 
 ## 输入提示
@@ -403,6 +404,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | 复制分支名称到剪贴板 |  |
 | `` <space> `` | 检出 | 基于当前选中的远程分支检出一个新的本地分支，或者将远程分支作分离的HEAD。 |
 | `` n `` | 新分支 |  |
+| `` w `` | 新建工作树 |  |
 | `` M `` | 合并到当前检出的分支 | 查看将选中项合并到当前分支的选项(正常合并，压缩合并) |
 | `` r `` | 变基 | 将检出的分支变基到所选的分支上。 |
 | `` d `` | 删除 | 从远程删除远程分支。 |
@@ -412,5 +414,4 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |
-| `` w `` | 查看工作区选项 |  |
 | `` / `` | 通过文本过滤当前视图 |  |

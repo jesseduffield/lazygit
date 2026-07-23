@@ -73,6 +73,8 @@ var DiscardAllDirChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.RunShellCommand(`echo "renamed\nhaha" > dir/renamed2.txt && git add dir/renamed2.txt`)
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Common().PretendMergeOrRebaseStartedInLazygit()
+
 		t.Views().Files().
 			IsFocused().
 			Lines(

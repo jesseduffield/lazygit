@@ -21,21 +21,21 @@ var RewordFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			).
-			NavigateToLine(Contains("commit 01")).
+			NavigateToLine(Contains("commit-01")).
 			Press(keys.Commits.RenameCommit).
 			Tap(func() {
 				t.ExpectPopup().CommitMessagePanel().
 					Title(Equals("Reword commit")).
-					InitialText(Equals("commit 01")).
+					InitialText(Equals("commit-01")).
 					Clear().
 					Type("renamed 01").
 					Confirm()
 			}).
 			Lines(
-				Contains("commit 02"),
+				Contains("commit-02"),
 				Contains("renamed 01"),
 			)
 	},

@@ -238,6 +238,91 @@ func TestContainsColoredText(t *testing.T) {
 	}
 }
 
+func TestWriteCursorPositionEscape(t *testing.T) {
+	// ConPTY presents its child's output as a screen buffer and uses cursor
+	// positioning escapes (CUP, `\x1b[<row>;<col>H`) to skip over blank rows
+	// rather than emitting empty LFs for them. The escape interpreter must
+	// synthesize the row advances those CUPs imply; otherwise non-blank rows
+	// that the child separated with blank lines end up adjacent in the view.
+	v := NewView("name", 0, 0, 20, 10, OutputNormal)
+	// "a", then "skip to row 3" (i.e. one blank row), then "b".
+	v.writeString("a\r\n\x1b[3;1Hb\r\n")
+
+	got := make([][]string, 0, len(v.lines))
+	for _, l := range v.lines {
+		got = append(got, cellsToStrings(l.cells))
+	}
+
+	assert.Equal(t, [][]string{{"a"}, {}, {"b"}}, got)
+}
+
+func TestWriteCursorPositionEscapeAcrossWrites(t *testing.T) {
+	// Mirrors the production flow: bufio.Scanner splits the pty output on
+	// LF and feeds the view one Write per line (each with a trailing \n
+	// appended). The parser's screen-row counter must keep ticking across
+	// writes; otherwise CUPs are evaluated against a stale row and
+	// overshoot, producing too many blank lines instead of the right
+	// number.
+	v := NewView("name", 0, 0, 30, 30, OutputNormal)
+	v.writeString("a\n")
+	v.writeString("b\n")
+	// ConPTY is on row 3 here; CUP to row 5 should skip exactly one row.
+	v.writeString("c\x1b[5;1Hd\n")
+
+	got := make([][]string, 0, len(v.lines))
+	for _, l := range v.lines {
+		got = append(got, cellsToStrings(l.cells))
+	}
+	assert.Equal(t, [][]string{
+		{"a"},
+		{"b"},
+		{"c"},
+		{},
+		{"d"},
+	}, got)
+}
+
+func TestWriteCursorForwardEscape(t *testing.T) {
+	// ConPTY compresses runs of default-colored spaces into ECH (\x1b[NX,
+	// "clear N cells, cursor stationary") + CUF (\x1b[NC, "cursor forward
+	// N") rather than emitting them literally. The interpreter has to
+	// materialize CUF as N visible spaces; otherwise the gap collapses
+	// and content that followed the indentation slides left.
+	v := NewView("name", 0, 0, 20, 10, OutputNormal)
+	// "a" + ECH 5 + CUF 5 + "b" — visually "a     b".
+	v.writeString("a\x1b[5X\x1b[5Cb\n")
+
+	got := make([][]string, 0, len(v.lines))
+	for _, l := range v.lines {
+		got = append(got, cellsToStrings(l.cells))
+	}
+
+	assert.Equal(t, [][]string{{"a", " ", " ", " ", " ", " ", "b"}}, got)
+}
+
+func TestWriteCursorPositionEscapeWithSoftWraps(t *testing.T) {
+	// If a logical line is longer than ConPTY's terminal width, ConPTY
+	// soft-wraps it onto multiple physical rows in its screen, and any
+	// subsequent CUP is addressed against the post-wrap row count. To
+	// keep our screen-row counter accurate we have to count those wraps
+	// as we write the cells. InnerWidth here is 5; "abcdefghij" (10
+	// cells) wraps onto 2 rows, so ConPTY is on row 3 after the LF and a
+	// CUP to row 4 should skip exactly one row.
+	v := NewView("name", 0, 0, 6, 30, OutputNormal) // Width=7, InnerWidth=5
+	v.writeString("abcdefghij\n")
+	v.writeString("\x1b[4;1Hxyz\n")
+
+	got := make([][]string, 0, len(v.lines))
+	for _, l := range v.lines {
+		got = append(got, cellsToStrings(l.cells))
+	}
+	assert.Equal(t, [][]string{
+		{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"},
+		{},
+		{"x", "y", "z"},
+	}, got)
+}
+
 func stringToCells(s string) []cell {
 	var cells []cell
 	state := -1

@@ -121,6 +121,14 @@ func (gui *Gui) render() {
 	gui.c.OnUIThread(func() error { return nil })
 }
 
+// renderContentOnly triggers a re-render that skips the layout pass and only
+// redraws the views whose content changed (relying on tcell's cell-level dirty
+// tracking to emit just the cells that actually differ). Use it when only a
+// view's content changed, not the window layout.
+func (gui *Gui) renderContentOnly() {
+	gui.c.OnUIThreadContentOnly(func() error { return nil })
+}
+
 // postRefreshUpdate is to be called on a context after the state that it depends on has been refreshed
 // if the context's view is set to another context we do nothing.
 // if the context's view is the current view we trigger a focus; re-selecting the current item.

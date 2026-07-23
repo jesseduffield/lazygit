@@ -1,41 +1,54 @@
-//go:build !windows
-
 package gui
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
 
-	"github.com/creack/pty"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
-func (gui *Gui) desiredPtySize(view *gocui.View) *pty.Winsize {
+func (gui *Gui) desiredPtySize(view *gocui.View) (cols, rows uint16) {
 	width, height := view.InnerSize()
-
-	return &pty.Winsize{Cols: uint16(width), Rows: uint16(height)}
+	return uint16(width), uint16(height)
 }
 
 func (gui *Gui) onResize() error {
 	gui.Mutexes.PtyMutex.Lock()
 	defer gui.Mutexes.PtyMutex.Unlock()
 
-	for viewName, ptmx := range gui.viewPtmxMap {
+	for viewName, p := range gui.viewPtmxMap {
 		// TODO: handle resizing properly: we need to actually clear the main view
 		// and re-read the output from our pty. Or we could just re-run the original
 		// command from scratch
 		view, _ := gui.g.View(viewName)
-		if err := pty.Setsize(ptmx, gui.desiredPtySize(view)); err != nil {
+		cols, rows := gui.desiredPtySize(view)
+		if err := p.Resize(cols, rows); err != nil {
 			return utils.WrapError(err)
 		}
 	}
 
 	return nil
 }
+
+// ptyCmd adapts an oscommands.StartedPty result into the tasks.Cmd shape.
+// On Windows the original *exec.Cmd was never Start()ed, so we go through
+// the explicit Process handle rather than cmd.Process.
+type ptyCmd struct {
+	cmd     *exec.Cmd
+	process *os.Process
+	wait    func() error
+}
+
+func (p ptyCmd) Wait() error             { return p.wait() }
+func (p ptyCmd) String() string          { return p.cmd.String() }
+func (p ptyCmd) GetProcess() *os.Process { return p.process }
 
 // Some commands need to output for a terminal to active certain behaviour.
 // For example,  git won't invoke the GIT_PAGER env var unless it thinks it's
@@ -45,6 +58,12 @@ func (gui *Gui) onResize() error {
 // command.
 func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
 	width := view.InnerWidth()
+
+	// LAZYGIT_COLUMNS is documented in docs/Custom_Pagers.md for pager
+	// scripts that can't query the terminal width directly. We set it on
+	// every platform so those scripts remain portable.
+	cmd.Env = append(cmd.Env, fmt.Sprintf("LAZYGIT_COLUMNS=%d", width))
+
 	pager := gui.stateAccessor.GetPagerConfig().GetPagerCommand(width)
 	externalDiffCommand := gui.stateAccessor.GetPagerConfig().GetExternalDiffCommand()
 	useExtDiffGitConfig := gui.stateAccessor.GetPagerConfig().GetUseExternalDiffGitConfig()
@@ -74,24 +93,37 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 		manager := gui.getManager(view)
 
-		var ptmx *os.File
-		start := func() (*exec.Cmd, io.Reader) {
-			var err error
-			ptmx, err = pty.StartWithSize(cmd, gui.desiredPtySize(view))
+		// Size the pty from the view's dimensions here, on the UI thread; the
+		// start func below runs on the task's goroutine, which must not read the
+		// view's live dimensions while the UI thread is laying it out.
+		cols, rows := gui.desiredPtySize(view)
+
+		var p oscommands.Pty
+		start := func() (tasks.Cmd, io.Reader) {
+			// The pty (and pager) wrap to this width; apply it here, on the
+			// task's goroutine once the previous task has stopped, so it doesn't
+			// race that task's writes (see View.SetContentWidth).
+			view.SetContentWidth(width)
+
+			sp, err := oscommands.StartPty(cmd, cols, rows)
 			if err != nil {
 				gui.c.Log.Error(err)
+				return tasks.ExecCmd{Cmd: cmd}, nil
 			}
+			p = sp.Pty
 
 			gui.Mutexes.PtyMutex.Lock()
-			gui.viewPtmxMap[view.Name()] = ptmx
+			gui.viewPtmxMap[view.Name()] = p
 			gui.Mutexes.PtyMutex.Unlock()
 
-			return cmd, ptmx
+			return ptyCmd{cmd: cmd, process: sp.Process, wait: sp.Wait}, p
 		}
 
 		onClose := func() {
 			gui.Mutexes.PtyMutex.Lock()
-			ptmx.Close()
+			if p != nil {
+				p.Close()
+			}
 			delete(gui.viewPtmxMap, view.Name())
 			gui.Mutexes.PtyMutex.Unlock()
 		}
