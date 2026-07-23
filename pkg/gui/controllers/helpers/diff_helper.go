@@ -52,7 +52,11 @@ func (self *DiffHelper) DiffArgs() []string {
 // and the refRange for a range selection. If the refRange is nil (meaning that
 // either there's no range, or it can't be diffed for some reason), then we want
 // to fall back to rendering the diff for the single commit.
-func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Commit, refRange *types.RefRange) types.UpdateTask {
+// GetUpdateTaskForRenderingCommitsDiff builds the task for showing a commit's (or a
+// commit range's) diff in the main view. renderRaw bypasses the pager for the focused
+// main view's raw-diff fallback (see StagingHelper.DiffMainViewShouldRenderRaw); the
+// calling panel computes it, since this helper can't reach the staging helper.
+func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Commit, refRange *types.RefRange, renderRaw bool) types.UpdateTask {
 	if refRange != nil {
 		from, to := refRange.From, refRange.To
 		args := []string{from.ParentRefName(), to.RefName(), "--stat", "-p"}
@@ -72,13 +76,13 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 				args = append(args, filterPath)
 			}
 		}
-		cmdObj := self.c.Git().Diff.DiffCmdObj(args)
+		cmdObj := self.c.Git().Diff.DiffCmdObj(args, renderRaw)
 		prefix := style.FgYellow.Sprintf("%s %s-%s\n\n", self.c.Tr.ShowingDiffForRange, from.ShortRefName(), to.ShortRefName())
-		return types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix)
+		return types.NewMainViewDiffTaskWithPrefix(renderRaw, cmdObj.GetCmd(), prefix)
 	}
 
-	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit))
-	return types.NewRunPtyTask(cmdObj.GetCmd())
+	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit), renderRaw)
+	return types.NewMainViewDiffTask(renderRaw, cmdObj.GetCmd())
 }
 
 func (self *DiffHelper) FilterPathsForCommit(commit *models.Commit) []string {
@@ -100,7 +104,7 @@ func (self *DiffHelper) ExitDiffMode() error {
 
 func (self *DiffHelper) RenderDiff() {
 	args := self.DiffArgs()
-	cmdObj := self.c.Git().Diff.DiffCmdObj(args)
+	cmdObj := self.c.Git().Diff.DiffCmdObj(args, false)
 	prefix := style.FgMagenta.Sprintf(
 		"%s %s\n\n",
 		self.c.Tr.ShowingGitDiff,

@@ -92,11 +92,22 @@ func (self *StashController) GetOnRenderToMain() func() {
 				task = types.NewRenderStringTask(self.c.Tr.NoStashEntries)
 			} else {
 				prefix := style.FgYellow.Sprintf("%s\n\n", stashEntry.Description())
-				task = types.NewRunPtyTaskWithPrefix(
-					self.c.Git().Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd(),
+				renderRaw := self.c.Helpers().Staging.DiffMainViewShouldRenderRaw()
+				task = types.NewMainViewDiffTaskWithPrefix(
+					renderRaw,
+					self.c.Git().Stash.ShowStashEntryCmdObj(stashEntry.Index, renderRaw).GetCmd(),
 					prefix,
 				)
 			}
+
+			// Keep the inclusion gutter in step with the content as this diff
+			// (re-)renders; a no-op unless the main view is focused and a patch is being
+			// built from this panel. See LocalCommitsController.GetOnRenderToMain.
+			self.c.Helpers().Staging.RefreshInclusionGutter()
+
+			// Preserve the focused-main-view selection across a content change. See
+			// LocalCommitsController.GetOnRenderToMain.
+			preserveFocusedMainViewSelectionAcrossContentChange(self.c, task)
 
 			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
@@ -105,6 +116,7 @@ func (self *StashController) GetOnRenderToMain() func() {
 					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 					Task:     task,
 				},
+				Secondary: secondaryPatchPanelUpdateOpts(self.c),
 			})
 		})
 	}

@@ -19,7 +19,7 @@ func (self *baseController) GetOnDoubleClick() func() error {
 	return nil
 }
 
-func (self *baseController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
+func (self *baseController) GetFocusedMainViewActions() types.FocusedMainViewActions {
 	return nil
 }
 

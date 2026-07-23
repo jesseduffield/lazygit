@@ -46,8 +46,18 @@ func (self *SubCommitsController) GetOnRenderToMain() func() {
 				task = types.NewRenderStringTask("No commits")
 			} else {
 				refRange := self.context().GetSelectedRefRangeForDiffFiles()
-				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange)
+				renderRaw := self.c.Helpers().Staging.DiffMainViewShouldRenderRaw()
+				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange, renderRaw)
 			}
+
+			// Keep the inclusion gutter in step with the content as this diff
+			// (re-)renders; a no-op unless the main view is focused and a patch is being
+			// built from this panel. See LocalCommitsController.GetOnRenderToMain.
+			self.c.Helpers().Staging.RefreshInclusionGutter()
+
+			// Preserve the focused-main-view selection across a commit rewrite. See
+			// LocalCommitsController.GetOnRenderToMain.
+			preserveFocusedMainViewSelectionAcrossContentChange(self.c, task)
 
 			self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
@@ -56,6 +66,7 @@ func (self *SubCommitsController) GetOnRenderToMain() func() {
 					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 					Task:     task,
 				},
+				Secondary: secondaryPatchPanelUpdateOpts(self.c),
 			})
 		})
 	}

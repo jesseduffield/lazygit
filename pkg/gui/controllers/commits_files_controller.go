@@ -176,8 +176,19 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
 		paths := self.pathsForDiff(node)
-		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false)
-		task := types.NewRunPtyTask(cmdObj.GetCmd())
+		renderRaw := self.c.Helpers().Staging.DiffMainViewShouldRenderRaw()
+		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false, renderRaw)
+		task := types.NewMainViewDiffTask(renderRaw, cmdObj.GetCmd())
+
+		// Keep the inclusion gutter in step with the content as this diff (re-)renders.
+		// It's a no-op unless the main view is focused and a patch is being built (see
+		// RefreshInclusionGutter); a patch toggle re-renders this same diff, so the marks
+		// recomputed over the current content stay valid through the swap.
+		self.c.Helpers().Staging.RefreshInclusionGutter()
+
+		// Preserve the focused-main-view selection across a commit rewrite. See
+		// LocalCommitsController.GetOnRenderToMain.
+		preserveFocusedMainViewSelectionAcrossContentChange(self.c, task)
 
 		self.c.RenderToMainViews(types.RefreshMainOpts{
 			Pair: self.c.MainViewPairs().Normal,
@@ -195,7 +206,7 @@ func (self *CommitFilesController) copyDiffToClipboard(paths []string, toastMess
 	from, to := self.context().GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, true)
+	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, true, false)
 	diff, err := cmdObj.RunWithOutput()
 	if err != nil {
 		return err
@@ -489,7 +500,7 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 		})
 	}
 
-	from, to, reverse := self.currentFromToReverseForPatchBuilding()
+	from, to, reverse := self.c.Helpers().CommitFiles.CurrentFromToReverseForPatchBuilding()
 	mustDiscardPatch := self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse)
 	return self.c.ConfirmIf(mustDiscardPatch, types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardPatch,
@@ -500,7 +511,7 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 			}
 
 			if !self.c.Git().Patch.PatchBuilder.Active() {
-				if err := self.startPatchBuilder(); err != nil {
+				if err := self.c.Helpers().CommitFiles.StartPatchBuilder(); err != nil {
 					return err
 				}
 			}
@@ -515,68 +526,8 @@ func (self *CommitFilesController) toggleAllForPatch(_ *filetree.CommitFileNode)
 	return self.toggleForPatch([]*filetree.CommitFileNode{root})
 }
 
-func (self *CommitFilesController) startPatchBuilder() error {
-	commitFilesContext := self.context()
-
-	canRebase := commitFilesContext.GetCanRebase()
-	from, to, reverse := self.currentFromToReverseForPatchBuilding()
-
-	self.c.Git().Patch.PatchBuilder.Start(from, to, reverse, canRebase)
-	return nil
-}
-
-func (self *CommitFilesController) currentFromToReverseForPatchBuilding() (string, string, bool) {
-	commitFilesContext := self.context()
-
-	from, to := commitFilesContext.GetFromAndToForDiff()
-	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
-	return from, to, reverse
-}
-
 func (self *CommitFilesController) enter(node *filetree.CommitFileNode) error {
-	return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
-}
-
-func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode, opts types.OnFocusOpts) error {
-	if node.File == nil {
-		return self.handleToggleCommitFileDirCollapsed(node)
-	}
-
-	if self.c.UserConfig().Git.DiffContextSize == 0 {
-		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextForCustomPatch,
-			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
-	}
-
-	from, to, reverse := self.currentFromToReverseForPatchBuilding()
-	mustDiscardPatch := self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse)
-	return self.c.ConfirmIf(mustDiscardPatch, types.ConfirmOpts{
-		Title:  self.c.Tr.DiscardPatch,
-		Prompt: self.c.Tr.DiscardPatchConfirm,
-		HandleConfirm: func() error {
-			if mustDiscardPatch {
-				self.c.Git().Patch.PatchBuilder.Reset()
-			}
-
-			if !self.c.Git().Patch.PatchBuilder.Active() {
-				if err := self.startPatchBuilder(); err != nil {
-					return err
-				}
-			}
-
-			self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
-			self.c.Helpers().PatchBuilding.ShowHunkStagingHint()
-
-			return nil
-		},
-	})
-}
-
-func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *filetree.CommitFileNode) error {
-	self.context().CommitFileTreeViewModel.ToggleCollapsed(node.GetInternalPath())
-
-	self.c.PostRefreshUpdate(self.context())
-
-	return nil
+	return self.c.Helpers().CommitFiles.EnterCommitFile(node, nil, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1, ClickedViewRealLineIdx: -1})
 }
 
 // NOTE: this is very similar to handleToggleFileTreeView, could be DRY'd with generics
@@ -603,14 +554,74 @@ func (self *CommitFilesController) expandAll() error {
 	return nil
 }
 
-func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
-	return func(mainViewName string, clickedLineIdx int) error {
-		node := self.getSelectedItem()
-		if node != nil && node.File != nil {
-			return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
-		}
+func (self *CommitFilesController) GetFocusedMainViewActions() types.FocusedMainViewActions {
+	return self
+}
+
+func (self *CommitFilesController) OnClick(mainViewName string, clickedLineIdx int) error {
+	// Capture before any mutation below that might re-render the main view.
+	snapshot := focusedMainViewSnapshot(self.c, mainViewName, self.context())
+
+	info, ok := self.c.Helpers().Staging.GetDiffLineInfo(mainViewName, clickedLineIdx)
+	line := -1
+	isDeletion := false
+	if ok {
+		line, isDeletion = info.PatchSelectLine()
+	}
+
+	node := self.getSelectedItem()
+	if node == nil {
 		return nil
 	}
+
+	if !node.IsFile() && ok {
+		relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), info.Path)
+		if err != nil {
+			return err
+		}
+		relativePath = "./" + relativePath
+		self.context().CommitFileTreeViewModel.ExpandToPath(relativePath)
+		self.c.PostRefreshUpdate(self.context())
+
+		idx, ok := self.context().CommitFileTreeViewModel.GetIndexForPath(relativePath)
+		if ok {
+			self.context().SetSelectedLineIdx(idx)
+			self.context().GetViewTrait().FocusPoint(
+				self.context().ModelIndexToViewIndex(idx), false)
+			node = self.context().GetSelected()
+		}
+	}
+
+	// Entered from the focused main view, so escaping returns there.
+	return self.c.Helpers().CommitFiles.EnterCommitFile(node, snapshot, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: line, ClickedViewRealLineIdx: line, ClickedViewRealLineIsDeletion: isDeletion, SelectLineInDefaultMode: true})
+}
+
+// PrimaryAction toggles the selected diff line(s) into or out of the custom patch when
+// space is pressed in the focused main view of a commit's files. The per-file diff's
+// patch target comes from the commit files context. It refreshes normally afterwards so
+// the file's patch-status indicator in the browser updates along with the secondary patch
+// view (the commits / sub-commits / stash panels, which build from the whole-commit diff,
+// have no such indicator and refresh more cheaply).
+func (self *CommitFilesController) PrimaryAction(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+	from, to, reverse := self.c.Helpers().CommitFiles.CurrentFromToReverseForPatchBuilding()
+	canRebase := self.context().GetCanRebase()
+	return primaryPatchActionFromFocusedMainView(self.c, mainViewName, firstLineIdx, lastLineIdx,
+		from, to, reverse, canRebase,
+		func() {
+			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMIT_FILES}})
+		})
+}
+
+// DiscardSelection removes the selected diff line(s) from the commit the focused main
+// view shows the files of, via a rebase. Same target derivation as the patch toggle.
+func (self *CommitFilesController) DiscardSelection(mainViewName string, firstLineIdx int, lastLineIdx int) error {
+	from, to, reverse := self.c.Helpers().CommitFiles.CurrentFromToReverseForPatchBuilding()
+	canRebase := self.context().GetCanRebase()
+	return discardSelectionFromCommit(self.c, mainViewName, firstLineIdx, lastLineIdx, from, to, reverse, canRebase)
+}
+
+func (self *CommitFilesController) DiscardSelectionDisabledReason(mainViewName string) *types.DisabledReason {
+	return discardFromCommitDisabledReason(self.c, mainViewName, self.context().GetCanRebase())
 }
 
 // pathsForDiff returns the file paths to use for a diff command. When a text

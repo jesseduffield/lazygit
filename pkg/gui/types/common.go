@@ -67,6 +67,10 @@ type IGuiCommon interface {
 
 	// return the view buffer manager for the given view, or nil if it doesn't have one
 	GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
+	// return the view buffer manager for the given view, creating it if the view
+	// hasn't rendered yet. Used to install a render restore on a pane that is about
+	// to appear (e.g. the secondary half when a stage/unstage splits the diff).
+	GetOrCreateViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
 
 	// read enough lines into the given view's buffer to fill it at its current
 	// scroll position, plus some read-ahead for smooth scrolling

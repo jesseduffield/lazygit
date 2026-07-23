@@ -343,6 +343,28 @@ func (self *ViewDriver) SelectedLineIdx(expected int) *ViewDriver {
 	return self
 }
 
+// SelectionIsShown asserts that the view is showing an active selection highlight.
+func (self *ViewDriver) SelectionIsShown() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		ok := view.Highlight && !view.HighlightInactive
+		return ok, fmt.Sprintf("%s: expected an active selection to be shown, but it wasn't", self.context)
+	})
+
+	return self
+}
+
+// SelectionIsHidden asserts that the view is showing no selection highlight (e.g. the
+// focused main view over "No changed files", where there's nothing to select).
+func (self *ViewDriver) SelectionIsHidden() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		ok := !self.getView().Highlight
+		return ok, fmt.Sprintf("%s: expected no selection to be shown, but one was", self.context)
+	})
+
+	return self
+}
+
 // focus the view (assumes the view is a side-view)
 func (self *ViewDriver) Focus() *ViewDriver {
 	viewName := self.getView().Name()

@@ -106,6 +106,14 @@ func (gui *Gui) createAllViews() error {
 		view.AutoRenderHyperLinks = true
 	}
 
+	gui.applyCurrentPagerSelectionStyle()
+
+	// The on-demand inclusion gutter marker for custom-patch building.
+	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary} {
+		view.InclusionGutterMarker = "✓"
+		view.InclusionGutterMarkerColor = gocui.ColorGreen
+	}
+
 	gui.Views.Staging.Wrap = true
 	gui.Views.StagingSecondary.Wrap = true
 	gui.Views.PatchBuilding.Wrap = true
@@ -153,6 +161,17 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Snake.FgColor = gocui.ColorGreen
 
 	return nil
+}
+
+func (gui *Gui) applyCurrentPagerSelectionStyle() {
+	bgColorWidth := 0
+	if gui.stateAccessor != nil && gui.stateAccessor.GetPagerConfig() != nil &&
+		gui.stateAccessor.GetPagerConfig().GetNarrowSelectionHighlight() {
+		bgColorWidth = 2
+	}
+
+	gui.Views.Main.SelectedLineBgColorWidth = bgColorWidth
+	gui.Views.Secondary.SelectedLineBgColorWidth = bgColorWidth
 }
 
 func (gui *Gui) configureViewProperties() {
