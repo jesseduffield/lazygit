@@ -417,6 +417,11 @@ type LogConfig struct {
 	ShowGraph string `yaml:"showGraph" jsonschema:"enum=always,enum=never,enum=when-maximised"`
 	// displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
 	ShowWholeGraph bool `yaml:"showWholeGraph"`
+	// Controls how much information is shown per commit in the commits panel.
+	// One of 'normal' | 'comfortable' | 'spacious'
+	//
+	// Can be changed from within lazygit with `Log menu -> Commit display format` (`<ctrl+l>` in the commits window by default).
+	CommitDisplayFormat string `yaml:"commitDisplayFormat" jsonschema:"enum=normal,enum=comfortable,enum=spacious"`
 }
 
 type CommitPrefixConfig struct {
@@ -942,9 +947,10 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				SquashMergeMessage: "Squash merge {{selectedRef}} into {{currentBranch}}",
 			},
 			Log: LogConfig{
-				Order:          "topo-order",
-				ShowGraph:      "always",
-				ShowWholeGraph: false,
+				Order:               "topo-order",
+				ShowGraph:           "always",
+				ShowWholeGraph:      false,
+				CommitDisplayFormat: "normal",
 			},
 			LocalBranchSortOrder:         "date",
 			RemoteBranchSortOrder:        "date",
