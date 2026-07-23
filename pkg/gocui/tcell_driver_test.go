@@ -24,6 +24,21 @@ func TestFirstMouseMovementAfterPressIsDragEvent(t *testing.T) {
 	assert.Equal(t, ModMotion, dragEvent.Key.Mod())
 }
 
+func TestMouseReleaseAfterDragIsMouseEvent(t *testing.T) {
+	t.Cleanup(resetMouseState)
+	resetMouseState()
+
+	gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 2, tcell.ButtonPrimary, tcell.ModNone))
+	gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 3, tcell.ButtonPrimary, tcell.ModNone))
+	releaseEvent := gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 3, tcell.ButtonNone, tcell.ModNone))
+
+	/* EXPECTED:
+	assert.Equal(t, eventMouse, releaseEvent.Type)
+	assert.Equal(t, MouseRelease, releaseEvent.Key.KeyName())
+	ACTUAL: */
+	assert.Equal(t, eventMouseMove, releaseEvent.Type)
+}
+
 func resetMouseState() {
 	lastMouseKey = tcell.ButtonNone
 	lastMouseMod = tcell.ModNone
