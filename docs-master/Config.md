@@ -761,6 +761,7 @@ keybinding:
     viewPullRequestOptions: O
     openPullRequestInBrowser: G
     copyPullRequestURL: <ctrl+y>
+    copyBranchURL: "y"
     checkoutBranchByName: c
     forceCheckoutBranch: F
     checkoutPreviousBranch: '-'
