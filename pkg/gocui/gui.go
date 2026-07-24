@@ -1773,6 +1773,12 @@ func (g *Gui) recordClickInfo(x, y int, key KeyName, v *View) bool {
 		g.lastClick = nil
 		return false
 	}
+	// A release ends a gesture but is not a click of its own; it must leave
+	// the click info of the press that started it alone, or no double click
+	// could ever be detected.
+	if key == MouseRelease {
+		return false
+	}
 
 	clickInfo := &clickInfo{
 		x:        x,

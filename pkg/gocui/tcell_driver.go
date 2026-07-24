@@ -202,7 +202,6 @@ const (
 
 var (
 	lastMouseKey tcell.ButtonMask = tcell.ButtonNone
-	lastMouseMod tcell.ModMask    = tcell.ModNone
 	dragState                     = NOT_DRAGGING
 	lastX                         = 0
 	lastY                         = 0
@@ -367,10 +366,10 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 		// process button events (not wheel events)
 		button &= tcell.ButtonMask(0xff)
 		newButtonPress := false
+		buttonReleased := false
 		if button != tcell.ButtonNone && lastMouseKey == tcell.ButtonNone {
 			newButtonPress = true
 			lastMouseKey = button
-			lastMouseMod = tev.Modifiers()
 			switch button {
 			case tcell.ButtonPrimary:
 				mouseKey = MouseLeft
@@ -388,6 +387,7 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 		switch tev.Buttons() {
 		case tcell.ButtonNone:
 			if lastMouseKey != tcell.ButtonNone {
+				buttonReleased = true
 				switch lastMouseKey {
 				case tcell.ButtonPrimary:
 					dragState = NOT_DRAGGING
@@ -395,14 +395,13 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 				case tcell.ButtonMiddle:
 				default:
 				}
-				mouseMod = Modifier(lastMouseMod)
-				lastMouseMod = tcell.ModNone
+				mouseMod = ModNone
 				lastMouseKey = tcell.ButtonNone
 			}
 		default:
 		}
 
-		if !wheeling {
+		if !wheeling && !buttonReleased {
 			switch dragState {
 			case NOT_DRAGGING:
 				return GocuiEvent{
