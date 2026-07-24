@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -16,18 +17,27 @@ func NewListControllerFactory(c *ControllerCommon) *ListControllerFactory {
 }
 
 func (self *ListControllerFactory) Create(context types.IListContext) *ListController {
-	return &ListController{
+	controller := &ListController{
 		baseController: baseController{},
 		c:              self.c,
 		context:        context,
 	}
+	controller.dragAutoscroller = helpers.NewDragAutoscroller(
+		self.c.HelperCommon,
+		context,
+		func(int) bool { return context.GetList().IsSelectingRange() },
+		controller.handleDragAutoscroll,
+	)
+	return controller
 }
 
 type ListController struct {
 	baseController
 	c *ControllerCommon
 
-	context types.IListContext
+	context           types.IListContext
+	dragAutoscroller  *helpers.DragAutoscroller
+	draggingWithMouse bool
 }
 
 func (self *ListController) Context() types.Context {
@@ -258,12 +268,45 @@ func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 }
 
 func (self *ListController) HandleDrag(opts gocui.ViewMouseBindingOpts) error {
+	self.draggingWithMouse = true
+	self.selectRangeThroughViewIndex(opts.Y)
+	originY, _ := self.context.GetViewTrait().ViewPortYBounds()
+	self.dragAutoscroller.Update(opts.Y - originY)
+	return nil
+}
+
+func (self *ListController) selectRangeThroughViewIndex(viewIndex int) {
 	list := self.context.GetList()
-	newSelectedLineIdx := self.context.ViewIndexToModelIndex(opts.Y)
+	newSelectedLineIdx := self.context.ViewIndexToModelIndex(viewIndex)
 	list.ExpandNonStickyRange(newSelectedLineIdx - list.GetSelectedLineIdx())
 
 	self.context.HandleFocus(types.OnFocusOpts{})
+}
+
+func (self *ListController) handleDragAutoscroll(viewIndex int) bool {
+	if !self.context.GetList().IsSelectingRange() {
+		return false
+	}
+
+	self.context.SetNeedRerenderVisibleLines()
+	self.selectRangeThroughViewIndex(viewIndex)
+	return true
+}
+
+func (self *ListController) handleDragRelease() error {
+	self.draggingWithMouse = false
+	self.dragAutoscroller.Cancel()
 	return nil
+}
+
+func (self *ListController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
+		self.dragAutoscroller.Cancel()
+		if self.draggingWithMouse {
+			self.draggingWithMouse = false
+			self.c.GocuiGui().CancelMouseCapture()
+		}
+	}
 }
 
 func (self *ListController) pushContextIfNotFocused() error {
@@ -323,12 +366,19 @@ func (self *ListController) GetMouseKeybindings(opts types.KeybindingsOpts) []*g
 	}
 
 	if self.context.RangeSelectEnabled() {
-		bindings = append(bindings, &gocui.ViewMouseBinding{
-			ViewName: self.context.GetViewName(),
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModMotion,
-			Handler:  self.HandleDrag,
-		})
+		bindings = append(bindings,
+			&gocui.ViewMouseBinding{
+				ViewName: self.context.GetViewName(),
+				Key:      gocui.MouseLeft,
+				Modifier: gocui.ModMotion,
+				Handler:  self.HandleDrag,
+			},
+			&gocui.ViewMouseBinding{
+				ViewName: self.context.GetViewName(),
+				Key:      gocui.MouseRelease,
+				Handler:  func(gocui.ViewMouseBindingOpts) error { return self.handleDragRelease() },
+			},
+		)
 	}
 
 	return bindings
