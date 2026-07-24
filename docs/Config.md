@@ -599,6 +599,9 @@ os:
   # "{{filename}}", but doesn't support "{{line}}".
   open: ""
 
+  # Whether lazygit suspends until an open process returns
+  openInTerminal: false
+
   # Command for opening a link. Should contain "{{link}}".
   openLink: ""
 

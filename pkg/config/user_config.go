@@ -695,6 +695,11 @@ type OSConfig struct {
 	// Command for opening a file, as if the file is double-clicked. Should contain "{{filename}}", but doesn't support "{{line}}".
 	Open string `yaml:"open,omitempty"`
 
+	// Whether lazygit suspends until an open process returns
+	// [dev] Pointer to bool so that we can distinguish unset (nil) from false.
+	// [dev] We're naming this `openInTerminal` so it aligns with editInTerminal
+	SuspendOnOpen *bool `yaml:"openInTerminal,omitempty"`
+
 	// Command for opening a link. Should contain "{{link}}".
 	OpenLink string `yaml:"openLink,omitempty"`
 
