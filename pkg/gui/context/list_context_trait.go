@@ -28,6 +28,9 @@ type ListContextTrait struct {
 	// true if we're inside the OnSearchSelect call; in that case we don't want to update the search
 	// result index.
 	inOnSearchSelect bool
+
+	// Optional function to append extra info to the footer (e.g. file count in tree view)
+	footerExtra func() string
 }
 
 func (self *ListContextTrait) IsListContext() {}
@@ -81,7 +84,13 @@ func (self *ListContextTrait) refreshViewport() {
 }
 
 func (self *ListContextTrait) setFooter() {
-	self.GetViewTrait().SetFooter(formatListFooter(self.list.GetSelectedLineIdx(), self.list.Len()))
+	footer := formatListFooter(self.list.GetSelectedLineIdx(), self.list.Len())
+	if self.footerExtra != nil {
+		if extra := self.footerExtra(); extra != "" {
+			footer += " | " + extra
+		}
+	}
+	self.GetViewTrait().SetFooter(footer)
 }
 
 func formatListFooter(selectedLineIdx int, length int) string {
