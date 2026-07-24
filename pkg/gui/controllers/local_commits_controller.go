@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -28,7 +29,46 @@ type LocalCommitsController struct {
 	*ListControllerTrait[*models.Commit]
 	c *ControllerCommon
 
-	pullFiles PullFilesFn
+	pullFiles  PullFilesFn
+	commitDrag *commitDragState
+}
+
+// commitDragState tracks a mouse drag that moves the selected commits. It is
+// created when the left button is pressed on the current selection, and lives
+// until the button is released or the drag is canceled.
+type commitDragState struct {
+	// Model index that was pressed; releasing without having moved collapses
+	// the selection to this commit, like a plain click would.
+	pressedIndex int
+	// Bounds of the selection at press time.
+	startIndex int
+	endIndex   int
+	// Identifying information of the dragged commits, so that they can be
+	// found again on release even if the model was refreshed during the drag.
+	commitIdentities []commitDragIdentity
+	// Cursor and range-start position relative to startIndex, for restoring
+	// the selection after the move.
+	selectedOffset   int
+	rangeStartOffset int
+	rangeSelectMode  traits.RangeSelectMode
+	// Smallest and largest allowed insertion index. During a rebase this
+	// restricts the drag to the contiguous block of movable todos around the
+	// selection.
+	minInsertion int
+	maxInsertion int
+	// Current insertion index, or -1 if dropping wouldn't move anything
+	// (pointer over the dragged block itself).
+	insertionIndex int
+	// Whether any drag motion arrived since the press; distinguishes a drag
+	// from a plain click on the selection.
+	hasMoved bool
+}
+
+type commitDragIdentity struct {
+	hash       string
+	name       string
+	action     todo.TodoCommand
+	actionFlag string
 }
 
 var _ types.IController = &LocalCommitsController{}
@@ -47,6 +87,235 @@ func NewLocalCommitsController(
 			c.Contexts().LocalCommits.GetSelected,
 			c.Contexts().LocalCommits.GetSelectedItems,
 		),
+	}
+}
+
+func (self *LocalCommitsController) GetMouseKeybindings(types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	viewName := self.context().GetViewName()
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName:    viewName,
+			FocusedView: viewName,
+			Key:         gocui.MouseLeft,
+			Handler:     self.handleCommitDragPress,
+		},
+		{
+			ViewName:    viewName,
+			FocusedView: viewName,
+			Key:         gocui.MouseLeft,
+			Modifier:    gocui.ModMotion,
+			Handler:     self.handleCommitDrag,
+		},
+		{
+			ViewName:    viewName,
+			FocusedView: viewName,
+			Key:         gocui.MouseRelease,
+			Handler:     self.handleCommitDragRelease,
+		},
+	}
+}
+
+func (self *LocalCommitsController) handleCommitDragPress(opts gocui.ViewMouseBindingOpts) error {
+	context := self.context()
+	pressedIndex := context.ViewIndexToModelIndex(opts.Y)
+	startIndex, endIndex := context.GetSelectionRange()
+	selectedIndex, rangeStartIndex, rangeSelectMode := context.GetSelectionRangeAndMode()
+	selectedCommits, _, _ := context.GetSelectedItems()
+	// Only a single press on the current selection (of commits that may be
+	// moved) starts a drag; everything else falls through to the generic
+	// list click handling, i.e. selecting the pressed line, double-click
+	// actions, or dragging out a range selection. The view-index comparison
+	// rejects presses on section headers, which map to the model index of a
+	// nearby commit.
+	if opts.IsDoubleClick ||
+		pressedIndex < startIndex || pressedIndex > endIndex ||
+		context.ModelIndexToViewIndex(pressedIndex) != opts.Y ||
+		self.midRebaseMoveCommandEnabled(selectedCommits, startIndex, endIndex) != nil {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	minInsertion, maxInsertion := self.commitDragInsertionBounds(startIndex, endIndex)
+	self.commitDrag = &commitDragState{
+		pressedIndex: pressedIndex,
+		startIndex:   startIndex,
+		endIndex:     endIndex,
+		commitIdentities: lo.Map(selectedCommits, func(commit *models.Commit, _ int) commitDragIdentity {
+			return commitDragIdentityForCommit(commit)
+		}),
+		selectedOffset:   selectedIndex - startIndex,
+		rangeStartOffset: rangeStartIndex - startIndex,
+		rangeSelectMode:  rangeSelectMode,
+		minInsertion:     minInsertion,
+		maxInsertion:     maxInsertion,
+		insertionIndex:   -1,
+	}
+	self.restoreCommitDragHighlight()
+	return nil
+}
+
+func (self *LocalCommitsController) commitDragInsertionBounds(startIndex int, endIndex int) (int, int) {
+	commits := self.c.Model().Commits
+	if !self.isRebasing() {
+		return 0, len(commits)
+	}
+
+	minInsertion := startIndex
+	for minInsertion > 0 && commits[minInsertion-1].IsTODO() && commits[minInsertion-1].Status != models.StatusConflicted {
+		minInsertion--
+	}
+	maxInsertion := endIndex + 1
+	for maxInsertion < len(commits) && commits[maxInsertion].IsTODO() && commits[maxInsertion].Status != models.StatusConflicted {
+		maxInsertion++
+	}
+	return minInsertion, maxInsertion
+}
+
+func (self *LocalCommitsController) handleCommitDrag(opts gocui.ViewMouseBindingOpts) error {
+	if self.commitDrag == nil {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	self.commitDrag.hasMoved = true
+	self.restoreCommitDragHighlight()
+	insertionIndex := self.commitDragInsertionIndex(opts.Y)
+	if insertionIndex >= self.commitDrag.startIndex && insertionIndex <= self.commitDrag.endIndex+1 {
+		insertionIndex = -1
+	}
+	if insertionIndex == self.commitDrag.insertionIndex {
+		return nil
+	}
+
+	self.commitDrag.insertionIndex = insertionIndex
+	if insertionIndex < 0 {
+		self.context().ClearDropInsertionIndex()
+	} else {
+		self.context().SetDropInsertionIndex(insertionIndex)
+	}
+	self.c.PostRefreshUpdate(self.context())
+	return nil
+}
+
+// gocui moves the view cursor to the pointer position before invoking our
+// handlers; move it back so that the dragged commits stay highlighted for the
+// whole duration of the drag.
+func (self *LocalCommitsController) restoreCommitDragHighlight() {
+	state := self.commitDrag
+	context := self.context()
+	view := context.GetView()
+	selectedIndex := state.startIndex + state.selectedOffset
+	rangeStartIndex := state.startIndex + state.rangeStartOffset
+
+	view.SetCursorY(context.ModelIndexToViewIndex(selectedIndex) - view.OriginY())
+	view.SetRangeSelectStart(context.ModelIndexToViewIndex(rangeStartIndex))
+}
+
+func (self *LocalCommitsController) commitDragInsertionIndex(viewIndex int) int {
+	context := self.context()
+	if viewIndex < 0 {
+		return self.commitDrag.minInsertion
+	}
+	if viewIndex >= context.TotalContentHeight() {
+		return self.commitDrag.maxInsertion
+	}
+
+	// Rows above the dragged block insert before the pointed-at commit, rows
+	// below it insert after it, so that in both directions the line under
+	// the pointer is the one that makes way.
+	modelIndex := context.ViewIndexToModelIndex(viewIndex)
+	insertionIndex := modelIndex
+	if modelIndex > self.commitDrag.endIndex {
+		insertionIndex++
+	}
+	return max(self.commitDrag.minInsertion, min(insertionIndex, self.commitDrag.maxInsertion))
+}
+
+func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindingOpts) error {
+	if self.commitDrag == nil {
+		return gocui.ErrKeybindingNotHandled
+	}
+
+	state := self.commitDrag
+	self.commitDrag = nil
+	self.context().ClearDropInsertionIndex()
+
+	if !state.hasMoved {
+		self.context().SetSelection(state.pressedIndex)
+		self.c.PostRefreshUpdate(self.context())
+		return nil
+	}
+	self.c.PostRefreshUpdate(self.context())
+	if state.insertionIndex < 0 {
+		return nil
+	}
+
+	offset := state.insertionIndex - state.startIndex
+	if state.insertionIndex > state.endIndex {
+		offset = state.insertionIndex - state.endIndex - 1
+	}
+	selectedCommits, startIndex, endIndex, found := findCommitDragBlock(
+		self.context().GetItems(), state.commitIdentities,
+	)
+	if !found {
+		return nil
+	}
+	self.context().SetSelectionRangeAndMode(
+		startIndex+state.selectedOffset,
+		startIndex+state.rangeStartOffset,
+		state.rangeSelectMode,
+	)
+	return self.move(selectedCommits, startIndex, endIndex, offset)
+}
+
+func commitDragIdentityForCommit(commit *models.Commit) commitDragIdentity {
+	return commitDragIdentity{
+		hash:       commit.Hash(),
+		name:       commit.Name,
+		action:     commit.Action,
+		actionFlag: commit.ActionFlag,
+	}
+}
+
+// findCommitDragBlock locates the dragged commits in the (possibly refreshed)
+// commit list by their identity rather than by the indices recorded at press
+// time. If they no longer exist as a contiguous block, or more than one block
+// matches, we give up rather than guess.
+func findCommitDragBlock(
+	commits []*models.Commit, identities []commitDragIdentity,
+) ([]*models.Commit, int, int, bool) {
+	matchStart := -1
+	for startIndex := 0; startIndex+len(identities) <= len(commits); startIndex++ {
+		matches := true
+		for offset, identity := range identities {
+			if commitDragIdentityForCommit(commits[startIndex+offset]) != identity {
+				matches = false
+				break
+			}
+		}
+		if matches {
+			if matchStart >= 0 {
+				return nil, -1, -1, false
+			}
+			matchStart = startIndex
+		}
+	}
+
+	if matchStart < 0 {
+		return nil, -1, -1, false
+	}
+	endIndex := matchStart + len(identities) - 1
+	return commits[matchStart : endIndex+1], matchStart, endIndex, true
+}
+
+func (self *LocalCommitsController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
+		if self.commitDrag == nil {
+			return
+		}
+
+		self.commitDrag = nil
+		self.c.GocuiGui().CancelMouseCapture()
+		self.context().ClearDropInsertionIndex()
+		self.c.PostRefreshUpdate(self.context())
 	}
 }
 
