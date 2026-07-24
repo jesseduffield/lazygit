@@ -53,6 +53,10 @@ func (self *fakeGuiDriver) MouseRelease(x, y int) {
 	self.releasedCoordinates = append(self.releasedCoordinates, coordinate{x: x, y: y})
 }
 
+func (self *fakeGuiDriver) OnUIThreadAndWait(f func()) {
+	f()
+}
+
 func (self *fakeGuiDriver) FocusIn() {
 }
 

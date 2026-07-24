@@ -73,6 +73,10 @@ func (self *GuiDriver) MouseRelease(x, y int) {
 	self.replayMouseEvent(x, y, tcell.ButtonNone)
 }
 
+func (self *GuiDriver) OnUIThreadAndWait(f func()) {
+	_ = self.gui.g.OnUIThreadAndWait(func() error { f(); return nil })
+}
+
 func (self *GuiDriver) replayMouseEvent(x, y int, buttons tcell.ButtonMask) {
 	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
 		tcell.NewEventMouse(x, y, buttons, 0),

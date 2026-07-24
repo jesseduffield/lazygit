@@ -343,6 +343,30 @@ func (self *ViewDriver) SelectedLineIdx(expected int) *ViewDriver {
 	return self
 }
 
+func (self *ViewDriver) SelectedLineIdxAtLeast(expected int) *ViewDriver {
+	self.t.assertEventually(func() (bool, string) {
+		var actual int
+		self.t.gui.OnUIThreadAndWait(func() {
+			actual = self.getView().SelectedLineIdx()
+		})
+		return actual >= expected, fmt.Sprintf("%s: Expected selected line index to be at least %d, got %d", self.context, expected, actual)
+	})
+
+	return self
+}
+
+func (self *ViewDriver) OriginYAtLeast(expected int) *ViewDriver {
+	self.t.assertEventually(func() (bool, string) {
+		var actual int
+		self.t.gui.OnUIThreadAndWait(func() {
+			actual = self.getView().OriginY()
+		})
+		return actual >= expected, fmt.Sprintf("%s: Expected origin Y to be at least %d, got %d", self.context, expected, actual)
+	})
+
+	return self
+}
+
 // focus the view (assumes the view is a side-view)
 func (self *ViewDriver) Focus() *ViewDriver {
 	viewName := self.getView().Name()
@@ -503,6 +527,10 @@ func (self *ViewDriver) MouseMove(x, y int) *ViewDriver {
 	offsetX, offsetY, _, _ := self.getView().Dimensions()
 	self.t.mouseMove(offsetX+1+x, offsetY+1+y)
 	return self
+}
+
+func (self *ViewDriver) MouseMoveToBottom(x int) *ViewDriver {
+	return self.MouseMove(x, self.getView().InnerHeight()-1)
 }
 
 func (self *ViewDriver) RepeatMouseMove() *ViewDriver {
