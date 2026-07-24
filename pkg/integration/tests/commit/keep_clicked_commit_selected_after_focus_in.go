@@ -21,9 +21,6 @@ var KeepClickedCommitSelectedAfterFocusIn = NewIntegrationTest(NewIntegrationTes
 				Contains("commit-01"),
 			).
 			FocusInAndClick(1, 1).
-			/* EXPECTED:
 			SelectedLine(Contains("commit-01"))
-			ACTUAL: */
-			SelectedLine(Contains("commit-02"))
 	},
 })
