@@ -77,6 +77,25 @@ func (self *GuiDriver) FocusIn() {
 	self.waitTillIdle()
 }
 
+func (self *GuiDriver) FocusInAndClick(x, y int) {
+	self.CheckAllToastsAcknowledged()
+
+	self.gui.g.ReplayFocusEvent(gocui.NewTcellFocusEventWrapper(
+		tcell.NewEventFocus(true),
+		0,
+	))
+	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
+		tcell.NewEventMouse(x, y, tcell.ButtonPrimary, 0),
+		0,
+	))
+	self.waitTillIdle()
+	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
+		tcell.NewEventMouse(x, y, tcell.ButtonNone, 0),
+		0,
+	))
+	self.waitTillIdle()
+}
+
 func (self *GuiDriver) PretendMergeOrRebaseStartedInLazygit() {
 	self.gui.onUIThread(func() error {
 		self.gui.State.SetMergeOrRebaseStartedInLazygit(true)

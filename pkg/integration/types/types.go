@@ -31,6 +31,9 @@ type GuiDriver interface {
 	// Simulate the terminal window regaining focus (which triggers a reload of
 	// changed config files)
 	FocusIn()
+	// Simulate a terminal dispatching focus-in immediately followed by a click,
+	// without waiting for the focus refresh to finish in between.
+	FocusInAndClick(int, int)
 	Keys() config.KeybindingConfig
 	CurrentContext() types.Context
 	ContextForView(viewName string) types.Context
