@@ -29,8 +29,9 @@ type LocalCommitsController struct {
 	*ListControllerTrait[*models.Commit]
 	c *ControllerCommon
 
-	pullFiles  PullFilesFn
-	commitDrag *commitDragState
+	pullFiles        PullFilesFn
+	commitDrag       *commitDragState
+	dragAutoscroller *helpers.DragAutoscroller
 }
 
 // commitDragState tracks a mouse drag that moves the selected commits. It is
@@ -77,7 +78,7 @@ func NewLocalCommitsController(
 	c *ControllerCommon,
 	pullFiles PullFilesFn,
 ) *LocalCommitsController {
-	return &LocalCommitsController{
+	controller := &LocalCommitsController{
 		baseController: baseController{},
 		c:              c,
 		pullFiles:      pullFiles,
@@ -88,6 +89,13 @@ func NewLocalCommitsController(
 			c.Contexts().LocalCommits.GetSelectedItems,
 		),
 	}
+	controller.dragAutoscroller = helpers.NewDragAutoscroller(
+		c.HelperCommon,
+		c.Contexts().LocalCommits,
+		controller.canCommitDragAutoscroll,
+		controller.handleCommitDragAutoscroll,
+	)
+	return controller
 }
 
 func (self *LocalCommitsController) GetMouseKeybindings(types.KeybindingsOpts) []*gocui.ViewMouseBinding {
@@ -176,13 +184,22 @@ func (self *LocalCommitsController) handleCommitDrag(opts gocui.ViewMouseBinding
 	}
 
 	self.commitDrag.hasMoved = true
+	if self.updateCommitDragInsertion(opts.Y) {
+		self.c.PostRefreshUpdate(self.context())
+	}
+	originY := self.context().GetView().OriginY()
+	self.dragAutoscroller.Update(opts.Y - originY)
 	self.restoreCommitDragHighlight()
-	insertionIndex := self.commitDragInsertionIndex(opts.Y)
+	return nil
+}
+
+func (self *LocalCommitsController) updateCommitDragInsertion(viewIndex int) bool {
+	insertionIndex := self.commitDragInsertionIndex(viewIndex)
 	if insertionIndex >= self.commitDrag.startIndex && insertionIndex <= self.commitDrag.endIndex+1 {
 		insertionIndex = -1
 	}
 	if insertionIndex == self.commitDrag.insertionIndex {
-		return nil
+		return false
 	}
 
 	self.commitDrag.insertionIndex = insertionIndex
@@ -191,8 +208,7 @@ func (self *LocalCommitsController) handleCommitDrag(opts gocui.ViewMouseBinding
 	} else {
 		self.context().SetDropInsertionIndex(insertionIndex)
 	}
-	self.c.PostRefreshUpdate(self.context())
-	return nil
+	return true
 }
 
 // gocui moves the view cursor to the pointer position before invoking our
@@ -235,6 +251,7 @@ func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindi
 	}
 
 	state := self.commitDrag
+	self.dragAutoscroller.Cancel()
 	self.commitDrag = nil
 	self.context().ClearDropInsertionIndex()
 
@@ -312,11 +329,38 @@ func (self *LocalCommitsController) GetOnFocusLost() func(types.OnFocusLostOpts)
 			return
 		}
 
+		self.dragAutoscroller.Cancel()
 		self.commitDrag = nil
 		self.c.GocuiGui().CancelMouseCapture()
 		self.context().ClearDropInsertionIndex()
 		self.c.PostRefreshUpdate(self.context())
 	}
+}
+
+// Stop autoscrolling once the insertion point has reached the end of the
+// allowed range in the scroll direction; e.g. during a rebase there is no
+// point in scrolling on into the section of real commits.
+func (self *LocalCommitsController) canCommitDragAutoscroll(direction int) bool {
+	state := self.commitDrag
+	if state == nil {
+		return false
+	}
+	if direction < 0 {
+		return state.insertionIndex != state.minInsertion
+	}
+	return state.insertionIndex != state.maxInsertion
+}
+
+func (self *LocalCommitsController) handleCommitDragAutoscroll(viewIndex int) bool {
+	if self.commitDrag == nil {
+		return false
+	}
+
+	self.updateCommitDragInsertion(viewIndex)
+	self.context().SetNeedRerenderVisibleLines()
+	self.context().HandleRender()
+	self.restoreCommitDragHighlight()
+	return self.canCommitDragAutoscroll(self.dragAutoscroller.Direction())
 }
 
 func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
