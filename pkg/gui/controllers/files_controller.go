@@ -105,8 +105,8 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Files.IgnoreFile),
-			Handler:           self.withItem(self.ignoreOrExcludeMenu),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItems(self.ignoreOrExcludeMenu),
+			GetDisabledReason: self.require(self.itemsSelected()),
 			Description:       self.c.Tr.Actions.IgnoreExcludeFile,
 			OpensMenu:         true,
 		},
@@ -971,18 +971,24 @@ func (self *FilesController) unstageFiles(node *filetree.FileNode) error {
 	})
 }
 
-func (self *FilesController) ignoreOrExcludeTracked(node *filetree.FileNode, trAction string, f func(string) error) error {
+func (self *FilesController) ignoreOrExcludeTracked(nodes []*filetree.FileNode, trAction string, f func([]string) error) error {
 	self.c.LogAction(trAction)
-	// not 100% sure if this is necessary but I'll assume it is
-	if err := self.unstageFiles(node); err != nil {
-		return err
+
+	paths := make([]string, 0, len(nodes))
+	for _, node := range nodes {
+		// not 100% sure if this is necessary but I'll assume it is
+		if err := self.unstageFiles(node); err != nil {
+			return err
+		}
+
+		if err := self.c.Git().WorkingTree.RemoveTrackedFiles(node.GetPath()); err != nil {
+			return err
+		}
+
+		paths = append(paths, node.GetPath())
 	}
 
-	if err := self.c.Git().WorkingTree.RemoveTrackedFiles(node.GetPath()); err != nil {
-		return err
-	}
-
-	if err := f(node.GetPath()); err != nil {
+	if err := f(paths); err != nil {
 		return err
 	}
 
@@ -990,10 +996,15 @@ func (self *FilesController) ignoreOrExcludeTracked(node *filetree.FileNode, trA
 	return nil
 }
 
-func (self *FilesController) ignoreOrExcludeUntracked(node *filetree.FileNode, trAction string, f func(string) error) error {
+func (self *FilesController) ignoreOrExcludeUntracked(nodes []*filetree.FileNode, trAction string, f func([]string) error) error {
 	self.c.LogAction(trAction)
 
-	if err := f(node.GetPath()); err != nil {
+	paths := make([]string, 0, len(nodes))
+	for _, node := range nodes {
+		paths = append(paths, node.GetPath())
+	}
+
+	if err := f(paths); err != nil {
 		return err
 	}
 
@@ -1001,48 +1012,56 @@ func (self *FilesController) ignoreOrExcludeUntracked(node *filetree.FileNode, t
 	return nil
 }
 
-func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText string, trPrompt string, trAction string, f func(string) error) error {
-	if node.GetIsTracked() {
+func (self *FilesController) ignoreOrExcludeFiles(nodes []*filetree.FileNode, trText string, trPrompt string, trAction string, f func([]string) error) error {
+	hasTracked := false
+	for _, node := range nodes {
+		if node.GetIsTracked() {
+			hasTracked = true
+			break
+		}
+	}
+
+	if hasTracked {
 		self.c.Confirm(types.ConfirmOpts{
 			Title:  trText,
 			Prompt: trPrompt,
 			HandleConfirm: func() error {
-				return self.ignoreOrExcludeTracked(node, trAction, f)
+				return self.ignoreOrExcludeTracked(nodes, trAction, f)
 			},
 		})
 
 		return nil
 	}
-	return self.ignoreOrExcludeUntracked(node, trAction, f)
+	return self.ignoreOrExcludeUntracked(nodes, trAction, f)
 }
 
-func (self *FilesController) ignore(node *filetree.FileNode) error {
-	if node.GetPath() == ".gitignore" {
-		return errors.New(self.c.Tr.Actions.IgnoreFileErr)
+func (self *FilesController) ignore(nodes []*filetree.FileNode) error {
+	for _, node := range nodes {
+		if node.GetPath() == ".gitignore" {
+			return errors.New(self.c.Tr.Actions.IgnoreFileErr)
+		}
 	}
-	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, func(name string) error {
-		return self.c.Git().WorkingTree.Ignore([]string{name})
-	})
+	return self.ignoreOrExcludeFiles(nodes, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
 }
 
-func (self *FilesController) exclude(node *filetree.FileNode) error {
-	if node.GetPath() == ".gitignore" {
-		return errors.New(self.c.Tr.Actions.ExcludeGitIgnoreErr)
+func (self *FilesController) exclude(nodes []*filetree.FileNode) error {
+	for _, node := range nodes {
+		if node.GetPath() == ".gitignore" {
+			return errors.New(self.c.Tr.Actions.ExcludeGitIgnoreErr)
+		}
 	}
 
-	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, func(name string) error {
-		return self.c.Git().WorkingTree.Exclude([]string{name})
-	})
+	return self.ignoreOrExcludeFiles(nodes, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.c.Git().WorkingTree.Exclude)
 }
 
-func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
+func (self *FilesController) ignoreOrExcludeMenu(nodes []*filetree.FileNode) error {
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Actions.IgnoreExcludeFile,
 		Items: []*types.MenuItem{
 			{
 				LabelColumns: []string{self.c.Tr.IgnoreFile},
 				OnPress: func() error {
-					if err := self.ignore(node); err != nil {
+					if err := self.ignore(nodes); err != nil {
 						return err
 					}
 					return nil
@@ -1052,7 +1071,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 			{
 				LabelColumns: []string{self.c.Tr.ExcludeFile},
 				OnPress: func() error {
-					if err := self.exclude(node); err != nil {
+					if err := self.exclude(nodes); err != nil {
 						return err
 					}
 					return nil

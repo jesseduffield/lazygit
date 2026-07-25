@@ -240,6 +240,7 @@ var tests = []*components.IntegrationTest{
 	file.DiscardVariousChangesRangeSelect,
 	file.ExcludeWithoutInfoDir,
 	file.Gitignore,
+	file.GitignoreRangeSelect,
 	file.GitignoreSpecialCharacters,
 	file.RememberCommitMessageAfterFail,
 	file.RenameSimilarityThresholdChange,
