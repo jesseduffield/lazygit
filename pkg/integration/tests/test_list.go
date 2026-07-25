@@ -140,6 +140,7 @@ var tests = []*components.IntegrationTest{
 	commit.Highlight,
 	commit.History,
 	commit.HistoryComplex,
+	commit.KeepClickedCommitSelectedAfterFocusIn,
 	commit.KeepSelectedCommitAfterExternalCommit,
 	commit.NewBranch,
 	commit.PasteCommitMessage,

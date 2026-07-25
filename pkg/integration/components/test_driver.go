@@ -73,6 +73,12 @@ func (self *TestDriver) FocusIn() {
 	self.Wait(self.inputDelay)
 }
 
+func (self *TestDriver) focusInAndClick(x, y int) {
+	self.SetCaption(fmt.Sprintf("Focusing window and clicking %d, %d", x, y))
+	self.gui.FocusInAndClick(x, y)
+	self.Wait(self.inputDelay)
+}
+
 func (self *TestDriver) typeContent(content string) {
 	for _, char := range content {
 		self.pressFast(string(char))
