@@ -479,7 +479,7 @@ marks novelty per token. A line changed *only by added tokens* (e.g.
 side** — difftastic renders that old line with nothing highlighted (dimmed like
 context, or not at all when it collapses the hunk to a single column) — and a
 blank line has no tokens to be novel in the first place. (In difftastic's
-line/Text fallback — e.g. an unparseable file — it diffs by line and the mismatch
+line/Text fallback — e.g. an unparsable file — it diffs by line and the mismatch
 doesn't arise.)
 
 **The resolution: classify in patch space (§5.1).** An early draft let the
