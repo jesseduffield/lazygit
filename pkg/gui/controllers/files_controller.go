@@ -974,15 +974,19 @@ func (self *FilesController) unstageFiles(node *filetree.FileNode) error {
 func (self *FilesController) ignoreOrExcludeTracked(nodes []*filetree.FileNode, trAction string, f func([]string) error) error {
 	self.c.LogAction(trAction)
 
+	nodes = normalisedSelectedNodes(nodes)
+
 	paths := make([]string, 0, len(nodes))
 	for _, node := range nodes {
-		// not 100% sure if this is necessary but I'll assume it is
-		if err := self.unstageFiles(node); err != nil {
-			return err
-		}
+		if node.GetIsTracked() {
+			// not 100% sure if this is necessary but I'll assume it is
+			if err := self.unstageFiles(node); err != nil {
+				return err
+			}
 
-		if err := self.c.Git().WorkingTree.RemoveTrackedFiles(node.GetPath()); err != nil {
-			return err
+			if err := self.c.Git().WorkingTree.RemoveTrackedFiles(node.GetPath()); err != nil {
+				return err
+			}
 		}
 
 		paths = append(paths, node.GetPath())
@@ -998,6 +1002,8 @@ func (self *FilesController) ignoreOrExcludeTracked(nodes []*filetree.FileNode, 
 
 func (self *FilesController) ignoreOrExcludeUntracked(nodes []*filetree.FileNode, trAction string, f func([]string) error) error {
 	self.c.LogAction(trAction)
+
+	nodes = normalisedSelectedNodes(nodes)
 
 	paths := make([]string, 0, len(nodes))
 	for _, node := range nodes {
