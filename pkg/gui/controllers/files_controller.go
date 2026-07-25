@@ -1020,7 +1020,9 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
 		return errors.New(self.c.Tr.Actions.IgnoreFileErr)
 	}
-	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
+	return self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, func(name string) error {
+		return self.c.Git().WorkingTree.Ignore([]string{name})
+	})
 }
 
 func (self *FilesController) exclude(node *filetree.FileNode) error {
@@ -1028,7 +1030,9 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 		return errors.New(self.c.Tr.Actions.ExcludeGitIgnoreErr)
 	}
 
-	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.c.Git().WorkingTree.Exclude)
+	return self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, func(name string) error {
+		return self.c.Git().WorkingTree.Exclude([]string{name})
+	})
 }
 
 func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
