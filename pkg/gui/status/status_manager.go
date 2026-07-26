@@ -17,6 +17,11 @@ type StatusManager struct {
 	statuses []appStatus
 	nextId   int
 	mutex    deadlock.Mutex
+
+	// Whether a render loop is currently drawing the statuses. Guarded by
+	// mutex, so that claiming and releasing the loop stay atomic with the
+	// changes to statuses; see ClaimRenderLoop and ReleaseRenderLoopIfEmpty.
+	renderLoopRunning bool
 }
 
 // Can be used to manipulate a waiting status while it is running (e.g. pause
@@ -70,6 +75,9 @@ func (self *StatusManager) AddToastStatus(message string, kind types.ToastKind) 
 }
 
 func (self *StatusManager) GetStatusString(userConfig *config.UserConfig) (string, gocui.Attribute) {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
 	if len(self.statuses) == 0 {
 		return "", gocui.ColorDefault
 	}
@@ -81,7 +89,43 @@ func (self *StatusManager) GetStatusString(userConfig *config.UserConfig) (strin
 }
 
 func (self *StatusManager) HasStatus() bool {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
 	return len(self.statuses) > 0
+}
+
+// ClaimRenderLoop is called by whoever just added a status; it reports whether
+// they must start the render loop. When it returns false, a loop is already
+// running and will pick the new status up on its next tick.
+func (self *StatusManager) ClaimRenderLoop() bool {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	if self.renderLoopRunning {
+		return false
+	}
+
+	self.renderLoopRunning = true
+	return true
+}
+
+// ReleaseRenderLoopIfEmpty is called by the render loop after each frame it
+// draws; a true result releases the loop's claim and tells it to exit, because
+// there are no statuses left to draw. The emptiness check and the release are
+// atomic with respect to ClaimRenderLoop, so a status added around this moment
+// either sees the still-running loop or starts a fresh one — it can't end up
+// unrendered.
+func (self *StatusManager) ReleaseRenderLoopIfEmpty() bool {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	if len(self.statuses) > 0 {
+		return false
+	}
+
+	self.renderLoopRunning = false
+	return true
 }
 
 func (self *StatusManager) addStatus(message string, statusType string, kind types.ToastKind) int {

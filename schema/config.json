@@ -321,7 +321,7 @@
             "$ref": "#/$defs/PagingConfig"
           },
           "type": "array",
-          "description": "Array of pagers. Each entry has the following format:\n\n  # Value of the --color arg in the git diff command. Some pagers want\n  # this to be set to 'always' and some want it set to 'never'\n  colorArg: \"always\"\n\n  # e.g.\n  # diff-so-fancy\n  # delta --dark --paging=never\n  # ydiff -p cat -s --wrap --width={{columnWidth}}\n  pager: \"\"\n\n  # e.g. 'difft --color=always'\n  externalDiffCommand: \"\"\n\n  # If true, Lazygit will use git's `diff.external` config for paging.\n  # The advantage over `externalDiffCommand` is that this can be\n  # configured per file type in .gitattributes; see\n  # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.\n  useExternalDiffGitConfig: false\n\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md for more information."
+          "description": "Array of pagers. Each entry has the following format:\n\n  # A name for the pager, shown in the notification when cycling pagers.\n  # If not set, the name is derived from the first word of the pager\n  # command (or of the external diff command).\n  name: \"\"\n\n  # Value of the --color arg in the git diff command. Some pagers want\n  # this to be set to 'always' and some want it set to 'never'\n  colorArg: \"always\"\n\n  # e.g.\n  # diff-so-fancy\n  # delta --dark --paging=never\n  # ydiff -p cat -s --wrap --width={{columnWidth}}\n  pager: \"\"\n\n  # e.g. 'difft --color=always'\n  externalDiffCommand: \"\"\n\n  # If true, Lazygit will use git's `diff.external` config for paging.\n  # The advantage over `externalDiffCommand` is that this can be\n  # configured per file type in .gitattributes; see\n  # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.\n  useExternalDiffGitConfig: false\n\n'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' are mutually exclusive; set at most one per entry.\n\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md for more information."
         },
         "commit": {
           "$ref": "#/$defs/CommitConfig",
@@ -356,6 +356,11 @@
         "autoRefresh": {
           "type": "boolean",
           "description": "If true, periodically refresh files and submodules",
+          "default": true
+        },
+        "autoDetectExternalChanges": {
+          "type": "boolean",
+          "description": "If true, poll the repo periodically for external ref changes (commits, branch updates, checkouts made outside lazygit) and refresh when one is detected. Independent of autoRefresh, which only governs the files panel.",
           "default": true
         },
         "autoForwardBranches": {
@@ -584,6 +589,40 @@
           "type": "integer",
           "description": "The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.",
           "default": 2
+        },
+        "shrinkSidePanelsToContent": {
+          "type": "boolean",
+          "description": "If true, don't give a side panel more height than it needs to show its content; when all panels fit, the leftover height is shared among them so that they still fill the screen.",
+          "default": false
+        },
+        "sidePanels": {
+          "items": {
+            "$ref": "#/$defs/SidePanel"
+          },
+          "type": "array",
+          "description": "The side panels, in the order they appear from top to bottom.\nEach entry is a list of one or more names that share a single panel as tabs (cycle through them with the next-tab/previous-tab keys).\nOmit a name to hide it; give a name its own one-element list to promote a tab to a top-level panel.\nValid names are: 'status', 'files', 'worktrees', 'submodules', 'branches', 'remotes', 'tags', 'commits', 'reflog', 'stash'. 'files', 'branches', and 'commits' must always be included; they can't be hidden.",
+          "default": [
+            [
+              "status"
+            ],
+            [
+              "files",
+              "worktrees",
+              "submodules"
+            ],
+            [
+              "branches",
+              "remotes",
+              "tags"
+            ],
+            [
+              "commits",
+              "reflog"
+            ],
+            [
+              "stash"
+            ]
+          ]
         },
         "mainPanelSplitMode": {
           "type": "string",
@@ -1623,9 +1662,6 @@
         },
         "branches": {
           "$ref": "#/$defs/KeybindingBranchesConfig"
-        },
-        "worktrees": {
-          "$ref": "#/$defs/KeybindingWorktreesConfig"
         },
         "commits": {
           "$ref": "#/$defs/KeybindingCommitsConfig"
@@ -2847,6 +2883,20 @@
           ],
           "default": "n"
         },
+        "newWorktree": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "w"
+        },
         "edit": {
           "oneOf": [
             {
@@ -3127,6 +3177,20 @@
           ],
           "default": "|"
         },
+        "cyclePagersReverse": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\\"
+        },
         "undo": {
           "oneOf": [
             {
@@ -3340,14 +3404,8 @@
             }
           ],
           "default": "\u003cctrl+t\u003e"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "KeybindingWorktreesConfig": {
-      "properties": {
-        "viewWorktreeOptions": {
+        },
+        "editConfig": {
           "oneOf": [
             {
               "type": "string"
@@ -3359,7 +3417,7 @@
               "type": "array"
             }
           ],
-          "default": "w"
+          "default": "\u003calt+shift+c\u003e"
         }
       },
       "additionalProperties": false,
@@ -3488,6 +3546,10 @@
     },
     "PagingConfig": {
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "A name for the pager, shown in the notification when cycling pagers. If not set, the name is derived from the first word of the pager command (or of the external diff command)."
+        },
         "colorArg": {
           "type": "string",
           "enum": [
@@ -3521,20 +3583,44 @@
       "properties": {
         "refreshInterval": {
           "type": "integer",
-          "minimum": 0,
+          "exclusiveMinimum": 0,
           "description": "File/submodule refresh interval in seconds.\nAuto-refresh can be disabled via option 'git.autoRefresh'.",
           "default": 10
         },
         "fetchInterval": {
           "type": "integer",
-          "minimum": 0,
+          "exclusiveMinimum": 0,
           "description": "Re-fetch interval in seconds.\nAuto-fetch can be disabled via option 'git.autoFetch'.",
           "default": 60
+        },
+        "externalChangeCheckInterval": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "Interval in seconds at which lazygit polls for external ref changes (commits, branch updates, checkouts made outside lazygit).\nDetection can be disabled via option 'git.autoDetectExternalChanges'.",
+          "default": 2
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "Background refreshes"
+    },
+    "SidePanel": {
+      "items": {
+        "type": "string",
+        "enum": [
+          "status",
+          "files",
+          "worktrees",
+          "submodules",
+          "branches",
+          "remotes",
+          "tags",
+          "commits",
+          "reflog",
+          "stash"
+        ]
+      },
+      "type": "array"
     },
     "SpinnerConfig": {
       "properties": {
@@ -3744,6 +3830,10 @@
           "$ref": "#/$defs/GitConfig",
           "description": "Config relating to git"
         },
+        "worktree": {
+          "$ref": "#/$defs/WorktreeConfig",
+          "description": "Config relating to git worktrees"
+        },
         "update": {
           "$ref": "#/$defs/UpdateConfig",
           "description": "Periodic update checks"
@@ -3809,6 +3899,17 @@
       },
       "additionalProperties": false,
       "type": "object"
+    },
+    "WorktreeConfig": {
+      "properties": {
+        "defaultPath": {
+          "type": "string",
+          "description": "Default parent directory for new worktrees. It is offered as a candidate location alongside the parent directories of any worktrees you already have.\nA relative path is resolved against the repository's root directory, so \"../worktrees\" sits beside the repo and \".worktrees\" sits inside it.\nA leading \"~\" is expanded to your home directory, so \"~/worktrees\" works."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to git worktrees"
     }
   }
 }

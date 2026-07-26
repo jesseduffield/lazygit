@@ -33,6 +33,13 @@ type TransformOpts struct {
 	// treat it as a diff against an empty file.
 	TurnAddedFilesIntoDiffAgainstEmptyFile bool
 
+	// When building a partial patch for a renamed file, strip the rename
+	// metadata from the header and point it at the new path. Applying the
+	// resulting patch then only changes the file's contents and leaves the
+	// rename itself in place. (For a whole-file selection we keep the rename
+	// so that it moves or is discarded together with the contents.)
+	StripRename bool
+
 	// The indices of lines that should be included in the patch.
 	IncludedLineIndices []int
 }
@@ -72,21 +79,61 @@ func (self *patchTransformer) transformHeader() []string {
 			"--- a/" + self.opts.FileNameOverride,
 			"+++ b/" + self.opts.FileNameOverride,
 		}
-	} else if self.opts.TurnAddedFilesIntoDiffAgainstEmptyFile {
-		result := make([]string, 0, len(self.patch.header))
-		for idx, line := range self.patch.header {
+	}
+
+	header := self.patch.header
+	if self.opts.StripRename {
+		header = stripRenameFromHeader(header)
+	}
+
+	if self.opts.TurnAddedFilesIntoDiffAgainstEmptyFile {
+		result := make([]string, 0, len(header))
+		for idx, line := range header {
 			if strings.HasPrefix(line, "new file mode") {
 				continue
 			}
-			if line == "--- /dev/null" && strings.HasPrefix(self.patch.header[idx+1], "+++ b/") {
-				line = "--- a/" + self.patch.header[idx+1][6:]
+			if line == "--- /dev/null" && strings.HasPrefix(header[idx+1], "+++ b/") {
+				line = "--- a/" + header[idx+1][6:]
 			}
 			result = append(result, line)
 		}
 		return result
 	}
 
-	return self.patch.header
+	return header
+}
+
+// stripRenameFromHeader rewrites a rename diff header so that it looks like a
+// plain modification of the new path: it drops the rename metadata and points
+// the diff at the new path on both sides, while keeping the blob index line so
+// that `git apply --3way` can still fall back to a blob merge. See the
+// StripRename option for why we do this.
+func stripRenameFromHeader(header []string) []string {
+	newPath := ""
+	for _, line := range header {
+		if path, ok := strings.CutPrefix(line, "+++ b/"); ok {
+			newPath = path
+			break
+		}
+	}
+
+	result := make([]string, 0, len(header))
+	for _, line := range header {
+		switch {
+		case strings.HasPrefix(line, "similarity index "),
+			strings.HasPrefix(line, "dissimilarity index "),
+			strings.HasPrefix(line, "rename from "),
+			strings.HasPrefix(line, "rename to "):
+			// drop the rename metadata
+		case strings.HasPrefix(line, "diff --git "):
+			result = append(result, "diff --git a/"+newPath+" b/"+newPath)
+		case strings.HasPrefix(line, "--- "):
+			result = append(result, "--- a/"+newPath)
+		default:
+			result = append(result, line)
+		}
+	}
+	return result
 }
 
 func (self *patchTransformer) transformHunks() []*Hunk {

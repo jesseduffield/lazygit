@@ -67,6 +67,12 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Tooltip:           self.c.Tr.NewBranchFromStashTooltip,
 		},
 		{
+			Keys:        opts.GetKeys(opts.Config.Universal.NewWorktree),
+			Handler:     self.withItem(self.c.Helpers().Worktree.NewWorktreeMenuForStash),
+			Description: self.c.Tr.NewWorktree,
+			OpensMenu:   true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Stash.RenameStash),
 			Handler:           self.withItem(self.handleRenameStashEntry),
 			GetDisabledReason: self.require(self.singleItemSelected()),
@@ -164,11 +170,19 @@ func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) 
 		Prompt: self.c.Tr.SureDropStashEntry,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.DropStash)
+			// Refresh once at the end rather than after each drop: a refresh
+			// from the UI thread finishes in the background, so firing one per
+			// iteration lets the workers race and an earlier, stale result can
+			// land last. The indices are captured up front and we drop
+			// highest-first, so the remaining lower indices stay valid without
+			// an intervening refresh. Block input until the refresh has
+			// landed, so that dropping the next entry in quick succession
+			// (confirming and pressing the key again right away) sees the
+			// refreshed list and not the stale, pre-drop indices.
+			defer self.c.RefreshBlockingInput(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			for i := len(stashEntries) - 1; i >= 0; i-- {
 				self.c.LogCommand(fmt.Sprintf(self.c.Tr.Log.DroppingStash, stashEntries[i].Hash), false)
-				err := self.c.Git().Stash.Drop(stashEntries[i].Index)
-				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
-				if err != nil {
+				if err := self.c.Git().Stash.Drop(stashEntries[i].Index); err != nil {
 					return err
 				}
 			}
@@ -181,7 +195,11 @@ func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) 
 }
 
 func (self *StashController) postStashRefresh() {
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
+	// Block input until the refresh has landed: popping shifts the indices of
+	// the remaining stash entries, and acting on the next entry in quick
+	// succession (confirming the popup and pressing the key again right away)
+	// must see the refreshed list, or it would target the wrong stash.
+	self.c.RefreshBlockingInput(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
 }
 
 func (self *StashController) handleNewBranchOffStashEntry(stashEntry *models.StashEntry) error {
@@ -203,12 +221,15 @@ func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntr
 			self.c.LogAction(self.c.Tr.Actions.RenameStash)
 			err := self.c.Git().Stash.Rename(stashEntry.Index, response)
 			if err != nil {
-				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
+				self.c.RefreshBlockingInput(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 				return err
 			}
 			self.context().SetSelection(0) // Select the renamed stash
 			self.context().FocusLine(true)
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
+			// Renaming re-creates the stash at the top, shifting the other
+			// entries' indices; block input so that a quick next action sees
+			// the refreshed list rather than the stale indices.
+			self.c.RefreshBlockingInput(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			return nil
 		},
 		AllowEmptyInput: true,

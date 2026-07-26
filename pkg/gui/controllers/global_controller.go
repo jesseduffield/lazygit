@@ -136,6 +136,12 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Description: self.c.Tr.ToggleWhitespaceInDiffView,
 			Tooltip:     self.c.Tr.ToggleWhitespaceInDiffViewTooltip,
 		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Universal.EditConfig),
+			Handler:     self.editConfig,
+			Description: self.c.Tr.EditConfig,
+			Tooltip:     self.c.Tr.EditFileTooltip,
+		},
 	}
 }
 
@@ -152,7 +158,7 @@ func (self *GlobalController) createCustomPatchOptionsMenu() error {
 }
 
 func (self *GlobalController) refresh() error {
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{})
 	return nil
 }
 
@@ -265,6 +271,10 @@ func (self *GlobalController) escapeEnabled() *types.DisabledReason {
 
 func (self *GlobalController) toggleWhitespace() error {
 	return (&ToggleWhitespaceAction{c: self.c}).Call()
+}
+
+func (self *GlobalController) editConfig() error {
+	return (&EditConfigAction{c: self.c}).Call()
 }
 
 func (self *GlobalController) canShowRebaseOptions() *types.DisabledReason {

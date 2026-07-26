@@ -22,25 +22,25 @@ var SelectCommitsOfCurrentBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 03").IsSelected(),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-03").IsSelected(),
+				Contains("commit-02"),
+				Contains("commit-01"),
 				Contains("master 02"),
 				Contains("master 01"),
 			).
 			Press(keys.Commits.SelectCommitsOfCurrentBranch).
 			Lines(
-				Contains("commit 03").IsSelected(),
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01").IsSelected(),
+				Contains("commit-03").IsSelected(),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01").IsSelected(),
 				Contains("master 02"),
 				Contains("master 01"),
 			).
 			PressEscape().
 			Lines(
-				Contains("commit 03").IsSelected(),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-03").IsSelected(),
+				Contains("commit-02"),
+				Contains("commit-01"),
 				Contains("master 02"),
 				Contains("master 01"),
 			)
@@ -58,15 +58,15 @@ var SelectCommitsOfCurrentBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().SubCommits().
 			IsFocused().
 			Lines(
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01"),
 				Contains("master 02"),
 				Contains("master 01"),
 			).
 			Press(keys.Commits.SelectCommitsOfCurrentBranch).
 			Lines(
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01").IsSelected(),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01").IsSelected(),
 				Contains("master 02"),
 				Contains("master 01"),
 			)

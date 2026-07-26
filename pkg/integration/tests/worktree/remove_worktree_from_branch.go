@@ -6,7 +6,7 @@ import (
 )
 
 var RemoveWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Remove a worktree from the branches view",
+	Description:  "Delete a branch that's checked out in another worktree by removing that worktree",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -38,22 +38,18 @@ var RemoveWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Branch newbranch is checked out by worktree linked-worktree")).
-					Select(Equals("Remove worktree")).
+					Select(Contains("Remove worktree and delete branch")).
 					Confirm()
 
-				t.ExpectPopup().Confirmation().
-					Title(Equals("Remove worktree")).
-					Content(Equals("Are you sure you want to remove worktree 'linked-worktree'?")).
-					Confirm()
-
+				// The worktree is dirty, so we get asked to force-remove it
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Remove worktree")).
 					Content(Equals("'linked-worktree' contains modified or untracked files, or submodules (or all of these). Are you sure you want to remove it?")).
 					Confirm()
 			}).
+			// The branch is gone, not just unlinked from its worktree
 			Lines(
-				Contains("mybranch"),
-				Contains("newbranch").DoesNotContain("(worktree)").IsSelected(),
+				Contains("mybranch").IsSelected(),
 			)
 
 		t.Views().Worktrees().

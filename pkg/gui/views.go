@@ -9,7 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
 )
 
 type viewNameMapping struct {
@@ -182,10 +181,12 @@ func (gui *Gui) configureViewProperties() {
 
 	gui.Views.Stash.Title = gui.c.Tr.StashTitle
 	gui.Views.Commits.Title = gui.c.Tr.CommitsTitle
+	gui.Views.ReflogCommits.Title = gui.c.Tr.ReflogCommitsTitle
 	gui.Views.CommitFiles.Title = gui.c.Tr.CommitFiles
 	gui.Views.Branches.Title = gui.c.Tr.BranchesTitle
 	gui.Views.Remotes.Title = gui.c.Tr.RemotesTitle
 	gui.Views.Worktrees.Title = gui.c.Tr.WorktreesTitle
+	gui.Views.Submodules.Title = gui.c.Tr.SubmodulesTitle
 	gui.Views.Tags.Title = gui.c.Tr.TagsTitle
 	gui.Views.Files.Title = gui.c.Tr.FilesTitle
 	gui.Views.PatchBuilding.Title = gui.c.Tr.Patch
@@ -210,66 +211,64 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.CommitDescription.TextArea.AutoWrap = gui.c.UserConfig().Git.Commit.AutoWrapCommitMessage
 	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig().Git.Commit.AutoWrapWidth
 
-	if gui.c.UserConfig().Gui.ShowPanelJumps {
-		keyToTitlePrefix := func(binding config.Keybinding) string {
-			if len(binding) == 0 {
-				return ""
-			}
-			return fmt.Sprintf("[%s]", binding[0])
+	keyToTitlePrefix := func(binding config.Keybinding) string {
+		if len(binding) == 0 {
+			return ""
 		}
-		jumpBindings := gui.c.UserConfig().Keybinding.Universal.JumpToBlock
-		jumpLabels := lo.Map(jumpBindings, func(binding config.Keybinding, _ int) string {
-			return keyToTitlePrefix(binding)
+		return fmt.Sprintf("[%s]", binding[0])
+	}
+
+	// The views that make up each side panel, in panel order. The whole group
+	// shares the panel's jump label.
+	panelViewGroups := lo.Map(gui.c.UserConfig().Gui.SidePanels, func(panel config.SidePanel, _ int) []*gocui.View {
+		return lo.Map(panel, func(name string, _ int) *gocui.View {
+			view, _ := gui.g.View(sidePanelViewNames[name])
+			return view
 		})
+	})
 
-		gui.Views.Status.TitlePrefix = jumpLabels[0]
+	jumpBindings := gui.c.UserConfig().Keybinding.Universal.JumpToBlock
+	jumpLabelForPanel := func(panelIndex int) string {
+		if !gui.c.UserConfig().Gui.ShowPanelJumps || panelIndex >= len(jumpBindings) {
+			return ""
+		}
+		return keyToTitlePrefix(jumpBindings[panelIndex])
+	}
 
-		gui.Views.Files.TitlePrefix = jumpLabels[1]
-		gui.Views.Worktrees.TitlePrefix = jumpLabels[1]
-		gui.Views.Submodules.TitlePrefix = jumpLabels[1]
+	for panelIndex, views := range panelViewGroups {
+		prefix := jumpLabelForPanel(panelIndex)
+		for _, view := range views {
+			view.TitlePrefix = prefix
+		}
+	}
 
-		gui.Views.Branches.TitlePrefix = jumpLabels[2]
-		gui.Views.Remotes.TitlePrefix = jumpLabels[2]
-		gui.Views.Tags.TitlePrefix = jumpLabels[2]
-
-		gui.Views.Commits.TitlePrefix = jumpLabels[3]
-		gui.Views.ReflogCommits.TitlePrefix = jumpLabels[3]
-
-		gui.Views.Stash.TitlePrefix = jumpLabels[4]
-
+	if gui.c.UserConfig().Gui.ShowPanelJumps {
 		gui.Views.Main.TitlePrefix = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusMainView)
 	} else {
-		gui.Views.Status.TitlePrefix = ""
-
-		gui.Views.Files.TitlePrefix = ""
-		gui.Views.Worktrees.TitlePrefix = ""
-		gui.Views.Submodules.TitlePrefix = ""
-
-		gui.Views.Branches.TitlePrefix = ""
-		gui.Views.Remotes.TitlePrefix = ""
-		gui.Views.Tags.TitlePrefix = ""
-
-		gui.Views.Commits.TitlePrefix = ""
-		gui.Views.ReflogCommits.TitlePrefix = ""
-
-		gui.Views.Stash.TitlePrefix = ""
-
 		gui.Views.Main.TitlePrefix = ""
 	}
 
-	for _, view := range gui.g.Views() {
-		// if the view is in our mapping, we'll set the tabs and the tab index
-		for _, values := range gui.viewTabMap() {
-			index := slices.IndexFunc(values, func(tabContext context.TabView) bool {
-				return tabContext.ViewName == view.Name()
-			})
-
-			if index != -1 {
-				view.Tabs = lo.Map(values, func(tabContext context.TabView, _ int) string {
-					return tabContext.Tab
-				})
-				view.TabIndex = index
-			}
+	// Index the tab strips by view so we can both set them on views that are
+	// part of a multi-tab panel and clear them on views that no longer are
+	// (which matters when the config is reloaded and a tab becomes a standalone
+	// panel).
+	type viewTabs struct {
+		tabs  []string
+		index int
+	}
+	tabsByView := map[string]viewTabs{}
+	for _, values := range gui.viewTabMap() {
+		labels := lo.Map(values, func(tabContext context.TabView, _ int) string {
+			return tabContext.Tab
+		})
+		for index, tabContext := range values {
+			tabsByView[tabContext.ViewName] = viewTabs{tabs: labels, index: index}
 		}
+	}
+
+	for _, view := range gui.g.Views() {
+		vt := tabsByView[view.Name()]
+		view.Tabs = vt.tabs
+		view.TabIndex = vt.index
 	}
 }

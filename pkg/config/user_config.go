@@ -11,6 +11,8 @@ type UserConfig struct {
 	Gui GuiConfig `yaml:"gui"`
 	// Config relating to git
 	Git GitConfig `yaml:"git"`
+	// Config relating to git worktrees
+	Worktree WorktreeConfig `yaml:"worktree"`
 	// Periodic update checks
 	Update UpdateConfig `yaml:"update"`
 	// Background refreshes
@@ -109,6 +111,13 @@ type GuiConfig struct {
 	ExpandFocusedSidePanel bool `yaml:"expandFocusedSidePanel"`
 	// The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
 	ExpandedSidePanelWeight int `yaml:"expandedSidePanelWeight"`
+	// If true, don't give a side panel more height than it needs to show its content; when all panels fit, the leftover height is shared among them so that they still fill the screen.
+	ShrinkSidePanelsToContent bool `yaml:"shrinkSidePanelsToContent"`
+	// The side panels, in the order they appear from top to bottom.
+	// Each entry is a list of one or more names that share a single panel as tabs (cycle through them with the next-tab/previous-tab keys).
+	// Omit a name to hide it; give a name its own one-element list to promote a tab to a top-level panel.
+	// Valid names are: 'status', 'files', 'worktrees', 'submodules', 'branches', 'remotes', 'tags', 'commits', 'reflog', 'stash'. 'files', 'branches', and 'commits' must always be included; they can't be hidden.
+	SidePanels []SidePanel `yaml:"sidePanels"`
 	// Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.
 	// Options are:
 	// - 'horizontal': split the window horizontally
@@ -417,6 +426,13 @@ type CommitPrefixConfig struct {
 	Replace string `yaml:"replace" jsonschema:"example=[$1]"`
 }
 
+type WorktreeConfig struct {
+	// Default parent directory for new worktrees. It is offered as a candidate location alongside the parent directories of any worktrees you already have.
+	// A relative path is resolved against the repository's root directory, so "../worktrees" sits beside the repo and ".worktrees" sits inside it.
+	// A leading "~" is expanded to your home directory, so "~/worktrees" works.
+	DefaultPath string `yaml:"defaultPath"`
+}
+
 type UpdateConfig struct {
 	// One of: 'prompt' (default) | 'background' | 'never'
 	Method string `yaml:"method" jsonschema:"enum=prompt,enum=background,enum=never"`
@@ -429,7 +445,6 @@ type KeybindingConfig struct {
 	Status         KeybindingStatusConfig         `yaml:"status"`
 	Files          KeybindingFilesConfig          `yaml:"files"`
 	Branches       KeybindingBranchesConfig       `yaml:"branches"`
-	Worktrees      KeybindingWorktreesConfig      `yaml:"worktrees"`
 	Commits        KeybindingCommitsConfig        `yaml:"commits"`
 	AmendAttribute KeybindingAmendAttributeConfig `yaml:"amendAttribute"`
 	Stash          KeybindingStashConfig          `yaml:"stash"`
@@ -497,6 +512,7 @@ type KeybindingUniversalConfig struct {
 	ConfirmInEditorAlt Keybinding `yaml:"confirmInEditor-alt"`
 	Remove             Keybinding `yaml:"remove"`
 	New                Keybinding `yaml:"new"`
+	NewWorktree        Keybinding `yaml:"newWorktree"`
 	Edit               Keybinding `yaml:"edit"`
 	OpenFile           Keybinding `yaml:"openFile"`
 	ScrollUpMain       Keybinding `yaml:"scrollUpMain"`
@@ -537,6 +553,7 @@ type KeybindingUniversalConfig struct {
 	IncreaseRenameSimilarityThreshold Keybinding `yaml:"increaseRenameSimilarityThreshold"`
 	DecreaseRenameSimilarityThreshold Keybinding `yaml:"decreaseRenameSimilarityThreshold"`
 	OpenDiffTool                      Keybinding `yaml:"openDiffTool"`
+	EditConfig                        Keybinding `yaml:"editConfig"`
 }
 
 type KeybindingStatusConfig struct {
@@ -588,10 +605,6 @@ type KeybindingBranchesConfig struct {
 	FetchRemote              Keybinding `yaml:"fetchRemote"`
 	AddForkRemote            Keybinding `yaml:"addForkRemote"`
 	SortOrder                Keybinding `yaml:"sortOrder"`
-}
-
-type KeybindingWorktreesConfig struct {
-	ViewWorktreeOptions Keybinding `yaml:"viewWorktreeOptions"`
 }
 
 type KeybindingCommitsConfig struct {
@@ -836,18 +849,26 @@ func GetDefaultConfig() *UserConfig {
 func GetDefaultConfigForPlatform(platform string) *UserConfig {
 	return &UserConfig{
 		Gui: GuiConfig{
-			ScrollHeight:             2,
-			ScrollPastBottom:         true,
-			ScrollOffMargin:          2,
-			ScrollOffBehavior:        "margin",
-			TabWidth:                 4,
-			MouseEvents:              true,
-			SkipAmendWarning:         false,
-			SkipDiscardChangeWarning: false,
-			SkipStashWarning:         false,
-			SidePanelWidth:           0.3333,
-			ExpandFocusedSidePanel:   false,
-			ExpandedSidePanelWeight:  2,
+			ScrollHeight:              2,
+			ScrollPastBottom:          true,
+			ScrollOffMargin:           2,
+			ScrollOffBehavior:         "margin",
+			TabWidth:                  4,
+			MouseEvents:               true,
+			SkipAmendWarning:          false,
+			SkipDiscardChangeWarning:  false,
+			SkipStashWarning:          false,
+			SidePanelWidth:            0.3333,
+			ExpandFocusedSidePanel:    false,
+			ExpandedSidePanelWeight:   2,
+			ShrinkSidePanelsToContent: false,
+			SidePanels: []SidePanel{
+				{"status"},
+				{"files", "worktrees", "submodules"},
+				{"branches", "remotes", "tags"},
+				{"commits", "reflog"},
+				{"stash"},
+			},
 			MainPanelSplitMode:       "flexible",
 			EnlargedSideViewLocation: "left",
 			WrapLinesInStagingView:   true,
@@ -946,6 +967,9 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			ParseEmoji:                   false,
 			TruncateCopiedCommitHashesTo: 12,
 		},
+		Worktree: WorktreeConfig{
+			DefaultPath: "",
+		},
 		Refresher: RefresherConfig{
 			RefreshInterval:             10,
 			FetchInterval:               60,
@@ -1011,6 +1035,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				ConfirmInEditorAlt:                Keybinding{"<ctrl+s>"},
 				Remove:                            Keybinding{"d"},
 				New:                               Keybinding{"n"},
+				NewWorktree:                       Keybinding{"w"},
 				Edit:                              Keybinding{"e"},
 				OpenFile:                          Keybinding{"o"},
 				OpenRecentRepos:                   Keybinding{"<ctrl+r>"},
@@ -1046,6 +1071,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				IncreaseRenameSimilarityThreshold: Keybinding{")"},
 				DecreaseRenameSimilarityThreshold: Keybinding{"("},
 				OpenDiffTool:                      Keybinding{"<ctrl+t>"},
+				EditConfig:                        Keybinding{"<alt+shift+c>"},
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate:             Keybinding{"u"},
@@ -1094,9 +1120,6 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				FetchRemote:              Keybinding{"f"},
 				AddForkRemote:            Keybinding{"F"},
 				SortOrder:                Keybinding{"s"},
-			},
-			Worktrees: KeybindingWorktreesConfig{
-				ViewWorktreeOptions: Keybinding{"w"},
 			},
 			Commits: KeybindingCommitsConfig{
 				SquashDown:                     Keybinding{"s"},

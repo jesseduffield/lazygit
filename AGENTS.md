@@ -18,12 +18,31 @@ Windows box has only `just`).
   list and the keybinding cheatsheets in `docs-master/keybindings/`). Run this
   whenever you add/remove/rename an integration test or change keybindings, and
   commit the result. CI fails if these are stale.
-- `just format` — `gofumpt -l -w .`. Run before every commit.
+- `just format` — `go tool gofumpt -l -w .`. Run before every commit.
 - `just build` — build the binary.
 - `just unit-test` — `go test ./... -short`.
-- `just e2e-all` — run all integration tests headlessly (`just e2e <name>` runs a
-  single one with a visible UI).
+- `just e2e` — run all integration tests headlessly; `just e2e <name>` runs a
+  single one headlessly too. `just e2e-cli <name>` runs one with a visible UI
+  (most useful with `--sandbox` or `--slow`).
 - `just lint` — run golangci-lint.
+
+## Prefer gopls MCP tools for Go symbol questions
+
+When the gopls MCP tools are available in the session, prefer them over grep
+for type-aware questions about Go code: who calls a function or method
+(`go_symbol_references`), finding a symbol by fuzzy name (`go_search`), or
+inspecting a package's API (`go_package_api`). Method names in this codebase
+collide a lot (`draw`, `Show`, `Refresh` exist on several types), and grep
+needs manual filtering that gopls doesn't. This includes code under
+`vendor/`, which gopls resolves as part of the module build.
+
+Grep remains the right tool for strings, comments, config keys, non-Go
+files, and anything textual. Don't adopt the full workflow from
+`gopls mcp -instructions` (vulncheck on session start, `go_file_context`
+after every file read); that overhead isn't worth it here.
+
+If the tools aren't available in a session, fall back to grep silently —
+don't try to install, register, or start the server.
 
 ## When to commit
 
@@ -45,8 +64,11 @@ while still being meaningful and self-contained.
 
 - **Every commit must compile and pass all tests.** No "WIP" commits, no
   commits that leave the tree broken and rely on a follow-up to fix it.
-- **Every commit must be `gofumpt`-formatted.** Run `make format` before
+- **Every commit must be `gofumpt`-formatted.** Run `just format` before
   committing.
+- **Every commit must be lint-clean.** Run `just lint` before committing —
+  don't introduce a lint warning in one commit and rely on a later commit
+  (or the user) to clean it up.
 - **Commit messages explain _why_, not _what_.** The diff already shows what
   changed; the message should capture the motivation, the constraint, or the
   bug being fixed. If the reason is obvious from a one-line subject, no body
@@ -62,6 +84,9 @@ while still being meaningful and self-contained.
   preceding commit, by staging hunks or resetting and recommitting in order.
 - **Do not use conventional commits** (no `feat:`/`fix:`/`chore:` prefixes).
   Match the plain English imperative style of the existing history.
+- **Wrap message body to 72 characters**. The subject is allowed to go up to 80
+  characters, or even a little more if needed to convey a good single-line
+  summary; the body should be wrapped at 72 exactly, no more, no less.
 
 ## Iterate with `fixup!` commits
 
@@ -136,6 +161,32 @@ changes must not be combined just because they happen to target the same
 commit. If you have two independent refinements for the same target, make
 two separate fixups. Reviewability of the intermediate state matters even
 when the end state after autosquash would be identical.
+
+## Surface mid-implementation decisions; decide them together
+
+Planning can't anticipate everything. When a decision surfaces while you're
+implementing — a design choice, a tradeoff, a scope cut, a "this turned out
+harder than expected, so maybe X" — don't quietly make the call and keep
+going, even if you have a clear recommendation and even if the call seems
+small. Stop, lay out the options and your recommendation, and let me weigh in.
+I want to make these calls _with_ you, not discover them after the fact in the
+diff.
+
+This isn't a request to stop and ask about every trivial detail; obvious
+mechanical choices with one sensible answer don't need a checkpoint. It's about
+genuine forks — the ones where a reasonable person might pick differently, or
+where you'd be trading away something the plan assumed (scope, UX, performance,
+reload behavior, …). When in doubt, surface it.
+
+This applies with equal force to unforeseen _discoveries_, not just to
+decisions you set out to make. If you find something the plan didn't account
+for — a latent bug, a race, a wrong assumption, a case that turns out
+unhandled — stop and raise it before designing or writing a fix, even when the
+fix seems obvious and even when it's "just correctness." Finding the problem is
+itself the fork: whether to fix it here or in a separate change, how generally
+to solve it, and whether it reshapes the current work are all calls for me to
+make with you. Don't quietly fold a self-directed fix for a newly-found problem
+into the branch and let me discover it in the diff.
 
 ## Prefer the cleaner design over the smaller diff
 
@@ -223,6 +274,34 @@ Follow this even when the need for the refactor is only discovered in the middle
 of working on the branch; suggest to the user to rewrite the history to move the
 refactor to an earlier commit (but don't do it without asking first).
 
+## Don't read model state right after a `Refresh`
+
+A `Refresh` (or `RefreshFromWorker`) does its git work on a worker and then
+*enqueues* the model update onto the UI thread. So when `Refresh` returns, the
+model is **not** updated yet — the write is still queued. Reading a field
+synchronously right after refreshing its scope reads the stale, pre-refresh
+value (and this is true even for SYNC refreshes):
+
+```go
+self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+files := self.c.Model().Files // BUG: still the pre-refresh value
+```
+
+Put the read in `RefreshOptions.Then` instead — it's queued after the scope's
+model writes, so it sees the fresh value:
+
+```go
+self.c.Refresh(types.RefreshOptions{
+    Scope: []types.RefreshableView{types.FILES},
+    Then: func() error {
+        files := self.c.Model().Files // fresh
+        return nil
+    },
+})
+```
+
+`Then` is a `func() error` and works with any non-`ASYNC` mode.
+
 ## Integration test conventions
 
 Don't bind views to local variables. Always chain method calls directly from
@@ -234,6 +313,53 @@ keep the call site fluent.
 
 Prefer `assert.Equal` (and friends) over hand-rolled `if` checks. The failure
 messages are more useful and the intent is clearer at a glance.
+
+## Translatable strings use Go templates, not `%s`
+
+Never put `fmt.Sprintf`-style placeholders (`%s`, `%d`, …) in translatable
+strings — the fields of `TranslationSet` and `Actions` in
+`pkg/i18n/english.go`. Use named Go-template placeholders and fill them in with
+`utils.ResolvePlaceholderString`:
+
+```go
+// in english.go
+DeleteBranchTitle: "Delete branch '{{.selectedBranchName}}'?",
+
+// at the call site
+utils.ResolvePlaceholderString(
+    self.c.Tr.DeleteBranchTitle,
+    map[string]string{"selectedBranchName": branchName},
+)
+```
+
+Named placeholders tell localizers what each value is (a bare `%s` says
+nothing, and translators can't safely reorder positional verbs across
+languages), and the map form extends cleanly when a string later needs more
+than one placeholder. This holds for every user-facing string, including short
+ones like disabled-action reasons and toasts.
+
+## Only edit the English translations
+
+`pkg/i18n/english.go` is the one translation file you edit; add, change, and
+remove strings there. The other languages under `pkg/i18n/translations/` are
+maintained by Crowdin and synced automatically — never edit them by hand, not
+even to add a key you just introduced or to delete one you just removed. A
+removed English string simply leaves an orphan key in those files, which
+Crowdin cleans up on its own; an unknown key in a translation file is ignored
+at load time, so it does no harm in the meantime.
+
+## Try to keep new english.go strings within the existing column alignment
+
+`gofumpt` aligns the `TranslationSet` struct fields and the `EnglishTranslationSet`
+literal into columns, so a new field whose name is longer than the widest one in
+its alignment block re-indents every line in that block. When there are several
+feature branches in flight that all add strings, that reformatting churn turns
+english.go into a rebase-conflict magnet. So when it's cheap to do so, make an
+effort to keep a new field name within the current widest name in the block
+(measure it; it's around 40 characters today), shortening the Go field name to
+fit. This is a soft preference, not a rule: the usual "best name wins" still
+applies, so don't mangle a name past the point of readability just to save a
+column. Applies only to `pkg/i18n/english.go`.
 
 ## Code comments are for future readers, not development history
 
@@ -283,7 +409,7 @@ So:
 - For changes to `userConfig` fields specifically, don't edit
   `docs-master/Config.md` by hand either — the relevant section is
   auto-generated from the struct field doc comments. After editing the
-  struct, run `make generate` and include the regenerated
+  struct, run `just generate` and include the regenerated
   `docs-master/Config.md` (and `schema-master/config.json`) in your commit.
 - Don't hard-wrap the doc comments on `userConfig` fields. This applies
   *only* to `userConfig`, because those comments are fed through the doc
@@ -303,3 +429,12 @@ Never run `find` (or similar) from `/` or other paths outside the project. All
 third-party code we use is vendored under `vendor/`, so dependency sources are
 reachable from inside the working tree — search there instead of the host
 filesystem.
+
+## gocui is in-tree, not a dependency
+
+The `gocui` TUI library is a fork maintained directly in this repo under
+`pkg/gocui` — it's an ordinary package, not a Go module dependency. Don't look
+for it in `go.mod`/`go.sum` or the module cache (`$GOMODCACHE`); it isn't
+there. When you need to read or change gocui internals (the task manager, the
+event loop, worker/UI-thread dispatch, view rendering), edit `pkg/gocui`
+directly.

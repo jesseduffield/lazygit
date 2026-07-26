@@ -35,10 +35,13 @@ func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key) bool {
 	v.RenderTextArea()
 
 	suggestionsContext := gui.State.Contexts.Suggestions
-	if suggestionsContext.State.FindSuggestions != nil {
+	// Capture the suggestions function and the input here, on the UI thread; the
+	// main thread rewrites State.FindSuggestions when it (re)creates a prompt
+	// panel, so reading it from the worker below would race that write.
+	if findSuggestions := suggestionsContext.State.FindSuggestions; findSuggestions != nil {
 		input := v.TextArea.GetContent()
 		suggestionsContext.State.AsyncHandler.Do(func() func() {
-			suggestions := suggestionsContext.State.FindSuggestions(input)
+			suggestions := findSuggestions(input)
 			return func() { suggestionsContext.SetSuggestions(suggestions) }
 		})
 	}

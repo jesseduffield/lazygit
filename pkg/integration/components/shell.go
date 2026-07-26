@@ -256,7 +256,7 @@ func (self *Shell) CreateNCommitsStartingAt(n, startIndex int) *Shell {
 			fmt.Sprintf("file%02d.txt", i),
 			fmt.Sprintf("file%02d content", i),
 		).
-			Commit(fmt.Sprintf("commit %02d", i))
+			Commit(fmt.Sprintf("commit-%02d", i))
 	}
 
 	return self

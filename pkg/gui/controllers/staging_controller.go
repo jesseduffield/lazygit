@@ -229,7 +229,10 @@ func (self *StagingController) applySelectionAndRefresh(reverse bool) error {
 		return err
 	}
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
+	// Block input until the refresh has landed: it rebuilds the staging panel
+	// and moves the selection to the next stageable change, and a quick second
+	// keypress must act on that, not on the stale pre-refresh diff.
+	self.c.RefreshBlockingInput(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
 	return nil
 }
 
@@ -284,7 +287,9 @@ func (self *StagingController) EditHunkAndRefresh() error {
 		return err
 	}
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
+	// Block input like applySelectionAndRefresh does; the refresh rebuilds the
+	// staging panel from the post-edit diff.
+	self.c.RefreshBlockingInput(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.STAGING}})
 	return nil
 }
 

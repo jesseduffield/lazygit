@@ -94,7 +94,7 @@ func (self *DiffHelper) FilterPathsForCommit(commit *models.Commit) []string {
 
 func (self *DiffHelper) ExitDiffMode() error {
 	self.c.Modes().Diffing = diffing.New()
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{})
 	return nil
 }
 

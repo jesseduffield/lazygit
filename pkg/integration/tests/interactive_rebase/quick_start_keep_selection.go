@@ -28,27 +28,27 @@ var QuickStartKeepSelection = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI commit 07").IsSelected(),
-				Contains("CI commit 06"),
-				Contains("CI commit 05"),
-				Contains("CI * commit 04"),
-				Contains("CI commit 03"),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
+				Contains("CI commit-07").IsSelected(),
+				Contains("CI commit-06"),
+				Contains("CI commit-05"),
+				Contains("CI * commit-04"),
+				Contains("CI commit-03"),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
 			).
-			NavigateToLine(Contains("commit 02")).
+			NavigateToLine(Contains("commit-02")).
 			Press(keys.Commits.StartInteractiveRebase).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("pick").Contains("CI commit 07"),
-				Contains("pick").Contains("CI commit 06"),
-				Contains("pick").Contains("CI commit 05"),
+				Contains("pick").Contains("CI commit-07"),
+				Contains("pick").Contains("CI commit-06"),
+				Contains("pick").Contains("CI commit-05"),
 				Contains("update-ref").Contains("branch1"),
-				Contains("pick").Contains("CI commit 04"),
-				Contains("pick").Contains("CI commit 03"),
-				Contains("CI commit 02").IsSelected(),
+				Contains("pick").Contains("CI commit-04"),
+				Contains("pick").Contains("CI commit-03"),
+				Contains("CI commit-02").IsSelected(),
 				Contains("--- Commits ---"),
-				Contains("CI commit 01"),
+				Contains("CI commit-01"),
 			)
 	},
 })

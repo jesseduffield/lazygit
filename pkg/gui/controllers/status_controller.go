@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -12,7 +11,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/samber/lo"
 )
 
 type StatusController struct {
@@ -33,12 +31,6 @@ func NewStatusController(
 
 func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
-		{
-			Keys:        opts.GetKeys(opts.Config.Universal.OpenFile),
-			Handler:     self.openConfig,
-			Description: self.c.Tr.OpenConfig,
-			Tooltip:     self.c.Tr.OpenFileTooltip,
-		},
 		{
 			Keys:            opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:         self.editConfig,
@@ -148,38 +140,8 @@ func lazygitTitle() string {
                |___/ |___/       `
 }
 
-func (self *StatusController) askForConfigFile(action func(file string) error) error {
-	confPaths := self.c.GetConfig().GetUserConfigPaths()
-	switch len(confPaths) {
-	case 0:
-		return errors.New(self.c.Tr.NoConfigFileFoundErr)
-	case 1:
-		return action(confPaths[0])
-	default:
-		menuItems := lo.Map(confPaths, func(path string, _ int) *types.MenuItem {
-			return &types.MenuItem{
-				Label: path,
-				OnPress: func() error {
-					return action(path)
-				},
-			}
-		})
-
-		return self.c.Menu(types.CreateMenuOptions{
-			Title: self.c.Tr.SelectConfigFile,
-			Items: menuItems,
-		})
-	}
-}
-
-func (self *StatusController) openConfig() error {
-	return self.askForConfigFile(self.c.Helpers().Files.OpenFile)
-}
-
 func (self *StatusController) editConfig() error {
-	return self.askForConfigFile(func(file string) error {
-		return self.c.Helpers().Files.EditFiles([]string{file})
-	})
+	return (&EditConfigAction{c: self.c}).Call()
 }
 
 func (self *StatusController) showAllBranchLogs() {

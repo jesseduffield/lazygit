@@ -13,16 +13,16 @@ import (
 
 type PopupHandler struct {
 	*common.Common
-	createPopupPanelFn      func(context.Context, types.CreatePopupPanelOpts)
-	onErrorFn               func() error
-	popContextFn            func()
-	currentContextFn        func() types.Context
-	createMenuFn            func(types.CreateMenuOptions) error
-	withWaitingStatusFn     func(message string, f func(gocui.Task) error)
-	withWaitingStatusSyncFn func(message string, f func() error) error
-	toastFn                 func(message string, kind types.ToastKind)
-	getPromptInputFn        func() string
-	inDemo                  func() bool
+	createPopupPanelFn               func(context.Context, types.CreatePopupPanelOpts)
+	onErrorFn                        func() error
+	popContextFn                     func()
+	currentContextFn                 func() types.Context
+	createMenuFn                     func(types.CreateMenuOptions) error
+	withWaitingStatusFn              func(message string, f func(gocui.Task) error)
+	withWaitingStatusBlockingInputFn func(message string, f func(gocui.Task) error)
+	toastFn                          func(message string, kind types.ToastKind)
+	getPromptInputFn                 func() string
+	inDemo                           func() bool
 }
 
 var _ types.IPopupHandler = &PopupHandler{}
@@ -35,23 +35,23 @@ func NewPopupHandler(
 	currentContextFn func() types.Context,
 	createMenuFn func(types.CreateMenuOptions) error,
 	withWaitingStatusFn func(message string, f func(gocui.Task) error),
-	withWaitingStatusSyncFn func(message string, f func() error) error,
+	withWaitingStatusBlockingInputFn func(message string, f func(gocui.Task) error),
 	toastFn func(message string, kind types.ToastKind),
 	getPromptInputFn func() string,
 	inDemo func() bool,
 ) *PopupHandler {
 	return &PopupHandler{
-		Common:                  common,
-		createPopupPanelFn:      createPopupPanelFn,
-		onErrorFn:               onErrorFn,
-		popContextFn:            popContextFn,
-		currentContextFn:        currentContextFn,
-		createMenuFn:            createMenuFn,
-		withWaitingStatusFn:     withWaitingStatusFn,
-		withWaitingStatusSyncFn: withWaitingStatusSyncFn,
-		toastFn:                 toastFn,
-		getPromptInputFn:        getPromptInputFn,
-		inDemo:                  inDemo,
+		Common:                           common,
+		createPopupPanelFn:               createPopupPanelFn,
+		onErrorFn:                        onErrorFn,
+		popContextFn:                     popContextFn,
+		currentContextFn:                 currentContextFn,
+		createMenuFn:                     createMenuFn,
+		withWaitingStatusFn:              withWaitingStatusFn,
+		withWaitingStatusBlockingInputFn: withWaitingStatusBlockingInputFn,
+		toastFn:                          toastFn,
+		getPromptInputFn:                 getPromptInputFn,
+		inDemo:                           inDemo,
 	}
 }
 
@@ -76,8 +76,9 @@ func (self *PopupHandler) WithWaitingStatus(message string, f func(gocui.Task) e
 	return nil
 }
 
-func (self *PopupHandler) WithWaitingStatusSync(message string, f func() error) error {
-	return self.withWaitingStatusSyncFn(message, f)
+func (self *PopupHandler) WithWaitingStatusBlockingInput(message string, f func(gocui.Task) error) error {
+	self.withWaitingStatusBlockingInputFn(message, f)
+	return nil
 }
 
 func (self *PopupHandler) ErrorHandler(err error) error {

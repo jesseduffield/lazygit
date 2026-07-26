@@ -65,6 +65,10 @@ func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task
 	})
 }
 
+// WithWaitingStatusImpl is WithWaitingStatus for callers that already run on a
+// goroutine of their own (e.g. the auto-fetch poller) rather than wanting the
+// work dispatched to a worker. task is used to hide the status while the task
+// is paused; it may be nil for callers whose f ignores its task.
 func (self *AppStatusHelper) WithWaitingStatusImpl(message string, f func(gocui.Task) error, task gocui.Task) error {
 	// A waiting status means lazygit is driving a git operation itself (often
 	// one that internally runs a rebase and continues it). Pause the background
@@ -78,16 +82,33 @@ func (self *AppStatusHelper) WithWaitingStatusImpl(message string, f func(gocui.
 	})
 }
 
-func (self *AppStatusHelper) WithWaitingStatusSync(message string, f func() error) error {
-	self.c.PauseBackgroundRefreshes(true)
-	defer self.c.PauseBackgroundRefreshes(false)
-
-	return self.statusMgr().WithWaitingStatus(message, func() {}, func(*status.WaitingStatusHandle) error {
-		stop := make(chan struct{})
-		defer func() { close(stop) }()
-		self.renderAppStatusSync(stop)
-
-		return f()
+// WithWaitingStatusBlockingInput is like WithWaitingStatus, but it also blocks
+// keyboard input for the whole duration of the operation: keys the user presses
+// while it runs are buffered and replayed against the post-operation state (see
+// gocui.BeginBlockingEvents). Use it for operations that manipulate an
+// in-progress rebase or otherwise rewrite commits, where a racing keypress
+// would target the wrong commit or todo.
+//
+// Must be called on the UI thread: the block is begun synchronously here, before
+// the operation is dispatched to a worker, so no keypress can slip through in
+// between.
+func (self *AppStatusHelper) WithWaitingStatusBlockingInput(message string, f func(gocui.Task) error) {
+	self.c.GocuiGui().BeginBlockingEvents()
+	// Hide the rebasing-mode indicator (and its reset button) while we drive the
+	// rebase ourselves; it reflects the transient on-disk state and would
+	// otherwise flash on for the duration of the operation.
+	self.modeHelper.SetSuppressRebasingMode(true)
+	self.c.OnWorker(func(task gocui.Task) error {
+		// End the block and restore the mode indicator once the operation and its
+		// refresh have applied their UI updates: OnUIThread queues this after the
+		// refresh's model bounces and Then (which RefreshFromWorker has already
+		// enqueued by the time f returns), so the replayed keys act on the
+		// refreshed state and any resulting rebase state shows correctly.
+		defer self.c.OnUIThread(func() error {
+			self.modeHelper.SetSuppressRebasingMode(false)
+			return self.c.GocuiGui().EndBlockingEvents()
+		})
+		return self.WithWaitingStatusImpl(message, f, task)
 	})
 }
 
@@ -100,21 +121,36 @@ func (self *AppStatusHelper) GetStatusString() string {
 	return appStatus
 }
 
+// renderAppStatus ensures the render loop that keeps the app-status view up to
+// date is running. There is one loop for the whole status stack, no matter how
+// many statuses are showing: it draws whatever the top status currently is,
+// and exits after drawing a final empty frame once the last status is removed.
+//
+// The loop always runs as a background task, regardless of what kind of
+// operation owns a status: rendering runs no git commands, so it must never
+// count towards lazygit being busy — otherwise it would block repo switching
+// for as long as anything is showing (e.g. for the whole duration of a hung
+// background fetch, or of a toast fading). A foreground operation's busy-ness
+// is carried by its own worker task, not by the renderer.
 func (self *AppStatusHelper) renderAppStatus() {
-	self.c.OnWorker(func(_ gocui.Task) error {
+	if !self.statusMgr().ClaimRenderLoop() {
+		return
+	}
+
+	self.c.OnWorkerBackground(func(_ gocui.Task) error {
 		ticker := time.NewTicker(time.Millisecond * time.Duration(self.c.UserConfig().Gui.Spinner.Rate))
 		defer ticker.Stop()
 		prevAppStatus := ""
 		for range ticker.C {
 			appStatus, color := self.statusMgr().GetStatusString(self.c.UserConfig())
 
-			update := self.c.OnUIThreadContentOnly
+			update := self.c.OnUIThreadContentOnlyBackground
 			if utils.StringWidth(appStatus) != utils.StringWidth(prevAppStatus) {
 				// Need a full layout whenever the width of the status string changes. This can't
 				// happen during normal spinning because we validate that all spinner frames have
 				// the same width, so typically this will only be triggered at the beginning and end
 				// of a status, or if the status string changes midway for some reason.
-				update = self.c.OnUIThread
+				update = self.c.OnUIThreadBackground
 			}
 			update(func() error {
 				self.c.Views().AppStatus.FgColor = color
@@ -123,64 +159,12 @@ func (self *AppStatusHelper) renderAppStatus() {
 			})
 			prevAppStatus = appStatus
 
-			if appStatus == "" {
+			// Checked after rendering, so that the frame which clears the view
+			// has already been drawn when we exit.
+			if self.statusMgr().ReleaseRenderLoopIfEmpty() {
 				break
 			}
 		}
 		return nil
 	})
-}
-
-func (self *AppStatusHelper) renderAppStatusSync(stop chan struct{}) {
-	go func() {
-		ticker := time.NewTicker(time.Millisecond * time.Duration(self.c.UserConfig().Gui.Spinner.Rate))
-		defer ticker.Stop()
-
-		// Write the status into the view before the first layout below, so that
-		// layout (which sizes the bottom line based on the actual content of the
-		// AppStatus view) leaves room for it and it shows right away. The ticker
-		// only updates the spinner frame using ForceFlushViewsContentOnly, so this
-		// doesn't re-layout.
-		self.setAppStatusContent()
-
-		// Forcing a re-layout and redraw after we added the waiting status;
-		// this is needed in case the gui.showBottomLine config is set to false,
-		// to make sure the bottom line appears. It's also useful for redrawing
-		// once after each of several consecutive keypresses, e.g. pressing
-		// ctrl-j to move a commit down several steps.
-		_ = self.c.GocuiGui().ForceLayoutAndRedraw()
-
-		self.modeHelper.SetSuppressRebasingMode(true)
-		defer func() { self.modeHelper.SetSuppressRebasingMode(false) }()
-
-	outer:
-		for {
-			select {
-			case <-ticker.C:
-				self.setAppStatusContent()
-				// Redraw all views of the bottom line:
-				bottomLineViews := []*gocui.View{
-					self.c.Views().AppStatus, self.c.Views().Options, self.c.Views().Information,
-					self.c.Views().StatusSpacer1, self.c.Views().StatusSpacer2,
-				}
-				_ = self.c.GocuiGui().ForceFlushViewsContentOnly(bottomLineViews)
-			case <-stop:
-				// Clear the status from the view and re-layout, otherwise the
-				// stale content would keep layout reserving room for it forever.
-				// The UI thread is free again at this point, so we go through
-				// OnUIThread like the async renderAppStatus does.
-				self.c.OnUIThread(func() error {
-					self.c.SetViewContent(self.c.Views().AppStatus, "")
-					return nil
-				})
-				break outer
-			}
-		}
-	}()
-}
-
-func (self *AppStatusHelper) setAppStatusContent() {
-	appStatus, color := self.statusMgr().GetStatusString(self.c.UserConfig())
-	self.c.Views().AppStatus.FgColor = color
-	self.c.SetViewContent(self.c.Views().AppStatus, appStatus)
 }

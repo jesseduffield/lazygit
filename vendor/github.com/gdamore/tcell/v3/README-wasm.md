@@ -24,6 +24,8 @@ cp -R webfiles/ghostty-web /path/to/dir/to/serve/
 
 The vendored `ghostty-web.js` is intentionally browser-only. Its upstream Node `readFile` fallback import is removed so browser-oriented servers and bundlers such as Vite do not try to resolve a Node file-system shim; the bundled code loads `ghostty-vt.wasm` with `fetch`.
 
+The vendored `ghostty-web.js` is also de-inlined: upstream embeds a base64 copy of `ghostty-vt.wasm` twice inside the JS (as default candidates for `Ghostty.load()`), which more than tripled the shipped bytes. Those inline `data:application/wasm;base64,...` defaults are removed; `tcell.js` passes an explicit URL to `Ghostty.load()`, and the `./ghostty-vt.wasm` / `/ghostty-vt.wasm` relative paths remain as no-argument fallbacks. The wasm is therefore shipped once, as the separate `ghostty-vt.wasm`.
+
 For example:
 
 ```sh

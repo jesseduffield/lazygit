@@ -35,8 +35,8 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 		},
 		{
 			Keys:            opts.GetKeys(opts.Config.Main.PickBothHunks),
-			Handler:         self.withRenderAndFocus(self.HandlePickAllHunks),
-			Description:     self.c.Tr.PickAllHunks,
+			Handler:         self.withRenderAndFocus(self.HandlePickBothHunks),
+			Description:     self.c.Tr.PickBothHunks,
 			DisplayOnScreen: true,
 		},
 		{
@@ -247,8 +247,8 @@ func (self *MergeConflictsController) HandlePickHunk() error {
 	return self.pickSelection(self.context().GetState().Selection())
 }
 
-func (self *MergeConflictsController) HandlePickAllHunks() error {
-	return self.pickSelection(mergeconflicts.ALL)
+func (self *MergeConflictsController) HandlePickBothHunks() error {
+	return self.pickSelection(mergeconflicts.BOTH)
 }
 
 func (self *MergeConflictsController) pickSelection(selection mergeconflicts.Selection) error {
@@ -290,8 +290,8 @@ func (self *MergeConflictsController) resolveConflict(selection mergeconflicts.S
 		logStr = "Picking middle hunk"
 	case mergeconflicts.BOTTOM:
 		logStr = "Picking bottom hunk"
-	case mergeconflicts.ALL:
-		logStr = "Picking all hunks"
+	case mergeconflicts.BOTH:
+		logStr = "Picking both hunks"
 	}
 	self.c.LogAction("Resolve merge conflict")
 	self.c.LogCommand(logStr, false)
@@ -302,7 +302,7 @@ func (self *MergeConflictsController) resolveConflict(selection mergeconflicts.S
 func (self *MergeConflictsController) onLastConflictResolved() {
 	// as part of refreshing files, we handle the situation where a file has had
 	// its merge conflicts resolved.
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 }
 
 func (self *MergeConflictsController) openMergeConflictMenu() error {

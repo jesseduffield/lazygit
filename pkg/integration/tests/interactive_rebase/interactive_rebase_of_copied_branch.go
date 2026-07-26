@@ -25,19 +25,19 @@ var InteractiveRebaseOfCopiedBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI * commit 03"),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
+				Contains("CI * commit-03"),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
 			).
-			NavigateToLine(Contains("commit 01")).
+			NavigateToLine(Contains("commit-01")).
 			Press(keys.Universal.Edit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
 				// No update-ref todo for branch1 here, even though command-line git would have added it
-				Contains("pick").Contains("CI commit 03"),
-				Contains("pick").Contains("CI commit 02"),
+				Contains("pick").Contains("CI commit-03"),
+				Contains("pick").Contains("CI commit-02"),
 				Contains("--- Commits ---"),
-				Contains("CI commit 01"),
+				Contains("CI commit-01"),
 			)
 	},
 })
