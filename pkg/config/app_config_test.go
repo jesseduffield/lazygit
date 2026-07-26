@@ -567,7 +567,7 @@ gui:
 
     # Color of keybindings help text in the bottom line
     optionsTextColor:
-      - blue
+      - white
 
     # Background color of selected line.
     # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
