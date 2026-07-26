@@ -118,7 +118,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Changing Directory On Exit](#changing-directory-on-exit)
   - [Undo/Redo](#undoredo)
 - [Configuration](#configuration)
-  - [Custom Pagers](#custom-pagers)
+  - [Custom Diff Renderers](#custom-diff-renderers)
   - [Custom Commands](#custom-commands)
   - [Git flow support](#git-flow-support)
 - [Contributing](#contributing)
@@ -590,9 +590,9 @@ See the [docs](/docs/Undoing.md)
 
 Check out the [configuration docs](docs/Config.md).
 
-### Custom Pagers
+### Custom Diff Renderers
 
-See the [docs](docs/Custom_Pagers.md)
+See the [docs](docs/Custom_DiffRenderers.md)
 
 ### Custom Commands
 

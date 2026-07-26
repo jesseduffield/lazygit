@@ -300,7 +300,7 @@ type GitConfig struct {
 	//   # applicable if the type is 'rawGit'.
 	//   args: []
 	//
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md for more information.
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_DiffRenderers.md for more information.
 	DiffRenderers []DiffRendererConfig `yaml:"diffRenderers"`
 	// Config relating to committing
 	Commit CommitConfig `yaml:"commit"`

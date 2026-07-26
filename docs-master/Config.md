@@ -390,7 +390,7 @@ git:
   #   # applicable if the type is 'rawGit'.
   #   args: []
   #
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_DiffRenderers.md
   # for more information.
   diffRenderers: []
 
