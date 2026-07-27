@@ -113,18 +113,18 @@ func (self *GitCommandBuilder) GitDirIf(condition bool, path string) *GitCommand
 	return self
 }
 
-func (self *GitCommandBuilder) AddCommonDiffArgs(pagerConfig *config.PagerConfig, userConfig *config.UserConfig, forUI bool) *GitCommandBuilder {
+func (self *GitCommandBuilder) AddCommonDiffArgs(diffRendererConfigManager *config.DiffRendererConfigManager, userConfig *config.UserConfig, forUI bool) *GitCommandBuilder {
 	contextSize := userConfig.Git.DiffContextSize
-	extDiffCmd := pagerConfig.GetExternalDiffCommand(contextSize)
-	useExtDiff := forUI && extDiffCmd != ""
-	useExtDiffGitConfig := forUI && pagerConfig.GetUseExternalDiffGitConfig()
+	extDiffCmd := diffRendererConfigManager.GetExternalDiffCommand(contextSize)
+	useExtDiff := forUI && diffRendererConfigManager.GetDiffRendererType() == config.DiffRendererType_ExtDiff
 
 	return self.
-		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
-		ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
+		ConfigIf(forUI && extDiffCmd != "", "diff.external="+extDiffCmd).
+		ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		ArgIf(forUI && userConfig.Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
-		Arg(fmt.Sprintf("--find-renames=%d%%", userConfig.Git.RenameSimilarityThreshold))
+		Arg(fmt.Sprintf("--find-renames=%d%%", userConfig.Git.RenameSimilarityThreshold)).
+		ArgIf(forUI, diffRendererConfigManager.GetRawGitArgs()...)
 }
 
 func (self *GitCommandBuilder) ToArgv() []string {

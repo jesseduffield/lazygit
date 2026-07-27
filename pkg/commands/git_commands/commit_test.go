@@ -255,7 +255,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 		contextSize         uint64
 		similarityThreshold int
 		ignoreWhitespace    bool
-		pagerConfig         *config.PagingConfig
+		diffRendererConfig  *config.DiffRendererConfig
 		expected            []string
 	}
 
@@ -266,7 +266,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			pagerConfig:         nil,
+			diffRendererConfig:  nil,
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
@@ -275,7 +275,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			pagerConfig:         nil,
+			diffRendererConfig:  nil,
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--", "file.txt"},
 		},
 		{
@@ -284,7 +284,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         77,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			pagerConfig:         nil,
+			diffRendererConfig:  nil,
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=77", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
@@ -293,7 +293,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 33,
 			ignoreWhitespace:    false,
-			pagerConfig:         nil,
+			diffRendererConfig:  nil,
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=3", "--find-renames=33%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
@@ -302,7 +302,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         77,
 			similarityThreshold: 50,
 			ignoreWhitespace:    true,
-			pagerConfig:         nil,
+			diffRendererConfig:  nil,
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=77", "--ignore-all-space", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
@@ -311,7 +311,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			pagerConfig:         &config.PagingConfig{ExternalDiffCommand: "difft --color=always"},
+			diffRendererConfig:  &config.DiffRendererConfig{Type: "extDiff", Command: "difft --color=always"},
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.external=difft --color=always", "-c", "diff.noprefix=false", "show", "--ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
@@ -320,7 +320,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			pagerConfig:         &config.PagingConfig{UseExternalDiffGitConfig: true},
+			diffRendererConfig:  &config.DiffRendererConfig{Type: "extDiff"},
 			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 	}
@@ -328,8 +328,8 @@ func TestCommitShowCmdObj(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
-			if s.pagerConfig != nil {
-				userConfig.Git.Pagers = []config.PagingConfig{*s.pagerConfig}
+			if s.diffRendererConfig != nil {
+				userConfig.Git.DiffRenderers = []config.DiffRendererConfig{*s.diffRendererConfig}
 			}
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
 			userConfig.Git.DiffContextSize = s.contextSize

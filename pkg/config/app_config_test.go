@@ -83,24 +83,28 @@ func TestMigrationOfRenamedKeys(t *testing.T) {
 		},
 		{
 			name: "Rename several",
-			input: `gui:
-  windowSize: half
-  skipUnstageLineWarning: true
-keybinding:
-  universal:
-    executeCustomCommand: a
-`,
-			expected: `gui:
-  screenMode: half
-  skipDiscardChangeWarning: true
-keybinding:
-  universal:
-    executeShellCommand: a
-`,
+			input: "gui:\n" +
+				"  windowSize: half\n" +
+				"  skipUnstageLineWarning: true\n" +
+				"keybinding:\n" +
+				"  universal:\n" +
+				"    executeCustomCommand: a\n" +
+				"    cyclePagers: b\n" +
+				"    cyclePagersReverse: c\n",
+			expected: "gui:\n" +
+				"  screenMode: half\n" +
+				"  skipDiscardChangeWarning: true\n" +
+				"keybinding:\n" +
+				"  universal:\n" +
+				"    executeShellCommand: a\n" +
+				"    cycleDiffRenderers: b\n" +
+				"    cycleDiffRenderersReverse: c\n",
 			expectedDidChange: true,
 			expectedChanges: []string{
 				"Renamed 'gui.skipUnstageLineWarning' to 'skipDiscardChangeWarning'",
 				"Renamed 'keybinding.universal.executeCustomCommand' to 'executeShellCommand'",
+				"Renamed 'keybinding.universal.cyclePagers' to 'cycleDiffRenderers'",
+				"Renamed 'keybinding.universal.cyclePagersReverse' to 'cycleDiffRenderersReverse'",
 				"Renamed 'gui.windowSize' to 'screenMode'",
 			},
 		},
@@ -595,6 +599,7 @@ func TestPagerMigration(t *testing.T) {
 		expectedDidChange bool
 		expectedChanges   []string
 	}{
+		// Migrate 'paging' to 'pagers' array
 		{
 			name:              "Incomplete Configuration Passes uneventfully",
 			input:             "git:",
@@ -603,68 +608,203 @@ func TestPagerMigration(t *testing.T) {
 		},
 		{
 			name: "No paging section",
-			input: `git:
-  autoFetch: true
-`,
-			expected: `git:
-  autoFetch: true
-`,
-			expectedDidChange: false,
-			expectedChanges:   []string{},
-		},
-		{
-			name: "Both paging and pagers exist",
-			input: `git:
-  paging:
-    pager: delta --dark --paging=never
-  pagers:
-    - pager: diff-so-fancy
-`,
-			expected: `git:
-  paging:
-    pager: delta --dark --paging=never
-  pagers:
-    - pager: diff-so-fancy
-`,
+			input: "git:\n" +
+				"  autoFetch: true\n",
+			expected: "git:\n" +
+				"  autoFetch: true\n",
 			expectedDidChange: false,
 			expectedChanges:   []string{},
 		},
 		{
 			name: "paging is not an object",
-			input: `git:
-  paging: 5
-`,
-			expected: `git:
-  paging: 5
-`,
+			input: "git:\n" +
+				"  paging: 5\n",
+			expected: "git:\n" +
+				"  paging: 5\n",
 			expectedDidChange: false,
 			expectedChanges:   []string{},
 		},
 		{
-			name: "paging is moved to pagers array (keeping the order)",
-			input: `git:
-  paging:
-    pager: delta --dark --paging=never
-  autoFetch: true
-`,
-			expected: `git:
-  pagers:
-    - pager: delta --dark --paging=never
-  autoFetch: true
-`,
-			expectedDidChange: true,
-			expectedChanges:   []string{"Moved git.paging object to git.pagers array"},
+			name: "pagers is not an array",
+			input: "git:\n" +
+				"  pagers: 5\n",
+			expected: "git:\n" +
+				"  pagers: 5\n",
+			expectedDidChange: false,
+			expectedChanges:   []string{},
 		},
 		{
-			name: "paging is moved to pagers array even if empty",
-			input: `git:
-  paging: {}
-`,
-			expected: `git:
-  pagers: [{}]
-`,
+			name: "paging and pagers coexist",
+			input: "git:\n" +
+				"  paging:\n" +
+				"    pager: delta --dark --paging=never\n" +
+				"  pagers:\n" +
+				"    - pager: diff-so-fancy\n",
+			expected: "git:\n" +
+				"  paging:\n" +
+				"    pager: delta --dark --paging=never\n" +
+				"  diffRenderers:\n" +
+				"    - command: diff-so-fancy\n",
 			expectedDidChange: true,
-			expectedChanges:   []string{"Moved git.paging object to git.pagers array"},
+			expectedChanges: []string{
+				"Renamed git.pagers to git.diffRenderers",
+				"Renamed 'pager' to 'command' in git pager",
+			},
+		},
+		{
+			name: "paging and diffRenderers coexist",
+			input: "git:\n" +
+				"  paging:\n" +
+				"    pager: delta --dark --paging=never\n" +
+				"  diffRenderers:\n" +
+				"    - command: diff-so-fancy\n",
+			expected: "git:\n" +
+				"  paging:\n" +
+				"    pager: delta --dark --paging=never\n" +
+				"  diffRenderers:\n" +
+				"    - command: diff-so-fancy\n",
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "pagers and diffRenderers coexist",
+			input: "git:\n" +
+				"  pagers:\n" +
+				"    - pager: delta --dark --paging=never\n" +
+				"  diffRenderers:\n" +
+				"    - command: diff-so-fancy\n",
+			expected: "git:\n" +
+				"  pagers:\n" +
+				"    - pager: delta --dark --paging=never\n" +
+				"  diffRenderers:\n" +
+				"    - command: diff-so-fancy\n",
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "paging is moved to diffRenderers array preserving fields and order",
+			input: "git:\n" +
+				"  paging:\n" +
+				"    name: delta\n" +
+				"    colorArg: never\n" +
+				"    pager: delta --dark --paging=never\n" +
+				"  autoFetch: true\n",
+			expected: "git:\n" +
+				"  diffRenderers:\n" +
+				"    - name: delta\n" +
+				"      colorArg: never\n" +
+				"      command: delta --dark --paging=never\n" +
+				"  autoFetch: true\n",
+			expectedDidChange: true,
+			expectedChanges: []string{
+				"Moved git.paging object to git.pagers array",
+				"Renamed git.pagers to git.diffRenderers",
+				"Renamed 'pager' to 'command' in git pager",
+			},
+		},
+		{
+			name: "paging is moved to diffRenderers array even if empty",
+			input: "git:\n" +
+				"  paging: {}\n",
+			expected: "git:\n" +
+				"  diffRenderers:\n" +
+				"    - type: rawGit\n",
+			expectedDidChange: true,
+			expectedChanges: []string{
+				"Moved git.paging object to git.pagers array",
+				"Renamed git.pagers to git.diffRenderers",
+				"Changed git pager without a command to 'type: rawGit'",
+			},
+		},
+
+		// Migrate 'pagers' array to 'diffRenderers' array
+		{
+			name: "empty pagers array is renamed",
+			input: "git:\n" +
+				"  pagers: []\n",
+			expected: "git:\n" +
+				"  diffRenderers: []\n",
+			expectedDidChange: true,
+			expectedChanges:   []string{"Renamed git.pagers to git.diffRenderers"},
+		},
+		{
+			name: "pagers array entries are adapted",
+			input: "git:\n" +
+				"  pagers:\n" +
+				"    - name: delta\n" +
+				"      colorArg: never\n" +
+				"      pager: delta --dark --paging=never\n" +
+				"    - name: difft\n" +
+				"      colorArg: never\n" +
+				"      externalDiffCommand: difft --color=always\n" +
+				"    - name: git-config\n" +
+				"      colorArg: never\n" +
+				"      useExternalDiffGitConfig: TRUE\n" +
+				"    - name: git\n" +
+				"      colorArg: never\n" +
+				"  autoFetch: true\n",
+			expected: "git:\n" +
+				"  diffRenderers:\n" +
+				"    - name: delta\n" +
+				"      colorArg: never\n" +
+				"      command: delta --dark --paging=never\n" +
+				"    - name: difft\n" +
+				"      colorArg: never\n" +
+				"      command: difft --color=always\n" +
+				"      type: extDiff\n" +
+				"    - name: git-config\n" +
+				"      colorArg: never\n" +
+				"      type: extDiff\n" +
+				"    - name: git\n" +
+				"      colorArg: never\n" +
+				"      type: rawGit\n" +
+				"  autoFetch: true\n",
+			expectedDidChange: true,
+			expectedChanges: []string{
+				"Renamed git.pagers to git.diffRenderers",
+				"Renamed 'pager' to 'command' in git pager",
+				"Changed 'externalDiffCommand' to 'command' with 'type: extDiff' in git pager",
+				"Changed 'useExternalDiffGitConfig: true' to 'type: extDiff' in git pager",
+				"Changed git pager without a command to 'type: rawGit'",
+			},
+		},
+		{
+			name: "zero-valued mechanism fields do not take precedence and are removed",
+			input: "git:\n" +
+				"  pagers:\n" +
+				"    - pager: delta --dark --paging=never\n" +
+				"      externalDiffCommand: null\n" +
+				"      useExternalDiffGitConfig: false\n" +
+				"    - pager: \"\"\n" +
+				"      externalDiffCommand: difft --color=always\n" +
+				"      useExternalDiffGitConfig: false\n" +
+				"    - pager: null\n" +
+				"      externalDiffCommand: \"\"\n" +
+				"      useExternalDiffGitConfig: YES\n" +
+				"    - pager: \"\"\n" +
+				"      externalDiffCommand:\n" +
+				"      useExternalDiffGitConfig: false\n" +
+				"    - useExternalDiffGitConfig: null\n",
+			expected: "git:\n" +
+				"  diffRenderers:\n" +
+				"    - command: delta --dark --paging=never\n" +
+				"    - command: difft --color=always\n" +
+				"      type: extDiff\n" +
+				"    - type: extDiff\n" +
+				"    - type: rawGit\n" +
+				"    - type: rawGit\n",
+			expectedDidChange: true,
+			expectedChanges: []string{
+				"Renamed git.pagers to git.diffRenderers",
+				"Renamed 'pager' to 'command' in git pager",
+				"Removed empty 'externalDiffCommand' from git pager",
+				"Removed 'useExternalDiffGitConfig: false' from git pager",
+				"Changed 'externalDiffCommand' to 'command' with 'type: extDiff' in git pager",
+				"Removed empty 'pager' from git pager",
+				"Changed 'useExternalDiffGitConfig: true' to 'type: extDiff' in git pager",
+				"Changed git pager without a command to 'type: rawGit'",
+				"Removed empty 'useExternalDiffGitConfig' from git pager",
+			},
 		},
 	}
 

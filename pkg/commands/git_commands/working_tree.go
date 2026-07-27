@@ -393,7 +393,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool,
 // in the working tree. When pathOverrides is non-empty, those paths are used instead of
 // the node's path (used to diff only filtered/visible files within a directory).
 func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool, pathOverrides []string) *oscommands.CmdObj {
-	colorArg := self.pagerConfig.GetColorArg()
+	colorArg := self.diffRendererConfigManager.GetColorArg()
 	if plain {
 		colorArg = "never"
 	}
@@ -407,7 +407,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	}
 
 	cmdArgs := NewGitCmd("diff").
-		AddCommonDiffArgs(self.pagerConfig, self.UserConfig(), !plain).
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
 		Arg("--submodule").
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
 		ArgIf(cached, "--cached").
@@ -435,14 +435,14 @@ func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bo
 }
 
 func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool) *oscommands.CmdObj {
-	colorArg := self.pagerConfig.GetColorArg()
+	colorArg := self.diffRendererConfigManager.GetColorArg()
 	if plain {
 		colorArg = "never"
 	}
 
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").
-		AddCommonDiffArgs(self.pagerConfig, self.UserConfig(), !plain).
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
 		Arg("--submodule").
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
 		Arg(from).

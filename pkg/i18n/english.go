@@ -612,14 +612,14 @@ type TranslationSet struct {
 	ViewResetToUpstreamOptions            string
 	NextScreenMode                        string
 	PrevScreenMode                        string
-	CyclePagers                           string
-	CyclePagersTooltip                    string
-	CyclePagersReverse                    string
-	CyclePagersReverseTooltip             string
-	CyclePagersDisabledReason             string
-	SelectedPager                         string
-	DefaultPagerName                      string
-	ExternalDiffPagerName                 string
+	CycleDiffRenderers                    string
+	CycleDiffRenderersTooltip             string
+	CycleDiffRenderersReverse             string
+	CycleDiffRenderersReverseTooltip      string
+	CycleDiffRenderersDisabledReason      string
+	SelectedDiffRenderers                 string
+	DefaultDiffRendererName               string
+	ExternalDiffDiffRendererName          string
 	StartSearch                           string
 	StartFilter                           string
 	SelectRemoteRepository                string
@@ -1767,14 +1767,14 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewResetToUpstreamOptions:       "View upstream reset options",
 		NextScreenMode:                   "Next screen mode (normal/half/fullscreen)",
 		PrevScreenMode:                   "Prev screen mode",
-		CyclePagers:                      "Cycle pagers",
-		CyclePagersTooltip:               "Choose the next pager in the list of configured pagers.",
-		CyclePagersReverse:               "Cycle pagers (reverse)",
-		CyclePagersReverseTooltip:        "Choose the previous pager in the list of configured pagers.",
-		CyclePagersDisabledReason:        "No other pagers configured",
-		SelectedPager:                    "Pager: {{.name}} ({{.current}} of {{.total}})",
-		DefaultPagerName:                 "(default)",
-		ExternalDiffPagerName:            "(external diff)",
+		CycleDiffRenderers:               "Cycle diff renderers",
+		CycleDiffRenderersTooltip:        "Choose the next renderer in the list of configured diff renderers.",
+		CycleDiffRenderersReverse:        "Cycle diff renderers (reverse)",
+		CycleDiffRenderersReverseTooltip: "Choose the previous renderer in the list of configured diff renderers.",
+		CycleDiffRenderersDisabledReason: "No other diff renderers configured",
+		SelectedDiffRenderers:            "Diff renderer: {{.name}} ({{.current}} of {{.total}})",
+		DefaultDiffRendererName:          "(default)",
+		ExternalDiffDiffRendererName:     "(external diff)",
 		StartSearch:                      "Search the current view by text",
 		StartFilter:                      "Filter the current view by text",
 		SelectRemoteRepository:           "Select base repository for pull requests",
@@ -2319,7 +2319,7 @@ keybinding:
     suspendApp: <disabled>
     redo: <ctrl+z>
 
-- The 'git.paging.useConfig' option has been removed. If you were relying on it to configure your pager, you'll have to explicitly set the pager again using the 'git.paging.pager' option.
+- The 'git.paging.useConfig' option has been removed. If you were relying on it to configure your pager, you'll have to explicitly set the command again using the 'git.diffRenderers.*.command' option.
 `,
 			"0.62.0": `- The default keybinding for submitting a commit from the commit description editor has changed from alt-enter to command-enter on Mac, or ctrl-enter on Linux and Windows; these are the same bindings that are used in many multi-line edit field situations, e.g. in GitHub comments. Unfortunately these are not supported by all terminals; see https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md#terminal-compatibility for more on that. If you want to revert this change, you can do so by adding the following to your config:
 
