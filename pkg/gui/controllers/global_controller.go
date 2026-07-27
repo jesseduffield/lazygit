@@ -195,14 +195,7 @@ func (self *GlobalController) onPagerChanged() {
 
 	pagerConfig := self.c.State().GetPagerConfig()
 	current, total := pagerConfig.CurrentPagerIndex()
-	name := pagerConfig.CurrentPagerName()
-	if name == "" {
-		if pagerConfig.CurrentPagerUsesGitConfigDiff() {
-			name = self.c.Tr.ExternalDiffPagerName
-		} else {
-			name = self.c.Tr.DefaultPagerName
-		}
-	}
+	name := pagerConfig.CurrentPagerName(self.c.Tr)
 	self.c.Toast(utils.ResolvePlaceholderString(self.c.Tr.SelectedPager, map[string]string{
 		"name":    name,
 		"current": strconv.Itoa(current + 1),

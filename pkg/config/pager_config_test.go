@@ -3,10 +3,13 @@ package config
 import (
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCurrentPagerName(t *testing.T) {
+	tr := i18n.EnglishTranslationSet()
+
 	scenarios := []struct {
 		name     string
 		pager    PagingConfig
@@ -33,9 +36,14 @@ func TestCurrentPagerName(t *testing.T) {
 			expected: "difft",
 		},
 		{
-			name:     "no name can be derived",
+			name:     "no name can be derived for external diff",
 			pager:    PagingConfig{UseExternalDiffGitConfig: true},
-			expected: "",
+			expected: tr.ExternalDiffPagerName,
+		},
+		{
+			name:     "no name can be derived for raw diff",
+			pager:    PagingConfig{},
+			expected: tr.DefaultPagerName,
 		},
 	}
 
@@ -45,7 +53,7 @@ func TestCurrentPagerName(t *testing.T) {
 			userConfig.Git.Pagers = []PagingConfig{s.pager}
 			config := NewPagerConfig(func() *UserConfig { return userConfig })
 
-			assert.Equal(t, s.expected, config.CurrentPagerName())
+			assert.Equal(t, s.expected, config.CurrentPagerName(tr))
 		})
 	}
 }
@@ -53,7 +61,8 @@ func TestCurrentPagerName(t *testing.T) {
 func TestCurrentPagerNameWithoutPagers(t *testing.T) {
 	config := NewPagerConfig(func() *UserConfig { return &UserConfig{} })
 
-	assert.Equal(t, "", config.CurrentPagerName())
+	tr := i18n.EnglishTranslationSet()
+	assert.Equal(t, tr.DefaultPagerName, config.CurrentPagerName(tr))
 }
 
 func TestCyclePagers(t *testing.T) {

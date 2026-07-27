@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -93,23 +94,21 @@ func (self *PagerConfig) CurrentPagerIndex() (int, int) {
 }
 
 // CurrentPagerName returns a name for the current pager, suitable for showing
-// to the user. It returns an empty string if no name can be derived; callers
-// should substitute a localized fallback in that case.
-func (self *PagerConfig) CurrentPagerName() string {
+// to the user.
+func (self *PagerConfig) CurrentPagerName(tr *i18n.TranslationSet) string {
+	name := ""
 	currentPagerConfig := self.currentPagerConfig()
-	if currentPagerConfig == nil {
-		return ""
+	if currentPagerConfig != nil {
+		name = currentPagerConfig.displayName()
 	}
-	return currentPagerConfig.displayName()
-}
-
-// CurrentPagerUsesGitConfigDiff reports whether the current pager defers to
-// git's own external diff config. Such an entry has no name we can derive (the
-// actual command may even vary per file via .gitattributes), so callers show a
-// generic label rather than treating it like the default no-pager entry.
-func (self *PagerConfig) CurrentPagerUsesGitConfigDiff() bool {
-	currentPagerConfig := self.currentPagerConfig()
-	return currentPagerConfig != nil && currentPagerConfig.UseExternalDiffGitConfig
+	if name == "" {
+		if currentPagerConfig != nil && currentPagerConfig.UseExternalDiffGitConfig {
+			name = tr.ExternalDiffPagerName
+		} else {
+			name = tr.DefaultPagerName
+		}
+	}
+	return name
 }
 
 func (self *PagingConfig) displayName() string {
