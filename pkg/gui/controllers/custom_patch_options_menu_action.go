@@ -114,13 +114,13 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.PatchOptionsTitle, Items: menuItems})
 }
 
-func (self *CustomPatchOptionsMenuAction) getPatchCommitIndex() int {
+func (self *CustomPatchOptionsMenuAction) getPatchCommitIndex() (int, error) {
 	for index, commit := range self.c.Model().Commits {
 		if commit.Hash() == self.c.Git().Patch.PatchBuilder.To {
-			return index
+			return index, nil
 		}
 	}
-	return -1
+	return -1, errors.New(self.c.Tr.PatchCommitNotInCommitsErr)
 }
 
 func (self *CustomPatchOptionsMenuAction) returnFocusFromPatchExplorerIfNecessary() {
@@ -133,7 +133,10 @@ func (self *CustomPatchOptionsMenuAction) handleDeletePatchFromCommit() error {
 	self.returnFocusFromPatchExplorerIfNecessary()
 
 	commits := self.c.Model().Commits
-	commitIndex := self.getPatchCommitIndex()
+	commitIndex, err := self.getPatchCommitIndex()
+	if err != nil {
+		return err
+	}
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.RemovePatchFromCommit)
 		err := self.c.Git().Patch.DeletePatchesFromCommit(commits, commitIndex)
@@ -145,7 +148,10 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchToSelectedCommit() erro
 	self.returnFocusFromPatchExplorerIfNecessary()
 
 	commits := self.c.Model().Commits
-	commitIndex := self.getPatchCommitIndex()
+	commitIndex, err := self.getPatchCommitIndex()
+	if err != nil {
+		return err
+	}
 	toCommitIndex := self.c.Contexts().LocalCommits.GetSelectedLineIdx()
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.MovePatchToSelectedCommit)
@@ -163,7 +169,10 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 		Prompt: self.c.Tr.MustStashWarning,
 		HandleConfirm: func() error {
 			commits := self.c.Model().Commits
-			commitIndex := self.getPatchCommitIndex()
+			commitIndex, err := self.getPatchCommitIndex()
+			if err != nil {
+				return err
+			}
 			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.MovePatchIntoIndex)
 				err := self.c.Git().Patch.MovePatchIntoIndex(commits, commitIndex, mustStash)
@@ -176,7 +185,10 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 	self.returnFocusFromPatchExplorerIfNecessary()
 
-	commitIndex := self.getPatchCommitIndex()
+	commitIndex, err := self.getPatchCommitIndex()
+	if err != nil {
+		return err
+	}
 	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
 			// Pass a commit index of one less than the moved-from commit, so that
@@ -211,7 +223,10 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommitBefore() error {
 	self.returnFocusFromPatchExplorerIfNecessary()
 
-	commitIndex := self.getPatchCommitIndex()
+	commitIndex, err := self.getPatchCommitIndex()
+	if err != nil {
+		return err
+	}
 	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
 			// Pass a commit index of one less than the moved-from commit, so that

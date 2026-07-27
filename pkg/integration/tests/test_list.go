@@ -364,6 +364,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.MoveToIndexFromAddedFileWithConflict,
 	patch_building.MoveToIndexPartOfAdjacentAddedLines,
 	patch_building.MoveToIndexPartial,
+	patch_building.MoveToIndexWhenCommitNotInCurrentBranch,
 	patch_building.MoveToIndexWithConflict,
 	patch_building.MoveToIndexWithModifiedFile,
 	patch_building.MoveToIndexWorksEvenIfNoprefixIsSet,
