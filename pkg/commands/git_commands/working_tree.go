@@ -398,12 +398,8 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 		colorArg = "never"
 	}
 
-	contextSize := self.UserConfig().Git.DiffContextSize
 	prevPath := node.GetPreviousPath()
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
-	extDiffCmd := self.pagerConfig.GetExternalDiffCommand(contextSize)
-	useExtDiff := extDiffCmd != "" && !plain
-	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
 
 	paths := pathOverrides
 	if len(paths) == 0 {
@@ -411,13 +407,9 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	}
 
 	cmdArgs := NewGitCmd("diff").
-		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
-		ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
+		AddCommonDiffArgs(self.pagerConfig, self.UserConfig(), !plain).
 		Arg("--submodule").
-		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
-		ArgIf(!plain && self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
-		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
 		ArgIf(cached, "--cached").
 		ArgIf(noIndex, "--no-index").
 		Arg("--").
@@ -443,29 +435,19 @@ func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bo
 }
 
 func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool) *oscommands.CmdObj {
-	contextSize := self.UserConfig().Git.DiffContextSize
-
 	colorArg := self.pagerConfig.GetColorArg()
 	if plain {
 		colorArg = "never"
 	}
 
-	extDiffCmd := self.pagerConfig.GetExternalDiffCommand(contextSize)
-	useExtDiff := extDiffCmd != "" && !plain
-	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
-
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").
-		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
-		ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
+		AddCommonDiffArgs(self.pagerConfig, self.UserConfig(), !plain).
 		Arg("--submodule").
-		Arg(fmt.Sprintf("--unified=%d", contextSize)).
-		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
 		Arg(from).
 		Arg(to).
 		ArgIf(reverse, "-R").
-		ArgIf(!plain && self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg("--").
 		Arg(fileNames...).
 		Dir(self.repoPaths.worktreePath).
