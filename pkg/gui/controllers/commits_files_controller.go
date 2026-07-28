@@ -132,6 +132,13 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Tooltip:           self.c.Tr.ExpandAllTooltip,
 			GetDisabledReason: self.require(self.isInTreeMode),
 		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Files.CollapseParent),
+			Handler:           self.collapseParent,
+			Description:       self.c.Tr.CollapseParent,
+			Tooltip:           self.c.Tr.CollapseParentTooltip,
+			GetDisabledReason: self.require(self.isInTreeMode),
+		},
 	}
 
 	return bindings
@@ -597,6 +604,27 @@ func (self *CommitFilesController) collapseAll() error {
 
 func (self *CommitFilesController) expandAll() error {
 	self.context().CommitFileTreeViewModel.ExpandAll()
+
+	self.c.PostRefreshUpdate(self.context())
+
+	return nil
+}
+
+func (self *CommitFilesController) collapseParent() error {
+	node := self.getSelectedItem()
+	if node == nil {
+		return nil
+	}
+
+	viewModel := self.context().CommitFileTreeViewModel
+
+	parentPath, idx, found := collapseParentPath(node.GetInternalPath(), viewModel.GetIndexForPath)
+	if !found {
+		return nil
+	}
+
+	viewModel.CollapsedPaths().Collapse(parentPath)
+	viewModel.SetSelectedLineIdx(idx)
 
 	self.c.PostRefreshUpdate(self.context())
 

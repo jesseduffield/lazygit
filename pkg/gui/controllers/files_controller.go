@@ -206,6 +206,13 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Tooltip:           self.c.Tr.ExpandAllTooltip,
 			GetDisabledReason: self.require(self.isInTreeMode),
 		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Files.CollapseParent),
+			Handler:           self.collapseParent,
+			Description:       self.c.Tr.CollapseParent,
+			Tooltip:           self.c.Tr.CollapseParentTooltip,
+			GetDisabledReason: self.require(self.isInTreeMode),
+		},
 	}
 }
 
@@ -718,6 +725,53 @@ func (self *FilesController) expandAll() error {
 	self.c.PostRefreshUpdate(self.context())
 
 	return nil
+}
+
+func (self *FilesController) collapseParent() error {
+	node := self.context().GetSelected()
+	if node == nil {
+		return nil
+	}
+
+	viewModel := self.context().FileTreeViewModel
+
+	parentPath, idx, found := collapseParentPath(node.GetInternalPath(), viewModel.GetIndexForPath)
+	if !found {
+		return nil
+	}
+
+	viewModel.CollapsedPaths().Collapse(parentPath)
+	viewModel.SetSelectedLineIdx(idx)
+
+	self.c.PostRefreshUpdate(self.context())
+
+	return nil
+}
+
+// collapseParentPath walks up the internal-path segments of the tree from the
+// given node until it finds an existing ancestor node, since a compressed
+// directory (e.g. "dir/subdir" merged into one visual node) means the
+// immediate one-segment-up path isn't always addressable. The root node's
+// parent is itself, so backspacing from the top collapses the root.
+func collapseParentPath(internalPath string, getIndexForPath func(string) (int, bool)) (string, int, bool) {
+	segments := strings.Split(internalPath, "/")
+
+	if len(segments) == 1 {
+		if idx, ok := getIndexForPath(internalPath); ok {
+			return internalPath, idx, true
+		}
+		return "", 0, false
+	}
+
+	for len(segments) > 1 {
+		segments = segments[:len(segments)-1]
+		candidate := strings.Join(segments, "/")
+		if idx, ok := getIndexForPath(candidate); ok {
+			return candidate, idx, true
+		}
+	}
+
+	return "", 0, false
 }
 
 func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
