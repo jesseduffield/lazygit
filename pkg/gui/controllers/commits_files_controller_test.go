@@ -20,15 +20,13 @@ func Test_normalisedSelectedCommitFileNodes(t *testing.T) {
 			name:          "sibling directories whose names share a prefix are both kept",
 			files:         []string{"foo/file", "foobar/file"},
 			selectedPaths: []string{"foo", "foobar"},
-			// wrong: foobar is not inside foo, so it should be kept
-			expectedPaths: []string{"foo"},
+			expectedPaths: []string{"foo", "foobar"},
 		},
 		{
 			name:          "sibling files whose names share a prefix are both kept",
 			files:         []string{"a.txt", "a.txt.orig"},
 			selectedPaths: []string{"a.txt", "a.txt.orig"},
-			// wrong: a.txt.orig is not inside a.txt, so it should be kept
-			expectedPaths: []string{"a.txt"},
+			expectedPaths: []string{"a.txt", "a.txt.orig"},
 		},
 		{
 			name:          "a file inside a selected directory is dropped",
@@ -40,15 +38,13 @@ func Test_normalisedSelectedCommitFileNodes(t *testing.T) {
 			name:          "a directory inside a selected directory is dropped",
 			files:         []string{"foo/bar/file", "foo/baz/file", "foobar/file"},
 			selectedPaths: []string{"foo", "foo/bar", "foobar"},
-			// wrong: foobar is not inside foo, so it should be kept
-			expectedPaths: []string{"foo"},
+			expectedPaths: []string{"foo", "foobar"},
 		},
 		{
 			name:          "the root item drops everything below it",
 			files:         []string{"foo/file", "foobar/file"},
 			selectedPaths: []string{".", "foo", "foobar/file"},
-			// wrong: foo is inside the root item, so it should be dropped
-			expectedPaths: []string{".", "foo"},
+			expectedPaths: []string{"."},
 		},
 	}
 
