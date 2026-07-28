@@ -12,6 +12,8 @@ var (
 	TAG_ICON                     = "\uf02b"     // 
 	COMMIT_ICON                  = "\U000f0718" // 󰜘
 	MERGE_COMMIT_ICON            = "\U000f062d" // 󰘭
+	SIGNED_COMMIT_ICON           = "\uf023"     // 
+	UNSIGNED_COMMIT_ICON         = "\uf09c"     // 
 	DEFAULT_REMOTE_ICON          = "\U000f02a2" // 󰊢
 	STASH_ICON                   = "\uf01c"     // 
 	LINKED_WORKTREE_ICON         = "\U000f0339" // 󰌹
