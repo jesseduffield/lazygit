@@ -23,10 +23,17 @@ type IntegrationTest interface {
 // this is the interface through which our integration tests interact with the lazygit gui
 type GuiDriver interface {
 	PressKey(string)
+	// Like PressKey, but presses several keys in immediate succession, waiting
+	// for lazygit to become idle only after the last one. Use it to simulate a
+	// user typing faster than lazygit processes the input.
+	PressKeysRapidly(...string)
 	Click(int, int)
 	// Simulate the terminal window regaining focus (which triggers a reload of
 	// changed config files)
 	FocusIn()
+	// Simulate a terminal dispatching focus-in immediately followed by a click,
+	// without waiting for the focus refresh to finish in between.
+	FocusInAndClick(int, int)
 	Keys() config.KeybindingConfig
 	CurrentContext() types.Context
 	ContextForView(viewName string) types.Context

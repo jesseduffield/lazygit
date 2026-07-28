@@ -454,10 +454,31 @@ func (self *ViewDriver) PressFast(key config.Keybinding) *ViewDriver {
 	return self
 }
 
+// Presses the given keys in immediate succession, without waiting for lazygit
+// to become idle in between (Press waits after every key). Use this to
+// simulate a user typing faster than lazygit processes the input.
+func (self *ViewDriver) PressRapidly(keys ...config.Keybinding) *ViewDriver {
+	self.IsFocused()
+
+	self.t.pressRapidly(lo.Map(keys, func(key config.Keybinding, _ int) string {
+		return key[0]
+	}))
+
+	return self
+}
+
 func (self *ViewDriver) Click(x, y int) *ViewDriver {
 	offsetX, offsetY, _, _ := self.getView().Dimensions()
 
 	self.t.click(offsetX+1+x, offsetY+1+y)
+
+	return self
+}
+
+func (self *ViewDriver) FocusInAndClick(x, y int) *ViewDriver {
+	offsetX, offsetY, _, _ := self.getView().Dimensions()
+
+	self.t.focusInAndClick(offsetX+1+x, offsetY+1+y)
 
 	return self
 }

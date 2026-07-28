@@ -94,4 +94,19 @@ type RefreshOptions struct {
 	// fast. Background refreshes leave the suppression in place: not persisting
 	// the stat-cache is the right trade-off for unattended work.
 	Background bool
+
+	// When true, this foreground refresh does not block switching repos while
+	// it is in flight. A refresh is switch-safe by construction — its git
+	// commands run against the repo it was started for, and the generation
+	// guard drops its model/view updates if the repo changed — but a refresh
+	// triggered by a user operation still blocks switching (its tasks count
+	// towards Busy()), because the operation's follow-up work isn't covered
+	// by those guards. A refresh that merely reloads state (on focus, after a
+	// repo switch, after returning from a subprocess) has no such follow-up,
+	// so it opts in here and a repo switch during it is allowed rather than
+	// refused with a toast.
+	//
+	// Must not be combined with Then: Then is not generation-guarded, so it
+	// would run against the newly switched-to repo.
+	DontBlockRepoSwitch bool
 }

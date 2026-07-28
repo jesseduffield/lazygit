@@ -159,8 +159,7 @@ func (self *RemotesController) addAndCheckoutRemote(remoteName string, remoteUrl
 	// Refresh the remotes so that we can select the new one. The remotes model
 	// update is bounced onto the UI thread, so the selection (which reads
 	// Model.Remotes) has to run in Then; reading it inline here would see the
-	// previous model. Loading remotes is not expensive, so a sync refresh is
-	// affordable.
+	// previous model.
 	self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.REMOTES},
 		Then: func() error {

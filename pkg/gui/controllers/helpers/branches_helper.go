@@ -392,7 +392,11 @@ func (self *BranchesHelper) deleteRemoteBranches(remoteBranches []*models.Remote
 	return nil
 }
 
-func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool) error {
+// fetchGeneration must be the repo generation from when the fetch started,
+// captured by the caller before running the fetch: the background fetch
+// doesn't block repo switching and is a network call, so the window in which
+// the user can switch repos spans the whole fetch, not just this refresh.
+func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool, fetchGeneration int) error {
 	scope := []types.RefreshableView{
 		types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS, types.PULL_REQUESTS,
 	}
@@ -408,6 +412,12 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool) er
 		Background: background,
 		Then: func() error {
 			if fetchErr != nil {
+				return nil
+			}
+			// Then callbacks are not generation-guarded, so check explicitly:
+			// if the repo was switched since the fetch started, don't forward
+			// this repo's branches on the strength of another repo's fetch.
+			if self.c.State().GetRepoGeneration() != fetchGeneration {
 				return nil
 			}
 			err := self.AutoForwardBranches(background)

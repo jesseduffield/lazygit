@@ -390,7 +390,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			}
 
 			gui.c.Log.Info("Receiving focus - refreshing")
-			gui.helpers.Refresh.Refresh(types.RefreshOptions{})
+			gui.helpers.Refresh.Refresh(types.RefreshOptions{DontBlockRepoSwitch: true})
 			return reloadErr
 		}
 
@@ -1031,7 +1031,7 @@ func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *oscommands.CmdOb
 		return err
 	}
 
-	gui.c.Refresh(types.RefreshOptions{})
+	gui.c.Refresh(types.RefreshOptions{DontBlockRepoSwitch: true})
 
 	return nil
 }
@@ -1103,12 +1103,31 @@ func (gui *Gui) runSubprocess(cmdObj *oscommands.CmdObj) error {
 	return err
 }
 
+var isFirstRefreshAfterStartup = true
+
 func (gui *Gui) loadNewRepo() error {
 	if err := gui.updateRecentRepoList(); err != nil {
 		return err
 	}
 
-	gui.c.Refresh(types.RefreshOptions{})
+	// On startup we don't want to block input during the initial refresh (it
+	// should be possible to press, say, `4` to jump to the commits panel right
+	// after startup without a delay), and we also want panels to show their
+	// contents as soon as possible; it doesn't matter so much that it's not in
+	// sync, we go from empty to populated here. However, when switching repos
+	// it can be confusing that some panels that are slow to update still show
+	// the old repo's data while others already show the new one's data, so
+	// update the UI only when everything is ready, and also block input to
+	// prevent accidentally trying to act on the old, stale data.
+	options := types.RefreshOptions{DontBlockRepoSwitch: true}
+	refresh := gui.c.Refresh
+	if isFirstRefreshAfterStartup {
+		isFirstRefreshAfterStartup = false
+	} else {
+		options.BatchUIUpdates = true
+		refresh = gui.c.RefreshBlockingInput
+	}
+	refresh(options)
 
 	if err := gui.os.UpdateWindowTitle(); err != nil {
 		return err

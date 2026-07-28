@@ -72,6 +72,10 @@ func NewGitCommand(
 		return nil, utils.WrapError(err)
 	}
 
+	// Pin the config reads to the repo directory like all other git commands
+	// (see NewGitCmdObjBuilder); the config commands run outside that builder.
+	gitConfig.SetDir(repoPaths.WorktreePath())
+
 	return NewGitCommandAux(
 		cmn,
 		version,
@@ -90,7 +94,7 @@ func NewGitCommandAux(
 	repoPaths *git_commands.RepoPaths,
 	pagerConfig *config.PagerConfig,
 ) *GitCommand {
-	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd)
+	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd, repoPaths.WorktreePath())
 
 	// here we're doing a bunch of dependency injection for each of our commands structs.
 	// This is admittedly messy, but allows us to test each command struct in isolation,

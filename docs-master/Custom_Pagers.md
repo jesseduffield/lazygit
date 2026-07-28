@@ -66,17 +66,17 @@ These can be used in lazygit by using the `externalDiffCommand` config; in the c
 ```yaml
 git:
   pagers:
-    - externalDiffCommand: difft --color=always
+    - externalDiffCommand: difft --color=always --context={{diffContext}}
 ```
 
-The `colorArg` option is not used in this case.
+The `colorArg` option is not used in this case. You can include the `{{diffContext}}` template variable to pass lazygit's current diff context size (the value controlled by the `{`/`}` keybindings) to the diff tool.
 
 You can add whatever extra arguments you prefer for your difftool; for instance
 
 ```yaml
 git:
   pagers:
-    - externalDiffCommand: difft --color=always --display=inline --syntax-highlight=off
+    - externalDiffCommand: difft --color=always --context={{diffContext}} --display=inline --syntax-highlight=off
 ```
 
 This can also be used for normal git diffs with custom parameters, such as `--color-words` or `--word-diff` which some people find useful. To do that, save a script like this to, say, `~/bin/color-words.sh`:
@@ -84,7 +84,7 @@ This can also be used for normal git diffs with custom parameters, such as `--co
 ```sh
 #!/bin/sh
 
-git diff --color-words --no-index --color=always --no-ext-diff "$2" "$5"
+git diff --color-words --no-index --color=always --no-ext-diff --unified=$LAZYGIT_DIFF_CONTEXT "$2" "$5"
 ```
 
 And then use it in your git config like so:
@@ -92,7 +92,7 @@ And then use it in your git config like so:
 ```yaml
 git:
   pagers:
-    - externalDiffCommand: ~/bin/color-words.sh
+    - externalDiffCommand: LAZYGIT_DIFF_CONTEXT={{diffContext}} ~/bin/color-words.sh
 ```
 
 Instead of setting this command in lazygit's `externalDiffCommand` config, you can also tell lazygit to use the external diff command that is configured in git itself (`diff.external`), by using
