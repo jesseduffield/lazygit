@@ -642,10 +642,10 @@ func normalisedSelectedCommitFileNodes(selectedNodes []*filetree.CommitFileNode)
 }
 
 func isDescendentOfSelectedCommitFileNodes(node *filetree.CommitFileNode, selectedNodes []*filetree.CommitFileNode) bool {
-	nodePath := node.GetPath()
+	nodePath := node.GetInternalPath()
 
 	for _, selectedNode := range selectedNodes {
-		selectedNodePath := selectedNode.GetPath()
+		selectedNodePath := selectedNode.GetInternalPath()
 
 		if strings.HasPrefix(nodePath, selectedNodePath) && nodePath != selectedNodePath {
 			return true
