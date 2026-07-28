@@ -645,9 +645,13 @@ func isDescendentOfSelectedCommitFileNodes(node *filetree.CommitFileNode, select
 	nodePath := node.GetInternalPath()
 
 	for _, selectedNode := range selectedNodes {
+		if selectedNode.IsFile() {
+			continue
+		}
+
 		selectedNodePath := selectedNode.GetInternalPath()
 
-		if strings.HasPrefix(nodePath, selectedNodePath) && nodePath != selectedNodePath {
+		if strings.HasPrefix(nodePath, selectedNodePath+"/") {
 			return true
 		}
 	}

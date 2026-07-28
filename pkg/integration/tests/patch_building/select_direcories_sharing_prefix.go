@@ -41,19 +41,13 @@ var SelectDirecoriesSharingPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("  ▼ foo").IsSelected(),
 				Equals("    ● file").IsSelected(),
 				Equals("  ▼ foobar").IsSelected(),
-				/* EXPECTED:
 				Equals("    ● file"),
-				ACTUAL: */
-				Equals("    A file"),
 			)
 
 		t.Views().Information().Content(Contains("Building patch"))
 
 		t.Views().Secondary().Content(
-			/* EXPECTED:
 			Contains("foo/file").Contains("foobar/file"),
-			ACTUAL: */
-			Contains("foo/file").DoesNotContain("foobar/file"),
 		)
 	},
 })

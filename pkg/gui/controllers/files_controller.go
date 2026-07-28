@@ -1552,6 +1552,8 @@ func normalisedSelectedNodes(selectedNodes []*filetree.FileNode) []*filetree.Fil
 	})
 }
 
+// NOTE: there's a duplicate of this function in commits_files_controller.go; if you make
+// changes here, make them there, too. (We should unify them using generics.)
 func isDescendentOfSelectedNodes(node *filetree.FileNode, selectedNodes []*filetree.FileNode) bool {
 	nodePath := node.GetInternalPath()
 
