@@ -1,10 +1,52 @@
 package config
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestKeybindingPlatform(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		envValue string
+		expected string
+	}{
+		{
+			name:     "Not set falls back to the host OS",
+			envValue: "",
+			expected: runtime.GOOS,
+		},
+		{
+			name:     "darwin is honored",
+			envValue: "darwin",
+			expected: "darwin",
+		},
+		{
+			name:     "linux is honored",
+			envValue: "linux",
+			expected: "linux",
+		},
+		{
+			name:     "windows is honored",
+			envValue: "windows",
+			expected: "windows",
+		},
+		{
+			name:     "An unrecognized value falls back to the host OS",
+			envValue: "mac",
+			expected: runtime.GOOS,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			t.Setenv("LAZYGIT_KEYBINDING_PLATFORM", s.envValue)
+			assert.Equal(t, s.expected, KeybindingPlatform())
+		})
+	}
+}
 
 func TestMigrationOfRenamedKeys(t *testing.T) {
 	scenarios := []struct {
@@ -61,6 +103,73 @@ keybinding:
 				"Renamed 'keybinding.universal.executeCustomCommand' to 'executeShellCommand'",
 				"Renamed 'gui.windowSize' to 'screenMode'",
 			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			changes := NewChangesSet()
+			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input), changes)
+			assert.NoError(t, err)
+			assert.Equal(t, s.expectedDidChange, didChange)
+			if didChange {
+				assert.Equal(t, s.expected, string(actual))
+			}
+			assert.Equal(t, s.expectedChanges, changes.ToSliceFromOldest())
+		})
+	}
+}
+
+func TestMigrationOfMovedKeys(t *testing.T) {
+	scenarios := []struct {
+		name              string
+		input             string
+		expected          string
+		expectedDidChange bool
+		expectedChanges   []string
+	}{
+		{
+			name:              "Empty String",
+			input:             "",
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "No move needed",
+			input: `foo:
+  bar: 5
+`,
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "Move worktree keybinding into the universal section",
+			input: `keybinding:
+  universal:
+    quit: q
+  worktrees:
+    viewWorktreeOptions: w
+`,
+			expected: `keybinding:
+  universal:
+    quit: q
+    newWorktree: w
+`,
+			expectedDidChange: true,
+			expectedChanges:   []string{"Moved 'keybinding.worktrees.viewWorktreeOptions' to 'keybinding.universal.newWorktree'"},
+		},
+		{
+			name: "Create the universal section if it doesn't exist",
+			input: `keybinding:
+  worktrees:
+    viewWorktreeOptions: w
+`,
+			expected: `keybinding:
+  universal:
+    newWorktree: w
+`,
+			expectedDidChange: true,
+			expectedChanges:   []string{"Moved 'keybinding.worktrees.viewWorktreeOptions' to 'keybinding.universal.newWorktree'"},
 		},
 	}
 
@@ -654,6 +763,12 @@ git:
   # If true, periodically refresh files and submodules
   autoRefresh: true
 
+  # If true, poll the repo periodically for external ref changes (commits,
+  # branch updates, checkouts made outside lazygit) and refresh when one
+  # is detected. Independent of autoRefresh, which only governs the files
+  # panel.
+  autoDetectExternalChanges: true
+
   # If true, pass the --all arg to git fetch
   fetchAll: true
 
@@ -722,6 +837,11 @@ refresher:
   # Re-fetch interval in seconds.
   # Auto-fetch can be disabled via option 'git.autoFetch'.
   fetchInterval: 60
+
+  # Interval in seconds at which lazygit polls for external ref changes
+  # (commits, branch updates, checkouts made outside lazygit).
+  # Detection can be disabled via option 'git.autoDetectExternalChanges'.
+  externalChangeCheckInterval: 2
 
 # If true, show a confirmation popup before quitting Lazygit
 confirmOnQuit: false

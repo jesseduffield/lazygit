@@ -27,19 +27,19 @@ func NewPromptController(
 func (self *PromptController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:             gocui.NewKeyName(gocui.KeyEnter),
+			Keys:            []gocui.Key{gocui.NewKeyName(gocui.KeyEnter)},
 			Handler:         func() error { return self.context().State.OnConfirm() },
 			Description:     self.c.Tr.Confirm,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Return),
+			Keys:            opts.GetKeys(opts.Config.Universal.Return),
 			Handler:         func() error { return self.context().State.OnClose() },
 			Description:     self.c.Tr.CloseCancel,
 			DisplayOnScreen: true,
 		},
 		{
-			Key: opts.GetKey(opts.Config.Universal.TogglePanel),
+			Keys: opts.GetKeys(opts.Config.Universal.TogglePanel),
 			Handler: func() error {
 				if len(self.c.Contexts().Suggestions.State.Suggestions) > 0 {
 					self.switchToSuggestions()

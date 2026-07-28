@@ -3,6 +3,7 @@ package gui
 import (
 	"log"
 	"os"
+	"runtime/pprof"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -23,12 +24,8 @@ func (gui *Gui) handleTestMode() {
 	}
 
 	if test != nil {
-		isIdleChan := make(chan struct{})
-
-		gui.c.GocuiGui().AddIdleListener(isIdleChan)
-
 		waitUntilIdle := func() {
-			<-isIdleChan
+			gui.c.GocuiGui().WaitUntilIdle()
 		}
 
 		go func() {
@@ -38,23 +35,25 @@ func (gui *Gui) handleTestMode() {
 			gui.PopupHandler.(*popup.PopupHandler).SetToastFunc(
 				func(message string, kind types.ToastKind) { toastChan <- message })
 
-			test.Run(&GuiDriver{gui: gui, isIdleChan: isIdleChan, toastChan: toastChan, headless: Headless()})
+			test.Run(&GuiDriver{gui: gui, toastChan: toastChan, headless: Headless()})
 
 			gui.g.Update(func(*gocui.Gui) error {
 				return gocui.ErrQuit
 			})
 
-			waitUntilIdle()
-
-			time.Sleep(time.Second * 1)
-
-			log.Fatal("gocui should have already exited")
+			// Wait for the event loop to actually exit.
+			<-gui.g.LoopExited()
 		}()
 
 		if os.Getenv(components.WAIT_FOR_DEBUGGER_ENV_VAR) == "" {
+			timeout := 40 * time.Second * testTimeoutMultiplier
 			go utils.Safe(func() {
-				time.Sleep(time.Second * 40)
-				log.Fatal("40 seconds is up, lazygit recording took too long to complete")
+				time.Sleep(timeout)
+				// Dump all goroutine stacks before dying, so a hung test shows
+				// where it got stuck rather than just that it timed out. The
+				// test harness surfaces this process's stderr on failure.
+				_ = pprof.Lookup("goroutine").WriteTo(os.Stderr, 2)
+				log.Fatalf("%v is up, lazygit integration test took too long to complete", timeout)
 			})
 		}
 	}

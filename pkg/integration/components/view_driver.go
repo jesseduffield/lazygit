@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/samber/lo"
 )
@@ -362,7 +363,7 @@ func (self *ViewDriver) Focus() *ViewDriver {
 		if lo.Contains(window.viewNames, viewName) {
 			tabIndex := lo.IndexOf(window.viewNames, viewName)
 			// jump to the desired window
-			self.t.press(self.t.keys.Universal.JumpToBlock[windowIndex])
+			self.t.press(self.t.keys.Universal.JumpToBlock[windowIndex][0])
 
 			// assert we're in the window before continuing
 			self.t.assertWithRetries(func() (bool, string) {
@@ -376,11 +377,11 @@ func (self *ViewDriver) Focus() *ViewDriver {
 			currentViewTabIndex := lo.IndexOf(window.viewNames, currentViewName)
 			if tabIndex > currentViewTabIndex {
 				for range tabIndex - currentViewTabIndex {
-					self.t.press(self.t.keys.Universal.NextTab)
+					self.t.press(self.t.keys.Universal.NextTab[0])
 				}
 			} else if tabIndex < currentViewTabIndex {
 				for range currentViewTabIndex - tabIndex {
-					self.t.press(self.t.keys.Universal.PrevTab)
+					self.t.press(self.t.keys.Universal.PrevTab[0])
 				}
 			}
 
@@ -407,10 +408,32 @@ func (self *ViewDriver) IsFocused() *ViewDriver {
 	return self
 }
 
-func (self *ViewDriver) Press(keyStr string) *ViewDriver {
+// asserts that the view is the one currently shown in its window, i.e. it's the
+// active tab of its panel (drawn in front of the window's other tabs). Unlike
+// IsFocused, this is about what's displayed rather than which view has keyboard
+// focus; the two can disagree, e.g. if a config reload reshuffles the tabs.
+func (self *ViewDriver) IsActiveTab() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		expected := self.getView().Name()
+		context := self.t.gui.ContextForView(expected)
+		if context == nil {
+			return false, fmt.Sprintf("%s: Could not find context for view, so can't determine its window", expected)
+		}
+		topView := self.t.gui.TopViewInWindow(context.GetWindowName())
+		actual := ""
+		if topView != nil {
+			actual = topView.Name()
+		}
+		return actual == expected, fmt.Sprintf("%s: Expected view to be the active tab of its window, but it was %s", expected, actual)
+	})
+
+	return self
+}
+
+func (self *ViewDriver) Press(key config.Keybinding) *ViewDriver {
 	self.IsFocused()
 
-	self.t.press(keyStr)
+	self.t.press(key[0])
 
 	return self
 }
@@ -423,10 +446,23 @@ func (self *ViewDriver) Delay() *ViewDriver {
 
 // for use when typing or navigating, because in demos we want that to happen
 // faster
-func (self *ViewDriver) PressFast(keyStr string) *ViewDriver {
+func (self *ViewDriver) PressFast(key config.Keybinding) *ViewDriver {
 	self.IsFocused()
 
-	self.t.pressFast(keyStr)
+	self.t.pressFast(key[0])
+
+	return self
+}
+
+// Presses the given keys in immediate succession, without waiting for lazygit
+// to become idle in between (Press waits after every key). Use this to
+// simulate a user typing faster than lazygit processes the input.
+func (self *ViewDriver) PressRapidly(keys ...config.Keybinding) *ViewDriver {
+	self.IsFocused()
+
+	self.t.pressRapidly(lo.Map(keys, func(key config.Keybinding, _ int) string {
+		return key[0]
+	}))
 
 	return self
 }
@@ -435,6 +471,14 @@ func (self *ViewDriver) Click(x, y int) *ViewDriver {
 	offsetX, offsetY, _, _ := self.getView().Dimensions()
 
 	self.t.click(offsetX+1+x, offsetY+1+y)
+
+	return self
+}
+
+func (self *ViewDriver) FocusInAndClick(x, y int) *ViewDriver {
+	offsetX, offsetY, _, _ := self.getView().Dimensions()
+
+	self.t.focusInAndClick(offsetX+1+x, offsetY+1+y)
 
 	return self
 }

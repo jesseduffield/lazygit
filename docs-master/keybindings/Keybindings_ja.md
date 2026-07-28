@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | 最近のリポジトリをチェックアウト |  |
-| `` <pgup> (fn+up/shift+k) `` | メインウィンドウを上にスクロール |  |
-| `` <pgdown> (fn+down/shift+j) `` | メインウィンドウを下にスクロール |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | メインウィンドウを上にスクロール |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | メインウィンドウを下にスクロール |  |
 | `` @ `` | コマンドログオプションを表示 | コマンドログのオプションを表示します（例：コマンドログの表示/非表示、コマンドログへのフォーカスなど）。 |
 | `` P `` | プッシュ | 現在のブランチを対応するアップストリームブランチにプッシュします。アップストリームが設定されていない場合、アップストリームブランチの設定を求められます。 |
 | `` p `` | プル | 現在のブランチのリモートから変更をプルします。アップストリームが設定されていない場合、アップストリームブランチの設定を求められます。 |
@@ -22,15 +22,16 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | 更新 | Gitの状態を更新します（`git status`、`git branch`などをバックグラウンドで実行してパネルの内容を更新します）。これは`git fetch`を実行しません。 |
 | `` + `` | 次の画面モード（通常/半分/全画面） |  |
 | `` _ `` | 前の画面モード |  |
-| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers. |
+| `` \ `` | Cycle pagers (reverse) | Choose the previous pager in the list of configured pagers. |
 | `` <esc> `` | キャンセル |  |
 | `` ? `` | キーバインディングメニューを開く |  |
 | `` <ctrl+s> `` | フィルターオプションを表示 | コミットログのフィルタリングオプションを表示し、フィルタに一致するコミットのみを表示します。 |
-| `` W `` | 差分オプションを表示 | ２つのrefの差分に関連するオプションを表示します（例：選択したrefとの差分表示、差分を取るrefの入力、差分方向の反転など）。 |
-| `` <ctrl+e> `` | 差分オプションを表示 | ２つのrefの差分に関連するオプションを表示します（例：選択したrefとの差分表示、差分を取るrefの入力、差分方向の反転など）。 |
-| `` q `` | 終了 |  |
+| `` W, <ctrl+e> `` | 差分オプションを表示 | ２つのrefの差分に関連するオプションを表示します（例：選択したrefとの差分表示、差分を取るrefの入力、差分方向の反転など）。 |
+| `` q, <ctrl+c> `` | 終了 |  |
 | `` <ctrl+z> `` | Suspend the application |  |
 | `` <ctrl+w> `` | 空白表示の切り替え | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <alt+shift+c> `` | 設定ファイルを編集 | 外部エディタでファイルを開きます。 |
 | `` z `` | 元に戻す | 最後のgitコマンドを元に戻すために実行するgitコマンドを決定するためにreflogが使用されます。これにはワーキングツリーへの変更は含まれません。コミットのみが考慮されます。 |
 | `` Z `` | やり直す | 最後のgitコマンドをやり直すために実行するgitコマンドを決定するためにreflogが使用されます。これにはワーキングツリーへの変更は含まれません。コミットのみが考慮されます。 |
 
@@ -40,8 +41,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | 前のページ |  |
 | `` . `` | 次のページ |  |
-| `` < (<home>) `` | 先頭にスクロール |  |
-| `` > (<end>) `` | 末尾にスクロール |  |
+| `` <, <home> `` | 先頭にスクロール |  |
+| `` >, <end> `` | 末尾にスクロール |  |
 | `` v `` | 範囲選択を切り替え |  |
 | `` <shift+down> `` | 範囲選択を下に |  |
 | `` <shift+up> `` | 範囲選択を上に |  |
@@ -76,8 +77,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` p `` | ピック | 選択したコミットをピックするようにマークします（リベース中）。これは、リベースを続行すると、コミットが保持されることを意味します。 |
 | `` F `` | fixupコミットを作成 | 選択したコミットに対する「fixup!」コミットを作成します。fixupコミットは、選択したコミットの修正用コミットです。後で、同じコミットで `S` を押すと、上記のすべてのfixupコミットが適用されます。 |
 | `` S `` | fixupコミットを適用 | すべての「fixup!」コミットを、選択したコミットの上部または現在のブランチ内のすべてをスカッシュします（autosquash）。 |
-| `` <ctrl+j> `` | コミットを1つ下に移動 |  |
-| `` <ctrl+k> `` | コミットを1つ上に移動 |  |
+| `` <ctrl+j>, <alt+down> `` | コミットを1つ下に移動 |  |
+| `` <ctrl+k>, <alt+up> `` | コミットを1つ上に移動 |  |
 | `` V `` | ペースト（チェリーピック） |  |
 | `` B `` | リベース用のベースコミットとしてマーク | 次のリベース用のベースコミットを選択します。ブランチにリベースするとき、ベースコミットより上のコミットのみが持ち込まれます。これは `git rebase --onto` コマンドを使用します。 |
 | `` A `` | 修正 | ステージされた変更でコミットを修正します。選択したコミットがHEADコミットの場合、これは `git commit --amend` を実行します。それ以外の場合、コミットはリベースを通じて修正されます。 |
@@ -91,13 +92,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | ブラウザでコミットを開く |  |
 | `` n `` | コミットから新しいブランチを作成 |  |
 | `` N `` | コミットを新しいブランチに移動 | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | 新しいワークツリー |  |
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` C `` | コピー（チェリーピック） | コミットをコピーとしてマークします。ローカルコミットビューで `V` を押すと、コピーしたコミットをチェックアウトしたブランチにペースト（チェリーピック）できます。いつでも `<esc>` を押して選択をキャンセルできます。 |
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` * `` | 現在のブランチのコミットを選択 |  |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | ファイルを表示 |  |
-| `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## コミットファイル
@@ -137,6 +138,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | ブラウザでコミットを開く |  |
 | `` n `` | コミットから新しいブランチを作成 |  |
 | `` N `` | コミットを新しいブランチに移動 | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | 新しいワークツリー |  |
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` C `` | コピー（チェリーピック） | コミットをコピーとしてマークします。ローカルコミットビューで `V` を押すと、コピーしたコミットをチェックアウトしたブランチにペースト（チェリーピック）できます。いつでも `<esc>` を押して選択をキャンセルできます。 |
 | `` <ctrl+r> `` | コピーされた（チェリーピックされた）コミットの選択をリセット |  |
@@ -144,7 +146,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` * `` | 現在のブランチのコミットを選択 |  |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | ファイルを表示 |  |
-| `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## サブモジュール
@@ -169,17 +170,16 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | ポップ | スタッシュエントリをワーキングディレクトリに適用し、スタッシュエントリを削除します。 |
 | `` d `` | 削除 | スタッシュリストからスタッシュエントリを削除します。 |
 | `` n `` | 新しいブランチ | 選択したスタッシュエントリから新しいブランチを作成します。これは、スタッシュエントリが作成されたコミットをgitがチェックアウトし、そのコミットから新しいブランチを作成した後、スタッシュエントリを追加のコミットとして新しいブランチに適用することで機能します。 |
+| `` w `` | 新しいワークツリー |  |
 | `` r `` | スタッシュの名前を変更 |  |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | ファイルを表示 |  |
-| `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
 
 ## ステータス
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` o `` | 設定ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
 | `` e `` | 設定ファイルを編集 | 外部エディタでファイルを開きます。 |
 | `` u `` | 更新を確認 |  |
 | `` <enter> `` | 最近のリポジトリをチェックアウト |  |
@@ -202,13 +202,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | タグをクリップボードにコピー |  |
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択したタグをデタッチドHEADとしてチェックアウトします。 |
 | `` n `` | 新しいタグを作成 | 現在のコミットから新しいタグを作成します。タグ名とオプションの説明を入力するよう促されます。 |
+| `` w `` | 新しいワークツリー |  |
 | `` d `` | 削除 | ローカル/リモートタグの削除オプションを表示します。 |
 | `` P `` | タグをプッシュ | 選択したタグをリモートにプッシュします。リモートを選択するよう促されます。 |
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | コミットを表示 |  |
-| `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
 
 ## ファイル
@@ -248,8 +248,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 前のハンクに移動 |  |
-| `` <right> `` | 次のハンクに移動 |  |
+| `` <left>, h `` | 前のハンクに移動 |  |
+| `` <right>, l `` | 次のハンクに移動 |  |
 | `` v `` | 範囲選択を切り替え |  |
 | `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
@@ -270,8 +270,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | 前のハンクに移動 |  |
-| `` <right> `` | 次のハンクに移動 |  |
+| `` <left>, h `` | 前のハンクに移動 |  |
+| `` <right>, l `` | 次のハンクに移動 |  |
 | `` v `` | 範囲選択を切り替え |  |
 | `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
 | `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
@@ -287,11 +287,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | ハンクを選択 |  |
-| `` b `` | すべてのハンクを選択 |  |
-| `` <up> `` | 前のハンク |  |
-| `` <down> `` | 次のハンク |  |
-| `` <left> `` | 前のコンフリクト |  |
-| `` <right> `` | 次のコンフリクト |  |
+| `` b `` | Pick both hunks |  |
+| `` <up>, k `` | 前のハンク |  |
+| `` <down>, j `` | 次のハンク |  |
+| `` <left>, h `` | 前のコンフリクト |  |
+| `` <right>, l `` | 次のコンフリクト |  |
 | `` z `` | 元に戻す | 最後のマージコンフリクト解決を元に戻します。 |
 | `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
 | `` o `` | ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
@@ -326,6 +326,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | ブラウザでコミットを開く |  |
 | `` n `` | コミットから新しいブランチを作成 |  |
 | `` N `` | コミットを新しいブランチに移動 | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | 新しいワークツリー |  |
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` C `` | コピー（チェリーピック） | コミットをコピーとしてマークします。ローカルコミットビューで `V` を押すと、コピーしたコミットをチェックアウトしたブランチにペースト（チェリーピック）できます。いつでも `<esc>` を押して選択をキャンセルできます。 |
 | `` <ctrl+r> `` | コピーされた（チェリーピックされた）コミットの選択をリセット |  |
@@ -333,7 +334,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` * `` | 現在のブランチのコミットを選択 |  |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | コミットを表示 |  |
-| `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
 
 ## リモート
@@ -355,6 +355,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | ブランチ名をクリップボードにコピー |  |
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択したリモートブランチに基づいて新しいローカルブランチをチェックアウトするか、リモートブランチをデタッチドヘッドとしてチェックアウトします。 |
 | `` n `` | 新しいブランチ |  |
+| `` w `` | 新しいワークツリー |  |
 | `` M `` | マージ | 選択した項目を現在のブランチにマージするためのオプションを表示します（通常のマージ、スカッシュマージ） |
 | `` r `` | リベース | チェックアウトしたブランチを選択したブランチ上にリベースします。 |
 | `` d `` | 削除 | リモートからリモートブランチを削除します。 |
@@ -364,7 +365,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | コミットを表示 |  |
-| `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
 
 ## ローカルブランチ
@@ -376,6 +376,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択した項目をチェックアウトします。 |
 | `` n `` | 新しいブランチ |  |
 | `` N `` | コミットを新しいブランチに移動 | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | 新しいワークツリー |  |
 | `` o `` | プルリクエストを作成 |  |
 | `` O `` | プルリクエスト作成オプションを表示 |  |
 | `` G `` | Open pull request in browser |  |
@@ -395,7 +396,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | コミットを表示 |  |
-| `` w `` | ワークツリーオプションを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
 
 ## ワークツリー

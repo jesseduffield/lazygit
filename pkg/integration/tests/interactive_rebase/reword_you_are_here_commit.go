@@ -18,34 +18,34 @@ var RewordYouAreHereCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 03").IsSelected(),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-03").IsSelected(),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			).
-			NavigateToLine(Contains("commit 02")).
+			NavigateToLine(Contains("commit-02")).
 			Press(keys.Universal.Edit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("commit 03"),
+				Contains("commit-03"),
 				Contains("--- Commits ---"),
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01"),
 			).
 			Press(keys.Commits.RenameCommit).
 			Tap(func() {
 				t.ExpectPopup().CommitMessagePanel().
 					Title(Equals("Reword commit")).
-					InitialText(Equals("commit 02")).
+					InitialText(Equals("commit-02")).
 					Clear().
 					Type("renamed 02").
 					Confirm()
 			}).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("commit 03"),
+				Contains("commit-03"),
 				Contains("--- Commits ---"),
 				Contains("renamed 02").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit-01"),
 			)
 	},
 })

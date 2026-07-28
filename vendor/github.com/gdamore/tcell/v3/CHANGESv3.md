@@ -45,6 +45,10 @@ the associated lower case rune (e.g. "a", "b", etc.) and `ModCtrl`.
 The `KeyBackspace2` key is no longer delivered, but is converted to
 `KeyBackspace`. (This resolves some inconsistency around e.g. CTRL-H vs DELETE.)
 
+When advanced key reporting is enabled, Shift-Tab is reported as `KeyTab` with
+`ModShift`, not as `KeyBacktab`.  Legacy key reporting still reports Shift-Tab
+as `KeyBacktab`.
+
 ### Termbox Compatibility Removed
 
 The `termbox` compatibility package is removed. Few applications were using it,
@@ -96,7 +100,7 @@ These functions weren't reliable and served no useful purpose.
 `NewConsoleScreen` is removed as is support for Windows console mode.
 
 Instead this uses the more modern Windows VT modes.
-As a consequence, this means that _Tcell_ on Windows requires at least Winows 10 build 1703 (the Creators Update).
+As a consequence, this means that _Tcell_ on Windows requires at least Windows 10 build 1703 (the Creators Update).
 If you are using a version of Windows 10 older than that, you should really upgrade for _many_ reasons, not just
 because _Tcell_ doesn't support it anymore.
 
@@ -104,3 +108,11 @@ because _Tcell_ doesn't support it anymore.
 
 This structure, and the associated `NewInputProcessor` function, were made public incorrectly.
 They are not part of our public API going forward, and are now private symbols.
+
+## SimulationScreen is Removed
+
+While never part of the public _Tcell_ API, some projects may have used the
+`SimulationScreen` for their own tests.  That facility was very limited, and
+we implemented a much more complete emulation of a terminal in `MockScreen`
+and `MockTerm`.  (To be clear, those facilities are still intended for _Tcell_'s
+own testing, and are still not part of the public API.)

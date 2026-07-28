@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type WorktreesController struct {
@@ -39,13 +40,13 @@ func NewWorktreesController(
 func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:             opts.GetKey(opts.Config.Universal.New),
+			Keys:            opts.GetKeys(opts.Config.Universal.New),
 			Handler:         self.add,
 			Description:     self.c.Tr.NewWorktree,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Select),
+			Keys:              opts.GetKeys(opts.Config.Universal.Select),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Switch,
@@ -53,18 +54,18 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Keys:              opts.GetKeys(opts.Config.Universal.GoInto),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.OpenFile),
+			Keys:              opts.GetKeys(opts.Config.Universal.OpenFile),
 			Handler:           self.withItem(self.open),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.OpenInEditor,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.remove),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Remove,
@@ -130,7 +131,53 @@ func (self *WorktreesController) remove(worktree *models.Worktree) error {
 		return errors.New(self.c.Tr.CantDeleteCurrentWorktree)
 	}
 
-	return self.c.Helpers().Worktree.Remove(worktree, false)
+	removeWorktreeItem := &types.MenuItem{
+		Label: self.c.Tr.RemoveWorktree,
+		Keys:  menuKey('w'),
+		OnPress: func() error {
+			return self.c.Helpers().Worktree.Remove(worktree, nil)
+		},
+	}
+
+	branch, branchFound := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
+		return branch.Name == worktree.Branch
+	})
+	// A worktree with a detached HEAD has no branch to delete
+	detachedReason := &types.DisabledReason{Text: self.c.Tr.WorktreeNotCheckedOutOnBranch}
+
+	removeWorktreeAndBranchItem := &types.MenuItem{
+		Label: self.c.Tr.RemoveWorktreeAndDeleteBranch,
+		Keys:  menuKey('b'),
+		OnPress: func() error {
+			return self.c.Helpers().BranchesHelper.RemoveWorktreeAndDeleteBranch(worktree, branch)
+		},
+	}
+	if !branchFound {
+		removeWorktreeAndBranchItem.DisabledReason = detachedReason
+	}
+
+	removeWorktreeAndBothBranchesItem := &types.MenuItem{
+		Label: self.c.Tr.RemoveWorktreeAndDeleteBothBranches,
+		Keys:  menuKey('r'),
+		OnPress: func() error {
+			return self.c.Helpers().BranchesHelper.RemoveWorktreeAndDeleteBothBranches(worktree, branch)
+		},
+	}
+	if !branchFound {
+		removeWorktreeAndBothBranchesItem.DisabledReason = detachedReason
+	} else if !branch.IsTrackingRemote() || branch.UpstreamGone {
+		removeWorktreeAndBothBranchesItem.DisabledReason = &types.DisabledReason{
+			Text: self.c.Tr.UpstreamNotSetError,
+		}
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: utils.ResolvePlaceholderString(
+			self.c.Tr.RemoveWorktreeMenuTitle,
+			map[string]string{"worktreeName": worktree.Name},
+		),
+		Items: []*types.MenuItem{removeWorktreeItem, removeWorktreeAndBranchItem, removeWorktreeAndBothBranchesItem},
+	})
 }
 
 func (self *WorktreesController) GetOnDoubleClick() func() error {

@@ -7,8 +7,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+r> `` | Mudar para um repositório recente |  |
-| `` <pgup> (fn+up/shift+k) `` | Rolar janela principal para cima |  |
-| `` <pgdown> (fn+down/shift+j) `` | Rolar a janela principal para baixo |  |
+| `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | Rolar janela principal para cima |  |
+| `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | Rolar a janela principal para baixo |  |
 | `` @ `` | View command log options | View options for the command log e.g. show/hide the command log and focus the command log. |
 | `` P `` | Empurre (Push) | Faça push do branch atual para o seu branch upstream. Se nenhum upstream estiver configurado, você será solicitado a configurar um branch a montante. |
 | `` p `` | Puxar (Pull) | Puxe alterações do controle remoto para o ramo atual. Se nenhum upstream estiver configurado, será solicitado configurar um ramo a montante. |
@@ -22,15 +22,16 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | Atualizar | Atualize o estado do git (ou seja, execute `git status`, `git branch`, etc em segundo plano para atualizar o conteúdo de painéis). Isso não executa `git fetch`. |
 | `` + `` | Modo de tela seguinte (normal/metade/tela cheia) |  |
 | `` _ `` | Modo de tela anterior |  |
-| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers |
+| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers. |
+| `` \ `` | Cycle pagers (reverse) | Choose the previous pager in the list of configured pagers. |
 | `` <esc> `` | Cancelar |  |
 | `` ? `` | Abrir o menu de atalhos do teclado |  |
 | `` <ctrl+s> `` | Ver opções de filtro | View options for filtering the commit log, so that only commits matching the filter are shown. |
-| `` W `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` <ctrl+e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
-| `` q `` | Sair |  |
+| `` W, <ctrl+e> `` | View diffing options | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
+| `` q, <ctrl+c> `` | Sair |  |
 | `` <ctrl+z> `` | Suspender a aplicação |  |
 | `` <ctrl+w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <alt+shift+c> `` | Editar arquivo de configuração | Abrir arquivo no editor externo. |
 | `` z `` | Desfazer | O reflog será usado para determinar qual comando git para executar para desfazer o último comando git. Isto não inclui mudanças na árvore de trabalho; apenas compromissos são tidos em consideração. |
 | `` Z `` | Refazer | O reflog será usado para determinar qual comando git para executar para refazer o último comando git. Isto não inclui mudanças na árvore de trabalho; apenas compromissos são tidos em consideração. |
 
@@ -40,8 +41,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` , `` | Aba anterior |  |
 | `` . `` | Próxima aba |  |
-| `` < (<home>) `` | Voltar ao topo |  |
-| `` > (<end>) `` | Ir para o final |  |
+| `` <, <home> `` | Voltar ao topo |  |
+| `` >, <end> `` | Ir para o final |  |
 | `` v `` | Toggle range select |  |
 | `` <shift+down> `` | Range select down |  |
 | `` <shift+up> `` | Range select up |  |
@@ -93,6 +94,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | Verificar | Checar item selecionado |
 | `` n `` | Nova branch |  |
 | `` N `` | Mover commits para uma nova branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | Nova árvore de trabalho |  |
 | `` o `` | Criar solicitação de pull |  |
 | `` O `` | View create pull request options |  |
 | `` G `` | Open pull request in browser |  |
@@ -112,7 +114,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver commits |  |
-| `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Branches remotos
@@ -122,6 +123,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | Copiar nome da branch para área de transferência |  |
 | `` <space> `` | Verificar | Checar a nova branch baseada na brach remota selecionada, ou a branch remota como HEAD, desanexado |
 | `` n `` | Nova branch |  |
+| `` w `` | Nova árvore de trabalho |  |
 | `` M `` | Mesclar | Ver opções para mesclar o item selecionado no branch atual (mesclar regularmente, mesclar squash) |
 | `` r `` | Refazer | Refazer a branch checada na branch selecionada |
 | `` d `` | Apagar | Excluir o branch remoto do controle remoto. |
@@ -131,7 +133,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver commits |  |
-| `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Commit arquivos
@@ -172,8 +173,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` p `` | Escolher | Marque o commit selecionado para ser escolhido (quando meados da base). Isso significa que o commit será mantido ao continuar o rebase. |
 | `` F `` | Criar commit de correção | Crie o commit 'correção!' para o commit selecionado. Mais tarde, você pode pressionar `S` neste mesmo commit para aplicar todas os commits de correção acima. |
 | `` S `` | Aplicar commits de correções | Aplicar Squash all 'correção!', seja acima do commit selecionado, ou tudo no branch atual (autosquash). |
-| `` <ctrl+j> `` | Mover commit um para baixo |  |
-| `` <ctrl+k> `` | Mover o commit um para cima |  |
+| `` <ctrl+j>, <alt+down> `` | Mover commit um para baixo |  |
+| `` <ctrl+k>, <alt+up> `` | Mover o commit um para cima |  |
 | `` V `` | Colar (cherry-pick) |  |
 | `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
 | `` A `` | Modificar | Alterar o commit com mudanças em sted. Se o commit selecionado for o commit HEAD, ele executará o `git commit --amend`. Caso contrário, o compromisso será alterado por meio de uma base de apoio. |
@@ -187,13 +188,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | Abrir commit no navegador |  |
 | `` n `` | Create new branch off of commit |  |
 | `` N `` | Mover commits para uma nova branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | Nova árvore de trabalho |  |
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` C `` | Copiar (cherry-pick) | Marcar commit como copiado. Então, dentro da visualização local de commits, você pode pressionar `V` para colar (cherry-pick) o(s) commit(s) copiado(s) em seu branch de check-out. A qualquer momento você pode pressionar `<esc>` para cancelar a seleção. |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver arquivos |  |
-| `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Etiquetas
@@ -203,13 +204,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+o> `` | Copiar etiqueta para área de transferência |  |
 | `` <space> `` | Verificar | Checar a tag selecionada como um HEAD, desanexado |
 | `` n `` | Nova etiqueta | Crie uma nova etiqueta a partir do commit atual. Você será solicitado a digitar um nome e uma descrição opcional. |
+| `` w `` | Nova árvore de trabalho |  |
 | `` d `` | Apagar | Ver opções de exclusão para tag local/remoto. |
 | `` P `` | Empurrar etiqueta | Push the selected tag to a remote. You'll be prompted to select a remote. |
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver commits |  |
-| `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Input prompt
@@ -241,8 +242,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Ir para o local anterior |  |
-| `` <right> `` | Ir para o próximo trecho |  |
+| `` <left>, h `` | Ir para o local anterior |  |
+| `` <right>, l `` | Ir para o próximo trecho |  |
 | `` v `` | Toggle range select |  |
 | `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
 | `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
@@ -272,11 +273,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <space> `` | Escolha o local |  |
-| `` b `` | Pegar todos os pedaços |  |
-| `` <up> `` | Trecho anterior |  |
-| `` <down> `` | Próximo trecho |  |
-| `` <left> `` | Conflito anterior |  |
-| `` <right> `` | Próximo conflito |  |
+| `` b `` | Pick both hunks |  |
+| `` <up>, k `` | Trecho anterior |  |
+| `` <down>, j `` | Próximo trecho |  |
+| `` <left>, h `` | Conflito anterior |  |
+| `` <right>, l `` | Próximo conflito |  |
 | `` z `` | Desfazer | Desfazer resolução de conflitos de última mesclagem. |
 | `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
@@ -287,8 +288,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left> `` | Ir para o local anterior |  |
-| `` <right> `` | Ir para o próximo trecho |  |
+| `` <left>, h `` | Ir para o local anterior |  |
+| `` <right>, l `` | Ir para o próximo trecho |  |
 | `` v `` | Toggle range select |  |
 | `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
 | `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
@@ -309,6 +310,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | Abrir commit no navegador |  |
 | `` n `` | Create new branch off of commit |  |
 | `` N `` | Mover commits para uma nova branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | Nova árvore de trabalho |  |
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` C `` | Copiar (cherry-pick) | Marcar commit como copiado. Então, dentro da visualização local de commits, você pode pressionar `V` para colar (cherry-pick) o(s) commit(s) copiado(s) em seu branch de check-out. A qualquer momento você pode pressionar `<esc>` para cancelar a seleção. |
 | `` <ctrl+r> `` | Reset copied (cherry-picked) commits selection |  |
@@ -316,7 +318,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver commits |  |
-| `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Remotes
@@ -347,17 +348,16 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Pop | Aplique a entrada de stash no seu diretório de trabalho e remova a entrada de stash. |
 | `` d `` | Descartar | Remova a entrada do stash da lista de armazenamento. |
 | `` n `` | Nova branch | Criar um novo ramo a partir da entrada de lixo selecionada. Isso funciona verificando o commit do qual a entrada de lixo foi criada, criar um novo branch a partir desse commit e, em seguida, aplicar a entrada de lixo ao novo branch como um commit adicional. |
+| `` w `` | Nova árvore de trabalho |  |
 | `` r `` | Renomear o stash |  |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver arquivos |  |
-| `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
 
 ## Status
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` o `` | Abrir o ficheiro de config | Abrir arquivo no aplicativo padrão. |
 | `` e `` | Editar arquivo de configuração | Abrir arquivo no editor externo. |
 | `` u `` | Verificar atualização |  |
 | `` <enter> `` | Mudar para um repositório recente |  |
@@ -375,6 +375,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | Abrir commit no navegador |  |
 | `` n `` | Create new branch off of commit |  |
 | `` N `` | Mover commits para uma nova branch | Create a new branch and move the unpushed commits of the current branch to it. Useful if you meant to start new work and forgot to create a new branch first.<br><br>Note that this disregards the selection, the new branch is always created either from the main branch or stacked on top of the current branch (you get to choose which). |
+| `` w `` | Nova árvore de trabalho |  |
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` C `` | Copiar (cherry-pick) | Marcar commit como copiado. Então, dentro da visualização local de commits, você pode pressionar `V` para colar (cherry-pick) o(s) commit(s) copiado(s) em seu branch de check-out. A qualquer momento você pode pressionar `<esc>` para cancelar a seleção. |
 | `` <ctrl+r> `` | Reset copied (cherry-picked) commits selection |  |
@@ -382,7 +383,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` * `` | Select commits of current branch |  |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver arquivos |  |
-| `` w `` | Ver opções da árvore de trabalho |  |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Submódulos

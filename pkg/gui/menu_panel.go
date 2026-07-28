@@ -27,11 +27,15 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 
 	maxColumnSize := 1
 
+	// Only the primary key of each navigation binding is reserved as
+	// essential; alternates (e.g. the historical j/k that lived under
+	// `*Alt` fields) stay available to be reused by menu items, which
+	// take precedence over the inherited list bindings.
 	essentialKeys := []gocui.Key{
-		config.GetValidatedKeyBindingKey(gui.c.UserConfig().Keybinding.Universal.ConfirmMenu),
-		config.GetValidatedKeyBindingKey(gui.c.UserConfig().Keybinding.Universal.Return),
-		config.GetValidatedKeyBindingKey(gui.c.UserConfig().Keybinding.Universal.PrevItem),
-		config.GetValidatedKeyBindingKey(gui.c.UserConfig().Keybinding.Universal.NextItem),
+		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.ConfirmMenu)[0],
+		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.Return)[0],
+		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.PrevItem)[0],
+		config.GetValidatedKeyBindingKeys(gui.c.UserConfig().Keybinding.Universal.NextItem)[0],
 	}
 
 	for _, item := range opts.Items {
@@ -46,8 +50,10 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		maxColumnSize = max(maxColumnSize, len(item.LabelColumns))
 
 		// Remove all item keybindings that are the same as one of the essential bindings
-		if !opts.KeepConflictingKeybindings && lo.Contains(essentialKeys, item.Key) {
-			item.Key = gocui.Key{}
+		if !opts.KeepConflictingKeybindings {
+			item.Keys = lo.Filter(item.Keys, func(k gocui.Key, _ int) bool {
+				return !lo.Contains(essentialKeys, k)
+			})
 		}
 	}
 

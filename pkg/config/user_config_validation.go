@@ -46,6 +46,9 @@ func (config *UserConfig) Validate() error {
 		[]string{"always", "never", "when-maximised"}); err != nil {
 		return err
 	}
+	if err := validatePagers(config.Git.Pagers); err != nil {
+		return err
+	}
 	if err := validateKeybindings(config.Keybinding); err != nil {
 		return err
 	}
@@ -54,6 +57,42 @@ func (config *UserConfig) Validate() error {
 	}
 	if err := validateSpinner(config.Gui.Spinner); err != nil {
 		return err
+	}
+	if err := validateSidePanels(config.Gui.SidePanels); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateSidePanels(panels []SidePanel) error {
+	seen := map[string]bool{}
+	total := 0
+	for _, panel := range panels {
+		if len(panel) == 0 {
+			return errors.New("gui.sidePanels: a side panel must have at least one tab.")
+		}
+		for _, name := range panel {
+			if !slices.Contains(ValidSidePanelTabs, name) {
+				return fmt.Errorf("gui.sidePanels: unknown side panel '%s'. Allowed values: %s",
+					name, strings.Join(ValidSidePanelTabs, ", "))
+			}
+			if seen[name] {
+				return fmt.Errorf("gui.sidePanels: '%s' is listed more than once; each side panel may appear only once.", name)
+			}
+			seen[name] = true
+			total++
+		}
+	}
+	if total == 0 {
+		return errors.New("gui.sidePanels must not be empty.")
+	}
+	// A lot of code focuses these panels directly (e.g. after resolving a
+	// conflict or popping a stash), so they must always be present; otherwise
+	// that code would focus a hidden panel.
+	for _, required := range []string{"files", "branches", "commits"} {
+		if !seen[required] {
+			return fmt.Errorf("gui.sidePanels: '%s' must be included; it can't be hidden.", required)
+		}
 	}
 	return nil
 }
@@ -67,6 +106,30 @@ func validateSpinner(spinner SpinnerConfig) error {
 		return utils.StringWidth(frame) != firstWidth
 	}) {
 		return errors.New("All gui.spinner.frames entries must have the same width.")
+	}
+	return nil
+}
+
+// validatePagers rejects pager entries that combine more than one diff
+// mechanism. A pager (GIT_PAGER) formats the diff that git produces, whereas
+// externalDiffCommand and useExternalDiffGitConfig change how git produces the
+// diff in the first place; piping one through the other almost always yields
+// garbled output, so we treat the three as mutually exclusive.
+func validatePagers(pagers []PagingConfig) error {
+	for i, pager := range pagers {
+		count := 0
+		if pager.Pager != "" {
+			count++
+		}
+		if pager.ExternalDiffCommand != "" {
+			count++
+		}
+		if pager.UseExternalDiffGitConfig {
+			count++
+		}
+		if count > 1 {
+			return fmt.Errorf("git.pagers[%d]: at most one of 'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' may be set; they are mutually exclusive", i)
+		}
 	}
 	return nil
 }
@@ -114,22 +177,15 @@ func validateKeybindingsRecurse(path string, node any) error {
 }
 
 func validateKeybindings(keybindingConfig KeybindingConfig) error {
-	if err := validateKeybindingsRecurse("", keybindingConfig); err != nil {
-		return err
-	}
-
-	if len(keybindingConfig.Universal.JumpToBlock) != 5 {
-		return fmt.Errorf("keybinding.universal.jumpToBlock must have 5 elements; found %d.",
-			len(keybindingConfig.Universal.JumpToBlock))
-	}
-
-	return nil
+	return validateKeybindingsRecurse("", keybindingConfig)
 }
 
-func validateCustomCommandKey(key string) error {
-	if !isValidKeybindingKey(key) {
-		return fmt.Errorf("Unrecognized key '%s' for custom command. For permitted values see %s",
-			key, constants.Links.Docs.CustomKeybindings)
+func validateCustomCommandKey(key Keybinding) error {
+	for _, k := range key {
+		if !isValidKeybindingKey(k) {
+			return fmt.Errorf("Unrecognized key '%s' for custom command. For permitted values see %s",
+				k, constants.Links.Docs.CustomKeybindings)
+		}
 	}
 	return nil
 }
@@ -150,7 +206,7 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 				customCommand.After != nil {
 				commandRef := ""
 				if len(customCommand.Key) > 0 {
-					commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key)
+					commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key.String())
 				}
 				return fmt.Errorf("Error with custom command%s: it is not allowed to use both commandMenu and any of the other fields except key and description.", commandRef)
 			}
@@ -176,9 +232,11 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 
 func validateCustomCommandPrompt(prompt CustomCommandPrompt) error {
 	for _, option := range prompt.Options {
-		if !isValidKeybindingKey(option.Key) {
-			return fmt.Errorf("Unrecognized key '%s' for custom command prompt option. For permitted values see %s",
-				option.Key, constants.Links.Docs.CustomKeybindings)
+		for _, k := range option.Key {
+			if !isValidKeybindingKey(k) {
+				return fmt.Errorf("Unrecognized key '%s' for custom command prompt option. For permitted values see %s",
+					k, constants.Links.Docs.CustomKeybindings)
+			}
 		}
 	}
 

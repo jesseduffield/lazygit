@@ -25,7 +25,15 @@ type cell struct {
 
 func (c *cell) setDirty(dirty bool) {
 	if dirty {
-		c.lastStr = ""
+		// Empty cells use currStr == "" until they are first drawn, at which
+		// point SetDirty(false) normalizes them to a space.  Using "" as the
+		// dirty marker for an untouched empty cell would therefore leave
+		// lastStr == currStr and fail to force a redraw.
+		if c.currStr == "" {
+			c.lastStr = " "
+		} else {
+			c.lastStr = ""
+		}
 	} else {
 		if c.currStr == "" {
 			c.currStr = " "
@@ -42,9 +50,10 @@ func (c *cell) setDirty(dirty bool) {
 //
 // CellBuffer is not thread safe.
 type CellBuffer struct {
-	w     int
-	h     int
-	cells []cell
+	w               int
+	h               int
+	cells           []cell
+	sanitizeContent bool
 }
 
 // Put a single styled grapheme using the given string and style
@@ -52,16 +61,29 @@ type CellBuffer struct {
 // will be displayed, using only the 1 or 2 (depending on width) cells
 // located at x, y. It returns the rest of the string, and the width used.
 func (cb *CellBuffer) Put(x int, y int, str string, style Style) (string, int) {
+	if cb.sanitizeContent {
+		str = stripOSCControlsIfNeeded(str)
+	}
+	return cb.put(x, y, str, style)
+}
+
+func (cb *CellBuffer) put(x int, y int, str string, style Style) (string, int) {
 	var width int = 0
 	if x >= 0 && y >= 0 && x < cb.w && y < cb.h {
 		var cl string
 		c := &cb.cells[(y*cb.w)+x]
-		g := textWidthOptions.StringGraphemes(str)
-		for width == 0 && g.Next() {
-			cluster := g.Value()
-			cl += cluster
-			width = g.Width()
-			str = str[len(cluster):]
+		if str == c.currStr && c.width > 0 {
+			// Identical re-Put (a full-screen redraw): the grapheme split is
+			// unchanged, so reuse the measured width instead of segmenting.
+			cl, width, str = str, c.width, ""
+		} else {
+			g := textWidthOptions.StringGraphemes(str)
+			for width == 0 && g.Next() {
+				cluster := g.Value()
+				cl += cluster
+				width = g.Width()
+				str = str[len(cluster):]
+			}
 		}
 
 		// Wide characters: we want to mark the "wide" cells
@@ -118,7 +140,7 @@ func (cb *CellBuffer) Size() (int, int) {
 // Invalidate marks all characters within the buffer as dirty.
 func (cb *CellBuffer) Invalidate() {
 	for i := range cb.cells {
-		cb.cells[i].lastStr = ""
+		cb.cells[i].setDirty(true)
 	}
 }
 

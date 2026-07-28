@@ -91,6 +91,19 @@ func (self *CmdObj) AddEnvVars(vars ...string) *CmdObj {
 	return self
 }
 
+// RemoveEnvVar removes every occurrence of the named environment variable from
+// the command's environment. It's the counterpart to AddEnvVars, used to opt a
+// single command out of a variable that the builder sets on every command by
+// default.
+func (self *CmdObj) RemoveEnvVar(name string) *CmdObj {
+	prefix := name + "="
+	self.cmd.Env = lo.Filter(self.cmd.Env, func(envVar string, _ int) bool {
+		return !strings.HasPrefix(envVar, prefix)
+	})
+
+	return self
+}
+
 func (self *CmdObj) GetEnvVars() []string {
 	return self.cmd.Env
 }
@@ -144,7 +157,7 @@ func (self *CmdObj) ShouldStreamOutput() bool {
 }
 
 // when you call this, then call Run(), we'll use a PTY to run the command. Only
-// has an effect if StreamOutput() was also called. Ignored on Windows.
+// has an effect if StreamOutput() was also called.
 func (self *CmdObj) UsePty() *CmdObj {
 	self.usePty = true
 

@@ -6,6 +6,16 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
+// OptionalLocksEnvVar is the name of the environment variable that tells git
+// whether it may take "optional" locks — chiefly the index.lock that `git
+// status` grabs to write back a refreshed stat-cache. We set it to 0 on every
+// git command by default (see NewGitCmdObjBuilder) so our invocations never
+// contend for index.lock, neither with each other (e.g. a main-view `git diff
+// --submodule`, which runs `git status` inside submodules, racing a submodule
+// action) nor with git commands the user runs in a terminal. The one command
+// that opts back in is the foreground files refresh; see FileLoader.gitStatus.
+const OptionalLocksEnvVar = "GIT_OPTIONAL_LOCKS"
+
 // convenience struct for building git commands. Especially useful when
 // including conditional args
 type GitCommandBuilder struct {

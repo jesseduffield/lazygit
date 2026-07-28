@@ -4,6 +4,8 @@
 
 package gocui
 
+import "github.com/samber/lo"
+
 // Editor interface must be satisfied by gocui editors.
 type Editor interface {
 	Edit(v *View, key Key) bool
@@ -23,19 +25,19 @@ func (f EditorFunc) Edit(v *View, key Key) bool {
 var DefaultEditor Editor = EditorFunc(SimpleEditor)
 
 var (
-	moveWordLeftKeybinding      = NewKey(KeyArrowLeft, "", ModCtrl)
-	moveWordRightKeybinding     = NewKey(KeyArrowRight, "", ModCtrl)
-	backspaceWordKeybinding     = NewKey(KeyBackspace, "", ModCtrl)
-	forwardDeleteWordKeybinding = NewKey(KeyDelete, "", ModCtrl)
+	moveWordLeftKeybinding      = []Key{NewKey(KeyArrowLeft, "", ModCtrl)}
+	moveWordRightKeybinding     = []Key{NewKey(KeyArrowRight, "", ModCtrl)}
+	backspaceWordKeybinding     = []Key{NewKey(KeyBackspace, "", ModCtrl)}
+	forwardDeleteWordKeybinding = []Key{NewKey(KeyDelete, "", ModCtrl)}
 )
 
 // SimpleEditor is used as the default gocui editor.
 func SimpleEditor(v *View, key Key) bool {
 	switch {
-	case key.Equals(backspaceWordKeybinding),
+	case lo.SomeBy(backspaceWordKeybinding, func(k Key) bool { return key.Equals(k) }),
 		key.Equals(NewKeyStrMod("w", ModCtrl)):
 		v.TextArea.BackSpaceWord()
-	case key.Equals(forwardDeleteWordKeybinding),
+	case lo.SomeBy(forwardDeleteWordKeybinding, func(k Key) bool { return key.Equals(k) }),
 		key.Equals(NewKeyStrMod("d", ModAlt)):
 		v.TextArea.ForwardDeleteWord()
 	case key.Equals(NewKeyName(KeyBackspace)),
@@ -49,13 +51,13 @@ func SimpleEditor(v *View, key Key) bool {
 	case key.Equals(NewKeyName(KeyArrowUp)):
 		v.TextArea.MoveCursorUp()
 	case key.Equals(NewKeyStrMod("b", ModAlt)),
-		key.Equals(moveWordLeftKeybinding):
+		lo.SomeBy(moveWordLeftKeybinding, func(k Key) bool { return key.Equals(k) }):
 		v.TextArea.MoveLeftWord()
 	case key.Equals(NewKeyName(KeyArrowLeft)),
 		key.Equals(NewKeyStrMod("b", ModCtrl)):
 		v.TextArea.MoveCursorLeft()
 	case key.Equals(NewKeyStrMod("f", ModAlt)),
-		key.Equals(moveWordRightKeybinding):
+		lo.SomeBy(moveWordRightKeybinding, func(k Key) bool { return key.Equals(k) }):
 		v.TextArea.MoveRightWord()
 	case key.Equals(NewKeyName(KeyArrowRight)),
 		key.Equals(NewKeyStrMod("f", ModCtrl)):

@@ -24,23 +24,23 @@ func NewSnakeController(
 func (self *SnakeController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:     opts.GetKey(opts.Config.Universal.NextItem),
+			Keys:    opts.GetKeys(opts.Config.Universal.NextItem),
 			Handler: self.SetDirection(snake.Down),
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.PrevItem),
+			Keys:    opts.GetKeys(opts.Config.Universal.PrevItem),
 			Handler: self.SetDirection(snake.Up),
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.PrevBlock),
+			Keys:    opts.GetKeys(opts.Config.Universal.PrevBlock),
 			Handler: self.SetDirection(snake.Left),
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.NextBlock),
+			Keys:    opts.GetKeys(opts.Config.Universal.NextBlock),
 			Handler: self.SetDirection(snake.Right),
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.Return),
+			Keys:    opts.GetKeys(opts.Config.Universal.Return),
 			Handler: self.Escape,
 		},
 	}

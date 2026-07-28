@@ -18,17 +18,17 @@ var FixupFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			).
-			NavigateToLine(Contains("commit 01")).
+			NavigateToLine(Contains("commit-01")).
 			Press(keys.Commits.MarkCommitAsFixup).
 			Tap(func() {
 				t.ExpectToast(Equals("Disabled: There's no commit below to squash into"))
 			}).
 			Lines(
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			)
 	},
 })

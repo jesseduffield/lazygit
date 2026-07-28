@@ -210,7 +210,10 @@ func (self *GitHubCommands) fetchRecentPRsAux(endpoint string, repoOwner string,
 	req.Header.Set("Authorization", "token "+token)
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
+	// Bound the request so that a dead or extremely slow network can't leave
+	// the pull-request refresh in flight for minutes. The data is auxiliary,
+	// so giving up and retrying on the next refresh beats waiting.
+	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

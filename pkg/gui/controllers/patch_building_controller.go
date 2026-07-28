@@ -27,25 +27,25 @@ func NewPatchBuildingController(
 func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
+			Keys:        opts.GetKeys(opts.Config.Universal.OpenFile),
 			Handler:     self.OpenFile,
 			Description: self.c.Tr.OpenFile,
 			Tooltip:     self.c.Tr.OpenFileTooltip,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
+			Keys:        opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:     self.EditFile,
 			Description: self.c.Tr.EditFile,
 			Tooltip:     self.c.Tr.EditFileTooltip,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Select),
+			Keys:            opts.GetKeys(opts.Config.Universal.Select),
 			Handler:         self.ToggleSelectionAndRefresh,
 			Description:     self.c.Tr.ToggleSelectionForPatch,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.discardSelection,
 			GetDisabledReason: self.getDisabledReasonForDiscard,
 			Description:       self.c.Tr.RemoveSelectionFromPatch,
@@ -53,7 +53,7 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Return),
+			Keys:            opts.GetKeys(opts.Config.Universal.Return),
 			Handler:         self.Escape,
 			Description:     self.c.Tr.ExitCustomPatchBuilder,
 			DescriptionFunc: self.EscapeDescription,
@@ -138,8 +138,8 @@ func (self *PatchBuildingController) toggleSelection() error {
 	self.context().GetMutex().Lock()
 	defer self.context().GetMutex().Unlock()
 
-	filename := self.c.Contexts().CommitFiles.GetSelectedPath()
-	if filename == "" {
+	file := self.c.Contexts().CommitFiles.GetSelectedFile()
+	if file == nil {
 		return nil
 	}
 
@@ -152,7 +152,7 @@ func (self *PatchBuildingController) toggleSelection() error {
 		return nil
 	}
 
-	includedLineIndices, err := self.c.Git().Patch.PatchBuilder.GetFileIncLineIndices(filename)
+	includedLineIndices, err := self.c.Git().Patch.PatchBuilder.GetFileIncLineIndices(file.Path, file.PreviousPath)
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func (self *PatchBuildingController) toggleSelection() error {
 	}
 
 	// add range of lines to those set for the file
-	if err := toggleFunc(filename, lineIndicesToToggle); err != nil {
+	if err := toggleFunc(file.Path, file.PreviousPath, lineIndicesToToggle); err != nil {
 		// might actually want to return an error here
 		self.c.Log.Error(err)
 	}
@@ -223,13 +223,19 @@ func (self *PatchBuildingController) discardSelectionFromCommit() error {
 		return nil
 	}
 
-	return self.c.WithWaitingStatusSync(self.c.Tr.RebasingStatus, func() error {
-		commitIndex := self.getPatchCommitIndex()
+	commits := self.c.Model().Commits
+	commitIndex := self.getPatchCommitIndex()
+	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.RemovePatchFromCommit)
-		err := self.c.Git().Patch.DeletePatchesFromCommit(self.c.Model().Commits, commitIndex)
-		self.c.Helpers().PatchBuilding.Escape()
+		err := self.c.Git().Patch.DeletePatchesFromCommit(commits, commitIndex)
+		// Escape pops the patch-building context, so run it on the UI thread
+		// before the refresh below.
+		_ = self.c.GocuiGui().OnUIThreadAndWait(func() error {
+			self.c.Helpers().PatchBuilding.Escape()
+			return nil
+		})
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
-			err, types.RefreshOptions{Mode: types.SYNC})
+			err, types.RefreshOptions{})
 	})
 }
 

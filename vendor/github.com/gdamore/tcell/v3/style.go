@@ -43,6 +43,7 @@ type urlInfo struct {
 	id  string
 }
 
+// stripOSCControls removes control bytes that can terminate OSC payloads early.
 func stripOSCControls(s string) string {
 	var b strings.Builder
 	b.Grow(len(s))
@@ -66,6 +67,18 @@ func stripOSCControls(s string) string {
 		i += size
 	}
 	return b.String()
+}
+
+// stripOSCControlsIfNeeded returns the original string when it contains no
+// control bytes and only allocates when stripping is required.
+func stripOSCControlsIfNeeded(s string) string {
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c <= 0x1f || c == 0x7f || (c >= 0x80 && c <= 0x9f) {
+			return stripOSCControls(s)
+		}
+	}
+	return s
 }
 
 // StyleDefault represents a default style, based upon the context.
@@ -102,10 +115,15 @@ func (s Style) setAttrs(attrs AttrMask, on bool) Style {
 }
 
 // Normal returns the style with all attributes disabled.
+// Colors are preserved, as are hyperlinks.  (Underline color
+// will also be preserved, but no underline is currently shown.
+// Apart from color, the underline style is reset as well.)
 func (s Style) Normal() Style {
 	return Style{
-		fg: s.fg,
-		bg: s.bg,
+		fg:      s.fg,
+		bg:      s.bg,
+		ulColor: s.ulColor,
+		url:     s.url,
 	}
 }
 
@@ -227,9 +245,12 @@ func (s Style) GetAttributes() AttrMask {
 func (s Style) Url(url string) Style {
 
 	s2 := s
-	s2.url = &urlInfo{url: stripOSCControls(url)}
+	s2.url = &urlInfo{url: stripOSCControlsIfNeeded(url)}
 	if s.url != nil {
 		s2.url.id = s.url.id
+	}
+	if s2.url.url == "" && s2.url.id == "" {
+		s2.url = nil
 	}
 	return s2
 }
@@ -240,11 +261,15 @@ func (s Style) Url(url string) Style {
 // were one Url, even if it spans multiple lines.
 func (s Style) UrlId(id string) Style {
 	s2 := s
-	s2.url = &urlInfo{
-		id: "id=" + stripOSCControls(id),
+	s2.url = &urlInfo{}
+	if id = stripOSCControlsIfNeeded(id); id != "" {
+		s2.url.id = "id=" + id
 	}
 	if s.url != nil {
 		s2.url.url = s.url.url
+	}
+	if s2.url.url == "" && s2.url.id == "" {
+		s2.url = nil
 	}
 	return s2
 }

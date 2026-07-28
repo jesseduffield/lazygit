@@ -36,7 +36,7 @@ func (self *SearchController) Context() types.Context {
 func (self *SearchController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
+			Keys:        opts.GetKeys(opts.Config.Universal.StartSearch),
 			Handler:     self.OpenSearchPrompt,
 			Description: self.c.Tr.StartSearch,
 		},

@@ -20,22 +20,22 @@ var RevertDuringRebaseWhenStoppedOnEdit = NewIntegrationTest(NewIntegrationTestA
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 04").IsSelected(),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-04").IsSelected(),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 				Contains("master commit 2"),
 				Contains("master commit 1"),
 			).
-			NavigateToLine(Contains("commit 03")).
+			NavigateToLine(Contains("commit-03")).
 			Press(keys.Universal.Edit).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("pick").Contains("commit 04"),
+				Contains("pick").Contains("commit-04"),
 				Contains("--- Commits ---"),
-				Contains("commit 03").IsSelected(),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-03").IsSelected(),
+				Contains("commit-02"),
+				Contains("commit-01"),
 				Contains("master commit 2"),
 				Contains("master commit 1"),
 			).
@@ -50,13 +50,13 @@ var RevertDuringRebaseWhenStoppedOnEdit = NewIntegrationTest(NewIntegrationTestA
 			}).
 			Lines(
 				Contains("--- Pending rebase todos ---"),
-				Contains("pick").Contains("commit 04"),
+				Contains("pick").Contains("commit-04"),
 				Contains("--- Commits ---"),
-				Contains(`Revert "commit 01"`),
-				Contains(`Revert "commit 02"`),
-				Contains("commit 03"),
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01").IsSelected(),
+				Contains(`Revert "commit-01"`),
+				Contains(`Revert "commit-02"`),
+				Contains("commit-03"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01").IsSelected(),
 				Contains("master commit 2"),
 				Contains("master commit 1"),
 			)

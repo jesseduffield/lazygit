@@ -36,6 +36,12 @@ type GetStatusFileOptions struct {
 	// This is useful for users with bare repos for dotfiles who default to hiding untracked files,
 	// but want to occasionally see them to `git add` a new file.
 	ForceShowUntracked bool
+	// When true, this status is part of an unattended background refresh, so it
+	// keeps the default suppression of optional locks (avoiding index.lock
+	// contention with git commands the user runs in a terminal, at the cost of
+	// not persisting git's refreshed stat-cache). A foreground status opts back
+	// in; see gitStatus.
+	Background bool
 }
 
 func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
@@ -47,7 +53,7 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 	}
 	untrackedFilesArg := fmt.Sprintf("--untracked-files=%s", untrackedFilesSetting)
 
-	statuses, err := self.gitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
+	statuses, err := self.gitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg, Background: opts.Background})
 	if err != nil {
 		self.Log.Error(err)
 	}
@@ -148,6 +154,7 @@ func (self *FileLoader) getFileDiffs() (map[string]FileDiff, error) {
 type GitStatusOptions struct {
 	NoRenames         bool
 	UntrackedFilesArg string
+	Background        bool
 }
 
 type FileStatus struct {
@@ -179,7 +186,17 @@ func (self *FileLoader) gitStatus(opts GitStatusOptions) ([]FileStatus, error) {
 		).
 		ToArgv()
 
-	statusLines, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
+	cmdObj := self.cmd.New(cmdArgs).DontLog()
+	if !opts.Background {
+		// Every git command suppresses optional locks by default (see
+		// OptionalLocksEnvVar). A foreground refresh is the one exception: we let
+		// it take the lock so it persists git's refreshed stat-cache, which keeps
+		// subsequent status calls fast. Background refreshes leave it suppressed so
+		// they can't contend for index.lock.
+		cmdObj.RemoveEnvVar(OptionalLocksEnvVar)
+	}
+
+	statusLines, _, err := cmdObj.RunWithOutputs()
 	if err != nil {
 		return []FileStatus{}, err
 	}

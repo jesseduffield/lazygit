@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
@@ -112,8 +113,66 @@ func (self *ConfigCommands) Branches(cmd oscommands.ICmdObjBuilder) map[string]*
 	return result
 }
 
-func (self *ConfigCommands) GetGitFlowPrefixes() string {
-	return self.gitConfig.GetGeneral("--local --get-regexp gitflow.prefix")
+// git-flow config key patterns: legacy uses gitflow.prefix.<type>, git-flow-next uses gitflow.branch.<type>.prefix
+const (
+	gitFlowLegacyConfigArgs = "--local --get-regexp gitflow.prefix"
+	gitFlowNextConfigArgs   = "--local --get-regexp gitflow\\.branch\\..*\\.prefix"
+)
+
+func (self *ConfigCommands) getGitFlowPrefixes() string {
+	return self.gitConfig.GetGeneral(gitFlowLegacyConfigArgs)
+}
+
+func (self *ConfigCommands) getGitFlowNextPrefixes() string {
+	return self.gitConfig.GetGeneral(gitFlowNextConfigArgs)
+}
+
+// parseGitFlowLines parses lines matching re (submatch 1 = branch type, 2 = prefix) into prefixToType.
+// When overwrite is false, existing keys are left unchanged so legacy entries win over next.
+func parseGitFlowLines(output string, re *regexp.Regexp, prefixToType map[string]string, overwrite bool) {
+	for line := range strings.SplitSeq(output, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		if m := re.FindStringSubmatch(line); len(m) == 3 {
+			prefix := normalizeGitFlowPrefix(m[2])
+			if prefix == "" {
+				continue
+			}
+			if overwrite || prefixToType[prefix] == "" {
+				prefixToType[prefix] = m[1]
+			}
+		}
+	}
+}
+
+// parseGitFlowPrefixMap parses legacy and git-flow-next config output into a unified prefix → branchType map.
+// Legacy line format: "gitflow.prefix.<type> <prefix>"
+// Next line format: "gitflow.branch.<type>.prefix <prefix>"
+// Prefixes are normalized to end in "/". Legacy entries win on duplicate prefix.
+func parseGitFlowPrefixMap(legacyOutput, nextOutput string) map[string]string {
+	legacyRegexp := regexp.MustCompile(`gitflow\.prefix\.(\S+)\s+(.*)`)
+	nextRegexp := regexp.MustCompile(`gitflow\.branch\.([^.]+)\.prefix\s+(.*)`)
+	prefixToType := make(map[string]string)
+	parseGitFlowLines(legacyOutput, legacyRegexp, prefixToType, true)
+	parseGitFlowLines(nextOutput, nextRegexp, prefixToType, false)
+	return prefixToType
+}
+
+func normalizeGitFlowPrefix(prefix string) string {
+	prefix = strings.TrimSpace(prefix)
+	if prefix == "" {
+		return ""
+	}
+	if !strings.HasSuffix(prefix, "/") {
+		return prefix + "/"
+	}
+	return prefix
+}
+
+func (self *ConfigCommands) GetGitFlowPrefixMap() map[string]string {
+	return parseGitFlowPrefixMap(self.getGitFlowPrefixes(), self.getGitFlowNextPrefixes())
 }
 
 func (self *ConfigCommands) GetCoreCommentChar() byte {

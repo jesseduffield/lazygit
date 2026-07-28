@@ -227,8 +227,13 @@ func RenderString(code string, str string) string {
 		return ClearCode(str)
 	}
 
-	// return fmt.Sprintf(FullColorTpl, code, str)
-	return StartSet + code + "m" + str + ResetSet
+	open := StartSet + code + "m"
+	// If the string contains reset sequences, re-apply our color after each
+	// reset so that nested colored args don't break the outer color.
+	if strings.Contains(str, ResetSet) {
+		str = strings.ReplaceAll(str, ResetSet, ResetSet+open)
+	}
+	return open + str + ResetSet
 }
 
 // ClearCode clear color codes.

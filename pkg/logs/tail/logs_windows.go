@@ -11,8 +11,8 @@ import (
 )
 
 func tailLogsForPlatform(logFilePath string, opts *humanlog.HandlerOptions) {
-	var lastModified int64 = 0
-	var lastOffset int64 = 0
+	var lastModified int64
+	var lastOffset int64
 	for {
 		stat, err := os.Stat(logFilePath)
 		if err != nil {

@@ -28,7 +28,7 @@ func TestGetBindingSections(t *testing.T) {
 				{
 					ViewName:    "files",
 					Description: "stage file",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 				},
 			},
 			expected: []*bindingSection{
@@ -38,7 +38,7 @@ func TestGetBindingSections(t *testing.T) {
 						{
 							ViewName:    "files",
 							Description: "stage file",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 						},
 					},
 				},
@@ -50,7 +50,7 @@ func TestGetBindingSections(t *testing.T) {
 				{
 					ViewName:    "",
 					Description: "quit",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 				},
 			},
 			expected: []*bindingSection{
@@ -60,7 +60,7 @@ func TestGetBindingSections(t *testing.T) {
 						{
 							ViewName:    "",
 							Description: "quit",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 						},
 					},
 				},
@@ -72,17 +72,17 @@ func TestGetBindingSections(t *testing.T) {
 				{
 					ViewName:    "files",
 					Description: "stage file",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 				},
 				{
 					ViewName:    "files",
 					Description: "unstage file",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 				},
 				{
 					ViewName:    "submodules",
 					Description: "drop submodule",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 				},
 			},
 			expected: []*bindingSection{
@@ -92,12 +92,12 @@ func TestGetBindingSections(t *testing.T) {
 						{
 							ViewName:    "files",
 							Description: "stage file",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 						},
 						{
 							ViewName:    "files",
 							Description: "unstage file",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 						},
 					},
 				},
@@ -107,7 +107,7 @@ func TestGetBindingSections(t *testing.T) {
 						{
 							ViewName:    "submodules",
 							Description: "drop submodule",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 						},
 					},
 				},
@@ -119,23 +119,23 @@ func TestGetBindingSections(t *testing.T) {
 				{
 					ViewName:    "files",
 					Description: "stage file",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 				},
 				{
 					ViewName:    "files",
 					Description: "unstage file",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 				},
 				{
 					ViewName:    "files",
 					Description: "scroll",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 					Tag:         "navigation",
 				},
 				{
 					ViewName:    "commits",
 					Description: "revert commit",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 				},
 			},
 			expected: []*bindingSection{
@@ -145,7 +145,7 @@ func TestGetBindingSections(t *testing.T) {
 						{
 							ViewName:    "files",
 							Description: "scroll",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 							Tag:         "navigation",
 						},
 					},
@@ -156,7 +156,7 @@ func TestGetBindingSections(t *testing.T) {
 						{
 							ViewName:    "commits",
 							Description: "revert commit",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 						},
 					},
 				},
@@ -166,12 +166,12 @@ func TestGetBindingSections(t *testing.T) {
 						{
 							ViewName:    "files",
 							Description: "stage file",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 						},
 						{
 							ViewName:    "files",
 							Description: "unstage file",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 						},
 					},
 				},
@@ -183,34 +183,34 @@ func TestGetBindingSections(t *testing.T) {
 				{
 					ViewName:    "files",
 					Description: "stage file",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 				},
 				{
 					ViewName:    "files",
 					Description: "unstage file",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 				},
 				{
 					ViewName:    "files",
 					Description: "scroll",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 					Tag:         "navigation",
 				},
 				{
 					ViewName:    "commits",
 					Description: "revert commit",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 				},
 				{
 					ViewName:    "commits",
 					Description: "scroll",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 					Tag:         "navigation",
 				},
 				{
 					ViewName:    "commits",
 					Description: "page up",
-					Key:         gocui.NewKeyRune('a'),
+					Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 					Tag:         "navigation",
 				},
 			},
@@ -221,13 +221,13 @@ func TestGetBindingSections(t *testing.T) {
 						{
 							ViewName:    "files",
 							Description: "scroll",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 							Tag:         "navigation",
 						},
 						{
 							ViewName:    "commits",
 							Description: "page up",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 							Tag:         "navigation",
 						},
 					},
@@ -238,7 +238,7 @@ func TestGetBindingSections(t *testing.T) {
 						{
 							ViewName:    "commits",
 							Description: "revert commit",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 						},
 					},
 				},
@@ -248,12 +248,12 @@ func TestGetBindingSections(t *testing.T) {
 						{
 							ViewName:    "files",
 							Description: "stage file",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 						},
 						{
 							ViewName:    "files",
 							Description: "unstage file",
-							Key:         gocui.NewKeyRune('a'),
+							Keys:        []gocui.Key{gocui.NewKeyRune('a')},
 						},
 					},
 				},

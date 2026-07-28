@@ -7,6 +7,7 @@ package gocui
 import (
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"sync"
 	"unicode"
@@ -28,12 +29,12 @@ const (
 // position.
 type View struct {
 	name           string
-	x0, y0, x1, y1 int      // left top right bottom
-	ox, oy         int      // view offsets
-	cx, cy         int      // cursor position
-	rx, ry         int      // Read() offsets
-	wx, wy         int      // Write() offsets
-	lines          [][]cell // All the data
+	x0, y0, x1, y1 int        // left top right bottom
+	ox, oy         int        // view offsets
+	cx, cy         int        // cursor position
+	rx, ry         int        // Read() offsets
+	wx, wy         int        // Write() offsets
+	lines          []lineType // All the data
 	outMode        OutputMode
 	// The y position of the first line of a range selection.
 	// This is not relative to the view's origin: it is relative to the first line
@@ -49,6 +50,14 @@ type View struct {
 
 	// tained is true if the viewLines must be updated
 	tainted bool
+
+	// firstDirtyLine is the index of the lowest line in `lines` that has been
+	// written to or highlighted since viewLines was last refreshed, and whose
+	// cached wrapping (lineType.wrappedCells) may therefore be stale. Lines
+	// below it are unchanged and can reuse their cached wrapping instead of
+	// being re-wrapped, which keeps refreshViewLinesIfNeeded cheap while
+	// scrolling appends new lines to a long buffer.
+	firstDirtyLine int
 
 	// the last position that the mouse was hovering over; nil if the mouse is outside of
 	// this view, or not hovering over a cell
@@ -204,6 +213,16 @@ func (v *View) clearViewLines() {
 	v.tainted = true
 	v.viewLines = nil
 	v.clearHover()
+}
+
+// ClearViewLines is clearViewLines guarded by writeMutex. It's for callers on
+// the UI thread (the layout pass) that touch a view whose content a task
+// goroutine may be writing concurrently: viewLines/tainted/hover are all
+// buffer state that writeMutex protects.
+func (v *View) ClearViewLines() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+	v.clearViewLines()
 }
 
 type searcher struct {
@@ -444,6 +463,38 @@ type SearchPosition struct {
 type viewLine struct {
 	linesX, linesY int // coordinates relative to v.lines
 	line           []cell
+
+	// Colors used to extend the bg past this wrapped segment's content.
+	// Derived at wrap time from the source line — see refreshViewLinesIfNeeded
+	// for the per-segment rule.
+	trailingFillAttributes *trailingFillAttributes
+}
+
+// lineType is one of v.lines: the cells of a source line, plus optional
+// trailingFillAttributes recording the colors used to extend the bg
+// past the line's content when the writer emitted '\x1b[K'.
+type lineType struct {
+	cells                  cells
+	trailingFillAttributes *trailingFillAttributes
+
+	// wrappedCells caches the result of wrapping `cells` to `wrappedColumns`
+	// columns, so that unchanged lines don't have to be re-wrapped on every
+	// refreshViewLinesIfNeeded (which runs on every scroll event, via
+	// ViewLinesHeight). Wrapping measures every cell's width and allocates, so
+	// for a long buffer that dominates the cost of scrolling. The cache is used
+	// only for lines below View.firstDirtyLine whose wrappedColumns still
+	// matches the current width; nil means nothing is cached yet.
+	wrappedCells   [][]cell
+	wrappedColumns int
+}
+
+// trailingFillAttributes describes the fg/bg colors that draw() should
+// use for cells past the end of a wrapped segment's content. On a source
+// line this records what the writer asked for via '\x1b[K' (and so opts
+// the line in to trailing fill at all); the per-segment values on each
+// viewLine are derived from it at wrap time.
+type trailingFillAttributes struct {
+	fg, bg Attribute
 }
 
 type cell struct {
@@ -453,7 +504,7 @@ type cell struct {
 	hyperlink        string
 }
 
-type lineType []cell
+type cells []cell
 
 func characterEquals(chr []byte, b byte) bool {
 	return len(chr) == 1 && chr[0] == b
@@ -464,7 +515,7 @@ func isCRLF(chr []byte) bool {
 }
 
 // String returns a string from a given cell slice.
-func (l lineType) String() string {
+func (l cells) String() string {
 	var str strings.Builder
 	for _, c := range l {
 		str.WriteString(c.chr)
@@ -496,7 +547,18 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 	v.SelFgColor, v.SelBgColor = ColorDefault, ColorDefault
 	v.InactiveViewSelBgColor = ColorDefault
 	v.TitleColor, v.FrameColor = ColorDefault, ColorDefault
+	v.ei.screenColMax = v.InnerWidth()
 	return v
+}
+
+// SetContentWidth tells the view the screen width that content written to it
+// should count soft-wraps against (see escapeInterpreter.notifyCellsWritten).
+// Callers pass the view's InnerWidth; it's a separate call, made on the UI
+// thread when a render starts, so that the task goroutine that streams the
+// content can consult this snapshot instead of reading the view's live
+// dimensions (which the UI thread mutates during layout).
+func (v *View) SetContentWidth(width int) {
+	v.ei.screenColMax = width
 }
 
 // Dimensions returns the dimensions of the View
@@ -738,20 +800,20 @@ func (v *View) makeWriteable(x, y int) {
 			}
 			v.lines = v.lines[:newLen]
 		} else {
-			v.lines = append(v.lines, nil)
+			v.lines = append(v.lines, lineType{})
 		}
 	}
 	// cell `x` need not be index-able (that's why `<`)
 	// append should be used by `lines[y]` user if he wants to write beyond `x`
-	for len(v.lines[y]) < x {
-		if cap(v.lines[y]) > len(v.lines[y]) {
-			newLen := cap(v.lines[y])
+	for len(v.lines[y].cells) < x {
+		if cap(v.lines[y].cells) > len(v.lines[y].cells) {
+			newLen := cap(v.lines[y].cells)
 			if newLen > x {
 				newLen = x
 			}
-			v.lines[y] = v.lines[y][:newLen]
+			v.lines[y].cells = v.lines[y].cells[:newLen]
 		} else {
-			v.lines[y] = append(v.lines[y], cell{})
+			v.lines[y].cells = append(v.lines[y].cells, cell{})
 		}
 	}
 }
@@ -761,7 +823,7 @@ func (v *View) makeWriteable(x, y int) {
 func (v *View) writeCells(cells []cell) {
 	var newLen int
 	// use maximum len available
-	line := v.lines[v.wy][:cap(v.lines[v.wy])]
+	line := v.lines[v.wy].cells[:cap(v.lines[v.wy].cells)]
 	maxCopy := len(line) - v.wx
 	if maxCopy < len(cells) {
 		copy(line[v.wx:], cells[:maxCopy])
@@ -770,11 +832,11 @@ func (v *View) writeCells(cells []cell) {
 	} else { // maxCopy >= len(cells)
 		copy(line[v.wx:], cells)
 		newLen = v.wx + len(cells)
-		if newLen < len(v.lines[v.wy]) {
-			newLen = len(v.lines[v.wy])
+		if newLen < len(v.lines[v.wy].cells) {
+			newLen = len(v.lines[v.wy].cells)
 		}
 	}
-	v.lines[v.wy] = line[:newLen]
+	v.lines[v.wy].cells = line[:newLen]
 	v.wx += len(cells)
 }
 
@@ -793,6 +855,9 @@ func (v *View) Write(p []byte) (n int, err error) {
 
 func (v *View) write(p []byte) {
 	v.tainted = true
+	// write only ever touches lines from v.wy onwards, so any cached wrapping
+	// below that stays valid.
+	v.firstDirtyLine = min(v.firstDirtyLine, v.wy)
 	v.clearHover()
 
 	// Fill with empty cells, if writing outside current view buffer
@@ -800,26 +865,19 @@ func (v *View) write(p []byte) {
 
 	finishLine := func() {
 		v.autoRenderHyperlinksInCurrentLine()
-		if v.wx >= len(v.lines[v.wy]) {
-			v.writeCells([]cell{{
-				chr:     "",
-				width:   0,
-				fgColor: 0,
-				bgColor: 0,
-			}})
-		}
 	}
 
 	advanceToNextLine := func() {
 		v.wx = 0
 		v.wy++
 		if v.wy >= len(v.lines) {
-			v.lines = append(v.lines, nil)
+			v.lines = append(v.lines, lineType{})
 		}
 	}
 
 	if v.pendingNewline {
 		advanceToNextLine()
+		v.ei.notifyRowAdvance()
 		v.pendingNewline = false
 	}
 
@@ -841,17 +899,37 @@ func (v *View) write(p []byte) {
 		case characterEquals(chr, '\n') || isCRLF(chr):
 			finishLine()
 			advanceToNextLine()
+			v.ei.notifyRowAdvance()
 		case characterEquals(chr, '\r'):
 			finishLine()
 			v.wx = 0
+			v.ei.notifyColumnReset()
 		default:
 			truncateLine, cells := v.parseInput(chr, width, v.wx, v.wy)
+			if cd, ok := v.ei.instruction.(cursorDown); ok {
+				v.ei.instructionRead()
+				for range cd.n {
+					v.autoRenderHyperlinksInCurrentLine()
+					advanceToNextLine()
+				}
+			}
 			if cells == nil {
 				continue
 			}
 			v.writeCells(cells)
 			if truncateLine {
-				v.lines[v.wy] = v.lines[v.wy][:v.wx]
+				v.lines[v.wy].cells = v.lines[v.wy].cells[:v.wx]
+			}
+			// Soft-wrap tracking. truncateLine is true exactly when the
+			// cells are from \x1b[K filling to end of line — ConPTY
+			// doesn't advance the cursor for that, so we shouldn't count
+			// it toward wraps either.
+			if !truncateLine {
+				totalWidth := 0
+				for _, c := range cells {
+					totalWidth += c.width
+				}
+				v.ei.notifyCellsWritten(totalWidth)
 			}
 		}
 	}
@@ -910,7 +988,7 @@ func (v *View) autoRenderHyperlinksInCurrentLine() {
 		return
 	}
 
-	line := v.lines[v.wy]
+	line := v.lines[v.wy].cells
 	start := 0
 	for {
 		linkStart := findLinkStart(line[start:])
@@ -927,7 +1005,7 @@ func (v *View) autoRenderHyperlinksInCurrentLine() {
 			link.WriteString(line[linkEnd].chr)
 		}
 		for i := linkStart; i < linkEnd; i++ {
-			v.lines[v.wy][i].hyperlink = link.String()
+			v.lines[v.wy].cells[i].hyperlink = link.String()
 		}
 		start = linkEnd
 	}
@@ -955,16 +1033,27 @@ func (v *View) parseInput(ch []byte, width int, x int, _ int) (bool, []cell) {
 	} else {
 		repeatCount := 1
 		if _, ok := v.ei.instruction.(eraseInLineFromCursor); ok {
-			// fill rest of line
+			// Discard any old content past the cursor and record the
+			// fill colors so draw() paints the trailing area with them.
+			// This extends the bg to the right edge in both the
+			// content-fits and content-wraps cases — for the latter,
+			// the metadata is what reaches every wrapped segment past
+			// the last word.
 			v.ei.instructionRead()
-			cx := 0
-			for _, cell := range v.lines[v.wy][0:v.wx] {
-				cx += cell.width
+			truncateLine = true
+			v.lines[v.wy].trailingFillAttributes = &trailingFillAttributes{
+				fg: v.ei.curFgColor,
+				bg: v.ei.curBgColor,
 			}
-			repeatCount = v.InnerWidth() - cx
+			return truncateLine, []cell{}
+		} else if cf, ok := v.ei.instruction.(cursorForward); ok {
+			// emit `n` space cells under the parser-tracked SGR — used
+			// to materialize ConPTY's compressed runs of spaces (which
+			// it emits as ECH+CUF instead of literal whitespace).
+			v.ei.instructionRead()
+			repeatCount = cf.n
 			ch = []byte{' '}
 			width = 1
-			truncateLine = true
 		} else if isEscape {
 			// do not output anything
 			return truncateLine, nil
@@ -1010,8 +1099,8 @@ func (v *View) Read(p []byte) (n int, err error) {
 		v.readBuffer = nil
 	}
 	for v.ry < len(v.lines) {
-		for v.rx < len(v.lines[v.ry]) {
-			s := v.lines[v.ry][v.rx].chr
+		for v.rx < len(v.lines[v.ry].cells) {
+			s := v.lines[v.ry].cells[v.rx].chr
 			count := len(s)
 			copy(p[offset:], s)
 			v.rx++
@@ -1058,10 +1147,25 @@ func (v *View) CopyContent(from *View) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
+	// A background task may be streaming output into the source view's buffer
+	// via Write, so read it under its own lock. The source is always a
+	// different view than the destination (see the sole caller,
+	// moveMainContextToTop), and no other code holds two view write locks at
+	// once, so this can't deadlock.
+	from.writeMutex.Lock()
+	defer from.writeMutex.Unlock()
+
 	v.clear()
 
-	v.lines = from.lines
-	v.viewLines = from.viewLines
+	// Clone the row slices rather than sharing them: the source view stays
+	// live (its streaming task keeps appending rows, and refreshViewLinesIfNeeded
+	// fills each row's wrapping cache in place via &lines[i]), so sharing the
+	// backing arrays would race those writes against this view's own rendering.
+	// This is a shallow clone -- the per-row cell data is immutable once written
+	// and stays shared, so the cost is proportional to the number of rows, not
+	// their contents.
+	v.lines = slices.Clone(from.lines)
+	v.viewLines = slices.Clone(from.viewLines)
 	v.ox = from.ox
 	v.oy = from.oy
 	v.cx = from.cx
@@ -1099,6 +1203,7 @@ func (v *View) FlushStaleCells() {
 
 func (v *View) rewind() {
 	v.ei.reset()
+	v.ei.resetScreenCursor()
 
 	v.SetReadPos(0, 0)
 	v.SetWritePos(0, 0)
@@ -1175,9 +1280,9 @@ func (v *View) updateSearchPositions() {
 				}
 
 				// If a view line exists for this line index:
-				if v.lines[result.Y] != nil {
+				if v.lines[result.Y].cells != nil {
 					// search this view line for the search string
-					positions := searchPositionsForLine(v.lines[result.Y], result.Y)
+					positions := searchPositionsForLine(v.lines[result.Y].cells, result.Y)
 					if len(positions) > 0 {
 						// If we found any occurrences, add them
 						v.searcher.searchPositions = append(v.searcher.searchPositions, positions...)
@@ -1208,6 +1313,8 @@ func (v *View) updateSearchPositions() {
 
 // IsTainted tells us if the view is tainted
 func (v *View) IsTainted() bool {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
 	return v.tainted
 }
 
@@ -1248,11 +1355,19 @@ func (v *View) draw() {
 	}
 
 	emptyCell := cell{chr: " ", width: 1, fgColor: ColorDefault, bgColor: ColorDefault}
-	var prevFgColor Attribute
 
 	for y, vline := range v.viewLines[start:] {
 		if y >= maxY {
 			break
+		}
+
+		// Decide the colors used for cells past the end of vline.line:
+		// the source line's trailingFillAttributes (set by '\x1b[K') if
+		// any, otherwise plain defaults.
+		trailingCell := emptyCell
+		if attrs := vline.trailingFillAttributes; attrs != nil {
+			trailingCell.fgColor = attrs.fg
+			trailingCell.bgColor = attrs.bg
 		}
 
 		// x tracks the current x position in the view, and cellIdx tracks the
@@ -1277,14 +1392,9 @@ func (v *View) draw() {
 
 			// if we're out of cells to write, we'll just print empty cells.
 			if cellIdx > len(vline.line)-1 {
-				c = emptyCell
-				c.fgColor = prevFgColor
+				c = trailingCell
 			} else {
 				c = vline.line[cellIdx]
-				// capturing previous foreground colour so that if we're using the reverse
-				// attribute we honour the final character's colour and don't awkwardly switch
-				// to a new background colour for the remainder of the line
-				prevFgColor = c.fgColor
 			}
 
 			fgColor := c.fgColor
@@ -1308,30 +1418,64 @@ func (v *View) draw() {
 }
 
 func (v *View) refreshViewLinesIfNeeded() {
-	if v.tainted {
-		maxX := v.InnerWidth()
-		lineIdx := 0
-		lines := v.lines
-		for i, line := range lines {
-			wrap := 0
-			if v.Wrap {
-				wrap = maxX
-			}
-
-			ls := lineWrap(line, wrap)
-			for j := range ls {
-				vline := viewLine{linesX: j, linesY: i, line: ls[j]}
-
-				if lineIdx > len(v.viewLines)-1 {
-					v.viewLines = append(v.viewLines, vline)
-				} else {
-					v.viewLines[lineIdx] = vline
-				}
-				lineIdx++
-			}
-		}
-		v.tainted = false
+	if !v.tainted {
+		return
 	}
+
+	maxX := v.InnerWidth()
+	wrap := 0
+	if v.Wrap {
+		wrap = maxX
+	}
+
+	lineIdx := 0
+	lines := v.lines
+	for i := range lines {
+		line := &lines[i]
+
+		// Reuse the previously wrapped result for lines that haven't changed
+		// since the last refresh (i.e. below firstDirtyLine) and were wrapped at
+		// the current width. Wrapping is expensive and this loop runs on every
+		// scroll event, so only the lines that were actually just read (or
+		// re-highlighted) should be wrapped afresh.
+		if line.wrappedCells == nil || line.wrappedColumns != wrap || i >= v.firstDirtyLine {
+			line.wrappedCells = lineWrap(line.cells, wrap)
+			line.wrappedColumns = wrap
+		}
+		ls := line.wrappedCells
+
+		for j := range ls {
+			// Per-segment trailing fill. When the source line opted in
+			// via '\x1b[K', the LAST wrapped segment uses those colors
+			// directly; earlier segments use the colors of their own
+			// last cell, so the trailing area matches the bg active
+			// where that segment ended rather than bleeding the
+			// '\x1b[K' bg back across color changes in the line.
+			var attrs *trailingFillAttributes
+			if line.trailingFillAttributes != nil {
+				if j == len(ls)-1 {
+					attrs = line.trailingFillAttributes
+				} else if len(ls[j]) > 0 {
+					last := ls[j][len(ls[j])-1]
+					attrs = &trailingFillAttributes{fg: last.fgColor, bg: last.bgColor}
+				}
+			}
+			vline := viewLine{
+				linesX: j, linesY: i, line: ls[j],
+				trailingFillAttributes: attrs,
+			}
+
+			if lineIdx > len(v.viewLines)-1 {
+				v.viewLines = append(v.viewLines, vline)
+			} else {
+				v.viewLines[lineIdx] = vline
+			}
+			lineIdx++
+		}
+	}
+
+	v.firstDirtyLine = len(lines)
+	v.tainted = false
 }
 
 // if autoscroll is enabled but we only have a single row of cells shown to the
@@ -1411,9 +1555,7 @@ func (v *View) BufferLines() []string {
 
 	lines := make([]string, len(v.lines))
 	for i, l := range v.lines {
-		str := lineType(l).String()
-		str = strings.ReplaceAll(str, "\x00", "")
-		lines[i] = str
+		lines[i] = l.cells.String()
 	}
 	return lines
 }
@@ -1421,6 +1563,9 @@ func (v *View) BufferLines() []string {
 // Buffer returns a string with the contents of the view's internal
 // buffer.
 func (v *View) Buffer() string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	return linesToString(v.lines)
 }
 
@@ -1434,9 +1579,7 @@ func (v *View) ViewBufferLines() []string {
 
 	lines := make([]string, len(v.viewLines))
 	for i, l := range v.viewLines {
-		str := lineType(l.line).String()
-		str = strings.ReplaceAll(str, "\x00", "")
-		lines[i] = str
+		lines[i] = cells(l.line).String()
 	}
 	return lines
 }
@@ -1458,12 +1601,12 @@ func (v *View) ViewLinesHeight() int {
 // ViewBuffer returns a string with the contents of the view's buffer that is
 // shown to the user.
 func (v *View) ViewBuffer() string {
-	lines := make([][]cell, len(v.viewLines))
+	strs := make([]string, len(v.viewLines))
 	for i := range v.viewLines {
-		lines[i] = v.viewLines[i].line
+		strs[i] = cells(v.viewLines[i].line).String()
 	}
 
-	return linesToString(lines)
+	return strings.Join(strs, "\n")
 }
 
 // Line returns a string with the line of the view's internal buffer
@@ -1478,7 +1621,7 @@ func (v *View) Line(y int) (string, bool) {
 		return "", false
 	}
 
-	return lineType(v.lines[y]).String(), true
+	return v.lines[y].cells.String(), true
 }
 
 // Word returns a string with the word of the view's internal buffer
@@ -1489,11 +1632,11 @@ func (v *View) Word(x, y int) (string, bool) {
 		return "", false
 	}
 
-	if x < 0 || y < 0 || y >= len(v.lines) || x >= len(v.lines[y]) {
+	if x < 0 || y < 0 || y >= len(v.lines) || x >= len(v.lines[y].cells) {
 		return "", false
 	}
 
-	str := lineType(v.lines[y]).String()
+	str := v.lines[y].cells.String()
 
 	nl := strings.LastIndexFunc(str[:x], indexFunc)
 	if nl == -1 {
@@ -1523,9 +1666,8 @@ func (v *View) SetHighlight(y int, on bool) {
 		return
 	}
 
-	line := v.lines[y]
-	cells := make([]cell, 0)
-	for _, c := range line {
+	cells := make([]cell, 0, len(v.lines[y].cells))
+	for _, c := range v.lines[y].cells {
 		if on {
 			c.bgColor = v.SelBgColor
 			c.fgColor = v.SelFgColor
@@ -1536,7 +1678,8 @@ func (v *View) SetHighlight(y int, on bool) {
 		cells = append(cells, c)
 	}
 	v.tainted = true
-	v.lines[y] = cells
+	v.firstDirtyLine = min(v.firstDirtyLine, y)
+	v.lines[y].cells = cells
 	v.clearHover()
 }
 
@@ -1602,17 +1745,10 @@ func lineWrap(line []cell, columns int) [][]cell {
 	return lines
 }
 
-func linesToString(lines [][]cell) string {
+func linesToString(lines []lineType) string {
 	str := make([]string, len(lines))
 	for i := range lines {
-		rns := make([]rune, 0, len(lines[i]))
-		line := lineType(lines[i]).String()
-		for _, c := range line {
-			if c != '\x00' {
-				rns = append(rns, c)
-			}
-		}
-		str[i] = string(rns)
+		str[i] = lines[i].cells.String()
 	}
 
 	return strings.Join(str, "\n")
@@ -1682,9 +1818,7 @@ func (v *View) SelectedLines() []string {
 }
 
 func (v *View) lineContentAtIdx(idx int) string {
-	line := v.lines[idx]
-	str := lineType(line).String()
-	return strings.ReplaceAll(str, "\x00", "")
+	return v.lines[idx].cells.String()
 }
 
 func (v *View) SelectedPoint() (int, int) {
@@ -1788,11 +1922,11 @@ func (v *View) OverwriteLinesAndClearEverythingElse(lineCount int, y int, conten
 	v.overwriteLines(y, content)
 
 	for i := range y {
-		v.lines[i] = nil
+		v.lines[i] = lineType{}
 	}
 
 	for i := v.wy + 1; i < len(v.lines); i += 1 {
-		v.lines[i] = nil
+		v.lines[i] = lineType{}
 	}
 }
 
@@ -1935,7 +2069,7 @@ func (v *View) scrollMargin() int {
 // foreground color
 func (v *View) ContainsColoredText(fgColor string, text string) bool {
 	for _, line := range v.lines {
-		if containsColoredTextInLine(fgColor, text, line) {
+		if containsColoredTextInLine(fgColor, text, line.cells) {
 			return true
 		}
 	}

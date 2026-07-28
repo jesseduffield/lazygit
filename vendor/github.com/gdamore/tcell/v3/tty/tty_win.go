@@ -20,6 +20,7 @@ package tty
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"sync"
 	"syscall"
 	"time"
@@ -96,6 +97,38 @@ type inputRecord struct {
 	typ  uint16
 	_    uint16
 	data [16]byte
+}
+
+func encodeWinKeyRecord(data [16]byte, surrogate *rune) []byte {
+	keyDown := binary.LittleEndian.Uint32(data[0:]) != 0
+	repeat := binary.LittleEndian.Uint16(data[4:])
+	virtualKey := binary.LittleEndian.Uint16(data[6:])
+	scanCode := binary.LittleEndian.Uint16(data[8:])
+	// we normally only expect to see ascii, but paste data may come in as UTF-16.
+	wc := rune(binary.LittleEndian.Uint16(data[10:]))
+	controlState := binary.LittleEndian.Uint32(data[12:])
+
+	if virtualKey != 0 || scanCode != 0 {
+		kd := 0
+		if keyDown {
+			kd = 1
+		}
+		return fmt.Appendf(nil, "\x1b[%d;%d;%d;%d;%d;%d_",
+			virtualKey, scanCode, wc, kd, controlState, max(1, repeat))
+	}
+
+	if !keyDown {
+		return nil
+	}
+
+	var encoded []byte
+	decodedRunes := decodeUTF16Rune(surrogate, wc)
+	for range max(1, repeat) {
+		for _, decoded := range decodedRunes {
+			encoded = append(encoded, []byte(string(decoded))...)
+		}
+	}
+	return encoded
 }
 
 type winTty struct {
@@ -189,6 +222,10 @@ func (w *winTty) getConsoleInput() error {
 		rv, _, er := procGetNumberOfConsoleInputEvents.Call(
 			uintptr(w.in),
 			uintptr(unsafe.Pointer(&nrec)))
+		if rv == 0 {
+			return er
+		}
+
 		rec := make([]inputRecord, max(nrec, 1))
 		rv, _, er = procReadConsoleInput.Call(
 			uintptr(w.in),
@@ -203,20 +240,7 @@ func (w *winTty) getConsoleInput() error {
 			ir := rec[i]
 			switch ir.typ {
 			case keyEvent:
-				// we normally only expect to see ascii, but paste data may come in as UTF-16.
-				wc := rune(binary.LittleEndian.Uint16(ir.data[10:]))
-				if wc >= 0xD800 && wc <= 0xDBFF {
-					// if it was a high surrogate, which happens for pasted UTF-16,
-					// then save it until we get the low and can decode it.
-					w.surrogate = wc
-					continue
-				} else if wc >= 0xDC00 && wc <= 0xDFFF {
-					wc = utf16.DecodeRune(w.surrogate, wc)
-				}
-				w.surrogate = 0
-				for _, chr := range []byte(string(wc)) {
-					// We normally expect only to see ASCII (win32-input-mode),
-					// but apparently pasted data can arrive in UTF-16 here.
+				for _, chr := range encodeWinKeyRecord(ir.data, &w.surrogate) {
 					select {
 					case w.buf <- chr:
 					case <-w.stopQ:

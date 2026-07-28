@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -114,7 +115,7 @@ func TestUserConfigValidate_enums(t *testing.T) {
 		{
 			name: "Keybindings",
 			setup: func(config *UserConfig, value string) {
-				config.Keybinding.Universal.Quit = value
+				config.Keybinding.Universal.Quit = Keybinding{value}
 			},
 			testCases: []testCase{
 				{value: "", valid: true},
@@ -127,14 +128,18 @@ func TestUserConfigValidate_enums(t *testing.T) {
 		{
 			name: "JumpToBlock keybinding",
 			setup: func(config *UserConfig, value string) {
-				config.Keybinding.Universal.JumpToBlock = strings.Split(value, ",")
+				labels := strings.Split(value, ",")
+				config.Keybinding.Universal.JumpToBlock = lo.Map(labels, func(label string, _ int) Keybinding {
+					return Keybinding{label}
+				})
 			},
 			testCases: []testCase{
-				{value: "", valid: false},
-				{value: "1,2,3", valid: false},
+				// The number of entries no longer has to match the number of side
+				// panels, so only the validity of the individual keys matters.
+				{value: "1,2,3", valid: true},
 				{value: "1,2,3,4,5", valid: true},
+				{value: "1,2,3,4,5,6", valid: true},
 				{value: "1,2,3,4,invalid", valid: false},
-				{value: "1,2,3,4,5,6", valid: false},
 			},
 		},
 		{
@@ -142,7 +147,7 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			setup: func(config *UserConfig, value string) {
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:     value,
+						Key:     Keybinding{value},
 						Command: "echo 'hello'",
 					},
 				}
@@ -160,10 +165,10 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			setup: func(config *UserConfig, value string) {
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:         "X",
+						Key:         Keybinding{"X"},
 						Description: "My Custom Commands",
 						CommandMenu: []CustomCommand{
-							{Key: value, Command: "echo 'hello'", Context: "global"},
+							{Key: Keybinding{value}, Command: "echo 'hello'", Context: "global"},
 						},
 					},
 				}
@@ -181,12 +186,12 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			setup: func(config *UserConfig, value string) {
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:         "X",
+						Key:         Keybinding{"X"},
 						Description: "My Custom Commands",
 						Prompts: []CustomCommandPrompt{
 							{
 								Options: []CustomCommandMenuOption{
-									{Key: value},
+									{Key: Keybinding{value}},
 								},
 							},
 						},
@@ -225,10 +230,10 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			setup: func(config *UserConfig, _ string) {
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:         "X",
+						Key:         Keybinding{"X"},
 						Description: "My Custom Commands",
 						CommandMenu: []CustomCommand{
-							{Key: "1", Command: "echo 'hello'", Context: "global"},
+							{Key: Keybinding{"1"}, Command: "echo 'hello'", Context: "global"},
 						},
 					},
 				}
@@ -242,10 +247,10 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			setup: func(config *UserConfig, _ string) {
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:     "X",
+						Key:     Keybinding{"X"},
 						Context: "global", // context is not allowed for submenus
 						CommandMenu: []CustomCommand{
-							{Key: "1", Command: "echo 'hello'", Context: "global"},
+							{Key: Keybinding{"1"}, Command: "echo 'hello'", Context: "global"},
 						},
 					},
 				}
@@ -259,10 +264,10 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			setup: func(config *UserConfig, _ string) {
 				config.CustomCommands = []CustomCommand{
 					{
-						Key:         "X",
+						Key:         Keybinding{"X"},
 						LoadingText: "loading", // other properties are not allowed for submenus (using loadingText as an example)
 						CommandMenu: []CustomCommand{
-							{Key: "1", Command: "echo 'hello'", Context: "global"},
+							{Key: Keybinding{"1"}, Command: "echo 'hello'", Context: "global"},
 						},
 					},
 				}
@@ -309,6 +314,73 @@ func TestUserConfigValidate_spinnerFrames(t *testing.T) {
 		t.Run(s.name, func(t *testing.T) {
 			config := GetDefaultConfig()
 			config.Gui.Spinner.Frames = s.frames
+			err := config.Validate()
+
+			if s.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}
+
+func TestUserConfigValidate_sidePanels(t *testing.T) {
+	scenarios := []struct {
+		name   string
+		panels []SidePanel
+		valid  bool
+	}{
+		{name: "default layout", panels: []SidePanel{{"status"}, {"files", "worktrees", "submodules"}, {"branches", "remotes", "tags"}, {"commits", "reflog"}, {"stash"}}, valid: true},
+		{name: "reordered", panels: []SidePanel{{"status"}, {"files"}, {"commits"}, {"branches"}, {"stash"}}, valid: true},
+		{name: "hidden stash panel", panels: []SidePanel{{"status"}, {"files"}, {"branches"}, {"commits"}}, valid: true},
+		{name: "promoted tab", panels: []SidePanel{{"files", "submodules"}, {"worktrees"}, {"branches"}, {"commits"}}, valid: true},
+		{name: "core panels only", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}}, valid: true},
+		{name: "empty", panels: []SidePanel{}, valid: false},
+		{name: "empty panel", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}, {}}, valid: false},
+		{name: "unknown name", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}, {"bogus"}}, valid: false},
+		{name: "duplicate within panel", panels: []SidePanel{{"files", "files"}, {"branches"}, {"commits"}}, valid: false},
+		{name: "duplicate across panels", panels: []SidePanel{{"files"}, {"branches", "files"}, {"commits"}}, valid: false},
+		{name: "missing files", panels: []SidePanel{{"branches"}, {"commits"}}, valid: false},
+		{name: "missing branches", panels: []SidePanel{{"files"}, {"commits"}}, valid: false},
+		{name: "missing commits", panels: []SidePanel{{"files"}, {"branches"}}, valid: false},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			config := GetDefaultConfig()
+			config.Gui.SidePanels = s.panels
+			err := config.Validate()
+
+			if s.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}
+
+func TestUserConfigValidate_pagers(t *testing.T) {
+	scenarios := []struct {
+		name  string
+		pager PagingConfig
+		valid bool
+	}{
+		{name: "empty", pager: PagingConfig{}, valid: true},
+		{name: "pager only", pager: PagingConfig{Pager: "delta"}, valid: true},
+		{name: "external diff command only", pager: PagingConfig{ExternalDiffCommand: "difft"}, valid: true},
+		{name: "git config external diff only", pager: PagingConfig{UseExternalDiffGitConfig: true}, valid: true},
+		{name: "pager and external diff command", pager: PagingConfig{Pager: "delta", ExternalDiffCommand: "difft"}, valid: false},
+		{name: "pager and git config external diff", pager: PagingConfig{Pager: "delta", UseExternalDiffGitConfig: true}, valid: false},
+		{name: "both external diff mechanisms", pager: PagingConfig{ExternalDiffCommand: "difft", UseExternalDiffGitConfig: true}, valid: false},
+		{name: "all three", pager: PagingConfig{Pager: "delta", ExternalDiffCommand: "difft", UseExternalDiffGitConfig: true}, valid: false},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			config := GetDefaultConfig()
+			config.Git.Pagers = []PagingConfig{s.pager}
 			err := config.Validate()
 
 			if s.valid {
