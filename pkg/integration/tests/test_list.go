@@ -382,6 +382,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.RenamedFileWhole,
 	patch_building.ResetWithEscape,
 	patch_building.SelectAllFiles,
+	patch_building.SelectDirecoriesSharingPrefix,
 	patch_building.SpecificSelection,
 	patch_building.StartNewPatch,
 	patch_building.ToggleDirectory,
