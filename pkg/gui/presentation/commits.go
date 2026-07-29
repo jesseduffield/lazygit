@@ -56,6 +56,7 @@ func GetCommitListDisplayStrings(
 	endIdx int,
 	showGraph bool,
 	bisectInfo *git_commands.BisectInfo,
+	commitDisplayFormat string,
 ) [][]string {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -204,9 +205,32 @@ func GetCommitListDisplayStrings(
 			fullDescription,
 			bisectStatus,
 			bisectInfo,
+			commitDisplayFormat,
 		))
 	}
 	return lines
+}
+
+// GetCommitGraphConnectorLines returns, for each commit, the graph connector
+// line to draw below it. Used by the two-line display formats ('comfortable'
+// and 'spacious') for their inserted author/date rows, so that the graph stays
+// continuous. Entries are empty for TODO commits and in divergence views
+// (where no single graph spans the list).
+func GetCommitGraphConnectorLines(commits []*models.Commit, selectedCommitHashPtr *string) []string {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	result := make([]string, len(commits))
+	if len(commits) == 0 || commits[0].Divergence != models.DivergenceNone {
+		return result
+	}
+
+	rebaseOffset := indexOfFirstNonTODOCommit(commits)
+	pipeSets := loadPipesets(commits[rebaseOffset:])
+	for i, pipeSet := range pipeSets {
+		result[rebaseOffset+i] = graph.RenderConnectorRow(pipeSet, selectedCommitHashPtr)
+	}
+	return result
 }
 
 func getbisectBounds(commits []*models.Commit, bisectInfo *git_commands.BisectInfo) *bisectBounds {
@@ -355,6 +379,7 @@ func displayCommit(
 	fullDescription bool,
 	bisectStatus BisectStatus,
 	bisectInfo *git_commands.BisectInfo,
+	commitDisplayFormat string,
 ) []string {
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
 
@@ -438,6 +463,10 @@ func displayCommit(
 		authorLength = common.UserConfig().Gui.CommitAuthorLongLength
 	}
 	author := authors.AuthorWithLength(commit.AuthorName, authorLength)
+	// The two-line formats show the author on the second line instead
+	if commitDisplayFormat == "comfortable" || commitDisplayFormat == "spacious" {
+		author = ""
+	}
 
 	cols := make([]string, 0, 7)
 	cols = append(

@@ -3,6 +3,7 @@ package context
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -10,7 +11,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -63,6 +66,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			endIdx,
 			shouldShowGraph(c),
 			c.Model().BisectInfo,
+			c.UserConfig().Git.Log.CommitDisplayFormat,
 		)
 	}
 
@@ -107,6 +111,14 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				Content: fmt.Sprintf("--- %s ---", c.Tr.CommitsSectionHeader),
 			})
 		}
+
+		var selectedCommitHashPtr *string
+		if c.Context().Current().GetKey() == LOCAL_COMMITS_CONTEXT_KEY {
+			if selectedCommit := viewModel.GetSelected(); selectedCommit != nil {
+				selectedCommitHashPtr = selectedCommit.HashPtr()
+			}
+		}
+		result = appendCommitDetailItems(c, c.Model().Commits, selectedCommitHashPtr, result)
 
 		return result
 	}
@@ -245,6 +257,54 @@ func (self *LocalCommitsViewModel) GetShowWholeGitGraph() bool {
 
 func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
 	return self.getModel()
+}
+
+// In the 'comfortable' and 'spacious' display formats, insert an extra
+// (unselectable) line below each commit showing author and date, similar to
+// `git log`'s two-line layouts. The line starts with the graph's connector
+// characters so the graph stays continuous, and is rendered from the
+// graph/subject column so it aligns with the commit subject. 'spacious'
+// additionally inserts an empty connector-only row between commits. The
+// resulting list must stay sorted by Index, which is what the list renderer
+// assumes, so we re-sort after appending.
+func appendCommitDetailItems(c *ContextCommon, commits []*models.Commit, selectedCommitHashPtr *string, result []*NonModelItem) []*NonModelItem {
+	format := c.UserConfig().Git.Log.CommitDisplayFormat
+	if format != "comfortable" && format != "spacious" {
+		return result
+	}
+
+	var connectorLines []string
+	if shouldShowGraph(c) {
+		connectorLines = presentation.GetCommitGraphConnectorLines(commits, selectedCommitHashPtr)
+	}
+
+	now := time.Now()
+	timeFormat := c.UserConfig().Gui.TimeFormat
+	shortTimeFormat := c.UserConfig().Gui.ShortTimeFormat
+	for i, commit := range commits {
+		if commit.IsTODO() {
+			continue
+		}
+		connector := ""
+		if connectorLines != nil {
+			connector = connectorLines[i]
+		}
+		result = append(result, &NonModelItem{
+			Index:  i + 1,
+			Column: 6, // the graph+subject column produced by displayCommit
+			Content: connector + style.FgCyan.Sprint(commit.AuthorName) + " " +
+				style.FgBlue.Sprint(utils.UnixToDateSmart(now, commit.UnixTimestamp, timeFormat, shortTimeFormat)),
+		})
+		if format == "spacious" && i < len(commits)-1 {
+			result = append(result, &NonModelItem{
+				Index:   i + 1,
+				Column:  6,
+				Content: connector,
+			})
+		}
+	}
+	sort.SliceStable(result, func(a, b int) bool { return result[a].Index < result[b].Index })
+	return result
 }
 
 func shouldShowGraph(c *ContextCommon) bool {

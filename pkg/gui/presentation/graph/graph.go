@@ -106,6 +106,44 @@ func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPt
 	return lo.Flatten(chunks)
 }
 
+// RenderConnectorRow renders the row of vertical connectors to draw below the
+// commit row rendered from the same pipe set. The width matches the commit
+// row's graph width, so text following the connectors aligns with the commit's
+// subject. Pipes sourced from the selected commit get the same highlight style
+// as in the commit rows, so the highlighted path stays unbroken.
+func RenderConnectorRow(pipes []Pipe, selectedCommitHashPtr *string) string {
+	maxPos := int16(0)
+	for _, pipe := range pipes {
+		if pipe.right() > maxPos {
+			maxPos = pipe.right()
+		}
+	}
+
+	styles := make([]*style.TextStyle, maxPos+1)
+	for _, pipe := range pipes {
+		if pipe.kind != TERMINATES && styles[pipe.toPos] == nil {
+			styles[pipe.toPos] = pipe.style
+		}
+	}
+	for _, pipe := range pipes {
+		if pipe.kind != TERMINATES && equalHashes(pipe.fromHash, selectedCommitHashPtr) {
+			styles[pipe.toPos] = &highlightStyle
+		}
+	}
+
+	writer := &strings.Builder{}
+	writer.Grow(len(styles) * 2)
+	for _, s := range styles {
+		if s != nil {
+			writer.WriteString(s.Sprint("│"))
+		} else {
+			writer.WriteString(" ")
+		}
+		writer.WriteString(" ")
+	}
+	return writer.String()
+}
+
 func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *models.Commit) *style.TextStyle) []Pipe {
 	maxPos := int16(0)
 	for _, pipe := range prevPipes {
