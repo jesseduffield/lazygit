@@ -1770,6 +1770,7 @@ func (self *RefreshHelper) savePullRequestsToCache(prs []*models.GithubPullReque
 			Number:              pr.Number,
 			Title:               pr.Title,
 			State:               pr.State,
+			ChecksState:         pr.ChecksState,
 			Url:                 pr.Url,
 			HeadRepositoryOwner: pr.HeadRepositoryOwner.Login,
 		}

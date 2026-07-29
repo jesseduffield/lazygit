@@ -76,6 +76,20 @@ func TestGraphQLEndpoint(t *testing.T) {
 	}
 }
 
+func TestFetchPullRequestsQueryFetchesOnlyAggregateCheckState(t *testing.T) {
+	query, variables := fetchPullRequestsQuery([]string{"feature"}, "owner", "repo")
+
+	assert.Contains(t, query, "headRef {")
+	assert.Contains(t, query, "... on Commit {")
+	assert.Contains(t, query, "statusCheckRollup {")
+	assert.NotContains(t, query, "contexts")
+	assert.Equal(t, map[string]string{
+		"owner":   "owner",
+		"repo":    "repo",
+		"branch1": "feature",
+	}, variables)
+}
+
 func TestParsePullRequestsResponse(t *testing.T) {
 	t.Run("flattens aliases and normalizes drafts", func(t *testing.T) {
 		response := []byte(`{
@@ -91,7 +105,12 @@ func TestParsePullRequestsResponse(t *testing.T) {
               "url": "https://github.com/jesseduffield/lazygit/pull/42",
               "headRepositoryOwner": {"login": "contributor"},
               "state": "OPEN",
-              "isDraft": false
+              "isDraft": false,
+              "headRef": {
+                "target": {
+                  "statusCheckRollup": {"state": "SUCCESS"}
+                }
+              }
             }
           }
         ]
@@ -106,7 +125,8 @@ func TestParsePullRequestsResponse(t *testing.T) {
               "url": "https://github.com/jesseduffield/lazygit/pull/43",
               "headRepositoryOwner": {"login": "contributor"},
               "state": "OPEN",
-              "isDraft": true
+              "isDraft": true,
+              "headRef": null
             }
           }
         ]
@@ -124,6 +144,7 @@ func TestParsePullRequestsResponse(t *testing.T) {
 				Number:              42,
 				Title:               "Add feature",
 				State:               "OPEN",
+				ChecksState:         "SUCCESS",
 				Url:                 "https://github.com/jesseduffield/lazygit/pull/42",
 				HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "contributor"},
 			},
@@ -176,6 +197,7 @@ func TestGenerateGithubPullRequestMap(t *testing.T) {
 					Number:              42,
 					Title:               "Add feature",
 					State:               "OPEN",
+					ChecksState:         "PENDING",
 					Url:                 "https://github.com/jesseduffield/lazygit/pull/42",
 					HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "jesseduffield"},
 				},
@@ -199,6 +221,7 @@ func TestGenerateGithubPullRequestMap(t *testing.T) {
 					Number:              42,
 					Title:               "Add feature",
 					State:               "OPEN",
+					ChecksState:         "PENDING",
 					Url:                 "https://github.com/jesseduffield/lazygit/pull/42",
 					HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "jesseduffield"},
 				},
