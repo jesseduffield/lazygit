@@ -231,9 +231,12 @@ func (self *GitHubCommands) fetchRecentPRsAux(endpoint string, repoOwner string,
 		return nil, err
 	}
 
+	return parsePullRequestsResponse(respBytes)
+}
+
+func parsePullRequestsResponse(respBytes []byte) ([]*models.GithubPullRequest, error) {
 	var result Response
-	err = json.Unmarshal(respBytes, &result)
-	if err != nil {
+	if err := json.Unmarshal(respBytes, &result); err != nil {
 		return nil, err
 	}
 

@@ -76,6 +76,83 @@ func TestGraphQLEndpoint(t *testing.T) {
 	}
 }
 
+func TestParsePullRequestsResponse(t *testing.T) {
+	t.Run("flattens aliases and normalizes drafts", func(t *testing.T) {
+		response := []byte(`{
+  "data": {
+    "repository": {
+      "a1": {
+        "edges": [
+          {
+            "node": {
+              "title": "Add feature",
+              "headRefName": "feature",
+              "number": 42,
+              "url": "https://github.com/jesseduffield/lazygit/pull/42",
+              "headRepositoryOwner": {"login": "contributor"},
+              "state": "OPEN",
+              "isDraft": false
+            }
+          }
+        ]
+      },
+      "a2": {
+        "edges": [
+          {
+            "node": {
+              "title": "Draft feature",
+              "headRefName": "draft-feature",
+              "number": 43,
+              "url": "https://github.com/jesseduffield/lazygit/pull/43",
+              "headRepositoryOwner": {"login": "contributor"},
+              "state": "OPEN",
+              "isDraft": true
+            }
+          }
+        ]
+      }
+    }
+  }
+}`)
+
+		prs, err := parsePullRequestsResponse(response)
+
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, []*models.GithubPullRequest{
+			{
+				HeadRefName:         "feature",
+				Number:              42,
+				Title:               "Add feature",
+				State:               "OPEN",
+				Url:                 "https://github.com/jesseduffield/lazygit/pull/42",
+				HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "contributor"},
+			},
+			{
+				HeadRefName:         "draft-feature",
+				Number:              43,
+				Title:               "Draft feature",
+				State:               "DRAFT",
+				Url:                 "https://github.com/jesseduffield/lazygit/pull/43",
+				HeadRepositoryOwner: models.GithubRepositoryOwner{Login: "contributor"},
+			},
+		}, prs)
+	})
+
+	t.Run("returns an empty slice for an empty result", func(t *testing.T) {
+		prs, err := parsePullRequestsResponse([]byte(`{"data":{"repository":{}}}`))
+
+		assert.NoError(t, err)
+		assert.Empty(t, prs)
+	})
+
+	t.Run("rejects malformed JSON", func(t *testing.T) {
+		prs, err := parsePullRequestsResponse([]byte(`{"data":`))
+
+		assert.Error(t, err)
+		assert.Nil(t, prs)
+	})
+}
+
 func TestGenerateGithubPullRequestMap(t *testing.T) {
 	cases := []struct {
 		name     string
