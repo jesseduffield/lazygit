@@ -618,13 +618,13 @@ func TestPagerMigration(t *testing.T) {
   paging:
     pager: delta --dark --paging=never
   pagers:
-    - diff: diff-so-fancy
+    - pager: diff-so-fancy
 `,
 			expected: `git:
   paging:
     pager: delta --dark --paging=never
   pagers:
-    - diff: diff-so-fancy
+    - pager: diff-so-fancy
 `,
 			expectedDidChange: false,
 			expectedChanges:   []string{},
