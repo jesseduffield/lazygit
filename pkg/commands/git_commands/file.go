@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -93,7 +94,7 @@ func (self *FileCommands) guessDefaultEditor() string {
 		// At this point, it might be more than just the name of the editor;
 		// e.g. it might be "code -w" or "vim -u myvim.rc". So assume that
 		// everything up to the first space is the editor name.
-		editor = strings.Split(editor, " ")[0]
+		editor = filepath.Base(strings.Split(editor, " ")[0])
 	}
 
 	return editor
