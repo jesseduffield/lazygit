@@ -652,7 +652,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 
 	gui.applySidePanelConfig()
 
-	return initialContext(contextTree, startArgs)
+	return initialContext(contextTree, startArgs, gui.c.UserConfig().Gui.InitialSidePanel)
 }
 
 func (gui *Gui) loadCachedPullRequests() []*models.GithubPullRequest {
@@ -740,8 +740,12 @@ func parseScreenModeArg(screenModeArg string) types.ScreenMode {
 	}
 }
 
-func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartArgs) types.Context {
-	var initialContext types.Context = contextTree.Files
+func initialContext(
+	contextTree *context.ContextTree,
+	startArgs appTypes.StartArgs,
+	initialSidePanel config.SidePanelName,
+) types.Context {
+	initialContext := sidePanelContexts(contextTree)[string(initialSidePanel)]
 
 	if startArgs.FilterPath != "" {
 		initialContext = contextTree.LocalCommits
