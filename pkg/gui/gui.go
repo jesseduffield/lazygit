@@ -745,8 +745,8 @@ func parseScreenModeArg(screenModeArg string) types.ScreenMode {
 	}
 }
 
-func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartArgs) types.IListContext {
-	var initialContext types.IListContext = contextTree.Files
+func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartArgs) types.Context {
+	var initialContext types.Context = contextTree.Files
 
 	if startArgs.FilterPath != "" {
 		initialContext = contextTree.LocalCommits
