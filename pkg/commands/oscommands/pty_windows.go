@@ -36,7 +36,16 @@ func (p *winPty) Resize(cols, rows uint16) error {
 		// there is nothing left to resize.
 		return nil
 	}
-	return windows.ResizePseudoConsole(p.hpc, windows.Coord{X: int16(cols), Y: int16(rows)})
+	return windows.ResizePseudoConsole(p.hpc, clampPtySize(cols, rows))
+}
+
+// clampPtySize clamps a requested pty size to the minimum that ConPTY
+// accepts: CreatePseudoConsole and ResizePseudoConsole reject zero
+// dimensions with E_INVALIDARG, but callers legitimately request them — the
+// pty is sized after the main view, which is zero-sized while hidden, e.g.
+// in full-screen mode with a side panel focused.
+func clampPtySize(cols, rows uint16) windows.Coord {
+	return windows.Coord{X: int16(max(cols, 1)), Y: int16(max(rows, 1))}
 }
 
 // closeHpc closes the pseudoconsole exactly once. Safe to call from multiple
@@ -140,7 +149,7 @@ func StartPty(cmd *exec.Cmd, cols, rows uint16) (sp StartedPty, err error) {
 	// CreatePseudoConsole dupes the handles it needs internally; we release
 	// our references to the child-side ends immediately after.
 	var hpc windows.Handle
-	size := windows.Coord{X: int16(cols), Y: int16(rows)}
+	size := clampPtySize(cols, rows)
 	if err = windows.CreatePseudoConsole(size, inRead, outWrite, 0, &hpc); err != nil {
 		_ = windows.CloseHandle(inRead)
 		_ = windows.CloseHandle(outWrite)

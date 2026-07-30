@@ -401,7 +401,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	contextSize := self.UserConfig().Git.DiffContextSize
 	prevPath := node.GetPreviousPath()
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
-	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
+	extDiffCmd := self.pagerConfig.GetExternalDiffCommand(contextSize)
 	useExtDiff := extDiffCmd != "" && !plain
 	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
 
@@ -450,7 +450,7 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 		colorArg = "never"
 	}
 
-	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
+	extDiffCmd := self.pagerConfig.GetExternalDiffCommand(contextSize)
 	useExtDiff := extDiffCmd != "" && !plain
 	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
 

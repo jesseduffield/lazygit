@@ -30,11 +30,19 @@ func (self *fakeGuiDriver) PressKey(key string) {
 	self.pressedKeys = append(self.pressedKeys, key)
 }
 
+func (self *fakeGuiDriver) PressKeysRapidly(keys ...string) {
+	self.pressedKeys = append(self.pressedKeys, keys...)
+}
+
 func (self *fakeGuiDriver) Click(x, y int) {
 	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
 }
 
 func (self *fakeGuiDriver) FocusIn() {
+}
+
+func (self *fakeGuiDriver) FocusInAndClick(x, y int) {
+	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
 }
 
 func (self *fakeGuiDriver) Keys() config.KeybindingConfig {

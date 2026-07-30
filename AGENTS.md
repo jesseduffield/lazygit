@@ -26,6 +26,24 @@ Windows box has only `just`).
   (most useful with `--sandbox` or `--slow`).
 - `just lint` — run golangci-lint.
 
+## Prefer gopls MCP tools for Go symbol questions
+
+When the gopls MCP tools are available in the session, prefer them over grep
+for type-aware questions about Go code: who calls a function or method
+(`go_symbol_references`), finding a symbol by fuzzy name (`go_search`), or
+inspecting a package's API (`go_package_api`). Method names in this codebase
+collide a lot (`draw`, `Show`, `Refresh` exist on several types), and grep
+needs manual filtering that gopls doesn't. This includes code under
+`vendor/`, which gopls resolves as part of the module build.
+
+Grep remains the right tool for strings, comments, config keys, non-Go
+files, and anything textual. Don't adopt the full workflow from
+`gopls mcp -instructions` (vulncheck on session start, `go_file_context`
+after every file read); that overhead isn't worth it here.
+
+If the tools aren't available in a session, fall back to grep silently —
+don't try to install, register, or start the server.
+
 ## When to commit
 
 Do not leave completed work uncommitted. Once a logical unit of work is done

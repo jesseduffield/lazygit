@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
+	"time"
 
 	lazycoreUtils "github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -24,6 +26,12 @@ type RunTestArgs struct {
 	CodeCoverageDir string
 	InputDelay      int
 	MaxAttempts     int
+	// If set, each test's run duration is appended to this file (as
+	// "<seconds> <test name>"). run_integration_tests.sh prints the slowest at
+	// the end, so slow or anomalous tests can be spotted across CI runs. We
+	// write to a file rather than stdout/stderr because `go test` captures
+	// those and only shows them with -v. Empty disables it.
+	LogTimingsPath string
 }
 
 // This function lets you run tests either from within `go test` or from a regular binary.
@@ -45,6 +53,11 @@ func RunTests(args RunTestArgs) error {
 	gitVersion, err := getGitVersion()
 	if err != nil {
 		return err
+	}
+
+	// Start each run with a fresh timings file (see RunTestArgs.LogTimingsPath).
+	if args.LogTimingsPath != "" {
+		_ = os.Remove(args.LogTimingsPath)
 	}
 
 	for _, test := range args.Tests {
@@ -99,7 +112,11 @@ func runTest(
 		return err
 	}
 
+	start := time.Now()
 	pid, err := args.RunCmd(cmd)
+	if args.LogTimingsPath != "" {
+		logTestTiming(args.LogTimingsPath, test.Name(), time.Since(start))
+	}
 
 	// Print race detector log regardless of the command's exit status
 	if args.RaceDetector {
@@ -110,6 +127,23 @@ func runTest(
 	}
 
 	return err
+}
+
+// timingsMutex serializes appends to the timings file, since tests run in
+// parallel.
+var timingsMutex sync.Mutex
+
+func logTestTiming(path, name string, duration time.Duration) {
+	timingsMutex.Lock()
+	defer timingsMutex.Unlock()
+
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	fmt.Fprintf(f, "%.2f %s\n", duration.Seconds(), name)
 }
 
 func prepareTestDir(

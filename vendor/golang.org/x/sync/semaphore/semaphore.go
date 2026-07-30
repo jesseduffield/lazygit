@@ -24,7 +24,7 @@ func NewWeighted(n int64) *Weighted {
 }
 
 // Weighted provides a way to bound concurrent access to a resource.
-// The callers can request access with a given weight.
+// The callers can request access with a given non-negative weight.
 type Weighted struct {
 	size    int64
 	cur     int64
@@ -32,10 +32,13 @@ type Weighted struct {
 	waiters list.List
 }
 
-// Acquire acquires the semaphore with a weight of n, blocking until resources
+// Acquire acquires the semaphore with a non-negative weight of n, blocking until resources
 // are available or ctx is done. On success, returns nil. On failure, returns
 // ctx.Err() and leaves the semaphore unchanged.
 func (s *Weighted) Acquire(ctx context.Context, n int64) error {
+	if n < 0 {
+		panic("semaphore: n < 0")
+	}
 	done := ctx.Done()
 
 	s.mu.Lock()
@@ -106,9 +109,12 @@ func (s *Weighted) Acquire(ctx context.Context, n int64) error {
 	}
 }
 
-// TryAcquire acquires the semaphore with a weight of n without blocking.
+// TryAcquire acquires the semaphore with a non-negative weight of n without blocking.
 // On success, returns true. On failure, returns false and leaves the semaphore unchanged.
 func (s *Weighted) TryAcquire(n int64) bool {
+	if n < 0 {
+		panic("semaphore: n < 0")
+	}
 	s.mu.Lock()
 	success := s.size-s.cur >= n && s.waiters.Len() == 0
 	if success {
@@ -118,8 +124,11 @@ func (s *Weighted) TryAcquire(n int64) bool {
 	return success
 }
 
-// Release releases the semaphore with a weight of n.
+// Release releases the semaphore with a non-negative weight of n.
 func (s *Weighted) Release(n int64) {
+	if n < 0 {
+		panic("semaphore: n < 0")
+	}
 	s.mu.Lock()
 	s.cur -= n
 	if s.cur < 0 {
