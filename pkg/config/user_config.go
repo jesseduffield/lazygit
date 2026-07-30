@@ -118,6 +118,10 @@ type GuiConfig struct {
 	// Omit a name to hide it; give a name its own one-element list to promote a tab to a top-level panel.
 	// Valid names are: 'status', 'files', 'worktrees', 'submodules', 'branches', 'remotes', 'tags', 'commits', 'reflog', 'stash'. 'files', 'branches', and 'commits' must always be included; they can't be hidden.
 	SidePanels []SidePanel `yaml:"sidePanels"`
+	// The side panel that is focused when lazygit starts, or when you switch to another repository.
+	// Must be one of the names listed in `sidePanels`; you can't focus a panel you have hidden.
+	// Starting lazygit with a path filter or with a git subcommand (e.g. `lazygit log`) takes precedence over this setting.
+	InitialSidePanel SidePanelName `yaml:"initialSidePanel"`
 	// Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.
 	// Options are:
 	// - 'horizontal': split the window horizontally
@@ -869,6 +873,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				{"commits", "reflog"},
 				{"stash"},
 			},
+			InitialSidePanel:         "files",
 			MainPanelSplitMode:       "flexible",
 			EnlargedSideViewLocation: "left",
 			WrapLinesInStagingView:   true,

@@ -493,6 +493,8 @@ var tests = []*components.IntegrationTest{
 	ui.DisableSwitchTabWithPanelJumpKeys,
 	ui.EmptyMenu,
 	ui.HideSidePanel,
+	ui.InitialSidePanel,
+	ui.InitialSidePanelNotFirstTab,
 	ui.KeybindingSuggestionsDontCrashOnDisabledBindings,
 	ui.KeybindingSuggestionsWhenSwitchingRepos,
 	ui.ModeSpecificKeybindingSuggestions,

@@ -361,6 +361,38 @@ func TestUserConfigValidate_sidePanels(t *testing.T) {
 	}
 }
 
+func TestUserConfigValidate_initialSidePanel(t *testing.T) {
+	scenarios := []struct {
+		name    string
+		panels  []SidePanel
+		initial SidePanelName
+		valid   bool
+	}{
+		{name: "default", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}}, initial: "files", valid: true},
+		{name: "non-default panel", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}}, initial: "commits", valid: true},
+		{name: "non-first tab of a panel", panels: []SidePanel{{"files"}, {"branches"}, {"reflog", "commits"}}, initial: "commits", valid: true},
+		{name: "status panel", panels: []SidePanel{{"status"}, {"files"}, {"branches"}, {"commits"}}, initial: "status", valid: true},
+		{name: "empty", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}}, initial: "", valid: false},
+		{name: "unknown name", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}}, initial: "bogus", valid: false},
+		{name: "hidden panel", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}}, initial: "stash", valid: false},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			config := GetDefaultConfig()
+			config.Gui.SidePanels = s.panels
+			config.Gui.InitialSidePanel = s.initial
+			err := config.Validate()
+
+			if s.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}
+
 func TestUserConfigValidate_pagers(t *testing.T) {
 	scenarios := []struct {
 		name  string

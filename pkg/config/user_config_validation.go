@@ -61,7 +61,24 @@ func (config *UserConfig) Validate() error {
 	if err := validateSidePanels(config.Gui.SidePanels); err != nil {
 		return err
 	}
+	if err := validateInitialSidePanel(config.Gui.SidePanels, config.Gui.InitialSidePanel); err != nil {
+		return err
+	}
 	return nil
+}
+
+func validateInitialSidePanel(panels []SidePanel, initial SidePanelName) error {
+	name := string(initial)
+	if !slices.Contains(ValidSidePanelTabs, name) {
+		return fmt.Errorf("gui.initialSidePanel: unknown side panel '%s'. Allowed values: %s",
+			name, strings.Join(ValidSidePanelTabs, ", "))
+	}
+	for _, panel := range panels {
+		if slices.Contains(panel, name) {
+			return nil
+		}
+	}
+	return fmt.Errorf("gui.initialSidePanel: '%s' is not listed in gui.sidePanels; a hidden side panel can't be focused.", name)
 }
 
 func validateSidePanels(panels []SidePanel) error {
