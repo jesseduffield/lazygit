@@ -150,6 +150,12 @@ func getBranchDisplayStrings(
 			prIcon = "●"
 		}
 		coloredPrIcon = WithPrColor(pr.State, prIcon, false)
+		if pr.State == "OPEN" {
+			icon, _, textStyle := checksStatePresentation(pr.ChecksState, tr)
+			if icon != "" {
+				coloredPrIcon = textStyle.Sprint(icon)
+			}
+		}
 	}
 	res = append(res, coloredPrIcon)
 
@@ -287,14 +293,21 @@ func WithPrColor(state string, text string, isBg bool) string {
 	}
 }
 
-func FormatPullRequestHeader(pr *models.GithubPullRequest) string {
+func FormatPullRequestHeader(pr *models.GithubPullRequest, tr *i18n.TranslationSet) string {
 	icon := lo.Ternary(icons.IsIconEnabled(), icons.IconForRemoteUrl(pr.Url)+"  ", "")
-	return style.PrintHyperlink(fmt.Sprintf("%s%s  %s  %s\n",
-		icon,
-		coloredPullRequestStateText(pr.State),
-		pr.Title,
-		style.FgCyan.Sprintf("#%d", pr.Number)),
-		pr.Url)
+	stateText := coloredPullRequestStateText(pr.State)
+	checksStateText := coloredChecksStateText(pr.ChecksState, tr)
+	numberText := style.FgCyan.Sprintf("#%d", pr.Number)
+
+	// The checks status links to the checks tab, so it needs to be its own
+	// hyperlink separate from the rest of the header.
+	parts := []string{style.PrintHyperlink(icon+stateText, pr.Url)}
+	if checksStateText != "" {
+		parts = append(parts, style.PrintHyperlink(checksStateText, strings.TrimSuffix(pr.Url, "/")+"/checks"))
+	}
+	parts = append(parts, style.PrintHyperlink(fmt.Sprintf("%s  %s\n", pr.Title, numberText), pr.Url))
+
+	return strings.Join(parts, "  ")
 }
 
 func pullRequestStateText(state string) string {
@@ -326,6 +339,31 @@ func coloredPullRequestStateText(state string) string {
 	}
 
 	return WithPrColor(state, pullRequestStateText(state), false)
+}
+
+func checksStatePresentation(state string, tr *i18n.TranslationSet) (string, string, style.TextStyle) {
+	switch state {
+	case "SUCCESS":
+		return "✓", tr.PullRequestChecksPassing, style.FgGreen
+	case "PENDING":
+		return "●", tr.PullRequestChecksPending, style.FgYellow
+	case "FAILURE":
+		return "✗", tr.PullRequestChecksFailing, style.FgRed
+	case "ERROR":
+		return "!", tr.PullRequestChecksError, style.FgRed
+	case "EXPECTED":
+		return "○", tr.PullRequestChecksExpected, style.FgDefault
+	default:
+		return "", "", style.Nothing
+	}
+}
+
+func coloredChecksStateText(state string, tr *i18n.TranslationSet) string {
+	icon, text, textStyle := checksStatePresentation(state, tr)
+	if text != "" {
+		return textStyle.Sprintf("%s %s", icon, text)
+	}
+	return ""
 }
 
 func ShouldShowPrForBranch(pr *models.GithubPullRequest, branchName string, userConfig *config.UserConfig) bool {

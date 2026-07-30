@@ -367,6 +367,11 @@ type TranslationSet struct {
 	FwdNoLocalUpstream                    string
 	FwdCommitsToPush                      string
 	PullRequestNoUpstream                 string
+	PullRequestChecksPassing              string
+	PullRequestChecksPending              string
+	PullRequestChecksFailing              string
+	PullRequestChecksError                string
+	PullRequestChecksExpected             string
 	ErrorOccurred                         string
 	ConflictLabel                         string
 	PendingRebaseTodosSectionHeader       string
@@ -1519,6 +1524,11 @@ func EnglishTranslationSet() *TranslationSet {
 		FwdNoLocalUpstream:                   "Cannot fast-forward a branch whose remote is not registered locally",
 		FwdCommitsToPush:                     "Cannot fast-forward a branch with commits to push",
 		PullRequestNoUpstream:                "Cannot open a pull request for a branch with no upstream",
+		PullRequestChecksPassing:             "Passing",
+		PullRequestChecksPending:             "Pending",
+		PullRequestChecksFailing:             "Failing",
+		PullRequestChecksError:               "Error",
+		PullRequestChecksExpected:            "Expected",
 		ErrorOccurred:                        "An error occurred! Please create an issue at",
 		ConflictLabel:                        "CONFLICT",
 		PendingRebaseTodosSectionHeader:      "Pending rebase todos",

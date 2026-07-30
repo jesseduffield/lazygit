@@ -211,7 +211,7 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 
 				pr, ok := self.c.Model().PullRequestsMap[branch.Name]
 				if ok && presentation.ShouldShowPrForBranch(pr, branch.Name, self.c.UserConfig()) {
-					ptyTask.Prefix = presentation.FormatPullRequestHeader(pr)
+					ptyTask.Prefix = presentation.FormatPullRequestHeader(pr, self.c.Tr)
 					ptyTask.Prefix += strings.Repeat("─", self.c.Contexts().Normal.GetView().InnerWidth()) + "\n"
 				}
 			}
