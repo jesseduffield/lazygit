@@ -287,6 +287,47 @@ func WithPrColor(state string, text string, isBg bool) string {
 	}
 }
 
+func FormatPullRequestHeader(pr *models.GithubPullRequest) string {
+	icon := lo.Ternary(icons.IsIconEnabled(), icons.IconForRemoteUrl(pr.Url)+"  ", "")
+	return style.PrintHyperlink(fmt.Sprintf("%s%s  %s  %s\n",
+		icon,
+		coloredPullRequestStateText(pr.State),
+		pr.Title,
+		style.FgCyan.Sprintf("#%d", pr.Number)),
+		pr.Url)
+}
+
+func pullRequestStateText(state string) string {
+	var icon, label string
+	switch state {
+	case "OPEN":
+		icon, label = " ", "Open"
+	case "CLOSED":
+		icon, label = " ", "Closed"
+	case "MERGED":
+		icon, label = " ", "Merged"
+	case "DRAFT":
+		icon, label = " ", "Draft"
+	default:
+		return ""
+	}
+	if icons.IsIconEnabled() {
+		return icon + label
+	}
+	return label
+}
+
+func coloredPullRequestStateText(state string) string {
+	if icons.IsIconEnabled() {
+		return fmt.Sprintf("%s%s%s",
+			WithPrColor(state, "", false),
+			WithPrColor(state, color.RGB(0xFF, 0xFF, 0xFF, false).Sprint(pullRequestStateText(state)), true),
+			WithPrColor(state, "", false))
+	}
+
+	return WithPrColor(state, pullRequestStateText(state), false)
+}
+
 func ShouldShowPrForBranch(pr *models.GithubPullRequest, branchName string, userConfig *config.UserConfig) bool {
 	if !lo.Contains(userConfig.Git.MainBranches, branchName) {
 		return true

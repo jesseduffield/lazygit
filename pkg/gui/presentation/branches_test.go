@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
@@ -20,6 +21,25 @@ func makeAtomic(v int32) *atomic.Int32 {
 	var result atomic.Int32
 	result.Store(v)
 	return &result
+}
+
+func TestFormatPullRequestHeader(t *testing.T) {
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
+	defer color.ForceSetColorLevel(oldColorLevel)
+	icons.SetNerdFontsVersion("")
+
+	pr := &models.GithubPullRequest{
+		Title:  "Improve checks",
+		Number: 5871,
+		State:  "OPEN",
+		Url:    "https://github.com/jesseduffield/lazygit/pull/5871",
+	}
+	numberText := style.FgCyan.Sprint("#5871")
+
+	actual := FormatPullRequestHeader(pr)
+
+	expected := style.PrintHyperlink("Open  Improve checks  "+numberText+"\n", pr.Url)
+	assert.Equal(t, expected, actual)
 }
 
 func Test_getBranchDisplayStrings(t *testing.T) {
