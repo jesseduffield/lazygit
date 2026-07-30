@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -42,6 +43,15 @@ func (self *TestDriver) pressFast(keyStr string) {
 	self.Wait(self.inputDelay / 5)
 }
 
+// presses the keys in immediate succession, without waiting for lazygit to
+// become idle in between, to simulate a user typing faster than lazygit
+// processes the input
+func (self *TestDriver) pressRapidly(keyStrs []string) {
+	self.SetCaption(fmt.Sprintf("Pressing %s", strings.Join(keyStrs, ", ")))
+	self.gui.PressKeysRapidly(keyStrs...)
+	self.Wait(self.inputDelay)
+}
+
 func (self *TestDriver) click(x, y int) {
 	self.SetCaption(fmt.Sprintf("Clicking %d, %d", x, y))
 	self.gui.Click(x, y)
@@ -60,6 +70,12 @@ func (self *TestDriver) GlobalPress(key config.Keybinding) {
 func (self *TestDriver) FocusIn() {
 	self.SetCaption("Focusing window")
 	self.gui.FocusIn()
+	self.Wait(self.inputDelay)
+}
+
+func (self *TestDriver) focusInAndClick(x, y int) {
+	self.SetCaption(fmt.Sprintf("Focusing window and clicking %d, %d", x, y))
+	self.gui.FocusInAndClick(x, y)
 	self.Wait(self.inputDelay)
 }
 

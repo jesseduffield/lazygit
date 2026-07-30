@@ -1527,6 +1527,7 @@ func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error 
 }
 
 func (self *FilesController) fetch() error {
+	fetchGeneration := self.c.State().GetRepoGeneration()
 	return self.c.WithWaitingStatus(self.c.Tr.FetchingStatus, func(task gocui.Task) error {
 		self.c.LogAction("Fetch")
 		err := self.c.Git().Sync.Fetch(task)
@@ -1535,7 +1536,7 @@ func (self *FilesController) fetch() error {
 			return errors.New(self.c.Tr.PassUnameWrong)
 		}
 
-		return self.c.Helpers().BranchesHelper.PostFetchRefresh(err, false)
+		return self.c.Helpers().BranchesHelper.PostFetchRefresh(err, false, fetchGeneration)
 	})
 }
 
@@ -1551,6 +1552,8 @@ func normalisedSelectedNodes(selectedNodes []*filetree.FileNode) []*filetree.Fil
 	})
 }
 
+// NOTE: there's a duplicate of this function in commits_files_controller.go; if you make
+// changes here, make them there, too. (We should unify them using generics.)
 func isDescendentOfSelectedNodes(node *filetree.FileNode, selectedNodes []*filetree.FileNode) bool {
 	nodePath := node.GetInternalPath()
 

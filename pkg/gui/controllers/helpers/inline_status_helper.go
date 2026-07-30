@@ -139,16 +139,17 @@ func (self *InlineStatusHelper) stop(opts InlineStatusOpts) {
 	self.c.State().ClearItemOperation(opts.Item)
 
 	// Re-render the context to remove the inline status now that the operation
-	// finished. Any refresh it triggered must be synchronous, not async: by the
-	// time we get here a synchronous refresh has already updated the model and
-	// queued its own re-render, and since UI-thread callbacks run in order, the
-	// render we queue here runs after it and draws the up-to-date model without
-	// the inline status. An async refresh might not have updated the model yet,
-	// so this render could briefly show the stale, pre-operation model: when
-	// pushing a branch, for example, it would flash the old ↑3↓7 ahead/behind
-	// counts for a moment before the refresh replaced them with a green
-	// checkmark. (Operations that don't refresh at all are fine too: there's
-	// nothing stale to show, so this just drops the status.)
+	// finished. The operation must trigger its refresh via RefreshFromWorker
+	// before we get here: that call returns only once the refresh's model
+	// updates have been enqueued on the UI thread, and since UI-thread
+	// callbacks run in order, the render we queue here runs after them and
+	// draws the up-to-date model without the inline status. A refresh whose
+	// model updates aren't enqueued yet by this point would make this render
+	// briefly show the stale, pre-operation model: when pushing a branch, for
+	// example, it would flash the old ↑3↓7 ahead/behind counts for a moment
+	// before the refresh replaced them with a green checkmark. (Operations
+	// that don't refresh at all are fine too: there's nothing stale to show,
+	// so this just drops the status.)
 	self.renderContext(opts.ContextKey)
 }
 

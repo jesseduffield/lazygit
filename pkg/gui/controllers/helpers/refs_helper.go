@@ -157,12 +157,17 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 					if err := self.c.Git().Branch.CreateWithUpstream(localBranchName, fullBranchName); err != nil {
 						return err
 					}
-					// Do a sync refresh to make sure the new branch is visible,
-					// so that we see an inline status when checking it out
+					// Refresh the branches and check out from Then, so that the
+					// new branch is already in the model when CheckoutRef looks
+					// it up; that's what makes it show an inline status on the
+					// branch rather than a global waiting status.
 					self.c.Refresh(types.RefreshOptions{
 						Scope: []types.RefreshableView{types.BRANCHES},
+						Then: func() error {
+							return checkout(localBranchName, true)
+						},
 					})
-					return checkout(localBranchName, true)
+					return nil
 				},
 			},
 			{
