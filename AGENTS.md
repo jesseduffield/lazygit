@@ -213,6 +213,16 @@ that changes the relevant test(s) or adds new ones to demonstrate the bug, then
 fix the bug in a follow-up commit. This gives reviewers (and `git bisect`) a
 clear before/after and proves the test actually exercises the broken code path.
 
+This applies only to defects that existed before the entire branch or branch
+stack. Never use the bug-demonstration pattern for a regression introduced by
+an earlier commit in the current stack. Fix or rewrite the commit that
+introduced the regression so that no commit in the final history contains it.
+Put the regression test in a preparatory commit before the introducing commit,
+so it guards that commit in the final history. If the test cannot pass before
+the feature exists, restructure the implementation or test seam until it can;
+if that would require a design tradeoff, stop and discuss it rather than adding
+a later demonstration/fix pair.
+
 Use the `EXPECTED` / `ACTUAL` pattern in the bug-demonstrating commit. The test
 asserts the current (wrong) behavior so it passes on the broken code, with the
 correct expectation preserved inline as a comment. The fix commit then swaps
@@ -255,7 +265,11 @@ If you find yourself reaching for a local variable so that both forms can be
 expressed against the same receiver, the structure isn't right yet — go back
 and fix it instead of papering over it with a binding.
 
-Use this pattern only where it makes sense; don't apply it by default.
+Use this pattern only where it makes sense; don't apply it by default. Only
+ever use it for bugs, never for added features or behavior changes that aren't
+bugfixes; it is useful to demonstrate how a bug existed before fixing it, but
+it is never useful to demonstrate how a feature didn't exist before implementing
+it.
 
 ## Unify duplicated logic before you change it
 
