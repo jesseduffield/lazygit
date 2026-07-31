@@ -373,6 +373,8 @@ type TranslationSet struct {
 	PendingCherryPicksSectionHeader       string
 	PendingRevertsSectionHeader           string
 	CommitsSectionHeader                  string
+	MoveCommitsHere                       string
+	MovingCommitsHere                     string
 	YouDied                               string
 	RewordNotSupported                    string
 	ChangingThisActionIsNotAllowed        string
@@ -1523,6 +1525,8 @@ func EnglishTranslationSet() *TranslationSet {
 		PendingCherryPicksSectionHeader:      "Pending cherry-picks",
 		PendingRevertsSectionHeader:          "Pending reverts",
 		CommitsSectionHeader:                 "Commits",
+		MoveCommitsHere:                      "drop here",
+		MovingCommitsHere:                    "moving commits here",
 		YouDied:                              "YOU DIED!",
 		RewordNotSupported:                   "Rewording commits while interactively rebasing is not currently supported",
 		ChangingThisActionIsNotAllowed:       "Changing this kind of rebase todo entry is not allowed",
