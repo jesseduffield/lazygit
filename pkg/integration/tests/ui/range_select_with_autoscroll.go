@@ -17,6 +17,7 @@ var RangeSelectWithAutoscroll = NewIntegrationTest(NewIntegrationTestArgs{
 		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
 	},
 	SetupRepo: func(shell *Shell) {
+		shell.CreateNCommits(40)
 		fileContent := "base\n"
 		shell.CreateFileAndAdd("file1", fileContent)
 		for i := 1; i <= 40; i++ {
@@ -25,6 +26,14 @@ var RangeSelectWithAutoscroll = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.UpdateFile("file1", fileContent)
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().Focus()
+		t.Views().Commits().
+			ClickAndHold(1, 0).
+			MouseMoveToBottom(1).
+			OriginYAtLeast(3).
+			SelectedLineIdxAtLeast(3).
+			MouseRelease()
+
 		t.Views().Files().
 			Focus().
 			PressEnter()
