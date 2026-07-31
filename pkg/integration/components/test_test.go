@@ -19,9 +19,12 @@ type coordinate struct {
 }
 
 type fakeGuiDriver struct {
-	failureMessage     string
-	pressedKeys        []string
-	clickedCoordinates []coordinate
+	failureMessage      string
+	pressedKeys         []string
+	clickedCoordinates  []coordinate
+	heldCoordinates     []coordinate
+	movedCoordinates    []coordinate
+	releasedCoordinates []coordinate
 }
 
 var _ integrationTypes.GuiDriver = &fakeGuiDriver{}
@@ -36,6 +39,22 @@ func (self *fakeGuiDriver) PressKeysRapidly(keys ...string) {
 
 func (self *fakeGuiDriver) Click(x, y int) {
 	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
+}
+
+func (self *fakeGuiDriver) ClickAndHold(x, y int) {
+	self.heldCoordinates = append(self.heldCoordinates, coordinate{x: x, y: y})
+}
+
+func (self *fakeGuiDriver) MouseMove(x, y int) {
+	self.movedCoordinates = append(self.movedCoordinates, coordinate{x: x, y: y})
+}
+
+func (self *fakeGuiDriver) MouseRelease(x, y int) {
+	self.releasedCoordinates = append(self.releasedCoordinates, coordinate{x: x, y: y})
+}
+
+func (self *fakeGuiDriver) OnUIThreadAndWait(f func()) {
+	f()
 }
 
 func (self *fakeGuiDriver) FocusIn() {
@@ -123,12 +142,19 @@ func TestSuccess(t *testing.T) {
 			t.press("b")
 			t.click(0, 1)
 			t.click(2, 3)
+			t.clickAndHold(0, 1)
+			t.mouseMove(2, 3)
+			t.repeatMouseMove()
+			t.mouseRelease()
 		},
 	})
 	driver := &fakeGuiDriver{}
 	test.Run(driver)
 	assert.EqualValues(t, []string{"a", "b"}, driver.pressedKeys)
 	assert.EqualValues(t, []coordinate{{0, 1}, {2, 3}}, driver.clickedCoordinates)
+	assert.EqualValues(t, []coordinate{{0, 1}}, driver.heldCoordinates)
+	assert.EqualValues(t, []coordinate{{2, 3}, {2, 3}}, driver.movedCoordinates)
+	assert.EqualValues(t, []coordinate{{2, 3}}, driver.releasedCoordinates)
 	assert.Equal(t, "", driver.failureMessage)
 }
 

@@ -13,6 +13,8 @@ type TestDriver struct {
 	gui        integrationTypes.GuiDriver
 	keys       config.KeybindingConfig
 	inputDelay int
+	mouseX     int
+	mouseY     int
 	*assertionHelper
 	shell *Shell
 }
@@ -55,6 +57,30 @@ func (self *TestDriver) pressRapidly(keyStrs []string) {
 func (self *TestDriver) click(x, y int) {
 	self.SetCaption(fmt.Sprintf("Clicking %d, %d", x, y))
 	self.gui.Click(x, y)
+	self.Wait(self.inputDelay)
+}
+
+func (self *TestDriver) clickAndHold(x, y int) {
+	self.SetCaption(fmt.Sprintf("Clicking and holding %d, %d", x, y))
+	self.mouseX, self.mouseY = x, y
+	self.gui.ClickAndHold(x, y)
+	self.Wait(self.inputDelay)
+}
+
+func (self *TestDriver) mouseMove(x, y int) {
+	self.SetCaption(fmt.Sprintf("Moving mouse to %d, %d", x, y))
+	self.mouseX, self.mouseY = x, y
+	self.gui.MouseMove(x, y)
+	self.Wait(self.inputDelay)
+}
+
+func (self *TestDriver) repeatMouseMove() {
+	self.mouseMove(self.mouseX, self.mouseY)
+}
+
+func (self *TestDriver) mouseRelease() {
+	self.SetCaption(fmt.Sprintf("Releasing mouse at %d, %d", self.mouseX, self.mouseY))
+	self.gui.MouseRelease(self.mouseX, self.mouseY)
 	self.Wait(self.inputDelay)
 }
 
