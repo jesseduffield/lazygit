@@ -101,6 +101,7 @@
               # Development tools
               git
               gnumake
+              just
             ];
 
             # Environment variables for development
