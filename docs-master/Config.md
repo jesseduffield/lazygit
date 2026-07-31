@@ -336,13 +336,13 @@ gui:
   spinner:
     # The frames of the spinner animation.
     frames:
-      - '|'
-      - /
-      - '-'
-      - \
+      - ●∙∙
+      - ∙●∙
+      - ∙∙●
+      - ∙●∙
 
     # The "speed" of the spinner in milliseconds.
-    rate: 50
+    rate: 180
 
   # Status panel view.
   # One of 'dashboard' (default) | 'allBranchesLog'

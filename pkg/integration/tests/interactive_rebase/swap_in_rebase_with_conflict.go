@@ -29,19 +29,19 @@ var SwapInRebaseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit one")).
 			Press(keys.Universal.Edit).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("commit three"),
 				Contains("commit two"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("commit one").IsSelected(),
 			).
 			SelectPreviousItem().
 			Press(keys.Commits.MoveUpCommit).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("commit two").IsSelected(),
 				Contains("commit three"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("commit one"),
 			).
 			Tap(func() {

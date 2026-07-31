@@ -1,7 +1,6 @@
 package context
 
 import (
-	"fmt"
 	"log"
 	"strings"
 	"sync/atomic"
@@ -72,7 +71,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			if c.Model().WorkingTreeStateAtLastCommitRefresh.Rebasing {
 				result = append(result, &NonModelItem{
 					Index:   0,
-					Content: fmt.Sprintf("--- %s ---", c.Tr.PendingRebaseTodosSectionHeader),
+					Content: formatListSectionHeader(c.Tr.PendingRebaseTodosSectionHeader),
 				})
 			}
 
@@ -91,7 +90,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 					c.Tr.PendingRevertsSectionHeader)
 				result = append(result, &NonModelItem{
 					Index:   firstCherryPickOrRevertTodo,
-					Content: fmt.Sprintf("--- %s ---", label),
+					Content: formatListSectionHeader(label),
 				})
 			}
 
@@ -104,7 +103,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			}
 			result = append(result, &NonModelItem{
 				Index:   firstRealCommit,
-				Content: fmt.Sprintf("--- %s ---", c.Tr.CommitsSectionHeader),
+				Content: formatListSectionHeader(c.Tr.CommitsSectionHeader),
 			})
 		}
 

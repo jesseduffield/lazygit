@@ -1,6 +1,7 @@
 package context
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -8,6 +9,10 @@ import (
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
 )
+
+func formatListSectionHeader(label string) string {
+	return fmt.Sprintf("─── %s", label)
+}
 
 type NonModelItem struct {
 	// Where in the model this should be inserted

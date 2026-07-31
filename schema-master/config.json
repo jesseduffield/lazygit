@@ -3631,17 +3631,17 @@
           "type": "array",
           "description": "The frames of the spinner animation.",
           "default": [
-            "|",
-            "/",
-            "-",
-            "\\"
+            "●∙∙",
+            "∙●∙",
+            "∙∙●",
+            "∙●∙"
           ]
         },
         "rate": {
           "type": "integer",
           "minimum": 1,
           "description": "The \"speed\" of the spinner in milliseconds.",
-          "default": 50
+          "default": 180
         }
       },
       "additionalProperties": false,

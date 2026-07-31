@@ -45,25 +45,25 @@ var AdvancedInteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			IsFocused().
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains(TOP_COMMIT),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains(BASE_COMMIT),
 			).
 			NavigateToLine(Contains(TOP_COMMIT)).
 			Press(keys.Universal.Edit).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains(TOP_COMMIT).Contains("edit"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains(BASE_COMMIT),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()
 			}).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
-				Contains("--- Commits ---"),
+				Contains("─── Pending rebase todos"),
+				Contains("─── Commits"),
 				Contains(TOP_COMMIT),
 				Contains(BASE_COMMIT),
 			)
