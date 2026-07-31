@@ -288,6 +288,8 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 	}{
 		{[]string{"gui", "skipUnstageLineWarning"}, "skipDiscardChangeWarning"},
 		{[]string{"keybinding", "universal", "executeCustomCommand"}, "executeShellCommand"},
+		{[]string{"keybinding", "universal", "cyclePagers"}, "cycleDiffRenderers"},
+		{[]string{"keybinding", "universal", "cyclePagersReverse"}, "cycleDiffRenderersReverse"},
 		{[]string{"gui", "windowSize"}, "screenMode"},
 		{[]string{"keybinding", "files", "openMergeTool"}, "openMergeOptions"},
 	}
@@ -347,7 +349,12 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
 	}
 
-	err = migratePagers(&rootNode, changes)
+	err = migratePaging(&rootNode, changes)
+	if err != nil {
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
+	}
+
+	err = migratePagersToDiffRenderers(&rootNode, changes)
 	if err != nil {
 		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
 	}
@@ -512,7 +519,9 @@ func migrateAllBranchesLogCmd(rootNode *yaml.Node, changes *ChangesSet) error {
 	})
 }
 
-func migratePagers(rootNode *yaml.Node, changes *ChangesSet) error {
+// Migrate the single 'paging' node to an array of 'pagers'. This is not the final structure, we
+// migrate it to diffRenderers from there in a separate step below.
+func migratePaging(rootNode *yaml.Node, changes *ChangesSet) error {
 	return yaml_utils.TransformNode(rootNode, []string{"git"}, func(gitNode *yaml.Node) error {
 		pagingKeyNode, pagingValueNode := yaml_utils.LookupKey(gitNode, "paging")
 		if pagingKeyNode == nil || pagingValueNode.Kind != yaml.MappingNode {
@@ -521,10 +530,11 @@ func migratePagers(rootNode *yaml.Node, changes *ChangesSet) error {
 		}
 
 		pagersKeyNode, _ := yaml_utils.LookupKey(gitNode, "pagers")
-		if pagersKeyNode != nil {
-			// Conversely, if there *is* already a "pagers" array, we also have nothing to do.
-			// This covers the case where the user keeps both the "paging" section and the "pagers"
-			// array for the sake of easier testing of old versions.
+		diffRenderersKeyNode, _ := yaml_utils.LookupKey(gitNode, "diffRenderers")
+		if pagersKeyNode != nil || diffRenderersKeyNode != nil {
+			// Conversely, if there is already a newer array config, we also have nothing to do.
+			// This covers the case where the user keeps both formats for the sake of easier testing
+			// of old versions.
 			return nil
 		}
 
@@ -532,6 +542,7 @@ func migratePagers(rootNode *yaml.Node, changes *ChangesSet) error {
 		pagingContentCopy := pagingValueNode.Content
 		pagingValueNode.Kind = yaml.SequenceNode
 		pagingValueNode.Tag = "!!seq"
+		pagingValueNode.Style &^= yaml.FlowStyle
 		pagingValueNode.Content = []*yaml.Node{{
 			Kind:    yaml.MappingNode,
 			Content: pagingContentCopy,
@@ -541,6 +552,90 @@ func migratePagers(rootNode *yaml.Node, changes *ChangesSet) error {
 
 		return nil
 	})
+}
+
+func migratePagersToDiffRenderers(rootNode *yaml.Node, changes *ChangesSet) error {
+	return yaml_utils.TransformNode(rootNode, []string{"git"}, func(gitNode *yaml.Node) error {
+		pagersKeyNode, pagersValueNode := yaml_utils.LookupKey(gitNode, "pagers")
+		if pagersKeyNode == nil || pagersValueNode.Kind != yaml.SequenceNode {
+			// If there's no "pagers" section (or it's not a sequence), there's nothing to do
+			return nil
+		}
+
+		diffRenderersKeyNode, _ := yaml_utils.LookupKey(gitNode, "diffRenderers")
+		if diffRenderersKeyNode != nil {
+			// Conversely, if there *is* already a "diffRenderers" array, we also have nothing to do.
+			// This covers the case where the user keeps both the "pagers" and the "diffRenderers"
+			// arrays for the sake of easier testing of old versions.
+			return nil
+		}
+
+		pagersKeyNode.Value = "diffRenderers"
+		changes.Add("Renamed git.pagers to git.diffRenderers")
+
+		for _, diffRendererNode := range pagersValueNode.Content {
+			if diffRendererNode.Kind != yaml.MappingNode {
+				continue
+			}
+
+			pagerKeyNode, pagerValueNode := yaml_utils.LookupKey(diffRendererNode, "pager")
+			externalDiffCommandKeyNode, externalDiffCommandValueNode := yaml_utils.LookupKey(diffRendererNode, "externalDiffCommand")
+			useExternalDiffGitConfigKeyNode, useExternalDiffGitConfigValueNode := yaml_utils.LookupKey(diffRendererNode, "useExternalDiffGitConfig")
+
+			hasPager := hasNonNullScalarValue(pagerValueNode)
+			hasExternalDiffCommand := hasNonNullScalarValue(externalDiffCommandValueNode)
+			useExternalDiffGitConfig := yamlBoolValue(useExternalDiffGitConfigValueNode)
+
+			if hasPager {
+				pagerKeyNode.Value = "command"
+				changes.Add("Renamed 'pager' to 'command' in git pager")
+			} else if hasExternalDiffCommand {
+				externalDiffCommandKeyNode.Value = "command"
+				yaml_utils.AddStringKey(diffRendererNode, "type", "extDiff")
+				changes.Add("Changed 'externalDiffCommand' to 'command' with 'type: extDiff' in git pager")
+			} else if useExternalDiffGitConfig {
+				yaml_utils.RemoveKey(diffRendererNode, "useExternalDiffGitConfig")
+				yaml_utils.AddStringKey(diffRendererNode, "type", "extDiff")
+				changes.Add("Changed 'useExternalDiffGitConfig: true' to 'type: extDiff' in git pager")
+			} else {
+				yaml_utils.AddStringKey(diffRendererNode, "type", "rawGit")
+				diffRendererNode.Style &^= yaml.FlowStyle
+				changes.Add("Changed git pager without a command to 'type: rawGit'")
+			}
+
+			if pagerKeyNode != nil && !hasPager {
+				yaml_utils.RemoveKey(diffRendererNode, "pager")
+				changes.Add("Removed empty 'pager' from git pager")
+			}
+			if externalDiffCommandKeyNode != nil && !hasExternalDiffCommand {
+				yaml_utils.RemoveKey(diffRendererNode, "externalDiffCommand")
+				changes.Add("Removed empty 'externalDiffCommand' from git pager")
+			}
+			if useExternalDiffGitConfigKeyNode != nil && !useExternalDiffGitConfig {
+				yaml_utils.RemoveKey(diffRendererNode, "useExternalDiffGitConfig")
+				if useExternalDiffGitConfigValueNode.Tag == "!!null" {
+					changes.Add("Removed empty 'useExternalDiffGitConfig' from git pager")
+				} else {
+					changes.Add("Removed 'useExternalDiffGitConfig: false' from git pager")
+				}
+			}
+		}
+
+		return nil
+	})
+}
+
+func hasNonNullScalarValue(node *yaml.Node) bool {
+	return node != nil && node.Kind == yaml.ScalarNode && node.Tag != "!!null" && node.Value != ""
+}
+
+func yamlBoolValue(node *yaml.Node) bool {
+	if node == nil {
+		return false
+	}
+
+	var value bool
+	return node.Decode(&value) == nil && value
 }
 
 func (c *AppConfig) GetDebug() bool {

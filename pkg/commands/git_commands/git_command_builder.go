@@ -1,9 +1,11 @@
 package git_commands
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
 // OptionalLocksEnvVar is the name of the environment variable that tells git
@@ -109,6 +111,20 @@ func (self *GitCommandBuilder) GitDirIf(condition bool, path string) *GitCommand
 	}
 
 	return self
+}
+
+func (self *GitCommandBuilder) AddCommonDiffArgs(diffRendererConfigManager *config.DiffRendererConfigManager, userConfig *config.UserConfig, forUI bool) *GitCommandBuilder {
+	contextSize := userConfig.Git.DiffContextSize
+	extDiffCmd := diffRendererConfigManager.GetExternalDiffCommand(contextSize)
+	useExtDiff := forUI && diffRendererConfigManager.GetDiffRendererType() == config.DiffRendererType_ExtDiff
+
+	return self.
+		ConfigIf(forUI && extDiffCmd != "", "diff.external="+extDiffCmd).
+		ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
+		Arg(fmt.Sprintf("--unified=%d", contextSize)).
+		ArgIf(forUI && userConfig.Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		Arg(fmt.Sprintf("--find-renames=%d%%", userConfig.Git.RenameSimilarityThreshold)).
+		ArgIf(forUI, diffRendererConfigManager.GetRawGitArgs()...)
 }
 
 func (self *GitCommandBuilder) ToArgv() []string {

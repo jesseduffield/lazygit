@@ -60,7 +60,7 @@ func NewGitCommand(
 	version *git_commands.GitVersion,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
-	pagerConfig *config.PagerConfig,
+	diffRendererConfigManager *config.DiffRendererConfigManager,
 ) (*GitCommand, error) {
 	repoPaths, err := git_commands.GetRepoPaths(osCommand.Cmd, version)
 	if err != nil {
@@ -82,7 +82,7 @@ func NewGitCommand(
 		osCommand,
 		gitConfig,
 		repoPaths,
-		pagerConfig,
+		diffRendererConfigManager,
 	), nil
 }
 
@@ -92,7 +92,7 @@ func NewGitCommandAux(
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
 	repoPaths *git_commands.RepoPaths,
-	pagerConfig *config.PagerConfig,
+	diffRendererConfigManager *config.DiffRendererConfigManager,
 ) *GitCommand {
 	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd, repoPaths.WorktreePath())
 
@@ -103,7 +103,7 @@ func NewGitCommandAux(
 	// common ones are: cmn, osCommand, dotGitDir, configCommands
 	configCommands := git_commands.NewConfigCommands(cmn, gitConfig)
 
-	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPaths, configCommands, pagerConfig)
+	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPaths, configCommands, diffRendererConfigManager)
 
 	fileLoader := git_commands.NewFileLoader(gitCommon, cmd, configCommands)
 	statusCommands := git_commands.NewStatusCommands(gitCommon)

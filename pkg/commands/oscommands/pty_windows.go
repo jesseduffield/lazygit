@@ -71,11 +71,11 @@ func (p *winPty) closeHpc() {
 // Windows 11 24H2 it waits for the console host to exit, and since closing
 // only delivers CTRL_CLOSE_EVENT to the attached client without terminating
 // it, a client that keeps running (git still computing an expensive diff, a
-// pager waiting for input) keeps the host — and with it ClosePseudoConsole —
-// alive arbitrarily long. Close is called while holding the global PtyMutex
-// and while the task's onDone once is executing, where blocking wedges every
-// subsequent task for the view (and with it the UI), so none of this may
-// happen on the caller's thread.
+// diff renderer waiting for input) keeps the host — and with it
+// ClosePseudoConsole — alive arbitrarily long. Close is called while holding
+// the global PtyMutex and while the task's onDone once is executing, where
+// blocking wedges every subsequent task for the view (and with it the UI), so
+// none of this may happen on the caller's thread.
 //
 // Within the teardown, the pipe ends must be closed before the
 // pseudoconsole, and without holding p.mu: closing the pseudoconsole flushes

@@ -69,7 +69,7 @@ type Gui struct {
 	// this is the state of the GUI for the current repo
 	State *GuiRepoState
 
-	pagerConfig *config.PagerConfig
+	diffRendererConfig *config.DiffRendererConfigManager
 
 	CustomCommandsClient *custom_commands.Client
 
@@ -178,8 +178,8 @@ func (self *StateAccessor) GetRepoGeneration() int {
 	return int(self.gui.repoGeneration.Load())
 }
 
-func (self *StateAccessor) GetPagerConfig() *config.PagerConfig {
-	return self.gui.pagerConfig
+func (self *StateAccessor) GetDiffRendererConfigManager() *config.DiffRendererConfigManager {
+	return self.gui.diffRendererConfig
 }
 
 func (self *StateAccessor) GetShowExtrasWindow() bool {
@@ -346,7 +346,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		gui.gitVersion,
 		gui.os,
 		git_config.NewStdCachedGitConfig(gui.Log),
-		gui.pagerConfig,
+		gui.diffRendererConfig,
 	)
 	if err != nil {
 		return err
@@ -859,7 +859,7 @@ func NewGui(
 	gui.BackgroundRoutineMgr = &BackgroundRoutineMgr{gui: gui}
 	gui.stateAccessor = &StateAccessor{gui: gui}
 
-	gui.pagerConfig = config.NewPagerConfig(func() *config.UserConfig { return gui.UserConfig() })
+	gui.diffRendererConfig = config.NewDiffRendererConfigManager(func() *config.UserConfig { return gui.UserConfig() })
 
 	return gui, nil
 }
