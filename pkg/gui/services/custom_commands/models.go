@@ -24,6 +24,7 @@ type Commit struct {
 	AuthorName    string
 	AuthorEmail   string
 	UnixTimestamp int64
+	CommitterDate int64
 	Divergence    models.Divergence
 	Parents       []string
 }

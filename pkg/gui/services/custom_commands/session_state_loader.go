@@ -36,6 +36,7 @@ func commitShimFromModelCommit(commit *models.Commit) *Commit {
 		AuthorName:    commit.AuthorName,
 		AuthorEmail:   commit.AuthorEmail,
 		UnixTimestamp: commit.UnixTimestamp,
+		CommitterDate: commit.CommitterDate,
 		Divergence:    commit.Divergence,
 		Parents:       commit.Parents(),
 	}
