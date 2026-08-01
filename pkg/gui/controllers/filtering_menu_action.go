@@ -116,8 +116,10 @@ func (self *FilteringMenuAction) setFiltering() error {
 	self.c.Modes().Filtering.SetSelectedCommitHash(self.c.Contexts().LocalCommits.GetSelectedCommitHash())
 
 	repoState := self.c.State().GetRepoState()
+	self.c.Modes().Filtering.SetForcedHalfScreen(false)
 	if repoState.GetScreenMode() == types.SCREEN_NORMAL {
 		repoState.SetScreenMode(types.SCREEN_HALF)
+		self.c.Modes().Filtering.SetForcedHalfScreen(true)
 	}
 
 	self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
