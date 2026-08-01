@@ -4,6 +4,7 @@ type Filtering struct {
 	path               string // the filename that gets passed to git log
 	author             string // the author that gets passed to git log
 	selectedCommitHash string // the commit that was selected before we entered filtering mode
+	screenModeChanged  bool   // whether entering filtering mode changed screen mode from normal -> half
 }
 
 func New(path string, author string) Filtering {
@@ -17,6 +18,7 @@ func (m *Filtering) Active() bool {
 func (m *Filtering) Reset() {
 	m.path = ""
 	m.author = ""
+	m.screenModeChanged = false
 }
 
 func (m *Filtering) SetPath(path string) {
@@ -41,4 +43,12 @@ func (m *Filtering) SetSelectedCommitHash(hash string) {
 
 func (m *Filtering) GetSelectedCommitHash() string {
 	return m.selectedCommitHash
+}
+
+func (m *Filtering) SetScreenModeChanged(changed bool) {
+	m.screenModeChanged = changed
+}
+
+func (m *Filtering) ScreenModeChanged() bool {
+	return m.screenModeChanged
 }
