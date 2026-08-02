@@ -5,15 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -214,13 +211,7 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 
 				pr, ok := self.c.Model().PullRequestsMap[branch.Name]
 				if ok && presentation.ShouldShowPrForBranch(pr, branch.Name, self.c.UserConfig()) {
-					icon := lo.Ternary(icons.IsIconEnabled(), icons.IconForRemoteUrl(pr.Url)+"  ", "")
-					ptyTask.Prefix = style.PrintHyperlink(fmt.Sprintf("%s%s  %s  %s\n",
-						icon,
-						coloredStateText(pr.State),
-						pr.Title,
-						style.FgCyan.Sprintf("#%d", pr.Number)),
-						pr.Url)
+					ptyTask.Prefix = presentation.FormatPullRequestHeader(pr, self.c.Tr)
 					ptyTask.Prefix += strings.Repeat("─", self.c.Contexts().Normal.GetView().InnerWidth()) + "\n"
 				}
 			}
@@ -234,37 +225,6 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 			})
 		})
 	}
-}
-
-func stateText(state string) string {
-	var icon, label string
-	switch state {
-	case "OPEN":
-		icon, label = " ", "Open"
-	case "CLOSED":
-		icon, label = " ", "Closed"
-	case "MERGED":
-		icon, label = " ", "Merged"
-	case "DRAFT":
-		icon, label = " ", "Draft"
-	default:
-		return ""
-	}
-	if icons.IsIconEnabled() {
-		return icon + label
-	}
-	return label
-}
-
-func coloredStateText(state string) string {
-	if icons.IsIconEnabled() {
-		return fmt.Sprintf("%s%s%s",
-			presentation.WithPrColor(state, "", false),
-			presentation.WithPrColor(state, color.RGB(0xFF, 0xFF, 0xFF, false).Sprint(stateText(state)), true),
-			presentation.WithPrColor(state, "", false))
-	}
-
-	return presentation.WithPrColor(state, stateText(state), false)
 }
 
 func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branch) error {

@@ -674,6 +674,7 @@ func (gui *Gui) loadCachedPullRequests() []*models.GithubPullRequest {
 			Number:      cached.Number,
 			Title:       cached.Title,
 			State:       cached.State,
+			ChecksState: cached.ChecksState,
 			Url:         cached.Url,
 			HeadRepositoryOwner: models.GithubRepositoryOwner{
 				Login: cached.HeadRepositoryOwner,

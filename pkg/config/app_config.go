@@ -850,6 +850,7 @@ type CachedPullRequest struct {
 	Number              int    `yaml:"number"`
 	Title               string `yaml:"title"`
 	State               string `yaml:"state"`
+	ChecksState         string `yaml:"checksState,omitempty"`
 	Url                 string `yaml:"url"`
 	HeadRepositoryOwner string `yaml:"headRepositoryOwner"`
 }
