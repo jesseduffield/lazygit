@@ -49,9 +49,9 @@ type ptyCmd struct {
 	wait    func() error
 }
 
-func (p ptyCmd) Wait() error             { return p.wait() }
-func (p ptyCmd) String() string          { return p.cmd.String() }
-func (p ptyCmd) GetProcess() *os.Process { return p.process }
+func (p ptyCmd) Wait() error      { return p.wait() }
+func (p ptyCmd) String() string   { return p.cmd.String() }
+func (p ptyCmd) Terminate() error { return oscommands.TerminateProcessGracefully(p.process) }
 
 // Some commands need to output for a terminal to active certain behaviour.
 // For example, git won't invoke the GIT_PAGER env var unless it thinks it's
