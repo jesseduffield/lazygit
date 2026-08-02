@@ -21,17 +21,18 @@ import (
 
 // AppConfig contains the base configuration fields required for lazygit.
 type AppConfig struct {
-	debug                 bool   `long:"debug" env:"DEBUG" default:"false"`
-	version               string `long:"version" env:"VERSION" default:"unversioned"`
-	buildDate             string `long:"build-date" env:"BUILD_DATE"`
-	name                  string `long:"name" env:"NAME" default:"lazygit"`
-	buildSource           string `long:"build-source" env:"BUILD_SOURCE" default:""`
-	userConfig            *UserConfig
-	globalUserConfigFiles []*ConfigFile
-	userConfigFiles       []*ConfigFile
-	userConfigDir         string
-	tempDir               string
-	appState              *AppState
+	debug                  bool   `long:"debug" env:"DEBUG" default:"false"`
+	version                string `long:"version" env:"VERSION" default:"unversioned"`
+	buildDate              string `long:"build-date" env:"BUILD_DATE"`
+	name                   string `long:"name" env:"NAME" default:"lazygit"`
+	buildSource            string `long:"build-source" env:"BUILD_SOURCE" default:""`
+	userConfig             *UserConfig
+	globalUserConfigFiles  []*ConfigFile
+	userConfigFiles        []*ConfigFile
+	userConfigDir          string
+	tempDir                string
+	appState               *AppState
+	githubPullRequestCache *githubPullRequestCache
 }
 
 type AppConfigurer interface {
@@ -51,6 +52,8 @@ type AppConfigurer interface {
 
 	GetAppState() *AppState
 	SaveAppState() error
+	GetCachedGithubPullRequests(repoPath string) ([]CachedPullRequest, error)
+	SaveCachedGithubPullRequests(repoPath string, pullRequests []CachedPullRequest) error
 }
 
 type ConfigFilePolicy int
@@ -107,19 +110,21 @@ func NewAppConfig(
 	if err != nil {
 		return nil, err
 	}
+	githubPullRequestCache := loadGithubPullRequestCache()
 
 	appConfig := &AppConfig{
-		name:                  name,
-		version:               version,
-		buildDate:             date,
-		debug:                 debuggingFlag,
-		buildSource:           buildSource,
-		userConfig:            userConfig,
-		globalUserConfigFiles: configFiles,
-		userConfigFiles:       configFiles,
-		userConfigDir:         configDir,
-		tempDir:               tempDir,
-		appState:              appState,
+		name:                   name,
+		version:                version,
+		buildDate:              date,
+		debug:                  debuggingFlag,
+		buildSource:            buildSource,
+		userConfig:             userConfig,
+		globalUserConfigFiles:  configFiles,
+		userConfigFiles:        configFiles,
+		userConfigDir:          configDir,
+		tempDir:                tempDir,
+		appState:               appState,
+		githubPullRequestCache: githubPullRequestCache,
 	}
 
 	return appConfig, nil
@@ -666,6 +671,20 @@ func (c *AppConfig) GetAppState() *AppState {
 	return c.appState
 }
 
+func (c *AppConfig) GetCachedGithubPullRequests(repoPath string) ([]CachedPullRequest, error) {
+	if c.githubPullRequestCache == nil {
+		return nil, nil
+	}
+	return c.githubPullRequestCache.get(repoPath), c.githubPullRequestCache.takeLoadError()
+}
+
+func (c *AppConfig) SaveCachedGithubPullRequests(repoPath string, pullRequests []CachedPullRequest) error {
+	if c.githubPullRequestCache == nil {
+		return nil
+	}
+	return c.githubPullRequestCache.save(repoPath, pullRequests)
+}
+
 func (c *AppConfig) GetUserConfigPaths() []string {
 	return lo.FilterMap(c.userConfigFiles, func(f *ConfigFile, _ int) (string, bool) {
 		return f.Path, f.exists
@@ -837,28 +856,10 @@ type AppState struct {
 	ShellCommandsHistory []string `yaml:"customcommandshistory"`
 
 	HideCommandLog bool
-
-	// Cache of GitHub pull requests per repo path, so that PR info can be
-	// shown instantly on startup before the async refresh completes.
-	GithubPullRequests map[string][]CachedPullRequest `yaml:"githubPullRequests"`
-}
-
-// CachedPullRequest stores the essential fields of a GitHub pull request
-// for persisting in the app state cache.
-type CachedPullRequest struct {
-	HeadRefName         string `yaml:"headRefName"`
-	Number              int    `yaml:"number"`
-	Title               string `yaml:"title"`
-	State               string `yaml:"state"`
-	ChecksState         string `yaml:"checksState,omitempty"`
-	Url                 string `yaml:"url"`
-	HeadRepositoryOwner string `yaml:"headRepositoryOwner"`
 }
 
 func getDefaultAppState() *AppState {
-	return &AppState{
-		GithubPullRequests: make(map[string][]CachedPullRequest),
-	}
+	return &AppState{}
 }
 
 func LogPath() (string, error) {
