@@ -84,24 +84,33 @@ func GetRepoPathsForDir(
 	dir string,
 	cmd oscommands.ICmdObjBuilder,
 ) (*RepoPaths, error) {
-	gitDirOutput, err := callGitRevParseWithDir(cmd, dir, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
+	// Do not pass --show-superproject-working-tree in the same rev-parse as the path flags:
+	// some Git versions abort the whole command (BUG: submodule.c) when they are combined,
+	// so we would get no worktree or git-dir output at all (e.g. repo tool, symlinked .git).
+	//
+	// We run a second rev-parse for the superproject path only. That call can still fail or
+	// abort on the same bug when run alone; we treat failure or empty output like "not a
+	// submodule" for repoPath (see below).
+	gitDirOutput, err := callGitRevParseWithDir(cmd, dir, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository")
 	if err != nil {
 		return nil, err
 	}
 
 	gitDirResults := strings.Split(utils.NormalizeLinefeeds(gitDirOutput), "\n")
+	if len(gitDirResults) < 4 {
+		return nil, errors.Errorf("unexpected rev-parse output (expected 4 lines): %q", gitDirOutput)
+	}
 	worktreePath := gitDirResults[0]
 	worktreeGitDirPath := gitDirResults[1]
 	repoGitDirPath := gitDirResults[2]
 	isBareRepo := gitDirResults[3] == "true"
 
-	// If we're in a submodule, --show-superproject-working-tree will return
-	// a value, meaning gitDirResults will be length 5. In that case
-	// return the worktree path as the repoPath. Otherwise we're in a
-	// normal repo or a worktree so return the parent of the git common
-	// dir (repoGitDirPath)
-	isSubmodule := len(gitDirResults) == 5
+	superprojectOut, superErr := callGitRevParseWithDir(cmd, dir, "--show-superproject-working-tree")
+	isSubmodule := superErr == nil && strings.TrimSpace(superprojectOut) != ""
 
+	// If we're in a submodule, --show-superproject-working-tree returns a non-empty path; use
+	// the worktree path as repoPath. Otherwise we're in a normal repo or a worktree, so use
+	// the parent of the git common dir (repoGitDirPath).
 	var repoPath string
 	if isSubmodule {
 		repoPath = worktreePath
