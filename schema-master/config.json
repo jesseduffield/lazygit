@@ -1271,7 +1271,7 @@
               "type": "array"
             }
           ],
-          "default": "R"
+          "default": "\u003cctrl+r\u003e"
         }
       },
       "additionalProperties": false,

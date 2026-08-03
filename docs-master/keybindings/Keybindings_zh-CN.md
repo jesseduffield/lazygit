@@ -236,7 +236,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | 签出上一个分支 |  |
 | `` F `` | 强制检出 | 强制检出所选分支。这将在检出所选分支之前放弃工作目录中的所有本地更改。 |
 | `` d `` | 删除 | 查看本地/远程分支的删除选项 |
-| `` R `` | Restore deleted branch | Restore a locally deleted branch from the reflog. The branch's upstream will be re-attached if a matching remote-tracking branch still exists. |
+| `` <ctrl+r> `` | Restore deleted branch | Restore a locally deleted branch from the reflog. The branch's upstream will be re-attached if a matching remote-tracking branch still exists. |
 | `` r `` | 变基 | 将检出的分支变基到所选的分支上。 |
 | `` M `` | 合并到当前检出的分支 | 查看将选中项合并到当前分支的选项(正常合并，压缩合并) |
 | `` f `` | 从上游快进此分支 | 将当前分支直接移动到远程追踪分支的最新提交 |

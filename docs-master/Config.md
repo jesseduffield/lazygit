@@ -777,7 +777,7 @@ keybinding:
     fetchRemote: f
     addForkRemote: F
     sortOrder: s
-    restoreBranch: R
+    restoreBranch: <ctrl+r>
   commits:
     squashDown: s
     renameCommit: r

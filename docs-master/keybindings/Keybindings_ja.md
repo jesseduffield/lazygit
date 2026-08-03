@@ -385,7 +385,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | 直前のブランチにチェックアウト |  |
 | `` F `` | 強制チェックアウト | 選択したブランチを強制的にチェックアウトします。これにより、選択したブランチをチェックアウトする前にワーキングディレクトリ内のすべてのローカル変更が破棄されます。 |
 | `` d `` | 削除 | ローカル/リモートブランチの削除オプションを表示します。 |
-| `` R `` | Restore deleted branch | Restore a locally deleted branch from the reflog. The branch's upstream will be re-attached if a matching remote-tracking branch still exists. |
+| `` <ctrl+r> `` | Restore deleted branch | Restore a locally deleted branch from the reflog. The branch's upstream will be re-attached if a matching remote-tracking branch still exists. |
 | `` r `` | リベース | チェックアウトしたブランチを選択したブランチ上にリベースします。 |
 | `` M `` | マージ | 選択した項目を現在のブランチにマージするためのオプションを表示します（通常のマージ、スカッシュマージ） |
 | `` f `` | ブランチを最新化（fast-forward） | 選択したブランチを対応するアップストリームの最新状態に追いつかせます（fast-forward）。 |
