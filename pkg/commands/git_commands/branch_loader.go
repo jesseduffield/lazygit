@@ -494,8 +494,7 @@ func parseDifference(track string, regexStr string) string {
 // HEAD). Entries are fed in the order git produces them, i.e. newest first.
 type reflogEntry struct {
 	hash      string // the commit HEAD pointed at when this reflog action occurred
-	subject   string
-	timestamp int64 // commit timestamp of the `hash` commit
+	timestamp int64  // commit timestamp of the `hash` commit
 	from      string // set on "checkout: moving from X to Y" lines to the source branch X; "" otherwise
 	to        string // set to the destination branch Y on checkout lines; "" otherwise
 }
@@ -507,7 +506,7 @@ type reflogEntry struct {
 // (reconstructed from the reflog) is the commit it pointed at when it was
 // deleted.
 func (self *BranchLoader) GetDeletedBranches() ([]*models.DeletedBranch, error) {
-	currentBranches, err := self.getCurrentBranchNames()
+	existingRefs, err := self.getExistingRefNames()
 	if err != nil {
 		return nil, err
 	}
@@ -524,21 +523,40 @@ func (self *BranchLoader) GetDeletedBranches() ([]*models.DeletedBranch, error) 
 	}
 
 	entries := parseReflogEntries(rawReflog)
-	return obtainDeletedBranches(entries, currentBranches), nil
+	return obtainDeletedBranches(entries, existingRefs, self.isValidRefFormat), nil
 }
 
-// getCurrentBranchNames returns the short names of all local branches.
-func (self *BranchLoader) getCurrentBranchNames() ([]string, error) {
+// isValidRefFormat reports whether git accepts `name` as a valid ref name,
+// deferring the ref-name grammar (e.g. rejecting "HEAD~1", "main@{0}", trailing
+// dots) to `git check-ref-format`. We pass --allow-onelevel because reflog
+// checkout names are bare branch names (e.g. "master"), which are single-level
+// refs. Note that git's rules only cover shape: things like tags, remote-tracking
+// branches and abbreviated SHAs are all valid refs to git, so the caller still
+// has to filter those out separately.
+func (self *BranchLoader) isValidRefFormat(name string) bool {
+	return self.cmd.New(
+		NewGitCmd("check-ref-format").
+			Arg("--allow-onelevel").
+			Arg(name).
+			ToArgv(),
+	).DontLog().Run() == nil
+}
+
+// getExistingRefNames returns the short names of all refs (local branches,
+// remote-tracking branches and tags) plus HEAD itself. A name present here is
+// known not to be a deleted local branch, so it is excluded from recovery
+// candidates.
+func (self *BranchLoader) getExistingRefNames() ([]string, error) {
 	output, err := self.cmd.New(
 		NewGitCmd("for-each-ref").
 			Arg("--format=%(refname:short)").
-			Arg("refs/heads").
+			Arg("refs/heads", "refs/remotes", "refs/tags").
 			ToArgv(),
 	).DontLog().RunWithOutput()
 	if err != nil {
 		return nil, err
 	}
-	return strings.Split(strings.TrimSpace(output), "\n"), nil
+	return append(strings.Split(strings.TrimSpace(output), "\n"), "HEAD"), nil
 }
 
 // parseReflogEntries parses the raw output of
@@ -585,8 +603,8 @@ func parseReflogCheckoutSubject(subject string) (string, string) {
 // out but are no longer local branches, together with the commit they pointed
 // at when last seen. The result is ordered by recency (most recently committed
 // to first).
-func obtainDeletedBranches(entries []*reflogEntry, currentBranchNames []string) []*models.DeletedBranch {
-	currentBranches := set.NewFromSlice(currentBranchNames)
+func obtainDeletedBranches(entries []*reflogEntry, existingRefs []string, isValidRefFormat func(string) bool) []*models.DeletedBranch {
+	existing := set.NewFromSlice(existingRefs)
 
 	// currentBranch is the branch HEAD was on leading up to the current entry.
 	currentBranch := ""
@@ -597,11 +615,21 @@ func obtainDeletedBranches(entries []*reflogEntry, currentBranchNames []string) 
 		entry := entries[i]
 
 		if entry.from != "" && entry.to != "" {
+			// The hash of a checkout entry is the tip of the branch being
+			// moved to. Seeding it here means branches created via
+			// `git checkout -b` (and never committed to) are still
+			// recoverable. We never touch the source branch: its tip was
+			// recorded by the older entries that preceded this checkout, and
+			// overwriting it with the destination's tip would be wrong.
+			if isBranchName(entry.to, isValidRefFormat) {
+				branchTip[entry.to] = entry.hash
+				branchTimestamp[entry.to] = entry.timestamp
+			}
 			currentBranch = entry.to
 			continue
 		}
 
-		if currentBranch != "" && currentBranch != "HEAD" {
+		if currentBranch != "" && isBranchName(currentBranch, isValidRefFormat) {
 			branchTip[currentBranch] = entry.hash
 			branchTimestamp[currentBranch] = entry.timestamp
 		}
@@ -609,7 +637,7 @@ func obtainDeletedBranches(entries []*reflogEntry, currentBranchNames []string) 
 
 	deleted := make([]*models.DeletedBranch, 0, len(branchTip))
 	for name, tip := range branchTip {
-		if name == "HEAD" || currentBranches.Includes(name) {
+		if existing.Includes(name) {
 			continue
 		}
 		deleted = append(deleted, &models.DeletedBranch{
@@ -635,6 +663,47 @@ func obtainDeletedBranches(entries []*reflogEntry, currentBranchNames []string) 
 	})
 
 	return deleted
+}
+
+// isBranchName returns true if the given string could be a local branch name
+// (as opposed to a commit hash, a tag, a remote-tracking ref, or HEAD). This
+// filters out reflog noise like "checkout: moving from HEAD to abc1234" or
+// tag/remote checkouts, which would otherwise show up as phantom deleted
+// branches. The ref-name grammar itself is validated by isValidRefFormat
+// (which defers to `git check-ref-format`).
+func isBranchName(name string, isValidRefFormat func(string) bool) bool {
+	if name == "" || name == "HEAD" {
+		return false
+	}
+	if !isValidRefFormat(name) {
+		return false
+	}
+	// A name containing a slash is only treated as a branch if the part before
+	// the first slash is not a well-known remote marker (git writes
+	// "origin/feature" or "tags/v1.0" for remote/tag checkouts, and branch
+	// names can legitimately contain slashes, e.g. "feature/foo").
+	if strings.ContainsRune(name, '/') {
+		remote, _, _ := strings.Cut(name, "/")
+		return !lo.Contains([]string{"origin", "upstream", "fork", "tags", "remotes"}, remote)
+	}
+	return !looksLikeSha(name)
+}
+
+// looksLikeSha returns true if the string looks like a commit hash: all hex
+// characters and at least as long as git's minimum abbreviation. This covers
+// both abbreviated and full-length hashes that git writes for detached-head
+// checkouts. A branch name that happens to be all-hex would be missed, but
+// that's an acceptable trade-off since such names are vanishingly rare.
+func looksLikeSha(name string) bool {
+	if len(name) < 7 {
+		return false
+	}
+	for _, c := range name {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
 }
 
 // TODO: only look at the new reflog commits, and otherwise store the recencies in
