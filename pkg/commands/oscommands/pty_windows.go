@@ -77,6 +77,42 @@ func (p *winPty) closeHpc() {
 // are gone, before concluding that it never will (see Close) and reaping it.
 const conhostExitTimeout = time.Second
 
+var (
+	// ptyTeardowns counts the in-flight teardown goroutines spawned by
+	// Close; TerminateLivePtys waits for them when lazygit exits.
+	ptyTeardowns sync.WaitGroup
+	// ptyQuit is closed by TerminateLivePtys. In-flight teardowns skip the
+	// conhost rundown wait once it is closed: the conhost serves nothing
+	// once its clients are gone, and the exit must not stall for its sake.
+	ptyQuit     = make(chan struct{})
+	ptyQuitOnce sync.Once
+)
+
+// TerminateLivePtys synchronously terminates the process trees and console
+// hosts of all ptys whose teardown hasn't finished yet. Call it when lazygit
+// is about to exit: the asynchronous teardowns in Close won't get to finish
+// (the conhost rundown wait outlives the process), and while
+// KILL_ON_JOB_CLOSE reaps the clients when the job handles are closed at
+// process death, nothing would reap the conhosts on the Windows builds that
+// need it (see Close). A long diff on screen keeps its git process running
+// the whole time it is shown, so quitting with such a teardown in flight is
+// the rule, not the exception.
+func TerminateLivePtys() {
+	ptyQuitOnce.Do(func() { close(ptyQuit) })
+
+	done := make(chan struct{})
+	go utils.Safe(func() {
+		ptyTeardowns.Wait()
+		close(done)
+	})
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		// Don't hold up the exit any longer; the job handles' rundown
+		// still covers the clients.
+	}
+}
+
 // Close tears the pty down without waiting for it: the teardown runs on a
 // background goroutine and Close returns immediately.
 //
@@ -127,8 +163,14 @@ const conhostExitTimeout = time.Second
 // exactly the clients the job kill is for — and such a conhost sits
 // around forever, serving nothing (#5879). The reap is inert on healthy
 // builds: the wait succeeds and only the handle is closed.
+//
+// When lazygit is quitting, the conhost rundown wait is skipped; see
+// TerminateLivePtys.
 func (p *winPty) Close() error {
+	ptyTeardowns.Add(1)
 	go utils.Safe(func() {
+		defer ptyTeardowns.Done()
+
 		p.inWrite.Close()
 		p.outRead.Close()
 		go utils.Safe(p.closeHpc)
@@ -137,7 +179,13 @@ func (p *winPty) Close() error {
 		_ = windows.CloseHandle(p.job)
 
 		if p.conhost != 0 {
-			event, err := windows.WaitForSingleObject(p.conhost, uint32(conhostExitTimeout/time.Millisecond))
+			timeout := conhostExitTimeout
+			select {
+			case <-ptyQuit:
+				timeout = 0
+			default:
+			}
+			event, err := windows.WaitForSingleObject(p.conhost, uint32(timeout/time.Millisecond))
 			if err != nil || event != windows.WAIT_OBJECT_0 {
 				_ = windows.TerminateProcess(p.conhost, 1)
 			}

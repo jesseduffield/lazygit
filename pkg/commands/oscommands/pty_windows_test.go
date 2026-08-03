@@ -43,6 +43,38 @@ func TestStartPtyIdentifiesConhost(t *testing.T) {
 	_ = sp.Pty.Close()
 }
 
+// TerminateLivePtys must reap a still-running pty synchronously: it runs
+// when lazygit is about to exit, where the asynchronous teardown would not
+// get to finish. Note that it switches the package's pty teardowns into
+// quit mode for the remainder of the test binary's lifetime; that's fine
+// for the other tests here, which must hold in either mode (quit mode only
+// shortens the teardown's conhost rundown wait).
+func TestTerminateLivePtysReapsRunningPty(t *testing.T) {
+	// The output redirect is there for the reason described in
+	// TestStartPtyWithZeroSize.
+	sp, err := StartPty(exec.Command("cmd", "/c", "ping -n 30 127.0.0.1 >nul"), 80, 24)
+	assert.NoError(t, err)
+	if err != nil {
+		return
+	}
+
+	_ = sp.Pty.Close()
+	TerminateLivePtys()
+
+	// The teardown has completed as part of TerminateLivePtys, so the child
+	// must be gone already; the timeout is generosity, not a grace period.
+	exited := make(chan struct{})
+	go func() {
+		_ = sp.Wait()
+		close(exited)
+	}()
+	select {
+	case <-exited:
+	case <-time.After(time.Second):
+		t.Fatal("child process was not terminated by TerminateLivePtys")
+	}
+}
+
 // Closing the pty must terminate the process tree it was running, even when
 // it is closed so soon after starting that the child hasn't attached to the
 // pseudoconsole yet: such a child misses the CTRL_CLOSE_EVENT that the close
