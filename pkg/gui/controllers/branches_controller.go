@@ -605,16 +605,16 @@ func (self *BranchesController) restoreDeletedBranch() error {
 				branch.Recency,
 			},
 			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.RestoreBranch)
 				upstream, err := self.c.Git().Branch.RestoreBranch(branch.Name, branch.CommitHash)
 				if err != nil {
 					return err
 				}
-				self.c.LogAction(self.c.Tr.Actions.RestoreBranch)
+				toast := utils.ResolvePlaceholderString(self.c.Tr.RestoredBranch, map[string]string{"branchName": branch.Name})
 				if upstream != "" {
-					self.c.Toast(fmt.Sprintf("%s %s (%s)", self.c.Tr.RestoredBranch, branch.Name, self.c.Tr.RestoredBranchUpstream))
-				} else {
-					self.c.Toast(fmt.Sprintf("%s %s", self.c.Tr.RestoredBranch, branch.Name))
+					toast = fmt.Sprintf("%s (%s)", toast, self.c.Tr.RestoredBranchUpstream)
 				}
+				self.c.Toast(toast)
 				self.c.Refresh(types.RefreshOptions{
 					Scope: []types.RefreshableView{types.BRANCHES},
 				})

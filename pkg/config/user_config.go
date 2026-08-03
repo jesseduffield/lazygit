@@ -1126,7 +1126,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				FetchRemote:              Keybinding{"f"},
 				AddForkRemote:            Keybinding{"F"},
 				SortOrder:                Keybinding{"s"},
-				RestoreBranch:            Keybinding{"R"},
+				RestoreBranch:            Keybinding{"<ctrl+r>"},
 			},
 			Commits: KeybindingCommitsConfig{
 				SquashDown:                     Keybinding{"s"},

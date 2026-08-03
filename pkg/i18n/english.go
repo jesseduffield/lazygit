@@ -1287,7 +1287,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RestoreBranchTooltip:                 "Restore a locally deleted branch from the reflog. The branch's upstream will be re-attached if a matching remote-tracking branch still exists.",
 		RestoreBranchTitle:                   "Deleted branches",
 		NoDeletedBranches:                    "No deleted branches were found in the reflog",
-		RestoredBranch:                       "Restored branch",
+		RestoredBranch:                       "Restored branch '{{.branchName}}'",
 		RestoredBranchUpstream:               "re-attached upstream",
 		ForceDeleteBranchTitle:               "Force delete branch",
 		ForceDeleteBranchMessage:             "'{{.selectedBranchName}}' is not fully merged. Are you sure you want to delete it?",
