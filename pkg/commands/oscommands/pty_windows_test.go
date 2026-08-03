@@ -3,6 +3,7 @@ package oscommands
 import (
 	"os/exec"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -21,5 +22,34 @@ func TestStartPtyWithZeroSize(t *testing.T) {
 	if err == nil {
 		_ = sp.Wait()
 		_ = sp.Pty.Close()
+	}
+}
+
+// Closing the pty must terminate the process tree it was running, even when
+// it is closed so soon after starting that the child hasn't attached to the
+// pseudoconsole yet: such a child misses the CTRL_CLOSE_EVENT that the close
+// delivers to attached clients, and only the job-object kill reaps it.
+// Without the kill, cmd and its ping child keep running for ~30 seconds and
+// the Wait here times out.
+func TestClosePtyTerminatesChildProcessTree(t *testing.T) {
+	// The output redirect is there for the reason described in
+	// TestStartPtyWithZeroSize.
+	sp, err := StartPty(exec.Command("cmd", "/c", "ping -n 30 127.0.0.1 >nul"), 80, 24)
+	assert.NoError(t, err)
+	if err != nil {
+		return
+	}
+
+	_ = sp.Pty.Close()
+
+	exited := make(chan struct{})
+	go func() {
+		_ = sp.Wait()
+		close(exited)
+	}()
+	select {
+	case <-exited:
+	case <-time.After(5 * time.Second):
+		t.Fatal("child process was not terminated by closing the pty")
 	}
 }

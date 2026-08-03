@@ -12,7 +12,10 @@ import (
 )
 
 type winPty struct {
-	hpc     windows.Handle
+	hpc windows.Handle
+	// job holds the child and every descendant it spawns; terminating it
+	// kills whatever is left of the process tree (see Close).
+	job     windows.Handle
 	inWrite *os.File
 	outRead *os.File
 
@@ -83,11 +86,36 @@ func (p *winPty) closeHpc() {
 // nobody is reading anymore, so that flush can only complete once the pipe
 // is broken. The background waiter's closeHpc may already be wedged in such
 // a flush while holding p.mu; closing the pipes is what unblocks it.
+//
+// Closing the pseudoconsole delivers CTRL_CLOSE_EVENT only to the clients
+// attached to it at that moment. A child that is stopped right after being
+// spawned is still starting up and not attached yet, so the event misses it
+// and it survives, running its command to completion as an orphan — and
+// keeping its console host alive with it (#5879); the same holds for
+// grandchildren spawned while the console is going down, and for clients
+// that ignore the event (the Windows flavor of #5675). The job kill reaps
+// all of those. There is no point in delaying it: the close event is not a
+// graceful signal worth waiting on — git and the common diff tools leave it
+// to the default handler, which calls ExitProcess at whatever instruction
+// the process happens to execute — so clients that got the event are
+// already dying. Killing at an arbitrary point cannot leak a stale
+// index.lock, because pty-rendered commands don't take that lock (see
+// withPtyGitConfig in pkg/gui/pty.go).
+//
+// The pseudoconsole close gets its own goroutine because the kill must not
+// wait for it: on builds where ClosePseudoConsole blocks until the console
+// host exits (pre-24H2), the host keeps running as long as a surviving
+// client does, and that client only goes away through the job kill —
+// sequencing the kill after a blocking close would thus deadlock in
+// exactly the case the kill exists for.
 func (p *winPty) Close() error {
 	go utils.Safe(func() {
 		p.inWrite.Close()
 		p.outRead.Close()
-		p.closeHpc()
+		go utils.Safe(p.closeHpc)
+
+		_ = windows.TerminateJobObject(p.job, 1)
+		_ = windows.CloseHandle(p.job)
 	})
 	return nil
 }
@@ -163,6 +191,34 @@ func StartPty(cmd *exec.Cmd, cols, rows uint16) (sp StartedPty, err error) {
 		}
 	}()
 
+	// The child goes into a job object so that the teardown in Close can
+	// terminate the whole process tree. KILL_ON_JOB_CLOSE makes the OS do
+	// that when the last handle to the job is closed, which doubles as a
+	// safety net: if lazygit exits without running the teardown, the handle
+	// is closed for it and the tree is reaped.
+	job, err := windows.CreateJobObject(nil, nil)
+	if err != nil {
+		return StartedPty{}, fmt.Errorf("CreateJobObject: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			// Kills the child on error paths where it was already assigned
+			// to the job; plain handle cleanup before that.
+			_ = windows.CloseHandle(job)
+		}
+	}()
+	limits := windows.JOBOBJECT_EXTENDED_LIMIT_INFORMATION{
+		BasicLimitInformation: windows.JOBOBJECT_BASIC_LIMIT_INFORMATION{
+			LimitFlags: windows.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE,
+		},
+	}
+	if _, err = windows.SetInformationJobObject(
+		job, windows.JobObjectExtendedLimitInformation,
+		uintptr(unsafe.Pointer(&limits)), uint32(unsafe.Sizeof(limits)),
+	); err != nil {
+		return StartedPty{}, fmt.Errorf("SetInformationJobObject: %w", err)
+	}
+
 	// Attach the pseudoconsole to the child via a process attribute list.
 	attrList, err := windows.NewProcThreadAttributeList(1)
 	if err != nil {
@@ -221,7 +277,7 @@ func StartPty(cmd *exec.Cmd, cols, rows uint16) (sp StartedPty, err error) {
 		nil, // process security
 		nil, // thread security
 		false,
-		windows.EXTENDED_STARTUPINFO_PRESENT|windows.CREATE_UNICODE_ENVIRONMENT,
+		windows.EXTENDED_STARTUPINFO_PRESENT|windows.CREATE_UNICODE_ENVIRONMENT|windows.CREATE_SUSPENDED,
 		envPtr,
 		dirPtr,
 		&si.StartupInfo,
@@ -229,6 +285,22 @@ func StartPty(cmd *exec.Cmd, cols, rows uint16) (sp StartedPty, err error) {
 	)
 	if err != nil {
 		return StartedPty{}, fmt.Errorf("CreateProcess: %w", err)
+	}
+
+	// The child was created suspended so that it can be assigned to the job
+	// before it runs its first instruction; that way every descendant it
+	// ever spawns is in the job from the start.
+	if err = windows.AssignProcessToJobObject(job, pi.Process); err != nil {
+		// Not in the job yet, so the deferred job-handle close can't reap it.
+		_ = windows.TerminateProcess(pi.Process, 1)
+		_ = windows.CloseHandle(pi.Thread)
+		_ = windows.CloseHandle(pi.Process)
+		return StartedPty{}, fmt.Errorf("AssignProcessToJobObject: %w", err)
+	}
+	if _, err = windows.ResumeThread(pi.Thread); err != nil {
+		_ = windows.CloseHandle(pi.Thread)
+		_ = windows.CloseHandle(pi.Process)
+		return StartedPty{}, fmt.Errorf("ResumeThread: %w", err)
 	}
 	_ = windows.CloseHandle(pi.Thread)
 
@@ -245,6 +317,7 @@ func StartPty(cmd *exec.Cmd, cols, rows uint16) (sp StartedPty, err error) {
 
 	wp := &winPty{
 		hpc:     hpc,
+		job:     job,
 		inWrite: os.NewFile(uintptr(inWrite), "conpty-in"),
 		outRead: os.NewFile(uintptr(outRead), "conpty-out"),
 	}
