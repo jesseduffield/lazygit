@@ -127,6 +127,12 @@ type TranslationSet struct {
 	DeleteRemoteBranchesPrompt            string
 	DeleteLocalAndRemoteBranchPrompt      string
 	DeleteLocalAndRemoteBranchesPrompt    string
+	RestoreBranch                         string
+	RestoreBranchTooltip                  string
+	RestoreBranchTitle                    string
+	NoDeletedBranches                     string
+	RestoredBranch                        string
+	RestoredBranchUpstream                string
 	ForceDeleteBranchTitle                string
 	ForceDeleteBranchMessage              string
 	ForceDeleteBranchesMessage            string
@@ -1010,6 +1016,7 @@ type Actions struct {
 	CheckoutBranch                   string
 	CheckoutBranchOrCommit           string
 	ForceCheckoutBranch              string
+	RestoreBranch                    string
 	DeleteLocalBranch                string
 	Merge                            string
 	SquashMerge                      string
@@ -1276,6 +1283,12 @@ func EnglishTranslationSet() *TranslationSet {
 		DeleteRemoteBranchesPrompt:           "Are you sure you want to delete the remote branches of the selected branches from their respective remotes?",
 		DeleteLocalAndRemoteBranchPrompt:     "Are you sure you want to delete both '{{.localBranchName}}' from your machine, and '{{.remoteBranchName}}' from '{{.remoteName}}'?",
 		DeleteLocalAndRemoteBranchesPrompt:   "Are you sure you want to delete both the selected branches from your machine, and their remote branches from their respective remotes?",
+		RestoreBranch:                        "Restore deleted branch",
+		RestoreBranchTooltip:                 "Restore a locally deleted branch from the reflog. The branch's upstream will be re-attached if a matching remote-tracking branch still exists.",
+		RestoreBranchTitle:                   "Deleted branches",
+		NoDeletedBranches:                    "No deleted branches were found in the reflog",
+		RestoredBranch:                       "Restored branch",
+		RestoredBranchUpstream:               "re-attached upstream",
 		ForceDeleteBranchTitle:               "Force delete branch",
 		ForceDeleteBranchMessage:             "'{{.selectedBranchName}}' is not fully merged. Are you sure you want to delete it?",
 		ForceDeleteBranchesMessage:           "Some of the selected branches are not fully merged. Are you sure you want to delete them?",
@@ -2122,6 +2135,7 @@ func EnglishTranslationSet() *TranslationSet {
 			CheckoutBranch:                   "Checkout branch",
 			ForceCheckoutBranch:              "Force checkout branch",
 			CheckoutBranchOrCommit:           "Checkout branch or commit",
+			RestoreBranch:                    "Restore deleted branch",
 			DeleteLocalBranch:                "Delete local branch",
 			Merge:                            "Merge",
 			SquashMerge:                      "Squash merge",
