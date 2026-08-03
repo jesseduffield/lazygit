@@ -490,6 +490,153 @@ func parseDifference(track string, regexStr string) string {
 	return "0"
 }
 
+// reflogEntry is a single parsed line of `git log -g` output (the reflog of
+// HEAD). Entries are fed in the order git produces them, i.e. newest first.
+type reflogEntry struct {
+	hash      string // the commit HEAD pointed at when this reflog action occurred
+	subject   string
+	timestamp int64 // commit timestamp of the `hash` commit
+	from      string // set on "checkout: moving from X to Y" lines to the source branch X; "" otherwise
+	to        string // set to the destination branch Y on checkout lines; "" otherwise
+}
+
+// GetDeletedBranches returns branches that were deleted locally but can still
+// be restored. It infers them by walking HEAD's reflog: any branch that was
+// checked out (appears in a "checkout: moving from X to Y" line) but is no
+// longer a local branch is a candidate, and its last-known commit
+// (reconstructed from the reflog) is the commit it pointed at when it was
+// deleted.
+func (self *BranchLoader) GetDeletedBranches() ([]*models.DeletedBranch, error) {
+	currentBranches, err := self.getCurrentBranchNames()
+	if err != nil {
+		return nil, err
+	}
+
+	rawReflog, err := self.cmd.New(
+		NewGitCmd("log").
+			Config("log.showSignature=false").
+			Arg("-g").
+			Arg("--format=+%H%x00%ct%x00%gs").
+			ToArgv(),
+	).DontLog().RunWithOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	entries := parseReflogEntries(rawReflog)
+	return obtainDeletedBranches(entries, currentBranches), nil
+}
+
+// getCurrentBranchNames returns the short names of all local branches.
+func (self *BranchLoader) getCurrentBranchNames() ([]string, error) {
+	output, err := self.cmd.New(
+		NewGitCmd("for-each-ref").
+			Arg("--format=%(refname:short)").
+			Arg("refs/heads").
+			ToArgv(),
+	).DontLog().RunWithOutput()
+	if err != nil {
+		return nil, err
+	}
+	return strings.Split(strings.TrimSpace(output), "\n"), nil
+}
+
+// parseReflogEntries parses the raw output of
+// `git log -g --format=+%H%x00%ct%x00%gs`. The output is newest-first; we
+// preserve that order.
+func parseReflogEntries(rawReflog string) []*reflogEntry {
+	entries := make([]*reflogEntry, 0)
+	for _, line := range strings.Split(rawReflog, "\n") {
+		line = strings.TrimPrefix(line, "+")
+		if line == "" {
+			continue
+		}
+		parts := strings.SplitN(line, "\x00", 3)
+		if len(parts) != 3 {
+			continue
+		}
+		timestamp, _ := strconv.ParseInt(parts[1], 10, 64)
+		from, to := parseReflogCheckoutSubject(parts[2])
+		entries = append(entries, &reflogEntry{
+			hash:      parts[0],
+			timestamp: timestamp,
+			from:      from,
+			to:        to,
+		})
+	}
+	return entries
+}
+
+var reflogCheckoutRegex = regexp.MustCompile(`checkout: moving from ([\S]+) to ([\S]+)`)
+
+// parseReflogCheckoutSubject extracts the branch moved from and the branch
+// moved to from a "checkout: moving from X to Y" reflog subject. Returns "", ""
+// for non-checkout subjects.
+func parseReflogCheckoutSubject(subject string) (string, string) {
+	match := reflogCheckoutRegex.FindStringSubmatch(subject)
+	if len(match) != 3 {
+		return "", ""
+	}
+	return match[1], match[2]
+}
+
+// obtainDeletedBranches reconstructs deleted branches from a newest-first
+// reflog of HEAD. Returns branches that appear in the reflog as being checked
+// out but are no longer local branches, together with the commit they pointed
+// at when last seen. The result is ordered by recency (most recently committed
+// to first).
+func obtainDeletedBranches(entries []*reflogEntry, currentBranchNames []string) []*models.DeletedBranch {
+	currentBranches := set.NewFromSlice(currentBranchNames)
+
+	// currentBranch is the branch HEAD was on leading up to the current entry.
+	currentBranch := ""
+	branchTip := make(map[string]string)
+	branchTimestamp := make(map[string]int64)
+
+	for i := len(entries) - 1; i >= 0; i-- {
+		entry := entries[i]
+
+		if entry.from != "" && entry.to != "" {
+			currentBranch = entry.to
+			continue
+		}
+
+		if currentBranch != "" && currentBranch != "HEAD" {
+			branchTip[currentBranch] = entry.hash
+			branchTimestamp[currentBranch] = entry.timestamp
+		}
+	}
+
+	deleted := make([]*models.DeletedBranch, 0, len(branchTip))
+	for name, tip := range branchTip {
+		if name == "HEAD" || currentBranches.Includes(name) {
+			continue
+		}
+		deleted = append(deleted, &models.DeletedBranch{
+			Name:          name,
+			CommitHash:    tip,
+			Recency:       utils.UnixToTimeAgo(branchTimestamp[name]),
+			DisplayName:   name,
+			UnixTimestamp: branchTimestamp[name],
+		})
+	}
+	if len(deleted) == 0 {
+		return nil
+	}
+
+	slices.SortFunc(deleted, func(a, b *models.DeletedBranch) int {
+		if a.UnixTimestamp == b.UnixTimestamp {
+			return 0
+		}
+		if a.UnixTimestamp > b.UnixTimestamp {
+			return -1
+		}
+		return 1
+	})
+
+	return deleted
+}
+
 // TODO: only look at the new reflog commits, and otherwise store the recencies in
 // int form against the branch to recalculate the time ago
 func (self *BranchLoader) obtainReflogBranches(reflogCommits []*models.Commit) []*models.Branch {
