@@ -125,6 +125,13 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen:   true,
 		},
 		{
+			Keys:        opts.GetKeys(opts.Config.Branches.RestoreBranch),
+			Handler:     self.restoreDeletedBranch,
+			Description: self.c.Tr.RestoreBranch,
+			Tooltip:     self.c.Tr.RestoreBranchTooltip,
+			OpensMenu:   true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Branches.RebaseBranch),
 			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.rebase)),
 			GetDisabledReason: self.require(self.singleItemSelected()),
@@ -578,6 +585,48 @@ func (self *BranchesController) remoteDelete(branches []*models.Branch) error {
 
 func (self *BranchesController) localAndRemoteDelete(branches []*models.Branch) error {
 	return self.c.Helpers().BranchesHelper.ConfirmLocalAndRemoteDelete(branches)
+}
+
+func (self *BranchesController) restoreDeletedBranch() error {
+	deletedBranches, err := self.c.Git().Loaders.BranchLoader.GetDeletedBranches()
+	if err != nil {
+		return err
+	}
+
+	if len(deletedBranches) == 0 {
+		self.c.Toast(self.c.Tr.NoDeletedBranches)
+		return nil
+	}
+
+	items := lo.Map(deletedBranches, func(branch *models.DeletedBranch, _ int) *types.MenuItem {
+		return &types.MenuItem{
+			LabelColumns: []string{
+				branch.Name,
+				branch.Recency,
+			},
+			OnPress: func() error {
+				upstream, err := self.c.Git().Branch.RestoreBranch(branch.Name, branch.CommitHash)
+				if err != nil {
+					return err
+				}
+				self.c.LogAction(self.c.Tr.Actions.RestoreBranch)
+				if upstream != "" {
+					self.c.Toast(fmt.Sprintf("%s %s (%s)", self.c.Tr.RestoredBranch, branch.Name, self.c.Tr.RestoredBranchUpstream))
+				} else {
+					self.c.Toast(fmt.Sprintf("%s %s", self.c.Tr.RestoredBranch, branch.Name))
+				}
+				self.c.Refresh(types.RefreshOptions{
+					Scope: []types.RefreshableView{types.BRANCHES},
+				})
+				return nil
+			},
+		}
+	})
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.RestoreBranchTitle,
+		Items: items,
+	})
 }
 
 func (self *BranchesController) delete(branches []*models.Branch) error {
