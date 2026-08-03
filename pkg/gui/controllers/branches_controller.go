@@ -332,6 +332,14 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		Keys: menuKey('s'),
 	}
 
+	restoreUpstreamItem := &types.MenuItem{
+		LabelColumns: []string{self.c.Tr.RestoreUpstreamBranch},
+		OnPress: func() error {
+			return self.pushBranchToUpstream(selectedBranch)
+		},
+		Keys: menuKey('p'),
+	}
+
 	upstreamResetOptions := utils.ResolvePlaceholderString(
 		self.c.Tr.ViewUpstreamResetOptions,
 		map[string]string{"upstream": upstream},
@@ -388,11 +396,22 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		upstreamRebaseItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.UpstreamNotSetError}
 	}
 
+	// We can only restore an upstream that still has a tracking configuration
+	// but whose remote branch has been deleted (i.e. it shows "upstream gone").
+	if !selectedBranch.UpstreamGone {
+		disabledReason := self.c.Tr.UpstreamNotSetError
+		if selectedBranch.IsTrackingRemote() {
+			disabledReason = self.c.Tr.UpstreamNotGoneError
+		}
+		restoreUpstreamItem.DisabledReason = &types.DisabledReason{Text: disabledReason}
+	}
+
 	options := []*types.MenuItem{
 		viewDivergenceItem,
 		viewDivergenceFromBaseBranchItem,
 		unsetUpstreamItem,
 		setUpstreamItem,
+		restoreUpstreamItem,
 		upstreamResetItem,
 		upstreamRebaseItem,
 	}
@@ -751,6 +770,27 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 		)
 		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}})
 		return err
+	})
+}
+
+// pushBranchToUpstream pushes the given branch to its configured upstream,
+// recreating a remote branch that was deleted (e.g. on GitHub) so the branch
+// no longer shows as "upstream gone".
+func (self *BranchesController) pushBranchToUpstream(branch *models.Branch) error {
+	return self.c.WithInlineStatus(branch, types.ItemOperationPushing, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
+		self.c.LogAction(self.c.Tr.Actions.RestoreUpstreamBranch)
+		err := self.c.Git().Sync.Push(
+			task,
+			git_commands.PushOpts{
+				CurrentBranch:  branch.Name,
+				UpstreamRemote: branch.UpstreamRemote,
+				UpstreamBranch: branch.UpstreamBranch,
+			})
+		if err != nil {
+			return err
+		}
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS}})
+		return nil
 	})
 }
 

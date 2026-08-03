@@ -575,6 +575,7 @@ type TranslationSet struct {
 	SetAsUpstreamTooltip                  string
 	SetUpstream                           string
 	UnsetUpstream                         string
+	RestoreUpstreamBranch                 string
 	ViewDivergenceFromUpstream            string
 	ViewDivergenceFromBaseBranch          string
 	CouldNotDetermineBaseBranch           string
@@ -646,6 +647,7 @@ type TranslationSet struct {
 	ViewBranchUpstreamOptions             string
 	ViewBranchUpstreamOptionsTooltip      string
 	UpstreamNotSetError                   string
+	UpstreamNotGoneError                  string
 	UpstreamsNotSetError                  string
 	NewGitFlowBranchPrompt                string
 	RenameBranchWarning                   string
@@ -1024,6 +1026,7 @@ type Actions struct {
 	RenameBranch                     string
 	CreateBranch                     string
 	FastForwardBranch                string
+	RestoreUpstreamBranch            string
 	AutoForwardBranches              string
 	CherryPick                       string
 	CheckoutFile                     string
@@ -1740,6 +1743,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SetAsUpstreamTooltip:                 "Set the selected remote branch as the upstream of the checked-out branch.",
 		SetUpstream:                          "Set upstream of selected branch",
 		UnsetUpstream:                        "Unset upstream of selected branch",
+		RestoreUpstreamBranch:                "Restore upstream branch",
 		ViewDivergenceFromUpstream:           "View divergence from upstream",
 		ViewDivergenceFromBaseBranch:         "View divergence from base branch ({{.baseBranch}})",
 		CouldNotDetermineBaseBranch:          "Couldn't determine base branch",
@@ -1807,6 +1811,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewBranchUpstreamOptions:        "View upstream options",
 		ViewBranchUpstreamOptionsTooltip: "View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream.",
 		UpstreamNotSetError:              "The selected branch has no upstream (or the upstream is not stored locally)",
+		UpstreamNotGoneError:             "The selected branch's upstream still exists",
 		UpstreamsNotSetError:             "Some of the selected branches have no upstream (or the upstream is not stored locally)",
 		Upstream:                         "Upstream",
 		NewBranchNamePrompt:              "Enter new branch name for branch",
@@ -2241,6 +2246,7 @@ func EnglishTranslationSet() *TranslationSet {
 			MixedReset:                       "Mixed reset",
 			HardReset:                        "Hard reset",
 			FastForwardBranch:                "Fast forward branch",
+			RestoreUpstreamBranch:            "Restore upstream branch",
 			AutoForwardBranches:              "Auto-forward branches",
 			Undo:                             "Undo",
 			Redo:                             "Redo",
