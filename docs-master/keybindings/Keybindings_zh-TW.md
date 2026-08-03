@@ -296,6 +296,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | Checkout previous branch |  |
 | `` F `` | 強制檢出 | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | 刪除 | View delete options for local/remote branch. |
+| `` R `` | Restore deleted branch | Restore a locally deleted branch from the reflog. The branch's upstream will be re-attached if a matching remote-tracking branch still exists. |
 | `` r `` | 將已檢出的分支變基至此分支 | Rebase the checked-out branch onto the selected branch. |
 | `` M `` | 合併到當前檢出的分支 | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` f `` | 從上游快進此分支 | 從遠端快進所選的分支 |

@@ -103,6 +103,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | Checkout da branch anterior |  |
 | `` F `` | Forçar checagem | Forçar checagem da branch selecionada. Isso irá descartar todas as mudanças no seu diretório de trabalho antes cheque a branch selecionada   |
 | `` d `` | Apagar | Ver opções de exclusão para a branch local/remoto. |
+| `` R `` | Restore deleted branch | Restore a locally deleted branch from the reflog. The branch's upstream will be re-attached if a matching remote-tracking branch still exists. |
 | `` r `` | Refazer | Refazer a branch checada na branch selecionada |
 | `` M `` | Mesclar | Ver opções para mesclar o item selecionado no branch atual (mesclar regularmente, mesclar squash) |
 | `` f `` | Avanço rápido | Encaminhamento rápido de branch selecionada a partir do upstream. |
