@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
+	"time"
 	"unsafe"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -15,7 +17,11 @@ type winPty struct {
 	hpc windows.Handle
 	// job holds the child and every descendant it spawns; terminating it
 	// kills whatever is left of the process tree (see Close).
-	job     windows.Handle
+	job windows.Handle
+	// conhost is a handle to the conhost.exe serving this pty, or 0 if it
+	// couldn't be identified. Held so that the teardown in Close can reap
+	// it on Windows builds whose conhost fails to run down on its own.
+	conhost windows.Handle
 	inWrite *os.File
 	outRead *os.File
 
@@ -67,6 +73,10 @@ func (p *winPty) closeHpc() {
 	windows.ClosePseudoConsole(p.hpc)
 }
 
+// How long Close waits for the conhost to run itself down after its clients
+// are gone, before concluding that it never will (see Close) and reaping it.
+const conhostExitTimeout = time.Second
+
 // Close tears the pty down without waiting for it: the teardown runs on a
 // background goroutine and Close returns immediately.
 //
@@ -108,6 +118,15 @@ func (p *winPty) closeHpc() {
 // client does, and that client only goes away through the job kill —
 // sequencing the kill after a blocking close would thus deadlock in
 // exactly the case the kill exists for.
+//
+// After the kill, the conhost serving the pty is reaped as well if it
+// doesn't exit by itself: a healthy conhost runs down once the reference
+// handle is closed and its clients are gone, but conhost builds before
+// Windows 11 24H2 fail to complete the rundown when a client attached
+// after the close event was delivered and was then killed — the fate of
+// exactly the clients the job kill is for — and such a conhost sits
+// around forever, serving nothing (#5879). The reap is inert on healthy
+// builds: the wait succeeds and only the handle is closed.
 func (p *winPty) Close() error {
 	go utils.Safe(func() {
 		p.inWrite.Close()
@@ -116,6 +135,14 @@ func (p *winPty) Close() error {
 
 		_ = windows.TerminateJobObject(p.job, 1)
 		_ = windows.CloseHandle(p.job)
+
+		if p.conhost != 0 {
+			event, err := windows.WaitForSingleObject(p.conhost, uint32(conhostExitTimeout/time.Millisecond))
+			if err != nil || event != windows.WAIT_OBJECT_0 {
+				_ = windows.TerminateProcess(p.conhost, 1)
+			}
+			_ = windows.CloseHandle(p.conhost)
+		}
 	})
 	return nil
 }
@@ -151,6 +178,52 @@ func startWaiter(proc *os.Process, p *winPty) func() error {
 	}
 }
 
+// conhostScanMu serializes CreatePseudoConsole and the child-process scans
+// around it, so that two concurrently starting ptys can't make each other's
+// "which conhost is new" diff ambiguous.
+var conhostScanMu sync.Mutex
+
+// conhostChildren returns the pids of all conhost.exe processes that are
+// direct children of this process. Errors just yield a smaller (possibly
+// empty) set; the caller treats identification as best-effort.
+func conhostChildren() map[uint32]bool {
+	pids := map[uint32]bool{}
+	snap, err := windows.CreateToolhelp32Snapshot(windows.TH32CS_SNAPPROCESS, 0)
+	if err != nil {
+		return pids
+	}
+	defer func() { _ = windows.CloseHandle(snap) }()
+	me := uint32(os.Getpid())
+	var pe windows.ProcessEntry32
+	pe.Size = uint32(unsafe.Sizeof(pe))
+	for err := windows.Process32First(snap, &pe); err == nil; err = windows.Process32Next(snap, &pe) {
+		if pe.ParentProcessID == me && strings.EqualFold(windows.UTF16ToString(pe.ExeFile[:]), "conhost.exe") {
+			pids[pe.ProcessID] = true
+		}
+	}
+	return pids
+}
+
+// openNewConhostChild returns a handle to the single conhost child that
+// appeared since the before scan, or 0 if there isn't exactly one candidate
+// or it can't be opened.
+func openNewConhostChild(before map[uint32]bool) windows.Handle {
+	var found []uint32
+	for pid := range conhostChildren() {
+		if !before[pid] {
+			found = append(found, pid)
+		}
+	}
+	if len(found) != 1 {
+		return 0
+	}
+	h, err := windows.OpenProcess(windows.SYNCHRONIZE|windows.PROCESS_TERMINATE, false, found[0])
+	if err != nil {
+		return 0
+	}
+	return h
+}
+
 func StartPty(cmd *exec.Cmd, cols, rows uint16) (sp StartedPty, err error) {
 	// Two pipes: one for the child's stdin (we never write to it, but ConPTY
 	// needs a handle), one for the child's stdout/stderr multiplexed through
@@ -176,9 +249,24 @@ func StartPty(cmd *exec.Cmd, cols, rows uint16) (sp StartedPty, err error) {
 
 	// CreatePseudoConsole dupes the handles it needs internally; we release
 	// our references to the child-side ends immediately after.
-	var hpc windows.Handle
+	//
+	// It also spawns the conhost.exe serving the console session, as a
+	// direct child of this process. The teardown in Close needs a handle to
+	// that conhost (see there), but Windows offers no way to obtain one
+	// from the HPCON, so identify it by diffing our conhost children around
+	// the call. Open a real handle right away so that pid reuse can't later
+	// misdirect the teardown's reap. If identification fails, the handle
+	// stays 0 and the teardown skips the reap.
+	var hpc, conhost windows.Handle
 	size := clampPtySize(cols, rows)
-	if err = windows.CreatePseudoConsole(size, inRead, outWrite, 0, &hpc); err != nil {
+	conhostScanMu.Lock()
+	conhostsBefore := conhostChildren()
+	err = windows.CreatePseudoConsole(size, inRead, outWrite, 0, &hpc)
+	if err == nil {
+		conhost = openNewConhostChild(conhostsBefore)
+	}
+	conhostScanMu.Unlock()
+	if err != nil {
 		_ = windows.CloseHandle(inRead)
 		_ = windows.CloseHandle(outWrite)
 		return StartedPty{}, fmt.Errorf("CreatePseudoConsole: %w", err)
@@ -188,6 +276,9 @@ func StartPty(cmd *exec.Cmd, cols, rows uint16) (sp StartedPty, err error) {
 	defer func() {
 		if err != nil {
 			windows.ClosePseudoConsole(hpc)
+			if conhost != 0 {
+				_ = windows.CloseHandle(conhost)
+			}
 		}
 	}()
 
@@ -318,6 +409,7 @@ func StartPty(cmd *exec.Cmd, cols, rows uint16) (sp StartedPty, err error) {
 	wp := &winPty{
 		hpc:     hpc,
 		job:     job,
+		conhost: conhost,
 		inWrite: os.NewFile(uintptr(inWrite), "conpty-in"),
 		outRead: os.NewFile(uintptr(outRead), "conpty-out"),
 	}

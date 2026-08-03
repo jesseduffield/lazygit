@@ -25,6 +25,24 @@ func TestStartPtyWithZeroSize(t *testing.T) {
 	}
 }
 
+// StartPty must identify the conhost.exe that CreatePseudoConsole spawned to
+// serve the pty: the teardown in Close reaps it on Windows builds whose
+// conhost fails to run down on its own, and a failed identification silently
+// degrades to not reaping. If this fails, the child-scan in
+// openNewConhostChild no longer matches how Windows hosts pseudoconsoles.
+func TestStartPtyIdentifiesConhost(t *testing.T) {
+	sp, err := StartPty(exec.Command("cmd", "/c", "exit 0"), 80, 24)
+	assert.NoError(t, err)
+	if err != nil {
+		return
+	}
+
+	assert.NotZero(t, sp.Pty.(*winPty).conhost)
+
+	_ = sp.Wait()
+	_ = sp.Pty.Close()
+}
+
 // Closing the pty must terminate the process tree it was running, even when
 // it is closed so soon after starting that the child hasn't attached to the
 // pseudoconsole yet: such a child misses the CTRL_CLOSE_EVENT that the close
