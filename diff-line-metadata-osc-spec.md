@@ -423,6 +423,53 @@ Rows that belong to no header — dividers between files, padding, other pure
 decoration — carry no record, and the host treats every un-annotated row as
 non-actionable.
 
+### 6.5 Implementation pitfalls (informative)
+
+Everything below follows from the rules above, but each of these tripped up at
+least one of the reference implementations (§10) before review, surfacing only
+under less-common input — so they are worth stating explicitly.
+
+**Prefer no record over a wrong one.** A streaming renderer can find itself
+rendering a header row before it knows the file's path: delta draws the `---`
+row of plain `diff -u` input before the `+++` line naming the new file has been
+parsed, and a git rename's early header rows before `rename to`. It is tempting
+to emit the `f` record anyway, from whatever path state is at hand — but that
+state is empty or, worse, still holds the *previous* file's path, and an `f`
+record is the file's identity: a wrong path hands the host a phantom file
+(§5.5's one-`f`-per-file invariant breaks, a file list grows ghost entries,
+navigation splits one file in two). An untagged row, by contrast, merely
+degrades to non-actionable — and §6.4 explicitly leaves the renderer the choice
+of which header rows it tags. The same rule covers rows *about* files the
+renderer does not track: `diff -ur`'s "Only in dir: file" rows and git's
+submodule summary lines concern a file, but not the one whose paths the
+renderer has parsed — they must not inherit a neighboring file's record.
+
+**The `file` field carries the file's path, not its display form.** A renderer
+that decorates the name it *shows* — a " (binary file)" suffix, an
+"old ⟶ new" rename string, a shortened common-suffix path — must keep the
+decoration out of the record: the host resolves the field against the working
+tree, and a decorated path resolves to nothing. (For a rename that means the
+new path alone — §4.2.)
+
+**Bound content records to the hunk's counted extent.** A renderer that
+classifies content lines by their leading `+`/`-`/space (a line-oriented filter
+like diff-so-fancy) must stop emitting at the end of the hunk, which the `@@`
+counts give exactly. Beyond it, git output is full of rows that merely *look*
+like content: submodule log lines (`  > subject`), and the indented commit
+message and diffstat of the next commit in `git log -p` output. Classified
+naively, each of those becomes a "context line" carrying the previous hunk's —
+by then stale — file and line numbers. A renderer with real parsing state
+(delta's state machine, difftastic's structural model) gets this for free; a
+line-classifying one has to count.
+
+**Content-less files have header rows outside the main rendering path.** It is
+easy to wire the records into the hunk-rendering code and stop, because that is
+where almost all rows come from — but the files for which §5.5's "content-less
+files still emit their `f`" invariant matters most (binary files, mode-only
+changes, unmerged paths) are typically printed somewhere else entirely, as a
+bare banner with no hunks. If those banners are forgotten, exactly the files
+whose `f` is their *only* record disappear from the identity layer.
+
 ---
 
 ## 7. How the host consumes it (informative)
