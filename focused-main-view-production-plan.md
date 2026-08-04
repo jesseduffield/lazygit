@@ -24,17 +24,25 @@ current: check off commits as they land, record deviations, and add findings.
   that leaked out of the implementation (the `GIT_PAGER` env var); the OSC 1717
   spec now says "diff renderer" throughout, and so do we — in code identifiers,
   commit messages, PR descriptions, docs, and user-facing strings. The
-  prototype's identifiers and test names still say "pager"
-  (`ProbePagerEmitsDiffMetadata`, `onPagerChanged`,
+  prototype's identifiers and test names still say "pager" in places
+  (`ProbePagerEmitsDiffMetadata`,
   `stage_from_main_view_with_unsupported_pager`, …); rename them during
-  transcription. `GIT_PAGER` itself and the "stdin-pager invocation route" (as
-  opposed to `externalDiffCommand`) keep their technical names where the
-  mechanism is literally meant. PR 3 renames the user-facing config.
+  transcription. `GIT_PAGER` itself and the "stdin-pager invocation route"
+  keep their technical names where the mechanism is literally meant. The
+  user-facing config rename has **landed on master** (#5870 — see PR 3),
+  which also restructured the config (`type` field); master and the rebased
+  prototype already use the new names (`DiffRendererConfig`,
+  `DiffRendererConfigManager`, `cycleDiffRenderers`, …).
 - **Threading:** master has the landed main-thread rework — see §2.8 for the
   contract every PR must honor. The prototype is already rebased on top of it.
 - **Prototype references** are given as *subject line* plus short SHA. The
-  prototype branch gets rebased; **find commits by subject, not SHA**. When a
-  plan item says "reference: X", read that prototype commit (message + diff)
+  prototype branch gets rebased; **find commits by subject, not SHA**. The
+  SHAs quoted in this plan predate the 2026-08-04 rebase onto master (past
+  the gocui mouse-gesture PR #5854 and the diff-renderer config rework
+  #5870) and resolve only on the pre-rebase copy kept at
+  `fold-staging-functionality-into-main-view-plan`; the rebased branch is
+  the live prototype and the source of truth for code shape. When a plan
+  item says "reference: X", read that prototype commit (message + diff)
   before implementing — it usually contains the design rationale and the
   gotchas.
 - **Transcribe the final state, not the journey.** The prototype iterated
@@ -102,8 +110,9 @@ decisions from the notes):
    gesture (N§21.3, accepted restriction).
 10. **Diff-renderer capability detection is the empty-input handshake probe**
     (N§21.30), not render observation. Non-conforming renderers get the
-    raw-diff fallback at focus time; `useExternalDiffGitConfig` is always-raw
-    when focused (documented limitation).
+    raw-diff fallback at focus time; a `type: extDiff` entry with empty
+    `command` (git's `diff.external`; formerly `useExternalDiffGitConfig`)
+    is always-raw when focused (documented limitation).
 11. **The escape/snapshot machinery is never built** (`FocusedMainViewSnapshot`,
     `EscapeFromPatchExplorer`, the N§12.2 escape routing): it existed only to
     return *from the explorers*, which no longer exist.
@@ -128,7 +137,7 @@ The branch contains superseded/reverted work. Do not transcribe any of these
 | The three separate handler channels (`onClick`/`onStage`/`onTogglePatch FocusedMainViewFn`) | build `FocusedMainViewActions` directly in its final one-interface shape (N§21.25) |
 | Unconditional gutter reset-on-preview-render + the `strings.Join(cmd.Args)` content-equality hack | focused-pair-only gutter model (N§21.22(3), N§21.35) |
 | `backUpOverHeader` file-nav landing | land on the first located row; f/h header records make headers resolvable ("Parse the f/h header records…", af98be48d) |
-| "Pager" naming in identifiers, strings, docs | "diff renderer" (§1 terminology; PR 3 renames the config) |
+| "Pager" naming in identifiers, strings, docs | "diff renderer" (§1 terminology; the config rename landed on master as #5870) |
 | OSC number `456`, env vars `EMIT_OSC1717_METADATA`/`OSC1717_METADATA` | OSC **1717**, env var **`OSC1717`** (final rename, 665149b11) |
 | The in-repo spec file | the spec lives on the `osc-1717-spec` branch / worktree (fe3c5ac21) |
 | Session-notes commits, `.claude/settings.json` commits, WIP commits | n/a |
@@ -143,7 +152,7 @@ succession (§2.3); 10–11 any time after their dependencies.
 |---|---|---|---|
 | 1 | Fix flicker, scroll glitches, and crashes in async diff rendering | — | fixes, gocui/tasks |
 | 2 | Internal: resolve diff lines to (file, line, kind) identities | 1 | infra |
-| 3 | Rename the "pagers" config to "diff renderers" | — | rename + migration |
+| 3 | Rename the "pagers" config to "diff renderers" — **DONE: landed on master as #5870** | — | rename + migration |
 | 4 | Support diff renderers that emit OSC 1717 diff line metadata | 2, 3 | infra + protocol |
 | 5 | Select, navigate, edit and copy diff lines in the focused main view | 2 (4 for renderers) | feature |
 | 6 | Keep your position in the diff when changing context size or switching diff renderers | 1, 2, 5 | feature |
@@ -283,36 +292,37 @@ Gotchas:
   and index together (the `DiffLineContents` snapshot approach does this).
 - Multi-file diffs: `fileSectionBounds` handles rows outside any file section.
 
-### PR 3 — Rename the "pagers" config to "diff renderers"
+### PR 3 — Rename the "pagers" config to "diff renderers" — DONE (master #5870)
 
-A small standalone PR, before the protocol/feature PRs so their user-facing
-text is consistent. "Pager" is an implementation-detail name (`GIT_PAGER`);
-what these programs actually are is diff renderers, and the OSC 1717 spec
-already uses that term throughout. No behavior change.
+**Landed on master** as #5870 ("Rework the custom pager config (rename to
+diff renderer)", merge `d8d09e1f9`), independently of this series, and it
+went further than this plan asked: besides the rename
+(`git.pagers` → `git.diffRenderers`, `cyclePagers[Reverse]` →
+`cycleDiffRenderers[Reverse]`, docs, migration), it **restructured the
+entries**:
 
-Commits:
+- Each entry has an explicit **`type`** field: `stdinFilter` (default) |
+  `extDiff` | `rawGit`.
+- The old `pager:` / `externalDiffCommand:` fields are unified into one
+  **`command`** field, interpreted per `type` (this dissolves the section's
+  old open question about the `pager:` field name).
+- `useExternalDiffGitConfig: true` became `type: extDiff` with empty
+  `command` (= git's `diff.external`).
+- New **`rawGit`** type with an `args` field (e.g. `--color-words`) that
+  runs plain git with extra args — a renderer flavor the prototype never
+  had to consider (see PR 7 commit 10).
+- `pkg/config/diff_renderer_config_manager.go`:
+  `DiffRendererConfigManager` with a `DiffRendererType` enum and typed
+  accessors (`GetDiffRendererType`, `GetStdinFilterCommand`,
+  `GetExternalDiffCommand`, `GetRawGitArgs`, …); no entries configured ⇒
+  `RawGit`.
 
-1. **Rename the config with migration** — `git.pagers` → `git.diffRenderers`
-   (yaml key + struct/field: `Pagers []PagingConfig` → e.g.
-   `DiffRenderers []DiffRendererConfig`), and the keybindings
-   `keybinding.universal.cyclePagers`/`cyclePagersReverse` → e.g.
-   `cycleDiffRenderers`/`cycleDiffRenderersReverse` — both via lazygit's
-   config-migration mechanism (`pkg/config`; follow the existing migration
-   precedents) so user config files keep working/are rewritten. Reword the
-   affected i18n strings (`CyclePagers`(+Tooltip), status-bar text) in
-   english.go only.
-2. **Rename internal identifiers** — mechanical sweep (`PagingConfig`,
-   `usingExternalDiff` neighbors, helper names) as far as reasonable; keep
-   `GIT_PAGER` and the pty "stdin-pager route" naming where the mechanism is
-   meant (§1 terminology).
-3. **Docs** — rename/rewrite `docs-master/Custom_Pagers.md` (→
-   `Custom_Diff_Renderers.md`; fix inbound links; leave `docs/` alone per
-   AGENTS.md), `just generate` for Config.md/schema and cheatsheets.
-
-Open question (resolve with the user at PR start): does the per-entry
-`pager:` field keep its name? It specifically selects the GIT_PAGER
-invocation route (vs `externalDiffCommand`), so a rename there trades
-consistency against precision.
+**Consequence for the remaining PRs:** wherever this plan says to key a
+decision off "is a pager configured" / "is it an external diff command"
+(probe route selection, env advertising, raw fallback, renderer cycling),
+base it on `GetDiffRendererType()` instead of querying the pager and
+ext-diff commands individually — mostly a simplification. The rebased
+prototype is already adapted to the new config and manager names.
 
 ### PR 4 — Support diff renderers that emit OSC 1717 diff line metadata
 
@@ -350,7 +360,9 @@ Commits:
    full reasoning). Refs: 836f768cb, af98be48d.
 3. **Advertise the protocol to diff renderers** — set `OSC1717=V1` in the
    environment of renderer/ext-diff invocations (pty task env + ext-diff cmd
-   env). Ref: 9975a8fac + 665149b11 (final name: `OSC1717`).
+   env); which route applies now follows from the entry's `type` (#5870) —
+   no need for `rawGit` (git itself never emits the protocol). Ref:
+   9975a8fac + 665149b11 (final name: `OSC1717`).
 
 Cross-repo note: the reference emitters live on `osc-1717-metadata` branches
 in `/Users/stk/Stk/Dev/Builds/{delta,difftastic,diff-so-fancy}`; nothing is
@@ -459,7 +471,10 @@ Commits:
    (superseded in approach; its row-mapping survives as the first step).
 10. **`narrowSelectionHighlight` per-renderer config** — gocui
     `SelectedLineBgColorWidth` (left N columns only), gui maps bool→2;
-    docs via `just generate`. Ref: cc90accde, N§21.34.
+    docs via `just generate`. Post-#5870 this is a field on
+    `DiffRendererConfig`, read via the config manager
+    (`GetNarrowSelectionHighlight`) — the rebased prototype shows the
+    shape. Ref: cc90accde, N§21.34.
 
 Open item to resolve with the user during this PR: whether `n`/`N`/`f` get
 proper keybinding config entries (prototype used hardcoded literals,
@@ -508,10 +523,11 @@ Commits:
    view — merge-conflict edge, N§16.1). e2e: extend
    `staging/diff_context_change`-adjacent coverage. Ref: 24a95e965.
 5. **Preserve position when switching diff renderers** — same one-liner in
-   the renderer-cycle handler (prototype: `onPagerChanged`); fixes both the
-   ext-diff top-jump and the wrong-line "preserved by raw line number" cases
-   (N§18.2); graceful no-op fallback for unresolvable renderers. e2e:
-   `diff/cycle_pagers` keeps passing (rename per PR 3). Ref: a21c5841a.
+   the renderer-cycle handler (prototype: `onDiffRenderersChanged` in
+   `global_controller.go`); fixes both the ext-diff top-jump and the
+   wrong-line "preserved by raw line number" cases (N§18.2); graceful no-op
+   fallback for unresolvable renderers. e2e: `diff/cycle_diff_renderers`
+   (renamed by #5870) keeps passing. Ref: a21c5841a.
 6. **Preserve the selection's far end too** — `selectionFarEndIdentity`
    restored via `SetRangeSelectStart`; collapses to the cursor line when the
    far end didn't survive. Ref: 0412046c4, N§21.32(4).
@@ -589,17 +605,26 @@ Commits:
    4b54223f4.
 10. **Raw-diff fallback for non-conforming diff renderers + the handshake
    probe** — the probe (prototype: `ProbePagerEmitsDiffMetadata`; rename per
-   §1) runs the renderer on empty input (stdin route via `NewShell`; ext-diff
-   via git's 7-arg convention on two empty temp files), env `OSC1717=V1`,
-   greps for the handshake; verdict cached per renderer signature;
-   `useExternalDiffGitConfig` → always raw when focused;
+   §1) runs the renderer on empty input, with the route chosen by the
+   entry's `type` (#5870): `stdinFilter` via `NewShell`; `extDiff` via
+   git's 7-arg convention on two empty temp files; env `OSC1717=V1`, greps
+   for the handshake; verdict cached per renderer signature. `extDiff` with
+   empty `command` (git's `diff.external`, formerly
+   `useExternalDiffGitConfig`) → always raw when focused. **New case,
+   decide at implementation:** `rawGit` entries (new in #5870) never
+   conform, so skip the probe; entries without restructuring `args` are
+   already raw (fallback is a no-op), while args like `--color-words`
+   produce output buffer-parse can't handle (`IsWellFormed` rejects it) —
+   these need the raw fallback when focused, whether by a static
+   args-present rule or by the well-formedness gate; surface the choice to
+   the user if it's not clear-cut;
    `DiffMainViewShouldRenderRaw` read by every diff panel's render-to-main;
    `ignoreExternalDiff` threaded through the diff-cmd builders
    (`--no-ext-diff`, keep color); `types.NewMainViewDiffTask` routes raw
    renders through `RunCommandTask` (bypasses `GIT_PAGER`); focus flow
    installs a restore to place the selection after the raw re-render;
    click-to-focus replays the clicked view-line index (best effort). e2e
-   (rename per PR 3): `stage_from_main_view_with_unsupported_pager`, the
+   (rename per §1 terminology): `stage_from_main_view_with_unsupported_pager`, the
    `build`-variant comes with PR 8,
    `stage_from_main_view_with_conforming_pager` (fake handshake renderer).
    Refs: 98881fc9e, 17cfd567e, bf18778e9; the probe detection is N§21.30
@@ -790,10 +815,22 @@ Self-contained; after PR 4 (uses `GetDiffLineInfo`). Commits (N§19):
 1. **gocui: let a mouse binding opt into firing while a popup is focused**
    (`HandleWhenPopupPanelFocused`). Ref: ac85a90ed.
 2. **Extract `editDiffLine` from `editLine`** — prep. Ref: d761f07d1.
-3. **gocui: carry the keyboard modifier on mouse click events** — the
-   modifier-on-press fix; **global behavior change** (unbound modified clicks
+3. **gocui: carry the press-time keyboard modifiers through the whole mouse
+   gesture** — snapshot the modifiers at button press and stamp them on the
+   press, every drag event (ORed with `ModMotion`), and the release;
+   modifier changes while the button is held are ignored. Master's gesture
+   model (#5854) made the pre-rebase press-only fix (da4201aa2, on the
+   `-plan` copy) insufficient: bindings match modifiers exactly, so a
+   modified press that nothing consumed would otherwise start matching
+   unmodified drag bindings mid-gesture (drag-select), and a modified
+   gesture's release would look like a plain one. **Inverts master's
+   `TestMouseReleaseDoesNotKeepPressModifiers`** (#5854 deliberately
+   dropped press modifiers on the release; this design reverses that call —
+   say so in the PR). **Global behavior change** (unbound modified clicks
    become no-ops instead of acting as plain clicks) — flag in the PR
-   description. Ref: da4201aa2.
+   description. Ref: "Carry the press-time keyboard modifiers through the
+   whole mouse gesture" (post-rebase, 2026-08-04 — transcribe this shape,
+   not da4201aa2's).
 4. **The feature** — alt-left *and* shift-left both bound (no single chord
    survives Ghostty+iTerm2+VS Code — N§19.1); no focus change, no selection;
    works behind popups. Ref: a86da2e97.
@@ -871,7 +908,7 @@ The remaining rows are agreed as keep/defer:
 | Renames in the custom-patch temp trees (new, this plan) | Resolve during PR 8 commit 7 |
 | Secondary-pane removal broken under difftastic — ordinal bridge + a/b record-path leak (diagnosed 2026-07-18, memory) | **Fix in PR 8 commit 7**: identity bridge instead of ordinals; path normalization decided with the user |
 | Diffing mode (`W`) not wired to the raw fallback → not stageable (N§21.29) | Defer; note in PR 7 description ("diffing-mode staging is its own question") |
-| `useExternalDiffGitConfig` always-raw when focused (N§21.30) | Keep; document |
+| `type: extDiff` with empty `command` (git's `diff.external`; formerly `useExternalDiffGitConfig`) always-raw when focused (N§21.30) | Keep; document |
 | Per-pane selection memory on `<tab>` (re-anchors each switch, N§21.9) | Defer; follow-up candidate |
 | `IsSingleHunkForWholeFile` hunk-default refinement (N§21.11) | **Fix in PR 5 commit 3** (mandatory — regression vs master) |
 | `a` on a context line below the last hunk doesn't snap back like staging did (N§21.11) | Fix cheaply in PR 5 commit 3 if trivial (`ChangeBlockBounds` falls back to the block above); else defer |
@@ -886,9 +923,9 @@ The remaining rows are agreed as keep/defer:
 
 ## 9. Open questions (resolve before/during the marked PR)
 
-1. **PR 3:** does the per-entry `pager:` config field keep its name (it
-   selects the GIT_PAGER invocation route, vs `externalDiffCommand`), or is
-   it renamed too?
+1. ~~**PR 3:** does the per-entry `pager:` config field keep its name?~~
+   Resolved by #5870: `pager`/`externalDiffCommand` were unified into a
+   single `command` field interpreted per the new `type` field.
 2. **PR 5:** proper keybinding config entries for `n`/`N`/`f`? (lean: yes)
 3. **PR 9:** new names for `useHunkModeInStagingView` / `wrapLinesInStagingView`
    + config migration.
@@ -906,7 +943,8 @@ The remaining rows are agreed as keep/defer:
 
 - [ ] PR 1 — async render fixes
 - [ ] PR 2 — diff-line identity primitive
-- [ ] PR 3 — rename pagers → diff renderers
+- [x] PR 3 — rename pagers → diff renderers — **landed on master as #5870**
+      (with a bigger config rework than planned; see the PR 3 section)
 - [ ] PR 4 — OSC 1717 support
 - [ ] PR 5 — selection & navigation
 - [ ] PR 6 — position preserve
@@ -918,3 +956,22 @@ The remaining rows are agreed as keep/defer:
 
 (Add per-commit checkboxes inside each PR section as work starts; record
 deviations from this plan inline, dated.)
+
+Log:
+
+- **2026-08-04:** prototype rebased onto master, past #5854 (gocui mouse
+  gestures) and #5870 (diff-renderer config rework). The pre-rebase branch
+  — where this plan's SHAs resolve — is kept at
+  `fold-staging-functionality-into-main-view-plan`. A subject-level audit
+  of the two branches found exactly two commits dropped in the rebase:
+  "Report the first drag movement as a drag event, not a release"
+  (correctly — absorbed by #5854) and "Carry the keyboard modifier on
+  mouse click events" (accidentally). The latter was re-implemented on the
+  rebased branch in the gesture-scoped shape ("Carry the press-time
+  keyboard modifiers through the whole mouse gesture"); PR 10 commit 3 now
+  transcribes that shape.
+- **2026-08-04:** PR 3 landed on master as #5870, including a config
+  restructure with a per-entry `type` field; later PRs base route/kind
+  decisions on `DiffRendererConfigManager.GetDiffRendererType()` instead
+  of querying the pager/ext-diff fields individually (PR 4 commit 3, PR 7
+  commit 10), and `rawGit` entries are a new case for PR 7's fallback.
