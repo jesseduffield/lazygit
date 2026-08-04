@@ -1005,6 +1005,12 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 				manager.Close()
 			}
 
+			// The pty teardowns spawned by the manager closes above run on
+			// background goroutines that won't get to finish before the
+			// process exits; reap their process trees synchronously instead
+			// so that they don't outlive lazygit.
+			oscommands.TerminateLivePtys()
+
 			close(gui.stopChan)
 
 			if errors.Is(err, gocui.ErrQuit) {
