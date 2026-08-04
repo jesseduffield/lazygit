@@ -82,7 +82,7 @@ stays in the diff renderer, which is the only component that has it.
 ## 3. Negotiation handshake
 
 ```
-OSC1717_METADATA = V1[,V2,…]
+OSC1717 = V1[,V2,…]
 ```
 
 - The **host** sets this environment variable on the diff renderer subprocess to the list
@@ -570,7 +570,7 @@ the pair already carries both identities.
    in the large empty 1400–5000 band (only iTerm2's `1337` is nearby). There is no
    central registry, so this is "verified unused across the terminals that matter,"
    not "allocated." If you know of a terminal that interprets `1717`, please say so.
-2. **The env-var name and grammar** (`OSC1717_METADATA=V1,…`).
+2. **The env-var name and grammar** (`OSC1717=V1,…`).
 3. **The token-vs-line mismatch** (§8) — v1 resolves it by classifying in patch
    space (a content-differing aligned pair is `d`+`a`, emitted together when only
    one row renders it). Is the back-to-back pair right, or should a v2 `m` type
