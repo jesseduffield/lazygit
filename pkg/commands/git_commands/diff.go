@@ -3,6 +3,7 @@ package git_commands
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -25,20 +26,23 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 // swallowed on a real render, escapeInterpreter.dropMetadataIfHandshake.
 const metadataHandshake = "\x1b]1717"
 
-// ProbePagerEmitsDiffMetadata reports whether the configured pager speaks the
-// diff-line-metadata protocol, by running it on empty input and checking for its
-// handshake. It's the focused main view's signal for whether it can act on the
-// pager's rendered diff or must fall back to the raw diff (see
-// StagingHelper.DiffMainViewShouldRenderRaw). The verdict is content-independent —
-// the handshake is the pager's first output regardless of the diff — so the caller
-// caches it per pager.
+// metadataRecordPattern matches a per-line record rather than the handshake: a record
+// carries fields after the version, so a second ";" follows it. Used where the
+// handshake alone doesn't answer whether records will actually follow (see
+// rawGitEmitsMetadata).
+var metadataRecordPattern = regexp.MustCompile(`\x1b]1717;\d+;`)
+
+// ProbePagerEmitsDiffMetadata reports whether the configured diff renderer speaks the
+// diff-line-metadata protocol, by running it and checking its output. It's the focused
+// main view's signal for whether it can act on the rendered diff or must fall back to
+// the raw diff (see StagingHelper.DiffMainViewShouldRenderRaw). The verdict is
+// content-independent, so the caller caches it per renderer.
 //
-// No PTY is needed: git needs a terminal to decide to invoke a pager, but the pager
-// itself emits the handshake whenever OSC1717 is set, so we can run it
-// directly with empty input.
+// No PTY is needed: git needs a terminal to decide to invoke a pager, but a renderer
+// emits its records whenever OSC1717 is set, so we can run it directly.
 //
 // A git-config external diff driver (useExternalDiffGitConfig) is chosen per file via
-// .gitattributes and a single diff can mix drivers, so there's no one pager to probe;
+// .gitattributes and a single diff can mix drivers, so there's no one renderer to probe;
 // we conservatively report false (the focused main view then always renders raw).
 func (self *DiffCommands) ProbePagerEmitsDiffMetadata() bool {
 	if extDiffCmd := self.diffRendererConfigManager.GetExternalDiffCommand(3); extDiffCmd != "" {
@@ -47,7 +51,50 @@ func (self *DiffCommands) ProbePagerEmitsDiffMetadata() bool {
 	if pagerCmd := self.diffRendererConfigManager.GetStdinFilterCommand(0); pagerCmd != "" {
 		return self.probeEmitsMetadata(self.cmd.NewShell(pagerCmd, ""))
 	}
+	if rawGitArgs := self.diffRendererConfigManager.GetRawGitArgs(); len(rawGitArgs) > 0 {
+		return self.rawGitEmitsMetadata(rawGitArgs)
+	}
 	return false
+}
+
+// rawGitEmitsMetadata probes git itself, run with the diff renderer's own arguments, on
+// a synthetic diff of two differing temp files.
+//
+// It looks for an actual record where the other probes settle for the handshake. What we
+// depend on is that the rows we are about to show carry records, and only running git
+// the way we will run it answers that: git annotates only the formats whose output can't
+// be read back from its own text, so an installed git that doesn't speak the protocol
+// and arguments that select no word diff both leave us without records. Looking for a
+// record covers both, and keeps this independent of how git decides to announce itself.
+func (self *DiffCommands) rawGitEmitsMetadata(rawGitArgs []string) bool {
+	oldFile, err := os.CreateTemp("", "lazygit-probe-old-*")
+	if err != nil {
+		return false
+	}
+	defer os.Remove(oldFile.Name())
+	fmt.Fprintln(oldFile, "old")
+	oldFile.Close()
+
+	newFile, err := os.CreateTemp("", "lazygit-probe-new-*")
+	if err != nil {
+		return false
+	}
+	defer os.Remove(newFile.Name())
+	fmt.Fprintln(newFile, "new")
+	newFile.Close()
+
+	cmdObj := self.cmd.New(
+		NewGitCmd("diff").
+			Arg("--no-index").
+			Arg(rawGitArgs...).
+			Arg(oldFile.Name(), newFile.Name()).
+			ToArgv(),
+	)
+	cmdObj.AddEnvVars("OSC1717=V1")
+	// git exits non-zero because the two files differ, which is the point; the output
+	// is captured either way.
+	output, _ := cmdObj.RunWithOutput()
+	return metadataRecordPattern.MatchString(output)
 }
 
 // externalDiffEmitsMetadata probes an external diff command, invoking it the way git

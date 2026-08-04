@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
@@ -898,21 +899,26 @@ func (self *StagingHelper) diffLineInfoFromHyperlink(hyperlink string) (types.Di
 	}, true
 }
 
-// --- The raw-diff fallback for unsupported pagers ---
+// --- The raw-diff fallback for unsupported diff renderers ---
 //
 // The focused main view is the staging surface, so it must be able to resolve the
-// diff it shows to patch-space. A pager that restructures the diff without emitting
+// diff it shows to patch-space. A renderer that restructures the diff without emitting
 // our metadata (stock delta-default, plain difftastic, `cat -n`) produces output we
 // can't resolve, so when such a diff is focused we re-render it raw (git's own
-// colour, no pager) — the same content a no-pager setup shows, which the buffer
-// parser handles. Browsing keeps the pretty pager output; only focusing to act
-// switches to raw.
+// colour, no renderer) — the same content a no-renderer setup shows, which the buffer
+// parser handles. Browsing keeps the pretty output; only focusing to act switches to
+// raw.
 //
-// Whether a pager is usable is decided by probing it for the metadata handshake (see
-// DiffCommands.ProbePagerEmitsDiffMetadata) — a pager-level, content-independent fact,
-// so the verdict is stable (a binary file, which has no change lines under any pager,
-// can't mislead it) and known before we render, so we never render pretty only to
-// discover mid-flight that we should have rendered raw.
+// This is not only about pagers: git's own word-diff formats (a rawGit renderer whose
+// arguments include --color-words or --word-diff) restructure the diff just as much,
+// their markup being inline, and a git that speaks the protocol annotates them for
+// exactly that reason. So the question is asked of whatever renders, git included.
+//
+// Whether a renderer is usable is decided by probing it (see
+// DiffCommands.ProbePagerEmitsDiffMetadata) — a renderer-level, content-independent
+// fact, so the verdict is stable (a binary file, which has no change lines under any
+// renderer, can't mislead it) and known before we render, so we never render pretty
+// only to discover mid-flight that we should have rendered raw.
 
 // pagerSupportsMetadata returns whether the current pager speaks the metadata
 // protocol, probing it once and caching the result, re-probing when the pager changes.
@@ -932,8 +938,9 @@ func (self *StagingHelper) pagerSupportsMetadata() bool {
 func (self *StagingHelper) currentPagerSignature() string {
 	pc := self.c.State().GetDiffRendererConfigManager()
 	index, _ := pc.CurrentDiffRendererIndex()
-	return fmt.Sprintf("%d\x00%s\x00%s",
-		index, pc.GetExternalDiffCommand(3), pc.GetStdinFilterCommand(0))
+	return fmt.Sprintf("%d\x00%s\x00%s\x00%s",
+		index, pc.GetExternalDiffCommand(3), pc.GetStdinFilterCommand(0),
+		strings.Join(pc.GetRawGitArgs(), "\x00"))
 }
 
 // MainViewPagerConfigured reports whether any custom pager is in effect for the
@@ -951,15 +958,25 @@ func (self *StagingHelper) rendererIsRawGitWithArgs() bool {
 		len(pc.GetRawGitArgs()) > 0
 }
 
+// mainViewDiffNeedsMetadata reports whether the diff shown in the main view is one we
+// can't recover the patch-space identity of a row from by reading the diff's own text,
+// and so can only act on through the metadata records. Any custom renderer restructures
+// the diff; so does git itself once the renderer's arguments select a word diff, whose
+// markup is inline. Plain `git diff` output is its own answer and needs no records.
+func (self *StagingHelper) mainViewDiffNeedsMetadata() bool {
+	return self.MainViewPagerConfigured() || self.rendererIsRawGitWithArgs()
+}
+
 // DiffMainViewShouldRenderRaw reports whether a side panel rendering its diff into
-// the focused main view should bypass the pager and render the raw (git-coloured)
-// diff. This holds while the main view holds focus and the configured pager doesn't
-// speak the metadata protocol. Side panels consult it when building their main-view
-// diff (see e.g. FilesController.GetOnRenderToMain) so that a re-render while focused
-// — after staging a hunk, say — stays raw.
+// the focused main view should bypass the diff renderer and render the raw
+// (git-coloured) diff. This holds while the main view holds focus and the diff we would
+// otherwise show needs the metadata records to be resolvable but won't carry them.
+// Side panels consult it when building their main-view diff (see e.g.
+// FilesController.GetOnRenderToMain) so that a re-render while focused — after staging
+// a hunk, say — stays raw.
 func (self *StagingHelper) DiffMainViewShouldRenderRaw() bool {
-	return self.focusedOnMainView() && ((self.MainViewPagerConfigured() && !self.pagerSupportsMetadata()) ||
-		self.rendererIsRawGitWithArgs())
+	return self.focusedOnMainView() && self.mainViewDiffNeedsMetadata() &&
+		!self.pagerSupportsMetadata()
 }
 
 func (self *StagingHelper) focusedOnMainView() bool {
