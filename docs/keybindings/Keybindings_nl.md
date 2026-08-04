@@ -9,31 +9,31 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | Wissel naar een recente repo |  |
 | `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | Scroll naar beneden vanaf hoofdpaneel |  |
 | `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | Scroll naar beneden vanaf hoofdpaneel |  |
-| `` @ `` | View command log options | View options for the command log e.g. show/hide the command log and focus the command log. |
+| `` @ `` | Commandolog opties weergeven | Bekijk commandolog opties, bijv. commandolog tonen/verbergen en focus. |
 | `` P `` | Push | Push de huidige branch naar de bijbehorende upstream-branch. Als er geen upstream is geconfigureerd wordt er gevraagd om een upstream-branch te configureren. |
 | `` p `` | Pull | Pull wijzigingen van de remote voor de huidige branch. Als er geen upstream is geconfigureerd wordt er gevraagd om een upstream-branch te configureren. |
 | `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` } `` | Increase diff context size | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
 | `` { `` | Decrease diff context size | Decrease the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
-| `` : `` | Execute shell command | Bring up a prompt where you can enter a shell command to execute. |
+| `` : `` | Voer shellcommando uit | Bring up a prompt where you can enter a shell command to execute. |
 | `` <ctrl+p> `` | Bekijk aangepaste patch opties |  |
 | `` m `` | Bekijk merge/rebase opties | Toon abort/continue/skip opties voor huidige merge/rebase. |
 | `` R `` | Verversen | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
 | `` + `` | Volgende scherm modus (normaal/half/groot) |  |
 | `` _ `` | Vorige scherm modus |  |
-| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers. |
-| `` \ `` | Cycle pagers (reverse) | Choose the previous pager in the list of configured pagers. |
+| `` \| `` | Cycle diff renderers | Choose the next renderer in the list of configured diff renderers. |
+| `` \ `` | Cycle diff renderers (reverse) | Choose the previous renderer in the list of configured diff renderers. |
 | `` <esc> `` | Annuleren |  |
 | `` ? `` | Open menu |  |
 | `` <ctrl+s> `` | Bekijk scoping opties | View options for filtering the commit log, so that only commits matching the filter are shown. |
 | `` W, <ctrl+e> `` | Open diff menu | View options relating to diffing two refs e.g. diffing against selected ref, entering ref to diff against, and reversing the diff direction. |
 | `` q, <ctrl+c> `` | Afsluiten |  |
 | `` <ctrl+z> `` | Pauzeer de applicatie |  |
-| `` <ctrl+w> `` | Toggle whitespace | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
+| `` <ctrl+w> `` | Witruimte weergeven in-/uitschakelen | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` <alt+shift+c> `` | Verander config bestand | Open bestand in externe editor. |
 | `` z `` | Ongedaan maken (via reflog) (experimenteel) | The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
-| `` Z `` | Redo (via reflog) (experimenteel) | The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
+| `` Z `` | Redo (via reflog) (experimenteel) | Het reflog wordt gebruikt om te bepalen welk git commando moet worden gebruikt om het laatste git commando te herhalen. Wijzigingen aan de working tree worden niet meegenomen, alleen command's zijn kandidaten. |
 
 ## Lijstpaneel navigatie
 
@@ -161,25 +161,25 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | Squash | Squash the selected commit into the commit below it. The selected commit's message will be appended to the commit below it. |
 | `` f `` | Fixup | Meld the selected commit into the commit below it. Similar to squash, but the selected commit's message will be discarded. |
 | `` c `` | Set fixup message | Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message. |
-| `` r `` | Hernoem commit | Reword the selected commit's message. |
+| `` r `` | Hernoem commit | Herschrijf de commit message van de geselecteerde commit. |
 | `` R `` | Hernoem commit met editor |  |
 | `` d `` | Verwijder commit | Drop the selected commit. This will remove the commit from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts. |
-| `` e `` | Edit (start interactive rebase) | Wijzig commit |
-| `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.<br>If you would instead like to start an interactive rebase from the selected commit, press `e`. |
+| `` e `` | Bewerken (start interactieve rebase) | Wijzig commit |
+| `` i `` | Start interactieve rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.<br>If you would instead like to start an interactive rebase from the selected commit, press `e`. |
 | `` p `` | Pick | Kies commit (wanneer midden in rebase) |
 | `` F `` | Creëer fixup commit | Creëer fixup commit |
 | `` S `` | Apply fixup commits | Squash bovenstaande commits |
 | `` <ctrl+j>, <alt+down> `` | Verplaats commit 1 naar beneden |  |
 | `` <ctrl+k>, <alt+up> `` | Verplaats commit 1 naar boven |  |
 | `` V `` | Plak commits (cherry-pick) |  |
-| `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
+| `` B `` | Markeer als basiscommit voor rebase | Selecteer een basiscommit voor de volgende rebase. Als je rebased op een branch worden alleen commits boven de basiscommit meegenomen. Hiervoor wordt het `git rebase --onto` commando gebruikt. |
 | `` A `` | Amend | Wijzig commit met staged veranderingen |
 | `` a `` | Amend commit attribute | Set/Reset commit author or set co-author. |
-| `` t `` | Revert | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
-| `` T `` | Tag commit | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
-| `` <ctrl+l> `` | View log options | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
+| `` t `` | Revert | Maak een revert commit voor de geselecteerde commit, die de wijzigingen in deze commit terugdraait. |
+| `` T `` | Tag commit | Maak een nieuwe tag die naar de geselecteerde commit wijst. Je wordt gevraagd om een tag naam en optionele omschrijving. |
+| `` <ctrl+l> `` | Log opties weergeven | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
 | `` G `` | Open pull request in browser |  |
-| `` <space> `` | Uitchecken | Checkout the selected commit as a detached HEAD. |
+| `` <space> `` | Uitchecken | Check de geselecteerde branch uit als een detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
 | `` n `` | Creëer nieuwe branch van commit |  |
@@ -241,7 +241,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <left>, h `` | Selecteer de vorige hunk |  |
 | `` <right>, l `` | Selecteer de volgende hunk |  |
 | `` v `` | Toggle drag selecteer |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |
 | `` o `` | Open bestand | Open bestand in standaardapplicatie. |
 | `` e `` | Verander bestand | Open bestand in externe editor. |
@@ -255,7 +255,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
-| `` <space> `` | Uitchecken | Checkout the selected commit as a detached HEAD. |
+| `` <space> `` | Uitchecken | Check de geselecteerde branch uit als een detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
 | `` n `` | Creëer nieuwe branch van commit |  |
@@ -316,7 +316,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <left>, h `` | Selecteer de vorige hunk |  |
 | `` <right>, l `` | Selecteer de volgende hunk |  |
 | `` v `` | Toggle drag selecteer |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |
 | `` <space> `` | Toggle staged | Toggle lijnen staged / unstaged |
 | `` d `` | Verwijdert change (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
@@ -361,7 +361,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
-| `` <space> `` | Uitchecken | Checkout the selected commit as a detached HEAD. |
+| `` <space> `` | Uitchecken | Check de geselecteerde branch uit als een detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
 | `` n `` | Creëer nieuwe branch van commit |  |
@@ -396,10 +396,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy tag to clipboard |  |
 | `` <space> `` | Uitchecken | Geselecteerde tag uitchecken als detached HEAD. |
-| `` n `` | Creëer tag | Create new tag from current commit. You'll be prompted to enter a tag name and optional description. |
+| `` n `` | Creëer tag | Maak een nieuwe tag die naar de huidige commit wijst. Je wordt gevraagd om een tag naam en optionele beschrijving. |
 | `` w `` | New worktree |  |
 | `` d `` | Verwijderen | View delete options for local/remote tag. |
-| `` P `` | Push tag | Push the selected tag to a remote. You'll be prompted to select a remote. |
+| `` P `` | Tag pushen | Push de geselecteerde tag naar een remote. Je krijgt de optie een remote te selecteren. |
 | `` g `` | Resetten | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | Open externe diff applicatie (git difftool) |  |
 | `` 0 `` | Focus main view |  |
