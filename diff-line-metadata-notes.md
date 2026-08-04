@@ -3,10 +3,26 @@
 Mapping a **rendered diff row (and column)** back to its **patch-space
 identity**, so lazygit can act on the line the user is pointing at.
 
-> Status: **design only**, nothing implemented. This is a starting point for a
-> future session, born out of a long design discussion. Two mechanisms are
-> described (#1 a host-side parser, #2 a pager-emitted OSC protocol); they are
-> complementary, not alternatives. Start with #1.
+> Status: **historical.** These notes are the design discussion that produced the
+> protocol, kept for the reasoning behind it. They are no longer updated — the
+> lazygit side of the work is tracked in focused-main-view-notes.md and
+> focused-main-view-production-plan.md, and the protocol itself in
+> `diff-line-metadata-osc-spec.md` on the `osc-1717-spec` branch. **Where these
+> notes and that spec disagree, the spec is right.** Two disagreements to know
+> about before reading:
+>
+> - **`f`/`h` header records are back.** §11 records the decision to drop them and
+>   several sections repeat it as "content-lines-only"; the spec later reinstated
+>   both as mandatory. See the correction at §11.
+> - **The variable is `OSC1717`.** It was `EMIT_OSC1717_METADATA` when these notes
+>   were written, then `OSC1717_METADATA`, then `OSC1717` (`257322e4fa0e`). The old
+>   names are left in place below as the record of what was built at the time.
+>
+> Two mechanisms are described (#1 a host-side parser, #2 a renderer-emitted OSC
+> protocol); they are complementary, not alternatives. Both have since been built:
+> #1 and the emitters for delta, difftastic and diff-so-fancy in prototype form,
+> and #2 in git itself (branch `osc-1717` there, emitting `c`/`a`/`d`/`f`/`h` for
+> word diffs).
 
 ---
 
@@ -838,7 +854,21 @@ delta side-by-side commit, with a unit test (`test_wrapped_rows_reemit_…`).
 
 ---
 
-## 11. `f`/`h` header-record prototype — built, then dropped from the spec
+## 11. `f`/`h` header-record prototype — built, dropped, then reinstated
+
+> **CORRECTION — the drop below was reversed.** The spec reinstated both types
+> and makes them **mandatory**: `f` on every row of a file header carrying no
+> line number, `h` on every hunk header carrying the hunk's first line (spec
+> §5.5, §6.4; commit `7819f1429` on the `osc-1717-spec` branch). What changed the
+> decision is the one cost the banner below judged acceptable: a file that emits
+> no content record at all — a pure rename, a mode change, a binary file — is
+> invisible to a host that builds its picture of the diff from the records, and
+> for exactly those files the header is the only row there is. git's
+> implementation bears out the "cheap" claim unevenly: `h` cost ten lines because
+> the `@@` line is reformatted in one place, while `f` cost about ninety, as the
+> header rows are emitted from eight call sites and content-less files print
+> outside the hunk path entirely. The banner below is kept as the record of the
+> earlier decision.
 
 > **OUTCOME (decided after this prototype):** `f`/`h` are **removed from the spec
 > entirely** — the protocol is now **content-lines-only** (`c`/`a`/`d`). This
