@@ -165,7 +165,7 @@ func (gui *Gui) createAllViews() error {
 
 func (gui *Gui) applyCurrentPagerSelectionStyle() {
 	bgColorWidth := 0
-	if  gui.stateAccessor != nil && gui.stateAccessor.GetDiffRendererConfigManager() != nil &&
+	if gui.stateAccessor != nil && gui.stateAccessor.GetDiffRendererConfigManager() != nil &&
 		gui.stateAccessor.GetDiffRendererConfigManager().GetNarrowSelectionHighlight() {
 		bgColorWidth = 2
 	}
