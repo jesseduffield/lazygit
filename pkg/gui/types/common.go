@@ -171,12 +171,26 @@ type IPopupHandler interface {
 	// Shows a popup prompting the user for input.
 	Prompt(opts PromptOpts)
 	WithWaitingStatus(message string, f func(gocui.Task) error) error
-	WithWaitingStatusBlockingInput(message string, f func(gocui.Task) error) error
+	WithWaitingStatusBlockingInput(opts WaitingStatusOpts, f func(gocui.Task) error) error
 	Menu(opts CreateMenuOptions) error
 	Toast(message string)
 	ErrorToast(message string)
 	SetToastFunc(func(string, ToastKind))
 	GetPromptInput() string
+}
+
+type WaitingStatusOpts struct {
+	// The message shown alongside the spinner while the operation runs.
+	Message string
+
+	// When set, the working tree state mode (the yellow
+	// "Rebasing"/"Merging"/"Cherry-picking"/"Reverting" indicator, along with
+	// its abort button) stays hidden until the operation is done. Set it for
+	// operations that drive such a state themselves: the state they leave on
+	// disk while they run is transient, so surfacing it would flash the
+	// indicator on and offer to abort a sequence that lazygit is in the middle
+	// of running.
+	HideWorkingTreeState bool
 }
 
 type ToastKind int
@@ -349,6 +363,7 @@ type Model struct {
 
 	BisectInfo                          *git_commands.BisectInfo
 	WorkingTreeStateAtLastCommitRefresh models.WorkingTreeState
+	CommitsWereFilteredAtLastRefresh    bool
 	RemoteBranches                      []*models.RemoteBranch
 	Tags                                []*models.Tag
 

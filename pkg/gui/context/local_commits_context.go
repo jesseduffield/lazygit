@@ -324,7 +324,13 @@ func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
 }
 
 func shouldShowGraph(c *ContextCommon) bool {
-	if c.Modes().Filtering.Active() {
+	// Whether we can draw a graph is a property of the commit list we have
+	// loaded, not of the filtering mode: turning filtering on or off only
+	// reaches the screen when the reloaded list does, and until then the graph
+	// has to keep matching the list that is still on display. Drawing one for a
+	// filtered list is also ruinously slow, because none of the commits in it
+	// are connected to each other, so no pipe ever terminates.
+	if c.Model().CommitsWereFilteredAtLastRefresh {
 		return false
 	}
 
