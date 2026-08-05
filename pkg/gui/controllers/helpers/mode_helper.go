@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -195,7 +196,7 @@ func (self *ModeHelper) SetFilteringAuthor(author string) error {
 }
 
 func (self *ModeHelper) setFiltering(setFilter func()) error {
-	self.changeFiltering(
+	return self.changeFiltering(
 		func() {
 			// Whatever we were filtering by before is replaced, not added to
 			self.c.Modes().Filtering.Reset()
@@ -207,13 +208,12 @@ func (self *ModeHelper) setFiltering(setFilter func()) error {
 			self.c.Contexts().LocalCommits.SetSelection(0)
 		},
 	)
-	return nil
 }
 
 func (self *ModeHelper) ClearFiltering() error {
 	selectedCommitHash := self.c.Contexts().LocalCommits.GetSelectedCommitHash()
 
-	self.changeFiltering(
+	return self.changeFiltering(
 		self.c.Modes().Filtering.Reset,
 		func() {
 			// Find the commit that was last selected in filtering mode, and select it again after refreshing
@@ -226,33 +226,54 @@ func (self *ModeHelper) ClearFiltering() error {
 			}
 		},
 	)
-	return nil
 }
 
 // changeFiltering applies a change to the filtering mode: setFilter mutates the
-// mode, then the screen mode and the focused panel are brought in line with it,
-// the views whose contents depend on the filter are reloaded, and selectCommit
-// puts the selection where it belongs in the reloaded commit list.
-func (self *ModeHelper) changeFiltering(setFilter func(), selectCommit func()) {
+// mode, then the views whose contents depend on the filter are reloaded, and
+// selectCommit puts the selection where it belongs in the reloaded commit list.
+//
+// Reloading the commit list can take seconds in a big repo, so it happens on a
+// worker with a waiting status. Everything the user can see of the change waits
+// for it: the screen mode, the focused panel and the reloaded lists all land in
+// the same frame, from the refresh's Then, rather than framing an unfiltered
+// list as if it were the filtered one. Until then the pre-change state stays on
+// screen, and it stays consistent, because the only thing that has changed
+// behind it is the filter that the reload is in the middle of applying. The one
+// thing that can't wait is the mode indicator in the information panel: the
+// filter has to be set before the reload can use it, so the indicator leads the
+// lists by however long the reload takes.
+//
+// Input is blocked for the duration: the keys the user presses arrive after the
+// change, which is where they meant them to go, and it keeps a second filter
+// change from racing this one — they would both refresh with whichever filter
+// happened to be set when their git commands ran.
+func (self *ModeHelper) changeFiltering(setFilter func(), selectCommit func()) error {
 	setFilter()
 
-	repoState := self.c.State().GetRepoState()
-	if self.c.Modes().Filtering.Active() {
-		if repoState.GetScreenMode() == types.SCREEN_NORMAL {
-			repoState.SetScreenMode(types.SCREEN_HALF)
-		}
-		self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
-	} else if repoState.GetScreenMode() == types.SCREEN_HALF {
-		repoState.SetScreenMode(types.SCREEN_NORMAL)
-	}
+	filtering := self.c.Modes().Filtering.Active()
+	message := lo.Ternary(filtering, self.c.Tr.ApplyingFilterStatus, self.c.Tr.RemovingFilterStatus)
 
-	self.c.Refresh(types.RefreshOptions{
-		Scope: ScopesToRefreshWhenFilteringModeChanges(),
-		Then: func() error {
-			selectCommit()
-			self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
-			return nil
-		},
+	return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{Message: message}, func(gocui.Task) error {
+		self.c.RefreshFromWorker(types.RefreshOptions{
+			Scope:          ScopesToRefreshWhenFilteringModeChanges(),
+			BatchUIUpdates: true,
+			Then: func() error {
+				repoState := self.c.State().GetRepoState()
+				if filtering {
+					if repoState.GetScreenMode() == types.SCREEN_NORMAL {
+						repoState.SetScreenMode(types.SCREEN_HALF)
+					}
+					self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
+				} else if repoState.GetScreenMode() == types.SCREEN_HALF {
+					repoState.SetScreenMode(types.SCREEN_NORMAL)
+				}
+
+				selectCommit()
+				self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+				return nil
+			},
+		})
+		return nil
 	})
 }
 

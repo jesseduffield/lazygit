@@ -441,6 +441,8 @@ type TranslationSet struct {
 	ResettingStatus                       string
 	CreatingFixupCommitStatus             string
 	MovingCommitsToNewBranchStatus        string
+	ApplyingFilterStatus                  string
+	RemovingFilterStatus                  string
 	CommitFiles                           string
 	SubCommitsDynamicTitle                string
 	CommitFilesDynamicTitle               string
@@ -1598,6 +1600,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ResettingStatus:                      "Resetting",
 		CreatingFixupCommitStatus:            "Creating fixup commit",
 		MovingCommitsToNewBranchStatus:       "Moving commits to new branch",
+		ApplyingFilterStatus:                 "Applying filter",
+		RemovingFilterStatus:                 "Removing filter",
 		CommitFiles:                          "Commit files",
 		SubCommitsDynamicTitle:               "Commits (%s)",
 		CommitFilesDynamicTitle:              "Diff files (%s)",
