@@ -12,12 +12,12 @@ import (
 type ModeHelper struct {
 	c *HelperCommon
 
-	diffHelper           *DiffHelper
-	patchBuildingHelper  *PatchBuildingHelper
-	cherryPickHelper     *CherryPickHelper
-	mergeAndRebaseHelper *MergeAndRebaseHelper
-	bisectHelper         *BisectHelper
-	suppressRebasingMode bool
+	diffHelper                   *DiffHelper
+	patchBuildingHelper          *PatchBuildingHelper
+	cherryPickHelper             *CherryPickHelper
+	mergeAndRebaseHelper         *MergeAndRebaseHelper
+	bisectHelper                 *BisectHelper
+	suppressWorkingTreeStateMode bool
 }
 
 func NewModeHelper(
@@ -130,7 +130,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 		},
 		{
 			IsActive: func() bool {
-				return !self.suppressRebasingMode && self.c.Git().Status.WorkingTreeState().Any()
+				return !self.suppressWorkingTreeStateMode && self.c.Git().Status.WorkingTreeState().Any()
 			},
 			InfoLabel: func() string {
 				workingTreeState := self.c.Git().Status.WorkingTreeState()
@@ -219,6 +219,6 @@ func ScopesToRefreshWhenFilteringModeChanges() []types.RefreshableView {
 	}
 }
 
-func (self *ModeHelper) SetSuppressRebasingMode(value bool) {
-	self.suppressRebasingMode = value
+func (self *ModeHelper) SetSuppressWorkingTreeStateMode(value bool) {
+	self.suppressWorkingTreeStateMode = value
 }

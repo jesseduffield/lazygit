@@ -97,7 +97,7 @@ func (self *AppStatusHelper) WithWaitingStatusBlockingInput(message string, f fu
 	// Hide the rebasing-mode indicator (and its reset button) while we drive the
 	// rebase ourselves; it reflects the transient on-disk state and would
 	// otherwise flash on for the duration of the operation.
-	self.modeHelper.SetSuppressRebasingMode(true)
+	self.modeHelper.SetSuppressWorkingTreeStateMode(true)
 	self.c.OnWorker(func(task gocui.Task) error {
 		// End the block and restore the mode indicator once the operation and its
 		// refresh have applied their UI updates: OnUIThread queues this after the
@@ -105,7 +105,7 @@ func (self *AppStatusHelper) WithWaitingStatusBlockingInput(message string, f fu
 		// enqueued by the time f returns), so the replayed keys act on the
 		// refreshed state and any resulting rebase state shows correctly.
 		defer self.c.OnUIThread(func() error {
-			self.modeHelper.SetSuppressRebasingMode(false)
+			self.modeHelper.SetSuppressWorkingTreeStateMode(false)
 			return self.c.GocuiGui().EndBlockingEvents()
 		})
 		return self.WithWaitingStatusImpl(message, f, task)
