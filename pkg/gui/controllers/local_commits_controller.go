@@ -743,7 +743,10 @@ func (self *LocalCommitsController) squashDown(selectedCommits []*models.Commit,
 		HandleConfirm: func() error {
 			commits := self.c.Model().Commits
 			self.selectRebaseResultCommit(startIdx)
-			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.SquashingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+				Message:              self.c.Tr.SquashingStatus,
+				HideWorkingTreeState: true,
+			}, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SquashCommitDown)
 				return self.interactiveRebase(commits, todo.Squash, startIdx, endIdx)
 			})
@@ -767,7 +770,10 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 				OnPress: func() error {
 					commits := self.c.Model().Commits
 					self.selectRebaseResultCommit(startIdx)
-					return self.c.WithWaitingStatusBlockingInput(self.c.Tr.FixingStatus, func(gocui.Task) error {
+					return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+						Message:              self.c.Tr.FixingStatus,
+						HideWorkingTreeState: true,
+					}, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.FixupCommit)
 						return self.interactiveRebase(commits, todo.Fixup, startIdx, endIdx)
 					})
@@ -780,7 +786,10 @@ func (self *LocalCommitsController) fixup(selectedCommits []*models.Commit, star
 				OnPress: func() error {
 					commits := self.c.Model().Commits
 					self.selectRebaseResultCommit(startIdx)
-					return self.c.WithWaitingStatusBlockingInput(self.c.Tr.FixingStatus, func(gocui.Task) error {
+					return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+						Message:              self.c.Tr.FixingStatus,
+						HideWorkingTreeState: true,
+					}, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.FixupCommitKeepMessage)
 						return self.interactiveRebaseWithFlag(commits, todo.Fixup, startIdx, endIdx, "-C")
 					})
@@ -891,7 +900,10 @@ func (self *LocalCommitsController) handleReword(summary string, description str
 			self.c.Tr.RewordingStatus, nil, nil)
 	}
 
-	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RewordingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+		Message:              self.c.Tr.RewordingStatus,
+		HideWorkingTreeState: true,
+	}, func(gocui.Task) error {
 		err := self.c.Git().Rebase.RewordCommit(commits, selectedIdx, summary, description)
 		if err != nil {
 			return err
@@ -977,7 +989,10 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 			if !isMerge {
 				self.selectRebaseResultCommit(startIdx)
 			}
-			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.DroppingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+				Message:              self.c.Tr.DroppingStatus,
+				HideWorkingTreeState: true,
+			}, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DropCommit)
 				if isMerge {
 					return self.dropMergeCommit(commits, startIdx)
@@ -1002,7 +1017,10 @@ func (self *LocalCommitsController) edit(selectedCommits []*models.Commit, start
 
 	commits := self.c.Model().Commits
 	if !commits[endIdx].IsMerge() {
-		return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+		return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+			Message:              self.c.Tr.RebasingStatus,
+			HideWorkingTreeState: true,
+		}, func(gocui.Task) error {
 			err := self.c.Git().Rebase.InteractiveRebase(commits, startIdx, endIdx, todo.Edit, "")
 			return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 				err, types.RefreshOptions{BatchUIUpdates: true})
@@ -1024,7 +1042,10 @@ func (self *LocalCommitsController) quickStartInteractiveRebase() error {
 func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 	commitsToEdit []*models.Commit,
 ) error {
-	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+		Message:              self.c.Tr.RebasingStatus,
+		HideWorkingTreeState: true,
+	}, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
 		err := self.c.Git().Rebase.EditRebase(commitsToEdit[len(commitsToEdit)-1].Hash())
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
@@ -1164,7 +1185,10 @@ func (self *LocalCommitsController) move(
 	}
 
 	commits := self.c.Model().Commits
-	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.MovingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+		Message:              self.c.Tr.MovingStatus,
+		HideWorkingTreeState: true,
+	}, func(gocui.Task) error {
 		if offset > 0 {
 			self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
 		} else {
@@ -1209,7 +1233,10 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		selectedIdx := self.context().GetView().SelectedLineIdx()
 		handleCommit = func() error {
 			return self.c.Helpers().WorkingTree.WithEnsureCommittableFiles(func() error {
-				return self.c.WithWaitingStatusBlockingInput(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+				return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+					Message:              self.c.Tr.AmendingStatus,
+					HideWorkingTreeState: true,
+				}, func(gocui.Task) error {
 					self.c.LogAction(self.c.Tr.Actions.AmendCommit)
 					err := self.c.Git().Rebase.AmendTo(commits, selectedIdx)
 					return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
@@ -1271,7 +1298,10 @@ func (self *LocalCommitsController) amendAttribute(_ []*models.Commit, start, en
 }
 
 func (self *LocalCommitsController) resetAuthor(commits []*models.Commit, start, end int) error {
-	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+		Message:              self.c.Tr.AmendingStatus,
+		HideWorkingTreeState: true,
+	}, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.ResetCommitAuthor)
 		if err := self.c.Git().Rebase.ResetCommitAuthor(commits, start, end); err != nil {
 			return err
@@ -1287,7 +1317,10 @@ func (self *LocalCommitsController) setAuthor(commits []*models.Commit, start, e
 		Title:               self.c.Tr.SetAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
-			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+				Message:              self.c.Tr.AmendingStatus,
+				HideWorkingTreeState: true,
+			}, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SetCommitAuthor)
 				if err := self.c.Git().Rebase.SetCommitAuthor(commits, start, end, value); err != nil {
 					return err
@@ -1307,7 +1340,10 @@ func (self *LocalCommitsController) addCoAuthor(commits []*models.Commit, start,
 		Title:               self.c.Tr.AddCoAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
-			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+				Message:              self.c.Tr.AmendingStatus,
+				HideWorkingTreeState: true,
+			}, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.AddCommitCoAuthor)
 				if err := self.c.Git().Rebase.AddCommitCoAuthor(commits, start, end, value); err != nil {
 					return err
@@ -1341,7 +1377,10 @@ func (self *LocalCommitsController) revert(commits []*models.Commit, start, end 
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RevertCommit)
 			mustStash := helpers.IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
-			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RevertingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+				Message:              self.c.Tr.RevertingStatus,
+				HideWorkingTreeState: true,
+			}, func(gocui.Task) error {
 				if mustStash {
 					if err := self.c.Git().Stash.Push(self.c.Tr.AutoStashForReverting); err != nil {
 						return err
@@ -1392,7 +1431,10 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 						selectedIdx := self.context().GetSelectedLineIdx()
 						commits := self.c.Model().Commits
 						branches := self.c.Model().Branches
-						return self.c.WithWaitingStatusBlockingInput(self.c.Tr.CreatingFixupCommitStatus, func(gocui.Task) error {
+						return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+							Message:              self.c.Tr.CreatingFixupCommitStatus,
+							HideWorkingTreeState: true,
+						}, func(gocui.Task) error {
 							if err := self.c.Git().Commit.CreateFixupCommit(commit.Hash()); err != nil {
 								return err
 							}
@@ -1500,7 +1542,10 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 				selectedIdx := self.context().GetSelectedLineIdx()
 				commits := self.c.Model().Commits
 				branches := self.c.Model().Branches
-				return self.c.WithWaitingStatusBlockingInput(self.c.Tr.CreatingFixupCommitStatus, func(gocui.Task) error {
+				return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+					Message:              self.c.Tr.CreatingFixupCommitStatus,
+					HideWorkingTreeState: true,
+				}, func(gocui.Task) error {
 					if err := self.c.Git().Commit.CreateAmendCommit(originalSubject, summary, description, includeFileChanges); err != nil {
 						return err
 					}
@@ -1561,7 +1606,10 @@ func (self *LocalCommitsController) squashFixupsImpl(commit *models.Commit, reba
 	// up by that many rows to stay on the same commit. Compute the target as an
 	// absolute index now, on the current list.
 	targetIdx := self.context().GetSelectedLineIdx() - selectionOffset
-	return self.c.WithWaitingStatusBlockingInput(self.c.Tr.SquashingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+		Message:              self.c.Tr.SquashingStatus,
+		HideWorkingTreeState: true,
+	}, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
 		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
