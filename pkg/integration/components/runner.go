@@ -1,6 +1,7 @@
 package components
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -159,9 +160,7 @@ func prepareTestDir(
 		return "", err
 	}
 
-	workingDir := createFixture(test, paths, rootDir)
-
-	return workingDir, nil
+	return createFixture(test, paths, rootDir)
 }
 
 func buildLazygit(testArgs RunTestArgs) error {
@@ -182,22 +181,41 @@ func buildLazygit(testArgs RunTestArgs) error {
 	return osCommand.Cmd.New(args).Run()
 }
 
+// A failing setup step panics with this so that the remaining steps, which
+// would only produce follow-on failures, are skipped.
+type fixtureFailure string
+
 // Sets up the fixture for test and returns the working directory to invoke
 // lazygit in.
-func createFixture(test *IntegrationTest, paths Paths, rootDir string) string {
+func createFixture(test *IntegrationTest, paths Paths, rootDir string) (workingDir string, err error) {
+	// Tests run as parallel subtests, and a panic escaping one of them takes
+	// down the whole test binary, discarding every other test's result along
+	// with it. Report a broken fixture as this test's error instead.
+	defer func() {
+		panicValue := recover()
+		if panicValue == nil {
+			return
+		}
+		failure, ok := panicValue.(fixtureFailure)
+		if !ok {
+			panic(panicValue)
+		}
+		err = errors.New(string(failure))
+	}()
+
 	env := NewTestEnvironment(rootDir)
 
 	env = append(env, fmt.Sprintf("%s=%s", PWD, paths.ActualRepo()))
 	shell := NewShell(
 		paths.ActualRepo(),
 		env,
-		func(errorMsg string) { panic(errorMsg) },
+		func(errorMsg string) { panic(fixtureFailure(errorMsg)) },
 	)
 	shell.Init()
 
 	test.SetupRepo(shell)
 
-	return shell.dir
+	return shell.dir, nil
 }
 
 func testPath(rootdir string) string {

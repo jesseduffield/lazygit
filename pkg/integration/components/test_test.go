@@ -1,8 +1,11 @@
 package components
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
+	lazycoreUtils "github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -156,6 +159,27 @@ func TestSuccess(t *testing.T) {
 	assert.EqualValues(t, []coordinate{{2, 3}, {2, 3}}, driver.movedCoordinates)
 	assert.EqualValues(t, []coordinate{{2, 3}}, driver.releasedCoordinates)
 	assert.Equal(t, "", driver.failureMessage)
+}
+
+func TestFailingFixture(t *testing.T) {
+	test := NewIntegrationTest(NewIntegrationTestArgs{
+		Description: unitTestDescription,
+		SetupRepo: func(shell *Shell) {
+			shell.RunCommand([]string{"git", "checkout", "no-such-branch"})
+			shell.CreateFile("reached.txt", "")
+		},
+		Run: func(t *TestDriver, keys config.KeybindingConfig) {},
+	})
+
+	paths := NewPaths(t.TempDir())
+	assert.NoError(t, os.MkdirAll(paths.ActualRepo(), 0o777))
+
+	workingDir, err := createFixture(test, paths, lazycoreUtils.GetLazyRootDirectory())
+
+	assert.ErrorContains(t, err, "git checkout no-such-branch")
+	assert.Empty(t, workingDir)
+	// the steps following the failing one are skipped
+	assert.NoFileExists(t, filepath.Join(paths.ActualRepo(), "reached.txt"))
 }
 
 func TestGitVersionRestriction(t *testing.T) {
