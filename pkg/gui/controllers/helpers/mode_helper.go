@@ -182,16 +182,40 @@ func (self *ModeHelper) ExitFilterMode() error {
 	return self.ClearFiltering()
 }
 
+func (self *ModeHelper) SetFilteringPath(path string) error {
+	return self.setFiltering(func() {
+		self.c.Modes().Filtering.SetPath(path)
+	})
+}
+
+func (self *ModeHelper) SetFilteringAuthor(author string) error {
+	return self.setFiltering(func() {
+		self.c.Modes().Filtering.SetAuthor(author)
+	})
+}
+
+func (self *ModeHelper) setFiltering(setFilter func()) error {
+	self.changeFiltering(
+		func() {
+			// Whatever we were filtering by before is replaced, not added to
+			self.c.Modes().Filtering.Reset()
+			setFilter()
+			self.c.Modes().Filtering.SetSelectedCommitHash(
+				self.c.Contexts().LocalCommits.GetSelectedCommitHash())
+		},
+		func() {
+			self.c.Contexts().LocalCommits.SetSelection(0)
+		},
+	)
+	return nil
+}
+
 func (self *ModeHelper) ClearFiltering() error {
 	selectedCommitHash := self.c.Contexts().LocalCommits.GetSelectedCommitHash()
-	self.c.Modes().Filtering.Reset()
-	if self.c.State().GetRepoState().GetScreenMode() == types.SCREEN_HALF {
-		self.c.State().GetRepoState().SetScreenMode(types.SCREEN_NORMAL)
-	}
 
-	self.c.Refresh(types.RefreshOptions{
-		Scope: ScopesToRefreshWhenFilteringModeChanges(),
-		Then: func() error {
+	self.changeFiltering(
+		self.c.Modes().Filtering.Reset,
+		func() {
 			// Find the commit that was last selected in filtering mode, and select it again after refreshing
 			if !self.c.Contexts().LocalCommits.SelectCommitByHash(selectedCommitHash) {
 				// If we couldn't find it (either because no commit was selected
@@ -200,12 +224,36 @@ func (self *ModeHelper) ClearFiltering() error {
 				// before we entered filtering
 				self.c.Contexts().LocalCommits.SelectCommitByHash(self.c.Modes().Filtering.GetSelectedCommitHash())
 			}
+		},
+	)
+	return nil
+}
 
+// changeFiltering applies a change to the filtering mode: setFilter mutates the
+// mode, then the screen mode and the focused panel are brought in line with it,
+// the views whose contents depend on the filter are reloaded, and selectCommit
+// puts the selection where it belongs in the reloaded commit list.
+func (self *ModeHelper) changeFiltering(setFilter func(), selectCommit func()) {
+	setFilter()
+
+	repoState := self.c.State().GetRepoState()
+	if self.c.Modes().Filtering.Active() {
+		if repoState.GetScreenMode() == types.SCREEN_NORMAL {
+			repoState.SetScreenMode(types.SCREEN_HALF)
+		}
+		self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
+	} else if repoState.GetScreenMode() == types.SCREEN_HALF {
+		repoState.SetScreenMode(types.SCREEN_NORMAL)
+	}
+
+	self.c.Refresh(types.RefreshOptions{
+		Scope: ScopesToRefreshWhenFilteringModeChanges(),
+		Then: func() error {
+			selectCommit()
 			self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
 			return nil
 		},
 	})
-	return nil
 }
 
 // Stashes really only need to be refreshed when filtering by path, not by author, but it's too much
