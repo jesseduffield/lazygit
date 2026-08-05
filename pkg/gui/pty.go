@@ -65,6 +65,15 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// Set LAZYGIT_COLUMNS for diff renderer scripts that can't query the terminal width directly.
 	cmd.Env = append(cmd.Env, fmt.Sprintf("LAZYGIT_COLUMNS=%d", width))
 
+	// Advertise the diff-line metadata protocol versions we understand, so that
+	// whatever renders the diff annotates each line with an OSC sequence we can read
+	// back (see diff-line-metadata-notes.md). Set before the no-pty path below,
+	// because git renders the diff itself there and is one of the things that speaks
+	// the protocol — for its word-diff formats, whose inline markup we could not
+	// otherwise resolve. Anything that doesn't understand the variable ignores it, so
+	// this is safe to set unconditionally.
+	cmd.Env = append(cmd.Env, "OSC1717=V1")
+
 	if gui.stateAccessor.GetDiffRendererConfigManager().GetDiffRendererType() == config.DiffRendererType_RawGit {
 		// If we're not using a custom diff renderer, then we don't need to use a pty
 		return gui.newCmdTask(view, cmd, prefix)
@@ -99,13 +108,6 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		cmd.Env = append(cmd.Env, "TERM=dumb")
 
 		cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
-
-		// Advertise to a metadata-aware pager (e.g. a patched delta) the diff-line
-		// metadata protocol versions we understand, so it annotates each line with
-		// an OSC sequence we can read back (see diff-line-metadata-notes.md). A
-		// pager that doesn't understand it ignores the variable, so this is safe to
-		// set unconditionally.
-		cmd.Env = append(cmd.Env, "OSC1717=V1")
 
 		manager := gui.getManager(view)
 
