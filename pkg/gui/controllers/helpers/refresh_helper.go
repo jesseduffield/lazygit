@@ -817,6 +817,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 
 		self.c.Model().BisectInfo = bisectInfo
 		self.c.Model().Commits = commits
+		self.c.Model().CommitsWereFilteredAtLastRefresh = captured.filterPath != "" || captured.filterAuthor != ""
 		self.RefreshAuthors(commits)
 		self.c.Model().WorkingTreeStateAtLastCommitRefresh = workingTreeState
 		if checkedOutRef != nil {

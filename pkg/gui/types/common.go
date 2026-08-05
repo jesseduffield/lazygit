@@ -349,6 +349,7 @@ type Model struct {
 
 	BisectInfo                          *git_commands.BisectInfo
 	WorkingTreeStateAtLastCommitRefresh models.WorkingTreeState
+	CommitsWereFilteredAtLastRefresh    bool
 	RemoteBranches                      []*models.RemoteBranch
 	Tags                                []*models.Tag
 
