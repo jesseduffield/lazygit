@@ -1513,7 +1513,10 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 			if err := stashFunc(stashComment); err != nil {
 				return err
 			}
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
+			self.c.Refresh(types.RefreshOptions{
+				BatchUIUpdates: true,
+				Scope:          []types.RefreshableView{types.STASH, types.FILES},
+			})
 			return nil
 		},
 		AllowEmptyInput: true,

@@ -199,7 +199,10 @@ func (self *StashController) postStashRefresh() {
 	// the remaining stash entries, and acting on the next entry in quick
 	// succession (confirming the popup and pressing the key again right away)
 	// must see the refreshed list, or it would target the wrong stash.
-	self.c.RefreshBlockingInput(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
+	self.c.RefreshBlockingInput(types.RefreshOptions{
+		BatchUIUpdates: true,
+		Scope:          []types.RefreshableView{types.STASH, types.FILES},
+	})
 }
 
 func (self *StashController) handleNewBranchOffStashEntry(stashEntry *models.StashEntry) error {
