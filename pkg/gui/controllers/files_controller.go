@@ -328,7 +328,7 @@ func (self *FilesController) renderSubmoduleConflict(node *filetree.FileNode) {
 // (it was resolved in an editor), in which case the caller should fall back to
 // showing the file's diff.
 func (self *FilesController) renderInlineMergeConflict(node *filetree.FileNode) bool {
-	hasConflicts, err := self.c.Helpers().MergeConflicts.SetMergeState(node.GetPath())
+	hasConflicts, err := self.c.Helpers().MergeConflicts.SetMergeState(node.File)
 	if err != nil {
 		return true
 	}
@@ -1264,7 +1264,7 @@ func (self *FilesController) switchToMerge() error {
 		return nil
 	}
 
-	return self.c.Helpers().MergeConflicts.SwitchToMerge(file.Path)
+	return self.c.Helpers().MergeConflicts.SwitchToMerge(file)
 }
 
 func (self *FilesController) createStashMenu() error {

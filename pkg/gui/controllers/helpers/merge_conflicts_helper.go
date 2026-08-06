@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -17,14 +18,14 @@ func NewMergeConflictsHelper(
 	}
 }
 
-func (self *MergeConflictsHelper) SetMergeState(path string) (bool, error) {
+func (self *MergeConflictsHelper) SetMergeState(file *models.File) (bool, error) {
 	self.context().GetMutex().Lock()
 	defer self.context().GetMutex().Unlock()
 
-	return self.setMergeStateWithoutLock(path)
+	return self.setMergeStateWithoutLock(file.Path, file.ConflictMarkerSize)
 }
 
-func (self *MergeConflictsHelper) setMergeStateWithoutLock(path string) (bool, error) {
+func (self *MergeConflictsHelper) setMergeStateWithoutLock(path string, markerSize int) (bool, error) {
 	content, err := self.c.Git().File.Cat(path)
 	if err != nil {
 		return false, err
@@ -34,7 +35,7 @@ func (self *MergeConflictsHelper) setMergeStateWithoutLock(path string) (bool, e
 		self.context().SetUserScrolling(false)
 	}
 
-	self.context().GetState().SetContent(content, path)
+	self.context().GetState().SetContent(content, path, markerSize)
 
 	return !self.context().GetState().NoConflicts(), nil
 }
@@ -72,7 +73,8 @@ func (self *MergeConflictsHelper) SetConflictsAndRender() (bool, error) {
 	self.context().GetMutex().Lock()
 	defer self.context().GetMutex().Unlock()
 
-	hasConflicts, err := self.setMergeStateWithoutLock(self.context().GetState().GetPath())
+	state := self.context().GetState()
+	hasConflicts, err := self.setMergeStateWithoutLock(state.GetPath(), state.GetMarkerSize())
 	if err != nil {
 		return false, err
 	}
@@ -84,9 +86,9 @@ func (self *MergeConflictsHelper) SetConflictsAndRender() (bool, error) {
 	return false, nil
 }
 
-func (self *MergeConflictsHelper) SwitchToMerge(path string) error {
-	if self.context().GetState().GetPath() != path {
-		hasConflicts, err := self.SetMergeState(path)
+func (self *MergeConflictsHelper) SwitchToMerge(file *models.File) error {
+	if self.context().GetState().GetPath() != file.Path {
+		hasConflicts, err := self.SetMergeState(file)
 		if err != nil {
 			return err
 		}
