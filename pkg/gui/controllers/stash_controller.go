@@ -163,19 +163,33 @@ func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) 
 			// iteration lets the workers race and an earlier, stale result can
 			// land last. The indices are captured up front and we drop
 			// highest-first, so the remaining lower indices stay valid without
-			// an intervening refresh. Block input until the refresh has
-			// landed, so that dropping the next entry in quick succession
-			// (confirming and pressing the key again right away) sees the
-			// refreshed list and not the stale, pre-drop indices.
-			defer self.c.RefreshBlockingInput(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
+			// an intervening refresh.
+			var dropErr error
 			for i := len(stashEntries) - 1; i >= 0; i-- {
 				self.c.LogCommand(fmt.Sprintf(self.c.Tr.Log.DroppingStash, stashEntries[i].Hash), false)
-				if err := self.c.Git().Stash.Drop(stashEntries[i].Index); err != nil {
-					return err
+				if dropErr = self.c.Git().Stash.Drop(stashEntries[i].Index); dropErr != nil {
+					break
 				}
 			}
-			self.context().CollapseRangeSelectionToTop()
-			return nil
+			// Block input until the refresh has landed, so that dropping the
+			// next entry in quick succession (confirming and pressing the key
+			// again right away) sees the refreshed list and not the stale,
+			// pre-drop indices.
+			self.c.RefreshBlockingInput(types.RefreshOptions{
+				Scope: []types.RefreshableView{types.STASH},
+				Then: func() error {
+					// Collapse the range selection from here, so that it lands
+					// in the same frame as the shortened list. The refresh has
+					// painted the list by the time Then runs, so the new
+					// selection needs a focus update of its own.
+					if dropErr == nil {
+						self.context().CollapseRangeSelectionToTop()
+						self.context().HandleFocus(types.OnFocusOpts{})
+					}
+					return nil
+				},
+			})
+			return dropErr
 		},
 	})
 
