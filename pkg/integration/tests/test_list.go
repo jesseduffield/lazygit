@@ -441,6 +441,7 @@ var tests = []*components.IntegrationTest{
 	status.LogCmdStatusPanelAllBranchesLog,
 	submodule.Add,
 	submodule.Enter,
+	submodule.EnterDotfileBareRepo,
 	submodule.EnterNested,
 	submodule.Remove,
 	submodule.RemoveNested,

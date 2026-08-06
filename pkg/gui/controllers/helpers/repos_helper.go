@@ -54,7 +54,11 @@ func (self *ReposHelper) EnterSubmodule(submodule *models.SubmoduleConfig) error
 	if err != nil {
 		return err
 	}
-	self.c.State().GetRepoPathStack().Push(wd)
+	self.c.State().GetRepoPathStack().Push(types.RepoLocation{
+		Path:        wd,
+		GitDirEnv:   env.GetGitDirEnv(),
+		WorkTreeEnv: env.GetWorkTreeEnv(),
+	})
 
 	return self.switchTo(submodule.FullPath(), self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
 }
@@ -164,7 +168,7 @@ func (self *ReposHelper) SwitchToParentRepo() error {
 	if self.switchRefusedBecauseBusy() {
 		return nil
 	}
-	return self.switchTo(self.c.State().GetRepoPathStack().Pop(), self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
+	return self.switchToLocation(self.c.State().GetRepoPathStack().Pop(), self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
 }
 
 func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey types.ContextKey) error {
@@ -189,23 +193,42 @@ func (self *ReposHelper) switchRefusedBecauseBusy() bool {
 	return false
 }
 
-// switchTo switches lazygit to the repository (or worktree) at the given path.
-// It runs synchronously on the UI thread: the switch swaps gui.State (in
-// resetState) and reassigns gui.git and the process cwd, all of which the UI
-// thread also reads, so doing it here rather than on a worker avoids racing
-// those reads. The heavy data loading is still dispatched asynchronously by the
-// refresh that onNewRepo kicks off.
+// switchTo switches lazygit to the repository (or worktree) at the given path,
+// discovering its git dir from the path alone (the GIT_DIR/GIT_WORK_TREE env
+// vars are cleared).
 func (self *ReposHelper) switchTo(path string, errMsg string, contextKey types.ContextKey) error {
-	env.UnsetGitLocationEnvVars()
+	return self.switchToLocation(types.RepoLocation{Path: path}, errMsg, contextKey)
+}
+
+// switchToLocation switches lazygit to the repository (or worktree) at the
+// given location. It runs synchronously on the UI thread: the switch swaps
+// gui.State (in resetState) and reassigns gui.git and the process cwd, all of
+// which the UI thread also reads, so doing it here rather than on a worker
+// avoids racing those reads. The heavy data loading is still dispatched
+// asynchronously by the refresh that onNewRepo kicks off.
+//
+// The location's GitDirEnv/WorkTreeEnv replace the process env vars: most
+// switches clear them (a freshly entered repo is discovered from its working
+// directory), but switching back to a repo that was opened via
+// --git-dir/--work-tree (e.g. a dotfile bare repo) must restore them, because
+// its git dir cannot be discovered from the path alone (#1118). A failed
+// switch puts the previous env vars back, so the repo we stay in keeps
+// working.
+func (self *ReposHelper) switchToLocation(location types.RepoLocation, errMsg string, contextKey types.ContextKey) error {
+	previousGitDirEnv := env.GetGitDirEnv()
+	previousWorkTreeEnv := env.GetWorkTreeEnv()
+	setGitLocationEnvVars(location.GitDirEnv, location.WorkTreeEnv)
+
 	originalPath, err := os.Getwd()
 	if err != nil {
 		return nil
 	}
 
-	msg := utils.ResolvePlaceholderString(self.c.Tr.ChangingDirectoryTo, map[string]string{"path": path})
+	msg := utils.ResolvePlaceholderString(self.c.Tr.ChangingDirectoryTo, map[string]string{"path": location.Path})
 	self.c.LogCommand(msg, false)
 
-	if err := os.Chdir(path); err != nil {
+	if err := os.Chdir(location.Path); err != nil {
+		setGitLocationEnvVars(previousGitDirEnv, previousWorkTreeEnv)
 		if os.IsNotExist(err) {
 			return errors.New(errMsg)
 		}
@@ -213,6 +236,7 @@ func (self *ReposHelper) switchTo(path string, errMsg string, contextKey types.C
 	}
 
 	if err := commands.VerifyInGitRepo(self.c.OS()); err != nil {
+		setGitLocationEnvVars(previousGitDirEnv, previousWorkTreeEnv)
 		if err := os.Chdir(originalPath); err != nil {
 			return err
 		}
@@ -236,6 +260,18 @@ func (self *ReposHelper) switchTo(path string, errMsg string, contextKey types.C
 	}
 
 	return direnvResult.Err
+}
+
+// setGitLocationEnvVars makes the process env vars match a RepoLocation:
+// GIT_DIR/GIT_WORK_TREE are cleared, then set to the given values if non-empty.
+func setGitLocationEnvVars(gitDirEnv string, workTreeEnv string) {
+	env.UnsetGitLocationEnvVars()
+	if gitDirEnv != "" {
+		env.SetGitDirEnv(gitDirEnv)
+	}
+	if workTreeEnv != "" {
+		env.SetWorkTreeEnv(workTreeEnv)
+	}
 }
 
 // logDirenvResult writes whatever direnv emitted to the command log and the

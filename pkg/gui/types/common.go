@@ -403,8 +403,19 @@ type HasUrn interface {
 	URN() string
 }
 
+// RepoLocation identifies a repo the way it was opened: the working directory,
+// plus the GIT_DIR/GIT_WORK_TREE env vars that were in effect at the time (both
+// empty for repos discovered from the working directory alone). Keeping the env
+// vars is what lets us switch back to a bare repo opened via
+// --git-dir/--work-tree, whose git dir cannot be rediscovered from the path.
+type RepoLocation struct {
+	Path        string
+	GitDirEnv   string
+	WorkTreeEnv string
+}
+
 type IStateAccessor interface {
-	GetRepoPathStack() *utils.StringStack
+	GetRepoPathStack() *utils.Stack[RepoLocation]
 	GetRepoState() IRepoStateAccessor
 	GetDiffRendererConfigManager() *config.DiffRendererConfigManager
 	// tells us whether we're currently updating lazygit
