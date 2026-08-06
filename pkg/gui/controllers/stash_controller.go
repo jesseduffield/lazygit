@@ -122,14 +122,8 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 			HandleConfirm: func() error {
 				self.c.LogAction(self.c.Tr.Actions.ApplyStash)
 				err := self.c.Git().Stash.Apply(stashEntry.Index)
-				self.postStashRefresh()
-				if err != nil {
-					return err
-				}
-				if self.c.UserConfig().Gui.SwitchToFilesAfterStashApply {
-					self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
-				}
-				return nil
+				self.postStashRefresh(err == nil && self.c.UserConfig().Gui.SwitchToFilesAfterStashApply)
+				return err
 			},
 		})
 }
@@ -139,14 +133,8 @@ func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error
 		self.c.LogAction(self.c.Tr.Actions.PopStash)
 		self.c.LogCommand(fmt.Sprintf(self.c.Tr.Log.PoppingStash, stashEntry.Hash), false)
 		err := self.c.Git().Stash.Pop(stashEntry.Index)
-		self.postStashRefresh()
-		if err != nil {
-			return err
-		}
-		if self.c.UserConfig().Gui.SwitchToFilesAfterStashPop {
-			self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
-		}
-		return nil
+		self.postStashRefresh(err == nil && self.c.UserConfig().Gui.SwitchToFilesAfterStashPop)
+		return err
 	}
 
 	if self.c.UserConfig().Gui.SkipStashWarning {
@@ -194,7 +182,9 @@ func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) 
 	return nil
 }
 
-func (self *StashController) postStashRefresh() {
+// postStashRefresh refreshes the panels that applying or popping a stash
+// affects, moving the focus to the files panel if switchToFiles is set.
+func (self *StashController) postStashRefresh(switchToFiles bool) {
 	// Block input until the refresh has landed: popping shifts the indices of
 	// the remaining stash entries, and acting on the next entry in quick
 	// succession (confirming the popup and pressing the key again right away)
@@ -202,6 +192,14 @@ func (self *StashController) postStashRefresh() {
 	self.c.RefreshBlockingInput(types.RefreshOptions{
 		BatchUIUpdates: true,
 		Scope:          []types.RefreshableView{types.STASH, types.FILES},
+		Then: func() error {
+			// Switch panels from here, so that the focus change lands in the
+			// same frame as the refreshed panel contents.
+			if switchToFiles {
+				self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
+			}
+			return nil
+		},
 	})
 }
 
