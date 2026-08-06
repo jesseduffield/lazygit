@@ -108,10 +108,12 @@ func hasMarkerPrefix[T string | []byte](line T, markerChar byte, markerSize int)
 }
 
 // A start, ancestor or end marker is followed by a space and a label, e.g.
-// "<<<<<<< HEAD".
+// "<<<<<<< HEAD". The label can be missing though, in which case git doesn't
+// write the space either; `git checkout -m` with the diff3 conflict style does
+// that for the ancestor marker, for example.
 func isConflictMarker[T string | []byte](line T, markerChar byte, markerSize int) bool {
 	return hasMarkerPrefix(line, markerChar, markerSize) &&
-		len(line) > markerSize && line[markerSize] == ' '
+		(len(line) == markerSize || line[markerSize] == ' ')
 }
 
 // The marker separating the two sides of a conflict never has a label after it.

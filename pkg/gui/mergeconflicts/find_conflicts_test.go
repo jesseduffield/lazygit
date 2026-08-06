@@ -61,6 +61,19 @@ func TestDetermineLineType(t *testing.T) {
 			line:     "<<<<<<<<",
 			expected: NOT_A_MARKER,
 		},
+		// Markers without a label
+		{
+			line:     "<<<<<<<",
+			expected: START,
+		},
+		{
+			line:     "|||||||",
+			expected: ANCESTOR,
+		},
+		{
+			line:     ">>>>>>>",
+			expected: END,
+		},
 		{
 			line:       strings.Repeat("<", 32) + " HEAD",
 			markerSize: 32,
@@ -135,6 +148,10 @@ func TestFindConflictsAux(t *testing.T) {
 		{
 			content:  " <<<<<<< ",
 			expected: false,
+		},
+		{
+			content:  ">>>>>>>",
+			expected: true,
 		},
 		{
 			content:  "a\nb\nc\n<<<<<<< ",
