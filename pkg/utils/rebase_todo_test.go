@@ -3,11 +3,54 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/stefanhaller/git-todo-parser/todo"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestMoveTodos(t *testing.T) {
+	todos := []todo.Todo{
+		{Command: todo.Pick, Commit: "a"},
+		{Command: todo.Pick, Commit: "b"},
+		{Command: todo.Label, Label: "hidden"},
+		{Command: todo.Pick, Commit: "c"},
+		{Command: todo.Pick, Commit: "d"},
+		{Command: todo.Pick, Commit: "e"},
+		{Command: todo.Pick, Commit: "f"},
+	}
+
+	t.Run("moves a range up multiple rendered rows", func(t *testing.T) {
+		actual, err := moveTodos(slices.Clone(todos), []Todo{{Hash: "d"}, {Hash: "c"}}, false, -2)
+
+		assert.NoError(t, err)
+		assert.Equal(t, []todo.Todo{
+			{Command: todo.Pick, Commit: "a"},
+			{Command: todo.Pick, Commit: "b"},
+			{Command: todo.Label, Label: "hidden"},
+			{Command: todo.Pick, Commit: "e"},
+			{Command: todo.Pick, Commit: "f"},
+			{Command: todo.Pick, Commit: "c"},
+			{Command: todo.Pick, Commit: "d"},
+		}, actual)
+	})
+
+	t.Run("moves a range down multiple rendered rows", func(t *testing.T) {
+		actual, err := moveTodos(slices.Clone(todos), []Todo{{Hash: "e"}, {Hash: "d"}}, false, 2)
+
+		assert.NoError(t, err)
+		assert.Equal(t, []todo.Todo{
+			{Command: todo.Pick, Commit: "a"},
+			{Command: todo.Pick, Commit: "d"},
+			{Command: todo.Pick, Commit: "e"},
+			{Command: todo.Pick, Commit: "b"},
+			{Command: todo.Label, Label: "hidden"},
+			{Command: todo.Pick, Commit: "c"},
+			{Command: todo.Pick, Commit: "f"},
+		}, actual)
+	})
+}
 
 func TestRebaseCommands_moveTodoDown(t *testing.T) {
 	type scenario struct {

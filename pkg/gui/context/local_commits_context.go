@@ -3,12 +3,16 @@ package context
 import (
 	"fmt"
 	"log"
+	"slices"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -17,6 +21,13 @@ type LocalCommitsContext struct {
 	*LocalCommitsViewModel
 	*ListContextTrait
 	*SearchTrait
+
+	dropIndicator *commitDropIndicator
+}
+
+type commitDropIndicator struct {
+	insertionIndex int
+	moving         bool
 }
 
 var (
@@ -26,6 +37,7 @@ var (
 )
 
 func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
+	dropIndicator := &commitDropIndicator{insertionIndex: -1}
 	viewModel := NewLocalCommitsViewModel(
 		func() []*models.Commit { return c.Model().Commits },
 		c,
@@ -71,7 +83,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			if c.Model().WorkingTreeStateAtLastCommitRefresh.Rebasing {
 				result = append(result, &NonModelItem{
 					Index:   0,
-					Content: fmt.Sprintf("--- %s ---", c.Tr.PendingRebaseTodosSectionHeader),
+					Content: formatListSectionHeader(c.Tr.PendingRebaseTodosSectionHeader),
 				})
 			}
 
@@ -90,9 +102,18 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 					c.Tr.PendingRevertsSectionHeader)
 				result = append(result, &NonModelItem{
 					Index:   firstCherryPickOrRevertTodo,
-					Content: fmt.Sprintf("--- %s ---", label),
+					Content: formatListSectionHeader(label),
 				})
 			}
+
+			result = addCommitDropIndicator(
+				result,
+				dropIndicator,
+				c.Tr.MoveCommitsHere,
+				c.Tr.MovingCommitsHere,
+				c.UserConfig().Gui.Spinner,
+				time.Now(),
+			)
 
 			_, firstRealCommit, found := lo.FindIndexOf(
 				c.Model().Commits, func(c *models.Commit) bool {
@@ -103,8 +124,17 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			}
 			result = append(result, &NonModelItem{
 				Index:   firstRealCommit,
-				Content: fmt.Sprintf("--- %s ---", c.Tr.CommitsSectionHeader),
+				Content: formatListSectionHeader(c.Tr.CommitsSectionHeader),
 			})
+		} else {
+			result = addCommitDropIndicator(
+				result,
+				dropIndicator,
+				c.Tr.MoveCommitsHere,
+				c.Tr.MovingCommitsHere,
+				c.UserConfig().Gui.Spinner,
+				time.Now(),
+			)
 		}
 
 		return result
@@ -113,6 +143,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	ctx := &LocalCommitsContext{
 		LocalCommitsViewModel: viewModel,
 		SearchTrait:           NewSearchTrait(c),
+		dropIndicator:         dropIndicator,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				View:                        c.Views().Commits,
@@ -137,12 +168,60 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	return ctx
 }
 
+func addCommitDropIndicator(
+	items []*NonModelItem,
+	indicator *commitDropIndicator,
+	dropLabel string,
+	movingLabel string,
+	spinnerConfig config.SpinnerConfig,
+	now time.Time,
+) []*NonModelItem {
+	if indicator.insertionIndex < 0 {
+		return items
+	}
+	label := dropLabel
+	if indicator.moving {
+		label = fmt.Sprintf("%s %s", movingLabel, presentation.Loader(now, spinnerConfig))
+	}
+
+	insertAt := len(items)
+	for i, item := range items {
+		if item.Index > indicator.insertionIndex {
+			insertAt = i
+			break
+		}
+	}
+
+	return slices.Insert(items, insertAt, &NonModelItem{
+		Index:   indicator.insertionIndex,
+		Content: style.FgCyan.SetBold().Sprintf("━━━━━━ %s ━━━━━━", label),
+		Column:  6, // align with the commit subject
+	})
+}
+
+func (self *LocalCommitsContext) SetDropInsertionIndex(index int) {
+	self.dropIndicator.insertionIndex = index
+	self.dropIndicator.moving = false
+}
+
+func (self *LocalCommitsContext) SetMovingCommitsInsertionIndex(index int) {
+	self.dropIndicator.insertionIndex = index
+	self.dropIndicator.moving = true
+}
+
+func (self *LocalCommitsContext) ClearDropInsertionIndex() {
+	self.dropIndicator.insertionIndex = -1
+	self.dropIndicator.moving = false
+}
+
 type LocalCommitsViewModel struct {
 	*ListViewModel[*models.Commit]
 
 	// If this is true we limit the amount of commits we load, for the sake of keeping things fast.
 	// If the user attempts to scroll past the end of the list, we will load more commits.
-	limitCommits bool
+	// Atomic because a checkout or reset sets it from a worker goroutine while the
+	// commits refresh reads it on the UI thread to decide how many commits to load.
+	limitCommits atomic.Bool
 
 	// If this is true we'll use git log --all when fetching the commits.
 	showWholeGitGraph bool
@@ -151,9 +230,9 @@ type LocalCommitsViewModel struct {
 func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon) *LocalCommitsViewModel {
 	self := &LocalCommitsViewModel{
 		ListViewModel:     NewListViewModel(getModel),
-		limitCommits:      true,
 		showWholeGitGraph: c.UserConfig().Git.Log.ShowWholeGraph,
 	}
+	self.limitCommits.Store(true)
 
 	return self
 }
@@ -221,15 +300,15 @@ func (self *LocalCommitsContext) RefForAdjustingLineNumberInDiff() string {
 }
 
 func (self *LocalCommitsContext) ModelSearchResults(searchStr string, caseSensitive bool) []gocui.SearchPosition {
-	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), self.ModelIndexToViewIndex, searchStr)
+	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), self.modelToViewIndexConverter(), searchStr)
 }
 
 func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {
-	self.limitCommits = value
+	self.limitCommits.Store(value)
 }
 
 func (self *LocalCommitsViewModel) GetLimitCommits() bool {
-	return self.limitCommits
+	return self.limitCommits.Load()
 }
 
 func (self *LocalCommitsViewModel) SetShowWholeGitGraph(value bool) {
@@ -245,7 +324,13 @@ func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
 }
 
 func shouldShowGraph(c *ContextCommon) bool {
-	if c.Modes().Filtering.Active() {
+	// Whether we can draw a graph is a property of the commit list we have
+	// loaded, not of the filtering mode: turning filtering on or off only
+	// reaches the screen when the reloaded list does, and until then the graph
+	// has to keep matching the list that is still on display. Drawing one for a
+	// filtered list is also ruinously slow, because none of the commits in it
+	// are connected to each other, so no pipe ever terminates.
+	if c.Model().CommitsWereFilteredAtLastRefresh {
 		return false
 	}
 

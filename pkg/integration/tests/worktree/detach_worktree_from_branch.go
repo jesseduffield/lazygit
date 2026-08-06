@@ -6,7 +6,7 @@ import (
 )
 
 var DetachWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Detach a worktree from the branches view",
+	Description:  "Delete a branch that's checked out in another worktree by detaching that worktree",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -37,12 +37,12 @@ var DetachWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Branch newbranch is checked out by worktree linked-worktree")).
-					Select(Equals("Detach worktree")).
+					Select(Contains("Detach worktree and delete branch")).
 					Confirm()
 			}).
+			// The branch is gone; the worktree stays around (now detached)
 			Lines(
-				Contains("mybranch"),
-				Contains("newbranch").DoesNotContain("(worktree)").IsSelected(),
+				Contains("mybranch").IsSelected(),
 			)
 
 		t.Views().Worktrees().

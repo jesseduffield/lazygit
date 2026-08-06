@@ -26,7 +26,7 @@ func (self *GpgHelper) WithGpgHandling(
 	onSuccess func() error,
 	refreshScope []types.RefreshableView,
 ) error {
-	refreshOptions := types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope}
+	refreshOptions := types.RefreshOptions{Scope: refreshScope}
 	return self.withGpgHandling(
 		cmdObj, configKey, waitingStatus, onSuccess, refreshOptions, refreshOptions)
 }
@@ -40,8 +40,8 @@ func (self *GpgHelper) WithGpgHandlingAndSelectHeadCommit(
 	waitingStatus string,
 	onSuccess func() error,
 ) error {
-	failureRefreshOptions := types.RefreshOptions{Mode: types.ASYNC}
-	successRefreshOptions := types.RefreshOptions{Mode: types.ASYNC, CommitSelection: types.SelectHeadCommit}
+	failureRefreshOptions := types.RefreshOptions{}
+	successRefreshOptions := types.RefreshOptions{CommitSelection: types.SelectHeadCommit}
 	return self.withGpgHandling(
 		cmdObj, configKey, waitingStatus, onSuccess, failureRefreshOptions, successRefreshOptions)
 }
@@ -88,7 +88,7 @@ func (self *GpgHelper) runAndStream(
 ) error {
 	return self.c.WithWaitingStatus(waitingStatus, func(gocui.Task) error {
 		if err := cmdObj.StreamOutput().Run(); err != nil {
-			self.c.Refresh(failureRefreshOptions)
+			self.c.RefreshFromWorker(failureRefreshOptions)
 			return fmt.Errorf(
 				self.c.Tr.GitCommandFailed, self.c.UserConfig().Keybinding.Universal.ExtrasMenu,
 			)
@@ -100,7 +100,7 @@ func (self *GpgHelper) runAndStream(
 			}
 		}
 
-		self.c.Refresh(successRefreshOptions)
+		self.c.RefreshFromWorker(successRefreshOptions)
 		return nil
 	})
 }

@@ -23,10 +23,23 @@ type IntegrationTest interface {
 // this is the interface through which our integration tests interact with the lazygit gui
 type GuiDriver interface {
 	PressKey(string)
+	// Like PressKey, but presses several keys in immediate succession, waiting
+	// for lazygit to become idle only after the last one. Use it to simulate a
+	// user typing faster than lazygit processes the input.
+	PressKeysRapidly(...string)
 	Click(int, int)
+	ClickAndHold(int, int)
+	MouseMove(int, int)
+	MouseRelease(int, int)
+	// Can be used to avoid data races with the UI thread in the uncommon cases that
+	// the test driver needs to assert state while the gui is not idle.
+	OnUIThreadAndWait(func())
 	// Simulate the terminal window regaining focus (which triggers a reload of
 	// changed config files)
 	FocusIn()
+	// Simulate a terminal dispatching focus-in immediately followed by a click,
+	// without waiting for the focus refresh to finish in between.
+	FocusInAndClick(int, int)
 	Keys() config.KeybindingConfig
 	CurrentContext() types.Context
 	ContextForView(viewName string) types.Context
@@ -52,4 +65,9 @@ type GuiDriver interface {
 	NextToast() *string
 	CheckAllToastsAcknowledged()
 	Headless() bool
+	// Record that the in-progress rebase/merge/etc. is to be treated as one
+	// that was started from within lazygit. Lets a test that starts an
+	// operation by running git directly (rather than through the UI) still get
+	// the "continue?" prompt when its conflicts are resolved.
+	PretendMergeOrRebaseStartedInLazygit()
 }

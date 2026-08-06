@@ -29,9 +29,9 @@ var ForceRemoveWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("linked-worktree")).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
-					Title(Equals("Remove worktree")).
-					Content(Equals("Are you sure you want to remove worktree 'linked-worktree'?")).
+				t.ExpectPopup().Menu().
+					Title(Equals("Remove worktree 'linked-worktree'?")).
+					Select(MatchesRegexp("Remove worktree$")).
 					Confirm()
 
 				t.ExpectPopup().Confirmation().

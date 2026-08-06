@@ -25,14 +25,6 @@ const (
 	PULL_REQUESTS
 )
 
-type RefreshMode int
-
-const (
-	SYNC     RefreshMode = iota // wait until everything is done before returning
-	ASYNC                       // return immediately, allowing each independent thing to update itself
-	BLOCK_UI                    // wrap code in an update call to ensure UI updates all at once and keybindings aren't executed till complete
-)
-
 // CommitSelectionBehavior controls which local commit is selected after the
 // commits list is reloaded by a refresh.
 type CommitSelectionBehavior int
@@ -55,27 +47,66 @@ const (
 	SelectHeadCommit
 )
 
-type RefreshOptions struct {
-	Then  func()
-	Scope []RefreshableView // e.g. []RefreshableView{COMMITS, BRANCHES}. Leave empty to refresh everything
-	Mode  RefreshMode       // one of SYNC (default), ASYNC, and BLOCK_UI
+// BranchSelectionBehavior controls which local branch is selected after the
+// branches list is reloaded by a refresh.
+type BranchSelectionBehavior int
 
-	// Normally a refresh of the branches tries to keep the same branch selected
-	// (by name); this is usually important in case the order of branches
-	// changes. Passing true for KeepBranchSelectionIndex suppresses this and
-	// keeps the selection index the same. Useful after checking out a detached
-	// head, and selecting index 0.
-	KeepBranchSelectionIndex bool
+const (
+	// Keep the same branch selected by name, restoring it at its new position if
+	// the order changed. This is the right default whenever the list reloads
+	// underneath a selection the user hasn't deliberately changed.
+	KeepBranchSelectionByName BranchSelectionBehavior = iota
+
+	// Select the checked-out branch (the one at the top of the list). Used after
+	// operations that check something out - checkout, creating a branch, moving
+	// commits to a new branch - so the newly checked-out ref ends up selected.
+	SelectCheckedOutBranch
+)
+
+type RefreshOptions struct {
+	Then  func() error
+	Scope []RefreshableView // e.g. []RefreshableView{COMMITS, BRANCHES}. Leave empty to refresh everything
+
+	// If true, hold off on updating the UI until all scopes have finished
+	// refreshing and then apply them together in a single frame, rather than
+	// letting each scope update the UI as soon as it's done.
+	BatchUIUpdates bool
+
+	// Controls which local branch is selected after the refresh. Defaults to
+	// KeepBranchSelectionByName.
+	BranchSelection BranchSelectionBehavior
 
 	// Controls which local commit is selected after the refresh. Defaults to
 	// KeepCommitSelectionByHash.
 	CommitSelection CommitSelectionBehavior
 
+	// When true, select the top (most recent) reflog entry after the refresh.
+	// Used alongside SelectCheckedOutBranch by operations that check something
+	// out, since the checkout adds a new reflog entry at the top. Defaults to
+	// keeping the reflog selection where it is.
+	SelectTopReflogCommit bool
+
 	// When true, this refresh was initiated by a background routine rather than
-	// by a user action. We use it to keep background `git status` calls from
-	// taking optional git locks, so they don't contend for index.lock with git
-	// commands the user runs in a terminal. The cost is that such a status won't
-	// persist git's refreshed stat-cache, which is the right trade-off for
-	// unattended work; foreground refreshes leave this false so they do persist.
+	// by a user action. Every git command suppresses optional locks by default
+	// so it can't contend for index.lock (see git_commands.OptionalLocksEnvVar);
+	// a foreground files refresh (this false) is the one command that opts back
+	// in, so it persists git's refreshed stat-cache and keeps later status calls
+	// fast. Background refreshes leave the suppression in place: not persisting
+	// the stat-cache is the right trade-off for unattended work.
 	Background bool
+
+	// When true, this foreground refresh does not block switching repos while
+	// it is in flight. A refresh is switch-safe by construction — its git
+	// commands run against the repo it was started for, and the generation
+	// guard drops its model/view updates if the repo changed — but a refresh
+	// triggered by a user operation still blocks switching (its tasks count
+	// towards Busy()), because the operation's follow-up work isn't covered
+	// by those guards. A refresh that merely reloads state (on focus, after a
+	// repo switch, after returning from a subprocess) has no such follow-up,
+	// so it opts in here and a repo switch during it is allowed rather than
+	// refused with a toast.
+	//
+	// Must not be combined with Then: Then is not generation-guarded, so it
+	// would run against the newly switched-to repo.
+	DontBlockRepoSwitch bool
 }

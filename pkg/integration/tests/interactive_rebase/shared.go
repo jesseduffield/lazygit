@@ -9,10 +9,10 @@ func handleConflictsFromSwap(t *TestDriver, expectedCommand string) {
 
 	t.Views().Commits().
 		Lines(
-			Contains("--- Pending rebase todos ---"),
+			Contains("─── Pending rebase todos"),
 			Contains("pick").Contains("commit two"),
 			Contains(expectedCommand).Contains("<-- CONFLICT --- commit three"),
-			Contains("--- Commits ---"),
+			Contains("─── Commits"),
 			Contains("commit one"),
 		)
 

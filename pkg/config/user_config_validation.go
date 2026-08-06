@@ -46,7 +46,7 @@ func (config *UserConfig) Validate() error {
 		[]string{"always", "never", "when-maximised"}); err != nil {
 		return err
 	}
-	if err := validatePagers(config.Git.Pagers); err != nil {
+	if err := validateDiffRenderers(config.Git.DiffRenderers); err != nil {
 		return err
 	}
 	if err := validateKeybindings(config.Keybinding); err != nil {
@@ -110,25 +110,26 @@ func validateSpinner(spinner SpinnerConfig) error {
 	return nil
 }
 
-// validatePagers rejects pager entries that combine more than one diff
-// mechanism. A pager (GIT_PAGER) formats the diff that git produces, whereas
-// externalDiffCommand and useExternalDiffGitConfig change how git produces the
-// diff in the first place; piping one through the other almost always yields
-// garbled output, so we treat the three as mutually exclusive.
-func validatePagers(pagers []PagingConfig) error {
-	for i, pager := range pagers {
-		count := 0
-		if pager.Pager != "" {
-			count++
-		}
-		if pager.ExternalDiffCommand != "" {
-			count++
-		}
-		if pager.UseExternalDiffGitConfig {
-			count++
-		}
-		if count > 1 {
-			return fmt.Errorf("git.pagers[%d]: at most one of 'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' may be set; they are mutually exclusive", i)
+func validateDiffRenderers(diffRenderers []DiffRendererConfig) error {
+	for _, diffRenderer := range diffRenderers {
+		switch diffRenderer.Type {
+		case "stdinFilter", "":
+			if diffRenderer.Command == "" {
+				return errors.New("git.diffRenderers: 'command' must be specified for diff renderer type 'stdinFilter'.")
+			}
+			if len(diffRenderer.Args) > 0 {
+				return errors.New("git.diffRenderers: 'args' cannot be used with diff renderer type 'stdinFilter'.")
+			}
+		case "extDiff":
+			if len(diffRenderer.Args) > 0 {
+				return errors.New("git.diffRenderers: 'args' cannot be used with diff renderer type 'extDiff'.")
+			}
+		case "rawGit":
+			if diffRenderer.Command != "" {
+				return errors.New("git.diffRenderers: 'command' cannot be used with diff renderer type 'rawGit'.")
+			}
+		default:
+			return fmt.Errorf("git.diffRenderers: unknown type '%s'. Allowed values: stdinFilter, extDiff, rawGit", diffRenderer.Type)
 		}
 	}
 	return nil

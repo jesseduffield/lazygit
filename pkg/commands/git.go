@@ -60,7 +60,7 @@ func NewGitCommand(
 	version *git_commands.GitVersion,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
-	pagerConfig *config.PagerConfig,
+	diffRendererConfigManager *config.DiffRendererConfigManager,
 ) (*GitCommand, error) {
 	repoPaths, err := git_commands.GetRepoPaths(osCommand.Cmd, version)
 	if err != nil {
@@ -72,13 +72,17 @@ func NewGitCommand(
 		return nil, utils.WrapError(err)
 	}
 
+	// Pin the config reads to the repo directory like all other git commands
+	// (see NewGitCmdObjBuilder); the config commands run outside that builder.
+	gitConfig.SetDir(repoPaths.WorktreePath())
+
 	return NewGitCommandAux(
 		cmn,
 		version,
 		osCommand,
 		gitConfig,
 		repoPaths,
-		pagerConfig,
+		diffRendererConfigManager,
 	), nil
 }
 
@@ -88,9 +92,9 @@ func NewGitCommandAux(
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
 	repoPaths *git_commands.RepoPaths,
-	pagerConfig *config.PagerConfig,
+	diffRendererConfigManager *config.DiffRendererConfigManager,
 ) *GitCommand {
-	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd)
+	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd, repoPaths.WorktreePath())
 
 	// here we're doing a bunch of dependency injection for each of our commands structs.
 	// This is admittedly messy, but allows us to test each command struct in isolation,
@@ -99,7 +103,7 @@ func NewGitCommandAux(
 	// common ones are: cmn, osCommand, dotGitDir, configCommands
 	configCommands := git_commands.NewConfigCommands(cmn, gitConfig)
 
-	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPaths, configCommands, pagerConfig)
+	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPaths, configCommands, diffRendererConfigManager)
 
 	fileLoader := git_commands.NewFileLoader(gitCommon, cmd, configCommands)
 	statusCommands := git_commands.NewStatusCommands(gitCommon)
@@ -117,8 +121,8 @@ func NewGitCommandAux(
 	rebaseCommands := git_commands.NewRebaseCommands(gitCommon, commitCommands, workingTreeCommands)
 	stashCommands := git_commands.NewStashCommands(gitCommon, fileLoader, workingTreeCommands)
 	patchBuilder := patch.NewPatchBuilder(cmn.Log,
-		func(from string, to string, reverse bool, filename string, plain bool) (string, error) {
-			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, plain)
+		func(from string, to string, reverse bool, filename string, previousPath string, plain bool) (string, error) {
+			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, previousPath, plain)
 		})
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)

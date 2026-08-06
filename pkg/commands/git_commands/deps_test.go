@@ -62,7 +62,7 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 		gitCommon.Common.SetUserConfig(config.GetDefaultConfig())
 	}
 
-	gitCommon.pagerConfig = config.NewPagerConfig(func() *config.UserConfig {
+	gitCommon.diffRendererConfigManager = config.NewDiffRendererConfigManager(func() *config.UserConfig {
 		return gitCommon.Common.UserConfig()
 	})
 

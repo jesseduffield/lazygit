@@ -1,10 +1,13 @@
 package components
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
+	"time"
 
 	lazycoreUtils "github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -24,6 +27,12 @@ type RunTestArgs struct {
 	CodeCoverageDir string
 	InputDelay      int
 	MaxAttempts     int
+	// If set, each test's run duration is appended to this file (as
+	// "<seconds> <test name>"). run_integration_tests.sh prints the slowest at
+	// the end, so slow or anomalous tests can be spotted across CI runs. We
+	// write to a file rather than stdout/stderr because `go test` captures
+	// those and only shows them with -v. Empty disables it.
+	LogTimingsPath string
 }
 
 // This function lets you run tests either from within `go test` or from a regular binary.
@@ -45,6 +54,11 @@ func RunTests(args RunTestArgs) error {
 	gitVersion, err := getGitVersion()
 	if err != nil {
 		return err
+	}
+
+	// Start each run with a fresh timings file (see RunTestArgs.LogTimingsPath).
+	if args.LogTimingsPath != "" {
+		_ = os.Remove(args.LogTimingsPath)
 	}
 
 	for _, test := range args.Tests {
@@ -99,7 +113,11 @@ func runTest(
 		return err
 	}
 
+	start := time.Now()
 	pid, err := args.RunCmd(cmd)
+	if args.LogTimingsPath != "" {
+		logTestTiming(args.LogTimingsPath, test.Name(), time.Since(start))
+	}
 
 	// Print race detector log regardless of the command's exit status
 	if args.RaceDetector {
@@ -110,6 +128,23 @@ func runTest(
 	}
 
 	return err
+}
+
+// timingsMutex serializes appends to the timings file, since tests run in
+// parallel.
+var timingsMutex sync.Mutex
+
+func logTestTiming(path, name string, duration time.Duration) {
+	timingsMutex.Lock()
+	defer timingsMutex.Unlock()
+
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	fmt.Fprintf(f, "%.2f %s\n", duration.Seconds(), name)
 }
 
 func prepareTestDir(
@@ -125,9 +160,7 @@ func prepareTestDir(
 		return "", err
 	}
 
-	workingDir := createFixture(test, paths, rootDir)
-
-	return workingDir, nil
+	return createFixture(test, paths, rootDir)
 }
 
 func buildLazygit(testArgs RunTestArgs) error {
@@ -148,22 +181,41 @@ func buildLazygit(testArgs RunTestArgs) error {
 	return osCommand.Cmd.New(args).Run()
 }
 
+// A failing setup step panics with this so that the remaining steps, which
+// would only produce follow-on failures, are skipped.
+type fixtureFailure string
+
 // Sets up the fixture for test and returns the working directory to invoke
 // lazygit in.
-func createFixture(test *IntegrationTest, paths Paths, rootDir string) string {
+func createFixture(test *IntegrationTest, paths Paths, rootDir string) (workingDir string, err error) {
+	// Tests run as parallel subtests, and a panic escaping one of them takes
+	// down the whole test binary, discarding every other test's result along
+	// with it. Report a broken fixture as this test's error instead.
+	defer func() {
+		panicValue := recover()
+		if panicValue == nil {
+			return
+		}
+		failure, ok := panicValue.(fixtureFailure)
+		if !ok {
+			panic(panicValue)
+		}
+		err = errors.New(string(failure))
+	}()
+
 	env := NewTestEnvironment(rootDir)
 
 	env = append(env, fmt.Sprintf("%s=%s", PWD, paths.ActualRepo()))
 	shell := NewShell(
 		paths.ActualRepo(),
 		env,
-		func(errorMsg string) { panic(errorMsg) },
+		func(errorMsg string) { panic(fixtureFailure(errorMsg)) },
 	)
 	shell.Init()
 
 	test.SetupRepo(shell)
 
-	return shell.dir
+	return shell.dir, nil
 }
 
 func testPath(rootdir string) string {

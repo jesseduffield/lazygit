@@ -8,12 +8,12 @@ import (
 
 type GitCommon struct {
 	*common.Common
-	version     *GitVersion
-	cmd         oscommands.ICmdObjBuilder
-	os          *oscommands.OSCommand
-	repoPaths   *RepoPaths
-	config      *ConfigCommands
-	pagerConfig *config.PagerConfig
+	version                   *GitVersion
+	cmd                       oscommands.ICmdObjBuilder
+	os                        *oscommands.OSCommand
+	repoPaths                 *RepoPaths
+	config                    *ConfigCommands
+	diffRendererConfigManager *config.DiffRendererConfigManager
 }
 
 func NewGitCommon(
@@ -23,15 +23,15 @@ func NewGitCommon(
 	osCommand *oscommands.OSCommand,
 	repoPaths *RepoPaths,
 	config *ConfigCommands,
-	pagerConfig *config.PagerConfig,
+	diffRendererConfigManager *config.DiffRendererConfigManager,
 ) *GitCommon {
 	return &GitCommon{
-		Common:      cmn,
-		version:     version,
-		cmd:         cmd,
-		os:          osCommand,
-		repoPaths:   repoPaths,
-		config:      config,
-		pagerConfig: pagerConfig,
+		Common:                    cmn,
+		version:                   version,
+		cmd:                       cmd,
+		os:                        osCommand,
+		repoPaths:                 repoPaths,
+		config:                    config,
+		diffRendererConfigManager: diffRendererConfigManager,
 	}
 }

@@ -198,7 +198,7 @@ func (self *MenuViewModel) GetNonModelItems() []*NonModelItem {
 			result = append(result, &NonModelItem{
 				Index:   i,
 				Column:  1,
-				Content: style.FgGreen.SetBold().Sprintf("--- %s ---", menuItem.Section.Title),
+				Content: style.FgGreen.SetBold().Sprint(formatListSectionHeader(menuItem.Section.Title)),
 			})
 			prevSection = menuItem.Section
 		}

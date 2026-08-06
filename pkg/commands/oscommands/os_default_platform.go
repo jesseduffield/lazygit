@@ -45,10 +45,10 @@ func (c *OSCommand) UpdateWindowTitle() error {
 // this call is reached on every host; only the Windows build does anything.
 func setRawCmdLine(cmd *exec.Cmd, cmdLine string) {}
 
-func TerminateProcessGracefully(cmd *exec.Cmd) error {
-	if cmd.Process == nil {
+func TerminateProcessGracefully(proc *os.Process) error {
+	if proc == nil {
 		return nil
 	}
 
-	return cmd.Process.Signal(syscall.SIGTERM)
+	return proc.Signal(syscall.SIGTERM)
 }

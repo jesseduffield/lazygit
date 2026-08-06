@@ -13,7 +13,6 @@ func TestFileGetStatusFiles(t *testing.T) {
 	type scenario struct {
 		testName               string
 		similarityThreshold    int
-		background             bool
 		runner                 oscommands.ICmdObjRunner
 		showNumstatInFilesView bool
 		expectedFiles          []*models.File
@@ -25,14 +24,6 @@ func TestFileGetStatusFiles(t *testing.T) {
 			similarityThreshold: 50,
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"}, "", nil),
-			expectedFiles: []*models.File{},
-		},
-		{
-			testName:            "Background refresh passes --no-optional-locks",
-			similarityThreshold: 50,
-			background:          true,
-			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"--no-optional-locks", "status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"}, "", nil),
 			expectedFiles: []*models.File{},
 		},
 		{
@@ -255,7 +246,7 @@ func TestFileGetStatusFiles(t *testing.T) {
 				getFileType: func(string) string { return "file" },
 			}
 
-			assert.EqualValues(t, s.expectedFiles, loader.GetStatusFiles(GetStatusFileOptions{Background: s.background}))
+			assert.EqualValues(t, s.expectedFiles, loader.GetStatusFiles(GetStatusFileOptions{}))
 		})
 	}
 }

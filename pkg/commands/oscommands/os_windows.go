@@ -41,7 +41,7 @@ func (c *OSCommand) UpdateWindowTitle() error {
 	return c.Cmd.NewShell(argString, c.UserConfig().OS.ShellFunctionsFile).Run()
 }
 
-func TerminateProcessGracefully(cmd *exec.Cmd) error {
+func TerminateProcessGracefully(proc *os.Process) error {
 	// Signals other than SIGKILL are not supported on Windows
 	return nil
 }
