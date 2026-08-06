@@ -25,7 +25,6 @@ var ConflictMarkerSizeNotAutoStaged = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			// Each refresh checks whether the conflicts are still there
 			Press(keys.Universal.Refresh).
-			/* EXPECTED:
 			// They are, so the file doesn't get staged and we don't get asked to
 			// continue the merge
 			Lines(
@@ -36,11 +35,6 @@ var ConflictMarkerSizeNotAutoStaged = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Shell().UpdateFile("file", "resolved content")
 			}).
 			Press(keys.Universal.Refresh).
-			Tap(func() {
-				t.Common().ContinueOnConflictsResolved("merge")
-			}).
-			IsEmpty()
-			ACTUAL: */
 			Tap(func() {
 				t.Common().ContinueOnConflictsResolved("merge")
 			}).

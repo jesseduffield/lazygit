@@ -27,7 +27,6 @@ var ConflictMarkerSizeResolve = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressEnter()
 
-		/* EXPECTED:
 		t.Views().MergeConflicts().
 			IsFocused().
 			SelectedLines(
@@ -37,9 +36,5 @@ var ConflictMarkerSizeResolve = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressPrimaryAction().
 			Content(DoesNotContain(startMarker + " HEAD\nFirst Change"))
-		ACTUAL: */
-		// We don't recognize the markers, so instead of the merge conflicts view
-		// we get the file's diff
-		t.Views().Main().Content(Contains(startMarker + " HEAD"))
 	},
 })

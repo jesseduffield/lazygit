@@ -8,6 +8,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/samber/lo"
 )
 
 type FileLoaderConfig interface {
@@ -88,6 +89,8 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 		files = append(files, file)
 	}
 
+	self.setConflictMarkerSizes(files)
+
 	// Go through the files to see if any of these files are actually worktrees
 	// so that we can render them correctly
 	worktreePaths := linkedWortkreePaths(self.Fs, self.repoPaths.RepoGitDirPath())
@@ -109,6 +112,63 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 	}
 
 	return files
+}
+
+// Looks up how long the conflict markers in the conflicted files are. We ask
+// git for all of them at once, because spawning a process per file would be
+// painfully slow when hundreds of files are conflicted (especially on Windows).
+func (self *FileLoader) setConflictMarkerSizes(files []*models.File) {
+	conflictedFiles := lo.Filter(files, func(file *models.File, _ int) bool {
+		return file.HasInlineMergeConflicts
+	})
+	if len(conflictedFiles) == 0 {
+		return
+	}
+
+	paths := lo.Map(conflictedFiles, func(file *models.File, _ int) string {
+		return file.Path
+	})
+
+	markerSizes, err := self.getConflictMarkerSizes(paths)
+	if err != nil {
+		self.Log.Error(err)
+		return
+	}
+
+	for _, file := range conflictedFiles {
+		file.ConflictMarkerSize = markerSizes[file.Path]
+	}
+}
+
+func (self *FileLoader) getConflictMarkerSizes(paths []string) (map[string]int, error) {
+	cmdArgs := NewGitCmd("check-attr").
+		Arg("-z").
+		Arg("--stdin").
+		Arg("conflict-marker-size").
+		ToArgv()
+
+	// -z makes git both read the paths and write its output NUL-separated, so
+	// that paths containing newlines don't throw us off.
+	output, _, err := self.cmd.New(cmdArgs).
+		SetStdin(strings.Join(paths, "\x00")).
+		DontLog().
+		RunWithOutputs()
+	if err != nil {
+		return nil, err
+	}
+
+	markerSizes := map[string]int{}
+	fields := strings.Split(output, "\x00")
+	// Each path yields a path/attribute/value triple; the value is either a
+	// number or something like "unspecified", in which case we leave the marker
+	// size at 0 to say that git's default applies.
+	for i := 0; i+2 < len(fields); i += 3 {
+		if markerSize, err := strconv.Atoi(fields[i+2]); err == nil && markerSize > 0 {
+			markerSizes[fields[i]] = markerSize
+		}
+	}
+
+	return markerSizes, nil
 }
 
 type FileDiff struct {
