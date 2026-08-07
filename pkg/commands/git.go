@@ -67,6 +67,13 @@ func NewGitCommand(
 		return nil, errors.Errorf("Error getting repo paths: %v", err)
 	}
 
+	// A bare repo has no worktree for us to work in. Callers that can offer the
+	// user something better (app.setupRepo) check for this first; getting here
+	// means nobody could, e.g. because --git-dir was pointed at a bare repo.
+	if repoPaths.IsBareRepo() {
+		return nil, errors.New(cmn.Tr.BareRepoNotSupported)
+	}
+
 	err = os.Chdir(repoPaths.WorktreePath())
 	if err != nil {
 		return nil, utils.WrapError(err)

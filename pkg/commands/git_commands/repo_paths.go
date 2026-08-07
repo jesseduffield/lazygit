@@ -22,7 +22,8 @@ type RepoPaths struct {
 }
 
 // Path to the current worktree. If we're in the main worktree, this will
-// be the same as RepoPath()
+// be the same as RepoPath(). It is empty for a bare repo, which has no
+// worktree at all.
 func (self *RepoPaths) WorktreePath() string {
 	return self.worktreePath
 }
@@ -53,6 +54,9 @@ func (self *RepoPaths) RepoName() string {
 	return self.repoName
 }
 
+// Whether the repo has no worktree, so that there is nothing for lazygit to
+// show. Note that this isn't quite git's core.bare: a repo that calls itself
+// non-bare but doesn't have a worktree either counts as bare for us.
 func (self *RepoPaths) IsBareRepo() bool {
 	return self.isBareRepo
 }
@@ -84,16 +88,18 @@ func GetRepoPathsForDir(
 	dir string,
 	cmd oscommands.ICmdObjBuilder,
 ) (*RepoPaths, error) {
-	gitDirOutput, err := callGitRevParseWithDir(cmd, dir, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
+	gitDirOutput, err := callGitRevParseWithDir(cmd, dir, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree")
 	if err != nil {
-		return nil, err
+		// --show-toplevel is the only one of these that needs a work tree, and
+		// git makes it fatal when there isn't one. So this may just mean we're in
+		// a repo that has no work tree.
+		return getBareRepoPathsForDir(dir, cmd, err)
 	}
 
 	gitDirResults := strings.Split(utils.NormalizeLinefeeds(gitDirOutput), "\n")
 	worktreePath := gitDirResults[0]
 	worktreeGitDirPath := gitDirResults[1]
 	repoGitDirPath := gitDirResults[2]
-	isBareRepo := gitDirResults[3] == "true"
 
 	// A worktree that has the repo's common git dir to itself is the repo's main
 	// worktree, so it is the repoPath. That holds for a submodule as well: its
@@ -102,9 +108,9 @@ func GetRepoPathsForDir(
 	isMainWorktree := worktreeGitDirPath == repoGitDirPath
 
 	// If we're in a submodule, --show-superproject-working-tree will return a
-	// value, meaning gitDirResults will be length 5. That only tells us anything
+	// value, meaning gitDirResults will be length 4. That only tells us anything
 	// new for a linked worktree of a submodule, which isMainWorktree misses.
-	isSubmodule := len(gitDirResults) == 5
+	isSubmodule := len(gitDirResults) == 4
 
 	// Otherwise we're in a linked worktree, and the repoPath is the repo's main
 	// worktree. git won't tell us where that is: `git worktree list` reports it
@@ -131,7 +137,42 @@ func GetRepoPathsForDir(
 		repoPath:           repoPath,
 		repoGitDirPath:     repoGitDirPath,
 		repoName:           repoName,
-		isBareRepo:         isBareRepo,
+		isBareRepo:         false,
+	}, nil
+}
+
+// getBareRepoPathsForDir is the fallback for when we couldn't ask git for the
+// work tree. Everything but --show-toplevel works fine without one, so if the
+// remaining queries succeed we are in a bare repo, and we return what we know
+// about it with an empty worktreePath. If they fail too we simply aren't in a
+// repo, and the caller's original error says so better than ours would.
+func getBareRepoPathsForDir(
+	dir string,
+	cmd oscommands.ICmdObjBuilder,
+	errWithWorktree error,
+) (*RepoPaths, error) {
+	output, err := callGitRevParseWithDir(cmd, dir, "--absolute-git-dir", "--git-common-dir")
+	if err != nil {
+		return nil, errWithWorktree
+	}
+
+	results := strings.Split(utils.NormalizeLinefeeds(output), "\n")
+	repoGitDirPath := results[1]
+	// A bare repo has no worktree, and so no repo path in the sense the caller
+	// with a worktree means. It doesn't matter much what we say here, because
+	// nobody reads it: whoever is handed a bare repo either offers to open a
+	// recent one instead (app.setupRepo) or is turned away by NewGitCommand. The
+	// directory holding the git dir is the nearest thing there is to a repo
+	// path.
+	repoPath := filepath.Dir(repoGitDirPath)
+
+	return &RepoPaths{
+		worktreePath:       "",
+		worktreeGitDirPath: results[0],
+		repoPath:           repoPath,
+		repoGitDirPath:     repoGitDirPath,
+		repoName:           filepath.Base(repoPath),
+		isBareRepo:         true,
 	}, nil
 }
 

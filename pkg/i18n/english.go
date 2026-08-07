@@ -461,6 +461,7 @@ type TranslationSet struct {
 	DisabledForGPG                        string
 	CreateRepo                            string
 	BareRepo                              string
+	BareRepoNotSupported                  string
 	InitialBranch                         string
 	NoRecentRepositories                  string
 	IncorrectNotARepository               string
@@ -1620,6 +1621,7 @@ func EnglishTranslationSet() *TranslationSet {
 		DisabledForGPG:                       "Feature not available for users using GPG.\n\nIf you are using a passphrase agent (e.g. gpg-agent) so that you don't have to type your passphrase when signing, you can enable this feature by adding\n\ngit:\n  overrideGpg: true\n\nto your lazygit config file.",
 		CreateRepo:                           "Not in a git repository. Create a new git repository? (y/N): ",
 		BareRepo:                             "You've attempted to open Lazygit in a bare repo but Lazygit does not support bare repos. Open most recent repo? (y/n) ",
+		BareRepoNotSupported:                 "Lazygit does not support bare repos.",
 		InitialBranch:                        "Branch name? (leave empty for git's default): ",
 		NoRecentRepositories:                 "Must open lazygit in a git repository. No valid recent repositories. Exiting.",
 		IncorrectNotARepository:              "The value of 'notARepository' is incorrect. It should be one of 'prompt', 'create', 'skip', or 'quit'.",
