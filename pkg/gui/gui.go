@@ -96,7 +96,7 @@ type Gui struct {
 
 	// when you enter into a submodule we'll append the superproject's path to this array
 	// so that you can return to the superproject
-	RepoPathStack *utils.StringStack
+	RepoPathStack *utils.Stack[string]
 
 	// this tells us whether our views have been initially set up
 	ViewsSetup bool
@@ -158,7 +158,7 @@ type StateAccessor struct {
 
 var _ types.IStateAccessor = new(StateAccessor)
 
-func (self *StateAccessor) GetRepoPathStack() *utils.StringStack {
+func (self *StateAccessor) GetRepoPathStack() *utils.Stack[string] {
 	return self.gui.RepoPathStack
 }
 
@@ -799,7 +799,7 @@ func NewGui(
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
 		viewPtmxMap:          map[string]oscommands.Pty{},
 		showRecentRepos:      showRecentRepos,
-		RepoPathStack:        &utils.StringStack{},
+		RepoPathStack:        &utils.Stack[string]{},
 		RepoStateMap:         map[Repo]*GuiRepoState{},
 		GuiLog:               []string{},
 

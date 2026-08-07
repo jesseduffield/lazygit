@@ -404,7 +404,7 @@ type HasUrn interface {
 }
 
 type IStateAccessor interface {
-	GetRepoPathStack() *utils.StringStack
+	GetRepoPathStack() *utils.Stack[string]
 	GetRepoState() IRepoStateAccessor
 	GetDiffRendererConfigManager() *config.DiffRendererConfigManager
 	// tells us whether we're currently updating lazygit
