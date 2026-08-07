@@ -218,12 +218,8 @@ branch refs/heads/mybranch
 			},
 			expectedWorktrees: []*models.Worktree{
 				{
-					/* EXPECTED:
 					IsMain:        true,
 					IsCurrent:     true,
-					ACTUAL: */
-					IsMain:        false,
-					IsCurrent:     false,
 					Path:          "/path/to/repo/.git/modules/mysubmodule",
 					IsPathMissing: false,
 					GitDir:        "/path/to/repo/.git/modules/mysubmodule",
