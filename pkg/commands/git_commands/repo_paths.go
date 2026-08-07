@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spf13/afero"
 )
@@ -19,6 +20,7 @@ type RepoPaths struct {
 	repoGitDirPath     string
 	repoName           string
 	isBareRepo         bool
+	gitLocationEnvVars []string
 }
 
 // Path to the current worktree. If we're in the main worktree, this will
@@ -59,6 +61,16 @@ func (self *RepoPaths) RepoName() string {
 // non-bare but doesn't have a worktree either counts as bare for us.
 func (self *RepoPaths) IsBareRepo() bool {
 	return self.isBareRepo
+}
+
+// The environment that tells git where this repo is, as "NAME=value" entries.
+// It is empty for the vast majority of repos, which git finds for itself by
+// looking for a .git in the directory a command runs in. It is only non-empty
+// when that doesn't work — when the git dir lives somewhere else entirely,
+// because of core.worktree or --work-tree — and then every command addressing
+// the repo has to carry it.
+func (self *RepoPaths) GitLocationEnvVars() []string {
+	return self.gitLocationEnvVars
 }
 
 // Returns the repo paths for a typical repo
@@ -138,7 +150,38 @@ func GetRepoPathsForDir(
 		repoGitDirPath:     repoGitDirPath,
 		repoName:           repoName,
 		isBareRepo:         false,
+		gitLocationEnvVars: gitLocationEnvVars(cmd, worktreePath, worktreeGitDirPath),
 	}, nil
+}
+
+// gitLocationEnvVars works out whether git can find the repo by itself when a
+// command runs in its worktree, and if it can't, returns the environment that
+// tells git where it is. See RepoPaths.GitLocationEnvVars.
+func gitLocationEnvVars(
+	cmd oscommands.ICmdObjBuilder,
+	worktreePath string,
+	worktreeGitDirPath string,
+) []string {
+	// The ordinary repo, where the git dir sits in the worktree. Both paths are
+	// git's own answers from the same invocation, so they are spelled alike and
+	// comparing them is safe.
+	if worktreeGitDirPath == filepath.Join(worktreePath, ".git") {
+		return nil
+	}
+
+	// A linked worktree or a submodule instead has a .git file naming its git
+	// dir, and git follows that just as happily. We could read the file, but the
+	// path in it may well name the same directory differently than git did
+	// above, so ask git to resolve it — from the worktree and nothing else.
+	discoveredGitDirPath, err := callGitRevParseInOtherRepo(cmd, worktreePath, "--absolute-git-dir")
+	if err == nil && discoveredGitDirPath == worktreeGitDirPath {
+		return nil
+	}
+
+	return []string{
+		env.GitDirEnvVar + "=" + worktreeGitDirPath,
+		env.GitWorkTreeEnvVar + "=" + worktreePath,
+	}
 }
 
 // getBareRepoPathsForDir is the fallback for when we couldn't ask git for the

@@ -2,6 +2,7 @@ package env
 
 import (
 	"os"
+	"strings"
 )
 
 // This package encapsulates accessing/mutating the ENV of the program.
@@ -32,4 +33,16 @@ func SetWorkTreeEnv(value string) {
 func UnsetGitLocationEnvVars() {
 	_ = os.Unsetenv(GitDirEnvVar)
 	_ = os.Unsetenv(GitWorkTreeEnvVar)
+}
+
+// SetGitLocationEnvVars sets the location variables from "NAME=value" entries,
+// clearing both first so that only what is given remains. Passing nothing is
+// how you say the repo is to be found from the working directory.
+func SetGitLocationEnvVars(envVars []string) {
+	UnsetGitLocationEnvVars()
+	for _, envVar := range envVars {
+		if name, value, ok := strings.Cut(envVar, "="); ok {
+			os.Setenv(name, value)
+		}
+	}
 }

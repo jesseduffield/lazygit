@@ -142,6 +142,14 @@ func TestGetRepoPaths(t *testing.T) {
 					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree"),
 					strings.Join(mockOutput, "\n"),
 					nil)
+
+				// asking git to find the repo from the work tree gets us nowhere,
+				// because there is no .git there
+				worktree := lo.Ternary(runtime.GOOS == "windows", `C:\path\to\worktree`, "/path/to/worktree")
+				runner.ExpectGitArgs(
+					append([]string{"-C", worktree}, append(getRevParseArgs(), "--absolute-git-dir")...),
+					"",
+					errors.New("fatal: not a git repository (or any of the parent directories): .git"))
 			},
 			Path: "/path/to/repo",
 			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
@@ -151,6 +159,7 @@ func TestGetRepoPaths(t *testing.T) {
 				repoGitDirPath:     `C:\path\to\repo\.git`,
 				repoName:           `worktree`,
 				isBareRepo:         false,
+				gitLocationEnvVars: []string{`GIT_DIR=C:\path\to\repo\.git`, `GIT_WORK_TREE=C:\path\to\worktree`},
 			}, &RepoPaths{
 				worktreePath:       "/path/to/worktree",
 				worktreeGitDirPath: "/path/to/repo/.git",
@@ -158,6 +167,7 @@ func TestGetRepoPaths(t *testing.T) {
 				repoGitDirPath:     "/path/to/repo/.git",
 				repoName:           "worktree",
 				isBareRepo:         false,
+				gitLocationEnvVars: []string{"GIT_DIR=/path/to/repo/.git", "GIT_WORK_TREE=/path/to/worktree"},
 			}),
 			Err: nil,
 		},
@@ -186,6 +196,15 @@ func TestGetRepoPaths(t *testing.T) {
 				runner.ExpectGitArgs(
 					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree"),
 					strings.Join(mockOutput, "\n"),
+					nil)
+
+				// git finds the submodule's git dir from its work tree, via the
+				// .git file there
+				worktree := lo.Ternary(runtime.GOOS == "windows", `C:\path\to\repo\submodule1`, "/path/to/repo/submodule1")
+				gitDir := lo.Ternary(runtime.GOOS == "windows", `C:\path\to\repo\.git\modules\submodule1`, "/path/to/repo/.git/modules/submodule1")
+				runner.ExpectGitArgs(
+					append([]string{"-C", worktree}, append(getRevParseArgs(), "--absolute-git-dir")...),
+					gitDir,
 					nil)
 			},
 			Path: "/path/to/repo/submodule1",

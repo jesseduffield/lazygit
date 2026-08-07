@@ -541,6 +541,7 @@ var tests = []*components.IntegrationTest{
 	worktree.RemoveWorktreeAndDeleteLocalAndRemoteBranch,
 	worktree.RemoveWorktreeFromBranch,
 	worktree.ResetWindowTabs,
+	worktree.SeparateWorkTreeConfig,
 	worktree.SymlinkIntoRepoSubdir,
 	worktree.WorktreeInRepo,
 }
