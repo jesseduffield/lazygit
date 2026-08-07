@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -120,21 +121,29 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 			Title:  self.c.Tr.StashApply,
 			Prompt: self.c.Tr.SureApplyStashEntry,
 			HandleConfirm: func() error {
-				self.c.LogAction(self.c.Tr.Actions.ApplyStash)
-				err := self.c.Git().Stash.Apply(stashEntry.Index)
-				self.postStashRefresh(err == nil && self.c.UserConfig().Gui.SwitchToFilesAfterStashApply)
-				return err
+				return self.c.WithWaitingStatusBlockingInput(
+					types.WaitingStatusOpts{Message: self.c.Tr.ApplyingStashStatus},
+					func(gocui.Task) error {
+						self.c.LogAction(self.c.Tr.Actions.ApplyStash)
+						err := self.c.Git().Stash.Apply(stashEntry.Index)
+						self.postStashRefresh(err == nil && self.c.UserConfig().Gui.SwitchToFilesAfterStashApply)
+						return err
+					})
 			},
 		})
 }
 
 func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error {
 	pop := func() error {
-		self.c.LogAction(self.c.Tr.Actions.PopStash)
-		self.c.LogCommand(fmt.Sprintf(self.c.Tr.Log.PoppingStash, stashEntry.Hash), false)
-		err := self.c.Git().Stash.Pop(stashEntry.Index)
-		self.postStashRefresh(err == nil && self.c.UserConfig().Gui.SwitchToFilesAfterStashPop)
-		return err
+		return self.c.WithWaitingStatusBlockingInput(
+			types.WaitingStatusOpts{Message: self.c.Tr.PoppingStashStatus},
+			func(gocui.Task) error {
+				self.c.LogAction(self.c.Tr.Actions.PopStash)
+				self.c.LogCommand(fmt.Sprintf(self.c.Tr.Log.PoppingStash, stashEntry.Hash), false)
+				err := self.c.Git().Stash.Pop(stashEntry.Index)
+				self.postStashRefresh(err == nil && self.c.UserConfig().Gui.SwitchToFilesAfterStashPop)
+				return err
+			})
 	}
 
 	if self.c.UserConfig().Gui.SkipStashWarning {
@@ -198,12 +207,14 @@ func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) 
 
 // postStashRefresh refreshes the panels that applying or popping a stash
 // affects, moving the focus to the files panel if switchToFiles is set.
+//
+// Call it from the worker that ran the stash command, from inside a
+// WithWaitingStatusBlockingInput: popping shifts the indices of the remaining
+// stash entries, so acting on the next entry in quick succession (confirming
+// the popup and pressing the key again right away) has to be held off until
+// the refreshed list is in place, or it would target the wrong stash.
 func (self *StashController) postStashRefresh(switchToFiles bool) {
-	// Block input until the refresh has landed: popping shifts the indices of
-	// the remaining stash entries, and acting on the next entry in quick
-	// succession (confirming the popup and pressing the key again right away)
-	// must see the refreshed list, or it would target the wrong stash.
-	self.c.RefreshBlockingInput(types.RefreshOptions{
+	self.c.RefreshFromWorker(types.RefreshOptions{
 		BatchUIUpdates: true,
 		Scope:          []types.RefreshableView{types.STASH, types.FILES},
 		Then: func() error {

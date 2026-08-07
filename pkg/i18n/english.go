@@ -443,6 +443,9 @@ type TranslationSet struct {
 	MovingCommitsToNewBranchStatus        string
 	ApplyingFilterStatus                  string
 	RemovingFilterStatus                  string
+	StashingStatus                        string
+	ApplyingStashStatus                   string
+	PoppingStashStatus                    string
 	CommitFiles                           string
 	SubCommitsDynamicTitle                string
 	CommitFilesDynamicTitle               string
@@ -1603,6 +1606,9 @@ func EnglishTranslationSet() *TranslationSet {
 		MovingCommitsToNewBranchStatus:       "Moving commits to new branch",
 		ApplyingFilterStatus:                 "Applying filter",
 		RemovingFilterStatus:                 "Removing filter",
+		StashingStatus:                       "Stashing",
+		ApplyingStashStatus:                  "Applying stash",
+		PoppingStashStatus:                   "Popping stash",
 		CommitFiles:                          "Commit files",
 		SubCommitsDynamicTitle:               "Commits (%s)",
 		CommitFilesDynamicTitle:              "Diff files (%s)",
