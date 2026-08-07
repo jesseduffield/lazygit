@@ -54,7 +54,10 @@ func (self *ReposHelper) EnterSubmodule(submodule *models.SubmoduleConfig) error
 	if err != nil {
 		return err
 	}
-	self.c.State().GetRepoPathStack().Push(wd)
+	self.c.State().GetRepoPathStack().Push(types.RepoLocation{
+		Path:               wd,
+		GitLocationEnvVars: self.c.Git().RepoPaths.GitLocationEnvVars(),
+	})
 
 	return self.switchTo(submodule.FullPath(), self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
 }
@@ -164,7 +167,7 @@ func (self *ReposHelper) SwitchToParentRepo() error {
 	if self.switchRefusedBecauseBusy() {
 		return nil
 	}
-	return self.switchTo(self.c.State().GetRepoPathStack().Pop(), self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
+	return self.switchToLocation(self.c.State().GetRepoPathStack().Pop(), self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
 }
 
 func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey types.ContextKey) error {
@@ -189,23 +192,41 @@ func (self *ReposHelper) switchRefusedBecauseBusy() bool {
 	return false
 }
 
-// switchTo switches lazygit to the repository (or worktree) at the given path.
-// It runs synchronously on the UI thread: the switch swaps gui.State (in
-// resetState) and reassigns gui.git and the process cwd, all of which the UI
-// thread also reads, so doing it here rather than on a worker avoids racing
-// those reads. The heavy data loading is still dispatched asynchronously by the
-// refresh that onNewRepo kicks off.
+// switchTo switches lazygit to the repository (or worktree) at the given path,
+// which git is expected to find from that path alone. That's true of every repo
+// we switch to without having been there before.
 func (self *ReposHelper) switchTo(path string, errMsg string, contextKey types.ContextKey) error {
-	env.UnsetGitLocationEnvVars()
+	return self.switchToLocation(types.RepoLocation{Path: path}, errMsg, contextKey)
+}
+
+// switchToLocation switches lazygit to the repository (or worktree) at the
+// given location. It runs synchronously on the UI thread: the switch swaps
+// gui.State (in resetState) and reassigns gui.git and the process cwd, all of
+// which the UI thread also reads, so doing it here rather than on a worker
+// avoids racing those reads. The heavy data loading is still dispatched
+// asynchronously by the refresh that onNewRepo kicks off.
+//
+// Everything from here on has to find the repo the way git does, from the
+// directory we're about to change to, so the location's environment goes into
+// the process env before we do. Usually that just clears whatever the repo
+// we're leaving needed, but going back to a repo whose git dir isn't in its
+// work tree (a dotfile repo opened with --git-dir/--work-tree, say) is the
+// reason we remember the environment at all: nothing in the path leads to its
+// git dir. On failure we put back what the repo we're staying in needs.
+func (self *ReposHelper) switchToLocation(location types.RepoLocation, errMsg string, contextKey types.ContextKey) error {
 	originalPath, err := os.Getwd()
 	if err != nil {
 		return nil
 	}
+	originalGitLocationEnvVars := env.GetGitLocationEnvVars()
 
-	msg := utils.ResolvePlaceholderString(self.c.Tr.ChangingDirectoryTo, map[string]string{"path": path})
+	env.SetGitLocationEnvVars(location.GitLocationEnvVars)
+
+	msg := utils.ResolvePlaceholderString(self.c.Tr.ChangingDirectoryTo, map[string]string{"path": location.Path})
 	self.c.LogCommand(msg, false)
 
-	if err := os.Chdir(path); err != nil {
+	if err := os.Chdir(location.Path); err != nil {
+		env.SetGitLocationEnvVars(originalGitLocationEnvVars)
 		if os.IsNotExist(err) {
 			return errors.New(errMsg)
 		}
@@ -213,6 +234,7 @@ func (self *ReposHelper) switchTo(path string, errMsg string, contextKey types.C
 	}
 
 	if err := commands.VerifyInGitRepo(self.c.OS()); err != nil {
+		env.SetGitLocationEnvVars(originalGitLocationEnvVars)
 		if err := os.Chdir(originalPath); err != nil {
 			return err
 		}

@@ -35,6 +35,18 @@ func UnsetGitLocationEnvVars() {
 	_ = os.Unsetenv(GitWorkTreeEnvVar)
 }
 
+// GetGitLocationEnvVars returns the location variables that are set, as
+// "NAME=value" entries.
+func GetGitLocationEnvVars() []string {
+	envVars := []string{}
+	for _, name := range []string{GitDirEnvVar, GitWorkTreeEnvVar} {
+		if value := os.Getenv(name); value != "" {
+			envVars = append(envVars, name+"="+value)
+		}
+	}
+	return envVars
+}
+
 // SetGitLocationEnvVars sets the location variables from "NAME=value" entries,
 // clearing both first so that only what is given remains. Passing nothing is
 // how you say the repo is to be found from the working directory.
