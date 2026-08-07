@@ -157,7 +157,7 @@ func (self *SubmoduleCommands) GetCommitSummary(path string, sha string) (string
 		Config("log.showsignature=false").
 		ToArgv()
 
-	summary, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	summary, err := forOtherRepo(self.cmd.New(cmdArgs)).DontLog().RunWithOutput()
 	return strings.TrimSpace(summary), err
 }
 
@@ -167,7 +167,7 @@ func (self *SubmoduleCommands) GetCommitSummary(path string, sha string) (string
 // caller then stages the submodule to record the resolution.
 func (self *SubmoduleCommands) CheckoutConflictCommit(path string, sha string) error {
 	cmdArgs := NewGitCmd("checkout").Dir(path).Arg(sha).ToArgv()
-	return self.cmd.New(cmdArgs).Run()
+	return forOtherRepo(self.cmd.New(cmdArgs)).Run()
 }
 
 // ConflictSideLog returns a oneline log, run inside the submodule, of the commits
@@ -179,7 +179,7 @@ func (self *SubmoduleCommands) ConflictSideLog(path string, side string, otherSi
 		Arg("--oneline", "--color=always", otherSide+".."+side).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	return forOtherRepo(self.cmd.New(cmdArgs)).DontLog().RunWithOutput()
 }
 
 func (self *SubmoduleCommands) Stash(submodule *models.SubmoduleConfig) error {
@@ -195,7 +195,7 @@ func (self *SubmoduleCommands) Stash(submodule *models.SubmoduleConfig) error {
 		Arg("--include-untracked").
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return forOtherRepo(self.cmd.New(cmdArgs)).Run()
 }
 
 func (self *SubmoduleCommands) Reset(submodule *models.SubmoduleConfig) error {
@@ -229,7 +229,7 @@ func (self *SubmoduleCommands) UpdateAll() error {
 // need not be.
 func (self *SubmoduleCommands) runInParentModule(submodule *models.SubmoduleConfig, cmdObj *oscommands.CmdObj) error {
 	if submodule.ParentModule != nil {
-		cmdObj.SetWd(submodule.ParentModule.FullPath())
+		forOtherRepo(cmdObj.SetWd(submodule.ParentModule.FullPath()))
 	}
 	return cmdObj.Run()
 }

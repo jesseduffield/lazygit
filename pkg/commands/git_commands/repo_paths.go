@@ -176,17 +176,40 @@ func getBareRepoPathsForDir(
 	}, nil
 }
 
+// Asks git about the repo at dir. This is how we find our own repo, so it has
+// to be answered the way git itself would answer it there, GIT_DIR and
+// GIT_WORK_TREE included.
 func callGitRevParseWithDir(
 	cmd oscommands.ICmdObjBuilder,
 	dir string,
 	gitRevArgs ...string,
 ) (string, error) {
+	return runGitRevParse(newGitRevParseCmd(cmd, dir, gitRevArgs...))
+}
+
+// Asks git about a repo that isn't the one we have open; see forOtherRepo.
+func callGitRevParseInOtherRepo(
+	cmd oscommands.ICmdObjBuilder,
+	dir string,
+	gitRevArgs ...string,
+) (string, error) {
+	return runGitRevParse(forOtherRepo(newGitRevParseCmd(cmd, dir, gitRevArgs...)))
+}
+
+func newGitRevParseCmd(
+	cmd oscommands.ICmdObjBuilder,
+	dir string,
+	gitRevArgs ...string,
+) *oscommands.CmdObj {
 	gitRevParse := NewGitCmd("rev-parse").Arg("--path-format=absolute").Arg(gitRevArgs...)
 	if dir != "" {
 		gitRevParse.Dir(dir)
 	}
 
-	gitCmd := cmd.New(gitRevParse.ToArgv()).DontLog()
+	return cmd.New(gitRevParse.ToArgv()).DontLog()
+}
+
+func runGitRevParse(gitCmd *oscommands.CmdObj) (string, error) {
 	res, err := gitCmd.RunWithOutput()
 	if err != nil {
 		return "", errors.Errorf("'%s' failed: %v", gitCmd.ToString(), err)

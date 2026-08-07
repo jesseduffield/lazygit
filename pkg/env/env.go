@@ -6,23 +6,30 @@ import (
 
 // This package encapsulates accessing/mutating the ENV of the program.
 
+// The variables with which git can be told where a repo is, rather than having
+// it find out from the working directory.
+const (
+	GitDirEnvVar      = "GIT_DIR"
+	GitWorkTreeEnvVar = "GIT_WORK_TREE"
+)
+
 func GetGitDirEnv() string {
-	return os.Getenv("GIT_DIR")
+	return os.Getenv(GitDirEnvVar)
 }
 
 func SetGitDirEnv(value string) {
-	os.Setenv("GIT_DIR", value)
+	os.Setenv(GitDirEnvVar, value)
 }
 
 func GetWorkTreeEnv() string {
-	return os.Getenv("GIT_WORK_TREE")
+	return os.Getenv(GitWorkTreeEnvVar)
 }
 
 func SetWorkTreeEnv(value string) {
-	os.Setenv("GIT_WORK_TREE", value)
+	os.Setenv(GitWorkTreeEnvVar, value)
 }
 
 func UnsetGitLocationEnvVars() {
-	_ = os.Unsetenv("GIT_DIR")
-	_ = os.Unsetenv("GIT_WORK_TREE")
+	_ = os.Unsetenv(GitDirEnvVar)
+	_ = os.Unsetenv(GitWorkTreeEnvVar)
 }

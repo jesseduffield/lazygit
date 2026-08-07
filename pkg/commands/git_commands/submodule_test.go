@@ -1,10 +1,13 @@
 package git_commands
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -77,6 +80,27 @@ func TestSubmoduleCheckoutConflictCommit(t *testing.T) {
 	instance := buildSubmoduleCommands(commonDeps{runner: runner})
 
 	assert.NoError(t, instance.CheckoutConflictCommit("mysub", "bbbbbbb"))
+	runner.CheckForMissingCalls()
+}
+
+// A command that runs inside a submodule mustn't inherit the GIT_DIR and
+// GIT_WORK_TREE that say where the superproject is; git would answer it from
+// there instead, and the answer would look perfectly plausible.
+func TestSubmoduleCommandDoesntUseOurGitLocation(t *testing.T) {
+	t.Setenv(env.GitDirEnvVar, "/path/to/repo/.git")
+	t.Setenv(env.GitWorkTreeEnvVar, "/path/to/repo")
+
+	runner := oscommands.NewFakeRunner(t).
+		ExpectFunc("has neither GIT_DIR nor GIT_WORK_TREE", func(cmdObj *oscommands.CmdObj) bool {
+			return lo.NoneBy(cmdObj.GetEnvVars(), func(envVar string) bool {
+				return strings.HasPrefix(envVar, env.GitDirEnvVar+"=") ||
+					strings.HasPrefix(envVar, env.GitWorkTreeEnvVar+"=")
+			})
+		}, "bbbbbbb the subject\n", nil)
+	instance := buildSubmoduleCommands(commonDeps{runner: runner})
+
+	_, err := instance.GetCommitSummary("mysub", "bbbbbbb")
+	assert.NoError(t, err)
 	runner.CheckForMissingCalls()
 }
 
