@@ -360,9 +360,16 @@ Commits:
    full reasoning). Refs: 836f768cb, af98be48d.
 3. **Advertise the protocol to diff renderers** — set `OSC1717=V1` in the
    environment of renderer/ext-diff invocations (pty task env + ext-diff cmd
-   env); which route applies now follows from the entry's `type` (#5870) —
-   no need for `rawGit` (git itself never emits the protocol). Ref:
-   9975a8fac + 665149b11 (final name: `OSC1717`).
+   env); which route applies now follows from the entry's `type` (#5870).
+   **Including `rawGit`:** git itself emits the records for its word-diff
+   formats, so the advertisement must be set **before** `newPtyTask`'s
+   early return for `rawGit` (that route needs no pty, since only a pager
+   needs a terminal to be spawned — but git still needs to be asked). Put
+   it next to `LAZYGIT_COLUMNS`, which sits there for the same reason.
+   Getting this wrong is silent: the renderer's output simply carries no
+   records, and every consumer falls back as if the renderer were
+   non-conforming. Ref: 9975a8fac + 665149b11 (final name: `OSC1717`),
+   "Advertise the metadata protocol to git as well, not only to a pager".
 
 Cross-repo note: the reference emitters live on `osc-1717-metadata` branches
 in `/Users/stk/Stk/Dev/Builds/{delta,difftastic,diff-so-fancy}`; nothing is
@@ -371,6 +378,20 @@ emit patch-space `d`+`a` records for collapsed modification rows — rebuild
 before verifying. lazygit must remain fully functional without any conforming
 renderer (buffer-parse + PR 7's raw fallback guarantee this). Interactive
 verification of this PR needs locally built patched renderers.
+
+**git is one of those emitters, and lazygit ships its side regardless of
+whether git ever takes the patch.** The emitter lives on branch `osc-1717`
+in `/Users/stk/Stk/Dev/Builds/git` (4 commits, word diffs only, unproposed
+as of 2026-08-07); it may never be accepted, in which case the fallback is a
+maintained fork for the users who want it. That doesn't change what lazygit
+does, and nothing here is conditional on the outcome: the probe asks the
+installed git what it can do, so a stock git answers "no records" and every
+consumer degrades to exactly the behaviour of a non-conforming renderer —
+the raw fallback when focused, buffer-parse otherwise. A git that speaks the
+protocol turns `--color-words` from a browse-only renderer into a fully
+usable one. Write the PR descriptions so that they don't promise a git
+feature that doesn't exist upstream: describe the protocol and the probe,
+not "works with git --color-words".
 
 ### PR 5 — Select, navigate, edit and copy diff lines in the focused main view
 
@@ -610,14 +631,23 @@ Commits:
    git's 7-arg convention on two empty temp files; env `OSC1717=V1`, greps
    for the handshake; verdict cached per renderer signature. `extDiff` with
    empty `command` (git's `diff.external`, formerly
-   `useExternalDiffGitConfig`) → always raw when focused. **New case,
-   decide at implementation:** `rawGit` entries (new in #5870) never
-   conform, so skip the probe; entries without restructuring `args` are
-   already raw (fallback is a no-op), while args like `--color-words`
-   produce output buffer-parse can't handle (`IsWellFormed` rejects it) —
-   these need the raw fallback when focused, whether by a static
-   args-present rule or by the well-formedness gate; surface the choice to
-   the user if it's not clear-cut;
+   `useExternalDiffGitConfig`) → always raw when focused. **`rawGit` is
+   probed like any other renderer** (resolved 2026-08-07; was "decide at
+   implementation"): an entry *with* `args` is run as
+   `git diff --no-index <args>` on the same two empty temp files, and its
+   handshake read the same way. git announces itself for exactly the
+   formats it describes, so asked with the entry's own arguments the
+   handshake is a faithful answer — `--color-words` announces, a unified
+   diff says nothing at all. Don't special-case git by looking for a
+   per-line record instead: that was tried and reverted as over-specified.
+   Entries with no `args` skip the probe, being already raw (the fallback
+   would be a no-op). That leaves **one rule for every renderer type** —
+   raw when focused iff the diff needs records and the renderer won't
+   supply them, i.e. `mainViewDiffNeedsMetadata() && !probe`, where "needs
+   records" is any custom renderer *or* git with word-diff args. The
+   `IsWellFormed`/static-args alternatives are dropped. The probe's cache
+   signature must include the `rawGit` args, or editing them in the config
+   reuses a stale verdict;
    `DiffMainViewShouldRenderRaw` read by every diff panel's render-to-main;
    `ignoreExternalDiff` threaded through the diff-cmd builders
    (`--no-ext-diff`, keep color); `types.NewMainViewDiffTask` routes raw
@@ -936,8 +966,15 @@ The remaining rows are agreed as keep/defer:
 5. **PR titles**: drafts in §4 — the user finalizes wording at PR-open time
    (they're the release-notes lines).
 6. **Cross-repo timing** (outside this plan): circulating the OSC 1717 spec,
-   upstreaming the three renderer patches. lazygit ships fully functional
-   without them; revisit pitching once PRs 1–8 exist as evidence.
+   upstreaming the three renderer patches and the git one. lazygit ships
+   fully functional without any of them; revisit pitching once PRs 1–8 exist
+   as evidence. git's own patch may never be accepted — a maintained fork is
+   the accepted fallback (PR 4 cross-repo note), and no PR here waits on the
+   outcome.
+7. ~~**PR 7:** how should `rawGit` entries with restructuring args decide
+   the raw fallback?~~ Resolved 2026-08-07: probe them like any other
+   renderer, since git announces itself for exactly the formats it
+   describes. See PR 7 commit 10.
 
 ## 10. Progress
 
@@ -975,3 +1012,18 @@ Log:
   decisions on `DiffRendererConfigManager.GetDiffRendererType()` instead
   of querying the pager/ext-diff fields individually (PR 4 commit 3, PR 7
   commit 10), and `rawGit` entries are a new case for PR 7's fallback.
+- **2026-08-07:** git can emit the records itself, so `rawGit` entries with
+  word-diff args are now first-class conforming renderers rather than a
+  case to give up on. The emitter is 4 commits on branch `osc-1717` in the
+  git repo (word diffs only; byte-identical output when `OSC1717` is
+  unset), unproposed upstream and shipping either way — see PR 4's
+  cross-repo note. Resolved the "decide at implementation" question in PR 7
+  commit 10 in favour of probing `rawGit` like anything else, which
+  collapses the fallback to one rule for all renderer types. Prototyped on
+  the branch in "Support git's own word diff as a metadata-emitting diff
+  renderer" (+ its fixup) and "Advertise the metadata protocol to git as
+  well, not only to a pager"; verified interactively: focus selects a
+  change line, staging works, the selection advances after staging. Two
+  traps found the hard way, both recorded above — the advertisement must
+  precede `newPtyTask`'s no-pty early return, and the probe's cache
+  signature must include the args.
