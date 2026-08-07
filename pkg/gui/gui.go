@@ -340,8 +340,10 @@ func (gui *Gui) onSwitchToNewRepo(startArgs appTypes.StartArgs, contextKey types
 }
 
 func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.ContextKey) error {
-	var err error
-	gui.git, err = commands.NewGitCommand(
+	// Don't assign to gui.git until we know we have one: this also runs when
+	// switching repos, and leaving the field nil would take down the repo we
+	// were in before, which is where the error puts us back.
+	git, err := commands.NewGitCommand(
 		gui.Common,
 		gui.gitVersion,
 		gui.os,
@@ -351,6 +353,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 	if err != nil {
 		return err
 	}
+	gui.git = git
 
 	err = gui.Config.ReloadUserConfigForRepo(gui.getPerRepoConfigFiles())
 	if err != nil {
