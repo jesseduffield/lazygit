@@ -3,7 +3,6 @@ package git_commands
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -26,20 +25,17 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 // swallowed on a real render, escapeInterpreter.dropMetadataIfHandshake.
 const metadataHandshake = "\x1b]1717"
 
-// metadataRecordPattern matches a per-line record rather than the handshake: a record
-// carries fields after the version, so a second ";" follows it. Used where the
-// handshake alone doesn't answer whether records will actually follow (see
-// rawGitEmitsMetadata).
-var metadataRecordPattern = regexp.MustCompile(`\x1b]1717;\d+;`)
-
 // ProbePagerEmitsDiffMetadata reports whether the configured diff renderer speaks the
-// diff-line-metadata protocol, by running it and checking its output. It's the focused
-// main view's signal for whether it can act on the rendered diff or must fall back to
-// the raw diff (see StagingHelper.DiffMainViewShouldRenderRaw). The verdict is
-// content-independent, so the caller caches it per renderer.
+// diff-line-metadata protocol, by running it on empty input and checking for its
+// handshake. It's the focused main view's signal for whether it can act on the rendered
+// diff or must fall back to the raw diff (see
+// StagingHelper.DiffMainViewShouldRenderRaw). The verdict is content-independent — the
+// handshake is the renderer's first output regardless of the diff — so the caller caches
+// it per renderer.
 //
 // No PTY is needed: git needs a terminal to decide to invoke a pager, but a renderer
-// emits its records whenever OSC1717 is set, so we can run it directly.
+// emits the handshake whenever OSC1717 is set, so we can run it directly with empty
+// input.
 //
 // A git-config external diff driver (useExternalDiffGitConfig) is chosen per file via
 // .gitattributes and a single diff can mix drivers, so there's no one renderer to probe;
@@ -57,44 +53,26 @@ func (self *DiffCommands) ProbePagerEmitsDiffMetadata() bool {
 	return false
 }
 
-// rawGitEmitsMetadata probes git itself, run with the diff renderer's own arguments, on
-// a synthetic diff of two differing temp files.
+// rawGitEmitsMetadata probes git itself, run with the diff renderer's own arguments.
 //
-// It looks for an actual record where the other probes settle for the handshake. What we
-// depend on is that the rows we are about to show carry records, and only running git
-// the way we will run it answers that: git annotates only the formats whose output can't
-// be read back from its own text, so an installed git that doesn't speak the protocol
-// and arguments that select no word diff both leave us without records. Looking for a
-// record covers both, and keeps this independent of how git decides to announce itself.
+// The arguments are the point: git describes only the formats whose output can't be read
+// back from its own text, and announces itself for exactly those, so the same git answers
+// differently depending on what it is asked for — a handshake for --color-words, silence
+// for a unified diff.
 func (self *DiffCommands) rawGitEmitsMetadata(rawGitArgs []string) bool {
-	oldFile, err := os.CreateTemp("", "lazygit-probe-old-*")
-	if err != nil {
+	oldPath, newPath, cleanup, ok := probeFiles()
+	if !ok {
 		return false
 	}
-	defer os.Remove(oldFile.Name())
-	fmt.Fprintln(oldFile, "old")
-	oldFile.Close()
+	defer cleanup()
 
-	newFile, err := os.CreateTemp("", "lazygit-probe-new-*")
-	if err != nil {
-		return false
-	}
-	defer os.Remove(newFile.Name())
-	fmt.Fprintln(newFile, "new")
-	newFile.Close()
-
-	cmdObj := self.cmd.New(
+	return self.probeEmitsMetadata(self.cmd.New(
 		NewGitCmd("diff").
 			Arg("--no-index").
 			Arg(rawGitArgs...).
-			Arg(oldFile.Name(), newFile.Name()).
+			Arg(oldPath, newPath).
 			ToArgv(),
-	)
-	cmdObj.AddEnvVars("OSC1717=V1")
-	// git exits non-zero because the two files differ, which is the point; the output
-	// is captured either way.
-	output, _ := cmdObj.RunWithOutput()
-	return metadataRecordPattern.MatchString(output)
+	))
 }
 
 // externalDiffEmitsMetadata probes an external diff command, invoking it the way git
@@ -102,23 +80,38 @@ func (self *DiffCommands) rawGitEmitsMetadata(rawGitArgs []string) bool {
 // (path old-file old-hex old-mode new-file new-hex new-mode) — but on two empty temp
 // files, so it emits its handshake without there being a real diff to render.
 func (self *DiffCommands) externalDiffEmitsMetadata(extDiffCmd string) bool {
-	oldFile, err := os.CreateTemp("", "lazygit-probe-old-*")
-	if err != nil {
+	oldPath, newPath, cleanup, ok := probeFiles()
+	if !ok {
 		return false
 	}
-	defer os.Remove(oldFile.Name())
+	defer cleanup()
+
+	args := append(str.ToArgv(extDiffCmd),
+		"probe", oldPath, "0000000", "100644", newPath, "0000000", "100644")
+	return self.probeEmitsMetadata(self.cmd.New(args))
+}
+
+// probeFiles creates the two empty temp files a probe stands a diff up from, and a
+// cleanup that removes them. Empty because a probe needs the renderer to announce
+// itself, not to have anything to render.
+func probeFiles() (string, string, func(), bool) {
+	oldFile, err := os.CreateTemp("", "lazygit-probe-old-*")
+	if err != nil {
+		return "", "", nil, false
+	}
 	oldFile.Close()
 
 	newFile, err := os.CreateTemp("", "lazygit-probe-new-*")
 	if err != nil {
-		return false
+		os.Remove(oldFile.Name())
+		return "", "", nil, false
 	}
-	defer os.Remove(newFile.Name())
 	newFile.Close()
 
-	args := append(str.ToArgv(extDiffCmd),
-		"probe", oldFile.Name(), "0000000", "100644", newFile.Name(), "0000000", "100644")
-	return self.probeEmitsMetadata(self.cmd.New(args))
+	return oldFile.Name(), newFile.Name(), func() {
+		os.Remove(oldFile.Name())
+		os.Remove(newFile.Name())
+	}, true
 }
 
 func (self *DiffCommands) probeEmitsMetadata(cmdObj *oscommands.CmdObj) bool {
