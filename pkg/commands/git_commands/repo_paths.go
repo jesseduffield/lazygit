@@ -56,9 +56,19 @@ func (self *RepoPaths) RepoName() string {
 	return self.repoName
 }
 
-// Whether the repo has no worktree, so that there is nothing for lazygit to
-// show. Note that this isn't quite git's core.bare: a repo that calls itself
-// non-bare but doesn't have a worktree either counts as bare for us.
+// Whether we found no worktree, so that there is nothing for lazygit to show.
+// Note that this isn't quite git's core.bare: a repo that calls itself non-bare
+// but whose worktree we couldn't find counts as bare for us too. Concretely,
+// this is true when we're in
+//
+//   - a genuinely bare repo;
+//   - the git dir of a linked worktree (.git/worktrees/x), whose worktree is
+//     recorded but not somewhere we look;
+//   - a repo that keeps its worktree somewhere only GIT_WORK_TREE knows, such
+//     as a vcsh-style dotfiles repo that hasn't been given core.worktree.
+//
+// The .git dir of an ordinary repo is not one of them: GetRepoPathsForDir
+// notices the worktree holding it and hands back that repo instead.
 func (self *RepoPaths) IsBareRepo() bool {
 	return self.isBareRepo
 }
@@ -97,6 +107,39 @@ func GetRepoPaths(
 }
 
 func GetRepoPathsForDir(
+	dir string,
+	cmd oscommands.ICmdObjBuilder,
+) (*RepoPaths, error) {
+	repoPaths, err := repoPathsForDir(dir, cmd)
+	if err != nil || !repoPaths.IsBareRepo() {
+		return repoPaths, err
+	}
+
+	// We're in a git dir rather than in a working tree, which usually just means
+	// somebody ran lazygit in the .git of an ordinary repo. git's convention is
+	// that a git dir called .git belongs to the directory holding it, so look
+	// there: if that is a working tree, it is the repo we were asked about, and
+	// there's no reason to make the user go up a directory and try again.
+	//
+	// The git dirs that aren't called .git keep the paths we have. A linked
+	// worktree's (.git/worktrees/x) and a submodule's (.git/modules/x) do have a
+	// working tree, but only the directory holding a .git tells us where, so we
+	// would be guessing. A bare repo's has none to find.
+	if filepath.Base(repoPaths.WorktreeGitDirPath()) != ".git" {
+		return repoPaths, nil
+	}
+
+	pathsFromWorkTree, err := repoPathsForDir(filepath.Dir(repoPaths.WorktreeGitDirPath()), cmd)
+	if err != nil || pathsFromWorkTree.IsBareRepo() {
+		return repoPaths, nil
+	}
+	return pathsFromWorkTree, nil
+}
+
+// repoPathsForDir asks git about the repo at dir, and reports a bare repo when
+// there is no working tree there. Unlike GetRepoPathsForDir it never looks
+// anywhere but dir, which is what keeps that one from going round in circles.
+func repoPathsForDir(
 	dir string,
 	cmd oscommands.ICmdObjBuilder,
 ) (*RepoPaths, error) {

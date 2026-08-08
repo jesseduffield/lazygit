@@ -116,6 +116,48 @@ func TestGetRepoPaths(t *testing.T) {
 			Err: nil,
 		},
 		{
+			// Standing in the .git dir of an ordinary repo: git refuses to name a
+			// work tree, but the directory holding the .git is one, so we open the
+			// repo from there.
+			Name: "in a repo's .git dir",
+			BeforeFunc: func(runner *oscommands.FakeCmdObjRunner, getRevParseArgs argFn) {
+				gitDir := lo.Ternary(runtime.GOOS == "windows", `C:\path\to\repo\.git`, "/path/to/repo/.git")
+				worktree := lo.Ternary(runtime.GOOS == "windows", `C:\path\to\repo`, "/path/to/repo")
+
+				runner.ExpectGitArgs(
+					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree"),
+					"",
+					errors.New("fatal: this operation must be run in a work tree"))
+				runner.ExpectGitArgs(
+					append(getRevParseArgs(), "--absolute-git-dir", "--git-common-dir"),
+					strings.Join([]string{gitDir, gitDir}, "\n"),
+					nil)
+
+				// asking again from the directory holding the .git
+				runner.ExpectGitArgs(
+					append(append([]string{"-C", worktree}, getRevParseArgs()...), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree"),
+					strings.Join([]string{worktree, gitDir, gitDir}, "\n"),
+					nil)
+			},
+			Path: "/path/to/repo/.git",
+			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
+				worktreePath:       `C:\path\to\repo`,
+				worktreeGitDirPath: `C:\path\to\repo\.git`,
+				repoPath:           `C:\path\to\repo`,
+				repoGitDirPath:     `C:\path\to\repo\.git`,
+				repoName:           `repo`,
+				isBareRepo:         false,
+			}, &RepoPaths{
+				worktreePath:       "/path/to/repo",
+				worktreeGitDirPath: "/path/to/repo/.git",
+				repoPath:           "/path/to/repo",
+				repoGitDirPath:     "/path/to/repo/.git",
+				repoName:           "repo",
+				isBareRepo:         false,
+			}),
+			Err: nil,
+		},
+		{
 			// A repo whose work tree lives somewhere else entirely, as set up by
 			// core.worktree or by --work-tree. We're in the main worktree, but the
 			// git dir is not inside it.
