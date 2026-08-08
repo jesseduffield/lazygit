@@ -505,6 +505,7 @@ var tests = []*components.IntegrationTest{
 	ui.KeybindingSuggestionsWhenSwitchingRepos,
 	ui.ModeSpecificKeybindingSuggestions,
 	ui.OpenLinkFailure,
+	ui.PageUpAndDown,
 	ui.PromoteTabToSidePanel,
 	ui.RangeSelect,
 	ui.RangeSelectWithAutoscroll,

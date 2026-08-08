@@ -355,6 +355,17 @@ func (self *ViewDriver) SelectedLineIdxAtLeast(expected int) *ViewDriver {
 	return self
 }
 
+// asserts on the scroll position of the view, i.e. the index of the line that
+// is shown at the top of the view.
+func (self *ViewDriver) OriginY(expected int) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actual := self.getView().OriginY()
+		return expected == actual, fmt.Sprintf("%s: Expected origin Y to be %d, got %d", self.context, expected, actual)
+	})
+
+	return self
+}
+
 func (self *ViewDriver) OriginYAtLeast(expected int) *ViewDriver {
 	self.t.assertEventually(func() (bool, string) {
 		var actual int
