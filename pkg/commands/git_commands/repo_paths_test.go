@@ -124,6 +124,68 @@ func TestGetRepoPaths(t *testing.T) {
 			Err: nil,
 		},
 		{
+			// A repo whose work tree lives somewhere else entirely, as set up by
+			// core.worktree or by --work-tree. We're in the main worktree, but the
+			// git dir is not inside it.
+			Name: "repo with a separate work tree",
+			BeforeFunc: func(runner *oscommands.FakeCmdObjRunner, getRevParseArgs argFn) {
+				mockOutput := lo.Ternary(runtime.GOOS == "windows", []string{
+					// --show-toplevel
+					`C:\path\to\worktree`,
+					// --git-dir
+					`C:\path\to\repo\.git`,
+					// --git-common-dir
+					`C:\path\to\repo\.git`,
+					// --is-bare-repository
+					"false",
+					// --show-superproject-working-tree
+				}, []string{
+					// --show-toplevel
+					"/path/to/worktree",
+					// --git-dir
+					"/path/to/repo/.git",
+					// --git-common-dir
+					"/path/to/repo/.git",
+					// --is-bare-repository
+					"false",
+					// --show-superproject-working-tree
+				})
+				runner.ExpectGitArgs(
+					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
+					strings.Join(mockOutput, "\n"),
+					nil)
+			},
+			Path: "/path/to/repo",
+			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
+				worktreePath:       `C:\path\to\worktree`,
+				worktreeGitDirPath: `C:\path\to\repo\.git`,
+				/* EXPECTED:
+				repoPath:           `C:\path\to\worktree`,
+				ACTUAL: */
+				repoPath:           `C:\path\to\repo`,
+				repoGitDirPath:     `C:\path\to\repo\.git`,
+				/* EXPECTED:
+				repoName:           `worktree`,
+				ACTUAL: */
+				repoName:           `repo`,
+				isBareRepo:         false,
+			}, &RepoPaths{
+				worktreePath:       "/path/to/worktree",
+				worktreeGitDirPath: "/path/to/repo/.git",
+				/* EXPECTED:
+				repoPath:           "/path/to/worktree",
+				ACTUAL: */
+				repoPath:           "/path/to/repo",
+				repoGitDirPath:     "/path/to/repo/.git",
+				/* EXPECTED:
+				repoName:           "worktree",
+				ACTUAL: */
+				repoName:           "repo",
+				isBareRepo:         false,
+			}),
+			Err: nil,
+		},
+		{
 			Name: "submodule",
 			BeforeFunc: func(runner *oscommands.FakeCmdObjRunner, getRevParseArgs argFn) {
 				mockOutput := lo.Ternary(runtime.GOOS == "windows", []string{
