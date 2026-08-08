@@ -23,8 +23,10 @@ func TestGetWorktrees(t *testing.T) {
 		{
 			testName: "Single worktree (main)",
 			repoPaths: &RepoPaths{
-				repoPath:     "/path/to/repo",
-				worktreePath: "/path/to/repo",
+				repoPath:           "/path/to/repo",
+				worktreePath:       "/path/to/repo",
+				repoGitDirPath:     "/path/to/repo/.git",
+				worktreeGitDirPath: "/path/to/repo/.git",
 			},
 			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
@@ -55,8 +57,10 @@ branch refs/heads/mybranch
 		{
 			testName: "Multiple worktrees (main + linked)",
 			repoPaths: &RepoPaths{
-				repoPath:     "/path/to/repo",
-				worktreePath: "/path/to/repo",
+				repoPath:           "/path/to/repo",
+				worktreePath:       "/path/to/repo",
+				repoGitDirPath:     "/path/to/repo/.git",
+				worktreeGitDirPath: "/path/to/repo/.git",
 			},
 			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
@@ -106,8 +110,10 @@ branch refs/heads/mybranch-worktree
 		{
 			testName: "Worktree missing path",
 			repoPaths: &RepoPaths{
-				repoPath:     "/path/to/repo",
-				worktreePath: "/path/to/repo",
+				repoPath:           "/path/to/repo",
+				worktreePath:       "/path/to/repo",
+				repoGitDirPath:     "/path/to/repo/.git",
+				worktreeGitDirPath: "/path/to/repo/.git",
 			},
 			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
@@ -136,8 +142,10 @@ branch refs/heads/missingbranch
 		{
 			testName: "In linked worktree",
 			repoPaths: &RepoPaths{
-				repoPath:     "/path/to/repo",
-				worktreePath: "/path/to/repo-worktree",
+				repoPath:           "/path/to/repo",
+				worktreePath:       "/path/to/repo-worktree",
+				repoGitDirPath:     "/path/to/repo/.git",
+				worktreeGitDirPath: "/path/to/repo/.git/worktrees/repo-worktree",
 			},
 			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
@@ -187,8 +195,10 @@ branch refs/heads/mybranch-worktree
 		{
 			testName: "Detached HEAD worktree",
 			repoPaths: &RepoPaths{
-				repoPath:     "/path/to/repo",
-				worktreePath: "/path/to/repo",
+				repoPath:           "/path/to/repo",
+				worktreePath:       "/path/to/repo",
+				repoGitDirPath:     "/path/to/repo/.git",
+				worktreeGitDirPath: "/path/to/repo/.git",
 			},
 			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
