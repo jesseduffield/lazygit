@@ -111,6 +111,14 @@ type refreshEnv struct {
 	// persist its refreshed stat cache.
 	backgroundRoutine bool
 
+	// Whether the views this refresh updates must keep the scroll position they
+	// have. Focusing a list scrolls its selection into view, which is what a
+	// user action should do — but a refresh that no user action is behind must
+	// leave the viewport wherever the user last scrolled it to. That's the case
+	// for the unattended background routines, and for the refreshes that merely
+	// reload state (see RefreshOptions.DontBlockRepoSwitch).
+	keepScrollPosition bool
+
 	// the repo generation captured when the refresh started
 	generation int
 
@@ -220,8 +228,9 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	// against the repo it started in, and the generation guard drops its
 	// writes.
 	env := refreshEnv{
-		background:        options.Background || options.DontBlockRepoSwitch,
-		backgroundRoutine: options.Background,
+		background:         options.Background || options.DontBlockRepoSwitch,
+		backgroundRoutine:  options.Background,
+		keepScrollPosition: options.Background || options.DontBlockRepoSwitch,
 	}
 	if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 		env.generation = self.c.State().GetRepoGeneration()
@@ -1595,7 +1604,11 @@ func (self *RefreshHelper) refreshView(context types.Context, env refreshEnv) {
 		// the filtered list model is up to date for rendering.
 		self.searchHelper.ReApplyFilter(context)
 
-		self.c.PostRefreshUpdate(context)
+		if env.keepScrollPosition {
+			self.c.PostRefreshUpdateKeepingScrollPosition(context)
+		} else {
+			self.c.PostRefreshUpdate(context)
+		}
 
 		self.c.AfterLayout(func() error {
 			// Re-applying the search must be done after re-rendering the view though,
@@ -1771,7 +1784,10 @@ func (self *RefreshHelper) setGithubPullRequests(baseInfo *githubRemoteInfo, bra
 		// the branches and remotes as they are on the UI thread, after their
 		// own refreshes' bounces have applied.
 		self.rebuildPullRequestsMap()
-		self.c.PostRefreshUpdate(self.c.Contexts().Branches)
+		// This lands whenever the network call happens to return, and only
+		// changes how the branches are rendered, not which one is selected, so
+		// it has no business moving the viewport.
+		self.c.PostRefreshUpdateKeepingScrollPosition(self.c.Contexts().Branches)
 	})
 }
 

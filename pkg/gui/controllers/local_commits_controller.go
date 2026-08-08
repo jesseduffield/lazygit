@@ -1171,7 +1171,7 @@ func (self *LocalCommitsController) move(
 			return err
 		}
 		self.context().MoveSelection(offset)
-		self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
+		self.context().HandleFocus(types.OnFocusOpts{})
 
 		// Block input until the refresh has landed: a quick second press must
 		// read the moved todo from the refreshed model, not grab whatever the
@@ -1204,7 +1204,7 @@ func (self *LocalCommitsController) move(
 				Then: func() error {
 					if err == nil {
 						self.context().MoveSelection(offset)
-						self.context().HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
+						self.context().HandleFocus(types.OnFocusOpts{})
 					}
 					if onComplete != nil {
 						return onComplete()
