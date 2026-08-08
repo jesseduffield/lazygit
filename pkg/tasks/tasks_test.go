@@ -12,6 +12,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func getCounter() (func(), func() int) {
@@ -172,6 +173,85 @@ func (d *BlankLineReader) Read(p []byte) (n int, err error) {
 	d.linesYielded++
 	p[0] = '\n'
 	return 1, nil
+}
+
+// A dummy reader that yields the given number of blank lines and then blocks
+// until unblock is closed, at which point it reports EOF. This lets a test hold
+// a task in its "still loading" state for as long as it needs to.
+type BlockingLineReader struct {
+	linesToYield int
+	linesYielded int
+	reachedEnd   bool
+	blocked      chan struct{}
+	unblock      chan struct{}
+}
+
+func (d *BlockingLineReader) Read(p []byte) (n int, err error) {
+	if d.linesYielded == d.linesToYield {
+		if !d.reachedEnd {
+			d.reachedEnd = true
+			close(d.blocked)
+		}
+		<-d.unblock
+		return 0, io.EOF
+	}
+
+	d.linesYielded++
+	p[0] = '\n'
+	return 1, nil
+}
+
+func TestNewCmdTaskQueuedReadAtEndOfInput(t *testing.T) {
+	writer := bytes.NewBuffer(nil)
+	task := gocui.NewFakeTask()
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		writer,
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() gocui.Task { return task },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	reader := BlockingLineReader{
+		linesToYield: 5,
+		blocked:      make(chan struct{}),
+		unblock:      make(chan struct{}),
+	}
+	start := func() (Cmd, io.Reader) {
+		// not actually starting this because it's not necessary
+		return ExecCmd{Cmd: exec.Command("blah")}, &reader
+	}
+
+	// The initial request asks for far more lines than the reader has, so the
+	// task reaches EOF while that request is still the one being served.
+	fn := manager.NewCmdTask(start, "", LinesToRead{100, -1, nil}, func() {})
+
+	thenCalled := false
+	wg := sync.WaitGroup{}
+	wg.Go(func() {
+		_ = fn(TaskOpts{Stop: make(chan struct{}), InitialContentLoaded: func() { task.Done() }})
+	})
+
+	<-reader.blocked
+	manager.ReadToEnd(func() { thenCalled = true })
+	// ReadToEnd queues its request from a goroutine; wait for it to land so that
+	// it is definitely outstanding by the time we let the task reach EOF.
+	for len(*manager.readLines.Load()) == 0 {
+		time.Sleep(time.Millisecond)
+	}
+	close(reader.unblock)
+
+	wg.Wait()
+
+	/* EXPECTED:
+	assert.True(t, thenCalled)
+	ACTUAL: */
+	assert.False(t, thenCalled)
 }
 
 func TestNewCmdTaskRefresh(t *testing.T) {
