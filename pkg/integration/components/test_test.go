@@ -56,6 +56,12 @@ func (self *fakeGuiDriver) MouseRelease(x, y int) {
 	self.releasedCoordinates = append(self.releasedCoordinates, coordinate{x: x, y: y})
 }
 
+func (self *fakeGuiDriver) ScrollWheelDown(x, y int) {
+}
+
+func (self *fakeGuiDriver) RefreshInBackground() {
+}
+
 func (self *fakeGuiDriver) OnUIThreadAndWait(f func()) {
 	f()
 }

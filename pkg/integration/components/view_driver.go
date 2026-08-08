@@ -544,6 +544,15 @@ func (self *ViewDriver) MouseMoveToBottom(x int) *ViewDriver {
 	return self.MouseMove(x, self.getView().InnerHeight()-1)
 }
 
+// scrolls the view down by one notch of the mouse wheel, i.e. by
+// gui.scrollHeight lines. This moves the scroll position without moving the
+// selection.
+func (self *ViewDriver) ScrollWheelDown() *ViewDriver {
+	offsetX, offsetY, _, _ := self.getView().Dimensions()
+	self.t.scrollWheelDown(offsetX+1, offsetY+1)
+	return self
+}
+
 func (self *ViewDriver) RepeatMouseMove() *ViewDriver {
 	self.t.repeatMouseMove()
 	return self
