@@ -199,16 +199,11 @@ func (self *SubmoduleCommands) Stash(submodule *models.SubmoduleConfig) error {
 }
 
 func (self *SubmoduleCommands) Reset(submodule *models.SubmoduleConfig) error {
-	parentDir := ""
-	if submodule.ParentModule != nil {
-		parentDir = submodule.ParentModule.FullPath()
-	}
 	cmdArgs := NewGitCmd("submodule").
 		Arg("update", "--init", "--force", "--", submodule.Path).
-		DirIf(parentDir != "", parentDir).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return self.runInParentModule(submodule, self.cmd.New(cmdArgs))
 }
 
 func (self *SubmoduleCommands) UpdateAll() error {
