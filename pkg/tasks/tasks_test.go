@@ -27,6 +27,8 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 	refreshView, getRefreshViewCallCount := getCounter()
 	onEndOfInput, getOnEndOfInputCallCount := getCounter()
 	onNewKey, getOnNewKeyCallCount := getCounter()
+	beginRender, getBeginRenderCallCount := getCounter()
+	swapInRender, getSwapInRenderCallCount := getCounter()
 	onDone, getOnDoneCallCount := getCounter()
 	task := gocui.NewFakeTask()
 	newTask := func() gocui.Task {
@@ -40,6 +42,8 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		refreshView,
 		onEndOfInput,
 		onNewKey,
+		beginRender,
+		swapInRender,
 		newTask,
 		// no UI thread in the test; run the view mutations inline
 		func(f func()) error { f(); return nil },
@@ -69,6 +73,8 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		{1, getRefreshViewCallCount(), "refreshView"},
 		{0, getOnEndOfInputCallCount(), "onEndOfInput"},
 		{0, getOnNewKeyCallCount(), "onNewKey"},
+		{0, getBeginRenderCallCount(), "beginRender"},
+		{0, getSwapInRenderCallCount(), "swapInRender"},
 		{1, getOnDoneCallCount(), "onDone"},
 	}
 	for _, expectation := range callCountExpectations {
@@ -94,6 +100,8 @@ func TestNewCmdTask(t *testing.T) {
 	refreshView, getRefreshViewCallCount := getCounter()
 	onEndOfInput, getOnEndOfInputCallCount := getCounter()
 	onNewKey, getOnNewKeyCallCount := getCounter()
+	beginRender, getBeginRenderCallCount := getCounter()
+	swapInRender, getSwapInRenderCallCount := getCounter()
 	onDone, getOnDoneCallCount := getCounter()
 	task := gocui.NewFakeTask()
 	newTask := func() gocui.Task {
@@ -107,6 +115,8 @@ func TestNewCmdTask(t *testing.T) {
 		refreshView,
 		onEndOfInput,
 		onNewKey,
+		beginRender,
+		swapInRender,
 		newTask,
 		// no UI thread in the test; run the view mutations inline
 		func(f func()) error { f(); return nil },
@@ -136,10 +146,12 @@ func TestNewCmdTask(t *testing.T) {
 		actual   int
 		name     string
 	}{
-		{1, getBeforeStartCallCount(), "beforeStart"},
+		{0, getBeforeStartCallCount(), "beforeStart"},
 		{1, getRefreshViewCallCount(), "refreshView"},
 		{1, getOnEndOfInputCallCount(), "onEndOfInput"},
 		{0, getOnNewKeyCallCount(), "onNewKey"},
+		{1, getBeginRenderCallCount(), "beginRender"},
+		{1, getSwapInRenderCallCount(), "swapInRender"},
 		{1, getOnDoneCallCount(), "onDone"},
 	}
 	for _, expectation := range callCountExpectations {
@@ -213,6 +225,8 @@ func TestNewCmdTaskQueuedReadAtEndOfInput(t *testing.T) {
 		func() {},
 		func() {},
 		func() {},
+		func() {},
+		func() {},
 		func() gocui.Task { return task },
 		// no UI thread in the test; run the view mutations inline
 		func(f func()) error { f(); return nil },
@@ -275,6 +289,8 @@ func TestLoadingIndicatorOnlyTakesOverForNewContent(t *testing.T) {
 	manager := NewViewBufferManager(
 		utils.NewDummyLog(),
 		writer,
+		func() {},
+		func() {},
 		func() {},
 		func() {},
 		func() {},
@@ -390,6 +406,8 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 			writer,
 			func() {},
 			refreshView,
+			func() {},
+			func() {},
 			func() {},
 			func() {},
 			newTask,
