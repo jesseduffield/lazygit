@@ -1477,6 +1477,9 @@ func (self *FilesController) hasPathStagedChanges(node *filetree.FileNode) bool 
 }
 
 func (self *FilesController) stash() error {
+	if !self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules() {
+		return errors.New(self.c.Tr.NoFilesToStash)
+	}
 	return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashAllChanges)
 }
 
