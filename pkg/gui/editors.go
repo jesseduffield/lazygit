@@ -2,9 +2,14 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 func (gui *Gui) handleEditorKeypress(v *gocui.View, key gocui.Key, allowMultiline bool) bool {
+	if vim := v.VimEditor(); vim != nil {
+		return vim.Edit(v, key)
+	}
+
 	if key.Equals(gocui.NewKeyName(gocui.KeyEnter)) && allowMultiline {
 		v.TextArea.TypeCharacter("\n")
 		v.RenderTextArea()
@@ -26,6 +31,7 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key) bool {
 func (gui *Gui) commitDescriptionEditor(v *gocui.View, key gocui.Key) bool {
 	matched := gui.handleEditorKeypress(v, key, true)
 	v.RenderTextArea()
+	gui.c.Contexts().CommitMessage.RenderDescriptionSubtitle()
 	return matched
 }
 
@@ -33,6 +39,7 @@ func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key) bool {
 	matched := gui.handleEditorKeypress(v, key, false)
 
 	v.RenderTextArea()
+	gui.renderPromptVimMode(v)
 
 	suggestionsContext := gui.State.Contexts.Suggestions
 	// Capture the suggestions function and the input here, on the UI thread; the
@@ -47,6 +54,12 @@ func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key) bool {
 	}
 
 	return matched
+}
+
+func (gui *Gui) renderPromptVimMode(v *gocui.View) {
+	if mode := presentation.VimModeSubTitle(gui.c.Tr, v); mode != "" {
+		v.Subtitle = mode
+	}
 }
 
 func (gui *Gui) searchEditor(v *gocui.View, key gocui.Key) bool {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -33,8 +34,14 @@ func (self *PromptController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			DisplayOnScreen: true,
 		},
 		{
-			Keys:            opts.GetKeys(opts.Config.Universal.Return),
-			Handler:         func() error { return self.context().State.OnClose() },
+			Keys: opts.GetKeys(opts.Config.Universal.Return),
+			Handler: func() error {
+				if self.c.Views().Prompt.VimEscape() {
+					self.c.Views().Prompt.Subtitle = presentation.VimModeSubTitle(self.c.Tr, self.c.Views().Prompt)
+					return nil
+				}
+				return self.context().State.OnClose()
+			},
 			Description:     self.c.Tr.CloseCancel,
 			DisplayOnScreen: true,
 		},

@@ -192,6 +192,10 @@ func (self *CommitMessageController) confirm() error {
 }
 
 func (self *CommitMessageController) close() error {
+	if self.c.Views().CommitMessage.VimEscape() {
+		self.context().RenderSubtitle()
+		return nil
+	}
 	self.c.Helpers().Commits.CloseCommitMessagePanel()
 	return nil
 }

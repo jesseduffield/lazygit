@@ -55,6 +55,9 @@ func (self *SearchPromptController) confirm() error {
 }
 
 func (self *SearchPromptController) cancel() error {
+	if self.c.Views().Search.VimEscape() {
+		return nil
+	}
 	return self.c.Helpers().Search.CancelPrompt()
 }
 

@@ -222,6 +222,8 @@ type GuiConfig struct {
 	SwitchToFilesAfterStashApply bool `yaml:"switchToFilesAfterStashApply"`
 	// If true, when using the panel jump keys (default 1 through 5) and target panel is already active, go to next tab instead
 	SwitchTabsWithPanelJumpKeys bool `yaml:"switchTabsWithPanelJumpKeys"`
+	// If true, text inputs (commit message, prompts, search) use vim-style modal editing: they open in insert mode, and Escape switches to normal mode with motions, counts, d/c/y operators, text objects, visual mode, and undo/redo. Escape in normal mode closes the panel as usual.
+	VimStyleEditing bool `yaml:"vimStyleEditing"`
 }
 
 func (c *GuiConfig) UseFuzzySearch() bool {
@@ -934,6 +936,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			SwitchToFilesAfterStashPop:   true,
 			SwitchToFilesAfterStashApply: true,
 			SwitchTabsWithPanelJumpKeys:  false,
+			VimStyleEditing:              false,
 		},
 		Git: GitConfig{
 			Commit: CommitConfig{

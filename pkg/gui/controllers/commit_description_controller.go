@@ -113,6 +113,10 @@ func (self *CommitDescriptionController) handleTogglePanel() error {
 }
 
 func (self *CommitDescriptionController) close() error {
+	if self.c.Views().CommitDescription.VimEscape() {
+		self.c.Contexts().CommitMessage.RenderDescriptionSubtitle()
+		return nil
+	}
 	self.c.Helpers().Commits.CloseCommitMessagePanel()
 	return nil
 }

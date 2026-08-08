@@ -135,6 +135,16 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Prompt.Editable = true
 	gui.Views.Prompt.Editor = gocui.EditorFunc(gui.promptEditor)
 
+	if gui.UserConfig().Gui.VimStyleEditing {
+		// one register shared across the editors so text can be yanked in
+		// one view and pasted in another
+		register := &gocui.VimRegister{}
+		gui.Views.CommitMessage.AttachVimEditor(register, false)
+		gui.Views.CommitDescription.AttachVimEditor(register, true)
+		gui.Views.Prompt.AttachVimEditor(register, false)
+		gui.Views.Search.AttachVimEditor(register, false)
+	}
+
 	gui.Views.Suggestions.Visible = false
 
 	gui.Views.Menu.Visible = false

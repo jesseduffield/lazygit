@@ -70,6 +70,10 @@ type View struct {
 	// mode; same coordinate conventions as searcher.searchPositions
 	vimSelection []SearchPosition
 
+	// modal editor state for this view; nil unless vim-style editing is
+	// enabled for it
+	vimEditor *VimEditor
+
 	// internal representation of the view's buffer. We will keep viewLines around
 	// from a previous render until we explicitly set them to nil, allowing us to
 	// render the same content twice without flicker. Wherever we want to render

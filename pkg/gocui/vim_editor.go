@@ -766,3 +766,34 @@ func (self *VimEditor) clearPending() {
 	self.op = ""
 	self.pending = ""
 }
+
+// The vim editor is attached to the View rather than passed around the app:
+// escape handling, mode indicators, and per-panel resets all happen in
+// different layers that share nothing but the view.
+
+func (v *View) AttachVimEditor(register *VimRegister, allowMultiline bool) {
+	v.vimEditor = NewVimEditor(register, allowMultiline)
+}
+
+// VimEditor returns the attached vim editor, or nil when vim editing is not
+// enabled for this view.
+func (v *View) VimEditor() *VimEditor {
+	return v.vimEditor
+}
+
+// ResetVimEditor puts an attached vim editor back into the given mode and
+// clears any visual selection; panels reuse their views, so this must be
+// called whenever a panel opens. No-op when no editor is attached.
+func (v *View) ResetVimEditor(mode VimMode) {
+	if v.vimEditor == nil {
+		return
+	}
+	v.vimEditor.Reset(mode)
+	v.SetVimSelection(nil)
+}
+
+// VimEscape reports whether an attached vim editor consumed the Escape key;
+// the view's Escape keybinding must call this before closing its panel.
+func (v *View) VimEscape() bool {
+	return v.vimEditor != nil && v.vimEditor.HandleEscape(v)
+}

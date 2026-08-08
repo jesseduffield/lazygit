@@ -172,6 +172,9 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 		self.SetMessageAndDescriptionInView(initialMessage)
 	}
 
+	self.c.Views().CommitMessage.ResetVimEditor(gocui.VimModeInsert)
+	self.c.Views().CommitDescription.ResetVimEditor(gocui.VimModeInsert)
+
 	self.c.Context().Push(self.c.Contexts().CommitMessage, types.OnFocusOpts{})
 }
 
