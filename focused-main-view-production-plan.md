@@ -179,13 +179,21 @@ pointer, several buffer accessors gained locks. The prototype commits are
 rebased on top of all that and are the authoritative shapes, but a fix may
 have been absorbed or may need reshaping; check before porting.
 
+**Status: IMPLEMENTED 2026-08-08** on branch `fix-async-diff-rendering`,
+branched off `fold-staging-into-main-view` (= the tip of
+`scroll-selection-into-view`, not master, at the user's request — that branch
+would conflict and is merging to master soon). 13 commits (the 11 planned
+below, plus two extra prep/demonstrate commits, see the deviations). `just
+build`, `just unit-test`, `just lint`, `just e2e` all green. **Interactive
+sign-off still outstanding** (§6 row 1).
+
 Commits (in order):
 
 1. **Route all view origin writes through `SetOriginX`/`SetOriginY`** — pure
-   prep chokepoint refactor. Ref: b0a85eefb.
+   prep chokepoint refactor. Ref: b0a85eefb. ✅
 2. **Add `LAZYGIT_SLOW_RENDER` debug knob** — sleeps N ms per written line so
    async render frames become visible; inert when unset. Needed by reviewers
-   to see what the later commits fix. Ref: e8682b3fd.
+   to see what the later commits fix. Ref: e8682b3fd. ✅
 3. **Lock the event-thread viewLines readers that still skip `writeMutex`** —
    task goroutines rebuild `viewLines` under `writeMutex`; master still reads
    them unlocked on the event-handling thread in the click-path hyperlink
@@ -196,23 +204,26 @@ Commits (in order):
    the dropped hyperlink backend) and in `onMouseMove`; transcribe the lock
    pattern onto the readers master actually has. Use the demonstrate-then-fix
    pattern if a deterministic test is feasible. Refs: 2cc42fc81, a44bf5d05.
+   ✅ (landed as **two** commits, see deviations)
 4. **Fire queued ReadToEnd callbacks when the initial read reaches EOF** —
    the read loop abandoned queued `{Total:-1}` requests when the initial
    request hit EOF, silently dropping their `Then`. Ref: b6f99abc6.
+   ✅ (landed as **two** commits — a deterministic test turned out feasible,
+   so demonstrate-then-fix applied)
 5. **Don't scroll a view up to fill blank space while its content is loading**
    — the layout clamp used the partially-loaded height; add the `loading`
    flag (an `atomic.Bool` in the rebased shape) and skip the clamp while
-   `IsLoading()`. Ref: 695842291.
+   `IsLoading()`. Ref: 695842291. ✅
 6. **Reset other main views' scroll after copying content, not before** —
    `refreshMainViews` zeroed the source view's origin before `CopyContent`
    used it, so every cross-pair placeholder jumped to the top. *(Verified
    against master 2026-07-18: still needed — `CopyContent` still copies the
    source's `ox`/`oy` and `refreshMainViews` still resets first; master's
-   `1efcfcc14` only stopped sharing the buffer slices.)* Ref: c35c9316c.
+   `1efcfcc14` only stopped sharing the buffer slices.)* Ref: c35c9316c. ✅
 7. **Bundle a view's cell buffer and write state into a `viewBuffer`** — prep.
-   Ref: fd858cd98.
+   Ref: fd858cd98. ✅
 8. **Make the buffer-writing methods operate on a `viewBuffer`** — prep.
-   Ref: 2cfc0e24d.
+   Ref: 2cfc0e24d. ✅
 9. **Render async content into an off-screen buffer and swap it in** — the
    core mechanism: cmd/pty tasks write to `View.offscreen`; at first-paint
    (or EOF) the buffer swaps in atomically (under `writeMutex` — buffer
@@ -226,21 +237,86 @@ Commits (in order):
    `TestOffscreenRender`, `TestBufferLineForViewLineStaleTail`,
    `TestScrollbarHeightHeldWhileLoading`,
    `TestScrollbarHeightReleasedWhenContentReplaced`. Refs: 27ce0a6bc + its
-   scrollbar amend, N§13.5, N§13.6.
+   scrollbar amend, N§13.5, N§13.6. ✅
 10. **Don't run end-of-input handling for a render that was stopped** — the
     stopped-task EOF coin-flip (`select` between stop and closed `lineChan`)
     let a stopped task swap in a truncated buffer. No deterministic test (the
     bug *is* the nondeterministic select) — justified skip, N§13.6. Ref:
-    8e3dc3eff.
+    8e3dc3eff. ✅
 11. **Reset the scroll to the top at first paint, not when the task starts** —
     with the off-screen render the old content stays visible until the swap;
-    resetting oy at task start made it jump first. Ref: 411681502.
+    resetting oy at task start made it jump first. Ref: 411681502. ✅
 
 Notes:
 - If commit 9's stale-tail test needs `BufferLineForViewLine`, introduce that
   accessor here (PR 2 then reuses it) rather than contorting the test.
+  *(Not needed — see deviations; PR 2 still introduces the accessor.)*
 - Gotcha for the future: **fast renders unmask ordering transients that slow
   renders hide** (N§20.5). Re-test at normal speed *and* under slow render.
+
+#### Deviations from the plan (2026-08-08, as implemented)
+
+1. **Commit 3 split in two.** Master's click-path lookup indexes `viewLines`
+   inline in `gui.go`'s event loop, so there was nowhere to take the view's
+   lock. Prep commit "Move the click-path hyperlink lookup onto View" extracts
+   a `View.hyperlinkAt(x, y)` (behaviour-preserving, sits next to
+   `findHyperlinkAt`); the fix commit then locks it and `onMouseMove`. The
+   audit for other unlocked `viewLines` readers found only dead code
+   (`realPosition`/`Line`/`Word`/`ViewBuffer`/`LinesHeight` have no callers
+   outside gocui), so nothing else was touched. No test: the bug is a data
+   race, not reachable single-threaded.
+2. **Commit 4 got a deterministic test after all.** A blocking reader
+   (`BlockingLineReader`) holds a task in its still-loading state, so a
+   `ReadToEnd` can be queued and *then* the task released to EOF. Landed as
+   demonstrate-then-fix per AGENTS.md ("Add a test for a read request queued
+   while a task reaches EOF", then the fix swapping EXPECTED/ACTUAL).
+3. **Commit 9 fixed a `screenColMax` gap the prototype still has.**
+   `escapeInterpreter.screenColMax` — the pty screen width soft-wrap tracking
+   counts against — is set only on `v.buf.ei` (`NewView`, `SetContentWidth`).
+   `BeginOffscreenRender` builds a *fresh* interpreter, and `SetContentWidth`
+   runs inside `start()`, strictly before the first line triggers
+   `beginRender()`, so the off-screen interpreter would have `screenColMax = 0`
+   and count no soft wraps at all — ConPTY `CUP` escapes after a wrapped line
+   would then land on the wrong row. `BeginOffscreenRender` now copies it over,
+   guarded by `TestWriteCursorPositionEscapeInOffscreenRender`. **The prototype
+   branch has the same gap** (`screenColMax` landed on master 2026-06-30 /
+   07-08, long after the off-screen commit was written, and the rebase rewrote
+   `v.ei` → `v.buf.ei` mechanically); the user decided to leave it there.
+4. **Commit 9's truncation test doesn't use `BufferLineForViewLine`.** The
+   truncation is observable through `ViewLinesHeight`/`ViewBufferLines` alone,
+   so `TestBufferLineForViewLineStaleTail` became
+   `TestViewLinesTruncatedByShorterRender` and the PR-2 accessor stayed in
+   PR 2.
+5. **Commit 10 calls `callThen()` before bailing.** The prototype's stopped-EOF
+   bail drops the request's `Then`, unlike both explicit-stop branches right
+   above it, which fire it. Matched those instead (it does *not* drain the
+   queue — reaching EOF is what justifies the drain, and a stopped task hasn't).
+6. **Commit 11 puts `ResetOrigin` on `TaskOpts`, not `LinesToRead`.** The
+   prototype has the cmd/pty wrappers compute `cmdStr != manager.GetTaskKey()`
+   on the UI thread, which adds unsynchronized reads of `taskKey` (written by
+   the `NewTask` goroutine under `taskIDMutex`). Instead `NewTask` keeps making
+   the decision, under the lock exactly where it already did, and passes it to
+   the task via `TaskOpts`. The gui wrappers need no change at all. **PR 6 note:**
+   `RenderRestore` should read `opts.ResetOrigin` alongside `linesToRead.Restore`
+   (`if restore != nil { … } else if opts.ResetOrigin { … }`).
+7. **Commit 11 runs the first paint on the UI thread**, resolving the
+   prototype's `// TODO: should probably use OnUIThread?`. It has to: the paint
+   now writes the origin, and swap + origin must land in one hop or a draw
+   between them shows the new content at the previous render's scroll — the
+   N§20.5 failure mode. `firstPaint` itself is therefore unwrapped and each
+   call site wraps it (EOF already did).
+
+#### Found but not fixed (raise before PR 2 if you want it in this stack)
+
+- **`GetTaskKey()` is an unsynchronized read of `taskKey`** (`tasks.go`), which
+  the `NewTask` goroutine writes under `taskIDMutex`. Pre-existing: master
+  already reads it from the UI thread at `tasks_adapter.go` ~98 and ~116 for
+  string renders. PR 1 does not add any new reader (see deviation 6), so this
+  is untouched, but it is a genuine data race that `-race` on the e2e suite
+  would eventually flag.
+- **`FlushStaleCells` is now redundant.** With `refreshViewLinesIfNeeded`
+  truncating, the `onEndOfInput` call to it only forces a full re-wrap of the
+  whole buffer. Harmless but wasteful on large diffs; the prototype kept it too.
 
 Interactive sign-off (user, `just debug` + `LAZYGIT_SLOW_RENDER` matrix):
 flicking through commits/files scrolled down; the 10 s auto-refresh with
@@ -978,7 +1054,9 @@ The remaining rows are agreed as keep/defer:
 
 ## 10. Progress
 
-- [ ] PR 1 — async render fixes
+- [x] PR 1 — async render fixes — **implemented 2026-08-08** on branch
+      `fix-async-diff-rendering` (13 commits, all checks green); awaiting the
+      §6 interactive sign-off
 - [ ] PR 2 — diff-line identity primitive
 - [x] PR 3 — rename pagers → diff renderers — **landed on master as #5870**
       (with a bigger config rework than planned; see the PR 3 section)
@@ -996,6 +1074,16 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-08:** PR 1 implemented. The stack does **not** start from master:
+  the user asked for it to be based on `fold-staging-into-main-view` (the tip
+  of `scroll-selection-into-view`), which touches the same scroll code and is
+  merging to master soon. Every later PR branches off its predecessor; nothing
+  is pushed, and fixup commits for earlier branches go on the tip of the stack
+  for the user to move down. Seven deviations from the plan are recorded in the
+  PR 1 section, of which two matter later: `TaskOpts.ResetOrigin` replaces the
+  planned `LinesToRead.ResetOrigin` (PR 6 must read it from there), and the
+  `screenColMax` gap fixed in PR 1 commit 9 is still live on the prototype
+  branch.
 - **2026-08-04:** prototype rebased onto master, past #5854 (gocui mouse
   gestures) and #5870 (diff-renderer config rework). The pre-rebase branch
   — where this plan's SHAs resolve — is kept at
