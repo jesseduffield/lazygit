@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spf13/afero"
 )
@@ -19,10 +20,12 @@ type RepoPaths struct {
 	repoGitDirPath     string
 	repoName           string
 	isBareRepo         bool
+	gitLocationEnvVars []string
 }
 
 // Path to the current worktree. If we're in the main worktree, this will
-// be the same as RepoPath()
+// be the same as RepoPath(). It is empty for a bare repo, which has no
+// worktree at all.
 func (self *RepoPaths) WorktreePath() string {
 	return self.worktreePath
 }
@@ -53,8 +56,31 @@ func (self *RepoPaths) RepoName() string {
 	return self.repoName
 }
 
+// Whether we found no worktree, so that there is nothing for lazygit to show.
+// Note that this isn't quite git's core.bare: a repo that calls itself non-bare
+// but whose worktree we couldn't find counts as bare for us too. Concretely,
+// this is true when we're in
+//
+//   - a genuinely bare repo;
+//   - the git dir of a linked worktree (.git/worktrees/x), whose worktree is
+//     recorded but not somewhere we look;
+//   - a repo that keeps its worktree somewhere only GIT_WORK_TREE knows, such
+//     as a vcsh-style dotfiles repo that hasn't been given core.worktree.
+//
+// The .git dir of an ordinary repo is not one of them: GetRepoPathsForDir
+// notices the worktree holding it and hands back that repo instead.
 func (self *RepoPaths) IsBareRepo() bool {
 	return self.isBareRepo
+}
+
+// The environment that tells git where this repo is, as "NAME=value" entries.
+// It is empty for the vast majority of repos, which git finds for itself by
+// looking for a .git in the directory a command runs in. It is only non-empty
+// when that doesn't work — when the git dir lives somewhere else entirely,
+// because of core.worktree or --work-tree — and then every command addressing
+// the repo has to carry it.
+func (self *RepoPaths) GitLocationEnvVars() []string {
+	return self.gitLocationEnvVars
 }
 
 // Returns the repo paths for a typical repo
@@ -84,26 +110,76 @@ func GetRepoPathsForDir(
 	dir string,
 	cmd oscommands.ICmdObjBuilder,
 ) (*RepoPaths, error) {
-	gitDirOutput, err := callGitRevParseWithDir(cmd, dir, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree")
+	repoPaths, err := repoPathsForDir(dir, cmd)
+	if err != nil || !repoPaths.IsBareRepo() {
+		return repoPaths, err
+	}
+
+	// We're in a git dir rather than in a working tree, which usually just means
+	// somebody ran lazygit in the .git of an ordinary repo. git's convention is
+	// that a git dir called .git belongs to the directory holding it, so look
+	// there: if that is a working tree, it is the repo we were asked about, and
+	// there's no reason to make the user go up a directory and try again.
+	//
+	// The git dirs that aren't called .git keep the paths we have. A linked
+	// worktree's (.git/worktrees/x) and a submodule's (.git/modules/x) do have a
+	// working tree, but only the directory holding a .git tells us where, so we
+	// would be guessing. A bare repo's has none to find.
+	if filepath.Base(repoPaths.WorktreeGitDirPath()) != ".git" {
+		return repoPaths, nil
+	}
+
+	pathsFromWorkTree, err := repoPathsForDir(filepath.Dir(repoPaths.WorktreeGitDirPath()), cmd)
+	if err != nil || pathsFromWorkTree.IsBareRepo() {
+		return repoPaths, nil
+	}
+	return pathsFromWorkTree, nil
+}
+
+// repoPathsForDir asks git about the repo at dir, and reports a bare repo when
+// there is no working tree there. Unlike GetRepoPathsForDir it never looks
+// anywhere but dir, which is what keeps that one from going round in circles.
+func repoPathsForDir(
+	dir string,
+	cmd oscommands.ICmdObjBuilder,
+) (*RepoPaths, error) {
+	gitDirOutput, err := callGitRevParseWithDir(cmd, dir, "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree")
 	if err != nil {
-		return nil, err
+		// --show-toplevel is the only one of these that needs a work tree, and
+		// git makes it fatal when there isn't one. So this may just mean we're in
+		// a repo that has no work tree.
+		return getBareRepoPathsForDir(dir, cmd, err)
 	}
 
 	gitDirResults := strings.Split(utils.NormalizeLinefeeds(gitDirOutput), "\n")
 	worktreePath := gitDirResults[0]
 	worktreeGitDirPath := gitDirResults[1]
 	repoGitDirPath := gitDirResults[2]
-	isBareRepo := gitDirResults[3] == "true"
 
-	// If we're in a submodule, --show-superproject-working-tree will return
-	// a value, meaning gitDirResults will be length 5. In that case
-	// return the worktree path as the repoPath. Otherwise we're in a
-	// normal repo or a worktree so return the parent of the git common
-	// dir (repoGitDirPath)
-	isSubmodule := len(gitDirResults) == 5
+	// A worktree that has the repo's common git dir to itself is the repo's main
+	// worktree, so it is the repoPath. That holds for a submodule as well: its
+	// git dir lives under the superproject's .git/modules, but it is still the
+	// submodule's own common dir.
+	isMainWorktree := worktreeGitDirPath == repoGitDirPath
 
+	// If we're in a submodule, --show-superproject-working-tree will return a
+	// value, meaning gitDirResults will be length 4. That only tells us anything
+	// new for a linked worktree of a submodule, which isMainWorktree misses.
+	isSubmodule := len(gitDirResults) == 4
+
+	// Otherwise we're in a linked worktree, and the repoPath is the repo's main
+	// worktree. git won't tell us where that is: `git worktree list` reports it
+	// as the common git dir with a trailing "/.git" removed, which is this same
+	// derivation. So take the directory holding the common git dir. That is the
+	// main worktree of an ordinary repo, and of a bare one it is the directory
+	// its worktrees live in. It is not the main worktree of a repo that moved
+	// that elsewhere with core.worktree; there we end up naming the git dir's
+	// directory, which means that the repo name we display in the status panel
+	// isn't correct, and we start looking for .lazygit.yml in the wrong place.
+	// Both of those are not severe enough to justify the extra git call to get
+	// the real main worktree, so we accept this for this rather niche use case.
 	var repoPath string
-	if isSubmodule {
+	if isMainWorktree || isSubmodule {
 		repoPath = worktreePath
 	} else {
 		repoPath = filepath.Dir(repoGitDirPath)
@@ -116,21 +192,110 @@ func GetRepoPathsForDir(
 		repoPath:           repoPath,
 		repoGitDirPath:     repoGitDirPath,
 		repoName:           repoName,
-		isBareRepo:         isBareRepo,
+		isBareRepo:         false,
+		gitLocationEnvVars: gitLocationEnvVars(cmd, worktreePath, worktreeGitDirPath),
 	}, nil
 }
 
+// gitLocationEnvVars works out whether git can find the repo by itself when a
+// command runs in its worktree, and if it can't, returns the environment that
+// tells git where it is. See RepoPaths.GitLocationEnvVars.
+func gitLocationEnvVars(
+	cmd oscommands.ICmdObjBuilder,
+	worktreePath string,
+	worktreeGitDirPath string,
+) []string {
+	// The ordinary repo, where the git dir sits in the worktree. Both paths are
+	// git's own answers from the same invocation, so they are spelled alike and
+	// comparing them is safe.
+	if worktreeGitDirPath == filepath.Join(worktreePath, ".git") {
+		return nil
+	}
+
+	// A linked worktree or a submodule instead has a .git file naming its git
+	// dir, and git follows that just as happily. We could read the file, but the
+	// path in it may well name the same directory differently than git did
+	// above, so ask git to resolve it — from the worktree and nothing else.
+	discoveredGitDirPath, err := callGitRevParseInOtherRepo(cmd, worktreePath, "--absolute-git-dir")
+	if err == nil && discoveredGitDirPath == worktreeGitDirPath {
+		return nil
+	}
+
+	return []string{
+		env.GitDirEnvVar + "=" + worktreeGitDirPath,
+		env.GitWorkTreeEnvVar + "=" + worktreePath,
+	}
+}
+
+// getBareRepoPathsForDir is the fallback for when we couldn't ask git for the
+// work tree. Everything but --show-toplevel works fine without one, so if the
+// remaining queries succeed we are in a bare repo, and we return what we know
+// about it with an empty worktreePath. If they fail too we simply aren't in a
+// repo, and the caller's original error says so better than ours would.
+func getBareRepoPathsForDir(
+	dir string,
+	cmd oscommands.ICmdObjBuilder,
+	errWithWorktree error,
+) (*RepoPaths, error) {
+	output, err := callGitRevParseWithDir(cmd, dir, "--absolute-git-dir", "--git-common-dir")
+	if err != nil {
+		return nil, errWithWorktree
+	}
+
+	results := strings.Split(utils.NormalizeLinefeeds(output), "\n")
+	repoGitDirPath := results[1]
+	// A bare repo has no worktree, and so no repo path in the sense the caller
+	// with a worktree means. It doesn't matter much what we say here, because
+	// nobody reads it: whoever is handed a bare repo either offers to open a
+	// recent one instead (app.setupRepo) or is turned away by NewGitCommand. The
+	// directory holding the git dir is the nearest thing there is to a repo
+	// path.
+	repoPath := filepath.Dir(repoGitDirPath)
+
+	return &RepoPaths{
+		worktreePath:       "",
+		worktreeGitDirPath: results[0],
+		repoPath:           repoPath,
+		repoGitDirPath:     repoGitDirPath,
+		repoName:           filepath.Base(repoPath),
+		isBareRepo:         true,
+	}, nil
+}
+
+// Asks git about the repo at dir. This is how we find our own repo, so it has
+// to be answered the way git itself would answer it there, GIT_DIR and
+// GIT_WORK_TREE included.
 func callGitRevParseWithDir(
 	cmd oscommands.ICmdObjBuilder,
 	dir string,
 	gitRevArgs ...string,
 ) (string, error) {
+	return runGitRevParse(newGitRevParseCmd(cmd, dir, gitRevArgs...))
+}
+
+// Asks git about a repo that isn't the one we have open; see forOtherRepo.
+func callGitRevParseInOtherRepo(
+	cmd oscommands.ICmdObjBuilder,
+	dir string,
+	gitRevArgs ...string,
+) (string, error) {
+	return runGitRevParse(forOtherRepo(newGitRevParseCmd(cmd, dir, gitRevArgs...)))
+}
+
+func newGitRevParseCmd(
+	cmd oscommands.ICmdObjBuilder,
+	dir string,
+	gitRevArgs ...string,
+) *oscommands.CmdObj {
 	gitRevParse := NewGitCmd("rev-parse").Arg("--path-format=absolute").Arg(gitRevArgs...)
 	if dir != "" {
 		gitRevParse.Dir(dir)
 	}
 
-	gitCmd := cmd.New(gitRevParse.ToArgv()).DontLog()
+	return cmd.New(gitRevParse.ToArgv()).DontLog()
+}
+
+func runGitRevParse(gitCmd *oscommands.CmdObj) (string, error) {
 	res, err := gitCmd.RunWithOutput()
 	if err != nil {
 		return "", errors.Errorf("'%s' failed: %v", gitCmd.ToString(), err)

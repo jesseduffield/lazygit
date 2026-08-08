@@ -403,8 +403,17 @@ type HasUrn interface {
 	URN() string
 }
 
+// RepoLocation is everything it takes to open a repo again: the directory to
+// change to, plus the environment telling git where the repo is for the repos
+// git can't find from that directory (see RepoPaths.GitLocationEnvVars), which
+// is empty for all the others.
+type RepoLocation struct {
+	Path               string
+	GitLocationEnvVars []string
+}
+
 type IStateAccessor interface {
-	GetRepoPathStack() *utils.StringStack
+	GetRepoPathStack() *utils.Stack[RepoLocation]
 	GetRepoState() IRepoStateAccessor
 	GetDiffRendererConfigManager() *config.DiffRendererConfigManager
 	// tells us whether we're currently updating lazygit

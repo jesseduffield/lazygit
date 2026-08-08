@@ -353,6 +353,7 @@ var tests = []*components.IntegrationTest{
 	misc.DirenvUnloadsOnBlockedEnvrc,
 	misc.InitialOpen,
 	misc.RecentReposOnLaunch,
+	misc.StartInGitDir,
 	patch_building.Apply,
 	patch_building.ApplyInReverse,
 	patch_building.ApplyInReverseWithConflict,
@@ -441,6 +442,7 @@ var tests = []*components.IntegrationTest{
 	status.LogCmdStatusPanelAllBranchesLog,
 	submodule.Add,
 	submodule.Enter,
+	submodule.EnterFromDotfileBareRepo,
 	submodule.EnterNested,
 	submodule.Remove,
 	submodule.RemoveNested,
@@ -541,6 +543,7 @@ var tests = []*components.IntegrationTest{
 	worktree.RemoveWorktreeAndDeleteLocalAndRemoteBranch,
 	worktree.RemoveWorktreeFromBranch,
 	worktree.ResetWindowTabs,
+	worktree.SeparateWorkTreeConfig,
 	worktree.SymlinkIntoRepoSubdir,
 	worktree.WorktreeInRepo,
 }

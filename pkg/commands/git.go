@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -67,10 +68,23 @@ func NewGitCommand(
 		return nil, errors.Errorf("Error getting repo paths: %v", err)
 	}
 
+	// A bare repo has no worktree for us to work in. Callers that can offer the
+	// user something better (app.setupRepo) check for this first; getting here
+	// means nobody could, e.g. because --git-dir was pointed at a bare repo.
+	if repoPaths.IsBareRepo() {
+		return nil, errors.New(cmn.Tr.BareRepoNotSupported)
+	}
+
 	err = os.Chdir(repoPaths.WorktreePath())
 	if err != nil {
 		return nil, utils.WrapError(err)
 	}
+
+	// Everything we run through the command builder gets told where the repo is
+	// by the builder itself, but subprocesses don't go through it: user-defined
+	// custom commands, an editor, and the lazygit we re-enter as git's sequence
+	// editor during a rebase. Put it in the process env for those.
+	env.SetGitLocationEnvVars(repoPaths.GitLocationEnvVars())
 
 	// Pin the config reads to the repo directory like all other git commands
 	// (see NewGitCmdObjBuilder); the config commands run outside that builder.
@@ -94,7 +108,7 @@ func NewGitCommandAux(
 	repoPaths *git_commands.RepoPaths,
 	diffRendererConfigManager *config.DiffRendererConfigManager,
 ) *GitCommand {
-	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd, repoPaths.WorktreePath())
+	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd, repoPaths.WorktreePath(), repoPaths.GitLocationEnvVars())
 
 	// here we're doing a bunch of dependency injection for each of our commands structs.
 	// This is admittedly messy, but allows us to test each command struct in isolation,
