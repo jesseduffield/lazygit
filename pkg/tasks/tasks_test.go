@@ -248,10 +248,7 @@ func TestNewCmdTaskQueuedReadAtEndOfInput(t *testing.T) {
 
 	wg.Wait()
 
-	/* EXPECTED:
 	assert.True(t, thenCalled)
-	ACTUAL: */
-	assert.False(t, thenCalled)
 }
 
 func TestNewCmdTaskRefresh(t *testing.T) {

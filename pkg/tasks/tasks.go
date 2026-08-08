@@ -380,6 +380,21 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							// are UI-thread-only, so run it there.
 							_ = self.onUIThread(self.onEndOfInput)
 							callThen()
+							// Any read requests that were queued while we were reading are
+							// now trivially satisfied, since we've read everything. Fire
+							// their callbacks instead of dropping them when we break out of
+							// the loop below (and nil out readLines).
+						drain:
+							for {
+								select {
+								case queued := <-readLines:
+									if queued.Then != nil {
+										queued.Then()
+									}
+								default:
+									break drain
+								}
+							}
 							break outer
 						}
 						writeToView(append(line, '\n'))
