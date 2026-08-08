@@ -74,6 +74,8 @@ func (self *CommitMessageController) GetMouseKeybindings(opts types.KeybindingsO
 func (self *CommitMessageController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
 		self.c.Views().CommitDescription.Footer = ""
+		self.context().RenderSubtitle()
+		self.context().RenderDescriptionSubtitle()
 	}
 }
 

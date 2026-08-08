@@ -72,6 +72,8 @@ func (self *CommitDescriptionController) GetOnFocus() func(types.OnFocusOpts) {
 				})
 		}
 		self.c.Views().CommitDescription.Footer = footer
+		self.c.Contexts().CommitMessage.RenderSubtitle()
+		self.c.Contexts().CommitMessage.RenderDescriptionSubtitle()
 	}
 }
 

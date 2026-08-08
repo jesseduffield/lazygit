@@ -37,7 +37,7 @@ func (self *PromptController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Keys: opts.GetKeys(opts.Config.Universal.Return),
 			Handler: func() error {
 				if self.c.Views().Prompt.VimEscape() {
-					self.c.Views().Prompt.Subtitle = presentation.VimModeSubTitle(self.c.Tr, self.c.Views().Prompt)
+					self.c.Views().Prompt.Subtitle = presentation.VimModeSubTitle(self.c.Tr, self.c.Views().Prompt, true)
 					return nil
 				}
 				return self.context().State.OnClose()

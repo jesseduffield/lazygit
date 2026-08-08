@@ -7,9 +7,12 @@ import (
 
 // VimModeSubTitle returns the padded mode indicator segment (" NORMAL ")
 // for a view with vim-style editing attached, and "" for views without one.
-func VimModeSubTitle(tr *i18n.TranslationSet, view *gocui.View) string {
+// Like vim's single mode line, only the focused view shows an indicator;
+// with the commit summary and description each holding their own editor,
+// two simultaneous indicators would suggest a shared mode that isn't there.
+func VimModeSubTitle(tr *i18n.TranslationSet, view *gocui.View, focused bool) string {
 	vim := view.VimEditor()
-	if vim == nil {
+	if vim == nil || !focused {
 		return ""
 	}
 	var label string

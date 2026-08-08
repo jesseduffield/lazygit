@@ -176,7 +176,8 @@ func (self *CommitMessageContext) RenderDescriptionSubtitle() {
 			"togglePanelKeyBinding": self.c.UserConfig().Keybinding.Universal.TogglePanel.String(),
 			"commitMenuKeybinding":  self.c.UserConfig().Keybinding.CommitMessage.CommitMenu.String(),
 		})
-	if mode := presentation.VimModeSubTitle(self.c.Tr, self.c.Views().CommitDescription); mode != "" {
+	focused := self.c.Context().Current().GetViewName() == self.c.Views().CommitDescription.Name()
+	if mode := presentation.VimModeSubTitle(self.c.Tr, self.c.Views().CommitDescription, focused); mode != "" {
 		subtitle += "─" + mode
 	}
 	self.c.Views().CommitDescription.Subtitle = subtitle
@@ -195,7 +196,8 @@ func (self *CommitMessageContext) RenderSubtitle() {
 		}
 		subtitle += getBufferLength(subject)
 	}
-	if mode := presentation.VimModeSubTitle(self.c.Tr, self.c.Views().CommitMessage); mode != "" {
+	focused := self.c.Context().Current().GetViewName() == self.c.Views().CommitMessage.Name()
+	if mode := presentation.VimModeSubTitle(self.c.Tr, self.c.Views().CommitMessage, focused); mode != "" {
 		if subtitle != "" {
 			subtitle += "─"
 		}

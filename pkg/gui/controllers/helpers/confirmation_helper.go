@@ -164,7 +164,7 @@ func (self *ConfirmationHelper) preparePromptPanel(
 	textArea.Clear()
 	textArea.TypeString(opts.Prompt)
 	self.c.Views().Prompt.ResetVimEditor(gocui.VimModeInsert)
-	self.c.Views().Prompt.Subtitle = presentation.VimModeSubTitle(self.c.Tr, self.c.Views().Prompt)
+	self.c.Views().Prompt.Subtitle = presentation.VimModeSubTitle(self.c.Tr, self.c.Views().Prompt, true)
 	self.c.Views().Prompt.RenderTextArea()
 
 	if opts.FindSuggestionsFunc != nil {
