@@ -225,6 +225,13 @@ func (self *SubmoduleCommands) UpdateAll() error {
 // temporarily chdir-ing the process there, which would leak the parent
 // module's directory into whatever other commands run concurrently (e.g. a
 // background refresh's).
+//
+// That directory is relative, so it resolves against the process working
+// directory rather than against the repo directory the command builder
+// otherwise pins commands to. Only foreground commands the user issued end up
+// here, and lazygit won't switch repos while one of those is in flight, so the
+// two are the same directory; don't call this from background work, where they
+// need not be.
 func (self *SubmoduleCommands) runInParentModule(submodule *models.SubmoduleConfig, cmdObj *oscommands.CmdObj) error {
 	if submodule.ParentModule != nil {
 		cmdObj.SetWd(submodule.ParentModule.FullPath())
