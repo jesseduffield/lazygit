@@ -2,6 +2,7 @@ package commands
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/go-errors/errors"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -65,6 +67,15 @@ func NewGitCommand(
 	repoPaths, err := git_commands.GetRepoPaths(osCommand.Cmd, version)
 	if err != nil {
 		return nil, errors.Errorf("Error getting repo paths: %v", err)
+	}
+
+	// When the worktree is set through the `core.worktree` config, it contains
+	// no `.git` entry, so once we chdir into it git can no longer discover the
+	// repo on its own. Point it at the git dir explicitly in that case.
+	if env.GetGitDirEnv() == "" && repoPaths.WorktreePath() != "" {
+		if _, err := os.Stat(filepath.Join(repoPaths.WorktreePath(), ".git")); err != nil {
+			env.SetGitDirEnv(repoPaths.WorktreeGitDirPath())
+		}
 	}
 
 	err = os.Chdir(repoPaths.WorktreePath())
