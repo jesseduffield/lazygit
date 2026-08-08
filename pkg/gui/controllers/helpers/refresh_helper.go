@@ -1305,7 +1305,8 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 				// process working directory, which may already point at another
 				// repo if the user switched while this refresh was in flight.
 				hasConflicts, err := mergeconflicts.FileHasConflictMarkers(
-					filepath.Join(env.git.RepoPaths.WorktreePath(), file.Path))
+					filepath.Join(env.git.RepoPaths.WorktreePath(), file.Path),
+					file.ConflictMarkerSize)
 				if err != nil {
 					self.c.Log.Error(err)
 				} else if !hasConflicts {
