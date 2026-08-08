@@ -7,6 +7,7 @@ type VimMode int
 const (
 	VimModeInsert VimMode = iota
 	VimModeNormal
+	VimModeVisual
 )
 
 // VimRegister is the yank/delete buffer. It is separate from TextArea's
@@ -51,14 +52,15 @@ type VimEditor struct {
 	allowMultiline bool
 	register       *VimRegister
 
-	mode     VimMode
-	count    int
-	opCount  int
-	op       string
-	pending  string
-	lastFind vimFind
-	undo     []vimSnapshot
-	redo     []vimSnapshot
+	mode         VimMode
+	count        int
+	opCount      int
+	op           string
+	pending      string
+	lastFind     vimFind
+	visualAnchor int
+	undo         []vimSnapshot
+	redo         []vimSnapshot
 }
 
 func NewVimEditor(register *VimRegister, allowMultiline bool) *VimEditor {
@@ -91,6 +93,7 @@ func (self *VimEditor) HandleEscape(v *View) bool {
 	if !self.escape(v.TextArea) {
 		return false
 	}
+	self.syncSelection(v)
 	v.RenderTextArea()
 	return true
 }
@@ -98,6 +101,12 @@ func (self *VimEditor) HandleEscape(v *View) bool {
 func (self *VimEditor) escape(ta *TextArea) bool {
 	if self.mode == VimModeInsert {
 		self.enterNormalMode(ta)
+		return true
+	}
+	if self.mode == VimModeVisual {
+		self.mode = VimModeNormal
+		self.clearPending()
+		self.clampCursor(ta)
 		return true
 	}
 	if self.op != "" || self.count != 0 || self.pending != "" {
@@ -119,9 +128,27 @@ func (self *VimEditor) Edit(v *View, key Key) bool {
 
 	handled := self.normalKey(v.TextArea, key)
 	if handled {
+		self.syncSelection(v)
 		v.RenderTextArea()
 	}
 	return handled
+}
+
+func (self *VimEditor) syncSelection(v *View) {
+	if self.mode != VimModeVisual {
+		v.SetVimSelection(nil)
+		return
+	}
+	start, end := self.visualRange(v.TextArea)
+	v.SetVimSelection(v.TextArea.selectionPositions(start, end))
+}
+
+func (self *VimEditor) visualRange(ta *TextArea) (int, int) {
+	start, end := self.visualAnchor, ta.cursor
+	if end < start {
+		start, end = end, start
+	}
+	return start, ta.nextGraphemeStart(end)
 }
 
 func (self *VimEditor) normalKey(ta *TextArea, key Key) bool {
@@ -180,6 +207,11 @@ func (self *VimEditor) normalChar(ta *TextArea, ch string) {
 		return
 	}
 
+	if self.mode == VimModeVisual {
+		self.visualChar(ta, ch)
+		return
+	}
+
 	switch ch {
 	case "d", "c", "y":
 		self.startOperator(ta, ch)
@@ -209,6 +241,37 @@ func (self *VimEditor) normalChar(ta *TextArea, ch string) {
 	}
 
 	self.command(ta, ch)
+}
+
+// visualChar handles one visual-mode key: operators act on the selection,
+// motions move its free end, everything else is swallowed.
+func (self *VimEditor) visualChar(ta *TextArea, ch string) {
+	switch ch {
+	case "v":
+		self.mode = VimModeNormal
+		self.clearPending()
+		self.clampCursor(ta)
+	case "o":
+		self.visualAnchor, ta.cursor = ta.cursor, self.visualAnchor
+	case "d", "x", "c", "s", "y":
+		op := ch
+		switch ch {
+		case "x":
+			op = "d"
+		case "s":
+			op = "c"
+		}
+		start, end := self.visualRange(ta)
+		self.mode = VimModeNormal
+		self.op = op
+		self.applyRange(ta, start, end)
+	case "g", "f", "F", "t", "T":
+		self.pending = ch
+	default:
+		if !self.motion(ta, ch) {
+			self.clearPending()
+		}
+	}
 }
 
 func (self *VimEditor) motion(ta *TextArea, ch string) bool {
@@ -538,6 +601,9 @@ func (self *VimEditor) command(ta *TextArea, ch string) {
 		self.op = "y"
 		line := ta.vimLineNumber(ta.cursor)
 		self.applyLinewise(ta, line, line+n-1)
+	case "v":
+		self.visualAnchor = ta.cursor
+		self.mode = VimModeVisual
 	case "p":
 		self.paste(ta, true, n)
 	case "P":

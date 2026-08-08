@@ -66,6 +66,10 @@ type View struct {
 	// the location of the hyperlink that the mouse is currently hovering over; nil if none
 	hoveredHyperlink *SearchPosition
 
+	// character ranges to render reverse-video, used by VimEditor's visual
+	// mode; same coordinate conventions as searcher.searchPositions
+	vimSelection []SearchPosition
+
 	// internal representation of the view's buffer. We will keep viewLines around
 	// from a previous render until we explicitly set them to nil, allowing us to
 	// render the same content twice without flicker. Wherever we want to render
@@ -657,6 +661,10 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute) {
 		} else {
 			bgColor = ColorYellow
 		}
+	}
+
+	if v.isVimSelectedRune(x, y) {
+		fgColor |= AttrReverse
 	}
 
 	if v.isHoveredHyperlink(x, y) {
@@ -1499,6 +1507,21 @@ func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
 		}
 	}
 	return false, false
+}
+
+func (v *View) SetVimSelection(positions []SearchPosition) {
+	v.vimSelection = positions
+}
+
+func (v *View) isVimSelectedRune(x, y int) bool {
+	for _, pos := range v.vimSelection {
+		adjustedY := y + v.oy
+		adjustedX := x + v.ox
+		if adjustedY == pos.Y && adjustedX >= pos.XStart && adjustedX < pos.XEnd {
+			return true
+		}
+	}
+	return false
 }
 
 func (v *View) isHoveredHyperlink(x, y int) bool {

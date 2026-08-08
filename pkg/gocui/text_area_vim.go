@@ -324,6 +324,31 @@ func (self *TextArea) replaceGraphemeAt(cursor int, ch string) {
 	self.updateCells()
 }
 
+// selectionPositions maps a content range to rendered cell runs, in the
+// same coordinate convention as searcher.searchPositions (XEnd exclusive,
+// Y relative to the first content line).
+func (self *TextArea) selectionPositions(start, end int) []SearchPosition {
+	result := []SearchPosition{}
+	for i, cell := range self.cells {
+		if cell.char == "\n" && self.isSoftLineBreak(i) {
+			continue
+		}
+		if cell.contentIndex < start || cell.contentIndex >= end {
+			continue
+		}
+		// a zero-width cell still occupies one highlighted column; in
+		// particular a selected hard newline renders as one cell at the
+		// line's end, like vim's visual mode
+		width := max(cell.width, 1)
+		if last := len(result) - 1; last >= 0 && result[last].Y == cell.y && result[last].XEnd == cell.x {
+			result[last].XEnd = cell.x + width
+		} else {
+			result = append(result, SearchPosition{XStart: cell.x, XEnd: cell.x + width, Y: cell.y})
+		}
+	}
+	return result
+}
+
 func (self *TextArea) setState(content string, cursor int) {
 	self.content = content
 	self.updateCells()

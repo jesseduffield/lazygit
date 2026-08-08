@@ -120,6 +120,67 @@ func TestVimEditorCommands(t *testing.T) {
 	}
 }
 
+func TestVimEditorVisual(t *testing.T) {
+	tests := []struct {
+		content         string
+		cursor          int
+		keys            string
+		expectedContent string
+		expectedCursor  int
+	}{
+		{"foo bar", 0, "ved", " bar", 0},
+		{"foo bar", 0, "vex", " bar", 0},
+		{"foo bar", 0, "vwd", "ar", 0},
+		{"foo bar", 0, "v$d", "", 0},
+		{"foo bar", 4, "v" + esc + "x", "foo ar", 4},
+		{"foo bar", 2, "vod", "fo bar", 2},
+		{"foo bar", 2, "vhod", "f bar", 1},
+		{"foo bar", 0, "vecme" + esc, "me bar", 1},
+		{"foo bar", 0, "vfad", "r", 0},
+		{"a\nb\nc", 0, "vGd", "", 0},
+		{"foo", 1, "vp", "foo", 1},
+	}
+
+	for i, test := range tests {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			editor, ta := newVimFixture(test.content, test.cursor, true)
+			runVimKeys(editor, ta, test.keys)
+			assert.Equal(t, test.expectedContent, ta.GetUnwrappedContent())
+			assert.Equal(t, test.expectedCursor, ta.cursor)
+		})
+	}
+}
+
+func TestVimEditorVisualYank(t *testing.T) {
+	editor, ta := newVimFixture("foo bar", 0, true)
+	runVimKeys(editor, ta, "vey")
+	assert.Equal(t, VimModeNormal, editor.mode)
+	assert.Equal(t, "foo", editor.register.text)
+	assert.Equal(t, 0, ta.cursor)
+}
+
+func TestVimEditorVisualModeTransitions(t *testing.T) {
+	editor, ta := newVimFixture("foo", 0, true)
+	runVimKeys(editor, ta, "v")
+	assert.Equal(t, VimModeVisual, editor.mode)
+	runVimKeys(editor, ta, "v")
+	assert.Equal(t, VimModeNormal, editor.mode)
+	runVimKeys(editor, ta, "v")
+	assert.True(t, editor.escape(ta))
+	assert.Equal(t, VimModeNormal, editor.mode)
+}
+
+func TestVimSelectionPositions(t *testing.T) {
+	ta := makeTextArea("foo\nbar", 0)
+	assert.Equal(t,
+		[]SearchPosition{{XStart: 1, XEnd: 4, Y: 0}, {XStart: 0, XEnd: 2, Y: 1}},
+		ta.selectionPositions(1, 6))
+	assert.Equal(t,
+		[]SearchPosition{{XStart: 0, XEnd: 2, Y: 0}},
+		ta.selectionPositions(0, 2))
+	assert.Empty(t, ta.selectionPositions(3, 3))
+}
+
 func TestVimEditorRedo(t *testing.T) {
 	editor, ta := newVimFixture("foo bar", 0, true)
 	runVimKeys(editor, ta, "dwu")
