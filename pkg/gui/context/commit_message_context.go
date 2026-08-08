@@ -164,13 +164,17 @@ func (self *CommitMessageContext) SetPanelState(
 	self.GetView().Title = summaryTitle
 	self.c.Views().CommitDescription.Title = descriptionTitle
 
+	self.RenderDescriptionSubtitle()
+
+	self.c.Views().CommitDescription.Visible = true
+}
+
+func (self *CommitMessageContext) RenderDescriptionSubtitle() {
 	self.c.Views().CommitDescription.Subtitle = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionSubTitle,
 		map[string]string{
 			"togglePanelKeyBinding": self.c.UserConfig().Keybinding.Universal.TogglePanel.String(),
 			"commitMenuKeybinding":  self.c.UserConfig().Keybinding.CommitMessage.CommitMenu.String(),
 		})
-
-	self.c.Views().CommitDescription.Visible = true
 }
 
 func (self *CommitMessageContext) RenderSubtitle() {
