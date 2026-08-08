@@ -2098,6 +2098,9 @@ func (v *View) onMouseMove(x int, y int) {
 		return
 	}
 
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	// newCx and newCy are relative to the view port, i.e. to the visible area of the view
 	newCx := x - v.x0 - 1
 	newCy := y - v.y0 - 1
@@ -2119,6 +2122,9 @@ func (v *View) onMouseMove(x int, y int) {
 // hyperlinkAt returns the hyperlink at the given position of the view's
 // content, or an empty string if there is none.
 func (v *View) hyperlinkAt(x, y int) string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	if y < 0 || y >= len(v.viewLines) || x < 0 || x >= len(v.viewLines[y].line) {
 		return ""
 	}
