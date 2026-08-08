@@ -109,16 +109,16 @@ func TestGetRepoPaths(t *testing.T) {
 			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
 				worktreePath:       `C:\path\to\repo`,
 				worktreeGitDirPath: `C:\path\to\bare_repo\bare.git`,
-				repoPath:           `C:\path\to\bare_repo`,
+				repoPath:           `C:\path\to\repo`,
 				repoGitDirPath:     `C:\path\to\bare_repo\bare.git`,
-				repoName:           `bare_repo`,
+				repoName:           `repo`,
 				isBareRepo:         true,
 			}, &RepoPaths{
 				worktreePath:       "/path/to/repo",
 				worktreeGitDirPath: "/path/to/bare_repo/bare.git",
-				repoPath:           "/path/to/bare_repo",
+				repoPath:           "/path/to/repo",
 				repoGitDirPath:     "/path/to/bare_repo/bare.git",
-				repoName:           "bare_repo",
+				repoName:           "repo",
 				isBareRepo:         true,
 			}),
 			Err: nil,
@@ -159,28 +159,16 @@ func TestGetRepoPaths(t *testing.T) {
 			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
 				worktreePath:       `C:\path\to\worktree`,
 				worktreeGitDirPath: `C:\path\to\repo\.git`,
-				/* EXPECTED:
 				repoPath:           `C:\path\to\worktree`,
-				ACTUAL: */
-				repoPath:           `C:\path\to\repo`,
 				repoGitDirPath:     `C:\path\to\repo\.git`,
-				/* EXPECTED:
 				repoName:           `worktree`,
-				ACTUAL: */
-				repoName:           `repo`,
 				isBareRepo:         false,
 			}, &RepoPaths{
 				worktreePath:       "/path/to/worktree",
 				worktreeGitDirPath: "/path/to/repo/.git",
-				/* EXPECTED:
 				repoPath:           "/path/to/worktree",
-				ACTUAL: */
-				repoPath:           "/path/to/repo",
 				repoGitDirPath:     "/path/to/repo/.git",
-				/* EXPECTED:
 				repoName:           "worktree",
-				ACTUAL: */
-				repoName:           "repo",
 				isBareRepo:         false,
 			}),
 			Err: nil,

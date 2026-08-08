@@ -95,15 +95,30 @@ func GetRepoPathsForDir(
 	repoGitDirPath := gitDirResults[2]
 	isBareRepo := gitDirResults[3] == "true"
 
-	// If we're in a submodule, --show-superproject-working-tree will return
-	// a value, meaning gitDirResults will be length 5. In that case
-	// return the worktree path as the repoPath. Otherwise we're in a
-	// normal repo or a worktree so return the parent of the git common
-	// dir (repoGitDirPath)
+	// A worktree that has the repo's common git dir to itself is the repo's main
+	// worktree, so it is the repoPath. That holds for a submodule as well: its
+	// git dir lives under the superproject's .git/modules, but it is still the
+	// submodule's own common dir.
+	isMainWorktree := worktreeGitDirPath == repoGitDirPath
+
+	// If we're in a submodule, --show-superproject-working-tree will return a
+	// value, meaning gitDirResults will be length 5. That only tells us anything
+	// new for a linked worktree of a submodule, which isMainWorktree misses.
 	isSubmodule := len(gitDirResults) == 5
 
+	// Otherwise we're in a linked worktree, and the repoPath is the repo's main
+	// worktree. git won't tell us where that is: `git worktree list` reports it
+	// as the common git dir with a trailing "/.git" removed, which is this same
+	// derivation. So take the directory holding the common git dir. That is the
+	// main worktree of an ordinary repo, and of a bare one it is the directory
+	// its worktrees live in. It is not the main worktree of a repo that moved
+	// that elsewhere with core.worktree; there we end up naming the git dir's
+	// directory, which means that the repo name we display in the status panel
+	// isn't correct, and we start looking for .lazygit.yml in the wrong place.
+	// Both of those are not severe enough to justify the extra git call to get
+	// the real main worktree, so we accept this for this rather niche use case.
 	var repoPath string
-	if isSubmodule {
+	if isMainWorktree || isSubmodule {
 		repoPath = worktreePath
 	} else {
 		repoPath = filepath.Dir(repoGitDirPath)
