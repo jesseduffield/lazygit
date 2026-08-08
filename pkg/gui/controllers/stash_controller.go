@@ -251,7 +251,6 @@ func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntr
 				return err
 			}
 			self.context().SetSelection(0) // Select the renamed stash
-			self.context().FocusLine(true)
 			// Renaming re-creates the stash at the top, shifting the other
 			// entries' indices; block input so that a quick next action sees
 			// the refreshed list rather than the stale indices.
