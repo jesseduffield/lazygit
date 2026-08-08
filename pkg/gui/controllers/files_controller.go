@@ -1508,13 +1508,20 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 	self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.StashChanges,
 		HandleConfirm: func(stashComment string) error {
-			self.c.LogAction(action)
+			return self.c.WithWaitingStatusBlockingInput(
+				types.WaitingStatusOpts{Message: self.c.Tr.StashingStatus},
+				func(gocui.Task) error {
+					self.c.LogAction(action)
 
-			if err := stashFunc(stashComment); err != nil {
-				return err
-			}
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
-			return nil
+					if err := stashFunc(stashComment); err != nil {
+						return err
+					}
+					self.c.RefreshFromWorker(types.RefreshOptions{
+						BatchUIUpdates: true,
+						Scope:          []types.RefreshableView{types.STASH, types.FILES},
+					})
+					return nil
+				})
 		},
 		AllowEmptyInput: true,
 	})
