@@ -500,6 +500,7 @@ var tests = []*components.IntegrationTest{
 	ui.BranchesNotFirstTab,
 	ui.CommitsNotFirstTab,
 	ui.DisableSwitchTabWithPanelJumpKeys,
+	ui.DragBeyondViewport,
 	ui.EmptyMenu,
 	ui.HideSidePanel,
 	ui.KeybindingSuggestionsDontCrashOnDisabledBindings,
