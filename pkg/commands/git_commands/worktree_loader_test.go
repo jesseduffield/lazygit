@@ -193,6 +193,48 @@ branch refs/heads/mybranch-worktree
 			expectedErr: "",
 		},
 		{
+			testName: "In a submodule",
+			repoPaths: &RepoPaths{
+				repoPath:           "/path/to/repo/mysubmodule",
+				worktreePath:       "/path/to/repo/mysubmodule",
+				repoGitDirPath:     "/path/to/repo/.git/modules/mysubmodule",
+				worktreeGitDirPath: "/path/to/repo/.git/modules/mysubmodule",
+			},
+			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
+				// A submodule's git dir doesn't live inside its working tree, and
+				// `git worktree list` reports the git dir rather than the working
+				// tree it belongs to.
+				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
+					`worktree /path/to/repo/.git/modules/mysubmodule
+HEAD d85cc9d281fa6ae1665c68365fc70e75e82a042d
+branch refs/heads/mybranch
+`,
+					nil)
+
+				gitArgs := append(append([]string{"-C", "/path/to/repo/.git/modules/mysubmodule"}, getRevParseArgs()...), "--absolute-git-dir")
+				runner.ExpectGitArgs(gitArgs, "/path/to/repo/.git/modules/mysubmodule", nil)
+
+				_ = fs.MkdirAll("/path/to/repo/.git/modules/mysubmodule", 0o755)
+			},
+			expectedWorktrees: []*models.Worktree{
+				{
+					/* EXPECTED:
+					IsMain:        true,
+					IsCurrent:     true,
+					ACTUAL: */
+					IsMain:        false,
+					IsCurrent:     false,
+					Path:          "/path/to/repo/.git/modules/mysubmodule",
+					IsPathMissing: false,
+					GitDir:        "/path/to/repo/.git/modules/mysubmodule",
+					Branch:        "mybranch",
+					Head:          "d85cc9d281fa6ae1665c68365fc70e75e82a042d",
+					Name:          "mysubmodule",
+				},
+			},
+			expectedErr: "",
+		},
+		{
 			testName: "Detached HEAD worktree",
 			repoPaths: &RepoPaths{
 				repoPath:           "/path/to/repo",
