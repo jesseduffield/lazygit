@@ -135,16 +135,6 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Prompt.Editable = true
 	gui.Views.Prompt.Editor = gocui.EditorFunc(gui.promptEditor)
 
-	if gui.UserConfig().Gui.VimStyleEditing {
-		// one register shared across the editors so text can be yanked in
-		// one view and pasted in another
-		register := &gocui.VimRegister{}
-		gui.Views.CommitMessage.AttachVimEditor(register, false)
-		gui.Views.CommitDescription.AttachVimEditor(register, true)
-		gui.Views.Prompt.AttachVimEditor(register, false)
-		gui.Views.Search.AttachVimEditor(register, false)
-	}
-
 	gui.Views.Suggestions.Visible = false
 
 	gui.Views.Menu.Visible = false
@@ -281,4 +271,36 @@ func (gui *Gui) configureViewProperties() {
 		view.Tabs = vt.tabs
 		view.TabIndex = vt.index
 	}
+
+	gui.syncVimEditors()
+}
+
+// Called on every user config (re)load, so toggling gui.vimStyleEditing
+// takes effect without restarting.
+func (gui *Gui) syncVimEditors() {
+	editableViews := []*gocui.View{
+		gui.Views.CommitMessage,
+		gui.Views.CommitDescription,
+		gui.Views.Prompt,
+		gui.Views.Search,
+	}
+
+	if !gui.c.UserConfig().Gui.VimStyleEditing {
+		for _, view := range editableViews {
+			view.DetachVimEditor()
+		}
+		return
+	}
+
+	if gui.Views.CommitMessage.VimEditor() != nil {
+		return
+	}
+
+	// one register shared across the editors so text can be yanked in one
+	// view and pasted in another
+	register := &gocui.VimRegister{}
+	gui.Views.CommitMessage.AttachVimEditor(register, false)
+	gui.Views.CommitDescription.AttachVimEditor(register, true)
+	gui.Views.Prompt.AttachVimEditor(register, false)
+	gui.Views.Search.AttachVimEditor(register, false)
 }

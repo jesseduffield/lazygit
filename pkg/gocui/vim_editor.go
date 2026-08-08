@@ -781,6 +781,11 @@ func (v *View) VimEditor() *VimEditor {
 	return v.vimEditor
 }
 
+func (v *View) DetachVimEditor() {
+	v.vimEditor = nil
+	v.SetVimSelection(nil)
+}
+
 // ResetVimEditor puts an attached vim editor back into the given mode and
 // clears any visual selection; panels reuse their views, so this must be
 // called whenever a panel opens. No-op when no editor is attached.
