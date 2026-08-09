@@ -180,6 +180,39 @@ type DiffableContext interface {
 	RefForAdjustingLineNumberInDiff() string
 }
 
+// DiffMainViewContext is implemented by the side panel contexts whose focused
+// main view shows a unified diff — files, local commits, sub-commits, reflog,
+// stash, and commit files — as opposed to a commit log or other non-diff content
+// (branches, tags, status, …). It is distinct from DiffableContext, which is
+// about producing a diff between two refs for the diff menu. The focused main
+// view shows a selection only for a context that implements this: a selection is
+// only meaningful where there are diff lines to act on (edit one, copy some, jump
+// by hunk or file). The returned type additionally classifies what acting on that
+// selection means.
+type DiffMainViewContext interface {
+	Context
+
+	GetDiffMainViewType() DiffMainViewType
+}
+
+// DiffMainViewType classifies what the focused main view's diff belongs to, which
+// decides what acting on a selection in it means.
+type DiffMainViewType int
+
+const (
+	// DiffMainViewTypeNone: the main view holds no diff, so there is nothing to
+	// select. A side panel that doesn't implement DiffMainViewContext counts as
+	// this; no panel returns it itself.
+	DiffMainViewTypeNone DiffMainViewType = iota
+	// DiffMainViewTypeStaging: the diff is the working tree's, so the selection can
+	// be staged or unstaged (the files panel).
+	DiffMainViewTypeStaging
+	// DiffMainViewTypePatchBuilding: the diff belongs to a commit, so the selection
+	// can be taken into a custom patch (the commit files / commits / sub-commits /
+	// reflog / stash panels).
+	DiffMainViewTypePatchBuilding
+)
+
 type IListContext interface {
 	Context
 
