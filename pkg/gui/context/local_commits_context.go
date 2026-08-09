@@ -31,10 +31,15 @@ type commitDropIndicator struct {
 }
 
 var (
-	_ types.IListContext       = (*LocalCommitsContext)(nil)
-	_ types.DiffableContext    = (*LocalCommitsContext)(nil)
-	_ types.ISearchableContext = (*LocalCommitsContext)(nil)
+	_ types.IListContext        = (*LocalCommitsContext)(nil)
+	_ types.DiffableContext     = (*LocalCommitsContext)(nil)
+	_ types.ISearchableContext  = (*LocalCommitsContext)(nil)
+	_ types.DiffMainViewContext = (*LocalCommitsContext)(nil)
 )
+
+func (self *LocalCommitsContext) GetDiffMainViewType() types.DiffMainViewType {
+	return types.DiffMainViewTypePatchBuilding
+}
 
 func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	dropIndicator := &commitDropIndicator{insertionIndex: -1}
