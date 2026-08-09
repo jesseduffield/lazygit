@@ -204,6 +204,61 @@ func TestViewLinesTruncatedByShorterRender(t *testing.T) {
 	assert.Equal(t, []string{"aaa", "bbb", "ccc"}, v.ViewBufferLines())
 }
 
+func TestBufferLineForViewLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// Buffer line 0 is short (view line 0); buffer line 1 wraps into three view
+	// lines (1, 2, 3); buffer line 2 is short again (view line 4).
+	v.writeString("short\n" + strings.Repeat("b", 27) + "\nlast")
+
+	for viewLine, wantBufferLine := range []int{0, 1, 1, 1, 2} {
+		bufferLine, ok := v.BufferLineForViewLine(viewLine)
+		assert.True(t, ok)
+		assert.Equal(t, wantBufferLine, bufferLine)
+	}
+
+	_, ok := v.BufferLineForViewLine(5)
+	assert.False(t, ok)
+
+	_, ok = v.BufferLineForViewLine(-1)
+	assert.False(t, ok)
+}
+
+func TestViewLineForBufferLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// A wrapped buffer line maps to the first of the view lines it spans.
+	v.writeString("short\n" + strings.Repeat("b", 27) + "\nlast")
+
+	for bufferLine, wantViewLine := range []int{0, 1, 4} {
+		viewLine, ok := v.ViewLineForBufferLine(bufferLine)
+		assert.True(t, ok)
+		assert.Equal(t, wantViewLine, viewLine)
+	}
+
+	_, ok := v.ViewLineForBufferLine(3)
+	assert.False(t, ok)
+}
+
+func TestLastViewLineForBufferLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// A wrapped buffer line maps to the last of the view lines it spans.
+	v.writeString("short\n" + strings.Repeat("b", 27) + "\nlast")
+
+	for bufferLine, wantViewLine := range []int{0, 3, 4} {
+		viewLine, ok := v.LastViewLineForBufferLine(bufferLine)
+		assert.True(t, ok)
+		assert.Equal(t, wantViewLine, viewLine)
+	}
+
+	_, ok := v.LastViewLineForBufferLine(3)
+	assert.False(t, ok)
+}
+
 // While an async re-render loads, it swaps in only a partially-filled buffer at
 // its first paint and keeps appending lines afterwards. The scrollbar must keep
 // using the pre-load height until the load ends, so the thumb doesn't shrink and
