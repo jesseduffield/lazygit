@@ -101,6 +101,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | Przełącz zaznaczenie zakresu |  |
+| `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
 | `` <left>, h `` | Idź do poprzedniego fragmentu |  |
 | `` <right>, l `` | Idź do następnego fragmentu |  |
 | `` N `` | Go to previous file |  |
@@ -209,6 +210,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | Przełącz zaznaczenie zakresu |  |
+| `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
 | `` <left>, h `` | Idź do poprzedniego fragmentu |  |
 | `` <right>, l `` | Idź do następnego fragmentu |  |
 | `` N `` | Go to previous file |  |
