@@ -33,7 +33,7 @@ func (self *DiffLineHelper) GetDiffLineInfo(view *gocui.View, viewLineIdx int) (
 		return types.DiffLineInfo{}, false
 	}
 
-	parsed, ok := parseDiffLineFromBuffer(view.BufferLines(), bufferLineIdx)
+	parsed, ok := parseDiffLineFromBuffer(diffLineTexts(view.DiffLineContents()), bufferLineIdx)
 	if !ok {
 		return types.DiffLineInfo{}, false
 	}
