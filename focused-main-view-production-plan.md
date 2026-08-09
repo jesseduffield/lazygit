@@ -139,7 +139,7 @@ The branch contains superseded/reverted work. Do not transcribe any of these
 | `backUpOverHeader` file-nav landing | land on the first located row; f/h header records make headers resolvable ("Parse the f/h header records…", af98be48d) |
 | "Pager" naming in identifiers, strings, docs | "diff renderer" (§1 terminology; the config rename landed on master as #5870) |
 | OSC number `456`, env vars `EMIT_OSC1717_METADATA`/`OSC1717_METADATA` | OSC **1717**, env var **`OSC1717`** (final rename, 665149b11) |
-| The in-repo spec file | the spec lives on the `osc-1717-spec` branch / worktree (fe3c5ac21) |
+| The in-repo spec file | the spec lives in its own repo, <https://github.com/stefanhaller/diff-line-metadata-spec> (`~/git-repos/diff-line-metadata-spec`); it was briefly on an `osc-1717-spec` branch in between, so notes naming that branch are stale too |
 | Session-notes commits, `.claude/settings.json` commits, WIP commits | n/a |
 
 ## 4. The PR stack (overview)
@@ -528,7 +528,8 @@ prototype is already adapted to the new config and manager names.
 Reads the protocol; sets the env var so conforming renderers emit. No
 consumer behavior changes yet (consumers land in PRs 5–8), but the PR is the
 public face of the protocol on the lazygit side — write the description for
-diff-renderer authors, link the spec (osc-1717-spec branch).
+diff-renderer authors, link the spec
+(<https://github.com/stefanhaller/diff-line-metadata-spec>).
 
 Commits:
 
@@ -1231,20 +1232,31 @@ The remaining rows are agreed as keep/defer:
    tests use fake shell commands, which can imitate a record stream but not
    difftastic's actual reordering and collapsing — the shapes that broke the
    secondary-pane removal (§8). Requiring delta/difftastic on `PATH` needs no
-   harness change: `PATH`/`TERM` are already inherited from the host
-   environment, and `Skip` is a plain field, so `Skip: !onPath("delta")`
-   computed at package init works (`ShouldRunForGitVersion` is the precedent
-   for environment-conditional tests). Three conditions make or break it:
-   assert on **behavior after a gesture** (navigate with `<right>`/`n`, then
-   check what got staged) rather than on rendered text or absolute view-line
-   indices, or every renderer release breaks the suite; a **silent skip must
-   not be the CI default** — an env var that turns "renderer missing" into a
-   failure, set on CI only; and CI needs the patched renderers from a
-   **public** source **pinned to a commit**, which is blocked until the
-   emitter branches are pushed. Keep the fake-renderer tests either way: they
-   cover the protocol shapes no real renderer emits on demand (the handshake,
-   header records, records covering no cell). Cheapest sequencing is a small
-   standalone harness helper when PR 7 starts, not folded into a feature PR.
+   harness change to *reach* them: `PATH`/`TERM` are already inherited from
+   the host environment. Decisions taken with the user:
+   - **A missing renderer is a hard failure, locally and on CI** — not a
+     skip. So no `Skip:` gating; the failure message should name the binary
+     and how to install it, since other contributors run `just e2e` too.
+   - **Asserting on the renderer's rendered text is fine.** Updating tests
+     when a renderer changes its output is ordinary maintenance, no different
+     from lazygit's own panel-content tests. The real obstacle is **color**:
+     delta's default and diff-so-fancy convey the +/- side by color alone, so
+     color-stripped text can't distinguish an addition from a deletion, and
+     the assertion reads as nonsense. The harness's `ContainsColoredText`
+     matches **foreground only**, while delta marks the side by
+     **background** — so either configure the renderer for legibility in the
+     test (delta's `--keep-plus-minus-markers`; difftastic has no equivalent),
+     or extend the harness with a background-color matcher, or assert on what
+     got staged instead. Decide per renderer.
+   - **CI install is unblocked**: all three emitters are open draft PRs
+     (delta 2181, difftastic 1014, diff-so-fancy 538 — see the spec repo's
+     §10). Pin to a commit so "the emitter changed" can't look like "lazygit
+     broke"; cache the cargo builds on that pin.
+
+   Keep the fake-renderer tests either way: they cover the protocol shapes no
+   real renderer emits on demand (the handshake, header records, records
+   covering no cell). Cheapest sequencing is a small standalone harness helper
+   when PR 7 starts, not folded into a feature PR.
 9. ~~**PR 7:** how should `rawGit` entries with restructuring args decide
    the raw fallback?~~ Resolved 2026-08-07: probe them like any other
    renderer, since git announces itself for exactly the formats it
