@@ -179,13 +179,19 @@ pointer, several buffer accessors gained locks. The prototype commits are
 rebased on top of all that and are the authoritative shapes, but a fix may
 have been absorbed or may need reshaping; check before porting.
 
-**Status: IMPLEMENTED 2026-08-08** on branch `fix-async-diff-rendering`,
-branched off `fold-staging-into-main-view` (= the tip of
-`scroll-selection-into-view`, not master, at the user's request — that branch
-would conflict and is merging to master soon). 13 commits (the 11 planned
-below, plus two extra prep/demonstrate commits, see the deviations). `just
-build`, `just unit-test`, `just lint`, `just e2e` all green. **Interactive
-sign-off still outstanding** (§6 row 1).
+**Status: IMPLEMENTED 2026-08-08/09** on branch `fix-async-diff-rendering`.
+15 commits: the 11 planned below, two extra prep/demonstrate commits, an
+`amend!` for the regression found in interactive testing, and the
+`FlushStaleCells` removal. `just build`, `just unit-test`, `just lint`,
+`just e2e` all green. **Interactive sign-off still outstanding** (§6 row 1) —
+one round of it has happened and found one regression, fixed.
+
+The branch base is **not master**: at the user's request the stack sits on
+`fold-staging-into-main-view` (= the tip of `scroll-selection-into-view`),
+which touches the same scroll code and merges to master soon. Since
+2026-08-09 there is one branch below it: `fix-task-key-race`, an unrelated
+data-race fix found during this work (see "Found and fixed alongside"), kept
+separate so it can merge to master on its own.
 
 Commits (in order):
 
@@ -246,6 +252,9 @@ Commits (in order):
 11. **Reset the scroll to the top at first paint, not when the task starts** —
     with the off-screen render the old content stays visible until the swap;
     resetting oy at task start made it jump first. Ref: 411681502. ✅
+    (+ an `amend!`: the pending reset has to outlive the task, see deviation 8)
+12. *(added)* **Drop `FlushStaleCells`, which no longer has anything to
+    flush** — see "Found but not fixed", now fixed. ✅
 
 Notes:
 - If commit 9's stale-tail test needs `BufferLineForViewLine`, introduce that
@@ -305,18 +314,37 @@ Notes:
    between them shows the new content at the previous render's scroll — the
    N§20.5 failure mode. `firstPaint` itself is therefore unwrapped and each
    call site wraps it (EOF already did).
+8. **The pending origin reset outlives its task** (`amend!` on commit 11,
+   2026-08-09). Deferring the reset to the first paint made it die with a task
+   that was replaced before it ever painted. Found interactively, and only in a
+   **VS Code terminal**: VS Code delivers the focus-in event before the click,
+   the focus handler's `Refresh` does its git work on a worker, so its main-view
+   re-render lands *after* the click's — same command key, so it decides on no
+   reset of its own, and it stops the click's task before its first paint. (Zed
+   delivers the click first, so that task paints and the bug never shows.) Fixed
+   by making the reset a `resetOriginPending` flag on the manager, set by
+   `NewTask` and consumed by whichever first paint gets there;
+   `TaskOpts.ResetOrigin` is gone again, so **deviation 6's PR 6 note no longer
+   applies** — a restore just needs to win over the pending flag. Guarded by
+   `TestResetOriginSurvivesTaskReplacement`, which passes on commit 10, fails on
+   commit 11 as first written, and passes with the fix — so it can be split out
+   as a preparatory commit before commit 11 if you want it guarding that commit
+   under bisect.
 
-#### Found but not fixed (raise before PR 2 if you want it in this stack)
+#### Found and fixed alongside
 
-- **`GetTaskKey()` is an unsynchronized read of `taskKey`** (`tasks.go`), which
-  the `NewTask` goroutine writes under `taskIDMutex`. Pre-existing: master
-  already reads it from the UI thread at `tasks_adapter.go` ~98 and ~116 for
-  string renders. PR 1 does not add any new reader (see deviation 6), so this
-  is untouched, but it is a genuine data race that `-race` on the e2e suite
-  would eventually flag.
-- **`FlushStaleCells` is now redundant.** With `refreshViewLinesIfNeeded`
-  truncating, the `onEndOfInput` call to it only forces a full re-wrap of the
-  whole buffer. Harmless but wasteful on large diffs; the prototype kept it too.
+- **`GetTaskKey()` was an unsynchronized read of `taskKey`** (`tasks.go`), which
+  the `NewTask` goroutine writes under `taskIDMutex`, while the string renders
+  in `tasks_adapter.go` read it from the UI thread. Pre-existing on master and
+  unrelated to async rendering, so it went on its own branch,
+  `fix-task-key-race`, **below** this stack (2026-08-09) — a torn read of a
+  two-word string value can index out of bounds, so it is worth landing on
+  master without waiting for the stack. Rebased `fix-async-diff-rendering` onto
+  it; two trivial conflicts on the one line both branches touch.
+- **`FlushStaleCells` removed** (PR 1 commit 12). With
+  `refreshViewLinesIfNeeded` truncating, the `onEndOfInput` call to it only
+  forced a full re-wrap of the whole buffer. The prototype kept it; there is no
+  reason to.
 
 Interactive sign-off (user, `just debug` + `LAZYGIT_SLOW_RENDER` matrix):
 flicking through commits/files scrolled down; the 10 s auto-refresh with
@@ -1054,9 +1082,9 @@ The remaining rows are agreed as keep/defer:
 
 ## 10. Progress
 
-- [x] PR 1 — async render fixes — **implemented 2026-08-08** on branch
-      `fix-async-diff-rendering` (13 commits, all checks green); awaiting the
-      §6 interactive sign-off
+- [x] PR 1 — async render fixes — **implemented 2026-08-08/09** on branch
+      `fix-async-diff-rendering` (15 commits, all checks green), stacked on
+      `fix-task-key-race`; awaiting the rest of the §6 interactive sign-off
 - [ ] PR 2 — diff-line identity primitive
 - [x] PR 3 — rename pagers → diff renderers — **landed on master as #5870**
       (with a bigger config rework than planned; see the PR 3 section)
@@ -1074,6 +1102,14 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-09:** first interactive pass over PR 1 found one regression (the
+  scroll no longer reset when a VS Code terminal delivered focus-in before a
+  click); fixed as an `amend!`, see PR 1 deviation 8. Also removed
+  `FlushStaleCells` and split the `taskKey` data race out to its own branch
+  below the stack. **Standing rule from the user:** a data race discovered
+  during this work gets fixed right away, even a pre-existing or entirely
+  unrelated one — either as an extra commit or as a separate branch we rebase
+  onto, whichever suits.
 - **2026-08-08:** PR 1 implemented. The stack does **not** start from master:
   the user asked for it to be based on `fold-staging-into-main-view` (the tip
   of `scroll-selection-into-view`), which touches the same scroll code and is
