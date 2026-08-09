@@ -20,6 +20,10 @@ type escapeInterpreter struct {
 	instruction            instruction
 	hyperlink              strings.Builder
 
+	// the digits of the OSC number seen so far, while we don't yet know which
+	// OSC this is
+	oscNumber strings.Builder
+
 	// ConPTY emits cursor-positioning escapes (CUP) to skip over blank
 	// rows rather than emitting LFs for them. To convert those into row
 	// advances the view can act on, we track where in the pseudo-terminal
@@ -82,7 +86,6 @@ const (
 	stateParams
 	stateCSIDiscard
 	stateOSC
-	stateOSCWaitForParams
 	stateOSCParams
 	stateOSCHyperlink
 	stateOSCEndEscape
@@ -427,27 +430,38 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 		}
 		return true, nil
 	case stateOSC:
-		if characterEquals(ch, '8') {
-			ei.state = stateOSCWaitForParams
-			ei.hyperlink.Reset()
+		// Accumulate the OSC number until the ';' that terminates it, then
+		// dispatch on the whole number rather than on a single digit.
+		switch {
+		case len(ch) == 1 && ch[0] >= '0' && ch[0] <= '9':
+			ei.oscNumber.WriteByte(ch[0])
+			return true, nil
+		case characterEquals(ch, ';'):
+			if ei.oscNumber.String() == "8" {
+				ei.hyperlink.Reset()
+				ei.state = stateOSCParams
+			} else {
+				ei.state = stateOSCSkipUnknown
+			}
+			ei.oscNumber.Reset()
+			return true, nil
+		default:
+			// Not an OSC we understand — it has no number, or a character
+			// follows the number where the ';' should be. Rather than
+			// erroring, which would reset state mid-OSC and leak the rest of
+			// the sequence into the view as literal text, skip to its
+			// terminator, which this character may already be.
+			ei.oscNumber.Reset()
+			switch {
+			case characterEquals(ch, 0x07):
+				ei.state = stateNone
+			case characterEquals(ch, 0x1b):
+				ei.state = stateOSCEndEscape
+			default:
+				ei.state = stateOSCSkipUnknown
+			}
 			return true, nil
 		}
-
-		ei.state = stateOSCSkipUnknown
-		return true, nil
-	case stateOSCWaitForParams:
-		if !characterEquals(ch, ';') {
-			// Malformed OSC 8 (expected ';' after '8'). Rather than
-			// erroring — which would reset state mid-OSC and cause the
-			// rest of the sequence to leak as literal text — treat the
-			// whole OSC as one we don't understand and skip to its
-			// terminator.
-			ei.state = stateOSCSkipUnknown
-			return true, nil
-		}
-
-		ei.state = stateOSCParams
-		return true, nil
 	case stateOSCParams:
 		if characterEquals(ch, ';') {
 			ei.state = stateOSCHyperlink
