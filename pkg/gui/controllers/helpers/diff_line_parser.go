@@ -14,10 +14,10 @@ import (
 const diffFilePrefix = "diff --git "
 
 // parsedDiffLine is what the parser recovers about a row of a rendered diff.
-// RelPath is the path as the diff header spells it, i.e. relative to the repo
-// root; the caller turns it into the absolute path of types.DiffLineInfo.
+// Path is the path as the diff header spells it, i.e. relative to the repo root;
+// the caller turns it into the absolute path of types.DiffLineInfo.
 type parsedDiffLine struct {
-	RelPath string
+	Path    string
 	Type    types.DiffLineType
 	NewLine int
 	OldLine int
@@ -146,7 +146,7 @@ func parseFileSection(fileLines []string, endsTheBuffer bool) []bufferLineParse 
 			break
 		}
 		parsed := parsedDiffLine{
-			RelPath: relPath,
+			Path:    relPath,
 			Type:    diffLineTypeForKind(patchLines[i].Kind),
 			NewLine: p.LineNumberOfLine(i),
 		}
