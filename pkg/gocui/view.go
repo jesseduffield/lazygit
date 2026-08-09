@@ -1080,6 +1080,19 @@ func (b *viewBuffer) write(v *View, p []byte) {
 
 	finishLine := func() {
 		b.autoRenderHyperlinksInCurrentLine(v)
+		// A record that reached the line's end without covering a cell still
+		// belongs to the line: an orphan (see escapeInterpreter.orphanedMetadata),
+		// or the record of a changed line that is empty, which a renderer emits
+		// with nothing but the newline after it. Give each a cell of its own, so
+		// that the line is still recognizable as the diff line it renders rather
+		// than as nothing at all.
+		for _, payload := range b.ei.takeOrphanedMetadata() {
+			b.writeCells([]cell{{metadata: payload}})
+		}
+		if b.ei.metadata.Len() > 0 && !b.ei.metadataConsumed {
+			b.writeCells([]cell{{metadata: b.ei.metadata.String()}})
+			b.ei.metadataConsumed = true
+		}
 	}
 
 	advanceToNextLine := func() {
@@ -1236,6 +1249,15 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 	truncateLine := false
 
 	isEscape, err := b.ei.parseOne(ch)
+
+	// A record that the next one superseded before any cell took it still
+	// belongs to this line (see escapeInterpreter.orphanedMetadata); give each
+	// a cell of its own, in the order they were emitted, ahead of whatever this
+	// character produces.
+	for _, payload := range b.ei.takeOrphanedMetadata() {
+		cells = append(cells, cell{metadata: payload})
+	}
+
 	if err != nil {
 		for _, chr := range b.ei.characters() {
 			c := cell{
@@ -1262,7 +1284,7 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 				fg: b.ei.curFgColor,
 				bg: b.ei.curBgColor,
 			}
-			return truncateLine, []cell{}
+			return truncateLine, cells
 		} else if cf, ok := b.ei.instruction.(cursorForward); ok {
 			// emit `n` space cells under the parser-tracked SGR — used
 			// to materialize ConPTY's compressed runs of spaces (which
@@ -1272,8 +1294,12 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			ch = []byte{' '}
 			width = 1
 		} else if isEscape {
-			// do not output anything
-			return truncateLine, nil
+			// the escape itself outputs nothing, but any cells carrying an
+			// orphaned record still need writing
+			if len(cells) == 0 {
+				return truncateLine, nil
+			}
+			return truncateLine, cells
 		} else if characterEquals(ch, '\t') {
 			// fill tab-sized space
 			tabWidth := v.TabWidth
@@ -1291,6 +1317,9 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			metadata:  b.ei.metadata.String(),
 			chr:       string(ch),
 			width:     width,
+		}
+		if c.metadata != "" {
+			b.ei.metadataConsumed = true
 		}
 		for range repeatCount {
 			cells = append(cells, c)
