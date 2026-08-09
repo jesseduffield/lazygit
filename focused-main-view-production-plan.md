@@ -665,7 +665,7 @@ Commits:
    first, then `swapIn()`, then set origin/selection** — this ordering is a
    real invariant (reordering reintroduces flicker for buffer-parse; guarded
    by `TestNewCmdTaskRestore`, N§20.5); the origin reset is now the manager's
-   `resetOriginPending` flag rather than a per-render field, and a restore
+   `newContentPending` flag rather than a per-render field, and a restore
    takes precedence over it *and* clears it (PR 1 deviation 6);
    **not cleared when a task starts** (survives
    stop-and-replace by the periodic refresh), cleared in `Apply` (found or
@@ -1161,7 +1161,7 @@ Log:
   merging to master soon. Every later PR branches off its predecessor; nothing
   is pushed, and fixup commits for earlier branches go on the tip of the stack
   for the user to move down. Seven deviations from the plan are recorded in the
-  PR 1 section, of which two matter later: the manager's `resetOriginPending`
+  PR 1 section, of which two matter later: the manager's `newContentPending`
   replaces the planned `LinesToRead.ResetOrigin` (PR 6's restore competes with
   it and must clear it — deviation 6), and the
   `screenColMax` gap fixed in PR 1 commit 9 is still live on the prototype
