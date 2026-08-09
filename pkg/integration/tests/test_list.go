@@ -364,6 +364,8 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.SwapWithConflict,
 	interactive_rebase.ViewFilesOfTodoEntries,
 	main_view.ClickSelectsDiffLine,
+	main_view.DragRangeWithAutoscroll,
+	main_view.DragSelectsDiffLineRange,
 	main_view.EscapeDismissesSelection,
 	main_view.HideSelectionWhenChangesVanish,
 	main_view.KeepSelectionVisibleWhenDiffShrinks,
