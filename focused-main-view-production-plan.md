@@ -437,6 +437,60 @@ Gotchas:
   and index together (the `DiffLineContents` snapshot approach does this).
 - Multi-file diffs: `fileSectionBounds` handles rows outside any file section.
 
+#### Deviations from the plan (2026-08-09, as implemented)
+
+Landed as 5 commits on branch `resolve-diff-lines-to-identities` (off PR 1):
+old-file line numbers; the well-formedness gate; the gocui view/buffer line
+mapping; the identity type + parser + helper; header-path decoding.
+
+1. **The seam lives on a new `DiffLineHelper`**, not `StagingHelper` (decided
+   with the user). `helpers/diff_line_helper.go` holds `GetDiffLineInfo` and
+   needs nothing from the staging panel but the worktree path, so PR 9 doesn't
+   have to relocate it out of a file it otherwise deletes. PR 5's navigation
+   attaches here too.
+2. **`PatchLineForLineNumber`/`PatchLineForOldLineNumber` are not ported**
+   (decided with the user). Production resolves patch lines by *scanning* the
+   parsed patch and matching `(line number, deletion?)` identities; the
+   prototype's only callers were `patch_exploring`'s dive-at-a-line, which
+   §2.2 drops. They'd be dead exported API.
+3. **`DiffLineInfo` ships with `IsChange` only** (decided with the user).
+   `PatchSelectLine`, `SamePatchLine` and `PullRequestAnchor` land with their
+   first consumers (PRs 7, 6 and 11) rather than as an unused API surface.
+4. **No `DiffLineContent`/`DiffLineContents` in gocui yet** (decided with the
+   user). With no metadata to carry, the parser takes the `[]string` the
+   existing `BufferLines()` already returns; PR 4 introduces the struct when
+   there is a second field for it, and changes the two signatures that read it.
+   So PR 2's gocui change is just `BufferLineForViewLine` /
+   `ViewLineForBufferLine`.
+5. **The helper-level batch resolver is deferred to PR 5.** The O(n) batch
+   *parser* (`parseAllDiffLinesFromBuffer`) lands here as planned and is
+   unit-tested against the single-line parser, but `resolveDiffLines` /
+   `resolvedDiffLine` — which only add the backend precedence on top — wait for
+   their first whole-buffer scan.
+6. **The rename gap (N§21.36(2), §8's mandatory PR 2 row) does not
+   reproduce.** `Parse`/`Transform`/`FormatView` already reproduce rename
+   headers on a master-based branch: the header lines pass through verbatim and
+   master's `StripRename` handles the partial case, so the whole
+   `patch_building` e2e group — `renamed_file_whole` included — is green with
+   the new patch-package code. The prototype's failure was an artifact of its
+   pre-rename fork point, not of the parser changes. Rename coverage was added
+   as unit tests anyway (`OldLineNumberOfLine` over a rename header; the parser
+   over a pure rename, a rename with a content change, and a quoted rename).
+7. **Header paths need more than C-quote decoding** (commit 5, found while
+   implementing): git also terminates the path field of a `---`/`+++` line with
+   a **tab** when the path contains a space, so a name like `with space.go`
+   parsed to a path with a trailing tab. Both are decoded together, guarded by
+   `TestPathFromDiffHeaderField` against real git output shapes.
+8. **Commit 1 split in two** (line-number arithmetic; the well-formedness gate),
+   and commit 2 needs no stale-tail guard: PR 1's truncating
+   `refreshViewLinesIfNeeded` makes `viewLines` consistent with the buffer by
+   construction, which is what M§8 predicted.
+9. **Code comments carry no notes-file vocabulary.** The prototype's comments
+   say "mechanism #1/#2", cite `diff-line-metadata-notes.md` §s, and say
+   "pager"; none of that means anything in the repo (the notes and the spec live
+   outside it). Transcribed comments describe the mechanism instead — worth
+   doing on every later PR too.
+
 ### PR 3 — Rename the "pagers" config to "diff renderers" — DONE (master #5870)
 
 **Landed on master** as #5870 ("Rework the custom pager config (rename to
@@ -1080,7 +1134,7 @@ The remaining rows are agreed as keep/defer:
 | Gap | Disposition |
 |---|---|
 | Rename support in the from-main-view patch paths (N§21.36(1)) | **Fix in PR 8 commit 2** (mandatory — regression vs master otherwise) |
-| patch pkg rename-aware Parse/Transform/FormatView (N§21.36(2)) | **Fix in PR 2 commit 1** (mandatory; `renamed_file_whole` guards it) |
+| patch pkg rename-aware Parse/Transform/FormatView (N§21.36(2)) | **Closed 2026-08-09 — nothing to fix**: doesn't reproduce off master; `patch_building` e2e green with PR 2's patch changes, rename unit tests added (PR 2 deviation 6) |
 | Reflog patch-building (N§21.24) | **Fix in PR 8 commit 5** |
 | Renames in the custom-patch temp trees (new, this plan) | Resolve during PR 8 commit 7 |
 | Secondary-pane removal broken under difftastic — ordinal bridge + a/b record-path leak (diagnosed 2026-07-18, memory) | **Fix in PR 8 commit 7**: identity bridge instead of ordinals; path normalization decided with the user |
@@ -1128,7 +1182,10 @@ The remaining rows are agreed as keep/defer:
 - [x] PR 1 — async render fixes — **DONE 2026-08-09** on branch
       `fix-async-diff-rendering` (16 commits, all checks green, §6 sign-off
       approved), stacked on `fix-task-key-race`
-- [ ] PR 2 — diff-line identity primitive
+- [x] PR 2 — diff-line identity primitive — **DONE 2026-08-09** on branch
+      `resolve-diff-lines-to-identities` (5 commits, all checks green, every
+      commit builds and tests clean), stacked on `fix-async-diff-rendering`.
+      No interactive sign-off needed: no user-visible change
 - [x] PR 3 — rename pagers → diff renderers — **landed on master as #5870**
       (with a bigger config rework than planned; see the PR 3 section)
 - [ ] PR 4 — OSC 1717 support
@@ -1145,6 +1202,15 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-09:** **PR 2 implemented** (5 commits, green). Four scope calls
+  taken with the user up front, all in the "don't land API without a consumer"
+  direction: a new `DiffLineHelper` instead of `StagingHelper`, no
+  `PatchLineFor*`, `DiffLineInfo` with `IsChange` only, and no gocui
+  `DiffLineContent` struct until PR 4 has metadata to put in it. Two findings:
+  the mandatory rename gap **doesn't reproduce** off master (§8 row closed —
+  the prototype's failure came from its fork point), and git's header path
+  field needs **tab** handling as well as C-quote decoding. All of PR 2's
+  deviations are listed in its section.
 - **2026-08-09:** **PR 1 signed off.** The interactive pass found two things,
   both fixed (deviations 8 and 9): the scroll no longer reset when a VS Code
   terminal delivered focus-in before a click, and the loading indicator now
