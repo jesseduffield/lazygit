@@ -168,6 +168,15 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Snake.FgColor = gocui.ColorGreen
 
+	// The main views show diffs, whose own colors say what each line is: which side of
+	// the diff it's on, and often its syntax highlighting too. A selection painted
+	// across the whole line takes those colors over, which for a whole selected hunk
+	// leaves one unreadable block; so mark the selection with a narrow bar at the left
+	// edge instead, and leave the rest of the line to the diff. Two columns, enough to
+	// read as a marker rather than as an artefact.
+	gui.Views.Main.SelectedLineColorWidth = 2
+	gui.Views.Secondary.SelectedLineColorWidth = 2
+
 	return nil
 }
 
