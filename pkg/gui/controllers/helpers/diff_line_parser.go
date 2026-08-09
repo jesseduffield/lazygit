@@ -239,6 +239,67 @@ func stripDiffPathPrefix(path string) string {
 	return path
 }
 
+// parseDiffLineMetadata parses the payload of an OSC 1717 record, in which a
+// diff renderer states which line of which file it is rendering. The v1 payload
+// is positional and ';'-delimited:
+//
+//	version;type;new-line;old-line;file
+//
+// The file comes last so that it may itself contain a ';'. The old-file line is
+// empty unless the line is a deletion, the only kind that needs it, and the
+// new-file line is empty on a file header, the one kind that has no line.
+//
+// ok is false for a payload of an unknown version or shape, so that the caller
+// can fall back to reading the rendered text.
+func parseDiffLineMetadata(payload string) (parsedDiffLine, bool) {
+	fields := strings.SplitN(payload, ";", 5)
+	if len(fields) < 5 || fields[0] != "1" {
+		return parsedDiffLine{}, false
+	}
+
+	lineType, ok := diffLineTypeFromMetadata(fields[1])
+	if !ok {
+		return parsedDiffLine{}, false
+	}
+
+	newLine := 0
+	if fields[2] != "" {
+		var err error
+		if newLine, err = strconv.Atoi(fields[2]); err != nil {
+			return parsedDiffLine{}, false
+		}
+	} else if lineType != types.DiffLineFileHeader {
+		return parsedDiffLine{}, false
+	}
+
+	oldLine := 0
+	if fields[3] != "" {
+		var err error
+		if oldLine, err = strconv.Atoi(fields[3]); err != nil {
+			return parsedDiffLine{}, false
+		}
+	}
+
+	return parsedDiffLine{Path: fields[4], Type: lineType, NewLine: newLine, OldLine: oldLine}, true
+}
+
+func diffLineTypeFromMetadata(typeField string) (types.DiffLineType, bool) {
+	switch typeField {
+	case "c":
+		return types.DiffLineContext, true
+	case "a":
+		return types.DiffLineAdded, true
+	case "d":
+		return types.DiffLineDeleted, true
+	case "f":
+		return types.DiffLineFileHeader, true
+	case "h":
+		return types.DiffLineHunkHeader, true
+	default:
+		return types.DiffLineOther, false
+	}
+}
+
 // pathFromDiffGitLine extracts the new-file path from a "diff --git a/X b/X"
 // line, where the two paths are separated by a space and either may be quoted.
 // A path containing " b/" (or ` "b/`) would defeat this, but the +++/--- lines
