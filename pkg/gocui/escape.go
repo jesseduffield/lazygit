@@ -489,8 +489,10 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 	case stateOSCMetadata:
 		switch {
 		case characterEquals(ch, 0x07):
+			ei.dropMetadataIfHandshake()
 			ei.state = stateNone
 		case characterEquals(ch, 0x1b):
+			ei.dropMetadataIfHandshake()
 			ei.state = stateOSCEndEscape
 		default:
 			ei.metadata.Write(ch)
@@ -509,6 +511,18 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+// dropMetadataIfHandshake discards a just-completed OSC 1717 payload that
+// carries nothing beyond the version. A diff renderer emits such a record ahead
+// of everything else to announce that it speaks the protocol, so that a host can
+// find that out by asking rather than by inspecting a rendering. It says nothing
+// about any line, so it must not attach to the line that follows it; a per-line
+// record always has fields, and is kept.
+func (ei *escapeInterpreter) dropMetadataIfHandshake() {
+	if !strings.Contains(ei.metadata.String(), ";") {
+		ei.metadata.Reset()
+	}
 }
 
 func (ei *escapeInterpreter) outputCSI() error {
