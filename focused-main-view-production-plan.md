@@ -179,12 +179,14 @@ pointer, several buffer accessors gained locks. The prototype commits are
 rebased on top of all that and are the authoritative shapes, but a fix may
 have been absorbed or may need reshaping; check before porting.
 
-**Status: IMPLEMENTED 2026-08-08/09** on branch `fix-async-diff-rendering`.
-15 commits: the 11 planned below, two extra prep/demonstrate commits, an
-`amend!` for the regression found in interactive testing, and the
-`FlushStaleCells` removal. `just build`, `just unit-test`, `just lint`,
-`just e2e` all green. **Interactive sign-off still outstanding** (§6 row 1) —
-one round of it has happened and found one regression, fixed.
+**Status: DONE 2026-08-09** on branch `fix-async-diff-rendering`. 16 commits:
+the 11 planned below, two extra prep/demonstrate commits, an `amend!` for the
+regression the interactive pass found, the `FlushStaleCells` removal, and the
+loading-indicator gate. `just build`, `just unit-test`, `just lint`, `just
+e2e` all green. **§6 interactive sign-off: APPROVED (2026-08-09)** — tested
+with and without `LAZYGIT_SLOW_RENDER`, no flicker. It turned up two things,
+both fixed: deviation 8 (the scroll no longer reset in a VS Code terminal) and
+deviation 9 (the loading indicator blanking the view).
 
 The branch base is **not master**: at the user's request the stack sits on
 `fold-staging-into-main-view` (= the tip of `scroll-selection-into-view`),
@@ -254,7 +256,9 @@ Commits (in order):
     resetting oy at task start made it jump first. Ref: 411681502. ✅
     (+ an `amend!`: the pending reset has to outlive the task, see deviation 8)
 12. *(added)* **Drop `FlushStaleCells`, which no longer has anything to
-    flush** — see "Found but not fixed", now fixed. ✅
+    flush** — see "Found and fixed alongside". ✅
+13. *(added)* **Only blank the view for the loading indicator when the content
+    is changing** — deviation 9. ✅
 
 Notes:
 - If commit 9's stale-tail test needs `BufferLineForViewLine`, introduce that
@@ -300,14 +304,21 @@ Notes:
    bail drops the request's `Then`, unlike both explicit-stop branches right
    above it, which fire it. Matched those instead (it does *not* drain the
    queue — reaching EOF is what justifies the drain, and a stopped task hasn't).
-6. **Commit 11 puts `ResetOrigin` on `TaskOpts`, not `LinesToRead`.** The
+6. **The origin reset is manager state, not a `LinesToRead` field.** The
    prototype has the cmd/pty wrappers compute `cmdStr != manager.GetTaskKey()`
-   on the UI thread, which adds unsynchronized reads of `taskKey` (written by
-   the `NewTask` goroutine under `taskIDMutex`). Instead `NewTask` keeps making
-   the decision, under the lock exactly where it already did, and passes it to
-   the task via `TaskOpts`. The gui wrappers need no change at all. **PR 6 note:**
-   `RenderRestore` should read `opts.ResetOrigin` alongside `linesToRead.Restore`
-   (`if restore != nil { … } else if opts.ResetOrigin { … }`).
+   on the UI thread and pass it down as `LinesToRead.ResetOrigin`, which adds
+   unsynchronized reads of `taskKey` (written by the `NewTask` goroutine under
+   `taskIDMutex`). Instead `NewTask` keeps making the decision, under the lock
+   exactly where it already did, and records it on the manager as
+   `resetOriginPending`; the gui wrappers need no change at all. (This landed
+   in two steps — first as a `TaskOpts` field, then as the manager flag when
+   deviation 8 showed the decision has to outlive the task that made it.)
+   **PR 6 note:** `RenderRestore` competes with that flag rather than reading a
+   field — a restore places the scroll itself, so it wins:
+   `if restore != nil { restore.Apply(swapIn) } else { swapIn(); if
+   self.resetOriginPending.Swap(false) { self.resetOrigin() } }`. Note the
+   restore must then *also* clear the pending reset, or the next same-key
+   render would inherit it and jump to the top.
 7. **Commit 11 runs the first paint on the UI thread**, resolving the
    prototype's `// TODO: should probably use OnUIThread?`. It has to: the paint
    now writes the origin, and swap + origin must land in one hop or a draw
@@ -323,13 +334,31 @@ Notes:
    reset of its own, and it stops the click's task before its first paint. (Zed
    delivers the click first, so that task paints and the bug never shows.) Fixed
    by making the reset a `resetOriginPending` flag on the manager, set by
-   `NewTask` and consumed by whichever first paint gets there;
-   `TaskOpts.ResetOrigin` is gone again, so **deviation 6's PR 6 note no longer
-   applies** — a restore just needs to win over the pending flag. Guarded by
+   `NewTask` and consumed by whichever first paint gets there (deviation 6
+   describes the final shape, including what it means for PR 6). Guarded by
    `TestResetOriginSurvivesTaskReplacement`, which passes on commit 10, fails on
    commit 11 as first written, and passes with the fix — so it can be split out
    as a preparatory commit before commit 11 if you want it guarding that commit
    under bisect.
+9. **The loading indicator only blanks the view for new content** (commit 13,
+   2026-08-09). Also found interactively. The 200ms "loading…" indicator clears
+   the view to show its message; that was nearly invisible before, because the
+   untruncated view lines kept the previous render below it, so only line 1
+   changed — and scrolled down you never saw it at all. With the truncation it
+   blanks the whole view, which is ugly precisely when it's least useful: a slow
+   re-render of *unchanged* content (a background refresh over a repo with
+   submodules that have uncommitted changes) blanks and then paints the same
+   thing back. Restoring the old look is not an option — it *was* the stale-tail
+   inconsistency. Gated the indicator on the same new-vs-same-content fact the
+   origin reset uses, so it never blanks content it is about to repaint
+   identically; the flag is now `newContentPending`, with two readers. Guarded
+   by `TestLoadingIndicatorOnlyTakesOverForNewContent`. **Placement caveat:** the
+   blanking arrives with commit 11 (the truncation), so by AGENTS.md the fix
+   belongs *in* commit 11 — but it needs the flag, which commit 13 introduces,
+   so it can't be a fixup for 11. It sits at the tip instead. The tidy history
+   would introduce `newContentPending` in commit 11 (for the indicator) and have
+   commit 13 add the origin-reset reader; that is a small restructure of both
+   commits, which is the user's call.
 
 #### Found and fixed alongside
 
@@ -623,8 +652,10 @@ Commits:
    **`Apply` owns the swap: resolve the target against the off-screen buffer
    first, then `swapIn()`, then set origin/selection** — this ordering is a
    real invariant (reordering reintroduces flicker for buffer-parse; guarded
-   by `TestNewCmdTaskRestore`, N§20.5); `ResetOrigin = restore == nil &&
-   command-key changed`; **not cleared when a task starts** (survives
+   by `TestNewCmdTaskRestore`, N§20.5); the origin reset is now the manager's
+   `resetOriginPending` flag rather than a per-render field, and a restore
+   takes precedence over it *and* clears it (PR 1 deviation 6);
+   **not cleared when a task starts** (survives
    stop-and-replace by the periodic refresh), cleared in `Apply` (found or
    not) — N§14.1; `Apply` work that touches gui state hops to `OnUIThread`
    (it runs on the task goroutine, N§21.29 threading fix; origin writes are
@@ -996,7 +1027,7 @@ user pass before merge:
 
 | PR | What to verify interactively |
 |---|---|
-| 1 | Slow-render matrix (N§11/§13): flick commits/files scrolled down; 10 s auto-refresh (`refreshInterval: 3`) — no content/scrollbar flicker; **also re-test at normal speed** (N§20.5) |
+| 1 | ✅ **APPROVED 2026-08-09.** Slow-render matrix (N§11/§13): flick commits/files scrolled down; 10 s auto-refresh (`refreshInterval: 3`) — no content/scrollbar flicker; **also re-test at normal speed** (N§20.5). Found PR 1 deviations 8 and 9, both fixed; a repo with dirty submodules is the case that exposes a slow same-content re-render |
 | 4 | Patched delta/difftastic/diff-so-fancy emit + render cleanly; handshake swallowed (no phantom line) |
 | 5 | Selection feel under delta (narrowSelectionHighlight); hunk-on-click; drag; nav under metadata delta incl. repeated `n` across files |
 | 6 | `{`/`}` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ext-diff route (difftastic) |
@@ -1082,9 +1113,9 @@ The remaining rows are agreed as keep/defer:
 
 ## 10. Progress
 
-- [x] PR 1 — async render fixes — **implemented 2026-08-08/09** on branch
-      `fix-async-diff-rendering` (15 commits, all checks green), stacked on
-      `fix-task-key-race`; awaiting the rest of the §6 interactive sign-off
+- [x] PR 1 — async render fixes — **DONE 2026-08-09** on branch
+      `fix-async-diff-rendering` (16 commits, all checks green, §6 sign-off
+      approved), stacked on `fix-task-key-race`
 - [ ] PR 2 — diff-line identity primitive
 - [x] PR 3 — rename pagers → diff renderers — **landed on master as #5870**
       (with a bigger config rework than planned; see the PR 3 section)
@@ -1102,22 +1133,25 @@ deviations from this plan inline, dated.)
 
 Log:
 
-- **2026-08-09:** first interactive pass over PR 1 found one regression (the
-  scroll no longer reset when a VS Code terminal delivered focus-in before a
-  click); fixed as an `amend!`, see PR 1 deviation 8. Also removed
-  `FlushStaleCells` and split the `taskKey` data race out to its own branch
-  below the stack. **Standing rule from the user:** a data race discovered
-  during this work gets fixed right away, even a pre-existing or entirely
-  unrelated one — either as an extra commit or as a separate branch we rebase
-  onto, whichever suits.
+- **2026-08-09:** **PR 1 signed off.** The interactive pass found two things,
+  both fixed (deviations 8 and 9): the scroll no longer reset when a VS Code
+  terminal delivered focus-in before a click, and the loading indicator now
+  blanked the whole view. Also removed `FlushStaleCells` and split the `taskKey`
+  data race out to its own branch below the stack. Two things worth carrying
+  forward: **a data race discovered during this work gets fixed right away**,
+  even a pre-existing or entirely unrelated one (separate branch when it's
+  unrelated, extra commit when it isn't); and **the interactive pass is worth
+  running against a repo with dirty submodules**, which is what makes a
+  same-content re-render slow enough to see.
 - **2026-08-08:** PR 1 implemented. The stack does **not** start from master:
   the user asked for it to be based on `fold-staging-into-main-view` (the tip
   of `scroll-selection-into-view`), which touches the same scroll code and is
   merging to master soon. Every later PR branches off its predecessor; nothing
   is pushed, and fixup commits for earlier branches go on the tip of the stack
   for the user to move down. Seven deviations from the plan are recorded in the
-  PR 1 section, of which two matter later: `TaskOpts.ResetOrigin` replaces the
-  planned `LinesToRead.ResetOrigin` (PR 6 must read it from there), and the
+  PR 1 section, of which two matter later: the manager's `resetOriginPending`
+  replaces the planned `LinesToRead.ResetOrigin` (PR 6's restore competes with
+  it and must clear it — deviation 6), and the
   `screenColMax` gap fixed in PR 1 commit 9 is still live on the prototype
   branch.
 - **2026-08-04:** prototype rebased onto master, past #5854 (gocui mouse
