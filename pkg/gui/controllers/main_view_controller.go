@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -13,6 +14,9 @@ type MainViewController struct {
 
 	context      *context.MainContext
 	otherContext *context.MainContext
+
+	dragAutoscroller  *helpers.DragAutoscroller
+	draggingWithMouse bool
 }
 
 var _ types.IController = &MainViewController{}
@@ -22,12 +26,19 @@ func NewMainViewController(
 	context *context.MainContext,
 	otherContext *context.MainContext,
 ) *MainViewController {
-	return &MainViewController{
+	controller := &MainViewController{
 		baseController: baseController{},
 		c:              c,
 		context:        context,
 		otherContext:   otherContext,
 	}
+	controller.dragAutoscroller = helpers.NewDragAutoscroller(
+		c.HelperCommon,
+		context,
+		controller.canDragAutoscroll,
+		controller.handleDragAutoscroll,
+	)
+	return controller
 }
 
 func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
@@ -112,6 +123,19 @@ func (self *MainViewController) GetMouseKeybindings(opts types.KeybindingsOpts) 
 			Key:         gocui.MouseLeft,
 			Handler:     self.onClickInOtherViewOfMainViewPair,
 			FocusedView: self.otherContext.GetViewName(),
+		},
+		{
+			// Dragging after a click extends a range selection from the clicked line.
+			ViewName:    self.context.GetViewName(),
+			Key:         gocui.MouseLeft,
+			Modifier:    gocui.ModMotion,
+			Handler:     self.onDragInFocusedView,
+			FocusedView: self.context.GetViewName(),
+		},
+		{
+			ViewName: self.context.GetViewName(),
+			Key:      gocui.MouseRelease,
+			Handler:  self.onDragRelease,
 		},
 	}
 }
@@ -240,6 +264,86 @@ func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.View
 	return nil
 }
 
+// onDragInFocusedView extends a range selection as the mouse is dragged after a
+// click, anchored at the line the click landed on rather than wherever the click left
+// the selection — a click can select a whole hunk, whose far end would otherwise
+// become the anchor. Dragging turns hunk mode off: you get a plain range from the
+// clicked line to the line under the cursor, which gocui has already moved here.
+func (self *MainViewController) onDragInFocusedView(opts gocui.ViewMouseBindingOpts) error {
+	view := self.context.GetView()
+	if !self.isDiffView() || !view.Highlight {
+		return nil
+	}
+	sel := self.diffSelectState()
+	sel.Mode = types.DiffSelectModeRange
+	sel.RangeIsSticky = false
+	sel.UserEnabledHunkMode = false
+	view.SetRangeSelectStart(self.context.DragAnchorViewLine())
+
+	// A drag that reaches the edge of the view keeps going: mouse capture means the
+	// pointer can be dragged past the edge, and there is more diff down there than
+	// fits on screen. opts.Y is where the pointer is in the content, which the
+	// autoscroller wants relative to the viewport.
+	self.draggingWithMouse = true
+	originY, _ := self.context.GetViewTrait().ViewPortYBounds()
+	self.dragAutoscroller.Update(opts.Y - originY)
+	return nil
+}
+
+func (self *MainViewController) onDragRelease(gocui.ViewMouseBindingOpts) error {
+	self.draggingWithMouse = false
+	self.dragAutoscroller.Cancel()
+	return nil
+}
+
+// GetOnFocusLost stops an autoscroll that is still running when the view loses focus
+// mid-drag, e.g. because a popup appeared, and gives up the mouse capture with it —
+// otherwise the pointer would keep driving a view that no longer has focus.
+func (self *MainViewController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
+		self.dragAutoscroller.Cancel()
+		if self.draggingWithMouse {
+			self.draggingWithMouse = false
+			self.c.GocuiGui().CancelMouseCapture()
+		}
+	}
+}
+
+// canDragAutoscroll reports whether the autoscroller should run: only while a drag is
+// actually extending a range in a diff. Scrolling down also has to keep the lazily
+// loaded content ahead of the scroll, or it would stop at the loaded edge.
+func (self *MainViewController) canDragAutoscroll(direction int) bool {
+	if !self.draggingWithMouse || !self.isDiffView() {
+		return false
+	}
+	view := self.context.GetView()
+	if !view.Highlight || self.diffSelectState().Mode != types.DiffSelectModeRange {
+		return false
+	}
+	if direction > 0 {
+		self.c.ReadLinesToFillView(view)
+	}
+	return true
+}
+
+// handleDragAutoscroll extends the selection to the line the pointer ends up over
+// after the autoscroller has scrolled, leaving the range anchored where the drag
+// started. It reports whether the autoscroll should carry on.
+//
+// The pointer is usually outside the view by now — that is what mouse capture is for —
+// so the line it is over is clamped to the visible ones, leaving the selection's far
+// end at the edge the scroll is moving towards.
+func (self *MainViewController) handleDragAutoscroll(viewLine int) bool {
+	if !self.canDragAutoscroll(0) {
+		return false
+	}
+	view := self.context.GetView()
+	originY, viewportHeight := self.context.GetViewTrait().ViewPortYBounds()
+	target := lo.Clamp(viewLine, 0, max(0, view.ViewLinesHeight()-1))
+	view.SetCursorY(lo.Clamp(target-originY, 0, max(0, viewportHeight-1)))
+	return true
+}
+
 // selectClickedDiffLine sets the focused main view's selection from a click at the
 // given view line. In hunk mode, clicking inside the selected block collapses it to
 // that line; clicking a change line outside it keeps hunk mode and selects that block.
@@ -249,6 +353,9 @@ func (self *MainViewController) selectClickedDiffLine(viewLine int) {
 		return
 	}
 	view := self.context.GetView()
+	// Remember where the click landed so that a drag that follows anchors its range
+	// there, even when this click selects a whole hunk.
+	self.context.SetDragAnchorViewLine(viewLine)
 	if self.diffSelectState().Mode == types.DiffSelectModeHunk {
 		if start, end, ok := self.c.Helpers().DiffLine.SelectedHunkBounds(view); ok &&
 			viewLine >= start && viewLine <= end {
@@ -292,6 +399,9 @@ func establishDiffSelection(c *ControllerCommon, mainContext *context.MainContex
 	}
 
 	if clickedViewLine >= 0 {
+		// Remember where the click landed so that a drag that follows anchors its range
+		// there, even when this click selects a whole hunk.
+		mainContext.SetDragAnchorViewLine(clickedViewLine)
 		if hunkModeApplies(c, view, clickedViewLine) &&
 			c.Helpers().DiffLine.IsChangeLine(view, clickedViewLine) {
 			mainContext.DiffSelectState().Mode = types.DiffSelectModeHunk

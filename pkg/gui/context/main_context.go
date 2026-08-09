@@ -10,6 +10,11 @@ type MainContext struct {
 	*SearchTrait
 
 	diffSelect types.DiffSelectState
+	// dragAnchorViewLine is the view line a mouse-down landed on, remembered so that a
+	// drag that follows can anchor its range there. The click may have selected a whole
+	// hunk, whose range anchor is the block's far end, so the clicked line can't be
+	// read back from the view.
+	dragAnchorViewLine int
 	// selectableContentRenderKey names the render whose content HasSelectableContent
 	// was worked out from. What there is to select is a property of the content, so an
 	// answer about the content of another render says nothing about this one.
@@ -36,6 +41,17 @@ func (self *MainContext) ResetDiffSelectMode() {
 	self.diffSelect.RangeIsSticky = false
 	self.diffSelect.UserEnabledHunkMode = false
 	self.GetView().CancelRangeSelect()
+}
+
+// SetDragAnchorViewLine records the view line a mouse-down landed on, so that a drag
+// that follows can anchor its range there (see dragAnchorViewLine).
+func (self *MainContext) SetDragAnchorViewLine(viewLine int) {
+	self.dragAnchorViewLine = viewLine
+}
+
+// DragAnchorViewLine returns the view line the last mouse-down landed on.
+func (self *MainContext) DragAnchorViewLine() int {
+	return self.dragAnchorViewLine
 }
 
 // SelectableContentRenderKey returns the render HasSelectableContent describes (see
