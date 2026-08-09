@@ -314,6 +314,27 @@ func TestDiffLineContentsOfWrappedLine(t *testing.T) {
 	}
 }
 
+func TestDiffLineContentsWithRecordsCoveringNoCell(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	v.writeString(strings.Join([]string{
+		// A banner announcing a file and its first hunk at once carries both
+		// records back to back.
+		osc1717("1;f;;;foo.txt") + osc1717("1;h;5;;foo.txt") + "foo.txt --- Go",
+		// So does a modification whose deletion and addition are collapsed into
+		// a single rendered line.
+		osc1717("1;d;5;5;foo.txt") + osc1717("1;a;5;;foo.txt") + "595 new content",
+		// A changed line that is empty is rendered as its record and nothing else.
+		osc1717("1;a;6;;foo.txt"),
+	}, "\n") + "\n")
+
+	assert.Equal(t, []DiffLineContent{
+		{Text: "foo.txt --- Go", Metadata: []string{"1;f;;;foo.txt", "1;h;5;;foo.txt"}},
+		{Text: "595 new content", Metadata: []string{"1;d;5;5;foo.txt", "1;a;5;;foo.txt"}},
+		{Text: "", Metadata: []string{"1;a;6;;foo.txt"}},
+	}, v.DiffLineContents())
+}
+
 func TestDiffLineContentsSwallowsHandshake(t *testing.T) {
 	v := NewView("name", 0, 0, 80, 10, OutputNormal)
 
