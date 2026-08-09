@@ -301,7 +301,11 @@ func showSelectionAtLine(view *gocui.View, lineIdx int, scrollIntoView bool) {
 	view.FocusPoint(0, lo.Clamp(lineIdx, 0, max(0, view.ViewLinesHeight()-1)), scrollIntoView)
 }
 
-// selectHunkAround selects the whole change block around the given change line, for
+func (self *MainViewController) selectHunkAround(changeViewLine int, scrollIntoView bool) {
+	selectDiffHunk(self.c, self.context, changeViewLine, scrollIntoView)
+}
+
+// selectDiffHunk selects the whole change block around the given change line, for
 // hunk mode: the cursor goes to the block's first line and the range anchor to its
 // last, so the native range highlight spans the block. With no block to be found —
 // a diff with no changes in it — it falls back to a single-line selection.
@@ -309,11 +313,13 @@ func showSelectionAtLine(view *gocui.View, lineIdx int, scrollIntoView bool) {
 // scrollIntoView brings the block's first line on screen, for the commands that mean
 // to go there; a click leaves it false, so that the view doesn't move under the mouse
 // when the block the click landed in starts above the viewport.
-func (self *MainViewController) selectHunkAround(changeViewLine int, scrollIntoView bool) {
-	view := self.context.GetView()
-	start, end, ok := self.c.Helpers().DiffLine.ChangeBlockBounds(view, changeViewLine)
+func selectDiffHunk(
+	c *ControllerCommon, mainContext *context.MainContext, changeViewLine int, scrollIntoView bool,
+) {
+	view := mainContext.GetView()
+	start, end, ok := c.Helpers().DiffLine.ChangeBlockBounds(view, changeViewLine)
 	if !ok {
-		self.diffSelectState().Mode = types.DiffSelectModeLine
+		mainContext.DiffSelectState().Mode = types.DiffSelectModeLine
 		view.CancelRangeSelect()
 		showSelectionAtLine(view, changeViewLine, scrollIntoView)
 		return
