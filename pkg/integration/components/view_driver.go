@@ -141,6 +141,24 @@ func (self *ViewDriver) VisibleLines(matchers ...*TextMatcher) *ViewDriver {
 	return self.assertLines(originY, matchers...)
 }
 
+// Asserts on the line the view shows at the top of its viewport, i.e. on where the
+// view is scrolled to. It is a view line, so a wrapped line above it doesn't throw the
+// count off.
+func (self *ViewDriver) TopVisibleLine(matcher *TextMatcher) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		lines := view.ViewBufferLines()
+		originY := view.OriginY()
+		if originY >= len(lines) {
+			return false, fmt.Sprintf("%s: the view is scrolled to line %d, but it has only %d lines",
+				self.context, originY, len(lines))
+		}
+		return matcher.context(fmt.Sprintf("%s top visible line", self.context)).test(lines[originY])
+	})
+
+	return self
+}
+
 // asserts that somewhere in the view there are consecutive lines matching the given matchers.
 func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)

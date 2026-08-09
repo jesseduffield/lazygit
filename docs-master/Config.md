@@ -817,6 +817,8 @@ keybinding:
   main:
     prevHunk: [<left>, h]
     nextHunk: [<right>, l]
+    prevFile: "N"
+    nextFile: "n"
     toggleSelectHunk: a
     pickBothHunks: b
     editSelectHunk: E

@@ -660,6 +660,8 @@ type KeybindingCommitFilesConfig struct {
 type KeybindingMainConfig struct {
 	PrevHunk         Keybinding `yaml:"prevHunk"`
 	NextHunk         Keybinding `yaml:"nextHunk"`
+	PrevFile         Keybinding `yaml:"prevFile"`
+	NextFile         Keybinding `yaml:"nextFile"`
 	ToggleSelectHunk Keybinding `yaml:"toggleSelectHunk"`
 	PickBothHunks    Keybinding `yaml:"pickBothHunks"`
 	EditSelectHunk   Keybinding `yaml:"editSelectHunk"`
@@ -1170,6 +1172,8 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			Main: KeybindingMainConfig{
 				PrevHunk:         Keybinding{"<left>", "h"},
 				NextHunk:         Keybinding{"<right>", "l"},
+				PrevFile:         Keybinding{"N"},
+				NextFile:         Keybinding{"n"},
 				ToggleSelectHunk: Keybinding{"a"},
 				PickBothHunks:    Keybinding{"b"},
 				EditSelectHunk:   Keybinding{"E"},
