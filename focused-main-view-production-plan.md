@@ -1148,7 +1148,7 @@ user pass before merge:
 | PR | What to verify interactively |
 |---|---|
 | 1 | ✅ **APPROVED 2026-08-09.** Slow-render matrix (N§11/§13): flick commits/files scrolled down; 10 s auto-refresh (`refreshInterval: 3`) — no content/scrollbar flicker; **also re-test at normal speed** (N§20.5). Found PR 1 deviations 8 and 9, both fixed; a repo with dirty submodules is the case that exposes a slow same-content re-render |
-| 4 | Patched delta/difftastic/diff-so-fancy emit + render cleanly; handshake swallowed (no phantom line) |
+| 4 | ✅ **APPROVED 2026-08-09.** Patched delta/difftastic/diff-so-fancy emit + render cleanly; handshake swallowed (no phantom line) |
 | 5 | Selection feel under delta (narrowSelectionHighlight); hunk-on-click; drag; nav under metadata delta incl. repeated `n` across files |
 | 6 | `{`/`}` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ext-diff route (difftastic) |
 | 7 | Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro) |
@@ -1226,7 +1226,26 @@ The remaining rows are agreed as keep/defer:
    as evidence. git's own patch may never be accepted — a maintained fork is
    the accepted fallback (PR 4 cross-repo note), and no PR here waits on the
    outcome.
-7. ~~**PR 7:** how should `rawGit` entries with restructuring args decide
+8. **PRs 5/7/8: e2e tests against *real* patched renderers** (raised by the
+   user 2026-08-09, assessed feasible, not yet decided). Today's renderer
+   tests use fake shell commands, which can imitate a record stream but not
+   difftastic's actual reordering and collapsing — the shapes that broke the
+   secondary-pane removal (§8). Requiring delta/difftastic on `PATH` needs no
+   harness change: `PATH`/`TERM` are already inherited from the host
+   environment, and `Skip` is a plain field, so `Skip: !onPath("delta")`
+   computed at package init works (`ShouldRunForGitVersion` is the precedent
+   for environment-conditional tests). Three conditions make or break it:
+   assert on **behavior after a gesture** (navigate with `<right>`/`n`, then
+   check what got staged) rather than on rendered text or absolute view-line
+   indices, or every renderer release breaks the suite; a **silent skip must
+   not be the CI default** — an env var that turns "renderer missing" into a
+   failure, set on CI only; and CI needs the patched renderers from a
+   **public** source **pinned to a commit**, which is blocked until the
+   emitter branches are pushed. Keep the fake-renderer tests either way: they
+   cover the protocol shapes no real renderer emits on demand (the handshake,
+   header records, records covering no cell). Cheapest sequencing is a small
+   standalone harness helper when PR 7 starts, not folded into a feature PR.
+9. ~~**PR 7:** how should `rawGit` entries with restructuring args decide
    the raw fallback?~~ Resolved 2026-08-07: probe them like any other
    renderer, since git announces itself for exactly the formats it
    describes. See PR 7 commit 10.
@@ -1245,8 +1264,7 @@ The remaining rows are agreed as keep/defer:
 - [x] PR 4 — OSC 1717 support — **DONE 2026-08-09** on branch
       `support-osc-1717-diff-metadata` (7 commits, all checks green, every
       commit builds and tests clean), stacked on
-      `resolve-diff-lines-to-identities`. §6 interactive sign-off still owed
-      (needs locally built patched renderers)
+      `resolve-diff-lines-to-identities`. §6 sign-off **approved**
 - [ ] PR 5 — selection & navigation
 - [ ] PR 6 — position preserve
 - [ ] PR 7 — staging from the main view
