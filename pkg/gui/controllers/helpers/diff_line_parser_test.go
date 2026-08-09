@@ -240,6 +240,62 @@ func TestParseDiffLineFromBufferReadInPart(t *testing.T) {
 	assert.False(t, ok)
 }
 
+func TestPathFromDiffHeaderField(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		field    string
+		expected string
+	}{
+		{"new side", "b/file.go", "file.go"},
+		{"old side", "a/file.go", "file.go"},
+		{"a missing file", "/dev/null", "/dev/null"},
+		// git terminates the field with a tab when the path has a space in it.
+		{"path with a space", "b/with space.go\t", "with space.go"},
+		// With core.quotePath enabled (the default) every non-ASCII byte is
+		// escaped, and the field is quoted as a whole, prefix included.
+		{"non-ASCII path", `"b/caf\303\251.go"`, "café.go"},
+		{"non-ASCII path with a space", "\"b/caf\\303\\251 x.go\"\t", "café x.go"},
+		{"path with a double quote", `"b/we\"ird.go"`, `we"ird.go`},
+		{"path with a backslash", `"b/back\\slash.go"`, `back\slash.go`},
+		{"path with a tab", `"b/tab\there.go"`, "tab\there.go"},
+		{"undecodable", `"b/unterminated`, ""},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expected, pathFromDiffHeaderField(s.field))
+		})
+	}
+}
+
+func TestParseDiffLineFromBufferQuotedPath(t *testing.T) {
+	// A rename of a file whose name needs quoting, with a content change: the
+	// path is quoted on the "diff --git" line and on both of the +++/--- lines.
+	renamed := []string{
+		`diff --git "a/caf\303\251 old.go" "b/caf\303\251 new.go"`,
+		"similarity index 62%",
+		`rename from "caf\303\251 old.go"`,
+		`rename to "caf\303\251 new.go"`,
+		"index 1111111..2222222 100644",
+		"--- \"a/caf\\303\\251 old.go\"\t",
+		"+++ \"b/caf\\303\\251 new.go\"\t",
+		"@@ -1,2 +1,2 @@",
+		" apple",
+		"-grape",
+		"+kiwi",
+	}
+
+	result, ok := parseDiffLineFromBuffer(renamed, 10)
+	assert.True(t, ok)
+	assert.Equal(t, parsedDiffLine{RelPath: "café new.go", Type: types.DiffLineAdded, NewLine: 2}, result)
+
+	// The same rename without a content change has no +++/--- lines, so the path
+	// comes from the "diff --git" line, where both paths are quoted.
+	result, ok = parseDiffLineFromBuffer(renamed[:4], 2)
+	assert.True(t, ok)
+	assert.Equal(t, parsedDiffLine{RelPath: "café new.go", Type: types.DiffLineFileHeader, NewLine: 1}, result)
+}
+
 func TestParseAllDiffLinesFromBuffer(t *testing.T) {
 	// Some decoration above the diff, which belongs to no file section: a commit
 	// message and a diffstat, as `git show` renders them.
