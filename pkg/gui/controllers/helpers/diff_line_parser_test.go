@@ -40,16 +40,16 @@ func TestParseDiffLineFromBuffer(t *testing.T) {
 		expected  parsedDiffLine
 		expectOk  bool
 	}{
-		{"file header", 0, parsedDiffLine{RelPath: "file1.go", Type: types.DiffLineFileHeader, NewLine: 1}, true},
-		{"hunk header", 4, parsedDiffLine{RelPath: "file1.go", Type: types.DiffLineHunkHeader, NewLine: 1}, true},
-		{"context line", 5, parsedDiffLine{RelPath: "file1.go", Type: types.DiffLineContext, NewLine: 1}, true},
+		{"file header", 0, parsedDiffLine{Path: "file1.go", Type: types.DiffLineFileHeader, NewLine: 1}, true},
+		{"hunk header", 4, parsedDiffLine{Path: "file1.go", Type: types.DiffLineHunkHeader, NewLine: 1}, true},
+		{"context line", 5, parsedDiffLine{Path: "file1.go", Type: types.DiffLineContext, NewLine: 1}, true},
 		// The two deletions share new-file line 2 but have distinct old-file lines.
-		{"first deletion", 6, parsedDiffLine{RelPath: "file1.go", Type: types.DiffLineDeleted, NewLine: 2, OldLine: 2}, true},
-		{"second deletion", 7, parsedDiffLine{RelPath: "file1.go", Type: types.DiffLineDeleted, NewLine: 2, OldLine: 3}, true},
+		{"first deletion", 6, parsedDiffLine{Path: "file1.go", Type: types.DiffLineDeleted, NewLine: 2, OldLine: 2}, true},
+		{"second deletion", 7, parsedDiffLine{Path: "file1.go", Type: types.DiffLineDeleted, NewLine: 2, OldLine: 3}, true},
 		// The second file: its path comes from the second "diff --git" section,
 		// and its additions get distinct new-file line numbers.
-		{"first addition", 15, parsedDiffLine{RelPath: "dir/file2.go", Type: types.DiffLineAdded, NewLine: 10}, true},
-		{"second addition", 16, parsedDiffLine{RelPath: "dir/file2.go", Type: types.DiffLineAdded, NewLine: 11}, true},
+		{"first addition", 15, parsedDiffLine{Path: "dir/file2.go", Type: types.DiffLineAdded, NewLine: 10}, true},
+		{"second addition", 16, parsedDiffLine{Path: "dir/file2.go", Type: types.DiffLineAdded, NewLine: 11}, true},
 		{"out of range", 999, parsedDiffLine{}, false},
 	}
 
@@ -75,7 +75,7 @@ rename to new.go`, "\n")
 
 	result, ok := parseDiffLineFromBuffer(pureRename, 2)
 	assert.True(t, ok)
-	assert.Equal(t, parsedDiffLine{RelPath: "new.go", Type: types.DiffLineFileHeader, NewLine: 1}, result)
+	assert.Equal(t, parsedDiffLine{Path: "new.go", Type: types.DiffLineFileHeader, NewLine: 1}, result)
 
 	renameWithModification := strings.Split(`diff --git a/old.go b/new.go
 similarity index 62%
@@ -91,7 +91,7 @@ index 1111111..2222222 100644
 
 	result, ok = parseDiffLineFromBuffer(renameWithModification, 10)
 	assert.True(t, ok)
-	assert.Equal(t, parsedDiffLine{RelPath: "new.go", Type: types.DiffLineAdded, NewLine: 2}, result)
+	assert.Equal(t, parsedDiffLine{Path: "new.go", Type: types.DiffLineAdded, NewLine: 2}, result)
 }
 
 func TestParseDiffLineFromBufferDeletedFile(t *testing.T) {
@@ -107,7 +107,7 @@ index 1111111..0000000
 
 	result, ok := parseDiffLineFromBuffer(deletedFile, 7)
 	assert.True(t, ok)
-	assert.Equal(t, parsedDiffLine{RelPath: "gone.go", Type: types.DiffLineDeleted, NewLine: 0, OldLine: 2}, result)
+	assert.Equal(t, parsedDiffLine{Path: "gone.go", Type: types.DiffLineDeleted, NewLine: 0, OldLine: 2}, result)
 }
 
 func TestParseDiffLineFromBufferSubmodule(t *testing.T) {
@@ -129,13 +129,13 @@ Submodule modules/xyz a32f27c..2d9f921:
 		result, ok := parseDiffLineFromBuffer(withSubmodule, targetIdx)
 		assert.True(t, ok)
 		assert.Equal(t,
-			parsedDiffLine{RelPath: "modules/xyz", Type: types.DiffLineFileHeader, NewLine: 1},
+			parsedDiffLine{Path: "modules/xyz", Type: types.DiffLineFileHeader, NewLine: 1},
 			result, "line %d", targetIdx)
 	}
 
 	result, ok := parseDiffLineFromBuffer(withSubmodule, 7)
 	assert.True(t, ok)
-	assert.Equal(t, parsedDiffLine{RelPath: "file.txt", Type: types.DiffLineAdded, NewLine: 3}, result)
+	assert.Equal(t, parsedDiffLine{Path: "file.txt", Type: types.DiffLineAdded, NewLine: 3}, result)
 }
 
 func TestParseDiffLineFromBufferSubmoduleInARendering(t *testing.T) {
@@ -153,8 +153,8 @@ products/a.txt
  two`, "\n")
 
 	all := parseAllDiffLinesFromBuffer(rendered)
-	assert.Equal(t, "modules/xyz", all[0].parsed.RelPath)
-	assert.Equal(t, "modules/xyz", all[1].parsed.RelPath)
+	assert.Equal(t, "modules/xyz", all[0].parsed.Path)
+	assert.Equal(t, "modules/xyz", all[1].parsed.Path)
 	for i := 2; i < len(rendered); i++ {
 		assert.False(t, all[i].ok, "line %d: %q", i, rendered[i])
 	}
@@ -230,7 +230,7 @@ func TestParseDiffLineFromBufferReadInPart(t *testing.T) {
 	cutShort := lines[:len(lines)-1]
 	result, ok := parseDiffLineFromBuffer(cutShort, 15)
 	assert.True(t, ok)
-	assert.Equal(t, parsedDiffLine{RelPath: "dir/file2.go", Type: types.DiffLineAdded, NewLine: 10}, result)
+	assert.Equal(t, parsedDiffLine{Path: "dir/file2.go", Type: types.DiffLineAdded, NewLine: 10}, result)
 
 	// Only the section the buffer breaks off in is read that way. One that another
 	// section follows is all there, so a hunk short of what its header declares means
@@ -287,13 +287,13 @@ func TestParseDiffLineFromBufferQuotedPath(t *testing.T) {
 
 	result, ok := parseDiffLineFromBuffer(renamed, 10)
 	assert.True(t, ok)
-	assert.Equal(t, parsedDiffLine{RelPath: "café new.go", Type: types.DiffLineAdded, NewLine: 2}, result)
+	assert.Equal(t, parsedDiffLine{Path: "café new.go", Type: types.DiffLineAdded, NewLine: 2}, result)
 
 	// The same rename without a content change has no +++/--- lines, so the path
 	// comes from the "diff --git" line, where both paths are quoted.
 	result, ok = parseDiffLineFromBuffer(renamed[:4], 2)
 	assert.True(t, ok)
-	assert.Equal(t, parsedDiffLine{RelPath: "café new.go", Type: types.DiffLineFileHeader, NewLine: 1}, result)
+	assert.Equal(t, parsedDiffLine{Path: "café new.go", Type: types.DiffLineFileHeader, NewLine: 1}, result)
 }
 
 func TestParseAllDiffLinesFromBuffer(t *testing.T) {
