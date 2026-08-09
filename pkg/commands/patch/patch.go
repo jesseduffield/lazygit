@@ -114,6 +114,37 @@ func (self *Patch) LineNumberOfLine(idx int) int {
 	return hunk.newStart + offset
 }
 
+// Takes a line index in the patch and returns the line number in the old file.
+// This is the old-file counterpart of LineNumberOfLine; for a deletion it gives
+// the line's position in the old file (additions get the position they sit at).
+// If the line is a header line, returns 1.
+// If the line is a hunk header line, returns the first old-file line number in that hunk.
+// If the line is out of range below, returns the last old-file line number in the last hunk.
+func (self *Patch) OldLineNumberOfLine(idx int) int {
+	if idx < len(self.header) || len(self.hunks) == 0 {
+		return 1
+	}
+
+	hunkIdx := self.HunkContainingLine(idx)
+	// cursor out of range, return last file line number
+	if hunkIdx == -1 {
+		lastHunk := self.hunks[len(self.hunks)-1]
+		return lastHunk.oldStart + lastHunk.oldLength() - 1
+	}
+
+	hunk := self.hunks[hunkIdx]
+	hunkStartIdx := self.HunkStartIdx(hunkIdx)
+	idxInHunk := idx - hunkStartIdx
+
+	if idxInHunk == 0 {
+		return hunk.oldStart
+	}
+
+	lines := hunk.bodyLines[:idxInHunk-1]
+	offset := nLinesWithKind(lines, []PatchLineKind{DELETION, CONTEXT})
+	return hunk.oldStart + offset
+}
+
 // Returns hunk index containing the line at the given patch line index
 func (self *Patch) HunkContainingLine(idx int) int {
 	for hunkIdx, hunk := range self.hunks {
