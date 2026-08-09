@@ -158,6 +158,12 @@ type View struct {
 	// instead of Sel{Bg,Fg}Colors for highlighting selected lines.
 	HighlightInactive bool
 
+	// If SelectedLineColorWidth is greater than zero, a highlighted line is painted
+	// in the selection colors on that many columns at its left edge only, rather
+	// than across its whole width, leaving the line's own colors to show through.
+	// For content that conveys meaning by color of its own.
+	SelectedLineColorWidth int
+
 	// If Frame is true, a border will be drawn around the view.
 	Frame bool
 
@@ -863,7 +869,8 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute, isW
 			rangeSelectEnd = max(relativeRangeSelectStart, v.cy)
 		}
 
-		if y >= rangeSelectStart && y <= rangeSelectEnd {
+		colorWidth := v.SelectedLineColorWidth
+		if y >= rangeSelectStart && y <= rangeSelectEnd && (colorWidth == 0 || x < colorWidth) {
 			// this ensures we use the bright variant of a colour upon highlight
 			fgColorComponent := fgColor & ^AttrAll
 			if fgColorComponent >= AttrIsValidColor && fgColorComponent < AttrIsValidColor+8 {
