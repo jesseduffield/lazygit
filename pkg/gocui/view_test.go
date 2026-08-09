@@ -314,6 +314,23 @@ func TestDiffLineContentsOfWrappedLine(t *testing.T) {
 	}
 }
 
+func TestDiffLineContentsSwallowsHandshake(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// A diff renderer announces itself with a version-only record before the
+	// diff. It must leave no trace: no visible bytes, no line of its own, and
+	// above all no record on the line that follows it.
+	v.writeString(osc1717("1") + strings.Join([]string{
+		"diff --git a/foo.txt b/foo.txt",
+		osc1717("1;a;1;;foo.txt") + "added",
+	}, "\n"))
+
+	assert.Equal(t, []DiffLineContent{
+		{Text: "diff --git a/foo.txt b/foo.txt"},
+		{Text: "added", Metadata: []string{"1;a;1;;foo.txt"}},
+	}, v.DiffLineContents())
+}
+
 // An async re-render builds into an off-screen buffer and swaps it in once it
 // has enough to paint, so readers keep seeing the previous render — coherent and
 // consistent — until the new content appears in one step. See View.offscreen.
