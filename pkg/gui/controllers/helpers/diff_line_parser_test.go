@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -319,4 +320,103 @@ func TestParseAllDiffLinesFromBuffer(t *testing.T) {
 		assert.False(t, all[i].ok)
 	}
 	assert.True(t, all[6].ok)
+}
+
+func TestParseDiffLineMetadata(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		payload  string
+		expected parsedDiffLine
+		expectOk bool
+	}{
+		{"context", "1;c;1;;foo.txt", parsedDiffLine{Path: "foo.txt", Type: types.DiffLineContext, NewLine: 1}, true},
+		{"added", "1;a;3;;foo.txt", parsedDiffLine{Path: "foo.txt", Type: types.DiffLineAdded, NewLine: 3}, true},
+		// A deletion carries both numbers; two consecutive deletions share the
+		// new-file line and differ only in the old-file one.
+		{"first deletion", "1;d;2;2;foo.txt", parsedDiffLine{Path: "foo.txt", Type: types.DiffLineDeleted, NewLine: 2, OldLine: 2}, true},
+		{"second deletion", "1;d;2;3;foo.txt", parsedDiffLine{Path: "foo.txt", Type: types.DiffLineDeleted, NewLine: 2, OldLine: 3}, true},
+		// A whole-file deletion has new-file position 0 and the old path.
+		{"deleted file", "1;d;0;1;gone.txt", parsedDiffLine{Path: "gone.txt", Type: types.DiffLineDeleted, NewLine: 0, OldLine: 1}, true},
+		// The path is the last field, so a ';' within it survives.
+		{"path with semicolon", "1;c;5;;weird;name.txt", parsedDiffLine{Path: "weird;name.txt", Type: types.DiffLineContext, NewLine: 5}, true},
+		// A renderer may state the path absolutely; the parser keeps it verbatim
+		// and leaves resolving it to the caller.
+		{"absolute path", "1;a;7;;/abs/foo.txt", parsedDiffLine{Path: "/abs/foo.txt", Type: types.DiffLineAdded, NewLine: 7}, true},
+		// A file header has no line number; a hunk header carries the new-file
+		// line of the hunk's first line (0 for a whole-file deletion, mirroring
+		// `@@ -1,N +0,0 @@`).
+		{"file header", "1;f;;;foo.txt", parsedDiffLine{Path: "foo.txt", Type: types.DiffLineFileHeader}, true},
+		{"hunk header", "1;h;10;;foo.txt", parsedDiffLine{Path: "foo.txt", Type: types.DiffLineHunkHeader, NewLine: 10}, true},
+		{"hunk header of a deleted file", "1;h;0;;gone.txt", parsedDiffLine{Path: "gone.txt", Type: types.DiffLineHunkHeader, NewLine: 0}, true},
+		// A file header's line number is always empty, but a renderer that fills
+		// it in anyway is taken at its word rather than rejected.
+		{"file header with a line number", "1;f;10;;foo.txt", parsedDiffLine{Path: "foo.txt", Type: types.DiffLineFileHeader, NewLine: 10}, true},
+
+		{"unknown version", "2;c;1;;foo.txt", parsedDiffLine{}, false},
+		{"unknown type", "1;x;1;;foo.txt", parsedDiffLine{}, false},
+		{"too few fields", "1;c;1", parsedDiffLine{}, false},
+		{"non-numeric new-line", "1;c;x;;foo.txt", parsedDiffLine{}, false},
+		{"non-numeric old-line", "1;d;2;y;foo.txt", parsedDiffLine{}, false},
+		// Only a file header may omit the new-file line; on any other kind the
+		// record is malformed, and rejecting it falls the row back to the diff
+		// text rather than acting on a line number we don't have.
+		{"empty new-line on a content line", "1;c;;;foo.txt", parsedDiffLine{}, false},
+		{"empty new-line on a hunk header", "1;h;;;foo.txt", parsedDiffLine{}, false},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			result, ok := parseDiffLineMetadata(s.payload)
+			assert.Equal(t, s.expectOk, ok)
+			if s.expectOk {
+				assert.Equal(t, s.expected, result)
+			}
+		})
+	}
+}
+
+func TestRenderingStatesDiffLines(t *testing.T) {
+	row := func(text string, records ...string) gocui.DiffLineContent {
+		return gocui.DiffLineContent{Text: text, Metadata: records}
+	}
+
+	scenarios := []struct {
+		name     string
+		contents []gocui.DiffLineContent
+		expected bool
+	}{
+		{
+			name:     "a rendering without records is read as a diff",
+			contents: []gocui.DiffLineContent{row("diff --git a/foo.txt b/foo.txt"), row("+one")},
+			expected: false,
+		},
+		{
+			name:     "a record on any row makes the records the source",
+			contents: []gocui.DiffLineContent{row("foo.txt"), row("one", "1;c;1;;foo.txt"), row("")},
+			expected: true,
+		},
+		{
+			// A renderer announces the protocol with a record that names no line; a
+			// rendering with nothing but that one says nothing about its rows.
+			name:     "the version-only handshake record doesn't count",
+			contents: []gocui.DiffLineContent{row("foo.txt", "1"), row("one")},
+			expected: false,
+		},
+		{
+			name:     "records of a version we don't understand don't count",
+			contents: []gocui.DiffLineContent{row("one", "2;c;1;;foo.txt")},
+			expected: false,
+		},
+		{
+			name:     "an empty rendering states nothing",
+			contents: nil,
+			expected: false,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expected, renderingStatesDiffLines(s.contents))
+		})
+	}
 }
