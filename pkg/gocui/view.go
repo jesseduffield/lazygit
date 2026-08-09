@@ -721,6 +721,9 @@ type cell struct {
 	width            int    // number of terminal cells occupied by chr (always 1 or 2)
 	bgColor, fgColor Attribute
 	hyperlink        string
+	// the OSC 1717 payload in effect when the cell was written, i.e. what the
+	// diff renderer said about the diff line this cell is part of
+	metadata string
 }
 
 type cells []cell
@@ -1130,6 +1133,10 @@ func (b *viewBuffer) write(v *View, p []byte) {
 		if b.wy >= len(b.lines) {
 			b.lines = append(b.lines, lineType{})
 		}
+		// An OSC 1717 record describes the line it precedes and is never
+		// closed, so it stops applying at the line's end; a renderer emits a
+		// fresh one for each line it has something to say about.
+		b.ei.metadata.Reset()
 	}
 
 	if b.pendingNewline {
@@ -1339,6 +1346,7 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			fgColor:   b.ei.curFgColor,
 			bgColor:   b.ei.curBgColor,
 			hyperlink: b.ei.hyperlink.String(),
+			metadata:  b.ei.metadata.String(),
 			chr:       string(ch),
 			width:     width,
 		}
@@ -1917,22 +1925,46 @@ func (v *View) BufferLines() []string {
 	return lines
 }
 
-// LinesAsWritten returns the lines of the view's internal buffer as their writer
-// wrote them, escape sequences left out, where BufferLines returns them as the
-// cells spell them. The two differ where the cells can't spell what was written:
-// a tab, which they hold as the spaces it fills, and a carriage return, which
-// they hold as the overwrite it caused. A reader that parses the content rather
-// than showing it wants this form. git, for one, terminates a path containing a
-// space with a tab in a diff header, and a parser of the diff has to see the tab.
-func (v *View) LinesAsWritten() []string {
+// DiffLineContent holds what one line of a rendered diff offers to a reader trying
+// to recover which line of which file it came from: the line's text, which can be
+// parsed as a unified diff when the rendering preserves one, and the OSC 1717
+// records a diff renderer attached to it, which state the answer outright.
+type DiffLineContent struct {
+	// The line's text as its writer wrote it, escape sequences left out, where
+	// BufferLines gives the text as the cells spell it. The two differ where the
+	// cells can't spell what was written: a tab, which they hold as the spaces it
+	// fills, and a carriage return, which they hold as the overwrite it caused.
+	// git terminates a path containing a space with a tab in a diff header, and a
+	// parser of the diff has to see the tab.
+	Text string
+	// The distinct OSC 1717 payloads carried by the line's cells, in
+	// left-to-right order. A single-column rendering tags every cell of a line
+	// with the same payload, so there is one; a side-by-side rendering tags
+	// each side separately, so a line showing a deletion beside the addition
+	// that replaces it carries both.
+	Metadata []string
+}
+
+// DiffLineContents returns the per-line material a diff-line reader works from
+// (see DiffLineContent), indexed by unwrapped buffer line. Text and records are
+// snapshotted in a single locked pass, so they stay consistent with each other
+// and with the buffer they came from even while a re-render rebuilds it.
+func (v *View) DiffLineContents() []DiffLineContent {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	lines := make([]string, len(v.buf.lines))
+	contents := make([]DiffLineContent, len(v.buf.lines))
 	for i := range v.buf.lines {
-		lines[i] = v.buf.lines[i].textAsWritten()
+		line := &v.buf.lines[i]
+		var metadata []string
+		for _, c := range line.cells {
+			if c.metadata != "" && !slices.Contains(metadata, c.metadata) {
+				metadata = append(metadata, c.metadata)
+			}
+		}
+		contents[i] = DiffLineContent{Text: line.textAsWritten(), Metadata: metadata}
 	}
-	return lines
+	return contents
 }
 
 // BufferLineForViewLine maps a view line index (which counts wrapped lines) to

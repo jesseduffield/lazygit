@@ -33,9 +33,7 @@ func (self *DiffLineHelper) GetDiffLineInfo(view *gocui.View, viewLineIdx int) (
 		return types.DiffLineInfo{}, false
 	}
 
-	// The lines as written, not as shown: git ends the path field of a diff header
-	// with a tab when the path contains a space, and the view shows a tab as spaces.
-	parsed, ok := parseDiffLineFromBuffer(view.LinesAsWritten(), bufferLineIdx)
+	parsed, ok := parseDiffLineFromBuffer(diffLineTexts(view.DiffLineContents()), bufferLineIdx)
 	if !ok {
 		return types.DiffLineInfo{}, false
 	}

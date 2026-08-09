@@ -124,7 +124,12 @@ func TestOverwriteLinesAfterContentEndingInANewline(t *testing.T) {
 	assert.Equal(t, []string{"x", "b"}, v.BufferLines())
 }
 
-func TestLinesAsWritten(t *testing.T) {
+// diffLineTexts returns the Text of each of the given contents.
+func diffLineTexts(contents []DiffLineContent) []string {
+	return lo.Map(contents, func(c DiffLineContent, _ int) string { return c.Text })
+}
+
+func TestDiffLineContentsTextIsTheTextAsWritten(t *testing.T) {
 	tests := []struct {
 		name              string
 		stringsToWrite    []string
@@ -184,12 +189,12 @@ func TestLinesAsWritten(t *testing.T) {
 				v.writeString(s)
 			}
 			assert.Equal(t, test.expectedShown, v.BufferLines())
-			assert.Equal(t, test.expectedAsWritten, v.LinesAsWritten())
+			assert.Equal(t, test.expectedAsWritten, diffLineTexts(v.DiffLineContents()))
 		})
 	}
 }
 
-func TestLinesAsWrittenOfAnOverwrittenLine(t *testing.T) {
+func TestDiffLineContentsTextOfAnOverwrittenLine(t *testing.T) {
 	v := NewView("name", 0, 0, 20, 10, OutputNormal)
 	v.writeString("a\tb\nc\td")
 
@@ -198,7 +203,7 @@ func TestLinesAsWrittenOfAnOverwrittenLine(t *testing.T) {
 	v.OverwriteLines(0, "xy")
 
 	assert.Equal(t, []string{"xy", "c   d"}, v.BufferLines())
-	assert.Equal(t, []string{"xy", "c\td"}, v.LinesAsWritten())
+	assert.Equal(t, []string{"xy", "c\td"}, diffLineTexts(v.DiffLineContents()))
 }
 
 func TestUpdatedCursorAndOrigin(t *testing.T) {
@@ -244,6 +249,69 @@ func TestAutoRenderingHyperlinks(t *testing.T) {
 	// Writing more characters to the same fixes the link
 	v.writeString("mple.com")
 	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
+}
+
+// osc1717 wraps an OSC 1717 payload in the sequence a diff renderer emits it in:
+// the ESC ] introducer with the OSC number, and ESC \ as the terminator.
+func osc1717(payload string) string {
+	return "\x1b]1717;" + payload + "\x1b\\"
+}
+
+func TestDiffLineContents(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// A diff renderer prefixes each line it renders with a record naming the
+	// file and the line's position in it: version;type;new-line;old-line;file.
+	v.writeString(strings.Join([]string{
+		osc1717("1;c;1;;foo.txt") + "line1",
+		osc1717("1;d;2;2;foo.txt") + "old2",
+		osc1717("1;a;2;;foo.txt") + "new2",
+		"@@ a hunk header, which carries no record @@",
+	}, "\n"))
+
+	assert.Equal(t, []DiffLineContent{
+		{Text: "line1", Metadata: []string{"1;c;1;;foo.txt"}},
+		{Text: "old2", Metadata: []string{"1;d;2;2;foo.txt"}},
+		{Text: "new2", Metadata: []string{"1;a;2;;foo.txt"}},
+		// The record of the line before doesn't bleed onto this one.
+		{Text: "@@ a hunk header, which carries no record @@"},
+	}, v.DiffLineContents())
+}
+
+func TestDiffLineContentsWithSideBySideRecords(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// A side-by-side renderer puts two diff lines on one rendered line, and so
+	// emits a record before each half.
+	v.writeString(strings.Join([]string{
+		osc1717("1;c;1;;foo.txt") + "context " + osc1717("1;c;1;;foo.txt") + "context",
+		osc1717("1;d;2;2;foo.txt") + "old2    " + osc1717("1;a;2;;foo.txt") + "new2",
+	}, "\n"))
+
+	assert.Equal(t, []DiffLineContent{
+		// The two halves of a context line are the same diff line, stated twice.
+		{Text: "context context", Metadata: []string{"1;c;1;;foo.txt"}},
+		{Text: "old2    new2", Metadata: []string{"1;d;2;2;foo.txt", "1;a;2;;foo.txt"}},
+	}, v.DiffLineContents())
+}
+
+func TestDiffLineContentsOfWrappedLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// A line that gocui wraps is still one buffer line, so its record covers
+	// every view line it is displayed on.
+	v.writeString(osc1717("1;a;1;;foo.txt") + "a line too long to fit")
+
+	assert.Equal(t, []DiffLineContent{
+		{Text: "a line too long to fit", Metadata: []string{"1;a;1;;foo.txt"}},
+	}, v.DiffLineContents())
+	assert.Equal(t, 3, v.ViewLinesHeight())
+	for viewLine := range 3 {
+		bufferLine, ok := v.BufferLineForViewLine(viewLine)
+		assert.True(t, ok)
+		assert.Equal(t, 0, bufferLine)
+	}
 }
 
 // An async re-render builds into an off-screen buffer and swaps it in once it
