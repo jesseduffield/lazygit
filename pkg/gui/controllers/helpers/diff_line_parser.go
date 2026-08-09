@@ -1,0 +1,212 @@
+package helpers
+
+import (
+	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
+
+// diffFilePrefix marks the start of a file's section in a (possibly multi-file)
+// unified diff.
+const diffFilePrefix = "diff --git "
+
+// parsedDiffLine is what the parser recovers about a row of a rendered diff.
+// RelPath is the path as the diff header spells it, i.e. relative to the repo
+// root; the caller turns it into the absolute path of types.DiffLineInfo.
+type parsedDiffLine struct {
+	RelPath string
+	Type    types.DiffLineType
+	NewLine int
+	OldLine int
+}
+
+// bufferLineParse is the parser's result for one buffer line: the recovered
+// identity, and whether the line could be resolved at all (false for a line in
+// an unparseable section, or outside any file section).
+type bufferLineParse struct {
+	parsed parsedDiffLine
+	ok     bool
+}
+
+// parseDiffLineFromBuffer recovers the identity of a row of a rendered diff by
+// parsing the view's decolorized contents.
+//
+// bufferLines is the full unwrapped view buffer; targetIdx is the buffer line to
+// resolve. A commit's diff spans several files, so we isolate the file section
+// containing targetIdx and parse just that one (see parseFileSection). Use this
+// for a single line, e.g. the one under the cursor; to resolve every line of a
+// buffer, use parseAllDiffLinesFromBuffer, which parses each section only once.
+//
+// ok is false when the buffer isn't a parseable unified diff at targetIdx,
+// because the diff renderer restructured it, so that the caller can fall back.
+func parseDiffLineFromBuffer(bufferLines []string, targetIdx int) (parsedDiffLine, bool) {
+	if targetIdx < 0 || targetIdx >= len(bufferLines) {
+		return parsedDiffLine{}, false
+	}
+	start, end := fileSectionBounds(bufferLines, targetIdx)
+	if start == -1 {
+		return parsedDiffLine{}, false
+	}
+	r := parseFileSection(bufferLines[start:end], end == len(bufferLines))[targetIdx-start]
+	return r.parsed, r.ok
+}
+
+// parseAllDiffLinesFromBuffer resolves every line of a (possibly multi-file)
+// diff buffer in one pass, parsing each file section exactly once. It is the
+// batch form of parseDiffLineFromBuffer, for callers that scan a whole buffer:
+// resolving line by line would re-parse a section once per line of it — O(n²) on
+// a large single-file diff — whereas this is O(n). The result is indexed 1:1
+// with bufferLines; a line in an unparseable section, or before the first
+// "diff --git", is left ok=false.
+func parseAllDiffLinesFromBuffer(bufferLines []string) []bufferLineParse {
+	result := make([]bufferLineParse, len(bufferLines))
+	for i := 0; i < len(bufferLines); {
+		if !strings.HasPrefix(bufferLines[i], diffFilePrefix) {
+			i++ // not in a file section yet; leave it unresolved
+			continue
+		}
+		_, end := fileSectionBounds(bufferLines, i)
+		copy(result[i:end], parseFileSection(bufferLines[i:end], end == len(bufferLines)))
+		i = end
+	}
+	return result
+}
+
+// fileSectionBounds returns the half-open range [start, end) of the file section
+// containing targetIdx: the nearest "diff --git" at or above it, up to the next
+// one (or the end of the buffer). start is -1 when targetIdx is before the first
+// file section.
+func fileSectionBounds(bufferLines []string, targetIdx int) (start, end int) {
+	start = -1
+	for i := targetIdx; i >= 0; i-- {
+		if strings.HasPrefix(bufferLines[i], diffFilePrefix) {
+			start = i
+			break
+		}
+	}
+	if start == -1 {
+		return -1, -1
+	}
+	end = len(bufferLines)
+	for i := start + 1; i < len(bufferLines); i++ {
+		if strings.HasPrefix(bufferLines[i], diffFilePrefix) {
+			end = i
+			break
+		}
+	}
+	return start, end
+}
+
+// parseFileSection parses one file's diff section (fileLines, starting at its
+// "diff --git" line) a single time and returns the identity of each of its
+// lines, indexed 1:1 with fileLines. patch.Parse's line indices line up with the
+// section's buffer lines, so the type and the old/new line numbers fall out of
+// the patch arithmetic. Every line is left ok=false when the section has no
+// recoverable path or isn't a well-formed unified diff — the rendering
+// restructured it, and acting on a mis-parse would land us on the wrong line, so
+// the caller should fall back.
+//
+// endsTheBuffer says the section runs to the end of what we were given. That is
+// where a diff we have only part of breaks off. A long one is read a screenful
+// at a time and the rest as the user scrolls, so its last hunk holds fewer lines
+// than its header declares until the reading is done. Insisting on the whole
+// hunk there would leave every line of the file unresolved while the diff is the
+// one on screen, so a section in that position is held to what has arrived.
+func parseFileSection(fileLines []string, endsTheBuffer bool) []bufferLineParse {
+	result := make([]bufferLineParse, len(fileLines))
+
+	relPath := pathFromDiffHeader(fileLines)
+	if relPath == "" {
+		return result
+	}
+	p := patch.Parse(strings.Join(fileLines, "\n"))
+	isWellFormed := p.IsWellFormed
+	if endsTheBuffer {
+		isWellFormed = p.IsWellFormedSoFar
+	}
+	if !isWellFormed() {
+		return result
+	}
+	patchLines := p.Lines()
+	for i := range fileLines {
+		if i >= len(patchLines) {
+			break
+		}
+		parsed := parsedDiffLine{
+			RelPath: relPath,
+			Type:    diffLineTypeForKind(patchLines[i].Kind),
+			NewLine: p.LineNumberOfLine(i),
+		}
+		if parsed.Type == types.DiffLineDeleted {
+			parsed.OldLine = p.OldLineNumberOfLine(i)
+		}
+		result[i] = bufferLineParse{parsed, true}
+	}
+	return result
+}
+
+func diffLineTypeForKind(kind patch.PatchLineKind) types.DiffLineType {
+	switch kind {
+	case patch.PATCH_HEADER:
+		return types.DiffLineFileHeader
+	case patch.HUNK_HEADER:
+		return types.DiffLineHunkHeader
+	case patch.ADDITION:
+		return types.DiffLineAdded
+	case patch.DELETION:
+		return types.DiffLineDeleted
+	case patch.CONTEXT:
+		return types.DiffLineContext
+	default:
+		return types.DiffLineOther
+	}
+}
+
+// pathFromDiffHeader extracts the new-file path of a single file's diff section.
+// It prefers the "+++ b/<path>" line, falling back to "--- a/<path>" when the
+// new path is /dev/null (a deleted file), and to the "diff --git" line when
+// there are no such lines at all (a pure rename, which has no hunks).
+func pathFromDiffHeader(fileLines []string) string {
+	var oldPath, newPath string
+	for _, line := range fileLines {
+		if strings.HasPrefix(line, "@@") {
+			break // past the header
+		}
+		switch {
+		case strings.HasPrefix(line, "+++ "):
+			newPath = stripDiffPathPrefix(strings.TrimPrefix(line, "+++ "))
+		case strings.HasPrefix(line, "--- "):
+			oldPath = stripDiffPathPrefix(strings.TrimPrefix(line, "--- "))
+		}
+	}
+
+	if newPath != "" && newPath != "/dev/null" {
+		return newPath
+	}
+	if oldPath != "" && oldPath != "/dev/null" {
+		return oldPath
+	}
+	return pathFromDiffGitLine(fileLines[0])
+}
+
+// stripDiffPathPrefix removes the a/ or b/ prefix git puts on the paths in a
+// diff header. We ask git for these prefixes explicitly (diff.noprefix=false),
+// so they are always there.
+func stripDiffPathPrefix(path string) string {
+	if strings.HasPrefix(path, "a/") || strings.HasPrefix(path, "b/") {
+		return path[2:]
+	}
+	return path
+}
+
+// pathFromDiffGitLine extracts the new-file path from a "diff --git a/X b/X"
+// line. A path containing " b/" would defeat this, but the +++/--- lines are
+// unambiguous and we only get here when they are absent.
+func pathFromDiffGitLine(line string) string {
+	rest := strings.TrimPrefix(line, diffFilePrefix)
+	if idx := strings.LastIndex(rest, " b/"); idx != -1 {
+		return rest[idx+len(" b/"):]
+	}
+	return ""
+}

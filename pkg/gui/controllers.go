@@ -68,6 +68,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		searchHelper,
 	)
 	diffHelper := helpers.NewDiffHelper(helperCommon)
+	diffLineHelper := helpers.NewDiffLineHelper(helperCommon)
 	cherryPickHelper := helpers.NewCherryPickHelper(
 		helperCommon,
 		rebaseHelper,
@@ -110,6 +111,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		SuspendResume:   helpers.NewSuspendResumeHelper(helperCommon),
 		Snake:           helpers.NewSnakeHelper(helperCommon),
 		Diff:            diffHelper,
+		DiffLine:        diffLineHelper,
 		Repos:           reposHelper,
 		RecordDirectory: recordDirectoryHelper,
 		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater),
