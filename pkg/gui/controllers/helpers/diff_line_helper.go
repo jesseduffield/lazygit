@@ -45,7 +45,7 @@ func (self *DiffLineHelper) GetDiffLineInfo(view *gocui.View, viewLineIdx int) (
 // absolute-path identity consumers work with.
 func (self *DiffLineHelper) diffLineInfoFromParsed(parsed parsedDiffLine) types.DiffLineInfo {
 	return types.DiffLineInfo{
-		Path:    filepath.Join(self.c.Git().RepoPaths.WorktreePath(), parsed.RelPath),
+		Path:    filepath.Join(self.c.Git().RepoPaths.WorktreePath(), parsed.Path),
 		Type:    parsed.Type,
 		NewLine: parsed.NewLine,
 		OldLine: parsed.OldLine,
