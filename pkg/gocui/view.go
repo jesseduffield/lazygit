@@ -615,6 +615,12 @@ func (v *View) SetRangeSelectStart(rangeSelectStartY int) {
 	v.rangeSelectStartY = rangeSelectStartY
 }
 
+// RangeSelectStartY returns the view line the range selection is anchored on,
+// or -1 when there is no range.
+func (v *View) RangeSelectStartY() int {
+	return v.rangeSelectStartY
+}
+
 func (v *View) CancelRangeSelect() {
 	v.rangeSelectStartY = -1
 }
