@@ -51,6 +51,12 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Description: self.c.Tr.StartSearch,
 			Tag:         "navigation",
 		},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.PrevItem), Handler: self.handlePrevLine},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextItem), Handler: self.handleNextLine},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.PrevPage), Handler: self.handlePrevPage, Description: self.c.Tr.PrevPage},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextPage), Handler: self.handleNextPage, Description: self.c.Tr.NextPage},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoTop), Handler: self.handleGotoTop, Description: self.c.Tr.GotoTop},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoBottom), Handler: self.handleGotoBottom, Description: self.c.Tr.GotoBottom},
 	}
 }
 
@@ -101,6 +107,56 @@ func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.View
 		ClickedWindowName:  self.context.GetWindowName(),
 		ClickedViewLineIdx: opts.Y,
 	})
+
+	return nil
+}
+
+func (self *MainViewController) handleLineChange(delta int) {
+	v := self.context.GetView()
+	if delta < 0 {
+		v.ScrollUp(-delta)
+	} else {
+		v.ScrollDown(delta)
+		self.c.ReadLinesToFillView(v)
+	}
+}
+
+func (self *MainViewController) handlePrevLine() error {
+	self.handleLineChange(-1)
+	return nil
+}
+
+func (self *MainViewController) handleNextLine() error {
+	self.handleLineChange(1)
+	return nil
+}
+
+func (self *MainViewController) handlePrevPage() error {
+	self.handleLineChange(-self.context.GetViewTrait().PageDelta())
+	return nil
+}
+
+func (self *MainViewController) handleNextPage() error {
+	self.handleLineChange(self.context.GetViewTrait().PageDelta())
+	return nil
+}
+
+func (self *MainViewController) handleGotoTop() error {
+	v := self.context.GetView()
+	self.handleLineChange(-v.ViewLinesHeight())
+	return nil
+}
+
+func (self *MainViewController) handleGotoBottom() error {
+	if manager := self.c.GetViewBufferManagerForView(self.context.GetView()); manager != nil {
+		manager.ReadToEnd(func() {
+			self.c.OnUIThread(func() error {
+				v := self.context.GetView()
+				self.handleLineChange(v.ViewLinesHeight())
+				return nil
+			})
+		})
+	}
 
 	return nil
 }
