@@ -30,7 +30,9 @@ var SelectionCommandsOnlyWhereTheyApply = NewIntegrationTest(NewIntegrationTestA
 			Tap(func() {
 				t.Views().Menu().
 					Content(DoesNotContain("Select hunks")).
-					Content(DoesNotContain("Toggle range select"))
+					Content(DoesNotContain("Toggle range select")).
+					Content(DoesNotContain("Go to next hunk")).
+					Content(DoesNotContain("Go to next file"))
 			}).
 			Cancel()
 

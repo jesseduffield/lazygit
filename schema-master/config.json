@@ -2041,6 +2041,34 @@
             "l"
           ]
         },
+        "prevFile": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "N"
+        },
+        "nextFile": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "n"
+        },
         "toggleSelectHunk": {
           "oneOf": [
             {

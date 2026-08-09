@@ -288,6 +288,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | 切换到其他面板 | 切换到其他视图（已暂存/未暂存的变更） |
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` v `` | 切换拖动选择 |  |
+| `` <left>, h `` | 选择上一个区块 |  |
+| `` <right>, l `` | 选择下一个区块 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | 退出回到侧边面板 |  |
 | `` / `` | 开始搜索 |  |
 
@@ -338,6 +342,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | 切换到其他面板 | 切换到其他视图（已暂存/未暂存的变更） |
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` v `` | 切换拖动选择 |  |
+| `` <left>, h `` | 选择上一个区块 |  |
+| `` <right>, l `` | 选择下一个区块 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | 退出回到侧边面板 |  |
 | `` / `` | 开始搜索 |  |
 
