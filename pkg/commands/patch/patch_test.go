@@ -696,6 +696,108 @@ func TestLineNumberOfLine(t *testing.T) {
 	}
 }
 
+func TestIsWellFormed(t *testing.T) {
+	// The body of a diff as rendered with the +/- markers moved out of the text
+	// and into a gutter: every body line now reads as context, so the lengths no
+	// longer match the header.
+	const gutterMangled = `diff --git a/filename b/filename
+index 9320895..6d79956 100644
+--- a/filename
++++ b/filename
+@@ -1,4 +1,2 @@
+ apple
+ grape
+ pear
+ lemon
+`
+
+	scenarios := []struct {
+		testName string
+		patchStr string
+		expected bool
+	}{
+		{"simpleDiff", simpleDiff, true},
+		{"renameWithModificationDiff", renameWithModificationDiff, true},
+		{"addNewlineToEndOfFile", addNewlineToEndOfFile, true},
+		{"twoHunks", twoHunks, true},
+		{"consecutiveDeletions", consecutiveDeletions, true},
+		{"newFile", newFile, true},
+		{"deletedFile", deletedFile, true},
+		{"addNewlineToPreviouslyEmptyFile", addNewlineToPreviouslyEmptyFile, true},
+		{"exampleHunk", exampleHunk, true},
+		{"gutterMangled", gutterMangled, false},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			assert.Equal(t, s.expected, Parse(s.patchStr).IsWellFormed())
+		})
+	}
+}
+
+func TestIsWellFormedSoFar(t *testing.T) {
+	// A diff read only as far as the middle of its second hunk.
+	const cutShort = `diff --git a/filename b/filename
+index e48a11c..b2ab81b 100644
+--- a/filename
++++ b/filename
+@@ -1,5 +1,5 @@
+ apple
+-grape
++orange
+ ...
+ ...
+ ...
+@@ -8,6 +8,8 @@ grape
+ ...
+ ...
+`
+
+	// The same diff cut short in its first hunk, so that the second is missing
+	// entirely rather than short.
+	const cutShortInTheFirstHunk = `diff --git a/filename b/filename
+index e48a11c..b2ab81b 100644
+--- a/filename
++++ b/filename
+@@ -1,5 +1,5 @@
+ apple
+-grape
+`
+
+	// A rendering with the +/- markers moved into a gutter, cut short: reading the
+	// changes as context makes the hunk longer than its header declares, not shorter,
+	// so it doesn't pass for a diff we only have the beginning of.
+	const gutterMangledAndCutShort = `diff --git a/filename b/filename
+index 9320895..6d79956 100644
+--- a/filename
++++ b/filename
+@@ -1,4 +1,2 @@
+ apple
+ grape
+ pear
+ lemon
+ melon
+`
+
+	scenarios := []struct {
+		testName string
+		patchStr string
+		expected bool
+	}{
+		{"simpleDiff", simpleDiff, true},
+		{"twoHunks", twoHunks, true},
+		{"cutShort", cutShort, true},
+		{"cutShortInTheFirstHunk", cutShortInTheFirstHunk, true},
+		{"gutterMangledAndCutShort", gutterMangledAndCutShort, false},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			assert.Equal(t, s.expected, Parse(s.patchStr).IsWellFormedSoFar())
+		})
+	}
+}
+
 func TestOldLineNumberOfLine(t *testing.T) {
 	type scenario struct {
 		testName  string
