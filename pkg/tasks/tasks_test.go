@@ -26,7 +26,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 	beforeStart, getBeforeStartCallCount := getCounter()
 	refreshView, getRefreshViewCallCount := getCounter()
 	onEndOfInput, getOnEndOfInputCallCount := getCounter()
-	onNewKey, getOnNewKeyCallCount := getCounter()
+	resetOrigin, getResetOriginCallCount := getCounter()
 	beginRender, getBeginRenderCallCount := getCounter()
 	swapInRender, getSwapInRenderCallCount := getCounter()
 	onDone, getOnDoneCallCount := getCounter()
@@ -41,7 +41,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		beforeStart,
 		refreshView,
 		onEndOfInput,
-		onNewKey,
+		resetOrigin,
 		beginRender,
 		swapInRender,
 		newTask,
@@ -72,7 +72,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		{0, getBeforeStartCallCount(), "beforeStart"},
 		{1, getRefreshViewCallCount(), "refreshView"},
 		{0, getOnEndOfInputCallCount(), "onEndOfInput"},
-		{0, getOnNewKeyCallCount(), "onNewKey"},
+		{0, getResetOriginCallCount(), "resetOrigin"},
 		{0, getBeginRenderCallCount(), "beginRender"},
 		{0, getSwapInRenderCallCount(), "swapInRender"},
 		{1, getOnDoneCallCount(), "onDone"},
@@ -99,7 +99,7 @@ func TestNewCmdTask(t *testing.T) {
 	beforeStart, getBeforeStartCallCount := getCounter()
 	refreshView, getRefreshViewCallCount := getCounter()
 	onEndOfInput, getOnEndOfInputCallCount := getCounter()
-	onNewKey, getOnNewKeyCallCount := getCounter()
+	resetOrigin, getResetOriginCallCount := getCounter()
 	beginRender, getBeginRenderCallCount := getCounter()
 	swapInRender, getSwapInRenderCallCount := getCounter()
 	onDone, getOnDoneCallCount := getCounter()
@@ -114,7 +114,7 @@ func TestNewCmdTask(t *testing.T) {
 		beforeStart,
 		refreshView,
 		onEndOfInput,
-		onNewKey,
+		resetOrigin,
 		beginRender,
 		swapInRender,
 		newTask,
@@ -149,7 +149,7 @@ func TestNewCmdTask(t *testing.T) {
 		{0, getBeforeStartCallCount(), "beforeStart"},
 		{1, getRefreshViewCallCount(), "refreshView"},
 		{1, getOnEndOfInputCallCount(), "onEndOfInput"},
-		{0, getOnNewKeyCallCount(), "onNewKey"},
+		{0, getResetOriginCallCount(), "resetOrigin"},
 		{1, getBeginRenderCallCount(), "beginRender"},
 		{1, getSwapInRenderCallCount(), "swapInRender"},
 		{1, getOnDoneCallCount(), "onDone"},
@@ -266,30 +266,76 @@ func TestNewCmdTaskQueuedReadAtEndOfInput(t *testing.T) {
 	assert.True(t, thenCalled)
 }
 
-// A writer that records whether the loading indicator was ever written to it.
-type LoadingIndicatorSpy struct {
-	sawLoadingIndicator atomic.Bool
-}
-
-func (self *LoadingIndicatorSpy) Write(p []byte) (n int, err error) {
-	if bytes.Contains(p, []byte("loading...")) {
-		self.sawLoadingIndicator.Store(true)
-	}
-	return len(p), nil
-}
-
-// A render that takes long enough to produce its first line takes the view over
-// to say "loading...", which means clearing whatever it was showing. That is only
-// worth doing when the content coming is different from what's on screen:
-// re-rendering the same content would otherwise clear the view and render the
-// same thing straight back, a visible flicker for nothing.
-func TestLoadingIndicatorOnlyTakesOverForNewContent(t *testing.T) {
-	writer := &LoadingIndicatorSpy{}
+// A task rendering content the view wasn't already showing resets the scroll
+// position to the top, at its first paint. If it is stopped and replaced before
+// it ever paints — a background refresh landing just after the user clicked a
+// different item, say — the replacement renders the same content and so decides
+// on no reset of its own; it has to perform the one the stopped task was owed,
+// or the view keeps the scroll position of the content it showed before.
+func TestResetOriginSurvivesTaskReplacement(t *testing.T) {
+	resetOrigin, getResetOriginCallCount := getCounter()
 
 	manager := NewViewBufferManager(
 		utils.NewDummyLog(),
-		writer,
+		bytes.NewBuffer(nil),
 		func() {},
+		func() {},
+		func() {},
+		resetOrigin,
+		func() {},
+		func() {},
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	startTask := func(key string, reader io.Reader, onDone func()) {
+		start := func() (Cmd, io.Reader) {
+			// not actually starting this because it's not necessary
+			return ExecCmd{Cmd: exec.Command("blah")}, reader
+		}
+		// The first-paint point is far beyond what any of these readers yield, so
+		// only reaching EOF paints.
+		_ = manager.NewTask(manager.NewCmdTask(start, "", LinesToRead{100, 50, nil}, onDone), key)
+	}
+	runTaskToCompletion := func(key string) {
+		done := make(chan struct{})
+		startTask(key, &BlankLineReader{totalLinesToYield: 3}, func() { close(done) })
+		<-done
+	}
+
+	// A render of content the view wasn't showing resets the scroll position.
+	runTaskToCompletion("cmd1")
+	assert.Equal(t, 1, getResetOriginCallCount())
+
+	// Different content again, but this task stalls before it can paint.
+	stalled := BlockingLineReader{
+		linesToYield: 3,
+		blocked:      make(chan struct{}),
+		unblock:      make(chan struct{}),
+	}
+	defer close(stalled.unblock)
+	startTask("cmd2", &stalled, nil)
+	<-stalled.blocked
+
+	// The replacement shows the same content as the stalled task, so it has no
+	// reset of its own to do — but it must still do that task's.
+	runTaskToCompletion("cmd2")
+	assert.Equal(t, 2, getResetOriginCallCount())
+}
+
+// A render that takes long enough to start takes the view over to say
+// "loading...", which means blanking whatever it was showing. That is only worth
+// doing when the content coming is different from what's on screen: re-rendering
+// the same content (a background refresh, say) would otherwise blank the view and
+// paint the same thing back, a visible flicker for nothing.
+func TestLoadingIndicatorOnlyTakesOverForNewContent(t *testing.T) {
+	var beforeStartCount atomic.Int32
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		io.Discard,
+		func() { beforeStartCount.Add(1) },
 		func() {},
 		func() {},
 		func() {},
@@ -325,20 +371,20 @@ func TestLoadingIndicatorOnlyTakesOverForNewContent(t *testing.T) {
 	done := make(chan struct{})
 	startTask("cmd1", &BlankLineReader{totalLinesToYield: 3}, func() { close(done) })
 	<-done
-	assert.False(t, writer.sawLoadingIndicator.Load())
+	assert.EqualValues(t, 0, beforeStartCount.Load())
 
 	// A slow re-render of that same content must leave the view alone however
 	// long it takes. The indicator is due 200ms in, so give it well past that.
 	sameContent := startStalledTask("cmd1")
 	defer close(sameContent.unblock)
 	time.Sleep(500 * time.Millisecond)
-	assert.False(t, writer.sawLoadingIndicator.Load())
+	assert.EqualValues(t, 0, beforeStartCount.Load())
 
 	// Different content, though, is worth taking the view over for.
 	newContent := startStalledTask("cmd2")
 	defer close(newContent.unblock)
 	assert.Eventually(t,
-		writer.sawLoadingIndicator.Load,
+		func() bool { return beforeStartCount.Load() == 1 },
 		2*time.Second, 10*time.Millisecond)
 }
 

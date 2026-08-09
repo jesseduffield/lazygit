@@ -76,13 +76,27 @@ type ViewBufferManager struct {
 	// thread; nil when no task is running.
 	readLines atomic.Pointer[chan LinesToRead]
 	taskKey   string
-	onNewKey  func()
+
+	// Resets the view's scroll position to the top. A render whose content is
+	// different from what the view last showed (a different command key) calls
+	// this — but at its *first paint*, not when the task starts: the off-screen
+	// render leaves the previous content displayed until the swap, so resetting
+	// the origin up front would scroll that still-displayed content to the top
+	// before the new content replaces it. See newContentPending.
+	resetOrigin func()
 
 	// Whether the content the running task is rendering differs from what the
-	// view is currently showing (i.e. the command key changed). The loading
-	// indicator only takes the view over when it is set: there is no point
-	// clearing content we are about to render identically. Cleared once the
-	// task has rendered enough for the view to be showing the new content.
+	// view is currently showing (i.e. the command key changed). Two things key
+	// off it: the loading indicator only takes the view over when it is set,
+	// since there is no point clearing content we are about to render
+	// identically; and the first paint that reveals the content resets the
+	// scroll to the top and clears it.
+	//
+	// It deliberately outlives the task that set it: a task can be stopped and
+	// replaced before it ever paints — a background refresh landing just after
+	// the user clicked a different item, say — and the replacement, which
+	// renders the same content and so sets nothing of its own, still has to do
+	// what that task was owed.
 	newContentPending atomic.Bool
 
 	// Whether a command task is currently reading content into the view. While
@@ -152,7 +166,7 @@ func NewViewBufferManager(
 	beforeStart func(),
 	refreshView func(),
 	onEndOfInput func(),
-	onNewKey func(),
+	resetOrigin func(),
 	beginRender func(),
 	swapInRender func(),
 	newGocuiTask func() gocui.Task,
@@ -164,7 +178,7 @@ func NewViewBufferManager(
 		beforeStart:  beforeStart,
 		refreshView:  refreshView,
 		onEndOfInput: onEndOfInput,
-		onNewKey:     onNewKey,
+		resetOrigin:  resetOrigin,
 		beginRender:  beginRender,
 		swapInRender: swapInRender,
 		newGocuiTask: newGocuiTask,
@@ -324,9 +338,15 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				// it for the message and then rendering the same thing back is a
 				// visible flicker for nothing — and a slow re-render of unchanged
 				// content is common (a background refresh over a repo with submodules
-				// that have uncommitted changes, say).
+				// that have uncommitted changes, say). The pending flag isn't consumed
+				// here; the first paint still owes the scroll reset.
 				if !loaded && self.newContentPending.Load() {
 					self.beforeStart()
+					// beforeStart cleared the previous content to show "loading...", so
+					// put the view back at the top for it (beforeStart doesn't touch the
+					// origin). The origin is view state the UI thread reads while laying
+					// out, so write it there.
+					_ = self.onUIThread(self.resetOrigin)
 					_, _ = self.writer.Write([]byte("loading..."))
 					self.refreshView()
 				}
@@ -367,6 +387,25 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			// absolute target total (see LinesToRead.Total), so we compare against
 			// this to work out how many more lines, if any, we still need to read.
 			linesRead := 0
+
+			// The first paint swaps the off-screen render in to reveal the new
+			// content, and settles the scroll position in the same step — so the new
+			// content first appears already where it belongs, and no draw can land
+			// between the two and show it at the previous render's scroll. It happens
+			// once, either when we've read far enough (below) or at end of input for
+			// content shorter than that. Callers run it on the UI thread: it writes
+			// the view's origin.
+			painted := false
+			firstPaint := func() {
+				if painted {
+					return
+				}
+				painted = true
+				self.swapInRender()
+				if self.newContentPending.Swap(false) {
+					self.resetOrigin()
+				}
+			}
 
 			// Set LAZYGIT_SLOW_RENDER=<milliseconds> to sleep that long after each
 			// line is written to the view, stretching async loads out so the frames
@@ -438,18 +477,16 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 								break outer
 							default:
 							}
-							// Genuine end of input: swap in whatever we read (the content was
-							// shorter than a screenful, so we never hit the InitialRefreshAfter
-							// swap), and flush the stale content.
-							// onEndOfInput reads the view's dimensions (to decide
-							// whether to scroll) and sets the origin, both of which
-							// are UI-thread-only, so run it there.
+							// Genuine end of input: do the first paint now if it hasn't happened
+							// yet (the content was shorter than a screenful, so we never reached
+							// the point below), and flush the stale content. onEndOfInput reads
+							// the view's dimensions (to decide whether to scroll) and sets the
+							// origin, both of which are UI-thread-only, so run it there — as is
+							// firstPaint, which also writes the origin.
 							_ = self.onUIThread(func() {
-								self.swapInRender()
+								firstPaint()
 								self.onEndOfInput()
 							})
-							// Whatever there was to show is on screen now.
-							self.newContentPending.Store(false)
 							// The content is fully loaded now, so it's safe again for the
 							// layout to clamp the scroll position to it. We deliberately
 							// don't clear this when stopped (rather than EOF'd), because that
@@ -482,12 +519,10 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 						}
 
 						if linesRead == linesToRead.InitialRefreshAfter {
-							// We have read enough lines to fill the view, so swap the off-screen
-							// content in and do a first refresh to show it. Continue reading and
-							// refresh again at the end to make sure the scrollbar has the right
-							// size.
-							self.swapInRender()
-							self.newContentPending.Store(false)
+							// We have read enough lines to fill the view, so do the first paint
+							// and refresh to show it. Continue reading and refresh again at the
+							// end to make sure the scrollbar has the right size.
+							_ = self.onUIThread(firstPaint)
 							refreshViewIfStale()
 						}
 					}
@@ -606,25 +641,18 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 			return
 		}
 
+		// Note we don't reset the origin here even when the command key changed:
+		// that's deferred to the first paint that reveals the new content (see
+		// newContentPending), so the previous content — left displayed until the
+		// swap — doesn't visibly jump to the top before the new content appears.
 		// Read taskKey directly: we already hold the mutex that guards it, and
 		// GetTaskKey would take it again.
-		newContent := self.taskKey != key
-		if newContent {
+		if self.taskKey != key && self.resetOrigin != nil {
 			self.newContentPending.Store(true)
 		}
-		resetOrigin := newContent && self.onNewKey != nil
 		self.taskKey = key
 
 		self.taskIDMutex.Unlock()
-
-		if resetOrigin {
-			// onNewKey resets the view's scroll origin, which is view state the
-			// UI thread reads while laying out and drawing, so do it there. This
-			// must happen after releasing taskIDMutex: it blocks until the UI
-			// thread runs it, and a NewTask call on the UI thread takes
-			// taskIDMutex, so holding it here would deadlock.
-			_ = self.onUIThread(self.onNewKey)
-		}
 
 		self.waitingMutex.Lock()
 
