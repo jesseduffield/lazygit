@@ -27,6 +27,17 @@ type escapeInterpreter struct {
 	// which line of which file it is about to render; accumulated like
 	// hyperlink, and attached to the cells that follow it
 	metadata strings.Builder
+	// whether the payload currently in metadata has reached a cell, so that one
+	// that never does can be recognized and kept as an orphan
+	metadataConsumed bool
+	// OSC 1717 payloads that no cell took, because the next record followed
+	// with nothing rendered in between. A renderer emits records back to back
+	// wherever two diff lines share a rendered line — the deletion and the
+	// addition of a modification collapsed into one column, or a banner
+	// announcing a file and its first hunk at once. The write loop gives these
+	// cells of their own, so that a line keeps every record it was given rather
+	// than only the last.
+	orphanedMetadata []string
 
 	// ConPTY emits cursor-positioning escapes (CUP) to skip over blank
 	// rows rather than emitting LFs for them. To convert those into row
@@ -447,7 +458,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 				ei.hyperlink.Reset()
 				ei.state = stateOSCParams
 			case "1717":
-				ei.metadata.Reset()
+				ei.orphanUnconsumedMetadata()
 				ei.state = stateOSCMetadata
 			default:
 				ei.state = stateOSCSkipUnknown
@@ -511,6 +522,25 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+// orphanUnconsumedMetadata clears the metadata accumulator for a new OSC 1717
+// record, keeping the payload it held as an orphan if no cell took it (see
+// orphanedMetadata).
+func (ei *escapeInterpreter) orphanUnconsumedMetadata() {
+	if ei.metadata.Len() > 0 && !ei.metadataConsumed {
+		ei.orphanedMetadata = append(ei.orphanedMetadata, ei.metadata.String())
+	}
+	ei.metadata.Reset()
+	ei.metadataConsumed = false
+}
+
+// takeOrphanedMetadata hands the accumulated orphaned payloads to the caller and
+// clears the list.
+func (ei *escapeInterpreter) takeOrphanedMetadata() []string {
+	result := ei.orphanedMetadata
+	ei.orphanedMetadata = nil
+	return result
 }
 
 // dropMetadataIfHandshake discards a just-completed OSC 1717 payload that
