@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
 
@@ -44,6 +45,33 @@ func (self *DiffLineHelper) FirstChangeLineInView(view *gocui.View) (int, bool) 
 	return 0, false
 }
 
+// FirstChangeBlockInView returns the view line of the first change block on screen:
+// the first one that *begins* in the viewport, and failing that the one that reaches
+// into the viewport from above, whose start is off screen. Hunk mode wants that order
+// for the block it offers up on focus: preferably a block whose beginning the user can
+// see, rather than the tail of one they have scrolled past the start of. The block
+// bleeding in from above is kept as the answer for a change too long to fit on screen,
+// where there is no other. ok is false when the viewport shows no change line.
+func (self *DiffLineHelper) FirstChangeBlockInView(view *gocui.View) (int, bool) {
+	top, bottom, ok := visibleBufferLines(view)
+	if !ok {
+		return 0, false
+	}
+
+	isChange := self.changeLines(view)
+	for i := top; i <= min(bottom, len(isChange)-1); i++ {
+		if isChange[i] && (i == 0 || !isChange[i-1]) {
+			return view.ViewLineForBufferLine(i)
+		}
+	}
+	// A block covering the top line is one that began above it: nothing else can put a
+	// change there once no block starts on screen.
+	if top < len(isChange) && isChange[top] {
+		return view.ViewLineForBufferLine(top)
+	}
+	return 0, false
+}
+
 // visibleBufferLines returns the first and last line of view's content that the
 // viewport shows any part of, for the queries that only care about what the user can
 // see. The last line is the one at the bottom edge, or the content's last when the
@@ -76,6 +104,48 @@ func (self *DiffLineHelper) ViewHasChangeLines(view *gocui.View) bool {
 func (self *DiffLineHelper) IsChangeLine(view *gocui.View, viewLineIdx int) bool {
 	info, ok := self.GetDiffLineInfo(view, viewLineIdx)
 	return ok && info.IsChange()
+}
+
+// IsSingleHunkForWholeFile reports whether the file the given change line belongs to
+// is shown as one solid block of changes — every row of its diff a change of the same
+// kind, no context — which is what a newly added or deleted file looks like. That is
+// the case where widening the selection to the change block would select the file
+// entire, so hunk mode drops to a single line there instead. It asks of a rendered
+// diff the question patch.Patch.IsSingleHunkForWholeFile asks of a patch.
+//
+// It says false while the diff is still being read in, since the rows that would
+// answer otherwise — a context line, a change of the other kind — may not have
+// arrived yet. That errs towards hunk mode, which is what the user asked for.
+func (self *DiffLineHelper) IsSingleHunkForWholeFile(view *gocui.View, changeViewLine int) bool {
+	if manager := self.c.GetViewBufferManagerForView(view); manager != nil && manager.IsLoading() {
+		return false
+	}
+
+	anchor, ok := view.BufferLineForViewLine(changeViewLine)
+	if !ok {
+		return false
+	}
+	resolved := self.resolveDiffLines(view.DiffLineContents())
+	if anchor >= len(resolved) || !resolved[anchor].ok {
+		return false
+	}
+
+	// The question is per file: a commit's diff may hold a newly added file next to an
+	// edited one.
+	path := resolved[anchor].info.Path
+	kind := resolved[anchor].info.Type
+	for _, row := range resolved {
+		if !row.ok || row.info.Path != path {
+			continue
+		}
+		if row.info.Type == types.DiffLineContext {
+			return false
+		}
+		if row.info.IsChange() && row.info.Type != kind {
+			return false
+		}
+	}
+	return true
 }
 
 // ChangeBlockBounds returns the inclusive view-line range of the change block to
@@ -119,6 +189,17 @@ func (self *DiffLineHelper) ChangeBlockBounds(view *gocui.View, anchorViewLine i
 		return 0, 0, false
 	}
 	return startView, endView, true
+}
+
+// SelectedHunkBounds returns the change block selected in hunk mode. The range
+// anchor stays on the block's far end when a click moves the cursor before its
+// handler runs, so it still identifies the selected block.
+func (self *DiffLineHelper) SelectedHunkBounds(view *gocui.View) (int, int, bool) {
+	anchor := view.RangeSelectStartY()
+	if anchor < 0 {
+		return 0, 0, false
+	}
+	return self.ChangeBlockBounds(view, anchor)
 }
 
 // AdjacentChangeBlock returns the view line to move to for next/previous change-block

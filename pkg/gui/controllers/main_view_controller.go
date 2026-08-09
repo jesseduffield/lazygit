@@ -241,19 +241,25 @@ func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.View
 }
 
 // selectClickedDiffLine sets the focused main view's selection from a click at the
-// given view line. In hunk mode a click on a change line keeps hunk mode and selects
-// that whole block, so clicking from hunk to hunk stays ready to act on one; a click
-// on context drops to a single line, as does any click when we weren't in hunk mode —
-// the click points at that line precisely, e.g. to edit it.
+// given view line. In hunk mode, clicking inside the selected block collapses it to
+// that line; clicking a change line outside it keeps hunk mode and selects that block.
+// A click on context, or any click outside hunk mode, selects just that line too.
 func (self *MainViewController) selectClickedDiffLine(viewLine int) {
 	if !self.isDiffView() {
 		return
 	}
 	view := self.context.GetView()
-	if self.diffSelectState().Mode == types.DiffSelectModeHunk &&
-		self.c.Helpers().DiffLine.IsChangeLine(view, viewLine) {
-		self.selectHunkAround(viewLine, false)
-		return
+	if self.diffSelectState().Mode == types.DiffSelectModeHunk {
+		if start, end, ok := self.c.Helpers().DiffLine.SelectedHunkBounds(view); ok &&
+			viewLine >= start && viewLine <= end {
+			self.context.ResetDiffSelectMode()
+			showSelectionAtLine(view, viewLine, false)
+			return
+		}
+		if self.c.Helpers().DiffLine.IsChangeLine(view, viewLine) {
+			self.selectHunkAround(viewLine, false)
+			return
+		}
 	}
 	self.context.ResetDiffSelectMode()
 	showSelectionAtLine(view, viewLine, false)
@@ -269,6 +275,11 @@ func (self *MainViewController) selectClickedDiffLine(viewLine int) {
 // view going where the selection would like to be. With no change line on screen at
 // all — a long stretch of context — it lands on the middle visible line, the likeliest
 // one to be the one being read.
+//
+// With hunk mode configured as the default the selection widens to the whole change
+// block: keyboard focus lands on the first block on screen, and a click on a change
+// line selects that line's block, ready to act on. A click on context still selects
+// just that line — the click points at it precisely, so it stays editable.
 func establishDiffSelection(c *ControllerCommon, mainContext *context.MainContext, clickedViewLine int) {
 	mainContext.ResetDiffSelectMode()
 	view := mainContext.GetView()
@@ -281,16 +292,49 @@ func establishDiffSelection(c *ControllerCommon, mainContext *context.MainContex
 	}
 
 	if clickedViewLine >= 0 {
+		if hunkModeApplies(c, view, clickedViewLine) &&
+			c.Helpers().DiffLine.IsChangeLine(view, clickedViewLine) {
+			mainContext.DiffSelectState().Mode = types.DiffSelectModeHunk
+			selectDiffHunk(c, mainContext, clickedViewLine, false)
+			return
+		}
 		showSelectionAtLine(view, clickedViewLine, false)
 		return
 	}
 
-	target, ok := c.Helpers().DiffLine.FirstChangeLineInView(view)
+	target, ok := changeToSelectOnScreen(c, view)
 	if !ok {
 		showSelectionAtLine(view, view.MiddleVisibleLineIdx(), false)
 		return
 	}
+	if hunkModeApplies(c, view, target) {
+		mainContext.DiffSelectState().Mode = types.DiffSelectModeHunk
+		selectDiffHunk(c, mainContext, target, false)
+		return
+	}
 	showSelectionAtLine(view, target, false)
+}
+
+// changeToSelectOnScreen returns the change line keyboard focus establishes the
+// selection on. In hunk mode that is the first block that begins on screen, so that
+// the block being offered up is one the user can see the extent of, falling back to a
+// block that reaches into the view from above — a change longer than the screen, where
+// there is nothing else to offer. Line by line it is simply the first change line on
+// screen. ok is false when the viewport shows no change at all.
+func changeToSelectOnScreen(c *ControllerCommon, view *gocui.View) (int, bool) {
+	if c.UserConfig().Gui.UseHunkModeInStagingView {
+		return c.Helpers().DiffLine.FirstChangeBlockInView(view)
+	}
+	return c.Helpers().DiffLine.FirstChangeLineInView(view)
+}
+
+// hunkModeApplies reports whether an established selection should start out as the
+// whole change block around the given change line. That's what the config asks for,
+// except over a file shown as one solid block of changes, where it would select the
+// whole file — see DiffLineHelper.IsSingleHunkForWholeFile.
+func hunkModeApplies(c *ControllerCommon, view *gocui.View, changeViewLine int) bool {
+	return c.UserConfig().Gui.UseHunkModeInStagingView &&
+		!c.Helpers().DiffLine.IsSingleHunkForWholeFile(view, changeViewLine)
 }
 
 // showSelectionAtLine moves the focused main view's selection to the given view line,
