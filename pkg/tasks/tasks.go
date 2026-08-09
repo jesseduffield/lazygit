@@ -61,9 +61,13 @@ type ViewBufferManager struct {
 	writer io.Writer
 
 	waitingMutex deadlock.Mutex
-	taskIDMutex  deadlock.Mutex
-	Log          *logrus.Entry
-	newTaskID    int
+	// Guards newTaskID and taskKey, which identify the most recently requested
+	// task. Both are written on the goroutine NewTask spawns, and taskKey is
+	// read from the UI thread (GetTaskKey), so neither may be touched without
+	// holding this.
+	taskIDMutex deadlock.Mutex
+	Log         *logrus.Entry
+	newTaskID   int
 	// The channel by which the currently-running task is told to read more
 	// lines (e.g. as the user scrolls). Held in an atomic because it's swapped
 	// out as tasks come and go while ReadLines/ReadToEnd read it from the UI
@@ -115,6 +119,9 @@ type LinesToRead struct {
 }
 
 func (self *ViewBufferManager) GetTaskKey() string {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
 	return self.taskKey
 }
 
@@ -488,7 +495,9 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 			return
 		}
 
-		resetOrigin := self.GetTaskKey() != key && self.onNewKey != nil
+		// Read taskKey directly: we already hold the mutex that guards it, and
+		// GetTaskKey would take it again.
+		resetOrigin := self.taskKey != key && self.onNewKey != nil
 		self.taskKey = key
 
 		self.taskIDMutex.Unlock()
