@@ -78,6 +78,13 @@ type ViewBufferManager struct {
 	taskKey   string
 	onNewKey  func()
 
+	// Whether the content the running task is rendering differs from what the
+	// view is currently showing (i.e. the command key changed). The loading
+	// indicator only takes the view over when it is set: there is no point
+	// clearing content we are about to render identically. Cleared once the
+	// task has rendered enough for the view to be showing the new content.
+	newContentPending atomic.Bool
+
 	// Whether a command task is currently reading content into the view. While
 	// this is true the content is still growing, so callers (e.g. the layout)
 	// must not clamp the view's scroll position to the amount loaded so far.
@@ -300,7 +307,14 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				return
 			case <-ticker.C:
 				loadingMutex.Lock()
-				if !loaded {
+				// Only take the view over to say "loading..." when the content coming
+				// is different from what's on screen. A re-render of the same content
+				// leaves the view showing exactly what it should already, so clearing
+				// it for the message and then rendering the same thing back is a
+				// visible flicker for nothing — and a slow re-render of unchanged
+				// content is common (a background refresh over a repo with submodules
+				// that have uncommitted changes, say).
+				if !loaded && self.newContentPending.Load() {
 					self.beforeStart()
 					_, _ = self.writer.Write([]byte("loading..."))
 					self.refreshView()
@@ -399,6 +413,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							// whether to scroll) and sets the origin, both of which
 							// are UI-thread-only, so run it there.
 							_ = self.onUIThread(self.onEndOfInput)
+							// Whatever there was to show is on screen now.
+							self.newContentPending.Store(false)
 							// The content is fully loaded now, so it's safe again for the
 							// layout to clamp the scroll position to it. We deliberately
 							// don't clear this when stopped (rather than EOF'd), because that
@@ -434,6 +450,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							// We have read enough lines to fill the view, so do a first refresh
 							// here to show what we have. Continue reading and refresh again at
 							// the end to make sure the scrollbar has the right size.
+							self.newContentPending.Store(false)
 							refreshViewIfStale()
 						}
 					}
@@ -554,7 +571,11 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 
 		// Read taskKey directly: we already hold the mutex that guards it, and
 		// GetTaskKey would take it again.
-		resetOrigin := self.taskKey != key && self.onNewKey != nil
+		newContent := self.taskKey != key
+		if newContent {
+			self.newContentPending.Store(true)
+		}
+		resetOrigin := newContent && self.onNewKey != nil
 		self.taskKey = key
 
 		self.taskIDMutex.Unlock()

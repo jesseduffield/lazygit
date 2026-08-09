@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -249,6 +250,80 @@ func TestNewCmdTaskQueuedReadAtEndOfInput(t *testing.T) {
 	wg.Wait()
 
 	assert.True(t, thenCalled)
+}
+
+// A writer that records whether the loading indicator was ever written to it.
+type LoadingIndicatorSpy struct {
+	sawLoadingIndicator atomic.Bool
+}
+
+func (self *LoadingIndicatorSpy) Write(p []byte) (n int, err error) {
+	if bytes.Contains(p, []byte("loading...")) {
+		self.sawLoadingIndicator.Store(true)
+	}
+	return len(p), nil
+}
+
+// A render that takes long enough to produce its first line takes the view over
+// to say "loading...", which means clearing whatever it was showing. That is only
+// worth doing when the content coming is different from what's on screen:
+// re-rendering the same content would otherwise clear the view and render the
+// same thing straight back, a visible flicker for nothing.
+func TestLoadingIndicatorOnlyTakesOverForNewContent(t *testing.T) {
+	writer := &LoadingIndicatorSpy{}
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		writer,
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	startTask := func(key string, reader io.Reader, onDone func()) {
+		start := func() (Cmd, io.Reader) {
+			// not actually starting this because it's not necessary
+			return ExecCmd{Cmd: exec.Command("blah")}, reader
+		}
+		_ = manager.NewTask(manager.NewCmdTask(start, "", LinesToRead{100, 50, nil}, onDone), key)
+	}
+	// Starts a task whose command produces nothing at all, so that it is still
+	// waiting for its first line when the loading indicator falls due. Returns
+	// the reader so the caller can let it finish.
+	startStalledTask := func(key string) *BlockingLineReader {
+		reader := &BlockingLineReader{
+			blocked: make(chan struct{}),
+			unblock: make(chan struct{}),
+		}
+		startTask(key, reader, nil)
+		<-reader.blocked
+		return reader
+	}
+
+	// Get some content on screen first: the indicator is only due when a render
+	// is slow, and this one isn't.
+	done := make(chan struct{})
+	startTask("cmd1", &BlankLineReader{totalLinesToYield: 3}, func() { close(done) })
+	<-done
+	assert.False(t, writer.sawLoadingIndicator.Load())
+
+	// A slow re-render of that same content must leave the view alone however
+	// long it takes. The indicator is due 200ms in, so give it well past that.
+	sameContent := startStalledTask("cmd1")
+	defer close(sameContent.unblock)
+	time.Sleep(500 * time.Millisecond)
+	assert.False(t, writer.sawLoadingIndicator.Load())
+
+	// Different content, though, is worth taking the view over for.
+	newContent := startStalledTask("cmd2")
+	defer close(newContent.unblock)
+	assert.Eventually(t,
+		writer.sawLoadingIndicator.Load,
+		2*time.Second, 10*time.Millisecond)
 }
 
 func TestNewCmdTaskRefresh(t *testing.T) {
