@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -101,6 +102,27 @@ func diffLineTexts(contents []gocui.DiffLineContent) []string {
 		texts[i] = content.Text
 	}
 	return texts
+}
+
+// renderingStatesDiffLines reports whether the renderer stated, for at least one row
+// of the rendering, which diff line it shows. The version-only record a renderer
+// announces the protocol with names no line, and doesn't count.
+//
+// The answer settles how the whole rendering is read. A renderer that states its
+// lines lays the diff out as it likes, so its text is no unified diff and must not be
+// parsed as one, not even for the rows it says nothing about. Such a row can read
+// like a diff header when the file being diffed is itself a diff; the parser would
+// take that for the start of a file section and place every untagged row below it
+// in a file the diff doesn't have. So the rows a renderer leaves untagged (dividers,
+// padding) have no identity, as the protocol has it. A rendering without any record
+// is a diff that describes itself, and is parsed as one.
+func renderingStatesDiffLines(contents []gocui.DiffLineContent) bool {
+	return slices.ContainsFunc(contents, func(content gocui.DiffLineContent) bool {
+		return slices.ContainsFunc(content.Metadata, func(record string) bool {
+			_, ok := parseDiffLineMetadata(record)
+			return ok
+		})
+	})
 }
 
 // fileSectionBounds returns the half-open range [start, end) of the file section
@@ -311,6 +333,67 @@ func stripDiffPathPrefix(path string) string {
 		return path[2:]
 	}
 	return path
+}
+
+// parseDiffLineMetadata parses the payload of an OSC 1717 record, in which a
+// diff renderer states which line of which file it is rendering. The v1 payload
+// is positional and ';'-delimited:
+//
+//	version;type;new-line;old-line;file
+//
+// The file comes last so that it may itself contain a ';'. The old-file line is
+// empty unless the line is a deletion, the only kind that needs it, and the
+// new-file line is empty on a file header, the one kind that has no line.
+//
+// ok is false for a payload of an unknown version or shape, so that the caller
+// can fall back to reading the rendered text.
+func parseDiffLineMetadata(payload string) (parsedDiffLine, bool) {
+	fields := strings.SplitN(payload, ";", 5)
+	if len(fields) < 5 || fields[0] != "1" {
+		return parsedDiffLine{}, false
+	}
+
+	lineType, ok := diffLineTypeFromMetadata(fields[1])
+	if !ok {
+		return parsedDiffLine{}, false
+	}
+
+	newLine := 0
+	if fields[2] != "" {
+		var err error
+		if newLine, err = strconv.Atoi(fields[2]); err != nil {
+			return parsedDiffLine{}, false
+		}
+	} else if lineType != types.DiffLineFileHeader {
+		return parsedDiffLine{}, false
+	}
+
+	oldLine := 0
+	if fields[3] != "" {
+		var err error
+		if oldLine, err = strconv.Atoi(fields[3]); err != nil {
+			return parsedDiffLine{}, false
+		}
+	}
+
+	return parsedDiffLine{Path: fields[4], Type: lineType, NewLine: newLine, OldLine: oldLine}, true
+}
+
+func diffLineTypeFromMetadata(typeField string) (types.DiffLineType, bool) {
+	switch typeField {
+	case "c":
+		return types.DiffLineContext, true
+	case "a":
+		return types.DiffLineAdded, true
+	case "d":
+		return types.DiffLineDeleted, true
+	case "f":
+		return types.DiffLineFileHeader, true
+	case "h":
+		return types.DiffLineHunkHeader, true
+	default:
+		return types.DiffLineOther, false
+	}
 }
 
 // pathFromDiffGitLine extracts the new-file path from a "diff --git a/X b/X"
