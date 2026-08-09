@@ -538,8 +538,10 @@ Commits:
    blank line carries pending metadata** (delta renders some blank changed
    lines with no cells — N§21.15 bug 1); **swallow the version-only handshake
    record** (N§21.30, `TestDiffLineMetadataHandshakeSwallowed`); multi-record
-   rows: `View.DiffLineMetadataPayloads()` returns *all* distinct payloads per
-   buffer line (side-by-side rows carry two — N§17.1, N§21.12). Unit tests
+   rows: a row's *all* distinct payloads are exposed per buffer line
+   (side-by-side rows carry two — N§17.1, N§21.12) — as
+   `DiffLineContent.Metadata []string`, not the prototype's separate
+   `DiffLineMetadataPayloads()` accessor (deviation 1). Unit tests
    incl. wrapped rows (every renderer-wrapped output row carries the record —
    M§10.8). Include the **zero-width record regions** handling ("Keep OSC
    1717 records whose region is zero-width", fe8022827): back-to-back records
@@ -569,6 +571,52 @@ Commits:
    records, and every consumer falls back as if the renderer were
    non-conforming. Ref: 9975a8fac + 665149b11 (final name: `OSC1717`),
    "Advertise the metadata protocol to git as well, not only to a pager".
+
+#### Deviations from the plan (2026-08-09, as implemented)
+
+Landed as 7 commits on branch `support-osc-1717-diff-metadata` (off PR 2):
+multi-digit OSC numbers; the record parsing; the handshake; the records that
+cover no cell; the `RelPath`→`Path` rename; the metadata backend; the
+advertisement.
+
+1. **`DiffLineMetadataPayloads` is not built** (decided with the user).
+   `gocui.DiffLineContent` is `{Text string, Metadata []string}` — *every*
+   record on the row, in the one locked snapshot. The prototype split this in
+   two (a first-payload field on `DiffLineContent`, plus an all-payloads
+   accessor), which made PR 7's `ChangeLinesInViewRange` take two separately
+   locked gocui calls that a re-render can interleave — the M§8 two-call
+   hazard. **PR 7 commit 4 and PR 8 commit 7 read `contents[i].Metadata`**
+   instead of calling a second accessor.
+2. **Matching must compare all of a row's records — binds PR 6** (raised by the
+   user during this PR). The prototype's restore resolves each row to *one*
+   identity (`resolveDiffLines` → `findResolvedDiffLine` → `SamePatchLine`), so
+   a target captured under a unified rendering (an `a` at line N) never matches
+   the side-by-side row whose leftmost record is the `d` of the same
+   modification — which is exactly the unified↔side-by-side renderer cycle PR 6
+   exists to serve. PR 6's matcher has to ask "does *any* record on this row
+   match", which deviation 1's field makes possible. Nothing to build in PR 4:
+   its single consumer, `GetDiffLineInfo`, resolves a row to one identity by
+   contract (the leftmost record), which is what `e` / alt-click / open-PR want.
+3. **No `Hyperlink` field** on `DiffLineContent` (§2.6 drops the hyperlink
+   backend), and **`DiffLineMetadataInLine` is not ported** — it had no
+   production consumer even in the prototype.
+4. **`parsedDiffLine.RelPath` renamed to `Path`**, in its own commit: a
+   renderer states the path however it likes, absolute included. The
+   prototype's two conversions (`diffLineInfoFromParsed` /
+   `diffLineInfoFromMetadata`) collapse into one `diffLineInfo`, which joins
+   the worktree path only when the path is relative.
+5. **The OSC parser needed a prep refactor**: master dispatches on a single
+   character, so only the single-digit OSC 8 could be recognized. Accumulating
+   the number and dispatching on it is commit 1, behavior-preserving.
+6. **A record carried at the line's end marks itself consumed**, so a line
+   finished twice (a CR followed by an LF with nothing written between) doesn't
+   get two carrier cells. Small addition over the prototype's shape.
+7. **e2e coverage in CI**: `diff/diff_renderer_metadata` configures a fake
+   conforming renderer that reports `$OSC1717` back and prefixes every line
+   with a record. It proves the advertisement reaches the renderer through the
+   pty path (verified: it fails without the `pty.go` change) and that records
+   don't leak into the rendered text. The §6 interactive pass with real patched
+   renderers is still owed.
 
 Cross-repo note: the reference emitters live on `osc-1717-metadata` branches
 in `/Users/stk/Stk/Dev/Builds/{delta,difftastic,diff-so-fancy}`; nothing is
@@ -737,7 +785,12 @@ Commits:
    incremental scan resolves per-row backends during load (metadata only —
    buffer-parse can't parse a partial diff, N§14.1/N§20.3), fallback
    candidates resolved at the EOF swap; `matchByPatchLine` matcher;
-   `installDiffLineRestore`. Refs: 506c6ea81, 24a95e965 (amend! final shape),
+   `installDiffLineRestore`. **Mandatory: match against every record on a
+   row**, not against the row's one resolved identity (PR 4 deviation 2) — a
+   target captured under a unified rendering is an `a`, and the side-by-side
+   row that shows it leads with the `d` of the same modification, so a
+   single-identity match makes commit 5's renderer switch silently fail to
+   find its line. Refs: 506c6ea81, 24a95e965 (amend! final shape),
    0cd3a5886 (`installDiffLineRestore` extraction), N§16.1.
 4. **Preserve position across `-U` context-size changes** — anchor =
    selection if shown else middle visible line; offset-preserving placement
@@ -942,9 +995,10 @@ Commits:
    it assumes the displayed change lines equal the patch's change lines in
    order and multiplicity, but difftastic's inline mode groups all deletions
    before all additions per hunk, and a collapsed modification row carries
-   `d`+`a` while `DiffLineContents` keeps only the first payload per row.
-   Production: resolve **all** payloads per row
-   (`DiffLineMetadataPayloads`), match each `(type, new, old)` identity
+   `d`+`a` while the prototype's `DiffLineContents` kept only the first
+   payload per row. Production: resolve **all** payloads per row
+   (`DiffLineContent.Metadata`, PR 4 deviation 1), match each
+   `(type, new, old)` identity
    against the identities computed from the **raw temp-tree diff** (the same
    patch arithmetic as `parseFileSection`), and map the k-th match to
    `included[k]`. The gutter and the main-pane toggle already match by
@@ -1188,7 +1242,11 @@ The remaining rows are agreed as keep/defer:
       No interactive sign-off needed: no user-visible change
 - [x] PR 3 — rename pagers → diff renderers — **landed on master as #5870**
       (with a bigger config rework than planned; see the PR 3 section)
-- [ ] PR 4 — OSC 1717 support
+- [x] PR 4 — OSC 1717 support — **DONE 2026-08-09** on branch
+      `support-osc-1717-diff-metadata` (7 commits, all checks green, every
+      commit builds and tests clean), stacked on
+      `resolve-diff-lines-to-identities`. §6 interactive sign-off still owed
+      (needs locally built patched renderers)
 - [ ] PR 5 — selection & navigation
 - [ ] PR 6 — position preserve
 - [ ] PR 7 — staging from the main view
@@ -1202,6 +1260,14 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-09:** **PR 4 implemented** (7 commits, green; §6 sign-off owed).
+  One scope call and one finding, both from the user. The call: a row's
+  records live in `DiffLineContent.Metadata []string` rather than in a
+  first-payload field plus a separate all-payloads accessor, which removes a
+  two-call atomicity hazard from PR 7. The finding: **a restore must match a
+  target against every record on a row, not against the row's one resolved
+  identity**, or a unified→side-by-side renderer switch never finds its line —
+  PR 6's matcher, written up as deviation 2.
 - **2026-08-09:** **PR 2 implemented** (5 commits, green). Four scope calls
   taken with the user up front, all in the "don't land API without a consumer"
   direction: a new `DiffLineHelper` instead of `StagingHelper`, no
