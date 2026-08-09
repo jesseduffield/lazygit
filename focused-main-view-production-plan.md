@@ -179,14 +179,29 @@ pointer, several buffer accessors gained locks. The prototype commits are
 rebased on top of all that and are the authoritative shapes, but a fix may
 have been absorbed or may need reshaping; check before porting.
 
-**Status: DONE 2026-08-09** on branch `fix-async-diff-rendering`. 16 commits:
-the 11 planned below, two extra prep/demonstrate commits, an `amend!` for the
-regression the interactive pass found, the `FlushStaleCells` removal, and the
-loading-indicator gate. `just build`, `just unit-test`, `just lint`, `just
-e2e` all green. **§6 interactive sign-off: APPROVED (2026-08-09)** — tested
-with and without `LAZYGIT_SLOW_RENDER`, no flicker. It turned up two things,
-both fixed: deviation 8 (the scroll no longer reset in a VS Code terminal) and
-deviation 9 (the loading indicator blanking the view).
+**Status: DONE 2026-08-09** on branch `fix-async-diff-rendering`. 15 commits:
+the 11 planned below plus four extra (two prep/demonstrate commits, the
+loading-indicator gate, and the `FlushStaleCells` removal). No `fixup!`/
+`amend!` left in the branch — see "History" below. `just build`, `just
+unit-test`, `just lint`, `just e2e` all green, and every individual commit
+builds and passes `pkg/tasks`, `pkg/gocui` and `pkg/gui`.
+**§6 interactive sign-off: APPROVED (2026-08-09)** — tested with and without
+`LAZYGIT_SLOW_RENDER`, no flicker. It turned up two things, both fixed:
+deviation 8 (the scroll no longer reset in a VS Code terminal) and deviation 9
+(the loading indicator blanking the view).
+
+**History.** Both interactive findings were first written as a tip commit /
+`amend!`, then folded so that no commit in the branch introduces a regression a
+later one repairs — the user asked for the tidier history and suggested the
+decomposition. `newContentPending` is now introduced **before** the off-screen
+render, by its own commit that gates the loading indicator on it (a sensible
+change in its own right at that point: don't clear the buffer and flash
+"loading..." over content we're about to render identically). The off-screen
+render then inherits the gate rather than introducing the blanking regression,
+and the first-paint commit just adds the second reader — which is what makes
+the `amend!` unnecessary. Verified by diffing the restructured tip against the
+pre-restructure one: identical apart from two deliberately unified comment
+wordings.
 
 The branch base is **not master**: at the user's request the stack sits on
 `fold-staging-into-main-view` (= the tip of `scroll-selection-into-view`),
@@ -232,6 +247,9 @@ Commits (in order):
    Ref: fd858cd98. ✅
 8. **Make the buffer-writing methods operate on a `viewBuffer`** — prep.
    Ref: 2cfc0e24d. ✅
+8b. *(added)* **Don't take the view over for "loading..." when the content
+   isn't changing** — introduces `newContentPending`; must come **before** the
+   off-screen render, see deviation 9. ✅
 9. **Render async content into an off-screen buffer and swap it in** — the
    core mechanism: cmd/pty tasks write to `View.offscreen`; at first-paint
    (or EOF) the buffer swaps in atomically (under `writeMutex` — buffer
@@ -254,11 +272,10 @@ Commits (in order):
 11. **Reset the scroll to the top at first paint, not when the task starts** —
     with the off-screen render the old content stays visible until the swap;
     resetting oy at task start made it jump first. Ref: 411681502. ✅
-    (+ an `amend!`: the pending reset has to outlive the task, see deviation 8)
+    (the reset keys off `newContentPending` so it outlives its task — see
+    deviation 8)
 12. *(added)* **Drop `FlushStaleCells`, which no longer has anything to
     flush** — see "Found and fixed alongside". ✅
-13. *(added)* **Only blank the view for the loading indicator when the content
-    is changing** — deviation 9. ✅
 
 Notes:
 - If commit 9's stale-tail test needs `BufferLineForViewLine`, introduce that
@@ -310,13 +327,12 @@ Notes:
    unsynchronized reads of `taskKey` (written by the `NewTask` goroutine under
    `taskIDMutex`). Instead `NewTask` keeps making the decision, under the lock
    exactly where it already did, and records it on the manager as
-   `resetOriginPending`; the gui wrappers need no change at all. (This landed
-   in two steps — first as a `TaskOpts` field, then as the manager flag when
-   deviation 8 showed the decision has to outlive the task that made it.)
+   `newContentPending` — the same flag the loading indicator keys off (see
+   commit 8b); the gui wrappers need no change at all.
    **PR 6 note:** `RenderRestore` competes with that flag rather than reading a
    field — a restore places the scroll itself, so it wins:
    `if restore != nil { restore.Apply(swapIn) } else { swapIn(); if
-   self.resetOriginPending.Swap(false) { self.resetOrigin() } }`. Note the
+   self.newContentPending.Swap(false) { self.resetOrigin() } }`. Note the
    restore must then *also* clear the pending reset, or the next same-key
    render would inherit it and jump to the top.
 7. **Commit 11 runs the first paint on the UI thread**, resolving the
@@ -325,23 +341,20 @@ Notes:
    between them shows the new content at the previous render's scroll — the
    N§20.5 failure mode. `firstPaint` itself is therefore unwrapped and each
    call site wraps it (EOF already did).
-8. **The pending origin reset outlives its task** (`amend!` on commit 11,
-   2026-08-09). Deferring the reset to the first paint made it die with a task
+8. **The pending origin reset outlives its task** (commit 11, 2026-08-09).
+   Deferring the reset to the first paint would make it die with a task
    that was replaced before it ever painted. Found interactively, and only in a
    **VS Code terminal**: VS Code delivers the focus-in event before the click,
    the focus handler's `Refresh` does its git work on a worker, so its main-view
    re-render lands *after* the click's — same command key, so it decides on no
    reset of its own, and it stops the click's task before its first paint. (Zed
-   delivers the click first, so that task paints and the bug never shows.) Fixed
-   by making the reset a `resetOriginPending` flag on the manager, set by
-   `NewTask` and consumed by whichever first paint gets there (deviation 6
-   describes the final shape, including what it means for PR 6). Guarded by
-   `TestResetOriginSurvivesTaskReplacement`, which passes on commit 10, fails on
-   commit 11 as first written, and passes with the fix — so it can be split out
-   as a preparatory commit before commit 11 if you want it guarding that commit
-   under bisect.
-9. **The loading indicator only blanks the view for new content** (commit 13,
-   2026-08-09). Also found interactively. The 200ms "loading…" indicator clears
+   delivers the click first, so that task paints and the bug never shows.) So
+   the reset keys off the manager's `newContentPending` — set by `NewTask`,
+   consumed by whichever first paint gets there — rather than per-task state
+   (deviation 6 describes the shape, including what it means for PR 6). Guarded
+   by `TestResetOriginSurvivesTaskReplacement`.
+9. **The loading indicator only takes the view over for new content**
+   (commit 8b, 2026-08-09). Also found interactively. The 200ms indicator clears
    the view to show its message; that was nearly invisible before, because the
    untruncated view lines kept the previous render below it, so only line 1
    changed — and scrolled down you never saw it at all. With the truncation it
@@ -349,16 +362,15 @@ Notes:
    re-render of *unchanged* content (a background refresh over a repo with
    submodules that have uncommitted changes) blanks and then paints the same
    thing back. Restoring the old look is not an option — it *was* the stale-tail
-   inconsistency. Gated the indicator on the same new-vs-same-content fact the
-   origin reset uses, so it never blanks content it is about to repaint
-   identically; the flag is now `newContentPending`, with two readers. Guarded
-   by `TestLoadingIndicatorOnlyTakesOverForNewContent`. **Placement caveat:** the
-   blanking arrives with commit 11 (the truncation), so by AGENTS.md the fix
-   belongs *in* commit 11 — but it needs the flag, which commit 13 introduces,
-   so it can't be a fixup for 11. It sits at the tip instead. The tidy history
-   would introduce `newContentPending` in commit 11 (for the indicator) and have
-   commit 13 add the origin-reset reader; that is a small restructure of both
-   commits, which is the user's call.
+   inconsistency. Gated the indicator on `newContentPending`, so it never
+   clears content it is about to render identically. Guarded by
+   `TestLoadingIndicatorOnlyTakesOverForNewContent`, which observes the
+   indicator itself (a writer that watches for the "loading..." bytes) rather
+   than the `beforeStart` callback, so it holds at every point in the branch —
+   before the off-screen render, `beforeStart` is also called by the read loop.
+   **Placement:** the blanking would arrive with the off-screen render, so the
+   gate goes *before* it (commit 8b) — which is why `newContentPending` is
+   introduced there rather than with the origin reset.
 
 #### Found and fixed alongside
 
