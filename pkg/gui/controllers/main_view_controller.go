@@ -72,6 +72,34 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			GetDisabledReason: self.diffSelectionDisabledReason,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Main.PrevHunk),
+			Handler:           self.prevChangeBlock,
+			Description:       self.c.Tr.PrevHunk,
+			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.PrevHunk),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Main.NextHunk),
+			Handler:           self.nextChangeBlock,
+			Description:       self.c.Tr.NextHunk,
+			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.NextHunk),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Main.PrevFile),
+			Handler:           self.prevFile,
+			Description:       self.c.Tr.PrevFileInDiff,
+			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.PrevFileInDiff),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Main.NextFile),
+			Handler:           self.nextFile,
+			Description:       self.c.Tr.NextFileInDiff,
+			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.NextFileInDiff),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+		},
+		{
 			Keys:            opts.GetKeys(opts.Config.Universal.Return),
 			Handler:         self.escape,
 			Description:     self.c.Tr.ExitFocusedMainView,
@@ -487,7 +515,9 @@ func selectDiffHunk(
 // line. With a selection we move it there and scroll it into view, re-selecting the
 // whole block in hunk mode; with none we stay in scroll mode, bringing the target
 // to the top without selecting anything.
-func (self *MainViewController) navigate(find findDiffRowFn, forward bool) {
+// alignTop says what a jump does with a target it has to scroll to: bring it to the
+// top of the view, or leave the scrolling to place it as it sees fit.
+func (self *MainViewController) navigate(find findDiffRowFn, forward bool, alignTop bool) {
 	v := self.context.GetView()
 	anchor := v.OriginY()
 	if v.Highlight {
@@ -495,7 +525,7 @@ func (self *MainViewController) navigate(find findDiffRowFn, forward bool) {
 	}
 
 	if target, ok := find(v, anchor, forward); ok {
-		self.placeNavigationTarget(target)
+		self.placeNavigationTarget(target, alignTop)
 		return
 	}
 	if !forward {
@@ -513,7 +543,7 @@ func (self *MainViewController) navigate(find findDiffRowFn, forward bool) {
 	manager.ReadToEnd(func() {
 		self.c.OnUIThread(func() error {
 			if target, ok := find(v, anchor, forward); ok {
-				self.placeNavigationTarget(target)
+				self.placeNavigationTarget(target, alignTop)
 			}
 			return nil
 		})
@@ -524,12 +554,52 @@ func (self *MainViewController) navigate(find findDiffRowFn, forward bool) {
 // the anchor view line to start from, and the direction.
 type findDiffRowFn func(view *gocui.View, anchorViewLine int, forward bool) (int, bool)
 
-func (self *MainViewController) placeNavigationTarget(target int) {
+func (self *MainViewController) nextChangeBlock() error {
+	self.navigate(self.c.Helpers().DiffLine.AdjacentChangeBlock, true, false)
+	return nil
+}
+
+func (self *MainViewController) prevChangeBlock() error {
+	self.navigate(self.c.Helpers().DiffLine.AdjacentChangeBlock, false, false)
+	return nil
+}
+
+// nextFile and prevFile bring the file they go to to the top of the view, since what
+// you are going there for is the file, and the more of it is on screen the better.
+func (self *MainViewController) nextFile() error {
+	self.navigate(self.c.Helpers().DiffLine.AdjacentFile, true, true)
+	return nil
+}
+
+func (self *MainViewController) prevFile() error {
+	self.navigate(self.c.Helpers().DiffLine.AdjacentFile, false, true)
+	return nil
+}
+
+// placeNavigationTarget moves the selection to the row a jump found, bringing it on
+// screen if it isn't already.
+//
+// alignTop asks for the target to become the view's top line, so that everything that
+// begins there is on screen. It only applies to a target the view has to scroll to: a
+// jump to something already on screen leaves the view alone, there being nothing to
+// gain from moving what the user is looking at. In hunk mode what ends up selected is
+// the first change block at or below the target, which a large context size can put
+// further down than a screenful; the selection is then scrolled into view as any other
+// jump's is, and the alignment gives way to that.
+func (self *MainViewController) placeNavigationTarget(target int, alignTop bool) {
 	v := self.context.GetView()
 	if !v.Highlight {
 		v.SetOrigin(0, target)
 		return
 	}
+	if alignTop {
+		self.scrollTargetToTop(target)
+	}
+	// Jumping to another block or file moves the cursor without shift held, so a
+	// range that grows only while shift is held collapses rather than stretching all
+	// the way to the target. A sticky range stretches instead; this is the point of
+	// being sticky.
+	self.collapseNonStickyRange()
 	if self.diffSelectState().Mode == types.DiffSelectModeHunk {
 		self.selectHunkAround(target, true)
 		return
@@ -537,6 +607,19 @@ func (self *MainViewController) placeNavigationTarget(target int) {
 	// Line mode leaves a single-line selection at the target; an active range extends
 	// to it, the anchor being untouched.
 	showSelectionAtLine(v, target, true)
+}
+
+// scrollTargetToTop scrolls the given row of the diff to the top of the view, leaving
+// the view where it is when that row is on screen already. The last screenful of the
+// diff is as far as it goes, so that the view doesn't scroll past the end of what it is
+// showing.
+func (self *MainViewController) scrollTargetToTop(target int) {
+	view := self.context.GetView()
+	originY, height := self.context.GetViewTrait().ViewPortYBounds()
+	if target >= originY && target < originY+height {
+		return
+	}
+	view.SetOriginY(min(target, max(0, view.ViewLinesHeight()-height)))
 }
 
 // moveCursor moves the selection cursor by delta view lines (negative = up), with the
@@ -563,8 +646,19 @@ func (self *MainViewController) moveCursor(delta int) {
 // sticky range is kept, so the move extends it.
 func (self *MainViewController) collapseForLineMove() {
 	sel := self.diffSelectState()
-	if sel.Mode == types.DiffSelectModeHunk ||
-		(sel.Mode == types.DiffSelectModeRange && !sel.RangeIsSticky) {
+	if sel.Mode == types.DiffSelectModeHunk {
+		sel.Mode = types.DiffSelectModeLine
+		self.context.GetView().CancelRangeSelect()
+		return
+	}
+	self.collapseNonStickyRange()
+}
+
+// collapseNonStickyRange drops a range that only grows while shift is held back to a
+// single line at the cursor.
+func (self *MainViewController) collapseNonStickyRange() {
+	sel := self.diffSelectState()
+	if sel.Mode == types.DiffSelectModeRange && !sel.RangeIsSticky {
 		sel.Mode = types.DiffSelectModeLine
 		self.context.GetView().CancelRangeSelect()
 	}
@@ -580,7 +674,7 @@ func (self *MainViewController) adjustSelection(delta int) {
 		return
 	}
 	if self.diffSelectState().Mode == types.DiffSelectModeHunk && (delta == 1 || delta == -1) {
-		self.navigate(self.c.Helpers().DiffLine.AdjacentChangeBlock, delta > 0)
+		self.navigate(self.c.Helpers().DiffLine.AdjacentChangeBlock, delta > 0, false)
 		return
 	}
 	self.collapseForLineMove()

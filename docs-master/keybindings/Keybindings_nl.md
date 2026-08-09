@@ -233,6 +233,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
 | `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
 | `` v `` | Toggle drag selecteer |  |
+| `` <left>, h `` | Selecteer de vorige hunk |  |
+| `` <right>, l `` | Selecteer de volgende hunk |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | Start met zoeken |  |
 
@@ -310,6 +314,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
 | `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
 | `` v `` | Toggle drag selecteer |  |
+| `` <left>, h `` | Selecteer de vorige hunk |  |
+| `` <right>, l `` | Selecteer de volgende hunk |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | Start met zoeken |  |
 
