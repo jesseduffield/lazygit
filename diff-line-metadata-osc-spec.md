@@ -594,15 +594,16 @@ the pair already carries both identities.
 ## 10. Reference implementations (prototype)
 
 Three diff renderer emitters and one host carrier, all at prototype quality, emit or
-consume the v1 format described here, over OSC `1717`:
+consume the v1 format described here, over OSC `1717`. Each is open as a draft
+pull request against its upstream project:
 
-- **delta** — a dedicated additive emitter that injects only OSC bytes (no change
+- **delta** ([draft PR](https://github.com/dandavison/delta/pull/2181)) — a dedicated additive emitter that injects only OSC bytes (no change
   to styling, width, or wrapping); with the env var unset, output is byte-for-byte
   identical to stock delta. Covers unified and side-by-side modes, including
   wrapped rows, and the multi-row file/hunk-header decorations (every row of a
   header block carries its `f`/`h` — §6.4; delta's `f` is the case that cannot
   carry a line number, §5.5).
-- **difftastic** — the categorical case (#1 host-side parsing cannot serve it in
+- **difftastic** ([draft PR](https://github.com/Wilfred/difftastic/pull/1014)) — the categorical case (#1 host-side parsing cannot serve it in
   either mode). Emits the same v1 format under the same handshake; markedly less
   code than delta because difftastic carries old/new line numbers natively. Covers
   side-by-side and inline modes, classifying in patch space by comparing the
@@ -610,7 +611,7 @@ consume the v1 format described here, over OSC `1717`:
   the back-to-back `d`+`a` of §6.2 comes from. Its per-hunk banner is the combined
   file+hunk header of §5.5: the first hunk's banner carries `f` and `h`, later
   banners `h`.
-- **diff-so-fancy** — the same #2 case as delta's default (it strips the `+`/`-`
+- **diff-so-fancy** ([draft PR](https://github.com/so-fancy/diff-so-fancy/pull/538)) — the same #2 case as delta's default (it strips the `+`/`-`
   markers and conveys the side by color), but a line-oriented Perl filter rather
   than a structured renderer, and the simplest of the three: unified single-column
   only (no side-by-side). Classifies each line by its leading `+`/`-` before its
@@ -621,8 +622,9 @@ consume the v1 format described here, over OSC `1717`:
   diffs are not annotated. Because diff-so-fancy defensively strips terminal escape
   sequences from the content it renders, the record is *prepended* to the line
   rather than embedded in it.
-- **host carrier** — gocui (lazygit's TUI library) accumulates the OSC number,
-  collects the payload, and stamps it per-cell like a hyperlink, cleared at each
+- **host carrier** ([draft PR](https://github.com/jesseduffield/lazygit/pull/5732)) —
+  lazygit's terminal layer accumulates the OSC number, collects the payload, and
+  stamps it per-cell like a hyperlink, cleared at each
   line boundary so it cannot bleed onto an untagged following line. A record
   that no cell consumed — a zero-width region (§6.1), or a record right before
   the line end — is kept in a content-less carrier cell, so a row's records
