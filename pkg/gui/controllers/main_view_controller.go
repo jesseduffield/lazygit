@@ -72,6 +72,14 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			GetDisabledReason: self.diffSelectionDisabledReason,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Universal.Edit),
+			Handler:           self.editLine,
+			Description:       self.c.Tr.EditFile,
+			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.EditFile),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+			Tooltip:           self.c.Tr.EditFileTooltip,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Main.PrevHunk),
 			Handler:           self.prevChangeBlock,
 			Description:       self.c.Tr.PrevHunk,
@@ -823,6 +831,30 @@ func (self *MainViewController) handleGotoBottom() error {
 	}
 
 	return nil
+}
+
+func (self *MainViewController) editLine() error {
+	view := self.context.GetView()
+	if !view.Highlight {
+		return nil
+	}
+
+	info, ok := self.c.Helpers().DiffLine.GetDiffLineInfo(view, view.SelectedLineIdx())
+	if !ok {
+		return nil
+	}
+
+	// A file-header row points at the file as a whole rather than at a line in it, so
+	// it opens the file without jumping anywhere — as pressing edit on a file in a side
+	// panel does.
+	if info.Type == types.DiffLineFileHeader {
+		return self.c.Helpers().Files.EditFiles([]string{info.Path})
+	}
+
+	// The diff may be of an older commit, whose line numbers aren't the file's current
+	// ones, so they have to be carried forward before we can point an editor at them.
+	lineNumber := self.c.Helpers().Diff.AdjustLineNumber(info.Path, info.NewLine, self.context.GetViewName())
+	return self.c.Helpers().Files.EditFileAtLine(info.Path, lineNumber)
 }
 
 func (self *MainViewController) openSearch() error {
