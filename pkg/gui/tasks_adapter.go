@@ -170,8 +170,6 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 
 					view.SetOrigin(0, newOriginY)
 				}
-
-				view.FlushStaleCells()
 			},
 			func() {
 				view.SetOrigin(0, 0)

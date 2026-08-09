@@ -1248,17 +1248,6 @@ func (v *View) Reset() {
 	v.offscreen = nil
 }
 
-// This is for when we've done a restart for the sake of avoiding a flicker and
-// we've reached the end of the new content to display: we need to clear the remaining
-// content from the previous round. We do this by setting v.viewLines to nil so that
-// we just render the new content from v.buf.lines directly
-func (v *View) FlushStaleCells() {
-	v.writeMutex.Lock()
-	defer v.writeMutex.Unlock()
-
-	v.clearViewLines()
-}
-
 // BeginOffscreenRender starts building a re-render into an off-screen buffer.
 // Until SwapInOffscreenRender promotes it, writes go to that buffer and the
 // displayed buffer — what every reader sees — is left as it was. This is how an
