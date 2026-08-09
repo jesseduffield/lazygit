@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -90,6 +91,16 @@ func parseAllDiffLinesFromBuffer(bufferLines []string) []bufferLineParse {
 		i = end
 	}
 	return result
+}
+
+// diffLineTexts extracts the text of each rendered row — the material the buffer
+// parser works on.
+func diffLineTexts(contents []gocui.DiffLineContent) []string {
+	texts := make([]string, len(contents))
+	for i, content := range contents {
+		texts[i] = content.Text
+	}
+	return texts
 }
 
 // fileSectionBounds returns the half-open range [start, end) of the file section

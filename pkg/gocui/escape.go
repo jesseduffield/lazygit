@@ -23,6 +23,10 @@ type escapeInterpreter struct {
 	// the digits of the OSC number seen so far, while we don't yet know which
 	// OSC this is
 	oscNumber strings.Builder
+	// the payload of an OSC 1717 sequence, in which a diff renderer states
+	// which line of which file it is about to render; accumulated like
+	// hyperlink, and attached to the cells that follow it
+	metadata strings.Builder
 
 	// ConPTY emits cursor-positioning escapes (CUP) to skip over blank
 	// rows rather than emitting LFs for them. To convert those into row
@@ -88,6 +92,7 @@ const (
 	stateOSC
 	stateOSCParams
 	stateOSCHyperlink
+	stateOSCMetadata
 	stateOSCEndEscape
 	stateOSCSkipUnknown
 
@@ -437,10 +442,14 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			ei.oscNumber.WriteByte(ch[0])
 			return true, nil
 		case characterEquals(ch, ';'):
-			if ei.oscNumber.String() == "8" {
+			switch ei.oscNumber.String() {
+			case "8":
 				ei.hyperlink.Reset()
 				ei.state = stateOSCParams
-			} else {
+			case "1717":
+				ei.metadata.Reset()
+				ei.state = stateOSCMetadata
+			default:
 				ei.state = stateOSCSkipUnknown
 			}
 			ei.oscNumber.Reset()
@@ -475,6 +484,16 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			ei.state = stateOSCEndEscape
 		default:
 			ei.hyperlink.Write(ch)
+		}
+		return true, nil
+	case stateOSCMetadata:
+		switch {
+		case characterEquals(ch, 0x07):
+			ei.state = stateNone
+		case characterEquals(ch, 0x1b):
+			ei.state = stateOSCEndEscape
+		default:
+			ei.metadata.Write(ch)
 		}
 		return true, nil
 	case stateOSCEndEscape:
