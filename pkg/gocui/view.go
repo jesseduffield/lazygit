@@ -356,9 +356,18 @@ func (v *View) segmentSpanOf(pos contentPos) (int, int, bool) {
 	if !pos.ok {
 		return 0, 0, false
 	}
+	return v.viewLineSpanOfBufferLine(pos.line)
+}
+
+// viewLineSpanOfBufferLine returns the first and last view line drawing the given
+// buffer line, i.e. the first and last segment it is wrapped into. Both are the
+// same view line when the line doesn't wrap. ok is false when the line isn't drawn
+// at all. Only call this with a lock on writeMutex, and with the view lines up to
+// date.
+func (v *View) viewLineSpanOfBufferLine(bufferLine int) (int, int, bool) {
 	first, last := -1, -1
 	for i, vline := range v.viewLines {
-		if vline.linesY == pos.line {
+		if vline.linesY == bufferLine {
 			if first == -1 {
 				first = i
 			}
@@ -1848,6 +1857,46 @@ func (v *View) BufferLines() []string {
 		lines[i] = l.cells.String()
 	}
 	return lines
+}
+
+// BufferLineForViewLine maps a view line index (which counts wrapped lines) to
+// the index of the corresponding line in the unwrapped internal buffer (as
+// returned by BufferLines). Several view lines map to the same buffer line when
+// that line wraps. Returns false if the view line is out of range.
+func (v *View) BufferLineForViewLine(y int) (int, bool) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	return v.bufferLineForViewLine(y)
+}
+
+// ViewLineForBufferLine maps an unwrapped buffer line index to the index of the
+// first view line that renders it — the inverse of BufferLineForViewLine, for
+// turning a line found by examining the buffer into a line to scroll to or
+// select. Returns false if the buffer line isn't rendered into any view line.
+func (v *View) ViewLineForBufferLine(bufferLineIdx int) (int, bool) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+
+	first, _, ok := v.viewLineSpanOfBufferLine(bufferLineIdx)
+	return first, ok
+}
+
+// LastViewLineForBufferLine maps an unwrapped buffer line index to the index of
+// the last view line that renders it, which for a line that doesn't wrap is the
+// same as the first. It is where the far end of a range goes: a range is over
+// buffer lines, so it has to cover the last one of them to its final segment
+// rather than stopping where that line begins.
+func (v *View) LastViewLineForBufferLine(bufferLineIdx int) (int, bool) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+
+	_, last, ok := v.viewLineSpanOfBufferLine(bufferLineIdx)
+	return last, ok
 }
 
 // Buffer returns a string with the contents of the view's internal
