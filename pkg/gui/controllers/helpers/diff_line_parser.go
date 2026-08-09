@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
@@ -249,9 +250,9 @@ func pathFromDiffHeader(fileLines []string) string {
 		}
 		switch {
 		case strings.HasPrefix(line, "+++ "):
-			newPath = stripDiffPathPrefix(strings.TrimPrefix(line, "+++ "))
+			newPath = pathFromDiffHeaderField(strings.TrimPrefix(line, "+++ "))
 		case strings.HasPrefix(line, "--- "):
-			oldPath = stripDiffPathPrefix(strings.TrimPrefix(line, "--- "))
+			oldPath = pathFromDiffHeaderField(strings.TrimPrefix(line, "--- "))
 		}
 	}
 
@@ -262,6 +263,33 @@ func pathFromDiffHeader(fileLines []string) string {
 		return oldPath
 	}
 	return pathFromDiffGitLine(fileLines[0])
+}
+
+// pathFromDiffHeaderField decodes one path field of a diff header — the part
+// after "--- " or "+++ ", or one of the two paths on the "diff --git" line —
+// into the repo-relative path it names.
+//
+// git spells such a field in three ways: plain; terminated by a tab, when the
+// path contains a space; or C-quoted as a whole, when the path contains
+// characters git won't print raw — which, with core.quotePath enabled (the
+// default), includes every non-ASCII byte, so `café` arrives as
+// `"b/caf\303\251"`. The quoting is Go's string syntax, octal escapes included,
+// so strconv decodes it for us.
+//
+// Returns "" for a quoted field we can't decode: better to resolve nothing than
+// to point a consumer at a path that doesn't exist.
+func pathFromDiffHeaderField(field string) string {
+	field = strings.TrimSuffix(field, "\t")
+
+	if strings.HasPrefix(field, `"`) {
+		unquoted, err := strconv.Unquote(field)
+		if err != nil {
+			return ""
+		}
+		field = unquoted
+	}
+
+	return stripDiffPathPrefix(field)
 }
 
 // stripDiffPathPrefix removes the a/ or b/ prefix git puts on the paths in a
@@ -275,12 +303,16 @@ func stripDiffPathPrefix(path string) string {
 }
 
 // pathFromDiffGitLine extracts the new-file path from a "diff --git a/X b/X"
-// line. A path containing " b/" would defeat this, but the +++/--- lines are
-// unambiguous and we only get here when they are absent.
+// line, where the two paths are separated by a space and either may be quoted.
+// A path containing " b/" (or ` "b/`) would defeat this, but the +++/--- lines
+// are unambiguous and we only get here when they are absent.
 func pathFromDiffGitLine(line string) string {
 	rest := strings.TrimPrefix(line, diffFilePrefix)
+	if idx := strings.LastIndex(rest, ` "b/`); idx != -1 {
+		return pathFromDiffHeaderField(rest[idx+1:])
+	}
 	if idx := strings.LastIndex(rest, " b/"); idx != -1 {
-		return rest[idx+len(" b/"):]
+		return pathFromDiffHeaderField(rest[idx+1:])
 	}
 	return ""
 }
