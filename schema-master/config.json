@@ -329,6 +329,10 @@
           "type": "string",
           "description": "A name for the diff renderer, shown in the notification when cycling renderers. If not set, the name is derived from the first word of the renderer command."
         },
+        "narrowSelectionHighlight": {
+          "type": "boolean",
+          "description": "If true, selected diff lines are highlighted only with a narrow bar at the left edge of the view, rather than across the whole width. Useful for pagers whose own line background colors should remain visible."
+        },
         "colorArg": {
           "type": "string",
           "enum": [
@@ -365,7 +369,7 @@
             "$ref": "#/$defs/DiffRendererConfig"
           },
           "type": "array",
-          "description": "Array of diff renderers. Each entry has the following format:\n\n  # The type of diff renderer. One of: 'stdinFilter' (default) | 'extDiff'\n  # | 'rawGit'\n  type: \"stdinFilter\"\n\n  # A name for the diff renderer, shown in the notification when cycling\n  # renderers. If not set, the name is derived from the first word of the\n  # renderer command.\n  name: \"\"\n\n  # Value of the --color arg in the git diff command. Only used for type\n  # 'stdinFilter'. Some renderers want this to be set to 'always' and some\n  # want it set to 'never'.\n  colorArg: \"always\"\n\n  # The command to use for rendering diffs. This is either a stdinFilter or\n  # an external diff command, depending on the type field; not applicable if\n  # the type is 'rawGit'.\n  # e.g.\n  # diff-so-fancy\n  # delta --dark --paging=never\n  # ydiff -p cat\n  # difft --color=always\n  command: \"\"\n\n  # Extra arguments (array of strings) passed to the git command. Only\n  # applicable if the type is 'rawGit'.\n  args: []\n\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_DiffRenderers.md for more information."
+          "description": "Array of diff renderers. Each entry has the following format:\n\n  # The type of diff renderer. One of: 'stdinFilter' (default) | 'extDiff'\n  # | 'rawGit'\n  type: \"stdinFilter\"\n\n  # A name for the diff renderer, shown in the notification when cycling\n  # renderers. If not set, the name is derived from the first word of the\n  # renderer command.\n  name: \"\"\n\n  # If true, selected diff lines are highlighted only with a narrow bar\n  # at the left edge of the view, rather than across the whole width.\n  # Useful for pagers whose own line background colors should remain\n  # visible.\n  narrowSelectionHighlight: false\n\n  # Value of the --color arg in the git diff command. Only used for type\n  # 'stdinFilter'. Some renderers want this to be set to 'always' and some\n  # want it set to 'never'.\n  colorArg: \"always\"\n\n  # The command to use for rendering diffs. This is either a stdinFilter or\n  # an external diff command, depending on the type field; not applicable if\n  # the type is 'rawGit'.\n  # e.g.\n  # diff-so-fancy\n  # delta --dark --paging=never\n  # ydiff -p cat\n  # difft --color=always\n  command: \"\"\n\n  # Extra arguments (array of strings) passed to the git command. Only\n  # applicable if the type is 'rawGit'.\n  args: []\n\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_DiffRenderers.md for more information."
         },
         "commit": {
           "$ref": "#/$defs/CommitConfig",

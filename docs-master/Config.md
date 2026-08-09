@@ -371,6 +371,12 @@ git:
   #   # renderer command.
   #   name: ""
   #
+  #   # If true, selected diff lines are highlighted only with a narrow bar
+  #   # at the left edge of the view, rather than across the whole width.
+  #   # Useful for pagers whose own line background colors should remain
+  #   # visible.
+  #   narrowSelectionHighlight: false
+  #
   #   # Value of the --color arg in the git diff command. Only used for type
   #   # 'stdinFilter'. Some renderers want this to be set to 'always' and some
   #   # want it set to 'never'.

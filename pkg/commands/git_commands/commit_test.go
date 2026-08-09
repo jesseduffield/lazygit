@@ -341,7 +341,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			}
 			instance := buildCommitCommands(commonDeps{userConfig: userConfig, appState: &config.AppState{}, runner: runner, repoPaths: &repoPaths})
 
-			assert.NoError(t, instance.ShowCmdObj("1234567890", s.filterPaths).Run())
+			assert.NoError(t, instance.ShowCmdObj("1234567890", s.filterPaths, false).Run())
 			runner.CheckForMissingCalls()
 		})
 	}

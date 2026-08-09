@@ -100,6 +100,15 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` <space> `` | Zatwierdź | Przełącz zaznaczenie zatwierdzone/niezatwierdzone. |
+| `` d `` | Odrzuć | Gdy zaznaczona jest niezatwierdzona zmiana, odrzuć ją używając `git reset`. Gdy zaznaczona jest zatwierdzona zmiana, cofnij zatwierdzenie. |
+| `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | Przełącz zaznaczenie zakresu |  |
+| `` <left>, h `` | Idź do poprzedniego fragmentu |  |
+| `` <right>, l `` | Idź do następnego fragmentu |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Drzewa pracy
@@ -202,6 +211,15 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel up> (fn+down) `` | Przewiń w górę |  |
 | `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
 | `` <esc> `` | Exit back to side panel |  |
+| `` <space> `` | Zatwierdź | Przełącz zaznaczenie zatwierdzone/niezatwierdzone. |
+| `` d `` | Odrzuć | Gdy zaznaczona jest niezatwierdzona zmiana, odrzuć ją używając `git reset`. Gdy zaznaczona jest zatwierdzona zmiana, cofnij zatwierdzenie. |
+| `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | Przełącz zaznaczenie zakresu |  |
+| `` <left>, h `` | Idź do poprzedniego fragmentu |  |
+| `` <right>, l `` | Idź do następnego fragmentu |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Panel główny (scalanie)

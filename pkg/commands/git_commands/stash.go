@@ -80,10 +80,10 @@ func (self *StashCommands) Hash(index int) (string, error) {
 	return strings.Trim(hash, "\r\n"), err
 }
 
-func (self *StashCommands) ShowStashEntryCmdObj(index int) *oscommands.CmdObj {
+func (self *StashCommands) ShowStashEntryCmdObj(index int, ignoreExternalDiff bool) *oscommands.CmdObj {
 	// "-u" is the same as "--include-untracked", but the latter fails in older git versions for some reason
 	cmdArgs := NewGitCmd("stash").Arg("show").
-		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), true).
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !ignoreExternalDiff).
 		Arg("-p").
 		Arg("--stat").
 		Arg("-u").

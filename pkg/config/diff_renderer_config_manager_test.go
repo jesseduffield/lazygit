@@ -70,6 +70,20 @@ func TestCurrentDiffRendererNameWithoutDiffRenderers(t *testing.T) {
 	assert.Equal(t, tr.DefaultDiffRendererName, config.CurrentDiffRendererName(tr))
 }
 
+func TestGetNarrowSelectionHighlight(t *testing.T) {
+	userConfig := &UserConfig{}
+	userConfig.Git.DiffRenderers = []DiffRendererConfig{{NarrowSelectionHighlight: true}}
+	config := NewDiffRendererConfigManager(func() *UserConfig { return userConfig })
+
+	assert.Equal(t, true, config.GetNarrowSelectionHighlight())
+}
+
+func TestGetNarrowSelectionHighlightWithoutPagers(t *testing.T) {
+	config := NewDiffRendererConfigManager(func() *UserConfig { return &UserConfig{} })
+
+	assert.Equal(t, false, config.GetNarrowSelectionHighlight())
+}
+
 func TestCycleDiffRenderers(t *testing.T) {
 	userConfig := &UserConfig{}
 	userConfig.Git.DiffRenderers = []DiffRendererConfig{{Name: "a"}, {Name: "b"}, {Name: "c"}}

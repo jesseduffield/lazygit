@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -61,21 +62,38 @@ func (self *SwitchToFocusedMainViewController) Context() types.Context {
 }
 
 func (self *SwitchToFocusedMainViewController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.focusMainView(self.c.Contexts().Normal)
+	return self.focusMainView(self.c.Contexts().Normal, opts.Y)
 }
 
 func (self *SwitchToFocusedMainViewController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
-	return self.focusMainView(self.c.Contexts().NormalSecondary)
+	return self.focusMainView(self.c.Contexts().NormalSecondary, opts.Y)
 }
 
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
-	return self.focusMainView(self.c.Contexts().Normal)
+	// Focusing by keyboard doesn't point at any particular line: in a diff view
+	// we start at the first change block (like entering the staging view), in a
+	// non-diff view we show no selection and the user just scrolls. Clicking does
+	// point at a line, so it selects that line instead (focusMainView's
+	// clickedLineIdx).
+	return self.focusMainView(self.c.Contexts().Normal, -1)
 }
 
-func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext types.Context) error {
-	if context, ok := mainViewContext.(types.ISearchableContext); ok {
-		context.ClearSearchString()
-	}
+func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext *context.MainContext, clickedLineIdx int) error {
+	mainViewContext.ClearSearchString()
 	self.c.Context().Push(mainViewContext, types.OnFocusOpts{})
+
+	if !sidePanelShowsDiff(self.context) {
+		// Non-diff main content (e.g. a branch's commit log): focus only, no
+		// selection, since there's nothing to act on.
+		return nil
+	}
+
+	// A click points at a specific line (clickedLineIdx); keyboard focus (-1) starts at
+	// the first change block. Either way, if the pager produced an unresolvable diff
+	// this re-renders it raw first (see establishFocusedDiffSelection).
+	establishFocusedDiffSelection(self.c, mainViewContext, clickedLineIdx)
+
+	// The inclusion gutter is refreshed by the main view's focus handler (it's shown
+	// only while focused, so it tracks focus changes there).
 	return nil
 }

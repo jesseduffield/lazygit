@@ -14,9 +14,16 @@ type ReflogCommitsContext struct {
 }
 
 var (
-	_ types.IListContext    = (*ReflogCommitsContext)(nil)
-	_ types.DiffableContext = (*ReflogCommitsContext)(nil)
+	_ types.IListContext        = (*ReflogCommitsContext)(nil)
+	_ types.DiffableContext     = (*ReflogCommitsContext)(nil)
+	_ types.DiffMainViewContext = (*ReflogCommitsContext)(nil)
 )
+
+// Reflog shows a commit's diff but has no primary action (building a patch from it is
+// a deferred gap), so the focused main view has a selection but space does nothing.
+func (self *ReflogCommitsContext) GetDiffMainViewType() types.DiffMainViewType {
+	return types.DiffMainViewTypeNone
+}
 
 func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 	viewModel := NewFilteredListViewModel(

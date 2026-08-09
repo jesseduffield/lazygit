@@ -95,9 +95,10 @@ type IBaseContext interface {
 	// that the generic ListController can be specialized by view-specific controllers.
 	// We'll need to think of a better way to do this.
 	AddOnDoubleClickFn(func() error)
-	// Likewise for the focused main view: we need this to communicate between a
-	// side panel controller and the focused main view controller.
-	AddOnClickFocusedMainViewFn(func(mainViewName string, clickedLineIdx int) error)
+	// Likewise for the focused main view: this is how a side panel controller exposes
+	// the actions its diff supports there (diving in, staging, patch toggling, …) to
+	// the focused main view controller. nil for panels with no such actions.
+	AddFocusedMainViewActions(FocusedMainViewActions)
 	// Adding on to the above, this is so that a list-specific handler can register
 	// a hook for doing additional click handling
 	AddOnClickFn(func(opts gocui.ViewMouseBindingOpts) error)
@@ -174,6 +175,42 @@ type DiffableContext interface {
 	RefForAdjustingLineNumberInDiff() string
 }
 
+// DiffMainViewContext is implemented by the side panel contexts whose focused
+// main view shows a unified diff — files, local commits, sub-commits, reflog,
+// stash, and commit files — as opposed to a commit log or other non-diff content
+// (branches, tags, status, …). It is distinct from DiffableContext, which is
+// about producing a diff between two refs for the diff menu. Implementing it is
+// the signal for whether to show a selection in the focused main view: a selection
+// is only meaningful where there are diff lines to act on (stage, edit, jump by
+// hunk, open in a pull request). The returned type additionally classifies what the
+// primary action (space) does there.
+type DiffMainViewContext interface {
+	Context
+
+	GetDiffMainViewType() DiffMainViewType
+}
+
+// DiffMainViewType classifies what the primary action (space) does in a side panel's
+// focused main view — and, for DiffMainViewTypePatchBuilding, that the focused main
+// view shows the inclusion gutter (it marks which change lines are in the patch, so
+// it's meaningful only beneath a patch-building panel, and even then only while a
+// patch is active).
+type DiffMainViewType int
+
+const (
+	// DiffMainViewTypeNone: a diff is shown — so the focused main view still has a
+	// selection to edit, jump by hunk, or open in a pull request — but the primary
+	// action does nothing. Currently the reflog (building a patch from it is a deferred
+	// gap).
+	DiffMainViewTypeNone DiffMainViewType = iota
+	// DiffMainViewTypeStaging: the primary action stages/unstages into the working tree
+	// (the files panel).
+	DiffMainViewTypeStaging
+	// DiffMainViewTypePatchBuilding: the primary action toggles the selection into a
+	// custom patch (the commit files / commits / sub-commits / stash panels).
+	DiffMainViewTypePatchBuilding
+)
+
 type IListContext interface {
 	Context
 
@@ -205,6 +242,34 @@ type IPatchExplorerContext interface {
 	NavigateTo(selectedLineIdx int)
 	GetMutex() *deadlock.Mutex
 	IsPatchExplorerContext() // used for type switch
+
+	// See FocusedMainViewSnapshot. Nil unless this patch explorer was entered
+	// from a focused main view.
+	GetFocusedMainViewSnapshot() *FocusedMainViewSnapshot
+	SetFocusedMainViewSnapshot(*FocusedMainViewSnapshot)
+}
+
+// FocusedMainViewSnapshot records where a focused main view was when we dived
+// into a patch explorer (staging or patch building) from it, so that escaping
+// returns us to the same place with the main view focused again. It is nil when
+// the patch explorer was entered the normal way (through a side panel), in which
+// case escape just pops to that side panel.
+type FocusedMainViewSnapshot struct {
+	// The side panel to land on first; pushing it re-renders the original
+	// content into the main view. For commits/stash this is the originating side
+	// panel (skipping the commit files panel we passed through), preserving the
+	// pre-existing "escape all the way out" behavior.
+	SidePanel Context
+	// The side panel's selected line, to restore before re-rendering it. Diving
+	// into staging can change the side panel's selection (e.g. from a directory
+	// to a file in the files panel); restoring it makes the main view show the
+	// same content again. -1 if the side panel isn't a list.
+	SidePanelSelectedLineIdx int
+	// The focused main view context to focus afterwards. Where in it to scroll to
+	// and select is not captured here: on escape we land on the line the patch
+	// explorer ended up selecting, found by its patch identity in the re-rendered
+	// content, which survives the diff changing in a way a saved index wouldn't.
+	MainView Context
 }
 
 type IViewTrait interface {
@@ -227,8 +292,28 @@ type IViewTrait interface {
 }
 
 type OnFocusOpts struct {
-	ClickedWindowName       string
-	ClickedViewLineIdx      int
+	ClickedWindowName  string
+	ClickedViewLineIdx int
+
+	// A source line number identifying the line to land on in the patch
+	// explorer. If not -1, takes precedence over ClickedViewLineIdx. It is a
+	// new-file line number, unless ClickedViewRealLineIsDeletion is set, in which
+	// case it is an old-file line number (two consecutive deletions share a
+	// new-file line number, so only the old-file number identifies a deletion).
+	ClickedViewRealLineIdx int
+
+	// Whether ClickedViewRealLineIdx is an old-file line number for a deletion;
+	// see above.
+	ClickedViewRealLineIsDeletion bool
+
+	// When entering a patch explorer (staging or patch building) by clicking or
+	// pressing enter on a line in a focused main view, we select that line using
+	// the default select mode (hunk or line, per the UseHunkModeInStagingView
+	// config), the same as when entering through the side panel. Clicking
+	// directly on the patch explorer view instead starts a range selection that
+	// can be extended by dragging.
+	SelectLineInDefaultMode bool
+
 	ScrollSelectionIntoView bool
 }
 
@@ -263,9 +348,39 @@ type HasKeybindings interface {
 	// decides not to do anything with the click.
 	GetOnClick() func(opts gocui.ViewMouseBindingOpts) error
 
-	// Implement this in a side-panel controller to get called when there's a click in the main view
-	// that belongs to your panel while the main view is already focused.
-	GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error
+	// Implement this in a side-panel controller to expose the actions its diff
+	// supports when shown in the focused main view (see FocusedMainViewActions).
+	// Return nil for a panel whose diff offers none.
+	GetFocusedMainViewActions() FocusedMainViewActions
+}
+
+// FocusedMainViewActions is the set of actions a side panel offers on its diff while
+// that diff is shown in the focused main view. The focused main view controller owns
+// the keybindings and the selection mechanics and dispatches to whichever panel is
+// beneath it; what each action means is the panel's business — the working-tree files
+// panel stages, the commit panels toggle the selection into a custom patch. The
+// inclusive view-line range passed to the action methods is the current selection (a
+// single line, a range, or a hunk). mainViewName identifies which of the two main
+// panes the user acted in.
+type FocusedMainViewActions interface {
+	// OnClick dives into staging / patch-building for the clicked line, the same way a
+	// click in the panel's own view does. Also used by enter (on the selected line).
+	OnClick(mainViewName string, clickedLineIdx int) error
+
+	// PrimaryAction acts on the selected diff line(s) when the user presses space:
+	// stage/unstage for the working-tree files panel, toggle into/out of the custom
+	// patch for the commit panels. The handler re-renders the diff and re-establishes
+	// the selection itself (staging can move the acted-on side to the other pane,
+	// which the handler then focuses).
+	PrimaryAction(mainViewName string, firstLineIdx int, lastLineIdx int) error
+
+	// DiscardSelection discards the selected diff line(s) when the user presses the
+	// remove key: from the working tree for the files panel, or from the commit (via a
+	// rebase) for the commit panels. DiscardSelectionDisabledReason reports why discard
+	// is unavailable here — e.g. the diff isn't a local commit's, or a rebase is in
+	// progress — or nil when it's available.
+	DiscardSelection(mainViewName string, firstLineIdx int, lastLineIdx int) error
+	DiscardSelectionDisabledReason(mainViewName string) *DisabledReason
 }
 
 type IController interface {
@@ -326,6 +441,7 @@ type IContextMgr interface {
 	CurrentSide() Context
 	CurrentPopup() []Context
 	NextInStack(context Context) Context
+	IsInStack(c Context) bool
 	IsCurrent(c Context) bool
 	IsCurrentOrParent(c Context) bool
 	ForEach(func(Context))

@@ -65,12 +65,31 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// Set LAZYGIT_COLUMNS for diff renderer scripts that can't query the terminal width directly.
 	cmd.Env = append(cmd.Env, fmt.Sprintf("LAZYGIT_COLUMNS=%d", width))
 
+	// Advertise the diff-line metadata protocol versions we understand, so that
+	// whatever renders the diff annotates each line with an OSC sequence we can read
+	// back (see diff-line-metadata-notes.md). Set before the no-pty path below,
+	// because git renders the diff itself there and is one of the things that speaks
+	// the protocol — for its word-diff formats, whose inline markup we could not
+	// otherwise resolve. Anything that doesn't understand the variable ignores it, so
+	// this is safe to set unconditionally.
+	cmd.Env = append(cmd.Env, "OSC1717=V1")
+
 	if gui.stateAccessor.GetDiffRendererConfigManager().GetDiffRendererType() == config.DiffRendererType_RawGit {
 		// If we're not using a custom diff renderer, then we don't need to use a pty
 		return gui.newCmdTask(view, cmd, prefix)
 	}
 
 	cmd.Args = withPtyGitConfig(cmd.Args, runtime.GOOS)
+
+	// Mark the view as loading synchronously now, before the layout pass: the
+	// actual task is created in afterLayout (below), which runs after layout, so
+	// without this the next layout pass would clamp the scroll position to the
+	// not-yet-loaded content.
+	gui.getManager(view).StartLoading()
+	// Hold the scrollbar at its current height while the re-render loads, so the
+	// thumb doesn't shrink and snap back when the first partial paint swaps in
+	// (see the matching call in newCmdTask).
+	view.FreezeScrollbarHeight()
 
 	// Run the pty after layout so that it gets the correct size
 	gui.afterLayout(func() error {
@@ -137,6 +156,18 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		}
 
 		linesToRead := gui.linesToReadFromCmdTask(view)
+		// As in newCmdTask: if a restore is pending for this content (returning to a
+		// focused main view on escape), let the task re-establish the scroll
+		// position and selection as it first paints, reading to end of input so a
+		// deep target line is found and the scrollbar ends up accurate.
+		restore := manager.GetRestoreForNextTask()
+		if restore != nil {
+			linesToRead.Restore = restore
+			linesToRead.Total = -1
+		}
+		// New content scrolls back to the top at the first paint; same content keeps
+		// its scroll, and a restore places the scroll itself. See LinesToRead.ResetOrigin.
+		linesToRead.ResetOrigin = restore == nil && cmdStr != manager.GetTaskKey()
 		return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr)
 	})
 

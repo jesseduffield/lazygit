@@ -385,14 +385,17 @@ func (self *WorkingTreeCommands) Exclude(filename string) error {
 // WorktreeFileDiff returns the diff of a file
 func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached, nil).RunWithOutput()
+	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached, false, nil).RunWithOutput()
 	return s
 }
 
 // WorktreeFileDiffCmdObj returns a command object for diffing a file or directory
 // in the working tree. When pathOverrides is non-empty, those paths are used instead of
 // the node's path (used to diff only filtered/visible files within a directory).
-func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool, pathOverrides []string) *oscommands.CmdObj {
+// ignoreExternalDiff forces git's own (coloured) diff regardless of a configured
+// external diff command, for the focused main view's raw-diff fallback (see
+// StagingHelper.DiffMainViewShouldRenderRaw); unlike plain it keeps the colour.
+func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool, ignoreExternalDiff bool, pathOverrides []string) *oscommands.CmdObj {
 	colorArg := self.diffRendererConfigManager.GetColorArg()
 	if plain {
 		colorArg = "never"
@@ -407,7 +410,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	}
 
 	cmdArgs := NewGitCmd("diff").
-		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain && !ignoreExternalDiff).
 		Arg("--submodule").
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
 		ArgIf(cached, "--cached").
@@ -431,10 +434,10 @@ func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bo
 	if previousPath != "" {
 		fileNames = append(fileNames, previousPath)
 	}
-	return self.ShowFileDiffCmdObj(from, to, reverse, fileNames, plain).RunWithOutput()
+	return self.ShowFileDiffCmdObj(from, to, reverse, fileNames, plain, false).RunWithOutput()
 }
 
-func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool) *oscommands.CmdObj {
+func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool, ignoreExternalDiff bool) *oscommands.CmdObj {
 	colorArg := self.diffRendererConfigManager.GetColorArg()
 	if plain {
 		colorArg = "never"
@@ -442,7 +445,7 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").
-		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain && !ignoreExternalDiff).
 		Arg("--submodule").
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
 		Arg(from).

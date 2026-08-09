@@ -87,6 +87,14 @@ func (self *DiffRendererConfigManager) GetColorArg() string {
 	return colorArg
 }
 
+func (self *DiffRendererConfigManager) GetNarrowSelectionHighlight() bool {
+	currentDiffRendererConfig := self.currentDiffRendererConfig()
+	if currentDiffRendererConfig == nil {
+		return false
+	}
+	return currentDiffRendererConfig.NarrowSelectionHighlight
+}
+
 func (self *DiffRendererConfigManager) GetExternalDiffCommand(diffContext uint64) string {
 	currentDiffRendererConfig := self.currentDiffRendererConfig()
 	if currentDiffRendererConfig == nil || currentDiffRendererConfig.getType() != DiffRendererType_ExtDiff {
