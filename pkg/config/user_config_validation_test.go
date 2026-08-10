@@ -361,26 +361,30 @@ func TestUserConfigValidate_sidePanels(t *testing.T) {
 	}
 }
 
-func TestUserConfigValidate_pagers(t *testing.T) {
+func TestUserConfigValidate_diffRenderers(t *testing.T) {
 	scenarios := []struct {
-		name  string
-		pager PagingConfig
-		valid bool
+		name         string
+		diffRenderer DiffRendererConfig
+		valid        bool
 	}{
-		{name: "empty", pager: PagingConfig{}, valid: true},
-		{name: "pager only", pager: PagingConfig{Pager: "delta"}, valid: true},
-		{name: "external diff command only", pager: PagingConfig{ExternalDiffCommand: "difft"}, valid: true},
-		{name: "git config external diff only", pager: PagingConfig{UseExternalDiffGitConfig: true}, valid: true},
-		{name: "pager and external diff command", pager: PagingConfig{Pager: "delta", ExternalDiffCommand: "difft"}, valid: false},
-		{name: "pager and git config external diff", pager: PagingConfig{Pager: "delta", UseExternalDiffGitConfig: true}, valid: false},
-		{name: "both external diff mechanisms", pager: PagingConfig{ExternalDiffCommand: "difft", UseExternalDiffGitConfig: true}, valid: false},
-		{name: "all three", pager: PagingConfig{Pager: "delta", ExternalDiffCommand: "difft", UseExternalDiffGitConfig: true}, valid: false},
+		{name: "stdinFilter with type default", diffRenderer: DiffRendererConfig{Command: "delta"}, valid: true},
+		{name: "stdinFilter with explicit type", diffRenderer: DiffRendererConfig{Type: "stdinFilter", Command: "delta"}, valid: true},
+		{name: "stdinFilter with explicit type", diffRenderer: DiffRendererConfig{Type: "stdinFilter"}, valid: false},
+		{name: "stdinFilter with type default without command", diffRenderer: DiffRendererConfig{}, valid: false},
+		{name: "stdinFilter with args", diffRenderer: DiffRendererConfig{Type: "stdinFilter", Command: "delta", Args: []string{"-x"}}, valid: false},
+		{name: "external diff", diffRenderer: DiffRendererConfig{Type: "extDiff", Command: "difft"}, valid: true},
+		{name: "external diff without command", diffRenderer: DiffRendererConfig{Type: "extDiff"}, valid: true},
+		{name: "external diff with args", diffRenderer: DiffRendererConfig{Type: "extDiff", Command: "difft", Args: []string{"-x"}}, valid: false},
+		{name: "raw git", diffRenderer: DiffRendererConfig{Type: "rawGit"}, valid: true},
+		{name: "raw git with args", diffRenderer: DiffRendererConfig{Type: "rawGit", Args: []string{"-x"}}, valid: true},
+		{name: "raw git with command", diffRenderer: DiffRendererConfig{Type: "rawGit", Command: "delta"}, valid: false},
+		{name: "unknown type", diffRenderer: DiffRendererConfig{Type: "unknown"}, valid: false},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
 			config := GetDefaultConfig()
-			config.Git.Pagers = []PagingConfig{s.pager}
+			config.Git.DiffRenderers = []DiffRendererConfig{s.diffRenderer}
 			err := config.Validate()
 
 			if s.valid {

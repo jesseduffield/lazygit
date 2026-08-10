@@ -202,7 +202,6 @@ const (
 
 var (
 	lastMouseKey tcell.ButtonMask = tcell.ButtonNone
-	lastMouseMod tcell.ModMask    = tcell.ModNone
 	dragState                     = NOT_DRAGGING
 	lastX                         = 0
 	lastY                         = 0
@@ -366,9 +365,11 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 
 		// process button events (not wheel events)
 		button &= tcell.ButtonMask(0xff)
+		newButtonPress := false
+		buttonReleased := false
 		if button != tcell.ButtonNone && lastMouseKey == tcell.ButtonNone {
+			newButtonPress = true
 			lastMouseKey = button
-			lastMouseMod = tev.Modifiers()
 			switch button {
 			case tcell.ButtonPrimary:
 				mouseKey = MouseLeft
@@ -386,6 +387,7 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 		switch tev.Buttons() {
 		case tcell.ButtonNone:
 			if lastMouseKey != tcell.ButtonNone {
+				buttonReleased = true
 				switch lastMouseKey {
 				case tcell.ButtonPrimary:
 					dragState = NOT_DRAGGING
@@ -393,14 +395,13 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 				case tcell.ButtonMiddle:
 				default:
 				}
-				mouseMod = Modifier(lastMouseMod)
-				lastMouseMod = tcell.ModNone
+				mouseMod = ModNone
 				lastMouseKey = tcell.ButtonNone
 			}
 		default:
 		}
 
-		if !wheeling {
+		if !wheeling && !buttonReleased {
 			switch dragState {
 			case NOT_DRAGGING:
 				return GocuiEvent{
@@ -410,9 +411,23 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 				}
 			// if we haven't released the left mouse button and we've moved the cursor then we're dragging
 			case MAYBE_DRAGGING:
-				if x != lastX || y != lastY {
-					dragState = DRAGGING
+				if x == lastX && y == lastY {
+					// Deliver the button press itself, but swallow held-button
+					// motion events within the same cell: they carry no new
+					// information, and if they fell through they would be
+					// delivered with the default MouseRelease key.
+					if !newButtonPress {
+						return GocuiEvent{Type: eventNone}
+					}
+					break
 				}
+				// The first movement is already part of the drag; give it the
+				// same key and modifier as the DRAGGING events below so it
+				// reaches drag bindings instead of being delivered with the
+				// default MouseRelease key.
+				dragState = DRAGGING
+				mouseMod = ModMotion
+				mouseKey = MouseLeft
 			case DRAGGING:
 				mouseMod = ModMotion
 				mouseKey = MouseLeft

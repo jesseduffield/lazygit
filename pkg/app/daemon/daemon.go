@@ -263,12 +263,14 @@ func (self *MoveFixupCommitDownInstruction) run(common *common.Common) error {
 }
 
 type MoveTodosUpInstruction struct {
-	Hashes []string
+	Hashes   []string
+	Distance int
 }
 
-func NewMoveTodosUpInstruction(hashes []string) Instruction {
+func NewMoveTodosUpInstruction(hashes []string, distance int) Instruction {
 	return &MoveTodosUpInstruction{
-		Hashes: hashes,
+		Hashes:   hashes,
+		Distance: distance,
 	}
 }
 
@@ -288,17 +290,19 @@ func (self *MoveTodosUpInstruction) run(common *common.Common) error {
 	})
 
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveTodosUp(path, todosToMove, false, getCommentChar())
+		return utils.MoveTodos(path, todosToMove, false, -self.Distance, getCommentChar())
 	})
 }
 
 type MoveTodosDownInstruction struct {
-	Hashes []string
+	Hashes   []string
+	Distance int
 }
 
-func NewMoveTodosDownInstruction(hashes []string) Instruction {
+func NewMoveTodosDownInstruction(hashes []string, distance int) Instruction {
 	return &MoveTodosDownInstruction{
-		Hashes: hashes,
+		Hashes:   hashes,
+		Distance: distance,
 	}
 }
 
@@ -318,7 +322,7 @@ func (self *MoveTodosDownInstruction) run(common *common.Common) error {
 	})
 
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveTodosDown(path, todosToMove, false, getCommentChar())
+		return utils.MoveTodos(path, todosToMove, false, self.Distance, getCommentChar())
 	})
 }
 

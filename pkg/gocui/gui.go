@@ -208,7 +208,9 @@ type Gui struct {
 	// busy?" doesn't count itself.
 	currentTask Task
 
-	lastHoverView *View
+	lastHoverView        *View
+	mouseCapture         *View
+	mouseGestureCanceled bool
 
 	// uiThreadID is the goroutine id of the main event loop, recorded when
 	// MainLoop starts. IsUIThread compares against it. Written once, read from
@@ -597,6 +599,12 @@ func (g *Gui) DeleteView(name string) error {
 
 	for i, v := range g.views {
 		if v.name == name {
+			if g.mouseCapture == v {
+				g.CancelMouseCapture()
+			}
+			if g.lastHoverView == v {
+				g.lastHoverView = nil
+			}
 			g.views = append(g.views[:i], g.views[i+1:]...)
 			return nil
 		}
@@ -664,6 +672,24 @@ func (g *Gui) SetViewClickBinding(binding *ViewMouseBinding) error {
 	g.viewMouseBindings = append(g.viewMouseBindings, binding)
 
 	return nil
+}
+
+// captureMouse routes subsequent mouse events to view until the mouse button is
+// released or CancelMouseCapture is called.
+func (g *Gui) captureMouse(view *View) {
+	g.mouseCapture = view
+	g.mouseGestureCanceled = false
+}
+
+func (g *Gui) releaseMouseCapture() {
+	g.mouseCapture = nil
+}
+
+// CancelMouseCapture releases capture and ignores the rest of the physical
+// gesture until the mouse button is released.
+func (g *Gui) CancelMouseCapture() {
+	g.releaseMouseCapture()
+	g.mouseGestureCanceled = true
 }
 
 func (g *Gui) SetFocusHandler(handler func(bool) error) {
@@ -1658,9 +1684,26 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 
 	case eventMouse:
 		mx, my := ev.MouseX, ev.MouseY
-		v, err := g.VisibleViewByPosition(mx, my)
-		if err != nil {
-			break
+		if g.mouseGestureCanceled {
+			if ev.Key.KeyName() == MouseRelease {
+				g.mouseGestureCanceled = false
+			}
+			return nil
+		}
+		// While the mouse is captured, all mouse events go to the view that
+		// was under the pointer when the button was pressed, even if the
+		// pointer has since left it; this is what lets drag gestures keep
+		// acting on the view they started in.
+		v := g.mouseCapture
+		if v == nil {
+			var err error
+			v, err = g.VisibleViewByPosition(mx, my)
+			if err != nil {
+				break
+			}
+		}
+		if ev.Key.KeyName() == MouseRelease {
+			g.releaseMouseCapture()
 		}
 
 		// newCx and newCy are relative to the view port, i.e. to the visible area of the view
@@ -1704,9 +1747,20 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 				break
 			}
 		}
+		if ev.Key.KeyName() == MouseLeft && ev.Key.Mod()&ModMotion == 0 {
+			g.captureMouse(v)
+		}
 
-		if !IsMouseScrollKey(ev.Key.KeyName()) {
-			v.SetCursor(newCx, newCy)
+		if !IsMouseScrollKey(ev.Key.KeyName()) && ev.Key.KeyName() != MouseRelease {
+			cursorX, cursorY := newCx, newCy
+			// A captured drag can report positions outside the view; keep the
+			// view cursor inside its bounds in that case. Handlers still get
+			// the unclamped position through the binding opts.
+			if g.mouseCapture != nil {
+				cursorX = max(0, min(cursorX, v.InnerWidth()-1))
+				cursorY = max(0, min(cursorY, v.InnerHeight()-1))
+			}
+			v.SetCursor(cursorX, cursorY)
 			if v.Editable {
 				v.TextArea.SetCursor2D(newX, newY)
 
@@ -1718,7 +1772,9 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 		}
 
-		if v.Frame && my == v.y0 {
+		// Only an actual click may activate tabs; a captured drag that
+		// crosses the tab row must not switch tabs.
+		if ev.Key.KeyName() == MouseLeft && ev.Key.Mod()&ModMotion == 0 && v.Frame && my == v.y0 {
 			if len(v.Tabs) > 0 {
 				tabIndex := v.GetClickedTabIndex(mx - v.x0)
 
@@ -1771,6 +1827,12 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 func (g *Gui) recordClickInfo(x, y int, key KeyName, v *View) bool {
 	if IsMouseScrollKey(key) {
 		g.lastClick = nil
+		return false
+	}
+	// A release ends a gesture but is not a click of its own; it must leave
+	// the click info of the press that started it alone, or no double click
+	// could ever be detected.
+	if key == MouseRelease {
 		return false
 	}
 

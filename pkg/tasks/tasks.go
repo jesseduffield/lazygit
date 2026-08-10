@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"sync"
 	"sync/atomic"
@@ -24,7 +23,9 @@ import (
 type Cmd interface {
 	Wait() error
 	String() string
-	GetProcess() *os.Process
+	// Terminate makes the process stop early, as gracefully as the platform
+	// allows. It doesn't wait for the process to exit.
+	Terminate() error
 }
 
 // ExecCmd adapts *exec.Cmd to Cmd.
@@ -32,8 +33,11 @@ type ExecCmd struct {
 	*exec.Cmd
 }
 
-func (c ExecCmd) GetProcess() *os.Process {
-	return c.Process
+// Terminate sends SIGTERM on Unix. On Windows it does nothing, so a stopped
+// command keeps running until it next writes to its (by then closed) output
+// pipe.
+func (c ExecCmd) Terminate() error {
+	return oscommands.TerminateProcessGracefully(c.Process)
 }
 
 // This file revolves around running commands that will be output to the main panel
@@ -213,10 +217,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				// when flicking through several very long diffs when diff.algorithm = histogram is
 				// being used, in which case multiple git processes continue to calculate expensive
 				// diffs in the background even though they have been stopped already.
-				//
-				// Unfortunately this will do nothing on Windows, so Windows users will have to live
-				// with the higher CPU usage.
-				if err := oscommands.TerminateProcessGracefully(cmd.GetProcess()); err != nil {
+				if err := cmd.Terminate(); err != nil {
 					self.Log.Errorf("error when trying to terminate cmd task: %v; Command: %v", err, cmd.String())
 				}
 

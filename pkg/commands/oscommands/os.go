@@ -1,12 +1,12 @@
 package oscommands
 
 import (
+	"bytes"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/go-errors/errors"
 	"github.com/samber/lo"
@@ -228,37 +228,47 @@ func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
 	// keeping this here in case I adapt this code for some other purpose in the future
 	// cmds[len(cmds)-1].Stdout = os.Stdout
 
-	finalErrors := []string{}
-
-	wg := sync.WaitGroup{}
-	wg.Add(len(cmds))
-
-	for _, cmd := range cmds {
-		go utils.Safe(func() {
-			stderr, err := cmd.StderrPipe()
-			if err != nil {
-				c.Log.Error(err)
-			}
-
-			if err := cmd.Start(); err != nil {
-				c.Log.Error(err)
-			}
-
-			if b, err := io.ReadAll(stderr); err == nil {
-				if len(b) > 0 {
-					finalErrors = append(finalErrors, string(b))
-				}
-			}
-
-			if err := cmd.Wait(); err != nil {
-				c.Log.Error(err)
-			}
-
-			wg.Done()
-		})
+	stderrs := make([]bytes.Buffer, len(cmds))
+	for i := range cmds {
+		cmds[i].Stderr = &stderrs[i]
 	}
 
-	wg.Wait()
+	// Start every command before waiting for any of them: waiting for a command
+	// closes our end of the pipe that feeds the next one, and a command that
+	// hasn't been started by then would inherit a closed stdin.
+	started := 0
+	var startErr error
+	for _, cmd := range cmds {
+		if err := cmd.Start(); err != nil {
+			startErr = err
+			break
+		}
+
+		started++
+	}
+
+	finalErrors := []string{}
+
+	if startErr != nil {
+		c.Log.Error(startErr)
+		finalErrors = append(finalErrors, startErr.Error())
+
+		// Without the rest of the pipeline to drain them, the commands we did
+		// start could block forever writing to a full pipe.
+		for _, cmd := range cmds[:started] {
+			_ = cmd.Process.Kill()
+		}
+	}
+
+	for i, cmd := range cmds[:started] {
+		if err := cmd.Wait(); err != nil {
+			c.Log.Error(err)
+		}
+
+		if stderrs[i].Len() > 0 {
+			finalErrors = append(finalErrors, stderrs[i].String())
+		}
+	}
 
 	if len(finalErrors) > 0 {
 		return errors.New(strings.Join(finalErrors, "\n"))

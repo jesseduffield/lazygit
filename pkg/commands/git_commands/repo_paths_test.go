@@ -38,8 +38,6 @@ func TestGetRepoPaths(t *testing.T) {
 					`C:\path\to\repo\.git`,
 					// --git-common-dir
 					`C:\path\to\repo\.git`,
-					// --is-bare-repository
-					"false",
 					// --show-superproject-working-tree
 				}, []string{
 					// --show-toplevel
@@ -48,12 +46,10 @@ func TestGetRepoPaths(t *testing.T) {
 					"/path/to/repo/.git",
 					// --git-common-dir
 					"/path/to/repo/.git",
-					// --is-bare-repository
-					"false",
 					// --show-superproject-working-tree
 				})
 				runner.ExpectGitArgs(
-					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
+					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree"),
 					strings.Join(mockOutput, "\n"),
 					nil)
 			},
@@ -76,50 +72,144 @@ func TestGetRepoPaths(t *testing.T) {
 			Err: nil,
 		},
 		{
+			// git refuses to answer --show-toplevel when there's no work tree, so
+			// we have to ask a second time without it.
 			Name: "bare repo",
 			BeforeFunc: func(runner *oscommands.FakeCmdObjRunner, getRevParseArgs argFn) {
-				// setup for main worktree
+				runner.ExpectGitArgs(
+					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree"),
+					"",
+					errors.New("fatal: this operation must be run in a work tree"))
+
 				mockOutput := lo.Ternary(runtime.GOOS == "windows", []string{
-					// --show-toplevel
-					`C:\path\to\repo`,
 					// --git-dir
-					`C:\path\to\bare_repo\bare.git`,
+					`C:\path\to\project\bare.git`,
 					// --git-common-dir
-					`C:\path\to\bare_repo\bare.git`,
-					// --is-bare-repository
-					`true`,
-					// --show-superproject-working-tree
+					`C:\path\to\project\bare.git`,
 				}, []string{
-					// --show-toplevel
-					"/path/to/repo",
 					// --git-dir
-					"/path/to/bare_repo/bare.git",
+					"/path/to/project/bare.git",
 					// --git-common-dir
-					"/path/to/bare_repo/bare.git",
-					// --is-bare-repository
-					"true",
-					// --show-superproject-working-tree
+					"/path/to/project/bare.git",
 				})
 				runner.ExpectGitArgs(
-					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
+					append(getRevParseArgs(), "--absolute-git-dir", "--git-common-dir"),
 					strings.Join(mockOutput, "\n"),
 					nil)
 			},
-			Path: "/path/to/repo",
+			Path: "/path/to/project",
 			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
-				worktreePath:       `C:\path\to\repo`,
-				worktreeGitDirPath: `C:\path\to\bare_repo\bare.git`,
-				repoPath:           `C:\path\to\bare_repo`,
-				repoGitDirPath:     `C:\path\to\bare_repo\bare.git`,
-				repoName:           `bare_repo`,
+				worktreePath:       "",
+				worktreeGitDirPath: `C:\path\to\project\bare.git`,
+				repoPath:           `C:\path\to\project`,
+				repoGitDirPath:     `C:\path\to\project\bare.git`,
+				repoName:           `project`,
 				isBareRepo:         true,
 			}, &RepoPaths{
-				worktreePath:       "/path/to/repo",
-				worktreeGitDirPath: "/path/to/bare_repo/bare.git",
-				repoPath:           "/path/to/bare_repo",
-				repoGitDirPath:     "/path/to/bare_repo/bare.git",
-				repoName:           "bare_repo",
+				worktreePath:       "",
+				worktreeGitDirPath: "/path/to/project/bare.git",
+				repoPath:           "/path/to/project",
+				repoGitDirPath:     "/path/to/project/bare.git",
+				repoName:           "project",
 				isBareRepo:         true,
+			}),
+			Err: nil,
+		},
+		{
+			// Standing in the .git dir of an ordinary repo: git refuses to name a
+			// work tree, but the directory holding the .git is one, so we open the
+			// repo from there.
+			Name: "in a repo's .git dir",
+			BeforeFunc: func(runner *oscommands.FakeCmdObjRunner, getRevParseArgs argFn) {
+				gitDir := lo.Ternary(runtime.GOOS == "windows", `C:\path\to\repo\.git`, "/path/to/repo/.git")
+				worktree := lo.Ternary(runtime.GOOS == "windows", `C:\path\to\repo`, "/path/to/repo")
+
+				runner.ExpectGitArgs(
+					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree"),
+					"",
+					errors.New("fatal: this operation must be run in a work tree"))
+				runner.ExpectGitArgs(
+					append(getRevParseArgs(), "--absolute-git-dir", "--git-common-dir"),
+					strings.Join([]string{gitDir, gitDir}, "\n"),
+					nil)
+
+				// asking again from the directory holding the .git
+				runner.ExpectGitArgs(
+					append(append([]string{"-C", worktree}, getRevParseArgs()...), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree"),
+					strings.Join([]string{worktree, gitDir, gitDir}, "\n"),
+					nil)
+			},
+			Path: "/path/to/repo/.git",
+			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
+				worktreePath:       `C:\path\to\repo`,
+				worktreeGitDirPath: `C:\path\to\repo\.git`,
+				repoPath:           `C:\path\to\repo`,
+				repoGitDirPath:     `C:\path\to\repo\.git`,
+				repoName:           `repo`,
+				isBareRepo:         false,
+			}, &RepoPaths{
+				worktreePath:       "/path/to/repo",
+				worktreeGitDirPath: "/path/to/repo/.git",
+				repoPath:           "/path/to/repo",
+				repoGitDirPath:     "/path/to/repo/.git",
+				repoName:           "repo",
+				isBareRepo:         false,
+			}),
+			Err: nil,
+		},
+		{
+			// A repo whose work tree lives somewhere else entirely, as set up by
+			// core.worktree or by --work-tree. We're in the main worktree, but the
+			// git dir is not inside it.
+			Name: "repo with a separate work tree",
+			BeforeFunc: func(runner *oscommands.FakeCmdObjRunner, getRevParseArgs argFn) {
+				mockOutput := lo.Ternary(runtime.GOOS == "windows", []string{
+					// --show-toplevel
+					`C:\path\to\worktree`,
+					// --git-dir
+					`C:\path\to\repo\.git`,
+					// --git-common-dir
+					`C:\path\to\repo\.git`,
+					// --show-superproject-working-tree
+				}, []string{
+					// --show-toplevel
+					"/path/to/worktree",
+					// --git-dir
+					"/path/to/repo/.git",
+					// --git-common-dir
+					"/path/to/repo/.git",
+					// --show-superproject-working-tree
+				})
+				runner.ExpectGitArgs(
+					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree"),
+					strings.Join(mockOutput, "\n"),
+					nil)
+
+				// asking git to find the repo from the work tree gets us nowhere,
+				// because there is no .git there
+				worktree := lo.Ternary(runtime.GOOS == "windows", `C:\path\to\worktree`, "/path/to/worktree")
+				runner.ExpectGitArgs(
+					append([]string{"-C", worktree}, append(getRevParseArgs(), "--absolute-git-dir")...),
+					"",
+					errors.New("fatal: not a git repository (or any of the parent directories): .git"))
+			},
+			Path: "/path/to/repo",
+			Expected: lo.Ternary(runtime.GOOS == "windows", &RepoPaths{
+				worktreePath:       `C:\path\to\worktree`,
+				worktreeGitDirPath: `C:\path\to\repo\.git`,
+				repoPath:           `C:\path\to\worktree`,
+				repoGitDirPath:     `C:\path\to\repo\.git`,
+				repoName:           `worktree`,
+				isBareRepo:         false,
+				gitLocationEnvVars: []string{`GIT_DIR=C:\path\to\repo\.git`, `GIT_WORK_TREE=C:\path\to\worktree`},
+			}, &RepoPaths{
+				worktreePath:       "/path/to/worktree",
+				worktreeGitDirPath: "/path/to/repo/.git",
+				repoPath:           "/path/to/worktree",
+				repoGitDirPath:     "/path/to/repo/.git",
+				repoName:           "worktree",
+				isBareRepo:         false,
+				gitLocationEnvVars: []string{"GIT_DIR=/path/to/repo/.git", "GIT_WORK_TREE=/path/to/worktree"},
 			}),
 			Err: nil,
 		},
@@ -133,8 +223,6 @@ func TestGetRepoPaths(t *testing.T) {
 					`C:\path\to\repo\.git\modules\submodule1`,
 					// --git-common-dir
 					`C:\path\to\repo\.git\modules\submodule1`,
-					// --is-bare-repository
-					`false`,
 					// --show-superproject-working-tree
 					`C:\path\to\repo`,
 				}, []string{
@@ -144,14 +232,21 @@ func TestGetRepoPaths(t *testing.T) {
 					"/path/to/repo/.git/modules/submodule1",
 					// --git-common-dir
 					"/path/to/repo/.git/modules/submodule1",
-					// --is-bare-repository
-					"false",
 					// --show-superproject-working-tree
 					"/path/to/repo",
 				})
 				runner.ExpectGitArgs(
-					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
+					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree"),
 					strings.Join(mockOutput, "\n"),
+					nil)
+
+				// git finds the submodule's git dir from its work tree, via the
+				// .git file there
+				worktree := lo.Ternary(runtime.GOOS == "windows", `C:\path\to\repo\submodule1`, "/path/to/repo/submodule1")
+				gitDir := lo.Ternary(runtime.GOOS == "windows", `C:\path\to\repo\.git\modules\submodule1`, "/path/to/repo/.git/modules/submodule1")
+				runner.ExpectGitArgs(
+					append([]string{"-C", worktree}, append(getRevParseArgs(), "--absolute-git-dir")...),
+					gitDir,
 					nil)
 			},
 			Path: "/path/to/repo/submodule1",
@@ -176,7 +271,12 @@ func TestGetRepoPaths(t *testing.T) {
 			Name: "git rev-parse returns an error",
 			BeforeFunc: func(runner *oscommands.FakeCmdObjRunner, getRevParseArgs argFn) {
 				runner.ExpectGitArgs(
-					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--is-bare-repository", "--show-superproject-working-tree"),
+					append(getRevParseArgs(), "--show-toplevel", "--absolute-git-dir", "--git-common-dir", "--show-superproject-working-tree"),
+					"",
+					errors.New("fatal: invalid gitfile format: /path/to/repo/worktree2/.git"))
+				// we're not in a repo at all, so asking about a bare one fails too
+				runner.ExpectGitArgs(
+					append(getRevParseArgs(), "--absolute-git-dir", "--git-common-dir"),
 					"",
 					errors.New("fatal: invalid gitfile format: /path/to/repo/worktree2/.git"))
 			},
@@ -184,7 +284,7 @@ func TestGetRepoPaths(t *testing.T) {
 			Expected: nil,
 			Err: func(getRevParseArgs argFn) error {
 				args := strings.Join(getRevParseArgs(), " ")
-				return fmt.Errorf("'git %v --show-toplevel --absolute-git-dir --git-common-dir --is-bare-repository --show-superproject-working-tree' failed: fatal: invalid gitfile format: /path/to/repo/worktree2/.git", args)
+				return fmt.Errorf("'git %v --show-toplevel --absolute-git-dir --git-common-dir --show-superproject-working-tree' failed: fatal: invalid gitfile format: /path/to/repo/worktree2/.git", args)
 			},
 		},
 	}

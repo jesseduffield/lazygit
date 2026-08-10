@@ -203,6 +203,17 @@ func TestGuessDefaultEditor(t *testing.T) {
 			},
 			expectedResult: "bbedit",
 		},
+		{
+			gitConfigMockResponses: nil,
+			getenv: func(env string) string {
+				if env == "EDITOR" {
+					return "/usr/bin/nvim"
+				}
+
+				return ""
+			},
+			expectedResult: "nvim",
+		},
 	}
 
 	for _, s := range scenarios {

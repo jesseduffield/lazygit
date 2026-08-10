@@ -43,7 +43,7 @@ var QuickStartKeepSelectionRange = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.StartInteractiveRebase).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("CI commit-07"),
 				Contains("CI commit-06"),
 				Contains("update-ref").Contains("branch2"),
@@ -52,7 +52,7 @@ var QuickStartKeepSelectionRange = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("update-ref").Contains("branch1").IsSelected(),
 				Contains("CI commit-03").IsSelected(),
 				Contains("CI commit-02").IsSelected(),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("CI commit-01"),
 			)
 	},

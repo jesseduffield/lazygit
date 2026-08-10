@@ -335,7 +335,7 @@ func (self *FilesController) renderSubmoduleConflict(node *filetree.FileNode) {
 // (it was resolved in an editor), in which case the caller should fall back to
 // showing the file's diff.
 func (self *FilesController) renderInlineMergeConflict(node *filetree.FileNode) bool {
-	hasConflicts, err := self.c.Helpers().MergeConflicts.SetMergeState(node.GetPath())
+	hasConflicts, err := self.c.Helpers().MergeConflicts.SetMergeState(node.File)
 	if err != nil {
 		return true
 	}
@@ -1318,7 +1318,7 @@ func (self *FilesController) switchToMerge() error {
 		return nil
 	}
 
-	return self.c.Helpers().MergeConflicts.SwitchToMerge(file.Path)
+	return self.c.Helpers().MergeConflicts.SwitchToMerge(file)
 }
 
 func (self *FilesController) createStashMenu() error {
@@ -1562,13 +1562,20 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 	self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.StashChanges,
 		HandleConfirm: func(stashComment string) error {
-			self.c.LogAction(action)
+			return self.c.WithWaitingStatusBlockingInput(
+				types.WaitingStatusOpts{Message: self.c.Tr.StashingStatus},
+				func(gocui.Task) error {
+					self.c.LogAction(action)
 
-			if err := stashFunc(stashComment); err != nil {
-				return err
-			}
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
-			return nil
+					if err := stashFunc(stashComment); err != nil {
+						return err
+					}
+					self.c.RefreshFromWorker(types.RefreshOptions{
+						BatchUIUpdates: true,
+						Scope:          []types.RefreshableView{types.STASH, types.FILES},
+					})
+					return nil
+				})
 		},
 		AllowEmptyInput: true,
 	})
@@ -1606,6 +1613,8 @@ func normalisedSelectedNodes(selectedNodes []*filetree.FileNode) []*filetree.Fil
 	})
 }
 
+// NOTE: there's a duplicate of this function in commits_files_controller.go; if you make
+// changes here, make them there, too. (We should unify them using generics.)
 func isDescendentOfSelectedNodes(node *filetree.FileNode, selectedNodes []*filetree.FileNode) bool {
 	nodePath := node.GetInternalPath()
 

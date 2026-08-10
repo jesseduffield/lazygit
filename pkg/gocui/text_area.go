@@ -87,6 +87,12 @@ func contentToCells(content string, autoWrapWidth int) ([]TextAreaCell, []int) {
 		result = append(result, cells[startOfLine:to]...)
 	}
 
+	// Commit message trailers ("Signed-off-by:" and the like) must not be
+	// auto-wrapped. They are only recognized in the last paragraph of the
+	// message, so that a trailer-looking line in the message body isn't treated
+	// as one; see startOfTrailerBlock.
+	trailerBlockStart := startOfTrailerBlock(content)
+
 	for currentPos, c := range cells {
 		if c.char == "\n" {
 			appendCellsSinceLineStart(currentPos + 1)
@@ -98,7 +104,9 @@ func contentToCells(content string, autoWrapWidth int) ([]TextAreaCell, []int) {
 			trailerMatcher.reset()
 		} else {
 			currentLineWidth += c.width
-			if c.char == " " && !footNoteMatcher.isFootNote() && !trailerMatcher.isTrailer() {
+			inTrailerBlock := c.contentIndex >= trailerBlockStart
+			if c.char == " " && !footNoteMatcher.isFootNote() &&
+				!(inTrailerBlock && trailerMatcher.isTrailer(content[c.contentIndex+len(c.char):])) {
 				indexOfLastWhitespace = currentPos + 1
 			} else if autoWrapWidth > 0 && currentLineWidth > autoWrapWidth && indexOfLastWhitespace >= 0 {
 				wrapAt := indexOfLastWhitespace
@@ -118,13 +126,30 @@ func contentToCells(content string, autoWrapWidth int) ([]TextAreaCell, []int) {
 			}
 
 			footNoteMatcher.addCharacter(c.char)
-			trailerMatcher.addCharacter(c.char)
+			if inTrailerBlock {
+				trailerMatcher.addCharacter(c.char)
+			}
 		}
 	}
 
 	appendCellsSinceLineStart(len(cells))
 
 	return result, softLineBreakIndices
+}
+
+// startOfTrailerBlock returns the byte index into content at which the trailer
+// block begins, i.e. the start of the last paragraph (the run of lines at the
+// end of the message that is separated from the body by a blank line). Trailers
+// are only looked for from this index onwards, so that a trailer-looking line in
+// the middle of the message body isn't mistaken for a trailer. Trailing blank
+// lines are ignored, and a message that consists of a single paragraph is
+// treated as its own trailer block.
+func startOfTrailerBlock(content string) int {
+	end := len(strings.TrimRight(content, "\n"))
+	if blankLine := strings.LastIndex(content[:end], "\n\n"); blankLine >= 0 {
+		return blankLine + len("\n\n")
+	}
+	return 0
 }
 
 var footNoteRe = regexp.MustCompile(`^\[\d+\]:\s*$`)
@@ -171,15 +196,11 @@ func (self *footNoteMatcher) reset() {
 	self.didFailToMatch = false
 }
 
-var supportedTrailers = []string{
-	"Signed-off-by:",
-	"Co-authored-by:",
-}
-
 type trailerMatcher struct {
-	lineStr        strings.Builder
-	didFailToMatch bool
-	didMatch       bool
+	didFailToMatch   bool
+	didMatch         bool
+	keyContainsDash  bool
+	keyEndsWithColon bool
 }
 
 func (self *trailerMatcher) addCharacter(chr string) {
@@ -194,19 +215,11 @@ func (self *trailerMatcher) addCharacter(chr string) {
 		return
 	}
 
-	if self.lineStr.Len() == 0 {
-		// If this is the first character, see if it could possibly match any supported trailer; if
-		// not, we can fail early and stop tracking further characters for this line.
-		if !anyOf(supportedTrailers, func(trailer string) bool { return trailer[0] == chr[0] }) {
-			self.didFailToMatch = true
-			return
-		}
-	}
-
-	self.lineStr.WriteString(chr)
+	self.keyContainsDash = self.keyContainsDash || chr == "-"
+	self.keyEndsWithColon = chr == ":"
 }
 
-func (self *trailerMatcher) isTrailer() bool {
+func (self *trailerMatcher) isTrailer(remainingContent string) bool {
 	if self.didFailToMatch {
 		return false
 	}
@@ -215,8 +228,9 @@ func (self *trailerMatcher) isTrailer() bool {
 		return true
 	}
 
-	line := self.lineStr.String()
-	if anyOf(supportedTrailers, func(trailer string) bool { return line == trailer }) {
+	remainingContent = strings.TrimLeft(remainingContent, WHITESPACES)
+	if self.keyEndsWithColon && (self.keyContainsDash ||
+		strings.HasPrefix(remainingContent, "http://") || strings.HasPrefix(remainingContent, "https://")) {
 		self.didMatch = true
 		return true
 	}
@@ -226,19 +240,10 @@ func (self *trailerMatcher) isTrailer() bool {
 }
 
 func (self *trailerMatcher) reset() {
-	self.lineStr.Reset()
 	self.didFailToMatch = false
 	self.didMatch = false
-}
-
-func anyOf(strings []string, predicate func(s string) bool) bool {
-	for _, s := range strings {
-		if predicate(s) {
-			return true
-		}
-	}
-
-	return false
+	self.keyContainsDash = false
+	self.keyEndsWithColon = false
 }
 
 func (self *TextArea) updateCells() {

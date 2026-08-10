@@ -9,11 +9,12 @@ func NewDummyAppConfig() *AppConfig {
 	userConfig := GetDefaultConfig()
 	userConfig.Keybinding.MergeLegacyAltKeybindings()
 	appConfig := &AppConfig{
-		name:       "lazygit",
-		version:    "unversioned",
-		debug:      false,
-		userConfig: userConfig,
-		appState:   &AppState{},
+		name:                   "lazygit",
+		version:                "unversioned",
+		debug:                  false,
+		userConfig:             userConfig,
+		appState:               &AppState{},
+		githubPullRequestCache: newGithubPullRequestCache(""),
 	}
 	_ = yaml.Unmarshal([]byte{}, appConfig.appState)
 	return appConfig

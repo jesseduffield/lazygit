@@ -69,7 +69,7 @@ type Gui struct {
 	// this is the state of the GUI for the current repo
 	State *GuiRepoState
 
-	pagerConfig *config.PagerConfig
+	diffRendererConfig *config.DiffRendererConfigManager
 
 	CustomCommandsClient *custom_commands.Client
 
@@ -94,9 +94,9 @@ type Gui struct {
 
 	Mutexes types.Mutexes
 
-	// when you enter into a submodule we'll append the superproject's path to this array
-	// so that you can return to the superproject
-	RepoPathStack *utils.StringStack
+	// when you enter into a submodule we'll append the superproject's location to
+	// this array so that you can return to the superproject
+	RepoPathStack *utils.Stack[types.RepoLocation]
 
 	// this tells us whether our views have been initially set up
 	ViewsSetup bool
@@ -158,7 +158,7 @@ type StateAccessor struct {
 
 var _ types.IStateAccessor = new(StateAccessor)
 
-func (self *StateAccessor) GetRepoPathStack() *utils.StringStack {
+func (self *StateAccessor) GetRepoPathStack() *utils.Stack[types.RepoLocation] {
 	return self.gui.RepoPathStack
 }
 
@@ -178,8 +178,8 @@ func (self *StateAccessor) GetRepoGeneration() int {
 	return int(self.gui.repoGeneration.Load())
 }
 
-func (self *StateAccessor) GetPagerConfig() *config.PagerConfig {
-	return self.gui.pagerConfig
+func (self *StateAccessor) GetDiffRendererConfigManager() *config.DiffRendererConfigManager {
+	return self.gui.diffRendererConfig
 }
 
 func (self *StateAccessor) GetShowExtrasWindow() bool {
@@ -340,17 +340,20 @@ func (gui *Gui) onSwitchToNewRepo(startArgs appTypes.StartArgs, contextKey types
 }
 
 func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.ContextKey) error {
-	var err error
-	gui.git, err = commands.NewGitCommand(
+	// Don't assign to gui.git until we know we have one: this also runs when
+	// switching repos, and leaving the field nil would take down the repo we
+	// were in before, which is where the error puts us back.
+	git, err := commands.NewGitCommand(
 		gui.Common,
 		gui.gitVersion,
 		gui.os,
 		git_config.NewStdCachedGitConfig(gui.Log),
-		gui.pagerConfig,
+		gui.diffRendererConfig,
 	)
 	if err != nil {
 		return err
 	}
+	gui.git = git
 
 	err = gui.Config.ReloadUserConfigForRepo(gui.getPerRepoConfigFiles())
 	if err != nil {
@@ -666,7 +669,10 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 
 func (gui *Gui) loadCachedPullRequests() []*models.GithubPullRequest {
 	repoPath := gui.git.RepoPaths.RepoPath()
-	cachedPRs := gui.c.GetAppState().GithubPullRequests[repoPath]
+	cachedPRs, err := gui.Config.GetCachedGithubPullRequests(repoPath)
+	if err != nil {
+		gui.Log.Warnf("error loading GitHub pull request cache: %v", err)
+	}
 
 	return lo.Map(cachedPRs, func(cached config.CachedPullRequest, _ int) *models.GithubPullRequest {
 		return &models.GithubPullRequest{
@@ -674,6 +680,7 @@ func (gui *Gui) loadCachedPullRequests() []*models.GithubPullRequest {
 			Number:      cached.Number,
 			Title:       cached.Title,
 			State:       cached.State,
+			ChecksState: cached.ChecksState,
 			Url:         cached.Url,
 			HeadRepositoryOwner: models.GithubRepositoryOwner{
 				Login: cached.HeadRepositoryOwner,
@@ -792,7 +799,7 @@ func NewGui(
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
 		viewPtmxMap:          map[string]oscommands.Pty{},
 		showRecentRepos:      showRecentRepos,
-		RepoPathStack:        &utils.StringStack{},
+		RepoPathStack:        &utils.Stack[types.RepoLocation]{},
 		RepoStateMap:         map[Repo]*GuiRepoState{},
 		GuiLog:               []string{},
 
@@ -828,8 +835,8 @@ func NewGui(
 			return nil
 		},
 		func(message string, f func(gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
-		func(message string, f func(gocui.Task) error) {
-			gui.helpers.AppStatus.WithWaitingStatusBlockingInput(message, f)
+		func(opts types.WaitingStatusOpts, f func(gocui.Task) error) {
+			gui.helpers.AppStatus.WithWaitingStatusBlockingInput(opts, f)
 		},
 		func(message string, kind types.ToastKind) { gui.helpers.AppStatus.Toast(message, kind) },
 		func() string { return gui.Views.Prompt.TextArea.GetContent() },
@@ -859,7 +866,7 @@ func NewGui(
 	gui.BackgroundRoutineMgr = &BackgroundRoutineMgr{gui: gui}
 	gui.stateAccessor = &StateAccessor{gui: gui}
 
-	gui.pagerConfig = config.NewPagerConfig(func() *config.UserConfig { return gui.UserConfig() })
+	gui.diffRendererConfig = config.NewDiffRendererConfigManager(func() *config.UserConfig { return gui.UserConfig() })
 
 	return gui, nil
 }
@@ -1000,6 +1007,12 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 			for _, manager := range gui.viewBufferManagerMap {
 				manager.Close()
 			}
+
+			// The pty teardowns spawned by the manager closes above run on
+			// background goroutines that won't get to finish before the
+			// process exits; reap their process trees synchronously instead
+			// so that they don't outlive lazygit.
+			oscommands.TerminateLivePtys()
 
 			close(gui.stopChan)
 

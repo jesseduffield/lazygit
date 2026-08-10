@@ -171,12 +171,26 @@ type IPopupHandler interface {
 	// Shows a popup prompting the user for input.
 	Prompt(opts PromptOpts)
 	WithWaitingStatus(message string, f func(gocui.Task) error) error
-	WithWaitingStatusBlockingInput(message string, f func(gocui.Task) error) error
+	WithWaitingStatusBlockingInput(opts WaitingStatusOpts, f func(gocui.Task) error) error
 	Menu(opts CreateMenuOptions) error
 	Toast(message string)
 	ErrorToast(message string)
 	SetToastFunc(func(string, ToastKind))
 	GetPromptInput() string
+}
+
+type WaitingStatusOpts struct {
+	// The message shown alongside the spinner while the operation runs.
+	Message string
+
+	// When set, the working tree state mode (the yellow
+	// "Rebasing"/"Merging"/"Cherry-picking"/"Reverting" indicator, along with
+	// its abort button) stays hidden until the operation is done. Set it for
+	// operations that drive such a state themselves: the state they leave on
+	// disk while they run is transient, so surfacing it would flash the
+	// indicator on and offer to abort a sequence that lazygit is in the middle
+	// of running.
+	HideWorkingTreeState bool
 }
 
 type ToastKind int
@@ -349,6 +363,7 @@ type Model struct {
 
 	BisectInfo                          *git_commands.BisectInfo
 	WorkingTreeStateAtLastCommitRefresh models.WorkingTreeState
+	CommitsWereFilteredAtLastRefresh    bool
 	RemoteBranches                      []*models.RemoteBranch
 	Tags                                []*models.Tag
 
@@ -388,10 +403,19 @@ type HasUrn interface {
 	URN() string
 }
 
+// RepoLocation is everything it takes to open a repo again: the directory to
+// change to, plus the environment telling git where the repo is for the repos
+// git can't find from that directory (see RepoPaths.GitLocationEnvVars), which
+// is empty for all the others.
+type RepoLocation struct {
+	Path               string
+	GitLocationEnvVars []string
+}
+
 type IStateAccessor interface {
-	GetRepoPathStack() *utils.StringStack
+	GetRepoPathStack() *utils.Stack[RepoLocation]
 	GetRepoState() IRepoStateAccessor
-	GetPagerConfig() *config.PagerConfig
+	GetDiffRendererConfigManager() *config.DiffRendererConfigManager
 	// tells us whether we're currently updating lazygit
 	GetUpdating() bool
 	SetUpdating(bool)

@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -60,17 +61,30 @@ func NewGitCommand(
 	version *git_commands.GitVersion,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
-	pagerConfig *config.PagerConfig,
+	diffRendererConfigManager *config.DiffRendererConfigManager,
 ) (*GitCommand, error) {
 	repoPaths, err := git_commands.GetRepoPaths(osCommand.Cmd, version)
 	if err != nil {
 		return nil, errors.Errorf("Error getting repo paths: %v", err)
 	}
 
+	// A bare repo has no worktree for us to work in. Callers that can offer the
+	// user something better (app.setupRepo) check for this first; getting here
+	// means nobody could, e.g. because --git-dir was pointed at a bare repo.
+	if repoPaths.IsBareRepo() {
+		return nil, errors.New(cmn.Tr.BareRepoNotSupported)
+	}
+
 	err = os.Chdir(repoPaths.WorktreePath())
 	if err != nil {
 		return nil, utils.WrapError(err)
 	}
+
+	// Everything we run through the command builder gets told where the repo is
+	// by the builder itself, but subprocesses don't go through it: user-defined
+	// custom commands, an editor, and the lazygit we re-enter as git's sequence
+	// editor during a rebase. Put it in the process env for those.
+	env.SetGitLocationEnvVars(repoPaths.GitLocationEnvVars())
 
 	// Pin the config reads to the repo directory like all other git commands
 	// (see NewGitCmdObjBuilder); the config commands run outside that builder.
@@ -82,7 +96,7 @@ func NewGitCommand(
 		osCommand,
 		gitConfig,
 		repoPaths,
-		pagerConfig,
+		diffRendererConfigManager,
 	), nil
 }
 
@@ -92,9 +106,9 @@ func NewGitCommandAux(
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
 	repoPaths *git_commands.RepoPaths,
-	pagerConfig *config.PagerConfig,
+	diffRendererConfigManager *config.DiffRendererConfigManager,
 ) *GitCommand {
-	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd, repoPaths.WorktreePath())
+	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd, repoPaths.WorktreePath(), repoPaths.GitLocationEnvVars())
 
 	// here we're doing a bunch of dependency injection for each of our commands structs.
 	// This is admittedly messy, but allows us to test each command struct in isolation,
@@ -103,7 +117,7 @@ func NewGitCommandAux(
 	// common ones are: cmn, osCommand, dotGitDir, configCommands
 	configCommands := git_commands.NewConfigCommands(cmn, gitConfig)
 
-	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPaths, configCommands, pagerConfig)
+	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPaths, configCommands, diffRendererConfigManager)
 
 	fileLoader := git_commands.NewFileLoader(gitCommon, cmd, configCommands)
 	statusCommands := git_commands.NewStatusCommands(gitCommon)

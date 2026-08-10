@@ -32,10 +32,10 @@ var EditTheConflCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Focus().
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("pick").Contains("commit two"),
 				Contains("pick").Contains("<-- CONFLICT --- commit three"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("commit one"),
 			).
 			NavigateToLine(Contains("<-- CONFLICT --- commit three")).

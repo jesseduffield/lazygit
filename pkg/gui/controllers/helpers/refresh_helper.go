@@ -817,6 +817,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 
 		self.c.Model().BisectInfo = bisectInfo
 		self.c.Model().Commits = commits
+		self.c.Model().CommitsWereFilteredAtLastRefresh = captured.filterPath != "" || captured.filterAuthor != ""
 		self.RefreshAuthors(commits)
 		self.c.Model().WorkingTreeStateAtLastCommitRefresh = workingTreeState
 		if checkedOutRef != nil {
@@ -1304,7 +1305,8 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 				// process working directory, which may already point at another
 				// repo if the user switched while this refresh was in flight.
 				hasConflicts, err := mergeconflicts.FileHasConflictMarkers(
-					filepath.Join(env.git.RepoPaths.WorktreePath(), file.Path))
+					filepath.Join(env.git.RepoPaths.WorktreePath(), file.Path),
+					file.ConflictMarkerSize)
 				if err != nil {
 					self.c.Log.Error(err)
 				} else if !hasConflicts {
@@ -1770,15 +1772,13 @@ func (self *RefreshHelper) savePullRequestsToCache(prs []*models.GithubPullReque
 			Number:              pr.Number,
 			Title:               pr.Title,
 			State:               pr.State,
+			ChecksState:         pr.ChecksState,
 			Url:                 pr.Url,
 			HeadRepositoryOwner: pr.HeadRepositoryOwner.Login,
 		}
 	})
 
-	appState := self.c.GetAppState()
-	if appState.GithubPullRequests == nil {
-		appState.GithubPullRequests = make(map[string][]config.CachedPullRequest)
+	if err := self.c.GetConfig().SaveCachedGithubPullRequests(repoPath, cached); err != nil {
+		self.c.Log.Warnf("error saving GitHub pull request cache: %v", err)
 	}
-	appState.GithubPullRequests[repoPath] = cached
-	self.c.SaveAppStateAndLogError()
 }

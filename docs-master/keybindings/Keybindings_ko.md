@@ -22,8 +22,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | 새로고침 | Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`. |
 | `` + `` | 다음 스크린 모드 (normal/half/fullscreen) |  |
 | `` _ `` | 이전 스크린 모드 |  |
-| `` \| `` | Cycle pagers | Choose the next pager in the list of configured pagers. |
-| `` \ `` | Cycle pagers (reverse) | Choose the previous pager in the list of configured pagers. |
+| `` \| `` | Cycle diff renderers | Choose the next renderer in the list of configured diff renderers. |
+| `` \ `` | Cycle diff renderers (reverse) | Choose the previous renderer in the list of configured diff renderers. |
 | `` <esc> `` | 취소 |  |
 | `` ? `` | 매뉴 열기 |  |
 | `` <ctrl+s> `` | View filter-by-path options | View options for filtering the commit log, so that only commits matching the filter are shown. |

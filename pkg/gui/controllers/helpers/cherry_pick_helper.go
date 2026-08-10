@@ -85,7 +85,10 @@ func (self *CherryPickHelper) Paste() error {
 		HandleConfirm: func() error {
 			mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 			cherryPickedCommits := self.getData().CherryPickedCommits
-			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.CherryPickingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+				Message:              self.c.Tr.CherryPickingStatus,
+				HideWorkingTreeState: true,
+			}, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.CherryPick)
 
 				if mustStash {
