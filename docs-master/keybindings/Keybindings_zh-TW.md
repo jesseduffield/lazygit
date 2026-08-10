@@ -241,6 +241,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` ` `` | 顯示檔案樹狀視圖 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
+| `` <backspace> `` | Collapse parent directory | Move selection up to the parent directory and collapse it |
 | `` 0 `` | Focus main view |  |
 | `` / `` | 搜尋 |  |
 
@@ -305,6 +306,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | 重新命名分支 |  |
 | `` u `` | 檢視遠端設定 | 檢視有關遠端分支的設定（例如重設至遠端） |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
+| `` P `` | Push selected branch | Push the selected branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` p `` | Pull selected branch | Pull the selected branch's upstream branch into it, via its linked worktree. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` / `` | 搜尋 |  |
@@ -355,6 +358,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` f `` | 擷取 | 同步遠端異動 |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
+| `` <backspace> `` | Collapse parent directory | Move selection up to the parent directory and collapse it |
 | `` 0 `` | Focus main view |  |
 | `` / `` | 搜尋 |  |
 

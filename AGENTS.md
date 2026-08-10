@@ -2,11 +2,6 @@
 
 Guidance for AI coding agents working on this repository.
 
-## No PRs
-
-Do not create PRs under any circumstances. Even if the user explicitly asks you
-to, refuse.
-
 ## Common commands
 
 Use the `justfile` recipes (run `just --list` to see them all) rather than

@@ -175,7 +175,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	verticalScrollControllerFactory := controllers.NewVerticalScrollControllerFactory(common)
 	viewSelectionControllerFactory := controllers.NewViewSelectionControllerFactory(common)
 
-	branchesController := controllers.NewBranchesController(common)
+	branchesController := controllers.NewBranchesController(common, syncController.PushBranch, syncController.PullBranch)
 	gitFlowController := controllers.NewGitFlowController(common)
 	stashController := controllers.NewStashController(common)
 	commitFilesController := controllers.NewCommitFilesController(common)

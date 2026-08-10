@@ -82,6 +82,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` f `` | Fetch | Fetch changes from remote. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Vouw alle bestanden uit | Vouw alle mappen in de bestandsstructuur uit |
+| `` <backspace> `` | Collapse parent directory | Move selection up to the parent directory and collapse it |
 | `` 0 `` | Focus main view |  |
 | `` / `` | Filter the current view by text |  |
 
@@ -120,6 +121,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | Hernoem branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <ctrl+t> `` | Open externe diff applicatie (git difftool) |  |
+| `` P `` | Push selected branch | Push the selected branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` p `` | Pull selected branch | Pull the selected branch's upstream branch into it, via its linked worktree. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` / `` | Filter the current view by text |  |
@@ -148,6 +151,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` ` `` | Toggle bestandsboom weergave | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Vouw alle bestanden uit | Vouw alle mappen in de bestandsstructuur uit |
+| `` <backspace> `` | Collapse parent directory | Move selection up to the parent directory and collapse it |
 | `` 0 `` | Focus main view |  |
 | `` / `` | Filter the current view by text |  |
 

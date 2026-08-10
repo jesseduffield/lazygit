@@ -65,6 +65,12 @@ type TranslationSet struct {
 	Pull                                  string
 	PushTooltip                           string
 	PullTooltip                           string
+	PushSelectedBranch                    string
+	PushSelectedBranchTooltip             string
+	PullSelectedBranch                    string
+	PullSelectedBranchTooltip             string
+	PullFailedInOtherWorktree             string
+	BranchHasNoWorktree                   string
 	FileFilter                            string
 	CopyToClipboardMenu                   string
 	CopyFileName                          string
@@ -1220,6 +1226,12 @@ func EnglishTranslationSet() *TranslationSet {
 		RefreshTooltip:                       "Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`.",
 		Push:                                 "Push",
 		PushTooltip:                          "Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
+		PushSelectedBranch:                   "Push selected branch",
+		PushSelectedBranchTooltip:            "Push the selected branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
+		PullSelectedBranch:                   "Pull selected branch",
+		PullSelectedBranchTooltip:            "Pull the selected branch's upstream branch into it, via its linked worktree. If no upstream is configured, you will be prompted to configure an upstream branch.",
+		PullFailedInOtherWorktree:            "Switch to this branch's worktree to resolve the problem.",
+		BranchHasNoWorktree:                  "This branch has no worktree checked out. Use fast-forward for a clean fast-forward, or create a worktree for it first.",
 		Pull:                                 "Pull",
 		PullTooltip:                          "Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
 		MergeConflictsTitle:                  "Merge conflicts",

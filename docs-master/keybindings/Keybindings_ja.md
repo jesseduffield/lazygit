@@ -118,6 +118,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` ` `` | ファイルツリービューを切り替え | ファイル表示をフラット表示とツリー表示で切り替えます。フラット表示はすべてのファイルパスを一覧で表示し、ツリー表示はディレクトリごとにファイルをグループ化します。<br><br>デフォルトは設定ファイル内の 'gui.showFileTree' キーで変更できます。 |
 | `` - `` | すべてのファイルを折りたたむ | ファイルツリー内のすべてのディレクトリを折りたたみます |
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
+| `` <backspace> `` | Collapse parent directory | Move selection up to the parent directory and collapse it |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
 
@@ -241,6 +242,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` f `` | フェッチ | リモートから変更をフェッチします。 |
 | `` - `` | すべてのファイルを折りたたむ | ファイルツリー内のすべてのディレクトリを折りたたみます |
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
+| `` <backspace> `` | Collapse parent directory | Move selection up to the parent directory and collapse it |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
 
@@ -394,6 +396,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | ブランチ名を変更 |  |
 | `` u `` | アップストリームオプションを表示 | ブランチのアップストリームに関連するオプションを表示します（例：アップストリームの設定/解除やアップストリームへのリセット）。 |
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
+| `` P `` | Push selected branch | Push the selected branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` p `` | Pull selected branch | Pull the selected branch's upstream branch into it, via its linked worktree. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | コミットを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |

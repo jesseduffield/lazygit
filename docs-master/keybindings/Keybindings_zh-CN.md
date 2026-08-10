@@ -182,6 +182,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` ` `` | 切换文件树视图 | 在平面布局和树布局之间切换文件视图。平面布局在单个列表中显示所有文件路径，树布局按目录分组文件。<br><br>可以在配置文件中使用 'gui.showFileTree' 键更改默认设置。 |
 | `` - `` | 折叠全部文件 | 折叠文件树中的全部目录 |
 | `` = `` | 展开全部文件 | 展开文件树中的全部目录 |
+| `` <backspace> `` | Collapse parent directory | Move selection up to the parent directory and collapse it |
 | `` 0 `` | 聚焦主视图 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
 
@@ -215,6 +216,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` f `` | 抓取 | 从远程获取变更 |
 | `` - `` | 折叠全部文件 | 折叠文件树中的全部目录 |
 | `` = `` | 展开全部文件 | 展开文件树中的全部目录 |
+| `` <backspace> `` | Collapse parent directory | Move selection up to the parent directory and collapse it |
 | `` 0 `` | 聚焦主视图 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
 
@@ -245,6 +247,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | 重命名分支 |  |
 | `` u `` | 查看上游选项 | 查看与分支上游相关的选项，例如设置/取消设置上游和重置为上游。 |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
+| `` P `` | Push selected branch | Push the selected branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` p `` | Pull selected branch | Pull the selected branch's upstream branch into it, via its linked worktree. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |
 | `` / `` | 通过文本过滤当前视图 |  |

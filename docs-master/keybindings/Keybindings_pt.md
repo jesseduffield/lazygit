@@ -82,6 +82,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` f `` | Buscar | Buscar alterações do controle remoto. |
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
+| `` <backspace> `` | Collapse parent directory | Move selection up to the parent directory and collapse it |
 | `` 0 `` | Focar visualização principal |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
 
@@ -112,6 +113,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | Renomear branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
+| `` P `` | Push selected branch | Push the selected branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` p `` | Pull selected branch | Pull the selected branch's upstream branch into it, via its linked worktree. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver commits |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
@@ -152,6 +155,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` ` `` | Alternar exibição de árvore de arquivo | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
+| `` <backspace> `` | Collapse parent directory | Move selection up to the parent directory and collapse it |
 | `` 0 `` | Focar visualização principal |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
 

@@ -55,7 +55,17 @@ func (self *SyncController) Context() types.Context {
 }
 
 func (self *SyncController) HandlePush() error {
-	return self.branchCheckedOut(self.push)()
+	return self.branchCheckedOut(func(branch *models.Branch) error {
+		return self.push(branch, false)
+	})()
+}
+
+// PushBranch pushes the given branch, regardless of whether it's currently
+// checked out. Unlike HandlePush, this always targets the branch explicitly
+// (via its own upstream), rather than relying on `git push` implicitly
+// pushing whatever is checked out.
+func (self *SyncController) PushBranch(branch *models.Branch) error {
+	return self.push(branch, true)
 }
 
 func (self *SyncController) HandlePull() error {
@@ -86,10 +96,19 @@ func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func(
 	}
 }
 
-func (self *SyncController) push(currentBranch *models.Branch) error {
+// explicitTarget forces the push to name the branch and its upstream
+// explicitly in the refspec, rather than relying on `git push` implicitly
+// targeting whatever is currently checked out. This is required whenever
+// currentBranch might not be the checked-out branch (e.g. pushing a branch
+// selected in the Branches panel).
+func (self *SyncController) push(currentBranch *models.Branch, explicitTarget bool) error {
 	// if we are behind our upstream branch we'll ask if the user wants to force push
 	if currentBranch.IsTrackingRemote() {
 		opts := pushOpts{remoteBranchStoredLocally: currentBranch.RemoteBranchStoredLocally()}
+		if explicitTarget {
+			opts.upstreamRemote = currentBranch.UpstreamRemote
+			opts.upstreamBranch = currentBranch.UpstreamBranch
+		}
 		if currentBranch.IsBehindForPush() {
 			return self.requestToForcePush(currentBranch, opts)
 		}
@@ -97,7 +116,7 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 		return self.pushAux(currentBranch, opts)
 	}
 
-	if self.c.Git().Config.GetPushToCurrent() {
+	if !explicitTarget && self.c.Git().Config.GetPushToCurrent() {
 		return self.pushAux(currentBranch, pushOpts{setUpstream: true})
 	}
 
@@ -132,6 +151,44 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 	return self.PullAux(currentBranch, PullFilesOptions{Action: action})
 }
 
+// PullBranch pulls the given branch via its linked worktree (which may or
+// may not be the currently open one). The caller is responsible for
+// confirming the branch has a linked worktree at all.
+func (self *SyncController) PullBranch(branch *models.Branch, worktree *models.Worktree) error {
+	action := self.c.Tr.Actions.Pull
+
+	worktreeGitDir := ""
+	worktreePath := ""
+	if !worktree.IsCurrent {
+		worktreeGitDir = worktree.GitDir
+		worktreePath = worktree.Path
+	}
+
+	opts := PullFilesOptions{
+		Action:            action,
+		WorktreeGitDir:    worktreeGitDir,
+		WorktreePath:      worktreePath,
+		IsCurrentWorktree: worktree.IsCurrent,
+	}
+
+	if !branch.IsTrackingRemote() {
+		return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(branch, func(upstream string) error {
+			upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
+			if err != nil {
+				return err
+			}
+
+			if err := self.c.Git().Branch.SetUpstream(upstreamRemote, upstreamBranch, branch.Name); err != nil {
+				return err
+			}
+
+			return self.PullAux(branch, opts)
+		})
+	}
+
+	return self.PullAux(branch, opts)
+}
+
 func (self *SyncController) setCurrentBranchUpstream(upstream string) error {
 	upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
 	if err != nil {
@@ -155,6 +212,14 @@ type PullFilesOptions struct {
 	UpstreamBranch  string
 	FastForwardOnly bool
 	Action          string
+
+	// Set when pulling a branch that isn't checked out in the current
+	// worktree, but has its own linked worktree elsewhere. Empty for the
+	// current worktree.
+	WorktreeGitDir string
+	WorktreePath   string
+	// False whenever WorktreeGitDir/WorktreePath are set.
+	IsCurrentWorktree bool
 }
 
 func (self *SyncController) PullAux(currentBranch *models.Branch, opts PullFilesOptions) error {
@@ -172,8 +237,22 @@ func (self *SyncController) pullWithLock(task gocui.Task, opts PullFilesOptions)
 			RemoteName:      opts.UpstreamRemote,
 			BranchName:      opts.UpstreamBranch,
 			FastForwardOnly: opts.FastForwardOnly,
+			WorktreeGitDir:  opts.WorktreeGitDir,
+			WorktreePath:    opts.WorktreePath,
 		},
 	)
+
+	if !opts.IsCurrentWorktree {
+		// We're not looking at this worktree, so we can't drop the user into
+		// an interactive rebase/merge-conflict resolution flow for it - that
+		// UI operates on the currently open worktree. Report the failure
+		// plainly instead and point them at switching to it.
+		if err != nil {
+			return fmt.Errorf("%s\n\n%s", err.Error(), self.c.Tr.PullFailedInOtherWorktree)
+		}
+		self.c.RefreshFromWorker(types.RefreshOptions{})
+		return nil
+	}
 
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseAndSelectHeadCommit(err)
 }
