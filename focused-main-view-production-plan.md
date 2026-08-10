@@ -154,7 +154,7 @@ succession (§2.3); 10–11 any time after their dependencies.
 | 2 | Internal: resolve diff lines to (file, line, kind) identities | 1 | infra |
 | 3 | Rename the "pagers" config to "diff renderers" — **DONE: landed on master as #5870** | — | rename + migration |
 | 4 | Support diff renderers that emit OSC 1717 diff line metadata | 2, 3 | infra + protocol |
-| 5 | Select, navigate, edit and copy diff lines in the focused main view | 2 (4 for renderers) | feature |
+| 5 | Select, navigate and edit diff lines in the focused main view (copy moved to PR 7) | 2 (4 for renderers) | feature |
 | 6 | Keep your position in the diff when changing context size or switching diff renderers | 1, 2, 5 | feature |
 | 7 | Stage, unstage and discard changes directly from the focused main view | 4, 5, 6 | feature |
 | 8 | Build custom patches directly from a commit's diff view | 7 | feature |
@@ -753,6 +753,109 @@ Note: `space` is deliberately **not** bound here — staging arrives in PR 7.
 Under a non-conforming restructuring renderer, nav/e simply no-op until
 PR 7's raw fallback lands; acceptable interim (same release).
 
+#### Deviations from the plan (2026-08-10, as implemented)
+
+Landed as 9 commits on branch `select-diff-lines-in-main-view` (off PR 4):
+the `ViewSelectionController` fold; the classifier; the selection; the
+hunk-selection extraction; the hunk-mode default; drag-to-range; hunk/file
+navigation; edit; `narrowSelectionHighlight`. Two commits of the plan's ten
+are **not in this PR** (1 and 2 below); everything else landed.
+
+1. **Commit 7 (jump-to-file menu) is skipped** — the user's call at the start
+   of the session: the UX isn't decided, and it may or may not be added later.
+   So `FilesInDiff` is not ported either. If it does arrive, it needs the same
+   ReadToEnd-then-retry the nav has (its file list must cover the whole diff).
+2. **Commit 9 (copy) moves to PR 7** (decided with the user). The prototype's
+   reason for making copy a direct `MainViewController` command rather than a
+   `FocusedMainViewActions` method (N§21.28) was that copy is
+   panel-*independent* — it only read the rendered text — and that routing it
+   through the interface would exclude the reflog. The mandatory raw-diff
+   semantics invert both: copy now needs the raw diff of *what this pane
+   shows*, which is per-panel knowledge (`WorktreeFileDiffCmdObj` vs
+   `ShowFileDiffCmdObj` vs `ShowCmdObj` vs `ShowStashEntryCmdObj`, plus which
+   side a pane shows), and reflog is `PatchBuilding` from day one so it has
+   actions. Keeping copy in PR 5 would mean a second per-panel seam (a
+   one-method interface on six contexts, plus a `plain` flag on the two
+   builders that lack one) whose only consumer is copy and which PR 7's
+   actions would sit beside rather than use — each `PrimaryAction` fetches its
+   own raw diff (PR 7 commit 4). So copy becomes a `FocusedMainViewActions`
+   method, landing in PR 7 right after commit 2 builds that interface. **PR 5's
+   title drops "copy"**; §8's copy row moves to PR 7. The sub-decision already
+   taken with the user, for whenever it lands: copy the **contiguous raw span**
+   between the first and last matched identity (per file, concatenated in
+   display order), so renderer-hidden lines come along and the clipboard is a
+   valid patch fragment; the seam takes a **path list** so a whole commit's
+   diff is never fetched to copy three lines of it.
+3. **`IsSingleHunkForWholeFile` is derived from the rendered diff, not from a
+   raw-diff fetch** (deviates from the option agreed at the start of the
+   session, in the direction of the performance worry the user raised there).
+   The predicate needs no git call at all: over the *anchor's file*, no context
+   rows and all change rows of one kind is the same question
+   `patch.Patch.IsSingleHunkForWholeFile` asks, and the already-resolved rows
+   answer it. Two consequences: it needs no "is this diff a single file?"
+   answer from the side panel (it is per file, so it is also right over a whole
+   commit's diff, where one file may be new and another edited), and it needs
+   no per-panel seam — so PR 5 introduces none. Guarded by
+   `ViewBufferManager.IsLoading()`: while the diff is still being read the rows
+   that would answer otherwise may not have arrived, so it says false, erring
+   towards the hunk mode the user configured.
+4. **`UserEnabledHunkMode` is not ported.** It is written three times and never
+   read in the prototype; its only purpose was deciding whether escape leaves
+   hunk mode, and the escape machinery is never built (§2.11).
+5. **The render-side selection-visibility rule lives at the one chokepoint**,
+   not in each panel's render-to-main. The prototype called
+   `updateFocusedMainViewSelectionVisibility` from `FilesController`'s
+   render-to-main and assumed "commit panels always render a diff", which the
+   stash panel's "No stash entries" placeholder contradicts. Production derives
+   it in `gui.refreshMainViews` from three things it has there: the panel
+   beneath is a `DiffMainViewContext`, the pane holds focus, and the pane's
+   task is a command task (a diff) rather than a rendered string (a
+   placeholder). One place, every panel, present and future. The two moments
+   necessarily use different signals — the task at render time, the rendered
+   content at focus time (`ViewHasChangeLines`, which additionally catches a
+   diff with nothing in it: a binary file, an empty commit) — and each says so.
+6. **Commit 4 (selection visibility) is folded into commit 3.** A commit that
+   paints a selection over "No changed files" and a later one that stops it
+   would be a regression introduced and repaired inside the branch. Commit 3
+   also split the other way: the hunk-mode default became its own commit, as it
+   did in the prototype, plus a two-line prep extraction so the focus path can
+   select a block.
+7. **`n`/`N` get config entries** — open question 2 resolved with the user:
+   `keybinding.main.prevFile`/`nextFile`, defaulting to `N`/`n`. (gocui
+   pre-empts `n`/`N` while a search is active in the view, so search-next still
+   wins there; that is master's behaviour for every view.)
+8. **The ReadToEnd-then-retry sits in the shared `navigate` helper** from
+   commit 3 rather than arriving with commit 6, so hunk-mode ↑/↓ has it as soon
+   as it exists. Only *forward* navigation retries: everything above the anchor
+   has loaded, so a backward target that wasn't found doesn't exist.
+9. **The click-to-dive plumbing is deleted here**, not in PR 9:
+   `GetOnClickFocusedMainView`, `AddOnClickFocusedMainViewFn`, the base-context
+   field, and the files/commit-files implementations. Clicking the focused main
+   view now selects the clicked line (§2.2), which was that mechanism's only
+   caller, so leaving it in would be dead plumbing on master for four PRs.
+10. **`IContextMgr.IsInStack` is added here** (the plan mentions it only under
+    PR 7 commit 9): `GetKeybindings` runs for off-stack panes at startup and
+    during cheatsheet generation, and `NextInStack` panics there.
+11. **The bool→width mapping for `narrowSelectionHighlight` has one home**,
+    `gui.applyDiffRendererSelectionStyle`, called from
+    `configureViewProperties` (startup, config reload) and `refreshMainViews`
+    (so a renderer cycle picks it up). The prototype duplicated the magic 2 in
+    `views.go` and `global_controller.go` despite a comment claiming otherwise.
+12. **e2e coverage** is a new `pkg/integration/tests/main_view/` directory, 9
+    tests: `select_diff_lines`, `range_select_diff_lines`, `select_hunk_in_diff`,
+    `select_hunk_on_focusing_main_view`,
+    `select_line_when_whole_file_is_one_hunk`, `drag_selects_diff_line_range`,
+    `navigate_by_hunk_and_file`, `edit_selected_diff_line`,
+    `no_selection_when_no_changes`, `hide_selection_when_changes_vanish`. Plus
+    `SelectionIsShown`/`SelectionIsHidden` on the view driver (reading the
+    highlight flags, since `SelectedLines` says nothing about whether a
+    selection is drawn) and unit tests for `changeBlockStart` / `fileStart`.
+    That leaves PR 7 commit 11 with only the staging-specific ports.
+
+The §6 interactive pass is owed: selection feel under delta with
+`narrowSelectionHighlight`, hunk-on-click, drag, and repeated `n` across files
+under a metadata-emitting delta.
+
 ### PR 6 — Keep your position in the diff when changing context size or switching diff renderers
 
 The `RenderRestore` mechanism plus its two standalone consumers. After this
@@ -1150,7 +1253,7 @@ user pass before merge:
 |---|---|
 | 1 | ✅ **APPROVED 2026-08-09.** Slow-render matrix (N§11/§13): flick commits/files scrolled down; 10 s auto-refresh (`refreshInterval: 3`) — no content/scrollbar flicker; **also re-test at normal speed** (N§20.5). Found PR 1 deviations 8 and 9, both fixed; a repo with dirty submodules is the case that exposes a slow same-content re-render |
 | 4 | ✅ **APPROVED 2026-08-09.** Patched delta/difftastic/diff-so-fancy emit + render cleanly; handshake swallowed (no phantom line) |
-| 5 | Selection feel under delta (narrowSelectionHighlight); hunk-on-click; drag; nav under metadata delta incl. repeated `n` across files |
+| 5 | **OWED** (implemented 2026-08-10). Selection feel under delta (narrowSelectionHighlight); hunk-on-click; drag; nav under metadata delta incl. repeated `n` across files |
 | 6 | `{`/`}` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ext-diff route (difftastic) |
 | 7 | Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro) |
 | 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
@@ -1196,14 +1299,14 @@ The remaining rows are agreed as keep/defer:
 | Diffing mode (`W`) not wired to the raw fallback → not stageable (N§21.29) | Defer; note in PR 7 description ("diffing-mode staging is its own question") |
 | `type: extDiff` with empty `command` (git's `diff.external`; formerly `useExternalDiffGitConfig`) always-raw when focused (N§21.30) | Keep; document |
 | Per-pane selection memory on `<tab>` (re-anchors each switch, N§21.9) | Defer; follow-up candidate |
-| `IsSingleHunkForWholeFile` hunk-default refinement (N§21.11) | **Fix in PR 5 commit 3** (mandatory — regression vs master) |
-| `a` on a context line below the last hunk doesn't snap back like staging did (N§21.11) | Fix cheaply in PR 5 commit 3 if trivial (`ChangeBlockBounds` falls back to the block above); else defer |
+| `IsSingleHunkForWholeFile` hunk-default refinement (N§21.11) | **Done in PR 5** (derived from the rendered diff, no git call — PR 5 deviation 3) |
+| `a` on a context line below the last hunk doesn't snap back like staging did (N§21.11) | Deferred: `ChangeBlockBounds` still only snaps forward, falling back to a single line |
 | Deleted-file `MD`-vs-`D` staging special case (N§21.13) | **Fix in PR 7 commit 5** (mandatory) |
 | `NormalSecondary` not preserved on `-U`/renderer change (N§16.1) | Keep as documented limitation |
 | Gutter marks for not-yet-loaded lines of huge diffs (N§21.20) | Keep (marks appear on next recompute); note |
 | Renderer switch mid-patch-build shifts checkmarks (N§21.22(4)) | **Fix in PR 8 commit 10** (mandatory — looks too broken otherwise) |
-| Copy copies the renderer's output verbatim under a renderer (N§21.28) | **Fix in PR 5 commit 9** (mandatory): copy the corresponding *raw diff* lines instead — dissolves the prefix-stripping problem entirely |
-| Nav only sees loaded content (deep targets in huge diffs, N§16.4) | **Fix in PR 5 commit 6** (mandatory): ReadToEnd-then-retry; free if commit 3's solution reads to end on focus |
+| Copy copies the renderer's output verbatim under a renderer (N§21.28) | **Fix in PR 7** (mandatory, moved from PR 5 — deviation 2): copy the corresponding *raw diff* lines instead, as a `FocusedMainViewActions` method |
+| Nav only sees loaded content (deep targets in huge diffs, N§16.4) | **Done in PR 5**: ReadToEnd-then-retry in the shared `navigate` helper |
 | Toggle auto-advance: no "skip already-included" smarts (N§21.35) | Keep plain next-hunk |
 | difftastic token-vs-line `c`-at-new-line mismatch (M§10.2) | Protocol v2 candidate; nothing to do host-side |
 
@@ -1212,7 +1315,9 @@ The remaining rows are agreed as keep/defer:
 1. ~~**PR 3:** does the per-entry `pager:` config field keep its name?~~
    Resolved by #5870: `pager`/`externalDiffCommand` were unified into a
    single `command` field interpreted per the new `type` field.
-2. **PR 5:** proper keybinding config entries for `n`/`N`/`f`? (lean: yes)
+2. ~~**PR 5:** proper keybinding config entries for `n`/`N`/`f`?~~ Resolved
+   2026-08-10: yes — `keybinding.main.prevFile`/`nextFile` (`N`/`n`). `f` is
+   moot for now, the jump-to-file menu being skipped (PR 5 deviation 1).
 3. **PR 9:** new names for `useHunkModeInStagingView` / `wrapLinesInStagingView`
    + config migration.
 4. **PR 8:** the two temp-tree sub-items of commit 7 — renames in the
@@ -1277,7 +1382,11 @@ The remaining rows are agreed as keep/defer:
       `support-osc-1717-diff-metadata` (7 commits, all checks green, every
       commit builds and tests clean), stacked on
       `resolve-diff-lines-to-identities`. §6 sign-off **approved**
-- [ ] PR 5 — selection & navigation
+- [x] PR 5 — selection & navigation — **DONE 2026-08-10** on branch
+      `select-diff-lines-in-main-view` (9 commits, all checks green, every
+      commit builds/tests/lints clean on its own), stacked on
+      `support-osc-1717-diff-metadata`. Jump-to-file menu skipped and copy
+      moved to PR 7 (see its deviations). §6 sign-off **owed**
 - [ ] PR 6 — position preserve
 - [ ] PR 7 — staging from the main view
 - [ ] PR 8 — custom patches from the main view
@@ -1290,6 +1399,19 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-10:** **PR 5 implemented** (9 commits, green; §6 sign-off owed).
+  Two of the plan's ten commits aren't in it, both by decision with the user:
+  the **jump-to-file menu is skipped** (UX undecided) and **copy moves to
+  PR 7**, because raw-diff copy turns out to have a per-panel backend and so
+  belongs on `FocusedMainViewActions` rather than needing a second seam of its
+  own — which also means PR 5 introduces no plain-diff seam at all. The
+  mandatory `IsSingleHunkForWholeFile` refinement came out cheaper than
+  planned: derived per file from the already-rendered rows (no git call, no
+  side-panel question), guarded by the buffer manager's loading flag. The
+  twelve deviations are in the PR 5 section; the ones that bind later work are
+  2 (copy in PR 7, with its span/path-list sub-decisions already taken) and 5
+  (the visibility rule lives at the `refreshMainViews` chokepoint, so panels
+  added later get it for free).
 - **2026-08-09:** **PR 4 implemented** (7 commits, green; §6 sign-off owed).
   One scope call and one finding, both from the user. The call: a row's
   records live in `DiffLineContent.Metadata []string` rather than in a
