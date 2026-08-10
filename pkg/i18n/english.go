@@ -67,7 +67,6 @@ type TranslationSet struct {
 	PullTooltip                           string
 	PushSelectedBranch                    string
 	PushSelectedBranchTooltip             string
-	PushSelectedBranchPrompt              string
 	PullSelectedBranch                    string
 	PullSelectedBranchTooltip             string
 	PullFailedInOtherWorktree             string
@@ -1228,8 +1227,7 @@ func EnglishTranslationSet() *TranslationSet {
 		Push:                                 "Push",
 		PushTooltip:                          "Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
 		PushSelectedBranch:                   "Push selected branch",
-		PushSelectedBranchTooltip:            "Push the selected branch to its upstream branch, after confirming. If no upstream is configured, you will be prompted to configure an upstream branch.",
-		PushSelectedBranchPrompt:             "Push branch '{{.selectedBranchName}}' to its upstream?",
+		PushSelectedBranchTooltip:            "Push the selected branch, after confirming its upstream (pre-filled with what's already configured, or a suggestion if none is).",
 		PullSelectedBranch:                   "Pull selected branch",
 		PullSelectedBranchTooltip:            "Pull the selected branch's upstream branch into it, via its linked worktree. If no upstream is configured, you will be prompted to configure an upstream branch.",
 		PullFailedInOtherWorktree:            "Switch to this branch's worktree to resolve the problem.",

@@ -306,7 +306,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | 重新命名分支 |  |
 | `` u `` | 檢視遠端設定 | 檢視有關遠端分支的設定（例如重設至遠端） |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
-| `` P `` | Push selected branch | Push the selected branch to its upstream branch, after confirming. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` P `` | Push selected branch | Push the selected branch, after confirming its upstream (pre-filled with what's already configured, or a suggestion if none is). |
 | `` p `` | Pull selected branch | Pull the selected branch's upstream branch into it, via its linked worktree. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視提交 |  |

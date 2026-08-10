@@ -55,17 +55,32 @@ func (self *SyncController) Context() types.Context {
 }
 
 func (self *SyncController) HandlePush() error {
-	return self.branchCheckedOut(func(branch *models.Branch) error {
-		return self.push(branch, false)
-	})()
+	return self.branchCheckedOut(self.push)()
 }
 
-// PushBranch pushes the given branch, regardless of whether it's currently
-// checked out. Unlike HandlePush, this always targets the branch explicitly
-// (via its own upstream), rather than relying on `git push` implicitly
-// pushing whatever is checked out.
-func (self *SyncController) PushBranch(branch *models.Branch) error {
-	return self.push(branch, true)
+// PushBranch pushes the given branch to the given upstream, regardless of
+// whether the branch is currently checked out. It always names the upstream
+// explicitly in the refspec (rather than relying on `git push` implicitly
+// targeting whatever is checked out), and (re-)establishes it as the
+// branch's tracking upstream.
+func (self *SyncController) PushBranch(branch *models.Branch, upstreamRemote string, upstreamBranch string) error {
+	opts := pushOpts{
+		setUpstream:    true,
+		upstreamRemote: upstreamRemote,
+		upstreamBranch: upstreamBranch,
+	}
+
+	// If this still targets what's already configured as the branch's
+	// upstream, we can tell ahead of time whether a force-push will be
+	// necessary.
+	if branch.IsTrackingRemote() && branch.UpstreamRemote == upstreamRemote && branch.UpstreamBranch == upstreamBranch {
+		opts.remoteBranchStoredLocally = branch.RemoteBranchStoredLocally()
+		if branch.IsBehindForPush() {
+			return self.requestToForcePush(branch, opts)
+		}
+	}
+
+	return self.pushAux(branch, opts)
 }
 
 func (self *SyncController) HandlePull() error {
@@ -96,19 +111,10 @@ func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func(
 	}
 }
 
-// explicitTarget forces the push to name the branch and its upstream
-// explicitly in the refspec, rather than relying on `git push` implicitly
-// targeting whatever is currently checked out. This is required whenever
-// currentBranch might not be the checked-out branch (e.g. pushing a branch
-// selected in the Branches panel).
-func (self *SyncController) push(currentBranch *models.Branch, explicitTarget bool) error {
+func (self *SyncController) push(currentBranch *models.Branch) error {
 	// if we are behind our upstream branch we'll ask if the user wants to force push
 	if currentBranch.IsTrackingRemote() {
 		opts := pushOpts{remoteBranchStoredLocally: currentBranch.RemoteBranchStoredLocally()}
-		if explicitTarget {
-			opts.upstreamRemote = currentBranch.UpstreamRemote
-			opts.upstreamBranch = currentBranch.UpstreamBranch
-		}
 		if currentBranch.IsBehindForPush() {
 			return self.requestToForcePush(currentBranch, opts)
 		}
@@ -116,7 +122,7 @@ func (self *SyncController) push(currentBranch *models.Branch, explicitTarget bo
 		return self.pushAux(currentBranch, opts)
 	}
 
-	if !explicitTarget && self.c.Git().Config.GetPushToCurrent() {
+	if self.c.Git().Config.GetPushToCurrent() {
 		return self.pushAux(currentBranch, pushOpts{setUpstream: true})
 	}
 

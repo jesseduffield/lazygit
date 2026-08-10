@@ -21,7 +21,7 @@ type BranchesController struct {
 	*ListControllerTrait[*models.Branch]
 	c *ControllerCommon
 
-	pushBranch func(*models.Branch) error
+	pushBranch func(branch *models.Branch, upstreamRemote string, upstreamBranch string) error
 	pullBranch func(*models.Branch, *models.Worktree) error
 }
 
@@ -29,7 +29,7 @@ var _ types.IController = &BranchesController{}
 
 func NewBranchesController(
 	c *ControllerCommon,
-	pushBranch func(*models.Branch) error,
+	pushBranch func(branch *models.Branch, upstreamRemote string, upstreamBranch string) error,
 	pullBranch func(*models.Branch, *models.Worktree) error,
 ) *BranchesController {
 	return &BranchesController{
@@ -440,18 +440,14 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 }
 
 func (self *BranchesController) push(branch *models.Branch) error {
-	self.c.Confirm(types.ConfirmOpts{
-		Title: self.c.Tr.PushSelectedBranch,
-		Prompt: utils.ResolvePlaceholderString(
-			self.c.Tr.PushSelectedBranchPrompt,
-			map[string]string{"selectedBranchName": branch.Name},
-		),
-		HandleConfirm: func() error {
-			return self.pushBranch(branch)
-		},
-	})
+	return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(branch, func(upstream string) error {
+		upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
+		if err != nil {
+			return err
+		}
 
-	return nil
+		return self.pushBranch(branch, upstreamRemote, upstreamBranch)
+	})
 }
 
 func (self *BranchesController) pull(branch *models.Branch) error {

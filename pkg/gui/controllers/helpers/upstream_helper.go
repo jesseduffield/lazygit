@@ -49,8 +49,10 @@ func (self *UpstreamHelper) promptForUpstream(initialContent string, onConfirm f
 }
 
 func (self *UpstreamHelper) PromptForUpstreamWithInitialContent(currentBranch *models.Branch, onConfirm func(string) error) error {
-	suggestedRemote := self.GetSuggestedRemote()
-	initialContent := suggestedRemote + " " + currentBranch.Name
+	initialContent := currentBranch.UpstreamRemote + " " + currentBranch.UpstreamBranch
+	if !currentBranch.IsTrackingRemote() {
+		initialContent = self.GetSuggestedRemote() + " " + currentBranch.Name
+	}
 
 	return self.promptForUpstream(initialContent, onConfirm)
 }

@@ -247,7 +247,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | 重命名分支 |  |
 | `` u `` | 查看上游选项 | 查看与分支上游相关的选项，例如设置/取消设置上游和重置为上游。 |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
-| `` P `` | Push selected branch | Push the selected branch to its upstream branch, after confirming. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` P `` | Push selected branch | Push the selected branch, after confirming its upstream (pre-filled with what's already configured, or a suggestion if none is). |
 | `` p `` | Pull selected branch | Pull the selected branch's upstream branch into it, via its linked worktree. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |
