@@ -440,7 +440,18 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 }
 
 func (self *BranchesController) push(branch *models.Branch) error {
-	return self.pushBranch(branch)
+	self.c.Confirm(types.ConfirmOpts{
+		Title: self.c.Tr.PushSelectedBranch,
+		Prompt: utils.ResolvePlaceholderString(
+			self.c.Tr.PushSelectedBranchPrompt,
+			map[string]string{"selectedBranchName": branch.Name},
+		),
+		HandleConfirm: func() error {
+			return self.pushBranch(branch)
+		},
+	})
+
+	return nil
 }
 
 func (self *BranchesController) pull(branch *models.Branch) error {

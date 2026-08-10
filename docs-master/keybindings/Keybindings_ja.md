@@ -396,7 +396,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | ブランチ名を変更 |  |
 | `` u `` | アップストリームオプションを表示 | ブランチのアップストリームに関連するオプションを表示します（例：アップストリームの設定/解除やアップストリームへのリセット）。 |
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
-| `` P `` | Push selected branch | Push the selected branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` P `` | Push selected branch | Push the selected branch to its upstream branch, after confirming. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | Pull selected branch | Pull the selected branch's upstream branch into it, via its linked worktree. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | コミットを表示 |  |

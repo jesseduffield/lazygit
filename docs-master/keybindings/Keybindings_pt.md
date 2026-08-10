@@ -113,7 +113,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | Renomear branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
-| `` P `` | Push selected branch | Push the selected branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` P `` | Push selected branch | Push the selected branch to its upstream branch, after confirming. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` p `` | Pull selected branch | Pull the selected branch's upstream branch into it, via its linked worktree. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver commits |  |
