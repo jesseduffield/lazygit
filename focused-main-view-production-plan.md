@@ -893,13 +893,39 @@ The §6 interactive pass is owed: selection feel under delta with
 `narrowSelectionHighlight`, hunk-on-click, drag (including the autoscroll), and
 repeated `n` across files under a metadata-emitting delta.
 
-**Open with the user (2026-08-11): whether `narrowSelectionHighlight` should be
-a config option at all**, or whether the narrow bar should simply always be
-used in diff main views. The case for dropping it: existing delta users would
-have to find and set it themselves to get a good rendering, and a full-width
-highlight is worse for *every* renderer, raw git output included (red/green
-text on a blue background). Undecided as of this writing; nothing implemented
-either way.
+#### Review round 2 (2026-08-11)
+
+1. **`narrowSelectionHighlight` is gone — the narrow bar is unconditional in
+   diff main views** (decided with the user; no global `gui` option either).
+   There is no rendering of a diff that a full-width highlight doesn't degrade:
+   even git's own output puts red and green *text* on the selection's
+   background. So there was nothing worth configuring, and dropping it also
+   means the option never ships (it existed only on this unpushed branch) and
+   `applyDiffRendererSelectionStyle` and its per-render call go away — the
+   width is now a fixed property of the two views, set where they are created.
+   The user tried limiting only the *background* (leaving the bold/bright
+   foreground full-width, as suggested) and preferred the original: the bar
+   governs both, so the gocui field is now
+   **`SelectedLineColorWidth`**, not `SelectedLineBgColorWidth`. Landed as an
+   `amend!` on the narrow-highlight commit, whose message no longer describes a
+   config option.
+2. **The selection could end up past the content and so invisible** (user,
+   testing): select the last line of a diff, then switch to a renderer that
+   renders the same diff in fewer lines. It is clamped at **end of input**
+   (`getManager`'s `onEndOfInput`, beside master's origin clamp), *not* in the
+   layout: the layout would have to consult the loading flag, which is cleared
+   on the task goroutine after the final paint is already queued, so the last
+   layout pass can still see the render as loading and skip the clamp for good —
+   reproduced as a flaky test before moving it. Every main-view content change
+   comes from a task, so end of input covers renderer switches, context-size
+   changes and refreshes alike. PR 6's restore will usually preserve the
+   selection properly; this is the floor beneath it for when it can't.
+
+   Noted while writing that test: a stdin-filter renderer that **exits before
+   consuming the diff** (`head -4`) leaves the task without EOF, so
+   `IsLoading()` stays true forever — which already disables master's origin
+   clamp and the scrollbar tracking, and now this clamp too. Pre-existing and
+   out of scope; the test uses a filter that reads all of its input.
 
 ### PR 6 — Keep your position in the diff when changing context size or switching diff renderers
 
