@@ -18,6 +18,7 @@ func TestGitCmdObjBuilderDisablesOptionalLocksByDefault(t *testing.T) {
 		utils.NewDummyLog(),
 		oscommands.NewDummyCmdObjBuilder(oscommands.NewFakeRunner(t)),
 		"/path/to/repo",
+		nil,
 	)
 
 	assert.Contains(t, builder.New([]string{"git", "status"}).GetEnvVars(), git_commands.OptionalLocksEnvVar+"=0")
@@ -34,8 +35,27 @@ func TestGitCmdObjBuilderPinsCommandsToRepoDir(t *testing.T) {
 		utils.NewDummyLog(),
 		oscommands.NewDummyCmdObjBuilder(oscommands.NewFakeRunner(t)),
 		"/path/to/repo",
+		nil,
 	)
 
 	assert.Equal(t, "/path/to/repo", builder.New([]string{"git", "status"}).GetCmd().Dir)
 	assert.Equal(t, "/path/to/repo", builder.NewShell("git status", "").GetCmd().Dir)
+}
+
+// A repo whose git dir isn't in its worktree can't be found by running a
+// command there, so the builder has to tell every command where it is; see
+// RepoPaths.GitLocationEnvVars. The process env says the same thing, but only
+// for the repo lazygit is in right now, which isn't necessarily this one.
+func TestGitCmdObjBuilderPinsCommandsToGitLocation(t *testing.T) {
+	builder := NewGitCmdObjBuilder(
+		utils.NewDummyLog(),
+		oscommands.NewDummyCmdObjBuilder(oscommands.NewFakeRunner(t)),
+		"/path/to/worktree",
+		[]string{"GIT_DIR=/path/to/repo/.git", "GIT_WORK_TREE=/path/to/worktree"},
+	)
+
+	assert.Subset(t, builder.New([]string{"git", "status"}).GetEnvVars(),
+		[]string{"GIT_DIR=/path/to/repo/.git", "GIT_WORK_TREE=/path/to/worktree"})
+	assert.Subset(t, builder.NewShell("git status", "").GetEnvVars(),
+		[]string{"GIT_DIR=/path/to/repo/.git", "GIT_WORK_TREE=/path/to/worktree"})
 }

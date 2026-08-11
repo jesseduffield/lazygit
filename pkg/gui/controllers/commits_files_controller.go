@@ -339,7 +339,10 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 		HandleConfirm: func() error {
 			commits := self.c.Model().Commits
 			selectedLineIdx := self.c.Contexts().LocalCommits.GetSelectedLineIdx()
-			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+				Message:              self.c.Tr.RebasingStatus,
+				HideWorkingTreeState: true,
+			}, func(gocui.Task) error {
 				var filePaths []string
 				selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
 
@@ -642,11 +645,16 @@ func normalisedSelectedCommitFileNodes(selectedNodes []*filetree.CommitFileNode)
 }
 
 func isDescendentOfSelectedCommitFileNodes(node *filetree.CommitFileNode, selectedNodes []*filetree.CommitFileNode) bool {
-	for _, selectedNode := range selectedNodes {
-		selectedNodePath := selectedNode.GetPath()
-		nodePath := node.GetPath()
+	nodePath := node.GetInternalPath()
 
-		if strings.HasPrefix(nodePath, selectedNodePath) && nodePath != selectedNodePath {
+	for _, selectedNode := range selectedNodes {
+		if selectedNode.IsFile() {
+			continue
+		}
+
+		selectedNodePath := selectedNode.GetInternalPath()
+
+		if strings.HasPrefix(nodePath, selectedNodePath+"/") {
 			return true
 		}
 	}

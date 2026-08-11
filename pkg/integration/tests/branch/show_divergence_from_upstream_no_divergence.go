@@ -27,8 +27,8 @@ var ShowDivergenceFromUpstreamNoDivergence = NewIntegrationTest(NewIntegrationTe
 			IsFocused().
 			Title(Contains("Commits (master <-> origin/master)")).
 			Lines(
-				Contains("--- Remote ---"),
-				Contains("--- Local ---"),
+				Contains("─── Remote"),
+				Contains("─── Local"),
 			)
 	},
 })

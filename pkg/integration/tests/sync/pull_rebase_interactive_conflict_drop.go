@@ -49,20 +49,20 @@ var PullRebaseInteractiveConflictDrop = NewIntegrationTest(NewIntegrationTestArg
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("pick").Contains("five").IsSelected(),
 				Contains("pick").Contains("CONFLICT").Contains("four"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("three"),
 				Contains("two"),
 				Contains("one"),
 			).
 			Press(keys.Universal.Remove).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("drop").Contains("five").IsSelected(),
 				Contains("pick").Contains("CONFLICT").Contains("four"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("three"),
 				Contains("two"),
 				Contains("one"),

@@ -85,10 +85,23 @@ type PullRequestNode struct {
 	HeadRepositoryOwner GithubRepositoryOwner `json:"headRepositoryOwner"`
 	State               string                `json:"state"`
 	IsDraft             bool                  `json:"isDraft"`
+	HeadRef             GithubRef             `json:"headRef"`
 }
 
 type GithubRepositoryOwner struct {
 	Login string `json:"login"`
+}
+
+type GithubRef struct {
+	Target GithubGitObject `json:"target"`
+}
+
+type GithubGitObject struct {
+	StatusCheckRollup GithubStatusCheckRollup `json:"statusCheckRollup"`
+}
+
+type GithubStatusCheckRollup struct {
+	State string `json:"state"`
 }
 
 type graphQLRequest struct {
@@ -121,6 +134,15 @@ func fetchPullRequestsQuery(branches []string, owner string, repo string) (strin
           number
           url
           isDraft
+          headRef {
+            target {
+              ... on Commit {
+                statusCheckRollup {
+                  state
+                }
+              }
+            }
+          }
           headRepositoryOwner {
             login
           }
@@ -231,9 +253,12 @@ func (self *GitHubCommands) fetchRecentPRsAux(endpoint string, repoOwner string,
 		return nil, err
 	}
 
+	return parsePullRequestsResponse(respBytes)
+}
+
+func parsePullRequestsResponse(respBytes []byte) ([]*models.GithubPullRequest, error) {
 	var result Response
-	err = json.Unmarshal(respBytes, &result)
-	if err != nil {
+	if err := json.Unmarshal(respBytes, &result); err != nil {
 		return nil, err
 	}
 
@@ -246,6 +271,7 @@ func (self *GitHubCommands) fetchRecentPRsAux(endpoint string, repoOwner string,
 				Number:      node.Number,
 				Title:       node.Title,
 				State:       lo.Ternary(node.IsDraft && node.State != "CLOSED", "DRAFT", node.State),
+				ChecksState: node.HeadRef.Target.StatusCheckRollup.State,
 				Url:         node.Url,
 				HeadRepositoryOwner: models.GithubRepositoryOwner{
 					Login: node.HeadRepositoryOwner.Login,

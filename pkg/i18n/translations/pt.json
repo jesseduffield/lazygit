@@ -226,7 +226,6 @@
   "UpdateFailedErr": "Falha na atualização: {{.errMessage}}",
   "ConfirmQuitDuringUpdateTitle": "Atualmente atualizando",
   "ConfirmQuitDuringUpdate": "Uma atualização está em andamento. Tem certeza que deseja sair?",
-  "IntroPopupMessage": "\nObrigado por usar o lazygit! Sério, você é demais. Três coisas que queremos compartilhar com você:\n\n 1) Se quiser aprender sobre os recursos do lazygit, assista a este vídeo:\n      https://youtu.be/CPLdltN7wgE\n\n 2) Não deixe de ler as últimas notas de lançamento em:\n      https://github. um/jesseduffield/lazygit/releases\n\n 3) Se você estiver usando um git, isso o torna um programador! Com a sua ajuda, podemos tornar o\n    lazygit melhor, então considere se tornar um contribuidor e se junte à diversão no\n      https://github.com/jesseduffield/lazygit\n    Ou apenas favoritar o repositório para espalhar o amor. \n\n4) Se o lazygit fez a sua vida mais fácil, você pode agradecer ao clicar no\n    botão de doação no canto inferior direito. Doações não garantem prioridade no suporte, mas são muito bem vindas. \n\nPressione {{confirmationKey}} para continuar.\n",
   "NonReloadableConfigWarningTitle": "Configuração alterada",
   "NonReloadableConfigWarning": "As seguintes configurações foram alteradas, mas a mudança não tem efeito imediatamente. Encerre e reinicie o lazygit para que as mudanças tenham efeito:\n\n{{configs}}",
   "GitconfigParseErr": "Gogit falhou ao analisar seu arquivo gitconfig devido à presença de caracteres '\\' não citados. Removendo-os deve corrigir o problema.",

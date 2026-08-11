@@ -66,8 +66,8 @@ gui:
 
   # The number of spaces per tab; used for everything that's shown in the main
   # view, but probably mostly relevant for diffs.
-  # Note that when using a pager, the pager has its own tab width setting, so you
-  # need to pass it separately in the pager command.
+  # Note that when using a diff renderer, the renderer has its own tab width
+  # setting, so you need to pass it separately in the renderer command.
   tabWidth: 4
 
   # If true, capture mouse events.
@@ -336,13 +336,13 @@ gui:
   spinner:
     # The frames of the spinner animation.
     frames:
-      - '|'
-      - /
-      - '-'
-      - \
+      - ●∙∙
+      - ∙●∙
+      - ∙∙●
+      - ∙●∙
 
     # The "speed" of the spinner in milliseconds.
-    rate: 50
+    rate: 180
 
   # Status panel view.
   # One of 'dashboard' (default) | 'allBranchesLog'
@@ -360,38 +360,39 @@ gui:
 
 # Config relating to git
 git:
-  # Array of pagers. Each entry has the following format:
+  # Array of diff renderers. Each entry has the following format:
   #
-  #   # A name for the pager, shown in the notification when cycling pagers.
-  #   # If not set, the name is derived from the first word of the pager
-  #   # command (or of the external diff command).
+  #   # The type of diff renderer. One of: 'stdinFilter' (default) | 'extDiff'
+  #   # | 'rawGit'
+  #   type: "stdinFilter"
+  #
+  #   # A name for the diff renderer, shown in the notification when cycling
+  #   # renderers. If not set, the name is derived from the first word of the
+  #   # renderer command.
   #   name: ""
   #
-  #   # Value of the --color arg in the git diff command. Some pagers want
-  #   # this to be set to 'always' and some want it set to 'never'
+  #   # Value of the --color arg in the git diff command. Only used for type
+  #   # 'stdinFilter'. Some renderers want this to be set to 'always' and some
+  #   # want it set to 'never'.
   #   colorArg: "always"
   #
+  #   # The command to use for rendering diffs. This is either a stdinFilter or
+  #   # an external diff command, depending on the type field; not applicable if
+  #   # the type is 'rawGit'.
   #   # e.g.
   #   # diff-so-fancy
   #   # delta --dark --paging=never
-  #   # ydiff -p cat -s --wrap --width={{columnWidth}}
-  #   pager: ""
+  #   # ydiff -p cat
+  #   # difft --color=always
+  #   command: ""
   #
-  #   # e.g. 'difft --color=always'
-  #   externalDiffCommand: ""
+  #   # Extra arguments (array of strings) passed to the git command. Only
+  #   # applicable if the type is 'rawGit'.
+  #   args: []
   #
-  #   # If true, Lazygit will use git's `diff.external` config for paging.
-  #   # The advantage over `externalDiffCommand` is that this can be
-  #   # configured per file type in .gitattributes; see
-  #   # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
-  #   useExternalDiffGitConfig: false
-  #
-  # 'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' are mutually
-  # exclusive; set at most one per entry.
-  #
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_DiffRenderers.md
   # for more information.
-  pagers: []
+  diffRenderers: []
 
   # Config relating to committing
   commit:
@@ -714,8 +715,8 @@ keybinding:
     prevTab: '['
     nextScreenMode: +
     prevScreenMode: _
-    cyclePagers: '|'
-    cyclePagersReverse: \
+    cycleDiffRenderers: '|'
+    cycleDiffRenderersReverse: \
     undo: z
     redo: Z
     filteringMenu: <ctrl+s>

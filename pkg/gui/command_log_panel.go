@@ -186,7 +186,7 @@ func (gui *Gui) getRandomTip() string {
 		// links
 		fmt.Sprintf(
 			"If you want a git diff with syntax colouring, check out lazygit's integration with delta:\n%s",
-			constants.Links.Docs.CustomPagers,
+			constants.Links.Docs.CustomDiffRenderers,
 		),
 		fmt.Sprintf(
 			"You can build your own custom menus and commands to run from within lazygit. For examples see:\n%s",

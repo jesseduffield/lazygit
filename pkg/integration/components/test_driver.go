@@ -13,6 +13,8 @@ type TestDriver struct {
 	gui        integrationTypes.GuiDriver
 	keys       config.KeybindingConfig
 	inputDelay int
+	mouseX     int
+	mouseY     int
 	*assertionHelper
 	shell *Shell
 }
@@ -58,6 +60,30 @@ func (self *TestDriver) click(x, y int) {
 	self.Wait(self.inputDelay)
 }
 
+func (self *TestDriver) clickAndHold(x, y int) {
+	self.SetCaption(fmt.Sprintf("Clicking and holding %d, %d", x, y))
+	self.mouseX, self.mouseY = x, y
+	self.gui.ClickAndHold(x, y)
+	self.Wait(self.inputDelay)
+}
+
+func (self *TestDriver) mouseMove(x, y int) {
+	self.SetCaption(fmt.Sprintf("Moving mouse to %d, %d", x, y))
+	self.mouseX, self.mouseY = x, y
+	self.gui.MouseMove(x, y)
+	self.Wait(self.inputDelay)
+}
+
+func (self *TestDriver) repeatMouseMove() {
+	self.mouseMove(self.mouseX, self.mouseY)
+}
+
+func (self *TestDriver) mouseRelease() {
+	self.SetCaption(fmt.Sprintf("Releasing mouse at %d, %d", self.mouseX, self.mouseY))
+	self.gui.MouseRelease(self.mouseX, self.mouseY)
+	self.Wait(self.inputDelay)
+}
+
 // Should only be used in specific cases where you're doing something weird!
 // E.g. invoking a global keybinding from within a popup.
 // You probably shouldn't use this function, and should instead go through a view like t.Views().Commit().Focus().Press(...)
@@ -70,6 +96,12 @@ func (self *TestDriver) GlobalPress(key config.Keybinding) {
 func (self *TestDriver) FocusIn() {
 	self.SetCaption("Focusing window")
 	self.gui.FocusIn()
+	self.Wait(self.inputDelay)
+}
+
+func (self *TestDriver) focusInAndClick(x, y int) {
+	self.SetCaption(fmt.Sprintf("Focusing window and clicking %d, %d", x, y))
+	self.gui.FocusInAndClick(x, y)
 	self.Wait(self.inputDelay)
 }
 

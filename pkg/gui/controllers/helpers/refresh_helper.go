@@ -322,7 +322,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		var capturedReflog capturedReflogState
 		var capturedBranches capturedBranchState
 		self.captureOnUIThread(calledFromWorker, env.background, func() {
-			capturedCommits = self.captureCommitsState(options.CommitSelection)
+			capturedCommits = self.captureCommitsState()
 			capturedReflog = self.captureReflogState()
 			capturedBranches = self.captureBranchState()
 		})
@@ -704,7 +704,6 @@ func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflo
 // worker computes from an immutable snapshot rather than reading state the UI
 // thread concurrently mutates.
 type capturedCommitState struct {
-	selectionRange       *localCommitSelectionRange
 	limitCommits         bool
 	showWholeGitGraph    bool
 	filterPath           string
@@ -716,17 +715,12 @@ type capturedCommitState struct {
 
 // captureCommitsState reads the commits refresh's model/context/mode inputs
 // into an immutable snapshot. It must run on the UI thread.
-func (self *RefreshHelper) captureCommitsState(commitSelection types.CommitSelectionBehavior) capturedCommitState {
-	var selectionRange *localCommitSelectionRange
-	if commitSelection == types.KeepCommitSelectionByHash {
-		selectedIdx, rangeStartIdx, rangeSelectMode := self.c.Contexts().LocalCommits.GetSelectionRangeAndMode()
-		selectionRange = captureLocalCommitSelectionRange(self.c.Model().Commits, selectedIdx, rangeStartIdx, rangeSelectMode)
-	}
-
+// The selection is captured later, when applying the refresh, so user input
+// received while the git work is in flight is not overwritten.
+func (self *RefreshHelper) captureCommitsState() capturedCommitState {
 	parentCtx := self.c.Contexts().CommitFiles.GetParentContext()
 
 	return capturedCommitState{
-		selectionRange:       selectionRange,
 		limitCommits:         self.c.Contexts().LocalCommits.GetLimitCommits(),
 		showWholeGitGraph:    self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
 		filterPath:           self.c.Modes().Filtering.GetPath(),
@@ -815,8 +809,15 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 	workingTreeState := env.git.Status.WorkingTreeState()
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
+		var selectionRange *localCommitSelectionRange
+		if commitSelection == types.KeepCommitSelectionByHash {
+			selectedIdx, rangeStartIdx, rangeSelectMode := self.c.Contexts().LocalCommits.GetSelectionRangeAndMode()
+			selectionRange = captureLocalCommitSelectionRange(self.c.Model().Commits, selectedIdx, rangeStartIdx, rangeSelectMode)
+		}
+
 		self.c.Model().BisectInfo = bisectInfo
 		self.c.Model().Commits = commits
+		self.c.Model().CommitsWereFilteredAtLastRefresh = captured.filterPath != "" || captured.filterAuthor != ""
 		self.RefreshAuthors(commits)
 		self.c.Model().WorkingTreeStateAtLastCommitRefresh = workingTreeState
 		if checkedOutRef != nil {
@@ -833,10 +834,10 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 				scrollSelectionIntoView = true
 			}
 		case types.KeepCommitSelectionByHash:
-			if captured.selectionRange != nil {
-				selectedIdx, rangeStartIdx, didMove, found := findLocalCommitSelectionRange(commits, captured.selectionRange)
+			if selectionRange != nil {
+				selectedIdx, rangeStartIdx, didMove, found := findLocalCommitSelectionRange(commits, selectionRange)
 				if found {
-					self.c.Contexts().LocalCommits.SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, captured.selectionRange.mode)
+					self.c.Contexts().LocalCommits.SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, selectionRange.mode)
 					scrollSelectionIntoView = didMove
 				}
 			}
@@ -1304,7 +1305,8 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 				// process working directory, which may already point at another
 				// repo if the user switched while this refresh was in flight.
 				hasConflicts, err := mergeconflicts.FileHasConflictMarkers(
-					filepath.Join(env.git.RepoPaths.WorktreePath(), file.Path))
+					filepath.Join(env.git.RepoPaths.WorktreePath(), file.Path),
+					file.ConflictMarkerSize)
 				if err != nil {
 					self.c.Log.Error(err)
 				} else if !hasConflicts {
@@ -1770,15 +1772,13 @@ func (self *RefreshHelper) savePullRequestsToCache(prs []*models.GithubPullReque
 			Number:              pr.Number,
 			Title:               pr.Title,
 			State:               pr.State,
+			ChecksState:         pr.ChecksState,
 			Url:                 pr.Url,
 			HeadRepositoryOwner: pr.HeadRepositoryOwner.Login,
 		}
 	})
 
-	appState := self.c.GetAppState()
-	if appState.GithubPullRequests == nil {
-		appState.GithubPullRequests = make(map[string][]config.CachedPullRequest)
+	if err := self.c.GetConfig().SaveCachedGithubPullRequests(repoPath, cached); err != nil {
+		self.c.Log.Warnf("error saving GitHub pull request cache: %v", err)
 	}
-	appState.GithubPullRequests[repoPath] = cached
-	self.c.SaveAppStateAndLogError()
 }
