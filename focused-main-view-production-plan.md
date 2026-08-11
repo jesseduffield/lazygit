@@ -852,9 +852,54 @@ are **not in this PR** (1 and 2 below); everything else landed.
     selection is drawn) and unit tests for `changeBlockStart` / `fileStart`.
     That leaves PR 7 commit 11 with only the staging-specific ports.
 
+#### Review round 1 (2026-08-11) — five fixes, all as fixup!/amend! commits
+
+The user's first pass found four bugs; a fifth defect turned up while fixing
+them. All are fixups on their targets, so the final history has none of them.
+
+1. **Toggling hunk mode below the last change did nothing.** `ChangeBlockBounds`
+   only looked ahead of the anchor. The staging view's `GetNextChangeIdx` falls
+   back to the change *behind* the cursor, so ours does too. This closes the §8
+   row that was marked "fix cheaply if trivial; else defer".
+2. **Escape left the view instead of giving up the selection.** Mirrors the
+   staging view now: a range collapses to its cursor line, then hunk mode goes
+   back to line-by-line when the user turned it on, and only then does escape
+   leave — with `DismissRangeSelect` / `SelectLineByLine` as the shown command.
+   **This resurrects `UserEnabledHunkMode`** (deviation 4 above is void): it is
+   exactly what decides whether hunk mode is something to escape from, and the
+   staging view distinguishes the two cases.
+3. **Jumping by hunk or file stretched a shift-held range to the target.** The
+   arrow keys collapse a non-sticky range; a hunk or file jump is the same kind
+   of move, so it now collapses too (a sticky range still stretches). Worth
+   recording: **master's staging view does *not* do this** — verified with a
+   throwaway integration test, `<right>` there extends the range to the next
+   hunk. So this is main-view-only behaviour for now, and the staging view has
+   the same wart until PR 9 deletes it.
+4. **Dragging a range didn't autoscroll at the view's edge.** The plan missed
+   this because master gained it for the staging view *after* the prototype was
+   written (b682fb7635df); `helpers.DragAutoscroller` is reusable and is what
+   the main view now drives from its drag handler, plus a `MouseRelease`
+   binding and a focus-lost hook that cancels the autoscroll and the mouse
+   capture. One thing the staging view never needed: its content is a string
+   that is always there in full, while this diff loads lazily, so scrolling
+   down has to keep reading it in or the autoscroll stops at the loaded edge.
+5. **Found while fixing the above: `ReadLines` takes an absolute line total**,
+   not a count to add (see `readLinesToFillView` and `layout.go`), so
+   `moveCursor`'s `ReadLines(delta)` — transcribed from the prototype, which
+   has the same bug — was a no-op: moving the selection down never pulled more
+   of a lazily-loaded diff in. `ReadLinesToFillView` is the right call.
+
 The §6 interactive pass is owed: selection feel under delta with
-`narrowSelectionHighlight`, hunk-on-click, drag, and repeated `n` across files
-under a metadata-emitting delta.
+`narrowSelectionHighlight`, hunk-on-click, drag (including the autoscroll), and
+repeated `n` across files under a metadata-emitting delta.
+
+**Open with the user (2026-08-11): whether `narrowSelectionHighlight` should be
+a config option at all**, or whether the narrow bar should simply always be
+used in diff main views. The case for dropping it: existing delta users would
+have to find and set it themselves to get a good rendering, and a full-width
+highlight is worse for *every* renderer, raw git output included (red/green
+text on a blue background). Undecided as of this writing; nothing implemented
+either way.
 
 ### PR 6 — Keep your position in the diff when changing context size or switching diff renderers
 
@@ -1300,7 +1345,7 @@ The remaining rows are agreed as keep/defer:
 | `type: extDiff` with empty `command` (git's `diff.external`; formerly `useExternalDiffGitConfig`) always-raw when focused (N§21.30) | Keep; document |
 | Per-pane selection memory on `<tab>` (re-anchors each switch, N§21.9) | Defer; follow-up candidate |
 | `IsSingleHunkForWholeFile` hunk-default refinement (N§21.11) | **Done in PR 5** (derived from the rendered diff, no git call — PR 5 deviation 3) |
-| `a` on a context line below the last hunk doesn't snap back like staging did (N§21.11) | Deferred: `ChangeBlockBounds` still only snaps forward, falling back to a single line |
+| `a` on a context line below the last hunk doesn't snap back like staging did (N§21.11) | **Done in PR 5** (review round 1, fix 1): `ChangeBlockBounds` falls back to the block above |
 | Deleted-file `MD`-vs-`D` staging special case (N§21.13) | **Fix in PR 7 commit 5** (mandatory) |
 | `NormalSecondary` not preserved on `-U`/renderer change (N§16.1) | Keep as documented limitation |
 | Gutter marks for not-yet-loaded lines of huge diffs (N§21.20) | Keep (marks appear on next recompute); note |
