@@ -922,7 +922,18 @@ func (g *Gui) onUIThreadAndWait(f func() error, background bool) error {
 		result <- f()
 		return nil
 	})
-	return <-result
+	// MainLoop stops draining the event queue the instant it returns, so an
+	// enqueue racing shutdown (e.g. a background refresh mid-flight when the
+	// user quits) would otherwise sit on result forever, wedging whatever
+	// caller is waiting on this call (and, transitively, on quit-time
+	// teardown that waits on that caller). Bail out once the loop is gone
+	// instead of blocking past it.
+	select {
+	case err := <-result:
+		return err
+	case <-g.loopExited:
+		return ErrQuit
+	}
 }
 
 // Calls a function in a goroutine. Handles panics gracefully and tracks
