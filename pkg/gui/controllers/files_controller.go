@@ -369,7 +369,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 	mainShowsStaged := !split && node.GetHasStagedChanges()
 
-	paths := pathsForDiff(node.Raw(), self.context().GetRoot().Raw(), self.context().IsFiltering())
+	paths := self.pathsForDiff(node)
 	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, paths)
 	title := self.c.Tr.UnstagedChanges
 	if mainShowsStaged {
@@ -641,6 +641,11 @@ func (self *FilesController) press(nodes []*filetree.FileNode) error {
 
 	self.context().HandleFocus(types.OnFocusOpts{})
 	return nil
+}
+
+func (self *FilesController) pathsForDiff(node *filetree.FileNode) []string {
+	return diffPathsForNode(
+		node.Raw(), self.context().GetRoot().Raw(), self.c.Model().Files, self.context().IsFiltering())
 }
 
 // unstageFilteredFiles unstages only the visible (filtered) files from the

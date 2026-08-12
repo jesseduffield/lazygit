@@ -175,7 +175,7 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		from, to := self.context().GetFromAndToForDiff()
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-		paths := pathsForDiff(node.Raw(), self.context().GetRoot().Raw(), self.context().IsFiltering())
+		paths := self.pathsForDiff(node)
 		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
 
@@ -263,8 +263,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyFileDiffItem := &types.MenuItem{
 		Label: self.c.Tr.CopySelectedDiff,
 		OnPress: func() error {
-			paths := pathsForDiff(node.Raw(), self.context().GetRoot().Raw(), self.context().IsFiltering())
-			return self.copyDiffToClipboard(paths, self.c.Tr.FileDiffCopiedToast)
+			return self.copyDiffToClipboard(self.pathsForDiff(node), self.c.Tr.FileDiffCopiedToast)
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
 		Keys:           menuKey('s'),
@@ -615,6 +614,11 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 		}
 		return nil
 	}
+}
+
+func (self *CommitFilesController) pathsForDiff(node *filetree.CommitFileNode) []string {
+	return diffPathsForNode(
+		node.Raw(), self.context().GetRoot().Raw(), self.c.Model().CommitFiles, self.context().IsFiltering())
 }
 
 // NOTE: these functions are identical to those in files_controller.go (except for types) and
