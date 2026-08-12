@@ -82,7 +82,7 @@ func (self *GuiDriver) WaitUntilIdle() {
 }
 
 func (self *GuiDriver) OnUIThreadAndWait(f func()) {
-	_ = self.gui.g.OnUIThreadAndWait(func() error { f(); return nil })
+	_ = self.gui.g.OnUIThreadAndWait(f)
 }
 
 func (self *GuiDriver) replayMouseEvent(x, y int, buttons tcell.ButtonMask) {

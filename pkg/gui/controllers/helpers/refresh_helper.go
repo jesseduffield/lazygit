@@ -223,10 +223,12 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		background:        options.Background || options.DontBlockRepoSwitch,
 		backgroundRoutine: options.Background,
 	}
-	self.captureOnUIThread(calledFromWorker, env.background, func() {
+	if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 		env.generation = self.c.State().GetRepoGeneration()
 		env.git = self.c.Git()
-	})
+	}) {
+		return
+	}
 	if options.BatchUIUpdates {
 		env.batch = &refreshBounceBatch{}
 	}
@@ -321,11 +323,13 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		var capturedCommits capturedCommitState
 		var capturedReflog capturedReflogState
 		var capturedBranches capturedBranchState
-		self.captureOnUIThread(calledFromWorker, env.background, func() {
+		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 			capturedCommits = self.captureCommitsState()
 			capturedReflog = self.captureReflogState()
 			capturedBranches = self.captureBranchState()
-		})
+		}) {
+			return
+		}
 		refresh("commits and commit files", func() {
 			self.refreshCommitsAndCommitFiles(capturedCommits, options.CommitSelection, env)
 		})
@@ -355,35 +359,43 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		// if we've asked specifically for rebase commits and not those other things
 		var rebaseHashPool *utils.StringPool
 		var rebaseCommits []*models.Commit
-		self.captureOnUIThread(calledFromWorker, env.background, func() {
+		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 			rebaseHashPool, rebaseCommits = self.captureRebaseCommitState()
-		})
+		}) {
+			return
+		}
 		refresh("rebase commits", func() { _ = self.refreshRebaseCommits(rebaseHashPool, rebaseCommits, env) })
 	}
 
 	if scopeSet.Includes(types.SUB_COMMITS) {
 		var capturedSubCommits capturedSubCommitState
-		self.captureOnUIThread(calledFromWorker, env.background, func() {
+		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 			capturedSubCommits = self.captureSubCommitState()
-		})
+		}) {
+			return
+		}
 		refresh("sub commits", func() { _ = self.refreshSubCommitsWithLimit(capturedSubCommits, env) })
 	}
 
 	// reason we're not doing this if the COMMITS type is included is that if the COMMITS type _is_ included we will refresh the commit files context anyway
 	if scopeSet.Includes(types.COMMIT_FILES) && !scopeSet.Includes(types.COMMITS) {
 		var capturedCommitFiles capturedCommitFilesState
-		self.captureOnUIThread(calledFromWorker, env.background, func() {
+		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 			capturedCommitFiles = self.captureCommitFilesState()
-		})
+		}) {
+			return
+		}
 		refresh("commit files", func() { _ = self.refreshCommitFilesContext(capturedCommitFiles, env) })
 	}
 
 	fileWg := sync.WaitGroup{}
 	if scopeSet.Includes(types.FILES) {
 		var capturedFiles capturedFilesState
-		self.captureOnUIThread(calledFromWorker, env.background, func() {
+		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 			capturedFiles = self.captureFilesState()
-		})
+		}) {
+			return
+		}
 		fileWg.Add(1)
 		refresh("files", func() {
 			_ = self.refreshFilesAndSubmodules(capturedFiles, env)
@@ -393,9 +405,11 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 
 	if scopeSet.Includes(types.STASH) {
 		var stashFilterPath string
-		self.captureOnUIThread(calledFromWorker, env.background, func() {
+		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 			stashFilterPath = self.c.Modes().Filtering.GetPath()
-		})
+		}) {
+			return
+		}
 		refresh("stash", func() { self.refreshStashEntries(stashFilterPath, env) })
 	}
 
@@ -408,9 +422,11 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		// needs it to keep the remote-branches selection valid, and reading
 		// the Remotes context off the UI thread races its render.
 		var prevSelectedRemote *models.Remote
-		self.captureOnUIThread(calledFromWorker, env.background, func() {
+		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 			prevSelectedRemote = self.c.Contexts().Remotes.GetSelected()
-		})
+		}) {
+			return
+		}
 		branchesAndRemotesWg.Add(1)
 		refresh("remotes", func() {
 			loadedRemotes, _ = self.refreshRemotes(prevSelectedRemote, env)
@@ -1248,21 +1264,20 @@ func (self *RefreshHelper) onUIThread(background bool, f func() error) {
 // waiting for a callback that only it can run), and capturing inline also
 // guarantees the snapshot reflects the state at the moment Refresh was called,
 // before the calling handler regains control and can mutate it.
-func (self *RefreshHelper) captureOnUIThread(calledFromWorker bool, background bool, fn func()) {
+//
+// It returns false when fn didn't run because the app is shutting down, in
+// which case the caller must abandon the refresh rather than compute from a
+// snapshot that was never taken.
+func (self *RefreshHelper) captureOnUIThread(calledFromWorker bool, background bool, fn func()) bool {
 	if !calledFromWorker {
 		fn()
-		return
+		return true
 	}
 
-	wrapped := func() error {
-		fn()
-		return nil
-	}
 	if background {
-		_ = self.c.GocuiGui().OnUIThreadAndWaitBackground(wrapped)
-	} else {
-		_ = self.c.GocuiGui().OnUIThreadAndWait(wrapped)
+		return self.c.GocuiGui().OnUIThreadAndWaitBackground(fn) == nil
 	}
+	return self.c.GocuiGui().OnUIThreadAndWait(fn) == nil
 }
 
 // capturedFilesState holds the files refresh's context/model inputs, gathered

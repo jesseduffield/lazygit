@@ -80,9 +80,8 @@ func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 	manager := gui.getManager(view)
 
 	f := func(tasks.TaskOpts) error {
-		return gui.g.OnUIThreadAndWaitBackground(func() error {
+		return gui.g.OnUIThreadAndWaitBackground(func() {
 			gui.c.SetViewContent(view, str)
-			return nil
 		})
 	}
 
@@ -97,10 +96,9 @@ func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX in
 	manager := gui.getManager(view)
 
 	f := func(tasks.TaskOpts) error {
-		return gui.g.OnUIThreadAndWaitBackground(func() error {
+		return gui.g.OnUIThreadAndWaitBackground(func() {
 			gui.c.SetViewContent(view, str)
 			view.SetOrigin(originX, originY)
-			return nil
 		})
 	}
 
@@ -115,10 +113,9 @@ func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) e
 	manager := gui.getManager(view)
 
 	f := func(tasks.TaskOpts) error {
-		return gui.g.OnUIThreadAndWaitBackground(func() error {
+		return gui.g.OnUIThreadAndWaitBackground(func() {
 			gui.c.ResetViewOrigin(view)
 			gui.c.SetViewContent(view, str)
-			return nil
 		})
 	}
 

@@ -40,7 +40,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		onNewKey,
 		newTask,
 		// no UI thread in the test; run the view mutations inline
-		func(f func() error) error { return f() },
+		func(f func()) error { f(); return nil },
 	)
 
 	stop := make(chan struct{})
@@ -107,7 +107,7 @@ func TestNewCmdTask(t *testing.T) {
 		onNewKey,
 		newTask,
 		// no UI thread in the test; run the view mutations inline
-		func(f func() error) error { return f() },
+		func(f func()) error { f(); return nil },
 	)
 
 	stop := make(chan struct{})
@@ -242,7 +242,7 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 			func() {},
 			newTask,
 			// no UI thread in the test; run the view mutations inline
-			func(f func() error) error { return f() },
+			func(f func()) error { f(); return nil },
 		)
 
 		stop := make(chan struct{})
