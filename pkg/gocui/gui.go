@@ -38,6 +38,11 @@ var (
 
 	// ErrKeybindingNotHandled is returned when a keybinding is not handled, so that the key can be dispatched further
 	ErrKeybindingNotHandled = standardErrors.New("keybinding not handled")
+
+	// ErrLoopExited is returned by OnUIThreadAndWait when MainLoop has already
+	// returned. Nothing dequeues user events after that, so the callback it was
+	// asked to run on the main goroutine never will be.
+	ErrLoopExited = standardErrors.New("main loop exited")
 )
 
 const (
@@ -897,8 +902,9 @@ func (g *Gui) EndBlockingEvents() error {
 // contexts) from a worker without racing the UI thread.
 //
 // The error it returns is the wait's own, never f's: it reports that f was not
-// run at all. f doesn't report an error because what callers want on the UI
-// thread — reading and mutating state — doesn't fail.
+// run at all, which happens when the main loop has exited (ErrLoopExited). f
+// doesn't report an error because what callers want on the UI thread — reading
+// and mutating state — doesn't fail.
 //
 // It must be called from a worker goroutine, never from the UI thread itself:
 // the UI thread would block waiting for a callback only it can run, which
@@ -927,8 +933,15 @@ func (g *Gui) onUIThreadAndWait(f func(), background bool) error {
 		close(ran)
 		return nil
 	})
-	<-ran
-	return nil
+
+	select {
+	case <-ran:
+		return nil
+	case <-g.loopExited:
+		// The queue we just enqueued onto is no longer being served, so waiting
+		// on `ran` here would mean waiting for the rest of the process's life.
+		return ErrLoopExited
+	}
 }
 
 // Calls a function in a goroutine. Handles panics gracefully and tracks

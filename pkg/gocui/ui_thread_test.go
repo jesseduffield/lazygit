@@ -39,8 +39,5 @@ func TestOnUIThreadAndWaitGivesUpWhenTheLoopExits(t *testing.T) {
 	}()
 
 	err := resultOrTimeout(result)
-	/* EXPECTED:
 	assert.ErrorIs(t, err, ErrLoopExited)
-	ACTUAL: */
-	assert.ErrorIs(t, err, errStillWaiting)
 }
