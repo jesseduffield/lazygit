@@ -650,7 +650,9 @@ func (self *FilesController) pathOverridesForDiff(node *filetree.FileNode) []str
 	if !node.IsFile() && self.context().IsFiltering() {
 		var paths []string
 		_ = node.ForEachFile(func(file *models.File) error {
-			paths = append(paths, file.Path)
+			// For a rename we need to pass both paths so that git detects it as
+			// a rename rather than an unrelated delete and add.
+			paths = append(paths, file.Names()...)
 			return nil
 		})
 		return paths

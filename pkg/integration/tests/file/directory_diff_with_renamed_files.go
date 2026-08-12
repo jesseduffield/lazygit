@@ -98,22 +98,11 @@ var DirectoryDiffWithRenamedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 			)
 
 		t.Views().Main().
-			/* EXPECTED:
 			ContainsLines(
 				Equals("diff --git a/file1 b/dir/file1"),
 				Equals("similarity index 100%"),
 				Equals("rename from file1"),
 				Equals("rename to dir/file1"),
-			)
-			ACTUAL: */
-			ContainsLines(
-				Equals("diff --git a/dir/file1 b/dir/file1"),
-				Equals("new file mode 100644"),
-				Contains("index"),
-				Equals("--- /dev/null"),
-				Equals("+++ b/dir/file1"),
-				Equals("@@ -0,0 +1 @@"),
-				Equals("+file1 content"),
 			)
 	},
 })
