@@ -893,36 +893,42 @@ func (g *Gui) EndBlockingEvents() error {
 }
 
 // OnUIThreadAndWait runs f on the main event-loop goroutine and blocks the
-// caller until f has run, returning f's error. Use it to read UI-thread-owned
-// state (the model, contexts) from a worker without racing the UI thread.
+// caller until f has run. Use it to read UI-thread-owned state (the model,
+// contexts) from a worker without racing the UI thread.
+//
+// The error it returns is the wait's own, never f's: it reports that f was not
+// run at all. f doesn't report an error because what callers want on the UI
+// thread — reading and mutating state — doesn't fail.
 //
 // It must be called from a worker goroutine, never from the UI thread itself:
 // the UI thread would block waiting for a callback only it can run, which
 // deadlocks. Callers arrange this by construction (see the refresh helper's
 // RefreshFromWorker); a debug-only assertion there guards against getting it
 // wrong.
-func (g *Gui) OnUIThreadAndWait(f func() error) error {
+func (g *Gui) OnUIThreadAndWait(f func()) error {
 	return g.onUIThreadAndWait(f, false)
 }
 
 // Like OnUIThreadAndWait, but the enqueued work belongs to a background routine,
 // so it doesn't count towards the program being busy (see UpdateBackground).
-func (g *Gui) OnUIThreadAndWaitBackground(f func() error) error {
+func (g *Gui) OnUIThreadAndWaitBackground(f func()) error {
 	return g.onUIThreadAndWait(f, true)
 }
 
-func (g *Gui) onUIThreadAndWait(f func() error, background bool) error {
+func (g *Gui) onUIThreadAndWait(f func(), background bool) error {
 	enqueue := g.Update
 	if background {
 		enqueue = g.UpdateBackground
 	}
 
-	result := make(chan error, 1)
+	ran := make(chan struct{})
 	enqueue(func(*Gui) error {
-		result <- f()
+		f()
+		close(ran)
 		return nil
 	})
-	return <-result
+	<-ran
+	return nil
 }
 
 // Calls a function in a goroutine. Handles panics gracefully and tracks

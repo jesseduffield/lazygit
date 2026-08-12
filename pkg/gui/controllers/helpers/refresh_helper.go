@@ -1254,14 +1254,10 @@ func (self *RefreshHelper) captureOnUIThread(calledFromWorker bool, background b
 		return
 	}
 
-	wrapped := func() error {
-		fn()
-		return nil
-	}
 	if background {
-		_ = self.c.GocuiGui().OnUIThreadAndWaitBackground(wrapped)
+		_ = self.c.GocuiGui().OnUIThreadAndWaitBackground(fn)
 	} else {
-		_ = self.c.GocuiGui().OnUIThreadAndWait(wrapped)
+		_ = self.c.GocuiGui().OnUIThreadAndWait(fn)
 	}
 }
 

@@ -87,7 +87,7 @@ type ViewBufferManager struct {
 	// of the view happen through this, so that the view is only ever touched on
 	// the UI thread (where it is also laid out and drawn), never on the task's
 	// own goroutine.
-	onUIThread func(f func() error) error
+	onUIThread func(f func()) error
 
 	// if the user flicks through a heap of items, with each one
 	// spawning a process to render something to the main view,
@@ -126,7 +126,7 @@ func NewViewBufferManager(
 	onEndOfInput func(),
 	onNewKey func(),
 	newGocuiTask func() gocui.Task,
-	onUIThread func(f func() error) error,
+	onUIThread func(f func()) error,
 ) *ViewBufferManager {
 	return &ViewBufferManager{
 		Log:          log,
@@ -358,10 +358,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							// onEndOfInput reads the view's dimensions (to decide
 							// whether to scroll) and sets the origin, both of which
 							// are UI-thread-only, so run it there.
-							_ = self.onUIThread(func() error {
-								self.onEndOfInput()
-								return nil
-							})
+							_ = self.onUIThread(self.onEndOfInput)
 							callThen()
 							break outer
 						}
@@ -502,10 +499,7 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 			// must happen after releasing taskIDMutex: it blocks until the UI
 			// thread runs it, and a NewTask call on the UI thread takes
 			// taskIDMutex, so holding it here would deadlock.
-			_ = self.onUIThread(func() error {
-				self.onNewKey()
-				return nil
-			})
+			_ = self.onUIThread(self.onNewKey)
 		}
 
 		self.waitingMutex.Lock()
