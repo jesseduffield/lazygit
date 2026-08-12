@@ -369,8 +369,8 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 	mainShowsStaged := !split && node.GetHasStagedChanges()
 
-	pathOverrides := self.pathOverridesForDiff(node)
-	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, pathOverrides)
+	paths := pathsForDiff(node.Raw(), self.context().IsFiltering())
+	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, paths)
 	title := self.c.Tr.UnstagedChanges
 	if mainShowsStaged {
 		title = self.c.Tr.StagedChanges
@@ -385,7 +385,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	}
 
 	if split {
-		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, pathOverrides)
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, paths)
 
 		title := self.c.Tr.StagedChanges
 		if mainShowsStaged {
@@ -640,23 +640,6 @@ func (self *FilesController) press(nodes []*filetree.FileNode) error {
 	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 
 	self.context().HandleFocus(types.OnFocusOpts{})
-	return nil
-}
-
-// pathOverridesForDiff returns file paths to override the node's path in diff
-// commands when a text filter is active and the node is a directory. This
-// ensures the diff only shows filtered/visible files.
-func (self *FilesController) pathOverridesForDiff(node *filetree.FileNode) []string {
-	if !node.IsFile() && self.context().IsFiltering() {
-		var paths []string
-		_ = node.ForEachFile(func(file *models.File) error {
-			// For a rename we need to pass both paths so that git detects it as
-			// a rename rather than an unrelated delete and add.
-			paths = append(paths, file.Names()...)
-			return nil
-		})
-		return paths
-	}
 	return nil
 }
 

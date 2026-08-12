@@ -175,7 +175,7 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		from, to := self.context().GetFromAndToForDiff()
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-		paths := self.pathsForDiff(node)
+		paths := pathsForDiff(node.Raw(), self.context().IsFiltering())
 		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
 
@@ -263,7 +263,8 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyFileDiffItem := &types.MenuItem{
 		Label: self.c.Tr.CopySelectedDiff,
 		OnPress: func() error {
-			return self.copyDiffToClipboard(self.pathsForDiff(node), self.c.Tr.FileDiffCopiedToast)
+			paths := pathsForDiff(node.Raw(), self.context().IsFiltering())
+			return self.copyDiffToClipboard(paths, self.c.Tr.FileDiffCopiedToast)
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
 		Keys:           menuKey('s'),
@@ -614,26 +615,6 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 		}
 		return nil
 	}
-}
-
-// pathsForDiff returns the file paths to use for a diff command. When a text
-// filter is active and the node is a directory, only the visible (filtered)
-// file paths are returned so the diff reflects what the user sees.
-func (self *CommitFilesController) pathsForDiff(node *filetree.CommitFileNode) []string {
-	if !node.IsFile() && self.context().IsFiltering() {
-		var paths []string
-		_ = node.ForEachFile(func(file *models.CommitFile) error {
-			// For a rename we need to pass both paths so that git detects it as
-			// a rename rather than an unrelated delete and add.
-			paths = append(paths, file.Names()...)
-			return nil
-		})
-		return paths
-	}
-	if file := node.GetFile(); file != nil {
-		return file.Names()
-	}
-	return []string{node.GetPath()}
 }
 
 // NOTE: these functions are identical to those in files_controller.go (except for types) and
