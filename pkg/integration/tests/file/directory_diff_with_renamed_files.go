@@ -52,7 +52,6 @@ var DirectoryDiffWithRenamedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectedLine(Equals("  ▼ dir"))
 
 		t.Views().Main().
-			/* EXPECTED:
 			ContainsLines(
 				Equals("diff --git a/file1 b/dir/file1"),
 				Equals("similarity index 100%"),
@@ -66,27 +65,6 @@ var DirectoryDiffWithRenamedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("similarity index 100%"),
 				Equals("rename from dir/nested/file3"),
 				Equals("rename to file3"),
-			)
-			ACTUAL: */
-			ContainsLines(
-				Equals("diff --git a/dir/file1 b/dir/file1"),
-				Equals("new file mode 100644"),
-				Contains("index"),
-				Equals("--- /dev/null"),
-				Equals("+++ b/dir/file1"),
-				Equals("@@ -0,0 +1 @@"),
-				Equals("+file1 content"),
-				Equals("diff --git a/dir/file2 b/dir/file2-renamed"),
-				Equals("similarity index 100%"),
-				Equals("rename from dir/file2"),
-				Equals("rename to dir/file2-renamed"),
-				Equals("diff --git a/dir/nested/file3 b/dir/nested/file3"),
-				Equals("deleted file mode 100644"),
-				Contains("index"),
-				Equals("--- a/dir/nested/file3"),
-				Equals("+++ /dev/null"),
-				Equals("@@ -1 +0,0 @@"),
-				Equals("-file3 content"),
 			)
 
 		// The same applies when a filter reduces the directory to a single file

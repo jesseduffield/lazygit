@@ -369,7 +369,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 	mainShowsStaged := !split && node.GetHasStagedChanges()
 
-	paths := pathsForDiff(node.Raw(), self.context().IsFiltering())
+	paths := pathsForDiff(node.Raw(), self.context().GetRoot().Raw(), self.context().IsFiltering())
 	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, paths)
 	title := self.c.Tr.UnstagedChanges
 	if mainShowsStaged {

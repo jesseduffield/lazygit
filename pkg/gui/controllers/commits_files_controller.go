@@ -175,7 +175,7 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		from, to := self.context().GetFromAndToForDiff()
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-		paths := pathsForDiff(node.Raw(), self.context().IsFiltering())
+		paths := pathsForDiff(node.Raw(), self.context().GetRoot().Raw(), self.context().IsFiltering())
 		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
 
@@ -263,7 +263,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyFileDiffItem := &types.MenuItem{
 		Label: self.c.Tr.CopySelectedDiff,
 		OnPress: func() error {
-			paths := pathsForDiff(node.Raw(), self.context().IsFiltering())
+			paths := pathsForDiff(node.Raw(), self.context().GetRoot().Raw(), self.context().IsFiltering())
 			return self.copyDiffToClipboard(paths, self.c.Tr.FileDiffCopiedToast)
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
