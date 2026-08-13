@@ -300,15 +300,15 @@ func (g *Gui) pollEvent() GocuiEvent {
 	if g.playRecording {
 		select {
 		case ev := <-g.replayedEvents.Keys:
-			tev = (ev).toTcellEvent()
+			tev = ev.toTcellEvent()
 			task = ev.task
 		case ev := <-g.replayedEvents.Resizes:
-			tev = (ev).toTcellEvent()
+			tev = ev.toTcellEvent()
 		case ev := <-g.replayedEvents.MouseEvents:
-			tev = (ev).toTcellEvent()
+			tev = ev.toTcellEvent()
 			task = ev.task
 		case ev := <-g.replayedEvents.FocusEvents:
-			tev = (ev).toTcellEvent()
+			tev = ev.toTcellEvent()
 			task = ev.task
 		}
 	} else {

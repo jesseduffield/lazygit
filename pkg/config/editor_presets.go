@@ -50,13 +50,13 @@ type editPreset struct {
 	suspend                   func() bool
 }
 
-func returnBool(a bool) func() bool { return (func() bool { return a }) }
+func returnBool(a bool) func() bool { return func() bool { return a } }
 
 // IF YOU ADD A PRESET TO THIS FUNCTION YOU MUST UPDATE THE `Supported presets` SECTION OF docs/Config.md
 func getPreset(shell string, osConfig *OSConfig, guessDefaultEditor func() string) *editPreset {
 	var nvimRemoteEditTemplate, nvimRemoteEditAtLineTemplate, nvimRemoteOpenDirInEditorTemplate string
 	// By default fish doesn't have SHELL variable set, but it does have FISH_VERSION since Nov 2012.
-	if (strings.HasSuffix(shell, "fish")) || (os.Getenv("FISH_VERSION") != "") {
+	if strings.HasSuffix(shell, "fish") || (os.Getenv("FISH_VERSION") != "") {
 		nvimRemoteEditTemplate = `begin; if test -z "$NVIM"; nvim -- {{filename}}; else; nvim --server "$NVIM" --remote-send "q"; nvim --server "$NVIM" --remote-tab {{filename}}; end; end`
 		nvimRemoteEditAtLineTemplate = `begin; if test -z "$NVIM"; nvim +{{line}} -- {{filename}}; else; nvim --server "$NVIM" --remote-send "q"; nvim --server "$NVIM" --remote-tab {{filename}}; nvim --server "$NVIM" --remote-send ":{{line}}<CR>"; end; end`
 		nvimRemoteOpenDirInEditorTemplate = `begin; if test -z "$NVIM"; nvim -- {{dir}}; else; nvim --server "$NVIM" --remote-send "q"; nvim --server "$NVIM" --remote-tab {{dir}}; end; end`
