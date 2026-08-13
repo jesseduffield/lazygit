@@ -57,7 +57,7 @@ func (p *printer) linebreak(line, min int, ws whiteSpace, newSection bool) (nbre
 			p.print(newline)
 		}
 	}
-	return nbreaks
+	return
 }
 
 // setComment sets g as the next comment if g != nil and if node comments
@@ -465,7 +465,7 @@ func identListSize(list []*ast.Ident, maxSize int) (size int) {
 			break
 		}
 	}
-	return size
+	return
 }
 
 func (p *printer) isOneLineFieldList(list []*ast.Field) bool {
@@ -693,7 +693,7 @@ func walkBinary(e *ast.BinaryExpr) (has4, has5 bool, maxProblem int) {
 			maxProblem = max(maxProblem, 4)
 		}
 	}
-	return has4, has5, maxProblem
+	return
 }
 
 func cutoff(e *ast.BinaryExpr, depth int) int {
@@ -1818,14 +1818,14 @@ func (p *printer) nodeSize(n ast.Node, maxSize int) (size int) {
 	cfg := Config{Mode: RawFormat}
 	var counter sizeCounter
 	if err := cfg.fprint(&counter, p.fset, n, p.nodeSizes); err != nil {
-		return size
+		return
 	}
 	if counter.size <= maxSize && !counter.hasNewline {
 		// n fits in a single line
 		size = counter.size
 		p.nodeSizes[n] = size
 	}
-	return size
+	return
 }
 
 // numLines returns the number of lines spanned by node n in the original source.
@@ -1959,7 +1959,7 @@ func declToken(decl ast.Decl) (tok token.Token) {
 	case *ast.FuncDecl:
 		tok = token.FUNC
 	}
-	return tok
+	return
 }
 
 func (p *printer) declList(list []ast.Decl) {

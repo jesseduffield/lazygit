@@ -2,6 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// NOTE(gofumpt): moved into the format package (from package main) so that
+// syntax simplification is exported via the Go API. gofumpt always simplifies,
+// so the -s flag was dropped; see also the removal of the -r rewrite logic in
+// rewrite.go, which left this file as the sole user of match/isWildcard.
+
 package format
 
 import (
