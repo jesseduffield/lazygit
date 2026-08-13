@@ -33,7 +33,7 @@ func parse(fset *token.FileSet, filename string, src []byte, fragmentOk bool) (
 	// package line and source fragments are ok, fall through to
 	// try as a source fragment. Stop and return on any other error.
 	if err == nil || !fragmentOk || !strings.Contains(err.Error(), "expected 'package'") {
-		return file, sourceAdj, indentAdj, err
+		return
 	}
 
 	// If this is a declaration list, make it a source file
@@ -49,13 +49,13 @@ func parse(fset *token.FileSet, filename string, src []byte, fragmentOk bool) (
 			src = src[indent+len("package p\n"):]
 			return bytes.TrimSpace(src)
 		}
-		return file, sourceAdj, indentAdj, err
+		return
 	}
 	// If the error is that the source file didn't begin with a
 	// declaration, fall through to try as a statement list.
 	// Stop and return on any other error.
 	if !strings.Contains(err.Error(), "expected declaration") {
-		return file, sourceAdj, indentAdj, err
+		return
 	}
 
 	// If this is a statement list, make it a source file
@@ -86,7 +86,7 @@ func parse(fset *token.FileSet, filename string, src []byte, fragmentOk bool) (
 	}
 
 	// Succeeded, or out of options.
-	return file, sourceAdj, indentAdj, err
+	return
 }
 
 // format formats the given package file originally obtained from src
