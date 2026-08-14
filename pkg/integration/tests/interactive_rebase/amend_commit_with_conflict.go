@@ -38,7 +38,7 @@ var AmendCommitWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("three"),
 				Contains("fixup").Contains("<-- CONFLICT --- fixup! two"),
 				Contains("─── Commits"),
-				Contains("two"),
+				Contains("two").IsSelected(),
 				Contains("one"),
 			)
 
@@ -72,7 +72,7 @@ var AmendCommitWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("<-- CONFLICT --- three"),
 				Contains("─── Commits"),
 				Contains("two"),
-				Contains("one"),
+				Contains("one").IsSelected(),
 			)
 	},
 })

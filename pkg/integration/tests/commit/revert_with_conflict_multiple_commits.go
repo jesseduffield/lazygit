@@ -49,8 +49,8 @@ var RevertWithConflictMultipleCommits = NewIntegrationTest(NewIntegrationTestArg
 				Contains("revert").Contains("CI <-- CONFLICT --- add first line"),
 				Contains("─── Commits"),
 				Contains("CI ○ add second line"),
-				Contains("CI ○ add first line"),
-				Contains("CI ○ unrelated change"),
+				Contains("CI ○ add first line").IsSelected(),
+				Contains("CI ○ unrelated change").IsSelected(),
 				Contains("CI ○ add empty file"),
 			)
 
