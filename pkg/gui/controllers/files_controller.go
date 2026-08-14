@@ -130,10 +130,11 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			OpensMenu:   true,
 		},
 		{
-			Keys:        opts.GetKeys(opts.Config.Files.ToggleStagedAll),
-			Handler:     self.toggleStagedAll,
-			Description: self.c.Tr.ToggleStagedAll,
-			Tooltip:     self.c.Tr.ToggleStagedAllTooltip,
+			Keys:              opts.GetKeys(opts.Config.Files.ToggleStagedAll),
+			Handler:           self.toggleStagedAll,
+			GetDisabledReason: self.require(self.anyFilesDisplayed),
+			Description:       self.c.Tr.ToggleStagedAll,
+			Tooltip:           self.c.Tr.ToggleStagedAllTooltip,
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.GoInto),
@@ -914,6 +915,17 @@ func (self *FilesController) openSubmoduleConflictMenu(file *models.File) error 
 			},
 		},
 	})
+}
+
+// The stage-all command acts on the file tree as it is displayed, so there has
+// to be something in it. This is also the case before the first files refresh
+// has come in, when there is no tree at all yet.
+func (self *FilesController) anyFilesDisplayed() *types.DisabledReason {
+	if self.context().FileTreeViewModel.Len() == 0 {
+		return &types.DisabledReason{Text: self.c.Tr.NoChangedFiles}
+	}
+
+	return nil
 }
 
 func (self *FilesController) toggleStagedAll() error {

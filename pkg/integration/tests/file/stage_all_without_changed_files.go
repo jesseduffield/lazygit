@@ -19,10 +19,7 @@ var StageAllWithoutChangedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 			IsEmpty().
 			Press(keys.Files.ToggleStagedAll).
 			Tap(func() {
-				/* EXPECTED:
 				t.ExpectToast(Contains("No changed files"))
-				ACTUAL: */
-				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("Nothing to stage")).Confirm()
 			})
 	},
 })
