@@ -32,9 +32,21 @@ func (self *TagCommands) CreateAnnotatedObj(tagName, ref, msg string, force bool
 		ArgIf(force, "--force").
 		ArgIf(len(ref) > 0, ref).
 		Arg("-m", msg).
+		ArgIf(self.signFlag() != "", self.signFlag()).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs)
+}
+
+// signFlag returns "--sign" when the user has tag.gpgSign enabled, so that
+// the actual git command shown in the Command Log makes it obvious that the
+// tag will be signed (git would otherwise apply tag.gpgSign silently,
+// without ever displaying the flag).
+func (self *TagCommands) signFlag() string {
+	if self.config.IsGpgSignEnabled(TagGpgSign) {
+		return "--sign"
+	}
+	return ""
 }
 
 func (self *TagCommands) HasTag(tagName string) bool {

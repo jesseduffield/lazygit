@@ -664,3 +664,32 @@ func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
 			"trailing cell at (%d, 2) should have green bg", x)
 	}
 }
+
+// TestMaskDoesNotCoverTrailingPadding verifies that a masked view (as used
+// by the passphrase/password prompt) only replaces cells that hold actual
+// typed content with the mask character. Without this, the trailing padding
+// cells that stretch to the view's full width would also render as the mask
+// character, making an empty or partially-typed input field look like it's
+// already fully populated with a passphrase.
+func TestMaskDoesNotCoverTrailingPadding(t *testing.T) {
+	WithSimulationScreen(t, 14, 5)
+
+	v := NewView("name", 0, 0, 11, 4, OutputNormal)
+	v.Mask = "*"
+
+	v.writeString("ab")
+	v.draw()
+
+	// The two typed characters should render as the mask.
+	for x := 1; x <= 2; x++ {
+		ch, _, _ := Screen.Get(x, 1)
+		assert.Equal(t, "*", ch, "typed cell at (%d, 1) should render as the mask", x)
+	}
+
+	// Everything past the typed content is trailing padding and must NOT
+	// be masked, or an empty/partially-filled field would look full.
+	for x := 3; x <= 10; x++ {
+		ch, _, _ := Screen.Get(x, 1)
+		assert.Equal(t, " ", ch, "trailing cell at (%d, 1) should be blank, not masked", x)
+	}
+}

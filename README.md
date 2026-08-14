@@ -1,5 +1,6 @@
 <div align="center">
 <sup>Special thanks to:</sup>
+
 <br>
 <br>
 <a href="https://www.warp.dev/?utm_source=github&utm_medium=referral&utm_campaign=lazygit_20231023">

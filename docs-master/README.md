@@ -4,6 +4,7 @@
 * [Custom Commands](./Custom_Command_Keybindings.md)
 * [Custom Diff Renderers](./Custom_DiffRenderers.md)
 * [Dev docs](./dev)
+* [GPG Signing](./GPG_Signing.md)
 * [Keybindings](./keybindings)
 * [Undo/Redo](./Undoing.md)
 * [Range Select](./Range_Select.md)
