@@ -167,6 +167,12 @@ func (self *FileTreeViewModel) SetStatusFilter(filter FileTreeDisplayFilter) {
 	self.IListCursor.SetSelection(0)
 }
 
+func (self *FileTreeViewModel) SetStatusFilterPreservingSelection(filter FileTreeDisplayFilter) {
+	self.preserveSelection(func() {
+		self.SetStatusFilter(filter)
+	})
+}
+
 func (self *FileTreeViewModel) preserveSelection(f func()) {
 	selectedNode := self.GetSelected()
 	var selectedPath string
