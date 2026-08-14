@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
@@ -241,6 +242,46 @@ func TestGetAuthenticatedGithubRemotes(t *testing.T) {
 		"ghe.example.com":      1,
 		"no-token.example.com": 1,
 	}, callsByHost)
+}
+
+func TestMarkWorktreeFiles(t *testing.T) {
+	worktreePath := filepath.Join("/", "path", "to", "repo")
+	worktrees := []*models.Worktree{
+		{Path: worktreePath},
+		{Path: filepath.Join(worktreePath, "worktree1")},
+		{Path: filepath.Join(worktreePath, "dir", "worktree2")},
+		{Path: filepath.Join("/", "path", "to", "worktree3")},
+	}
+
+	t.Run("marks the files that are worktrees, and takes their slash off", func(t *testing.T) {
+		files := []*models.File{
+			{Path: "file"},
+			{Path: "worktree1/"},
+			{Path: "dir/worktree2/"},
+			{Path: "dir/"},
+		}
+
+		assert.True(t, markWorktreeFiles(files, worktrees, worktreePath))
+		assert.Equal(t, []*models.File{
+			{Path: "file"},
+			{Path: "worktree1", IsWorktree: true},
+			{Path: "dir/worktree2", IsWorktree: true},
+			{Path: "dir/"},
+		}, files)
+	})
+
+	t.Run("reports no change when there is nothing to mark", func(t *testing.T) {
+		files := []*models.File{{Path: "file"}, {Path: "dir/"}}
+
+		assert.False(t, markWorktreeFiles(files, worktrees, worktreePath))
+	})
+
+	t.Run("unmarks a file whose worktree is gone", func(t *testing.T) {
+		files := []*models.File{{Path: "worktree1", IsWorktree: true}}
+
+		assert.True(t, markWorktreeFiles(files, nil, worktreePath))
+		assert.Equal(t, []*models.File{{Path: "worktree1"}}, files)
+	})
 }
 
 func makeGithubRemoteInfoList(names ...string) []githubRemoteInfo {

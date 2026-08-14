@@ -1419,10 +1419,43 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 
 		self.c.Model().Submodules = submoduleConfigs
 		self.c.Model().Files = files
+		markWorktreeFiles(files, self.c.Model().Worktrees, env.git.RepoPaths.WorktreePath())
 		fileTreeViewModel.SetTree()
 	})
 
 	return nil
+}
+
+// markWorktreeFiles marks the files that are linked worktrees of this repo, so
+// that the files view can render them as such. `git status` reports a worktree
+// as an untracked directory, i.e. with a trailing slash, which we take off:
+// keeping it would build a directory node with a nameless file inside it.
+//
+// It must run on the UI thread, as it works on the model. Both models it needs
+// are written by refreshes of their own, so it is called after either of them
+// lands; it reports whether it changed anything.
+func markWorktreeFiles(files []*models.File, worktrees []*models.Worktree, worktreePath string) bool {
+	changed := false
+
+	for _, file := range files {
+		absPath := filepath.Join(worktreePath, file.Path)
+		isWorktree := lo.SomeBy(worktrees, func(worktree *models.Worktree) bool {
+			return worktree.Path == absPath
+		})
+
+		if isWorktree != file.IsWorktree {
+			file.IsWorktree = isWorktree
+			changed = true
+		}
+		if isWorktree {
+			if trimmed := strings.TrimSuffix(file.Path, "/"); trimmed != file.Path {
+				file.Path = trimmed
+				changed = true
+			}
+		}
+	}
+
+	return changed
 }
 
 // the reflogs panel is the only panel where we cache data, in that we only
@@ -1531,6 +1564,14 @@ func (self *RefreshHelper) refreshWorktrees(env refreshEnv, branchesAreRefreshin
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
 		self.c.Model().Worktrees = worktrees
+
+		// A worktree inside our working tree is one of the files, so the files
+		// view has to be told about the ones we just loaded (see
+		// markWorktreeFiles). Rebuild the tree because a file's path can change.
+		if markWorktreeFiles(self.c.Model().Files, worktrees, env.git.RepoPaths.WorktreePath()) {
+			self.c.Contexts().Files.FileTreeViewModel.SetTree()
+			self.refreshView(self.c.Contexts().Files, env)
+		}
 	})
 
 	// The branches view shows worktrees against branches, so it needs to be
