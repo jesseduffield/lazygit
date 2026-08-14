@@ -136,7 +136,7 @@ func (self *ListController) handleLineChangeAux(f func(int), change int) error {
 			self.context.SetNeedRerenderVisibleLines()
 		}
 
-		self.context.HandleFocus(types.OnFocusOpts{ScrollSelectionIntoView: true})
+		self.context.HandleFocus(types.OnFocusOpts{})
 	} else {
 		// If the selection did not change (because, for example, we are at the top of the list and
 		// press up), we still want to ensure that the selection is visible. This is useful after
@@ -205,9 +205,10 @@ func (self *ListController) handlePageChange(delta int) error {
 	// must tell it explicitly to rerender.
 	self.context.SetNeedRerenderVisibleLines()
 
-	// Since we are maintaining the scroll position ourselves above, there's no point in passing
-	// ScrollSelectionIntoView=true here.
-	self.context.HandleFocus(types.OnFocusOpts{})
+	// This function scrolls the view itself, keeping the selection at the edge of
+	// the viewport rather than in its middle, so the scroll position is ours to
+	// maintain, not the focus mechanism's.
+	self.context.HandleFocus(types.OnFocusOpts{KeepScrollPosition: true})
 
 	return nil
 }
@@ -280,7 +281,10 @@ func (self *ListController) selectRangeThroughViewIndex(viewIndex int) {
 	newSelectedLineIdx := self.context.ViewIndexToModelIndex(viewIndex)
 	list.ExpandNonStickyRange(newSelectedLineIdx - list.GetSelectedLineIdx())
 
-	self.context.HandleFocus(types.OnFocusOpts{})
+	// The pointer can be outside the viewport, in which case so is the end of
+	// the range; the drag autoscroller takes care of following it, one line at a
+	// time, for as long as the pointer stays there.
+	self.context.HandleFocus(types.OnFocusOpts{KeepScrollPosition: true})
 }
 
 func (self *ListController) handleDragAutoscroll(viewIndex int) bool {

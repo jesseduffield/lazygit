@@ -48,8 +48,13 @@ type IGuiCommon interface {
 	RefreshFromWorker(RefreshOptions)
 	// we call this when we've changed something in the view model but not the actual model,
 	// e.g. expanding or collapsing a folder in a file view. Calling 'Refresh' in this
-	// case would be overkill, although refresh will internally call 'PostRefreshUpdate'
+	// case would be overkill, although refresh will internally call 'PostRefreshUpdate'.
+	// It re-focuses the context's selection, which scrolls it into view.
 	PostRefreshUpdate(Context)
+	// Like PostRefreshUpdate, but leaves the view scrolled where it is. For
+	// refreshes that no user action is behind: those must not move the viewport
+	// away from wherever the user last put it.
+	PostRefreshUpdateKeepingScrollPosition(Context)
 
 	// renders string to a view without resetting its origin
 	SetViewContent(view *gocui.View, content string)

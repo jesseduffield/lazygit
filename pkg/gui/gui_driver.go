@@ -69,6 +69,10 @@ func (self *GuiDriver) MouseMove(x, y int) {
 	self.replayMouseEvent(x, y, tcell.ButtonPrimary)
 }
 
+func (self *GuiDriver) ScrollWheelDown(x, y int) {
+	self.replayMouseEvent(x, y, tcell.WheelDown)
+}
+
 func (self *GuiDriver) MouseRelease(x, y int) {
 	self.replayMouseEvent(x, y, tcell.ButtonNone)
 }
@@ -125,6 +129,16 @@ func (self *GuiDriver) FocusInAndClick(x, y int) {
 		tcell.NewEventMouse(x, y, tcell.ButtonNone, 0),
 		0,
 	))
+	self.waitTillIdle()
+}
+
+// RefreshInBackground performs the refresh that the background routines perform
+// on a timer (see BackgroundRoutineMgr). Tests drive it directly rather than
+// turning those routines on, so that they neither wait for a timer nor depend on
+// one firing at a particular moment.
+func (self *GuiDriver) RefreshInBackground() {
+	self.gui.c.RefreshFromWorker(types.RefreshOptions{Background: true})
+
 	self.waitTillIdle()
 }
 

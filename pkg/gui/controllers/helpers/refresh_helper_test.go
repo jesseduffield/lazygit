@@ -28,8 +28,6 @@ func TestCaptureLocalCommitSelectionRange(t *testing.T) {
 			expected: &localCommitSelectionRange{
 				selectedHash:   "b",
 				rangeStartHash: "a",
-				selectedIdx:    1,
-				rangeStartIdx:  0,
 				mode:           traits.RangeSelectModeSticky,
 			},
 		},
@@ -74,15 +72,12 @@ func TestFindLocalCommitSelectionRange(t *testing.T) {
 	type expectation struct {
 		selectedIdx   int
 		rangeStartIdx int
-		moved         bool
 		found         bool
 	}
 
 	selectionRange := localCommitSelectionRange{
 		selectedHash:   "b",
 		rangeStartHash: "c",
-		selectedIdx:    1,
-		rangeStartIdx:  2,
 		mode:           traits.RangeSelectModeSticky,
 	}
 
@@ -97,7 +92,6 @@ func TestFindLocalCommitSelectionRange(t *testing.T) {
 			expected: expectation{
 				selectedIdx:   2,
 				rangeStartIdx: 3,
-				moved:         true,
 				found:         true,
 			},
 		},
@@ -126,7 +120,6 @@ func TestFindLocalCommitSelectionRange(t *testing.T) {
 			expected: expectation{
 				selectedIdx:   2,
 				rangeStartIdx: 3,
-				moved:         true,
 				found:         true,
 			},
 		},
@@ -139,7 +132,6 @@ func TestFindLocalCommitSelectionRange(t *testing.T) {
 			expected: expectation{
 				selectedIdx:   0,
 				rangeStartIdx: 1,
-				moved:         true,
 				found:         true,
 			},
 		},
@@ -147,11 +139,10 @@ func TestFindLocalCommitSelectionRange(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			selectedIdx, rangeStartIdx, moved, found := findLocalCommitSelectionRange(testCase.commits, &selectionRange)
+			selectedIdx, rangeStartIdx, found := findLocalCommitSelectionRange(testCase.commits, &selectionRange)
 			actual := expectation{
 				selectedIdx:   selectedIdx,
 				rangeStartIdx: rangeStartIdx,
-				moved:         moved,
 				found:         found,
 			}
 

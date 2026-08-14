@@ -111,6 +111,14 @@ type refreshEnv struct {
 	// persist its refreshed stat cache.
 	backgroundRoutine bool
 
+	// Whether the views this refresh updates must keep the scroll position they
+	// have. Focusing a list scrolls its selection into view, which is what a
+	// user action should do — but a refresh that no user action is behind must
+	// leave the viewport wherever the user last scrolled it to. That's the case
+	// for the unattended background routines, and for the refreshes that merely
+	// reload state (see RefreshOptions.DontBlockRepoSwitch).
+	keepScrollPosition bool
+
 	// the repo generation captured when the refresh started
 	generation int
 
@@ -220,8 +228,9 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	// against the repo it started in, and the generation guard drops its
 	// writes.
 	env := refreshEnv{
-		background:        options.Background || options.DontBlockRepoSwitch,
-		backgroundRoutine: options.Background,
+		background:         options.Background || options.DontBlockRepoSwitch,
+		backgroundRoutine:  options.Background,
+		keepScrollPosition: options.Background || options.DontBlockRepoSwitch,
 	}
 	if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 		env.generation = self.c.State().GetRepoGeneration()
@@ -842,32 +851,20 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 			self.c.Model().CheckedOutBranch = ""
 		}
 
-		scrollSelectionIntoView := false
 		switch commitSelection {
 		case types.SelectHeadCommit:
 			if headCommitIdx := models.HeadCommitIdx(commits); headCommitIdx >= 0 {
 				self.c.Contexts().LocalCommits.SetSelection(headCommitIdx)
-				scrollSelectionIntoView = true
 			}
 		case types.KeepCommitSelectionByHash:
 			if selectionRange != nil {
-				selectedIdx, rangeStartIdx, didMove, found := findLocalCommitSelectionRange(commits, selectionRange)
+				selectedIdx, rangeStartIdx, found := findLocalCommitSelectionRange(commits, selectionRange)
 				if found {
 					self.c.Contexts().LocalCommits.SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, selectionRange.mode)
-					scrollSelectionIntoView = didMove
 				}
 			}
 		case types.KeepCommitSelectionIndex:
 			// The caller set the selection index deliberately; leave it untouched.
-		}
-
-		if scrollSelectionIntoView {
-			// Enqueued from within this bounce so it runs after refreshView's
-			// render below (which was enqueued first), matching the previous
-			// ordering where FocusLine ran after the view was re-rendered.
-			self.onUIThreadUnlessRepoChanged(env, func() {
-				self.c.Contexts().LocalCommits.FocusLine(true)
-			})
 		}
 	})
 
@@ -880,8 +877,6 @@ type localCommitSelectionRange struct {
 	selectedIsTODO   bool
 	rangeStartHash   string
 	rangeStartIsTODO bool
-	selectedIdx      int
-	rangeStartIdx    int
 	mode             traits.RangeSelectMode
 }
 
@@ -900,8 +895,6 @@ func captureLocalCommitSelectionRange(
 		selectedIsTODO:   commits[selectedIdx].IsTODO(),
 		rangeStartHash:   commits[rangeStartIdx].Hash(),
 		rangeStartIsTODO: commits[rangeStartIdx].IsTODO(),
-		selectedIdx:      selectedIdx,
-		rangeStartIdx:    rangeStartIdx,
 		mode:             mode,
 	}
 }
@@ -909,17 +902,16 @@ func captureLocalCommitSelectionRange(
 func findLocalCommitSelectionRange(
 	commits []*models.Commit,
 	selectionRange *localCommitSelectionRange,
-) (int, int, bool, bool) {
+) (int, int, bool) {
 	selectedIdx, foundSelected := findCommitByHashPreferringTODOStatus(
 		commits, selectionRange.selectedHash, selectionRange.selectedIsTODO)
 	rangeStartIdx, foundRangeStart := findCommitByHashPreferringTODOStatus(
 		commits, selectionRange.rangeStartHash, selectionRange.rangeStartIsTODO)
 	if !foundSelected || !foundRangeStart {
-		return 0, 0, false, false
+		return 0, 0, false
 	}
 
-	didMove := selectedIdx != selectionRange.selectedIdx || rangeStartIdx != selectionRange.rangeStartIdx
-	return selectedIdx, rangeStartIdx, didMove, true
+	return selectedIdx, rangeStartIdx, true
 }
 
 // findCommitByHashPreferringTODOStatus finds the commit with the given hash.
@@ -1170,10 +1162,8 @@ func (self *RefreshHelper) refreshBranches(captured capturedBranchState, refresh
 				}
 			}
 		case types.SelectCheckedOutBranch:
-			// The checked-out branch is always at the top of the list. Setting
-			// the selection doesn't scroll the view, so also reset the origin.
+			// The checked-out branch is always at the top of the list.
 			self.c.Contexts().Branches.SetSelectedLineIdx(0)
-			self.c.Contexts().Branches.GetView().SetOriginY(0)
 		}
 
 		// Need to re-render the commits view because the visualization of local
@@ -1464,11 +1454,9 @@ func (self *RefreshHelper) refreshReflogCommits(captured capturedReflogState, en
 		self.c.Model().ReflogCommits = reflogCommits
 		self.c.Model().FilteredReflogCommits = filteredReflogCommits
 		// Setting the selection here, in the same bounce that writes the list,
-		// keeps it on the UI thread and atomic with the list update. Setting the
-		// selection doesn't scroll the view, so also reset the origin.
+		// keeps it on the UI thread and atomic with the list update.
 		if selectTopEntry {
 			self.c.Contexts().ReflogCommits.SetSelectedLineIdx(0)
-			self.c.Contexts().ReflogCommits.GetView().SetOriginY(0)
 		}
 	})
 
@@ -1595,7 +1583,11 @@ func (self *RefreshHelper) refreshView(context types.Context, env refreshEnv) {
 		// the filtered list model is up to date for rendering.
 		self.searchHelper.ReApplyFilter(context)
 
-		self.c.PostRefreshUpdate(context)
+		if env.keepScrollPosition {
+			self.c.PostRefreshUpdateKeepingScrollPosition(context)
+		} else {
+			self.c.PostRefreshUpdate(context)
+		}
 
 		self.c.AfterLayout(func() error {
 			// Re-applying the search must be done after re-rendering the view though,
@@ -1771,7 +1763,10 @@ func (self *RefreshHelper) setGithubPullRequests(baseInfo *githubRemoteInfo, bra
 		// the branches and remotes as they are on the UI thread, after their
 		// own refreshes' bounces have applied.
 		self.rebuildPullRequestsMap()
-		self.c.PostRefreshUpdate(self.c.Contexts().Branches)
+		// This lands whenever the network call happens to return, and only
+		// changes how the branches are rendered, not which one is selected, so
+		// it has no business moving the viewport.
+		self.c.PostRefreshUpdateKeepingScrollPosition(self.c.Contexts().Branches)
 	})
 }
 

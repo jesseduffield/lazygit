@@ -78,6 +78,12 @@ func (self *TestDriver) repeatMouseMove() {
 	self.mouseMove(self.mouseX, self.mouseY)
 }
 
+func (self *TestDriver) scrollWheelDown(x, y int) {
+	self.SetCaption(fmt.Sprintf("Scrolling down at %d, %d", x, y))
+	self.gui.ScrollWheelDown(x, y)
+	self.Wait(self.inputDelay)
+}
+
 func (self *TestDriver) mouseRelease() {
 	self.SetCaption(fmt.Sprintf("Releasing mouse at %d, %d", self.mouseX, self.mouseY))
 	self.gui.MouseRelease(self.mouseX, self.mouseY)
@@ -134,6 +140,15 @@ func (self *TestDriver) LogUI(message string) {
 
 func (self *TestDriver) Log(message string) {
 	self.gui.LogUI(message)
+}
+
+// RefreshInBackground performs the refresh that lazygit's background routines
+// perform on a timer, e.g. to pick up changes made by RunCommand. Tests use this
+// rather than turning those routines on and waiting for them.
+func (self *TestDriver) RefreshInBackground() {
+	self.SetCaption("Refreshing in the background")
+	self.gui.RefreshInBackground()
+	self.Wait(self.inputDelay)
 }
 
 // allows the user to run shell commands during the test to emulate background activity

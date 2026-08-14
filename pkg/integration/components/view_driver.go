@@ -355,6 +355,31 @@ func (self *ViewDriver) SelectedLineIdxAtLeast(expected int) *ViewDriver {
 	return self
 }
 
+// asserts on the scroll position of the view, i.e. the index of the line that
+// is shown at the top of the view.
+func (self *ViewDriver) OriginY(expected int) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actual := self.getView().OriginY()
+		return expected == actual, fmt.Sprintf("%s: Expected origin Y to be %d, got %d", self.context, expected, actual)
+	})
+
+	return self
+}
+
+// asserts that the selected line is inside the visible area of the view
+func (self *ViewDriver) SelectedLineIsVisible() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		firstVisible, lastVisible := view.OriginY(), view.OriginY()+view.InnerHeight()-1
+		actual := view.SelectedLineIdx()
+		return actual >= firstVisible && actual <= lastVisible,
+			fmt.Sprintf("%s: Expected the selected line (%d) to be visible, but only lines %d to %d are",
+				self.context, actual, firstVisible, lastVisible)
+	})
+
+	return self
+}
+
 func (self *ViewDriver) OriginYAtLeast(expected int) *ViewDriver {
 	self.t.assertEventually(func() (bool, string) {
 		var actual int
@@ -531,6 +556,15 @@ func (self *ViewDriver) MouseMove(x, y int) *ViewDriver {
 
 func (self *ViewDriver) MouseMoveToBottom(x int) *ViewDriver {
 	return self.MouseMove(x, self.getView().InnerHeight()-1)
+}
+
+// scrolls the view down by one notch of the mouse wheel, i.e. by
+// gui.scrollHeight lines. This moves the scroll position without moving the
+// selection.
+func (self *ViewDriver) ScrollWheelDown() *ViewDriver {
+	offsetX, offsetY, _, _ := self.getView().Dimensions()
+	self.t.scrollWheelDown(offsetX+1, offsetY+1)
+	return self
 }
 
 func (self *ViewDriver) RepeatMouseMove() *ViewDriver {
