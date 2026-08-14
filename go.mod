@@ -5,6 +5,9 @@ go 1.25.0
 // This is necessary to ignore test files when executing gofumpt.
 ignore ./test
 
+// Likewise for worktrees that are nested in the main tree.
+ignore ./.worktrees
+
 require (
 	dario.cat/mergo v1.0.2
 	github.com/adrg/xdg v0.5.3
