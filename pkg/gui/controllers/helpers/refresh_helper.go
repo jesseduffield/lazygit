@@ -861,9 +861,11 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
 		var selectionRange *localCommitSelectionRange
+		var newConflictedCommitIdx *int
 		if commitSelection == types.KeepCommitSelectionByHash {
 			selectedIdx, rangeStartIdx, rangeSelectMode := self.c.Contexts().LocalCommits.GetSelectionRangeAndMode()
 			selectionRange = captureLocalCommitSelectionRange(self.c.Model().Commits, selectedIdx, rangeStartIdx, rangeSelectMode)
+			newConflictedCommitIdx = findNewConflictedCommit(self.c.Model().Commits, commits)
 		}
 
 		self.c.Model().BisectInfo = bisectInfo
@@ -883,7 +885,9 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 				self.c.Contexts().LocalCommits.SetSelection(headCommitIdx)
 			}
 		case types.KeepCommitSelectionByHash:
-			if selectionRange != nil {
+			if newConflictedCommitIdx != nil {
+				self.c.Contexts().LocalCommits.SetSelection(*newConflictedCommitIdx)
+			} else if selectionRange != nil {
 				selectedIdx, rangeStartIdx, found := findLocalCommitSelectionRange(commits, selectionRange)
 				if found {
 					self.c.Contexts().LocalCommits.SetSelectionRangeAndMode(selectedIdx, rangeStartIdx, selectionRange.mode)
@@ -966,6 +970,24 @@ func findCommitByHashPreferringTODOStatus(commits []*models.Commit, hash string,
 
 func hasRestorableCommitHash(commits []*models.Commit, idx int) bool {
 	return idx >= 0 && idx < len(commits) && commits[idx].Hash() != ""
+}
+
+// Returns the index of the conflicted commit in the new commits slice, if there is one and it has a
+// different hash than the one before had (or there wasn't one before). Otherwise returns nil.
+func findNewConflictedCommit(previousCommits []*models.Commit, commits []*models.Commit) *int {
+	previousConflictedCommit, _ := lo.Find(previousCommits, func(commit *models.Commit) bool {
+		return commit.Status == models.StatusConflicted
+	})
+
+	newConflictedCommit, idx, hasConflict := lo.FindIndexOf(commits, func(commit *models.Commit) bool {
+		return commit.Status == models.StatusConflicted
+	})
+
+	if hasConflict && (previousConflictedCommit == nil || previousConflictedCommit.Hash() != newConflictedCommit.Hash()) {
+		return &idx
+	}
+
+	return nil
 }
 
 // capturedSubCommitState holds the sub-commits refresh's model/context/mode

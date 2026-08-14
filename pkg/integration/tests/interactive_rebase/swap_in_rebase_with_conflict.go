@@ -48,6 +48,6 @@ var SwapInRebaseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Common().ContinueRebase()
 			})
 
-		handleConflictsFromSwap(t, "pick")
+		handleConflictsFromSwap(t, "pick", true)
 	},
 })

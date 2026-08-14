@@ -152,6 +152,62 @@ func TestFindLocalCommitSelectionRange(t *testing.T) {
 	}
 }
 
+func TestFindNewConflictedCommit(t *testing.T) {
+	testCases := []struct {
+		name            string
+		previousCommits []*models.Commit
+		commits         []*models.Commit
+		expectedIdx     *int
+	}{
+		{
+			name:            "finds a newly conflicted commit",
+			previousCommits: makeCommits("a", "b"),
+			commits: []*models.Commit{
+				makeCommits("a")[0],
+				makeConflictedCommit("b"),
+			},
+			expectedIdx: lo.ToPtr(1),
+		},
+		{
+			name: "finds a different conflicted commit",
+			previousCommits: []*models.Commit{
+				makeConflictedCommit("a"),
+			},
+			commits: []*models.Commit{
+				makeConflictedCommit("b"),
+			},
+			expectedIdx: lo.ToPtr(0),
+		},
+		{
+			name: "ignores the same conflicted commit",
+			previousCommits: []*models.Commit{
+				makeConflictedCommit("a"),
+			},
+			commits: []*models.Commit{
+				makeConflictedCommit("a"),
+			},
+			expectedIdx: nil,
+		},
+		{
+			name:            "reports not found when there is no conflict",
+			previousCommits: makeCommits("a"),
+			commits:         makeCommits("a", "b"),
+			expectedIdx:     nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			idx := findNewConflictedCommit(testCase.previousCommits, testCase.commits)
+
+			assert.Equal(t, testCase.expectedIdx != nil, idx != nil)
+			if idx != nil {
+				assert.Equal(t, *testCase.expectedIdx, *idx)
+			}
+		})
+	}
+}
+
 func TestGetGithubBaseRemote(t *testing.T) {
 	cases := []struct {
 		name             string
@@ -319,4 +375,8 @@ func makeTodoCommit(action todo.TodoCommand) *models.Commit {
 
 func makeTodoCommitWithHash(hash string, action todo.TodoCommand) *models.Commit {
 	return models.NewCommit(&utils.StringPool{}, models.NewCommitOpts{Hash: hash, Action: action})
+}
+
+func makeConflictedCommit(hash string) *models.Commit {
+	return models.NewCommit(&utils.StringPool{}, models.NewCommitOpts{Hash: hash, Status: models.StatusConflicted})
 }
