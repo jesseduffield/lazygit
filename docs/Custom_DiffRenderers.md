@@ -27,7 +27,7 @@ Fields only for `extDiff`:
 
 Fields only for `rawGit`:
 
-- **args** The additional arguments to use in the `git diff` or `git show` call (e.g. `--color-words`)
+- **args** The additional arguments to use in the `git diff` or `git show` call (e.g. `--color-words`), as an array of strings.
 
 Here's an example for a multi-renderer setup:
 
@@ -40,7 +40,7 @@ git:
     - type: extDiff
       command: difft --color=always --context={{diffContext}}
     - type: rawGit
-      args: --color-words
+      args: [--color-words]
       name: color-words
     - type: rawGit # git's default diff
       name: default
