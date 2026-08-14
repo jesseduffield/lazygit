@@ -34,6 +34,7 @@ var ResolveMultipleFiles = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("First Change"),
 				Contains("======="),
 			).
+			SelectNextItem().
 			PressPrimaryAction()
 
 		t.Views().Files().
@@ -47,11 +48,13 @@ var ResolveMultipleFiles = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().MergeConflicts().
 			IsFocused().
 			SelectedLines(
-				Contains("<<<<<<< HEAD"),
-				Contains("First Change"),
 				Contains("======="),
+				Contains("Second Change"),
+				Contains(">>>>>>>"),
 			).
 			PressPrimaryAction()
+
+		t.Views().Files().SelectedLines(Contains("file2"))
 
 		t.Common().ContinueOnConflictsResolved("merge")
 	},

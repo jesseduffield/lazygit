@@ -1413,7 +1413,7 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 				self.c.Contexts().Files.GetView().Subtitle = self.c.Tr.FilterLabelConflictingFiles
 			}
 		} else if conflictFileCount == 0 && fileTreeViewModel.GetStatusFilter() == filetree.DisplayConflicted {
-			fileTreeViewModel.SetStatusFilter(filetree.DisplayAll)
+			fileTreeViewModel.SetStatusFilterPreservingSelection(filetree.DisplayAll)
 			self.c.Contexts().Files.GetView().Subtitle = ""
 		}
 
