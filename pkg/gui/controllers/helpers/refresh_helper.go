@@ -318,6 +318,23 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		})
 	}
 
+	// The branches view shows worktrees against branches, so a branches render
+	// that happens before the refreshed worktrees have landed in the model shows
+	// stale ones, and rendering again once they land makes the view flicker.
+	// Refresh the worktrees first, then, and let the branches refresh wait for
+	// them: waitForWorktrees returns once the worktrees model write is queued,
+	// so the branches write that follows is queued behind it and the view
+	// renders once, with both.
+	worktreesWg := sync.WaitGroup{}
+	waitForWorktrees := func() { worktreesWg.Wait() }
+	if scopeSet.Includes(types.WORKTREES) {
+		worktreesWg.Add(1)
+		refresh("worktrees", func() {
+			defer worktreesWg.Done()
+			self.refreshWorktrees(env, scopeSet.Includes(types.BRANCHES))
+		})
+	}
+
 	branchesAndRemotesWg := sync.WaitGroup{}
 	// The pull-request fetch (below) needs the just-loaded branches and
 	// remotes. Their model writes are bounced onto the UI thread, so the
@@ -327,7 +344,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	// branchesAndRemotesWg gives the fetch the happens-before to read them.
 	var loadedBranches []*models.Branch
 	var loadedRemotes []*models.Remote
-	includeWorktreesWithBranches := false
 	if scopeSet.Includes(types.COMMITS) {
 		// Capture the refresh's inputs (model, contexts, modes) on the UI
 		// thread, before the git work is dispatched to a worker, so the worker
@@ -367,11 +383,10 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			return
 		}
 
-		includeWorktreesWithBranches = scopeSet.Includes(types.WORKTREES)
 		if self.c.UserConfig().Git.LocalBranchSortOrder == "recency" {
 			branchesAndRemotesWg.Add(1)
 			refresh("reflog and branches", func() {
-				loadedBranches = self.refreshReflogAndBranches(capturedReflog, capturedBranches, includeWorktreesWithBranches, options.BranchSelection, options.SelectTopReflogCommit, env)
+				loadedBranches = self.refreshReflogAndBranches(capturedReflog, capturedBranches, waitForWorktrees, options.BranchSelection, options.SelectTopReflogCommit, env)
 				branchesAndRemotesWg.Done()
 			})
 		} else {
@@ -380,7 +395,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 				// Not a recency sort, so branches doesn't depend on the reflog
 				// being fresh; it runs concurrently with the reflog refresh
 				// below and uses the reflog we captured up front, as it always has.
-				loadedBranches = self.refreshBranches(capturedBranches, includeWorktreesWithBranches, options.BranchSelection, true, capturedReflog.reflogCommits, env)
+				loadedBranches = self.refreshBranches(capturedBranches, waitForWorktrees, options.BranchSelection, true, capturedReflog.reflogCommits, env)
 				branchesAndRemotesWg.Done()
 			})
 			refresh("reflog", func() {
@@ -479,10 +494,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			self.c.Log.Infof("refreshed pull requests in %s", time.Since(t))
 			return nil
 		})
-	}
-
-	if scopeSet.Includes(types.WORKTREES) && !includeWorktreesWithBranches {
-		refresh("worktrees", func() { self.refreshWorktrees(env) })
 	}
 
 	if scopeSet.Includes(types.STAGING) {
@@ -711,17 +722,19 @@ func (self *RefreshHelper) captureBranchState() capturedBranchState {
 	}
 }
 
-func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflogState, capturedBranches capturedBranchState, refreshWorktrees bool, branchSelection types.BranchSelectionBehavior, selectTopReflogCommit bool, env refreshEnv) []*models.Branch {
+func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflogState, capturedBranches capturedBranchState, waitForWorktrees func(), branchSelection types.BranchSelectionBehavior, selectTopReflogCommit bool, env refreshEnv) []*models.Branch {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
 		// Return the immediate (non-recency) load's branches; the recency-sorted
 		// reload below runs on its own worker after we return. Both hold the same
 		// set of branches, which is all the caller (the PR fetch) needs.
-		branches := self.refreshBranches(capturedBranches, refreshWorktrees, branchSelection, false, capturedReflog.reflogCommits, env)
+		branches := self.refreshBranches(capturedBranches, waitForWorktrees, branchSelection, false, capturedReflog.reflogCommits, env)
 
 		self.onWorker(env.background, func(_ gocui.Task) error {
 			reflogCommits, _ := self.refreshReflogCommits(capturedReflog, env, false)
-			self.refreshBranches(capturedBranches, false, types.SelectCheckedOutBranch, true, reflogCommits, env)
+			// The load above already waited for the worktrees, so this one has
+			// nothing left to wait for.
+			self.refreshBranches(capturedBranches, func() {}, types.SelectCheckedOutBranch, true, reflogCommits, env)
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)
 			return nil
 		})
@@ -730,7 +743,7 @@ func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflo
 
 	case types.COMPLETE:
 		reflogCommits, _ := self.refreshReflogCommits(capturedReflog, env, selectTopReflogCommit)
-		return self.refreshBranches(capturedBranches, refreshWorktrees, branchSelection, true, reflogCommits, env)
+		return self.refreshBranches(capturedBranches, waitForWorktrees, branchSelection, true, reflogCommits, env)
 	}
 
 	return nil
@@ -1095,7 +1108,7 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs(env refreshEnv) ([]*mode
 
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
-func (self *RefreshHelper) refreshBranches(captured capturedBranchState, refreshWorktrees bool, branchSelection types.BranchSelectionBehavior, loadBehindCounts bool, reflogCommits []*models.Commit, env refreshEnv) []*models.Branch {
+func (self *RefreshHelper) refreshBranches(captured capturedBranchState, waitForWorktrees func(), branchSelection types.BranchSelectionBehavior, loadBehindCounts bool, reflogCommits []*models.Commit, env refreshEnv) []*models.Branch {
 	loadSeq := self.branchLoadSeq.Add(1)
 
 	branches, err := env.git.Loaders.BranchLoader.Load(
@@ -1129,10 +1142,9 @@ func (self *RefreshHelper) refreshBranches(captured capturedBranchState, refresh
 		self.c.Log.Error(err)
 	}
 
-	var worktrees []*models.Worktree
-	if refreshWorktrees {
-		worktrees = self.loadWorktrees(env)
-	}
+	// Render only once the refreshed worktrees are in the model; the branches
+	// view shows them against the branches (see performRefresh).
+	waitForWorktrees()
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
 		// Drop this write if a branch load that started later has already applied
@@ -1154,11 +1166,6 @@ func (self *RefreshHelper) refreshBranches(captured capturedBranchState, refresh
 		// Rebuilding here (rather than on the worker) means the map is built from
 		// the branches we just wrote, on the UI thread.
 		self.rebuildPullRequestsMap()
-
-		if refreshWorktrees {
-			self.c.Model().Worktrees = worktrees
-			self.refreshView(self.c.Contexts().Worktrees, env)
-		}
 
 		// Setting the selection here, in the same bounce that writes the list,
 		// keeps it on the UI thread and keeps the list and selection updating in
@@ -1519,16 +1526,19 @@ func (self *RefreshHelper) loadWorktrees(env refreshEnv) []*models.Worktree {
 	return worktrees
 }
 
-func (self *RefreshHelper) refreshWorktrees(env refreshEnv) {
+func (self *RefreshHelper) refreshWorktrees(env refreshEnv, branchesAreRefreshing bool) {
 	worktrees := self.loadWorktrees(env)
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
 		self.c.Model().Worktrees = worktrees
 	})
 
-	// need to refresh branches because the branches view shows worktrees against
-	// branches
-	self.refreshView(self.c.Contexts().Branches, env)
+	// The branches view shows worktrees against branches, so it needs to be
+	// rendered again as well. When the branches are being refreshed too, they
+	// render after waiting for the write above, so leave it to them.
+	if !branchesAreRefreshing {
+		self.refreshView(self.c.Contexts().Branches, env)
+	}
 	self.refreshView(self.c.Contexts().Worktrees, env)
 }
 
