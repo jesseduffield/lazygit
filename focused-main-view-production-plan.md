@@ -1085,6 +1085,80 @@ staging and patch-building contexts, because a patch built from a
 whitespace-ignoring diff doesn't apply. Once staging happens in the main view
 the refusal no longer catches it — see §9.10.
 
+#### Deviations from the plan (2026-08-15, as implemented)
+
+Landed as 7 commits plus 2 `fixup!`s on branch `keep-diff-position-on-rerender`
+(off PR 5): the `RenderRestore` mechanism; the gocui off-screen accessors; the
+restore helper together with the `-U` consumer; the renderer-cycle consumer;
+the whitespace consumer; a prep extraction; the far-end preserve. All checks
+green, every commit builds and unit-tests clean on its own. §6 sign-off is
+**owed**.
+
+1. **The shared helper landed with its first consumer** (plan commits 3+4 are
+   one commit). A commit adding only unexported helpers fails `just lint`
+   (golangci-lint's `unused`), and there is no second consumer to justify the
+   `installDiffLineRestore` / `restoreDiffLinePositionOnRerender` split yet —
+   PR 7's ordinal reveal is the thing that splits them.
+2. **`Apply` reports whether it placed the view**, and the task does what it
+   would have done without a restore when it didn't. The plan had only the
+   other half (a restore beats `newContentPending` and clears it); this is what
+   makes "ignoring whitespace emptied the diff" land at the top, as decided.
+3. **A pending restore keeps the task reading past the lines asked for, to the
+   end of input if need be** — found by a failing e2e test, and the one real
+   surprise of this PR. The buffer parser refuses a partially loaded diff
+   (`patch.Parse(…).IsWellFormed()` over a truncated last hunk fails the whole
+   file section), so a restore over a rendering without OSC records can only
+   resolve once the whole thing is in. Both alternatives are wrong: painting at
+   the usual point (enough lines to fill the view) makes the restore silently
+   miss on any diff longer than the initial read, and the prototype's shape —
+   readiness is the restore's alone — stalls, because the task stops reading at
+   `LinesToRead.Total` and would sit there showing the previous content until
+   the user scrolled. Cost: under a non-conforming renderer a long diff is read
+   in full before the re-render appears.
+4. **The loading placeholder is suppressed while a restore is pending**, for
+   PR 1's reason: blanking the view for a message and then putting the user
+   back where they were is the flicker the restore exists to avoid.
+5. **`nearbyDiffLines` never had the stop-at-the-first-change-line rule.** The
+   whitespace consumer needs the unbounded walk (2026-08-15 decision), so it
+   was built that way in the commit that introduces it rather than relaxed in
+   the commit that needs it — the `-U` case behaves identically either way,
+   since a change line always survives it.
+6. **Each candidate goes back on its own screen row**, not on the anchor's, so
+   that the content around the line we land on doesn't move at all; a candidate
+   from off screen clamps to the top or bottom edge. `screenRows` builds that
+   map over the viewport only (O(height)) because `ViewLineForBufferLine` is a
+   linear scan, and per candidate that would be O(n²) over a whole-diff
+   candidate list.
+7. **Matching is by a normalized `patchLine` key** — `(path, kind, line,
+   isDeletion)` with every kind of *content* line collapsed together — looked
+   up in a map built once per re-render, which is what keeps the whole-diff
+   candidate walk linear. All records on a row are indexed, per PR 4 deviation
+   2. Two consequences worth knowing: an addition and the context line it turns
+   into when whitespace stops counting are the same key, which is what makes
+   the whitespace consumer land on it; and a **hunk header is not the same key
+   across a `-U` change** (it names the lines it covers), so a restore anchored
+   on one falls back to the line below — the `-U` e2e test documents that.
+8. **No new `pkg/gui/types` API.** The prototype's `SamePatchLine` /
+   `PatchSelectLine` aren't needed: `patchLineOf` normalizes into a comparable
+   struct inside the helpers package.
+9. **`GetOrCreateViewBufferManagerForView` isn't needed** — the prototype wanted
+   it for a secondary pane that hadn't rendered yet; all three consumers here
+   preserve a view that has.
+10. **The worktree path is captured at install time**, like the view height:
+    resolving a record's path uses the repo's paths, a repo switch replaces
+    them, and the incremental search runs on the task's goroutine (§2.8).
+11. **e2e**: 5 tests in `pkg/integration/tests/main_view/` —
+    `keep_position_when_changing_context_size` (both anchor cases, incl. the
+    hunk-header fallback), `keep_position_when_switching_diff_renderers`,
+    `keep_position_when_ignoring_whitespace` (incl. a change becoming a context
+    line), `keep_position_when_ignoring_whitespace_removes_it` (hunk gone →
+    nearest survivor; diff gone → nothing to keep), and
+    `keep_selected_range_when_changing_context_size` (both ends kept; either end
+    dropped). Plus 3 unit tests in `pkg/tasks`.
+12. **Two `fixup!` commits are left in the branch** for the user to fold
+    (AGENTS.md): one on the mechanism commit (deviation 3), one on the helper
+    commit (deviation 10).
+
 ### PR 7 — Stage, unstage and discard changes directly from the focused main view
 
 The headline PR. After it: in the files panel's focused main view, `space`
@@ -1572,8 +1646,10 @@ The remaining rows are agreed as keep/defer:
       commit builds/tests/lints clean on its own), stacked on
       `support-osc-1717-diff-metadata`. Jump-to-file menu skipped and copy
       moved to PR 7 (see its deviations). §6 sign-off **approved 2026-08-15**
-- [ ] PR 6 — position preserve — branch `keep-diff-position-on-rerender`,
-      stacked on `select-diff-lines-in-main-view`
+- [x] PR 6 — position preserve — **DONE 2026-08-15** on branch
+      `keep-diff-position-on-rerender` (7 commits + 2 `fixup!`s, all checks
+      green, every commit builds and unit-tests clean on its own), stacked on
+      `select-diff-lines-in-main-view`. §6 sign-off **owed**
 - [ ] PR 7 — staging from the main view
 - [ ] PR 8 — custom patches from the main view
 - [ ] PR 9 — panel removal
@@ -1585,6 +1661,20 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-15:** **PR 6 implemented** (7 commits + 2 fixups, green; §6 sign-off
+  owed). Twelve deviations in the PR 6 section; the one that matters beyond this
+  PR is **3**: a pending restore now keeps the task reading to the end of its
+  input, because the buffer parser refuses a partially loaded diff, so a restore
+  over a rendering without OSC records can't resolve until the whole diff is in.
+  Painting at the usual point makes it silently miss on any diff longer than the
+  initial read (this is how the bug was found — the whitespace e2e test failed
+  in one direction only), and the prototype's shape stalls at
+  `LinesToRead.Total`. PR 7's post-stage reveal rides the same mechanism and
+  inherits this. Also worth carrying forward: identities are matched through a
+  normalized key in which every kind of content line collapses together, so an
+  addition and the context line it becomes when whitespace is ignored are the
+  same place — and a hunk header, which names the lines it covers, is *not* the
+  same place across a `-U` change.
 - **2026-08-15:** **PR 5 signed off** — the interactive pass found nothing to
   fix; a few special cases might get their behaviour refined later, but the
   user's call is to write the remaining PRs first. **PR 6 gains a third
