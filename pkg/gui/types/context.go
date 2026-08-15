@@ -102,9 +102,6 @@ type IBaseContext interface {
 	// that the generic ListController can be specialized by view-specific controllers.
 	// We'll need to think of a better way to do this.
 	AddOnDoubleClickFn(func() error)
-	// Likewise for the focused main view: we need this to communicate between a
-	// side panel controller and the focused main view controller.
-	AddOnClickFocusedMainViewFn(func(mainViewName string, clickedLineIdx int) error)
 	// Adding on to the above, this is so that a list-specific handler can register
 	// a hook for doing additional click handling
 	AddOnClickFn(func(opts gocui.ViewMouseBindingOpts) error)
@@ -308,10 +305,6 @@ type HasKeybindings interface {
 	// HandleFocus has already been called (so the main view is up to date). Should return nil if it
 	// decides not to do anything with the click.
 	GetOnClick() func(opts gocui.ViewMouseBindingOpts) error
-
-	// Implement this in a side-panel controller to get called when there's a click in the main view
-	// that belongs to your panel while the main view is already focused.
-	GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error
 }
 
 type IController interface {
