@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -49,7 +50,7 @@ func NewDevelopmentLogger(logPath string) *logrus.Entry {
 func formatted(log *logrus.Logger) *logrus.Entry {
 	// highly recommended: tail -f development.log | humanlog
 	// https://github.com/aybabtme/humanlog
-	log.Formatter = &logrus.JSONFormatter{}
+	log.Formatter = &logrus.JSONFormatter{TimestampFormat: time.RFC3339Nano}
 
 	return log.WithFields(logrus.Fields{})
 }
