@@ -889,6 +889,53 @@ them. All are fixups on their targets, so the final history has none of them.
    has the same bug — was a no-op: moving the selection down never pulled more
    of a lazily-loaded diff in. `ReadLinesToFillView` is the right call.
 
+#### Review round 3 (2026-08-15)
+
+The user merged PR 1 to master and rebased the stack; this round is a read of
+the commits themselves rather than of the behaviour.
+
+1. **The selection commit was too large and is now four**: stop diving into a
+   patch explorer on click (the two `GetOnClickFocusedMainView` implementations
+   plus the binding that had nothing left to call), remove the plumbing now
+   that it is unused, take the focused main view's context by its concrete type
+   in `focusMainView` (prep), and then show the selection. The first two leave
+   a click in the main view doing nothing for two commits, which the user
+   accepted. The split was verified content-identical: the four commits'
+   combined tree equals the original commit's, and the branch tip was unchanged
+   by the operation.
+2. **No code comment may explain itself by pointing at the staging view** — it
+   goes away in PR 9 and the comments would outlive it. Commit messages may
+   still refer to it. Applied across the branch (three commits' worth).
+3. **Commands that act on a diff selection are described only where they
+   apply**: `DescriptionFunc` returns "" for a non-diff main view, which keeps
+   them out of the keybindings menu for a branch log or the status dashboard,
+   and `GetDisabledReason` (`Tr.NothingToSelectInDiff`) strikes them through
+   when the view holds a diff with nothing selectable. The **static
+   `Description` stays** — `pkg/cheatsheet/generate.go` reads that field, not
+   `GetDescription()`, so dropping it silently removed keys from the generated
+   cheatsheets. Dynamic text belongs in `DescriptionFunc` rather than being
+   baked into the binding at registration time: `GetKeybindings` is *not*
+   called when a key is pressed, so the bindings themselves must be static
+   (the user's point; the options bar calling it per frame is not something to
+   rely on). e2e: `selection_commands_only_where_they_apply`.
+4. **`escape` calls `resetDiffSelectMode`** instead of repeating its three
+   assignments.
+5. Open, and left for the user to decide: **the split between
+   `diff_line_helper.go` and `diff_line_navigation.go` is muddy** —
+   `ChangeBlockBounds` sits in the former while `changeBlockStart` sits in the
+   latter. The line that would make sense is identity resolution (the helper,
+   `GetDiffLineInfo`, `resolveDiffLines`, and the two projections) versus
+   questions asked of a whole rendered diff (`FirstChangeLineInView`,
+   `ViewHasChangeLines`, `IsChangeLine`, `ChangeBlockBounds`,
+   `IsSingleHunkForWholeFile`, the two `Adjacent*`, and the pure arithmetic).
+
+Everything but the split landed as `fixup!` commits inserted **mid-branch**,
+next to their targets, per the user's suggested technique; the branch was
+replayed onto each in turn. One thing could not be a fixup: the edit command's
+binding had to take its new shape *inside* its own commit, because resolving
+the replay conflict there would otherwise have re-introduced the locals the
+keybinding fixup had just removed.
+
 The §6 interactive pass is owed: selection feel under delta with
 `narrowSelectionHighlight`, hunk-on-click, drag (including the autoscroll), and
 repeated `n` across files under a metadata-emitting delta.
