@@ -155,7 +155,7 @@ succession (§2.3); 10–11 any time after their dependencies.
 | 3 | Rename the "pagers" config to "diff renderers" — **DONE: landed on master as #5870** | — | rename + migration |
 | 4 | Support diff renderers that emit OSC 1717 diff line metadata | 2, 3 | infra + protocol |
 | 5 | Select, navigate and edit diff lines in the focused main view (copy moved to PR 7) | 2 (4 for renderers) | feature |
-| 6 | Keep your position in the diff when changing context size or switching diff renderers | 1, 2, 5 | feature |
+| 6 | Keep your position in the diff when changing context size, ignoring whitespace, or switching diff renderers | 1, 2, 5 | feature |
 | 7 | Stage, unstage and discard changes directly from the focused main view | 4, 5, 6 | feature |
 | 8 | Build custom patches directly from a commit's diff view | 7 | feature |
 | 9 | Replace the staging and patch-building panels with the focused main view | 7, 8 | removal + migration |
@@ -976,15 +976,21 @@ binding had to take its new shape *inside* its own commit, because resolving
 the replay conflict there would otherwise have re-introduced the locals the
 keybinding fixup had just removed.
 
-The §6 interactive pass is owed: selection feel under delta with
-`narrowSelectionHighlight`, hunk-on-click, drag (including the autoscroll), and
-repeated `n` across files under a metadata-emitting delta.
+#### Interactive sign-off (2026-08-15) — approved
 
-### PR 6 — Keep your position in the diff when changing context size or switching diff renderers
+The §6 pass is done and everything behaves as expected: selection feel under
+delta, hunk-on-click, drag including the autoscroll, and repeated `n` across
+files under a metadata-emitting delta. A few special cases may deserve a
+refinement of their exact behaviour later; the user's call is that getting the
+later PRs written matters more, so none of them is being touched now.
 
-The `RenderRestore` mechanism plus its two standalone consumers. After this
-PR: `{`/`}` (context size) and `|`/`\` (renderer cycle) keep your scroll
-position and selection instead of jumping to the top.
+### PR 6 — Keep your position in the diff when changing context size, ignoring whitespace, or switching diff renderers
+
+The `RenderRestore` mechanism plus its three standalone consumers. After this
+PR: `{`/`}` (context size), `ctrl+w` (ignore whitespace) and `|`/`\` (renderer
+cycle) keep your scroll position and selection instead of jumping to the top.
+(Title drafted with the third consumer added 2026-08-15; §9.5 — the user
+finalizes the wording at PR-open time — may well shorten it.)
 
 Commits:
 
@@ -1031,12 +1037,53 @@ Commits:
    wrong-line "preserved by raw line number" cases (N§18.2); graceful no-op
    fallback for unresolvable renderers. e2e: `diff/cycle_diff_renderers`
    (renamed by #5870) keeps passing. Ref: a21c5841a.
-6. **Preserve the selection's far end too** — `selectionFarEndIdentity`
+6. **Preserve position when toggling "ignore whitespace"** (`ctrl+w`) — added
+   to the plan 2026-08-15 at the user's suggestion; **no prototype reference**,
+   the prototype never touched this path. The call itself is the same one-liner
+   as commits 4 and 5, in `ToggleWhitespaceAction.Call` before it re-renders
+   (it re-renders through `Context().CurrentSide().HandleFocus`, which walks
+   down to the side panel, so the same call covers a focused main view too).
+   What is new is the **fallback**, because ignoring whitespace can remove the
+   anchor line, its whole hunk, or its whole file from the diff:
+   - **The stop-at-the-first-change-line rule in `nearbyDiffLines` is invalid
+     here.** It exists because a change line always survives a `-U` change —
+     which is exactly the assumption ignoring whitespace breaks. So the
+     candidate list has to grow.
+   - **Decided with the user 2026-08-15: candidates run outward from the anchor
+     over the whole rendering, nearest first, unbounded** — across hunk and
+     file boundaries — and the restore lands on the first one the new diff
+     still contains. When the anchor's file was whitespace-only you therefore
+     land on the nearest surviving line of a neighbouring file, which is still
+     where you were in the diff. If nothing survives at all (every change was
+     whitespace), no restore: the view renders from the top, and PR 5's
+     visibility rules already hide the selection once there are no change lines
+     left.
+   - Whether the unbounded list *replaces* the short one for commits 4 and 5
+     too is an implementation call. It has the same ordering, so it only
+     lengthens the list — but a candidate list the size of the buffer makes
+     `findResolvedDiffLine`-per-candidate O(n²); invert it (index the new rows
+     once, then walk the candidates) before sharing it.
+   - Direction is asymmetric: turning ignoring **off** only adds lines and the
+     anchor practically always survives (a whitespace-only change shown as a
+     context line under ignoring keeps its line number, and `SamePatchLine`
+     compares `(line, isDeletion)`, so context↔addition still matches). Turning
+     it **on** is the case the fallback is for; a whitespace-only *deletion* is
+     the one identity with nothing to match in the new diff, and falls to a
+     neighbour.
+   - e2e: a main-view companion to `diff/ignore_whitespace` — position kept
+     when the anchor survives, nearest-survivor landing when its hunk is
+     whitespace-only, and the empty-diff case.
+7. **Preserve the selection's far end too** — `selectionFarEndIdentity`
    restored via `SetRangeSelectStart`; collapses to the cursor line when the
    far end didn't survive. Ref: 0412046c4, N§21.32(4).
 
 Known limitation (keep, document in PR): `NormalSecondary` is not preserved
 (N§16.1, N§18.3).
+
+Interaction to keep in mind (not this PR's job): master refuses `ctrl+w` in the
+staging and patch-building contexts, because a patch built from a
+whitespace-ignoring diff doesn't apply. Once staging happens in the main view
+the refusal no longer catches it — see §9.10.
 
 ### PR 7 — Stage, unstage and discard changes directly from the focused main view
 
@@ -1377,8 +1424,8 @@ user pass before merge:
 |---|---|
 | 1 | ✅ **APPROVED 2026-08-09.** Slow-render matrix (N§11/§13): flick commits/files scrolled down; 10 s auto-refresh (`refreshInterval: 3`) — no content/scrollbar flicker; **also re-test at normal speed** (N§20.5). Found PR 1 deviations 8 and 9, both fixed; a repo with dirty submodules is the case that exposes a slow same-content re-render |
 | 4 | ✅ **APPROVED 2026-08-09.** Patched delta/difftastic/diff-so-fancy emit + render cleanly; handshake swallowed (no phantom line) |
-| 5 | **OWED** (implemented 2026-08-10). Selection feel under delta (narrowSelectionHighlight); hunk-on-click; drag; nav under metadata delta incl. repeated `n` across files |
-| 6 | `{`/`}` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ext-diff route (difftastic) |
+| 5 | ✅ **APPROVED 2026-08-15.** Selection feel under delta; hunk-on-click; drag incl. autoscroll; nav under metadata delta incl. repeated `n` across files. Some special cases are candidates for a later refinement; deliberately not pursued now |
+| 6 | `{`/`}`, `ctrl+w` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ext-diff route (difftastic); ignoring whitespace where it removes the anchor's hunk, and where it empties the diff |
 | 7 | Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro) |
 | 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
 | 10 | Ghostty, iTerm2, VS Code |
@@ -1490,6 +1537,20 @@ The remaining rows are agreed as keep/defer:
    the raw fallback?~~ Resolved 2026-08-07: probe them like any other
    renderer, since git announces itself for exactly the formats it
    describes. See PR 7 commit 10.
+10. **PRs 7/9: what does `ctrl+w` do in a main view you can stage from?**
+    (Raised 2026-08-15 while planning PR 6's whitespace consumer.) Master
+    refuses ignoring whitespace in the staging and patch-building contexts —
+    `ToggleWhitespaceAction` matches on those three context keys and answers
+    `IgnoreWhitespaceNotSupportedHere` — because a patch built from a
+    whitespace-ignoring diff doesn't apply. In the focused main view the
+    current context is `Normal`, so the refusal doesn't catch it, and once
+    PR 7 binds `space` there the toggle silently becomes a way to build a
+    broken patch. Options: refuse it when the panel beneath is
+    `Staging`/`PatchBuilding` (master's rule, expressed in the new
+    classifier); or allow it and disable the acting keys while it's on; or
+    treat it like a non-conforming renderer and stage from the raw diff.
+    Decide in PR 7; PR 9 must in any case delete the now-dead context-key
+    list.
 
 ## 10. Progress
 
@@ -1510,8 +1571,9 @@ The remaining rows are agreed as keep/defer:
       `select-diff-lines-in-main-view` (9 commits, all checks green, every
       commit builds/tests/lints clean on its own), stacked on
       `support-osc-1717-diff-metadata`. Jump-to-file menu skipped and copy
-      moved to PR 7 (see its deviations). §6 sign-off **owed**
-- [ ] PR 6 — position preserve
+      moved to PR 7 (see its deviations). §6 sign-off **approved 2026-08-15**
+- [ ] PR 6 — position preserve — branch `keep-diff-position-on-rerender`,
+      stacked on `select-diff-lines-in-main-view`
 - [ ] PR 7 — staging from the main view
 - [ ] PR 8 — custom patches from the main view
 - [ ] PR 9 — panel removal
@@ -1523,6 +1585,19 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-15:** **PR 5 signed off** — the interactive pass found nothing to
+  fix; a few special cases might get their behaviour refined later, but the
+  user's call is to write the remaining PRs first. **PR 6 gains a third
+  consumer**, at the user's suggestion: preserving position when toggling
+  "ignore whitespace" (new commit 6, between the renderer-cycle and far-end
+  commits). It is the first consumer whose anchor can disappear along with its
+  hunk or file, so the candidate walk drops the stop-at-the-first-change-line
+  rule and runs **unbounded, nearest first** — decided with the user out of
+  three options (the alternatives confined it to the anchor's file, landing at
+  the top of the diff or on the nearest file header when the whole file went
+  whitespace-only). Also raised there and parked as §9.10: with staging in the
+  main view, master's refusal to ignore whitespace in a staging context no
+  longer catches it.
 - **2026-08-10:** **PR 5 implemented** (9 commits, green; §6 sign-off owed).
   Two of the plan's ten commits aren't in it, both by decision with the user:
   the **jump-to-file menu is skipped** (UX undecided) and **copy moves to
