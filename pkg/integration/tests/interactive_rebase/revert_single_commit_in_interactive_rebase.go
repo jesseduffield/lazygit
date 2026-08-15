@@ -49,10 +49,10 @@ var RevertSingleCommitInInteractiveRebase = NewIntegrationTest(NewIntegrationTes
 				Contains("CI unrelated change 2"),
 				Contains("CI unrelated change 1"),
 				Contains("─── Pending reverts"),
-				Contains("revert").Contains("CI <-- CONFLICT --- add first line"),
+				Contains("revert").Contains("CI <-- CONFLICT --- add first line").IsSelected(),
 				Contains("─── Commits"),
 				Contains("CI ○ add second line"),
-				Contains("CI ○ add first line").IsSelected(),
+				Contains("CI ○ add first line"),
 				Contains("CI ○ add empty file"),
 			).
 			Press(keys.Commits.MoveDownCommit).
