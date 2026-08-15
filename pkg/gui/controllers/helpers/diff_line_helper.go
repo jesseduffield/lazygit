@@ -32,53 +32,56 @@ func NewDiffLineHelper(c *HelperCommon) *DiffLineHelper {
 // ok is false when the row's identity can't be recovered, in which case the
 // caller must not act on the line at all.
 func (self *DiffLineHelper) GetDiffLineInfo(view *gocui.View, viewLineIdx int) (types.DiffLineInfo, bool) {
-	// The cursor and clicks land on a view line, which counts wrapped segments;
-	// the contents are indexed by unwrapped buffer line.
-	bufferLineIdx, ok := view.BufferLineForViewLine(viewLineIdx)
+	identities, ok := self.diffLineIdentitiesAt(view, viewLineIdx)
 	if !ok {
-		return types.DiffLineInfo{}, false
-	}
-
-	contents := view.DiffLineContents()
-	if bufferLineIdx >= len(contents) {
-		return types.DiffLineInfo{}, false
-	}
-
-	if renderingStatesDiffLines(contents) {
-		if info, ok := self.diffLineInfoFromRecords(contents[bufferLineIdx].Metadata); ok {
-			return info, true
-		}
-		return types.DiffLineInfo{}, false
-	}
-
-	parsed, ok := parseDiffLineFromBuffer(diffLineTexts(contents), bufferLineIdx)
-	if !ok {
-		return types.DiffLineInfo{}, false
-	}
-
-	return self.diffLineInfo(parsed), true
-}
-
-// diffLineInfoFromRecords recovers a row's identity from the records the diff
-// renderer stated for it. ok is false when the row carries no record we understand.
-//
-// A row can carry more than one record, when the rendering puts two diff lines on it
-// (a side-by-side row shows a deletion and the addition replacing it); the leftmost
-// is the one a reader would call the row's own, so it is the row's identity.
-func (self *DiffLineHelper) diffLineInfoFromRecords(metadata []string) (types.DiffLineInfo, bool) {
-	identities := self.diffLineIdentitiesFromRecords(metadata)
-	if len(identities) == 0 {
 		return types.DiffLineInfo{}, false
 	}
 	return identities[0], true
 }
 
+// diffLineIdentitiesAt recovers every diff line the row at the given (wrapped) view
+// line shows, left to right. It is GetDiffLineInfo's form for a reader that can't
+// settle for the line the row leads with: an end of a selection covers its whole
+// row, so where a rendering puts a modification's two halves side by side it covers
+// both of them. ok is false when the row's identity can't be recovered at all.
+func (self *DiffLineHelper) diffLineIdentitiesAt(
+	view *gocui.View, viewLineIdx int,
+) ([]types.DiffLineInfo, bool) {
+	// The cursor and clicks land on a view line, which counts wrapped segments;
+	// the contents are indexed by unwrapped buffer line.
+	bufferLineIdx, ok := view.BufferLineForViewLine(viewLineIdx)
+	if !ok {
+		return nil, false
+	}
+
+	contents := view.DiffLineContents()
+	if bufferLineIdx >= len(contents) {
+		return nil, false
+	}
+
+	if renderingStatesDiffLines(contents) {
+		if identities := self.diffLineIdentitiesFromRecords(contents[bufferLineIdx].Metadata); len(identities) > 0 {
+			return identities, true
+		}
+		return nil, false
+	}
+
+	parsed, ok := parseDiffLineFromBuffer(diffLineTexts(contents), bufferLineIdx)
+	if !ok {
+		return nil, false
+	}
+
+	return []types.DiffLineInfo{self.diffLineInfo(parsed)}, true
+}
+
 // diffLineIdentitiesFromRecords recovers the identity of every diff line the row's
-// records state, left to right. Which of them a reader is after depends on the
-// reader: the one the row leads with is the row's own identity (see
-// diffLineInfoFromRecords), while a reader looking for a particular line has to
-// consider them all, since which of a modification's two halves leads a row is up to
-// the rendering.
+// records state, left to right. A row can carry more than one record, when the
+// rendering puts two diff lines on it (a side-by-side row shows a deletion and the
+// addition replacing it). Which of them a reader is after depends on the reader: the
+// one the row leads with is the row's own identity (see GetDiffLineInfo and
+// resolveDiffLines), while a reader looking for a particular line has to consider
+// them all, since which of a modification's two halves leads a row is up to the
+// rendering.
 func (self *DiffLineHelper) diffLineIdentitiesFromRecords(metadata []string) []types.DiffLineInfo {
 	return self.diffLineInfos(parseDiffLineRecords(metadata))
 }
