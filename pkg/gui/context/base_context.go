@@ -13,15 +13,14 @@ type BaseContext struct {
 	windowName      string
 	onGetOptionsMap func() map[string]string
 
-	keybindingsFns           []types.KeybindingsFn
-	mouseKeybindingsFns      []types.MouseKeybindingsFn
-	onDoubleClickFn          func() error
-	onClickFn                func(opts gocui.ViewMouseBindingOpts) error
-	onClickFocusedMainViewFn onClickFocusedMainViewFn
-	onRenderToMainFn         func()
-	onFocusFns               []onFocusFn
-	onFocusLostFns           []onFocusLostFn
-	onQuitFns                []func()
+	keybindingsFns      []types.KeybindingsFn
+	mouseKeybindingsFns []types.MouseKeybindingsFn
+	onDoubleClickFn     func() error
+	onClickFn           func(opts gocui.ViewMouseBindingOpts) error
+	onRenderToMainFn    func()
+	onFocusFns          []onFocusFn
+	onFocusLostFns      []onFocusLostFn
+	onQuitFns           []func()
 
 	focusable                   bool
 	transient                   bool
@@ -34,9 +33,8 @@ type BaseContext struct {
 }
 
 type (
-	onFocusFn                = func(types.OnFocusOpts)
-	onFocusLostFn            = func(types.OnFocusLostOpts)
-	onClickFocusedMainViewFn = func(mainViewName string, clickedLineIdx int) error
+	onFocusFn     = func(types.OnFocusOpts)
+	onFocusLostFn = func(types.OnFocusLostOpts)
 )
 
 var _ types.IBaseContext = &BaseContext{}
@@ -153,7 +151,6 @@ func (self *BaseContext) ClearAllAttachedControllerFunctions() {
 	self.onQuitFns = nil
 	self.onDoubleClickFn = nil
 	self.onClickFn = nil
-	self.onClickFocusedMainViewFn = nil
 	self.onRenderToMainFn = nil
 }
 
@@ -175,25 +172,12 @@ func (self *BaseContext) AddOnClickFn(fn func(opts gocui.ViewMouseBindingOpts) e
 	}
 }
 
-func (self *BaseContext) AddOnClickFocusedMainViewFn(fn onClickFocusedMainViewFn) {
-	if fn != nil {
-		if self.onClickFocusedMainViewFn != nil {
-			panic("only one controller is allowed to set an onClickFocusedMainViewFn")
-		}
-		self.onClickFocusedMainViewFn = fn
-	}
-}
-
 func (self *BaseContext) GetOnDoubleClick() func() error {
 	return self.onDoubleClickFn
 }
 
 func (self *BaseContext) GetOnClick() func(opts gocui.ViewMouseBindingOpts) error {
 	return self.onClickFn
-}
-
-func (self *BaseContext) GetOnClickFocusedMainView() onClickFocusedMainViewFn {
-	return self.onClickFocusedMainViewFn
 }
 
 func (self *BaseContext) AddOnRenderToMainFn(fn func()) {
