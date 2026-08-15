@@ -920,8 +920,14 @@ the commits themselves rather than of the behaviour.
    rely on). e2e: `selection_commands_only_where_they_apply`.
 4. **`escape` calls `resetDiffSelectMode`** instead of repeating its three
    assignments.
-5. Open, and left for the user to decide: **the split between
-   `diff_line_helper.go` and `diff_line_navigation.go` is muddy** —
+5. **`diff_line_navigation.go` is now `diff_line_queries.go`**, holding everything
+   that answers a question about a rendered diff (`FirstChangeLineInView`,
+   `ViewHasChangeLines`, `IsChangeLine`, `IsSingleHunkForWholeFile`,
+   `ChangeBlockBounds`, both `Adjacent*`, the two projections and the pure
+   arithmetic), while `diff_line_helper.go` keeps only the recovery of a row's
+   identity. "Queries" over "navigation" (too narrow: most of the file isn't
+   navigation) and over "scanning" (describes the implementation, not what a
+   caller gets). The muddiness the user pointed at was —
    `ChangeBlockBounds` sits in the former while `changeBlockStart` sits in the
    latter. The line that would make sense is identity resolution (the helper,
    `GetDiffLineInfo`, `resolveDiffLines`, and the two projections) versus
