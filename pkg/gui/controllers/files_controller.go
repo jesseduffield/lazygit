@@ -408,16 +408,6 @@ func (self *FilesController) GetOnDoubleClick() func() error {
 	})
 }
 
-func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
-	return func(mainViewName string, clickedLineIdx int) error {
-		node := self.getSelectedItem()
-		if node != nil && node.File != nil {
-			return self.EnterFile(types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
-		}
-		return nil
-	}
-}
-
 // if we are dealing with a status for which there is no key in this map,
 // then we won't optimistically render: we'll just let `git status` tell
 // us what the new status is.
