@@ -87,6 +87,10 @@ while still being meaningful and self-contained.
 - **Wrap message body to 72 characters**. The subject is allowed to go up to 80
   characters, or even a little more if needed to convey a good single-line
   summary; the body should be wrapped at 72 exactly, no more, no less.
+- **End every commit message with the `Co-authored-by:` trailer** naming the
+  model that wrote it, exactly as your harness instructions spell it. Nothing
+  in `just check` catches a missing one, so it has to be part of writing the
+  message rather than something to notice afterwards.
 
 ## Iterate with `fixup!` commits
 
@@ -104,6 +108,16 @@ fixup isn't only clean autosquash — it's that the refinement lands as a
 separate, reviewable commit that the user decides when to fold in. A bare
 `--amend` rewrites the commit on the spot and skips that checkpoint. Don't
 treat "I'm only touching the tip commit" as an exception.
+
+**When the tip is the wrong place for a fixup, insert it mid-branch.**
+Committing a fixup at the tip of the branch only works while the code it
+touches still looks the same there; once later commits have rewritten that
+code — or the target has since been split — the fixup won't apply, and
+rewriting the later commits to accommodate it defeats the point. Check out the
+target, make the change, `git commit --fixup=<target>`, then
+`git rebase --onto <the fixup> <target> <branch>` to replay the rest of the
+branch. The fixup stays a separate, reviewable commit; only its position
+changes.
 
 If the changes don't map cleanly onto existing commits — say they cut
 across several of them, or restructure something at a different layer
