@@ -19,10 +19,6 @@ func (self *baseController) GetOnDoubleClick() func() error {
 	return nil
 }
 
-func (self *baseController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
-	return nil
-}
-
 func (self *baseController) GetOnClick() func(opts gocui.ViewMouseBindingOpts) error {
 	return nil
 }
