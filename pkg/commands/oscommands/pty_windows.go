@@ -204,7 +204,8 @@ func (p *winPty) Close() error {
 // slave closes on child exit, but ConPTY keeps the pipe alive until we call
 // ClosePseudoConsole explicitly. Without doing that on child exit, the
 // scanner in pkg/tasks.NewCmdTask would block forever on the next read and
-// the post-content view never gets cleared (FlushStaleCells never fires).
+// the render would never reach its end of input, so the new content would
+// never be swapped in.
 func startWaiter(proc *os.Process, p *winPty) func() error {
 	done := make(chan struct{})
 	var waitErr error

@@ -101,13 +101,13 @@ func TestWriteString(t *testing.T) {
 	for _, test := range tests {
 		v := NewView("name", 0, 0, 10, 10, OutputNormal)
 		for _, l := range test.existingLines {
-			v.lines = append(v.lines, lineType{cells: stringToCells(l)})
+			v.buf.lines = append(v.buf.lines, lineType{cells: stringToCells(l)})
 		}
 		for _, s := range test.stringsToWrite {
 			v.writeString(s)
 		}
 		var resultingLines [][]string
-		for _, l := range v.lines {
+		for _, l := range v.buf.lines {
 			resultingLines = append(resultingLines, cellsToStrings(l.cells))
 		}
 		assert.Equal(t, test.expectedLines, resultingLines)
@@ -144,19 +144,115 @@ func TestAutoRenderingHyperlinks(t *testing.T) {
 
 	v.writeString("htt")
 	// No hyperlinks are generated for incomplete URLs
-	assert.Equal(t, "", v.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "", v.buf.lines[0].cells[0].hyperlink)
 	// Writing more characters to the same line makes the link complete (even
 	// though we didn't see a newline yet)
 	v.writeString("ps://example.com")
-	assert.Equal(t, "https://example.com", v.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
 
 	v.Clear()
 	// Valid but incomplete URL
 	v.writeString("https://exa")
-	assert.Equal(t, "https://exa", v.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://exa", v.buf.lines[0].cells[0].hyperlink)
 	// Writing more characters to the same fixes the link
 	v.writeString("mple.com")
-	assert.Equal(t, "https://example.com", v.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
+}
+
+// An async re-render builds into an off-screen buffer and swaps it in once it
+// has enough to paint, so readers keep seeing the previous render — coherent and
+// consistent — until the new content appears in one step. See View.offscreen.
+func TestOffscreenRender(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	v.writeString("a\nb\nc")
+	assert.Equal(t, []string{"a", "b", "c"}, v.ViewBufferLines())
+
+	// Render new, longer content off-screen.
+	v.BeginOffscreenRender()
+	v.writeString("w\nx\ny\nz")
+
+	// The displayed buffer is untouched: readers still see the previous render.
+	assert.Equal(t, []string{"a", "b", "c"}, v.ViewBufferLines())
+
+	// Swapping in reveals the new content in one step.
+	v.SwapInOffscreenRender()
+	assert.Equal(t, []string{"w", "x", "y", "z"}, v.ViewBufferLines())
+
+	// A further write now appends to the displayed buffer directly.
+	v.writeString("\nmore")
+	assert.Equal(t, []string{"w", "x", "y", "z", "more"}, v.ViewBufferLines())
+}
+
+// When a render produces fewer view lines than the previous one,
+// refreshViewLinesIfNeeded must truncate viewLines to the new content rather
+// than leaving the previous render's entries in the tail: with the off-screen
+// render there is no half-loaded buffer whose tail we'd want to keep showing,
+// and a leftover tail is just stale lines describing content that is gone.
+func TestViewLinesTruncatedByShorterRender(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// Two lines of 27 characters each wrap into 3 view lines apiece.
+	v.writeString(strings.Repeat("a", 27) + "\n" + strings.Repeat("b", 27))
+	assert.Equal(t, 6, v.ViewLinesHeight())
+
+	// Re-render with three short, unwrapped lines: only 3 view lines remain.
+	v.BeginOffscreenRender()
+	v.writeString("aaa\nbbb\nccc")
+	v.SwapInOffscreenRender()
+	assert.Equal(t, 3, v.ViewLinesHeight())
+	assert.Equal(t, []string{"aaa", "bbb", "ccc"}, v.ViewBufferLines())
+}
+
+// While an async re-render loads, it swaps in only a partially-filled buffer at
+// its first paint and keeps appending lines afterwards. The scrollbar must keep
+// using the pre-load height until the load ends, so the thumb doesn't shrink and
+// snap back as the rest streams in. See View.scrollbarHeightFloor.
+func TestScrollbarHeightHeldWhileLoading(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 12, OutputNormal)
+
+	// Initial render: 100 lines, scrolled well down.
+	v.writeString(strings.Repeat("x\n", 100))
+	v.SetOrigin(0, 80)
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// A re-render begins while the previous render is still shown: hold the
+	// scrollbar height at the current value.
+	v.FreezeScrollbarHeight()
+
+	// The off-screen render swaps in only a screenful at its first paint.
+	v.BeginOffscreenRender()
+	v.writeString(strings.Repeat("y\n", 30))
+	v.SwapInOffscreenRender()
+
+	// The displayed buffer is now short, but the scrollbar height stays held, so
+	// the thumb keeps its position instead of jumping.
+	assert.Equal(t, 30, v.ViewLinesHeight())
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// The rest of the content streams in.
+	v.writeString(strings.Repeat("y\n", 70))
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// Once the load ends, the scrollbar tracks the real content directly again.
+	v.UnfreezeScrollbarHeight()
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+}
+
+// If a synchronous render (e.g. a string render) supersedes a still-loading diff
+// before it reaches its end, the held scrollbar height must be released, so the
+// scrollbar reflects the new content rather than the abandoned load's height.
+func TestScrollbarHeightReleasedWhenContentReplaced(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 12, OutputNormal)
+
+	v.writeString(strings.Repeat("x\n", 100))
+	v.FreezeScrollbarHeight()
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// A synchronous render replaces the content before the (notional) load ends.
+	v.SetContent("just a few\nshort lines\nhere")
+	assert.Equal(t, 3, v.scrollbarContentHeight())
 }
 
 func TestContainsColoredText(t *testing.T) {
@@ -233,7 +329,7 @@ func TestContainsColoredText(t *testing.T) {
 		for j, cells := range test.lines {
 			lines[j] = lineType{cells: cells}
 		}
-		v := &View{lines: lines}
+		v := &View{buf: &viewBuffer{lines: lines}}
 		assert.Equal(t, test.expected, v.ContainsColoredText(test.fgColorStr, test.text), "Test %d failed", i)
 	}
 }
@@ -248,8 +344,8 @@ func TestWriteCursorPositionEscape(t *testing.T) {
 	// "a", then "skip to row 3" (i.e. one blank row), then "b".
 	v.writeString("a\r\n\x1b[3;1Hb\r\n")
 
-	got := make([][]string, 0, len(v.lines))
-	for _, l := range v.lines {
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
 		got = append(got, cellsToStrings(l.cells))
 	}
 
@@ -269,8 +365,8 @@ func TestWriteCursorPositionEscapeAcrossWrites(t *testing.T) {
 	// ConPTY is on row 3 here; CUP to row 5 should skip exactly one row.
 	v.writeString("c\x1b[5;1Hd\n")
 
-	got := make([][]string, 0, len(v.lines))
-	for _, l := range v.lines {
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
 		got = append(got, cellsToStrings(l.cells))
 	}
 	assert.Equal(t, [][]string{
@@ -279,6 +375,31 @@ func TestWriteCursorPositionEscapeAcrossWrites(t *testing.T) {
 		{"c"},
 		{},
 		{"d"},
+	}, got)
+}
+
+func TestWriteCursorPositionEscapeInOffscreenRender(t *testing.T) {
+	// Soft-wrap counting has to work in an off-screen render too: the content
+	// width the parser counts wraps against is set by SetContentWidth before the
+	// render starts, so the off-screen buffer's parser has to pick it up. If it
+	// doesn't, no wraps are counted and the CUP below is evaluated against a
+	// stale row, overshooting into an extra blank line.
+	v := NewView("name", 0, 0, 30, 30, OutputNormal)
+	v.SetContentWidth(5)
+
+	v.BeginOffscreenRender()
+	// Seven characters soft-wrap once on a 5-column screen, putting ConPTY on
+	// row 2; CUP to row 3 should then skip no rows at all.
+	v.writeString("aaaaaaa\x1b[3;1Hb\n")
+	v.SwapInOffscreenRender()
+
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
+		got = append(got, cellsToStrings(l.cells))
+	}
+	assert.Equal(t, [][]string{
+		{"a", "a", "a", "a", "a", "a", "a"},
+		{"b"},
 	}, got)
 }
 
@@ -292,8 +413,8 @@ func TestWriteCursorForwardEscape(t *testing.T) {
 	// "a" + ECH 5 + CUF 5 + "b" — visually "a     b".
 	v.writeString("a\x1b[5X\x1b[5Cb\n")
 
-	got := make([][]string, 0, len(v.lines))
-	for _, l := range v.lines {
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
 		got = append(got, cellsToStrings(l.cells))
 	}
 
@@ -312,8 +433,8 @@ func TestWriteCursorPositionEscapeWithSoftWraps(t *testing.T) {
 	v.writeString("abcdefghij\n")
 	v.writeString("\x1b[4;1Hxyz\n")
 
-	got := make([][]string, 0, len(v.lines))
-	for _, l := range v.lines {
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
 		got = append(got, cellsToStrings(l.cells))
 	}
 	assert.Equal(t, [][]string{
