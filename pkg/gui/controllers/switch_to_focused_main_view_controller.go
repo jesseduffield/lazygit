@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -72,10 +73,8 @@ func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
 	return self.focusMainView(self.c.Contexts().Normal)
 }
 
-func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext types.Context) error {
-	if context, ok := mainViewContext.(types.ISearchableContext); ok {
-		context.ClearSearchString()
-	}
+func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext *context.MainContext) error {
+	mainViewContext.ClearSearchString()
 	self.c.Context().Push(mainViewContext, types.OnFocusOpts{})
 	return nil
 }
