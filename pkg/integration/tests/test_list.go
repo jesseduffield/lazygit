@@ -557,4 +557,5 @@ var tests = []*components.IntegrationTest{
 	worktree.SeparateWorkTreeConfig,
 	worktree.SymlinkIntoRepoSubdir,
 	worktree.WorktreeInRepo,
+	worktree.WorktreeInsideRepo,
 }
