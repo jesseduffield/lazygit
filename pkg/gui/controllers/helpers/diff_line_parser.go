@@ -125,6 +125,46 @@ func renderingStatesDiffLines(contents []gocui.DiffLineContent) bool {
 	})
 }
 
+// parseDiffLineRecords parses the records a row carries, left to right, leaving out
+// the ones we don't understand. A row carries more than one when the rendering puts
+// two diff lines on it, as a side-by-side row does with a deletion and the addition
+// replacing it.
+func parseDiffLineRecords(metadata []string) []parsedDiffLine {
+	parsed := make([]parsedDiffLine, 0, len(metadata))
+	for _, record := range metadata {
+		if line, ok := parseDiffLineMetadata(record); ok {
+			parsed = append(parsed, line)
+		}
+	}
+	return parsed
+}
+
+// parseDiffLineIdentities recovers, for every row of a rendering, the diff lines it
+// shows, indexed 1:1 with contents; a row that shows none we can place gets an empty
+// entry. The rendering is read the way renderingStatesDiffLines settles: by the
+// renderer's records, every one a row carries, or else by parsing the rendering as a
+// unified diff, where each row shows one line. Each file's section is parsed once;
+// resolving row by row would re-run that parse once per row, O(n²) on a large
+// single-file diff.
+func parseDiffLineIdentities(contents []gocui.DiffLineContent) [][]parsedDiffLine {
+	identities := make([][]parsedDiffLine, len(contents))
+	if renderingStatesDiffLines(contents) {
+		for i, content := range contents {
+			if parsed := parseDiffLineRecords(content.Metadata); len(parsed) > 0 {
+				identities[i] = parsed
+			}
+		}
+		return identities
+	}
+
+	for i, parsed := range parseAllDiffLinesFromBuffer(diffLineTexts(contents)) {
+		if parsed.ok {
+			identities[i] = []parsedDiffLine{parsed.parsed}
+		}
+	}
+	return identities
+}
+
 // fileSectionBounds returns the half-open range [start, end) of the file section
 // containing targetIdx: the nearest line starting a section at or above it, up to
 // where that section ends. start is -1 when targetIdx is above the first file
