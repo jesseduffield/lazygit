@@ -2329,6 +2329,11 @@ func (v *View) SelectedLineIdx() int {
 	return seletedLineIdx
 }
 
+// IsLineVisible reports whether the given view line is one of those on screen.
+func (v *View) IsLineVisible(viewLine int) bool {
+	return viewLine >= v.OriginY() && viewLine < v.OriginY()+v.InnerHeight()
+}
+
 // MiddleVisibleLineIdx returns the view line halfway down the visible content. It
 // stands in for a cursor in a view that has none: of the lines on screen, the one in
 // the middle is the likeliest to be the one being read.
