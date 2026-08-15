@@ -273,6 +273,10 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	//   - merge conflicts are part of what the files refresh produces
 	//   - pull requests are fetched for the tracking branches against the
 	//     remotes, so refresh both alongside to fetch against fresh data
+	//   - commits and branches always go together: changing commits changes
+	//     the branches' upstream/downstream counts, and changing branches
+	//     (e.g. checking one out) changes the commits we show. This one comes
+	//     last, so that it also covers the branches the rules above add.
 	if scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
 		scopeSet.Add(types.COMMITS, types.BRANCHES)
 	}
@@ -284,6 +288,9 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	}
 	if scopeSet.Includes(types.PULL_REQUESTS) {
 		scopeSet.Add(types.BRANCHES, types.REMOTES)
+	}
+	if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) {
+		scopeSet.Add(types.COMMITS, types.BRANCHES)
 	}
 
 	// Capture the refs snapshot now, before we start reading git's state
@@ -321,27 +328,44 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	var loadedBranches []*models.Branch
 	var loadedRemotes []*models.Remote
 	includeWorktreesWithBranches := false
-	if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) {
-		// whenever we change commits, we should update branches because the upstream/downstream
-		// counts can change. Whenever we change branches we should also change commits
-		// e.g. in the case of switching branches.
-		// Capture the commits, reflog and branches refresh inputs (model,
-		// contexts, modes) on the UI thread, before the git work is dispatched
-		// to a worker, so the workers compute from an immutable snapshot
-		// instead of reading state the UI thread concurrently mutates.
+	if scopeSet.Includes(types.COMMITS) {
+		// Capture the refresh's inputs (model, contexts, modes) on the UI
+		// thread, before the git work is dispatched to a worker, so the worker
+		// computes from an immutable snapshot instead of reading state the UI
+		// thread concurrently mutates. Every scope below does the same.
 		var capturedCommits capturedCommitState
-		var capturedReflog capturedReflogState
-		var capturedBranches capturedBranchState
 		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 			capturedCommits = self.captureCommitsState()
-			capturedReflog = self.captureReflogState()
-			capturedBranches = self.captureBranchState()
 		}) {
 			return
 		}
 		refresh("commits and commit files", func() {
 			self.refreshCommitsAndCommitFiles(capturedCommits, options.CommitSelection, env)
 		})
+	} else if scopeSet.Includes(types.REBASE_COMMITS) {
+		// the commits refresh above loads the rebase commits as well, so we only
+		// need this one when the rebase commits are all that was asked for
+		var rebaseHashPool *utils.StringPool
+		var rebaseCommits []*models.Commit
+		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
+			rebaseHashPool, rebaseCommits = self.captureRebaseCommitState()
+		}) {
+			return
+		}
+		refresh("rebase commits", func() { _ = self.refreshRebaseCommits(rebaseHashPool, rebaseCommits, env) })
+	}
+
+	if scopeSet.Includes(types.BRANCHES) {
+		// The reflog is refreshed here rather than in a scope of its own,
+		// because sorting the branches by recency needs it to be loaded first.
+		var capturedReflog capturedReflogState
+		var capturedBranches capturedBranchState
+		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
+			capturedReflog = self.captureReflogState()
+			capturedBranches = self.captureBranchState()
+		}) {
+			return
+		}
 
 		includeWorktreesWithBranches = scopeSet.Includes(types.WORKTREES)
 		if self.c.UserConfig().Git.LocalBranchSortOrder == "recency" {
@@ -363,17 +387,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 				_, _ = self.refreshReflogCommits(capturedReflog, env, options.SelectTopReflogCommit)
 			})
 		}
-	} else if scopeSet.Includes(types.REBASE_COMMITS) {
-		// the above block handles rebase commits so we only need to call this one
-		// if we've asked specifically for rebase commits and not those other things
-		var rebaseHashPool *utils.StringPool
-		var rebaseCommits []*models.Commit
-		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
-			rebaseHashPool, rebaseCommits = self.captureRebaseCommitState()
-		}) {
-			return
-		}
-		refresh("rebase commits", func() { _ = self.refreshRebaseCommits(rebaseHashPool, rebaseCommits, env) })
 	}
 
 	if scopeSet.Includes(types.SUB_COMMITS) {
