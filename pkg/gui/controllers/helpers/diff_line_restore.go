@@ -254,21 +254,28 @@ func screenRows(view *gocui.View, bufferLineCount int) []int {
 func (self *DiffLineHelper) nearestSurvivingCandidate(
 	contents []gocui.DiffLineContent, candidates []diffLineAnchor,
 ) (diffLineAnchor, int) {
-	lines := map[patchLine]int{}
-	for i, identities := range self.resolveDiffLineIdentities(contents) {
-		for _, identity := range identities {
-			if _, seen := lines[patchLineOf(identity)]; !seen {
-				lines[patchLineOf(identity)] = i
-			}
-		}
-	}
-
+	rows := self.patchLineRows(contents)
 	for _, candidate := range candidates {
-		if line, ok := lines[patchLineOf(candidate.identity)]; ok {
+		if line, ok := rows[patchLineOf(candidate.identity)]; ok {
 			return candidate, line
 		}
 	}
 	return diffLineAnchor{}, -1
+}
+
+// patchLineRows indexes a rendering by the diff lines it shows: for each of them, the
+// first of its rows that does. A row can show more than one, and each is then a way
+// of finding that row again.
+func (self *DiffLineHelper) patchLineRows(contents []gocui.DiffLineContent) map[patchLine]int {
+	rows := map[patchLine]int{}
+	for i, identities := range self.resolveDiffLineIdentities(contents) {
+		for _, identity := range identities {
+			if _, seen := rows[patchLineOf(identity)]; !seen {
+				rows[patchLineOf(identity)] = i
+			}
+		}
+	}
+	return rows
 }
 
 // rowShowsDiffLine reports whether the given row of a rendering shows the given diff
