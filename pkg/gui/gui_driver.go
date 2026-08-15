@@ -101,14 +101,25 @@ func (self *GuiDriver) replayMouseEventWithoutWaiting(x, y int, buttons tcell.Bu
 	))
 }
 
-// FocusIn simulates the terminal window regaining focus, which is how lazygit
-// learns to reload changed config files. Tests use it to exercise the live
-// config-reload path.
-func (self *GuiDriver) FocusIn() {
+// replayFocusIn takes the focus away before handing it back, because that's the
+// only way a terminal can report regaining it, and lazygit only reacts to focus
+// reports that change the focus (see gocui.Gui.IsFocused).
+func (self *GuiDriver) replayFocusIn() {
+	self.gui.g.ReplayFocusEvent(gocui.NewTcellFocusEventWrapper(
+		tcell.NewEventFocus(false),
+		0,
+	))
 	self.gui.g.ReplayFocusEvent(gocui.NewTcellFocusEventWrapper(
 		tcell.NewEventFocus(true),
 		0,
 	))
+}
+
+// FocusIn simulates the terminal window regaining focus, which is how lazygit
+// learns to reload changed config files. Tests use it to exercise the live
+// config-reload path.
+func (self *GuiDriver) FocusIn() {
+	self.replayFocusIn()
 
 	self.waitTillIdle()
 }
@@ -116,10 +127,7 @@ func (self *GuiDriver) FocusIn() {
 func (self *GuiDriver) FocusInAndClick(x, y int) {
 	self.CheckAllToastsAcknowledged()
 
-	self.gui.g.ReplayFocusEvent(gocui.NewTcellFocusEventWrapper(
-		tcell.NewEventFocus(true),
-		0,
-	))
+	self.replayFocusIn()
 	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
 		tcell.NewEventMouse(x, y, tcell.ButtonPrimary, 0),
 		0,

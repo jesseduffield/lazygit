@@ -222,6 +222,11 @@ type Gui struct {
 	// worker goroutines, so it's atomic.
 	uiThreadID atomic.Int64
 
+	// focused says whether the terminal we're running in has focus, as far as
+	// its focus reports tell us (see IsFocused). Written by the event loop,
+	// readable from anywhere, so it's atomic.
+	focused atomic.Bool
+
 	// blockInputCount, when greater than zero, withholds keyboard input from
 	// the handlers: key events are buffered into bufferedKeyEvents and replayed
 	// once the count drops back to zero, while mouse clicks and hover are
@@ -305,6 +310,12 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	// callers -- and it means IsUIThread is already correct for the UI work that
 	// runs during startup, before we reach MainLoop.
 	g.uiThreadID.Store(goid.Get())
+
+	// Assume we start out focused: a terminal that supports focus reports sends
+	// one for the state it is already in when we turn reporting on in MainLoop,
+	// and passing that on as a change would have the app react to a change that
+	// never happened.
+	g.focused.Store(true)
 
 	return g, nil
 }
@@ -2009,7 +2020,21 @@ func (g *Gui) execKeybinding(v *View, kb *keybinding) error {
 	return nil
 }
 
+// IsFocused reports whether the terminal we're running in has focus. Terminals
+// that don't report focus at all leave this true for good.
+func (g *Gui) IsFocused() bool {
+	return g.focused.Load()
+}
+
 func (g *Gui) onFocus(ev *GocuiEvent) error {
+	// Terminals report their focus state when we turn focus reporting on, and
+	// some report it again when their window is activated, so only pass on the
+	// reports that actually change it.
+	if ev.Focused == g.focused.Load() {
+		return nil
+	}
+	g.focused.Store(ev.Focused)
+
 	if g.focusHandler != nil {
 		return g.focusHandler(ev.Focused)
 	}
