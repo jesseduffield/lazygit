@@ -534,7 +534,7 @@ func TestNewlineTerminatedLineClearsTrailingBg(t *testing.T) {
 	// renders with bg=red. The trailing area past "foo" must NOT extend
 	// the red bg because '\n' marks the line as cleanly terminated.
 	v.writeString("\x1b[7m\x1b[31mfoo\x1b[0m\n")
-	v.draw()
+	v.draw(true)
 
 	// First row: cells 1..3 are "foo" (render with red bg via reverse),
 	// cells 4..10 are trailing and should be plain default.
@@ -560,7 +560,7 @@ func TestUnterminatedReverseLineDoesNotExtend(t *testing.T) {
 	// Reverse + red fg, "foo", no termination. The trailing cells past
 	// "foo" should be plain default, NOT a continuation of the red bg.
 	v.writeString("\x1b[7m\x1b[31mfoo")
-	v.draw()
+	v.draw(true)
 
 	// Cells 4..10 are trailing and should be default with no reverse.
 	for x := 4; x <= 10; x++ {
@@ -583,7 +583,7 @@ func TestShortFilledLineExtendsBgWithoutWrap(t *testing.T) {
 	// \x1b[41m sets bg=red. "hi" fits within InnerWidth=10; \x1b[K should
 	// fill the remaining 8 cells with red.
 	v.writeString("\x1b[41mhi\x1b[K\x1b[0m\n")
-	v.draw()
+	v.draw(true)
 
 	// All ten cells at (1..10, 1) should have red bg.
 	for x := 1; x <= 10; x++ {
@@ -611,7 +611,7 @@ func TestWrappedFilledLineExtendsBgToEdge(t *testing.T) {
 	// segments — "aaa bbb" / "ccc ddd" / "eee". Each row's trailing area
 	// must pick up the red fill from \x1b[K.
 	v.writeString("\x1b[41m" + "aaa bbb ccc ddd eee" + "\x1b[0m\x1b[41m\x1b[K\x1b[0m\n")
-	v.draw()
+	v.draw(true)
 
 	// All three wrapped rows should have the red fill background across
 	// the full InnerWidth, including the trailing cells past each row's
@@ -645,7 +645,7 @@ func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
 	// last cell red) and segment 2 is "ccc" (green, last cell green).
 	// \x1b[K records the green bg on the source line.
 	v.writeString("\x1b[41maaa bbb\x1b[42m ccc\x1b[K\x1b[0m\n")
-	v.draw()
+	v.draw(true)
 
 	// Row 1's content ends with a red cell at x=7, so trailing columns
 	// 8..10 should pick up red rather than the \x1b[K's green.

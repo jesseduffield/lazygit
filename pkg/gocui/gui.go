@@ -1458,7 +1458,7 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 			currentBgColor = v.BgColor
 		}
 
-		if i >= currentTabStart && i <= currentTabEnd {
+		if i >= currentTabStart && i <= currentTabEnd && g.IsFocused() {
 			currentFgColor = v.SelFgColor
 			if v != g.currentView {
 				currentFgColor &= ^AttrBold
@@ -1639,11 +1639,11 @@ func (g *Gui) draw(v *View) error {
 		Screen.HideCursor()
 	}
 
-	v.draw()
+	v.draw(g.IsFocused())
 
 	if v.Frame {
 		var fgColor, bgColor, frameColor Attribute
-		if g.Highlight && v == g.currentView {
+		if g.Highlight && v == g.currentView && g.IsFocused() {
 			fgColor = g.SelFgColor
 			bgColor = g.SelBgColor
 			frameColor = g.SelFrameColor

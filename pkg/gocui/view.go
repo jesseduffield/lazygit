@@ -616,7 +616,7 @@ func (v *View) Name() string {
 // setCharacter sets a character (grapheme cluster) at the given point relative to the view. It applies
 // the specified colors, taking into account if the cell must be highlighted. Also, it checks if the
 // position is valid.
-func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute) {
+func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute, isWindowFocused bool) {
 	maxX, maxY := v.Size()
 	if x < 0 || x >= maxX || y < 0 || y >= maxY {
 		return
@@ -642,7 +642,7 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute) {
 				fgColor += 8
 			}
 			fgColor = fgColor | AttrBold
-			if v.HighlightInactive {
+			if v.HighlightInactive || !isWindowFocused {
 				bgColor = (bgColor & AttrStyleBits) | v.InactiveViewSelBgColor
 			} else {
 				bgColor = (bgColor & AttrStyleBits) | v.SelBgColor
@@ -1319,7 +1319,7 @@ func (v *View) IsTainted() bool {
 }
 
 // draw re-draws the view's contents.
-func (v *View) draw() {
+func (v *View) draw(isWindowFocused bool) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
@@ -1409,7 +1409,7 @@ func (v *View) draw() {
 				fgColor |= AttrUnderline
 			}
 
-			v.setCharacter(x, y, c.chr, fgColor, bgColor)
+			v.setCharacter(x, y, c.chr, fgColor, bgColor, isWindowFocused)
 
 			x += c.width
 			cellIdx++
