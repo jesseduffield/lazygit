@@ -65,12 +65,6 @@ func (self *MainViewController) GetMouseKeybindings(opts types.KeybindingsOpts) 
 		{
 			ViewName:    self.context.GetViewName(),
 			Key:         gocui.MouseLeft,
-			Handler:     self.onClickInAlreadyFocusedView,
-			FocusedView: self.context.GetViewName(),
-		},
-		{
-			ViewName:    self.context.GetViewName(),
-			Key:         gocui.MouseLeft,
 			Handler:     self.onClickInOtherViewOfMainViewPair,
 			FocusedView: self.otherContext.GetViewName(),
 		},
@@ -91,14 +85,6 @@ func (self *MainViewController) togglePanel() error {
 
 func (self *MainViewController) escape() error {
 	self.c.Context().Pop()
-	return nil
-}
-
-func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
-	sidePanelContext := self.c.Context().NextInStack(self.context)
-	if sidePanelContext != nil && sidePanelContext.GetOnClickFocusedMainView() != nil {
-		return sidePanelContext.GetOnClickFocusedMainView()(self.context.GetViewName(), opts.Y)
-	}
 	return nil
 }
 
