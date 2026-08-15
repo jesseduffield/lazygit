@@ -267,6 +267,21 @@ func (self *ViewDriver) SelectedLines(matchers ...*TextMatcher) *ViewDriver {
 	return self
 }
 
+// SelectedViewLineRange asserts which view lines the selection covers. View lines
+// count the wrapped segments a line is drawn as, so this can say whether a selection
+// covers a wrapped line to its end; SelectedLines, which reports the lines of the
+// content, cannot.
+func (self *ViewDriver) SelectedViewLineRange(first int, last int) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actualFirst, actualLast := self.getSelectedRange()
+		return actualFirst == first && actualLast == last,
+			fmt.Sprintf("%s: Expected view lines %d-%d to be selected, but %d-%d were.",
+				self.context, first, last, actualFirst, actualLast)
+	})
+
+	return self
+}
+
 func (self *ViewDriver) validateMatchersPassed(matchers []*TextMatcher) {
 	if len(matchers) < 1 {
 		self.t.fail("'Lines' methods require at least one matcher to be passed as an argument. If you are trying to assert that there are no lines, use .IsEmpty()")

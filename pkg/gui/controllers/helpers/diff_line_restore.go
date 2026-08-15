@@ -26,19 +26,22 @@ type diffLineAnchor struct {
 // window where both are being rendered again, since either of them may hold the diff
 // being read; a pane that isn't showing is left alone.
 //
-// The line to keep is the selected one, and the middle visible line when there is no
-// selection or it has been scrolled out of sight — what the user is looking at, rather
-// than the view's top edge or a selection they have long since left behind. It may not
-// survive the re-render: a context line goes when the context size shrinks, and a
-// whole hunk or file goes when whitespace stops counting. So the lines around it come
-// along as fallbacks and the view lands on the nearest one that is still there, put
-// back on the screen row it was on. With none of them left — and with a renderer that
-// says nothing about its rows there is nothing to look for in the first place — the
-// view keeps the scroll offset it had, which is still nearer to what was being read
-// than the top of the diff.
+// The line to keep is the end of the selection that is on screen, and the middle
+// visible line when there is no selection or the whole of it has been scrolled out of
+// sight — what the user is looking at, rather than the view's top edge or a selection
+// they have long since left behind. It may not survive the re-render: a context line
+// goes when the context size shrinks, and a whole hunk or file goes when whitespace
+// stops counting. So the lines around it come along as fallbacks and the view lands on
+// the nearest one that is still there, put back on the screen row it was on. With none
+// of them left — and with a renderer that says nothing about its rows there is nothing
+// to look for in the first place — the view keeps the scroll offset it had, which is
+// still nearer to what was being read than the top of the diff.
 //
 // An off-screen selection is still put back on the diff line it was on, wherever the
 // new rendering has that; it is only the view that stays where it is.
+//
+// A range or hunk selection has a second end, which is remembered the same way, so
+// that it still covers the same lines of the diff afterwards.
 func (self *DiffLineHelper) PreserveDiffPositionOnRerender(view *gocui.View) {
 	// A view that isn't the one its window is currently showing — the merge-conflicts
 	// view takes the main window over — isn't the one about to be re-rendered, so a
@@ -57,17 +60,20 @@ func (self *DiffLineHelper) PreserveDiffPositionOnRerender(view *gocui.View) {
 	}
 
 	showSelection := view.Highlight
-	selectionOnScreen := showSelection && view.IsLineVisible(view.SelectedLineIdx())
 	anchorViewLine := view.MiddleVisibleLineIdx()
-	if selectionOnScreen {
-		anchorViewLine = view.SelectedLineIdx()
-	}
-	// A selection that has been scrolled away from is put back by its own lines rather
+	farEnd, hasFarEnd := types.DiffLineInfo{}, false
+	// A cursor that has been scrolled away from is put back by its own lines rather
 	// than by the anchor's, so that it comes out on the same line of the diff without
 	// the view having to go there.
-	var selectionCandidates []diffLineAnchor
-	if showSelection && !selectionOnScreen {
-		selectionCandidates = self.nearbyDiffLines(view, view.SelectedLineIdx())
+	var cursorCandidates []diffLineAnchor
+	if showSelection {
+		farEnd, hasFarEnd = self.selectionFarEndIdentity(view)
+		if end, ok := visibleSelectionEnd(view); ok {
+			anchorViewLine = end
+		}
+		if anchorViewLine != view.SelectedLineIdx() {
+			cursorCandidates = self.nearbyDiffLines(view, view.SelectedLineIdx())
+		}
 	}
 
 	self.restoreDiffLinePositionOnRerender(view, self.nearbyDiffLines(view, anchorViewLine),
@@ -77,14 +83,61 @@ func (self *DiffLineHelper) PreserveDiffPositionOnRerender(view *gocui.View) {
 			row := lo.Clamp(anchor.row, 0, max(0, view.InnerHeight()-1))
 			view.SetOrigin(0, max(0, viewLine-row))
 			if showSelection {
-				// A range's other end is a view line, which the new rendering has made
-				// mean something else, so the selection collapses to the line we landed
-				// on. The origin is already where it should be, so moving the cursor
-				// there mustn't scroll.
+				// Put the far end back before the cursor, so that the selection covers
+				// the same lines again; a selection whose far end didn't survive the
+				// re-render is left as the single line we landed on. The origin is
+				// already where it should be, so moving the cursor mustn't scroll.
 				view.CancelRangeSelect()
-				view.FocusPoint(0, self.selectionLine(view, selectionCandidates, viewLine), false)
+				cursorViewLine := self.selectionLine(view, cursorCandidates, viewLine)
+				if hasFarEnd {
+					if farEndViewLine, ok := self.findDiffLine(view, farEnd); ok {
+						cursorViewLine, farEndViewLine = coverWholeLines(view, cursorViewLine, farEndViewLine)
+						view.SetRangeSelectStart(farEndViewLine)
+					}
+				}
+				view.FocusPoint(0, cursorViewLine, false)
 			}
 		})
+}
+
+// coverWholeLines moves the two ends of a restored selection out to the edges of the
+// diff lines they are on, so that the selection covers those lines whole. Both ends
+// arrive on the first view line of their diff line, which is where looking one up by
+// identity lands, and the view draws a line it wraps as several — of which a
+// selection of that line means all.
+func coverWholeLines(view *gocui.View, cursorViewLine int, farEndViewLine int) (int, int) {
+	if cursorViewLine <= farEndViewLine {
+		return cursorViewLine, lastViewLineOfSameDiffLine(view, farEndViewLine)
+	}
+	return lastViewLineOfSameDiffLine(view, cursorViewLine), farEndViewLine
+}
+
+// lastViewLineOfSameDiffLine returns the last view line showing the same line of the
+// diff as the given one, which is that line itself unless the view wrapped it.
+func lastViewLineOfSameDiffLine(view *gocui.View, viewLine int) int {
+	bufferLine, ok := view.BufferLineForViewLine(viewLine)
+	if !ok {
+		return viewLine
+	}
+	if last, ok := view.LastViewLineForBufferLine(bufferLine); ok {
+		return last
+	}
+	return viewLine
+}
+
+// visibleSelectionEnd returns the end of the selection to keep in place across a
+// re-render: the selected line when it is on screen, and the range's other end when
+// that is and the selected line isn't — a range can be long enough for the user to be
+// looking at one end of it with the other far away. ok is false when the whole
+// selection is off screen, and there is nothing of it to keep in place.
+func visibleSelectionEnd(view *gocui.View) (int, bool) {
+	if view.IsLineVisible(view.SelectedLineIdx()) {
+		return view.SelectedLineIdx(), true
+	}
+	if farEnd, _, ok := selectionFarEndViewLine(view); ok && view.IsLineVisible(farEnd) {
+		return farEnd, true
+	}
+	return 0, false
 }
 
 // selectionLine returns the line to put the cursor on once a re-render is on screen:
@@ -106,6 +159,60 @@ func (self *DiffLineHelper) selectionLine(
 		return viewLine
 	}
 	return anchorViewLine
+}
+
+// selectionFarEndIdentity returns the identity of the end of a range or hunk
+// selection the cursor isn't on, so that a re-render can put it back. ok is false for
+// a selection that is only a cursor, where restoring that is the whole job, and for
+// an end that resolves to no diff line.
+//
+// An end covers the whole of its row, so where the row shows more than one diff line
+// — a rendering that puts a modification's two halves side by side, or a word diff
+// that puts both on the one line it changed — the end takes the outermost of them:
+// the last for the range's lower end and the first for its upper one. Otherwise a
+// rendering that splits them apart again would get back only the half the row led
+// with, and half a change selected where a whole one was.
+func (self *DiffLineHelper) selectionFarEndIdentity(view *gocui.View) (types.DiffLineInfo, bool) {
+	farEnd, isLowerEnd, ok := selectionFarEndViewLine(view)
+	if !ok {
+		return types.DiffLineInfo{}, false
+	}
+	identities, ok := self.diffLineIdentitiesAt(view, farEnd)
+	if !ok {
+		return types.DiffLineInfo{}, false
+	}
+	if isLowerEnd {
+		return identities[len(identities)-1], true
+	}
+	return identities[0], true
+}
+
+// selectionFarEndViewLine returns the view line of the end of a range or hunk
+// selection the cursor isn't on, and whether that is the lower of the two ends. ok
+// is false when there is no range at all, only a cursor.
+//
+// A range whose two ends are on the same view line still has one, and is not the
+// same thing as a cursor sitting there: it covers everything that row shows, which
+// may be two lines of the diff at once.
+func selectionFarEndViewLine(view *gocui.View) (int, bool, bool) {
+	if !view.HasRangeSelect() {
+		return 0, false, false
+	}
+	first, last := view.SelectedLineRange()
+	if view.SelectedLineIdx() == first {
+		return last, true, true
+	}
+	return first, false, true
+}
+
+// findDiffLine returns the view line showing the given diff line in what view is
+// displaying now, for placing a remembered line once the re-render is on screen.
+func (self *DiffLineHelper) findDiffLine(view *gocui.View, identity types.DiffLineInfo) (int, bool) {
+	bufferLine, ok := self.patchLineRows(view.DiffLineContents())[patchLineOf(identity)]
+	if !ok {
+		return 0, false
+	}
+	return view.ViewLineForBufferLine(bufferLine)
 }
 
 // restoreDiffLinePositionOnRerender arranges for view's next re-render to land on the

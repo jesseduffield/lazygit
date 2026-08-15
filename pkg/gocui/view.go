@@ -631,6 +631,13 @@ func (v *View) CancelRangeSelect() {
 	v.rangeSelectStartY = -1
 }
 
+// HasRangeSelect reports whether a range selection is anchored, as opposed to the
+// view showing a plain cursor. A range whose ends are on the same view line is still
+// one, which SelectedLineRange alone can't tell you.
+func (v *View) HasRangeSelect() bool {
+	return v.rangeSelectStartY != -1
+}
+
 func calculateNewOrigin(selectedLine int, oldOrigin int, lineCount int, viewHeight int) int {
 	if viewHeight >= lineCount {
 		return 0
