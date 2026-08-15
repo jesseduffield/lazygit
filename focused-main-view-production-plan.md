@@ -1087,12 +1087,12 @@ the refusal no longer catches it — see §9.10.
 
 #### Deviations from the plan (2026-08-15, as implemented)
 
-Landed as 7 commits plus 2 `fixup!`s on branch `keep-diff-position-on-rerender`
-(off PR 5): the `RenderRestore` mechanism; the gocui off-screen accessors; the
-restore helper together with the `-U` consumer; the renderer-cycle consumer;
-the whitespace consumer; a prep extraction; the far-end preserve. All checks
-green, every commit builds and unit-tests clean on its own. §6 sign-off is
-**owed**.
+Landed as 7 commits on branch `keep-diff-position-on-rerender` (off PR 5): the
+`RenderRestore` mechanism; the gocui off-screen accessors; the restore helper
+together with the `-U` consumer; the renderer-cycle consumer; the whitespace
+consumer; a prep extraction; the far-end preserve. All checks green, every
+commit builds and unit-tests clean on its own. §6 sign-off **approved
+2026-08-15**, with the whitespace consumer singled out as a welcome addition.
 
 1. **The shared helper landed with its first consumer** (plan commits 3+4 are
    one commit). A commit adding only unexported helpers fails `just lint`
@@ -1155,9 +1155,8 @@ green, every commit builds and unit-tests clean on its own. §6 sign-off is
     nearest survivor; diff gone → nothing to keep), and
     `keep_selected_range_when_changing_context_size` (both ends kept; either end
     dropped). Plus 3 unit tests in `pkg/tasks`.
-12. **Two `fixup!` commits are left in the branch** for the user to fold
-    (AGENTS.md): one on the mechanism commit (deviation 3), one on the helper
-    commit (deviation 10).
+12. Deviations 3 and 10 arrived as `fixup!` commits, on the mechanism commit and
+    on the helper commit; the user has folded them in.
 
 ### PR 7 — Stage, unstage and discard changes directly from the focused main view
 
@@ -1499,7 +1498,7 @@ user pass before merge:
 | 1 | ✅ **APPROVED 2026-08-09.** Slow-render matrix (N§11/§13): flick commits/files scrolled down; 10 s auto-refresh (`refreshInterval: 3`) — no content/scrollbar flicker; **also re-test at normal speed** (N§20.5). Found PR 1 deviations 8 and 9, both fixed; a repo with dirty submodules is the case that exposes a slow same-content re-render |
 | 4 | ✅ **APPROVED 2026-08-09.** Patched delta/difftastic/diff-so-fancy emit + render cleanly; handshake swallowed (no phantom line) |
 | 5 | ✅ **APPROVED 2026-08-15.** Selection feel under delta; hunk-on-click; drag incl. autoscroll; nav under metadata delta incl. repeated `n` across files. Some special cases are candidates for a later refinement; deliberately not pursued now |
-| 6 | `{`/`}`, `ctrl+w` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ext-diff route (difftastic); ignoring whitespace where it removes the anchor's hunk, and where it empties the diff |
+| 6 | ✅ **APPROVED 2026-08-15.** `{`/`}`, `ctrl+w` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ignoring whitespace where it removes the anchor's hunk, and where it empties the diff. Nothing found; the whitespace consumer called out as a welcome addition |
 | 7 | Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro) |
 | 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
 | 10 | Ghostty, iTerm2, VS Code |
@@ -1647,9 +1646,9 @@ The remaining rows are agreed as keep/defer:
       `support-osc-1717-diff-metadata`. Jump-to-file menu skipped and copy
       moved to PR 7 (see its deviations). §6 sign-off **approved 2026-08-15**
 - [x] PR 6 — position preserve — **DONE 2026-08-15** on branch
-      `keep-diff-position-on-rerender` (7 commits + 2 `fixup!`s, all checks
+      `keep-diff-position-on-rerender` (7 commits, fixups folded, all checks
       green, every commit builds and unit-tests clean on its own), stacked on
-      `select-diff-lines-in-main-view`. §6 sign-off **owed**
+      `select-diff-lines-in-main-view`. §6 sign-off **approved**
 - [ ] PR 7 — staging from the main view
 - [ ] PR 8 — custom patches from the main view
 - [ ] PR 9 — panel removal
@@ -1661,8 +1660,10 @@ deviations from this plan inline, dated.)
 
 Log:
 
-- **2026-08-15:** **PR 6 implemented** (7 commits + 2 fixups, green; §6 sign-off
-  owed). Twelve deviations in the PR 6 section; the one that matters beyond this
+- **2026-08-15:** **PR 6 implemented and signed off** (7 commits, green; the
+  interactive pass found nothing, and the whitespace consumer the user had
+  suggested was singled out as worth having). Twelve deviations in the PR 6
+  section; the one that matters beyond this
   PR is **3**: a pending restore now keeps the task reading to the end of its
   input, because the buffer parser refuses a partially loaded diff, so a restore
   over a rendering without OSC records can't resolve until the whole diff is in.
