@@ -62,14 +62,27 @@ func (self *DiffLineHelper) GetDiffLineInfo(view *gocui.View, viewLineIdx int) (
 // (a side-by-side row shows a deletion and the addition replacing it); the leftmost
 // is the one a reader would call the row's own, so it is the row's identity.
 func (self *DiffLineHelper) diffLineInfoFromRecords(metadata []string) (types.DiffLineInfo, bool) {
-	if len(metadata) == 0 {
+	identities := self.diffLineIdentitiesFromRecords(metadata)
+	if len(identities) == 0 {
 		return types.DiffLineInfo{}, false
 	}
-	parsed, ok := parseDiffLineMetadata(metadata[0])
-	if !ok {
-		return types.DiffLineInfo{}, false
+	return identities[0], true
+}
+
+// diffLineIdentitiesFromRecords recovers the identity of every diff line the row's
+// records state, left to right. Which of them a reader is after depends on the
+// reader: the one the row leads with is the row's own identity (see
+// diffLineInfoFromRecords), while a reader looking for a particular line has to
+// consider them all, since which of a modification's two halves leads a row is up to
+// the rendering.
+func (self *DiffLineHelper) diffLineIdentitiesFromRecords(metadata []string) []types.DiffLineInfo {
+	identities := make([]types.DiffLineInfo, 0, len(metadata))
+	for _, record := range metadata {
+		if parsed, ok := parseDiffLineMetadata(record); ok {
+			identities = append(identities, self.diffLineInfo(parsed))
+		}
 	}
-	return self.diffLineInfo(parsed), true
+	return identities
 }
 
 // resolvedDiffLine is one rendered row's recovered identity, plus whether it could
@@ -98,13 +111,39 @@ func (self *DiffLineHelper) resolveDiffLines(contents []gocui.DiffLineContent) [
 	return resolved
 }
 
+// resolveDiffLineIdentities recovers every diff line each row of a rendered diff
+// shows, in one pass, indexed 1:1 with contents. It is resolveDiffLines' form for the
+// readers that can't settle for the line a row leads with: looking for a remembered
+// line in a new rendering has to consider both halves of a modification, since a
+// side-by-side row leads with the deletion whose addition was what got remembered
+// under a unified one.
+func (self *DiffLineHelper) resolveDiffLineIdentities(contents []gocui.DiffLineContent) [][]types.DiffLineInfo {
+	bufferParsed := parseAllDiffLinesFromBuffer(diffLineTexts(contents))
+	identities := make([][]types.DiffLineInfo, len(contents))
+	for i, content := range contents {
+		if fromRecords := self.diffLineIdentitiesFromRecords(content.Metadata); len(fromRecords) > 0 {
+			identities[i] = fromRecords
+		} else if bufferParsed[i].ok {
+			identities[i] = []types.DiffLineInfo{self.diffLineInfo(bufferParsed[i].parsed)}
+		}
+	}
+	return identities
+}
+
 // diffLineInfo turns a parser's result into the absolute-path identity consumers
 // work with. The path arrives repo-relative from the diff header, but a renderer
 // states it however it likes, absolute paths included.
 func (self *DiffLineHelper) diffLineInfo(parsed parsedDiffLine) types.DiffLineInfo {
+	return diffLineInfoIn(self.c.Git().RepoPaths.WorktreePath(), parsed)
+}
+
+// diffLineInfoIn is diffLineInfo against a given worktree, for the callers that can't
+// ask which repo we are in where they run: a repo switch replaces it, so only the UI
+// thread may read it.
+func diffLineInfoIn(worktreePath string, parsed parsedDiffLine) types.DiffLineInfo {
 	path := parsed.Path
 	if !filepath.IsAbs(path) {
-		path = filepath.Join(self.c.Git().RepoPaths.WorktreePath(), path)
+		path = filepath.Join(worktreePath, path)
 	}
 
 	return types.DiffLineInfo{
