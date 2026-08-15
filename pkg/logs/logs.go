@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -35,6 +36,11 @@ func NewProductionLogger() *logrus.Entry {
 	return formatted(logger)
 }
 
+// Separates one run's log entries from the previous run's. Only the first
+// logger of a run writes it: with LAZYGIT_LOG_PATH set there are two of them
+// for the same file, the global one and the app's.
+var runSeparator sync.Once
+
 func NewDevelopmentLogger(logPath string) *logrus.Entry {
 	logger := logrus.New()
 	logger.SetLevel(getLogLevel())
@@ -43,6 +49,9 @@ func NewDevelopmentLogger(logPath string) *logrus.Entry {
 	if err != nil {
 		log.Fatalf("Unable to log to log file: %v", err)
 	}
+	runSeparator.Do(func() {
+		_, _ = file.WriteString("\n")
+	})
 	logger.SetOutput(file)
 	return formatted(logger)
 }
