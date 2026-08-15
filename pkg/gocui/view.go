@@ -1995,9 +1995,60 @@ func (v *View) DiffLineContents() []DiffLineContent {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	contents := make([]DiffLineContent, len(v.buf.lines))
-	for i := range v.buf.lines {
-		line := &v.buf.lines[i]
+	return diffLineContentsFrom(v.buf, 0)
+}
+
+// OffscreenDiffLineContents is DiffLineContents for the content of a re-render in
+// progress (see BeginOffscreenRender). A reader deciding where the new content
+// should be shown has to work from this: it has to answer before the swap, since
+// after the swap the content is already on screen. Returns nil when no re-render
+// is underway.
+func (v *View) OffscreenDiffLineContents() []DiffLineContent {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.offscreen == nil {
+		return nil
+	}
+	return diffLineContentsFrom(v.offscreen, 0)
+}
+
+// OffscreenDiffLineContentsFrom is OffscreenDiffLineContents restricted to the lines
+// from index `from` on (so result[0] is buffer line `from`). It lets a reader that
+// follows a re-render as it loads look at each line once, rather than snapshotting
+// the whole buffer again on every line — the difference between an O(n) and an O(n²)
+// scan of a large diff. Returns nil when no re-render is underway, or when `from` is
+// past the lines read so far.
+func (v *View) OffscreenDiffLineContentsFrom(from int) []DiffLineContent {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.offscreen == nil || from < 0 || from >= len(v.offscreen.lines) {
+		return nil
+	}
+	return diffLineContentsFrom(v.offscreen, from)
+}
+
+// OffscreenLineCount returns the number of unwrapped lines a re-render in progress
+// has read so far, or 0 when none is underway. It tells a reader waiting for a
+// particular line, cheaply, when a screenful below it has arrived too — so that the
+// swap shows that line with content under it rather than at the bottom edge of a
+// half-filled view.
+func (v *View) OffscreenLineCount() int {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.offscreen == nil {
+		return 0
+	}
+	return len(v.offscreen.lines)
+}
+
+func diffLineContentsFrom(buf *viewBuffer, from int) []DiffLineContent {
+	lines := buf.lines[from:]
+	contents := make([]DiffLineContent, len(lines))
+	for i := range lines {
+		line := &lines[i]
 		var metadata []string
 		for _, c := range line.cells {
 			if c.metadata != "" && !slices.Contains(metadata, c.metadata) {
