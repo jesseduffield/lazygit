@@ -239,6 +239,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` v `` | Toggle range select |  |
 | `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
 | `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
+| `` d `` | Descartar | Quando a mudança não desejada for selecionada, descarte a mudança usando `git reset`. Quando a mudança em fase é selecionada, despare a mudança. |
 | `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
 | `` <left>, h `` | Ir para o local anterior |  |
 | `` <right>, l `` | Ir para o próximo trecho |  |
@@ -350,6 +351,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` v `` | Toggle range select |  |
 | `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
 | `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
+| `` d `` | Descartar | Quando a mudança não desejada for selecionada, descarte a mudança usando `git reset`. Quando a mudança em fase é selecionada, despare a mudança. |
 | `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
 | `` <left>, h `` | Ir para o local anterior |  |
 | `` <right>, l `` | Ir para o próximo trecho |  |

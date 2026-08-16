@@ -78,6 +78,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` v `` | Переключить выборку перетаскивания |  |
 | `` e `` | Редактировать файл | Open file in external editor. |
 | `` <space> `` | Переключить индекс | Переключить строку в проиндексированные / непроиндексированные |
+| `` d `` | Отменить изменение (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
 | `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
 | `` <left>, h `` | Выбрать предыдущую часть |  |
 | `` <right>, l `` | Выбрать следующую часть |  |
@@ -119,6 +120,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` v `` | Переключить выборку перетаскивания |  |
 | `` e `` | Редактировать файл | Open file in external editor. |
 | `` <space> `` | Переключить индекс | Переключить строку в проиндексированные / непроиндексированные |
+| `` d `` | Отменить изменение (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
 | `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
 | `` <left>, h `` | Выбрать предыдущую часть |  |
 | `` <right>, l `` | Выбрать следующую часть |  |

@@ -255,6 +255,10 @@ type FocusedMainViewActions interface {
 	// single line, a range, or a hunk. The panel re-renders the diff itself, being the
 	// one that knows what it did to it.
 	PrimaryAction(pane DiffPaneContext, firstBufferLine int, lastBufferLine int) error
+
+	// DiscardSelection takes the selected diff lines back out of whatever they are part
+	// of: the working tree for the files panel.
+	DiscardSelection(pane DiffPaneContext, firstBufferLine int, lastBufferLine int) error
 }
 
 type IListContext interface {
