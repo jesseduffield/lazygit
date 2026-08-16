@@ -87,6 +87,9 @@ func (gui *Gui) newStringTask(view *gocui.View, str string) error {
 
 func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 	manager := gui.getManager(view)
+	// Whatever the view was going to be put back to belonged to a re-render of its
+	// content; this is a message instead, so there is nothing to put back.
+	manager.DropRestoreForNextTask()
 
 	f := func(tasks.TaskOpts) error {
 		return gui.g.OnUIThreadAndWaitBackground(func() {
@@ -105,6 +108,9 @@ func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 
 func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX int, originY int) error {
 	manager := gui.getManager(view)
+	// Whatever the view was going to be put back to belonged to a re-render of its
+	// content; this is a message instead, so there is nothing to put back.
+	manager.DropRestoreForNextTask()
 
 	f := func(tasks.TaskOpts) error {
 		return gui.g.OnUIThreadAndWaitBackground(func() {
@@ -124,6 +130,9 @@ func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX in
 
 func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) error {
 	manager := gui.getManager(view)
+	// Whatever the view was going to be put back to belonged to a re-render of its
+	// content; this is a message instead, so there is nothing to put back.
+	manager.DropRestoreForNextTask()
 
 	f := func(tasks.TaskOpts) error {
 		return gui.g.OnUIThreadAndWaitBackground(func() {
