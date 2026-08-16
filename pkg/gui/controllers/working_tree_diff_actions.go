@@ -66,7 +66,7 @@ func (self *WorkingTreeDiffActions) PrimaryAction(pane types.DiffPaneContext, fi
 
 	// Either way the patch goes to the index: forwards from the unstaged side to stage
 	// it, backwards from the staged side to take it back out.
-	return self.applyDiffLineSelection(infos, onStagedSide,
+	return self.applyDiffLineSelection(pane, firstLineIdx, infos, onStagedSide,
 		git_commands.ApplyPatchOpts{Reverse: onStagedSide, Cached: true})
 }
 
@@ -88,7 +88,10 @@ func (self *WorkingTreeDiffActions) diffLineSelection(
 // applyDiffLineSelection applies the selected change lines, a patch per file, and
 // re-renders what that changed. onStagedSide says which of the file's two diffs the
 // lines were selected in and so are to be found in; opts says how to apply them.
+// firstLineIdx is where the selection started, which is where the work carries on from
+// once the diff has changed under it.
 func (self *WorkingTreeDiffActions) applyDiffLineSelection(
+	pane types.DiffPaneContext, firstLineIdx int,
 	infos []types.DiffLineInfo, onStagedSide bool, opts git_commands.ApplyPatchOpts,
 ) error {
 	self.c.LogAction(self.c.Tr.Actions.ApplyPatch)
@@ -105,6 +108,11 @@ func (self *WorkingTreeDiffActions) applyDiffLineSelection(
 			return err
 		}
 	}
+
+	// The refresh below queues the re-render of the diff we just changed; this rides it,
+	// so that the selection ends up on the change that took the place of the one acted
+	// on rather than at a position that means nothing any more.
+	revealSelectionAfterAction(self.c, pane, firstLineIdx)
 
 	// Block input until the refresh has landed, so that a quick second keypress acts on
 	// the diff as it now is rather than on the one we just changed.
