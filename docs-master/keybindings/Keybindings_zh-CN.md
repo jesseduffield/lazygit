@@ -297,6 +297,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | 退出回到侧边面板 |  |
+| `` c `` | 提交变更 | 提交暂存文件 |
+| `` w `` | 提交变更而无需预先提交钩子 |  |
+| `` C `` | 使用 Git 编辑器提交变更 |  |
+| `` <ctrl+f> `` | 找到用于修复的基准提交 | 找到您当前变更所基于的提交，以便于修正/改进该提交。这样做可以省去您逐一查看分支提交来确定应该修正/改进哪个提交的麻烦。请参阅文档: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 开始搜索 |  |
 
 ## 正在合并
@@ -355,6 +359,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | 退出回到侧边面板 |  |
+| `` c `` | 提交变更 | 提交暂存文件 |
+| `` w `` | 提交变更而无需预先提交钩子 |  |
+| `` C `` | 使用 Git 编辑器提交变更 |  |
+| `` <ctrl+f> `` | 找到用于修复的基准提交 | 找到您当前变更所基于的提交，以便于修正/改进该提交。这样做可以省去您逐一查看分支提交来确定应该修正/改进哪个提交的麻烦。请参阅文档: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 开始搜索 |  |
 
 ## 状态
