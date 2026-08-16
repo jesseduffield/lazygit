@@ -404,6 +404,7 @@ var tests = []*components.IntegrationTest{
 	main_view.SelectVisibleHunkOnFocusingMainView,
 	main_view.SelectionCommandsOnlyWhereTheyApply,
 	main_view.SelectionOverTheCustomPatch,
+	main_view.StageDeletedFile,
 	main_view.StageDiffLines,
 	main_view.StageRangeSpanningFiles,
 	main_view.UnstageDiffLines,

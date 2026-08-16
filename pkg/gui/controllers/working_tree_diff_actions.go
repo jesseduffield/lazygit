@@ -171,6 +171,19 @@ func (self *WorkingTreeDiffActions) applyDiffLines(
 		}
 	}
 
+	// Acting on every change of a file is acting on the file itself, and saying so is
+	// not the same as applying its diff. The diff of a deleted file is its content
+	// going away, and putting that into the index line by line leaves an empty file
+	// there rather than the deletion; the diff of an added one is its whole content,
+	// and taking that back out leaves an empty file in the index rather than an
+	// untracked one.
+	if opts.Cached && len(patchLineIndices) == changeLineCount(parsedPatch) {
+		if opts.Reverse {
+			return self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked)
+		}
+		return self.c.Git().WorkingTree.StageFile(file.GetPath())
+	}
+
 	patchToApply := parsedPatch.
 		Transform(patch.TransformOpts{
 			Reverse:             opts.Reverse,
@@ -183,4 +196,12 @@ func (self *WorkingTreeDiffActions) applyDiffLines(
 	}
 
 	return self.c.Git().Patch.ApplyPatch(patchToApply, opts)
+}
+
+// changeLineCount returns how many of a patch's lines are changes rather than context
+// or header. A selection of the whole diff covers exactly that many.
+func changeLineCount(p *patch.Patch) int {
+	return lo.CountBy(p.Lines(), func(line *patch.PatchLine) bool {
+		return line.IsAddition() || line.IsDeletion()
+	})
 }
