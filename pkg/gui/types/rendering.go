@@ -13,6 +13,19 @@ func NewMainContextPair(main Context, secondary Context) MainContextPair {
 	return MainContextPair{Main: main, Secondary: secondary}
 }
 
+// MainPanes says which of the two panes of the main section are shown. Most content
+// takes the main pane alone; content with two sides to it — the working tree's
+// unstaged and staged changes, a commit's diff and the patch built from it — takes
+// both; and content whose only side is the second one takes the secondary pane alone,
+// so that it has the whole section rather than sitting under an empty pane.
+type MainPanes int
+
+const (
+	MainPaneOnly MainPanes = iota
+	BothMainPanes
+	SecondaryPaneOnly
+)
+
 type MainViewPairs struct {
 	Normal         MainContextPair
 	MergeConflicts MainContextPair
