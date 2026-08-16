@@ -195,6 +195,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | 範囲選択を切り替え |  |
 | `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
+| `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
 | `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
 | `` <left>, h `` | 前のハンクに移動 |  |
 | `` <right>, l `` | 次のハンクに移動 |  |
@@ -316,6 +317,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | 範囲選択を切り替え |  |
 | `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
+| `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
 | `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
 | `` <left>, h `` | 前のハンクに移動 |  |
 | `` <right>, l `` | 次のハンクに移動 |  |
