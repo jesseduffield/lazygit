@@ -11,6 +11,30 @@ import (
 // cursor and a click speak. They are all built on the identities recovered in
 // diff_line_helper.go, which is where the answering stops and the recovering starts.
 
+// DiffLinesInViewRange returns the identity of every diff line shown by the rows in
+// the inclusive view-line range [first, last] of view's rendered diff, in display
+// order. Rows whose identity can't be recovered are left out, as are the wrapped
+// segments of a row already counted.
+//
+// A row can show more than one diff line — a side-by-side rendering puts a deletion
+// beside the addition replacing it — and all of them are reported: what the user
+// pointed at is the row, so everything on it is selected.
+func (self *DiffLineHelper) DiffLinesInViewRange(view *gocui.View, first int, last int) []types.DiffLineInfo {
+	identities := self.resolveDiffLineIdentities(view.DiffLineContents())
+
+	infos := []types.DiffLineInfo{}
+	previousBufferLine := -1
+	for viewLine := first; viewLine <= last; viewLine++ {
+		bufferLine, ok := view.BufferLineForViewLine(viewLine)
+		if !ok || bufferLine == previousBufferLine || bufferLine >= len(identities) {
+			continue
+		}
+		previousBufferLine = bufferLine
+		infos = append(infos, identities[bufferLine]...)
+	}
+	return infos
+}
+
 // changeLines resolves view's rendered diff to one flag per buffer line: whether
 // that row is a change line (an addition or a deletion), as opposed to context, a
 // header, or a row whose identity couldn't be recovered. Those are the rows a
