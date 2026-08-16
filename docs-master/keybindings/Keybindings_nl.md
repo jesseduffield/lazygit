@@ -234,6 +234,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
 | `` v `` | Toggle drag selecteer |  |
 | `` e `` | Verander bestand | Open bestand in externe editor. |
+| `` <space> `` | Toggle staged | Toggle lijnen staged / unstaged |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |
 | `` <left>, h `` | Selecteer de vorige hunk |  |
 | `` <right>, l `` | Selecteer de volgende hunk |  |
@@ -317,6 +318,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
 | `` v `` | Toggle drag selecteer |  |
 | `` e `` | Verander bestand | Open bestand in externe editor. |
+| `` <space> `` | Toggle staged | Toggle lijnen staged / unstaged |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |
 | `` <left>, h `` | Selecteer de vorige hunk |  |
 | `` <right>, l `` | Selecteer de volgende hunk |  |
