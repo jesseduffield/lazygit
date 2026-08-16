@@ -28,6 +28,12 @@ func TestCommitRewordCommit(t *testing.T) {
 			"test",
 			"line 2\nline 3",
 		},
+		{
+			"Empty reword",
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"commit", "--allow-empty", "--amend", "--only", "-m", "", "--allow-empty-message"}, "", nil),
+			"",
+			"",
+		},
 	}
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
@@ -117,6 +123,22 @@ func TestCommitCommitCmdObj(t *testing.T) {
 			configSignoff:        true,
 			configSkipHookPrefix: "WIP",
 			expectedArgs:         []string{"commit", "--no-verify", "--signoff", "-m", "WIP: test"},
+		},
+		{
+			testName:             "Commit with empty message",
+			summary:              "",
+			forceSkipHooks:       false,
+			configSignoff:        false,
+			configSkipHookPrefix: "",
+			expectedArgs:         []string{"commit", "-m", "", "--allow-empty-message"},
+		},
+		{
+			testName:             "Commit with whitespace-only message",
+			summary:              "  ",
+			forceSkipHooks:       false,
+			configSignoff:        false,
+			configSkipHookPrefix: "",
+			expectedArgs:         []string{"commit", "-m", "  ", "--allow-empty-message"},
 		},
 	}
 
