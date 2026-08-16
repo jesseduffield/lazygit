@@ -227,6 +227,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` v `` | Toggle range select |  |
 | `` e `` | Edit file | Open file in external editor. |
 | `` <space> `` | Stage | Toggle selection staged / unstaged. |
+| `` d `` | Discard | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |
 | `` <left>, h `` | Go to previous hunk |  |
 | `` <right>, l `` | Go to next hunk |  |
@@ -341,6 +342,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` v `` | Toggle range select |  |
 | `` e `` | Edit file | Open file in external editor. |
 | `` <space> `` | Stage | Toggle selection staged / unstaged. |
+| `` d `` | Discard | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
 | `` <ctrl+o> `` | Copy selected text to clipboard |  |
 | `` <left>, h `` | Go to previous hunk |  |
 | `` <right>, l `` | Go to next hunk |  |
