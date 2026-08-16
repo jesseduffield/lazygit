@@ -45,7 +45,7 @@ var ApplyInReverse = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("D").Contains("file1").IsSelected(),
 			)
 
-		t.Views().Main().
+		t.Views().Secondary().
 			Content(Contains("-file1 content"))
 	},
 })

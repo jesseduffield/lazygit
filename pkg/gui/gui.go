@@ -101,6 +101,10 @@ type Gui struct {
 	// this tells us whether our views have been initially set up
 	ViewsSetup bool
 
+	// the label for the key that focuses the main view, worn by whichever of the two
+	// main panes that key focuses (see showFocusMainViewJumpLabelOn)
+	focusMainViewJumpLabel string
+
 	Views types.Views
 
 	// Log of the commands/actions logged in the Command Log panel.
