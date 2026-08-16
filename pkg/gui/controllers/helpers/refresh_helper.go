@@ -1376,12 +1376,9 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 			Background:         env.backgroundRoutine,
 		})
 
-	conflictFileCount := 0
-	for _, file := range files {
-		if file.HasMergeConflicts {
-			conflictFileCount++
-		}
-	}
+	conflictedPaths := lo.FilterMap(files, func(file *models.File, _ int) (string, bool) {
+		return file.Path, file.HasMergeConflicts
+	})
 
 	repoState := self.c.State().GetRepoState()
 	workingTreeState := env.git.Status.WorkingTreeState()
@@ -1391,7 +1388,7 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 		repoState.SetMergeOrRebaseStartedInLazygit(false)
 	}
 
-	if workingTreeState.Any() && conflictFileCount == 0 {
+	if workingTreeState.Any() && len(conflictedPaths) == 0 {
 		if prevConflictFileCount > 0 && repoState.GetMergeOrRebaseStartedInLazygit() {
 			// The conflicts of an operation we started have just been resolved
 			// (e.g. in the user's editor). Offer to continue it. We only do this
@@ -1429,14 +1426,18 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
 		// only taking over the filter if it hasn't already been set by the user.
-		if conflictFileCount > 0 && prevConflictFileCount == 0 {
+		if len(conflictedPaths) > 0 && prevConflictFileCount == 0 {
 			if fileTreeViewModel.GetStatusFilter() == filetree.DisplayAll {
 				fileTreeViewModel.SetStatusFilter(filetree.DisplayConflicted)
 				self.c.Contexts().Files.GetView().Subtitle = self.c.Tr.FilterLabelConflictingFiles
 			}
-		} else if conflictFileCount == 0 && fileTreeViewModel.GetStatusFilter() == filetree.DisplayConflicted {
+		} else if len(conflictedPaths) == 0 && fileTreeViewModel.GetStatusFilter() == filetree.DisplayConflicted {
 			fileTreeViewModel.SetStatusFilterPreservingSelection(filetree.DisplayAll)
 			self.c.Contexts().Files.GetView().Subtitle = ""
+		}
+
+		if fileTreeViewModel.GetStatusFilter() == filetree.DisplayConflicted {
+			fileTreeViewModel.RememberConflictedPaths(conflictedPaths)
 		}
 
 		self.c.Model().Submodules = submoduleConfigs
