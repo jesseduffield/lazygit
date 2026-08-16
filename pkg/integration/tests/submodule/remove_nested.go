@@ -46,7 +46,7 @@ var RemoveNested = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			NavigateToLine(Contains(".gitmodules"))
 
-		t.Views().Main().Content(
+		t.Views().Secondary().Content(
 			Contains("-[submodule \"innerSubName\"]").
 				Contains("-   path = modules/innerSubPath").
 				Contains("-   url = ../innerSubmodule"),

@@ -62,12 +62,12 @@ var MoveRangeToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("  A  file2"),
 			)
 
-		t.Views().Main().
+		t.Views().Secondary().
 			Content(Contains("second line"))
 
 		t.Views().Files().Focus().NavigateToLine(Contains("file2"))
 
-		t.Views().Main().
+		t.Views().Secondary().
 			Content(Contains("file two content"))
 	},
 })

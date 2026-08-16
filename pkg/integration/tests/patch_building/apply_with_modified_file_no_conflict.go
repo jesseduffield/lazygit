@@ -63,7 +63,7 @@ var ApplyWithModifiedFileNoConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("M  file1").IsSelected(),
 			)
 
-		t.Views().Main().
+		t.Views().Secondary().
 			Content(Contains("-1\n+11\n 2\n 3\n+4"))
 	},
 })

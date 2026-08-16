@@ -88,6 +88,17 @@ func (self *ViewDriver) IsImmediatelyBelow(upper *ViewDriver) *ViewDriver {
 	return self
 }
 
+// TitlePrefix asserts on the label a view wears in front of its title, which is the
+// key that jumps to it.
+func (self *ViewDriver) TitlePrefix(expected *TextMatcher) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actual := self.getView().TitlePrefix
+		return expected.context(fmt.Sprintf("%s title prefix", self.context)).test(actual)
+	})
+
+	return self
+}
+
 func (self *ViewDriver) Clear() *ViewDriver {
 	// clearing multiple times in case there's multiple lines
 	//  (the clear button only clears a single line at a time)
