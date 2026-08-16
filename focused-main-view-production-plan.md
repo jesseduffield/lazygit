@@ -1274,15 +1274,47 @@ handler + `diffSplitState`), not smeared across call sites — the parked
 separate-lists design will want to re-derive "side" from list-section
 membership and may want a different focus-follow rule.
 
+#### A branch below it: the staged side always in the lower pane (2026-08-16)
+
+Branch `show-staged-changes-in-lower-pane`, off PR 6 and below PR 7, 2 commits,
+green. Raised by the user while reviewing PR 7: which pane a side of a file's
+diff appeared in depended on what else the file had — the staged side had the
+lower pane while there were unstaged changes above it, and took over the upper
+one when there weren't. Now each side has a pane of its own and is shown when
+there is something on it, so a file with nothing unstaged shows its staged
+changes in the lower pane alone, which then has the whole section (visually
+identical to before; what changes is which pane it is).
+
+- The main section's layout becomes a three-way answer (`types.MainPanes`)
+  instead of "split or not", derived from which panes the render has content
+  for; a window that is left out of the layout gets no dimensions, which is
+  already how a view is hidden.
+- Focusing the diff picks the pane holding it, and keeping your position when
+  whitespace stops counting now covers both panes.
+- What it buys PR 7: `mainShowsStaged` is gone, so which side a pane shows is a
+  property of the pane (`showsStagedSide(view)`, no node); staging in the upper
+  pane and unstaging in the lower one is a fixed rule rather than one derived
+  from the file's status; and the focus-follow rule becomes symmetric — follow
+  the lines into the other pane when the acted-on one goes away — instead of
+  "the staged side migrates".
+- 15 e2e tests across `patch_building`, `submodule`, `conflicts`, `diff` and
+  `file` asserted the main view for a staged-only file and now assert the
+  secondary one. New test: `file/staged_changes_in_lower_pane`.
+- Not touched: the submodules panel renders a staged-only submodule's diff into
+  the main pane, the same asymmetry in a place with no second pane to speak of.
+
 #### Deviations from the plan (2026-08-16, as implemented)
 
-Landed as 14 commits on branch `stage-changes-in-main-view` (off PR 6), plus
-one `fixup!` for a commit of its own and one for PR 5 (a dangling comment its
-plumbing removal left behind). All checks green; §6 sign-off owed.
+Landed as 13 commits on branch `stage-changes-in-main-view`, now off
+`show-staged-changes-in-lower-pane`, plus five `fixup!`/`amend!` commits from
+the rebase onto it. All checks green; §6 sign-off owed.
 
 1. **Commit 3 (the `applyDiffLines` prep) has no separate existence.** There
    was nothing to generalize — production has no `stageDiffLines` to split —
    so the general shape was written directly, as the plan's own note said to.
+   **Commit 1 (`diffSplitState`) is gone too**, dropped in the rebase onto the
+   lower-pane branch: with the staged side always in the same pane there is no
+   split state to extract.
 2. **The interface is two, and the narrow one is what panels register**
    (decided with the user). `FocusedMainViewDiffSource` — `PlainDiff(view,
    paths)`, the diff behind what a panel renders — is what every diff panel
@@ -1757,8 +1789,13 @@ The remaining rows are agreed as keep/defer:
       green, every commit builds and unit-tests clean on its own), stacked on
       `select-diff-lines-in-main-view`. §6 sign-off **approved**
 - [x] PR 7 — staging from the main view — **DONE 2026-08-16** on branch
-      `stage-changes-in-main-view` (14 commits plus two fixups, all checks
-      green), stacked on `keep-diff-position-on-rerender`. §6 sign-off **owed**
+      `stage-changes-in-main-view` (13 commits plus five fixup!/amend! commits
+      from the rebase, all checks green), stacked on
+      `show-staged-changes-in-lower-pane`, which is itself stacked on
+      `keep-diff-position-on-rerender`. §6 sign-off **owed**
+- [x] The staged side always in the lower pane — **DONE 2026-08-16** on branch
+      `show-staged-changes-in-lower-pane` (2 commits, green), inserted below
+      PR 7 at the user's suggestion; see the section at the end of PR 7
 - [ ] PR 8 — custom patches from the main view
 - [ ] PR 9 — panel removal
 - [ ] PR 10 — alt/shift-click edit
