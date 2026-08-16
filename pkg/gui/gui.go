@@ -231,7 +231,7 @@ type GuiRepoState struct {
 	Model *types.Model
 	Modes *types.Modes
 
-	SplitMainPanel bool
+	MainPanes types.MainPanes
 
 	SearchState *types.SearchState
 	// Lets us not load everything at once. Written and read from refresh
@@ -321,12 +321,12 @@ func (self *GuiRepoState) GetSearchState() *types.SearchState {
 	return self.SearchState
 }
 
-func (self *GuiRepoState) SetSplitMainPanel(value bool) {
-	self.SplitMainPanel = value
+func (self *GuiRepoState) SetMainPanes(value types.MainPanes) {
+	self.MainPanes = value
 }
 
-func (self *GuiRepoState) GetSplitMainPanel() bool {
-	return self.SplitMainPanel
+func (self *GuiRepoState) GetMainPanes() types.MainPanes {
+	return self.MainPanes
 }
 
 func (gui *Gui) onSwitchToNewRepo(startArgs appTypes.StartArgs, contextKey types.ContextKey) error {
