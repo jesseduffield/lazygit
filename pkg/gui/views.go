@@ -282,11 +282,11 @@ func (gui *Gui) configureViewProperties() {
 		}
 	}
 
+	gui.focusMainViewJumpLabel = ""
 	if gui.c.UserConfig().Gui.ShowPanelJumps {
-		gui.Views.Main.TitlePrefix = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusMainView)
-	} else {
-		gui.Views.Main.TitlePrefix = ""
+		gui.focusMainViewJumpLabel = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusMainView)
 	}
+	gui.showFocusMainViewJumpLabelOn(gui.Views.Main)
 
 	// Index the tab strips by view so we can both set them on views that are
 	// part of a multi-tab panel and clear them on views that no longer are

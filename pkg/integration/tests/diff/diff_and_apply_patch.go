@@ -73,6 +73,7 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			SelectedLine(Contains("file1"))
 
-		t.Views().Main().Content(Contains("+second line"))
+		// The patch was applied to the index, so the file's changes are all staged.
+		t.Views().Secondary().Content(Contains("+second line"))
 	},
 })
