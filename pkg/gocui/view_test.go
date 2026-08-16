@@ -11,6 +11,7 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 	"github.com/rivo/uniseg"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -106,10 +107,8 @@ func TestWriteString(t *testing.T) {
 		for _, s := range test.stringsToWrite {
 			v.writeString(s)
 		}
-		var resultingLines [][]string
-		for _, l := range v.buf.lines {
-			resultingLines = append(resultingLines, cellsToStrings(l.cells))
-		}
+		resultingLines := lo.Map(v.buf.lines,
+			func(l lineType, _ int) []string { return cellsToStrings(l.cells) })
 		assert.Equal(t, test.expectedLines, resultingLines)
 	}
 }
@@ -465,11 +464,7 @@ func cellsToString(cells []cell) string {
 }
 
 func cellsToStrings(cells []cell) []string {
-	s := []string{}
-	for _, c := range cells {
-		s = append(s, c.chr)
-	}
-	return s
+	return lo.Map(cells, func(c cell, _ int) string { return c.chr })
 }
 
 func TestLineWrap(t *testing.T) {

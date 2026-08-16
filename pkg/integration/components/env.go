@@ -3,6 +3,8 @@ package components
 import (
 	"fmt"
 	"os"
+
+	"github.com/samber/lo"
 )
 
 const (
@@ -43,11 +45,9 @@ var hostEnvironmentAllowlist = [...]string{
 // Returns a copy of the environment filtered by
 // hostEnvironmentAllowlist
 func allowedHostEnvironment() []string {
-	env := []string{}
-	for _, envVar := range hostEnvironmentAllowlist {
-		env = append(env, fmt.Sprintf("%s=%s", envVar, os.Getenv(envVar)))
-	}
-	return env
+	return lo.Map(hostEnvironmentAllowlist[:], func(envVar string, _ int) string {
+		return fmt.Sprintf("%s=%s", envVar, os.Getenv(envVar))
+	})
 }
 
 func NewTestEnvironment(rootDir string) []string {
