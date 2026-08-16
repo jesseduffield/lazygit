@@ -70,7 +70,13 @@ func (self *SwitchToFocusedMainViewController) onClickSecondary(opts gocui.ViewM
 }
 
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
-	return self.focusMainView(self.c.Contexts().Normal, -1)
+	// Usually the main pane, but the content can be in the secondary one alone: a file
+	// with nothing but staged changes shows them there.
+	mainViewContext := self.c.Contexts().Normal
+	if self.c.State().GetRepoState().GetMainPanes() == types.SecondaryPaneOnly {
+		mainViewContext = self.c.Contexts().NormalSecondary
+	}
+	return self.focusMainView(mainViewContext, -1)
 }
 
 func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext *context.MainContext, clickedLineIdx int) error {

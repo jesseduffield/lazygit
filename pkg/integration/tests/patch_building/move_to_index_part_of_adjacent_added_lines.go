@@ -63,7 +63,7 @@ var MoveToIndexPartOfAdjacentAddedLines = NewIntegrationTest(NewIntegrationTestA
 				Contains("M").Contains("file1"),
 			)
 
-		t.Views().Main().
+		t.Views().Secondary().
 			Content(Contains("+1st line\n 2nd line"))
 	},
 })

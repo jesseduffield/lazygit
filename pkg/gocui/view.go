@@ -1483,9 +1483,9 @@ func (v *View) CopyContent(from *View) {
 
 	// A background task may be streaming output into the source view's buffer
 	// via Write, so read it under its own lock. The source is always a
-	// different view than the destination (see the sole caller,
-	// moveMainContextToTop), and no other code holds two view write locks at
-	// once, so this can't deadlock.
+	// different view than the destination — its callers hand content from one
+	// view to another — and no other code holds two view write locks at once, so
+	// this can't deadlock.
 	from.writeMutex.Lock()
 	defer from.writeMutex.Unlock()
 
