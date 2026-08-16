@@ -164,6 +164,32 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.RangeSelectDown),
 			GetDisabledReason: self.diffSelectionDisabledReason,
 		},
+		{
+			Keys:            opts.GetKeys(opts.Config.Files.CommitChanges),
+			Handler:         self.workingTreeAction(self.c.Helpers().WorkingTree.HandleCommitPress),
+			Description:     self.c.Tr.Commit,
+			DescriptionFunc: self.workingTreeActionDescription(self.c.Tr.Commit),
+			Tooltip:         self.c.Tr.CommitTooltip,
+		},
+		{
+			Keys:            opts.GetKeys(opts.Config.Files.CommitChangesWithoutHook),
+			Handler:         self.workingTreeAction(self.c.Helpers().WorkingTree.HandleWIPCommitPress),
+			Description:     self.c.Tr.CommitChangesWithoutHook,
+			DescriptionFunc: self.workingTreeActionDescription(self.c.Tr.CommitChangesWithoutHook),
+		},
+		{
+			Keys:            opts.GetKeys(opts.Config.Files.CommitChangesWithEditor),
+			Handler:         self.workingTreeAction(self.c.Helpers().WorkingTree.HandleCommitEditorPress),
+			Description:     self.c.Tr.CommitChangesWithEditor,
+			DescriptionFunc: self.workingTreeActionDescription(self.c.Tr.CommitChangesWithEditor),
+		},
+		{
+			Keys:            opts.GetKeys(opts.Config.Files.FindBaseCommitForFixup),
+			Handler:         self.workingTreeAction(self.c.Helpers().FixupHelper.HandleFindBaseCommitForFixupPress),
+			Description:     self.c.Tr.FindBaseCommitForFixup,
+			DescriptionFunc: self.workingTreeActionDescription(self.c.Tr.FindBaseCommitForFixup),
+			Tooltip:         self.c.Tr.FindBaseCommitForFixupTooltip,
+		},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.PrevPage), Handler: self.handlePrevPage, Description: self.c.Tr.PrevPage},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextPage), Handler: self.handleNextPage, Description: self.c.Tr.NextPage},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoTop), Handler: self.handleGotoTop, Description: self.c.Tr.GotoTop},
@@ -360,6 +386,20 @@ func (self *MainViewController) discardSelection() error {
 	}
 	first, last := self.context.GetView().SelectedLineRange()
 	return actions.DiscardSelection(self.context, first, last)
+}
+
+// workingTreeAction wraps a command that acts on the working tree — committing, finding
+// the commit to fix up — so that it only runs while the focused main view is showing the
+// working tree's diff. Over a commit's diff the key does nothing, so that browsing
+// through history can't commit by accident. The check is per press, since what the main
+// view shows changes as the user moves around while the keybindings are registered once.
+func (self *MainViewController) workingTreeAction(action func() error) func() error {
+	return func() error {
+		if self.diffMainViewType() != types.DiffMainViewTypeStaging {
+			return nil
+		}
+		return action()
+	}
 }
 
 // workingTreeActionDescription gives a command's description only where the command
