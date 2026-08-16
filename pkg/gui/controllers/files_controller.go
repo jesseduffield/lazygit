@@ -380,13 +380,17 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	showStaged := node.GetHasStagedChanges() || alwaysSplit
 	showUnstaged := node.GetHasUnstagedChanges() || alwaysSplit || !showStaged
 
+	// While the main view is focused to act on this diff, it may have to be git's own
+	// rather than the diff renderer's; both panes have to agree about that.
+	mode := self.c.Helpers().DiffLine.MainViewDiffMode()
+
 	paths := self.pathsForDiff(node)
 	refreshOpts := types.RefreshMainOpts{Pair: self.c.MainViewPairs().Normal}
 
 	if showUnstaged {
-		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, git_commands.DiffModeRendered, false, paths)
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, mode, false, paths)
 		refreshOpts.Main = &types.ViewUpdateOpts{
-			Task:           types.NewRunDiffRendererTask(cmdObj.GetCmd()),
+			Task:           types.NewMainViewDiffTask(cmdObj.GetCmd(), mode),
 			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 			Title:          self.c.Tr.UnstagedChanges,
 			NothingToActOn: !node.GetHasUnstagedChanges(),
@@ -394,9 +398,9 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	}
 
 	if showStaged {
-		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, git_commands.DiffModeRendered, true, paths)
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, mode, true, paths)
 		refreshOpts.Secondary = &types.ViewUpdateOpts{
-			Task:           types.NewRunDiffRendererTask(cmdObj.GetCmd()),
+			Task:           types.NewMainViewDiffTask(cmdObj.GetCmd(), mode),
 			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 			Title:          self.c.Tr.StagedChanges,
 			NothingToActOn: !node.GetHasStagedChanges(),

@@ -15,11 +15,15 @@ import (
 
 type DiffHelper struct {
 	c *HelperCommon
+	// diffLineHelper says how a diff for the main view is to be produced, which depends
+	// on whether the focused main view could act on what a diff renderer would make of it.
+	diffLineHelper *DiffLineHelper
 }
 
-func NewDiffHelper(c *HelperCommon) *DiffHelper {
+func NewDiffHelper(c *HelperCommon, diffLineHelper *DiffLineHelper) *DiffHelper {
 	return &DiffHelper{
-		c: c,
+		c:              c,
+		diffLineHelper: diffLineHelper,
 	}
 }
 
@@ -53,6 +57,8 @@ func (self *DiffHelper) DiffArgs() []string {
 // either there's no range, or it can't be diffed for some reason), then we want
 // to fall back to rendering the diff for the single commit.
 func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Commit, refRange *types.RefRange) types.UpdateTask {
+	mode := self.diffLineHelper.MainViewDiffMode()
+
 	if refRange != nil {
 		from, to := refRange.From, refRange.To
 		args := []string{from.ParentRefName(), to.RefName(), "--stat", "-p"}
@@ -72,13 +78,13 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 				args = append(args, filterPath)
 			}
 		}
-		cmdObj := self.c.Git().Diff.DiffCmdObj(args, git_commands.DiffModeRendered)
+		cmdObj := self.c.Git().Diff.DiffCmdObj(args, mode)
 		prefix := style.FgYellow.Sprintf("%s %s-%s\n\n", self.c.Tr.ShowingDiffForRange, from.ShortRefName(), to.ShortRefName())
-		return types.NewRunDiffRendererTaskWithPrefix(cmdObj.GetCmd(), prefix)
+		return types.NewMainViewDiffTaskWithPrefix(cmdObj.GetCmd(), prefix, mode)
 	}
 
-	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit), git_commands.DiffModeRendered)
-	return types.NewRunDiffRendererTask(cmdObj.GetCmd())
+	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit), mode)
+	return types.NewMainViewDiffTask(cmdObj.GetCmd(), mode)
 }
 
 // PlainDiffBetweenRefs returns the diff of the given files between two refs as git
