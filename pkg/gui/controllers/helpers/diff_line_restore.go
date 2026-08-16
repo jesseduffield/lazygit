@@ -346,7 +346,10 @@ func (self *DiffLineHelper) installDiffLineRestore(
 	findComplete func(contents []gocui.DiffLineContent) (int, bool),
 	place func(viewLine int),
 ) {
-	manager := self.c.GetViewBufferManagerForView(view)
+	// Get-or-create, because the pane may not have rendered anything yet: a file whose
+	// diff has only just become split has a second pane whose first render is the one
+	// this restore is for.
+	manager := self.c.GetOrCreateViewBufferManagerForView(view)
 	if manager == nil {
 		return
 	}

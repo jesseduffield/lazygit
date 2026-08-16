@@ -99,20 +99,35 @@ func (self *WorkingTreeDiffActions) applyDiffLineSelection(
 	// A directory's diff spans several files, and a patch is of one file, so the
 	// selected lines are grouped by the file they belong to and applied file by file.
 	infosByFile := lo.GroupBy(infos, func(info types.DiffLineInfo) string { return info.Path })
+	acted := set.New[string]()
+	actedSideRemains := false
 	for path, fileInfos := range infosByFile {
 		file := self.fileForDiffLinePath(path)
 		if file == nil {
 			continue
 		}
-		if err := self.applyDiffLines(file, fileInfos, onStagedSide, opts); err != nil {
+		changesLeft, err := self.applyDiffLines(file, fileInfos, onStagedSide, opts)
+		if err != nil {
 			return err
 		}
+		acted.Add(file.GetPath())
+		actedSideRemains = actedSideRemains || changesLeft
 	}
+	if !actedSideRemains {
+		actedSideRemains = self.anyFileHasChangesOnSide(acted, onStagedSide)
+	}
+
+	// Whether the other side has anything decides which pane the work carries on in.
+	// If the lines were staged, they are in the index now, so that side has them. If
+	// they were discarded, the other side was not touched, so the model still
+	// describes it correctly.
+	otherSideHasChanges := opts.Cached || self.anyFileHasChangesOnSide(set.New[string](), !onStagedSide)
 
 	// The refresh below queues the re-render of the diff we just changed; this rides it,
 	// so that the selection ends up on the change that took the place of the one acted
-	// on rather than at a position that means nothing any more.
-	revealSelectionAfterAction(self.c, pane, firstLineIdx)
+	// on rather than at a position that means nothing any more — and in the pane the
+	// work carries on in, which is not always the one it was in.
+	self.revealSelectionInPaneItLandsIn(pane, firstLineIdx, actedSideRemains, otherSideHasChanges)
 
 	// Block input until the refresh has landed, so that a quick second keypress acts on
 	// the diff as it now is rather than on the one we just changed.
@@ -145,9 +160,13 @@ func (self *WorkingTreeDiffActions) fileForDiffLinePath(path string) *models.Fil
 // position in the new file and differ only in being a deletion. Context lines are not
 // selected: a patch of the lines you picked keeps whatever context it needs around
 // them by itself.
+//
+// It reports whether the diff it read holds changes the selection didn't cover. The
+// caller uses this to tell whether the side acted on still has anything of this file
+// in it once we are done.
 func (self *WorkingTreeDiffActions) applyDiffLines(
 	file *models.File, infos []types.DiffLineInfo, sourceCached bool, opts git_commands.ApplyPatchOpts,
-) error {
+) (bool, error) {
 	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, true, sourceCached))
 
 	type changeLine struct {
@@ -179,17 +198,19 @@ func (self *WorkingTreeDiffActions) applyDiffLines(
 		}
 	}
 
+	changesLeft := len(patchLineIndices) < changeLineCount(parsedPatch)
+
 	// Acting on every change of a file is acting on the file itself, and saying so is
 	// not the same as applying its diff. The diff of a deleted file is its content
 	// going away, and putting that into the index line by line leaves an empty file
 	// there rather than the deletion; the diff of an added one is its whole content,
 	// and taking that back out leaves an empty file in the index rather than an
 	// untracked one.
-	if opts.Cached && len(patchLineIndices) == changeLineCount(parsedPatch) {
+	if !changesLeft && opts.Cached {
 		if opts.Reverse {
-			return self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked)
+			return false, self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked)
 		}
-		return self.c.Git().WorkingTree.StageFile(file.GetPath())
+		return false, self.c.Git().WorkingTree.StageFile(file.GetPath())
 	}
 
 	patchToApply := parsedPatch.
@@ -200,10 +221,10 @@ func (self *WorkingTreeDiffActions) applyDiffLines(
 		}).
 		FormatPlain()
 	if patchToApply == "" {
-		return nil
+		return changesLeft, nil
 	}
 
-	return self.c.Git().Patch.ApplyPatch(patchToApply, opts)
+	return changesLeft, self.c.Git().Patch.ApplyPatch(patchToApply, opts)
 }
 
 // changeLineCount returns how many of a patch's lines are changes rather than context
@@ -212,4 +233,56 @@ func changeLineCount(p *patch.Patch) int {
 	return lo.CountBy(p.Lines(), func(line *patch.PatchLine) bool {
 		return line.IsAddition() || line.IsDeletion()
 	})
+}
+
+// revealSelectionInPaneItLandsIn arranges for the selection to carry on where the work
+// does, which is not always the pane it was in.
+//
+// Each side of the diff has a pane of its own, so acting on one usually leaves
+// everything where it is. But a pane is only shown while its side has something in it:
+// staging the last unstaged change takes the upper pane away, and unstaging the last
+// staged one takes the lower one away. The refresh moves the focus into whichever pane
+// is left, and this puts the selection there to meet it — on the lines just acted on,
+// which are in that pane now, unless they were discarded rather than moved, in which
+// case on what is left of the file.
+func (self *WorkingTreeDiffActions) revealSelectionInPaneItLandsIn(
+	pane types.DiffPaneContext, firstLineIdx int, actedSideRemains bool, otherSideHasChanges bool,
+) {
+	target := pane
+	if !actedSideRemains && otherSideHasChanges {
+		target = self.otherPane(pane)
+	}
+
+	revealSelectionAfterAction(self.c, pane, target, firstLineIdx)
+}
+
+// otherPane returns the main pane that isn't the given one.
+func (self *WorkingTreeDiffActions) otherPane(pane types.DiffPaneContext) types.DiffPaneContext {
+	if pane.GetKey() == self.c.Contexts().Normal.GetKey() {
+		return self.c.Contexts().NormalSecondary
+	}
+	return self.c.Contexts().Normal
+}
+
+// anyFileHasChangesOnSide reports whether any file under the selected node, other than
+// the ones named by except, has changes on the given side of the index, as the model
+// has them. The model is right about any file the action didn't touch; the ones it did
+// touch report for themselves, their entry not being right until the refresh lands.
+func (self *WorkingTreeDiffActions) anyFileHasChangesOnSide(except *set.Set[string], staged bool) bool {
+	node := self.context().GetSelected()
+	if node == nil {
+		return false
+	}
+
+	found := false
+	_ = node.ForEachFile(func(file *models.File) error {
+		if except.Includes(file.GetPath()) {
+			return nil
+		}
+		if (staged && file.HasStagedChanges) || (!staged && file.HasUnstagedChanges) {
+			found = true
+		}
+		return nil
+	})
+	return found
 }
