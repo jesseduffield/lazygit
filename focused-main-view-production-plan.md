@@ -1440,6 +1440,56 @@ the rebase onto it. All checks green; §6 sign-off owed.
     `select_next_deletion_after_staging_one`,
     `select_next_change_after_unstaging`, `stage_hunks_with_rapid_keypresses`.
 
+#### Interactive sign-off (2026-08-16) — approved
+
+The §6 pass is done and PR 7 is signed off. It came with four review comments
+about the stack as a whole rather than about staging, all addressed the same
+day as mid-branch `fixup!`/`amend!` commits (never at the tip — the user's
+standing rule, restated here). What was decided and done:
+
+1. **Focusing the main view never scrolls.** Pressing `0` used to select the
+   first change at or below the top of the viewport — which could be below the
+   viewport too, and in hunk mode the selection then scrolled up to the block's
+   first line. Now the search is bounded by the viewport, and nothing about
+   focusing (or clicking) scrolls: a click that selects a hunk starting above
+   the view leaves the view alone, which is also the workaround for selecting a
+   single line inside a hunk. In hunk mode the block offered up is the first one
+   that **begins** on screen (the user's call, taken over "the first visible
+   change"), falling back to a block that reaches into the view from above,
+   whose start is then off screen. With no change on screen at all — a big `-U`
+   — it drops to line mode on the **middle visible line** (`MiddleVisibleLineIdx`,
+   which is the middle of the content when the content is shorter than the
+   screen). That accessor came down from PR 6's "Let a view be read while it is
+   re-rendering" into PR 5, where the first consumer now is; that commit's
+   message lost its paragraph about it via an `amend!`.
+2. **Position preservation covers both panes**, for `{`/`}` and for the
+   renderer cycle as it already did for `ctrl+w` — the lower pane holds the
+   staged side of a file's diff, and it was jumping to the top. The "either
+   pane may hold the diff" rationale now lives in
+   `PreserveDiffPositionOnRerender`'s doc rather than at each call site.
+   (`ctrl+w`'s second call was only added by the staged-side-in-the-lower-pane
+   branch; the fixup moves it back to PR 6, where the case already existed.)
+3. **A selection scrolled out of sight no longer drags the view back to it.**
+   The line kept in place is now the end of the selection that is **on screen**
+   — the cursor, or the range's other end when only that is visible (the user
+   asked for "either end" as a refinement over testing the cursor alone) — and
+   the middle visible line when the whole selection is off screen. The
+   selection is still restored by identity either way, with its own fallback
+   walk, so it stays on the same line of the diff; only the view stays put.
+4. **Searching collapses the selection to the match** (`MainContext.OnSearchSelect`,
+   like the staging view's patch-explorer context does), so `n` after turning
+   hunk mode back on mid-search behaves too. Its prep commit moves the
+   select-mode reset onto `MainContext`.
+
+Six new e2e tests: `select_visible_change_on_focusing_main_view`,
+`select_visible_hunk_on_focusing_main_view`, `search_collapses_the_selection`,
+`keep_position_in_both_panes_when_{changing_context_size,switching_diff_renderers,ignoring_whitespace}`,
+`keep_position_when_the_selection_is_off_screen`,
+`keep_position_by_the_visible_end_of_a_selection`. Worth knowing for later
+tests: **while the focused main view holds focus, a renderer that doesn't emit
+metadata is bypassed** (PR 7's raw fallback), so a renderer-behaviour test that
+focuses the view has to give its renderers the handshake.
+
 ### PR 8 — Build custom patches directly from a commit's diff view
 
 After it: `space` over a commit's diff (commit-files, commits, sub-commits,
@@ -1665,7 +1715,7 @@ user pass before merge:
 | 4 | ✅ **APPROVED 2026-08-09.** Patched delta/difftastic/diff-so-fancy emit + render cleanly; handshake swallowed (no phantom line) |
 | 5 | ✅ **APPROVED 2026-08-15.** Selection feel under delta; hunk-on-click; drag incl. autoscroll; nav under metadata delta incl. repeated `n` across files. Some special cases are candidates for a later refinement; deliberately not pursued now |
 | 6 | ✅ **APPROVED 2026-08-15.** `{`/`}`, `ctrl+w` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ignoring whitespace where it removes the anchor's hunk, and where it empties the diff. Nothing found; the whitespace consumer called out as a welcome addition |
-| 7 | Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro) |
+| 7 | ✅ **APPROVED 2026-08-16.** Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro). Four review comments about the stack as a whole, all fixed the same day — see PR 7's sign-off section |
 | 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
 | 10 | Ghostty, iTerm2, VS Code |
 
@@ -1825,7 +1875,9 @@ The remaining rows are agreed as keep/defer:
       `stage-changes-in-main-view` (13 commits plus five fixup!/amend! commits
       from the rebase, all checks green), stacked on
       `show-staged-changes-in-lower-pane`, which is itself stacked on
-      `keep-diff-position-on-rerender`. §6 sign-off **owed**
+      `keep-diff-position-on-rerender`. §6 sign-off **approved 2026-08-16**,
+      with four cross-cutting review comments fixed as mid-branch fixups in
+      PRs 5, 6 and 7 (see PR 7's sign-off section)
 - [x] The staged side always in the lower pane — **DONE 2026-08-16** on branch
       `show-staged-changes-in-lower-pane` (2 commits, green), inserted below
       PR 7 at the user's suggestion; see the section at the end of PR 7
@@ -1839,6 +1891,18 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-16:** **PR 7 signed off**, and with it four review comments about
+  the stack as a whole — how focusing the main view picks what to select, and
+  how a re-render keeps your place — fixed as **mid-branch** fixups landing in
+  PRs 5, 6 and 7 rather than at the tip (the user's standing rule; use
+  `git rebase --onto <fixup> <target> <branch> --update-refs` so the stacked
+  branch refs follow). The details are in PR 7's sign-off section; the two
+  worth carrying: focusing never scrolls, and a re-render keeps the place by
+  the part of the selection that is on screen, not by the selection wherever
+  it is. Also learned the hard way: `just build 2>&1 | tail` hides the build's
+  exit status behind `tail`'s, which is how a conflict resolution with a
+  missing function got committed mid-rebase — check `$?` of the build itself,
+  and grep for conflict markers before `git rebase --continue`.
 - **2026-08-16:** **PR 7 implemented** (14 commits, green; §6 sign-off owed).
   Three decisions taken with the user up front: the seam is split in two so
   that copy reaches every diff panel without any panel carrying stub actions
