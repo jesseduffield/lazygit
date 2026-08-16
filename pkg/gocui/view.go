@@ -2443,6 +2443,23 @@ func (v *View) SelectedLineRange() (int, int) {
 	return start, end
 }
 
+// SelectedBufferLineRange is SelectedLineRange in buffer lines (see
+// BufferLineForViewLine): the first and last line of the view's content that the
+// selection covers, however the view wraps them. ok is false when the selection
+// isn't on the content, which happens when there is none.
+func (v *View) SelectedBufferLineRange() (int, int, bool) {
+	first, last := v.SelectedLineRange()
+	firstBufferLine, ok := v.BufferLineForViewLine(first)
+	if !ok {
+		return 0, 0, false
+	}
+	lastBufferLine, ok := v.BufferLineForViewLine(last)
+	if !ok {
+		return 0, 0, false
+	}
+	return firstBufferLine, lastBufferLine, true
+}
+
 func (v *View) RenderTextArea() {
 	v.Clear()
 	fmt.Fprint(v, v.TextArea.GetContent())

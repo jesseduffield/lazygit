@@ -453,6 +453,26 @@ func TestLastViewLineForBufferLine(t *testing.T) {
 	assert.False(t, ok)
 }
 
+func TestSelectedBufferLineRange(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	_, _, ok := v.SelectedBufferLineRange()
+	assert.False(t, ok)
+
+	// Buffer line 1 wraps into view lines 1, 2 and 3.
+	v.writeString("short\n" + strings.Repeat("b", 27) + "\nlast")
+
+	// A range from the middle of the wrapped line to the line below it covers both
+	// lines.
+	v.FocusPoint(0, 2, false)
+	v.SetRangeSelectStart(4)
+	first, last, ok := v.SelectedBufferLineRange()
+	assert.True(t, ok)
+	assert.Equal(t, 1, first)
+	assert.Equal(t, 2, last)
+}
+
 // While an async re-render loads, it swaps in only a partially-filled buffer at
 // its first paint and keeps appending lines afterwards. The scrollbar must keep
 // using the pre-load height until the load ends, so the thumb doesn't shrink and
