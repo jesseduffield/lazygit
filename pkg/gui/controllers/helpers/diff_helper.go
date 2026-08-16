@@ -72,12 +72,12 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 				args = append(args, filterPath)
 			}
 		}
-		cmdObj := self.c.Git().Diff.DiffCmdObj(args)
+		cmdObj := self.c.Git().Diff.DiffCmdObj(args, git_commands.DiffModeRendered)
 		prefix := style.FgYellow.Sprintf("%s %s-%s\n\n", self.c.Tr.ShowingDiffForRange, from.ShortRefName(), to.ShortRefName())
 		return types.NewRunDiffRendererTaskWithPrefix(cmdObj.GetCmd(), prefix)
 	}
 
-	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit))
+	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit), git_commands.DiffModeRendered)
 	return types.NewRunDiffRendererTask(cmdObj.GetCmd())
 }
 
@@ -90,7 +90,7 @@ func (self *DiffHelper) PlainDiffBetweenRefs(from string, to string, paths []str
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 	// An error means there is no diff to be had, which for our purposes is the same
 	// as an empty one.
-	diff, _ := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, true).RunWithOutput()
+	diff, _ := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, git_commands.DiffModePlain).RunWithOutput()
 	return diff
 }
 
@@ -113,7 +113,7 @@ func (self *DiffHelper) ExitDiffMode() error {
 
 func (self *DiffHelper) RenderDiff() {
 	args := self.DiffArgs()
-	cmdObj := self.c.Git().Diff.DiffCmdObj(args)
+	cmdObj := self.c.Git().Diff.DiffCmdObj(args, git_commands.DiffModeRendered)
 	prefix := style.FgMagenta.Sprintf(
 		"%s %s\n\n",
 		self.c.Tr.ShowingGitDiff,

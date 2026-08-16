@@ -40,7 +40,7 @@ func (self *WorkingTreeDiffActions) PlainDiff(pane types.DiffPaneContext, paths 
 	// An error means there is no diff to be had, which for our purposes is the same as
 	// an empty one.
 	diff, _ := self.c.Git().WorkingTree.
-		WorktreeFileDiffCmdObj(node, true, self.showsStagedSide(pane), paths).
+		WorktreeFileDiffCmdObj(node, git_commands.DiffModePlain, self.showsStagedSide(pane), paths).
 		RunWithOutput()
 	return diff
 }
@@ -196,7 +196,7 @@ func (self *WorkingTreeDiffActions) fileForDiffLinePath(path string) *models.Fil
 func (self *WorkingTreeDiffActions) applyDiffLines(
 	file *models.File, infos []types.DiffLineInfo, sourceCached bool, opts git_commands.ApplyPatchOpts,
 ) (bool, error) {
-	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, true, sourceCached))
+	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, git_commands.DiffModePlain, sourceCached))
 
 	type changeLine struct {
 		lineNumber int

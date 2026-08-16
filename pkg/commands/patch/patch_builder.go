@@ -33,7 +33,7 @@ type fileInfo struct {
 }
 
 type (
-	loadFileDiffFunc func(from string, to string, reverse bool, filename string, previousPath string, plain bool) (string, error)
+	loadFileDiffFunc func(from string, to string, reverse bool, filename string, previousPath string) (string, error)
 )
 
 // PatchBuilder manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
@@ -162,7 +162,7 @@ func (p *PatchBuilder) getFileInfo(filename string, previousPath string) (*fileI
 		return info, nil
 	}
 
-	diff, err := p.loadFileDiff(from, to, reverse, filename, previousPath, true)
+	diff, err := p.loadFileDiff(from, to, reverse, filename, previousPath)
 	if err != nil {
 		return nil, err
 	}
