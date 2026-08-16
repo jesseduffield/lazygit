@@ -242,6 +242,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | Commit veranderingen | Commit gestagede wijzigingen. |
+| `` w `` | Commit veranderingen zonder pre-commit hook |  |
+| `` C `` | Commit veranderingen met de git editor |  |
+| `` <ctrl+f> `` | Find base commit for fixup | Vind de commit waar je huidige wijzigingen bovenop zijn gebouwd met als doel die commit te amenden/fixen. Hierdoor hoef je dit niet met de hand te doen. Zie: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Start met zoeken |  |
 
 ## Patch bouwen
@@ -327,6 +331,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | Commit veranderingen | Commit gestagede wijzigingen. |
+| `` w `` | Commit veranderingen zonder pre-commit hook |  |
+| `` C `` | Commit veranderingen met de git editor |  |
+| `` <ctrl+f> `` | Find base commit for fixup | Vind de commit waar je huidige wijzigingen bovenop zijn gebouwd met als doel die commit te amenden/fixen. Hierdoor hoef je dit niet met de hand te doen. Zie: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Start met zoeken |  |
 
 ## Staging

@@ -246,6 +246,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | Commit | Submeter mudanças em staging |
+| `` w `` | Fazer commit de alterações sem pré-commit |  |
+| `` C `` | Enviar alteração usando um editor Git |  |
+| `` <ctrl+f> `` | Encontrar commit da base para corrigir | Encontre o commit em que as suas mudanças atuais estão se baseando, para alterar/consertar o commit. Isso poupa-te você de ter que olhar pelos commits da sua branch um por um para ver qual commit deve ser alterado/consertado<br>Veja a documentação:<br><https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Painel Principal (preparação)
@@ -358,6 +362,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | Commit | Submeter mudanças em staging |
+| `` w `` | Fazer commit de alterações sem pré-commit |  |
+| `` C `` | Enviar alteração usando um editor Git |  |
+| `` <ctrl+f> `` | Encontrar commit da base para corrigir | Encontre o commit em que as suas mudanças atuais estão se baseando, para alterar/consertar o commit. Isso poupa-te você de ter que olhar pelos commits da sua branch um por um para ver qual commit deve ser alterado/consertado<br>Veja a documentação:<br><https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Stash
