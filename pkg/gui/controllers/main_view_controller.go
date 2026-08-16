@@ -297,6 +297,39 @@ func (self *MainViewController) primaryAction() error {
 	return actions.PrimaryAction(self.context, first, last)
 }
 
+// revealSelectionAfterAction moves the focused main view's selection to the change
+// that takes the place of the one just acted on, once the changed diff has re-rendered.
+// Call it from the panel's action handler with the pane it acted in and the first line
+// of the selection, before triggering the re-render.
+//
+// The line acted on is gone from the diff, so what is remembered is its place among the
+// diff's changes: the next change moves up into it, which is where you want to be to
+// carry on. A range collapses to a single line at its start, and hunk mode selects the
+// whole block it lands in, so that pressing the key again acts on the next hunk.
+func revealSelectionAfterAction(c *ControllerCommon, pane types.DiffPaneContext, firstLineIdx int) {
+	view := pane.GetView()
+	ordinal, ok := c.Helpers().DiffLine.ChangeLineOrdinal(view, firstLineIdx)
+	if !ok {
+		return
+	}
+
+	sel := pane.DiffSelectState()
+	if sel.Mode == types.DiffSelectModeRange {
+		sel.Mode = types.DiffSelectModeLine
+		sel.RangeIsSticky = false
+	}
+	selectHunk := sel.Mode == types.DiffSelectModeHunk
+
+	c.Helpers().DiffLine.RevealChangeLineAtOrdinal(view, ordinal, func(viewLine int) {
+		if selectHunk {
+			selectDiffHunk(c, pane, viewLine, true)
+			return
+		}
+		view.CancelRangeSelect()
+		showSelectionAtLine(view, viewLine, true)
+	})
+}
+
 // workingTreeActionDescription gives a command's description only where the command
 // applies — over the working tree's diff — so that it is listed there and nowhere else.
 func (self *MainViewController) workingTreeActionDescription(description string) func() string {
@@ -616,12 +649,12 @@ func (self *MainViewController) selectHunkAround(changeViewLine int, scrollIntoV
 // to go there; a click leaves it false, so that the view doesn't move under the mouse
 // when the block the click landed in starts above the viewport.
 func selectDiffHunk(
-	c *ControllerCommon, mainContext *context.MainContext, changeViewLine int, scrollIntoView bool,
+	c *ControllerCommon, pane types.DiffPaneContext, changeViewLine int, scrollIntoView bool,
 ) {
-	view := mainContext.GetView()
+	view := pane.GetView()
 	start, end, ok := c.Helpers().DiffLine.ChangeBlockBounds(view, changeViewLine)
 	if !ok {
-		mainContext.DiffSelectState().Mode = types.DiffSelectModeLine
+		pane.DiffSelectState().Mode = types.DiffSelectModeLine
 		view.CancelRangeSelect()
 		showSelectionAtLine(view, changeViewLine, scrollIntoView)
 		return
