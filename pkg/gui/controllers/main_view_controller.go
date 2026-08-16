@@ -43,7 +43,7 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Keys:    opts.GetKeys(opts.Config.Main.ToggleSelectHunk),
 			Handler: self.toggleSelectHunk,
 			DescriptionFunc: self.diffSelectionDescription(func() string {
-				if self.diffSelectState().Mode == context.DiffSelectModeHunk {
+				if self.diffSelectState().Mode == types.DiffSelectModeHunk {
 					return self.c.Tr.SelectLineByLine
 				}
 				return self.c.Tr.SelectHunk
@@ -163,7 +163,7 @@ func (self *MainViewController) escapeDescription() string {
 // selectingHunkEnabledByUser reports whether we are in hunk mode because the user
 // asked for it, as opposed to it being the configured default.
 func (self *MainViewController) selectingHunkEnabledByUser() bool {
-	return self.diffSelectState().Mode == context.DiffSelectModeHunk && self.diffSelectState().UserEnabledHunkMode
+	return self.diffSelectState().Mode == types.DiffSelectModeHunk && self.diffSelectState().UserEnabledHunkMode
 }
 
 // isDiffView reports whether the focused main view currently shows a diff, and so
@@ -189,7 +189,7 @@ func (self *MainViewController) diffMainViewType() types.DiffMainViewType {
 }
 
 // diffSelectState returns this pane's diff selection mode state.
-func (self *MainViewController) diffSelectState() *context.DiffSelectState {
+func (self *MainViewController) diffSelectState() *types.DiffSelectState {
 	return self.context.DiffSelectState()
 }
 
@@ -250,7 +250,7 @@ func (self *MainViewController) selectClickedDiffLine(viewLine int) {
 		return
 	}
 	view := self.context.GetView()
-	if self.diffSelectState().Mode == context.DiffSelectModeHunk &&
+	if self.diffSelectState().Mode == types.DiffSelectModeHunk &&
 		self.c.Helpers().DiffLine.IsChangeLine(view, viewLine) {
 		self.selectHunkAround(viewLine, false)
 		return
@@ -313,7 +313,7 @@ func (self *MainViewController) selectHunkAround(changeViewLine int, scrollIntoV
 	view := self.context.GetView()
 	start, end, ok := self.c.Helpers().DiffLine.ChangeBlockBounds(view, changeViewLine)
 	if !ok {
-		self.diffSelectState().Mode = context.DiffSelectModeLine
+		self.diffSelectState().Mode = types.DiffSelectModeLine
 		view.CancelRangeSelect()
 		showSelectionAtLine(view, changeViewLine, scrollIntoView)
 		return
@@ -370,7 +370,7 @@ func (self *MainViewController) placeNavigationTarget(target int) {
 		v.SetOrigin(0, target)
 		return
 	}
-	if self.diffSelectState().Mode == context.DiffSelectModeHunk {
+	if self.diffSelectState().Mode == types.DiffSelectModeHunk {
 		self.selectHunkAround(target, true)
 		return
 	}
@@ -403,9 +403,9 @@ func (self *MainViewController) moveCursor(delta int) {
 // sticky range is kept, so the move extends it.
 func (self *MainViewController) collapseForLineMove() {
 	sel := self.diffSelectState()
-	if sel.Mode == context.DiffSelectModeHunk ||
-		(sel.Mode == context.DiffSelectModeRange && !sel.RangeIsSticky) {
-		sel.Mode = context.DiffSelectModeLine
+	if sel.Mode == types.DiffSelectModeHunk ||
+		(sel.Mode == types.DiffSelectModeRange && !sel.RangeIsSticky) {
+		sel.Mode = types.DiffSelectModeLine
 		self.context.GetView().CancelRangeSelect()
 	}
 }
@@ -419,7 +419,7 @@ func (self *MainViewController) adjustSelection(delta int) {
 		self.handleLineChange(delta)
 		return
 	}
-	if self.diffSelectState().Mode == context.DiffSelectModeHunk && (delta == 1 || delta == -1) {
+	if self.diffSelectState().Mode == types.DiffSelectModeHunk && (delta == 1 || delta == -1) {
 		self.navigate(self.c.Helpers().DiffLine.AdjacentChangeBlock, delta > 0)
 		return
 	}
@@ -438,7 +438,7 @@ func (self *MainViewController) selectAbsoluteLine(target int) {
 // range mode and either it's sticky or the anchor and cursor differ, i.e. a
 // non-sticky range that has actually been extended.
 func (self *MainViewController) selectingRange() bool {
-	if self.diffSelectState().Mode != context.DiffSelectModeRange {
+	if self.diffSelectState().Mode != types.DiffSelectModeRange {
 		return false
 	}
 	start, end := self.context.GetView().SelectedLineRange()
@@ -453,11 +453,11 @@ func (self *MainViewController) toggleSelectHunk() error {
 		return nil
 	}
 	sel := self.diffSelectState()
-	if sel.Mode == context.DiffSelectModeHunk {
-		sel.Mode = context.DiffSelectModeLine
+	if sel.Mode == types.DiffSelectModeHunk {
+		sel.Mode = types.DiffSelectModeLine
 		v.CancelRangeSelect()
 	} else {
-		sel.Mode = context.DiffSelectModeHunk
+		sel.Mode = types.DiffSelectModeHunk
 		sel.UserEnabledHunkMode = true
 		self.selectHunkAround(v.SelectedLineIdx(), true)
 	}
@@ -473,11 +473,11 @@ func (self *MainViewController) toggleRangeSelect() error {
 	}
 	sel := self.diffSelectState()
 	if self.selectingRange() {
-		sel.Mode = context.DiffSelectModeLine
+		sel.Mode = types.DiffSelectModeLine
 		sel.RangeIsSticky = false
 		v.CancelRangeSelect()
 	} else {
-		sel.Mode = context.DiffSelectModeRange
+		sel.Mode = types.DiffSelectModeRange
 		sel.RangeIsSticky = true
 		v.SetRangeSelectStart(v.SelectedLineIdx())
 	}
@@ -493,7 +493,7 @@ func (self *MainViewController) extendRange(forward bool) error {
 	}
 	sel := self.diffSelectState()
 	if !self.selectingRange() {
-		sel.Mode = context.DiffSelectModeRange
+		sel.Mode = types.DiffSelectModeRange
 		v.SetRangeSelectStart(v.SelectedLineIdx())
 	}
 	sel.RangeIsSticky = false

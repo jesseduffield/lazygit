@@ -9,45 +9,21 @@ type MainContext struct {
 	*SimpleContext
 	*SearchTrait
 
-	diffSelect DiffSelectState
+	diffSelect types.DiffSelectState
 	// selectableContentRenderKey names the render whose content HasSelectableContent
 	// was worked out from. What there is to select is a property of the content, so an
 	// answer about the content of another render says nothing about this one.
 	selectableContentRenderKey string
 }
 
-var _ types.ISearchableContext = (*MainContext)(nil)
-
-// DiffSelectMode is how the focused main view's diff selection extends from the
-// cursor: a single line, a range from a fixed anchor, or the change block (hunk)
-// around the cursor.
-type DiffSelectMode int
-
-const (
-	DiffSelectModeLine DiffSelectMode = iota
-	DiffSelectModeRange
-	DiffSelectModeHunk
+var (
+	_ types.ISearchableContext = (*MainContext)(nil)
+	_ types.DiffPaneContext    = (*MainContext)(nil)
 )
-
-// DiffSelectState holds the *mode* of the focused main view's diff selection. The
-// selected line and the range anchor themselves live in the gocui view (its cursor
-// and range-select start), so only the mode lives here. It's on the context rather
-// than on the controller because the controller that drives the selection, the
-// controller that establishes it on focus, and the pane-toggle that seeds it on the
-// other pane all reach the pane through its context.
-type DiffSelectState struct {
-	Mode DiffSelectMode
-	// When a range is sticky, moving the cursor without holding shift extends the
-	// range; otherwise it collapses the range back to a single line.
-	RangeIsSticky bool
-	// Whether hunk mode was turned on by the user rather than being the configured
-	// default. This decides whether escape leaves hunk mode or leaves the view.
-	UserEnabledHunkMode bool
-}
 
 // DiffSelectState returns the focused main view's selection mode state, for the
 // controllers to read and mutate directly.
-func (self *MainContext) DiffSelectState() *DiffSelectState {
+func (self *MainContext) DiffSelectState() *types.DiffSelectState {
 	return &self.diffSelect
 }
 
@@ -56,7 +32,7 @@ func (self *MainContext) DiffSelectState() *DiffSelectState {
 // view's range anchor is cleared too, so the next render highlights the cursor line
 // only.
 func (self *MainContext) ResetDiffSelectMode() {
-	self.diffSelect.Mode = DiffSelectModeLine
+	self.diffSelect.Mode = types.DiffSelectModeLine
 	self.diffSelect.RangeIsSticky = false
 	self.diffSelect.UserEnabledHunkMode = false
 	self.GetView().CancelRangeSelect()
