@@ -3,6 +3,8 @@ package controllers
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -94,7 +96,7 @@ func (self *StashController) GetOnRenderToMain() func() {
 			} else {
 				prefix := style.FgYellow.Sprintf("%s\n\n", stashEntry.Description())
 				task = types.NewRunDiffRendererTaskWithPrefix(
-					self.c.Git().Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd(),
+					self.c.Git().Stash.ShowStashEntryCmdObj(stashEntry.Index, git_commands.DiffModeRendered).GetCmd(),
 					prefix,
 				)
 			}

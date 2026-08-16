@@ -352,7 +352,7 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 	message := self.conflictResolutionHint(node.File.GetMergeStateDescription(self.c.Tr))
 
 	if node.File.ShortStatus == "DU" || node.File.ShortStatus == "UD" {
-		cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()})
+		cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()}, git_commands.DiffModeRendered)
 		prefix := message + "\n\n"
 		if node.File.ShortStatus == "DU" {
 			prefix += self.c.Tr.MergeConflictIncomingDiff
@@ -384,7 +384,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	refreshOpts := types.RefreshMainOpts{Pair: self.c.MainViewPairs().Normal}
 
 	if showUnstaged {
-		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, false, paths)
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, git_commands.DiffModeRendered, false, paths)
 		refreshOpts.Main = &types.ViewUpdateOpts{
 			Task:           types.NewRunDiffRendererTask(cmdObj.GetCmd()),
 			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
@@ -394,7 +394,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	}
 
 	if showStaged {
-		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, paths)
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, git_commands.DiffModeRendered, true, paths)
 		refreshOpts.Secondary = &types.ViewUpdateOpts{
 			Task:           types.NewRunDiffRendererTask(cmdObj.GetCmd()),
 			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
