@@ -81,6 +81,19 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 	return types.NewRunDiffRendererTask(cmdObj.GetCmd())
 }
 
+// PlainDiffBetweenRefs returns the diff of the given files between two refs as git
+// writes it, without colour or a diff renderer's involvement — what a panel showing
+// a commit's diff hands out as the diff behind its rendering (see
+// types.FocusedMainViewDiffSource). It honours diffing mode, so that the diff is of
+// the same two ends the main view is showing.
+func (self *DiffHelper) PlainDiffBetweenRefs(from string, to string, paths []string) string {
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
+	// An error means there is no diff to be had, which for our purposes is the same
+	// as an empty one.
+	diff, _ := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, true).RunWithOutput()
+	return diff
+}
+
 func (self *DiffHelper) FilterPathsForCommit(commit *models.Commit) []string {
 	filterPath := self.c.Modes().Filtering.GetPath()
 	if filterPath != "" {

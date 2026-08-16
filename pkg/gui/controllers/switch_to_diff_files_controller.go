@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -62,6 +63,22 @@ func (self *SwitchToDiffFilesController) GetOnDoubleClick() func() error {
 
 		return nil
 	}
+}
+
+func (self *SwitchToDiffFilesController) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {
+	return self
+}
+
+// PlainDiff hands out the diff of the panel's selected commit (or range of them) for
+// the given files — the same diff its main view shows, only without the commit's
+// message and stat above it.
+func (self *SwitchToDiffFilesController) PlainDiff(_ types.DiffPaneContext, paths []string) string {
+	ref := self.context.GetSelectedRef()
+	if ref == nil {
+		return ""
+	}
+	from, to := context.FromAndToForDiff(ref, self.context.GetSelectedRefRangeForDiffFiles())
+	return self.c.Helpers().Diff.PlainDiffBetweenRefs(from, to, paths)
 }
 
 func (self *SwitchToDiffFilesController) enter() error {
