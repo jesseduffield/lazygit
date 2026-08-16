@@ -175,9 +175,10 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		from, to := self.context().GetFromAndToForDiff()
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
+		mode := self.c.Helpers().DiffLine.MainViewDiffMode()
 		paths := self.pathsForDiff(node)
-		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, git_commands.DiffModeRendered)
-		task := types.NewRunDiffRendererTask(cmdObj.GetCmd())
+		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, mode)
+		task := types.NewMainViewDiffTask(cmdObj.GetCmd(), mode)
 
 		self.c.RenderToMainViews(types.RefreshMainOpts{
 			Pair: self.c.MainViewPairs().Normal,

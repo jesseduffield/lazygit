@@ -2,6 +2,8 @@ package types
 
 import (
 	"os/exec"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 )
 
 type MainContextPair struct {
@@ -115,4 +117,19 @@ func NewRunDiffRendererTask(cmd *exec.Cmd) *RunDiffRendererTask {
 
 func NewRunDiffRendererTaskWithPrefix(cmd *exec.Cmd, prefix string) *RunDiffRendererTask {
 	return &RunDiffRendererTask{Cmd: cmd, Prefix: prefix}
+}
+
+// NewMainViewDiffTask returns the task for rendering a diff into a main view. A diff
+// normally goes through the diff renderer, however the render arranges to feed it. A
+// diff we are producing with git itself, because the renderer's version of it couldn't
+// be acted on, has to keep the renderer out, so it runs as a plain command instead.
+func NewMainViewDiffTask(cmd *exec.Cmd, mode git_commands.DiffMode) UpdateTask {
+	return NewMainViewDiffTaskWithPrefix(cmd, "", mode)
+}
+
+func NewMainViewDiffTaskWithPrefix(cmd *exec.Cmd, prefix string, mode git_commands.DiffMode) UpdateTask {
+	if mode == git_commands.DiffModeRaw {
+		return NewRunCommandTaskWithPrefix(cmd, prefix)
+	}
+	return NewRunDiffRendererTaskWithPrefix(cmd, prefix)
 }
