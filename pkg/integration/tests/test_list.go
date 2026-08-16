@@ -367,6 +367,8 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.SwapWithConflict,
 	interactive_rebase.ViewFilesOfTodoEntries,
 	main_view.ClickSelectsDiffLine,
+	main_view.CopyRowsThatAreNoDiffLine,
+	main_view.CopySelectedDiffLines,
 	main_view.DragRangeWithAutoscroll,
 	main_view.DragSelectsDiffLineRange,
 	main_view.EditSelectedDiffLine,

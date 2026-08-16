@@ -80,6 +80,13 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Tooltip:           self.c.Tr.EditFileTooltip,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
+			Handler:           self.copySelection,
+			Description:       self.c.Tr.CopySelectedTextToClipboard,
+			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.CopySelectedTextToClipboard),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Main.PrevHunk),
 			Handler:           self.prevChangeBlock,
 			Description:       self.c.Tr.PrevHunk,
@@ -246,6 +253,63 @@ func (self *MainViewController) diffMainViewType() types.DiffMainViewType {
 		return diffContext.GetDiffMainViewType()
 	}
 	return types.DiffMainViewTypeNone
+}
+
+// diffSource returns the panel beneath the focused main view, as the thing that can
+// hand out the diff it rendered there. nil when this pane isn't on the stack, or the
+// panel beneath shows no diff.
+func (self *MainViewController) diffSource() types.FocusedMainViewDiffSource {
+	if !self.c.Context().IsInStack(self.context) {
+		return nil
+	}
+	sidePanel := self.c.Context().NextInStack(self.context)
+	if sidePanel == nil {
+		return nil
+	}
+	return sidePanel.GetFocusedMainViewDiffSource()
+}
+
+// copySelection copies the selected diff lines to the clipboard — not as the diff
+// renderer drew them, but as they read in the diff itself, which is both what you meant
+// to copy and the only form a renderer can't have mangled. A selection that is all
+// additions or all deletions loses its +/- column, so that it can be pasted straight
+// into code.
+//
+// The rows above the diff (a commit's message, git's summary of it) belong to no file,
+// so they are copied as they stand on screen.
+func (self *MainViewController) copySelection() error {
+	text := self.textOfSelection()
+	if text == "" {
+		self.c.ErrorToast(self.c.Tr.SelectionNotFoundInDiffToast)
+		return nil
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.CopySelectedTextToClipboard)
+	if err := self.c.OS().CopyToClipboard(text); err != nil {
+		return err
+	}
+	self.c.Toast(self.c.Tr.SelectedDiffLinesCopiedToast)
+	return nil
+}
+
+// textOfSelection is what copying the selection puts on the clipboard. It is "" when
+// none of the selected rows could be placed in the diff, which is what a rendering's
+// own decoration comes to.
+func (self *MainViewController) textOfSelection() string {
+	source := self.diffSource()
+	if source == nil {
+		return ""
+	}
+	view := self.context.GetView()
+	first, last := view.SelectedLineRange()
+	aboveDiff, fromDiff := self.c.Helpers().DiffLine.PlainDiffOfSelection(view, first, last,
+		func(paths []string) string { return source.PlainDiff(self.context, paths) })
+	if aboveDiff == "" {
+		// Only text that is all diff has a +/- column to lose: a line of a commit message
+		// may begin with a '-' without being a deletion of anything.
+		fromDiff = dropDiffPrefix(fromDiff)
+	}
+	return aboveDiff + fromDiff
 }
 
 // diffSelectState returns this pane's diff selection mode state.

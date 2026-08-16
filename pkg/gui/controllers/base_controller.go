@@ -23,6 +23,10 @@ func (self *baseController) GetOnClick() func(opts gocui.ViewMouseBindingOpts) e
 	return nil
 }
 
+func (self *baseController) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {
+	return nil
+}
+
 func (self *baseController) GetOnRenderToMain() func() {
 	return nil
 }
