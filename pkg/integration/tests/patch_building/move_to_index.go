@@ -62,7 +62,7 @@ var MoveToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Focus()
 
-		t.Views().Main().
+		t.Views().Secondary().
 			Content(Contains("file1 content"))
 	},
 })
