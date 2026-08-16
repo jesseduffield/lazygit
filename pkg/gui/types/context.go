@@ -239,6 +239,23 @@ type FocusedMainViewDiffSource interface {
 	PlainDiff(pane DiffPaneContext, paths []string) string
 }
 
+// FocusedMainViewActions describes what a side panel does when the user acts on a
+// selection of diff lines in the focused main view. The main view owns the selection
+// and the keys; what acting on it means is the panel's business, e.g. the working
+// tree panel stages and unstages.
+//
+// It extends the diff source rather than standing beside it, because acting on a
+// selection needs the diff behind the rendering just as reading it does; a panel that
+// implements only the source offers a diff to read and copy but nothing to do to it.
+type FocusedMainViewActions interface {
+	FocusedMainViewDiffSource
+
+	// PrimaryAction acts on the diff lines in the inclusive view-line range, which is
+	// the current selection in the given pane: a single line, a range, or a hunk. The
+	// panel re-renders the diff itself, being the one that knows what it did to it.
+	PrimaryAction(pane DiffPaneContext, firstLineIdx int, lastLineIdx int) error
+}
+
 type IListContext interface {
 	Context
 

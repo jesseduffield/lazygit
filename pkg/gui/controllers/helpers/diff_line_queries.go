@@ -35,6 +35,15 @@ func (self *DiffLineHelper) DiffLinesInViewRange(view *gocui.View, first int, la
 	return infos
 }
 
+// ChangeLinesInViewRange returns the change lines — the additions and deletions —
+// among the diff lines shown by the rows in the inclusive view-line range. Those are
+// the lines a patch is built from: a patch carries whatever context it needs around
+// them by itself, so a selection contributes only its changes.
+func (self *DiffLineHelper) ChangeLinesInViewRange(view *gocui.View, first int, last int) []types.DiffLineInfo {
+	return lo.Filter(self.DiffLinesInViewRange(view, first, last),
+		func(info types.DiffLineInfo, _ int) bool { return info.IsChange() })
+}
+
 // changeLines resolves view's rendered diff to one flag per buffer line: whether
 // that row is a change line (an addition or a deletion), as opposed to context, a
 // header, or a row whose identity couldn't be recovered. Those are the rows a
