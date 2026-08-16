@@ -191,6 +191,18 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 	}
 }
 
+func (self *CommitFilesController) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {
+	return self
+}
+
+// PlainDiff hands out the commit's diff for the given files. Both panes show the same
+// diff here — the secondary one shows the custom patch built from it, which is not a
+// diff of the commit — so which pane asks makes no difference.
+func (self *CommitFilesController) PlainDiff(_ types.DiffPaneContext, paths []string) string {
+	from, to := self.context().GetFromAndToForDiff()
+	return self.c.Helpers().Diff.PlainDiffBetweenRefs(from, to, paths)
+}
+
 func (self *CommitFilesController) copyDiffToClipboard(paths []string, toastMessage string) error {
 	from, to := self.context().GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)

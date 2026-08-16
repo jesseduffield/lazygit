@@ -37,6 +37,20 @@ func (self *ReflogCommitsController) context() *context.ReflogCommitsContext {
 	return self.c.Contexts().ReflogCommits
 }
 
+func (self *ReflogCommitsController) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {
+	return self
+}
+
+// PlainDiff hands out the reflog entry's diff for the given files — the same diff its
+// main view shows, only without the entry's message and stat above it.
+func (self *ReflogCommitsController) PlainDiff(_ types.DiffPaneContext, paths []string) string {
+	commit := self.context().GetSelected()
+	if commit == nil {
+		return ""
+	}
+	return self.c.Helpers().Diff.PlainDiffBetweenRefs(commit.ParentRefName(), commit.RefName(), paths)
+}
+
 func (self *ReflogCommitsController) GetOnRenderToMain() func() {
 	return func() {
 		self.c.Helpers().Diff.WithDiffModeCheck(func() {
