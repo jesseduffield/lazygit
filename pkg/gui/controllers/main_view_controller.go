@@ -89,6 +89,15 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen:   true,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
+			Handler:           self.discardSelection,
+			Description:       self.c.Tr.DiscardSelection,
+			DescriptionFunc:   self.workingTreeActionDescription(self.c.Tr.DiscardSelection),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+			Tooltip:           self.c.Tr.DiscardSelectionTooltip,
+			DisplayOnScreen:   true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           self.copySelection,
 			Description:       self.c.Tr.CopySelectedTextToClipboard,
@@ -339,6 +348,18 @@ func revealSelectionAfterAction(
 		targetView.CancelRangeSelect()
 		c.Helpers().DiffLine.ShowSelectionAtLine(targetView, viewLine, true)
 	})
+}
+
+// discardSelection takes the selected diff lines back out of what they are part of,
+// which — like the primary action — is the panel's business, and so is the re-render
+// that follows.
+func (self *MainViewController) discardSelection() error {
+	actions := self.focusedMainViewActions()
+	if actions == nil {
+		return nil
+	}
+	first, last := self.context.GetView().SelectedLineRange()
+	return actions.DiscardSelection(self.context, first, last)
 }
 
 // workingTreeActionDescription gives a command's description only where the command

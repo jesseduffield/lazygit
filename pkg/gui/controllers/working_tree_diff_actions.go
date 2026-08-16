@@ -70,6 +70,35 @@ func (self *WorkingTreeDiffActions) PrimaryAction(pane types.DiffPaneContext, fi
 		git_commands.ApplyPatchOpts{Reverse: onStagedSide, Cached: true})
 }
 
+// DiscardSelection takes the selected diff lines out of the working tree — or, on the
+// staged side, out of the index, which is where "discard this" means "I don't want it
+// staged".
+func (self *WorkingTreeDiffActions) DiscardSelection(pane types.DiffPaneContext, firstLineIdx int, lastLineIdx int) error {
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
+		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextToDiscard,
+			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
+	}
+
+	infos, onStagedSide, ok := self.diffLineSelection(pane, firstLineIdx, lastLineIdx)
+	if !ok {
+		return nil
+	}
+
+	// Either way the change is applied backwards; which side it is applied to decides
+	// how destructive that is. On the staged side it goes to the index; this is the
+	// same as unstaging, so nothing is lost. On the unstaged side it goes to the
+	// working tree, where the change is gone for good, so we ask first.
+	return self.c.ConfirmIf(!onStagedSide && !self.c.UserConfig().Gui.SkipDiscardChangeWarning,
+		types.ConfirmOpts{
+			Title:  self.c.Tr.DiscardChangeTitle,
+			Prompt: self.c.Tr.DiscardChangePrompt,
+			HandleConfirm: func() error {
+				return self.applyDiffLineSelection(pane, firstLineIdx, infos, onStagedSide,
+					git_commands.ApplyPatchOpts{Reverse: true, Cached: onStagedSide})
+			},
+		})
+}
+
 // diffLineSelection resolves what the user has selected in a pane of the focused main
 // view to the change lines to act on, and reports whether they are the staged side of
 // the diff — which is a question about the pane, so it is the same for every file of a
