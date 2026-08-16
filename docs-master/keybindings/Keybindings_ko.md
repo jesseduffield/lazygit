@@ -87,6 +87,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | 드래그 선택 전환 |  |
 | `` e `` | 파일 편집 | Open file in external editor. |
+| `` <space> `` | Staged 전환 | 선택한 행을 staged / unstaged |
 | `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
 | `` <left>, h `` | 이전 hunk를 선택 |  |
 | `` <right>, l `` | 다음 hunk를 선택 |  |
@@ -173,6 +174,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | 드래그 선택 전환 |  |
 | `` e `` | 파일 편집 | Open file in external editor. |
+| `` <space> `` | Staged 전환 | 선택한 행을 staged / unstaged |
 | `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
 | `` <left>, h `` | 이전 hunk를 선택 |  |
 | `` <right>, l `` | 다음 hunk를 선택 |  |

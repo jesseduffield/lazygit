@@ -6,16 +6,18 @@ import (
 )
 
 var NoSelectionOverABinaryDiff = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "A diff with nothing selectable in it shows no selection, and a refresh doesn't bring one",
+	Description:  "A diff with nothing selectable in it shows no selection, however it came to be showing",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
 	},
 	SetupRepo: func(shell *Shell) {
+		shell.CreateFileAndAdd("text", "one\ntwo\nthree\n")
 		shell.CreateFileAndAdd("binary", "\x00one\x00two\x00")
 		shell.Commit("one")
 
+		shell.UpdateFile("text", "one\nTWO\nthree\n")
 		shell.UpdateFile("binary", "\x00one\x00TWO\x00")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
@@ -23,6 +25,7 @@ var NoSelectionOverABinaryDiff = NewIntegrationTest(NewIntegrationTestArgs{
 		// refresh, which renders the same diff again, doesn't make one appear.
 		t.Views().Files().
 			IsFocused().
+			NavigateToLine(Contains("binary")).
 			Press(keys.Universal.FocusMainView)
 
 		t.Views().Main().
@@ -31,6 +34,23 @@ var NoSelectionOverABinaryDiff = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.GlobalPress(keys.Universal.Refresh)
 			}).
+			SelectionIsHidden()
+
+		// The same when acting on a diff of several files leaves nothing selectable in
+		// it: staging the text file's only change leaves the binary one behind.
+		t.Views().Files().
+			Focus().
+			NavigateToLine(Contains("▼ /")).
+			Press(keys.Universal.FocusMainView)
+
+		t.Views().Main().
+			IsFocused().
+			SelectionIsActive().
+			SelectedLines(
+				Contains("-two"),
+			).
+			Press(keys.Main.ToggleSelectHunk).
+			PressPrimaryAction().
 			SelectionIsHidden()
 	},
 })

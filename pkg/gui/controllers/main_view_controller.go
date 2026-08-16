@@ -80,6 +80,15 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Tooltip:           self.c.Tr.EditFileTooltip,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Universal.Select),
+			Handler:           self.primaryAction,
+			Description:       self.c.Tr.Stage,
+			DescriptionFunc:   self.workingTreeActionDescription(self.c.Tr.Stage),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+			Tooltip:           self.c.Tr.StageSelectionTooltip,
+			DisplayOnScreen:   true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           self.copySelection,
 			Description:       self.c.Tr.CopySelectedTextToClipboard,
@@ -267,6 +276,36 @@ func (self *MainViewController) diffSource() types.FocusedMainViewDiffSource {
 		return nil
 	}
 	return sidePanel.GetFocusedMainViewDiffSource()
+}
+
+// focusedMainViewActions returns what the panel beneath the focused main view does to
+// a selection in its diff, or nil where it does nothing to it — a panel whose diff can
+// be read and copied but not acted on.
+func (self *MainViewController) focusedMainViewActions() types.FocusedMainViewActions {
+	actions, _ := self.diffSource().(types.FocusedMainViewActions)
+	return actions
+}
+
+// primaryAction acts on the selected diff lines, leaving what that means to the panel
+// beneath — which also re-renders the diff, since it is the one that changed it.
+func (self *MainViewController) primaryAction() error {
+	actions := self.focusedMainViewActions()
+	if actions == nil {
+		return nil
+	}
+	first, last := self.context.GetView().SelectedLineRange()
+	return actions.PrimaryAction(self.context, first, last)
+}
+
+// workingTreeActionDescription gives a command's description only where the command
+// applies — over the working tree's diff — so that it is listed there and nowhere else.
+func (self *MainViewController) workingTreeActionDescription(description string) func() string {
+	return func() string {
+		if self.diffMainViewType() != types.DiffMainViewTypeStaging {
+			return ""
+		}
+		return description
+	}
 }
 
 // copySelection copies the selected diff lines to the clipboard — not as the diff
