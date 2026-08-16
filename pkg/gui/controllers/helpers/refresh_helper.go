@@ -1436,6 +1436,10 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 			self.c.Contexts().Files.GetView().Subtitle = ""
 		}
 
+		if fileTreeViewModel.GetStatusFilter() == filetree.DisplayConflicted {
+			fileTreeViewModel.RememberConflictedPaths(conflictedPaths)
+		}
+
 		self.c.Model().Submodules = submoduleConfigs
 		self.c.Model().Files = files
 		markWorktreeFiles(files, self.c.Model().Worktrees, env.git.RepoPaths.WorktreePath())
