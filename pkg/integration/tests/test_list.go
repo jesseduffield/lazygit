@@ -404,6 +404,7 @@ var tests = []*components.IntegrationTest{
 	main_view.SelectHunkOnFocusingMainView,
 	main_view.SelectInADiffReadInPart,
 	main_view.SelectLineWhenWholeFileIsOneHunk,
+	main_view.SelectNextChangeAfterStaging,
 	main_view.SelectVisibleChangeOnFocusingMainView,
 	main_view.SelectVisibleHunkOnFocusingMainView,
 	main_view.SelectionCommandsOnlyWhereTheyApply,

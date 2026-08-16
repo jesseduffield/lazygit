@@ -264,6 +264,71 @@ func (self *DiffLineHelper) restoreDiffLinePositionOnRerender(
 	)
 }
 
+// ChangeLineOrdinal returns how many change lines of view's rendered diff come before
+// the one at the given view line — that line's place in the sequence of changes. ok is
+// false when the view line belongs to no row of the content.
+//
+// It is how a place in a diff is remembered across acting on it: an action consumes
+// the lines it acted on, so the identity of the line the user was on is gone, but the
+// place it left behind is the same one that identity used to have.
+func (self *DiffLineHelper) ChangeLineOrdinal(view *gocui.View, viewLine int) (int, bool) {
+	bufferLine, ok := view.BufferLineForViewLine(viewLine)
+	if !ok {
+		return 0, false
+	}
+
+	ordinal := 0
+	for i, row := range self.resolveDiffLines(view.DiffLineContents()) {
+		if i >= bufferLine {
+			break
+		}
+		if row.ok && row.info.IsChange() {
+			ordinal++
+		}
+	}
+	return ordinal, true
+}
+
+// RevealChangeLineAtOrdinal arranges for view's next re-render to be shown with the
+// change line at the given ordinal placed by place — the diff having changed under the
+// user, this is where what they were doing carries on. When the new diff has fewer
+// changes than that, because the ones acted on were its last, it lands on the last
+// change left.
+func (self *DiffLineHelper) RevealChangeLineAtOrdinal(view *gocui.View, ordinal int, place func(viewLine int)) {
+	// How many change lines the incremental search has passed, so that it can carry on
+	// counting where it left off.
+	seen := 0
+
+	self.installDiffLineRestore(view,
+		func(rows []gocui.DiffLineContent, offset int) (int, bool) {
+			for i, row := range rows {
+				if info, ok := self.diffLineInfoFromRecords(row.Metadata); ok && info.IsChange() {
+					if seen == ordinal {
+						return offset + i, true
+					}
+					seen++
+				}
+			}
+			return 0, false
+		},
+		func(contents []gocui.DiffLineContent) (int, bool) {
+			last, count := -1, 0
+			for i, row := range self.resolveDiffLines(contents) {
+				if !row.ok || !row.info.IsChange() {
+					continue
+				}
+				if count == ordinal {
+					return i, true
+				}
+				count++
+				last = i
+			}
+			return last, last != -1
+		},
+		place,
+	)
+}
+
 // installDiffLineRestore is what the restores are built on: it arranges for view's
 // next re-render to be revealed with the row a search finds in it placed by place,
 // instead of from the top.
