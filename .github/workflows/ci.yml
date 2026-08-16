@@ -195,7 +195,7 @@ jobs:
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           # If you change this, make sure to also update scripts/golangci-lint-shim.sh
-          version: v2.4.0
+          version: v2.12.2
   upload-coverage:
     # List all jobs that produce coverage files
     needs: [unit-tests, integration-tests]
