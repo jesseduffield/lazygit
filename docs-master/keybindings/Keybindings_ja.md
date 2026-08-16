@@ -203,6 +203,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | サイドパネルに戻る |  |
+| `` c `` | コミット | ステージされた変更をコミットします。 |
+| `` w `` | pre-commitフックなしで変更をコミット |  |
+| `` C `` | Gitエディタを使用して変更をコミット |  |
+| `` <ctrl+f> `` | フィックスアップのベースコミットを検索 | 現在の変更が基づいているコミットを見つけて、コミットの修正/フィックスアップを行います。これにより、ブランチのコミットを一つずつ確認して、どのコミットを修正/フィックスアップすべきかを調べる手間が省けます。詳細はドキュメントを参照: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## タグ
@@ -326,6 +330,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | サイドパネルに戻る |  |
+| `` c `` | コミット | ステージされた変更をコミットします。 |
+| `` w `` | pre-commitフックなしで変更をコミット |  |
+| `` C `` | Gitエディタを使用して変更をコミット |  |
+| `` <ctrl+f> `` | フィックスアップのベースコミットを検索 | 現在の変更が基づいているコミットを見つけて、コミットの修正/フィックスアップを行います。これにより、ブランチのコミットを一つずつ確認して、どのコミットを修正/フィックスアップすべきかを調べる手間が省けます。詳細はドキュメントを参照: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## メニュー
