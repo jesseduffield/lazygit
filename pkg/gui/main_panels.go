@@ -289,6 +289,10 @@ func (gui *Gui) clampDiffSelectionToContent(view *gocui.View) {
 // An emptied pane is showing nothing, so it also goes back to the top and stops
 // claiming the render it was showing: whatever it is given next is content the user
 // hasn't seen there, and is shown from the top like any other.
+//
+// A position waiting to be put back goes too: this pane is getting no render for it
+// to ride, and whoever is waiting for the view to be back where it belongs has to
+// hear that it never will be.
 func (gui *Gui) clearMainView(mainContext types.Context) {
 	view := mainContext.GetView()
 	view.Clear()
@@ -300,6 +304,7 @@ func (gui *Gui) clearMainView(mainContext types.Context) {
 	gui.State.ContextMgr.UpdateSelectionHighlights()
 	if manager := gui.getViewBufferManagerForView(view); manager != nil {
 		manager.ForgetRenderedContent()
+		manager.DropRestoreForNextTask()
 	}
 }
 

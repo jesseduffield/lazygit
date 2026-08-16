@@ -261,6 +261,7 @@ func (self *DiffLineHelper) restoreDiffLinePositionOnRerender(
 			return bufferLine, true
 		},
 		func(viewLine int) { place(found, viewLine) },
+		nil,
 	)
 }
 
@@ -288,7 +289,13 @@ func (self *DiffLineHelper) ChangeLineOrdinal(view *gocui.View, bufferLine int) 
 // user, this is where what they were doing carries on. When the new diff has fewer
 // changes than that, because the ones acted on were its last, it lands on the last
 // change left.
-func (self *DiffLineHelper) RevealChangeLineAtOrdinal(view *gocui.View, ordinal int, place func(viewLine int)) {
+//
+// done is called once the selection is where it belongs, or once it turns out that no
+// render is coming to put it there, for a caller that must not let the user act again
+// in between.
+func (self *DiffLineHelper) RevealChangeLineAtOrdinal(
+	view *gocui.View, ordinal int, place func(viewLine int), done func(),
+) {
 	// How many change lines the incremental search has passed, so that it can carry on
 	// counting where it left off.
 	seen := 0
@@ -320,6 +327,7 @@ func (self *DiffLineHelper) RevealChangeLineAtOrdinal(view *gocui.View, ordinal 
 			return last, last != -1
 		},
 		place,
+		done,
 	)
 }
 
@@ -339,12 +347,16 @@ func (self *DiffLineHelper) installDiffLineRestore(
 	findEarly func(rows []gocui.DiffLineContent, offset int) (int, bool),
 	findComplete func(contents []gocui.DiffLineContent) (int, bool),
 	place func(viewLine int),
+	done func(),
 ) {
 	// Get-or-create, because the pane may not have rendered anything yet: a file whose
 	// diff has only just become split has a second pane whose first render is the one
 	// this restore is for.
 	manager := self.c.GetOrCreateViewBufferManagerForView(view)
 	if manager == nil {
+		if done != nil {
+			done()
+		}
 		return
 	}
 
@@ -390,6 +402,7 @@ func (self *DiffLineHelper) installDiffLineRestore(
 				place(viewLine)
 			}
 		},
+		Done: done,
 	})
 }
 
