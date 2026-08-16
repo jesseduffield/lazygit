@@ -282,7 +282,13 @@ func (self *WorkingTreeDiffActions) revealSelectionInPaneItLandsIn(
 		target = self.otherPane(pane)
 	}
 
-	revealSelectionAfterAction(self.c, pane, target, firstLineIdx)
+	// Hold input back until the selection is on the change the work carries on from. The
+	// refresh holds it until the model is up to date, but the diff is re-rendered after
+	// that, and until it has been the selection is still on lines that aren't there any
+	// more — so a key pressed meanwhile would act on nothing.
+	self.c.GocuiGui().BeginBlockingEvents()
+	revealSelectionAfterAction(self.c, pane, target, firstLineIdx,
+		self.c.GocuiGui().EndBlockingEvents)
 }
 
 // otherPane returns the main pane that isn't the given one.
