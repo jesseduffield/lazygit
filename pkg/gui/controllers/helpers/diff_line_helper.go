@@ -9,6 +9,11 @@ import (
 
 type DiffLineHelper struct {
 	c *HelperCommon
+
+	// What the probe said about the diff renderer that rendererSignature names, or nil
+	// before it has been asked about any (see diffRendererEmitsMetadata).
+	rendererEmitsMetadata *bool
+	rendererSignature     string
 }
 
 func NewDiffLineHelper(c *HelperCommon) *DiffLineHelper {
