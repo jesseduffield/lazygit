@@ -211,6 +211,15 @@ const (
 	DiffMainViewTypePatchBuilding
 )
 
+// DiffPaneContext is one of the two panes the main section can show, as the thing
+// that holds a diff with a selection in it. The panels that act on such a selection
+// are handed the pane it was made in, and speak to it through this.
+type DiffPaneContext interface {
+	Context
+
+	DiffSelectState() *DiffSelectState
+}
+
 type IListContext interface {
 	Context
 
