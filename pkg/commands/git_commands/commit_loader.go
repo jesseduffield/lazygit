@@ -64,6 +64,10 @@ type GetCommitsOptions struct {
 	RefForPushedStatus   models.Ref // the ref to use for determining pushed/unpushed status
 	// determines if we show the whole git graph i.e. pass the '--all' flag
 	All bool
+	// If non-empty, these refs are added to the log command as additional
+	// starting points, so the graph shows them alongside RefName. Takes
+	// precedence over All.
+	FilterRefs []string
 	// If non-empty, show divergence from this ref (left-right log)
 	RefToShowDivergenceFrom string
 	MainBranches            *MainBranches
@@ -588,8 +592,9 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 
 	cmdArgs := NewGitCmd("log").
 		Arg(refSpec).
+		Arg(opts.FilterRefs...).
 		ArgIf(gitLogOrder != "default", "--"+gitLogOrder).
-		ArgIf(opts.All, "--all").
+		ArgIf(opts.All && len(opts.FilterRefs) == 0, "--all").
 		Arg("--oneline").
 		Arg(prettyFormat).
 		Arg("--abbrev=40").
