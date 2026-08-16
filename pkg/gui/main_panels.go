@@ -112,6 +112,8 @@ func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
 
 	if opts.Main != nil {
 		gui.RefreshMainView(opts.Main, opts.Pair.Main)
+	} else {
+		opts.Pair.Main.GetView().Clear()
 	}
 
 	if opts.Secondary != nil {
@@ -134,7 +136,20 @@ func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
 		}
 	}
 
-	gui.splitMainPanel(opts.Secondary != nil)
+	gui.setMainPanes(mainPanesFor(opts))
+}
+
+// mainPanesFor says which panes the given render occupies: the one it has content for,
+// or both when it has content for both.
+func mainPanesFor(opts types.RefreshMainOpts) types.MainPanes {
+	switch {
+	case opts.Secondary == nil:
+		return types.MainPaneOnly
+	case opts.Main == nil:
+		return types.SecondaryPaneOnly
+	default:
+		return types.BothMainPanes
+	}
 }
 
 // clampDiffSelectionToContent brings the focused main view's selection back onto the
@@ -298,8 +313,8 @@ func (gui *Gui) mainContextForView(view *gocui.View) *context.MainContext {
 	return nil
 }
 
-func (gui *Gui) splitMainPanel(splitMainPanel bool) {
-	gui.State.SplitMainPanel = splitMainPanel
+func (gui *Gui) setMainPanes(panes types.MainPanes) {
+	gui.State.MainPanes = panes
 }
 
 // reApplySearch runs a search the view holds again over the content a render has just
