@@ -86,6 +86,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | 退出回到側邊面板 |  |
+| `` c `` | 提交變更 | 提交暫存區變更 |
+| `` w `` | 沒有預提交 hook 就提交更改 |  |
+| `` C `` | 使用 git 編輯器提交變更 |  |
+| `` <ctrl+f> `` | 尋找 fixup 的基礎提交 | 找出目前變更所依據的提交，以便 amend/fixup。這樣不必逐一檢視分支中的提交來找出要 amend/fixup 的提交。請見文件：<https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 搜尋 |  |
 
 ## 主面板（合併）
@@ -377,6 +381,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | 退出回到側邊面板 |  |
+| `` c `` | 提交變更 | 提交暫存區變更 |
+| `` w `` | 沒有預提交 hook 就提交更改 |  |
+| `` C `` | 使用 git 編輯器提交變更 |  |
+| `` <ctrl+f> `` | 尋找 fixup 的基礎提交 | 找出目前變更所依據的提交，以便 amend/fixup。這樣不必逐一檢視分支中的提交來找出要 amend/fixup 的提交。請見文件：<https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 搜尋 |  |
 
 ## 狀態
