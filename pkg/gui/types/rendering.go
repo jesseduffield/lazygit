@@ -2,6 +2,8 @@ package types
 
 import (
 	"os/exec"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 )
 
 type MainContextPair struct {
@@ -115,4 +117,20 @@ func NewRunPtyTask(cmd *exec.Cmd) *RunPtyTask {
 
 func NewRunPtyTaskWithPrefix(cmd *exec.Cmd, prefix string) *RunPtyTask {
 	return &RunPtyTask{Cmd: cmd, Prefix: prefix}
+}
+
+// NewMainViewDiffTask returns the task for rendering a diff into a main view. Diffs
+// normally run under a pty, since git only hands its output to a diff renderer when it
+// thinks it is talking to a terminal — but a diff we are producing with git itself,
+// because the renderer's version of it couldn't be acted on, has to keep the renderer
+// out, so it runs as a plain command instead.
+func NewMainViewDiffTask(cmd *exec.Cmd, mode git_commands.DiffMode) UpdateTask {
+	return NewMainViewDiffTaskWithPrefix(cmd, "", mode)
+}
+
+func NewMainViewDiffTaskWithPrefix(cmd *exec.Cmd, prefix string, mode git_commands.DiffMode) UpdateTask {
+	if mode == git_commands.DiffModeRaw {
+		return NewRunCommandTaskWithPrefix(cmd, prefix)
+	}
+	return NewRunPtyTaskWithPrefix(cmd, prefix)
 }
