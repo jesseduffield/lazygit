@@ -18,13 +18,13 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 
 // This is for generating diffs to be shown in the UI (e.g. rendering a range
 // diff to the main view). It uses a custom diff renderer if one is configured.
-func (self *DiffCommands) DiffCmdObj(diffArgs []string) *oscommands.CmdObj {
+func (self *DiffCommands) DiffCmdObj(diffArgs []string, mode DiffMode) *oscommands.CmdObj {
 	return self.cmd.New(
 		NewGitCmd("diff").
 			Config("diff.noprefix=false").
-			AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), true).
+			AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), mode).
 			Arg("--submodule").
-			Arg(fmt.Sprintf("--color=%s", self.diffRendererConfigManager.GetColorArg())).
+			Arg(fmt.Sprintf("--color=%s", mode.colorArg(self.diffRendererConfigManager))).
 			Arg(diffArgs...).
 			Dir(self.repoPaths.worktreePath).
 			ToArgv(),

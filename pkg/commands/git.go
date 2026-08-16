@@ -135,8 +135,10 @@ func NewGitCommandAux(
 	rebaseCommands := git_commands.NewRebaseCommands(gitCommon, commitCommands, workingTreeCommands)
 	stashCommands := git_commands.NewStashCommands(gitCommon, fileLoader, workingTreeCommands)
 	patchBuilder := patch.NewPatchBuilder(cmn.Log,
-		func(from string, to string, reverse bool, filename string, previousPath string, plain bool) (string, error) {
-			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, previousPath, plain)
+		func(from string, to string, reverse bool, filename string, previousPath string) (string, error) {
+			// A patch is built from git's own diff: what a diff renderer would make of it
+			// is a picture of it, not something that can be applied.
+			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, previousPath, git_commands.DiffModePlain)
 		})
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)
