@@ -1274,6 +1274,39 @@ handler + `diffSplitState`), not smeared across call sites — the parked
 separate-lists design will want to re-derive "side" from list-section
 membership and may want a different focus-follow rule.
 
+#### Review round 1 (2026-08-16) — the branch rebuilt
+
+The user's first pass, from testing and from reading. What came out of it:
+
+- **The staged side moved to the lower pane for good** (its own branch below
+  this one, see the section after this). PR 7 was rebuilt on top of it: the
+  `diffSplitState` prep commit is gone, which side a pane shows is a property
+  of the pane, and the focus-follow rule is symmetric — follow the lines into
+  the pane that is left when the acted-on one goes away.
+- **The actions live in their own class**, `WorkingTreeDiffActions`
+  (`working_tree_diff_actions.go`), rather than swelling `FilesController`,
+  where `PrimaryAction` and `DiscardSelection` also read as if they acted on
+  the files list.
+- **The seam takes panes, not views.** `types.DiffPaneContext` (a `Context`
+  with a `DiffSelectState`) is what the interface methods take, which needed
+  the select-state types moved from `gui/context` to `types` — a prep commit
+  at the bottom of PR 7. The view→context lookup is gone.
+- **Acting on a whole file covers both directions**: unstaging every line of
+  an added file leaves it untracked again, where before it left an empty file
+  in the index.
+- **The pane the work moves to shows no selection until the restore places
+  one**, so that the selection it was left with the last time it was used
+  doesn't flash first.
+- **Selection visibility is decided from the content, when the content is
+  final** — a fixup for PR 5. The old rule went by the task type at render
+  time, which showed a selection over a diff with nothing in it (a binary
+  file, before and after a refresh) and hid one over the custom patch, whose
+  pane renders a string. Two new tests cover both.
+- Smaller ones: the options-bar rule is its own commit; `set.Set` where a set
+  was meant; `workingTreeActionDescription` introduced with its first user;
+  `DiffModeRendered`/`DiffModeRaw`/`DiffModePlain`; probe files in lazygit's
+  temp dir; no patch-explorer mention in a code comment.
+
 #### A branch below it: the staged side always in the lower pane (2026-08-16)
 
 Branch `show-staged-changes-in-lower-pane`, off PR 6 and below PR 7, 2 commits,
