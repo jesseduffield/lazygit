@@ -23,11 +23,13 @@ var CopySelectedDiffLines = NewIntegrationTest(NewIntegrationTestArgs{
 		// Emulate the clipboard by writing to a file.
 		cfg.GetUserConfig().OS.CopyToClipboardCmd = "printf '%s' {{text}} > clipboard"
 		// A renderer that decorates every line of a diff's body, so that what is on
-		// screen is not what the diff says. It reads the +/- column, so it wants its
-		// input uncoloured.
+		// screen is not what the diff says. It announces the metadata protocol, so that
+		// its output is taken at its word rather than replaced by git's own; and it
+		// reads the +/- column, so it wants its input uncoloured.
 		cfg.GetUserConfig().Git.DiffRenderers = []config.DiffRendererConfig{
 			{
-				Command:  `awk '/^@@/ { body = 1 } body && /^[-+ ]/ { print $0 " <<<"; next } { print }'`,
+				Command: `printf '\033]1717;1\007'; ` +
+					`awk '/^@@/ { body = 1 } body && /^[-+ ]/ { print $0 " <<<"; next } { print }'`,
 				ColorArg: "never",
 			},
 		}

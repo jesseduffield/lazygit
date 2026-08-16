@@ -16,11 +16,14 @@ var KeepPositionWhenSwitchingDiffRenderers = NewIntegrationTest(NewIntegrationTe
 	Height:       30,
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		// Both announce the metadata protocol, so that their output is taken at its
+		// word and shown as it is; a renderer that says nothing about what it renders
+		// is replaced by git's own diff as soon as the main view is focused.
 		cfg.GetUserConfig().Git.DiffRenderers = []config.DiffRendererConfig{
-			{Name: "plain", Command: "cat"},
+			{Name: "plain", Command: `printf '\033]1717;1\007'; cat`},
 			// The same diff, three lines further down the view. (Lines before the
 			// diff's own header aren't part of it, so it still reads the same.)
-			{Name: "banner", Command: `printf 'rendered for you\n\n\n'; cat`},
+			{Name: "banner", Command: `printf '\033]1717;1\007rendered for you\n\n\n'; cat`},
 		}
 	},
 	SetupRepo: func(shell *Shell) {

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -60,9 +59,10 @@ func (self *ReflogCommitsController) GetOnRenderToMain() func() {
 			if commit == nil {
 				task = types.NewRenderStringTask("No reflog history")
 			} else {
-				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.c.Helpers().Diff.FilterPathsForCommit(commit), git_commands.DiffModeRendered)
+				mode := self.c.Helpers().DiffLine.MainViewDiffMode()
+				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.c.Helpers().Diff.FilterPathsForCommit(commit), mode)
 
-				task = types.NewRunDiffRendererTask(cmdObj.GetCmd())
+				task = types.NewMainViewDiffTask(cmdObj.GetCmd(), mode)
 			}
 
 			self.c.RenderToMainViews(types.RefreshMainOpts{
