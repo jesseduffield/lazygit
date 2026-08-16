@@ -176,7 +176,7 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
 		paths := self.pathsForDiff(node)
-		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false)
+		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, git_commands.DiffModeRendered)
 		task := types.NewRunDiffRendererTask(cmdObj.GetCmd())
 
 		self.c.RenderToMainViews(types.RefreshMainOpts{
@@ -207,7 +207,7 @@ func (self *CommitFilesController) copyDiffToClipboard(paths []string, toastMess
 	from, to := self.context().GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, true)
+	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, git_commands.DiffModePlain)
 	diff, err := cmdObj.RunWithOutput()
 	if err != nil {
 		return err
