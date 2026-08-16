@@ -344,11 +344,17 @@ func (self *MainViewController) primaryAction() error {
 // target pane inherits that select mode, this being the same piece of work continuing
 // in another pane — and shows no selection until the restore places one, so that what
 // it was left showing the last time it was used doesn't appear for a frame.
+//
+// done is called once the selection is where it belongs, or once it turns out that no
+// render is coming to put it there, for a caller that must not let the user act again
+// in between.
 func revealSelectionAfterAction(
-	c *ControllerCommon, source types.DiffPaneContext, target types.DiffPaneContext, firstLineIdx int,
+	c *ControllerCommon, source types.DiffPaneContext, target types.DiffPaneContext,
+	firstLineIdx int, done func(),
 ) {
 	ordinal, ok := c.Helpers().DiffLine.ChangeLineOrdinal(source.GetView(), firstLineIdx)
 	if !ok {
+		done()
 		return
 	}
 
@@ -373,7 +379,7 @@ func revealSelectionAfterAction(
 		}
 		targetView.CancelRangeSelect()
 		c.Helpers().DiffLine.ShowSelectionAtLine(targetView, viewLine, true)
-	})
+	}, done)
 }
 
 // discardSelection takes the selected diff lines back out of what they are part of,

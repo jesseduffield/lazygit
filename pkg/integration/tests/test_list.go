@@ -420,6 +420,7 @@ var tests = []*components.IntegrationTest{
 	main_view.SelectionOverTheCustomPatch,
 	main_view.StageDeletedFile,
 	main_view.StageDiffLines,
+	main_view.StageHunksWithRapidKeypresses,
 	main_view.StageRangeSpanningFiles,
 	main_view.StageUnderConformingDiffRenderer,
 	main_view.StageUnderUnsupportedDiffRenderer,
