@@ -1274,6 +1274,107 @@ handler + `diffSplitState`), not smeared across call sites — the parked
 separate-lists design will want to re-derive "side" from list-section
 membership and may want a different focus-follow rule.
 
+#### Deviations from the plan (2026-08-16, as implemented)
+
+Landed as 14 commits on branch `stage-changes-in-main-view` (off PR 6), plus
+one `fixup!` for a commit of its own and one for PR 5 (a dangling comment its
+plumbing removal left behind). All checks green; §6 sign-off owed.
+
+1. **Commit 3 (the `applyDiffLines` prep) has no separate existence.** There
+   was nothing to generalize — production has no `stageDiffLines` to split —
+   so the general shape was written directly, as the plan's own note said to.
+2. **The interface is two, and the narrow one is what panels register**
+   (decided with the user). `FocusedMainViewDiffSource` — `PlainDiff(view,
+   paths)`, the diff behind what a panel renders — is what every diff panel
+   implements and what a context hands out; `FocusedMainViewActions` embeds it
+   and adds `PrimaryAction`/`DiscardSelection`, which the dispatcher gets by
+   type-assertion. That way copy works over every diff (reflog included) in
+   this PR while only the files panel acts, and no panel carries a stub method
+   for a PR. PR 8 makes the commit panels satisfy the extension.
+   `DiscardSelectionDisabledReason` isn't in it yet: the files panel has no
+   reason to give, so it lands with PR 8's panels, which do.
+3. **`OnClick` is not a method of it**, PR 5 having deleted the dive gesture
+   and its plumbing.
+4. **Copy landed first**, as the seam's first consumer, since a seam with no
+   consumer is dead code. Its span rule is per file, from the first to the last
+   selected *content* line; headers are not matched, since a file header's
+   record and the buffer parse disagree about which line it is, and a run
+   between two content lines carries any header between them anyway.
+   `pkg/gui/controllers/helpers/diff_line_plain_text.go`.
+5. **The options bar leaves out a command that describes itself as nothing.**
+   PR 5 made an empty `DescriptionFunc` mean "doesn't apply here"; without this
+   the space key would have shown as a blank entry over a commit's diff, where
+   nothing has actions yet.
+6. **A whole-file selection stages the file** rather than only the deleted-file
+   case (plan commit 5): applying a file's entire diff to the index is what
+   `git add` does anyway, so the condition is "the selection covered every
+   change", which needs no question about what kind of file it is.
+7. **The plan's timing fact for commit 7 is stale, and the focus decision is
+   made without the model** (raised with the user, who chose this over asking
+   git). Post-rework a refresh only *queues* its model update, and its `Then`
+   runs after the panel's render-to-main has already started the render task —
+   so the handler can neither read the post-op split nor install a restore
+   late. What is left staged is therefore worked out from what we just did:
+   `applyDiffLines` reports whether the selection covered all of a file's
+   changes, and the files it didn't touch are as the model describes them.
+8. **The restore core split out as its own commit**, as PR 6 deviation 1
+   anticipated, with the ordinal reveal as its second consumer.
+9. **`GetOrCreateViewBufferManagerForView` is needed after all** (PR 6
+   deviation 9 said it wasn't): the pane the staged side moves *to* may never
+   have rendered, and the restore has to be on the manager its first render
+   will use.
+10. **Rapid keypresses lost a press** — found by porting the staging view's
+    test, raised, and fixed as its own commit. `RefreshBlockingInput` releases
+    when the model is up to date, but the selection only moves once the
+    asynchronous re-render lands, so the replayed press acted on lines that
+    were gone. The action now holds input until the restore *resolves*, for
+    which `RenderRestore` gained a `Done` hook — and, so that the hook always
+    runs, a view given a string task now drops a pending restore instead of
+    leaving it to claim a later render (a hole PR 6 left).
+11. **`plain bool` became `git_commands.DiffMode`** (`DiffRendered`,
+    `DiffRaw`, `DiffPlain`), in its own prep commit. Two booleans would have
+    had an invalid combination, and the mode also settles what the prototype
+    got wrong: ignoring whitespace applies to a raw render (it is about what
+    the user wants to see) but never to a plain one (a patch must describe
+    every change), and a raw render uses git's own colour rather than the
+    renderer's preference. It also took the colour decision off each command,
+    and dropped a `plain` parameter the patch builder always passed as true.
+12. **The probe is `DiffCommands.ProbeDiffRendererEmitsMetadata`**, switching
+    on the renderer type as planned, with the verdict cached on
+    `DiffLineHelper` (`MainViewDiffMode`, in `diff_line_raw_fallback.go`) — the
+    helper that already owns "can a row of this rendering be placed". Panels
+    ask it for the mode and pass that to `types.NewMainViewDiffTask`, which
+    picks the pty or the plain command task from it.
+13. **Three PR 5/6 tests needed their fake renderers to announce the
+    protocol.** They are about position, clamping and copying, not about the
+    fallback, and their renderers said nothing — so with the fallback in place
+    their output was replaced by git's own the moment the view was focused.
+14. **§9.10 resolved: `ctrl+w` is left alone** (decided with the user). Master
+    refuses it in the staging view because that view renders
+    `WorktreeFileDiff(plain)`, which never carries `--ignore-all-space` — the
+    toggle simply couldn't show there. In the merged view the *rendering*
+    honours it while the patch is still built from a freshly fetched plain
+    diff, and identities are `(path, file line number, isDeletion)`, which
+    ignoring whitespace doesn't renumber. So a selection made in a
+    whitespace-ignoring rendering stages exactly the real change lines.
+15. **§9.8 resolved: no real-renderer harness yet** (decided with the user):
+    PR 7's renderer tests are about renderers that say nothing, which a fake
+    models exactly. Build it when PR 8's difftastic work has a test that needs
+    it.
+16. **Renames are not threaded through copy's path list** — a renamed file's
+    plain diff is fetched by its new path alone, so git shows it as an
+    addition. It belongs with §8's rename row, which PR 8 commit 2 owns.
+17. **e2e**: 13 new tests in `pkg/integration/tests/main_view/` —
+    `copy_selected_diff_lines`, `stage_diff_lines`, `unstage_diff_lines`,
+    `stage_range_spanning_files`, `stage_deleted_file`,
+    `select_next_change_after_staging`, `focus_follows_staged_side`,
+    `focus_returns_when_split_collapses`, `discard_diff_lines`,
+    `commit_from_main_view`, `stage_under_unsupported_diff_renderer`,
+    `stage_under_conforming_diff_renderer`,
+    `advance_after_staging_shifts_line_numbers`,
+    `select_next_deletion_after_staging_one`,
+    `select_next_change_after_unstaging`, `stage_hunks_with_rapid_keypresses`.
+
 ### PR 8 — Build custom patches directly from a commit's diff view
 
 After it: `space` over a commit's diff (commit-files, commits, sub-commits,
@@ -1545,11 +1646,11 @@ The remaining rows are agreed as keep/defer:
 | Per-pane selection memory on `<tab>` (re-anchors each switch, N§21.9) | Defer; follow-up candidate |
 | `IsSingleHunkForWholeFile` hunk-default refinement (N§21.11) | **Done in PR 5** (derived from the rendered diff, no git call — PR 5 deviation 3) |
 | `a` on a context line below the last hunk doesn't snap back like staging did (N§21.11) | **Done in PR 5** (review round 1, fix 1): `ChangeBlockBounds` falls back to the block above |
-| Deleted-file `MD`-vs-`D` staging special case (N§21.13) | **Fix in PR 7 commit 5** (mandatory) |
+| Deleted-file `MD`-vs-`D` staging special case (N§21.13) | **Done in PR 7**: a selection covering every change of a file stages the file |
 | `NormalSecondary` not preserved on `-U`/renderer change (N§16.1) | Keep as documented limitation |
 | Gutter marks for not-yet-loaded lines of huge diffs (N§21.20) | Keep (marks appear on next recompute); note |
 | Renderer switch mid-patch-build shifts checkmarks (N§21.22(4)) | **Fix in PR 8 commit 10** (mandatory — looks too broken otherwise) |
-| Copy copies the renderer's output verbatim under a renderer (N§21.28) | **Fix in PR 7** (mandatory, moved from PR 5 — deviation 2): copy the corresponding *raw diff* lines instead, as a `FocusedMainViewActions` method |
+| Copy copies the renderer's output verbatim under a renderer (N§21.28) | **Done in PR 7**: copy takes the corresponding lines of the plain diff, through the new diff-source seam |
 | Nav only sees loaded content (deep targets in huge diffs, N§16.4) | **Done in PR 5**: ReadToEnd-then-retry in the shared `navigate` helper |
 | Toggle auto-advance: no "skip already-included" smarts (N§21.35) | Keep plain next-hunk |
 | difftastic token-vs-line `c`-at-new-line mismatch (M§10.2) | Protocol v2 candidate; nothing to do host-side |
@@ -1577,7 +1678,9 @@ The remaining rows are agreed as keep/defer:
    the accepted fallback (PR 4 cross-repo note), and no PR here waits on the
    outcome.
 8. **PRs 5/7/8: e2e tests against *real* patched renderers** (raised by the
-   user 2026-08-09, assessed feasible, not yet decided). Today's renderer
+   user 2026-08-09; deferred again at the start of PR 7 — its renderer tests
+   are about renderers that say nothing, which a fake models exactly, so the
+   helper waits for PR 8's difftastic work to need it). Today's renderer
    tests use fake shell commands, which can imitate a record stream but not
    difftastic's actual reordering and collapsing — the shapes that broke the
    secondary-pane removal (§8). Requiring delta/difftastic on `PATH` needs no
@@ -1610,7 +1713,11 @@ The remaining rows are agreed as keep/defer:
    the raw fallback?~~ Resolved 2026-08-07: probe them like any other
    renderer, since git announces itself for exactly the formats it
    describes. See PR 7 commit 10.
-10. **PRs 7/9: what does `ctrl+w` do in a main view you can stage from?**
+10. ~~**PRs 7/9: what does `ctrl+w` do in a main view you can stage from?**~~
+    Resolved 2026-08-16 (PR 7 deviation 14): nothing to do — the patch is
+    built from a freshly fetched plain diff, which never ignores whitespace,
+    and line numbers are the same either way. PR 9 still deletes the dead
+    context-key list. Original question:
     (Raised 2026-08-15 while planning PR 6's whitespace consumer.) Master
     refuses ignoring whitespace in the staging and patch-building contexts —
     `ToggleWhitespaceAction` matches on those three context keys and answers
@@ -1649,7 +1756,9 @@ The remaining rows are agreed as keep/defer:
       `keep-diff-position-on-rerender` (7 commits, fixups folded, all checks
       green, every commit builds and unit-tests clean on its own), stacked on
       `select-diff-lines-in-main-view`. §6 sign-off **approved**
-- [ ] PR 7 — staging from the main view
+- [x] PR 7 — staging from the main view — **DONE 2026-08-16** on branch
+      `stage-changes-in-main-view` (14 commits plus two fixups, all checks
+      green), stacked on `keep-diff-position-on-rerender`. §6 sign-off **owed**
 - [ ] PR 8 — custom patches from the main view
 - [ ] PR 9 — panel removal
 - [ ] PR 10 — alt/shift-click edit
@@ -1660,6 +1769,20 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-16:** **PR 7 implemented** (14 commits, green; §6 sign-off owed).
+  Three decisions taken with the user up front: the seam is split in two so
+  that copy reaches every diff panel without any panel carrying stub actions
+  (deviation 2); `ctrl+w` needs no refusal, since the patch is built from a
+  plain diff that never ignores whitespace (§9.10, deviation 14); and the
+  real-renderer harness waits for PR 8 (§9.8). Two findings during the work,
+  both raised before fixing: the plan's **timing fact for the focus-follow is
+  stale** — a refresh's model update is queued and its `Then` runs after the
+  render has started, so the post-op split is worked out from what the action
+  did rather than read from the model (deviation 7) — and **rapid keypresses
+  lost a press**, because input was held only until the model was up to date
+  and not until the asynchronous re-render had moved the selection
+  (deviation 10). The latter also closed a hole in PR 6: a pending restore
+  outlived a render that turned out to be a message rather than a diff.
 - **2026-08-15:** **PR 6 implemented and signed off** (7 commits, green; the
   interactive pass found nothing, and the whitespace consumer the user had
   suggested was singled out as worth having). Twelve deviations in the PR 6
