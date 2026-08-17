@@ -1490,6 +1490,75 @@ tests: **while the focused main view holds focus, a renderer that doesn't emit
 metadata is bypassed** (PR 7's raw fallback), so a renderer-behaviour test that
 focuses the view has to give its renderers the handshake.
 
+#### Review round 3 (2026-08-17) — two defects under a non-conforming renderer
+
+Both found by the user testing with an **unpatched git**
+(`PATH=/opt/homebrew/bin:$PATH lazygit`; the git in `PATH` on this machine is a
+patched build and *does* announce the protocol for `--color-words`, so the
+fallback path can't be reproduced with it). Also corrected here: an earlier
+claim that focusing under a non-conforming renderer lost the scroll position —
+it didn't, because for a stdin filter the raw render runs the *same command*.
+
+1. **The raw fallback only bypassed stdin filters.**
+   `FilesController.renderWorkingTreeDiff` asked for the mode and then built its
+   command with `DiffModeRendered` regardless, passing the mode only to
+   `NewMainViewDiffTask` (which chooses pty vs plain command). That keeps a stdin
+   filter out — git hands its output to one only when it thinks it is talking to a
+   terminal — but the other two routes are *in the command's arguments*
+   (`AddCommonDiffArgs`): an `extDiff` renderer stayed configured and enabled, and
+   a `rawGit` renderer kept the arguments that make its output unreadable. So
+   under those two types, focusing left the un-actable rendering in place and the
+   next refresh dropped the selection. **Every other panel already passed the mode
+   into its command builder; the files panel was the only one that didn't.** The
+   fix also gets the raw diff coloured under a `colorArg: never` renderer, the
+   colour arg coming from the mode too.
+2. **A re-render whose command changes reset the scroll to the top** — `{`/`}` or
+   `ctrl+w` under a non-conforming renderer, or cycling between a stdin filter and
+   an `extDiff`. The command key changes, so `newContentPending` is set, and
+   `PreserveDiffPositionOnRerender` can't rescue it: it remembers lines by
+   identity, and a renderer that says nothing about its rows leaves nothing to
+   look for. Fixed with **`ViewBufferManager.SetKeepScrollPositionForNextTask`**,
+   the coarser sibling of `SetRestoreForNextTask` (the user's suggestion, over a
+   flag threaded through `ViewUpdateOpts`): same install-before-the-re-render
+   lifetime, consumed by whichever task starts, and it suppresses
+   `newContentPending` — so neither the reset nor the loading placeholder applies.
+   Both position-preserve and the raw fallback set it; the post-staging reveal
+   doesn't. Fixing (1) makes the raw render a different command, so without this
+   it would have *introduced* a top-jump on `0` — they land in that order.
+
+New tests: `tasks.TestKeepScrollPositionForNextTask`,
+`keep_scroll_when_the_diff_cant_be_read` (`{` under a renderer whose output can't
+be parsed), `raw_fallback_under_an_external_diff` (focus brings git's own diff at
+the same offset, with a selection). **An `extDiff` renderer is the deterministic
+way to test the non-conforming path** — its command is entirely the test's, unlike
+`rawGit`, whose answer depends on the git in `PATH`.
+
+Not fixed, raised for later: `renderNonTextualConflict` (the DU/UD conflict hint
+plus a `--base` diff) also renders with `DiffModeRendered` hard-coded, so the
+same bypass doesn't happen there; whether a selection over that content should
+exist at all is the prior question.
+
+#### Rebase mechanics for mid-branch fixups (learned the hard way, 2026-08-17)
+
+- **The user's git config has `rebase.autosquash = true`**, so a plain
+  `git rebase -i` *silently folds every existing `fixup!`/`amend!` into its
+  target* — which is exactly what AGENTS.md forbids an agent from doing. Always
+  `git -c rebase.autosquash=false rebase -i …`. (This happened; the fixups were
+  recovered from the branch reflog and re-inserted.)
+- The single-rebase recipe the user prefers, in place of one
+  `rebase --onto` per fixup: mark the target `edit` in the todo, make the change,
+  `git commit --fixup=…`, `git rebase --continue`. Several targets can be marked
+  in one pass.
+- `rebase.instructionFormat` puts a **`# ` before the subject** in the todo, so a
+  sequence-editor script matching on subjects has to strip it (and a trailing
+  `# empty`).
+- `--update-refs` does **not** move a ref that points at the rebase's exclusive
+  start, so `rebase --onto <fixup> <target> <branch>` leaves a PR-branch ref
+  pointing at the pre-amend commit — how `keep-diff-position-on-rerender` and
+  `show-staged-changes-in-lower-pane` went stale for a session. Both now point at
+  the **last fixup for their own tip commit**, so each PR contains the fixups for
+  the commits in it.
+
 ### PR 8 — Build custom patches directly from a commit's diff view
 
 After it: `space` over a commit's diff (commit-files, commits, sub-commits,
@@ -1891,6 +1960,16 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-17:** **two defects fixed under a non-conforming diff renderer**,
+  both found by the user testing with an unpatched git: the raw fallback only
+  ever bypassed stdin filters (the files panel built its command for a rendered
+  diff regardless of the mode), and a re-render whose command changes reset the
+  scroll to the top where no line of the old rendering could be identified. The
+  second is now `ViewBufferManager.SetKeepScrollPositionForNextTask`, the coarse
+  sibling of the restore. Details in PR 7's "Review round 3"; the rebase traps
+  that round turned up (autosquash on by default in the user's config, the todo's
+  `# ` subject prefix, `--update-refs` not moving a ref at the range's start) are
+  in the section after it.
 - **2026-08-16:** **PR 7 signed off**, and with it four review comments about
   the stack as a whole — how focusing the main view picks what to select, and
   how a re-render keeps your place — fixed as **mid-branch** fixups landing in
