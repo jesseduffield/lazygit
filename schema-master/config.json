@@ -461,7 +461,7 @@
         },
         "overrideGpg": {
           "type": "boolean",
-          "description": "If true, do not spawn a separate process when using GPG",
+          "description": "If true, do not spawn a separate process when using GPG\nRecommended to keep it to true if you need a terminal prompt to type the password",
           "default": false
         },
         "disableForcePushing": {
