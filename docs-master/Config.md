@@ -478,7 +478,7 @@ git:
   renameSimilarityThreshold: 50
 
   # If true, do not spawn a separate process when using GPG
-  # Recommended to keep it to true if you need a terminal prompt to type the
+  # Recommended to keep it to false if you need a terminal prompt to type the
   # password
   overrideGpg: false
 

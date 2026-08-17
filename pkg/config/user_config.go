@@ -334,7 +334,7 @@ type GitConfig struct {
 	// The threshold for considering a file to be renamed, in percent. Can be changed from within Lazygit with the `(` and `)` keys.
 	RenameSimilarityThreshold int `yaml:"renameSimilarityThreshold" jsonschema:"minimum=0,maximum=100"`
 	// If true, do not spawn a separate process when using GPG
-	// Recommended to keep it to true if you need a terminal prompt to type the password
+	// Recommended to keep it to false if you need a terminal prompt to type the password
 	OverrideGpg bool `yaml:"overrideGpg"`
 	// If true, do not allow force pushes
 	DisableForcePushing bool `yaml:"disableForcePushing"`
