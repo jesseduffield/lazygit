@@ -828,8 +828,5 @@ func TestResizingAWrappingViewKeepsItsPlaceInTheContent(t *testing.T) {
 	_, _ = g.SetView("name", 0, 0, 31, 10, 0) // InnerWidth 30
 	assert.Equal(t, 5, v.ViewLinesHeight())
 
-	/* EXPECTED:
 	assert.Equal(t, []string{"another wrapping line"}, v.SelectedLines())
-	ACTUAL: */
-	assert.Equal(t, []string{"three"}, v.SelectedLines())
 }
