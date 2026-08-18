@@ -1975,11 +1975,12 @@ func (v *View) SelectedLine() string {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	if len(v.buf.lines) == 0 {
+	idx, ok := v.bufferLineForViewLine(v.SelectedLineIdx())
+	if !ok {
 		return ""
 	}
 
-	return v.lineContentAtIdx(v.SelectedLineIdx())
+	return v.lineContentAtIdx(idx)
 }
 
 // expected to only be used in tests
@@ -1994,8 +1995,17 @@ func (v *View) SelectedLines() []string {
 	startIdx, endIdx := v.SelectedLineRange()
 
 	lines := make([]string, 0, endIdx-startIdx+1)
+	previous := -1
 	for i := startIdx; i <= endIdx; i++ {
-		lines = append(lines, v.lineContentAtIdx(i))
+		// The selection is in view lines, which count the segments a wrapped line
+		// is drawn as; a line the selection covers several segments of is still
+		// the one line it is.
+		idx, ok := v.bufferLineForViewLine(i)
+		if !ok || idx == previous {
+			continue
+		}
+		previous = idx
+		lines = append(lines, v.lineContentAtIdx(idx))
 	}
 
 	return lines
@@ -2003,6 +2013,19 @@ func (v *View) SelectedLines() []string {
 
 func (v *View) lineContentAtIdx(idx int) string {
 	return v.buf.lines[idx].cells.String()
+}
+
+// bufferLineForViewLine maps a view line index, which counts the wrapped
+// segments of the lines it draws, to the index of the line of content it is a
+// segment of. Only call this with a lock on writeMutex.
+func (v *View) bufferLineForViewLine(y int) (int, bool) {
+	v.refreshViewLinesIfNeeded()
+
+	if y < 0 || y >= len(v.viewLines) {
+		return 0, false
+	}
+
+	return v.viewLines[y].linesY, true
 }
 
 func (v *View) SelectedPoint() (int, int) {
