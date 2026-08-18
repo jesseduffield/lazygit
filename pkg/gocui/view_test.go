@@ -780,3 +780,32 @@ func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
 			"trailing cell at (%d, 2) should have green bg", x)
 	}
 }
+
+// A view that wraps draws one line of its content as several view lines, and the
+// cursor and the range anchor count those. What is asked about a selection is
+// which lines of the content it covers, so those are what it has to be reported
+// in.
+func TestSelectedLinesOfWrappedContent(t *testing.T) {
+	v := NewView("name", 0, 0, 11, 10, OutputNormal) // InnerWidth 10
+	v.Wrap = true
+	v.Highlight = true
+
+	// "a line that wraps" takes two view lines, so the four lines of content are
+	// drawn as five: "one", "two", "a line th", "at wraps", "four".
+	v.writeString("one\ntwo\na line that wraps\nfour\n")
+	assert.Equal(t, 5, v.ViewLinesHeight())
+
+	// The cursor on the wrapped line's second half is on that line.
+	v.FocusPoint(0, 3, false)
+	/* EXPECTED:
+	assert.Equal(t, "a line that wraps", v.SelectedLine())
+	ACTUAL: */
+	assert.Equal(t, "four", v.SelectedLine())
+
+	// A range over both halves of the wrapped line covers one line of content.
+	v.SetRangeSelectStart(2)
+	/* EXPECTED:
+	assert.Equal(t, []string{"a line that wraps"}, v.SelectedLines())
+	ACTUAL: */
+	assert.Equal(t, []string{"a line that wraps", "four"}, v.SelectedLines())
+}
