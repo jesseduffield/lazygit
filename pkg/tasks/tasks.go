@@ -207,6 +207,16 @@ func (self *ViewBufferManager) SetRestoreForNextTask(restore *RenderRestore) {
 	self.restoreForNextTask = restore
 }
 
+// HasRestoreForNextTask reports whether the next command task already has a position
+// waiting to be put back, for a caller that would otherwise install one of its own
+// over it.
+func (self *ViewBufferManager) HasRestoreForNextTask() bool {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	return self.restoreForNextTask != nil
+}
+
 func (self *ViewBufferManager) getRestoreForNextTask() *RenderRestore {
 	self.taskIDMutex.Lock()
 	defer self.taskIDMutex.Unlock()
@@ -541,22 +551,22 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 					return
 				}
 				painted = true
-				if restore != nil {
-					// The restore does the swap itself, so that it can find where the
-					// user was in the new content before it is revealed.
-					placed := restore.Apply(self.swapInRender)
-					self.clearRestore(restore)
-					if placed {
-						// The view is where the user left it, which is exactly what the
-						// scroll reset would undo.
-						self.newContentPending.Store(false)
-						return
-					}
-				}
-				self.swapInRender()
+				// Content the view hasn't seen is shown from the top, and this is where
+				// the view goes there — before the restore below, which decides where to
+				// put the view from where it is. The position the paint settles on is the
+				// restore's to move from, so it has to be the one the new content is
+				// about to be revealed at.
 				if self.newContentPending.Swap(false) {
 					self.resetOrigin()
 				}
+				if restore != nil {
+					// The restore does the swap itself, so that it can find where the
+					// user was in the new content before it is revealed.
+					restore.Apply(self.swapInRender)
+					self.clearRestore(restore)
+					return
+				}
+				self.swapInRender()
 			}
 
 			// Set LAZYGIT_SLOW_RENDER=<milliseconds> to sleep that long after each
