@@ -797,15 +797,9 @@ func TestSelectedLinesOfWrappedContent(t *testing.T) {
 
 	// The cursor on the wrapped line's second half is on that line.
 	v.FocusPoint(0, 3, false)
-	/* EXPECTED:
 	assert.Equal(t, "a line that wraps", v.SelectedLine())
-	ACTUAL: */
-	assert.Equal(t, "four", v.SelectedLine())
 
 	// A range over both halves of the wrapped line covers one line of content.
 	v.SetRangeSelectStart(2)
-	/* EXPECTED:
 	assert.Equal(t, []string{"a line that wraps"}, v.SelectedLines())
-	ACTUAL: */
-	assert.Equal(t, []string{"a line that wraps", "four"}, v.SelectedLines())
 }
