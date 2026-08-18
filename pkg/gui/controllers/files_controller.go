@@ -386,18 +386,20 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	if showUnstaged {
 		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, false, paths)
 		refreshOpts.Main = &types.ViewUpdateOpts{
-			Task:     types.NewRunDiffRendererTask(cmdObj.GetCmd()),
-			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-			Title:    self.c.Tr.UnstagedChanges,
+			Task:           types.NewRunDiffRendererTask(cmdObj.GetCmd()),
+			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			Title:          self.c.Tr.UnstagedChanges,
+			NothingToActOn: !node.GetHasUnstagedChanges(),
 		}
 	}
 
 	if showStaged {
 		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, paths)
 		refreshOpts.Secondary = &types.ViewUpdateOpts{
-			Task:     types.NewRunDiffRendererTask(cmdObj.GetCmd()),
-			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-			Title:    self.c.Tr.StagedChanges,
+			Task:           types.NewRunDiffRendererTask(cmdObj.GetCmd()),
+			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			Title:          self.c.Tr.StagedChanges,
+			NothingToActOn: !node.GetHasStagedChanges(),
 		}
 	}
 
