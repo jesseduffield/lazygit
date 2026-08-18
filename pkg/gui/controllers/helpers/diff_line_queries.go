@@ -224,17 +224,6 @@ func (self *DiffLineHelper) ChangeBlockBounds(view *gocui.View, anchorViewLine i
 	return startView, endView, true
 }
 
-// SelectedHunkBounds returns the change block selected in hunk mode. The range
-// anchor stays on the block's far end when a click moves the cursor before its
-// handler runs, so it still identifies the selected block.
-func (self *DiffLineHelper) SelectedHunkBounds(view *gocui.View) (int, int, bool) {
-	anchor := view.RangeSelectStartY()
-	if anchor < 0 {
-		return 0, 0, false
-	}
-	return self.ChangeBlockBounds(view, anchor)
-}
-
 // AdjacentChangeBlock returns the view line to move to for next/previous change-block
 // navigation in view's rendered diff, starting from anchorViewLine. A change block is
 // lazygit's notion of a hunk (see ChangeBlockBounds). forward=true targets the start
