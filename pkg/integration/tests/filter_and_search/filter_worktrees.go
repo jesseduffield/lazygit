@@ -28,6 +28,7 @@ var FilterWorktrees = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			FilterOrSearch("xxx").
 			Lines(
+				Contains("worktree-1   branch-xxx"),
 				Contains("worktree-xxx branch-aaa"),
 			)
 	},

@@ -17,7 +17,7 @@ func NewWorktreesContext(c *ContextCommon) *WorktreesContext {
 	viewModel := NewFilteredListViewModel(
 		func() []*models.Worktree { return c.Model().Worktrees },
 		func(worktree *models.Worktree) []string {
-			return []string{worktree.Name}
+			return []string{worktree.Name, worktree.Branch}
 		},
 	)
 
