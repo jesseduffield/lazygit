@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 )
 
 func (gui *Gui) runTaskForView(view *gocui.View, task types.UpdateTask) error {
@@ -108,9 +109,14 @@ func (gui *Gui) allMainContextPairs() []types.MainContextPair {
 }
 
 func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
+	panes := mainPanesFor(opts)
+
+	// Before the render is triggered, so that the pane the focus moves into can be
+	// told where to put its selection as it renders.
+	gui.followFocusIntoShownPane(opts.Pair, panes)
+
 	gui.moveMainContextPairToTop(opts.Pair)
 
-	panes := mainPanesFor(opts)
 	gui.handOverMainSection(opts.Pair, panes)
 
 	if opts.Main != nil {
@@ -183,6 +189,70 @@ func mainPanesFor(opts types.RefreshMainOpts) types.MainPanes {
 	default:
 		return types.BothMainPanes
 	}
+}
+
+// followFocusIntoShownPane moves the focus out of a main pane that the render about to
+// happen leaves nothing in, and into the one it does.
+//
+// Each side of a file's diff has a pane of its own, and a pane is only shown while its
+// side has something in it. So anything that empties the side the focus is on takes
+// that pane away with it: staging the last unstaged change, committing what was
+// staged, or either of those happening outside lazygit and arriving with a refresh.
+// Left where it was, the focus would be on a pane that isn't there, and the next
+// keypress would act on nothing.
+//
+// The pane moved into gets its selection once the render has finished and there is
+// something to put one on, and shows none until then, so that the selection it was
+// left with the last time it was used doesn't appear for a frame. A pane that has
+// already been told where to put its selection — by the action that caused all this —
+// keeps what it was told.
+func (gui *Gui) followFocusIntoShownPane(pair types.MainContextPair, panes types.MainPanes) {
+	// The focused main view's two panes only: the staging and patch-building views
+	// arrange theirs for themselves, and the merge-conflicts view has just the one.
+	if pair.Main.GetKey() != context.NORMAL_MAIN_CONTEXT_KEY {
+		return
+	}
+
+	current := gui.State.ContextMgr.CurrentStatic().GetKey()
+	if current != pair.Main.GetKey() && current != pair.Secondary.GetKey() {
+		return
+	}
+	shown := onlyShownPane(pair, panes)
+	if shown == nil || shown.GetKey() == current {
+		return
+	}
+
+	target := gui.mainContextForView(shown.GetView())
+	target.SetHasSelectableContent(false)
+	gui.State.ContextMgr.UpdateSelectionHighlights()
+	if manager := gui.getManager(target.GetView()); !manager.HasRestoreForNextTask() {
+		manager.SetRestoreForNextTask(&tasks.RenderRestore{
+			// The whole render is read before it is shown: where the selection goes
+			// is decided from what is there, and a change line further down would
+			// otherwise be missed.
+			FirstPaintReady: func() bool { return false },
+			Apply: func(swapIn func()) bool {
+				swapIn()
+				gui.helpers.DiffLine.EstablishSelection(target, -1)
+				return false
+			},
+		})
+	}
+	gui.State.ContextMgr.Push(target, types.OnFocusOpts{})
+}
+
+// onlyShownPane returns the main pane a render leaves showing on its own, or nil when
+// it leaves both showing.
+func onlyShownPane(pair types.MainContextPair, panes types.MainPanes) types.Context {
+	switch panes {
+	case types.MainPaneOnly:
+		return pair.Main
+	case types.SecondaryPaneOnly:
+		return pair.Secondary
+	case types.BothMainPanes:
+		return nil
+	}
+	return nil
 }
 
 // clampDiffSelectionToContent brings the focused main view's selection back onto the

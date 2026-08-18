@@ -388,8 +388,8 @@ func TestLoadingIndicatorOnlyTakesOverForNewContent(t *testing.T) {
 // A pending restore takes the first paint over: it says when enough of the new
 // content has arrived to show the position it remembers, and does the swap itself so
 // that it can look for that position while the previous content is still displayed.
-// Having put the view where the user left it, it also keeps the scroll reset that new
-// content would otherwise get.
+// The scroll reset that new content is owed happens before it runs, so that where it
+// puts the view is where the view stays.
 func TestNewCmdTaskRestore(t *testing.T) {
 	writer := bytes.NewBuffer(nil)
 	linesWritten := func() int { return strings.Count(writer.String(), "\n") }
@@ -400,6 +400,7 @@ func TestNewCmdTaskRestore(t *testing.T) {
 	applyAtLines := -1
 	swappedBeforeApply := false
 	swappedByApply := false
+	resetsBeforeApply := -1
 
 	manager := NewViewBufferManager(
 		utils.NewDummyLog(),
@@ -422,6 +423,7 @@ func TestNewCmdTaskRestore(t *testing.T) {
 			applyCount++
 			applyAtLines = linesWritten()
 			swappedBeforeApply = swappedBeforeApply || swapped
+			resetsBeforeApply = getResetOriginCallCount()
 			swapIn()
 			swappedByApply = swapped
 			return true
@@ -443,7 +445,8 @@ func TestNewCmdTaskRestore(t *testing.T) {
 	// fill the view.
 	assert.GreaterOrEqual(t, applyAtLines, 5)
 	assert.Less(t, applyAtLines, 30)
-	assert.Equal(t, 0, getResetOriginCallCount(), "a restore that placed the view leaves the scroll alone")
+	assert.Equal(t, 1, resetsBeforeApply, "new content should be put at the top before the restore places it")
+	assert.Equal(t, 1, getResetOriginCallCount(), "and not reset again afterwards, over the restore")
 }
 
 // A restore that never finds what it is looking for keeps the task reading to the
