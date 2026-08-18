@@ -38,6 +38,11 @@ type ViewUpdateOpts struct {
 	SubTitle string
 
 	Task UpdateTask
+
+	// NothingToActOn marks a pane that is being shown only because the layout is
+	// configured to always split the diff: its side of the file holds nothing, so it
+	// is not a pane to leave the focus in.
+	NothingToActOn bool
 }
 
 type RefreshMainOpts struct {
