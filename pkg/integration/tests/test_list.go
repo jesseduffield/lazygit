@@ -376,6 +376,7 @@ var tests = []*components.IntegrationTest{
 	main_view.FileNavigationScrollsToTheTop,
 	main_view.FocusFollowsAPaneEmptiedFromOutside,
 	main_view.FocusFollowsIntoAPaneTakingOver,
+	main_view.FocusLeavesAnAlwaysSplitEmptyPane,
 	main_view.HideSelectionWhenChangesVanish,
 	main_view.KeepAWrappedLineCoveredAcrossARerender,
 	main_view.KeepBothHalvesOfAChangeSelected,
