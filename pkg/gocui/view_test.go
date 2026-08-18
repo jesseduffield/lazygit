@@ -803,3 +803,33 @@ func TestSelectedLinesOfWrappedContent(t *testing.T) {
 	v.SetRangeSelectStart(2)
 	assert.Equal(t, []string{"a line that wraps"}, v.SelectedLines())
 }
+
+// Resizing a view throws away the wrapping of its content and wraps it again for
+// the new width, which moves every line of it to a different view line. The
+// positions into the view count view lines, so they all have to come along.
+func TestResizingAWrappingViewKeepsItsPlaceInTheContent(t *testing.T) {
+	g := &Gui{}
+	v, _ := g.SetView("name", 0, 0, 11, 10, 0) // InnerWidth 10
+	v.Wrap = true
+	v.Highlight = true
+
+	// Two wrapping lines, with a single line between them: eight view lines for
+	// five lines of content.
+	v.writeString("one\na line that wraps\ntwo\nanother wrapping line\nthree\n")
+	assert.Equal(t, 8, v.ViewLinesHeight())
+
+	// A range over the whole of the second wrapping line, which is drawn as view
+	// lines 4 to 6.
+	v.SetRangeSelectStart(4)
+	v.FocusPoint(0, 6, false)
+	assert.Equal(t, []string{"another wrapping line"}, v.SelectedLines())
+
+	// Widen the view so that nothing wraps any more.
+	_, _ = g.SetView("name", 0, 0, 31, 10, 0) // InnerWidth 30
+	assert.Equal(t, 5, v.ViewLinesHeight())
+
+	/* EXPECTED:
+	assert.Equal(t, []string{"another wrapping line"}, v.SelectedLines())
+	ACTUAL: */
+	assert.Equal(t, []string{"three"}, v.SelectedLines())
+}
