@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/direnv"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -106,27 +107,24 @@ func (self *ReposHelper) getCurrentBranch(path string) string {
 
 func (self *ReposHelper) CreateRecentReposMenu() error {
 	// we'll show an empty panel if there are no recent repos
-	recentRepoPaths := []string{}
-	if len(self.c.GetAppState().RecentRepos) > 0 {
-		// we skip the first one because we're currently in it
-		recentRepoPaths = self.c.GetAppState().RecentRepos[1:]
-	}
+	recentLocations := recentRepoMenuEntries(self.c.GetAppState())
 
 	currentBranches := sync.Map{}
 
 	wg := sync.WaitGroup{}
-	wg.Add(len(recentRepoPaths))
+	wg.Add(len(recentLocations))
 
-	for _, path := range recentRepoPaths {
+	for _, location := range recentLocations {
 		go func(path string) {
 			defer wg.Done()
 			currentBranches.Store(path, self.getCurrentBranch(path))
-		}(path)
+		}(location.Path)
 	}
 
 	wg.Wait()
 
-	menuItems := lo.Map(recentRepoPaths, func(path string, _ int) *types.MenuItem {
+	menuItems := lo.Map(recentLocations, func(location config.RecentRepoLocation, _ int) *types.MenuItem {
+		path := location.Path
 		branchName, _ := currentBranches.Load(path)
 		if icons.IsIconEnabled() {
 			branchName = icons.BRANCH_ICON + " " + fmt.Sprintf("%v", branchName)
@@ -148,7 +146,7 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 				// if we were in a submodule, we want to forget about that stack of repos
 				// so that hitting escape in the new repo does nothing
 				self.c.State().GetRepoPathStack().Clear()
-				return self.switchTo(path, self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
+				return self.switchToLocation(types.RepoLocation{Path: location.Path, GitLocationEnvVars: location.GitLocationEnvVars}, self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
 			},
 		}
 	})
@@ -301,4 +299,22 @@ func (self *ReposHelper) promptDirenvApproval(envrcPath string) {
 			return self.logDirenvResult(direnv.Load(self.c.OS().Cmd)).Err
 		},
 	})
+}
+
+// recentRepoMenuEntries is the menu's slice of the recent-repo list, skipping
+// the head entry (the repo we are currently in). It reads the richer
+// location list and falls back to the legacy plain-path list when the state
+// file was last written by an older version (#5942).
+func recentRepoMenuEntries(appState *config.AppState) []config.RecentRepoLocation {
+	if len(appState.RecentRepoLocations) > 0 {
+		return appState.RecentRepoLocations[1:]
+	}
+	locations := make([]config.RecentRepoLocation, 0, len(appState.RecentRepos))
+	for _, repo := range appState.RecentRepos {
+		locations = append(locations, config.RecentRepoLocation{Path: repo})
+	}
+	if len(locations) > 0 {
+		return locations[1:]
+	}
+	return nil
 }

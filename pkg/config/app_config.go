@@ -847,6 +847,12 @@ func (c *AppConfig) SaveGlobalUserConfig() {
 type AppState struct {
 	LastUpdateCheck        int64
 	RecentRepos            []string
+	// RecentRepoLocations is the richer successor of RecentRepos: one entry
+	// per recently-opened repo carrying the environment needed to reopen it
+	// (empty for every repo git can find from its work tree). RecentRepos is
+	// still written in parallel with the plain paths so an older lazygit
+	// reading the same state file keeps working (#5942).
+	RecentRepoLocations []RecentRepoLocation
 	StartupPopupVersion    int
 	DidShowHunkStagingHint bool
 	LastVersion            string // this is the last version the user was using, for the purpose of showing release notes
