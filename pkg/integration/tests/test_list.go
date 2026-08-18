@@ -374,6 +374,8 @@ var tests = []*components.IntegrationTest{
 	main_view.EditSelectedDiffLine,
 	main_view.EscapeDismissesSelection,
 	main_view.FileNavigationScrollsToTheTop,
+	main_view.FocusFollowsAPaneEmptiedFromOutside,
+	main_view.FocusFollowsIntoAPaneTakingOver,
 	main_view.HideSelectionWhenChangesVanish,
 	main_view.KeepAWrappedLineCoveredAcrossARerender,
 	main_view.KeepBothHalvesOfAChangeSelected,
