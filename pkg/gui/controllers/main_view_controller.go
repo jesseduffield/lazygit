@@ -207,7 +207,7 @@ func (self *MainViewController) togglePanel() error {
 	isDiff := self.isDiffView()
 	self.c.Context().Push(self.otherContext, types.OnFocusOpts{})
 	if isDiff {
-		establishDiffSelection(self.c, self.otherContext, -1)
+		self.c.Helpers().DiffLine.EstablishSelection(self.otherContext, -1)
 	}
 	return nil
 }
@@ -322,11 +322,11 @@ func revealSelectionAfterAction(c *ControllerCommon, pane types.DiffPaneContext,
 
 	c.Helpers().DiffLine.RevealChangeLineAtOrdinal(view, ordinal, func(viewLine int) {
 		if selectHunk {
-			selectDiffHunk(c, pane, viewLine, true)
+			c.Helpers().DiffLine.SelectChangeBlock(pane, viewLine, true)
 			return
 		}
 		view.CancelRangeSelect()
-		showSelectionAtLine(view, viewLine, true)
+		c.Helpers().DiffLine.ShowSelectionAtLine(view, viewLine, true)
 	})
 }
 
@@ -536,7 +536,7 @@ func (self *MainViewController) selectClickedDiffLine(viewLine int) {
 		if start, end, ok := self.c.Helpers().DiffLine.SelectedHunkBounds(view); ok &&
 			viewLine >= start && viewLine <= end {
 			self.context.ResetDiffSelectMode()
-			showSelectionAtLine(view, viewLine, false)
+			self.c.Helpers().DiffLine.ShowSelectionAtLine(view, viewLine, false)
 			return
 		}
 		if self.c.Helpers().DiffLine.IsChangeLine(view, viewLine) {
@@ -545,122 +545,11 @@ func (self *MainViewController) selectClickedDiffLine(viewLine int) {
 		}
 	}
 	self.context.ResetDiffSelectMode()
-	showSelectionAtLine(view, viewLine, false)
-}
-
-// establishDiffSelection turns on the focused main view's selection once the view has
-// been focused. clickedViewLine is the view line a click pointed at, or -1 for
-// keyboard focus, which points at no particular line and so starts at the first
-// change line on screen.
-//
-// Focusing never moves the view: you focus the diff you are reading in order to point
-// at something in it, so the selection goes where you are looking rather than the
-// view going where the selection would like to be. With no change line on screen at
-// all — a long stretch of context — it lands on the middle visible line, the likeliest
-// one to be the one being read.
-//
-// With hunk mode configured as the default the selection widens to the whole change
-// block: keyboard focus lands on the first block on screen, and a click on a change
-// line selects that line's block, ready to act on. A click on context still selects
-// just that line — the click points at it precisely, so it stays editable.
-func establishDiffSelection(c *ControllerCommon, mainContext *context.MainContext, clickedViewLine int) {
-	mainContext.ResetDiffSelectMode()
-	view := mainContext.GetView()
-
-	// The panel beneath renders a diff, but that diff may hold nothing to act on: a
-	// binary file, or an empty commit. Rendering it worked that out, so the pane is
-	// already showing no selection and there is nowhere to put one.
-	if !c.Helpers().DiffLine.ViewHasChangeLines(view) {
-		return
-	}
-
-	if clickedViewLine >= 0 {
-		// Remember where the click landed so that a drag that follows anchors its range
-		// there, even when this click selects a whole hunk.
-		mainContext.SetDragAnchorViewLine(clickedViewLine)
-		if hunkModeApplies(c, view, clickedViewLine) &&
-			c.Helpers().DiffLine.IsChangeLine(view, clickedViewLine) {
-			mainContext.DiffSelectState().Mode = types.DiffSelectModeHunk
-			selectDiffHunk(c, mainContext, clickedViewLine, false)
-			return
-		}
-		showSelectionAtLine(view, clickedViewLine, false)
-		return
-	}
-
-	target, ok := changeToSelectOnScreen(c, view)
-	if !ok {
-		showSelectionAtLine(view, view.MiddleVisibleLineIdx(), false)
-		return
-	}
-	if hunkModeApplies(c, view, target) {
-		mainContext.DiffSelectState().Mode = types.DiffSelectModeHunk
-		selectDiffHunk(c, mainContext, target, false)
-		return
-	}
-	showSelectionAtLine(view, target, false)
-}
-
-// changeToSelectOnScreen returns the change line keyboard focus establishes the
-// selection on. In hunk mode that is the first block that begins on screen, so that
-// the block being offered up is one the user can see the extent of, falling back to a
-// block that reaches into the view from above — a change longer than the screen, where
-// there is nothing else to offer. Line by line it is simply the first change line on
-// screen. ok is false when the viewport shows no change at all.
-func changeToSelectOnScreen(c *ControllerCommon, view *gocui.View) (int, bool) {
-	if c.UserConfig().Gui.UseHunkModeInStagingView {
-		return c.Helpers().DiffLine.FirstChangeBlockInView(view)
-	}
-	return c.Helpers().DiffLine.FirstChangeLineInView(view)
-}
-
-// hunkModeApplies reports whether an established selection should start out as the
-// whole change block around the given change line. That's what the config asks for,
-// except over a file shown as one solid block of changes, where it would select the
-// whole file — see DiffLineHelper.IsSingleHunkForWholeFile.
-func hunkModeApplies(c *ControllerCommon, view *gocui.View, changeViewLine int) bool {
-	return c.UserConfig().Gui.UseHunkModeInStagingView &&
-		!c.Helpers().DiffLine.IsSingleHunkForWholeFile(view, changeViewLine)
-}
-
-// showSelectionAtLine moves the focused main view's selection to the given view line,
-// clamped to the content. scrollIntoView scrolls the line into view when it's
-// off-screen, for navigating to it; a click leaves it false, the clicked line being on
-// screen already.
-func showSelectionAtLine(view *gocui.View, lineIdx int, scrollIntoView bool) {
-	view.FocusPoint(0, lo.Clamp(lineIdx, 0, max(0, view.ViewLinesHeight()-1)), scrollIntoView)
-
-	// A search carries on from where the selection now is, so that stepping to the
-	// next match goes to the one after it rather than the one after the match the
-	// user last stepped to.
-	view.SetNearestSearchPosition()
+	self.c.Helpers().DiffLine.ShowSelectionAtLine(view, viewLine, false)
 }
 
 func (self *MainViewController) selectHunkAround(changeViewLine int, scrollIntoView bool) {
-	selectDiffHunk(self.c, self.context, changeViewLine, scrollIntoView)
-}
-
-// selectDiffHunk selects the whole change block around the given change line, for
-// hunk mode: the cursor goes to the block's first line and the range anchor to its
-// last, so the native range highlight spans the block. With no block to be found —
-// a diff with no changes in it — it falls back to a single-line selection.
-//
-// scrollIntoView brings the block's first line on screen, for the commands that mean
-// to go there; a click leaves it false, so that the view doesn't move under the mouse
-// when the block the click landed in starts above the viewport.
-func selectDiffHunk(
-	c *ControllerCommon, pane types.DiffPaneContext, changeViewLine int, scrollIntoView bool,
-) {
-	view := pane.GetView()
-	start, end, ok := c.Helpers().DiffLine.ChangeBlockBounds(view, changeViewLine)
-	if !ok {
-		pane.DiffSelectState().Mode = types.DiffSelectModeLine
-		view.CancelRangeSelect()
-		showSelectionAtLine(view, changeViewLine, scrollIntoView)
-		return
-	}
-	view.SetRangeSelectStart(end)
-	showSelectionAtLine(view, start, scrollIntoView)
+	self.c.Helpers().DiffLine.SelectChangeBlock(self.context, changeViewLine, scrollIntoView)
 }
 
 // navigate moves the focused main view to the row find locates from the current
@@ -759,7 +648,7 @@ func (self *MainViewController) placeNavigationTarget(target int, alignTop bool)
 	}
 	// Line mode leaves a single-line selection at the target; an active range extends
 	// to it, the anchor being untouched.
-	showSelectionAtLine(v, target, true)
+	self.c.Helpers().DiffLine.ShowSelectionAtLine(v, target, true)
 }
 
 // scrollTargetToTop scrolls the given row of the diff to the top of the view, leaving
@@ -791,7 +680,7 @@ func (self *MainViewController) moveCursor(delta int) {
 	} else if delta == 1 {
 		checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig(), before, after)
 	}
-	showSelectionAtLine(v, after, true)
+	self.c.Helpers().DiffLine.ShowSelectionAtLine(v, after, true)
 }
 
 // collapseForLineMove drops hunk mode, and a non-sticky range, back to a single-line
@@ -838,7 +727,7 @@ func (self *MainViewController) adjustSelection(delta int) {
 // of the diff — dropping hunk mode and a non-sticky range like a plain move does.
 func (self *MainViewController) selectAbsoluteLine(target int) {
 	self.collapseForLineMove()
-	showSelectionAtLine(self.context.GetView(), target, true)
+	self.c.Helpers().DiffLine.ShowSelectionAtLine(self.context.GetView(), target, true)
 }
 
 // selectingRange reports whether a range selection is currently active: we're in
