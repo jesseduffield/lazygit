@@ -245,23 +245,129 @@ type pos struct {
 	x, y int
 }
 
-// call this in the event of a view resize, or if you want to render new content
-// without the chance of old content still appearing, or if you want to remove
-// a line from the existing content
+// call this if you want to render new content without the chance of old content
+// still appearing, or if you want to remove a line from the existing content. For
+// a view whose size has changed, whose content is the same but has to be wrapped
+// afresh, call RewrapContent instead.
 func (v *View) clearViewLines() {
 	v.tainted = true
 	v.viewLines = nil
 	v.clearHover()
 }
 
-// ClearViewLines is clearViewLines guarded by writeMutex. It's for callers on
-// the UI thread (the layout pass) that touch a view whose content a task
-// goroutine may be writing concurrently: viewLines/tainted/hover are all
-// buffer state that writeMutex protects.
-func (v *View) ClearViewLines() {
+// RewrapContent wraps the view's content for the size the view has now, and puts
+// the positions into that content — the scroll offset, the cursor, a range's
+// anchor — back on the lines they were on. They are all view lines, which count
+// the segments each line is wrapped into, so wrapping the content at another
+// width leaves every one of them pointing at a different line.
+//
+// Call it on the UI thread whenever the view's size changes; a task goroutine may
+// be writing the content concurrently, and all of this is state writeMutex
+// protects.
+func (v *View) RewrapContent() {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+	origin := v.contentPosOf(v.oy)
+	cursor := v.contentPosOf(v.oy + v.cy)
+	anchor := v.contentPosOf(v.rangeSelectStartY)
+	cursorRow := v.cy
+
 	v.clearViewLines()
+	v.refreshViewLinesIfNeeded()
+
+	if !origin.ok {
+		return
+	}
+
+	cursorLine, cursorOk := v.viewLineOf(cursor)
+	if anchorLine, ok := v.viewLineOf(anchor); ok {
+		v.rangeSelectStartY = anchorLine
+		if cursorOk {
+			// A range covers lines of content, not the wrapped segments those
+			// lines are drawn as, so its ends go back on the outermost segments
+			// of their lines: a line that was covered whole stays covered whole.
+			cursorLine = v.viewLineOfRangeEnd(cursor, anchor)
+			v.rangeSelectStartY = v.viewLineOfRangeEnd(anchor, cursor)
+		}
+	}
+
+	// The line the cursor is on keeps the row it was drawn on, so that it doesn't
+	// move under the user; with no cursor on screen the view keeps its own place
+	// in the content instead.
+	if v.Highlight && cursorOk && cursorRow >= 0 && cursorRow < v.InnerHeight() {
+		v.SetOriginY(cursorLine - cursorRow)
+	} else if originLine, ok := v.viewLineOf(origin); ok {
+		v.SetOriginY(originLine)
+	}
+	if cursorOk {
+		v.cy = cursorLine - v.oy
+	}
+}
+
+// contentPos is a position in a view's content in terms that survive the content
+// being wrapped again: which line of it, and which of that line's segments.
+type contentPos struct {
+	line, segment int
+	ok            bool
+}
+
+// contentPosOf returns where the given view line sits in the content. Only call
+// this with a lock on writeMutex, and with the view lines up to date.
+func (v *View) contentPosOf(viewLine int) contentPos {
+	if viewLine < 0 || viewLine >= len(v.viewLines) {
+		return contentPos{}
+	}
+	return contentPos{
+		line:    v.viewLines[viewLine].linesY,
+		segment: v.viewLines[viewLine].linesX,
+		ok:      true,
+	}
+}
+
+// viewLineOf returns the view line drawing the given position in the content,
+// on the nearest segment its line still has. Only call this with a lock on
+// writeMutex, and with the view lines up to date.
+func (v *View) viewLineOf(pos contentPos) (int, bool) {
+	first, last, ok := v.segmentSpanOf(pos)
+	if !ok {
+		return 0, false
+	}
+	return min(first+pos.segment, last), true
+}
+
+// viewLineOfRangeEnd returns the view line for one end of a range selection: the
+// outermost segment of its line, so that the range covers that line whole. other
+// is the range's other end, which says which way is outward. Both ends have to be
+// positions whose lines are drawn, which viewLineOf answers.
+func (v *View) viewLineOfRangeEnd(pos contentPos, other contentPos) int {
+	first, last, _ := v.segmentSpanOf(pos)
+	if pos.line <= other.line {
+		return first
+	}
+	return last
+}
+
+// segmentSpanOf returns the first and last view line drawing the given position's
+// line of the content. ok is false when the position was never taken, or its line
+// isn't drawn at all.
+func (v *View) segmentSpanOf(pos contentPos) (int, int, bool) {
+	if !pos.ok {
+		return 0, 0, false
+	}
+	first, last := -1, -1
+	for i, vline := range v.viewLines {
+		if vline.linesY == pos.line {
+			if first == -1 {
+				first = i
+			}
+			last = i
+		} else if first != -1 {
+			break
+		}
+	}
+	return first, last, first != -1
 }
 
 type searcher struct {
