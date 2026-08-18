@@ -72,6 +72,8 @@ func (self *CommitDescriptionController) GetOnFocus() func(types.OnFocusOpts) {
 				})
 		}
 		self.c.Views().CommitDescription.Footer = footer
+		self.c.Contexts().CommitMessage.RenderSubtitle()
+		self.c.Contexts().CommitMessage.RenderDescriptionSubtitle()
 	}
 }
 
@@ -113,6 +115,10 @@ func (self *CommitDescriptionController) handleTogglePanel() error {
 }
 
 func (self *CommitDescriptionController) close() error {
+	if self.c.Views().CommitDescription.VimEscape() {
+		self.c.Contexts().CommitMessage.RenderDescriptionSubtitle()
+		return nil
+	}
 	self.c.Helpers().Commits.CloseCommitMessagePanel()
 	return nil
 }

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -161,6 +163,8 @@ func (self *ConfirmationHelper) preparePromptPanel(
 	textArea := self.c.Views().Prompt.TextArea
 	textArea.Clear()
 	textArea.TypeString(opts.Prompt)
+	self.c.Views().Prompt.ResetVimEditor(gocui.VimModeInsert)
+	self.c.Views().Prompt.Subtitle = presentation.VimModeSubTitle(self.c.Tr, self.c.Views().Prompt, true)
 	self.c.Views().Prompt.RenderTextArea()
 
 	if opts.FindSuggestionsFunc != nil {

@@ -115,6 +115,7 @@ var tests = []*components.IntegrationTest{
 	commit.CommitSkipHooks,
 	commit.CommitSwitchToEditor,
 	commit.CommitSwitchToEditorSkipHooks,
+	commit.CommitVimEditing,
 	commit.CommitWipWithPrefix,
 	commit.CommitWithFallthroughPrefix,
 	commit.CommitWithGlobalPrefix,

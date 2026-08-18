@@ -39,6 +39,7 @@ func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) err
 	self.searchPrefixView().SetContent(context.FilterPrefix(self.c.Tr))
 	promptView := self.promptView()
 	promptView.ClearTextArea()
+	promptView.ResetVimEditor(gocui.VimModeInsert)
 	self.OnPromptContentChanged("")
 	promptView.RenderTextArea()
 
@@ -57,6 +58,7 @@ func (self *SearchHelper) OpenSearchPrompt(context types.ISearchableContext) err
 	self.searchPrefixView().SetContent(self.c.Tr.SearchPrefix)
 	promptView := self.promptView()
 	promptView.ClearTextArea()
+	promptView.ResetVimEditor(gocui.VimModeInsert)
 	promptView.RenderTextArea()
 
 	self.c.Context().Push(self.c.Contexts().Search, types.OnFocusOpts{})

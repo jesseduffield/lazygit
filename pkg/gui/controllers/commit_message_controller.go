@@ -74,6 +74,8 @@ func (self *CommitMessageController) GetMouseKeybindings(opts types.KeybindingsO
 func (self *CommitMessageController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
 		self.c.Views().CommitDescription.Footer = ""
+		self.context().RenderSubtitle()
+		self.context().RenderDescriptionSubtitle()
 	}
 }
 
@@ -192,6 +194,10 @@ func (self *CommitMessageController) confirm() error {
 }
 
 func (self *CommitMessageController) close() error {
+	if self.c.Views().CommitMessage.VimEscape() {
+		self.context().RenderSubtitle()
+		return nil
+	}
 	self.c.Helpers().Commits.CloseCommitMessagePanel()
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spf13/afero"
@@ -164,13 +165,22 @@ func (self *CommitMessageContext) SetPanelState(
 	self.GetView().Title = summaryTitle
 	self.c.Views().CommitDescription.Title = descriptionTitle
 
-	self.c.Views().CommitDescription.Subtitle = utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionSubTitle,
+	self.RenderDescriptionSubtitle()
+
+	self.c.Views().CommitDescription.Visible = true
+}
+
+func (self *CommitMessageContext) RenderDescriptionSubtitle() {
+	subtitle := utils.ResolvePlaceholderString(self.c.Tr.CommitDescriptionSubTitle,
 		map[string]string{
 			"togglePanelKeyBinding": self.c.UserConfig().Keybinding.Universal.TogglePanel.String(),
 			"commitMenuKeybinding":  self.c.UserConfig().Keybinding.CommitMessage.CommitMenu.String(),
 		})
-
-	self.c.Views().CommitDescription.Visible = true
+	focused := self.c.Context().Current().GetViewName() == self.c.Views().CommitDescription.Name()
+	if mode := presentation.VimModeSubTitle(self.c.Tr, self.c.Views().CommitDescription, focused); mode != "" {
+		subtitle += "─" + mode
+	}
+	self.c.Views().CommitDescription.Subtitle = subtitle
 }
 
 func (self *CommitMessageContext) RenderSubtitle() {
@@ -185,6 +195,13 @@ func (self *CommitMessageContext) RenderSubtitle() {
 			subtitle += "─"
 		}
 		subtitle += getBufferLength(subject)
+	}
+	focused := self.c.Context().Current().GetViewName() == self.c.Views().CommitMessage.Name()
+	if mode := presentation.VimModeSubTitle(self.c.Tr, self.c.Views().CommitMessage, focused); mode != "" {
+		if subtitle != "" {
+			subtitle += "─"
+		}
+		subtitle += mode
 	}
 	self.c.Views().CommitMessage.Subtitle = subtitle
 }

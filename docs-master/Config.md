@@ -358,6 +358,12 @@ gui:
   # is already active, go to next tab instead
   switchTabsWithPanelJumpKeys: false
 
+  # If true, text inputs (commit message, prompts, search) use vim-style modal
+  # editing: they open in insert mode, and Escape switches to normal mode with
+  # motions, counts, d/c/y operators, text objects, visual mode, and undo/redo.
+  # Escape in normal mode closes the panel as usual.
+  vimStyleEditing: false
+
 # Config relating to git
 git:
   # Array of diff renderers. Each entry has the following format:
