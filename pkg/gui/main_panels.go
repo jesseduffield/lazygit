@@ -113,7 +113,7 @@ func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
 
 	// Before the render is triggered, so that the pane the focus moves into can be
 	// told where to put its selection as it renders.
-	gui.followFocusIntoShownPane(opts.Pair, panes)
+	gui.followFocusIntoWorkablePane(opts)
 
 	gui.moveMainContextPairToTop(opts.Pair)
 
@@ -191,38 +191,38 @@ func mainPanesFor(opts types.RefreshMainOpts) types.MainPanes {
 	}
 }
 
-// followFocusIntoShownPane moves the focus out of a main pane that the render about to
-// happen leaves nothing in, and into the one it does.
+// followFocusIntoWorkablePane moves the focus out of a main pane that the render about
+// to happen leaves nothing to work on, and into the one it does.
 //
-// Each side of a file's diff has a pane of its own, and a pane is only shown while its
-// side has something in it. So anything that empties the side the focus is on takes
-// that pane away with it: staging the last unstaged change, committing what was
+// Each side of a file's diff has a pane of its own, and a pane holds something only
+// while its side of the file does. So anything that empties the side the focus is on
+// leaves that pane with nothing: staging the last unstaged change, committing what was
 // staged, or either of those happening outside lazygit and arriving with a refresh.
-// Left where it was, the focus would be on a pane that isn't there, and the next
-// keypress would act on nothing.
+// Usually the pane goes away with its content; configured to always split the diff it
+// stays, empty. Either way the focus has nothing left to act on where it is.
 //
 // The pane moved into gets its selection once the render has finished and there is
 // something to put one on, and shows none until then, so that the selection it was
 // left with the last time it was used doesn't appear for a frame. A pane that has
 // already been told where to put its selection — by the action that caused all this —
 // keeps what it was told.
-func (gui *Gui) followFocusIntoShownPane(pair types.MainContextPair, panes types.MainPanes) {
+func (gui *Gui) followFocusIntoWorkablePane(opts types.RefreshMainOpts) {
 	// The focused main view's two panes only: the staging and patch-building views
 	// arrange theirs for themselves, and the merge-conflicts view has just the one.
-	if pair.Main.GetKey() != context.NORMAL_MAIN_CONTEXT_KEY {
+	if opts.Pair.Main.GetKey() != context.NORMAL_MAIN_CONTEXT_KEY {
 		return
 	}
 
 	current := gui.State.ContextMgr.CurrentStatic().GetKey()
-	if current != pair.Main.GetKey() && current != pair.Secondary.GetKey() {
+	if current != opts.Pair.Main.GetKey() && current != opts.Pair.Secondary.GetKey() {
 		return
 	}
-	shown := onlyShownPane(pair, panes)
-	if shown == nil || shown.GetKey() == current {
+	pane := onlyWorkablePane(opts)
+	if pane == nil || pane.GetKey() == current {
 		return
 	}
 
-	target := gui.mainContextForView(shown.GetView())
+	target := gui.mainContextForView(pane.GetView())
 	target.SetHasSelectableContent(false)
 	gui.State.ContextMgr.UpdateSelectionHighlights()
 	if manager := gui.getManager(target.GetView()); !manager.HasRestoreForNextTask() {
@@ -240,18 +240,20 @@ func (gui *Gui) followFocusIntoShownPane(pair types.MainContextPair, panes types
 	gui.State.ContextMgr.Push(target, types.OnFocusOpts{})
 }
 
-// onlyShownPane returns the main pane a render leaves showing on its own, or nil when
-// it leaves both showing.
-func onlyShownPane(pair types.MainContextPair, panes types.MainPanes) types.Context {
-	switch panes {
-	case types.MainPaneOnly:
-		return pair.Main
-	case types.SecondaryPaneOnly:
-		return pair.Secondary
-	case types.BothMainPanes:
+// onlyWorkablePane returns the main pane a render leaves as the only one worth having
+// the focus in, or nil when that is true of both of them or of neither. Being shown is
+// not the same as being worth working in: a pane the layout keeps around for the sake
+// of always splitting the diff shows an empty side of the file.
+func onlyWorkablePane(opts types.RefreshMainOpts) types.Context {
+	main := opts.Main != nil && !opts.Main.NothingToActOn
+	secondary := opts.Secondary != nil && !opts.Secondary.NothingToActOn
+	if main == secondary {
 		return nil
 	}
-	return nil
+	if main {
+		return opts.Pair.Main
+	}
+	return opts.Pair.Secondary
 }
 
 // clampDiffSelectionToContent brings the focused main view's selection back onto the
