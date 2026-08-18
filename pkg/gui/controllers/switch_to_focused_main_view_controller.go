@@ -84,7 +84,7 @@ func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext *co
 	self.c.Context().Push(mainViewContext, types.OnFocusOpts{})
 
 	if _, ok := self.context.(types.DiffMainViewContext); ok {
-		establishDiffSelection(self.c, mainViewContext, clickedLineIdx)
+		self.c.Helpers().DiffLine.EstablishSelection(mainViewContext, clickedLineIdx)
 	}
 
 	return nil
