@@ -1761,27 +1761,42 @@ reset lands before `Apply`. Every commit in the stack builds; whole suite green.
 **No automated test for the flash itself.** It is one transient frame, and any
 deliberately slow render trips the 200ms "loading..." indicator before the
 placeholder can be observed — the indicator applies now that the pane counts as
-showing something new, which is what a single view has always done. Interactive
-check owed.
+showing something new, which is what a single view has always done. **Signed off
+interactively 2026-08-19**: the flash is gone and both panes start at the top.
 
-Two findings raised and left for the user to place:
+Two more findings came out of the round; both were raised with the user and both
+are **fixed**, each in a `fixup!` for the commit that owns the rule:
 
-- **`scrollUpMain`/`scrollDownMain` scroll the wrong pane** when the secondary
-  one has the section to itself: they pick the view by window name
-  (`Context().Current().GetWindowName() == "secondary"`, else the main window's
-  view), so from the files panel `<pgdown>` over a staged-only file scrolls the
-  hidden main view and nothing moves. Verified with a throwaway test. The
-  question `switchToFocusedMainViewController` already asks
-  (`GetMainPanes() == SecondaryPaneOnly`) is the one these need; belongs in a
-  `fixup!` for "Always show a file's staged changes in the lower pane".
-- **`clearMainView` doesn't drop a pending `RenderRestore`.** The string renders
-  all call `DropRestoreForNextTask` for exactly this reason ("the view is being
-  given something other than a re-render"), and emptying a pane is more so. A
-  restore stranded that way never calls its `Done`, and the post-action reveal's
-  `Done` is what balances `BeginBlockingEvents` — so a mispredicted target pane
-  (`revealSelectionInPaneItLandsIn` chooses it before the refresh lands) would
-  block input for good. Latent rather than reproducible, and it belongs with
-  "Hold input back until the selection has moved on", which owns that rule.
+4. **`scrollUpMain`/`scrollDownMain` scrolled a pane that wasn't there.** They
+   pick the view by the window the focus is in — the lower pane while the focus
+   is in it, else the upper one — which was the same thing as "the pane the
+   section is showing" only while the lower pane never appeared alone. From the
+   side panel over a staged-only file, `<pgdown>` scrolled the hidden upper pane
+   and nothing moved. Both handlers now ask `Gui.mainSectionView`, which adds the
+   `MainPanes == SecondaryPaneOnly` case; the choice had been spelled out twice,
+   so it moved into one place first. `file/staged_changes_in_lower_pane` — the
+   test that owns this arrangement — grew a scrollable staged diff and asserts
+   both scroll keys act on the pane holding the section. Fixup for "Always show a
+   file's staged changes in the lower pane".
+
+5. **An emptied pane stranded a pending `RenderRestore`, and the input block with
+   it.** The string renders all call `DropRestoreForNextTask` because a view
+   being given something other than a re-render has no render for the restore to
+   ride; a pane being *emptied* is the same case and was missed. Since round 4 a
+   restore's `Done` is also what balances the `BeginBlockingEvents` that holds
+   input back until the selection has moved on — so a reveal whose target pane
+   turns out to be the empty one (`revealSelectionInPaneItLandsIn` picks the side
+   the work will land in *before* the refresh lands) would have blocked input for
+   good. `clearMainView` drops it now. Latent rather than reproducible: it needs
+   the prediction to be wrong, which takes an external mutation racing the
+   action, so there is no test. Fixup for "Hold input back until the selection has
+   moved on".
+   - Worth knowing: dropping a restore resolves its `Done` synchronously, and
+     `EndBlockingEvents` replays the buffered keys in that call — so this, like
+     the string-render path it copies, can dispatch a keypress from inside
+     `refreshMainViews`, before `setMainPanes` has run. Pre-existing exposure,
+     not new, but it is the reason a stranded restore can't simply be left to a
+     later render.
 
 ### PR 8 — Build custom patches directly from a commit's diff view
 
@@ -2064,8 +2079,8 @@ The remaining rows are agreed as keep/defer:
 | Nav only sees loaded content (deep targets in huge diffs, N§16.4) | **Done in PR 5**: ReadToEnd-then-retry in the shared `navigate` helper |
 | Toggle auto-advance: no "skip already-included" smarts (N§21.35) | Keep plain next-hunk |
 | difftastic token-vs-line `c`-at-new-line mismatch (M§10.2) | Protocol v2 candidate; nothing to do host-side |
-| `scrollUpMain`/`scrollDownMain` scroll the hidden upper pane when the lower one has the section to itself (new, round 5) | Raised with the user; belongs in a `fixup!` for "Always show a file's staged changes in the lower pane". They pick the view by window name, so `GetMainPanes() == SecondaryPaneOnly` is the question they're missing |
-| `clearMainView` leaves a pending `RenderRestore` stranded, and with it the `BeginBlockingEvents` its `Done` balances (new, round 5) | Raised with the user; belongs in a `fixup!` for "Hold input back until the selection has moved on". The string renders call `DropRestoreForNextTask` for the same reason; needs a mispredicted target pane to bite, so latent rather than reproducible |
+| `scrollUpMain`/`scrollDownMain` scroll the hidden upper pane when the lower one has the section to itself (new, round 5) | **Done in round 5**: both ask `Gui.mainSectionView`, which knows about `SecondaryPaneOnly`; fixup for "Always show a file's staged changes in the lower pane" |
+| `clearMainView` leaves a pending `RenderRestore` stranded, and with it the `BeginBlockingEvents` its `Done` balances (new, round 5) | **Done in round 5**: `clearMainView` drops it, as the string renders do; fixup for "Hold input back until the selection has moved on". Untested — it needs a mispredicted target pane, which takes an external mutation racing the action |
 
 ## 9. Open questions (resolve before/during the marked PR)
 
@@ -2177,7 +2192,7 @@ The remaining rows are agreed as keep/defer:
       with four cross-cutting review comments fixed as mid-branch fixups in
       PRs 5, 6 and 7 (see PR 7's sign-off section)
 - [x] The staged side always in the lower pane — **DONE 2026-08-16** on branch
-      `show-staged-changes-in-lower-pane` (4 commits after round 5, green),
+      `show-staged-changes-in-lower-pane` (5 commits after round 5, green),
       inserted below PR 7 at the user's suggestion; see the section at the end of
       PR 7
 - [ ] PR 8 — custom patches from the main view
@@ -2208,7 +2223,12 @@ Log:
   testing anything about an emptied pane: the origin zeroing that *used* to
   happen was a race (a task reaching EOF after its view was cleared clamps the
   origin in `onEndOfInput`), so a journey that empties a pane with a task still
-  in flight proves nothing.
+  in flight proves nothing. Two further findings from the round are fixed in the
+  same pass: the keys for scrolling the main section asked which *window* the
+  focus was in rather than which pane the section is showing, so `<pgdown>` over
+  a staged-only file moved nothing; and an emptied pane stranded a pending
+  `RenderRestore`, which since round 4 also strands the input block its `Done`
+  balances. Signed off interactively the same day.
 - **2026-08-18:** **four scroll-preservation and focus problems fixed**, three of
   them the same root cause — the selection is view lines, its meaning is buffer
   lines, and each of the three places that boundary is crossed lost something.
