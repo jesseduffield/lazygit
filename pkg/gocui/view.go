@@ -164,6 +164,17 @@ type View struct {
 	// For content that conveys meaning by color of its own.
 	SelectedLineColorWidth int
 
+	// InclusionGutterMarker is the glyph the inclusion gutter draws on a marked line
+	// (see SetInclusionGutter), and InclusionGutterMarkerColor its color. Both are
+	// set once, when the view is created.
+	InclusionGutterMarker      string
+	InclusionGutterMarkerColor Attribute
+	// showInclusionGutter reserves the gutter's columns at the left of every line,
+	// and inclusionGutterMarks, indexed by line of the content, says which lines get
+	// the marker. Set together, via SetInclusionGutter.
+	showInclusionGutter  bool
+	inclusionGutterMarks []bool
+
 	// If Frame is true, a border will be drawn around the view.
 	Frame bool
 
@@ -852,6 +863,38 @@ func (v *View) InnerHeight() int {
 // Name returns the name of the view.
 func (v *View) Name() string {
 	return v.name
+}
+
+// SetInclusionGutter shows or hides a column reserved at the left of every line, in
+// which marks — indexed by line of the content — say which lines get
+// InclusionGutterMarker drawn, on every segment of a line the view wrapped. The
+// content is drawn shifted past it.
+//
+// It is drawn over the content rather than written into it, so the content itself —
+// and with it what each line of the view means, where a click lands, and how the
+// lines wrap — is untouched but for the width the gutter takes.
+func (v *View) SetInclusionGutter(show bool, marks []bool) {
+	v.writeMutex.Lock()
+	changed := v.showInclusionGutter != show
+	v.showInclusionGutter = show
+	v.inclusionGutterMarks = marks
+	v.writeMutex.Unlock()
+
+	if changed {
+		// The gutter takes its columns from the content, so what is left of it wraps
+		// differently, and everything pointing into it has to come along.
+		v.RewrapContent()
+	}
+}
+
+// inclusionGutterWidth is how many columns the inclusion gutter takes while it is
+// shown — the marker plus a column of space before the content — and 0 while it is
+// not. Only call this with a lock on writeMutex.
+func (v *View) inclusionGutterWidth() int {
+	if !v.showInclusionGutter {
+		return 0
+	}
+	return uniseg.StringWidth(v.InclusionGutterMarker) + 1
 }
 
 // setCharacter sets a character (grapheme cluster) at the given point relative to the view. It applies
@@ -1763,6 +1806,8 @@ func (v *View) draw(isWindowFocused bool) {
 
 	emptyCell := cell{chr: " ", width: 1, fgColor: ColorDefault, bgColor: ColorDefault}
 
+	gutterWidth := v.inclusionGutterWidth()
+
 	for y, vline := range v.viewLines[start:] {
 		if y >= maxY {
 			break
@@ -1777,10 +1822,20 @@ func (v *View) draw(isWindowFocused bool) {
 			trailingCell.bgColor = attrs.bg
 		}
 
+		// The inclusion gutter is blank but for the marker on a marked line, and the
+		// content begins after it. The blanks go through setCharacter like everything
+		// else, so that a selection reaching the left edge covers the gutter too.
+		for gx := range gutterWidth {
+			v.setCharacter(gx, y, " ", v.FgColor, v.BgColor, isWindowFocused)
+		}
+		if gutterWidth > 0 && vline.linesY < len(v.inclusionGutterMarks) && v.inclusionGutterMarks[vline.linesY] {
+			v.setCharacter(0, y, v.InclusionGutterMarker, v.InclusionGutterMarkerColor, v.BgColor, isWindowFocused)
+		}
+
 		// x tracks the current x position in the view, and cellIdx tracks the
 		// index of the cell. If we print a double-sized rune, we increment cellIdx
 		// by one but x by two.
-		x := -v.ox
+		x := gutterWidth - v.ox
 		cellIdx := 0
 
 		var c cell
@@ -1794,7 +1849,7 @@ func (v *View) draw(isWindowFocused bool) {
 
 				// no more characters to write so we're only going to be printing empty cells
 				// past this point
-				x = 0
+				x = gutterWidth
 			}
 
 			// if we're out of cells to write, we'll just print empty cells.
@@ -1829,10 +1884,11 @@ func (v *View) refreshViewLinesIfNeeded() {
 		return
 	}
 
-	maxX := v.InnerWidth()
 	wrap := 0
 	if v.Wrap {
-		wrap = maxX
+		// The inclusion gutter, while it is shown, takes its columns out of the width
+		// the content has to wrap in.
+		wrap = max(0, v.InnerWidth()-v.inclusionGutterWidth())
 	}
 
 	lineIdx := 0
