@@ -610,6 +610,50 @@ func TestKeepScrollPositionForNextTask(t *testing.T) {
 	assert.EqualValues(t, 0, beforeStartCount.Load())
 }
 
+// A view that has been emptied is showing nothing, so the render it was showing is no
+// longer the one to compare the next task against: running the same command again is
+// putting content into the view that isn't there any more, and starts from the top.
+func TestForgetRenderedContent(t *testing.T) {
+	resetOrigin, getResetOriginCallCount := getCounter()
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		io.Discard,
+		func() {}, // beforeStart
+		func() {}, // refreshView
+		func() {}, // onEndOfInput
+		resetOrigin,
+		func() {}, // beginRender
+		func() {}, // swapInRender
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	runTaskToCompletion := func(key string) {
+		start := func() (Cmd, io.Reader) {
+			// not actually starting this because it's not necessary
+			return ExecCmd{Cmd: exec.Command("blah")}, &BlankLineReader{totalLinesToYield: 3}
+		}
+		done := make(chan struct{})
+		_ = manager.NewTask(
+			manager.NewCmdTask(start, "", LinesToRead{100, 50, nil}, func() { close(done) }), key)
+		<-done
+	}
+
+	runTaskToCompletion("cmd1")
+	assert.Equal(t, 1, getResetOriginCallCount())
+
+	// Rendering the same command's output again leaves the view where it is, that being
+	// what it already shows.
+	runTaskToCompletion("cmd1")
+	assert.Equal(t, 1, getResetOriginCallCount())
+
+	manager.ForgetRenderedContent()
+	runTaskToCompletion("cmd1")
+	assert.Equal(t, 2, getResetOriginCallCount(), "an emptied view is shown its content afresh")
+}
+
 func TestNewCmdTaskRefresh(t *testing.T) {
 	type scenario struct {
 		name                        string
