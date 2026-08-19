@@ -139,5 +139,25 @@ var CopySelectedDiffLines = NewIntegrationTest(NewIntegrationTestArgs{
 			`\A {4}two\n---\n file1 \|[^\n]*\n 1 file changed[^\n]*\n\n`+
 				`diff --git a/file1 b/file1\nindex [0-9a-f]+\.\.[0-9a-f]+ 100644\n`+
 				`--- a/file1\n\+\+\+ b/file1\n@@ -1,3 \+1,3 @@\n one\n-two\n\z`))
+
+		// The pane showing the custom patch is a diff too, of the patch's own lines.
+		t.Views().Main().
+			Press(keys.Main.ToggleSelectHunk).
+			SelectedLines(
+				Contains("-two <<<"),
+				Contains("+TWO <<<"),
+			).
+			PressPrimaryAction().
+			Press(keys.Universal.TogglePanel)
+
+		t.Views().Secondary().
+			IsFocused().
+			SelectedLines(
+				Contains("-two <<<"),
+				Contains("+TWO <<<"),
+			).
+			Press(keys.Universal.CopyToClipboard)
+
+		expectClipboard(t, Equals("-two\n+TWO\n"))
 	},
 })

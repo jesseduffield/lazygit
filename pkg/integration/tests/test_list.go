@@ -417,6 +417,7 @@ var tests = []*components.IntegrationTest{
 	main_view.PatchMarksShowWheneverTheirDiffIsOnScreen,
 	main_view.RangeSelectDiffLines,
 	main_view.RawFallbackUnderAnExternalDiff,
+	main_view.RemoveLinesFromTheCustomPatch,
 	main_view.RenderTheDiffBesideThePatchMarks,
 	main_view.ResetAPatchBuiltFromACommitsDiff,
 	main_view.ResetThePatchFromThePaneShowingIt,

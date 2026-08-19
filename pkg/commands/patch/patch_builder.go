@@ -473,6 +473,29 @@ func (p *PatchBuilder) IncludedLineIdentities(filename string) []LineIdentity {
 	return identities
 }
 
+// IncludedChangeLineIndices says which of filename's change lines are in the patch, as
+// their indices in the file's diff and in the order the file has them.
+//
+// It is how a line of the patch as it is shown names the line of the diff it came from:
+// all that can be said about a line of the patch is which of the file's changes it is,
+// its line numbers being the patch's own — a patch that leaves an earlier addition out
+// numbers everything after it differently from the diff it was built from.
+func (p *PatchBuilder) IncludedChangeLineIndices(filename string) []int {
+	info, ok := p.snapshotFileInfoMap()[filename]
+	if !ok || info.mode == UNSELECTED {
+		return nil
+	}
+
+	included := set.NewFromSlice(info.includedLineIndices)
+	indices := []int{}
+	for idx, line := range Parse(info.diff).Lines() {
+		if (line.IsAddition() || line.IsDeletion()) && included.Includes(idx) {
+			indices = append(indices, idx)
+		}
+	}
+	return indices
+}
+
 func (p *PatchBuilder) GetFileIncLineIndices(filename string, previousPath string) ([]int, error) {
 	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
