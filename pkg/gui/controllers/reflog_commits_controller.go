@@ -10,6 +10,9 @@ type ReflogCommitsController struct {
 	baseController
 	*ListControllerTrait[*models.Commit]
 	c *ControllerCommon
+
+	// what this panel offers on the diff it shows in the focused main view
+	diffActions *CommitDiffActions
 }
 
 var _ types.IController = &ReflogCommitsController{}
@@ -17,7 +20,7 @@ var _ types.IController = &ReflogCommitsController{}
 func NewReflogCommitsController(
 	c *ControllerCommon,
 ) *ReflogCommitsController {
-	return &ReflogCommitsController{
+	controller := &ReflogCommitsController{
 		baseController: baseController{},
 		ListControllerTrait: NewListControllerTrait(
 			c,
@@ -27,6 +30,19 @@ func NewReflogCommitsController(
 		),
 		c: c,
 	}
+	controller.diffActions = NewCommitDiffActions(c, c.Contexts().ReflogCommits, controller.diffTarget)
+	return controller
+}
+
+// diffTarget is the reflog entry the panel has selected, whose diff its main view
+// shows. A reflog entry is never a commit of the checked-out branch as far as we are
+// concerned, so nothing here may be rewritten.
+func (self *ReflogCommitsController) diffTarget() *commitDiffTarget {
+	commit := self.context().GetSelected()
+	if commit == nil {
+		return nil
+	}
+	return &commitDiffTarget{from: commit.ParentRefName(), to: commit.RefName()}
 }
 
 func (self *ReflogCommitsController) Context() types.Context {
@@ -38,17 +54,7 @@ func (self *ReflogCommitsController) context() *context.ReflogCommitsContext {
 }
 
 func (self *ReflogCommitsController) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {
-	return self
-}
-
-// PlainDiff hands out the reflog entry's diff for the given files — the same diff its
-// main view shows, only without the entry's message and stat above it.
-func (self *ReflogCommitsController) PlainDiff(_ types.DiffPaneContext, paths []string) string {
-	commit := self.context().GetSelected()
-	if commit == nil {
-		return ""
-	}
-	return self.c.Helpers().Diff.PlainDiffBetweenRefs(commit.ParentRefName(), commit.RefName(), paths)
+	return self.diffActions
 }
 
 func (self *ReflogCommitsController) GetOnRenderToMain() func() {
