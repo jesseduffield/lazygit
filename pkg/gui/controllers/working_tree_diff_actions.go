@@ -100,6 +100,12 @@ func (self *WorkingTreeDiffActions) DiscardSelection(pane types.DiffPaneContext,
 		})
 }
 
+// DiscardSelectionDisabledReason is nil: a change of the working tree can always be
+// thrown away, and one in the index always taken back out of it.
+func (self *WorkingTreeDiffActions) DiscardSelectionDisabledReason(types.DiffPaneContext) *types.DisabledReason {
+	return nil
+}
+
 // EditHunk opens the git hunk holding the selection in an editor, as a patch against
 // the index, and applies whatever comes back. It is how you stage something the diff
 // can't express — half of a changed line, or a change written differently from either
@@ -346,7 +352,7 @@ func (self *WorkingTreeDiffActions) revealSelectionInPaneItLandsIn(
 	// that, and until it has been the selection is still on lines that aren't there any
 	// more — so a key pressed meanwhile would act on nothing.
 	self.c.GocuiGui().BeginBlockingEvents()
-	self.c.Helpers().DiffLine.RevealSelectionAfterAction(pane, target, firstLineIdx,
+	self.c.Helpers().DiffLine.RevealSelectionAfterAction(pane, target, firstLineIdx, 0,
 		self.c.GocuiGui().EndBlockingEvents)
 }
 

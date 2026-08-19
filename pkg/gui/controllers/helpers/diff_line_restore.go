@@ -563,11 +563,16 @@ func patchLineOf(info types.DiffLineInfo) patchLine {
 // in another pane — and shows no selection until the restore places one, so that what
 // it was left showing the last time it was used doesn't appear for a frame.
 //
+// advanceBy moves on by that many changes past the place remembered, for an action that
+// leaves the diff as it was: lines taken into a custom patch are still in the commit's
+// diff, so the place remembered is still the line acted on, and carrying on means going
+// past the lines just dealt with rather than staying on them.
+//
 // done, which may be nil, is called once the selection is where it belongs, or once it
 // turns out that no render is coming to put it there — for a caller that must not let
 // the user act again in between.
 func (self *DiffLineHelper) RevealSelectionAfterAction(
-	source types.DiffPaneContext, target types.DiffPaneContext, firstLineIdx int, done func(),
+	source types.DiffPaneContext, target types.DiffPaneContext, firstLineIdx int, advanceBy int, done func(),
 ) {
 	ordinal, ok := self.ChangeLineOrdinal(source.GetView(), firstLineIdx)
 	if !ok {
@@ -591,7 +596,7 @@ func (self *DiffLineHelper) RevealSelectionAfterAction(
 		self.c.Context().UpdateSelectionHighlights()
 	}
 
-	self.RevealChangeLineAtOrdinal(targetView, ordinal, func(viewLine int) {
+	self.RevealChangeLineAtOrdinal(targetView, ordinal+advanceBy, func(viewLine int) {
 		if selectHunk {
 			self.SelectChangeBlock(target, viewLine, true)
 			return

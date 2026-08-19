@@ -39,6 +39,11 @@ type Binding struct {
 
 	// to be displayed if the keybinding is highlighted from within a menu
 	Tooltip string
+	// TooltipFunc is used instead of Tooltip if non-nil, for a command whose tooltip
+	// depends on context, as DescriptionFunc is for its description — and with the
+	// same two conditions: it must not be an expensive call, and a generic Tooltip
+	// must still be given, since that is the one the cheatsheet prints.
+	TooltipFunc func() string
 
 	// Function to decide whether the command is enabled, and why. If this
 	// returns an empty string, it is; if it returns a non-empty string, it is
@@ -57,6 +62,13 @@ func (b *Binding) GetDescription() string {
 		return b.DescriptionFunc()
 	}
 	return b.Description
+}
+
+func (b *Binding) GetTooltip() string {
+	if b.TooltipFunc != nil {
+		return b.TooltipFunc()
+	}
+	return b.Tooltip
 }
 
 func (b *Binding) GetShortDescription() string {

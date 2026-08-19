@@ -80,22 +80,31 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Tooltip:           self.c.Tr.EditFileTooltip,
 		},
 		{
-			Keys:              opts.GetKeys(opts.Config.Universal.Select),
-			Handler:           self.primaryAction,
+			Keys:    opts.GetKeys(opts.Config.Universal.Select),
+			Handler: self.primaryAction,
+			// The description is of the working tree's diff, which is where the key does
+			// the thing users know it for; over a commit's diff it says so for itself.
 			Description:       self.c.Tr.Stage,
-			DescriptionFunc:   self.workingTreeActionDescription(self.c.Tr.Stage),
+			DescriptionFunc:   self.diffActionDescription(self.c.Tr.Stage, self.c.Tr.ToggleSelectionForPatch),
 			GetDisabledReason: self.diffSelectionDisabledReason,
 			Tooltip:           self.c.Tr.StageSelectionTooltip,
-			DisplayOnScreen:   true,
+			// Over a commit's diff the key toggles lines in the custom patch, which the
+			// description says for itself; there is nothing to add to it.
+			TooltipFunc:     self.diffActionDescription(self.c.Tr.StageSelectionTooltip, ""),
+			DisplayOnScreen: true,
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.discardSelection,
 			Description:       self.c.Tr.DiscardSelection,
-			DescriptionFunc:   self.workingTreeActionDescription(self.c.Tr.DiscardSelection),
-			GetDisabledReason: self.diffSelectionDisabledReason,
+			DescriptionFunc:   self.diffActionDescription(self.c.Tr.DiscardSelection, self.c.Tr.RemoveSelectionFromPatch),
+			GetDisabledReason: self.discardSelectionDisabledReason,
 			Tooltip:           self.c.Tr.DiscardSelectionTooltip,
-			DisplayOnScreen:   true,
+			// Over a commit's diff the key rewrites the commit rather than touching the
+			// index, which is worth the warning the other tooltip carries.
+			TooltipFunc: self.diffActionDescription(
+				self.c.Tr.DiscardSelectionTooltip, self.c.Tr.RemoveSelectionFromPatchTooltip),
+			DisplayOnScreen: true,
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Main.EditSelectHunk),
@@ -381,11 +390,23 @@ func (self *MainViewController) workingTreeAction(action func() error) func() er
 // workingTreeActionDescription gives a command's description only where the command
 // applies — over the working tree's diff — so that it is listed there and nowhere else.
 func (self *MainViewController) workingTreeActionDescription(description string) func() string {
+	return self.diffActionDescription(description, "")
+}
+
+// diffActionDescription describes a command in the words that suit the diff it applies
+// to: acting on the working tree's diff stages, acting on a commit's builds a custom
+// patch. Over content that is no diff at all the command doesn't apply, and describes
+// itself as nothing, which keeps it out of the keybindings menu there.
+func (self *MainViewController) diffActionDescription(staging string, patchBuilding string) func() string {
 	return func() string {
-		if self.diffMainViewType() != types.DiffMainViewTypeStaging {
+		switch self.diffMainViewType() {
+		case types.DiffMainViewTypeStaging:
+			return staging
+		case types.DiffMainViewTypePatchBuilding:
+			return patchBuilding
+		default:
 			return ""
 		}
-		return description
 	}
 }
 
@@ -463,6 +484,19 @@ func (self *MainViewController) diffSelectionDescriptionText(description string)
 func (self *MainViewController) diffSelectionDisabledReason() *types.DisabledReason {
 	if !self.context.GetView().Highlight {
 		return &types.DisabledReason{Text: self.c.Tr.NothingToSelectInDiff}
+	}
+	return nil
+}
+
+// discardSelectionDisabledReason disables discarding while there is nothing to discard,
+// and where the panel beneath won't have it: taking lines out of a commit means
+// rewriting it, which isn't always something we may do.
+func (self *MainViewController) discardSelectionDisabledReason() *types.DisabledReason {
+	if reason := self.diffSelectionDisabledReason(); reason != nil {
+		return reason
+	}
+	if actions := self.focusedMainViewActions(); actions != nil {
+		return actions.DiscardSelectionDisabledReason(self.context)
 	}
 	return nil
 }
