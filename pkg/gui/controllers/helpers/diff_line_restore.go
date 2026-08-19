@@ -557,9 +557,9 @@ func patchLineOf(info types.DiffLineInfo) patchLine {
 // in another pane — and shows no selection until the restore places one, so that what
 // it was left showing the last time it was used doesn't appear for a frame.
 //
-// done is called once the selection is where it belongs, or once it turns out that no
-// render is coming to put it there, for a caller that must not let the user act again
-// in between.
+// done, which may be nil, is called once the selection is where it belongs, or once it
+// turns out that no render is coming to put it there — for a caller that must not let
+// the user act again in between.
 func (self *DiffLineHelper) RevealSelectionAfterAction(
 	source types.DiffPaneContext, target types.DiffPaneContext, firstBufferLine int, done func(),
 ) {
