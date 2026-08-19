@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -43,14 +44,40 @@ func NewCommitDiffActions(
 	return &CommitDiffActions{c: c, panel: panel, target: target}
 }
 
-// PlainDiff hands out the diff the panel is showing, for the given files — the same
-// diff as in the main view, only without the commit's message and stat above it.
-func (self *CommitDiffActions) PlainDiff(_ types.DiffPaneContext, paths []string) string {
+// PlainDiff hands out the diff the asking pane is showing, for the given files — the
+// commit's diff as in the main view, only without the commit's message and stat above it,
+// or the diff the custom patch is previewed as, whose lines are the patch's own rather
+// than the commit's.
+//
+// The patch's own diff is handed out whole: it is only ever as big as the patch, and it
+// names its files under the trees the patch was materialized into rather than under the
+// paths asked for.
+func (self *CommitDiffActions) PlainDiff(pane types.DiffPaneContext, paths []string) string {
+	if self.showsCustomPatch(pane) {
+		return self.customPatchDiff()
+	}
+
 	target := self.target()
 	if target == nil {
 		return ""
 	}
 	return self.c.Helpers().Diff.PlainDiffBetweenRefs(target.from, target.to, paths)
+}
+
+// customPatchDiff is the diff the custom patch is previewed as, as git writes it — the
+// diff behind what the pane previewing the patch shows, in which the lines shown there
+// can be found again.
+func (self *CommitDiffActions) customPatchDiff() string {
+	treesDir := self.c.Git().Patch.PatchBuilder.TempDir()
+	if treesDir == "" {
+		return ""
+	}
+	// An error means the two trees differ, as they do for any patch with something in
+	// it. We are after the diff itself either way.
+	diff, _ := self.c.Git().Diff.
+		CustomPatchDiffCmdObj(treesDir, git_commands.DiffModePlain).
+		RunWithOutput()
+	return diff
 }
 
 // PrimaryAction takes the selected lines into the custom patch being built from this
@@ -60,10 +87,10 @@ func (self *CommitDiffActions) PlainDiff(_ types.DiffPaneContext, paths []string
 // The commit is not touched, so the diff stays as it is: what changes is the patch
 // beside it, and which of its lines are marked as being in that patch.
 func (self *CommitDiffActions) PrimaryAction(pane types.DiffPaneContext, firstLineIdx int, lastLineIdx int) error {
-	// Only the diff has lines to take into the patch; the pane beside it shows the patch
-	// they are taken into.
+	// In the pane showing the patch, the lines are the patch's own, so there they only
+	// come back out of it.
 	if self.showsCustomPatch(pane) {
-		return nil
+		return self.removePatchLines(pane, firstLineIdx, lastLineIdx)
 	}
 
 	if self.c.UserConfig().Git.DiffContextSize == 0 {
@@ -123,6 +150,62 @@ func (self *CommitDiffActions) PrimaryAction(pane types.DiffPaneContext, firstLi
 			return nil
 		},
 	})
+}
+
+// removePatchLines takes the selected lines of the custom patch out of it. The primary
+// action does this in the pane showing the patch: everything shown there is in the patch
+// already, so there is nothing else it could mean.
+//
+// A line of the patch is named by its position among its file's changes, counted in the
+// diff the patch is shown as. That position is the same one the line has among the
+// changes the patch holds for that file. Line numbers would not do: a patch that leaves
+// an earlier addition out numbers everything after it differently from the commit's diff.
+func (self *CommitDiffActions) removePatchLines(
+	pane types.DiffPaneContext, firstLineIdx int, lastLineIdx int,
+) error {
+	lines := self.c.Helpers().DiffLine.ChangeLinesInViewRange(pane.GetView(), firstLineIdx, lastLineIdx)
+	if len(lines) == 0 {
+		return nil
+	}
+
+	patchBuilder := self.c.Git().Patch.PatchBuilder
+	previousPaths := self.previousPaths()
+	for path, ordinals := range self.c.Helpers().DiffLine.ChangeLineOrdinals(self.customPatchDiff(), lines) {
+		filename := self.patchBuilderPath(path)
+		if filename == "" {
+			continue
+		}
+		included := patchBuilder.IncludedChangeLineIndices(filename)
+		indices := []int{}
+		for _, ordinal := range ordinals {
+			if ordinal < len(included) {
+				indices = append(indices, included[ordinal])
+			}
+		}
+		if len(indices) == 0 {
+			continue
+		}
+		if err := patchBuilder.RemoveFileLineRange(filename, previousPaths[filename], indices); err != nil {
+			return err
+		}
+	}
+	// Taking the last line out ends the patch rather than leaving an empty one, as it does
+	// in the diff beside this pane.
+	if patchBuilder.IsEmpty() {
+		patchBuilder.Reset()
+	}
+
+	self.c.Helpers().DiffLine.RefreshInclusionGutter()
+
+	// The lines are gone from the patch, so the selection carries on from where they were,
+	// as unstaging leaves it. Input is held until it has moved, so that a second press acts
+	// on the patch as it now is.
+	self.c.GocuiGui().BeginBlockingEvents()
+	self.c.Helpers().DiffLine.RevealSelectionAfterAction(pane, pane, firstLineIdx, 0,
+		self.c.GocuiGui().EndBlockingEvents)
+
+	self.c.PostRefreshUpdate(self.panel)
+	return nil
 }
 
 // DiscardSelection takes the selected lines out of the commit they are part of, by

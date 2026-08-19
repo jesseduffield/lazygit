@@ -191,3 +191,10 @@ func (self *DiffLineHelper) patchInclusion() func(types.DiffLineInfo) bool {
 	}
 	return actions.PatchInclusion()
 }
+
+// ShowsCustomPatch reports whether the given view is the one previewing the custom patch
+// being built, which is the lower pane while a patch is being built from the diff in the
+// upper one.
+func (self *DiffLineHelper) ShowsCustomPatch(view *gocui.View) bool {
+	return view == self.c.Contexts().NormalSecondary.GetView() && self.patchInclusion() != nil
+}

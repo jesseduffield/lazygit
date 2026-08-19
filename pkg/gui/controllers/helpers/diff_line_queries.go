@@ -1,6 +1,9 @@
 package helpers
 
 import (
+	"path/filepath"
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -32,7 +35,81 @@ func (self *DiffLineHelper) DiffLinesInViewRange(view *gocui.View, first int, la
 		previousBufferLine = bufferLine
 		infos = append(infos, identities[bufferLine]...)
 	}
-	return infos
+	return self.inRepoTerms(view, infos)
+}
+
+// ChangeLineOrdinals says, for each of the given change lines, which of its file's
+// changes it is in the given diff — its place among them, counted from the top of the
+// file — keyed by file. Lines the diff doesn't have are left out.
+//
+// It is how a line is named in something built out of a diff rather than being that diff:
+// the custom patch holds the lines it was given in the order the file has them, so a
+// place among a file's changes is a line of the patch.
+func (self *DiffLineHelper) ChangeLineOrdinals(
+	diff string, infos []types.DiffLineInfo,
+) map[string][]int {
+	ordinals := map[patchLine]int{}
+	counts := map[string]int{}
+	for _, parsed := range parseAllDiffLinesFromBuffer(strings.Split(diff, "\n")) {
+		if !parsed.ok {
+			continue
+		}
+		info := self.diffLineInfo(parsed.parsed)
+		if !info.IsChange() {
+			continue
+		}
+		ordinals[patchLineOf(info)] = counts[info.Path]
+		counts[info.Path]++
+	}
+
+	ordinalsByPath := map[string][]int{}
+	for _, info := range infos {
+		if ordinal, ok := ordinals[patchLineOf(info)]; ok {
+			ordinalsByPath[info.Path] = append(ordinalsByPath[info.Path], ordinal)
+		}
+	}
+	return ordinalsByPath
+}
+
+// inRepoTerms brings the paths of lines recovered from a view into the repo's terms.
+//
+// They are in them already for a diff of the repo's own files. The pane previewing the
+// custom patch, though, shows a diff of the two trees the patch was materialized into: a
+// diff renderer states the path it was handed there, which is under the tree's own name,
+// while the diff's text names the trees where an ordinary diff has git's a/ and b/
+// prefixes and so needs nothing.
+func (self *DiffLineHelper) inRepoTerms(view *gocui.View, infos []types.DiffLineInfo) []types.DiffLineInfo {
+	if !self.ShowsCustomPatch(view) {
+		return infos
+	}
+
+	worktreePath := self.c.Git().RepoPaths.WorktreePath()
+	treesDir := self.c.Git().Patch.PatchBuilder.TempDir()
+	return lo.Map(infos, func(info types.DiffLineInfo, _ int) types.DiffLineInfo {
+		info.Path = repoPathOfTreePath(info.Path, treesDir, worktreePath)
+		return info
+	})
+}
+
+// repoPathOfTreePath maps a path under one of the trees the custom patch was materialized
+// into to the file of the repo it stands for: the path is the tree's name followed by the
+// file's own, stated either against the directory holding the trees or against the repo,
+// depending on how the renderer that stated it was given it.
+func repoPathOfTreePath(path string, treesDir string, worktreePath string) string {
+	root := worktreePath
+	if treesDir != "" && strings.HasPrefix(path, treesDir+string(filepath.Separator)) {
+		root = treesDir
+	}
+	relativePath, err := filepath.Rel(root, path)
+	if err != nil {
+		return path
+	}
+
+	segments := strings.Split(filepath.ToSlash(relativePath), "/")
+	if len(segments) > 1 && (segments[0] == "a" || segments[0] == "b") {
+		relativePath = filepath.Join(segments[1:]...)
+	}
+	return filepath.Join(worktreePath, relativePath)
 }
 
 // ChangeLinesInViewRange returns the change lines — the additions and deletions —
