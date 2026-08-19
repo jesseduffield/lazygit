@@ -370,6 +370,7 @@ var tests = []*components.IntegrationTest{
 	main_view.CommitFromMainView,
 	main_view.CopyRowsThatAreNoDiffLine,
 	main_view.CopySelectedDiffLines,
+	main_view.CustomPatchGoesThroughTheDiffRenderer,
 	main_view.DiscardDiffLines,
 	main_view.DiscardFromACommitOnlyWhereItCanBeRewritten,
 	main_view.DiscardLinesFromACommit,
