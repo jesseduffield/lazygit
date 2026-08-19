@@ -893,13 +893,21 @@ func (v *View) SetInclusionGutter(show bool, marks []bool) {
 	}
 }
 
-// inclusionGutterWidth is how many columns the inclusion gutter takes while it is
-// shown — the marker plus a column of space before the content — and 0 while it is
-// not. Only call this with a lock on writeMutex.
+// inclusionGutterWidth is how many columns the inclusion gutter takes from the content
+// now: InclusionGutterWidthWhenShown while it is shown, and 0 while it is not. Only call
+// this with a lock on writeMutex.
 func (v *View) inclusionGutterWidth() int {
 	if !v.showInclusionGutter {
 		return 0
 	}
+	return v.InclusionGutterWidthWhenShown()
+}
+
+// InclusionGutterWidthWhenShown is how many columns the inclusion gutter takes from the
+// content while it is shown, whether or not it is shown now: the marker plus a column of
+// space before the content. Content laid out before the gutter appears has to be laid
+// out this much narrower to fit beside it.
+func (v *View) InclusionGutterWidthWhenShown() int {
 	return uniseg.StringWidth(v.InclusionGutterMarker) + 1
 }
 
@@ -2027,6 +2035,26 @@ func (v *View) BufferLines() []string {
 	lines := make([]string, len(v.buf.lines))
 	for i, l := range v.buf.lines {
 		lines[i] = l.cells.String()
+	}
+	return lines
+}
+
+// MarkedLines returns the lines of the view's content that the inclusion gutter is
+// marking (see SetInclusionGutter), in the order they appear. Empty while the gutter
+// is hidden.
+func (v *View) MarkedLines() []string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if !v.showInclusionGutter {
+		return nil
+	}
+
+	lines := []string{}
+	for i, line := range v.buf.lines {
+		if i < len(v.inclusionGutterMarks) && v.inclusionGutterMarks[i] {
+			lines = append(lines, line.cells.String())
+		}
 	}
 	return lines
 }
