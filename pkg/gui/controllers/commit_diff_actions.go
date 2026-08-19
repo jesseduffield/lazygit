@@ -1,7 +1,15 @@
 package controllers
 
 import (
+	"fmt"
+	"path/filepath"
+	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 // CommitDiffActions implements what a panel showing a commit's diff offers on that diff
@@ -26,7 +34,7 @@ type commitDiffTarget struct {
 	canRebase bool
 }
 
-var _ types.FocusedMainViewDiffSource = &CommitDiffActions{}
+var _ types.FocusedMainViewActions = &CommitDiffActions{}
 
 func NewCommitDiffActions(
 	c *ControllerCommon, panel types.Context, target func() *commitDiffTarget,
@@ -42,4 +50,266 @@ func (self *CommitDiffActions) PlainDiff(_ types.DiffPaneContext, paths []string
 		return ""
 	}
 	return self.c.Helpers().Diff.PlainDiffBetweenRefs(target.from, target.to, paths)
+}
+
+// PrimaryAction takes the selected lines into the custom patch being built from this
+// diff, or back out of it when the first of them is already in — the same toggling the
+// commit files panel does to a whole file at a time.
+//
+// The commit is not touched, so the diff stays as it is: what changes is the patch
+// beside it, and which of its lines are marked as being in that patch.
+func (self *CommitDiffActions) PrimaryAction(pane types.DiffPaneContext, firstLineIdx int, lastLineIdx int) error {
+	// Only the diff has lines to take into the patch; the pane beside it shows the patch
+	// they are taken into.
+	if self.showsCustomPatch(pane) {
+		return nil
+	}
+
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
+		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextForCustomPatch,
+			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
+	}
+
+	target := self.target()
+	if target == nil {
+		return nil
+	}
+	lines := self.c.Helpers().DiffLine.ChangeLinesInViewRange(pane.GetView(), firstLineIdx, lastLineIdx)
+	if len(lines) == 0 {
+		return nil
+	}
+
+	patchBuilder := self.c.Git().Patch.PatchBuilder
+	from, reverse := self.patchEndpoints(target)
+	// A patch is built from one diff, so building from another one means giving up the
+	// patch there is — which the user is asked about, as entering the patch builder asks.
+	mustDiscardPatch := patchBuilder.Active() && patchBuilder.NewPatchRequired(from, target.to, reverse)
+	return self.c.ConfirmIf(mustDiscardPatch, types.ConfirmOpts{
+		Title:  self.c.Tr.DiscardPatch,
+		Prompt: self.c.Tr.DiscardPatchConfirm,
+		HandleConfirm: func() error {
+			if mustDiscardPatch {
+				patchBuilder.Reset()
+			}
+			if !patchBuilder.Active() {
+				patchBuilder.Start(from, target.to, reverse, target.canRebase)
+			}
+
+			if err := self.togglePatchLines(lines); err != nil {
+				return err
+			}
+			// Taking the last line back out ends the patch rather than leaving an empty
+			// one, so that the pane previewing it and the marks over the diff go with it.
+			if patchBuilder.IsEmpty() {
+				patchBuilder.Reset()
+			}
+
+			// The selection moves on past the lines just toggled, to the next change of
+			// the diff — which is still there, a toggle leaving the diff as it was, so
+			// hold input back until it has moved: a second press meanwhile would toggle
+			// the same lines straight back.
+			self.c.GocuiGui().BeginBlockingEvents()
+			self.c.Helpers().DiffLine.RevealSelectionAfterAction(pane, pane, firstLineIdx, len(lines),
+				self.c.GocuiGui().EndBlockingEvents)
+
+			// The panel's own render, which is all that is needed: the marks over the diff
+			// and the patch previewed beside it have changed, while the commit has not.
+			self.c.PostRefreshUpdate(self.panel)
+			return nil
+		},
+	})
+}
+
+// DiscardSelection takes the selected lines out of the commit they are part of, by
+// building a patch of exactly those lines and removing that patch from the commit. It is
+// a rebase, so a later commit that touches the same lines can conflict with it.
+//
+// The patch it needs is its own, so a patch being built is given up first — which the
+// prompt says, there being no way to get it back.
+func (self *CommitDiffActions) DiscardSelection(pane types.DiffPaneContext, firstLineIdx int, lastLineIdx int) error {
+	target := self.target()
+	if target == nil {
+		return nil
+	}
+	lines := self.c.Helpers().DiffLine.ChangeLinesInViewRange(pane.GetView(), firstLineIdx, lastLineIdx)
+	if len(lines) == 0 {
+		return nil
+	}
+	commitIndex := self.indexOfTargetCommit(target)
+	if commitIndex == -1 {
+		return nil
+	}
+
+	patchBuilder := self.c.Git().Patch.PatchBuilder
+	prompt := lo.Ternary(patchBuilder.IsEmpty(),
+		self.c.Tr.DiscardLinesFromCommitPrompt,
+		self.c.Tr.DiscardLinesFromCommitPromptWithReset)
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.DiscardLinesFromCommitTitle,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			from, reverse := self.patchEndpoints(target)
+			patchBuilder.Reset()
+			patchBuilder.Start(from, target.to, reverse, target.canRebase)
+			if err := self.togglePatchLines(lines); err != nil {
+				return err
+			}
+			if patchBuilder.IsEmpty() {
+				return nil
+			}
+
+			// The rebase runs on a worker, which may not read the model, so the commits
+			// it rewrites are taken here.
+			commits := self.c.Model().Commits
+			return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+				Message:              self.c.Tr.RebasingStatus,
+				HideWorkingTreeState: true,
+			}, func(gocui.Task) error {
+				self.c.LogAction(self.c.Tr.Actions.RemovePatchFromCommit)
+				err := self.c.Git().Patch.DeletePatchesFromCommit(commits, commitIndex)
+				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+			})
+		},
+	})
+	return nil
+}
+
+// DiscardSelectionDisabledReason says why the selected lines can't be taken out of the
+// commit: doing so rewrites it, which is only ours to do for a commit of the branch we
+// are on, and not while a rebase is already under way. In the pane previewing the custom
+// patch there is nothing to discard from — the lines there are the patch's, and space
+// takes them back out of it.
+func (self *CommitDiffActions) DiscardSelectionDisabledReason(pane types.DiffPaneContext) *types.DisabledReason {
+	if self.showsCustomPatch(pane) {
+		return &types.DisabledReason{Text: self.c.Tr.CannotDiscardFromCustomPatchView, ShowErrorInPanel: true}
+	}
+	target := self.target()
+	if target == nil || !target.canRebase {
+		return &types.DisabledReason{Text: self.c.Tr.CanOnlyDiscardFromLocalCommits, ShowErrorInPanel: true}
+	}
+	if self.c.Git().Status.WorkingTreeState().Any() {
+		return &types.DisabledReason{Text: self.c.Tr.CantPatchWhileRebasingError, ShowErrorInPanel: true}
+	}
+	if self.c.UserConfig().Git.DiffContextSize == 0 {
+		return &types.DisabledReason{
+			Text: fmt.Sprintf(self.c.Tr.Actions.NotEnoughContextToRemoveLines,
+				self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView),
+			ShowErrorInPanel: true,
+		}
+	}
+	return nil
+}
+
+// togglePatchLines takes the given lines of the commit's diff into the custom patch, or
+// out of it. The first line of the selection decides which of the two happens, once for
+// the whole selection: pointing at a line that is already in the patch takes the whole
+// selection out of it, as toggling a selection of files in the commit files panel does.
+func (self *CommitDiffActions) togglePatchLines(lines []types.DiffLineInfo) error {
+	patchBuilder := self.c.Git().Patch.PatchBuilder
+
+	// The files the selection covers, in the order the diff shows them, and per file the
+	// lines of it that are selected: a patch is built a file at a time, while a selection
+	// can span several of them.
+	paths := []string{}
+	linesByPath := map[string][]patch.LineIdentity{}
+	for _, line := range lines {
+		path := self.patchBuilderPath(line.Path)
+		if path == "" {
+			continue
+		}
+		if _, seen := linesByPath[path]; !seen {
+			paths = append(paths, path)
+		}
+		linesByPath[path] = append(linesByPath[path], line.PatchLineIdentity())
+	}
+	if len(paths) == 0 {
+		return nil
+	}
+
+	previousPaths := self.previousPaths()
+	indicesByPath := map[string][]int{}
+	for _, path := range paths {
+		indices, err := patchBuilder.PatchLineIndicesForLines(path, previousPaths[path], linesByPath[path])
+		if err != nil {
+			return err
+		}
+		indicesByPath[path] = indices
+	}
+
+	included, err := patchBuilder.GetFileIncLineIndices(paths[0], previousPaths[paths[0]])
+	if err != nil {
+		return err
+	}
+	toggle := patchBuilder.AddFileLineRange
+	if first := indicesByPath[paths[0]]; len(first) > 0 && lo.Contains(included, first[0]) {
+		toggle = patchBuilder.RemoveFileLineRange
+	}
+
+	for _, path := range paths {
+		if len(indicesByPath[path]) == 0 {
+			continue
+		}
+		if err := toggle(path, previousPaths[path], indicesByPath[path]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// previousPaths says which files of the diff were renamed, and what they were called
+// before. A renamed file's diff only comes out as a rename when git is asked about both
+// of its paths, and its lines are numbered in the file under its old name, so the patch
+// builder has to be told the old path along with them.
+func (self *CommitDiffActions) previousPaths() map[string]string {
+	target := self.target()
+	if target == nil {
+		return nil
+	}
+	from, reverse := self.patchEndpoints(target)
+	files, err := self.c.Git().Loaders.CommitFileLoader.GetFilesInDiff(from, target.to, reverse)
+	if err != nil {
+		return nil
+	}
+
+	previousPaths := map[string]string{}
+	for _, file := range files {
+		if file.PreviousPath != "" {
+			previousPaths[file.Path] = file.PreviousPath
+		}
+	}
+	return previousPaths
+}
+
+// patchEndpoints gives the two ends of the diff a patch is built from. They are the ends
+// of the diff shown, except in diffing mode, where what is shown is a diff against
+// another ref, possibly the other way around.
+func (self *CommitDiffActions) patchEndpoints(target *commitDiffTarget) (string, bool) {
+	return self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(target.from)
+}
+
+// patchBuilderPath turns the absolute path a diff line carries into the repo-relative
+// one the patch builder keys a file by, and "" for a path that is no file of this repo.
+func (self *CommitDiffActions) patchBuilderPath(path string) string {
+	relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), path)
+	if err != nil || strings.HasPrefix(relativePath, "..") {
+		return ""
+	}
+	return filepath.ToSlash(relativePath)
+}
+
+// indexOfTargetCommit finds the commit the diff belongs to among the commits of the
+// branch we are on, which is how a rebase is told which commit to rewrite. -1 when it
+// isn't one of them, in which case there is nothing we can rewrite.
+func (self *CommitDiffActions) indexOfTargetCommit(target *commitDiffTarget) int {
+	return lo.IndexOf(
+		lo.Map(self.c.Model().Commits, func(commit *models.Commit, _ int) string { return commit.Hash() }),
+		target.to)
+}
+
+// showsCustomPatch reports whether the given main pane is the one previewing the custom
+// patch being built, rather than the commit's diff — which for a commit's diff is always
+// the lower one.
+func (self *CommitDiffActions) showsCustomPatch(pane types.DiffPaneContext) bool {
+	return pane.GetKey() == self.c.Contexts().NormalSecondary.GetKey()
 }

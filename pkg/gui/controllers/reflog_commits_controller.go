@@ -77,6 +77,7 @@ func (self *ReflogCommitsController) GetOnRenderToMain() func() {
 					Title: "Reflog Entry",
 					Task:  task,
 				},
+				Secondary: secondaryPatchPanelUpdateOpts(self.c),
 			})
 		})
 	}
