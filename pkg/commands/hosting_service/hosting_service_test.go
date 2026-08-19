@@ -681,3 +681,96 @@ func TestGetServiceInfo(t *testing.T) {
 		})
 	}
 }
+
+func TestGetBranchURL(t *testing.T) {
+	type scenario struct {
+		testName             string
+		branchName           string
+		remoteUrl            string
+		configServiceDomains map[string]string
+		test                 func(url string, err error)
+	}
+
+	scenarios := []scenario{
+		{
+			testName:   "Returns branch URL for github (SSH)",
+			branchName: "feature/my-feature",
+			remoteUrl:  "git@github.com:peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/tree/feature%2Fmy-feature", url)
+			},
+		},
+		{
+			testName:   "Returns branch URL for github (HTTPS)",
+			branchName: "feature/my-feature",
+			remoteUrl:  "https://github.com/peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/tree/feature%2Fmy-feature", url)
+			},
+		},
+		{
+			testName:   "Returns branch URL for gitlab",
+			branchName: "feature/ui",
+			remoteUrl:  "git@gitlab.com:peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/calculator/-/tree/feature%2Fui", url)
+			},
+		},
+		{
+			testName:   "Returns branch URL for bitbucket",
+			branchName: "feature/profile-page",
+			remoteUrl:  "git@bitbucket.org:johndoe/social_network.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/branch/feature%2Fprofile-page", url)
+			},
+		},
+		{
+			testName:   "Returns branch URL for gitea",
+			branchName: "main",
+			remoteUrl:  "git@try.gitea.io:johndoe/myrepo.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://try.gitea.io/johndoe/myrepo/src/branch/main", url)
+			},
+		},
+		{
+			testName:   "Returns branch URL for codeberg",
+			branchName: "develop",
+			remoteUrl:  "git@codeberg.org:johndoe/myrepo.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://codeberg.org/johndoe/myrepo/src/branch/develop", url)
+			},
+		},
+		{
+			testName:   "Escapes reserved URL characters in branch name",
+			branchName: "feature/issue#42",
+			remoteUrl:  "git@github.com:peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/tree/feature%2Fissue%2342", url)
+			},
+		},
+		{
+			testName:   "Returns error for unsupported service",
+			branchName: "main",
+			remoteUrl:  "git@unknown-host.com:peter/calculator.git",
+			test: func(url string, err error) {
+				assert.Error(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			tr := i18n.EnglishTranslationSet()
+			log := &fakes.FakeFieldLogger{}
+			hostingServiceMgr := NewHostingServiceMgr(log, tr, s.remoteUrl, s.configServiceDomains)
+			s.test(hostingServiceMgr.GetBranchURL(s.branchName))
+		})
+	}
+}
