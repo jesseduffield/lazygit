@@ -66,7 +66,7 @@ func (self *DiffLineHelper) diffLineIdentitiesAt(
 
 	if renderingStatesDiffLines(contents) {
 		if identities := self.diffLineIdentitiesFromRecords(contents[bufferLineIdx].Metadata); len(identities) > 0 {
-			return identities, true
+			return self.inRepoTerms(view, identities), true
 		}
 		return nil, false
 	}
@@ -76,7 +76,7 @@ func (self *DiffLineHelper) diffLineIdentitiesAt(
 		return nil, false
 	}
 
-	return []types.DiffLineInfo{self.diffLineInfo(parsed)}, true
+	return self.inRepoTerms(view, []types.DiffLineInfo{self.diffLineInfo(parsed)}), true
 }
 
 // diffLineIdentitiesFromRecords recovers the identity of every diff line the row's
