@@ -1691,6 +1691,98 @@ Two smaller things deliberately left, besides the §8 rows:
 - `renderNonTextualConflict` still renders with `DiffModeRendered` hard-coded
   (carried over from round 3, unchanged).
 
+#### Review round 5 (2026-08-19) — the main section changing hands
+
+Two problems the user found testing `show-staged-changes-in-lower-pane`, both
+from the same thing: staging a whole file from the side panel moves the diff
+from one pane to the other, and nothing was making that look like the *section*
+re-rendering.
+
+1. **The section flashed black.** The pane taking over had been emptied when it
+   last went away, so it showed nothing for as long as its own render took —
+   with a diff renderer, at least a layout pass, since `newPtyTask` defers the
+   task to `afterLayout`. `clearMainView` isn't new and isn't the problem; being
+   *revealed* after a clear is. Fixed by handing the section over:
+   **`Gui.handOverMainSection`** copies the outgoing pane's content (and offset)
+   into the incoming one before the render is triggered, the same
+   `View.CopyContent` trick `moveMainContextToTop` uses across the tabs of a
+   window. It fires only on `MainPaneOnly` ↔ `SecondaryPaneOnly`; a pane
+   *appearing beside* the other one (`BothMainPanes`) has no placeholder to be
+   handed and is briefly empty, as it is on master.
+
+2. **The pane taking over kept whatever offset it was left at.** Each pane now
+   renders one fixed command, so the manager's task key never changes and
+   nothing resets the scroll — where before the branch one view rendered both
+   sides and `--staged` made every switch a new key. **This one pre-dates the
+   stack**: an emptied pane keeps its offset and its claim to the render it was
+   showing on master too, it was just hard to reach (visit another file and come
+   back to a split one). Verified with the demonstrating test at the foundation
+   of the lower-pane branch, which is where the fix went, as a
+   demonstrate-then-fix pair: **`clearMainView` now also resets the origin and
+   calls the new `ViewBufferManager.ForgetRenderedContent`**, so whatever the
+   pane is given next counts as content the view hasn't seen. That is what puts
+   the pane taking the section over at the top; the handover only stops the
+   flash.
+   - The zeroing that made a first attempt at a test pass without the fix was a
+     race, not a mechanism: a task that reaches EOF *after* its view was cleared
+     clamps the origin to the (now zero) content height in `onEndOfInput`. A
+     journey that empties a pane with no task in flight — selecting a
+     staged-only file and an unstaged-only file in turn — fails deterministically
+     without the fix.
+
+3. **Knock-on: the focus-follow restore read a scroll position that was about to
+   be reset.** With the handover, the pane the focus moves into starts at the
+   outgoing pane's offset, and `firstPaint` did `Apply` (which is where
+   `EstablishSelection` picks the first change *on screen*) and only then the
+   reset the new content was owed. The cursor is stored as a row, so the reset
+   took the selection with it: it ended up on view line 0, the `diff --git`
+   header, rather than on a change. `firstPaint` now settles the scroll position
+   **before** consulting the restore. Every other restore comes with
+   `SetKeepScrollPositionForNextTask`, so nothing changes for them.
+   - That leaves `RenderRestore.Apply`'s bool with no reader, but the signature
+     can't be simplified where the reorder lands: `de78cd107` adds another
+     `Apply` literal further up the branch, and adapting it there would leave a
+     commit that doesn't compile until its own fixup. So the drop is a separate
+     commit at the **tip** ("Stop a render restore saying whether it placed the
+     view"), which is the earliest place every literal exists.
+
+Landed as 2 commits at the foundation of `show-staged-changes-in-lower-pane`
+(demonstrate + fix), a `fixup!` for its tip commit (the handover), a `fixup!`
+for "Follow the focus into the pane that is left" (the paint ordering), a
+`fixup!` for "Leave a pane that only the permanent split keeps around" (it was
+recomputing the pane set the handover already has), and the tip cleanup. The
+lower branch ref points at its own fixup, per the rebase-mechanics note above.
+New tests: `file/pane_shown_again_starts_at_the_top`,
+`file/pane_taking_over_starts_at_the_top`,
+`main_view/focus_follows_into_a_pane_taking_over`,
+`tasks.TestForgetRenderedContent`, and `TestNewCmdTaskRestore` now asserts the
+reset lands before `Apply`. Every commit in the stack builds; whole suite green.
+
+**No automated test for the flash itself.** It is one transient frame, and any
+deliberately slow render trips the 200ms "loading..." indicator before the
+placeholder can be observed — the indicator applies now that the pane counts as
+showing something new, which is what a single view has always done. Interactive
+check owed.
+
+Two findings raised and left for the user to place:
+
+- **`scrollUpMain`/`scrollDownMain` scroll the wrong pane** when the secondary
+  one has the section to itself: they pick the view by window name
+  (`Context().Current().GetWindowName() == "secondary"`, else the main window's
+  view), so from the files panel `<pgdown>` over a staged-only file scrolls the
+  hidden main view and nothing moves. Verified with a throwaway test. The
+  question `switchToFocusedMainViewController` already asks
+  (`GetMainPanes() == SecondaryPaneOnly`) is the one these need; belongs in a
+  `fixup!` for "Always show a file's staged changes in the lower pane".
+- **`clearMainView` doesn't drop a pending `RenderRestore`.** The string renders
+  all call `DropRestoreForNextTask` for exactly this reason ("the view is being
+  given something other than a re-render"), and emptying a pane is more so. A
+  restore stranded that way never calls its `Done`, and the post-action reveal's
+  `Done` is what balances `BeginBlockingEvents` — so a mispredicted target pane
+  (`revealSelectionInPaneItLandsIn` chooses it before the refresh lands) would
+  block input for good. Latent rather than reproducible, and it belongs with
+  "Hold input back until the selection has moved on", which owns that rule.
+
 ### PR 8 — Build custom patches directly from a commit's diff view
 
 After it: `space` over a commit's diff (commit-files, commits, sub-commits,
@@ -1972,6 +2064,8 @@ The remaining rows are agreed as keep/defer:
 | Nav only sees loaded content (deep targets in huge diffs, N§16.4) | **Done in PR 5**: ReadToEnd-then-retry in the shared `navigate` helper |
 | Toggle auto-advance: no "skip already-included" smarts (N§21.35) | Keep plain next-hunk |
 | difftastic token-vs-line `c`-at-new-line mismatch (M§10.2) | Protocol v2 candidate; nothing to do host-side |
+| `scrollUpMain`/`scrollDownMain` scroll the hidden upper pane when the lower one has the section to itself (new, round 5) | Raised with the user; belongs in a `fixup!` for "Always show a file's staged changes in the lower pane". They pick the view by window name, so `GetMainPanes() == SecondaryPaneOnly` is the question they're missing |
+| `clearMainView` leaves a pending `RenderRestore` stranded, and with it the `BeginBlockingEvents` its `Done` balances (new, round 5) | Raised with the user; belongs in a `fixup!` for "Hold input back until the selection has moved on". The string renders call `DropRestoreForNextTask` for the same reason; needs a mispredicted target pane to bite, so latent rather than reproducible |
 
 ## 9. Open questions (resolve before/during the marked PR)
 
@@ -2083,8 +2177,9 @@ The remaining rows are agreed as keep/defer:
       with four cross-cutting review comments fixed as mid-branch fixups in
       PRs 5, 6 and 7 (see PR 7's sign-off section)
 - [x] The staged side always in the lower pane — **DONE 2026-08-16** on branch
-      `show-staged-changes-in-lower-pane` (2 commits, green), inserted below
-      PR 7 at the user's suggestion; see the section at the end of PR 7
+      `show-staged-changes-in-lower-pane` (4 commits after round 5, green),
+      inserted below PR 7 at the user's suggestion; see the section at the end of
+      PR 7
 - [ ] PR 8 — custom patches from the main view
 - [ ] PR 9 — panel removal
 - [ ] PR 10 — alt/shift-click edit
@@ -2095,6 +2190,25 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-19:** **the main section now changes hands between its two panes
+  instead of blanking**, from two problems the user found staging a whole file
+  from the side panel: the pane taking over showed nothing until its own render
+  arrived (`Gui.handOverMainSection` copies the outgoing pane's content into it
+  first, the trick `moveMainContextToTop` already uses across a window's tabs),
+  and it came back at whatever offset it had been left at. The second turned out
+  to **pre-date the whole stack** — an emptied pane kept its offset *and* its
+  claim to the render it was showing — so it is fixed at the foundation of the
+  lower-pane branch, demonstrate-then-fix: `clearMainView` resets the origin and
+  calls the new `ViewBufferManager.ForgetRenderedContent`. One knock-on inside
+  the task manager: `firstPaint` settles the scroll position **before**
+  consulting a `RenderRestore`, because the restore decides where to put the
+  view from what is on screen; with the cursor stored as a row, the old order
+  dragged the established selection to the view's first line. Details in PR 7's
+  "Review round 5"; two findings raised and left in §8. Worth knowing before
+  testing anything about an emptied pane: the origin zeroing that *used* to
+  happen was a race (a task reaching EOF after its view was cleared clamps the
+  origin in `onEndOfInput`), so a journey that empties a pane with a task still
+  in flight proves nothing.
 - **2026-08-18:** **four scroll-preservation and focus problems fixed**, three of
   them the same root cause — the selection is view lines, its meaning is buffer
   lines, and each of the three places that boundary is crossed lost something.
