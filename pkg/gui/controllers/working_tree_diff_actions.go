@@ -378,7 +378,7 @@ func (self *WorkingTreeDiffActions) revealSelectionInPaneItLandsIn(
 	// that, and until it has been the selection is still on lines that aren't there any
 	// more — so a key pressed meanwhile would act on nothing.
 	self.c.GocuiGui().BeginBlockingEvents()
-	revealSelectionAfterAction(self.c, pane, target, firstBufferLine,
+	self.c.Helpers().DiffLine.RevealSelectionAfterAction(pane, target, firstBufferLine,
 		self.c.GocuiGui().EndBlockingEvents)
 }
 
