@@ -376,7 +376,7 @@ func (self *DiffLineHelper) installDiffLineRestore(
 			// revealed with it stranded at the bottom of a half-filled view.
 			return view.OffscreenLineCount() >= foundLine+viewHeight
 		},
-		Apply: func(swapIn func()) bool {
+		Apply: func(swapIn func()) {
 			bufferLine := foundLine
 			if bufferLine == -1 {
 				if line, ok := findComplete(view.OffscreenDiffLineContents()); ok {
@@ -387,14 +387,11 @@ func (self *DiffLineHelper) installDiffLineRestore(
 			swapIn()
 
 			if bufferLine == -1 {
-				return false
+				return
 			}
-			viewLine, ok := view.ViewLineForBufferLine(bufferLine)
-			if !ok {
-				return false
+			if viewLine, ok := view.ViewLineForBufferLine(bufferLine); ok {
+				place(viewLine)
 			}
-			place(viewLine)
-			return true
 		},
 	})
 }

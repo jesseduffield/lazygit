@@ -231,10 +231,9 @@ func (gui *Gui) followFocusIntoShownPane(pair types.MainContextPair, panes types
 			// is decided from what is there, and a change line further down would
 			// otherwise be missed.
 			FirstPaintReady: func() bool { return false },
-			Apply: func(swapIn func()) bool {
+			Apply: func(swapIn func()) {
 				swapIn()
 				gui.helpers.DiffLine.EstablishSelection(target, -1)
-				return false
 			},
 		})
 	}
