@@ -162,10 +162,19 @@ func (gui *Gui) clampDiffSelectionToContent(view *gocui.View) {
 }
 
 // clearMainView empties a pane that is being given nothing to show, selection and all.
+//
+// An emptied pane is showing nothing, so it also goes back to the top and stops
+// claiming the render it was showing: whatever it is given next is content the user
+// hasn't seen there, and is shown from the top like any other.
 func (gui *Gui) clearMainView(mainContext types.Context) {
-	mainContext.GetView().Clear()
+	view := mainContext.GetView()
+	view.Clear()
+	view.SetOrigin(0, 0)
 	mainContext.SetHasSelectableContent(false)
 	gui.State.ContextMgr.UpdateSelectionHighlights()
+	if manager := gui.getViewBufferManagerForView(view); manager != nil {
+		manager.ForgetRenderedContent()
+	}
 }
 
 // updateDiffSelectionVisibility works out whether a main pane holds anything for a
