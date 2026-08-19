@@ -53,6 +53,10 @@ var BuildPatchFromACommitsDiff = NewIntegrationTest(NewIntegrationTestArgs{
 			Contains("-one"),
 			Contains(" two"),
 		)
+		// The line that is in the patch is marked as such over the diff itself.
+		t.Views().Main().MarkedLines(
+			Contains("-one"),
+		)
 
 		// The addition of the same modification goes in too, and the patch holds both.
 		t.Views().Main().
@@ -67,6 +71,10 @@ var BuildPatchFromACommitsDiff = NewIntegrationTest(NewIntegrationTestArgs{
 			Contains("+ONE"),
 			Contains(" two"),
 		)
+		t.Views().Main().MarkedLines(
+			Contains("-one"),
+			Contains("+ONE"),
+		)
 
 		// Pointing at a line that is in the patch takes it back out.
 		t.Views().Main().
@@ -80,6 +88,9 @@ var BuildPatchFromACommitsDiff = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains(" two"),
 			).
 			Content(DoesNotContain("+ONE"))
+		t.Views().Main().MarkedLines(
+			Contains("-one"),
+		)
 
 		// Taking the last line out ends the patch, so the pane previewing it goes away.
 		t.Views().Main().
@@ -88,5 +99,6 @@ var BuildPatchFromACommitsDiff = NewIntegrationTest(NewIntegrationTestArgs{
 			PressPrimaryAction()
 
 		t.Views().Information().Content(DoesNotContain("Building patch"))
+		t.Views().Main().NoMarkedLines()
 	},
 })

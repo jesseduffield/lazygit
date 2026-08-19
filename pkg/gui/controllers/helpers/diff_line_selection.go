@@ -131,3 +131,63 @@ func (self *DiffLineHelper) SelectedHunkBounds(view *gocui.View) (int, int, bool
 	}
 	return self.ChangeBlockBounds(view, anchor)
 }
+
+// RefreshInclusionGutter updates the marks drawn over the diff in the main pane, which
+// say which of its lines are in the custom patch being built from it.
+//
+// They are shown while the focused main view holds the focus — either of its panes, so
+// that moving between the diff and the patch previewed beside it doesn't make them come
+// and go — and only over a diff a patch is being built from: a patch built from some
+// other commit says nothing about the lines of this one.
+//
+// Call it whenever either of those can have changed: as a pane's content settles, when
+// the focus arrives or leaves, and when the patch itself changes.
+func (self *DiffLineHelper) RefreshInclusionGutter() {
+	view := self.c.Contexts().Normal.GetView()
+
+	included := self.patchInclusion()
+	if included == nil {
+		view.SetInclusionGutter(false, nil)
+		return
+	}
+
+	resolved := self.resolveDiffLines(view.DiffLineContents())
+	marks := make([]bool, len(resolved))
+	showsChanges := false
+	for i, row := range resolved {
+		if !row.ok || !row.info.IsChange() {
+			continue
+		}
+		showsChanges = true
+		marks[i] = included(row.info)
+	}
+
+	// Nothing to mark and nowhere to mark it: the pane is showing a message rather than
+	// a diff, or a diff with nothing in it.
+	if !showsChanges {
+		view.SetInclusionGutter(false, nil)
+		return
+	}
+	view.SetInclusionGutter(true, marks)
+}
+
+// patchInclusion asks the panel whose diff the focused main view is showing which of
+// that diff's lines are in the custom patch being built from it, and answers nil where
+// there is no such patch — including when the focus is elsewhere, the marks being an
+// affordance of the focused view.
+func (self *DiffLineHelper) patchInclusion() func(types.DiffLineInfo) bool {
+	if !self.mainViewIsFocused() {
+		return nil
+	}
+	// The panel beneath is found from the pane that holds the focus, which is not always
+	// the one the diff is in: moving to the pane beside it takes the other off the stack.
+	sidePanel := self.c.Context().NextInStack(self.c.Context().CurrentStatic())
+	if sidePanel == nil {
+		return nil
+	}
+	actions, ok := sidePanel.GetFocusedMainViewDiffSource().(types.FocusedMainViewActions)
+	if !ok {
+		return nil
+	}
+	return actions.PatchInclusion()
+}
