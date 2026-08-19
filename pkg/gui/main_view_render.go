@@ -70,7 +70,7 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 	gui.afterLayout(func() error {
 		// The layout may have changed the size of the view, so only now is the
 		// width to render at known, and with it the renderer command.
-		width := view.InnerWidth()
+		width := gui.renderWidth(view)
 		diffRendererConfigManager := gui.stateAccessor.GetDiffRendererConfigManager()
 		values := config.DiffRendererValues{
 			Width:           width,
@@ -117,6 +117,17 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 	})
 
 	return nil
+}
+
+// renderWidth is the width a render into view is laid out to: the view's own, less the
+// columns the custom patch's marks take from it where they are drawn over the render
+// (see DiffLineHelper.ShowsInclusionGutter).
+func (gui *Gui) renderWidth(view *gocui.View) int {
+	width := view.InnerWidth()
+	if gui.helpers.DiffLine.ShowsInclusionGutter(view) {
+		width -= view.InclusionGutterWidthWhenShown()
+	}
+	return max(0, width)
 }
 
 // The start and onClose functions a render hands to its task: how to get the

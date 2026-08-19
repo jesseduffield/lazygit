@@ -188,6 +188,12 @@ func (self *WorkingTreeDiffActions) EditHunk(
 	return nil
 }
 
+// PatchInclusion is nil: a custom patch is built from a commit's diff, never from the
+// working tree's, so no line of this diff is ever in one.
+func (self *WorkingTreeDiffActions) PatchInclusion() func(types.DiffLineInfo) bool {
+	return nil
+}
+
 // diffLineSelection resolves what the user has selected in a pane of the focused main
 // view to the change lines to act on, and reports whether they are the staged side of
 // the diff — which is a question about the pane, so it is the same for every file of a
