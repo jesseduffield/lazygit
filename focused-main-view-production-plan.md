@@ -1920,6 +1920,130 @@ Commits:
     post-swap hook on the buffer manager. Decide at implementation. Not
     e2e-assertable (draw-time) — interactive sign-off (§6).
 
+#### Deviations from the plan (2026-08-19, as implemented)
+
+Landed as 11 commits on branch `build-custom-patch-from-main-view` (off PR 7),
+plus three `fixup!` commits (one on PR 8's own accessor commit, two on the
+toggle commit). All checks green, the whole e2e suite passes, §6 sign-off owed.
+
+1. **The plan's commits 3, 4, 5 and 6 are one commit.** `space` and `d` arrive
+   together for all five commit-diff panels, because the seam is one interface:
+   a panel that joins `FocusedMainViewActions` answers both `PrimaryAction` and
+   `DiscardSelection`, and one shared object serves all five panels (deviation
+   2), so there is no way to stage them per panel or per key without either a
+   stub method or splitting the interface for the sake of the sequencing. The
+   alternative — landing discard first — has the same problem the other way
+   round.
+2. **All five panels share one `CommitDiffActions`** (`commit_diff_actions.go`),
+   introduced by a prep commit that has them stop answering for their own diff.
+   They differ only in *which* diff it is, which each panel says as a
+   `commitDiffTarget` (from, to, whether it may be rewritten) — and that answers
+   `PlainDiff` too, every one of them having been `PlainDiffBetweenRefs` over
+   its own endpoints. `SwitchToDiffFilesController.canRebase` came out of
+   `enter()` as the plan asked.
+3. **The panels' refresh is `PostRefreshUpdate` for all of them**, including the
+   commit files panel, where the plan (following the prototype) had
+   `Refresh({COMMIT_FILES})`: the ◐/● per-file marks are drawn from the patch
+   builder rather than from the model, so re-rendering the list is enough and
+   nothing has to be re-read from git.
+4. **`previousPath` is threaded by asking git which files the diff renames**
+   (§8's mandatory rename row): `GetFilesInDiff` for the target, once per
+   toggle. The model's `CommitFiles` would only do for the commit files panel —
+   the whole-commit panels can have never populated it, or populated it for
+   another commit — and getting it wrong is silent, since the patch builder
+   caches the first diff it loads for a file.
+5. **The selection net (plan commit 8) is one gui-layer rule, not four
+   per-panel calls**, and it landed *before* `d` rather than after: it fixes
+   what PR 7 already shipped (moving a patch out of a commit, or undoing that,
+   left a stale selection painted over the rewritten diff), so it stands on its
+   own and `d` inherits it. `Gui.keepDiffSelectionAcrossACommitRewrite` asks it
+   of every render, from `RefreshMainOpts` alone, gated on there being a
+   selection, no more precise restore pending, and the render being of a
+   *different* diff. Two supporting changes: the post-action reveal moved onto
+   `DiffLineHelper` (the gui package cannot reach a controller), and the key a
+   render is remembered under is now taken before the pty path adds its git
+   config, so that it says which diff is being rendered and nothing else.
+6. **The gutter is recomputed at the one place a pane's content settles**, which
+   is what closes plan commit 10 without a mechanism of its own:
+   `updateDiffSelectionVisibility` became `updateDiffPaneDecorations` and does
+   both. A renderer switch, a context-size change and walking the commits all
+   go through it. The marks are also refreshed on focus and focus-lost (as
+   N§21.35's follow-up decided, re-evaluating rather than hiding, so that
+   moving to the pane beside the diff keeps them) and right after a toggle.
+7. **Which lines are in the patch is asked of the panel**, through a new
+   `FocusedMainViewActions.PatchInclusion()` returning a predicate over the
+   diff's lines (nil for the working tree's diff, and for a commit's when the
+   patch being built is of another one). The helper knows the rendered rows; only
+   the panel knows whether the patch is of *this* diff, and a patch of another
+   commit would otherwise mark lines that merely share a file and a line number.
+8. **The marks are e2e-assertable after all** — `View.MarkedLines` and
+   `ViewDriver.MarkedLines`/`NoMarkedLines`, in the spirit of PR 5's
+   `SelectionIsShown`: the plan called the gutter draw-time-only, but which
+   lines are marked is state, and only how it *looks* needs the interactive
+   pass. That is what makes the renderer-switch row testable
+   (`patch_marks_follow_a_renderer_switch` fails without the recompute).
+9. **The trees a renamed file is materialized into use the path the patch
+   expects** (§9.4's rename sub-item, resolved as announced): the name it had
+   before, where the patch carries the rename, and the new name for a partial
+   selection, whose patch has the rename stripped. `PatchBuilder.FilesInPatch`
+   answers that per file. So a whole-file rename previews as a rename, a pure
+   rename included. The wart: git writes `rename from a/original` /
+   `rename to b/renamed` over the trees, the two paths being all it has to go
+   by — `renamed_file_whole` documents it (see §8's new row).
+10. **The a/b leak is normalized where the pane's identities are handed out**
+    (§9.4's other sub-item, decided with the user): `DiffLineHelper.inRepoTerms`
+    maps a path stated over the trees back to the repo's file, at the two places
+    identities leave the resolver for a consumer (`DiffLinesInViewRange` and
+    `diffLineIdentitiesAt`). That is fewer places than the plan's "per
+    consumer", and it keeps `e` in the preview pane working as it did when the
+    pane rendered the patch as a string. Nothing normalizes for the diff's
+    *text*, which the a/b masquerade already makes read like the repo's own.
+11. **Copy works over the preview pane**, since the pane's `PlainDiff` is the
+    trees' own diff and its identities are in the repo's terms: the lines copied
+    are the patch's, not the commit's lines that happen to share their numbers
+    (which is what PR 7's copy did there, wrongly). Covered by an extension to
+    `copy_selected_diff_lines`.
+12. **Removal counts change lines in the trees' diff**, as the plan's identity
+    bridge asked, via `DiffLineHelper.ChangeLineOrdinals` and
+    `PatchBuilder.IncludedChangeLineIndices`. The e2e test that guards it uses
+    additions interleaved with context, which is what makes the count differ
+    from the commit's diff — a run of consecutive additions gives the same
+    answer either way, so a test over one proves nothing (learned by neutering
+    it).
+13. **The nil-ref crash (plan commit 4's guard) reproduces exactly as N§21.23
+    described** and is fixed in the toggle commit, by a `fixup!`:
+    `captureCommitFilesState` says whether there is a commit to load the files
+    of at all, the commit files panel never having been pointed at one. Test:
+    `reset_a_patch_built_from_a_commits_diff`.
+14. **Resetting the patch no longer leaves the diff it was built from.**
+    `PatchBuildingHelper.Reset` escaped from any non-side context, which was the
+    patch-building view; now it escapes from that view alone, since it is the
+    only one with nothing left to show. Same test.
+15. **The `space`/`d` descriptions are per diff type** (`diffActionDescription`):
+    "Stage"/"Discard" over the working tree's diff, "Toggle lines in patch"/
+    "Remove lines from commit" over a commit's. The static `Description` the
+    cheatsheets are generated from still says only the working-tree half — see
+    §8's new row.
+16. **Plan commit 9 (context size) is deferred to PR 9** (decided with the
+    user): the refusal exists for the explorer, whose patch-building view hands
+    the patch builder line indices from a freshly loaded diff while the builder
+    holds one cached at the context size in force when the file entered the
+    patch. The main view is immune, mapping by identity, but the explorer lives
+    until PR 9 — where the refusal goes away in one line. See §9.11.
+17. **e2e**: 9 new tests in `pkg/integration/tests/main_view/` —
+    `build_patch_from_a_commits_diff`, `build_patch_from_a_whole_commits_diff`,
+    `build_patch_from_a_reflog_entry`, `discard_lines_from_a_commit`,
+    `discard_from_a_commit_only_where_it_can_be_rewritten`,
+    `patch_marks_show_while_the_diff_is_focused`,
+    `patch_marks_follow_a_renderer_switch`,
+    `custom_patch_goes_through_the_diff_renderer`,
+    `remove_lines_from_the_custom_patch`,
+    `reset_a_patch_built_from_a_commits_diff` — plus
+    `patch_building/keep_selection_after_moving_patch_out_main_view` for the net,
+    the copy extension, and three gocui unit tests for the gutter. Two existing
+    tests changed with the preview's rendering: `specific_selection` (git's own
+    hunk context) and `renamed_file_whole` (the rename lines' tree names).
+
 ### PR 9 — Replace the staging and patch-building panels with the focused main view
 
 The removal PR. Also the PR whose title tells users the big story — consider
@@ -1959,6 +2083,17 @@ Sequencing inside the PR (every commit green):
    orphaned english.go strings (only english.go — Crowdin cleans the rest).
 5. **Docs** — `docs-master/` staging/custom-patch docs rewritten for the new
    model; Config.md/schema via `just generate`.
+6. **Allow changing the context size while a patch is being built** — moved
+   here from PR 8 (its commit 9; decided with the user 2026-08-19). Deleting
+   the refusal is a one-liner (`ContextLinesController.checkCanChangeContext`
+   and `Tr.CantChangeContextSizeError` both go), and this is where it becomes
+   safe: the refusal protects the *explorer*, which rebuilds its state from a
+   freshly loaded diff and hands the patch builder line indices into it, while
+   the builder holds the diff it cached at the context size in force when the
+   file entered the patch — a mismatch for WHOLE-mode files as much as for
+   PART. The main view has never had that problem, mapping by line identity,
+   which no context size renumbers. e2e: change the context size mid-build
+   from the main view, then toggle another line and check the patch.
 
 Risk note: this PR is where hidden couplings surface (things that push
 `Staging` contexts from unexpected places — merge-conflict flows, custom
@@ -2059,11 +2194,11 @@ The remaining rows are agreed as keep/defer:
 
 | Gap | Disposition |
 |---|---|
-| Rename support in the from-main-view patch paths (N§21.36(1)) | **Fix in PR 8 commit 2** (mandatory — regression vs master otherwise) |
+| Rename support in the from-main-view patch paths (N§21.36(1)) | **Done in PR 8**: the previous path comes from asking git which files the target's diff renames (`GetFilesInDiff`), once per toggle — the model's file list only ever describes the commit files panel's own commit (PR 8 deviation 4) |
 | patch pkg rename-aware Parse/Transform/FormatView (N§21.36(2)) | **Closed 2026-08-09 — nothing to fix**: doesn't reproduce off master; `patch_building` e2e green with PR 2's patch changes, rename unit tests added (PR 2 deviation 6) |
-| Reflog patch-building (N§21.24) | **Fix in PR 8 commit 5** |
-| Renames in the custom-patch temp trees (new, this plan) | Resolve during PR 8 commit 7 |
-| Secondary-pane removal broken under difftastic — ordinal bridge + a/b record-path leak (diagnosed 2026-07-18, memory) | **Fix in PR 8 commit 7**: identity bridge instead of ordinals; path normalization decided with the user |
+| Reflog patch-building (N§21.24) | **Done in PR 8**: the reflog panel shares the one `CommitDiffActions` with the other four, and gained the patch preview pane — as did the stash and sub-commits panels, which never had one either |
+| Renames in the custom-patch temp trees (new, this plan) | **Done in PR 8**: a file is materialized under the path the patch expects it at — the name it had before, where the patch carries the rename — so a whole-file rename previews as a rename (PR 8 deviation 9) |
+| Secondary-pane removal broken under difftastic — ordinal bridge + a/b record-path leak (diagnosed 2026-07-18, memory) | **Done in PR 8**: a line of the patch is found by counting the change lines of the *trees' own diff*, which no rendering can reorder or hide; and a path stated over the trees is brought back to the repo's own where the pane's identities are handed out (PR 8 deviations 10 and 12). The interactive pass under real difftastic is still owed (§6) |
 | Diffing mode (`W`) not wired to the raw fallback → not stageable (N§21.29) | Defer; note in PR 7 description ("diffing-mode staging is its own question") |
 | `type: extDiff` with empty `command` (git's `diff.external`; formerly `useExternalDiffGitConfig`) always-raw when focused (N§21.30) | Keep; document |
 | Per-pane selection memory on `<tab>` (re-anchors each switch, N§21.9) | Defer; follow-up candidate |
@@ -2074,13 +2209,15 @@ The remaining rows are agreed as keep/defer:
 | The focus stays in a main pane the **merge-conflicts view** takes the window from (new, round 4) | Defer; `followFocusIntoWorkablePane` returns early for any pair but the Normal one, so this is unchanged from before the round. Same class as the pane-goes-away bug: reachable when a focused file becomes conflicted underneath you |
 | A **side-by-side** renderer re-laid-out at a new width loses the position (new, round 4) | Defer. Only renderers whose line count depends on width (`delta --side-by-side`, difftastic side-by-side), and only when the diff is actually re-run at a new width — a refresh-driven render or a screen-mode change, never a bare resize. Needs `PreserveDiffPositionOnRerender` on a plain refresh, gated on the render being of the *same* diff, which isn't knowable until the render starts |
 | Gutter marks for not-yet-loaded lines of huge diffs (N§21.20) | Keep (marks appear on next recompute); note |
-| Renderer switch mid-patch-build shifts checkmarks (N§21.22(4)) | **Fix in PR 8 commit 10** (mandatory — looks too broken otherwise) |
+| Renderer switch mid-patch-build shifts checkmarks (N§21.22(4)) | **Done in PR 8**: the marks are worked out again wherever a pane's content settles, so no mechanism of its own was needed; `patch_marks_follow_a_renderer_switch` guards it (PR 8 deviations 6 and 8) |
 | Copy copies the renderer's output verbatim under a renderer (N§21.28) | **Done in PR 7**: copy takes the corresponding lines of the plain diff, through the new diff-source seam |
 | Nav only sees loaded content (deep targets in huge diffs, N§16.4) | **Done in PR 5**: ReadToEnd-then-retry in the shared `navigate` helper |
 | Toggle auto-advance: no "skip already-included" smarts (N§21.35) | Keep plain next-hunk |
 | difftastic token-vs-line `c`-at-new-line mismatch (M§10.2) | Protocol v2 candidate; nothing to do host-side |
 | `scrollUpMain`/`scrollDownMain` scroll the hidden upper pane when the lower one has the section to itself (new, round 5) | **Done in round 5**: both ask `Gui.mainSectionView`, which knows about `SecondaryPaneOnly`; fixup for "Always show a file's staged changes in the lower pane" |
 | `clearMainView` leaves a pending `RenderRestore` stranded, and with it the `BeginBlockingEvents` its `Done` balances (new, round 5) | **Done in round 5**: `clearMainView` drops it, as the string renders do; fixup for "Hold input back until the selection has moved on". Untested — it needs a mispredicted target pane, which takes an external mutation racing the action |
+| git names the trees in the custom patch preview's `rename from a/…` / `rename to b/…` lines (new, PR 8) | Keep; documented by `renamed_file_whole`. The two paths are all git has to go by over `--no-index` trees, and any naming of them leaks there; the `---`/`+++` lines and every line's identity are the repo's own. Only renames are affected, and difftastic — which reports a rename whenever the two paths it is handed differ — says it for every file |
+| The cheatsheets describe `space`/`d` in the focused main view by their working-tree meaning only (new, PR 8) | Defer. `pkg/cheatsheet/generate.go` reads the static `Description`, which is one string per binding, while the key now means two things depending on the diff; the options bar and the keybindings menu say the right one (PR 8 deviation 15) |
 
 ## 9. Open questions (resolve before/during the marked PR)
 
@@ -2092,10 +2229,15 @@ The remaining rows are agreed as keep/defer:
    moot for now, the jump-to-file menu being skipped (PR 5 deviation 1).
 3. **PR 9:** new names for `useHunkModeInStagingView` / `wrapLinesInStagingView`
    + config migration.
-4. **PR 8:** the two temp-tree sub-items of commit 7 — renames in the
+4. ~~**PR 8:** the two temp-tree sub-items of commit 7 — renames in the
    temp-tree rendering, and how to normalize the `a/`/`b/` tree prefix for
    records an external diff tool emits over the temp trees (+ whether its
-   "Renamed from a/… to b/…" banner is acceptable).
+   "Renamed from a/… to b/…" banner is acceptable).~~ Resolved 2026-08-19:
+   materialize a renamed file under the path the patch expects it at, so the
+   rename previews as a rename (PR 8 deviation 9); normalize where the pane's
+   identities are handed out (deviation 10). The banner turned out not to be
+   about renames at all — difftastic is handed `a/foo` and `b/foo` and reports
+   a rename because they differ, for every file — and is left as it is (§8).
 5. **PR titles**: drafts in §4 — the user finalizes wording at PR-open time
    (they're the release-notes lines).
 6. **Cross-repo timing** (outside this plan): circulating the OSC 1717 spec,
@@ -2140,6 +2282,11 @@ The remaining rows are agreed as keep/defer:
    the raw fallback?~~ Resolved 2026-08-07: probe them like any other
    renderer, since git announces itself for exactly the formats it
    describes. See PR 7 commit 10.
+11. ~~**PR 8: can the context size be changed while a patch is being built?**~~
+    Resolved 2026-08-19: not in PR 8 — the refusal is there for the explorer,
+    which would hand the patch builder line indices into a diff it no longer
+    holds. It is deleted in **PR 9** instead, along with the explorer (PR 9
+    item 6, PR 8 deviation 16).
 10. ~~**PRs 7/9: what does `ctrl+w` do in a main view you can stage from?**~~
     Resolved 2026-08-16 (PR 7 deviation 14): nothing to do — the patch is
     built from a freshly fetched plain diff, which never ignores whitespace,
@@ -2195,7 +2342,11 @@ The remaining rows are agreed as keep/defer:
       `show-staged-changes-in-lower-pane` (5 commits after round 5, green),
       inserted below PR 7 at the user's suggestion; see the section at the end of
       PR 7
-- [ ] PR 8 — custom patches from the main view
+- [x] PR 8 — custom patches from the main view — **DONE 2026-08-19** on branch
+      `build-custom-patch-from-main-view` (11 commits plus 3 `fixup!`s, all
+      checks green, whole e2e suite passing), stacked on
+      `stage-changes-in-main-view`. Plan commit 9 moved to PR 9; §6 sign-off
+      owed
 - [ ] PR 9 — panel removal
 - [ ] PR 10 — alt/shift-click edit
 - [ ] PR 11 — open PR at line
@@ -2205,6 +2356,26 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-19:** **PR 8 implemented** (11 commits + 3 fixups, green; §6 sign-off
+  owed). Three decisions taken with the user up front: PR 8 stays one PR; the
+  `a`/`b` tree paths a renderer states over the custom patch's trees are
+  normalized where the pane's identities are handed out; and — after a
+  correction from the user — difftastic's "renamed" banner is not about renames
+  at all but about being handed two paths that differ, so it is left alone, and
+  rename detection in the preview stays on, a delete-and-add of similar content
+  being what git calls a rename anywhere else. One decision surfaced mid-way and
+  deferred by the user: **changing the context size mid-build waits for PR 9**,
+  the refusal being there for the explorer's sake (PR 8 deviation 16, §9.11).
+  The plan's commits 3–6 became one commit — a panel joining the actions
+  interface answers for both keys at once — and the selection net (commit 8)
+  moved ahead of `d`, since it fixes something PR 7 already shipped. Two things
+  worth carrying: the marks turned out to be **state, not just drawing**
+  (`View.MarkedLines`), which is what makes the renderer-switch row testable;
+  and a test over a run of consecutive additions cannot tell the patch's own
+  numbering from the commit's — the additions have to be interleaved with
+  context for the count to differ. The nil-ref crash N§21.23 warned about
+  reproduced exactly, and resetting a patch no longer throws the user out of the
+  diff it was built from.
 - **2026-08-19:** **the main section now changes hands between its two panes
   instead of blanking**, from two problems the user found staging a whole file
   from the side panel: the pane taking over showed nothing until its own render
