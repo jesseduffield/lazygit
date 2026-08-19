@@ -453,6 +453,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.CopyRenamedFileDiff,
 	patch_building.DiscardLinesFromCommit,
 	patch_building.EditLineInPatchBuildingPanel,
+	patch_building.KeepSelectionAfterMovingPatchOutMainView,
 	patch_building.MoveRangeToIndex,
 	patch_building.MoveToEarlierCommit,
 	patch_building.MoveToEarlierCommitFromAddedFile,

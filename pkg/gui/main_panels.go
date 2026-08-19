@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -118,6 +120,7 @@ func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
 	// Before the render is triggered, so that the pane the focus moves into can be
 	// told where to put its selection as it renders.
 	gui.followFocusIntoWorkablePane(opts)
+	gui.keepDiffSelectionAcrossACommitRewrite(opts)
 
 	gui.moveMainContextPairToTop(opts.Pair)
 
@@ -242,6 +245,71 @@ func (gui *Gui) followFocusIntoWorkablePane(opts types.RefreshMainOpts) {
 		})
 	}
 	gui.State.ContextMgr.Push(target, types.OnFocusOpts{})
+}
+
+// keepDiffSelectionAcrossACommitRewrite arranges for a selection in the focused main
+// view to come back on the same change of the diff when the render about to happen is
+// of a different diff from the one on screen. This happens when a commit is rewritten
+// under the user, by moving a patch out of it, discarding lines from it, or undoing
+// either. The selection is then left at a position in a rendering that no longer exists.
+//
+// What is remembered is which change of the diff the selection was on rather than which
+// line of which file, a rewrite being precisely a change to those lines: the change that
+// takes its place is where the work carries on.
+//
+// It is asked of every render, and does nothing unless all three of these hold: there
+// is a selection to keep; nothing more precise is already waiting to be put back (the
+// position preserves and the post-action reveals know better where their selection
+// belongs); and the diff really is another one. A plain refresh re-renders the same
+// diff, where the selection, possibly a range the user is in the middle of making, is
+// still exactly right.
+func (gui *Gui) keepDiffSelectionAcrossACommitRewrite(opts types.RefreshMainOpts) {
+	// The focused main view's two panes only: no other pair has a diff selection.
+	if opts.Pair.Main.GetKey() != context.NORMAL_MAIN_CONTEXT_KEY {
+		return
+	}
+
+	current := gui.State.ContextMgr.CurrentStatic().GetKey()
+	for _, pane := range []struct {
+		context types.Context
+		update  *types.ViewUpdateOpts
+	}{
+		{opts.Pair.Main, opts.Main},
+		{opts.Pair.Secondary, opts.Secondary},
+	} {
+		if pane.update == nil || pane.context.GetKey() != current {
+			continue
+		}
+		mainContext := gui.mainContextForView(pane.context.GetView())
+		if mainContext == nil || !mainContext.GetView().Highlight {
+			continue
+		}
+		manager := gui.getViewBufferManagerForView(mainContext.GetView())
+		if manager == nil || manager.HasRestoreForNextTask() {
+			continue
+		}
+		key, ok := diffTaskCommandKey(pane.update.Task)
+		if !ok || key == manager.GetTaskKey() {
+			continue
+		}
+
+		first, _ := mainContext.GetView().SelectedLineRange()
+		gui.helpers.DiffLine.RevealSelectionAfterAction(mainContext, mainContext, first, nil)
+	}
+}
+
+// diffTaskCommandKey returns the key the given render will be remembered under. Two
+// renders of the same diff have the same key, so comparing keys says whether a render
+// is of the diff already on screen. ok is false for a render that is a message rather
+// than a diff.
+func diffTaskCommandKey(task types.UpdateTask) (string, bool) {
+	switch task := task.(type) {
+	case *types.RunCommandTask:
+		return strings.Join(task.Cmd.Args, " "), true
+	case *types.RunDiffRendererTask:
+		return strings.Join(task.Cmd.Args, " "), true
+	}
+	return "", false
 }
 
 // onlyWorkablePane returns the main pane a render leaves as the only one worth having
