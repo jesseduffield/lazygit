@@ -248,6 +248,7 @@ var tests = []*components.IntegrationTest{
 	file.ExcludeWithoutInfoDir,
 	file.Gitignore,
 	file.GitignoreSpecialCharacters,
+	file.PaneShownAgainStartsAtTheTop,
 	file.RememberCommitMessageAfterFail,
 	file.RenameSimilarityThresholdChange,
 	file.RenamedFiles,
