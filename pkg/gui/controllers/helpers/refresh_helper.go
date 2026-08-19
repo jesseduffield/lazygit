@@ -1070,17 +1070,31 @@ type capturedCommitFilesState struct {
 	from    string
 	to      string
 	reverse bool
+	// Whether there is a commit to load the files of at all. The panel is only ever
+	// pointed at one by being entered, and a patch can now be built from a commit's diff
+	// without that — after which anything that refreshes the panel would otherwise be
+	// asking for the files of nothing.
+	hasCommit bool
 }
 
 // captureCommitFilesState reads the commit-files refresh's diff endpoints into
 // an immutable snapshot. It must run on the UI thread.
 func (self *RefreshHelper) captureCommitFilesState() capturedCommitFilesState {
-	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
+	commitFilesContext := self.c.Contexts().CommitFiles
+	if commitFilesContext.GetRef() == nil && commitFilesContext.GetRefRange() == nil {
+		return capturedCommitFilesState{}
+	}
+
+	from, to := commitFilesContext.GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
-	return capturedCommitFilesState{from: from, to: to, reverse: reverse}
+	return capturedCommitFilesState{from: from, to: to, reverse: reverse, hasCommit: true}
 }
 
 func (self *RefreshHelper) refreshCommitFilesContext(captured capturedCommitFilesState, env refreshEnv) error {
+	if !captured.hasCommit {
+		return nil
+	}
+
 	files, err := env.git.Loaders.CommitFileLoader.GetFilesInDiff(captured.from, captured.to, captured.reverse)
 	if err != nil {
 		return err

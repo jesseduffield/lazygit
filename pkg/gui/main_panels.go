@@ -294,7 +294,7 @@ func (gui *Gui) keepDiffSelectionAcrossACommitRewrite(opts types.RefreshMainOpts
 		}
 
 		first, _ := mainContext.GetView().SelectedLineRange()
-		gui.helpers.DiffLine.RevealSelectionAfterAction(mainContext, mainContext, first, nil)
+		gui.helpers.DiffLine.RevealSelectionAfterAction(mainContext, mainContext, first, 0, nil)
 	}
 }
 
