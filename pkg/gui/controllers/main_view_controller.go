@@ -248,6 +248,14 @@ func (self *MainViewController) Context() types.Context {
 	return self.context
 }
 
+// GetOnFocus brings on the marks over the lines that are in the custom patch, which
+// are an affordance of the focused view, so they arrive with the focus.
+func (self *MainViewController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(types.OnFocusOpts) {
+		self.c.Helpers().DiffLine.RefreshInclusionGutter()
+	}
+}
+
 func (self *MainViewController) togglePanel() error {
 	if !self.otherContext.GetView().Visible {
 		return nil
@@ -564,6 +572,10 @@ func (self *MainViewController) GetOnFocusLost() func(types.OnFocusLostOpts) {
 			self.draggingWithMouse = false
 			self.c.GocuiGui().CancelMouseCapture()
 		}
+		// Where the focus has gone is already known here, so asking again keeps the
+		// patch marks over a move to the pane beside this one, and takes them away
+		// when the focus leaves the pair.
+		self.c.Helpers().DiffLine.RefreshInclusionGutter()
 	}
 }
 

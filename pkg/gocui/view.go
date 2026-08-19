@@ -2030,6 +2030,26 @@ func (v *View) BufferLines() []string {
 	return lines
 }
 
+// MarkedLines returns the lines of the view's content that the inclusion gutter is
+// marking (see SetInclusionGutter), in the order they appear. Empty while the gutter
+// is hidden.
+func (v *View) MarkedLines() []string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if !v.showInclusionGutter {
+		return nil
+	}
+
+	lines := []string{}
+	for i, line := range v.buf.lines {
+		if i < len(v.inclusionGutterMarks) && v.inclusionGutterMarks[i] {
+			lines = append(lines, line.cells.String())
+		}
+	}
+	return lines
+}
+
 // DiffLineContent holds what one line of a rendered diff offers to a reader trying
 // to recover which line of which file it came from: the line's text, which can be
 // parsed as a unified diff when the rendering preserves one, and the OSC 1717

@@ -404,6 +404,48 @@ func (self *ViewDriver) Content(matcher *TextMatcher) *ViewDriver {
 	return self
 }
 
+// MarkedLines asserts which lines of the view are marked as being in the custom patch
+// being built. The marks are drawn over the content rather than being part of it, so
+// they are read from the view rather than matched against what Content returns.
+func (self *ViewDriver) MarkedLines(matchers ...*TextMatcher) *ViewDriver {
+	self.validateMatchersPassed(matchers)
+
+	self.t.assertWithRetries(func() (bool, string) {
+		markedLines := self.getView().MarkedLines()
+
+		markedContent := strings.Join(markedLines, "\n")
+		expectedContent := expectedContentFromMatchers(matchers)
+
+		if len(markedLines) != len(matchers) {
+			return false, fmt.Sprintf("%s: Expected the following lines to be marked as being in the custom patch:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----", self.context, expectedContent, markedContent)
+		}
+
+		for i, line := range markedLines {
+			ok, message := matchers[i].test(line)
+			if !ok {
+				return false, fmt.Sprintf("%s: Error: %s. Expected the following lines to be marked as being in the custom patch:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----", self.context, message, expectedContent, markedContent)
+			}
+		}
+
+		return true, ""
+	})
+
+	return self
+}
+
+// NoMarkedLines asserts that no line of the view is marked as being in the custom
+// patch, which is also what a view showing no marks at all reports.
+func (self *ViewDriver) NoMarkedLines() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		markedLines := self.getView().MarkedLines()
+		return len(markedLines) == 0, fmt.Sprintf(
+			"%s: Expected no line to be marked as being in the custom patch, but these were:\n-----\n%s\n-----",
+			self.context, strings.Join(markedLines, "\n"))
+	})
+
+	return self
+}
+
 // SelectionIsActive asserts that the view draws its selection as the one the user
 // is working in. These three assertions read the highlight flags rather than the
 // selected lines, which say nothing about whether the selection is drawn at all.
