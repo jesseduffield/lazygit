@@ -56,9 +56,6 @@ var PaneShownAgainStartsAtTheTop = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Secondary().
 			IsVisible().
 			Content(Contains("+LINE40")).
-			/* EXPECTED:
 			OriginY(0)
-			ACTUAL: */
-			OriginYAtLeast(1)
 	},
 })
