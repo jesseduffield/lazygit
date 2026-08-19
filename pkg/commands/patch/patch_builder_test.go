@@ -13,7 +13,10 @@ func newTestPatchBuilder(diff string) *PatchBuilder {
 	patchBuilder := NewPatchBuilder(logrus.New().WithField("test", "test"),
 		func(from string, to string, reverse bool, filename string, previousPath string) (string, error) {
 			return diff, nil
-		})
+		},
+		// Nothing here renders the patch, so it needs no directory to be
+		// materialized into.
+		nil)
 	patchBuilder.Start("from", "to", false, true)
 	return patchBuilder
 }
@@ -62,6 +65,35 @@ func TestIncludedLineIdentities(t *testing.T) {
 	assert.ElementsMatch(t,
 		[]LineIdentity{{LineNumber: 2, IsDeletion: true}, {LineNumber: 2, IsDeletion: false}},
 		patchBuilder.IncludedLineIdentities("filename"))
+}
+
+func TestFilesInPatch(t *testing.T) {
+	patchBuilder := newTestPatchBuilder(simpleDiff)
+
+	// A file no part of the patch is no part of what the patch is materialized from.
+	assert.Empty(t, patchBuilder.FilesInPatch())
+
+	assert.NoError(t, patchBuilder.AddFileLineRange("filename", "", []int{6}))
+	assert.Equal(t,
+		[]PatchFile{{Path: "filename", ContentPath: "filename"}},
+		patchBuilder.FilesInPatch())
+}
+
+// A renamed file's content is under the name it had before whatever the patch calls the
+// file, and the patch calls it by the name it had before only where it carries the
+// rename — a partial selection has the rename stripped and names the file by the new one.
+func TestFilesInPatchOfARenamedFile(t *testing.T) {
+	patchBuilder := newTestPatchBuilder(renameWithModificationDiff)
+
+	assert.NoError(t, patchBuilder.AddFileLineRange("newname", "oldname", []int{9}))
+	assert.Equal(t,
+		[]PatchFile{{Path: "newname", ContentPath: "oldname"}},
+		patchBuilder.FilesInPatch())
+
+	assert.NoError(t, patchBuilder.AddFileWhole("newname", "oldname"))
+	assert.Equal(t,
+		[]PatchFile{{Path: "oldname", ContentPath: "oldname"}},
+		patchBuilder.FilesInPatch())
 }
 
 // A file taken into the patch whole has every one of its change lines in it.
