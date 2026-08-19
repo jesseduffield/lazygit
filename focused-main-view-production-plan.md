@@ -1922,9 +1922,9 @@ Commits:
 
 #### Deviations from the plan (2026-08-19, as implemented)
 
-Landed as 11 commits on branch `build-custom-patch-from-main-view` (off PR 7),
-plus three `fixup!` commits (one on PR 8's own accessor commit, two on the
-toggle commit). All checks green, the whole e2e suite passes, §6 sign-off owed.
+Landed as 10 commits on branch `build-custom-patch-from-main-view` (off PR 7),
+plus four `fixup!` commits (one on the accessor commit, two on the toggle
+commit, one on the patch-removal commit). All checks green, the whole e2e suite passes, §6 sign-off owed.
 
 1. **The plan's commits 3, 4, 5 and 6 are one commit.** `space` and `d` arrive
    together for all five commit-diff panels, because the seam is one interface:
@@ -2343,8 +2343,8 @@ The remaining rows are agreed as keep/defer:
       inserted below PR 7 at the user's suggestion; see the section at the end of
       PR 7
 - [x] PR 8 — custom patches from the main view — **DONE 2026-08-19** on branch
-      `build-custom-patch-from-main-view` (11 commits plus 3 `fixup!`s, all
-      checks green, whole e2e suite passing), stacked on
+      `build-custom-patch-from-main-view` (10 commits plus 4 `fixup!`s, every
+      commit unit-testing clean on its own, whole e2e suite passing), stacked on
       `stage-changes-in-main-view`. Plan commit 9 moved to PR 9; §6 sign-off
       owed
 - [ ] PR 9 — panel removal
@@ -2356,7 +2356,7 @@ deviations from this plan inline, dated.)
 
 Log:
 
-- **2026-08-19:** **PR 8 implemented** (11 commits + 3 fixups, green; §6 sign-off
+- **2026-08-19:** **PR 8 implemented** (10 commits + 4 fixups, green; §6 sign-off
   owed). Three decisions taken with the user up front: PR 8 stays one PR; the
   `a`/`b` tree paths a renderer states over the custom patch's trees are
   normalized where the pane's identities are handed out; and — after a
