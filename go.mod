@@ -34,7 +34,7 @@ require (
 	github.com/samber/lo v1.53.0
 	github.com/sanity-io/litter v1.5.8
 	github.com/sasha-s/go-deadlock v0.3.9
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.0
 	github.com/spf13/afero v1.15.0
 	github.com/spkg/bom v1.0.1
 	github.com/stefanhaller/git-todo-parser v0.0.7-0.20250905083220-c50528f08304
