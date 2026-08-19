@@ -119,13 +119,12 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 		var appStatusHelper *helpers.AppStatusHelper
 		var branchesHelper *helpers.BranchesHelper
 		var fetchGeneration int
-		if err := self.gui.g.OnUIThreadAndWaitBackground(func() error {
+		if err := self.gui.g.OnUIThreadAndWaitBackground(func() {
 			git = self.gui.git
 			appStatusHelper = self.gui.helpers.AppStatus
 			branchesHelper = self.gui.helpers.BranchesHelper
 			fetchGeneration = self.gui.c.State().GetRepoGeneration()
 			self.gui.State.LastBackgroundFetchTime = time.Now()
-			return nil
 		}); err != nil {
 			return err
 		}
@@ -184,10 +183,9 @@ func (self *BackgroundRoutineMgr) checkForExternalChanges() {
 	// reading them from this background goroutine would race the reassignment.
 	var git *commands.GitCommand
 	var refreshHelper *helpers.RefreshHelper
-	if err := self.gui.g.OnUIThreadAndWaitBackground(func() error {
+	if err := self.gui.g.OnUIThreadAndWaitBackground(func() {
 		git = self.gui.git
 		refreshHelper = self.gui.helpers.Refresh
-		return nil
 	}); err != nil {
 		return
 	}

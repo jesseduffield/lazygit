@@ -32,3 +32,9 @@ func StartPty(cmd *exec.Cmd, cols, rows uint16) (StartedPty, error) {
 		Wait:    cmd.Wait,
 	}, nil
 }
+
+// TerminateLivePtys is a no-op on Unix: stopping a pty task signals the
+// child (SIGTERM, plus SIGHUP to the foreground process group when the
+// master closes), and the processes clean themselves up without lazygit
+// having to wait for them.
+func TerminateLivePtys() {}

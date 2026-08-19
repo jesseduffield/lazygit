@@ -32,6 +32,23 @@ func RemoveKey(node *yaml.Node, key string) (*yaml.Node, *yaml.Node) {
 	return nil, nil
 }
 
+// Adds a string field to the given object. Caution: doesn't check for duplicate
+// keys, that's the caller's responsibility
+func AddStringKey(mappingNode *yaml.Node, key string, value string) {
+	keyNode := &yaml.Node{
+		Kind:  yaml.ScalarNode,
+		Tag:   "!!str",
+		Value: key,
+	}
+	valueNode := &yaml.Node{
+		Kind:  yaml.ScalarNode,
+		Tag:   "!!str",
+		Value: value,
+	}
+
+	mappingNode.Content = append(mappingNode.Content, keyNode, valueNode)
+}
+
 // Walks a yaml document from the root node to the specified path, and then applies the transformation to that node.
 // If the requested path is not defined in the document, no changes are made to the document.
 func TransformNode(rootNode *yaml.Node, path []string, transform func(node *yaml.Node) error) error {

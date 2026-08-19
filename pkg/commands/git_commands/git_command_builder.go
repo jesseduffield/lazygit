@@ -1,9 +1,12 @@
 package git_commands
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/env"
 )
 
 // OptionalLocksEnvVar is the name of the environment variable that tells git
@@ -15,6 +18,15 @@ import (
 // action) nor with git commands the user runs in a terminal. The one command
 // that opts back in is the foreground files refresh; see FileLoader.gitStatus.
 const OptionalLocksEnvVar = "GIT_OPTIONAL_LOCKS"
+
+// forOtherRepo prepares a command that operates on a repo other than the one
+// we have open — a submodule, or another worktree. GIT_DIR and GIT_WORK_TREE
+// say where our repo is, and every command we run inherits them, so a command
+// pointed at a different repo would be resolved against ours instead: `git -C
+// <submodule> log` would silently log the superproject's commits.
+func forOtherRepo(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
+	return cmdObj.RemoveEnvVar(env.GitDirEnvVar).RemoveEnvVar(env.GitWorkTreeEnvVar)
+}
 
 // convenience struct for building git commands. Especially useful when
 // including conditional args
@@ -109,6 +121,20 @@ func (self *GitCommandBuilder) GitDirIf(condition bool, path string) *GitCommand
 	}
 
 	return self
+}
+
+func (self *GitCommandBuilder) AddCommonDiffArgs(diffRendererConfigManager *config.DiffRendererConfigManager, userConfig *config.UserConfig, forUI bool) *GitCommandBuilder {
+	contextSize := userConfig.Git.DiffContextSize
+	extDiffCmd := diffRendererConfigManager.GetExternalDiffCommand(contextSize)
+	useExtDiff := forUI && diffRendererConfigManager.GetDiffRendererType() == config.DiffRendererType_ExtDiff
+
+	return self.
+		ConfigIf(forUI && extDiffCmd != "", "diff.external="+extDiffCmd).
+		ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
+		Arg(fmt.Sprintf("--unified=%d", contextSize)).
+		ArgIf(forUI && userConfig.Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		Arg(fmt.Sprintf("--find-renames=%d%%", userConfig.Git.RenameSimilarityThreshold)).
+		ArgIf(forUI, diffRendererConfigManager.GetRawGitArgs()...)
 }
 
 func (self *GitCommandBuilder) ToArgv() []string {

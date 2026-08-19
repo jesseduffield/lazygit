@@ -157,7 +157,7 @@ func (self *SubmoduleCommands) GetCommitSummary(path string, sha string) (string
 		Config("log.showsignature=false").
 		ToArgv()
 
-	summary, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	summary, err := forOtherRepo(self.cmd.New(cmdArgs)).DontLog().RunWithOutput()
 	return strings.TrimSpace(summary), err
 }
 
@@ -167,7 +167,7 @@ func (self *SubmoduleCommands) GetCommitSummary(path string, sha string) (string
 // caller then stages the submodule to record the resolution.
 func (self *SubmoduleCommands) CheckoutConflictCommit(path string, sha string) error {
 	cmdArgs := NewGitCmd("checkout").Dir(path).Arg(sha).ToArgv()
-	return self.cmd.New(cmdArgs).Run()
+	return forOtherRepo(self.cmd.New(cmdArgs)).Run()
 }
 
 // ConflictSideLog returns a oneline log, run inside the submodule, of the commits
@@ -179,7 +179,7 @@ func (self *SubmoduleCommands) ConflictSideLog(path string, side string, otherSi
 		Arg("--oneline", "--color=always", otherSide+".."+side).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	return forOtherRepo(self.cmd.New(cmdArgs)).DontLog().RunWithOutput()
 }
 
 func (self *SubmoduleCommands) Stash(submodule *models.SubmoduleConfig) error {
@@ -195,20 +195,15 @@ func (self *SubmoduleCommands) Stash(submodule *models.SubmoduleConfig) error {
 		Arg("--include-untracked").
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return forOtherRepo(self.cmd.New(cmdArgs)).Run()
 }
 
 func (self *SubmoduleCommands) Reset(submodule *models.SubmoduleConfig) error {
-	parentDir := ""
-	if submodule.ParentModule != nil {
-		parentDir = submodule.ParentModule.FullPath()
-	}
 	cmdArgs := NewGitCmd("submodule").
 		Arg("update", "--init", "--force", "--", submodule.Path).
-		DirIf(parentDir != "", parentDir).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return self.runInParentModule(submodule, self.cmd.New(cmdArgs))
 }
 
 func (self *SubmoduleCommands) UpdateAll() error {
@@ -225,9 +220,16 @@ func (self *SubmoduleCommands) UpdateAll() error {
 // temporarily chdir-ing the process there, which would leak the parent
 // module's directory into whatever other commands run concurrently (e.g. a
 // background refresh's).
+//
+// That directory is relative, so it resolves against the process working
+// directory rather than against the repo directory the command builder
+// otherwise pins commands to. Only foreground commands the user issued end up
+// here, and lazygit won't switch repos while one of those is in flight, so the
+// two are the same directory; don't call this from background work, where they
+// need not be.
 func (self *SubmoduleCommands) runInParentModule(submodule *models.SubmoduleConfig, cmdObj *oscommands.CmdObj) error {
 	if submodule.ParentModule != nil {
-		cmdObj.SetWd(submodule.ParentModule.FullPath())
+		forOtherRepo(cmdObj.SetWd(submodule.ParentModule.FullPath()))
 	}
 	return cmdObj.Run()
 }

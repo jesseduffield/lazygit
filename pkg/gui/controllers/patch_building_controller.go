@@ -230,9 +230,8 @@ func (self *PatchBuildingController) discardSelectionFromCommit() error {
 		err := self.c.Git().Patch.DeletePatchesFromCommit(commits, commitIndex)
 		// Escape pops the patch-building context, so run it on the UI thread
 		// before the refresh below.
-		_ = self.c.GocuiGui().OnUIThreadAndWait(func() error {
+		_ = self.c.GocuiGui().OnUIThreadAndWait(func() {
 			self.c.Helpers().PatchBuilding.Escape()
-			return nil
 		})
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err, types.RefreshOptions{})

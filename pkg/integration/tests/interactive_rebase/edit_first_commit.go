@@ -24,9 +24,9 @@ var EditFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit-01")).
 			Press(keys.Universal.Edit).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("commit-02"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("commit-01").IsSelected(),
 			).
 			Tap(func() {

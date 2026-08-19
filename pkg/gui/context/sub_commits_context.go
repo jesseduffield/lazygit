@@ -1,7 +1,6 @@
 package context
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -90,7 +89,7 @@ func NewSubCommitsContext(
 			}
 			result = append(result, &NonModelItem{
 				Index:   upstreamIdx,
-				Content: fmt.Sprintf("--- %s ---", c.Tr.DivergenceSectionHeaderRemote),
+				Content: formatListSectionHeader(c.Tr.DivergenceSectionHeaderRemote),
 			})
 
 			_, localIdx, found := lo.FindIndexOf(
@@ -100,7 +99,7 @@ func NewSubCommitsContext(
 			}
 			result = append(result, &NonModelItem{
 				Index:   localIdx,
-				Content: fmt.Sprintf("--- %s ---", c.Tr.DivergenceSectionHeaderLocal),
+				Content: formatListSectionHeader(c.Tr.DivergenceSectionHeaderLocal),
 			})
 		}
 

@@ -1,5 +1,47 @@
 # Changelog
 
+## [v0.11.0] - 2026-07-27
+
+Like v0.10.0, this release is based on Go 1.26's gofmt, and requires Go 1.25 or later.
+
+The multi-line function call rule introduced in v0.10.0 proved controversial,
+so it is now the extra rule `balance_calls`, disabled by default.
+It is also narrowed to only place the closing parenthesis on its own line
+when the opening parenthesis ends a line. See #74.
+
+Avoid crashing when compiled with tinygo for Wasm, which lacks recover support,
+by detecting commented-out code without the parser's bailout panic. See #230.
+
+Produce stable output in a single pass when a lone var declaration is adjacent
+to a single-element var group, which previously required a second run. See #355.
+
+Keep the parentheses around an expression which begins with a composite literal
+of the form `T{...}`, such as `(s{}.Foo())`, as they are required when the
+expression starts an `if`, `for`, or `switch` clause. See #356.
+
+## [v0.10.0] - 2026-05-04
+
+This release is based on Go 1.26's gofmt, and requires Go 1.25 or later.
+
+A new rule is introduced to drop unnecessary parentheses around expressions
+where the inner expression is unambiguous on its own, such as `f((3))`.
+Parentheses are kept where they are useful, such as on binary expressions. See #44.
+
+A new rule is introduced to require multi-line function calls to match
+the opening and closing parenthesis in terms of the use of newlines. See #74.
+
+The `-extra` flag now accepts a comma-separated list of rule names to enable
+individual extra rules, rather than enabling all of them at once. See #339.
+
+The following changes are included as well:
+
+* Avoid crashing on `go.mod` files without a `module` directive - #350
+* Avoid failing when an ignored directory cannot be read - #351
+* Avoid prefixing more kinds of commented-out Go code with spaces - #230
+* Avoid prefixing a shebang comment with a space - #237
+* Narrow the newlines on assignments rule to ignore complex cases - #354
+* Fix three bugs which caused a second gofumpt run to make changes - #132, #345
+
 ## [v0.9.1] - 2025-09-07
 
 This is a bugfix release to address a regression in detecting
@@ -187,6 +229,8 @@ those building programs with gofumpt.
 Finally, this release adds the `-version` flag, to print the tool's own version.
 The flag will work for "master" builds too.
 
+[v0.11.0]: https://github.com/mvdan/gofumpt/releases/tag/v0.11.0
+[v0.10.0]: https://github.com/mvdan/gofumpt/releases/tag/v0.10.0
 [v0.9.0]: https://github.com/mvdan/gofumpt/releases/tag/v0.9.0
 [v0.8.0]: https://github.com/mvdan/gofumpt/releases/tag/v0.8.0
 [v0.7.0]: https://github.com/mvdan/gofumpt/releases/tag/v0.7.0

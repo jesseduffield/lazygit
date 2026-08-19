@@ -5,6 +5,9 @@ go 1.25.0
 // This is necessary to ignore test files when executing gofumpt.
 ignore ./test
 
+// Likewise for worktrees that are nested in the main tree.
+ignore ./.worktrees
+
 require (
 	dario.cat/mergo v1.0.2
 	github.com/adrg/xdg v0.5.3
@@ -21,8 +24,8 @@ require (
 	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3
-	github.com/kyokomi/emoji/v2 v2.2.13
-	github.com/lucasb-eyer/go-colorful v1.4.0
+	github.com/kyokomi/emoji/v2 v2.2.14
+	github.com/lucasb-eyer/go-colorful v1.4.1
 	github.com/mgutz/str v1.2.0
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe
@@ -54,7 +57,6 @@ require (
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
-	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/invopop/jsonschema v0.10.0 // indirect
 	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 // indirect
@@ -65,14 +67,14 @@ require (
 	github.com/onsi/gomega v1.34.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
-	golang.org/x/mod v0.37.0 // indirect
+	golang.org/x/mod v0.38.0 // indirect
 	golang.org/x/term v0.45.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
-	golang.org/x/tools v0.47.0 // indirect
+	golang.org/x/tools v0.48.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
-	mvdan.cc/gofumpt v0.9.2 // indirect
+	mvdan.cc/gofumpt v0.11.0 // indirect
 )
 
 tool mvdan.cc/gofumpt
