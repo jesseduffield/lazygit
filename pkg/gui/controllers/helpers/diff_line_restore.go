@@ -549,3 +549,52 @@ func patchLineOf(info types.DiffLineInfo) patchLine {
 		return patchLine{path: info.Path, kind: types.DiffLineContext, line: info.NewLine}
 	}
 }
+
+// RevealSelectionAfterAction moves a diff pane's selection to the change that takes the
+// place of the one just acted on, once the changed diff has re-rendered. Call it with
+// the pane acted in, the pane the work carries on in, and the first line of the
+// selection, before triggering the re-render.
+//
+// The line acted on is gone from the diff, so what is remembered is its place among the
+// diff's changes: the next change moves up into it, which is where you want to be to
+// carry on. A range collapses to a single line at its start, and hunk mode selects the
+// whole block it lands in, so that pressing the key again acts on the next hunk. The
+// target pane inherits that select mode, this being the same piece of work continuing
+// in another pane — and shows no selection until the restore places one, so that what
+// it was left showing the last time it was used doesn't appear for a frame.
+//
+// done is called once the selection is where it belongs, or once it turns out that no
+// render is coming to put it there, for a caller that must not let the user act again
+// in between.
+func (self *DiffLineHelper) RevealSelectionAfterAction(
+	source types.DiffPaneContext, target types.DiffPaneContext, firstLineIdx int, done func(),
+) {
+	ordinal, ok := self.ChangeLineOrdinal(source.GetView(), firstLineIdx)
+	if !ok {
+		done()
+		return
+	}
+
+	sel := source.DiffSelectState()
+	if sel.Mode == types.DiffSelectModeRange {
+		sel.Mode = types.DiffSelectModeLine
+		sel.RangeIsSticky = false
+	}
+	*target.DiffSelectState() = *sel
+	selectHunk := sel.Mode == types.DiffSelectModeHunk
+
+	targetView := target.GetView()
+	if target != source {
+		target.SetHasSelectableContent(false)
+		self.c.Context().UpdateSelectionHighlights()
+	}
+
+	self.RevealChangeLineAtOrdinal(targetView, ordinal, func(viewLine int) {
+		if selectHunk {
+			self.SelectChangeBlock(target, viewLine, true)
+			return
+		}
+		targetView.CancelRangeSelect()
+		self.ShowSelectionAtLine(targetView, viewLine, true)
+	}, done)
+}
