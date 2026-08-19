@@ -1,6 +1,7 @@
 package patch
 
 import (
+	"os"
 	"sort"
 	"strings"
 
@@ -61,18 +62,36 @@ type PatchBuilder struct {
 
 	// loadFileDiff loads the diff of a file, for a given to (typically a commit hash)
 	loadFileDiff loadFileDiffFunc
+
+	// newTempDir makes a directory for the current patch to be materialized into, as
+	// two file trees that can be diffed against each other and so rendered like any
+	// other diff (see PatchCommands.WriteCustomPatchDiffTrees). Its lifetime is the
+	// patch's: made when one is started, removed when it is given up.
+	newTempDir func() (string, error)
+	tempDir    string
+
+	// generation counts the changes made to the patch, so that whoever materializes it
+	// can tell whether what they last built still describes it — and rebuild only then,
+	// rather than on every render of it.
+	generation int
 }
 
-func NewPatchBuilder(log *logrus.Entry, loadFileDiff loadFileDiffFunc) *PatchBuilder {
+func NewPatchBuilder(
+	log *logrus.Entry, loadFileDiff loadFileDiffFunc, newTempDir func() (string, error),
+) *PatchBuilder {
 	return &PatchBuilder{
 		Log:          log,
 		loadFileDiff: loadFileDiff,
+		newTempDir:   newTempDir,
 	}
 }
 
 func (p *PatchBuilder) Start(from, to string, reverse bool, canRebase bool) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
+
+	p.generation++
+	p.makeTempDir()
 
 	p.To = to
 	p.From = from
@@ -90,6 +109,89 @@ func (p *PatchBuilder) snapshotFileInfoMap() map[string]*fileInfo {
 	defer p.mutex.Unlock()
 
 	return p.fileInfoMap
+}
+
+// TempDir is the directory the patch is materialized into for rendering, and "" when
+// there is none — no patch, or a directory we failed to make.
+func (p *PatchBuilder) TempDir() string {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	return p.tempDir
+}
+
+// Generation says which version of the patch this is; see the field.
+func (p *PatchBuilder) Generation() int {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	return p.generation
+}
+
+// makeTempDir replaces the directory the patch is materialized into with a fresh one.
+// Only call this with the lock held.
+func (p *PatchBuilder) makeTempDir() {
+	p.removeTempDir()
+	if p.newTempDir == nil {
+		return
+	}
+	dir, err := p.newTempDir()
+	if err != nil {
+		p.Log.Error(err)
+		return
+	}
+	p.tempDir = dir
+}
+
+// removeTempDir takes the patch's materialized form away with the patch. Only call this
+// with the lock held.
+func (p *PatchBuilder) removeTempDir() {
+	if p.tempDir == "" {
+		return
+	}
+	if err := os.RemoveAll(p.tempDir); err != nil {
+		p.Log.Error(err)
+	}
+	p.tempDir = ""
+}
+
+// PatchFile records what materializing the patch needs to know about one of its files:
+// where the patch expects to find it, and where its content before the patch comes from.
+type PatchFile struct {
+	// Path is the name the patch knows the file by: for a renamed file, the name it had
+	// before where the patch carries the rename, and the name it was renamed to where the
+	// patch keeps only a content change and leaves the rename behind.
+	Path string
+	// ContentPath is where the file's content before the patch is to be found in the
+	// commit the patch is built from — for a renamed file always the name it had there,
+	// whatever the patch calls it.
+	ContentPath string
+}
+
+// FilesInPatch says which files the patch touches, in a stable order, and where each of
+// them comes from.
+func (p *PatchBuilder) FilesInPatch() []PatchFile {
+	fileInfoMap := p.snapshotFileInfoMap()
+
+	filenames := maps.Keys(fileInfoMap)
+	sort.Strings(filenames)
+
+	files := make([]PatchFile, 0, len(filenames))
+	for _, filename := range filenames {
+		info := fileInfoMap[filename]
+		if info.mode == UNSELECTED {
+			continue
+		}
+		file := PatchFile{Path: filename, ContentPath: filename}
+		if info.previousPath != "" {
+			file.ContentPath = info.previousPath
+			if info.mode == WHOLE {
+				file.Path = info.previousPath
+			}
+		}
+		files = append(files, file)
+	}
+	return files
 }
 
 func (p *PatchBuilder) PatchToApply(reverse bool, turnAddedFilesIntoDiffAgainstEmptyFile bool) string {
@@ -136,6 +238,7 @@ func (p *PatchBuilder) AddFileWhole(filename string, previousPath string) error 
 		return err
 	}
 
+	p.generation++
 	p.addFileWhole(info)
 
 	return nil
@@ -147,6 +250,7 @@ func (p *PatchBuilder) RemoveFile(filename string, previousPath string) error {
 		return err
 	}
 
+	p.generation++
 	p.removeFile(info)
 
 	return nil
@@ -183,6 +287,7 @@ func (p *PatchBuilder) AddFileLineRange(filename string, previousPath string, li
 	if err != nil {
 		return err
 	}
+	p.generation++
 	info.mode = PART
 	info.includedLineIndices = lo.Union(info.includedLineIndices, lineIndices)
 
@@ -194,6 +299,7 @@ func (p *PatchBuilder) RemoveFileLineRange(filename string, previousPath string,
 	if err != nil {
 		return err
 	}
+	p.generation++
 	info.mode = PART
 	info.includedLineIndices, _ = lo.Difference(info.includedLineIndices, lineIndices)
 	if len(info.includedLineIndices) == 0 {
@@ -379,6 +485,9 @@ func (p *PatchBuilder) GetFileIncLineIndices(filename string, previousPath strin
 func (p *PatchBuilder) Reset() {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
+
+	p.generation++
+	p.removeTempDir()
 
 	p.To = ""
 	p.fileInfoMap = map[string]*fileInfo{}
