@@ -51,6 +51,11 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 		return gui.newCmdTask(view, cmd, prefix)
 	}
 
+	// The key the render is remembered under says which diff it is of, so that a
+	// re-render of the same diff can be told from a render of another one. Take
+	// it before anything else can touch the command's arguments.
+	cmdStr := strings.Join(cmd.Args, " ")
+
 	// Mark the view as loading synchronously now, before the layout pass: the
 	// actual task is created in afterLayout (below), which runs after layout, so
 	// without this the next layout pass would clamp the scroll position to the
@@ -80,8 +85,6 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 			// gets here. Git's own diff is shown instead.
 			gui.c.ErrorToast(err.Error())
 		}
-
-		cmdStr := strings.Join(cmd.Args, " ")
 
 		// This communicates to diff renderers that we're in a very simple
 		// terminal that they should not expect to have much capabilities.
