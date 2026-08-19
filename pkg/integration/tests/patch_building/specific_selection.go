@@ -134,14 +134,14 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 					Contains(`index`),
 					Contains(`--- a/hunk-file`),
 					Contains(`+++ b/hunk-file`),
-					Contains(`@@ -1,6 +1,6 @@`),
+					// git works out the context of the patch's own hunks, which is why
+					// this is not the six lines the file's diff had
+					Contains(`@@ -1,4 +1,4 @@`),
 					Contains(`-1a`),
 					Contains(`+aa`),
 					Contains(` 1b`),
 					Contains(` 1c`),
 					Contains(` 1d`),
-					Contains(` 1e`),
-					Contains(` 1f`),
 					// line-file patch
 					Contains(`diff --git a/line-file b/line-file`),
 					Contains(`index`),
