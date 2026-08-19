@@ -80,6 +80,11 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		return gui.newCmdTask(view, cmd, prefix)
 	}
 
+	// The key the render is remembered under says which diff it is of, so that a
+	// re-render of the same diff can be told from a render of another one. Take it
+	// before the git config the pty path passes along below, which is no part of that.
+	cmdStr := strings.Join(cmd.Args, " ")
+
 	cmd.Args = withPtyGitConfig(cmd.Args, runtime.GOOS)
 
 	// Mark the view as loading synchronously now, before the layout pass: the
@@ -98,8 +103,6 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		// changed the size of the view
 		width = view.InnerWidth()
 		pager := gui.stateAccessor.GetDiffRendererConfigManager().GetStdinFilterCommand(width)
-
-		cmdStr := strings.Join(cmd.Args, " ")
 
 		// This communicates to diff renderers that we're in a very simple
 		// terminal that they should not expect to have much capabilities.
