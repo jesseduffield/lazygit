@@ -1558,6 +1558,138 @@ exist at all is the prior question.
   `show-staged-changes-in-lower-pane` went stale for a session. Both now point at
   the **last fixup for their own tip commit**, so each PR contains the fixups for
   the commits in it.
+- (2026-08-18) A **conflict at an `edit` stop consumes the stop**: resolving it
+  and running `git rebase --continue` commits the resolution *and* moves on, so
+  the intended fixup never gets written. Either commit the fixup before
+  continuing, or plan a second rebase for it (which is what happened to the
+  `amend!` on "Follow the acted-on lines when their pane goes away").
+- (2026-08-18) To insert commits at the **foundation** of the branch, put a bare
+  `break` as the first todo line: the rebase stops with `HEAD` at the upstream,
+  the new commits go in there, and `--continue` replays the branch on top.
+
+#### Review round 4 (2026-08-18) — scroll preservation and focus handling
+
+Four problems the user found while testing the stack. Three of them share one
+root cause: the diff selection lives in the gocui view as **view lines**, while
+everything meaningful about it — which line of which file — is a **buffer line**
+identity, and each of the three places that boundary is crossed lost something
+different.
+
+| Crossing | What was lost |
+|---|---|
+| row → identity (remembering) | a row showing *two* diff lines was remembered as only one |
+| identity → row (placing) | a buffer line the view wrapped was placed as its **first segment** only |
+| row → row (re-wrapping) | not crossed at all — the indices were simply kept |
+
+1. **The focus was left in a pane that had gone away.** Only
+   `applyDiffLineSelection` handled it, so it worked for stage/unstage/discard
+   and for nothing else — committing from the staged pane, or a commit or discard
+   happening outside lazygit and arriving with a refresh, left the focus on a
+   pane the layout had made invisible, where the next keypress acted on nothing.
+   The rule now lives in **`Gui.followFocusIntoWorkablePane`**, called from
+   `refreshMainViews` *before* the tasks start (so the pane moved into can be told
+   where to put its selection as it renders). It is asked of every render, and
+   answers from `RefreshMainOpts` alone — no model read, no waiting for the
+   layout. The pane moved into gets `EstablishSelection` from a `RenderRestore`
+   with `FirstPaintReady: false`, the same shape `RenderFocusedMainViewAgain`
+   uses, and shows no selection until then. A pane that **already has a restore**
+   keeps it (`ViewBufferManager.HasRestoreForNextTask`), which is how the staging
+   path's smarter ordinal-based reveal still wins; that path's own
+   `Context().Push` is gone, folded into this rule by an `amend!`.
+   - Under `splitDiff: always` the emptied pane is still *shown*, so "is it
+     shown" is the wrong question — the render now says which panes it is giving
+     something to act on, via **`ViewUpdateOpts.NothingToActOn`**, set by
+     `renderWorkingTreeDiff` from `node.GetHas{Staged,Unstaged}Changes()` before
+     the `alwaysSplit` override widens them. Decided with the user: move to the
+     pane that has changes; when *nothing* is left anywhere, stay in the focused
+     main view (over the "No changed files" placeholder) rather than popping back
+     to the files panel.
+   - This needed a prep refactor, the one judgement call taken alone:
+     `refreshMainViews` is in `pkg/gui` and cannot reach a controller, so
+     `establishDiffSelection` and its four helpers **moved onto `DiffLineHelper`**
+     (`EstablishSelection`, `SelectChangeBlock`, `ShowSelectionAtLine`, and two
+     private ones). They needed nothing a helper doesn't have — every one of them
+     was already built on `DiffLineHelper` — so the move is mechanical, but it is
+     a new commit in a signed-off PR.
+2. **Resizing a wrapping view moved everything in it** — the most common trigger
+   being the main pane widening by half a screen when the other pane goes away.
+   `SetView` threw the wrapping away on a size change and left `oy`, `cy` and
+   `rangeSelectStartY` as raw view lines, so re-wrapping at the new width left
+   each of them on a line it was never on. This is a **pre-existing gocui bug**
+   (the scroll offset of any wrapping view drifts on a terminal resize on master
+   too); the branch is only the first thing with a *selection* over wrapped
+   content, so it is the first time it shows. Fixed at the **foundation of the
+   branch**, demonstrate-then-fix: the exported `ClearViewLines` becomes
+   **`RewrapContent`**, which maps all three positions through the line of content
+   they were on. Exact, needing no identity machinery, since only the width
+   changed. The cursor keeps the screen row it was drawn on; a view with no cursor
+   on screen keeps its own place; a range's ends go to the **outermost** segments
+   of their lines, a range being over lines of content rather than the segments
+   they are drawn as.
+3. **A wrapped line came back selected by its first segment only.** Both ends of a
+   restored selection went through `ViewLineForBufferLine`, which gives a buffer
+   line's *first* view line. Fixed by spreading the ends outward
+   (`coverWholeLines` in `diff_line_restore.go`), on the new
+   **`View.LastViewLineForBufferLine`** — which `ChangeBlockBounds` had been
+   hand-rolling since PR 5 and now uses too. The user's reasoning generalises and
+   is worth keeping: the *semantic* selection is a set of buffer lines (that is
+   what `DiffLinesInViewRange` hands to staging and copy), and the view-line range
+   is only how it is drawn, so normalising a range to whole buffer lines is always
+   right.
+4. **A modification drawn on one row came back as half of itself.** Remembering
+   used `resolveDiffLines` → the row's *leading* identity, while finding used
+   `resolveDiffLineIdentities` → *all* of them. So unified → side-by-side worked
+   and the way back did not. Two halves to the fix: a range whose ends land on one
+   row **is still a range** (`View.HasRangeSelect`, in place of `first == last`),
+   and the far end takes the **outermost** diff line its row shows — the last for
+   the range's lower end, the first for its upper one, via the new
+   `diffLineIdentitiesAt`. The reported asymmetry ("side-by-side gives the
+   deletion, `--word-diff` gives the addition") is not ours: patched git emits
+   `a;2` first for a word diff (the deletion arrives as a trailing orphan record),
+   delta's side-by-side leads with the left column. `identities[0]` faithfully
+   picked whichever came first. Line mode is untouched — the user's call: line
+   mode means one line.
+
+Also corrected here, having been overstated when the round was scoped: **a diff
+renderer is not generally re-laid-out when the view width changes.** A terminal
+resize never re-runs the diff at all (the TODO in `Gui.onResize`), and plain
+delta's output is line-for-line identical at any width — only its `───`
+decoration rules change length. What remains is narrow enough to defer (see §8).
+
+Test infrastructure, needed before any of this could be tested and fixed first,
+at the foundation: **`View.SelectedLine`/`SelectedLines` indexed the buffer with
+view-line indices**, so a wrapping view reported the wrong lines — and
+`ViewDriver.SelectedLines` goes straight through them. They now report the lines
+of content a selection covers, once each. Since that makes the segment extent
+invisible to a test, `ViewDriver.SelectedViewLineRange(first, last)` was added
+for the cases that are *about* the extent.
+
+Thirteen commits as written, six of them `fixup!`/`amend!` commits since folded:
+four at the foundation (two demonstrate-then-fix pairs, both gocui), three new
+commits before the staging-focus commit, and refinements to five commits already
+in the stack. New e2e tests:
+`keep_a_wrapped_line_covered_across_a_rerender`,
+`keep_both_halves_of_a_change_selected` (a fake side-by-side renderer, which is
+the deterministic way to get a row carrying two records),
+`focus_follows_a_pane_emptied_from_outside`,
+`focus_leaves_an_always_split_empty_pane`. New gocui unit tests:
+`TestSelectedLinesOfWrappedContent`,
+`TestResizingAWrappingViewKeepsItsPlaceInTheContent`,
+`TestLastViewLineForBufferLine`. Every one of the 61 commits the round left
+behind builds and unit-tests clean on its own, and the full e2e suite passes at
+each of the thirteen it added (`focus_leaves_an_always_split_empty_pane`'s commit
+flaked once in four whole-suite runs and was clean in the other three).
+
+Two smaller things deliberately left, besides the §8 rows:
+
+- **Which half the cursor lands on** coming back from `--word-diff`: the
+  selection covers both lines, but the cursor sits on the addition rather than
+  the block's first line, because that is the order the records arrive in.
+  Getting it right means remembering the selection as a *set* and taking min/max
+  in the new rendering — which would also replace the "far end didn't survive →
+  collapse to the one line we landed on" behaviour signed off in PR 6.
+- `renderNonTextualConflict` still renders with `DiffModeRendered` hard-coded
+  (carried over from round 3, unchanged).
 
 ### PR 8 — Build custom patches directly from a commit's diff view
 
@@ -1832,6 +1964,8 @@ The remaining rows are agreed as keep/defer:
 | `a` on a context line below the last hunk doesn't snap back like staging did (N§21.11) | **Done in PR 5** (review round 1, fix 1): `ChangeBlockBounds` falls back to the block above |
 | Deleted-file `MD`-vs-`D` staging special case (N§21.13) | **Done in PR 7**: a selection covering every change of a file stages the file |
 | `NormalSecondary` not preserved on `-U`/renderer change (N§16.1) | Keep as documented limitation |
+| The focus stays in a main pane the **merge-conflicts view** takes the window from (new, round 4) | Defer; `followFocusIntoWorkablePane` returns early for any pair but the Normal one, so this is unchanged from before the round. Same class as the pane-goes-away bug: reachable when a focused file becomes conflicted underneath you |
+| A **side-by-side** renderer re-laid-out at a new width loses the position (new, round 4) | Defer. Only renderers whose line count depends on width (`delta --side-by-side`, difftastic side-by-side), and only when the diff is actually re-run at a new width — a refresh-driven render or a screen-mode change, never a bare resize. Needs `PreserveDiffPositionOnRerender` on a plain refresh, gated on the render being of the *same* diff, which isn't knowable until the render starts |
 | Gutter marks for not-yet-loaded lines of huge diffs (N§21.20) | Keep (marks appear on next recompute); note |
 | Renderer switch mid-patch-build shifts checkmarks (N§21.22(4)) | **Fix in PR 8 commit 10** (mandatory — looks too broken otherwise) |
 | Copy copies the renderer's output verbatim under a renderer (N§21.28) | **Done in PR 7**: copy takes the corresponding lines of the plain diff, through the new diff-source seam |
@@ -1941,8 +2075,9 @@ The remaining rows are agreed as keep/defer:
       green, every commit builds and unit-tests clean on its own), stacked on
       `select-diff-lines-in-main-view`. §6 sign-off **approved**
 - [x] PR 7 — staging from the main view — **DONE 2026-08-16** on branch
-      `stage-changes-in-main-view` (13 commits plus five fixup!/amend! commits
-      from the rebase, all checks green), stacked on
+      `stage-changes-in-main-view` (17 commits with round 4's folded in, 55
+      across the whole stack, all checks green, every commit building and
+      unit-testing clean on its own), stacked on
       `show-staged-changes-in-lower-pane`, which is itself stacked on
       `keep-diff-position-on-rerender`. §6 sign-off **approved 2026-08-16**,
       with four cross-cutting review comments fixed as mid-branch fixups in
@@ -1960,6 +2095,19 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-18:** **four scroll-preservation and focus problems fixed**, three of
+  them the same root cause — the selection is view lines, its meaning is buffer
+  lines, and each of the three places that boundary is crossed lost something.
+  The focus now follows into whichever pane a render leaves something to act on,
+  asked of every render in `refreshMainViews` rather than of the one action that
+  thought to ask; a resized wrapping view keeps its place in the content
+  (`View.RewrapContent`, a pre-existing gocui bug fixed at the branch's
+  foundation); a restored range covers the lines it is over whole; and a row
+  showing both halves of a modification is remembered as both. Details in PR 7's
+  "Review round 4". The two carried forward are in §8. Worth knowing before
+  writing any test about a selection: `View.SelectedLines` now reports the lines
+  of *content* a selection covers, and `ViewDriver.SelectedViewLineRange` is
+  there for when the wrapped extent is the thing under test.
 - **2026-08-17:** **two defects fixed under a non-conforming diff renderer**,
   both found by the user testing with an unpatched git: the raw fallback only
   ever bypassed stdin filters (the files panel built its command for a rendered
