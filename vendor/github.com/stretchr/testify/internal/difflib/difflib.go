@@ -8,11 +8,14 @@
 //
 // - unified_diff
 //
-// - context_diff
-//
 // Getting unified diffs was the main goal of the port. Keep in mind this code
 // is mostly suitable to output text differences in a human friendly way, there
 // are no guarantees generated diffs are consumable by patch(1).
+//
+// This package was adopted from [github.com/pmezard/go-difflib] which
+// is no longer maintained.
+//
+// [github.com/pmezard/go-difflib]: https://github.com/pmezard/go-difflib
 package difflib
 
 import (
@@ -35,13 +38,6 @@ func max(a, b int) int {
 		return a
 	}
 	return b
-}
-
-func calculateRatio(matches, length int) float64 {
-	if length > 0 {
-		return 2.0 * float64(matches) / float64(length)
-	}
-	return 1.0
 }
 
 type Match struct {
@@ -99,14 +95,6 @@ type SequenceMatcher struct {
 
 func NewMatcher(a, b []string) *SequenceMatcher {
 	m := SequenceMatcher{autoJunk: true}
-	m.SetSeqs(a, b)
-	return &m
-}
-
-func NewMatcherWithJunk(a, b []string, autoJunk bool,
-	isJunk func(string) bool) *SequenceMatcher {
-
-	m := SequenceMatcher{IsJunk: isJunk, autoJunk: autoJunk}
 	m.SetSeqs(a, b)
 	return &m
 }
@@ -199,12 +187,15 @@ func (m *SequenceMatcher) isBJunk(s string) bool {
 // If IsJunk is not defined:
 //
 // Return (i,j,k) such that a[i:i+k] is equal to b[j:j+k], where
-//     alo <= i <= i+k <= ahi
-//     blo <= j <= j+k <= bhi
+//
+//	alo <= i <= i+k <= ahi
+//	blo <= j <= j+k <= bhi
+//
 // and for all (i',j',k') meeting those conditions,
-//     k >= k'
-//     i <= i'
-//     and if i == i', j <= j'
+//
+//	k >= k'
+//	i <= i'
+//	and if i == i', j <= j'
 //
 // In other words, of all maximal matching blocks, return one that
 // starts earliest in a, and of all those maximal matching blocks that
@@ -451,66 +442,6 @@ func (m *SequenceMatcher) GetGroupedOpCodes(n int) [][]OpCode {
 	return groups
 }
 
-// Return a measure of the sequences' similarity (float in [0,1]).
-//
-// Where T is the total number of elements in both sequences, and
-// M is the number of matches, this is 2.0*M / T.
-// Note that this is 1 if the sequences are identical, and 0 if
-// they have nothing in common.
-//
-// .Ratio() is expensive to compute if you haven't already computed
-// .GetMatchingBlocks() or .GetOpCodes(), in which case you may
-// want to try .QuickRatio() or .RealQuickRation() first to get an
-// upper bound.
-func (m *SequenceMatcher) Ratio() float64 {
-	matches := 0
-	for _, m := range m.GetMatchingBlocks() {
-		matches += m.Size
-	}
-	return calculateRatio(matches, len(m.a)+len(m.b))
-}
-
-// Return an upper bound on ratio() relatively quickly.
-//
-// This isn't defined beyond that it is an upper bound on .Ratio(), and
-// is faster to compute.
-func (m *SequenceMatcher) QuickRatio() float64 {
-	// viewing a and b as multisets, set matches to the cardinality
-	// of their intersection; this counts the number of matches
-	// without regard to order, so is clearly an upper bound
-	if m.fullBCount == nil {
-		m.fullBCount = map[string]int{}
-		for _, s := range m.b {
-			m.fullBCount[s] = m.fullBCount[s] + 1
-		}
-	}
-
-	// avail[x] is the number of times x appears in 'b' less the
-	// number of times we've seen it in 'a' so far ... kinda
-	avail := map[string]int{}
-	matches := 0
-	for _, s := range m.a {
-		n, ok := avail[s]
-		if !ok {
-			n = m.fullBCount[s]
-		}
-		avail[s] = n - 1
-		if n > 0 {
-			matches += 1
-		}
-	}
-	return calculateRatio(matches, len(m.a)+len(m.b))
-}
-
-// Return an upper bound on ratio() very quickly.
-//
-// This isn't defined beyond that it is an upper bound on .Ratio(), and
-// is faster to compute than either .Ratio() or .QuickRatio().
-func (m *SequenceMatcher) RealQuickRatio() float64 {
-	la, lb := len(m.a), len(m.b)
-	return calculateRatio(min(la, lb), la+lb)
-}
-
 // Convert range to the "ed" format
 func formatRangeUnified(start, stop int) string {
 	// Per the diff spec at http://www.unix.org/single_unix_specification/
@@ -650,117 +581,6 @@ func formatRangeContext(start, stop int) string {
 		return fmt.Sprintf("%d", beginning)
 	}
 	return fmt.Sprintf("%d,%d", beginning, beginning+length-1)
-}
-
-type ContextDiff UnifiedDiff
-
-// Compare two sequences of lines; generate the delta as a context diff.
-//
-// Context diffs are a compact way of showing line changes and a few
-// lines of context. The number of context lines is set by diff.Context
-// which defaults to three.
-//
-// By default, the diff control lines (those with *** or ---) are
-// created with a trailing newline.
-//
-// For inputs that do not have trailing newlines, set the diff.Eol
-// argument to "" so that the output will be uniformly newline free.
-//
-// The context diff format normally has a header for filenames and
-// modification times.  Any or all of these may be specified using
-// strings for diff.FromFile, diff.ToFile, diff.FromDate, diff.ToDate.
-// The modification times are normally expressed in the ISO 8601 format.
-// If not specified, the strings default to blanks.
-func WriteContextDiff(writer io.Writer, diff ContextDiff) error {
-	buf := bufio.NewWriter(writer)
-	defer buf.Flush()
-	var diffErr error
-	wf := func(format string, args ...interface{}) {
-		_, err := buf.WriteString(fmt.Sprintf(format, args...))
-		if diffErr == nil && err != nil {
-			diffErr = err
-		}
-	}
-	ws := func(s string) {
-		_, err := buf.WriteString(s)
-		if diffErr == nil && err != nil {
-			diffErr = err
-		}
-	}
-
-	if len(diff.Eol) == 0 {
-		diff.Eol = "\n"
-	}
-
-	prefix := map[byte]string{
-		'i': "+ ",
-		'd': "- ",
-		'r': "! ",
-		'e': "  ",
-	}
-
-	started := false
-	m := NewMatcher(diff.A, diff.B)
-	for _, g := range m.GetGroupedOpCodes(diff.Context) {
-		if !started {
-			started = true
-			fromDate := ""
-			if len(diff.FromDate) > 0 {
-				fromDate = "\t" + diff.FromDate
-			}
-			toDate := ""
-			if len(diff.ToDate) > 0 {
-				toDate = "\t" + diff.ToDate
-			}
-			if diff.FromFile != "" || diff.ToFile != "" {
-				wf("*** %s%s%s", diff.FromFile, fromDate, diff.Eol)
-				wf("--- %s%s%s", diff.ToFile, toDate, diff.Eol)
-			}
-		}
-
-		first, last := g[0], g[len(g)-1]
-		ws("***************" + diff.Eol)
-
-		range1 := formatRangeContext(first.I1, last.I2)
-		wf("*** %s ****%s", range1, diff.Eol)
-		for _, c := range g {
-			if c.Tag == 'r' || c.Tag == 'd' {
-				for _, cc := range g {
-					if cc.Tag == 'i' {
-						continue
-					}
-					for _, line := range diff.A[cc.I1:cc.I2] {
-						ws(prefix[cc.Tag] + line)
-					}
-				}
-				break
-			}
-		}
-
-		range2 := formatRangeContext(first.J1, last.J2)
-		wf("--- %s ----%s", range2, diff.Eol)
-		for _, c := range g {
-			if c.Tag == 'r' || c.Tag == 'i' {
-				for _, cc := range g {
-					if cc.Tag == 'd' {
-						continue
-					}
-					for _, line := range diff.B[cc.J1:cc.J2] {
-						ws(prefix[cc.Tag] + line)
-					}
-				}
-				break
-			}
-		}
-	}
-	return diffErr
-}
-
-// Like WriteContextDiff but returns the diff a string.
-func GetContextDiffString(diff ContextDiff) (string, error) {
-	w := &bytes.Buffer{}
-	err := WriteContextDiff(w, diff)
-	return string(w.Bytes()), err
 }
 
 // Split a string on "\n" while preserving them. The output can be used
