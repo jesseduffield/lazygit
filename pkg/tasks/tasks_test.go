@@ -419,14 +419,13 @@ func TestNewCmdTaskRestore(t *testing.T) {
 	manager.SetRestoreForNextTask(&RenderRestore{
 		// Ready once five lines have loaded — well before the view is filled (30).
 		FirstPaintReady: func() bool { return linesWritten() >= 5 },
-		Apply: func(swapIn func()) bool {
+		Apply: func(swapIn func()) {
 			applyCount++
 			applyAtLines = linesWritten()
 			swappedBeforeApply = swappedBeforeApply || swapped
 			resetsBeforeApply = getResetOriginCallCount()
 			swapIn()
 			swappedByApply = swapped
-			return true
 		},
 	})
 
@@ -477,10 +476,9 @@ func TestNewCmdTaskRestoreThatFindsNothing(t *testing.T) {
 
 	manager.SetRestoreForNextTask(&RenderRestore{
 		FirstPaintReady: func() bool { return false },
-		Apply: func(swapIn func()) bool {
+		Apply: func(swapIn func()) {
 			applyCount++
 			swapIn()
-			return false
 		},
 	})
 
@@ -520,10 +518,9 @@ func TestRestoreSurvivesTaskReplacement(t *testing.T) {
 
 	manager.SetRestoreForNextTask(&RenderRestore{
 		FirstPaintReady: func() bool { return false },
-		Apply: func(swapIn func()) bool {
+		Apply: func(swapIn func()) {
 			applyCount.Add(1)
 			swapIn()
-			return true
 		},
 	})
 
