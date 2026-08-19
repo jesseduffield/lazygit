@@ -376,8 +376,11 @@ func (gui *Gui) clearMainView(mainContext types.Context) {
 	}
 }
 
-// updateDiffSelectionVisibility works out whether a main pane holds anything for a
-// selection to sit on, from what it is now showing: only beneath a panel whose main
+// updateDiffPaneDecorations re-derives what is drawn over a main pane's content, rather
+// than being part of it: whether a selection is shown, and which lines are marked as
+// being in the custom patch.
+//
+// A pane holds something for a selection to sit on only beneath a panel whose main
 // view is a diff, only while the pane is showing that diff rather than a message like
 // "No changed files", and only while the diff holds something to select — never over
 // one with nothing in it, such as a binary file's or an empty commit's. Whether the
@@ -389,7 +392,7 @@ func (gui *Gui) clearMainView(mainContext types.Context) {
 // still being read can leave the question open (see diffPaneHasSomethingToSelect). The
 // pane never answers from the render before it, and a render that leaves the question
 // open is read on until it doesn't, so the answer is always about what is there.
-func (gui *Gui) updateDiffSelectionVisibility(view *gocui.View, contentIsComplete bool) {
+func (gui *Gui) updateDiffPaneDecorations(view *gocui.View, contentIsComplete bool) {
 	mainContext := gui.mainContextForView(view)
 	if mainContext == nil {
 		return
@@ -404,6 +407,12 @@ func (gui *Gui) updateDiffSelectionVisibility(view *gocui.View, contentIsComplet
 		gui.State.ContextMgr.UpdateSelectionHighlights()
 	} else {
 		gui.readOnUntilTheDiffPaneCanTell(view)
+	}
+
+	// The marks are over the diff in the upper pane; the lower one shows the patch
+	// they are marks of.
+	if view == gui.Views.Main {
+		gui.helpers.DiffLine.RefreshInclusionGutter()
 	}
 }
 

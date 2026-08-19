@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -104,6 +105,10 @@ func (self *CommitDiffActions) PrimaryAction(pane types.DiffPaneContext, firstLi
 				patchBuilder.Reset()
 			}
 
+			// The diff on screen is the one the marks belong to, so they can be brought up
+			// to date at once rather than waiting for the render below.
+			self.c.Helpers().DiffLine.RefreshInclusionGutter()
+
 			// The selection moves on past the lines just toggled, to the next change of
 			// the diff — which is still there, a toggle leaving the diff as it was, so
 			// hold input back until it has moved: a second press meanwhile would toggle
@@ -199,6 +204,37 @@ func (self *CommitDiffActions) DiscardSelectionDisabledReason(pane types.DiffPan
 		}
 	}
 	return nil
+}
+
+// PatchInclusion says which lines of the commit's diff are in the custom patch being
+// built from it. nil when there is no such patch: none is being built at all, or the one
+// being built is of another diff, whose lines are not these however alike they look.
+func (self *CommitDiffActions) PatchInclusion() func(types.DiffLineInfo) bool {
+	patchBuilder := self.c.Git().Patch.PatchBuilder
+	target := self.target()
+	if !patchBuilder.Active() || target == nil {
+		return nil
+	}
+	from, reverse := self.patchEndpoints(target)
+	if patchBuilder.NewPatchRequired(from, target.to, reverse) {
+		return nil
+	}
+
+	// Which lines of a file are in the patch is asked of the patch builder per file, and
+	// a diff can span many, so each is asked about when a line of it first comes up.
+	includedByPath := map[string]*set.Set[patch.LineIdentity]{}
+	return func(info types.DiffLineInfo) bool {
+		path := self.patchBuilderPath(info.Path)
+		if path == "" {
+			return false
+		}
+		included, asked := includedByPath[path]
+		if !asked {
+			included = set.NewFromSlice(patchBuilder.IncludedLineIdentities(path))
+			includedByPath[path] = included
+		}
+		return included.Includes(info.PatchLineIdentity())
+	}
 }
 
 // togglePatchLines takes the given lines of the commit's diff into the custom patch, or

@@ -94,7 +94,7 @@ func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 	f := func(tasks.TaskOpts) error {
 		return gui.g.OnUIThreadAndWaitBackground(func() {
 			gui.c.SetViewContent(view, str)
-			gui.updateDiffSelectionVisibility(view, true)
+			gui.updateDiffPaneDecorations(view, true)
 			gui.reApplySearch(view)
 		})
 	}
@@ -116,7 +116,7 @@ func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX in
 		return gui.g.OnUIThreadAndWaitBackground(func() {
 			gui.c.SetViewContent(view, str)
 			view.SetOrigin(originX, originY)
-			gui.updateDiffSelectionVisibility(view, true)
+			gui.updateDiffPaneDecorations(view, true)
 			gui.reApplySearch(view)
 		})
 	}
@@ -138,7 +138,7 @@ func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) e
 		return gui.g.OnUIThreadAndWaitBackground(func() {
 			gui.c.ResetViewOrigin(view)
 			gui.c.SetViewContent(view, str)
-			gui.updateDiffSelectionVisibility(view, true)
+			gui.updateDiffPaneDecorations(view, true)
 			gui.reApplySearch(view)
 		})
 	}
@@ -177,7 +177,7 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 				// to say whether there is anything to select, and for a diff that
 				// opens with a long diffstat it isn't.
 				gui.c.OnUIThreadContentOnly(func() error {
-					gui.updateDiffSelectionVisibility(view, false)
+					gui.updateDiffPaneDecorations(view, false)
 					return nil
 				})
 			},
@@ -196,7 +196,7 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 					view.SetOrigin(0, newOriginY)
 				}
 
-				gui.updateDiffSelectionVisibility(view, true)
+				gui.updateDiffPaneDecorations(view, true)
 				gui.clampDiffSelectionToContent(view)
 				gui.reApplySearch(view)
 			},
@@ -210,7 +210,7 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 				// The content the pane is being given is on display from here on, so
 				// what is drawn over it is settled against that content rather than
 				// against the render before it.
-				gui.updateDiffSelectionVisibility(view, false)
+				gui.updateDiffPaneDecorations(view, false)
 			},
 			func() gocui.Task {
 				// A background task: rendering content into a view is display
