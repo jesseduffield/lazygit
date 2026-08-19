@@ -191,10 +191,10 @@ type RenderRestore struct {
 	// while the previous content is still displayed, and the new content is never
 	// drawn at the previous render's scroll position.
 	//
-	// It must call swapIn either way, and reports whether it placed the view: when
-	// it didn't, because what it was looking for is not in the new content, the
-	// task does what it would have done without a restore.
-	Apply func(swapIn func()) bool
+	// It must call swapIn even when it finds nothing to place the view on, in which
+	// case the view keeps the position the paint gave it: the offset it had, or the
+	// top for content the view hasn't seen.
+	Apply func(swapIn func())
 }
 
 // SetRestoreForNextTask arranges for the next command task to put the view back
