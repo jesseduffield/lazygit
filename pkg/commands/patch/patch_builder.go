@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/maps"
+	"github.com/jesseduffield/generics/set"
 	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
 	"github.com/sirupsen/logrus"
@@ -289,6 +290,81 @@ func (p *PatchBuilder) GetFileStatus(filename string, parent string) PatchStatus
 	}
 
 	return info.mode
+}
+
+// LineIdentity says which change line of a file is meant — the line number it has on
+// the side it belongs to, and whether it is a deletion — without reference to where
+// that line sits in the file's parsed diff.
+//
+// It is how a diff shown in the main view speaks about its lines: what a rendered row
+// resolves to is a line of a file, while the index of that line in the diff depends on
+// how much of the diff is being shown and in what order a renderer laid it out.
+type LineIdentity struct {
+	LineNumber int
+	IsDeletion bool
+}
+
+// ChangeLineIndexByIdentity indexes a parsed diff's change lines by their identity. An
+// addition is numbered in the new file and a deletion in the old one. Two consecutive
+// deletions share the one new-file position between them, and numbering them in the
+// old file keeps them apart.
+func ChangeLineIndexByIdentity(parsed *Patch) map[LineIdentity]int {
+	byIdentity := map[LineIdentity]int{}
+	for idx, line := range parsed.Lines() {
+		switch {
+		case line.IsAddition():
+			byIdentity[LineIdentity{parsed.LineNumberOfLine(idx), false}] = idx
+		case line.IsDeletion():
+			byIdentity[LineIdentity{parsed.OldLineNumberOfLine(idx), true}] = idx
+		}
+	}
+	return byIdentity
+}
+
+// ChangeLineIndicesForLines maps the given change lines of a parsed diff to their
+// indices in it. A line that names no change line of the diff — a context line, or a
+// line that isn't in the diff at all — contributes nothing.
+func ChangeLineIndicesForLines(parsed *Patch, lines []LineIdentity) []int {
+	byIdentity := ChangeLineIndexByIdentity(parsed)
+	indices := make([]int, 0, len(lines))
+	for _, line := range lines {
+		if idx, ok := byIdentity[line]; ok {
+			indices = append(indices, idx)
+		}
+	}
+	return indices
+}
+
+// PatchLineIndicesForLines maps change lines of filename to their indices in that
+// file's diff, which is what the patch is built in terms of.
+func (p *PatchBuilder) PatchLineIndicesForLines(
+	filename string, previousPath string, lines []LineIdentity,
+) ([]int, error) {
+	info, err := p.getFileInfo(filename, previousPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return ChangeLineIndicesForLines(Parse(info.diff), lines), nil
+}
+
+// IncludedLineIdentities says which change lines of filename are in the patch, as the
+// identities a diff of that file shown anywhere can be compared against. Empty for a
+// file that is no part of the patch.
+func (p *PatchBuilder) IncludedLineIdentities(filename string) []LineIdentity {
+	info, ok := p.snapshotFileInfoMap()[filename]
+	if !ok || info.mode == UNSELECTED {
+		return nil
+	}
+
+	included := set.NewFromSlice(info.includedLineIndices)
+	identities := []LineIdentity{}
+	for identity, idx := range ChangeLineIndexByIdentity(Parse(info.diff)) {
+		if included.Includes(idx) {
+			identities = append(identities, identity)
+		}
+	}
+	return identities
 }
 
 func (p *PatchBuilder) GetFileIncLineIndices(filename string, previousPath string) ([]int, error) {
