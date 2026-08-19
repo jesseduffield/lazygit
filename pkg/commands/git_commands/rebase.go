@@ -112,29 +112,30 @@ func (self *RebaseCommands) GenericAmend(commits []*models.Commit, start, end in
 }
 
 func (self *RebaseCommands) MoveCommitsDown(commits []*models.Commit, startIdx int, endIdx int) error {
-	baseHashOrRoot := getBaseHashOrRoot(commits, endIdx+2)
-
-	hashes := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
-		return commit.Hash()
-	})
-
-	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseHashOrRoot: baseHashOrRoot,
-		instruction:    daemon.NewMoveTodosDownInstruction(hashes),
-		overrideEditor: true,
-	}).Run()
+	return self.MoveCommits(commits, startIdx, endIdx, 1)
 }
 
 func (self *RebaseCommands) MoveCommitsUp(commits []*models.Commit, startIdx int, endIdx int) error {
-	baseHashOrRoot := getBaseHashOrRoot(commits, endIdx+1)
+	return self.MoveCommits(commits, startIdx, endIdx, -1)
+}
+
+func (self *RebaseCommands) MoveCommits(commits []*models.Commit, startIdx int, endIdx int, offset int) error {
+	baseHashOrRoot := getBaseHashOrRoot(commits, endIdx+max(offset, 0)+1)
 
 	hashes := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
 		return commit.Hash()
 	})
 
+	var instruction daemon.Instruction
+	if offset > 0 {
+		instruction = daemon.NewMoveTodosDownInstruction(hashes, offset)
+	} else {
+		instruction = daemon.NewMoveTodosUpInstruction(hashes, -offset)
+	}
+
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseHashOrRoot: baseHashOrRoot,
-		instruction:    daemon.NewMoveTodosUpInstruction(hashes),
+		instruction:    instruction,
 		overrideEditor: true,
 	}).Run()
 }
@@ -369,21 +370,20 @@ func (self *RebaseCommands) DeleteUpdateRefTodos(commits []*models.Commit) error
 }
 
 func (self *RebaseCommands) MoveTodosDown(commits []*models.Commit) error {
-	fileName := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo")
-	todosToMove := lo.Map(commits, func(commit *models.Commit, _ int) utils.Todo {
-		return todoFromCommit(commit)
-	})
-
-	return utils.MoveTodosDown(fileName, todosToMove, true, self.config.GetCoreCommentChar())
+	return self.MoveTodos(commits, 1)
 }
 
 func (self *RebaseCommands) MoveTodosUp(commits []*models.Commit) error {
+	return self.MoveTodos(commits, -1)
+}
+
+func (self *RebaseCommands) MoveTodos(commits []*models.Commit, offset int) error {
 	fileName := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo")
 	todosToMove := lo.Map(commits, func(commit *models.Commit, _ int) utils.Todo {
 		return todoFromCommit(commit)
 	})
 
-	return utils.MoveTodosUp(fileName, todosToMove, true, self.config.GetCoreCommentChar())
+	return utils.MoveTodos(fileName, todosToMove, true, offset, self.config.GetCoreCommentChar())
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one

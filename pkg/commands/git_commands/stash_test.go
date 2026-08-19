@@ -103,7 +103,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 		contextSize         uint64
 		similarityThreshold int
 		ignoreWhitespace    bool
-		pagerConfig         *config.PagingConfig
+		diffRendererConfig  *config.DiffRendererConfig
 		expected            []string
 	}
 
@@ -114,7 +114,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--no-ext-diff", "--color=always", "--unified=3", "--find-renames=50%", "refs/stash@{5}"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "--no-ext-diff", "--unified=3", "--find-renames=50%", "-p", "--stat", "-u", "--color=always", "refs/stash@{5}"},
 		},
 		{
 			testName:            "Show diff with custom context size",
@@ -122,7 +122,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         77,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--no-ext-diff", "--color=always", "--unified=77", "--find-renames=50%", "refs/stash@{5}"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "--no-ext-diff", "--unified=77", "--find-renames=50%", "-p", "--stat", "-u", "--color=always", "refs/stash@{5}"},
 		},
 		{
 			testName:            "Show diff with custom similarity threshold",
@@ -130,7 +130,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 33,
 			ignoreWhitespace:    false,
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--no-ext-diff", "--color=always", "--unified=3", "--find-renames=33%", "refs/stash@{5}"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "--no-ext-diff", "--unified=3", "--find-renames=33%", "-p", "--stat", "-u", "--color=always", "refs/stash@{5}"},
 		},
 		{
 			testName:            "Show diff with external diff command",
@@ -138,8 +138,8 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			pagerConfig:         &config.PagingConfig{ExternalDiffCommand: "difft --color=always"},
-			expected:            []string{"git", "-C", "/path/to/worktree", "-c", "diff.external=difft --color=always", "stash", "show", "-p", "--stat", "-u", "--ext-diff", "--color=always", "--unified=3", "--find-renames=50%", "refs/stash@{5}"},
+			diffRendererConfig:  &config.DiffRendererConfig{Type: "extDiff", Command: "difft --color=always"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "-c", "diff.external=difft --color=always", "stash", "show", "--ext-diff", "--unified=3", "--find-renames=50%", "-p", "--stat", "-u", "--color=always", "refs/stash@{5}"},
 		},
 		{
 			testName:            "Show diff using git's external diff config",
@@ -147,16 +147,16 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			pagerConfig:         &config.PagingConfig{UseExternalDiffGitConfig: true},
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--ext-diff", "--color=always", "--unified=3", "--find-renames=50%", "refs/stash@{5}"},
+			diffRendererConfig:  &config.DiffRendererConfig{Type: "extDiff"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "--ext-diff", "--unified=3", "--find-renames=50%", "-p", "--stat", "-u", "--color=always", "refs/stash@{5}"},
 		},
 		{
-			testName:            "Default case",
+			testName:            "Ignore whitespace",
 			index:               5,
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    true,
-			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "-p", "--stat", "-u", "--no-ext-diff", "--color=always", "--unified=3", "--ignore-all-space", "--find-renames=50%", "refs/stash@{5}"},
+			expected:            []string{"git", "-C", "/path/to/worktree", "stash", "show", "--no-ext-diff", "--unified=3", "--ignore-all-space", "--find-renames=50%", "-p", "--stat", "-u", "--color=always", "refs/stash@{5}"},
 		},
 	}
 
@@ -166,8 +166,8 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
 			userConfig.Git.DiffContextSize = s.contextSize
 			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
-			if s.pagerConfig != nil {
-				userConfig.Git.Pagers = []config.PagingConfig{*s.pagerConfig}
+			if s.diffRendererConfig != nil {
+				userConfig.Git.DiffRenderers = []config.DiffRendererConfig{*s.diffRendererConfig}
 			}
 			repoPaths := RepoPaths{
 				worktreePath: "/path/to/worktree",

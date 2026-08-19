@@ -87,7 +87,7 @@ type GuiConfig struct {
 	// One of: 'margin' (default) | 'jump'
 	ScrollOffBehavior string `yaml:"scrollOffBehavior"`
 	// The number of spaces per tab; used for everything that's shown in the main view, but probably mostly relevant for diffs.
-	// Note that when using a pager, the pager has its own tab width setting, so you need to pass it separately in the pager command.
+	// Note that when using a diff renderer, the renderer has its own tab width setting, so you need to pass it separately in the renderer command.
 	TabWidth int `yaml:"tabWidth" jsonschema:"minimum=1"`
 	// If true, capture mouse events.
 	// When mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.
@@ -269,37 +269,39 @@ type SpinnerConfig struct {
 }
 
 type GitConfig struct {
-	// Array of pagers. Each entry has the following format:
-	// [dev] The following documentation is duplicated from the PagingConfig struct below.
+	// Array of diff renderers. Each entry has the following format:
+	// [dev] The following documentation is duplicated from the DiffRendererConfig struct below.
 	//
-	//   # A name for the pager, shown in the notification when cycling pagers.
-	//   # If not set, the name is derived from the first word of the pager
-	//   # command (or of the external diff command).
+	//   # The type of diff renderer. One of: 'stdinFilter' (default) | 'extDiff'
+	//   # | 'rawGit'
+	//   type: "stdinFilter"
+	//
+	//   # A name for the diff renderer, shown in the notification when cycling
+	//   # renderers. If not set, the name is derived from the first word of the
+	//   # renderer command.
 	//   name: ""
 	//
-	//   # Value of the --color arg in the git diff command. Some pagers want
-	//   # this to be set to 'always' and some want it set to 'never'
+	//   # Value of the --color arg in the git diff command. Only used for type
+	//   # 'stdinFilter'. Some renderers want this to be set to 'always' and some
+	//   # want it set to 'never'.
 	//   colorArg: "always"
 	//
+	//   # The command to use for rendering diffs. This is either a stdinFilter or
+	//   # an external diff command, depending on the type field; not applicable if
+	//   # the type is 'rawGit'.
 	//   # e.g.
 	//   # diff-so-fancy
 	//   # delta --dark --paging=never
-	//   # ydiff -p cat -s --wrap --width={{columnWidth}}
-	//   pager: ""
+	//   # ydiff -p cat
+	//   # difft --color=always
+	//   command: ""
 	//
-	//   # e.g. 'difft --color=always'
-	//   externalDiffCommand: ""
+	//   # Extra arguments (array of strings) passed to the git command. Only
+	//   # applicable if the type is 'rawGit'.
+	//   args: []
 	//
-	//   # If true, Lazygit will use git's `diff.external` config for paging.
-	//   # The advantage over `externalDiffCommand` is that this can be
-	//   # configured per file type in .gitattributes; see
-	//   # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
-	//   useExternalDiffGitConfig: false
-	//
-	// 'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' are mutually exclusive; set at most one per entry.
-	//
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md for more information.
-	Pagers []PagingConfig `yaml:"pagers"`
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_DiffRenderers.md for more information.
+	DiffRenderers []DiffRendererConfig `yaml:"diffRenderers"`
 	// Config relating to committing
 	Commit CommitConfig `yaml:"commit"`
 	// Config relating to merging
@@ -358,31 +360,34 @@ type GitConfig struct {
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
 }
 
-type PagerType string
+type DiffRendererCommandType string
 
-func (PagerType) JSONSchemaExtend(schema *jsonschema.Schema) {
+func (DiffRendererCommandType) JSONSchemaExtend(schema *jsonschema.Schema) {
 	schema.Examples = []any{
 		"delta --dark --paging=never",
 		"diff-so-fancy",
-		"ydiff -p cat -s --wrap --width={{columnWidth}}",
+		"ydiff -p cat",
+		"difft --color=always",
 	}
 }
 
 // [dev] This documentation is duplicated in the GitConfig struct. If you make changes here, make them there too.
-type PagingConfig struct {
-	// A name for the pager, shown in the notification when cycling pagers. If not set, the name is derived from the first word of the pager command (or of the external diff command).
+type DiffRendererConfig struct {
+	// The type of diff renderer. One of: 'stdinFilter' (default) | 'extDiff' | 'rawGit'
+	Type string `yaml:"type" jsonschema:"enum=stdinFilter,enum=extDiff,enum=rawGit"`
+	// A name for the diff renderer, shown in the notification when cycling renderers. If not set, the name is derived from the first word of the renderer command.
 	Name string `yaml:"name"`
-	// Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'
+	// Value of the --color arg in the git diff command. Only used for type 'stdinFilter'. Some renderers want this to be set to 'always' and some want it set to 'never'.
 	ColorArg string `yaml:"colorArg" jsonschema:"enum=always,enum=never"`
+	// The command to use for rendering diffs. This is either a stdinFilter or an external diff command, depending on the type field; not applicable if the type is 'rawGit'.
 	// e.g.
 	// diff-so-fancy
 	// delta --dark --paging=never
-	// ydiff -p cat -s --wrap --width={{columnWidth}}
-	Pager PagerType `yaml:"pager"`
-	// e.g. 'difft --color=always'
-	ExternalDiffCommand string `yaml:"externalDiffCommand"`
-	// If true, Lazygit will use git's `diff.external` config for paging. The advantage over `externalDiffCommand` is that this can be configured per file type in .gitattributes; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
-	UseExternalDiffGitConfig bool `yaml:"useExternalDiffGitConfig"`
+	// ydiff -p cat
+	// difft --color=always
+	Command DiffRendererCommandType `yaml:"command"`
+	// Extra arguments (array of strings) passed to the git command. Only applicable if the type is 'rawGit'.
+	Args []string `yaml:"args"`
 }
 
 type CommitConfig struct {
@@ -524,23 +529,23 @@ type KeybindingUniversalConfig struct {
 	// Deprecated: add the key to `scrollUpMain` instead.
 	ScrollUpMainAlt2 Keybinding `yaml:"scrollUpMain-alt2"`
 	// Deprecated: add the key to `scrollDownMain` instead.
-	ScrollDownMainAlt2      Keybinding `yaml:"scrollDownMain-alt2"`
-	ExecuteShellCommand     Keybinding `yaml:"executeShellCommand"`
-	CreateRebaseOptionsMenu Keybinding `yaml:"createRebaseOptionsMenu"`
-	Push                    Keybinding `yaml:"pushFiles"` // 'Files' appended for legacy reasons
-	Pull                    Keybinding `yaml:"pullFiles"` // 'Files' appended for legacy reasons
-	Refresh                 Keybinding `yaml:"refresh"`
-	CreatePatchOptionsMenu  Keybinding `yaml:"createPatchOptionsMenu"`
-	NextTab                 Keybinding `yaml:"nextTab"`
-	PrevTab                 Keybinding `yaml:"prevTab"`
-	NextScreenMode          Keybinding `yaml:"nextScreenMode"`
-	PrevScreenMode          Keybinding `yaml:"prevScreenMode"`
-	CyclePagers             Keybinding `yaml:"cyclePagers"`
-	CyclePagersReverse      Keybinding `yaml:"cyclePagersReverse"`
-	Undo                    Keybinding `yaml:"undo"`
-	Redo                    Keybinding `yaml:"redo"`
-	FilteringMenu           Keybinding `yaml:"filteringMenu"`
-	DiffingMenu             Keybinding `yaml:"diffingMenu"`
+	ScrollDownMainAlt2        Keybinding `yaml:"scrollDownMain-alt2"`
+	ExecuteShellCommand       Keybinding `yaml:"executeShellCommand"`
+	CreateRebaseOptionsMenu   Keybinding `yaml:"createRebaseOptionsMenu"`
+	Push                      Keybinding `yaml:"pushFiles"` // 'Files' appended for legacy reasons
+	Pull                      Keybinding `yaml:"pullFiles"` // 'Files' appended for legacy reasons
+	Refresh                   Keybinding `yaml:"refresh"`
+	CreatePatchOptionsMenu    Keybinding `yaml:"createPatchOptionsMenu"`
+	NextTab                   Keybinding `yaml:"nextTab"`
+	PrevTab                   Keybinding `yaml:"prevTab"`
+	NextScreenMode            Keybinding `yaml:"nextScreenMode"`
+	PrevScreenMode            Keybinding `yaml:"prevScreenMode"`
+	CycleDiffRenderers        Keybinding `yaml:"cycleDiffRenderers"`
+	CycleDiffRenderersReverse Keybinding `yaml:"cycleDiffRenderersReverse"`
+	Undo                      Keybinding `yaml:"undo"`
+	Redo                      Keybinding `yaml:"redo"`
+	FilteringMenu             Keybinding `yaml:"filteringMenu"`
+	DiffingMenu               Keybinding `yaml:"diffingMenu"`
 	// Deprecated: add the key to `diffingMenu` instead.
 	DiffingMenuAlt                    Keybinding `yaml:"diffingMenu-alt"`
 	CopyToClipboard                   Keybinding `yaml:"copyToClipboard"`
@@ -922,8 +927,8 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			PortraitModeAutoMinHeight:           46,
 			FilterMode:                          "substring",
 			Spinner: SpinnerConfig{
-				Frames: []string{"|", "/", "-", "\\"},
-				Rate:   50,
+				Frames: []string{"●∙∙", "∙●∙", "∙∙●", "∙●∙"},
+				Rate:   180,
 			},
 			StatusPanelView:              "dashboard",
 			SwitchToFilesAfterStashPop:   true,
@@ -1055,8 +1060,8 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				PrevTab:                           Keybinding{"["},
 				NextScreenMode:                    Keybinding{"+"},
 				PrevScreenMode:                    Keybinding{"_"},
-				CyclePagers:                       Keybinding{"|"},
-				CyclePagersReverse:                Keybinding{"\\"},
+				CycleDiffRenderers:                Keybinding{"|"},
+				CycleDiffRenderersReverse:         Keybinding{"\\"},
 				Undo:                              Keybinding{"z"},
 				Redo:                              Keybinding{"Z"},
 				FilteringMenu:                     Keybinding{"<ctrl+s>"},

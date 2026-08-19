@@ -225,7 +225,6 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 	switch context := state.Context.(type) {
 	case types.IFilterableContext:
 		context.SetSelection(0)
-		context.GetView().SetOriginY(0)
 		context.SetFilter(searchString, self.c.UserConfig().Gui.UseFuzzySearch())
 		self.c.PostRefreshUpdate(context)
 	case types.ISearchableContext:
@@ -241,6 +240,9 @@ func (self *SearchHelper) ReApplyFilter(context types.Context) {
 		state := self.searchState()
 		if context == state.Context && self.c.Context().Current().GetKey() == self.c.Contexts().Search.GetKey() {
 			filterableContext.SetSelection(0)
+			// This runs as part of a refresh, and a refresh that no user action
+			// is behind keeps the scroll position, which would leave the view
+			// scrolled somewhere the filtered list no longer has anything at.
 			filterableContext.GetView().SetOriginY(0)
 		}
 		filterableContext.ReApplyFilter(self.c.UserConfig().Gui.UseFuzzySearch())

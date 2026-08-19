@@ -20,7 +20,7 @@ type Game struct {
 	exit chan (struct{})
 
 	// channel for specifying the direction the player wants the snake to go in
-	setNewDir chan (Direction)
+	setNewDir chan Direction
 
 	// allows logging for debugging
 	logger func(string)

@@ -88,7 +88,13 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if !view.CanScrollPastBottom {
 			maxOriginY -= newHeight - 1
 		}
-		if oldOriginY := view.OriginY(); oldOriginY > maxOriginY {
+		// Don't scroll up while the view's content is still being loaded: its
+		// height only reflects what has been read so far, so clamping to it now
+		// would yank the view to the top even though more content is on the way
+		// (e.g. when re-rendering a diff the user was scrolled into).
+		manager := gui.getViewBufferManagerForView(view)
+		stillLoading := manager != nil && manager.IsLoading()
+		if oldOriginY := view.OriginY(); oldOriginY > maxOriginY && !stillLoading {
 			view.ScrollUp(oldOriginY - maxOriginY)
 			// the view might not have scrolled actually (if it was at the limit
 			// already), so we need to check if it did

@@ -26,10 +26,10 @@ var PickRescheduled = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("one")).
 			Press(keys.Universal.Edit).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("pick").Contains("three"),
 				Contains("pick").Contains("two"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("one").IsSelected(),
 			).
 			Tap(func() {
@@ -41,9 +41,9 @@ var PickRescheduled = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("pick").Contains("three"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("two"),
 				Contains("one"),
 			)

@@ -385,45 +385,31 @@ func (self *WorkingTreeCommands) Exclude(filename string) error {
 // WorktreeFileDiff returns the diff of a file
 func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached, nil).RunWithOutput()
+	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached, file.Names()).RunWithOutput()
 	return s
 }
 
-// WorktreeFileDiffCmdObj returns a command object for diffing a file or directory
-// in the working tree. When pathOverrides is non-empty, those paths are used instead of
-// the node's path (used to diff only filtered/visible files within a directory).
-func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool, pathOverrides []string) *oscommands.CmdObj {
-	colorArg := self.pagerConfig.GetColorArg()
+// WorktreeFileDiffCmdObj returns a command object for diffing the given paths
+// in the working tree. node is the item they belong to; all it decides is
+// whether git has to compare against /dev/null, which is the case for a file
+// that isn't in the index yet.
+func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool, paths []string) *oscommands.CmdObj {
+	colorArg := self.diffRendererConfigManager.GetColorArg()
 	if plain {
 		colorArg = "never"
 	}
 
-	contextSize := self.UserConfig().Git.DiffContextSize
-	prevPath := node.GetPreviousPath()
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
-	extDiffCmd := self.pagerConfig.GetExternalDiffCommand(contextSize)
-	useExtDiff := extDiffCmd != "" && !plain
-	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
-
-	paths := pathOverrides
-	if len(paths) == 0 {
-		paths = []string{node.GetPath()}
-	}
 
 	cmdArgs := NewGitCmd("diff").
-		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
-		ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
 		Arg("--submodule").
-		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
-		ArgIf(!plain && self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
-		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
 		ArgIf(cached, "--cached").
 		ArgIf(noIndex, "--no-index").
 		Arg("--").
 		ArgIf(noIndex, "/dev/null").
 		Arg(paths...).
-		ArgIf(prevPath != "", prevPath).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()
 
@@ -443,29 +429,19 @@ func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bo
 }
 
 func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool) *oscommands.CmdObj {
-	contextSize := self.UserConfig().Git.DiffContextSize
-
-	colorArg := self.pagerConfig.GetColorArg()
+	colorArg := self.diffRendererConfigManager.GetColorArg()
 	if plain {
 		colorArg = "never"
 	}
 
-	extDiffCmd := self.pagerConfig.GetExternalDiffCommand(contextSize)
-	useExtDiff := extDiffCmd != "" && !plain
-	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
-
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").
-		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
-		ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
 		Arg("--submodule").
-		Arg(fmt.Sprintf("--unified=%d", contextSize)).
-		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
 		Arg(from).
 		Arg(to).
 		ArgIf(reverse, "-R").
-		ArgIf(!plain && self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg("--").
 		Arg(fileNames...).
 		Dir(self.repoPaths.worktreePath).

@@ -196,7 +196,7 @@ func getHeader(binding *types.Binding, tr *i18n.TranslationSet) header {
 
 func formatSections(tr *i18n.TranslationSet, bindingSections []*bindingSection) string {
 	var content strings.Builder
-	content.WriteString(fmt.Sprintf("# Lazygit %s\n", tr.Keybindings))
+	fmt.Fprintf(&content, "# Lazygit %s\n", tr.Keybindings)
 
 	for _, section := range bindingSections {
 		content.WriteString(formatTitle(section.title))

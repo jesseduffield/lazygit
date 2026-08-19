@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -42,7 +41,7 @@ func (self *FilteringMenuAction) Call() error {
 		menuItems = append(menuItems, &types.MenuItem{
 			Label: fmt.Sprintf("%s '%s'", self.c.Tr.FilterBy, fileName),
 			OnPress: func() error {
-				return self.setFilteringPath(fileName)
+				return self.c.Helpers().Mode.SetFilteringPath(fileName)
 			},
 			Tooltip: tooltip,
 		})
@@ -52,7 +51,7 @@ func (self *FilteringMenuAction) Call() error {
 		menuItems = append(menuItems, &types.MenuItem{
 			Label: fmt.Sprintf("%s '%s'", self.c.Tr.FilterBy, author),
 			OnPress: func() error {
-				return self.setFilteringAuthor(author)
+				return self.c.Helpers().Mode.SetFilteringAuthor(author)
 			},
 			Tooltip: tooltip,
 		})
@@ -65,7 +64,7 @@ func (self *FilteringMenuAction) Call() error {
 				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetFilePathSuggestionsFunc(),
 				Title:               self.c.Tr.EnterFileName,
 				HandleConfirm: func(response string) error {
-					return self.setFilteringPath(response)
+					return self.c.Helpers().Mode.SetFilteringPath(response)
 				},
 			})
 
@@ -81,7 +80,7 @@ func (self *FilteringMenuAction) Call() error {
 				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 				Title:               self.c.Tr.EnterAuthor,
 				HandleConfirm: func(response string) error {
-					return self.setFilteringAuthor(response)
+					return self.c.Helpers().Mode.SetFilteringAuthor(response)
 				},
 			})
 
@@ -98,35 +97,4 @@ func (self *FilteringMenuAction) Call() error {
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.FilteringMenuTitle, Items: menuItems})
-}
-
-func (self *FilteringMenuAction) setFilteringPath(path string) error {
-	self.c.Modes().Filtering.Reset()
-	self.c.Modes().Filtering.SetPath(path)
-	return self.setFiltering()
-}
-
-func (self *FilteringMenuAction) setFilteringAuthor(author string) error {
-	self.c.Modes().Filtering.Reset()
-	self.c.Modes().Filtering.SetAuthor(author)
-	return self.setFiltering()
-}
-
-func (self *FilteringMenuAction) setFiltering() error {
-	self.c.Modes().Filtering.SetSelectedCommitHash(self.c.Contexts().LocalCommits.GetSelectedCommitHash())
-
-	repoState := self.c.State().GetRepoState()
-	if repoState.GetScreenMode() == types.SCREEN_NORMAL {
-		repoState.SetScreenMode(types.SCREEN_HALF)
-	}
-
-	self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
-
-	self.c.Refresh(types.RefreshOptions{Scope: helpers.ScopesToRefreshWhenFilteringModeChanges(), Then: func() error {
-		self.c.Contexts().LocalCommits.SetSelection(0)
-		self.c.Contexts().LocalCommits.HandleFocus(types.OnFocusOpts{})
-		return nil
-	}})
-
-	return nil
 }

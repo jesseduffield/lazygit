@@ -221,7 +221,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--color=always", "--find-renames=50%", "--", "test.txt"}, expectedResult, nil),
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName: "cached",
@@ -236,7 +236,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--color=always", "--find-renames=50%", "--cached", "--", "test.txt"}, expectedResult, nil),
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--cached", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName: "plain",
@@ -251,7 +251,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--color=never", "--find-renames=50%", "--", "test.txt"}, expectedResult, nil),
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=never", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName: "File not tracked and file has no staged changes",
@@ -266,7 +266,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--color=always", "--find-renames=50%", "--no-index", "--", "/dev/null", "test.txt"}, expectedResult, nil),
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--no-index", "--", "/dev/null", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName: "Default case (ignore whitespace)",
@@ -281,7 +281,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--color=always", "--ignore-all-space", "--find-renames=50%", "--", "test.txt"}, expectedResult, nil),
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--unified=3", "--ignore-all-space", "--find-renames=50%", "--submodule", "--color=always", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName: "Show diff with custom context size",
@@ -296,7 +296,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			contextSize:         17,
 			similarityThreshold: 50,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--submodule", "--unified=17", "--color=always", "--find-renames=50%", "--", "test.txt"}, expectedResult, nil),
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--unified=17", "--find-renames=50%", "--submodule", "--color=always", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName: "Show diff with custom similarity threshold",
@@ -311,7 +311,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 33,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--color=always", "--find-renames=33%", "--", "test.txt"}, expectedResult, nil),
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "diff", "--no-ext-diff", "--unified=3", "--find-renames=33%", "--submodule", "--color=always", "--", "test.txt"}, expectedResult, nil),
 		},
 	}
 
@@ -360,7 +360,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--find-renames=50%", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, expectedResult, nil),
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "diff", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName:         "Show diff with custom context size",
@@ -372,7 +372,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      123,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "diff", "--no-ext-diff", "--submodule", "--unified=123", "--find-renames=50%", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, expectedResult, nil),
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "diff", "--no-ext-diff", "--unified=123", "--find-renames=50%", "--submodule", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName:         "Default case (ignore whitespace)",
@@ -384,7 +384,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 			ignoreWhitespace: true,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--find-renames=50%", "--color=always", "1234567890", "0987654321", "--ignore-all-space", "--", "test.txt"}, expectedResult, nil),
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "diff", "--no-ext-diff", "--unified=3", "--ignore-all-space", "--find-renames=50%", "--submodule", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName:         "Renamed file passes both paths so the rename is detected",
@@ -397,7 +397,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "diff", "--no-ext-diff", "--submodule", "--unified=3", "--find-renames=50%", "--color=always", "1234567890", "0987654321", "--", "new.txt", "old.txt"}, expectedResult, nil),
+				ExpectGitArgs([]string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "diff", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "1234567890", "0987654321", "--", "new.txt", "old.txt"}, expectedResult, nil),
 		},
 	}
 

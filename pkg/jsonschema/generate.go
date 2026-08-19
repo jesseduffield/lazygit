@@ -144,7 +144,7 @@ func setDefaultVals(rootSchema, schema *jsonschema.Schema, defaults any) {
 	t := reflect.TypeOf(defaults)
 	v := reflect.ValueOf(defaults)
 
-	if t.Kind() == reflect.Ptr || t.Kind() == reflect.Interface {
+	if t.Kind() == reflect.Pointer || t.Kind() == reflect.Interface {
 		t = t.Elem()
 		v = v.Elem()
 	}
@@ -202,7 +202,7 @@ func isZeroValue(v any) bool {
 	switch rv.Kind() {
 	case reflect.Slice, reflect.Map:
 		return rv.Len() == 0
-	case reflect.Ptr, reflect.Interface:
+	case reflect.Pointer, reflect.Interface:
 		return rv.IsNil()
 	case reflect.Struct:
 		for i := range rv.NumField() {

@@ -25,9 +25,9 @@ var EditAndAutoAmend = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit-02")).
 			Press(keys.Universal.Edit).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("commit-03"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("commit-02").IsSelected(),
 				Contains("commit-01"),
 			)

@@ -715,7 +715,7 @@ func (p *printer) writeCommentSuffix(needsLinebreak bool) (wroteNewline, dropped
 		wroteNewline = true
 	}
 
-	return wroteNewline, droppedFF
+	return
 }
 
 // containsLinebreak reports whether the whitespace buffer contains any line breaks.
@@ -809,7 +809,7 @@ func (p *printer) intersperseComments(next token.Position, tok token.Token) (wro
 	// no comment was written - we should never reach here since
 	// intersperseComments should not be called in that case
 	p.internalError("intersperseComments called without pending comments")
-	return wroteNewline, droppedFF
+	return
 }
 
 // writeWhitespace writes the first n whitespace entries.
@@ -878,7 +878,7 @@ func mayCombine(prev token.Token, next byte) (b bool) {
 	case token.AND:
 		b = next == '&' || next == '^' // && or &^
 	}
-	return b
+	return
 }
 
 func (p *printer) setPos(pos token.Pos) {
@@ -1041,7 +1041,7 @@ func (p *printer) flush(next token.Position, tok token.Token) (wroteNewline, dro
 		// otherwise, write any leftover whitespace
 		p.writeWhitespace(len(p.wsbuf))
 	}
-	return wroteNewline, droppedFF
+	return
 }
 
 // getDoc returns the ast.CommentGroup associated with n, if any.
@@ -1269,7 +1269,7 @@ func (p *trimmer) Write(data []byte) (n int, err error) {
 			panic("unreachable")
 		}
 		if err != nil {
-			return n, err
+			return
 		}
 	}
 	n = len(data)
@@ -1280,7 +1280,7 @@ func (p *trimmer) Write(data []byte) (n int, err error) {
 		p.resetSpace()
 	}
 
-	return n, err
+	return
 }
 
 // ----------------------------------------------------------------------------
@@ -1361,7 +1361,7 @@ func (cfg *Config) fprint(output io.Writer, fset *token.FileSet, node any, nodeS
 	p := newPrinter(cfg, fset, nodeSizes)
 	defer p.free()
 	if err = p.printNode(node); err != nil {
-		return err
+		return
 	}
 	// print outstanding comments
 	p.impliedSemi = false // EOF acts like a newline
@@ -1397,7 +1397,7 @@ func (cfg *Config) fprint(output io.Writer, fset *token.FileSet, node any, nodeS
 
 	// write printer result via tabwriter/trimmer to output
 	if _, err = output.Write(p.output); err != nil {
-		return err
+		return
 	}
 
 	// flush tabwriter, if any
@@ -1405,7 +1405,7 @@ func (cfg *Config) fprint(output io.Writer, fset *token.FileSet, node any, nodeS
 		err = tw.Flush()
 	}
 
-	return err
+	return
 }
 
 // A CommentedNode bundles an AST node and corresponding comments.
