@@ -26,13 +26,14 @@ func newTestPatchBuilder(diff string) *PatchBuilder {
 func TestPatchLineIndicesForLines(t *testing.T) {
 	patchBuilder := newTestPatchBuilder(simpleDiff)
 
-	indices, err := patchBuilder.PatchLineIndicesForLines("filename", "", []LineIdentity{
+	indices, everyChange, err := patchBuilder.PatchLineIndicesForLines("filename", "", []LineIdentity{
 		{LineNumber: 2, IsDeletion: true},  // -orange
 		{LineNumber: 2, IsDeletion: false}, // +grape
 		{LineNumber: 1, IsDeletion: false}, // " apple", a context line
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, []int{6, 7}, indices, "the context line names no change line")
+	assert.True(t, everyChange, "the two changes are all the diff has")
 }
 
 // A renamed file's rename header makes its change lines sit further down the diff, and
@@ -40,12 +41,44 @@ func TestPatchLineIndicesForLines(t *testing.T) {
 func TestPatchLineIndicesForLinesOfARenamedFile(t *testing.T) {
 	patchBuilder := newTestPatchBuilder(renameWithModificationDiff)
 
-	indices, err := patchBuilder.PatchLineIndicesForLines("newname", "oldname", []LineIdentity{
+	indices, everyChange, err := patchBuilder.PatchLineIndicesForLines("newname", "oldname", []LineIdentity{
 		{LineNumber: 2, IsDeletion: true},  // -orange
 		{LineNumber: 2, IsDeletion: false}, // +grape
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, []int{9, 10}, indices)
+	assert.True(t, everyChange)
+}
+
+// everyChange is about the diff alone: whether anything the file changes was left out
+// of the selection. What that then means for the patch is the caller's question.
+func TestPatchLineIndicesForLinesEveryChange(t *testing.T) {
+	patchBuilder := newTestPatchBuilder(newFile)
+
+	_, everyChange, err := patchBuilder.PatchLineIndicesForLines("newfile", "", []LineIdentity{
+		{LineNumber: 1},
+		{LineNumber: 2},
+	})
+	assert.NoError(t, err)
+	assert.False(t, everyChange, "the file's third added line is left out")
+
+	_, everyChange, err = patchBuilder.PatchLineIndicesForLines("newfile", "", []LineIdentity{
+		{LineNumber: 1},
+		{LineNumber: 2},
+		{LineNumber: 3},
+	})
+	assert.NoError(t, err)
+	assert.True(t, everyChange)
+
+	// A line the diff doesn't have doesn't stand in for one it does.
+	patchBuilder = newTestPatchBuilder(deletedFile)
+	_, everyChange, err = patchBuilder.PatchLineIndicesForLines("newfile", "", []LineIdentity{
+		{LineNumber: 1, IsDeletion: true},
+		{LineNumber: 2, IsDeletion: true},
+		{LineNumber: 4, IsDeletion: true},
+	})
+	assert.NoError(t, err)
+	assert.False(t, everyChange)
 }
 
 func TestIncludedLineIdentities(t *testing.T) {
