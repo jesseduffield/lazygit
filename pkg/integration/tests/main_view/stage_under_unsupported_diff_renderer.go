@@ -10,7 +10,7 @@ var StageUnderUnsupportedDiffRenderer = NewIntegrationTest(NewIntegrationTestArg
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		// `cat -n` numbers every line, which pushes the +/- column off the start of it:
 		// the diff can't be read back from the text, and cat says nothing about what it
 		// is rendering, so there is no way to act on what it produces.

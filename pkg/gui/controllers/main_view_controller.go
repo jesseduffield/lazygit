@@ -46,8 +46,8 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		{
 			Keys:            opts.GetKeys(opts.Config.Universal.TogglePanel),
 			Handler:         self.togglePanel,
-			Description:     self.c.Tr.ToggleStagingView,
-			Tooltip:         self.c.Tr.ToggleStagingViewTooltip,
+			Description:     self.c.Tr.ToggleDiffPane,
+			Tooltip:         self.c.Tr.ToggleDiffPaneTooltip,
 			DisplayOnScreen: true,
 		},
 		{

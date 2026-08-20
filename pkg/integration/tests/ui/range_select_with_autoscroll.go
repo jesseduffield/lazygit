@@ -14,7 +14,7 @@ var RangeSelectWithAutoscroll = NewIntegrationTest(NewIntegrationTestArgs{
 	Width:        120,
 	Height:       30,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		config.GetUserConfig().Gui.UseHunkModeInDiffView = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateNCommits(40)

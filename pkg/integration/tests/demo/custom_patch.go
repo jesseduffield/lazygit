@@ -22,7 +22,7 @@ var CustomPatch = NewIntegrationTest(NewIntegrationTestArgs{
 	IsDemo:       true,
 	SetupConfig: func(cfg *config.AppConfig) {
 		setDefaultDemoConfig(cfg)
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateNCommitsWithRandomMessages(30)

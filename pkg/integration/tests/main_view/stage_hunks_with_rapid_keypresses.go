@@ -14,7 +14,7 @@ var StageHunksWithRapidKeypresses = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = true
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = true
 	},
 	SetupRepo: func(shell *Shell) {
 		// Seven context lines between the two change blocks, so that git makes them two

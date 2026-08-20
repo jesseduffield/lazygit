@@ -10,7 +10,7 @@ var AdvanceAfterStagingShiftsLineNumbers = NewIntegrationTest(NewIntegrationTest
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = true
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = true
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "1\n2\n3\n4\n5\n6\n7\n8\n")

@@ -15,7 +15,7 @@ var KeepPositionInBothPanesWhenSwitchingDiffRenderers = NewIntegrationTest(NewIn
 	Width:        120,
 	Height:       30,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		// Renderers that speak the metadata protocol, so that focusing the main view
 		// keeps their rendering rather than falling back to git's own diff.
 		cfg.GetUserConfig().Git.DiffRenderers = []config.DiffRendererConfig{
