@@ -131,9 +131,9 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("    A file2ToRemove"),
 			).
 			NavigateToLine(Contains("multiLineFile")).
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
-		t.Views().PatchBuilding().
+		t.Views().Main().
 			IsFocused().
 			SelectedLine(
 				Contains("+this file has"),
