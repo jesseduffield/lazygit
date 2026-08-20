@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"time"
+
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
@@ -15,9 +17,12 @@ type MainViewController struct {
 	context      *context.MainContext
 	otherContext *context.MainContext
 
-	dragAutoscroller  *helpers.DragAutoscroller
-	draggingWithMouse bool
+	dragAutoscroller    *helpers.DragAutoscroller
+	draggingWithMouse   bool
+	lineFlashGeneration uint64
 }
+
+const editedLineFlashDuration = 200 * time.Millisecond
 
 var _ types.IController = &MainViewController{}
 
@@ -529,7 +534,24 @@ func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouse
 }
 
 func (self *MainViewController) editClickedLine(opts gocui.ViewMouseBindingOpts) error {
-	return self.editDiffLine(opts.Y)
+	var flashGeneration uint64
+	err := self.editDiffLine(opts.Y, func() {
+		self.lineFlashGeneration++
+		flashGeneration = self.lineFlashGeneration
+		self.context.GetView().SetLineFlash(opts.Y)
+		self.c.GocuiGui().ForceFlushViewsContentOnly(self.c.GocuiGui().Views())
+	})
+	if flashGeneration != 0 {
+		time.AfterFunc(editedLineFlashDuration, func() {
+			self.c.OnUIThreadContentOnlyBackground(func() error {
+				if self.lineFlashGeneration == flashGeneration {
+					self.context.GetView().ClearLineFlash()
+				}
+				return nil
+			})
+		})
+	}
+	return err
 }
 
 func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.ViewMouseBindingOpts) error {
@@ -984,13 +1006,16 @@ func (self *MainViewController) editLine() error {
 	if !view.Highlight {
 		return nil
 	}
-	return self.editDiffLine(view.SelectedLineIdx())
+	return self.editDiffLine(view.SelectedLineIdx(), nil)
 }
 
-func (self *MainViewController) editDiffLine(viewLine int) error {
+func (self *MainViewController) editDiffLine(viewLine int, beforeEdit func()) error {
 	info, ok := self.c.Helpers().DiffLine.GetDiffLineInfo(self.context.GetView(), viewLine)
 	if !ok {
 		return nil
+	}
+	if beforeEdit != nil {
+		beforeEdit()
 	}
 
 	// A file-header row points at the file as a whole rather than at a line in it, so
