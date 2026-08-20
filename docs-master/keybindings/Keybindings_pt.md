@@ -253,12 +253,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+f> `` | Encontrar commit da base para corrigir | Encontre o commit em que as suas mudanças atuais estão se baseando, para alterar/consertar o commit. Isso poupa-te você de ter que olhar pelos commits da sua branch um por um para ver qual commit deve ser alterado/consertado<br>Veja a documentação:<br><https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
-## Painel Principal (preparação)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` / `` | Pesquisar na visualização atual por texto |  |
-
 ## Painel de confirmação
 
 | Key | Action | Info |
@@ -282,12 +276,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` <esc> `` | Retornar ao painel de arquivos |  |
-
-## Painel principal (patch build)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Reflog
 

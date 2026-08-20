@@ -242,6 +242,10 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				{value: "commits,subCommits", valid: true},
 				{value: "invalid_value", valid: false},
 				{value: "commits, invalid_value", valid: false},
+				// The staging and patch-building panels are gone, so a config that
+				// still names their contexts is reported rather than fatal.
+				{value: "staging", valid: false},
+				{value: "patchBuilding", valid: false},
 			},
 		},
 		{

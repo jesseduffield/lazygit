@@ -220,8 +220,7 @@ func (self *DiffLineHelper) IsChangeLine(view *gocui.View, viewLineIdx int) bool
 // is shown as one solid block of changes — every row of its diff a change of the same
 // kind, no context — which is what a newly added or deleted file looks like. That is
 // the case where widening the selection to the change block would select the file
-// entire, so hunk mode drops to a single line there instead. It asks of a rendered
-// diff the question patch.Patch.IsSingleHunkForWholeFile asks of a patch.
+// entire, so hunk mode drops to a single line there instead.
 //
 // It says false while the diff is still being read in, since the rows that would
 // answer otherwise — a context line, a change of the other kind — may not have

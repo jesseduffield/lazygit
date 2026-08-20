@@ -84,20 +84,6 @@ func (gui *Gui) normalMainContextPair() types.MainContextPair {
 	)
 }
 
-func (gui *Gui) stagingMainContextPair() types.MainContextPair {
-	return types.NewMainContextPair(
-		gui.State.Contexts.Staging,
-		gui.State.Contexts.StagingSecondary,
-	)
-}
-
-func (gui *Gui) patchBuildingMainContextPair() types.MainContextPair {
-	return types.NewMainContextPair(
-		gui.State.Contexts.CustomPatchBuilder,
-		gui.State.Contexts.CustomPatchBuilderSecondary,
-	)
-}
-
 func (gui *Gui) mergingMainContextPair() types.MainContextPair {
 	return types.NewMainContextPair(
 		gui.State.Contexts.MergeConflicts,
@@ -108,8 +94,6 @@ func (gui *Gui) mergingMainContextPair() types.MainContextPair {
 func (gui *Gui) allMainContextPairs() []types.MainContextPair {
 	return []types.MainContextPair{
 		gui.normalMainContextPair(),
-		gui.stagingMainContextPair(),
-		gui.patchBuildingMainContextPair(),
 		gui.mergingMainContextPair(),
 	}
 }
