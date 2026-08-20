@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"time"
+
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
@@ -15,9 +17,12 @@ type MainViewController struct {
 	context      *context.MainContext
 	otherContext *context.MainContext
 
-	dragAutoscroller  *helpers.DragAutoscroller
-	draggingWithMouse bool
+	dragAutoscroller    *helpers.DragAutoscroller
+	draggingWithMouse   bool
+	lineFlashGeneration uint64
 }
+
+const editedLineFlashDuration = 200 * time.Millisecond
 
 var _ types.IController = &MainViewController{}
 
@@ -529,7 +534,42 @@ func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouse
 }
 
 func (self *MainViewController) editClickedLine(opts gocui.ViewMouseBindingOpts) error {
-	return self.editDiffLine(opts.Y)
+	var flashGeneration uint64
+	err := self.editDiffLine(opts.Y, func() {
+		self.lineFlashGeneration++
+		flashGeneration = self.lineFlashGeneration
+		self.context.GetView().SetLineFlash(self.lineToFlash(opts.Y))
+		self.c.GocuiGui().ForceFlushViewsContentOnly(self.c.GocuiGui().Views())
+	})
+	if flashGeneration != 0 {
+		time.AfterFunc(editedLineFlashDuration, func() {
+			self.c.OnUIThreadContentOnlyBackground(func() error {
+				if self.lineFlashGeneration == flashGeneration {
+					self.context.GetView().ClearLineFlash()
+				}
+				return nil
+			})
+		})
+	}
+	return err
+}
+
+// lineToFlash returns the view line to flash for an edit of the line clicked at the
+// given one. The editor is sent to where that line begins, so a long line wrapped over
+// several view lines is flashed at the first of them. If the editor wraps the line too,
+// its cursor ends up on the flashed line. When the line begins above the top of the
+// viewport, the clicked line is flashed, as the only part of the line on screen.
+func (self *MainViewController) lineToFlash(clickedViewLine int) int {
+	view := self.context.GetView()
+	bufferLine, ok := view.BufferLineForViewLine(clickedViewLine)
+	if !ok {
+		return clickedViewLine
+	}
+	firstViewLine, ok := view.ViewLineForBufferLine(bufferLine)
+	if !ok || firstViewLine < view.OriginY() {
+		return clickedViewLine
+	}
+	return firstViewLine
 }
 
 func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.ViewMouseBindingOpts) error {
@@ -984,13 +1024,16 @@ func (self *MainViewController) editLine() error {
 	if !view.Highlight {
 		return nil
 	}
-	return self.editDiffLine(view.SelectedLineIdx())
+	return self.editDiffLine(view.SelectedLineIdx(), nil)
 }
 
-func (self *MainViewController) editDiffLine(viewLine int) error {
+func (self *MainViewController) editDiffLine(viewLine int, beforeEdit func()) error {
 	info, ok := self.c.Helpers().DiffLine.GetDiffLineInfo(self.context.GetView(), viewLine)
 	if !ok {
 		return nil
+	}
+	if beforeEdit != nil {
+		beforeEdit()
 	}
 
 	// A file-header row points at the file as a whole rather than at a line in it, so
