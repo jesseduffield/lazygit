@@ -159,7 +159,7 @@ succession (§2.3); 10–11 any time after their dependencies.
 | 7 | Stage, unstage and discard changes directly from the focused main view | 4, 5, 6 | feature |
 | 8 | Build custom patches directly from a commit's diff view | 7 | feature |
 | 9 | Replace the staging and patch-building panels with the focused main view | 7, 8 | removal + migration |
-| 10 | Alt- or shift-click a diff line to open it in your editor | 2, 4 | feature |
+| 10 | Alt- or shift-click a diff line to open it in your editor | 2, 4, 5 | feature |
 | 11 | Open the selected diff line in the branch's GitHub PR | 5 | feature |
 
 ---
@@ -2102,7 +2102,13 @@ contexts/views before starting; expect a long tail of small fixes.
 
 ### PR 10 — Alt- or shift-click a diff line to open it in your editor
 
-Self-contained; after PR 4 (uses `GetDiffLineInfo`). Commits (N§19):
+**Status: DONE 2026-08-20** on branch
+`edit-diff-line-with-modified-click`, branched directly from PR 8 so that PR 9
+can follow independently. Six commits, each building, unit-testing, and
+linting clean; whole e2e suite passing. §6 interactive sign-off owed.
+
+Self-contained after PR 5 (uses PR 4's `GetDiffLineInfo` and PR 5's focused
+main-view edit path). Commits (N§19):
 
 1. **gocui: let a mouse binding opt into firing while a popup is focused**
    (`HandleWhenPopupPanelFocused`). Ref: ac85a90ed.
@@ -2126,9 +2132,27 @@ Self-contained; after PR 4 (uses `GetDiffLineInfo`). Commits (N§19):
 4. **The feature** — alt-left *and* shift-left both bound (no single chord
    survives Ghostty+iTerm2+VS Code — N§19.1); no focus change, no selection;
    works behind popups. Ref: a86da2e97.
+5. **gocui: give views a transient line flash** — reverse the configured
+   selection-width bar without changing the selection or replacing the diff
+   renderer's colors; clear all transient flashes when the UI suspends. Tests
+   cover drawing over an already-selected row and suspension cleanup.
+6. **Acknowledge modified-click edits with a 200 ms flash** — arm the flash
+   only after the clicked row resolves to an edit, and use a generation token
+   so an older click's timer cannot clear a newer flash. Force a content-only
+   draw before invoking the editor, so the acknowledgement precedes even a slow
+   editor CLI; the timeout begins after the invocation returns. A suspending
+   editor clears the flash before disengaging the terminal, so nothing appears
+   on resume.
 
 Interactive sign-off: Ghostty, iTerm2, VS Code (already done once for the
 prototype; re-confirm the transcription).
+
+As part of this PR we also implemented a refinement to the click handling in the
+main view: a plain click inside the currently selected hunk collapses the
+selection to the clicked line, matching how a click inside a range selection
+already behaves. This was included here as a separate commit because doing it as
+a fixup for the corresponding PR 5 commit would have conflicted too much
+(because code was later moved).
 
 ### PR 11 — Open the selected diff line in the branch's GitHub PR
 
@@ -2348,7 +2372,9 @@ The remaining rows are agreed as keep/defer:
       `stage-changes-in-main-view`. Plan commit 9 moved to PR 9; §6 sign-off
       owed
 - [ ] PR 9 — panel removal
-- [ ] PR 10 — alt/shift-click edit
+- [x] PR 10 — alt/shift-click edit — **DONE 2026-08-20** on branch
+   `edit-diff-line-with-modified-click` (6 commits, every commit green,
+   whole e2e suite passing), stacked directly on PR 8; §6 sign-off owed
 - [ ] PR 11 — open PR at line
 
 (Add per-commit checkboxes inside each PR section as work starts; record
@@ -2356,6 +2382,11 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-08-20:** **PR 10 implemented** (6 commits, green; §6 sign-off owed),
+  stacked directly on PR 8 so PR 9 remains independent. Added the agreed
+  non-suspending-editor feedback as a two-column reverse-bar flash; suspension
+  clears its state before terminal editors take over. Recorded the future
+  plain-click-inside-selected-hunk behavior separately from this PR.
 - **2026-08-19:** **PR 8 implemented** (10 commits + 4 fixups, green; §6 sign-off
   owed). Three decisions taken with the user up front: PR 8 stays one PR; the
   `a`/`b` tree paths a renderer states over the custom patch's trees are
