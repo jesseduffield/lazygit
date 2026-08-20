@@ -1,26 +1,28 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var ApplyWithModifiedFileConflict = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Apply a custom patch, with a modified file in the working tree that conflicts with the patch",
+var ApplyCustomPatchWithModifiedFile = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Apply a custom patch alongside a non-conflicting working-tree change",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.NewBranch("branch-a")
 		shell.CreateFileAndAdd("file1", "1\n2\n3\n")
 		shell.Commit("first commit")
 
 		shell.NewBranch("branch-b")
-		shell.UpdateFileAndAdd("file1", "11\n2\n3\n")
+		shell.UpdateFileAndAdd("file1", "1\n2\n3\n4\n")
 		shell.Commit("update")
 
 		shell.Checkout("branch-a")
-		shell.UpdateFile("file1", "111\n2\n3\n")
+		shell.UpdateFile("file1", "11\n2\n3\n")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().
@@ -45,39 +47,26 @@ var ApplyWithModifiedFileConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Equals("M file1").IsSelected(),
 			).
+			Press(keys.Universal.FocusMainView)
+
+		t.Views().Main().
+			IsFocused().
+			SelectedLines(Contains("+4")).
 			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))
-
-		t.Views().Secondary().Content(Contains("-1\n+11\n"))
-
+		t.Views().Secondary().Content(Contains("3\n+4"))
 		t.Common().SelectPatchOption(MatchesRegexp(`Apply patch$`))
 
 		t.ExpectPopup().Confirmation().Title(Equals("Must stage files")).
 			Content(Contains("Applying a patch to the index requires staging the unstaged files that are affected by the patch.")).
 			Confirm()
 
-		t.ExpectPopup().Alert().Title(Equals("Error")).
-			Content(Contains("Applied patch to 'file1' with conflicts.")).
-			Confirm()
-
 		t.Views().Files().
 			Focus().
 			Lines(
-				Equals("UU file1").IsSelected(),
-			).
-			PressEnter()
-
-		t.Views().MergeConflicts().
-			IsFocused().
-			Lines(
-				Equals("<<<<<<< ours"),
-				Equals("111"),
-				Equals("======="),
-				Equals("11"),
-				Equals(">>>>>>> theirs"),
-				Equals("2"),
-				Equals("3"),
+				Equals("M  file1").IsSelected(),
 			)
+		t.Views().Secondary().Content(Contains("-1\n+11\n 2\n 3\n+4"))
 	},
 })
