@@ -169,7 +169,7 @@ func (self *CommitDiffActions) removePatchLines(
 	}
 
 	patchBuilder := self.c.Git().Patch.PatchBuilder
-	previousPaths := self.previousPaths()
+	files := self.filesInDiff()
 	for path, ordinals := range self.c.Helpers().DiffLine.ChangeLineOrdinals(self.customPatchDiff(), lines) {
 		filename := self.patchBuilderPath(path)
 		if filename == "" {
@@ -185,7 +185,7 @@ func (self *CommitDiffActions) removePatchLines(
 		if len(indices) == 0 {
 			continue
 		}
-		if err := patchBuilder.RemoveFileLineRange(filename, previousPaths[filename], indices); err != nil {
+		if err := patchBuilder.RemoveFileLineRange(filename, files.previousPath(filename), indices); err != nil {
 			return err
 		}
 	}
@@ -346,41 +346,78 @@ func (self *CommitDiffActions) togglePatchLines(lines []types.DiffLineInfo) erro
 		return nil
 	}
 
-	previousPaths := self.previousPaths()
+	files := self.filesInDiff()
 	indicesByPath := map[string][]int{}
+	wholeFileByPath := map[string]bool{}
 	for _, path := range paths {
-		indices, err := patchBuilder.PatchLineIndicesForLines(path, previousPaths[path], linesByPath[path])
+		indices, everyChange, err := patchBuilder.PatchLineIndicesForLines(
+			path, files.previousPath(path), linesByPath[path])
 		if err != nil {
 			return err
 		}
 		indicesByPath[path] = indices
+
+		// Selecting every change of a file the commit adds or deletes is selecting the
+		// file: what the commit did to it is not something its content lines can carry,
+		// so a patch of those alone would move the content and leave the file behind.
+		wholeFileByPath[path] = everyChange && files.isWholeFileOperation(path)
 	}
 
-	included, err := patchBuilder.GetFileIncLineIndices(paths[0], previousPaths[paths[0]])
+	included, err := patchBuilder.GetFileIncLineIndices(paths[0], files.previousPath(paths[0]))
 	if err != nil {
 		return err
 	}
-	toggle := patchBuilder.AddFileLineRange
-	if first := indicesByPath[paths[0]]; len(first) > 0 && lo.Contains(included, first[0]) {
-		toggle = patchBuilder.RemoveFileLineRange
-	}
+	removing := len(indicesByPath[paths[0]]) > 0 && lo.Contains(included, indicesByPath[paths[0]][0])
 
 	for _, path := range paths {
 		if len(indicesByPath[path]) == 0 {
 			continue
 		}
-		if err := toggle(path, previousPaths[path], indicesByPath[path]); err != nil {
+		previousPath := files.previousPath(path)
+		var err error
+		switch {
+		case wholeFileByPath[path] && removing:
+			err = patchBuilder.RemoveFile(path, previousPath)
+		case wholeFileByPath[path]:
+			err = patchBuilder.AddFileWhole(path, previousPath)
+		case removing:
+			err = patchBuilder.RemoveFileLineRange(path, previousPath, indicesByPath[path])
+		default:
+			err = patchBuilder.AddFileLineRange(path, previousPath, indicesByPath[path])
+		}
+		if err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// previousPaths says which files of the diff were renamed, and what they were called
-// before. A renamed file's diff only comes out as a rename when git is asked about both
-// of its paths, and its lines are numbered in the file under its old name, so the patch
-// builder has to be told the old path along with them.
-func (self *CommitDiffActions) previousPaths() map[string]string {
+// commitDiffFiles records what the diff a patch is being built from says about each of
+// the files it covers, by the path the diff shows them under.
+type commitDiffFiles map[string]*models.CommitFile
+
+// previousPath says what a file of the diff was called before, and is empty for one
+// that wasn't renamed. A renamed file's diff only comes out as a rename when git is
+// asked about both of its paths, and its lines are numbered in the file under its old
+// name, so the patch builder has to be told the old path along with them.
+func (self commitDiffFiles) previousPath(path string) string {
+	if file, ok := self[path]; ok {
+		return file.PreviousPath
+	}
+	return ""
+}
+
+// isWholeFileOperation reports whether what the commit did to this file is something
+// its diff's content lines don't say: creating it or deleting it, which the file
+// header carries and a patch built from lines alone would leave out.
+func (self commitDiffFiles) isWholeFileOperation(path string) bool {
+	file, ok := self[path]
+	return ok && (file.Added() || file.Deleted())
+}
+
+// filesInDiff asks git which files the diff a patch is being built from covers, and
+// what it does to each.
+func (self *CommitDiffActions) filesInDiff() commitDiffFiles {
 	target := self.target()
 	if target == nil {
 		return nil
@@ -391,13 +428,9 @@ func (self *CommitDiffActions) previousPaths() map[string]string {
 		return nil
 	}
 
-	previousPaths := map[string]string{}
-	for _, file := range files {
-		if file.PreviousPath != "" {
-			previousPaths[file.Path] = file.PreviousPath
-		}
-	}
-	return previousPaths
+	return lo.SliceToMap(files, func(file *models.CommitFile) (string, *models.CommitFile) {
+		return file.Path, file
+	})
 }
 
 // patchEndpoints gives the two ends of the diff a patch is built from. They are the ends
