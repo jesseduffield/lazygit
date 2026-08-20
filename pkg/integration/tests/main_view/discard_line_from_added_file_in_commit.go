@@ -1,18 +1,19 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var DiscardLinesFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Discard specific lines from a commit using the 'd' shortcut in the patch building view",
+var DiscardLineFromAddedFileInCommit = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Discard one line from an added file in a commit",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("first commit")
-
 		shell.CreateFileAndAdd("file1", "1st line\n2nd line\n3rd line\n")
 		shell.Commit("commit to remove from")
 	},
@@ -30,15 +31,11 @@ var DiscardLinesFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("A file1").IsSelected(),
 			).
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
-		// Select the second line (+2nd line) and press 'd' to remove it
-		t.Views().PatchBuilding().
+		t.Views().Main().
 			IsFocused().
-			SelectNextItem().
-			SelectedLines(
-				Contains("+2nd line"),
-			).
+			NavigateToLine(Contains("+2nd line")).
 			Press(keys.Universal.Remove)
 
 		t.ExpectPopup().Confirmation().
@@ -46,18 +43,11 @@ var DiscardLinesFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(Equals("Are you sure you want to discard the selected lines from this commit?")).
 			Confirm()
 
-		// After the rebase, we should be back at the commit files view
-		// and the commit should now only contain the 1st and 3rd lines
-		t.Views().CommitFiles().
+		t.Views().Main().
 			IsFocused().
-			Lines(
-				Contains("A file1").IsSelected(),
-			).
-			PressEscape()
-
-		t.Views().Main().ContainsLines(
-			Equals("+1st line"),
-			Equals("+3rd line"),
-		)
+			ContainsLines(
+				Equals("+1st line"),
+				Equals("+3rd line"),
+			)
 	},
 })
