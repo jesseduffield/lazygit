@@ -78,7 +78,7 @@ gui:
   # If true, do not show a warning when amending a commit.
   skipAmendWarning: false
 
-  # If true, do not show a warning when discarding changes in the staging view.
+  # If true, do not show a warning when discarding changes from a focused diff.
   skipDiscardChangeWarning: false
 
   # If true, do not show warning when applying/popping the stash
@@ -908,7 +908,7 @@ It is used, for example, when pasting a commit message into the commit message p
 
 ## Configuring File Editing
 
-There are two commands for opening files, `o` for "open" and `e` for "edit". `o` acts as if the file was double-clicked in the Finder/Explorer, so it also works for non-text files, whereas `e` opens the file in an editor. `e` can also jump to the right line in the file if you invoke it from the staging panel, for example.
+There are two commands for opening files, `o` for "open" and `e` for "edit". `o` acts as if the file was double-clicked in the Finder/Explorer, so it also works for non-text files, whereas `e` opens the file in an editor. `e` can also jump to the right line in the file when you invoke it from a focused diff.
 
 To tell lazygit which editor to use for the `e` command, the easiest way to do that is to provide an editPreset config, e.g.
 
@@ -971,7 +971,7 @@ When the selected line gets close to the bottom of the window and you hit down-a
 
 That's the behavior when `gui.scrollOffBehavior` is set to "margin" (the default). If you set `gui.scrollOffBehavior` to "jump", then upon reaching the last line of a view and hitting down-arrow the view will scroll by half a page so that the selection ends up in the middle of the view. This may feel a little jarring because the cursor jumps around when continuously moving down, but it has the advantage that the view doesn't scroll as often.
 
-This setting applies both to all list views (e.g. commits and branches etc), and to the staging view.
+This setting applies both to all list views (e.g. commits and branches etc), and to focused diffs.
 
 ## Filtering
 
