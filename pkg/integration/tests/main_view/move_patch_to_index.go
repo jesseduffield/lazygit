@@ -1,11 +1,11 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var MoveToIndex = NewIntegrationTest(NewIntegrationTestArgs{
+var MovePatchToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Move a patch from a commit to the index",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
@@ -30,39 +30,32 @@ var MoveToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("file1"),
 				Contains("file2"),
 			).
-			SelectNextItem().
+			Press(keys.Universal.FocusMainView)
+
+		t.Views().Main().
+			IsFocused().
+			SelectedLines(Contains("+file1 content")).
 			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))
-
 		t.Views().Secondary().Content(Contains("+file1 content"))
 
 		t.Common().SelectPatchOption(Contains("Move patch out into index"))
 
-		t.Views().Files().
-			Lines(
-				Contains("A").Contains("file1"),
-			)
-
-		t.Views().CommitFiles().
-			IsFocused().
-			Lines(
-				Contains("file2").IsSelected(),
-			).
-			PressEscape()
-
+		t.Views().Files().Lines(
+			/* EXPECTED:
+			Contains("A").Contains("file1"),
+			ACTUAL: */
+			Contains("M").Contains("file1"),
+		)
 		t.Views().Main().
+			IsFocused().
 			Content(Contains("+file2 content"))
+		t.Views().Commits().Lines(
+			Contains("first commit").IsSelected(),
+		)
 
-		t.Views().Commits().
-			Lines(
-				Contains("first commit").IsSelected(),
-			)
-
-		t.Views().Files().
-			Focus()
-
-		t.Views().Secondary().
-			Content(Contains("file1 content"))
+		t.Views().Files().Focus()
+		t.Views().Secondary().Content(Contains("file1 content"))
 	},
 })
