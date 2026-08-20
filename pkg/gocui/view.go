@@ -79,11 +79,20 @@ type View struct {
 	// a user starts a range select and then moves the cursor up.
 	rangeSelectStartY int
 
+	// The view line whose selection-width bar is temporarily reversed. A value
+	// of -1 means that no line is flashing.
+	lineFlashY int
+
 	// readBuffer is used for storing unread bytes
 	readBuffer []byte
 
 	// tained is true if the viewLines must be updated
 	tainted bool
+
+	// needsRedraw is true if the view's current state has not been drawn to the
+	// screen yet. A tainted view always needs a redraw, but draw-only state can
+	// require one without invalidating viewLines.
+	needsRedraw bool
 
 	// firstDirtyLine is the index of the lowest line in `lines` that has been
 	// written to or highlighted since viewLines was last refreshed, and whose
@@ -265,9 +274,16 @@ type pos struct {
 // a view whose size has changed, whose content is the same but has to be wrapped
 // afresh, call RewrapContent instead.
 func (v *View) clearViewLines() {
-	v.tainted = true
+	v.markViewLinesDirty()
 	v.viewLines = nil
 	v.clearHover()
+}
+
+// markViewLinesDirty records that the cached viewLines no longer represent the
+// view's buffer or wrapping, so both rebuilding and redrawing are required.
+func (v *View) markViewLinesDirty() {
+	v.tainted = true
+	v.needsRedraw = true
 }
 
 // RewrapContent wraps the view's content for the size the view has now, and puts
@@ -581,6 +597,12 @@ func (v *View) SetRangeSelectStart(rangeSelectStartY int) {
 	v.rangeSelectStartY = rangeSelectStartY
 }
 
+// RangeSelectStartY returns the view line the range selection is anchored on,
+// or -1 when there is no range.
+func (v *View) RangeSelectStartY() int {
+	return v.rangeSelectStartY
+}
+
 func (v *View) CancelRangeSelect() {
 	v.rangeSelectStartY = -1
 }
@@ -713,11 +735,13 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 		Frame:             true,
 		Editor:            DefaultEditor,
 		tainted:           true,
+		needsRedraw:       true,
 		outMode:           mode,
 		buf:               &viewBuffer{ei: newEscapeInterpreter(mode)},
 		searcher:          &searcher{},
 		TextArea:          &TextArea{},
 		rangeSelectStartY: -1,
+		lineFlashY:        -1,
 		TabWidth:          4,
 	}
 
@@ -872,6 +896,10 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute, isW
 
 	if v.isHoveredHyperlink(x, y) {
 		fgColor |= AttrUnderline
+	}
+
+	if v.lineFlashY == v.oy+y && (v.SelectedLineColorWidth == 0 || x < v.SelectedLineColorWidth) {
+		fgColor ^= AttrReverse
 	}
 
 	// Don't display empty characters
@@ -1066,7 +1094,7 @@ func (v *View) write(p []byte) {
 		return
 	}
 
-	v.tainted = true
+	v.markViewLinesDirty()
 	// write only ever touches lines from v.buf.wy onwards, so any cached wrapping
 	// below that stays valid.
 	v.firstDirtyLine = min(v.firstDirtyLine, v.buf.wy)
@@ -1489,7 +1517,7 @@ func (v *View) SwapInOffscreenRender() {
 	}
 	v.buf = v.offscreen
 	v.offscreen = nil
-	v.tainted = true
+	v.markViewLinesDirty()
 	v.clearHover()
 }
 
@@ -1646,6 +1674,12 @@ func (v *View) IsTainted() bool {
 	return v.tainted
 }
 
+func (v *View) NeedsRedraw() bool {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+	return v.needsRedraw
+}
+
 // draw re-draws the view's contents.
 func (v *View) draw(isWindowFocused bool) {
 	v.writeMutex.Lock()
@@ -1654,6 +1688,7 @@ func (v *View) draw(isWindowFocused bool) {
 	if !v.Visible {
 		return
 	}
+	defer func() { v.needsRedraw = false }()
 
 	v.clearRunes()
 
@@ -2153,28 +2188,22 @@ func indexFunc(r rune) bool {
 	return r == ' ' || r == 0
 }
 
-// SetHighlight toggles highlighting of separate lines, for custom lists
-// or multiple selection in views.
-func (v *View) SetHighlight(y int, on bool) {
-	if y < 0 || y >= len(v.buf.lines) {
-		return
-	}
+// SetLineFlash temporarily marks a view line without moving or changing the
+// selection. The caller owns the lifetime and clears it with ClearLineFlash.
+func (v *View) SetLineFlash(viewLine int) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
 
-	cells := make([]cell, 0, len(v.buf.lines[y].cells))
-	for _, c := range v.buf.lines[y].cells {
-		if on {
-			c.bgColor = v.SelBgColor
-			c.fgColor = v.SelFgColor
-		} else {
-			c.bgColor = v.BgColor
-			c.fgColor = v.FgColor
-		}
-		cells = append(cells, c)
-	}
-	v.tainted = true
-	v.firstDirtyLine = min(v.firstDirtyLine, y)
-	v.buf.lines[y].cells = cells
-	v.clearHover()
+	v.lineFlashY = viewLine
+	v.needsRedraw = true
+}
+
+func (v *View) ClearLineFlash() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.lineFlashY = -1
+	v.needsRedraw = true
 }
 
 func lineWrap(line []cell, columns int) [][]cell {

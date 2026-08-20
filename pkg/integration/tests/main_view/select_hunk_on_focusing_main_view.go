@@ -46,7 +46,19 @@ var SelectHunkOnFocusingMainView = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("-nine"),
 				Contains("+NINE"),
 			).
-			// A click on a context line points at it precisely, so it stays a single line.
+			// A click inside the selected block collapses hunk mode to that line.
+			Click(0, 15).
+			SelectedLines(
+				Contains("+NINE"),
+			).
+			// Switch back to hunk mode so the context click below proves that it gives
+			// hunk mode up, rather than merely keeping line mode.
+			Press(keys.Main.ToggleSelectHunk).
+			SelectedLines(
+				Contains("-nine"),
+				Contains("+NINE"),
+			).
+			// A click on a context line points at it precisely, so it selects that line.
 			Click(0, 12).
 			SelectedLines(
 				Contains(" seven"),

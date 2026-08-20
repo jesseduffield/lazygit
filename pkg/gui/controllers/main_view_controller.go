@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"time"
+
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
@@ -15,9 +17,12 @@ type MainViewController struct {
 	context      *context.MainContext
 	otherContext *context.MainContext
 
-	dragAutoscroller  *helpers.DragAutoscroller
-	draggingWithMouse bool
+	dragAutoscroller    *helpers.DragAutoscroller
+	draggingWithMouse   bool
+	lineFlashGeneration uint64
 }
+
+const editedLineFlashDuration = 200 * time.Millisecond
 
 var _ types.IController = &MainViewController{}
 
@@ -225,6 +230,20 @@ func (self *MainViewController) GetMouseKeybindings(opts types.KeybindingsOpts) 
 			ViewName: self.context.GetViewName(),
 			Key:      gocui.MouseRelease,
 			Handler:  self.onDragRelease,
+		},
+		{
+			ViewName:                    self.context.GetViewName(),
+			Key:                         gocui.MouseLeft,
+			Modifier:                    gocui.ModAlt,
+			Handler:                     self.editClickedLine,
+			HandleWhenPopupPanelFocused: true,
+		},
+		{
+			ViewName:                    self.context.GetViewName(),
+			Key:                         gocui.MouseLeft,
+			Modifier:                    gocui.ModShift,
+			Handler:                     self.editClickedLine,
+			HandleWhenPopupPanelFocused: true,
 		},
 	}
 }
@@ -466,6 +485,27 @@ func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouse
 	return nil
 }
 
+func (self *MainViewController) editClickedLine(opts gocui.ViewMouseBindingOpts) error {
+	var flashGeneration uint64
+	err := self.editDiffLine(opts.Y, func() {
+		self.lineFlashGeneration++
+		flashGeneration = self.lineFlashGeneration
+		self.context.GetView().SetLineFlash(opts.Y)
+		self.c.GocuiGui().ForceFlushViewsContentOnly(self.c.GocuiGui().Views())
+	})
+	if flashGeneration != 0 {
+		time.AfterFunc(editedLineFlashDuration, func() {
+			self.c.OnUIThreadContentOnlyBackground(func() error {
+				if self.lineFlashGeneration == flashGeneration {
+					self.context.GetView().ClearLineFlash()
+				}
+				return nil
+			})
+		})
+	}
+	return err
+}
+
 func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.ViewMouseBindingOpts) error {
 	// Carry the select mode over from the pane we're leaving, so that clicking into
 	// the other pane keeps hunk mode even the first time we enter it — its own mode
@@ -563,10 +603,9 @@ func (self *MainViewController) handleDragAutoscroll(viewLine int) bool {
 }
 
 // selectClickedDiffLine sets the focused main view's selection from a click at the
-// given view line. In hunk mode a click on a change line keeps hunk mode and selects
-// that whole block, so clicking from hunk to hunk stays ready to act on one; a click
-// on context drops to a single line, as does any click when we weren't in hunk mode —
-// the click points at that line precisely, e.g. to edit it.
+// given view line. In hunk mode, clicking inside the selected block collapses it to
+// that line; clicking a change line outside it keeps hunk mode and selects that block.
+// A click on context, or any click outside hunk mode, selects just that line too.
 func (self *MainViewController) selectClickedDiffLine(viewLine int) {
 	if !self.isDiffView() {
 		return
@@ -575,10 +614,17 @@ func (self *MainViewController) selectClickedDiffLine(viewLine int) {
 	// Remember where the click landed so that a drag that follows anchors its range
 	// there, even when this click selects a whole hunk.
 	self.context.SetDragAnchorViewLine(viewLine)
-	if self.diffSelectState().Mode == types.DiffSelectModeHunk &&
-		self.c.Helpers().DiffLine.IsChangeLine(view, viewLine) {
-		self.selectHunkAround(viewLine, false)
-		return
+	if self.diffSelectState().Mode == types.DiffSelectModeHunk {
+		if start, end, ok := self.c.Helpers().DiffLine.SelectedHunkBounds(view); ok &&
+			viewLine >= start && viewLine <= end {
+			self.context.ResetDiffSelectMode()
+			self.c.Helpers().DiffLine.ShowSelectionAtLine(view, viewLine, false)
+			return
+		}
+		if self.c.Helpers().DiffLine.IsChangeLine(view, viewLine) {
+			self.selectHunkAround(viewLine, false)
+			return
+		}
 	}
 	self.context.ResetDiffSelectMode()
 	self.c.Helpers().DiffLine.ShowSelectionAtLine(view, viewLine, false)
@@ -878,10 +924,16 @@ func (self *MainViewController) editLine() error {
 	if !view.Highlight {
 		return nil
 	}
+	return self.editDiffLine(view.SelectedLineIdx(), nil)
+}
 
-	info, ok := self.c.Helpers().DiffLine.GetDiffLineInfo(view, view.SelectedLineIdx())
+func (self *MainViewController) editDiffLine(viewLine int, beforeEdit func()) error {
+	info, ok := self.c.Helpers().DiffLine.GetDiffLineInfo(self.context.GetView(), viewLine)
 	if !ok {
 		return nil
+	}
+	if beforeEdit != nil {
+		beforeEdit()
 	}
 
 	// A file-header row points at the file as a whole rather than at a line in it, so
