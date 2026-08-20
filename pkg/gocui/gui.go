@@ -1799,11 +1799,21 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 				break
 			}
 		}
-		if ev.Key.KeyName() == MouseLeft && ev.Key.Mod()&ModMotion == 0 {
+		// Bindings match modifiers exactly, so a gesture with a keyboard modifier held
+		// is a gesture of its own, and the bindings that act on a plain click pass it
+		// by. It therefore has to leave the view as it found it: the cursor stays where
+		// the selection is (a list view draws its selection at the cursor), and no
+		// mouse capture begins for a drag that no binding will extend. ModMotion comes
+		// from the mouse rather than the keyboard, and every drag carries it, so it is
+		// masked out here.
+		gestureIsModified := ev.Key.Mod()&^ModMotion != ModNone
+
+		if ev.Key.KeyName() == MouseLeft && ev.Key.Mod() == ModNone {
 			g.captureMouse(v)
 		}
 
-		if !IsMouseScrollKey(ev.Key.KeyName()) && ev.Key.KeyName() != MouseRelease {
+		if !IsMouseScrollKey(ev.Key.KeyName()) && ev.Key.KeyName() != MouseRelease &&
+			!gestureIsModified {
 			cursorX, cursorY := newCx, newCy
 			// A captured drag can report positions outside the view; keep the
 			// view cursor inside its bounds in that case. Handlers still get
