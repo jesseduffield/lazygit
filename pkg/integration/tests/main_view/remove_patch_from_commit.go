@@ -1,15 +1,17 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var RemoveFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Remove a custom patch from a commit",
+var RemovePatchFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Remove a whole-file custom patch from its original commit",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "file1 content\n")
 		shell.CreateFileAndAdd("file2", "file2 content\n")
@@ -30,30 +32,23 @@ var RemoveFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("file1"),
 				Contains("file2"),
 			).
-			SelectNextItem().
+			Press(keys.Universal.FocusMainView)
+
+		t.Views().Main().
+			IsFocused().
+			SelectedLines(Contains("+file1 content")).
 			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))
-
 		t.Views().Secondary().Content(Contains("+file1 content"))
-
 		t.Common().SelectPatchOption(Contains("Remove patch from original commit"))
 
 		t.Views().Files().IsEmpty()
-
-		t.Views().CommitFiles().
-			IsFocused().
-			Lines(
-				Contains("file2").IsSelected(),
-			).
-			PressEscape()
-
 		t.Views().Main().
+			IsFocused().
 			Content(Contains("+file2 content"))
-
-		t.Views().Commits().
-			Lines(
-				Contains("first commit").IsSelected(),
-			)
+		t.Views().Commits().Lines(
+			Contains("first commit").IsSelected(),
+		)
 	},
 })
