@@ -960,6 +960,32 @@ func TestSelectedLinesOfWrappedContent(t *testing.T) {
 	assert.Equal(t, []string{"a line that wraps"}, v.SelectedLines())
 }
 
+func TestLineFlashReversesTheSelectionBarWithoutChangingSelection(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal)
+	v.Highlight = true
+	v.SelBgColor = ColorBlue
+	v.SelectedLineColorWidth = 2
+	v.writeString("one\ntwo\nthree\n")
+	v.FocusPoint(0, 1, false)
+	v.SetLineFlash(1)
+	v.draw(true)
+
+	for x := 1; x <= 2; x++ {
+		_, style, _ := Screen.Get(x, 2)
+		assert.True(t, style.HasReverse(), "selection-bar cell at (%d, 2) should flash", x)
+	}
+	_, style, _ := Screen.Get(3, 2)
+	assert.False(t, style.HasReverse(), "the flash should stop after the selection bar")
+	assert.Equal(t, "two", v.SelectedLine(), "flashing should not change the selection")
+
+	v.ClearLineFlash()
+	v.draw(true)
+	_, style, _ = Screen.Get(1, 2)
+	assert.False(t, style.HasReverse(), "clearing should remove the flash")
+}
+
 // Resizing a view throws away the wrapping of its content and wraps it again for
 // the new width, which moves every line of it to a different view line. The
 // positions into the view count view lines, so they all have to come along.
