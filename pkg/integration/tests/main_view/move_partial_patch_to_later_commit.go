@@ -1,15 +1,17 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var MoveToNewCommitPartialHunk = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Move a patch from a commit to a new commit, with only parts of a hunk in the patch",
+var MovePartialPatchToLaterCommit = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Move one of two adjacent additions from a commit to a later commit",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "")
 		shell.Commit("first commit")
@@ -17,14 +19,14 @@ var MoveToNewCommitPartialHunk = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.UpdateFileAndAdd("file1", "1st line\n2nd line\n")
 		shell.Commit("commit to move from")
 
-		shell.UpdateFileAndAdd("file1", "1st line\n2nd line\n3rd line\n")
-		shell.Commit("third commit")
+		shell.UpdateFileAndAdd("unrelated-file", "")
+		shell.Commit("destination commit")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("third commit").IsSelected(),
+				Contains("destination commit").IsSelected(),
 				Contains("commit to move from"),
 				Contains("first commit"),
 			).
@@ -36,25 +38,21 @@ var MoveToNewCommitPartialHunk = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("file1").IsSelected(),
 			).
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
-		t.Views().PatchBuilding().
+		t.Views().Main().
 			IsFocused().
+			SelectedLines(Contains("+1st line")).
 			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))
-
-		t.Common().SelectPatchOption(Contains("Move patch into new commit after the original commit"))
-
-		t.ExpectPopup().CommitMessagePanel().
-			InitialText(Equals("")).
-			Type("new commit").Confirm()
+		t.Views().Commits().Focus().SelectPreviousItem()
+		t.Common().SelectPatchOption(Contains("Move patch to selected commit"))
 
 		t.Views().Commits().
 			IsFocused().
 			Lines(
-				Contains("third commit"),
-				Contains("new commit").IsSelected(),
+				Contains("destination commit").IsSelected(),
 				Contains("commit to move from"),
 				Contains("first commit"),
 			).
@@ -63,22 +61,18 @@ var MoveToNewCommitPartialHunk = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("file1").IsSelected(),
+				Equals("▼ /").IsSelected(),
+				Contains("file1"),
+				Contains("unrelated-file"),
 			).
+			SelectNextItem().
 			Tap(func() {
-				t.Views().Main().
-					Content(Contains("+1st line\n 2nd line"))
+				t.Views().Main().Content(Contains("+1st line\n 2nd line"))
 			}).
 			PressEscape()
 
 		t.Views().Commits().
 			IsFocused().
-			Lines(
-				Contains("third commit"),
-				Contains("new commit").IsSelected(),
-				Contains("commit to move from"),
-				Contains("first commit"),
-			).
 			SelectNextItem().
 			PressEnter()
 
@@ -88,9 +82,7 @@ var MoveToNewCommitPartialHunk = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("file1").IsSelected(),
 			).
 			Tap(func() {
-				t.Views().Main().
-					Content(Contains("+2nd line").
-						DoesNotContain("1st line"))
+				t.Views().Main().Content(Contains("+2nd line").DoesNotContain("1st line"))
 			})
 	},
 })
