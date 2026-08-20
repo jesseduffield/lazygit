@@ -50,13 +50,14 @@ var PullRebaseInteractiveConflictDrop = NewIntegrationTest(NewIntegrationTestArg
 			Focus().
 			Lines(
 				Contains("─── Pending rebase todos"),
-				Contains("pick").Contains("five").IsSelected(),
-				Contains("pick").Contains("CONFLICT").Contains("four"),
+				Contains("pick").Contains("five"),
+				Contains("pick").Contains("CONFLICT").Contains("four").IsSelected(),
 				Contains("─── Commits"),
 				Contains("three"),
 				Contains("two"),
 				Contains("one"),
 			).
+			NavigateToLine(Contains("five")).
 			Press(keys.Universal.Remove).
 			Lines(
 				Contains("─── Pending rebase todos"),

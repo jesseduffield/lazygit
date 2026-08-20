@@ -2,7 +2,6 @@ package git_commands
 
 import (
 	"fmt"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -90,26 +89,6 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 	}
 
 	self.setConflictMarkerSizes(files)
-
-	// Go through the files to see if any of these files are actually worktrees
-	// so that we can render them correctly
-	worktreePaths := linkedWortkreePaths(self.Fs, self.repoPaths.RepoGitDirPath())
-	for _, file := range files {
-		for _, worktreePath := range worktreePaths {
-			absFilePath, err := filepath.Abs(file.Path)
-			if err != nil {
-				self.Log.Error(err)
-				continue
-			}
-			if absFilePath == worktreePath {
-				file.IsWorktree = true
-				// `git status` renders this worktree as a folder with a trailing slash but we'll represent it as a singular worktree
-				// If we include the slash, it will be rendered as a folder with a null file inside.
-				file.Path = strings.TrimSuffix(file.Path, "/")
-				break
-			}
-		}
-	}
 
 	return files
 }

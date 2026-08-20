@@ -130,10 +130,11 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			OpensMenu:   true,
 		},
 		{
-			Keys:        opts.GetKeys(opts.Config.Files.ToggleStagedAll),
-			Handler:     self.toggleStagedAll,
-			Description: self.c.Tr.ToggleStagedAll,
-			Tooltip:     self.c.Tr.ToggleStagedAllTooltip,
+			Keys:              opts.GetKeys(opts.Config.Files.ToggleStagedAll),
+			Handler:           self.toggleStagedAll,
+			GetDisabledReason: self.require(self.anyFilesDisplayed),
+			Description:       self.c.Tr.ToggleStagedAll,
+			Tooltip:           self.c.Tr.ToggleStagedAllTooltip,
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.GoInto),
@@ -375,8 +376,8 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 	mainShowsStaged := !split && node.GetHasStagedChanges()
 
-	pathOverrides := self.pathOverridesForDiff(node)
-	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, pathOverrides)
+	paths := self.pathsForDiff(node)
+	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, paths)
 	title := self.c.Tr.UnstagedChanges
 	if mainShowsStaged {
 		title = self.c.Tr.StagedChanges
@@ -391,7 +392,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	}
 
 	if split {
-		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, pathOverrides)
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, paths)
 
 		title := self.c.Tr.StagedChanges
 		if mainShowsStaged {
@@ -649,19 +650,9 @@ func (self *FilesController) press(nodes []*filetree.FileNode) error {
 	return nil
 }
 
-// pathOverridesForDiff returns file paths to override the node's path in diff
-// commands when a text filter is active and the node is a directory. This
-// ensures the diff only shows filtered/visible files.
-func (self *FilesController) pathOverridesForDiff(node *filetree.FileNode) []string {
-	if !node.IsFile() && self.context().IsFiltering() {
-		var paths []string
-		_ = node.ForEachFile(func(file *models.File) error {
-			paths = append(paths, file.Path)
-			return nil
-		})
-		return paths
-	}
-	return nil
+func (self *FilesController) pathsForDiff(node *filetree.FileNode) []string {
+	return diffPathsForNode(
+		node.Raw(), self.context().GetRoot().Raw(), self.c.Model().Files, self.context().IsFiltering())
 }
 
 // unstageFilteredFiles unstages only the visible (filtered) files from the
@@ -968,6 +959,17 @@ func (self *FilesController) openSubmoduleConflictMenu(file *models.File) error 
 			},
 		},
 	})
+}
+
+// The stage-all command acts on the file tree as it is displayed, so there has
+// to be something in it. This is also the case before the first files refresh
+// has come in, when there is no tree at all yet.
+func (self *FilesController) anyFilesDisplayed() *types.DisabledReason {
+	if self.context().FileTreeViewModel.Len() == 0 {
+		return &types.DisabledReason{Text: self.c.Tr.NoChangedFiles}
+	}
+
+	return nil
 }
 
 func (self *FilesController) toggleStagedAll() error {

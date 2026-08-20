@@ -50,7 +50,7 @@ var PullRebaseInteractiveConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("─── Pending rebase todos"),
 				Contains("pick").Contains("five"),
-				Contains("pick").Contains("CONFLICT").Contains("four"),
+				Contains("pick").Contains("CONFLICT").Contains("four").IsSelected(),
 				Contains("─── Commits"),
 				Contains("three"),
 				Contains("two"),
@@ -83,13 +83,12 @@ var PullRebaseInteractiveConflict = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("five").IsSelected(),
-				Contains("four"),
+				Contains("five"),
+				Contains("four").IsSelected(),
 				Contains("three"),
 				Contains("two"),
 				Contains("one"),
-			).
-			SelectNextItem()
+			)
 
 		t.Views().Main().
 			Content(

@@ -7,7 +7,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -16,23 +15,33 @@ import (
 	"go/token"
 	"io"
 	"io/fs"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
 	"runtime/pprof"
+	"strconv"
 	"strings"
 	"sync"
 
+	// NOTE(gofumpt): x/mod/modfile is used to read each file's go.mod for the
+	// default -lang and -modpath, and to honor `ignore` directives.
 	"golang.org/x/mod/modfile"
 	"golang.org/x/sync/semaphore"
 
+	// NOTE(gofumpt): the format package exposes gofumpt's added rules and
+	// simplification as a public Go API. diff and go/printer are vendored
+	// copies frozen at a specific Go version, so gofumpt's output is
+	// reproducible regardless of the user's Go toolchain.
 	gformat "mvdan.cc/gofumpt/format"
 	"mvdan.cc/gofumpt/internal/govendor/diff"
 	"mvdan.cc/gofumpt/internal/govendor/go/printer"
 	gversion "mvdan.cc/gofumpt/internal/version"
 )
 
+// NOTE(gofumpt): regenerate the vendored Go source under internal/govendor,
+// then re-format it with the freshly built gofumpt binary.
 //go:generate go run gen_govendor.go
 //go:generate go run . -w internal/govendor
 
@@ -46,17 +55,36 @@ var (
 	// debugging
 	cpuprofile = flag.String("cpuprofile", "", "")
 
-	// gofumpt's own flags
+	// NOTE(gofumpt): gofumpt's own flags.
+	// -lang sets the target Go language version for version-gated rules
+	// (e.g. octal literal syntax requires go1.13); defaulted from go.mod.
+	// -modpath sets the current module path so import grouping can treat
+	// imports sharing that prefix as third-party; defaulted from go.mod.
+	// -extra opts in to non-default rules like group_params.
+	// -version prints the gofumpt build version (set via -ldflags=main.version=).
 	langVersion = flag.String("lang", "", "")
 	modulePath  = flag.String("modpath", "", "")
-	extraRules  = flag.Bool("extra", false, "")
+	extraRules  gformat.Extra
 	showVersion = flag.Bool("version", false, "")
 
-	// DEPRECATED
+	// NOTE(gofumpt): -r and -s are kept only to print a friendly error.
+	// -r was dropped in favor of `gofmt -r`; -s is always on (gofumpt always
+	// simplifies).
 	rewriteRule = flag.String("r", "", "")
 	simplifyAST = flag.Bool("s", false, "")
+
+	// errors
+	// NOTE(gofumpt): sentinel used to drive exit code 1 when -d found
+	// formatting differences. Upstream gofmt does not change its exit code
+	// on -d; gofumpt's -d acts like `diff` so CI checks can rely on the
+	// nonzero exit. See reporter.Report below.
+	errFormattingDiffers = fmt.Errorf("formatting differs from gofumpt's")
 )
 
+func init() { flag.Var(&extraRules, "extra", "") }
+
+// NOTE(gofumpt): set via -ldflags=main.version=... at release time so that
+// `gofumpt -version` reports a meaningful string for prebuilt binaries.
 var version = ""
 
 // Keep these in sync with go/format/format.go.
@@ -81,10 +109,22 @@ const (
 // so this limit may be approximate.
 var fdSem = make(chan bool, 200)
 
-var (
-	fileSet    = token.NewFileSet() // per process FileSet
-	parserMode parser.Mode
-)
+// NOTE(gofumpt): upstream gofmt declares `rewrite` here for the -r flag; we
+// dropped that.
+var parserMode parser.Mode
+
+// newFileSet returns a fresh token.FileSet for parsing a single file.
+//
+// NOTE(gofumpt): we reserve base 1 with a dummy ten-byte file so that
+// token.NoPos+1 cannot be a valid position in any real file added later.
+// Some of gofumpt's added rules construct positions via token.NoPos+1;
+// without this guard, tests starting from an empty FileSet would silently
+// map NoPos+1 to a valid offset and hide bugs like #166.
+func newFileSet() *token.FileSet {
+	fset := token.NewFileSet()
+	fset.AddFile("gofumpt_base.go", 1, 10)
+	return fset
+}
 
 func usage() {
 	fmt.Fprintf(os.Stderr, `usage: gofumpt [flags] [path ...]
@@ -94,7 +134,7 @@ func usage() {
 	-e        report all errors (not just the first 10 on different lines)
 	-l        list files whose formatting differs from gofumpt's
 	-w        write result to (source) file instead of stdout
-	-extra    enable extra rules which should be vetted by a human
+	-extra    enable extra rules, e.g. -extra=group_params,clothe_returns
 
 	-lang       str    target Go version in the form "go1.X" (default from go.mod)
 	-modpath    str    Go module path containing the source file (default from go.mod)
@@ -102,16 +142,27 @@ func usage() {
 }
 
 func initParserMode() {
+	// NOTE(gofumpt): always SkipObjectResolution. Upstream only sets it when
+	// -r is unused (object resolution is needed for the rewrite engine), but
+	// gofumpt has no -r flag, so we can always skip it for speed.
 	parserMode = parser.ParseComments | parser.SkipObjectResolution
 	if *allErrors {
 		parserMode |= parser.AllErrors
 	}
 }
 
+// NOTE(gofumpt): split out from upstream's isGoFile. Upstream combined the
+// name check with `!f.IsDir()`, but gofumpt's WalkDir callback already
+// distinguishes directories, and explicit non-.go arguments are formatted too,
+// so the name-only test is needed independently.
 func isGoFilename(name string) bool {
 	return !strings.HasPrefix(name, ".") && strings.HasSuffix(name, ".go")
 }
 
+// NOTE(gofumpt): generated-file detection. gofumpt's added rules are not
+// applied to generated Go files unless they are passed explicitly on the
+// command line; this avoids churning machine-written code that humans don't
+// edit. See processFile below for the `explicit || !isGenerated(file)` gate.
 var rxCodeGenerated = regexp.MustCompile(`^// Code generated .* DO NOT EDIT\.$`)
 
 func isGenerated(file *ast.File) bool {
@@ -255,10 +306,9 @@ func (r *reporter) Report(err error) {
 		panic("Report with nil error")
 	}
 	st := r.getState()
-	switch err.(type) {
-	case printedDiff:
+	if err == errFormattingDiffers {
 		st.exitCode = 1
-	default:
+	} else {
 		scanner.PrintError(st.err, err)
 		st.exitCode = 2
 	}
@@ -268,25 +318,23 @@ func (r *reporter) ExitCode() int {
 	return r.getState().exitCode
 }
 
-type printedDiff struct{}
-
-func (printedDiff) Error() string { return "printed a diff, exiting with status code 1" }
-
 // If info == nil, we are formatting stdin instead of a file.
 // If in == nil, the source is the contents of the file with the given filename.
+//
+// NOTE(gofumpt): the `explicit` parameter (added vs upstream) tracks whether
+// this file was named directly on the command line. Explicit files always get
+// the gofumpt rules applied (even generated files); walked files do not when
+// they look generated. It also forces non-.go explicit args to be formatted.
 func processFile(filename string, info fs.FileInfo, in io.Reader, r *reporter, explicit bool) error {
 	src, err := readFile(filename, info, in)
 	if err != nil {
 		return err
 	}
 
-	fileSet := token.NewFileSet()
-	fragmentOk := false
-	if info == nil {
-		// If we are formatting stdin, we accept a program fragment in lieu of a
-		// complete source file.
-		fragmentOk = true
-	}
+	fileSet := newFileSet()
+	// If we are formatting stdin, we accept a program fragment in lieu of a
+	// complete source file.
+	fragmentOk := info == nil
 	file, sourceAdj, indentAdj, err := parse(fileSet, filename, src, fragmentOk)
 	if err != nil {
 		return err
@@ -294,7 +342,12 @@ func processFile(filename string, info fs.FileInfo, in io.Reader, r *reporter, e
 
 	ast.SortImports(fileSet, file)
 
-	// Apply gofumpt's changes before we print the code in gofumpt's format.
+	// NOTE(gofumpt): from here until the call to format() below is the
+	// gofumpt-specific work upstream gofmt does not do: resolve -lang and
+	// -modpath defaults from the file's containing go.mod, then run
+	// gformat.File to apply the added rules (and simplification, which
+	// gofumpt always runs in lieu of the dropped -s flag). Apply gofumpt's
+	// changes before we print the code in gofumpt's format.
 
 	// If either -lang or -modpath aren't set, fetch them from go.mod.
 	lang := *langVersion
@@ -314,8 +367,8 @@ func processFile(filename string, info fs.FileInfo, in io.Reader, r *reporter, e
 					lang = "go" + mod.file.Go.Version
 				}
 			}
-			if modpath == "" {
-				modpath = mod.file.Module.Mod.Path
+			if m := mod.file.Module; m != nil && modpath == "" {
+				modpath = m.Mod.Path
 			}
 		}
 	}
@@ -327,7 +380,7 @@ func processFile(filename string, info fs.FileInfo, in io.Reader, r *reporter, e
 		gformat.File(fileSet, file, gformat.Options{
 			LangVersion: lang,
 			ModulePath:  modpath,
-			ExtraRules:  *extraRules,
+			Extra:       extraRules,
 		})
 	}
 
@@ -345,21 +398,9 @@ func processFile(filename string, info fs.FileInfo, in io.Reader, r *reporter, e
 			if info == nil {
 				panic("-w should not have been allowed with stdin")
 			}
-			// make a temporary backup before overwriting original
+
 			perm := info.Mode().Perm()
-			bakname, err := backupFile(filename+".", src, perm)
-			if err != nil {
-				return err
-			}
-			fdSem <- true
-			err = os.WriteFile(filename, res, perm)
-			<-fdSem
-			if err != nil {
-				os.Rename(bakname, filename)
-				return err
-			}
-			err = os.Remove(bakname)
-			if err != nil {
+			if err := writeFile(filename, src, res, perm, info.Size()); err != nil {
 				return err
 			}
 		}
@@ -367,7 +408,7 @@ func processFile(filename string, info fs.FileInfo, in io.Reader, r *reporter, e
 			newName := filepath.ToSlash(filename)
 			oldName := newName + ".orig"
 			r.Write(diff.Diff(oldName, src, newName, res))
-			return printedDiff{}
+			return errFormattingDiffers
 		}
 	}
 
@@ -459,13 +500,12 @@ func main() {
 }
 
 func gofmtMain(s *sequencer) {
-	// Ensure our parsed files never start with base 1,
-	// to ensure that using token.NoPos+1 will panic.
-	fileSet.AddFile("gofumpt_base.go", 1, 10)
-
 	flag.Usage = usage
 	flag.Parse()
 
+	// NOTE(gofumpt): friendly handling of the dropped -s and -r flags so users
+	// migrating from gofmt get a clear message rather than "flag provided but
+	// not defined". -s is always on; -r is delegated to `gofmt -r`.
 	if *simplifyAST {
 		fmt.Fprintf(os.Stderr, "warning: -s is deprecated as it is always enabled\n")
 	}
@@ -474,7 +514,9 @@ func gofmtMain(s *sequencer) {
 		os.Exit(2)
 	}
 
-	// Print the gofumpt version if the user asks for it.
+	// NOTE(gofumpt): print the gofumpt version if the user asks for it.
+	// -version dumps the build version and any embedded build-info fields
+	// (see internal/version), useful for bug reports and `//gofumpt:diagnose`.
 	if *showVersion {
 		fmt.Println(gversion.String(version))
 		return
@@ -510,6 +552,14 @@ func gofmtMain(s *sequencer) {
 		return
 	}
 
+	// NOTE(gofumpt): the argument-walking loop below is rewritten vs upstream.
+	// Upstream branched on os.Stat (file vs dir); gofumpt always uses
+	// filepath.WalkDir and tracks `explicit := path == arg` so that:
+	//   - explicit non-.go and explicit generated files are still formatted;
+	//   - vendor/testdata directories and go.mod `ignore` entries are skipped
+	//     during walks but honored when named directly (so `gofumpt -w vendor`
+	//     still works);
+	//   - the explicit bit propagates into processFile to gate gofumpt rules.
 	for _, arg := range args {
 		// Walk each given argument as a directory tree.
 		// If the argument is not a directory, it's always formatted as a Go file.
@@ -544,6 +594,10 @@ func gofmtMain(s *sequencer) {
 	}
 }
 
+// NOTE(gofumpt): everything from here to the end of the file is gofumpt-only.
+// shouldIgnore implements skipping `vendor` and `testdata` directories during
+// walks, plus honoring Go 1.25's `ignore` directives in go.mod. These are
+// skipped during recursive walks but still formatted when named explicitly.
 func shouldIgnore(path string) bool {
 	switch filepath.Base(path) {
 	case "vendor", "testdata":
@@ -594,6 +648,13 @@ func matchIgnore(ignore, relPath string) bool {
 	return strings.HasSuffix(relPath, ignore)
 }
 
+// NOTE(gofumpt): module loading is gofumpt-only. The go.mod is consulted for
+// the default -lang (Go language version, used by version-gated rules), the
+// default -modpath (so imports sharing the module prefix are grouped as
+// third-party), and the `ignore` directives consumed by shouldIgnore above.
+// Results are cached per directory; loadModule walks up to find an enclosing
+// go.mod just like the go command would.
+//
 // A nil entry means the directory is not part of a Go module,
 // or a go.mod file was found but it's invalid.
 // A non-nil entry means this directory, or a parent, is in a valid Go module.
@@ -614,7 +675,10 @@ func loadModule(dir string) *cachedModule {
 		fdSem <- true
 		data, err := os.ReadFile(path)
 		<-fdSem
-		if errors.Is(err, fs.ErrNotExist) {
+		if err != nil {
+			// If the file is missing, or we can't read this directory at all
+			// (e.g. permission denied on a directory listed in `ignore`), keep
+			// walking up to find an enclosing go.mod.
 			parent := filepath.Dir(dir)
 			if parent == "." {
 				panic("loadModule was not given an absolute path?")
@@ -623,9 +687,6 @@ func loadModule(dir string) *cachedModule {
 				return nil // reached the filesystem root
 			}
 			return loadModule(parent) // try the parent directory
-		}
-		if err != nil {
-			return nil // some other file reading error
 		}
 		file, err := modfile.Parse(filepath.Join(dir, "go.mod"), data, nil)
 		if err != nil {
@@ -663,32 +724,111 @@ func fileWeight(path string, info fs.FileInfo) int64 {
 	return info.Size()
 }
 
-const chmodSupported = runtime.GOOS != "windows"
+// writeFile updates a file with the new formatted data.
+func writeFile(filename string, orig, formatted []byte, perm fs.FileMode, size int64) error {
+	// Make a temporary backup file before rewriting the original file.
+	bakname, err := backupFile(filename, orig, perm)
+	if err != nil {
+		return err
+	}
+
+	fdSem <- true
+	defer func() { <-fdSem }()
+
+	fout, err := os.OpenFile(filename, os.O_WRONLY, perm)
+	if err != nil {
+		// We couldn't even open the file, so it should
+		// not have changed.
+		os.Remove(bakname)
+		return err
+	}
+	defer fout.Close() // for error paths
+
+	restoreFail := func(err error) {
+		fmt.Fprintf(os.Stderr, "gofumpt: %s: error restoring file to original: %v; backup in %s\n", filename, err, bakname)
+	}
+
+	n, err := fout.Write(formatted)
+	if err == nil && int64(n) < size {
+		err = fout.Truncate(int64(n))
+	}
+
+	if err != nil {
+		// Rewriting the file failed.
+
+		if n == 0 {
+			// Original file unchanged.
+			os.Remove(bakname)
+			return err
+		}
+
+		// Try to restore the original contents.
+
+		no, erro := fout.WriteAt(orig, 0)
+		if erro != nil {
+			// That failed too.
+			restoreFail(erro)
+			return err
+		}
+
+		if no < n {
+			// Original file is shorter. Truncate.
+			if erro = fout.Truncate(int64(no)); erro != nil {
+				restoreFail(erro)
+				return err
+			}
+		}
+
+		if erro := fout.Close(); erro != nil {
+			restoreFail(erro)
+			return err
+		}
+
+		// Original contents restored.
+		os.Remove(bakname)
+		return err
+	}
+
+	if err := fout.Close(); err != nil {
+		restoreFail(err)
+		return err
+	}
+
+	// File updated.
+	os.Remove(bakname)
+	return nil
+}
 
 // backupFile writes data to a new file named filename<number> with permissions perm,
-// with <number randomly chosen such that the file name is unique. backupFile returns
+// with <number> randomly chosen such that the file name is unique. backupFile returns
 // the chosen file name.
 func backupFile(filename string, data []byte, perm fs.FileMode) (string, error) {
 	fdSem <- true
 	defer func() { <-fdSem }()
 
-	// create backup file
-	f, err := os.CreateTemp(filepath.Dir(filename), filepath.Base(filename))
-	if err != nil {
-		return "", err
+	nextRandom := func() string {
+		return strconv.Itoa(rand.Int())
 	}
-	bakname := f.Name()
-	if chmodSupported {
-		err = f.Chmod(perm)
-		if err != nil {
-			f.Close()
-			os.Remove(bakname)
-			return bakname, err
+
+	dir, base := filepath.Split(filename)
+	var (
+		bakname string
+		f       *os.File
+	)
+	for {
+		bakname = filepath.Join(dir, base+"."+nextRandom())
+		var err error
+		f, err = os.OpenFile(bakname, os.O_RDWR|os.O_CREATE|os.O_EXCL, perm)
+		if err == nil {
+			break
+		}
+		if !os.IsExist(err) {
+			return "", err
 		}
 	}
 
 	// write data to backup file
-	_, err = f.Write(data)
+	_, err := f.Write(data)
 	if err1 := f.Close(); err == nil {
 		err = err1
 	}

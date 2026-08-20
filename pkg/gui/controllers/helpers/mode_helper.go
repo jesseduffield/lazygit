@@ -270,11 +270,6 @@ func (self *ModeHelper) changeFiltering(setFilter func(), selectCommit func()) e
 
 				selectCommit()
 				self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
-				// The list we just selected in has nothing to do with the one
-				// that was showing, so wherever it was scrolled to says nothing
-				// about where the selection now is. PostRefreshUpdate leaves the
-				// scroll position alone, so ask for it separately.
-				self.c.Contexts().LocalCommits.FocusLine(true)
 				return nil
 			},
 		})

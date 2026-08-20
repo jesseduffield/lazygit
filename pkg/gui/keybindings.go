@@ -295,8 +295,9 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 	}
 
-	mouseKeybindings := []*gocui.ViewMouseBinding{}
-	for _, c := range gui.State.Contexts.Flatten() {
+	contexts := gui.State.Contexts.Flatten()
+	mouseKeybindings := make([]*gocui.ViewMouseBinding, 0, len(contexts))
+	for _, c := range contexts {
 		viewName := c.GetViewName()
 		for _, binding := range c.GetKeybindings(opts) {
 			// TODO: move all mouse keybindings into the mouse keybindings approach below

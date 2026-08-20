@@ -385,26 +385,21 @@ func (self *WorkingTreeCommands) Exclude(filename string) error {
 // WorktreeFileDiff returns the diff of a file
 func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached, nil).RunWithOutput()
+	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached, file.Names()).RunWithOutput()
 	return s
 }
 
-// WorktreeFileDiffCmdObj returns a command object for diffing a file or directory
-// in the working tree. When pathOverrides is non-empty, those paths are used instead of
-// the node's path (used to diff only filtered/visible files within a directory).
-func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool, pathOverrides []string) *oscommands.CmdObj {
+// WorktreeFileDiffCmdObj returns a command object for diffing the given paths
+// in the working tree. node is the item they belong to; all it decides is
+// whether git has to compare against /dev/null, which is the case for a file
+// that isn't in the index yet.
+func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool, paths []string) *oscommands.CmdObj {
 	colorArg := self.diffRendererConfigManager.GetColorArg()
 	if plain {
 		colorArg = "never"
 	}
 
-	prevPath := node.GetPreviousPath()
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
-
-	paths := pathOverrides
-	if len(paths) == 0 {
-		paths = []string{node.GetPath()}
-	}
 
 	cmdArgs := NewGitCmd("diff").
 		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
@@ -415,7 +410,6 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 		Arg("--").
 		ArgIf(noIndex, "/dev/null").
 		Arg(paths...).
-		ArgIf(prevPath != "", prevPath).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()
 

@@ -2000,6 +2000,20 @@
             }
           ],
           "default": "="
+        },
+        "collapseParent": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cbackspace\u003e"
         }
       },
       "additionalProperties": false,

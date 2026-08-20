@@ -44,7 +44,8 @@ func (self *Hunk) lineCount() int {
 
 // Returns all lines in the hunk, including the header line
 func (self *Hunk) allLines() []*PatchLine {
-	lines := []*PatchLine{{Content: self.formatHeaderLine(), Kind: HUNK_HEADER}}
+	lines := make([]*PatchLine, 1, 1+len(self.bodyLines))
+	lines[0] = &PatchLine{Content: self.formatHeaderLine(), Kind: HUNK_HEADER}
 	lines = append(lines, self.bodyLines...)
 	return lines
 }

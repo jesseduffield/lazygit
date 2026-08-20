@@ -227,9 +227,13 @@ type IViewTrait interface {
 }
 
 type OnFocusOpts struct {
-	ClickedWindowName       string
-	ClickedViewLineIdx      int
-	ScrollSelectionIntoView bool
+	ClickedWindowName  string
+	ClickedViewLineIdx int
+
+	// Focusing a list context scrolls its selection into view. Set this to leave
+	// the view's scroll position alone instead; only for callers that maintain
+	// it themselves, e.g. by keeping the selection at the edge of the viewport.
+	KeepScrollPosition bool
 }
 
 type OnFocusLostOpts struct {

@@ -3,6 +3,7 @@ package filetree
 import (
 	"fmt"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -42,6 +43,7 @@ type IFileTree interface {
 
 	FilterFiles(test func(*models.File) bool) []*models.File
 	SetStatusFilter(filter FileTreeDisplayFilter)
+	RememberConflictedPaths(paths []string)
 	ForceShowUntracked() bool
 	Get(index int) *FileNode
 	GetFile(path string) *models.File
@@ -54,25 +56,31 @@ type IFileTree interface {
 }
 
 type FileTree struct {
-	getFiles       func() []*models.File
-	tree           *Node[models.File]
-	showTree       bool
-	common         *common.Common
-	filter         FileTreeDisplayFilter
-	collapsedPaths *CollapsedPaths
-	textFilter     string
-	useFuzzySearch bool
+	getFiles func() []*models.File
+	tree     *Node[models.File]
+	showTree bool
+	common   *common.Common
+	filter   FileTreeDisplayFilter
+	// Paths of the files that had conflicts while the current filter has been
+	// active. The DisplayConflicted filter keeps showing them after their
+	// conflicts have been resolved, so that their diffs can be reviewed while
+	// the remaining files are still being worked on.
+	conflictedPaths *set.Set[string]
+	collapsedPaths  *CollapsedPaths
+	textFilter      string
+	useFuzzySearch  bool
 }
 
 var _ IFileTree = &FileTree{}
 
 func NewFileTree(getFiles func() []*models.File, common *common.Common, showTree bool) *FileTree {
 	return &FileTree{
-		getFiles:       getFiles,
-		common:         common,
-		showTree:       showTree,
-		filter:         DisplayAll,
-		collapsedPaths: NewCollapsedPaths(),
+		getFiles:        getFiles,
+		common:          common,
+		showTree:        showTree,
+		filter:          DisplayAll,
+		conflictedPaths: set.New[string](),
+		collapsedPaths:  NewCollapsedPaths(),
 	}
 }
 
@@ -100,7 +108,9 @@ func (self *FileTree) getFilesForDisplay() []*models.File {
 	case DisplayUntracked:
 		files = self.FilterFiles(func(file *models.File) bool { return !(file.Tracked || file.HasStagedChanges) })
 	case DisplayConflicted:
-		files = self.FilterFiles(func(file *models.File) bool { return file.HasMergeConflicts })
+		files = self.FilterFiles(func(file *models.File) bool {
+			return file.HasMergeConflicts || self.conflictedPaths.Includes(file.Path)
+		})
 	default:
 		panic(fmt.Sprintf("Unexpected files display filter: %d", self.filter))
 	}
@@ -122,7 +132,14 @@ func (self *FileTree) FilterFiles(test func(*models.File) bool) []*models.File {
 
 func (self *FileTree) SetStatusFilter(filter FileTreeDisplayFilter) {
 	self.filter = filter
+	self.conflictedPaths = set.New[string]()
 	self.SetTree()
+}
+
+// RememberConflictedPaths records which files have conflicts right now, so that
+// the DisplayConflicted filter keeps showing them once they are resolved.
+func (self *FileTree) RememberConflictedPaths(paths []string) {
+	self.conflictedPaths.Add(paths...)
 }
 
 func (self *FileTree) ToggleShowTree() {

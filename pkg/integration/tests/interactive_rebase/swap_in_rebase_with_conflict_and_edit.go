@@ -51,6 +51,6 @@ var SwapInRebaseWithConflictAndEdit = NewIntegrationTest(NewIntegrationTestArgs{
 				t.Common().ContinueRebase()
 			})
 
-		handleConflictsFromSwap(t, "edit")
+		handleConflictsFromSwap(t, "edit", true)
 	},
 })

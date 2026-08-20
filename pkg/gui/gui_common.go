@@ -39,7 +39,11 @@ func (self *guiCommon) RefreshFromWorker(opts types.RefreshOptions) {
 }
 
 func (self *guiCommon) PostRefreshUpdate(context types.Context) {
-	self.gui.postRefreshUpdate(context)
+	self.gui.postRefreshUpdate(context, false)
+}
+
+func (self *guiCommon) PostRefreshUpdateKeepingScrollPosition(context types.Context) {
+	self.gui.postRefreshUpdate(context, true)
 }
 
 func (self *guiCommon) RunSubprocessAndRefresh(cmdObj *oscommands.CmdObj) error {

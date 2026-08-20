@@ -31,7 +31,7 @@ var AmendWhenThereAreConflictsAndAmend = NewIntegrationTest(NewIntegrationTestAr
 			Lines(
 				Contains("─── Pending rebase todos"),
 				Contains("pick").Contains("commit three"),
-				Contains("pick").Contains("<-- CONFLICT --- file1 changed in branch"),
+				Contains("pick").Contains("<-- CONFLICT --- file1 changed in branch").IsSelected(),
 				Contains("─── Commits"),
 				Contains("commit two"),
 				Contains("file1 changed in master"),

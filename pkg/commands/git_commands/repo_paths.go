@@ -1,7 +1,6 @@
 package git_commands
 
 import (
-	ioFs "io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,7 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/spf13/afero"
 )
 
 type RepoPaths struct {
@@ -301,42 +299,4 @@ func runGitRevParse(gitCmd *oscommands.CmdObj) (string, error) {
 		return "", errors.Errorf("'%s' failed: %v", gitCmd.ToString(), err)
 	}
 	return strings.TrimSpace(res), nil
-}
-
-// Returns the paths of linked worktrees
-func linkedWortkreePaths(fs afero.Fs, repoGitDirPath string) []string {
-	result := []string{}
-	// For each directory in this path we're going to cat the `gitdir` file and append its contents to our result
-	// That file points us to the `.git` file in the worktree.
-	worktreeGitDirsPath := filepath.Join(repoGitDirPath, "worktrees")
-
-	// ensure the directory exists
-	_, err := fs.Stat(worktreeGitDirsPath)
-	if err != nil {
-		return result
-	}
-
-	_ = afero.Walk(fs, worktreeGitDirsPath, func(currPath string, info ioFs.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() {
-			return nil
-		}
-
-		gitDirPath := filepath.Join(currPath, "gitdir")
-		gitDirBytes, err := afero.ReadFile(fs, gitDirPath)
-		if err != nil {
-			// ignoring error
-			return nil
-		}
-		trimmedGitDir := strings.TrimSpace(string(gitDirBytes))
-		// removing the .git part
-		worktreeDir := filepath.Dir(trimmedGitDir)
-		result = append(result, worktreeDir)
-		return nil
-	})
-
-	return result
 }

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 	"time"
@@ -160,9 +162,51 @@ func fetchPullRequestsQuery(branches []string, owner string, repo string) (strin
 	return queryString, variables
 }
 
+// GetAuthToken returns the token to authenticate against the given host with,
+// or an empty string if there is none.
+//
+// The token has to come from gh itself rather than from an in-process lookup
+// with go-gh: that reads gh's config file once per process and answers from
+// that snapshot ever after, whereas gh rewrites the file whenever the active
+// account changes, and keeps the active account's token either there or in the
+// system keyring. Under a long-running lazygit the snapshot therefore drifts
+// out of date, leaving us with a token for an account that is no longer active,
+// or with no token at all.
 func (self *GitHubCommands) GetAuthToken(host string) string {
-	token, _ := auth.TokenForHost(host)
-	return token
+	ghExe := ghExecutable()
+	if ghExe == "" {
+		// Without gh installed, the environment variables and config file that
+		// gh would have consulted are still worth a look.
+		token, _ := auth.TokenFromEnvOrConfig(host)
+		return token
+	}
+
+	cmdArgs := []string{ghExe, "auth", "token", "--hostname", host}
+	output, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
+	if err != nil {
+		// Not being logged in to this host is a normal state rather than
+		// something to report; the runner logs gh's stderr for the rest.
+		return ""
+	}
+
+	return strings.TrimSpace(output)
+}
+
+// ghExecutable returns the path of the gh binary, or an empty string if it
+// isn't installed.
+func ghExecutable() string {
+	if ghExe := os.Getenv("GH_PATH"); ghExe != "" {
+		return ghExe
+	}
+
+	// A gh found in the current directory rather than on PATH comes back as
+	// exec.ErrDot, which we treat as not having found one at all.
+	ghExe, err := exec.LookPath("gh")
+	if err != nil {
+		return ""
+	}
+
+	return ghExe
 }
 
 // FetchRecentPRs fetches recent pull requests using GraphQL. serviceInfo
