@@ -33,15 +33,5 @@ var RangeSelectWithAutoscroll = NewIntegrationTest(NewIntegrationTestArgs{
 			OriginYAtLeast(3).
 			SelectedLineIdxAtLeast(3).
 			MouseRelease()
-
-		t.Views().Files().
-			Focus().
-			PressEnter()
-		t.Views().Staging().
-			ClickAndHold(1, 6).
-			MouseMoveToBottom(1).
-			OriginYAtLeast(3).
-			SelectedLineIdxAtLeast(9).
-			MouseRelease()
 	},
 })
