@@ -1,4 +1,4 @@
-package staging
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -6,10 +6,12 @@ import (
 )
 
 var DiscardAllChanges = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Discard all changes of a file in the staging panel, then assert we land in the staging panel of the next file",
+	Description:  "Discard all changes of a file from the focused main view, then land on the next file's diff",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(cfg *config.AppConfig) {
+		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "one\ntwo\n")
 		shell.CreateFileAndAdd("file2", "1\n2\n")
@@ -27,30 +29,25 @@ var DiscardAllChanges = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("   M file2"),
 			).
 			SelectNextItem().
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
-		t.Views().Staging().
+		t.Views().Main().
 			IsFocused().
-			Press(keys.Main.ToggleSelectHunk).
 			SelectedLines(Contains("+three")).
-			// discard the line
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.Common().ConfirmDiscardLines()
 			}).
 			SelectedLines(Contains("+four")).
-			// discard the other line
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.Common().ConfirmDiscardLines()
+			})
 
-				// because there are no more changes in file1 we switch to file2
-				t.Views().Files().
-					Lines(
-						Equals(" M file2"),
-					)
-			}).
-			// assert we are still in the staging panel, but now looking at the changes of the other file
+		t.Views().Files().Lines(
+			Equals(" M file2"),
+		)
+		t.Views().Main().
 			IsFocused().
 			SelectedLines(Contains("+3"))
 	},
