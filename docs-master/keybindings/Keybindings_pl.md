@@ -147,12 +147,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <enter> `` | Pokaż commity |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
 
-## Główny panel (budowanie łatki)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` / `` | Szukaj w bieżącym widoku po tekście |  |
-
 ## Input prompt
 
 | Key | Action | Info |
@@ -239,12 +233,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
 | `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` <esc> `` | Wróć do panelu plików |  |
-
-## Panel główny (zatwierdzanie)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Panel potwierdzenia
 
