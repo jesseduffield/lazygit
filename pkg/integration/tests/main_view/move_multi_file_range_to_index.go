@@ -1,15 +1,17 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var MoveRangeToIndex = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Apply a custom patch",
+var MoveMultiFileRangeToIndex = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Move a multi-file range from a commit to the index",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "first line\n")
 		shell.Commit("first commit")
@@ -36,23 +38,21 @@ var MoveRangeToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("  A file2"),
 				Equals("  A file3"),
 			).
-			SelectNextItem().
+			Press(keys.Universal.FocusMainView)
+
+		t.Views().Main().
+			IsFocused().
+			SelectedLines(Contains("+second line")).
 			Press(keys.Universal.ToggleRangeSelect).
-			NavigateToLine(Contains("file2")).
+			NavigateToLine(Contains("+file two content")).
 			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))
-
-		t.Views().Secondary().Content(Contains("second line"))
-		t.Views().Secondary().Content(Contains("file two content"))
+		t.Views().Secondary().
+			Content(Contains("second line")).
+			Content(Contains("file two content"))
 
 		t.Common().SelectPatchOption(MatchesRegexp(`Move patch out into index$`))
-
-		t.Views().CommitFiles().
-			IsFocused().
-			Lines(
-				Contains("file3").IsSelected(),
-			).PressEscape()
 
 		t.Views().Files().
 			Focus().
@@ -61,13 +61,8 @@ var MoveRangeToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("  M  file1"),
 				Equals("  A  file2"),
 			)
-
-		t.Views().Secondary().
-			Content(Contains("second line"))
-
-		t.Views().Files().Focus().NavigateToLine(Contains("file2"))
-
-		t.Views().Secondary().
-			Content(Contains("file two content"))
+		t.Views().Secondary().Content(Contains("second line"))
+		t.Views().Files().NavigateToLine(Contains("file2"))
+		t.Views().Secondary().Content(Contains("file two content"))
 	},
 })

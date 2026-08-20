@@ -1,11 +1,11 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var MoveToIndexWorksEvenIfNoprefixIsSet = NewIntegrationTest(NewIntegrationTestArgs{
+var MovePatchToIndexWithCustomDiffConfig = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Moving a patch to the index works even if diff.noprefix or diff.external are set",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
@@ -14,7 +14,6 @@ var MoveToIndexWorksEvenIfNoprefixIsSet = NewIntegrationTest(NewIntegrationTestA
 		shell.CreateFileAndAdd("file1", "file1 content\n")
 		shell.Commit("first commit")
 
-		// Test that this works even if custom diff options are set
 		shell.SetConfig("diff.noprefix", "true")
 		shell.SetConfig("diff.external", "echo")
 	},
@@ -31,20 +30,19 @@ var MoveToIndexWorksEvenIfNoprefixIsSet = NewIntegrationTest(NewIntegrationTestA
 			Lines(
 				Contains("file1").IsSelected(),
 			).
+			Press(keys.Universal.FocusMainView)
+
+		t.Views().Main().
+			IsFocused().
+			SelectedLines(Contains("+file1 content")).
 			PressPrimaryAction()
 
 		t.Views().Secondary().Content(Contains("+file1 content"))
-
 		t.Common().SelectPatchOption(Contains("Move patch out into index"))
 
-		t.Views().CommitFiles().IsFocused().
-			Lines(
-				Equals("(none)"),
-			)
-
-		t.Views().Files().
-			Lines(
-				Contains("A").Contains("file1"),
-			)
+		t.Views().CommitFiles().Lines(Equals("(none)"))
+		t.Views().Files().Lines(
+			Contains("A").Contains("file1"),
+		)
 	},
 })
