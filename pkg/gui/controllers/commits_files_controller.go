@@ -557,40 +557,15 @@ func (self *CommitFilesController) currentFromToReverseForPatchBuilding() (strin
 }
 
 func (self *CommitFilesController) enter(node *filetree.CommitFileNode) error {
-	return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
-}
-
-func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode, opts types.OnFocusOpts) error {
 	if node.File == nil {
 		return self.handleToggleCommitFileDirCollapsed(node)
 	}
 
-	if self.c.UserConfig().Git.DiffContextSize == 0 {
-		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextForCustomPatch,
-			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
-	}
+	return focusMainView(self.c, self.context(), -1)
+}
 
-	from, to, reverse := self.currentFromToReverseForPatchBuilding()
-	mustDiscardPatch := self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse)
-	return self.c.ConfirmIf(mustDiscardPatch, types.ConfirmOpts{
-		Title:  self.c.Tr.DiscardPatch,
-		Prompt: self.c.Tr.DiscardPatchConfirm,
-		HandleConfirm: func() error {
-			if mustDiscardPatch {
-				self.c.Git().Patch.PatchBuilder.Reset()
-			}
-
-			if !self.c.Git().Patch.PatchBuilder.Active() {
-				if err := self.startPatchBuilder(); err != nil {
-					return err
-				}
-			}
-
-			self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
-
-			return nil
-		},
-	})
+func (self *CommitFilesController) GetOnDoubleClick() func() error {
+	return self.withItemGraceful(self.enter)
 }
 
 func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *filetree.CommitFileNode) error {
