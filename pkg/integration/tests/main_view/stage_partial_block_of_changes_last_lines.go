@@ -10,7 +10,7 @@ var StagePartialBlockOfChangesLastLines = NewIntegrationTest(NewIntegrationTestA
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		config.GetUserConfig().Gui.UseHunkModeInDiffView = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "1\n2\n3\n4\n5\n6\n7\n8\n")

@@ -10,7 +10,7 @@ var KeepBothHalvesOfAChangeSelected = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = true
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = true
 		cfg.GetUserConfig().Git.DiffRenderers = []config.DiffRendererConfig{
 			// Git's own diff, which has a row for each half of a change. It announces
 			// the metadata protocol, so lazygit acts on its output rather than

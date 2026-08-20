@@ -15,7 +15,7 @@ var KeepAWrappedLineCoveredAcrossARerender = NewIntegrationTest(NewIntegrationTe
 	Width:        80,
 	Height:       20,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = true
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = true
 	},
 	SetupRepo: func(shell *Shell) {
 		long := strings.Repeat("word ", 40)

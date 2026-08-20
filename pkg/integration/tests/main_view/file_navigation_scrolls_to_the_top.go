@@ -15,7 +15,7 @@ var FileNavigationScrollsToTheTop = NewIntegrationTest(NewIntegrationTestArgs{
 	Width:        100,
 	Height:       20,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		config.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		// More context than fits on screen, so that a long file's change is further
 		// down than a screenful from the header naming the file.
 		config.GetUserConfig().Git.DiffContextSize = 30

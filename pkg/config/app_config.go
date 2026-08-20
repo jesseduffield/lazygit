@@ -296,6 +296,8 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		{[]string{"keybinding", "universal", "cyclePagers"}, "cycleDiffRenderers"},
 		{[]string{"keybinding", "universal", "cyclePagersReverse"}, "cycleDiffRenderersReverse"},
 		{[]string{"gui", "windowSize"}, "screenMode"},
+		{[]string{"gui", "wrapLinesInStagingView"}, "wrapLinesInDiffView"},
+		{[]string{"gui", "useHunkModeInStagingView"}, "useHunkModeInDiffView"},
 		{[]string{"keybinding", "files", "openMergeTool"}, "openMergeOptions"},
 	}
 

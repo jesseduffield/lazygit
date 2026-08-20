@@ -148,14 +148,13 @@ gui:
   # - 'top': split the window vertically (side panel on top, main view below)
   enlargedSideViewLocation: left
 
-  # If true, wrap lines in the staging view to the width of the view. This makes
-  # it much easier to work with diffs that have long lines, e.g. paragraphs of
+  # If true, wrap lines in focused diffs to the width of the view. This makes it
+  # much easier to work with diffs that have long lines, e.g. paragraphs of
   # markdown text.
-  wrapLinesInStagingView: true
+  wrapLinesInDiffView: true
 
-  # If true, hunk selection mode will be enabled by default when entering the
-  # staging view.
-  useHunkModeInStagingView: true
+  # If true, hunk selection mode will be enabled by default when focusing a diff.
+  useHunkModeInDiffView: true
 
   # One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko'
   # | 'ru' | 'pt'

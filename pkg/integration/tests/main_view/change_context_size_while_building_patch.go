@@ -10,7 +10,7 @@ var ChangeContextSizeWhileBuildingPatch = NewIntegrationTest(NewIntegrationTestA
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		config.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		config.GetUserConfig().Git.DiffContextSize = 1
 	},
 	SetupRepo: func(shell *Shell) {
