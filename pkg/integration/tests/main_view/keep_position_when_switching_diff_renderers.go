@@ -15,7 +15,7 @@ var KeepPositionWhenSwitchingDiffRenderers = NewIntegrationTest(NewIntegrationTe
 	Width:        120,
 	Height:       30,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		// Both announce the metadata protocol, so that their output is taken at its
 		// word and shown as it is; a renderer that says nothing about what it renders
 		// is replaced by git's own diff as soon as the main view is focused.

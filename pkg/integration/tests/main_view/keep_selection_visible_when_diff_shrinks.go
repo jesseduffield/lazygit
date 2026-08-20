@@ -10,7 +10,7 @@ var KeepSelectionVisibleWhenDiffShrinks = NewIntegrationTest(NewIntegrationTestA
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		cfg.GetUserConfig().Git.DiffRenderers = []config.DiffRendererConfig{
 			{Name: "plain", Command: `printf '\033]1717;1\007'; cat`},
 			// The same diff in fewer lines, as a renderer that collapses or elides

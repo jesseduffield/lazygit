@@ -15,7 +15,7 @@ var SelectVisibleHunkOnFocusingMainView = NewIntegrationTest(NewIntegrationTestA
 	Width:        120,
 	Height:       30,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = true
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = true
 		// One line per scroll, so that the test can put the top of the view exactly
 		// where it wants it, and enough context to scroll about within one hunk.
 		cfg.GetUserConfig().Gui.ScrollHeight = 1

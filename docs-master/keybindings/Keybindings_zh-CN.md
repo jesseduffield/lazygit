@@ -178,7 +178,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` <space> `` | 补丁中包含的切换文件 | 切换文件是否包含在自定义补丁中。请参阅 https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches。 |
 | `` a `` | 操作所有文件 | 添加或删除所有提交中的文件到自定义的补丁中。请参阅 https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches。 |
-| `` <enter> `` | 输入文件以将所选行添加到补丁中(或切换目录折叠) | 如果已选择一个文件，则Enter进入该文件，以便您可以向自定义补丁添加/删除单独的行。如果选择了目录，则切换目录。 |
+| `` <enter> `` | Focus file diff / Toggle directory | If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it. |
 | `` ` `` | 切换文件树视图 | 在平面布局和树布局之间切换文件视图。平面布局在单个列表中显示所有文件路径，树布局按目录分组文件。<br><br>可以在配置文件中使用 'gui.showFileTree' 键更改默认设置。 |
 | `` - `` | 折叠全部文件 | 折叠文件树中的全部目录 |
 | `` = `` | 展开全部文件 | 展开文件树中的全部目录 |
@@ -269,7 +269,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <tab> `` | 切换到其他面板 | 切换到其他视图（已暂存/未暂存的变更） |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` v `` | 切换拖动选择 |  |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
@@ -310,7 +310,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <mouse wheel down> (fn+up) `` | 向下滚动 |  |
 | `` <mouse wheel up> (fn+down) `` | 向上滚动 |  |
-| `` <tab> `` | 切换到其他面板 | 切换到其他视图（已暂存/未暂存的变更） |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` v `` | 切换拖动选择 |  |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |

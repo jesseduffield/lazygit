@@ -58,7 +58,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <mouse wheel down> (fn+up) `` | 向下捲動 |  |
 | `` <mouse wheel up> (fn+down) `` | 向上捲動 |  |
-| `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | 切換到其他檢視（已暫存/未暫存的變更）。 |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
 | `` a `` | 切換程式碼塊選擇 | 切換逐行選擇與程式碼塊選擇模式。 |
 | `` v `` | 切換拖曳選擇 |  |
 | `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
@@ -207,7 +207,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` <space> `` | 切換檔案是否包含在補丁中 | 切換檔案是否包含在自定義補丁中。請參閱 https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches。 |
 | `` a `` | 切換所有檔案是否包含在補丁中 | 新增或刪除所有提交中的檔案到自定義的補丁中。請參閱 https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches。 |
-| `` <enter> `` | 輸入檔案以將選定的行添加至補丁（或切換目錄折疊） | 如果已選擇一個檔案，則Enter進入該檔案，以便您可以向自定義補丁新增/刪除單獨的行。如果選擇了目錄，則切換目錄。 |
+| `` <enter> `` | Focus file diff / Toggle directory | If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it. |
 | `` ` `` | 顯示檔案樹狀視圖 | 在平面佈局和樹佈局之間切換檔案檢視。平面佈局在單個列表中顯示所有檔案路徑，樹佈局按目錄分組檔案。<br><br>可以在設定檔中使用 'gui.showFileTree' 鍵更改預設設定。 |
 | `` - `` | 摺疊全部檔案 | 摺疊檔案樹中的全部目錄 |
 | `` = `` | 展開全部檔案 | 展開檔案樹中的全部目錄 |
@@ -332,7 +332,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | 切換到其他檢視（已暫存/未暫存的變更）。 |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
 | `` a `` | 切換程式碼塊選擇 | 切換逐行選擇與程式碼塊選擇模式。 |
 | `` v `` | 切換拖曳選擇 |  |
 | `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
