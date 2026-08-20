@@ -1,15 +1,17 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var MoveToNewCommitFromAddedFile = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Move a patch from a file that was added in a commit to a new commit",
+var MovePatchFromAddedFileToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Move part of an added file from a commit to a new commit",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("first commit")
 
@@ -30,15 +32,14 @@ var MoveToNewCommitFromAddedFile = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("file1").IsSelected(),
 			).
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
-		t.Views().PatchBuilding().
+		t.Views().Main().
 			IsFocused().
-			SelectNextItem().
+			NavigateToLine(Contains("+2nd line")).
 			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))
-
 		t.Common().SelectPatchOption(Contains("Move patch into new commit after the original commit"))
 
 		t.ExpectPopup().CommitMessagePanel().

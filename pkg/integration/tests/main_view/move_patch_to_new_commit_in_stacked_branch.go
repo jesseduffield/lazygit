@@ -1,17 +1,18 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var MoveToNewCommitInLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Move a patch from a commit to a new commit, in the last commit of a branch in the middle of a stack",
+var MovePatchToNewCommitInStackedBranch = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Move a patch to a new commit after the last commit of a branch in the middle of a stack",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	GitVersion:   AtLeast("2.38.0"),
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().Git.Log.ShowGraph = "never"
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.
@@ -46,12 +47,14 @@ var MoveToNewCommitInLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrati
 				Equals("  A file1"),
 				Equals("  A file2"),
 			).
-			SelectNextItem().
-			PressPrimaryAction().
-			PressEscape()
+			Press(keys.Universal.FocusMainView)
+
+		t.Views().Main().
+			IsFocused().
+			SelectedLines(Contains("+file1 content")).
+			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))
-
 		t.Common().SelectPatchOption(Contains("Move patch into new commit after the original commit"))
 
 		t.ExpectPopup().CommitMessagePanel().

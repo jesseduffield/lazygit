@@ -1,15 +1,17 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var MoveToEarlierCommitFromAddedFile = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Move a patch from a file that was added in a commit to an earlier commit",
+var MovePatchFromAddedFileToEarlierCommit = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Move part of an added file from a commit to an earlier commit",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("first commit")
 		shell.EmptyCommit("destination commit")
@@ -31,23 +33,18 @@ var MoveToEarlierCommitFromAddedFile = NewIntegrationTest(NewIntegrationTestArgs
 			Lines(
 				Contains("A file").IsSelected(),
 			).
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
-		t.Views().PatchBuilding().
+		t.Views().Main().
 			IsFocused().
-			SelectNextItem().
+			NavigateToLine(Contains("+2nd line")).
 			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))
-
-		t.Views().Commits().
-			Focus().
-			SelectNextItem()
-
+		t.Views().Commits().Focus().SelectNextItem()
 		t.Common().SelectPatchOption(Contains("Move patch to selected commit"))
 
-		// This results in a conflict at the commit we're moving from, because
-		// it tries to add a file that already exists
+		// The source commit tries to add a file that the moved line now causes to exist.
 		t.Common().AcknowledgeConflicts()
 
 		t.Views().Files().
@@ -69,7 +66,7 @@ var MoveToEarlierCommitFromAddedFile = NewIntegrationTest(NewIntegrationTestArgs
 				Contains(">>>>>>>"),
 			).
 			SelectNextItem().
-			PressPrimaryAction() // choose the version with all three lines
+			PressPrimaryAction()
 
 		t.Common().ContinueOnConflictsResolved("rebase")
 
