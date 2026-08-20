@@ -217,6 +217,38 @@ func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 	return self
 }
 
+// asserts that somewhere in the view there are consecutive lines matching the given
+// matchers, taking the lines as the view lays them out rather than as its content has
+// them: a line of content too long for a view that wraps is several of these.
+func (self *ViewDriver) ContainsViewLines(matchers ...*TextMatcher) *ViewDriver {
+	self.validateMatchersPassed(matchers)
+
+	self.t.assertWithRetries(func() (bool, string) {
+		lines := self.getView().ViewBufferLines()
+
+		for i := range len(lines) - len(matchers) + 1 {
+			matches := true
+			for j, matcher := range matchers {
+				if ok, _ := matcher.test(lines[i+j]); !ok {
+					matches = false
+					break
+				}
+			}
+			if matches {
+				return true, ""
+			}
+		}
+
+		return false, fmt.Sprintf(
+			"Expected the following view lines:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----",
+			expectedContentFromMatchers(matchers),
+			strings.Join(lines, "\n"),
+		)
+	})
+
+	return self
+}
+
 func (self *ViewDriver) ContainsColoredText(fgColorStr string, text string) *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
 		view := self.getView()
