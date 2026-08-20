@@ -350,18 +350,6 @@ func (self *ContextMgr) AllList() []types.IListContext {
 	return listContexts
 }
 
-func (self *ContextMgr) AllPatchExplorer() []types.IPatchExplorerContext {
-	var listContexts []types.IPatchExplorerContext
-
-	for _, context := range self.allContexts.Flatten() {
-		if listContext, ok := context.(types.IPatchExplorerContext); ok {
-			listContexts = append(listContexts, listContext)
-		}
-	}
-
-	return listContexts
-}
-
 func (self *ContextMgr) ContextForKey(key types.ContextKey) types.Context {
 	self.RLock()
 	defer self.RUnlock()
