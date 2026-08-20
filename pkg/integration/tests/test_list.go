@@ -24,7 +24,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/reflog"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/remote"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/shell_commands"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/staging"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/status"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/submodule"
@@ -376,6 +375,7 @@ var tests = []*components.IntegrationTest{
 	main_view.BuildPatchFromAReflogEntry,
 	main_view.BuildPatchFromAWholeCommitsDiff,
 	main_view.BuildPatchWithMixedSelections,
+	main_view.ChangeScreenModeInFocusedDiff,
 	main_view.ClickSelectsDiffLine,
 	main_view.CommitFromMainView,
 	main_view.CopyRowsThatAreNoDiffLine,
@@ -513,7 +513,6 @@ var tests = []*components.IntegrationTest{
 	shell_commands.EditHistory,
 	shell_commands.History,
 	shell_commands.OmitFromHistory,
-	staging.DiffChangeScreenMode,
 	stash.Apply,
 	stash.ApplyPatch,
 	stash.CreateBranch,
