@@ -249,12 +249,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <enter> `` | 查看提交 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
 
-## 构建补丁中
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` / `` | 开始搜索 |  |
-
 ## 标签
 
 | Key | Action | Info |
@@ -309,12 +303,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 打开文件 | 使用默认程序打开该文件 |
 | `` M `` | 查看合并冲突选项 | 查看用于解决合并冲突的选项。 |
 | `` <esc> `` | 返回文件面板 |  |
-
-## 正在暂存
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` / `` | 开始搜索 |  |
 
 ## 正常
 

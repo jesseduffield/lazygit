@@ -3,9 +3,7 @@ package types
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/sasha-s/go-deadlock"
 )
 
 type ContextKind int
@@ -291,20 +289,6 @@ type IListContext interface {
 	IndexForGotoBottom() int
 }
 
-type IPatchExplorerContext interface {
-	Context
-
-	GetState() *patch_exploring.State
-	SetState(*patch_exploring.State)
-	GetIncludedLineIndices() []int
-	RenderAndFocus()
-	Render()
-	GetContentToRender() string
-	NavigateTo(selectedLineIdx int)
-	GetMutex() *deadlock.Mutex
-	IsPatchExplorerContext() // used for type switch
-}
-
 type IViewTrait interface {
 	FocusPoint(yIdx int, scrollIntoView bool)
 	SetRangeSelectStart(yIdx int)
@@ -440,5 +424,4 @@ type IContextMgr interface {
 	AllList() []IListContext
 	AllFilterable() []IFilterableContext
 	AllSearchable() []ISearchableContext
-	AllPatchExplorer() []IPatchExplorerContext
 }
