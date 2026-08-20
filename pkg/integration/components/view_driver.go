@@ -206,7 +206,7 @@ func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 		expectedContent := expectedContentFromMatchers(matchers)
 
 		return false, fmt.Sprintf(
-			"Expected the following to be contained in the staging panel:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----\nSelected range: %d-%d",
+			"Expected the following lines to be contained in the selected range:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----\nSelected range: %d-%d",
 			expectedContent,
 			content,
 			startIdx,
