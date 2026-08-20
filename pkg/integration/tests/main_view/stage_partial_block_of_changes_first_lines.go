@@ -1,12 +1,12 @@
-package staging
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var StagePartialBlockOfChangesMiddleLines = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Stage only the middle lines of a consecutive block of changes",
+var StagePartialBlockOfChangesFirstLines = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Stage only the first few lines of a block of consecutive changes",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
@@ -26,7 +26,7 @@ var StagePartialBlockOfChangesMiddleLines = NewIntegrationTest(NewIntegrationTes
 			).
 			PressEnter()
 
-		t.Views().Staging().
+		t.Views().Main().
 			IsFocused().
 			ContainsLines(
 				Contains(" 1"),
@@ -44,31 +44,25 @@ var StagePartialBlockOfChangesMiddleLines = NewIntegrationTest(NewIntegrationTes
 				Contains("+7b"),
 				Contains(" 8"),
 			).
-			NavigateToLine(Contains("-4")).
+			SelectedLines(Contains("-2")).
 			PressPrimaryAction().
-			SelectedLines(Contains("-5")).
+			SelectedLines(Contains("-3")).
 			PressPrimaryAction().
-			NavigateToLine(Contains("+4b")).
+			NavigateToLine(Contains("+2b")).
 			PressPrimaryAction().
-			SelectedLines(Contains("+5b")).
+			SelectedLines(Contains("+3b")).
 			PressPrimaryAction()
 
-		t.Views().StagingSecondary().
-			// This is not the desired result, ideally the added lines would come right after the
-			// deleted lines. However, this is hard to do, and it's a lot less common than staging
-			// either the first lines or last lines of a block of changes, so we live with the
-			// imperfection for now (but document it with a test here).
+		t.Views().Secondary().
 			ContainsLines(
 				Contains(" 1"),
-				Contains(" 2"),
-				Contains(" 3"),
-				Contains("-4"),
-				Contains("-5"),
+				Contains("-2"),
+				Contains("-3"),
+				Contains("+2b"),
+				Contains("+3b"),
+				Contains(" 4"),
+				Contains(" 5"),
 				Contains(" 6"),
-				Contains(" 7"),
-				Contains("+4b"),
-				Contains("+5b"),
-				Contains(" 8"),
 			)
 	},
 })
