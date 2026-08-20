@@ -1,15 +1,17 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var MoveToNewCommitBefore = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Move a patch from a commit to a new commit before the original one",
+var MovePatchToNewCommitBefore = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Move a patch from a commit to a new commit before the source",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateDir("dir")
 		shell.CreateFileAndAdd("dir/file1", "file1 content")
@@ -43,11 +45,16 @@ var MoveToNewCommitBefore = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("  D file2"),
 				Contains("  A file3"),
 			).
-			PressPrimaryAction().
-			PressEscape()
+			Press(keys.Universal.FocusMainView)
+
+		t.Views().Main().
+			IsFocused().
+			SelectedLines(Contains("-file1 content")).
+			Press(keys.Universal.ToggleRangeSelect).
+			NavigateToLine(Contains("+file3 content")).
+			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))
-
 		t.Common().SelectPatchOption(Contains("Move patch into new commit before the original commit"))
 
 		t.ExpectPopup().CommitMessagePanel().
@@ -80,7 +87,6 @@ var MoveToNewCommitBefore = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectPreviousItem().
 			PressEnter()
 
-		// the original commit has no more files in it
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
