@@ -910,6 +910,8 @@ It is used, for example, when pasting a commit message into the commit message p
 
 There are two commands for opening files, `o` for "open" and `e` for "edit". `o` acts as if the file was double-clicked in the Finder/Explorer, so it also works for non-text files, whereas `e` opens the file in an editor. `e` can also jump to the right line in the file when you invoke it from a focused diff.
 
+You can also open a line in your editor with the mouse: alt-click or shift-click it. Both modifiers do the same thing, because some terminals only support one or the other. The click leaves the focus and the selection where they are, so it works while you are reading a diff from another panel, or while a popup is open.
+
 To tell lazygit which editor to use for the `e` command, the easiest way to do that is to provide an editPreset config, e.g.
 
 ```yaml

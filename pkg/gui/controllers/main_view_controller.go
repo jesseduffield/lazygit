@@ -241,6 +241,20 @@ func (self *MainViewController) GetMouseKeybindings(opts types.KeybindingsOpts) 
 			Key:      gocui.MouseRelease,
 			Handler:  self.onDragRelease,
 		},
+		{
+			ViewName:                    self.context.GetViewName(),
+			Key:                         gocui.MouseLeft,
+			Modifier:                    gocui.ModAlt,
+			Handler:                     self.editClickedLine,
+			HandleWhenPopupPanelFocused: true,
+		},
+		{
+			ViewName:                    self.context.GetViewName(),
+			Key:                         gocui.MouseLeft,
+			Modifier:                    gocui.ModShift,
+			Handler:                     self.editClickedLine,
+			HandleWhenPopupPanelFocused: true,
+		},
 	}
 }
 
@@ -512,6 +526,10 @@ func (self *MainViewController) discardSelectionDisabledReason() *types.Disabled
 func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
 	self.selectClickedDiffLine(opts.Y)
 	return nil
+}
+
+func (self *MainViewController) editClickedLine(opts gocui.ViewMouseBindingOpts) error {
+	return self.editDiffLine(opts.Y)
 }
 
 func (self *MainViewController) onClickInOtherViewOfMainViewPair(opts gocui.ViewMouseBindingOpts) error {
