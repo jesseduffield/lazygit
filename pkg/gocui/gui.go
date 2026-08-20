@@ -2149,6 +2149,9 @@ func (g *Gui) Suspend() error {
 		return errors.New("Already suspended")
 	}
 
+	for _, view := range g.views {
+		view.ClearLineFlash()
+	}
 	g.suspended = true
 
 	if err := g.screen.Suspend(); err != nil {

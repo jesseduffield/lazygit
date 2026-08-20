@@ -67,3 +67,14 @@ func TestResumeSchedulesRedraw(t *testing.T) {
 	assert.Equal(t, eventResize, ev.Type,
 		"resuming must schedule a redraw; without one the screen stays blank until the next event arrives")
 }
+
+func TestSuspendClearsLineFlashes(t *testing.T) {
+	g := newTestGui(t)
+	v, err := g.SetView("main", 0, 0, 20, 10, 0)
+	assert.ErrorIs(t, err, ErrUnknownView)
+	v.SetLineFlash(3)
+
+	assert.NoError(t, g.Suspend())
+	assert.Equal(t, -1, v.lineFlashY)
+	assert.NoError(t, g.Resume())
+}
