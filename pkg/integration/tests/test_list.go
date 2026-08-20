@@ -375,6 +375,7 @@ var tests = []*components.IntegrationTest{
 	main_view.BuildPatchFromAReflogEntry,
 	main_view.BuildPatchFromAWholeCommitsDiff,
 	main_view.BuildPatchWithMixedSelections,
+	main_view.ChangeContextSizeWhileBuildingPatch,
 	main_view.ChangeScreenModeInFocusedDiff,
 	main_view.ClickSelectsDiffLine,
 	main_view.CommitFromMainView,
