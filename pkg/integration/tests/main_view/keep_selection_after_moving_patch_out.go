@@ -1,12 +1,12 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var KeepSelectionAfterMovingPatchOutMainView = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Moving a custom patch out of a commit leaves the focused main view's selection on a change that is still there, rather than painted over the diff the rewrite left behind",
+var KeepSelectionAfterMovingPatchOut = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Moving a custom patch out of a commit leaves the focused main view's selection on a change that is still there",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
@@ -28,12 +28,12 @@ var KeepSelectionAfterMovingPatchOutMainView = NewIntegrationTest(NewIntegration
 			).
 			PressEnter()
 
-		// Take the first of the commit's three changed lines into a custom patch.
 		t.Views().CommitFiles().
 			IsFocused().
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
-		t.Views().PatchBuilding().
+		// Take the first modification into a custom patch.
+		t.Views().Main().
 			IsFocused().
 			SelectedLines(
 				Contains("-one"),
@@ -44,21 +44,13 @@ var KeepSelectionAfterMovingPatchOutMainView = NewIntegrationTest(NewIntegration
 				Contains("-one"),
 				Contains("+ONE"),
 			).
-			PressPrimaryAction().
-			Press(keys.Universal.Return)
+			PressPrimaryAction()
 
-		// Leave a range selected over the diff, spanning the lines the patch holds. The
-		// patch move doesn't go through the main view at all, so without a net nothing
-		// would move this selection off lines that the rewrite takes away.
-		t.Views().CommitFiles().
-			IsFocused().
-			Press(keys.Universal.FocusMainView)
-
+		// Keep a range selected across lines that the pending patch will remove from
+		// the commit and a later change that will remain.
 		t.Views().Main().
 			IsFocused().
-			SelectedLines(
-				Contains("-one"),
-			).
+			NavigateToLine(Contains("-one")).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("+THREE")).
 			SelectedLines(
@@ -72,8 +64,7 @@ var KeepSelectionAfterMovingPatchOutMainView = NewIntegrationTest(NewIntegration
 		t.Common().SelectPatchOption(Contains("Move patch out into index"))
 
 		// The moved lines are gone from the commit, so the range collapses onto the
-		// change that has taken its place — the same place in the diff's changes, which
-		// is where the user was.
+		// change that has taken their place.
 		t.Views().Main().
 			IsFocused().
 			Content(DoesNotContain("+ONE")).
