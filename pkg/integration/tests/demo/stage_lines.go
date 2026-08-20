@@ -56,7 +56,7 @@ var StageLines = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			IsFocused().
-			Press(keys.Universal.FocusMainView)
+			PressEnter()
 
 		t.Views().Main().
 			IsFocused().
