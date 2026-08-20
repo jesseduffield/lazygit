@@ -52,12 +52,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` ] `` | 下一個索引標籤 |  |
 | `` [ `` | 上一個索引標籤 |  |
 
-## 主面板 (補丁生成)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` / `` | 搜尋 |  |
-
 ## 主面板（一般）
 
 | Key | Action | Info |
@@ -98,12 +92,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 開啟檔案 | 使用預設軟體開啟 |
 | `` M `` | 檢視合併衝突選項 | 檢視用於解決合併衝突的選項。 |
 | `` <esc> `` | 返回檔案面板 |  |
-
-## 主面板（預存）
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` / `` | 搜尋 |  |
 
 ## 功能表
 

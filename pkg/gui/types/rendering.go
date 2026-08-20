@@ -31,8 +31,6 @@ const (
 type MainViewPairs struct {
 	Normal         MainContextPair
 	MergeConflicts MainContextPair
-	Staging        MainContextPair
-	PatchBuilding  MainContextPair
 }
 
 type ViewUpdateOpts struct {
