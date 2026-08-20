@@ -415,9 +415,7 @@ func (self *FilesController) GetFocusedMainViewDiffSource() types.FocusedMainVie
 }
 
 func (self *FilesController) GetOnDoubleClick() func() error {
-	return self.withItemGraceful(func(node *filetree.FileNode) error {
-		return self.press([]*filetree.FileNode{node})
-	})
+	return self.enter
 }
 
 // if we are dealing with a status for which there is no key in this map,
@@ -694,7 +692,7 @@ func (self *FilesController) getSelectedFile() *models.File {
 }
 
 func (self *FilesController) enter() error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
+	return self.enterFile(-1)
 }
 
 func (self *FilesController) collapseAll() error {
@@ -713,7 +711,10 @@ func (self *FilesController) expandAll() error {
 	return nil
 }
 
-func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
+// enterFile focuses the diff of the selected file, which is where the commands that
+// act on its lines live. clickedViewLineIdx is the row of the diff a click landed on,
+// or -1 when the diff wasn't clicked.
+func (self *FilesController) enterFile(clickedViewLineIdx int) error {
 	node := self.context().GetSelected()
 	if node == nil {
 		return nil
@@ -739,10 +740,7 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return self.switchToMerge()
 	}
 
-	context := lo.Ternary(opts.ClickedWindowName == "secondary", self.c.Contexts().StagingSecondary, self.c.Contexts().Staging)
-	self.c.Context().Push(context, opts)
-
-	return nil
+	return focusMainView(self.c, self.context(), clickedViewLineIdx)
 }
 
 // conflictResolutionHint formats a conflict description for the main view,
@@ -1533,7 +1531,7 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 }
 
 func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
+	return self.enterFile(opts.Y)
 }
 
 func (self *FilesController) fetch() error {
