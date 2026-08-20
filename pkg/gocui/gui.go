@@ -91,6 +91,14 @@ type ViewMouseBinding struct {
 
 	// must be a mouse key
 	Key KeyName
+
+	// If true, this binding is dispatched before ShouldHandleMouseEvent is
+	// consulted, so it fires even when a popup panel is focused and the click
+	// lands on a view other than that panel (which is normally swallowed). This
+	// is the same early phase that hyperlink clicks are handled in; use it for
+	// clicks that must stay live behind a popup, e.g. opening a diff line in the
+	// editor from the main view behind the commit-message panel.
+	HandleWhenPopupPanelFocused bool
 }
 
 type ViewMouseBindingOpts struct {
@@ -1765,6 +1773,25 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 		}
 
+		var mouseOpts ViewMouseBindingOpts
+		if IsMouseKey(ev.Key) {
+			mouseOpts = ViewMouseBindingOpts{
+				X: newX, Y: newY, Key: ev.Key.KeyName(),
+				IsDoubleClick: g.isDoubleClick(newX, newY, ev.Key.KeyName(), v),
+			}
+
+			// Dispatch bindings that opt into firing while a popup panel is focused
+			// before the gate below gets a chance to reject the click.
+			matched, err := g.execMouseKeybindings(v, ev, mouseOpts, true)
+			if err != nil {
+				return err
+			}
+			if matched {
+				g.recordClickInfo(newX, newY, ev.Key.KeyName(), v)
+				return nil
+			}
+		}
+
 		if g.ShouldHandleMouseEvent != nil {
 			if !g.ShouldHandleMouseEvent(v, ev.Key.KeyName()) {
 				// Give clients a chance to reject clicks, for example clicks in inactive views
@@ -1814,9 +1841,8 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		}
 
 		if IsMouseKey(ev.Key) {
-			isDoubleClick := g.recordClickInfo(newX, newY, ev.Key.KeyName(), v)
-			opts := ViewMouseBindingOpts{X: newX, Y: newY, Key: ev.Key.KeyName(), IsDoubleClick: isDoubleClick}
-			matched, err := g.execMouseKeybindings(v, ev, opts)
+			g.recordClickInfo(newX, newY, ev.Key.KeyName(), v)
+			matched, err := g.execMouseKeybindings(v, ev, mouseOpts, false)
 			if err != nil {
 				return err
 			}
@@ -1848,43 +1874,49 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 	return nil
 }
 
-// remember the information for this click, and return true if it was a double click
-func (g *Gui) recordClickInfo(x, y int, key KeyName, v *View) bool {
+// isDoubleClick reports whether this click follows one just like it, closely
+// enough in time to count as a double click.
+func (g *Gui) isDoubleClick(x, y int, key KeyName, v *View) bool {
+	return g.lastClick != nil &&
+		!IsMouseScrollKey(key) &&
+		key != MouseRelease &&
+		x == g.lastClick.x &&
+		y == g.lastClick.y &&
+		key == g.lastClick.key &&
+		v.Name() == g.lastClick.viewName &&
+		time.Now().Before(g.lastClick.time.Add(DOUBLE_CLICK_THRESHOLD))
+}
+
+// recordClickInfo remembers this click as the one a following click is compared
+// against. Only the clicks that reach a binding are recorded, so a click the
+// client rejects leaves double-click detection where it was.
+func (g *Gui) recordClickInfo(x, y int, key KeyName, v *View) {
 	if IsMouseScrollKey(key) {
 		g.lastClick = nil
-		return false
+		return
 	}
 	// A release ends a gesture but is not a click of its own; it must leave
 	// the click info of the press that started it alone, or no double click
 	// could ever be detected.
 	if key == MouseRelease {
-		return false
+		return
 	}
 
-	clickInfo := &clickInfo{
+	g.lastClick = &clickInfo{
 		x:        x,
 		y:        y,
 		key:      key,
 		viewName: v.Name(),
 		time:     time.Now(),
 	}
-
-	isDoubleClick := g.lastClick != nil &&
-		clickInfo.x == g.lastClick.x &&
-		clickInfo.y == g.lastClick.y &&
-		clickInfo.key == g.lastClick.key &&
-		clickInfo.viewName == g.lastClick.viewName &&
-		clickInfo.time.Before(g.lastClick.time.Add(DOUBLE_CLICK_THRESHOLD))
-
-	g.lastClick = clickInfo
-	return isDoubleClick
 }
 
-func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBindingOpts) (bool, error) {
+func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBindingOpts, handleWhenPopupPanelFocused bool) (bool, error) {
 	isMatch := func(binding *ViewMouseBinding) bool {
 		return binding.ViewName == view.Name() &&
 			ev.Key.KeyName() == binding.Key &&
-			ev.Key.Mod() == binding.Modifier
+			ev.Key.Mod() == binding.Modifier &&
+			binding.HandleWhenPopupPanelFocused == handleWhenPopupPanelFocused
 	}
 
 	// first pass looks for ones that match the focused view
