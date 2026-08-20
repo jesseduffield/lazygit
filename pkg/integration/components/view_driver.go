@@ -725,6 +725,25 @@ func (self *ViewDriver) Click(x, y int) *ViewDriver {
 	return self
 }
 
+// AltClick and ShiftClick click with a modifier held down. Both modifiers are
+// bound to the same gestures, because no single one of them reaches lazygit in
+// every terminal.
+func (self *ViewDriver) AltClick(x, y int) *ViewDriver {
+	offsetX, offsetY, _ := self.viewGeometry()
+
+	self.t.clickWithModifier(offsetX+1+x, offsetY+1+y, gocui.ModAlt, "Alt")
+
+	return self
+}
+
+func (self *ViewDriver) ShiftClick(x, y int) *ViewDriver {
+	offsetX, offsetY, _ := self.viewGeometry()
+
+	self.t.clickWithModifier(offsetX+1+x, offsetY+1+y, gocui.ModShift, "Shift")
+
+	return self
+}
+
 func (self *ViewDriver) FocusInAndClick(x, y int) *ViewDriver {
 	offsetX, offsetY, _ := self.viewGeometry()
 
