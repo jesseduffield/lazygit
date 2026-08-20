@@ -70,6 +70,10 @@ func (gui *Gui) RefreshMainView(opts *types.ViewUpdateOpts, context types.Contex
 
 	if mainContext := gui.mainContextForView(view); mainContext != nil {
 		mainContext.SetContentIsDiff(types.ContentIsDiff(opts.Task))
+		// A diff is wrapped as the user asks; anything else a main pane shows is prose
+		// or a log, and reads as badly cut off at the edge of the pane as it would
+		// anywhere else.
+		view.Wrap = !mainContext.ContentIsDiff() || gui.c.UserConfig().Gui.WrapLinesInDiffView
 	}
 
 	if err := gui.runTaskForView(view, opts.Task); err != nil {
