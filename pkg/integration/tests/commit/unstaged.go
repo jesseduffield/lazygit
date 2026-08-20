@@ -53,7 +53,5 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 			)
 
 		t.Views().Main().IsFocused()
-
-		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)
 	},
 })
