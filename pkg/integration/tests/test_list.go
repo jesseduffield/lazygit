@@ -482,6 +482,7 @@ var tests = []*components.IntegrationTest{
 	main_view.StageUnderUnsupportedDiffRenderer,
 	main_view.StartPatchFromAnotherCommit,
 	main_view.UnstageDiffLines,
+	main_view.WrapOnlyTheDiff,
 	misc.ConfirmOnQuit,
 	misc.CopyConfirmationMessageToClipboard,
 	misc.CopyToClipboard,
