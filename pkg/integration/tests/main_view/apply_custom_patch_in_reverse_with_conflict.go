@@ -1,15 +1,17 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Apply a custom patch in reverse, resulting in a conflict",
+var ApplyCustomPatchInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Apply a multi-file custom patch in reverse when one file conflicts",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "file1 content\n")
 		shell.CreateFileAndAdd("file2", "file2 content\n")
@@ -38,21 +40,17 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("  M file1"),
 				Equals("  M file2"),
 			).
-			SelectNextItem().
-			// Add both files to the patch; the first will conflict, the second won't
-			PressPrimaryAction().
-			Tap(func() {
-				t.Views().Information().Content(Contains("Building patch"))
+			Press(keys.Universal.FocusMainView)
 
-				t.Views().Secondary().Content(
-					Contains("+more file1 content"))
-			}).
-			SelectNextItem().
+		t.Views().Main().
+			IsFocused().
+			SelectedLines(Contains("+more file1 content")).
+			Press(keys.Universal.ToggleRangeSelect).
+			NavigateToLine(Contains("+more file2 content")).
 			PressPrimaryAction()
 
-		t.Views().Secondary().Content(
-			Contains("+more file1 content").Contains("+more file2 content"))
-
+		t.Views().Information().Content(Contains("Building patch"))
+		t.Views().Secondary().Content(Contains("+more file1 content").Contains("+more file2 content"))
 		t.Common().SelectPatchOption(Contains("Apply patch in reverse"))
 
 		t.ExpectPopup().Alert().
@@ -87,12 +85,10 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("  M  file1").IsSelected(),
 				Equals("  M  file2"),
 			)
-
-		t.Views().Secondary().
-			ContainsLines(
-				Contains(" file1 content"),
-				Contains("-more file1 content"),
-				Contains("-even more file1"),
-			)
+		t.Views().Secondary().ContainsLines(
+			Contains(" file1 content"),
+			Contains("-more file1 content"),
+			Contains("-even more file1"),
+		)
 	},
 })
