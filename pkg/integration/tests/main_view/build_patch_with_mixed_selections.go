@@ -10,7 +10,7 @@ var BuildPatchWithMixedSelections = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		config.GetUserConfig().Gui.UseHunkModeInDiffView = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("hunk-file", "1a\n1b\n1c\n1d\n1e\n1f\n1g\n1h\n1i\n1j\n1k\n1l\n1m\n1n\n1o\n1p\n1q\n1r\n1s\n1t\n1u\n1v\n1w\n1x\n1y\n1z\n")

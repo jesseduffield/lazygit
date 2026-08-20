@@ -10,7 +10,7 @@ var EditHistoricalDiffLine = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		config.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		config.GetUserConfig().OS.EditAtLine = "echo {{filename}}:{{line}} > edit-command"
 	},
 	SetupRepo: func(shell *Shell) {

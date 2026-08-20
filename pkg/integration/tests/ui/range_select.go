@@ -32,7 +32,7 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		config.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		config.GetUserConfig().Gui.ExpandFocusedSidePanel = true
 	},
 	SetupRepo: func(shell *Shell) {

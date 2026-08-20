@@ -71,7 +71,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 				return self.withResetButton(self.c.Tr.BuildingPatch, style.FgYellow.SetBold())
 			},
 			CancelLabel: func() string {
-				return self.c.Tr.ExitCustomPatchBuilder
+				return self.c.Tr.ResetCustomPatch
 			},
 			Reset: self.customPatchHelper.Reset,
 		},

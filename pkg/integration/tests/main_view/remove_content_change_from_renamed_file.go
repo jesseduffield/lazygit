@@ -10,7 +10,7 @@ var RemoveContentChangeFromRenamedFile = NewIntegrationTest(NewIntegrationTestAr
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		config.GetUserConfig().Gui.UseHunkModeInDiffView = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("original", "line1\nline2\nline3\nline4\nline5\n")

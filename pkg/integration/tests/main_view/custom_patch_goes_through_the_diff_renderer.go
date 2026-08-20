@@ -10,7 +10,7 @@ var CustomPatchGoesThroughTheDiffRenderer = NewIntegrationTest(NewIntegrationTes
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		// A renderer that announces the metadata protocol — so that focusing the main
 		// view keeps its output — and says who it is above the diff it passes through.
 		cfg.GetUserConfig().Git.DiffRenderers = []config.DiffRendererConfig{
