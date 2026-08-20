@@ -11,6 +11,7 @@ var NoSelectionOverAConflictHint = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().Gui.ShowFileTree = false
+		config.GetUserConfig().OS.EditAtLine = "echo {{filename}}:{{line}} > edit-command"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.RunShellCommand(`echo 1 > foo && echo 1 > bar`)
@@ -47,6 +48,20 @@ var NoSelectionOverAConflictHint = NewIntegrationTest(NewIntegrationTestArgs{
 			PressPrimaryAction().
 			Tap(func() {
 				t.ExpectToast(Contains("There is nothing to select here"))
+			}).
+			// A pane with nothing to select still has lines to point at. A modified
+			// click names its own line rather than acting on the selection, so it
+			// opens the file there. The file is in the working tree for a conflict
+			// like this one, holding the modified side; you may want to copy a piece
+			// of it elsewhere before resolving the conflict by deleting the file.
+			//
+			// The cursor moves where a plain click points even here, so the assertion
+			// below says which row the modified click then lands on.
+			Click(0, 17).
+			SelectedLine(Contains("+2")).
+			AltClick(0, 17).
+			Tap(func() {
+				t.FileSystem().FileContent("edit-command", Contains("/repo/bar:1\n"))
 			})
 	},
 })
