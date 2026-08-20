@@ -87,11 +87,11 @@ type View struct {
 	tainted bool
 
 	// firstDirtyLine is the index of the lowest line in `lines` that has been
-	// written to or highlighted since viewLines was last refreshed, and whose
-	// cached wrapping (lineType.wrappedCells) may therefore be stale. Lines
-	// below it are unchanged and can reuse their cached wrapping instead of
-	// being re-wrapped, which keeps refreshViewLinesIfNeeded cheap while
-	// scrolling appends new lines to a long buffer.
+	// written to since viewLines was last refreshed, and whose cached wrapping
+	// (lineType.wrappedCells) may therefore be stale. Lines below it are
+	// unchanged and can reuse their cached wrapping instead of being
+	// re-wrapped, which keeps refreshViewLinesIfNeeded cheap while scrolling
+	// appends new lines to a long buffer.
 	firstDirtyLine int
 
 	// the last position that the mouse was hovering over; nil if the mouse is outside of
@@ -1899,8 +1899,8 @@ func (v *View) refreshViewLinesIfNeeded() {
 		// Reuse the previously wrapped result for lines that haven't changed
 		// since the last refresh (i.e. below firstDirtyLine) and were wrapped at
 		// the current width. Wrapping is expensive and this loop runs on every
-		// scroll event, so only the lines that were actually just read (or
-		// re-highlighted) should be wrapped afresh.
+		// scroll event, so only the lines that were actually just read should
+		// be wrapped afresh.
 		if line.wrappedCells == nil || line.wrappedColumns != wrap || i >= v.firstDirtyLine {
 			line.wrappedCells = lineWrap(line.cells, wrap)
 			line.wrappedColumns = wrap
@@ -2283,30 +2283,6 @@ func (v *View) Word(x, y int) (string, bool) {
 // and 0.
 func indexFunc(r rune) bool {
 	return r == ' ' || r == 0
-}
-
-// SetHighlight toggles highlighting of separate lines, for custom lists
-// or multiple selection in views.
-func (v *View) SetHighlight(y int, on bool) {
-	if y < 0 || y >= len(v.buf.lines) {
-		return
-	}
-
-	cells := make([]cell, 0, len(v.buf.lines[y].cells))
-	for _, c := range v.buf.lines[y].cells {
-		if on {
-			c.bgColor = v.SelBgColor
-			c.fgColor = v.SelFgColor
-		} else {
-			c.bgColor = v.BgColor
-			c.fgColor = v.FgColor
-		}
-		cells = append(cells, c)
-	}
-	v.tainted = true
-	v.firstDirtyLine = min(v.firstDirtyLine, y)
-	v.buf.lines[y].cells = cells
-	v.clearHover()
 }
 
 func lineWrap(line []cell, columns int) [][]cell {
