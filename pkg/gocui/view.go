@@ -80,6 +80,10 @@ type View struct {
 	// a user starts a range select and then moves the cursor up.
 	rangeSelectStartY int
 
+	// The view line whose selection-width bar is temporarily reversed. A value
+	// of -1 means that no line is flashing.
+	lineFlashY int
+
 	// readBuffer is used for storing unread bytes
 	readBuffer []byte
 
@@ -805,6 +809,7 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 		searcher:          &searcher{},
 		TextArea:          &TextArea{},
 		rangeSelectStartY: -1,
+		lineFlashY:        -1,
 		TabWidth:          4,
 	}
 
@@ -959,6 +964,10 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute, isW
 
 	if v.isHoveredHyperlink(x, y) {
 		fgColor |= AttrUnderline
+	}
+
+	if v.lineFlashY == v.oy+y && (v.SelectedLineColorWidth == 0 || x < v.SelectedLineColorWidth) {
+		fgColor ^= AttrReverse
 	}
 
 	// Don't display empty characters
@@ -2303,6 +2312,24 @@ func (v *View) Word(x, y int) (string, bool) {
 // and 0.
 func indexFunc(r rune) bool {
 	return r == ' ' || r == 0
+}
+
+// SetLineFlash temporarily marks a view line without moving or changing the
+// selection. The caller owns the lifetime and clears it with ClearLineFlash.
+func (v *View) SetLineFlash(viewLine int) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.lineFlashY = viewLine
+	v.needsRedraw = true
+}
+
+func (v *View) ClearLineFlash() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.lineFlashY = -1
+	v.needsRedraw = true
 }
 
 func lineWrap(line []cell, columns int) [][]cell {
