@@ -52,9 +52,9 @@ var CustomPatch = NewIntegrationTest(NewIntegrationTestArgs{
 					IsFocused().
 					NavigateToLine(Contains("users.go")).
 					Wait(1000).
-					PressEnter().
+					Press(keys.Universal.FocusMainView).
 					Tap(func() {
-						t.Views().PatchBuilding().
+						t.Views().Main().
 							IsFocused().
 							NavigateToLine(Contains("TODO")).
 							Wait(500).
