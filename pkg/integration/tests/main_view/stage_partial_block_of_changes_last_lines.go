@@ -1,4 +1,4 @@
-package staging
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -26,7 +26,7 @@ var StagePartialBlockOfChangesLastLines = NewIntegrationTest(NewIntegrationTestA
 			).
 			PressEnter()
 
-		t.Views().Staging().
+		t.Views().Main().
 			IsFocused().
 			ContainsLines(
 				Contains(" 1"),
@@ -53,7 +53,7 @@ var StagePartialBlockOfChangesLastLines = NewIntegrationTest(NewIntegrationTestA
 			SelectedLines(Contains("+7b")).
 			PressPrimaryAction()
 
-		t.Views().StagingSecondary().
+		t.Views().Secondary().
 			ContainsLines(
 				Contains(" 3"),
 				Contains(" 4"),
