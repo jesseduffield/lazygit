@@ -94,7 +94,7 @@ type GuiConfig struct {
 	MouseEvents bool `yaml:"mouseEvents"`
 	// If true, do not show a warning when amending a commit.
 	SkipAmendWarning bool `yaml:"skipAmendWarning"`
-	// If true, do not show a warning when discarding changes in the staging view.
+	// If true, do not show a warning when discarding changes from a focused diff.
 	SkipDiscardChangeWarning bool `yaml:"skipDiscardChangeWarning"`
 	// If true, do not show warning when applying/popping the stash
 	SkipStashWarning bool `yaml:"skipStashWarning"`

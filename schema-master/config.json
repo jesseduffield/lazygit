@@ -594,7 +594,7 @@
         },
         "skipDiscardChangeWarning": {
           "type": "boolean",
-          "description": "If true, do not show a warning when discarding changes in the staging view.",
+          "description": "If true, do not show a warning when discarding changes from a focused diff.",
           "default": false
         },
         "skipStashWarning": {
