@@ -43,10 +43,7 @@ var MovePatchToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Common().SelectPatchOption(Contains("Move patch out into index"))
 
 		t.Views().Files().Lines(
-			/* EXPECTED:
 			Contains("A").Contains("file1"),
-			ACTUAL: */
-			Contains("M").Contains("file1"),
 		)
 		t.Views().Main().
 			IsFocused().
