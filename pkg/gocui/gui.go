@@ -394,13 +394,12 @@ func (g *Gui) Size() (x, y int) {
 // corner of the terminal. It checks if the position is valid and applies
 // the given colors.
 // Should only be used if you know that the given rune is not part of a grapheme cluster.
-func (g *Gui) SetRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
+func (g *Gui) SetRune(x, y int, ch rune, fgColor, bgColor Attribute) {
 	if x < 0 || y < 0 || x >= g.maxX || y >= g.maxY {
 		// swallowing error because it's not that big of a deal
-		return nil
+		return
 	}
 	tcellSetCell(x, y, string(ch), fgColor, bgColor, g.outputMode)
-	return nil
 }
 
 // SetView creates a new view with its top-left corner at (x0, y0)
@@ -1147,7 +1146,8 @@ func (g *Gui) processEvent() error {
 	contentOnly = contentOnly && remainingContentOnly
 
 	if contentOnly {
-		return g.flushContentOnly(g.views)
+		g.flushContentOnly(g.views)
+		return nil
 	}
 	return g.flush()
 }
@@ -1248,7 +1248,7 @@ func (g *Gui) onResize() {
 }
 
 // drawFrameEdges draws the horizontal and vertical edges of a view.
-func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
+func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) {
 	runeH, runeV := '─', '│'
 	if len(v.FrameRunes) >= 2 {
 		runeH, runeV = v.FrameRunes[0], v.FrameRunes[1]
@@ -1259,14 +1259,10 @@ func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
 			continue
 		}
 		if v.y0 > -1 && v.y0 < g.maxY {
-			if err := g.SetRune(x, v.y0, runeH, fgColor, bgColor); err != nil {
-				return err
-			}
+			g.SetRune(x, v.y0, runeH, fgColor, bgColor)
 		}
 		if v.y1 > -1 && v.y1 < g.maxY {
-			if err := g.SetRune(x, v.y1, runeH, fgColor, bgColor); err != nil {
-				return err
-			}
+			g.SetRune(x, v.y1, runeH, fgColor, bgColor)
 		}
 	}
 
@@ -1276,19 +1272,14 @@ func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
 			continue
 		}
 		if v.x0 > -1 && v.x0 < g.maxX {
-			if err := g.SetRune(v.x0, y, runeV, fgColor, bgColor); err != nil {
-				return err
-			}
+			g.SetRune(v.x0, y, runeV, fgColor, bgColor)
 		}
 		if v.x1 > -1 && v.x1 < g.maxX {
 			runeToPrint := calcScrollbarRune(showScrollbar, realScrollbarStart, realScrollbarEnd, y, runeV)
 
-			if err := g.SetRune(v.x1, y, runeToPrint, fgColor, bgColor); err != nil {
-				return err
-			}
+			g.SetRune(v.x1, y, runeToPrint, fgColor, bgColor)
 		}
 	}
-	return nil
 }
 
 func calcScrollbarRune(
@@ -1388,17 +1379,13 @@ func corner(v *View, directions byte) rune {
 }
 
 // drawFrameCorners draws the corners of the view.
-func (g *Gui) drawFrameCorners(v *View, fgColor, bgColor Attribute) error {
+func (g *Gui) drawFrameCorners(v *View, fgColor, bgColor Attribute) {
 	if v.y0 == v.y1 {
 		if !g.SupportOverlaps && v.x0 >= 0 && v.x1 >= 0 && v.y0 >= 0 && v.x0 < g.maxX && v.x1 < g.maxX && v.y0 < g.maxY {
-			if err := g.SetRune(v.x0, v.y0, '╶', fgColor, bgColor); err != nil {
-				return err
-			}
-			if err := g.SetRune(v.x1, v.y0, '╴', fgColor, bgColor); err != nil {
-				return err
-			}
+			g.SetRune(v.x0, v.y0, '╶', fgColor, bgColor)
+			g.SetRune(v.x1, v.y0, '╴', fgColor, bgColor)
 		}
-		return nil
+		return
 	}
 
 	runeTL, runeTR, runeBL, runeBR := '┌', '┐', '└', '┘'
@@ -1419,18 +1406,15 @@ func (g *Gui) drawFrameCorners(v *View, fgColor, bgColor Attribute) error {
 
 	for _, c := range corners {
 		if c.x >= 0 && c.y >= 0 && c.x < g.maxX && c.y < g.maxY {
-			if err := g.SetRune(c.x, c.y, c.ch, fgColor, bgColor); err != nil {
-				return err
-			}
+			g.SetRune(c.x, c.y, c.ch, fgColor, bgColor)
 		}
 	}
-	return nil
 }
 
 // drawTitle draws the title of the view.
-func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
+func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) {
 	if v.y0 < 0 || v.y0 >= g.maxY {
-		return nil
+		return
 	}
 
 	tabs := v.Tabs
@@ -1466,9 +1450,7 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 
 	x := v.x0 + 2
 	for _, ch := range prefix {
-		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
-			return err
-		}
+		g.SetRune(x, v.y0, ch, fgColor, bgColor)
 		x += uniseg.StringWidth(string(ch))
 	}
 	for i, ch := range str {
@@ -1491,64 +1473,55 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 				currentFgColor &= ^AttrBold
 			}
 		}
-		if err := g.SetRune(x, v.y0, ch, currentFgColor, currentBgColor); err != nil {
-			return err
-		}
+		g.SetRune(x, v.y0, ch, currentFgColor, currentBgColor)
 		x += uniseg.StringWidth(string(ch))
 	}
-	return nil
 }
 
 // drawSubtitle draws the subtitle of the view.
-func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
+func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) {
 	if v.y0 < 0 || v.y0 >= g.maxY {
-		return nil
+		return
 	}
 
 	start := v.x1 - 5 - uniseg.StringWidth(v.Subtitle)
 	if start < v.x0 {
-		return nil
+		return
 	}
 	x := start
 	for _, ch := range v.Subtitle {
 		if x >= v.x1 {
 			break
 		}
-		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
-			return err
-		}
+		g.SetRune(x, v.y0, ch, fgColor, bgColor)
 		x += uniseg.StringWidth(string(ch))
 	}
-	return nil
 }
 
 // drawListFooter draws the footer of a list view, showing something like '1 of 10'
-func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
+func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) {
 	if len(v.buf.lines) == 0 {
-		return nil
+		return
 	}
 
 	message := v.Footer
 
 	if v.y1 < 0 || v.y1 >= g.maxY {
-		return nil
+		return
 	}
 
 	start := v.x1 - 1 - uniseg.StringWidth(message)
 	if start < v.x0 {
-		return nil
+		return
 	}
 	x := start
 	for _, ch := range message {
 		if x >= v.x1 {
 			break
 		}
-		if err := g.SetRune(x, v.y1, ch, fgColor, bgColor); err != nil {
-			return err
-		}
+		g.SetRune(x, v.y1, ch, fgColor, bgColor)
 		x += uniseg.StringWidth(string(ch))
 	}
-	return nil
 }
 
 // flush updates the gui, re-drawing frames and buffers.
@@ -1576,9 +1549,7 @@ func (g *Gui) flush() error {
 		}
 	}
 	for _, v := range g.views {
-		if err := g.draw(v); err != nil {
-			return err
-		}
+		g.draw(v)
 	}
 
 	Screen.Show()
@@ -1589,20 +1560,17 @@ func (g *Gui) flush() error {
 // tcell's cell-level dirty tracking ensures only
 // actually-changed cells are emitted to the terminal.
 // Will also redraw any views that overlap tainted views
-func (g *Gui) flushContentOnly(views []*View) error {
+func (g *Gui) flushContentOnly(views []*View) {
 	// The screen must not be touched while suspended (see Suspend).
 	if g.isSuspended() {
-		return nil
+		return
 	}
 
 	for _, v := range viewsToRedrawContentOnly(views) {
-		if err := g.draw(v); err != nil {
-			return err
-		}
+		g.draw(v)
 	}
 
 	Screen.Show()
-	return nil
 }
 
 func viewsToRedrawContentOnly(views []*View) []*View {
@@ -1642,8 +1610,8 @@ func (g *Gui) ForceLayoutAndRedraw() error {
 // Redraws only tainted views outside of the normal main
 // loop, without a layout pass. Useful during longer operations that block the
 // main thread, e.g. to update a spinner in a status view.
-func (g *Gui) ForceFlushViewsContentOnly(views []*View) error {
-	return g.flushContentOnly(views)
+func (g *Gui) ForceFlushViewsContentOnly(views []*View) {
+	g.flushContentOnly(views)
 }
 
 // hasFocus reports whether a view is drawn as focused. Views that are embedded
@@ -1661,9 +1629,9 @@ func outermostView(v *View) *View {
 }
 
 // draw manages the cursor and calls the draw function of a view.
-func (g *Gui) draw(v *View) error {
+func (g *Gui) draw(v *View) {
 	if !v.Visible || v.y1 < v.y0 || v.x1 < v.x0 {
-		return nil
+		return
 	}
 
 	if g.Cursor {
@@ -1702,30 +1670,18 @@ func (g *Gui) draw(v *View) error {
 			}
 		}
 
-		if err := g.drawFrameEdges(v, frameColor, bgColor); err != nil {
-			return err
-		}
-		if err := g.drawFrameCorners(v, frameColor, bgColor); err != nil {
-			return err
-		}
+		g.drawFrameEdges(v, frameColor, bgColor)
+		g.drawFrameCorners(v, frameColor, bgColor)
 		if v.Title != "" || len(v.Tabs) > 0 {
-			if err := g.drawTitle(v, fgColor, bgColor); err != nil {
-				return err
-			}
+			g.drawTitle(v, fgColor, bgColor)
 		}
 		if v.Subtitle != "" {
-			if err := g.drawSubtitle(v, fgColor, bgColor); err != nil {
-				return err
-			}
+			g.drawSubtitle(v, fgColor, bgColor)
 		}
 		if v.Footer != "" && g.ShowListFooter {
-			if err := g.drawListFooter(v, fgColor, bgColor); err != nil {
-				return err
-			}
+			g.drawListFooter(v, fgColor, bgColor)
 		}
 	}
-
-	return nil
 }
 
 // onKey manages key-press events. A keybinding handler is called when

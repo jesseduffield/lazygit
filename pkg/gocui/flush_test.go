@@ -64,8 +64,8 @@ func TestFlushContentOnly_SkipsUntaintedViews(t *testing.T) {
 	assert.True(t, status.IsTainted(), "status view should be tainted after SetContent")
 	assert.False(t, main.IsTainted(), "main view should not be tainted (was not modified)")
 
-	// flushContentOnly should succeed and clear status tainted flag
-	assert.NoError(t, g.flushContentOnly(g.views))
+	// flushContentOnly should clear status tainted flag
+	g.flushContentOnly(g.views)
 
 	assert.False(t, status.IsTainted(), "status view should not be tainted after flushContentOnly")
 	assert.False(t, main.IsTainted(), "main view should not be tainted after flushContentOnly")
@@ -76,7 +76,7 @@ func TestFlushContentOnly_WritesCorrectContent(t *testing.T) {
 	status, _ := setupViews(t, g)
 
 	status.SetContent("Fetching |")
-	assert.NoError(t, g.flushContentOnly(g.views))
+	g.flushContentOnly(g.views)
 
 	assert.Equal(t, "Fetching |", status.Buffer())
 }
@@ -231,7 +231,7 @@ func TestFlushContentOnly_DoesNotOverdrawHigherZViews(t *testing.T) {
 	assert.False(t, popup.IsTainted(), "popup should not be tainted")
 
 	// flushContentOnly is what spinner ticks ultimately invoke.
-	assert.NoError(t, g.flushContentOnly(g.views))
+	g.flushContentOnly(g.views)
 
 	assert.Equal(t, "P", cellAt(21, 9),
 		"popup region must still show popup content after flushContentOnly; "+
@@ -279,7 +279,7 @@ func TestFlushContentOnly_RedrawsTransitivelyOverlappingViews(t *testing.T) {
 	assert.False(t, b.IsTainted())
 	assert.False(t, c.IsTainted())
 
-	assert.NoError(t, g.flushContentOnly(g.views))
+	g.flushContentOnly(g.views)
 
 	// a redrawn (direct).
 	assert.Equal(t, "X", cellAt(5, 5), "a should be redrawn (tainted)")
