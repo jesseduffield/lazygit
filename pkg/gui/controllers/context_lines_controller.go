@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"math"
 
@@ -50,10 +49,6 @@ func (self *ContextLinesController) Context() types.Context {
 }
 
 func (self *ContextLinesController) Increase() error {
-	if err := self.checkCanChangeContext(); err != nil {
-		return err
-	}
-
 	if self.c.UserConfig().Git.DiffContextSize < math.MaxUint64 {
 		self.c.UserConfig().Git.DiffContextSize++
 	}
@@ -61,10 +56,6 @@ func (self *ContextLinesController) Increase() error {
 }
 
 func (self *ContextLinesController) Decrease() error {
-	if err := self.checkCanChangeContext(); err != nil {
-		return err
-	}
-
 	if self.c.UserConfig().Git.DiffContextSize > 0 {
 		self.c.UserConfig().Git.DiffContextSize--
 	}
@@ -81,13 +72,5 @@ func (self *ContextLinesController) applyChange() error {
 	self.c.Helpers().DiffLine.PreserveDiffPositionOnRerender(self.c.Contexts().Normal.GetView())
 	self.c.Helpers().DiffLine.PreserveDiffPositionOnRerender(self.c.Contexts().NormalSecondary.GetView())
 	currentContext.HandleRenderToMain()
-	return nil
-}
-
-func (self *ContextLinesController) checkCanChangeContext() error {
-	if self.c.Git().Patch.PatchBuilder.Active() {
-		return errors.New(self.c.Tr.CantChangeContextSizeError)
-	}
-
 	return nil
 }
