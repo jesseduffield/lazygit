@@ -21,7 +21,6 @@ type TranslationSet struct {
 	EasterEgg                             string
 	UnstagedChanges                       string
 	StagedChanges                         string
-	StagingTitle                          string
 	MergingTitle                          string
 	NormalTitle                           string
 	LogTitle                              string
@@ -318,8 +317,8 @@ type TranslationSet struct {
 	RemoveSelectionFromPatchTooltip       string
 	EditHunk                              string
 	EditHunkTooltip                       string
-	ToggleStagingView                     string
-	ToggleStagingViewTooltip              string
+	ToggleDiffPane                        string
+	ToggleDiffPaneTooltip                 string
 	ReturnToFilesPanel                    string
 	FastForward                           string
 	FastForwardTooltip                    string
@@ -359,7 +358,6 @@ type TranslationSet struct {
 	CommitMenuTitle                       string
 	RemotesTitle                          string
 	RemoteBranchesTitle                   string
-	PatchBuildingTitle                    string
 	InformationTitle                      string
 	SecondaryTitle                        string
 	ReflogCommitsTitle                    string
@@ -563,9 +561,9 @@ type TranslationSet struct {
 	PatchOptionsTitle                     string
 	NoPatchError                          string
 	EmptyPatchError                       string
-	EnterCommitFile                       string
-	EnterCommitFileTooltip                string
-	ExitCustomPatchBuilder                string
+	FocusCommitFileDiff                   string
+	FocusCommitFileDiffTooltip            string
+	ResetCustomPatch                      string
 	ExitFocusedMainView                   string
 	EnterUpstream                         string
 	InvalidUpstream                       string
@@ -821,7 +819,6 @@ type TranslationSet struct {
 	ToggleWhitespaceInDiffView               string
 	ToggleWhitespaceInDiffViewTooltip        string
 	IgnoreWhitespaceDiffViewSubTitle         string
-	IgnoreWhitespaceNotSupportedHere         string
 	IncreaseContextInDiffView                string
 	IncreaseContextInDiffViewTooltip         string
 	DecreaseContextInDiffView                string
@@ -1197,7 +1194,6 @@ func EnglishTranslationSet() *TranslationSet {
 		EasterEgg:                            "Easter egg",
 		UnstagedChanges:                      "Unstaged changes",
 		StagedChanges:                        "Staged changes",
-		StagingTitle:                         "Main panel (staging)",
 		MergingTitle:                         "Main panel (merging)",
 		NormalTitle:                          "Main panel (normal)",
 		LogTitle:                             "Log",
@@ -1480,8 +1476,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ExpandAll:                            "Expand all files",
 		ExpandAllTooltip:                     "Expand all directories in the file tree",
 		DisabledInFlatView:                   "Not available in flat view",
-		FileEnter:                            `Stage lines / Collapse directory`,
-		FileEnterTooltip:                     "If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it.",
+		FileEnter:                            `Focus file diff / Collapse directory`,
+		FileEnterTooltip:                     "If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it.",
 		StageSelectionTooltip:                `Toggle selection staged / unstaged.`,
 		DiscardSelection:                     `Discard`,
 		DiscardSelectionTooltip:              "When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change.",
@@ -1497,8 +1493,8 @@ func EnglishTranslationSet() *TranslationSet {
 		RemoveSelectionFromPatchTooltip:      "Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines.",
 		EditHunk:                             `Edit hunk`,
 		EditHunkTooltip:                      "Edit selected hunk in external editor.",
-		ToggleStagingView:                    "Switch view",
-		ToggleStagingViewTooltip:             "Switch to other view (staged/unstaged changes).",
+		ToggleDiffPane:                       "Switch diff pane",
+		ToggleDiffPaneTooltip:                "Switch to the other focused diff pane.",
 		ReturnToFilesPanel:                   `Return to files panel`,
 		FastForward:                          `Fast-forward`,
 		FastForwardTooltip:                   "Fast-forward selected branch from its upstream. If the branch has diverged from its upstream because the upstream branch was rewritten, and it has no commits of its own, it is reset to its upstream instead. This needs reflogs to be enabled; a bare repository doesn't keep them by default (core.logAllRefUpdates).",
@@ -1536,7 +1532,6 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitMenuTitle:                      "Commit Menu",
 		RemotesTitle:                         "Remotes",
 		RemoteBranchesTitle:                  "Remote branches",
-		PatchBuildingTitle:                   "Main panel (patch building)",
 		InformationTitle:                     "Information",
 		SecondaryTitle:                       "Secondary",
 		ReflogCommitsTitle:                   "Reflog",
@@ -1747,9 +1742,9 @@ func EnglishTranslationSet() *TranslationSet {
 		PatchOptionsTitle:                    "Patch options",
 		NoPatchError:                         "No patch created yet. To start building a patch, use 'space' on a commit file or enter to add specific lines",
 		EmptyPatchError:                      "Patch is still empty. Add some files or lines to your patch first.",
-		EnterCommitFile:                      "Enter file / Toggle directory collapsed",
-		EnterCommitFileTooltip:               "If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory.",
-		ExitCustomPatchBuilder:               `Exit custom patch builder`,
+		FocusCommitFileDiff:                  "Focus file diff / Toggle directory",
+		FocusCommitFileDiffTooltip:           "If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it.",
+		ResetCustomPatch:                     `Reset custom patch`,
 		ExitFocusedMainView:                  "Exit back to side panel",
 		EnterUpstream:                        `Enter upstream as '<remote> <branchname>'`,
 		InvalidUpstream:                      "Invalid upstream. Must be in the format '<remote> <branchname>'",
@@ -2002,7 +1997,6 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleWhitespaceInDiffView:               "Toggle whitespace",
 		ToggleWhitespaceInDiffViewTooltip:        "Toggle whether or not whitespace changes are shown in the diff view.\n\nThe default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'.",
 		IgnoreWhitespaceDiffViewSubTitle:         "(ignoring whitespace)",
-		IgnoreWhitespaceNotSupportedHere:         "Ignoring whitespace is not supported in this view",
 		IncreaseContextInDiffView:                "Increase diff context size",
 		IncreaseContextInDiffViewTooltip:         "Increase the amount of the context shown around changes in the diff view.\n\nThe default can be changed in the config file with the key 'git.diffContextSize'.",
 		DecreaseContextInDiffView:                "Decrease diff context size",

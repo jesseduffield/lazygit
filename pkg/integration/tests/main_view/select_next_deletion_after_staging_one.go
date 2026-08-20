@@ -10,7 +10,7 @@ var SelectNextDeletionAfterStagingOne = NewIntegrationTest(NewIntegrationTestArg
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "keep1\nd1\nd2\nd3\nd4\nkeep2\n")

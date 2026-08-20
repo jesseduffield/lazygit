@@ -124,8 +124,8 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Keys:              opts.GetKeys(opts.Config.Universal.GoInto),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.EnterCommitFile,
-			Tooltip:           self.c.Tr.EnterCommitFileTooltip,
+			Description:       self.c.Tr.FocusCommitFileDiff,
+			Tooltip:           self.c.Tr.FocusCommitFileDiffTooltip,
 		},
 		{
 			Keys:        opts.GetKeys(opts.Config.Files.ToggleTreeView),

@@ -10,7 +10,7 @@ var PatchMarksFollowARendererSwitch = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		// Two renderers that announce the metadata protocol — so that focusing the main
 		// view keeps their output rather than falling back to git's own — and pass the
 		// diff through under a banner of their own. The second one's banner is a line

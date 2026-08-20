@@ -10,7 +10,7 @@ var DiscardLineFromAddedFileInCommit = NewIntegrationTest(NewIntegrationTestArgs
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		config.GetUserConfig().Gui.UseHunkModeInDiffView = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("first commit")

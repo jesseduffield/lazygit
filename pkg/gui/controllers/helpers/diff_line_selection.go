@@ -70,7 +70,7 @@ func (self *DiffLineHelper) EstablishSelection(mainContext *context.MainContext,
 // there is nothing else to offer. Line by line it is simply the first change line on
 // screen. ok is false when the viewport shows no change at all.
 func (self *DiffLineHelper) changeToSelectOnScreen(view *gocui.View) (int, bool) {
-	if self.c.UserConfig().Gui.UseHunkModeInStagingView {
+	if self.c.UserConfig().Gui.UseHunkModeInDiffView {
 		return self.FirstChangeBlockInView(view)
 	}
 	return self.FirstChangeLineInView(view)
@@ -81,7 +81,7 @@ func (self *DiffLineHelper) changeToSelectOnScreen(view *gocui.View) (int, bool)
 // except over a file shown as one solid block of changes, where it would select the
 // whole file — see IsSingleHunkForWholeFile.
 func (self *DiffLineHelper) hunkModeApplies(view *gocui.View, changeViewLine int) bool {
-	return self.c.UserConfig().Gui.UseHunkModeInStagingView &&
+	return self.c.UserConfig().Gui.UseHunkModeInDiffView &&
 		!self.IsSingleHunkForWholeFile(view, changeViewLine)
 }
 

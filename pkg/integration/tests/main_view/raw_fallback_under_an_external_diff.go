@@ -15,7 +15,7 @@ var RawFallbackUnderAnExternalDiff = NewIntegrationTest(NewIntegrationTestArgs{
 	Width:        120,
 	Height:       30,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		// An external diff whose output has nothing to do with the diff it was given,
 		// let alone anything to say about which line of which file each row shows. It
 		// is long enough to be scrolled about in.
