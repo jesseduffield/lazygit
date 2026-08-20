@@ -966,8 +966,11 @@ func (self *MainViewController) editLine() error {
 	if !view.Highlight {
 		return nil
 	}
+	return self.editDiffLine(view.SelectedLineIdx())
+}
 
-	info, ok := self.c.Helpers().DiffLine.GetDiffLineInfo(view, view.SelectedLineIdx())
+func (self *MainViewController) editDiffLine(viewLine int) error {
+	info, ok := self.c.Helpers().DiffLine.GetDiffLineInfo(self.context.GetView(), viewLine)
 	if !ok {
 		return nil
 	}
