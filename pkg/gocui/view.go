@@ -86,6 +86,11 @@ type View struct {
 	// tained is true if the viewLines must be updated
 	tainted bool
 
+	// needsRedraw is true if the view's current state has not been drawn to the
+	// screen yet. A tainted view always needs a redraw, but draw-only state can
+	// require one without invalidating viewLines.
+	needsRedraw bool
+
 	// firstDirtyLine is the index of the lowest line in `lines` that has been
 	// written to since viewLines was last refreshed, and whose cached wrapping
 	// (lineType.wrappedCells) may therefore be stale. Lines below it are
@@ -268,9 +273,16 @@ type pos struct {
 // a view whose size has changed, whose content is the same but has to be wrapped
 // afresh, call RewrapContent instead.
 func (v *View) clearViewLines() {
-	v.tainted = true
+	v.markViewLinesDirty()
 	v.viewLines = nil
 	v.clearHover()
+}
+
+// markViewLinesDirty records that the cached viewLines no longer represent the
+// view's buffer or wrapping, so both rebuilding and redrawing are required.
+func (v *View) markViewLinesDirty() {
+	v.tainted = true
+	v.needsRedraw = true
 }
 
 // RewrapContent wraps the view's content for the size the view has now, and puts
@@ -787,6 +799,7 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 		Frame:             true,
 		Editor:            DefaultEditor,
 		tainted:           true,
+		needsRedraw:       true,
 		outMode:           mode,
 		buf:               &viewBuffer{ei: newEscapeInterpreter(mode)},
 		searcher:          &searcher{},
@@ -1168,7 +1181,7 @@ func (v *View) write(p []byte) {
 		return
 	}
 
-	v.tainted = true
+	v.markViewLinesDirty()
 	// write only ever touches lines from v.buf.wy onwards, so any cached wrapping
 	// below that stays valid.
 	v.firstDirtyLine = min(v.firstDirtyLine, v.buf.wy)
@@ -1603,7 +1616,7 @@ func (v *View) SwapInOffscreenRender() {
 	}
 	v.buf = v.offscreen
 	v.offscreen = nil
-	v.tainted = true
+	v.markViewLinesDirty()
 	v.clearHover()
 }
 
@@ -1767,6 +1780,12 @@ func (v *View) IsTainted() bool {
 	return v.tainted
 }
 
+func (v *View) NeedsRedraw() bool {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+	return v.needsRedraw
+}
+
 // draw re-draws the view's contents.
 func (v *View) draw(isWindowFocused bool) {
 	v.writeMutex.Lock()
@@ -1775,6 +1794,7 @@ func (v *View) draw(isWindowFocused bool) {
 	if !v.Visible {
 		return
 	}
+	defer func() { v.needsRedraw = false }()
 
 	v.clearRunes()
 

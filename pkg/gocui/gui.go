@@ -1556,10 +1556,10 @@ func (g *Gui) flush() error {
 	return nil
 }
 
-// Redraws only tainted views and skips the layout pass.
+// Redraws only dirty views and skips the layout pass.
 // tcell's cell-level dirty tracking ensures only
 // actually-changed cells are emitted to the terminal.
-// Will also redraw any views that overlap tainted views
+// Will also redraw any views that overlap dirty views.
 func (g *Gui) flushContentOnly(views []*View) {
 	// The screen must not be touched while suspended (see Suspend).
 	if g.isSuspended() {
@@ -1577,7 +1577,7 @@ func viewsToRedrawContentOnly(views []*View) []*View {
 	redrawIndexes := set.New[int]()
 
 	for i, v := range views {
-		if !v.IsTainted() && !redrawIndexes.Includes(i) {
+		if !v.NeedsRedraw() && !redrawIndexes.Includes(i) {
 			continue
 		}
 
@@ -1607,7 +1607,7 @@ func (g *Gui) ForceLayoutAndRedraw() error {
 	return g.flush()
 }
 
-// Redraws only tainted views outside of the normal main
+// Redraws only dirty views outside of the normal main
 // loop, without a layout pass. Useful during longer operations that block the
 // main thread, e.g. to update a spinner in a status view.
 func (g *Gui) ForceFlushViewsContentOnly(views []*View) {
