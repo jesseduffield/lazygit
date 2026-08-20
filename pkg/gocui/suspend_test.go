@@ -18,7 +18,7 @@ func TestFlushIsNoOpWhileSuspended(t *testing.T) {
 		flush func(g *Gui) error
 	}{
 		{"flush", func(g *Gui) error { return g.flush() }},
-		{"flushContentOnly", func(g *Gui) error { return g.flushContentOnly(g.views) }},
+		{"flushContentOnly", func(g *Gui) error { g.flushContentOnly(g.views); return nil }},
 	}
 
 	for _, tc := range tests {
