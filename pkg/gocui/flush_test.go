@@ -81,6 +81,23 @@ func TestFlushContentOnly_WritesCorrectContent(t *testing.T) {
 	assert.Equal(t, "Fetching |", status.Buffer())
 }
 
+func TestForceFlushViewsContentOnlyDrawsLineFlash(t *testing.T) {
+	g := newTestGui(t)
+	_, main := setupViews(t, g)
+	main.Highlight = true
+	main.SelBgColor = ColorBlue
+	main.SelectedLineColorWidth = 2
+	main.FocusPoint(0, 0, false)
+
+	main.SetLineFlash(0)
+	g.ForceFlushViewsContentOnly(g.Views())
+
+	for x := main.x0 + 1; x <= main.x0+2; x++ {
+		_, style, _ := Screen.Get(x, main.y0+1)
+		assert.True(t, style.HasReverse(), "selection-bar cell at x=%d should flash", x)
+	}
+}
+
 func TestProcessEvent_ContentOnlyEvent_SkipsTaintedCheck(t *testing.T) {
 	g := newTestGui(t)
 	status, main := setupViews(t, g)
