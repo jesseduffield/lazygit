@@ -1,15 +1,17 @@
-package patch_building
+package main_view
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var ApplyInReverse = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Apply a custom patch in reverse",
+var ApplyCustomPatchInReverse = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Apply a custom patch built from a focused commit diff in reverse",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "file1 content\n")
 		shell.CreateFileAndAdd("file2", "file2 content\n")
@@ -30,13 +32,15 @@ var ApplyInReverse = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("  A file1"),
 				Equals("  A file2"),
 			).
-			SelectNextItem().
+			Press(keys.Universal.FocusMainView)
+
+		t.Views().Main().
+			IsFocused().
+			SelectedLines(Contains("+file1 content")).
 			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("Building patch"))
-
 		t.Views().Secondary().Content(Contains("+file1 content"))
-
 		t.Common().SelectPatchOption(Contains("Apply patch in reverse"))
 
 		t.Views().Files().
@@ -44,8 +48,6 @@ var ApplyInReverse = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("D").Contains("file1").IsSelected(),
 			)
-
-		t.Views().Secondary().
-			Content(Contains("-file1 content"))
+		t.Views().Secondary().Content(Contains("-file1 content"))
 	},
 })
