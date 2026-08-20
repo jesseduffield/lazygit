@@ -20,9 +20,10 @@ var StageRangeOfLines = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
 			IsFocused().
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
-		t.Views().Staging().
+		t.Views().Main().
+			IsFocused().
 			Content(
 				Contains("-1st\n-2nd\n+1st changed\n+2nd changed\n 3rd\n 4th\n-5th\n+5th changed\n 6th"),
 			).
