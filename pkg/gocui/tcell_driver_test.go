@@ -36,21 +36,55 @@ func TestMouseReleaseAfterDragIsMouseEvent(t *testing.T) {
 	assert.Equal(t, MouseRelease, releaseEvent.Key.KeyName())
 }
 
-func TestMouseReleaseDoesNotKeepPressModifiers(t *testing.T) {
+func TestWholeGestureCarriesPressModifiers(t *testing.T) {
 	t.Cleanup(resetMouseState)
 	resetMouseState()
 
-	gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 2, tcell.ButtonPrimary, tcell.ModAlt))
-	gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 3, tcell.ButtonPrimary, tcell.ModAlt))
+	pressEvent := gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 2, tcell.ButtonPrimary, tcell.ModAlt))
+	dragEvent := gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 3, tcell.ButtonPrimary, tcell.ModAlt))
 	releaseEvent := gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 3, tcell.ButtonNone, tcell.ModAlt))
 
+	assert.Equal(t, eventMouse, pressEvent.Type)
+	assert.Equal(t, MouseLeft, pressEvent.Key.KeyName())
+	assert.Equal(t, ModAlt, pressEvent.Key.Mod())
+	assert.Equal(t, eventMouse, dragEvent.Type)
+	assert.Equal(t, MouseLeft, dragEvent.Key.KeyName())
+	assert.Equal(t, ModAlt|ModMotion, dragEvent.Key.Mod())
 	assert.Equal(t, eventMouse, releaseEvent.Type)
 	assert.Equal(t, MouseRelease, releaseEvent.Key.KeyName())
+	assert.Equal(t, ModAlt, releaseEvent.Key.Mod())
+}
+
+func TestModifierChangesWhileButtonHeldAreIgnored(t *testing.T) {
+	t.Cleanup(resetMouseState)
+	resetMouseState()
+
+	gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 2, tcell.ButtonPrimary, tcell.ModNone))
+	dragEvent := gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 3, tcell.ButtonPrimary, tcell.ModAlt))
+	releaseEvent := gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 3, tcell.ButtonNone, tcell.ModAlt))
+
+	assert.Equal(t, ModMotion, dragEvent.Key.Mod())
 	assert.Equal(t, ModNone, releaseEvent.Key.Mod())
+}
+
+func TestModifiedClickWithoutDragCarriesModifierOnPressAndRelease(t *testing.T) {
+	t.Cleanup(resetMouseState)
+	resetMouseState()
+
+	pressEvent := gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 2, tcell.ButtonPrimary, tcell.ModShift))
+	releaseEvent := gocuiEventFromTcellEvent(tcell.NewEventMouse(1, 2, tcell.ButtonNone, tcell.ModShift))
+
+	assert.Equal(t, eventMouse, pressEvent.Type)
+	assert.Equal(t, MouseLeft, pressEvent.Key.KeyName())
+	assert.Equal(t, ModShift, pressEvent.Key.Mod())
+	assert.Equal(t, eventMouse, releaseEvent.Type)
+	assert.Equal(t, MouseRelease, releaseEvent.Key.KeyName())
+	assert.Equal(t, ModShift, releaseEvent.Key.Mod())
 }
 
 func resetMouseState() {
 	lastMouseKey = tcell.ButtonNone
+	lastMouseMod = tcell.ModNone
 	dragState = NOT_DRAGGING
 	lastX = 0
 	lastY = 0

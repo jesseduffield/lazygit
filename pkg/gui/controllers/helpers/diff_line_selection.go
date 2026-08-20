@@ -116,6 +116,17 @@ func (self *DiffLineHelper) SelectChangeBlock(
 	self.ShowSelectionAtLine(view, start, scrollIntoView)
 }
 
+// SelectedHunkBounds returns the change block selected in hunk mode. The range
+// anchor stays on the block's far end when a click moves the cursor before its
+// handler runs, so it still identifies the selected block.
+func (self *DiffLineHelper) SelectedHunkBounds(view *gocui.View) (int, int, bool) {
+	anchor := view.RangeSelectStartY()
+	if anchor < 0 {
+		return 0, 0, false
+	}
+	return self.ChangeBlockBounds(view, anchor)
+}
+
 // RefreshInclusionGutter updates the marks drawn over the diff in the main pane, which
 // say which of its lines are in the custom patch being built from it.
 //
