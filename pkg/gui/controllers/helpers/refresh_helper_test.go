@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -379,4 +380,17 @@ func makeTodoCommitWithHash(hash string, action todo.TodoCommand) *models.Commit
 
 func makeConflictedCommit(hash string) *models.Commit {
 	return models.NewCommit(&utils.StringPool{}, models.NewCommitOpts{Hash: hash, Status: models.StatusConflicted})
+}
+
+func TestDefaultRefreshScopesIncludeSubCommits(t *testing.T) {
+	// #5900: pushing from the sub-commits view of a local branch refreshes
+	// with the default scope, so the default scope must cover SUB_COMMITS —
+	// otherwise the pushed commit keeps its unpushed color until the view is
+	// left and re-entered.
+	scopes := defaultRefreshScopes()
+
+	assert.Contains(t, scopes, types.SUB_COMMITS,
+		"a default refresh must reload the sub-commits view when one is populated")
+	assert.Contains(t, scopes, types.COMMITS)
+	assert.Contains(t, scopes, types.BRANCHES)
 }

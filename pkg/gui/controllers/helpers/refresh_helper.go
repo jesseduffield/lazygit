@@ -173,6 +173,33 @@ func (self *refreshBounceBatch) close() []func() {
 	return self.funcs
 }
 
+// defaultRefreshScopes is the scope list a refresh with no explicit Scope
+// covers.
+//
+// SUB_COMMITS is included so that a default refresh — notably the one after
+// push/pull/fetch — also reloads the sub-commits view when the user entered
+// it for a branch. Without it, a pushed commit kept its unpushed color there
+// until the view was left and re-entered (#5900).
+// refreshSubCommitsWithLimit no-ops when no ref is set, so this costs
+// nothing while the sub-commits view was never opened.
+func defaultRefreshScopes() []types.RefreshableView {
+	return []types.RefreshableView{
+		types.COMMITS,
+		types.BRANCHES,
+		types.FILES,
+		types.STASH,
+		types.REFLOG,
+		types.TAGS,
+		types.REMOTES,
+		types.WORKTREES,
+		types.STATUS,
+		types.BISECT_INFO,
+		types.STAGING,
+		types.PULL_REQUESTS,
+		types.SUB_COMMITS,
+	}
+}
+
 func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFromWorker bool, blockInput bool) {
 	startTime := time.Now()
 
@@ -244,22 +271,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 
 	var scopeSet *set.Set[types.RefreshableView]
 	if len(options.Scope) == 0 {
-		// not refreshing staging/patch-building unless explicitly requested because we only need
-		// to refresh those while focused.
-		scopeSet = set.NewFromSlice([]types.RefreshableView{
-			types.COMMITS,
-			types.BRANCHES,
-			types.FILES,
-			types.STASH,
-			types.REFLOG,
-			types.TAGS,
-			types.REMOTES,
-			types.WORKTREES,
-			types.STATUS,
-			types.BISECT_INFO,
-			types.STAGING,
-			types.PULL_REQUESTS,
-		})
+		scopeSet = set.NewFromSlice(defaultRefreshScopes())
 	} else {
 		scopeSet = set.NewFromSlice(options.Scope)
 	}
