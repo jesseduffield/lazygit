@@ -99,6 +99,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | Przełącz zaznaczenie zakresu |  |
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
@@ -201,6 +203,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel down> (fn+up) `` | Przewiń w dół |  |
 | `` <mouse wheel up> (fn+down) `` | Przewiń w górę |  |
 | `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | Przełącz zaznaczenie zakresu |  |
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
