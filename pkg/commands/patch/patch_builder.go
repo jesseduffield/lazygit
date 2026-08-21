@@ -1,10 +1,12 @@
 package patch
 
 import (
+	"os"
 	"sort"
 	"strings"
 
 	"github.com/jesseduffield/generics/maps"
+	"github.com/jesseduffield/generics/set"
 	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
 	"github.com/sirupsen/logrus"
@@ -33,7 +35,7 @@ type fileInfo struct {
 }
 
 type (
-	loadFileDiffFunc func(from string, to string, reverse bool, filename string, previousPath string, plain bool) (string, error)
+	loadFileDiffFunc func(from string, to string, reverse bool, filename string, previousPath string) (string, error)
 )
 
 // PatchBuilder manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
@@ -60,18 +62,36 @@ type PatchBuilder struct {
 
 	// loadFileDiff loads the diff of a file, for a given to (typically a commit hash)
 	loadFileDiff loadFileDiffFunc
+
+	// newTempDir makes a directory for the current patch to be materialized into, as
+	// two file trees that can be diffed against each other and so rendered like any
+	// other diff (see PatchCommands.WriteCustomPatchDiffTrees). Its lifetime is the
+	// patch's: made when one is started, removed when it is given up.
+	newTempDir func() (string, error)
+	tempDir    string
+
+	// generation counts the changes made to the patch, so that whoever materializes it
+	// can tell whether what they last built still describes it — and rebuild only then,
+	// rather than on every render of it.
+	generation int
 }
 
-func NewPatchBuilder(log *logrus.Entry, loadFileDiff loadFileDiffFunc) *PatchBuilder {
+func NewPatchBuilder(
+	log *logrus.Entry, loadFileDiff loadFileDiffFunc, newTempDir func() (string, error),
+) *PatchBuilder {
 	return &PatchBuilder{
 		Log:          log,
 		loadFileDiff: loadFileDiff,
+		newTempDir:   newTempDir,
 	}
 }
 
 func (p *PatchBuilder) Start(from, to string, reverse bool, canRebase bool) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
+
+	p.generation++
+	p.makeTempDir()
 
 	p.To = to
 	p.From = from
@@ -89,6 +109,86 @@ func (p *PatchBuilder) snapshotFileInfoMap() map[string]*fileInfo {
 	defer p.mutex.Unlock()
 
 	return p.fileInfoMap
+}
+
+// TempDir is the directory the patch is materialized into for rendering, and "" when
+// there is none — no patch, or a directory we failed to make.
+func (p *PatchBuilder) TempDir() string {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	return p.tempDir
+}
+
+// Generation says which version of the patch this is; see the field.
+func (p *PatchBuilder) Generation() int {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	return p.generation
+}
+
+// makeTempDir replaces the directory the patch is materialized into with a fresh one.
+// Only call this with the lock held.
+func (p *PatchBuilder) makeTempDir() {
+	p.removeTempDir()
+	if p.newTempDir == nil {
+		return
+	}
+	dir, err := p.newTempDir()
+	if err != nil {
+		p.Log.Error(err)
+		return
+	}
+	p.tempDir = dir
+}
+
+// removeTempDir takes the patch's materialized form away with the patch. Only call this
+// with the lock held.
+func (p *PatchBuilder) removeTempDir() {
+	if p.tempDir == "" {
+		return
+	}
+	if err := os.RemoveAll(p.tempDir); err != nil {
+		p.Log.Error(err)
+	}
+	p.tempDir = ""
+}
+
+// PatchFile is what materializing the patch needs to know about one of its files: where
+// its content is to be found, and where the patch puts it.
+type PatchFile struct {
+	// Path is the file's path in the commit the patch is built from, which for a renamed
+	// file is the name it was renamed to.
+	Path string
+	// SourcePath is where the patch expects to find the file: the name it had before,
+	// for a renamed file the patch carries the rename of, and Path for anything else —
+	// a patch of part of a renamed file's content keeps only that content change, under
+	// the new name.
+	SourcePath string
+}
+
+// FilesInPatch says which files the patch touches, in a stable order, and where each of
+// them comes from.
+func (p *PatchBuilder) FilesInPatch() []PatchFile {
+	fileInfoMap := p.snapshotFileInfoMap()
+
+	filenames := maps.Keys(fileInfoMap)
+	sort.Strings(filenames)
+
+	files := make([]PatchFile, 0, len(filenames))
+	for _, filename := range filenames {
+		info := fileInfoMap[filename]
+		if info.mode == UNSELECTED {
+			continue
+		}
+		file := PatchFile{Path: filename, SourcePath: filename}
+		if info.mode == WHOLE && info.previousPath != "" {
+			file.SourcePath = info.previousPath
+		}
+		files = append(files, file)
+	}
+	return files
 }
 
 func (p *PatchBuilder) PatchToApply(reverse bool, turnAddedFilesIntoDiffAgainstEmptyFile bool) string {
@@ -135,6 +235,7 @@ func (p *PatchBuilder) AddFileWhole(filename string, previousPath string) error 
 		return err
 	}
 
+	p.generation++
 	p.addFileWhole(info)
 
 	return nil
@@ -146,6 +247,7 @@ func (p *PatchBuilder) RemoveFile(filename string, previousPath string) error {
 		return err
 	}
 
+	p.generation++
 	p.removeFile(info)
 
 	return nil
@@ -162,7 +264,7 @@ func (p *PatchBuilder) getFileInfo(filename string, previousPath string) (*fileI
 		return info, nil
 	}
 
-	diff, err := p.loadFileDiff(from, to, reverse, filename, previousPath, true)
+	diff, err := p.loadFileDiff(from, to, reverse, filename, previousPath)
 	if err != nil {
 		return nil, err
 	}
@@ -182,6 +284,7 @@ func (p *PatchBuilder) AddFileLineRange(filename string, previousPath string, li
 	if err != nil {
 		return err
 	}
+	p.generation++
 	info.mode = PART
 	info.includedLineIndices = lo.Union(info.includedLineIndices, lineIndices)
 
@@ -193,6 +296,7 @@ func (p *PatchBuilder) RemoveFileLineRange(filename string, previousPath string,
 	if err != nil {
 		return err
 	}
+	p.generation++
 	info.mode = PART
 	info.includedLineIndices, _ = lo.Difference(info.includedLineIndices, lineIndices)
 	if len(info.includedLineIndices) == 0 {
@@ -291,6 +395,125 @@ func (p *PatchBuilder) GetFileStatus(filename string, parent string) PatchStatus
 	return info.mode
 }
 
+// LineIdentity says which change line of a file is meant — the line number it has on
+// the side it belongs to, and whether it is a deletion — without reference to where
+// that line sits in the file's parsed diff.
+//
+// It is how a diff shown in the main view speaks about its lines: what a rendered row
+// resolves to is a line of a file, while the index of that line in the diff depends on
+// how much of the diff is being shown and in what order a renderer laid it out.
+type LineIdentity struct {
+	LineNumber int
+	IsDeletion bool
+}
+
+// ChangeLineIndexByIdentity indexes a parsed diff's change lines by their identity. An
+// addition is numbered in the new file and a deletion in the old one, which is what
+// keeps two consecutive deletions — one new-file position between them — apart.
+func ChangeLineIndexByIdentity(parsed *Patch) map[LineIdentity]int {
+	byIdentity := map[LineIdentity]int{}
+	for idx, line := range parsed.Lines() {
+		switch {
+		case line.IsAddition():
+			byIdentity[LineIdentity{parsed.LineNumberOfLine(idx), false}] = idx
+		case line.IsDeletion():
+			byIdentity[LineIdentity{parsed.OldLineNumberOfLine(idx), true}] = idx
+		}
+	}
+	return byIdentity
+}
+
+// ChangeLineIndicesForLines maps the given change lines of a parsed diff to their
+// indices in it. A line that names no change line of the diff — a context line, or a
+// line that isn't in the diff at all — contributes nothing.
+func ChangeLineIndicesForLines(parsed *Patch, lines []LineIdentity) []int {
+	byIdentity := ChangeLineIndexByIdentity(parsed)
+	indices := make([]int, 0, len(lines))
+	for _, line := range lines {
+		if idx, ok := byIdentity[line]; ok {
+			indices = append(indices, idx)
+		}
+	}
+	return indices
+}
+
+// PatchLineIndicesForLines maps change lines of filename to their indices in that
+// file's diff, which is what the patch is built in terms of.
+func (p *PatchBuilder) PatchLineIndicesForLines(
+	filename string, previousPath string, lines []LineIdentity,
+) ([]int, error) {
+	info, err := p.getFileInfo(filename, previousPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return ChangeLineIndicesForLines(Parse(info.diff), lines), nil
+}
+
+// SelectionRepresentsWholeFile says whether lines select the entirety of a diff that
+// consists of one solid block of additions or deletions, with no context. These are
+// the added and deleted files whose file operation must travel with their contents.
+func (p *PatchBuilder) SelectionRepresentsWholeFile(
+	filename string, previousPath string, lines []LineIdentity,
+) (bool, error) {
+	info, err := p.getFileInfo(filename, previousPath)
+	if err != nil {
+		return false, err
+	}
+
+	parsed := Parse(info.diff)
+	if !parsed.IsSingleHunkForWholeFile() {
+		return false, nil
+	}
+	all := ChangeLineIndexByIdentity(parsed)
+	selected := set.NewFromSlice(lines)
+	return lo.EveryBy(maps.Keys(all), func(identity LineIdentity) bool {
+		return selected.Includes(identity)
+	}), nil
+}
+
+// IncludedLineIdentities says which change lines of filename are in the patch, as the
+// identities a diff of that file shown anywhere can be compared against. Empty for a
+// file that is no part of the patch.
+func (p *PatchBuilder) IncludedLineIdentities(filename string) []LineIdentity {
+	info, ok := p.snapshotFileInfoMap()[filename]
+	if !ok || info.mode == UNSELECTED {
+		return nil
+	}
+
+	included := set.NewFromSlice(info.includedLineIndices)
+	identities := []LineIdentity{}
+	for identity, idx := range ChangeLineIndexByIdentity(Parse(info.diff)) {
+		if included.Includes(idx) {
+			identities = append(identities, identity)
+		}
+	}
+	return identities
+}
+
+// IncludedChangeLineIndices says which of filename's change lines are in the patch, as
+// their indices in the file's diff and in the order the file has them.
+//
+// It is how a line of the patch as it is shown names the line of the diff it came from:
+// all that can be said about a line of the patch is which of the file's changes it is,
+// its line numbers being the patch's own — a patch that leaves an earlier addition out
+// numbers everything after it differently from the diff it was built from.
+func (p *PatchBuilder) IncludedChangeLineIndices(filename string) []int {
+	info, ok := p.snapshotFileInfoMap()[filename]
+	if !ok || info.mode == UNSELECTED {
+		return nil
+	}
+
+	included := set.NewFromSlice(info.includedLineIndices)
+	indices := []int{}
+	for idx, line := range Parse(info.diff).Lines() {
+		if (line.IsAddition() || line.IsDeletion()) && included.Includes(idx) {
+			indices = append(indices, idx)
+		}
+	}
+	return indices
+}
+
 func (p *PatchBuilder) GetFileIncLineIndices(filename string, previousPath string) ([]int, error) {
 	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
@@ -303,6 +526,9 @@ func (p *PatchBuilder) GetFileIncLineIndices(filename string, previousPath strin
 func (p *PatchBuilder) Reset() {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
+
+	p.generation++
+	p.removeTempDir()
 
 	p.To = ""
 	p.fileInfoMap = map[string]*fileInfo{}

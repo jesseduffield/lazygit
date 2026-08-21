@@ -65,10 +65,26 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// Set LAZYGIT_COLUMNS for diff renderer scripts that can't query the terminal width directly.
 	cmd.Env = append(cmd.Env, fmt.Sprintf("LAZYGIT_COLUMNS=%d", width))
 
+	// Ask whatever renders the diff to state, in an OSC 1717 record per line,
+	// which line of which file it is rendering; that is what lets us act on the
+	// line the user is pointing at even when the rendering no longer looks like
+	// a diff. The variable names the protocol versions we understand, and a
+	// renderer that doesn't understand it ignores it, so we can set it always.
+	// Like LAZYGIT_COLUMNS it has to be set before the no-pty path below, since
+	// on that path git renders the diff itself, and git is one of the things
+	// that speaks the protocol — for its word-diff formats, whose markup we
+	// could not otherwise resolve.
+	cmd.Env = append(cmd.Env, "OSC1717=V1")
+
 	if gui.stateAccessor.GetDiffRendererConfigManager().GetDiffRendererType() == config.DiffRendererType_RawGit {
 		// If we're not using a custom diff renderer, then we don't need to use a pty
 		return gui.newCmdTask(view, cmd, prefix)
 	}
+
+	// The key the render is remembered under says which diff it is of, so that a
+	// re-render of the same diff can be told from a render of another one. Take it
+	// before the git config the pty path passes along below, which is no part of that.
+	cmdStr := strings.Join(cmd.Args, " ")
 
 	cmd.Args = withPtyGitConfig(cmd.Args, runtime.GOOS)
 
@@ -88,8 +104,6 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		// changed the size of the view
 		width = view.InnerWidth()
 		pager := gui.stateAccessor.GetDiffRendererConfigManager().GetStdinFilterCommand(width)
-
-		cmdStr := strings.Join(cmd.Args, " ")
 
 		// This communicates to diff renderers that we're in a very simple
 		// terminal that they should not expect to have much capabilities.

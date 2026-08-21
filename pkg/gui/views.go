@@ -41,10 +41,6 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.SubCommits, name: "subCommits"},
 		{viewPtr: &gui.Views.CommitFiles, name: "commitFiles"},
 
-		{viewPtr: &gui.Views.Staging, name: "staging"},
-		{viewPtr: &gui.Views.StagingSecondary, name: "stagingSecondary"},
-		{viewPtr: &gui.Views.PatchBuilding, name: "patchBuilding"},
-		{viewPtr: &gui.Views.PatchBuildingSecondary, name: "patchBuildingSecondary"},
 		{viewPtr: &gui.Views.MergeConflicts, name: "mergeConflicts"},
 		{viewPtr: &gui.Views.Secondary, name: "secondary"},
 		{viewPtr: &gui.Views.Main, name: "main"},
@@ -100,16 +96,12 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Search.Frame = false
 	gui.Views.Search.Editor = gocui.EditorFunc(gui.searchEditor)
 
-	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
+	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.MergeConflicts} {
 		view.Wrap = true
 		view.UnderlineHyperLinksOnlyOnHover = true
 		view.AutoRenderHyperLinks = true
 	}
 
-	gui.Views.Staging.Wrap = true
-	gui.Views.StagingSecondary.Wrap = true
-	gui.Views.PatchBuilding.Wrap = true
-	gui.Views.PatchBuildingSecondary.Wrap = true
 	gui.Views.MergeConflicts.Wrap = false
 	gui.Views.Limit.Wrap = true
 
@@ -152,10 +144,29 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Snake.FgColor = gocui.ColorGreen
 
+	// The main views show diffs, whose own colors say what each line is: which side of
+	// the diff it's on, and often its syntax highlighting too. A selection painted
+	// across the whole line takes those colors over, which for a whole selected hunk
+	// leaves one unreadable block; so mark the selection with a narrow bar at the left
+	// edge instead, and leave the rest of the line to the diff. Two columns, enough to
+	// read as a marker rather than as an artefact.
+	gui.Views.Main.SelectedLineColorWidth = 2
+	gui.Views.Secondary.SelectedLineColorWidth = 2
+
+	// A tick, for the lines of a commit's diff that are in the custom patch being
+	// built. A plus would collide with a diff's own plus column.
+	gui.Views.Main.InclusionGutterMarker = "✓"
+	gui.Views.Main.InclusionGutterMarkerColor = gocui.ColorGreen
+	gui.Views.Secondary.InclusionGutterMarker = "✓"
+	gui.Views.Secondary.InclusionGutterMarkerColor = gocui.ColorGreen
+
 	return nil
 }
 
 func (gui *Gui) configureViewProperties() {
+	gui.Views.Main.Wrap = gui.c.UserConfig().Gui.WrapLinesInDiffView
+	gui.Views.Secondary.Wrap = gui.c.UserConfig().Gui.WrapLinesInDiffView
+
 	frameRunes := []rune{'─', '│', '┌', '┐', '└', '┘'}
 	switch gui.c.UserConfig().Gui.Border {
 	case "double":
@@ -189,19 +200,15 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.Submodules.Title = gui.c.Tr.SubmodulesTitle
 	gui.Views.Tags.Title = gui.c.Tr.TagsTitle
 	gui.Views.Files.Title = gui.c.Tr.FilesTitle
-	gui.Views.PatchBuilding.Title = gui.c.Tr.Patch
-	gui.Views.PatchBuildingSecondary.Title = gui.c.Tr.CustomPatch
 	gui.Views.MergeConflicts.Title = gui.c.Tr.MergeConflictsTitle
 	gui.Views.Limit.Title = gui.c.Tr.NotEnoughSpace
 	gui.Views.Status.Title = gui.c.Tr.StatusTitle
-	gui.Views.Staging.Title = gui.c.Tr.UnstagedChanges
-	gui.Views.StagingSecondary.Title = gui.c.Tr.StagedChanges
 	gui.Views.CommitMessage.Title = gui.c.Tr.CommitSummary
 	gui.Views.CommitDescription.Title = gui.c.Tr.CommitDescriptionTitle
 	gui.Views.Extras.Title = gui.c.Tr.CommandLog
 	gui.Views.Snake.Title = gui.c.Tr.SnakeTitle
 
-	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
+	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.MergeConflicts} {
 		view.Title = gui.c.Tr.DiffTitle
 		view.CanScrollPastBottom = gui.c.UserConfig().Gui.ScrollPastBottom
 		view.TabWidth = gui.c.UserConfig().Gui.TabWidth
@@ -242,11 +249,11 @@ func (gui *Gui) configureViewProperties() {
 		}
 	}
 
+	gui.focusMainViewJumpLabel = ""
 	if gui.c.UserConfig().Gui.ShowPanelJumps {
-		gui.Views.Main.TitlePrefix = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusMainView)
-	} else {
-		gui.Views.Main.TitlePrefix = ""
+		gui.focusMainViewJumpLabel = keyToTitlePrefix(gui.c.UserConfig().Keybinding.Universal.FocusMainView)
 	}
+	gui.showFocusMainViewJumpLabelOn(gui.Views.Main)
 
 	// Index the tab strips by view so we can both set them on views that are
 	// part of a multi-tab panel and clear them on views that no longer are

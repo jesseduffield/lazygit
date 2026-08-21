@@ -16,6 +16,11 @@ type Hunk struct {
 	newStart int
 	// the context at the end of the header line (' func (f *CommitFile) Description() string {' in the above example)
 	headerContext string
+	// the lengths declared in the header line ('2' and '3' in the above example),
+	// kept so that we can check the parsed body against them (see
+	// Patch.IsWellFormed). Only set by Parse.
+	declaredOldLength int
+	declaredNewLength int
 	// the body of the hunk, excluding the header line
 	bodyLines []*PatchLine
 }

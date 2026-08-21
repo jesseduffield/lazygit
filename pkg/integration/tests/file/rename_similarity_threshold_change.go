@@ -34,7 +34,7 @@ var RenameSimilarityThresholdChange = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.FocusMainView).
 			Tap(func() {
-				t.Views().Main().
+				t.Views().Secondary().
 					Press(keys.Universal.IncreaseRenameSimilarityThreshold)
 				t.ExpectToast(Equals("Changed rename similarity threshold to 50%"))
 			}).

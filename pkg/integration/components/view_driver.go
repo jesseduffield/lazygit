@@ -41,6 +41,17 @@ func (self *ViewDriver) Title(expected *TextMatcher) *ViewDriver {
 	return self
 }
 
+// TitlePrefix asserts on the label a view wears in front of its title, which is the
+// key that jumps to it.
+func (self *ViewDriver) TitlePrefix(expected *TextMatcher) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actual := self.getView().TitlePrefix
+		return expected.context(fmt.Sprintf("%s title prefix", self.context)).test(actual)
+	})
+
+	return self
+}
+
 func (self *ViewDriver) Clear() *ViewDriver {
 	// clearing multiple times in case there's multiple lines
 	//  (the clear button only clears a single line at a time)
@@ -130,7 +141,7 @@ func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 		expectedContent := expectedContentFromMatchers(matchers)
 
 		return false, fmt.Sprintf(
-			"Expected the following to be contained in the staging panel:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----\nSelected range: %d-%d",
+			"Expected the following lines to be contained in the selected range:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----\nSelected range: %d-%d",
 			expectedContent,
 			content,
 			startIdx,
@@ -197,6 +208,21 @@ func (self *ViewDriver) SelectedLines(matchers ...*TextMatcher) *ViewDriver {
 		}
 
 		return true, ""
+	})
+
+	return self
+}
+
+// SelectedViewLineRange asserts which view lines the selection covers. View lines
+// count the wrapped segments a line is drawn as, so this is what says whether a
+// selection covers a wrapped line to its end; SelectedLines, which reports the lines
+// of the content, cannot.
+func (self *ViewDriver) SelectedViewLineRange(first int, last int) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actualFirst, actualLast := self.getSelectedRange()
+		return actualFirst == first && actualLast == last,
+			fmt.Sprintf("%s: Expected view lines %d-%d to be selected, but %d-%d were.",
+				self.context, first, last, actualFirst, actualLast)
 	})
 
 	return self
@@ -309,6 +335,84 @@ func (self *ViewDriver) Content(matcher *TextMatcher) *ViewDriver {
 			return self.getView().Buffer()
 		},
 	)
+
+	return self
+}
+
+// MarkedLines asserts which lines of the view are marked as being in the custom patch
+// being built. The marks are drawn over the content rather than being part of it, so
+// they are read from the view rather than matched against what Content returns.
+func (self *ViewDriver) MarkedLines(matchers ...*TextMatcher) *ViewDriver {
+	self.validateMatchersPassed(matchers)
+
+	self.t.assertWithRetries(func() (bool, string) {
+		markedLines := self.getView().MarkedLines()
+
+		markedContent := strings.Join(markedLines, "\n")
+		expectedContent := expectedContentFromMatchers(matchers)
+
+		if len(markedLines) != len(matchers) {
+			return false, fmt.Sprintf("%s: Expected the following lines to be marked as being in the custom patch:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----", self.context, expectedContent, markedContent)
+		}
+
+		for i, line := range markedLines {
+			ok, message := matchers[i].test(line)
+			if !ok {
+				return false, fmt.Sprintf("%s: Error: %s. Expected the following lines to be marked as being in the custom patch:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----", self.context, message, expectedContent, markedContent)
+			}
+		}
+
+		return true, ""
+	})
+
+	return self
+}
+
+// NoMarkedLines asserts that no line of the view is marked as being in the custom
+// patch, which is also what a view showing no marks at all reports.
+func (self *ViewDriver) NoMarkedLines() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		markedLines := self.getView().MarkedLines()
+		return len(markedLines) == 0, fmt.Sprintf(
+			"%s: Expected no line to be marked as being in the custom patch, but these were:\n-----\n%s\n-----",
+			self.context, strings.Join(markedLines, "\n"))
+	})
+
+	return self
+}
+
+// SelectionIsActive asserts that the view draws its selection as the one the user
+// is working in. These three assertions read the highlight flags rather than the
+// selected lines, which say nothing about whether the selection is drawn at all.
+func (self *ViewDriver) SelectionIsActive() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		ok := view.Highlight && !view.HighlightInactive
+		return ok, fmt.Sprintf("%s: expected an active selection to be shown, but it wasn't", self.context)
+	})
+
+	return self
+}
+
+// SelectionIsInactive asserts that the view draws its selection dimmed, as a panel
+// does while the focus is somewhere else.
+func (self *ViewDriver) SelectionIsInactive() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		ok := view.Highlight && view.HighlightInactive
+		return ok, fmt.Sprintf("%s: expected an inactive selection to be shown, but it wasn't", self.context)
+	})
+
+	return self
+}
+
+// SelectionIsHidden asserts that the view draws no selection at all, e.g. a list
+// with nothing in it, where there is nothing to select.
+func (self *ViewDriver) SelectionIsHidden() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		ok := !self.getView().Highlight
+		return ok, fmt.Sprintf("%s: expected no selection to be shown, but one was", self.context)
+	})
 
 	return self
 }

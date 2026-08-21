@@ -28,20 +28,16 @@ import (
 // the range.
 
 var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Verify range select works as expected in list views and in patch explorer views",
+	Description:  "Verify range select works as expected in list views",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		config.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		config.GetUserConfig().Gui.ExpandFocusedSidePanel = true
 	},
 	SetupRepo: func(shell *Shell) {
-		// We're testing the commits view as our representative list context,
-		// as well as the staging view, and we're using the exact same code to test
-		// both to ensure they have the exact same behaviour (they are currently implemented
-		// separately)
-		// In both views we're going to have 10 lines starting from 'line 1' going down to
-		// 'line 10'.
+		// We're testing the commits view as our representative list context, with 10
+		// items starting from "line 1" and ending at "line 10".
 		fileContent := "staged\n"
 		total := 10
 		for i := 1; i <= total; i++ {
@@ -172,15 +168,6 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 		}
 
 		assertRangeSelectBehaviour(t.Views().Commits().Focus(), func() { t.Views().Branches().Focus() }, 0)
-
-		t.Views().Files().
-			Focus().
-			SelectedLine(
-				Contains("file1"),
-			).
-			PressEnter()
-
-		assertRangeSelectBehaviour(t.Views().Staging().IsFocused(), func() { t.Views().Staging().PressTab() }, 6)
 
 		t.Views().Branches().Focus()
 		t.Views().Branches().

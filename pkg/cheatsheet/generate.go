@@ -119,9 +119,7 @@ func localisedTitle(tr *i18n.TranslationSet, str string) string {
 		"prompt":            tr.PromptTitle,
 		"information":       tr.InformationTitle,
 		"main":              tr.NormalTitle,
-		"patchBuilding":     tr.PatchBuildingTitle,
 		"mergeConflicts":    tr.MergingTitle,
-		"staging":           tr.StagingTitle,
 		"menu":              tr.MenuTitle,
 		"search":            tr.SearchTitle,
 		"secondary":         tr.SecondaryTitle,
@@ -140,7 +138,7 @@ func localisedTitle(tr *i18n.TranslationSet, str string) string {
 }
 
 func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*bindingSection {
-	excludedViews := []string{"stagingSecondary", "patchBuildingSecondary"}
+	excludedViews := []string{}
 	bindingsToDisplay := lo.Filter(bindings, func(binding *types.Binding, _ int) bool {
 		if lo.Contains(excludedViews, binding.ViewName) {
 			return false

@@ -56,6 +56,7 @@ func (self *SubCommitsController) GetOnRenderToMain() func() {
 					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 					Task:     task,
 				},
+				Secondary: secondaryPatchPanelUpdateOpts(self.c),
 			})
 		})
 	}

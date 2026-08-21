@@ -83,8 +83,22 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 드래그 선택 전환 |  |
+| `` e `` | 파일 편집 | Open file in external editor. |
+| `` <space> `` | Staged 전환 | 선택한 행을 staged / unstaged |
+| `` d `` | 변경을 삭제 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
+| `` <left>, h `` | 이전 hunk를 선택 |  |
+| `` <right>, l `` | 다음 hunk를 선택 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | 커밋 변경내용 | 스테이징된 변경 사항 커밋. |
+| `` w `` | Commit changes without pre-commit hook |  |
+| `` C `` | Git 편집기를 사용하여 변경 내용을 커밋합니다. |  |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 검색 시작 |  |
 
 ## Stash
@@ -161,42 +175,18 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <mouse wheel down> (fn+up) `` | 아래로 스크롤 |  |
 | `` <mouse wheel up> (fn+down) `` | 위로 스크롤 |  |
-| `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
-| `` <esc> `` | Exit back to side panel |  |
-| `` / `` | 검색 시작 |  |
-
-## 메인 패널 (Patch Building)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | 이전 hunk를 선택 |  |
-| `` <right>, l `` | 다음 hunk를 선택 |  |
-| `` v `` | 드래그 선택 전환 |  |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
-| `` o `` | 파일 닫기 | Open file in default application. |
+| `` v `` | 드래그 선택 전환 |  |
 | `` e `` | 파일 편집 | Open file in external editor. |
-| `` <space> `` | Line(s)을 패치에 추가/삭제 |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | Exit custom patch builder |  |
-| `` / `` | 검색 시작 |  |
-
-## 메인 패널 (Staging)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | 이전 hunk를 선택 |  |
-| `` <right>, l `` | 다음 hunk를 선택 |  |
-| `` v `` | 드래그 선택 전환 |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
 | `` <space> `` | Staged 전환 | 선택한 행을 staged / unstaged |
 | `` d `` | 변경을 삭제 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
-| `` o `` | 파일 닫기 | Open file in default application. |
-| `` e `` | 파일 편집 | Open file in external editor. |
-| `` <esc> `` | 파일 목록으로 돌아가기 |  |
-| `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
-| `` E `` | Edit hunk | Edit selected hunk in external editor. |
+| `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
+| `` <left>, h `` | 이전 hunk를 선택 |  |
+| `` <right>, l `` | 다음 hunk를 선택 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
+| `` <esc> `` | Exit back to side panel |  |
 | `` c `` | 커밋 변경내용 | 스테이징된 변경 사항 커밋. |
 | `` w `` | Commit changes without pre-commit hook |  |
 | `` C `` | Git 편집기를 사용하여 변경 내용을 커밋합니다. |  |
@@ -345,7 +335,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` <space> `` | Toggle file included in patch | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Toggle all files included in patch | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
-| `` <enter> `` | Enter file to add selected lines to the patch (or toggle directory collapsed) | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
+| `` <enter> `` | Focus file diff / Toggle directory | If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it. |
 | `` ` `` | 파일 트리뷰로 전환 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
@@ -395,7 +385,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | Stash 옵션 보기 | View stash options (e.g. stash all, stash staged, stash unstaged). |
 | `` a `` | 모든 변경을 Staged/unstaged으로 전환 | Toggle staged/unstaged for all files in working tree. |
-| `` <enter> `` | Stage individual hunks/lines for file, or collapse/expand for directory | If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it. |
+| `` <enter> `` | Stage individual hunks/lines for file, or collapse/expand for directory | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
 | `` d `` | View 'discard changes' options | View options for discarding changes to the selected file. |
 | `` g `` | View upstream reset options |  |
 | `` D `` | 초기화 | View reset options for working tree (e.g. nuking the working tree). |

@@ -73,26 +73,18 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
-| `` <esc> `` | Exit back to side panel |  |
-| `` / `` | Найти |  |
-
-## Главная панель (Индексирование)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | Выбрать предыдущую часть |  |
-| `` <right>, l `` | Выбрать следующую часть |  |
-| `` v `` | Переключить выборку перетаскивания |  |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
+| `` v `` | Переключить выборку перетаскивания |  |
+| `` e `` | Редактировать файл | Open file in external editor. |
 | `` <space> `` | Переключить индекс | Переключить строку в проиндексированные / непроиндексированные |
 | `` d `` | Отменить изменение (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
-| `` o `` | Открыть файл | Open file in default application. |
-| `` e `` | Редактировать файл | Open file in external editor. |
-| `` <esc> `` | Вернуться к панели файлов |  |
-| `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
-| `` E `` | Изменить эту часть | Edit selected hunk in external editor. |
+| `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
+| `` <left>, h `` | Выбрать предыдущую часть |  |
+| `` <right>, l `` | Выбрать следующую часть |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
+| `` <esc> `` | Exit back to side panel |  |
 | `` c `` | Сохранить изменения | Commit staged changes. |
 | `` w `` | Закоммитить изменения без предварительного хука коммита |  |
 | `` C `` | Сохранить изменения с помощью редактора git |  |
@@ -105,8 +97,22 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <mouse wheel down> (fn+up) `` | Прокрутить вниз |  |
 | `` <mouse wheel up> (fn+down) `` | Прокрутить вверх |  |
-| `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | Переключить выборку перетаскивания |  |
+| `` e `` | Редактировать файл | Open file in external editor. |
+| `` <space> `` | Переключить индекс | Переключить строку в проиндексированные / непроиндексированные |
+| `` d `` | Отменить изменение (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
+| `` <left>, h `` | Выбрать предыдущую часть |  |
+| `` <right>, l `` | Выбрать следующую часть |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | Сохранить изменения | Commit staged changes. |
+| `` w `` | Закоммитить изменения без предварительного хука коммита |  |
+| `` C `` | Сохранить изменения с помощью редактора git |  |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Найти |  |
 
 ## Главная панель (Слияние)
@@ -124,22 +130,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | Открыть файл | Open file in default application. |
 | `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` <esc> `` | Вернуться к панели файлов |  |
-
-## Главная панель (сборка патчей)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | Выбрать предыдущую часть |  |
-| `` <right>, l `` | Выбрать следующую часть |  |
-| `` v `` | Переключить выборку перетаскивания |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
-| `` o `` | Открыть файл | Open file in default application. |
-| `` e `` | Редактировать файл | Open file in external editor. |
-| `` <space> `` | Добавить/удалить строку(и) для патча |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | Выйти из сборщика пользовательских патчей |  |
-| `` / `` | Найти |  |
 
 ## Журнал ссылок (Reflog)
 
@@ -304,7 +294,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` <space> `` | Переключить файлы включённые в патч | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Переключить все файлы, включённые в патч | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
-| `` <enter> `` | Введите файл, чтобы добавить выбранные строки в патч (или свернуть каталог переключения) | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
+| `` <enter> `` | Focus file diff / Toggle directory | If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it. |
 | `` ` `` | Переключить вид дерева файлов | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
@@ -389,7 +379,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | Просмотреть параметры хранилища | View stash options (e.g. stash all, stash staged, stash unstaged). |
 | `` a `` | Все проиндексированные/непроиндексированные | Toggle staged/unstaged for all files in working tree. |
-| `` <enter> `` | Проиндексировать отдельные части/строки для файла или свернуть/развернуть для каталога | If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it. |
+| `` <enter> `` | Проиндексировать отдельные части/строки для файла или свернуть/развернуть для каталога | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
 | `` d `` | Просмотреть параметры «отмены изменении» | View options for discarding changes to the selected file. |
 | `` g `` | Просмотреть параметры сброса upstream-ветки |  |
 | `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |

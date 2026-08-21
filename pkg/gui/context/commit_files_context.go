@@ -19,10 +19,15 @@ type CommitFilesContext struct {
 }
 
 var (
-	_ types.IListContext       = (*CommitFilesContext)(nil)
-	_ types.DiffableContext    = (*CommitFilesContext)(nil)
-	_ types.IFilterableContext = (*CommitFilesContext)(nil)
+	_ types.IListContext        = (*CommitFilesContext)(nil)
+	_ types.DiffableContext     = (*CommitFilesContext)(nil)
+	_ types.IFilterableContext  = (*CommitFilesContext)(nil)
+	_ types.DiffMainViewContext = (*CommitFilesContext)(nil)
 )
+
+func (self *CommitFilesContext) GetDiffMainViewType() types.DiffMainViewType {
+	return types.DiffMainViewTypePatchBuilding
+}
 
 func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 	viewModel := filetree.NewCommitFileTreeViewModel(
@@ -80,10 +85,16 @@ func (self *CommitFilesContext) RefForAdjustingLineNumberInDiff() string {
 }
 
 func (self *CommitFilesContext) GetFromAndToForDiff() (string, string) {
-	if refs := self.GetRefRange(); refs != nil {
-		return refs.From.ParentRefName(), refs.To.RefName()
+	return FromAndToForDiff(self.GetRef(), self.GetRefRange())
+}
+
+// FromAndToForDiff gives the two ends to diff for a ref, or for a range of them: a
+// range runs from the parent of its first ref to its last, a single ref from its own
+// parent to itself.
+func FromAndToForDiff(ref models.Ref, refRange *types.RefRange) (string, string) {
+	if refRange != nil {
+		return refRange.From.ParentRefName(), refRange.To.RefName()
 	}
-	ref := self.GetRef()
 	return ref.ParentRefName(), ref.RefName()
 }
 

@@ -21,6 +21,9 @@ type FilesController struct {
 	baseController
 	*ListControllerTrait[*filetree.FileNode]
 	c *ControllerCommon
+
+	// what this panel offers on the diff it shows in the focused main view
+	diffActions *WorkingTreeDiffActions
 }
 
 var _ types.IController = &FilesController{}
@@ -36,6 +39,7 @@ func NewFilesController(
 			c.Contexts().Files.GetSelected,
 			c.Contexts().Files.GetSelectedItems,
 		),
+		diffActions: NewWorkingTreeDiffActions(c),
 	}
 }
 
@@ -348,7 +352,7 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 	message := self.conflictResolutionHint(node.File.GetMergeStateDescription(self.c.Tr))
 
 	if node.File.ShortStatus == "DU" || node.File.ShortStatus == "UD" {
-		cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()})
+		cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()}, git_commands.DiffModeRendered)
 		prefix := message + "\n\n"
 		if node.File.ShortStatus == "DU" {
 			prefix += self.c.Tr.MergeConflictIncomingDiff
@@ -366,56 +370,52 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	self.c.Helpers().MergeConflicts.ResetMergeState()
 
-	split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
-	mainShowsStaged := !split && node.GetHasStagedChanges()
+	// The unstaged side of a file's diff is shown in the main pane and the staged side
+	// in the secondary one, each only where there is a side to show — so a side is
+	// always in the same place, whatever the file happens to have. A file with nothing
+	// unstaged therefore shows its staged changes in the secondary pane, which then has
+	// the whole section to itself. Configured to always split, both panes are shown
+	// whether or not there is anything on either side.
+	alwaysSplit := self.c.UserConfig().Gui.SplitDiff == "always"
+	showStaged := node.GetHasStagedChanges() || alwaysSplit
+	showUnstaged := node.GetHasUnstagedChanges() || alwaysSplit || !showStaged
+
+	// While the main view is focused to act on this diff, it may have to be git's own
+	// rather than the diff renderer's; both panes have to agree about that.
+	mode := self.c.Helpers().DiffLine.MainViewDiffMode()
 
 	paths := self.pathsForDiff(node)
-	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, paths)
-	title := self.c.Tr.UnstagedChanges
-	if mainShowsStaged {
-		title = self.c.Tr.StagedChanges
-	}
-	refreshOpts := types.RefreshMainOpts{
-		Pair: self.c.MainViewPairs().Normal,
-		Main: &types.ViewUpdateOpts{
-			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
-			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-			Title:    title,
-		},
-	}
+	refreshOpts := types.RefreshMainOpts{Pair: self.c.MainViewPairs().Normal}
 
-	if split {
-		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, paths)
-
-		title := self.c.Tr.StagedChanges
-		if mainShowsStaged {
-			title = self.c.Tr.UnstagedChanges
+	if showUnstaged {
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, mode, false, paths)
+		refreshOpts.Main = &types.ViewUpdateOpts{
+			Task:           types.NewMainViewDiffTask(cmdObj.GetCmd(), mode),
+			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			Title:          self.c.Tr.UnstagedChanges,
+			NothingToActOn: !node.GetHasUnstagedChanges(),
 		}
+	}
 
+	if showStaged {
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, mode, true, paths)
 		refreshOpts.Secondary = &types.ViewUpdateOpts{
-			Title:    title,
-			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+			Task:           types.NewMainViewDiffTask(cmdObj.GetCmd(), mode),
+			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			Title:          self.c.Tr.StagedChanges,
+			NothingToActOn: !node.GetHasStagedChanges(),
 		}
 	}
 
 	self.c.RenderToMainViews(refreshOpts)
 }
 
-func (self *FilesController) GetOnDoubleClick() func() error {
-	return self.withItemGraceful(func(node *filetree.FileNode) error {
-		return self.press([]*filetree.FileNode{node})
-	})
+func (self *FilesController) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {
+	return self.diffActions
 }
 
-func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
-	return func(mainViewName string, clickedLineIdx int) error {
-		node := self.getSelectedItem()
-		if node != nil && node.File != nil {
-			return self.EnterFile(types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
-		}
-		return nil
-	}
+func (self *FilesController) GetOnDoubleClick() func() error {
+	return self.enter
 }
 
 // if we are dealing with a status for which there is no key in this map,
@@ -737,11 +737,7 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return self.switchToMerge()
 	}
 
-	context := lo.Ternary(opts.ClickedWindowName == "secondary", self.c.Contexts().StagingSecondary, self.c.Contexts().Staging)
-	self.c.Context().Push(context, opts)
-	self.c.Helpers().PatchBuilding.ShowHunkStagingHint()
-
-	return nil
+	return focusMainView(self.c, self.context(), opts.ClickedViewLineIdx)
 }
 
 // conflictResolutionHint formats a conflict description for the main view,

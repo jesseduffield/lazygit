@@ -72,7 +72,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | Bekijk stash opties | View stash options (e.g. stash all, stash staged, stash unstaged). |
 | `` a `` | Toggle staged alle | Toggle staged/unstaged for all files in working tree. |
-| `` <enter> `` | Stage individuele hunks/lijnen | If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it. |
+| `` <enter> `` | Stage individuele hunks/lijnen | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
 | `` d `` | Bekijk 'veranderingen ongedaan maken' opties | View options for discarding changes to the selected file. |
 | `` g `` | Bekijk upstream reset opties |  |
 | `` D `` | Resetten | View reset options for working tree (e.g. nuking the working tree). |
@@ -144,7 +144,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Open externe diff applicatie (git difftool) |  |
 | `` <space> `` | Toggle bestand inbegrepen in patch | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Toggle all files | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
-| `` <enter> `` | Enter bestand om geselecteerde regels toe te voegen aan de patch | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
+| `` <enter> `` | Focus file diff / Toggle directory | If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it. |
 | `` ` `` | Toggle bestandsboom weergave | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Vouw alle bestanden uit | Vouw alle mappen in de bestandsstructuur uit |
@@ -230,24 +230,22 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <mouse wheel down> (fn+up) `` | Scroll omlaag |  |
 | `` <mouse wheel up> (fn+down) `` | Scroll omhoog |  |
-| `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
-| `` <esc> `` | Exit back to side panel |  |
-| `` / `` | Start met zoeken |  |
-
-## Patch bouwen
-
-| Key | Action | Info |
-|-----|--------|-------------|
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
+| `` v `` | Toggle drag selecteer |  |
+| `` e `` | Verander bestand | Open bestand in externe editor. |
+| `` <space> `` | Toggle staged | Toggle lijnen staged / unstaged |
+| `` d `` | Verwijdert change (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` <ctrl+o> `` | Copy selected text to clipboard |  |
 | `` <left>, h `` | Selecteer de vorige hunk |  |
 | `` <right>, l `` | Selecteer de volgende hunk |  |
-| `` v `` | Toggle drag selecteer |  |
-| `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
-| `` <ctrl+o> `` | Copy selected text to clipboard |  |
-| `` o `` | Open bestand | Open bestand in standaardapplicatie. |
-| `` e `` | Verander bestand | Open bestand in externe editor. |
-| `` <space> `` | Voeg toe/verwijder lijn(en) in patch |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | Sluit lijn-bij-lijn modus |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
+| `` <esc> `` | Exit back to side panel |  |
+| `` c `` | Commit veranderingen | Commit gestagede wijzigingen. |
+| `` w `` | Commit veranderingen zonder pre-commit hook |  |
+| `` C `` | Commit veranderingen met de git editor |  |
+| `` <ctrl+f> `` | Find base commit for fixup | Vind de commit waar je huidige wijzigingen bovenop zijn gebouwd met als doel die commit te amenden/fixen. Hierdoor hoef je dit niet met de hand te doen. Zie: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Start met zoeken |  |
 
 ## Reflog
@@ -305,26 +303,18 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
-| `` <esc> `` | Exit back to side panel |  |
-| `` / `` | Start met zoeken |  |
-
-## Staging
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | Selecteer de vorige hunk |  |
-| `` <right>, l `` | Selecteer de volgende hunk |  |
-| `` v `` | Toggle drag selecteer |  |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
 | `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
-| `` <ctrl+o> `` | Copy selected text to clipboard |  |
+| `` v `` | Toggle drag selecteer |  |
+| `` e `` | Verander bestand | Open bestand in externe editor. |
 | `` <space> `` | Toggle staged | Toggle lijnen staged / unstaged |
 | `` d `` | Verwijdert change (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
-| `` o `` | Open bestand | Open bestand in standaardapplicatie. |
-| `` e `` | Verander bestand | Open bestand in externe editor. |
-| `` <esc> `` | Ga terug naar het bestanden paneel |  |
-| `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
-| `` E `` | Edit hunk | Edit selected hunk in external editor. |
+| `` <ctrl+o> `` | Copy selected text to clipboard |  |
+| `` <left>, h `` | Selecteer de vorige hunk |  |
+| `` <right>, l `` | Selecteer de volgende hunk |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
+| `` <esc> `` | Exit back to side panel |  |
 | `` c `` | Commit veranderingen | Commit gestagede wijzigingen. |
 | `` w `` | Commit veranderingen zonder pre-commit hook |  |
 | `` C `` | Commit veranderingen met de git editor |  |

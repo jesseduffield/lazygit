@@ -594,7 +594,7 @@
         },
         "skipDiscardChangeWarning": {
           "type": "boolean",
-          "description": "If true, do not show a warning when discarding changes in the staging view.",
+          "description": "If true, do not show a warning when discarding changes from a focused diff.",
           "default": false
         },
         "skipStashWarning": {
@@ -683,14 +683,14 @@
           "description": "How the window is split when in half screen mode (i.e. after hitting '+' once).\nPossible values:\n- 'left': split the window horizontally (side panel on the left, main view on the right)\n- 'top': split the window vertically (side panel on top, main view below)",
           "default": "left"
         },
-        "wrapLinesInStagingView": {
+        "wrapLinesInDiffView": {
           "type": "boolean",
-          "description": "If true, wrap lines in the staging view to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.",
+          "description": "If true, wrap lines in focused diffs to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.",
           "default": true
         },
-        "useHunkModeInStagingView": {
+        "useHunkModeInDiffView": {
           "type": "boolean",
-          "description": "If true, hunk selection mode will be enabled by default when entering the staging view.",
+          "description": "If true, hunk selection mode will be enabled by default when focusing a diff.",
           "default": true
         },
         "language": {
@@ -2040,6 +2040,34 @@
             "\u003cright\u003e",
             "l"
           ]
+        },
+        "prevFile": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "N"
+        },
+        "nextFile": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "n"
         },
         "toggleSelectHunk": {
           "oneOf": [

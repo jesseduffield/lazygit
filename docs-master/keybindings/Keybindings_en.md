@@ -65,7 +65,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` <space> `` | Toggle file included in patch | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Toggle all files | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
-| `` <enter> `` | Enter file / Toggle directory collapsed | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
+| `` <enter> `` | Focus file diff / Toggle directory | If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it. |
 | `` ` `` | Toggle file tree view | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
@@ -149,7 +149,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | View stash options | View stash options (e.g. stash all, stash staged, stash unstaged). |
 | `` a `` | Stage all | Toggle staged/unstaged for all files in working tree. |
-| `` <enter> `` | Stage lines / Collapse directory | If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it. |
+| `` <enter> `` | Focus file diff / Collapse directory | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
 | `` d `` | Discard | View options for discarding changes to the selected file. |
 | `` g `` | View upstream reset options |  |
 | `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |
@@ -222,42 +222,18 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <mouse wheel down> (fn+up) `` | Scroll down |  |
 | `` <mouse wheel up> (fn+down) `` | Scroll up |  |
-| `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
-| `` <esc> `` | Exit back to side panel |  |
-| `` / `` | Search the current view by text |  |
-
-## Main panel (patch building)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | Go to previous hunk |  |
-| `` <right>, l `` | Go to next hunk |  |
-| `` v `` | Toggle range select |  |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | Copy selected text to clipboard |  |
-| `` o `` | Open file | Open file in default application. |
+| `` v `` | Toggle range select |  |
 | `` e `` | Edit file | Open file in external editor. |
-| `` <space> `` | Toggle lines in patch |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | Exit custom patch builder |  |
-| `` / `` | Search the current view by text |  |
-
-## Main panel (staging)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | Go to previous hunk |  |
-| `` <right>, l `` | Go to next hunk |  |
-| `` v `` | Toggle range select |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | Copy selected text to clipboard |  |
 | `` <space> `` | Stage | Toggle selection staged / unstaged. |
 | `` d `` | Discard | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
-| `` o `` | Open file | Open file in default application. |
-| `` e `` | Edit file | Open file in external editor. |
-| `` <esc> `` | Return to files panel |  |
-| `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
-| `` E `` | Edit hunk | Edit selected hunk in external editor. |
+| `` <ctrl+o> `` | Copy selected text to clipboard |  |
+| `` <left>, h `` | Go to previous hunk |  |
+| `` <right>, l `` | Go to next hunk |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
+| `` <esc> `` | Exit back to side panel |  |
 | `` c `` | Commit | Commit staged changes. |
 | `` w `` | Commit changes without pre-commit hook |  |
 | `` C `` | Commit changes using git editor |  |
@@ -327,8 +303,22 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | Toggle range select |  |
+| `` e `` | Edit file | Open file in external editor. |
+| `` <space> `` | Stage | Toggle selection staged / unstaged. |
+| `` d `` | Discard | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` <ctrl+o> `` | Copy selected text to clipboard |  |
+| `` <left>, h `` | Go to previous hunk |  |
+| `` <right>, l `` | Go to next hunk |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | Commit | Commit staged changes. |
+| `` w `` | Commit changes without pre-commit hook |  |
+| `` C `` | Commit changes using git editor |  |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Search the current view by text |  |
 
 ## Stash

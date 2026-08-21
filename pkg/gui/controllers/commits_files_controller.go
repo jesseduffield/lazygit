@@ -23,6 +23,9 @@ type CommitFilesController struct {
 	baseController
 	*ListControllerTrait[*filetree.CommitFileNode]
 	c *ControllerCommon
+
+	// what this panel offers on the diff it shows in the focused main view
+	diffActions *CommitDiffActions
 }
 
 var _ types.IController = &CommitFilesController{}
@@ -30,7 +33,7 @@ var _ types.IController = &CommitFilesController{}
 func NewCommitFilesController(
 	c *ControllerCommon,
 ) *CommitFilesController {
-	return &CommitFilesController{
+	controller := &CommitFilesController{
 		baseController: baseController{},
 		c:              c,
 		ListControllerTrait: NewListControllerTrait(
@@ -40,6 +43,18 @@ func NewCommitFilesController(
 			c.Contexts().CommitFiles.GetSelectedItems,
 		),
 	}
+	controller.diffActions = NewCommitDiffActions(c, c.Contexts().CommitFiles, controller.diffTarget)
+	return controller
+}
+
+// diffTarget is the commit whose files this panel is showing, which is what its main
+// view shows the diff of.
+func (self *CommitFilesController) diffTarget() *commitDiffTarget {
+	if self.context().GetRef() == nil && self.context().GetRefRange() == nil {
+		return nil
+	}
+	from, to := self.context().GetFromAndToForDiff()
+	return &commitDiffTarget{from: from, to: to, canRebase: self.context().GetCanRebase()}
 }
 
 func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
@@ -109,8 +124,8 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Keys:              opts.GetKeys(opts.Config.Universal.GoInto),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
-			Description:       self.c.Tr.EnterCommitFile,
-			Tooltip:           self.c.Tr.EnterCommitFileTooltip,
+			Description:       self.c.Tr.FocusCommitFileDiff,
+			Tooltip:           self.c.Tr.FocusCommitFileDiffTooltip,
 		},
 		{
 			Keys:        opts.GetKeys(opts.Config.Files.ToggleTreeView),
@@ -175,9 +190,10 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 		from, to := self.context().GetFromAndToForDiff()
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
+		mode := self.c.Helpers().DiffLine.MainViewDiffMode()
 		paths := self.pathsForDiff(node)
-		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false)
-		task := types.NewRunPtyTask(cmdObj.GetCmd())
+		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, mode)
+		task := types.NewMainViewDiffTask(cmdObj.GetCmd(), mode)
 
 		self.c.RenderToMainViews(types.RefreshMainOpts{
 			Pair: self.c.MainViewPairs().Normal,
@@ -191,11 +207,15 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 	}
 }
 
+func (self *CommitFilesController) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {
+	return self.diffActions
+}
+
 func (self *CommitFilesController) copyDiffToClipboard(paths []string, toastMessage string) error {
 	from, to := self.context().GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, true)
+	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, git_commands.DiffModePlain)
 	diff, err := cmdObj.RunWithOutput()
 	if err != nil {
 		return err
@@ -537,41 +557,15 @@ func (self *CommitFilesController) currentFromToReverseForPatchBuilding() (strin
 }
 
 func (self *CommitFilesController) enter(node *filetree.CommitFileNode) error {
-	return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
-}
-
-func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode, opts types.OnFocusOpts) error {
 	if node.File == nil {
 		return self.handleToggleCommitFileDirCollapsed(node)
 	}
 
-	if self.c.UserConfig().Git.DiffContextSize == 0 {
-		return fmt.Errorf(self.c.Tr.Actions.NotEnoughContextForCustomPatch,
-			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
-	}
+	return focusMainView(self.c, self.context(), -1)
+}
 
-	from, to, reverse := self.currentFromToReverseForPatchBuilding()
-	mustDiscardPatch := self.c.Git().Patch.PatchBuilder.Active() && self.c.Git().Patch.PatchBuilder.NewPatchRequired(from, to, reverse)
-	return self.c.ConfirmIf(mustDiscardPatch, types.ConfirmOpts{
-		Title:  self.c.Tr.DiscardPatch,
-		Prompt: self.c.Tr.DiscardPatchConfirm,
-		HandleConfirm: func() error {
-			if mustDiscardPatch {
-				self.c.Git().Patch.PatchBuilder.Reset()
-			}
-
-			if !self.c.Git().Patch.PatchBuilder.Active() {
-				if err := self.startPatchBuilder(); err != nil {
-					return err
-				}
-			}
-
-			self.c.Context().Push(self.c.Contexts().CustomPatchBuilder, opts)
-			self.c.Helpers().PatchBuilding.ShowHunkStagingHint()
-
-			return nil
-		},
-	})
+func (self *CommitFilesController) GetOnDoubleClick() func() error {
+	return self.withItemGraceful(self.enter)
 }
 
 func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *filetree.CommitFileNode) error {
@@ -604,16 +598,6 @@ func (self *CommitFilesController) expandAll() error {
 	self.c.PostRefreshUpdate(self.context())
 
 	return nil
-}
-
-func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
-	return func(mainViewName string, clickedLineIdx int) error {
-		node := self.getSelectedItem()
-		if node != nil && node.File != nil {
-			return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
-		}
-		return nil
-	}
 }
 
 func (self *CommitFilesController) pathsForDiff(node *filetree.CommitFileNode) []string {

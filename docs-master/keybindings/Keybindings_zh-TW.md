@@ -59,30 +59,28 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <enter> `` | 確認 |  |
 | `` <esc> `` | 關閉/取消 |  |
 
-## 主面板 (補丁生成)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | 選擇上一段 |  |
-| `` <right>, l `` | 選擇下一段 |  |
-| `` v `` | 切換拖曳選擇 |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
-| `` o `` | 開啟檔案 | 使用預設軟體開啟 |
-| `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
-| `` <space> `` | 向 (或從) 補丁中添加/刪除行 |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | 退出自訂補丁建立器 |  |
-| `` / `` | 搜尋 |  |
-
 ## 主面板（一般）
 
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <mouse wheel down> (fn+up) `` | 向下捲動 |  |
 | `` <mouse wheel up> (fn+down) `` | 向上捲動 |  |
-| `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | Switch to other view (staged/unstaged changes). |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 切換拖曳選擇 |  |
+| `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
+| `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
+| `` d `` | 刪除變更 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
+| `` <left>, h `` | 選擇上一段 |  |
+| `` <right>, l `` | 選擇下一段 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | 提交變更 | 提交暫存區變更 |
+| `` w `` | 沒有預提交 hook 就提交更改 |  |
+| `` C `` | 使用 git 編輯器提交變更 |  |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 搜尋 |  |
 
 ## 主面板（合併）
@@ -100,28 +98,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 開啟檔案 | 使用預設軟體開啟 |
 | `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` <esc> `` | 返回檔案面板 |  |
-
-## 主面板（預存）
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | 選擇上一段 |  |
-| `` <right>, l `` | 選擇下一段 |  |
-| `` v `` | 切換拖曳選擇 |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
-| `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
-| `` d `` | 刪除變更 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
-| `` o `` | 開啟檔案 | 使用預設軟體開啟 |
-| `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
-| `` <esc> `` | 返回檔案面板 |  |
-| `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | Switch to other view (staged/unstaged changes). |
-| `` E `` | 編輯程式碼塊 | Edit selected hunk in external editor. |
-| `` c `` | 提交變更 | 提交暫存區變更 |
-| `` w `` | 沒有預提交 hook 就提交更改 |  |
-| `` C `` | 使用 git 編輯器提交變更 |  |
-| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
-| `` / `` | 搜尋 |  |
 
 ## 功能表
 
@@ -237,7 +213,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` <space> `` | 切換檔案是否包含在補丁中 | Toggle whether the file is included in the custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | 切換所有檔案是否包含在補丁中 | Add/remove all commit's files to custom patch. See https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
-| `` <enter> `` | 輸入檔案以將選定的行添加至補丁（或切換目錄折疊） | If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory. |
+| `` <enter> `` | Focus file diff / Toggle directory | If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it. |
 | `` ` `` | 顯示檔案樹狀視圖 | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |
@@ -345,7 +321,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | 收藏 | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | 檢視收藏選項 | View stash options (e.g. stash all, stash staged, stash unstaged). |
 | `` a `` | 全部預存/取消預存 | Toggle staged/unstaged for all files in working tree. |
-| `` <enter> `` | 選擇檔案中的單個程式碼塊/行，或展開/折疊目錄 | If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it. |
+| `` <enter> `` | 選擇檔案中的單個程式碼塊/行，或展開/折疊目錄 | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
 | `` d `` | 捨棄 | 檢視選中變動進行捨棄復原 |
 | `` g `` | 檢視遠端重設選項 |  |
 | `` D `` | 重設 | View reset options for working tree (e.g. nuking the working tree). |
@@ -362,8 +338,22 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | Switch to other view (staged/unstaged changes). |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 切換拖曳選擇 |  |
+| `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
+| `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
+| `` d `` | 刪除變更 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
+| `` <left>, h `` | 選擇上一段 |  |
+| `` <right>, l `` | 選擇下一段 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | 提交變更 | 提交暫存區變更 |
+| `` w `` | 沒有預提交 hook 就提交更改 |  |
+| `` C `` | 使用 git 編輯器提交變更 |  |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 搜尋 |  |
 
 ## 狀態
