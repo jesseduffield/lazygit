@@ -33,7 +33,7 @@ func NewDisplayContext(key types.ContextKey, view *gocui.View, windowName string
 }
 
 func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) {
-	if self.highlightOnFocus {
+	if self.hasSelectableContent {
 		self.GetViewTrait().SetHighlight(true)
 	}
 

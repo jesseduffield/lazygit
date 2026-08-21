@@ -28,7 +28,7 @@ type BaseContext struct {
 	hasControlledBounds         bool
 	needsRerenderOnWidthChange  types.NeedsRerenderOnWidthChangeLevel
 	needsRerenderOnHeightChange bool
-	highlightOnFocus            bool
+	hasSelectableContent        bool
 
 	*ParentContextMgr
 }
@@ -49,7 +49,7 @@ type NewBaseContextOpts struct {
 	Focusable                   bool
 	Transient                   bool
 	HasUncontrolledBounds       bool // negating for the sake of making false the default
-	HighlightOnFocus            bool
+	HasSelectableContent        bool
 	NeedsRerenderOnWidthChange  types.NeedsRerenderOnWidthChangeLevel
 	NeedsRerenderOnHeightChange bool
 
@@ -70,7 +70,7 @@ func NewBaseContext(opts NewBaseContextOpts) *BaseContext {
 		focusable:                   opts.Focusable,
 		transient:                   opts.Transient,
 		hasControlledBounds:         hasControlledBounds,
-		highlightOnFocus:            opts.HighlightOnFocus,
+		hasSelectableContent:        opts.HasSelectableContent,
 		needsRerenderOnWidthChange:  opts.NeedsRerenderOnWidthChange,
 		needsRerenderOnHeightChange: opts.NeedsRerenderOnHeightChange,
 		ParentContextMgr:            &ParentContextMgr{},
@@ -116,6 +116,10 @@ func (self *BaseContext) GetViewTrait() types.IViewTrait {
 
 func (self *BaseContext) GetKind() types.ContextKind {
 	return self.kind
+}
+
+func (self *BaseContext) HasSelectableContent() bool {
+	return self.hasSelectableContent
 }
 
 func (self *BaseContext) GetKey() types.ContextKey {
