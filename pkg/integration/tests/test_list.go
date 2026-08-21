@@ -530,6 +530,7 @@ var tests = []*components.IntegrationTest{
 	ui.SwitchRepoMovesTheSelection,
 	ui.SwitchTabFromMenu,
 	ui.SwitchTabWithPanelJumpKeys,
+	ui.ToggleWhitespaceKeepsUnfocusedSelectionDimmed,
 	ui.UnfocusedListHidesSelectionWhenEmptied,
 	ui.UnfocusedListShowsSelectionWhenFilled,
 	undo.UndoCheckoutAndDrop,
