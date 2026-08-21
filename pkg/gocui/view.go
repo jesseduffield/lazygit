@@ -2265,6 +2265,15 @@ func (v *View) SelectedLineIdx() int {
 	return seletedLineIdx
 }
 
+// MiddleVisibleLineIdx returns the view line halfway down the visible content. It
+// stands in for a cursor in a view that has none: of the lines on screen, the one in
+// the middle is the likeliest to be the one being read.
+func (v *View) MiddleVisibleLineIdx() int {
+	top := v.OriginY()
+	bottom := min(top+v.InnerHeight(), v.ViewLinesHeight())
+	return (top + bottom) / 2
+}
+
 // expected to only be used in tests
 func (v *View) SelectedLine() string {
 	v.writeMutex.Lock()

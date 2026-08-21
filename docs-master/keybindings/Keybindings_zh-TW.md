@@ -75,6 +75,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel down> (fn+up) `` | 向下捲動 |  |
 | `` <mouse wheel up> (fn+down) `` | 向上捲動 |  |
 | `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | 切換到其他檢視（已暫存/未暫存的變更）。 |
+| `` a `` | 切換程式碼塊選擇 | 切換逐行選擇與程式碼塊選擇模式。 |
+| `` v `` | 切換拖曳選擇 |  |
 | `` <esc> `` | 退出回到側邊面板 |  |
 | `` / `` | 搜尋 |  |
 
@@ -356,6 +358,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | 切換到其他檢視（已暫存/未暫存的變更）。 |
+| `` a `` | 切換程式碼塊選擇 | 切換逐行選擇與程式碼塊選擇模式。 |
+| `` v `` | 切換拖曳選擇 |  |
 | `` <esc> `` | 退出回到側邊面板 |  |
 | `` / `` | 搜尋 |  |
 
