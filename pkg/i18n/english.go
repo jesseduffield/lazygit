@@ -302,6 +302,7 @@ type TranslationSet struct {
 	DiscardSelectionTooltip               string
 	ToggleSelectHunk                      string
 	SelectHunk                            string
+	NothingToSelectInDiff                 string
 	SelectLineByLine                      string
 	ToggleSelectHunkTooltip               string
 	HunkStagingHint                       string
@@ -1465,6 +1466,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleRangeSelect:                    "Toggle range select",
 		DismissRangeSelect:                   "Dismiss range select",
 		ToggleSelectHunk:                     "Toggle hunk selection",
+		NothingToSelectInDiff:                "There is nothing to select here",
 		SelectHunk:                           "Select hunks",
 		SelectLineByLine:                     "Select line-by-line",
 		ToggleSelectHunkTooltip:              "Toggle line-by-line vs. hunk selection mode.",

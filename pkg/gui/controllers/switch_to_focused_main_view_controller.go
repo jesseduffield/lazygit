@@ -62,19 +62,24 @@ func (self *SwitchToFocusedMainViewController) Context() types.Context {
 }
 
 func (self *SwitchToFocusedMainViewController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.focusMainView(self.c.Contexts().Normal)
+	return self.focusMainView(self.c.Contexts().Normal, opts.Y)
 }
 
 func (self *SwitchToFocusedMainViewController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
-	return self.focusMainView(self.c.Contexts().NormalSecondary)
+	return self.focusMainView(self.c.Contexts().NormalSecondary, opts.Y)
 }
 
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
-	return self.focusMainView(self.c.Contexts().Normal)
+	return self.focusMainView(self.c.Contexts().Normal, -1)
 }
 
-func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext *context.MainContext) error {
+func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext *context.MainContext, clickedLineIdx int) error {
 	mainViewContext.ClearSearchString()
 	self.c.Context().Push(mainViewContext, types.OnFocusOpts{})
+
+	if _, ok := self.context.(types.DiffMainViewContext); ok {
+		establishDiffSelection(self.c, mainViewContext, clickedLineIdx)
+	}
+
 	return nil
 }

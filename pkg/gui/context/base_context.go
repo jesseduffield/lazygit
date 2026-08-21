@@ -120,6 +120,14 @@ func (self *BaseContext) HasSelectableContent() bool {
 	return self.hasSelectableContent
 }
 
+// SetHasSelectableContent is for the contexts whose answer isn't fixed and isn't a
+// list length either: the main panes, which can only tell by reading the diff they
+// have rendered. Whoever sets it re-derives the highlights that follow from it (see
+// ContextMgr.UpdateSelectionHighlights).
+func (self *BaseContext) SetHasSelectableContent(value bool) {
+	self.hasSelectableContent = value
+}
+
 func (self *BaseContext) GetKey() types.ContextKey {
 	return self.key
 }
