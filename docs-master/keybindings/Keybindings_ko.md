@@ -84,6 +84,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 드래그 선택 전환 |  |
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | 검색 시작 |  |
 
@@ -162,6 +164,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel down> (fn+up) `` | 아래로 스크롤 |  |
 | `` <mouse wheel up> (fn+down) `` | 위로 스크롤 |  |
 | `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 드래그 선택 전환 |  |
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | 검색 시작 |  |
 

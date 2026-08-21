@@ -45,13 +45,8 @@ func (self *DiffLineHelper) GetDiffLineInfo(view *gocui.View, viewLineIdx int) (
 	}
 
 	if renderingStatesDiffLines(contents) {
-		// A row can carry more than one record, when the rendering puts two diff
-		// lines on it; the first one is the row's identity, and the leftmost record
-		// is the one a reader would call the row's own.
-		if metadata := contents[bufferLineIdx].Metadata; len(metadata) > 0 {
-			if parsed, ok := parseDiffLineMetadata(metadata[0]); ok {
-				return self.diffLineInfo(parsed), true
-			}
+		if info, ok := self.diffLineInfoFromRecords(contents[bufferLineIdx].Metadata); ok {
+			return info, true
 		}
 		return types.DiffLineInfo{}, false
 	}
@@ -62,6 +57,56 @@ func (self *DiffLineHelper) GetDiffLineInfo(view *gocui.View, viewLineIdx int) (
 	}
 
 	return self.diffLineInfo(parsed), true
+}
+
+// diffLineInfoFromRecords recovers a row's identity from the records the diff
+// renderer stated for it. ok is false when the row carries no record we understand.
+//
+// A row can carry more than one record, when the rendering puts two diff lines on it
+// (a side-by-side row shows a deletion and the addition replacing it); the leftmost
+// is the one a reader would call the row's own, so it is the row's identity.
+func (self *DiffLineHelper) diffLineInfoFromRecords(metadata []string) (types.DiffLineInfo, bool) {
+	if len(metadata) == 0 {
+		return types.DiffLineInfo{}, false
+	}
+	parsed, ok := parseDiffLineMetadata(metadata[0])
+	if !ok {
+		return types.DiffLineInfo{}, false
+	}
+	return self.diffLineInfo(parsed), true
+}
+
+// resolvedDiffLine is one rendered row's recovered identity, plus whether it could
+// be recovered at all — the element of the table resolveDiffLines produces.
+type resolvedDiffLine struct {
+	info types.DiffLineInfo
+	ok   bool
+}
+
+// resolveDiffLines recovers the identity of every row of a rendered diff in one
+// pass, indexed 1:1 with contents. It is the batch form of GetDiffLineInfo, for the
+// whole-buffer scans (which change lines are where, which file each row belongs
+// to), and reads the rendering the same way: by the renderer's records, or by
+// parsing it as a unified diff (see renderingStatesDiffLines). Resolving row by row
+// would re-run the buffer parser's whole-section parse once per row — O(n²) on a
+// large single-file diff — so the buffer parser runs once for the whole buffer.
+func (self *DiffLineHelper) resolveDiffLines(contents []gocui.DiffLineContent) []resolvedDiffLine {
+	resolved := make([]resolvedDiffLine, len(contents))
+	if renderingStatesDiffLines(contents) {
+		for i, content := range contents {
+			if info, ok := self.diffLineInfoFromRecords(content.Metadata); ok {
+				resolved[i] = resolvedDiffLine{info, true}
+			}
+		}
+		return resolved
+	}
+
+	for i, parsed := range parseAllDiffLinesFromBuffer(diffLineTexts(contents)) {
+		if parsed.ok {
+			resolved[i] = resolvedDiffLine{self.diffLineInfo(parsed.parsed), true}
+		}
+	}
+	return resolved
 }
 
 // diffLineInfo turns a parser's result into the absolute-path identity consumers

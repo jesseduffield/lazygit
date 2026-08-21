@@ -196,12 +196,12 @@ func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) {
 
 	self.gui.c.GocuiGui().Cursor = v.Editable && v.Mask == ""
 
-	self.updateSelectionHighlights()
+	self.UpdateSelectionHighlights()
 
 	c.HandleFocus(opts)
 }
 
-// updateSelectionHighlights re-derives which views draw a selection, and which of
+// UpdateSelectionHighlights re-derives which views draw a selection, and which of
 // them draw theirs as the active one: a view shows a selection while its context is
 // on the stack and has something to select, and the context the user is in shows the
 // active selection while the ones behind it show inactive ones.
@@ -210,7 +210,7 @@ func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) {
 // every change to the stack goes through; after a refresh, since that is when the
 // contents of a list change; and from whoever tells a context that its content has
 // gained or lost something to select.
-func (self *ContextMgr) updateSelectionHighlights() {
+func (self *ContextMgr) UpdateSelectionHighlights() {
 	self.RLock()
 	defer self.RUnlock()
 
@@ -398,4 +398,15 @@ func (self *ContextMgr) NextInStack(c types.Context) types.Context {
 	}
 
 	panic("context not in stack")
+}
+
+// IsInStack reports whether the given context is on the stack at all, for callers
+// that can't otherwise know and would make NextInStack panic.
+func (self *ContextMgr) IsInStack(c types.Context) bool {
+	self.RLock()
+	defer self.RUnlock()
+
+	return lo.ContainsBy(self.ContextStack, func(other types.Context) bool {
+		return other.GetKey() == c.GetKey()
+	})
 }

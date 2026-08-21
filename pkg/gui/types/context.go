@@ -78,6 +78,7 @@ type IBaseContext interface {
 	// true if the context holds something for a selection to sit on. Contexts that
 	// don't show a selection at all say false, and so do lists with nothing in them.
 	HasSelectableContent() bool
+	SetHasSelectableContent(bool)
 
 	// the total height of the content that the view is currently showing
 	TotalContentHeight() int
@@ -365,6 +366,8 @@ type IContextMgr interface {
 	CurrentSide() Context
 	CurrentPopup() []Context
 	NextInStack(context Context) Context
+	IsInStack(context Context) bool
+	UpdateSelectionHighlights()
 	IsCurrent(c Context) bool
 	IsCurrentOrParent(c Context) bool
 	ForEach(func(Context))

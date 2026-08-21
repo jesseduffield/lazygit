@@ -192,6 +192,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
+| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 範囲選択を切り替え |  |
 | `` <esc> `` | サイドパネルに戻る |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
@@ -305,6 +307,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel down> (fn+up) `` | 下にスクロール |  |
 | `` <mouse wheel up> (fn+down) `` | 上にスクロール |  |
 | `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
+| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 範囲選択を切り替え |  |
 | `` <esc> `` | サイドパネルに戻る |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
