@@ -64,6 +64,40 @@ func TestFilterStrings(t *testing.T) {
 			useFuzzySearch: false,
 			expected:       []string{"integration-testing", "testing-integration"},
 		},
+		// Negated terms (#5956): a "!" prefix excludes matching entries.
+		{
+			needle:         "!packages.lock.json",
+			haystack:       []string{"src/app.cs", "src/packages.lock.json", "packages.lock.json"},
+			useFuzzySearch: false,
+			expected:       []string{"src/app.cs"},
+		},
+		{
+			needle:         "src !packages.lock.json",
+			haystack:       []string{"src/app.cs", "src/packages.lock.json", "README.md"},
+			useFuzzySearch: false,
+			expected:       []string{"src/app.cs"},
+		},
+		{
+			needle:         "test !integration",
+			haystack:       []string{"integration-testing", "unit-test", "testing-integration"},
+			useFuzzySearch: false,
+			expected:       []string{"unit-test"},
+		},
+		// A bare "!" stays a literal term; a negation is case-aware like the rest.
+		{
+			needle:         "!",
+			haystack:       []string{"src/a", "wow!"},
+			useFuzzySearch: false,
+			expected:       []string{"wow!"},
+		},
+		{
+			// Uppercase negation is case-sensitive (CaseAwareContains), so the
+			// lowercase lock file survives an !LOCK exclusion.
+			needle:         "!LOCK",
+			haystack:       []string{"packages.LOCK", "packages.lock.json", "src/app.cs"},
+			useFuzzySearch: false,
+			expected:       []string{"packages.lock.json", "src/app.cs"},
+		},
 	}
 
 	for _, s := range scenarios {

@@ -36,15 +36,35 @@ func FindSubstrings(pattern string, data []string) fuzzy.Matches {
 
 // Drop-in replacement for fuzzy.FindFrom (except that it doesn't fill out
 // MatchedIndexes or Score, but we are not using these)
+// Terms prefixed with "!" are negations: an entry must NOT contain them to
+// match (e.g. "src !packages.lock.json" matches paths containing "src" but
+// not "packages.lock.json", and a bare "!term" excludes matches while
+// keeping everything else — the exact Files-view ask of #5956). Negation
+// applies to the substring filter mode; fuzzy mode treats the whole pattern
+// as one fuzzy string, as before.
 func FindSubstringsFrom(pattern string, data fuzzy.Source) fuzzy.Matches {
 	substrings := strings.Fields(pattern)
+	positive := make([]string, 0, len(substrings))
+	negative := make([]string, 0)
+	for _, sub := range substrings {
+		if len(sub) > 1 && sub[0] == '!' {
+			negative = append(negative, sub[1:])
+		} else {
+			positive = append(positive, sub)
+		}
+	}
 	result := fuzzy.Matches{}
 
 outer:
 	for i := range data.Len() {
 		s := data.String(i)
-		for _, sub := range substrings {
+		for _, sub := range positive {
 			if !CaseAwareContains(s, sub) {
+				continue outer
+			}
+		}
+		for _, sub := range negative {
+			if CaseAwareContains(s, sub) {
 				continue outer
 			}
 		}
