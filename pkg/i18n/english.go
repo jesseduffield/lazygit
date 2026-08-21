@@ -890,6 +890,10 @@ type TranslationSet struct {
 	DetachWorktreeTooltip                    string
 	Switching                                string
 	RemoveWorktree                           string
+	MoveWorktree                             string
+	MoveWorktreeTooltip                      string
+	MoveWorktreePromptTitle                  string
+	CantMoveMainWorktree                     string
 	RemoveWorktreeTitle                      string
 	RemoveWorktreeMenuTitle                  string
 	RemoveWorktreeAndDeleteBranch            string
@@ -2051,6 +2055,10 @@ func EnglishTranslationSet() *TranslationSet {
 		DetachWorktreeTooltip:                    "This will run `git checkout --detach` on the worktree so that it stops hogging the branch, but the worktree's working tree will be left alone.",
 		Switching:                                "Switching",
 		RemoveWorktree:                           "Remove worktree",
+		MoveWorktree:                             "Move worktree",
+		MoveWorktreeTooltip:                      "Move or rename the selected worktree to a new path (git worktree move).",
+		MoveWorktreePromptTitle:                  "Move worktree to:",
+		CantMoveMainWorktree:                     "You cannot move the main worktree!",
 		RemoveWorktreeTitle:                      "Remove worktree",
 		RemoveWorktreeMenuTitle:                  "Remove worktree '{{.worktreeName}}'?",
 		RemoveWorktreeAndDeleteBranch:            "Remove worktree and delete branch",

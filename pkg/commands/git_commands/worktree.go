@@ -48,6 +48,12 @@ func (self *WorktreeCommands) Delete(worktreePath string, force bool) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+func (self *WorktreeCommands) Move(worktreePath, newPath string) error {
+	cmdArgs := NewGitCmd("worktree").Arg("move").Arg(worktreePath, newPath).ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 func (self *WorktreeCommands) Detach(worktreePath string) error {
 	cmdArgs := NewGitCmd("checkout").Arg("--detach").GitDir(filepath.Join(worktreePath, ".git")).ToArgv()
 

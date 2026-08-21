@@ -72,6 +72,13 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 			Tooltip:           self.c.Tr.RemoveWorktreeTooltip,
 			DisplayOnScreen:   true,
 		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Universal.Edit),
+			Handler:           self.withItem(self.move),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.MoveWorktree,
+			Tooltip:           self.c.Tr.MoveWorktreeTooltip,
+		},
 	}
 
 	return bindings
@@ -120,6 +127,14 @@ func (self *WorktreesController) GetOnRenderToMain() func() {
 
 func (self *WorktreesController) add() error {
 	return self.c.Helpers().Worktree.NewWorktree()
+}
+
+func (self *WorktreesController) move(worktree *models.Worktree) error {
+	if worktree.IsMain {
+		return errors.New(self.c.Tr.CantMoveMainWorktree)
+	}
+
+	return self.c.Helpers().Worktree.Move(worktree)
 }
 
 func (self *WorktreesController) remove(worktree *models.Worktree) error {

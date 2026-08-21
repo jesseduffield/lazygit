@@ -125,6 +125,26 @@ func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.C
 // --force. When then is non-nil it runs in place of the default refresh after a
 // successful removal, letting callers chain further work such as deleting the
 // worktree's branch.
+// Move prompts for a new path (pre-filled with the worktree's current one)
+// and runs `git worktree move` (#5946).
+func (self *WorktreeHelper) Move(worktree *models.Worktree) error {
+	self.c.Prompt(types.PromptOpts{
+		Title:          self.c.Tr.MoveWorktreePromptTitle,
+		InitialContent: worktree.Path,
+		HandleConfirm: func(newPath string) error {
+			return self.c.WithWaitingStatus(self.c.Tr.MoveWorktree, func(task gocui.Task) error {
+				self.c.LogAction(self.c.Tr.MoveWorktree)
+				if err := self.c.Git().Worktree.Move(worktree.Path, newPath); err != nil {
+					return err
+				}
+				self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES}})
+				return nil
+			})
+		},
+	})
+	return nil
+}
+
 func (self *WorktreeHelper) Remove(worktree *models.Worktree, then func(gocui.Task) error) error {
 	return self.remove(worktree, false, then)
 }
