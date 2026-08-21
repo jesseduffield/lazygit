@@ -231,6 +231,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel down> (fn+up) `` | Scroll omlaag |  |
 | `` <mouse wheel up> (fn+down) `` | Scroll omhoog |  |
 | `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
+| `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
+| `` v `` | Toggle drag selecteer |  |
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | Start met zoeken |  |
 
@@ -306,6 +308,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
+| `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
+| `` v `` | Toggle drag selecteer |  |
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | Start met zoeken |  |
 

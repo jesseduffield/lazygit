@@ -223,6 +223,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <mouse wheel down> (fn+up) `` | Scroll down |  |
 | `` <mouse wheel up> (fn+down) `` | Scroll up |  |
 | `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | Toggle range select |  |
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | Search the current view by text |  |
 
@@ -328,6 +330,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | Toggle range select |  |
 | `` <esc> `` | Exit back to side panel |  |
 | `` / `` | Search the current view by text |  |
 
