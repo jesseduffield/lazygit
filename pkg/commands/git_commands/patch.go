@@ -2,13 +2,16 @@ package git_commands
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
@@ -20,6 +23,10 @@ type PatchCommands struct {
 	stash  *StashCommands
 
 	PatchBuilder *patch.PatchBuilder
+
+	// The version of the patch the diff trees were last written for, so that they are
+	// written again when, and only when, the patch has changed since.
+	treesWrittenForGeneration int
 }
 
 func NewPatchCommands(
@@ -38,6 +45,84 @@ func NewPatchCommands(
 		stash:        stash,
 		PatchBuilder: patchBuilder,
 	}
+}
+
+// EnsureCustomPatchDiffTrees writes the custom patch's diff trees if what is there no
+// longer describes the patch. Call it before rendering the patch, which is often — every
+// time the panel showing it re-renders — while the patch itself changes rarely.
+func (self *PatchCommands) EnsureCustomPatchDiffTrees() error {
+	if self.PatchBuilder.Generation() == self.treesWrittenForGeneration {
+		return nil
+	}
+	if err := self.WriteCustomPatchDiffTrees(); err != nil {
+		return err
+	}
+	self.treesWrittenForGeneration = self.PatchBuilder.Generation()
+	return nil
+}
+
+// WriteCustomPatchDiffTrees materializes the custom patch as two file trees under the
+// directory the patch builder keeps for it: `a` holds each of the patch's files as it is
+// before the patch, `b` as it is after. Diffing those two trees against each other
+// (DiffCommands.CustomPatchDiffCmdObj) turns the patch into a diff of real files, which
+// can then be rendered exactly as any other diff is — through a diff renderer of any
+// kind, and with git's own idea of how much context to show.
+//
+// The trees are named a and b so that the diff's paths, with git's own prefixes
+// suppressed, come out reading like the a/ and b/ of an ordinary diff, over the real
+// repo-relative paths.
+func (self *PatchCommands) WriteCustomPatchDiffTrees() error {
+	dir := self.PatchBuilder.TempDir()
+	if dir == "" {
+		return nil
+	}
+
+	before := filepath.Join(dir, "a")
+	after := filepath.Join(dir, "b")
+	for _, tree := range []string{before, after} {
+		if err := os.RemoveAll(tree); err != nil {
+			return err
+		}
+		if err := os.MkdirAll(tree, 0o700); err != nil {
+			return err
+		}
+	}
+
+	for _, file := range self.PatchBuilder.FilesInPatch() {
+		content, err := self.commit.ShowFileContentCmdObj(self.PatchBuilder.From, file.ContentPath).RunWithOutput()
+		// A file the patch adds has no content on the before side, so git has nothing to
+		// show for it.
+		added := err != nil
+
+		// The before side holds an added file as an empty file rather than not at all, so
+		// that the diff pairs the two sides up and states the file's real path, instead of
+		// reporting a file that only one of the trees has.
+		if err := self.os.CreateFileWithContent(filepath.Join(before, file.Path),
+			lo.Ternary(added, "", content)); err != nil {
+			return err
+		}
+		// The after side is seeded with the same content, for the patch to change; a file
+		// the patch adds is left absent, for the patch to create.
+		if !added {
+			if err := self.os.CreateFileWithContent(filepath.Join(after, file.Path), content); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Added files as the creations they are, rather than as diffs against an empty file:
+	// the patch is applied in one go, so a file it expects to be there already would make
+	// the whole of it fail.
+	patchText := self.PatchBuilder.PatchToApply(false, false)
+	if strings.TrimSpace(patchText) == "" {
+		// Nothing in the patch, so the two trees are alike and the diff is empty.
+		return nil
+	}
+	patchFilePath, err := self.SaveTemporaryPatch(patchText)
+	if err != nil {
+		return err
+	}
+	return self.cmd.New(NewGitCmd("apply").Arg(patchFilePath).Dir(after).ToArgv()).Run()
 }
 
 type ApplyPatchOpts struct {

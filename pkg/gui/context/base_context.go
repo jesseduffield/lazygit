@@ -13,30 +13,29 @@ type BaseContext struct {
 	windowName      string
 	onGetOptionsMap func() map[string]string
 
-	keybindingsFns           []types.KeybindingsFn
-	mouseKeybindingsFns      []types.MouseKeybindingsFn
-	onDoubleClickFn          func() error
-	onClickFn                func(opts gocui.ViewMouseBindingOpts) error
-	onClickFocusedMainViewFn onClickFocusedMainViewFn
-	onRenderToMainFn         func()
-	onFocusFns               []onFocusFn
-	onFocusLostFns           []onFocusLostFn
-	onQuitFns                []func()
+	keybindingsFns            []types.KeybindingsFn
+	mouseKeybindingsFns       []types.MouseKeybindingsFn
+	onDoubleClickFn           func() error
+	onClickFn                 func(opts gocui.ViewMouseBindingOpts) error
+	focusedMainViewDiffSource types.FocusedMainViewDiffSource
+	onRenderToMainFn          func()
+	onFocusFns                []onFocusFn
+	onFocusLostFns            []onFocusLostFn
+	onQuitFns                 []func()
 
 	focusable                   bool
 	transient                   bool
 	hasControlledBounds         bool
 	needsRerenderOnWidthChange  types.NeedsRerenderOnWidthChangeLevel
 	needsRerenderOnHeightChange bool
-	highlightOnFocus            bool
+	hasSelectableContent        bool
 
 	*ParentContextMgr
 }
 
 type (
-	onFocusFn                = func(types.OnFocusOpts)
-	onFocusLostFn            = func(types.OnFocusLostOpts)
-	onClickFocusedMainViewFn = func(mainViewName string, clickedLineIdx int) error
+	onFocusFn     = func(types.OnFocusOpts)
+	onFocusLostFn = func(types.OnFocusLostOpts)
 )
 
 var _ types.IBaseContext = &BaseContext{}
@@ -49,7 +48,7 @@ type NewBaseContextOpts struct {
 	Focusable                   bool
 	Transient                   bool
 	HasUncontrolledBounds       bool // negating for the sake of making false the default
-	HighlightOnFocus            bool
+	HasSelectableContent        bool
 	NeedsRerenderOnWidthChange  types.NeedsRerenderOnWidthChangeLevel
 	NeedsRerenderOnHeightChange bool
 
@@ -70,7 +69,7 @@ func NewBaseContext(opts NewBaseContextOpts) *BaseContext {
 		focusable:                   opts.Focusable,
 		transient:                   opts.Transient,
 		hasControlledBounds:         hasControlledBounds,
-		highlightOnFocus:            opts.HighlightOnFocus,
+		hasSelectableContent:        opts.HasSelectableContent,
 		needsRerenderOnWidthChange:  opts.NeedsRerenderOnWidthChange,
 		needsRerenderOnHeightChange: opts.NeedsRerenderOnHeightChange,
 		ParentContextMgr:            &ParentContextMgr{},
@@ -114,6 +113,18 @@ func (self *BaseContext) GetKind() types.ContextKind {
 	return self.kind
 }
 
+func (self *BaseContext) HasSelectableContent() bool {
+	return self.hasSelectableContent
+}
+
+// SetHasSelectableContent is for the contexts whose answer isn't fixed and isn't a
+// list length either: the main panes, which can only tell by reading the diff they
+// have rendered. Whoever sets it re-derives the highlights that follow from it (see
+// ContextMgr.UpdateSelectionHighlights).
+func (self *BaseContext) SetHasSelectableContent(value bool) {
+	self.hasSelectableContent = value
+}
+
 func (self *BaseContext) GetKey() types.ContextKey {
 	return self.key
 }
@@ -145,7 +156,7 @@ func (self *BaseContext) ClearAllAttachedControllerFunctions() {
 	self.onQuitFns = nil
 	self.onDoubleClickFn = nil
 	self.onClickFn = nil
-	self.onClickFocusedMainViewFn = nil
+	self.focusedMainViewDiffSource = nil
 	self.onRenderToMainFn = nil
 }
 
@@ -167,12 +178,12 @@ func (self *BaseContext) AddOnClickFn(fn func(opts gocui.ViewMouseBindingOpts) e
 	}
 }
 
-func (self *BaseContext) AddOnClickFocusedMainViewFn(fn onClickFocusedMainViewFn) {
-	if fn != nil {
-		if self.onClickFocusedMainViewFn != nil {
-			panic("only one controller is allowed to set an onClickFocusedMainViewFn")
+func (self *BaseContext) AddFocusedMainViewDiffSource(source types.FocusedMainViewDiffSource) {
+	if source != nil {
+		if self.focusedMainViewDiffSource != nil {
+			panic("only one controller is allowed to set the focused main view diff source")
 		}
-		self.onClickFocusedMainViewFn = fn
+		self.focusedMainViewDiffSource = source
 	}
 }
 
@@ -184,8 +195,8 @@ func (self *BaseContext) GetOnClick() func(opts gocui.ViewMouseBindingOpts) erro
 	return self.onClickFn
 }
 
-func (self *BaseContext) GetOnClickFocusedMainView() onClickFocusedMainViewFn {
-	return self.onClickFocusedMainViewFn
+func (self *BaseContext) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {
+	return self.focusedMainViewDiffSource
 }
 
 func (self *BaseContext) AddOnRenderToMainFn(fn func()) {

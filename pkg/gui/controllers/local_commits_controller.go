@@ -719,17 +719,30 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() {
 	}
 }
 
+// secondaryPatchPanelUpdateOpts renders the custom patch being built into the pane
+// beside the diff it is being built from, as a diff of the two trees the patch is
+// materialized into — so that it is shown by whatever renders the rest of the diffs, and
+// so that its lines can be pointed at and taken back out of the patch.
 func secondaryPatchPanelUpdateOpts(c *ControllerCommon) *types.ViewUpdateOpts {
-	if c.Git().Patch.PatchBuilder.Active() {
-		patch := c.Git().Patch.PatchBuilder.RenderAggregatedPatch(false)
-
-		return &types.ViewUpdateOpts{
-			Task:  types.NewRenderStringWithoutScrollTask(patch),
-			Title: c.Tr.CustomPatch,
-		}
+	if !c.Git().Patch.PatchBuilder.Active() {
+		return nil
 	}
 
-	return nil
+	// A render of the same patch reuses the trees; only a change to the patch writes them
+	// again.
+	if err := c.Git().Patch.EnsureCustomPatchDiffTrees(); err != nil {
+		c.Log.Error(err)
+	}
+
+	// The same mode as the diff beside it: both panes of the pair have to agree about
+	// whether what they show can be acted on.
+	mode := c.Helpers().DiffLine.MainViewDiffMode()
+	cmdObj := c.Git().Diff.CustomPatchDiffCmdObj(c.Git().Patch.PatchBuilder.TempDir(), mode)
+
+	return &types.ViewUpdateOpts{
+		Task:  types.NewMainViewDiffTask(cmdObj.GetCmd(), mode),
+		Title: c.Tr.CustomPatch,
+	}
 }
 
 func (self *LocalCommitsController) squashDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {

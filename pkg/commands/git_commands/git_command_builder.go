@@ -123,18 +123,23 @@ func (self *GitCommandBuilder) GitDirIf(condition bool, path string) *GitCommand
 	return self
 }
 
-func (self *GitCommandBuilder) AddCommonDiffArgs(diffRendererConfigManager *config.DiffRendererConfigManager, userConfig *config.UserConfig, forUI bool) *GitCommandBuilder {
+func (self *GitCommandBuilder) AddCommonDiffArgs(diffRendererConfigManager *config.DiffRendererConfigManager, userConfig *config.UserConfig, mode DiffMode) *GitCommandBuilder {
 	contextSize := userConfig.Git.DiffContextSize
 	extDiffCmd := diffRendererConfigManager.GetExternalDiffCommand(contextSize)
-	useExtDiff := forUI && diffRendererConfigManager.GetDiffRendererType() == config.DiffRendererType_ExtDiff
+	useExtDiff := mode == DiffModeRendered && diffRendererConfigManager.GetDiffRendererType() == config.DiffRendererType_ExtDiff
 
 	return self.
-		ConfigIf(forUI && extDiffCmd != "", "diff.external="+extDiffCmd).
+		ConfigIf(mode == DiffModeRendered && extDiffCmd != "", "diff.external="+extDiffCmd).
 		ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
-		ArgIf(forUI && userConfig.Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		// Ignoring whitespace is about what the user wants to see, so it holds for a raw
+		// diff as much as for a rendered one; a plain diff is what a patch is built
+		// from, where a diff that leaves changes out would apply to nothing.
+		ArgIf(mode != DiffModePlain && userConfig.Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg(fmt.Sprintf("--find-renames=%d%%", userConfig.Git.RenameSimilarityThreshold)).
-		ArgIf(forUI, diffRendererConfigManager.GetRawGitArgs()...)
+		// The renderer's own arguments to git — a word diff, say — are part of the
+		// rendering, so they go with it.
+		ArgIf(mode == DiffModeRendered, diffRendererConfigManager.GetRawGitArgs()...)
 }
 
 func (self *GitCommandBuilder) ToArgv() []string {

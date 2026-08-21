@@ -32,6 +32,10 @@ type ListContextTrait struct {
 
 func (self *ListContextTrait) IsListContext() {}
 
+func (self *ListContextTrait) HasSelectableContent() bool {
+	return self.list.Len() > 0
+}
+
 func (self *ListContextTrait) FocusLine(scrollIntoView bool) {
 	self.Context.FocusLine(scrollIntoView)
 
@@ -90,8 +94,6 @@ func formatListFooter(selectedLineIdx int, length int) string {
 
 func (self *ListContextTrait) HandleFocus(opts types.OnFocusOpts) {
 	self.FocusLine(!opts.KeepScrollPosition)
-
-	self.GetViewTrait().SetHighlight(self.list.Len() > 0)
 
 	self.Context.HandleFocus(opts)
 }

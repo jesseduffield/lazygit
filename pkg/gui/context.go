@@ -3,6 +3,7 @@ package gui
 import (
 	"sync"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -179,10 +180,6 @@ func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) {
 	self.gui.helpers.Window.SetWindowContext(c)
 
 	self.gui.helpers.Window.MoveToTopOfWindow(c)
-	oldView := self.gui.c.GocuiGui().CurrentView()
-	if oldView != nil && oldView.Name() != viewName {
-		oldView.HighlightInactive = true
-	}
 	if _, err := self.gui.c.GocuiGui().SetCurrentView(viewName); err != nil {
 		panic(err)
 	}
@@ -198,7 +195,35 @@ func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) {
 
 	self.gui.c.GocuiGui().Cursor = v.Editable && v.Mask == ""
 
+	self.UpdateSelectionHighlights()
+
 	c.HandleFocus(opts)
+}
+
+// UpdateSelectionHighlights re-derives which views draw a selection, and which of
+// them draw theirs as the active one: a view shows a selection while its context is
+// on the stack and has something to select, and the context the user is in shows the
+// active selection while the ones behind it show inactive ones.
+//
+// Both of those can change, so this is called wherever they do: from Activate, which
+// every change to the stack goes through, after a refresh, which is what changes the
+// contents of a list, and from whoever tells a context that its content has gained or
+// lost something to select.
+func (self *ContextMgr) UpdateSelectionHighlights() {
+	self.RLock()
+	defer self.RUnlock()
+
+	onStack := set.NewFromSlice(lo.Map(self.ContextStack,
+		func(c types.Context, _ int) types.ContextKey { return c.GetKey() }))
+	currentKey := self.currentContextWithoutLock().GetKey()
+
+	for _, c := range self.allContexts.Flatten() {
+		// The global context has no view of its own.
+		if view := c.GetView(); view != nil {
+			view.Highlight = onStack.Includes(c.GetKey()) && c.HasSelectableContent()
+			view.HighlightInactive = c.GetKey() != currentKey
+		}
+	}
 }
 
 func (self *ContextMgr) Current() types.Context {
@@ -324,18 +349,6 @@ func (self *ContextMgr) AllList() []types.IListContext {
 	return listContexts
 }
 
-func (self *ContextMgr) AllPatchExplorer() []types.IPatchExplorerContext {
-	var listContexts []types.IPatchExplorerContext
-
-	for _, context := range self.allContexts.Flatten() {
-		if listContext, ok := context.(types.IPatchExplorerContext); ok {
-			listContexts = append(listContexts, listContext)
-		}
-	}
-
-	return listContexts
-}
-
 func (self *ContextMgr) ContextForKey(key types.ContextKey) types.Context {
 	self.RLock()
 	defer self.RUnlock()
@@ -372,4 +385,15 @@ func (self *ContextMgr) NextInStack(c types.Context) types.Context {
 	}
 
 	panic("context not in stack")
+}
+
+// IsInStack reports whether the given context is on the stack at all, for callers
+// that can't otherwise know and would make NextInStack panic.
+func (self *ContextMgr) IsInStack(c types.Context) bool {
+	self.RLock()
+	defer self.RUnlock()
+
+	return lo.ContainsBy(self.ContextStack, func(other types.Context) bool {
+		return other.GetKey() == c.GetKey()
+	})
 }

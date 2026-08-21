@@ -31,7 +31,6 @@
 * `pkg/gui/keybindings`: Contains code for mapping between keybindings and their labels
 * `pkg/gui/mergeconflicts`: Contains code relating to the handling of merge conflicts
 * `pkg/gui/modes`: Contains code relating to the state of different modes e.g. cherry picking mode, rebase mode.
-* `pkg/gui/patch_exploring`: Contains code relating to the state of patch-oriented views like the staging view.
 * `pkg/gui/popup`: Contains code that lets you easily raise popups
 * `pkg/gui/presentation`: Contains presentation code i.e. code concerned with rendering content inside views
 * `pkg/gui/services/custom_commands`: Contains code related to user-defined custom commands.

@@ -3,10 +3,8 @@ package types
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/sasha-s/go-deadlock"
 )
 
 type ContextKind int
@@ -72,6 +70,11 @@ type IBaseContext interface {
 	// determined independently.
 	HasControlledBounds() bool
 
+	// true if the context holds something for a selection to sit on. Contexts that
+	// don't show a selection at all say false, and so do lists with nothing in them.
+	HasSelectableContent() bool
+	SetHasSelectableContent(bool)
+
 	// the total height of the content that the view is currently showing
 	TotalContentHeight() int
 
@@ -95,12 +98,13 @@ type IBaseContext interface {
 	// that the generic ListController can be specialized by view-specific controllers.
 	// We'll need to think of a better way to do this.
 	AddOnDoubleClickFn(func() error)
-	// Likewise for the focused main view: we need this to communicate between a
-	// side panel controller and the focused main view controller.
-	AddOnClickFocusedMainViewFn(func(mainViewName string, clickedLineIdx int) error)
 	// Adding on to the above, this is so that a list-specific handler can register
 	// a hook for doing additional click handling
 	AddOnClickFn(func(opts gocui.ViewMouseBindingOpts) error)
+	// Likewise for the focused main view, which acts on the diff of whichever panel
+	// is beneath it and so has to reach that panel's controller. nil for a panel
+	// that shows no diff.
+	AddFocusedMainViewDiffSource(FocusedMainViewDiffSource)
 
 	AddOnRenderToMainFn(func())
 	AddOnFocusFn(func(OnFocusOpts))
@@ -174,6 +178,96 @@ type DiffableContext interface {
 	RefForAdjustingLineNumberInDiff() string
 }
 
+// DiffMainViewContext is implemented by the side panel contexts whose focused
+// main view shows a unified diff — files, local commits, sub-commits, reflog,
+// stash, and commit files — as opposed to a commit log or other non-diff content
+// (branches, tags, status, …). It is distinct from DiffableContext, which is
+// about producing a diff between two refs for the diff menu. Implementing it is
+// what makes the focused main view show a selection: a selection is only
+// meaningful where there are diff lines to act on (edit one, copy some, jump by
+// hunk or file). The returned type additionally classifies what acting on that
+// selection means.
+type DiffMainViewContext interface {
+	Context
+
+	GetDiffMainViewType() DiffMainViewType
+}
+
+// DiffMainViewType classifies what the focused main view's diff belongs to, which
+// decides what acting on a selection in it means.
+type DiffMainViewType int
+
+const (
+	// DiffMainViewTypeNone: the main view holds no diff, so there is nothing to
+	// select. It is what a side panel that doesn't implement DiffMainViewContext
+	// amounts to, not a value any panel returns.
+	DiffMainViewTypeNone DiffMainViewType = iota
+	// DiffMainViewTypeStaging: the diff is the working tree's, so the selection can
+	// be staged or unstaged (the files panel).
+	DiffMainViewTypeStaging
+	// DiffMainViewTypePatchBuilding: the diff belongs to a commit, so the selection
+	// can be taken into a custom patch (the commit files / commits / sub-commits /
+	// reflog / stash panels).
+	DiffMainViewTypePatchBuilding
+)
+
+// DiffPaneContext is one of the two panes the main section can show, as the thing
+// that holds a diff with a selection in it. The panels that act on such a selection
+// are handed the pane it was made in, and speak to it through this.
+type DiffPaneContext interface {
+	Context
+
+	DiffSelectState() *DiffSelectState
+}
+
+// FocusedMainViewDiffSource is how a side panel hands out the diff behind what it
+// renders into the focused main view: the diff of the given files as git writes it,
+// with no colour and no diff renderer in the way. What the main view shows is that
+// same diff after a renderer has had it, which may have restructured, reordered or
+// dropped parts of it — so anything that needs the diff itself, rather than a picture
+// of it, asks the panel that produced it.
+//
+// paths are repo-relative, and are asked for rather than assumed so that a few lines
+// of a commit's diff can be had without fetching the whole thing. pane says which of
+// the two main panes is asking, since a panel can show a different diff in each — the
+// files panel shows the unstaged changes in one and the staged ones in the other.
+type FocusedMainViewDiffSource interface {
+	PlainDiff(pane DiffPaneContext, paths []string) string
+}
+
+// FocusedMainViewActions is what a side panel does when the user acts on a selection
+// of diff lines in the focused main view. The main view owns the selection and the
+// keys; what acting on it means is the panel's business — the working tree panel
+// stages and unstages.
+//
+// It extends the diff source rather than standing beside it, because acting on a
+// selection needs the diff behind the rendering just as reading it does; a panel that
+// implements only the source offers a diff to read and copy but nothing to do to it.
+type FocusedMainViewActions interface {
+	FocusedMainViewDiffSource
+
+	// PrimaryAction acts on the diff lines in the inclusive view-line range, which is
+	// the current selection in the given pane: a single line, a range, or a hunk. The
+	// panel re-renders the diff itself, being the one that knows what it did to it.
+	PrimaryAction(pane DiffPaneContext, firstLineIdx int, lastLineIdx int) error
+
+	// DiscardSelection takes the selected diff lines back out of whatever they are part
+	// of: the working tree for the files panel, the commit itself for the panels showing
+	// a commit's diff.
+	DiscardSelection(pane DiffPaneContext, firstLineIdx int, lastLineIdx int) error
+
+	// DiscardSelectionDisabledReason says why the selection can't be discarded where it
+	// is, and nil when it can. Taking lines out of a commit means rewriting it, which
+	// isn't always something we may do; the working tree has no such condition.
+	DiscardSelectionDisabledReason(pane DiffPaneContext) *DisabledReason
+
+	// PatchInclusion says which lines of the diff this panel shows are in the custom
+	// patch being built from it, which is what the marks over those lines are drawn
+	// from. nil where nothing about this diff is being built into a patch — which is
+	// always so for a diff that can't be.
+	PatchInclusion() func(info DiffLineInfo) bool
+}
+
 type IListContext interface {
 	Context
 
@@ -193,20 +287,6 @@ type IListContext interface {
 	IndexForGotoBottom() int
 }
 
-type IPatchExplorerContext interface {
-	Context
-
-	GetState() *patch_exploring.State
-	SetState(*patch_exploring.State)
-	GetIncludedLineIndices() []int
-	RenderAndFocus()
-	Render()
-	GetContentToRender() string
-	NavigateTo(selectedLineIdx int)
-	GetMutex() *deadlock.Mutex
-	IsPatchExplorerContext() // used for type switch
-}
-
 type IViewTrait interface {
 	FocusPoint(yIdx int, scrollIntoView bool)
 	SetRangeSelectStart(yIdx int)
@@ -223,7 +303,6 @@ type IViewTrait interface {
 	ScrollDown(value int)
 	PageDelta() int
 	SelectedLineIdx() int
-	SetHighlight(bool)
 }
 
 type OnFocusOpts struct {
@@ -267,9 +346,10 @@ type HasKeybindings interface {
 	// decides not to do anything with the click.
 	GetOnClick() func(opts gocui.ViewMouseBindingOpts) error
 
-	// Implement this in a side-panel controller to get called when there's a click in the main view
-	// that belongs to your panel while the main view is already focused.
-	GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error
+	// Implement this in a side-panel controller to hand out the diff behind what your
+	// panel renders into the focused main view, for the commands that act on a
+	// selection in it. nil for a controller whose panel shows no diff.
+	GetFocusedMainViewDiffSource() FocusedMainViewDiffSource
 }
 
 type IController interface {
@@ -330,11 +410,12 @@ type IContextMgr interface {
 	CurrentSide() Context
 	CurrentPopup() []Context
 	NextInStack(context Context) Context
+	IsInStack(context Context) bool
+	UpdateSelectionHighlights()
 	IsCurrent(c Context) bool
 	IsCurrentOrParent(c Context) bool
 	ForEach(func(Context))
 	AllList() []IListContext
 	AllFilterable() []IFilterableContext
 	AllSearchable() []ISearchableContext
-	AllPatchExplorer() []IPatchExplorerContext
 }

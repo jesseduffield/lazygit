@@ -41,48 +41,6 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 		Suggestions:     NewSuggestionsContext(c),
 		Normal:          NewMainContext(c.Views().Main, "main", NORMAL_MAIN_CONTEXT_KEY, c),
 		NormalSecondary: NewMainContext(c.Views().Secondary, "secondary", NORMAL_SECONDARY_CONTEXT_KEY, c),
-		Staging: NewPatchExplorerContext(
-			c.Views().Staging,
-			"main",
-			STAGING_MAIN_CONTEXT_KEY,
-			func() []int { return nil },
-			c,
-		),
-		StagingSecondary: NewPatchExplorerContext(
-			c.Views().StagingSecondary,
-			"secondary",
-			STAGING_SECONDARY_CONTEXT_KEY,
-			func() []int { return nil },
-			c,
-		),
-		CustomPatchBuilder: NewPatchExplorerContext(
-			c.Views().PatchBuilding,
-			"main",
-			PATCH_BUILDING_MAIN_CONTEXT_KEY,
-			func() []int {
-				file := commitFilesContext.GetSelectedFile()
-				if file == nil {
-					return nil
-				}
-				includedLineIndices, err := c.Git().Patch.PatchBuilder.GetFileIncLineIndices(file.Path, file.PreviousPath)
-				if err != nil {
-					c.Log.Error(err)
-					return nil
-				}
-
-				return includedLineIndices
-			},
-			c,
-		),
-		CustomPatchBuilderSecondary: NewSimpleContext(
-			NewBaseContext(NewBaseContextOpts{
-				Kind:       types.MAIN_CONTEXT,
-				View:       c.Views().PatchBuildingSecondary,
-				WindowName: "secondary",
-				Key:        PATCH_BUILDING_SECONDARY_CONTEXT_KEY,
-				Focusable:  false,
-			}),
-		),
 		MergeConflicts: NewMergeConflictsContext(
 			c,
 		),

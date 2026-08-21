@@ -158,6 +158,107 @@ func TestAutoRenderingHyperlinks(t *testing.T) {
 	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
 }
 
+// osc1717 wraps an OSC 1717 payload in the sequence a diff renderer emits it in:
+// the ESC ] introducer with the OSC number, and ESC \ as the terminator.
+func osc1717(payload string) string {
+	return "\x1b]1717;" + payload + "\x1b\\"
+}
+
+func TestDiffLineContents(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// A diff renderer prefixes each line it renders with a record naming the
+	// file and the line's position in it: version;type;new-line;old-line;file.
+	v.writeString(strings.Join([]string{
+		osc1717("1;c;1;;foo.txt") + "line1",
+		osc1717("1;d;2;2;foo.txt") + "old2",
+		osc1717("1;a;2;;foo.txt") + "new2",
+		"@@ a hunk header, which carries no record @@",
+	}, "\n"))
+
+	assert.Equal(t, []DiffLineContent{
+		{Text: "line1", Metadata: []string{"1;c;1;;foo.txt"}},
+		{Text: "old2", Metadata: []string{"1;d;2;2;foo.txt"}},
+		{Text: "new2", Metadata: []string{"1;a;2;;foo.txt"}},
+		// The record of the line before doesn't bleed onto this one.
+		{Text: "@@ a hunk header, which carries no record @@"},
+	}, v.DiffLineContents())
+}
+
+func TestDiffLineContentsWithSideBySideRecords(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// A side-by-side renderer puts two diff lines on one rendered line, and so
+	// emits a record before each half.
+	v.writeString(strings.Join([]string{
+		osc1717("1;c;1;;foo.txt") + "context " + osc1717("1;c;1;;foo.txt") + "context",
+		osc1717("1;d;2;2;foo.txt") + "old2    " + osc1717("1;a;2;;foo.txt") + "new2",
+	}, "\n"))
+
+	assert.Equal(t, []DiffLineContent{
+		// The two halves of a context line are the same diff line, stated twice.
+		{Text: "context context", Metadata: []string{"1;c;1;;foo.txt"}},
+		{Text: "old2    new2", Metadata: []string{"1;d;2;2;foo.txt", "1;a;2;;foo.txt"}},
+	}, v.DiffLineContents())
+}
+
+func TestDiffLineContentsOfWrappedLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// A line that gocui wraps is still one buffer line, so its record covers
+	// every view line it is displayed on.
+	v.writeString(osc1717("1;a;1;;foo.txt") + "a line too long to fit")
+
+	assert.Equal(t, []DiffLineContent{
+		{Text: "a line too long to fit", Metadata: []string{"1;a;1;;foo.txt"}},
+	}, v.DiffLineContents())
+	assert.Equal(t, 3, v.ViewLinesHeight())
+	for viewLine := range 3 {
+		bufferLine, ok := v.BufferLineForViewLine(viewLine)
+		assert.True(t, ok)
+		assert.Equal(t, 0, bufferLine)
+	}
+}
+
+func TestDiffLineContentsWithRecordsCoveringNoCell(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	v.writeString(strings.Join([]string{
+		// A banner announcing a file and its first hunk at once carries both
+		// records back to back.
+		osc1717("1;f;;;foo.txt") + osc1717("1;h;5;;foo.txt") + "foo.txt --- Go",
+		// So does a modification whose deletion and addition are collapsed into
+		// a single rendered line.
+		osc1717("1;d;5;5;foo.txt") + osc1717("1;a;5;;foo.txt") + "595 new content",
+		// A changed line that is empty is rendered as its record and nothing else.
+		osc1717("1;a;6;;foo.txt"),
+	}, "\n") + "\n")
+
+	assert.Equal(t, []DiffLineContent{
+		{Text: "foo.txt --- Go", Metadata: []string{"1;f;;;foo.txt", "1;h;5;;foo.txt"}},
+		{Text: "595 new content", Metadata: []string{"1;d;5;5;foo.txt", "1;a;5;;foo.txt"}},
+		{Text: "", Metadata: []string{"1;a;6;;foo.txt"}},
+	}, v.DiffLineContents())
+}
+
+func TestDiffLineContentsSwallowsHandshake(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	// A diff renderer announces itself with a version-only record before the
+	// diff. It must leave no trace: no visible bytes, no line of its own, and
+	// above all no record on the line that follows it.
+	v.writeString(osc1717("1") + strings.Join([]string{
+		"diff --git a/foo.txt b/foo.txt",
+		osc1717("1;a;1;;foo.txt") + "added",
+	}, "\n"))
+
+	assert.Equal(t, []DiffLineContent{
+		{Text: "diff --git a/foo.txt b/foo.txt"},
+		{Text: "added", Metadata: []string{"1;a;1;;foo.txt"}},
+	}, v.DiffLineContents())
+}
+
 // An async re-render builds into an off-screen buffer and swaps it in once it
 // has enough to paint, so readers keep seeing the previous render — coherent and
 // consistent — until the new content appears in one step. See View.offscreen.
@@ -202,6 +303,61 @@ func TestViewLinesTruncatedByShorterRender(t *testing.T) {
 	v.SwapInOffscreenRender()
 	assert.Equal(t, 3, v.ViewLinesHeight())
 	assert.Equal(t, []string{"aaa", "bbb", "ccc"}, v.ViewBufferLines())
+}
+
+func TestBufferLineForViewLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// Buffer line 0 is short (view line 0); buffer line 1 wraps into three view
+	// lines (1, 2, 3); buffer line 2 is short again (view line 4).
+	v.writeString("short\n" + strings.Repeat("b", 27) + "\nlast")
+
+	for viewLine, wantBufferLine := range []int{0, 1, 1, 1, 2} {
+		bufferLine, ok := v.BufferLineForViewLine(viewLine)
+		assert.True(t, ok)
+		assert.Equal(t, wantBufferLine, bufferLine)
+	}
+
+	_, ok := v.BufferLineForViewLine(5)
+	assert.False(t, ok)
+
+	_, ok = v.BufferLineForViewLine(-1)
+	assert.False(t, ok)
+}
+
+func TestViewLineForBufferLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// A wrapped buffer line maps to the first of the view lines it spans.
+	v.writeString("short\n" + strings.Repeat("b", 27) + "\nlast")
+
+	for bufferLine, wantViewLine := range []int{0, 1, 4} {
+		viewLine, ok := v.ViewLineForBufferLine(bufferLine)
+		assert.True(t, ok)
+		assert.Equal(t, wantViewLine, viewLine)
+	}
+
+	_, ok := v.ViewLineForBufferLine(3)
+	assert.False(t, ok)
+}
+
+func TestLastViewLineForBufferLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// A wrapped buffer line maps to the last of the view lines it spans.
+	v.writeString("short\n" + strings.Repeat("b", 27) + "\nlast")
+
+	for bufferLine, wantViewLine := range []int{0, 3, 4} {
+		viewLine, ok := v.LastViewLineForBufferLine(bufferLine)
+		assert.True(t, ok)
+		assert.Equal(t, wantViewLine, viewLine)
+	}
+
+	_, ok := v.LastViewLineForBufferLine(3)
+	assert.False(t, ok)
 }
 
 // While an async re-render loads, it swaps in only a partially-filled buffer at
@@ -779,4 +935,142 @@ func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
 		assert.Equal(t, color.Green, style.GetBackground(),
 			"trailing cell at (%d, 2) should have green bg", x)
 	}
+}
+
+// A view that wraps draws one line of its content as several view lines, and the
+// cursor and the range anchor count those. What is asked about a selection is
+// which lines of the content it covers, so those are what it has to be reported
+// in.
+func TestSelectedLinesOfWrappedContent(t *testing.T) {
+	v := NewView("name", 0, 0, 11, 10, OutputNormal) // InnerWidth 10
+	v.Wrap = true
+	v.Highlight = true
+
+	// "a line that wraps" takes two view lines, so the four lines of content are
+	// drawn as five: "one", "two", "a line th", "at wraps", "four".
+	v.writeString("one\ntwo\na line that wraps\nfour\n")
+	assert.Equal(t, 5, v.ViewLinesHeight())
+
+	// The cursor on the wrapped line's second half is on that line.
+	v.FocusPoint(0, 3, false)
+	assert.Equal(t, "a line that wraps", v.SelectedLine())
+
+	// A range over both halves of the wrapped line covers one line of content.
+	v.SetRangeSelectStart(2)
+	assert.Equal(t, []string{"a line that wraps"}, v.SelectedLines())
+}
+
+// Resizing a view throws away the wrapping of its content and wraps it again for
+// the new width, which moves every line of it to a different view line. The
+// positions into the view count view lines, so they all have to come along.
+func TestResizingAWrappingViewKeepsItsPlaceInTheContent(t *testing.T) {
+	g := &Gui{}
+	v, _ := g.SetView("name", 0, 0, 11, 10, 0) // InnerWidth 10
+	v.Wrap = true
+	v.Highlight = true
+
+	// Two wrapping lines, with a single line between them: eight view lines for
+	// five lines of content.
+	v.writeString("one\na line that wraps\ntwo\nanother wrapping line\nthree\n")
+	assert.Equal(t, 8, v.ViewLinesHeight())
+
+	// A range over the whole of the second wrapping line, which is drawn as view
+	// lines 4 to 6.
+	v.SetRangeSelectStart(4)
+	v.FocusPoint(0, 6, false)
+	assert.Equal(t, []string{"another wrapping line"}, v.SelectedLines())
+
+	// Widen the view so that nothing wraps any more.
+	_, _ = g.SetView("name", 0, 0, 31, 10, 0) // InnerWidth 30
+	assert.Equal(t, 5, v.ViewLinesHeight())
+
+	assert.Equal(t, []string{"another wrapping line"}, v.SelectedLines())
+}
+
+// The inclusion gutter reserves columns at the left of every line, draws its marker
+// on the marked lines only, and moves the content out of the way.
+func TestInclusionGutter(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	// InnerWidth 10; the frame puts view x=0 at screen x=1.
+	v := NewView("name", 0, 0, 11, 5, OutputNormal)
+	v.Wrap = true
+	v.InclusionGutterMarker = "✓"
+
+	v.writeString("aaa\nbbb\nccc\n")
+
+	// The gutter is two columns wide — the marker and a space; mark the middle line.
+	v.SetInclusionGutter(true, []bool{false, true, false})
+	v.draw(true)
+
+	chr, _, _ := Screen.Get(1, 1)
+	assert.Equal(t, " ", chr, "an unmarked line has no marker")
+	chr, _, _ = Screen.Get(1, 2)
+	assert.Equal(t, "✓", chr, "a marked line has one")
+	chr, _, _ = Screen.Get(1, 3)
+	assert.Equal(t, " ", chr, "an unmarked line has no marker")
+
+	// The content begins after the gutter: view x=2, i.e. screen x=3.
+	chr, _, _ = Screen.Get(3, 1)
+	assert.Equal(t, "a", chr)
+	chr, _, _ = Screen.Get(3, 2)
+	assert.Equal(t, "b", chr)
+	chr, _, _ = Screen.Get(3, 3)
+	assert.Equal(t, "c", chr)
+
+	// Hiding the gutter puts the content back at the left edge.
+	v.SetInclusionGutter(false, nil)
+	v.draw(true)
+	chr, _, _ = Screen.Get(1, 1)
+	assert.Equal(t, "a", chr)
+}
+
+// A marked line the view wraps is marked on every segment it is drawn as, so that
+// the mark doesn't look like it belongs to the first part of the line alone. The
+// gutter takes its columns out of the width the content wraps in.
+func TestInclusionGutterMarksEverySegmentOfAWrappedLine(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.Wrap = true
+	v.InclusionGutterMarker = "✓"
+
+	// Ten cells, wrapping at eight once the two-column gutter is shown.
+	v.writeString("0123456789\n")
+	v.SetInclusionGutter(true, []bool{true})
+	v.draw(true)
+
+	chr, _, _ := Screen.Get(1, 1)
+	assert.Equal(t, "✓", chr)
+	chr, _, _ = Screen.Get(3, 1)
+	assert.Equal(t, "0", chr)
+	chr, _, _ = Screen.Get(10, 1)
+	assert.Equal(t, "7", chr, "the content wraps at the width the gutter leaves it")
+
+	chr, _, _ = Screen.Get(1, 2)
+	assert.Equal(t, "✓", chr, "the line's second segment is marked too")
+	chr, _, _ = Screen.Get(3, 2)
+	assert.Equal(t, "8", chr)
+}
+
+// Showing the gutter narrows the content, so the content wraps again — and the
+// positions into it, which count the segments lines are drawn as, have to come
+// along, as they do for any other change of width.
+func TestShowingTheInclusionGutterKeepsThePlaceInTheContent(t *testing.T) {
+	v := NewView("name", 0, 0, 11, 10, OutputNormal) // InnerWidth 10
+	v.Wrap = true
+	v.Highlight = true
+	v.InclusionGutterMarker = "✓"
+
+	v.writeString("one\ntwo\nthree\nsomethingfartoolong\n")
+	assert.Equal(t, 5, v.ViewLinesHeight())
+
+	v.FocusPoint(0, 2, false)
+	assert.Equal(t, "three", v.SelectedLine())
+
+	// With eight columns left for the content, the last line wraps into three
+	// segments rather than two.
+	v.SetInclusionGutter(true, []bool{false, false, true, false})
+	assert.Equal(t, 6, v.ViewLinesHeight())
+	assert.Equal(t, "three", v.SelectedLine())
 }

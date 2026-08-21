@@ -120,6 +120,20 @@ index 9320895..6d79956 100644
  lemon
 `
 
+// Two deletions with no line between them: they share a new-file line number
+// (both sit at the same new-file position), so only their old-file line numbers
+// tell them apart.
+const consecutiveDeletions = `diff --git a/filename b/filename
+index 9320895..6d79956 100644
+--- a/filename
++++ b/filename
+@@ -1,4 +1,2 @@
+ apple
+-grape
+-pear
+ lemon
+`
+
 const newFile = `diff --git a/newfile b/newfile
 new file mode 100644
 index 0000000..4e680cc
@@ -676,6 +690,85 @@ func TestLineNumberOfLine(t *testing.T) {
 			for i, idx := range s.indexes {
 				patch := Parse(s.patchStr)
 				result := patch.LineNumberOfLine(idx)
+				assert.Equal(t, s.expecteds[i], result)
+			}
+		})
+	}
+}
+
+func TestIsWellFormed(t *testing.T) {
+	// The body of a diff as rendered with the +/- markers moved out of the text
+	// and into a gutter: every body line now reads as context, so the lengths no
+	// longer match the header.
+	const gutterMangled = `diff --git a/filename b/filename
+index 9320895..6d79956 100644
+--- a/filename
++++ b/filename
+@@ -1,4 +1,2 @@
+ apple
+ grape
+ pear
+ lemon
+`
+
+	scenarios := []struct {
+		testName string
+		patchStr string
+		expected bool
+	}{
+		{"simpleDiff", simpleDiff, true},
+		{"renameWithModificationDiff", renameWithModificationDiff, true},
+		{"addNewlineToEndOfFile", addNewlineToEndOfFile, true},
+		{"twoHunks", twoHunks, true},
+		{"consecutiveDeletions", consecutiveDeletions, true},
+		{"newFile", newFile, true},
+		{"deletedFile", deletedFile, true},
+		{"addNewlineToPreviouslyEmptyFile", addNewlineToPreviouslyEmptyFile, true},
+		{"exampleHunk", exampleHunk, true},
+		{"gutterMangled", gutterMangled, false},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			assert.Equal(t, s.expected, Parse(s.patchStr).IsWellFormed())
+		})
+	}
+}
+
+func TestOldLineNumberOfLine(t *testing.T) {
+	type scenario struct {
+		testName  string
+		patchStr  string
+		indexes   []int
+		expecteds []int
+	}
+
+	scenarios := []scenario{
+		{
+			testName:  "twoChangesInOneHunk",
+			patchStr:  twoChangesInOneHunk,
+			indexes:   []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1000},
+			expecteds: []int{1, 1, 1, 1, 1, 1, 2, 3, 3, 4, 5, 5, 5},
+		},
+		{
+			testName:  "consecutiveDeletions",
+			patchStr:  consecutiveDeletions,
+			indexes:   []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 1000},
+			expecteds: []int{1, 1, 1, 1, 1, 1, 2, 3, 4, 4},
+		},
+		{
+			testName:  "renameWithModificationDiff",
+			patchStr:  renameWithModificationDiff,
+			indexes:   []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1000},
+			expecteds: []int{1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 4, 5, 5},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			for i, idx := range s.indexes {
+				patch := Parse(s.patchStr)
+				result := patch.OldLineNumberOfLine(idx)
 				assert.Equal(t, s.expecteds[i], result)
 			}
 		})

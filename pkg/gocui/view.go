@@ -157,6 +157,23 @@ type View struct {
 	// instead of Sel{Bg,Fg}Colors for highlighting selected lines.
 	HighlightInactive bool
 
+	// If SelectedLineColorWidth is greater than zero, a highlighted line is painted
+	// in the selection colors on that many columns at its left edge only, rather
+	// than across its whole width, leaving the line's own colors to show through.
+	// For content that conveys meaning by color of its own.
+	SelectedLineColorWidth int
+
+	// InclusionGutterMarker is the glyph the inclusion gutter draws on a marked line
+	// (see SetInclusionGutter), and InclusionGutterMarkerColor its color. Both are
+	// set once, when the view is created.
+	InclusionGutterMarker      string
+	InclusionGutterMarkerColor Attribute
+	// showInclusionGutter reserves the gutter's columns at the left of every line,
+	// and inclusionGutterMarks, indexed by line of the content, says which lines get
+	// the marker. Set together, via SetInclusionGutter.
+	showInclusionGutter  bool
+	inclusionGutterMarks []bool
+
 	// If Frame is true, a border will be drawn around the view.
 	Frame bool
 
@@ -243,23 +260,137 @@ type pos struct {
 	x, y int
 }
 
-// call this in the event of a view resize, or if you want to render new content
-// without the chance of old content still appearing, or if you want to remove
-// a line from the existing content
+// call this if you want to render new content without the chance of old content
+// still appearing, or if you want to remove a line from the existing content. For
+// a view whose size has changed, whose content is the same but has to be wrapped
+// afresh, call RewrapContent instead.
 func (v *View) clearViewLines() {
 	v.tainted = true
 	v.viewLines = nil
 	v.clearHover()
 }
 
-// ClearViewLines is clearViewLines guarded by writeMutex. It's for callers on
-// the UI thread (the layout pass) that touch a view whose content a task
-// goroutine may be writing concurrently: viewLines/tainted/hover are all
-// buffer state that writeMutex protects.
-func (v *View) ClearViewLines() {
+// RewrapContent wraps the view's content for the size the view has now, and puts
+// the positions into that content — the scroll offset, the cursor, a range's
+// anchor — back on the lines they were on. They are all view lines, which count
+// the segments each line is wrapped into, so wrapping the content at another
+// width leaves every one of them pointing at a different line.
+//
+// Call it on the UI thread whenever the view's size changes; a task goroutine may
+// be writing the content concurrently, and all of this is state writeMutex
+// protects.
+func (v *View) RewrapContent() {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+	origin := v.contentPosOf(v.oy)
+	cursor := v.contentPosOf(v.oy + v.cy)
+	anchor := v.contentPosOf(v.rangeSelectStartY)
+	cursorRow := v.cy
+
 	v.clearViewLines()
+	v.refreshViewLinesIfNeeded()
+
+	if !origin.ok {
+		return
+	}
+
+	cursorLine, cursorOk := v.viewLineOf(cursor)
+	if anchorLine, ok := v.viewLineOf(anchor); ok {
+		v.rangeSelectStartY = anchorLine
+		if cursorOk {
+			// A range covers lines of content, not the segments they are drawn as,
+			// so its ends go back on the outermost segments of their lines: a line
+			// the range covered the whole of stays covered whole.
+			cursorLine = v.viewLineOfRangeEnd(cursor, anchor)
+			v.rangeSelectStartY = v.viewLineOfRangeEnd(anchor, cursor)
+		}
+	}
+
+	// The line the cursor is on keeps the row it was drawn on, so that it doesn't
+	// move under the user; with no cursor on screen the view keeps its own place
+	// in the content instead.
+	if v.Highlight && cursorOk && cursorRow >= 0 && cursorRow < v.InnerHeight() {
+		v.SetOriginY(cursorLine - cursorRow)
+	} else if originLine, ok := v.viewLineOf(origin); ok {
+		v.SetOriginY(originLine)
+	}
+	if cursorOk {
+		v.cy = cursorLine - v.oy
+	}
+}
+
+// contentPos is a position in a view's content in terms that survive the content
+// being wrapped again: which line of it, and which of that line's segments.
+type contentPos struct {
+	line, segment int
+	ok            bool
+}
+
+// contentPosOf returns where the given view line sits in the content. Only call
+// this with a lock on writeMutex, and with the view lines up to date.
+func (v *View) contentPosOf(viewLine int) contentPos {
+	if viewLine < 0 || viewLine >= len(v.viewLines) {
+		return contentPos{}
+	}
+	return contentPos{
+		line:    v.viewLines[viewLine].linesY,
+		segment: v.viewLines[viewLine].linesX,
+		ok:      true,
+	}
+}
+
+// viewLineOf returns the view line drawing the given position in the content,
+// on the nearest segment its line still has. Only call this with a lock on
+// writeMutex, and with the view lines up to date.
+func (v *View) viewLineOf(pos contentPos) (int, bool) {
+	first, last, ok := v.segmentSpanOf(pos)
+	if !ok {
+		return 0, false
+	}
+	return min(first+pos.segment, last), true
+}
+
+// viewLineOfRangeEnd returns the view line for one end of a range selection: the
+// outermost segment of its line, so that the range covers that line whole. other
+// is the range's other end, which says which way is outward. Both ends have to be
+// positions whose lines are drawn, which viewLineOf answers.
+func (v *View) viewLineOfRangeEnd(pos contentPos, other contentPos) int {
+	first, last, _ := v.segmentSpanOf(pos)
+	if pos.line <= other.line {
+		return first
+	}
+	return last
+}
+
+// segmentSpanOf returns the first and last view line drawing the given position's
+// line of the content. ok is false when the position was never taken, or its line
+// isn't drawn at all.
+func (v *View) segmentSpanOf(pos contentPos) (int, int, bool) {
+	if !pos.ok {
+		return 0, 0, false
+	}
+	return v.viewLineSpanOfBufferLine(pos.line)
+}
+
+// viewLineSpanOfBufferLine returns the first and last view line drawing the given
+// buffer line — the segments it is wrapped into, which are the same view line when
+// it doesn't wrap. ok is false when the line isn't drawn at all. Only call this
+// with a lock on writeMutex, and with the view lines up to date.
+func (v *View) viewLineSpanOfBufferLine(bufferLine int) (int, int, bool) {
+	first, last := -1, -1
+	for i, vline := range v.viewLines {
+		if vline.linesY == bufferLine {
+			if first == -1 {
+				first = i
+			}
+			last = i
+		} else if first != -1 {
+			break
+		}
+	}
+	return first, last, first != -1
 }
 
 type searcher struct {
@@ -454,6 +585,13 @@ func (v *View) CancelRangeSelect() {
 	v.rangeSelectStartY = -1
 }
 
+// HasRangeSelect reports whether a range selection is anchored, as opposed to the
+// view showing a plain cursor. A range whose ends are on the same view line is still
+// one, which SelectedLineRange alone can't tell you.
+func (v *View) HasRangeSelect() bool {
+	return v.rangeSelectStartY != -1
+}
+
 func calculateNewOrigin(selectedLine int, oldOrigin int, lineCount int, viewHeight int) int {
 	if viewHeight >= lineCount {
 		return 0
@@ -539,6 +677,9 @@ type cell struct {
 	width            int    // number of terminal cells occupied by chr (always 1 or 2)
 	bgColor, fgColor Attribute
 	hyperlink        string
+	// the OSC 1717 payload in effect when the cell was written, i.e. what the
+	// diff renderer said about the diff line this cell is part of
+	metadata string
 }
 
 type cells []cell
@@ -650,6 +791,38 @@ func (v *View) Name() string {
 	return v.name
 }
 
+// SetInclusionGutter shows or hides a column reserved at the left of every line, in
+// which marks — indexed by line of the content — say which lines get
+// InclusionGutterMarker drawn, on every segment of a line the view wrapped. The
+// content is drawn shifted past it.
+//
+// It is drawn over the content rather than written into it, so the content itself —
+// and with it what each line of the view means, where a click lands, and how the
+// lines wrap — is untouched but for the width the gutter takes.
+func (v *View) SetInclusionGutter(show bool, marks []bool) {
+	v.writeMutex.Lock()
+	changed := v.showInclusionGutter != show
+	v.showInclusionGutter = show
+	v.inclusionGutterMarks = marks
+	v.writeMutex.Unlock()
+
+	if changed {
+		// The gutter takes its columns from the content, so what is left of it wraps
+		// differently, and everything pointing into it has to come along.
+		v.RewrapContent()
+	}
+}
+
+// inclusionGutterWidth is how many columns the inclusion gutter takes while it is
+// shown — the marker plus a column of space before the content — and 0 while it is
+// not. Only call this with a lock on writeMutex.
+func (v *View) inclusionGutterWidth() int {
+	if !v.showInclusionGutter {
+		return 0
+	}
+	return uniseg.StringWidth(v.InclusionGutterMarker) + 1
+}
+
 // setCharacter sets a character (grapheme cluster) at the given point relative to the view. It applies
 // the specified colors, taking into account if the cell must be highlighted. Also, it checks if the
 // position is valid.
@@ -672,7 +845,8 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute, isW
 			rangeSelectEnd = max(relativeRangeSelectStart, v.cy)
 		}
 
-		if y >= rangeSelectStart && y <= rangeSelectEnd {
+		colorWidth := v.SelectedLineColorWidth
+		if y >= rangeSelectStart && y <= rangeSelectEnd && (colorWidth == 0 || x < colorWidth) {
 			// this ensures we use the bright variant of a colour upon highlight
 			fgColorComponent := fgColor & ^AttrAll
 			if fgColorComponent >= AttrIsValidColor && fgColorComponent < AttrIsValidColor+8 {
@@ -913,6 +1087,19 @@ func (b *viewBuffer) write(v *View, p []byte) {
 
 	finishLine := func() {
 		b.autoRenderHyperlinksInCurrentLine(v)
+		// A record that reached the line's end without covering a cell still
+		// belongs to the line: an orphan (see escapeInterpreter.orphanedMetadata),
+		// or the record of a changed line that is empty, which a renderer emits
+		// with nothing but the newline after it. Give each a cell of its own, so
+		// that the line is still recognizable as the diff line it renders rather
+		// than as nothing at all.
+		for _, payload := range b.ei.takeOrphanedMetadata() {
+			b.writeCells([]cell{{metadata: payload}})
+		}
+		if b.ei.metadata.Len() > 0 && !b.ei.metadataConsumed {
+			b.writeCells([]cell{{metadata: b.ei.metadata.String()}})
+			b.ei.metadataConsumed = true
+		}
 	}
 
 	advanceToNextLine := func() {
@@ -921,6 +1108,10 @@ func (b *viewBuffer) write(v *View, p []byte) {
 		if b.wy >= len(b.lines) {
 			b.lines = append(b.lines, lineType{})
 		}
+		// An OSC 1717 record describes the line it precedes and is never
+		// closed, so it stops applying at the line's end; a renderer emits a
+		// fresh one for each line it has something to say about.
+		b.ei.metadata.Reset()
 	}
 
 	if b.pendingNewline {
@@ -1065,6 +1256,15 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 	truncateLine := false
 
 	isEscape, err := b.ei.parseOne(ch)
+
+	// A record that the next one superseded before any cell took it still
+	// belongs to this line (see escapeInterpreter.orphanedMetadata); give each
+	// a cell of its own, in the order they were emitted, ahead of whatever this
+	// character produces.
+	for _, payload := range b.ei.takeOrphanedMetadata() {
+		cells = append(cells, cell{metadata: payload})
+	}
+
 	if err != nil {
 		for _, chr := range b.ei.characters() {
 			c := cell{
@@ -1091,7 +1291,7 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 				fg: b.ei.curFgColor,
 				bg: b.ei.curBgColor,
 			}
-			return truncateLine, []cell{}
+			return truncateLine, cells
 		} else if cf, ok := b.ei.instruction.(cursorForward); ok {
 			// emit `n` space cells under the parser-tracked SGR — used
 			// to materialize ConPTY's compressed runs of spaces (which
@@ -1101,8 +1301,12 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			ch = []byte{' '}
 			width = 1
 		} else if isEscape {
-			// do not output anything
-			return truncateLine, nil
+			// the escape itself outputs nothing, but any cells carrying an
+			// orphaned record still need writing
+			if len(cells) == 0 {
+				return truncateLine, nil
+			}
+			return truncateLine, cells
 		} else if characterEquals(ch, '\t') {
 			// fill tab-sized space
 			tabWidth := v.TabWidth
@@ -1117,8 +1321,12 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			fgColor:   b.ei.curFgColor,
 			bgColor:   b.ei.curBgColor,
 			hyperlink: b.ei.hyperlink.String(),
+			metadata:  b.ei.metadata.String(),
 			chr:       string(ch),
 			width:     width,
+		}
+		if c.metadata != "" {
+			b.ei.metadataConsumed = true
 		}
 		for range repeatCount {
 			cells = append(cells, c)
@@ -1204,9 +1412,9 @@ func (v *View) CopyContent(from *View) {
 
 	// A background task may be streaming output into the source view's buffer
 	// via Write, so read it under its own lock. The source is always a
-	// different view than the destination (see the sole caller,
-	// moveMainContextToTop), and no other code holds two view write locks at
-	// once, so this can't deadlock.
+	// different view than the destination — its callers hand content from one
+	// view to another — and no other code holds two view write locks at once, so
+	// this can't deadlock.
 	from.writeMutex.Lock()
 	defer from.writeMutex.Unlock()
 
@@ -1476,6 +1684,8 @@ func (v *View) draw(isWindowFocused bool) {
 
 	emptyCell := cell{chr: " ", width: 1, fgColor: ColorDefault, bgColor: ColorDefault}
 
+	gutterWidth := v.inclusionGutterWidth()
+
 	for y, vline := range v.viewLines[start:] {
 		if y >= maxY {
 			break
@@ -1490,10 +1700,20 @@ func (v *View) draw(isWindowFocused bool) {
 			trailingCell.bgColor = attrs.bg
 		}
 
+		// The inclusion gutter is blank but for the marker on a marked line, and the
+		// content begins after it. The blanks go through setCharacter like everything
+		// else, so that a selection reaching the left edge covers the gutter too.
+		for gx := range gutterWidth {
+			v.setCharacter(gx, y, " ", v.FgColor, v.BgColor, isWindowFocused)
+		}
+		if gutterWidth > 0 && vline.linesY < len(v.inclusionGutterMarks) && v.inclusionGutterMarks[vline.linesY] {
+			v.setCharacter(0, y, v.InclusionGutterMarker, v.InclusionGutterMarkerColor, v.BgColor, isWindowFocused)
+		}
+
 		// x tracks the current x position in the view, and cellIdx tracks the
 		// index of the cell. If we print a double-sized rune, we increment cellIdx
 		// by one but x by two.
-		x := -v.ox
+		x := gutterWidth - v.ox
 		cellIdx := 0
 
 		var c cell
@@ -1507,7 +1727,7 @@ func (v *View) draw(isWindowFocused bool) {
 
 				// no more characters to write so we're only going to be printing empty cells
 				// past this point
-				x = 0
+				x = gutterWidth
 			}
 
 			// if we're out of cells to write, we'll just print empty cells.
@@ -1542,10 +1762,11 @@ func (v *View) refreshViewLinesIfNeeded() {
 		return
 	}
 
-	maxX := v.InnerWidth()
 	wrap := 0
 	if v.Wrap {
-		wrap = maxX
+		// The inclusion gutter, while it is shown, takes its columns out of the width
+		// the content has to wrap in.
+		wrap = max(0, v.InnerWidth()-v.inclusionGutterWidth())
 	}
 
 	lineIdx := 0
@@ -1685,6 +1906,152 @@ func (v *View) BufferLines() []string {
 		lines[i] = l.cells.String()
 	}
 	return lines
+}
+
+// MarkedLines returns the lines of the view's content that the inclusion gutter is
+// marking (see SetInclusionGutter), in the order they appear. Empty while the gutter
+// is hidden.
+func (v *View) MarkedLines() []string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if !v.showInclusionGutter {
+		return nil
+	}
+
+	lines := []string{}
+	for i, line := range v.buf.lines {
+		if i < len(v.inclusionGutterMarks) && v.inclusionGutterMarks[i] {
+			lines = append(lines, line.cells.String())
+		}
+	}
+	return lines
+}
+
+// DiffLineContent is what one line of a rendered diff offers to a reader trying
+// to recover which line of which file it came from: the line's text, which can
+// be parsed as a unified diff when the rendering preserves one, and the OSC 1717
+// records a diff renderer attached to it, which state it outright.
+type DiffLineContent struct {
+	Text string
+	// The distinct OSC 1717 payloads carried by the line's cells, in
+	// left-to-right order. A single-column rendering tags every cell of a line
+	// with the same payload, so there is one; a side-by-side rendering tags
+	// each side separately, so a line showing a deletion beside the addition
+	// that replaces it carries both.
+	Metadata []string
+}
+
+// DiffLineContents returns the per-line material a diff-line reader works from
+// (see DiffLineContent), indexed by unwrapped buffer line. Text and records are
+// snapshotted in a single locked pass, so they stay consistent with each other
+// and with the buffer they came from even while a re-render rebuilds it.
+func (v *View) DiffLineContents() []DiffLineContent {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	return diffLineContentsFrom(v.buf, 0)
+}
+
+// OffscreenDiffLineContents is DiffLineContents for the content of a re-render in
+// progress (see BeginOffscreenRender), which is what a reader that wants to say
+// where the new content should be shown has to work from: it has to answer before
+// the swap, since after it the content is already on screen. Returns nil when no
+// re-render is underway.
+func (v *View) OffscreenDiffLineContents() []DiffLineContent {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.offscreen == nil {
+		return nil
+	}
+	return diffLineContentsFrom(v.offscreen, 0)
+}
+
+// OffscreenDiffLineContentsFrom is OffscreenDiffLineContents restricted to the lines
+// from index `from` on (so result[0] is buffer line `from`). It lets a reader that
+// follows a re-render as it loads look at each line once, rather than snapshotting
+// the whole buffer again on every line — the difference between an O(n) and an O(n²)
+// scan of a large diff. Returns nil when no re-render is underway, or when `from` is
+// past the lines read so far.
+func (v *View) OffscreenDiffLineContentsFrom(from int) []DiffLineContent {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.offscreen == nil || from < 0 || from >= len(v.offscreen.lines) {
+		return nil
+	}
+	return diffLineContentsFrom(v.offscreen, from)
+}
+
+// OffscreenLineCount returns the number of unwrapped lines a re-render in progress
+// has read so far, or 0 when none is underway. It tells a reader waiting for a
+// particular line, cheaply, when a screenful below it has arrived too — so that the
+// swap shows that line with content under it rather than at the bottom edge of a
+// half-filled view.
+func (v *View) OffscreenLineCount() int {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.offscreen == nil {
+		return 0
+	}
+	return len(v.offscreen.lines)
+}
+
+func diffLineContentsFrom(buf *viewBuffer, from int) []DiffLineContent {
+	lines := buf.lines[from:]
+	contents := make([]DiffLineContent, len(lines))
+	for i, line := range lines {
+		var metadata []string
+		for _, c := range line.cells {
+			if c.metadata != "" && !slices.Contains(metadata, c.metadata) {
+				metadata = append(metadata, c.metadata)
+			}
+		}
+		contents[i] = DiffLineContent{Text: line.cells.String(), Metadata: metadata}
+	}
+	return contents
+}
+
+// BufferLineForViewLine maps a view line index (which counts wrapped lines) to
+// the index of the corresponding line in the unwrapped internal buffer (as
+// returned by BufferLines). Several view lines map to the same buffer line when
+// that line wraps. Returns false if the view line is out of range.
+func (v *View) BufferLineForViewLine(y int) (int, bool) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	return v.bufferLineForViewLine(y)
+}
+
+// ViewLineForBufferLine maps an unwrapped buffer line index to the index of the
+// first view line that renders it — the inverse of BufferLineForViewLine, for
+// turning a line found by examining the buffer into a line to scroll to or
+// select. Returns false if the buffer line isn't rendered into any view line.
+func (v *View) ViewLineForBufferLine(bufferLineIdx int) (int, bool) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+
+	first, _, ok := v.viewLineSpanOfBufferLine(bufferLineIdx)
+	return first, ok
+}
+
+// LastViewLineForBufferLine maps an unwrapped buffer line index to the index of
+// the last view line that renders it, which for a line that doesn't wrap is the
+// same as the first. It is where the far end of a range goes: a range is over
+// buffer lines, so it has to cover the last one of them to its final segment
+// rather than stopping where that line begins.
+func (v *View) LastViewLineForBufferLine(bufferLineIdx int) (int, bool) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+
+	_, last, ok := v.viewLineSpanOfBufferLine(bufferLineIdx)
+	return last, ok
 }
 
 // Buffer returns a string with the contents of the view's internal
@@ -1913,16 +2280,31 @@ func (v *View) SelectedLineIdx() int {
 	return seletedLineIdx
 }
 
+// IsLineVisible reports whether the given view line is one of those on screen.
+func (v *View) IsLineVisible(viewLine int) bool {
+	return viewLine >= v.OriginY() && viewLine < v.OriginY()+v.InnerHeight()
+}
+
+// MiddleVisibleLineIdx returns the view line halfway down the visible content. It
+// stands in for a cursor in a view that has none: of the lines on screen, the one in
+// the middle is the likeliest to be the one being read.
+func (v *View) MiddleVisibleLineIdx() int {
+	top := v.OriginY()
+	bottom := min(top+v.InnerHeight(), v.ViewLinesHeight())
+	return (top + bottom) / 2
+}
+
 // expected to only be used in tests
 func (v *View) SelectedLine() string {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	if len(v.buf.lines) == 0 {
+	idx, ok := v.bufferLineForViewLine(v.SelectedLineIdx())
+	if !ok {
 		return ""
 	}
 
-	return v.lineContentAtIdx(v.SelectedLineIdx())
+	return v.lineContentAtIdx(idx)
 }
 
 // expected to only be used in tests
@@ -1937,8 +2319,17 @@ func (v *View) SelectedLines() []string {
 	startIdx, endIdx := v.SelectedLineRange()
 
 	lines := make([]string, 0, endIdx-startIdx+1)
+	previous := -1
 	for i := startIdx; i <= endIdx; i++ {
-		lines = append(lines, v.lineContentAtIdx(i))
+		// The selection is in view lines, which count the segments a wrapped line
+		// is drawn as; a line the selection covers several segments of is still
+		// the one line it is.
+		idx, ok := v.bufferLineForViewLine(i)
+		if !ok || idx == previous {
+			continue
+		}
+		previous = idx
+		lines = append(lines, v.lineContentAtIdx(idx))
 	}
 
 	return lines
@@ -1946,6 +2337,19 @@ func (v *View) SelectedLines() []string {
 
 func (v *View) lineContentAtIdx(idx int) string {
 	return v.buf.lines[idx].cells.String()
+}
+
+// bufferLineForViewLine maps a view line index, which counts the wrapped
+// segments of the lines it draws, to the index of the line of content it is a
+// segment of. Only call this with a lock on writeMutex.
+func (v *View) bufferLineForViewLine(y int) (int, bool) {
+	v.refreshViewLinesIfNeeded()
+
+	if y < 0 || y >= len(v.viewLines) {
+		return 0, false
+	}
+
+	return v.viewLines[y].linesY, true
 }
 
 func (v *View) SelectedPoint() (int, int) {

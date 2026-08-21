@@ -15,11 +15,15 @@ import (
 
 type DiffHelper struct {
 	c *HelperCommon
+	// diffLineHelper says how a diff for the main view is to be produced, which depends
+	// on whether the focused main view could act on what a diff renderer would make of it.
+	diffLineHelper *DiffLineHelper
 }
 
-func NewDiffHelper(c *HelperCommon) *DiffHelper {
+func NewDiffHelper(c *HelperCommon, diffLineHelper *DiffLineHelper) *DiffHelper {
 	return &DiffHelper{
-		c: c,
+		c:              c,
+		diffLineHelper: diffLineHelper,
 	}
 }
 
@@ -53,6 +57,8 @@ func (self *DiffHelper) DiffArgs() []string {
 // either there's no range, or it can't be diffed for some reason), then we want
 // to fall back to rendering the diff for the single commit.
 func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Commit, refRange *types.RefRange) types.UpdateTask {
+	mode := self.diffLineHelper.MainViewDiffMode()
+
 	if refRange != nil {
 		from, to := refRange.From, refRange.To
 		args := []string{from.ParentRefName(), to.RefName(), "--stat", "-p"}
@@ -72,13 +78,26 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 				args = append(args, filterPath)
 			}
 		}
-		cmdObj := self.c.Git().Diff.DiffCmdObj(args)
+		cmdObj := self.c.Git().Diff.DiffCmdObj(args, mode)
 		prefix := style.FgYellow.Sprintf("%s %s-%s\n\n", self.c.Tr.ShowingDiffForRange, from.ShortRefName(), to.ShortRefName())
-		return types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix)
+		return types.NewMainViewDiffTaskWithPrefix(cmdObj.GetCmd(), prefix, mode)
 	}
 
-	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit))
-	return types.NewRunPtyTask(cmdObj.GetCmd())
+	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit), mode)
+	return types.NewMainViewDiffTask(cmdObj.GetCmd(), mode)
+}
+
+// PlainDiffBetweenRefs returns the diff of the given files between two refs as git
+// writes it, without colour or a diff renderer's involvement — what a panel showing
+// a commit's diff hands out as the diff behind its rendering (see
+// types.FocusedMainViewDiffSource). It honours diffing mode, so that the diff is of
+// the same two ends the main view is showing.
+func (self *DiffHelper) PlainDiffBetweenRefs(from string, to string, paths []string) string {
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
+	// An error means there is no diff to be had, which for our purposes is the same
+	// as an empty one.
+	diff, _ := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, git_commands.DiffModePlain).RunWithOutput()
+	return diff
 }
 
 func (self *DiffHelper) FilterPathsForCommit(commit *models.Commit) []string {
@@ -100,7 +119,7 @@ func (self *DiffHelper) ExitDiffMode() error {
 
 func (self *DiffHelper) RenderDiff() {
 	args := self.DiffArgs()
-	cmdObj := self.c.Git().Diff.DiffCmdObj(args)
+	cmdObj := self.c.Git().Diff.DiffCmdObj(args, git_commands.DiffModeRendered)
 	prefix := style.FgMagenta.Sprintf(
 		"%s %s\n\n",
 		self.c.Tr.ShowingGitDiff,
@@ -192,7 +211,7 @@ func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {
 // AdjustLineNumber is used to adjust a line number in the diff that's currently
 // being viewed, so that it corresponds to the line number in the actual working
 // copy state of the file. It is used when clicking on a delta hyperlink in a
-// diff, or when pressing `e` in the staging or patch building panels. It works
+// diff, or when pressing `e` in a focused diff. It works
 // by getting a diff of what's being viewed in the main view against the working
 // copy, and then using that diff to adjust the line number.
 // path is the file path of the file being viewed
@@ -203,7 +222,7 @@ func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {
 func (self *DiffHelper) AdjustLineNumber(path string, linenumber int, viewname string) int {
 	switch viewname {
 
-	case "main", "patchBuilding":
+	case "main":
 		if diffableContext, ok := self.c.Context().CurrentSide().(types.DiffableContext); ok {
 			ref := diffableContext.RefForAdjustingLineNumberInDiff()
 			if len(ref) != 0 {
@@ -214,7 +233,7 @@ func (self *DiffHelper) AdjustLineNumber(path string, linenumber int, viewname s
 		// unstaged changes view of the Files panel; no need to adjust line
 		// numbers in this case
 
-	case "secondary", "stagingSecondary":
+	case "secondary":
 		return self.adjustLineNumber(linenumber, "--", path)
 	}
 

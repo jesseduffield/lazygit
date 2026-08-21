@@ -50,7 +50,6 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 			types.REFLOG,
 			types.WORKTREES,
 			types.BISECT_INFO,
-			types.STAGING,
 		}
 		if options.RefreshPullRequests {
 			scope = append(scope, types.PULL_REQUESTS)

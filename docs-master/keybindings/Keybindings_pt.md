@@ -148,7 +148,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` <space> `` | Alternar entre o arquivo incluído no patch | Alternar se o arquivo está incluído no patch personalizado. Veja https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Alternar todos os arquivos | Adicionar/remover todos os arquivos de commit para atualização personalizada. Consulte https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
-| `` <enter> `` | Insira o arquivo / Alternar diretório recolhido | Se um arquivo estiver selecionado, insira o arquivo para que você possa adicionar/remover linhas individuais no patch personalizado. Se um diretório for selecionado, ative o diretório. |
+| `` <enter> `` | Focus file diff / Toggle directory | If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it. |
 | `` ` `` | Alternar exibição de árvore de arquivo | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
@@ -234,26 +234,18 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <mouse wheel down> (fn+up) `` | Rolar para baixo |  |
 | `` <mouse wheel up> (fn+down) `` | Rolar para cima |  |
-| `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
-| `` <esc> `` | Exit back to side panel |  |
-| `` / `` | Pesquisar na visualização atual por texto |  |
-
-## Painel Principal (preparação)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | Ir para o local anterior |  |
-| `` <right>, l `` | Ir para o próximo trecho |  |
-| `` v `` | Toggle range select |  |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
 | `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
-| `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
+| `` v `` | Toggle range select |  |
+| `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
 | `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
 | `` d `` | Descartar | Quando a mudança não desejada for selecionada, descarte a mudança usando `git reset`. Quando a mudança em fase é selecionada, despare a mudança. |
-| `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
-| `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
-| `` <esc> `` | Retornar ao painel de arquivos |  |
-| `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
-| `` E `` | Editar hunk | Editar o local selecionado no editor externo. |
+| `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
+| `` <left>, h `` | Ir para o local anterior |  |
+| `` <right>, l `` | Ir para o próximo trecho |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
+| `` <esc> `` | Exit back to side panel |  |
 | `` c `` | Commit | Submeter mudanças em staging |
 | `` w `` | Fazer commit de alterações sem pré-commit |  |
 | `` C `` | Enviar alteração usando um editor Git |  |
@@ -283,22 +275,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
 | `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` <esc> `` | Retornar ao painel de arquivos |  |
-
-## Painel principal (patch build)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | Ir para o local anterior |  |
-| `` <right>, l `` | Ir para o próximo trecho |  |
-| `` v `` | Toggle range select |  |
-| `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
-| `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
-| `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
-| `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
-| `` <space> `` | Alternar linhas no caminho |  |
-| `` d `` | Remover linhas do commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | Sair do construtor de patch personalizado |  |
-| `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Reflog
 
@@ -336,8 +312,22 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
+| `` v `` | Toggle range select |  |
+| `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
+| `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
+| `` d `` | Descartar | Quando a mudança não desejada for selecionada, descarte a mudança usando `git reset`. Quando a mudança em fase é selecionada, despare a mudança. |
+| `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
+| `` <left>, h `` | Ir para o local anterior |  |
+| `` <right>, l `` | Ir para o próximo trecho |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | Commit | Submeter mudanças em staging |
+| `` w `` | Fazer commit de alterações sem pré-commit |  |
+| `` C `` | Enviar alteração usando um editor Git |  |
+| `` <ctrl+f> `` | Encontrar commit da base para corrigir | Encontre o commit em que as suas mudanças atuais estão se baseando, para alterar/consertar o commit. Isso poupa-te você de ter que olhar pelos commits da sua branch um por um para ver qual commit deve ser alterado/consertado<br>Veja a documentação:<br><https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Stash

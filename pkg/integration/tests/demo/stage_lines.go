@@ -56,9 +56,9 @@ var StageLines = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			IsFocused().
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
-		t.Views().Staging().
+		t.Views().Main().
 			IsFocused().
 			Press(keys.Universal.ToggleRangeSelect).
 			PressFast(keys.Universal.NextItem).

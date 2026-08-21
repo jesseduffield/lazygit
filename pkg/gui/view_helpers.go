@@ -140,6 +140,10 @@ func (gui *Gui) postRefreshUpdate(c types.Context, keepScrollPosition bool) {
 
 	c.HandleRender()
 
+	// The render may have given the context its first item, or taken its last one
+	// away, which decides whether its view draws a selection at all.
+	gui.State.ContextMgr.UpdateSelectionHighlights()
+
 	if gui.currentViewName() == c.GetViewName() {
 		c.HandleFocus(types.OnFocusOpts{KeepScrollPosition: keepScrollPosition})
 	} else {

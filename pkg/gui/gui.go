@@ -101,6 +101,10 @@ type Gui struct {
 	// this tells us whether our views have been initially set up
 	ViewsSetup bool
 
+	// the label for the key that focuses the main view, worn by whichever of the two
+	// main panes that key focuses (see showFocusMainViewJumpLabelOn)
+	focusMainViewJumpLabel string
+
 	Views types.Views
 
 	// Log of the commands/actions logged in the Command Log panel.
@@ -231,7 +235,7 @@ type GuiRepoState struct {
 	Model *types.Model
 	Modes *types.Modes
 
-	SplitMainPanel bool
+	MainPanes types.MainPanes
 
 	SearchState *types.SearchState
 	// Lets us not load everything at once. Written and read from refresh
@@ -321,12 +325,12 @@ func (self *GuiRepoState) GetSearchState() *types.SearchState {
 	return self.SearchState
 }
 
-func (self *GuiRepoState) SetSplitMainPanel(value bool) {
-	self.SplitMainPanel = value
+func (self *GuiRepoState) SetMainPanes(value types.MainPanes) {
+	self.MainPanes = value
 }
 
-func (self *GuiRepoState) GetSplitMainPanel() bool {
-	return self.SplitMainPanel
+func (self *GuiRepoState) GetMainPanes() types.MainPanes {
+	return self.MainPanes
 }
 
 func (gui *Gui) onSwitchToNewRepo(startArgs appTypes.StartArgs, contextKey types.ContextKey) error {
@@ -602,13 +606,6 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 	// previous repo drops its model update instead of applying it here (see
 	// RefreshHelper.onUIThreadUnlessRepoChanged).
 	gui.repoGeneration.Add(1)
-
-	// Un-highlight the current view if there is one. The reason we do this is
-	// that the repo we are switching to might have a different view focused,
-	// and would then show an inactive highlight for the previous view.
-	if oldCurrentView := gui.g.CurrentView(); oldCurrentView != nil {
-		oldCurrentView.Highlight = false
-	}
 
 	worktreePath := gui.git.RepoPaths.WorktreePath()
 

@@ -98,8 +98,22 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | Przełącz zaznaczenie zakresu |  |
+| `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
+| `` <space> `` | Zatwierdź | Przełącz zaznaczenie zatwierdzone/niezatwierdzone. |
+| `` d `` | Odrzuć | Gdy zaznaczona jest niezatwierdzona zmiana, odrzuć ją używając `git reset`. Gdy zaznaczona jest zatwierdzona zmiana, cofnij zatwierdzenie. |
+| `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |
+| `` <left>, h `` | Idź do poprzedniego fragmentu |  |
+| `` <right>, l `` | Idź do następnego fragmentu |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | Commit | Zatwierdź zmiany zatwierdzone. |
+| `` w `` | Zatwierdź zmiany bez hooka pre-commit |  |
+| `` C `` | Zatwierdź zmiany używając edytora git |  |
+| `` <ctrl+f> `` | Znajdź bazowy commit do poprawki | Znajdź commit, na którym opierają się Twoje obecne zmiany, w celu poprawienia/zmiany commita. To pozwala Ci uniknąć przeglądania commitów w Twojej gałęzi jeden po drugim, aby zobaczyć, który commit powinien być poprawiony/zmieniony. Zobacz dokumentację: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Drzewa pracy
@@ -131,22 +145,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Pokaż commity |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
-
-## Główny panel (budowanie łatki)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | Idź do poprzedniego fragmentu |  |
-| `` <right>, l `` | Idź do następnego fragmentu |  |
-| `` v `` | Przełącz zaznaczenie zakresu |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |
-| `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
-| `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
-| `` <space> `` | Przełącz linie w łatce |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | Wyjdź z budowniczego niestandardowej łatki |  |
-| `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Input prompt
 
@@ -200,8 +198,22 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <mouse wheel down> (fn+up) `` | Przewiń w dół |  |
 | `` <mouse wheel up> (fn+down) `` | Przewiń w górę |  |
-| `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | Przełącz zaznaczenie zakresu |  |
+| `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
+| `` <space> `` | Zatwierdź | Przełącz zaznaczenie zatwierdzone/niezatwierdzone. |
+| `` d `` | Odrzuć | Gdy zaznaczona jest niezatwierdzona zmiana, odrzuć ją używając `git reset`. Gdy zaznaczona jest zatwierdzona zmiana, cofnij zatwierdzenie. |
+| `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |
+| `` <left>, h `` | Idź do poprzedniego fragmentu |  |
+| `` <right>, l `` | Idź do następnego fragmentu |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | Commit | Zatwierdź zmiany zatwierdzone. |
+| `` w `` | Zatwierdź zmiany bez hooka pre-commit |  |
+| `` C `` | Zatwierdź zmiany używając edytora git |  |
+| `` <ctrl+f> `` | Znajdź bazowy commit do poprawki | Znajdź commit, na którym opierają się Twoje obecne zmiany, w celu poprawienia/zmiany commita. To pozwala Ci uniknąć przeglądania commitów w Twojej gałęzi jeden po drugim, aby zobaczyć, który commit powinien być poprawiony/zmieniony. Zobacz dokumentację: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Panel główny (scalanie)
@@ -219,28 +231,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
 | `` M `` | View merge conflict options | View options for resolving merge conflicts. |
 | `` <esc> `` | Wróć do panelu plików |  |
-
-## Panel główny (zatwierdzanie)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | Idź do poprzedniego fragmentu |  |
-| `` <right>, l `` | Idź do następnego fragmentu |  |
-| `` v `` | Przełącz zaznaczenie zakresu |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |
-| `` <space> `` | Zatwierdź | Przełącz zaznaczenie zatwierdzone/niezatwierdzone. |
-| `` d `` | Odrzuć | Gdy zaznaczona jest niezatwierdzona zmiana, odrzuć ją używając `git reset`. Gdy zaznaczona jest zatwierdzona zmiana, cofnij zatwierdzenie. |
-| `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
-| `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
-| `` <esc> `` | Wróć do panelu plików |  |
-| `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
-| `` E `` | Edytuj fragment | Edytuj wybrany fragment w zewnętrznym edytorze. |
-| `` c `` | Commit | Zatwierdź zmiany zatwierdzone. |
-| `` w `` | Zatwierdź zmiany bez hooka pre-commit |  |
-| `` C `` | Zatwierdź zmiany używając edytora git |  |
-| `` <ctrl+f> `` | Znajdź bazowy commit do poprawki | Znajdź commit, na którym opierają się Twoje obecne zmiany, w celu poprawienia/zmiany commita. To pozwala Ci uniknąć przeglądania commitów w Twojej gałęzi jeden po drugim, aby zobaczyć, który commit powinien być poprawiony/zmieniony. Zobacz dokumentację: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
-| `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Panel potwierdzenia
 
@@ -296,7 +286,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
 | `` <space> `` | Przełącz plik włączony w łatkę | Przełącz, czy plik jest włączony w niestandardową łatkę. Zobacz https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
 | `` a `` | Przełącz wszystkie pliki | Dodaj/usuń wszystkie pliki commita do niestandardowej łatki. Zobacz https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches. |
-| `` <enter> `` | Wejdź do pliku / Przełącz zwiń katalog | Jeśli plik jest wybrany, wejdź do pliku, aby móc dodawać/usuwać poszczególne linie do niestandardowej łatki. Jeśli wybrany jest katalog, przełącz katalog. |
+| `` <enter> `` | Focus file diff / Toggle directory | If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it. |
 | `` ` `` | Przełącz widok drzewa plików | Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.<br><br>The default can be changed in the config file with the key 'gui.showFileTree'. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Expand all files | Expand all directories in the file tree |

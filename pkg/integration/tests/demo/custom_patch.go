@@ -22,7 +22,7 @@ var CustomPatch = NewIntegrationTest(NewIntegrationTestArgs{
 	IsDemo:       true,
 	SetupConfig: func(cfg *config.AppConfig) {
 		setDefaultDemoConfig(cfg)
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateNCommitsWithRandomMessages(30)
@@ -52,9 +52,9 @@ var CustomPatch = NewIntegrationTest(NewIntegrationTestArgs{
 					IsFocused().
 					NavigateToLine(Contains("users.go")).
 					Wait(1000).
-					PressEnter().
+					Press(keys.Universal.FocusMainView).
 					Tap(func() {
-						t.Views().PatchBuilding().
+						t.Views().Main().
 							IsFocused().
 							NavigateToLine(Contains("TODO")).
 							Wait(500).

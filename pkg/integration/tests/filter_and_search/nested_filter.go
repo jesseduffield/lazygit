@@ -71,19 +71,7 @@ var NestedFilter = NewIntegrationTest(NewIntegrationTestArgs{
 			FilterOrSearch("grape").
 			Lines(
 				Equals("A grape").IsSelected(),
-			).
-			PressEnter()
-
-		t.Views().PatchBuilding().
-			IsFocused().
-			FilterOrSearch("newline").
-			SelectedLine(Contains("No newline at end of file")).
-			PressEscape(). // cancel search
-			Tap(func() {
-				t.Views().Search().IsInvisible()
-			}).
-			// escape to commit-files view
-			PressEscape()
+			)
 
 		t.Views().CommitFiles().
 			IsFocused().

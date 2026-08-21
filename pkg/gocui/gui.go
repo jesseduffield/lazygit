@@ -419,7 +419,7 @@ func (g *Gui) SetView(name string, x0, y0, x1, y1 int, overlaps byte) (*View, er
 		v.y1 = y1
 
 		if sizeChanged {
-			v.ClearViewLines()
+			v.RewrapContent()
 
 			if v.Editable {
 				cursorX, cursorY := v.TextArea.GetCursorXY()
@@ -1538,7 +1538,7 @@ func (g *Gui) flush() error {
 	// if GUI's size has changed, we need to redraw all views
 	if maxX != g.maxX || maxY != g.maxY {
 		for _, v := range g.views {
-			v.ClearViewLines()
+			v.RewrapContent()
 		}
 	}
 	g.maxX, g.maxY = maxX, maxY

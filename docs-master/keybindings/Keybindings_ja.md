@@ -114,7 +114,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` <space> `` | パッチに含めるファイルを切り替え | ファイルがカスタムパッチに含まれるかどうかを切り替えます。https://github.com/jesseduffield/lazygit#rebase-magic-custom-patchesを参照してください。 |
 | `` a `` | すべてのファイルを切り替え | コミットのすべてのファイルをカスタムパッチに追加/削除します。https://github.com/jesseduffield/lazygit#rebase-magic-custom-patchesを参照してください。 |
-| `` <enter> `` | ファイルに入る / ディレクトリの折りたたみを切り替える | ファイルが選択されている場合、そのファイルに入ってカスタムパッチに個々の行を追加/削除できます。ディレクトリが選択されている場合、ディレクトリを切り替えます。 |
+| `` <enter> `` | Focus file diff / Toggle directory | If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it. |
 | `` ` `` | ファイルツリービューを切り替え | ファイル表示をフラット表示とツリー表示で切り替えます。フラット表示はすべてのファイルパスを一覧で表示し、ツリー表示はディレクトリごとにファイルをグループ化します。<br><br>デフォルトは設定ファイル内の 'gui.showFileTree' キーで変更できます。 |
 | `` - `` | すべてのファイルを折りたたむ | ファイルツリー内のすべてのディレクトリを折りたたみます |
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
@@ -191,8 +191,22 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 範囲選択を切り替え |  |
+| `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
+| `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
+| `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
+| `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
+| `` <left>, h `` | 前のハンクに移動 |  |
+| `` <right>, l `` | 次のハンクに移動 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | サイドパネルに戻る |  |
+| `` c `` | コミット | ステージされた変更をコミットします。 |
+| `` w `` | pre-commitフックなしで変更をコミット |  |
+| `` C `` | Gitエディタを使用して変更をコミット |  |
+| `` <ctrl+f> `` | フィックスアップのベースコミットを検索 | 現在の変更が基づいているコミットを見つけて、コミットの修正/フィックスアップを行います。これにより、ブランチのコミットを一つずつ確認して、どのコミットを修正/フィックスアップすべきかを調べる手間が省けます。詳細はドキュメントを参照: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## タグ
@@ -244,44 +258,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` 0 `` | メインビューにフォーカス |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
 
-## メインパネル（ステージング）
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | 前のハンクに移動 |  |
-| `` <right>, l `` | 次のハンクに移動 |  |
-| `` v `` | 範囲選択を切り替え |  |
-| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
-| `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
-| `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
-| `` o `` | ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
-| `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
-| `` <esc> `` | ファイルパネルに戻る |  |
-| `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
-| `` E `` | ハンクを編集 | 選択したハンクを外部エディタで編集します。 |
-| `` c `` | コミット | ステージされた変更をコミットします。 |
-| `` w `` | pre-commitフックなしで変更をコミット |  |
-| `` C `` | Gitエディタを使用して変更をコミット |  |
-| `` <ctrl+f> `` | フィックスアップのベースコミットを検索 | 現在の変更が基づいているコミットを見つけて、コミットの修正/フィックスアップを行います。これにより、ブランチのコミットを一つずつ確認して、どのコミットを修正/フィックスアップすべきかを調べる手間が省けます。詳細はドキュメントを参照: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
-| `` / `` | 現在のビューをテキストで検索 |  |
-
-## メインパネル（パッチ作成）
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | 前のハンクに移動 |  |
-| `` <right>, l `` | 次のハンクに移動 |  |
-| `` v `` | 範囲選択を切り替え |  |
-| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
-| `` o `` | ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
-| `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
-| `` <space> `` | パッチ内の行を切り替え |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | カスタムパッチビルダーを終了 |  |
-| `` / `` | 現在のビューをテキストで検索 |  |
-
 ## メインパネル（マージ中）
 
 | Key | Action | Info |
@@ -304,8 +280,22 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <mouse wheel down> (fn+up) `` | 下にスクロール |  |
 | `` <mouse wheel up> (fn+down) `` | 上にスクロール |  |
-| `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 範囲選択を切り替え |  |
+| `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
+| `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
+| `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
+| `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
+| `` <left>, h `` | 前のハンクに移動 |  |
+| `` <right>, l `` | 次のハンクに移動 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
 | `` <esc> `` | サイドパネルに戻る |  |
+| `` c `` | コミット | ステージされた変更をコミットします。 |
+| `` w `` | pre-commitフックなしで変更をコミット |  |
+| `` C `` | Gitエディタを使用して変更をコミット |  |
+| `` <ctrl+f> `` | フィックスアップのベースコミットを検索 | 現在の変更が基づいているコミットを見つけて、コミットの修正/フィックスアップを行います。これにより、ブランチのコミットを一つずつ確認して、どのコミットを修正/フィックスアップすべきかを調べる手間が省けます。詳細はドキュメントを参照: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## メニュー

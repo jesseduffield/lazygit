@@ -94,7 +94,7 @@ type GuiConfig struct {
 	MouseEvents bool `yaml:"mouseEvents"`
 	// If true, do not show a warning when amending a commit.
 	SkipAmendWarning bool `yaml:"skipAmendWarning"`
-	// If true, do not show a warning when discarding changes in the staging view.
+	// If true, do not show a warning when discarding changes from a focused diff.
 	SkipDiscardChangeWarning bool `yaml:"skipDiscardChangeWarning"`
 	// If true, do not show warning when applying/popping the stash
 	SkipStashWarning bool `yaml:"skipStashWarning"`
@@ -129,10 +129,10 @@ type GuiConfig struct {
 	// - 'left': split the window horizontally (side panel on the left, main view on the right)
 	// - 'top': split the window vertically (side panel on top, main view below)
 	EnlargedSideViewLocation string `yaml:"enlargedSideViewLocation"`
-	// If true, wrap lines in the staging view to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.
-	WrapLinesInStagingView bool `yaml:"wrapLinesInStagingView"`
-	// If true, hunk selection mode will be enabled by default when entering the staging view.
-	UseHunkModeInStagingView bool `yaml:"useHunkModeInStagingView"`
+	// If true, wrap lines in focused diffs to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.
+	WrapLinesInDiffView bool `yaml:"wrapLinesInDiffView"`
+	// If true, hunk selection mode will be enabled by default when focusing a diff.
+	UseHunkModeInDiffView bool `yaml:"useHunkModeInDiffView"`
 	// One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru' | 'pt'
 	Language string `yaml:"language" jsonschema:"enum=auto,enum=en,enum=zh-TW,enum=zh-CN,enum=pl,enum=nl,enum=ja,enum=ko,enum=ru"`
 	// Format used when displaying time e.g. commit time.
@@ -660,6 +660,8 @@ type KeybindingCommitFilesConfig struct {
 type KeybindingMainConfig struct {
 	PrevHunk         Keybinding `yaml:"prevHunk"`
 	NextHunk         Keybinding `yaml:"nextHunk"`
+	PrevFile         Keybinding `yaml:"prevFile"`
+	NextFile         Keybinding `yaml:"nextFile"`
 	ToggleSelectHunk Keybinding `yaml:"toggleSelectHunk"`
 	PickBothHunks    Keybinding `yaml:"pickBothHunks"`
 	EditSelectHunk   Keybinding `yaml:"editSelectHunk"`
@@ -876,8 +878,8 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			},
 			MainPanelSplitMode:       "flexible",
 			EnlargedSideViewLocation: "left",
-			WrapLinesInStagingView:   true,
-			UseHunkModeInStagingView: true,
+			WrapLinesInDiffView:      true,
+			UseHunkModeInDiffView:    true,
 			Language:                 "auto",
 			TimeFormat:               "02 Jan 06",
 			ShortTimeFormat:          time.Kitchen,
@@ -1170,6 +1172,8 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			Main: KeybindingMainConfig{
 				PrevHunk:         Keybinding{"<left>", "h"},
 				NextHunk:         Keybinding{"<right>", "l"},
+				PrevFile:         Keybinding{"N"},
+				NextFile:         Keybinding{"n"},
 				ToggleSelectHunk: Keybinding{"a"},
 				PickBothHunks:    Keybinding{"b"},
 				EditSelectHunk:   Keybinding{"E"},
