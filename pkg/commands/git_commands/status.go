@@ -94,6 +94,11 @@ func (self *StatusCommands) RefsSnapshot() (string, error) {
 	refsArgs := NewGitCmd("for-each-ref").
 		Arg("--format=%(objectname) %(refname)").
 		Arg("refs/heads").
+		// This snapshot is only ever taken by the background
+		// external-change-detection poller; opting out of fsmonitor keeps the
+		// poller from making the daemon churn its cookie files under .git/
+		// every cycle (#5851).
+		Config("core.fsmonitor=false").
 		ToArgv()
 	refs, err := self.cmd.New(refsArgs).DontLog().RunWithOutput()
 	if err != nil {

@@ -223,6 +223,13 @@ func (self *FileLoader) gitStatus(opts GitStatusOptions) ([]FileStatus, error) {
 			"--no-renames",
 			fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold),
 		).
+		// Optional locks and fsmonitor querying are independent mechanisms, so
+		// suppressing the lock (below) doesn't stop a background status from
+		// pinging the fsmonitor daemon. Every ping makes the daemon churn its
+		// cookie files under .git/, which other tools watching the repo for
+		// external changes then misread as real changes (#5851). Only background
+		// refreshes opt out — a foreground refresh wants the freshest state.
+		ConfigIf(opts.Background, "core.fsmonitor=false").
 		ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs).DontLog()

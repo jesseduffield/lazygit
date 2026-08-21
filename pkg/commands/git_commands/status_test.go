@@ -12,7 +12,9 @@ import (
 
 func TestStatusRefsSnapshot(t *testing.T) {
 	const forEachRefOutput = "aaaa refs/heads/main\nbbbb refs/heads/topic\n"
-	forEachRefArgs := []string{"for-each-ref", "--format=%(objectname) %(refname)", "refs/heads"}
+	// The snapshot opts out of fsmonitor: it only ever runs in the background
+	// poller, and fsmonitor pings churn the daemon's cookie files (#5851).
+	forEachRefArgs := []string{"-c", "core.fsmonitor=false", "for-each-ref", "--format=%(objectname) %(refname)", "refs/heads"}
 
 	scenarios := []struct {
 		testName     string
