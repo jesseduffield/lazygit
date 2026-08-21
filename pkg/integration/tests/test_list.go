@@ -526,6 +526,8 @@ var tests = []*components.IntegrationTest{
 	ui.ReloadSidePanels,
 	ui.ReorderSidePanels,
 	ui.SubCommitsScrollPositionIsReset,
+	ui.SuggestionsSelectionFollowsTheFocus,
+	ui.SwitchRepoMovesTheSelection,
 	ui.SwitchTabFromMenu,
 	ui.SwitchTabWithPanelJumpKeys,
 	undo.UndoCheckoutAndDrop,
