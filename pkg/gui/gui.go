@@ -664,7 +664,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 
 	gui.applySidePanelConfig()
 
-	return initialContext(contextTree, startArgs)
+	return initialContext(contextTree, startArgs, gui.Config.GetUserConfig())
 }
 
 func (gui *Gui) loadCachedPullRequests() []*models.GithubPullRequest {
@@ -752,7 +752,19 @@ func parseScreenModeArg(screenModeArg string) types.ScreenMode {
 	}
 }
 
-func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartArgs) types.IListContext {
+// normalizeStartupPanel validates gui.startupPanel: a recognized panel name
+// passes through, and anything else (including the empty string and the
+// default "files", which initialContext already starts on) normalizes to ""
+// so the caller keeps the Files panel (#5877).
+func normalizeStartupPanel(name string) string {
+	switch name {
+	case "worktrees", "submodules", "branches", "remotes", "tags", "commits", "reflog", "stash":
+		return name
+	default:
+		return ""
+	}
+}
+func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartArgs, userConfig *config.UserConfig) types.IListContext {
 	var initialContext types.IListContext = contextTree.Files
 
 	if startArgs.FilterPath != "" {
@@ -770,8 +782,28 @@ func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartAr
 		default:
 			panic("unhandled git arg")
 		}
+	} else if panel := normalizeStartupPanel(userConfig.Gui.StartupPanel); panel != "" {
+		// An explicit config wins over the default Files panel when no CLI
+		// argument selected one (#5877); anything unrecognized stays on Files.
+		switch panel {
+		case "worktrees":
+			initialContext = contextTree.Worktrees
+		case "submodules":
+			initialContext = contextTree.Submodules
+		case "branches":
+			initialContext = contextTree.Branches
+		case "remotes":
+			initialContext = contextTree.Remotes
+		case "tags":
+			initialContext = contextTree.Tags
+		case "commits":
+			initialContext = contextTree.LocalCommits
+		case "reflog":
+			initialContext = contextTree.ReflogCommits
+		case "stash":
+			initialContext = contextTree.Stash
+		}
 	}
-
 	return initialContext
 }
 

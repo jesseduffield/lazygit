@@ -103,6 +103,10 @@ gui:
 
   # If true, increase the height of the focused side window; creating an accordion
   # effect.
+  # The side panel to focus on startup (when no positional argument like
+  # `lazygit log` is given). One of: files, worktrees, submodules, branches,
+  # remotes, tags, commits, reflog, stash. Anything else falls back to files.
+  startupPanel: files
   expandFocusedSidePanel: false
 
   # The weight of the expanded side panel, relative to the other panels. 2 means

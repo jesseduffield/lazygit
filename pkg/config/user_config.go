@@ -113,6 +113,12 @@ type GuiConfig struct {
 	ExpandedSidePanelWeight int `yaml:"expandedSidePanelWeight"`
 	// If true, don't give a side panel more height than it needs to show its content; when all panels fit, the leftover height is shared among them so that they still fill the screen.
 	ShrinkSidePanelsToContent bool `yaml:"shrinkSidePanelsToContent"`
+	// The side panel to focus on startup, when lazygit is launched without
+	// a positional argument (e.g. `lazygit log`). Valid values are:
+	// 'files', 'worktrees', 'submodules', 'branches', 'remotes', 'tags', 'commits', 'reflog', 'stash'.
+	// An unrecognized value falls back to 'files'.
+	StartupPanel string `yaml:"startupPanel"`
+
 	// The side panels, in the order they appear from top to bottom.
 	// Each entry is a list of one or more names that share a single panel as tabs (cycle through them with the next-tab/previous-tab keys).
 	// Omit a name to hide it; give a name its own one-element list to promote a tab to a top-level panel.
