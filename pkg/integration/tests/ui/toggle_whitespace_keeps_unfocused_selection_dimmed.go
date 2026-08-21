@@ -26,9 +26,6 @@ var ToggleWhitespaceKeepsUnfocusedSelectionDimmed = NewIntegrationTest(NewIntegr
 			Press(keys.Universal.ToggleWhitespaceInDiffView)
 
 		t.Views().Files().
-			/* EXPECTED:
 			SelectionIsInactive()
-			ACTUAL: */
-			SelectionIsActive()
 	},
 })
