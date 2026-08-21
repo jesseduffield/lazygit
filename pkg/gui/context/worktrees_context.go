@@ -16,8 +16,10 @@ var _ types.IListContext = (*WorktreesContext)(nil)
 func NewWorktreesContext(c *ContextCommon) *WorktreesContext {
 	viewModel := NewFilteredListViewModel(
 		func() []*models.Worktree { return c.Model().Worktrees },
-		func(Worktree *models.Worktree) []string {
-			return []string{Worktree.Name}
+		// Filtering matches the worktree name AND its branch, so searching a
+		// branch name surfaces its worktree (#5945).
+		func(worktree *models.Worktree) []string {
+			return []string{worktree.Name, worktree.Branch}
 		},
 	)
 
