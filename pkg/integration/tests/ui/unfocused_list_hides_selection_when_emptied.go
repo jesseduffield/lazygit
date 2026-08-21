@@ -31,9 +31,6 @@ var UnfocusedListHidesSelectionWhenEmptied = NewIntegrationTest(NewIntegrationTe
 				t.RefreshInBackground()
 			}).
 			IsEmpty().
-			/* EXPECTED:
 			SelectionIsHidden()
-			ACTUAL: */
-			SelectionIsInactive()
 	},
 })

@@ -29,9 +29,6 @@ var UnfocusedListShowsSelectionWhenFilled = NewIntegrationTest(NewIntegrationTes
 				t.RefreshInBackground()
 			}).
 			Lines(Contains("file2")).
-			/* EXPECTED:
 			SelectionIsInactive()
-			ACTUAL: */
-			SelectionIsHidden()
 	},
 })

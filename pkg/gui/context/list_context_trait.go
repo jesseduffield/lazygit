@@ -106,8 +106,6 @@ func formatListFooter(selectedLineIdx int, length int) string {
 func (self *ListContextTrait) HandleFocus(opts types.OnFocusOpts) {
 	self.FocusLine(!opts.KeepScrollPosition)
 
-	self.GetViewTrait().SetHighlight(self.HasSelectableContent())
-
 	self.Context.HandleFocus(opts)
 }
 

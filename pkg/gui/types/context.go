@@ -229,7 +229,6 @@ type IViewTrait interface {
 	ScrollDown(value int)
 	PageDelta() int
 	SelectedLineIdx() int
-	SetHighlight(bool)
 }
 
 type OnFocusOpts struct {
