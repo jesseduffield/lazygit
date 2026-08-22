@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -63,6 +64,12 @@ func (gui *Gui) onViewTabClick(windowName string, tabIndex int) error {
 		return nil
 	}
 
+	if windowName == "files" {
+		if err := gui.applyFilesTab(tabs[tabIndex].Tab); err != nil {
+			return err
+		}
+	}
+
 	viewName := tabs[tabIndex].ViewName
 
 	context, ok := gui.helpers.View.ContextForView(viewName)
@@ -114,7 +121,59 @@ func getTabbedView(gui *Gui) *gocui.View {
 	// It safe assumption that only static contexts have tabs
 	context := gui.c.Context().CurrentStatic()
 	view, _ := gui.g.View(context.GetViewName())
+	if view != nil && view.Name() == "files" {
+		view.TabIndex = gui.filesTabIndex()
+	}
 	return view
+}
+
+func (gui *Gui) filesTabIndex() int {
+	if gui.State == nil || gui.State.Contexts == nil || gui.State.Contexts.Files == nil {
+		return 0
+	}
+	if !gui.c.UserConfig().Gui.ShowFileChangeTabs {
+		return 0
+	}
+
+	filter := gui.State.Contexts.Files.GetStatusFilter()
+	switch filter {
+	case filetree.DisplayUnstaged:
+		return 1
+	case filetree.DisplayStaged:
+		return 2
+	default:
+		return 0
+	}
+}
+
+func (gui *Gui) applyFilesTab(tabName string) error {
+	if gui.State == nil || gui.State.Contexts == nil || gui.State.Contexts.Files == nil {
+		return nil
+	}
+
+	if !gui.c.UserConfig().Gui.ShowFileChangeTabs {
+		return nil
+	}
+
+	filesContext := gui.State.Contexts.Files
+	desiredFilter := filetree.DisplayAll
+
+	switch tabName {
+	case gui.c.Tr.UnstagedChanges:
+		desiredFilter = filetree.DisplayUnstaged
+	case gui.c.Tr.StagedChanges:
+		desiredFilter = filetree.DisplayStaged
+	case gui.c.Tr.FilesTitle:
+		desiredFilter = filetree.DisplayAll
+	default:
+		return nil
+	}
+
+	filesContext.FileTreeViewModel.SetStatusFilter(desiredFilter)
+	filesContext.GetView().Subtitle = ""
+	filesContext.GetView().TabIndex = gui.filesTabIndex()
+	gui.postRefreshUpdate(filesContext)
+	return nil
 }
 
 func (gui *Gui) render() {
