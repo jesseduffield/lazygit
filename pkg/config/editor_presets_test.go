@@ -124,3 +124,49 @@ func TestGetEditTemplate(t *testing.T) {
 		})
 	}
 }
+
+func TestGetOpenTemplate(t *testing.T) {
+	trueVal := true
+
+	scenarios := []struct {
+		name             string
+		osConfig         *OSConfig
+		defaultTemplate  string
+		expectedTemplate string
+		expectedSuspend  bool
+	}{
+		{
+			name:             "uses platform default open command",
+			osConfig:         &OSConfig{},
+			defaultTemplate:  "open -- {{filename}}",
+			expectedTemplate: "open -- {{filename}}",
+			expectedSuspend:  false,
+		},
+		{
+			name: "uses explicit open command",
+			osConfig: &OSConfig{
+				Open: "myopen {{filename}}",
+			},
+			defaultTemplate:  "open -- {{filename}}",
+			expectedTemplate: "myopen {{filename}}",
+			expectedSuspend:  false,
+		},
+		{
+			name: "uses explicit open suspend setting",
+			osConfig: &OSConfig{
+				SuspendOnOpen: &trueVal,
+			},
+			defaultTemplate:  "open -- {{filename}}",
+			expectedTemplate: "open -- {{filename}}",
+			expectedSuspend:  true,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			template, suspend := GetOpenTemplate(s.osConfig, s.defaultTemplate)
+			assert.Equal(t, s.expectedTemplate, template)
+			assert.Equal(t, s.expectedSuspend, suspend)
+		})
+	}
+}

@@ -76,8 +76,9 @@ func (self *FilesHelper) OpenFile(filename string) error {
 		return err
 	}
 	self.c.LogAction(self.c.Tr.Actions.OpenFile)
-	if err := self.c.OS().OpenFile(absPath); err != nil {
-		return err
+	cmdStr, suspend := self.c.Git().File.GetOpenCmdStr(absPath)
+	if !suspend {
+		return self.c.OS().OpenFile(absPath)
 	}
-	return nil
+	return self.callEditor(cmdStr, suspend)
 }
