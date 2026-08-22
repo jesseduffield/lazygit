@@ -80,6 +80,8 @@ var tests = []*components.IntegrationTest{
 	branch.ResetToDuplicateNamedTag,
 	branch.ResetToDuplicateNamedUpstream,
 	branch.ResetToUpstream,
+	branch.RestoreDeletedBranch,
+	branch.RestoreUpstreamBranch,
 	branch.SelectCommitsOfCurrentBranch,
 	branch.SetUpstream,
 	branch.ShowDivergenceFromBaseBranch,

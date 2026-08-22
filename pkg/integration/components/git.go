@@ -27,6 +27,14 @@ func (self *Git) RemoteTagDeleted(ref string, tagName string) *Git {
 	})
 }
 
+// AssertRemoteBranchExists asserts that the given branch still exists on the
+// given remote, i.e. it has been pushed.
+func (self *Git) AssertRemoteBranchExists(ref string, branchName string) *Git {
+	return self.expect([]string{"git", "ls-remote", ref, fmt.Sprintf("refs/heads/%s", branchName)}, func(s string) (bool, string) {
+		return len(s) > 0, fmt.Sprintf("Expected branch %s to still exist on %s", branchName, ref)
+	})
+}
+
 func (self *Git) assert(cmdArgs []string, expected string) *Git {
 	self.expect(cmdArgs, func(output string) (bool, string) {
 		return output == expected, fmt.Sprintf("Expected current branch name to be '%s', but got '%s'", expected, output)

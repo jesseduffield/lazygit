@@ -221,6 +221,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | Checkout previous branch |  |
 | `` F `` | Принудительное переключение | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Delete | View delete options for local/remote branch. |
+| `` <ctrl+r> `` | Restore deleted branch | Restore a locally deleted branch from the reflog. The branch's upstream will be re-attached if a matching remote-tracking branch still exists. |
 | `` r `` | Перебазировать переключённую ветку на эту ветку | Rebase the checked-out branch onto the selected branch. |
 | `` M `` | Слияние с текущей переключённой веткой | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` f `` | Перемотать эту ветку вперёд из её upstream-ветки | Fast-forward selected branch from its upstream. |

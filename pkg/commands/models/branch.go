@@ -5,6 +5,39 @@ import (
 	"sync/atomic"
 )
 
+// DeletedBranch is a branch that was detected as no longer existing locally but
+// whose commit history can still be recovered (e.g. from the reflog).
+type DeletedBranch struct {
+	Name        string
+	DisplayName string
+	// the commit hash the branch pointed at when it was last seen
+	CommitHash string
+	// indicator of when the branch was last checked out e.g. '2d', '3m'
+	Recency string
+	// unix timestamp of when the branch was last committed to; used for sorting
+	UnixTimestamp int64
+}
+
+func (b *DeletedBranch) FullRefName() string {
+	return "refs/heads/" + b.Name
+}
+
+func (b *DeletedBranch) ID() string {
+	return b.RefName()
+}
+
+func (b *DeletedBranch) RefName() string {
+	return b.Name
+}
+
+func (b *DeletedBranch) URN() string {
+	return "deleted-branch-" + b.ID()
+}
+
+func (b *DeletedBranch) Description() string {
+	return b.DisplayName
+}
+
 // Branch : A git branch
 // duplicating this for now
 type Branch struct {
