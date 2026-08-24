@@ -109,7 +109,8 @@ func (self *MainViewController) openSearch() error {
 	if manager := self.c.GetViewBufferManagerForView(self.context.GetView()); manager != nil {
 		manager.ReadToEnd(func() {
 			self.c.OnUIThread(func() error {
-				return self.c.Helpers().Search.OpenSearchPrompt(self.context)
+				self.c.Helpers().Search.OpenSearchPrompt(self.context)
+				return nil
 			})
 		})
 	}

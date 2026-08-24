@@ -44,5 +44,6 @@ func (self *FilterController) GetKeybindings(opts types.KeybindingsOpts) []*type
 }
 
 func (self *FilterController) OpenFilterPrompt() error {
-	return self.c.Helpers().Search.OpenFilterPrompt(self.context)
+	self.c.Helpers().Search.OpenFilterPrompt(self.context)
+	return nil
 }

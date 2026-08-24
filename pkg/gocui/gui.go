@@ -675,19 +675,15 @@ func (g *Gui) DeleteViewKeybindings(viewname string) {
 }
 
 // SetTabClickBinding sets a binding for a tab click event
-func (g *Gui) SetTabClickBinding(viewName string, handler tabClickHandler) error {
+func (g *Gui) SetTabClickBinding(viewName string, handler tabClickHandler) {
 	g.tabClickBindings = append(g.tabClickBindings, &tabClickBinding{
 		viewName: viewName,
 		handler:  handler,
 	})
-
-	return nil
 }
 
-func (g *Gui) SetViewClickBinding(binding *ViewMouseBinding) error {
+func (g *Gui) SetViewClickBinding(binding *ViewMouseBinding) {
 	g.viewMouseBindings = append(g.viewMouseBindings, binding)
-
-	return nil
 }
 
 // captureMouse routes subsequent mouse events to view until the mouse button is

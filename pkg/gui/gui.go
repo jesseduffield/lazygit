@@ -368,10 +368,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 	contextToPush := gui.resetState(startArgs)
 
 	gui.resetHelpersAndControllers()
-
-	if err := gui.resetKeybindings(); err != nil {
-		return err
-	}
+	gui.resetKeybindings()
 
 	gui.g.SetFocusHandler(func(Focused bool) error {
 		if Focused {
@@ -383,9 +380,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 				gui.c.Log.Info("User config changed - reloading")
 				reloadErr = gui.onUserConfigLoaded()
 				gui.reloadSidePanels()
-				if err := gui.resetKeybindings(); err != nil {
-					return err
-				}
+				gui.resetKeybindings()
 
 				if err := gui.checkForChangedConfigsThatDontAutoReload(oldConfig, gui.Config.GetUserConfig()); err != nil {
 					return err
