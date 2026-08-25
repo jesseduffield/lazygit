@@ -2097,7 +2097,7 @@ func (g *Gui) matchView(v *View, kb *keybinding) bool {
 	if v == nil {
 		return false
 	}
-	if v.Editable && kb.key.Str() != "" && kb.key.Mod() == 0 {
+	if v.Editable && kb.key.IsPrintable() {
 		return false
 	}
 	if kb.viewName != v.name {
