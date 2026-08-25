@@ -45,6 +45,13 @@ func NewMenuContext(
 				getColumnAlignments: func() []utils.Alignment { return viewModel.columnAlignment },
 				getNonModelItems:    viewModel.GetNonModelItems,
 			},
+			// While the filter row is showing, its top border covers the menu's bottom
+			// border, so the footer has to be rendered on the row instead.
+			renderFooter: func(footer string) {
+				onFilterRow := viewModel.FilterStarted()
+				c.Views().Menu.Footer = lo.Ternary(onFilterRow, "", footer)
+				c.Views().MenuFilterFrame.Footer = lo.Ternary(onFilterRow, footer, "")
+			},
 			c: c,
 		},
 	}
@@ -58,6 +65,8 @@ type MenuViewModel struct {
 	columnAlignment           []utils.Alignment
 	allowFilteringKeybindings bool
 	keybindingsTakePrecedence bool
+	filterAsYouType           bool
+	filterStarted             bool
 	onCancel                  func() error
 	*FilteredListViewModel[*types.MenuItem]
 }
@@ -128,8 +137,32 @@ func (self *MenuViewModel) SetAllowFilteringKeybindings(allow bool) {
 	self.allowFilteringKeybindings = allow
 }
 
+func (self *MenuViewModel) AllowFilteringKeybindings() bool {
+	return self.allowFilteringKeybindings
+}
+
 func (self *MenuViewModel) SetKeybindingsTakePrecedence(value bool) {
 	self.keybindingsTakePrecedence = value
+}
+
+// Whether this menu has a filter row that filters the items as the user types,
+// instead of being filtered through the search prompt.
+func (self *MenuViewModel) SetFilterAsYouType(value bool) {
+	self.filterAsYouType = value
+	self.SetFilterStarted(false)
+}
+
+func (self *MenuViewModel) FilterAsYouType() bool {
+	return self.filterAsYouType
+}
+
+// Whether the user has started to filter, which is when the filter row appears.
+func (self *MenuViewModel) SetFilterStarted(value bool) {
+	self.filterStarted = value
+}
+
+func (self *MenuViewModel) FilterStarted() bool {
+	return self.filterStarted
 }
 
 // TODO: move into presentation package
