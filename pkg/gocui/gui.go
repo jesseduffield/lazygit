@@ -1615,6 +1615,20 @@ func (g *Gui) ForceFlushViewsContentOnly(views []*View) error {
 	return g.flushContentOnly(views)
 }
 
+// hasFocus reports whether a view is drawn as focused. Views that are embedded
+// in one another (see View.ParentView) form a single unit, so they are all drawn
+// as focused while any one of them is the current view.
+func (g *Gui) hasFocus(v *View) bool {
+	return g.currentView != nil && outermostView(v) == outermostView(g.currentView)
+}
+
+func outermostView(v *View) *View {
+	for v.ParentView != nil {
+		v = v.ParentView
+	}
+	return v
+}
+
 // draw manages the cursor and calls the draw function of a view.
 func (g *Gui) draw(v *View) error {
 	if !v.Visible || v.y1 < v.y0 || v.x1 < v.x0 {
@@ -1639,7 +1653,7 @@ func (g *Gui) draw(v *View) error {
 
 	if v.Frame {
 		var fgColor, bgColor, frameColor Attribute
-		if g.Highlight && v == g.currentView && g.IsFocused() {
+		if g.Highlight && g.hasFocus(v) && g.IsFocused() {
 			fgColor = g.SelFgColor
 			bgColor = g.SelBgColor
 			frameColor = g.SelFrameColor

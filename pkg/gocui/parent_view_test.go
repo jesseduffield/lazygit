@@ -56,6 +56,26 @@ func TestFirstMatchingKeybindingOfParentViewWins(t *testing.T) {
 	assert.Equal(t, []string{"first"}, pressed)
 }
 
+func TestEmbeddedViewsAreFocusedTogether(t *testing.T) {
+	g := newTestGui(t)
+	parent, child := setupParentAndChildView(t, g)
+	sibling, _ := g.SetView("sibling", 0, 12, 20, 14, 0)
+	sibling.ParentView = parent
+	unrelated, _ := g.SetView("unrelated", 30, 0, 50, 10, 0)
+
+	assert.True(t, g.hasFocus(child))
+	assert.True(t, g.hasFocus(parent))
+	assert.True(t, g.hasFocus(sibling))
+	assert.False(t, g.hasFocus(unrelated))
+
+	_, err := g.SetCurrentView(unrelated.Name())
+	assert.NoError(t, err)
+
+	assert.True(t, g.hasFocus(unrelated))
+	assert.False(t, g.hasFocus(parent))
+	assert.False(t, g.hasFocus(child))
+}
+
 func TestPrintableKeysGoToTheFieldBeingTypedIn(t *testing.T) {
 	for _, test := range []struct {
 		name              string
