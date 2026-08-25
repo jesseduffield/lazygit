@@ -4,7 +4,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 )
@@ -140,7 +139,6 @@ type IFilterableContext interface {
 	ReApplyFilter(bool)
 	IsFiltering() bool
 	IsFilterableContext()
-	FilterPrefix(tr *i18n.TranslationSet) string
 }
 
 type ISearchableContext interface {

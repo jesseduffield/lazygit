@@ -36,7 +36,7 @@ func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) {
 
 	state.Context = context
 
-	self.searchPrefixView().SetContent(context.FilterPrefix(self.c.Tr))
+	self.searchPrefixView().SetContent(self.c.Tr.FilterPrefix)
 	promptView := self.promptView()
 	promptView.ClearTextArea()
 	self.OnPromptContentChanged("")
@@ -70,7 +70,7 @@ func (self *SearchHelper) DisplayFilterStatus(context types.IFilterableContext) 
 	state.Context = context
 	searchString := context.GetFilter()
 
-	self.searchPrefixView().SetContent(context.FilterPrefix(self.c.Tr))
+	self.searchPrefixView().SetContent(self.c.Tr.FilterPrefix)
 
 	promptView := self.promptView()
 	keybindingConfig := self.c.UserConfig().Keybinding

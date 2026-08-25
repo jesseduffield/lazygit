@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -322,12 +321,4 @@ func (self *MenuContext) GetInputViewName() string {
 	}
 
 	return self.GetViewName()
-}
-
-func (self *MenuContext) FilterPrefix(tr *i18n.TranslationSet) string {
-	if self.allowFilteringKeybindings {
-		return tr.FilterPrefixMenu
-	}
-
-	return self.FilteredListViewModel.FilterPrefix(tr)
 }
