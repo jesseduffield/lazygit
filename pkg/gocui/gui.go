@@ -1979,7 +1979,7 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 			matchingParentViewKb = nil
 			break
 		}
-		if v != nil && g.matchView(v.ParentView, kb) {
+		if matchingParentViewKb == nil && v != nil && g.matchView(v.ParentView, kb) {
 			matchingParentViewKb = kb
 		}
 		if globalKb == nil && kb.viewName == "" {
