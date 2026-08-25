@@ -36,7 +36,7 @@ func NewMenuController(
 }
 
 // NOTE: if you add a new keybinding here, you'll also need to add it to
-// `reservedKeys` in `pkg/gui/context/menu_context.go`
+// `essentialKeys` in `pkg/gui/menu_panel.go`, so that menu items can't shadow it
 func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
