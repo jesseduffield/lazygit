@@ -2091,13 +2091,15 @@ func (g *Gui) isSuspended() bool {
 	return g.suspended
 }
 
-// matchView returns if the keybinding matches the current view (and the view's context)
+// matchView returns if the keybinding matches the given view (and the view's context)
 func (g *Gui) matchView(v *View, kb *keybinding) bool {
-	// if the user is typing in a field, ignore char keys
 	if v == nil {
 		return false
 	}
-	if v.Editable && kb.key.IsPrintable() {
+	// If the user is typing in a field, printable keys are theirs to type, so no
+	// keybinding gets a look at them: not the field's own, and not those of the
+	// view it is embedded in either.
+	if field := g.currentView; field != nil && field.Editable && !field.KeybindOnEdit && kb.key.IsPrintable() {
 		return false
 	}
 	if kb.viewName != v.name {

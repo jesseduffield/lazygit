@@ -56,6 +56,52 @@ func TestFirstMatchingKeybindingOfParentViewWins(t *testing.T) {
 	assert.Equal(t, []string{"first"}, pressed)
 }
 
+func TestPrintableKeysGoToTheFieldBeingTypedIn(t *testing.T) {
+	for _, test := range []struct {
+		name              string
+		keybindOnEdit     bool
+		declineKeybinding bool
+		expectedPresses   int
+		expectedEdits     int
+	}{
+		{name: "the field gets the key", expectedEdits: 1},
+		{name: "the parent view gets the key", keybindOnEdit: true, expectedPresses: 1},
+		{
+			name:              "the field gets the key the parent view declined",
+			keybindOnEdit:     true,
+			declineKeybinding: true,
+			expectedPresses:   1,
+			expectedEdits:     1,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			g := newTestGui(t)
+			parent, child := setupParentAndChildView(t, g)
+			child.Editable = true
+			child.KeybindOnEdit = test.keybindOnEdit
+
+			edits := 0
+			child.Editor = EditorFunc(func(*View, Key) bool {
+				edits++
+				return true
+			})
+			presses := 0
+			g.SetKeybinding(parent.Name(), NewKeyRune('j'), func(*Gui, *View) error {
+				presses++
+				if test.declineKeybinding {
+					return ErrKeybindingNotHandled
+				}
+				return nil
+			})
+
+			assert.NoError(t, g.onKey(&GocuiEvent{Type: eventKey, Key: NewKeyRune('j')}))
+
+			assert.Equal(t, test.expectedPresses, presses)
+			assert.Equal(t, test.expectedEdits, edits)
+		})
+	}
+}
+
 func TestUnhandledKeybindingOfParentViewFallsThroughToEditor(t *testing.T) {
 	g := newTestGui(t)
 	parent, child := setupParentAndChildView(t, g)
