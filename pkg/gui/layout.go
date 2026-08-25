@@ -144,15 +144,25 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	// When the screen is too short the side panels are squashed, with the
-	// unfocused ones taking one row each and the focused one taking the rest. The
-	// more panels there are, the more rows the unfocused ones reserve, so the
-	// floor below which there's no room left for the focused panel grows with the
-	// panel count. Keep the historical floor of 9 for the default five panels.
-	minimumHeight := max(9, len(gui.helpers.Window.SideWindows())+4)
+	menuWithFilterRowVisible := gui.Views.Menu.Visible && gui.State.Contexts.Menu.FilterAsYouType()
+	minimumHeight := minimumScreenHeight(len(gui.helpers.Window.SideWindows()), menuWithFilterRowVisible)
 	minimumWidth := 10
 	gui.Views.Limit.Visible = height < minimumHeight || width < minimumWidth
 
+	filterRowVisible := gui.Views.Menu.Visible && gui.State.Contexts.Menu.FilterStarted()
+	gui.Views.MenuFilterFrame.Visible = filterRowVisible
+	gui.Views.MenuFilter.Visible = filterRowVisible
+	if gui.Views.Menu.Visible {
+		// Until the user types something there is no filter row to advertise the
+		// filter, so the menu says that typing is a thing.
+		gui.Views.Menu.Subtitle = lo.Ternary(menuWithFilterRowVisible && !filterRowVisible, gui.c.Tr.MenuFilterHint, "")
+	}
+	if menuWithFilterRowVisible {
+		// The filter input is the current view for as long as such a menu is open,
+		// so without this the cursor would sit on the menu's bottom border, where
+		// the filter row is yet to appear.
+		gui.g.Cursor = filterRowVisible
+	}
 	gui.Views.Tooltip.Visible = gui.Views.Menu.Visible && gui.Views.Tooltip.Buffer() != ""
 
 	for _, context := range gui.transientContexts() {
@@ -227,6 +237,26 @@ outer:
 	}
 
 	return nil
+}
+
+// The height below which we show the "not enough space" view instead of the
+// layout.
+func minimumScreenHeight(sideWindowCount int, menuWithFilterRowVisible bool) int {
+	// When the screen is too short the side panels are squashed, with the
+	// unfocused ones taking one row each and the focused one taking the rest. The
+	// more panels there are, the more rows the unfocused ones reserve, so the
+	// floor below which there's no room left for the focused panel grows with the
+	// panel count. Keep the historical floor of 9 for the default five panels.
+	minimumHeight := max(9, sideWindowCount+4)
+
+	// A menu popup gets three quarters of the screen, of which its frame, the
+	// tooltip gap below it and a reserved filter row take seven rows, so below 11
+	// rows there is no room left for even one menu item.
+	if menuWithFilterRowVisible {
+		minimumHeight = max(minimumHeight, 11)
+	}
+
+	return minimumHeight
 }
 
 func (gui *Gui) prepareView(viewName string) (*gocui.View, error) {

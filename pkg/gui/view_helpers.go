@@ -144,7 +144,7 @@ func (gui *Gui) postRefreshUpdate(c types.Context, keepScrollPosition bool) {
 	// away, which decides whether its view draws a selection at all.
 	gui.State.ContextMgr.UpdateSelectionHighlights()
 
-	if gui.currentViewName() == c.GetViewName() {
+	if gui.currentViewName() == c.GetInputViewName() {
 		c.HandleFocus(types.OnFocusOpts{KeepScrollPosition: keepScrollPosition})
 	} else {
 		// The FocusLine call is included in the HandleFocus method which we

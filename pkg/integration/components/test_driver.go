@@ -97,6 +97,24 @@ func (self *TestDriver) GlobalPress(key config.Keybinding) {
 	self.press(key[0])
 }
 
+// asserts that the terminal's text cursor is shown, i.e. that there is a text
+// field to type into
+func (self *TestDriver) CursorIsVisible() *TestDriver {
+	self.assertWithRetries(func() (bool, string) {
+		return self.gui.CursorVisible(), "Expected the cursor to be visible"
+	})
+
+	return self
+}
+
+func (self *TestDriver) CursorIsHidden() *TestDriver {
+	self.assertWithRetries(func() (bool, string) {
+		return !self.gui.CursorVisible(), "Expected the cursor to be hidden"
+	})
+
+	return self
+}
+
 // FocusIn simulates the terminal window regaining focus, which causes lazygit
 // to reload any config files that changed while it was in the background.
 func (self *TestDriver) FocusIn() {

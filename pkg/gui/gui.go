@@ -924,6 +924,21 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 	return result
 }
 
+// The views that each popup panel is made up of. A panel's views share the
+// keyboard focus, so clicking from one of them to another stays within the
+// panel.
+var popupPanelViewGroups = [][]string{
+	{"commitMessage", "commitDescription"},
+	{"prompt", "suggestions"},
+	{"menu", "menuFilterFrame", "menuFilter"},
+}
+
+func viewsBelongToSamePopupPanel(viewName string, otherViewName string) bool {
+	return lo.SomeBy(popupPanelViewGroups, func(group []string) bool {
+		return lo.Contains(group, viewName) && lo.Contains(group, otherViewName)
+	})
+}
+
 // Run: setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	g, err := gui.initGocui(Headless(), startArgs.IntegrationTest)
@@ -939,15 +954,11 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	gui.g.ShouldHandleMouseEvent = func(view *gocui.View, key gocui.KeyName) bool {
 		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != view.Name() &&
 			!gocui.IsMouseScrollKey(key) {
-			// we ignore click events on views that aren't popup panels, when a popup panel is focused.
-			// Unless both the current view and the clicked-on view are either commit message or commit
-			// description, or a prompt and the suggestions view, because we want to allow switching
-			// between those two views by clicking.
-			isCommitMessageOrSuggestionsView := func(viewName string) bool {
-				return viewName == "commitMessage" || viewName == "commitDescription" ||
-					viewName == "prompt" || viewName == "suggestions"
-			}
-			if !isCommitMessageOrSuggestionsView(gui.currentViewName()) || !isCommitMessageOrSuggestionsView(view.Name()) {
+			// we ignore click events on views that aren't popup panels, when a popup
+			// panel is focused. Unless the clicked-on view is part of the same popup
+			// panel as the current one, because we want to allow switching between the
+			// views of a panel by clicking.
+			if !viewsBelongToSamePopupPanel(gui.currentViewName(), view.Name()) {
 				return false
 			}
 		}

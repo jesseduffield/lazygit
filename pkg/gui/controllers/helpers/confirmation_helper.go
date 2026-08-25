@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type ConfirmationHelper struct {
@@ -323,19 +324,70 @@ func (self *ConfirmationHelper) ResizeCurrentPopupPanels() {
 	}
 }
 
+// The rows that a filter row adds to a menu popup: one for the input, and one
+// for its bottom border. Its top border is the menu's bottom border.
+const menuFilterRowHeight = 2
+
+// The prompts for the filter row, from the most to the least informative. The
+// keybindings menu can also filter by keybinding, which is worth spelling out
+// when there is room for it.
+func (self *ConfirmationHelper) menuFilterPromptCandidates() []string {
+	if self.c.Contexts().Menu.AllowFilteringKeybindings() {
+		return []string{self.c.Tr.FilterPrefixMenu, self.c.Tr.FilterPrefix}
+	}
+
+	return []string{self.c.Tr.FilterPrefix}
+}
+
+// Returns the first prompt that still leaves room to type in, or no prompt at
+// all if the row is too narrow even for the shortest one.
+func menuFilterPrompt(candidates []string, contentWidth int) string {
+	const minimumInputWidth = 4
+
+	for _, candidate := range candidates {
+		if utils.StringWidth(candidate)+minimumInputWidth <= contentWidth {
+			return candidate
+		}
+	}
+
+	return ""
+}
+
 func (self *ConfirmationHelper) resizeMenu(parentPopupContext types.Context) {
+	menuContext := self.c.Contexts().Menu
 	// we want the unfiltered length here so that if we're filtering we don't
 	// resize the window
-	itemCount := self.c.Contexts().Menu.UnfilteredLen()
+	itemCount := menuContext.UnfilteredLen()
 	offset := 3
 	panelWidth := self.getPopupPanelWidth(90)
 	contentWidth := panelWidth - 2 // minus 2 for the frame
 	promptLinesCount := self.layoutMenuPrompt(contentWidth)
-	x0, y0, x1, y1 := self.getPopupPanelDimensionsForContentHeight(contentWidth, itemCount+offset+promptLinesCount, parentPopupContext)
-	menuBottom := y1 - offset
+	// The row is reserved for the whole time the menu is open, even though it only
+	// becomes visible once the user starts typing, so that revealing it doesn't
+	// move the menu.
+	filterRowHeight := lo.Ternary(menuContext.FilterAsYouType(), menuFilterRowHeight, 0)
+	x0, y0, x1, y1 := self.getPopupPanelDimensionsForContentHeight(
+		contentWidth, itemCount+offset+promptLinesCount+filterRowHeight, parentPopupContext)
+	menuBottom := y1 - offset - filterRowHeight
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Menu.Name(), x0, y0, x1, menuBottom, 0)
 
 	tooltipTop := menuBottom + 1
+	if menuContext.FilterAsYouType() {
+		filterRowBottom := menuBottom + filterRowHeight
+		// The row hangs off the bottom of the menu, sharing its bottom border.
+		_, _ = self.c.GocuiGui().SetView(self.c.Views().MenuFilterFrame.Name(), x0, menuBottom, x1, filterRowBottom, 0)
+
+		prompt := menuFilterPrompt(self.menuFilterPromptCandidates(), contentWidth)
+		self.c.Views().MenuFilterFrame.SetContent(prompt)
+		// A view's content starts one column inside its bounds, so the input field
+		// starts one column to the left of where its text is to appear.
+		inputLeft := x0 + utils.StringWidth(prompt)
+		_, _ = self.c.GocuiGui().SetView(self.c.Views().MenuFilter.Name(), inputLeft, menuBottom, x1, filterRowBottom, 0)
+
+		if menuContext.FilterStarted() {
+			tooltipTop = filterRowBottom + 1
+		}
+	}
 	tooltip := ""
 	selectedItem := self.c.Contexts().Menu.GetSelected()
 	if selectedItem != nil {

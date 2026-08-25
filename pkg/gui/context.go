@@ -180,7 +180,8 @@ func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) {
 	self.gui.helpers.Window.SetWindowContext(c)
 
 	self.gui.helpers.Window.MoveToTopOfWindow(c)
-	if _, err := self.gui.c.GocuiGui().SetCurrentView(viewName); err != nil {
+	inputViewName := c.GetInputViewName()
+	if _, err := self.gui.c.GocuiGui().SetCurrentView(inputViewName); err != nil {
 		panic(err)
 	}
 

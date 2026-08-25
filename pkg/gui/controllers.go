@@ -136,6 +136,9 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	common := controllers.NewControllerCommon(helperCommon, gui)
 
+	listControllerFactory := controllers.NewListControllerFactory(common)
+	menuListController := listControllerFactory.Create(gui.State.Contexts.Menu)
+
 	syncController := controllers.NewSyncController(
 		common,
 	)
@@ -154,7 +157,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	remoteBranchesController := controllers.NewRemoteBranchesController(common)
 
-	menuController := controllers.NewMenuController(common)
+	menuController := controllers.NewMenuController(common, menuListController)
 	localCommitsController := controllers.NewLocalCommitsController(common, syncController.HandlePull)
 	tagsController := controllers.NewTagsController(common)
 	filesController := controllers.NewFilesController(
@@ -328,6 +331,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.Menu,
 		menuController,
+		menuListController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.CommitMessage,
@@ -381,8 +385,11 @@ func (gui *Gui) resetHelpersAndControllers() {
 	)
 
 	// this must come last so that we've got our click handlers defined against the context
-	listControllerFactory := controllers.NewListControllerFactory(common)
 	for _, context := range gui.c.Context().AllList() {
+		if context == gui.State.Contexts.Menu {
+			// already attached above, next to the menu controller that delegates to it
+			continue
+		}
 		controllers.AttachControllers(context, listControllerFactory.Create(context))
 	}
 }
