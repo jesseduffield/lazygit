@@ -360,6 +360,7 @@ var tests = []*components.IntegrationTest{
 	misc.DirenvApprovesEnvrc,
 	misc.DirenvLoadedOnRepoSwitch,
 	misc.DirenvUnloadsOnBlockedEnvrc,
+	misc.FilterRecentRepos,
 	misc.InitialOpen,
 	misc.RecentReposOnLaunch,
 	misc.StartInGitDir,
