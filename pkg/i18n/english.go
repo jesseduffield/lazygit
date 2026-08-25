@@ -2040,7 +2040,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SearchKeybindings:                        "%s: Next match, %s: Previous match, %s: Exit search mode",
 		SearchPrefix:                             "Search: ",
 		FilterPrefix:                             "Filter: ",
-		FilterPrefixMenu:                         "Filter (prepend '@' to filter keybindings): ",
+		FilterPrefixMenu:                         "Filter ('@' for keybindings): ",
 		MenuFilterHint:                           "(Type to filter)",
 		WorktreesTitle:                           "Worktrees",
 		WorktreeTitle:                            "Worktree",
