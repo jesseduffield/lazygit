@@ -1,20 +1,26 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type MenuController struct {
 	baseController
 	*ListControllerTrait[*types.MenuItem]
 	c *ControllerCommon
+	// for delegating navigation to, see physicalKeyBindings
+	listController *ListController
 }
 
 var _ types.IController = &MenuController{}
 
 func NewMenuController(
 	c *ControllerCommon,
+	listController *ListController,
 ) *MenuController {
 	return &MenuController{
 		baseController: baseController{},
@@ -24,7 +30,8 @@ func NewMenuController(
 			c.Contexts().Menu.GetSelected,
 			c.Contexts().Menu.GetSelectedItems,
 		),
-		c: c,
+		c:              c,
+		listController: listController,
 	}
 }
 
@@ -50,6 +57,51 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Description:     self.c.Tr.CloseCancel,
 			DisplayOnScreen: true,
 		},
+	}
+
+	if self.context().FilterAsYouType() {
+		bindings = append(bindings, self.physicalKeyBindings(opts)...)
+	}
+
+	return bindings
+}
+
+// In a menu that filters as you type, the keys configured for driving the menu
+// may all be printable, and printable keys become filter text once the user
+// starts typing. These keys can't, so binding them on top guarantees that the
+// menu stays usable no matter how the keybindings are configured.
+func (self *MenuController) physicalKeyBindings(opts types.KeybindingsOpts) []*types.Binding {
+	candidates := []struct {
+		key        gocui.Key
+		configured config.Keybinding
+		binding    *types.Binding
+	}{
+		{
+			key:        gocui.NewKeyName(gocui.KeyEnter),
+			configured: opts.Config.Universal.ConfirmMenu,
+			binding: &types.Binding{
+				Handler:           self.withItem(self.press),
+				GetDisabledReason: self.require(self.singleItemSelected()),
+			},
+		},
+		{gocui.NewKeyName(gocui.KeyEsc), opts.Config.Universal.Return, &types.Binding{Handler: self.close}},
+		{gocui.NewKeyName(gocui.KeyArrowUp), opts.Config.Universal.PrevItem, &types.Binding{Handler: self.listController.HandlePrevLine}},
+		{gocui.NewKeyName(gocui.KeyArrowDown), opts.Config.Universal.NextItem, &types.Binding{Handler: self.listController.HandleNextLine}},
+		{gocui.NewKeyName(gocui.KeyPgup), opts.Config.Universal.PrevPage, &types.Binding{Handler: self.listController.HandlePrevPage}},
+		{gocui.NewKeyName(gocui.KeyPgdn), opts.Config.Universal.NextPage, &types.Binding{Handler: self.listController.HandleNextPage}},
+		{gocui.NewKeyName(gocui.KeyHome), opts.Config.Universal.GotoTop, &types.Binding{Handler: self.listController.HandleGotoTop}},
+		{gocui.NewKeyName(gocui.KeyEnd), opts.Config.Universal.GotoBottom, &types.Binding{Handler: self.listController.HandleGotoBottom}},
+	}
+
+	bindings := []*types.Binding{}
+	for _, candidate := range candidates {
+		if lo.Contains(opts.GetKeys(candidate.configured), candidate.key) {
+			// this key is the configured one, so it drives the menu already
+			continue
+		}
+
+		candidate.binding.Keys = []gocui.Key{candidate.key}
+		bindings = append(bindings, candidate.binding)
 	}
 
 	return bindings
