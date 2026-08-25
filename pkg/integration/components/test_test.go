@@ -88,6 +88,10 @@ func (self *fakeGuiDriver) CurrentContext() types.Context {
 	return nil
 }
 
+func (self *fakeGuiDriver) CursorVisible() bool {
+	return false
+}
+
 func (self *fakeGuiDriver) ContextForView(viewName string) types.Context {
 	return nil
 }

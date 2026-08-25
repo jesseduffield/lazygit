@@ -41,6 +41,53 @@ func (self *ViewDriver) Title(expected *TextMatcher) *ViewDriver {
 	return self
 }
 
+// asserts that the view has the expected footer, i.e. the "x of y" text on its
+// bottom border
+func (self *ViewDriver) Footer(expected *TextMatcher) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actual := self.getView().Footer
+		return expected.context(fmt.Sprintf("%s footer", self.context)).test(actual)
+	})
+
+	return self
+}
+
+// asserts that the view has the expected subtitle
+func (self *ViewDriver) Subtitle(expected *TextMatcher) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actual := self.getView().Subtitle
+		return expected.context(fmt.Sprintf("%s subtitle", self.context)).test(actual)
+	})
+
+	return self
+}
+
+// asserts that the view hangs off the bottom of the given one, sharing a border
+// with it
+func (self *ViewDriver) SharesTopBorderWithBottomOf(upper *ViewDriver) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		_, _, _, upperY1 := upper.getView().Dimensions()
+		_, y0, _, _ := self.getView().Dimensions()
+		return y0 == upperY1, fmt.Sprintf(
+			"%s: Expected view to start on row %d, where the view above it ends, but it starts on row %d",
+			self.context, upperY1, y0)
+	})
+
+	return self
+}
+
+// asserts that the view starts on the row below the given one
+func (self *ViewDriver) IsImmediatelyBelow(upper *ViewDriver) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		_, _, _, upperY1 := upper.getView().Dimensions()
+		_, y0, _, _ := self.getView().Dimensions()
+		return y0 == upperY1+1, fmt.Sprintf(
+			"%s: Expected view to start on row %d, but it starts on row %d", self.context, upperY1+1, y0)
+	})
+
+	return self
+}
+
 func (self *ViewDriver) Clear() *ViewDriver {
 	// clearing multiple times in case there's multiple lines
 	//  (the clear button only clears a single line at a time)
