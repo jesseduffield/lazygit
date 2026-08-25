@@ -57,6 +57,10 @@ type IBaseContext interface {
 
 	GetKind() ContextKind
 	GetViewName() string
+	// The view that keyboard input goes to while this context is focused. That is
+	// the context's own view, unless the context has an editable view embedded in
+	// it which takes the keyboard instead, like the menu's filter input.
+	GetInputViewName() string
 	GetView() *gocui.View
 	GetViewTrait() IViewTrait
 	GetWindowName() string

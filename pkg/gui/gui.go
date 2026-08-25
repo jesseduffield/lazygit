@@ -928,6 +928,7 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 var popupPanelViewGroups = [][]string{
 	{"commitMessage", "commitDescription"},
 	{"prompt", "suggestions"},
+	{"menu", "menuFilterFrame", "menuFilter"},
 }
 
 func viewsBelongToSamePopupPanel(viewName string, otherViewName string) bool {

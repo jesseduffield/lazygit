@@ -159,6 +159,9 @@ func (self *MenuViewModel) FilterAsYouType() bool {
 // Whether the user has started to filter, which is when the filter row appears.
 func (self *MenuViewModel) SetFilterStarted(value bool) {
 	self.filterStarted = value
+	// As long as there is nothing to type into, printable keys keep driving the
+	// menu, so that the configured navigation keys work like in any other menu.
+	self.c.Views().MenuFilter.KeybindOnEdit = !value
 }
 
 func (self *MenuViewModel) FilterStarted() bool {
@@ -242,6 +245,16 @@ func (self *MenuViewModel) GetNonModelItems() []*NonModelItem {
 
 func (self *MenuContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	basicBindings := self.ListContextTrait.GetKeybindings(opts)
+
+	if self.filterAsYouType {
+		// A menu item's keys are shown as a reminder of what they do outside the
+		// menu, but pressing one types it into the filter rather than executing the
+		// item, so we don't bind them at all. That leaves the bindings that drive
+		// the menu itself, and the printable ones among those give way to the filter
+		// as soon as there is something to type into (see View.KeybindOnEdit).
+		return basicBindings
+	}
+
 	menuItemsWithKeys := lo.Filter(self.menuItems, func(item *types.MenuItem, _ int) bool {
 		return len(item.Keys) > 0
 	})
@@ -298,6 +311,17 @@ func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
 // There is currently no need to use range-select in a menu so we're disabling it.
 func (self *MenuContext) RangeSelectEnabled() bool {
 	return false
+}
+
+// A menu that filters as you type points the keyboard at its filter input, so
+// that whatever the user types ends up there. Keys that the input doesn't take
+// still reach the menu, because the input view is embedded in the menu view.
+func (self *MenuContext) GetInputViewName() string {
+	if self.filterAsYouType {
+		return self.c.Views().MenuFilter.Name()
+	}
+
+	return self.GetViewName()
 }
 
 func (self *MenuContext) FilterPrefix(tr *i18n.TranslationSet) string {

@@ -73,12 +73,28 @@ func (self *MenuController) press(selectedItem *types.MenuItem) error {
 }
 
 func (self *MenuController) close() error {
+	if self.context().FilterStarted() {
+		self.stopFiltering()
+		return nil
+	}
+
 	if self.context().IsFiltering() {
 		self.c.Helpers().Search.Cancel()
 		return nil
 	}
 
 	return self.context().OnMenuPress(nil)
+}
+
+// Hides the filter row again and puts the menu back the way it was, keeping the
+// item that was selected. It takes another escape to close the menu.
+func (self *MenuController) stopFiltering() {
+	self.c.Views().MenuFilter.ClearTextArea()
+	self.c.Views().MenuFilter.RenderTextArea()
+
+	self.context().SetFilterStarted(false)
+	self.context().ClearFilter()
+	self.c.PostRefreshUpdate(self.context())
 }
 
 func (self *MenuController) context() *context.MenuContext {

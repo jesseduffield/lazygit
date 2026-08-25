@@ -152,6 +152,17 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	filterRowVisible := gui.Views.Menu.Visible && gui.State.Contexts.Menu.FilterStarted()
 	gui.Views.MenuFilterFrame.Visible = filterRowVisible
 	gui.Views.MenuFilter.Visible = filterRowVisible
+	if gui.Views.Menu.Visible {
+		// Until the user types something there is no filter row to advertise the
+		// filter, so the menu says that typing is a thing.
+		gui.Views.Menu.Subtitle = lo.Ternary(menuWithFilterRowVisible && !filterRowVisible, gui.c.Tr.MenuFilterHint, "")
+	}
+	if menuWithFilterRowVisible {
+		// The filter input is the current view for as long as such a menu is open,
+		// so without this the cursor would sit on the menu's bottom border, where
+		// the filter row is yet to appear.
+		gui.g.Cursor = filterRowVisible
+	}
 	gui.Views.Tooltip.Visible = gui.Views.Menu.Visible && gui.Views.Tooltip.Buffer() != ""
 
 	for _, context := range gui.transientContexts() {

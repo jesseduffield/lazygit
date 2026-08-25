@@ -140,7 +140,7 @@ func (gui *Gui) postRefreshUpdate(c types.Context, opts types.OnFocusOpts) {
 
 	c.HandleRender()
 
-	if gui.currentViewName() == c.GetViewName() {
+	if gui.currentViewName() == c.GetInputViewName() {
 		c.HandleFocus(opts)
 	} else {
 		// The FocusLine call is included in the HandleFocus method which we
