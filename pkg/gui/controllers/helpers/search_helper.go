@@ -225,14 +225,18 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 	state := self.searchState()
 	switch context := state.Context.(type) {
 	case types.IFilterableContext:
-		context.SetSelection(0)
-		context.SetFilter(searchString, self.c.UserConfig().Gui.UseFuzzySearch())
-		self.c.PostRefreshUpdate(context)
+		self.ApplyFilter(context, searchString)
 	case types.ISearchableContext:
 		// do nothing
 	default:
 		// do nothing (shouldn't land here)
 	}
+}
+
+func (self *SearchHelper) ApplyFilter(context types.IFilterableContext, filter string) {
+	context.SetSelection(0)
+	context.SetFilter(filter, self.c.UserConfig().Gui.UseFuzzySearch())
+	self.c.PostRefreshUpdate(context)
 }
 
 func (self *SearchHelper) ReApplyFilter(context types.Context) {
