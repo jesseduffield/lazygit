@@ -27,12 +27,8 @@ var DragToReorderWithAutoscroll = NewIntegrationTest(NewIntegrationTestArgs{
 			OriginYAtLeast(3).
 			// Move the mouse back into the viewport
 			MouseMove(1, 1).
-			/* EXPECTED:
 			// This keeps the scroll as it was
 			OriginYAtLeast(3).
-			ACTUAL: */
-			// This snaps back to reveal the original commit
-			OriginY(0).
 			MouseRelease().
 			SelectedLines(
 				Contains("commit-40"),
