@@ -126,7 +126,7 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 		return self.pushAux(currentBranch, pushOpts{setUpstream: true})
 	}
 
-	return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
+	return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, true, func(upstream string) error {
 		upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
 		if err != nil {
 			return err
@@ -145,7 +145,7 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 
 	// if we have no upstream branch we need to set that first
 	if !currentBranch.IsTrackingRemote() {
-		return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
+		return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, false, func(upstream string) error {
 			if err := self.setCurrentBranchUpstream(upstream); err != nil {
 				return err
 			}
@@ -178,7 +178,7 @@ func (self *SyncController) PullBranch(branch *models.Branch, worktree *models.W
 	}
 
 	if !branch.IsTrackingRemote() {
-		return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(branch, func(upstream string) error {
+		return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(branch, false, func(upstream string) error {
 			upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
 			if err != nil {
 				return err

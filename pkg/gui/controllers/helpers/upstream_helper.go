@@ -37,9 +37,14 @@ func (self *UpstreamHelper) ParseUpstream(upstream string) (string, string, erro
 	return upstreamRemote, upstreamBranch, nil
 }
 
-func (self *UpstreamHelper) promptForUpstream(initialContent string, onConfirm func(string) error) error {
+func (self *UpstreamHelper) promptForUpstream(initialContent string, isPush bool, onConfirm func(string) error) error {
+	title := self.c.Tr.EnterUpstream
+	if isPush {
+		title = self.c.Tr.EnterUpstreamNewBranch
+	}
+
 	self.c.Prompt(types.PromptOpts{
-		Title:               self.c.Tr.EnterUpstream,
+		Title:               title,
 		InitialContent:      initialContent,
 		FindSuggestionsFunc: self.getRemoteBranchesSuggestionsFunc(" "),
 		HandleConfirm:       onConfirm,
@@ -48,17 +53,17 @@ func (self *UpstreamHelper) promptForUpstream(initialContent string, onConfirm f
 	return nil
 }
 
-func (self *UpstreamHelper) PromptForUpstreamWithInitialContent(currentBranch *models.Branch, onConfirm func(string) error) error {
+func (self *UpstreamHelper) PromptForUpstreamWithInitialContent(currentBranch *models.Branch, isPush bool, onConfirm func(string) error) error {
 	initialContent := currentBranch.UpstreamRemote + " " + currentBranch.UpstreamBranch
 	if !currentBranch.IsTrackingRemote() {
 		initialContent = self.GetSuggestedRemote() + " " + currentBranch.Name
 	}
 
-	return self.promptForUpstream(initialContent, onConfirm)
+	return self.promptForUpstream(initialContent, isPush, onConfirm)
 }
 
 func (self *UpstreamHelper) PromptForUpstreamWithoutInitialContent(_ *models.Branch, onConfirm func(string) error) error {
-	return self.promptForUpstream("", onConfirm)
+	return self.promptForUpstream("", false, onConfirm)
 }
 
 func (self *UpstreamHelper) GetSuggestedRemote() string {

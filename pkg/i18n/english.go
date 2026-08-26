@@ -559,6 +559,7 @@ type TranslationSet struct {
 	ExitCustomPatchBuilder                string
 	ExitFocusedMainView                   string
 	EnterUpstream                         string
+	EnterUpstreamNewBranch                string
 	InvalidUpstream                       string
 	NewRemote                             string
 	NewRemoteName                         string
@@ -1731,6 +1732,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ExitCustomPatchBuilder:               `Exit custom patch builder`,
 		ExitFocusedMainView:                  "Exit back to side panel",
 		EnterUpstream:                        `Enter upstream as '<remote> <branchname>'`,
+		EnterUpstreamNewBranch:               `Enter upstream as '<remote> <branchname>' — new upstream branch will be created`,
 		InvalidUpstream:                      "Invalid upstream. Must be in the format '<remote> <branchname>'",
 		NewRemote:                            `New remote`,
 		NewRemoteName:                        `New remote name:`,

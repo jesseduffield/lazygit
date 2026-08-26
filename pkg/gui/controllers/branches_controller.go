@@ -440,7 +440,7 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 }
 
 func (self *BranchesController) push(branch *models.Branch) error {
-	return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(branch, func(upstream string) error {
+	return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(branch, true, func(upstream string) error {
 		upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
 		if err != nil {
 			return err
