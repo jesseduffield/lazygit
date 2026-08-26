@@ -39,9 +39,6 @@ github.com/cloudfoundry/jibber_jabber
 # github.com/creack/pty v1.1.24
 ## explicit; go 1.18
 github.com/creack/pty
-# github.com/davecgh/go-spew v1.1.1
-## explicit
-github.com/davecgh/go-spew/spew
 # github.com/fatih/color v1.9.0
 ## explicit; go 1.13
 github.com/fatih/color
@@ -118,9 +115,6 @@ github.com/mitchellh/go-ps
 # github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe
 ## explicit; go 1.17
 github.com/petermattis/goid
-# github.com/pmezard/go-difflib v1.0.0
-## explicit
-github.com/pmezard/go-difflib/difflib
 # github.com/rivo/uniseg v0.4.7
 ## explicit; go 1.18
 github.com/rivo/uniseg
@@ -140,8 +134,8 @@ github.com/sanity-io/litter
 # github.com/sasha-s/go-deadlock v0.3.9
 ## explicit
 github.com/sasha-s/go-deadlock
-# github.com/sirupsen/logrus v1.9.4
-## explicit; go 1.17
+# github.com/sirupsen/logrus v1.10.1
+## explicit; go 1.23
 github.com/sirupsen/logrus
 # github.com/spf13/afero v1.15.0
 ## explicit; go 1.23.0
@@ -154,10 +148,12 @@ github.com/spkg/bom
 # github.com/stefanhaller/git-todo-parser v0.0.7-0.20250905083220-c50528f08304
 ## explicit; go 1.13
 github.com/stefanhaller/git-todo-parser/todo
-# github.com/stretchr/testify v1.11.1
+# github.com/stretchr/testify v1.12.0
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
+github.com/stretchr/testify/internal/difflib
+github.com/stretchr/testify/internal/spew
 # github.com/wk8/go-ordered-map/v2 v2.1.8
 ## explicit; go 1.18
 github.com/wk8/go-ordered-map/v2
