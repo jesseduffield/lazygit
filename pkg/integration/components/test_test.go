@@ -28,6 +28,9 @@ type fakeGuiDriver struct {
 	heldCoordinates     []coordinate
 	movedCoordinates    []coordinate
 	releasedCoordinates []coordinate
+	scrolledCoordinates []coordinate
+	onUIThread          bool
+	onUIThreadCallCount int
 }
 
 var _ integrationTypes.GuiDriver = &fakeGuiDriver{}
@@ -57,13 +60,17 @@ func (self *fakeGuiDriver) MouseRelease(x, y int) {
 }
 
 func (self *fakeGuiDriver) ScrollWheelDown(x, y int) {
+	self.scrolledCoordinates = append(self.scrolledCoordinates, coordinate{x: x, y: y})
 }
 
 func (self *fakeGuiDriver) RefreshInBackground() {
 }
 
 func (self *fakeGuiDriver) OnUIThreadAndWait(f func()) {
+	self.onUIThreadCallCount++
+	self.onUIThread = true
 	f()
+	self.onUIThread = false
 }
 
 func (self *fakeGuiDriver) FocusIn() {
@@ -165,6 +172,42 @@ func TestSuccess(t *testing.T) {
 	assert.EqualValues(t, []coordinate{{2, 3}, {2, 3}}, driver.movedCoordinates)
 	assert.EqualValues(t, []coordinate{{2, 3}}, driver.releasedCoordinates)
 	assert.Equal(t, "", driver.failureMessage)
+}
+
+func TestViewDriverPointerCoordinates(t *testing.T) {
+	guiDriver := &fakeGuiDriver{}
+	testDriver := NewTestDriver(guiDriver, nil, config.KeybindingConfig{}, 0)
+	view := gocui.NewView("source", 10, 20, 30, 31, gocui.OutputNormal)
+	targetView := gocui.NewView("target", 40, 50, 60, 61, gocui.OutputNormal)
+	viewDriver := &ViewDriver{
+		getView: func() *gocui.View {
+			assert.True(t, guiDriver.onUIThread)
+			return view
+		},
+		t: testDriver,
+	}
+	targetViewDriver := &ViewDriver{
+		getView: func() *gocui.View {
+			assert.True(t, guiDriver.onUIThread)
+			return targetView
+		},
+		t: testDriver,
+	}
+
+	viewDriver.
+		Click(1, 2).
+		FocusInAndClick(3, 4).
+		ClickAndHold(5, 6).
+		MouseMove(7, 8).
+		MouseMoveToBottom(9).
+		MouseMoveToView(targetViewDriver, 10, 11).
+		ScrollWheelDown()
+
+	assert.Equal(t, []coordinate{{12, 23}, {14, 25}}, guiDriver.clickedCoordinates)
+	assert.Equal(t, []coordinate{{16, 27}}, guiDriver.heldCoordinates)
+	assert.Equal(t, []coordinate{{18, 29}, {20, 30}, {51, 62}}, guiDriver.movedCoordinates)
+	assert.Equal(t, []coordinate{{11, 21}}, guiDriver.scrolledCoordinates)
+	assert.Equal(t, 7, guiDriver.onUIThreadCallCount)
 }
 
 func TestFailingFixture(t *testing.T) {

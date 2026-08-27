@@ -517,7 +517,7 @@ func (self *ViewDriver) PressRapidly(keys ...config.Keybinding) *ViewDriver {
 }
 
 func (self *ViewDriver) Click(x, y int) *ViewDriver {
-	offsetX, offsetY, _, _ := self.getView().Dimensions()
+	offsetX, offsetY, _ := self.viewGeometry()
 
 	self.t.click(offsetX+1+x, offsetY+1+y)
 
@@ -525,7 +525,7 @@ func (self *ViewDriver) Click(x, y int) *ViewDriver {
 }
 
 func (self *ViewDriver) FocusInAndClick(x, y int) *ViewDriver {
-	offsetX, offsetY, _, _ := self.getView().Dimensions()
+	offsetX, offsetY, _ := self.viewGeometry()
 
 	self.t.focusInAndClick(offsetX+1+x, offsetY+1+y)
 
@@ -533,7 +533,7 @@ func (self *ViewDriver) FocusInAndClick(x, y int) *ViewDriver {
 }
 
 func (self *ViewDriver) MouseMoveToView(target *ViewDriver, x, y int) *ViewDriver {
-	offsetX, offsetY, _, _ := target.getView().Dimensions()
+	offsetX, offsetY, _ := target.viewGeometry()
 	self.t.mouseMove(offsetX+1+x, offsetY+1+y)
 	return self
 }
@@ -543,28 +543,40 @@ func (self *ViewDriver) Drag(fromX, fromY, toX, toY int) *ViewDriver {
 }
 
 func (self *ViewDriver) ClickAndHold(x, y int) *ViewDriver {
-	offsetX, offsetY, _, _ := self.getView().Dimensions()
+	offsetX, offsetY, _ := self.viewGeometry()
 	self.t.clickAndHold(offsetX+1+x, offsetY+1+y)
 	return self
 }
 
 func (self *ViewDriver) MouseMove(x, y int) *ViewDriver {
-	offsetX, offsetY, _, _ := self.getView().Dimensions()
+	offsetX, offsetY, _ := self.viewGeometry()
 	self.t.mouseMove(offsetX+1+x, offsetY+1+y)
 	return self
 }
 
 func (self *ViewDriver) MouseMoveToBottom(x int) *ViewDriver {
-	return self.MouseMove(x, self.getView().InnerHeight()-1)
+	offsetX, offsetY, innerHeight := self.viewGeometry()
+	self.t.mouseMove(offsetX+1+x, offsetY+innerHeight)
+	return self
 }
 
 // scrolls the view down by one notch of the mouse wheel, i.e. by
 // gui.scrollHeight lines. This moves the scroll position without moving the
 // selection.
 func (self *ViewDriver) ScrollWheelDown() *ViewDriver {
-	offsetX, offsetY, _, _ := self.getView().Dimensions()
+	offsetX, offsetY, _ := self.viewGeometry()
 	self.t.scrollWheelDown(offsetX+1, offsetY+1)
 	return self
+}
+
+func (self *ViewDriver) viewGeometry() (offsetX int, offsetY int, innerHeight int) {
+	self.t.gui.OnUIThreadAndWait(func() {
+		view := self.getView()
+		offsetX, offsetY, _, _ = view.Dimensions()
+		innerHeight = view.InnerHeight()
+	})
+
+	return offsetX, offsetY, innerHeight
 }
 
 func (self *ViewDriver) RepeatMouseMove() *ViewDriver {
