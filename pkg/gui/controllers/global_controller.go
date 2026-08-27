@@ -62,18 +62,18 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Description: self.c.Tr.PrevScreenMode,
 		},
 		{
-			Keys:              opts.GetKeys(opts.Config.Universal.CyclePagers),
-			Handler:           opts.Guards.NoPopupPanel(self.cyclePagers),
-			GetDisabledReason: self.canCyclePagers,
-			Description:       self.c.Tr.CyclePagers,
-			Tooltip:           self.c.Tr.CyclePagersTooltip,
+			Keys:              opts.GetKeys(opts.Config.Universal.CycleDiffRenderers),
+			Handler:           opts.Guards.NoPopupPanel(self.cycleDiffRenderers),
+			GetDisabledReason: self.canCycleDiffRenderers,
+			Description:       self.c.Tr.CycleDiffRenderers,
+			Tooltip:           self.c.Tr.CycleDiffRenderersTooltip,
 		},
 		{
-			Keys:              opts.GetKeys(opts.Config.Universal.CyclePagersReverse),
-			Handler:           opts.Guards.NoPopupPanel(self.cyclePagersBackward),
-			GetDisabledReason: self.canCyclePagers,
-			Description:       self.c.Tr.CyclePagersReverse,
-			Tooltip:           self.c.Tr.CyclePagersReverseTooltip,
+			Keys:              opts.GetKeys(opts.Config.Universal.CycleDiffRenderersReverse),
+			Handler:           opts.Guards.NoPopupPanel(self.cycleDiffRenderersBackward),
+			GetDisabledReason: self.canCycleDiffRenderers,
+			Description:       self.c.Tr.CycleDiffRenderersReverse,
+			Tooltip:           self.c.Tr.CycleDiffRenderersReverseTooltip,
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Return),
@@ -170,21 +170,21 @@ func (self *GlobalController) prevScreenMode() error {
 	return (&ScreenModeActions{c: self.c}).Prev()
 }
 
-func (self *GlobalController) cyclePagers() error {
-	self.c.State().GetPagerConfig().CyclePagers()
-	self.onPagerChanged()
+func (self *GlobalController) cycleDiffRenderers() error {
+	self.c.State().GetDiffRendererConfigManager().CycleDiffRenderers()
+	self.onDiffRenderersChanged()
 	return nil
 }
 
-func (self *GlobalController) cyclePagersBackward() error {
-	self.c.State().GetPagerConfig().CyclePagersBackward()
-	self.onPagerChanged()
+func (self *GlobalController) cycleDiffRenderersBackward() error {
+	self.c.State().GetDiffRendererConfigManager().CycleDiffRenderersBackward()
+	self.onDiffRenderersChanged()
 	return nil
 }
 
-// onPagerChanged re-renders the main view so the newly selected pager takes
-// effect, and shows a toast naming it.
-func (self *GlobalController) onPagerChanged() {
+// onDiffRenderersChanged re-renders the main view so the newly selected diff renderer
+// takes effect, and shows a toast naming it.
+func (self *GlobalController) onDiffRenderersChanged() {
 	currentSide := self.c.Context().CurrentSide()
 	currentKey := self.c.Context().Current().GetKey()
 	if currentSide.GetKey() == currentKey ||
@@ -193,28 +193,21 @@ func (self *GlobalController) onPagerChanged() {
 		currentSide.HandleRenderToMain()
 	}
 
-	pagerConfig := self.c.State().GetPagerConfig()
-	current, total := pagerConfig.CurrentPagerIndex()
-	name := pagerConfig.CurrentPagerName()
-	if name == "" {
-		if pagerConfig.CurrentPagerUsesGitConfigDiff() {
-			name = self.c.Tr.ExternalDiffPagerName
-		} else {
-			name = self.c.Tr.DefaultPagerName
-		}
-	}
-	self.c.Toast(utils.ResolvePlaceholderString(self.c.Tr.SelectedPager, map[string]string{
+	diffRendererConfigManager := self.c.State().GetDiffRendererConfigManager()
+	current, total := diffRendererConfigManager.CurrentDiffRendererIndex()
+	name := diffRendererConfigManager.CurrentDiffRendererName(self.c.Tr)
+	self.c.Toast(utils.ResolvePlaceholderString(self.c.Tr.SelectedDiffRenderers, map[string]string{
 		"name":    name,
 		"current": strconv.Itoa(current + 1),
 		"total":   strconv.Itoa(total),
 	}))
 }
 
-func (self *GlobalController) canCyclePagers() *types.DisabledReason {
-	_, total := self.c.State().GetPagerConfig().CurrentPagerIndex()
+func (self *GlobalController) canCycleDiffRenderers() *types.DisabledReason {
+	_, total := self.c.State().GetDiffRendererConfigManager().CurrentDiffRendererIndex()
 	if total <= 1 {
 		return &types.DisabledReason{
-			Text: self.c.Tr.CyclePagersDisabledReason,
+			Text: self.c.Tr.CycleDiffRenderersDisabledReason,
 		}
 	}
 	return nil

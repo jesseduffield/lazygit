@@ -87,6 +87,10 @@ while still being meaningful and self-contained.
 - **Wrap message body to 72 characters**. The subject is allowed to go up to 80
   characters, or even a little more if needed to convey a good single-line
   summary; the body should be wrapped at 72 exactly, no more, no less.
+- **End every commit message with the `Co-authored-by:` trailer** naming the
+  model that wrote it, exactly as your harness instructions spell it. Nothing
+  in `just check` catches a missing one, so it has to be part of writing the
+  message rather than something to notice afterwards.
 
 ## Iterate with `fixup!` commits
 
@@ -104,6 +108,16 @@ fixup isn't only clean autosquash — it's that the refinement lands as a
 separate, reviewable commit that the user decides when to fold in. A bare
 `--amend` rewrites the commit on the spot and skips that checkpoint. Don't
 treat "I'm only touching the tip commit" as an exception.
+
+**When the tip is the wrong place for a fixup, insert it mid-branch.**
+Committing a fixup at the tip of the branch only works while the code it
+touches still looks the same there; once later commits have rewritten that
+code — or the target has since been split — the fixup won't apply, and
+rewriting the later commits to accommodate it defeats the point. Check out the
+target, make the change, `git commit --fixup=<target>`, then
+`git rebase --onto <the fixup> <target> <branch>` to replay the rest of the
+branch. The fixup stays a separate, reviewable commit; only its position
+changes.
 
 If the changes don't map cleanly onto existing commits — say they cut
 across several of them, or restructure something at a different layer
@@ -213,6 +227,16 @@ that changes the relevant test(s) or adds new ones to demonstrate the bug, then
 fix the bug in a follow-up commit. This gives reviewers (and `git bisect`) a
 clear before/after and proves the test actually exercises the broken code path.
 
+This applies only to defects that existed before the entire branch or branch
+stack. Never use the bug-demonstration pattern for a regression introduced by
+an earlier commit in the current stack. Fix or rewrite the commit that
+introduced the regression so that no commit in the final history contains it.
+Put the regression test in a preparatory commit before the introducing commit,
+so it guards that commit in the final history. If the test cannot pass before
+the feature exists, restructure the implementation or test seam until it can;
+if that would require a design tradeoff, stop and discuss it rather than adding
+a later demonstration/fix pair.
+
 Use the `EXPECTED` / `ACTUAL` pattern in the bug-demonstrating commit. The test
 asserts the current (wrong) behavior so it passes on the broken code, with the
 correct expectation preserved inline as a comment. The fix commit then swaps
@@ -255,7 +279,11 @@ If you find yourself reaching for a local variable so that both forms can be
 expressed against the same receiver, the structure isn't right yet — go back
 and fix it instead of papering over it with a binding.
 
-Use this pattern only where it makes sense; don't apply it by default.
+Use this pattern only where it makes sense; don't apply it by default. Only
+ever use it for bugs, never for added features or behavior changes that aren't
+bugfixes; it is useful to demonstrate how a bug existed before fixing it, but
+it is never useful to demonstrate how a feature didn't exist before implementing
+it.
 
 ## Unify duplicated logic before you change it
 
@@ -376,11 +404,31 @@ Avoid phrasings like:
 - "cleaner than the previous approach"
 - "we used to ... but ..."
 - "after trying X, we found Y"
+- "X rather than Y", where Y is what the code did before the change
 
 The iteration story is sometimes worth preserving — but it belongs in the
 commit message, which is the durable record of *why this change was made*. The
 code comment should make sense to someone who has never seen any prior version
 and is just trying to understand the file as it currently exists.
+
+The tell is subtler than an explicit "we used to". A comment that justifies the
+code against an alternative — "run it on a worker rather than blocking the UI",
+"switch panels in `Then` rather than a moment earlier" — is history in disguise
+whenever that alternative is what the code did before the change. It reads as
+ordinary rationale, but the reader has no way to know the contrast is with a
+version that no longer exists.
+
+So the check to apply is: would you have written this comment if you were
+writing the file from scratch, with no diff in mind? If not, the sentence
+belongs in the commit message.
+
+## Don't justify routine call sites
+
+If the codebase calls a helper in twenty places without explanation, your
+twenty-first call site doesn't need one either. A comment there says "something
+here is unusual"; when nothing is, it's noise — and it invites exactly the kind
+of before/after justification the section above warns about. Look at the
+neighboring call sites before writing one: if they're bare, match them.
 
 ## Don't present "live with the bug" as an option
 

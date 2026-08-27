@@ -1,8 +1,11 @@
 package components
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
+	lazycoreUtils "github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -19,9 +22,15 @@ type coordinate struct {
 }
 
 type fakeGuiDriver struct {
-	failureMessage     string
-	pressedKeys        []string
-	clickedCoordinates []coordinate
+	failureMessage      string
+	pressedKeys         []string
+	clickedCoordinates  []coordinate
+	heldCoordinates     []coordinate
+	movedCoordinates    []coordinate
+	releasedCoordinates []coordinate
+	scrolledCoordinates []coordinate
+	onUIThread          bool
+	onUIThreadCallCount int
 }
 
 var _ integrationTypes.GuiDriver = &fakeGuiDriver{}
@@ -36,6 +45,32 @@ func (self *fakeGuiDriver) PressKeysRapidly(keys ...string) {
 
 func (self *fakeGuiDriver) Click(x, y int) {
 	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
+}
+
+func (self *fakeGuiDriver) ClickAndHold(x, y int) {
+	self.heldCoordinates = append(self.heldCoordinates, coordinate{x: x, y: y})
+}
+
+func (self *fakeGuiDriver) MouseMove(x, y int) {
+	self.movedCoordinates = append(self.movedCoordinates, coordinate{x: x, y: y})
+}
+
+func (self *fakeGuiDriver) MouseRelease(x, y int) {
+	self.releasedCoordinates = append(self.releasedCoordinates, coordinate{x: x, y: y})
+}
+
+func (self *fakeGuiDriver) ScrollWheelDown(x, y int) {
+	self.scrolledCoordinates = append(self.scrolledCoordinates, coordinate{x: x, y: y})
+}
+
+func (self *fakeGuiDriver) RefreshInBackground() {
+}
+
+func (self *fakeGuiDriver) OnUIThreadAndWait(f func()) {
+	self.onUIThreadCallCount++
+	self.onUIThread = true
+	f()
+	self.onUIThread = false
 }
 
 func (self *fakeGuiDriver) FocusIn() {
@@ -123,13 +158,77 @@ func TestSuccess(t *testing.T) {
 			t.press("b")
 			t.click(0, 1)
 			t.click(2, 3)
+			t.clickAndHold(0, 1)
+			t.mouseMove(2, 3)
+			t.repeatMouseMove()
+			t.mouseRelease()
 		},
 	})
 	driver := &fakeGuiDriver{}
 	test.Run(driver)
 	assert.EqualValues(t, []string{"a", "b"}, driver.pressedKeys)
 	assert.EqualValues(t, []coordinate{{0, 1}, {2, 3}}, driver.clickedCoordinates)
+	assert.EqualValues(t, []coordinate{{0, 1}}, driver.heldCoordinates)
+	assert.EqualValues(t, []coordinate{{2, 3}, {2, 3}}, driver.movedCoordinates)
+	assert.EqualValues(t, []coordinate{{2, 3}}, driver.releasedCoordinates)
 	assert.Equal(t, "", driver.failureMessage)
+}
+
+func TestViewDriverPointerCoordinates(t *testing.T) {
+	guiDriver := &fakeGuiDriver{}
+	testDriver := NewTestDriver(guiDriver, nil, config.KeybindingConfig{}, 0)
+	view := gocui.NewView("source", 10, 20, 30, 31, gocui.OutputNormal)
+	targetView := gocui.NewView("target", 40, 50, 60, 61, gocui.OutputNormal)
+	viewDriver := &ViewDriver{
+		getView: func() *gocui.View {
+			assert.True(t, guiDriver.onUIThread)
+			return view
+		},
+		t: testDriver,
+	}
+	targetViewDriver := &ViewDriver{
+		getView: func() *gocui.View {
+			assert.True(t, guiDriver.onUIThread)
+			return targetView
+		},
+		t: testDriver,
+	}
+
+	viewDriver.
+		Click(1, 2).
+		FocusInAndClick(3, 4).
+		ClickAndHold(5, 6).
+		MouseMove(7, 8).
+		MouseMoveToBottom(9).
+		MouseMoveToView(targetViewDriver, 10, 11).
+		ScrollWheelDown()
+
+	assert.Equal(t, []coordinate{{12, 23}, {14, 25}}, guiDriver.clickedCoordinates)
+	assert.Equal(t, []coordinate{{16, 27}}, guiDriver.heldCoordinates)
+	assert.Equal(t, []coordinate{{18, 29}, {20, 30}, {51, 62}}, guiDriver.movedCoordinates)
+	assert.Equal(t, []coordinate{{11, 21}}, guiDriver.scrolledCoordinates)
+	assert.Equal(t, 7, guiDriver.onUIThreadCallCount)
+}
+
+func TestFailingFixture(t *testing.T) {
+	test := NewIntegrationTest(NewIntegrationTestArgs{
+		Description: unitTestDescription,
+		SetupRepo: func(shell *Shell) {
+			shell.RunCommand([]string{"git", "checkout", "no-such-branch"})
+			shell.CreateFile("reached.txt", "")
+		},
+		Run: func(t *TestDriver, keys config.KeybindingConfig) {},
+	})
+
+	paths := NewPaths(t.TempDir())
+	assert.NoError(t, os.MkdirAll(paths.ActualRepo(), 0o777))
+
+	workingDir, err := createFixture(test, paths, lazycoreUtils.GetLazyRootDirectory())
+
+	assert.ErrorContains(t, err, "git checkout no-such-branch")
+	assert.Empty(t, workingDir)
+	// the steps following the failing one are skipped
+	assert.NoFileExists(t, filepath.Join(paths.ActualRepo(), "reached.txt"))
 }
 
 func TestGitVersionRestriction(t *testing.T) {

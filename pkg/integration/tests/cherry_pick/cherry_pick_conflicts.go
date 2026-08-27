@@ -79,10 +79,9 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			TopLines(
 				Contains("second-change-branch unrelated change"),
-				Contains("second change"),
-				Contains("first change").IsSelected(),
+				Contains("second change").IsSelected(),
+				Contains("first change"),
 			).
-			SelectPreviousItem().
 			Tap(func() {
 				// because we picked 'Second change' when resolving the conflict,
 				// we now see this commit as having replaced First Change with Second Change,

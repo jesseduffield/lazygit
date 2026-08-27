@@ -23,7 +23,6 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/google/go-cmp/cmp"
 	"golang.org/x/tools/go/ast/astutil"
 
 	"mvdan.cc/gofumpt/internal/govendor/go/format"
@@ -57,10 +56,80 @@ type Options struct {
 	// is formatted as if it weren't inside a module.
 	ModulePath string
 
-	// ExtraRules enables extra formatting rules, such as grouping function
+	// ExtraRules enables all extra formatting rules, such as grouping function
 	// parameters with repeated types together.
+	//
+	// Deprecated: use [Options.Extra] instead.
 	ExtraRules bool
+
+	// Extra allows enabling extra formatting rules which are disabled by default.
+	Extra Extra
 }
+
+// Extra is the set of extra formatting rules which are available.
+//
+// As the formatter evolves, we might add or remove boolean fields here.
+// Go API users who wish to avoid build errors in such cases
+// can use the string API in [Extra.Set].
+type Extra struct {
+	// TODO: should we have "All" to turn them all on,
+	// akin to how the CLI has -extra=true for historical reasons?
+	// I lean against it, as it should be a conscious choice to turn on
+	// each of these extra rules, and we should be able to add more rules
+	// without fear of causing unexpected changes for users.
+
+	// GroupParams groups function parameters with repeated types.
+	GroupParams bool
+
+	// ClotheReturns clothes naked returns in functions with named results.
+	ClotheReturns bool
+
+	// BalanceCalls places a multi-line call's closing parenthesis on its
+	// own line when the opening parenthesis ends a line.
+	BalanceCalls bool
+}
+
+func (e *Extra) String() string {
+	var active []string
+	if e.GroupParams {
+		active = append(active, "group_params")
+	}
+	if e.ClotheReturns {
+		active = append(active, "clothe_returns")
+	}
+	if e.BalanceCalls {
+		active = append(active, "balance_calls")
+	}
+	return strings.Join(active, ",")
+}
+
+func (e *Extra) Set(v string) error {
+	if v == "true" {
+		e.GroupParams = true
+		e.ClotheReturns = true
+		e.BalanceCalls = true
+		return nil
+	}
+	*e = Extra{}
+	if v == "false" {
+		return nil
+	}
+	for s := range strings.SplitSeq(v, ",") {
+		switch s {
+		case "group_params":
+			e.GroupParams = true
+		case "clothe_returns":
+			e.ClotheReturns = true
+		case "balance_calls":
+			e.BalanceCalls = true
+		default:
+			return fmt.Errorf("unknown rule: %q", s)
+		}
+	}
+	return nil
+}
+
+func (e *Extra) IsBoolFlag() bool { return true }
 
 // Source formats src in gofumpt's format, assuming that src holds a valid Go
 // source file.
@@ -90,6 +159,10 @@ func Source(src []byte, opts Options) ([]byte, error) {
 // modifying the position of nodes, or modifying literal values.
 func File(fset *token.FileSet, file *ast.File, opts Options) {
 	simplify(file)
+
+	if opts.ExtraRules {
+		opts.Extra.Set("true") // enable all the extra rules
+	}
 
 	if opts.LangVersion == "" {
 		opts.LangVersion = "go1"
@@ -258,6 +331,37 @@ func (f *fumpter) removeLinesBetween(from, to token.Pos) {
 	f.removeLines(f.Line(from)+1, f.Line(to))
 }
 
+// removeParens unwraps a single-spec var group like "var (\n\tx = 1\n)" into a
+// lone "var x = 1". It only acts on such groups without a doc comment.
+func (f *fumpter) removeParens(node *ast.GenDecl) {
+	if node.Tok != token.VAR || len(node.Specs) != 1 ||
+		!node.Lparen.IsValid() || node.Doc != nil {
+		return
+	}
+	specPos := node.Specs[0].Pos()
+	specEnd := node.Specs[0].End()
+
+	if len(f.commentsBetween(node.TokPos, specPos)) > 0 {
+		// If the single spec has a comment on the line above,
+		// the comment must go before the entire declaration now.
+		node.TokPos = specPos
+	} else {
+		f.removeLines(f.Line(node.TokPos), f.Line(specPos))
+	}
+	if len(f.commentsBetween(specEnd, node.Rparen)) > 0 {
+		// Leave one newline to not force a comment on the next line to
+		// become an inline comment.
+		f.removeLines(f.Line(specEnd)+1, f.Line(node.Rparen))
+	} else {
+		f.removeLines(f.Line(specEnd), f.Line(node.Rparen))
+	}
+
+	// Remove the parentheses. go/printer will automatically
+	// get rid of the newlines.
+	node.Lparen = token.NoPos
+	node.Rparen = token.NoPos
+}
+
 func (f *fumpter) Position(p token.Pos) token.Position {
 	return f.file.PositionFor(p, false)
 }
@@ -337,11 +441,68 @@ var rxCommentDirective = regexp.MustCompile(
 		`|sys(?:nb)?\b` +
 		`)`)
 
+// rxShebangComment matches a shebang like `//usr/bin/env go run`.
+var rxShebangComment = regexp.MustCompile(`^//[^ /].*\bbin/`)
+
+// commentGroupLooksLikeCode reports whether the lines of a //-style comment
+// group parse as Go statements with at least one non-trivial statement.
+// A bare identifier path or label is treated as trivial, since prose like
+// "// foo" or "// TODO: bar" parses but is not commented-out code.
+func commentGroupLooksLikeCode(group *ast.CommentGroup) bool {
+	src := "package p\nfunc _() {\n" + group.Text() + "}\n"
+	// AllErrors avoids the parser's panic/recover bailout on too many errors,
+	// which crashes under tinygo's Wasm target as it lacks recover support.
+	file, err := parser.ParseFile(token.NewFileSet(), "", src, parser.SkipObjectResolution|parser.AllErrors)
+	if err != nil {
+		return false
+	}
+	fn, _ := file.Decls[0].(*ast.FuncDecl)
+	if fn == nil || fn.Body == nil {
+		return false
+	}
+	for _, stmt := range fn.Body.List {
+		if !isTrivialStmt(stmt) {
+			return true
+		}
+	}
+	return false
+}
+
+func isTrivialStmt(stmt ast.Stmt) bool {
+	switch s := stmt.(type) {
+	case *ast.ExprStmt:
+		return isIdentPath(s.X)
+	case *ast.LabeledStmt:
+		return isTrivialStmt(s.Stmt)
+	case *ast.EmptyStmt:
+		return true
+	}
+	return false
+}
+
+func isIdentPath(expr ast.Expr) bool {
+	switch e := expr.(type) {
+	case *ast.Ident:
+		return true
+	case *ast.SelectorExpr:
+		return isIdentPath(e.X)
+	}
+	return false
+}
+
 func (f *fumpter) applyPre(c *astutil.Cursor) {
 	f.splitLongLine(c)
 
 	switch node := c.Node().(type) {
 	case *ast.File:
+		// Unwrap single-spec var groups before the joining below,
+		// so an adjacent var line and var group merge in one pass.
+		for _, decl := range node.Decls {
+			if decl, ok := decl.(*ast.GenDecl); ok {
+				f.removeParens(decl)
+			}
+		}
+
 		// Join contiguous lone var/const/import lines.
 		// Abort if there are empty lines in between,
 		// including a leading comment if it's a directive.
@@ -354,6 +515,7 @@ func (f *fumpter) applyPre(c *astutil.Cursor) {
 				continue
 			}
 			lastPos := start.Pos()
+			merged := false
 		contLoop:
 			for i++; i < len(node.Decls); {
 				cont, ok := node.Decls[i].(*ast.GenDecl)
@@ -377,16 +539,24 @@ func (f *fumpter) applyPre(c *astutil.Cursor) {
 				}
 
 				start.Specs = append(start.Specs, cont.Specs...)
+				merged = true
+				end := cont.End()
 				if c := f.inlineComment(cont.End()); c != nil {
 					// don't move an inline comment outside
-					start.Rparen = c.End()
-				} else {
-					// so the code below treats the joined
-					// decl group as multi-line
-					start.Rparen = cont.End()
+					end = c.End()
 				}
+				// Point Rparen at the last content character, like a real
+				// ')', so start.End() stays on the content's final line and
+				// the empty-line separator below is idempotent in one pass.
+				start.Rparen = end - 1
 				lastPos = cont.Pos()
 				i++
+			}
+			// Re-sort imports in the new group so the output is idempotent.
+			// Set Lparen so ast.SortImports doesn't skip the merged decl.
+			if merged && start.Tok == token.IMPORT {
+				start.Lparen = start.TokPos + token.Pos(len("import"))
+				ast.SortImports(f.fset, f.astFile)
 			}
 		}
 		node.Decls = newDecls
@@ -399,15 +569,30 @@ func (f *fumpter) applyPre(c *astutil.Cursor) {
 		var lastEnd token.Pos
 		for _, decl := range node.Decls {
 			pos := decl.Pos()
-			comments := f.commentsBetween(lastEnd, pos)
-			if len(comments) > 0 {
-				pos = comments[0].Pos()
+			// Trailing inline comments on lastEnd's line belong to the
+			// previous decl and extend its effective end.
+			effectiveEnd := lastEnd
+			lastEndLine := f.Line(lastEnd)
+			for _, cg := range f.commentsBetween(lastEnd, pos) {
+				if f.Line(cg.Pos()) != lastEndLine {
+					pos = cg.Pos()
+					break
+				}
+				effectiveEnd = cg.End()
 			}
 
 			// Note that we want End-1, as End is the character after the node.
 			multi := f.Line(pos) < f.Line(decl.End()-1)
-			if multi && lastMulti && f.Line(lastEnd)+1 == f.Line(pos) {
-				f.addNewline(lastEnd)
+			// A func declaration which fits on a single source line may
+			// still be printed across multiple lines: go/printer's funcBody
+			// breaks the body onto its own lines once header+body exceeds
+			// 100 bytes. Approximate that with the source byte length.
+			if fn, _ := decl.(*ast.FuncDecl); fn != nil && !multi && fn.Body != nil &&
+				f.Offset(fn.End())-f.Offset(fn.Pos()) > 100 {
+				multi = true
+			}
+			if multi && lastMulti && f.Line(effectiveEnd)+1 == f.Line(pos) {
+				f.addNewline(effectiveEnd)
 			}
 
 			lastMulti = multi
@@ -418,6 +603,10 @@ func (f *fumpter) applyPre(c *astutil.Cursor) {
 	groupLoop:
 		for _, group := range node.Comments {
 			for _, comment := range group.List {
+				// Leave shebang lines like `//usr/bin/env go run` alone.
+				if f.Line(comment.Slash) == 1 && rxShebangComment.MatchString(comment.Text) {
+					continue groupLoop
+				}
 				if comment.Text == "//gofumpt:diagnose" || strings.HasPrefix(comment.Text, "//gofumpt:diagnose ") {
 					slc := []string{
 						"//gofumpt:diagnose",
@@ -427,8 +616,8 @@ func (f *fumpter) applyPre(c *astutil.Cursor) {
 						"-lang=" + f.LangVersion,
 						"-modpath=" + f.ModulePath,
 					}
-					if f.ExtraRules {
-						slc = append(slc, "-extra")
+					if s := f.Extra.String(); s != "" {
+						slc = append(slc, "-extra="+s)
 					}
 					comment.Text = strings.Join(slc, " ")
 				}
@@ -446,6 +635,9 @@ func (f *fumpter) applyPre(c *astutil.Cursor) {
 					// this line could be code like "//{"
 					continue groupLoop
 				}
+			}
+			if commentGroupLooksLikeCode(group) {
+				continue groupLoop
 			}
 			// If none of the comment group's lines look like a
 			// directive or code, add spaces, if needed.
@@ -488,31 +680,7 @@ func (f *fumpter) applyPre(c *astutil.Cursor) {
 
 		// Single var declarations shouldn't use parentheses, unless
 		// there's a comment on the grouped declaration.
-		if node.Tok == token.VAR && len(node.Specs) == 1 &&
-			node.Lparen.IsValid() && node.Doc == nil {
-			specPos := node.Specs[0].Pos()
-			specEnd := node.Specs[0].End()
-
-			if len(f.commentsBetween(node.TokPos, specPos)) > 0 {
-				// If the single spec has a comment on the line above,
-				// the comment must go before the entire declaration now.
-				node.TokPos = specPos
-			} else {
-				f.removeLines(f.Line(node.TokPos), f.Line(specPos))
-			}
-			if len(f.commentsBetween(specEnd, node.Rparen)) > 0 {
-				// Leave one newline to not force a comment on the next line to
-				// become an inline comment.
-				f.removeLines(f.Line(specEnd)+1, f.Line(node.Rparen))
-			} else {
-				f.removeLines(f.Line(specEnd), f.Line(node.Rparen))
-			}
-
-			// Remove the parentheses. go/printer will automatically
-			// get rid of the newlines.
-			node.Lparen = token.NoPos
-			node.Rparen = token.NoPos
-		}
+		f.removeParens(node)
 
 	case *ast.InterfaceType:
 		if len(node.Methods.List) > 0 {
@@ -682,8 +850,7 @@ func (f *fumpter) applyPre(c *astutil.Cursor) {
 			f.removeLinesBetween(bodyEnd, node.End())
 		}
 
-		// Merging adjacent fields (e.g. parameters) is disabled by default.
-		if !f.ExtraRules {
+		if !f.Extra.GroupParams {
 			break
 		}
 		switch c.Parent().(type) {
@@ -692,6 +859,14 @@ func (f *fumpter) applyPre(c *astutil.Cursor) {
 			c.Replace(node)
 		case *ast.StructType:
 			// Do not merge adjacent fields in structs.
+		}
+
+	case *ast.ParenExpr:
+		// Unwrap any chain of redundant inner parens first,
+		// since astutil.Apply does not walk replacement nodes.
+		node.X = ast.Unparen(node.X)
+		if f.canRemoveParens(node) {
+			c.Replace(node.X)
 		}
 
 	case *ast.BasicLit:
@@ -704,15 +879,21 @@ func (f *fumpter) applyPre(c *astutil.Cursor) {
 		}
 
 	case *ast.AssignStmt:
-		// Only remove lines between the assignment token and the first right-hand side expression
-		f.removeLines(f.Line(node.TokPos), f.Line(node.Rhs[0].Pos()))
+		// Only remove lines between the assignment token and the right-hand side
+		// for simple single-value assignments. Skip multi-value assignments and
+		// binary expressions like long string concatenations, where a line break
+		// after the assignment token can improve readability.
+		if len(node.Rhs) == 1 {
+			if _, ok := node.Rhs[0].(*ast.BinaryExpr); !ok {
+				f.removeLines(f.Line(node.TokPos), f.Line(node.Rhs[0].Pos()))
+			}
+		}
 
 	case *ast.ReturnStmt:
 		if len(node.Results) > 0 {
 			break
 		}
-		// Clothing naked returns is disabled by default.
-		if !f.ExtraRules {
+		if !f.Extra.ClotheReturns {
 			break
 		}
 		results := f.parentFuncTypes[len(f.parentFuncTypes)-1].Results
@@ -822,6 +1003,33 @@ func (f *fumpter) applyPost(c *astutil.Cursor) {
 				f.addNewline(elem1.End())
 			}
 		}
+
+	// In a multi-line call, if the opening parenthesis is at the end of a
+	// line, the closing parenthesis should be at the start of a line.
+	// See https://github.com/mvdan/gofumpt/issues/74.
+	case *ast.CallExpr:
+		if !f.Extra.BalanceCalls {
+			break
+		}
+		if len(node.Args) == 0 {
+			break
+		}
+		openLine := f.Line(node.Lparen)
+		closeLine := f.Line(node.Rparen)
+		if openLine == closeLine {
+			break
+		}
+		firstLine := f.Line(node.Args[0].Pos())
+		lastEnd := node.Args[len(node.Args)-1].End()
+		if comment := f.inlineComment(lastEnd); comment != nil {
+			lastEnd = comment.End()
+		}
+		lastLine := f.Line(lastEnd)
+		openAtEOL := openLine != firstLine
+		closeAtBOL := closeLine != lastLine
+		if openAtEOL && !closeAtBOL {
+			f.addNewline(node.Rparen)
+		}
 	}
 }
 
@@ -906,6 +1114,46 @@ func (f *fumpter) splitLongLine(c *astutil.Cursor) {
 		firstLength >= minSplitLength && secondLength >= minSplitLength {
 		f.addNewline(newlinePos)
 	}
+}
+
+// canRemoveParens reports whether the parentheses around node are definitely
+// useless and can be safely removed without changing intent.
+func (f *fumpter) canRemoveParens(node *ast.ParenExpr) bool {
+	// Don't drop parens which contain comments,
+	// as the printer may not place them well without the parens.
+	if len(f.commentsBetween(node.Lparen, node.Rparen)) > 0 {
+		return false
+	}
+	return !keepParens(node.X, true)
+}
+
+// keepParens reports whether the parentheses directly around expr should be
+// kept: around binary, unary, and type expressions for readability and for
+// conversions like `(<-chan T)(v)`, but only when outermost; and around an
+// expression whose leftmost operand is a composite literal, whose brace would
+// otherwise open an if, for, or switch body.
+func keepParens(expr ast.Expr, outermost bool) bool {
+	switch expr := expr.(type) {
+	case *ast.CompositeLit:
+		return true
+	case *ast.CallExpr:
+		return keepParens(expr.Fun, false)
+	case *ast.SelectorExpr:
+		return keepParens(expr.X, false)
+	case *ast.IndexExpr:
+		return keepParens(expr.X, false)
+	case *ast.IndexListExpr:
+		return keepParens(expr.X, false)
+	case *ast.SliceExpr:
+		return keepParens(expr.X, false)
+	case *ast.TypeAssertExpr:
+		return keepParens(expr.X, false)
+	case *ast.BinaryExpr, *ast.UnaryExpr, *ast.StarExpr,
+		*ast.ChanType, *ast.ArrayType, *ast.MapType,
+		*ast.FuncType, *ast.InterfaceType, *ast.StructType:
+		return outermost
+	}
+	return false
 }
 
 func isComposite(node ast.Node) *ast.CompositeLit {
@@ -1093,16 +1341,28 @@ func (f *fumpter) shouldMergeAdjacentFields(f1, f2 *ast.Field) bool {
 
 	// Only merge if the types that the syntax nodes represent are equal,
 	// e.g. two *ast.Ident nodes "int" are equal, but the two *ast.Ident nodes
-	// "string" and "bool" are not. Hence we use go-cmp to do deep comparisons
-	// while ignoring position information, as it is irrelevant.
+	// "string" and "bool" are not. We use reflection to quickly discard most cases.
+	//
+	// We use an empty [token.FileSet] so that positions are ignored when printing,
+	// and two syntax nodes with different uses of newlines end up the same.
 	//
 	// Note that we could in theory use go/types here, but in practice gofumpt
 	// needs to be fast, hence it shouldn't rely on expensive typechecking.
-	opt := cmp.Comparer(func(x, y token.Pos) bool { return true })
-	return cmp.Equal(f1.Type, f2.Type, opt)
+	if reflect.TypeOf(f1.Type) != reflect.TypeOf(f2.Type) {
+		return false
+	}
+	emptyFset := token.NewFileSet()
+	var b1, b2 bytes.Buffer
+	if err := format.Node(&b1, emptyFset, f1.Type); err != nil {
+		return false
+	}
+	if err := format.Node(&b2, emptyFset, f2.Type); err != nil {
+		return false
+	}
+	return bytes.Equal(b1.Bytes(), b2.Bytes())
 }
 
-var posType = reflect.TypeOf(token.NoPos)
+var posType = reflect.TypeFor[token.Pos]()
 
 // setPos recursively sets all position fields in the node v to pos.
 func setPos(v reflect.Value, pos token.Pos) {

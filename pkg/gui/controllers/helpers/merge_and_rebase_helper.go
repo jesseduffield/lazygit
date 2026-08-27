@@ -188,9 +188,8 @@ func (self *MergeAndRebaseHelper) hasExecTodos(calledFromWorker bool) bool {
 	}
 
 	result := false
-	_ = self.c.GocuiGui().OnUIThreadAndWait(func() error {
+	_ = self.c.GocuiGui().OnUIThreadAndWait(func() {
 		result = check()
-		return nil
 	})
 	return result
 }

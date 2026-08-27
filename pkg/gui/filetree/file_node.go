@@ -51,7 +51,7 @@ func (self *FileNode) GetHasInlineMergeConflicts() bool {
 		if !file.HasInlineMergeConflicts {
 			return false
 		}
-		hasConflicts, _ := mergeconflicts.FileHasConflictMarkers(file.Path)
+		hasConflicts, _ := mergeconflicts.FileHasConflictMarkers(file.Path, file.ConflictMarkerSize)
 		return hasConflicts
 	})
 }

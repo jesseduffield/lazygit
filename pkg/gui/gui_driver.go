@@ -53,26 +53,73 @@ func (self *GuiDriver) PressKeysRapidly(keyStrs ...string) {
 func (self *GuiDriver) Click(x, y int) {
 	self.CheckAllToastsAcknowledged()
 
+	self.replayMouseEvent(x, y, tcell.ButtonPrimary)
+	self.replayMouseEvent(x, y, tcell.ButtonNone)
+}
+
+func (self *GuiDriver) ClickAndHold(x, y int) {
+	self.CheckAllToastsAcknowledged()
+	self.replayMouseEvent(x, y, tcell.ButtonPrimary)
+}
+
+// MouseMove reports the mouse at a new position with the left button still
+// held down, i.e. a drag movement. (No test needs pointer motion without a
+// button held, so that variant doesn't exist.)
+func (self *GuiDriver) MouseMove(x, y int) {
+	self.replayMouseEvent(x, y, tcell.ButtonPrimary)
+}
+
+func (self *GuiDriver) ScrollWheelDown(x, y int) {
+	self.replayMouseEvent(x, y, tcell.WheelDown)
+}
+
+func (self *GuiDriver) MouseRelease(x, y int) {
+	self.replayMouseEvent(x, y, tcell.ButtonNone)
+}
+
+func (self *GuiDriver) MouseReleaseWithoutWaiting(x, y int) {
+	self.replayMouseEventWithoutWaiting(x, y, tcell.ButtonNone)
+}
+
+func (self *GuiDriver) WaitUntilIdle() {
+	self.waitTillIdle()
+}
+
+func (self *GuiDriver) OnUIThreadAndWait(f func()) {
+	_ = self.gui.g.OnUIThreadAndWait(f)
+}
+
+func (self *GuiDriver) replayMouseEvent(x, y int, buttons tcell.ButtonMask) {
+	self.replayMouseEventWithoutWaiting(x, y, buttons)
+	self.waitTillIdle()
+}
+
+func (self *GuiDriver) replayMouseEventWithoutWaiting(x, y int, buttons tcell.ButtonMask) {
 	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
-		tcell.NewEventMouse(x, y, tcell.ButtonPrimary, 0),
+		tcell.NewEventMouse(x, y, buttons, 0),
 		0,
 	))
-	self.waitTillIdle()
-	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
-		tcell.NewEventMouse(x, y, tcell.ButtonNone, 0),
+}
+
+// replayFocusIn takes the focus away before handing it back, because that's the
+// only way a terminal can report regaining it, and lazygit only reacts to focus
+// reports that change the focus (see gocui.Gui.IsFocused).
+func (self *GuiDriver) replayFocusIn() {
+	self.gui.g.ReplayFocusEvent(gocui.NewTcellFocusEventWrapper(
+		tcell.NewEventFocus(false),
 		0,
 	))
-	self.waitTillIdle()
+	self.gui.g.ReplayFocusEvent(gocui.NewTcellFocusEventWrapper(
+		tcell.NewEventFocus(true),
+		0,
+	))
 }
 
 // FocusIn simulates the terminal window regaining focus, which is how lazygit
 // learns to reload changed config files. Tests use it to exercise the live
 // config-reload path.
 func (self *GuiDriver) FocusIn() {
-	self.gui.g.ReplayFocusEvent(gocui.NewTcellFocusEventWrapper(
-		tcell.NewEventFocus(true),
-		0,
-	))
+	self.replayFocusIn()
 
 	self.waitTillIdle()
 }
@@ -80,10 +127,7 @@ func (self *GuiDriver) FocusIn() {
 func (self *GuiDriver) FocusInAndClick(x, y int) {
 	self.CheckAllToastsAcknowledged()
 
-	self.gui.g.ReplayFocusEvent(gocui.NewTcellFocusEventWrapper(
-		tcell.NewEventFocus(true),
-		0,
-	))
+	self.replayFocusIn()
 	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
 		tcell.NewEventMouse(x, y, tcell.ButtonPrimary, 0),
 		0,
@@ -93,6 +137,16 @@ func (self *GuiDriver) FocusInAndClick(x, y int) {
 		tcell.NewEventMouse(x, y, tcell.ButtonNone, 0),
 		0,
 	))
+	self.waitTillIdle()
+}
+
+// RefreshInBackground performs the refresh that the background routines perform
+// on a timer (see BackgroundRoutineMgr). Tests drive it directly rather than
+// turning those routines on, so that they neither wait for a timer nor depend on
+// one firing at a particular moment.
+func (self *GuiDriver) RefreshInBackground() {
+	self.gui.c.RefreshFromWorker(types.RefreshOptions{Background: true})
+
 	self.waitTillIdle()
 }
 

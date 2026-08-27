@@ -85,30 +85,32 @@ func (self *AppStatusHelper) WithWaitingStatusImpl(message string, f func(gocui.
 // WithWaitingStatusBlockingInput is like WithWaitingStatus, but it also blocks
 // keyboard input for the whole duration of the operation: keys the user presses
 // while it runs are buffered and replayed against the post-operation state (see
-// gocui.BeginBlockingEvents). Use it for operations that manipulate an
-// in-progress rebase or otherwise rewrite commits, where a racing keypress
-// would target the wrong commit or todo.
+// gocui.BeginBlockingEvents). Use it for operations whose following keypress
+// depends on the state they produce, e.g. ones that manipulate an in-progress
+// rebase or otherwise rewrite commits, where a racing keypress would target the
+// wrong commit or todo.
 //
 // Must be called on the UI thread: the block is begun synchronously here, before
 // the operation is dispatched to a worker, so no keypress can slip through in
 // between.
-func (self *AppStatusHelper) WithWaitingStatusBlockingInput(message string, f func(gocui.Task) error) {
+func (self *AppStatusHelper) WithWaitingStatusBlockingInput(opts types.WaitingStatusOpts, f func(gocui.Task) error) {
 	self.c.GocuiGui().BeginBlockingEvents()
-	// Hide the rebasing-mode indicator (and its reset button) while we drive the
-	// rebase ourselves; it reflects the transient on-disk state and would
-	// otherwise flash on for the duration of the operation.
-	self.modeHelper.SetSuppressRebasingMode(true)
+	if opts.HideWorkingTreeState {
+		self.modeHelper.SetSuppressWorkingTreeStateMode(true)
+	}
 	self.c.OnWorker(func(task gocui.Task) error {
 		// End the block and restore the mode indicator once the operation and its
 		// refresh have applied their UI updates: OnUIThread queues this after the
 		// refresh's model bounces and Then (which RefreshFromWorker has already
 		// enqueued by the time f returns), so the replayed keys act on the
-		// refreshed state and any resulting rebase state shows correctly.
+		// refreshed state and any resulting working tree state shows correctly.
 		defer self.c.OnUIThread(func() error {
-			self.modeHelper.SetSuppressRebasingMode(false)
+			if opts.HideWorkingTreeState {
+				self.modeHelper.SetSuppressWorkingTreeStateMode(false)
+			}
 			return self.c.GocuiGui().EndBlockingEvents()
 		})
-		return self.WithWaitingStatusImpl(message, f, task)
+		return self.WithWaitingStatusImpl(opts.Message, f, task)
 	})
 }
 

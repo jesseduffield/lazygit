@@ -76,10 +76,11 @@ var MoveToEarlierCommitFromAddedFile = NewIntegrationTest(NewIntegrationTestArgs
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit to move from"),
-				Contains("destination commit").IsSelected(),
+				Contains("commit to move from").IsSelected(),
+				Contains("destination commit"),
 				Contains("first commit"),
 			).
+			NavigateToLine(Contains("destination commit")).
 			PressEnter()
 
 		t.Views().CommitFiles().

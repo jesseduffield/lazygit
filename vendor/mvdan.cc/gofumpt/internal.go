@@ -16,6 +16,9 @@ import (
 	"go/token"
 	"strings"
 
+	// NOTE(gofumpt): use a vendored copy of go/printer (and go/doc/comment)
+	// frozen at a specific Go version. This way installing a given gofumpt
+	// release produces the same output regardless of the user's Go toolchain.
 	"mvdan.cc/gofumpt/internal/govendor/go/printer"
 )
 

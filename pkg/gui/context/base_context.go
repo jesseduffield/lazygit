@@ -119,7 +119,7 @@ func (self *BaseContext) GetKey() types.ContextKey {
 }
 
 func (self *BaseContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
-	bindings := []*types.Binding{}
+	bindings := make([]*types.Binding, 0, len(self.keybindingsFns))
 	for i := range self.keybindingsFns {
 		// the first binding in the bindings array takes precedence but we want the
 		// last keybindingsFn to take precedence to we add them in reverse
@@ -216,7 +216,7 @@ func (self *BaseContext) AddOnQuitFn(fn func()) {
 }
 
 func (self *BaseContext) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
-	bindings := []*gocui.ViewMouseBinding{}
+	bindings := make([]*gocui.ViewMouseBinding, 0, len(self.mouseKeybindingsFns))
 	for i := range self.mouseKeybindingsFns {
 		// the first binding in the bindings array takes precedence but we want the
 		// last keybindingsFn to take precedence to we add them in reverse

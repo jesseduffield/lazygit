@@ -89,7 +89,7 @@ func formatListFooter(selectedLineIdx int, length int) string {
 }
 
 func (self *ListContextTrait) HandleFocus(opts types.OnFocusOpts) {
-	self.FocusLine(opts.ScrollSelectionIntoView)
+	self.FocusLine(!opts.KeepScrollPosition)
 
 	self.GetViewTrait().SetHighlight(self.list.Len() > 0)
 

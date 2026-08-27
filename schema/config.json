@@ -314,14 +314,58 @@
       "type": "object",
       "description": "Custom icons for filenames and file extensions\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color"
     },
-    "GitConfig": {
+    "DiffRendererConfig": {
       "properties": {
-        "pagers": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "stdinFilter",
+            "extDiff",
+            "rawGit"
+          ],
+          "description": "The type of diff renderer. One of: 'stdinFilter' (default) | 'extDiff' | 'rawGit'"
+        },
+        "name": {
+          "type": "string",
+          "description": "A name for the diff renderer, shown in the notification when cycling renderers. If not set, the name is derived from the first word of the renderer command."
+        },
+        "colorArg": {
+          "type": "string",
+          "enum": [
+            "always",
+            "never"
+          ],
+          "description": "Value of the --color arg in the git diff command. Only used for type 'stdinFilter'. Some renderers want this to be set to 'always' and some want it set to 'never'."
+        },
+        "command": {
+          "type": "string",
+          "description": "The command to use for rendering diffs. This is either a stdinFilter or an external diff command, depending on the type field; not applicable if the type is 'rawGit'.\ne.g.\ndiff-so-fancy\ndelta --dark --paging=never\nydiff -p cat\ndifft --color=always",
+          "examples": [
+            "delta --dark --paging=never",
+            "diff-so-fancy",
+            "ydiff -p cat",
+            "difft --color=always"
+          ]
+        },
+        "args": {
           "items": {
-            "$ref": "#/$defs/PagingConfig"
+            "type": "string"
           },
           "type": "array",
-          "description": "Array of pagers. Each entry has the following format:\n\n  # A name for the pager, shown in the notification when cycling pagers.\n  # If not set, the name is derived from the first word of the pager\n  # command (or of the external diff command).\n  name: \"\"\n\n  # Value of the --color arg in the git diff command. Some pagers want\n  # this to be set to 'always' and some want it set to 'never'\n  colorArg: \"always\"\n\n  # e.g.\n  # diff-so-fancy\n  # delta --dark --paging=never\n  # ydiff -p cat -s --wrap --width={{columnWidth}}\n  pager: \"\"\n\n  # e.g. 'difft --color=always'\n  externalDiffCommand: \"\"\n\n  # If true, Lazygit will use git's `diff.external` config for paging.\n  # The advantage over `externalDiffCommand` is that this can be\n  # configured per file type in .gitattributes; see\n  # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.\n  useExternalDiffGitConfig: false\n\n'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' are mutually exclusive; set at most one per entry.\n\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md for more information."
+          "description": "Extra arguments (array of strings) passed to the git command. Only applicable if the type is 'rawGit'."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "GitConfig": {
+      "properties": {
+        "diffRenderers": {
+          "items": {
+            "$ref": "#/$defs/DiffRendererConfig"
+          },
+          "type": "array",
+          "description": "Array of diff renderers. Each entry has the following format:\n\n  # The type of diff renderer. One of: 'stdinFilter' (default) | 'extDiff'\n  # | 'rawGit'\n  type: \"stdinFilter\"\n\n  # A name for the diff renderer, shown in the notification when cycling\n  # renderers. If not set, the name is derived from the first word of the\n  # renderer command.\n  name: \"\"\n\n  # Value of the --color arg in the git diff command. Only used for type\n  # 'stdinFilter'. Some renderers want this to be set to 'always' and some\n  # want it set to 'never'.\n  colorArg: \"always\"\n\n  # The command to use for rendering diffs. This is either a stdinFilter or\n  # an external diff command, depending on the type field; not applicable if\n  # the type is 'rawGit'.\n  # e.g.\n  # diff-so-fancy\n  # delta --dark --paging=never\n  # ydiff -p cat\n  # difft --color=always\n  command: \"\"\n\n  # Extra arguments (array of strings) passed to the git command. Only\n  # applicable if the type is 'rawGit'.\n  args: []\n\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_DiffRenderers.md for more information."
         },
         "commit": {
           "$ref": "#/$defs/CommitConfig",
@@ -535,7 +579,7 @@
         "tabWidth": {
           "type": "integer",
           "minimum": 1,
-          "description": "The number of spaces per tab; used for everything that's shown in the main view, but probably mostly relevant for diffs.\nNote that when using a pager, the pager has its own tab width setting, so you need to pass it separately in the pager command.",
+          "description": "The number of spaces per tab; used for everything that's shown in the main view, but probably mostly relevant for diffs.\nNote that when using a diff renderer, the renderer has its own tab width setting, so you need to pass it separately in the renderer command.",
           "default": 4
         },
         "mouseEvents": {
@@ -3163,7 +3207,7 @@
           ],
           "default": "_"
         },
-        "cyclePagers": {
+        "cycleDiffRenderers": {
           "oneOf": [
             {
               "type": "string"
@@ -3177,7 +3221,7 @@
           ],
           "default": "|"
         },
-        "cyclePagersReverse": {
+        "cycleDiffRenderersReverse": {
           "oneOf": [
             {
               "type": "string"
@@ -3544,41 +3588,6 @@
       "type": "object",
       "description": "Config relating to things outside of Lazygit like how files are opened, copying to clipboard, etc"
     },
-    "PagingConfig": {
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "A name for the pager, shown in the notification when cycling pagers. If not set, the name is derived from the first word of the pager command (or of the external diff command)."
-        },
-        "colorArg": {
-          "type": "string",
-          "enum": [
-            "always",
-            "never"
-          ],
-          "description": "Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'"
-        },
-        "pager": {
-          "type": "string",
-          "description": "e.g.\ndiff-so-fancy\ndelta --dark --paging=never\nydiff -p cat -s --wrap --width={{columnWidth}}",
-          "examples": [
-            "delta --dark --paging=never",
-            "diff-so-fancy",
-            "ydiff -p cat -s --wrap --width={{columnWidth}}"
-          ]
-        },
-        "externalDiffCommand": {
-          "type": "string",
-          "description": "e.g. 'difft --color=always'"
-        },
-        "useExternalDiffGitConfig": {
-          "type": "boolean",
-          "description": "If true, Lazygit will use git's `diff.external` config for paging. The advantage over `externalDiffCommand` is that this can be configured per file type in .gitattributes; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
     "RefresherConfig": {
       "properties": {
         "refreshInterval": {
@@ -3631,17 +3640,17 @@
           "type": "array",
           "description": "The frames of the spinner animation.",
           "default": [
-            "|",
-            "/",
-            "-",
-            "\\"
+            "●∙∙",
+            "∙●∙",
+            "∙∙●",
+            "∙●∙"
           ]
         },
         "rate": {
           "type": "integer",
           "minimum": 1,
           "description": "The \"speed\" of the spinner in milliseconds.",
-          "default": 50
+          "default": 180
         }
       },
       "additionalProperties": false,

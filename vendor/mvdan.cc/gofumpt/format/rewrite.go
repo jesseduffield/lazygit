@@ -2,6 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// NOTE(gofumpt): the original cmd/gofmt/rewrite.go is mostly stripped here.
+// gofumpt drops the -r flag (use `gofmt -r` instead), so the rewrite engine
+// (initRewrite, parseExpr, rewriteFile, apply, set, subst) and its
+// reflect-helpers (objectPtrNil, scopePtrNil, scopePtrType) are gone. Only
+// match/isWildcard remain because simplify.go still uses them to compare
+// AST literals when omitting redundant types in composite literals.
+
 package format
 
 import (
@@ -14,10 +21,10 @@ import (
 
 // Values/types for special cases.
 var (
-	identType     = reflect.TypeOf((*ast.Ident)(nil))
-	objectPtrType = reflect.TypeOf((*ast.Object)(nil))
-	positionType  = reflect.TypeOf(token.NoPos)
-	callExprType  = reflect.TypeOf((*ast.CallExpr)(nil))
+	identType     = reflect.TypeFor[*ast.Ident]()
+	objectPtrType = reflect.TypeFor[*ast.Object]()
+	positionType  = reflect.TypeFor[token.Pos]()
+	callExprType  = reflect.TypeFor[*ast.CallExpr]()
 )
 
 func isWildcard(s string) bool {

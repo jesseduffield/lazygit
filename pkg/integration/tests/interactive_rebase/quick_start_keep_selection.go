@@ -39,7 +39,7 @@ var QuickStartKeepSelection = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit-02")).
 			Press(keys.Commits.StartInteractiveRebase).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("pick").Contains("CI commit-07"),
 				Contains("pick").Contains("CI commit-06"),
 				Contains("pick").Contains("CI commit-05"),
@@ -47,7 +47,7 @@ var QuickStartKeepSelection = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit-04"),
 				Contains("pick").Contains("CI commit-03"),
 				Contains("CI commit-02").IsSelected(),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("CI commit-01"),
 			)
 	},

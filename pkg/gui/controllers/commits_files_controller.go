@@ -339,7 +339,10 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 		HandleConfirm: func() error {
 			commits := self.c.Model().Commits
 			selectedLineIdx := self.c.Contexts().LocalCommits.GetSelectedLineIdx()
-			return self.c.WithWaitingStatusBlockingInput(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+			return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+				Message:              self.c.Tr.RebasingStatus,
+				HideWorkingTreeState: true,
+			}, func(gocui.Task) error {
 				var filePaths []string
 				selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
 
@@ -613,24 +616,9 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 	}
 }
 
-// pathsForDiff returns the file paths to use for a diff command. When a text
-// filter is active and the node is a directory, only the visible (filtered)
-// file paths are returned so the diff reflects what the user sees.
 func (self *CommitFilesController) pathsForDiff(node *filetree.CommitFileNode) []string {
-	if !node.IsFile() && self.context().IsFiltering() {
-		var paths []string
-		_ = node.ForEachFile(func(file *models.CommitFile) error {
-			// For a rename we need to pass both paths so that git detects it as
-			// a rename rather than an unrelated delete and add.
-			paths = append(paths, file.Names()...)
-			return nil
-		})
-		return paths
-	}
-	if file := node.GetFile(); file != nil {
-		return file.Names()
-	}
-	return []string{node.GetPath()}
+	return diffPathsForNode(
+		node.Raw(), self.context().GetRoot().Raw(), self.c.Model().CommitFiles, self.context().IsFiltering())
 }
 
 // NOTE: these functions are identical to those in files_controller.go (except for types) and
@@ -642,11 +630,16 @@ func normalisedSelectedCommitFileNodes(selectedNodes []*filetree.CommitFileNode)
 }
 
 func isDescendentOfSelectedCommitFileNodes(node *filetree.CommitFileNode, selectedNodes []*filetree.CommitFileNode) bool {
-	for _, selectedNode := range selectedNodes {
-		selectedNodePath := selectedNode.GetPath()
-		nodePath := node.GetPath()
+	nodePath := node.GetInternalPath()
 
-		if strings.HasPrefix(nodePath, selectedNodePath) && nodePath != selectedNodePath {
+	for _, selectedNode := range selectedNodes {
+		if selectedNode.IsFile() {
+			continue
+		}
+
+		selectedNodePath := selectedNode.GetInternalPath()
+
+		if strings.HasPrefix(nodePath, selectedNodePath+"/") {
 			return true
 		}
 	}
