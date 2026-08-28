@@ -1,5 +1,6 @@
 ## Custom Keybindings
 To change a keybinding, see [Config](../Config.md).
+
 To add a keybinding to a custom command, see [Custom Commands](../Custom_Command_Keybindings.md).
 
 A keybinding is one of:
