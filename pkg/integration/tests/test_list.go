@@ -270,6 +270,7 @@ var tests = []*components.IntegrationTest{
 	filter_and_search.FilterRemotes,
 	filter_and_search.FilterSearchHistory,
 	filter_and_search.FilterUpdatesWhenModelChanges,
+	filter_and_search.FilterWorktrees,
 	filter_and_search.NestedFilter,
 	filter_and_search.NestedFilterTransient,
 	filter_and_search.NewSearch,
