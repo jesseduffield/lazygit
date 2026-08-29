@@ -1851,7 +1851,8 @@ func (self *RefreshHelper) setGithubPullRequests(baseInfo *githubRemoteInfo, bra
 		// This lands whenever the network call happens to return, and only
 		// changes how the branches are rendered, not which one is selected, so
 		// it has no business moving the viewport.
-		self.c.PostRefreshUpdateKeepingScrollPosition(self.c.Contexts().Branches)
+		self.c.PostRefreshUpdateWithOptions(self.c.Contexts().Branches,
+			types.OnFocusOpts{KeepScrollPosition: true})
 	})
 }
 

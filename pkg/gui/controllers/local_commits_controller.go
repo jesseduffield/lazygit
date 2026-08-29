@@ -191,7 +191,8 @@ func (self *LocalCommitsController) handleCommitDrag(opts gocui.ViewMouseBinding
 
 	self.commitDrag.hasMoved = true
 	if self.updateCommitDragInsertion(opts.Y) {
-		self.c.PostRefreshUpdateKeepingScrollPosition(self.context())
+		self.c.PostRefreshUpdateWithOptions(self.context(),
+			types.OnFocusOpts{KeepScrollPosition: true})
 	}
 	originY := self.context().GetView().OriginY()
 	self.dragAutoscroller.Update(opts.Y - originY)

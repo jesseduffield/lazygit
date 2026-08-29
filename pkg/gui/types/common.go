@@ -54,10 +54,6 @@ type IGuiCommon interface {
 	// Like PostRefreshUpdate, with control over scrolling and whether to update
 	// the main view.
 	PostRefreshUpdateWithOptions(Context, OnFocusOpts)
-	// Like PostRefreshUpdate, but leaves the view scrolled where it is. For
-	// refreshes that no user action is behind: those must not move the viewport
-	// away from wherever the user last put it.
-	PostRefreshUpdateKeepingScrollPosition(Context)
 
 	// renders string to a view without resetting its origin
 	SetViewContent(view *gocui.View, content string)

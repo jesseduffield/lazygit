@@ -46,10 +46,6 @@ func (self *guiCommon) PostRefreshUpdateWithOptions(context types.Context, opts 
 	self.gui.postRefreshUpdate(context, opts)
 }
 
-func (self *guiCommon) PostRefreshUpdateKeepingScrollPosition(context types.Context) {
-	self.gui.postRefreshUpdate(context, types.OnFocusOpts{KeepScrollPosition: true})
-}
-
 func (self *guiCommon) RunSubprocessAndRefresh(cmdObj *oscommands.CmdObj) error {
 	return self.gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 }
