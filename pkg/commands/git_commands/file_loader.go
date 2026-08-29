@@ -1,7 +1,11 @@
 package git_commands
 
 import (
+	"encoding/binary"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -45,10 +49,30 @@ type GetStatusFileOptions struct {
 }
 
 func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
-	// check if config wants us ignoring untracked files
+	// Decide how to pass --untracked-files to git status.
+	//
+	// If the user has explicitly set status.showUntrackedFiles, always honor it.
+	// Otherwise default to "all" so that individual files inside newly-created
+	// untracked directories show up in the files panel. The exception is very
+	// large repos: git can only use its untracked cache in "normal" mode, so in
+	// "all" mode it does a full recursive readdir of the entire worktree on every
+	// status. In a repo with hundreds of thousands of files that takes several
+	// seconds and holds index.lock long enough that a concurrent git command
+	// (e.g. the checkout that triggered this refresh) can fail with
+	// "Unable to create '.../index.lock': File exists". In "normal" mode git uses
+	// the untracked cache and stays fast, at the cost of showing a brand-new
+	// untracked directory as a single entry rather than listing each file within
+	// it. See https://github.com/jesseduffield/lazygit/issues/5906.
 	untrackedFilesSetting := self.config.GetShowUntrackedFiles()
-
-	if opts.ForceShowUntracked || untrackedFilesSetting == "" {
+	if untrackedFilesSetting == "" {
+		untrackedFilesSetting = "all"
+		if self.repoTooLargeForUntrackedFilesAll() {
+			untrackedFilesSetting = "normal"
+		}
+	}
+	// The "show untracked files" filter is an explicit, transient user request to
+	// see untracked files, so honor it even in a large repo.
+	if opts.ForceShowUntracked {
 		untrackedFilesSetting = "all"
 	}
 	untrackedFilesArg := fmt.Sprintf("--untracked-files=%s", untrackedFilesSetting)
@@ -187,6 +211,47 @@ func (self *FileLoader) getFileDiffs() (map[string]FileDiff, error) {
 	}
 
 	return fileDiffs, nil
+}
+
+// untrackedFilesAllMaxTrackedFiles is the tracked-file count above which we stop
+// defaulting --untracked-files to "all" (see GetStatusFiles): git's untracked
+// cache is only used in "normal" mode, so "all" becomes prohibitively slow in
+// very large repos. We use the number of entries in the index as a cheap proxy
+// for the size of the working tree (and thus the cost of an "all" scan).
+const untrackedFilesAllMaxTrackedFiles = 100_000
+
+// repoTooLargeForUntrackedFilesAll reports whether the repository is large enough
+// that we should prefer "--untracked-files=normal" over "all" by default. It
+// reads the tracked-entry count straight from the index header, which is
+// essentially free. If the count can't be determined it returns false, so we
+// keep the previous default of "all".
+func (self *FileLoader) repoTooLargeForUntrackedFilesAll() bool {
+	if self.repoPaths == nil {
+		return false
+	}
+	count, ok := trackedFileCountFromIndex(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "index"))
+	return ok && count > untrackedFilesAllMaxTrackedFiles
+}
+
+// trackedFileCountFromIndex returns the number of entries recorded in the git
+// index at indexPath, read from its 12-byte header: the 4-byte signature "DIRC",
+// a 4-byte version, and a 4-byte big-endian entry count. This undercounts when a
+// split index is in use, but that only softens the large-repo heuristic above.
+func trackedFileCountFromIndex(indexPath string) (int, bool) {
+	f, err := os.Open(indexPath)
+	if err != nil {
+		return 0, false
+	}
+	defer f.Close()
+
+	var header [12]byte
+	if _, err := io.ReadFull(f, header[:]); err != nil {
+		return 0, false
+	}
+	if string(header[:4]) != "DIRC" {
+		return 0, false
+	}
+	return int(binary.BigEndian.Uint32(header[8:12])), true
 }
 
 // GitStatus returns the file status of the repo
