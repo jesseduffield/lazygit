@@ -119,6 +119,9 @@ type refreshEnv struct {
 	// reload state (see RefreshOptions.DontBlockRepoSwitch).
 	keepScrollPosition bool
 
+	// Whether refreshing a side context should leave the main view unchanged.
+	skipMainViewUpdate bool
+
 	// the repo generation captured when the refresh started
 	generation int
 
@@ -231,6 +234,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		background:         options.Background || options.DontBlockRepoSwitch,
 		backgroundRoutine:  options.Background,
 		keepScrollPosition: options.Background || options.DontBlockRepoSwitch,
+		skipMainViewUpdate: options.SkipMainViewUpdate,
 	}
 	if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 		env.generation = self.c.State().GetRepoGeneration()
@@ -1672,6 +1676,7 @@ func (self *RefreshHelper) refreshView(context types.Context, env refreshEnv) {
 
 		self.c.PostRefreshUpdateWithOptions(context, types.OnFocusOpts{
 			KeepScrollPosition: env.keepScrollPosition,
+			SkipMainViewUpdate: env.skipMainViewUpdate,
 		})
 
 		self.c.AfterLayout(func() error {

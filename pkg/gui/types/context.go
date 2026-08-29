@@ -234,6 +234,10 @@ type OnFocusOpts struct {
 	// the view's scroll position alone instead; only for callers that maintain
 	// it themselves, e.g. by keeping the selection at the edge of the viewport.
 	KeepScrollPosition bool
+
+	// Set this when the focused item hasn't changed and the main view's current
+	// content is still valid.
+	SkipMainViewUpdate bool
 }
 
 type OnFocusLostOpts struct {

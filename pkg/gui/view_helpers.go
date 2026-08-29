@@ -149,6 +149,9 @@ func (gui *Gui) postRefreshUpdate(c types.Context, opts types.OnFocusOpts) {
 		// correctly, and that integration tests see the up to date selection
 		// state.
 		c.FocusLine(!opts.KeepScrollPosition)
+		if opts.SkipMainViewUpdate {
+			return
+		}
 
 		currentCtx := gui.State.ContextMgr.Current()
 		if currentCtx.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY || currentCtx.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {

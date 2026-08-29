@@ -345,7 +345,9 @@ func (self *LocalCommitsController) startMovingCommitsIndicator(insertionIndex i
 func (self *LocalCommitsController) stopMovingCommitsIndicator() {
 	self.stopMovingCommitsIndicatorTicker()
 	self.context().ClearDropInsertionIndex()
-	self.c.PostRefreshUpdate(self.context())
+	self.c.PostRefreshUpdateWithOptions(
+		self.context(), types.OnFocusOpts{SkipMainViewUpdate: true},
+	)
 }
 
 func (self *LocalCommitsController) stopMovingCommitsIndicatorTicker() {
@@ -1171,15 +1173,21 @@ func (self *LocalCommitsController) move(
 		if err := self.c.Git().Rebase.MoveTodos(selectedCommits, offset); err != nil {
 			return err
 		}
-		self.context().MoveSelection(offset)
-		self.context().HandleFocus(types.OnFocusOpts{})
 
 		// Block input until the refresh has landed: a quick second press must
 		// read the moved todo from the refreshed model, not grab whatever the
 		// advanced selection index points at in the stale one.
 		self.c.RefreshBlockingInput(types.RefreshOptions{
-			Scope: []types.RefreshableView{types.REBASE_COMMITS},
-			Then:  onComplete,
+			Scope:              []types.RefreshableView{types.REBASE_COMMITS},
+			SkipMainViewUpdate: true,
+			Then: func() error {
+				self.context().MoveSelection(offset)
+				self.context().FocusLine(true)
+				if onComplete != nil {
+					return onComplete()
+				}
+				return nil
+			},
 		})
 		return nil
 	}
