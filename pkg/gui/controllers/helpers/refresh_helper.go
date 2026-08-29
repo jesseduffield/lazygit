@@ -1670,11 +1670,9 @@ func (self *RefreshHelper) refreshView(context types.Context, env refreshEnv) {
 		// the filtered list model is up to date for rendering.
 		self.searchHelper.ReApplyFilter(context)
 
-		if env.keepScrollPosition {
-			self.c.PostRefreshUpdateKeepingScrollPosition(context)
-		} else {
-			self.c.PostRefreshUpdate(context)
-		}
+		self.c.PostRefreshUpdateWithOptions(context, types.OnFocusOpts{
+			KeepScrollPosition: env.keepScrollPosition,
+		})
 
 		self.c.AfterLayout(func() error {
 			// Re-applying the search must be done after re-rendering the view though,
