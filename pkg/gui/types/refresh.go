@@ -72,6 +72,10 @@ type RefreshOptions struct {
 	// letting each scope update the UI as soon as it's done.
 	BatchUIUpdates bool
 
+	// Set this when the refresh doesn't invalidate the main view's current
+	// content, so refreshing the side context needn't render it again.
+	SkipMainViewUpdate bool
+
 	// Controls which local branch is selected after the refresh. Defaults to
 	// KeepBranchSelectionByName.
 	BranchSelection BranchSelectionBehavior
