@@ -1177,9 +1177,8 @@ func (self *LocalCommitsController) move(
 		// read the moved todo from the refreshed model, not grab whatever the
 		// advanced selection index points at in the stale one.
 		self.c.RefreshBlockingInput(types.RefreshOptions{
-			Scope:           []types.RefreshableView{types.REBASE_COMMITS},
-			CommitSelection: types.KeepCommitSelectionIndex,
-			Then:            onComplete,
+			Scope: []types.RefreshableView{types.REBASE_COMMITS},
+			Then:  onComplete,
 		})
 		return nil
 	}
