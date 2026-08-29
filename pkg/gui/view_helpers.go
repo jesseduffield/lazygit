@@ -132,7 +132,7 @@ func (gui *Gui) renderContentOnly() {
 // postRefreshUpdate is to be called on a context after the state that it depends on has been refreshed
 // if the context's view is set to another context we do nothing.
 // if the context's view is the current view we trigger a focus; re-selecting the current item.
-func (gui *Gui) postRefreshUpdate(c types.Context, keepScrollPosition bool) {
+func (gui *Gui) postRefreshUpdate(c types.Context, opts types.OnFocusOpts) {
 	t := time.Now()
 	defer func() {
 		gui.Log.Infof("postRefreshUpdate for %s took %s", c.GetKey(), time.Since(t))
@@ -141,14 +141,17 @@ func (gui *Gui) postRefreshUpdate(c types.Context, keepScrollPosition bool) {
 	c.HandleRender()
 
 	if gui.currentViewName() == c.GetViewName() {
-		c.HandleFocus(types.OnFocusOpts{KeepScrollPosition: keepScrollPosition})
+		c.HandleFocus(opts)
 	} else {
 		// The FocusLine call is included in the HandleFocus method which we
 		// call for focused views above; but we need to call it here for
 		// non-focused views to ensure that an inactive selection is painted
 		// correctly, and that integration tests see the up to date selection
 		// state.
-		c.FocusLine(!keepScrollPosition)
+		c.FocusLine(!opts.KeepScrollPosition)
+		if opts.SkipMainViewUpdate {
+			return
+		}
 
 		currentCtx := gui.State.ContextMgr.Current()
 		if currentCtx.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY || currentCtx.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
