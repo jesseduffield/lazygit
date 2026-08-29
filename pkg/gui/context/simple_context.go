@@ -37,7 +37,7 @@ func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) {
 		fn(opts)
 	}
 
-	if self.onRenderToMainFn != nil {
+	if self.onRenderToMainFn != nil && !opts.SkipMainViewUpdate {
 		self.onRenderToMainFn()
 	}
 }
