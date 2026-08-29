@@ -235,8 +235,10 @@ func (self *FileLoader) repoTooLargeForUntrackedFilesAll() bool {
 
 // trackedFileCountFromIndex returns the number of entries recorded in the git
 // index at indexPath, read from its 12-byte header: the 4-byte signature "DIRC",
-// a 4-byte version, and a 4-byte big-endian entry count. This undercounts when a
-// split index is in use, but that only softens the large-repo heuristic above.
+// a 4-byte version, and a 4-byte big-endian entry count.
+//
+// Limitation: with a split index (core.splitIndex) this reads only the main
+// index file, which holds a small delta.
 func trackedFileCountFromIndex(indexPath string) (int, bool) {
 	f, err := os.Open(indexPath)
 	if err != nil {
