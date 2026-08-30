@@ -104,6 +104,9 @@ These fields are applicable to all prompts.
 | key | Used to reference the entered value from within the custom command. E.g. a prompt with `key: 'Branch'` can be referred to as `{{.Form.Branch}}` in the command | yes |
 | condition         | A Go template expression; if it resolves to empty string or `false`, the prompt is skipped. See [Conditional prompts](#conditional-prompts) | no |
 
+> [!TIP]
+> Fetching `key` via `.PromptResponses` is not encouraged, see https://github.com/jesseduffield/lazygit/issues/2103
+
 ### Input
 
 | _field_           | _description_                                                                                  | _required_ |
