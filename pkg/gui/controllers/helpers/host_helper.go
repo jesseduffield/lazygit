@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
 // this helper just wraps our hosting_service package
@@ -37,10 +38,31 @@ func (self *HostHelper) GetCommitURL(commitHash string) (string, error) {
 // getting this on every request rather than storing it in state in case our remoteURL changes
 // from one invocation to the next.
 func (self *HostHelper) getHostingServiceMgr() (*hosting_service.HostingServiceMgr, error) {
-	remoteUrl, err := self.c.Git().Remote.GetRemoteURL("origin")
+	remoteName := getPreferredRemoteName(
+		self.c.Contexts().RemoteBranches.GetSelected(),
+		self.c.Contexts().Remotes.GetSelected(),
+	)
+
+	remoteUrl, err := self.c.Git().Remote.GetRemoteURL(remoteName)
+	if err != nil && remoteName != "origin" {
+		remoteUrl, err = self.c.Git().Remote.GetRemoteURL("origin")
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	configServices := self.c.UserConfig().Services
 	return hosting_service.NewHostingServiceMgr(self.c.Log, self.c.Tr, remoteUrl, configServices), nil
+}
+
+func getPreferredRemoteName(selectedRemoteBranch *models.RemoteBranch, selectedRemote *models.Remote) string {
+	if selectedRemoteBranch != nil && selectedRemoteBranch.RemoteName != "" {
+		return selectedRemoteBranch.RemoteName
+	}
+
+	if selectedRemote != nil && selectedRemote.Name != "" {
+		return selectedRemote.Name
+	}
+
+	return "origin"
 }
