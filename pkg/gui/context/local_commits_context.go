@@ -237,7 +237,7 @@ func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon
 	return self
 }
 
-func (self *LocalCommitsContext) CanRebase() bool {
+func (self *LocalCommitsContext) CanRebase(currentBranch *models.Branch) bool {
 	return true
 }
 
