@@ -1,11 +1,9 @@
 package helpers
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -22,20 +20,12 @@ func NewPatchBuildingHelper(
 	}
 }
 
-func (self *PatchBuildingHelper) ValidateNormalWorkingTreeState() (bool, error) {
-	if self.c.Git().Status.WorkingTreeState().Any() {
-		return false, errors.New(self.c.Tr.CantPatchWhileRebasingError)
-	}
-	return true, nil
-}
-
 func (self *PatchBuildingHelper) ShowHunkStagingHint() {
 	if !self.c.AppState.DidShowHunkStagingHint && self.c.UserConfig().Gui.UseHunkModeInStagingView {
 		self.c.AppState.DidShowHunkStagingHint = true
 		self.c.SaveAppStateAndLogError()
 
-		message := fmt.Sprintf(self.c.Tr.HunkStagingHint,
-			keybindings.Label(self.c.UserConfig().Keybinding.Main.ToggleSelectHunk))
+		message := fmt.Sprintf(self.c.Tr.HunkStagingHint, self.c.UserConfig().Keybinding.Main.ToggleSelectHunk)
 		self.c.Confirm(types.ConfirmOpts{
 			Prompt: message,
 		})
@@ -76,20 +66,21 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 	}
 
 	// get diff from commit file that's currently selected
-	path := self.c.Contexts().CommitFiles.GetSelectedPath()
-	if path == "" {
+	file := self.c.Contexts().CommitFiles.GetSelectedFile()
+	if file == nil {
 		return
 	}
 
 	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
-	diff, err := self.c.Git().WorkingTree.ShowFileDiff(from, to, reverse, path, true)
+	diff, err := self.c.Git().WorkingTree.ShowFileDiff(from, to, reverse, file.Path, file.PreviousPath, true)
 	if err != nil {
 		return
 	}
 
 	secondaryDiff := self.c.Git().Patch.PatchBuilder.RenderPatchForFile(patch.RenderPatchForFileOpts{
-		Filename:                               path,
+		Filename:                               file.Path,
+		PreviousPath:                           file.PreviousPath,
 		Plain:                                  false,
 		Reverse:                                false,
 		TurnAddedFilesIntoDiffAgainstEmptyFile: true,

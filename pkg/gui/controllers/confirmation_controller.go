@@ -24,19 +24,19 @@ func NewConfirmationController(
 func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Confirm),
+			Keys:            opts.GetKeys(opts.Config.Universal.Confirm),
 			Handler:         func() error { return self.context().State.OnConfirm() },
 			Description:     self.c.Tr.Confirm,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.Return),
+			Keys:            opts.GetKeys(opts.Config.Universal.Return),
 			Handler:         func() error { return self.context().State.OnClose() },
 			Description:     self.c.Tr.CloseCancel,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Keys:            opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:         self.handleCopyToClipboard,
 			Description:     self.c.Tr.CopyToClipboardMenu,
 			DisplayOnScreen: true,

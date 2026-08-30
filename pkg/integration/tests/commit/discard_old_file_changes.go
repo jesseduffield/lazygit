@@ -45,9 +45,9 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Equals("▼ /").IsSelected(),
 				Equals("  ▼ dir1"),
+				Equals("    A d1_file0"),
 				Equals("    ▼ subd1"),
 				Equals("      A subfile0"),
-				Equals("    A d1_file0"),
 				Equals("  ▼ dir2"),
 				Equals("    A d2_file1"),
 				Equals("    A d2_file2"),
@@ -57,7 +57,7 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Discard file changes")).
-			Content(Equals("Are you sure you want to remove changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.\nNote: This will also reset any active custom patches.")).
+			Content(Equals("Are you sure you want to discard changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.")).
 			Confirm()
 
 		t.Views().CommitFiles().
@@ -65,9 +65,9 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Equals("▼ /"),
 				Equals("  ▼ dir1/subd1"),
-				Equals("    A subfile0"),
+				Equals("    A subfile0").IsSelected(),
 				Equals("  ▼ dir2"),
-				Equals("    A d2_file1").IsSelected(),
+				Equals("    A d2_file1"),
 				Equals("    A d2_file2"),
 			).
 			PressEscape()
@@ -99,7 +99,7 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Discard file changes")).
-			Content(Equals("Are you sure you want to remove changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.\nNote: This will also reset any active custom patches.")).
+			Content(Equals("Are you sure you want to discard changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.")).
 			Confirm()
 
 		t.Views().CommitFiles().
@@ -125,10 +125,10 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Lines(
 				Equals("▼ dir1").IsSelected(),
-				Equals("  ▼ subd1"),
-				Equals("    A file2ToRemove"),
 				Equals("  A fileToRemove"),
 				Equals("  A multiLineFile"),
+				Equals("  ▼ subd1"),
+				Equals("    A file2ToRemove"),
 			).
 			NavigateToLine(Contains("multiLineFile")).
 			PressEnter()
@@ -145,10 +145,10 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Lines(
 				Equals("▼ dir1"),
-				Equals("  ▼ subd1"),
-				Equals("    A file2ToRemove"),
 				Equals("  A fileToRemove"),
 				Equals("  ◐ multiLineFile").IsSelected(),
+				Equals("  ▼ subd1"),
+				Equals("    A file2ToRemove"),
 			).
 			NavigateToLine(Contains("dir1")).
 			Press(keys.Universal.ToggleRangeSelect).
@@ -157,7 +157,7 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Discard file changes")).
-			Content(Equals("Are you sure you want to remove changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.\nNote: This will also reset any active custom patches.")).
+			Content(Equals("Are you sure you want to discard changes to the selected file(s) from this commit?\n\nThis action will start a rebase, reverting these file changes. Be aware that if subsequent commits depend on these changes, you may need to resolve conflicts.\n\nNote: This will reset the active custom patch!")).
 			Confirm()
 
 		// "Building patch" will still be in this view if the patch isn't reset properly

@@ -13,6 +13,14 @@ import (
 	"github.com/samber/lo"
 )
 
+// contentHeights builds a ContentHeightForWindow function from a map of window
+// name to content height; windows not in the map report a height of 0.
+func contentHeights(heights map[string]int) func(window string) int {
+	return func(window string) int {
+		return heights[window]
+	}
+}
+
 // The best way to add test cases here is to set your args and then get the
 // test to fail and copy+paste the output into the test case's expected string.
 // TODO: add more test cases
@@ -24,15 +32,18 @@ func TestGetWindowDimensions(t *testing.T) {
 			UserConfig:        config.GetDefaultConfig(),
 			CurrentWindow:     "files",
 			CurrentSideWindow: "files",
-			SplitMainPanel:    false,
-			ScreenMode:        types.SCREEN_NORMAL,
-			AppStatus:         "",
-			InformationStr:    "information",
-			ShowExtrasWindow:  false,
-			InDemo:            false,
-			IsAnyModeActive:   false,
-			InSearchPrompt:    false,
-			SearchPrefix:      "",
+			// Each panel shows its first tab by default; for the special-cased
+			// panels (status, stash) the view name matches the window name.
+			ActiveViewForWindow: func(window string) string { return window },
+			SplitMainPanel:      false,
+			ScreenMode:          types.SCREEN_NORMAL,
+			AppStatus:           "",
+			InformationStr:      "information",
+			ShowExtrasWindow:    false,
+			InDemo:              false,
+			IsAnyModeActive:     false,
+			InSearchPrompt:      false,
+			SearchPrefix:        "",
 		}
 	}
 
@@ -111,6 +122,152 @@ func TestGetWindowDimensions(t *testing.T) {
 			│                       ││                                                │
 			╰───────────────────────╯│                                                │
 			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "worktrees promoted to its own side panel",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.SidePanels = []config.SidePanel{
+					{"status"},
+					{"files", "submodules"},
+					{"worktrees"},
+					{"branches", "remotes", "tags"},
+					{"commits", "reflog"},
+					{"stash"},
+				}
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭worktrees──────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭branches───────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "stash side panel hidden",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.SidePanels = []config.SidePanel{
+					{"status"},
+					{"files", "worktrees", "submodules"},
+					{"branches", "remotes", "tags"},
+					{"commits", "reflog"},
+				}
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭branches───────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "stash leading a grouped panel doesn't squash its other tabs",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.SidePanels = []config.SidePanel{
+					{"status"},
+					{"files", "worktrees", "submodules"},
+					{"stash", "branches", "remotes", "tags"},
+					{"commits", "reflog"},
+				}
+				// The third panel is named after its first tab, stash, but is
+				// currently showing the branches tab, which must get full height
+				// rather than stash's compact height.
+				args.ActiveViewForWindow = func(window string) string {
+					if window == "stash" {
+						return "branches"
+					}
+					return window
+				}
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
 			│                       ││                                                │
 			│                       ││                                                │
 			│                       ││                                                │
@@ -285,7 +442,7 @@ func TestGetWindowDimensions(t *testing.T) {
 		{
 			name: "half screen mode, enlargedSideViewLocation left",
 			mutateArgs: func(args *WindowArrangementArgs) {
-				args.Height = 20 // smaller height because we don't more here
+				args.Height = 20 // smaller height because we don't need more here
 				args.ScreenMode = types.SCREEN_HALF
 				args.UserConfig.Gui.EnlargedSideViewLocation = "left"
 			},
@@ -317,7 +474,7 @@ func TestGetWindowDimensions(t *testing.T) {
 		{
 			name: "half screen mode, enlargedSideViewLocation top",
 			mutateArgs: func(args *WindowArrangementArgs) {
-				args.Height = 20 // smaller height because we don't more here
+				args.Height = 20 // smaller height because we don't need more here
 				args.ScreenMode = types.SCREEN_HALF
 				args.UserConfig.Gui.EnlargedSideViewLocation = "top"
 			},
@@ -342,6 +499,105 @@ func TestGetWindowDimensions(t *testing.T) {
 			│                                                                         │
 			╰─────────────────────────────────────────────────────────────────────────╯
 			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "portrait auto mode, enabled",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Width = 50
+				args.Height = 20
+				args.UserConfig.Gui.PortraitModeAutoMaxWidth = 50
+				args.UserConfig.Gui.PortraitModeAutoMinHeight = 20
+			},
+			expected: `
+			<status──────────────────────────────────────────>
+			╭files───────────────────────────────────────────╮
+			│                                                │
+			╰────────────────────────────────────────────────╯
+			<branches────────────────────────────────────────>
+			<commits─────────────────────────────────────────>
+			<stash───────────────────────────────────────────>
+			╭main────────────────────────────────────────────╮
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			│                                                │
+			╰────────────────────────────────────────────────╯
+			<options─────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "portrait auto mode, disabled because width is too large",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Width = 50
+				args.Height = 20
+				args.UserConfig.Gui.PortraitModeAutoMaxWidth = 49
+				args.UserConfig.Gui.PortraitModeAutoMinHeight = 20
+			},
+			expected: `
+			<status─────────>╭main───────────────────────────╮
+			╭files──────────╮│                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			╰───────────────╯│                               │
+			<branches───────>│                               │
+			<commits────────>│                               │
+			<stash──────────>╰───────────────────────────────╯
+			<options─────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "portrait auto mode, disabled because height is too small",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Width = 50
+				args.Height = 20
+				args.UserConfig.Gui.PortraitModeAutoMaxWidth = 50
+				args.UserConfig.Gui.PortraitModeAutoMinHeight = 21
+			},
+			expected: `
+			<status─────────>╭main───────────────────────────╮
+			╭files──────────╮│                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			│               ││                               │
+			╰───────────────╯│                               │
+			<branches───────>│                               │
+			<commits────────>│                               │
+			<stash──────────>╰───────────────────────────────╯
+			<options─────────────────────────────>A<B────────>
 			A: statusSpacer1
 			B: information
 			`,
@@ -460,6 +716,188 @@ func TestGetWindowDimensions(t *testing.T) {
 			<A───────>B<information──────────────────────────────────────────>
 			A: appStatus
 			B: statusSpacer2
+			`,
+		},
+		{
+			name: "shrink to content, one panel overflows",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.ShrinkSidePanelsToContent = true
+				args.ContentHeightForWindow = contentHeights(map[string]int{
+					"files":    2,
+					"branches": 1,
+					"commits":  100,
+				})
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭branches───────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "shrink to content, everything fits with room to spare",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.ShrinkSidePanelsToContent = true
+				args.ContentHeightForWindow = contentHeights(map[string]int{
+					"files":    2,
+					"branches": 1,
+					"commits":  3,
+				})
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭branches───────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "shrink to content, accordion doesn't resize panels when everything fits",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.ShrinkSidePanelsToContent = true
+				args.UserConfig.Gui.ExpandFocusedSidePanel = true
+				args.CurrentSideWindow = "branches"
+				args.ContentHeightForWindow = contentHeights(map[string]int{
+					"files":    2,
+					"branches": 1,
+					"commits":  3,
+				})
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭branches───────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "shrink to content, empty panel keeps two rows rather than one",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.UserConfig.Gui.ShrinkSidePanelsToContent = true
+				args.ContentHeightForWindow = contentHeights(map[string]int{
+					"files":    0,
+					"branches": 1,
+					"commits":  100,
+				})
+			},
+			expected: `
+			╭status─────────────────╮╭main────────────────────────────────────────────╮
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭files──────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭branches───────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭commits────────────────╮│                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			│                       ││                                                │
+			╰───────────────────────╯│                                                │
+			╭stash──────────────────╮│                                                │
+			│                       ││                                                │
+			╰───────────────────────╯╰────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
 			`,
 		},
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 var AddFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Add a worktree via the branches view, then switch back to the main worktree via the branches view",
+	Description:  "Create a new branch and worktree from a branch, then switch back to the main worktree via the branches view",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -21,28 +21,29 @@ var AddFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("mybranch"),
 			).
-			Press(keys.Worktrees.ViewWorktreeOptions).
+			Press(keys.Universal.NewWorktree).
 			Tap(func() {
 				t.ExpectPopup().Menu().
-					Title(Equals("Worktree")).
-					Select(Contains(`Create worktree from mybranch`).DoesNotContain("detached")).
+					Title(Equals("New worktree")).
+					Select(Contains("New branch and worktree from 'mybranch'")).
 					Confirm()
 
 				t.ExpectPopup().Prompt().
-					Title(Equals("New worktree path")).
-					Type("../linked-worktree").
-					Confirm()
-
-				t.ExpectPopup().Prompt().
-					Title(Equals("New branch name")).
+					Title(Equals("New branch and worktree name")).
 					Type("newbranch").
+					Confirm()
+
+				// no existing worktrees and no configured default path, so the
+				// only candidate location is the repo's parent directory; accept it
+				t.ExpectPopup().Menu().
+					Title(Equals("Worktree location")).
 					Confirm()
 			}).
 			// confirm we're still focused on the branches view
 			IsFocused().
 			Lines(
 				Contains("newbranch").IsSelected(),
-				Contains("mybranch (worktree)"),
+				Contains("mybranch (worktree repo)"),
 			).
 			NavigateToLine(Contains("mybranch")).
 			Press(keys.Universal.Select).
@@ -54,6 +55,8 @@ var AddFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("mybranch").IsSelected(),
+				// the worktree's directory name matches the branch name, so the
+				// branches view shows the compact "(worktree)" with no name
 				Contains("newbranch (worktree)"),
 			).
 			// Confirm the files view is still showing in the files window

@@ -29,33 +29,31 @@ var Crud = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)"),
+				Contains("(main worktree)"),
 			).
 			Press(keys.Universal.New).
 			Tap(func() {
-				t.ExpectPopup().Menu().
-					Title(Equals("Worktree")).
-					Select(Contains(`Create worktree from ref`).DoesNotContain(("detached"))).
+				// a name that isn't an existing branch creates a new branch off
+				// the current one
+				t.ExpectPopup().Prompt().
+					Title(Equals("New worktree for branch")).
+					Type("newbranch").
 					Confirm()
 
-				t.ExpectPopup().Prompt().
-					Title(Equals("New worktree base ref")).
-					InitialText(Equals("mybranch")).
+				t.ExpectPopup().Menu().
+					Title(Equals("Worktree location")).
+					Select(Contains("Other…")).
 					Confirm()
 
 				t.ExpectPopup().Prompt().
 					Title(Equals("New worktree path")).
+					Clear().
 					Type("../linked-worktree").
-					Confirm()
-
-				t.ExpectPopup().Prompt().
-					Title(Equals("New branch name (leave blank to checkout mybranch)")).
-					Type("newbranch").
 					Confirm()
 			}).
 			Lines(
 				Contains("linked-worktree").IsSelected(),
-				Contains("repo (main)"),
+				Contains("(main worktree)"),
 			).
 			// confirm we're still in the same view
 			IsFocused()
@@ -82,7 +80,7 @@ var Crud = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			// confirm we cannot remove the main worktree
-			NavigateToLine(Contains("repo (main)")).
+			NavigateToLine(Contains("(main worktree)")).
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.ExpectPopup().Alert().
@@ -93,7 +91,7 @@ var Crud = NewIntegrationTest(NewIntegrationTestArgs{
 			// switch back to main worktree
 			Press(keys.Universal.Select).
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 				Contains("linked-worktree"),
 			)
 
@@ -108,13 +106,13 @@ var Crud = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("linked-worktree")).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
-					Title(Equals("Remove worktree")).
-					Content(Contains("Are you sure you want to remove worktree 'linked-worktree'?")).
+				t.ExpectPopup().Menu().
+					Title(Equals("Remove worktree 'linked-worktree'?")).
+					Select(MatchesRegexp("Remove worktree$")).
 					Confirm()
 			}).
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 			)
 	},
 })

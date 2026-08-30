@@ -17,17 +17,17 @@ var SelectedSubmodule = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "X",
+				Key:     config.Keybinding{"X"},
 				Context: "submodules",
 				Command: "printf '%s' '{{ .SelectedSubmodule.Path }}' > file.txt",
 			},
 			{
-				Key:     "U",
+				Key:     config.Keybinding{"U"},
 				Context: "submodules",
 				Command: "printf '%s' '{{ .SelectedSubmodule.Url }}' > file.txt",
 			},
 			{
-				Key:     "N",
+				Key:     config.Keybinding{"N"},
 				Context: "submodules",
 				Command: "printf '%s' '{{ .SelectedSubmodule.Name }}' > file.txt",
 			},
@@ -40,13 +40,13 @@ var SelectedSubmodule = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("submodule").IsSelected(),
 			)
 
-		t.Views().Submodules().Press("X")
+		t.Views().Submodules().Press(config.Keybinding{"X"})
 		t.FileSystem().FileContent("file.txt", Equals("path/submodule"))
 
-		t.Views().Submodules().Press("U")
+		t.Views().Submodules().Press(config.Keybinding{"U"})
 		t.FileSystem().FileContent("file.txt", Equals("../submodule"))
 
-		t.Views().Submodules().Press("N")
+		t.Views().Submodules().Press(config.Keybinding{"N"})
 		t.FileSystem().FileContent("file.txt", Equals("submodule"))
 	},
 })

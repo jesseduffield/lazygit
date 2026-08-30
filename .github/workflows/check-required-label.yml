@@ -8,7 +8,7 @@ jobs:
   check-required-label:
     runs-on: ubuntu-latest
     steps:
-      - uses: mheap/github-action-required-labels@v5
+      - uses: mheap/github-action-required-labels@23e10fde7e062233401931a0eece796cd9bf3177 # v5
         with:
           mode: exactly
           count: 1

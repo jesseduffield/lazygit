@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -107,15 +107,7 @@ func (gui *Gui) allMainContextPairs() []types.MainContextPair {
 }
 
 func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
-	// need to reset scroll positions of all other main views
-	for _, pair := range gui.allMainContextPairs() {
-		if pair.Main != opts.Pair.Main {
-			pair.Main.GetView().SetOrigin(0, 0)
-		}
-		if pair.Secondary != nil && pair.Secondary != opts.Pair.Secondary {
-			pair.Secondary.GetView().SetOrigin(0, 0)
-		}
-	}
+	gui.moveMainContextPairToTop(opts.Pair)
 
 	if opts.Main != nil {
 		gui.RefreshMainView(opts.Main, opts.Pair.Main)
@@ -127,7 +119,19 @@ func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
 		opts.Pair.Secondary.GetView().Clear()
 	}
 
-	gui.moveMainContextPairToTop(opts.Pair)
+	// Reset the scroll positions of all the other main views. We do this after
+	// moving this pair to the top (which copies the previously-shown view's
+	// content into the now-visible one to avoid a blank frame): resetting first
+	// would zero that source view's scroll before it gets copied, forcing the
+	// placeholder to the top instead of leaving it where the screen already was.
+	for _, pair := range gui.allMainContextPairs() {
+		if pair.Main != opts.Pair.Main {
+			pair.Main.GetView().SetOrigin(0, 0)
+		}
+		if pair.Secondary != nil && pair.Secondary != opts.Pair.Secondary {
+			pair.Secondary.GetView().SetOrigin(0, 0)
+		}
+	}
 
 	gui.splitMainPanel(opts.Secondary != nil)
 }

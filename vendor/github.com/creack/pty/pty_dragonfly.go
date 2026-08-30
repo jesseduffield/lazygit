@@ -1,3 +1,6 @@
+//go:build dragonfly
+// +build dragonfly
+
 package pty
 
 import (
@@ -42,17 +45,17 @@ func open() (pty, tty *os.File, err error) {
 }
 
 func grantpt(f *os.File) error {
-	_, err := isptmaster(f.Fd())
+	_, err := isptmaster(f)
 	return err
 }
 
 func unlockpt(f *os.File) error {
-	_, err := isptmaster(f.Fd())
+	_, err := isptmaster(f)
 	return err
 }
 
-func isptmaster(fd uintptr) (bool, error) {
-	err := ioctl(fd, syscall.TIOCISPTMASTER, 0)
+func isptmaster(f *os.File) (bool, error) {
+	err := ioctl(f, syscall.TIOCISPTMASTER, 0)
 	return err == nil, err
 }
 
@@ -65,7 +68,7 @@ func ptsname(f *os.File) (string, error) {
 	name := make([]byte, _C_SPECNAMELEN)
 	fa := fiodgnameArg{Name: (*byte)(unsafe.Pointer(&name[0])), Len: _C_SPECNAMELEN, Pad_cgo_0: [4]byte{0, 0, 0, 0}}
 
-	err := ioctl(f.Fd(), ioctl_FIODNAME, uintptr(unsafe.Pointer(&fa)))
+	err := ioctl(f, ioctl_FIODNAME, uintptr(unsafe.Pointer(&fa)))
 	if err != nil {
 		return "", err
 	}

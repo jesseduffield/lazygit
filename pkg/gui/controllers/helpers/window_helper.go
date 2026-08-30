@@ -3,7 +3,8 @@ package helpers
 import (
 	"fmt"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -135,5 +136,13 @@ func (self *WindowHelper) WindowForView(viewName string) string {
 }
 
 func (self *WindowHelper) SideWindows() []string {
-	return []string{"status", "files", "branches", "commits", "stash"}
+	return sideWindowNames(self.c.UserConfig())
+}
+
+// sideWindowNames returns the side panel window names in order, derived from the
+// gui.sidePanels config. A panel's window name is the name of its first tab.
+func sideWindowNames(userConfig *config.UserConfig) []string {
+	return lo.Map(userConfig.Gui.SidePanels, func(panel config.SidePanel, _ int) string {
+		return panel[0]
+	})
 }

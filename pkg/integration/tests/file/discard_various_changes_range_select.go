@@ -16,6 +16,8 @@ var DiscardVariousChangesRangeSelect = NewIntegrationTest(NewIntegrationTestArgs
 	},
 
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Common().PretendMergeOrRebaseStartedInLazygit()
+
 		t.Views().Files().
 			IsFocused().
 			Lines(
@@ -44,12 +46,12 @@ var DiscardVariousChangesRangeSelect = NewIntegrationTest(NewIntegrationTestArgs
 					Cancel()
 			}).
 			Lines(
-				Equals("▼ /").IsSelected(),
+				Equals("▼ /"),
 				Equals("  AM added-changed.txt"),
 				Equals("  MD change-delete.txt"),
 				Equals("  D  delete-change.txt"),
 				Equals("  D  deleted-staged.txt"),
-				Equals("   D deleted.txt"),
+				Equals("   D deleted.txt").IsSelected(),
 				Equals("  MM double-modded.txt"),
 				Equals("  M  modded-staged.txt"),
 				Equals("   M modded.txt"),
@@ -57,6 +59,7 @@ var DiscardVariousChangesRangeSelect = NewIntegrationTest(NewIntegrationTestArgs
 				Equals("  ?? new.txt"),
 				Equals("  R  renamed.txt → renamed2.txt"),
 			).
+			NavigateToLine(Equals("▼ /")).
 			Press(keys.Universal.ToggleRangeSelect).
 			NavigateToLine(Contains("renamed.txt")).
 			Press(keys.Universal.Remove).

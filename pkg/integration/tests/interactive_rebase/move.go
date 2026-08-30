@@ -17,31 +17,31 @@ var Move = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 04").IsSelected(),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-04").IsSelected(),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			).
 			Press(keys.Commits.MoveDownCommit).
 			Lines(
-				Contains("commit 03"),
-				Contains("commit 04").IsSelected(),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-03"),
+				Contains("commit-04").IsSelected(),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			).
 			Press(keys.Commits.MoveDownCommit).
 			Lines(
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 04").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-04").IsSelected(),
+				Contains("commit-01"),
 			).
 			Press(keys.Commits.MoveDownCommit).
 			Lines(
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
-				Contains("commit 04").IsSelected(),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
+				Contains("commit-04").IsSelected(),
 			).
 			// assert nothing happens upon trying to move beyond the last commit
 			Press(keys.Commits.MoveDownCommit).
@@ -49,31 +49,31 @@ var Move = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectToast(Contains("Disabled: Cannot move any further"))
 			}).
 			Lines(
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
-				Contains("commit 04").IsSelected(),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
+				Contains("commit-04").IsSelected(),
 			).
 			Press(keys.Commits.MoveUpCommit).
 			Lines(
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 04").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-04").IsSelected(),
+				Contains("commit-01"),
 			).
 			Press(keys.Commits.MoveUpCommit).
 			Lines(
-				Contains("commit 03"),
-				Contains("commit 04").IsSelected(),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-03"),
+				Contains("commit-04").IsSelected(),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			).
 			Press(keys.Commits.MoveUpCommit).
 			Lines(
-				Contains("commit 04").IsSelected(),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-04").IsSelected(),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			).
 			// assert nothing happens upon trying to move beyond the first commit
 			Press(keys.Commits.MoveUpCommit).
@@ -81,10 +81,10 @@ var Move = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectToast(Contains("Disabled: Cannot move any further"))
 			}).
 			Lines(
-				Contains("commit 04").IsSelected(),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-04").IsSelected(),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			)
 	},
 })

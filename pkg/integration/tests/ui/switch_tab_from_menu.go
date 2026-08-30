@@ -14,7 +14,7 @@ var SwitchTabFromMenu = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().IsFocused().
-			Press(keys.Universal.OptionMenuAlt1)
+			Press(keys.Universal.OptionMenu)
 
 		t.ExpectPopup().Menu().Title(Equals("Keybindings")).
 			Select(Contains("Next tab")).

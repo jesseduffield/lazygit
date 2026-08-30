@@ -57,7 +57,7 @@ func formatSecondsAgo(secondsAgo int64) string {
 
 // formats the date in a smart way, if the date is today, it will show the time, otherwise it will show the date
 func UnixToDateSmart(now time.Time, timestamp int64, longTimeFormat string, shortTimeFormat string) string {
-	date := time.Unix(timestamp, 0)
+	date := time.Unix(timestamp, 0).In(now.Location())
 
 	if date.Day() == now.Day() && date.Month() == now.Month() && date.Year() == now.Year() {
 		return date.Format(shortTimeFormat)

@@ -7,8 +7,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -45,20 +45,20 @@ func NewRemotesController(
 func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:               opts.GetKey(opts.Config.Universal.GoInto),
+			Keys:              opts.GetKeys(opts.Config.Universal.GoInto),
 			Handler:           self.withItem(self.enter),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.ViewBranches,
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:             opts.GetKey(opts.Config.Universal.New),
+			Keys:            opts.GetKeys(opts.Config.Universal.New),
 			Handler:         self.add,
 			Description:     self.c.Tr.NewRemote,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Remove),
+			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.remove),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Remove,
@@ -66,7 +66,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Universal.Edit),
+			Keys:              opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:           self.withItem(self.edit),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Edit,
@@ -74,7 +74,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.FetchRemote),
+			Keys:              opts.GetKeys(opts.Config.Branches.FetchRemote),
 			Handler:           self.withItem(self.fetch),
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.Fetch,
@@ -82,7 +82,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			DisplayOnScreen:   true,
 		},
 		{
-			Key:               opts.GetKey(opts.Config.Branches.AddForkRemote),
+			Keys:              opts.GetKeys(opts.Config.Branches.AddForkRemote),
 			Handler:           self.addFork,
 			GetDisabledReason: self.hasOriginRemote(),
 			Description:       self.c.Tr.AddForkRemote,
@@ -106,7 +106,11 @@ func (self *RemotesController) GetOnRenderToMain() func() {
 			if remote == nil {
 				task = types.NewRenderStringTask("No remotes")
 			} else {
-				task = types.NewRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", style.FgGreen.Sprint(remote.Name), strings.Join(remote.Urls, "\n")))
+				content := fmt.Sprintf("%s\nUrls:\n%s", style.FgGreen.Sprint(remote.Name), strings.Join(remote.Urls, "\n"))
+				if len(remote.PushUrls) > 0 {
+					content += fmt.Sprintf("\nPush Urls:\n%s", strings.Join(remote.PushUrls, "\n"))
+				}
+				task = types.NewRenderStringTask(content)
 			}
 
 			self.c.RenderToMainViews(types.RefreshMainOpts{
@@ -120,7 +124,7 @@ func (self *RemotesController) GetOnRenderToMain() func() {
 	}
 }
 
-func (self *RemotesController) GetOnClick() func() error {
+func (self *RemotesController) GetOnDoubleClick() func() error {
 	return self.withItemGraceful(self.enter)
 }
 
@@ -136,6 +140,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	remoteBranchesContext.SetSelection(newSelectedLine)
 	remoteBranchesContext.SetTitleRef(remote.Name)
 	remoteBranchesContext.SetParentContext(self.Context())
+	remoteBranchesContext.SetWindowName(self.Context().GetWindowName())
 	remoteBranchesContext.GetView().TitlePrefix = self.Context().GetView().TitlePrefix
 
 	self.c.PostRefreshUpdate(remoteBranchesContext)
@@ -151,24 +156,26 @@ func (self *RemotesController) addAndCheckoutRemote(remoteName string, remoteUrl
 		return err
 	}
 
-	// Do a sync refresh of the remotes so that we can select
-	// the new one. Loading remotes is not expensive, so we can
-	// afford it.
+	// Refresh the remotes so that we can select the new one. The remotes model
+	// update is bounced onto the UI thread, so the selection (which reads
+	// Model.Remotes) has to run in Then; reading it inline here would see the
+	// previous model.
 	self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.REMOTES},
-		Mode:  types.SYNC,
+		Then: func() error {
+			// Select the remote
+			for idx, remote := range self.c.Model().Remotes {
+				if remote.Name == remoteName {
+					self.c.Contexts().Remotes.SetSelection(idx)
+					break
+				}
+			}
+
+			// Fetch the remote
+			return self.fetchAndCheckout(self.c.Contexts().Remotes.GetSelected(), branchToCheckout)
+		},
 	})
-
-	// Select the remote
-	for idx, remote := range self.c.Model().Remotes {
-		if remote.Name == remoteName {
-			self.c.Contexts().Remotes.SetSelection(idx)
-			break
-		}
-	}
-
-	// Fetch the remote
-	return self.fetchAndCheckout(self.c.Contexts().Remotes.GetSelected(), branchToCheckout)
+	return nil
 }
 
 // Ensures the fork remote exists (matching the given URL).
@@ -362,17 +369,26 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 		}
 		refreshOptions := types.RefreshOptions{
 			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
-			Mode:  types.ASYNC,
 		}
 		if branchName != "" {
 			err = self.c.Git().Branch.New(branchName, remote.Name+"/"+branchName)
 			if err == nil {
-				self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
-				self.c.Helpers().Refs.SelectFirstBranchAndFirstCommit()
-				refreshOptions.KeepBranchSelectionIndex = true
+				// Branch.New checks the new branch out, so HEAD moves: refresh the
+				// reflog (and, via scope expansion, the commits) as well, and select
+				// the newly checked-out branch and its head commit.
+				refreshOptions.Scope = append(refreshOptions.Scope, types.REFLOG)
+				refreshOptions.BranchSelection = types.SelectCheckedOutBranch
+				refreshOptions.CommitSelection = types.SelectHeadCommit
+				refreshOptions.SelectTopReflogCommit = true
+				// Focus the branches panel on the UI thread once the refresh has
+				// selected the newly checked-out branch.
+				refreshOptions.Then = func() error {
+					self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
+					return nil
+				}
 			}
 		}
-		self.c.Refresh(refreshOptions)
+		self.c.RefreshFromWorker(refreshOptions)
 		return err
 	})
 }

@@ -3,13 +3,16 @@ package git_commands
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/samber/lo"
 )
 
 type WorkingTreeCommands struct {
@@ -184,43 +187,168 @@ type IFileNode interface {
 	GetFile() *models.File
 }
 
-func (self *WorkingTreeCommands) DiscardAllDirChanges(node IFileNode) error {
-	// this could be more efficient but we would need to handle all the edge cases
-	return node.ForEachFile(self.DiscardAllFileChanges)
-}
+func (self *WorkingTreeCommands) DiscardAllDirChanges(nodes []IFileNode) error {
+	// Collect files into buckets so we can batch git calls where possible.
+	var specialFiles []*models.File // renames, AA, DU — handled individually
+	var filesToReset []string       // need `git reset` first (staged or conflicted)
+	var filesToCheckout []string    // need `git checkout` (after optional reset)
+	var filesToRemove []string      // added files to delete from disk
 
-func (self *WorkingTreeCommands) DiscardUnstagedDirChanges(node IFileNode) error {
-	file := node.GetFile()
-	if file == nil {
-		if err := self.RemoveUntrackedDirFiles(node); err != nil {
-			return err
-		}
+	for _, node := range nodes {
+		_ = node.ForEachFile(func(file *models.File) error {
+			// Renames and certain merge-conflict statuses need per-file logic.
+			if file.IsRename() || file.ShortStatus == "AA" || file.ShortStatus == "DU" {
+				specialFiles = append(specialFiles, file)
+				return nil
+			}
 
-		cmdArgs := NewGitCmd("checkout").Arg("--", node.GetPath()).ToArgv()
-		if err := self.cmd.New(cmdArgs).Run(); err != nil {
-			return err
-		}
-	} else {
-		if file.Added && !file.HasStagedChanges {
-			return self.os.RemoveFile(file.Path)
-		}
+			if file.HasStagedChanges || file.HasMergeConflicts {
+				filesToReset = append(filesToReset, file.Path)
+				// DD and AU are done after the reset; no checkout or remove needed.
+				if file.ShortStatus == "DD" || file.ShortStatus == "AU" {
+					return nil
+				}
+				if file.Added {
+					filesToRemove = append(filesToRemove, file.Path)
+				} else {
+					filesToCheckout = append(filesToCheckout, file.Path)
+				}
+				return nil
+			}
 
-		if err := self.DiscardUnstagedFileChanges(file); err != nil {
+			// No staged changes below this point.
+			if file.ShortStatus == "DD" || file.ShortStatus == "AU" {
+				return nil
+			}
+
+			if file.Added {
+				filesToRemove = append(filesToRemove, file.Path)
+				return nil
+			}
+
+			filesToCheckout = append(filesToCheckout, file.Path)
+			return nil
+		})
+	}
+
+	for _, file := range specialFiles {
+		if err := self.DiscardAllFileChanges(file); err != nil {
 			return err
 		}
 	}
 
+	if err := runGitCmdOnPaths("reset", filesToReset, self.cmd); err != nil {
+		return err
+	}
+
+	if err := self.removeFiles(filesToRemove, nodes); err != nil {
+		return err
+	}
+
+	return runGitCmdOnPaths("checkout", filesToCheckout, self.cmd)
+}
+
+func (self *WorkingTreeCommands) DiscardUnstagedDirChanges(nodes []IFileNode) error {
+	// Collect files into buckets so we can batch git calls where possible.
+	// Use specific file paths rather than directory paths, so that an active
+	// filter (e.g. from pressing `/`) only discards visible files.
+	var filesToRemove []string   // purely untracked: remove from disk
+	var filesToCheckout []string // tracked or staged: restore via checkout
+
+	for _, node := range nodes {
+		_ = node.ForEachFile(func(file *models.File) error {
+			if !file.Tracked && !file.HasStagedChanges {
+				filesToRemove = append(filesToRemove, file.Path)
+			} else {
+				// Include staged files: a file that is staged but also has
+				// additional unstaged changes (AM status) needs checkout to
+				// discard those changes.
+				filesToCheckout = append(filesToCheckout, file.Path)
+			}
+			return nil
+		})
+	}
+
+	if err := self.removeFiles(filesToRemove, nodes); err != nil {
+		return err
+	}
+
+	return runGitCmdOnPaths("checkout", filesToCheckout, self.cmd)
+}
+
+// Removes the given files from disk, and also removes any directories that have become empty
+// because of this.
+func (self *WorkingTreeCommands) removeFiles(paths []string, selectedNodes []IFileNode) error {
+	for _, path := range paths {
+		if err := self.os.RemoveFile(path); err != nil {
+			return err
+		}
+	}
+
+	return self.removeEmptyDirs(paths, selectedDirPaths(selectedNodes))
+}
+
+// Removes empty directories left behind after deleting files, but only for directories that
+// are at or below a selected directory node. It works bottom-up so that nested empty directories
+// are also cleaned up. Directories that still have contents are skipped.
+func (self *WorkingTreeCommands) removeEmptyDirs(removedFilePaths []string, selectedDirs []string) error {
+	candidates := set.NewFromSlice(
+		lo.FilterMap(removedFilePaths, func(filePath string, _ int) (string, bool) {
+			dir := path.Dir(filePath)
+			return dir, dir != "." && isUnderSelectedDir(dir, selectedDirs)
+		}))
+
+	for {
+		var removed []string
+		for _, dir := range candidates.ToSlice() {
+			empty, err := self.os.IsDirEmpty(dir)
+			if err != nil {
+				return err
+			}
+			if empty {
+				if err := self.os.RemoveDir(dir); err != nil {
+					return err
+				}
+				removed = append(removed, dir)
+			}
+		}
+		if len(removed) == 0 {
+			break
+		}
+		for _, dir := range removed {
+			candidates.Remove(dir)
+			if parent := path.Dir(dir); parent != "." && isUnderSelectedDir(parent, selectedDirs) {
+				candidates.Add(parent)
+			}
+		}
+	}
 	return nil
+}
+
+func isUnderSelectedDir(path string, selectedDirs []string) bool {
+	isSubdir := func(parent, child string) bool {
+		rel, err := filepath.Rel(parent, child)
+		return err == nil && !strings.HasPrefix(rel, "..")
+	}
+
+	return lo.SomeBy(selectedDirs, func(selectedDir string) bool {
+		return isSubdir(selectedDir, path)
+	})
+}
+
+func selectedDirPaths(nodes []IFileNode) []string {
+	return lo.FilterMap(nodes, func(node IFileNode, _ int) (string, bool) {
+		return node.GetPath(), node.GetFile() == nil
+	})
 }
 
 func (self *WorkingTreeCommands) RemoveUntrackedDirFiles(node IFileNode) error {
 	untrackedFilePaths := node.GetFilePathsMatching(
-		func(file *models.File) bool { return !file.GetIsTracked() },
+		func(file *models.File) bool { return !file.GetIsTracked() && !file.GetHasStagedChanges() },
 	)
 
 	for _, path := range untrackedFilePaths {
-		err := os.Remove(path)
-		if err != nil {
+		if err := self.os.RemoveFile(path); err != nil {
 			return err
 		}
 	}
@@ -246,44 +374,42 @@ func (self *WorkingTreeCommands) Ignore(filename string) error {
 
 // Exclude adds a file to the .git/info/exclude for the repo
 func (self *WorkingTreeCommands) Exclude(filename string) error {
-	excludeFile := filepath.Join(self.repoPaths.repoGitDirPath, "info", "exclude")
+	infoDir := filepath.Join(self.repoPaths.repoGitDirPath, "info")
+	if err := os.MkdirAll(infoDir, 0o755); err != nil {
+		return err
+	}
+	excludeFile := filepath.Join(infoDir, "exclude")
 	return self.os.AppendLineToFile(excludeFile, escapeFilename(filename))
 }
 
 // WorktreeFileDiff returns the diff of a file
 func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached).RunWithOutput()
+	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached, file.Names()).RunWithOutput()
 	return s
 }
 
-func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool) *oscommands.CmdObj {
-	colorArg := self.pagerConfig.GetColorArg()
+// WorktreeFileDiffCmdObj returns a command object for diffing the given paths
+// in the working tree. node is the item they belong to; all it decides is
+// whether git has to compare against /dev/null, which is the case for a file
+// that isn't in the index yet.
+func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool, paths []string) *oscommands.CmdObj {
+	colorArg := self.diffRendererConfigManager.GetColorArg()
 	if plain {
 		colorArg = "never"
 	}
 
-	contextSize := self.UserConfig().Git.DiffContextSize
-	prevPath := node.GetPreviousPath()
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
-	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
-	useExtDiff := extDiffCmd != "" && !plain
-	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
 
 	cmdArgs := NewGitCmd("diff").
-		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
-		ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
 		Arg("--submodule").
-		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
-		ArgIf(!plain && self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
-		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
 		ArgIf(cached, "--cached").
 		ArgIf(noIndex, "--no-index").
 		Arg("--").
 		ArgIf(noIndex, "/dev/null").
-		Arg(node.GetPath()).
-		ArgIf(prevPath != "", prevPath).
+		Arg(paths...).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()
 
@@ -292,36 +418,32 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
 // but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
-func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error) {
-	return self.ShowFileDiffCmdObj(from, to, reverse, fileName, plain).RunWithOutput()
+// For a renamed file, previousPath is the path it was renamed from (empty otherwise);
+// both paths must be passed to git for the rename to be detected.
+func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bool, fileName string, previousPath string, plain bool) (string, error) {
+	fileNames := []string{fileName}
+	if previousPath != "" {
+		fileNames = append(fileNames, previousPath)
+	}
+	return self.ShowFileDiffCmdObj(from, to, reverse, fileNames, plain).RunWithOutput()
 }
 
-func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) *oscommands.CmdObj {
-	contextSize := self.UserConfig().Git.DiffContextSize
-
-	colorArg := self.pagerConfig.GetColorArg()
+func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool) *oscommands.CmdObj {
+	colorArg := self.diffRendererConfigManager.GetColorArg()
 	if plain {
 		colorArg = "never"
 	}
 
-	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
-	useExtDiff := extDiffCmd != "" && !plain
-	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig() && !plain
-
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").
-		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
-		ArgIfElse(useExtDiff || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
 		Arg("--submodule").
-		Arg(fmt.Sprintf("--unified=%d", contextSize)).
-		Arg("--no-renames").
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
 		Arg(from).
 		Arg(to).
 		ArgIf(reverse, "-R").
-		ArgIf(!plain && self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg("--").
-		Arg(fileName).
+		Arg(fileNames...).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()
 

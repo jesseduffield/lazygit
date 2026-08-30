@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -40,6 +41,14 @@ func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context ty
 		return err
 	}
 
+	// After a paste the buffer is hidden but not cleared, so the user
+	// thinks they're starting fresh. Clear it before adding so the new
+	// copy replaces the old one.
+	if self.getData().DidPaste {
+		self.getData().CherryPickedCommits = nil
+		self.getData().DidPaste = false
+	}
+
 	commitSet := self.getData().SelectedHashSet()
 
 	allCommitsCopied := lo.EveryBy(commitsList[startIdx:endIdx+1], func(commit *models.Commit) bool {
@@ -59,8 +68,6 @@ func (self *CherryPickHelper) CopyRange(commitsList []*models.Commit, context ty
 		}
 	}
 
-	self.getData().DidPaste = false
-
 	self.rerender()
 	return nil
 }
@@ -76,9 +83,12 @@ func (self *CherryPickHelper) Paste() error {
 				"numCommits": strconv.Itoa(len(self.getData().CherryPickedCommits)),
 			}),
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatusSync(self.c.Tr.CherryPickingStatus, func() error {
-				mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
-
+			mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
+			cherryPickedCommits := self.getData().CherryPickedCommits
+			return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+				Message:              self.c.Tr.CherryPickingStatus,
+				HideWorkingTreeState: true,
+			}, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.CherryPick)
 
 				if mustStash {
@@ -87,21 +97,11 @@ func (self *CherryPickHelper) Paste() error {
 					}
 				}
 
-				cherryPickedCommits := self.getData().CherryPickedCommits
 				result := self.c.Git().Rebase.CherryPickCommits(cherryPickedCommits)
-				err := self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.SYNC})
+				err := self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(result,
+					types.RefreshOptions{BatchUIUpdates: true})
 				if err != nil {
 					return result
-				}
-
-				// Move the selection down by the number of commits we just
-				// cherry-picked, to keep the same commit selected as before.
-				// Don't do this if a rebase todo is selected, because in this
-				// case we are in a rebase and the cherry-picked commits end up
-				// below the selection.
-				if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && !commit.IsTODO() {
-					self.c.Contexts().LocalCommits.MoveSelection(len(cherryPickedCommits))
-					self.c.Contexts().LocalCommits.FocusLine(true)
 				}
 
 				// If we're in the cherry-picking state at this point, it must
@@ -113,14 +113,19 @@ func (self *CherryPickHelper) Paste() error {
 					return result
 				}
 				if !isInCherryPick {
-					self.getData().DidPaste = true
-					self.rerender()
+					// DidPaste and the re-render touch mode state and contexts,
+					// so run them on the UI thread.
+					self.c.OnUIThread(func() error {
+						self.getData().DidPaste = true
+						self.rerender()
+						return nil
+					})
 
 					if mustStash {
 						if err := self.c.Git().Stash.Pop(0); err != nil {
 							return err
 						}
-						self.c.Refresh(types.RefreshOptions{
+						self.c.RefreshFromWorker(types.RefreshOptions{
 							Scope: []types.RefreshableView{types.STASH, types.FILES},
 						})
 					}

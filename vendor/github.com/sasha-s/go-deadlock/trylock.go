@@ -1,3 +1,4 @@
+//go:build go1.18
 // +build go1.18
 
 package deadlock
@@ -27,13 +28,16 @@ func trylock(lockFn func() bool, ptr interface{}) bool {
 	if Opts.Disable {
 		return lockFn()
 	}
-	stack := callers(1)
+	stack, buf := callers(1)
 	preLock(stack, ptr)
 	ret := lockFn()
 	if ret {
-		postLock(stack, ptr)
+		postLock(stack, buf, ptr)
 	} else {
+		// TryLock failed: the stack won't be stored in stackGID.buf (postLock is
+		// skipped), so we must release the pooled buffer directly to avoid a leak.
+		releaseStackBuf(buf)
 		postUnlock(ptr)
-	}		
+	}
 	return ret
 }

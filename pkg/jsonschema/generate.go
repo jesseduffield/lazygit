@@ -58,7 +58,9 @@ func customReflect(v *config.UserConfig) *jsonschema.Schema {
 	}
 	filterOutDevComments(r)
 	schema := r.Reflect(v)
+	inlineKeybindingRefs(schema)
 	defaultConfig := config.GetDefaultConfig()
+	defaultConfig.Keybinding.MergeLegacyAltKeybindings()
 	userConfigSchema := schema.Definitions["UserConfig"]
 
 	defaultValue := reflect.ValueOf(defaultConfig).Elem()
@@ -77,6 +79,57 @@ func customReflect(v *config.UserConfig) *jsonschema.Schema {
 	return schema
 }
 
+// inlineKeybindingRefs replaces every `$ref: #/$defs/Keybinding` in the
+// schema with the inlined oneOf union, then drops the Keybinding definition.
+//
+// The schema generator stores types that implement JSONSchema() as shared
+// definitions and uses $ref to point at them. That works for most types
+// (where every reference logically points at the same data), but for
+// Keybinding fields each property carries its own description and default,
+// and writing those onto the shared definition would clobber siblings.
+// Inlining sidesteps the issue.
+func inlineKeybindingRefs(schema *jsonschema.Schema) {
+	const ref = "#/$defs/Keybinding"
+	keybindingDef, ok := schema.Definitions["Keybinding"]
+	if !ok {
+		return
+	}
+	inline := func(s *jsonschema.Schema) {
+		desc := s.Description
+		*s = *keybindingDef
+		s.Description = desc
+	}
+	var visit func(s *jsonschema.Schema)
+	visit = func(s *jsonschema.Schema) {
+		if s == nil {
+			return
+		}
+		if s.Properties != nil {
+			for pair := s.Properties.Oldest(); pair != nil; pair = pair.Next() {
+				if pair.Value.Ref == ref {
+					inline(pair.Value)
+				} else {
+					visit(pair.Value)
+				}
+			}
+		}
+		if s.Items != nil {
+			if s.Items.Ref == ref {
+				inline(s.Items)
+			} else {
+				visit(s.Items)
+			}
+		}
+		if s.AdditionalProperties != nil {
+			visit(s.AdditionalProperties)
+		}
+	}
+	for _, def := range schema.Definitions {
+		visit(def)
+	}
+	delete(schema.Definitions, "Keybinding")
+}
+
 func filterOutDevComments(r *jsonschema.Reflector) {
 	for k, v := range r.CommentMap {
 		commentLines := strings.Split(v, "\n")
@@ -91,7 +144,7 @@ func setDefaultVals(rootSchema, schema *jsonschema.Schema, defaults any) {
 	t := reflect.TypeOf(defaults)
 	v := reflect.ValueOf(defaults)
 
-	if t.Kind() == reflect.Ptr || t.Kind() == reflect.Interface {
+	if t.Kind() == reflect.Pointer || t.Kind() == reflect.Interface {
 		t = t.Elem()
 		v = v.Elem()
 	}
@@ -149,7 +202,7 @@ func isZeroValue(v any) bool {
 	switch rv.Kind() {
 	case reflect.Slice, reflect.Map:
 		return rv.Len() == 0
-	case reflect.Ptr, reflect.Interface:
+	case reflect.Pointer, reflect.Interface:
 		return rv.IsNil()
 	case reflect.Struct:
 		for i := range rv.NumField() {

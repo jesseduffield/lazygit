@@ -26,12 +26,12 @@ var RevertMultipleCommitsInInteractiveRebase = NewIntegrationTest(NewIntegration
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI ◯ unrelated change 3").IsSelected(),
-				Contains("CI ◯ unrelated change 2"),
-				Contains("CI ◯ add second line"),
-				Contains("CI ◯ add first line"),
-				Contains("CI ◯ unrelated change 1"),
-				Contains("CI ◯ add empty file"),
+				Contains("CI ○ unrelated change 3").IsSelected(),
+				Contains("CI ○ unrelated change 2"),
+				Contains("CI ○ add second line"),
+				Contains("CI ○ add first line"),
+				Contains("CI ○ unrelated change 1"),
+				Contains("CI ○ add empty file"),
 			).
 			NavigateToLine(Contains("add second line")).
 			Press(keys.Universal.Edit).
@@ -50,17 +50,17 @@ var RevertMultipleCommitsInInteractiveRebase = NewIntegrationTest(NewIntegration
 					Confirm()
 			}).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("CI unrelated change 3"),
 				Contains("CI unrelated change 2"),
-				Contains("--- Pending reverts ---"),
+				Contains("─── Pending reverts"),
 				Contains("revert").Contains("CI unrelated change 1"),
-				Contains("revert").Contains("CI <-- CONFLICT --- add first line"),
-				Contains("--- Commits ---"),
-				Contains("CI ◯ add second line"),
-				Contains("CI ◯ add first line"),
-				Contains("CI ◯ unrelated change 1"),
-				Contains("CI ◯ add empty file"),
+				Contains("revert").Contains("CI <-- CONFLICT --- add first line").IsSelected(),
+				Contains("─── Commits"),
+				Contains("CI ○ add second line"),
+				Contains("CI ○ add first line"),
+				Contains("CI ○ unrelated change 1"),
+				Contains("CI ○ add empty file"),
 			)
 
 		t.Views().Options().Content(Contains("View revert options: m"))
@@ -83,16 +83,16 @@ var RevertMultipleCommitsInInteractiveRebase = NewIntegrationTest(NewIntegration
 
 		t.Views().Commits().
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("pick").Contains("CI unrelated change 3"),
 				Contains("pick").Contains("CI unrelated change 2"),
-				Contains("--- Commits ---"),
-				Contains(`CI ◯ Revert "unrelated change 1"`),
-				Contains(`CI ◯ Revert "add first line"`),
-				Contains("CI ◯ add second line"),
-				Contains("CI ◯ add first line"),
-				Contains("CI ◯ unrelated change 1"),
-				Contains("CI ◯ add empty file"),
+				Contains("─── Commits"),
+				Contains(`CI ○ Revert "unrelated change 1"`),
+				Contains(`CI ○ Revert "add first line"`),
+				Contains("CI ○ add second line"),
+				Contains("CI ○ add first line"),
+				Contains("CI ○ unrelated change 1"),
+				Contains("CI ○ add empty file"),
 			)
 
 		t.Views().Options().Content(Contains("View rebase options: m"))
@@ -102,14 +102,14 @@ var RevertMultipleCommitsInInteractiveRebase = NewIntegrationTest(NewIntegration
 
 		t.Views().Commits().
 			Lines(
-				Contains("CI ◯ unrelated change 3"),
-				Contains("CI ◯ unrelated change 2"),
-				Contains(`CI ◯ Revert "unrelated change 1"`),
-				Contains(`CI ◯ Revert "add first line"`),
-				Contains("CI ◯ add second line"),
-				Contains("CI ◯ add first line"),
-				Contains("CI ◯ unrelated change 1"),
-				Contains("CI ◯ add empty file"),
+				Contains("CI ○ unrelated change 3"),
+				Contains("CI ○ unrelated change 2"),
+				Contains(`CI ○ Revert "unrelated change 1"`),
+				Contains(`CI ○ Revert "add first line"`),
+				Contains("CI ○ add second line"),
+				Contains("CI ○ add first line"),
+				Contains("CI ○ unrelated change 1"),
+				Contains("CI ○ add empty file"),
 			)
 	},
 })

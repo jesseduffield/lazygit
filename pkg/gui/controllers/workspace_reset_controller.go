@@ -8,7 +8,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -46,14 +46,14 @@ func (self *FilesController) createResetMenu() error {
 							}
 
 							self.c.Refresh(
-								types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+								types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 							)
 							return nil
 						},
 					})
 				return nil
 			},
-			Key:     'x',
+			Keys:    menuKey('x'),
 			Tooltip: self.c.Tr.NukeDescription,
 		},
 		{
@@ -68,11 +68,11 @@ func (self *FilesController) createResetMenu() error {
 				}
 
 				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 				)
 				return nil
 			},
-			Key: 'u',
+			Keys: menuKey('u'),
 		},
 		{
 			LabelColumns: []string{
@@ -86,11 +86,11 @@ func (self *FilesController) createResetMenu() error {
 				}
 
 				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 				)
 				return nil
 			},
-			Key: 'c',
+			Keys: menuKey('c'),
 		},
 		{
 			LabelColumns: []string{
@@ -111,11 +111,11 @@ func (self *FilesController) createResetMenu() error {
 				}
 
 				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 				)
 				return nil
 			},
-			Key: 'S',
+			Keys: menuKey('S'),
 		},
 		{
 			LabelColumns: []string{
@@ -129,11 +129,11 @@ func (self *FilesController) createResetMenu() error {
 				}
 
 				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 				)
 				return nil
 			},
-			Key: 's',
+			Keys: menuKey('s'),
 		},
 		{
 			LabelColumns: []string{
@@ -147,11 +147,11 @@ func (self *FilesController) createResetMenu() error {
 				}
 
 				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 				)
 				return nil
 			},
-			Key: 'm',
+			Keys: menuKey('m'),
 		},
 		{
 			LabelColumns: []string{
@@ -170,13 +170,13 @@ func (self *FilesController) createResetMenu() error {
 							}
 
 							self.c.Refresh(
-								types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+								types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 							)
 							return nil
 						},
 					})
 			},
-			Key: 'h',
+			Keys: menuKey('h'),
 		},
 	}
 

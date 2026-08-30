@@ -577,3 +577,107 @@ func TestGetPullRequestURL(t *testing.T) {
 		})
 	}
 }
+
+func TestGetServiceInfo(t *testing.T) {
+	scenarios := []struct {
+		name                 string
+		remoteURL            string
+		configServiceDomains map[string]string
+		expected             ServiceInfo
+	}{
+		{
+			name:      "github.com SSH",
+			remoteURL: "git@github.com:jesseduffield/lazygit.git",
+			expected: ServiceInfo{
+				Provider:   "github",
+				WebDomain:  "github.com",
+				Owner:      "jesseduffield",
+				Repository: "lazygit",
+				RepoName:   "jesseduffield/lazygit",
+			},
+		},
+		{
+			name:      "github enterprise with same git and web host",
+			remoteURL: "git@github.example.com:my-org/my-repo.git",
+			configServiceDomains: map[string]string{
+				"github.example.com": "github:github.example.com",
+			},
+			expected: ServiceInfo{
+				Provider:   "github",
+				WebDomain:  "github.example.com",
+				Owner:      "my-org",
+				Repository: "my-repo",
+				RepoName:   "my-org/my-repo",
+			},
+		},
+		{
+			name:      "github enterprise with distinct git and web hosts",
+			remoteURL: "git@git.example.com:my-org/my-repo.git",
+			configServiceDomains: map[string]string{
+				"git.example.com": "github:ghe.example.com",
+			},
+			expected: ServiceInfo{
+				Provider:   "github",
+				WebDomain:  "ghe.example.com",
+				Owner:      "my-org",
+				Repository: "my-repo",
+				RepoName:   "my-org/my-repo",
+			},
+		},
+		{
+			name:      "github enterprise with web host port",
+			remoteURL: "git@git.example.com:my-org/my-repo.git",
+			configServiceDomains: map[string]string{
+				"git.example.com": "github:ghe.example.com:8443",
+			},
+			expected: ServiceInfo{
+				Provider:   "github",
+				WebDomain:  "ghe.example.com:8443",
+				Owner:      "my-org",
+				Repository: "my-repo",
+				RepoName:   "my-org/my-repo",
+			},
+		},
+		{
+			// azuredevops uses org/project/repo named captures rather than
+			// owner/repo, so Owner is unpopulated and RepoName has three
+			// segments rather than the usual two.
+			name:      "azuredevops",
+			remoteURL: "https://myorg@dev.azure.com/myorg/myproject/_git/myrepo",
+			expected: ServiceInfo{
+				Provider:   "azuredevops",
+				WebDomain:  "dev.azure.com",
+				Repository: "myrepo",
+				RepoName:   "myorg/myproject/myrepo",
+			},
+		},
+		{
+			// bitbucketServer uses project/repo named captures, so Owner is
+			// unpopulated and RepoName is project/repo rather than owner/repo.
+			name:      "bitbucketServer",
+			remoteURL: "https://mycompany.bitbucket.com/scm/myproject/myrepo.git",
+			configServiceDomains: map[string]string{
+				"mycompany.bitbucket.com": "bitbucketServer:mycompany.bitbucket.com",
+			},
+			expected: ServiceInfo{
+				Provider:   "bitbucketServer",
+				WebDomain:  "mycompany.bitbucket.com",
+				Repository: "myrepo",
+				RepoName:   "myproject/myrepo",
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			tr := i18n.EnglishTranslationSet()
+			log := &fakes.FakeFieldLogger{}
+			mgr := NewHostingServiceMgr(log, tr, s.remoteURL, s.configServiceDomains)
+
+			info, err := mgr.GetServiceInfo()
+
+			assert.NoError(t, err)
+			assert.Equal(t, s.expected, info)
+		})
+	}
+}

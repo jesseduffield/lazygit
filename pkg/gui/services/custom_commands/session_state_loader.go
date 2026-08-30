@@ -116,8 +116,9 @@ func remoteShimFromModelRemote(remote *models.Remote) *Remote {
 	}
 
 	return &Remote{
-		Name: remote.Name,
-		Urls: remote.Urls,
+		Name:     remote.Name,
+		Urls:     remote.Urls,
+		PushUrls: remote.PushUrls,
 		Branches: lo.Map(remote.Branches, func(branch *models.RemoteBranch, _ int) *RemoteBranch {
 			return remoteBranchShimFromModelRemoteBranch(branch)
 		}),

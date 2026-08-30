@@ -73,6 +73,6 @@ func (self *CommitMessagePanelDriver) SelectNextMessage() *CommitMessagePanelDri
 }
 
 func (self *CommitMessagePanelDriver) OpenCommitMenu() *CommitMessagePanelDriver {
-	self.t.press(self.t.keys.CommitMessage.CommitMenu)
+	self.t.press(self.t.keys.CommitMessage.CommitMenu[0])
 	return self
 }

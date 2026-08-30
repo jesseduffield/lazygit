@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/constants"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
@@ -28,10 +27,20 @@ func (gui *Gui) LogAction(action string) {
 		return
 	}
 
-	gui.Views.Extras.Autoscroll = true
+	// LogAction and LogCommand are called both from the UI thread and from git
+	// worker goroutines, so bounce the writes onto the UI thread: they touch the
+	// view's autoscroll flag and the GuiLog slice, which the layout/draw code
+	// reads. Ordering between successive log calls is preserved by the FIFO the
+	// bounce enqueues onto. It's a background bounce because writing the command
+	// log is incidental display work that must not count towards lazygit being
+	// busy (otherwise it could block a repo switch).
+	gui.onUIThreadBackground(func() error {
+		gui.Views.Extras.Autoscroll = true
 
-	gui.GuiLog = append(gui.GuiLog, action)
-	fmt.Fprint(gui.Views.Extras, "\n"+style.FgYellow.Sprint(action))
+		gui.GuiLog = append(gui.GuiLog, action)
+		fmt.Fprint(gui.Views.Extras, "\n"+style.FgYellow.Sprint(action))
+		return nil
+	})
 }
 
 func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
@@ -39,23 +48,29 @@ func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
 		return
 	}
 
-	gui.Views.Extras.Autoscroll = true
-
 	textStyle := theme.DefaultTextColor
 	if !commandLine {
 		// if we're not dealing with a direct command that could be run on the command line,
 		// we style it differently to communicate that
 		textStyle = style.FgMagenta
 	}
-	gui.GuiLog = append(gui.GuiLog, cmdStr)
 	indentedCmdStr := "  " + strings.ReplaceAll(cmdStr, "\n", "\n  ")
-	fmt.Fprint(gui.Views.Extras, "\n"+textStyle.Sprint(indentedCmdStr))
+
+	// See the comment in LogAction: bounce onto the UI thread since we may be
+	// called from a git worker, in the background so it can't block a repo switch.
+	gui.onUIThreadBackground(func() error {
+		gui.Views.Extras.Autoscroll = true
+
+		gui.GuiLog = append(gui.GuiLog, cmdStr)
+		fmt.Fprint(gui.Views.Extras, "\n"+textStyle.Sprint(indentedCmdStr))
+		return nil
+	})
 }
 
 func (gui *Gui) printCommandLogHeader() {
 	introStr := fmt.Sprintf(
 		gui.c.Tr.CommandLogHeader,
-		keybindings.Label(gui.c.UserConfig().Keybinding.Universal.ExtrasMenu),
+		gui.c.UserConfig().Keybinding.Universal.ExtrasMenu,
 	)
 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(introStr))
 
@@ -78,95 +93,90 @@ func (gui *Gui) printCommandLogHeader() {
 func (gui *Gui) getRandomTip() string {
 	config := gui.c.UserConfig().Keybinding
 
-	formattedKey := func(key string) string {
-		return keybindings.Label(key)
-	}
-
 	tips := []string{
 		// keybindings and lazygit-specific advice
 		fmt.Sprintf(
 			"To force push, press '%s' and then if the push is rejected you will be asked if you want to force push",
-			formattedKey(config.Universal.Push),
+			config.Universal.Push,
 		),
 		fmt.Sprintf(
 			"To filter commits by path, press '%s'",
-			formattedKey(config.Universal.FilteringMenu),
+			config.Universal.FilteringMenu,
 		),
 		fmt.Sprintf(
 			"To start an interactive rebase, press '%s' on a commit. You can always abort the rebase by pressing '%s' and selecting 'abort'",
-			formattedKey(config.Universal.Edit),
-			formattedKey(config.Universal.CreateRebaseOptionsMenu),
+			config.Universal.Edit,
+			config.Universal.CreateRebaseOptionsMenu,
 		),
 		fmt.Sprintf(
 			"In flat file view, merge conflicts are sorted to the top. To switch to flat file view press '%s'",
-			formattedKey(config.Files.ToggleTreeView),
+			config.Files.ToggleTreeView,
 		),
 		"If you want to learn Go and can think of ways to improve lazygit, join the team! Click 'Ask Question' and express your interest",
 		fmt.Sprintf(
 			"If you press '%s'/'%s' you can undo/redo your changes. Be wary though, this only applies to branches/commits, so only do this if your worktree is clear.\nDocs: %s",
-			formattedKey(config.Universal.Undo),
-			formattedKey(config.Universal.Redo),
+			config.Universal.Undo,
+			config.Universal.Redo,
 			constants.Links.Docs.Undoing,
 		),
 		fmt.Sprintf(
 			"to hard reset onto your current upstream branch, press '%s' in the files panel",
-			formattedKey(config.Commits.ViewResetOptions),
+			config.Commits.ViewResetOptions,
 		),
 		fmt.Sprintf(
 			"To push a tag, navigate to the tag in the tags tab and press '%s'",
-			formattedKey(config.Branches.PushTag),
+			config.Branches.PushTag,
 		),
 		fmt.Sprintf(
 			"You can view the individual files of a stash entry by pressing '%s'",
-			formattedKey(config.Universal.GoInto),
+			config.Universal.GoInto,
 		),
 		fmt.Sprintf(
 			"You can diff two commits by pressing '%s' on one commit and then navigating to the other. You can then press '%s' to view the files of the diff",
-			formattedKey(config.Universal.DiffingMenu),
-			formattedKey(config.Universal.GoInto),
+			config.Universal.DiffingMenu,
+			config.Universal.GoInto,
 		),
 		fmt.Sprintf(
 			"press '%s' on a commit to drop it (delete it)",
-			formattedKey(config.Universal.Remove),
+			config.Universal.Remove,
 		),
 		fmt.Sprintf(
 			"If you need to pull out the big guns to resolve merge conflicts, you can press '%s' in the files panel to open merge options",
-			formattedKey(config.Files.OpenMergeOptions),
+			config.Files.OpenMergeOptions,
 		),
 		fmt.Sprintf(
 			"To revert a commit, press '%s' on that commit",
-			formattedKey(config.Commits.RevertCommit),
+			config.Commits.RevertCommit,
 		),
 		fmt.Sprintf(
 			"To escape a mode, for example cherry-picking, patch-building, diffing, or filtering mode, you can just spam the '%s' button. Unless of course you have `quitOnTopLevelReturn` enabled in your config",
-			formattedKey(config.Universal.Return),
+			config.Universal.Return,
 		),
 		fmt.Sprintf(
 			"You can page through the items of a panel using '%s' and '%s'",
-			formattedKey(config.Universal.PrevPage),
-			formattedKey(config.Universal.NextPage),
+			config.Universal.PrevPage,
+			config.Universal.NextPage,
 		),
 		fmt.Sprintf(
-			"You can jump to the top/bottom of a panel using '%s (or %s)' and '%s (or %s)'",
-			formattedKey(config.Universal.GotoTop), formattedKey(config.Universal.GotoTopAlt),
-			formattedKey(config.Universal.GotoBottom), formattedKey(config.Universal.GotoBottomAlt),
+			"You can jump to the top/bottom of a panel using '%s' and '%s'",
+			config.Universal.GotoTop, config.Universal.GotoBottom,
 		),
 		fmt.Sprintf(
 			"To collapse/expand a directory, press '%s'",
-			formattedKey(config.Universal.GoInto),
+			config.Universal.GoInto,
 		),
 		fmt.Sprintf(
 			"You can append your staged changes to an older commit by pressing '%s' on that commit",
-			formattedKey(config.Commits.AmendToCommit),
+			config.Commits.AmendToCommit,
 		),
 		fmt.Sprintf(
 			"You can amend the last commit with your new file changes by pressing '%s' in the files panel",
-			formattedKey(config.Files.AmendLastCommit),
+			config.Files.AmendLastCommit,
 		),
 		fmt.Sprintf(
 			"You can now navigate the side panels with '%s' and '%s'",
-			formattedKey(config.Universal.NextBlockAlt2),
-			formattedKey(config.Universal.PrevBlockAlt2),
+			config.Universal.NextBlockAlt2,
+			config.Universal.PrevBlockAlt2,
 		),
 
 		"You can use lazygit with a bare repo by passing the --git-dir and --work-tree arguments as you would for the git CLI",
@@ -182,7 +192,7 @@ func (gui *Gui) getRandomTip() string {
 		// links
 		fmt.Sprintf(
 			"If you want a git diff with syntax colouring, check out lazygit's integration with delta:\n%s",
-			constants.Links.Docs.CustomPagers,
+			constants.Links.Docs.CustomDiffRenderers,
 		),
 		fmt.Sprintf(
 			"You can build your own custom menus and commands to run from within lazygit. For examples see:\n%s",

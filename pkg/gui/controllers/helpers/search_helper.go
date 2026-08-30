@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -32,6 +31,8 @@ func NewSearchHelper(
 
 func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) error {
 	state := self.searchState()
+
+	state.PrevSearchIndex = -1
 
 	state.Context = context
 
@@ -73,7 +74,7 @@ func (self *SearchHelper) DisplayFilterStatus(context types.IFilterableContext) 
 
 	promptView := self.promptView()
 	keybindingConfig := self.c.UserConfig().Keybinding
-	promptView.SetContent(fmt.Sprintf("matches for '%s' ", searchString) + theme.OptionsFgColor.Sprintf(self.c.Tr.ExitTextFilterMode, keybindings.Label(keybindingConfig.Universal.Return)))
+	promptView.SetContent(fmt.Sprintf("matches for '%s' ", searchString) + theme.OptionsFgColor.Sprintf(self.c.Tr.ExitTextFilterMode, keybindingConfig.Universal.Return))
 }
 
 func (self *SearchHelper) DisplaySearchStatus(context types.ISearchableContext) {
@@ -224,7 +225,6 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 	switch context := state.Context.(type) {
 	case types.IFilterableContext:
 		context.SetSelection(0)
-		context.GetView().SetOriginY(0)
 		context.SetFilter(searchString, self.c.UserConfig().Gui.UseFuzzySearch())
 		self.c.PostRefreshUpdate(context)
 	case types.ISearchableContext:
@@ -238,8 +238,11 @@ func (self *SearchHelper) ReApplyFilter(context types.Context) {
 	filterableContext, ok := context.(types.IFilterableContext)
 	if ok {
 		state := self.searchState()
-		if context == state.Context {
+		if context == state.Context && self.c.Context().Current().GetKey() == self.c.Contexts().Search.GetKey() {
 			filterableContext.SetSelection(0)
+			// This runs as part of a refresh, and a refresh that no user action
+			// is behind keeps the scroll position, which would leave the view
+			// scrolled somewhere the filtered list no longer has anything at.
 			filterableContext.GetView().SetOriginY(0)
 		}
 		filterableContext.ReApplyFilter(self.c.UserConfig().Gui.UseFuzzySearch())

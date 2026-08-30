@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -17,12 +17,8 @@ func (gui *Gui) scrollUpView(view *gocui.View) {
 }
 
 func (gui *Gui) scrollDownView(view *gocui.View) {
-	scrollHeight := gui.c.UserConfig().Gui.ScrollHeight
-	view.ScrollDown(scrollHeight)
-
-	if manager := gui.getViewBufferManagerForView(view); manager != nil {
-		manager.ReadLines(scrollHeight)
-	}
+	view.ScrollDown(gui.c.UserConfig().Gui.ScrollHeight)
+	gui.readLinesToFillView(view)
 }
 
 func (gui *Gui) scrollUpMain() error {

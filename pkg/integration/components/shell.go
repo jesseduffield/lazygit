@@ -77,7 +77,7 @@ func (self *Shell) RunShellCommand(cmdStr string) *Shell {
 	}
 
 	cmd := exec.Command(shell, shellArg, cmdStr)
-	cmd.Env = os.Environ()
+	cmd.Env = self.env
 	cmd.Dir = self.dir
 
 	output, err := cmd.CombinedOutput()
@@ -256,7 +256,7 @@ func (self *Shell) CreateNCommitsStartingAt(n, startIndex int) *Shell {
 			fmt.Sprintf("file%02d.txt", i),
 			fmt.Sprintf("file%02d content", i),
 		).
-			Commit(fmt.Sprintf("commit %02d", i))
+			Commit(fmt.Sprintf("commit-%02d", i))
 	}
 
 	return self

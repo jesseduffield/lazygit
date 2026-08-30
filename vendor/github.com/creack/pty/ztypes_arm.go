@@ -1,3 +1,6 @@
+//go:build arm
+// +build arm
+
 // Created by cgo -godefs - DO NOT EDIT
 // cgo -godefs types.go
 

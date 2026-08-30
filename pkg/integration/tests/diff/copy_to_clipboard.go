@@ -22,6 +22,12 @@ var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 		config.GetUserConfig().OS.CopyToClipboardCmd = "printf '%s' {{text}} > clipboard"
 	},
 	SetupRepo: func(shell *Shell) {
+		// Run the test in a linked worktree so that we catch bugs where we
+		// use the main repo's path instead of the current worktree's path.
+		shell.EmptyCommit("initial commit")
+		shell.AddWorktree("HEAD", "../linked-worktree", "mybranch")
+		shell.Chdir("../linked-worktree")
+
 		shell.CreateDir("dir")
 		shell.CreateFileAndAdd("dir/file1", "1st line\n")
 		shell.Commit("1")
@@ -38,6 +44,7 @@ var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("3").IsSelected(),
 				Contains("2"),
 				Contains("1"),
+				Contains("initial commit"),
 			).
 			SelectNextItem().
 			PressEnter()
@@ -80,9 +87,9 @@ var CopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm().
 					Tap(func() {
 						t.ExpectToast(Equals("File path copied to clipboard"))
-						repoDir, _ := os.Getwd()
+						worktreeDir, _ := os.Getwd()
 						// On windows the following path would have backslashes, but we don't run integration tests on windows yet.
-						expectClipboard(t, Equals(repoDir+"/dir/file1"))
+						expectClipboard(t, Equals(worktreeDir+"/dir/file1"))
 					})
 			}).
 			Press(keys.Files.CopyFileInfoToClipboard).

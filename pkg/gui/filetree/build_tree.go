@@ -7,7 +7,11 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
-func BuildTreeFromFiles(files []*models.File, showRootItem bool) *Node[models.File] {
+func BuildTreeFromFiles(
+	files []*models.File,
+	showRootItem bool,
+	cmp func(a, b *Node[models.File]) int,
+) *Node[models.File] {
 	root := &Node[models.File]{}
 
 	childrenMapsByNode := make(map[*Node[models.File]]map[string]*Node[models.File])
@@ -57,20 +61,28 @@ func BuildTreeFromFiles(files []*models.File, showRootItem bool) *Node[models.Fi
 		}
 	}
 
-	root.Sort()
+	root.Sort(cmp)
 	root.Compress()
 
 	return root
 }
 
-func BuildFlatTreeFromCommitFiles(files []*models.CommitFile, showRootItem bool) *Node[models.CommitFile] {
-	rootAux := BuildTreeFromCommitFiles(files, showRootItem)
+func BuildFlatTreeFromCommitFiles(
+	files []*models.CommitFile,
+	showRootItem bool,
+	cmp func(a, b *Node[models.CommitFile]) int,
+) *Node[models.CommitFile] {
+	rootAux := BuildTreeFromCommitFiles(files, showRootItem, cmp)
 	sortedFiles := rootAux.GetLeaves()
 
 	return &Node[models.CommitFile]{Children: sortedFiles}
 }
 
-func BuildTreeFromCommitFiles(files []*models.CommitFile, showRootItem bool) *Node[models.CommitFile] {
+func BuildTreeFromCommitFiles(
+	files []*models.CommitFile,
+	showRootItem bool,
+	cmp func(a, b *Node[models.CommitFile]) int,
+) *Node[models.CommitFile] {
 	root := &Node[models.CommitFile]{}
 
 	var curr *Node[models.CommitFile]
@@ -109,14 +121,18 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile, showRootItem bool) *No
 		}
 	}
 
-	root.Sort()
+	root.Sort(cmp)
 	root.Compress()
 
 	return root
 }
 
-func BuildFlatTreeFromFiles(files []*models.File, showRootItem bool) *Node[models.File] {
-	rootAux := BuildTreeFromFiles(files, showRootItem)
+func BuildFlatTreeFromFiles(
+	files []*models.File,
+	showRootItem bool,
+	cmp func(a, b *Node[models.File]) int,
+) *Node[models.File] {
+	rootAux := BuildTreeFromFiles(files, showRootItem, cmp)
 	sortedFiles := rootAux.GetLeaves()
 
 	// from top down we have merge conflict files, then tracked file, then untracked

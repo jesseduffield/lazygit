@@ -2,9 +2,9 @@ package components
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
@@ -13,6 +13,8 @@ type TestDriver struct {
 	gui        integrationTypes.GuiDriver
 	keys       config.KeybindingConfig
 	inputDelay int
+	mouseX     int
+	mouseY     int
 	*assertionHelper
 	shell *Shell
 }
@@ -43,17 +45,70 @@ func (self *TestDriver) pressFast(keyStr string) {
 	self.Wait(self.inputDelay / 5)
 }
 
+// presses the keys in immediate succession, without waiting for lazygit to
+// become idle in between, to simulate a user typing faster than lazygit
+// processes the input
+func (self *TestDriver) pressRapidly(keyStrs []string) {
+	self.SetCaption(fmt.Sprintf("Pressing %s", strings.Join(keyStrs, ", ")))
+	self.gui.PressKeysRapidly(keyStrs...)
+	self.Wait(self.inputDelay)
+}
+
 func (self *TestDriver) click(x, y int) {
 	self.SetCaption(fmt.Sprintf("Clicking %d, %d", x, y))
 	self.gui.Click(x, y)
 	self.Wait(self.inputDelay)
 }
 
+func (self *TestDriver) clickAndHold(x, y int) {
+	self.SetCaption(fmt.Sprintf("Clicking and holding %d, %d", x, y))
+	self.mouseX, self.mouseY = x, y
+	self.gui.ClickAndHold(x, y)
+	self.Wait(self.inputDelay)
+}
+
+func (self *TestDriver) mouseMove(x, y int) {
+	self.SetCaption(fmt.Sprintf("Moving mouse to %d, %d", x, y))
+	self.mouseX, self.mouseY = x, y
+	self.gui.MouseMove(x, y)
+	self.Wait(self.inputDelay)
+}
+
+func (self *TestDriver) repeatMouseMove() {
+	self.mouseMove(self.mouseX, self.mouseY)
+}
+
+func (self *TestDriver) scrollWheelDown(x, y int) {
+	self.SetCaption(fmt.Sprintf("Scrolling down at %d, %d", x, y))
+	self.gui.ScrollWheelDown(x, y)
+	self.Wait(self.inputDelay)
+}
+
+func (self *TestDriver) mouseRelease() {
+	self.SetCaption(fmt.Sprintf("Releasing mouse at %d, %d", self.mouseX, self.mouseY))
+	self.gui.MouseRelease(self.mouseX, self.mouseY)
+	self.Wait(self.inputDelay)
+}
+
 // Should only be used in specific cases where you're doing something weird!
 // E.g. invoking a global keybinding from within a popup.
 // You probably shouldn't use this function, and should instead go through a view like t.Views().Commit().Focus().Press(...)
-func (self *TestDriver) GlobalPress(keyStr string) {
-	self.press(keyStr)
+func (self *TestDriver) GlobalPress(key config.Keybinding) {
+	self.press(key[0])
+}
+
+// FocusIn simulates the terminal window regaining focus, which causes lazygit
+// to reload any config files that changed while it was in the background.
+func (self *TestDriver) FocusIn() {
+	self.SetCaption("Focusing window")
+	self.gui.FocusIn()
+	self.Wait(self.inputDelay)
+}
+
+func (self *TestDriver) focusInAndClick(x, y int) {
+	self.SetCaption(fmt.Sprintf("Focusing window and clicking %d, %d", x, y))
+	self.gui.FocusInAndClick(x, y)
+	self.Wait(self.inputDelay)
 }
 
 func (self *TestDriver) typeContent(content string) {
@@ -87,6 +142,15 @@ func (self *TestDriver) Log(message string) {
 	self.gui.LogUI(message)
 }
 
+// RefreshInBackground performs the refresh that lazygit's background routines
+// perform on a timer, e.g. to pick up changes made by RunCommand. Tests use this
+// rather than turning those routines on and waiting for them.
+func (self *TestDriver) RefreshInBackground() {
+	self.SetCaption("Refreshing in the background")
+	self.gui.RefreshInBackground()
+	self.Wait(self.inputDelay)
+}
+
 // allows the user to run shell commands during the test to emulate background activity
 func (self *TestDriver) Shell() *Shell {
 	return self.shell
@@ -115,17 +179,6 @@ func (self *TestDriver) ExpectToast(matcher *TextMatcher) *TestDriver {
 	}
 
 	return self
-}
-
-func (self *TestDriver) ExpectClipboard(matcher *TextMatcher) {
-	self.assertWithRetries(func() (bool, string) {
-		text, err := clipboard.ReadAll()
-		if err != nil {
-			return false, "Error occurred when reading from clipboard: " + err.Error()
-		}
-		ok, _ := matcher.test(text)
-		return ok, fmt.Sprintf("Expected clipboard to match %s, but got %s", matcher.name(), text)
-	})
 }
 
 func (self *TestDriver) ExpectSearch() *SearchDriver {

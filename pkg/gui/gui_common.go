@@ -1,10 +1,10 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
@@ -30,8 +30,20 @@ func (self *guiCommon) Refresh(opts types.RefreshOptions) {
 	self.gui.helpers.Refresh.Refresh(opts)
 }
 
+func (self *guiCommon) RefreshBlockingInput(opts types.RefreshOptions) {
+	self.gui.helpers.Refresh.RefreshBlockingInput(opts)
+}
+
+func (self *guiCommon) RefreshFromWorker(opts types.RefreshOptions) {
+	self.gui.helpers.Refresh.RefreshFromWorker(opts)
+}
+
 func (self *guiCommon) PostRefreshUpdate(context types.Context) {
-	self.gui.postRefreshUpdate(context)
+	self.gui.postRefreshUpdate(context, types.OnFocusOpts{})
+}
+
+func (self *guiCommon) PostRefreshUpdateWithOptions(context types.Context, opts types.OnFocusOpts) {
+	self.gui.postRefreshUpdate(context, opts)
 }
 
 func (self *guiCommon) RunSubprocessAndRefresh(cmdObj *oscommands.CmdObj) error {
@@ -50,7 +62,22 @@ func (self *guiCommon) Resume() error {
 	return self.gui.resume()
 }
 
+func (self *guiCommon) PauseBackgroundRefreshes(pause bool) {
+	self.gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(pause)
+}
+
+// assertOnUIThread panics (in debug builds) if called from a worker goroutine.
+// Use it to guard accessors for state that only the UI thread may touch, so
+// that a stray worker access fails deterministically -- and points at itself --
+// rather than surfacing later as a probabilistic data race.
+func (self *guiCommon) assertOnUIThread(accessor string) {
+	if self.GetConfig().GetDebug() && !self.GocuiGui().IsUIThread() {
+		panic(accessor + " accessed from a worker")
+	}
+}
+
 func (self *guiCommon) Context() types.IContextMgr {
+	self.assertOnUIThread("Context()")
 	return self.gui.State.ContextMgr
 }
 
@@ -105,6 +132,7 @@ func (self *guiCommon) Modes() *types.Modes {
 }
 
 func (self *guiCommon) Model() *types.Model {
+	self.assertOnUIThread("Model()")
 	return self.gui.State.Model
 }
 
@@ -120,8 +148,24 @@ func (self *guiCommon) OnUIThread(f func() error) {
 	self.gui.onUIThread(f)
 }
 
+func (self *guiCommon) OnUIThreadBackground(f func() error) {
+	self.gui.onUIThreadBackground(f)
+}
+
+func (self *guiCommon) OnUIThreadContentOnly(f func() error) {
+	self.gui.onUIThreadContentOnly(f)
+}
+
+func (self *guiCommon) OnUIThreadContentOnlyBackground(f func() error) {
+	self.gui.onUIThreadContentOnlyBackground(f)
+}
+
 func (self *guiCommon) OnWorker(f func(gocui.Task) error) {
 	self.gui.onWorker(f)
+}
+
+func (self *guiCommon) OnWorkerBackground(f func(gocui.Task) error) {
+	self.gui.onWorkerBackground(f)
 }
 
 func (self *guiCommon) RenderToMainViews(opts types.RefreshMainOpts) {
@@ -139,6 +183,10 @@ func (self *guiCommon) MainViewPairs() types.MainViewPairs {
 
 func (self *guiCommon) GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager {
 	return self.gui.getViewBufferManagerForView(view)
+}
+
+func (self *guiCommon) ReadLinesToFillView(view *gocui.View) {
+	self.gui.readLinesToFillView(view)
 }
 
 func (self *guiCommon) State() types.IStateAccessor {

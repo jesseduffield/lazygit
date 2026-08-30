@@ -1,7 +1,6 @@
 package git_commands
 
 import (
-	"regexp"
 	"strings"
 
 	"github.com/go-errors/errors"
@@ -21,30 +20,19 @@ func NewFlowCommands(
 }
 
 func (self *FlowCommands) GitFlowEnabled() bool {
-	return self.config.GetGitFlowPrefixes() != ""
+	return len(self.config.GetGitFlowPrefixMap()) > 0
 }
 
 func (self *FlowCommands) FinishCmdObj(branchName string) (*oscommands.CmdObj, error) {
-	prefixes := self.config.GetGitFlowPrefixes()
+	prefixMap := self.config.GetGitFlowPrefixMap()
 
-	// need to find out what kind of branch this is
-	prefix := strings.SplitAfterN(branchName, "/", 2)[0]
-	suffix := strings.Replace(branchName, prefix, "", 1)
-
-	branchType := ""
-	for line := range strings.SplitSeq(strings.TrimSpace(prefixes), "\n") {
-		if strings.HasPrefix(line, "gitflow.prefix.") && strings.HasSuffix(line, prefix) {
-
-			regex := regexp.MustCompile("gitflow.prefix.([^ ]*) .*")
-			matches := regex.FindAllStringSubmatch(line, 1)
-
-			if len(matches) > 0 && len(matches[0]) > 1 {
-				branchType = matches[0][1]
-				break
-			}
-		}
+	prefixPart, suffix, ok := strings.Cut(branchName, "/")
+	if !ok || prefixPart == "" || suffix == "" {
+		return nil, errors.New(self.Tr.NotAGitFlowBranch)
 	}
+	prefix := prefixPart + "/"
 
+	branchType := prefixMap[prefix]
 	if branchType == "" {
 		return nil, errors.New(self.Tr.NotAGitFlowBranch)
 	}

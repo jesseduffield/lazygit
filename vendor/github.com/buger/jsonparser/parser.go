@@ -18,6 +18,7 @@ var (
 	MalformedValueError        = errors.New("Value looks like Number/Boolean/None, but can't find its end: ',' or '}' symbol")
 	OverflowIntegerError       = errors.New("Value is number, but overflowed while parsing")
 	MalformedStringEscapeError = errors.New("Encountered an invalid escape sequence in a string")
+	NullValueError             = errors.New("Value is null")
 )
 
 // How much stack space to allocate for unescaping JSON strings; if a string longer
@@ -49,10 +50,13 @@ func findTokenStart(data []byte, token byte) int {
 }
 
 func findKeyStart(data []byte, key string) (int, error) {
-	i := 0
+	i := nextToken(data)
+	if i == -1 {
+		return i, KeyPathNotFoundError
+	}
 	ln := len(data)
-	if ln > 0 && (data[0] == '{' || data[0] == '[') {
-		i = 1
+	if ln > 0 && (data[i] == '{' || data[i] == '[') {
+		i += 1
 	}
 	var stackbuf [unescapeStackBufSize]byte // stack-allocated array for allocation-free unescaping of small strings
 
@@ -308,7 +312,7 @@ func searchKeys(data []byte, keys ...string) int {
 		case '[':
 			// If we want to get array element by index
 			if keyLevel == level && keys[level][0] == '[' {
-				var keyLen = len(keys[level])
+				keyLen := len(keys[level])
 				if keyLen < 3 || keys[level][0] != '[' || keys[level][keyLen-1] != ']' {
 					return -1
 				}
@@ -319,7 +323,7 @@ func searchKeys(data []byte, keys ...string) int {
 				var curIdx int
 				var valueFound []byte
 				var valueOffset int
-				var curI = i
+				curI := i
 				ArrayEach(data[i:], func(value []byte, dataType ValueType, offset int, err error) {
 					if curIdx == aIdx {
 						valueFound = value
@@ -374,11 +378,18 @@ func sameTree(p1, p2 []string) bool {
 	return true
 }
 
+const stackArraySize = 128
+
 func EachKey(data []byte, cb func(int, []byte, ValueType, error), paths ...[]string) int {
 	var x struct{}
-	pathFlags := make([]bool, len(paths))
 	var level, pathsMatched, i int
 	ln := len(data)
+
+	pathFlags := make([]bool, stackArraySize)[:]
+	if len(paths) > cap(pathFlags) {
+		pathFlags = make([]bool, len(paths))[:]
+	}
+	pathFlags = pathFlags[0:len(paths)]
 
 	var maxPath int
 	for _, p := range paths {
@@ -387,7 +398,11 @@ func EachKey(data []byte, cb func(int, []byte, ValueType, error), paths ...[]str
 		}
 	}
 
-	pathsBuf := make([]string, maxPath)
+	pathsBuf := make([]string, stackArraySize)[:]
+	if maxPath > cap(pathsBuf) {
+		pathsBuf = make([]string, maxPath)[:]
+	}
+	pathsBuf = pathsBuf[0:maxPath]
 
 	for i < ln {
 		switch data[i] {
@@ -484,7 +499,12 @@ func EachKey(data []byte, cb func(int, []byte, ValueType, error), paths ...[]str
 		case '[':
 			var ok bool
 			arrIdxFlags := make(map[int]struct{})
-			pIdxFlags := make([]bool, len(paths))
+
+			pIdxFlags := make([]bool, stackArraySize)[:]
+			if len(paths) > cap(pIdxFlags) {
+				pIdxFlags = make([]bool, len(paths))[:]
+			}
+			pIdxFlags = pIdxFlags[0:len(paths)]
 
 			if level < 0 {
 				cb(-1, nil, Unknown, MalformedJsonError)
@@ -662,7 +682,6 @@ func calcAllocateSpace(keys []string, setValue []byte, comma, object bool) int {
 		}
 	}
 
-
 	lk += len(setValue)
 	for i := 1; i < len(keys); i++ {
 		if string(keys[i][0]) == "[" {
@@ -712,7 +731,7 @@ func Delete(data []byte, keys ...string) []byte {
 	if !array {
 		if len(keys) > 1 {
 			_, _, startOffset, endOffset, err = internalGet(data, keys[:lk-1]...)
-			if err == KeyPathNotFoundError {
+			if err != nil {
 				// problem parsing the data
 				return data
 			}
@@ -724,7 +743,11 @@ func Delete(data []byte, keys ...string) []byte {
 			return data
 		}
 		keyOffset += startOffset
-		_, _, _, subEndOffset, _ := internalGet(data[startOffset:endOffset], keys[lk-1])
+		var subEndOffset int
+		_, _, _, subEndOffset, err = internalGet(data[startOffset:endOffset], keys[lk-1])
+		if err != nil {
+			return data
+		}
 		endOffset = startOffset + subEndOffset
 		tokEnd := tokenEnd(data[endOffset:])
 		tokStart := findTokenStart(data[:keyOffset], ","[0])
@@ -738,7 +761,7 @@ func Delete(data []byte, keys ...string) []byte {
 		}
 	} else {
 		_, _, keyOffset, endOffset, err = internalGet(data, keys...)
-		if err == KeyPathNotFoundError {
+		if err != nil {
 			// problem parsing the data
 			return data
 		}
@@ -1178,6 +1201,9 @@ func GetString(data []byte, keys ...string) (val string, err error) {
 	}
 
 	if t != String {
+		if t == Null {
+			return "", NullValueError
+		}
 		return "", fmt.Errorf("Value is not a string: %s", string(v))
 	}
 
@@ -1200,6 +1226,9 @@ func GetFloat(data []byte, keys ...string) (val float64, err error) {
 	}
 
 	if t != Number {
+		if t == Null {
+			return 0, NullValueError
+		}
 		return 0, fmt.Errorf("Value is not a number: %s", string(v))
 	}
 
@@ -1216,6 +1245,9 @@ func GetInt(data []byte, keys ...string) (val int64, err error) {
 	}
 
 	if t != Number {
+		if t == Null {
+			return 0, NullValueError
+		}
 		return 0, fmt.Errorf("Value is not a number: %s", string(v))
 	}
 
@@ -1233,6 +1265,9 @@ func GetBoolean(data []byte, keys ...string) (val bool, err error) {
 	}
 
 	if t != Boolean {
+		if t == Null {
+			return false, NullValueError
+		}
 		return false, fmt.Errorf("Value is not a boolean: %s", string(v))
 	}
 

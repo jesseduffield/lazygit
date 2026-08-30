@@ -1,0 +1,104 @@
+version: "2"
+run:
+  concurrency: 4
+  # also lint _test.go files
+  tests: true
+  timeout: 5m
+linters:
+  enable:
+    - govet
+    - staticcheck
+    - unused
+    - errcheck
+    - gocritic
+    - gocyclo
+    - revive
+    - ineffassign
+    - unconvert
+    - goconst
+    # - depguard
+    - prealloc
+    # - dupl
+    - misspell
+    - bodyclose
+    - sqlclosecheck
+    - nilerr
+    - nestif
+    - forcetypeassert
+    - exhaustive
+    - funlen
+    # - wsl_v5
+    - testifylint
+    - whitespace
+    - perfsprint
+    - nolintlint
+    - godot
+    - thelper
+    - tparallel
+    - paralleltest
+    - predeclared
+
+  # disable noisy/controversial ones which you might enable later
+  disable:
+    - lll          # line length — handled by gofmt/gofumpt
+
+  settings:
+    dupl:
+      threshold: 20  # lower => stricter (tokens)
+    errcheck:
+      check-type-assertions: true
+    funlen:
+      lines: 120
+      statements: 80
+    goconst:
+      min-len: 2
+      min-occurrences: 3
+    gocyclo:
+      min-complexity: 15 # strict; lower => stricter
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2
+    testifylint:
+      disable:
+        - require-error
+        - float-compare
+
+  exclusions:
+    generated: lax
+    paths:
+      - examples$
+    rules:
+      - linters:
+          - revive
+        text: "^unused-parameter:"
+      - linters:
+          - revive
+        text: "^package-comments:"
+      - linters:
+          - errcheck
+        text: "Error return value of `.*\\.Body\\.Close` is not checked"
+      # linters disabled in tests
+      - linters:
+          - dupl
+          - goconst
+          - funlen
+        path: "_test\\.go$"
+
+issues:
+  max-issues-per-linter: 0  # 0 = unlimited (we want ALL issues)
+  max-same-issues: 100
+
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+  settings:
+    gofumpt:
+      extra-rules: true
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

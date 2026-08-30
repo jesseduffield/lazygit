@@ -1,35 +1,38 @@
-//go:build !windows
-
 package gui
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strings"
 
-	"github.com/creack/pty"
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
-func (gui *Gui) desiredPtySize(view *gocui.View) *pty.Winsize {
+func (gui *Gui) desiredPtySize(view *gocui.View) (cols, rows uint16) {
 	width, height := view.InnerSize()
-
-	return &pty.Winsize{Cols: uint16(width), Rows: uint16(height)}
+	return uint16(width), uint16(height)
 }
 
 func (gui *Gui) onResize() error {
 	gui.Mutexes.PtyMutex.Lock()
 	defer gui.Mutexes.PtyMutex.Unlock()
 
-	for viewName, ptmx := range gui.viewPtmxMap {
+	for viewName, p := range gui.viewPtmxMap {
 		// TODO: handle resizing properly: we need to actually clear the main view
 		// and re-read the output from our pty. Or we could just re-run the original
 		// command from scratch
 		view, _ := gui.g.View(viewName)
-		if err := pty.Setsize(ptmx, gui.desiredPtySize(view)); err != nil {
+		cols, rows := gui.desiredPtySize(view)
+		if err := p.Resize(cols, rows); err != nil {
 			return utils.WrapError(err)
 		}
 	}
@@ -37,33 +40,58 @@ func (gui *Gui) onResize() error {
 	return nil
 }
 
+// ptyCmd adapts an oscommands.StartedPty result into the tasks.Cmd shape.
+// On Windows the original *exec.Cmd was never Start()ed, so we go through
+// the explicit Process handle rather than cmd.Process.
+type ptyCmd struct {
+	cmd     *exec.Cmd
+	process *os.Process
+	wait    func() error
+}
+
+func (p ptyCmd) Wait() error      { return p.wait() }
+func (p ptyCmd) String() string   { return p.cmd.String() }
+func (p ptyCmd) Terminate() error { return oscommands.TerminateProcessGracefully(p.process) }
+
 // Some commands need to output for a terminal to active certain behaviour.
-// For example,  git won't invoke the GIT_PAGER env var unless it thinks it's
+// For example, git won't invoke the GIT_PAGER env var unless it thinks it's
 // talking to a terminal. We typically write cmd outputs straight to a view,
 // which is just an io.Reader. the pty package lets us wrap a command in a
 // pseudo-terminal meaning we'll get the behaviour we want from the underlying
 // command.
 func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
 	width := view.InnerWidth()
-	pager := gui.stateAccessor.GetPagerConfig().GetPagerCommand(width)
-	externalDiffCommand := gui.stateAccessor.GetPagerConfig().GetExternalDiffCommand()
-	useExtDiffGitConfig := gui.stateAccessor.GetPagerConfig().GetUseExternalDiffGitConfig()
 
-	if pager == "" && externalDiffCommand == "" && !useExtDiffGitConfig {
-		// If we're not using a custom pager nor external diff command, then we don't need to use a pty
+	// Set LAZYGIT_COLUMNS for diff renderer scripts that can't query the terminal width directly.
+	cmd.Env = append(cmd.Env, fmt.Sprintf("LAZYGIT_COLUMNS=%d", width))
+
+	if gui.stateAccessor.GetDiffRendererConfigManager().GetDiffRendererType() == config.DiffRendererType_RawGit {
+		// If we're not using a custom diff renderer, then we don't need to use a pty
 		return gui.newCmdTask(view, cmd, prefix)
 	}
 
+	cmd.Args = withPtyGitConfig(cmd.Args, runtime.GOOS)
+
+	// Mark the view as loading synchronously now, before the layout pass: the
+	// actual task is created in afterLayout (below), which runs after layout, so
+	// without this the next layout pass would clamp the scroll position to the
+	// not-yet-loaded content.
+	gui.getManager(view).StartLoading()
+	// Hold the scrollbar at its current height while the re-render loads, so the
+	// thumb doesn't shrink and snap back when the first partial paint swaps in
+	// (see the matching call in newCmdTask).
+	view.FreezeScrollbarHeight()
+
 	// Run the pty after layout so that it gets the correct size
 	gui.afterLayout(func() error {
-		// Need to get the width and the pager again because the layout might have
+		// Need to get the width and the pager command again because the layout might have
 		// changed the size of the view
 		width = view.InnerWidth()
-		pager := gui.stateAccessor.GetPagerConfig().GetPagerCommand(width)
+		pager := gui.stateAccessor.GetDiffRendererConfigManager().GetStdinFilterCommand(width)
 
 		cmdStr := strings.Join(cmd.Args, " ")
 
-		// This communicates to pagers that we're in a very simple
+		// This communicates to diff renderers that we're in a very simple
 		// terminal that they should not expect to have much capabilities.
 		// Moving the cursor, clearing the screen, or querying for colors are among such "advanced" capabilities.
 		// Context: https://github.com/jesseduffield/lazygit/issues/3419
@@ -74,24 +102,46 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 		manager := gui.getManager(view)
 
-		var ptmx *os.File
-		start := func() (*exec.Cmd, io.Reader) {
-			var err error
-			ptmx, err = pty.StartWithSize(cmd, gui.desiredPtySize(view))
+		// Size the pty from the view's dimensions here, on the UI thread; the
+		// start func below runs on the task's goroutine, which must not read the
+		// view's live dimensions while the UI thread is laying it out.
+		cols, rows := gui.desiredPtySize(view)
+
+		var p oscommands.Pty
+		var fallbackPipe io.ReadCloser
+		start := func() (tasks.Cmd, io.Reader) {
+			// The pty (and diff renderer) wrap to this width; apply it here, on the
+			// task's goroutine once the previous task has stopped, so it doesn't
+			// race that task's writes (see View.SetContentWidth).
+			view.SetContentWidth(width)
+
+			sp, err := oscommands.StartPty(cmd, cols, rows)
 			if err != nil {
 				gui.c.Log.Error(err)
+				// Fall back to running the command without a pty: the diff renderer is
+				// lost, but the command's output still renders.
+				execCmd, pipe := startCmdWithPipe(cmd, gui.c.Log)
+				fallbackPipe = pipe
+				return execCmd, pipe
 			}
+			p = sp.Pty
 
 			gui.Mutexes.PtyMutex.Lock()
-			gui.viewPtmxMap[view.Name()] = ptmx
+			gui.viewPtmxMap[view.Name()] = p
 			gui.Mutexes.PtyMutex.Unlock()
 
-			return cmd, ptmx
+			return ptyCmd{cmd: cmd, process: sp.Process, wait: sp.Wait}, p
 		}
 
 		onClose := func() {
 			gui.Mutexes.PtyMutex.Lock()
-			ptmx.Close()
+			if p != nil {
+				p.Close()
+			}
+			if fallbackPipe != nil {
+				fallbackPipe.Close()
+				fallbackPipe = nil
+			}
 			delete(gui.viewPtmxMap, view.Name())
 			gui.Mutexes.PtyMutex.Unlock()
 		}
@@ -101,6 +151,43 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	})
 
 	return nil
+}
+
+// withPtyGitConfig returns args with extra git configuration for commands
+// that render into a pty. On Windows, such a command is terminated at an
+// arbitrary point of its execution when its task stops: tearing down the
+// pseudoconsole delivers CTRL_CLOSE_EVENT, which git leaves to the default
+// handler, which just calls ExitProcess. git's automatic index refresh
+// (diff.autoRefreshIndex, on by default) takes index.lock at the end of a
+// diff against the worktree to write back refreshed stat information —
+// GIT_OPTIONAL_LOCKS does not cover this lock — and a termination landing
+// in that window leaves a stale index.lock behind that the next git command
+// chokes on. So don't let pty-rendered commands refresh the index;
+// lazygit's foreground `git status` refreshes, which never run in a pty,
+// keep the stat cache fresh instead.
+//
+// On Unix a stopped pty child gets SIGTERM, and git's signal handlers remove
+// its lock files, so the refresh can stay enabled there and keep healing
+// stale stat info.
+func withPtyGitConfig(args []string, goos string) []string {
+	if goos != "windows" {
+		return args
+	}
+	// Most pty commands are direct git invocations, but the user-configured
+	// ones can be arbitrary command lines (e.g. a branchLogCmd wrapping git
+	// in `sh -c`), and injecting git flags into those would corrupt them.
+	// Only direct git invocations get the config; that loses nothing, since
+	// the wrapped commands are log commands, which never take the index
+	// lock. (For direct invocations other than worktree diffs the config is
+	// simply a no-op.)
+	base := strings.TrimSuffix(strings.ToLower(filepath.Base(args[0])), ".exe")
+	if base != "git" {
+		return args
+	}
+	result := make([]string, 0, len(args)+2)
+	result = append(result, args[0])
+	result = append(result, "-c", "diff.autoRefreshIndex=false")
+	return append(result, args[1:]...)
 }
 
 func removeExistingTermEnvVars(env []string) []string {

@@ -34,6 +34,8 @@ Go-Colorful stores colors in RGB and provides methods from converting these to v
 - **CIE LCh(uv):** Called `LuvLCh` in code, this is a cylindrical transformation of the CIE-L\*u\*v\* color space. Like HCL above: H° is in [0..360], C\* almost in [0..1] and L\* as in CIE-L\*u\*v\*.
 - **HSLuv:** The better alternative to HSL, see [here](https://www.hsluv.org/) and [here](https://www.kuon.ch/post/2020-03-08-hsluv/). Hue in [0..360], Saturation and Luminance in [0..1].
 - **HPLuv:** A variant of HSLuv. The color space is smoother, but only pastel colors can be included. Because the valid colors are limited, it's easy to get invalid Saturation values way above 1.0, indicating the color can't be represented in HPLuv because it's not pastel.
+- **Oklab:** A perceptual color space by Björn Ottosson that improves on CIE-L\*a\*b\* with better perceptual uniformity, especially for blue hues. L in [0..1], a and b roughly in [-0.5..0.5]. See [Oklab](https://bottosson.github.io/posts/oklab/).
+- **Oklch:** The cylindrical (polar) representation of Oklab, similar to HCL. L in [0..1], C roughly in [0..0.5], h° in [0..360].
 
 For the colorspaces where it makes sense (XYZ, Lab, Luv, HCl), the
 [D65](http://en.wikipedia.org/wiki/Illuminant_D65) is used as reference white
@@ -96,6 +98,8 @@ c = colorful.Xyy(0.219895, 0.221839, 0.190837)
 c = colorful.Lab(0.507850, 0.040585,-0.370945)
 c = colorful.Luv(0.507849,-0.194172,-0.567924)
 c = colorful.Hcl(276.2440, 0.373160, 0.507849)
+c = colorful.OkLab(0.577227, -0.021391, -0.104541)
+c = colorful.OkLch(0.577227, 0.106707, 258.435657)
 fmt.Printf("RGB values: %v, %v, %v", c.R, c.G, c.B)
 ```
 
@@ -109,6 +113,8 @@ x, y, Y := c.Xyy()
 l, a, b := c.Lab()
 l, u, v := c.Luv()
 h, c, l := c.Hcl()
+l, a, b = c.OkLab()
+l, c, h = c.OkLch()
 ```
 
 Note that, because of Go's unfortunate choice of requiring an initial uppercase,
@@ -190,7 +196,7 @@ it only if you really know what you're doing. It will eat your cat.
 Blending is highly connected to distance, since it basically "walks through" the
 colorspace thus, if the colorspace maps distances well, the walk is "smooth".
 
-Colorful comes with blending functions in RGB, HSV and any of the LAB spaces.
+Colorful comes with blending functions in RGB, HSV, Oklab, Oklch, and any of the CIE-LAB spaces.
 Of course, you'd rather want to use the blending functions of the LAB spaces since
 these spaces map distances well but, just in case, here is an example showing
 you how the blendings (`#fdffcc` to `#242a42`) are done in the various spaces:
@@ -472,11 +478,12 @@ section above.
 Who?
 ====
 
-This library was developed by Lucas Beyer with contributions from
-Bastien Dejean (@baskerville), Phil Kulak (@pkulak), Christian Muehlhaeuser (@muesli), and Scott Pakin (@spakin).
+This library was originally developed by Lucas Beyer, with notable
+contributions from Bastien Dejean (@baskerville), Phil Kulak (@pkulak),
+Christian Muehlhaeuser (@muesli), Scott Pakin (@spakin), and many others.
+See the [contributors list](https://github.com/lucasb-eyer/go-colorful/graphs/contributors) for the full roster.
 
-It is now maintained by makeworld (@makew0rld).
-
+It is currently maintained by makeworld (@makew0rld).
 
 ## License
 

@@ -2,12 +2,13 @@ package filetree
 
 import (
 	"strings"
-	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -24,7 +25,6 @@ type ICommitFileTreeViewModel interface {
 }
 
 type CommitFileTreeViewModel struct {
-	sync.RWMutex
 	types.IListCursor
 	ICommitFileTree
 
@@ -39,6 +39,8 @@ type CommitFileTreeViewModel struct {
 	// we set this to true when you're viewing the files within the checked-out branch's commits.
 	// If you're viewing the files of some random other branch we can't do any rebase stuff.
 	canRebase bool
+
+	searchHistory *utils.HistoryBuffer[string]
 }
 
 var _ ICommitFileTreeViewModel = &CommitFileTreeViewModel{}
@@ -52,6 +54,7 @@ func NewCommitFileTreeViewModel(getFiles func() []*models.CommitFile, common *co
 		ref:             nil,
 		refRange:        nil,
 		canRebase:       false,
+		searchHistory:   utils.NewHistoryBuffer[string](1000),
 	}
 }
 
@@ -139,6 +142,22 @@ func (self *CommitFileTreeViewModel) GetSelectedPath() string {
 	return node.GetPath()
 }
 
+// SetTree rebuilds the tree and clamps the selection so it stays in range. The
+// embedded tree's SetTree only rebuilds the node list and doesn't touch the
+// cursor, so after a shrinking rebuild (e.g. moving a patch out into the index)
+// the selection index could be left past the end of the tree; GetSelectedItems
+// would then return a nil node and crash callers such as canEditFiles when the
+// options map is rendered during layout.
+//
+// Unlike FileTreeViewModel.SetTree we don't re-find the selected node by path
+// afterwards: that walk lands on the containing directory when a file is removed
+// from a dir that then collapses, whereas keeping the (clamped) index lands on
+// the sibling file, which is what we want here.
+func (self *CommitFileTreeViewModel) SetTree() {
+	self.ICommitFileTree.SetTree()
+	self.ClampSelection()
+}
+
 // duplicated from file_tree_view_model.go. Generics will help here
 func (self *CommitFileTreeViewModel) ToggleShowTree() {
 	selectedNode := self.GetSelected()
@@ -202,4 +221,52 @@ func (self *CommitFileTreeViewModel) SelectPath(filepath string, showRootItem bo
 	if found {
 		self.SetSelection(index)
 	}
+}
+
+// IFilterableContext methods
+
+func (self *CommitFileTreeViewModel) SetFilter(filter string, useFuzzySearch bool) {
+	self.ICommitFileTree.SetTextFilter(filter, useFuzzySearch)
+}
+
+func (self *CommitFileTreeViewModel) GetFilter() string {
+	return self.ICommitFileTree.GetTextFilter()
+}
+
+func (self *CommitFileTreeViewModel) ClearFilter() {
+	selectedNode := self.GetSelected()
+	var selectedPath string
+	if selectedNode != nil {
+		selectedPath = selectedNode.GetInternalPath()
+	}
+
+	self.ICommitFileTree.SetTextFilter("", false)
+
+	if selectedPath != "" {
+		self.ExpandToPath(selectedPath)
+		if idx, found := self.GetIndexForPath(selectedPath); found {
+			self.SetSelection(idx)
+			return
+		}
+	}
+	self.ClampSelection()
+}
+
+func (self *CommitFileTreeViewModel) ReApplyFilter(useFuzzySearch bool) {
+	self.ICommitFileTree.SetTextFilter(self.ICommitFileTree.GetTextFilter(), useFuzzySearch)
+}
+
+func (self *CommitFileTreeViewModel) IsFiltering() bool {
+	return self.ICommitFileTree.GetTextFilter() != ""
+}
+
+// used for type switch
+func (self *CommitFileTreeViewModel) IsFilterableContext() {}
+
+func (self *CommitFileTreeViewModel) FilterPrefix(tr *i18n.TranslationSet) string {
+	return tr.FilterPrefix
+}
+
+func (self *CommitFileTreeViewModel) GetSearchHistory() *utils.HistoryBuffer[string] {
+	return self.searchHistory
 }

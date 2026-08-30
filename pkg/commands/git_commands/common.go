@@ -15,9 +15,8 @@ type GitCommon struct {
 	cmd         oscommands.ICmdObjBuilder
 	os          *oscommands.OSCommand
 	repoPaths   *RepoPaths
-	repo        *gogit.Repository
 	config      *ConfigCommands
-	pagerConfig *config.PagerConfig
+	diffRendererConfigManager *config.DiffRendererConfigManager
 	IsGitSvnRepo bool
 }
 
@@ -47,9 +46,8 @@ func NewGitCommon(
 	cmd oscommands.ICmdObjBuilder,
 	osCommand *oscommands.OSCommand,
 	repoPaths *RepoPaths,
-	repo *gogit.Repository,
 	config *ConfigCommands,
-	pagerConfig *config.PagerConfig,
+	diffRendererConfigManager *config.DiffRendererConfigManager,
 ) *GitCommon {
 	gitCommon := &GitCommon{
 		Common:      cmn,
@@ -57,9 +55,8 @@ func NewGitCommon(
 		cmd:         cmd,
 		os:          osCommand,
 		repoPaths:   repoPaths,
-		repo:        repo,
 		config:      config,
-		pagerConfig: pagerConfig,
+		diffRendererConfigManager: diffRendererConfigManager,
 	}
 	gitCommon.detectGitSvnRepo()
 	return gitCommon

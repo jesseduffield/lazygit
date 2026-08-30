@@ -25,10 +25,10 @@ var RewordMergeCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI ◯ two").IsSelected(),
-				Contains("CI ⏣─╮ Merge branch 'first-branch'"),
-				Contains("CI │ ◯ one"),
-				Contains("CI ◯─╯ base"),
+				Contains("CI ○ two").IsSelected(),
+				Contains("CI ◎─╮ Merge branch 'first-branch'"),
+				Contains("CI │ ○ one"),
+				Contains("CI ○─╯ base"),
 			).
 			SelectNextItem().
 			Press(keys.Commits.RenameCommit).
@@ -41,10 +41,10 @@ var RewordMergeCommit = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("CI ◯ two"),
-				Contains("CI ⏣─╮ renamed merge").IsSelected(),
-				Contains("CI │ ◯ one"),
-				Contains("CI ◯ ╯ base"),
+				Contains("CI ○ two"),
+				Contains("CI ◎─╮ renamed merge").IsSelected(),
+				Contains("CI │ ○ one"),
+				Contains("CI ○ ╯ base"),
 			)
 	},
 })

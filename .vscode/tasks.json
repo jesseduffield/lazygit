@@ -24,7 +24,7 @@
     {
       "label": "Run current file integration test",
       "type": "shell",
-      "command": "go run cmd/integration_test/main.go cli ${relativeFile}",
+      "command": "just e2e ${relativeFile}",
       "problemMatcher": [],
       "group": {
         "kind": "test",
@@ -58,18 +58,6 @@
       },
       "presentation": {
         "clear": true,
-        "focus": true
-      }
-    },
-    {
-      "label": "Open deprecated test TUI",
-      "type": "shell",
-      "command": "go run pkg/integration/deprecated/cmd/tui/main.go",
-      "problemMatcher": [],
-      "group": {
-        "kind": "test",
-      },
-      "presentation": {
         "focus": true
       }
     },

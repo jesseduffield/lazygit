@@ -23,15 +23,15 @@ var ForceRemoveWorktreeWithSubmodules = NewIntegrationTest(NewIntegrationTestArg
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 				Contains("linked-worktree"),
 			).
 			NavigateToLine(Contains("linked-worktree")).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
-					Title(Equals("Remove worktree")).
-					Content(Equals("Are you sure you want to remove worktree 'linked-worktree'?")).
+				t.ExpectPopup().Menu().
+					Title(Equals("Remove worktree 'linked-worktree'?")).
+					Select(MatchesRegexp("Remove worktree$")).
 					Confirm()
 
 				t.ExpectPopup().Confirmation().
@@ -40,7 +40,7 @@ var ForceRemoveWorktreeWithSubmodules = NewIntegrationTest(NewIntegrationTestArg
 					Confirm()
 			}).
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 			)
 	},
 })

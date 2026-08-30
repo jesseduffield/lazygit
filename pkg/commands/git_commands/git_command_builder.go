@@ -1,8 +1,32 @@
 package git_commands
 
 import (
+	"fmt"
 	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/env"
 )
+
+// OptionalLocksEnvVar is the name of the environment variable that tells git
+// whether it may take "optional" locks — chiefly the index.lock that `git
+// status` grabs to write back a refreshed stat-cache. We set it to 0 on every
+// git command by default (see NewGitCmdObjBuilder) so our invocations never
+// contend for index.lock, neither with each other (e.g. a main-view `git diff
+// --submodule`, which runs `git status` inside submodules, racing a submodule
+// action) nor with git commands the user runs in a terminal. The one command
+// that opts back in is the foreground files refresh; see FileLoader.gitStatus.
+const OptionalLocksEnvVar = "GIT_OPTIONAL_LOCKS"
+
+// forOtherRepo prepares a command that operates on a repo other than the one
+// we have open — a submodule, or another worktree. GIT_DIR and GIT_WORK_TREE
+// say where our repo is, and every command we run inherits them, so a command
+// pointed at a different repo would be resolved against ours instead: `git -C
+// <submodule> log` would silently log the superproject's commits.
+func forOtherRepo(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
+	return cmdObj.RemoveEnvVar(env.GitDirEnvVar).RemoveEnvVar(env.GitWorkTreeEnvVar)
+}
 
 // convenience struct for building git commands. Especially useful when
 // including conditional args
@@ -99,10 +123,51 @@ func (self *GitCommandBuilder) GitDirIf(condition bool, path string) *GitCommand
 	return self
 }
 
+func (self *GitCommandBuilder) AddCommonDiffArgs(diffRendererConfigManager *config.DiffRendererConfigManager, userConfig *config.UserConfig, forUI bool) *GitCommandBuilder {
+	contextSize := userConfig.Git.DiffContextSize
+	extDiffCmd := diffRendererConfigManager.GetExternalDiffCommand(contextSize)
+	useExtDiff := forUI && diffRendererConfigManager.GetDiffRendererType() == config.DiffRendererType_ExtDiff
+
+	return self.
+		ConfigIf(forUI && extDiffCmd != "", "diff.external="+extDiffCmd).
+		ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
+		Arg(fmt.Sprintf("--unified=%d", contextSize)).
+		ArgIf(forUI && userConfig.Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		Arg(fmt.Sprintf("--find-renames=%d%%", userConfig.Git.RenameSimilarityThreshold)).
+		ArgIf(forUI, diffRendererConfigManager.GetRawGitArgs()...)
+}
+
 func (self *GitCommandBuilder) ToArgv() []string {
 	return append([]string{"git"}, self.args...)
 }
 
 func (self *GitCommandBuilder) ToString() string {
 	return strings.Join(self.ToArgv(), " ")
+}
+
+// runGitCmdOnPaths runs `git <subcommand> -- <paths...>`, splitting into
+// multiple calls if needed to stay under the OS command-line length limit.
+// Windows CreateProcess has a ~32 KB limit; we use 30 KB as a safe threshold.
+func runGitCmdOnPaths(subcommand string, paths []string, cmd oscommands.ICmdObjBuilder) error {
+	const maxArgBytes = 30_000
+
+	start := 0
+	for start < len(paths) {
+		end := start
+		total := 0
+		for end < len(paths) {
+			total += len(paths[end]) + 1 // +1 for the separating space
+			if total > maxArgBytes && end > start {
+				break
+			}
+			end++
+		}
+		if err := cmd.New(NewGitCmd(subcommand).Arg("--").
+			Arg(paths[start:end]...).
+			ToArgv()).Run(); err != nil {
+			return err
+		}
+		start = end
+	}
+	return nil
 }

@@ -16,9 +16,10 @@ The current implementation supports most flavors of Unix, Windows, Mac OS and Pl
 	For more information regarding the Windows Known Folders see:
 	https://docs.microsoft.com/en-us/windows/win32/shell/known-folders
 
-Usage
+# Usage
 
 XDG Base Directory
+
 	package main
 
 	import (
@@ -36,6 +37,7 @@ XDG Base Directory
 		log.Println("Home state directory:", xdg.StateHome)
 		log.Println("Cache directory:", xdg.CacheHome)
 		log.Println("Runtime directory:", xdg.RuntimeDir)
+		log.Println("Home binaries directory:", xdg.BinHome)
 
 		// Other common directories.
 		log.Println("Home directory:", xdg.Home)
@@ -46,6 +48,9 @@ XDG Base Directory
 		// ConfigFile takes one parameter which must contain the name of the file,
 		// but it can also contain a set of parent directories. If the directories
 		// don't exist, they will be created relative to the base config directory.
+		// It is recommended for files to be saved inside an application directory
+		// relative to the base directory rather than directly inside the base
+		// directory (e.g. `appname/config.yaml` instead of `appname-config.yaml`).
 		configFilePath, err := xdg.ConfigFile("appname/config.yaml")
 		if err != nil {
 			log.Fatal(err)
@@ -76,6 +81,7 @@ XDG Base Directory
 	}
 
 XDG user directories
+
 	package main
 
 	import (

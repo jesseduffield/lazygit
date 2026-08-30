@@ -3,7 +3,7 @@ package gui
 import (
 	"time"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
@@ -121,10 +121,18 @@ func (gui *Gui) render() {
 	gui.c.OnUIThread(func() error { return nil })
 }
 
+// renderContentOnly triggers a re-render that skips the layout pass and only
+// redraws the views whose content changed (relying on tcell's cell-level dirty
+// tracking to emit just the cells that actually differ). Use it when only a
+// view's content changed, not the window layout.
+func (gui *Gui) renderContentOnly() {
+	gui.c.OnUIThreadContentOnly(func() error { return nil })
+}
+
 // postRefreshUpdate is to be called on a context after the state that it depends on has been refreshed
 // if the context's view is set to another context we do nothing.
 // if the context's view is the current view we trigger a focus; re-selecting the current item.
-func (gui *Gui) postRefreshUpdate(c types.Context) {
+func (gui *Gui) postRefreshUpdate(c types.Context, opts types.OnFocusOpts) {
 	t := time.Now()
 	defer func() {
 		gui.Log.Infof("postRefreshUpdate for %s took %s", c.GetKey(), time.Since(t))
@@ -133,14 +141,17 @@ func (gui *Gui) postRefreshUpdate(c types.Context) {
 	c.HandleRender()
 
 	if gui.currentViewName() == c.GetViewName() {
-		c.HandleFocus(types.OnFocusOpts{})
+		c.HandleFocus(opts)
 	} else {
 		// The FocusLine call is included in the HandleFocus method which we
 		// call for focused views above; but we need to call it here for
 		// non-focused views to ensure that an inactive selection is painted
 		// correctly, and that integration tests see the up to date selection
 		// state.
-		c.FocusLine(false)
+		c.FocusLine(!opts.KeepScrollPosition)
+		if opts.SkipMainViewUpdate {
+			return
+		}
 
 		currentCtx := gui.State.ContextMgr.Current()
 		if currentCtx.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY || currentCtx.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {

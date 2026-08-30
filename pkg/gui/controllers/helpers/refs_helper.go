@@ -5,9 +5,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -31,15 +31,6 @@ func NewRefsHelper(
 	}
 }
 
-func (self *RefsHelper) SelectFirstBranchAndFirstCommit() {
-	self.c.Contexts().Branches.SetSelection(0)
-	self.c.Contexts().ReflogCommits.SetSelection(0)
-	self.c.Contexts().LocalCommits.SetSelection(0)
-	self.c.Contexts().Branches.GetView().SetOriginY(0)
-	self.c.Contexts().ReflogCommits.GetView().SetOriginY(0)
-	self.c.Contexts().LocalCommits.GetView().SetOriginY(0)
-}
-
 func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions) error {
 	waitingStatus := options.WaitingStatus
 	if waitingStatus == "" {
@@ -49,12 +40,28 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	refresh := func() {
-		self.SelectFirstBranchAndFirstCommit()
-
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
-		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+		scope := []types.RefreshableView{
+			types.COMMITS,
+			types.BRANCHES,
+			types.FILES,
+			types.REFLOG,
+			types.WORKTREES,
+			types.BISECT_INFO,
+			types.STAGING,
+		}
+		if options.RefreshPullRequests {
+			scope = append(scope, types.PULL_REQUESTS)
+		}
+		self.c.RefreshFromWorker(types.RefreshOptions{
+			BatchUIUpdates:        true,
+			Scope:                 scope,
+			BranchSelection:       types.SelectCheckedOutBranch,
+			CommitSelection:       types.SelectHeadCommit,
+			SelectTopReflogCommit: true,
+		})
 	}
 
 	localBranch, found := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
@@ -120,8 +127,8 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 // Shows a prompt to choose between creating a new branch or checking out a detached head
 func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchName string) error {
-	checkout := func(branchName string) error {
-		return self.CheckoutRef(branchName, types.CheckoutRefOptions{})
+	checkout := func(branchName string, refreshPullRequests bool) error {
+		return self.CheckoutRef(branchName, types.CheckoutRefOptions{RefreshPullRequests: refreshPullRequests})
 	}
 
 	// If a branch with this name already exists locally, just check it out. We
@@ -130,7 +137,7 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 	if lo.ContainsBy(self.c.Model().Branches, func(branch *models.Branch) bool {
 		return branch.Name == localBranchName
 	}) {
-		return checkout(localBranchName)
+		return checkout(localBranchName, false)
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
@@ -150,20 +157,24 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 					if err := self.c.Git().Branch.CreateWithUpstream(localBranchName, fullBranchName); err != nil {
 						return err
 					}
-					// Do a sync refresh to make sure the new branch is visible,
-					// so that we see an inline status when checking it out
+					// Refresh the branches and check out from Then, so that the
+					// new branch is already in the model when CheckoutRef looks
+					// it up; that's what makes it show an inline status on the
+					// branch rather than a global waiting status.
 					self.c.Refresh(types.RefreshOptions{
-						Mode:  types.SYNC,
 						Scope: []types.RefreshableView{types.BRANCHES},
+						Then: func() error {
+							return checkout(localBranchName, true)
+						},
 					})
-					return checkout(localBranchName)
+					return nil
 				},
 			},
 			{
 				Label:   self.c.Tr.CheckoutTypeDetachedHead,
 				Tooltip: self.c.Tr.CheckoutTypeDetachedHeadTooltip,
 				OnPress: func() error {
-					return checkout(fullBranchName)
+					return checkout(fullBranchName, false)
 				},
 			},
 		},
@@ -192,27 +203,29 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 		return err
 	}
 
-	self.c.Contexts().LocalCommits.SetSelection(0)
-	self.c.Contexts().ReflogCommits.SetSelection(0)
 	// loading a heap of commits is slow so we limit them whenever doing a reset
 	self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS}})
+	self.c.RefreshFromWorker(types.RefreshOptions{
+		Scope:                 []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS},
+		CommitSelection:       types.SelectHeadCommit,
+		SelectTopReflogCommit: true,
+	})
 
 	return nil
 }
 
 func (self *RefsHelper) CreateSortOrderMenu(sortOptionsOrder []string, menuPrompt string, onSelected func(sortOrder string) error, currentValue string) error {
 	type sortMenuOption struct {
-		key         types.Key
+		keys        []gocui.Key
 		label       string
 		description string
 		sortOrder   string
 	}
 	availableSortOptions := map[string]sortMenuOption{
-		"recency":      {label: self.c.Tr.SortByRecency, description: self.c.Tr.SortBasedOnReflog, key: 'r'},
-		"alphabetical": {label: self.c.Tr.SortAlphabetical, description: "--sort=refname", key: 'a'},
-		"date":         {label: self.c.Tr.SortByDate, description: "--sort=-committerdate", key: 'd'},
+		"recency":      {label: self.c.Tr.SortByRecency, description: self.c.Tr.SortBasedOnReflog, keys: menuKey('r')},
+		"alphabetical": {label: self.c.Tr.SortAlphabetical, description: "--sort=refname", keys: menuKey('a')},
+		"date":         {label: self.c.Tr.SortByDate, description: "--sort=-committerdate", keys: menuKey('d')},
 	}
 	sortOptions := make([]sortMenuOption, 0, len(sortOptionsOrder))
 	for _, key := range sortOptionsOrder {
@@ -233,7 +246,7 @@ func (self *RefsHelper) CreateSortOrderMenu(sortOptionsOrder []string, menuPromp
 			OnPress: func() error {
 				return onSelected(opt.sortOrder)
 			},
-			Key:    opt.key,
+			Keys:   opt.keys,
 			Widget: types.MakeMenuRadioButton(opt.sortOrder == currentValue),
 		}
 	})
@@ -248,14 +261,14 @@ func (self *RefsHelper) CreateGitResetMenu(name string, ref string) error {
 	type strengthWithKey struct {
 		strength string
 		label    string
-		key      types.Key
+		keys     []gocui.Key
 		tooltip  string
 	}
 	strengths := []strengthWithKey{
 		// not i18'ing because it's git terminology
-		{strength: "mixed", label: "Mixed reset", key: 'm', tooltip: self.c.Tr.ResetMixedTooltip},
-		{strength: "soft", label: "Soft reset", key: 's', tooltip: self.c.Tr.ResetSoftTooltip},
-		{strength: "hard", label: "Hard reset", key: 'h', tooltip: self.c.Tr.ResetHardTooltip},
+		{strength: "mixed", label: "Mixed reset", keys: menuKey('m'), tooltip: self.c.Tr.ResetMixedTooltip},
+		{strength: "soft", label: "Soft reset", keys: menuKey('s'), tooltip: self.c.Tr.ResetSoftTooltip},
+		{strength: "hard", label: "Hard reset", keys: menuKey('h'), tooltip: self.c.Tr.ResetHardTooltip},
 	}
 
 	menuItems := lo.Map(strengths, func(row strengthWithKey, _ int) *types.MenuItem {
@@ -271,11 +284,13 @@ func (self *RefsHelper) CreateGitResetMenu(name string, ref string) error {
 						Prompt: self.c.Tr.ResetHardConfirmation,
 						HandleConfirm: func() error {
 							self.c.LogAction("Reset")
-							return self.ResetToRef(ref, row.strength, []string{})
+							return self.c.WithWaitingStatus(self.c.Tr.ResettingStatus, func(gocui.Task) error {
+								return self.ResetToRef(ref, row.strength, []string{})
+							})
 						},
 					})
 			},
-			Key:     row.key,
+			Keys:    row.keys,
 			Tooltip: row.tooltip,
 		}
 	})
@@ -300,15 +315,15 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 				self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
 				return self.CheckoutRef(hash, types.CheckoutRefOptions{})
 			},
-			Key: 'd',
+			Keys: menuKey('d'),
 		},
 	}
 
 	if len(branches) > 0 {
 		menuItems = append(menuItems, lo.Map(branches, func(branch *models.Branch, index int) *types.MenuItem {
-			var key types.Key
+			var keys []gocui.Key
 			if index < 9 {
-				key = rune(index + 1 + '0') // Convert 1-based index to key
+				keys = menuKey(rune(index + 1 + '0')) // Convert 1-based index to key
 			}
 			return &types.MenuItem{
 				LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutBranchAtCommit, branch.Name)},
@@ -316,7 +331,7 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 					self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
 					return self.CheckoutRef(branch.RefName(), types.CheckoutRefOptions{})
 				},
-				Key: key,
+				Keys: keys,
 			}
 		})...)
 	} else {
@@ -324,7 +339,7 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 			LabelColumns:   []string{self.c.Tr.Actions.CheckoutBranch},
 			OnPress:        func() error { return nil },
 			DisabledReason: &types.DisabledReason{Text: self.c.Tr.NoBranchesFoundAtCommitTooltip},
-			Key:            '1',
+			Keys:           menuKey('1'),
 		})
 	}
 
@@ -352,13 +367,22 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 	}
 
 	refresh := func() {
-		if self.c.Context().Current() != self.c.Contexts().Branches {
-			self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
-		}
-
-		self.SelectFirstBranchAndFirstCommit()
-
-		self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+		self.c.RefreshFromWorker(types.RefreshOptions{
+			BatchUIUpdates:        true,
+			BranchSelection:       types.SelectCheckedOutBranch,
+			CommitSelection:       types.SelectHeadCommit,
+			SelectTopReflogCommit: true,
+			Then: func() error {
+				// Switch to the branches panel only now, in the same batched
+				// frame that applies the refreshed data, so the panel switch
+				// and the new branch appear together rather than flashing the
+				// old branch list while the checkout is still in progress.
+				if self.c.Context().Current() != self.c.Contexts().Branches {
+					self.c.Context().Push(self.c.Contexts().Branches, types.OnFocusOpts{})
+				}
+				return nil
+			},
+		})
 	}
 
 	self.c.Prompt(types.PromptOpts{
@@ -371,34 +395,44 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 			if newBranchName != suggestedBranchName {
 				newBranchFunc = self.c.Git().Branch.NewWithoutTracking
 			}
-			if err := newBranchFunc(newBranchName, from); err != nil {
-				if IsSwitchBranchUncommittedChangesError(err) {
-					// offer to autostash changes
-					self.c.Confirm(types.ConfirmOpts{
-						Title:  self.c.Tr.AutoStashTitle,
-						Prompt: self.c.Tr.AutoStashPrompt,
-						HandleConfirm: func() error {
-							if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
-								return err
-							}
-							if err := newBranchFunc(newBranchName, from); err != nil {
-								return err
-							}
-							err := self.c.Git().Stash.Pop(0)
-							// Branch switch successful so re-render the UI even if the pop operation failed (e.g. conflict).
-							refresh()
-							return err
-						},
-					})
 
-					return nil
+			// Creating the branch checks it out, which can take a while when
+			// the ref we're branching off is distant, so do it on a worker.
+			return self.c.WithWaitingStatus(self.c.Tr.CreatingBranchStatus, func(gocui.Task) error {
+				if err := newBranchFunc(newBranchName, from); err != nil {
+					if IsSwitchBranchUncommittedChangesError(err) {
+						// offer to autostash changes
+						self.c.OnUIThread(func() error {
+							self.c.Confirm(types.ConfirmOpts{
+								Title:  self.c.Tr.AutoStashTitle,
+								Prompt: self.c.Tr.AutoStashPrompt,
+								HandleConfirm: func() error {
+									return self.c.WithWaitingStatus(self.c.Tr.CreatingBranchStatus, func(gocui.Task) error {
+										if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
+											return err
+										}
+										if err := newBranchFunc(newBranchName, from); err != nil {
+											return err
+										}
+										err := self.c.Git().Stash.Pop(0)
+										// Branch switch successful so re-render the UI even if the pop operation failed (e.g. conflict).
+										refresh()
+										return err
+									})
+								},
+							})
+							return nil
+						})
+
+						return nil
+					}
+
+					return err
 				}
 
-				return err
-			}
-
-			refresh()
-			return nil
+				refresh()
+				return nil
+			})
 		},
 	})
 
@@ -411,6 +445,8 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 	if err != nil {
 		return err
 	}
+
+	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 
 	withNewBranchNamePrompt := func(baseBranchName string, f func(string) error) error {
 		prompt := utils.ResolvePlaceholderString(
@@ -450,7 +486,9 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 			Title:  self.c.Tr.MoveCommitsToNewBranch,
 			Prompt: prompt,
 			HandleConfirm: func() error {
-				return withNewBranchNamePrompt(currentBranch.Name, self.moveCommitsToNewBranchStackedOnCurrentBranch)
+				return withNewBranchNamePrompt(currentBranch.Name, func(newBranchName string) error {
+					return self.moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName, mustStash)
+				})
 			},
 		})
 		return nil
@@ -470,27 +508,31 @@ func (self *RefsHelper) MoveCommitsToNewBranch() error {
 			{
 				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchFromBaseItem, shortBaseBranchName),
 				OnPress: func() error {
+					commitsToCherryPick := lo.Filter(self.c.Model().Commits, func(commit *models.Commit, _ int) bool {
+						return commit.Status == models.StatusUnpushed
+					})
 					return withNewBranchNamePrompt(shortBaseBranchName, func(newBranchName string) error {
-						return self.moveCommitsToNewBranchOffOfMainBranch(newBranchName, baseBranchRef)
+						return self.moveCommitsToNewBranchOffOfMainBranch(newBranchName, baseBranchRef, commitsToCherryPick, mustStash)
 					})
 				},
 			},
 			{
 				Label: fmt.Sprintf(self.c.Tr.MoveCommitsToNewBranchStackedItem, currentBranch.Name),
 				OnPress: func() error {
-					return withNewBranchNamePrompt(currentBranch.Name, self.moveCommitsToNewBranchStackedOnCurrentBranch)
+					return withNewBranchNamePrompt(currentBranch.Name, func(newBranchName string) error {
+						return self.moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName, mustStash)
+					})
 				},
 			},
 		},
 	})
 }
 
-func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName string) error {
+func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchName string, mustStash bool) error {
 	if err := self.c.Git().Branch.NewWithoutCheckout(newBranchName, "HEAD"); err != nil {
 		return err
 	}
 
-	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
 	if mustStash {
 		if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 			return err
@@ -511,18 +553,16 @@ func (self *RefsHelper) moveCommitsToNewBranchStackedOnCurrentBranch(newBranchNa
 		}
 	}
 
-	self.SelectFirstBranchAndFirstCommit()
-
-	self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+	self.c.RefreshFromWorker(types.RefreshOptions{
+		BatchUIUpdates:        true,
+		BranchSelection:       types.SelectCheckedOutBranch,
+		CommitSelection:       types.SelectHeadCommit,
+		SelectTopReflogCommit: true,
+	})
 	return nil
 }
 
-func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName string, baseBranchRef string) error {
-	commitsToCherryPick := lo.Filter(self.c.Model().Commits, func(commit *models.Commit, _ int) bool {
-		return commit.Status == models.StatusUnpushed
-	})
-
-	mustStash := IsWorkingTreeDirtyExceptSubmodules(self.c.Model().Files, self.c.Model().Submodules)
+func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName string, baseBranchRef string, commitsToCherryPick []*models.Commit, mustStash bool) error {
 	if mustStash {
 		if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForNewBranch, newBranchName)); err != nil {
 			return err
@@ -538,7 +578,7 @@ func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName stri
 	}
 
 	err := self.c.Git().Rebase.CherryPickCommits(commitsToCherryPick)
-	err = self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(err, types.RefreshOptions{Mode: types.SYNC})
+	err = self.rebaseHelper.CheckMergeOrRebaseWithRefreshOptions(err, types.RefreshOptions{})
 	if err != nil {
 		return err
 	}
@@ -549,9 +589,12 @@ func (self *RefsHelper) moveCommitsToNewBranchOffOfMainBranch(newBranchName stri
 		}
 	}
 
-	self.SelectFirstBranchAndFirstCommit()
-
-	self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI, KeepBranchSelectionIndex: true})
+	self.c.RefreshFromWorker(types.RefreshOptions{
+		BatchUIUpdates:        true,
+		BranchSelection:       types.SelectCheckedOutBranch,
+		CommitSelection:       types.SelectHeadCommit,
+		SelectTopReflogCommit: true,
+	})
 	return nil
 }
 

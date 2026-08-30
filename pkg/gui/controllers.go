@@ -1,10 +1,8 @@
 package gui
 
 import (
-	"strings"
-
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
@@ -35,14 +33,14 @@ func (gui *Gui) resetHelpersAndControllers() {
 	setCommitSummary := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 	setCommitDescription := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitDescription })
 	getCommitSummary := func() string {
-		return strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
+		return gui.Views.CommitMessage.TextArea.GetContent()
 	}
 
 	getCommitDescription := func() string {
-		return strings.TrimSpace(gui.Views.CommitDescription.TextArea.GetContent())
+		return gui.Views.CommitDescription.TextArea.GetContent()
 	}
 	getUnwrappedCommitDescription := func() string {
-		return strings.TrimSpace(gui.Views.CommitDescription.TextArea.GetUnwrappedContent())
+		return gui.Views.CommitDescription.TextArea.GetUnwrappedContent()
 	}
 	commitsHelper := helpers.NewCommitsHelper(helperCommon,
 		getCommitSummary,
@@ -207,18 +205,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 	searchControllerFactory := controllers.NewSearchControllerFactory(common)
 	for _, context := range gui.c.Context().AllSearchable() {
 		controllers.AttachControllers(context, searchControllerFactory.Create(context))
-	}
-
-	for _, context := range []controllers.CanViewWorktreeOptions{
-		gui.State.Contexts.LocalCommits,
-		gui.State.Contexts.ReflogCommits,
-		gui.State.Contexts.SubCommits,
-		gui.State.Contexts.Stash,
-		gui.State.Contexts.Branches,
-		gui.State.Contexts.RemoteBranches,
-		gui.State.Contexts.Tags,
-	} {
-		controllers.AttachControllers(context, controllers.NewWorktreeOptionsController(common, context))
 	}
 
 	// allow for navigating between side window contexts

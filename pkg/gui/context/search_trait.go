@@ -3,7 +3,6 @@ package context
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -45,7 +44,7 @@ func (self *SearchTrait) RenderSearchStatus(index int, total int) {
 			fmt.Sprintf(
 				self.c.Tr.NoMatchesFor,
 				self.searchString,
-				theme.OptionsFgColor.Sprintf(self.c.Tr.ExitSearchMode, keybindings.Label(keybindingConfig.Universal.Return)),
+				theme.OptionsFgColor.Sprintf(self.c.Tr.ExitSearchMode, keybindingConfig.Universal.Return),
 			),
 		)
 	} else {
@@ -58,9 +57,9 @@ func (self *SearchTrait) RenderSearchStatus(index int, total int) {
 				total,
 				theme.OptionsFgColor.Sprintf(
 					self.c.Tr.SearchKeybindings,
-					keybindings.Label(keybindingConfig.Universal.NextMatch),
-					keybindings.Label(keybindingConfig.Universal.PrevMatch),
-					keybindings.Label(keybindingConfig.Universal.Return),
+					keybindingConfig.Universal.NextMatch,
+					keybindingConfig.Universal.PrevMatch,
+					keybindingConfig.Universal.Return,
 				),
 			),
 		)

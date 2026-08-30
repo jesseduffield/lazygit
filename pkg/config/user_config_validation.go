@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -8,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 func (config *UserConfig) Validate() error {
@@ -17,6 +20,10 @@ func (config *UserConfig) Validate() error {
 	}
 	if err := validateEnum("gui.showDivergenceFromBaseBranch", config.Gui.ShowDivergenceFromBaseBranch,
 		[]string{"none", "onlyArrow", "arrowAndNumber"}); err != nil {
+		return err
+	}
+	if err := validateEnum("gui.fileTreeSortOrder", config.Gui.FileTreeSortOrder,
+		[]string{"mixed", "filesFirst", "foldersFirst"}); err != nil {
 		return err
 	}
 	if err := validateEnum("git.autoForwardBranches", config.Git.AutoForwardBranches,
@@ -39,11 +46,91 @@ func (config *UserConfig) Validate() error {
 		[]string{"always", "never", "when-maximised"}); err != nil {
 		return err
 	}
+	if err := validateDiffRenderers(config.Git.DiffRenderers); err != nil {
+		return err
+	}
 	if err := validateKeybindings(config.Keybinding); err != nil {
 		return err
 	}
 	if err := validateCustomCommands(config.CustomCommands); err != nil {
 		return err
+	}
+	if err := validateSpinner(config.Gui.Spinner); err != nil {
+		return err
+	}
+	if err := validateSidePanels(config.Gui.SidePanels); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateSidePanels(panels []SidePanel) error {
+	seen := map[string]bool{}
+	total := 0
+	for _, panel := range panels {
+		if len(panel) == 0 {
+			return errors.New("gui.sidePanels: a side panel must have at least one tab.")
+		}
+		for _, name := range panel {
+			if !slices.Contains(ValidSidePanelTabs, name) {
+				return fmt.Errorf("gui.sidePanels: unknown side panel '%s'. Allowed values: %s",
+					name, strings.Join(ValidSidePanelTabs, ", "))
+			}
+			if seen[name] {
+				return fmt.Errorf("gui.sidePanels: '%s' is listed more than once; each side panel may appear only once.", name)
+			}
+			seen[name] = true
+			total++
+		}
+	}
+	if total == 0 {
+		return errors.New("gui.sidePanels must not be empty.")
+	}
+	// A lot of code focuses these panels directly (e.g. after resolving a
+	// conflict or popping a stash), so they must always be present; otherwise
+	// that code would focus a hidden panel.
+	for _, required := range []string{"files", "branches", "commits"} {
+		if !seen[required] {
+			return fmt.Errorf("gui.sidePanels: '%s' must be included; it can't be hidden.", required)
+		}
+	}
+	return nil
+}
+
+func validateSpinner(spinner SpinnerConfig) error {
+	if len(spinner.Frames) == 0 {
+		return errors.New("gui.spinner.frames must not be empty.")
+	}
+	firstWidth := utils.StringWidth(spinner.Frames[0])
+	if lo.SomeBy(spinner.Frames, func(frame string) bool {
+		return utils.StringWidth(frame) != firstWidth
+	}) {
+		return errors.New("All gui.spinner.frames entries must have the same width.")
+	}
+	return nil
+}
+
+func validateDiffRenderers(diffRenderers []DiffRendererConfig) error {
+	for _, diffRenderer := range diffRenderers {
+		switch diffRenderer.Type {
+		case "stdinFilter", "":
+			if diffRenderer.Command == "" {
+				return errors.New("git.diffRenderers: 'command' must be specified for diff renderer type 'stdinFilter'.")
+			}
+			if len(diffRenderer.Args) > 0 {
+				return errors.New("git.diffRenderers: 'args' cannot be used with diff renderer type 'stdinFilter'.")
+			}
+		case "extDiff":
+			if len(diffRenderer.Args) > 0 {
+				return errors.New("git.diffRenderers: 'args' cannot be used with diff renderer type 'extDiff'.")
+			}
+		case "rawGit":
+			if diffRenderer.Command != "" {
+				return errors.New("git.diffRenderers: 'command' cannot be used with diff renderer type 'rawGit'.")
+			}
+		default:
+			return fmt.Errorf("git.diffRenderers: unknown type '%s'. Allowed values: stdinFilter, extDiff, rawGit", diffRenderer.Type)
+		}
 	}
 	return nil
 }
@@ -91,22 +178,15 @@ func validateKeybindingsRecurse(path string, node any) error {
 }
 
 func validateKeybindings(keybindingConfig KeybindingConfig) error {
-	if err := validateKeybindingsRecurse("", keybindingConfig); err != nil {
-		return err
-	}
-
-	if len(keybindingConfig.Universal.JumpToBlock) != 5 {
-		return fmt.Errorf("keybinding.universal.jumpToBlock must have 5 elements; found %d.",
-			len(keybindingConfig.Universal.JumpToBlock))
-	}
-
-	return nil
+	return validateKeybindingsRecurse("", keybindingConfig)
 }
 
-func validateCustomCommandKey(key string) error {
-	if !isValidKeybindingKey(key) {
-		return fmt.Errorf("Unrecognized key '%s' for custom command. For permitted values see %s",
-			key, constants.Links.Docs.CustomKeybindings)
+func validateCustomCommandKey(key Keybinding) error {
+	for _, k := range key {
+		if !isValidKeybindingKey(k) {
+			return fmt.Errorf("Unrecognized key '%s' for custom command. For permitted values see %s",
+				k, constants.Links.Docs.CustomKeybindings)
+		}
 	}
 	return nil
 }
@@ -127,7 +207,7 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 				customCommand.After != nil {
 				commandRef := ""
 				if len(customCommand.Key) > 0 {
-					commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key)
+					commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key.String())
 				}
 				return fmt.Errorf("Error with custom command%s: it is not allowed to use both commandMenu and any of the other fields except key and description.", commandRef)
 			}
@@ -153,9 +233,11 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 
 func validateCustomCommandPrompt(prompt CustomCommandPrompt) error {
 	for _, option := range prompt.Options {
-		if !isValidKeybindingKey(option.Key) {
-			return fmt.Errorf("Unrecognized key '%s' for custom command prompt option. For permitted values see %s",
-				option.Key, constants.Links.Docs.CustomKeybindings)
+		for _, k := range option.Key {
+			if !isValidKeybindingKey(k) {
+				return fmt.Errorf("Unrecognized key '%s' for custom command prompt option. For permitted values see %s",
+					k, constants.Links.Docs.CustomKeybindings)
+			}
 		}
 	}
 

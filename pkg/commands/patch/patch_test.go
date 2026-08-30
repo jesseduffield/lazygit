@@ -19,6 +19,22 @@ index dcd3485..1ba5540 100644
  ...
 `
 
+const renameWithModificationDiff = `diff --git a/oldname b/newname
+similarity index 62%
+rename from oldname
+rename to newname
+index dcd3485..1ba5540 100644
+--- a/oldname
++++ b/newname
+@@ -1,5 +1,5 @@
+ apple
+-orange
++grape
+ ...
+ ...
+ ...
+`
+
 const addNewlineToEndOfFile = `diff --git a/filename b/filename
 index 80a73f1..e48a11c 100644
 --- a/filename
@@ -152,6 +168,7 @@ func TestTransform(t *testing.T) {
 		firstLineIndex int
 		lastLineIndex  int
 		reverse        bool
+		stripRename    bool
 		expected       string
 	}
 
@@ -215,8 +232,8 @@ func TestTransform(t *testing.T) {
 +++ b/filename
 @@ -1,5 +1,6 @@
  apple
- orange
 +grape
+ orange
  ...
  ...
  ...
@@ -354,8 +371,8 @@ func TestTransform(t *testing.T) {
  ...
  ...
  ...
- last line
 +last line
+ last line
 \ No newline at end of file
 `,
 		},
@@ -412,8 +429,8 @@ func TestTransform(t *testing.T) {
 +++ b/filename
 @@ -1,5 +1,6 @@
  apple
- grape
 +orange
+ grape
  ...
  ...
  ...
@@ -517,6 +534,43 @@ func TestTransform(t *testing.T) {
  lemon
 `,
 		},
+		{
+			testName:       "renamed file, whole change selected, strips the rename so only the content change is applied",
+			firstLineIndex: 9,
+			lastLineIndex:  10,
+			stripRename:    true,
+			diffText:       renameWithModificationDiff,
+			expected: `diff --git a/newname b/newname
+index dcd3485..1ba5540 100644
+--- a/newname
++++ b/newname
+@@ -1,5 +1,5 @@
+ apple
+-orange
++grape
+ ...
+ ...
+ ...
+`,
+		},
+		{
+			testName:       "renamed file, only removal selected, strips the rename",
+			firstLineIndex: 9,
+			lastLineIndex:  9,
+			stripRename:    true,
+			diffText:       renameWithModificationDiff,
+			expected: `diff --git a/newname b/newname
+index dcd3485..1ba5540 100644
+--- a/newname
++++ b/newname
+@@ -1,5 +1,4 @@
+ apple
+-orange
+ ...
+ ...
+ ...
+`,
+		},
 	}
 
 	for _, s := range scenarios {
@@ -527,6 +581,7 @@ func TestTransform(t *testing.T) {
 				Transform(TransformOpts{
 					Reverse:             s.reverse,
 					FileNameOverride:    s.filename,
+					StripRename:         s.stripRename,
 					IncludedLineIndices: lineIndices,
 				}).
 				FormatPlain()

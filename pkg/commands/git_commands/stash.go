@@ -81,20 +81,13 @@ func (self *StashCommands) Hash(index int) (string, error) {
 }
 
 func (self *StashCommands) ShowStashEntryCmdObj(index int) *oscommands.CmdObj {
-	extDiffCmd := self.pagerConfig.GetExternalDiffCommand()
-	useExtDiffGitConfig := self.pagerConfig.GetUseExternalDiffGitConfig()
-
 	// "-u" is the same as "--include-untracked", but the latter fails in older git versions for some reason
 	cmdArgs := NewGitCmd("stash").Arg("show").
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), true).
 		Arg("-p").
 		Arg("--stat").
 		Arg("-u").
-		ConfigIf(extDiffCmd != "", "diff.external="+extDiffCmd).
-		ArgIfElse(extDiffCmd != "" || useExtDiffGitConfig, "--ext-diff", "--no-ext-diff").
-		Arg(fmt.Sprintf("--color=%s", self.pagerConfig.GetColorArg())).
-		Arg(fmt.Sprintf("--unified=%d", self.UserConfig().Git.DiffContextSize)).
-		ArgIf(self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
-		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
+		Arg(fmt.Sprintf("--color=%s", self.diffRendererConfigManager.GetColorArg())).
 		Arg(fmt.Sprintf("refs/stash@{%d}", index)).
 		Dir(self.repoPaths.worktreePath).
 		ToArgv()

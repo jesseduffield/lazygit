@@ -79,6 +79,15 @@ func IconForRemote(remote *models.Remote) string {
 	return DEFAULT_REMOTE_ICON
 }
 
+func IconForRemoteUrl(url string) string {
+	for domain, icon := range remoteIcons {
+		if strings.Contains(url, domain) {
+			return icon
+		}
+	}
+	return DEFAULT_REMOTE_ICON
+}
+
 func IconForStash(stash *models.StashEntry) string {
 	return STASH_ICON
 }

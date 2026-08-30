@@ -58,7 +58,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("two").IsSelected(),
 				Contains("one"),
 			).
-			Press("n").
+			Press(config.Keybinding{"n"}).
 			Tap(func() {
 				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (3 of 3)"))
 			}).
@@ -68,7 +68,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("two"),
 				Contains("one").IsSelected(),
 			).
-			Press("n").
+			Press(config.Keybinding{"n"}).
 			Tap(func() {
 				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (1 of 3)"))
 			}).
@@ -78,7 +78,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("two"),
 				Contains("one"),
 			).
-			Press("n").
+			Press(config.Keybinding{"n"}).
 			Tap(func() {
 				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (2 of 3)"))
 			}).
@@ -88,7 +88,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("two").IsSelected(),
 				Contains("one"),
 			).
-			Press("N").
+			Press(config.Keybinding{"N"}).
 			Tap(func() {
 				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (1 of 3)"))
 			}).
@@ -98,7 +98,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("two"),
 				Contains("one"),
 			).
-			Press("N").
+			Press(config.Keybinding{"N"}).
 			Tap(func() {
 				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (3 of 3)"))
 			}).
@@ -112,7 +112,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (1 of 3)"))
 			}).
-			Press("N").
+			Press(config.Keybinding{"N"}).
 			Tap(func() {
 				t.Views().Search().IsVisible().Content(Contains("matches for 'o' (1 of 3)"))
 			}).
@@ -146,7 +146,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("two"),
 				Contains("one"),
 			).
-			Press("n").
+			Press(config.Keybinding{"n"}).
 			Tap(func() {
 				t.Views().Search().IsVisible().Content(Contains("matches for 't' (1 of 2)"))
 			}).
