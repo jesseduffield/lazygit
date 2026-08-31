@@ -102,6 +102,10 @@ func (self *BaseContext) GetViewName() string {
 	return self.view.Name()
 }
 
+func (self *BaseContext) GetInputViewName() string {
+	return self.GetViewName()
+}
+
 func (self *BaseContext) GetView() *gocui.View {
 	return self.view
 }

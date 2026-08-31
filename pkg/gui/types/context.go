@@ -4,7 +4,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 )
@@ -57,6 +56,10 @@ type IBaseContext interface {
 
 	GetKind() ContextKind
 	GetViewName() string
+	// The view that keyboard input goes to while this context is focused. That is
+	// the context's own view, unless the context has an editable view embedded in
+	// it which takes the keyboard instead, like the menu's filter input.
+	GetInputViewName() string
 	GetView() *gocui.View
 	GetViewTrait() IViewTrait
 	GetWindowName() string
@@ -136,7 +139,6 @@ type IFilterableContext interface {
 	ReApplyFilter(bool)
 	IsFiltering() bool
 	IsFilterableContext()
-	FilterPrefix(tr *i18n.TranslationSet) string
 }
 
 type ISearchableContext interface {

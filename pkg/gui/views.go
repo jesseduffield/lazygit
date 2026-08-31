@@ -66,6 +66,12 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.CommitMessage, name: "commitMessage"},
 		{viewPtr: &gui.Views.CommitDescription, name: "commitDescription"},
 		{viewPtr: &gui.Views.Menu, name: "menu"},
+		// the filter row of a menu that filters as you type: a frame that hangs off
+		// the bottom of the menu and shows the "Filter:" prompt, plus the input
+		// field that sits inside it. Both must come after the menu so that the row's
+		// top border is drawn over the menu's bottom border.
+		{viewPtr: &gui.Views.MenuFilterFrame, name: "menuFilterFrame"},
+		{viewPtr: &gui.Views.MenuFilter, name: "menuFilter"},
 		{viewPtr: &gui.Views.Suggestions, name: "suggestions"},
 		{viewPtr: &gui.Views.Confirmation, name: "confirmation"},
 		{viewPtr: &gui.Views.Prompt, name: "prompt"},
@@ -139,6 +145,16 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Menu.Visible = false
 
+	gui.Views.MenuFilterFrame.Visible = false
+	gui.Views.MenuFilter.Visible = false
+	gui.Views.MenuFilter.Frame = false
+	gui.Views.MenuFilter.Editable = true
+	gui.Views.MenuFilter.Editor = gocui.EditorFunc(gui.menuFilterEditor)
+	// The filter row belongs to the menu: it shares the menu's focus, and keys
+	// that the input field doesn't take are the menu's to handle.
+	gui.Views.MenuFilterFrame.ParentView = gui.Views.Menu
+	gui.Views.MenuFilter.ParentView = gui.Views.Menu
+
 	gui.Views.Tooltip.Visible = false
 	gui.Views.Tooltip.AutoRenderHyperLinks = true
 
@@ -155,17 +171,30 @@ func (gui *Gui) createAllViews() error {
 	return nil
 }
 
+// gocui expects a view's frame runes in this order: the horizontal and the
+// vertical edge, then the top left, top right, bottom left and bottom right
+// corner.
+func frameRunesWithTopCorners(frameRunes []rune, topLeft rune, topRight rune) []rune {
+	return []rune{frameRunes[0], frameRunes[1], topLeft, topRight, frameRunes[4], frameRunes[5]}
+}
+
 func (gui *Gui) configureViewProperties() {
 	frameRunes := []rune{'─', '│', '┌', '┐', '└', '┘'}
+	// The corners for a view that hangs off the bottom of another one, so that the
+	// border they share reads as a divider rather than as two frames touching.
+	teeLeft, teeRight := '├', '┤'
 	switch gui.c.UserConfig().Gui.Border {
 	case "double":
 		frameRunes = []rune{'═', '║', '╔', '╗', '╚', '╝'}
+		teeLeft, teeRight = '╠', '╣'
 	case "rounded":
 		frameRunes = []rune{'─', '│', '╭', '╮', '╰', '╯'}
 	case "hidden":
 		frameRunes = []rune{' ', ' ', ' ', ' ', ' ', ' '}
+		teeLeft, teeRight = ' ', ' '
 	case "bold":
 		frameRunes = []rune{'━', '┃', '┏', '┓', '┗', '┛'}
+		teeLeft, teeRight = '┣', '┫'
 	}
 
 	for _, mapping := range gui.orderedViewNameMappings() {
@@ -176,6 +205,8 @@ func (gui *Gui) configureViewProperties() {
 		(*mapping.viewPtr).SelFgColor = gui.g.SelFgColor
 		(*mapping.viewPtr).InactiveViewSelBgColor = theme.GocuiInactiveViewSelectedLineBgColor
 	}
+
+	gui.Views.MenuFilterFrame.FrameRunes = frameRunesWithTopCorners(frameRunes, teeLeft, teeRight)
 
 	gui.c.SetViewContent(gui.Views.SearchPrefix, gui.c.Tr.SearchPrefix)
 

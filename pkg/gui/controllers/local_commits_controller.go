@@ -1684,7 +1684,8 @@ func (self *LocalCommitsController) openSearch() error {
 		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
 	}
 
-	return self.c.Helpers().Search.OpenSearchPrompt(self.context())
+	self.c.Helpers().Search.OpenSearchPrompt(self.context())
+	return nil
 }
 
 func (self *LocalCommitsController) handleOpenLogMenu() error {

@@ -210,7 +210,9 @@ type View struct {
 	// Overlaps describes which edges are overlapping with another view's edges
 	Overlaps byte
 
-	// ParentView is the view which catches events bubbled up from the given view if there's no matching handler
+	// ParentView is the view which catches events bubbled up from the given view if there's no matching handler.
+	// Views related this way are also drawn as a single focused unit: while one of
+	// them is the current view, they all get the focused frame and title colors.
 	ParentView *View
 
 	searcher *searcher

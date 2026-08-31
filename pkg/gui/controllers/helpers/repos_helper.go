@@ -153,7 +153,11 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 		}
 	})
 
-	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.RecentRepos, Items: menuItems})
+	return self.c.Menu(types.CreateMenuOptions{
+		Title:           self.c.Tr.RecentRepos,
+		Items:           menuItems,
+		FilterAsYouType: true,
+	})
 }
 
 // SwitchToParentRepo switches back to the repo the current submodule was

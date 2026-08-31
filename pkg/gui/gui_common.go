@@ -201,8 +201,8 @@ func (self *guiCommon) CallKeybindingHandler(binding *types.Binding) error {
 	return self.gui.callKeybindingHandler(binding)
 }
 
-func (self *guiCommon) ResetKeybindings() error {
-	return self.gui.resetKeybindings()
+func (self *guiCommon) ResetKeybindings() {
+	self.gui.resetKeybindings()
 }
 
 func (self *guiCommon) IsAnyModeActive() bool {

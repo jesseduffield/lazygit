@@ -181,6 +181,10 @@ func (self *GuiDriver) CurrentContext() types.Context {
 	return self.gui.State.ContextMgr.Current()
 }
 
+func (self *GuiDriver) CursorVisible() bool {
+	return self.gui.g.Cursor
+}
+
 func (self *GuiDriver) ContextForView(viewName string) types.Context {
 	context, ok := self.gui.helpers.View.ContextForView(viewName)
 	if !ok {
