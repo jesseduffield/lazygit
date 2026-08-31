@@ -8,6 +8,10 @@ In the commits view we don't filter, but search; this is deliberate because you 
 
 If you would like both filtering and searching to be enabled on a given view, please raise an issue for this.
 
+## Menu filtering
+
+The keybindings (`?`) and recent repositories menus can be filtered simply by typing. The filter field appears at the bottom of the menu while you type; there is no need to press `/` or confirm the filter before navigating the results.
+
 ## Filtering files by status
 
 You can filter the files view to only show staged/unstaged files by pressing `<c-b>` in the files view.
