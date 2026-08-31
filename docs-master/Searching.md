@@ -4,7 +4,7 @@
 
 Depending on the currently focused view, hitting '/' will bring up a filter or search prompt. When filtering, the contents of the view will be filtered down to only those lines which match the query string. When searching, the contents of the view are not filtered, but matching lines are highlighted and you can iterate through matches with `n`/`N`.
 
-We intend to support filtering for the files view soon, but at the moment it uses searching. We intend to continue using search for the commits view because you typically care about the commits that come before/after a matching commit.
+In the commits view we don't filter, but search; this is deliberate because you typically care about the commits that come before/after a matching commit.
 
 If you would like both filtering and searching to be enabled on a given view, please raise an issue for this.
 
