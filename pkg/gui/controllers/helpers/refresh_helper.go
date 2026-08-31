@@ -761,6 +761,7 @@ func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflo
 type capturedCommitState struct {
 	limitCommits         bool
 	showWholeGitGraph    bool
+	filterRefs           []string
 	filterPath           string
 	filterAuthor         string
 	mainBranches         *git_commands.MainBranches
@@ -778,6 +779,7 @@ func (self *RefreshHelper) captureCommitsState() capturedCommitState {
 	return capturedCommitState{
 		limitCommits:         self.c.Contexts().LocalCommits.GetLimitCommits(),
 		showWholeGitGraph:    self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
+		filterRefs:           self.c.Contexts().LocalCommits.GetFilterRefs(),
 		filterPath:           self.c.Modes().Filtering.GetPath(),
 		filterAuthor:         self.c.Modes().Filtering.GetAuthor(),
 		mainBranches:         self.c.Model().MainBranches,
@@ -854,6 +856,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 			RefName:              refName,
 			RefForPushedStatus:   checkedOutRef,
 			All:                  captured.showWholeGitGraph,
+			FilterRefs:           captured.filterRefs,
 			MainBranches:         captured.mainBranches,
 			HashPool:             captured.hashPool,
 		},

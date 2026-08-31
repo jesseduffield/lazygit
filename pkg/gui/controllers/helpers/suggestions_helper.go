@@ -233,6 +233,40 @@ func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Su
 	return FilterFunc(refNames, self.c.UserConfig().Gui.UseFuzzySearch())
 }
 
+// GetMultiRefsSuggestionsFunc is like GetRefsSuggestionsFunc, but for prompts
+// accepting multiple space-separated refs: suggestions fuzzily match the last
+// (possibly partial) ref in the input, and accepting a suggestion completes
+// that ref while keeping the ones already typed.
+func (self *SuggestionsHelper) GetMultiRefsSuggestionsFunc() func(string) []*types.Suggestion {
+	remoteBranchNames := self.getRemoteBranchNames("/")
+	localBranchNames := self.getBranchNames()
+	tagNames := self.getTagNames()
+	additionalRefNames := []string{"HEAD", "FETCH_HEAD", "MERGE_HEAD", "ORIG_HEAD"}
+
+	refNames := append(append(append(remoteBranchNames, localBranchNames...), tagNames...), additionalRefNames...)
+
+	return func(input string) []*types.Suggestion {
+		prefix := ""
+		lastToken := input
+		if idx := strings.LastIndex(input, " "); idx != -1 {
+			prefix = input[:idx+1]
+			lastToken = input[idx+1:]
+		}
+
+		matches := refNames
+		if lastToken != "" {
+			matches = utils.FilterStrings(lastToken, refNames, true)
+		}
+
+		return lo.Map(matches, func(match string, _ int) *types.Suggestion {
+			return &types.Suggestion{
+				Value: prefix + match,
+				Label: match,
+			}
+		})
+	}
+}
+
 func (self *SuggestionsHelper) GetAuthorsSuggestionsFunc() func(string) []*types.Suggestion {
 	authors := lo.Map(lo.Values(self.c.Model().Authors), func(author *models.Author, _ int) string {
 		return author.Combined()
