@@ -1810,7 +1810,7 @@ the ported staging commands are: the stack builds the main view up to match
 the panel and only then removes it, so a command the main view has to gain
 belongs in the build-up.
 
-Two commits at PR 7's end:
+Three commits at PR 7's end:
 
 - **"Ask a parsed patch which of its lines a selection covers"** — a prep
   refactor. PR 7 predates PR 8's identity API (`patch.LineIdentity` /
@@ -1818,6 +1818,16 @@ Two commits at PR 7's end:
   by their identity" and "Say which change line is meant in one way"), so at
   this point `applyDiffLines` walks the diff inline. Pulled into a
   `changeLineIndices` helper rather than copied.
+- **"Don't refresh while the editor still has the hunk"** — a bug this
+  uncovered, present on master. `FilesHelper.EditFileAtLineAndWait` went
+  through the suspend path that refreshes as soon as the subprocess exits, so
+  it read the repo *before* the caller applied the edited patch and then raced
+  the caller's own post-apply refresh to publish it. Last writer wins, and when
+  it was the stale one the files panel kept showing the file as it was before
+  the edit. Both callers already refresh after applying, so the middle refresh
+  only ever had a wrong answer to give; it is gone. Found because the new e2e
+  test below was flaky about 1 run in 40 — see §10's log for how it was pinned
+  down.
 - **"Edit the selected hunk from the focused main view"** — the port.
   `WorkingTreeDiffActions.EditHunk`, from the *git* hunk (context and all)
   around the selection in the file's plain diff: `Patch.HunkContainingLine` /
@@ -2544,6 +2554,25 @@ Log:
   way" to convert the extracted helper rather than the inline walk. The
   resulting tree is byte-identical to the version before the move, which is the
   check that it was a history change and nothing else.
+
+  The per-commit sweep then caught the new Edit-hunk e2e test failing at one
+  commit — flaky, not commit-specific: 1 failure in about 40 suite runs, and
+  none in 36 clean ones afterwards. Worth writing down how it was pinned down,
+  since random sampling was never going to do it. The truncated failure text
+  ruled out the focus and line-count assertions (their messages say "got N"),
+  which pointed at the files panel's content. Reading the code gave a candidate
+  mechanism — `RunSubprocessAndRefresh` refreshing before the caller applies
+  the patch — and a first experiment appeared to disprove it, but had been
+  built wrong: delaying the background refresh made it read git *late*, i.e.
+  after the apply, which is the safe order. Delaying it between its read and
+  its publish instead — `refreshStateFiles` reads at `GetStatusFiles`, publishes
+  in the `onUIThreadUnlessRepoChanged` bounce that sets `Model().Files` — showed
+  it at once: `Expected 'MM' to be found in ' M file1'`. Under that
+  instrumentation the unfixed code failed 8 of 15 runs and the fixed code 0 of
+  15. Two lessons for next time: for a publish-order race, delay the *publish*,
+  not the work; and a `--update-refs` rebase moves any backup branch left
+  sitting on the branch tip, which silently turned two before/after comparisons
+  into empty diffs.
 - **2026-08-21:** **PR 8 deviation 9 was only half implemented; fixed.** A
   partial selection of a renamed file previewed as a deleted file with no diff.
   `PatchBuilder.FilesInPatch` had one field, `SourcePath`, doing two jobs —
