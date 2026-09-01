@@ -10,6 +10,7 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"unicode/utf16"
 )
 
 const (
@@ -24,8 +25,9 @@ const (
 )
 
 var (
-	Primary bool
-	trimDos bool
+	Primary   bool
+	trimDos   bool
+	copyUtf16 bool
 
 	pasteCmdArgs []string
 	copyCmdArgs  []string
@@ -36,7 +38,7 @@ var (
 	xclipPasteArgs = []string{xclip, "-out", "-selection", "clipboard"}
 	xclipCopyArgs  = []string{xclip, "-in", "-selection", "clipboard"}
 
-	powershellExePasteArgs = []string{powershellExe, "Get-Clipboard"}
+	powershellExePasteArgs = []string{powershellExe, "-noprofile", "-command", "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Clipboard"}
 	clipExeCopyArgs        = []string{clipExe}
 
 	wlpasteArgs = []string{wlpaste, "--no-newline"}
@@ -86,6 +88,7 @@ func init() {
 	pasteCmdArgs = powershellExePasteArgs
 	copyCmdArgs = clipExeCopyArgs
 	trimDos = true
+	copyUtf16 = true
 
 	if _, err := exec.LookPath(clipExe); err == nil {
 		if _, err := exec.LookPath(powershellExe); err == nil {
@@ -108,6 +111,19 @@ func getCopyCommand() *exec.Cmd {
 		copyCmdArgs = copyCmdArgs[:1]
 	}
 	return exec.Command(copyCmdArgs[0], copyCmdArgs[1:]...)
+}
+
+// clip.exe interprets its input in the console's ANSI code page unless it
+// starts with a UTF-16LE byte order mark, so encode the text that way to keep
+// non-ASCII characters intact.
+func utf16LeWithBom(text string) []byte {
+	codes := utf16.Encode([]rune(text))
+	data := make([]byte, 0, len(codes)*2+2)
+	data = append(data, 0xff, 0xfe)
+	for _, c := range codes {
+		data = append(data, byte(c), byte(c>>8))
+	}
+	return data
 }
 
 func readAll() (string, error) {
@@ -139,7 +155,11 @@ func writeAll(text string) error {
 	if err := copyCmd.Start(); err != nil {
 		return err
 	}
-	if _, err := in.Write([]byte(text)); err != nil {
+	data := []byte(text)
+	if copyUtf16 {
+		data = utf16LeWithBom(text)
+	}
+	if _, err := in.Write(data); err != nil {
 		return err
 	}
 	if err := in.Close(); err != nil {
