@@ -1799,6 +1799,45 @@ are **fixed**, each in a `fixup!` for the commit that owns the rule:
      not new, but it is the reason a stranded restore can't simply be left to a
      later render.
 
+#### Addendum 2026-09-01 — "Edit hunk" ported here, not in PR 9
+
+Found reviewing PR 9: `E` (`keybinding.main.editSelectHunk`) — hand the hunk
+you are on to an editor and apply what comes back — went with the staging
+panel and nothing replaced it, while the config key stayed in
+`user_config.go`, the schema and Config.md, binding nothing. It was first
+fixed inside PR 9's removal commit; the user moved it here, where the rest of
+the ported staging commands are: the stack builds the main view up to match
+the panel and only then removes it, so a command the main view has to gain
+belongs in the build-up.
+
+Two commits at PR 7's end:
+
+- **"Ask a parsed patch which of its lines a selection covers"** — a prep
+  refactor. PR 7 predates PR 8's identity API (`patch.LineIdentity` /
+  `ChangeLineIndicesForLines`, from "Let the patch builder be told which lines
+  by their identity" and "Say which change line is meant in one way"), so at
+  this point `applyDiffLines` walks the diff inline. Pulled into a
+  `changeLineIndices` helper rather than copied.
+- **"Edit the selected hunk from the focused main view"** — the port.
+  `WorkingTreeDiffActions.EditHunk`, from the *git* hunk (context and all)
+  around the selection in the file's plain diff: `Patch.HunkContainingLine` /
+  `HunkStartIdx` / `HunkEndIdx`, which is what the explorer's
+  `State.CurrentHunkBounds` asked. Working-tree only, as it was — what the
+  editor hands back is applied to the index, which a commit's diff has no use
+  for — and applied whole rather than matched against the file's diff again,
+  the point being that it says something the diff didn't. e2e:
+  `main_view/edit_hunk_in_focused_diff`, with a shell command standing in for
+  the editor, asserting both the line the editor was pointed at and that the
+  edited content reaches the index while the working tree keeps its own.
+
+PR 8's **"Say which change line is meant in one way"** then converts that one
+helper instead of the inline walk — the same commit, one site rather than
+two, and its message says so. The end state is byte-identical to having done
+it in PR 9; only the history moved.
+
+Consequence for §6: `E` with a real editor now needs its interactive pass as
+part of **PR 7**, whose sign-off predates it.
+
 ### PR 8 — Build custom patches directly from a commit's diff view
 
 After it: `space` over a commit's diff (commit-files, commits, sub-commits,
@@ -2130,14 +2169,10 @@ Deviations from the plan above:
 3. **"Edit hunk" (`E`, `keybinding.main.editSelectHunk`) was dropped by
    accident** (found in review): `StagingController.EditHunkAndRefresh` went
    with the panel, nothing replaced it, and the config key stayed in
-   `user_config.go`, the schema and Config.md, binding nothing. Ported to
-   `WorkingTreeDiffActions.EditHunk`, working from the *git* hunk (context and
-   all) around the selection in the file's plain diff — `Patch.HunkContaining
-   Line`/`HunkStartIdx`/`HunkEndIdx`, which is what the explorer's
-   `State.CurrentHunkBounds` did. It is working-tree only, as it was: what the
-   editor hands back is applied to the index. e2e:
-   `main_view/edit_hunk_in_focused_diff`, with a shell command standing in for
-   the editor.
+   `user_config.go`, the schema and Config.md, binding nothing. **The port went
+   into PR 7, not here** — see the note at the end of PR 7's section: a command
+   the main view has to gain before the panel can go belongs with the rest of
+   the build-up, not inside the removal.
 4. **A custom command naming a removed context made lazygit exit** (found in
    review, decided with the user): `context: staging` was valid, and an
    unknown name reaches `log.Fatal` in `keybindings.go` — so the config of
@@ -2267,9 +2302,9 @@ user pass before merge:
 | 4 | ✅ **APPROVED 2026-08-09.** Patched delta/difftastic/diff-so-fancy emit + render cleanly; handshake swallowed (no phantom line) |
 | 5 | ✅ **APPROVED 2026-08-15.** Selection feel under delta; hunk-on-click; drag incl. autoscroll; nav under metadata delta incl. repeated `n` across files. Some special cases are candidates for a later refinement; deliberately not pursued now |
 | 6 | ✅ **APPROVED 2026-08-15.** `{`/`}`, `ctrl+w` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ignoring whitespace where it removes the anchor's hunk, and where it empties the diff. Nothing found; the whitespace consumer called out as a welcome addition |
-| 7 | ✅ **APPROVED 2026-08-16.** Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro). Four review comments about the stack as a whole, all fixed the same day — see PR 7's sign-off section |
+| 7 | ✅ **APPROVED 2026-08-16**, except for `E` ("Edit hunk"), ported here on 2026-09-01 and still owing a pass with a real editor, including a patch edited to something neither side of the diff says. Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro). Four review comments about the stack as a whole, all fixed the same day — see PR 7's sign-off section |
 | 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
-| 9 | `enter` and double-click on a file (working tree and commit) under each renderer; `E` on a hunk with a real editor, incl. a patch edited to something neither side of the diff says; `{`/`}` down to 0 and back while a patch is being built; the keybindings menu's tooltips over both kinds of diff; screen modes with a diff focused |
+| 9 | `enter` and double-click on a file (working tree and commit) under each renderer; `{`/`}` down to 0 and back while a patch is being built; the keybindings menu's tooltips over both kinds of diff; screen modes with a diff focused |
 | 10 | Ghostty, iTerm2, VS Code |
 
 Patched renderer builds: `cargo build` in delta/difftastic worktrees
@@ -2441,7 +2476,9 @@ The remaining rows are agreed as keep/defer:
       green, every commit builds and unit-tests clean on its own), stacked on
       `select-diff-lines-in-main-view`. §6 sign-off **approved**
 - [x] PR 7 — staging from the main view — **DONE 2026-08-16** on branch
-      `stage-changes-in-main-view` (17 commits with round 4's folded in, 55
+      `stage-changes-in-main-view`, plus two commits added 2026-09-01 porting
+      "Edit hunk" (see PR 7's addendum; `E` still owes its interactive pass)
+      (17 commits with round 4's folded in, 55
       across the whole stack, all checks green, every commit building and
       unit-testing clean on its own), stacked on
       `show-staged-changes-in-lower-pane`, which is itself stacked on
@@ -2498,7 +2535,15 @@ Log:
   a fixup, because a fixup would have left them red: the shell-removal commit
   has to drop the four context names from the list the new base adds (a
   synchronization test enforces it), and the rename commit has to rename the
-  config key in the four test files restored below it.
+  config key in the four test files restored below it. Afterwards, at the user's
+  direction, the "Edit hunk" port moved out of PR 9 and into **PR 7**, beside
+  the other ported staging commands — the stack's shape is build-the-main-view-
+  up, then remove, and a command the main view has to gain belongs in the
+  build-up. That needed a prep refactor, PR 7 predating PR 8's diff-line
+  identity API, and a rewrite of PR 8's "Say which change line is meant in one
+  way" to convert the extracted helper rather than the inline walk. The
+  resulting tree is byte-identical to the version before the move, which is the
+  check that it was a history change and nothing else.
 - **2026-08-21:** **PR 8 deviation 9 was only half implemented; fixed.** A
   partial selection of a renamed file previewed as a deleted file with no diff.
   `PatchBuilder.FilesInPatch` had one field, `SourcePath`, doing two jobs —
