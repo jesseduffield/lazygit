@@ -411,6 +411,7 @@ var tests = []*components.IntegrationTest{
 	shell_commands.BasicShellCommand,
 	shell_commands.ComplexShellCommand,
 	shell_commands.DeleteFromHistory,
+	shell_commands.DeleteSuggestionWhenNoneSelected,
 	shell_commands.EditHistory,
 	shell_commands.History,
 	shell_commands.OmitFromHistory,
