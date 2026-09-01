@@ -104,6 +104,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
 | `` <space> `` | Zatwierdź | Przełącz zaznaczenie zatwierdzone/niezatwierdzone. |
 | `` d `` | Odrzuć | Gdy zaznaczona jest niezatwierdzona zmiana, odrzuć ją używając `git reset`. Gdy zaznaczona jest zatwierdzona zmiana, cofnij zatwierdzenie. |
+| `` E `` | Edytuj fragment | Edytuj wybrany fragment w zewnętrznym edytorze. |
 | `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |
 | `` <left>, h `` | Idź do poprzedniego fragmentu |  |
 | `` <right>, l `` | Idź do następnego fragmentu |  |
@@ -220,6 +221,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
 | `` <space> `` | Zatwierdź | Przełącz zaznaczenie zatwierdzone/niezatwierdzone. |
 | `` d `` | Odrzuć | Gdy zaznaczona jest niezatwierdzona zmiana, odrzuć ją używając `git reset`. Gdy zaznaczona jest zatwierdzona zmiana, cofnij zatwierdzenie. |
+| `` E `` | Edytuj fragment | Edytuj wybrany fragment w zewnętrznym edytorze. |
 | `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |
 | `` <left>, h `` | Idź do poprzedniego fragmentu |  |
 | `` <right>, l `` | Idź do następnego fragmentu |  |

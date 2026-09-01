@@ -98,6 +98,14 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen:   true,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Main.EditSelectHunk),
+			Handler:           self.editHunk,
+			Description:       self.c.Tr.EditHunk,
+			DescriptionFunc:   self.workingTreeActionDescription(self.c.Tr.EditHunk),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+			Tooltip:           self.c.Tr.EditHunkTooltip,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           self.copySelection,
 			Description:       self.c.Tr.CopySelectedTextToClipboard,
@@ -394,6 +402,21 @@ func (self *MainViewController) discardSelection() error {
 		return nil
 	}
 	return actions.DiscardSelection(self.context, first, last)
+}
+
+// editHunk hands the hunk around the selection to an editor, and is only offered over
+// the working tree's diff: what comes back is applied to the index, which is not
+// something a commit's diff has any use for.
+func (self *MainViewController) editHunk() error {
+	actions, ok := self.diffSource().(*WorkingTreeDiffActions)
+	if !ok {
+		return nil
+	}
+	first, last, ok := self.context.GetView().SelectedBufferLineRange()
+	if !ok {
+		return nil
+	}
+	return actions.EditHunk(self.context, first, last)
 }
 
 // workingTreeAction wraps a command that acts on the working tree — committing, finding
