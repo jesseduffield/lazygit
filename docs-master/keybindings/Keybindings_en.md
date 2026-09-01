@@ -245,38 +245,12 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | Go to previous hunk |  |
-| `` <right>, l `` | Go to next hunk |  |
-| `` v `` | Toggle range select |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | Copy selected text to clipboard |  |
-| `` o `` | Open file | Open file in default application. |
-| `` e `` | Edit file | Open file in external editor. |
-| `` <space> `` | Toggle lines in patch |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | Exit custom patch builder |  |
 | `` / `` | Search the current view by text |  |
 
 ## Main panel (staging)
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | Go to previous hunk |  |
-| `` <right>, l `` | Go to next hunk |  |
-| `` v `` | Toggle range select |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | Copy selected text to clipboard |  |
-| `` <space> `` | Stage | Toggle selection staged / unstaged. |
-| `` d `` | Discard | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
-| `` o `` | Open file | Open file in default application. |
-| `` e `` | Edit file | Open file in external editor. |
-| `` <esc> `` | Return to files panel |  |
-| `` <tab> `` | Switch view | Switch to other view (staged/unstaged changes). |
-| `` E `` | Edit hunk | Edit selected hunk in external editor. |
-| `` c `` | Commit | Commit staged changes. |
-| `` w `` | Commit changes without pre-commit hook |  |
-| `` C `` | Commit changes using git editor |  |
-| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Search the current view by text |  |
 
 ## Menu

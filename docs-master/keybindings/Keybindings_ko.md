@@ -199,38 +199,12 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | 이전 hunk를 선택 |  |
-| `` <right>, l `` | 다음 hunk를 선택 |  |
-| `` v `` | 드래그 선택 전환 |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
-| `` o `` | 파일 닫기 | Open file in default application. |
-| `` e `` | 파일 편집 | Open file in external editor. |
-| `` <space> `` | Line(s)을 패치에 추가/삭제 |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | Exit custom patch builder |  |
 | `` / `` | 검색 시작 |  |
 
 ## 메인 패널 (Staging)
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | 이전 hunk를 선택 |  |
-| `` <right>, l `` | 다음 hunk를 선택 |  |
-| `` v `` | 드래그 선택 전환 |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
-| `` <space> `` | Staged 전환 | 선택한 행을 staged / unstaged |
-| `` d `` | 변경을 삭제 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
-| `` o `` | 파일 닫기 | Open file in default application. |
-| `` e `` | 파일 편집 | Open file in external editor. |
-| `` <esc> `` | 파일 목록으로 돌아가기 |  |
-| `` <tab> `` | 패널 전환 | Switch to other view (staged/unstaged changes). |
-| `` E `` | Edit hunk | Edit selected hunk in external editor. |
-| `` c `` | 커밋 변경내용 | 스테이징된 변경 사항 커밋. |
-| `` w `` | Commit changes without pre-commit hook |  |
-| `` C `` | Git 편집기를 사용하여 변경 내용을 커밋합니다. |  |
-| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 검색 시작 |  |
 
 ## 브랜치

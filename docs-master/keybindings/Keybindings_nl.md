@@ -253,16 +253,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | Selecteer de vorige hunk |  |
-| `` <right>, l `` | Selecteer de volgende hunk |  |
-| `` v `` | Toggle drag selecteer |  |
-| `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
-| `` <ctrl+o> `` | Copy selected text to clipboard |  |
-| `` o `` | Open bestand | Open bestand in standaardapplicatie. |
-| `` e `` | Verander bestand | Open bestand in externe editor. |
-| `` <space> `` | Voeg toe/verwijder lijn(en) in patch |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | Sluit lijn-bij-lijn modus |  |
 | `` / `` | Start met zoeken |  |
 
 ## Reflog
@@ -343,22 +333,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | Selecteer de vorige hunk |  |
-| `` <right>, l `` | Selecteer de volgende hunk |  |
-| `` v `` | Toggle drag selecteer |  |
-| `` a `` | Wissel tussen hunk selectie aan of uit | Wissel tussen regel-voor-regel of hunk selectie modus. |
-| `` <ctrl+o> `` | Copy selected text to clipboard |  |
-| `` <space> `` | Toggle staged | Toggle lijnen staged / unstaged |
-| `` d `` | Verwijdert change (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
-| `` o `` | Open bestand | Open bestand in standaardapplicatie. |
-| `` e `` | Verander bestand | Open bestand in externe editor. |
-| `` <esc> `` | Ga terug naar het bestanden paneel |  |
-| `` <tab> `` | Ga naar een ander paneel | Switch to other view (staged/unstaged changes). |
-| `` E `` | Edit hunk | Edit selected hunk in external editor. |
-| `` c `` | Commit veranderingen | Commit gestagede wijzigingen. |
-| `` w `` | Commit veranderingen zonder pre-commit hook |  |
-| `` C `` | Commit veranderingen met de git editor |  |
-| `` <ctrl+f> `` | Find base commit for fixup | Vind de commit waar je huidige wijzigingen bovenop zijn gebouwd met als doel die commit te amenden/fixen. Hierdoor hoef je dit niet met de hand te doen. Zie: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Start met zoeken |  |
 
 ## Stash
