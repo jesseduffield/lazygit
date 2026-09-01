@@ -305,7 +305,6 @@ type TranslationSet struct {
 	NothingToSelectInDiff                 string
 	SelectLineByLine                      string
 	ToggleSelectHunkTooltip               string
-	HunkStagingHint                       string
 	ToggleSelectionForPatch               string
 	RemoveSelectionFromPatch              string
 	RemoveSelectionFromPatchTooltip       string
@@ -1166,15 +1165,6 @@ const englishNonReloadableConfigWarning = `The following config settings were ch
 
 {{configs}}`
 
-const englishHunkStagingHint = `Hunk selection mode is now the default for staging. If you want to stage individual lines, press '%s' to switch to line-by-line mode.
-
-If you prefer to use line-by-line mode by default (like in earlier lazygit versions), add
-
-gui:
-  useHunkModeInStagingView: false
-
-to your lazygit config.`
-
 // exporting this so we can use it in tests
 func EnglishTranslationSet() *TranslationSet {
 	return &TranslationSet{
@@ -1475,7 +1465,6 @@ func EnglishTranslationSet() *TranslationSet {
 		SelectHunk:                           "Select hunks",
 		SelectLineByLine:                     "Select line-by-line",
 		ToggleSelectHunkTooltip:              "Toggle line-by-line vs. hunk selection mode.",
-		HunkStagingHint:                      englishHunkStagingHint,
 		ToggleSelectionForPatch:              `Toggle lines in patch`,
 		RemoveSelectionFromPatch:             `Remove lines from commit`,
 		RemoveSelectionFromPatchTooltip:      "Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines.",
