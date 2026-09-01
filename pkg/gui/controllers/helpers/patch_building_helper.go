@@ -1,8 +1,6 @@
 package helpers
 
 import (
-	"fmt"
-
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
@@ -19,18 +17,6 @@ func NewPatchBuildingHelper(
 ) *PatchBuildingHelper {
 	return &PatchBuildingHelper{
 		c: c,
-	}
-}
-
-func (self *PatchBuildingHelper) ShowHunkStagingHint() {
-	if !self.c.AppState.DidShowHunkStagingHint && self.c.UserConfig().Gui.UseHunkModeInStagingView {
-		self.c.AppState.DidShowHunkStagingHint = true
-		self.c.SaveAppStateAndLogError()
-
-		message := fmt.Sprintf(self.c.Tr.HunkStagingHint, self.c.UserConfig().Keybinding.Main.ToggleSelectHunk)
-		self.c.Confirm(types.ConfirmOpts{
-			Prompt: message,
-		})
 	}
 }
 
