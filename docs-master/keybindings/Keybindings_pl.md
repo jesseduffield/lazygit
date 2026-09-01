@@ -151,16 +151,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | Idź do poprzedniego fragmentu |  |
-| `` <right>, l `` | Idź do następnego fragmentu |  |
-| `` v `` | Przełącz zaznaczenie zakresu |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |
-| `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
-| `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
-| `` <space> `` | Przełącz linie w łatce |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | Wyjdź z budowniczego niestandardowej łatki |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Input prompt
@@ -254,22 +244,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | Idź do poprzedniego fragmentu |  |
-| `` <right>, l `` | Idź do następnego fragmentu |  |
-| `` v `` | Przełącz zaznaczenie zakresu |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | Kopiuj zaznaczony tekst do schowka |  |
-| `` <space> `` | Zatwierdź | Przełącz zaznaczenie zatwierdzone/niezatwierdzone. |
-| `` d `` | Odrzuć | Gdy zaznaczona jest niezatwierdzona zmiana, odrzuć ją używając `git reset`. Gdy zaznaczona jest zatwierdzona zmiana, cofnij zatwierdzenie. |
-| `` o `` | Otwórz plik | Otwórz plik w domyślnej aplikacji. |
-| `` e `` | Edytuj plik | Otwórz plik w zewnętrznym edytorze. |
-| `` <esc> `` | Wróć do panelu plików |  |
-| `` <tab> `` | Przełącz widok | Przełącz na inny widok (zatwierdzone/niezatwierdzone zmiany). |
-| `` E `` | Edytuj fragment | Edytuj wybrany fragment w zewnętrznym edytorze. |
-| `` c `` | Commit | Zatwierdź zmiany zatwierdzone. |
-| `` w `` | Zatwierdź zmiany bez hooka pre-commit |  |
-| `` C `` | Zatwierdź zmiany używając edytora git |  |
-| `` <ctrl+f> `` | Znajdź bazowy commit do poprawki | Znajdź commit, na którym opierają się Twoje obecne zmiany, w celu poprawienia/zmiany commita. To pozwala Ci uniknąć przeglądania commitów w Twojej gałęzi jeden po drugim, aby zobaczyć, który commit powinien być poprawiony/zmieniony. Zobacz dokumentację: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |
 
 ## Panel potwierdzenia
