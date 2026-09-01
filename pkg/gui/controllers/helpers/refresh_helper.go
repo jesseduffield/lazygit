@@ -30,8 +30,6 @@ type RefreshHelper struct {
 	c                    *HelperCommon
 	refsHelper           *RefsHelper
 	mergeAndRebaseHelper *MergeAndRebaseHelper
-	patchBuildingHelper  *PatchBuildingHelper
-	stagingHelper        *StagingHelper
 	mergeConflictsHelper *MergeConflictsHelper
 	worktreeHelper       *WorktreeHelper
 	searchHelper         *SearchHelper
@@ -62,8 +60,6 @@ func NewRefreshHelper(
 	c *HelperCommon,
 	refsHelper *RefsHelper,
 	mergeAndRebaseHelper *MergeAndRebaseHelper,
-	patchBuildingHelper *PatchBuildingHelper,
-	stagingHelper *StagingHelper,
 	mergeConflictsHelper *MergeConflictsHelper,
 	worktreeHelper *WorktreeHelper,
 	searchHelper *SearchHelper,
@@ -72,8 +68,6 @@ func NewRefreshHelper(
 		c:                    c,
 		refsHelper:           refsHelper,
 		mergeAndRebaseHelper: mergeAndRebaseHelper,
-		patchBuildingHelper:  patchBuildingHelper,
-		stagingHelper:        stagingHelper,
 		mergeConflictsHelper: mergeConflictsHelper,
 		worktreeHelper:       worktreeHelper,
 		searchHelper:         searchHelper,
@@ -248,8 +242,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 
 	var scopeSet *set.Set[types.RefreshableView]
 	if len(options.Scope) == 0 {
-		// not refreshing staging/patch-building unless explicitly requested because we only need
-		// to refresh those while focused.
 		scopeSet = set.NewFromSlice([]types.RefreshableView{
 			types.COMMITS,
 			types.BRANCHES,
@@ -261,7 +253,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			types.WORKTREES,
 			types.STATUS,
 			types.BISECT_INFO,
-			types.STAGING,
 			types.PULL_REQUESTS,
 		})
 	} else {
@@ -500,37 +491,9 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		})
 	}
 
-	if scopeSet.Includes(types.STAGING) {
-		refresh("staging", func() {
-			fileWg.Wait()
-			// Bounce onto the UI thread so this runs after the files
-			// scope's model-update bounce — RefreshStagingPanel reads
-			// Model.Files (via Files.GetSelected) and would otherwise
-			// see the pre-refresh model. Guard on the generation so a
-			// repo switch mid-refresh drops it, like the model bounces.
-			self.onUIThreadUnlessRepoChanged(env, func() {
-				self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
-			})
-		})
-	}
-
-	if scopeSet.Includes(types.PATCH_BUILDING) {
-		refresh("patch building", func() {
-			// Bounce onto the UI thread, like the staging panel above:
-			// RefreshPatchBuildingPanel reads the commit-files selection and
-			// sets the patch view's origin, neither of which may run off the UI
-			// thread. Guard on the generation so a repo switch mid-refresh drops
-			// it, like the model bounces.
-			self.onUIThreadUnlessRepoChanged(env, func() {
-				self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{})
-			})
-		})
-	}
-
 	if scopeSet.Includes(types.MERGE_CONFLICTS) {
 		refresh("merge conflicts", func() {
-			// Bounce onto the UI thread, like the staging and patch-building
-			// panels above: RefreshMergeState reads the current context and
+			// Bounce onto the UI thread: RefreshMergeState reads the current context and
 			// renders (or escapes) the merge-conflicts view, none of which may
 			// run off the UI thread.
 			self.onUIThreadUnlessRepoChanged(env, func() {
@@ -660,8 +623,6 @@ func getScopeNames(scopes []types.RefreshableView) []string {
 		types.WORKTREES:       "worktrees",
 		types.STATUS:          "status",
 		types.BISECT_INFO:     "bisect",
-		types.STAGING:         "staging",
-		types.PATCH_BUILDING:  "patchBuilding",
 		types.MERGE_CONFLICTS: "mergeConflicts",
 		types.COMMIT_FILES:    "commitFiles",
 		types.PULL_REQUESTS:   "pullRequests",

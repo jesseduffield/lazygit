@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -76,20 +75,12 @@ func (self *ContextLinesController) applyChange() error {
 	self.c.Toast(fmt.Sprintf(self.c.Tr.DiffContextSizeChanged, self.c.UserConfig().Git.DiffContextSize))
 
 	currentContext := self.c.Context().CurrentSide()
-	switch currentContext.GetKey() {
-	// we make an exception for our staging and patch building contexts because they actually need to refresh their state afterwards.
-	case context.PATCH_BUILDING_MAIN_CONTEXT_KEY:
-		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.PATCH_BUILDING}})
-	case context.STAGING_MAIN_CONTEXT_KEY, context.STAGING_SECONDARY_CONTEXT_KEY:
-		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STAGING}})
-	default:
-		// The diff is about to be rendered again with more or less context around
-		// each change, which reads as the lines you were looking at moving up or down
-		// the view; keep them where they are instead.
-		self.c.Helpers().DiffLine.PreserveDiffPositionOnRerender(self.c.Contexts().Normal.GetView())
-		self.c.Helpers().DiffLine.PreserveDiffPositionOnRerender(self.c.Contexts().NormalSecondary.GetView())
-		currentContext.HandleRenderToMain()
-	}
+	// The diff is about to be rendered again with more or less context around
+	// each change, which reads as the lines you were looking at moving up or down
+	// the view; keep them where they are instead.
+	self.c.Helpers().DiffLine.PreserveDiffPositionOnRerender(self.c.Contexts().Normal.GetView())
+	self.c.Helpers().DiffLine.PreserveDiffPositionOnRerender(self.c.Contexts().NormalSecondary.GetView())
+	currentContext.HandleRenderToMain()
 	return nil
 }
 

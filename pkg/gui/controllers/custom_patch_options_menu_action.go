@@ -30,7 +30,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 		{
 			Label:   self.c.Tr.ResetPatch,
 			Tooltip: self.c.Tr.ResetPatchTooltip,
-			OnPress: self.c.Helpers().PatchBuilding.Reset,
+			OnPress: self.c.Helpers().CustomPatch.Reset,
 			Keys:    menuKey('c'),
 		},
 		{
@@ -123,15 +123,7 @@ func (self *CustomPatchOptionsMenuAction) getPatchCommitIndex() int {
 	return -1
 }
 
-func (self *CustomPatchOptionsMenuAction) returnFocusFromPatchExplorerIfNecessary() {
-	if self.c.Context().Current().GetKey() == self.c.Contexts().CustomPatchBuilder.GetKey() {
-		self.c.Helpers().PatchBuilding.Escape()
-	}
-}
-
 func (self *CustomPatchOptionsMenuAction) handleDeletePatchFromCommit() error {
-	self.returnFocusFromPatchExplorerIfNecessary()
-
 	commits := self.c.Model().Commits
 	commitIndex := self.getPatchCommitIndex()
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
@@ -142,8 +134,6 @@ func (self *CustomPatchOptionsMenuAction) handleDeletePatchFromCommit() error {
 }
 
 func (self *CustomPatchOptionsMenuAction) handleMovePatchToSelectedCommit() error {
-	self.returnFocusFromPatchExplorerIfNecessary()
-
 	commits := self.c.Model().Commits
 	commitIndex := self.getPatchCommitIndex()
 	toCommitIndex := self.c.Contexts().LocalCommits.GetSelectedLineIdx()
@@ -155,8 +145,6 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchToSelectedCommit() erro
 }
 
 func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error {
-	self.returnFocusFromPatchExplorerIfNecessary()
-
 	mustStash := self.c.Helpers().WorkingTree.IsWorkingTreeDirtyExceptSubmodules()
 	return self.c.ConfirmIf(mustStash, types.ConfirmOpts{
 		Title:  self.c.Tr.MustStashTitle,
@@ -174,8 +162,6 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 }
 
 func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
-	self.returnFocusFromPatchExplorerIfNecessary()
-
 	commitIndex := self.getPatchCommitIndex()
 	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
@@ -209,8 +195,6 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 }
 
 func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommitBefore() error {
-	self.returnFocusFromPatchExplorerIfNecessary()
-
 	commitIndex := self.getPatchCommitIndex()
 	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
@@ -244,8 +228,6 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommitBefore() e
 }
 
 func (self *CustomPatchOptionsMenuAction) handleApplyPatch(reverse bool) error {
-	self.returnFocusFromPatchExplorerIfNecessary()
-
 	affectedUnstagedFiles := self.getAffectedUnstagedFiles()
 
 	mustStageFiles := len(affectedUnstagedFiles) > 0

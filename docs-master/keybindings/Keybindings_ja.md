@@ -263,38 +263,12 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | 前のハンクに移動 |  |
-| `` <right>, l `` | 次のハンクに移動 |  |
-| `` v `` | 範囲選択を切り替え |  |
-| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
-| `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
-| `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
-| `` o `` | ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
-| `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
-| `` <esc> `` | ファイルパネルに戻る |  |
-| `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
-| `` E `` | ハンクを編集 | 選択したハンクを外部エディタで編集します。 |
-| `` c `` | コミット | ステージされた変更をコミットします。 |
-| `` w `` | pre-commitフックなしで変更をコミット |  |
-| `` C `` | Gitエディタを使用して変更をコミット |  |
-| `` <ctrl+f> `` | フィックスアップのベースコミットを検索 | 現在の変更が基づいているコミットを見つけて、コミットの修正/フィックスアップを行います。これにより、ブランチのコミットを一つずつ確認して、どのコミットを修正/フィックスアップすべきかを調べる手間が省けます。詳細はドキュメントを参照: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## メインパネル（パッチ作成）
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | 前のハンクに移動 |  |
-| `` <right>, l `` | 次のハンクに移動 |  |
-| `` v `` | 範囲選択を切り替え |  |
-| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
-| `` o `` | ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
-| `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
-| `` <space> `` | パッチ内の行を切り替え |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | カスタムパッチビルダーを終了 |  |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## メインパネル（マージ中）
