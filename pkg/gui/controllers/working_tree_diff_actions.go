@@ -122,7 +122,8 @@ func (self *WorkingTreeDiffActions) EditHunk(
 	}
 
 	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, git_commands.DiffModePlain, onStagedSide))
-	lineIndices := changeLineIndices(parsedPatch, infos[:1])
+	lineIndices := patch.ChangeLineIndicesForLines(parsedPatch,
+		[]patch.LineIdentity{infos[0].PatchLineIdentity()})
 	if len(lineIndices) == 0 {
 		return nil
 	}
@@ -280,7 +281,10 @@ func (self *WorkingTreeDiffActions) applyDiffLines(
 ) (bool, error) {
 	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, git_commands.DiffModePlain, sourceCached))
 
-	patchLineIndices := changeLineIndices(parsedPatch, infos)
+	patchLineIndices := patch.ChangeLineIndicesForLines(parsedPatch,
+		lo.Map(infos, func(info types.DiffLineInfo, _ int) patch.LineIdentity {
+			return info.PatchLineIdentity()
+		}))
 
 	changesLeft := len(patchLineIndices) < changeLineCount(parsedPatch)
 
@@ -309,42 +313,6 @@ func (self *WorkingTreeDiffActions) applyDiffLines(
 	}
 
 	return changesLeft, self.c.Git().Patch.ApplyPatch(patchToApply, opts)
-}
-
-// changeLineIndices says which lines of a parsed patch the given diff rows are, as the
-// indices a patch is built in terms of. Each row is looked for by where it sits in the
-// file: an addition by its place in the new version, a deletion by its place in the
-// old one, which is what tells the two halves of a changed line apart.
-func changeLineIndices(parsedPatch *patch.Patch, infos []types.DiffLineInfo) []int {
-	type changeLine struct {
-		lineNumber int
-		isDeletion bool
-	}
-	selected := set.New[changeLine]()
-	for _, info := range infos {
-		if info.Type == types.DiffLineDeleted {
-			selected.Add(changeLine{info.OldLine, true})
-		} else {
-			selected.Add(changeLine{info.NewLine, false})
-		}
-	}
-
-	var indices []int
-	for idx, line := range parsedPatch.Lines() {
-		var key changeLine
-		switch {
-		case line.IsAddition():
-			key = changeLine{parsedPatch.LineNumberOfLine(idx), false}
-		case line.IsDeletion():
-			key = changeLine{parsedPatch.OldLineNumberOfLine(idx), true}
-		default:
-			continue
-		}
-		if selected.Includes(key) {
-			indices = append(indices, idx)
-		}
-	}
-	return indices
 }
 
 // changeLineCount returns how many of a patch's lines are changes rather than context

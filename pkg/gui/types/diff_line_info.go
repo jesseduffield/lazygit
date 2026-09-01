@@ -1,5 +1,7 @@
 package types
 
+import "github.com/jesseduffield/lazygit/pkg/commands/patch"
+
 // DiffLineType classifies a row of a rendered diff.
 type DiffLineType int
 
@@ -39,6 +41,16 @@ type DiffLineInfo struct {
 // rows a patch is built from, and the rows navigation moves between.
 func (self DiffLineInfo) IsChange() bool {
 	return self.Type == DiffLineAdded || self.Type == DiffLineDeleted
+}
+
+// PatchLineIdentity says which change line of the file the row is, in the terms a patch
+// of that file is built and read in: an addition by where it sits in the new version of
+// the file, a deletion by where it sat in the old one. Only meaningful for a change row.
+func (self DiffLineInfo) PatchLineIdentity() patch.LineIdentity {
+	if self.Type == DiffLineDeleted {
+		return patch.LineIdentity{LineNumber: self.OldLine, IsDeletion: true}
+	}
+	return patch.LineIdentity{LineNumber: self.NewLine}
 }
 
 // IsContent reports whether the row is a line of the file itself — a change or a
