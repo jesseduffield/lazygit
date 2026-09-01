@@ -150,6 +150,7 @@ succession (§2.3); 10–11 any time after their dependencies.
 
 | # | Title (draft) | Depends on | Nature |
 |---|---|---|---|
+| 0 | Validate the context a custom command names | — | fix (found reviewing PR 9; foot of the stack) |
 | 1 | Fix flicker, scroll glitches, and crashes in async diff rendering | — | fixes, gocui/tasks |
 | 2 | Internal: resolve diff lines to (file, line, kind) identities | 1 | infra |
 | 3 | Rename the "pagers" config to "diff renderers" — **DONE: landed on master as #5870** | — | rename + migration |
@@ -1989,7 +1990,9 @@ commit, one on the patch-removal commit). All checks green, the whole e2e suite 
    answers that per file. So a whole-file rename previews as a rename, a pure
    rename included. The wart: git writes `rename from a/original` /
    `rename to b/renamed` over the trees, the two paths being all it has to go
-   by — `renamed_file_whole` documents it (see §8's new row).
+   by — `renamed_file_whole` documents it (see §8's new row). *(Landed with
+   only the whole-file half working; the partial half was fixed 2026-08-21 —
+   see §10's log.)*
 10. **The a/b leak is normalized where the pane's identities are handed out**
     (§9.4's other sub-item, decided with the user): `DiffLineHelper.inRepoTerms`
     maps a path stated over the trees back to the repo's file, at the two places
@@ -2100,6 +2103,88 @@ Risk note: this PR is where hidden couplings surface (things that push
 commands, `git bisect` edge flows). Grep for every reference to the removed
 contexts/views before starting; expect a long tail of small fixes.
 
+**Status: DONE 2026-08-20** on branch `replace-staging-panels-with-main-view`
+(25 commits), reviewed 2026-09-01 with 9 `fixup!`s, one commit dropped, one
+split, and two commits added; §6 sign-off owed. The risk note landed: the
+coupling that surfaced was `customCommands[].context`, which is matched
+against the context keys by *name* (see deviation 4).
+
+Deviations from the plan above:
+
+1. **The four "file-tree workflow" custom-patch tests were not the
+   explorer's** (found in review). `select_all_files`, `toggle_directory`,
+   `select_direcories_sharing_prefix` and `toggle_range` drive the **commit
+   files panel**, whose `toggleForPatch`/`toggleAllForPatch` survive this PR
+   untouched; the commit that deleted them ("Drop custom-patch tests for the
+   file-tree workflow") was dropped, and all four are back unchanged. Without
+   them, `a` in the commit files panel had no e2e coverage at all, and neither
+   did the prefix-sharing directory case (`foo` vs `foobar`).
+2. **Three of the eleven tests dropped in the first commit weren't covered
+   elsewhere** (found in review): `stage_partial_block_of_changes_{first,last,
+   middle}_lines` assert `patch.Transform`'s output when only part of a run of
+   deletions+additions is staged, and the middle one deliberately documents a
+   known imperfection. Restored under `main_view/`, needing only the view and
+   config-key renames. Likewise the staging-panel screen-mode test, restored as
+   `main_view/change_screen_mode_in_focused_diff` (it reaches the diff with
+   `FocusMainView` rather than `enter`, so it is green from its own commit on).
+3. **"Edit hunk" (`E`, `keybinding.main.editSelectHunk`) was dropped by
+   accident** (found in review): `StagingController.EditHunkAndRefresh` went
+   with the panel, nothing replaced it, and the config key stayed in
+   `user_config.go`, the schema and Config.md, binding nothing. Ported to
+   `WorkingTreeDiffActions.EditHunk`, working from the *git* hunk (context and
+   all) around the selection in the file's plain diff — `Patch.HunkContaining
+   Line`/`HunkStartIdx`/`HunkEndIdx`, which is what the explorer's
+   `State.CurrentHunkBounds` did. It is working-tree only, as it was: what the
+   editor hands back is applied to the index. e2e:
+   `main_view/edit_hunk_in_focused_diff`, with a shell command standing in for
+   the editor.
+4. **A custom command naming a removed context made lazygit exit** (found in
+   review, decided with the user): `context: staging` was valid, and an
+   unknown name reaches `log.Fatal` in `keybindings.go` — so the config of
+   anyone who used one would take the program down on startup. Rather than
+   migrating the name, the names are now validated as the config is read. That
+   is a fix for a master-level bug (any typo did the same), so it went in its
+   own branch, `validate-custom-command-contexts`, inserted at the foot of the
+   stack; this PR's shell-removal commit drops the four names from the list it
+   added. See §10's log.
+5. **The whole-file decision asks the file, not the diff's shape.** The
+   as-landed `SelectionRepresentsWholeFile` used `Patch.IsSingleHunkFor
+   WholeFile`, whose own comment records that it is wrong at context size 0 —
+   a wart that only "doesn't matter" because of a guard in another file, and
+   this is the PR that removes the *other* context-size guard. The question is
+   now put to `models.CommitFile.Added()`/`Deleted()`, which `filesInDiff()`
+   already loads for the rename paths, and the two answers ("which indices"
+   and "is that every change") come out of one parse. That left
+   `Patch.IsSingleHunkForWholeFile` with no callers, so it went too.
+6. **The tooltips of the selection commands follow their descriptions**
+   (found in review). `Tr.RemoveSelectionFromPatchTooltip` became orphaned
+   here, because `MainViewController` pairs a dynamic `DescriptionFunc` with a
+   static `Tooltip` — so over a commit's diff the `Remove` key said "Remove
+   lines from commit" while its tooltip described `git reset`, and the
+   rebase-conflict warning went unseen. `types.Binding` gained a `TooltipFunc`
+   (static `Tooltip` still being what the cheatsheet prints); the fix is a
+   fixup in **PR 8**, whose commit introduced the mismatch.
+7. **The hunk-staging hint's removal is its own commit** (asked for by the
+   user): it was folded into the config rename, where it was invisible.
+8. **`dropDiffPrefix`'s move out of the explorer controller is its own
+   commit**, ahead of the deletion, per AGENTS.md's prep-refactor rule.
+9. **`FilesController.EnterFile` takes a clicked line, not `OnFocusOpts`**: the
+   `ClickedWindowName` it used to pick the staging-secondary view is dead now
+   that the pane comes from `GetMainPanes()`. Renamed to `enterFile` while
+   there.
+10. **The demos and `discard_old_file_changes` press `enter`**, not
+    `FocusMainView` — the gesture the README now documents, and the only e2e
+    exercise of the new `enter` besides its own test. Folded into "Open file
+    diffs in the focused main view", the commit that gives `enter` that
+    meaning.
+11. `excludedViews` in `cheatsheet/generate.go` was left as an empty slice
+    behind a `lo.Contains` that can never fire; removed.
+
+Left alone deliberately: `wrapLinesInDiffView` now governs `Main`/`Secondary`
+wrapping for everything those panes show, not only diffs (master had them
+hard-wired to `true`, so the default is unchanged). The user is still making
+up their mind about it.
+
 ### PR 10 — Alt- or shift-click a diff line to open it in your editor
 
 **Status: DONE 2026-08-20** on branch
@@ -2184,6 +2269,7 @@ user pass before merge:
 | 6 | ✅ **APPROVED 2026-08-15.** `{`/`}`, `ctrl+w` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ignoring whitespace where it removes the anchor's hunk, and where it empties the diff. Nothing found; the whitespace consumer called out as a welcome addition |
 | 7 | ✅ **APPROVED 2026-08-16.** Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro). Four review comments about the stack as a whole, all fixed the same day — see PR 7's sign-off section |
 | 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
+| 9 | `enter` and double-click on a file (working tree and commit) under each renderer; `E` on a hunk with a real editor, incl. a patch edited to something neither side of the diff says; `{`/`}` down to 0 and back while a patch is being built; the keybindings menu's tooltips over both kinds of diff; screen modes with a diff focused |
 | 10 | Ghostty, iTerm2, VS Code |
 
 Patched renderer builds: `cargo build` in delta/difftastic worktrees
@@ -2221,7 +2307,7 @@ The remaining rows are agreed as keep/defer:
 | Rename support in the from-main-view patch paths (N§21.36(1)) | **Done in PR 8**: the previous path comes from asking git which files the target's diff renames (`GetFilesInDiff`), once per toggle — the model's file list only ever describes the commit files panel's own commit (PR 8 deviation 4) |
 | patch pkg rename-aware Parse/Transform/FormatView (N§21.36(2)) | **Closed 2026-08-09 — nothing to fix**: doesn't reproduce off master; `patch_building` e2e green with PR 2's patch changes, rename unit tests added (PR 2 deviation 6) |
 | Reflog patch-building (N§21.24) | **Done in PR 8**: the reflog panel shares the one `CommitDiffActions` with the other four, and gained the patch preview pane — as did the stash and sub-commits panels, which never had one either |
-| Renames in the custom-patch temp trees (new, this plan) | **Done in PR 8**: a file is materialized under the path the patch expects it at — the name it had before, where the patch carries the rename — so a whole-file rename previews as a rename (PR 8 deviation 9) |
+| Renames in the custom-patch temp trees (new, this plan) | **Done in PR 8**: a file is materialized under the path the patch expects it at — the name it had before, where the patch carries the rename — so a whole-file rename previews as a rename, and a partial one as the content change it is, under the new name (PR 8 deviation 9, completed 2026-08-21 by the two fixups in §10's log: the trees' path and the content's are two different questions) |
 | Secondary-pane removal broken under difftastic — ordinal bridge + a/b record-path leak (diagnosed 2026-07-18, memory) | **Done in PR 8**: a line of the patch is found by counting the change lines of the *trees' own diff*, which no rendering can reorder or hide; and a path stated over the trees is brought back to the repo's own where the pane's identities are handed out (PR 8 deviations 10 and 12). The interactive pass under real difftastic is still owed (§6) |
 | Diffing mode (`W`) not wired to the raw fallback → not stageable (N§21.29) | Defer; note in PR 7 description ("diffing-mode staging is its own question") |
 | `type: extDiff` with empty `command` (git's `diff.external`; formerly `useExternalDiffGitConfig`) always-raw when focused (N§21.30) | Keep; document |
@@ -2371,7 +2457,16 @@ The remaining rows are agreed as keep/defer:
       commit unit-testing clean on its own, whole e2e suite passing), stacked on
       `stage-changes-in-main-view`. Plan commit 9 moved to PR 9; §6 sign-off
       owed
-- [ ] PR 9 — panel removal
+- [x] PR 9 — panel removal — **DONE 2026-08-20** on branch
+      `replace-staging-panels-with-main-view` (25 commits, reviewed 2026-09-01:
+      9 `fixup!`s, one commit dropped, one split, two added — 34 commits now),
+      stacked on `build-custom-patch-from-main-view`, which is itself now
+      stacked on `validate-custom-command-contexts`. Every commit builds,
+      unit-tests and passes the whole e2e suite on its own; §6 sign-off owed
+- [x] Validating a custom command's context — **DONE 2026-09-01** on branch
+      `validate-custom-command-contexts` (1 commit off master, green),
+      inserted at the foot of the stack; a master-level bug PR 9 made likely
+      to be hit. Its own PR, mergeable ahead of the rest
 - [x] PR 10 — alt/shift-click edit — **DONE 2026-08-20** on branch
    `edit-diff-line-with-modified-click` (6 commits, every commit green,
    whole e2e suite passing), stacked directly on PR 8; §6 sign-off owed
@@ -2382,6 +2477,49 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-09-01:** **PR 9 reviewed.** The 25 commits were green throughout —
+  every one builds, unit-tests and passes the whole e2e suite on its own,
+  checked commit by commit — so everything found was something the suite
+  cannot see. Eleven findings, all recorded as PR 9 deviations above; the four
+  that mattered were a keybinding silently unbound (`E` / "Edit hunk"), a
+  `log.Fatal` on startup for a config naming a removed context, four deleted
+  tests that had never belonged to the explorer, and three more whose
+  behaviour nothing else covered. Two placement calls were taken with the
+  user: the tooltip fix belongs to PR 8's commit that introduced the mismatch,
+  so it went in as a fixup there (one `rebase -i --update-refs` from below PR
+  8, replaying PR 9 on top); and the custom-command validation is a
+  master-level fix, so it became its own branch at the foot of the stack, with
+  the whole stack re-parented onto it. Two commits were restructured rather
+  than fixed up — the explorer-behavior removal gave up its `dropDiffPrefix`
+  move to a prep commit ahead of it, and the config rename gave up the
+  hunk-staging-hint removal to a commit of its own — and one, "Drop
+  custom-patch tests for the file-tree workflow", was dropped outright, its
+  whole premise being wrong. Two commits needed *content* amended rather than
+  a fixup, because a fixup would have left them red: the shell-removal commit
+  has to drop the four context names from the list the new base adds (a
+  synchronization test enforces it), and the rename commit has to rename the
+  config key in the four test files restored below it.
+- **2026-08-21:** **PR 8 deviation 9 was only half implemented; fixed.** A
+  partial selection of a renamed file previewed as a deleted file with no diff.
+  `PatchBuilder.FilesInPatch` had one field, `SourcePath`, doing two jobs —
+  where the file's content before the patch is read from in `From`, and where it
+  is materialized in the trees — which for a *whole*-file rename are the same
+  path, so one field looked enough. For a partial one they differ: the content
+  is under the old name, while the trees must hold the file under the name the
+  patch's own (rename-stripped) header states, the new one. So the content
+  lookup missed, the file was materialized empty, and the `git apply` over it
+  failed (logged away by `secondaryPatchPanelUpdateOpts`). Split into `Path` and
+  `ContentPath` — `PatchFile.Path` had been set and never read. Decided with the
+  user: the preview shows a partial rename patch as a plain modification of the
+  new path, matching what applying it does; showing the rename would claim the
+  patch carries one. Two `fixup!`s inserted mid-stack: the fix plus
+  `TestFilesInPatch`/`TestFilesInPatchOfARenamedFile` on **"Show the custom patch
+  as the diff it is"** (the commit that introduced the mapping), and the preview
+  assertion on **"Keep partial rename patches on the focused diff"** — the e2e
+  guard cannot sit with the fix, because at that point the only partial-rename
+  test drives the old explorer, whose preview renders the patch as a *string*
+  (`PatchBuildingHelper.RefreshPatchBuildingPanel`); only the commit panels' pane
+  goes through the trees. Whole suite green, and each fixup green on its own.
 - **2026-08-20:** **PR 10 implemented** (6 commits, green; §6 sign-off owed),
   stacked directly on PR 8 so PR 9 remains independent. Added the agreed
   non-suspending-editor feedback as a two-column reverse-bar flash; suspension
