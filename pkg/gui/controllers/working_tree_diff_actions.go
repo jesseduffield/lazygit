@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -97,6 +98,87 @@ func (self *WorkingTreeDiffActions) DiscardSelection(pane types.DiffPaneContext,
 					git_commands.ApplyPatchOpts{Reverse: true, Cached: onStagedSide})
 			},
 		})
+}
+
+// EditHunk opens the git hunk holding the selection in an editor, as a patch against
+// the index, and applies whatever comes back. It is how you stage something the diff
+// can't express — half of a changed line, or a change written differently from either
+// side — since what the editor hands back is applied rather than matched against the
+// file's own diff.
+//
+// The hunk is the git one, context and all, rather than lazygit's block of adjacent
+// changes: an editable patch is one that still applies, and the context lines are what
+// let git place it.
+func (self *WorkingTreeDiffActions) EditHunk(
+	pane types.DiffPaneContext, firstLineIdx int, lastLineIdx int,
+) error {
+	infos, onStagedSide, ok := self.diffLineSelection(pane, firstLineIdx, lastLineIdx)
+	if !ok {
+		return nil
+	}
+	file := self.fileForDiffLinePath(infos[0].Path)
+	if file == nil {
+		return nil
+	}
+
+	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, git_commands.DiffModePlain, onStagedSide))
+	lineIndices := changeLineIndices(parsedPatch, infos[:1])
+	if len(lineIndices) == 0 {
+		return nil
+	}
+
+	hunkIdx := parsedPatch.HunkContainingLine(lineIndices[0])
+	hunkStartIdx := parsedPatch.HunkStartIdx(hunkIdx)
+	patchText := parsedPatch.
+		Transform(patch.TransformOpts{
+			Reverse:             onStagedSide,
+			IncludedLineIndices: patch.ExpandRange(hunkStartIdx, parsedPatch.HunkEndIdx(hunkIdx)),
+			FileNameOverride:    file.GetPath(),
+		}).
+		FormatPlain()
+
+	patchFilepath, err := self.c.Git().Patch.SaveTemporaryPatch(patchText)
+	if err != nil {
+		return err
+	}
+
+	// The patch is written with a two-line header before its hunk, so the line the
+	// user was on sits that much further down the file they are about to edit.
+	const headerLineCount = 2
+	if err := self.c.Helpers().Files.EditFileAtLineAndWait(patchFilepath,
+		lineIndices[0]-hunkStartIdx+headerLineCount+1); err != nil {
+		return err
+	}
+
+	editedPatchText, err := self.c.Git().File.Cat(patchFilepath)
+	if err != nil {
+		return err
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.ApplyPatch)
+
+	// Everything the editor left behind is taken, this being a patch the user wrote
+	// rather than a selection out of one of ours.
+	lineCount := strings.Count(editedPatchText, "\n") + 1
+	newPatchText := patch.
+		Parse(editedPatchText).
+		Transform(patch.TransformOpts{
+			IncludedLineIndices: patch.ExpandRange(0, lineCount),
+			FileNameOverride:    file.GetPath(),
+		}).
+		FormatPlain()
+
+	if err := self.c.Git().Patch.ApplyPatch(newPatchText, git_commands.ApplyPatchOpts{
+		Reverse: onStagedSide,
+		Cached:  true,
+	}); err != nil {
+		return err
+	}
+
+	// Block input until the refresh has landed, as the staging commands do: the diff is
+	// about to be rebuilt from a file that no longer looks the way it did.
+	self.c.RefreshBlockingInput(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+	return nil
 }
 
 // diffLineSelection resolves what the user has selected in a pane of the focused main

@@ -374,6 +374,7 @@ var tests = []*components.IntegrationTest{
 	main_view.DiscardDiffLines,
 	main_view.DragRangeWithAutoscroll,
 	main_view.DragSelectsDiffLineRange,
+	main_view.EditHunkInFocusedDiff,
 	main_view.EditSelectedDiffLine,
 	main_view.EscapeDismissesSelection,
 	main_view.FileNavigationScrollsToTheTop,
