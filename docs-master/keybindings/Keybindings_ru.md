@@ -96,22 +96,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | Выбрать предыдущую часть |  |
-| `` <right>, l `` | Выбрать следующую часть |  |
-| `` v `` | Переключить выборку перетаскивания |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
-| `` <space> `` | Переключить индекс | Переключить строку в проиндексированные / непроиндексированные |
-| `` d `` | Отменить изменение (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
-| `` o `` | Открыть файл | Open file in default application. |
-| `` e `` | Редактировать файл | Open file in external editor. |
-| `` <esc> `` | Вернуться к панели файлов |  |
-| `` <tab> `` | Переключиться на другую панель (проиндексированные/непроиндексированные изменения) | Switch to other view (staged/unstaged changes). |
-| `` E `` | Изменить эту часть | Edit selected hunk in external editor. |
-| `` c `` | Сохранить изменения | Commit staged changes. |
-| `` w `` | Закоммитить изменения без предварительного хука коммита |  |
-| `` C `` | Сохранить изменения с помощью редактора git |  |
-| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Найти |  |
 
 ## Главная панель (Обычный)
@@ -159,16 +143,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | Выбрать предыдущую часть |  |
-| `` <right>, l `` | Выбрать следующую часть |  |
-| `` v `` | Переключить выборку перетаскивания |  |
-| `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
-| `` o `` | Открыть файл | Open file in default application. |
-| `` e `` | Редактировать файл | Open file in external editor. |
-| `` <space> `` | Добавить/удалить строку(и) для патча |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | Выйти из сборщика пользовательских патчей |  |
 | `` / `` | Найти |  |
 
 ## Журнал ссылок (Reflog)

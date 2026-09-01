@@ -257,22 +257,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | Ir para o local anterior |  |
-| `` <right>, l `` | Ir para o próximo trecho |  |
-| `` v `` | Toggle range select |  |
-| `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
-| `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
-| `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
-| `` d `` | Descartar | Quando a mudança não desejada for selecionada, descarte a mudança usando `git reset`. Quando a mudança em fase é selecionada, despare a mudança. |
-| `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
-| `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
-| `` <esc> `` | Retornar ao painel de arquivos |  |
-| `` <tab> `` | Mudar de visão | Alternar para outra visão (staged/não processadas alterações). |
-| `` E `` | Editar hunk | Editar o local selecionado no editor externo. |
-| `` c `` | Commit | Submeter mudanças em staging |
-| `` w `` | Fazer commit de alterações sem pré-commit |  |
-| `` C `` | Enviar alteração usando um editor Git |  |
-| `` <ctrl+f> `` | Encontrar commit da base para corrigir | Encontre o commit em que as suas mudanças atuais estão se baseando, para alterar/consertar o commit. Isso poupa-te você de ter que olhar pelos commits da sua branch um por um para ver qual commit deve ser alterado/consertado<br>Veja a documentação:<br><https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Painel de confirmação
@@ -303,16 +287,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <left>, h `` | Ir para o local anterior |  |
-| `` <right>, l `` | Ir para o próximo trecho |  |
-| `` v `` | Toggle range select |  |
-| `` a `` | Toggle hunk selection | Ativa/desativa modo linha por linha vs. modo de seleção por partes. |
-| `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
-| `` o `` | Abrir arquivo | Abrir arquivo no aplicativo padrão. |
-| `` e `` | Editar arquivo | Abrir arquivo no editor externo. |
-| `` <space> `` | Alternar linhas no caminho |  |
-| `` d `` | Remover linhas do commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | Sair do construtor de patch personalizado |  |
 | `` / `` | Pesquisar na visualização atual por texto |  |
 
 ## Reflog
