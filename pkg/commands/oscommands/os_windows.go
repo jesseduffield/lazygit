@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"syscall"
+	"unsafe"
 )
 
 // setRawCmdLine hands cmd.exe the exact command line we built, bypassing
@@ -32,13 +33,39 @@ func GetPlatform() *Platform {
 	}
 }
 
+var (
+	kernel32            = syscall.NewLazyDLL("kernel32.dll")
+	procSetConsoleTitle = kernel32.NewProc("SetConsoleTitleW")
+)
+
+// UpdateWindowTitle sets the console window title directly via the
+// SetConsoleTitleW Win32 API instead of shelling out to `cmd /c title ...`.
+//
+// The repo name is attacker/user-controlled input (it's just the current
+// directory's basename), and cmd.exe treats characters such as & as command
+// separators. A directory named e.g. "test&aaa" would previously be split
+// into two commands ("title test" and "aaa"), and cmd.exe would then try to
+// run "aaa" as a program, printing an error to stderr that crashed the run
+// (see #5766). Calling the Win32 API directly sidesteps cmd.exe's argument
+// parsing entirely: the title string is passed as-is, verbatim, regardless
+// of what characters it contains.
 func (c *OSCommand) UpdateWindowTitle() error {
 	path, getWdErr := os.Getwd()
 	if getWdErr != nil {
 		return getWdErr
 	}
-	argString := fmt.Sprint("title ", filepath.Base(path), " - Lazygit")
-	return c.Cmd.NewShell(argString, c.UserConfig().OS.ShellFunctionsFile).Run()
+	title := fmt.Sprint(filepath.Base(path), " - Lazygit")
+
+	titlePtr, err := syscall.UTF16PtrFromString(title)
+	if err != nil {
+		return err
+	}
+
+	r1, _, callErr := procSetConsoleTitle.Call(uintptr(unsafe.Pointer(titlePtr)))
+	if r1 == 0 {
+		return callErr
+	}
+	return nil
 }
 
 func TerminateProcessGracefully(proc *os.Process) error {
