@@ -191,6 +191,51 @@ func validateCustomCommandKey(key Keybinding) error {
 	return nil
 }
 
+// ValidCustomCommandContexts lists the names a custom command's 'context' may
+// use. It mirrors context.AllContextKeys in the gui package, which this package
+// can't import; a test over there keeps the two in sync.
+var ValidCustomCommandContexts = []string{
+	"global",
+	"status",
+	"files",
+	"localBranches",
+	"remotes",
+	"worktrees",
+	"remoteBranches",
+	"tags",
+	"commits",
+	"reflogCommits",
+	"subCommits",
+	"commitFiles",
+	"stash",
+	"normal",
+	"normalSecondary",
+	"staging",
+	"stagingSecondary",
+	"patchBuilding",
+	"patchBuildingSecondary",
+	"mergeConflicts",
+	"menu",
+	"confirmation",
+	"prompt",
+	"search",
+	"commitMessage",
+	"submodules",
+	"suggestions",
+	"cmdLog",
+}
+
+func validateCustomCommandContext(context string) error {
+	for _, name := range strings.Split(context, ",") {
+		name = strings.TrimSpace(name)
+		if !slices.Contains(ValidCustomCommandContexts, name) {
+			return fmt.Errorf("Unknown context '%s' for custom command. Allowed values: %s",
+				name, strings.Join(ValidCustomCommandContexts, ", "))
+		}
+	}
+	return nil
+}
+
 func validateCustomCommands(customCommands []CustomCommand) error {
 	for _, customCommand := range customCommands {
 		if err := validateCustomCommandKey(customCommand.Key); err != nil {
@@ -216,6 +261,15 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 				return err
 			}
 		} else {
+			// A command in a menu may leave the context out, in which case it is
+			// offered whatever is focused; a top-level one may not, but that is
+			// only noticed when the keybindings are built.
+			if customCommand.Context != "" {
+				if err := validateCustomCommandContext(customCommand.Context); err != nil {
+					return err
+				}
+			}
+
 			for _, prompt := range customCommand.Prompts {
 				if err := validateCustomCommandPrompt(prompt); err != nil {
 					return err

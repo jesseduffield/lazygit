@@ -226,6 +226,43 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			},
 		},
 		{
+			name: "Custom command context",
+			setup: func(config *UserConfig, value string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Context: value,
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: true},
+				{value: "global", valid: true},
+				{value: "commits", valid: true},
+				{value: "commits, subCommits", valid: true},
+				{value: "commits,subCommits", valid: true},
+				{value: "invalid_value", valid: false},
+				{value: "commits, invalid_value", valid: false},
+			},
+		},
+		{
+			name: "Custom command context in a sub menu",
+			setup: func(config *UserConfig, value string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Key: Keybinding{"X"},
+						CommandMenu: []CustomCommand{
+							{Key: Keybinding{"1"}, Command: "echo 'hello'", Context: value},
+						},
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: true},
+				{value: "commits", valid: true},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
 			name: "Custom command sub menu",
 			setup: func(config *UserConfig, _ string) {
 				config.CustomCommands = []CustomCommand{
