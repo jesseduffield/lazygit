@@ -776,6 +776,31 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 }
 
 func (self *BranchesController) newBranch(selectedBranch *models.Branch) error {
+	if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+		return self.c.Menu(types.CreateMenuOptions{
+			Title: self.c.Tr.NewBranch,
+			Items: []*types.MenuItem{
+				{
+					LabelColumns: []string{self.c.Tr.NewBranch},
+					Key: 'l',
+					OnPress: func() error {
+						return self.c.Helpers().Refs.NewBranch(
+							selectedBranch.FullRefName(),
+							selectedBranch.RefName(),
+							"",
+						)
+					},
+				},
+				{
+					LabelColumns: []string{self.c.Tr.NewSvnBranch},
+					Key: 's',
+					OnPress: func() error {
+						return self.newSvnBranch(selectedBranch)
+					},
+				},
+			},
+		})
+	}
 	return self.c.Helpers().Refs.NewBranch(selectedBranch.FullRefName(), selectedBranch.RefName(), "")
 }
 
@@ -925,5 +950,38 @@ func (self *BranchesController) notMergingIntoYourself(branch *models.Branch) *t
 		return &types.DisabledReason{Text: self.c.Tr.CantMergeBranchIntoItself}
 	}
 
+	return nil
+}
+
+// newSvnBranch 提示用户输入 SVN 分支名，然后创建分支并 fetch 刷新
+func (self *BranchesController)newSvnBranch(selectedBranch *models.Branch) error {
+	self.c.Prompt(types.PromptOpts{
+		Title: self.c.Tr.SvnCreateBranchTitle,
+		InitialContent: "",
+		HandleConfirm: func(response string) error {
+			branchName := strings.TrimSpace(response)
+			if branchName == "" {
+				return errors.New("branch name cannot be empty")
+			}
+
+			self.c.LogAction(self.c.Tr.NewSvnBranch)
+
+			return self.c.WithWaitingStatus(self.c.Tr.SvnFetchingStatus, func(task gocui.Task) error {
+				if err := self.c.Git().Svn.CreateBranch(branchName); err != nil {
+					return fmt.Errorf(self.c.Tr.SvnOperationFailed, map[string]string{"error": err.Error()})
+				}
+
+				if err := self.c.Git().Svn.Fetch(); err != nil {
+					self.c.ErrorMsg(fmt.Sprintf(self.c.Tr.SvnFetchFailed))
+				}
+
+				self.c.Refresh(types.RefreshOptions{
+					Mode: types.SYNC,
+					Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
+				})
+				return nil
+			})
+		},
+	})
 	return nil
 }

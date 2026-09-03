@@ -60,7 +60,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.remove),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.notGitSvnRemote),
 			Description:       self.c.Tr.Remove,
 			Tooltip:           self.c.Tr.RemoveRemoteTooltip,
 			DisplayOnScreen:   true,
@@ -68,7 +68,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:           self.withItem(self.edit),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.notGitSvnRemote),
 			Description:       self.c.Tr.Edit,
 			Tooltip:           self.c.Tr.EditRemoteTooltip,
 			DisplayOnScreen:   true,
@@ -145,6 +145,10 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 
 	self.c.PostRefreshUpdate(remoteBranchesContext)
 
+	// SVN 自动 stale 检测
+	if remote.Name == "git-svn" && self.c.Git().Sync.GitCommon.IsSvnRepo() {
+		self.checkSvnBranchStatusAsync()
+	}
 	self.c.Context().Push(remoteBranchesContext, types.OnFocusOpts{})
 	return nil
 }
@@ -390,5 +394,27 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 		}
 		self.c.RefreshFromWorker(refreshOptions)
 		return err
+	})
+}
+
+func (self *RemotesController) notGitSvnRemote() *types.DisabledReason {
+	remote := self.Context().GetSelected()
+	if remote != nil && remote.Name == "git-svn" {
+		return &types.DisabledReason{Text: "Cannot modify git-svn remote"}
+	}
+	return nil
+}
+
+func (self *RemotesController) checkSvnBranchStatusAsync() {
+	self.c.WithWaitingStatus(self.c.Tr.CheckingSvnStatus, func (task gocui.Task) error {
+		statuses, err := self.c.Git().Svn.CheckBranchStatus(task, "branches")
+		if err != nil {
+			return err
+		}
+		// 将结果写入 RemoteBranch 模型的 StaleStatus 字段
+		// 通过 Refresh 触发 presentation 层重新渲染
+		return self.c.Refresh(types.RefreshOptions{
+			Scope: []types.RefreshableView{types.REMOTES},
+		})
 	})
 }

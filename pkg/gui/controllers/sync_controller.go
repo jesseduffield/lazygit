@@ -181,12 +181,6 @@ func (self *SyncController) pullWithLock(task gocui.Task, opts PullFilesOptions)
 		},
 	)
 
-	if self.c.Git().Sync.GitCommon.IsSvnRepo() {
-		if err != nil {
-			return fmt.Errorf("Git-SVN rebase failed: %w", err)
-		}
-	}
-
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseAndSelectHeadCommit(err)
 }
 

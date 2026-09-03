@@ -4,6 +4,7 @@ package models
 type RemoteBranch struct {
 	Name       string
 	RemoteName string
+	StaleStatus SvnBranchStatus
 }
 
 func (r *RemoteBranch) FullName() string {

@@ -85,6 +85,13 @@ func (self *SyncCommands) Fetch(task gocui.Task) error {
 }
 
 func (self *SyncCommands) FetchBackgroundCmdObj() *oscommands.CmdObj {
+	if self.IsGitSvnRepo {
+		cmdArgs := NewGitCmd("svn").Arg("fetch").ToArgv()
+		cmdObj := self.cmd.New(cmdArgs)
+		cmdObj.DontLog().FailOnCredentialRequest()
+		cmdObj.SuppressOutputUnlessError()
+		return cmdObj
+	}
 	cmdArgs := self.fetchCommandBuilder(self.UserConfig().Git.FetchAll).ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
@@ -140,6 +147,10 @@ func (self *SyncCommands) FastForward(
 }
 
 func (self *SyncCommands) FetchRemote(task gocui.Task, remoteName string) error {
+	if self.IsGitSvnRepo && remoteName == "git-svn" {
+		cmdArgs := NewGitCmd("svn").Arg("fetch").ToArgv()
+		return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
+	}
 	cmdArgs := self.fetchCommandBuilder(false).
 		Arg(remoteName).
 		ToArgv()

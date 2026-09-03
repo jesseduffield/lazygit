@@ -42,6 +42,20 @@ func getTagDisplayStrings(
 	if icons.IsIconEnabled() {
 		res = append(res, textStyle.Sprint(icons.IconForTag(t)))
 	}
+
+	name := t.Name
+	// SVN stale 标记
+	if t.IsSvnTag() {
+		switch t.StaleStatus {
+		case models.SvnBranchStatusStale:
+			name = b.Name + "⚠"
+			textStyle = style.FgRed
+		case models.SvnBranchStatusMissing:
+			name = b.Name + "(not fetched)"
+			textStyle = style.FgWhite
+		}
+	}
+
 	descriptionColor := style.FgYellow
 	descriptionStr := descriptionColor.Sprint(t.Description())
 	itemOperationStr := ItemOperationToString(itemOperation, tr)

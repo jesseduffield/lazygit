@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -139,6 +140,9 @@ func (self *RemoteBranchesController) context() *context.RemoteBranchesContext {
 }
 
 func (self *RemoteBranchesController) delete(selectedBranches []*models.RemoteBranch) error {
+	if len(selectedBranches) > 0 && selectedBranches[0].RemoteName == "git-svn" {
+		return self.deleteSvnRemoteBranches(selectedBranches)
+	}
 	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(selectedBranches, true)
 }
 
@@ -206,4 +210,88 @@ func (self *RemoteBranchesController) newLocalBranch(selectedBranch *models.Remo
 
 func (self *RemoteBranchesController) checkoutBranch(selectedBranch *models.RemoteBranch) error {
 	return self.c.Helpers().Refs.CheckoutRemoteBranch(selectedBranch.FullName(), selectedBranch.Name)
+}
+
+func (self *RemoteBranchesController) deleteSvnRemoteBranches(selectedBranches []*models.RemoteBranch) error {
+	var menuTitle string
+	if len(selectedBranches) == 1 {
+		menuTitle = utils.ResolvePlaceholderString(
+			self.c.Tr.SvnDeleteBranchTitle,
+			map[string]string{"selectedBranchName": selectedBranches[0].Name},
+		)
+	} else {
+		menuTitle = self.c.Tr.SvnDeleteBranchTitle
+	}
+	
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: menuTitle,
+		Items: []*types.menuTitle{
+			{
+				LabelColumns: []string{self.c.Tr.DeleteSvnLocalRef},
+				Key: 'l',
+				OnPress: func() error {
+					return self.deleteSvnLocalRefs(selectedBranches)
+				},
+			},
+			{
+				LabelColumns: []string{self.c.Tr.DeleteSvnBoth},
+				Key: 'b',
+				OnPress: func() error {
+					return self.confirmDeleteSvnBoth(selectedBranches)
+				},
+			},
+		},
+	})
+}
+
+func (self *RemoteBranchesController) deleteSvnLocalRefs(selectedBranches []*models.RemoteBranch) error {
+	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
+		for _, branch := range selectedBranches {
+			refName := branch.RemoteName + "/" + branch.Name
+			if err := self.c.Git().Svn.DeleteSvnLocalRef(refName); err != nil {
+				return err
+			}
+		}
+		self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
+		self.c.Refresh(types.RefreshOptions{
+			Mode: types.ASYNC,
+			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
+		})
+		return nil
+	})
+}
+
+func (self *RemoteBranchesController) confirmDeleteSvnBoth(selectedBranches []models.RemoteBranch) error {
+	var prompt string
+	if len(selectedBranches) == 1 {
+		prompt = utils.ResolvePlaceholderString(
+			self.c.Tr.DeleteSvnBothConfirm,
+			map[string]string{"branchPath": selectedBranches[0].Name},
+		)
+	} else {
+		prompt = fmt.Sprintf("This will delete %d branches from both local refs and SVN server. Continue?", len(selectedBranches))
+	}
+
+	self.c.Confirm(types.ConfirmOpts{
+		Title: self.c.Tr.SvnDeleteBranchTitle,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task,) error {
+				for _, branch := range selectedBranches {
+					if err := self.c.Git().Svn.DeleteServerBranch(task, branch.Name); err != nil {
+						return fmt.Errorf(self.c.Tr.SvnOperationFailed, map[string]string{"error": err.Error()})
+					}
+					refName := branch.RemoteName + "/" + branch.Name
+					_ = self.c.Git().Svn.DeleteLocalRef(refName)
+				}
+				self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
+				self.c.Refresh(types.RefreshOptions{
+					Mode: types.ASYNC,
+					Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
+				})
+				return nil
+			})
+		},
+	})
+	return nil
 }
