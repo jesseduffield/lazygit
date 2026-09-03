@@ -27,6 +27,6 @@ func (self *ToggleWhitespaceAction) Call() error {
 
 	self.c.UserConfig().Git.IgnoreWhitespaceInDiffView = !self.c.UserConfig().Git.IgnoreWhitespaceInDiffView
 
-	self.c.Context().CurrentSide().HandleFocus(types.OnFocusOpts{})
+	self.c.Context().CurrentSide().HandleRenderToMain()
 	return nil
 }

@@ -33,10 +33,6 @@ func NewDisplayContext(key types.ContextKey, view *gocui.View, windowName string
 }
 
 func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) {
-	if self.highlightOnFocus {
-		self.GetViewTrait().SetHighlight(true)
-	}
-
 	for _, fn := range self.onFocusFns {
 		fn(opts)
 	}
@@ -47,7 +43,6 @@ func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) {
 }
 
 func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) {
-	self.GetViewTrait().SetHighlight(false)
 	self.view.SetOriginX(0)
 	for _, fn := range self.onFocusLostFns {
 		fn(opts)

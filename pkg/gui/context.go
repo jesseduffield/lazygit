@@ -3,6 +3,7 @@ package gui
 import (
 	"sync"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -180,10 +181,6 @@ func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) {
 
 	self.gui.helpers.Window.MoveToTopOfWindow(c)
 	inputViewName := c.GetInputViewName()
-	oldView := self.gui.c.GocuiGui().CurrentView()
-	if oldView != nil && oldView.Name() != inputViewName {
-		oldView.HighlightInactive = true
-	}
 	if _, err := self.gui.c.GocuiGui().SetCurrentView(inputViewName); err != nil {
 		panic(err)
 	}
@@ -199,7 +196,35 @@ func (self *ContextMgr) Activate(c types.Context, opts types.OnFocusOpts) {
 
 	self.gui.c.GocuiGui().Cursor = v.Editable && v.Mask == ""
 
+	self.updateSelectionHighlights()
+
 	c.HandleFocus(opts)
+}
+
+// updateSelectionHighlights re-derives which views draw a selection, and which of
+// them draw theirs as the active one: a view shows a selection while its context is
+// on the stack and has something to select, and the context the user is in shows the
+// active selection while the ones behind it show inactive ones.
+//
+// Both of those can change, so this is called wherever they do: from Activate, which
+// every change to the stack goes through; after a refresh, since that is when the
+// contents of a list change; and from whoever tells a context that its content has
+// gained or lost something to select.
+func (self *ContextMgr) updateSelectionHighlights() {
+	self.RLock()
+	defer self.RUnlock()
+
+	onStack := set.NewFromSlice(lo.Map(self.ContextStack,
+		func(c types.Context, _ int) types.ContextKey { return c.GetKey() }))
+	currentKey := self.currentContextWithoutLock().GetKey()
+
+	for _, c := range self.allContexts.Flatten() {
+		// The global context has no view of its own.
+		if view := c.GetView(); view != nil {
+			view.Highlight = onStack.Includes(c.GetKey()) && c.HasSelectableContent()
+			view.HighlightInactive = c.GetKey() != currentKey
+		}
+	}
 }
 
 func (self *ContextMgr) Current() types.Context {

@@ -140,6 +140,10 @@ func (gui *Gui) postRefreshUpdate(c types.Context, opts types.OnFocusOpts) {
 
 	c.HandleRender()
 
+	// The render may have given the context its first item, or taken its last one
+	// away, which decides whether its view draws a selection at all.
+	gui.State.ContextMgr.updateSelectionHighlights()
+
 	if gui.currentViewName() == c.GetInputViewName() {
 		c.HandleFocus(opts)
 	} else {

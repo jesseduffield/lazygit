@@ -21,12 +21,12 @@ func NewMainContext(
 	ctx := &MainContext{
 		SimpleContext: NewSimpleContext(
 			NewBaseContext(NewBaseContextOpts{
-				Kind:             types.MAIN_CONTEXT,
-				View:             view,
-				WindowName:       windowName,
-				Key:              key,
-				Focusable:        true,
-				HighlightOnFocus: false,
+				Kind:                 types.MAIN_CONTEXT,
+				View:                 view,
+				WindowName:           windowName,
+				Key:                  key,
+				Focusable:            true,
+				HasSelectableContent: false,
 			})),
 		SearchTrait: NewSearchTrait(c),
 	}

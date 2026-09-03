@@ -360,6 +360,42 @@ func (self *ViewDriver) Content(matcher *TextMatcher) *ViewDriver {
 	return self
 }
 
+// SelectionIsActive asserts that the view draws its selection as the one the user
+// is working in. These three assertions read the highlight flags rather than the
+// selected lines, which say nothing about whether the selection is drawn at all.
+func (self *ViewDriver) SelectionIsActive() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		ok := view.Highlight && !view.HighlightInactive
+		return ok, fmt.Sprintf("%s: expected an active selection to be shown, but it wasn't", self.context)
+	})
+
+	return self
+}
+
+// SelectionIsInactive asserts that the view draws its selection dimmed, as a panel
+// does while the focus is somewhere else.
+func (self *ViewDriver) SelectionIsInactive() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		ok := view.Highlight && view.HighlightInactive
+		return ok, fmt.Sprintf("%s: expected an inactive selection to be shown, but it wasn't", self.context)
+	})
+
+	return self
+}
+
+// SelectionIsHidden asserts that the view draws no selection at all, e.g. a list
+// with nothing in it, where there is nothing to select.
+func (self *ViewDriver) SelectionIsHidden() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		ok := !self.getView().Highlight
+		return ok, fmt.Sprintf("%s: expected no selection to be shown, but one was", self.context)
+	})
+
+	return self
+}
+
 // asserts on the selected line of the view. If you are selecting a range,
 // you should use the SelectedLines method instead.
 func (self *ViewDriver) SelectedLine(matcher *TextMatcher) *ViewDriver {

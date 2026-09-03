@@ -75,6 +75,10 @@ type IBaseContext interface {
 	// determined independently.
 	HasControlledBounds() bool
 
+	// true if the context holds something for a selection to sit on. Contexts that
+	// don't show a selection at all say false, and so do lists with nothing in them.
+	HasSelectableContent() bool
+
 	// the total height of the content that the view is currently showing
 	TotalContentHeight() int
 
@@ -225,7 +229,6 @@ type IViewTrait interface {
 	ScrollDown(value int)
 	PageDelta() int
 	SelectedLineIdx() int
-	SetHighlight(bool)
 }
 
 type OnFocusOpts struct {
