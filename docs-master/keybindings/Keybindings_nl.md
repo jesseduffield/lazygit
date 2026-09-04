@@ -111,6 +111,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` - `` | Vorige branch uitchecken |  |
 | `` F `` | Forceer checkout | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
 | `` d `` | Verwijderen | View delete options for local/remote branch. |
+| `` <ctrl+r> `` | Restore deleted branch | Restore a locally deleted branch from the reflog. The branch's upstream will be re-attached if a matching remote-tracking branch still exists. |
 | `` r `` | Rebase branch | Rebase de uitgecheckte branch bovenop de geselecteerde branch. |
 | `` M `` | Merge in met huidige checked out branch | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` f `` | Fast-forward deze branch vanaf zijn upstream | Fast-forward selected branch from its upstream. |

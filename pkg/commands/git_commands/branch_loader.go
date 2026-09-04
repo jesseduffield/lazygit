@@ -490,6 +490,222 @@ func parseDifference(track string, regexStr string) string {
 	return "0"
 }
 
+// reflogEntry is a single parsed line of `git log -g` output (the reflog of
+// HEAD). Entries are fed in the order git produces them, i.e. newest first.
+type reflogEntry struct {
+	hash      string // the commit HEAD pointed at when this reflog action occurred
+	timestamp int64  // commit timestamp of the `hash` commit
+	from      string // set on "checkout: moving from X to Y" lines to the source branch X; "" otherwise
+	to        string // set to the destination branch Y on checkout lines; "" otherwise
+}
+
+// GetDeletedBranches returns branches that were deleted locally but can still
+// be restored. It infers them by walking HEAD's reflog: any branch that was
+// checked out (appears in a "checkout: moving from X to Y" line) but is no
+// longer a local branch is a candidate, and its last-known commit
+// (reconstructed from the reflog) is the commit it pointed at when it was
+// deleted.
+func (self *BranchLoader) GetDeletedBranches() ([]*models.DeletedBranch, error) {
+	existingRefs, err := self.getExistingRefNames()
+	if err != nil {
+		return nil, err
+	}
+
+	rawReflog, err := self.cmd.New(
+		NewGitCmd("log").
+			Config("log.showSignature=false").
+			Arg("-g").
+			Arg("--format=+%H%x00%ct%x00%gs").
+			ToArgv(),
+	).DontLog().RunWithOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	entries := parseReflogEntries(rawReflog)
+	return obtainDeletedBranches(entries, existingRefs, self.isValidRefFormat), nil
+}
+
+// isValidRefFormat reports whether git accepts `name` as a valid ref name,
+// deferring the ref-name grammar (e.g. rejecting "HEAD~1", "main@{0}", trailing
+// dots) to `git check-ref-format`. We pass --allow-onelevel because reflog
+// checkout names are bare branch names (e.g. "master"), which are single-level
+// refs. Note that git's rules only cover shape: things like tags, remote-tracking
+// branches and abbreviated SHAs are all valid refs to git, so the caller still
+// has to filter those out separately.
+func (self *BranchLoader) isValidRefFormat(name string) bool {
+	return self.cmd.New(
+		NewGitCmd("check-ref-format").
+			Arg("--allow-onelevel").
+			Arg(name).
+			ToArgv(),
+	).DontLog().Run() == nil
+}
+
+// getExistingRefNames returns the short names of all refs (local branches,
+// remote-tracking branches and tags) plus HEAD itself. A name present here is
+// known not to be a deleted local branch, so it is excluded from recovery
+// candidates.
+func (self *BranchLoader) getExistingRefNames() ([]string, error) {
+	output, err := self.cmd.New(
+		NewGitCmd("for-each-ref").
+			Arg("--format=%(refname:short)").
+			Arg("refs/heads", "refs/remotes", "refs/tags").
+			ToArgv(),
+	).DontLog().RunWithOutput()
+	if err != nil {
+		return nil, err
+	}
+	return append(strings.Split(strings.TrimSpace(output), "\n"), "HEAD"), nil
+}
+
+// parseReflogEntries parses the raw output of
+// `git log -g --format=+%H%x00%ct%x00%gs`. The output is newest-first; we
+// preserve that order.
+func parseReflogEntries(rawReflog string) []*reflogEntry {
+	entries := make([]*reflogEntry, 0)
+	for _, line := range strings.Split(rawReflog, "\n") {
+		line = strings.TrimPrefix(line, "+")
+		if line == "" {
+			continue
+		}
+		parts := strings.SplitN(line, "\x00", 3)
+		if len(parts) != 3 {
+			continue
+		}
+		timestamp, _ := strconv.ParseInt(parts[1], 10, 64)
+		from, to := parseReflogCheckoutSubject(parts[2])
+		entries = append(entries, &reflogEntry{
+			hash:      parts[0],
+			timestamp: timestamp,
+			from:      from,
+			to:        to,
+		})
+	}
+	return entries
+}
+
+var reflogCheckoutRegex = regexp.MustCompile(`checkout: moving from ([\S]+) to ([\S]+)`)
+
+// parseReflogCheckoutSubject extracts the branch moved from and the branch
+// moved to from a "checkout: moving from X to Y" reflog subject. Returns "", ""
+// for non-checkout subjects.
+func parseReflogCheckoutSubject(subject string) (string, string) {
+	match := reflogCheckoutRegex.FindStringSubmatch(subject)
+	if len(match) != 3 {
+		return "", ""
+	}
+	return match[1], match[2]
+}
+
+// obtainDeletedBranches reconstructs deleted branches from a newest-first
+// reflog of HEAD. Returns branches that appear in the reflog as being checked
+// out but are no longer local branches, together with the commit they pointed
+// at when last seen. The result is ordered by recency (most recently committed
+// to first).
+func obtainDeletedBranches(entries []*reflogEntry, existingRefs []string, isValidRefFormat func(string) bool) []*models.DeletedBranch {
+	existing := set.NewFromSlice(existingRefs)
+
+	// currentBranch is the branch HEAD was on leading up to the current entry.
+	currentBranch := ""
+	branchTip := make(map[string]string)
+	branchTimestamp := make(map[string]int64)
+
+	for i := len(entries) - 1; i >= 0; i-- {
+		entry := entries[i]
+
+		if entry.from != "" && entry.to != "" {
+			// The hash of a checkout entry is the tip of the branch being
+			// moved to. Seeding it here means branches created via
+			// `git checkout -b` (and never committed to) are still
+			// recoverable. We never touch the source branch: its tip was
+			// recorded by the older entries that preceded this checkout, and
+			// overwriting it with the destination's tip would be wrong.
+			if isBranchName(entry.to, isValidRefFormat) {
+				branchTip[entry.to] = entry.hash
+				branchTimestamp[entry.to] = entry.timestamp
+			}
+			currentBranch = entry.to
+			continue
+		}
+
+		if currentBranch != "" && isBranchName(currentBranch, isValidRefFormat) {
+			branchTip[currentBranch] = entry.hash
+			branchTimestamp[currentBranch] = entry.timestamp
+		}
+	}
+
+	deleted := make([]*models.DeletedBranch, 0, len(branchTip))
+	for name, tip := range branchTip {
+		if existing.Includes(name) {
+			continue
+		}
+		deleted = append(deleted, &models.DeletedBranch{
+			Name:          name,
+			CommitHash:    tip,
+			Recency:       utils.UnixToTimeAgo(branchTimestamp[name]),
+			DisplayName:   name,
+			UnixTimestamp: branchTimestamp[name],
+		})
+	}
+	if len(deleted) == 0 {
+		return nil
+	}
+
+	slices.SortFunc(deleted, func(a, b *models.DeletedBranch) int {
+		if a.UnixTimestamp == b.UnixTimestamp {
+			return 0
+		}
+		if a.UnixTimestamp > b.UnixTimestamp {
+			return -1
+		}
+		return 1
+	})
+
+	return deleted
+}
+
+// isBranchName returns true if the given string could be a local branch name
+// (as opposed to a commit hash, a tag, a remote-tracking ref, or HEAD). This
+// filters out reflog noise like "checkout: moving from HEAD to abc1234" or
+// tag/remote checkouts, which would otherwise show up as phantom deleted
+// branches. The ref-name grammar itself is validated by isValidRefFormat
+// (which defers to `git check-ref-format`).
+func isBranchName(name string, isValidRefFormat func(string) bool) bool {
+	if name == "" || name == "HEAD" {
+		return false
+	}
+	if !isValidRefFormat(name) {
+		return false
+	}
+	// A name containing a slash is only treated as a branch if the part before
+	// the first slash is not a well-known remote marker (git writes
+	// "origin/feature" or "tags/v1.0" for remote/tag checkouts, and branch
+	// names can legitimately contain slashes, e.g. "feature/foo").
+	if strings.ContainsRune(name, '/') {
+		remote, _, _ := strings.Cut(name, "/")
+		return !lo.Contains([]string{"origin", "upstream", "fork", "tags", "remotes"}, remote)
+	}
+	return !looksLikeSha(name)
+}
+
+// looksLikeSha returns true if the string looks like a commit hash: all hex
+// characters and at least as long as git's minimum abbreviation. This covers
+// both abbreviated and full-length hashes that git writes for detached-head
+// checkouts. A branch name that happens to be all-hex would be missed, but
+// that's an acceptable trade-off since such names are vanishingly rare.
+func looksLikeSha(name string) bool {
+	if len(name) < 7 {
+		return false
+	}
+	for _, c := range name {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
+}
+
 // TODO: only look at the new reflog commits, and otherwise store the recencies in
 // int form against the branch to recalculate the time ago
 func (self *BranchLoader) obtainReflogBranches(reflogCommits []*models.Commit) []*models.Branch {

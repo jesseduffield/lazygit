@@ -127,6 +127,12 @@ type TranslationSet struct {
 	DeleteRemoteBranchesPrompt            string
 	DeleteLocalAndRemoteBranchPrompt      string
 	DeleteLocalAndRemoteBranchesPrompt    string
+	RestoreBranch                         string
+	RestoreBranchTooltip                  string
+	RestoreBranchTitle                    string
+	NoDeletedBranches                     string
+	RestoredBranch                        string
+	RestoredBranchUpstream                string
 	ForceDeleteBranchTitle                string
 	ForceDeleteBranchMessage              string
 	ForceDeleteBranchesMessage            string
@@ -575,6 +581,7 @@ type TranslationSet struct {
 	SetAsUpstreamTooltip                  string
 	SetUpstream                           string
 	UnsetUpstream                         string
+	RestoreUpstreamBranch                 string
 	ViewDivergenceFromUpstream            string
 	ViewDivergenceFromBaseBranch          string
 	CouldNotDetermineBaseBranch           string
@@ -646,6 +653,7 @@ type TranslationSet struct {
 	ViewBranchUpstreamOptions             string
 	ViewBranchUpstreamOptionsTooltip      string
 	UpstreamNotSetError                   string
+	UpstreamNotGoneError                  string
 	UpstreamsNotSetError                  string
 	NewGitFlowBranchPrompt                string
 	RenameBranchWarning                   string
@@ -1017,6 +1025,7 @@ type Actions struct {
 	CheckoutBranch                   string
 	CheckoutBranchOrCommit           string
 	ForceCheckoutBranch              string
+	RestoreBranch                    string
 	DeleteLocalBranch                string
 	Merge                            string
 	SquashMerge                      string
@@ -1024,6 +1033,7 @@ type Actions struct {
 	RenameBranch                     string
 	CreateBranch                     string
 	FastForwardBranch                string
+	RestoreUpstreamBranch            string
 	AutoForwardBranches              string
 	CherryPick                       string
 	CheckoutFile                     string
@@ -1283,6 +1293,12 @@ func EnglishTranslationSet() *TranslationSet {
 		DeleteRemoteBranchesPrompt:           "Are you sure you want to delete the remote branches of the selected branches from their respective remotes?",
 		DeleteLocalAndRemoteBranchPrompt:     "Are you sure you want to delete both '{{.localBranchName}}' from your machine, and '{{.remoteBranchName}}' from '{{.remoteName}}'?",
 		DeleteLocalAndRemoteBranchesPrompt:   "Are you sure you want to delete both the selected branches from your machine, and their remote branches from their respective remotes?",
+		RestoreBranch:                        "Restore deleted branch",
+		RestoreBranchTooltip:                 "Restore a locally deleted branch from the reflog. The branch's upstream will be re-attached if a matching remote-tracking branch still exists.",
+		RestoreBranchTitle:                   "Deleted branches",
+		NoDeletedBranches:                    "No deleted branches were found in the reflog",
+		RestoredBranch:                       "Restored branch '{{.branchName}}'",
+		RestoredBranchUpstream:               "re-attached upstream",
 		ForceDeleteBranchTitle:               "Force delete branch",
 		ForceDeleteBranchMessage:             "'{{.selectedBranchName}}' is not fully merged. Are you sure you want to delete it?",
 		ForceDeleteBranchesMessage:           "Some of the selected branches are not fully merged. Are you sure you want to delete them?",
@@ -1740,6 +1756,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SetAsUpstreamTooltip:                 "Set the selected remote branch as the upstream of the checked-out branch.",
 		SetUpstream:                          "Set upstream of selected branch",
 		UnsetUpstream:                        "Unset upstream of selected branch",
+		RestoreUpstreamBranch:                "Restore upstream branch",
 		ViewDivergenceFromUpstream:           "View divergence from upstream",
 		ViewDivergenceFromBaseBranch:         "View divergence from base branch ({{.baseBranch}})",
 		CouldNotDetermineBaseBranch:          "Couldn't determine base branch",
@@ -1807,6 +1824,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewBranchUpstreamOptions:        "View upstream options",
 		ViewBranchUpstreamOptionsTooltip: "View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream.",
 		UpstreamNotSetError:              "The selected branch has no upstream (or the upstream is not stored locally)",
+		UpstreamNotGoneError:             "The selected branch's upstream still exists",
 		UpstreamsNotSetError:             "Some of the selected branches have no upstream (or the upstream is not stored locally)",
 		Upstream:                         "Upstream",
 		NewBranchNamePrompt:              "Enter new branch name for branch",
@@ -2136,6 +2154,7 @@ func EnglishTranslationSet() *TranslationSet {
 			CheckoutBranch:                   "Checkout branch",
 			ForceCheckoutBranch:              "Force checkout branch",
 			CheckoutBranchOrCommit:           "Checkout branch or commit",
+			RestoreBranch:                    "Restore deleted branch",
 			DeleteLocalBranch:                "Delete local branch",
 			Merge:                            "Merge",
 			SquashMerge:                      "Squash merge",
@@ -2241,6 +2260,7 @@ func EnglishTranslationSet() *TranslationSet {
 			MixedReset:                       "Mixed reset",
 			HardReset:                        "Hard reset",
 			FastForwardBranch:                "Fast forward branch",
+			RestoreUpstreamBranch:            "Restore upstream branch",
 			AutoForwardBranches:              "Auto-forward branches",
 			Undo:                             "Undo",
 			Redo:                             "Redo",

@@ -132,7 +132,47 @@ func (self *BranchCommands) PreviousRef() (string, error) {
 	return strings.TrimSpace(output), nil
 }
 
-// LocalDelete delete branch locally
+// RestoreBranch recreates a deleted local branch at the given commit hash and,
+// if exactly one remote-tracking branch with the same name still exists,
+// re-attaches it as the upstream. Returns the upstream ref name that was
+// re-attached (or "" if none was).
+func (self *BranchCommands) RestoreBranch(name string, commitHash string) (string, error) {
+	cmdArgs := NewGitCmd("branch").
+		Arg(name, commitHash).
+		ToArgv()
+
+	if err := self.cmd.New(cmdArgs).Run(); err != nil {
+		return "", err
+	}
+
+	upstream := ""
+	remoteRefs, err := self.cmd.New(
+		NewGitCmd("for-each-ref").
+			Arg("--format=%(refname:short)").
+			Arg("refs/remotes").
+			ToArgv(),
+	).DontLog().RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+
+	matchingRefs := lo.Filter(strings.Split(strings.TrimSpace(remoteRefs), "\n"), func(ref string, _ int) bool {
+		return "refs/remotes/"+ref == "refs/remotes/"+name || strings.HasSuffix(ref, "/"+name)
+	})
+	if len(matchingRefs) == 1 {
+		matchingRef := strings.TrimSpace(matchingRefs[0])
+		parts := strings.SplitN(matchingRef, "/", 2)
+		if len(parts) == 2 {
+			if err := self.SetUpstream(parts[0], parts[1], name); err == nil {
+				upstream = matchingRef
+			}
+		}
+	}
+
+	return upstream, nil
+}
+
+// LocalDelete delete local branch
 func (self *BranchCommands) LocalDelete(branches []string, force bool) error {
 	cmdArgs := NewGitCmd("branch").
 		ArgIfElse(force, "-D", "-d").
