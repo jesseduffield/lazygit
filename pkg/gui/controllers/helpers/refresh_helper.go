@@ -759,13 +759,25 @@ func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflo
 // worker computes from an immutable snapshot rather than reading state the UI
 // thread concurrently mutates.
 type capturedCommitState struct {
-	limitCommits         bool
+	gitLogLimit          *git_commands.GitLogLimit
 	showWholeGitGraph    bool
 	filterPath           string
 	filterAuthor         string
 	mainBranches         *git_commands.MainBranches
 	hashPool             *utils.StringPool
 	parentIsLocalCommits bool
+}
+
+// snapshotGitLogLimit returns a copy of the given git log limit, or nil if
+// there is no limit. The limit object lives on the context, where the UI
+// thread bumps it when the user scrolls close to the end of the commit list;
+// the refresh's git work on a worker goroutine must read a copy taken at
+// capture time rather than the live object.
+func snapshotGitLogLimit(limit *git_commands.GitLogLimit) *git_commands.GitLogLimit {
+	if limit == nil {
+		return nil
+	}
+	return &git_commands.GitLogLimit{Limit: limit.Limit}
 }
 
 // captureCommitsState reads the commits refresh's model/context/mode inputs
@@ -776,7 +788,7 @@ func (self *RefreshHelper) captureCommitsState() capturedCommitState {
 	parentCtx := self.c.Contexts().CommitFiles.GetParentContext()
 
 	return capturedCommitState{
-		limitCommits:         self.c.Contexts().LocalCommits.GetLimitCommits(),
+		gitLogLimit:          snapshotGitLogLimit(self.c.Contexts().LocalCommits.GetGitLogLimit()),
 		showWholeGitGraph:    self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
 		filterPath:           self.c.Modes().Filtering.GetPath(),
 		filterAuthor:         self.c.Modes().Filtering.GetAuthor(),
@@ -847,7 +859,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 	refName, bisectInfo := self.refForLog(env)
 	commits, err := env.git.Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                captured.limitCommits,
+			LogLimit:             captured.gitLogLimit,
 			FilterPath:           captured.filterPath,
 			FilterAuthor:         captured.filterAuthor,
 			IncludeRebaseCommits: true,
@@ -999,7 +1011,7 @@ func findNewConflictedCommit(previousCommits []*models.Commit, commits []*models
 // work is dispatched to a worker.
 type capturedSubCommitState struct {
 	ref                     models.Ref
-	limitCommits            bool
+	gitLogLimit             *git_commands.GitLogLimit
 	refToShowDivergenceFrom string
 	filterPath              string
 	filterAuthor            string
@@ -1012,7 +1024,7 @@ type capturedSubCommitState struct {
 func (self *RefreshHelper) captureSubCommitState() capturedSubCommitState {
 	return capturedSubCommitState{
 		ref:                     self.c.Contexts().SubCommits.GetRef(),
-		limitCommits:            self.c.Contexts().SubCommits.GetLimitCommits(),
+		gitLogLimit:             snapshotGitLogLimit(self.c.Contexts().SubCommits.GetGitLogLimit()),
 		refToShowDivergenceFrom: self.c.Contexts().SubCommits.GetRefToShowDivergenceFrom(),
 		filterPath:              self.c.Modes().Filtering.GetPath(),
 		filterAuthor:            self.c.Modes().Filtering.GetAuthor(),
@@ -1028,7 +1040,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit(captured capturedSubCommit
 
 	commits, err := env.git.Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                   captured.limitCommits,
+			LogLimit:                captured.gitLogLimit,
 			FilterPath:              captured.filterPath,
 			FilterAuthor:            captured.filterAuthor,
 			IncludeRebaseCommits:    false,
