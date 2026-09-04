@@ -35,6 +35,7 @@ type GitCommand struct {
 	Tag            *git_commands.TagCommands
 	WorkingTree    *git_commands.WorkingTreeCommands
 	Bisect         *git_commands.BisectCommands
+	Svn            *git_commands.SvnCommands
 	Worktree       *git_commands.WorktreeCommands
 	Version        *git_commands.GitVersion
 	RepoPaths      *git_commands.RepoPaths
@@ -119,6 +120,7 @@ func NewGitCommandAux(
 
 	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPaths, configCommands, diffRendererConfigManager)
 
+	svnCommands := git_commands.NewSvnCommands(gitCommon, cmd)
 	fileLoader := git_commands.NewFileLoader(gitCommon, cmd, configCommands)
 	statusCommands := git_commands.NewStatusCommands(gitCommon)
 	flowCommands := git_commands.NewFlowCommands(gitCommon)
@@ -145,14 +147,14 @@ func NewGitCommandAux(
 	gitHubCommands := git_commands.NewGitHubCommands(gitCommon)
 	hostingServiceCommands := git_commands.NewHostingServiceCommand(gitCommon)
 
-	branchLoader := git_commands.NewBranchLoader(cmn, gitCommon, cmd, branchCommands.CurrentBranchInfo, configCommands)
+	branchLoader := git_commands.NewBranchLoader(cmn, gitCommon, cmd, branchCommands.CurrentBranchInfo, configCommands, svnCommands)
 	commitFileLoader := git_commands.NewCommitFileLoader(cmn, cmd)
 	commitLoader := git_commands.NewCommitLoader(cmn, cmd, statusCommands.WorkingTreeState, gitCommon)
 	reflogCommitLoader := git_commands.NewReflogCommitLoader(cmn, cmd)
-	remoteLoader := git_commands.NewRemoteLoader(cmn, cmd)
+	remoteLoader := git_commands.NewRemoteLoader(cmn, cmd, gitCommon)
 	worktreeLoader := git_commands.NewWorktreeLoader(gitCommon)
 	stashLoader := git_commands.NewStashLoader(cmn, cmd)
-	tagLoader := git_commands.NewTagLoader(cmn, cmd)
+	tagLoader := git_commands.NewTagLoader(cmn, cmd, gitCommon)
 
 	return &GitCommand{
 		Blame:          blameCommands,
@@ -172,6 +174,7 @@ func NewGitCommandAux(
 		Sync:           syncCommands,
 		Tag:            tagCommands,
 		Bisect:         bisectCommands,
+		Svn: 					  svnCommands,
 		WorkingTree:    workingTreeCommands,
 		Worktree:       worktreeCommands,
 		Version:        version,

@@ -1124,6 +1124,11 @@ func (self *RefreshHelper) refreshTags(env refreshEnv) error {
 		self.c.Model().Tags = tags
 	})
 
+	// SVN 自动 stale 检测 （tags）
+	if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+		self.checkSvnTagStatusAsync(tags)
+	}
+
 	self.refreshView(self.c.Contexts().Tags, env)
 	return nil
 }
@@ -1882,4 +1887,23 @@ func (self *RefreshHelper) savePullRequestsToCache(prs []*models.GithubPullReque
 	if err := self.c.GetConfig().SaveCachedGithubPullRequests(repoPath, cached); err != nil {
 		self.c.Log.Warnf("error saving GitHub pull request cache: %v", err)
 	}
+}
+
+func (self *RefreshHelper) checkSvnTagStatusAsync(tags []*models.Tag) {
+	self.c.WithWaitingStatus(self.c.Tr.CheckingSvnStatus, func (task gocui.Task) error {
+		statuses, err := self.c.Git().Svn.CheckBranchStatus(task, "tags")
+		if err != nil {
+			return err
+		}
+		for _, tag := range tags {
+			if tag.IsSvnTag() {
+				if status, ok := statuses[tag.Name]; ok {
+					tag.StaleStatus = status
+				}
+			}
+		}
+		return self.c.Refresh(types.RefreshOptions{
+			Scope: []types.RefreshableView{types.TAGS},
+		})
+	})
 }

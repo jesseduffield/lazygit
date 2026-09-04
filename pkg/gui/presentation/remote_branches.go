@@ -3,6 +3,7 @@ package presentation
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/samber/lo"
 )
@@ -21,10 +22,21 @@ func getRemoteBranchDisplayStrings(b *models.RemoteBranch, diffed bool) []string
 		textStyle = theme.DiffTerminalColor
 	}
 
+	name := b.Name
+	// SVN stale 标记
+	switch b.StaleStatus {
+	case models.SvnBranchStatusStale:
+		name = b.Name + "⚠"
+		textStyle = style.FgRed
+	case models.SvnBranchStatusMissing:
+		name = b.Name + "(not fetched)"
+		textStyle = style.FgWhite
+	}
+
 	res := make([]string, 0, 2)
 	if icons.IsIconEnabled() {
 		res = append(res, textStyle.Sprint(icons.IconForRemoteBranch(b)))
 	}
-	res = append(res, textStyle.Sprint(b.Name))
+	res = append(res, textStyle.Sprint(name))
 	return res
 }

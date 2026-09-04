@@ -29,6 +29,11 @@ type PushOpts struct {
 }
 
 func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (*oscommands.CmdObj, error) {
+	if self.IsGitSvnRepo {
+		cmdArgs := NewGitCmd("svn").Arg("dcommit").ToArgv()
+		return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task), nil
+	}
+
 	if opts.UpstreamBranch != "" && opts.UpstreamRemote == "" {
 		return nil, errors.New(self.Tr.MustSpecifyOriginError)
 	}
@@ -63,6 +68,11 @@ func (self *SyncCommands) fetchCommandBuilder(fetchAll bool) *GitCommandBuilder 
 }
 
 func (self *SyncCommands) FetchCmdObj(task gocui.Task) *oscommands.CmdObj {
+	if self.IsGitSvnRepo {
+		cmdArgs := NewGitCmd("svn").Arg("fetch").ToArgv()
+		return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task)
+	}
+
 	cmdArgs := self.fetchCommandBuilder(self.UserConfig().Git.FetchAll).ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
@@ -75,6 +85,13 @@ func (self *SyncCommands) Fetch(task gocui.Task) error {
 }
 
 func (self *SyncCommands) FetchBackgroundCmdObj() *oscommands.CmdObj {
+	if self.IsGitSvnRepo {
+		cmdArgs := NewGitCmd("svn").Arg("fetch").ToArgv()
+		cmdObj := self.cmd.New(cmdArgs)
+		cmdObj.DontLog().FailOnCredentialRequest()
+		cmdObj.SuppressOutputUnlessError()
+		return cmdObj
+	}
 	cmdArgs := self.fetchCommandBuilder(self.UserConfig().Git.FetchAll).ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
@@ -96,6 +113,11 @@ type PullOptions struct {
 }
 
 func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
+	if self.IsGitSvnRepo {
+		cmdArgs := NewGitCmd("svn").Arg("rebase").ToArgv()
+		return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
+	}
+
 	cmdArgs := NewGitCmd("pull").
 		Arg("--no-edit").
 		ArgIf(opts.FastForwardOnly, "--ff-only").
@@ -125,6 +147,10 @@ func (self *SyncCommands) FastForward(
 }
 
 func (self *SyncCommands) FetchRemote(task gocui.Task, remoteName string) error {
+	if self.IsGitSvnRepo && remoteName == "git-svn" {
+		cmdArgs := NewGitCmd("svn").Arg("fetch").ToArgv()
+		return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
+	}
 	cmdArgs := self.fetchCommandBuilder(false).
 		Arg(remoteName).
 		ToArgv()

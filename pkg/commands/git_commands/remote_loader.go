@@ -16,15 +16,18 @@ import (
 type RemoteLoader struct {
 	*common.Common
 	cmd oscommands.ICmdObjBuilder
+	gitCommon *GitCommon
 }
 
 func NewRemoteLoader(
 	common *common.Common,
 	cmd oscommands.ICmdObjBuilder,
+	gitCommon *GitCommon,
 ) *RemoteLoader {
 	return &RemoteLoader{
 		Common: common,
 		cmd:    cmd,
+		gitCommon: gitCommon,
 	}
 }
 
@@ -50,6 +53,30 @@ func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
 
 	for _, remote := range remotes {
 		remote.Branches = remoteBranchesByRemoteName[remote.Name]
+	}
+
+	// SVN 仓库：注入 git-svn 虚拟 remote
+	// go-git 的 repo.Remotes() 不包含 git-svn，但 git for-each-ref 已经扫描到了
+	// refs/remotes/git-svn/*，需要手动注入使其显示在 UI 中
+	if self.gitCommon != nil && self.gitCommon.IsSvnRepo() {
+		tagsPaths, _ := self.gitCommon.Svn.GetTagsRefsPaths()
+		svnBranches := remoteBranchesByRemoteName["git-svn"]
+
+		// 过滤掉属于 tags 的分支（应由 Tags 界面管理）
+		var filteredBranches []*models.RemoteBranch
+		for _, b := range svnBranches {
+			if !self.isTagRef(b.Name, tagsPaths) {
+				filteredBranches = append(filteredBranches, b)
+			}
+		}
+
+		if len(filteredBranches) > 0 || len(svnBranches) > 0 {
+			remotes = append(remotes, &models.Remote{
+				Name: "git-svn",
+				Urls: []string{"(git-svn)"},
+				Branches: filteredBranches,
+			})
+		}
 	}
 
 	// now lets sort our remotes by name alphabetically
@@ -161,4 +188,14 @@ func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.
 	}
 
 	return remoteBranchesByRemoteName, nil
+}
+
+func (self *RemoteLoader) isTagRef(refName string, tagsPaths []string) bool {
+	for _, path := range tagsPaths {
+		fullRef := "refs/remotes/git-svn/" + refName
+		if strings.HasPrefix(fullRef, path) {
+			return true
+		}
+	}
+	return false
 }

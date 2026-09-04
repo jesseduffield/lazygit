@@ -51,6 +51,9 @@ func (self *RemoteCommands) UpdateRemoteUrl(remoteName string, updatedUrl string
 }
 
 func (self *RemoteCommands) DeleteRemoteBranch(task gocui.Task, remoteName string, branchNames []string) error {
+	if remoteName == "git-svn" {
+		return fmt.Errorf("cannot delete git-svn remote branch via git push; use svn delete instead")
+	}
 	cmdArgs := NewGitCmd("push").
 		Arg(remoteName, "--delete").
 		Arg(lo.Map(branchNames, func(b string, _ int) string { return "refs/heads/" + b })...).
