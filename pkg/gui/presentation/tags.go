@@ -48,10 +48,10 @@ func getTagDisplayStrings(
 	if t.IsSvnTag() {
 		switch t.StaleStatus {
 		case models.SvnBranchStatusStale:
-			name = b.Name + "⚠"
+			name = t.Name + "⚠"
 			textStyle = style.FgRed
 		case models.SvnBranchStatusMissing:
-			name = b.Name + "(not fetched)"
+			name = t.Name + "(not fetched)"
 			textStyle = style.FgWhite
 		}
 	}
@@ -62,6 +62,6 @@ func getTagDisplayStrings(
 	if itemOperationStr != "" {
 		descriptionStr = style.FgCyan.Sprint(itemOperationStr+" "+Loader(time.Now(), userConfig.Gui.Spinner)) + " " + descriptionStr
 	}
-	res = append(res, textStyle.Sprint(t.Name), descriptionStr)
+	res = append(res, textStyle.Sprint(name), descriptionStr)
 	return res
 }

@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 // SvnRefMapping 表示git-svn配置中的一组路径映射
@@ -23,7 +22,7 @@ type SvnCommands struct {
 	*GitCommon
 	cmd oscommands.ICmdObjBuilder
 	// 缓存 SVN ref 映射，避免重复解析git config
-	svnRefMappingsCache *[] SvnRefMapping
+	svnRefMappingsCache *[]SvnRefMapping
 	svnUrlCache string
 	svnUrlCacheExpiry time.Time
 }
@@ -179,13 +178,13 @@ func (self *SvnCommands) GetSvnUpstream(branchName string) (string, string, erro
 
 	for _, m := range mappings {
 		if relPath == m.SvnPath {
-			upstreamBranch := strings.TrimPrefix(m.RefsPath, "refs/remotes/git-svn")
+			upstreamBranch := strings.TrimPrefix(m.RefsPath, "refs/remotes/git-svn/")
 			return "git-svn", upstreamBranch, nil
 		}
 		if strings.HasPrefix(relPath, m.SvnPath+"/") {
 			remaining := strings.TrimPrefix(relPath, m.SvnPath)
 			fullRef := m.RefsPath + remaining
-			upstreamBranch := strings.TrimPrefix(fullRef, "refs/remotes/git-svn")
+			upstreamBranch := strings.TrimPrefix(fullRef, "refs/remotes/git-svn/")
 			return "git-svn", upstreamBranch, nil
 		}
 	}
@@ -197,7 +196,7 @@ func (self *SvnCommands) parseSvnIdLine(commitMessage string) (string, bool) {
 	for _, line := range strings.Split(commitMessage, "\n") {
 		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "git-svn-id: ") {
-			rest := string.TrimPrefix(line, "git-svn-id: ")
+			rest := strings.TrimPrefix(line, "git-svn-id: ")
 			parts := strings.SplitN(rest, " ", 2)
 			urlWithRev := parts[0]
 			atIdx := strings.LastIndex(urlWithRev, "@")
@@ -239,7 +238,7 @@ func (self *SvnCommands) DeleteLocalRef(refName string) error {
 
 // Fetch 执行 git svn fetch -all 获取 SVN 更新
 func (self *SvnCommands) Fetch() error {
-	cmdArgs := NewGitCmd("svn").Arg("fetch").Arg("-all").ToArgv()
+	cmdArgs := NewGitCmd("svn").Arg("fetch").Arg("--all").ToArgv()
 	return self.cmd.New(cmdArgs).Run()
 }
 
@@ -248,17 +247,17 @@ func (self *SvnCommands) Fetch() error {
 // 返回值：map[branchPath]models.SvnBranchStatus, branchPath 如 "branches/proj1/xxx"
 // SVN list 使用 --non-interactive 防止网络阻塞，结果不缓存（每次进入时重新检测）
 func (self *SvnCommands) CheckBranchStatus(task gocui.Task, refType string) (map[string]models.SvnBranchStatus, error) {
-	svnUrl, err != self.GetSvnUrl()
+	svnUrl, err := self.GetSvnUrl()
 	if err != nil {
 		return nil, err
 	}
 
 	// 1. 获取本地 refs
 	localRefs := make(map[string]bool)
-	refsPath := "refs/remotes/git-svn" + refType
+	refsPath := "refs/remotes/git-svn/" + refType
 	output, err := self.cmd.New(
 		NewGitCmd("for-each-ref").Arg("--format=%(refname)").Arg(refsPath).ToArgv(),
-	).DontLog.RunWithOutput()
+	).DontLog().RunWithOutput()
 	if err == nil {
 		for _, line := range strings.Split(strings.TrimSpace(output), "\n") {
 			if line := strings.TrimSpace(line); line != "" {

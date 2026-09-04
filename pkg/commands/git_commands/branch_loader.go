@@ -140,6 +140,7 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 				revOutput, revErr := self.cmd.New(
 					NewGitCmd("rev-list").
 					Arg("--left-right").
+					Arg("--count").
 					Arg(fmt.Sprintf("%s...%s", branch.FullRefName(), upstreamRef)).
 					ToArgv(),
 				).DontLog().RunWithOutput()

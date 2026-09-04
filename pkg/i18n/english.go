@@ -2143,22 +2143,22 @@ func EnglishTranslationSet() *TranslationSet {
 		UseBothChanges:                           "Use both",
 
 		// --- SVN 相关 ---
-		NewSvnBranch                              "New SVN remote branch",
-		NewSvnBranchPrompt                        "SVN branch name (relative to --branches config, e.g. my-feature",
-		SvnBranchCreateSuccess                    "SVN branch created. Fetching from SVN ...",
-		SvnFetchFailed                            "SVN branch created but fetch failed. Run 'git svn fetch' manually.",
+		NewSvnBranch:                             "New SVN remote branch",
+		NewSvnBranchPrompt:                       "SVN branch name (relative to --branches config, e.g. my-feature",
+		SvnBranchCreateSuccess:                   "SVN branch created. Fetching from SVN ...",
+		SvnFetchFailed:                           "SVN branch created but fetch failed. Run 'git svn fetch' manually.",
 
-		DeleteSvnLocalRef                         "Delete local ref only (safe)",
-		DeleteSvnBoth                             "Delete from SVN server and local ref (dangerous)",
-		DeleteSvnBothConfirm                      "This will PERMANENTLY delete '{{.branchPath}}' from both local refs and SVN server. Continue?",
-		SvnDeleteLocalRefSuccess                  "Local ref deleted.",
-		SvnDeleteBothSuccess                      "SVN branch deleted from both local and SVN server.",
-		SvnOperationFailed                        "SVN operation failed: {{.error}}",
+		DeleteSvnLocalRef:                        "Delete local ref only (safe)",
+		DeleteSvnBoth:                            "Delete from SVN server and local ref (dangerous)",
+		DeleteSvnBothConfirm:                     "This will PERMANENTLY delete '{{.branchPath}}' from both local refs and SVN server. Continue?",
+		SvnDeleteLocalRefSuccess:                 "Local ref deleted.",
+		SvnDeleteBothSuccess:                     "SVN branch deleted from both local and SVN server.",
+		SvnOperationFailed:                       "SVN operation failed: {{.error}}",
 
-		SvnCreateBranchTitle                      "Create SVN Remote Branch",
-		SvnDeleteBranchTitle                      "Delete SVN Remote Branch",
-		SvnFetchingStatus                         "Fetching from SVN ...",
-		CheckingSvnStatus                         "Checking SVN branch status ...",
+		SvnCreateBranchTitle:                     "Create SVN Remote Branch",
+		SvnDeleteBranchTitle:                     "Delete SVN Remote Branch",
+		SvnFetchingStatus:                        "Fetching from SVN ...",
+		CheckingSvnStatus:                        "Checking SVN branch status ...",
 
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)

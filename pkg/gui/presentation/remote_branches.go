@@ -37,6 +37,6 @@ func getRemoteBranchDisplayStrings(b *models.RemoteBranch, diffed bool) []string
 	if icons.IsIconEnabled() {
 		res = append(res, textStyle.Sprint(icons.IconForRemoteBranch(b)))
 	}
-	res = append(res, textStyle.Sprint(b.Name))
+	res = append(res, textStyle.Sprint(name))
 	return res
 }

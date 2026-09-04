@@ -225,7 +225,7 @@ func (self *RemoteBranchesController) deleteSvnRemoteBranches(selectedBranches [
 	
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: menuTitle,
-		Items: []*types.menuTitle{
+		Items: []*types.MenuTitle{
 			{
 				LabelColumns: []string{self.c.Tr.DeleteSvnLocalRef},
 				Key: 'l',
@@ -248,7 +248,7 @@ func (self *RemoteBranchesController) deleteSvnLocalRefs(selectedBranches []*mod
 	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
 		for _, branch := range selectedBranches {
 			refName := branch.RemoteName + "/" + branch.Name
-			if err := self.c.Git().Svn.DeleteSvnLocalRef(refName); err != nil {
+			if err := self.c.Git().Svn.DeleteLocalRef(refName); err != nil {
 				return err
 			}
 		}
@@ -261,7 +261,7 @@ func (self *RemoteBranchesController) deleteSvnLocalRefs(selectedBranches []*mod
 	})
 }
 
-func (self *RemoteBranchesController) confirmDeleteSvnBoth(selectedBranches []models.RemoteBranch) error {
+func (self *RemoteBranchesController) confirmDeleteSvnBoth(selectedBranches []*models.RemoteBranch) error {
 	var prompt string
 	if len(selectedBranches) == 1 {
 		prompt = utils.ResolvePlaceholderString(

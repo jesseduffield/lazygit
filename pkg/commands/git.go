@@ -35,7 +35,7 @@ type GitCommand struct {
 	Tag            *git_commands.TagCommands
 	WorkingTree    *git_commands.WorkingTreeCommands
 	Bisect         *git_commands.BisectCommands
-	Svn 				   *git_commands.SvnCommands
+	Svn            *git_commands.SvnCommands
 	Worktree       *git_commands.WorktreeCommands
 	Version        *git_commands.GitVersion
 	RepoPaths      *git_commands.RepoPaths

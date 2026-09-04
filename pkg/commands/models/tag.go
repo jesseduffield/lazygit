@@ -18,7 +18,10 @@ type Tag struct {
 }
 
 func (t *Tag) FullRefName() string {
-	return "refs/tags/" + t.RefName()
+	if t.FullRefNameOverride != "" {
+		return "refs/tags/" + t.RefName()
+	}
+	return ""
 }
 
 func (t *Tag) RefName() string {

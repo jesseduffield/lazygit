@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"regexp"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -55,7 +56,7 @@ func (self *TagLoader) GetTags() ([]*models.Tag, error) {
 		}
 	})
 
-	// SVN 仓库：追究扫描 refs/remotes/git-svn/tags/* 下的引用
+	// SVN 仓库：追加扫描 refs/remotes/git-svn/tags/* 下的引用
 	if self.gitCommon != nil && self.gitCommon.IsSvnRepo() {
 		tagsPaths, err := self.gitCommon.Svn.GetTagsRefsPaths()
 		if err == nil && len(tagsPaths) > 0 {
@@ -79,7 +80,7 @@ func (self *TagLoader) getTagsFromPath(basePath string) ([]*models.Tag, error) {
 	Arg(basePath).
 	ToArgv()
 
-	err := self.cmd.New(cmdArgs).DontLog().RunAndProcessLines(func(line, string) (bool, error){
+	err := self.cmd.New(cmdArgs).DontLog().RunAndProcessLines(func(line string) (bool, error){
 		line = strings.TrimSpace(line)
 		if line == "" {
 			return false, nil
