@@ -183,6 +183,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` O `` | View create pull request options |  |
 | `` G `` | Open pull request in browser |  |
 | `` <ctrl+y> `` | Copy pull request URL to clipboard |  |
+| `` y `` | Copy branch URL to clipboard |  |
 | `` c `` | Checkout by name | Checkout by name. In the input box you can enter '-' to switch to the previous branch. |
 | `` - `` | Checkout previous branch |  |
 | `` F `` | Force checkout | Force checkout selected branch. This will discard all local changes in your working directory before checking out the selected branch. |
