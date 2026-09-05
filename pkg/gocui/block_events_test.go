@@ -50,6 +50,22 @@ func setupKeyRecorder(t *testing.T, g *Gui) (GocuiEvent, *[]int) {
 	return GocuiEvent{Type: eventKey, Key: key}, &fired
 }
 
+// runQueuedWork runs what the gui has queued for the following passes of the
+// event loop, which is where EndBlockingEvents leaves the replay of the keys it
+// buffered.
+func runQueuedWork(t *testing.T, g *Gui) {
+	t.Helper()
+
+	for {
+		ev, ok := g.userEvents.dequeue()
+		if !ok {
+			return
+		}
+		assert.NoError(t, ev.f(g))
+		ev.task.Done()
+	}
+}
+
 func TestBlockingEvents_KeysBufferedAndReplayed(t *testing.T) {
 	g := newTestGui(t)
 	keyEvent, fired := setupKeyRecorder(t, g)
@@ -64,10 +80,35 @@ func TestBlockingEvents_KeysBufferedAndReplayed(t *testing.T) {
 	assert.NoError(t, g.handleEvent(&keyEvent))
 	assert.Len(t, *fired, 1, "buffered keys must not dispatch while blocking")
 
-	// Unblocking replays the buffered keys.
-	assert.NoError(t, g.EndBlockingEvents())
+	// Unblocking queues the replay rather than dispatching from here.
+	g.EndBlockingEvents()
+	assert.Len(t, *fired, 1, "the replay must wait for the event loop")
+
+	runQueuedWork(t, g)
 	assert.Len(t, *fired, 3, "both buffered keys should replay on unblock")
 	assert.Empty(t, g.bufferedKeyEvents)
+}
+
+func TestBlockingEvents_KeysArrivingBeforeTheReplayGoBehindIt(t *testing.T) {
+	g := newTestGui(t)
+	keyEvent, fired := setupKeyRecorder(t, g)
+	other := GocuiEvent{Type: eventKey, Key: NewKeyRune('y')}
+	g.SetKeybinding("main", other.Key, func(*Gui, *View) error {
+		*fired = append(*fired, 0)
+		return nil
+	})
+
+	g.BeginBlockingEvents()
+	assert.NoError(t, g.handleEvent(&keyEvent))
+	g.EndBlockingEvents()
+
+	// A key pressed while the replay is still queued joins the end of the buffer:
+	// dispatching it now would put it ahead of the keys buffered before it.
+	assert.NoError(t, g.handleEvent(&other))
+	assert.Empty(t, *fired)
+
+	runQueuedWork(t, g)
+	assert.Equal(t, []int{1, 0}, *fired, "the keys should arrive in the order they were pressed")
 }
 
 func TestBlockingEvents_NestsWithCounter(t *testing.T) {
@@ -79,11 +120,13 @@ func TestBlockingEvents_NestsWithCounter(t *testing.T) {
 	assert.NoError(t, g.handleEvent(&keyEvent))
 
 	// The inner block ending still leaves us blocked: no replay yet.
-	assert.NoError(t, g.EndBlockingEvents())
+	g.EndBlockingEvents()
+	runQueuedWork(t, g)
 	assert.Empty(t, *fired)
 
 	// Only the outermost block ending replays.
-	assert.NoError(t, g.EndBlockingEvents())
+	g.EndBlockingEvents()
+	runQueuedWork(t, g)
 	assert.Len(t, *fired, 1)
 }
 
@@ -94,5 +137,6 @@ func TestBlockingEvents_MouseClicksDroppedNotBuffered(t *testing.T) {
 	click := GocuiEvent{Type: eventMouse, Key: NewKeyName(MouseLeft)}
 	assert.NoError(t, g.handleEvent(&click))
 	assert.Empty(t, g.bufferedKeyEvents, "mouse clicks must be dropped, not buffered")
-	assert.NoError(t, g.EndBlockingEvents())
+	g.EndBlockingEvents()
+	runQueuedWork(t, g)
 }
