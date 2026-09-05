@@ -171,15 +171,9 @@ func (gui *Gui) postRefreshUpdate(c types.Context, opts types.OnFocusOpts) {
 
 		currentCtx := gui.State.ContextMgr.Current()
 		if currentCtx.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY || currentCtx.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
-			// Searching can't cope well with the view being updated while it is being searched.
-			// We might be able to fix the problems with this, but it doesn't seem easy, so for now
-			// just don't rerender the view while searching, on the assumption that users will probably
-			// either search or change their data, but not both at the same time.
-			if !currentCtx.GetView().IsSearching() {
-				sidePanelContext := gui.State.ContextMgr.NextInStack(currentCtx)
-				if sidePanelContext != nil && sidePanelContext.GetKey() == c.GetKey() {
-					sidePanelContext.HandleRenderToMain()
-				}
+			sidePanelContext := gui.State.ContextMgr.NextInStack(currentCtx)
+			if sidePanelContext != nil && sidePanelContext.GetKey() == c.GetKey() {
+				sidePanelContext.HandleRenderToMain()
 			}
 		} else if c.GetKey() == gui.State.ContextMgr.CurrentStatic().GetKey() {
 			// If our view is not the current one, but it is the current static context, then this
