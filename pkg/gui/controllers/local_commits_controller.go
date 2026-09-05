@@ -1301,7 +1301,28 @@ func (self *LocalCommitsController) amendAttribute(_ []*models.Commit, start, en
 				Keys:    opts.GetKeys(opts.Config.AmendAttribute.AddCoAuthor),
 				Tooltip: self.c.Tr.AddCoAuthorTooltip,
 			},
+			{
+				Label:   self.c.Tr.SignOffCommit,
+				OnPress: func() error { return self.signOffCommit(commits, start, end) },
+				Keys:    opts.GetKeys(opts.Config.AmendAttribute.SignOff),
+				Tooltip: self.c.Tr.SignOffCommitTooltip,
+			},
 		},
+	})
+}
+
+func (self *LocalCommitsController) signOffCommit(commits []*models.Commit, start, end int) error {
+	return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+		Message:              self.c.Tr.AmendingStatus,
+		HideWorkingTreeState: true,
+	}, func(gocui.Task) error {
+		self.c.LogAction(self.c.Tr.Actions.SignOffCommit)
+		if err := self.c.Git().Rebase.SignOffCommit(commits, start, end); err != nil {
+			return err
+		}
+
+		self.c.RefreshFromWorker(types.RefreshOptions{})
+		return nil
 	})
 }
 

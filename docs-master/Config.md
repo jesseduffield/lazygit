@@ -809,6 +809,7 @@ keybinding:
     resetAuthor: a
     setAuthor: A
     addCoAuthor: c
+    signOff: s
   stash:
     popStash: g
     renameStash: r

@@ -174,7 +174,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` V `` | Plak commits (cherry-pick) |  |
 | `` B `` | Markeer als basiscommit voor rebase | Selecteer een basiscommit voor de volgende rebase. Als je rebased op een branch worden alleen commits boven de basiscommit meegenomen. Hiervoor wordt het `git rebase --onto` commando gebruikt. |
 | `` A `` | Amend | Wijzig commit met staged veranderingen |
-| `` a `` | Amend commit attribute | Set/Reset commit author or set co-author. |
+| `` a `` | Amend commit attribute | Set/Reset commit author, set co-author, or sign off the commit. |
 | `` t `` | Revert | Maak een revert commit voor de geselecteerde commit, die de wijzigingen in deze commit terugdraait. |
 | `` T `` | Tag commit | Maak een nieuwe tag die naar de geselecteerde commit wijst. Je wordt gevraagd om een tag naam en optionele omschrijving. |
 | `` <ctrl+l> `` | Log opties weergeven | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |

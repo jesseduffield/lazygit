@@ -646,6 +646,7 @@ type KeybindingAmendAttributeConfig struct {
 	ResetAuthor Keybinding `yaml:"resetAuthor"`
 	SetAuthor   Keybinding `yaml:"setAuthor"`
 	AddCoAuthor Keybinding `yaml:"addCoAuthor"`
+	SignOff     Keybinding `yaml:"signOff"`
 }
 
 type KeybindingStashConfig struct {
@@ -1159,6 +1160,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				ResetAuthor: Keybinding{"a"},
 				SetAuthor:   Keybinding{"A"},
 				AddCoAuthor: Keybinding{"c"},
+				SignOff:     Keybinding{"s"},
 			},
 			Stash: KeybindingStashConfig{
 				PopStash:    Keybinding{"g"},

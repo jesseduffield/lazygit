@@ -197,6 +197,8 @@ type TranslationSet struct {
 	ResetAuthorTooltip                    string
 	SetAuthor                             string
 	SetAuthorTooltip                      string
+	SignOffCommit                         string
+	SignOffCommitTooltip                  string
 	AddCoAuthor                           string
 	AmendCommitAttribute                  string
 	AmendCommitAttributeTooltip           string
@@ -1037,6 +1039,7 @@ type Actions struct {
 	ResetCommitAuthor                string
 	SetCommitAuthor                  string
 	AddCommitCoAuthor                string
+	SignOffCommit                    string
 	RevertCommit                     string
 	CreateFixupCommit                string
 	SquashAllAboveFixupCommits       string
@@ -1355,9 +1358,11 @@ func EnglishTranslationSet() *TranslationSet {
 		ResetAuthorTooltip:                   "Reset the commit's author to the currently configured user. This will also renew the author timestamp",
 		SetAuthor:                            "Set author",
 		SetAuthorTooltip:                     "Set the author based on a prompt",
+		SignOffCommit:                        "Sign off",
+		SignOffCommitTooltip:                 "Add a Signed-off-by trailer to the commit.",
 		AddCoAuthor:                          "Add co-author",
 		AmendCommitAttribute:                 "Amend commit attribute",
-		AmendCommitAttributeTooltip:          "Set/Reset commit author or set co-author.",
+		AmendCommitAttributeTooltip:          "Set/Reset commit author, set co-author, or sign off the commit.",
 		SetAuthorPromptTitle:                 "Set author (must look like 'Name <Email>')",
 		AddCoAuthorPromptTitle:               "Add co-author (must look like 'Name <Email>')",
 		AddCoAuthorTooltip:                   "Add co-author using the Github/Gitlab metadata Co-authored-by.",
@@ -2154,6 +2159,7 @@ func EnglishTranslationSet() *TranslationSet {
 			ResetCommitAuthor:                "Reset commit author",
 			SetCommitAuthor:                  "Set commit author",
 			AddCommitCoAuthor:                "Add commit co-author",
+			SignOffCommit:                    "Sign off commit",
 			RevertCommit:                     "Revert commit",
 			CreateFixupCommit:                "Create fixup commit",
 			SquashAllAboveFixupCommits:       "Squash all above fixup commits",
