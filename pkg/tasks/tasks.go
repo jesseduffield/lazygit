@@ -70,12 +70,11 @@ type ViewBufferManager struct {
 	taskIDMutex deadlock.Mutex
 	Log         *logrus.Entry
 	newTaskID   int
-	// The channel by which the currently-running task is told to read more
-	// lines (e.g. as the user scrolls). Held in an atomic because it's swapped
-	// out as tasks come and go while ReadLines/ReadToEnd read it from the UI
-	// thread; nil when no task is running.
-	readLines atomic.Pointer[chan LinesToRead]
-	taskKey   string
+	// The requests by which the currently-running task is told to read more lines
+	// (e.g. as the user scrolls), and which it answers once it has. The task
+	// serving them comes and goes; see readRequestQueue.
+	readRequests *readRequestQueue
+	taskKey      string
 
 	// Resets the view's scroll position to the top. A render whose content is
 	// different from what the view last showed (a different command key) calls
@@ -173,6 +172,7 @@ func NewViewBufferManager(
 	onUIThread func(f func()) error,
 ) *ViewBufferManager {
 	return &ViewBufferManager{
+		readRequests: newReadRequestQueue(),
 		Log:          log,
 		writer:       writer,
 		beforeStart:  beforeStart,
@@ -191,12 +191,9 @@ func NewViewBufferManager(
 // (e.g. as the user scrolls down, back up, and down again) don't re-read lines
 // that have already been read: the task only ever reads the shortfall.
 func (self *ViewBufferManager) ReadLines(totalLines int) {
-	if ch := self.readLines.Load(); ch != nil {
-		readLines := *ch
-		go utils.Safe(func() {
-			readLines <- LinesToRead{Total: totalLines, InitialRefreshAfter: -1}
-		})
-	}
+	// A request with no Then needs no answer, so there is nothing to do when no
+	// task is there to take it.
+	self.readRequests.enqueue(LinesToRead{Total: totalLines, InitialRefreshAfter: -1})
 }
 
 // IsLoading reports whether a command task is currently reading content into the
@@ -215,13 +212,21 @@ func (self *ViewBufferManager) StartLoading() {
 }
 
 func (self *ViewBufferManager) ReadToEnd(then func()) {
-	if ch := self.readLines.Load(); ch != nil {
-		readLines := *ch
-		go utils.Safe(func() {
-			readLines <- LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: then}
-		})
-	} else if then != nil {
+	request := LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: then}
+	if !self.readRequests.enqueue(request) && then != nil {
+		// With no task reading, everything there is to read has been read.
 		then()
+	}
+}
+
+// stopServingReadRequests takes the task away from the read-request queue and
+// answers whatever it never got to, so that nobody is left waiting for a callback
+// that isn't coming.
+func (self *ViewBufferManager) stopServingReadRequests() {
+	for _, request := range self.readRequests.stopServing() {
+		if request.Then != nil {
+			request.Then()
+		}
 	}
 }
 
@@ -289,8 +294,9 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 
 		loadingMutex := deadlock.Mutex{}
 
-		readLines := make(chan LinesToRead, 1024)
-		self.readLines.Store(&readLines)
+		// Begin serving before any goroutine starts, so that the first request below
+		// can't arrive before there is a task to take it.
+		readRequests := self.readRequests.beginServing()
 
 		scanner := bufio.NewScanner(r)
 		scanner.Split(utils.ScanLinesAndTruncateWhenLongerThanBuffer(bufio.MaxScanTokenSize))
@@ -423,10 +429,17 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				if stopped() {
 					break outer
 				}
-				select {
-				case <-opts.Stop:
-					break outer
-				case linesToRead := <-readLines:
+				linesToRead, ok := self.readRequests.dequeue()
+				if !ok {
+					// Nothing to read yet: wait to be told there is, or to be stopped.
+					select {
+					case <-opts.Stop:
+						break outer
+					case <-readRequests:
+					}
+					continue
+				}
+				{
 					callThen := func() {
 						if linesToRead.Then != nil {
 							linesToRead.Then()
@@ -493,21 +506,6 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							// means a newer task is taking over and is still loading.
 							self.loading.Store(false)
 							callThen()
-							// Any read requests that were queued while we were reading are
-							// now trivially satisfied, since we've read everything. Fire
-							// their callbacks instead of dropping them when we break out of
-							// the loop below (and nil out readLines).
-						drain:
-							for {
-								select {
-								case queued := <-readLines:
-									if queued.Then != nil {
-										queued.Then()
-									}
-								default:
-									break drain
-								}
-							}
 							break outer
 						}
 						writeToView(append(line, '\n'))
@@ -532,7 +530,11 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				}
 			}
 
-			self.readLines.Store(nil)
+			// Whoever made a request the loop never got to is waiting to hear that the
+			// content it asked for has been read, and there is nothing here to read it
+			// any more: at end of input it has all been read already, and a task that
+			// was stopped is handing the view over to the one replacing it.
+			self.stopServingReadRequests()
 
 			refreshViewIfStale()
 
@@ -556,7 +558,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			close(lineWrittenChan)
 		})
 
-		readLines <- linesToRead
+		self.readRequests.enqueue(linesToRead)
 
 		<-done
 
@@ -670,7 +672,8 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 			self.stopCurrentTask()
 		}
 
-		self.readLines.Store(nil)
+		// Nothing serves read requests between one task and the next.
+		self.stopServingReadRequests()
 
 		stop := make(chan struct{})
 		notifyStopped := make(chan struct{})

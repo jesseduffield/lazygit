@@ -253,12 +253,9 @@ func TestNewCmdTaskQueuedReadAtEndOfInput(t *testing.T) {
 	})
 
 	<-reader.blocked
+	// The request is queued by the time this returns, so it is outstanding when we
+	// let the task reach EOF below.
 	manager.ReadToEnd(func() { thenCalled = true })
-	// ReadToEnd queues its request from a goroutine; wait for it to land so that
-	// it is definitely outstanding by the time we let the task reach EOF.
-	for len(*manager.readLines.Load()) == 0 {
-		time.Sleep(time.Millisecond)
-	}
 	close(reader.unblock)
 
 	wg.Wait()
@@ -523,8 +520,5 @@ func TestQueuedReadRequestsAreAnsweredWhenTheTaskStops(t *testing.T) {
 	close(stop)
 	time.Sleep(50 * time.Millisecond)
 
-	/* EXPECTED:
 	assert.EqualValues(t, 2, answered.Load())
-	ACTUAL: */
-	assert.EqualValues(t, 1, answered.Load())
 }
