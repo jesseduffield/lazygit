@@ -53,5 +53,14 @@ var SearchALongDiff = NewIntegrationTest(NewIntegrationTestArgs{
 			FilterOrSearch("NEEDLE")
 
 		t.Views().Search().Content(Contains("matches for 'NEEDLE' (1 of 3)"))
+
+		// Rendering the diff again reads it from the start, and it is read all the
+		// way down to the matches the search already knows about.
+		t.Views().Main().
+			Press(keys.Universal.IncreaseContextInDiffView).
+			Tap(func() {
+				t.ExpectToast(Equals("Changed diff context size to 4"))
+			}).
+			Content(Contains("+NEEDLE last"))
 	},
 })

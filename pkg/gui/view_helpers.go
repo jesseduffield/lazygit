@@ -25,6 +25,18 @@ func (gui *Gui) linesToReadFromCmdTask(v *gocui.View) tasks.LinesToRead {
 
 	linesForFirstRefresh := height + oy + 10
 
+	// A search counts the matches in everything the view holds, so a re-render of a
+	// view that is being searched is read all the way to the end (as opening the
+	// search prompt reads it, see MainViewController.openSearch). Lines left unread
+	// hold matches the search doesn't know about, and would add themselves to the
+	// "x of y" as the user scrolled far enough to load them.
+	if v.IsSearching() {
+		return tasks.LinesToRead{
+			Total:               -1,
+			InitialRefreshAfter: linesForFirstRefresh,
+		}
+	}
+
 	// We want to read as many lines initially as necessary to let the
 	// scrollbar go to its minimum height, so that the scrollbar thumb doesn't
 	// change size as you scroll down.
