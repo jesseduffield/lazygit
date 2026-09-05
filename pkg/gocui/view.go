@@ -311,6 +311,19 @@ func (v *View) refreshSearchPositionsIfNeeded() {
 	}
 }
 
+// RefreshSearch runs the search again over content the view has just been re-rendered
+// with, and shows the "x of y" status of what it finds. The view stays where it is: the
+// position in the content is the user's, and the search follows it rather than moving
+// it.
+func (v *View) RefreshSearch() {
+	if !v.IsSearching() {
+		return
+	}
+
+	v.UpdateSearchResults(v.searcher.searchString, v.searcher.modelSearchResults)
+	v.renderSearchStatus(v.searcher.currentSearchIndex, len(v.searcher.searchPositions))
+}
+
 func (v *View) gotoNextMatch() error {
 	v.refreshSearchPositions()
 
