@@ -161,7 +161,7 @@ github.com/stretchr/testify/assert/yaml
 # github.com/wk8/go-ordered-map/v2 v2.1.8
 ## explicit; go 1.18
 github.com/wk8/go-ordered-map/v2
-# github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
+# github.com/xo/terminfo v1.0.0
 ## explicit; go 1.19
 github.com/xo/terminfo
 # golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
