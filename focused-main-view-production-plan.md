@@ -150,7 +150,8 @@ succession (§2.3); 10–11 any time after their dependencies.
 
 | # | Title (draft) | Depends on | Nature |
 |---|---|---|---|
-| 0 | Validate the context a custom command names | — | fix (found reviewing PR 9; foot of the stack) |
+| 0 | Validate the context a custom command names — **DONE: landed on master as #5989** | — | fix (found reviewing PR 9) |
+| 0b | Render the focused main view again while it is being searched | — | fixes, gocui/tasks (foot of the stack) |
 | 1 | Fix flicker, scroll glitches, and crashes in async diff rendering | — | fixes, gocui/tasks |
 | 2 | Internal: resolve diff lines to (file, line, kind) identities | 1 | infra |
 | 3 | Rename the "pagers" config to "diff renderers" — **DONE: landed on master as #5870** | — | rename + migration |
@@ -984,6 +985,33 @@ delta, hunk-on-click, drag including the autoscroll, and repeated `n` across
 files under a metadata-emitting delta. A few special cases may deserve a
 refinement of their exact behaviour later; the user's call is that getting the
 later PRs written matters more, so none of them is being touched now.
+
+#### Review round 4 (2026-09-05) — the search follows the selection
+
+Found while testing the branch below the stack (§10's 2026-09-05 entry). List
+views and the staging view keep the current search match in step with their
+selection, so that moving around and then pressing `n` goes to the next match
+from where you are; commit `65edd99fd09` added that for both. The focused main
+view never gained it, so `n` carried on from the match it was last on, and
+walking down past a few matches then resuming the search took as many presses
+as there were matches behind you. The user's call was to add it here, PR 5
+being where the main view gets a selection at all.
+
+Two commits at the tip of the branch:
+
+1. **Move the focused main view's selection through one function.** `moveCursor`
+   and `selectAbsoluteLine` set the view's cursor themselves, repeating the
+   clamp `showSelectionAtLine` does around it; both now go through it. Every
+   other selection move already did, so this leaves one place for the next
+   commit to hook.
+2. **Follow the selection with the search in the focused main view**, by calling
+   `SetNearestSearchPosition` there. It needs no `inOnSearchSelect` guard of the
+   kind `ListContextTrait` and `PatchExplorerContext` carry. The search's own
+   selection goes through gocui's `SelectSearchResult`, and
+   `MainContext.OnSearchSelect` only collapses the select mode; it never moves
+   the cursor, so this function is not re-entered. A drag is the one selection
+   move gocui makes for itself, so `onDragRelease` asks for it too, once the
+   gesture has settled. e2e: `search_follows_the_selection`.
 
 ### PR 6 — Keep your position in the diff when changing context size, ignoring whitespace, or switching diff renderers
 
@@ -2372,6 +2400,7 @@ The remaining rows are agreed as keep/defer:
 | `scrollUpMain`/`scrollDownMain` scroll the hidden upper pane when the lower one has the section to itself (new, round 5) | **Done in round 5**: both ask `Gui.mainSectionView`, which knows about `SecondaryPaneOnly`; fixup for "Always show a file's staged changes in the lower pane" |
 | `clearMainView` leaves a pending `RenderRestore` stranded, and with it the `BeginBlockingEvents` its `Done` balances (new, round 5) | **Done in round 5**: `clearMainView` drops it, as the string renders do; fixup for "Hold input back until the selection has moved on". Untested — it needs a mispredicted target pane, which takes an external mutation racing the action |
 | git names the trees in the custom patch preview's `rename from a/…` / `rename to b/…` lines (new, PR 8) | Keep; documented by `renamed_file_whole`. The two paths are all git has to go by over `--no-index` trees, and any naming of them leaks there; the `---`/`+++` lines and every line's identity are the repo's own. Only renames are affected, and difftastic — which reports a rename whenever the two paths it is handed differ — says it for every file |
+| A drag re-anchors the search only when the mouse is released (new, 2026-09-05) | Keep. gocui moves the cursor for a drag itself, so the only lazygit-side moments are the drag handler, which fires per pointer move, and the release. Re-anchoring per move would re-render the "x of y" for every frame of a drag for no gain |
 | The cheatsheets describe `space`/`d` in the focused main view by their working-tree meaning only (new, PR 8) | Defer. `pkg/cheatsheet/generate.go` reads the static `Description`, which is one string per binding, while the key now means two things depending on the diff; the options bar and the keybindings menu say the right one (PR 8 deviation 15) |
 
 ## 9. Open questions (resolve before/during the marked PR)
@@ -2511,9 +2540,12 @@ The remaining rows are agreed as keep/defer:
       stacked on `validate-custom-command-contexts`. Every commit builds,
       unit-tests and passes the whole e2e suite on its own; §6 sign-off owed
 - [x] Validating a custom command's context — **DONE 2026-09-01** on branch
-      `validate-custom-command-contexts` (1 commit off master, green),
-      inserted at the foot of the stack; a master-level bug PR 9 made likely
-      to be hit. Its own PR, mergeable ahead of the rest
+      `validate-custom-command-contexts`, **landed on master as #5989**
+- [x] Rendering a searched main view — **DONE 2026-09-05** on branch
+      `rerender-main-view-while-searching` (9 commits off master once its
+      `fixup!`/`amend!` pairs are folded in, all checks green), inserted at the
+      foot of the stack; master-level bugs that PR 7 turned into a hang. Its
+      own PR, mergeable ahead of the rest
 - [x] PR 10 — alt/shift-click edit — **DONE 2026-08-20** on branch
    `edit-diff-line-with-modified-click` (6 commits, every commit green,
    whole e2e suite passing), stacked directly on PR 8; §6 sign-off owed
@@ -2523,6 +2555,52 @@ The remaining rows are agreed as keep/defer:
 deviations from this plan inline, dated.)
 
 Log:
+
+- **2026-09-05:** **A branch at the foot of the stack, for searching a view
+  that is being rendered again.** Reported as a hang: search the focused main
+  view, stage a hunk, and lazygit stops taking keys while the mouse wheel still
+  scrolls. `postRefreshUpdate` had refused to render the main view while a
+  search was on since master's `4e21a096b9` ("Searching can't cope well with
+  the view being updated while it is being searched"), and PR 7's staging holds
+  input back until that render lands — `revealSelectionInPaneItLandsIn` begins
+  a block that the `RenderRestore`'s `Done` ends — so with no render the block
+  never ended. The stale diff underneath it is the master-level half, so the
+  fix went to its own branch, `rerender-main-view-while-searching`, and the
+  stack was replayed onto it.
+
+  Two things the old guard had been hiding, both fixed there. The search
+  positions were worked out again from **every write**, and each of those walks
+  the whole view. Streaming 2000 lines into a searched view took 565ms against
+  10ms unsearched; they are now worked out where they are read, and take 8ms.
+  And `searchPositions[currentSearchIndex]` was indexed unguarded in four
+  places, so content that lost matches could take the index out of range.
+
+  Two more came out of writing the tests. Rendering a searched view again read
+  only as much as the scrollbar needs, dropping the matches below that point,
+  where opening the prompt reads to the end — so a render of a searched view
+  reads to the end too. And pressing `/` in the focused main view held no task
+  while `ReadToEnd` ran, so lazygit counted as idle between the keypress and
+  the prompt opening (`docs/dev/Busy.md`), which an integration test takes as
+  its cue to press the next key.
+
+  Reviewing that last one, the user moved it from the call site into
+  `ReadToEnd`, where it covers every caller. Holding a task there turned a
+  quiet bug loud: a request whose task is stopped before it is served was
+  dropped, so its `Then` never ran, and with a task attached that task was
+  never done either, leaving lazygit permanently busy. Dropping requests is a
+  master bug of its own — press `/` as a re-render replaces the task and the
+  search prompt never opens — so it goes in below, demonstrated by a unit test
+  and fixed by handing requests over through a queue whose reader can go away.
+  Asking whether a task is there and giving it the request are one step, as
+  are taking the task away and handing back what it never answered, so no
+  request can be lost between the two. The queue is unbounded rather than a
+  fixed channel for the reasons gocui's `userEventQueue` is.
+
+  Nine commits once the two `fixup!`/`amend!` pairs are folded in, every one
+  green. The user tested the shape of it on both the branch and master before
+  it was written up. Testing also turned up PR 5's missing
+  search-follows-selection behaviour, added there as two commits (PR 5's round
+  4).
 
 - **2026-09-01:** **PR 9 reviewed.** The 25 commits were green throughout —
   every one builds, unit-tests and passes the whole e2e suite on its own,
