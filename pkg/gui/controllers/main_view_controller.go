@@ -329,6 +329,10 @@ func (self *MainViewController) onDragInFocusedView(opts gocui.ViewMouseBindingO
 func (self *MainViewController) onDragRelease(gocui.ViewMouseBindingOpts) error {
 	self.draggingWithMouse = false
 	self.dragAutoscroller.Cancel()
+
+	// The drag moved the selection without going through showSelectionAtLine: gocui
+	// moves the cursor for it. Let the search catch up with where it ended.
+	self.context.GetView().SetNearestSearchPosition()
 	return nil
 }
 
@@ -489,6 +493,11 @@ func hunkModeApplies(c *ControllerCommon, view *gocui.View, changeViewLine int) 
 // screen already.
 func showSelectionAtLine(view *gocui.View, lineIdx int, scrollIntoView bool) {
 	view.FocusPoint(0, lo.Clamp(lineIdx, 0, max(0, view.ViewLinesHeight()-1)), scrollIntoView)
+
+	// A search carries on from where the selection now is, so that stepping to the
+	// next match goes to the one after it rather than the one after the match the
+	// user last stepped to.
+	view.SetNearestSearchPosition()
 }
 
 func (self *MainViewController) selectHunkAround(changeViewLine int, scrollIntoView bool) {
