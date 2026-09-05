@@ -1431,6 +1431,11 @@ func (v *View) updateSearchPositions() {
 			}
 		}
 	}
+
+	// The content may hold fewer matches than it did, so the current one is brought
+	// back into range: readers index the positions by it.
+	v.searcher.currentSearchIndex = min(v.searcher.currentSearchIndex,
+		max(0, len(v.searcher.searchPositions)-1))
 }
 
 // IsTainted tells us if the view is tainted

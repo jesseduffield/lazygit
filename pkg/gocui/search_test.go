@@ -31,9 +31,6 @@ func TestSearchStatusAfterTheMatchesChange(t *testing.T) {
 	writeLines(v, "match", "other", "other")
 
 	index, total = v.GetSearchStatus()
-	/* EXPECTED:
 	assert.Equal(t, 0, index)
-	ACTUAL: */
-	assert.Equal(t, 2, index)
 	assert.Equal(t, 1, total)
 }
