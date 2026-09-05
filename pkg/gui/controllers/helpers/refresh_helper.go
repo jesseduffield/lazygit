@@ -573,7 +573,8 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			// this runs — and the keys buffered during the refresh replay —
 			// the refreshed state is in place.
 			self.c.OnUIThread(func() error {
-				return self.c.GocuiGui().EndBlockingEvents()
+				self.c.GocuiGui().EndBlockingEvents()
+				return nil
 			})
 		}
 

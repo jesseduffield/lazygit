@@ -230,10 +230,13 @@ type Gui struct {
 	// blockInputCount, when greater than zero, withholds keyboard input from
 	// the handlers: key events are buffered into bufferedKeyEvents and replayed
 	// once the count drops back to zero, while mouse clicks and hover are
-	// dropped outright. It's a counter so blocking can nest. Both fields are
-	// only touched on the UI thread. See BeginBlockingEvents.
+	// dropped outright. It's a counter so blocking can nest. replayPending says
+	// that the replay is queued but hasn't run yet, and input is withheld until
+	// it has. All three fields are only touched on the UI thread. See
+	// BeginBlockingEvents.
 	blockInputCount   int
 	bufferedKeyEvents []GocuiEvent
+	replayPending     bool
 }
 
 type NewGuiOpts struct {
@@ -888,11 +891,32 @@ func (g *Gui) BeginBlockingEvents() {
 // normal dispatch path, so they act on the now-current context (a key whose
 // binding no longer exists is simply ignored, just as if it had been pressed
 // now). Must be called on the UI thread.
-func (g *Gui) EndBlockingEvents() error {
+//
+// The replay is queued rather than run here, so that the buffered keys arrive on
+// a later pass of the event loop, as they would have if the user had pressed them
+// then. Running them here dispatches them from the middle of whatever the caller
+// was doing. If a caller ends the block partway through updating the screen, a
+// handler then acts on state the caller has yet to finish writing.
+func (g *Gui) EndBlockingEvents() {
 	g.blockInputCount--
 	if g.blockInputCount > 0 {
-		return nil
+		return
 	}
+
+	// Input stays withheld until the replay has run. Gui events are dispatched in
+	// preference to queued work (see processRemainingEvents), so a key pressed
+	// before the replay gets its turn would otherwise be handled ahead of the keys
+	// buffered before it.
+	g.replayPending = true
+	g.Update(func(*Gui) error { return g.replayBufferedKeys() })
+}
+
+// replayBufferedKeys dispatches the keys withheld while input was blocked, and
+// lets input through again. One of their handlers may block input afresh, and
+// then the keys after it are withheld in their turn, to be replayed when that
+// block ends.
+func (g *Gui) replayBufferedKeys() error {
+	g.replayPending = false
 
 	buffered := g.bufferedKeyEvents
 	g.bufferedKeyEvents = nil
@@ -1164,7 +1188,7 @@ func (g *Gui) processRemainingEvents() (bool, error) {
 // handleEvent handles an event, based on its type (key-press, error,
 // etc.)
 func (g *Gui) handleEvent(ev *GocuiEvent) error {
-	if g.blockInputCount > 0 && eventWithheldWhileBlocking(ev) {
+	if g.withholdingInput() && eventWithheldWhileBlocking(ev) {
 		if ev.Type == eventKey {
 			// Buffer keys so they replay against fresh state on unblock.
 			g.bufferedKeyEvents = append(g.bufferedKeyEvents, *ev)
@@ -1191,6 +1215,13 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 	default:
 		return nil
 	}
+}
+
+// withholdingInput reports whether events are being kept from the handlers. They
+// are while a block is in force, and on until the keys it buffered have been
+// replayed.
+func (g *Gui) withholdingInput() bool {
+	return g.blockInputCount > 0 || g.replayPending
 }
 
 // eventWithheldWhileBlocking reports whether an event must not reach the
