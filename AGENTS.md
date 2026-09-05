@@ -82,6 +82,17 @@ while still being meaningful and self-contained.
   excuse bundling it in. Before committing, review your diff and split out any
   hunk that is behavior-preserving (an extraction, a rename, a move) into a
   preceding commit, by staging hunks or resetting and recommitting in order.
+- **A preparatory refactor is a new commit only when it prepares something
+  new.** Before adding one, find the commit that introduced the code you are
+  about to restructure. If that commit is on this branch, the refactor is a
+  `fixup!` for it rather than a commit of its own: a branch must never contain
+  a commit whose code a later commit on the same branch tidies up. A prep
+  refactor earns a commit of its own only when the shape it corrects came from
+  before the branch. This holds across a branch stack too — if the commit that
+  introduced the code is in an earlier branch of the stack, the fixup belongs
+  there, and the branches above it get replayed. The one exception is when
+  fixing it there turns out to be unreasonably difficult; ask me what to do
+  rather than deciding to leave the repair at the tip.
 - **Do not use conventional commits** (no `feat:`/`fix:`/`chore:` prefixes).
   Match the plain English imperative style of the existing history.
 - **Wrap message body to 72 characters**. The subject is allowed to go up to 80

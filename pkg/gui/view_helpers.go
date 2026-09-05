@@ -25,6 +25,18 @@ func (gui *Gui) linesToReadFromCmdTask(v *gocui.View) tasks.LinesToRead {
 
 	linesForFirstRefresh := height + oy + 10
 
+	// A search counts the matches in everything the view holds, so a re-render of a
+	// view that is being searched is read all the way to the end (as opening the
+	// search prompt reads it, see MainViewController.openSearch). Lines left unread
+	// hold matches the search doesn't know about, and would add themselves to the
+	// "x of y" as the user scrolled far enough to load them.
+	if v.IsSearching() {
+		return tasks.LinesToRead{
+			Total:               -1,
+			InitialRefreshAfter: linesForFirstRefresh,
+		}
+	}
+
 	// We want to read as many lines initially as necessary to let the
 	// scrollbar go to its minimum height, so that the scrollbar thumb doesn't
 	// change size as you scroll down.
@@ -159,15 +171,9 @@ func (gui *Gui) postRefreshUpdate(c types.Context, opts types.OnFocusOpts) {
 
 		currentCtx := gui.State.ContextMgr.Current()
 		if currentCtx.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY || currentCtx.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
-			// Searching can't cope well with the view being updated while it is being searched.
-			// We might be able to fix the problems with this, but it doesn't seem easy, so for now
-			// just don't rerender the view while searching, on the assumption that users will probably
-			// either search or change their data, but not both at the same time.
-			if !currentCtx.GetView().IsSearching() {
-				sidePanelContext := gui.State.ContextMgr.NextInStack(currentCtx)
-				if sidePanelContext != nil && sidePanelContext.GetKey() == c.GetKey() {
-					sidePanelContext.HandleRenderToMain()
-				}
+			sidePanelContext := gui.State.ContextMgr.NextInStack(currentCtx)
+			if sidePanelContext != nil && sidePanelContext.GetKey() == c.GetKey() {
+				sidePanelContext.HandleRenderToMain()
 			}
 		} else if c.GetKey() == gui.State.ContextMgr.CurrentStatic().GetKey() {
 			// If our view is not the current one, but it is the current static context, then this
