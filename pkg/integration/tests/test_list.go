@@ -377,6 +377,7 @@ var tests = []*components.IntegrationTest{
 	main_view.NoSelectionWhenNoChanges,
 	main_view.RangeSelectDiffLines,
 	main_view.SearchCollapsesTheSelection,
+	main_view.SearchFollowsTheSelection,
 	main_view.SelectBelowALongCommitMessage,
 	main_view.SelectBelowALongDiffstat,
 	main_view.SelectDiffLines,
