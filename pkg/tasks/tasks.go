@@ -212,10 +212,20 @@ func (self *ViewBufferManager) StartLoading() {
 }
 
 func (self *ViewBufferManager) ReadToEnd(then func()) {
-	request := LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: then}
-	if !self.readRequests.enqueue(request) && then != nil {
+	// The reading happens on the task's own goroutine, and the caller hears about
+	// it through then, so lazygit must not count as idle in between.
+	task := self.newGocuiTask()
+	answered := func() {
+		task.Done()
+		if then != nil {
+			then()
+		}
+	}
+
+	request := LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: answered}
+	if !self.readRequests.enqueue(request) {
 		// With no task reading, everything there is to read has been read.
-		then()
+		answered()
 	}
 }
 
