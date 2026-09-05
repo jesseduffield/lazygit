@@ -474,6 +474,7 @@ type TranslationSet struct {
 	AutoStashForCheckout                  string
 	AutoStashForNewBranch                 string
 	AutoStashForMovingPatchToIndex        string
+	PatchCommitNotInCommitsErr            string
 	AutoStashForCherryPicking             string
 	AutoStashForReverting                 string
 	Discard                               string
@@ -1638,6 +1639,7 @@ func EnglishTranslationSet() *TranslationSet {
 		AutoStashForCheckout:                 "Auto-stashing changes for checking out %s",
 		AutoStashForNewBranch:                "Auto-stashing changes for creating new branch %s",
 		AutoStashForMovingPatchToIndex:       "Auto-stashing changes for moving custom patch to index from %s",
+		PatchCommitNotInCommitsErr:           "Cannot find the commit this custom patch was created from in the current commits list. This can happen after switching branches; recreate the patch to continue.",
 		AutoStashForCherryPicking:            "Auto-stashing changes for cherry-picking commits",
 		AutoStashForReverting:                "Auto-stashing changes for reverting commits",
 		Discard:                              "Discard",
