@@ -986,6 +986,20 @@
             }
           ],
           "default": "c"
+        },
+        "signOff": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "s"
         }
       },
       "additionalProperties": false,

@@ -29,6 +29,15 @@ func (self *CommitCommands) ResetAuthor() error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// Adds a Signed-off-by trailer to the topmost commit
+func (self *CommitCommands) SignOff() error {
+	cmdArgs := NewGitCmd("commit").
+		Arg("--allow-empty", "--allow-empty-message", "--only", "--no-edit", "--amend", "--signoff").
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 // Sets the commit's author to the supplied value. Value is expected to be of the form 'Name <Email>'
 func (self *CommitCommands) SetAuthor(value string) error {
 	cmdArgs := NewGitCmd("commit").

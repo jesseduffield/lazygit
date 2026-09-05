@@ -80,6 +80,12 @@ func (self *RebaseCommands) SetCommitAuthor(commits []*models.Commit, start, end
 	})
 }
 
+func (self *RebaseCommands) SignOffCommit(commits []*models.Commit, start, end int) error {
+	return self.GenericAmend(commits, start, end, func(_ *models.Commit) error {
+		return self.commit.SignOff()
+	})
+}
+
 func (self *RebaseCommands) AddCommitCoAuthor(commits []*models.Commit, start, end int, value string) error {
 	return self.GenericAmend(commits, start, end, func(commit *models.Commit) error {
 		return self.commit.AddCoAuthor(commit.Hash(), value)

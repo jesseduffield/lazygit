@@ -184,7 +184,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` V `` | Вставить отобранные коммиты (cherry-pick) |  |
 | `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
 | `` A `` | Amend | Править последний коммит с проиндексированными изменениями |
-| `` a `` | Установить/убрать автора коммита | Set/Reset commit author or set co-author. |
+| `` a `` | Установить/убрать автора коммита | Set/Reset commit author, set co-author, or sign off the commit. |
 | `` t `` | Revert | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
 | `` T `` | Пометить коммит тегом | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
 | `` <ctrl+l> `` | Открыть меню журнала | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |

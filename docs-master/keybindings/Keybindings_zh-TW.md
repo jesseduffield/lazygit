@@ -198,7 +198,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` V `` | 貼上提交 (揀選) |  |
 | `` B `` | 為了變基已標注提交為基準提交 | 請為了下一次變基選擇一項基準提交；此將執行 `git rebase --onto`。 |
 | `` A `` | 修改 | 使用已預存的更改修正提交 |
-| `` a `` | 設定/重設提交作者 | Set/Reset commit author or set co-author. |
+| `` a `` | 設定/重設提交作者 | Set/Reset commit author, set co-author, or sign off the commit. |
 | `` t `` | 還原 | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
 | `` T `` | 打標籤到提交 | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
 | `` <ctrl+l> `` | 開啟記錄選單 | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |

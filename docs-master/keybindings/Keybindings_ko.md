@@ -313,7 +313,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` V `` | 커밋을 붙여넣기 (cherry-pick) |  |
 | `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
 | `` A `` | Amend | Amend commit with staged changes |
-| `` a `` | Amend commit attribute | Set/Reset commit author or set co-author. |
+| `` a `` | Amend commit attribute | Set/Reset commit author, set co-author, or sign off the commit. |
 | `` t `` | Revert | Create a revert commit for the selected commit, which applies the selected commit's changes in reverse. |
 | `` T `` | Tag commit | Create a new tag pointing at the selected commit. You'll be prompted to enter a tag name and optional description. |
 | `` <ctrl+l> `` | 로그 메뉴 열기 | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
