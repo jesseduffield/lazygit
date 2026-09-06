@@ -493,6 +493,40 @@ mapping; the identity type + parser + helper; header-path decoding.
    outside it). Transcribed comments describe the mechanism instead — worth
    doing on every later PR too.
 
+#### Review round 1 (2026-09-05) — a diff the pane holds only part of
+
+Focusing the main view over a long diff gave no selection at all with no diff
+renderer configured, and none of the commands that act on one. A pane loads a
+diff a screenful at a time and reads the rest as the user scrolls
+(`linesToReadFromCmdTask` caps the first read at `height*(height-1)` lines), so
+what it holds ends part way through a hunk. `Patch.IsWellFormed` counted that
+hunk against the length its header declares, found it short, and refused the
+whole file section — leaving every row of the diff on screen unresolvable.
+Renderers that state each line's identity were unaffected, git's own diff being
+the one the buffer parser is for.
+
+Two `fixup!` commits, inserted mid-branch:
+
+1. `Patch.IsWellFormedSoFar` on "Add a well-formedness check for a parsed
+   patch": every hunk but the last has to match its header exactly, as before,
+   and the last one only has to fit within what its header declares. The check
+   exists to tell a faithful rendering from a restructured one, and it still
+   does that. A rendering that moves the +/- marker off the start of the line
+   makes a change read as context, and a context line counts towards both
+   lengths, so such a hunk comes out **longer** than its header declares, never
+   shorter.
+2. `parseFileSection` takes `endsTheBuffer` on "Recover the identity of a diff
+   line from the rendered diff", and holds a section in that position to what
+   has arrived. Only that section: one that another section follows is all
+   there, so a hunk short of its header there means the rendering restructured
+   the diff.
+
+The behavioural demonstration is an e2e test, and it has to live where the main
+view gains a selection at all, so it went to PR 5's round 1 below.
+
+`Rename parsedDiffLine.RelPath to Path` (PR 4) gained the one occurrence the
+fixup's test added, since the branch below it now has one more.
+
 ### PR 3 — Rename the "pagers" config to "diff renderers" — DONE (master #5870)
 
 **Landed on master** as #5870 ("Rework the custom pager config (rename to
@@ -1012,6 +1046,123 @@ Two commits at the tip of the branch:
    the cursor, so this function is not re-entered. A drag is the one selection
    move gocui makes for itself, so `onDragRelease` asks for it too, once the
    gesture has settled. e2e: `search_follows_the_selection`.
+
+#### Review round 5 (2026-09-05) — a render that never reaches its end
+
+Reported: focus the main view over a file's diff so that a selection is showing,
+go to the branches panel, select a branch, and press `0`. The main view shows
+the branch's commit log with the selection still drawn over it, and pressing
+down makes it disappear.
+
+`updateDiffPaneDecorations` was asked once a pane's content was final — as a
+string is rendered, and at end of input. A command's output often has no end.
+The first read stops at `linesToReadFromCmdTask`'s cap and the rest is read as
+the user scrolls, so a log or a diff longer than that never reaches
+`onEndOfInput`. `HasSelectableContent` then kept whatever the previous render
+left it, invisible while the pane was off the stack and drawn again the moment
+`0` put it back. (Pressing down in hunk mode reads to the end looking for the
+next change block, so the question got settled and the selection went away.)
+
+Two `fixup!` commits on "Show a selection in the focused main view":
+
+1. **Settle the decorations as the content is revealed, too.** The manager's
+   swap-in callback asks as well as end of input, and the function takes
+   `contentIsComplete`, because a render still being read answers only in the
+   positive. A change line among the lines read so far settles the question,
+   while finding none may only mean the changes are in the part still to come.
+   Under a panel that shows no diff there is nothing to select whatever the
+   content turns out to be. That is the reported case, and the mirror case is
+   fixed with it. Coming from a panel with no diff to a diff too long to be read
+   at once used to leave the pane claiming nothing to select, so a renderer that
+   states its lines' identities placed a selection that was never drawn.
+   e2e: `no_selection_over_a_commit_log`.
+2. **An e2e test for a diff the pane holds only part of**
+   (`select_in_a_diff_read_in_part`), the behavioural demonstration of PR 2's
+   round 1: it takes both that round's parser change and this round's first
+   commit for a selection to appear over a truncated diff, and this is the
+   commit where a selection exists to test.
+
+The gutter marks now come with the diff rather than only at end of input, since
+they are settled in the same place.
+
+#### Review round 6 (2026-09-06) — one screenful is not enough to answer with
+
+Round 5 was tested and found short. Select a commit with nothing to select (a
+merge commit) in the sub-commits panel, then one with a big diff, and pressing
+`0` still shows no selection.
+
+The paint round 5 hooked reveals `height + 10` lines, and a commit's diff opens
+with a diffstat: `git show --stat -p` of a 274-file commit puts the first
+`diff --git` on line 285 and the first change line on 293, of 24444. So the
+question was put over the commit header and the stat, answered "nothing to
+select" — which for a render still going means "not yet", so the pane kept the
+merge commit's answer. The rest of the initial read does reach the changes
+(`Total` is `height*(height-1)`, about 2450 lines on a 50-row terminal), but
+nothing asked again, and a 24444-line diff never reaches end of input.
+
+One `fixup!` on "Show a selection in the focused main view": ask with every
+batch the read delivers, in the manager's content-only refresh callback. Since
+the content of a render only grows, a pane that has already found something to
+select is not asked again until the next render, so the repeated question costs
+nothing in the common case; reading the whole of that 24444-line diff back takes
+6ms, so it is affordable in the uncommon one. `renderContentOnly` went with it,
+its one caller now needing a body. e2e: `select_below_a_long_diffstat`.
+
+The measurements behind this, taken on the reported commit:
+
+| lines loaded | resolvable rows | change lines | last section, strict | lenient |
+|---|---|---|---|---|
+| 110 (≈ first paint) | 0 | 0 | no diff yet | no diff yet |
+| 300 | 16 | 2 | REFUSED | well-formed |
+| 2450 (≈ initial read) | 2166 | 1264 | REFUSED | well-formed |
+
+They also say what PR 2's round 1 is worth here: at 300 lines its leniency is
+the only reason anything resolves at all, while at 2450 the complete sections
+above the last would have supplied change lines anyway.
+
+Two things this round explains rather than changes. Whether a selection is drawn
+never depended on the diff parsing, so before any of these fixes a long diff
+showed one whenever the previously selected item left the flag set — the same
+staleness as round 5's report, in the other direction; what the parse failure
+showed instead was a selection left wherever the cursor was, with `space` and
+`d` doing nothing on it. And focusing at the top of such a commit now lands the
+selection on a diffstat row, since focusing never moves the view and no change
+line is on screen (the `MiddleVisibleLineIdx` fallback). Consistent, but a
+selection there can't be acted on; raised with the user, §8.
+
+#### Review round 7 (2026-09-06) — read on rather than guess
+
+Round 6 was tested with a commit carrying a 10000-line message. Coming from a
+normal commit it showed a selection, coming from a merge commit it showed none,
+and scrolling to the end turned one on. The user's reading of it: taking the
+answer over from the commit before never makes sense, and while the pane can't
+tell it should keep reading until it can, to the end of the diff if that is what
+it takes. Agreed, and the round does both.
+
+One `fixup!` on "Show a selection in the focused main view", with two
+preparations ahead of the commit it lands in:
+
+1. **Guard `View.LinesHeight` against a concurrent write.** It reads the buffer
+   a rendering task appends to, without the write mutex. Nothing called it, so
+   nothing had tripped over it; the fixup does, from the UI thread.
+2. **Separate reading a fixed number of lines from reading to the end.**
+   `ReadToEnd` holds a gocui task while it reads so that lazygit doesn't count
+   as idle in the meantime, which has nothing to do with reading to the end.
+   `readHoldingATask` is that part on its own.
+3. **The fixup itself.** `ReadLinesAndWait` asks for another render's worth each
+   time the pane still can't tell, so the reading stops soon after the first
+   change line and runs to the end only for a diff that has none. It has to hold
+   a task, or lazygit counts as idle between the batches and the harness asserts
+   into the gap — which is how the first cut of this failed its own test. And
+   `MainContext` now remembers which render its answer describes, so a render
+   starts from no answer rather than one about other content. A re-render of the
+   same content keeps its answer, and with it the selection drawn over it; that
+   is what stops a background refresh of a big commit's diff blinking the
+   selection off and on. e2e: `select_below_a_long_commit_message`.
+
+The user's call on where the selection lands over a diffstat (§8, round 6):
+**keep it**. Reaching the first hunk from there is one press of `a` or `right`,
+which is preferable to the view scrolling on its own.
 
 ### PR 6 — Keep your position in the diff when changing context size, ignoring whitespace, or switching diff renderers
 
@@ -1821,11 +1972,12 @@ are **fixed**, each in a `fixup!` for the commit that owns the rule:
    action, so there is no test. Fixup for "Hold input back until the selection has
    moved on".
    - Worth knowing: dropping a restore resolves its `Done` synchronously, and
-     `EndBlockingEvents` replays the buffered keys in that call — so this, like
-     the string-render path it copies, can dispatch a keypress from inside
-     `refreshMainViews`, before `setMainPanes` has run. Pre-existing exposure,
-     not new, but it is the reason a stranded restore can't simply be left to a
-     later render.
+     `EndBlockingEvents` replayed the buffered keys in that call — so this, like
+     the string-render path it copies, could dispatch a keypress from inside
+     `refreshMainViews`, before `setMainPanes` has run. It is the reason a
+     stranded restore can't simply be left to a later render. **Closed by the
+     addendum below**, which makes the replay wait for the next pass of the
+     event loop.
 
 #### Addendum 2026-09-01 — "Edit hunk" ported here, not in PR 9
 
@@ -1875,6 +2027,47 @@ it in PR 9; only the history moved.
 
 Consequence for §6: `E` with a real editor now needs its interactive pass as
 part of **PR 7**, whose sign-off predates it.
+
+#### Addendum 2026-09-05 — the key replay waits for the next pass of the loop
+
+Follow-up to round 5's "worth knowing" note above, raised by the user. The
+exposure it records is not really about restores. `EndBlockingEvents` dispatched
+the buffered keys from inside its own call, so whoever ended a block ran a
+keybinding handler in the middle of whatever they were doing. Round 5's fixup is
+the first caller for which that matters, `clearMainView` resolving a restore
+partway through `refreshMainViews`. The behaviour itself dates from
+`6893d9a759`, on master since long before the stack.
+
+What a handler dispatched there could see: `State.MainPanes` still describing the
+previous render, so `mainSectionView` scrolls the wrong pane (finding 4 by
+another door); and, for any replayed key that moves a side-panel selection, a
+nested `refreshMainViews` whose work the outer call then partly writes over.
+
+So the fix belongs to the gocui primitive, not to the restore. **New commit
+"Replay withheld keys on a later pass of the event loop"**, placed immediately
+before "Hold input back until the selection has moved on", which is the
+justification for making the improvement here: the replay goes through `Update`,
+and input stays withheld until that queued pass runs. The withholding has to
+outlast the counter because `processRemainingEvents` prefers gui events to
+queued work, so a key pressed in the meantime would otherwise be handled ahead of
+the keys buffered before it. `EndBlockingEvents` no longer returns an error (the
+replay's now reaches gocui's error handler like every other handler's), so the
+three `func() { _ = ...EndBlockingEvents() }` closures in the stack become the
+method value, and `WithWaitingStatusBlockingInput`'s deferred callback moves into
+`AppStatusHelper.endBlockingInput` to keep `unparam` happy.
+
+Two options were weighed and dropped. Hopping `DropRestoreForNextTask`'s
+`resolved()` onto the UI thread as well would give `Done` one uniform contract,
+but it trades a guarantee that holds today (a restore resolves exactly once,
+whichever way it ends) for one that doesn't (an `onUIThread` hop can fail once
+the loop has exited), for a second `Done` implementation that doesn't exist.
+Moving `setMainPanes` up to just after `handOverMainSection` fixes only the stale
+`MainPanes` half and leaves the nested-render clobber.
+
+New tests: `TestBlockingEvents_KeysArrivingBeforeTheReplayGoBehindIt`, and the
+three existing block-events tests now pump the queued work, which asserts the
+deferral. Whole suite green, `just lint` clean, and every rewritten commit
+builds.
 
 ### PR 8 — Build custom patches directly from a commit's diff view
 
@@ -2123,6 +2316,33 @@ commit, one on the patch-removal commit). All checks green, the whole e2e suite 
     the copy extension, and three gocui unit tests for the gutter. Two existing
     tests changed with the preview's rendering: `specific_selection` (git's own
     hunk context) and `renamed_file_whole` (the rename lines' tree names).
+
+#### Review round 1 (2026-09-05) — resetting the patch from the pane showing it
+
+Reported: with a custom patch being built and the focus in the main view, either
+pane, "Reset patch" from the custom patch menu leaves the pane previewing the
+patch on screen.
+
+`PatchBuildingHelper.Reset` renders again through `Context().Current()`. On
+master that is always a side panel, because the same function pops out of any
+context that isn't one first; the commit "Build a custom patch from a commit's
+diff, and discard lines from it" narrowed that pop to the patch-building view,
+so that giving up the patch leaves you in the diff you were building it from.
+From the focused main view `Current()` is then a main context, and a main
+context renders nothing to main, so the pane that was previewing the patch keeps
+its content.
+
+One `fixup!` on that commit: render through `Context().CurrentSide()` instead.
+Both main panes are rendered by the panel beneath them, so a reset from within
+either of them has to go through that panel. Where the current context is
+already a side panel the two are the same, so nothing else changes. The focus
+follows out of the pane that goes, `followFocusIntoWorkablePane` doing its
+usual work. e2e: `reset_the_patch_from_the_pane_showing_it`, plus two
+assertions on the pane's visibility in the existing
+`reset_a_patch_built_from_a_commits_diff`.
+
+The commit that distils the helper into `CustomPatchHelper` (PR 9's "Remove the
+explorer behavior behind the retired panels") carries the change forward.
 
 ### PR 9 — Replace the staging and patch-building panels with the focused main view
 
@@ -2402,6 +2622,9 @@ The remaining rows are agreed as keep/defer:
 | git names the trees in the custom patch preview's `rename from a/…` / `rename to b/…` lines (new, PR 8) | Keep; documented by `renamed_file_whole`. The two paths are all git has to go by over `--no-index` trees, and any naming of them leaks there; the `---`/`+++` lines and every line's identity are the repo's own. Only renames are affected, and difftastic — which reports a rename whenever the two paths it is handed differ — says it for every file |
 | A drag re-anchors the search only when the mouse is released (new, 2026-09-05) | Keep. gocui moves the cursor for a drag itself, so the only lazygit-side moments are the drag handler, which fires per pointer move, and the release. Re-anchoring per move would re-render the "x of y" for every frame of a drag for no gain |
 | The cheatsheets describe `space`/`d` in the focused main view by their working-tree meaning only (new, PR 8) | Defer. `pkg/cheatsheet/generate.go` reads the static `Description`, which is one string per binding, while the key now means two things depending on the diff; the options bar and the keybindings menu say the right one (PR 8 deviation 15) |
+| A diff still being read shows no selection until a change line has arrived (new, PR 5 round 5) | **Closed in round 7**: the pane reads on until it can tell, so the wait is however long it takes to reach the first change line, and no user action is needed to end it |
+| Focusing at the top of a commit whose diffstat fills the screen lands the selection on a stat row (new, PR 5 round 6) | **Keep** — the user's call, 2026-09-06. Focusing never moves the view, and with no change line on screen the selection goes to the middle visible line. Reaching the first hunk from there is one press of `a` or `right`, which is preferable to the view scrolling on its own |
+| A renderer that keeps the diff and hunk headers but drops body lines could be mis-parsed where it ends the buffer (new, PR 2 round 1) | Keep. The leniency applies to one section, the one the buffer breaks off in, and every renderer that restructures a body lengthens hunks rather than shortening them. A mis-parse would act on the wrong line only in the focused main view, and there the diff is either git's own or one whose lines state their own identity (`MainViewDiffMode`) |
 
 ## 9. Open questions (resolve before/during the marked PR)
 
@@ -2496,9 +2719,10 @@ The remaining rows are agreed as keep/defer:
       `fix-async-diff-rendering` (16 commits, all checks green, §6 sign-off
       approved), stacked on `fix-task-key-race`
 - [x] PR 2 — diff-line identity primitive — **DONE 2026-08-09** on branch
-      `resolve-diff-lines-to-identities` (5 commits, all checks green, every
-      commit builds and tests clean), stacked on `fix-async-diff-rendering`.
-      No interactive sign-off needed: no user-visible change
+      `resolve-diff-lines-to-identities` (5 commits plus round 1's 2 `fixup!`s,
+      all checks green, every commit builds and tests clean), stacked on
+      `fix-async-diff-rendering`. No interactive sign-off needed: no
+      user-visible change
 - [x] PR 3 — rename pagers → diff renderers — **landed on master as #5870**
       (with a bigger config rework than planned; see the PR 3 section)
 - [x] PR 4 — OSC 1717 support — **DONE 2026-08-09** on branch
@@ -2506,10 +2730,12 @@ The remaining rows are agreed as keep/defer:
       commit builds and tests clean), stacked on
       `resolve-diff-lines-to-identities`. §6 sign-off **approved**
 - [x] PR 5 — selection & navigation — **DONE 2026-08-10** on branch
-      `select-diff-lines-in-main-view` (9 commits, all checks green, every
-      commit builds/tests/lints clean on its own), stacked on
-      `support-osc-1717-diff-metadata`. Jump-to-file menu skipped and copy
-      moved to PR 7 (see its deviations). §6 sign-off **approved 2026-08-15**
+      `select-diff-lines-in-main-view` (9 commits, plus round 4's 2 commits,
+      round 7's 2 preparations, and the 4 `fixup!`s of rounds 5 to 7, all checks
+      green, every commit builds/tests/lints clean on its own), stacked on
+      `support-osc-1717-diff-metadata`.
+      Jump-to-file menu skipped and copy moved to PR 7 (see its deviations).
+      §6 sign-off **approved 2026-08-15**
 - [x] PR 6 — position preserve — **DONE 2026-08-15** on branch
       `keep-diff-position-on-rerender` (7 commits, fixups folded, all checks
       green, every commit builds and unit-tests clean on its own), stacked on
@@ -2529,10 +2755,10 @@ The remaining rows are agreed as keep/defer:
       inserted below PR 7 at the user's suggestion; see the section at the end of
       PR 7
 - [x] PR 8 — custom patches from the main view — **DONE 2026-08-19** on branch
-      `build-custom-patch-from-main-view` (10 commits plus 4 `fixup!`s, every
-      commit unit-testing clean on its own, whole e2e suite passing), stacked on
-      `stage-changes-in-main-view`. Plan commit 9 moved to PR 9; §6 sign-off
-      owed
+      `build-custom-patch-from-main-view` (10 commits plus 4 `fixup!`s, and
+      round 1's one more, every commit unit-testing clean on its own, whole e2e
+      suite passing), stacked on `stage-changes-in-main-view`. Plan commit 9
+      moved to PR 9; §6 sign-off owed
 - [x] PR 9 — panel removal — **DONE 2026-08-20** on branch
       `replace-staging-panels-with-main-view` (25 commits, reviewed 2026-09-01:
       9 `fixup!`s, one commit dropped, one split, two added — 34 commits now),
@@ -2555,6 +2781,51 @@ The remaining rows are agreed as keep/defer:
 deviations from this plan inline, dated.)
 
 Log:
+
+- **2026-09-06 (later):** **Round 6 tested in turn, and the same fix found short
+  again**, this time for a commit with a 10000-line message. The user's reading:
+  a pane must never take the answer over from the commit before, and while it
+  can't tell it should read on until it can. Round 7 does both, with two
+  preparations ahead of it (a mutex on `View.LinesHeight`, and `ReadToEnd`'s
+  task-holding pulled out for a bounded read). The answer now belongs to a named
+  render, so a re-render of the same content keeps it and nothing else inherits
+  it. Every commit from the first fixup to the tip builds, unit-tests and lints
+  on its own; whole e2e suite green at the tip.
+
+- **2026-09-06:** **The previous day's round tested, and one of its three fixes
+  found short.** The two reported bugs behave; the third fix answered the
+  question one screenful too early, and a commit's diff begins below its
+  diffstat. Written up as PR 5's round 6, with the measurements that say what
+  each of the three fixes is worth on the reported commit. One more `fixup!` on
+  "Show a selection in the focused main view", one more e2e test, and one open
+  question in §8 about where the selection lands over a diffstat. Every commit
+  from the first fixup to the tip builds, unit-tests and lints on its own; whole
+  e2e suite green at the tip.
+
+- **2026-09-05 (later):** **Three defects, all folded into the commits that
+  caused them.** Two were reported from using the stack; the third came out of
+  reproducing the first.
+
+  A selection stayed drawn over a branch's commit log, and resetting a custom
+  patch from the focused main view left the pane previewing it on screen. Both
+  are written up as review rounds: PR 5's round 5 and PR 8's round 1. The third
+  is PR 2's round 1 — with no diff renderer configured, a diff longer than the
+  first read of it could not be parsed at all, so focusing it gave no selection
+  and none of the commands that act on one. The user's call was to fix it in the
+  same round rather than note it.
+
+  All three come of a pane that holds only part of what it is being given.
+  `linesToReadFromCmdTask` caps the first read at `height*(height-1)` lines and
+  the rest arrives as the user scrolls, so "when the content is final" is a
+  moment that may never come, and the code written against it — the decorations,
+  and the patch parser's well-formedness gate — was answering about content that
+  isn't all there.
+
+  Five `fixup!` commits inserted mid-branch, plus one occurrence added to
+  "Rename parsedDiffLine.RelPath to Path" so the branch below it still builds.
+  Every commit from the first fixup to the tip builds and unit-tests on its own;
+  the whole e2e suite is green at the tip. Backup of the pre-round tip:
+  `replace-staging-panels-with-main-view-2026-09-05-1930-backup`.
 
 - **2026-09-05:** **A branch at the foot of the stack, for searching a view
   that is being rendered again.** Reported as a hang: search the focused main
