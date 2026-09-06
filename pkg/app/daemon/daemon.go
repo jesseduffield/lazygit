@@ -3,14 +3,13 @@ package daemon
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strconv"
 
-	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"github.com/sirupsen/logrus"
 )
 
 // Sometimes lazygit will be invoked in daemon mode from a parent lazygit process.
@@ -66,14 +65,14 @@ func getInstruction() Instruction {
 	return mapping[getDaemonKind()](jsonData)
 }
 
-func Handle(common *common.Common) {
+func Handle(log *logrus.Entry) {
 	if !InDaemonMode() {
 		return
 	}
 
 	instruction := getInstruction()
 
-	if err := instruction.run(common); err != nil {
+	if err := instruction.run(log); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -107,7 +106,7 @@ type Instruction interface {
 	SerializedInstructions() string
 
 	// runs the instruction
-	run(common *common.Common) error
+	run(log *logrus.Entry) error
 }
 
 func serializeInstruction[T any](instruction T) string {
@@ -147,7 +146,7 @@ func (self *ExitImmediatelyInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *ExitImmediatelyInstruction) run(common *common.Common) error {
+func (self *ExitImmediatelyInstruction) run(log *logrus.Entry) error {
 	return nil
 }
 
@@ -165,8 +164,8 @@ func (self *RemoveUpdateRefsForCopiedBranchInstruction) SerializedInstructions()
 	return serializeInstruction(self)
 }
 
-func (self *RemoveUpdateRefsForCopiedBranchInstruction) run(common *common.Common) error {
-	return handleInteractiveRebase(common, func(path string) error {
+func (self *RemoveUpdateRefsForCopiedBranchInstruction) run(log *logrus.Entry) error {
+	return handleInteractiveRebase(log, func(path string) error {
 		return nil
 	})
 }
@@ -193,8 +192,8 @@ func (self *ChangeTodoActionsInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *ChangeTodoActionsInstruction) run(common *common.Common) error {
-	return handleInteractiveRebase(common, func(path string) error {
+func (self *ChangeTodoActionsInstruction) run(log *logrus.Entry) error {
+	return handleInteractiveRebase(log, func(path string) error {
 		changes := lo.Map(self.Changes, func(c ChangeTodoAction, _ int) utils.TodoChange {
 			return utils.TodoChange{
 				Hash:      c.Hash,
@@ -225,8 +224,8 @@ func (self *DropMergeCommitInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *DropMergeCommitInstruction) run(common *common.Common) error {
-	return handleInteractiveRebase(common, func(path string) error {
+func (self *DropMergeCommitInstruction) run(log *logrus.Entry) error {
+	return handleInteractiveRebase(log, func(path string) error {
 		return utils.DropMergeCommit(path, self.Hash, getCommentChar())
 	})
 }
@@ -256,8 +255,8 @@ func (self *MoveFixupCommitDownInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *MoveFixupCommitDownInstruction) run(common *common.Common) error {
-	return handleInteractiveRebase(common, func(path string) error {
+func (self *MoveFixupCommitDownInstruction) run(log *logrus.Entry) error {
+	return handleInteractiveRebase(log, func(path string) error {
 		return utils.MoveFixupCommitDown(path, self.OriginalHash, self.FixupHash, self.ChangeToFixup, getCommentChar())
 	})
 }
@@ -282,14 +281,14 @@ func (self *MoveTodosUpInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *MoveTodosUpInstruction) run(common *common.Common) error {
+func (self *MoveTodosUpInstruction) run(log *logrus.Entry) error {
 	todosToMove := lo.Map(self.Hashes, func(hash string, _ int) utils.Todo {
 		return utils.Todo{
 			Hash: hash,
 		}
 	})
 
-	return handleInteractiveRebase(common, func(path string) error {
+	return handleInteractiveRebase(log, func(path string) error {
 		return utils.MoveTodos(path, todosToMove, false, -self.Distance, getCommentChar())
 	})
 }
@@ -314,14 +313,14 @@ func (self *MoveTodosDownInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *MoveTodosDownInstruction) run(common *common.Common) error {
+func (self *MoveTodosDownInstruction) run(log *logrus.Entry) error {
 	todosToMove := lo.Map(self.Hashes, func(hash string, _ int) utils.Todo {
 		return utils.Todo{
 			Hash: hash,
 		}
 	})
 
-	return handleInteractiveRebase(common, func(path string) error {
+	return handleInteractiveRebase(log, func(path string) error {
 		return utils.MoveTodos(path, todosToMove, false, self.Distance, getCommentChar())
 	})
 }
@@ -340,8 +339,8 @@ func (self *InsertBreakInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *InsertBreakInstruction) run(common *common.Common) error {
-	return handleInteractiveRebase(common, func(path string) error {
+func (self *InsertBreakInstruction) run(log *logrus.Entry) error {
+	return handleInteractiveRebase(log, func(path string) error {
 		return utils.PrependStrToTodoFile(path, []byte("break\n"))
 	})
 }
@@ -364,8 +363,8 @@ func (self *WriteRebaseTodoInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *WriteRebaseTodoInstruction) run(common *common.Common) error {
-	return handleInteractiveRebase(common, func(path string) error {
+func (self *WriteRebaseTodoInstruction) run(log *logrus.Entry) error {
+	return handleInteractiveRebase(log, func(path string) error {
 		return os.WriteFile(path, self.TodosFileContent, 0o644)
 	})
 }

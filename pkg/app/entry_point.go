@@ -160,7 +160,7 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 	}
 
 	if daemon.InDaemonMode() {
-		daemon.Handle(common)
+		daemon.Handle(common.Log)
 		return
 	}
 
