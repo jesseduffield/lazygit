@@ -136,6 +136,25 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 	}
 	defer os.RemoveAll(tempDir)
 
+	// When git invokes lazygit as a daemon (e.g. as the editor of a rebase todo
+	// file), skip loading and migrating the user config entirely; the daemon
+	// doesn't need it, and migrating the config here would dirty the working
+	// tree in the middle of the git operation (see #5998).
+	if daemon.InDaemonMode() {
+		appConfig, err := config.NewAppConfigForDaemon("lazygit", buildInfo.Version, buildInfo.Commit, buildInfo.Date, buildInfo.BuildSource, cliArgs.Debug, tempDir)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+		common, err := NewCommon(appConfig)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		daemon.Handle(common)
+		return
+	}
+
 	appConfig, err := config.NewAppConfig("lazygit", buildInfo.Version, buildInfo.Commit, buildInfo.Date, buildInfo.BuildSource, cliArgs.Debug, tempDir)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -157,11 +176,6 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 	common, err := NewCommon(appConfig)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	if daemon.InDaemonMode() {
-		daemon.Handle(common)
-		return
 	}
 
 	if cliArgs.Profile {

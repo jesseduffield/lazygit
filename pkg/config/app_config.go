@@ -130,6 +130,45 @@ func NewAppConfig(
 	return appConfig, nil
 }
 
+// NewAppConfigForDaemon makes a new app config for running lazygit in daemon
+// mode, i.e. when git invokes lazygit as e.g. the editor of a rebase todo
+// file. The daemon doesn't need the user config for anything, so it is neither
+// loaded nor migrated here: migrating the config from within a git operation
+// would modify the working tree mid-operation, aborting e.g. a rebase with
+// "error: Your local changes to the following files would be overwritten by
+// merge" when the config file is checked in (see #5998).
+func NewAppConfigForDaemon(
+	name string,
+	version,
+	commit,
+	date string,
+	buildSource string,
+	debuggingFlag bool,
+	tempDir string,
+) (*AppConfig, error) {
+	configDir, err := findOrCreateConfigDir()
+	if err != nil && !os.IsPermission(err) {
+		return nil, err
+	}
+
+	appState, err := loadAppState()
+	if err != nil {
+		return nil, err
+	}
+
+	return &AppConfig{
+		name:          name,
+		version:       version,
+		buildDate:     date,
+		debug:         debuggingFlag,
+		buildSource:   buildSource,
+		userConfig:    GetDefaultConfigForPlatform(KeybindingPlatform()),
+		userConfigDir: configDir,
+		tempDir:       tempDir,
+		appState:      appState,
+	}, nil
+}
+
 func ConfigDir() string {
 	_, filePath := findConfigFile(ConfigFilename)
 
