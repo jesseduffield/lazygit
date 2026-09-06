@@ -398,7 +398,7 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 }
 
 func (self *RemotesController) notGitSvnRemote() *types.DisabledReason {
-	remote := self.Context().GetSelected()
+	remote := self.context().GetSelected()
 	if remote != nil && remote.Name == "git-svn" {
 		return &types.DisabledReason{Text: "Cannot modify git-svn remote"}
 	}
@@ -411,10 +411,20 @@ func (self *RemotesController) checkSvnBranchStatusAsync() {
 		if err != nil {
 			return err
 		}
-		// 将结果写入 RemoteBranch 模型的 StaleStatus 字段
-		// 通过 Refresh 触发 presentation 层重新渲染
-		return self.c.Refresh(types.RefreshOptions{
-			Scope: []types.RefreshableView{types.REMOTES},
+		self.c.OnUIThread(func() error {
+			for _, branch := range self.c.Model().RemoteBranches {
+				if branch.RemoteName != "git-svn" {
+					continue
+				}
+				// key 为 ref 相对路径，与 RemoteBranch.Name 格式一致
+				if status, ok := statuses[branch.Name]; ok {
+					branch.StaleStatus = status
+				}
+			}
+			// 仅重绘视图，不 Refresh 重建模型（避免 StaleStatus 被冲掉）
+			self.c.PostRefreshUpdate(self.c.Contexts().RemoteBranches)
+			return nil
 		})
+		return nil
 	})
 }

@@ -17,6 +17,7 @@ type GitCommon struct {
 	config      *ConfigCommands
 	diffRendererConfigManager *config.DiffRendererConfigManager
 	IsGitSvnRepo bool
+	Svn         *SvnCommands
 }
 
 func (self *GitCommon) detectGitSvnRepo() {
@@ -33,7 +34,9 @@ func (self *GitCommon) detectGitSvnRepo() {
 	svnDir := filepath.Join(self.repoPaths.RepoGitDirPath(), "svn")
 	if info, err := os.Stat(svnDir); err == nil && info.IsDir() {
 		self.IsGitSvnRepo = true
-		self.Common.Log.Info("Detected Git-SVN repository (found .git/svn)")
+		if self.Common != nil {
+			self.Common.Log.Info("Detected Git-SVN repository (found .git/svn)")
+		}
 	} else {
 		self.IsGitSvnRepo = false
 	}

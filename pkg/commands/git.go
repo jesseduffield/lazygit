@@ -121,6 +121,7 @@ func NewGitCommandAux(
 	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, repoPaths, configCommands, diffRendererConfigManager)
 
 	svnCommands := git_commands.NewSvnCommands(gitCommon, cmd)
+	gitCommon.Svn = svnCommands
 	fileLoader := git_commands.NewFileLoader(gitCommon, cmd, configCommands)
 	statusCommands := git_commands.NewStatusCommands(gitCommon)
 	flowCommands := git_commands.NewFlowCommands(gitCommon)

@@ -782,7 +782,7 @@ func (self *BranchesController) newBranch(selectedBranch *models.Branch) error {
 			Items: []*types.MenuItem{
 				{
 					LabelColumns: []string{self.c.Tr.NewBranch},
-					Key: 'l',
+					Keys: menuKey('l'),
 					OnPress: func() error {
 						return self.c.Helpers().Refs.NewBranch(
 							selectedBranch.FullRefName(),
@@ -793,7 +793,7 @@ func (self *BranchesController) newBranch(selectedBranch *models.Branch) error {
 				},
 				{
 					LabelColumns: []string{self.c.Tr.NewSvnBranch},
-					Key: 's',
+					Keys: menuKey('s'),
 					OnPress: func() error {
 						return self.newSvnBranch(selectedBranch)
 					},
@@ -972,11 +972,10 @@ func (self *BranchesController)newSvnBranch(selectedBranch *models.Branch) error
 				}
 
 				if err := self.c.Git().Svn.Fetch(); err != nil {
-					self.c.ErrorMsg(fmt.Sprintf(self.c.Tr.SvnFetchFailed))
+					return fmt.Errorf(self.c.Tr.SvnFetchFailed)
 				}
 
 				self.c.Refresh(types.RefreshOptions{
-					Mode: types.SYNC,
 					Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
 				})
 				return nil

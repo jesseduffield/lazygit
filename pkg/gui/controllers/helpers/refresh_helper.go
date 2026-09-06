@@ -1126,7 +1126,7 @@ func (self *RefreshHelper) refreshTags(env refreshEnv) error {
 
 	// SVN 自动 stale 检测 （tags）
 	if self.c.Git().Sync.GitCommon.IsSvnRepo() {
-		self.checkSvnTagStatusAsync(tags)
+		self.checkSvnTagStatusAsync()
 	}
 
 	self.refreshView(self.c.Contexts().Tags, env)
@@ -1889,21 +1889,28 @@ func (self *RefreshHelper) savePullRequestsToCache(prs []*models.GithubPullReque
 	}
 }
 
-func (self *RefreshHelper) checkSvnTagStatusAsync(tags []*models.Tag) {
+func (self *RefreshHelper) checkSvnTagStatusAsync() {
 	self.c.WithWaitingStatus(self.c.Tr.CheckingSvnStatus, func (task gocui.Task) error {
 		statuses, err := self.c.Git().Svn.CheckBranchStatus(task, "tags")
 		if err != nil {
 			return err
 		}
-		for _, tag := range tags {
-			if tag.IsSvnTag() {
-				if status, ok := statuses[tag.Name]; ok {
+		self.c.OnUIThread(func() error {
+			for _, tag := range self.c.Model().Tags {
+				if !tag.IsSvnTag() {
+					continue
+				}
+				// FullRefName() 对 SVN tag 返回 FullRefNameOverride，
+				// trim 后即 ref 相对路径，与 statuses 的 key 格式一致
+				relPath := strings.TrimPrefix(tag.FullRefName(), "refs/remotes/git-svn/")
+				if status, ok := statuses[relPath]; ok {
 					tag.StaleStatus = status
 				}
 			}
-		}
-		return self.c.Refresh(types.RefreshOptions{
-			Scope: []types.RefreshableView{types.TAGS},
+			// 仅重绘视图，不 Refresh(TAGS)，打断无限刷新链
+			self.c.PostRefreshUpdate(self.c.Contexts().Tags)
+			return nil
 		})
+		return nil
 	})
 }

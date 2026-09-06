@@ -3,6 +3,7 @@ package git_commands
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -25,10 +26,22 @@ type SvnCommands struct {
 	svnRefMappingsCache *[]SvnRefMapping
 	svnUrlCache string
 	svnUrlCacheExpiry time.Time
+	// CheckBranchStatus 结果缓存（key 为 refType），60秒过期，
+	// 避免每次界面刷新都发起 svn list 网络请求；
+	// branches 与 tags 在不同 worker协程并发调用，
+	// Go map 并发读写会触发不可恢复的 fatal error，故必须加锁
+	statusCache         map[string]map[string]models.SvnBranchStatus
+	statusCacheExpiry   map[string]time.Time
+	statusCacheMutex    sync.Mutex
 }
 
 func NewSvnCommands(gitCommon *GitCommon, cmd oscommands.ICmdObjBuilder) *SvnCommands {
-	return &SvnCommands{GitCommon: gitCommon, cmd: cmd}
+	return &SvnCommands{
+		GitCommon: gitCommon,
+		cmd: cmd,
+		statusCache: make(map[string]map[string]models.SvnBranchStatus),
+		statusCacheExpiry: make(map[string]time.Time),
+	}
 }
 
 // GetSvnUrl 从git config获取SVN仓库URL
@@ -244,49 +257,79 @@ func (self *SvnCommands) Fetch() error {
 
 // CheckBranchStatus 检测本地 refs 和 SVN 服务器的差异
 // refType: "branches" 或 "tags"
-// 返回值：map[branchPath]models.SvnBranchStatus, branchPath 如 "branches/proj1/xxx"
-// SVN list 使用 --non-interactive 防止网络阻塞，结果不缓存（每次进入时重新检测）
+// 返回值：map[refRelPath]models.SvnBranchStatus, refRelPath 为 ref 相对路
+//（完整 ref 去掉 “refs/remotes/git-svn/” 前缀，如 “branches/proj1/xxx”、”tags/R1.0.0”），
+// 与 RemoteBranch.Name / TrimPrefix(tag.FullRefName(), “refs/remotes/git-svn/”)格式一致
+// 结果缓存 60 秒； svn list 全部失败时返回错误（错误不缓存，下次调用自动重试）径
 func (self *SvnCommands) CheckBranchStatus(task gocui.Task, refType string) (map[string]models.SvnBranchStatus, error) {
+	// 整个方法加锁： branches/tags 两个调用方在不同 worker 协程，Go map并发读写
+	// 会直接触发不可恢复的 fatal error；加锁同时保护函数内
+	// GetSvnUrl/GetSvnRefMappings 既有缓存在此路径上的并发访问
+	self.statusCacheMutex.Lock()
+	defer self.statusCacheMutex.Unlock()
+
+	// 0. 命中缓存直接返回（60 秒内），避免重复发起 svn list 网络请求
+	if cached, ok := self.statusCache[refType]; ok && time.Now().Before(self.statusCacheExpiry[refType]) {
+		return cached, nil
+	}
+
 	svnUrl, err := self.GetSvnUrl()
 	if err != nil {
 		return nil, err
 	}
 
-	// 1. 获取本地 refs
+	mappings, _ := self.GetSvnRefMappings()
+
+	// 1. 获取本地 refs（遍历该类型所有 mapping 的 RefsPath，
+	// 兼容refs 端影射到非标准路径的配置，如 tags = tags/*:refs/remotes/git-svn/releases/*）
 	localRefs := make(map[string]bool)
-	refsPath := "refs/remotes/git-svn/" + refType
-	output, err := self.cmd.New(
-		NewGitCmd("for-each-ref").Arg("--format=%(refname)").Arg(refsPath).ToArgv(),
-	).DontLog().RunWithOutput()
-	if err == nil {
+    for _, m := range mappings {
+		if m.Type != refType {
+			continue;
+		}
+		output, refErr := self.cmd.New(
+			NewGitCmd("for-each-ref").Arg("--format=%(refname)").Arg(m.RefsPath).ToArgv(),
+		).DontLog().RunWithOutput()
+		if refErr != nil {
+			continue;
+		}
 		for _, line := range strings.Split(strings.TrimSpace(output), "\n") {
 			if line := strings.TrimSpace(line); line != "" {
-				relPath := strings.TrimPrefix(line, refsPath+"/")
-				localRefs[relPath] = true
+				// Key 统一为 ref 相对路径
+				localRefs[strings.TrimPrefix(line, "refs/remotes/git-svn/")] = true
 			}
 		}
 	}
 
 	// 2. 获取 SVN 服务器上的分支列表（遍历所有 SvnRefMappings)
-	mappings, _ := self.GetSvnRefMappings()
 	svnBranches := make(map[string]bool)
+	svnListAttempted := false
+	svnListOk := false
 	for _, m := range mappings {
 		if m.Type != refType {
 			continue
 		}
+		svnListAttempted = true
 		// svn list 使用 --non-interactive 防止网络不通时永久阻塞
 		svnListOutput, listErr := self.cmd.New(
 			NewGitCmd("svn").Arg("list").Arg("--non-interactive").Arg(svnUrl+"/"+m.SvnPath).ToArgv(),
 		).DontLog().RunWithOutput()
 		if listErr == nil {
+			svnListOk = true
 			for _, line := range strings.Split(strings.TrimSpace(svnListOutput), "\n") {
 				if line := strings.TrimSpace(line); line !=  "" {
 					name := strings.TrimSuffix(line, "/")
-					relPath := m.SvnPath + "/" + name
-					svnBranches[relPath] = true
+					// SVN 路径正向影射为 ref 相对路径，与 localRefs 的 key 格式统一
+					svnBranches[strings.TrimPrefix(m.RefsPath, "refs/remotes/git-svn/")+"/"+name] = true
 				}
 			}
 		}
+	}
+
+	// svn list 全部失败（网络不通、认证失败等）时返回错误并中止，
+	// 避免把”全部 Stale”的误导性结果当作真实状态展示（错误不缓存，下次自动重时）
+	if svnListAttempted && !svnListOk {
+		return nil, fmt.Errorf("svn list failed for all %s paths (network or auth error?)", refType)
 	}
 
 	// 3. 对比差异
@@ -314,6 +357,11 @@ func (self *SvnCommands) CheckBranchStatus(task gocui.Task, refType string) (map
 		}
 		result[path] = status
 	}
+
+	// 写入缓存（60 秒）。到达此处时 SVN 侧数据必然可信：
+	// 若有过 svn list 且全部失败，上方已提前返回
+	self.statusCache[refType] = result
+	self.statusCacheExpiry[refType] = time.Now().Add(60 * time.Second)
 
 	return result, nil
 }
