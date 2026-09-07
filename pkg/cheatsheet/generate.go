@@ -58,10 +58,11 @@ func generateAtDir(cheatsheetDir string) {
 		log.Fatal(err)
 	}
 	mConfig := config.NewDummyAppConfig()
+	logger := app.NewLogger(mConfig.GetDebug())
 
 	for lang := range translationSetsByLang {
 		mConfig.GetUserConfig().Gui.Language = lang
-		common, err := app.NewCommon(mConfig)
+		common, err := app.NewCommon(mConfig, logger)
 		if err != nil {
 			log.Fatal(err)
 		}
