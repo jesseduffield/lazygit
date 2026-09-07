@@ -120,3 +120,24 @@ func ExpandTilde(path string) string {
 	}
 	return filepath.Join(home, path[2:])
 }
+
+// ContractTilde is the inverse of ExpandTilde: it replaces the current user's
+// home directory at the start of a path with "~", so that paths can be shown
+// in a shorter form. Paths outside the home directory are left untouched, as
+// is the path if the home directory can't be determined.
+func ContractTilde(path string) string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return path
+	}
+
+	if path == home {
+		return "~"
+	}
+
+	if rest, found := strings.CutPrefix(path, home+string(filepath.Separator)); found {
+		return "~" + string(filepath.Separator) + rest
+	}
+
+	return path
+}

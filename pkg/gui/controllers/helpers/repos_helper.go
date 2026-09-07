@@ -135,7 +135,10 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 			LabelColumns: []string{
 				filepath.Base(path),
 				style.FgCyan.Sprint(branchName),
-				style.FgMagenta.Sprint(path),
+				// The last segment of the path is already in the first column,
+				// so showing the directory that contains the repo is enough to
+				// tell repos with the same name apart.
+				style.FgMagenta.Sprint(utils.ContractTilde(filepath.Dir(path))),
 			},
 			OnPress: func() error {
 				// Check before clearing the stack, so a refused switch doesn't
