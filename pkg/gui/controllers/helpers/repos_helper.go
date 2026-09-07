@@ -103,22 +103,86 @@ func (self *ReposHelper) getCurrentBranch(path string) string {
 	return self.c.Tr.BranchUnknown
 }
 
-// The maximum width of the repo name and branch name columns of the recent
-// repos menu. Without a limit, one long name pushes the path column off the
-// right edge of the menu for every entry, because each column is padded to the
-// width of its widest entry.
-const recentReposColumnMaxWidth = 30
+// The most that the name and the branch column of the recent repos menu are
+// allowed to take up. Each column is padded to the width of its widest entry,
+// so without a limit one long entry pushes the columns after it off the right
+// edge of the menu for every entry.
+const (
+	recentReposNameMaxWidth   = 30
+	recentReposBranchMaxWidth = 30
+)
 
-func (self *ReposHelper) recentRepoMenuItem(path string, branchName string) *types.MenuItem {
-	repoName := filepath.Base(path)
-	displayedRepoName := utils.TruncateWithEllipsis(repoName, recentReposColumnMaxWidth)
+// One entry of the recent repos menu.
+type recentRepoEntry struct {
+	// What the entry stands for
+	path       string
+	branchName string
 
-	// The icon is part of the column, so it counts towards the maximum width.
+	// The text of its three columns
+	nameColumn   string
+	branchColumn string
+	dirColumn    string
+}
+
+func newRecentRepoEntry(path string, branchName string) recentRepoEntry {
+	// The icon is part of the column, so it counts towards the column's width.
 	branchColumn := branchName
 	if icons.IsIconEnabled() {
 		branchColumn = icons.BRANCH_ICON + " " + branchName
 	}
-	displayedBranchColumn := utils.TruncateWithEllipsis(branchColumn, recentReposColumnMaxWidth)
+
+	return recentRepoEntry{
+		path:         path,
+		branchName:   branchName,
+		nameColumn:   filepath.Base(path),
+		branchColumn: branchColumn,
+		// The last segment of the path is already in the first column, so the
+		// directory that contains the repo is enough to tell repos with the
+		// same name apart.
+		dirColumn: utils.ContractTilde(filepath.Dir(path)),
+	}
+}
+
+// How wide the columns of the recent repos menu are allowed to get.
+type recentRepoColumnWidths struct {
+	name   int
+	branch int
+	dir    int
+}
+
+// Gives the name and the branch column as much as their entries need, up to
+// their respective maximum, and the rest of the row to the directory column.
+// Measuring the entries first matters because most users don't have names that
+// long; truncating the directories as if they did would cut them short for no
+// reason.
+func (self *ReposHelper) fitRecentRepoColumns(entries []recentRepoEntry) recentRepoColumnWidths {
+	// The menu appends a Cancel entry, whose label sits in the first column.
+	nameWidth := utils.StringWidth(self.c.Tr.Cancel)
+	branchWidth := 0
+	for _, entry := range entries {
+		nameWidth = max(nameWidth, utils.StringWidth(entry.nameColumn))
+		branchWidth = max(branchWidth, utils.StringWidth(entry.branchColumn))
+	}
+
+	nameWidth = min(nameWidth, recentReposNameMaxWidth)
+	branchWidth = min(branchWidth, recentReposBranchMaxWidth)
+
+	return recentRepoColumnWidths{
+		name:   nameWidth,
+		branch: branchWidth,
+		// The menu's frame takes up two columns, and two more separate the
+		// three columns from each other. What's left is the room a whole row
+		// has in a menu that is as wide as it gets.
+		dir: menuMaxWidth - 2 - 2 - nameWidth - branchWidth,
+	}
+}
+
+func (self *ReposHelper) recentRepoMenuItem(entry recentRepoEntry, widths recentRepoColumnWidths) *types.MenuItem {
+	displayedName := utils.TruncateWithEllipsis(entry.nameColumn, widths.name)
+	displayedBranch := utils.TruncateWithEllipsis(entry.branchColumn, widths.branch)
+	// The beginning and the end of a directory are both worth seeing, so it
+	// loses its middle rather than its end when it doesn't fit.
+	displayedDir := utils.TruncateWithEllipsisInMiddle(entry.dirColumn, widths.dir)
 
 	// Spell out whatever the columns show in truncated form
 	type tooltipField struct {
@@ -130,11 +194,14 @@ func (self *ReposHelper) recentRepoMenuItem(path string, branchName string) *typ
 		fields = append(fields, tooltipField{label: label, value: value})
 	}
 
-	if displayedRepoName != repoName {
-		addTooltipField(self.c.Tr.RecentReposRepoLabel, repoName)
+	if displayedName != entry.nameColumn {
+		addTooltipField(self.c.Tr.RecentReposRepoLabel, entry.nameColumn)
 	}
-	if displayedBranchColumn != branchColumn {
-		addTooltipField(self.c.Tr.RecentReposBranchLabel, branchName)
+	if displayedBranch != entry.branchColumn {
+		addTooltipField(self.c.Tr.RecentReposBranchLabel, entry.branchName)
+	}
+	if displayedDir != entry.dirColumn {
+		addTooltipField(self.c.Tr.RecentReposPathLabel, entry.dirColumn)
 	}
 
 	// Line the values up behind the widest of the labels that are there
@@ -147,16 +214,13 @@ func (self *ReposHelper) recentRepoMenuItem(path string, branchName string) *typ
 
 	return &types.MenuItem{
 		LabelColumns: []string{
-			displayedRepoName,
-			style.FgCyan.Sprint(displayedBranchColumn),
-			// The last segment of the path is already in the first column, so
-			// showing the directory that contains the repo is enough to tell
-			// repos with the same name apart.
-			style.FgMagenta.Sprint(utils.ContractTilde(filepath.Dir(path))),
+			displayedName,
+			style.FgCyan.Sprint(displayedBranch),
+			style.FgMagenta.Sprint(displayedDir),
 		},
 		// Filtering matches the full text, including the parts that the columns
 		// above truncate or leave out.
-		FilterColumns: []string{repoName, branchName, path},
+		FilterColumns: []string{entry.nameColumn, entry.branchName, entry.path},
 		Tooltip:       strings.Join(tooltipLines, "\n"),
 		OnPress: func() error {
 			// Check before clearing the stack, so a refused switch doesn't
@@ -168,7 +232,7 @@ func (self *ReposHelper) recentRepoMenuItem(path string, branchName string) *typ
 			// if we were in a submodule, we want to forget about that stack of repos
 			// so that hitting escape in the new repo does nothing
 			self.c.State().GetRepoPathStack().Clear()
-			return self.switchTo(path, self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
+			return self.switchTo(entry.path, self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
 		},
 	}
 }
@@ -195,8 +259,13 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 
 	wg.Wait()
 
-	menuItems := lo.Map(recentRepoPaths, func(path string, i int) *types.MenuItem {
-		return self.recentRepoMenuItem(path, currentBranches[i])
+	entries := lo.Map(recentRepoPaths, func(path string, i int) recentRepoEntry {
+		return newRecentRepoEntry(path, currentBranches[i])
+	})
+
+	columnWidths := self.fitRecentRepoColumns(entries)
+	menuItems := lo.Map(entries, func(entry recentRepoEntry, _ int) *types.MenuItem {
+		return self.recentRepoMenuItem(entry, columnWidths)
 	})
 
 	return self.c.Menu(types.CreateMenuOptions{

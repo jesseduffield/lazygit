@@ -334,6 +334,7 @@ type TranslationSet struct {
 	RecentRepos                           string
 	RecentReposRepoLabel                  string
 	RecentReposBranchLabel                string
+	RecentReposPathLabel                  string
 	MergeOptionsTitle                     string
 	RebaseOptionsTitle                    string
 	CherryPickOptionsTitle                string
@@ -1494,6 +1495,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RecentRepos:                          "Recent repositories",
 		RecentReposRepoLabel:                 "Repo:",
 		RecentReposBranchLabel:               "Branch:",
+		RecentReposPathLabel:                 "Path:",
 		MergeOptionsTitle:                    "Merge options",
 		RebaseOptionsTitle:                   "Rebase options",
 		CherryPickOptionsTitle:               "Cherry-pick options",
