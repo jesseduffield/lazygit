@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -112,24 +111,24 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 		recentRepoPaths = self.c.GetAppState().RecentRepos[1:]
 	}
 
-	currentBranches := sync.Map{}
+	currentBranches := make([]string, len(recentRepoPaths))
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(recentRepoPaths))
 
-	for _, path := range recentRepoPaths {
-		go func(path string) {
+	for i, path := range recentRepoPaths {
+		go func() {
 			defer wg.Done()
-			currentBranches.Store(path, self.getCurrentBranch(path))
-		}(path)
+			currentBranches[i] = self.getCurrentBranch(path)
+		}()
 	}
 
 	wg.Wait()
 
-	menuItems := lo.Map(recentRepoPaths, func(path string, _ int) *types.MenuItem {
-		branchName, _ := currentBranches.Load(path)
+	menuItems := lo.Map(recentRepoPaths, func(path string, i int) *types.MenuItem {
+		branchName := currentBranches[i]
 		if icons.IsIconEnabled() {
-			branchName = icons.BRANCH_ICON + " " + fmt.Sprintf("%v", branchName)
+			branchName = icons.BRANCH_ICON + " " + branchName
 		}
 
 		return &types.MenuItem{
