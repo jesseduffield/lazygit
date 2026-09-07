@@ -333,6 +333,10 @@ func (self *ConfirmationHelper) ResizeCurrentPopupPanels() {
 	}
 }
 
+// The width a menu grows to when the window is wide enough for it. Its content
+// is two columns narrower than this, for the frame.
+const menuMaxWidth = 90
+
 // The rows that a filter row adds to a menu popup: one for the input, and one
 // for its bottom border. Its top border is the menu's bottom border.
 const menuFilterRowHeight = 2
@@ -368,7 +372,7 @@ func (self *ConfirmationHelper) resizeMenu(parentPopupContext types.Context) {
 	// resize the window
 	itemCount := menuContext.UnfilteredLen()
 	offset := 3
-	panelWidth := self.getPopupPanelWidth(90)
+	panelWidth := self.getPopupPanelWidth(menuMaxWidth)
 	contentWidth := panelWidth - 2 // minus 2 for the frame
 	promptLinesCount := self.layoutMenuPrompt(contentWidth)
 	// The row is reserved for the whole time the menu is open, even though it only
