@@ -103,6 +103,76 @@ func (self *ReposHelper) getCurrentBranch(path string) string {
 	return self.c.Tr.BranchUnknown
 }
 
+// The maximum width of the repo name and branch name columns of the recent
+// repos menu. Without a limit, one long name pushes the path column off the
+// right edge of the menu for every entry, because each column is padded to the
+// width of its widest entry.
+const recentReposColumnMaxWidth = 30
+
+func (self *ReposHelper) recentRepoMenuItem(path string, branchName string) *types.MenuItem {
+	repoName := filepath.Base(path)
+	displayedRepoName := utils.TruncateWithEllipsis(repoName, recentReposColumnMaxWidth)
+
+	// The icon is part of the column, so it counts towards the maximum width.
+	branchColumn := branchName
+	if icons.IsIconEnabled() {
+		branchColumn = icons.BRANCH_ICON + " " + branchName
+	}
+	displayedBranchColumn := utils.TruncateWithEllipsis(branchColumn, recentReposColumnMaxWidth)
+
+	// Spell out whatever the columns show in truncated form
+	type tooltipField struct {
+		label string
+		value string
+	}
+	fields := []tooltipField{}
+	addTooltipField := func(label string, value string) {
+		fields = append(fields, tooltipField{label: label, value: value})
+	}
+
+	if displayedRepoName != repoName {
+		addTooltipField(self.c.Tr.RecentReposRepoLabel, repoName)
+	}
+	if displayedBranchColumn != branchColumn {
+		addTooltipField(self.c.Tr.RecentReposBranchLabel, branchName)
+	}
+
+	// Line the values up behind the widest of the labels that are there
+	labelWidth := utils.MaxFn(fields, func(field tooltipField) int {
+		return utils.StringWidth(field.label)
+	})
+	tooltipLines := lo.Map(fields, func(field tooltipField, _ int) string {
+		return utils.WithPadding(field.label, labelWidth, utils.AlignLeft) + " " + field.value
+	})
+
+	return &types.MenuItem{
+		LabelColumns: []string{
+			displayedRepoName,
+			style.FgCyan.Sprint(displayedBranchColumn),
+			// The last segment of the path is already in the first column, so
+			// showing the directory that contains the repo is enough to tell
+			// repos with the same name apart.
+			style.FgMagenta.Sprint(utils.ContractTilde(filepath.Dir(path))),
+		},
+		// Filtering matches the full text, including the parts that the columns
+		// above truncate or leave out.
+		FilterColumns: []string{repoName, branchName, path},
+		Tooltip:       strings.Join(tooltipLines, "\n"),
+		OnPress: func() error {
+			// Check before clearing the stack, so a refused switch doesn't
+			// forget the submodule breadcrumb (which would leave escape
+			// unable to return to the parent repo).
+			if self.switchRefusedBecauseBusy() {
+				return nil
+			}
+			// if we were in a submodule, we want to forget about that stack of repos
+			// so that hitting escape in the new repo does nothing
+			self.c.State().GetRepoPathStack().Clear()
+			return self.switchTo(path, self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
+		},
+	}
+}
+
 func (self *ReposHelper) CreateRecentReposMenu() error {
 	// we'll show an empty panel if there are no recent repos
 	recentRepoPaths := []string{}
@@ -126,33 +196,7 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 	wg.Wait()
 
 	menuItems := lo.Map(recentRepoPaths, func(path string, i int) *types.MenuItem {
-		branchName := currentBranches[i]
-		if icons.IsIconEnabled() {
-			branchName = icons.BRANCH_ICON + " " + branchName
-		}
-
-		return &types.MenuItem{
-			LabelColumns: []string{
-				filepath.Base(path),
-				style.FgCyan.Sprint(branchName),
-				// The last segment of the path is already in the first column,
-				// so showing the directory that contains the repo is enough to
-				// tell repos with the same name apart.
-				style.FgMagenta.Sprint(utils.ContractTilde(filepath.Dir(path))),
-			},
-			OnPress: func() error {
-				// Check before clearing the stack, so a refused switch doesn't
-				// forget the submodule breadcrumb (which would leave escape
-				// unable to return to the parent repo).
-				if self.switchRefusedBecauseBusy() {
-					return nil
-				}
-				// if we were in a submodule, we want to forget about that stack of repos
-				// so that hitting escape in the new repo does nothing
-				self.c.State().GetRepoPathStack().Clear()
-				return self.switchTo(path, self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
-			},
-		}
+		return self.recentRepoMenuItem(path, currentBranches[i])
 	})
 
 	return self.c.Menu(types.CreateMenuOptions{

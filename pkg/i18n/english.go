@@ -332,6 +332,8 @@ type TranslationSet struct {
 	NotMidRebase                          string
 	MustSelectFixupCommit                 string
 	RecentRepos                           string
+	RecentReposRepoLabel                  string
+	RecentReposBranchLabel                string
 	MergeOptionsTitle                     string
 	RebaseOptionsTitle                    string
 	CherryPickOptionsTitle                string
@@ -1490,6 +1492,8 @@ func EnglishTranslationSet() *TranslationSet {
 		NotMidRebase:                         "This action only works during an interactive rebase",
 		MustSelectFixupCommit:                "This action only works on fixup commits",
 		RecentRepos:                          "Recent repositories",
+		RecentReposRepoLabel:                 "Repo:",
+		RecentReposBranchLabel:               "Branch:",
 		MergeOptionsTitle:                    "Merge options",
 		RebaseOptionsTitle:                   "Rebase options",
 		CherryPickOptionsTitle:               "Cherry-pick options",

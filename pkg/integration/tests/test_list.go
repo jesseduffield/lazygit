@@ -366,6 +366,7 @@ var tests = []*components.IntegrationTest{
 	misc.FilterRecentRepos,
 	misc.InitialOpen,
 	misc.RecentReposOnLaunch,
+	misc.RecentReposWithLongNames,
 	misc.StartInGitDir,
 	patch_building.Apply,
 	patch_building.ApplyInReverse,
