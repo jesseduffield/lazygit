@@ -118,13 +118,12 @@ func (self *ConfirmationHelper) getPopupPanelDimensionsAux(contentWidth int, con
 		y0 += 1
 		return x0, y0, x0 + panelWidth - 1, y0 + panelHeight - 1
 	}
-	return width/2 - panelWidth/2,
-		height/2 - panelHeight/2 - panelHeight%2,
-		// Currently, X1/Y1 of a gocui view is one less than you would expect based on its
-		// width/height, so we need to subtract 1 here. See
-		// https://github.com/jesseduffield/lazygit/commit/f6f2a52dee8bba3ebd7e3b34b4b7c7d3e3795f3e
-		width/2 + panelWidth/2 - 1,
-		height/2 + panelHeight/2 - 1
+	x0 := (width - panelWidth) / 2
+	y0 := height/2 - panelHeight/2 - panelHeight%2
+	// Currently, X1/Y1 of a gocui view is one less than you would expect based on its
+	// width/height, so we need to subtract 1 here. See
+	// https://github.com/jesseduffield/lazygit/commit/f6f2a52dee8bba3ebd7e3b34b4b7c7d3e3795f3e
+	return x0, y0, x0 + panelWidth - 1, y0 + panelHeight - 1
 }
 
 const (
