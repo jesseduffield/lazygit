@@ -127,18 +127,28 @@ func (self *ConfirmationHelper) getPopupPanelDimensionsAux(contentWidth int, con
 		height/2 + panelHeight/2 - 1
 }
 
+const (
+	// The width a popup panel keeps as long as it fits into the window at all,
+	// even when the panel asks for less.
+	popupPanelMinWidth = 80
+
+	// The margin we try to leave between a popup panel and the sides of the
+	// window, so that the panel doesn't sit flush against them as soon as the
+	// window gets a little narrow.
+	popupPanelMargin = 3
+)
+
 // Returns the outer width of the view, including its frame. To decide how to wrap text, subtract 2.
 // Also, note that X1-X0 of the view is one less than this.
-func (self *ConfirmationHelper) getPopupPanelWidth(maxWidth int) int {
-	width, _ := self.c.GocuiGui().Size()
-	// we want a minimum width up to a point, then we do it based on ratio, but only up to the given max width
-	panelWidth := min(4*width/7, maxWidth)
-	minWidth := 80
-	if panelWidth < minWidth {
-		panelWidth = min(width-2, minWidth)
-	}
+func (self *ConfirmationHelper) getPopupPanelWidth(requestedWidth int) int {
+	windowWidth, _ := self.c.GocuiGui().Size()
+	// A panel gets the width it asks for as long as the margin fits beside it.
+	// It gives the margin up before it goes below the minimum width, and a
+	// column on either side is all it leaves in the end.
+	widthWithMargin := windowWidth - 2*popupPanelMargin
+	widthAtMinWidth := min(popupPanelMinWidth, windowWidth-2)
 
-	return panelWidth
+	return min(requestedWidth, max(widthWithMargin, widthAtMinWidth))
 }
 
 func (self *ConfirmationHelper) prepareConfirmationPanel(
