@@ -254,7 +254,7 @@ func (self *RemoteBranchesController) deleteSvnLocalRefs(selectedBranches []*mod
 			}
 		}
 		self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
-		self.c.Refresh(types.RefreshOptions{
+		self.c.RefreshFromWorker(types.RefreshOptions{
 			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
 		})
 		return nil
@@ -288,7 +288,7 @@ func (self *RemoteBranchesController) confirmDeleteSvnBoth(selectedBranches []*m
 					_ = self.c.Git().Svn.DeleteLocalRef(refName)
 				}
 				self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
-				self.c.Refresh(types.RefreshOptions{
+				self.c.RefreshFromWorker(types.RefreshOptions{
 					Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
 				})
 				return nil

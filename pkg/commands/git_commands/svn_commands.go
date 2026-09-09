@@ -58,7 +58,7 @@ func (self *SvnCommands) GetSvnUrl() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	self.svnUrlCache = strings.TrimSpace(output)
+	self.svnUrlCache = strings.TrimSuffix(strings.TrimSpace(output), "/")
 	self.svnUrlCacheExpiry = time.Now().Add(60 * time.Second)
 	return self.svnUrlCache, nil
 }
@@ -238,7 +238,7 @@ func (self *SvnCommands) DeleteServerBranch(task gocui.Task, branchPath string) 
 	if err != nil {
 		return err
 	}
-	cmdArgs := NewGitCmd("svn").Arg("delete").Arg(fmt.Sprintf("%s/%s", svnUrl, branchPath)).Arg("-m").Arg(fmt.Sprintf("Delete branch %s", branchPath)).ToArgv()
+	cmdArgs := []string{"svn", "delete", fmt.Sprintf("%s/%s", svnUrl, branchPath), "-m", fmt.Sprintf("Delete branch %s", branchPath)}
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
 }
 
@@ -312,7 +312,7 @@ func (self *SvnCommands) CheckBranchStatus(task gocui.Task, refType string) (map
 		svnListAttempted = true
 		// svn list 使用 --non-interactive 防止网络不通时永久阻塞
 		svnListOutput, listErr := self.cmd.New(
-			NewGitCmd("svn").Arg("list").Arg("--non-interactive").Arg(svnUrl+"/"+m.SvnPath).ToArgv(),
+			[]string{"svn", "list", "--non-interactive", svnUrl+"/"+m.SvnPath},
 		).DontLog().RunWithOutput()
 		if listErr == nil {
 			svnListOk = true

@@ -968,14 +968,17 @@ func (self *BranchesController)newSvnBranch(selectedBranch *models.Branch) error
 
 			return self.c.WithWaitingStatus(self.c.Tr.SvnFetchingStatus, func(task gocui.Task) error {
 				if err := self.c.Git().Svn.CreateBranch(branchName); err != nil {
-					return fmt.Errorf(self.c.Tr.SvnOperationFailed, map[string]string{"error": err.Error()})
+					return fmt.Errorf("%s", utils.ResolvePlaceholderString(
+						self.c.Tr.SvnOperationFailed,
+						map[string]string{"error": err.Error()},
+					))
 				}
 
 				if err := self.c.Git().Svn.Fetch(); err != nil {
-					return fmt.Errorf(self.c.Tr.SvnFetchFailed)
+					return errors.New(self.c.Tr.SvnFetchFailed)
 				}
 
-				self.c.Refresh(types.RefreshOptions{
+				self.c.RefreshFromWorker(types.RefreshOptions{
 					Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
 				})
 				return nil
