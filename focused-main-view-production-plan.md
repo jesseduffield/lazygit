@@ -1716,7 +1716,9 @@ way to test the non-conforming path** — its command is entirely the test's, un
 Not fixed, raised for later: `renderNonTextualConflict` (the DU/UD conflict hint
 plus a `--base` diff) also renders with `DiffModeRendered` hard-coded, so the
 same bypass doesn't happen there; whether a selection over that content should
-exist at all is the prior question.
+exist at all is the prior question. **Answered 2026-09-10** (PR 9's round 1,
+item 3): it shouldn't, and the hard-coded mode is right as it is. The fix is a
+`fixup!` on this round's own commit.
 
 #### Rebase mechanics for mid-branch fixups (learned the hard way, 2026-08-17)
 
@@ -1869,7 +1871,8 @@ Two smaller things deliberately left, besides the §8 rows:
   in the new rendering — which would also replace the "far end didn't survive →
   collapse to the one line we landed on" behaviour signed off in PR 6.
 - `renderNonTextualConflict` still renders with `DiffModeRendered` hard-coded
-  (carried over from round 3, unchanged).
+  (carried over from round 3, unchanged). It stays that way; what changed on
+  2026-09-10 is that the pane shows no selection over it (PR 9's round 1).
 
 #### Review round 5 (2026-08-19) — the main section changing hands
 
@@ -2473,10 +2476,49 @@ Deviations from the plan above:
 11. `excludedViews` in `cheatsheet/generate.go` was left as an empty slice
     behind a `lo.Contains` that can never fire; removed.
 
-Left alone deliberately: `wrapLinesInDiffView` now governs `Main`/`Secondary`
-wrapping for everything those panes show, not only diffs (master had them
-hard-wired to `true`, so the default is unchanged). The user is still making
-up their mind about it.
+#### Review round 1 (2026-09-10) — the wrap option, and a hint that is no diff
+
+Both of the round's problems turn on one question: what counts as a main pane
+holding *the panel's diff*, as opposed to a message, a log, or a diff shown as
+part of an explanation. The user chose to have the render answer it —
+`NewMainViewDiffTask`, which every diff render already goes through, marks its
+task, and `types.ContentIsDiff` reads the mark back — over having the panel
+answer per selected file. Nothing at a call site carries a flag of its own.
+
+1. **`wrapLinesInDiffView` applies to diffs alone.** It was governing both main
+   panes whatever they held, so with wrapping off a branch's commit log, the
+   status, and the message explaining a merge conflict were all cut off at the
+   edge of the pane. On master they always wrapped, the option reaching only
+   the staging view. Each render is now wrapped as its own content asks. New
+   e2e test `wrap_only_the_diff`, with `ViewDriver.ContainsViewLines` to assert
+   on the lines as the view lays them out rather than as the content has them.
+2. **The rename and the behaviour are two commits** (asked for by the user).
+   "Name diff options after the view that now uses them" was doing both. The
+   rename comes first, leaving the option governing nothing for one commit, and
+   "Let wrapLinesInDiffView govern the two main panes" follows with (1) as its
+   `fixup!`.
+3. **No selection over the conflict hint** — the question round 3 of PR 7 left
+   open. A conflict that can only be resolved by picking a side is explained
+   rather than diffed, and for a file deleted on one side and modified on the
+   other git's diff of that modification is shown below the explanation. The
+   pane took those change lines for a diff of its own and offered to stage
+   hunks of them. The same mark settles it: that render doesn't carry it, so
+   the pane shows no selection and every command that acts on one is disabled.
+   The diff mode stays hard-coded to `DiffModeRendered`, which is what the
+   user asked for. Placed as a `fixup!` in **PR 7**, on "Show git's own diff
+   when the renderer's can't be acted on", with
+   `no_selection_over_a_conflict_hint`.
+
+Diffing mode (`W`) keeps the selection it has today: its render is a diff and
+says so, so §8's deferred row is untouched. PR 7 renders the custom patch
+preview as text it assembles itself, so the mark reaches string renders too
+there; PR 8's commit that materializes the patch takes that half away again in
+a `fixup!` of its own, the preview being a diff of two trees from there on.
+
+PRs 8 and 9 were replayed over the PR 7 fixup, and `diff-file-menu` and
+`edit-diff-line-with-modified-click` over the new PR 9 tip. Every commit from
+the split onwards builds and unit-tests on its own; the whole e2e suite passes
+at the PR 7 fixup, at the PR 9 tip, and at the top of the stack.
 
 ### PR 10 — Alt- or shift-click a diff line to open it in your editor
 
@@ -2562,7 +2604,7 @@ user pass before merge:
 | 6 | ✅ **APPROVED 2026-08-15.** `{`/`}`, `ctrl+w` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ignoring whitespace where it removes the anchor's hunk, and where it empties the diff. Nothing found; the whitespace consumer called out as a welcome addition |
 | 7 | ✅ **APPROVED 2026-08-16**, except for `E` ("Edit hunk"), ported here on 2026-09-01 and still owing a pass with a real editor, including a patch edited to something neither side of the diff says. Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro). Four review comments about the stack as a whole, all fixed the same day — see PR 7's sign-off section |
 | 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
-| 9 | `enter` and double-click on a file (working tree and commit) under each renderer; `{`/`}` down to 0 and back while a patch is being built; the keybindings menu's tooltips over both kinds of diff; screen modes with a diff focused |
+| 9 | `enter` and double-click on a file (working tree and commit) under each renderer; `{`/`}` down to 0 and back while a patch is being built; the keybindings menu's tooltips over both kinds of diff; screen modes with a diff focused; `wrapLinesInDiffView: false` with a long line in a diff, a branch log, the status and a conflict hint on screen in turn (round 1) |
 | 10 | Ghostty, iTerm2, VS Code |
 
 Patched renderer builds: `cargo build` in delta/difftastic worktrees
@@ -2781,6 +2823,16 @@ The remaining rows are agreed as keep/defer:
 deviations from this plan inline, dated.)
 
 Log:
+
+- **2026-09-10:** **Two problems from testing PR 9, both about what a main pane
+  is holding.** `wrapLinesInDiffView` was governing every render in the two
+  panes, and a selection was drawn over the hint for a conflict that has to be
+  resolved by picking a side. A render now says whether it holds the panel's
+  diff, and both questions read that answer. Written up as PR 9's round 1, with
+  the config rename split off from the behaviour into its own commit as the
+  user asked. Two `fixup!`s in PR 7 and PR 8 and one in PR 9; PRs 8 and 9 and
+  the two branches above them replayed. Two new e2e tests, one new harness
+  assertion, whole suite green at three points in the stack.
 
 - **2026-09-06 (later):** **Round 6 tested in turn, and the same fix found short
   again**, this time for a commit with a 10000-line message. The user's reading:
