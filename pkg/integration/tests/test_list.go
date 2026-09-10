@@ -400,6 +400,7 @@ var tests = []*components.IntegrationTest{
 	main_view.NavigateByHunkAndFile,
 	main_view.NoSelectionOverABinaryDiff,
 	main_view.NoSelectionOverACommitLog,
+	main_view.NoSelectionOverAConflictHint,
 	main_view.NoSelectionWhenNoChanges,
 	main_view.RangeSelectDiffLines,
 	main_view.RawFallbackUnderAnExternalDiff,
