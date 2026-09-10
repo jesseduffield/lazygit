@@ -2532,9 +2532,10 @@ at the PR 7 fixup, at the PR 9 tip, and at the top of the stack.
 ### PR 10 — Alt- or shift-click a diff line to open it in your editor
 
 **Status: DONE 2026-08-20** on branch
-`edit-diff-line-with-modified-click`, branched directly from PR 8 so that PR 9
-can follow independently. Six commits, each building, unit-testing, and
-linting clean; whole e2e suite passing. §6 interactive sign-off owed.
+`edit-diff-line-with-modified-click`, replayed onto PR 9's tip since. Nine
+commits plus round 1's eight `fixup!`/`amend!` commits, each building,
+unit-testing and linting clean on its own; whole e2e suite passing. §6
+interactive sign-off owed.
 
 Self-contained after PR 5 (uses PR 4's `GetDiffLineInfo` and PR 5's focused
 main-view edit path). Commits (N§19):
@@ -2545,8 +2546,13 @@ main-view edit path). Commits (N§19):
 3. **gocui: carry the press-time keyboard modifiers through the whole mouse
    gesture** — snapshot the modifiers at button press and stamp them on the
    press, every drag event (ORed with `ModMotion`), and the release;
-   modifier changes while the button is held are ignored. Master's gesture
-   model (#5854) made the pre-rebase press-only fix (da4201aa2, on the
+   modifier changes while the button is held are ignored. Master delivers no keyboard
+   modifiers on mouse events at all (`mouseMod` is `ModNone` for every one of
+   them, and the `mouseMod = ModNone` in its release branch is dead code), so
+   this branch is where they start arriving — **say that in the PR
+   description**, since
+   the commit message reads as though only the carrying were new. Master's
+   gesture model (#5854) made the pre-rebase press-only fix (da4201aa2, on the
    `-plan` copy) insufficient: bindings match modifiers exactly, so a
    modified press that nothing consumed would otherwise start matching
    unmodified drag bindings mid-gesture (drag-select), and a modified
@@ -2573,15 +2579,105 @@ main-view edit path). Commits (N§19):
    editor clears the flash before disengaging the terminal, so nothing appears
    on resume.
 
+Three gocui preparations sit below the list, in this order: "Cleanup: remove
+error return value from `Gui.SetRune`, `Gui.draw()` et al", "Remove unused
+per-line highlighting" (`View.SetHighlight` had no production callers, and the
+flash is the per-line marking gocui does need), and "Separate redraws from
+view-line invalidation", so the flash can ask for a repaint without
+claiming the cached wrapping is stale.
+
+A refinement to the click handling in the main view was implemented here too: a
+plain click inside the currently selected hunk collapses the selection to the
+clicked line, matching how a click inside a range selection already behaves.
+**It has since moved to PR 5**, where the click behaviour it refines was
+decided; see round 1 below.
+
 Interactive sign-off: Ghostty, iTerm2, VS Code (already done once for the
 prototype; re-confirm the transcription).
 
-As part of this PR we also implemented a refinement to the click handling in the
-main view: a plain click inside the currently selected hunk collapses the
-selection to the clicked line, matching how a click inside a range selection
-already behaves. This was included here as a separate commit because doing it as
-a fixup for the corresponding PR 5 commit would have conflicted too much
-(because code was later moved).
+#### Review round 1 (2026-09-10) — the branch reviewed for the first time
+
+Nine commits by then, three more than the list above. All checks were green,
+and the round found two defects in the mouse handling, one in the new command,
+no test for the command at all, no documentation for the gesture, and two
+message slips.
+
+1. **The hunk-collapse commit belongs in PR 5**, and moved there as an `amend!`
+   for "Select a whole change block when focusing the main view in hunk mode".
+   That commit decides what a click does in hunk mode and spends a sentence of
+   its message on the rule; this one carves a case out of that rule, rewrites
+   the same comment, and edits assertions into the middle of that commit's own
+   test. Left in PR 5 as a commit of its own it would have had PR 5 change its
+   own click rule five commits after stating it.
+
+   **The reason the paragraph above gave for keeping it here does not hold.**
+   Replaying the 76 commits over the target took one conflict, in "Select a
+   range of diff lines by dragging", where the two `SetDragAnchorViewLine`
+   lines go back around the new branch. It also took one adjustment that git
+   makes no conflict of: "Give the focused main view's selection a home outside
+   the controllers" moves the diff-line helpers into `diff_line_selection.go`,
+   and it has to take `SelectedHunkBounds` and the new call site along, so it
+   is marked `edit` in the todo rather than picked. Without that, the tip stops
+   compiling on a `showSelectionAtLine` that commit deleted. The tree at the
+   tip came out identical to the tip before the move.
+
+2. **A modified click that no binding wants moved a list panel's selection
+   highlight.** Mouse events start carrying keyboard modifiers in "Keep mouse
+   gesture modifiers stable" (see the item above), and bindings match modifiers
+   exactly. `onKey` moves the view cursor before it consults the bindings,
+   though, and a list view draws its selection at that cursor. So alt- or
+   shift-clicking the files, branches, commits or stash panel moved the bar
+   while the panel's selected item stayed put, and the next action worked on
+   the item the bar had left. The cursor move and the mouse capture now happen
+   only for a gesture carrying no keyboard modifier. Motion is not one of
+   those, so a drag still moves the cursor as it did.
+   `fixup!` on that commit, with
+   `TestAModifiedClickNoBindingWantsLeavesTheViewAlone`.
+
+3. **A click a popup swallowed armed a double click.** "Let mouse bindings work
+   behind focused popups" has to know about a double click before the
+   `ShouldHandleMouseEvent` gate rejects anything, and it moved the recording
+   of the click up there too. So a click behind a popup, the popup dismissed,
+   and the same cell clicked again inside the threshold arrived as a double
+   click. `isDoubleClick` now only asks, and `recordClickInfo` is called where
+   a binding is about to see the click — in the early pass once one matches,
+   and after the gate otherwise. `fixup!` with
+   `TestASwallowedClickIsNoHalfOfADoubleClick`.
+
+4. **The modified click opened a line of a conflict hint in the editor.** The
+   edit keybinding refuses over content that isn't the panel's diff, by its
+   disabled reason and by a guard of its own; `editClickedLine` had neither.
+   The hint for a file deleted on one side and modified on the other embeds
+   git's own diff of the modification, and those rows parse as diff lines like
+   any other. `HasSelectableContent` answers that question without also asking
+   whether the pane has the focus, and this gesture is meant to work without
+   it. `fixup!` on the feature commit, with the assertion added to
+   `no_selection_over_a_conflict_hint`.
+
+5. **The command had no test**, nor did the gocui flag it rests on. New e2e
+   test `edit_clicked_diff_line` covers both modifiers, the file and line the
+   editor is pointed at, that the focus and the selection stay where they are,
+   and the click landing while a menu holds the focus. It needed
+   `GuiDriver.ClickWithModifier` and the `AltClick`/`ShiftClick` pair on
+   `ViewDriver`; the harness delivered modifier `0` on every mouse event
+   before. New gocui test `TestOnlyBindingsThatOptedInFireBehindAFocusedPopup`
+   covers `HandleWhenPopupPanelFocused` in both directions. Two `fixup!`s, one
+   per target.
+
+6. **The gesture was undocumented.** Mouse bindings reach no cheatsheet, so
+   nothing said it exists. `docs-master/Config.md`'s "Configuring File Editing"
+   section now names it beside `e`, and `Custom_DiffRenderers.md` says it next
+   to delta's `--hyperlinks`, the affordance the feature commit's message says
+   it generalizes. `fixup!` on the feature commit.
+
+7. **Two slips.** The cleanup commit's subject named `View.draw()`, which
+   already returned nothing; it changes `Gui.draw` (`amend!`). And removing
+   `View.SetHighlight` left two comments naming a view's own highlighting as a
+   reason for `firstDirtyLine` to move. Only `write` moves it now (`fixup!`).
+
+Every commit from the amend! in PR 5 to the tip builds and unit-tests on its
+own; whole e2e suite green at the tip. Backup of the pre-round tip:
+`edit-diff-line-with-modified-click-2026-09-10-1900-backup`.
 
 ### PR 11 — Open the selected diff line in the branch's GitHub PR
 
@@ -2675,6 +2771,7 @@ The remaining rows are agreed as keep/defer:
 | The cheatsheets describe `space`/`d` in the focused main view by their working-tree meaning only (new, PR 8) | Defer. `pkg/cheatsheet/generate.go` reads the static `Description`, which is one string per binding, while the key now means two things depending on the diff; the options bar and the keybindings menu say the right one (PR 8 deviation 15) |
 | A diff still being read shows no selection until a change line has arrived (new, PR 5 round 5) | **Closed in round 7**: the pane reads on until it can tell, so the wait is however long it takes to reach the first change line, and no user action is needed to end it |
 | Focusing at the top of a commit whose diffstat fills the screen lands the selection on a stat row (new, PR 5 round 6) | **Keep** — the user's call, 2026-09-06. Focusing never moves the view, and with no change line on screen the selection goes to the middle visible line. Reaching the first hunk from there is one press of `a` or `right`, which is preferable to the view scrolling on its own |
+| A modified click on a renderer's hyperlink opens the hyperlink, not the clicked line (new, PR 10) | Keep. The hyperlink is handled before any mouse binding and ignores modifiers, as on master. Both paths open the same file at the same line for `lazygit-edit://` links, so only a renderer pointing its links elsewhere would tell the difference |
 | A renderer that keeps the diff and hunk headers but drops body lines could be mis-parsed where it ends the buffer (new, PR 2 round 1) | Keep. The leniency applies to one section, the one the buffer breaks off in, and every renderer that restructures a body lengthens hunks rather than shortening them. A mis-parse would act on the wrong line only in the focused main view, and there the diff is either git's own or one whose lines state their own identity (`MainViewDiffMode`) |
 
 ## 9. Open questions (resolve before/during the marked PR)
@@ -2786,7 +2883,8 @@ The remaining rows are agreed as keep/defer:
       green, every commit builds/tests/lints clean on its own), stacked on
       `support-osc-1717-diff-metadata`.
       Jump-to-file menu skipped and copy moved to PR 7 (see its deviations).
-      §6 sign-off **approved 2026-08-15**
+      §6 sign-off **approved 2026-08-15**. One `amend!` added 2026-09-10 by
+      PR 10's round 1, for the click that collapses hunk mode
 - [x] PR 6 — position preserve — **DONE 2026-08-15** on branch
       `keep-diff-position-on-rerender` (7 commits, fixups folded, all checks
       green, every commit builds and unit-tests clean on its own), stacked on
@@ -2824,14 +2922,30 @@ The remaining rows are agreed as keep/defer:
       foot of the stack; master-level bugs that PR 7 turned into a hang. Its
       own PR, mergeable ahead of the rest
 - [x] PR 10 — alt/shift-click edit — **DONE 2026-08-20** on branch
-   `edit-diff-line-with-modified-click` (6 commits, every commit green,
-   whole e2e suite passing), stacked directly on PR 8; §6 sign-off owed
+   `edit-diff-line-with-modified-click` (9 commits plus round 1's eight
+   `fixup!`/`amend!`s, every commit green, whole e2e suite passing), stacked on
+   PR 9; §6 sign-off owed
 - [ ] PR 11 — open PR at line
 
 (Add per-commit checkboxes inside each PR section as work starts; record
 deviations from this plan inline, dated.)
 
 Log:
+
+- **2026-09-10 (later):** **PR 10 reviewed for the first time.** Its opening
+  commit moved down to PR 5 as an `amend!`, the fixup its own note had called
+  too conflict-prone to write: the replay took one conflict and one commit
+  marked `edit`, and the tree came out unchanged. Four more findings needed
+  code. Two are in gocui, and both come of this branch being where mouse events
+  start carrying keyboard modifiers — an unbound modified click moved a
+  list panel's highlight bar away from its selected item, and a click a popup
+  swallowed armed a double click. One is in the new command, which opened a
+  line of a merge-conflict hint that the edit keybinding refuses. The last two
+  are a command with no test and a gesture with no documentation. Eight
+  `fixup!`/`amend!` commits, two of them inserted mid-branch, and one `amend!`
+  in PR 5; three new tests plus `GuiDriver.ClickWithModifier` for the harness.
+  Written up as PR 10's round 1, with a §8 row for the renderer-hyperlink
+  overlap.
 
 - **2026-09-10:** **Two problems from testing PR 9, both about what a main pane
   is holding.** `wrapLinesInDiffView` was governing every render in the two
