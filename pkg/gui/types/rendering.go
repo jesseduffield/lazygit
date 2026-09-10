@@ -69,12 +69,25 @@ func NewRenderStringTask(str string) *RenderStringTask {
 
 type RenderStringWithoutScrollTask struct {
 	Str string
+
+	// contentIsDiff marks a string that is a panel's own diff; see ContentIsDiff.
+	contentIsDiff bool
 }
 
 func (t *RenderStringWithoutScrollTask) IsUpdateTask() {}
 
 func NewRenderStringWithoutScrollTask(str string) *RenderStringWithoutScrollTask {
 	return &RenderStringWithoutScrollTask{Str: str}
+}
+
+// NewMainViewDiffStringTask returns the task for rendering a diff we hold as text
+// rather than as a command to run — the custom patch being built, which we assemble
+// ourselves. The view stays where it is, the patch being rendered again on every
+// change to it.
+func NewMainViewDiffStringTask(str string) UpdateTask {
+	task := NewRenderStringWithoutScrollTask(str)
+	task.contentIsDiff = true
+	return task
 }
 
 type RenderStringWithScrollTask struct {
@@ -92,6 +105,9 @@ func NewRenderStringWithScrollTask(str string, originX int, originY int) *Render
 type RunCommandTask struct {
 	Cmd    *exec.Cmd
 	Prefix string
+
+	// contentIsDiff marks output that is a panel's own diff; see ContentIsDiff.
+	contentIsDiff bool
 }
 
 func (t *RunCommandTask) IsUpdateTask() {}
@@ -107,6 +123,9 @@ func NewRunCommandTaskWithPrefix(cmd *exec.Cmd, prefix string) *RunCommandTask {
 type RunDiffRendererTask struct {
 	Cmd    *exec.Cmd
 	Prefix string
+
+	// contentIsDiff marks output that is a panel's own diff; see ContentIsDiff.
+	contentIsDiff bool
 }
 
 func (t *RunDiffRendererTask) IsUpdateTask() {}
@@ -123,13 +142,36 @@ func NewRunDiffRendererTaskWithPrefix(cmd *exec.Cmd, prefix string) *RunDiffRend
 // normally goes through the diff renderer, however the render arranges to feed it. A
 // diff we are producing with git itself, because the renderer's version of it couldn't
 // be acted on, has to keep the renderer out, so it runs as a plain command instead.
+//
+// The task it returns is the one that says its output is a diff, so a pane rendering
+// it can be pointed at (see ContentIsDiff).
 func NewMainViewDiffTask(cmd *exec.Cmd, mode git_commands.DiffMode) UpdateTask {
 	return NewMainViewDiffTaskWithPrefix(cmd, "", mode)
 }
 
 func NewMainViewDiffTaskWithPrefix(cmd *exec.Cmd, prefix string, mode git_commands.DiffMode) UpdateTask {
 	if mode == git_commands.DiffModeRaw {
-		return NewRunCommandTaskWithPrefix(cmd, prefix)
+		task := NewRunCommandTaskWithPrefix(cmd, prefix)
+		task.contentIsDiff = true
+		return task
 	}
-	return NewRunDiffRendererTaskWithPrefix(cmd, prefix)
+	task := NewRunDiffRendererTaskWithPrefix(cmd, prefix)
+	task.contentIsDiff = true
+	return task
+}
+
+// ContentIsDiff reports whether the given render fills a main pane with the diff a
+// panel offers there, as opposed to a message, a commit log, or a diff that is part of
+// an explanation. A selection means the lines of the panel's diff, so it is only over
+// such a render that there is anything to point at.
+func ContentIsDiff(task UpdateTask) bool {
+	switch task := task.(type) {
+	case *RenderStringWithoutScrollTask:
+		return task.contentIsDiff
+	case *RunCommandTask:
+		return task.contentIsDiff
+	case *RunDiffRendererTask:
+		return task.contentIsDiff
+	}
+	return false
 }

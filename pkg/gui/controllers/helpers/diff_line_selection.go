@@ -30,10 +30,10 @@ func (self *DiffLineHelper) EstablishSelection(mainContext *context.MainContext,
 	mainContext.ResetDiffSelectMode()
 	view := mainContext.GetView()
 
-	// The panel beneath renders a diff, but that diff may hold nothing to act on: a
-	// binary file, or an empty commit. Rendering it worked that out, so the pane is
-	// already showing no selection and there is nowhere to put one.
-	if !self.ViewHasChangeLines(view) {
+	// The pane may hold nothing to act on: a diff of a binary file or an empty commit,
+	// or content that is no diff of the panel's at all. Rendering it worked that out,
+	// so the pane is already showing no selection and there is nowhere to put one.
+	if !mainContext.HasSelectableContent() {
 		return
 	}
 

@@ -66,6 +66,10 @@ func (gui *Gui) RefreshMainView(opts *types.ViewUpdateOpts, context types.Contex
 
 	view.Subtitle = opts.SubTitle
 
+	if mainContext := gui.mainContextForView(view); mainContext != nil {
+		mainContext.SetContentIsDiff(types.ContentIsDiff(opts.Task))
+	}
+
 	if err := gui.runTaskForView(view, opts.Task); err != nil {
 		gui.c.Log.Error(err)
 	}
@@ -290,6 +294,9 @@ func (gui *Gui) clearMainView(mainContext types.Context) {
 	view.Clear()
 	view.SetOrigin(0, 0)
 	mainContext.SetHasSelectableContent(false)
+	if pane := gui.mainContextForView(view); pane != nil {
+		pane.SetContentIsDiff(false)
+	}
 	gui.State.ContextMgr.UpdateSelectionHighlights()
 	if manager := gui.getViewBufferManagerForView(view); manager != nil {
 		manager.ForgetRenderedContent()
@@ -298,10 +305,10 @@ func (gui *Gui) clearMainView(mainContext types.Context) {
 
 // updateDiffSelectionVisibility works out whether a main pane holds anything for a
 // selection to sit on, from what it is now showing: only beneath a panel whose main
-// view is a diff, and only while that diff holds something to select — never over a
-// message like "No changed files", and never over a diff with nothing in it, such as a
-// binary file's or an empty commit's. Whether the selection is then drawn, and drawn as
-// the active one, follows from the context stack.
+// view is a diff, only while the pane is showing that diff rather than a message like
+// "No changed files", and only while the diff holds something to select — never over
+// one with nothing in it, such as a binary file's or an empty commit's. Whether the
+// selection is then drawn, and drawn as the active one, follows from the context stack.
 //
 // It is asked wherever the pane's content changes: as a string is rendered, at the
 // paint that reveals a command's output, with every further batch of that output, and
@@ -379,6 +386,14 @@ func (gui *Gui) readOnUntilTheDiffPaneCanTell(view *gocui.View) {
 func (gui *Gui) diffPaneHasSomethingToSelect(
 	mainContext *context.MainContext, view *gocui.View, contentIsComplete bool,
 ) (bool, bool) {
+	if !mainContext.ContentIsDiff() {
+		// The pane is holding something other than the panel's diff: a message, or the
+		// hint shown for a merge conflict that has to be resolved by picking a side,
+		// which explains itself with a diff of what the sides did. Whatever is in there
+		// is not ours to act on, so this needs no content to answer either.
+		return false, true
+	}
+
 	if _, showsDiff := gui.State.ContextMgr.CurrentSide().(types.DiffMainViewContext); !showsDiff {
 		// Under a panel that shows no diff there is nothing to select whatever the pane
 		// ends up holding, so this needs no content to answer. Answering it now matters,
