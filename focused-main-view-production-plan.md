@@ -1718,7 +1718,8 @@ plus a `--base` diff) also renders with `DiffModeRendered` hard-coded, so the
 same bypass doesn't happen there; whether a selection over that content should
 exist at all is the prior question. **Answered 2026-09-10** (PR 9's round 1,
 item 3): it shouldn't, and the hard-coded mode is right as it is. The fix is a
-`fixup!` on this round's own commit.
+commit of its own, "Show a selection only over the diff the panel offers",
+sitting right after this round's commit.
 
 #### Rebase mechanics for mid-branch fixups (learned the hard way, 2026-08-17)
 
@@ -2505,9 +2506,17 @@ answer per selected file. Nothing at a call site carries a flag of its own.
    hunks of them. The same mark settles it: that render doesn't carry it, so
    the pane shows no selection and every command that acts on one is disabled.
    The diff mode stays hard-coded to `DiffModeRendered`, which is what the
-   user asked for. Placed as a `fixup!` in **PR 7**, on "Show git's own diff
-   when the renderer's can't be acted on", with
+   user asked for. It lands in **PR 7** as a commit of its own, "Show a
+   selection only over the diff the panel offers", right after "Show git's own
+   diff when the renderer's can't be acted on", with
    `no_selection_over_a_conflict_hint`.
+
+   **A `fixup!` was wrong here** (the user, correcting the first attempt): the
+   commit it would have folded into decides *which diff to render*, and this
+   decides *whether the content can be pointed at*. Two decisions, two commits,
+   even though the second only becomes possible with the first. The fix belongs
+   in PR 5, where the selection came from; that being impractical, its own
+   commit here says in its message why it arrives this late.
 
 Diffing mode (`W`) keeps the selection it has today: its render is a diff and
 says so, so §8's deferred row is untouched. PR 7 renders the custom patch
@@ -2832,7 +2841,9 @@ Log:
   the config rename split off from the behaviour into its own commit as the
   user asked. Two `fixup!`s in PR 7 and PR 8 and one in PR 9; PRs 8 and 9 and
   the two branches above them replayed. Two new e2e tests, one new harness
-  assertion, whole suite green at three points in the stack.
+  assertion, whole suite green at three points in the stack. The PR 7 fixup
+  was then made a commit of its own: a fixup would have put two decisions in
+  one commit (see PR 9's round 1, item 3).
 
 - **2026-09-06 (later):** **Round 6 tested in turn, and the same fix found short
   again**, this time for a commit with a 10000-line message. The user's reading:
