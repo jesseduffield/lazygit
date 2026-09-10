@@ -141,7 +141,7 @@ func (self *RemoteBranchesController) context() *context.RemoteBranchesContext {
 }
 
 func (self *RemoteBranchesController) delete(selectedBranches []*models.RemoteBranch) error {
-	if len(selectedBranches) > 0 && selectedBranches[0].RemoteName == "git-svn" {
+	if len(selectedBranches) > 0 && self.c.Git().Sync.GitCommon.IsSvnRepo() && selectedBranches[0].RemoteName == self.c.Git().Svn.GetSvnRemoteName() {
 		return self.deleteSvnRemoteBranches(selectedBranches)
 	}
 	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(selectedBranches, true)

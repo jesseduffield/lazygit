@@ -44,16 +44,10 @@ func getTagDisplayStrings(
 	}
 
 	name := t.Name
-	// SVN stale 标记
-	if t.IsSvnTag() {
-		switch t.StaleStatus {
-		case models.SvnBranchStatusStale:
-			name = t.Name + "⚠"
-			textStyle = style.FgRed
-		case models.SvnBranchStatusMissing:
-			name = t.Name + "(not fetched)"
-			textStyle = style.FgWhite
-		}
+
+	if t.IsSvnTag() && t.StaleStatus == models.SvnBranchStatusMissing {
+		name = t.Name + "(not fetched)"
+		textStyle = style.FgWhite
 	}
 
 	descriptionColor := style.FgYellow

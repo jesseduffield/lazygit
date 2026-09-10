@@ -23,12 +23,7 @@ func getRemoteBranchDisplayStrings(b *models.RemoteBranch, diffed bool) []string
 	}
 
 	name := b.Name
-	// SVN stale 标记
-	switch b.StaleStatus {
-	case models.SvnBranchStatusStale:
-		name = b.Name + "⚠"
-		textStyle = style.FgRed
-	case models.SvnBranchStatusMissing:
+	if b.StaleStatus == models.SvnBranchStatusMissing {
 		name = b.Name + "(not fetched)"
 		textStyle = style.FgWhite
 	}

@@ -1891,23 +1891,52 @@ func (self *RefreshHelper) savePullRequestsToCache(prs []*models.GithubPullReque
 
 func (self *RefreshHelper) checkSvnTagStatusAsync() {
 	self.c.WithWaitingStatus(self.c.Tr.CheckingSvnStatus, func (task gocui.Task) error {
-		statuses, err := self.c.Git().Svn.CheckBranchStatus(task, "tags")
+		svnRemoteName := self.c.Git().Svn.GetSvnRemoteName()
+
+		pruned, err := self.c.Git().Svn.PruneStaleRefs("tags")
+		if err != nil {
+			return err
+		}
+		prunedSet := make(map[string]bool)
+		for _, p := range pruned {
+			prunedSet[p] = true
+		}
+		
+		missing, err := self.c.Git().Svn.GetMissingRefs("tags")
 		if err != nil {
 			return err
 		}
 		self.c.OnUIThread(func() error {
-			for _, tag := range self.c.Model().Tags {
-				if !tag.IsSvnTag() {
-					continue
-				}
-				// FullRefName() 对 SVN tag 返回 FullRefNameOverride，
-				// trim 后即 ref 相对路径，与 statuses 的 key 格式一致
-				relPath := strings.TrimPrefix(tag.FullRefName(), "refs/remotes/git-svn/")
-				if status, ok := statuses[relPath]; ok {
-					tag.StaleStatus = status
+			refsPrefix := "refs/remotes/" + svnRemoteName + "/"
+
+			if len(prunedSet) > 0 {
+				self.c.Model().Tags = lo.Filter(self.c.Model().Tags, func(t *models.Tag, _ int) bool {
+					if !t.IsSvnTag() {
+						return true
+					}
+					relPath := strings.TrimPrefix(t.FullRefName(), refsPrefix)
+					return prunedSet[relPath]
+				})
+			}
+
+			existingNames := make(map[string]bool)
+			for _, t := range self.c.Model().Tags {
+				if t.IsSvnTag() {
+					relPath := strings.TrimPrefix(t.FullRefName(), refsPrefix)
+					existingNames[relPath] = true
 				}
 			}
-			// 仅重绘视图，不 Refresh(TAGS)，打断无限刷新链
+			for _, m := range missing {
+				if !existingNames[m] {
+					self.c.Model().Tags = append(self.c.Model().Tags,
+				&models.Tag{
+					Name: m,
+					Message: "(SVN tag, not fetched)",
+					FullRefNameOverride: refsPrefix + m,
+					StaleStatus: models.SvnBranchStatusMissing,
+				})
+				}
+			}
 			self.c.PostRefreshUpdate(self.c.Contexts().Tags)
 			return nil
 		})

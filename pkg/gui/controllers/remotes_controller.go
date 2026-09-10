@@ -146,7 +146,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	self.c.PostRefreshUpdate(remoteBranchesContext)
 
 	// SVN 自动 stale 检测
-	if remote.Name == "git-svn" && self.c.Git().Sync.GitCommon.IsSvnRepo() {
+	if remote.Name == self.c.Git().Svn.GetSvnRemoteName() && self.c.Git().Sync.GitCommon.IsSvnRepo() {
 		self.checkSvnBranchStatusAsync()
 	}
 	self.c.Context().Push(remoteBranchesContext, types.OnFocusOpts{})
@@ -374,6 +374,9 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 		refreshOptions := types.RefreshOptions{
 			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
 		}
+		if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+			refreshOptions.Scope = append(refreshOptions.Scope, types.TAGS)
+		}
 		if branchName != "" {
 			err = self.c.Git().Branch.New(branchName, remote.Name+"/"+branchName)
 			if err == nil {
@@ -393,13 +396,17 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 			}
 		}
 		self.c.RefreshFromWorker(refreshOptions)
+		
+		if self.c.Git().Sync.GitCommon.IsSvnRepo() && remote.Name == self.c.Git().Svn.GetSvnRemoteName() {
+			self.checkSvnBranchStatusAsync()
+		}
 		return err
 	})
 }
 
 func (self *RemotesController) notGitSvnRemote() *types.DisabledReason {
 	remote := self.context().GetSelected()
-	if remote != nil && remote.Name == "git-svn" {
+	if remote != nil && self.c.Git().Sync.GitCommon.IsSvnRepo() && remote.Name == self.c.Git().Svn.GetSvnRemoteName() {
 		return &types.DisabledReason{Text: "Cannot modify git-svn remote"}
 	}
 	return nil

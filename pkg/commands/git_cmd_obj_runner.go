@@ -46,7 +46,8 @@ func isRetryableError(output string, err error) bool {
 		text += "\n" + err.Error()
 	}
 	return strings.Contains(text, "index.lock") ||
-		strings.Contains(text, "cannot lock ref")
+		strings.Contains(text, "cannot lock ref") ||
+		strings.Contains(text, "resource temporarily unavailable")
 }
 
 func (self *gitCmdObjRunner) Run(cmdObj *oscommands.CmdObj) error {

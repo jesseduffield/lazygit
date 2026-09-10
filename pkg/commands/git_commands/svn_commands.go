@@ -44,6 +44,23 @@ func NewSvnCommands(gitCommon *GitCommon, cmd oscommands.ICmdObjBuilder) *SvnCom
 	}
 }
 
+// GetSvnRemoteName 从 ref 影射中提取实际的 SVN 远程名。
+// 例如 RefsPath 为 “refs/remotes/svn/trunk” 时返回 “svn”。
+func (self *SvnCommands) GetSvnRemoteName() string {
+	mappings, err := self.GetSvnRefMappings()
+	if err != nil || len(mappings) == 0 {
+		return "svn"
+	}
+
+	for _, m := range mappings {
+		parts := strings.SplitN(m.RefsPath, "/", 4)
+		if len(parts) >= 3 && parts[0] == "refs" && parts[1] == "remotes" {
+			return parts[2]
+		}
+	}
+	return "svn"
+}
+
 // GetSvnUrl 从git config获取SVN仓库URL
 // 返回值如 https://svn.example.com/repo
 // 结果缓存60秒
@@ -189,16 +206,19 @@ func (self *SvnCommands) GetSvnUpstream(branchName string) (string, string, erro
 		return "", "", err
 	}
 
+	remoteName := self.GetSvnRemoteName()
+	refsPrefix := "refs/remotes/" + remoteName + "/"
+
 	for _, m := range mappings {
 		if relPath == m.SvnPath {
-			upstreamBranch := strings.TrimPrefix(m.RefsPath, "refs/remotes/git-svn/")
-			return "git-svn", upstreamBranch, nil
+			upstreamBranch := strings.TrimPrefix(m.RefsPath, refsPrefix)
+			return remoteName, upstreamBranch, nil
 		}
 		if strings.HasPrefix(relPath, m.SvnPath+"/") {
 			remaining := strings.TrimPrefix(relPath, m.SvnPath)
 			fullRef := m.RefsPath + remaining
-			upstreamBranch := strings.TrimPrefix(fullRef, "refs/remotes/git-svn/")
-			return "git-svn", upstreamBranch, nil
+			upstreamBranch := strings.TrimPrefix(fullRef, refsPrefix)
+			return remoteName, upstreamBranch, nil
 		}
 	}
 
@@ -242,10 +262,11 @@ func (self *SvnCommands) DeleteServerBranch(task gocui.Task, branchPath string) 
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
 }
 
-// DeleteLocalRef 仅删除本地远程跟踪引用（refs/remotes/git-svn/xxx）
-// 不影响 SVN 服务器，安全操作
+// DeleteLocalRef 仅删除本地远程跟踪引用（refs/remotes/<svn-remote>/xxx）
+// 不影响 SVN 服务器，安全操作。使用 git update-ref -d 而非 git branch -D -r，
+// 因为后者只适用于 branch 格式的 ref 名，不适用于 tags 路径。
 func (self *SvnCommands) DeleteLocalRef(refName string) error {
-	cmdArgs := NewGitCmd("branch").Arg("-D").Arg("-r").Arg(refName).ToArgv()
+	cmdArgs := NewGitCmd("update-ref").Arg("-d").Arg(refName).ToArgv()
 	return self.cmd.New(cmdArgs).Run()
 }
 
@@ -253,6 +274,53 @@ func (self *SvnCommands) DeleteLocalRef(refName string) error {
 func (self *SvnCommands) Fetch() error {
 	cmdArgs := NewGitCmd("svn").Arg("fetch").Arg("--all").ToArgv()
 	return self.cmd.New(cmdArgs).Run()
+}
+
+// InvalidateStatusCache 清除 CheckBranchStatus 的缓存。
+// 应在 git svn fetch 之后调用，确保下次检测使用最新数据。
+func (self *SvnCommands) InvalidateStatusCache() {
+	self.statusCacheMutex.Lock()
+	defer self.statusCacheMutex.Unlock()
+	self.statusCache = make(map[string]map[string]models.SvnBranchStatus)
+	self.statusCacheExpiry = make(map[string]time.Time)
+}
+
+// PruneStaleRefs 删除 SVN 服务器上已不存在的本地远程跟踪引用。
+// refType: “branches” 或 “tags”
+// 返回已删除的 ref 相对路径列表（与 RemoteBranch.Name 格式一致）。
+func (self *SvnCommands) PruneStaleRefs(refType string) ([]string, error) {
+	statuses, err := self.CheckBranchStatus(nil, refType)
+	if err != nil {
+		return nil, err
+	}
+	var pruned []string
+	refsPrefix := "refs/remotes/" + self.GetSvnRemoteName() + "/"
+	for path, status := range statuses {
+		if status == models.SvnBranchStatusStale {
+			fullRef := refsPrefix + path
+			if err := self.DeleteLocalRef(fullRef); err != nil {
+				self.GitCommon.Log.Warnf("failed to prune stale ref %s: %v", fullRef, err)
+				continue
+			}
+			pruned = append(pruned, path)
+		}
+	}
+	return pruned, nil
+}
+// GetMissingRefs 返回 SVN 服务器上存在但本地未 fetch 的 ref 路径列表。
+// refType: “branches” 或 “tags”
+func (self *SvnCommands) GetMissingRefs(refType string) ([]string, error) {
+	statuses, err := self.CheckBranchStatus(nil, refType)
+	if err != nil {
+		return nil, err
+	}
+	var missing []string
+	for path, status := range statuses {
+		if status == models.SvnBranchStatusMissing {
+			missing = append(missing, path)
+		}
+	}
+	return missing, nil
 }
 
 // CheckBranchStatus 检测本地 refs 和 SVN 服务器的差异
@@ -279,9 +347,10 @@ func (self *SvnCommands) CheckBranchStatus(task gocui.Task, refType string) (map
 	}
 
 	mappings, _ := self.GetSvnRefMappings()
+	refsPrefix := "refs/remotes/" + self.GetSvnRemoteName() + "/"
 
 	// 1. 获取本地 refs（遍历该类型所有 mapping 的 RefsPath，
-	// 兼容refs 端影射到非标准路径的配置，如 tags = tags/*:refs/remotes/git-svn/releases/*）
+	// 兼容refs 端影射到非标准路径的配置，如 tags = tags/*:refs/remotes/svn/releases/*）
 	localRefs := make(map[string]bool)
     for _, m := range mappings {
 		if m.Type != refType {
@@ -296,7 +365,35 @@ func (self *SvnCommands) CheckBranchStatus(task gocui.Task, refType string) (map
 		for _, line := range strings.Split(strings.TrimSpace(output), "\n") {
 			if line := strings.TrimSpace(line); line != "" {
 				// Key 统一为 ref 相对路径
-				localRefs[strings.TrimPrefix(line, "refs/remotes/git-svn/")] = true
+				localRefs[strings.TrimPrefix(line, refsPrefix)] = true
+			}
+		}
+	}
+	// 排除属于其他类型 mapping 的 ref，避免误判为 Stale。
+	// 例如 branches 的 RefsPath 为 refs/remotes/svn, 会匹配到 trunk 和 tags/*。
+	// 但它们分别属于 trunk 和 tags类型，不应出现在 branches 的 localRefs 中。
+	// 仅当其他 mapping  的 RefsPath 落在当前 refType 某个 mapping 的 RefsPath 范围内时
+	// 才需要排除——因为只有此时 for-each-ref 才可能返回属于其他类型的 ref。
+	// 反之若当前 refType 的 RefsPath 更具体（如 tags 的 refs/remotes/svn/tags），
+	// for-each-ref 不会返回其他类型的 ref，无需排除。
+	for _, other := range mappings {
+		if other.Type == refType {
+			continue
+		}
+		isSubPath := false
+		for _, m := range mappings {
+			if m.Type == refType && (other.RefsPath == m.RefsPath || strings.HasPrefix(other.RefsPath, m.RefsPath+"/")) {
+				isSubPath = true
+				break
+			}
+		}
+		if isSubPath {
+			continue
+		}
+		for ref := range localRefs {
+			fullRef := refsPrefix + ref
+			if fullRef == other.RefsPath || strings.HasPrefix(fullRef, other.RefsPath+"/") {
+				delete(localRefs, ref)
 			}
 		}
 	}
@@ -320,16 +417,24 @@ func (self *SvnCommands) CheckBranchStatus(task gocui.Task, refType string) (map
 				if line := strings.TrimSpace(line); line !=  "" {
 					name := strings.TrimSuffix(line, "/")
 					// SVN 路径正向影射为 ref 相对路径，与 localRefs 的 key 格式统一
-					svnBranches[strings.TrimPrefix(m.RefsPath, "refs/remotes/git-svn/")+"/"+name] = true
+					// m.RefsPath 去掉通配符后无尾斜杠（如 refs/remotes/svn），
+					// 需先补 “/” 再 TrimPrefix refsPrefix （如 refs/remotes/svn/），
+					// 否则 TrimPrefix 不匹配，key 变成完整 ref 路径而非相对路径。
+					svnBranches[strings.TrimPrefix(m.RefsPath+"/", refsPrefix)+name] = true
 				}
 			}
+		} else {
+			self.GitCommon.Log.Warnf("svn list failed for %s: %v", svnUrl+"/"+m.SvnPath, listErr)
 		}
 	}
 
-	// svn list 全部失败（网络不通、认证失败等）时返回错误并中止，
-	// 避免把”全部 Stale”的误导性结果当作真实状态展示（错误不缓存，下次自动重时）
+	// Svn list failed for all path: svn may be unavailable, network or auth issue.
+	// Return empty result with nil error to avoid error dialog.
+	// Stale status keeps default (Unknown), does not affect core functionality.
+	// Error is not cached, next call will retry automatically.
 	if svnListAttempted && !svnListOk {
-		return nil, fmt.Errorf("svn list failed for all %s paths (network or auth error?)", refType)
+		self.GitCommon.Log.Warnf("svn list failed for all %s paths, skipping stale detection", refType)
+		return map[string]models.SvnBranchStatus{}, nil
 	}
 
 	// 3. 对比差异

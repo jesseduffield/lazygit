@@ -147,9 +147,11 @@ func (self *SyncCommands) FastForward(
 }
 
 func (self *SyncCommands) FetchRemote(task gocui.Task, remoteName string) error {
-	if self.IsGitSvnRepo && remoteName == "git-svn" {
+	if self.IsGitSvnRepo && remoteName == self.Svn.GetSvnRemoteName() {
 		cmdArgs := NewGitCmd("svn").Arg("fetch").ToArgv()
-		return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
+		err := self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
+		self.Svn.InvalidateStatusCache()
+		return err
 	}
 	cmdArgs := self.fetchCommandBuilder(false).
 		Arg(remoteName).
