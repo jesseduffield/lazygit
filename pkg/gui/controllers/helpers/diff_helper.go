@@ -125,7 +125,7 @@ func (self *DiffHelper) RenderDiff() {
 		self.c.Tr.ShowingGitDiff,
 		"git diff "+strings.Join(args, " "),
 	)
-	task := types.NewRunDiffRendererTaskWithPrefix(cmdObj.GetCmd(), prefix)
+	task := types.NewMainViewDiffTaskWithPrefix(cmdObj.GetCmd(), prefix, git_commands.DiffModeRendered)
 
 	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,

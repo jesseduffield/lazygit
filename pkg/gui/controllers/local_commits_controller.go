@@ -727,7 +727,7 @@ func secondaryPatchPanelUpdateOpts(c *ControllerCommon) *types.ViewUpdateOpts {
 		patch := c.Git().Patch.PatchBuilder.RenderAggregatedPatch(false)
 
 		return &types.ViewUpdateOpts{
-			Task:  types.NewRenderStringWithoutScrollTask(patch),
+			Task:  types.NewMainViewDiffStringTask(patch),
 			Title: c.Tr.CustomPatch,
 		}
 	}
