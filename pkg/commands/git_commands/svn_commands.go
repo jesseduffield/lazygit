@@ -387,7 +387,7 @@ func (self *SvnCommands) CheckBranchStatus(task gocui.Task, refType string) (map
 				break
 			}
 		}
-		if isSubPath {
+		if !isSubPath {
 			continue
 		}
 		for ref := range localRefs {

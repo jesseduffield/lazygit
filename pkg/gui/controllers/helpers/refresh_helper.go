@@ -1915,7 +1915,7 @@ func (self *RefreshHelper) checkSvnTagStatusAsync() {
 						return true
 					}
 					relPath := strings.TrimPrefix(t.FullRefName(), refsPrefix)
-					return prunedSet[relPath]
+					return !prunedSet[relPath]
 				})
 			}
 

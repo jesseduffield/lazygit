@@ -13,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type RemotesController struct {
@@ -414,21 +415,49 @@ func (self *RemotesController) notGitSvnRemote() *types.DisabledReason {
 
 func (self *RemotesController) checkSvnBranchStatusAsync() {
 	self.c.WithWaitingStatus(self.c.Tr.CheckingSvnStatus, func (task gocui.Task) error {
-		statuses, err := self.c.Git().Svn.CheckBranchStatus(task, "branches")
+		svnRemoteName := self.c.Git().Svn.GetSvnRemoteName()
+
+		pruned, err := self.c.Git().Svn.PruneStaleRefs("branches")
 		if err != nil {
 			return err
 		}
+		prunedSet := make(map[string]bool)
+		for _, p := range pruned {
+			prunedSet[p] = true
+		}
+
+		missing, err := self.c.Git().Svn.GetMissingRefs("branches")
+		if err != nil {
+			return err
+		}
+
 		self.c.OnUIThread(func() error {
-			for _, branch := range self.c.Model().RemoteBranches {
-				if branch.RemoteName != "git-svn" {
-					continue
-				}
-				// key 为 ref 相对路径，与 RemoteBranch.Name 格式一致
-				if status, ok := statuses[branch.Name]; ok {
-					branch.StaleStatus = status
+			if len(prunedSet) > 0 {
+				self.c.Model().RemoteBranches = lo.Filter(self.c.Model().RemoteBranches, func(b *models.RemoteBranch, _ int) bool {
+					if b.RemoteName != svnRemoteName {
+						return true
+					}
+					return !prunedSet[b.Name]
+				})
+			}
+
+			existingNames := make(map[string]bool)
+			for _, b := range self.c.Model().RemoteBranches {
+				if b.RemoteName == svnRemoteName {
+					existingNames[b.Name] = true
 				}
 			}
-			// 仅重绘视图，不 Refresh 重建模型（避免 StaleStatus 被冲掉）
+			for _, m := range missing {
+				if !existingNames[m] {
+					self.c.Model().RemoteBranches = append(self.c.Model().RemoteBranches,
+				&models.RemoteBranch{
+					Name: m,
+					RemoteName: svnRemoteName,
+					StaleStatus: models.SvnBranchStatusMissing,
+				})
+				}
+			}
+
 			self.c.PostRefreshUpdate(self.c.Contexts().RemoteBranches)
 			return nil
 		})
