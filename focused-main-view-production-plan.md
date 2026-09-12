@@ -2533,7 +2533,7 @@ at the PR 7 fixup, at the PR 9 tip, and at the top of the stack.
 
 **Status: DONE 2026-08-20** on branch
 `edit-diff-line-with-modified-click`, replayed onto PR 9's tip since. Nine
-commits plus round 1's eight `fixup!`/`amend!` commits, each building,
+commits plus round 1's seven `fixup!`/`amend!` commits, each building,
 unit-testing and linting clean on its own; whole e2e suite passing. §6
 interactive sign-off owed.
 
@@ -2598,9 +2598,9 @@ prototype; re-confirm the transcription).
 #### Review round 1 (2026-09-10) — the branch reviewed for the first time
 
 Nine commits by then, three more than the list above. All checks were green,
-and the round found two defects in the mouse handling, one in the new command,
-no test for the command at all, no documentation for the gesture, and two
-message slips.
+and the round found two defects in the mouse handling, no test for the command
+at all, no documentation for the gesture, and two message slips. A third
+suspected defect turned out to be the behaviour we want (item 4).
 
 1. **The hunk-collapse commit belongs in PR 5**, and moved there as an `amend!`
    for "Select a whole change block when focusing the main view in hunk mode".
@@ -2644,15 +2644,24 @@ message slips.
    and after the gate otherwise. `fixup!` with
    `TestASwallowedClickIsNoHalfOfADoubleClick`.
 
-4. **The modified click opened a line of a conflict hint in the editor.** The
-   edit keybinding refuses over content that isn't the panel's diff, by its
-   disabled reason and by a guard of its own; `editClickedLine` had neither.
-   The hint for a file deleted on one side and modified on the other embeds
-   git's own diff of the modification, and those rows parse as diff lines like
-   any other. `HasSelectableContent` answers that question without also asking
-   whether the pane has the focus, and this gesture is meant to work without
-   it. `fixup!` on the feature commit, with the assertion added to
-   `no_selection_over_a_conflict_hint`.
+4. **The modified click opens a line of a conflict hint in the editor, and
+   should** (raised as a defect, resolved the other way by the user
+   2026-09-12). It looked like one because the edit keybinding refuses there,
+   by its disabled reason and by a guard of its own, while `editClickedLine`
+   has neither: the hint for a file deleted on one side and modified on the
+   other embeds git's own diff of the modification, and those rows parse as
+   diff lines like any other.
+
+   **The two commands need different gates.** `e` needs `view.Highlight`
+   because without a selection it has no line to act on. A click names its own
+   line, so it needs nothing of the sort — and for a `DU` or `UD` conflict the
+   file is in the working tree either way, holding the modified side, so
+   opening it at the clicked line is worth having. You may want to copy a piece
+   of that hunk elsewhere before resolving the conflict by deleting the file.
+   The other content the pane can hold needs no gate either: a message has no
+   `diff --git` line above it, so `fileSectionBounds` finds no file section and
+   `editDiffLine` returns having done nothing. A `HasSelectableContent` guard
+   and its e2e assertion were written and then dropped.
 
 5. **The command had no test**, nor did the gocui flag it rests on. New e2e
    test `edit_clicked_diff_line` covers both modifiers, the file and line the
@@ -2676,8 +2685,10 @@ message slips.
    reason for `firstDirtyLine` to move. Only `write` moves it now (`fixup!`).
 
 Every commit from the amend! in PR 5 to the tip builds and unit-tests on its
-own; whole e2e suite green at the tip. Backup of the pre-round tip:
-`edit-diff-line-with-modified-click-2026-09-10-1900-backup`.
+own; whole e2e suite green at the tip. Backups: the pre-round tip is
+`edit-diff-line-with-modified-click-2026-09-10-1900-backup`, and the tip before
+item 4's guard was dropped is
+`edit-diff-line-with-modified-click-2026-09-12-1000-backup`.
 
 ### PR 11 — Open the selected diff line in the branch's GitHub PR
 
@@ -2922,7 +2933,7 @@ The remaining rows are agreed as keep/defer:
       foot of the stack; master-level bugs that PR 7 turned into a hang. Its
       own PR, mergeable ahead of the rest
 - [x] PR 10 — alt/shift-click edit — **DONE 2026-08-20** on branch
-   `edit-diff-line-with-modified-click` (9 commits plus round 1's eight
+   `edit-diff-line-with-modified-click` (9 commits plus round 1's seven
    `fixup!`/`amend!`s, every commit green, whole e2e suite passing), stacked on
    PR 9; §6 sign-off owed
 - [ ] PR 11 — open PR at line
@@ -2939,13 +2950,14 @@ Log:
   code. Two are in gocui, and both come of this branch being where mouse events
   start carrying keyboard modifiers — an unbound modified click moved a
   list panel's highlight bar away from its selected item, and a click a popup
-  swallowed armed a double click. One is in the new command, which opened a
-  line of a merge-conflict hint that the edit keybinding refuses. The last two
-  are a command with no test and a gesture with no documentation. Eight
-  `fixup!`/`amend!` commits, two of them inserted mid-branch, and one `amend!`
-  in PR 5; three new tests plus `GuiDriver.ClickWithModifier` for the harness.
-  Written up as PR 10's round 1, with a §8 row for the renderer-hyperlink
-  overlap.
+  swallowed armed a double click. The last two are a command with no test and a
+  gesture with no documentation. A third finding, the modified click opening a
+  line of a merge-conflict hint, **turned out to be the behaviour we want**
+  (2026-09-12): the click names its own line, and the file is in the working
+  tree for both `DU` and `UD`. Seven `fixup!`/`amend!` commits, two of them
+  inserted mid-branch, and one `amend!` in PR 5; three new tests plus
+  `GuiDriver.ClickWithModifier` for the harness. Written up as PR 10's round 1,
+  with a §8 row for the renderer-hyperlink overlap.
 
 - **2026-09-10:** **Two problems from testing PR 9, both about what a main pane
   is holding.** `wrapLinesInDiffView` was governing every render in the two
