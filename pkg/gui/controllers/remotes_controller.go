@@ -146,7 +146,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 
 	self.c.PostRefreshUpdate(remoteBranchesContext)
 
-	// SVN 自动 stale 检测
+	// SVN automatic stale detection
 	if remote.Name == self.c.Git().Svn.GetSvnRemoteName() && self.c.Git().Sync.GitCommon.IsSvnRepo() {
 		self.checkSvnBranchStatusAsync()
 	}

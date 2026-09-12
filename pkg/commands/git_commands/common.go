@@ -3,6 +3,7 @@ package git_commands
 import (
 	"os"
 	"path/filepath"
+	"sync"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -18,6 +19,17 @@ type GitCommon struct {
 	diffRendererConfigManager *config.DiffRendererConfigManager
 	IsGitSvnRepo bool
 	Svn         *SvnCommands
+	// indexLock serializes index-writing git commands (git add, git reset, etc.)
+	// with git svn operations (fetch, rebase, dcommit) that internally call
+	// git update-index and take index.lock.
+	// For non-SVN repos the lock is uncontended (nanosecond overhead).
+	// For SVN repos: all git svn operations and staging commands take the lock
+	// with Lock() (blocking wait). If a background fetch is running, staging
+	// blocks on the UI thread until the fetch finishes (the fetch's "Fetching"
+	// spinner is visible). The caller (press/toggleStagedAll) pauses background
+	// refreshes for the duration to prevent a racing git status from
+	// overwriting the optimistic render with the stale pre-add state.
+	indexLock sync.Mutex
 }
 
 func (self *GitCommon) detectGitSvnRepo() {
@@ -66,4 +78,10 @@ func NewGitCommon(
 
 func (self *GitCommon) IsSvnRepo() bool {
 	return self.IsGitSvnRepo
+}
+
+// IndexLock returns the mutex used to serialize index-writing commands
+// (git add/reset) with background git svn fetch.
+func (self *GitCommon) IndexLock() *sync.Mutex {
+	return &self.indexLock
 }

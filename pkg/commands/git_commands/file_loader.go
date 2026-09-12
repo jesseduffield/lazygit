@@ -226,12 +226,17 @@ func (self *FileLoader) gitStatus(opts GitStatusOptions) ([]FileStatus, error) {
 		ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs).DontLog()
-	if !opts.Background {
+	if !opts.Background && !self.IsGitSvnRepo {
 		// Every git command suppresses optional locks by default (see
 		// OptionalLocksEnvVar). A foreground refresh is the one exception: we let
 		// it take the lock so it persists git's refreshed stat-cache, which keeps
 		// subsequent status calls fast. Background refreshes leave it suppressed so
 		// they can't contend for index.lock.
+		// For SVN repos we also keep it suppressed: git svn fetch internally
+		// calls git update-index (taking index.lock), and with the lock enabled
+		// our own foreground git status would also take index.lock, racing
+		// with git add from rapid user staging. The stat-cache refresh is a
+		// pure performance optimization and is safe to skip.
 		cmdObj.RemoveEnvVar(OptionalLocksEnvVar)
 	}
 

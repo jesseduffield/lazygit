@@ -56,6 +56,10 @@ func (self *SyncCommands) Push(task gocui.Task, opts PushOpts) error {
 		return err
 	}
 
+	if self.IsGitSvnRepo {
+		self.IndexLock().Lock()
+		defer self.IndexLock().Unlock()
+	}
 	return cmdObj.Run()
 }
 
@@ -81,6 +85,10 @@ func (self *SyncCommands) FetchCmdObj(task gocui.Task) *oscommands.CmdObj {
 }
 
 func (self *SyncCommands) Fetch(task gocui.Task) error {
+	if self.IsGitSvnRepo {
+		self.IndexLock().Lock()
+		defer self.IndexLock().Unlock()
+	}
 	return self.FetchCmdObj(task).Run()
 }
 
@@ -101,6 +109,15 @@ func (self *SyncCommands) FetchBackgroundCmdObj() *oscommands.CmdObj {
 }
 
 func (self *SyncCommands) FetchBackground() error {
+	if self.IsGitSvnRepo {
+		// git svn fetch internally calls `git update-index -refresh` which takes
+		// index.lock (mandatory, not suppressed by GIT_OPTIIONAL_LOCKS=0).
+		// Use Lock: if a user operation (git add/reset) is in progress, wait
+		// for it to finish (it's millisecond-level) rath than skipping.
+		// The background fetch spinner ("Fetching") is shown while waiting.
+		self.IndexLock().Lock()
+		defer self.IndexLock().Unlock()
+	}
 	return self.FetchBackgroundCmdObj().Run()
 }
 
@@ -114,6 +131,9 @@ type PullOptions struct {
 
 func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
 	if self.IsGitSvnRepo {
+		self.IndexLock().Lock()
+		defer self.IndexLock().Unlock()
+
 		cmdArgs := NewGitCmd("svn").Arg("rebase").ToArgv()
 		return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
 	}
@@ -148,6 +168,9 @@ func (self *SyncCommands) FastForward(
 
 func (self *SyncCommands) FetchRemote(task gocui.Task, remoteName string) error {
 	if self.IsGitSvnRepo && remoteName == self.Svn.GetSvnRemoteName() {
+		self.IndexLock().Lock()
+		defer self.IndexLock().Unlock()
+
 		cmdArgs := NewGitCmd("svn").Arg("fetch").ToArgv()
 		err := self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
 		self.Svn.InvalidateStatusCache()
