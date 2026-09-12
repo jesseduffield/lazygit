@@ -2533,7 +2533,7 @@ at the PR 7 fixup, at the PR 9 tip, and at the top of the stack.
 
 **Status: DONE 2026-08-20** on branch
 `edit-diff-line-with-modified-click`, replayed onto PR 9's tip since. Nine
-commits plus round 1's seven `fixup!`/`amend!` commits, each building,
+commits plus round 1's eight `fixup!`/`amend!` commits, each building,
 unit-testing and linting clean on its own; whole e2e suite passing. §6
 interactive sign-off owed.
 
@@ -2661,7 +2661,9 @@ suspected defect turned out to be the behaviour we want (item 4).
    The other content the pane can hold needs no gate either: a message has no
    `diff --git` line above it, so `fileSectionBounds` finds no file section and
    `editDiffLine` returns having done nothing. A `HasSelectableContent` guard
-   and its e2e assertion were written and then dropped.
+   was written and then dropped; what stayed is the opposite assertion, in
+   `no_selection_over_a_conflict_hint`, so that a pane with nothing to select
+   is on the record as still having lines to point at.
 
 5. **The command had no test**, nor did the gocui flag it rests on. New e2e
    test `edit_clicked_diff_line` covers both modifiers, the file and line the
@@ -2933,7 +2935,7 @@ The remaining rows are agreed as keep/defer:
       foot of the stack; master-level bugs that PR 7 turned into a hang. Its
       own PR, mergeable ahead of the rest
 - [x] PR 10 — alt/shift-click edit — **DONE 2026-08-20** on branch
-   `edit-diff-line-with-modified-click` (9 commits plus round 1's seven
+   `edit-diff-line-with-modified-click` (9 commits plus round 1's eight
    `fixup!`/`amend!`s, every commit green, whole e2e suite passing), stacked on
    PR 9; §6 sign-off owed
 - [ ] PR 11 — open PR at line
@@ -2954,7 +2956,8 @@ Log:
   gesture with no documentation. A third finding, the modified click opening a
   line of a merge-conflict hint, **turned out to be the behaviour we want**
   (2026-09-12): the click names its own line, and the file is in the working
-  tree for both `DU` and `UD`. Seven `fixup!`/`amend!` commits, two of them
+  tree for both `DU` and `UD`, and the test that had guarded the gate now
+  guards the click instead. Eight `fixup!`/`amend!` commits, two of them
   inserted mid-branch, and one `amend!` in PR 5; three new tests plus
   `GuiDriver.ClickWithModifier` for the harness. Written up as PR 10's round 1,
   with a §8 row for the renderer-hyperlink overlap.
