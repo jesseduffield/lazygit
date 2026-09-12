@@ -448,6 +448,7 @@ var tests = []*components.IntegrationTest{
 	stash.StashStaged,
 	stash.StashStagedPartialFile,
 	stash.StashUnstaged,
+	stash.StashUntrackedOnly,
 	status.ClickRepoNameToOpenReposMenu,
 	status.ClickToFocus,
 	status.ClickWorkingTreeStateToOpenRebaseOptionsMenu,
