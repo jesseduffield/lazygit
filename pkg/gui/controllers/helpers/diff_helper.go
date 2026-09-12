@@ -40,8 +40,8 @@ func (self *DiffHelper) DiffArgs() []string {
 	file := self.currentlySelectedFilename()
 	if file != "" {
 		output = append(output, file)
-	} else if self.c.Modes().Filtering.Active() {
-		output = append(output, self.c.Modes().Filtering.GetPath())
+	} else if filterPath := self.c.Modes().Filtering.GetPath(); filterPath != "" {
+		output = append(output, filterPath)
 	}
 
 	return output
