@@ -420,6 +420,7 @@ var tests = []*components.IntegrationTest{
 	staging.DiffChangeScreenMode,
 	staging.DiffContextChange,
 	staging.DiscardAllChanges,
+	staging.HideEmptyStagedPanel,
 	staging.Search,
 	staging.SelectNextLineAfterStagingInTwoHunkDiff,
 	staging.SelectNextLineAfterStagingIsolatedAddedLine,

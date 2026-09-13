@@ -847,6 +847,11 @@
           "description": "Whether to split the main window when viewing file changes.\nOne of: 'auto' | 'always'\nIf 'auto', only split the main window when a file has both staged and unstaged changes",
           "default": "auto"
         },
+        "hideEmptyStagedPanel": {
+          "type": "boolean",
+          "description": "If true, hide the staged changes panel in the interactive staging view when it is empty.",
+          "default": false
+        },
         "screenMode": {
           "type": "string",
           "enum": [

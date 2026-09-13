@@ -301,6 +301,10 @@ gui:
   # changes
   splitDiff: auto
 
+  # If true, hide the staged changes panel in the interactive staging view when it
+  # is empty.
+  hideEmptyStagedPanel: false
+
   # Default size for focused window. Can be changed from within Lazygit with '+'
   # and '_' (but this won't change the default).
   # One of: 'normal' (default) | 'half' | 'full'

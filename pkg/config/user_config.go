@@ -193,6 +193,8 @@ type GuiConfig struct {
 	// One of: 'auto' | 'always'
 	// If 'auto', only split the main window when a file has both staged and unstaged changes
 	SplitDiff string `yaml:"splitDiff" jsonschema:"enum=auto,enum=always"`
+	// If true, hide the staged changes panel in the interactive staging view when it is empty.
+	HideEmptyStagedPanel bool `yaml:"hideEmptyStagedPanel"`
 	// Default size for focused window. Can be changed from within Lazygit with '+' and '_' (but this won't change the default).
 	// One of: 'normal' (default) | 'half' | 'full'
 	ScreenMode string `yaml:"screenMode" jsonschema:"enum=normal,enum=half,enum=full"`
@@ -917,6 +919,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			ShowDivergenceFromBaseBranch:        "none",
 			CommandLogSize:                      8,
 			SplitDiff:                           "auto",
+			HideEmptyStagedPanel:                false,
 			SkipRewordInEditorWarning:           false,
 			SkipSwitchWorktreeOnCheckoutWarning: false,
 			ScreenMode:                          "normal",

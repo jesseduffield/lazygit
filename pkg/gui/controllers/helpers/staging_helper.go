@@ -101,17 +101,20 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 		self.c.Contexts().Staging.FocusSelection()
 	}
 
-	self.c.RenderToMainViews(types.RefreshMainOpts{
+	refreshOpts := types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Staging,
 		Main: &types.ViewUpdateOpts{
 			Task:  types.NewRenderStringWithoutScrollTask(mainContent),
 			Title: self.c.Tr.UnstagedChanges,
 		},
-		Secondary: &types.ViewUpdateOpts{
+	}
+	if !self.c.UserConfig().Gui.HideEmptyStagedPanel || secondaryState != nil {
+		refreshOpts.Secondary = &types.ViewUpdateOpts{
 			Task:  types.NewRenderStringWithoutScrollTask(secondaryContent),
 			Title: self.c.Tr.StagedChanges,
-		},
-	})
+		}
+	}
+	self.c.RenderToMainViews(refreshOpts)
 }
 
 func (self *StagingHelper) handleStagingEscape() {
