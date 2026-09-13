@@ -1,6 +1,10 @@
 package controllers
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -153,6 +157,14 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Description:       self.c.Tr.NextFileInDiff,
 			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.NextFileInDiff),
 			GetDisabledReason: self.diffSelectionDisabledReason,
+		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Commits.OpenPullRequestInBrowser),
+			Handler:           self.openPullRequestAtSelectedLine,
+			Description:       self.c.Tr.OpenPullRequestAtSelectedLine,
+			DescriptionFunc:   self.pullRequestDescription(self.c.Tr.OpenPullRequestAtSelectedLine),
+			GetDisabledReason: self.openPullRequestDisabledReason,
+			Tooltip:           self.c.Tr.OpenPullRequestAtSelectedLineTooltip,
 		},
 		{
 			Keys:            opts.GetKeys(opts.Config.Universal.Return),
@@ -439,6 +451,19 @@ func (self *MainViewController) diffActionDescription(staging string, patchBuild
 	}
 }
 
+// pullRequestDescription describes a command that acts on the pull request of the
+// branch the diff belongs to. Over a diff that belongs to no branch (the working tree's,
+// a stash entry's) it describes it as nothing; this keeps the command out of the
+// keybindings menu there.
+func (self *MainViewController) pullRequestDescription(description string) func() string {
+	return self.diffSelectionDescription(func() string {
+		if self.pullRequestBranch() == "" {
+			return ""
+		}
+		return description
+	})
+}
+
 // copySelection copies the selected diff lines to the clipboard — not as the diff
 // renderer drew them, but as they read in the diff itself, which is both what you meant
 // to copy and the only form a renderer can't have mangled. A selection that is all
@@ -528,6 +553,24 @@ func (self *MainViewController) discardSelectionDisabledReason() *types.Disabled
 		return actions.DiscardSelectionDisabledReason(self.context)
 	}
 	return nil
+}
+
+// openPullRequestDisabledReason disables opening a line in the pull request where the
+// pull request has no view of what is on screen. The branch may have no pull request,
+// and the pane may be showing a diff that is not the commit's own: a diff against
+// another ref, or the custom patch, whose lines sit at the numbers the patch gives them
+// rather than the commit's.
+func (self *MainViewController) openPullRequestDisabledReason() *types.DisabledReason {
+	if reason := self.diffSelectionDisabledReason(); reason != nil {
+		return reason
+	}
+	if self.c.Modes().Diffing.Active() {
+		return &types.DisabledReason{Text: self.c.Tr.NotAvailableInDiffingMode}
+	}
+	if self.c.Helpers().DiffLine.ShowsCustomPatch(self.context.GetView()) {
+		return &types.DisabledReason{Text: self.c.Tr.NotAvailableForCustomPatch}
+	}
+	return self.c.Helpers().Host.NoPullRequestDisabledReason(self.pullRequestBranch())
 }
 
 func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
@@ -1031,6 +1074,86 @@ func (self *MainViewController) editDiffLine(viewLine int, beforeEdit func()) er
 	// ones, so they have to be carried forward before we can point an editor at them.
 	lineNumber := self.c.Helpers().Diff.AdjustLineNumber(info.Path, info.NewLine, self.context.GetViewName())
 	return self.c.Helpers().Files.EditFileAtLine(info.Path, lineNumber)
+}
+
+// openPullRequestAtSelectedLine opens the pull request of the branch whose commit the
+// main view is showing the diff of, at the line the selection is on, so that the line
+// can be commented on there.
+func (self *MainViewController) openPullRequestAtSelectedLine() error {
+	pr, ok := self.c.Helpers().Host.PullRequestForBranch(self.pullRequestBranch())
+	if !ok {
+		// Guarded against by the disabled reason, but a refresh in the background may
+		// have taken the pull request away since it was asked.
+		return errors.New(self.c.Tr.NoPullRequestForBranch)
+	}
+
+	commitHash := self.commitShownInDiff()
+	if commitHash == "" {
+		return nil
+	}
+
+	view := self.context.GetView()
+	info, ok := self.c.Helpers().DiffLine.GetDiffLineInfo(view, view.SelectedLineIdx())
+	if !ok {
+		return nil
+	}
+	relativePath := repoRelativePath(self.c.Git().RepoPaths.WorktreePath(), info.Path)
+	if relativePath == "" {
+		return nil
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)
+	return self.c.OS().OpenLink(githubPullRequestLineURL(pr.Url, commitHash, relativePath, info))
+}
+
+// pullRequestBranch returns the branch whose pull request would show the diff in this
+// pane, as the panel beneath names it, and "" where no pull request shows it.
+func (self *MainViewController) pullRequestBranch() string {
+	prContext, ok := self.sidePanelBeneath().(types.PullRequestDiffContext)
+	if !ok {
+		return ""
+	}
+	return prContext.BranchForPullRequest()
+}
+
+// commitShownInDiff returns the commit whose diff the pane is showing, and "" when the
+// panel beneath has nothing selected. The diff's line numbers are the file's as of that
+// commit, so they are the line numbers of the pull request's view of that commit too.
+func (self *MainViewController) commitShownInDiff() string {
+	diffableContext, ok := self.sidePanelBeneath().(types.DiffableContext)
+	if !ok {
+		return ""
+	}
+	return diffableContext.RefForAdjustingLineNumberInDiff()
+}
+
+// githubPullRequestLineURL builds the URL of a line of a file, in the diff of one commit
+// of a pull request. The file is named by the SHA-256 of its path as git spells it, and
+// the line by which side of the diff it is on.
+//
+// GitHub documents none of this; the form was read off the URLs its own pages carry (see
+// https://github.com/orgs/community/discussions/55764).
+func githubPullRequestLineURL(
+	prURL string, commitHash string, relativePath string, info types.DiffLineInfo,
+) string {
+	pathHash := sha256.Sum256([]byte(relativePath))
+	anchor := "diff-" + hex.EncodeToString(pathHash[:]) + githubDiffLineSuffix(info)
+	return fmt.Sprintf("%s/changes/%s#%s", prURL, commitHash, anchor)
+}
+
+// githubDiffLineSuffix names a line within a file's diff: R for the new version of the
+// file, L for the old one, which is where a deleted line is found. Some rows are no line
+// of the file at all (the header naming it, or a marker like "\ No newline at end of
+// file"); those name none, and the anchor points at the file itself.
+func githubDiffLineSuffix(info types.DiffLineInfo) string {
+	switch info.Type {
+	case types.DiffLineDeleted:
+		return fmt.Sprintf("L%d", info.OldLine)
+	case types.DiffLineAdded, types.DiffLineContext, types.DiffLineHunkHeader:
+		return fmt.Sprintf("R%d", info.NewLine)
+	default:
+		return ""
+	}
 }
 
 func (self *MainViewController) openSearch() error {

@@ -213,6 +213,22 @@ const (
 	DiffMainViewTypePatchBuilding
 )
 
+// PullRequestDiffContext is implemented by the side panel contexts that show, in
+// their focused main view, the diff of a commit of a branch: the commits panel and
+// the sub-commits panel, and the commit files panel entered from either of them. A
+// pull request for that branch has a view of that commit, so a line of the diff can
+// be pointed at in it. A panel showing a diff that no pull request has a view of (the
+// working tree's, a stash entry's, a reflog entry's) doesn't implement this.
+type PullRequestDiffContext interface {
+	Context
+
+	// BranchForPullRequest returns the local branch whose pull request would show
+	// the diff in the main view, and "" where no branch does: the panel may have
+	// nothing selected, HEAD may be detached, or what was drilled into may be a tag
+	// or a remote branch rather than a local one.
+	BranchForPullRequest() string
+}
+
 // DiffPaneContext is one of the two panes the main section can show, as the thing
 // that holds a diff with a selection in it. The panels that act on such a selection
 // are handed the pane it was made in, and speak to it through this.

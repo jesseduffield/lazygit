@@ -21,14 +21,25 @@ type SubCommitsContext struct {
 }
 
 var (
-	_ types.IListContext        = (*SubCommitsContext)(nil)
-	_ types.DiffableContext     = (*SubCommitsContext)(nil)
-	_ types.ISearchableContext  = (*SubCommitsContext)(nil)
-	_ types.DiffMainViewContext = (*SubCommitsContext)(nil)
+	_ types.IListContext           = (*SubCommitsContext)(nil)
+	_ types.DiffableContext        = (*SubCommitsContext)(nil)
+	_ types.ISearchableContext     = (*SubCommitsContext)(nil)
+	_ types.DiffMainViewContext    = (*SubCommitsContext)(nil)
+	_ types.PullRequestDiffContext = (*SubCommitsContext)(nil)
 )
 
 func (self *SubCommitsContext) GetDiffMainViewType() types.DiffMainViewType {
 	return types.DiffMainViewTypePatchBuilding
+}
+
+// BranchForPullRequest returns the branch this panel was entered from, whose commits it
+// shows. The panel is also entered from a tag, a remote branch and the reflog, none of
+// which a pull request is made from.
+func (self *SubCommitsContext) BranchForPullRequest() string {
+	if branch, ok := self.GetRef().(*models.Branch); ok {
+		return branch.Name
+	}
+	return ""
 }
 
 func NewSubCommitsContext(
