@@ -93,6 +93,15 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 		env.SetGitDirEnv(cliArgs.GitDir)
 	}
 
+	// The log file lives in the config dir, so this must come after setting the
+	// CONFIG_DIR env var above.
+	logger := NewLogger(cliArgs.Debug)
+
+	if daemon.InDaemonMode() {
+		daemon.Handle(logger)
+		return
+	}
+
 	if cliArgs.PrintVersionInfo {
 		gitVersion := getGitVersionInfo()
 		fmt.Printf("commit=%s, build date=%s, build source=%s, version=%s, os=%s, arch=%s, git version=%s\n", buildInfo.Commit, buildInfo.Date, buildInfo.BuildSource, buildInfo.Version, runtime.GOOS, runtime.GOARCH, gitVersion)
@@ -154,14 +163,9 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 		appConfig.SaveGlobalUserConfig()
 	}
 
-	common, err := NewCommon(appConfig)
+	common, err := NewCommon(appConfig, logger)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	if daemon.InDaemonMode() {
-		daemon.Handle(common)
-		return
 	}
 
 	if cliArgs.Profile {

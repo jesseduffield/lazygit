@@ -61,10 +61,9 @@ func Run(
 	}
 }
 
-func NewCommon(config config.AppConfigurer) (*common.Common, error) {
+func NewCommon(config config.AppConfigurer, log *logrus.Entry) (*common.Common, error) {
 	userConfig := config.GetUserConfig()
 	appState := config.GetAppState()
-	log := newLogger(config)
 	// Initialize with English for the time being; the real translation set for
 	// the configured language will be read after reading the user config
 	tr := i18n.EnglishTranslationSet()
@@ -80,8 +79,8 @@ func NewCommon(config config.AppConfigurer) (*common.Common, error) {
 	return cmn, nil
 }
 
-func newLogger(cfg config.AppConfigurer) *logrus.Entry {
-	if cfg.GetDebug() {
+func NewLogger(debug bool) *logrus.Entry {
+	if debug {
 		logPath, err := config.LogPath()
 		if err != nil {
 			log.Fatal(err)
