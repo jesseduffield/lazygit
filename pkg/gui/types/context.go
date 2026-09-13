@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -212,6 +213,29 @@ const (
 	// reflog / stash panels).
 	DiffMainViewTypePatchBuilding
 )
+
+// PullRequestDiffContext is implemented by the side panel contexts that show, in
+// their focused main view, the diff of a commit of a branch: the commits panel and
+// the sub-commits panel, and the commit files panel entered from either of them. A
+// pull request for that branch has a view of that commit, so a line of the diff can
+// be pointed at in it. A panel showing a diff that no pull request has a view of (the
+// working tree's, a stash entry's, a reflog entry's) doesn't implement this.
+type PullRequestDiffContext interface {
+	Context
+
+	// BranchForPullRequest returns the local branch whose pull request would show
+	// the diff in the main view, and "" where no branch does: the panel may have
+	// nothing selected, HEAD may be detached, or what was drilled into may be a tag
+	// or a remote branch rather than a local one.
+	BranchForPullRequest() string
+
+	// CommitsForPullRequest returns the commits whose combined diff the main view is
+	// showing, newest first as the panel lists them, together with the hash of the
+	// commit that diff starts after: the parent of the oldest of them, where the
+	// pull request has that parent as one of its own commits, and "" where the diff
+	// starts where the pull request itself does.
+	CommitsForPullRequest() ([]*models.Commit, string)
+}
 
 // DiffPaneContext is one of the two panes the main section can show, as the thing
 // that holds a diff with a selection in it. The panels that act on such a selection

@@ -442,6 +442,7 @@ var tests = []*components.IntegrationTest{
 	main_view.NoSelectionOverACommitLog,
 	main_view.NoSelectionOverAConflictHint,
 	main_view.NoSelectionWhenNoChanges,
+	main_view.OpenPullRequestOnlyOverACommitsDiff,
 	main_view.PatchMarksFollowARendererSwitch,
 	main_view.PatchMarksShowWhileTheDiffIsFocused,
 	main_view.RangeSelectDiffLines,

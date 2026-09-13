@@ -31,14 +31,68 @@ type commitDropIndicator struct {
 }
 
 var (
-	_ types.IListContext        = (*LocalCommitsContext)(nil)
-	_ types.DiffableContext     = (*LocalCommitsContext)(nil)
-	_ types.ISearchableContext  = (*LocalCommitsContext)(nil)
-	_ types.DiffMainViewContext = (*LocalCommitsContext)(nil)
+	_ types.IListContext           = (*LocalCommitsContext)(nil)
+	_ types.DiffableContext        = (*LocalCommitsContext)(nil)
+	_ types.ISearchableContext     = (*LocalCommitsContext)(nil)
+	_ types.DiffMainViewContext    = (*LocalCommitsContext)(nil)
+	_ types.PullRequestDiffContext = (*LocalCommitsContext)(nil)
 )
 
 func (self *LocalCommitsContext) GetDiffMainViewType() types.DiffMainViewType {
 	return types.DiffMainViewTypePatchBuilding
+}
+
+// BranchForPullRequest returns the checked-out branch: this panel shows its commits,
+// so a pull request for it is where they are up for review.
+func (self *LocalCommitsContext) BranchForPullRequest() string {
+	return self.ListContextTrait.c.Model().CheckedOutBranch
+}
+
+func (self *LocalCommitsContext) CommitsForPullRequest() ([]*models.Commit, string) {
+	selectedCommits, _, _ := self.GetSelectedItems()
+	commits := commitsShownInDiff(selectedCommits, self.GetSelected(), self.GetSelectedRefRangeForDiffFiles())
+	return commits, pullRequestBaseForCommits(self.GetCommits(), commits)
+}
+
+// commitsShownInDiff returns the commits whose combined diff a panel listing a branch's
+// commits renders into the main view: the selected range where it has a range to diff,
+// and the commit at the cursor otherwise. The panel hands the same two to
+// DiffHelper.GetUpdateTaskForRenderingCommitsDiff, so anything acting on the diff on
+// screen acts on the commits that diff is of.
+func commitsShownInDiff(
+	selectedCommits []*models.Commit, commitAtCursor *models.Commit, refRange *types.RefRange,
+) []*models.Commit {
+	if refRange != nil {
+		return selectedCommits
+	}
+	if commitAtCursor == nil {
+		return nil
+	}
+	return []*models.Commit{commitAtCursor}
+}
+
+// pullRequestBaseForCommits returns the hash of the commit the diff of the given commits
+// starts after: the parent of the oldest of them. A pull request holds only the commits
+// of the branch that are pushed, so a parent that isn't pushed is none of its own. The
+// diff then starts where the pull request itself does, and "" says so.
+func pullRequestBaseForCommits(allCommits []*models.Commit, commits []*models.Commit) string {
+	if len(commits) == 0 {
+		return ""
+	}
+
+	oldest := commits[len(commits)-1]
+	if oldest.IsFirstCommit() {
+		return ""
+	}
+
+	parentHash := oldest.Parents()[0]
+	parentIsInPullRequest := lo.ContainsBy(allCommits, func(commit *models.Commit) bool {
+		return commit.Hash() == parentHash && commit.Status == models.StatusPushed
+	})
+	if !parentIsInPullRequest {
+		return ""
+	}
+	return parentHash
 }
 
 func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
