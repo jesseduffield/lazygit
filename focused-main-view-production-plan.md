@@ -163,6 +163,7 @@ succession (§2.3); 10–11 any time after their dependencies.
 | 9 | Replace the staging and patch-building panels with the focused main view | 7, 8 | removal + migration |
 | 10 | Alt- or shift-click a diff line to open it in your editor | 2, 4, 5 | feature |
 | 11 | Open the selected diff line in the branch's GitHub PR | 5 | feature |
+| 12 | Jump to a file of the diff from a menu | 5 | feature |
 
 ---
 
@@ -801,6 +802,8 @@ are **not in this PR** (1 and 2 below); everything else landed.
    of the session: the UX isn't decided, and it may or may not be added later.
    So `FilesInDiff` is not ported either. If it does arrive, it needs the same
    ReadToEnd-then-retry the nav has (its file list must cover the whole diff).
+   **It arrived on 2026-09-13 as PR 12**, reading the diff to the end up front
+   rather than retrying.
 2. **Commit 9 (copy) moves to PR 7** (decided with the user). The prototype's
    reason for making copy a direct `MainViewController` command rather than a
    `FocusedMainViewActions` method (N§21.28) was that copy is
@@ -2694,7 +2697,11 @@ item 4's guard was dropped is
 
 ### PR 11 — Open the selected diff line in the branch's GitHub PR
 
-Self-contained; after PR 5. One or two commits (N§5):
+**Status: DONE 2026-09-13** on branch `open-pull-request-at-diff-line`, off
+PR 10's tip. Four commits, each building, unit-testing and linting clean on its
+own; whole e2e suite green. §6 interactive sign-off owed.
+
+Self-contained; after PR 5. Planned as one or two commits (N§5):
 
 - `openPullRequestForSelectedLine` on `Commits.OpenPullRequestInBrowser` in
   the focused main view: URL `<pr.Url>/changes/<commitSha>#diff-<sha256(relPath)>R<line>`;
@@ -2705,6 +2712,91 @@ Self-contained; after PR 5. One or two commits (N§5):
   commitFiles → parent). GitHub-only via `PullRequestsMap`. Ref: 912703d20.
 - Unit-test the URL builder. PR description should note the anchor format is
   empirically derived (undocumented by GitHub).
+
+#### Deviations from the plan (2026-09-13, as implemented)
+
+The prototype commit was cherry-picked onto the stack to see it work and then
+written again from scratch, at the user's word. Four commits: three
+preparations and the command.
+
+1. **Which branch's pull request is a question the panel answers**, rather than
+   a `switch` over context keys in the controller (the user's call). The new
+   `types.PullRequestDiffContext` sits beside `DiffMainViewContext`: the
+   commits panel answers with the checked-out branch, the sub-commits panel
+   with the ref it was entered from where that is a local branch (a tag or a
+   remote branch is none), and the commit files panel by asking the panel it
+   was entered from. A panel that doesn't implement it — files, stash,
+   reflog — has no pull request, and the command is not described there, so it
+   stays out of the keybindings menu.
+2. **Three defects of the prototype, all in what the URL points at.** A
+   deleted line was pointed at as `R<NewLine>`, where a deletion's `NewLine` is
+   only where it sits in the new version of the file; it is now `L<OldLine>`,
+   the side GitHub shows it on. A file-header row asked for a line of the file
+   it names; it now points at the file alone, as `e` opens the file there. And
+   a row that is no line of the file at all (`\ No newline at end of file`)
+   asked for line 0.
+3. **The command is disabled where the pull request has no view of the diff**
+   (both guards the user's call): in diffing mode, where the main view shows a
+   diff against another ref, and over the custom patch's preview pane, whose
+   lines sit at the numbers the patch gives them. Two new strings,
+   `NotAvailableInDiffingMode` and `NotAvailableForCustomPatch`. Without a
+   pull request for the branch it says so in a panel, as the commits and
+   branches panels do.
+4. **Three preparations**, each for something the command would otherwise have
+   copied: `HostHelper.PullRequestForBranch` /
+   `NoPullRequestDisabledReason` (the branches and commits panels each had
+   their own lookup and disabled reason), `repoRelativePath` in
+   `diff_paths.go` (the two diff-action objects each had their own), and
+   `MainViewController.sidePanelBeneath` (two questions reached for the panel
+   beneath, guard included; the command asks twice more).
+5. **The whole path can't be exercised headlessly.** A pull request reaches
+   the model either from the GitHub API or from the on-disk cache, and the
+   PULL_REQUESTS refresh clears the cache's contents on startup whenever no
+   auth token is available, which is the case in the harness and on CI. So
+   `open_pull_request_only_over_a_commits_diff` covers where the command is
+   offered and the three reasons it refuses, and `TestGithubPullRequestLineURL`
+   covers the URL itself, including the `L`/`R` sides and the SHA-256 of the
+   path.
+
+### PR 12 — Jump to a file of the diff from a menu
+
+**Status: DONE 2026-09-13** on branch `diff-file-menu`, off PR 11's tip. Three
+commits, each building, unit-testing and linting clean on its own; whole e2e
+suite green. §6 interactive sign-off owed.
+
+This is PR 5's commit 7, skipped there because the UX wasn't decided (PR 5
+deviation 1) and revived as a PR of its own. `f` opens a menu of the diff's
+files, in the order the diff shows them and by the paths the repo knows them
+by; picking one goes where next-file navigation would have landed.
+
+Commits:
+
+1. **Name the file a diff row belongs to in the repo's terms** — `filePaths`
+   was the one query that skipped the mapping `inRepoTerms` applies, so over
+   the custom patch's preview it answered with the path of the tree the patch
+   was materialized into. The mapping comes out of `inRepoTerms` as
+   `repoTermsMapper` and `filePaths` goes through it. Where a renderer states
+   the path of each side of a change, this also has both halves belong to one
+   file rather than to the two trees.
+2. **Ask a diff where each of its files begins** — `fileStarts`, the whole
+   answer at once, with `fileStart` picking its neighbour out of it (the walk
+   backwards over a file goes away). The menu and `n`/`N` then agree on where
+   a file begins by construction. Unit-tested by `TestFileStarts`, with
+   `TestFileStart` unchanged as the proof that navigation still behaves.
+3. **The menu** — `DiffLineHelper.FilesInDiff` and `StartOfFileInDiff`, the
+   `keybinding.main.jumpToFile` config entry (default `f`), the
+   `JumpToFileInDiff` string for both the binding and the menu title, and
+   `FilterAsYouType` so that a file is a few characters away however many the
+   commit touches. The menu reads the diff to the end before it is built, as
+   the search does: a file below the part that has been read is in neither the
+   list nor the view. e2e: `jump_to_a_file_of_the_diff`, whose first file's
+   diff is longer than the viewport, so the read matters.
+
+Deviations from the prototype commit: proper i18n and a config entry for the
+key (the prototype hard-coded both, and the plan's open question 2 asked for
+the entry), the repo-terms paths above, and **each menu item carries its file
+rather than the view line that file begins at**, so that a diff re-rendered
+while the menu is up is jumped into at the row the file begins at now.
 
 ---
 
@@ -2724,6 +2816,8 @@ user pass before merge:
 | 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
 | 9 | `enter` and double-click on a file (working tree and commit) under each renderer; `{`/`}` down to 0 and back while a patch is being built; the keybindings menu's tooltips over both kinds of diff; screen modes with a diff focused; `wrapLinesInDiffView: false` with a long line in a diff, a branch log, the status and a conflict hint on screen in turn (round 1) |
 | 10 | Ghostty, iTerm2, VS Code |
+| 11 | The URL the browser lands on, in a repo whose branch has a pull request: a line of a commit's diff, a deleted line (`L`), a file-header row, and the same from the commit files panel and the sub-commits panel. Nothing headless reaches a pull request (PR 11 deviation 5), so every one of these is untested |
+| 12 | The menu over a many-file commit under each renderer (a file of a difftastic diff begins at its first content row), and the landing row for each; filtering as you type |
 
 Patched renderer builds: `cargo build` in delta/difftastic worktrees
 (`osc-1717-metadata` branches); diff-so-fancy is a script.
@@ -2785,6 +2879,8 @@ The remaining rows are agreed as keep/defer:
 | A diff still being read shows no selection until a change line has arrived (new, PR 5 round 5) | **Closed in round 7**: the pane reads on until it can tell, so the wait is however long it takes to reach the first change line, and no user action is needed to end it |
 | Focusing at the top of a commit whose diffstat fills the screen lands the selection on a stat row (new, PR 5 round 6) | **Keep** — the user's call, 2026-09-06. Focusing never moves the view, and with no change line on screen the selection goes to the middle visible line. Reaching the first hunk from there is one press of `a` or `right`, which is preferable to the view scrolling on its own |
 | A modified click on a renderer's hyperlink opens the hyperlink, not the clicked line (new, PR 10) | Keep. The hyperlink is handled before any mouse binding and ignores modifiers, as on master. Both paths open the same file at the same line for `lazygit-edit://` links, so only a renderer pointing its links elsewhere would tell the difference |
+| `e` over the custom patch's preview opens the file at a line the patch numbers, not the commit's (new, PR 11) | Raised, not acted on. The preview is a diff of the two trees the patch was materialized into, so a line below an omitted change sits at a number the file doesn't have it at, and `AdjustLineNumber` carries that number forward as if it were the commit's. PR 11 refuses there for the same reason; `e` has behaved this way since PR 8 and is left as it is for the user to decide on |
+| A range of commits selected in the commits panel opens the pull request at the newest of them (new, PR 11) | Keep. `RefForAdjustingLineNumberInDiff` names that commit, and the line numbers of a range diff are its, so the anchor is right wherever the line is one that commit changed too; where it isn't, the page opens at the commit without scrolling to a line. GitHub's own range form (`<base>..<head>`) is undocumented, and inventing it risks a URL that opens nothing |
 | A renderer that keeps the diff and hunk headers but drops body lines could be mis-parsed where it ends the buffer (new, PR 2 round 1) | Keep. The leniency applies to one section, the one the buffer breaks off in, and every renderer that restructures a body lengthens hunks rather than shortening them. A mis-parse would act on the wrong line only in the focused main view, and there the diff is either git's own or one whose lines state their own identity (`MainViewDiffMode`) |
 
 ## 9. Open questions (resolve before/during the marked PR)
@@ -2793,8 +2889,9 @@ The remaining rows are agreed as keep/defer:
    Resolved by #5870: `pager`/`externalDiffCommand` were unified into a
    single `command` field interpreted per the new `type` field.
 2. ~~**PR 5:** proper keybinding config entries for `n`/`N`/`f`?~~ Resolved
-   2026-08-10: yes — `keybinding.main.prevFile`/`nextFile` (`N`/`n`). `f` is
-   moot for now, the jump-to-file menu being skipped (PR 5 deviation 1).
+   2026-08-10: yes — `keybinding.main.prevFile`/`nextFile` (`N`/`n`). `f`
+   followed on 2026-09-13 with the jump-to-file menu: `keybinding.main.jumpToFile`
+   (PR 12).
 3. **PR 9:** new names for `useHunkModeInStagingView` / `wrapLinesInStagingView`
    + config migration.
 4. ~~**PR 8:** the two temp-tree sub-items of commit 7 — renames in the
@@ -2938,12 +3035,35 @@ The remaining rows are agreed as keep/defer:
    `edit-diff-line-with-modified-click` (9 commits plus round 1's eight
    `fixup!`/`amend!`s, every commit green, whole e2e suite passing), stacked on
    PR 9; §6 sign-off owed
-- [ ] PR 11 — open PR at line
+- [x] PR 11 — open PR at line — **DONE 2026-09-13** on branch
+   `open-pull-request-at-diff-line` (4 commits: three preparations and the
+   command, every one green on its own), stacked on PR 10; §6 sign-off owed,
+   and nothing headless can reach a pull request (PR 11 deviation 5)
+- [x] PR 12 — jump-to-file menu — **DONE 2026-09-13** on branch
+   `diff-file-menu` (3 commits, every one green on its own), stacked on PR 11.
+   PR 5's skipped commit 7, revived; §6 sign-off owed
 
 (Add per-commit checkboxes inside each PR section as work starts; record
 deviations from this plan inline, dated.)
 
 Log:
+
+- **2026-09-13:** **PRs 11 and 12 written**, both from prototype commits the
+  user had cherry-picked onto the stack to see them work and then asked for
+  again from scratch. PR 11 opens the selected line in the branch's pull
+  request: which branch that is comes from a new context interface rather than
+  a switch over context keys (the user's call), a deleted line points at the
+  left side of the diff where the prototype pointed at the right, and the
+  command refuses in diffing mode and over the custom patch's preview, neither
+  of which the pull request has a view of. Its three preparations each take
+  something the command would have copied. **Nothing headless reaches a pull
+  request** — the PULL_REQUESTS refresh clears the cache when there is no auth
+  token — so the test covers where the command is offered and why it refuses,
+  and the URL is unit-tested. PR 12 is PR 5's skipped jump-to-file menu,
+  revived with a config entry for `f`, proper strings, and menu items carrying
+  their file rather than a view line. Two §8 rows: `e` has the same
+  line-number drift over the patch preview that PR 11 now refuses over, and a
+  range of commits opens the pull request at the newest of them.
 
 - **2026-09-10 (later):** **PR 10 reviewed for the first time.** Its opening
   commit moved down to PR 5 as an `amend!`, the fixup its own note had called
