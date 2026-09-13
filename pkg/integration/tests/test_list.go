@@ -200,6 +200,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.RunCommand,
 	custom_commands.SelectedCommit,
 	custom_commands.SelectedCommitRange,
+	custom_commands.SelectedDiff,
 	custom_commands.SelectedPath,
 	custom_commands.SelectedSubmodule,
 	custom_commands.ShowOutputInPanel,

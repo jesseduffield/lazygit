@@ -364,6 +364,7 @@ SelectedCommit
 SelectedCommitRange
 SelectedFile
 SelectedPath
+SelectedDiff
 SelectedSubmodule
 SelectedLocalBranch
 SelectedRemoteBranch
@@ -376,6 +377,19 @@ CheckedOutBranch
 ```
 
 (For legacy reasons, `SelectedLocalCommit`, `SelectedReflogCommit`, and `SelectedSubCommit` are also available, but they are deprecated.)
+
+`SelectedDiff` contains the selected diff lines in the interactive staging and patch-building views (`staging`, `stagingSecondary`, `patchBuilding`, and `patchBuildingSecondary`). It follows the current line, range, or hunk selection, preserving diff prefixes (`+`, `-`, and spaces) and a trailing newline, without colors or display wrapping. A selected part of a wrapped line exports the whole original diff line. This is a diff excerpt, not necessarily a complete patch that Git can apply.
+
+The selection is captured when the command is invoked, before any command prompts open. `SelectedDiff` is an empty string outside these views or when the active view has no diff. Pass it through `quote` when using it as a shell argument, for example:
+
+```yaml
+customCommands:
+  - key: '<c-y>'
+    context: 'staging, stagingSecondary, patchBuilding, patchBuildingSecondary'
+    description: 'Show selected diff'
+    command: "printf '%s' {{.SelectedDiff | quote}}"
+    output: popup
+```
 
 
 To see what fields are available on e.g. the `SelectedFile`, see [here](https://github.com/jesseduffield/lazygit/blob/master/pkg/gui/services/custom_commands/models.go) (all the modelling lives in the same file).

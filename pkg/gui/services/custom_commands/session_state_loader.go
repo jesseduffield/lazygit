@@ -3,6 +3,7 @@ package custom_commands
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
 
@@ -201,6 +202,7 @@ type SessionState struct {
 	SelectedFile           *File
 	SelectedSubmodule      *Submodule
 	SelectedPath           string
+	SelectedDiff           string
 	SelectedLocalBranch    *Branch
 	SelectedRemoteBranch   *RemoteBranch
 	SelectedRemote         *Remote
@@ -241,6 +243,7 @@ func (self *SessionStateLoader) call() *SessionState {
 		SelectedFile:           fileShimFromModelFile(self.c.Contexts().Files.GetSelectedFile()),
 		SelectedSubmodule:      submoduleShimFromModelSubmodule(self.c.Contexts().Submodules.GetSelected()),
 		SelectedPath:           selectedPath,
+		SelectedDiff:           self.selectedDiff(),
 		SelectedLocalCommit:    selectedLocalCommit,
 		SelectedReflogCommit:   selectedReflogCommit,
 		SelectedSubCommit:      selectedSubCommit,
@@ -256,4 +259,21 @@ func (self *SessionStateLoader) call() *SessionState {
 		SelectedWorktree:       worktreeShimFromModelRemote(self.c.Contexts().Worktrees.GetSelected()),
 		CheckedOutBranch:       branchShimFromModelBranch(self.refsHelper.GetCheckedOutRef()),
 	}
+}
+
+func (self *SessionStateLoader) selectedDiff() string {
+	context, ok := self.c.Context().CurrentStatic().(types.IPatchExplorerContext)
+	if !ok {
+		return ""
+	}
+
+	context.GetMutex().Lock()
+	defer context.GetMutex().Unlock()
+
+	state := context.GetState()
+	if state == nil {
+		return ""
+	}
+
+	return state.PlainRenderSelected()
 }
