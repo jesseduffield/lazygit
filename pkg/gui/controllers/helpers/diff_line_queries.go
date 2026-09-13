@@ -79,16 +79,26 @@ func (self *DiffLineHelper) ChangeLineOrdinals(
 // while the diff's text names the trees where an ordinary diff has git's a/ and b/
 // prefixes and so needs nothing.
 func (self *DiffLineHelper) inRepoTerms(view *gocui.View, infos []types.DiffLineInfo) []types.DiffLineInfo {
+	toRepoTerms := self.repoTermsMapper(view)
+	return lo.Map(infos, func(info types.DiffLineInfo, _ int) types.DiffLineInfo {
+		info.Path = toRepoTerms(info.Path)
+		return info
+	})
+}
+
+// repoTermsMapper returns how a path recovered from view is brought into the repo's
+// terms, for the callers that have a path rather than a whole identity to bring. The
+// mapping is worked out once, per view rather than per path.
+func (self *DiffLineHelper) repoTermsMapper(view *gocui.View) func(string) string {
 	if !self.ShowsCustomPatch(view) {
-		return infos
+		return func(path string) string { return path }
 	}
 
 	worktreePath := self.c.Git().RepoPaths.WorktreePath()
 	treesDir := self.c.Git().Patch.PatchBuilder.TempDir()
-	return lo.Map(infos, func(info types.DiffLineInfo, _ int) types.DiffLineInfo {
-		info.Path = repoPathOfTreePath(info.Path, treesDir, worktreePath)
-		return info
-	})
+	return func(path string) string {
+		return repoPathOfTreePath(path, treesDir, worktreePath)
+	}
 }
 
 // repoPathOfTreePath maps a path under one of the trees the custom patch was materialized
@@ -336,14 +346,19 @@ func (self *DiffLineHelper) AdjacentFile(view *gocui.View, anchorViewLine int, f
 	return view.ViewLineForBufferLine(target)
 }
 
-// filePaths resolves view's rendered diff to the path each buffer line belongs to,
-// empty for a row whose identity couldn't be recovered.
+// filePaths resolves view's rendered diff to the path each buffer line belongs to, in
+// the repo's terms, and empty for a row whose identity couldn't be recovered. Naming the
+// files the way the rest of the queries name them means a row of the custom patch's
+// preview belongs to the repo's file rather than to the copy of it in the tree the patch
+// was materialized into, so that both halves of a change belong to the same file however
+// the diff renderer states them.
 func (self *DiffLineHelper) filePaths(view *gocui.View) []string {
 	resolved := self.resolveDiffLines(view.DiffLineContents())
+	toRepoTerms := self.repoTermsMapper(view)
 	paths := make([]string, len(resolved))
 	for i, row := range resolved {
 		if row.ok {
-			paths[i] = row.info.Path
+			paths[i] = toRepoTerms(row.info.Path)
 		}
 	}
 	return paths
