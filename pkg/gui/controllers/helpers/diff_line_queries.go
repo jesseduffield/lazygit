@@ -364,49 +364,58 @@ func (self *DiffLineHelper) filePaths(view *gocui.View) []string {
 	return paths
 }
 
-// fileStart finds, in a diff whose lines carry the file path they belong to (empty for
-// a row no backend could place), the first located row of the file adjacent to `from`
-// in the given direction — the row file navigation lands on. It is the pure index
-// arithmetic behind AdjacentFile.
+// diffFileStart is where one file of a diff begins: the path of the file, and the row
+// of the diff its section starts at.
+type diffFileStart struct {
+	path string
+	row  int
+}
+
+// fileStarts finds, in a diff whose lines carry the file path they belong to (empty for
+// a row no backend could place), where each file of it begins, in the order the diff
+// shows them.
 //
-// A file is identified by its path, so we look for where the path changes, skipping
-// rows that carry none: those are the blank separator rows between files, or the
-// header rows of a diff renderer that doesn't state which file its headers belong to.
-// So the landing row is the file's header wherever the source says so — a parseable
-// buffer, or a renderer that tags its headers — and the file's first content line
-// otherwise, which is an accepted degradation.
+// A file is identified by its path, and the rows showing it are consecutive, so a path
+// differing from the one before it begins a file. Rows carrying no path are passed over:
+// those are the blank separator rows between files, or the header rows of a diff
+// renderer that doesn't state which file its headers belong to. So a file begins at its
+// header wherever the source says so (a parseable buffer, or a renderer that tags its
+// headers), and at its first content line otherwise, which is an accepted degradation.
+func fileStarts(paths []string) []diffFileStart {
+	starts := []diffFileStart{}
+	previousPath := ""
+	for row, path := range paths {
+		if path == "" || path == previousPath {
+			continue
+		}
+		previousPath = path
+		starts = append(starts, diffFileStart{path: path, row: row})
+	}
+	return starts
+}
+
+// fileStart returns where the file adjacent to `from` in the given direction begins —
+// the row file navigation lands on. It is the pure index arithmetic behind AdjacentFile.
+// ok is false at the first or last file of the diff.
 func fileStart(paths []string, from int, forward bool) (int, bool) {
 	anchorPath, ok := anchorFilePath(paths, from)
 	if !ok {
 		return 0, false
 	}
 
-	if forward {
-		for i := from; i < len(paths); i++ {
-			if paths[i] != "" && paths[i] != anchorPath {
-				return i, true
-			}
-		}
+	starts := fileStarts(paths)
+	_, anchor, ok := lo.FindIndexOf(starts, func(start diffFileStart) bool {
+		return start.path == anchorPath
+	})
+	if !ok {
 		return 0, false
 	}
 
-	// Walk back past the current file (its rows and any unlocated ones) to the previous
-	// file's last located row, then back over that whole file, landing on its first.
-	i := from
-	for i >= 0 && (paths[i] == "" || paths[i] == anchorPath) {
-		i--
-	}
-	if i < 0 {
+	target := anchor + lo.Ternary(forward, 1, -1)
+	if target < 0 || target >= len(starts) {
 		return 0, false
 	}
-	prevPath := paths[i]
-	for i > 0 && (paths[i-1] == "" || paths[i-1] == prevPath) {
-		i--
-	}
-	for paths[i] != prevPath {
-		i++
-	}
-	return i, true
+	return starts[target].row, true
 }
 
 // anchorFilePath returns the path of the file the anchor sits in: the first row at or
