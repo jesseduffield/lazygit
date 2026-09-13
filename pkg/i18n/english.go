@@ -293,6 +293,8 @@ type TranslationSet struct {
 	UnsupportedGitService                 string
 	CopyPullRequestURL                    string
 	OpenPullRequestInBrowser              string
+	OpenPullRequestAtSelectedLine         string
+	OpenPullRequestAtSelectedLineTooltip  string
 	NoPullRequestForBranch                string
 	NoBranchOnRemote                      string
 	Fetch                                 string
@@ -310,6 +312,11 @@ type TranslationSet struct {
 	ToggleSelectHunk                      string
 	SelectHunk                            string
 	NothingToSelectInDiff                 string
+	NotAvailableInDiffingMode             string
+	NotAvailableForCustomPatch            string
+	CommitNotInPullRequest                string
+	CommitsNotInPullRequest               string
+	CommitsInSeveralPullRequests          string
 	SelectLineByLine                      string
 	ToggleSelectHunkTooltip               string
 	ToggleSelectionForPatch               string
@@ -1467,6 +1474,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CreatePullRequest:                    `Create pull request`,
 		CopyPullRequestURL:                   `Copy pull request URL to clipboard`,
 		OpenPullRequestInBrowser:             `Open pull request in browser`,
+		OpenPullRequestAtSelectedLine:        `Open pull request at selected line`,
+		OpenPullRequestAtSelectedLineTooltip: "Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found.",
 		NoPullRequestForBranch:               `No pull request found for this branch`,
 		NoBranchOnRemote:                     `This branch doesn't exist on remote. You need to push it to remote first.`,
 		Fetch:                                `Fetch`,
@@ -1485,6 +1494,11 @@ func EnglishTranslationSet() *TranslationSet {
 		DismissRangeSelect:                   "Dismiss range select",
 		ToggleSelectHunk:                     "Toggle hunk selection",
 		NothingToSelectInDiff:                "There is nothing to select here",
+		NotAvailableInDiffingMode:            "Not available in diffing mode",
+		NotAvailableForCustomPatch:           "Not available for the custom patch",
+		CommitNotInPullRequest:               "This commit is not part of the pull request",
+		CommitsNotInPullRequest:              "Not all of these commits are part of the pull request",
+		CommitsInSeveralPullRequests:         "These commits are not all in the same pull request",
 		SelectHunk:                           "Select hunks",
 		SelectLineByLine:                     "Select line-by-line",
 		ToggleSelectHunkTooltip:              "Toggle line-by-line vs. hunk selection mode.",

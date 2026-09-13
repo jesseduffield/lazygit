@@ -32,14 +32,127 @@ type commitDropIndicator struct {
 }
 
 var (
-	_ types.IListContext        = (*LocalCommitsContext)(nil)
-	_ types.DiffableContext     = (*LocalCommitsContext)(nil)
-	_ types.ISearchableContext  = (*LocalCommitsContext)(nil)
-	_ types.DiffMainViewContext = (*LocalCommitsContext)(nil)
+	_ types.IListContext           = (*LocalCommitsContext)(nil)
+	_ types.DiffableContext        = (*LocalCommitsContext)(nil)
+	_ types.ISearchableContext     = (*LocalCommitsContext)(nil)
+	_ types.DiffMainViewContext    = (*LocalCommitsContext)(nil)
+	_ types.PullRequestDiffContext = (*LocalCommitsContext)(nil)
 )
 
 func (self *LocalCommitsContext) GetDiffMainViewType() types.DiffMainViewType {
 	return types.DiffMainViewTypePatchBuilding
+}
+
+// This panel shows the commits of the checked-out branch, and of the branches below it
+// in a stack. PullRequestDiff looks for their pull request among those branches.
+func (self *LocalCommitsContext) PullRequestDiff() types.PullRequestDiff {
+	_, selectionStart, selectionEnd := self.GetSelectedItems()
+	startIdx, endIdx := commitRangeShownInDiff(
+		selectionStart, selectionEnd, self.GetSelectedLineIdx(), self.GetSelectedRefRangeForDiffFiles())
+	model := self.ListContextTrait.c.Model()
+	return pullRequestDiff(
+		self.GetCommits(), startIdx, endIdx, model.CheckedOutBranch, model.Branches, model.PullRequestsMap)
+}
+
+// commitRangeShownInDiff returns the indices of the newest and the oldest of the commits
+// whose combined diff a panel listing a branch's commits renders into the main view: the
+// selected range where it has a range to diff, and the commit at the cursor otherwise.
+// The panel hands the same selection to DiffHelper.GetUpdateTaskForRenderingCommitsDiff,
+// so anything acting on the diff on screen acts on the commits that diff is of.
+func commitRangeShownInDiff(
+	selectionStart int, selectionEnd int, cursor int, refRange *types.RefRange,
+) (int, int) {
+	if refRange != nil {
+		return selectionStart, selectionEnd
+	}
+	return cursor, cursor
+}
+
+// pullRequestDiff works out which branch's pull request would show the diff of the
+// commits from startIdx to endIdx of a panel listing the commits of listedBranch, and
+// which commit that diff starts after.
+//
+// That commit is the parent of the oldest of the commits. A pull request holds only the
+// commits of its branch that are pushed, so a parent that isn't pushed is none of its
+// own. A parent on the branch below in a stack isn't either, because the pull request
+// was opened against that branch. The diff then starts where the pull request itself
+// does, and an empty BaseHash says so.
+func pullRequestDiff(
+	allCommits []*models.Commit,
+	startIdx int,
+	endIdx int,
+	listedBranch string,
+	branches []*models.Branch,
+	pullRequests map[string]*models.GithubPullRequest,
+) types.PullRequestDiff {
+	if listedBranch == "" || startIdx < 0 || endIdx >= len(allCommits) {
+		return types.PullRequestDiff{}
+	}
+
+	heads := pullRequestBranchHeads(branches, pullRequests)
+	branchAt := func(idx int) string {
+		return pullRequestBranchAt(allCommits, idx, heads, listedBranch)
+	}
+
+	branch := branchAt(startIdx)
+	diff := types.PullRequestDiff{
+		Branch:        branch,
+		SpansBranches: branchAt(endIdx) != branch,
+		Commits:       allCommits[startIdx : endIdx+1],
+	}
+
+	oldest := allCommits[endIdx]
+	if oldest.IsFirstCommit() {
+		return diff
+	}
+	parentHash := oldest.Parents()[0]
+	_, parentIdx, found := lo.FindIndexOf(allCommits, func(commit *models.Commit) bool {
+		return commit.Hash() == parentHash
+	})
+	if found && allCommits[parentIdx].Status == models.StatusPushed && branchAt(parentIdx) == branch {
+		diff.BaseHash = parentHash
+	}
+	return diff
+}
+
+// pullRequestBranchHeads maps the head commit of each branch that has a pull request to
+// that branch. Where several share a head, the first of them in the list wins. The
+// checked-out branch comes first in the list, so it wins over the others.
+func pullRequestBranchHeads(
+	branches []*models.Branch, pullRequests map[string]*models.GithubPullRequest,
+) map[string]string {
+	heads := map[string]string{}
+	for _, branch := range branches {
+		if _, hasPullRequest := pullRequests[branch.Name]; !hasPullRequest || branch.CommitHash == "" {
+			continue
+		}
+		if _, taken := heads[branch.CommitHash]; !taken {
+			heads[branch.CommitHash] = branch.Name
+		}
+	}
+	return heads
+}
+
+// pullRequestBranchAt returns the branch whose pull request holds the commit at the given
+// index: the nearest branch with a pull request whose head is that commit or one listed
+// above it. A stack of branches lists the commits of each branch above those of the
+// branch it is based on, so this is the branch of the stack that the commit is on.
+// Commits that are in a main branch already are skipped, because a branch whose head is
+// one of them has been merged and doesn't belong to the stack. If no branch with a pull
+// request is found, it is the branch the panel lists, whether or not that one has a pull
+// request.
+func pullRequestBranchAt(
+	commits []*models.Commit, idx int, pullRequestBranchHeads map[string]string, listedBranch string,
+) string {
+	for i := idx; i >= 0; i-- {
+		if commits[i].Status == models.StatusMerged {
+			continue
+		}
+		if branch, ok := pullRequestBranchHeads[commits[i].Hash()]; ok {
+			return branch
+		}
+	}
+	return listedBranch
 }
 
 func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
