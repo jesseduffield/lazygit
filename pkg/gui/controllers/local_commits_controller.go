@@ -667,15 +667,11 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 }
 
 func (self *LocalCommitsController) checkedOutBranchHasPR() *types.DisabledReason {
-	branch := self.c.Model().CheckedOutBranch
-	if _, ok := self.c.Model().PullRequestsMap[branch]; !ok {
-		return &types.DisabledReason{Text: self.c.Tr.NoPullRequestForBranch, ShowErrorInPanel: true}
-	}
-	return nil
+	return self.c.Helpers().Host.NoPullRequestDisabledReason(self.c.Model().CheckedOutBranch)
 }
 
 func (self *LocalCommitsController) openPRInBrowser() error {
-	pr, ok := self.c.Model().PullRequestsMap[self.c.Model().CheckedOutBranch]
+	pr, ok := self.c.Helpers().Host.PullRequestForBranch(self.c.Model().CheckedOutBranch)
 	if !ok {
 		// Should be guarded against by the DisabledReason check, but be defensive in case
 		// PullRequestsMap was updated concurrently by a background refresh
