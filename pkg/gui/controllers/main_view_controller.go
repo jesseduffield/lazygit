@@ -160,6 +160,15 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			GetDisabledReason: self.diffSelectionDisabledReason,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Universal.JumpToFile),
+			Handler:           self.openJumpToFileMenu,
+			Description:       self.c.Tr.JumpToFile,
+			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.JumpToFile),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+			OpensMenu:         true,
+			DisplayOnScreen:   true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Commits.OpenPullRequestInBrowser),
 			Handler:           self.openPullRequestAtSelectedLine,
 			Description:       self.c.Tr.OpenPullRequestAtSelectedLine,
@@ -840,6 +849,10 @@ func (self *MainViewController) prevFile() error {
 
 func (self *MainViewController) placeNavigationTarget(target int, alignTop bool) {
 	self.c.Helpers().DiffLine.PlaceNavigationTarget(self.context, target, alignTop)
+}
+
+func (self *MainViewController) openJumpToFileMenu() error {
+	return self.c.Helpers().DiffLine.OpenJumpToFileMenu(self.context, self.c.Tr.JumpToFile)
 }
 
 // moveCursor moves the selection cursor by delta view lines (negative = up), with the
