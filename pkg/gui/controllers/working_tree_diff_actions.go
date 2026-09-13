@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
@@ -262,11 +261,11 @@ func (self *WorkingTreeDiffActions) applyDiffLineSelection(
 // fileForDiffLinePath maps the absolute path a diff line carries to the working tree
 // file it belongs to, or nil for a path that is no file of this repo's working tree.
 func (self *WorkingTreeDiffActions) fileForDiffLinePath(path string) *models.File {
-	relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), path)
-	if err != nil {
+	relativePath := repoRelativePath(self.c.Git().RepoPaths.WorktreePath(), path)
+	if relativePath == "" {
 		return nil
 	}
-	return self.context().FileTreeViewModel.GetFile(filepath.ToSlash(relativePath))
+	return self.context().FileTreeViewModel.GetFile(relativePath)
 }
 
 // applyDiffLines applies the given change lines of one file — a line, a hunk, a range —
