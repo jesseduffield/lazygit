@@ -2798,6 +2798,38 @@ the entry), the repo-terms paths above, and **each menu item carries its file
 rather than the view line that file begins at**, so that a diff re-rendered
 while the menu is up is jumped into at the row the file begins at now.
 
+#### Round 1 (2026-09-13) — two refinements, to be tried before they are kept
+
+Both asked for by the user after reading the branch, and **both await an
+interactive pass** before anything is decided about where they belong.
+
+1. **A single-file diff gets a message rather than a menu** — a menu with one
+   file in it has nothing to choose. How many files there are is only known
+   once the diff has been read to the end, which is too much work for a
+   keypress that only asks whether a key applies, so it can't be the key's
+   disabled reason; the handler says it instead, as an error toast carrying
+   the same `Disabled: ` prefix a disabled key's reason would have, so that it
+   reads as the same thing. New string `OnlyOneFileInDiff`. `fixup!` on the
+   menu commit.
+2. **A file you go to is scrolled to the top of the view** rather than to the
+   middle, for the menu *and* for `n`/`N` — a file put in the middle wastes
+   half the screen on the diff just left. Only where the view has to scroll at
+   all: a file already on screen leaves the view alone. In hunk mode the
+   selection is the file's first change rather than the row the file begins
+   at, and a large context size can put that change more than a screenful
+   below it, so the alignment is applied first and the selection scrolled into
+   view afterwards; where the two can't both hold, the selection wins and is
+   centred as before. A commit of its own, since it changes `n`/`N` as well:
+   **if it is kept, that half belongs in PR 5**, where file navigation is
+   introduced. New `ViewDriver.TopVisibleLine`, which asserts on where a view
+   is scrolled to without naming a line number.
+
+New test `jump_to_a_file_scrolls_it_to_the_top` covers both hunk-mode cases;
+`jump_to_a_file_of_the_diff` gained the single-file one. Beware the shape of
+the latter's first press: pressing the key before the diff has rendered reads
+an empty view, so the test waits for the selection first (it flaked once in a
+full run before that wait was there).
+
 ---
 
 ## 6. Interactive sign-off matrix
@@ -2817,7 +2849,7 @@ user pass before merge:
 | 9 | `enter` and double-click on a file (working tree and commit) under each renderer; `{`/`}` down to 0 and back while a patch is being built; the keybindings menu's tooltips over both kinds of diff; screen modes with a diff focused; `wrapLinesInDiffView: false` with a long line in a diff, a branch log, the status and a conflict hint on screen in turn (round 1) |
 | 10 | Ghostty, iTerm2, VS Code |
 | 11 | The URL the browser lands on, in a repo whose branch has a pull request: a line of a commit's diff, a deleted line (`L`), a file-header row, and the same from the commit files panel and the sub-commits panel. Nothing headless reaches a pull request (PR 11 deviation 5), so every one of these is untested |
-| 12 | The menu over a many-file commit under each renderer (a file of a difftastic diff begins at its first content row), and the landing row for each; filtering as you type |
+| 12 | The menu over a many-file commit under each renderer (a file of a difftastic diff begins at its first content row), and the landing row for each; filtering as you type. Round 1's two refinements are **for the user to try before they are kept**: the message a single-file diff gets, and files going to the top of the view in both selection modes, including `n`/`N` |
 
 Patched renderer builds: `cargo build` in delta/difftastic worktrees
 (`osc-1717-metadata` branches); diff-so-fancy is a script.
