@@ -327,17 +327,22 @@ func (self *MainViewController) isDiffView() bool {
 	return self.diffMainViewType() != types.DiffMainViewTypeNone
 }
 
+// sidePanelBeneath returns the side panel this pane is showing the content of, and nil
+// when there is none. The IsInStack guard is essential: NextInStack panics for a context
+// that isn't in the stack, and GetKeybindings (which leads here) also runs for off-stack
+// panes — at startup and while generating the cheatsheets, where the stack is empty.
+func (self *MainViewController) sidePanelBeneath() types.Context {
+	if !self.c.Context().IsInStack(self.context) {
+		return nil
+	}
+	return self.c.Context().NextInStack(self.context)
+}
+
 // diffMainViewType reports what the diff in the focused main view belongs to, taken
 // from the side panel beneath it, or DiffMainViewTypeNone when this pane isn't on the
-// stack or has no diff panel beneath it. The IsInStack guard is essential:
-// NextInStack panics for a context that isn't in the stack, and GetKeybindings (which
-// leads here) also runs for off-stack panes — at startup and while generating the
-// cheatsheets, where the stack is empty.
+// stack or has no diff panel beneath it.
 func (self *MainViewController) diffMainViewType() types.DiffMainViewType {
-	if !self.c.Context().IsInStack(self.context) {
-		return types.DiffMainViewTypeNone
-	}
-	if diffContext, ok := self.c.Context().NextInStack(self.context).(types.DiffMainViewContext); ok {
+	if diffContext, ok := self.sidePanelBeneath().(types.DiffMainViewContext); ok {
 		return diffContext.GetDiffMainViewType()
 	}
 	return types.DiffMainViewTypeNone
@@ -347,10 +352,7 @@ func (self *MainViewController) diffMainViewType() types.DiffMainViewType {
 // hand out the diff it rendered there. nil when this pane isn't on the stack, or the
 // panel beneath shows no diff.
 func (self *MainViewController) diffSource() types.FocusedMainViewDiffSource {
-	if !self.c.Context().IsInStack(self.context) {
-		return nil
-	}
-	sidePanel := self.c.Context().NextInStack(self.context)
+	sidePanel := self.sidePanelBeneath()
 	if sidePanel == nil {
 		return nil
 	}
