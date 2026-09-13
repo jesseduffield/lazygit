@@ -162,11 +162,19 @@ func (self *selectedDiffLines) covers(info types.DiffLineInfo) bool {
 func repoRelativePaths(worktreePath string, paths []string) []string {
 	relPaths := make([]string, 0, len(paths))
 	for _, path := range paths {
-		relPath, err := filepath.Rel(worktreePath, path)
-		if err != nil || strings.HasPrefix(relPath, "..") {
-			continue
+		if relPath := repoRelativePath(worktreePath, path); relPath != "" {
+			relPaths = append(relPaths, relPath)
 		}
-		relPaths = append(relPaths, filepath.ToSlash(relPath))
 	}
 	return relPaths
+}
+
+// repoRelativePath turns one such path into the repo-relative one, and is "" for a path
+// that lies outside the worktree.
+func repoRelativePath(worktreePath string, path string) string {
+	relPath, err := filepath.Rel(worktreePath, path)
+	if err != nil || strings.HasPrefix(relPath, "..") {
+		return ""
+	}
+	return filepath.ToSlash(relPath)
 }

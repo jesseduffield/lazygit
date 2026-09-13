@@ -346,6 +346,28 @@ func (self *DiffLineHelper) AdjacentFile(view *gocui.View, anchorViewLine int, f
 	return view.ViewLineForBufferLine(target)
 }
 
+// FilesInDiff lists the files of view's (possibly multi-file) rendered diff, in the
+// order it shows them, by the paths of the repo's files. It is what a menu offering to
+// jump between them is built from; jumping to one of them goes to StartOfFileInDiff.
+func (self *DiffLineHelper) FilesInDiff(view *gocui.View) []string {
+	return lo.Map(fileStarts(self.filePaths(view)),
+		func(start diffFileStart, _ int) string { return start.path })
+}
+
+// StartOfFileInDiff returns the view line the given file's section of view's rendered
+// diff begins at. That is the row file navigation lands on, so jumping to a file from a
+// menu and stepping to it with next-file land in the same place. ok is false for a file
+// the diff doesn't show, e.g. because it was re-rendered since the file was listed.
+func (self *DiffLineHelper) StartOfFileInDiff(view *gocui.View, path string) (int, bool) {
+	start, ok := lo.Find(fileStarts(self.filePaths(view)), func(start diffFileStart) bool {
+		return start.path == path
+	})
+	if !ok {
+		return 0, false
+	}
+	return view.ViewLineForBufferLine(start.row)
+}
+
 // filePaths resolves view's rendered diff to the path each buffer line belongs to, in
 // the repo's terms, and empty for a row whose identity couldn't be recovered. Naming the
 // files the way the rest of the queries name them means a row of the custom patch's

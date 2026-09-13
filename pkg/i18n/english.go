@@ -405,6 +405,10 @@ type TranslationSet struct {
 	NextHunk                              string
 	PrevFileInDiff                        string
 	NextFileInDiff                        string
+	JumpToFile                            string
+	JumpToFileInDiff                      string
+	JumpToFileInDiffTooltip               string
+	OnlyOneFileInDiff                     string
 	PrevConflict                          string
 	NextConflict                          string
 	SelectPrevHunk                        string
@@ -1571,6 +1575,10 @@ func EnglishTranslationSet() *TranslationSet {
 		NextHunk:                             "Go to next hunk",
 		PrevFileInDiff:                       "Go to previous file",
 		NextFileInDiff:                       "Go to next file",
+		JumpToFile:                           "Jump to file",
+		JumpToFileInDiff:                     "Jump to file in diff",
+		JumpToFileInDiffTooltip:              "Pick one of the files of the diff shown in the main view, and scroll the main view to it. The focus stays in this panel.",
+		OnlyOneFileInDiff:                    "There is only one file in this diff",
 		PrevConflict:                         "Previous conflict",
 		NextConflict:                         "Next conflict",
 		SelectPrevHunk:                       "Previous hunk",

@@ -24,6 +24,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` _ `` | Предыдущий режим экрана |  |
 | `` \| `` | Cycle diff renderers | Choose the next renderer in the list of configured diff renderers. |
 | `` \ `` | Cycle diff renderers (reverse) | Choose the previous renderer in the list of configured diff renderers. |
+| `` <ctrl+g> `` | Jump to file in diff | Pick one of the files of the diff shown in the main view, and scroll the main view to it. The focus stays in this panel. |
 | `` <esc> `` | Отменить |  |
 | `` ? `` | Открыть меню |  |
 | `` <ctrl+s> `` | Просмотреть параметры фильтрации по пути | View options for filtering the commit log, so that only commits matching the filter are shown. |
@@ -85,6 +86,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <right>, l `` | Выбрать следующую часть |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
+| `` <ctrl+g> `` | Jump to file |  |
 | `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | Exit back to side panel |  |
 | `` c `` | Сохранить изменения | Commit staged changes. |
@@ -111,6 +113,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <right>, l `` | Выбрать следующую часть |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
+| `` <ctrl+g> `` | Jump to file |  |
 | `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | Exit back to side panel |  |
 | `` c `` | Сохранить изменения | Commit staged changes. |

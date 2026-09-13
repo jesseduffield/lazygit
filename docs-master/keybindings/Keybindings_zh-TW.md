@@ -24,6 +24,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` _ `` | 上一個螢幕模式 |  |
 | `` \| `` | 切換差異渲染器 | 選擇已設定的差異渲染器清單中的下一個渲染器。 |
 | `` \ `` | 切換差異渲染器（反向） | 選擇已設定的差異渲染器清單中的上一個渲染器。 |
+| `` <ctrl+g> `` | Jump to file in diff | Pick one of the files of the diff shown in the main view, and scroll the main view to it. The focus stays in this panel. |
 | `` <esc> `` | 取消 |  |
 | `` ? `` | 開啟選單 |  |
 | `` <ctrl+s> `` | 檢視篩選路徑選項 | 檢視用於過濾提交日誌的選項，以便僅顯示與過濾器匹配的提交。 |
@@ -70,6 +71,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <right>, l `` | 選擇下一段 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
+| `` <ctrl+g> `` | Jump to file |  |
 | `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | 退出回到側邊面板 |  |
 | `` c `` | 提交變更 | 提交暫存區變更 |
@@ -345,6 +347,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <right>, l `` | 選擇下一段 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
+| `` <ctrl+g> `` | Jump to file |  |
 | `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | 退出回到側邊面板 |  |
 | `` c `` | 提交變更 | 提交暫存區變更 |
