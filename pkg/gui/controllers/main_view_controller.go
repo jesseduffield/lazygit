@@ -159,6 +159,15 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			GetDisabledReason: self.diffSelectionDisabledReason,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Main.JumpToFile),
+			Handler:           self.openJumpToFileMenu,
+			Description:       self.c.Tr.JumpToFileInDiff,
+			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.JumpToFileInDiff),
+			GetDisabledReason: self.diffSelectionDisabledReason,
+			OpensMenu:         true,
+			DisplayOnScreen:   true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Commits.OpenPullRequestInBrowser),
 			Handler:           self.openPullRequestAtSelectedLine,
 			Description:       self.c.Tr.OpenPullRequestAtSelectedLine,
@@ -841,6 +850,70 @@ func (self *MainViewController) scrollTargetToTop(target int) {
 		return
 	}
 	view.SetOriginY(min(target, max(0, view.ViewLinesHeight()-height)))
+}
+
+// openJumpToFileMenu offers the files of the diff in a menu, so that one of them can be
+// gone to directly rather than by stepping through the diff a file at a time.
+//
+// The diff is read to the end before the menu is built: a file below the part of it that
+// has been read so far is in neither the list nor the view, and reaching the far end of
+// a long diff is what the menu is for.
+func (self *MainViewController) openJumpToFileMenu() error {
+	manager := self.c.GetViewBufferManagerForView(self.context.GetView())
+	if manager == nil {
+		return nil
+	}
+	manager.ReadToEnd(func() {
+		self.c.OnUIThread(self.showJumpToFileMenu)
+	})
+	return nil
+}
+
+// showJumpToFileMenu offers the diff's files by the paths git names them by. Each item
+// names its file rather than the row that file begins at, so that a diff re-rendered
+// while the menu is up is jumped into at the row the file begins at now.
+//
+// A menu offering the one file of a single-file diff would be a menu with nothing to
+// choose, so it says what it found instead. It says it here rather than as the key's
+// disabled reason because how many files there are is only known once the diff has been
+// read to the end, which is too much to do for every keypress that asks whether a key
+// applies.
+func (self *MainViewController) showJumpToFileMenu() error {
+	files := self.c.Helpers().DiffLine.FilesInDiff(self.context.GetView())
+	if len(files) == 0 {
+		return nil
+	}
+	if len(files) == 1 {
+		self.c.ErrorToast(self.c.Tr.DisabledMenuItemPrefix + self.c.Tr.OnlyOneFileInDiff)
+		return nil
+	}
+
+	worktreePath := self.c.Git().RepoPaths.WorktreePath()
+	menuItems := lo.Map(files, func(path string, _ int) *types.MenuItem {
+		label := repoRelativePath(worktreePath, path)
+		if label == "" {
+			label = path
+		}
+		return &types.MenuItem{
+			Label:   label,
+			OnPress: func() error { self.jumpToFile(path); return nil },
+		}
+	})
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title:           self.c.Tr.JumpToFileInDiff,
+		Items:           menuItems,
+		FilterAsYouType: true,
+	})
+}
+
+// jumpToFile goes to where the given file's diff begins, the way stepping to it with
+// next-file would: the selection moves there, and the file goes to the top of the view
+// when it wasn't on screen.
+func (self *MainViewController) jumpToFile(path string) {
+	if target, ok := self.c.Helpers().DiffLine.StartOfFileInDiff(self.context.GetView(), path); ok {
+		self.placeNavigationTarget(target, true)
+	}
 }
 
 // moveCursor moves the selection cursor by delta view lines (negative = up), with the

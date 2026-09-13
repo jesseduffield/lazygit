@@ -2069,6 +2069,20 @@
           ],
           "default": "n"
         },
+        "jumpToFile": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "f"
+        },
         "toggleSelectHunk": {
           "oneOf": [
             {

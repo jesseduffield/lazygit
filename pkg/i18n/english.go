@@ -403,6 +403,8 @@ type TranslationSet struct {
 	NextHunk                              string
 	PrevFileInDiff                        string
 	NextFileInDiff                        string
+	JumpToFileInDiff                      string
+	OnlyOneFileInDiff                     string
 	PrevConflict                          string
 	NextConflict                          string
 	SelectPrevHunk                        string
@@ -1567,6 +1569,8 @@ func EnglishTranslationSet() *TranslationSet {
 		NextHunk:                             "Go to next hunk",
 		PrevFileInDiff:                       "Go to previous file",
 		NextFileInDiff:                       "Go to next file",
+		JumpToFileInDiff:                     "Jump to file",
+		OnlyOneFileInDiff:                    "There is only one file in this diff",
 		PrevConflict:                         "Previous conflict",
 		NextConflict:                         "Next conflict",
 		SelectPrevHunk:                       "Previous hunk",

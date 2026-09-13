@@ -203,6 +203,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <right>, l `` | 次のハンクに移動 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
+| `` f `` | Jump to file |  |
 | `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | サイドパネルに戻る |  |
 | `` c `` | コミット | ステージされた変更をコミットします。 |
@@ -294,6 +295,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <right>, l `` | 次のハンクに移動 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
+| `` f `` | Jump to file |  |
 | `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | サイドパネルに戻る |  |
 | `` c `` | コミット | ステージされた変更をコミットします。 |
