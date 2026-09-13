@@ -66,7 +66,7 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 	}
 }
 
-func (self *ReflogCommitsContext) CanRebase() bool {
+func (self *ReflogCommitsContext) CanRebase(currentBranch *models.Branch) bool {
 	return false
 }
 
