@@ -2819,16 +2819,31 @@ interactive pass** before anything is decided about where they belong.
    at, and a large context size can put that change more than a screenful
    below it, so the alignment is applied first and the selection scrolled into
    view afterwards; where the two can't both hold, the selection wins and is
-   centred as before. A commit of its own, since it changes `n`/`N` as well:
-   **if it is kept, that half belongs in PR 5**, where file navigation is
-   introduced. New `ViewDriver.TopVisibleLine`, which asserts on where a view
-   is scrolled to without naming a line number.
+   centred as before. **Approved the same day and moved down to PR 5** as an
+   `amend!` for "Jump by hunk and by file in the focused main view", that
+   commit being where file navigation and its landing rows are decided; its
+   message gained a paragraph about the scrolling. What stayed here is the one
+   line of the menu asking for the same alignment. New
+   `ViewDriver.TopVisibleLine`, which asserts on where a view is scrolled to
+   without naming a line number, and which reads a **view** line: the
+   viewport's origin counts wrapped segments, and a commit's diffstat wraps.
 
-New test `jump_to_a_file_scrolls_it_to_the_top` covers both hunk-mode cases;
-`jump_to_a_file_of_the_diff` gained the single-file one. Beware the shape of
-the latter's first press: pressing the key before the diff has rendered reads
-an empty view, so the test waits for the selection first (it flaked once in a
-full run before that wait was there).
+New test `file_navigation_scrolls_to_the_top` (in PR 5) covers both hunk-mode
+cases with `n`/`N`; `jump_to_a_file_of_the_diff` asserts the same for a jump
+from the menu, and gained the single-file case. Two things that cost time:
+
+- Pressing the key before the diff has rendered reads an empty view, so a test
+  has to wait for the selection first (this one flaked once in a full run
+  before that wait was there).
+- The alignment stops at the last screenful, so a file at the **end** of the
+  diff can't reach the top of the view — a test asserting that it does needs
+  a file after it to scroll past.
+
+The move down took three passes of the stack: the `amend!` where it belongs,
+then the config rename in PR 9 ("Name diff options after the view that now
+uses them") to take the new test's `UseHunkModeInStagingView` with it, then
+the menu commit for its fixture. Every commit from the `amend!` to the tip
+builds; the tip passes the whole suite.
 
 ---
 
@@ -2842,14 +2857,14 @@ user pass before merge:
 |---|---|
 | 1 | ✅ **APPROVED 2026-08-09.** Slow-render matrix (N§11/§13): flick commits/files scrolled down; 10 s auto-refresh (`refreshInterval: 3`) — no content/scrollbar flicker; **also re-test at normal speed** (N§20.5). Found PR 1 deviations 8 and 9, both fixed; a repo with dirty submodules is the case that exposes a slow same-content re-render |
 | 4 | ✅ **APPROVED 2026-08-09.** Patched delta/difftastic/diff-so-fancy emit + render cleanly; handshake swallowed (no phantom line) |
-| 5 | ✅ **APPROVED 2026-08-15.** Selection feel under delta; hunk-on-click; drag incl. autoscroll; nav under metadata delta incl. repeated `n` across files. Some special cases are candidates for a later refinement; deliberately not pursued now |
+| 5 | ✅ **APPROVED 2026-08-15.** Selection feel under delta; hunk-on-click; drag incl. autoscroll; nav under metadata delta incl. repeated `n` across files. Some special cases are candidates for a later refinement; deliberately not pursued now. **`n`/`N` scrolling a file to the top of the view approved 2026-09-13**, tried in PR 12 before it moved down here |
 | 6 | ✅ **APPROVED 2026-08-15.** `{`/`}`, `ctrl+w` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ignoring whitespace where it removes the anchor's hunk, and where it empties the diff. Nothing found; the whitespace consumer called out as a welcome addition |
 | 7 | ✅ **APPROVED 2026-08-16**, except for `E` ("Edit hunk"), ported here on 2026-09-01 and still owing a pass with a real editor, including a patch edited to something neither side of the diff says. Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro). Four review comments about the stack as a whole, all fixed the same day — see PR 7's sign-off section |
 | 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
 | 9 | `enter` and double-click on a file (working tree and commit) under each renderer; `{`/`}` down to 0 and back while a patch is being built; the keybindings menu's tooltips over both kinds of diff; screen modes with a diff focused; `wrapLinesInDiffView: false` with a long line in a diff, a branch log, the status and a conflict hint on screen in turn (round 1) |
 | 10 | Ghostty, iTerm2, VS Code |
 | 11 | The URL the browser lands on, in a repo whose branch has a pull request: a line of a commit's diff, a deleted line (`L`), a file-header row, and the same from the commit files panel and the sub-commits panel. Nothing headless reaches a pull request (PR 11 deviation 5), so every one of these is untested |
-| 12 | The menu over a many-file commit under each renderer (a file of a difftastic diff begins at its first content row), and the landing row for each; filtering as you type. Round 1's two refinements are **for the user to try before they are kept**: the message a single-file diff gets, and files going to the top of the view in both selection modes, including `n`/`N` |
+| 12 | The menu over a many-file commit under each renderer (a file of a difftastic diff begins at its first content row), and the landing row for each; filtering as you type. Round 1's scrolling is **approved 2026-09-13** and has moved to PR 5; the message a single-file diff gets is still for the user to try |
 
 Patched renderer builds: `cargo build` in delta/difftastic worktrees
 (`osc-1717-metadata` branches); diff-so-fancy is a script.
