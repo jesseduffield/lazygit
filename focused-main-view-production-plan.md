@@ -156,9 +156,10 @@ succession (§2.3); 10–11 any time after their dependencies.
 | 2 | Internal: resolve diff lines to (file, line, kind) identities | 1 | infra |
 | 3 | Rename the "pagers" config to "diff renderers" — **DONE: landed on master as #5870** | — | rename + migration |
 | 4 | Support diff renderers that emit OSC 1717 diff line metadata | 2, 3 | infra + protocol |
-| 5 | Select, navigate and edit diff lines in the focused main view (copy moved to PR 7) | 2 (4 for renderers) | feature |
+| 5 | Select, navigate and edit diff lines in the focused main view (copy moved to PR 6b) | 2 (4 for renderers) | feature |
 | 6 | Keep your position in the diff when changing context size, ignoring whitespace, or switching diff renderers | 1, 2, 5 | feature |
-| 7 | Stage, unstage and discard changes directly from the focused main view | 4, 5, 6 | feature |
+| 6b | Copy the selected diff lines from the focused main view | 5, 6 | feature (split out of PR 7 on 2026-09-13) |
+| 7 | Stage, unstage and discard changes directly from the focused main view | 4, 5, 6, 6b | feature |
 | 8 | Build custom patches directly from a commit's diff view | 7 | feature |
 | 9 | Replace the staging and patch-building panels with the focused main view | 7, 8 | removal + migration |
 | 10 | Alt- or shift-click a diff line to open it in your editor | 2, 4, 5 | feature |
@@ -819,7 +820,9 @@ are **not in this PR** (1 and 2 below); everything else landed.
    actions would sit beside rather than use — each `PrimaryAction` fetches its
    own raw diff (PR 7 commit 4). So copy becomes a `FocusedMainViewActions`
    method, landing in PR 7 right after commit 2 builds that interface. **PR 5's
-   title drops "copy"**; §8's copy row moves to PR 7. The sub-decision already
+   title drops "copy"**; §8's copy row moves to PR 7. (It is **PR 6b** as of
+   2026-09-13, split back out of PR 7 as its own releasable feature; it is a
+   `FocusedMainViewDiffSource` method, the narrower of the two interfaces.) The sub-decision already
    taken with the user, for whenever it lands: copy the **contiguous raw span**
    between the first and last matched identity (per file, concatenated in
    display order), so renderer-hidden lines come along and the clipboard is a
@@ -1341,6 +1344,78 @@ commit builds and unit-tests clean on its own. §6 sign-off **approved
 12. Deviations 3 and 10 arrived as `fixup!` commits, on the mechanism commit and
     on the helper commit; the user has folded them in.
 
+### PR 6b — Copy the selected diff lines from the focused main view
+
+Split out of PR 7 on 2026-09-13, at the user's suggestion: PR 7's first two
+commits are a self-contained feature that PR 7 then builds on, so branch
+`copy-diff-lines-from-main-view` was created at the copy commit and the rest of
+the stack replayed onto it. Nothing was rewritten to do it. It sits between
+`show-staged-changes-in-lower-pane` and `stage-changes-in-main-view` (`PlainDiff`
+asks the pane which side it shows, which is the lower-pane branch's rule).
+
+Two commits: "Share how a ref's diff endpoints are derived" (prep, written for
+this one) and "Copy the selected diff lines from the focused main view", which
+introduces the narrow seam `types.FocusedMainViewDiffSource` (`PlainDiff(pane,
+paths)`) and its four panel implementations. `FocusedMainViewActions`, which
+embeds it, arrives with PR 7's staging commit. The design rationale for taking
+the lines from the diff rather than from the screen is PR 5's plan item 9 and
+its deviation 2.
+
+#### Round 1 (2026-09-13) — what a selection of headers and messages copies
+
+Three `amend!`/`fixup!` commits on the copy branch, all from the user's review of
+the feature in use. Only change lines were matched, so anything else in a
+selection quietly contributed nothing.
+
+1. **Headers count as selected lines.** A hunk header names the first line of
+   its hunk in both sources of a row's identity (`LineNumberOfLine` returns
+   `hunk.newStart`, and an OSC 1717 `h` record carries the same), so it is
+   matched like a line of the file. A file header names no line and the two
+   sources disagree about what to call it (the buffer parse says the file's
+   first line, a record says nothing), so it is answered for by kind: a
+   selection touching any row of it takes the file's whole header. Selecting a
+   hunk and its header now copies a patch fragment rather than stripped code,
+   since `dropDiffPrefix` keeps the columns as soon as a header is in the text.
+   This also restores what master's patch explorer did, its copy being the plain
+   patch text of the selected rows verbatim.
+2. **The rows above the diff are copied as they stand on screen** (rule (ii) of
+   the two offered: a selection spanning the commit message and the diff
+   contributes both halves, rather than the message half being dropped).
+   `PlainDiffOfSelection` returns the two parts separately, and the +/- column
+   is dropped only when everything came out of the diff — a message line may
+   begin with a '-' without being a deletion. The rule needs a file on screen to
+   be above: with nothing resolvable in the view (a restructuring renderer
+   before PR 7's raw fallback) it yields nothing, so a renderer's picture still
+   never reaches the clipboard.
+3. **Toasts.** A copy says so, as every other `ctrl+o` does (master's patch
+   explorer was the one that didn't), and a selection that stands for no line of
+   the diff gets an error toast instead of silence. New strings
+   `SelectedDiffLinesCopiedToast` and `SelectionNotFoundInDiffToast`.
+   e2e: `copy_selected_diff_lines` grew three cases (hunk header, file header,
+   commit message and a selection spanning it), and its clipboard helper now
+   acknowledges the toast, which the harness requires before the next keypress.
+   New test `copy_rows_that_are_no_diff_line` for the error toast, with a
+   renderer that tags its content rows and ends with one of its own.
+
+**Rejected in the same round:** copying the view's own lines verbatim when the
+view already shows git's plain diff (no renderer, whitespace not ignored). After
+1 and 2 the two paths agree almost everywhere — the run rule exists to fill in
+what a rendering hid, and a plain rendering hides nothing — while the condition
+would have to weigh the renderer type, its git args, the raw fallback, ignoring
+whitespace and the custom-patch preview pane, and the same selection would copy
+different text depending on config. Known gap left open: a `\ No newline at end
+of file` marker at the very edge of a selection is not copied, since it names no
+line and so can't be a run's endpoint.
+
+**Replay notes.** The three commits went in at the copy branch's tip and the 80
+commits above were replayed with `rebase --onto … --update-refs`. Three commits
+above needed adjusting, each in its own place: the `test_list.go` entry (a
+generated-file conflict), PR 8's custom-patch case in `copy_selected_diff_lines`
+(it now re-enters hunk mode before acting, the preceding case leaving a range
+selection behind), and PR 9's config rename, which had to rename the key in the
+new test file too. All branch tips build, lint and pass; `just e2e` is green at
+PRs 6b, 7, 8, 9 and 12.
+
 ### PR 7 — Stage, unstage and discard changes directly from the focused main view
 
 The headline PR. After it: in the files panel's focused main view, `space`
@@ -1548,7 +1623,9 @@ the rebase onto it. All checks green; §6 sign-off owed.
    selected *content* line; headers are not matched, since a file header's
    record and the buffer parse disagree about which line it is, and a run
    between two content lines carries any header between them anyway.
-   `pkg/gui/controllers/helpers/diff_line_plain_text.go`.
+   `pkg/gui/controllers/helpers/diff_line_plain_text.go`. **Both of these
+   commits left PR 7 on 2026-09-13 and are PR 6b now**, which is also where the
+   header rule was revisited.
 5. **The options bar leaves out a command that describes itself as nothing.**
    PR 5 made an empty `DescriptionFunc` mean "doesn't apply here"; without this
    the space key would have shown as a blank entry over a commit's diff, where
@@ -2859,6 +2936,7 @@ user pass before merge:
 | 4 | ✅ **APPROVED 2026-08-09.** Patched delta/difftastic/diff-so-fancy emit + render cleanly; handshake swallowed (no phantom line) |
 | 5 | ✅ **APPROVED 2026-08-15.** Selection feel under delta; hunk-on-click; drag incl. autoscroll; nav under metadata delta incl. repeated `n` across files. Some special cases are candidates for a later refinement; deliberately not pursued now. **`n`/`N` scrolling a file to the top of the view approved 2026-09-13**, tried in PR 12 before it moved down here |
 | 6 | ✅ **APPROVED 2026-08-15.** `{`/`}`, `ctrl+w` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ignoring whitespace where it removes the anchor's hunk, and where it empties the diff. Nothing found; the whitespace consumer called out as a welcome addition |
+| 6b | Copying under delta (unified + SxS) and difftastic: a hunk with its header, a file header, a selection that is all additions, a commit's message alone and a selection spanning it into the diff; and both toasts. The headless tests use fake renderers throughout |
 | 7 | ✅ **APPROVED 2026-08-16**, except for `E` ("Edit hunk"), ported here on 2026-09-01 and still owing a pass with a real editor, including a patch edited to something neither side of the diff says. Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro). Four review comments about the stack as a whole, all fixed the same day — see PR 7's sign-off section |
 | 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
 | 9 | `enter` and double-click on a file (working tree and commit) under each renderer; `{`/`}` down to 0 and back while a patch is being built; the keybindings menu's tooltips over both kinds of diff; screen modes with a diff focused; `wrapLinesInDiffView: false` with a long line in a diff, a branch log, the status and a conflict hint on screen in turn (round 1) |
@@ -2914,7 +2992,7 @@ The remaining rows are agreed as keep/defer:
 | A **side-by-side** renderer re-laid-out at a new width loses the position (new, round 4) | Defer. Only renderers whose line count depends on width (`delta --side-by-side`, difftastic side-by-side), and only when the diff is actually re-run at a new width — a refresh-driven render or a screen-mode change, never a bare resize. Needs `PreserveDiffPositionOnRerender` on a plain refresh, gated on the render being of the *same* diff, which isn't knowable until the render starts |
 | Gutter marks for not-yet-loaded lines of huge diffs (N§21.20) | Keep (marks appear on next recompute); note |
 | Renderer switch mid-patch-build shifts checkmarks (N§21.22(4)) | **Done in PR 8**: the marks are worked out again wherever a pane's content settles, so no mechanism of its own was needed; `patch_marks_follow_a_renderer_switch` guards it (PR 8 deviations 6 and 8) |
-| Copy copies the renderer's output verbatim under a renderer (N§21.28) | **Done in PR 7**: copy takes the corresponding lines of the plain diff, through the new diff-source seam |
+| Copy copies the renderer's output verbatim under a renderer (N§21.28) | **Done in PR 6b**: copy takes the corresponding lines of the plain diff, through the new diff-source seam. The rows above the diff, which belong to no file, are the one thing taken from the screen |
 | Nav only sees loaded content (deep targets in huge diffs, N§16.4) | **Done in PR 5**: ReadToEnd-then-retry in the shared `navigate` helper |
 | Toggle auto-advance: no "skip already-included" smarts (N§21.35) | Keep plain next-hunk |
 | difftastic token-vs-line `c`-at-new-line mismatch (M§10.2) | Protocol v2 candidate; nothing to do host-side |
@@ -3046,8 +3124,14 @@ The remaining rows are agreed as keep/defer:
       `keep-diff-position-on-rerender` (7 commits, fixups folded, all checks
       green, every commit builds and unit-tests clean on its own), stacked on
       `select-diff-lines-in-main-view`. §6 sign-off **approved**
+- [x] PR 6b — copy the selected diff lines — **DONE 2026-09-13** on branch
+      `copy-diff-lines-from-main-view` (PR 7's first two commits, split out at
+      the user's suggestion, plus round 1's `amend!` and two `fixup!` commits,
+      all checks green), stacked on `show-staged-changes-in-lower-pane`. §6
+      sign-off owed
 - [x] PR 7 — staging from the main view — **DONE 2026-08-16** on branch
-      `stage-changes-in-main-view`, plus two commits added 2026-09-01 porting
+      `stage-changes-in-main-view`, now off `copy-diff-lines-from-main-view`,
+      plus two commits added 2026-09-01 porting
       "Edit hunk" (see PR 7's addendum; `E` still owes its interactive pass)
       (17 commits with round 4's folded in, 55
       across the whole stack, all checks green, every commit building and
