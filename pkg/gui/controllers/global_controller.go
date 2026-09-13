@@ -76,6 +76,14 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Tooltip:           self.c.Tr.CycleDiffRenderersReverseTooltip,
 		},
 		{
+			Keys:            opts.GetKeys(opts.Config.Universal.JumpToFile),
+			Handler:         opts.Guards.NoPopupPanel(self.jumpToFileInDiff),
+			Description:     self.c.Tr.JumpToFileInDiff,
+			DescriptionFunc: self.jumpToFileInDiffDescription,
+			Tooltip:         self.c.Tr.JumpToFileInDiffTooltip,
+			OpensMenu:       true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Return),
 			Handler:           self.escape,
 			Description:       self.c.Tr.Cancel,
@@ -212,6 +220,58 @@ func (self *GlobalController) canCycleDiffRenderers() *types.DisabledReason {
 	if total <= 1 {
 		return &types.DisabledReason{
 			Text: self.c.Tr.CycleDiffRenderersDisabledReason,
+		}
+	}
+	return nil
+}
+
+// jumpToFileInDiff offers the files of the diff the main section is showing in a menu,
+// and scrolls that pane to the file picked. The panel the user is in keeps the focus;
+// they are reading the diff from there, and the next commit or file to read is picked
+// there too.
+func (self *GlobalController) jumpToFileInDiff() error {
+	pane := self.diffPane()
+	if pane == nil {
+		return nil
+	}
+
+	return self.c.Helpers().DiffLine.OpenJumpToFileMenu(pane, self.c.Tr.JumpToFileInDiff)
+}
+
+// jumpToFileInDiffDescription qualifies the command's description so that it is listed
+// only where it applies. A command with no description is left out of the keybindings
+// menu.
+//
+// It doesn't apply where the main section is showing content that is no diff of the
+// panel's — a branch's commit log, the status dashboard, a message. Nor does it while
+// the focus is in one of the panes, which bind the key themselves; the menu would
+// otherwise offer it twice there, once for the pane and once among the global keys.
+//
+// The static Description stays as it is: the cheatsheets are generated from that, and
+// they document what a key does rather than when it applies.
+func (self *GlobalController) jumpToFileInDiffDescription() string {
+	_, focusIsInAPane := self.c.Context().Current().(*context.MainContext)
+	if focusIsInAPane || self.diffPane() == nil {
+		return ""
+	}
+	return self.c.Tr.JumpToFileInDiff
+}
+
+// diffPane returns the pane of the main section showing the diff of the panel the user
+// is in, and nil when neither of them is showing one. A pane is cleared as it is
+// emptied, so a pane that says it is showing a diff is showing one. Its window also has
+// to be showing the pane. Resolving a conflicted file puts the merge conflicts view
+// there instead, and the pane behind it goes on holding the diff it last rendered.
+//
+// Where both panes show a diff — the unstaged and staged sides of a file — the answer
+// is the upper one, the pane the keys for scrolling the section act on.
+func (self *GlobalController) diffPane() *context.MainContext {
+	for _, pane := range []*context.MainContext{
+		self.c.Contexts().Normal, self.c.Contexts().NormalSecondary,
+	} {
+		onScreen := self.c.Helpers().Window.GetContextForWindow(pane.GetWindowName()) == pane
+		if onScreen && pane.ContentIsDiff() {
+			return pane
 		}
 	}
 	return nil
