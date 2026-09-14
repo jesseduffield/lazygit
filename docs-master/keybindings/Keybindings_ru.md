@@ -80,7 +80,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | Переключить индекс | Переключить строку в проиндексированные / непроиндексированные |
 | `` d `` | Отменить изменение (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
 | `` E `` | Изменить эту часть | Edit selected hunk in external editor. |
-| `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
 | `` <left>, h `` | Выбрать предыдущую часть |  |
 | `` <right>, l `` | Выбрать следующую часть |  |
 | `` N `` | Go to previous file |  |
@@ -105,7 +105,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | Переключить индекс | Переключить строку в проиндексированные / непроиндексированные |
 | `` d `` | Отменить изменение (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
 | `` E `` | Изменить эту часть | Edit selected hunk in external editor. |
-| `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
 | `` <left>, h `` | Выбрать предыдущую часть |  |
 | `` <right>, l `` | Выбрать следующую часть |  |
 | `` N `` | Go to previous file |  |

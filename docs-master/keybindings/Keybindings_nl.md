@@ -237,7 +237,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | Toggle staged | Toggle lijnen staged / unstaged |
 | `` d `` | Verwijdert change (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
 | `` E `` | Edit hunk | Edit selected hunk in external editor. |
-| `` <ctrl+o> `` | Copy selected text to clipboard |  |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
 | `` <left>, h `` | Selecteer de vorige hunk |  |
 | `` <right>, l `` | Selecteer de volgende hunk |  |
 | `` N `` | Go to previous file |  |
@@ -311,7 +311,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | Toggle staged | Toggle lijnen staged / unstaged |
 | `` d `` | Verwijdert change (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
 | `` E `` | Edit hunk | Edit selected hunk in external editor. |
-| `` <ctrl+o> `` | Copy selected text to clipboard |  |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
 | `` <left>, h `` | Selecteer de vorige hunk |  |
 | `` <right>, l `` | Selecteer de volgende hunk |  |
 | `` N `` | Go to previous file |  |
