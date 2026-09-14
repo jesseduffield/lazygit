@@ -241,7 +241,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
 | `` d `` | Descartar | Quando a mudança não desejada for selecionada, descarte a mudança usando `git reset`. Quando a mudança em fase é selecionada, despare a mudança. |
 | `` E `` | Editar hunk | Editar o local selecionado no editor externo. |
-| `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
 | `` <left>, h `` | Ir para o local anterior |  |
 | `` <right>, l `` | Ir para o próximo trecho |  |
 | `` N `` | Go to previous file |  |
@@ -320,7 +320,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | Etapa | Ativar/desativar seleção em staged/unstaged |
 | `` d `` | Descartar | Quando a mudança não desejada for selecionada, descarte a mudança usando `git reset`. Quando a mudança em fase é selecionada, despare a mudança. |
 | `` E `` | Editar hunk | Editar o local selecionado no editor externo. |
-| `` <ctrl+o> `` | Copiar texto selecionado para área de transferência |  |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
 | `` <left>, h `` | Ir para o local anterior |  |
 | `` <right>, l `` | Ir para o próximo trecho |  |
 | `` N `` | Go to previous file |  |

@@ -713,7 +713,7 @@ type TranslationSet struct {
 	CopyTagToClipboard                    string
 	CopyPathToClipboard                   string
 	CommitPrefixPatternError              string
-	CopySelectedTextToClipboard           string
+	CopySelectedDiffLinesToClipboard      string
 	SelectedDiffLinesCopiedToast          string
 	SelectionNotFoundInDiffToast          string
 	NoFilesStagedTitle                    string
@@ -1871,7 +1871,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CopyBranchNameToClipboard:                "Copy branch name to clipboard",
 		CopyTagToClipboard:                       "Copy tag to clipboard",
 		CopyPathToClipboard:                      "Copy path to clipboard",
-		CopySelectedTextToClipboard:              "Copy selected text to clipboard",
+		CopySelectedDiffLinesToClipboard:         "Copy selected diff lines to clipboard",
 		SelectedDiffLinesCopiedToast:             "Selected diff lines copied to clipboard",
 		SelectionNotFoundInDiffToast:             "Nothing in the selection could be found in the diff",
 		CommitPrefixPatternError:                 "Error in commitPrefix pattern",
