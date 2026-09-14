@@ -67,6 +67,19 @@ func TestReadHeadInfo(t *testing.T) {
 			expectedOk: true,
 		},
 		{
+			name: "repo that keeps its refs in a reftable, so HEAD holds a placeholder",
+			files: map[string]string{
+				"repo/.git/HEAD": "ref: refs/heads/.invalid\n",
+			},
+			/* EXPECTED:
+			repoPath:   "repo",
+			expectedOk: false,
+			ACTUAL: */
+			repoPath:   "repo",
+			expected:   headInfo{branch: ".invalid"},
+			expectedOk: true,
+		},
+		{
 			name:       "directory without a .git entry",
 			repoPath:   "notarepo",
 			expectedOk: false,

@@ -368,6 +368,7 @@ var tests = []*components.IntegrationTest{
 	misc.RecentReposBranchColumn,
 	misc.RecentReposColumnWidths,
 	misc.RecentReposOnLaunch,
+	misc.RecentReposReftableRepo,
 	misc.RecentReposWithLongNames,
 	misc.StartInGitDir,
 	patch_building.Apply,
