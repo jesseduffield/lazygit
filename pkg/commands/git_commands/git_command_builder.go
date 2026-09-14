@@ -19,12 +19,12 @@ import (
 // that opts back in is the foreground files refresh; see FileLoader.gitStatus.
 const OptionalLocksEnvVar = "GIT_OPTIONAL_LOCKS"
 
-// forOtherRepo prepares a command that operates on a repo other than the one
+// ForOtherRepo prepares a command that operates on a repo other than the one
 // we have open — a submodule, or another worktree. GIT_DIR and GIT_WORK_TREE
 // say where our repo is, and every command we run inherits them, so a command
 // pointed at a different repo would be resolved against ours instead: `git -C
 // <submodule> log` would silently log the superproject's commits.
-func forOtherRepo(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
+func ForOtherRepo(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
 	return cmdObj.RemoveEnvVar(env.GitDirEnvVar).RemoveEnvVar(env.GitWorkTreeEnvVar)
 }
 

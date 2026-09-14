@@ -49,7 +49,8 @@ func GetWorktreeDisplayString(tr *i18n.TranslationSet, worktree *models.Worktree
 	if worktree.Branch != "" {
 		branch = style.FgCyan.Sprint(worktree.Branch)
 	} else if worktree.Head != "" {
-		branch = style.FgYellow.Sprint("HEAD detached at " + utils.ShortHash(worktree.Head))
+		branch = style.FgYellow.Sprint(utils.ResolvePlaceholderString(
+			tr.HeadDetachedAt, map[string]string{"hash": utils.ShortHash(worktree.Head)}))
 	}
 	res = append(res, branch+mainWorktreeLabel(tr, worktree))
 	return res
