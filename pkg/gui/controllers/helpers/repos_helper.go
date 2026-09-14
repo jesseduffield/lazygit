@@ -10,6 +10,7 @@ import (
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/direnv"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -100,6 +101,12 @@ func gitDirOfRepo(repoPath string) (string, bool) {
 	return gitDir, true
 }
 
+// The branch git names in the HEAD file of a repo that keeps its refs in a
+// reftable. The refs live in a binary table there, and the name in HEAD
+// resolves nowhere, so that a reader of the file gets an error instead of a
+// stale answer.
+const reftablePlaceholderBranch = ".invalid"
+
 // readHeadInfo reads the HEAD file of the repo at repoPath to find out what it
 // has checked out, and reports whether that worked.
 func readHeadInfo(repoPath string) (headInfo, bool) {
@@ -115,13 +122,50 @@ func readHeadInfo(repoPath string) (headInfo, bool) {
 
 	head := strings.TrimSpace(string(content))
 	if branch, ok := strings.CutPrefix(head, "ref: refs/heads/"); ok {
+		if branch == reftablePlaceholderBranch {
+			return headInfo{}, false
+		}
 		return headInfo{branch: branch}, true
 	}
 	return headInfo{hash: head}, true
 }
 
+// askGitForHeadInfo asks git what the repo at repoPath has checked out. This
+// costs a process, so only the repos that readHeadInfo can't answer for go
+// through here.
+func (self *ReposHelper) askGitForHeadInfo(repoPath string) (headInfo, bool) {
+	// symbolic-ref names the branch even when it has no commit yet, and
+	// rev-parse resolves HEAD when it is detached. Neither can do the other's
+	// job, so ask for the branch first and only then for the commit.
+	if branch, ok := self.askGit(repoPath, "symbolic-ref", "--short", "--quiet", "HEAD"); ok {
+		return headInfo{branch: branch}, true
+	}
+	if hash, ok := self.askGit(repoPath, "rev-parse", "HEAD"); ok {
+		return headInfo{hash: hash}, true
+	}
+	return headInfo{}, false
+}
+
+// askGit runs a git command against the repo at repoPath and returns the one
+// line it writes, or false if it fails or writes nothing.
+func (self *ReposHelper) askGit(repoPath string, subcommand string, args ...string) (string, bool) {
+	cmdObj := self.c.OS().Cmd.New(git_commands.NewGitCmd(subcommand).
+		Dir(repoPath).
+		Arg(args...).
+		ToArgv()).DontLog()
+	stdout, _, err := git_commands.ForOtherRepo(cmdObj).RunWithOutputs()
+	if err != nil {
+		return "", false
+	}
+	output := strings.TrimSpace(stdout)
+	return output, output != ""
+}
+
 func (self *ReposHelper) getCurrentBranch(path string) string {
 	head, ok := readHeadInfo(path)
+	if !ok {
+		head, ok = self.askGitForHeadInfo(path)
+	}
 	if !ok {
 		return self.c.Tr.BranchUnknown
 	}

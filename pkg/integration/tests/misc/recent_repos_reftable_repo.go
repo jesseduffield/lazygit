@@ -19,20 +19,22 @@ var RecentReposReftableRepo = NewIntegrationTest(NewIntegrationTestArgs{
 		// the first entry is the repo we're in, so it isn't offered
 		current, _ := filepath.Abs(".")
 		reftable, _ := filepath.Abs("../reftable")
-		cfg.GetAppState().RecentRepos = []string{current, reftable}
+		unborn, _ := filepath.Abs("../reftable-unborn")
+		cfg.GetAppState().RecentRepos = []string{current, reftable, unborn}
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")
 		shell.RunCommand([]string{"git", "clone", "--ref-format=reftable", ".", "../reftable"})
+		// A branch without a commit is the one thing git can't answer for with
+		// rev-parse
+		shell.RunCommand([]string{"git", "init", "--ref-format=reftable", "../reftable-unborn"})
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.ExpectPopup().Menu().
 			Title(Equals("Recent repositories")).
 			Lines(
-				/* EXPECTED:
 				Contains("reftable").Contains("master").IsSelected(),
-				ACTUAL: */
-				Contains("reftable").Contains(".invalid").IsSelected(),
+				Contains("reftable-unborn").Contains("master"),
 				Contains("Cancel"),
 			).
 			Cancel()

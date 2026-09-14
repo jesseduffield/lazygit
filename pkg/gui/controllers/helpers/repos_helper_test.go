@@ -71,13 +71,8 @@ func TestReadHeadInfo(t *testing.T) {
 			files: map[string]string{
 				"repo/.git/HEAD": "ref: refs/heads/.invalid\n",
 			},
-			/* EXPECTED:
 			repoPath:   "repo",
 			expectedOk: false,
-			ACTUAL: */
-			repoPath:   "repo",
-			expected:   headInfo{branch: ".invalid"},
-			expectedOk: true,
 		},
 		{
 			name:       "directory without a .git entry",
