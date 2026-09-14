@@ -215,6 +215,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` f `` | 抓取 | 从远程获取变更 |
 | `` - `` | 折叠全部文件 | 折叠文件树中的全部目录 |
 | `` = `` | 展开全部文件 | 展开文件树中的全部目录 |
+| `` <ctrl+x> `` | Collapse parent directory | Collapse the directory that the selected item is in |
 | `` 0 `` | 聚焦主视图 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
 

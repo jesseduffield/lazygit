@@ -82,6 +82,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` f `` | Buscar | Buscar alterações do controle remoto. |
 | `` - `` | Recolher todos os arquivos | Recolher todos os diretórios na árvore de arquivos |
 | `` = `` | Expandir todos os arquivos | Expandir todos os diretórios na árvore do arquivo |
+| `` <ctrl+x> `` | Collapse parent directory | Collapse the directory that the selected item is in |
 | `` 0 `` | Focar visualização principal |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
 

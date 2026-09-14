@@ -207,6 +207,13 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Tooltip:           self.c.Tr.ExpandAllTooltip,
 			GetDisabledReason: self.require(self.isInTreeMode),
 		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Files.CollapseParentDirectory),
+			Handler:           self.collapseParentDirectory,
+			Description:       self.c.Tr.CollapseParentDirectory,
+			Tooltip:           self.c.Tr.CollapseParentDirectoryTooltip,
+			GetDisabledReason: self.require(self.isInTreeMode),
+		},
 	}
 }
 
@@ -705,6 +712,27 @@ func (self *FilesController) collapseAll() error {
 
 func (self *FilesController) expandAll() error {
 	self.context().FileTreeViewModel.ExpandAll()
+
+	self.c.PostRefreshUpdate(self.context())
+
+	return nil
+}
+
+// Collapses the directory that the selected item sits in, and moves the cursor
+// onto it.
+func (self *FilesController) collapseParentDirectory() error {
+	parentIdx, found := self.context().FileTreeViewModel.GetParentIndex(self.context().GetSelectedLineIdx())
+	if !found {
+		return nil
+	}
+
+	parentNode := self.context().FileTreeViewModel.Get(parentIdx)
+	if parentNode == nil || parentNode.File != nil {
+		return nil
+	}
+
+	self.context().FileTreeViewModel.ToggleCollapsed(parentNode.GetInternalPath())
+	self.context().FileTreeViewModel.SetSelection(parentIdx)
 
 	self.c.PostRefreshUpdate(self.context())
 

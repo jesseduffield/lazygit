@@ -157,6 +157,15 @@ func (self *CommitFileTree) GetVisualDepth(index int) int {
 	return self.tree.GetVisualDepthAtIndex(index+1, self.collapsedPaths) // +1 to skip root
 }
 
+func (self *CommitFileTree) GetParentIndex(index int) (int, bool) {
+	parentIndex, found := self.tree.GetParentIndexAtIndex(index+1, self.collapsedPaths) // +1 to skip root
+	if !found {
+		return -1, false
+	}
+
+	return parentIndex - 1, true
+}
+
 func (self *CommitFileTree) InTreeMode() bool {
 	return self.showTree
 }
