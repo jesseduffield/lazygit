@@ -61,46 +61,65 @@ func (self *ReposHelper) EnterSubmodule(submodule *models.SubmoduleConfig) error
 	return self.switchTo(submodule.FullPath(), self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
 }
 
+// What a repo has checked out. Exactly one of the two fields is set.
+type headInfo struct {
+	// The name of the checked-out branch.
+	branch string
+	// The commit HEAD is detached at.
+	hash string
+}
+
+// gitDirOfRepo returns the directory that holds the git data of the repo at
+// repoPath, and whether it could be found. An ordinary repo keeps that data in
+// a .git directory; a worktree and a submodule have a .git file naming the
+// directory instead.
+func gitDirOfRepo(repoPath string) (string, bool) {
+	gitDirPath := filepath.Join(repoPath, ".git")
+
+	stat, err := os.Stat(gitDirPath)
+	if err != nil {
+		return "", false
+	}
+	if stat.IsDir() {
+		return gitDirPath, true
+	}
+
+	content, err := os.ReadFile(gitDirPath)
+	if err != nil {
+		return "", false
+	}
+	return strings.CutPrefix(strings.TrimSpace(string(content)), "gitdir: ")
+}
+
+// readHeadInfo reads the HEAD file of the repo at repoPath to find out what it
+// has checked out, and reports whether that worked.
+func readHeadInfo(repoPath string) (headInfo, bool) {
+	gitDir, ok := gitDirOfRepo(repoPath)
+	if !ok {
+		return headInfo{}, false
+	}
+
+	content, err := os.ReadFile(filepath.Join(gitDir, "HEAD"))
+	if err != nil {
+		return headInfo{}, false
+	}
+
+	head := strings.TrimSpace(string(content))
+	if branch, ok := strings.CutPrefix(head, "ref: refs/heads/"); ok {
+		return headInfo{branch: branch}, true
+	}
+	return headInfo{hash: head}, true
+}
+
 func (self *ReposHelper) getCurrentBranch(path string) string {
-	readHeadFile := func(path string) (string, error) {
-		headFile, err := os.ReadFile(filepath.Join(path, "HEAD"))
-		if err == nil {
-			content := strings.TrimSpace(string(headFile))
-			refsPrefix := "ref: refs/heads/"
-			var branchDisplay string
-			if bareName, ok := strings.CutPrefix(content, refsPrefix); ok {
-				// is a branch
-				branchDisplay = bareName
-			} else {
-				// detached HEAD state, displaying short hash
-				branchDisplay = utils.ShortHash(content)
-			}
-			return branchDisplay, nil
-		}
-		return "", err
+	head, ok := readHeadInfo(path)
+	if !ok {
+		return self.c.Tr.BranchUnknown
 	}
-
-	gitDirPath := filepath.Join(path, ".git")
-
-	if gitDir, err := os.Stat(gitDirPath); err == nil {
-		if gitDir.IsDir() {
-			// ordinary repo
-			if branch, err := readHeadFile(gitDirPath); err == nil {
-				return branch
-			}
-		} else {
-			// worktree
-			if worktreeGitDir, err := os.ReadFile(gitDirPath); err == nil {
-				content := strings.TrimSpace(string(worktreeGitDir))
-				worktreePath := strings.TrimPrefix(content, "gitdir: ")
-				if branch, err := readHeadFile(worktreePath); err == nil {
-					return branch
-				}
-			}
-		}
+	if head.branch != "" {
+		return head.branch
 	}
-
-	return self.c.Tr.BranchUnknown
+	return utils.ShortHash(head.hash)
 }
 
 // The most that the name and the branch column of the recent repos menu are
