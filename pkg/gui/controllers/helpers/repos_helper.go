@@ -119,7 +119,8 @@ func (self *ReposHelper) getCurrentBranch(path string) string {
 	if head.branch != "" {
 		return head.branch
 	}
-	return utils.ShortHash(head.hash)
+	return utils.ResolvePlaceholderString(self.c.Tr.HeadDetachedAt,
+		map[string]string{"hash": utils.ShortHash(head.hash)})
 }
 
 // The most that the name and the branch column of the recent repos menu are
