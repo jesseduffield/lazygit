@@ -117,8 +117,8 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:           self.copySelection,
-			Description:       self.c.Tr.CopySelectedTextToClipboard,
-			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.CopySelectedTextToClipboard),
+			Description:       self.c.Tr.CopySelectedDiffLinesToClipboard,
+			DescriptionFunc:   self.diffSelectionDescriptionText(self.c.Tr.CopySelectedDiffLinesToClipboard),
 			GetDisabledReason: self.diffSelectionDisabledReason,
 		},
 		{
