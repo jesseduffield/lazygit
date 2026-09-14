@@ -904,12 +904,33 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 			// A single-tab panel shows its view's own title, not a tab strip.
 			continue
 		}
-		result[panel[0]] = lo.Map(panel, func(name string, _ int) context.TabView {
+		tabViews := lo.Map(panel, func(name string, _ int) context.TabView {
 			return context.TabView{
 				Tab:      titles[name],
 				ViewName: sidePanelViewNames[name],
 			}
 		})
+		if panel[0] == "files" && gui.c.UserConfig().Gui.ShowFileChangeTabs {
+			expanded := make([]context.TabView, 0, len(tabViews)+2)
+			if len(tabViews) > 0 {
+				expanded = append(expanded, tabViews[0])
+			}
+			expanded = append(expanded,
+				context.TabView{
+					Tab:      gui.c.Tr.UnstagedChanges,
+					ViewName: "files",
+				},
+				context.TabView{
+					Tab:      gui.c.Tr.StagedChanges,
+					ViewName: "files",
+				},
+			)
+			if len(tabViews) > 1 {
+				expanded = append(expanded, tabViews[1:]...)
+			}
+			tabViews = expanded
+		}
+		result[panel[0]] = tabViews
 	}
 
 	return result
