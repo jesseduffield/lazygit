@@ -19,13 +19,18 @@ var RecentReposBranchColumn = NewIntegrationTest(NewIntegrationTestArgs{
 		current, _ := filepath.Abs(".")
 		onBranch, _ := filepath.Abs("../on-branch")
 		detached, _ := filepath.Abs("../detached")
-		cfg.GetAppState().RecentRepos = []string{current, onBranch, detached}
+		submodule, _ := filepath.Abs("sub")
+		cfg.GetAppState().RecentRepos = []string{current, onBranch, detached, submodule}
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")
 		shell.CloneNonBare("on-branch")
 		shell.CloneNonBare("detached")
 		shell.RunCommand([]string{"git", "-C", "../detached", "checkout", "--detach"})
+		shell.CloneIntoSubmodule("submodule", "sub")
+		shell.GitAddAll()
+		shell.Commit("add submodule")
+		shell.RunCommand([]string{"git", "-C", "sub", "checkout", "--detach"})
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.ExpectPopup().Menu().
@@ -33,6 +38,10 @@ var RecentReposBranchColumn = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("on-branch").Contains("master").IsSelected(),
 				Contains("detached").MatchesRegexp(`HEAD detached at [0-9a-f]{8}`),
+				/* EXPECTED:
+				Contains("sub").MatchesRegexp(`HEAD detached at [0-9a-f]{8}`),
+				ACTUAL: */
+				Contains("sub").Contains("Branch unknown"),
 				Contains("Cancel"),
 			).
 			Cancel()
