@@ -52,13 +52,9 @@ func TestReadHeadInfo(t *testing.T) {
 				"repo/.git/worktrees/wt/HEAD": "ref: refs/heads/mybranch\n",
 				"wt/.git":                     "gitdir: ../repo/.git/worktrees/wt\n",
 			},
-			/* EXPECTED:
 			repoPath:   "wt",
 			expected:   headInfo{branch: "mybranch"},
 			expectedOk: true,
-			ACTUAL: */
-			repoPath:   "wt",
-			expectedOk: false,
 		},
 		{
 			name: "submodule, whose .git file always names the git dir relatively",
@@ -66,13 +62,9 @@ func TestReadHeadInfo(t *testing.T) {
 				"repo/.git/modules/sub/HEAD": "ref: refs/heads/mybranch\n",
 				"repo/sub/.git":              "gitdir: ../.git/modules/sub\n",
 			},
-			/* EXPECTED:
 			repoPath:   "repo/sub",
 			expected:   headInfo{branch: "mybranch"},
 			expectedOk: true,
-			ACTUAL: */
-			repoPath:   "repo/sub",
-			expectedOk: false,
 		},
 		{
 			name:       "directory without a .git entry",

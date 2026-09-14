@@ -38,10 +38,7 @@ var RecentReposBranchColumn = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("on-branch").Contains("master").IsSelected(),
 				Contains("detached").MatchesRegexp(`HEAD detached at [0-9a-f]{8}`),
-				/* EXPECTED:
 				Contains("sub").MatchesRegexp(`HEAD detached at [0-9a-f]{8}`),
-				ACTUAL: */
-				Contains("sub").Contains("Branch unknown"),
 				Contains("Cancel"),
 			).
 			Cancel()

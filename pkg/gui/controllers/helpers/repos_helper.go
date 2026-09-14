@@ -88,7 +88,16 @@ func gitDirOfRepo(repoPath string) (string, bool) {
 	if err != nil {
 		return "", false
 	}
-	return strings.CutPrefix(strings.TrimSpace(string(content)), "gitdir: ")
+	gitDir, ok := strings.CutPrefix(strings.TrimSpace(string(content)), "gitdir: ")
+	if !ok {
+		return "", false
+	}
+	// A relative name is relative to the repo. Git writes one for a submodule,
+	// and for a worktree created with --relative-paths.
+	if !filepath.IsAbs(gitDir) {
+		gitDir = filepath.Join(repoPath, gitDir)
+	}
+	return gitDir, true
 }
 
 // readHeadInfo reads the HEAD file of the repo at repoPath to find out what it
