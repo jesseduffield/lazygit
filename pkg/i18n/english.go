@@ -718,6 +718,7 @@ type TranslationSet struct {
 	BranchNotFoundTitle                   string
 	BranchNotFoundPrompt                  string
 	BranchUnknown                         string
+	HeadDetachedAt                        string
 	DiscardChangeTitle                    string
 	DiscardChangePrompt                   string
 	DiscardLinesFromCommitTitle           string
@@ -1884,6 +1885,7 @@ func EnglishTranslationSet() *TranslationSet {
 		BranchNotFoundTitle:                      "Branch not found",
 		BranchNotFoundPrompt:                     "Branch not found. Create a new branch named",
 		BranchUnknown:                            "Branch unknown",
+		HeadDetachedAt:                           "HEAD detached at {{.hash}}",
 		DiscardChangeTitle:                       "Discard change",
 		DiscardChangePrompt:                      "Are you sure you want to discard this change (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipDiscardChangeWarning' to true",
 		DiscardLinesFromCommitTitle:              "Discard lines from commit",
