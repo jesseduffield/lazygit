@@ -14,7 +14,7 @@ var RangeSelectWithAutoscroll = NewIntegrationTest(NewIntegrationTestArgs{
 	Width:        120,
 	Height:       30,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		config.GetUserConfig().Gui.UseHunkModeInDiffView = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateNCommits(40)
@@ -32,16 +32,6 @@ var RangeSelectWithAutoscroll = NewIntegrationTest(NewIntegrationTestArgs{
 			MouseMoveToBottom(1).
 			OriginYAtLeast(3).
 			SelectedLineIdxAtLeast(3).
-			MouseRelease()
-
-		t.Views().Files().
-			Focus().
-			PressEnter()
-		t.Views().Staging().
-			ClickAndHold(1, 6).
-			MouseMoveToBottom(1).
-			OriginYAtLeast(3).
-			SelectedLineIdxAtLeast(9).
 			MouseRelease()
 	},
 })

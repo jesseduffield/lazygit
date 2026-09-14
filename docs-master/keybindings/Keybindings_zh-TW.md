@@ -52,30 +52,31 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` ] `` | 下一個索引標籤 |  |
 | `` [ `` | 上一個索引標籤 |  |
 
-## 主面板 (補丁生成)
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | 選擇上一段 |  |
-| `` <right>, l `` | 選擇下一段 |  |
-| `` v `` | 切換拖曳選擇 |  |
-| `` a `` | 切換程式碼塊選擇 | 切換逐行選擇與程式碼塊選擇模式。 |
-| `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
-| `` o `` | 開啟檔案 | 使用預設軟體開啟 |
-| `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
-| `` <space> `` | 向 (或從) 補丁中添加/刪除行 |  |
-| `` d `` | 從提交中移除行 | 從本次提交中移除所選行。此操作會在背景執行互動式變基，因此如果後續提交也修改了這些行，您可能會遇到合併衝突。 |
-| `` <esc> `` | 退出自訂補丁建立器 |  |
-| `` / `` | 搜尋 |  |
-
 ## 主面板（一般）
 
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <mouse wheel down> (fn+up) `` | 向下捲動 |  |
 | `` <mouse wheel up> (fn+down) `` | 向上捲動 |  |
-| `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | 切換到其他檢視（已暫存/未暫存的變更）。 |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | 切換程式碼塊選擇 | 切換逐行選擇與程式碼塊選擇模式。 |
+| `` v `` | 切換拖曳選擇 |  |
+| `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
+| `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
+| `` d `` | 刪除變更 (git reset) | 選取未暫存的變更時，使用 `git reset` 捨棄變更。選取已暫存的變更時，取消暫存變更。 |
+| `` E `` | 編輯程式碼塊 | 在外部編輯器中編輯選中的程式碼塊。 |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
+| `` <left>, h `` | 選擇上一段 |  |
+| `` <right>, l `` | 選擇下一段 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
+| `` f `` | Jump to file |  |
+| `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | 退出回到側邊面板 |  |
+| `` c `` | 提交變更 | 提交暫存區變更 |
+| `` w `` | 沒有預提交 hook 就提交更改 |  |
+| `` C `` | 使用 git 編輯器提交變更 |  |
+| `` <ctrl+f> `` | 尋找 fixup 的基礎提交 | 找出目前變更所依據的提交，以便 amend/fixup。這樣不必逐一檢視分支中的提交來找出要 amend/fixup 的提交。請見文件：<https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 搜尋 |  |
 
 ## 主面板（合併）
@@ -93,28 +94,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` o `` | 開啟檔案 | 使用預設軟體開啟 |
 | `` M `` | 檢視合併衝突選項 | 檢視用於解決合併衝突的選項。 |
 | `` <esc> `` | 返回檔案面板 |  |
-
-## 主面板（預存）
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | 選擇上一段 |  |
-| `` <right>, l `` | 選擇下一段 |  |
-| `` v `` | 切換拖曳選擇 |  |
-| `` a `` | 切換程式碼塊選擇 | 切換逐行選擇與程式碼塊選擇模式。 |
-| `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
-| `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
-| `` d `` | 刪除變更 (git reset) | 選取未暫存的變更時，使用 `git reset` 捨棄變更。選取已暫存的變更時，取消暫存變更。 |
-| `` o `` | 開啟檔案 | 使用預設軟體開啟 |
-| `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
-| `` <esc> `` | 返回檔案面板 |  |
-| `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | 切換到其他檢視（已暫存/未暫存的變更）。 |
-| `` E `` | 編輯程式碼塊 | 在外部編輯器中編輯選中的程式碼塊。 |
-| `` c `` | 提交變更 | 提交暫存區變更 |
-| `` w `` | 沒有預提交 hook 就提交更改 |  |
-| `` C `` | 使用 git 編輯器提交變更 |  |
-| `` <ctrl+f> `` | 尋找 fixup 的基礎提交 | 找出目前變更所依據的提交，以便 amend/fixup。這樣不必逐一檢視分支中的提交來找出要 amend/fixup 的提交。請見文件：<https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
-| `` / `` | 搜尋 |  |
 
 ## 功能表
 
@@ -230,7 +209,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` <space> `` | 切換檔案是否包含在補丁中 | 切換檔案是否包含在自定義補丁中。請參閱 https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches。 |
 | `` a `` | 切換所有檔案是否包含在補丁中 | 新增或刪除所有提交中的檔案到自定義的補丁中。請參閱 https://github.com/jesseduffield/lazygit#rebase-magic-custom-patches。 |
-| `` <enter> `` | 輸入檔案以將選定的行添加至補丁（或切換目錄折疊） | 如果已選擇一個檔案，則Enter進入該檔案，以便您可以向自定義補丁新增/刪除單獨的行。如果選擇了目錄，則切換目錄。 |
+| `` <enter> `` | Focus file diff / Toggle directory | If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it. |
 | `` ` `` | 顯示檔案樹狀視圖 | 在平面佈局和樹佈局之間切換檔案檢視。平面佈局在單個列表中顯示所有檔案路徑，樹佈局按目錄分組檔案。<br><br>可以在設定檔中使用 'gui.showFileTree' 鍵更改預設設定。 |
 | `` - `` | 摺疊全部檔案 | 摺疊檔案樹中的全部目錄 |
 | `` = `` | 展開全部檔案 | 展開檔案樹中的全部目錄 |
@@ -355,8 +334,25 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <tab> `` | 切換至另一個面板 (已預存/未預存更改) | 切換到其他檢視（已暫存/未暫存的變更）。 |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | 切換程式碼塊選擇 | 切換逐行選擇與程式碼塊選擇模式。 |
+| `` v `` | 切換拖曳選擇 |  |
+| `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
+| `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
+| `` d `` | 刪除變更 (git reset) | 選取未暫存的變更時，使用 `git reset` 捨棄變更。選取已暫存的變更時，取消暫存變更。 |
+| `` E `` | 編輯程式碼塊 | 在外部編輯器中編輯選中的程式碼塊。 |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
+| `` <left>, h `` | 選擇上一段 |  |
+| `` <right>, l `` | 選擇下一段 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
+| `` f `` | Jump to file |  |
+| `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | 退出回到側邊面板 |  |
+| `` c `` | 提交變更 | 提交暫存區變更 |
+| `` w `` | 沒有預提交 hook 就提交更改 |  |
+| `` C `` | 使用 git 編輯器提交變更 |  |
+| `` <ctrl+f> `` | 尋找 fixup 的基礎提交 | 找出目前變更所依據的提交，以便 amend/fixup。這樣不必逐一檢視分支中的提交來找出要 amend/fixup 的提交。請見文件：<https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 搜尋 |  |
 
 ## 狀態

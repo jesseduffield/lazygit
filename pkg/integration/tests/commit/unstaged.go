@@ -27,20 +27,20 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("myfile2"),
 			).
 			SelectNextItem().
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
-		t.Views().Staging().
+		t.Views().Main().
 			IsFocused().
 			Tap(func() {
-				t.Views().StagingSecondary().Content(DoesNotContain("+myfile content"))
-				t.Views().Staging().SelectedLine(Equals("+myfile content"))
+				t.Views().Secondary().Content(DoesNotContain("+myfile content"))
+				t.Views().Main().SelectedLine(Equals("+myfile content"))
 			}).
 			// stage the first line
 			PressPrimaryAction().
 			Tap(func() {
-				t.Views().Staging().Content(DoesNotContain("+myfile content")).
+				t.Views().Main().Content(DoesNotContain("+myfile content")).
 					SelectedLine(Equals("+with a second line"))
-				t.Views().StagingSecondary().Content(Contains("+myfile content"))
+				t.Views().Secondary().Content(Contains("+myfile content"))
 			}).
 			Press(keys.Files.CommitChanges)
 
@@ -52,8 +52,6 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains(commitMessage),
 			)
 
-		t.Views().Staging().IsFocused()
-
-		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)
+		t.Views().Main().IsFocused()
 	},
 })

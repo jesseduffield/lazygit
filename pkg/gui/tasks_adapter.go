@@ -87,10 +87,14 @@ func (gui *Gui) newStringTask(view *gocui.View, str string) error {
 
 func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 	manager := gui.getManager(view)
+	// Whatever the view was going to be put back to belonged to a re-render of its
+	// content; this is a message instead, so there is nothing to put back.
+	manager.DropRestoreForNextTask()
 
 	f := func(tasks.TaskOpts) error {
 		return gui.g.OnUIThreadAndWaitBackground(func() {
 			gui.c.SetViewContent(view, str)
+			gui.updateDiffPaneDecorations(view, true)
 			gui.reApplySearch(view)
 		})
 	}
@@ -104,11 +108,15 @@ func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 
 func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX int, originY int) error {
 	manager := gui.getManager(view)
+	// Whatever the view was going to be put back to belonged to a re-render of its
+	// content; this is a message instead, so there is nothing to put back.
+	manager.DropRestoreForNextTask()
 
 	f := func(tasks.TaskOpts) error {
 		return gui.g.OnUIThreadAndWaitBackground(func() {
 			gui.c.SetViewContent(view, str)
 			view.SetOrigin(originX, originY)
+			gui.updateDiffPaneDecorations(view, true)
 			gui.reApplySearch(view)
 		})
 	}
@@ -122,11 +130,15 @@ func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX in
 
 func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) error {
 	manager := gui.getManager(view)
+	// Whatever the view was going to be put back to belonged to a re-render of its
+	// content; this is a message instead, so there is nothing to put back.
+	manager.DropRestoreForNextTask()
 
 	f := func(tasks.TaskOpts) error {
 		return gui.g.OnUIThreadAndWaitBackground(func() {
 			gui.c.ResetViewOrigin(view)
 			gui.c.SetViewContent(view, str)
+			gui.updateDiffPaneDecorations(view, true)
 			gui.reApplySearch(view)
 		})
 	}
@@ -154,10 +166,20 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			func() {
 				// As the task reads more lines, the only thing that changes is the
 				// view's content (and its scrollbar); the window layout doesn't. So a
-				// content-only render is enough, and it's much cheaper than a full
-				// layout-and-redraw on every read - which matters a lot when reading
-				// a long diff, where reads happen repeatedly as the user scrolls.
-				gui.renderContentOnly()
+				// content-only render is enough — it skips the layout pass and redraws
+				// only the cells that differ — and it's much cheaper than a full
+				// layout-and-redraw on every read, which matters a lot when reading a
+				// long diff, where reads happen repeatedly as the user scrolls.
+				//
+				// What this draws is more of the content than the pane held a moment
+				// ago, so it is also where what is drawn over that content is worked
+				// out again. The screenful the first paint reveals may not be enough
+				// to say whether there is anything to select, and for a diff that
+				// opens with a long diffstat it isn't.
+				gui.c.OnUIThreadContentOnly(func() error {
+					gui.updateDiffPaneDecorations(view, false)
+					return nil
+				})
 			},
 			func() {
 				// The content is fully loaded now, so let the scrollbar track it
@@ -174,13 +196,22 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 					view.SetOrigin(0, newOriginY)
 				}
 
+				gui.updateDiffPaneDecorations(view, true)
+				gui.clampDiffSelectionToContent(view)
 				gui.reApplySearch(view)
 			},
 			func() {
 				view.SetOrigin(0, 0)
 			},
 			view.BeginOffscreenRender,
-			view.SwapInOffscreenRender,
+			func() {
+				view.SwapInOffscreenRender()
+
+				// The content the pane is being given is on display from here on, so
+				// what is drawn over it is settled against that content rather than
+				// against the render before it.
+				gui.updateDiffPaneDecorations(view, false)
+			},
 			func() gocui.Task {
 				// A background task: rendering content into a view is display
 				// work, not lazygit driving a git operation, so it must not

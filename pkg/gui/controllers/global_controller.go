@@ -190,6 +190,10 @@ func (self *GlobalController) onDiffRenderersChanged() {
 	if currentSide.GetKey() == currentKey ||
 		currentKey == context.NORMAL_MAIN_CONTEXT_KEY ||
 		currentKey == context.NORMAL_SECONDARY_CONTEXT_KEY {
+		// The new renderer lays the same diff out its own way, so the line you were
+		// looking at ends up elsewhere in the view; keep it in front of you.
+		self.c.Helpers().DiffLine.PreserveDiffPositionOnRerender(self.c.Contexts().Normal.GetView())
+		self.c.Helpers().DiffLine.PreserveDiffPositionOnRerender(self.c.Contexts().NormalSecondary.GetView())
 		currentSide.HandleRenderToMain()
 	}
 

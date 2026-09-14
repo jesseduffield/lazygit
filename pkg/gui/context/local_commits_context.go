@@ -31,10 +31,22 @@ type commitDropIndicator struct {
 }
 
 var (
-	_ types.IListContext       = (*LocalCommitsContext)(nil)
-	_ types.DiffableContext    = (*LocalCommitsContext)(nil)
-	_ types.ISearchableContext = (*LocalCommitsContext)(nil)
+	_ types.IListContext           = (*LocalCommitsContext)(nil)
+	_ types.DiffableContext        = (*LocalCommitsContext)(nil)
+	_ types.ISearchableContext     = (*LocalCommitsContext)(nil)
+	_ types.DiffMainViewContext    = (*LocalCommitsContext)(nil)
+	_ types.PullRequestDiffContext = (*LocalCommitsContext)(nil)
 )
+
+func (self *LocalCommitsContext) GetDiffMainViewType() types.DiffMainViewType {
+	return types.DiffMainViewTypePatchBuilding
+}
+
+// BranchForPullRequest returns the checked-out branch: this panel shows its commits,
+// so a pull request for it is where they are up for review.
+func (self *LocalCommitsContext) BranchForPullRequest() string {
+	return self.ListContextTrait.c.Model().CheckedOutBranch
+}
 
 func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	dropIndicator := &commitDropIndicator{insertionIndex: -1}
