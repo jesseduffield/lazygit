@@ -18,7 +18,7 @@ github.com/bahlo/generic-list-go
 # github.com/buger/jsonparser v1.1.2
 ## explicit; go 1.13
 github.com/buger/jsonparser
-# github.com/cli/go-gh/v2 v2.13.0
+# github.com/cli/go-gh/v2 v2.16.0
 ## explicit; go 1.25.0
 github.com/cli/go-gh/v2/internal/set
 github.com/cli/go-gh/v2/internal/yamlmap
