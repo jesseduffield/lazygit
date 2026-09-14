@@ -554,6 +554,7 @@ var tests = []*components.IntegrationTest{
 	worktree.AssociateBranchRebase,
 	worktree.BareRepo,
 	worktree.BareRepoWorktreeConfig,
+	worktree.CherryPickAcrossWorktrees,
 	worktree.Crud,
 	worktree.CustomCommand,
 	worktree.DefaultPathTilde,
