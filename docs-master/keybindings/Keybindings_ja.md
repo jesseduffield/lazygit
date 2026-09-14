@@ -241,6 +241,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` f `` | フェッチ | リモートから変更をフェッチします。 |
 | `` - `` | すべてのファイルを折りたたむ | ファイルツリー内のすべてのディレクトリを折りたたみます |
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
+| `` <ctrl+x> `` | Collapse parent directory | Collapse the directory that the selected item is in |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
 

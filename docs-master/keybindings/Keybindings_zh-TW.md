@@ -348,6 +348,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` f `` | 擷取 | 同步遠端異動 |
 | `` - `` | 摺疊全部檔案 | 摺疊檔案樹中的全部目錄 |
 | `` = `` | 展開全部檔案 | 展開檔案樹中的全部目錄 |
+| `` <ctrl+x> `` | Collapse parent directory | Collapse the directory that the selected item is in |
 | `` 0 `` | 聚焦主檢視 |  |
 | `` / `` | 搜尋 |  |
 

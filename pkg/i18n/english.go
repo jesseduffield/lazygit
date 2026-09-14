@@ -294,6 +294,8 @@ type TranslationSet struct {
 	CollapseAllTooltip                    string
 	ExpandAll                             string
 	ExpandAllTooltip                      string
+	CollapseParentDirectory               string
+	CollapseParentDirectoryTooltip        string
 	DisabledInFlatView                    string
 	FileEnter                             string
 	FileEnterTooltip                      string
@@ -1456,6 +1458,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CollapseAllTooltip:                   "Collapse all directories in the files tree",
 		ExpandAll:                            "Expand all files",
 		ExpandAllTooltip:                     "Expand all directories in the file tree",
+		CollapseParentDirectory:              "Collapse parent directory",
+		CollapseParentDirectoryTooltip:       "Collapse the directory that the selected item is in",
 		DisabledInFlatView:                   "Not available in flat view",
 		FileEnter:                            `Stage lines / Collapse directory`,
 		FileEnterTooltip:                     "If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it.",

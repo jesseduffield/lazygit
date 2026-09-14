@@ -82,6 +82,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` f `` | Fetch | Fetch changes from remote. |
 | `` - `` | Collapse all files | Collapse all directories in the files tree |
 | `` = `` | Vouw alle bestanden uit | Vouw alle mappen in de bestandsstructuur uit |
+| `` <ctrl+x> `` | Collapse parent directory | Collapse the directory that the selected item is in |
 | `` 0 `` | Focus main view |  |
 | `` / `` | Filter the current view by text |  |
 

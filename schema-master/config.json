@@ -2000,6 +2000,20 @@
             }
           ],
           "default": "="
+        },
+        "collapseParentDirectory": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+x\u003e"
         }
       },
       "additionalProperties": false,

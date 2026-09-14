@@ -234,6 +234,8 @@ var tests = []*components.IntegrationTest{
 	diff.StatUsesTheViewWidth,
 	file.ClickArrowToCollapse,
 	file.CollapseExpand,
+	file.CollapseParentDirectory,
+	file.CollapseParentDirectoryNoRootItem,
 	file.CopyMenu,
 	file.DirWithUntrackedFile,
 	file.DirectoryDiffWithRenamedFiles,
