@@ -198,7 +198,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
 | `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
 | `` E `` | ハンクを編集 | 選択したハンクを外部エディタで編集します。 |
-| `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
 | `` <left>, h `` | 前のハンクに移動 |  |
 | `` <right>, l `` | 次のハンクに移動 |  |
 | `` N `` | Go to previous file |  |
@@ -288,7 +288,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
 | `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
 | `` E `` | ハンクを編集 | 選択したハンクを外部エディタで編集します。 |
-| `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
 | `` <left>, h `` | 前のハンクに移動 |  |
 | `` <right>, l `` | 次のハンクに移動 |  |
 | `` N `` | Go to previous file |  |

@@ -65,7 +65,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
 | `` d `` | 刪除變更 (git reset) | 選取未暫存的變更時，使用 `git reset` 捨棄變更。選取已暫存的變更時，取消暫存變更。 |
 | `` E `` | 編輯程式碼塊 | 在外部編輯器中編輯選中的程式碼塊。 |
-| `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
 | `` <left>, h `` | 選擇上一段 |  |
 | `` <right>, l `` | 選擇下一段 |  |
 | `` N `` | Go to previous file |  |
@@ -339,7 +339,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
 | `` d `` | 刪除變更 (git reset) | 選取未暫存的變更時，使用 `git reset` 捨棄變更。選取已暫存的變更時，取消暫存變更。 |
 | `` E `` | 編輯程式碼塊 | 在外部編輯器中編輯選中的程式碼塊。 |
-| `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
 | `` <left>, h `` | 選擇上一段 |  |
 | `` <right>, l `` | 選擇下一段 |  |
 | `` N `` | Go to previous file |  |

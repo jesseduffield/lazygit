@@ -276,7 +276,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | 切换暂存状态 | 切换行暂存状态 |
 | `` d `` | 取消变更(git reset) | 当选择未暂存的变更时，使用git reset丢弃该变更。当选择已暂存的变更时，取消暂存该变更 |
 | `` E `` | 编辑代码块 | 在外部编辑器中编辑选中的代码块 |
-| `` <ctrl+o> `` | 复制选中文本到剪贴板 |  |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
 | `` <left>, h `` | 选择上一个区块 |  |
 | `` <right>, l `` | 选择下一个区块 |  |
 | `` N `` | Go to previous file |  |
@@ -317,7 +317,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <space> `` | 切换暂存状态 | 切换行暂存状态 |
 | `` d `` | 取消变更(git reset) | 当选择未暂存的变更时，使用git reset丢弃该变更。当选择已暂存的变更时，取消暂存该变更 |
 | `` E `` | 编辑代码块 | 在外部编辑器中编辑选中的代码块 |
-| `` <ctrl+o> `` | 复制选中文本到剪贴板 |  |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
 | `` <left>, h `` | 选择上一个区块 |  |
 | `` <right>, l `` | 选择下一个区块 |  |
 | `` N `` | Go to previous file |  |
