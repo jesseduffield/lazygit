@@ -17,6 +17,8 @@ Fields only for `stdinFilter`:
 
 - **command** The command line to use for `GIT_PAGER`.
 
+  If the diff renderer needs to know the width of the view (side-by-side diff renderers do, but others might too), and you are on Windows, you need to pass it to the renderer with an appropriate command-line argument; the `{{width}}` template variable is provided for this purpose (or `{{columnWidth}}` for the width of one side of a side-by-side rendering). See below for concrete examples. The reason is that on Windows we don't run the diff renderer in a pty, so it can't ask "the terminal" for the width.
+
 - **colorArg** whether you want the `--color=always` arg in your `git diff` command. Some diff renderers want it set to `always`, others want it set to `never`. The default is `always`, since that's what most renderers need.
 
 Fields only for `extDiff`:
@@ -60,6 +62,8 @@ A cool feature of delta is --hyperlinks, which renders clickable links for the l
 
 Note that delta's `--navigate` option doesn't work in lazygit, for technical reasons.
 
+On Windows you need to add `-w {{width}}` to the command line.
+
 ## Diff-so-fancy
 
 ```yaml
@@ -82,3 +86,5 @@ git:
 ```
 
 ![](https://i.imgur.com/vaa8z0H.png)
+
+On Windows you need to add `--width={{columnWidth}}` to the command line.
