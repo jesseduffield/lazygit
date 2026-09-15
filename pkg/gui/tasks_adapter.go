@@ -17,11 +17,10 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		cmdStr,
 	).Debug("RunCommand")
 
-	manager := gui.getManager(view)
 	// Mark the view as loading synchronously (before the task's goroutine runs
 	// and before the next layout pass) so the layout doesn't clamp the scroll
 	// position to the not-yet-loaded content.
-	manager.StartLoading()
+	gui.getManager(view).StartLoading()
 	// Hold the scrollbar at the height the view has now (the previous render),
 	// while it still shows that render: once the re-render swaps in its first
 	// partial paint the displayed buffer is briefly short, and we don't want the
@@ -29,17 +28,23 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	view.FreezeScrollbarHeight()
 
 	// Snapshot the view width here, on the UI thread, so the task goroutine
-	// doesn't read the view's live dimensions while it streams output. It's
-	// applied inside start() below rather than now, because start() runs once
-	// the previous task has stopped -- applying it here would race that task's
-	// still-running writes (see View.SetContentWidth).
-	contentWidth := view.InnerWidth()
+	// doesn't read the view's live dimensions while it streams output.
+	spec := renderSpec{view: view, cmd: cmd, width: view.InnerWidth()}
 
+	return gui.newTaskForRender(spec, prefix, cmdStr, gui.plainRender)
+}
+
+// plainRender runs the command as it is, with its output going straight into
+// a pipe.
+func (gui *Gui) plainRender(spec renderSpec) (startRender, onCloseRender) {
 	var r io.ReadCloser
 	start := func() (tasks.Cmd, io.Reader) {
-		view.SetContentWidth(contentWidth)
+		// The view wraps to this width; apply it here, on the task's goroutine
+		// once the previous task has stopped, so it doesn't race that task's
+		// still-running writes (see View.SetContentWidth).
+		spec.view.SetContentWidth(spec.width)
 
-		execCmd, pipe := startCmdWithPipe(cmd, gui.c.Log)
+		execCmd, pipe := startCmdWithPipe(spec.cmd, gui.c.Log)
 		r = pipe
 		return execCmd, pipe
 	}
@@ -51,12 +56,7 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		}
 	}
 
-	linesToRead := gui.linesToReadFromCmdTask(view)
-	if err := manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr); err != nil {
-		gui.c.Log.Error(err)
-	}
-
-	return nil
+	return start, onClose
 }
 
 // startCmdWithPipe starts cmd with its stdout and stderr going to a single
