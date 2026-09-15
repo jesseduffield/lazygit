@@ -1,87 +1,47 @@
 package gui
 
 import (
-	"unicode"
-
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 )
 
-func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch rune, mod gocui.Modifier, allowMultiline bool) bool {
-	switch {
-	case (key == gocui.KeyBackspace || key == gocui.KeyBackspace2) && (mod&gocui.ModAlt) != 0,
-		key == gocui.KeyCtrlW:
-		textArea.BackSpaceWord()
-	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
-		textArea.BackSpaceChar()
-	case key == gocui.KeyCtrlD || key == gocui.KeyDelete:
-		textArea.DeleteChar()
-	case key == gocui.KeyArrowDown:
-		textArea.MoveCursorDown()
-	case key == gocui.KeyArrowUp:
-		textArea.MoveCursorUp()
-	case (key == gocui.KeyArrowLeft || ch == 'b') && (mod&gocui.ModAlt) != 0:
-		textArea.MoveLeftWord()
-	case key == gocui.KeyArrowLeft || key == gocui.KeyCtrlB:
-		textArea.MoveCursorLeft()
-	case (key == gocui.KeyArrowRight || ch == 'f') && (mod&gocui.ModAlt) != 0:
-		textArea.MoveRightWord()
-	case key == gocui.KeyArrowRight || key == gocui.KeyCtrlF:
-		textArea.MoveCursorRight()
-	case key == gocui.KeyEnter:
-		if allowMultiline {
-			textArea.TypeRune('\n')
-		} else {
-			return false
-		}
-	case key == gocui.KeySpace:
-		textArea.TypeRune(' ')
-	case key == gocui.KeyInsert:
-		textArea.ToggleOverwrite()
-	case key == gocui.KeyCtrlU:
-		textArea.DeleteToStartOfLine()
-	case key == gocui.KeyCtrlK:
-		textArea.DeleteToEndOfLine()
-	case key == gocui.KeyCtrlA || key == gocui.KeyHome:
-		textArea.GoToStartOfLine()
-	case key == gocui.KeyCtrlE || key == gocui.KeyEnd:
-		textArea.GoToEndOfLine()
-	case key == gocui.KeyCtrlY:
-		textArea.Yank()
-
-	case unicode.IsPrint(ch):
-		textArea.TypeRune(ch)
-	default:
-		return false
+func (gui *Gui) handleEditorKeypress(v *gocui.View, key gocui.Key, allowMultiline bool) bool {
+	if key.Equals(gocui.NewKeyName(gocui.KeyEnter)) && allowMultiline {
+		v.TextArea.TypeCharacter("\n")
+		v.RenderTextArea()
+		return true
 	}
 
-	return true
+	return gocui.DefaultEditor.Edit(v, key)
 }
 
 // we've just copy+pasted the editor from gocui to here so that we can also re-
 // render the commit message length on each keypress
-func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
-	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, false)
+func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key) bool {
+	matched := gui.handleEditorKeypress(v, key, false)
 	v.RenderTextArea()
 	gui.c.Contexts().CommitMessage.RenderSubtitle()
 	return matched
 }
 
-func (gui *Gui) commitDescriptionEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
-	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, true)
+func (gui *Gui) commitDescriptionEditor(v *gocui.View, key gocui.Key) bool {
+	matched := gui.handleEditorKeypress(v, key, true)
 	v.RenderTextArea()
 	return matched
 }
 
-func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
-	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, false)
+func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key) bool {
+	matched := gui.handleEditorKeypress(v, key, false)
 
 	v.RenderTextArea()
 
 	suggestionsContext := gui.State.Contexts.Suggestions
-	if suggestionsContext.State.FindSuggestions != nil {
+	// Capture the suggestions function and the input here, on the UI thread; the
+	// main thread rewrites State.FindSuggestions when it (re)creates a prompt
+	// panel, so reading it from the worker below would race that write.
+	if findSuggestions := suggestionsContext.State.FindSuggestions; findSuggestions != nil {
 		input := v.TextArea.GetContent()
 		suggestionsContext.State.AsyncHandler.Do(func() func() {
-			suggestions := suggestionsContext.State.FindSuggestions(input)
+			suggestions := findSuggestions(input)
 			return func() { suggestionsContext.SetSuggestions(suggestions) }
 		})
 	}
@@ -89,8 +49,34 @@ func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Mo
 	return matched
 }
 
-func (gui *Gui) searchEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
-	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, false)
+func (gui *Gui) menuFilterEditor(v *gocui.View, key gocui.Key) bool {
+	contentBefore := v.TextArea.GetContent()
+
+	matched := gui.handleEditorKeypress(v, key, false)
+	if !matched {
+		// Give the global keybindings a chance at the key, e.g. so that ctrl-c
+		// still quits while a menu is open.
+		return false
+	}
+
+	v.RenderTextArea()
+
+	content := v.TextArea.GetContent()
+	if content == contentBefore {
+		// The key just moved the cursor around within the filter; refiltering would
+		// throw away the menu's selection for nothing.
+		return true
+	}
+
+	menuContext := gui.State.Contexts.Menu
+	menuContext.SetFilterStarted(true)
+	gui.helpers.Search.ApplyFilter(menuContext, content)
+
+	return true
+}
+
+func (gui *Gui) searchEditor(v *gocui.View, key gocui.Key) bool {
+	matched := gui.handleEditorKeypress(v, key, false)
 	v.RenderTextArea()
 
 	searchString := v.TextArea.GetContent()

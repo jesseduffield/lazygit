@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -79,7 +79,7 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 	// if we have clicked from the outside to focus the main view we'll pass in a non-negative line index so that we can instantly select that line
 	if selectedLineIdx >= 0 {
 		// Clamp to the number of wrapped view lines; index might be out of
-		// bounds if a custom pager is being used which produces more lines
+		// bounds if a custom diff renderer is being used which produces more lines
 		selectedLineIdx = min(selectedLineIdx, len(viewLineIndices)-1)
 
 		selectMode = RANGE
@@ -89,7 +89,24 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 		if oldState.selectMode != RANGE {
 			selectMode = oldState.selectMode
 		}
-		selectedLineIdx = viewLineIndices[patch.GetNextChangeIdx(oldState.patchLineIndices[oldState.selectedLineIdx])]
+		oldPatchLineIdx := oldState.patchLineIndices[oldState.selectedLineIdx]
+		newPatchLineIdx := patch.GetNextChangeIdx(oldPatchLineIdx)
+		// When staging an addition from a consecutive changes block, the unselected deletions get
+		// reordered to appear before the remaining additions in the new diff. This can cause the
+		// cursor to land on a deletion at the same patch line index where the staged addition used
+		// to be. In that case, skip forward past any deletions, then call GetNextChangeIdx from the
+		// first non-deletion position, which correctly lands on the next meaningful change.
+		newLines := patch.Lines()
+		if newPatchLineIdx == oldPatchLineIdx &&
+			oldState.patch.Lines()[oldPatchLineIdx].IsAddition() &&
+			newLines[newPatchLineIdx].IsDeletion() &&
+			patch.HunkOldStartForLine(newPatchLineIdx) == oldState.patch.HunkOldStartForLine(oldPatchLineIdx) {
+			for newPatchLineIdx < len(newLines) && newLines[newPatchLineIdx].IsDeletion() {
+				newPatchLineIdx++
+			}
+			newPatchLineIdx = patch.GetNextChangeIdx(newPatchLineIdx)
+		}
+		selectedLineIdx = viewLineIndices[newPatchLineIdx]
 	} else {
 		selectedLineIdx = viewLineIndices[patch.GetNextChangeIdx(0)]
 	}

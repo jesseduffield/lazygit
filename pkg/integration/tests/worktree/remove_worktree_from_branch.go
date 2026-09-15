@@ -6,7 +6,7 @@ import (
 )
 
 var RemoveWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Remove a worktree from the branches view",
+	Description:  "Delete a branch that's checked out in another worktree by removing that worktree",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -17,14 +17,14 @@ var RemoveWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("commit 2")
 		shell.EmptyCommit("commit 3")
 		shell.AddWorktree("mybranch", "../linked-worktree", "newbranch")
-		shell.AddFileInWorktree("../linked-worktree")
+		shell.AddFileInWorktreeOrSubmodule("../linked-worktree", "file", "content")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().
 			Focus().
 			Lines(
 				Contains("mybranch").IsSelected(),
-				Contains("newbranch (worktree)"),
+				Contains("newbranch (worktree linked-worktree)"),
 			).
 			NavigateToLine(Contains("newbranch")).
 			Press(keys.Universal.Remove).
@@ -38,28 +38,24 @@ var RemoveWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Branch newbranch is checked out by worktree linked-worktree")).
-					Select(Equals("Remove worktree")).
+					Select(Contains("Remove worktree and delete branch")).
 					Confirm()
 
+				// The worktree is dirty, so we get asked to force-remove it
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Remove worktree")).
-					Content(Equals("Are you sure you want to remove worktree 'linked-worktree'?")).
-					Confirm()
-
-				t.ExpectPopup().Confirmation().
-					Title(Equals("Remove worktree")).
-					Content(Equals("'linked-worktree' contains modified or untracked files (to be honest, it could contain both). Are you sure you want to remove it?")).
+					Content(Equals("'linked-worktree' contains modified or untracked files, or submodules (or all of these). Are you sure you want to remove it?")).
 					Confirm()
 			}).
+			// The branch is gone, not just unlinked from its worktree
 			Lines(
-				Contains("mybranch"),
-				Contains("newbranch").DoesNotContain("(worktree)").IsSelected(),
+				Contains("mybranch").IsSelected(),
 			)
 
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 			)
 	},
 })

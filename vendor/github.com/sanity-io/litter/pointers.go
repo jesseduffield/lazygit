@@ -118,8 +118,7 @@ func (pv *pointerVisitor) consider(v reflect.Value) {
 	// Now descend into any children of this value
 	switch v.Kind() {
 	case reflect.Slice, reflect.Array:
-		numEntries := v.Len()
-		for i := 0; i < numEntries; i++ {
+		for i := 0; i < v.Len(); i++ {
 			pv.consider(v.Index(i))
 		}
 
@@ -136,6 +135,7 @@ func (pv *pointerVisitor) consider(v reflect.Value) {
 			options: &Config,
 		})
 		for _, key := range keys {
+			pv.consider(key)
 			pv.consider(v.MapIndex(key))
 		}
 

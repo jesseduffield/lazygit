@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattn/go-runewidth"
+	"github.com/rivo/uniseg"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -162,6 +162,38 @@ func TestTruncateWithEllipsis(t *testing.T) {
 	}
 }
 
+func TestTruncateWithEllipsisInMiddle(t *testing.T) {
+	type scenario struct {
+		str      string
+		limit    int
+		expected string
+	}
+
+	scenarios := []scenario{
+		{"hello world !", 0, ""},
+		{"hello world !", 1, "."},
+		{"hello world !", 2, ".."},
+		{"hello world !", 3, "h…!"},
+		{"hello world !", 4, "he…!"},
+		{"hello world !", 5, "he… !"},
+		{"hello world !", 12, "hello …rld !"},
+		{"hello world !", 13, "hello world !"},
+		{"hello world !", 14, "hello world !"},
+		// A wide grapheme that doesn't fit into the front leaves its column to
+		// the back
+		{"大大大大", 5, "大…大"},
+		{"大大大大", 7, "大…大大"},
+		{"大大大大", 8, "大大大大"},
+		{"大大大大", 2, ".."},
+		{"大大大大", 1, "."},
+		{"大大大大", 0, ""},
+	}
+
+	for _, s := range scenarios {
+		assert.EqualValues(t, s.expected, TruncateWithEllipsisInMiddle(s.str, s.limit))
+	}
+}
+
 func TestRenderDisplayStrings(t *testing.T) {
 	type scenario struct {
 		input                   [][]string
@@ -254,7 +286,7 @@ func TestRenderDisplayStrings(t *testing.T) {
 
 func BenchmarkStringWidthAsciiOriginal(b *testing.B) {
 	for b.Loop() {
-		runewidth.StringWidth("some ASCII string")
+		uniseg.StringWidth("some ASCII string")
 	}
 }
 
@@ -266,7 +298,7 @@ func BenchmarkStringWidthAsciiOptimized(b *testing.B) {
 
 func BenchmarkStringWidthNonAsciiOriginal(b *testing.B) {
 	for b.Loop() {
-		runewidth.StringWidth("some non-ASCII string 🍉")
+		uniseg.StringWidth("some non-ASCII string 🍉")
 	}
 }
 

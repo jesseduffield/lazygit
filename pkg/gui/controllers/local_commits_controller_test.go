@@ -4,8 +4,46 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestFindCommitDragBlock(t *testing.T) {
+	commit := func(hash string) *models.Commit {
+		return models.NewCommit(&utils.StringPool{}, models.NewCommitOpts{Hash: hash})
+	}
+	identities := []commitDragIdentity{
+		commitDragIdentityForCommit(commit("b")),
+		commitDragIdentityForCommit(commit("c")),
+	}
+
+	t.Run("finds the original block after selection changes", func(t *testing.T) {
+		commits := []*models.Commit{commit("a"), commit("b"), commit("c"), commit("d")}
+
+		actual, startIndex, endIndex, found := findCommitDragBlock(commits, identities)
+
+		assert.True(t, found)
+		assert.Equal(t, commits[1:3], actual)
+		assert.Equal(t, 1, startIndex)
+		assert.Equal(t, 2, endIndex)
+	})
+
+	t.Run("rejects a block that is no longer contiguous", func(t *testing.T) {
+		_, _, _, found := findCommitDragBlock(
+			[]*models.Commit{commit("a"), commit("b"), commit("d"), commit("c")}, identities,
+		)
+
+		assert.False(t, found)
+	})
+
+	t.Run("rejects an ambiguous block", func(t *testing.T) {
+		_, _, _, found := findCommitDragBlock(
+			[]*models.Commit{commit("b"), commit("c"), commit("b"), commit("c")}, identities,
+		)
+
+		assert.False(t, found)
+	})
+}
 
 func Test_countSquashableCommitsAbove(t *testing.T) {
 	scenarios := []struct {
@@ -90,52 +128,6 @@ func Test_countSquashableCommitsAbove(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
 			assert.Equal(t, s.expectedResult, countSquashableCommitsAbove(s.commits, s.selectedIdx, s.rebaseStartIdx))
-		})
-	}
-}
-
-func Test_isFixupCommit(t *testing.T) {
-	scenarios := []struct {
-		subject                string
-		expectedTrimmedSubject string
-		expectedIsFixup        bool
-	}{
-		{
-			subject:                "Bla",
-			expectedTrimmedSubject: "Bla",
-			expectedIsFixup:        false,
-		},
-		{
-			subject:                "fixup Bla",
-			expectedTrimmedSubject: "fixup Bla",
-			expectedIsFixup:        false,
-		},
-		{
-			subject:                "fixup! Bla",
-			expectedTrimmedSubject: "Bla",
-			expectedIsFixup:        true,
-		},
-		{
-			subject:                "fixup! fixup! Bla",
-			expectedTrimmedSubject: "Bla",
-			expectedIsFixup:        true,
-		},
-		{
-			subject:                "amend! squash! Bla",
-			expectedTrimmedSubject: "Bla",
-			expectedIsFixup:        true,
-		},
-		{
-			subject:                "fixup!",
-			expectedTrimmedSubject: "fixup!",
-			expectedIsFixup:        false,
-		},
-	}
-	for _, s := range scenarios {
-		t.Run(s.subject, func(t *testing.T) {
-			trimmedSubject, isFixupCommit := isFixupCommit(s.subject)
-			assert.Equal(t, s.expectedTrimmedSubject, trimmedSubject)
-			assert.Equal(t, s.expectedIsFixup, isFixupCommit)
 		})
 	}
 }

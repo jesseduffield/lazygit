@@ -4,7 +4,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
 )
@@ -21,6 +21,9 @@ type CmdObj struct {
 
 	// see StreamOutput()
 	streamOutput bool
+
+	// see SuppressOutputUnlessError()
+	suppressOutputUnlessError bool
 
 	// see UsePty()
 	usePty bool
@@ -88,6 +91,19 @@ func (self *CmdObj) AddEnvVars(vars ...string) *CmdObj {
 	return self
 }
 
+// RemoveEnvVar removes every occurrence of the named environment variable from
+// the command's environment. It's the counterpart to AddEnvVars, used to opt a
+// single command out of a variable that the builder sets on every command by
+// default.
+func (self *CmdObj) RemoveEnvVar(name string) *CmdObj {
+	prefix := name + "="
+	self.cmd.Env = lo.Filter(self.cmd.Env, func(envVar string, _ int) bool {
+		return !strings.HasPrefix(envVar, prefix)
+	})
+
+	return self
+}
+
 func (self *CmdObj) GetEnvVars() []string {
 	return self.cmd.Env
 }
@@ -123,13 +139,25 @@ func (self *CmdObj) StreamOutput() *CmdObj {
 	return self
 }
 
+// when you call this, the streamed output will be suppressed unless there is an error
+func (self *CmdObj) SuppressOutputUnlessError() *CmdObj {
+	self.suppressOutputUnlessError = true
+
+	return self
+}
+
+// returns true if SuppressOutputUnlessError() was called
+func (self *CmdObj) ShouldSuppressOutputUnlessError() bool {
+	return self.suppressOutputUnlessError
+}
+
 // returns true if StreamOutput() was called
 func (self *CmdObj) ShouldStreamOutput() bool {
 	return self.streamOutput
 }
 
 // when you call this, then call Run(), we'll use a PTY to run the command. Only
-// has an effect if StreamOutput() was also called. Ignored on Windows.
+// has an effect if StreamOutput() was also called.
 func (self *CmdObj) UsePty() *CmdObj {
 	self.usePty = true
 

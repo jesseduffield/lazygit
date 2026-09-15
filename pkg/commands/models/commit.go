@@ -60,6 +60,7 @@ type Commit struct {
 
 	Status     CommitStatus
 	Action     todo.TodoCommand
+	ActionFlag string     // e.g. "-C" for fixup -C
 	Divergence Divergence // set to DivergenceNone unless we are showing the divergence view
 }
 
@@ -68,6 +69,7 @@ type NewCommitOpts struct {
 	Name          string
 	Status        CommitStatus
 	Action        todo.TodoCommand
+	ActionFlag    string
 	Tags          []string
 	ExtraInfo     string
 	AuthorName    string
@@ -83,6 +85,7 @@ func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
 		Name:          opts.Name,
 		Status:        opts.Status,
 		Action:        opts.Action,
+		ActionFlag:    opts.ActionFlag,
 		Tags:          opts.Tags,
 		ExtraInfo:     opts.ExtraInfo,
 		AuthorName:    opts.AuthorName,
@@ -156,4 +159,14 @@ func (c *Commit) IsTODO() bool {
 
 func IsHeadCommit(commits []*Commit, index int) bool {
 	return !commits[index].IsTODO() && (index == 0 || commits[index-1].IsTODO())
+}
+
+func HeadCommitIdx(commits []*Commit) int {
+	for index, commit := range commits {
+		if !commit.IsTODO() {
+			return index
+		}
+	}
+
+	return -1
 }

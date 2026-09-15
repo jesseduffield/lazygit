@@ -13,7 +13,7 @@ GODEFS="go tool cgo -godefs"
 $GODEFS types.go |gofmt > ztypes_$GOARCH.go
 
 case $GOOS in
-freebsd|dragonfly|openbsd)
+freebsd|dragonfly|netbsd|openbsd)
 	$GODEFS types_$GOOS.go |gofmt > ztypes_$GOOSARCH.go
 	;;
 esac

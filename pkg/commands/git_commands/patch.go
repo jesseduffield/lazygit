@@ -346,7 +346,7 @@ func (self *PatchCommands) PullPatchIntoNewCommitBefore(
 func (self *PatchCommands) diffHeadAgainstCommit(commit *models.Commit) (string, error) {
 	cmdArgs := NewGitCmd("diff").
 		Config("diff.noprefix=false").
-		Arg("--no-ext-diff").
+		Arg("--no-ext-diff", "--no-color").
 		Arg("HEAD.." + commit.Hash()).
 		ToArgv()
 

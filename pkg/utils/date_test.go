@@ -2,6 +2,9 @@ package utils
 
 import (
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFormatSecondsAgo(t *testing.T) {
@@ -94,4 +97,19 @@ func TestFormatSecondsAgo(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestUnixToDateSmart_UsesNowLocationForFormatting(t *testing.T) {
+	timestamp := int64(1577844184) // 2020-01-01 02:03:04 UTC
+	now := time.Date(2020, 1, 1, 5, 3, 4, 0, time.UTC)
+
+	assert.Equal(t, "2:03AM", UnixToDateSmart(now, timestamp, "2006-01-02", "3:04PM"))
+}
+
+func TestUnixToDateSmart_SameTimestampDifferentNowLocation(t *testing.T) {
+	timestamp := int64(1577844184) // 2020-01-01 02:03:04 UTC
+	loc := time.FixedZone("UTC+1", 3600)
+	now := time.Date(2020, 1, 1, 6, 3, 4, 0, loc)
+
+	assert.Equal(t, "3:03AM", UnixToDateSmart(now, timestamp, "2006-01-02", "3:04PM"))
 }

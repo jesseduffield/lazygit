@@ -44,10 +44,10 @@ var ShowDivergenceFromUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Title(Contains("Commits (master <-> origin/master)")).
 			Lines(
-				DoesNotContainAnyOf("↓", "↑").Contains("--- Remote ---"),
+				DoesNotContainAnyOf("↓", "↑").Contains("─── Remote"),
 				Contains("↓").Contains("three"),
 				Contains("↓").Contains("two"),
-				DoesNotContainAnyOf("↓", "↑").Contains("--- Local ---"),
+				DoesNotContainAnyOf("↓", "↑").Contains("─── Local"),
 				Contains("↑").Contains("four"),
 			)
 	},

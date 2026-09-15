@@ -1,10 +1,16 @@
 package flaggy
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"math/big"
 	"net"
+	netip "net/netip"
+	"net/url"
+	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -62,8 +68,7 @@ func (f *Flag) identifyAndAssignValue(value string) error {
 		*v = value
 	case *[]string:
 		v := f.AssignmentVar.(*[]string)
-		splitString := strings.Split(value, ",")
-		new := append(*v, splitString...)
+		new := append(*v, value)
 		*v = new
 	case *bool:
 		v, err := strconv.ParseBool(value)
@@ -327,6 +332,164 @@ func (f *Flag) identifyAndAssignValue(value string) error {
 		existing := f.AssignmentVar.(*[]net.IPMask)
 		new := append(*existing, v)
 		*existing = new
+	case *time.Time:
+		// Support unix seconds if numeric, else try common layouts
+		if isAllDigits(value) {
+			sec, err := strconv.ParseInt(value, 10, 64)
+			if err != nil {
+				return err
+			}
+			t := time.Unix(sec, 0).UTC()
+			a := f.AssignmentVar.(*time.Time)
+			*a = t
+			return nil
+		}
+		var parsed time.Time
+		var err error
+		layouts := []string{time.RFC3339Nano, time.RFC3339, time.RFC1123Z, time.RFC1123}
+		for _, layout := range layouts {
+			parsed, err = time.Parse(layout, value)
+			if err == nil {
+				a := f.AssignmentVar.(*time.Time)
+				*a = parsed
+				return nil
+			}
+		}
+		return err
+	case *url.URL:
+		u, err := url.Parse(value)
+		if err != nil {
+			return err
+		}
+		a := f.AssignmentVar.(*url.URL)
+		*a = *u
+	case *net.IPNet:
+		_, ipnet, err := net.ParseCIDR(value)
+		if err != nil {
+			return err
+		}
+		a := f.AssignmentVar.(*net.IPNet)
+		*a = *ipnet
+	case *net.TCPAddr:
+		host, portStr, err := net.SplitHostPort(value)
+		if err != nil {
+			return err
+		}
+		port, err := strconv.Atoi(portStr)
+		if err != nil {
+			return err
+		}
+		var ip net.IP
+		if len(host) > 0 {
+			ip = net.ParseIP(host)
+		}
+		addr := net.TCPAddr{IP: ip, Port: port}
+		a := f.AssignmentVar.(*net.TCPAddr)
+		*a = addr
+	case *net.UDPAddr:
+		host, portStr, err := net.SplitHostPort(value)
+		if err != nil {
+			return err
+		}
+		port, err := strconv.Atoi(portStr)
+		if err != nil {
+			return err
+		}
+		var ip net.IP
+		if len(host) > 0 {
+			ip = net.ParseIP(host)
+		}
+		addr := net.UDPAddr{IP: ip, Port: port}
+		a := f.AssignmentVar.(*net.UDPAddr)
+		*a = addr
+	case *os.FileMode:
+		v, err := strconv.ParseUint(value, 0, 32)
+		if err != nil {
+			return err
+		}
+		a := f.AssignmentVar.(*os.FileMode)
+		*a = os.FileMode(v)
+	case *regexp.Regexp:
+		r, err := regexp.Compile(value)
+		if err != nil {
+			return err
+		}
+		a := f.AssignmentVar.(*regexp.Regexp)
+		*a = *r
+	case *time.Location:
+		// Try IANA name, with fallback to UTC offset like +02:00 or -0700
+		if loc, err := time.LoadLocation(value); err == nil {
+			a := f.AssignmentVar.(*time.Location)
+			*a = *loc
+			return nil
+		}
+		if off, ok := parseUTCOffset(value); ok {
+			name := offsetName(off)
+			loc := time.FixedZone(name, off)
+			a := f.AssignmentVar.(*time.Location)
+			*a = *loc
+			return nil
+		}
+		return fmt.Errorf("invalid time.Location: %s", value)
+	case *time.Month:
+		if m, ok := parseMonth(value); ok {
+			a := f.AssignmentVar.(*time.Month)
+			*a = m
+			return nil
+		}
+		return fmt.Errorf("invalid time.Month: %s", value)
+	case *time.Weekday:
+		if d, ok := parseWeekday(value); ok {
+			a := f.AssignmentVar.(*time.Weekday)
+			*a = d
+			return nil
+		}
+		return fmt.Errorf("invalid time.Weekday: %s", value)
+	case *big.Int:
+		bi := f.AssignmentVar.(*big.Int)
+		if _, ok := bi.SetString(value, 0); !ok {
+			return fmt.Errorf("invalid big.Int: %s", value)
+		}
+	case *big.Rat:
+		br := f.AssignmentVar.(*big.Rat)
+		if _, ok := br.SetString(value); !ok {
+			return fmt.Errorf("invalid big.Rat: %s", value)
+		}
+	case *Base64Bytes:
+		// Try standard then URL encoding
+		decoded, err := base64.StdEncoding.DecodeString(value)
+		if err == nil {
+			a := f.AssignmentVar.(*Base64Bytes)
+			*a = Base64Bytes(decoded)
+			return nil
+		}
+		if decodedURL, errURL := base64.URLEncoding.DecodeString(value); errURL == nil {
+			a := f.AssignmentVar.(*Base64Bytes)
+			*a = Base64Bytes(decodedURL)
+			return nil
+		}
+		return err
+	case *netip.Addr:
+		addr, err := netip.ParseAddr(value)
+		if err != nil {
+			return err
+		}
+		a := f.AssignmentVar.(*netip.Addr)
+		*a = addr
+	case *netip.Prefix:
+		pfx, err := netip.ParsePrefix(value)
+		if err != nil {
+			return err
+		}
+		a := f.AssignmentVar.(*netip.Prefix)
+		*a = pfx
+	case *netip.AddrPort:
+		ap, err := netip.ParseAddrPort(value)
+		if err != nil {
+			return err
+		}
+		a := f.AssignmentVar.(*netip.AddrPort)
+		*a = ap
 	default:
 		return errors.New("Unknown flag assignmentVar supplied in flag " + f.LongName + " " + f.ShortName)
 	}
@@ -398,8 +561,9 @@ func parseArgWithValue(arg string) (key string, value string) {
 }
 
 // parseFlagToName parses a flag with space value down to a key name:
-//     --path -> path
-//     -p -> p
+//
+//	--path -> path
+//	-p -> p
 func parseFlagToName(arg string) string {
 	// remove minus from start
 	arg = strings.TrimLeft(arg, "-")
@@ -407,10 +571,32 @@ func parseFlagToName(arg string) string {
 	return arg
 }
 
+// collectAllNestedFlags recurses through the command tree to get all
+//
+//	flags specified on a subcommand and its descending subcommands
+func collectAllNestedFlags(sc *Subcommand) []*Flag {
+	fullList := sc.Flags
+	for _, sc := range sc.Subcommands {
+		fullList = append(fullList, sc.Flags...)
+		fullList = append(fullList, collectAllNestedFlags(sc)...)
+	}
+	return fullList
+}
+
 // flagIsBool determines if the flag is a bool within the specified parser
 // and subcommand's context
 func flagIsBool(sc *Subcommand, p *Parser, key string) bool {
-	for _, f := range append(sc.Flags, p.Flags...) {
+	for _, f := range sc.Flags {
+		if f.HasName(key) {
+			_, isBool := f.AssignmentVar.(*bool)
+			_, isBoolSlice := f.AssignmentVar.(*[]bool)
+			if isBool || isBoolSlice {
+				return true
+			}
+		}
+	}
+
+	for _, f := range p.Flags {
 		if f.HasName(key) {
 			_, isBool := f.AssignmentVar.(*bool)
 			_, isBoolSlice := f.AssignmentVar.(*[]bool)
@@ -421,6 +607,24 @@ func flagIsBool(sc *Subcommand, p *Parser, key string) bool {
 	}
 
 	// by default, the answer is false
+	return false
+}
+
+// flagIsDefined reports whether a flag with the provided key is registered on
+// the supplied subcommand or parser.
+func flagIsDefined(sc *Subcommand, p *Parser, key string) bool {
+	for _, f := range sc.Flags {
+		if f.HasName(key) {
+			return true
+		}
+	}
+
+	for _, f := range p.Flags {
+		if f.HasName(key) {
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -616,7 +820,171 @@ func (f *Flag) returnAssignmentVarValueAsString() (string, error) {
 			strSlice = append(strSlice, m.String())
 		}
 		return strings.Join(strSlice, ","), err
+	case *time.Time:
+		v := f.AssignmentVar.(*time.Time)
+		if v.IsZero() {
+			return "", err
+		}
+		return v.UTC().Format(time.RFC3339Nano), err
+	case *url.URL:
+		v := f.AssignmentVar.(*url.URL)
+		return v.String(), err
+	case *net.IPNet:
+		v := f.AssignmentVar.(*net.IPNet)
+		return v.String(), err
+	case *net.TCPAddr:
+		v := f.AssignmentVar.(*net.TCPAddr)
+		return v.String(), err
+	case *net.UDPAddr:
+		v := f.AssignmentVar.(*net.UDPAddr)
+		return v.String(), err
+	case *os.FileMode:
+		v := f.AssignmentVar.(*os.FileMode)
+		return fmt.Sprintf("%#o", *v), err
+	case *regexp.Regexp:
+		v := f.AssignmentVar.(*regexp.Regexp)
+		return v.String(), err
+	case *time.Location:
+		v := f.AssignmentVar.(*time.Location)
+		return v.String(), err
+	case *time.Month:
+		v := f.AssignmentVar.(*time.Month)
+		if *v == 0 {
+			return "", err
+		}
+		return v.String(), err
+	case *time.Weekday:
+		v := f.AssignmentVar.(*time.Weekday)
+		return v.String(), err
+	case *big.Int:
+		v := f.AssignmentVar.(*big.Int)
+		return v.String(), err
+	case *big.Rat:
+		v := f.AssignmentVar.(*big.Rat)
+		return v.RatString(), err
+	case *Base64Bytes:
+		v := f.AssignmentVar.(*Base64Bytes)
+		if v == nil || len(*v) == 0 {
+			return "", err
+		}
+		return base64.StdEncoding.EncodeToString([]byte(*v)), err
+	case *netip.Addr:
+		v := f.AssignmentVar.(*netip.Addr)
+		return v.String(), err
+	case *netip.Prefix:
+		v := f.AssignmentVar.(*netip.Prefix)
+		return v.String(), err
+	case *netip.AddrPort:
+		v := f.AssignmentVar.(*netip.AddrPort)
+		return v.String(), err
 	default:
 		return "", errors.New("Unknown flag assignmentVar found in flag " + f.LongName + " " + f.ShortName + ". Type not supported: " + reflect.TypeOf(f.AssignmentVar).String())
 	}
+}
+
+// helpers
+func isAllDigits(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+func parseUTCOffset(s string) (int, bool) {
+	// Supports formats: +HH, -HH, +HHMM, -HHMM, +HH:MM, -HH:MM, Z
+	if s == "Z" || s == "z" || strings.EqualFold(s, "UTC") {
+		return 0, true
+	}
+	if len(s) < 2 {
+		return 0, false
+	}
+	sign := 1
+	switch s[0] {
+	case '+':
+		sign = 1
+	case '-':
+		sign = -1
+	default:
+		return 0, false
+	}
+	rest := s[1:]
+	rest = strings.ReplaceAll(rest, ":", "")
+	if len(rest) != 2 && len(rest) != 4 {
+		return 0, false
+	}
+	hh, err := strconv.Atoi(rest[:2])
+	if err != nil {
+		return 0, false
+	}
+	mm := 0
+	if len(rest) == 4 {
+		mm, err = strconv.Atoi(rest[2:])
+		if err != nil {
+			return 0, false
+		}
+	}
+	if hh < 0 || hh > 23 || mm < 0 || mm > 59 {
+		return 0, false
+	}
+	return sign * (hh*3600 + mm*60), true
+}
+
+func offsetName(offset int) string {
+	if offset == 0 {
+		return "UTC"
+	}
+	sign := "+"
+	if offset < 0 {
+		sign = "-"
+		offset = -offset
+	}
+	hh := offset / 3600
+	mm := (offset % 3600) / 60
+	return fmt.Sprintf("UTC%s%02d:%02d", sign, hh, mm)
+}
+
+func parseMonth(s string) (time.Month, bool) {
+	// Try name
+	names := map[string]time.Month{
+		"january": time.January, "february": time.February, "march": time.March, "april": time.April,
+		"may": time.May, "june": time.June, "july": time.July, "august": time.August,
+		"september": time.September, "october": time.October, "november": time.November, "december": time.December,
+	}
+	if m, ok := names[strings.ToLower(s)]; ok {
+		return m, true
+	}
+	// Try number 1-12
+	n, err := strconv.Atoi(s)
+	if err == nil && n >= 1 && n <= 12 {
+		return time.Month(n), true
+	}
+	return 0, false
+}
+
+func parseWeekday(s string) (time.Weekday, bool) {
+	names := map[string]time.Weekday{
+		"sunday": time.Sunday, "monday": time.Monday, "tuesday": time.Tuesday, "wednesday": time.Wednesday,
+		"thursday": time.Thursday, "friday": time.Friday, "saturday": time.Saturday,
+	}
+	if d, ok := names[strings.ToLower(s)]; ok {
+		return d, true
+	}
+	n, err := strconv.Atoi(s)
+	if err == nil {
+		// Accept 0-6 as Sunday-Saturday
+		if n >= 0 && n <= 6 {
+			return time.Weekday(n), true
+		}
+		// Also accept 1-7 as Monday-Sunday
+		if n >= 1 && n <= 7 {
+			v := (n % 7) // 7->0
+			return time.Weekday(v), true
+		}
+	}
+	return 0, false
 }

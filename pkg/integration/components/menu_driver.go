@@ -21,7 +21,7 @@ func (self *MenuDriver) Title(expected *TextMatcher) *MenuDriver {
 func (self *MenuDriver) Confirm() *MenuDriver {
 	self.checkNecessaryChecksCompleted()
 
-	self.getViewDriver().PressEnter()
+	self.getViewDriver().Press(self.t.keys.Universal.ConfirmMenu)
 
 	return self
 }
@@ -56,8 +56,12 @@ func (self *MenuDriver) ContainsLines(matchers ...*TextMatcher) *MenuDriver {
 	return self
 }
 
+// types the text into the menu's filter row. Only for menus that filter as you
+// type; other menus are filtered through the search prompt.
 func (self *MenuDriver) Filter(text string) *MenuDriver {
-	self.getViewDriver().FilterOrSearch(text)
+	self.getViewDriver().IsFocused()
+	self.t.typeContent(text)
+	self.t.Views().MenuFilter().IsVisible()
 
 	return self
 }

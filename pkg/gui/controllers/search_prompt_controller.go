@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -24,24 +24,20 @@ func NewSearchPromptController(
 func (self *SearchPromptController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:      opts.GetKey(opts.Config.Universal.Confirm),
-			Modifier: gocui.ModNone,
-			Handler:  self.confirm,
+			Keys:    []gocui.Key{gocui.NewKeyName(gocui.KeyEnter)},
+			Handler: self.confirm,
 		},
 		{
-			Key:      opts.GetKey(opts.Config.Universal.Return),
-			Modifier: gocui.ModNone,
-			Handler:  self.cancel,
+			Keys:    opts.GetKeys(opts.Config.Universal.Return),
+			Handler: self.cancel,
 		},
 		{
-			Key:      opts.GetKey(opts.Config.Universal.PrevItem),
-			Modifier: gocui.ModNone,
-			Handler:  self.prevHistory,
+			Keys:    opts.GetKeys(opts.Config.Universal.PrevItem),
+			Handler: self.prevHistory,
 		},
 		{
-			Key:      opts.GetKey(opts.Config.Universal.NextItem),
-			Modifier: gocui.ModNone,
-			Handler:  self.nextHistory,
+			Keys:    opts.GetKeys(opts.Config.Universal.NextItem),
+			Handler: self.nextHistory,
 		},
 	}
 }
@@ -55,11 +51,13 @@ func (self *SearchPromptController) context() types.Context {
 }
 
 func (self *SearchPromptController) confirm() error {
-	return self.c.Helpers().Search.Confirm()
+	self.c.Helpers().Search.Confirm()
+	return nil
 }
 
 func (self *SearchPromptController) cancel() error {
-	return self.c.Helpers().Search.CancelPrompt()
+	self.c.Helpers().Search.CancelPrompt()
+	return nil
 }
 
 func (self *SearchPromptController) prevHistory() error {

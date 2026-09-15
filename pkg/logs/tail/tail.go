@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/aybabtme/humanlog"
 )
@@ -15,6 +16,7 @@ func TailLogs(logFilePath string) {
 
 	opts := humanlog.DefaultOptions
 	opts.Truncates = false
+	opts.TimeFormat = time.StampMilli
 
 	_, err := os.Stat(logFilePath)
 	if err != nil {

@@ -2,8 +2,10 @@ package context
 
 import (
 	"errors"
+	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -42,17 +44,29 @@ func NewMenuContext(
 				getColumnAlignments: func() []utils.Alignment { return viewModel.columnAlignment },
 				getNonModelItems:    viewModel.GetNonModelItems,
 			},
+			// While the filter row is showing, its top border covers the menu's bottom
+			// border, so the footer has to be rendered on the row instead.
+			renderFooter: func(footer string) {
+				onFilterRow := viewModel.FilterStarted()
+				c.Views().Menu.Footer = lo.Ternary(onFilterRow, "", footer)
+				c.Views().MenuFilterFrame.Footer = lo.Ternary(onFilterRow, footer, "")
+			},
 			c: c,
 		},
 	}
 }
 
 type MenuViewModel struct {
-	c               *ContextCommon
-	menuItems       []*types.MenuItem
-	prompt          string
-	promptLines     []string
-	columnAlignment []utils.Alignment
+	c                         *ContextCommon
+	menuItems                 []*types.MenuItem
+	prompt                    string
+	promptLines               []string
+	columnAlignment           []utils.Alignment
+	allowFilteringKeybindings bool
+	keybindingsTakePrecedence bool
+	filterAsYouType           bool
+	filterStarted             bool
+	onCancel                  func() error
 	*FilteredListViewModel[*types.MenuItem]
 }
 
@@ -62,10 +76,36 @@ func NewMenuViewModel(c *ContextCommon) *MenuViewModel {
 		c:         c,
 	}
 
+	filterKeybindings := false
+
 	self.FilteredListViewModel = NewFilteredListViewModel(
 		func() []*types.MenuItem { return self.menuItems },
-		func(item *types.MenuItem) []string { return item.LabelColumns },
+		func(item *types.MenuItem) []string {
+			if filterKeybindings {
+				// Allow searching all configured keybindings of each item, even though only the
+				// first one is shown in the menu.
+				return lo.Map(item.Keys, func(k gocui.Key, _ int) string {
+					return config.LabelForKey(k)
+				})
+			}
+
+			if item.FilterColumns != nil {
+				return item.FilterColumns
+			}
+
+			return item.LabelColumns
+		},
 	)
+
+	self.FilteredListViewModel.SetPreprocessFilterFunc(func(filter string) string {
+		if self.allowFilteringKeybindings && strings.HasPrefix(filter, "@") {
+			filterKeybindings = true
+			return filter[1:]
+		}
+
+		filterKeybindings = false
+		return filter
+	})
 
 	return self
 }
@@ -73,6 +113,10 @@ func NewMenuViewModel(c *ContextCommon) *MenuViewModel {
 func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem, columnAlignment []utils.Alignment) {
 	self.menuItems = items
 	self.columnAlignment = columnAlignment
+}
+
+func (self *MenuViewModel) SetOnCancel(onCancel func() error) {
+	self.onCancel = onCancel
 }
 
 func (self *MenuViewModel) GetPrompt() string {
@@ -92,6 +136,41 @@ func (self *MenuViewModel) SetPromptLines(promptLines []string) {
 	self.promptLines = promptLines
 }
 
+func (self *MenuViewModel) SetAllowFilteringKeybindings(allow bool) {
+	self.allowFilteringKeybindings = allow
+}
+
+func (self *MenuViewModel) AllowFilteringKeybindings() bool {
+	return self.allowFilteringKeybindings
+}
+
+func (self *MenuViewModel) SetKeybindingsTakePrecedence(value bool) {
+	self.keybindingsTakePrecedence = value
+}
+
+// Whether this menu has a filter row that filters the items as the user types,
+// instead of being filtered through the search prompt.
+func (self *MenuViewModel) SetFilterAsYouType(value bool) {
+	self.filterAsYouType = value
+	self.SetFilterStarted(false)
+}
+
+func (self *MenuViewModel) FilterAsYouType() bool {
+	return self.filterAsYouType
+}
+
+// Whether the user has started to filter, which is when the filter row appears.
+func (self *MenuViewModel) SetFilterStarted(value bool) {
+	self.filterStarted = value
+	// As long as there is nothing to type into, printable keys keep driving the
+	// menu, so that the configured navigation keys work like in any other menu.
+	self.c.Views().MenuFilter.KeybindOnEdit = !value
+}
+
+func (self *MenuViewModel) FilterStarted() bool {
+	return self.filterStarted
+}
+
 // TODO: move into presentation package
 func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 	menuItems := self.FilteredListViewModel.GetItems()
@@ -103,8 +182,8 @@ func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 		}
 
 		keyLabel := ""
-		if item.Key != nil {
-			keyLabel = style.FgCyan.Sprint(keybindings.LabelFromKey(item.Key))
+		if len(item.Keys) > 0 {
+			keyLabel = style.FgCyan.Sprint(config.LabelForKey(item.Keys[0]))
 		}
 
 		checkMark := ""
@@ -158,7 +237,7 @@ func (self *MenuViewModel) GetNonModelItems() []*NonModelItem {
 			result = append(result, &NonModelItem{
 				Index:   i,
 				Column:  1,
-				Content: style.FgGreen.SetBold().Sprintf("--- %s ---", menuItem.Section.Title),
+				Content: style.FgGreen.SetBold().Sprint(formatListSectionHeader(menuItem.Section.Title)),
 			})
 			prevSection = menuItem.Section
 		}
@@ -169,21 +248,40 @@ func (self *MenuViewModel) GetNonModelItems() []*NonModelItem {
 
 func (self *MenuContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	basicBindings := self.ListContextTrait.GetKeybindings(opts)
+
+	if self.filterAsYouType {
+		// A menu item's keys are shown as a reminder of what they do outside the
+		// menu, but pressing one types it into the filter rather than executing the
+		// item, so we don't bind them at all. That leaves the bindings that drive
+		// the menu itself, and the printable ones among those give way to the filter
+		// as soon as there is something to type into (see View.KeybindOnEdit).
+		return basicBindings
+	}
+
 	menuItemsWithKeys := lo.Filter(self.menuItems, func(item *types.MenuItem, _ int) bool {
-		return item.Key != nil
+		return len(item.Keys) > 0
 	})
 
 	menuItemBindings := lo.Map(menuItemsWithKeys, func(item *types.MenuItem, _ int) *types.Binding {
 		return &types.Binding{
-			Key:     item.Key,
+			Keys:    item.Keys,
 			Handler: func() error { return self.OnMenuPress(item) },
 		}
 	})
 
-	// appending because that means the menu item bindings have lower precedence.
-	// So if a basic binding is to escape from the menu, we want that to still be
-	// what happens when you press escape. This matters when we're showing the menu
-	// for all keybindings of say the files context.
+	if self.keybindingsTakePrecedence {
+		// This is used for all normal menus except the keybindings menu. In this case we want the
+		// bindings of the menu items to have higher precedence than the builtin bindings; this
+		// allows assigning a keybinding to a menu item that overrides a non-essential binding such
+		// as 'j', 'k', 'H', 'L', etc. This is safe to do because the essential bindings such as
+		// confirm and return have already been removed from the menu items in this case.
+		return append(menuItemBindings, basicBindings...)
+	}
+
+	// For the keybindings menu we didn't remove the essential bindings from the menu items, because
+	// it is important to see all bindings (as a cheat sheet for what the keys are when the menu is
+	// not open). Therefore we want the essential bindings to have higher precedence than the menu
+	// item bindings.
 	return append(basicBindings, menuItemBindings...)
 }
 
@@ -200,6 +298,9 @@ func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
 	self.c.Context().Pop()
 
 	if selectedItem == nil {
+		if self.onCancel != nil {
+			return self.onCancel()
+		}
 		return nil
 	}
 
@@ -213,4 +314,15 @@ func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
 // There is currently no need to use range-select in a menu so we're disabling it.
 func (self *MenuContext) RangeSelectEnabled() bool {
 	return false
+}
+
+// A menu that filters as you type points the keyboard at its filter input, so
+// that whatever the user types ends up there. Keys that the input doesn't take
+// still reach the menu, because the input view is embedded in the menu view.
+func (self *MenuContext) GetInputViewName() string {
+	if self.filterAsYouType {
+		return self.c.Views().MenuFilter.Name()
+	}
+
+	return self.GetViewName()
 }

@@ -28,6 +28,6 @@ var SwapWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.MoveDownCommit)
 
-		handleConflictsFromSwap(t, "pick")
+		handleConflictsFromSwap(t, "pick", false)
 	},
 })

@@ -26,7 +26,7 @@ var FilterMenu = NewIntegrationTest(NewIntegrationTestArgs{
 					Filter("Ignore").
 					Lines(
 						// menu has filtered down to the one item that matches the filter
-						Contains(`--- Local ---`),
+						Contains(`─── Local`),
 						Contains(`Ignore`).IsSelected(),
 					).
 					Confirm()
@@ -48,7 +48,7 @@ var FilterMenu = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Keybindings")).
-					LineCount(GreaterThan(1))
+					LineCount(GreaterThan(2))
 			})
 	},
 })

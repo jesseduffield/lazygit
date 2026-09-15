@@ -7,6 +7,7 @@ type StashEntry struct {
 	Index   int
 	Recency string
 	Name    string
+	Hash    string
 }
 
 func (s *StashEntry) FullRefName() string {

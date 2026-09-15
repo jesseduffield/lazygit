@@ -1,0 +1,52 @@
+package custom_commands
+
+import (
+	"github.com/jesseduffield/lazygit/pkg/config"
+	. "github.com/jesseduffield/lazygit/pkg/integration/components"
+)
+
+var SelectedSubmodule = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Use the {{ .SelectedSubmodule }} template variable",
+	ExtraCmdArgs: []string{},
+	Skip:         false,
+	SetupRepo: func(shell *Shell) {
+		shell.EmptyCommit("Initial commit")
+		shell.CloneIntoSubmodule("submodule", "path/submodule")
+		shell.Commit("Add submodule")
+	},
+	SetupConfig: func(cfg *config.AppConfig) {
+		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
+			{
+				Key:     config.Keybinding{"X"},
+				Context: "submodules",
+				Command: "printf '%s' '{{ .SelectedSubmodule.Path }}' > file.txt",
+			},
+			{
+				Key:     config.Keybinding{"U"},
+				Context: "submodules",
+				Command: "printf '%s' '{{ .SelectedSubmodule.Url }}' > file.txt",
+			},
+			{
+				Key:     config.Keybinding{"N"},
+				Context: "submodules",
+				Command: "printf '%s' '{{ .SelectedSubmodule.Name }}' > file.txt",
+			},
+		}
+	},
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Submodules().
+			Focus().
+			Lines(
+				Contains("submodule").IsSelected(),
+			)
+
+		t.Views().Submodules().Press(config.Keybinding{"X"})
+		t.FileSystem().FileContent("file.txt", Equals("path/submodule"))
+
+		t.Views().Submodules().Press(config.Keybinding{"U"})
+		t.FileSystem().FileContent("file.txt", Equals("../submodule"))
+
+		t.Views().Submodules().Press(config.Keybinding{"N"})
+		t.FileSystem().FileContent("file.txt", Equals("submodule"))
+	},
+})

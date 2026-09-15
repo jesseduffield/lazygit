@@ -41,6 +41,7 @@ const (
 
 	MENU_CONTEXT_KEY               types.ContextKey = "menu"
 	CONFIRMATION_CONTEXT_KEY       types.ContextKey = "confirmation"
+	PROMPT_CONTEXT_KEY             types.ContextKey = "prompt"
 	SEARCH_CONTEXT_KEY             types.ContextKey = "search"
 	COMMIT_MESSAGE_CONTEXT_KEY     types.ContextKey = "commitMessage"
 	COMMIT_DESCRIPTION_CONTEXT_KEY types.ContextKey = "commitDescription"
@@ -73,6 +74,7 @@ var AllContextKeys = []types.ContextKey{
 
 	MENU_CONTEXT_KEY,
 	CONFIRMATION_CONTEXT_KEY,
+	PROMPT_CONTEXT_KEY,
 	SEARCH_CONTEXT_KEY,
 	COMMIT_MESSAGE_CONTEXT_KEY,
 	SUBMODULES_CONTEXT_KEY,
@@ -106,6 +108,7 @@ type ContextTree struct {
 	CustomPatchBuilderSecondary types.Context
 	MergeConflicts              *MergeConflictsContext
 	Confirmation                *ConfirmationContext
+	Prompt                      *PromptContext
 	CommitMessage               *CommitMessageContext
 	CommitDescription           types.Context
 	CommandLog                  types.Context
@@ -141,6 +144,7 @@ func (self *ContextTree) Flatten() []types.Context {
 		self.Stash,
 		self.Menu,
 		self.Confirmation,
+		self.Prompt,
 		self.CommitMessage,
 		self.CommitDescription,
 

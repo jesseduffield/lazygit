@@ -1,8 +1,12 @@
 package components
 
 import (
+	"time"
+
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
+
+const eventuallyTimeout = 2 * time.Second
 
 type assertionHelper struct {
 	gui integrationTypes.GuiDriver
@@ -21,6 +25,21 @@ func (self *assertionHelper) assertWithRetries(test func() (bool, string)) {
 	ok, message := test()
 	if !ok {
 		self.fail(message)
+	}
+}
+
+func (self *assertionHelper) assertEventually(test func() (bool, string)) {
+	deadline := time.Now().Add(eventuallyTimeout)
+	for {
+		ok, message := test()
+		if ok {
+			return
+		}
+		if time.Now().After(deadline) {
+			self.fail(message)
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 

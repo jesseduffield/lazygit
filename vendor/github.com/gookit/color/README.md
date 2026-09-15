@@ -2,14 +2,13 @@
 
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/gookit/color?style=flat-square)
 [![Actions Status](https://github.com/gookit/color/workflows/action-tests/badge.svg)](https://github.com/gookit/color/actions)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/51b28c5f7ffe4cc2b0f12ecf25ed247f)](https://app.codacy.com/app/inhere/color)
-[![GoDoc](https://godoc.org/github.com/gookit/color?status.svg)](https://pkg.go.dev/github.com/gookit/color?tab=overview)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/7fef8d74c1d64afc99ce0f2c6d3f8af1)](https://www.codacy.com/gh/gookit/color/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=gookit/color&amp;utm_campaign=Badge_Grade)
+[![GoDoc](https://pkg.go.dev/badge/github.com/gookit/color.svg)](https://pkg.go.dev/github.com/gookit/color?tab=overview)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/gookit/color)](https://github.com/gookit/color)
-[![Build Status](https://travis-ci.org/gookit/color.svg?branch=master)](https://travis-ci.org/gookit/color)
 [![Coverage Status](https://coveralls.io/repos/github/gookit/color/badge.svg?branch=master)](https://coveralls.io/github/gookit/color?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gookit/color)](https://goreportcard.com/report/github.com/gookit/color)
 
-A command-line color library with true color support, universal API methods and Windows support.
+A command-line color library with 16/256/True color support, universal API methods and Windows support.
 
 > **[中文说明](README.zh-CN.md)**
 
@@ -28,8 +27,9 @@ Now, 256 colors and RGB colors have also been supported to work in Windows CMD a
     - 16-color output is the most commonly used and most widely supported, working on any Windows version
     - Since `v1.2.4` **the 256-color (8-bit), true color (24-bit) support windows CMD and PowerShell**
     - See [this gist](https://gist.github.com/XVilka/8346728) for information on true color support
+  - Support converts `HEX` `HSL` value to RGB color
   - Generic API methods: `Print`, `Printf`, `Println`, `Sprint`, `Sprintf`
-  - Supports HTML tag-style color rendering, such as `<green>message</>`.
+  - Supports HTML tag-style color rendering, such as `<green>message</> <fg=red;bg=blue>text</>`.
     - In addition to using built-in tags, it also supports custom color attributes
     - Custom color attributes support the use of 16 color names, 256 color values, rgb color values and hex color values
     - Support working on Windows `cmd` and `powerShell` terminal
@@ -40,8 +40,7 @@ Now, 256 colors and RGB colors have also been supported to work in Windows CMD a
 
 ## GoDoc
 
-  - [godoc for gopkg](https://pkg.go.dev/gopkg.in/gookit/color.v1)
-  - [godoc for github](https://pkg.go.dev/github.com/gookit/color)
+See [godoc for github](https://pkg.go.dev/github.com/gookit/color)
 
 ## Install
 
@@ -120,11 +119,6 @@ Supported on any Windows version. Provide generic API methods: `Print`, `Printf`
 
 ```go
 color.Bold.Println("bold message")
-color.Black.Println("bold message")
-color.White.Println("bold message")
-color.Gray.Println("bold message")
-color.Red.Println("yellow message")
-color.Blue.Println("yellow message")
 color.Cyan.Println("yellow message")
 color.Yellow.Println("yellow message")
 color.Magenta.Println("yellow message")
@@ -171,15 +165,9 @@ print message use defined style:
 
 ```go
 color.Info.Println("Info message")
-color.Note.Println("Note message")
 color.Notice.Println("Notice message")
 color.Error.Println("Error message")
-color.Danger.Println("Danger message")
-color.Warn.Println("Warn message")
-color.Debug.Println("Debug message")
-color.Primary.Println("Primary message")
-color.Question.Println("Question message")
-color.Secondary.Println("Secondary message")
+// ...
 ```
 
 Run demo: `go run ./_examples/theme_basic.go`
@@ -190,14 +178,8 @@ Run demo: `go run ./_examples/theme_basic.go`
 
 ```go
 color.Info.Tips("Info tips message")
-color.Note.Tips("Note tips message")
 color.Notice.Tips("Notice tips message")
 color.Error.Tips("Error tips message")
-color.Danger.Tips("Danger tips message")
-color.Warn.Tips("Warn tips message")
-color.Debug.Tips("Debug tips message")
-color.Primary.Tips("Primary tips message")
-color.Question.Tips("Question tips message")
 color.Secondary.Tips("Secondary tips message")
 ```
 
@@ -209,15 +191,9 @@ Run demo: `go run ./_examples/theme_tips.go`
 
 ```go
 color.Info.Prompt("Info prompt message")
-color.Note.Prompt("Note prompt message")
 color.Notice.Prompt("Notice prompt message")
 color.Error.Prompt("Error prompt message")
-color.Danger.Prompt("Danger prompt message")
-color.Warn.Prompt("Warn prompt message")
-color.Debug.Prompt("Debug prompt message")
-color.Primary.Prompt("Primary prompt message")
-color.Question.Prompt("Question prompt message")
-color.Secondary.Prompt("Secondary prompt message")
+// ...
 ```
 
 Run demo: `go run ./_examples/theme_prompt.go`
@@ -227,16 +203,9 @@ Run demo: `go run ./_examples/theme_prompt.go`
 **Block Style**
 
 ```go
-color.Info.Block("Info block message")
-color.Note.Block("Note block message")
-color.Notice.Block("Notice block message")
-color.Error.Block("Error block message")
 color.Danger.Block("Danger block message")
 color.Warn.Block("Warn block message")
-color.Debug.Block("Debug block message")
-color.Primary.Block("Primary block message")
-color.Question.Block("Question block message")
-color.Secondary.Block("Secondary block message")
+// ...
 ```
 
 Run demo: `go run ./_examples/theme_block.go`
@@ -371,7 +340,32 @@ s.Printf("style with %s\n", "options")
 
 ## HTML-like tag usage
 
-**Supported** on Windows `cmd.exe` `PowerShell` .
+`Print,Printf,Println` functions support auto parse and render color tags.
+
+```go
+	text := `
+  <mga1>gookit/color:</>
+     A <green>command-line</> 
+     <cyan>color library</> with <fg=167;bg=232>256-color</>
+     and <fg=11aa23;op=bold>True-color</> support,
+     <fg=mga;op=i>universal API</> methods
+     and <cyan>Windows</> support.
+`
+	color.Print(text)
+```
+
+Preview, code please see [_examples/demo_tag.go](_examples/demo_tag.go):
+
+![demo_tag](_examples/images/demo_tag.png)
+
+**Tag formats:**
+
+- Use built in tags: `<TAG_NAME>CONTENT</>` e.g: `<info>message</>`
+- Custom tag attributes: `<fg=VALUE;bg=VALUE;op=VALUES>CONTENT</>` e.g: `<fg=167;bg=232>wel</>`
+
+> **Supported** on Windows `cmd.exe` `PowerShell`.
+
+Examples:
 
 ```go
 // use style tag
@@ -386,8 +380,55 @@ color.Print("<fg=yellow;bg=black;op=underscore;>hello, welcome</>\n")
 // Custom label attr: Supports the use of 16 color names, 256 color values, rgb color values and hex color values
 color.Println("<fg=11aa23>he</><bg=120,35,156>llo</>, <fg=167;bg=232>wel</><fg=red>come</>")
 ```
+ 
+### Tag attributes
 
-- `color.Tag`
+tag attributes format:
+
+```text
+attr format:
+ // VALUE please see var: FgColors, BgColors, AllOptions
+ "fg=VALUE;bg=VALUE;op=VALUE"
+
+16 color:
+ "fg=yellow"
+ "bg=red"
+ "op=bold,underscore" // option is allow multi value
+ "fg=white;bg=blue;op=bold"
+ "fg=white;op=bold,underscore"
+
+256 color:
+ "fg=167"
+ "fg=167;bg=23"
+ "fg=167;bg=23;op=bold"
+ 
+True color:
+ // hex
+ "fg=fc1cac"
+ "fg=fc1cac;bg=c2c3c4"
+ // r,g,b
+ "fg=23,45,214"
+ "fg=23,45,214;bg=109,99,88"
+```
+
+> tag attributes parse please see `func ParseCodeFromAttr()`
+
+### Built-in tags
+
+Built-in tags please see var `colorTags` in [color_tag.go](color_tag.go)
+
+```go
+// use style tag
+color.Print("<suc>he</><comment>llo</>, <cyan>wel</><red>come</>")
+color.Println("<suc>hello</>")
+color.Println("<error>hello</>")
+```
+
+Run demo: `go run ./_examples/color_tag.go`
+
+![color-tags](_examples/images/color-tags.png)
+
+**Use `color.Tag` build message**:
 
 ```go
 // set a style tag
@@ -395,10 +436,6 @@ color.Tag("info").Print("info style text")
 color.Tag("info").Printf("%s style text", "info")
 color.Tag("info").Println("info style text")
 ```
-
-Run demo: `go run ./_examples/color_tag.go`
-
-![color-tags](_examples/images/color-tags.png)
 
 ## Color convert
 
@@ -417,7 +454,49 @@ rgb.Println("rgb color")
 rgb.C256().Println("256 color")
 ```
 
-## Func refer
+### Convert utils
+
+`color` has many built-in color conversion utility functions.
+
+```go
+func Basic2hex(val uint8) string
+
+func Bg2Fg(val uint8) uint8
+func Fg2Bg(val uint8) uint8
+
+func C256ToRgb(val uint8) (rgb []uint8)
+func C256ToRgbV1(val uint8) (rgb []uint8)
+
+func Hex2basic(hex string, asBg ...bool) uint8
+func Hex2rgb(hex string) []int
+func HexToRGB(hex string) []int
+func HexToRgb(hex string) (rgb []int)
+
+func HslIntToRgb(h, s, l int) (rgb []uint8)
+func HslToRgb(h, s, l float64) (rgb []uint8)
+func HsvToRgb(h, s, v int) (rgb []uint8)
+
+func Rgb2ansi(r, g, b uint8, isBg bool) uint8
+func Rgb2basic(r, g, b uint8, isBg bool) uint8
+func Rgb2hex(rgb []int) string
+func Rgb2short(r, g, b uint8) uint8
+func RgbTo256(r, g, b uint8) uint8
+func RgbTo256Table() map[string]uint8
+func RgbToAnsi(r, g, b uint8, isBg bool) uint8
+func RgbToHex(rgb []int) string
+func RgbToHsl(r, g, b uint8) []float64
+func RgbToHslInt(r, g, b uint8) []int
+```
+
+**Convert to `RGBColor`**:
+
+- `func RGBFromSlice(rgb []uint8, isBg ...bool) RGBColor`
+- `func RGBFromString(rgb string, isBg ...bool) RGBColor`
+- `func HEX(hex string, isBg ...bool) RGBColor`
+- `func HSL(h, s, l float64, isBg ...bool) RGBColor`
+- `func HSLInt(h, s, l int, isBg ...bool) RGBColor`
+
+## Util functions
 
 There are some useful functions reference
 
@@ -428,15 +507,45 @@ There are some useful functions reference
 - `ClearCode(str string) string` Use for clear color codes
 - `ClearTag(s string) string` clear all color html-tag for a string
 - `IsConsole(w io.Writer)` Determine whether w is one of stderr, stdout, stdin
-- `HexToRgb(hex string) (rgb []int)` Convert hex color string to RGB numbers
-- `RgbToHex(rgb []int) string` Convert RGB to hex code
-- More useful func please see https://pkg.go.dev/github.com/gookit/color
 
-## Project use
+> More useful func please see https://pkg.go.dev/github.com/gookit/color
+
+### Detect color level
+
+`color` automatically checks the color levels supported by the current environment.
+
+```go
+// Level is the color level supported by a terminal.
+type Level = terminfo.ColorLevel
+
+// terminal color available level alias of the terminfo.ColorLevel*
+const (
+	LevelNo  = terminfo.ColorLevelNone     // not support color.
+	Level16  = terminfo.ColorLevelBasic    // basic - 3/4 bit color supported
+	Level256 = terminfo.ColorLevelHundreds // hundreds - 8-bit color supported
+	LevelRgb = terminfo.ColorLevelMillions // millions - (24 bit)true color supported
+)
+```
+
+- `func SupportColor() bool` Whether the current environment supports color output
+- `func Support256Color() bool` Whether the current environment supports 256-color output
+- `func SupportTrueColor() bool` Whether the current environment supports (RGB)True-color output
+- `func TermColorLevel() Level` Get the currently supported color level
+
+
+## Projects using color
 
 Check out these projects, which use https://github.com/gookit/color :
 
 - https://github.com/Delta456/box-cli-maker Make Highly Customized Boxes for your CLI
+- https://github.com/flipped-aurora/gin-vue-admin 基于gin+vue搭建的（中）后台系统框架
+- https://github.com/JanDeDobbeleer/oh-my-posh A prompt theme engine for any shell.
+- https://github.com/jesseduffield/lazygit Simple terminal UI for git commands
+- https://github.com/olivia-ai/olivia 💁‍♀️Your new best friend powered by an artificial neural network  
+- https://github.com/pterm/pterm PTerm is a modern Go module to beautify console output. Featuring charts, progressbars, tables, trees, etc.
+- https://github.com/securego/gosec Golang security checker
+- https://github.com/TNK-Studio/lazykube ⎈ The lazier way to manage kubernetes.
+- [+ See More](https://pkg.go.dev/github.com/gookit/color?tab=importedby)
 
 ## Gookit packages
 
@@ -459,6 +568,7 @@ Check out these projects, which use https://github.com/gookit/color :
   - [xo/terminfo](https://github.com/xo/terminfo)
   - [beego/bee](https://github.com/beego/bee)
   - [issue9/term](https://github.com/issue9/term)
+  - [muesli/termenv](https://github.com/muesli/termenv)
   - [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code)
   - [Standard ANSI color map](https://conemu.github.io/en/AnsiEscapeCodes.html#Standard_ANSI_color_map)
   - [Terminal Colors](https://gist.github.com/XVilka/8346728)

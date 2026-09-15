@@ -12,7 +12,7 @@ var CustomCommand = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "d",
+				Key:     config.Keybinding{"d"},
 				Context: "worktrees",
 				Command: "git worktree remove {{ .SelectedWorktree.Path | quote }}",
 			},
@@ -28,13 +28,13 @@ var CustomCommand = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)"),
+				Contains("(main worktree)"),
 				Contains("linked-worktree"),
 			).
 			NavigateToLine(Contains("linked-worktree")).
-			Press("d").
+			Press(config.Keybinding{"d"}).
 			Lines(
-				Contains("repo (main)"),
+				Contains("(main worktree)"),
 			)
 	},
 })

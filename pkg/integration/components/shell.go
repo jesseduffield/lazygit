@@ -77,7 +77,7 @@ func (self *Shell) RunShellCommand(cmdStr string) *Shell {
 	}
 
 	cmd := exec.Command(shell, shellArg, cmdStr)
-	cmd.Env = os.Environ()
+	cmd.Env = self.env
 	cmd.Dir = self.dir
 
 	output, err := cmd.CombinedOutput()
@@ -170,6 +170,10 @@ func (self *Shell) Commit(message string) *Shell {
 	return self.RunCommand([]string{"git", "commit", "-m", message})
 }
 
+func (self *Shell) CommitInWorktreeOrSubmodule(worktreePath string, message string) *Shell {
+	return self.RunCommand([]string{"git", "-C", worktreePath, "commit", "-m", message})
+}
+
 func (self *Shell) EmptyCommit(message string) *Shell {
 	return self.RunCommand([]string{"git", "commit", "--allow-empty", "-m", message})
 }
@@ -252,7 +256,7 @@ func (self *Shell) CreateNCommitsStartingAt(n, startIndex int) *Shell {
 			fmt.Sprintf("file%02d.txt", i),
 			fmt.Sprintf("file%02d content", i),
 		).
-			Commit(fmt.Sprintf("commit %02d", i))
+			Commit(fmt.Sprintf("commit-%02d", i))
 	}
 
 	return self
@@ -388,6 +392,12 @@ func (self *Shell) SetBranchUpstream(branch string, upstream string) *Shell {
 	return self
 }
 
+func (self *Shell) RemoveBranch(branch string) *Shell {
+	self.RunCommand([]string{"git", "branch", "-d", branch})
+
+	return self
+}
+
 func (self *Shell) RemoveRemoteBranch(remoteName string, branch string) *Shell {
 	self.RunCommand([]string{"git", "-C", "../" + remoteName, "branch", "-d", branch})
 
@@ -428,11 +438,21 @@ func (self *Shell) AddWorktreeCheckout(base string, path string) *Shell {
 	})
 }
 
-func (self *Shell) AddFileInWorktree(worktreePath string) *Shell {
-	self.CreateFile(filepath.Join(worktreePath, "content"), "content")
+func (self *Shell) AddFileInWorktreeOrSubmodule(worktreePath string, filePath string, content string) *Shell {
+	self.CreateFile(filepath.Join(worktreePath, filePath), content)
 
 	self.RunCommand([]string{
-		"git", "-C", worktreePath, "add", "content",
+		"git", "-C", worktreePath, "add", filePath,
+	})
+
+	return self
+}
+
+func (self *Shell) UpdateFileInWorktreeOrSubmodule(worktreePath string, filePath string, content string) *Shell {
+	self.UpdateFile(filepath.Join(worktreePath, filePath), content)
+
+	self.RunCommand([]string{
+		"git", "-C", worktreePath, "add", filePath,
 	})
 
 	return self

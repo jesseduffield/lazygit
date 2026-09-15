@@ -21,12 +21,32 @@ type ListContextTrait struct {
 	// If this is true, we only render the visible lines of the list. Useful for lists that can
 	// get very long, because it can save a lot of memory
 	renderOnlyVisibleLines bool
+	// If renderOnlyVisibleLines is true, needRerenderVisibleLines indicates whether we need to
+	// rerender the visible lines e.g. because the scroll position changed
+	needRerenderVisibleLines bool
+
+	// true if we're inside the OnSearchSelect call; in that case we don't want to update the search
+	// result index.
+	inOnSearchSelect bool
+
+	// If set, this renders the "x of y" footer instead of the default, which puts
+	// it on the bottom border of the list's own view. A list that is part of a
+	// composite panel can use this to put it somewhere else; see MenuContext.
+	renderFooter func(footer string)
 }
 
 func (self *ListContextTrait) IsListContext() {}
 
-func (self *ListContextTrait) FocusLine() {
-	self.Context.FocusLine()
+func (self *ListContextTrait) HasSelectableContent() bool {
+	return self.list.Len() > 0
+}
+
+func (self *ListContextTrait) FocusLine(scrollIntoView bool) {
+	self.Context.FocusLine(scrollIntoView)
+
+	// Need to capture this in a local variable because by the time the AfterLayout function runs,
+	// the field will have been reset to false already
+	inOnSearchSelect := self.inOnSearchSelect
 
 	// Doing this at the end of the layout function because we need the view to be
 	// resized before we focus the line, otherwise if we're in accordion mode
@@ -36,7 +56,10 @@ func (self *ListContextTrait) FocusLine() {
 		oldOrigin, _ := self.GetViewTrait().ViewPortYBounds()
 
 		self.GetViewTrait().FocusPoint(
-			self.ModelIndexToViewIndex(self.list.GetSelectedLineIdx()))
+			self.ModelIndexToViewIndex(self.list.GetSelectedLineIdx()), scrollIntoView)
+		if !inOnSearchSelect {
+			self.GetView().SetNearestSearchPosition()
+		}
 
 		selectRangeIndex, isSelectingRange := self.list.GetRangeStartIdx()
 		if isSelectingRange {
@@ -50,8 +73,8 @@ func (self *ListContextTrait) FocusLine() {
 			self.refreshViewport()
 		} else if self.renderOnlyVisibleLines {
 			newOrigin, _ := self.GetViewTrait().ViewPortYBounds()
-			if oldOrigin != newOrigin {
-				self.HandleRender()
+			if oldOrigin != newOrigin || self.needRerenderVisibleLines {
+				self.refreshViewport()
 			}
 		}
 		return nil
@@ -67,7 +90,13 @@ func (self *ListContextTrait) refreshViewport() {
 }
 
 func (self *ListContextTrait) setFooter() {
-	self.GetViewTrait().SetFooter(formatListFooter(self.list.GetSelectedLineIdx(), self.list.Len()))
+	footer := formatListFooter(self.list.GetSelectedLineIdx(), self.list.Len())
+	if self.renderFooter != nil {
+		self.renderFooter(footer)
+		return
+	}
+
+	self.GetViewTrait().SetFooter(footer)
 }
 
 func formatListFooter(selectedLineIdx int, length int) string {
@@ -75,9 +104,7 @@ func formatListFooter(selectedLineIdx int, length int) string {
 }
 
 func (self *ListContextTrait) HandleFocus(opts types.OnFocusOpts) {
-	self.FocusLine()
-
-	self.GetViewTrait().SetHighlight(self.list.Len() > 0)
+	self.FocusLine(!opts.KeepScrollPosition)
 
 	self.Context.HandleFocus(opts)
 }
@@ -102,22 +129,22 @@ func (self *ListContextTrait) HandleRender() {
 		if self.getNonModelItems != nil {
 			totalLength += len(self.getNonModelItems())
 		}
-		self.GetViewTrait().SetContentLineCount(totalLength)
 		startIdx, length := self.GetViewTrait().ViewPortYBounds()
 		content := self.renderLines(startIdx, startIdx+length)
-		self.GetViewTrait().SetViewPortContentAndClearEverythingElse(content)
+		self.GetViewTrait().SetViewPortContentAndClearEverythingElse(totalLength, content)
+		self.needRerenderVisibleLines = false
 	} else {
 		content := self.renderLines(-1, -1)
 		self.GetViewTrait().SetContent(content)
 	}
-	self.c.Render()
 	self.setFooter()
 }
 
-func (self *ListContextTrait) OnSearchSelect(selectedLineIdx int) error {
+func (self *ListContextTrait) OnSearchSelect(selectedLineIdx int) {
 	self.GetList().SetSelection(self.ViewIndexToModelIndex(selectedLineIdx))
+	self.inOnSearchSelect = true
 	self.HandleFocus(types.OnFocusOpts{})
-	return nil
+	self.inOnSearchSelect = false
 }
 
 func (self *ListContextTrait) IsItemVisible(item types.HasUrn) bool {
@@ -140,6 +167,10 @@ func (self *ListContextTrait) RangeSelectEnabled() bool {
 
 func (self *ListContextTrait) RenderOnlyVisibleLines() bool {
 	return self.renderOnlyVisibleLines
+}
+
+func (self *ListContextTrait) SetNeedRerenderVisibleLines() {
+	self.needRerenderVisibleLines = true
 }
 
 func (self *ListContextTrait) TotalContentHeight() int {

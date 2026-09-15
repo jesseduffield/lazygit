@@ -22,7 +22,7 @@ var SquashFixupsInCurrentBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Commit("fixup! master commit").
 			CreateNCommits(2).
 			CreateFileAndAdd("fixup-file", "fixup content").
-			Commit("fixup! commit 01")
+			Commit("fixup! commit-01")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
@@ -30,9 +30,9 @@ var SquashFixupsInCurrentBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			SelectNextItem().
 			Lines(
-				Contains("fixup! commit 01"),
-				Contains("commit 02"),
-				Contains("commit 01").IsSelected(),
+				Contains("fixup! commit-01"),
+				Contains("commit-02"),
+				Contains("commit-01").IsSelected(),
 				Contains("fixup! master commit"),
 				Contains("master commit"),
 			).
@@ -44,8 +44,8 @@ var SquashFixupsInCurrentBranch = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("commit 02"),
-				Contains("commit 01").IsSelected(),
+				Contains("commit-02"),
+				Contains("commit-01").IsSelected(),
 				Contains("fixup! master commit"),
 				Contains("master commit"),
 			)

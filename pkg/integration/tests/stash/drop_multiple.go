@@ -33,7 +33,6 @@ var DropMultiple = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("stash two"),
 				Contains("stash one"),
 			).
-			Press(keys.Universal.ToggleRangeSelect).
 			Press(keys.Universal.RangeSelectDown).
 			Press(keys.Universal.Remove).
 			Tap(func() {

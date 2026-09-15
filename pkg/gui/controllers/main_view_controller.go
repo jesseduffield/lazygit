@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -32,20 +32,21 @@ func NewMainViewController(
 func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Key:             opts.GetKey(opts.Config.Universal.TogglePanel),
+			Keys:            opts.GetKeys(opts.Config.Universal.TogglePanel),
 			Handler:         self.togglePanel,
 			Description:     self.c.Tr.ToggleStagingView,
 			Tooltip:         self.c.Tr.ToggleStagingViewTooltip,
 			DisplayOnScreen: true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Return),
-			Handler:     self.escape,
-			Description: self.c.Tr.ExitFocusedMainView,
+			Keys:            opts.GetKeys(opts.Config.Universal.Return),
+			Handler:         self.escape,
+			Description:     self.c.Tr.ExitFocusedMainView,
+			DisplayOnScreen: true,
 		},
 		{
 			// overriding this because we want to read all of the task's output before we start searching
-			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
+			Keys:        opts.GetKeys(opts.Config.Universal.StartSearch),
 			Handler:     self.openSearch,
 			Description: self.c.Tr.StartSearch,
 			Tag:         "navigation",
@@ -108,7 +109,8 @@ func (self *MainViewController) openSearch() error {
 	if manager := self.c.GetViewBufferManagerForView(self.context.GetView()); manager != nil {
 		manager.ReadToEnd(func() {
 			self.c.OnUIThread(func() error {
-				return self.c.Helpers().Search.OpenSearchPrompt(self.context)
+				self.c.Helpers().Search.OpenSearchPrompt(self.context)
+				return nil
 			})
 		})
 	}

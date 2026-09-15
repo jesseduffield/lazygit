@@ -1,7 +1,6 @@
 package presentation
 
 import (
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -203,11 +202,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		hash1 ⏣─╮ commit1
-		hash2 ◯ │ commit2
-		hash3 ◯─╯ commit3
-		hash4 ◯ commit4
-		hash5 ◯ commit5
+		hash1 ◎─╮ commit1
+		hash2 ○ │ commit2
+		hash3 ○─╯ commit3
+		hash4 ○ commit4
+		hash5 ○ commit5
 						`),
 		},
 		{
@@ -228,9 +227,9 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			expected: formatExpected(`
 		hash1 pick commit1
 		hash2 pick commit2
-		hash3      ◯ commit3
-		hash4      ◯ commit4
-		hash5      ◯ commit5
+		hash3      ○ commit3
+		hash4      ○ commit4
+		hash5      ○ commit5
 				`),
 		},
 		{
@@ -250,9 +249,9 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		hash2 pick commit2
-		hash3      ◯ commit3
-		hash4      ◯ commit4
-		hash5      ◯ commit5
+		hash3      ○ commit3
+		hash4      ○ commit4
+		hash5      ○ commit5
 				`),
 		},
 		{
@@ -271,8 +270,8 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		hash4 ◯ commit4
-		hash5 ◯ commit5
+		hash4 ○ commit4
+		hash5 ○ commit5
 				`),
 		},
 		{
@@ -311,7 +310,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-			hash5 ◯ commit5
+			hash5 ○ commit5
 				`),
 		},
 		{
@@ -353,14 +352,14 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		↓ hash1r ◯ commit1
-		↓ hash2r ⏣─╮ commit2
-		↓ hash3r ◯ │ commit3
-		↑ hash1l ◯ commit1
-		↑ hash2l ⏣─╮ commit2
-		↑ hash3l ◯ │ commit3
-		↑ hash4l ◯─╯ commit4
-		↑ hash5l ◯ commit5
+		↓ hash1r ○ commit1
+		↓ hash2r ◎─╮ commit2
+		↓ hash3r ○ │ commit3
+		↑ hash1l ○ commit1
+		↑ hash2l ◎─╮ commit2
+		↑ hash3l ○ │ commit3
+		↑ hash4l ○─╯ commit4
+		↑ hash5l ○ commit5
 				`),
 		},
 		{
@@ -382,12 +381,12 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		↓ hash3r ◯ │ commit3
-		↑ hash1l ◯ commit1
-		↑ hash2l ⏣─╮ commit2
-		↑ hash3l ◯ │ commit3
-		↑ hash4l ◯─╯ commit4
-		↑ hash5l ◯ commit5
+		↓ hash3r ○ │ commit3
+		↑ hash1l ○ commit1
+		↑ hash2l ◎─╮ commit2
+		↑ hash3l ○ │ commit3
+		↑ hash4l ○─╯ commit4
+		↑ hash5l ○ commit5
 				`),
 		},
 		{
@@ -409,11 +408,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		↓ hash1r ◯ commit1
-		↓ hash2r ⏣─╮ commit2
-		↓ hash3r ◯ │ commit3
-		↑ hash1l ◯ commit1
-		↑ hash2l ⏣─╮ commit2
+		↓ hash1r ○ commit1
+		↓ hash2r ◎─╮ commit2
+		↓ hash3r ○ │ commit3
+		↑ hash1l ○ commit1
+		↑ hash2l ◎─╮ commit2
 				`),
 		},
 		{
@@ -435,10 +434,10 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		↑ hash2l ⏣─╮ commit2
-		↑ hash3l ◯ │ commit3
-		↑ hash4l ◯─╯ commit4
-		↑ hash5l ◯ commit5
+		↑ hash2l ◎─╮ commit2
+		↑ hash3l ○ │ commit3
+		↑ hash4l ○─╯ commit4
+		↑ hash5l ○ commit5
 				`),
 		},
 		{
@@ -460,8 +459,8 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		↓ hash1r ◯ commit1
-		↓ hash2r ⏣─╮ commit2
+		↓ hash1r ○ commit1
+		↓ hash2r ◎─╮ commit2
 				`),
 		},
 		{
@@ -480,11 +479,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		↑ hash1l ◯ commit1
-		↑ hash2l ⏣─╮ commit2
-		↑ hash3l ◯ │ commit3
-		↑ hash4l ◯─╯ commit4
-		↑ hash5l ◯ commit5
+		↑ hash1l ○ commit1
+		↑ hash2l ◎─╮ commit2
+		↑ hash3l ○ │ commit3
+		↑ hash4l ○─╯ commit4
+		↑ hash5l ○ commit5
 				`),
 		},
 		{
@@ -501,9 +500,9 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		↓ hash1r ◯ commit1
-		↓ hash2r ⏣─╮ commit2
-		↓ hash3r ◯ │ commit3
+		↓ hash1r ○ commit1
+		↓ hash2r ◎─╮ commit2
+		↓ hash3r ○ │ commit3
 				`),
 		},
 		{
@@ -530,8 +529,6 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 
 	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelNone)
 	defer color.ForceSetColorLevel(oldColorLevel)
-
-	os.Setenv("TZ", "UTC")
 
 	focusing := false
 	for _, scenario := range scenarios {

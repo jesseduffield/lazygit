@@ -17,7 +17,7 @@ func NewCredentialsHelper(
 	}
 }
 
-// promptUserForCredential wait for a username, password or passphrase input from the credentials popup
+// PromptUserForCredential wait for a username, password or passphrase input from the credentials popup
 // We return a channel rather than returning the string directly so that the calling function knows
 // when the prompt has been created (before the user has entered anything) so that it can
 // note that we're now waiting on user input and lazygit isn't processing anything.
@@ -33,7 +33,7 @@ func (self *CredentialsHelper) PromptUserForCredential(passOrUname oscommands.Cr
 			HandleConfirm: func(input string) error {
 				ch <- input + "\n"
 
-				self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				self.c.Refresh(types.RefreshOptions{})
 				return nil
 			},
 			HandleClose: func() error {
@@ -41,6 +41,7 @@ func (self *CredentialsHelper) PromptUserForCredential(passOrUname oscommands.Cr
 
 				return nil
 			},
+			AllowEmptyInput: true,
 		})
 
 		return nil

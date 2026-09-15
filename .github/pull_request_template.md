@@ -1,6 +1,6 @@
-- **PR Description**
+### PR Description
 
-- **Please check if the PR fulfills these requirements**
+### Please check if the PR fulfills these requirements
 
 * [ ] Cheatsheets are up-to-date (run `go generate ./...`)
 * [ ] Code has been formatted (see [here](https://github.com/jesseduffield/lazygit/blob/master/CONTRIBUTING.md#code-formatting))

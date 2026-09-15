@@ -1,7 +1,8 @@
 package gui
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -107,15 +108,7 @@ func (gui *Gui) allMainContextPairs() []types.MainContextPair {
 }
 
 func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
-	// need to reset scroll positions of all other main views
-	for _, pair := range gui.allMainContextPairs() {
-		if pair.Main != opts.Pair.Main {
-			pair.Main.GetView().SetOrigin(0, 0)
-		}
-		if pair.Secondary != nil && pair.Secondary != opts.Pair.Secondary {
-			pair.Secondary.GetView().SetOrigin(0, 0)
-		}
-	}
+	gui.moveMainContextPairToTop(opts.Pair)
 
 	if opts.Main != nil {
 		gui.RefreshMainView(opts.Main, opts.Pair.Main)
@@ -127,11 +120,37 @@ func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
 		opts.Pair.Secondary.GetView().Clear()
 	}
 
-	gui.moveMainContextPairToTop(opts.Pair)
+	// Reset the scroll positions of all the other main views. We do this after
+	// moving this pair to the top (which copies the previously-shown view's
+	// content into the now-visible one to avoid a blank frame): resetting first
+	// would zero that source view's scroll before it gets copied, forcing the
+	// placeholder to the top instead of leaving it where the screen already was.
+	for _, pair := range gui.allMainContextPairs() {
+		if pair.Main != opts.Pair.Main {
+			pair.Main.GetView().SetOrigin(0, 0)
+		}
+		if pair.Secondary != nil && pair.Secondary != opts.Pair.Secondary {
+			pair.Secondary.GetView().SetOrigin(0, 0)
+		}
+	}
 
 	gui.splitMainPanel(opts.Secondary != nil)
 }
 
 func (gui *Gui) splitMainPanel(splitMainPanel bool) {
 	gui.State.SplitMainPanel = splitMainPanel
+}
+
+// reApplySearch runs a search the view holds again over the content a render has just
+// finished putting there, so that the matches highlighted and the "x of y" status
+// describe what the view shows now rather than what it showed when the search was
+// typed. Call it once the content is final.
+func (gui *Gui) reApplySearch(view *gocui.View) {
+	// While the prompt is open, the search view holds what the user is typing, and the
+	// status would be written over it.
+	if gui.State.ContextMgr.Current().GetKey() == context.SEARCH_CONTEXT_KEY {
+		return
+	}
+
+	view.RefreshSearch()
 }

@@ -1,5 +1,5 @@
-//go:build gc && go1.23
-// +build gc,go1.23
+//go:build gc && go1.23 && !go1.25
+// +build gc,go1.23,!go1.25
 
 package goid
 

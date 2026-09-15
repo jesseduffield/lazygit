@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	MergeSymbol  = '⏣'
-	CommitSymbol = '◯'
+	MergeSymbol  = '◎'
+	CommitSymbol = '○'
 )
 
 type cellType int

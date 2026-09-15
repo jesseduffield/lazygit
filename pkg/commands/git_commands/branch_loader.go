@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -30,7 +29,7 @@ import (
 // can just pull them out of here and put them there and then call them from in here
 
 type BranchLoaderConfigCommands interface {
-	Branches() (map[string]*config.Branch, error)
+	Branches(cmd oscommands.ICmdObjBuilder) map[string]*BranchConfig
 }
 
 type BranchInfo struct {
@@ -119,16 +118,13 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 		branches = utils.Prepend(branches, &models.Branch{Name: info.RefName, DisplayName: info.DisplayName, Head: true, DetachedHead: info.DetachedHead, Recency: "  *"})
 	}
 
-	configBranches, err := self.config.Branches()
-	if err != nil {
-		return nil, err
-	}
+	configBranches := self.config.Branches(self.cmd)
 
 	for _, branch := range branches {
 		match := configBranches[branch.Name]
 		if match != nil {
 			branch.UpstreamRemote = match.Remote
-			branch.UpstreamBranch = match.Merge.Short()
+			branch.UpstreamBranch = match.Merge
 		}
 
 		// If the branch already existed, take over its BehindBaseBranch value
@@ -159,6 +155,17 @@ func (self *BranchLoader) GetBehindBaseBranchValuesForAllBranches(
 		return nil
 	}
 
+	if self.version.IsAtLeast(2, 41, 0) {
+		return self.getBehindBaseBranchValuesFast(branches, mainBranchRefs, renderFunc)
+	}
+	return self.getBehindBaseBranchValuesLegacy(branches, mainBranches, renderFunc)
+}
+
+func (self *BranchLoader) getBehindBaseBranchValuesLegacy(
+	branches []*models.Branch,
+	mainBranches *MainBranches,
+	renderFunc func(),
+) error {
 	t := time.Now()
 	errg := errgroup.Group{}
 
@@ -194,9 +201,132 @@ func (self *BranchLoader) GetBehindBaseBranchValuesForAllBranches(
 	}
 
 	err := errg.Wait()
-	self.Log.Debugf("time to get behind base branch values for all branches: %s", time.Since(t))
+	self.Log.Debugf("time to get behind base branch values for all branches (legacy): %s", time.Since(t))
 	renderFunc()
 	return err
+}
+
+// Holds parsed values from a single %(ahead-behind:<base>) field.
+type aheadBehind struct {
+	ahead, behind int
+}
+
+type branchAheadBehind struct {
+	refName      string
+	aheadBehinds []aheadBehind
+}
+
+// Parses output produced by:
+//
+//	git for-each-ref --format='%(refname)\x00%(ahead-behind:<base1>)\x00...' refs/heads
+//
+// Lines whose NUL-split column count doesn't match (1 + numBases) are dropped.
+// Blank lines are ignored.
+// Individual malformed ahead-behind fields produce {valid: false} entries
+func parseAheadBehindForEachRefOutput(
+	output string,
+	numBases int, // number of %(ahead-behind:...) tokens
+) []branchAheadBehind {
+	if output == "" {
+		return nil
+	}
+	lines := strings.Split(output, "\n")
+	result := make([]branchAheadBehind, 0, len(lines))
+	for _, line := range lines {
+		cols := strings.Split(line, "\x00")
+		if len(cols) != numBases+1 {
+			continue
+		}
+		refName := cols[0]
+		aheadBehinds := lo.FilterMap(cols[1:], func(col string, _ int) (aheadBehind, bool) {
+			return parseAheadBehindField(col)
+		})
+		entry := branchAheadBehind{
+			refName:      refName,
+			aheadBehinds: aheadBehinds,
+		}
+		result = append(result, entry)
+	}
+	return result
+}
+
+func parseAheadBehindField(s string) (aheadBehind, bool) {
+	parts := strings.Fields(s)
+	if len(parts) != 2 {
+		return aheadBehind{}, false
+	}
+	ahead, err1 := strconv.Atoi(parts[0])
+	behind, err2 := strconv.Atoi(parts[1])
+	if err1 != nil || err2 != nil {
+		return aheadBehind{}, false
+	}
+	return aheadBehind{ahead: ahead, behind: behind}, true
+}
+
+// Picks the "closest" base by smallest ahead value (commits the branch
+// has that the base doesn't = roughly "since fork point") and returns
+// its behind value.
+// Ties are broken by index order
+func selectBehindForBranch(aheadBehinds []aheadBehind) int {
+	return lo.MinBy(aheadBehinds, func(a, b aheadBehind) bool {
+		return a.ahead < b.ahead
+	}).behind
+}
+
+// The output format is:
+//
+//	<refname>\x00<ahead> <behind>\x00<ahead> <behind>...\n
+//
+// with one ahead-behind field per base, in the same order as mainBranchRefs.
+//
+// Requires git >= 2.41 (when %(ahead-behind:...) was added).
+func buildAheadBehindForEachRefArgs(mainBranchRefs []string) []string {
+	formatParts := make([]string, 0, 1+len(mainBranchRefs))
+	formatParts = append(formatParts, "%(refname)")
+	for _, ref := range mainBranchRefs {
+		formatParts = append(formatParts, "%(ahead-behind:"+ref+")")
+	}
+	format := strings.Join(formatParts, "%00")
+
+	return NewGitCmd("for-each-ref").
+		Arg("--format=" + format).
+		Arg("refs/heads").
+		ToArgv()
+}
+
+func (self *BranchLoader) getBehindBaseBranchValuesFast(
+	branches []*models.Branch,
+	mainBranchRefs []string,
+	renderFunc func(),
+) error {
+	t := time.Now()
+
+	output, err := self.cmd.New(
+		buildAheadBehindForEachRefArgs(mainBranchRefs),
+	).DontLog().RunWithOutput()
+	if err != nil {
+		return err
+	}
+
+	parsed := parseAheadBehindForEachRefOutput(output, len(mainBranchRefs))
+	branchByRef := lo.KeyBy(branches, (*models.Branch).FullRefName)
+
+	for _, p := range parsed {
+		if branch, ok := branchByRef[p.refName]; ok {
+			behind := selectBehindForBranch(p.aheadBehinds)
+			branch.BehindBaseBranch.Store(int32(behind))
+			delete(branchByRef, p.refName)
+		}
+	}
+
+	// Branches not in parse are default to 0
+	for _, branch := range branchByRef {
+		branch.BehindBaseBranch.Store(0)
+	}
+
+	self.Log.Debugf("time to get behind base branch values for all branches (fast): %s", time.Since(t))
+	renderFunc()
+	return nil
 }
 
 // Find the base branch for the given branch (i.e. the main branch that the

@@ -17,30 +17,30 @@ var ForceRemoveWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("commit 2")
 		shell.EmptyCommit("commit 3")
 		shell.AddWorktree("mybranch", "../linked-worktree", "newbranch")
-		shell.AddFileInWorktree("../linked-worktree")
+		shell.AddFileInWorktreeOrSubmodule("../linked-worktree", "file", "content")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 				Contains("linked-worktree"),
 			).
 			NavigateToLine(Contains("linked-worktree")).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
-					Title(Equals("Remove worktree")).
-					Content(Equals("Are you sure you want to remove worktree 'linked-worktree'?")).
+				t.ExpectPopup().Menu().
+					Title(Equals("Remove worktree 'linked-worktree'?")).
+					Select(MatchesRegexp("Remove worktree$")).
 					Confirm()
 
 				t.ExpectPopup().Confirmation().
 					Title(Equals("Remove worktree")).
-					Content(Equals("'linked-worktree' contains modified or untracked files (to be honest, it could contain both). Are you sure you want to remove it?")).
+					Content(Equals("'linked-worktree' contains modified or untracked files, or submodules (or all of these). Are you sure you want to remove it?")).
 					Confirm()
 			}).
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 			)
 	},
 })

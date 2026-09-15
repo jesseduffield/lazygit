@@ -3,7 +3,6 @@ package context
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -36,20 +35,6 @@ func (self *SearchTrait) ClearSearchString() {
 // used for type switch
 func (self *SearchTrait) IsSearchableContext() {}
 
-func (self *SearchTrait) onSelectItemWrapper(innerFunc func(int) error) func(int, int, int) error {
-	return func(selectedLineIdx int, index int, total int) error {
-		self.RenderSearchStatus(index, total)
-
-		if total != 0 {
-			if err := innerFunc(selectedLineIdx); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}
-}
-
 func (self *SearchTrait) RenderSearchStatus(index int, total int) {
 	keybindingConfig := self.c.UserConfig().Keybinding
 
@@ -59,7 +44,7 @@ func (self *SearchTrait) RenderSearchStatus(index int, total int) {
 			fmt.Sprintf(
 				self.c.Tr.NoMatchesFor,
 				self.searchString,
-				theme.OptionsFgColor.Sprintf(self.c.Tr.ExitSearchMode, keybindings.Label(keybindingConfig.Universal.Return)),
+				theme.OptionsFgColor.Sprintf(self.c.Tr.ExitSearchMode, keybindingConfig.Universal.Return),
 			),
 		)
 	} else {
@@ -72,9 +57,9 @@ func (self *SearchTrait) RenderSearchStatus(index int, total int) {
 				total,
 				theme.OptionsFgColor.Sprintf(
 					self.c.Tr.SearchKeybindings,
-					keybindings.Label(keybindingConfig.Universal.NextMatch),
-					keybindings.Label(keybindingConfig.Universal.PrevMatch),
-					keybindings.Label(keybindingConfig.Universal.Return),
+					keybindingConfig.Universal.NextMatch,
+					keybindingConfig.Universal.PrevMatch,
+					keybindingConfig.Universal.Return,
 				),
 			),
 		)

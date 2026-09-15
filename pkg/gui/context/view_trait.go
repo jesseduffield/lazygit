@@ -1,7 +1,7 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -17,8 +17,8 @@ func NewViewTrait(view *gocui.View) *ViewTrait {
 	return &ViewTrait{view: view}
 }
 
-func (self *ViewTrait) FocusPoint(yIdx int) {
-	self.view.FocusPoint(self.view.OriginX(), yIdx)
+func (self *ViewTrait) FocusPoint(yIdx int, scrollIntoView bool) {
+	self.view.FocusPoint(self.view.OriginX(), yIdx, scrollIntoView)
 }
 
 func (self *ViewTrait) SetRangeSelectStart(yIdx int) {
@@ -34,22 +34,13 @@ func (self *ViewTrait) SetViewPortContent(content string) {
 	self.view.OverwriteLines(y, content)
 }
 
-func (self *ViewTrait) SetViewPortContentAndClearEverythingElse(content string) {
+func (self *ViewTrait) SetViewPortContentAndClearEverythingElse(lineCount int, content string) {
 	_, y := self.view.Origin()
-	self.view.OverwriteLinesAndClearEverythingElse(y, content)
-}
-
-func (self *ViewTrait) SetContentLineCount(lineCount int) {
-	self.view.SetContentLineCount(lineCount)
+	self.view.OverwriteLinesAndClearEverythingElse(lineCount, y, content)
 }
 
 func (self *ViewTrait) SetContent(content string) {
 	self.view.SetContent(content)
-}
-
-func (self *ViewTrait) SetHighlight(highlight bool) {
-	self.view.Highlight = highlight
-	self.view.HighlightInactive = false
 }
 
 func (self *ViewTrait) SetFooter(value string) {

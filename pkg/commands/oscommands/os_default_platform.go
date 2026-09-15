@@ -1,12 +1,13 @@
 //go:build !windows
-// +build !windows
 
 package oscommands
 
 import (
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
+	"syscall"
 )
 
 func GetPlatform() *Platform {
@@ -33,4 +34,21 @@ func getUserShell() string {
 	}
 
 	return "bash"
+}
+
+func (c *OSCommand) UpdateWindowTitle() error {
+	return nil
+}
+
+// setRawCmdLine is the non-Windows no-op counterpart of the Windows shim
+// (see the comment there). NewShell's shell-building logic is portable, so
+// this call is reached on every host; only the Windows build does anything.
+func setRawCmdLine(cmd *exec.Cmd, cmdLine string) {}
+
+func TerminateProcessGracefully(proc *os.Process) error {
+	if proc == nil {
+		return nil
+	}
+
+	return proc.Signal(syscall.SIGTERM)
 }

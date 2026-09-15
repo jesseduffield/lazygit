@@ -17,7 +17,7 @@ var AccessCommitProperties = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "X",
+				Key:     config.Keybinding{"X"},
 				Context: "commits",
 				Command: "printf '%s\n%s\n%s' '{{ .SelectedLocalCommit.Name }}' '{{ .SelectedLocalCommit.Hash }}' '{{ .SelectedLocalCommit.Sha }}' > file.txt",
 			},
@@ -29,7 +29,7 @@ var AccessCommitProperties = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("my change").IsSelected(),
 			).
-			Press("X")
+			Press(config.Keybinding{"X"})
 
 		hash := t.Git().GetCommitHash("HEAD")
 		t.FileSystem().FileContent("file.txt", Equals(fmt.Sprintf("my change\n%s\n%s", hash, hash)))

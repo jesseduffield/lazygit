@@ -23,8 +23,10 @@ func TestGetWorktrees(t *testing.T) {
 		{
 			testName: "Single worktree (main)",
 			repoPaths: &RepoPaths{
-				repoPath:     "/path/to/repo",
-				worktreePath: "/path/to/repo",
+				repoPath:           "/path/to/repo",
+				worktreePath:       "/path/to/repo",
+				repoGitDirPath:     "/path/to/repo/.git",
+				worktreeGitDirPath: "/path/to/repo/.git",
 			},
 			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
@@ -46,6 +48,7 @@ branch refs/heads/mybranch
 					IsPathMissing: false,
 					GitDir:        "/path/to/repo/.git",
 					Branch:        "mybranch",
+					Head:          "d85cc9d281fa6ae1665c68365fc70e75e82a042d",
 					Name:          "repo",
 				},
 			},
@@ -54,8 +57,10 @@ branch refs/heads/mybranch
 		{
 			testName: "Multiple worktrees (main + linked)",
 			repoPaths: &RepoPaths{
-				repoPath:     "/path/to/repo",
-				worktreePath: "/path/to/repo",
+				repoPath:           "/path/to/repo",
+				worktreePath:       "/path/to/repo",
+				repoGitDirPath:     "/path/to/repo/.git",
+				worktreeGitDirPath: "/path/to/repo/.git",
 			},
 			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
@@ -86,6 +91,7 @@ branch refs/heads/mybranch-worktree
 					IsPathMissing: false,
 					GitDir:        "/path/to/repo/.git",
 					Branch:        "mybranch",
+					Head:          "d85cc9d281fa6ae1665c68365fc70e75e82a042d",
 					Name:          "repo",
 				},
 				{
@@ -95,6 +101,7 @@ branch refs/heads/mybranch-worktree
 					IsPathMissing: false,
 					GitDir:        "/path/to/repo/.git/worktrees/repo-worktree",
 					Branch:        "mybranch-worktree",
+					Head:          "775955775e79b8f5b4c4b56f82fbf657e2d5e4de",
 					Name:          "repo-worktree",
 				},
 			},
@@ -103,8 +110,10 @@ branch refs/heads/mybranch-worktree
 		{
 			testName: "Worktree missing path",
 			repoPaths: &RepoPaths{
-				repoPath:     "/path/to/repo",
-				worktreePath: "/path/to/repo",
+				repoPath:           "/path/to/repo",
+				worktreePath:       "/path/to/repo",
+				repoGitDirPath:     "/path/to/repo/.git",
+				worktreeGitDirPath: "/path/to/repo/.git",
 			},
 			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
@@ -124,6 +133,7 @@ branch refs/heads/missingbranch
 					IsPathMissing: true,
 					GitDir:        "",
 					Branch:        "missingbranch",
+					Head:          "775955775e79b8f5b4c4b56f82fbf657e2d5e4de",
 					Name:          "worktree",
 				},
 			},
@@ -132,8 +142,10 @@ branch refs/heads/missingbranch
 		{
 			testName: "In linked worktree",
 			repoPaths: &RepoPaths{
-				repoPath:     "/path/to/repo",
-				worktreePath: "/path/to/repo-worktree",
+				repoPath:           "/path/to/repo",
+				worktreePath:       "/path/to/repo-worktree",
+				repoGitDirPath:     "/path/to/repo/.git",
+				worktreeGitDirPath: "/path/to/repo/.git/worktrees/repo-worktree",
 			},
 			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
 				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
@@ -164,6 +176,7 @@ branch refs/heads/mybranch-worktree
 					IsPathMissing: false,
 					GitDir:        "/path/to/repo/.git/worktrees/repo-worktree",
 					Branch:        "mybranch-worktree",
+					Head:          "775955775e79b8f5b4c4b56f82fbf657e2d5e4de",
 					Name:          "repo-worktree",
 				},
 				{
@@ -173,7 +186,98 @@ branch refs/heads/mybranch-worktree
 					IsPathMissing: false,
 					GitDir:        "/path/to/repo/.git",
 					Branch:        "mybranch",
+					Head:          "d85cc9d281fa6ae1665c68365fc70e75e82a042d",
 					Name:          "repo",
+				},
+			},
+			expectedErr: "",
+		},
+		{
+			testName: "In a submodule",
+			repoPaths: &RepoPaths{
+				repoPath:           "/path/to/repo/mysubmodule",
+				worktreePath:       "/path/to/repo/mysubmodule",
+				repoGitDirPath:     "/path/to/repo/.git/modules/mysubmodule",
+				worktreeGitDirPath: "/path/to/repo/.git/modules/mysubmodule",
+			},
+			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
+				// A submodule's git dir doesn't live inside its working tree, and
+				// `git worktree list` reports the git dir rather than the working
+				// tree it belongs to.
+				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
+					`worktree /path/to/repo/.git/modules/mysubmodule
+HEAD d85cc9d281fa6ae1665c68365fc70e75e82a042d
+branch refs/heads/mybranch
+`,
+					nil)
+
+				gitArgs := append(append([]string{"-C", "/path/to/repo/.git/modules/mysubmodule"}, getRevParseArgs()...), "--absolute-git-dir")
+				runner.ExpectGitArgs(gitArgs, "/path/to/repo/.git/modules/mysubmodule", nil)
+
+				_ = fs.MkdirAll("/path/to/repo/.git/modules/mysubmodule", 0o755)
+			},
+			expectedWorktrees: []*models.Worktree{
+				{
+					IsMain:        true,
+					IsCurrent:     true,
+					Path:          "/path/to/repo/.git/modules/mysubmodule",
+					IsPathMissing: false,
+					GitDir:        "/path/to/repo/.git/modules/mysubmodule",
+					Branch:        "mybranch",
+					Head:          "d85cc9d281fa6ae1665c68365fc70e75e82a042d",
+					Name:          "mysubmodule",
+				},
+			},
+			expectedErr: "",
+		},
+		{
+			testName: "Detached HEAD worktree",
+			repoPaths: &RepoPaths{
+				repoPath:           "/path/to/repo",
+				worktreePath:       "/path/to/repo",
+				repoGitDirPath:     "/path/to/repo/.git",
+				worktreeGitDirPath: "/path/to/repo/.git",
+			},
+			before: func(runner *oscommands.FakeCmdObjRunner, fs afero.Fs, getRevParseArgs argFn) {
+				runner.ExpectGitArgs([]string{"worktree", "list", "--porcelain"},
+					`worktree /path/to/repo
+HEAD d85cc9d281fa6ae1665c68365fc70e75e82a042d
+branch refs/heads/mybranch
+
+worktree /path/to/repo-worktree
+HEAD 775955775e79b8f5b4c4b56f82fbf657e2d5e4de
+detached
+`,
+					nil)
+				gitArgsMainWorktree := append(append([]string{"-C", "/path/to/repo"}, getRevParseArgs()...), "--absolute-git-dir")
+				runner.ExpectGitArgs(gitArgsMainWorktree, "/path/to/repo/.git", nil)
+				gitArgsLinkedWorktree := append(append([]string{"-C", "/path/to/repo-worktree"}, getRevParseArgs()...), "--absolute-git-dir")
+				runner.ExpectGitArgs(gitArgsLinkedWorktree, "/path/to/repo/.git/worktrees/repo-worktree", nil)
+
+				_ = fs.MkdirAll("/path/to/repo/.git", 0o755)
+				_ = fs.MkdirAll("/path/to/repo-worktree", 0o755)
+				_ = fs.MkdirAll("/path/to/repo/.git/worktrees/repo-worktree", 0o755)
+			},
+			expectedWorktrees: []*models.Worktree{
+				{
+					IsMain:        true,
+					IsCurrent:     true,
+					Path:          "/path/to/repo",
+					IsPathMissing: false,
+					GitDir:        "/path/to/repo/.git",
+					Branch:        "mybranch",
+					Head:          "d85cc9d281fa6ae1665c68365fc70e75e82a042d",
+					Name:          "repo",
+				},
+				{
+					IsMain:        false,
+					IsCurrent:     false,
+					Path:          "/path/to/repo-worktree",
+					IsPathMissing: false,
+					GitDir:        "/path/to/repo/.git/worktrees/repo-worktree",
+					Branch:        "",
+					Head:          "775955775e79b8f5b4c4b56f82fbf657e2d5e4de",
+					Name:          "repo-worktree",
 				},
 			},
 			expectedErr: "",

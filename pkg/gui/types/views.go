@@ -1,6 +1,6 @@
 package types
 
-import "github.com/jesseduffield/gocui"
+import "github.com/jesseduffield/lazygit/pkg/gocui"
 
 type Views struct {
 	Status         *gocui.View
@@ -25,7 +25,10 @@ type Views struct {
 
 	Options           *gocui.View
 	Confirmation      *gocui.View
+	Prompt            *gocui.View
 	Menu              *gocui.View
+	MenuFilterFrame   *gocui.View
+	MenuFilter        *gocui.View
 	CommitMessage     *gocui.View
 	CommitDescription *gocui.View
 	CommitFiles       *gocui.View

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"slices"
 	"strings"
 
 	"dario.cat/mergo"
@@ -37,10 +38,8 @@ func NewTranslationSetFromConfig(log *logrus.Entry, configLanguage string) (*Tra
 		return EnglishTranslationSet(), nil
 	}
 
-	for _, key := range languageCodes {
-		if key == configLanguage {
-			return newTranslationSet(log, configLanguage)
-		}
+	if slices.Contains(languageCodes, configLanguage) {
+		return newTranslationSet(log, configLanguage)
 	}
 
 	// Configuring a language that we don't have a translation for *is* an

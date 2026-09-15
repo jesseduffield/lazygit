@@ -20,7 +20,7 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "localBranches",
 				Command: "git checkout {{ index .PromptResponses 1 }}",
 				Prompts: []config.CustomCommandPrompt{
@@ -46,7 +46,7 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Branches().
 			Focus().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Prompt().
 			Title(Equals("Which git command do you want to run?")).

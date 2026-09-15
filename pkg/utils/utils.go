@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 )
 
 // GetProjectRoot returns the path to the root of the project. Only to be used
@@ -30,7 +31,7 @@ func SortRange(x int, y int) (int, int) {
 	return y, x
 }
 
-func AsJson(i interface{}) string {
+func AsJson(i any) string {
 	bytes, _ := json.MarshalIndent(i, "", "    ")
 	return string(bytes)
 }
@@ -94,5 +95,49 @@ func StackTrace() string {
 // 'skip' is the number of stack frames to skip.
 func FilePath(skip int) string {
 	_, path, _, _ := runtime.Caller(skip)
+	return path
+}
+
+// ExpandTilde expands a leading "~" that refers to the current user's home
+// directory: "~" and "~/foo" become e.g. "/home/user" and "/home/user/foo". A
+// tilde anywhere other than the start, or one immediately followed by a
+// username ("~other/foo"), is left untouched, as is the path if the home
+// directory can't be determined. We expand it ourselves because lazygit runs
+// git directly, with no shell to do it for us.
+func ExpandTilde(path string) string {
+	if path != "~" && !strings.HasPrefix(path, "~/") &&
+		!(runtime.GOOS == "windows" && strings.HasPrefix(path, `~\`)) {
+		return path
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return path
+	}
+
+	if path == "~" {
+		return home
+	}
+	return filepath.Join(home, path[2:])
+}
+
+// ContractTilde is the inverse of ExpandTilde: it replaces the current user's
+// home directory at the start of a path with "~", so that paths can be shown
+// in a shorter form. Paths outside the home directory are left untouched, as
+// is the path if the home directory can't be determined.
+func ContractTilde(path string) string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return path
+	}
+
+	if path == home {
+		return "~"
+	}
+
+	if rest, found := strings.CutPrefix(path, home+string(filepath.Separator)); found {
+		return "~" + string(filepath.Separator) + rest
+	}
+
 	return path
 }

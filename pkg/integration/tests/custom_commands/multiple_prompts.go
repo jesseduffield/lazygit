@@ -15,7 +15,7 @@ var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.GetUserConfig().CustomCommands = []config.CustomCommand{
 			{
-				Key:     "a",
+				Key:     config.Keybinding{"a"},
 				Context: "files",
 				Command: `echo "{{index .PromptResponses 1}}" > {{index .PromptResponses 0}}`,
 				Prompts: []config.CustomCommandPrompt{
@@ -57,7 +57,7 @@ var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsEmpty().
 			IsFocused().
-			Press("a")
+			Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Prompt().Title(Equals("Enter a file name")).Type("myfile").Confirm()
 

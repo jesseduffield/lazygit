@@ -75,9 +75,24 @@ func TestOSCommandQuoteWindows(t *testing.T) {
 
 	actual := osCommand.Quote(`hello "test" 'test2'`)
 
-	expected := `\"hello "'"'"test"'"'" 'test2'\"`
+	expected := `"hello \"test\" 'test2'"`
 
 	assert.EqualValues(t, expected, actual)
+}
+
+// On Windows, NewShell must hand the command to cmd.exe verbatim.
+func TestNewShellWindowsPassesMetacharactersVerbatim(t *testing.T) {
+	osCommand := NewDummyOSCommand()
+	platform := &Platform{OS: "windows", Shell: "cmd", ShellArg: "/c"}
+	osCommand.Platform = platform
+	osCommand.Cmd.platform = platform
+
+	command := `echo a && echo b | sort > out.txt < in.txt %PATH%`
+
+	assert.Equal(t,
+		[]string{"cmd", "/s", "/c", command},
+		osCommand.Cmd.NewShell(command, "").Args(),
+	)
 }
 
 func TestOSCommandFileType(t *testing.T) {
@@ -91,7 +106,11 @@ func TestOSCommandFileType(t *testing.T) {
 		{
 			"testFile",
 			func() {
-				if _, err := os.Create("testFile"); err != nil {
+				f, err := os.Create("testFile")
+				if err != nil {
+					panic(err)
+				}
+				if err := f.Close(); err != nil {
 					panic(err)
 				}
 			},
@@ -102,7 +121,11 @@ func TestOSCommandFileType(t *testing.T) {
 		{
 			"file with spaces",
 			func() {
-				if _, err := os.Create("file with spaces"); err != nil {
+				f, err := os.Create("file with spaces")
+				if err != nil {
+					panic(err)
+				}
+				if err := f.Close(); err != nil {
 					panic(err)
 				}
 			},
@@ -133,7 +156,7 @@ func TestOSCommandFileType(t *testing.T) {
 	for _, s := range scenarios {
 		s.setup()
 		s.test(FileType(s.path))
-		_ = os.RemoveAll(s.path)
+		assert.NoError(t, os.RemoveAll(s.path))
 	}
 }
 

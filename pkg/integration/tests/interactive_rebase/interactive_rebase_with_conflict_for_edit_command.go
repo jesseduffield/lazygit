@@ -24,9 +24,9 @@ var InteractiveRebaseWithConflictForEditCommand = NewIntegrationTest(NewIntegrat
 			Focus().
 			Lines(
 				Contains("this will conflict").IsSelected(),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 				Contains("initial commit"),
 			)
 
@@ -52,12 +52,12 @@ var InteractiveRebaseWithConflictForEditCommand = NewIntegrationTest(NewIntegrat
 
 		t.Views().Commits().
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("edit").Contains("<-- CONFLICT --- this will conflict").IsSelected(),
-				Contains("--- Commits ---"),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("─── Commits"),
+				Contains("commit-03"),
+				Contains("commit-02"),
+				Contains("commit-01"),
 				Contains("master commit"),
 				Contains("initial commit"),
 			)

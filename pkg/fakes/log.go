@@ -16,7 +16,7 @@ type FakeFieldLogger struct {
 	*logrus.Entry
 }
 
-func (self *FakeFieldLogger) Error(args ...interface{}) {
+func (self *FakeFieldLogger) Error(args ...any) {
 	if len(args) != 1 {
 		panic("Expected exactly one argument to FakeFieldLogger.Error")
 	}
@@ -29,7 +29,7 @@ func (self *FakeFieldLogger) Error(args ...interface{}) {
 	}
 }
 
-func (self *FakeFieldLogger) Errorf(format string, args ...interface{}) {
+func (self *FakeFieldLogger) Errorf(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	self.loggedErrors = append(self.loggedErrors, msg)
 }

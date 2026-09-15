@@ -22,6 +22,14 @@ func (self *PatchLine) IsChange() bool {
 	return self.Kind == ADDITION || self.Kind == DELETION
 }
 
+func (self *PatchLine) IsAddition() bool {
+	return self.Kind == ADDITION
+}
+
+func (self *PatchLine) IsDeletion() bool {
+	return self.Kind == DELETION
+}
+
 // Returns the number of lines in the given slice that have one of the given kinds
 func nLinesWithKind(lines []*PatchLine, kinds []PatchLineKind) int {
 	return lo.CountBy(lines, func(line *PatchLine) bool {

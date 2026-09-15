@@ -34,6 +34,10 @@ func (hc *HexColor) Value() (driver.Value, error) {
 	return Color(*hc).Hex(), nil
 }
 
+func (hc HexColor) String() string {
+	return Color(hc).Hex()
+}
+
 func (e errUnsupportedType) Error() string {
 	return fmt.Sprintf("unsupported type: got %v, want a %s", e.got, e.want)
 }
@@ -63,5 +67,25 @@ func (hc *HexColor) Decode(hexCode string) error {
 		return err
 	}
 	*hc = HexColor(col)
+	return nil
+}
+
+func (hc HexColor) MarshalYAML() (interface{}, error) {
+	return Color(hc).Hex(), nil
+}
+
+func (hc *HexColor) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var hexCode string
+	if err := unmarshal(&hexCode); err != nil {
+		return err
+	}
+
+	var col, err = Hex(hexCode)
+	if err != nil {
+		return err
+	}
+
+	*hc = HexColor(col)
+
 	return nil
 }

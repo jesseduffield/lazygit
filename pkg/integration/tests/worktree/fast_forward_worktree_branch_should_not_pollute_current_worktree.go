@@ -35,18 +35,18 @@ var FastForwardWorktreeBranchShouldNotPolluteCurrentWorktree = NewIntegrationTes
 			Focus().
 			Lines(
 				Contains("mybranch").Contains("↓1").IsSelected(),
-				Contains("newbranch (worktree)").Contains("↓1"),
+				Contains("newbranch (worktree linked-worktree)").Contains("↓1"),
 			).
 			Press(keys.Branches.FastForward).
 			Lines(
 				Contains("mybranch").Contains("✓").IsSelected(),
-				Contains("newbranch (worktree)").Contains("↓1"),
+				Contains("newbranch (worktree linked-worktree)").Contains("↓1"),
 			).
-			NavigateToLine(Contains("newbranch (worktree)")).
+			NavigateToLine(Contains("newbranch (worktree linked-worktree)")).
 			Press(keys.Branches.FastForward).
 			Lines(
 				Contains("mybranch").Contains("✓"),
-				Contains("newbranch (worktree)").Contains("✓").IsSelected(),
+				Contains("newbranch (worktree linked-worktree)").Contains("✓").IsSelected(),
 			).
 			NavigateToLine(Contains("mybranch"))
 

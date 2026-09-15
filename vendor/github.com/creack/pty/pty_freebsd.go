@@ -1,3 +1,6 @@
+//go:build freebsd
+// +build freebsd
+
 package pty
 
 import (
@@ -41,8 +44,8 @@ func open() (pty, tty *os.File, err error) {
 	return p, t, nil
 }
 
-func isptmaster(fd uintptr) (bool, error) {
-	err := ioctl(fd, syscall.TIOCPTMASTER, 0)
+func isptmaster(f *os.File) (bool, error) {
+	err := ioctl(f, syscall.TIOCPTMASTER, 0)
 	return err == nil, err
 }
 
@@ -52,7 +55,7 @@ var (
 )
 
 func ptsname(f *os.File) (string, error) {
-	master, err := isptmaster(f.Fd())
+	master, err := isptmaster(f)
 	if err != nil {
 		return "", err
 	}
@@ -65,7 +68,7 @@ func ptsname(f *os.File) (string, error) {
 		buf = make([]byte, n)
 		arg = fiodgnameArg{Len: n, Buf: (*byte)(unsafe.Pointer(&buf[0]))}
 	)
-	if err := ioctl(f.Fd(), ioctlFIODGNAME, uintptr(unsafe.Pointer(&arg))); err != nil {
+	if err := ioctl(f, ioctlFIODGNAME, uintptr(unsafe.Pointer(&arg))); err != nil {
 		return "", err
 	}
 

@@ -24,7 +24,7 @@ var ResetWindowTabs = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("commit 2")
 		shell.EmptyCommit("commit 3")
 		shell.AddWorktree("mybranch", "../linked-worktree", "newbranch")
-		shell.AddFileInWorktree("../linked-worktree")
+		shell.AddFileInWorktreeOrSubmodule("../linked-worktree", "file", "content")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		// focus the remotes tab i.e. the second tab in the branches window
@@ -34,14 +34,14 @@ var ResetWindowTabs = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 				Contains("linked-worktree"),
 			).
 			NavigateToLine(Contains("linked-worktree")).
 			Press(keys.Universal.Select).
 			Lines(
 				Contains("linked-worktree").IsSelected(),
-				Contains("repo (main)"),
+				Contains("(main worktree)"),
 			).
 			// navigate back to the branches window
 			Press(keys.Universal.NextBlock)

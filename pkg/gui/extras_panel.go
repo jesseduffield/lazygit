@@ -3,6 +3,7 @@ package gui
 import (
 	"io"
 
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -14,6 +15,7 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 		Items: []*types.MenuItem{
 			{
 				Label: gui.c.Tr.ToggleShowCommandLog,
+				Keys:  []gocui.Key{gocui.NewKeyRune('t')},
 				OnPress: func() error {
 					currentContext := gui.c.Context().CurrentStatic()
 					if gui.c.State().GetShowExtrasWindow() && currentContext.GetKey() == context.COMMAND_LOG_CONTEXT_KEY {
@@ -28,6 +30,7 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 			},
 			{
 				Label:   gui.c.Tr.FocusCommandLog,
+				Keys:    []gocui.Key{gocui.NewKeyRune('f')},
 				OnPress: gui.handleFocusCommandLog,
 			},
 		},

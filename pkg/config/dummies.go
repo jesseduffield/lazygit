@@ -6,12 +6,15 @@ import (
 
 // NewDummyAppConfig creates a new dummy AppConfig for testing
 func NewDummyAppConfig() *AppConfig {
+	userConfig := GetDefaultConfig()
+	userConfig.Keybinding.MergeLegacyAltKeybindings()
 	appConfig := &AppConfig{
-		name:       "lazygit",
-		version:    "unversioned",
-		debug:      false,
-		userConfig: GetDefaultConfig(),
-		appState:   &AppState{},
+		name:                   "lazygit",
+		version:                "unversioned",
+		debug:                  false,
+		userConfig:             userConfig,
+		appState:               &AppState{},
+		githubPullRequestCache: newGithubPullRequestCache(""),
 	}
 	_ = yaml.Unmarshal([]byte{}, appConfig.appState)
 	return appConfig

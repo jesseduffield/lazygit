@@ -60,6 +60,25 @@ func TestGetCommitFilesFromFilenames(t *testing.T) {
 				},
 			},
 		},
+		{
+			testName: "a rename among regular files",
+			input:    "M\x00Myfile\x00R100\x00before\x00after\x00A\x00Added\x00",
+			output: []*models.CommitFile{
+				{
+					Path:         "Myfile",
+					ChangeStatus: "M",
+				},
+				{
+					Path:         "after",
+					PreviousPath: "before",
+					ChangeStatus: "R",
+				},
+				{
+					Path:         "Added",
+					ChangeStatus: "A",
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {

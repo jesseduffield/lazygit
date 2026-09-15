@@ -110,7 +110,7 @@ func parseLine(line string, commentChar byte) (Todo, error) {
 		}
 		todo.Label = fields[0]
 		fields = fields[1:]
-		if fields[0] == "#" {
+		if len(fields) > 0 && fields[0] == "#" {
 			fields = fields[1:]
 			todo.Msg = strings.Join(fields, " ")
 		}

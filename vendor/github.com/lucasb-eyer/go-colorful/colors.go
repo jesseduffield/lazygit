@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image/color"
 	"math"
+	"strconv"
 )
 
 // A color is stored internally using sRGB (standard RGB) values in the range 0-1
@@ -94,13 +95,37 @@ func (c1 Color) DistanceRgb(c2 Color) float64 {
 	return math.Sqrt(sq(c1.R-c2.R) + sq(c1.G-c2.G) + sq(c1.B-c2.B))
 }
 
-// DistanceLinearRGB computes the distance between two colors in linear RGB
+// DistanceLinearRgb computes the distance between two colors in linear RGB
 // space. This is not useful for measuring how humans perceive color, but
 // might be useful for other things, like dithering.
-func (c1 Color) DistanceLinearRGB(c2 Color) float64 {
+func (c1 Color) DistanceLinearRgb(c2 Color) float64 {
 	r1, g1, b1 := c1.LinearRgb()
 	r2, g2, b2 := c2.LinearRgb()
 	return math.Sqrt(sq(r1-r2) + sq(g1-g2) + sq(b1-b2))
+}
+
+// DistanceLinearRGB is deprecated in favour of DistanceLinearRgb.
+// They do the exact same thing.
+func (c1 Color) DistanceLinearRGB(c2 Color) float64 {
+	return c1.DistanceLinearRgb(c2)
+}
+
+// DistanceRiemersma is a color distance algorithm developed by Thiadmer Riemersma.
+// It uses RGB coordinates, but he claims it has similar results to CIELUV.
+// This makes it both fast and accurate.
+//
+// Sources:
+//
+//	https://www.compuphase.com/cmetric.htm
+//	https://github.com/lucasb-eyer/go-colorful/issues/52
+func (c1 Color) DistanceRiemersma(c2 Color) float64 {
+	rAvg := (c1.R + c2.R) / 2.0
+	// Deltas
+	dR := c1.R - c2.R
+	dG := c1.G - c2.G
+	dB := c1.B - c2.B
+
+	return math.Sqrt((2+rAvg)*dR*dR + 4*dG*dG + (2+(1-rAvg))*dB*dB)
 }
 
 // Check for equality between colors within the tolerance Delta (1/255).
@@ -112,9 +137,11 @@ func (c1 Color) AlmostEqualRgb(c2 Color) bool {
 
 // You don't really want to use this, do you? Go for BlendLab, BlendLuv or BlendHcl.
 func (c1 Color) BlendRgb(c2 Color, t float64) Color {
-	return Color{c1.R + t*(c2.R-c1.R),
+	return Color{
+		c1.R + t*(c2.R-c1.R),
 		c1.G + t*(c2.G-c1.G),
-		c1.B + t*(c2.B-c1.B)}
+		c1.B + t*(c2.B-c1.B),
+	}
 }
 
 // Utility used by Hxx color-spaces for interpolating between two angles in [0,360].
@@ -128,9 +155,9 @@ func interp_angle(a0, a1, t float64) float64 {
 /// HSV ///
 ///////////
 // From http://en.wikipedia.org/wiki/HSL_and_HSV
-// Note that h is in [0..360] and s,v in [0..1]
+// Note that h is in [0..359] and s,v in [0..1]
 
-// Hsv returns the Hue [0..360], Saturation and Value [0..1] of the color.
+// Hsv returns the Hue [0..359], Saturation and Value [0..1] of the color.
 func (col Color) Hsv() (h, s, v float64) {
 	min := math.Min(math.Min(col.R, col.G), col.B)
 	v = math.Max(math.Max(col.R, col.G), col.B)
@@ -160,7 +187,7 @@ func (col Color) Hsv() (h, s, v float64) {
 	return
 }
 
-// Hsv creates a new Color given a Hue in [0..360], a Saturation and a Value in [0..1]
+// Hsv creates a new Color given a Hue in [0..359], a Saturation and a Value in [0..1]
 func Hsv(H, S, V float64) Color {
 	Hp := H / 60.0
 	C := V * S
@@ -198,6 +225,13 @@ func (c1 Color) BlendHsv(c2 Color, t float64) Color {
 	h1, s1, v1 := c1.Hsv()
 	h2, s2, v2 := c2.Hsv()
 
+	// https://github.com/lucasb-eyer/go-colorful/pull/60
+	if s1 == 0 && s2 != 0 {
+		h1 = h2
+	} else if s2 == 0 && s1 != 0 {
+		h2 = h1
+	}
+
 	// We know that h are both in [0..360]
 	return Hsv(interp_angle(h1, h2, t), s1+t*(s2-s1), v1+t*(v2-v1))
 }
@@ -205,7 +239,7 @@ func (c1 Color) BlendHsv(c2 Color, t float64) Color {
 /// HSL ///
 ///////////
 
-// Hsl returns the Hue [0..360], Saturation [0..1], and Luminance (lightness) [0..1] of the color.
+// Hsl returns the Hue [0..359], Saturation [0..1], and Luminance (lightness) [0..1] of the color.
 func (col Color) Hsl() (h, s, l float64) {
 	min := math.Min(math.Min(col.R, col.G), col.B)
 	max := math.Max(math.Max(col.R, col.G), col.B)
@@ -240,7 +274,7 @@ func (col Color) Hsl() (h, s, l float64) {
 	return
 }
 
-// Hsl creates a new Color given a Hue in [0..360], a Saturation [0..1], and a Luminance (lightness) in [0..1]
+// Hsl creates a new Color given a Hue in [0..359], a Saturation [0..1], and a Luminance (lightness) in [0..1]
 func Hsl(h, s, l float64) Color {
 	if s == 0 {
 		return Color{l, l, l}
@@ -331,23 +365,46 @@ func (col Color) Hex() string {
 
 // Hex parses a "html" hex color-string, either in the 3 "#f0c" or 6 "#ff1034" digits form.
 func Hex(scol string) (Color, error) {
-	format := "#%02x%02x%02x"
-	factor := 1.0 / 255.0
-	if len(scol) == 4 {
-		format = "#%1x%1x%1x"
-		factor = 1.0 / 15.0
-	}
-
-	var r, g, b uint8
-	n, err := fmt.Sscanf(scol, format, &r, &g, &b)
-	if err != nil {
-		return Color{}, err
-	}
-	if n != 3 {
+	if scol == "" || scol[0] != '#' {
 		return Color{}, fmt.Errorf("color: %v is not a hex-color", scol)
 	}
+	var c Color
+	var err error
+	switch len(scol) {
+	case 4:
+		c, err = parseHexColor(scol[1:2], scol[2:3], scol[3:4], 4, 1.0/15.0)
+	case 7:
+		c, err = parseHexColor(scol[1:3], scol[3:5], scol[5:7], 8, 1.0/255.0)
+	default:
+		return Color{}, fmt.Errorf("color: %v is not a hex-color", scol)
+	}
+	if err != nil {
+		return Color{}, fmt.Errorf("color: %v is not a hex-color: %w", scol, err)
+	}
+	return c, nil
+}
 
-	return Color{float64(r) * factor, float64(g) * factor, float64(b) * factor}, nil
+func parseHexColor(r, g, b string, bits int, factor float64) (Color, error) {
+	var c Color
+	var v uint64
+	var err error
+
+	if v, err = strconv.ParseUint(r, 16, bits); err != nil {
+		return Color{}, err
+	}
+	c.R = float64(v) * factor
+
+	if v, err = strconv.ParseUint(g, 16, bits); err != nil {
+		return Color{}, err
+	}
+	c.G = float64(v) * factor
+
+	if v, err = strconv.ParseUint(b, 16, bits); err != nil {
+		return Color{}, err
+	}
+	c.B = float64(v) * factor
+
+	return c, err
 }
 
 /// Linear ///
@@ -377,7 +434,7 @@ func linearize_fast(v float64) float64 {
 	v2 := v1 * v1
 	v3 := v2 * v1
 	v4 := v2 * v2
-	//v5 := v3*v2
+	// v5 := v3*v2
 	return -0.248750514614486 + 0.925583310193438*v + 1.16740237321695*v2 + 0.280457026598666*v3 - 0.0757991963780179*v4 //+ 0.0437040411548932*v5
 }
 
@@ -448,6 +505,19 @@ func LinearRgbToXyz(r, g, b float64) (x, y, z float64) {
 	y = 0.21263900587151036*r + 0.71516867876775593*g + 0.072192315360733715*b
 	z = 0.019330818715591851*r + 0.11919477979462599*g + 0.95053215224966058*b
 	return
+}
+
+// BlendLinearRgb blends two colors in the Linear RGB color-space.
+// Unlike BlendRgb, this will not produce dark color around the center.
+// t == 0 results in c1, t == 1 results in c2
+func (c1 Color) BlendLinearRgb(c2 Color, t float64) Color {
+	r1, g1, b1 := c1.LinearRgb()
+	r2, g2, b2 := c2.LinearRgb()
+	return LinearRgb(
+		r1+t*(r2-r1),
+		g1+t*(g2-g1),
+		b1+t*(b2-b1),
+	)
 }
 
 /// XYZ ///
@@ -784,7 +854,7 @@ func LuvToXyz(l, u, v float64) (x, y, z float64) {
 }
 
 func LuvToXyzWhiteRef(l, u, v float64, wref [3]float64) (x, y, z float64) {
-	//y = wref[1] * lab_finv((l + 0.16) / 1.16)
+	// y = wref[1] * lab_finv((l + 0.16) / 1.16)
 	if l <= 0.08 {
 		y = wref[1] * l * 100.0 * 3.0 / 29.0 * 3.0 / 29.0 * 3.0 / 29.0
 	} else {
@@ -913,6 +983,13 @@ func (col1 Color) BlendHcl(col2 Color, t float64) Color {
 	h1, c1, l1 := col1.Hcl()
 	h2, c2, l2 := col2.Hcl()
 
+	// https://github.com/lucasb-eyer/go-colorful/pull/60
+	if c1 <= 0.00015 && c2 >= 0.00015 {
+		h1 = h2
+	} else if c2 <= 0.00015 && c1 >= 0.00015 {
+		h2 = h1
+	}
+
 	// We know that h are both in [0..360]
 	return Hcl(interp_angle(h1, h2, t), c1+t*(c2-c1), l1+t*(l2-l1)).Clamped()
 }
@@ -976,4 +1053,104 @@ func (col1 Color) BlendLuvLCh(col2 Color, t float64) Color {
 
 	// We know that h are both in [0..360]
 	return LuvLCh(l1+t*(l2-l1), c1+t*(c2-c1), interp_angle(h1, h2, t))
+}
+
+/// OkLab ///
+///////////
+
+func (col Color) OkLab() (l, a, b float64) {
+	return XyzToOkLab(col.Xyz())
+}
+
+func OkLab(l, a, b float64) Color {
+	return Xyz(OkLabToXyz(l, a, b))
+}
+
+func XyzToOkLab(x, y, z float64) (l, a, b float64) {
+	l_ := math.Cbrt(0.8189330101*x + 0.3618667424*y - 0.1288597137*z)
+	m_ := math.Cbrt(0.0329845436*x + 0.9293118715*y + 0.0361456387*z)
+	s_ := math.Cbrt(0.0482003018*x + 0.2643662691*y + 0.6338517070*z)
+	l = 0.2104542553*l_ + 0.7936177850*m_ - 0.0040720468*s_
+	a = 1.9779984951*l_ - 2.4285922050*m_ + 0.4505937099*s_
+	b = 0.0259040371*l_ + 0.7827717662*m_ - 0.8086757660*s_
+	return
+}
+
+func OkLabToXyz(l, a, b float64) (x, y, z float64) {
+	l_ := 0.9999999984505196*l + 0.39633779217376774*a + 0.2158037580607588*b
+	m_ := 1.0000000088817607*l - 0.10556134232365633*a - 0.0638541747717059*b
+	s_ := 1.0000000546724108*l - 0.08948418209496574*a - 1.2914855378640917*b
+
+	ll := math.Pow(l_, 3)
+	m := math.Pow(m_, 3)
+	s := math.Pow(s_, 3)
+
+	x = 1.2268798733741557*ll - 0.5578149965554813*m + 0.28139105017721594*s
+	y = -0.04057576262431372*ll + 1.1122868293970594*m - 0.07171106666151696*s
+	z = -0.07637294974672142*ll - 0.4214933239627916*m + 1.5869240244272422*s
+
+	return
+}
+
+// BlendOkLab blends two colors in the OkLab color-space, which should result in a better blend (even compared to BlendLab).
+func (c1 Color) BlendOkLab(c2 Color, t float64) Color {
+	l1, a1, b1 := c1.OkLab()
+	l2, a2, b2 := c2.OkLab()
+	return OkLab(l1+t*(l2-l1),
+		a1+t*(a2-a1),
+		b1+t*(b2-b1))
+}
+
+/// OkLch ///
+///////////
+
+func (col Color) OkLch() (l, c, h float64) {
+	return OkLabToOkLch(col.OkLab())
+}
+
+func OkLch(l, c, h float64) Color {
+	return Xyz(OkLchToXyz(l, c, h))
+}
+
+func XyzToOkLch(x, y, z float64) (float64, float64, float64) {
+	l, c, h := OkLabToOkLch(XyzToOkLab(x, y, z))
+	return l, c, h
+}
+
+func OkLchToXyz(l, c, h float64) (float64, float64, float64) {
+	x, y, z := OkLabToXyz(OkLchToOkLab(l, c, h))
+	return x, y, z
+}
+
+func OkLabToOkLch(l, a, b float64) (float64, float64, float64) {
+	c := math.Sqrt((a * a) + (b * b))
+	h := math.Atan2(b, a)
+	if h < 0 {
+		h += 2 * math.Pi
+	}
+
+	return l, c, h * 180 / math.Pi
+}
+
+func OkLchToOkLab(l, c, h float64) (float64, float64, float64) {
+	h *= math.Pi / 180
+	a := c * math.Cos(h)
+	b := c * math.Sin(h)
+	return l, a, b
+}
+
+// BlendOkLch blends two colors in the OkLch color-space, which should result in a better blend (even compared to BlendHcl).
+func (col1 Color) BlendOkLch(col2 Color, t float64) Color {
+	l1, c1, h1 := col1.OkLch()
+	l2, c2, h2 := col2.OkLch()
+
+	// https://github.com/lucasb-eyer/go-colorful/pull/60
+	if c1 <= 0.00015 && c2 >= 0.00015 {
+		h1 = h2
+	} else if c2 <= 0.00015 && c1 >= 0.00015 {
+		h2 = h1
+	}
+
+	// We know that h are both in [0..360]
+	return OkLch(l1+t*(l2-l1), c1+t*(c2-c1), interp_angle(h1, h2, t)).Clamped()
 }

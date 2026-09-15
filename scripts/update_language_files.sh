@@ -18,6 +18,8 @@ fi
 
 download_dir="$1"
 
+echo "Updating translations..."
+
 # The Portuguese translation is named pt-PT, but we want to use pt instead (it
 # is used both for Brasilian and European Portuguese). I couldn't figure out how
 # to change this in Crowdin, so we'll do it here.
@@ -30,3 +32,7 @@ do
     # exporting, but unfortunately it doesn't work for json files.
     jq 'del(..|select(. == ""))' < "$d/en.json" > pkg/i18n/translations/$(basename "$d").json
 done
+
+# Update cheatsheets, which might be affected by changes in the translations.
+echo "Regenerating auto-generated files..."
+go generate ./...

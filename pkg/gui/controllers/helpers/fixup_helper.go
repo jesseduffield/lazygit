@@ -110,23 +110,24 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 		return errors.New(self.c.Tr.BaseCommitIsAlreadyOnMainBranch)
 	}
 
-	if len(hashGroups[NOT_MERGED]) > 1 {
-		// If there are multiple commits that could be the base commit, list
+	foundCommits := getCommitsForHashes(commits, hashGroups[NOT_MERGED])
+	// If there are multiple commits that could be the base commit, remove all
+	// those that are fixups for the last one.
+	foundCommits = removeFixupCommits(foundCommits)
+
+	if len(foundCommits) > 1 {
+		// If there are still multiple commits that could be the base commit, list
 		// them in the error message. But only the candidates from the current
 		// branch, not including any that are already merged.
-		subjects, err := self.c.Git().Commit.GetHashesAndCommitMessagesFirstLine(hashGroups[NOT_MERGED])
-		if err != nil {
-			return err
-		}
+		subjects := getHashesAndSubjects(foundCommits)
 		message := lo.Ternary(hasStagedChanges,
 			self.c.Tr.MultipleBaseCommitsFoundStaged,
 			self.c.Tr.MultipleBaseCommitsFoundUnstaged)
 		return fmt.Errorf("%s\n\n%s", message, subjects)
 	}
 
-	// At this point we know that the NOT_MERGED bucket has exactly one commit,
-	// and that's the one we want to select.
-	_, index, _ := self.findCommit(commits, hashGroups[NOT_MERGED][0])
+	// Now we know that foundCommits has exactly one commit, so find its index
+	_, index, _ := self.findCommit(commits, foundCommits[0].Hash())
 
 	return self.c.ConfirmIf(warnAboutAddedLines, types.ConfirmOpts{
 		Title:  self.c.Tr.FindBaseCommitForFixup,
@@ -136,7 +137,7 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 				if err := self.c.Git().WorkingTree.StageAll(true); err != nil {
 					return err
 				}
-				self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 			}
 
 			self.c.Contexts().LocalCommits.SetSelection(index)
@@ -146,17 +147,63 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 	})
 }
 
+func getCommitsForHashes(commits []*models.Commit, hashes []string) []*models.Commit {
+	// This is called only for the NOT_MERGED commits, and we know that all of them are contained in
+	// the commits slice.
+	commitsSet := set.NewFromSlice(hashes)
+	result := make([]*models.Commit, 0, len(hashes))
+	for _, c := range commits {
+		if commitsSet.Includes(c.Hash()) {
+			result = append(result, c)
+			commitsSet.Remove(c.Hash())
+			if commitsSet.Len() == 0 {
+				break
+			}
+		}
+	}
+	return result
+}
+
+func getHashesAndSubjects(commits []*models.Commit) string {
+	subjects := lo.Map(commits, func(c *models.Commit, _ int) string {
+		return fmt.Sprintf("%s %s", c.ShortRefName(), c.Name)
+	})
+	return strings.Join(subjects, "\n")
+}
+
+func removeFixupCommits(commits []*models.Commit) []*models.Commit {
+	if len(commits) <= 1 {
+		return commits
+	}
+
+	// If the last found commit is itself a fixup, don't eliminate anything.
+	baseSubject, lastIsFixup := IsFixupCommit(commits[len(commits)-1].Name)
+	if lastIsFixup {
+		return commits
+	}
+
+	// need to go backwards because we are mutating the slice as we go
+	for i := len(commits) - 2; i >= 0; i-- {
+		subject, isFixup := IsFixupCommit(commits[i].Name)
+		if isFixup && subject == baseSubject {
+			commits = utils.Remove(commits, i)
+		}
+	}
+
+	return commits
+}
+
 func (self *FixupHelper) getDiff() (string, bool, error) {
 	args := []string{"-U0", "--ignore-submodules=all", "HEAD", "--"}
 
 	// Try staged changes first
 	hasStagedChanges := true
-	diff, err := self.c.Git().Diff.DiffIndexCmdObj(append([]string{"--cached"}, args...)...).RunWithOutput()
+	diff, err := self.c.Git().Diff.DiffIndexCmdObj(append([]string{"--cached"}, args...)...).DontLog().RunWithOutput()
 
 	if err == nil && diff == "" {
 		hasStagedChanges = false
 		// If there are no staged changes, try unstaged changes
-		diff, err = self.c.Git().Diff.DiffIndexCmdObj(args...).RunWithOutput()
+		diff, err = self.c.Git().Diff.DiffIndexCmdObj(args...).DontLog().RunWithOutput()
 	}
 
 	return diff, hasStagedChanges, err
@@ -194,7 +241,7 @@ func parseDiff(diff string) ([]*hunk, []*hunk) {
 		if strings.HasPrefix(line, "diff --git") {
 			finishHunk()
 			currentHunk = nil
-		} else if strings.HasPrefix(line, "--- ") {
+		} else if currentHunk == nil && strings.HasPrefix(line, "--- ") {
 			// For some reason, the line ends with a tab character if the file
 			// name contains spaces
 			filename = strings.TrimRight(line[6:], "\t")
@@ -225,8 +272,8 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, 
 			if err != nil {
 				return err
 			}
-			blameLines := strings.Split(strings.TrimSuffix(blameOutput, "\n"), "\n")
-			for _, line := range blameLines {
+			blameLines := strings.SplitSeq(strings.TrimSuffix(blameOutput, "\n"), "\n")
+			for line := range blameLines {
 				hashChan <- strings.Split(line, " ")[0]
 			}
 			return nil
@@ -334,4 +381,31 @@ func (self *FixupHelper) findCommit(commits []*models.Commit, hash string) (*mod
 	return lo.FindIndexOf(commits, func(commit *models.Commit) bool {
 		return commit.Hash() == hash
 	})
+}
+
+// Check whether the given subject line is the subject of a fixup commit, and
+// returns (trimmedSubject, true) if so (where trimmedSubject is the subject
+// with all fixup prefixes removed), or (subject, false) if not.
+func IsFixupCommit(subject string) (string, bool) {
+	prefixes := []string{"fixup! ", "squash! ", "amend! "}
+	trimPrefix := func(s string) (string, bool) {
+		for _, prefix := range prefixes {
+			if trimmedSubject, ok := strings.CutPrefix(s, prefix); ok {
+				return trimmedSubject, true
+			}
+		}
+		return s, false
+	}
+
+	if subject, wasTrimmed := trimPrefix(subject); wasTrimmed {
+		for {
+			// handle repeated prefixes like "fixup! amend! fixup! Subject"
+			if subject, wasTrimmed = trimPrefix(subject); !wasTrimmed {
+				break
+			}
+		}
+		return subject, true
+	}
+
+	return subject, false
 }

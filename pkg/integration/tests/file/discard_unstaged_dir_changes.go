@@ -32,9 +32,9 @@ var DiscardUnstagedDirChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Equals("▼ /").IsSelected(),
 				Equals("  ▼ dir"),
+				Equals("    MM file-one"),
 				Equals("    ▼ subdir"),
 				Equals("      ?? unstaged-file-one"),
-				Equals("    MM file-one"),
 				Equals("    ?? unstaged-file-two"),
 				Equals("  ?? unstaged-file-three"),
 			).

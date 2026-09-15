@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -17,14 +18,14 @@ func NewMergeConflictsHelper(
 	}
 }
 
-func (self *MergeConflictsHelper) SetMergeState(path string) (bool, error) {
+func (self *MergeConflictsHelper) SetMergeState(file *models.File) (bool, error) {
 	self.context().GetMutex().Lock()
 	defer self.context().GetMutex().Unlock()
 
-	return self.setMergeStateWithoutLock(path)
+	return self.setMergeStateWithoutLock(file.Path, file.ConflictMarkerSize)
 }
 
-func (self *MergeConflictsHelper) setMergeStateWithoutLock(path string) (bool, error) {
+func (self *MergeConflictsHelper) setMergeStateWithoutLock(path string, markerSize int) (bool, error) {
 	content, err := self.c.Git().File.Cat(path)
 	if err != nil {
 		return false, err
@@ -34,7 +35,7 @@ func (self *MergeConflictsHelper) setMergeStateWithoutLock(path string) (bool, e
 		self.context().SetUserScrolling(false)
 	}
 
-	self.context().GetState().SetContent(content, path)
+	self.context().GetState().SetContent(content, path, markerSize)
 
 	return !self.context().GetState().NoConflicts(), nil
 }
@@ -51,26 +52,29 @@ func (self *MergeConflictsHelper) resetMergeState() {
 	self.context().GetState().Reset()
 }
 
-func (self *MergeConflictsHelper) EscapeMerge() error {
-	self.resetMergeState()
+// EscapeMerge returns from the merge conflicts view to the files context. It
+// must be called on the UI thread, without the merge-conflicts mutex held:
+// pushing the files context renders the newly focused file to the main view,
+// which can take the mutex again (via SetMergeState).
+func (self *MergeConflictsHelper) EscapeMerge() {
+	self.ResetMergeState()
 
-	// doing this in separate UI thread so that we're not still holding the lock by the time refresh the file
-	self.c.OnUIThread(func() error {
-		// There is a race condition here: refreshing the files scope can trigger the
-		// confirmation context to be pushed if all conflicts are resolved (prompting
-		// to continue the merge/rebase. In that case, we don't want to then push the
-		// files context over it.
-		// So long as both places call OnUIThread, we're fine.
-		if self.c.Context().IsCurrent(self.c.Contexts().MergeConflicts) {
-			self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
-		}
-		return nil
-	})
-	return nil
+	// The files refresh may already have opened the prompt to continue the
+	// rebase/merge on top of us (if all conflicts are resolved); in that case
+	// don't push the files context over it.
+	if self.c.Context().IsCurrent(self.c.Contexts().MergeConflicts) {
+		self.c.Context().Push(self.c.Contexts().Files, types.OnFocusOpts{})
+	}
 }
 
-func (self *MergeConflictsHelper) SetConflictsAndRender(path string) (bool, error) {
-	hasConflicts, err := self.setMergeStateWithoutLock(path)
+// SetConflictsAndRender re-reads the file being merged and re-renders the
+// merge conflicts view. Returns whether the file still has conflicts.
+func (self *MergeConflictsHelper) SetConflictsAndRender() (bool, error) {
+	self.context().GetMutex().Lock()
+	defer self.context().GetMutex().Unlock()
+
+	state := self.context().GetState()
+	hasConflicts, err := self.setMergeStateWithoutLock(state.GetPath(), state.GetMarkerSize())
 	if err != nil {
 		return false, err
 	}
@@ -82,9 +86,9 @@ func (self *MergeConflictsHelper) SetConflictsAndRender(path string) (bool, erro
 	return false, nil
 }
 
-func (self *MergeConflictsHelper) SwitchToMerge(path string) error {
-	if self.context().GetState().GetPath() != path {
-		hasConflicts, err := self.SetMergeState(path)
+func (self *MergeConflictsHelper) SwitchToMerge(file *models.File) error {
+	if self.context().GetState().GetPath() != file.Path {
+		hasConflicts, err := self.SetMergeState(file)
 		if err != nil {
 			return err
 		}
@@ -121,20 +125,17 @@ func (self *MergeConflictsHelper) Render() {
 }
 
 func (self *MergeConflictsHelper) RefreshMergeState() error {
-	self.c.Contexts().MergeConflicts.GetMutex().Lock()
-	defer self.c.Contexts().MergeConflicts.GetMutex().Unlock()
-
 	if self.c.Context().Current().GetKey() != context.MERGE_CONFLICTS_CONTEXT_KEY {
 		return nil
 	}
 
-	hasConflicts, err := self.SetConflictsAndRender(self.c.Contexts().MergeConflicts.GetState().GetPath())
+	hasConflicts, err := self.SetConflictsAndRender()
 	if err != nil {
 		return err
 	}
 
 	if !hasConflicts {
-		return self.EscapeMerge()
+		self.EscapeMerge()
 	}
 
 	return nil

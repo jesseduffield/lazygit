@@ -19,7 +19,7 @@ var ExcludeFileInWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Worktrees().
 			Focus().
 			Lines(
-				Contains("repo (main)").IsSelected(),
+				Contains("(main worktree)").IsSelected(),
 				Contains("linked-worktree"),
 			).
 			SelectNextItem().

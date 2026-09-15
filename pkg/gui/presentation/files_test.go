@@ -152,6 +152,14 @@ func TestRenderCommitFileTree(t *testing.T) {
 			expected:     []string{"A test"},
 		},
 		{
+			name: "renamed file",
+			files: []*models.CommitFile{
+				{Path: "new.txt", PreviousPath: "old.txt", ChangeStatus: "R"},
+			},
+			showRootItem: false,
+			expected:     []string{"R old.txt → new.txt"},
+		},
+		{
 			name: "big example",
 			files: []*models.CommitFile{
 				{Path: "dir1/file2", ChangeStatus: "M"},
@@ -219,7 +227,7 @@ M file1
 			}
 			patchBuilder := patch.NewPatchBuilder(
 				utils.NewDummyLog(),
-				func(from string, to string, reverse bool, filename string, plain bool) (string, error) {
+				func(from string, to string, reverse bool, filename string, previousPath string, plain bool) (string, error) {
 					return "", nil
 				},
 			)

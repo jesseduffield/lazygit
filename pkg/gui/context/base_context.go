@@ -1,7 +1,7 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -15,18 +15,20 @@ type BaseContext struct {
 
 	keybindingsFns           []types.KeybindingsFn
 	mouseKeybindingsFns      []types.MouseKeybindingsFn
-	onClickFn                func() error
+	onDoubleClickFn          func() error
+	onClickFn                func(opts gocui.ViewMouseBindingOpts) error
 	onClickFocusedMainViewFn onClickFocusedMainViewFn
 	onRenderToMainFn         func()
 	onFocusFns               []onFocusFn
 	onFocusLostFns           []onFocusLostFn
+	onQuitFns                []func()
 
 	focusable                   bool
 	transient                   bool
 	hasControlledBounds         bool
 	needsRerenderOnWidthChange  types.NeedsRerenderOnWidthChangeLevel
 	needsRerenderOnHeightChange bool
-	highlightOnFocus            bool
+	hasSelectableContent        bool
 
 	*ParentContextMgr
 }
@@ -47,7 +49,7 @@ type NewBaseContextOpts struct {
 	Focusable                   bool
 	Transient                   bool
 	HasUncontrolledBounds       bool // negating for the sake of making false the default
-	HighlightOnFocus            bool
+	HasSelectableContent        bool
 	NeedsRerenderOnWidthChange  types.NeedsRerenderOnWidthChangeLevel
 	NeedsRerenderOnHeightChange bool
 
@@ -68,7 +70,7 @@ func NewBaseContext(opts NewBaseContextOpts) *BaseContext {
 		focusable:                   opts.Focusable,
 		transient:                   opts.Transient,
 		hasControlledBounds:         hasControlledBounds,
-		highlightOnFocus:            opts.HighlightOnFocus,
+		hasSelectableContent:        opts.HasSelectableContent,
 		needsRerenderOnWidthChange:  opts.NeedsRerenderOnWidthChange,
 		needsRerenderOnHeightChange: opts.NeedsRerenderOnHeightChange,
 		ParentContextMgr:            &ParentContextMgr{},
@@ -100,6 +102,10 @@ func (self *BaseContext) GetViewName() string {
 	return self.view.Name()
 }
 
+func (self *BaseContext) GetInputViewName() string {
+	return self.GetViewName()
+}
+
 func (self *BaseContext) GetView() *gocui.View {
 	return self.view
 }
@@ -112,12 +118,16 @@ func (self *BaseContext) GetKind() types.ContextKind {
 	return self.kind
 }
 
+func (self *BaseContext) HasSelectableContent() bool {
+	return self.hasSelectableContent
+}
+
 func (self *BaseContext) GetKey() types.ContextKey {
 	return self.key
 }
 
 func (self *BaseContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
-	bindings := []*types.Binding{}
+	bindings := make([]*types.Binding, 0, len(self.keybindingsFns))
 	for i := range self.keybindingsFns {
 		// the first binding in the bindings array takes precedence but we want the
 		// last keybindingsFn to take precedence to we add them in reverse
@@ -140,12 +150,23 @@ func (self *BaseContext) ClearAllAttachedControllerFunctions() {
 	self.mouseKeybindingsFns = nil
 	self.onFocusFns = nil
 	self.onFocusLostFns = nil
+	self.onQuitFns = nil
+	self.onDoubleClickFn = nil
 	self.onClickFn = nil
 	self.onClickFocusedMainViewFn = nil
 	self.onRenderToMainFn = nil
 }
 
-func (self *BaseContext) AddOnClickFn(fn func() error) {
+func (self *BaseContext) AddOnDoubleClickFn(fn func() error) {
+	if fn != nil {
+		if self.onDoubleClickFn != nil {
+			panic("only one controller is allowed to set an onDoubleClickFn")
+		}
+		self.onDoubleClickFn = fn
+	}
+}
+
+func (self *BaseContext) AddOnClickFn(fn func(opts gocui.ViewMouseBindingOpts) error) {
 	if fn != nil {
 		if self.onClickFn != nil {
 			panic("only one controller is allowed to set an onClickFn")
@@ -163,7 +184,11 @@ func (self *BaseContext) AddOnClickFocusedMainViewFn(fn onClickFocusedMainViewFn
 	}
 }
 
-func (self *BaseContext) GetOnClick() func() error {
+func (self *BaseContext) GetOnDoubleClick() func() error {
+	return self.onDoubleClickFn
+}
+
+func (self *BaseContext) GetOnClick() func(opts gocui.ViewMouseBindingOpts) error {
 	return self.onClickFn
 }
 
@@ -192,8 +217,14 @@ func (self *BaseContext) AddOnFocusLostFn(fn onFocusLostFn) {
 	}
 }
 
+func (self *BaseContext) AddOnQuitFn(fn func()) {
+	if fn != nil {
+		self.onQuitFns = append(self.onQuitFns, fn)
+	}
+}
+
 func (self *BaseContext) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
-	bindings := []*gocui.ViewMouseBinding{}
+	bindings := make([]*gocui.ViewMouseBinding, 0, len(self.mouseKeybindingsFns))
 	for i := range self.mouseKeybindingsFns {
 		// the first binding in the bindings array takes precedence but we want the
 		// last keybindingsFn to take precedence to we add them in reverse

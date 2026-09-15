@@ -28,3 +28,9 @@ __debug_bin*
 demo/output/*
 
 coverage.out
+
+# Nix
+result
+result-*
+.direnv
+.envrc

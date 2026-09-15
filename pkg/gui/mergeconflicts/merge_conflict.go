@@ -28,7 +28,7 @@ const (
 	TOP Selection = iota
 	MIDDLE
 	BOTTOM
-	ALL
+	BOTH
 )
 
 func (s Selection) isIndexToKeep(conflict *mergeConflict, i int) bool {
@@ -56,14 +56,23 @@ func (s Selection) bounds(c *mergeConflict) (int, int) {
 		return c.ancestor, c.target
 	case BOTTOM:
 		return c.target, c.end
-	case ALL:
-		return c.start, c.end
+	case BOTH:
+		// BOTH spans two disjoint hunks, so it has no single range; callers
+		// go through selected() instead of asking for its bounds.
+		panic("BOTH has no single range")
 	}
 
 	panic("unexpected selection for merge conflict")
 }
 
 func (s Selection) selected(c *mergeConflict, idx int) bool {
+	// BOTH keeps the top and bottom hunks but drops the common ancestor in
+	// between (which is only present with the diff3 conflict style), so it
+	// isn't a single contiguous range like the other selections.
+	if s == BOTH {
+		return TOP.selected(c, idx) || BOTTOM.selected(c, idx)
+	}
+
 	start, end := s.bounds(c)
 	return start < idx && idx < end
 }

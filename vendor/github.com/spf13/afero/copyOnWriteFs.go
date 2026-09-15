@@ -34,7 +34,8 @@ func (u *CopyOnWriteFs) isBaseFile(name string) (bool, error) {
 	_, err := u.base.Stat(name)
 	if err != nil {
 		if oerr, ok := err.(*os.PathError); ok {
-			if oerr.Err == os.ErrNotExist || oerr.Err == syscall.ENOENT || oerr.Err == syscall.ENOTDIR {
+			if oerr.Err == os.ErrNotExist || oerr.Err == syscall.ENOENT ||
+				oerr.Err == syscall.ENOTDIR {
 				return false, nil
 			}
 		}
@@ -237,7 +238,11 @@ func (u *CopyOnWriteFs) OpenFile(name string, flag int, perm os.FileMode) (File,
 			return u.layer.OpenFile(name, flag, perm)
 		}
 
-		return nil, &os.PathError{Op: "open", Path: name, Err: syscall.ENOTDIR} // ...or os.ErrNotExist?
+		return nil, &os.PathError{
+			Op:   "open",
+			Path: name,
+			Err:  syscall.ENOTDIR,
+		} // ...or os.ErrNotExist?
 	}
 	if b {
 		return u.base.OpenFile(name, flag, perm)

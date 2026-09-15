@@ -1,6 +1,10 @@
 package xdg
 
-import "github.com/adrg/xdg/internal/pathutil"
+import (
+	"os"
+
+	"github.com/adrg/xdg/internal/pathutil"
+)
 
 // XDG Base Directory environment variables.
 const (
@@ -11,6 +15,9 @@ const (
 	envStateHome  = "XDG_STATE_HOME"
 	envCacheHome  = "XDG_CACHE_HOME"
 	envRuntimeDir = "XDG_RUNTIME_DIR"
+
+	// Non-standard.
+	envBinHome = "XDG_BIN_HOME"
 )
 
 type baseDirectories struct {
@@ -22,7 +29,8 @@ type baseDirectories struct {
 	cacheHome  string
 	runtime    string
 
-	// Non-standard directories.
+	// Non-standard.
+	binHome      string
 	fonts        []string
 	applications []string
 }
@@ -44,7 +52,13 @@ func (bd baseDirectories) cacheFile(relPath string) (string, error) {
 }
 
 func (bd baseDirectories) runtimeFile(relPath string) (string, error) {
-	return pathutil.Create(relPath, []string{bd.runtime})
+	var paths []string
+	for _, p := range pathutil.Unique([]string{bd.runtime, os.TempDir()}) {
+		if pathutil.Exists(p) {
+			paths = append(paths, p)
+		}
+	}
+	return pathutil.Create(relPath, paths)
 }
 
 func (bd baseDirectories) searchDataFile(relPath string) (string, error) {
@@ -64,5 +78,5 @@ func (bd baseDirectories) searchCacheFile(relPath string) (string, error) {
 }
 
 func (bd baseDirectories) searchRuntimeFile(relPath string) (string, error) {
-	return pathutil.Search(relPath, []string{bd.runtime})
+	return pathutil.Search(relPath, pathutil.Unique([]string{bd.runtime, os.TempDir()}))
 }

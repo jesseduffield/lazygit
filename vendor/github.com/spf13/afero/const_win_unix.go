@@ -10,8 +10,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//go:build !darwin && !openbsd && !freebsd && !dragonfly && !netbsd && !aix
-// +build !darwin,!openbsd,!freebsd,!dragonfly,!netbsd,!aix
+//go:build !darwin && !openbsd && !freebsd && !dragonfly && !netbsd && !aix && !zos
+// +build !darwin,!openbsd,!freebsd,!dragonfly,!netbsd,!aix,!zos
 
 package afero
 

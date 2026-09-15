@@ -538,6 +538,110 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 	}
 }
 
+func TestCommitLoaderGetHydratedTodoCommitsReusesExistingCommit(t *testing.T) {
+	hashPool := &utils.StringPool{}
+	runner := oscommands.NewFakeRunner(t)
+	loader := &CommitLoader{
+		cmd: oscommands.NewDummyCmdObjBuilder(runner),
+	}
+	existingCommit := models.NewCommit(hashPool, models.NewCommitOpts{
+		Hash:          "0123456789012345678901234567890123456789",
+		Name:          "hydrated subject",
+		AuthorName:    "Jane Doe",
+		AuthorEmail:   "jane@example.com",
+		UnixTimestamp: 1234,
+		Parents:       []string{"1123456789012345678901234567890123456789"},
+		Status:        models.StatusRebasing,
+		Action:        todo.Pick,
+	})
+	refreshedTodo := models.NewCommit(hashPool, models.NewCommitOpts{
+		Hash:       existingCommit.Hash(),
+		Name:       "subject from the todo file",
+		Status:     models.StatusConflicted,
+		Action:     todo.Fixup,
+		ActionFlag: "-C",
+	})
+
+	commits, err := loader.getHydratedTodoCommits(
+		hashPool,
+		[]*models.Commit{refreshedTodo},
+		[]*models.Commit{existingCommit},
+		false,
+	)
+
+	assert.NoError(t, err)
+	assert.Equal(t, []*models.Commit{
+		models.NewCommit(hashPool, models.NewCommitOpts{
+			Hash:          existingCommit.Hash(),
+			Name:          "hydrated subject",
+			AuthorName:    "Jane Doe",
+			AuthorEmail:   "jane@example.com",
+			UnixTimestamp: 1234,
+			Parents:       []string{"1123456789012345678901234567890123456789"},
+			Status:        models.StatusConflicted,
+			Action:        todo.Fixup,
+			ActionFlag:    "-C",
+		}),
+	}, commits)
+	assert.Equal(t, todo.Pick, existingCommit.Action)
+	assert.Equal(t, models.StatusRebasing, existingCommit.Status)
+	runner.CheckForMissingCalls()
+}
+
+func TestCommitLoaderGetHydratedTodoCommitsLoadsMissingCommit(t *testing.T) {
+	hashPool := &utils.StringPool{}
+	existingHash := "0123456789012345678901234567890123456789"
+	missingHash := "2123456789012345678901234567890123456789"
+	missingCommitOutput := strings.ReplaceAll(
+		`+2123456789012345678901234567890123456789|1235|John Doe|john@example.com||>|tag: new|new subject`,
+		"|",
+		"\x00",
+	)
+	runner := oscommands.NewFakeRunner(t).ExpectGitArgs(
+		[]string{
+			"-c", "log.showSignature=false", "show", "--no-patch", "--oneline", "--abbrev=20",
+			prettyFormat, missingHash,
+		},
+		missingCommitOutput,
+		nil,
+	)
+	loader := &CommitLoader{
+		cmd: oscommands.NewDummyCmdObjBuilder(runner),
+	}
+	existingCommit := models.NewCommit(hashPool, models.NewCommitOpts{
+		Hash:   existingHash,
+		Name:   "existing subject",
+		Status: models.StatusRebasing,
+		Action: todo.Pick,
+	})
+	refreshedTodos := []*models.Commit{
+		models.NewCommit(hashPool, models.NewCommitOpts{
+			Hash:   existingHash,
+			Status: models.StatusRebasing,
+			Action: todo.Pick,
+		}),
+		models.NewCommit(hashPool, models.NewCommitOpts{
+			Hash:   missingHash,
+			Status: models.StatusRebasing,
+			Action: todo.Edit,
+		}),
+	}
+
+	commits, err := loader.getHydratedTodoCommits(
+		hashPool,
+		refreshedTodos,
+		[]*models.Commit{existingCommit},
+		false,
+	)
+
+	assert.NoError(t, err)
+	assert.Len(t, commits, 2)
+	assert.Equal(t, "existing subject", commits[0].Name)
+	assert.Equal(t, "new subject", commits[1].Name)
+	assert.Equal(t, todo.Edit, commits[1].Action)
+	runner.CheckForMissingCalls()
+}
+
 func TestCommitLoader_setCommitStatuses(t *testing.T) {
 	type scenario struct {
 		testName           string

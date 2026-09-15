@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -66,12 +66,8 @@ func (self *VerticalScrollController) HandleScrollUp() error {
 }
 
 func (self *VerticalScrollController) HandleScrollDown() error {
-	scrollHeight := self.c.UserConfig().Gui.ScrollHeight
-	self.context.GetViewTrait().ScrollDown(scrollHeight)
-
-	if manager := self.c.GetViewBufferManagerForView(self.context.GetView()); manager != nil {
-		manager.ReadLines(scrollHeight)
-	}
+	self.context.GetViewTrait().ScrollDown(self.c.UserConfig().Gui.ScrollHeight)
+	self.c.ReadLinesToFillView(self.context.GetView())
 
 	return nil
 }

@@ -3,6 +3,7 @@ package filetree
 import (
 	"fmt"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -34,6 +35,7 @@ type ITree[T any] interface {
 	CollapsedPaths() *CollapsedPaths
 	CollapseAll()
 	ExpandAll()
+	GetVisualDepth(index int) int
 }
 
 type IFileTree interface {
@@ -41,33 +43,44 @@ type IFileTree interface {
 
 	FilterFiles(test func(*models.File) bool) []*models.File
 	SetStatusFilter(filter FileTreeDisplayFilter)
+	RememberConflictedPaths(paths []string)
 	ForceShowUntracked() bool
 	Get(index int) *FileNode
 	GetFile(path string) *models.File
 	GetAllItems() []*FileNode
 	GetAllFiles() []*models.File
-	GetFilter() FileTreeDisplayFilter
+	GetStatusFilter() FileTreeDisplayFilter
 	GetRoot() *FileNode
+	SetTextFilter(filter string, useFuzzySearch bool)
+	GetTextFilter() string
 }
 
 type FileTree struct {
-	getFiles       func() []*models.File
-	tree           *Node[models.File]
-	showTree       bool
-	common         *common.Common
-	filter         FileTreeDisplayFilter
-	collapsedPaths *CollapsedPaths
+	getFiles func() []*models.File
+	tree     *Node[models.File]
+	showTree bool
+	common   *common.Common
+	filter   FileTreeDisplayFilter
+	// Paths of the files that had conflicts while the current filter has been
+	// active. The DisplayConflicted filter keeps showing them after their
+	// conflicts have been resolved, so that their diffs can be reviewed while
+	// the remaining files are still being worked on.
+	conflictedPaths *set.Set[string]
+	collapsedPaths  *CollapsedPaths
+	textFilter      string
+	useFuzzySearch  bool
 }
 
 var _ IFileTree = &FileTree{}
 
 func NewFileTree(getFiles func() []*models.File, common *common.Common, showTree bool) *FileTree {
 	return &FileTree{
-		getFiles:       getFiles,
-		common:         common,
-		showTree:       showTree,
-		filter:         DisplayAll,
-		collapsedPaths: NewCollapsedPaths(),
+		getFiles:        getFiles,
+		common:          common,
+		showTree:        showTree,
+		filter:          DisplayAll,
+		conflictedPaths: set.New[string](),
+		collapsedPaths:  NewCollapsedPaths(),
 	}
 }
 
@@ -80,24 +93,33 @@ func (self *FileTree) ExpandToPath(path string) {
 }
 
 func (self *FileTree) getFilesForDisplay() []*models.File {
+	var files []*models.File
 	switch self.filter {
 	case DisplayAll:
-		return self.getFiles()
+		files = self.getFiles()
 	case DisplayStaged:
-		return self.FilterFiles(func(file *models.File) bool { return file.HasStagedChanges })
+		files = self.FilterFiles(func(file *models.File) bool { return file.HasStagedChanges })
 	case DisplayUnstaged:
-		return self.FilterFiles(func(file *models.File) bool { return file.HasUnstagedChanges })
+		files = self.FilterFiles(func(file *models.File) bool { return file.HasUnstagedChanges })
 	case DisplayTracked:
 		// untracked but staged files are technically not tracked by git
 		// but including such files in the filtered mode helps see what files are getting committed
-		return self.FilterFiles(func(file *models.File) bool { return file.Tracked || file.HasStagedChanges })
+		files = self.FilterFiles(func(file *models.File) bool { return file.Tracked || file.HasStagedChanges })
 	case DisplayUntracked:
-		return self.FilterFiles(func(file *models.File) bool { return !(file.Tracked || file.HasStagedChanges) })
+		files = self.FilterFiles(func(file *models.File) bool { return !(file.Tracked || file.HasStagedChanges) })
 	case DisplayConflicted:
-		return self.FilterFiles(func(file *models.File) bool { return file.HasMergeConflicts })
+		files = self.FilterFiles(func(file *models.File) bool {
+			return file.HasMergeConflicts || self.conflictedPaths.Includes(file.Path)
+		})
 	default:
 		panic(fmt.Sprintf("Unexpected files display filter: %d", self.filter))
 	}
+
+	if self.textFilter != "" {
+		files = filterFilesByText(files, self.textFilter, self.useFuzzySearch)
+	}
+
+	return files
 }
 
 func (self *FileTree) ForceShowUntracked() bool {
@@ -110,7 +132,14 @@ func (self *FileTree) FilterFiles(test func(*models.File) bool) []*models.File {
 
 func (self *FileTree) SetStatusFilter(filter FileTreeDisplayFilter) {
 	self.filter = filter
+	self.conflictedPaths = set.New[string]()
 	self.SetTree()
+}
+
+// RememberConflictedPaths records which files have conflicts right now, so that
+// the DisplayConflicted filter keeps showing them once they are resolved.
+func (self *FileTree) RememberConflictedPaths(paths []string) {
+	self.conflictedPaths.Add(paths...)
 }
 
 func (self *FileTree) ToggleShowTree() {
@@ -168,11 +197,13 @@ func (self *FileTree) GetAllFiles() []*models.File {
 
 func (self *FileTree) SetTree() {
 	filesForDisplay := self.getFilesForDisplay()
-	showRootItem := self.common.UserConfig().Gui.ShowRootItemInFileTree
+	guiConfig := self.common.UserConfig().Gui
+	showRootItem := guiConfig.ShowRootItemInFileTree
+	cmp := NodeSortComparator[models.File](guiConfig.FileTreeSortOrder, guiConfig.FileTreeSortCaseSensitive)
 	if self.showTree {
-		self.tree = BuildTreeFromFiles(filesForDisplay, showRootItem)
+		self.tree = BuildTreeFromFiles(filesForDisplay, showRootItem, cmp)
 	} else {
-		self.tree = BuildFlatTreeFromFiles(filesForDisplay, showRootItem)
+		self.tree = BuildFlatTreeFromFiles(filesForDisplay, showRootItem, cmp)
 	}
 }
 
@@ -210,6 +241,20 @@ func (self *FileTree) CollapsedPaths() *CollapsedPaths {
 	return self.collapsedPaths
 }
 
-func (self *FileTree) GetFilter() FileTreeDisplayFilter {
+func (self *FileTree) GetVisualDepth(index int) int {
+	return self.tree.GetVisualDepthAtIndex(index+1, self.collapsedPaths) // +1 to skip root
+}
+
+func (self *FileTree) GetStatusFilter() FileTreeDisplayFilter {
 	return self.filter
+}
+
+func (self *FileTree) SetTextFilter(filter string, useFuzzySearch bool) {
+	self.textFilter = filter
+	self.useFuzzySearch = useFuzzySearch
+	self.SetTree()
+}
+
+func (self *FileTree) GetTextFilter() string {
+	return self.textFilter
 }

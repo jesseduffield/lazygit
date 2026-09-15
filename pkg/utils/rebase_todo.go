@@ -19,6 +19,7 @@ type Todo struct {
 type TodoChange struct {
 	Hash      string
 	NewAction todo.TodoCommand
+	Flag      string
 }
 
 // Read a git-rebase-todo file, change the actions for the given commits,
@@ -37,6 +38,7 @@ func EditRebaseTodo(filePath string, changes []TodoChange, commentChar byte) err
 			if equalHash(t.Commit, change.Hash) {
 				matchCount++
 				t.Command = change.NewAction
+				t.Flag = change.Flag
 			}
 		}
 	}
@@ -142,27 +144,40 @@ func deleteTodos(todos []todo.Todo, todosToDelete []Todo) ([]todo.Todo, error) {
 }
 
 func MoveTodosDown(fileName string, todosToMove []Todo, isInRebase bool, commentChar byte) error {
+	return MoveTodos(fileName, todosToMove, isInRebase, 1, commentChar)
+}
+
+func MoveTodosUp(fileName string, todosToMove []Todo, isInRebase bool, commentChar byte) error {
+	return MoveTodos(fileName, todosToMove, isInRebase, -1, commentChar)
+}
+
+func MoveTodos(fileName string, todosToMove []Todo, isInRebase bool, offset int, commentChar byte) error {
 	todos, err := ReadRebaseTodoFile(fileName, commentChar)
 	if err != nil {
 		return err
 	}
-	rearrangedTodos, err := moveTodosDown(todos, todosToMove, isInRebase)
+	rearrangedTodos, err := moveTodos(todos, todosToMove, isInRebase, offset)
 	if err != nil {
 		return err
 	}
 	return WriteRebaseTodoFile(fileName, rearrangedTodos, commentChar)
 }
 
-func MoveTodosUp(fileName string, todosToMove []Todo, isInRebase bool, commentChar byte) error {
-	todos, err := ReadRebaseTodoFile(fileName, commentChar)
-	if err != nil {
-		return err
+func moveTodos(todos []todo.Todo, todosToMove []Todo, isInRebase bool, offset int) ([]todo.Todo, error) {
+	moveOneRow := moveTodosUp
+	if offset > 0 {
+		moveOneRow = moveTodosDown
 	}
-	rearrangedTodos, err := moveTodosUp(todos, todosToMove, isInRebase)
-	if err != nil {
-		return err
+
+	for range max(offset, -offset) {
+		var err error
+		todos, err = moveOneRow(todos, slices.Clone(todosToMove), isInRebase)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return WriteRebaseTodoFile(fileName, rearrangedTodos, commentChar)
+
+	return todos, nil
 }
 
 func moveTodoDown(todos []todo.Todo, todoToMove Todo, isInRebase bool) ([]todo.Todo, error) {

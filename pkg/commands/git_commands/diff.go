@@ -17,21 +17,14 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 }
 
 // This is for generating diffs to be shown in the UI (e.g. rendering a range
-// diff to the main view). It uses a custom pager if one is configured.
+// diff to the main view). It uses a custom diff renderer if one is configured.
 func (self *DiffCommands) DiffCmdObj(diffArgs []string) *oscommands.CmdObj {
-	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
-	useExtDiff := extDiffCmd != ""
-	ignoreWhitespace := self.UserConfig().Git.IgnoreWhitespaceInDiffView
-
 	return self.cmd.New(
 		NewGitCmd("diff").
 			Config("diff.noprefix=false").
-			ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
-			ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
+			AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), true).
 			Arg("--submodule").
-			Arg(fmt.Sprintf("--color=%s", self.UserConfig().Git.Paging.ColorArg)).
-			ArgIf(ignoreWhitespace, "--ignore-all-space").
-			Arg(fmt.Sprintf("--unified=%d", self.UserConfig().Git.DiffContextSize)).
+			Arg(fmt.Sprintf("--color=%s", self.diffRendererConfigManager.GetColorArg())).
 			Arg(diffArgs...).
 			Dir(self.repoPaths.worktreePath).
 			ToArgv(),
@@ -39,8 +32,8 @@ func (self *DiffCommands) DiffCmdObj(diffArgs []string) *oscommands.CmdObj {
 }
 
 // This is a basic generic diff command that can be used for any diff operation
-// (e.g. copying a diff to the clipboard). It will not use a custom pager, and
-// does not use user configs such as ignore whitespace.
+// (e.g. copying a diff to the clipboard). It will not use a custom diff renderer,
+// and does not use user configs such as ignore whitespace.
 // If you want to diff specific refs (one or two), you need to add them yourself
 // in additionalArgs; it is recommended to also pass `--` after that. If you
 // want to restrict the diff to specific paths, pass them in additionalArgs
@@ -54,7 +47,7 @@ func (self *DiffCommands) GetDiff(staged bool, additionalArgs ...string) (string
 			Dir(self.repoPaths.worktreePath).
 			Arg(additionalArgs...).
 			ToArgv(),
-	).RunWithOutput()
+	).DontLog().RunWithOutput()
 }
 
 type DiffToolCmdOptions struct {

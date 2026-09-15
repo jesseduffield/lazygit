@@ -61,6 +61,7 @@ func AddCoAuthorToMessage(message string, author string) string {
 }
 
 func AddCoAuthorToDescription(description string, author string) string {
+	description = strings.TrimRight(description, "\n")
 	if description != "" {
 		lines := strings.Split(description, "\n")
 		if strings.HasPrefix(lines[len(lines)-1], "Co-authored-by:") {
@@ -217,20 +218,6 @@ func (self *CommitCommands) GetCommitMessagesFirstLine(hashes []string) (string,
 	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
-// Example output:
-//
-//	cd50c79ae Preserve the commit message correctly even if the description has blank lines
-//	3ebba5f32 Add test demonstrating a bug with preserving the commit message
-//	9a423c388 Remove unused function
-func (self *CommitCommands) GetHashesAndCommitMessagesFirstLine(hashes []string) (string, error) {
-	cmdArgs := NewGitCmd("show").
-		Arg("--no-patch", "--pretty=format:%h %s").
-		Arg(hashes...).
-		ToArgv()
-
-	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-}
-
 func (self *CommitCommands) GetCommitsOneline(hashes []string) (string, error) {
 	cmdArgs := NewGitCmd("show").
 		Arg("--no-patch", "--oneline").
@@ -254,22 +241,15 @@ func (self *CommitCommands) AmendHeadCmdObj() *oscommands.CmdObj {
 }
 
 func (self *CommitCommands) ShowCmdObj(hash string, filterPaths []string) *oscommands.CmdObj {
-	contextSize := self.UserConfig().Git.DiffContextSize
-
-	extDiffCmd := self.UserConfig().Git.Paging.ExternalDiffCommand
 	cmdArgs := NewGitCmd("show").
 		Config("diff.noprefix=false").
-		ConfigIf(extDiffCmd != "", "diff.external="+extDiffCmd).
-		ArgIfElse(extDiffCmd != "", "--ext-diff", "--no-ext-diff").
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), true).
 		Arg("--submodule").
-		Arg("--color="+self.UserConfig().Git.Paging.ColorArg).
-		Arg(fmt.Sprintf("--unified=%d", contextSize)).
+		Arg("--color=" + self.diffRendererConfigManager.GetColorArg()).
 		Arg("--stat").
 		Arg("--decorate").
 		Arg("-p").
 		Arg(hash).
-		ArgIf(self.UserConfig().Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
-		Arg(fmt.Sprintf("--find-renames=%d%%", self.UserConfig().Git.RenameSimilarityThreshold)).
 		Arg("--").
 		Arg(filterPaths...).
 		Dir(self.repoPaths.worktreePath).

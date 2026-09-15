@@ -30,6 +30,15 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on bitbucket with extra slash removed",
+			from:      "feature/profile-page",
+			remoteUrl: "git@bitbucket.org:/johndoe/social_network.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on bitbucket with http remote url",
 			from:      "feature/events",
 			remoteUrl: "https://my_username@bitbucket.org/johndoe/social_network.git",
@@ -42,6 +51,25 @@ func TestGetPullRequestURL(t *testing.T) {
 			testName:  "Opens a link to new pull request on github",
 			from:      "feature/sum-operation",
 			remoteUrl: "git@github.com:peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/compare/feature%2Fsum-operation?expand=1", url)
+			},
+		},
+		{
+			testName:             "Opens a link to new pull request on github custom SSH config alias and a corresponding service config",
+			from:                 "feature/sum-operation",
+			remoteUrl:            "github:peter/calculator.git",
+			configServiceDomains: map[string]string{"github": "github:github.com"},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/compare/feature%2Fsum-operation?expand=1", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on github with extra slash removed",
+			from:      "feature/sum-operation",
+			remoteUrl: "git@github.com:/peter/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://github.com/peter/calculator/compare/feature%2Fsum-operation?expand=1", url)
@@ -116,9 +144,37 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:             "Opens a link to new pull request on gitlab with custom SSH config alias and a corresponding service config",
+			from:                 "feature/ui",
+			remoteUrl:            "gitlab:peter/calculator.git",
+			configServiceDomains: map[string]string{"gitlab": "gitlab:gitlab.com"},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fui", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on gitlab with extra slash removed",
+			from:      "feature/ui",
+			remoteUrl: "git@gitlab.com:/peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fui", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on gitlab in nested groups",
 			from:      "feature/ui",
 			remoteUrl: "git@gitlab.com:peter/public/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/public/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fui", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on gitlab in nested groups and extra slash removed",
+			from:      "feature/ui",
+			remoteUrl: "git@gitlab.com:/peter/public/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://gitlab.com/peter/public/calculator/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fui", url)
@@ -182,6 +238,15 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on Azure DevOps (SSH) with extra slash removed",
+			from:      "feature/new",
+			remoteUrl: "git@ssh.dev.azure.com:/v3/myorg/myproject/myrepo",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on Azure DevOps (SSH) with specific target",
 			from:      "feature/new",
 			to:        "dev",
@@ -224,9 +289,34 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on Azure DevOps (legacy vs-ssh.visualstudio.com SSH) with mapping to dev.azure.com",
+			from:      "feature/new",
+			remoteUrl: "git@vs-ssh.visualstudio.com:v3/myorg/myproject/myrepo",
+			configServiceDomains: map[string]string{
+				"vs-ssh.visualstudio.com": "azuredevops:dev.azure.com",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on Bitbucket Server (SSH)",
 			from:      "feature/new",
 			remoteUrl: "ssh://git@mycompany.bitbucket.com/myproject/myrepo.git",
+			configServiceDomains: map[string]string{
+				// valid configuration for a bitbucket server URL
+				"mycompany.bitbucket.com": "bitbucketServer:mycompany.bitbucket.com",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://mycompany.bitbucket.com/projects/myproject/repos/myrepo/pull-requests?create&sourceBranch=feature%2Fnew", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Bitbucket Server (SSH) with extra slash removed",
+			from:      "feature/new",
+			remoteUrl: "ssh://git@mycompany.bitbucket.com:/myproject/myrepo.git",
 			configServiceDomains: map[string]string{
 				// valid configuration for a bitbucket server URL
 				"mycompany.bitbucket.com": "bitbucketServer:mycompany.bitbucket.com",
@@ -332,6 +422,44 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on Codeberg (SSH)",
+			from:      "feature/new",
+			remoteUrl: "git@codeberg.org:johndoe/myrepo.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://codeberg.org/johndoe/myrepo/compare/feature%2Fnew", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Codeberg (SSH) with specific target",
+			from:      "feature/new",
+			to:        "dev",
+			remoteUrl: "git@codeberg.org:johndoe/myrepo.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://codeberg.org/johndoe/myrepo/compare/dev...feature%2Fnew", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Codeberg (HTTP)",
+			from:      "feature/new",
+			remoteUrl: "https://codeberg.org/johndoe/myrepo.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://codeberg.org/johndoe/myrepo/compare/feature%2Fnew", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Codeberg (HTTP) with specific target",
+			from:      "feature/new",
+			to:        "dev",
+			remoteUrl: "https://codeberg.org/johndoe/myrepo.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://codeberg.org/johndoe/myrepo/compare/dev...feature%2Fnew", url)
+			},
+		},
+		{
 			testName:  "Throws an error if git service is unsupported",
 			from:      "feature/divide-operation",
 			remoteUrl: "git@something.com:peter/calculator.git",
@@ -343,6 +471,20 @@ func TestGetPullRequestURL(t *testing.T) {
 			testName:  "Does not log error when config service domains are valid",
 			from:      "feature/profile-page",
 			remoteUrl: "git@bitbucket.org:johndoe/social_network.git",
+			configServiceDomains: map[string]string{
+				// valid configuration for a custom service URL
+				"git.work.com": "gitlab:code.work.com",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
+			},
+			expectedLoggedErrors: nil,
+		},
+		{
+			testName:  "Does not log error when config service domains are valid with extra slash",
+			from:      "feature/profile-page",
+			remoteUrl: "git@bitbucket.org:/johndoe/social_network.git",
 			configServiceDomains: map[string]string{
 				// valid configuration for a custom service URL
 				"git.work.com": "gitlab:code.work.com",
@@ -401,7 +543,7 @@ func TestGetPullRequestURL(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
 			},
-			expectedLoggedErrors: []string{"Unknown git service type: 'noservice'. Expected one of github, bitbucket, gitlab, azuredevops, bitbucketServer, gitea"},
+			expectedLoggedErrors: []string{"Unknown git service type: 'noservice'. Expected one of github, bitbucket, gitlab, azuredevops, bitbucketServer, gitea, codeberg"},
 		},
 		{
 			testName:  "Escapes reserved URL characters in from branch name",
@@ -432,6 +574,110 @@ func TestGetPullRequestURL(t *testing.T) {
 			hostingServiceMgr := NewHostingServiceMgr(log, tr, s.remoteUrl, s.configServiceDomains)
 			s.test(hostingServiceMgr.GetPullRequestURL(s.from, s.to))
 			log.AssertErrors(t, s.expectedLoggedErrors)
+		})
+	}
+}
+
+func TestGetServiceInfo(t *testing.T) {
+	scenarios := []struct {
+		name                 string
+		remoteURL            string
+		configServiceDomains map[string]string
+		expected             ServiceInfo
+	}{
+		{
+			name:      "github.com SSH",
+			remoteURL: "git@github.com:jesseduffield/lazygit.git",
+			expected: ServiceInfo{
+				Provider:   "github",
+				WebDomain:  "github.com",
+				Owner:      "jesseduffield",
+				Repository: "lazygit",
+				RepoName:   "jesseduffield/lazygit",
+			},
+		},
+		{
+			name:      "github enterprise with same git and web host",
+			remoteURL: "git@github.example.com:my-org/my-repo.git",
+			configServiceDomains: map[string]string{
+				"github.example.com": "github:github.example.com",
+			},
+			expected: ServiceInfo{
+				Provider:   "github",
+				WebDomain:  "github.example.com",
+				Owner:      "my-org",
+				Repository: "my-repo",
+				RepoName:   "my-org/my-repo",
+			},
+		},
+		{
+			name:      "github enterprise with distinct git and web hosts",
+			remoteURL: "git@git.example.com:my-org/my-repo.git",
+			configServiceDomains: map[string]string{
+				"git.example.com": "github:ghe.example.com",
+			},
+			expected: ServiceInfo{
+				Provider:   "github",
+				WebDomain:  "ghe.example.com",
+				Owner:      "my-org",
+				Repository: "my-repo",
+				RepoName:   "my-org/my-repo",
+			},
+		},
+		{
+			name:      "github enterprise with web host port",
+			remoteURL: "git@git.example.com:my-org/my-repo.git",
+			configServiceDomains: map[string]string{
+				"git.example.com": "github:ghe.example.com:8443",
+			},
+			expected: ServiceInfo{
+				Provider:   "github",
+				WebDomain:  "ghe.example.com:8443",
+				Owner:      "my-org",
+				Repository: "my-repo",
+				RepoName:   "my-org/my-repo",
+			},
+		},
+		{
+			// azuredevops uses org/project/repo named captures rather than
+			// owner/repo, so Owner is unpopulated and RepoName has three
+			// segments rather than the usual two.
+			name:      "azuredevops",
+			remoteURL: "https://myorg@dev.azure.com/myorg/myproject/_git/myrepo",
+			expected: ServiceInfo{
+				Provider:   "azuredevops",
+				WebDomain:  "dev.azure.com",
+				Repository: "myrepo",
+				RepoName:   "myorg/myproject/myrepo",
+			},
+		},
+		{
+			// bitbucketServer uses project/repo named captures, so Owner is
+			// unpopulated and RepoName is project/repo rather than owner/repo.
+			name:      "bitbucketServer",
+			remoteURL: "https://mycompany.bitbucket.com/scm/myproject/myrepo.git",
+			configServiceDomains: map[string]string{
+				"mycompany.bitbucket.com": "bitbucketServer:mycompany.bitbucket.com",
+			},
+			expected: ServiceInfo{
+				Provider:   "bitbucketServer",
+				WebDomain:  "mycompany.bitbucket.com",
+				Repository: "myrepo",
+				RepoName:   "myproject/myrepo",
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			tr := i18n.EnglishTranslationSet()
+			log := &fakes.FakeFieldLogger{}
+			mgr := NewHostingServiceMgr(log, tr, s.remoteURL, s.configServiceDomains)
+
+			info, err := mgr.GetServiceInfo()
+
+			assert.NoError(t, err)
+			assert.Equal(t, s.expected, info)
 		})
 	}
 }

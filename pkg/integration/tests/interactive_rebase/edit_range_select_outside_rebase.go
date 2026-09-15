@@ -26,27 +26,27 @@ var EditRangeSelectOutsideRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.RangeSelectDown).
 			Press(keys.Universal.RangeSelectDown).
 			Lines(
-				Contains("CI ⏣─╮ Merge branch 'second-change-branch' into first-change-branch").IsSelected(),
-				Contains("CI │ ◯ * second-change-branch unrelated change").IsSelected(),
-				Contains("CI │ ◯ second change").IsSelected(),
-				Contains("CI ◯ │ first change").IsSelected(),
-				Contains("CI ◯─╯ * original").IsSelected(),
-				Contains("CI ◯ three").IsSelected(),
-				Contains("CI ◯ two"),
-				Contains("CI ◯ one"),
+				Contains("CI ◎─╮ Merge branch 'second-change-branch' into first-change-branch").IsSelected(),
+				Contains("CI │ ○ * second-change-branch unrelated change").IsSelected(),
+				Contains("CI │ ○ second change").IsSelected(),
+				Contains("CI ○ │ first change").IsSelected(),
+				Contains("CI ○─╯ * original").IsSelected(),
+				Contains("CI ○ three").IsSelected(),
+				Contains("CI ○ two"),
+				Contains("CI ○ one"),
 			).
 			Press(keys.Universal.Edit).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("merge CI Merge branch 'second-change-branch' into first-change-branch").IsSelected(),
 				Contains("edit  CI first change").IsSelected(),
 				Contains("edit  CI * second-change-branch unrelated change").IsSelected(),
 				Contains("edit  CI second change").IsSelected(),
 				Contains("edit  CI * original").IsSelected(),
-				Contains("--- Commits ---").IsSelected(),
-				Contains("      CI ◯ three").IsSelected(),
-				Contains("      CI ◯ two"),
-				Contains("      CI ◯ one"),
+				Contains("─── Commits").IsSelected(),
+				Contains("      CI ○ three").IsSelected(),
+				Contains("      CI ○ two"),
+				Contains("      CI ○ one"),
 			)
 	},
 })

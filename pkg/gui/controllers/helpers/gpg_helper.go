@@ -3,9 +3,9 @@ package helpers
 import (
 	"fmt"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -19,11 +19,45 @@ func NewGpgHelper(c *HelperCommon) *GpgHelper {
 	}
 }
 
+func (self *GpgHelper) WithGpgHandling(
+	cmdObj *oscommands.CmdObj,
+	configKey git_commands.GpgConfigKey,
+	waitingStatus string,
+	onSuccess func() error,
+	refreshScope []types.RefreshableView,
+) error {
+	refreshOptions := types.RefreshOptions{Scope: refreshScope}
+	return self.withGpgHandling(
+		cmdObj, configKey, waitingStatus, onSuccess, refreshOptions, refreshOptions)
+}
+
+// WithGpgHandlingAndSelectHeadCommit is like WithGpgHandling, but on success it
+// selects the new HEAD commit rather than restoring the previous selection. For
+// committing, where the commit we just created is the one we want selected.
+func (self *GpgHelper) WithGpgHandlingAndSelectHeadCommit(
+	cmdObj *oscommands.CmdObj,
+	configKey git_commands.GpgConfigKey,
+	waitingStatus string,
+	onSuccess func() error,
+) error {
+	failureRefreshOptions := types.RefreshOptions{}
+	successRefreshOptions := types.RefreshOptions{CommitSelection: types.SelectHeadCommit}
+	return self.withGpgHandling(
+		cmdObj, configKey, waitingStatus, onSuccess, failureRefreshOptions, successRefreshOptions)
+}
+
 // Currently there is a bug where if we switch to a subprocess from within
 // WithWaitingStatus we get stuck there and can't return to lazygit. We could
 // fix this bug, or just stop running subprocesses from within there, given that
 // we don't need to see a loading status if we're in a subprocess.
-func (self *GpgHelper) WithGpgHandling(cmdObj *oscommands.CmdObj, configKey git_commands.GpgConfigKey, waitingStatus string, onSuccess func() error, refreshScope []types.RefreshableView) error {
+func (self *GpgHelper) withGpgHandling(
+	cmdObj *oscommands.CmdObj,
+	configKey git_commands.GpgConfigKey,
+	waitingStatus string,
+	onSuccess func() error,
+	failureRefreshOptions types.RefreshOptions,
+	successRefreshOptions types.RefreshOptions,
+) error {
 	useSubprocess := self.c.Git().Config.NeedsGpgSubprocess(configKey)
 	if useSubprocess {
 		success, err := self.c.RunSubprocess(cmdObj)
@@ -32,18 +66,29 @@ func (self *GpgHelper) WithGpgHandling(cmdObj *oscommands.CmdObj, configKey git_
 				return err
 			}
 		}
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope})
+		if success {
+			self.c.Refresh(successRefreshOptions)
+		} else {
+			self.c.Refresh(failureRefreshOptions)
+		}
 
 		return err
 	}
 
-	return self.runAndStream(cmdObj, waitingStatus, onSuccess, refreshScope)
+	return self.runAndStream(
+		cmdObj, waitingStatus, onSuccess, failureRefreshOptions, successRefreshOptions)
 }
 
-func (self *GpgHelper) runAndStream(cmdObj *oscommands.CmdObj, waitingStatus string, onSuccess func() error, refreshScope []types.RefreshableView) error {
+func (self *GpgHelper) runAndStream(
+	cmdObj *oscommands.CmdObj,
+	waitingStatus string,
+	onSuccess func() error,
+	failureRefreshOptions types.RefreshOptions,
+	successRefreshOptions types.RefreshOptions,
+) error {
 	return self.c.WithWaitingStatus(waitingStatus, func(gocui.Task) error {
 		if err := cmdObj.StreamOutput().Run(); err != nil {
-			self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope})
+			self.c.RefreshFromWorker(failureRefreshOptions)
 			return fmt.Errorf(
 				self.c.Tr.GitCommandFailed, self.c.UserConfig().Keybinding.Universal.ExtrasMenu,
 			)
@@ -55,7 +100,7 @@ func (self *GpgHelper) runAndStream(cmdObj *oscommands.CmdObj, waitingStatus str
 			}
 		}
 
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: refreshScope})
+		self.c.RefreshFromWorker(successRefreshOptions)
 		return nil
 	})
 }

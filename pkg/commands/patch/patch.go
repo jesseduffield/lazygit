@@ -51,6 +51,16 @@ func (self *Patch) Lines() []*PatchLine {
 	return lines
 }
 
+// Returns the old-file starting line number of the hunk containing the given
+// patch line index. Returns 0 if the line is not inside any hunk.
+func (self *Patch) HunkOldStartForLine(idx int) int {
+	hunkIdx := self.HunkContainingLine(idx)
+	if hunkIdx == -1 {
+		return 0
+	}
+	return self.hunks[hunkIdx].oldStart
+}
+
 // Returns the patch line index of the first line in the given hunk
 func (self *Patch) HunkStartIdx(hunkIndex int) int {
 	hunkIndex = lo.Clamp(hunkIndex, 0, len(self.hunks)-1)

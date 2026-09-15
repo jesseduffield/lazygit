@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -390,20 +390,6 @@ func TestWrapViewLinesToWidth(t *testing.T) {
 			},
 			expectedWrappedLinesIndices:  []int{0, 2, 6},
 			expectedOriginalLinesIndices: []int{0, 0, 1, 1, 1, 1, 2, 2},
-		},
-		{
-			name:     "Avoid blank line at end if not editable",
-			wrap:     true,
-			editable: false,
-			text:     "First\nSecond\nThird\n",
-			width:    10,
-			expectedWrappedLines: []string{
-				"First",
-				"Second",
-				"Third",
-			},
-			expectedWrappedLinesIndices:  []int{0, 1, 2},
-			expectedOriginalLinesIndices: []int{0, 1, 2},
 		},
 		{
 			name:     "Avoid blank line at end if not editable",

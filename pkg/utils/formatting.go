@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/mattn/go-runewidth"
+	"github.com/rivo/uniseg"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
 )
@@ -27,7 +27,7 @@ func StringWidth(s string) int {
 	// convert the characters to runes, which is unnecessary work in this case.
 	for i := range len(s) {
 		if s[i] > unicode.MaxASCII {
-			return runewidth.StringWidth(s)
+			return uniseg.StringWidth(s)
 		}
 	}
 
@@ -177,10 +177,69 @@ func MaxFn[T any](items []T, fn func(T) int) int {
 
 // TruncateWithEllipsis returns a string, truncated to a certain length, with an ellipsis
 func TruncateWithEllipsis(str string, limit int) string {
-	if StringWidth(str) > limit && limit <= 2 {
+	if StringWidth(str) <= limit {
+		return str
+	}
+	if limit <= 2 {
 		return strings.Repeat(".", limit)
 	}
-	return runewidth.Truncate(str, limit, "…")
+
+	state := -1
+	var grapheme string
+	var width int
+	truncatedStr := ""
+
+	for str != "" {
+		grapheme, str, width, state = uniseg.FirstGraphemeClusterInString(str, state)
+		if uniseg.StringWidth(truncatedStr)+width > limit-1 {
+			break
+		}
+		truncatedStr += grapheme
+	}
+	return truncatedStr + "…"
+}
+
+// TruncateWithEllipsisInMiddle returns a string, truncated to a certain width,
+// with an ellipsis in the middle. Use it where the end of the string is as
+// informative as its beginning, e.g. for paths.
+func TruncateWithEllipsisInMiddle(str string, limit int) string {
+	if StringWidth(str) <= limit {
+		return str
+	}
+	if limit <= 2 {
+		return strings.Repeat(".", limit)
+	}
+
+	clusters := []string{}
+	widths := []int{}
+	graphemes := uniseg.NewGraphemes(str)
+	for graphemes.Next() {
+		clusters = append(clusters, graphemes.Str())
+		widths = append(widths, graphemes.Width())
+	}
+
+	// One column goes to the ellipsis; the rest is split between the two ends,
+	// with the odd one going to the front.
+	remaining := limit - 1
+	frontLimit := (remaining + 1) / 2
+
+	front := 0
+	frontWidth := 0
+	for front < len(clusters) && frontWidth+widths[front] <= frontLimit {
+		frontWidth += widths[front]
+		front++
+	}
+
+	// Whatever the front didn't use, e.g. because a wide grapheme didn't fit
+	// into it, is available to the back.
+	back := len(clusters)
+	backWidth := 0
+	for back > front && backWidth+widths[back-1] <= remaining-frontWidth {
+		backWidth += widths[back-1]
+		back--
+	}
+
+	return strings.Join(clusters[:front], "") + "…" + strings.Join(clusters[back:], "")
 }
 
 func SafeTruncate(str string, limit int) string {

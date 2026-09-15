@@ -3,7 +3,7 @@ package gui
 import (
 	"time"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
@@ -25,17 +25,26 @@ func (gui *Gui) linesToReadFromCmdTask(v *gocui.View) tasks.LinesToRead {
 
 	linesForFirstRefresh := height + oy + 10
 
+	// A search counts the matches in everything the view holds, so a re-render of a
+	// view that is being searched is read all the way to the end (as opening the
+	// search prompt reads it, see MainViewController.openSearch). Lines left unread
+	// hold matches the search doesn't know about, and would add themselves to the
+	// "x of y" as the user scrolled far enough to load them.
+	if v.IsSearching() {
+		return tasks.LinesToRead{
+			Total:               -1,
+			InitialRefreshAfter: linesForFirstRefresh,
+		}
+	}
+
 	// We want to read as many lines initially as necessary to let the
 	// scrollbar go to its minimum height, so that the scrollbar thumb doesn't
 	// change size as you scroll down.
 	minScrollbarHeight := 1
-	linesToReadForAccurateScrollbar := height*(height-1)/minScrollbarHeight + oy
-
-	// However, cap it at some arbitrary max limit, so that we don't get
-	// performance problems for huge monitors or tiny font sizes
-	if linesToReadForAccurateScrollbar > 5000 {
-		linesToReadForAccurateScrollbar = 5000
-	}
+	linesToReadForAccurateScrollbar := min(
+		// However, cap it at some arbitrary max limit, so that we don't get
+		// performance problems for huge monitors or tiny font sizes
+		height*(height-1)/minScrollbarHeight+oy, 5000)
 
 	return tasks.LinesToRead{
 		Total:               linesToReadForAccurateScrollbar,
@@ -124,10 +133,18 @@ func (gui *Gui) render() {
 	gui.c.OnUIThread(func() error { return nil })
 }
 
+// renderContentOnly triggers a re-render that skips the layout pass and only
+// redraws the views whose content changed (relying on tcell's cell-level dirty
+// tracking to emit just the cells that actually differ). Use it when only a
+// view's content changed, not the window layout.
+func (gui *Gui) renderContentOnly() {
+	gui.c.OnUIThreadContentOnly(func() error { return nil })
+}
+
 // postRefreshUpdate is to be called on a context after the state that it depends on has been refreshed
 // if the context's view is set to another context we do nothing.
 // if the context's view is the current view we trigger a focus; re-selecting the current item.
-func (gui *Gui) postRefreshUpdate(c types.Context) {
+func (gui *Gui) postRefreshUpdate(c types.Context, opts types.OnFocusOpts) {
 	t := time.Now()
 	defer func() {
 		gui.Log.Infof("postRefreshUpdate for %s took %s", c.GetKey(), time.Since(t))
@@ -135,28 +152,34 @@ func (gui *Gui) postRefreshUpdate(c types.Context) {
 
 	c.HandleRender()
 
-	if gui.currentViewName() == c.GetViewName() {
-		c.HandleFocus(types.OnFocusOpts{})
+	// The render may have given the context its first item, or taken its last one
+	// away, which decides whether its view draws a selection at all.
+	gui.State.ContextMgr.updateSelectionHighlights()
+
+	if gui.currentViewName() == c.GetInputViewName() {
+		c.HandleFocus(opts)
 	} else {
 		// The FocusLine call is included in the HandleFocus method which we
 		// call for focused views above; but we need to call it here for
 		// non-focused views to ensure that an inactive selection is painted
 		// correctly, and that integration tests see the up to date selection
 		// state.
-		c.FocusLine()
+		c.FocusLine(!opts.KeepScrollPosition)
+		if opts.SkipMainViewUpdate {
+			return
+		}
 
 		currentCtx := gui.State.ContextMgr.Current()
 		if currentCtx.GetKey() == context.NORMAL_MAIN_CONTEXT_KEY || currentCtx.GetKey() == context.NORMAL_SECONDARY_CONTEXT_KEY {
-			// Searching can't cope well with the view being updated while it is being searched.
-			// We might be able to fix the problems with this, but it doesn't seem easy, so for now
-			// just don't rerender the view while searching, on the assumption that users will probably
-			// either search or change their data, but not both at the same time.
-			if !currentCtx.GetView().IsSearching() {
-				sidePanelContext := gui.State.ContextMgr.NextInStack(currentCtx)
-				if sidePanelContext != nil && sidePanelContext.GetKey() == c.GetKey() {
-					sidePanelContext.HandleRenderToMain()
-				}
+			sidePanelContext := gui.State.ContextMgr.NextInStack(currentCtx)
+			if sidePanelContext != nil && sidePanelContext.GetKey() == c.GetKey() {
+				sidePanelContext.HandleRenderToMain()
 			}
+		} else if c.GetKey() == gui.State.ContextMgr.CurrentStatic().GetKey() {
+			// If our view is not the current one, but it is the current static context, then this
+			// can only mean that a popup is showing. In that case we want to refresh the main view
+			// behind the popup.
+			c.HandleRenderToMain()
 		}
 	}
 }

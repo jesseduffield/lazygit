@@ -29,5 +29,5 @@ func (self *BlameCommands) BlameLineRange(filename string, commit string, firstL
 		Arg("--").
 		Arg(filename)
 
-	return self.cmd.New(cmdArgs.ToArgv()).RunWithOutput()
+	return self.cmd.New(cmdArgs.ToArgv()).DontLog().RunWithOutput()
 }

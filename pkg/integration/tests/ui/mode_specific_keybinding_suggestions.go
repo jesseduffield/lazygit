@@ -21,14 +21,14 @@ var ModeSpecificKeybindingSuggestions = NewIntegrationTest(NewIntegrationTestArg
 		rebaseSuggestion := "View rebase options: m"
 		cherryPickSuggestion := "Paste (cherry-pick): V"
 		bisectSuggestion := "View bisect options: b"
-		customPatchSuggestion := "View custom patch options: <c-p>"
+		customPatchSuggestion := "View custom patch options: <ctrl+p>"
 		mergeSuggestion := "View merge options: m"
 
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01"),
 			).
 			Tap(func() {
 				// These suggestions are mode-specific so are not shown by default
@@ -103,7 +103,7 @@ var ModeSpecificKeybindingSuggestions = NewIntegrationTest(NewIntegrationTestArg
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Merge")).
-					Select(Contains("Regular merge")).
+					Select(Contains("Regular merge (with merge commit)")).
 					Confirm()
 
 				t.Common().AcknowledgeConflicts()

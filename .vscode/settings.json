@@ -1,6 +1,6 @@
 {
   "gopls": {
-    "formatting.gofumpt": true,
+    "formatting.gofumpt": false,
     "ui.diagnostic.staticcheck": true,
     "ui.diagnostic.analyses": {
       // This list must match the one in .golangci.yml
@@ -24,6 +24,8 @@
   },
   "go.alternateTools": {
     "golangci-lint-v2": "${workspaceFolder}/scripts/golangci-lint-shim.sh",
+    "customFormatter": "${workspaceFolder}/scripts/gofumpt-tool.sh",
   },
   "go.lintTool": "golangci-lint-v2",
+  "go.formatTool": "custom",
 }

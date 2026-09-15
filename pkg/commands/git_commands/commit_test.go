@@ -255,7 +255,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 		contextSize         uint64
 		similarityThreshold int
 		ignoreWhitespace    bool
-		extDiffCmd          string
+		diffRendererConfig  *config.DiffRendererConfig
 		expected            []string
 	}
 
@@ -266,8 +266,8 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			extDiffCmd:          "",
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--find-renames=50%", "--"},
+			diffRendererConfig:  nil,
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
 			testName:            "Default case with filter path",
@@ -275,8 +275,8 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			extDiffCmd:          "",
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--find-renames=50%", "--", "file.txt"},
+			diffRendererConfig:  nil,
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--", "file.txt"},
 		},
 		{
 			testName:            "Show diff with custom context size",
@@ -284,8 +284,8 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         77,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			extDiffCmd:          "",
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890", "--find-renames=50%", "--"},
+			diffRendererConfig:  nil,
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=77", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
 			testName:            "Show diff with custom similarity threshold",
@@ -293,8 +293,8 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 33,
 			ignoreWhitespace:    false,
-			extDiffCmd:          "",
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--find-renames=33%", "--"},
+			diffRendererConfig:  nil,
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=3", "--find-renames=33%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
 			testName:            "Show diff, ignoring whitespace",
@@ -302,8 +302,8 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         77,
 			similarityThreshold: 50,
 			ignoreWhitespace:    true,
-			extDiffCmd:          "",
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--submodule", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890", "--ignore-all-space", "--find-renames=50%", "--"},
+			diffRendererConfig:  nil,
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=77", "--ignore-all-space", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
 			testName:            "Show diff with external diff command",
@@ -311,15 +311,26 @@ func TestCommitShowCmdObj(t *testing.T) {
 			contextSize:         3,
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
-			extDiffCmd:          "difft --color=always",
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.external=difft --color=always", "-c", "diff.noprefix=false", "show", "--ext-diff", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--find-renames=50%", "--"},
+			diffRendererConfig:  &config.DiffRendererConfig{Type: "extDiff", Command: "difft --color=always"},
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.external=difft --color=always", "-c", "diff.noprefix=false", "show", "--ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
+		},
+		{
+			testName:            "Show diff using git's external diff config",
+			filterPaths:         []string{},
+			contextSize:         3,
+			similarityThreshold: 50,
+			ignoreWhitespace:    false,
+			diffRendererConfig:  &config.DiffRendererConfig{Type: "extDiff"},
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
-			userConfig.Git.Paging.ExternalDiffCommand = s.extDiffCmd
+			if s.diffRendererConfig != nil {
+				userConfig.Git.DiffRenderers = []config.DiffRendererConfig{*s.diffRendererConfig}
+			}
 			userConfig.Git.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
 			userConfig.Git.DiffContextSize = s.contextSize
 			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
@@ -471,6 +482,11 @@ func TestAddCoAuthorToDescription(t *testing.T) {
 			name:           "Description already ending with a Co-authored-by line",
 			description:    "Body\n\nCo-authored-by: Jane Smith <jane@smith.com>",
 			expectedResult: "Body\n\nCo-authored-by: Jane Smith <jane@smith.com>\nCo-authored-by: John Doe <john@doe.com>",
+		},
+		{
+			name:           "Description with trailing newlines",
+			description:    "Body\n\n",
+			expectedResult: "Body\n\nCo-authored-by: John Doe <john@doe.com>",
 		},
 	}
 	for _, s := range scenarios {

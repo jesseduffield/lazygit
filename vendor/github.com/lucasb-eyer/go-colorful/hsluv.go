@@ -11,7 +11,8 @@ import "math"
 // comparing to the test values, this modified white reference is used internally.
 //
 // See this GitHub thread for details on these values:
-//     https://github.com/hsluv/hsluv/issues/79
+//
+//	https://github.com/hsluv/hsluv/issues/79
 var hSLuvD65 = [3]float64{0.95045592705167, 1.0, 1.089057750759878}
 
 func LuvLChToHSLuv(l, c, h float64) (float64, float64, float64) {
@@ -115,7 +116,7 @@ func (col Color) HPLuv() (h, s, l float64) {
 	return LuvLChToHPLuv(col.LuvLChWhiteRef(hSLuvD65))
 }
 
-// DistanceHSLuv calculates Euclidan distance in the HSLuv colorspace. No idea
+// DistanceHSLuv calculates Euclidean distance in the HSLuv colorspace. No idea
 // how useful this is.
 //
 // The Hue value is divided by 100 before the calculation, so that H, S, and L

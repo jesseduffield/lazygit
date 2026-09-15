@@ -1,5 +1,4 @@
 //go:build testify_yaml_custom && !testify_yaml_fail && !testify_yaml_default
-// +build testify_yaml_custom,!testify_yaml_fail,!testify_yaml_default
 
 // Package yaml is an implementation of YAML functions that calls a pluggable implementation.
 //
@@ -8,7 +7,7 @@
 //	go test -tags testify_yaml_custom
 //
 // This implementation can be used at build time to replace the default implementation
-// to avoid linking with [gopkg.in/yaml.v3].
+// to avoid linking with [go.yaml.in/yaml/v3].
 //
 // In your test package:
 //

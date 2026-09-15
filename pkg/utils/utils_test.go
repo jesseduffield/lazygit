@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -96,5 +98,54 @@ func TestModuloWithWrap(t *testing.T) {
 		if s.expected != ModuloWithWrap(s.n, s.max) {
 			t.Errorf("expected %d, got %d, for n: %d, max: %d", s.expected, ModuloWithWrap(s.n, s.max), s.n, s.max)
 		}
+	}
+}
+
+func TestExpandTilde(t *testing.T) {
+	home, err := os.UserHomeDir()
+	assert.NoError(t, err)
+
+	scenarios := []struct {
+		name     string
+		path     string
+		expected string
+	}{
+		{"bare tilde", "~", home},
+		{"tilde with subpath", "~/worktrees", filepath.Join(home, "worktrees")},
+		{"absolute path is untouched", "/absolute/path", "/absolute/path"},
+		{"relative path is untouched", "relative/path", "relative/path"},
+		{"tilde not at the start is untouched", "/foo/~/bar", "/foo/~/bar"},
+		{"tilde followed by a username is untouched", "~other/worktrees", "~other/worktrees"},
+		{"empty string is untouched", "", ""},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expected, ExpandTilde(s.path))
+		})
+	}
+}
+
+func TestContractTilde(t *testing.T) {
+	home, err := os.UserHomeDir()
+	assert.NoError(t, err)
+
+	scenarios := []struct {
+		name     string
+		path     string
+		expected string
+	}{
+		{"home directory", home, "~"},
+		{"path inside the home directory", filepath.Join(home, "worktrees"), filepath.Join("~", "worktrees")},
+		{"path outside the home directory is untouched", filepath.Join("/absolute", "path"), filepath.Join("/absolute", "path")},
+		{"path merely starting with the home directory's name is untouched", home + "-backup", home + "-backup"},
+		{"relative path is untouched", filepath.Join("relative", "path"), filepath.Join("relative", "path")},
+		{"empty string is untouched", "", ""},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expected, ContractTilde(s.path))
+		})
 	}
 }

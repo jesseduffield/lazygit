@@ -1,0 +1,54 @@
+root = true
+
+# Sane defaults.
+[*]
+# Always use unix end of line.
+end_of_line              = lf
+# Always insert a new line at the end of files.
+insert_final_newline     = true
+# Don't leave trailing whitespaces.
+trim_trailing_whitespace = true
+# Default to utf8 encoding.
+charset                  = utf-8
+# Space > tab for consistent aligns.
+indent_style             = space
+# Default to 2 spaces for indent/tabs.
+indent_size              = 2
+# Flag long lines.
+max_line_length          = 140
+
+# Explicitly define settings for commonly used files.
+
+[*.go]
+indent_style = tab
+indent_size  = 8
+
+[*.feature]
+indent_style = space
+indent_size  = 2
+
+[*.json]
+indent_style = space
+indent_size  = 2
+
+[*.{yml,yaml}]
+indent_style = space
+indent_size  = 2
+
+[*.tf]
+indent_style = space
+indent_size  = 2
+
+[*.md]
+# Don't check line lenghts in files.
+max_line_length = 0
+
+[{Makefile,*.mk}]
+indent_style = tab
+indent_size  = 8
+
+[{Dockerfile,Dockerfile.*}]
+indent_size = 4
+
+[*.sql]
+indent_size = 2

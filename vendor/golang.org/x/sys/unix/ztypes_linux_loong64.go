@@ -280,16 +280,10 @@ type Taskstats struct {
 	Ac_nice                   uint8
 	Cpu_count                 uint64
 	Cpu_delay_total           uint64
-	Cpu_delay_max             uint64
-	Cpu_delay_min             uint64
 	Blkio_count               uint64
 	Blkio_delay_total         uint64
-	Blkio_delay_max           uint64
-	Blkio_delay_min           uint64
 	Swapin_count              uint64
 	Swapin_delay_total        uint64
-	Swapin_delay_max          uint64
-	Swapin_delay_min          uint64
 	Cpu_run_real_total        uint64
 	Cpu_run_virtual_total     uint64
 	Ac_comm                   [32]int8
@@ -324,29 +318,43 @@ type Taskstats struct {
 	Cpu_scaled_run_real_total uint64
 	Freepages_count           uint64
 	Freepages_delay_total     uint64
-	Freepages_delay_max       uint64
-	Freepages_delay_min       uint64
 	Thrashing_count           uint64
 	Thrashing_delay_total     uint64
-	Thrashing_delay_max       uint64
-	Thrashing_delay_min       uint64
 	Ac_btime64                uint64
 	Compact_count             uint64
 	Compact_delay_total       uint64
-	Compact_delay_max         uint64
-	Compact_delay_min         uint64
 	Ac_tgid                   uint32
 	Ac_tgetime                uint64
 	Ac_exe_dev                uint64
 	Ac_exe_inode              uint64
 	Wpcopy_count              uint64
 	Wpcopy_delay_total        uint64
-	Wpcopy_delay_max          uint64
-	Wpcopy_delay_min          uint64
 	Irq_count                 uint64
 	Irq_delay_total           uint64
+	Cpu_delay_max             uint64
+	Cpu_delay_min             uint64
+	Blkio_delay_max           uint64
+	Blkio_delay_min           uint64
+	Swapin_delay_max          uint64
+	Swapin_delay_min          uint64
+	Freepages_delay_max       uint64
+	Freepages_delay_min       uint64
+	Thrashing_delay_max       uint64
+	Thrashing_delay_min       uint64
+	Compact_delay_max         uint64
+	Compact_delay_min         uint64
+	Wpcopy_delay_max          uint64
+	Wpcopy_delay_min          uint64
 	Irq_delay_max             uint64
 	Irq_delay_min             uint64
+	Cpu_delay_max_ts          KernelTimespec
+	Blkio_delay_max_ts        KernelTimespec
+	Swapin_delay_max_ts       KernelTimespec
+	Freepages_delay_max_ts    KernelTimespec
+	Thrashing_delay_max_ts    KernelTimespec
+	Compact_delay_max_ts      KernelTimespec
+	Wpcopy_delay_max_ts       KernelTimespec
+	Irq_delay_max_ts          KernelTimespec
 }
 
 type cpuMask uint64
@@ -697,3 +705,7 @@ type SysvShmDesc struct {
 	_      uint64
 	_      uint64
 }
+
+const (
+	GPIO_GET_CHIPINFO_IOCTL = 0x8044b401
+)

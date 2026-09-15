@@ -32,6 +32,9 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("Revert \"first commit\""),
 				Contains("first commit").IsSelected(),
 			).
+			Tap(func() {
+				t.Views().Main().Content(Contains("+myfile content"))
+			}).
 			SelectPreviousItem()
 
 		t.Views().Main().Content(Contains("-myfile content"))

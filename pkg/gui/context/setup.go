@@ -60,8 +60,11 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 			"main",
 			PATCH_BUILDING_MAIN_CONTEXT_KEY,
 			func() []int {
-				filename := commitFilesContext.GetSelectedPath()
-				includedLineIndices, err := c.Git().Patch.PatchBuilder.GetFileIncLineIndices(filename)
+				file := commitFilesContext.GetSelectedFile()
+				if file == nil {
+					return nil
+				}
+				includedLineIndices, err := c.Git().Patch.PatchBuilder.GetFileIncLineIndices(file.Path, file.PreviousPath)
 				if err != nil {
 					c.Log.Error(err)
 					return nil
@@ -84,6 +87,7 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 			c,
 		),
 		Confirmation:  NewConfirmationContext(c),
+		Prompt:        NewPromptContext(c),
 		CommitMessage: NewCommitMessageContext(c),
 		CommitDescription: NewSimpleContext(
 			NewBaseContext(NewBaseContextOpts{

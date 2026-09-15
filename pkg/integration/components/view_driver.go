@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/samber/lo"
 )
 
@@ -35,6 +36,53 @@ func (self *ViewDriver) Title(expected *TextMatcher) *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
 		actual := self.getView().Title
 		return expected.context(fmt.Sprintf("%s title", self.context)).test(actual)
+	})
+
+	return self
+}
+
+// asserts that the view has the expected footer, i.e. the "x of y" text on its
+// bottom border
+func (self *ViewDriver) Footer(expected *TextMatcher) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actual := self.getView().Footer
+		return expected.context(fmt.Sprintf("%s footer", self.context)).test(actual)
+	})
+
+	return self
+}
+
+// asserts that the view has the expected subtitle
+func (self *ViewDriver) Subtitle(expected *TextMatcher) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actual := self.getView().Subtitle
+		return expected.context(fmt.Sprintf("%s subtitle", self.context)).test(actual)
+	})
+
+	return self
+}
+
+// asserts that the view hangs off the bottom of the given one, sharing a border
+// with it
+func (self *ViewDriver) SharesTopBorderWithBottomOf(upper *ViewDriver) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		_, _, _, upperY1 := upper.getView().Dimensions()
+		_, y0, _, _ := self.getView().Dimensions()
+		return y0 == upperY1, fmt.Sprintf(
+			"%s: Expected view to start on row %d, where the view above it ends, but it starts on row %d",
+			self.context, upperY1, y0)
+	})
+
+	return self
+}
+
+// asserts that the view starts on the row below the given one
+func (self *ViewDriver) IsImmediatelyBelow(upper *ViewDriver) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		_, _, _, upperY1 := upper.getView().Dimensions()
+		_, y0, _, _ := self.getView().Dimensions()
+		return y0 == upperY1+1, fmt.Sprintf(
+			"%s: Expected view to start on row %d, but it starts on row %d", self.context, upperY1+1, y0)
 	})
 
 	return self
@@ -312,6 +360,42 @@ func (self *ViewDriver) Content(matcher *TextMatcher) *ViewDriver {
 	return self
 }
 
+// SelectionIsActive asserts that the view draws its selection as the one the user
+// is working in. These three assertions read the highlight flags rather than the
+// selected lines, which say nothing about whether the selection is drawn at all.
+func (self *ViewDriver) SelectionIsActive() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		ok := view.Highlight && !view.HighlightInactive
+		return ok, fmt.Sprintf("%s: expected an active selection to be shown, but it wasn't", self.context)
+	})
+
+	return self
+}
+
+// SelectionIsInactive asserts that the view draws its selection dimmed, as a panel
+// does while the focus is somewhere else.
+func (self *ViewDriver) SelectionIsInactive() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		ok := view.Highlight && view.HighlightInactive
+		return ok, fmt.Sprintf("%s: expected an inactive selection to be shown, but it wasn't", self.context)
+	})
+
+	return self
+}
+
+// SelectionIsHidden asserts that the view draws no selection at all, e.g. a list
+// with nothing in it, where there is nothing to select.
+func (self *ViewDriver) SelectionIsHidden() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		ok := !self.getView().Highlight
+		return ok, fmt.Sprintf("%s: expected no selection to be shown, but one was", self.context)
+	})
+
+	return self
+}
+
 // asserts on the selected line of the view. If you are selecting a range,
 // you should use the SelectedLines method instead.
 func (self *ViewDriver) SelectedLine(matcher *TextMatcher) *ViewDriver {
@@ -342,6 +426,55 @@ func (self *ViewDriver) SelectedLineIdx(expected int) *ViewDriver {
 	return self
 }
 
+func (self *ViewDriver) SelectedLineIdxAtLeast(expected int) *ViewDriver {
+	self.t.assertEventually(func() (bool, string) {
+		var actual int
+		self.t.gui.OnUIThreadAndWait(func() {
+			actual = self.getView().SelectedLineIdx()
+		})
+		return actual >= expected, fmt.Sprintf("%s: Expected selected line index to be at least %d, got %d", self.context, expected, actual)
+	})
+
+	return self
+}
+
+// asserts on the scroll position of the view, i.e. the index of the line that
+// is shown at the top of the view.
+func (self *ViewDriver) OriginY(expected int) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actual := self.getView().OriginY()
+		return expected == actual, fmt.Sprintf("%s: Expected origin Y to be %d, got %d", self.context, expected, actual)
+	})
+
+	return self
+}
+
+// asserts that the selected line is inside the visible area of the view
+func (self *ViewDriver) SelectedLineIsVisible() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		firstVisible, lastVisible := view.OriginY(), view.OriginY()+view.InnerHeight()-1
+		actual := view.SelectedLineIdx()
+		return actual >= firstVisible && actual <= lastVisible,
+			fmt.Sprintf("%s: Expected the selected line (%d) to be visible, but only lines %d to %d are",
+				self.context, actual, firstVisible, lastVisible)
+	})
+
+	return self
+}
+
+func (self *ViewDriver) OriginYAtLeast(expected int) *ViewDriver {
+	self.t.assertEventually(func() (bool, string) {
+		var actual int
+		self.t.gui.OnUIThreadAndWait(func() {
+			actual = self.getView().OriginY()
+		})
+		return actual >= expected, fmt.Sprintf("%s: Expected origin Y to be at least %d, got %d", self.context, expected, actual)
+	})
+
+	return self
+}
+
 // focus the view (assumes the view is a side-view)
 func (self *ViewDriver) Focus() *ViewDriver {
 	viewName := self.getView().Name()
@@ -362,7 +495,7 @@ func (self *ViewDriver) Focus() *ViewDriver {
 		if lo.Contains(window.viewNames, viewName) {
 			tabIndex := lo.IndexOf(window.viewNames, viewName)
 			// jump to the desired window
-			self.t.press(self.t.keys.Universal.JumpToBlock[windowIndex])
+			self.t.press(self.t.keys.Universal.JumpToBlock[windowIndex][0])
 
 			// assert we're in the window before continuing
 			self.t.assertWithRetries(func() (bool, string) {
@@ -376,11 +509,11 @@ func (self *ViewDriver) Focus() *ViewDriver {
 			currentViewTabIndex := lo.IndexOf(window.viewNames, currentViewName)
 			if tabIndex > currentViewTabIndex {
 				for range tabIndex - currentViewTabIndex {
-					self.t.press(self.t.keys.Universal.NextTab)
+					self.t.press(self.t.keys.Universal.NextTab[0])
 				}
 			} else if tabIndex < currentViewTabIndex {
 				for range currentViewTabIndex - tabIndex {
-					self.t.press(self.t.keys.Universal.PrevTab)
+					self.t.press(self.t.keys.Universal.PrevTab[0])
 				}
 			}
 
@@ -407,10 +540,32 @@ func (self *ViewDriver) IsFocused() *ViewDriver {
 	return self
 }
 
-func (self *ViewDriver) Press(keyStr string) *ViewDriver {
+// asserts that the view is the one currently shown in its window, i.e. it's the
+// active tab of its panel (drawn in front of the window's other tabs). Unlike
+// IsFocused, this is about what's displayed rather than which view has keyboard
+// focus; the two can disagree, e.g. if a config reload reshuffles the tabs.
+func (self *ViewDriver) IsActiveTab() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		expected := self.getView().Name()
+		context := self.t.gui.ContextForView(expected)
+		if context == nil {
+			return false, fmt.Sprintf("%s: Could not find context for view, so can't determine its window", expected)
+		}
+		topView := self.t.gui.TopViewInWindow(context.GetWindowName())
+		actual := ""
+		if topView != nil {
+			actual = topView.Name()
+		}
+		return actual == expected, fmt.Sprintf("%s: Expected view to be the active tab of its window, but it was %s", expected, actual)
+	})
+
+	return self
+}
+
+func (self *ViewDriver) Press(key config.Keybinding) *ViewDriver {
 	self.IsFocused()
 
-	self.t.press(keyStr)
+	self.t.press(key[0])
 
 	return self
 }
@@ -423,19 +578,97 @@ func (self *ViewDriver) Delay() *ViewDriver {
 
 // for use when typing or navigating, because in demos we want that to happen
 // faster
-func (self *ViewDriver) PressFast(keyStr string) *ViewDriver {
+func (self *ViewDriver) PressFast(key config.Keybinding) *ViewDriver {
 	self.IsFocused()
 
-	self.t.pressFast(keyStr)
+	self.t.pressFast(key[0])
+
+	return self
+}
+
+// Presses the given keys in immediate succession, without waiting for lazygit
+// to become idle in between (Press waits after every key). Use this to
+// simulate a user typing faster than lazygit processes the input.
+func (self *ViewDriver) PressRapidly(keys ...config.Keybinding) *ViewDriver {
+	self.IsFocused()
+
+	self.t.pressRapidly(lo.Map(keys, func(key config.Keybinding, _ int) string {
+		return key[0]
+	}))
 
 	return self
 }
 
 func (self *ViewDriver) Click(x, y int) *ViewDriver {
-	offsetX, offsetY, _, _ := self.getView().Dimensions()
+	offsetX, offsetY, _ := self.viewGeometry()
 
 	self.t.click(offsetX+1+x, offsetY+1+y)
 
+	return self
+}
+
+func (self *ViewDriver) FocusInAndClick(x, y int) *ViewDriver {
+	offsetX, offsetY, _ := self.viewGeometry()
+
+	self.t.focusInAndClick(offsetX+1+x, offsetY+1+y)
+
+	return self
+}
+
+func (self *ViewDriver) MouseMoveToView(target *ViewDriver, x, y int) *ViewDriver {
+	offsetX, offsetY, _ := target.viewGeometry()
+	self.t.mouseMove(offsetX+1+x, offsetY+1+y)
+	return self
+}
+
+func (self *ViewDriver) Drag(fromX, fromY, toX, toY int) *ViewDriver {
+	return self.ClickAndHold(fromX, fromY).MouseMove(toX, toY).MouseRelease()
+}
+
+func (self *ViewDriver) ClickAndHold(x, y int) *ViewDriver {
+	offsetX, offsetY, _ := self.viewGeometry()
+	self.t.clickAndHold(offsetX+1+x, offsetY+1+y)
+	return self
+}
+
+func (self *ViewDriver) MouseMove(x, y int) *ViewDriver {
+	offsetX, offsetY, _ := self.viewGeometry()
+	self.t.mouseMove(offsetX+1+x, offsetY+1+y)
+	return self
+}
+
+func (self *ViewDriver) MouseMoveToBottom(x int) *ViewDriver {
+	offsetX, offsetY, innerHeight := self.viewGeometry()
+	self.t.mouseMove(offsetX+1+x, offsetY+innerHeight)
+	return self
+}
+
+// scrolls the view down by one notch of the mouse wheel, i.e. by
+// gui.scrollHeight lines. This moves the scroll position without moving the
+// selection.
+func (self *ViewDriver) ScrollWheelDown() *ViewDriver {
+	offsetX, offsetY, _ := self.viewGeometry()
+	self.t.scrollWheelDown(offsetX+1, offsetY+1)
+	return self
+}
+
+func (self *ViewDriver) viewGeometry() (offsetX int, offsetY int, innerHeight int) {
+	self.t.gui.OnUIThreadAndWait(func() {
+		view := self.getView()
+		offsetX, offsetY, _, _ = view.Dimensions()
+		innerHeight = view.InnerHeight()
+	})
+
+	return offsetX, offsetY, innerHeight
+}
+
+func (self *ViewDriver) RepeatMouseMove() *ViewDriver {
+	self.t.repeatMouseMove()
+	return self
+}
+
+func (self *ViewDriver) MouseRelease() *ViewDriver {
+	self.t.mouseRelease()
 	return self
 }
 

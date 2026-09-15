@@ -67,17 +67,31 @@ func NewSuggestionsContext(
 }
 
 func (self *SuggestionsContext) SetSuggestions(suggestions []*types.Suggestion) {
-	self.State.Suggestions = suggestions
-	self.SetSelection(0)
-	self.c.ResetViewOrigin(self.GetView())
-	self.HandleRender()
+	// SetSuggestions is invoked from AsyncHandler (a worker goroutine) when
+	// the prompt input changes, as well as from prepareConfirmationPanel on
+	// the UI thread. Bounce to the UI thread either way so the worker path
+	// keeps flushing once HandleRender stops calling Render() itself.
+	self.c.OnUIThread(func() error {
+		self.State.Suggestions = suggestions
+		self.SetSelection(0)
+		self.c.ResetViewOrigin(self.GetView())
+		self.HandleRender()
+		return nil
+	})
 }
 
 func (self *SuggestionsContext) RefreshSuggestions() {
+	// Capture the suggestions function and the prompt input here, on the UI
+	// thread, rather than inside the worker below: the main thread rewrites both
+	// (State.FindSuggestions and the prompt's TextArea) when it (re)creates a
+	// prompt panel, so reading them from the worker races those writes. It's
+	// also more correct -- we search for the input as it was when dispatched,
+	// which is what this request's AsyncHandler id corresponds to.
+	findSuggestionsFn := self.State.FindSuggestions
+	promptInput := self.c.GetPromptInput()
 	self.State.AsyncHandler.Do(func() func() {
-		findSuggestionsFn := self.State.FindSuggestions
 		if findSuggestionsFn != nil {
-			suggestions := findSuggestionsFn(self.c.GetPromptInput())
+			suggestions := findSuggestionsFn(promptInput)
 			return func() { self.SetSuggestions(suggestions) }
 		}
 		return func() {}
@@ -89,6 +103,6 @@ func (self *SuggestionsContext) RangeSelectEnabled() bool {
 	return false
 }
 
-func (self *SuggestionsContext) GetOnClick() func() error {
+func (self *SuggestionsContext) GetOnDoubleClick() func() error {
 	return self.State.OnConfirm
 }

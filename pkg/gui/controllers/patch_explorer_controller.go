@@ -3,7 +3,8 @@ package controllers
 import (
 	"strings"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -19,18 +20,27 @@ func NewPatchExplorerControllerFactory(c *ControllerCommon) *PatchExplorerContro
 }
 
 func (self *PatchExplorerControllerFactory) Create(context types.IPatchExplorerContext) *PatchExplorerController {
-	return &PatchExplorerController{
+	controller := &PatchExplorerController{
 		baseController: baseController{},
 		c:              self.c,
 		context:        context,
 	}
+	controller.dragAutoscroller = helpers.NewDragAutoscroller(
+		self.c.HelperCommon,
+		context,
+		controller.canDragAutoscroll,
+		controller.handleDragAutoscroll,
+	)
+	return controller
 }
 
 type PatchExplorerController struct {
 	baseController
 	c *ControllerCommon
 
-	context types.IPatchExplorerContext
+	context           types.IPatchExplorerContext
+	dragAutoscroller  *helpers.DragAutoscroller
+	draggingWithMouse bool
 }
 
 func (self *PatchExplorerController) Context() types.Context {
@@ -41,61 +51,43 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 	return []*types.Binding{
 		{
 			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.PrevItemAlt),
+			Keys:    opts.GetKeys(opts.Config.Universal.PrevItem),
 			Handler: self.withRenderAndFocus(self.HandlePrevLine),
 		},
 		{
 			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.PrevItem),
-			Handler: self.withRenderAndFocus(self.HandlePrevLine),
-		},
-		{
-			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.NextItemAlt),
-			Handler: self.withRenderAndFocus(self.HandleNextLine),
-		},
-		{
-			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.NextItem),
+			Keys:    opts.GetKeys(opts.Config.Universal.NextItem),
 			Handler: self.withRenderAndFocus(self.HandleNextLine),
 		},
 		{
 			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.RangeSelectUp),
+			Keys:        opts.GetKeys(opts.Config.Universal.RangeSelectUp),
 			Handler:     self.withRenderAndFocus(self.HandlePrevLineRange),
 			Description: self.c.Tr.RangeSelectUp,
 		},
 		{
 			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.RangeSelectDown),
+			Keys:        opts.GetKeys(opts.Config.Universal.RangeSelectDown),
 			Handler:     self.withRenderAndFocus(self.HandleNextLineRange),
 			Description: self.c.Tr.RangeSelectDown,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.PrevBlock),
+			Keys:        opts.GetKeys(opts.Config.Main.PrevHunk),
 			Handler:     self.withRenderAndFocus(self.HandlePrevHunk),
 			Description: self.c.Tr.PrevHunk,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.PrevBlockAlt),
-			Handler: self.withRenderAndFocus(self.HandlePrevHunk),
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Universal.NextBlock),
+			Keys:        opts.GetKeys(opts.Config.Main.NextHunk),
 			Handler:     self.withRenderAndFocus(self.HandleNextHunk),
 			Description: self.c.Tr.NextHunk,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.NextBlockAlt),
-			Handler: self.withRenderAndFocus(self.HandleNextHunk),
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Universal.ToggleRangeSelect),
+			Keys:        opts.GetKeys(opts.Config.Universal.ToggleRangeSelect),
 			Handler:     self.withRenderAndFocus(self.HandleToggleSelectRange),
 			Description: self.c.Tr.ToggleRangeSelect,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Main.ToggleSelectHunk),
+			Keys:        opts.GetKeys(opts.Config.Main.ToggleSelectHunk),
 			Handler:     self.withRenderAndFocus(self.HandleToggleSelectHunk),
 			Description: self.c.Tr.ToggleSelectHunk,
 			DescriptionFunc: func() string {
@@ -109,50 +101,40 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 		},
 		{
 			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.PrevPage),
+			Keys:        opts.GetKeys(opts.Config.Universal.PrevPage),
 			Handler:     self.withRenderAndFocus(self.HandlePrevPage),
 			Description: self.c.Tr.PrevPage,
 		},
 		{
 			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.NextPage),
+			Keys:        opts.GetKeys(opts.Config.Universal.NextPage),
 			Handler:     self.withRenderAndFocus(self.HandleNextPage),
 			Description: self.c.Tr.NextPage,
 		},
 		{
 			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.GotoTop),
+			Keys:        opts.GetKeys(opts.Config.Universal.GotoTop),
 			Handler:     self.withRenderAndFocus(self.HandleGotoTop),
 			Description: self.c.Tr.GotoTop,
 		},
 		{
 			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.GotoBottom),
+			Keys:        opts.GetKeys(opts.Config.Universal.GotoBottom),
 			Description: self.c.Tr.GotoBottom,
 			Handler:     self.withRenderAndFocus(self.HandleGotoBottom),
 		},
 		{
 			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.GotoTopAlt),
-			Handler: self.withRenderAndFocus(self.HandleGotoTop),
-		},
-		{
-			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.GotoBottomAlt),
-			Handler: self.withRenderAndFocus(self.HandleGotoBottom),
-		},
-		{
-			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.ScrollLeft),
+			Keys:    opts.GetKeys(opts.Config.Universal.ScrollLeft),
 			Handler: self.withRenderAndFocus(self.HandleScrollLeft),
 		},
 		{
 			Tag:     "navigation",
-			Key:     opts.GetKey(opts.Config.Universal.ScrollRight),
+			Keys:    opts.GetKeys(opts.Config.Universal.ScrollRight),
 			Handler: self.withRenderAndFocus(self.HandleScrollRight),
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Keys:        opts.GetKeys(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.withLock(self.CopySelectedToClipboard),
 			Description: self.c.Tr.CopySelectedTextToClipboard,
 		},
@@ -181,10 +163,74 @@ func (self *PatchExplorerController) GetMouseKeybindings(opts types.KeybindingsO
 			ViewName: self.context.GetViewName(),
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModMotion,
-			Handler: func(gocui.ViewMouseBindingOpts) error {
-				return self.withRenderAndFocus(self.HandleMouseDrag)()
-			},
+			Handler:  self.handleMouseDrag,
 		},
+		{
+			ViewName: self.context.GetViewName(),
+			Key:      gocui.MouseRelease,
+			Handler:  func(gocui.ViewMouseBindingOpts) error { return self.handleDragRelease() },
+		},
+	}
+}
+
+func (self *PatchExplorerController) handleMouseDrag(opts gocui.ViewMouseBindingOpts) error {
+	if err := self.withLock(func() error {
+		self.context.GetState().DragSelectLine(opts.Y)
+		self.renderDragSelection()
+		return nil
+	})(); err != nil {
+		return err
+	}
+
+	self.draggingWithMouse = true
+	originY, _ := self.context.GetViewTrait().ViewPortYBounds()
+	self.dragAutoscroller.Update(opts.Y - originY)
+	return nil
+}
+
+func (self *PatchExplorerController) canDragAutoscroll(int) bool {
+	state := self.context.GetState()
+	return state != nil && state.SelectingRange()
+}
+
+func (self *PatchExplorerController) handleDragAutoscroll(viewIndex int) bool {
+	if !self.canDragAutoscroll(0) {
+		return false
+	}
+
+	if err := self.withLock(func() error {
+		self.context.GetState().DragSelectLine(viewIndex)
+		self.renderDragSelection()
+		return nil
+	})(); err != nil {
+		return false
+	}
+	return true
+}
+
+func (self *PatchExplorerController) renderDragSelection() {
+	view := self.context.GetView()
+	state := self.context.GetState()
+	originY := view.OriginY()
+	startIndex, _ := state.SelectedViewRange()
+	view.SetRangeSelectStart(startIndex)
+	view.SetCursorY(state.GetSelectedViewLineIdx() - originY)
+	self.context.Render()
+}
+
+func (self *PatchExplorerController) handleDragRelease() error {
+	self.draggingWithMouse = false
+	self.dragAutoscroller.Cancel()
+	return nil
+}
+
+func (self *PatchExplorerController) GetOnFocusLost() func(types.OnFocusLostOpts) {
+	return func(types.OnFocusLostOpts) {
+		self.dragAutoscroller.Cancel()
+		if self.draggingWithMouse {
+			self.draggingWithMouse = false
+			self.c.GocuiGui().CancelMouseCapture()
+		}
 	}
 }
 
@@ -290,12 +336,6 @@ func (self *PatchExplorerController) HandleGotoBottom() error {
 
 func (self *PatchExplorerController) HandleMouseDown() error {
 	self.context.GetState().SelectNewLineForRange(self.context.GetViewTrait().SelectedLineIdx())
-
-	return nil
-}
-
-func (self *PatchExplorerController) HandleMouseDrag() error {
-	self.context.GetState().DragSelectLine(self.context.GetViewTrait().SelectedLineIdx())
 
 	return nil
 }

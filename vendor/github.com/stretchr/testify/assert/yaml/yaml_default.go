@@ -1,5 +1,4 @@
 //go:build !testify_yaml_fail && !testify_yaml_custom
-// +build !testify_yaml_fail,!testify_yaml_custom
 
 // Package yaml is just an indirection to handle YAML deserialization.
 //
@@ -7,7 +6,7 @@
 // indirection with an alternative implementation of this package that uses
 // another implementation of YAML deserialization. This allows to not either not
 // use YAML deserialization at all, or to use another implementation than
-// [gopkg.in/yaml.v3] (for example for license compatibility reasons, see [PR #1120]).
+// [go.yaml.in/yaml/v3] (for example for license compatibility reasons, see [PR #1120]).
 //
 // Alternative implementations are selected using build tags:
 //
@@ -29,9 +28,9 @@
 // [PR #1120]: https://github.com/stretchr/testify/pull/1120
 package yaml
 
-import goyaml "gopkg.in/yaml.v3"
+import goyaml "go.yaml.in/yaml/v3"
 
-// Unmarshal is just a wrapper of [gopkg.in/yaml.v3.Unmarshal].
+// Unmarshal is just a wrapper of [go.yaml.in/yaml/v3.Unmarshal].
 func Unmarshal(in []byte, out interface{}) error {
 	return goyaml.Unmarshal(in, out)
 }

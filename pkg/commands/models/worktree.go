@@ -19,6 +19,9 @@ type Worktree struct {
 	// * the worktree is mid-rebase on the branch
 	// * the worktree is mid-bisect on the branch
 	Branch string
+	// The HEAD sha of the worktree. Always populated (even when Branch is set).
+	// Used for display when Branch is empty (detached HEAD state).
+	Head string
 	// based on the path, but uniquified. Not the same name that git uses in the worktrees/ folder (no good reason for this,
 	// I just prefer my naming convention better)
 	Name string

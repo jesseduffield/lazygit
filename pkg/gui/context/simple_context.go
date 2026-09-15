@@ -1,7 +1,7 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -33,28 +33,29 @@ func NewDisplayContext(key types.ContextKey, view *gocui.View, windowName string
 }
 
 func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) {
-	if self.highlightOnFocus {
-		self.GetViewTrait().SetHighlight(true)
-	}
-
 	for _, fn := range self.onFocusFns {
 		fn(opts)
 	}
 
-	if self.onRenderToMainFn != nil {
+	if self.onRenderToMainFn != nil && !opts.SkipMainViewUpdate {
 		self.onRenderToMainFn()
 	}
 }
 
 func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) {
-	self.GetViewTrait().SetHighlight(false)
 	self.view.SetOriginX(0)
 	for _, fn := range self.onFocusLostFns {
 		fn(opts)
 	}
 }
 
-func (self *SimpleContext) FocusLine() {
+func (self *SimpleContext) HandleQuit() {
+	for _, fn := range self.onQuitFns {
+		fn()
+	}
+}
+
+func (self *SimpleContext) FocusLine(scrollIntoView bool) {
 }
 
 func (self *SimpleContext) HandleRender() {

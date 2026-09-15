@@ -1,442 +1,474 @@
-![afero logo-sm](https://cloud.githubusercontent.com/assets/173412/11490338/d50e16dc-97a5-11e5-8b12-019a300d0fcb.png)
-
-A FileSystem Abstraction System for Go
-
-[![Test](https://github.com/spf13/afero/actions/workflows/test.yml/badge.svg)](https://github.com/spf13/afero/actions/workflows/test.yml) [![GoDoc](https://godoc.org/github.com/spf13/afero?status.svg)](https://godoc.org/github.com/spf13/afero) [![Join the chat at https://gitter.im/spf13/afero](https://badges.gitter.im/Dev%20Chat.svg)](https://gitter.im/spf13/afero?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-# Overview
-
-Afero is a filesystem framework providing a simple, uniform and universal API
-interacting with any filesystem, as an abstraction layer providing interfaces,
-types and methods. Afero has an exceptionally clean interface and simple design
-without needless constructors or initialization methods.
-
-Afero is also a library providing a base set of interoperable backend
-filesystems that make it easy to work with afero while retaining all the power
-and benefit of the os and ioutil packages.
-
-Afero provides significant improvements over using the os package alone, most
-notably the ability to create mock and testing filesystems without relying on the disk.
-
-It is suitable for use in any situation where you would consider using the OS
-package as it provides an additional abstraction that makes it easy to use a
-memory backed file system during testing. It also adds support for the http
-filesystem for full interoperability.
+<img src="https://cloud.githubusercontent.com/assets/173412/11490338/d50e16dc-97a5-11e5-8b12-019a300d0fcb.png" alt="afero logo-sm"/>
 
 
-## Afero Features
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/spf13/afero/ci.yaml?branch=master&amp;style=flat-square)](https://github.com/spf13/afero/actions?query=workflow%3ACI)
+[![GoDoc](https://pkg.go.dev/badge/mod/github.com/spf13/afero)](https://pkg.go.dev/mod/github.com/spf13/afero)
+[![Go Report Card](https://goreportcard.com/badge/github.com/spf13/afero)](https://goreportcard.com/report/github.com/spf13/afero)
+![Go Version](https://img.shields.io/badge/go%20version-%3E=1.23-61CFDD.svg?style=flat-square")
 
-* A single consistent API for accessing a variety of filesystems
-* Interoperation between a variety of file system types
-* A set of interfaces to encourage and enforce interoperability between backends
-* An atomic cross platform memory backed file system
-* Support for compositional (union) file systems by combining multiple file systems acting as one
-* Specialized backends which modify existing filesystems (Read Only, Regexp filtered)
-* A set of utility functions ported from io, ioutil & hugo to be afero aware
-* Wrapper for go 1.16 filesystem abstraction `io/fs.FS`
 
-# Using Afero
+# Afero: The Universal Filesystem Abstraction for Go
 
-Afero is easy to use and easier to adopt.
+Afero is a powerful and extensible filesystem abstraction system for Go. It provides a single, unified API for interacting with diverse filesystems—including the local disk, memory, archives, and network storage.
 
-A few different ways you could use Afero:
+Afero acts as a drop-in replacement for the standard `os` package, enabling you to write modular code that is agnostic to the underlying storage, dramatically simplifies testing, and allows for sophisticated architectural patterns through filesystem composition.
 
-* Use the interfaces alone to define your own file system.
-* Wrapper for the OS packages.
-* Define different filesystems for different parts of your application.
-* Use Afero for mock filesystems while testing
+## Why Afero?
 
-## Step 1: Install Afero
+Afero elevates filesystem interaction beyond simple file reading and writing, offering solutions for testability, flexibility, and advanced architecture.
 
-First use go get to install the latest version of the library.
+🔑 **Key Features:**
 
-    $ go get github.com/spf13/afero
+*   **Universal API:** Write your code once. Run it against the local OS, in-memory storage, ZIP/TAR archives, or remote systems (SFTP, GCS).
+*   **Ultimate Testability:** Utilize `MemMapFs`, a fully concurrent-safe, read/write in-memory filesystem. Write fast, isolated, and reliable unit tests without touching the physical disk or worrying about cleanup.
+*   **Powerful Composition:** Afero's hidden superpower. Layer filesystems on top of each other to create sophisticated behaviors:
+    *   **Sandboxing:** Use `CopyOnWriteFs` to create temporary scratch spaces that isolate changes from the base filesystem.
+    *   **Caching:** Use `CacheOnReadFs` to automatically layer a fast cache (like memory) over a slow backend (like a network drive).
+    *   **Security Jails:** Use `BasePathFs` to restrict application access to a specific subdirectory (chroot).
+*   **`os` Package Compatibility:** Afero mirrors the functions in the standard `os` package, making adoption and refactoring seamless.
+*   **`io/fs` Compatibility:** Fully compatible with the Go standard library's `io/fs` interfaces.
 
-Next include Afero in your application.
+## Installation
+
+```bash
+go get github.com/spf13/afero
+```
+
 ```go
 import "github.com/spf13/afero"
 ```
 
-## Step 2: Declare a backend
+## Quick Start: The Power of Abstraction
 
-First define a package variable and set it to a pointer to a filesystem.
-```go
-var AppFs = afero.NewMemMapFs()
+The core of Afero is the `afero.Fs` interface. By designing your functions to accept this interface rather than calling `os.*` functions directly, your code instantly becomes more flexible and testable.
 
-or
+### 1. Refactor Your Code
 
-var AppFs = afero.NewOsFs()
-```
-It is important to note that if you repeat the composite literal you
-will be using a completely new and isolated filesystem. In the case of
-OsFs it will still use the same underlying filesystem but will reduce
-the ability to drop in other filesystems as desired.
-
-## Step 3: Use it like you would the OS package
-
-Throughout your application use any function and method like you normally
-would.
-
-So if my application before had:
-```go
-os.Open("/tmp/foo")
-```
-We would replace it with:
-```go
-AppFs.Open("/tmp/foo")
-```
-
-`AppFs` being the variable we defined above.
-
-
-## List of all available functions
-
-File System Methods Available:
-```go
-Chmod(name string, mode os.FileMode) : error
-Chown(name string, uid, gid int) : error
-Chtimes(name string, atime time.Time, mtime time.Time) : error
-Create(name string) : File, error
-Mkdir(name string, perm os.FileMode) : error
-MkdirAll(path string, perm os.FileMode) : error
-Name() : string
-Open(name string) : File, error
-OpenFile(name string, flag int, perm os.FileMode) : File, error
-Remove(name string) : error
-RemoveAll(path string) : error
-Rename(oldname, newname string) : error
-Stat(name string) : os.FileInfo, error
-```
-File Interfaces and Methods Available:
-```go
-io.Closer
-io.Reader
-io.ReaderAt
-io.Seeker
-io.Writer
-io.WriterAt
-
-Name() : string
-Readdir(count int) : []os.FileInfo, error
-Readdirnames(n int) : []string, error
-Stat() : os.FileInfo, error
-Sync() : error
-Truncate(size int64) : error
-WriteString(s string) : ret int, err error
-```
-In some applications it may make sense to define a new package that
-simply exports the file system variable for easy access from anywhere.
-
-## Using Afero's utility functions
-
-Afero provides a set of functions to make it easier to use the underlying file systems.
-These functions have been primarily ported from io & ioutil with some developed for Hugo.
-
-The afero utilities support all afero compatible backends.
-
-The list of utilities includes:
+Change functions that rely on the `os` package to accept `afero.Fs`.
 
 ```go
-DirExists(path string) (bool, error)
-Exists(path string) (bool, error)
-FileContainsBytes(filename string, subslice []byte) (bool, error)
-GetTempDir(subPath string) string
-IsDir(path string) (bool, error)
-IsEmpty(path string) (bool, error)
-ReadDir(dirname string) ([]os.FileInfo, error)
-ReadFile(filename string) ([]byte, error)
-SafeWriteReader(path string, r io.Reader) (err error)
-TempDir(dir, prefix string) (name string, err error)
-TempFile(dir, prefix string) (f File, err error)
-Walk(root string, walkFn filepath.WalkFunc) error
-WriteFile(filename string, data []byte, perm os.FileMode) error
-WriteReader(path string, r io.Reader) (err error)
-```
-For a complete list see [Afero's GoDoc](https://godoc.org/github.com/spf13/afero)
+// Before: Coupled to the OS and difficult to test
+// func ProcessConfiguration(path string) error {
+//     data, err := os.ReadFile(path)
+//     ...
+// }
 
-They are available under two different approaches to use. You can either call
-them directly where the first parameter of each function will be the file
-system, or you can declare a new `Afero`, a custom type used to bind these
-functions as methods to a given filesystem.
+import "github.com/spf13/afero"
 
-### Calling utilities directly
-
-```go
-fs := new(afero.MemMapFs)
-f, err := afero.TempFile(fs,"", "ioutil-test")
-
-```
-
-### Calling via Afero
-
-```go
-fs := afero.NewMemMapFs()
-afs := &afero.Afero{Fs: fs}
-f, err := afs.TempFile("", "ioutil-test")
-```
-
-## Using Afero for Testing
-
-There is a large benefit to using a mock filesystem for testing. It has a
-completely blank state every time it is initialized and can be easily
-reproducible regardless of OS. You could create files to your heart’s content
-and the file access would be fast while also saving you from all the annoying
-issues with deleting temporary files, Windows file locking, etc. The MemMapFs
-backend is perfect for testing.
-
-* Much faster than performing I/O operations on disk
-* Avoid security issues and permissions
-* Far more control. 'rm -rf /' with confidence
-* Test setup is far more easier to do
-* No test cleanup needed
-
-One way to accomplish this is to define a variable as mentioned above.
-In your application this will be set to afero.NewOsFs() during testing you
-can set it to afero.NewMemMapFs().
-
-It wouldn't be uncommon to have each test initialize a blank slate memory
-backend. To do this I would define my `appFS = afero.NewOsFs()` somewhere
-appropriate in my application code. This approach ensures that Tests are order
-independent, with no test relying on the state left by an earlier test.
-
-Then in my tests I would initialize a new MemMapFs for each test:
-```go
-func TestExist(t *testing.T) {
-	appFS := afero.NewMemMapFs()
-	// create test files and directories
-	appFS.MkdirAll("src/a", 0755)
-	afero.WriteFile(appFS, "src/a/b", []byte("file b"), 0644)
-	afero.WriteFile(appFS, "src/c", []byte("file c"), 0644)
-	name := "src/c"
-	_, err := appFS.Stat(name)
-	if os.IsNotExist(err) {
-		t.Errorf("file \"%s\" does not exist.\n", name)
-	}
+// After: Decoupled, flexible, and testable
+func ProcessConfiguration(fs afero.Fs, path string) error {
+    // Use Afero utility functions which mirror os/ioutil
+    data, err := afero.ReadFile(fs, path)
+    // ... process the data
+    return err
 }
 ```
 
-# Available Backends
+### 2. Usage in Production
 
-## Operating System Native
-
-### OsFs
-
-The first is simply a wrapper around the native OS calls. This makes it
-very easy to use as all of the calls are the same as the existing OS
-calls. It also makes it trivial to have your code use the OS during
-operation and a mock filesystem during testing or as needed.
+In your production environment, inject the `OsFs` backend, which wraps the standard operating system calls.
 
 ```go
-appfs := afero.NewOsFs()
-appfs.MkdirAll("src/a", 0755)
+func main() {
+    // Use the real OS filesystem
+    AppFs := afero.NewOsFs()
+    ProcessConfiguration(AppFs, "/etc/myapp.conf")
+}
 ```
 
-## Memory Backed Storage
+### 3. Usage in Testing
 
-### MemMapFs
-
-Afero also provides a fully atomic memory backed filesystem perfect for use in
-mocking and to speed up unnecessary disk io when persistence isn’t
-necessary. It is fully concurrent and will work within go routines
-safely.
+In your tests, inject `MemMapFs`. This provides a blazing-fast, isolated, in-memory filesystem that requires no disk I/O and no cleanup.
 
 ```go
-mm := afero.NewMemMapFs()
-mm.MkdirAll("src/a", 0755)
+func TestProcessConfiguration(t *testing.T) {
+    // Use the in-memory filesystem
+    AppFs := afero.NewMemMapFs()
+    
+    // Pre-populate the memory filesystem for the test
+    configPath := "/test/config.json"
+    afero.WriteFile(AppFs, configPath, []byte(`{"feature": true}`), 0644)
+
+    // Run the test entirely in memory
+    err := ProcessConfiguration(AppFs, configPath)
+    if err != nil {
+        t.Fatal(err)
+    }
+}
 ```
 
-#### InMemoryFile
+## Afero's Superpower: Composition
 
-As part of MemMapFs, Afero also provides an atomic, fully concurrent memory
-backed file implementation. This can be used in other memory backed file
-systems with ease. Plans are to add a radix tree memory stored file
-system using InMemoryFile.
+Afero's most unique feature is its ability to combine filesystems. This allows you to build complex behaviors out of simple components, keeping your application logic clean.
 
-## Network Interfaces
+### Example 1: Sandboxing with Copy-on-Write
 
-### SftpFs
-
-Afero has experimental support for secure file transfer protocol (sftp). Which can
-be used to perform file operations over a encrypted channel.
-
-### GCSFs
-
-Afero has experimental support for Google Cloud Storage (GCS). You can either set the
-`GOOGLE_APPLICATION_CREDENTIALS_JSON` env variable to your JSON credentials or use `opts` in
-`NewGcsFS` to configure access to your GCS bucket.
-
-Some known limitations of the existing implementation:
-* No Chmod support - The GCS ACL could probably be mapped to *nix style permissions but that would add another level of complexity and is ignored in this version.
-* No Chtimes support - Could be simulated with attributes (gcs a/m-times are set implicitly) but that's is left for another version.
-* Not thread safe - Also assumes all file operations are done through the same instance of the GcsFs. File operations between different GcsFs instances are not guaranteed to be consistent.
-
-
-## Filtering Backends
-
-### BasePathFs
-
-The BasePathFs restricts all operations to a given path within an Fs.
-The given file name to the operations on this Fs will be prepended with
-the base path before calling the source Fs.
+Create a temporary environment where an application can "modify" system files without affecting the actual disk.
 
 ```go
-bp := afero.NewBasePathFs(afero.NewOsFs(), "/base/path")
+// 1. The base layer is the real OS, made read-only for safety.
+baseFs := afero.NewReadOnlyFs(afero.NewOsFs())
+
+// 2. The overlay layer is a temporary in-memory filesystem for changes.
+overlayFs := afero.NewMemMapFs()
+
+// 3. Combine them. Reads fall through to the base; writes only hit the overlay.
+sandboxFs := afero.NewCopyOnWriteFs(baseFs, overlayFs)
+
+// The application can now "modify" /etc/hosts, but the changes are isolated in memory.
+afero.WriteFile(sandboxFs, "/etc/hosts", []byte("127.0.0.1 sandboxed-app"), 0644)
+
+// The real /etc/hosts on disk is untouched.
 ```
 
-### ReadOnlyFs
+### Example 2: Caching a Slow Filesystem
 
-A thin wrapper around the source Fs providing a read only view.
+Improve performance by layering a fast cache (like memory) over a slow backend (like a network drive or cloud storage).
 
 ```go
-fs := afero.NewReadOnlyFs(afero.NewOsFs())
-_, err := fs.Create("/file.txt")
-// err = syscall.EPERM
+import "time"
+
+// Assume 'remoteFs' is a slow backend (e.g., SFTP or GCS)
+var remoteFs afero.Fs 
+
+// 'cacheFs' is a fast in-memory backend
+cacheFs := afero.NewMemMapFs()
+
+// Create the caching layer. Cache items for 5 minutes upon first read.
+cachedFs := afero.NewCacheOnReadFs(remoteFs, cacheFs, 5*time.Minute)
+
+// The first read is slow (fetches from remote, then caches)
+data1, _ := afero.ReadFile(cachedFs, "data.json")
+
+// The second read is instant (serves from memory cache)
+data2, _ := afero.ReadFile(cachedFs, "data.json")
 ```
 
-# RegexpFs
+### Example 3: Security Jails (chroot)
 
-A filtered view on file names, any file NOT matching
-the passed regexp will be treated as non-existing.
-Files not matching the regexp provided will not be created.
-Directories are not filtered.
+Restrict an application component's access to a specific subdirectory.
 
 ```go
-fs := afero.NewRegexpFs(afero.NewMemMapFs(), regexp.MustCompile(`\.txt$`))
-_, err := fs.Create("/file.html")
-// err = syscall.ENOENT
+osFs := afero.NewOsFs()
+
+// Create a filesystem rooted at /home/user/public
+// The application cannot access anything above this directory.
+jailedFs := afero.NewBasePathFs(osFs, "/home/user/public")
+
+// To the application, this is reading "/"
+// In reality, it's reading "/home/user/public/"
+dirInfo, err := afero.ReadDir(jailedFs, "/")
+
+// Attempts to access parent directories fail
+_, err = jailedFs.Open("../secrets.txt") // Returns an error
 ```
 
-### HttpFs
+## Real-World Use Cases
 
-Afero provides an http compatible backend which can wrap any of the existing
-backends.
+### Build Cloud-Agnostic Applications
 
-The Http package requires a slightly specific version of Open which
-returns an http.File type.
-
-Afero provides an httpFs file system which satisfies this requirement.
-Any Afero FileSystem can be used as an httpFs.
+Write applications that seamlessly work with different storage backends:
 
 ```go
-httpFs := afero.NewHttpFs(<ExistingFS>)
-fileserver := http.FileServer(httpFs.Dir(<PATH>))
-http.Handle("/", fileserver)
+type DocumentProcessor struct {
+    fs afero.Fs
+}
+
+func NewDocumentProcessor(fs afero.Fs) *DocumentProcessor {
+    return &DocumentProcessor{fs: fs}
+}
+
+func (p *DocumentProcessor) Process(inputPath, outputPath string) error {
+    // This code works whether fs is local disk, cloud storage, or memory
+    content, err := afero.ReadFile(p.fs, inputPath)
+    if err != nil {
+        return err
+    }
+    
+    processed := processContent(content)
+    return afero.WriteFile(p.fs, outputPath, processed, 0644)
+}
+
+// Use with local filesystem
+processor := NewDocumentProcessor(afero.NewOsFs())
+
+// Use with Google Cloud Storage
+processor := NewDocumentProcessor(gcsFS)
+
+// Use with in-memory filesystem for testing
+processor := NewDocumentProcessor(afero.NewMemMapFs())
 ```
 
-## Composite Backends
+### Treating Archives as Filesystems
 
-Afero provides the ability have two filesystems (or more) act as a single
-file system.
-
-### CacheOnReadFs
-
-The CacheOnReadFs will lazily make copies of any accessed files from the base
-layer into the overlay. Subsequent reads will be pulled from the overlay
-directly permitting the request is within the cache duration of when it was
-created in the overlay.
-
-If the base filesystem is writeable, any changes to files will be
-done first to the base, then to the overlay layer. Write calls to open file
-handles like `Write()` or `Truncate()` to the overlay first.
-
-To writing files to the overlay only, you can use the overlay Fs directly (not
-via the union Fs).
-
-Cache files in the layer for the given time.Duration, a cache duration of 0
-means "forever" meaning the file will not be re-requested from the base ever.
-
-A read-only base will make the overlay also read-only but still copy files
-from the base to the overlay when they're not present (or outdated) in the
-caching layer.
+Read files directly from `.zip` or `.tar` archives without unpacking them to disk first.
 
 ```go
-base := afero.NewOsFs()
-layer := afero.NewMemMapFs()
-ufs := afero.NewCacheOnReadFs(base, layer, 100 * time.Second)
+import (
+    "archive/zip"
+    "github.com/spf13/afero/zipfs"
+)
+
+// Assume 'zipReader' is a *zip.Reader initialized from a file or memory
+var zipReader *zip.Reader 
+
+// Create a read-only ZipFs
+archiveFS := zipfs.New(zipReader)
+
+// Read a file from within the archive using the standard Afero API
+content, err := afero.ReadFile(archiveFS, "/docs/readme.md")
 ```
 
-### CopyOnWriteFs()
+### Serving Any Filesystem over HTTP
 
-The CopyOnWriteFs is a read only base file system with a potentially
-writeable layer on top.
-
-Read operations will first look in the overlay and if not found there, will
-serve the file from the base.
-
-Changes to the file system will only be made in the overlay.
-
-Any attempt to modify a file found only in the base will copy the file to the
-overlay layer before modification (including opening a file with a writable
-handle).
-
-Removing and Renaming files present only in the base layer is not currently
-permitted. If a file is present in the base layer and the overlay, only the
-overlay will be removed/renamed.
+Use `HttpFs` to expose any Afero filesystem—even one created dynamically in memory—through a standard Go web server.
 
 ```go
-	base := afero.NewOsFs()
-	roBase := afero.NewReadOnlyFs(base)
-	ufs := afero.NewCopyOnWriteFs(roBase, afero.NewMemMapFs())
+import (
+    "net/http"
+    "github.com/spf13/afero"
+)
 
-	fh, _ = ufs.Create("/home/test/file2.txt")
-	fh.WriteString("This is a test")
-	fh.Close()
+func main() {
+    memFS := afero.NewMemMapFs()
+    afero.WriteFile(memFS, "index.html", []byte("<h1>Hello from Memory!</h1>"), 0644)
+
+    // Wrap the memory filesystem to make it compatible with http.FileServer.
+    httpFS := afero.NewHttpFs(memFS)
+
+    http.Handle("/", http.FileServer(httpFS.Dir("/")))
+    http.ListenAndServe(":8080", nil)
+}
 ```
 
-In this example all write operations will only occur in memory (MemMapFs)
-leaving the base filesystem (OsFs) untouched.
+### Testing Made Simple
 
+One of Afero's greatest strengths is making filesystem-dependent code easily testable:
 
-## Desired/possible backends
+```go
+func SaveUserData(fs afero.Fs, userID string, data []byte) error {
+    filename := fmt.Sprintf("users/%s.json", userID)
+    return afero.WriteFile(fs, filename, data, 0644)
+}
 
-The following is a short list of possible backends we hope someone will
-implement:
+func TestSaveUserData(t *testing.T) {
+    // Create a clean, fast, in-memory filesystem for testing
+    testFS := afero.NewMemMapFs()
+    
+    userData := []byte(`{"name": "John", "email": "john@example.com"}`)
+    err := SaveUserData(testFS, "123", userData)
+    
+    if err != nil {
+        t.Fatalf("SaveUserData failed: %v", err)
+    }
+    
+    // Verify the file was saved correctly
+    saved, err := afero.ReadFile(testFS, "users/123.json")
+    if err != nil {
+        t.Fatalf("Failed to read saved file: %v", err)
+    }
+    
+    if string(saved) != string(userData) {
+        t.Errorf("Data mismatch: got %s, want %s", saved, userData)
+    }
+}
+```
 
-* SSH
-* S3
+**Benefits of testing with Afero:**
+- ⚡ **Fast** - No disk I/O, tests run in memory
+- 🔄 **Reliable** - Each test starts with a clean slate
+- 🧹 **No cleanup** - Memory is automatically freed
+- 🔒 **Safe** - Can't accidentally modify real files
+- 🏃 **Parallel** - Tests can run concurrently without conflicts
 
-# About the project
+## Backend Reference
 
-## What's in the name
+| Type | Backend | Constructor | Description | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **Core** | **OsFs** | `afero.NewOsFs()` | Interacts with the real operating system filesystem. Use in production. | ✅ Official |
+| | **MemMapFs** | `afero.NewMemMapFs()` | A fast, atomic, concurrent-safe, in-memory filesystem. Ideal for testing. | ✅ Official |
+| **Composition** | **CopyOnWriteFs**| `afero.NewCopyOnWriteFs(base, overlay)` | A read-only base with a writable overlay. Ideal for sandboxing. | ✅ Official |
+| | **CacheOnReadFs**| `afero.NewCacheOnReadFs(base, cache, ttl)` | Lazily caches files from a slow base into a fast layer on first read. | ✅ Official |
+| | **BasePathFs** | `afero.NewBasePathFs(source, path)` | Restricts operations to a subdirectory (chroot/jail). | ✅ Official |
+| | **ReadOnlyFs** | `afero.NewReadOnlyFs(source)` | Provides a read-only view, preventing any modifications. | ✅ Official |
+| | **RegexpFs** | `afero.NewRegexpFs(source, regexp)` | Filters a filesystem, only showing files that match a regex. | ✅ Official |
+| **Utility** | **HttpFs** | `afero.NewHttpFs(source)` | Wraps any Afero filesystem to be served via `http.FileServer`. | ✅ Official |
+| **Archives** | **ZipFs** | `zipfs.New(zipReader)` | Read-only access to files within a ZIP archive. | ✅ Official |
+| | **TarFs** | `tarfs.New(tarReader)` | Read-only access to files within a TAR archive. | ✅ Official |
+| **Network** | **GcsFs** | `gcsfs.NewGcsFs(...)` | Google Cloud Storage backend. | ⚡ Experimental |
+| | **SftpFs** | `sftpfs.New(...)` | SFTP backend. | ⚡ Experimental |
+| **3rd Party Cloud** | **S3Fs** | [`fclairamb/afero-s3`](https://github.com/fclairamb/afero-s3) | Production-ready S3 backend built on official AWS SDK. | 🔹 3rd Party |
+| | **MinioFs** | [`cpyun/afero-minio`](https://github.com/cpyun/afero-minio) | MinIO object storage backend with S3 compatibility. | 🔹 3rd Party |
+| | **DriveFs** | [`fclairamb/afero-gdrive`](https://github.com/fclairamb/afero-gdrive) | Google Drive backend with streaming support. | 🔹 3rd Party |
+| | **DropboxFs** | [`fclairamb/afero-dropbox`](https://github.com/fclairamb/afero-dropbox) | Dropbox backend with streaming support. | 🔹 3rd Party |
+| **3rd Party Specialized** | **GitFs** | [`tobiash/go-gitfs`](https://github.com/tobiash/go-gitfs) | Git repository filesystem (read-only, Afero compatible). | 🔹 3rd Party |
+| | **DockerFs** | [`unmango/aferox`](https://github.com/unmango/aferox) | Docker container filesystem access. | 🔹 3rd Party |
+| | **GitHubFs** | [`unmango/aferox`](https://github.com/unmango/aferox) | GitHub repository and releases filesystem. | 🔹 3rd Party |
+| | **FilterFs** | [`unmango/aferox`](https://github.com/unmango/aferox) | Filesystem filtering with predicates. | 🔹 3rd Party |
+| | **IgnoreFs** | [`unmango/aferox`](https://github.com/unmango/aferox) | .gitignore-aware filtering filesystem. | 🔹 3rd Party |
+| | **FUSEFs** | [`JakWai01/sile-fystem`](https://github.com/JakWai01/sile-fystem) | Generic FUSE implementation using any Afero backend. | 🔹 3rd Party |
 
-Afero comes from the latin roots Ad-Facere.
+## Afero vs. `io/fs` (Go 1.16+)
 
-**"Ad"** is a prefix meaning "to".
+Go 1.16 introduced the `io/fs` package, which provides a standard abstraction for **read-only** filesystems.
 
-**"Facere"** is a form of the root "faciō" making "make or do".
+Afero complements `io/fs` by focusing on different needs:
 
-The literal meaning of afero is "to make" or "to do" which seems very fitting
-for a library that allows one to make files and directories and do things with them.
+*   **Use `io/fs` when:** You only need to read files and want to conform strictly to the standard library interfaces.
+*   **Use Afero when:**
+    *   Your application needs to **create, write, modify, or delete** files.
+    *   You need to test complex read/write interactions (e.g., renaming, concurrent writes).
+    *   You need advanced compositional features (Copy-on-Write, Caching, etc.).
 
-The English word that shares the same roots as Afero is "affair". Affair shares
-the same concept but as a noun it means "something that is made or done" or "an
-object of a particular type".
+Afero is fully compatible with `io/fs`. You can wrap any Afero filesystem to satisfy the `fs.FS` interface using `afero.NewIOFS`:
 
-It's also nice that unlike some of my other libraries (hugo, cobra, viper) it
-Googles very well.
+```go
+import "io/fs"
 
-## Release Notes
+// Create an Afero filesystem (writable)
+var myAferoFs afero.Fs = afero.NewMemMapFs()
 
-See the [Releases Page](https://github.com/spf13/afero/releases).
+// Convert it to a standard library fs.FS (read-only view)
+var myIoFs fs.FS = afero.NewIOFS(myAferoFs)
+```
+
+## Third-Party Backends & Ecosystem
+
+The Afero community has developed numerous backends and tools that extend the library's capabilities. Below are curated, well-maintained options organized by maturity and reliability.
+
+### Featured Community Backends
+
+These are mature, reliable backends that we can confidently recommend for production use:
+
+#### **Amazon S3** - [`fclairamb/afero-s3`](https://github.com/fclairamb/afero-s3)
+Production-ready S3 backend built on the official AWS SDK for Go.
+
+```go
+import "github.com/fclairamb/afero-s3"
+
+s3fs := s3.NewFs(bucket, session)
+```
+
+#### **MinIO** - [`cpyun/afero-minio`](https://github.com/cpyun/afero-minio)
+MinIO object storage backend providing S3-compatible object storage with deduplication and optimization features.
+
+```go
+import "github.com/cpyun/afero-minio"
+
+minioFs := miniofs.NewMinioFs(ctx, "minio://endpoint/bucket")
+```
+
+### Community & Specialized Backends
+
+#### Cloud Storage
+
+- **Google Drive** - [`fclairamb/afero-gdrive`](https://github.com/fclairamb/afero-gdrive)  
+  Streaming support; no write-seeking or POSIX permissions; no files listing cache
+
+- **Dropbox** - [`fclairamb/afero-dropbox`](https://github.com/fclairamb/afero-dropbox)  
+  Streaming support; no write-seeking or POSIX permissions
+
+#### Version Control Systems
+
+- **Git Repositories** - [`tobiash/go-gitfs`](https://github.com/tobiash/go-gitfs)  
+  Read-only filesystem abstraction for Git repositories. Works with bare repositories and provides filesystem view of any git reference. Uses go-git for repository access.
+
+#### Container and Remote Systems
+
+- **Docker Containers** - [`unmango/aferox`](https://github.com/unmango/aferox)  
+  Access Docker container filesystems as if they were local filesystems
+
+- **GitHub API** - [`unmango/aferox`](https://github.com/unmango/aferox)  
+  Turn GitHub repositories, releases, and assets into browsable filesystems
+
+#### FUSE Integration
+
+- **Generic FUSE** - [`JakWai01/sile-fystem`](https://github.com/JakWai01/sile-fystem)  
+  Mount any Afero filesystem as a FUSE filesystem, allowing any Afero backend to be used as a real mounted filesystem
+
+#### Specialized Filesystems
+
+- **FAT32 Support** - [`aligator/GoFAT`](https://github.com/aligator/GoFAT)  
+  Pure Go FAT filesystem implementation (currently read-only)
+
+### Interface Adapters & Utilities
+
+**Cross-Interface Compatibility:**
+- [`jfontan/go-billy-desfacer`](https://github.com/jfontan/go-billy-desfacer) - Adapter between Afero and go-billy interfaces (for go-git compatibility)
+- [`Maldris/go-billy-afero`](https://github.com/Maldris/go-billy-afero) - Alternative wrapper for using Afero with go-billy
+- [`c4milo/afero2billy`](https://github.com/c4milo/afero2billy) - Another Afero to billy filesystem adapter
+
+**Working Directory Management:**
+- [`carolynvs/aferox`](https://github.com/carolynvs/aferox) - Working directory-aware filesystem wrapper
+
+**Advanced Filtering:**
+- [`unmango/aferox`](https://github.com/unmango/aferox) includes multiple specialized filesystems:
+  - **FilterFs** - Predicate-based file filtering
+  - **IgnoreFs** - .gitignore-aware filtering
+  - **WriterFs** - Dump writes to io.Writer for debugging
+
+#### Developer Tools & Utilities
+
+**nhatthm Utility Suite** - Essential tools for Afero development:
+- [`nhatthm/aferocopy`](https://github.com/nhatthm/aferocopy) - Copy files between any Afero filesystems
+- [`nhatthm/aferomock`](https://github.com/nhatthm/aferomock) - Mocking toolkit for testing
+- [`nhatthm/aferoassert`](https://github.com/nhatthm/aferoassert) - Assertion helpers for filesystem testing
+
+### Ecosystem Showcase
+
+**Windows Virtual Drives** - [`balazsgrill/potatodrive`](https://github.com/balazsgrill/potatodrive)  
+Mount any Afero filesystem as a Windows drive letter. Brilliant demonstration of Afero's power!
+
+### Modern Asset Embedding (Go 1.16+)
+
+Instead of third-party tools, use Go's native `//go:embed` with Afero:
+
+```go
+import (
+    "embed"
+    "github.com/spf13/afero"
+)
+
+//go:embed assets/*
+var assetsFS embed.FS
+
+func main() {
+    // Convert embedded files to Afero filesystem
+    fs := afero.FromIOFS(assetsFS)
+    
+    // Use like any other Afero filesystem
+    content, _ := afero.ReadFile(fs, "assets/config.json")
+}
+```
 
 ## Contributing
 
-1. Fork it
+We welcome contributions! The project is mature, but we are actively looking for contributors to help implement and stabilize network/cloud backends.
+
+* 🔥 **Microsoft Azure Blob Storage**  
+* 🔒 **Modern Encryption Backend** - Built on secure, contemporary crypto (not legacy EncFS)  
+* 🐙 **Canonical go-git Adapter** - Unified solution for Git integration  
+* 📡 **SSH/SCP Backend** - Secure remote file operations  
+*  Stabilization of existing experimental backends (GCS, SFTP)
+
+To contribute:
+1. Fork the repository
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+5. Create a new Pull Request
 
-## Contributors
+## 📄 License
 
-Names in no particular order:
+Afero is released under the Apache 2.0 license. See [LICENSE.txt](https://github.com/spf13/afero/blob/master/LICENSE.txt) for details.
 
-* [spf13](https://github.com/spf13)
-* [jaqx0r](https://github.com/jaqx0r)
-* [mbertschler](https://github.com/mbertschler)
-* [xor-gate](https://github.com/xor-gate)
+## 🔗 Additional Resources
 
-## License
+- [📖 Full API Documentation](https://pkg.go.dev/github.com/spf13/afero)
+- [🎯 Examples Repository](https://github.com/spf13/afero/tree/master/examples)
+- [📋 Release Notes](https://github.com/spf13/afero/releases)
+- [❓ GitHub Discussions](https://github.com/spf13/afero/discussions)
 
-Afero is released under the Apache 2.0 license. See
-[LICENSE.txt](https://github.com/spf13/afero/blob/master/LICENSE.txt)
+---
+
+*Afero comes from the Latin roots Ad-Facere, meaning "to make" or "to do" - fitting for a library that empowers you to make and do amazing things with filesystems.*
