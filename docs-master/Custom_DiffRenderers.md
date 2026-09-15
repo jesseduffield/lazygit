@@ -17,6 +17,8 @@ Fields only for `stdinFilter`:
 
 - **command** The command line to use for `GIT_PAGER`.
 
+  You can include the `{{width}}` template variable to pass the width that lazygit renders the diff at, or `{{columnWidth}}` for the width of one side of a side-by-side rendering. This is for renderers that can't ask the terminal for their width themselves.
+
 - **colorArg** whether you want the `--color=always` arg in your `git diff` command. Some diff renderers want it set to `always`, others want it set to `never`. The default is `always`, since that's what most renderers need.
 
 Fields only for `extDiff`:

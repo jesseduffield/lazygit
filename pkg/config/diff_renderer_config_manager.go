@@ -67,6 +67,7 @@ func (self *DiffRendererConfigManager) GetStdinFilterCommand(width int) string {
 	}
 
 	templateValues := map[string]string{
+		"width":       strconv.Itoa(width),
 		"columnWidth": strconv.Itoa(width/2 - 6),
 	}
 
