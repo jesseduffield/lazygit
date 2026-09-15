@@ -56,6 +56,75 @@ func TestPipelineMember(t *testing.T) {
 	os.Exit(0)
 }
 
+func TestStartPipelineStreamsTheOutputOfTheLastCommand(t *testing.T) {
+	pipeline, reader, err := NewDummyOSCommand().StartPipeline(
+		pipelineMember("count"),
+		pipelineMember("upcase"),
+	)
+	assert.NoError(t, err)
+
+	output, err := io.ReadAll(reader)
+	assert.NoError(t, err)
+	assert.Equal(t, "LINE 1\nLINE 2\nLINE 3\n", string(output))
+
+	assert.NoError(t, pipeline.Wait())
+	assert.NoError(t, reader.Close())
+}
+
+func TestStartPipelineReadsWhatTheCommandsComplainAbout(t *testing.T) {
+	pipeline, reader, err := NewDummyOSCommand().StartPipeline(
+		pipelineMember("count"),
+		pipelineMember("complain"),
+	)
+	assert.NoError(t, err)
+
+	output, err := io.ReadAll(reader)
+	assert.NoError(t, err)
+	assert.Equal(t, "something went wrong\n", string(output))
+
+	// The failure of the command nearest the output is the one reported, even
+	// though the one feeding it was left writing into a pipe nobody reads.
+	assert.ErrorContains(t, pipeline.Wait(), "exit status 3")
+
+	assert.NoError(t, reader.Close())
+}
+
+func TestClosingAPipelinesOutputBringsItDown(t *testing.T) {
+	pipeline, reader, err := NewDummyOSCommand().StartPipeline(
+		pipelineMember("flood"),
+		pipelineMember("copy"),
+	)
+	assert.NoError(t, err)
+
+	// Read some output first, so that both commands are past their startup and
+	// really running when the reader goes.
+	buf := make([]byte, len("line 1\n"))
+	_, err = io.ReadFull(reader, buf)
+	assert.NoError(t, err)
+	assert.Equal(t, "line 1\n", string(buf))
+
+	assert.NoError(t, reader.Close())
+
+	done := make(chan error, 1)
+	go func() { done <- pipeline.Wait() }()
+
+	select {
+	case <-done:
+	case <-time.After(10 * time.Second):
+		t.Fatal("the pipeline was still running long after its output was closed")
+	}
+}
+
+func TestStartPipelineReportsACommandItCannotStart(t *testing.T) {
+	osCommand := NewDummyOSCommand()
+
+	_, _, err := osCommand.StartPipeline(
+		pipelineMember("count"),
+		osCommand.Cmd.New([]string{"lazygit-no-such-command"}),
+	)
+	assert.Error(t, err)
+}
+
 func TestPipeCommandsReturnsWhenALaterCommandDiesEarly(t *testing.T) {
 	done := make(chan error, 1)
 	go func() {
