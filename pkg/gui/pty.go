@@ -1,20 +1,16 @@
 package gui
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/samber/lo"
 )
 
 func (gui *Gui) desiredPtySize(view *gocui.View) (cols, rows uint16) {
@@ -53,116 +49,63 @@ func (p ptyCmd) Wait() error      { return p.wait() }
 func (p ptyCmd) String() string   { return p.cmd.String() }
 func (p ptyCmd) Terminate() error { return oscommands.TerminateProcessGracefully(p.process) }
 
-// Some commands need to output for a terminal to active certain behaviour.
-// For example, git won't invoke the GIT_PAGER env var unless it thinks it's
-// talking to a terminal. We typically write cmd outputs straight to a view,
-// which is just an io.Reader. the pty package lets us wrap a command in a
-// pseudo-terminal meaning we'll get the behaviour we want from the underlying
-// command.
-func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
-	width := view.InnerWidth()
+// ptyRender runs the command in a pseudo-terminal. git invokes the stdin filter
+// named by GIT_PAGER only when it talks to a terminal, and a renderer reads the
+// width it lays out to off it.
+//
+// Must be called on the UI thread: it reads the view's dimensions, which the
+// layout writes.
+func (gui *Gui) ptyRender(spec renderSpec) (startRender, onCloseRender) {
+	view := spec.view
+	cmd := spec.cmd
 
-	// Set LAZYGIT_COLUMNS for diff renderer scripts that can't query the terminal width directly.
-	cmd.Env = append(cmd.Env, fmt.Sprintf("LAZYGIT_COLUMNS=%d", width))
+	// git runs the stdin filter itself, as the pager it is told about here.
+	// Named even when there is none, so that git doesn't reach for the user's
+	// core.pager instead.
+	cmd.Env = append(cmd.Env, "GIT_PAGER="+spec.stdinFilter)
 
-	if gui.stateAccessor.GetDiffRendererConfigManager().GetDiffRendererType() == config.DiffRendererType_RawGit {
-		// If we're not using a custom diff renderer, then we don't need to use a pty
-		return gui.newCmdTask(view, cmd, prefix)
+	cols, rows := gui.desiredPtySize(view)
+
+	var p oscommands.Pty
+	var fallbackPipe io.ReadCloser
+	start := func() (tasks.Cmd, io.Reader) {
+		// The pty (and diff renderer) wrap to this width; apply it here, on the
+		// task's goroutine once the previous task has stopped, so it doesn't
+		// race that task's writes (see View.SetContentWidth).
+		view.SetContentWidth(spec.width)
+
+		sp, err := oscommands.StartPty(cmd, cols, rows)
+		if err != nil {
+			gui.c.Log.Error(err)
+			// Fall back to running the command without a pty: the diff renderer is
+			// lost, but the command's output still renders.
+			execCmd, pipe := startCmdWithPipe(cmd, gui.c.Log)
+			fallbackPipe = pipe
+			return execCmd, pipe
+		}
+		p = sp.Pty
+
+		gui.Mutexes.PtyMutex.Lock()
+		gui.viewPtmxMap[view.Name()] = p
+		gui.Mutexes.PtyMutex.Unlock()
+
+		return ptyCmd{cmd: cmd, process: sp.Process, wait: sp.Wait}, p
 	}
 
-	cmd.Args = withPtyGitConfig(cmd.Args, runtime.GOOS)
-
-	// Mark the view as loading synchronously now, before the layout pass: the
-	// actual task is created in afterLayout (below), which runs after layout, so
-	// without this the next layout pass would clamp the scroll position to the
-	// not-yet-loaded content.
-	gui.getManager(view).StartLoading()
-	// Hold the scrollbar at its current height while the re-render loads, so the
-	// thumb doesn't shrink and snap back when the first partial paint swaps in
-	// (see the matching call in newCmdTask).
-	view.FreezeScrollbarHeight()
-
-	// Run the pty after layout so that it gets the correct size
-	gui.afterLayout(func() error {
-		// Need to get the width and the renderer command again because the layout
-		// might have changed the size of the view
-		width = view.InnerWidth()
-		diffRendererConfigManager := gui.stateAccessor.GetDiffRendererConfigManager()
-		pager := diffRendererConfigManager.GetStdinFilterCommand(width)
-		externalDiff := diffRendererConfigManager.GetExternalDiffCommand(gui.c.UserConfig().Git.DiffContextSize, width)
-
-		cmdStr := strings.Join(cmd.Args, " ")
-
-		// This communicates to diff renderers that we're in a very simple
-		// terminal that they should not expect to have much capabilities.
-		// Moving the cursor, clearing the screen, or querying for colors are among such "advanced" capabilities.
-		// Context: https://github.com/jesseduffield/lazygit/issues/3419
-		cmd.Env = removeExistingTermEnvVars(cmd.Env)
-		cmd.Env = append(cmd.Env, "TERM=dumb")
-
-		cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
-
-		// An external diff command is named to git here, in the environment,
-		// because the width it renders at is only known after the layout, and
-		// the command's arguments were settled before it. An empty command
-		// means the user wants git's own diff.external config to apply, so
-		// leave the variable unset in that case; git takes it being set at all
-		// as an instruction, however little it says.
-		if externalDiff != "" {
-			cmd.Env = append(cmd.Env, "GIT_EXTERNAL_DIFF="+externalDiff)
+	onClose := func() {
+		gui.Mutexes.PtyMutex.Lock()
+		if p != nil {
+			p.Close()
 		}
-
-		manager := gui.getManager(view)
-
-		// Size the pty from the view's dimensions here, on the UI thread; the
-		// start func below runs on the task's goroutine, which must not read the
-		// view's live dimensions while the UI thread is laying it out.
-		cols, rows := gui.desiredPtySize(view)
-
-		var p oscommands.Pty
-		var fallbackPipe io.ReadCloser
-		start := func() (tasks.Cmd, io.Reader) {
-			// The pty (and diff renderer) wrap to this width; apply it here, on the
-			// task's goroutine once the previous task has stopped, so it doesn't
-			// race that task's writes (see View.SetContentWidth).
-			view.SetContentWidth(width)
-
-			sp, err := oscommands.StartPty(cmd, cols, rows)
-			if err != nil {
-				gui.c.Log.Error(err)
-				// Fall back to running the command without a pty: the diff renderer is
-				// lost, but the command's output still renders.
-				execCmd, pipe := startCmdWithPipe(cmd, gui.c.Log)
-				fallbackPipe = pipe
-				return execCmd, pipe
-			}
-			p = sp.Pty
-
-			gui.Mutexes.PtyMutex.Lock()
-			gui.viewPtmxMap[view.Name()] = p
-			gui.Mutexes.PtyMutex.Unlock()
-
-			return ptyCmd{cmd: cmd, process: sp.Process, wait: sp.Wait}, p
+		if fallbackPipe != nil {
+			fallbackPipe.Close()
+			fallbackPipe = nil
 		}
+		delete(gui.viewPtmxMap, view.Name())
+		gui.Mutexes.PtyMutex.Unlock()
+	}
 
-		onClose := func() {
-			gui.Mutexes.PtyMutex.Lock()
-			if p != nil {
-				p.Close()
-			}
-			if fallbackPipe != nil {
-				fallbackPipe.Close()
-				fallbackPipe = nil
-			}
-			delete(gui.viewPtmxMap, view.Name())
-			gui.Mutexes.PtyMutex.Unlock()
-		}
-
-		linesToRead := gui.linesToReadFromCmdTask(view)
-		return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr)
-	})
-
-	return nil
+	return start, onClose
 }
 
 // withPtyGitConfig returns args with extra git configuration for commands
@@ -200,21 +143,4 @@ func withPtyGitConfig(args []string, goos string) []string {
 	result = append(result, args[0])
 	result = append(result, "-c", "diff.autoRefreshIndex=false")
 	return append(result, args[1:]...)
-}
-
-func removeExistingTermEnvVars(env []string) []string {
-	return lo.Filter(env, func(envVar string, _ int) bool {
-		return !isTermEnvVar(envVar)
-	})
-}
-
-// Terminals set a variety of different environment variables
-// to identify themselves to processes. This list should catch the most common among them.
-func isTermEnvVar(envVar string) bool {
-	return strings.HasPrefix(envVar, "TERM=") ||
-		strings.HasPrefix(envVar, "TERM_PROGRAM=") ||
-		strings.HasPrefix(envVar, "TERM_PROGRAM_VERSION=") ||
-		strings.HasPrefix(envVar, "TERMINAL_EMULATOR=") ||
-		strings.HasPrefix(envVar, "TERMINAL_NAME=") ||
-		strings.HasPrefix(envVar, "TERMINAL_VERSION_")
 }
