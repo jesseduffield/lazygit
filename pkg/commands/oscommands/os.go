@@ -203,7 +203,7 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
 	c.LogCommand(pipelineString(cmdObjs), true)
 
-	cmds, err := wirePipeline(cmdObjs)
+	cmds, parentEnds, err := wirePipeline(cmdObjs)
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
 		cmds[i].Stderr = &stderrs[i]
 	}
 
-	started, startErr := startPipeline(cmds)
+	started, startErr := startPipeline(cmds, parentEnds)
 
 	finalErrors := []string{}
 
