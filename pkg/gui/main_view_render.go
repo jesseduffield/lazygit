@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -85,7 +86,11 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 			width:       width,
 			stdinFilter: stdinFilter,
 		}
-		return gui.newTaskForRender(spec, prefix, cmdStr, gui.ptyRender)
+		run := gui.ptyRender
+		if rendersThroughAPipe() {
+			run = gui.pipedRender
+		}
+		return gui.newTaskForRender(spec, prefix, cmdStr, run)
 	})
 
 	return nil
@@ -100,7 +105,8 @@ type (
 )
 
 // runRender is a way of running a render's command and getting at its output:
-// plainly, or in a pty. It returns the functions the task drives the command by.
+// plainly, in a pty, or through a pipe with the stdin filter as a command of our
+// own. It returns the functions the task drives the command by.
 type runRender func(spec renderSpec) (startRender, onCloseRender)
 
 // newTaskForRender creates the task that reads the render's output into its
@@ -114,6 +120,78 @@ func (gui *Gui) newTaskForRender(spec renderSpec, prefix string, key string, run
 	manager := gui.getManager(spec.view)
 	linesToRead := gui.linesToReadFromCmdTask(spec.view)
 	return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), key)
+}
+
+// renderWithoutPtyEnvVar makes a render take the piped path on a platform that
+// would otherwise use a pty, so that tests can exercise it anywhere.
+const renderWithoutPtyEnvVar = "LAZYGIT_RENDER_WITHOUT_PTY"
+
+// rendersThroughAPipe reports whether a render feeds the diff renderer the
+// command's output through a pipe rather than running it in a pty.
+//
+// On Windows it has to. ConPTY doesn't pass a command's output through; it
+// parses it into a screen buffer and re-encodes that for the terminal side,
+// and it hands a sequence it can't represent there the moment it parses it,
+// separately from the text around it. So what a renderer writes is not what
+// lazygit reads. A pipe carries the bytes as the renderer wrote them.
+//
+// Everywhere else the pty is kept, since a renderer can read the width it
+// should lay out to off it, and a configuration that doesn't name a width would
+// otherwise render at whatever width the renderer falls back to.
+func rendersThroughAPipe() bool {
+	return runtime.GOOS == "windows" || os.Getenv(renderWithoutPtyEnvVar) != ""
+}
+
+// pipedRender feeds the diff renderer the command's output through a pipe.
+//
+// A stdin filter becomes a command of our own here, because git only invokes
+// the one named by GIT_PAGER when it thinks it is talking to a terminal, so
+// with a pipe the filter would never run. An external diff renderer is git's
+// own business, named in the environment and run by git per file, so with one
+// the command runs alone.
+func (gui *Gui) pipedRender(spec renderSpec) (startRender, onCloseRender) {
+	if spec.stdinFilter == "" {
+		return gui.plainRender(spec)
+	}
+
+	view := spec.view
+	cmd := spec.cmd
+
+	var pipe io.ReadCloser
+	start := func() (tasks.Cmd, io.Reader) {
+		// See the matching call in ptyRender for why this happens here.
+		view.SetContentWidth(spec.width)
+
+		// The filter runs in a plain shell, without lazygit's shell functions
+		// sourced, since that is the shell git would have run it in. It is
+		// handed git's environment for the same reason: as git's child it
+		// would have inherited exactly that.
+		pipeline, reader, err := gui.os.StartPipeline(
+			gui.os.Cmd.NewFromCmd(cmd).DontLog(),
+			gui.os.Cmd.NewShell(spec.stdinFilter, "").SetEnviron(cmd.Env).DontLog(),
+		)
+		if err != nil {
+			gui.c.Log.Error(err)
+			// The command has been started and stopped again by now, so it
+			// can't be run a second time without the renderer. Show what went
+			// wrong where the diff would have been.
+			return tasks.ExecCmd{Cmd: cmd}, strings.NewReader(err.Error())
+		}
+		pipe = reader
+		return pipeline, reader
+	}
+
+	onClose := func() {
+		// Closing the reader brings the pipeline down. The renderer's next write
+		// fails, so it exits, and git's write into the pipe the renderer was
+		// reading fails in turn.
+		if pipe != nil {
+			pipe.Close()
+			pipe = nil
+		}
+	}
+
+	return start, onClose
 }
 
 // setColumnsEnvVar tells a command how wide the view its output goes into is.

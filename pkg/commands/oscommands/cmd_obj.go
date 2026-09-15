@@ -108,6 +108,14 @@ func (self *CmdObj) GetEnvVars() []string {
 	return self.cmd.Env
 }
 
+// SetEnviron replaces the command's whole environment, for a command that has
+// to run in the same one as another command rather than in this process's.
+func (self *CmdObj) SetEnviron(env []string) *CmdObj {
+	self.cmd.Env = env
+
+	return self
+}
+
 // sets the working directory
 func (self *CmdObj) SetWd(wd string) *CmdObj {
 	self.cmd.Dir = wd
