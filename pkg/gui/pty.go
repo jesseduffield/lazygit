@@ -84,10 +84,12 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 	// Run the pty after layout so that it gets the correct size
 	gui.afterLayout(func() error {
-		// Need to get the width and the pager command again because the layout might have
-		// changed the size of the view
+		// Need to get the width and the renderer command again because the layout
+		// might have changed the size of the view
 		width = view.InnerWidth()
-		pager := gui.stateAccessor.GetDiffRendererConfigManager().GetStdinFilterCommand(width)
+		diffRendererConfigManager := gui.stateAccessor.GetDiffRendererConfigManager()
+		pager := diffRendererConfigManager.GetStdinFilterCommand(width)
+		externalDiff := diffRendererConfigManager.GetExternalDiffCommand(gui.c.UserConfig().Git.DiffContextSize)
 
 		cmdStr := strings.Join(cmd.Args, " ")
 
@@ -99,6 +101,16 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		cmd.Env = append(cmd.Env, "TERM=dumb")
 
 		cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
+
+		// An external diff command is named to git here, in the environment,
+		// because the width it renders at is only known after the layout, and
+		// the command's arguments were settled before it. An empty command
+		// means the user wants git's own diff.external config to apply, so
+		// leave the variable unset in that case; git takes it being set at all
+		// as an instruction, however little it says.
+		if externalDiff != "" {
+			cmd.Env = append(cmd.Env, "GIT_EXTERNAL_DIFF="+externalDiff)
+		}
 
 		manager := gui.getManager(view)
 
