@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -92,12 +93,19 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 
 		manager := gui.getManager(view)
 
-		start, onClose := gui.ptyRender(renderSpec{
+		spec := renderSpec{
 			view:        view,
 			cmd:         cmd,
 			width:       width,
 			stdinFilter: stdinFilter,
-		})
+		}
+		var start startRender
+		var onClose onCloseRender
+		if rendersThroughAPipe() {
+			start, onClose = gui.pipedRender(spec)
+		} else {
+			start, onClose = gui.ptyRender(spec)
+		}
 
 		linesToRead := gui.linesToReadFromCmdTask(view)
 		return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr)
@@ -113,6 +121,85 @@ type (
 	startRender   func() (tasks.Cmd, io.Reader)
 	onCloseRender func()
 )
+
+// renderWithoutPtyEnvVar makes a render take the piped path on a platform that
+// would otherwise use a pty, so that tests can exercise it anywhere.
+const renderWithoutPtyEnvVar = "LAZYGIT_RENDER_WITHOUT_PTY"
+
+// rendersThroughAPipe reports whether a render feeds the diff renderer the
+// command's output through a pipe rather than running it in a pty.
+//
+// On Windows it has to. ConPTY doesn't pass a command's output through; it
+// parses it into a screen buffer and re-encodes that for the terminal side,
+// and it hands a sequence it can't represent there the moment it parses it,
+// separately from the text around it. So what a renderer writes is not what
+// lazygit reads. A pipe carries the bytes as the renderer wrote them.
+//
+// Everywhere else the pty is kept, since a renderer can read the width it
+// should lay out to off it, and a configuration that doesn't name a width would
+// otherwise render at whatever width the renderer falls back to.
+func rendersThroughAPipe() bool {
+	return runtime.GOOS == "windows" || os.Getenv(renderWithoutPtyEnvVar) != ""
+}
+
+// pipedRender feeds the diff renderer the command's output through a pipe.
+//
+// A stdin filter has to become a command of our own here: git only invokes the
+// one named by GIT_PAGER when it thinks it is talking to a terminal, so with a
+// pipe the filter would never run. An external diff renderer is git's own
+// business — it is named in the environment and git runs it per file — so
+// there the command still runs alone.
+//
+// Must be called on the UI thread; see ptyRender.
+func (gui *Gui) pipedRender(spec renderSpec) (startRender, onCloseRender) {
+	view := spec.view
+	cmd := spec.cmd
+
+	var pipe io.ReadCloser
+	start := func() (tasks.Cmd, io.Reader) {
+		// See the matching call in ptyRender for why this happens here.
+		view.SetContentWidth(spec.width)
+
+		tasks.DumpStreamNote("view %s: no pty, content width=%d, renderer: %s",
+			view.Name(), spec.width, spec.stdinFilter)
+
+		if spec.stdinFilter == "" {
+			execCmd, reader := startCmdWithPipe(cmd, gui.c.Log)
+			pipe = reader
+			return execCmd, reader
+		}
+
+		// The filter runs in a plain shell, without lazygit's shell functions
+		// sourced, since that is the shell git would have run it in. It is
+		// handed git's environment for the same reason: as git's child it
+		// would have inherited exactly that.
+		pipeline, reader, err := gui.os.StartPipeline(
+			gui.os.Cmd.NewFromCmd(cmd).DontLog(),
+			gui.os.Cmd.NewShell(spec.stdinFilter, "").SetEnviron(cmd.Env).DontLog(),
+		)
+		if err != nil {
+			gui.c.Log.Error(err)
+			// The command has been started and stopped again by now, so it
+			// can't be run a second time without the renderer. Show what went
+			// wrong where the diff would have been.
+			return tasks.ExecCmd{Cmd: cmd}, strings.NewReader(err.Error())
+		}
+		pipe = reader
+		return pipeline, reader
+	}
+
+	onClose := func() {
+		// Closing the reader is what brings the pipeline down: the renderer's
+		// next write fails, so it exits, and git's write into the pipe the
+		// renderer was reading fails in turn.
+		if pipe != nil {
+			pipe.Close()
+			pipe = nil
+		}
+	}
+
+	return start, onClose
+}
 
 func removeExistingTermEnvVars(env []string) []string {
 	return lo.Filter(env, func(envVar string, _ int) bool {
