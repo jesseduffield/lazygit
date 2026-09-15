@@ -125,11 +125,9 @@ func (self *GitCommandBuilder) GitDirIf(condition bool, path string) *GitCommand
 
 func (self *GitCommandBuilder) AddCommonDiffArgs(diffRendererConfigManager *config.DiffRendererConfigManager, userConfig *config.UserConfig, forUI bool) *GitCommandBuilder {
 	contextSize := userConfig.Git.DiffContextSize
-	extDiffCmd := diffRendererConfigManager.GetExternalDiffCommand(contextSize)
 	useExtDiff := forUI && diffRendererConfigManager.GetDiffRendererType() == config.DiffRendererType_ExtDiff
 
 	return self.
-		ConfigIf(forUI && extDiffCmd != "", "diff.external="+extDiffCmd).
 		ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		ArgIf(forUI && userConfig.Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
