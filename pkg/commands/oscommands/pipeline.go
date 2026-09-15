@@ -31,7 +31,12 @@ type Pipeline struct {
 // command in turn writes into a pipe whose reader is gone.
 func (c *OSCommand) StartPipeline(cmdObjs ...*CmdObj) (*Pipeline, io.ReadCloser, error) {
 	cmdStr := pipelineString(cmdObjs)
-	c.LogCommand(cmdStr, true)
+	// A render runs its pipeline again on every selection change, so a caller
+	// has to be able to keep it out of the command log. The first command
+	// speaks for the pipeline.
+	if cmdObjs[0].ShouldLog() {
+		c.LogCommand(cmdStr, true)
+	}
 
 	cmds, parentEnds, err := wirePipeline(cmdObjs)
 	if err != nil {
