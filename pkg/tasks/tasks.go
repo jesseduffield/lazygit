@@ -308,7 +308,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 		// can't arrive before there is a task to take it.
 		readRequests := self.readRequests.beginServing()
 
-		scanner := bufio.NewScanner(r)
+		scanner := bufio.NewScanner(dumpStream(r, cmd.String()))
 		scanner.Split(utils.ScanLinesAndTruncateWhenLongerThanBuffer(bufio.MaxScanTokenSize))
 
 		lineChan := make(chan []byte)

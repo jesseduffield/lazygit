@@ -115,6 +115,13 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 			// race that task's writes (see View.SetContentWidth).
 			view.SetContentWidth(width)
 
+			// The dimensions belong in a stream recording: the width the
+			// renderer wraps to, the width soft-wraps are counted against, and
+			// the pty's own size all have to agree for a row of the stream to
+			// mean the row of the view it is written to.
+			tasks.DumpStreamNote("view %s: pty cols=%d rows=%d, content width=%d, renderer: %s",
+				view.Name(), cols, rows, width, pager)
+
 			sp, err := oscommands.StartPty(cmd, cols, rows)
 			if err != nil {
 				gui.c.Log.Error(err)
