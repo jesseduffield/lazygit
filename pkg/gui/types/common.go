@@ -87,6 +87,19 @@ type IGuiCommon interface {
 	// by a resume.
 	PauseBackgroundRefreshes(pause bool)
 
+	// NextFilesRefreshToken atomically increments and retruns the files refresh
+	// token. Used by file-staging operations in SVN repos to cancel stale
+	// in-flight file refreshes: each staging operation calls this to get a new
+	// token, and a refresh whose token no longer matches the current value is
+	// dropped before it can overwrite the model with stale data.
+	NextFilesRefreshToken() int64
+
+	// ResetFilesRefreshToken sets the files refresh token back to 0, so that
+	// subsequent background timer refreshes (which carry token=0) apply
+	// normally. Called when a staging operation fails before it can dispatch
+	// its own refresh.
+	ResetFilesRefreshToken()
+
 	Context() IContextMgr
 	ContextForKey(key ContextKey) Context
 

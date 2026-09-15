@@ -358,6 +358,8 @@ type GitConfig struct {
 	RemoteBranchSortOrder string `yaml:"remoteBranchSortOrder" jsonschema:"enum=date,enum=alphabetical"`
 	// When copying commit hashes to the clipboard, truncate them to this length. Set to 40 to disable truncation.
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
+	// If true, will detect if git repository is created using git-svn, is so, will use git svn dcommit/rebase for push/pull operations.
+	EnableGitSvnCompat bool `yaml:"enableGitSvnCompat" jsonschema:"default=true"`
 }
 
 type DiffRendererCommandType string
@@ -971,6 +973,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			BranchPrefix:                 "",
 			ParseEmoji:                   false,
 			TruncateCopiedCommitHashesTo: 12,
+			EnableGitSvnCompat:           true,
 		},
 		Worktree: WorktreeConfig{
 			DefaultPath: "",

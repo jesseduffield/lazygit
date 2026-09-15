@@ -56,6 +56,9 @@ func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error 
 }
 
 func (self *BranchesHelper) ConfirmDeleteRemote(remoteBranches []*models.RemoteBranch, resetRemoteBranchesSelection bool) error {
+	if len(remoteBranches) > 0 && self.c.Git().Sync.GitCommon.IsSvnRepo() && remoteBranches[0].RemoteName == self.c.Git().Svn.GetSvnRemoteName() {
+		return errors.New("cannot use standard remote delete for git-svn remote branches; use SVN-specific deletion")
+	}
 	var title string
 	if len(remoteBranches) == 1 {
 		title = utils.ResolvePlaceholderString(

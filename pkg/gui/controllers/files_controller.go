@@ -633,11 +633,40 @@ func (self *FilesController) press(nodes []*filetree.FileNode) error {
 		return self.openConflictResolutionMenu(nodes[0].File)
 	}
 
-	if err := self.pressWithLock(nodes); err != nil {
-		return err
+	if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+		// SVN: Each staging operation gets a unique token. A refresh whose
+		// token no longer matches the current value is dropped before
+		// writing Model().Files, so a stale git status from an earlier
+		// press can't overwrite the current optimistic render. This also
+		// drops background timer refreshes (token=0) while a staging
+		// operation is in flight (token != 0).
+		//
+		// PauseBackgroundRefreshes prevents new background timer refreshes
+		// from starting during the git add; the token handles the case
+		// where one was already running. PauseBackgroundRefreshes(false)
+		// is called in the OnWorker callback regardless of whether the
+		// bounce was dropped, so the count stays balanced.
+		token := self.c.NextFilesRefreshToken()
+		self.c.PauseBackgroundRefreshes(true)
+		if err := self.pressWithLock(nodes); err != nil {
+			self.c.ResetFilesRefreshToken()
+			self.c.PauseBackgroundRefreshes(false)
+			return err
+		}
+		self.c.OnWorker(func(task gocui.Task) error {
+			self.c.RefreshFromWorker(types.RefreshOptions{
+				Scope: []types.RefreshableView{types.FILES},
+				FilesRefreshToken: token,
+			})
+			self.c.PauseBackgroundRefreshes(false)
+			return nil
+		})
+	} else {
+		if err := self.pressWithLock(nodes); err != nil {
+			return err
+		}
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 	}
-
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 
 	self.context().HandleFocus(types.OnFocusOpts{})
 	return nil
@@ -919,11 +948,28 @@ func (self *FilesController) anyFilesDisplayed() *types.DisabledReason {
 }
 
 func (self *FilesController) toggleStagedAll() error {
-	if err := self.toggleStagedAllWithLock(); err != nil {
-		return err
+	if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+		token := self.c.NextFilesRefreshToken()
+		self.c.PauseBackgroundRefreshes(true)
+		if err := self.toggleStagedAllWithLock(); err != nil {
+			self.c.ResetFilesRefreshToken()
+			self.c.PauseBackgroundRefreshes(false)
+			return err
+		}
+		self.c.OnWorker(func(task gocui.Task) error {
+			self.c.RefreshFromWorker(types.RefreshOptions{
+				Scope: []types.RefreshableView{types.FILES},
+				FilesRefreshToken: token,
+			})
+			self.c.PauseBackgroundRefreshes(false)
+			return nil
+		})
+	} else {
+		if err := self.toggleStagedAllWithLock(); err != nil {
+			return err
+		}
+		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 	}
-
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 
 	self.context().HandleFocus(types.OnFocusOpts{})
 	return nil

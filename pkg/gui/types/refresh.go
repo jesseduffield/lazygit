@@ -113,4 +113,19 @@ type RefreshOptions struct {
 	// Must not be combined with Then: Then is not generation-guarded, so it
 	// would run against the newly switched-to repo.
 	DontBlockRepoSwitch bool
+
+	// FilesRefreshToken is set by file-staging operations (press, toggleStagedAll)
+	// in SVN repos to implement cancellation of stale file refreshes. Each staging
+	// operation increments a monotonically increasing token via
+	// NextFilesRefreshToken() and passes it here. When the refresh's UI-thread
+	// bounce is about to write Model().Files, it compares this token against the
+	// current token: if the differ, a newer staging operation has superseded
+	// this one, and the bounce is dropped to avoid overwriting the newer
+	// optimistic render with stale data.
+	//
+	// A value of 0 (the zero value) means "no token" -- the  refresh was not
+	// initiated by staging operation (e.g. a background timer refresh). Such
+	// refreshes are only dropped if a staging operation is in flight (current
+	// token != 0); otherwise they apply normally.
+	FilesRefreshToken int64
 }

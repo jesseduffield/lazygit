@@ -56,6 +56,20 @@ type RefreshHelper struct {
 	// concurrent branch loads don't clobber each other out of order.
 	branchLoadSeq        atomic.Int64
 	appliedBranchLoadSeq int64
+
+	// filesRefreshToken is a monotonically increasing token used to cancel
+	// stale file refreshes in SVN repos. Each staging operation (press,
+	// toggleStagedAll) calls NextFilesRefreshToken() to get a new value,
+	// and passes it via RefreshOptions.FilesRefreshToken. When a file
+	// refresh's UI-thread bounce is about to write Modle().Files, it
+	// compares the token it was issued against the current value: a
+	// mismatch means a newer staging operation has superseded this one,
+	// so the bounce is dropped to avoid overwrting the newer optimistic
+	// render with stale git status data.
+	//
+	// A value of 0 means "no staging operation in flight" -- background
+	// timer refreshes (token=0) apply normally when no staging is active.
+	filesRefreshToken atomic.Int64
 }
 
 func NewRefreshHelper(
@@ -95,6 +109,21 @@ func (self *RefreshHelper) RefreshBlockingInput(options types.RefreshOptions) {
 // thread. See IGuiCommon.RefreshFromWorker.
 func (self *RefreshHelper) RefreshFromWorker(options types.RefreshOptions) {
 	self.performRefresh(options, true, false)
+}
+
+// NextFilesRefreshToken atomically increments and returns the files refresh
+// token. Called by file-staging operations in SVN repos to supersede any
+// in-flight file refresh: a refresh whose token doesn't match the current
+// value is dropped before writing Model().Files.
+func (self *RefreshHelper) NextFilesRefreshToken() int64 {
+	return self.filesRefreshToken.Add(1)
+}
+
+// ResetFilesRefreshToken set the token back to 0 so that subsequent background
+// timer refreshes (token=0) apply normally. Called when a staging operation
+// fails before it can dispatch its own refresh.
+func (self *RefreshHelper) ResetFilesRefreshToken() {
+	self.filesRefreshToken.Store(0)
 }
 
 type refreshEnv struct {
@@ -138,6 +167,10 @@ type refreshEnv struct {
 	// Held by pointer so the copies of env that flow through the scope functions
 	// all share the one batch.
 	batch *refreshBounceBatch
+
+	// filesRefreshToken carries the token from RefreshOptions.FilesRefreshToken.
+	// See RefreshHelper.filesRefreshToken for the cancellation protocol.
+	filesRefreshToken int64
 }
 
 // refreshBounceBatch collects the UI-thread bounces of a batched refresh so they
@@ -235,6 +268,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		backgroundRoutine:  options.Background,
 		keepScrollPosition: options.Background || options.DontBlockRepoSwitch,
 		skipMainViewUpdate: options.SkipMainViewUpdate,
+		filesRefreshToken: options.FilesRefreshToken,
 	}
 	if !self.captureOnUIThread(calledFromWorker, env.background, func() {
 		env.generation = self.c.State().GetRepoGeneration()
@@ -1124,6 +1158,11 @@ func (self *RefreshHelper) refreshTags(env refreshEnv) error {
 		self.c.Model().Tags = tags
 	})
 
+	// SVN automatic stale tag detection
+	if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+		self.checkSvnTagStatusAsync()
+	}
+
 	self.refreshView(self.c.Contexts().Tags, env)
 	return nil
 }
@@ -1429,6 +1468,24 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 	}
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
+		// Token-based cancellation: if this refresh was issued with a
+		// filesRefreshToken (from a staging operation) and a newer staging
+		// operation has since incremented the token, drop this bounce --
+		// its git status data is  stale and would overwrite the newer
+		// optimistic render. Also applies when this is a background
+		// timer refresh (token=0) but a staging operation is in flight
+		// (current token != 0): the staging operation's own refresh will
+		// bring the correct state.
+		if env.filesRefreshToken != self.filesRefreshToken.Load() {
+			return
+		}
+		// A staging-operation refresh (token != 0) that is still current
+		// resets the token to 0 so subsequent background timer refreshes
+		// (token=0) apply normally again.
+		if env.filesRefreshToken != 0 {
+			self.filesRefreshToken.Store(0)
+		}
+
 		// only taking over the filter if it hasn't already been set by the user.
 		if len(conflictedPaths) > 0 && prevConflictFileCount == 0 {
 			if fileTreeViewModel.GetStatusFilter() == filetree.DisplayAll {
@@ -1882,4 +1939,59 @@ func (self *RefreshHelper) savePullRequestsToCache(prs []*models.GithubPullReque
 	if err := self.c.GetConfig().SaveCachedGithubPullRequests(repoPath, cached); err != nil {
 		self.c.Log.Warnf("error saving GitHub pull request cache: %v", err)
 	}
+}
+
+func (self *RefreshHelper) checkSvnTagStatusAsync() {
+	self.c.WithWaitingStatus(self.c.Tr.CheckingSvnStatus, func (task gocui.Task) error {
+		svnRemoteName := self.c.Git().Svn.GetSvnRemoteName()
+
+		pruned, err := self.c.Git().Svn.PruneStaleRefs("tags")
+		if err != nil {
+			return err
+		}
+		prunedSet := make(map[string]bool)
+		for _, p := range pruned {
+			prunedSet[p] = true
+		}
+		
+		missing, err := self.c.Git().Svn.GetMissingRefs("tags")
+		if err != nil {
+			return err
+		}
+		self.c.OnUIThread(func() error {
+			refsPrefix := "refs/remotes/" + svnRemoteName + "/"
+
+			if len(prunedSet) > 0 {
+				self.c.Model().Tags = lo.Filter(self.c.Model().Tags, func(t *models.Tag, _ int) bool {
+					if !t.IsSvnTag() {
+						return true
+					}
+					relPath := strings.TrimPrefix(t.FullRefName(), refsPrefix)
+					return !prunedSet[relPath]
+				})
+			}
+
+			existingNames := make(map[string]bool)
+			for _, t := range self.c.Model().Tags {
+				if t.IsSvnTag() {
+					relPath := strings.TrimPrefix(t.FullRefName(), refsPrefix)
+					existingNames[relPath] = true
+				}
+			}
+			for _, m := range missing {
+				if !existingNames[m] {
+					self.c.Model().Tags = append(self.c.Model().Tags,
+				&models.Tag{
+					Name: m,
+					Message: "(SVN tag, not fetched)",
+					FullRefNameOverride: refsPrefix + m,
+					StaleStatus: models.SvnBranchStatusMissing,
+				})
+				}
+			}
+			self.c.PostRefreshUpdate(self.c.Contexts().Tags)
+			return nil
+		})
+		return nil
+	})
 }
