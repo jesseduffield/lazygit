@@ -201,7 +201,7 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C
 func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
-	c.LogCommand(pipelineString(cmdObjs), true)
+	c.logPipeline(cmdObjs)
 
 	cmds, parentEnds, err := wirePipeline(cmdObjs)
 	if err != nil {
