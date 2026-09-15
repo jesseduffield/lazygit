@@ -25,7 +25,7 @@ Fields only for `extDiff`:
 
 - **command** The command line to use for the `diff.external` git config. If left empty, it uses the global value of git's `diff.external` config; this can be useful if you also want to use it for diffs on the command line, and it also has the advantage that you can configure it per file type in `.gitattributes`; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
 
-  You can include the `{{diffContext}}` template variable to pass lazygit's current diff context size (the value controlled by the `{`/`}` keybindings) to the diff tool.
+  You can include the `{{diffContext}}` template variable to pass lazygit's current diff context size (the value controlled by the `{`/`}` keybindings) to the diff tool, and `{{width}}` to pass the width that lazygit renders the diff at. The latter is for diff tools that can't ask the terminal for their width themselves.
 
 Fields only for `rawGit`:
 
