@@ -40,8 +40,6 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 		return gui.newCmdTask(view, cmd, prefix)
 	}
 
-	cmd.Args = withPtyGitConfig(cmd.Args, runtime.GOOS)
-
 	// Mark the view as loading synchronously now, before the layout pass: the
 	// actual task is created in afterLayout (below), which runs after layout, so
 	// without this the next layout pass would clamp the scroll position to the

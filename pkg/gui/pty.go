@@ -4,8 +4,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -106,41 +104,4 @@ func (gui *Gui) ptyRender(spec renderSpec) (startRender, onCloseRender) {
 	}
 
 	return start, onClose
-}
-
-// withPtyGitConfig returns args with extra git configuration for commands
-// that render into a pty. On Windows, such a command is terminated at an
-// arbitrary point of its execution when its task stops: tearing down the
-// pseudoconsole delivers CTRL_CLOSE_EVENT, which git leaves to the default
-// handler, which just calls ExitProcess. git's automatic index refresh
-// (diff.autoRefreshIndex, on by default) takes index.lock at the end of a
-// diff against the worktree to write back refreshed stat information —
-// GIT_OPTIONAL_LOCKS does not cover this lock — and a termination landing
-// in that window leaves a stale index.lock behind that the next git command
-// chokes on. So don't let pty-rendered commands refresh the index;
-// lazygit's foreground `git status` refreshes, which never run in a pty,
-// keep the stat cache fresh instead.
-//
-// On Unix a stopped pty child gets SIGTERM, and git's signal handlers remove
-// its lock files, so the refresh can stay enabled there and keep healing
-// stale stat info.
-func withPtyGitConfig(args []string, goos string) []string {
-	if goos != "windows" {
-		return args
-	}
-	// Most pty commands are direct git invocations, but the user-configured
-	// ones can be arbitrary command lines (e.g. a branchLogCmd wrapping git
-	// in `sh -c`), and injecting git flags into those would corrupt them.
-	// Only direct git invocations get the config; that loses nothing, since
-	// the wrapped commands are log commands, which never take the index
-	// lock. (For direct invocations other than worktree diffs the config is
-	// simply a no-op.)
-	base := strings.TrimSuffix(strings.ToLower(filepath.Base(args[0])), ".exe")
-	if base != "git" {
-		return args
-	}
-	result := make([]string, 0, len(args)+2)
-	result = append(result, args[0])
-	result = append(result, "-c", "diff.autoRefreshIndex=false")
-	return append(result, args[1:]...)
 }
