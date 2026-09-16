@@ -39,15 +39,15 @@ func setupViews(t *testing.T, g *Gui) (*View, *View) {
 	return status, main
 }
 
-// pushContentOnly pushes a content-only event directly to the channel
-// (synchronous, deterministic — unlike Update which spawns a goroutine).
+// pushContentOnly enqueues a content-only event directly, letting the test
+// control the contentOnly flag (which Update/UpdateContentOnly hard-code).
 func pushContentOnly(g *Gui, f func(*Gui) error) {
-	g.userEvents <- userEvent{f: f, task: g.NewTask(), contentOnly: true}
+	g.userEvents.enqueue(userEvent{f: f, task: g.NewTask(), contentOnly: true})
 }
 
-// pushRegular pushes a regular event directly to the channel.
+// pushRegular enqueues a regular (non-content-only) event directly.
 func pushRegular(g *Gui, f func(*Gui) error) {
-	g.userEvents <- userEvent{f: f, task: g.NewTask(), contentOnly: false}
+	g.userEvents.enqueue(userEvent{f: f, task: g.NewTask(), contentOnly: false})
 }
 
 func TestFlushContentOnly_SkipsUntaintedViews(t *testing.T) {

@@ -78,7 +78,7 @@ func SimpleEditor(v *View, key Key) bool {
 		v.TextArea.GoToEndOfLine()
 	case key.Equals(NewKeyStrMod("y", ModCtrl)):
 		v.TextArea.Yank()
-	case key.Str() != "" && key.Mod() == 0:
+	case key.IsPrintable():
 		v.TextArea.TypeCharacter(key.Str())
 	default:
 		return false

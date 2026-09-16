@@ -6,7 +6,7 @@ import (
 )
 
 var AddFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Add a worktree via the commits view",
+	Description:  "Create a new branch and worktree from a commit via the commits view",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -24,21 +24,20 @@ var AddFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("initial commit"),
 			).
 			NavigateToLine(Contains("initial commit")).
-			Press(keys.Worktrees.ViewWorktreeOptions).
+			Press(keys.Universal.NewWorktree).
 			Tap(func() {
 				t.ExpectPopup().Menu().
-					Title(Equals("Worktree")).
-					Select(MatchesRegexp(`Create worktree from .*`).DoesNotContain("detached")).
+					Title(Equals("New worktree")).
+					Select(Contains("New branch and worktree from")).
 					Confirm()
 
 				t.ExpectPopup().Prompt().
-					Title(Equals("New worktree path")).
-					Type("../linked-worktree").
-					Confirm()
-
-				t.ExpectPopup().Prompt().
-					Title(Equals("New branch name")).
+					Title(Equals("New branch and worktree name")).
 					Type("newbranch").
+					Confirm()
+
+				t.ExpectPopup().Menu().
+					Title(Equals("Worktree location")).
 					Confirm()
 			}).
 			Lines(

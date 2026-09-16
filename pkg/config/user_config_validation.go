@@ -46,7 +46,7 @@ func (config *UserConfig) Validate() error {
 		[]string{"always", "never", "when-maximised"}); err != nil {
 		return err
 	}
-	if err := validatePagers(config.Git.Pagers); err != nil {
+	if err := validateDiffRenderers(config.Git.DiffRenderers); err != nil {
 		return err
 	}
 	if err := validateKeybindings(config.Keybinding); err != nil {
@@ -57,6 +57,42 @@ func (config *UserConfig) Validate() error {
 	}
 	if err := validateSpinner(config.Gui.Spinner); err != nil {
 		return err
+	}
+	if err := validateSidePanels(config.Gui.SidePanels); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateSidePanels(panels []SidePanel) error {
+	seen := map[string]bool{}
+	total := 0
+	for _, panel := range panels {
+		if len(panel) == 0 {
+			return errors.New("gui.sidePanels: a side panel must have at least one tab.")
+		}
+		for _, name := range panel {
+			if !slices.Contains(ValidSidePanelTabs, name) {
+				return fmt.Errorf("gui.sidePanels: unknown side panel '%s'. Allowed values: %s",
+					name, strings.Join(ValidSidePanelTabs, ", "))
+			}
+			if seen[name] {
+				return fmt.Errorf("gui.sidePanels: '%s' is listed more than once; each side panel may appear only once.", name)
+			}
+			seen[name] = true
+			total++
+		}
+	}
+	if total == 0 {
+		return errors.New("gui.sidePanels must not be empty.")
+	}
+	// A lot of code focuses these panels directly (e.g. after resolving a
+	// conflict or popping a stash), so they must always be present; otherwise
+	// that code would focus a hidden panel.
+	for _, required := range []string{"files", "branches", "commits"} {
+		if !seen[required] {
+			return fmt.Errorf("gui.sidePanels: '%s' must be included; it can't be hidden.", required)
+		}
 	}
 	return nil
 }
@@ -74,25 +110,26 @@ func validateSpinner(spinner SpinnerConfig) error {
 	return nil
 }
 
-// validatePagers rejects pager entries that combine more than one diff
-// mechanism. A pager (GIT_PAGER) formats the diff that git produces, whereas
-// externalDiffCommand and useExternalDiffGitConfig change how git produces the
-// diff in the first place; piping one through the other almost always yields
-// garbled output, so we treat the three as mutually exclusive.
-func validatePagers(pagers []PagingConfig) error {
-	for i, pager := range pagers {
-		count := 0
-		if pager.Pager != "" {
-			count++
-		}
-		if pager.ExternalDiffCommand != "" {
-			count++
-		}
-		if pager.UseExternalDiffGitConfig {
-			count++
-		}
-		if count > 1 {
-			return fmt.Errorf("git.pagers[%d]: at most one of 'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' may be set; they are mutually exclusive", i)
+func validateDiffRenderers(diffRenderers []DiffRendererConfig) error {
+	for _, diffRenderer := range diffRenderers {
+		switch diffRenderer.Type {
+		case "stdinFilter", "":
+			if diffRenderer.Command == "" {
+				return errors.New("git.diffRenderers: 'command' must be specified for diff renderer type 'stdinFilter'.")
+			}
+			if len(diffRenderer.Args) > 0 {
+				return errors.New("git.diffRenderers: 'args' cannot be used with diff renderer type 'stdinFilter'.")
+			}
+		case "extDiff":
+			if len(diffRenderer.Args) > 0 {
+				return errors.New("git.diffRenderers: 'args' cannot be used with diff renderer type 'extDiff'.")
+			}
+		case "rawGit":
+			if diffRenderer.Command != "" {
+				return errors.New("git.diffRenderers: 'command' cannot be used with diff renderer type 'rawGit'.")
+			}
+		default:
+			return fmt.Errorf("git.diffRenderers: unknown type '%s'. Allowed values: stdinFilter, extDiff, rawGit", diffRenderer.Type)
 		}
 	}
 	return nil
@@ -141,16 +178,7 @@ func validateKeybindingsRecurse(path string, node any) error {
 }
 
 func validateKeybindings(keybindingConfig KeybindingConfig) error {
-	if err := validateKeybindingsRecurse("", keybindingConfig); err != nil {
-		return err
-	}
-
-	if len(keybindingConfig.Universal.JumpToBlock) != 5 {
-		return fmt.Errorf("keybinding.universal.jumpToBlock must have 5 elements; found %d.",
-			len(keybindingConfig.Universal.JumpToBlock))
-	}
-
-	return nil
+	return validateKeybindingsRecurse("", keybindingConfig)
 }
 
 func validateCustomCommandKey(key Keybinding) error {
@@ -158,6 +186,51 @@ func validateCustomCommandKey(key Keybinding) error {
 		if !isValidKeybindingKey(k) {
 			return fmt.Errorf("Unrecognized key '%s' for custom command. For permitted values see %s",
 				k, constants.Links.Docs.CustomKeybindings)
+		}
+	}
+	return nil
+}
+
+// ValidCustomCommandContexts lists the names a custom command's 'context' may
+// use. It mirrors context.AllContextKeys in the gui package, which this package
+// can't import; a test over there keeps the two in sync.
+var ValidCustomCommandContexts = []string{
+	"global",
+	"status",
+	"files",
+	"localBranches",
+	"remotes",
+	"worktrees",
+	"remoteBranches",
+	"tags",
+	"commits",
+	"reflogCommits",
+	"subCommits",
+	"commitFiles",
+	"stash",
+	"normal",
+	"normalSecondary",
+	"staging",
+	"stagingSecondary",
+	"patchBuilding",
+	"patchBuildingSecondary",
+	"mergeConflicts",
+	"menu",
+	"confirmation",
+	"prompt",
+	"search",
+	"commitMessage",
+	"submodules",
+	"suggestions",
+	"cmdLog",
+}
+
+func validateCustomCommandContext(context string) error {
+	for _, name := range strings.Split(context, ",") {
+		name = strings.TrimSpace(name)
+		if !slices.Contains(ValidCustomCommandContexts, name) {
+			return fmt.Errorf("Unknown context '%s' for custom command. Allowed values: %s",
+				name, strings.Join(ValidCustomCommandContexts, ", "))
 		}
 	}
 	return nil
@@ -188,6 +261,15 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 				return err
 			}
 		} else {
+			// A command in a menu may leave the context out, in which case it is
+			// offered whatever is focused; a top-level one may not, but that is
+			// only noticed when the keybindings are built.
+			if customCommand.Context != "" {
+				if err := validateCustomCommandContext(customCommand.Context); err != nil {
+					return err
+				}
+			}
+
 			for _, prompt := range customCommand.Prompts {
 				if err := validateCustomCommandPrompt(prompt); err != nil {
 					return err

@@ -31,31 +31,31 @@ var ShowExecTodos = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("Rebasing (2/4)Executing: false")).Confirm()
 			}).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("exec").Contains("false"),
-				Contains("pick").Contains("CI commit 03"),
-				Contains("--- Commits ---"),
-				Contains("CI ○ commit 02"),
-				Contains("CI ○ commit 01"),
+				Contains("pick").Contains("CI commit-03"),
+				Contains("─── Commits"),
+				Contains("CI ○ commit-02"),
+				Contains("CI ○ commit-01"),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()
 				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("exit status 1")).Confirm()
 			}).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
-				Contains("--- Commits ---"),
-				Contains("CI ○ commit 03"),
-				Contains("CI ○ commit 02"),
-				Contains("CI ○ commit 01"),
+				Contains("─── Pending rebase todos"),
+				Contains("─── Commits"),
+				Contains("CI ○ commit-03"),
+				Contains("CI ○ commit-02"),
+				Contains("CI ○ commit-01"),
 			).
 			Tap(func() {
 				t.Common().ContinueRebase()
 			}).
 			Lines(
-				Contains("CI ○ commit 03"),
-				Contains("CI ○ commit 02"),
-				Contains("CI ○ commit 01"),
+				Contains("CI ○ commit-03"),
+				Contains("CI ○ commit-02"),
+				Contains("CI ○ commit-01"),
 			)
 	},
 })

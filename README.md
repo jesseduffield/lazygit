@@ -118,7 +118,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Changing Directory On Exit](#changing-directory-on-exit)
   - [Undo/Redo](#undoredo)
 - [Configuration](#configuration)
-  - [Custom Pagers](#custom-pagers)
+  - [Custom Diff Renderers](#custom-diff-renderers)
   - [Custom Commands](#custom-commands)
   - [Git flow support](#git-flow-support)
 - [Contributing](#contributing)
@@ -423,6 +423,7 @@ nix-shell -p lazygit
 # or with flakes enabled
 nix run nixpkgs#lazygit
 ```
+
 Or you can add lazygit to your `configuration.nix` using the `environment.systemPackages` option.
 More details can be found via NixOS search [page](https://search.nixos.org/).
 
@@ -431,6 +432,7 @@ More details can be found via NixOS search [page](https://search.nixos.org/).
 This repository includes a nix flake that provides the latest development version and additional development tools:
 
 **Run lazygit directly from the repository:**
+
 ```sh
 nix run github:jesseduffield/lazygit
 # or from a local clone
@@ -438,6 +440,7 @@ nix run .
 ```
 
 **Build lazygit from source:**
+
 ```sh
 nix build github:jesseduffield/lazygit
 # or from a local clone
@@ -446,6 +449,7 @@ nix build .
 
 **Development environment:**
 For contributors, the flake provides a development shell with Go toolchain, development tools, and dependencies:
+
 ```sh
 nix develop github:jesseduffield/lazygit
 # or from a local clone
@@ -453,12 +457,14 @@ nix develop
 ```
 
 The development shell includes:
+
 - Go toolchain
 - git and make
 - Proper environment variables for development
 
 **Using in other flakes:**
 The flake also provides an overlay for easy integration into other flake-based projects:
+
 ```nix
 {
   inputs.lazygit.url = "github:jesseduffield/lazygit";
@@ -584,9 +590,9 @@ See the [docs](/docs/Undoing.md)
 
 Check out the [configuration docs](docs/Config.md).
 
-### Custom Pagers
+### Custom Diff Renderers
 
-See the [docs](docs/Custom_Pagers.md)
+See the [docs](docs/Custom_DiffRenderers.md)
 
 ### Custom Commands
 

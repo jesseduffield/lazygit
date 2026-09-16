@@ -25,11 +25,11 @@ var DropCommitInCopiedBranchWithUpdateRef = NewIntegrationTest(NewIntegrationTes
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI * commit 03").IsSelected(),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
+				Contains("CI * commit-03").IsSelected(),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
 			).
-			NavigateToLine(Contains("commit 02")).
+			NavigateToLine(Contains("commit-02")).
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
@@ -38,8 +38,8 @@ var DropCommitInCopiedBranchWithUpdateRef = NewIntegrationTest(NewIntegrationTes
 					Confirm()
 			}).
 			Lines(
-				Contains("CI commit 03"), // no start on this commit because branch1 is no longer pointing to it
-				Contains("CI commit 01"),
+				Contains("CI commit-03"), // no start on this commit because branch1 is no longer pointing to it
+				Contains("CI commit-01"),
 			)
 
 		t.Views().Branches().
@@ -48,9 +48,9 @@ var DropCommitInCopiedBranchWithUpdateRef = NewIntegrationTest(NewIntegrationTes
 			PressPrimaryAction()
 
 		t.Views().Commits().Lines(
-			Contains("CI commit 03"),
-			Contains("CI commit 02"),
-			Contains("CI commit 01"),
+			Contains("CI commit-03"),
+			Contains("CI commit-02"),
+			Contains("CI commit-01"),
 		)
 	},
 })

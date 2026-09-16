@@ -24,18 +24,18 @@ var SelectedCommitRange = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().Focus().
 			Lines(
-				Contains("commit 03").IsSelected(),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("commit-03").IsSelected(),
+				Contains("commit-02"),
+				Contains("commit-01"),
 			)
 
 		t.GlobalPress(config.Keybinding{"X"})
-		t.FileSystem().FileContent("file.txt", Equals("commit 03\n"))
+		t.FileSystem().FileContent("file.txt", Equals("commit-03\n"))
 
 		t.Views().Commits().Focus().
 			Press(keys.Universal.RangeSelectDown)
 
 		t.GlobalPress(config.Keybinding{"X"})
-		t.FileSystem().FileContent("file.txt", Equals("commit 03\ncommit 02\n"))
+		t.FileSystem().FileContent("file.txt", Equals("commit-03\ncommit-02\n"))
 	},
 })

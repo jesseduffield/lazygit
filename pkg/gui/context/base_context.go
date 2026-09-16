@@ -28,7 +28,7 @@ type BaseContext struct {
 	hasControlledBounds         bool
 	needsRerenderOnWidthChange  types.NeedsRerenderOnWidthChangeLevel
 	needsRerenderOnHeightChange bool
-	highlightOnFocus            bool
+	hasSelectableContent        bool
 
 	*ParentContextMgr
 }
@@ -49,7 +49,7 @@ type NewBaseContextOpts struct {
 	Focusable                   bool
 	Transient                   bool
 	HasUncontrolledBounds       bool // negating for the sake of making false the default
-	HighlightOnFocus            bool
+	HasSelectableContent        bool
 	NeedsRerenderOnWidthChange  types.NeedsRerenderOnWidthChangeLevel
 	NeedsRerenderOnHeightChange bool
 
@@ -70,7 +70,7 @@ func NewBaseContext(opts NewBaseContextOpts) *BaseContext {
 		focusable:                   opts.Focusable,
 		transient:                   opts.Transient,
 		hasControlledBounds:         hasControlledBounds,
-		highlightOnFocus:            opts.HighlightOnFocus,
+		hasSelectableContent:        opts.HasSelectableContent,
 		needsRerenderOnWidthChange:  opts.NeedsRerenderOnWidthChange,
 		needsRerenderOnHeightChange: opts.NeedsRerenderOnHeightChange,
 		ParentContextMgr:            &ParentContextMgr{},
@@ -102,6 +102,10 @@ func (self *BaseContext) GetViewName() string {
 	return self.view.Name()
 }
 
+func (self *BaseContext) GetInputViewName() string {
+	return self.GetViewName()
+}
+
 func (self *BaseContext) GetView() *gocui.View {
 	return self.view
 }
@@ -114,12 +118,16 @@ func (self *BaseContext) GetKind() types.ContextKind {
 	return self.kind
 }
 
+func (self *BaseContext) HasSelectableContent() bool {
+	return self.hasSelectableContent
+}
+
 func (self *BaseContext) GetKey() types.ContextKey {
 	return self.key
 }
 
 func (self *BaseContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
-	bindings := []*types.Binding{}
+	bindings := make([]*types.Binding, 0, len(self.keybindingsFns))
 	for i := range self.keybindingsFns {
 		// the first binding in the bindings array takes precedence but we want the
 		// last keybindingsFn to take precedence to we add them in reverse
@@ -216,7 +224,7 @@ func (self *BaseContext) AddOnQuitFn(fn func()) {
 }
 
 func (self *BaseContext) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
-	bindings := []*gocui.ViewMouseBinding{}
+	bindings := make([]*gocui.ViewMouseBinding, 0, len(self.mouseKeybindingsFns))
 	for i := range self.mouseKeybindingsFns {
 		// the first binding in the bindings array takes precedence but we want the
 		// last keybindingsFn to take precedence to we add them in reverse

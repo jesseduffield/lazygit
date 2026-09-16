@@ -25,7 +25,7 @@ var FilterMenuWithNoKeybindings = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				// menu has filtered down to the one item that matches the
 				// filter, and it doesn't have a keybinding
-				Equals("--- Global ---"),
+				Equals("─── Global"),
 				Equals("Toggle whitespace").IsSelected(),
 			)
 	},

@@ -14,6 +14,8 @@
 
 package tcell
 
+import "unicode/utf8"
+
 type cell struct {
 	currStr   string
 	lastStr   string
@@ -72,12 +74,22 @@ func (cb *CellBuffer) put(x int, y int, str string, style Style) (string, int) {
 	if x >= 0 && y >= 0 && x < cb.w && y < cb.h {
 		var cl string
 		c := &cb.cells[(y*cb.w)+x]
-		g := textWidthOptions.StringGraphemes(str)
-		for width == 0 && g.Next() {
-			cluster := g.Value()
-			cl += cluster
-			width = g.Width()
-			str = str[len(cluster):]
+		if str == c.currStr && c.width > 0 {
+			// Identical re-Put (a full-screen redraw): the grapheme split is
+			// unchanged, so reuse the measured width instead of segmenting.
+			cl, width, str = str, c.width, ""
+		} else if len(str) > 0 && str[0] >= ' ' && str[0] <= '~' && (len(str) == 1 || str[1] < utf8.RuneSelf) {
+			// Printable ASCII followed by ASCII cannot be part of a larger
+			// grapheme cluster, so avoid constructing a grapheme iterator.
+			cl, width, str = str[:1], 1, str[1:]
+		} else {
+			g := textWidthOptions.StringGraphemes(str)
+			for width == 0 && g.Next() {
+				cluster := g.Value()
+				cl += cluster
+				width = g.Width()
+				str = str[len(cluster):]
+			}
 		}
 
 		// Wide characters: we want to mark the "wide" cells
@@ -238,5 +250,47 @@ func (cb *CellBuffer) Fill(r rune, style Style) {
 		}
 		c.currStyle = cs
 		c.width = 1
+	}
+}
+
+// FillArea fills a rectangular region of the cell buffer with the specified
+// character and style.  The region starts at column x, row y and extends w
+// columns to the right and h rows down; any part of it lying outside the
+// buffer is simply skipped, so callers do not need to clip coordinates
+// themselves.  A zero or negative width or height fills nothing.  As with
+// Fill, this doesn't support combining characters or wide runes, and a
+// ColorNone foreground or background leaves that color unchanged.
+func (cb *CellBuffer) FillArea(x, y, w, h int, r rune, style Style) {
+	if w <= 0 || h <= 0 {
+		return
+	}
+	x0 := max(x, 0)
+	y0 := max(y, 0)
+	// Clip the far edge to the buffer without ever evaluating x+w or y+h when
+	// they would overflow a signed int.  Because w and h are positive here,
+	// x < cb.w-w is equivalent to x+w < cb.w but cannot overflow, and it is
+	// only true when x+w is small enough to compute safely.
+	x1 := cb.w
+	if x < cb.w-w {
+		x1 = x + w
+	}
+	y1 := cb.h
+	if y < cb.h-h {
+		y1 = y + h
+	}
+	for row := y0; row < y1; row++ {
+		for col := x0; col < x1; col++ {
+			c := &cb.cells[(row*cb.w)+col]
+			c.currStr = string(r)
+			cs := style
+			if cs.fg == ColorNone {
+				cs.fg = c.currStyle.fg
+			}
+			if cs.bg == ColorNone {
+				cs.bg = c.currStyle.bg
+			}
+			c.currStyle = cs
+			c.width = 1
+		}
 	}
 }

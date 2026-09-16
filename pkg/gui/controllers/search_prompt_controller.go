@@ -51,11 +51,13 @@ func (self *SearchPromptController) context() types.Context {
 }
 
 func (self *SearchPromptController) confirm() error {
-	return self.c.Helpers().Search.Confirm()
+	self.c.Helpers().Search.Confirm()
+	return nil
 }
 
 func (self *SearchPromptController) cancel() error {
-	return self.c.Helpers().Search.CancelPrompt()
+	self.c.Helpers().Search.CancelPrompt()
+	return nil
 }
 
 func (self *SearchPromptController) prevHistory() error {

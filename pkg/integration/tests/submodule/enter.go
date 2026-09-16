@@ -29,7 +29,7 @@ var Enter = NewIntegrationTest(NewIntegrationTestArgs{
 			t.Views().Status().Content(Contains("repo"))
 		}
 		assertInSubmodule := func() {
-			t.Views().Status().Content(Contains("my_submodule_path(my_submodule_name)"))
+			t.Views().Status().Content(Contains("my_submodule_path"))
 		}
 
 		assertInParentRepo()

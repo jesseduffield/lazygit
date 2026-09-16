@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -12,10 +13,11 @@ import (
 
 func TestFilterAction(t *testing.T) {
 	scenarios := []struct {
-		name     string
-		filter   FileTreeDisplayFilter
-		files    []*models.File
-		expected []*models.File
+		name            string
+		filter          FileTreeDisplayFilter
+		conflictedPaths []string
+		files           []*models.File
+		expected        []*models.File
 	}{
 		{
 			name:   "filter files with unstaged changes",
@@ -84,11 +86,29 @@ func TestFilterAction(t *testing.T) {
 				{Path: "file1", ShortStatus: "UU", HasMergeConflicts: true, HasInlineMergeConflicts: true},
 			},
 		},
+		{
+			name:            "keep showing conflicted files whose conflicts have been resolved",
+			filter:          DisplayConflicted,
+			conflictedPaths: []string{"dir2/dir2/file4", "file1"},
+			files: []*models.File{
+				{Path: "dir2/dir2/file4", ShortStatus: "M ", HasStagedChanges: true},
+				{Path: "dir2/file5", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Path: "file1", ShortStatus: "UU", HasMergeConflicts: true, HasInlineMergeConflicts: true},
+			},
+			expected: []*models.File{
+				{Path: "dir2/dir2/file4", ShortStatus: "M ", HasStagedChanges: true},
+				{Path: "file1", ShortStatus: "UU", HasMergeConflicts: true, HasInlineMergeConflicts: true},
+			},
+		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			mngr := &FileTree{getFiles: func() []*models.File { return s.files }, filter: s.filter}
+			mngr := &FileTree{
+				getFiles:        func() []*models.File { return s.files },
+				filter:          s.filter,
+				conflictedPaths: set.NewFromSlice(s.conflictedPaths),
+			}
 			result := mngr.getFilesForDisplay()
 			assert.EqualValues(t, s.expected, result)
 		})

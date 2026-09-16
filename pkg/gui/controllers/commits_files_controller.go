@@ -191,11 +191,11 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 	}
 }
 
-func (self *CommitFilesController) copyDiffToClipboard(path string, toastMessage string) error {
+func (self *CommitFilesController) copyDiffToClipboard(paths []string, toastMessage string) error {
 	from, to := self.context().GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
 
-	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, []string{path}, true)
+	cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, true)
 	diff, err := cmdObj.RunWithOutput()
 	if err != nil {
 		return err
@@ -263,7 +263,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyFileDiffItem := &types.MenuItem{
 		Label: self.c.Tr.CopySelectedDiff,
 		OnPress: func() error {
-			return self.copyDiffToClipboard(node.GetPath(), self.c.Tr.FileDiffCopiedToast)
+			return self.copyDiffToClipboard(self.pathsForDiff(node), self.c.Tr.FileDiffCopiedToast)
 		},
 		DisabledReason: self.require(self.singleItemSelected())(),
 		Keys:           menuKey('s'),
@@ -271,7 +271,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyAllDiff := &types.MenuItem{
 		Label: self.c.Tr.CopyAllFilesDiff,
 		OnPress: func() error {
-			return self.copyDiffToClipboard(".", self.c.Tr.AllFilesDiffCopiedToast)
+			return self.copyDiffToClipboard([]string{"."}, self.c.Tr.AllFilesDiffCopiedToast)
 		},
 		DisabledReason: self.require(self.itemsSelected())(),
 		Keys:           menuKey('a'),
@@ -324,7 +324,7 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 		return err
 	}
 
-	self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	self.c.Refresh(types.RefreshOptions{})
 	return nil
 }
 
@@ -337,7 +337,12 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 		Title:  self.c.Tr.DiscardFileChangesTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+			commits := self.c.Model().Commits
+			selectedLineIdx := self.c.Contexts().LocalCommits.GetSelectedLineIdx()
+			return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
+				Message:              self.c.Tr.RebasingStatus,
+				HideWorkingTreeState: true,
+			}, func(gocui.Task) error {
 				var filePaths []string
 				selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
 
@@ -348,19 +353,25 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 
 				for _, node := range selectedNodes {
 					_ = node.ForEachFile(func(file *models.CommitFile) error {
-						filePaths = append(filePaths, file.GetPath())
+						// For a rename we discard both the new and the old path,
+						// so that the new file is removed and the old one is
+						// restored.
+						filePaths = append(filePaths, file.Names()...)
 						return nil
 					})
 				}
 
-				err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), filePaths)
+				err := self.c.Git().Rebase.DiscardOldFileChanges(commits, selectedLineIdx, filePaths)
 				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 					return err
 				}
 
-				if self.context().RangeSelectEnabled() {
-					self.context().GetList().CancelRangeSelect()
-				}
+				self.c.OnUIThread(func() error {
+					if self.context().RangeSelectEnabled() {
+						self.context().GetList().CancelRangeSelect()
+					}
+					return nil
+				})
 
 				return nil
 			})
@@ -439,20 +450,16 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
 	}
 
+	refName := self.context().GetRef().RefName()
+
 	toggle := func() error {
 		return self.c.WithWaitingStatus(self.c.Tr.UpdatingPatch, func(gocui.Task) error {
-			if !self.c.Git().Patch.PatchBuilder.Active() {
-				if err := self.startPatchBuilder(); err != nil {
-					return err
-				}
-			}
-
 			selectedNodes = normalisedSelectedCommitFileNodes(selectedNodes)
 
 			// Find if any file in the selection is unselected or partially added
 			adding := lo.SomeBy(selectedNodes, func(node *filetree.CommitFileNode) bool {
 				return node.SomeFile(func(file *models.CommitFile) bool {
-					fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Path, self.context().GetRef().RefName())
+					fileStatus := self.c.Git().Patch.PatchBuilder.GetFileStatus(file.Path, refName)
 					return fileStatus == patch.PART || fileStatus == patch.UNSELECTED
 				})
 			})
@@ -465,7 +472,7 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 
 			for _, node := range selectedNodes {
 				err := node.ForEachFile(func(file *models.CommitFile) error {
-					return patchOperationFunction(file.Path)
+					return patchOperationFunction(file.Path, file.PreviousPath)
 				})
 				if err != nil {
 					return err
@@ -493,6 +500,12 @@ func (self *CommitFilesController) toggleForPatch(selectedNodes []*filetree.Comm
 		HandleConfirm: func() error {
 			if mustDiscardPatch {
 				self.c.Git().Patch.PatchBuilder.Reset()
+			}
+
+			if !self.c.Git().Patch.PatchBuilder.Active() {
+				if err := self.startPatchBuilder(); err != nil {
+					return err
+				}
 			}
 
 			return toggle()
@@ -603,19 +616,9 @@ func (self *CommitFilesController) GetOnClickFocusedMainView() func(mainViewName
 	}
 }
 
-// pathsForDiff returns the file paths to use for a diff command. When a text
-// filter is active and the node is a directory, only the visible (filtered)
-// file paths are returned so the diff reflects what the user sees.
 func (self *CommitFilesController) pathsForDiff(node *filetree.CommitFileNode) []string {
-	if !node.IsFile() && self.context().IsFiltering() {
-		var paths []string
-		_ = node.ForEachFile(func(file *models.CommitFile) error {
-			paths = append(paths, file.Path)
-			return nil
-		})
-		return paths
-	}
-	return []string{node.GetPath()}
+	return diffPathsForNode(
+		node.Raw(), self.context().GetRoot().Raw(), self.c.Model().CommitFiles, self.context().IsFiltering())
 }
 
 // NOTE: these functions are identical to those in files_controller.go (except for types) and
@@ -627,11 +630,16 @@ func normalisedSelectedCommitFileNodes(selectedNodes []*filetree.CommitFileNode)
 }
 
 func isDescendentOfSelectedCommitFileNodes(node *filetree.CommitFileNode, selectedNodes []*filetree.CommitFileNode) bool {
-	for _, selectedNode := range selectedNodes {
-		selectedNodePath := selectedNode.GetPath()
-		nodePath := node.GetPath()
+	nodePath := node.GetInternalPath()
 
-		if strings.HasPrefix(nodePath, selectedNodePath) && nodePath != selectedNodePath {
+	for _, selectedNode := range selectedNodes {
+		if selectedNode.IsFile() {
+			continue
+		}
+
+		selectedNodePath := selectedNode.GetInternalPath()
+
+		if strings.HasPrefix(nodePath, selectedNodePath+"/") {
 			return true
 		}
 	}

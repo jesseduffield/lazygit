@@ -2,13 +2,11 @@ package filetree
 
 import (
 	"strings"
-	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -22,7 +20,6 @@ type IFileTreeViewModel interface {
 // which item is selected. It also contains logic for repositioning that cursor
 // after the files are refreshed
 type FileTreeViewModel struct {
-	sync.RWMutex
 	types.IListCursor
 	IFileTree
 	searchHistory *utils.HistoryBuffer[string]
@@ -169,6 +166,31 @@ func (self *FileTreeViewModel) SetStatusFilter(filter FileTreeDisplayFilter) {
 	self.IListCursor.SetSelection(0)
 }
 
+func (self *FileTreeViewModel) SetStatusFilterPreservingSelection(filter FileTreeDisplayFilter) {
+	self.preserveSelection(func() {
+		self.SetStatusFilter(filter)
+	})
+}
+
+func (self *FileTreeViewModel) preserveSelection(f func()) {
+	selectedNode := self.GetSelected()
+	var selectedPath string
+	if selectedNode != nil {
+		selectedPath = selectedNode.GetInternalPath()
+	}
+
+	f()
+
+	if selectedPath != "" {
+		self.ExpandToPath(selectedPath)
+		if idx, found := self.GetIndexForPath(selectedPath); found {
+			self.SetSelection(idx)
+			return
+		}
+	}
+	self.ClampSelection()
+}
+
 // If we're going from flat to tree we want to select the same file.
 // If we're going from tree to flat and we have a file selected we want to select that.
 // If instead we've selected a directory we need to select the first file in that directory.
@@ -235,22 +257,9 @@ func (self *FileTreeViewModel) GetFilter() string {
 }
 
 func (self *FileTreeViewModel) ClearFilter() {
-	selectedNode := self.GetSelected()
-	var selectedPath string
-	if selectedNode != nil {
-		selectedPath = selectedNode.GetInternalPath()
-	}
-
-	self.IFileTree.SetTextFilter("", false)
-
-	if selectedPath != "" {
-		self.ExpandToPath(selectedPath)
-		if idx, found := self.GetIndexForPath(selectedPath); found {
-			self.SetSelection(idx)
-			return
-		}
-	}
-	self.ClampSelection()
+	self.preserveSelection(func() {
+		self.IFileTree.SetTextFilter("", false)
+	})
 }
 
 func (self *FileTreeViewModel) ReApplyFilter(useFuzzySearch bool) {
@@ -263,10 +272,6 @@ func (self *FileTreeViewModel) IsFiltering() bool {
 
 // used for type switch
 func (self *FileTreeViewModel) IsFilterableContext() {}
-
-func (self *FileTreeViewModel) FilterPrefix(tr *i18n.TranslationSet) string {
-	return tr.FilterPrefix
-}
 
 func (self *FileTreeViewModel) GetSearchHistory() *utils.HistoryBuffer[string] {
 	return self.searchHistory

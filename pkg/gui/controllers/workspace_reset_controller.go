@@ -46,7 +46,7 @@ func (self *FilesController) createResetMenu() error {
 							}
 
 							self.c.Refresh(
-								types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+								types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 							)
 							return nil
 						},
@@ -68,7 +68,7 @@ func (self *FilesController) createResetMenu() error {
 				}
 
 				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 				)
 				return nil
 			},
@@ -86,7 +86,7 @@ func (self *FilesController) createResetMenu() error {
 				}
 
 				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 				)
 				return nil
 			},
@@ -111,7 +111,7 @@ func (self *FilesController) createResetMenu() error {
 				}
 
 				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 				)
 				return nil
 			},
@@ -129,7 +129,7 @@ func (self *FilesController) createResetMenu() error {
 				}
 
 				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 				)
 				return nil
 			},
@@ -147,7 +147,7 @@ func (self *FilesController) createResetMenu() error {
 				}
 
 				self.c.Refresh(
-					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+					types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 				)
 				return nil
 			},
@@ -170,7 +170,7 @@ func (self *FilesController) createResetMenu() error {
 							}
 
 							self.c.Refresh(
-								types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+								types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}},
 							)
 							return nil
 						},

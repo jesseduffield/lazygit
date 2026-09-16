@@ -37,6 +37,10 @@ func TestFileGetStatusFiles(t *testing.T) {
 				ExpectGitArgs([]string{"diff", "--numstat", "-z", "HEAD"},
 					"4\t1\tfile1.txt\x001\t0\tfile2.txt\x002\t2\tfile3.txt\x000\t2\tfile4.txt\x002\t2\tfile5.txt",
 					nil,
+				).
+				ExpectGitArgs([]string{"check-attr", "-z", "--stdin", "conflict-marker-size"},
+					"file5.txt\x00conflict-marker-size\x00unspecified\x00",
+					nil,
 				),
 			showNumstatInFilesView: true,
 			expectedFiles: []*models.File{
@@ -109,6 +113,58 @@ func TestFileGetStatusFiles(t *testing.T) {
 					ShortStatus:             "UU",
 					LinesAdded:              2,
 					LinesDeleted:            2,
+				},
+			},
+		},
+		{
+			testName:            "Conflicted files with a conflict-marker-size attribute",
+			similarityThreshold: 50,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"},
+					"UU file1.txt\x00UU file2.txt\x00UU file3.txt\x00 M file4.txt",
+					nil,
+				).
+				ExpectGitArgs([]string{"check-attr", "-z", "--stdin", "conflict-marker-size"},
+					"file1.txt\x00conflict-marker-size\x0032\x00"+
+						"file2.txt\x00conflict-marker-size\x00unspecified\x00"+
+						"file3.txt\x00conflict-marker-size\x00nonsense\x00",
+					nil,
+				),
+			expectedFiles: []*models.File{
+				{
+					Path:                    "file1.txt",
+					HasUnstagedChanges:      true,
+					Tracked:                 true,
+					HasMergeConflicts:       true,
+					HasInlineMergeConflicts: true,
+					ConflictMarkerSize:      32,
+					DisplayString:           "UU file1.txt",
+					ShortStatus:             "UU",
+				},
+				{
+					Path:                    "file2.txt",
+					HasUnstagedChanges:      true,
+					Tracked:                 true,
+					HasMergeConflicts:       true,
+					HasInlineMergeConflicts: true,
+					DisplayString:           "UU file2.txt",
+					ShortStatus:             "UU",
+				},
+				{
+					Path:                    "file3.txt",
+					HasUnstagedChanges:      true,
+					Tracked:                 true,
+					HasMergeConflicts:       true,
+					HasInlineMergeConflicts: true,
+					DisplayString:           "UU file3.txt",
+					ShortStatus:             "UU",
+				},
+				{
+					Path:               "file4.txt",
+					HasUnstagedChanges: true,
+					Tracked:            true,
+					DisplayString:      " M file4.txt",
+					ShortStatus:        " M",
 				},
 			},
 		},

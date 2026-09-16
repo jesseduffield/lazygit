@@ -50,17 +50,12 @@ func (self *ViewSelectionController) GetMouseKeybindings(opts types.KeybindingsO
 }
 
 func (self *ViewSelectionController) handleLineChange(delta int) {
-	if delta > 0 {
-		if manager := self.c.GetViewBufferManagerForView(self.context.GetView()); manager != nil {
-			manager.ReadLines(delta)
-		}
-	}
-
 	v := self.Context().GetView()
 	if delta < 0 {
 		v.ScrollUp(-delta)
 	} else {
 		v.ScrollDown(delta)
+		self.c.ReadLinesToFillView(v)
 	}
 }
 

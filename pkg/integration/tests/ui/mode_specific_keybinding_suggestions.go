@@ -27,8 +27,8 @@ var ModeSpecificKeybindingSuggestions = NewIntegrationTest(NewIntegrationTestArg
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01"),
 			).
 			Tap(func() {
 				// These suggestions are mode-specific so are not shown by default

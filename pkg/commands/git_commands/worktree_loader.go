@@ -22,9 +22,6 @@ func NewWorktreeLoader(gitCommon *GitCommon) *WorktreeLoader {
 }
 
 func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
-	currentRepoPath := self.repoPaths.RepoPath()
-	worktreePath := self.repoPaths.WorktreePath()
-
 	cmdArgs := NewGitCmd("worktree").Arg("list", "--porcelain").ToArgv()
 	worktreesOutput, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
@@ -54,17 +51,13 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 
 		if strings.HasPrefix(splitLine, "worktree ") {
 			path := strings.SplitN(splitLine, " ", 2)[1]
-			isMain := path == currentRepoPath
-			isCurrent := path == worktreePath
-			isPathMissing := self.pathExists(path)
 
 			current = &models.Worktree{
-				IsMain:        isMain,
-				IsCurrent:     isCurrent,
-				IsPathMissing: isPathMissing,
+				IsPathMissing: self.pathExists(path),
 				Path:          path,
 				// we defer populating GitDir until a loop below so that
-				// we can parallelize the calls to git rev-parse
+				// we can parallelize the calls to git rev-parse, and
+				// IsMain/IsCurrent because they are derived from GitDir
 				GitDir: "",
 			}
 		} else if strings.HasPrefix(splitLine, "HEAD ") {
@@ -84,7 +77,7 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 			if worktree.IsPathMissing {
 				return
 			}
-			gitDir, err := callGitRevParseWithDir(self.cmd, worktree.Path, "--absolute-git-dir")
+			gitDir, err := callGitRevParseInOtherRepo(self.cmd, worktree.Path, "--absolute-git-dir")
 			if err != nil {
 				self.Log.Warnf("Could not find git dir for worktree %s: %v", worktree.Path, err)
 				return
@@ -94,6 +87,23 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 		})
 	}
 	wg.Wait()
+
+	// Identify the current and the main worktree by their git dir rather than by
+	// their path: `git worktree list` reports the main worktree as the common
+	// git dir with a trailing "/.git" removed, which is the working tree only
+	// when the git dir sits inside it. In a submodule, a bare repo or a repo
+	// using core.worktree it doesn't, and comparing paths then matches nothing.
+	// A worktree whose directory is gone has no git dir to compare, so there we
+	// have nothing better than its path.
+	for _, worktree := range worktrees {
+		if worktree.GitDir != "" {
+			worktree.IsCurrent = worktree.GitDir == self.repoPaths.WorktreeGitDirPath()
+			worktree.IsMain = worktree.GitDir == self.repoPaths.RepoGitDirPath()
+		} else {
+			worktree.IsCurrent = worktree.Path == self.repoPaths.WorktreePath()
+			worktree.IsMain = worktree.Path == self.repoPaths.RepoPath()
+		}
+	}
 
 	names := getUniqueNamesFromPaths(lo.Map(worktrees, func(worktree *models.Worktree, _ int) string {
 		return worktree.Path

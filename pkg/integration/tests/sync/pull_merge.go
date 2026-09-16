@@ -29,7 +29,7 @@ var PullMerge = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Lines(
-				Contains("four"),
+				Contains("four").IsSelected(),
 				Contains("one"),
 			)
 
@@ -43,7 +43,7 @@ var PullMerge = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Lines(
-				Contains("Merge branch 'master' of ../origin"),
+				Contains("Merge branch 'master' of ../origin").IsSelected(),
 				Contains("three"),
 				Contains("two"),
 				Contains("four"),

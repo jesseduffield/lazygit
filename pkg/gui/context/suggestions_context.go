@@ -81,10 +81,17 @@ func (self *SuggestionsContext) SetSuggestions(suggestions []*types.Suggestion) 
 }
 
 func (self *SuggestionsContext) RefreshSuggestions() {
+	// Capture the suggestions function and the prompt input here, on the UI
+	// thread, rather than inside the worker below: the main thread rewrites both
+	// (State.FindSuggestions and the prompt's TextArea) when it (re)creates a
+	// prompt panel, so reading them from the worker races those writes. It's
+	// also more correct -- we search for the input as it was when dispatched,
+	// which is what this request's AsyncHandler id corresponds to.
+	findSuggestionsFn := self.State.FindSuggestions
+	promptInput := self.c.GetPromptInput()
 	self.State.AsyncHandler.Do(func() func() {
-		findSuggestionsFn := self.State.FindSuggestions
 		if findSuggestionsFn != nil {
-			suggestions := findSuggestionsFn(self.c.GetPromptInput())
+			suggestions := findSuggestionsFn(promptInput)
 			return func() { self.SetSuggestions(suggestions) }
 		}
 		return func() {}

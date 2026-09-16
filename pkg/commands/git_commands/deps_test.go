@@ -62,7 +62,7 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 		gitCommon.Common.SetUserConfig(config.GetDefaultConfig())
 	}
 
-	gitCommon.pagerConfig = config.NewPagerConfig(func() *config.UserConfig {
+	gitCommon.diffRendererConfigManager = config.NewDiffRendererConfigManager(func() *config.UserConfig {
 		return gitCommon.Common.UserConfig()
 	})
 
@@ -166,6 +166,12 @@ func buildBranchCommands(deps commonDeps) *BranchCommands {
 	gitCommon := buildGitCommon(deps)
 
 	return NewBranchCommands(gitCommon)
+}
+
+func buildStatusCommands(deps commonDeps) *StatusCommands {
+	gitCommon := buildGitCommon(deps)
+
+	return NewStatusCommands(gitCommon)
 }
 
 func buildFlowCommands(deps commonDeps) *FlowCommands {

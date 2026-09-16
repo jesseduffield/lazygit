@@ -28,9 +28,18 @@ type ListContextTrait struct {
 	// true if we're inside the OnSearchSelect call; in that case we don't want to update the search
 	// result index.
 	inOnSearchSelect bool
+
+	// If set, this renders the "x of y" footer instead of the default, which puts
+	// it on the bottom border of the list's own view. A list that is part of a
+	// composite panel can use this to put it somewhere else; see MenuContext.
+	renderFooter func(footer string)
 }
 
 func (self *ListContextTrait) IsListContext() {}
+
+func (self *ListContextTrait) HasSelectableContent() bool {
+	return self.list.Len() > 0
+}
 
 func (self *ListContextTrait) FocusLine(scrollIntoView bool) {
 	self.Context.FocusLine(scrollIntoView)
@@ -81,7 +90,13 @@ func (self *ListContextTrait) refreshViewport() {
 }
 
 func (self *ListContextTrait) setFooter() {
-	self.GetViewTrait().SetFooter(formatListFooter(self.list.GetSelectedLineIdx(), self.list.Len()))
+	footer := formatListFooter(self.list.GetSelectedLineIdx(), self.list.Len())
+	if self.renderFooter != nil {
+		self.renderFooter(footer)
+		return
+	}
+
+	self.GetViewTrait().SetFooter(footer)
 }
 
 func formatListFooter(selectedLineIdx int, length int) string {
@@ -89,9 +104,7 @@ func formatListFooter(selectedLineIdx int, length int) string {
 }
 
 func (self *ListContextTrait) HandleFocus(opts types.OnFocusOpts) {
-	self.FocusLine(opts.ScrollSelectionIntoView)
-
-	self.GetViewTrait().SetHighlight(self.list.Len() > 0)
+	self.FocusLine(!opts.KeepScrollPosition)
 
 	self.Context.HandleFocus(opts)
 }

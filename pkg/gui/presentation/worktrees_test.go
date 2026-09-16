@@ -14,6 +14,7 @@ func Test_GetWorktreeDisplayString(t *testing.T) {
 	tr := &i18n.TranslationSet{
 		MainWorktree:    "(main worktree)",
 		MissingWorktree: "(missing)",
+		HeadDetachedAt:  "HEAD detached at {{.hash}}",
 	}
 
 	scenarios := []struct {

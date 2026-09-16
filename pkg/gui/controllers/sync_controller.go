@@ -175,7 +175,7 @@ func (self *SyncController) pullWithLock(task gocui.Task, opts PullFilesOptions)
 		},
 	)
 
-	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseAndSelectHeadCommit(err)
 }
 
 type pushOpts struct {
@@ -229,7 +229,7 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 			}
 			return err
 		}
-		self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		self.c.RefreshFromWorker(types.RefreshOptions{})
 		return nil
 	})
 }

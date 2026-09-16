@@ -33,6 +33,7 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		config.GetUserConfig().Gui.ExpandFocusedSidePanel = true
 	},
 	SetupRepo: func(shell *Shell) {
 		// We're testing the commits view as our representative list context,
@@ -51,6 +52,7 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 		}
 		shell.CreateFileAndAdd("file1", "staged\n")
 		shell.UpdateFile("file1", fileContent)
+		shell.NewBranch("branch1").NewBranch("branch2")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		assertRangeSelectBehaviour := func(v *ViewDriver, focusOtherView func(), lineIdxOfFirstItem int) {
@@ -179,5 +181,46 @@ var RangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			PressEnter()
 
 		assertRangeSelectBehaviour(t.Views().Staging().IsFocused(), func() { t.Views().Staging().PressTab() }, 6)
+
+		t.Views().Branches().Focus()
+		t.Views().Branches().
+			SelectedLines(
+				Contains("branch2"),
+			)
+		t.Views().Commits().
+			ClickAndHold(1, 3).
+			MouseMoveToView(t.Views().Branches(), 1, 2).
+			SelectedLines(
+				Contains("line 1"),
+				Contains("line 2"),
+				Contains("line 3"),
+				Contains("line 4"),
+			).
+			Tap(func() {
+				t.Views().Branches().SelectedLines(
+					Contains("branch2"),
+				)
+			}).
+			MouseRelease()
+
+		t.Views().Branches().Focus()
+		t.Views().Commits().
+			ClickAndHold(1, 0).
+			SelectedLines(
+				Contains("line 1"),
+			).
+			RepeatMouseMove().
+			SelectedLines(
+				Contains("line 1"),
+			).
+			MouseMove(1, 3).
+			SelectedLines(
+				Contains("line 1"),
+				Contains("line 2"),
+				Contains("line 3"),
+				Contains("line 4"),
+			).
+			MouseRelease().
+			Click(1, 0)
 	},
 })

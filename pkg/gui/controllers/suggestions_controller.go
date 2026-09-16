@@ -85,7 +85,6 @@ func (self *SuggestionsController) GetMouseKeybindings(opts types.KeybindingsOpt
 
 func (self *SuggestionsController) switchToPrompt() error {
 	self.c.Views().Suggestions.Subtitle = ""
-	self.c.Views().Suggestions.Highlight = false
 	self.c.Context().Replace(self.c.Contexts().Prompt)
 	return nil
 }

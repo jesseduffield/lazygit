@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -81,9 +80,8 @@ func (self *QuitActions) Escape() error {
 		}
 	}
 
-	repoPathStack := self.c.State().GetRepoPathStack()
-	if !repoPathStack.IsEmpty() {
-		return self.c.Helpers().Repos.DispatchSwitchToRepo(repoPathStack.Pop(), context.NO_CONTEXT)
+	if !self.c.State().GetRepoPathStack().IsEmpty() {
+		return self.c.Helpers().Repos.SwitchToParentRepo()
 	}
 
 	if self.c.UserConfig().QuitOnTopLevelReturn {

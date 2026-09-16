@@ -6,6 +6,7 @@ VSCode, IntelliJ IDEA et al.
 package fuzzy
 
 import (
+	"iter"
 	"sort"
 	"strings"
 	"unicode"
@@ -60,6 +61,16 @@ func (ss stringSource) String(i int) string {
 
 func (ss stringSource) Len() int { return len(ss) }
 
+func iterFromSource(s Source) iter.Seq[string] {
+	return func(yield func(string) bool) {
+		for i := 0; i < s.Len(); i++ {
+			if !yield(s.String(i)) {
+				return
+			}
+		}
+	}
+}
+
 /*
 Find looks up pattern in data and returns matches
 in descending order of match quality. Match quality
@@ -107,15 +118,33 @@ FindFromNoSort is an alternative FindFrom implementation that does
 not sort results in the end.
 */
 func FindFromNoSort(pattern string, data Source) Matches {
+	return FindFromIterNoSort(pattern, iterFromSource(data))
+}
+
+/*
+FindFromIter is an alternative implementation of FindFrom that uses an iterator
+instead of Source.
+*/
+func FindFromIter(pattern string, it iter.Seq[string]) Matches {
+	matches := FindFromIterNoSort(pattern, it)
+	sort.Stable(matches)
+	return matches
+}
+
+/*
+FindFromIterNoSort is an alternative implementation of FindFromIter that does
+not sort results in the end.
+*/
+func FindFromIterNoSort(pattern string, it iter.Seq[string]) Matches {
 	if len(pattern) == 0 {
 		return nil
 	}
 	runes := []rune(pattern)
 	var matches Matches
 	var matchedIndexes []int
-	for i := 0; i < data.Len(); i++ {
+	var i int
+	for matchStr := range it {
 		var match Match
-		matchStr := data.String(i)
 		match.Str = matchStr
 		// Limit matching to the first NUL rune, if any. We could maybe replace it
 		// with whitespace, but this way doesn't allocate so much, and the presence
@@ -125,6 +154,7 @@ func FindFromNoSort(pattern string, data Source) Matches {
 			cleanMatchStr = cleanMatchStr[:nullI]
 		}
 		match.Index = i
+		i++
 		if matchedIndexes != nil {
 			match.MatchedIndexes = matchedIndexes
 		} else {

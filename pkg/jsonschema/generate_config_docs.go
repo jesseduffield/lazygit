@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jesseduffield/lazycore/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/karimkhaleel/jsonschema"
 	"github.com/samber/lo"
 
@@ -163,7 +163,7 @@ func (n *Node) MarshalYAML() (any, error) {
 }
 
 func writeToConfigDocs(config []byte) error {
-	configPath := utils.GetLazyRootDirectory() + "/docs-master/Config.md"
+	configPath := utils.MustFindLazygitRootDirectory() + "/docs-master/Config.md"
 	markdown, err := os.ReadFile(configPath)
 	if err != nil {
 		return fmt.Errorf("Error reading Config.md file %w", err)

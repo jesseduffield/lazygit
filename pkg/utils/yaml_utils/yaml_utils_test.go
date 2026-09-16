@@ -103,6 +103,88 @@ func TestRenameYamlKey(t *testing.T) {
 	}
 }
 
+func TestMoveYamlKey(t *testing.T) {
+	tests := []struct {
+		name            string
+		in              string
+		oldPath         []string
+		newPath         []string
+		expectedOut     string
+		expectedDidMove bool
+		expectedErr     string
+	}{
+		{
+			name:            "move key into an existing section",
+			in:              "keybinding:\n  worktrees:\n    viewWorktreeOptions: w\n  universal:\n    quit: q\n",
+			oldPath:         []string{"keybinding", "worktrees", "viewWorktreeOptions"},
+			newPath:         []string{"keybinding", "universal", "newWorktree"},
+			expectedOut:     "keybinding:\n  universal:\n    quit: q\n    newWorktree: w\n",
+			expectedDidMove: true,
+		},
+		{
+			name:            "create the destination section if it doesn't exist",
+			in:              "keybinding:\n  worktrees:\n    viewWorktreeOptions: w\n",
+			oldPath:         []string{"keybinding", "worktrees", "viewWorktreeOptions"},
+			newPath:         []string{"keybinding", "universal", "newWorktree"},
+			expectedOut:     "keybinding:\n  universal:\n    newWorktree: w\n",
+			expectedDidMove: true,
+		},
+		{
+			name:            "keep non-empty siblings when pruning the old section",
+			in:              "keybinding:\n  worktrees:\n    viewWorktreeOptions: w\n    other: x\n",
+			oldPath:         []string{"keybinding", "worktrees", "viewWorktreeOptions"},
+			newPath:         []string{"keybinding", "universal", "newWorktree"},
+			expectedOut:     "keybinding:\n  worktrees:\n    other: x\n  universal:\n    newWorktree: w\n",
+			expectedDidMove: true,
+		},
+		{
+			name:            "don't rewrite file if the key doesn't exist",
+			in:              "keybinding:\n  universal:\n    quit: q\n",
+			oldPath:         []string{"keybinding", "worktrees", "viewWorktreeOptions"},
+			newPath:         []string{"keybinding", "universal", "newWorktree"},
+			expectedOut:     "keybinding:\n  universal:\n    quit: q\n",
+			expectedDidMove: false,
+		},
+
+		// Error cases
+		{
+			name:            "destination key already exists",
+			in:              "keybinding:\n  worktrees:\n    viewWorktreeOptions: w\n  universal:\n    newWorktree: x\n",
+			oldPath:         []string{"keybinding", "worktrees", "viewWorktreeOptions"},
+			newPath:         []string{"keybinding", "universal", "newWorktree"},
+			expectedOut:     "keybinding:\n  worktrees:\n    viewWorktreeOptions: w\n  universal:\n    newWorktree: x\n",
+			expectedDidMove: false,
+			expectedErr:     "new key `newWorktree' already exists",
+		},
+		{
+			name:            "node in path is not a dictionary",
+			in:              "keybinding:\n  worktrees: nonsense\n",
+			oldPath:         []string{"keybinding", "worktrees", "viewWorktreeOptions"},
+			newPath:         []string{"keybinding", "universal", "newWorktree"},
+			expectedOut:     "keybinding:\n  worktrees: nonsense\n",
+			expectedDidMove: false,
+			expectedErr:     "yaml node in path is not a dictionary",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			node := unmarshalForTest(t, test.in)
+			actualErr, didMove := MoveYamlKey(&node, test.oldPath, test.newPath)
+			if test.expectedErr == "" {
+				assert.NoError(t, actualErr)
+			} else {
+				assert.EqualError(t, actualErr, test.expectedErr)
+			}
+			out := marshalForTest(t, &node)
+
+			assert.Equal(t, test.expectedOut, out)
+
+			assert.Equal(t, test.expectedDidMove, didMove)
+		})
+	}
+}
+
 func TestWalk_paths(t *testing.T) {
 	tests := []struct {
 		name          string

@@ -116,7 +116,7 @@ baz
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			assert.EqualValues(t, s.expected, findConflicts(s.content))
+			assert.EqualValues(t, s.expected, findConflicts(s.content, defaultConflictMarkerSize))
 		})
 	}
 }

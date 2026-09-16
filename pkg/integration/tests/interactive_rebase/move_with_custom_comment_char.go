@@ -17,18 +17,18 @@ var MoveWithCustomCommentChar = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().Focus().
 			Lines(
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01"),
 			).
 			Press(keys.Commits.MoveDownCommit).
 			Lines(
-				Contains("commit 01"),
-				Contains("commit 02").IsSelected(),
+				Contains("commit-01"),
+				Contains("commit-02").IsSelected(),
 			).
 			Press(keys.Commits.MoveUpCommit).
 			Lines(
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01"),
 			)
 	},
 })

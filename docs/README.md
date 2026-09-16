@@ -2,7 +2,7 @@
 
 * [Configuration](./Config.md).
 * [Custom Commands](./Custom_Command_Keybindings.md)
-* [Custom Pagers](./Custom_Pagers.md)
+* [Custom Diff Renderers](./Custom_DiffRenderers.md)
 * [Dev docs](./dev)
 * [Keybindings](./keybindings)
 * [Undo/Redo](./Undoing.md)

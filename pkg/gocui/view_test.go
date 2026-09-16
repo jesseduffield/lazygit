@@ -8,9 +8,28 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 	"github.com/rivo/uniseg"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
+
+// WithSimulationScreen swaps the package-level Screen for a tcell
+// terminfo-backed mock terminal so tests can call view.draw() and
+// inspect rendered cells via Screen.Get(). The previous Screen is
+// restored on test cleanup.
+func WithSimulationScreen(t *testing.T, width, height int) {
+	t.Helper()
+	saved := Screen
+	if err := (&Gui{}).tcellInitSimulation(width, height); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		Screen.Fini()
+		Screen = saved
+	})
+}
 
 func TestWriteString(t *testing.T) {
 	tests := []struct {
@@ -26,17 +45,17 @@ func TestWriteString(t *testing.T) {
 		{
 			[]string{},
 			[]string{"1\n"},
-			[][]string{{"1", ""}},
+			[][]string{{"1"}},
 		},
 		{
 			[]string{},
 			[]string{"1\n", "2\n"},
-			[][]string{{"1", ""}, {"2", ""}},
+			[][]string{{"1"}, {"2"}},
 		},
 		{
 			[]string{"a"},
 			[]string{"1\n"},
-			[][]string{{"1", ""}},
+			[][]string{{"1"}},
 		},
 		{
 			[]string{"a\x00"},
@@ -56,12 +75,12 @@ func TestWriteString(t *testing.T) {
 		{
 			[]string{},
 			[]string{"1\r"},
-			[][]string{{"1", ""}},
+			[][]string{{"1"}},
 		},
 		{
 			[]string{"a"},
 			[]string{"1\r"},
-			[][]string{{"1", ""}},
+			[][]string{{"1"}},
 		},
 		{
 			[]string{"a\x00"},
@@ -83,15 +102,13 @@ func TestWriteString(t *testing.T) {
 	for _, test := range tests {
 		v := NewView("name", 0, 0, 10, 10, OutputNormal)
 		for _, l := range test.existingLines {
-			v.lines = append(v.lines, stringToCells(l))
+			v.buf.lines = append(v.buf.lines, lineType{cells: stringToCells(l)})
 		}
 		for _, s := range test.stringsToWrite {
 			v.writeString(s)
 		}
-		var resultingLines [][]string
-		for _, l := range v.lines {
-			resultingLines = append(resultingLines, cellsToStrings(l))
-		}
+		resultingLines := lo.Map(v.buf.lines,
+			func(l lineType, _ int) []string { return cellsToStrings(l.cells) })
 		assert.Equal(t, test.expectedLines, resultingLines)
 	}
 }
@@ -126,19 +143,115 @@ func TestAutoRenderingHyperlinks(t *testing.T) {
 
 	v.writeString("htt")
 	// No hyperlinks are generated for incomplete URLs
-	assert.Equal(t, "", v.lines[0][0].hyperlink)
+	assert.Equal(t, "", v.buf.lines[0].cells[0].hyperlink)
 	// Writing more characters to the same line makes the link complete (even
 	// though we didn't see a newline yet)
 	v.writeString("ps://example.com")
-	assert.Equal(t, "https://example.com", v.lines[0][0].hyperlink)
+	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
 
 	v.Clear()
 	// Valid but incomplete URL
 	v.writeString("https://exa")
-	assert.Equal(t, "https://exa", v.lines[0][0].hyperlink)
+	assert.Equal(t, "https://exa", v.buf.lines[0].cells[0].hyperlink)
 	// Writing more characters to the same fixes the link
 	v.writeString("mple.com")
-	assert.Equal(t, "https://example.com", v.lines[0][0].hyperlink)
+	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
+}
+
+// An async re-render builds into an off-screen buffer and swaps it in once it
+// has enough to paint, so readers keep seeing the previous render — coherent and
+// consistent — until the new content appears in one step. See View.offscreen.
+func TestOffscreenRender(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	v.writeString("a\nb\nc")
+	assert.Equal(t, []string{"a", "b", "c"}, v.ViewBufferLines())
+
+	// Render new, longer content off-screen.
+	v.BeginOffscreenRender()
+	v.writeString("w\nx\ny\nz")
+
+	// The displayed buffer is untouched: readers still see the previous render.
+	assert.Equal(t, []string{"a", "b", "c"}, v.ViewBufferLines())
+
+	// Swapping in reveals the new content in one step.
+	v.SwapInOffscreenRender()
+	assert.Equal(t, []string{"w", "x", "y", "z"}, v.ViewBufferLines())
+
+	// A further write now appends to the displayed buffer directly.
+	v.writeString("\nmore")
+	assert.Equal(t, []string{"w", "x", "y", "z", "more"}, v.ViewBufferLines())
+}
+
+// When a render produces fewer view lines than the previous one,
+// refreshViewLinesIfNeeded must truncate viewLines to the new content rather
+// than leaving the previous render's entries in the tail: with the off-screen
+// render there is no half-loaded buffer whose tail we'd want to keep showing,
+// and a leftover tail is just stale lines describing content that is gone.
+func TestViewLinesTruncatedByShorterRender(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// Two lines of 27 characters each wrap into 3 view lines apiece.
+	v.writeString(strings.Repeat("a", 27) + "\n" + strings.Repeat("b", 27))
+	assert.Equal(t, 6, v.ViewLinesHeight())
+
+	// Re-render with three short, unwrapped lines: only 3 view lines remain.
+	v.BeginOffscreenRender()
+	v.writeString("aaa\nbbb\nccc")
+	v.SwapInOffscreenRender()
+	assert.Equal(t, 3, v.ViewLinesHeight())
+	assert.Equal(t, []string{"aaa", "bbb", "ccc"}, v.ViewBufferLines())
+}
+
+// While an async re-render loads, it swaps in only a partially-filled buffer at
+// its first paint and keeps appending lines afterwards. The scrollbar must keep
+// using the pre-load height until the load ends, so the thumb doesn't shrink and
+// snap back as the rest streams in. See View.scrollbarHeightFloor.
+func TestScrollbarHeightHeldWhileLoading(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 12, OutputNormal)
+
+	// Initial render: 100 lines, scrolled well down.
+	v.writeString(strings.Repeat("x\n", 100))
+	v.SetOrigin(0, 80)
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// A re-render begins while the previous render is still shown: hold the
+	// scrollbar height at the current value.
+	v.FreezeScrollbarHeight()
+
+	// The off-screen render swaps in only a screenful at its first paint.
+	v.BeginOffscreenRender()
+	v.writeString(strings.Repeat("y\n", 30))
+	v.SwapInOffscreenRender()
+
+	// The displayed buffer is now short, but the scrollbar height stays held, so
+	// the thumb keeps its position instead of jumping.
+	assert.Equal(t, 30, v.ViewLinesHeight())
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// The rest of the content streams in.
+	v.writeString(strings.Repeat("y\n", 70))
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// Once the load ends, the scrollbar tracks the real content directly again.
+	v.UnfreezeScrollbarHeight()
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+}
+
+// If a synchronous render (e.g. a string render) supersedes a still-loading diff
+// before it reaches its end, the held scrollbar height must be released, so the
+// scrollbar reflects the new content rather than the abandoned load's height.
+func TestScrollbarHeightReleasedWhenContentReplaced(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 12, OutputNormal)
+
+	v.writeString(strings.Repeat("x\n", 100))
+	v.FreezeScrollbarHeight()
+	assert.Equal(t, 100, v.scrollbarContentHeight())
+
+	// A synchronous render replaces the content before the (notional) load ends.
+	v.SetContent("just a few\nshort lines\nhere")
+	assert.Equal(t, 3, v.scrollbarContentHeight())
 }
 
 func TestContainsColoredText(t *testing.T) {
@@ -211,9 +324,123 @@ func TestContainsColoredText(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		v := &View{lines: test.lines}
+		lines := make([]lineType, len(test.lines))
+		for j, cells := range test.lines {
+			lines[j] = lineType{cells: cells}
+		}
+		v := &View{buf: &viewBuffer{lines: lines}}
 		assert.Equal(t, test.expected, v.ContainsColoredText(test.fgColorStr, test.text), "Test %d failed", i)
 	}
+}
+
+func TestWriteCursorPositionEscape(t *testing.T) {
+	// ConPTY presents its child's output as a screen buffer and uses cursor
+	// positioning escapes (CUP, `\x1b[<row>;<col>H`) to skip over blank rows
+	// rather than emitting empty LFs for them. The escape interpreter must
+	// synthesize the row advances those CUPs imply; otherwise non-blank rows
+	// that the child separated with blank lines end up adjacent in the view.
+	v := NewView("name", 0, 0, 20, 10, OutputNormal)
+	// "a", then "skip to row 3" (i.e. one blank row), then "b".
+	v.writeString("a\r\n\x1b[3;1Hb\r\n")
+
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
+		got = append(got, cellsToStrings(l.cells))
+	}
+
+	assert.Equal(t, [][]string{{"a"}, {}, {"b"}}, got)
+}
+
+func TestWriteCursorPositionEscapeAcrossWrites(t *testing.T) {
+	// Mirrors the production flow: bufio.Scanner splits the pty output on
+	// LF and feeds the view one Write per line (each with a trailing \n
+	// appended). The parser's screen-row counter must keep ticking across
+	// writes; otherwise CUPs are evaluated against a stale row and
+	// overshoot, producing too many blank lines instead of the right
+	// number.
+	v := NewView("name", 0, 0, 30, 30, OutputNormal)
+	v.writeString("a\n")
+	v.writeString("b\n")
+	// ConPTY is on row 3 here; CUP to row 5 should skip exactly one row.
+	v.writeString("c\x1b[5;1Hd\n")
+
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
+		got = append(got, cellsToStrings(l.cells))
+	}
+	assert.Equal(t, [][]string{
+		{"a"},
+		{"b"},
+		{"c"},
+		{},
+		{"d"},
+	}, got)
+}
+
+func TestWriteCursorPositionEscapeInOffscreenRender(t *testing.T) {
+	// Soft-wrap counting has to work in an off-screen render too: the content
+	// width the parser counts wraps against is set by SetContentWidth before the
+	// render starts, so the off-screen buffer's parser has to pick it up. If it
+	// doesn't, no wraps are counted and the CUP below is evaluated against a
+	// stale row, overshooting into an extra blank line.
+	v := NewView("name", 0, 0, 30, 30, OutputNormal)
+	v.SetContentWidth(5)
+
+	v.BeginOffscreenRender()
+	// Seven characters soft-wrap once on a 5-column screen, putting ConPTY on
+	// row 2; CUP to row 3 should then skip no rows at all.
+	v.writeString("aaaaaaa\x1b[3;1Hb\n")
+	v.SwapInOffscreenRender()
+
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
+		got = append(got, cellsToStrings(l.cells))
+	}
+	assert.Equal(t, [][]string{
+		{"a", "a", "a", "a", "a", "a", "a"},
+		{"b"},
+	}, got)
+}
+
+func TestWriteCursorForwardEscape(t *testing.T) {
+	// ConPTY compresses runs of default-colored spaces into ECH (\x1b[NX,
+	// "clear N cells, cursor stationary") + CUF (\x1b[NC, "cursor forward
+	// N") rather than emitting them literally. The interpreter has to
+	// materialize CUF as N visible spaces; otherwise the gap collapses
+	// and content that followed the indentation slides left.
+	v := NewView("name", 0, 0, 20, 10, OutputNormal)
+	// "a" + ECH 5 + CUF 5 + "b" — visually "a     b".
+	v.writeString("a\x1b[5X\x1b[5Cb\n")
+
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
+		got = append(got, cellsToStrings(l.cells))
+	}
+
+	assert.Equal(t, [][]string{{"a", " ", " ", " ", " ", " ", "b"}}, got)
+}
+
+func TestWriteCursorPositionEscapeWithSoftWraps(t *testing.T) {
+	// If a logical line is longer than ConPTY's terminal width, ConPTY
+	// soft-wraps it onto multiple physical rows in its screen, and any
+	// subsequent CUP is addressed against the post-wrap row count. To
+	// keep our screen-row counter accurate we have to count those wraps
+	// as we write the cells. InnerWidth here is 5; "abcdefghij" (10
+	// cells) wraps onto 2 rows, so ConPTY is on row 3 after the LF and a
+	// CUP to row 4 should skip exactly one row.
+	v := NewView("name", 0, 0, 6, 30, OutputNormal) // Width=7, InnerWidth=5
+	v.writeString("abcdefghij\n")
+	v.writeString("\x1b[4;1Hxyz\n")
+
+	got := make([][]string, 0, len(v.buf.lines))
+	for _, l := range v.buf.lines {
+		got = append(got, cellsToStrings(l.cells))
+	}
+	assert.Equal(t, [][]string{
+		{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"},
+		{},
+		{"x", "y", "z"},
+	}, got)
 }
 
 func stringToCells(s string) []cell {
@@ -237,11 +464,7 @@ func cellsToString(cells []cell) string {
 }
 
 func cellsToStrings(cells []cell) []string {
-	s := []string{}
-	for _, c := range cells {
-		s = append(s, c.chr)
-	}
-	return s
+	return lo.Map(cells, func(c cell, _ int) string { return c.chr })
 }
 
 func TestLineWrap(t *testing.T) {
@@ -411,5 +634,149 @@ func TestLineWrap(t *testing.T) {
 
 			assert.EqualValues(t, tc.expected, resultStrings)
 		})
+	}
+}
+
+// TestNewlineTerminatedLineClearsTrailingBg verifies that a '\n' resets
+// any attributes (e.g. AttrReverse-driven background) past the line's
+// content, so a reversed cell at the end doesn't bleed into the empty
+// area to the right.
+func TestNewlineTerminatedLineClearsTrailingBg(t *testing.T) {
+	WithSimulationScreen(t, 14, 5)
+
+	v := NewView("name", 0, 0, 11, 4, OutputNormal)
+
+	// \x1b[7m sets reverse; \x1b[31m sets fg=red. With reverse the cell
+	// renders with bg=red. The trailing area past "foo" must NOT extend
+	// the red bg because '\n' marks the line as cleanly terminated.
+	v.writeString("\x1b[7m\x1b[31mfoo\x1b[0m\n")
+	v.draw(true)
+
+	// First row: cells 1..3 are "foo" (render with red bg via reverse),
+	// cells 4..10 are trailing and should be plain default.
+	for x := 4; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 1)
+		assert.Equal(t, tcell.ColorDefault, style.GetForeground(),
+			"trailing cell at (%d, 1) should have default fg", x)
+		assert.False(t, style.HasReverse(),
+			"trailing cell at (%d, 1) should not have reverse attribute", x)
+	}
+}
+
+// TestUnterminatedReverseLineDoesNotExtend verifies that an unterminated
+// line ending with an AttrReverse cell does NOT propagate the reversed
+// background past the line's content — matching real terminal behavior
+// (try `print '\x1b[7m\x1b[31mfoo'` in a shell). The trailing area
+// is rendered as plain default.
+func TestUnterminatedReverseLineDoesNotExtend(t *testing.T) {
+	WithSimulationScreen(t, 14, 5)
+
+	v := NewView("name", 0, 0, 11, 4, OutputNormal)
+
+	// Reverse + red fg, "foo", no termination. The trailing cells past
+	// "foo" should be plain default, NOT a continuation of the red bg.
+	v.writeString("\x1b[7m\x1b[31mfoo")
+	v.draw(true)
+
+	// Cells 4..10 are trailing and should be default with no reverse.
+	for x := 4; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 1)
+		assert.Equal(t, tcell.ColorDefault, style.GetForeground(),
+			"trailing cell at (%d, 1) should have default fg", x)
+		assert.False(t, style.HasReverse(),
+			"trailing cell at (%d, 1) should not have reverse attribute", x)
+	}
+}
+
+// TestShortFilledLineExtendsBgWithoutWrap verifies that '\x1b[K' fills
+// the rest of the line with the current bg color for a line that's
+// short enough to fit within the view's inner width.
+func TestShortFilledLineExtendsBgWithoutWrap(t *testing.T) {
+	WithSimulationScreen(t, 14, 5)
+
+	v := NewView("name", 0, 0, 11, 4, OutputNormal)
+
+	// \x1b[41m sets bg=red. "hi" fits within InnerWidth=10; \x1b[K should
+	// fill the remaining 8 cells with red.
+	v.writeString("\x1b[41mhi\x1b[K\x1b[0m\n")
+	v.draw(true)
+
+	// All ten cells at (1..10, 1) should have red bg.
+	for x := 1; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 1)
+		assert.Equal(t, color.Maroon, style.GetBackground(),
+			"cell at (%d, 1) should have red bg", x)
+	}
+}
+
+// TestWrappedFilledLineExtendsBgToEdge verifies that when a line is
+// filled to the edge with \x1b[K (the pattern used by `delta` for diff
+// lines) but exceeds the view's inner width, every wrapped segment
+// extends the fill background past its content to the right edge.
+func TestWrappedFilledLineExtendsBgToEdge(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	// View dimensions: Width=12 (x0=0..x1=11), Height=6; InnerWidth=10,
+	// InnerHeight=4. Frame inset of 1 places content cells at screen
+	// (1..10, 1..4).
+	v := NewView("name", 0, 0, 11, 5, OutputNormal)
+	v.Wrap = true
+
+	// Content with spaces so word wrap ends each segment before the
+	// right edge: "aaa bbb ccc ddd eee" wraps at InnerWidth=10 to three
+	// segments — "aaa bbb" / "ccc ddd" / "eee". Each row's trailing area
+	// must pick up the red fill from \x1b[K.
+	v.writeString("\x1b[41m" + "aaa bbb ccc ddd eee" + "\x1b[0m\x1b[41m\x1b[K\x1b[0m\n")
+	v.draw(true)
+
+	// All three wrapped rows should have the red fill background across
+	// the full InnerWidth, including the trailing cells past each row's
+	// last word.
+	for y := 1; y <= 3; y++ {
+		for x := 1; x <= 10; x++ {
+			_, style, _ := Screen.Get(x, y)
+			assert.Equal(t, color.Maroon, style.GetBackground(),
+				"cell at (%d, %d) should have red bg", x, y)
+		}
+	}
+}
+
+// TestMulticolorWrappedFillUsesLastCellOfEachSegment demonstrates that
+// when a wrapped line switches bg color part-way through and ends with
+// \x1b[K, the trailing area on each wrapped row should match the bg
+// that was active where that row's content ended — not the \x1b[K bg,
+// which would bleed the color from the end of the logical line back
+// into the earlier wrapped rows.
+func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	// View dimensions: Width=12 (x0=0..x1=11), Height=6; InnerWidth=10,
+	// InnerHeight=4. Frame inset of 1 places content cells at screen
+	// (1..10, 1..4).
+	v := NewView("name", 0, 0, 11, 5, OutputNormal)
+	v.Wrap = true
+
+	// Content "aaa bbb ccc" is 11 cells; lineWrap breaks at the space
+	// between "bbb" and "ccc" (index 7) so segment 1 is "aaa bbb" (red,
+	// last cell red) and segment 2 is "ccc" (green, last cell green).
+	// \x1b[K records the green bg on the source line.
+	v.writeString("\x1b[41maaa bbb\x1b[42m ccc\x1b[K\x1b[0m\n")
+	v.draw(true)
+
+	// Row 1's content ends with a red cell at x=7, so trailing columns
+	// 8..10 should pick up red rather than the \x1b[K's green.
+	for x := 8; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 1)
+		assert.Equal(t, color.Maroon, style.GetBackground(),
+			"trailing cell at (%d, 1) should have red bg (matching segment's last cell)", x)
+	}
+
+	// Row 2's content ends with a green cell at x=3, so trailing
+	// columns 4..10 should pick up green (matching both the segment's
+	// last cell and the \x1b[K bg — these happen to agree here).
+	for x := 4; x <= 10; x++ {
+		_, style, _ := Screen.Get(x, 2)
+		assert.Equal(t, color.Green, style.GetBackground(),
+			"trailing cell at (%d, 2) should have green bg", x)
 	}
 }

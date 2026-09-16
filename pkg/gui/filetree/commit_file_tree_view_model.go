@@ -2,13 +2,11 @@ package filetree
 
 import (
 	"strings"
-	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -26,7 +24,6 @@ type ICommitFileTreeViewModel interface {
 }
 
 type CommitFileTreeViewModel struct {
-	sync.RWMutex
 	types.IListCursor
 	ICommitFileTree
 
@@ -144,6 +141,22 @@ func (self *CommitFileTreeViewModel) GetSelectedPath() string {
 	return node.GetPath()
 }
 
+// SetTree rebuilds the tree and clamps the selection so it stays in range. The
+// embedded tree's SetTree only rebuilds the node list and doesn't touch the
+// cursor, so after a shrinking rebuild (e.g. moving a patch out into the index)
+// the selection index could be left past the end of the tree; GetSelectedItems
+// would then return a nil node and crash callers such as canEditFiles when the
+// options map is rendered during layout.
+//
+// Unlike FileTreeViewModel.SetTree we don't re-find the selected node by path
+// afterwards: that walk lands on the containing directory when a file is removed
+// from a dir that then collapses, whereas keeping the (clamped) index lands on
+// the sibling file, which is what we want here.
+func (self *CommitFileTreeViewModel) SetTree() {
+	self.ICommitFileTree.SetTree()
+	self.ClampSelection()
+}
+
 // duplicated from file_tree_view_model.go. Generics will help here
 func (self *CommitFileTreeViewModel) ToggleShowTree() {
 	selectedNode := self.GetSelected()
@@ -248,10 +261,6 @@ func (self *CommitFileTreeViewModel) IsFiltering() bool {
 
 // used for type switch
 func (self *CommitFileTreeViewModel) IsFilterableContext() {}
-
-func (self *CommitFileTreeViewModel) FilterPrefix(tr *i18n.TranslationSet) string {
-	return tr.FilterPrefix
-}
 
 func (self *CommitFileTreeViewModel) GetSearchHistory() *utils.HistoryBuffer[string] {
 	return self.searchHistory

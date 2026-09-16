@@ -79,7 +79,7 @@ func NewState(diff string, selectedLineIdx int, view *gocui.View, oldState *Stat
 	// if we have clicked from the outside to focus the main view we'll pass in a non-negative line index so that we can instantly select that line
 	if selectedLineIdx >= 0 {
 		// Clamp to the number of wrapped view lines; index might be out of
-		// bounds if a custom pager is being used which produces more lines
+		// bounds if a custom diff renderer is being used which produces more lines
 		selectedLineIdx = min(selectedLineIdx, len(viewLineIndices)-1)
 
 		selectMode = RANGE

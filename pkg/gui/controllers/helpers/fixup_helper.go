@@ -137,11 +137,10 @@ func (self *FixupHelper) HandleFindBaseCommitForFixupPress() error {
 				if err := self.c.Git().WorkingTree.StageAll(true); err != nil {
 					return err
 				}
-				self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 			}
 
 			self.c.Contexts().LocalCommits.SetSelection(index)
-			self.c.Contexts().LocalCommits.FocusLine(true)
 			self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
 			return nil
 		},
@@ -199,12 +198,12 @@ func (self *FixupHelper) getDiff() (string, bool, error) {
 
 	// Try staged changes first
 	hasStagedChanges := true
-	diff, err := self.c.Git().Diff.DiffIndexCmdObj(append([]string{"--cached"}, args...)...).RunWithOutput()
+	diff, err := self.c.Git().Diff.DiffIndexCmdObj(append([]string{"--cached"}, args...)...).DontLog().RunWithOutput()
 
 	if err == nil && diff == "" {
 		hasStagedChanges = false
 		// If there are no staged changes, try unstaged changes
-		diff, err = self.c.Git().Diff.DiffIndexCmdObj(args...).RunWithOutput()
+		diff, err = self.c.Git().Diff.DiffIndexCmdObj(args...).DontLog().RunWithOutput()
 	}
 
 	return diff, hasStagedChanges, err

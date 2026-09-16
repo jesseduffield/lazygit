@@ -3,8 +3,10 @@ package helpers
 import (
 	"fmt"
 	"strings"
+	"sync/atomic"
 
 	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -27,14 +29,20 @@ import (
 
 type SuggestionsHelper struct {
 	c *HelperCommon
+
+	// filesTrie holds the repo's file paths for file-path suggestions. It's
+	// rebuilt asynchronously and read from the suggestions worker goroutine, so
+	// it lives here as an atomic pointer rather than in the (UI-thread-only)
+	// model.
+	filesTrie atomic.Pointer[patricia.Trie]
 }
 
 func NewSuggestionsHelper(
 	c *HelperCommon,
 ) *SuggestionsHelper {
-	return &SuggestionsHelper{
-		c: c,
-	}
+	self := &SuggestionsHelper{c: c}
+	self.filesTrie.Store(patricia.NewTrie())
+	return self
 }
 
 func (self *SuggestionsHelper) getRemoteNames() []string {
@@ -84,6 +92,28 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 	}
 }
 
+// GetWorktreeBranchNameSuggestionsFunc suggests branches you can base a new
+// worktree on: local branches that aren't checked out in any worktree (you can't
+// make a second worktree for them), plus remote branches that don't yet have a
+// local branch of the same name. Picking a remote branch creates a new local
+// tracking branch, which would fail if that local branch already existed (whether
+// or not it's checked out), so we leave those out and you reach the branch via its
+// local entry instead.
+func (self *SuggestionsHelper) GetWorktreeBranchNameSuggestionsFunc() func(string) []*types.Suggestion {
+	localBranchNames := lo.FilterMap(self.c.Model().Branches, func(branch *models.Branch, _ int) (string, bool) {
+		_, checkedOut := git_commands.WorktreeForBranch(branch, self.c.Model().Worktrees)
+		return branch.Name, !checkedOut
+	})
+
+	existingLocalBranches := set.NewFromSlice(self.getBranchNames())
+	remoteBranchNames := lo.Filter(self.getRemoteBranchNames("/"), func(remoteBranchName string, _ int) bool {
+		_, branchName, _ := strings.Cut(remoteBranchName, "/")
+		return !existingLocalBranches.Includes(branchName)
+	})
+
+	return FilterFunc(append(localBranchNames, remoteBranchNames...), self.c.UserConfig().Gui.UseFuzzySearch())
+}
+
 // here we asynchronously fetch the latest set of paths in the repo and store in
 // self.c.Model().FilesTrie. On the main thread we'll be doing a fuzzy search via
 // self.c.Model().FilesTrie. So if we've looked for a file previously, we'll start with
@@ -115,17 +145,20 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 		}
 
 		// cache the trie for future use
-		self.c.Model().FilesTrie = trie
-
-		self.c.Contexts().Suggestions.RefreshSuggestions()
+		self.filesTrie.Store(trie)
+		self.c.OnUIThread(func() error {
+			self.c.Contexts().Suggestions.RefreshSuggestions()
+			return nil
+		})
 
 		return err
 	})
 
 	return func(input string) []*types.Suggestion {
+		filesTrie := self.filesTrie.Load()
 		matchingNames := []string{}
 		if self.c.UserConfig().Gui.UseFuzzySearch() {
-			_ = self.c.Model().FilesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
+			_ = filesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
 				matchingNames = append(matchingNames, item.(string))
 				return nil
 			})
@@ -134,7 +167,7 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 			matchingNames = utils.FilterStrings(input, matchingNames, true)
 		} else {
 			substrings := strings.Fields(input)
-			_ = self.c.Model().FilesTrie.Visit(func(prefix patricia.Prefix, item patricia.Item) error {
+			_ = filesTrie.Visit(func(prefix patricia.Prefix, item patricia.Item) error {
 				for _, sub := range substrings {
 					if !utils.CaseAwareContains(item.(string), sub) {
 						return nil

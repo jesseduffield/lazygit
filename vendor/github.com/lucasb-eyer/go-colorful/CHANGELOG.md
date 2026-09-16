@@ -8,6 +8,10 @@ but only releases after v1.0.3 properly adhere to it.
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-08-02
+### Fixed
+- Corrected `D50ToD65` to use the CSS Color 4 matrix inverse of `D65ToD50` (#85).
+
 ## [1.4.0] - 2026-03-28
 ### Added
 - Constructors, decomposers, and blend functions for the CSS Color Level 4 wide-gamut RGB color spaces `DisplayP3`, `A98Rgb`, `ProPhotoRgb`, and `Rec2020` (#81)

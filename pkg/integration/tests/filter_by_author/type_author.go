@@ -33,9 +33,9 @@ var TypeAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			IsFocused().
 			Lines(
-				Contains("commit 2"),
-				Contains("commit 1"),
-				Contains("commit 0"),
+				Contains("commit-2"),
+				Contains("commit-1"),
+				Contains("commit-0"),
 			)
 
 		t.Views().Information().Content(Contains("Filtering by 'Yang Wen-li <yang.wen-li@email.com>'"))
@@ -58,7 +58,7 @@ var TypeAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			IsFocused().
 			Lines(
-				Contains("commit 0"),
+				Contains("commit-0"),
 			)
 
 		t.Views().Information().Content(Contains("Filtering by 'Siegfried Kircheis <siegfried.kircheis@email.com>'"))

@@ -53,23 +53,23 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			TopLines(
-				Contains("--- Pending rebase todos ---"),
-				MatchesRegexp(`pick.*to keep`).IsSelected(),
+				Contains("─── Pending rebase todos"),
+				MatchesRegexp(`pick.*to keep`),
 				MatchesRegexp(`pick.*to remove`),
-				MatchesRegexp(`pick.*CONFLICT.*first change`),
-				Contains("--- Commits ---"),
+				MatchesRegexp(`pick.*CONFLICT.*first change`).IsSelected(),
+				Contains("─── Commits"),
 				MatchesRegexp("second-change-branch unrelated change"),
 				MatchesRegexp("second change"),
 				MatchesRegexp("original"),
 			).
-			SelectNextItem().
+			NavigateToLine(Contains("to remove")).
 			Press(keys.Universal.Remove).
 			TopLines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				MatchesRegexp(`pick.*to keep`),
 				MatchesRegexp(`drop.*to remove`).IsSelected(),
 				MatchesRegexp(`pick.*CONFLICT.*first change`),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				MatchesRegexp("second-change-branch unrelated change"),
 				MatchesRegexp("second change"),
 				MatchesRegexp("original"),

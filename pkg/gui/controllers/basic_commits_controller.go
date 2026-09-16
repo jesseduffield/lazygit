@@ -90,6 +90,12 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Tooltip:           self.c.Tr.MoveCommitsToNewBranchTooltip,
 		},
 		{
+			Keys:        opts.GetKeys(opts.Config.Universal.NewWorktree),
+			Handler:     self.withItem(self.c.Helpers().Worktree.NewWorktreeMenuForCommit),
+			Description: self.c.Tr.NewWorktree,
+			OpensMenu:   true,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Commits.ViewResetOptions),
 			Handler:           self.withItem(self.createResetMenu),
 			GetDisabledReason: self.require(self.singleItemSelected()),
@@ -151,6 +157,18 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 		}
 	}
 
+	commitTagsItem := &types.MenuItem{
+		Label: self.c.Tr.CommitTags,
+		OnPress: func() error {
+			return self.copyCommitTagsToClipboard(commit)
+		},
+		Keys: menuKey('t'),
+	}
+
+	if len(commit.Tags) == 0 {
+		commitTagsItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CommitHasNoTags}
+	}
+
 	items := []*types.MenuItem{
 		{
 			Label: self.c.Tr.CommitHash,
@@ -201,21 +219,8 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 			},
 			Keys: menuKey('a'),
 		},
+		commitTagsItem,
 	}
-
-	commitTagsItem := types.MenuItem{
-		Label: self.c.Tr.CommitTags,
-		OnPress: func() error {
-			return self.copyCommitTagsToClipboard(commit)
-		},
-		Keys: menuKey('t'),
-	}
-
-	if len(commit.Tags) == 0 {
-		commitTagsItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CommitHasNoTags}
-	}
-
-	items = append(items, &commitTagsItem)
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Actions.CopyCommitAttributeToClipboard,

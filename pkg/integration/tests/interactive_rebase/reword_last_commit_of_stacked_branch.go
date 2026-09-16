@@ -28,28 +28,28 @@ var RewordLastCommitOfStackedBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("CI commit 05").IsSelected(),
-				Contains("CI commit 04"),
-				Contains("CI * commit 03"),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
+				Contains("CI commit-05").IsSelected(),
+				Contains("CI commit-04"),
+				Contains("CI * commit-03"),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
 			).
-			NavigateToLine(Contains("commit 03")).
+			NavigateToLine(Contains("commit-03")).
 			Press(keys.Commits.RenameCommit).
 			Tap(func() {
 				t.ExpectPopup().CommitMessagePanel().
 					Title(Equals("Reword commit")).
-					InitialText(Equals("commit 03")).
+					InitialText(Equals("commit-03")).
 					Clear().
 					Type("renamed 03").
 					Confirm()
 			}).
 			Lines(
-				Contains("CI commit 05"),
-				Contains("CI commit 04"),
+				Contains("CI commit-05"),
+				Contains("CI commit-04"),
 				Contains("CI * renamed 03"),
-				Contains("CI commit 02"),
-				Contains("CI commit 01"),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
 			)
 	},
 })

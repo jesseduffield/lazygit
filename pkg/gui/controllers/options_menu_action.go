@@ -64,6 +64,7 @@ func (self *OptionsMenuAction) Call() error {
 		ColumnAlignment:            []utils.Alignment{utils.AlignRight, utils.AlignLeft},
 		AllowFilteringKeybindings:  true,
 		KeepConflictingKeybindings: true,
+		FilterAsYouType:            true,
 	})
 }
 

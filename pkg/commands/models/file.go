@@ -18,10 +18,14 @@ type File struct {
 	Deleted                 bool
 	HasMergeConflicts       bool
 	HasInlineMergeConflicts bool
-	DisplayString           string
-	ShortStatus             string // e.g. 'AD', ' A', 'M ', '??'
-	LinesDeleted            int
-	LinesAdded              int
+	// How long the conflict markers in this file are, taken from its
+	// conflict-marker-size gitattribute; 0 if it doesn't have that attribute. We
+	// only look this up for files that have inline merge conflicts.
+	ConflictMarkerSize int
+	DisplayString      string
+	ShortStatus        string // e.g. 'AD', ' A', 'M ', '??'
+	LinesDeleted       int
+	LinesAdded         int
 
 	// If true, this must be a worktree folder
 	IsWorktree bool

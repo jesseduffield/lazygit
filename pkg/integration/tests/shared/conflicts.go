@@ -1,6 +1,8 @@
 package shared
 
 import (
+	"fmt"
+
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
@@ -27,6 +29,20 @@ The
 Second Change
 File
 `
+
+// A conflict-marker-size that isn't git's default of 7. It's set for file types
+// whose regular content tends to contain marker-looking lines, e.g.
+// documentation about merging, or test scripts.
+const CustomConflictMarkerSize = 32
+
+// Makes git write conflict markers of CustomConflictMarkerSize characters into
+// the file that the setups below create conflicts in. Call this before one of
+// them.
+var SetCustomConflictMarkerSize = func(shell *Shell) {
+	shell.CreateFileAndAdd(".gitattributes",
+		fmt.Sprintf("file conflict-marker-size=%d\n", CustomConflictMarkerSize)).
+		Commit("set a custom conflict marker size")
+}
 
 // prepares us for a rebase/merge that has conflicts
 var MergeConflictsSetup = func(shell *Shell) {

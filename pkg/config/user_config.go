@@ -11,6 +11,8 @@ type UserConfig struct {
 	Gui GuiConfig `yaml:"gui"`
 	// Config relating to git
 	Git GitConfig `yaml:"git"`
+	// Config relating to git worktrees
+	Worktree WorktreeConfig `yaml:"worktree"`
 	// Periodic update checks
 	Update UpdateConfig `yaml:"update"`
 	// Background refreshes
@@ -44,10 +46,13 @@ type UserConfig struct {
 type RefresherConfig struct {
 	// File/submodule refresh interval in seconds.
 	// Auto-refresh can be disabled via option 'git.autoRefresh'.
-	RefreshInterval int `yaml:"refreshInterval" jsonschema:"minimum=0"`
+	RefreshInterval int `yaml:"refreshInterval" jsonschema:"exclusiveMinimum=0"`
 	// Re-fetch interval in seconds.
 	// Auto-fetch can be disabled via option 'git.autoFetch'.
-	FetchInterval int `yaml:"fetchInterval" jsonschema:"minimum=0"`
+	FetchInterval int `yaml:"fetchInterval" jsonschema:"exclusiveMinimum=0"`
+	// Interval in seconds at which lazygit polls for external ref changes (commits, branch updates, checkouts made outside lazygit).
+	// Detection can be disabled via option 'git.autoDetectExternalChanges'.
+	ExternalChangeCheckInterval int `yaml:"externalChangeCheckInterval" jsonschema:"exclusiveMinimum=0"`
 }
 
 func (c *RefresherConfig) RefreshIntervalDuration() time.Duration {
@@ -56,6 +61,10 @@ func (c *RefresherConfig) RefreshIntervalDuration() time.Duration {
 
 func (c *RefresherConfig) FetchIntervalDuration() time.Duration {
 	return time.Second * time.Duration(c.FetchInterval)
+}
+
+func (c *RefresherConfig) ExternalChangeCheckIntervalDuration() time.Duration {
+	return time.Second * time.Duration(c.ExternalChangeCheckInterval)
 }
 
 type GuiConfig struct {
@@ -78,7 +87,7 @@ type GuiConfig struct {
 	// One of: 'margin' (default) | 'jump'
 	ScrollOffBehavior string `yaml:"scrollOffBehavior"`
 	// The number of spaces per tab; used for everything that's shown in the main view, but probably mostly relevant for diffs.
-	// Note that when using a pager, the pager has its own tab width setting, so you need to pass it separately in the pager command.
+	// Note that when using a diff renderer, the renderer has its own tab width setting, so you need to pass it separately in the renderer command.
 	TabWidth int `yaml:"tabWidth" jsonschema:"minimum=1"`
 	// If true, capture mouse events.
 	// When mouse events are captured, it's a little harder to select text: e.g. requiring you to hold the option key when on macOS.
@@ -102,6 +111,13 @@ type GuiConfig struct {
 	ExpandFocusedSidePanel bool `yaml:"expandFocusedSidePanel"`
 	// The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
 	ExpandedSidePanelWeight int `yaml:"expandedSidePanelWeight"`
+	// If true, don't give a side panel more height than it needs to show its content; when all panels fit, the leftover height is shared among them so that they still fill the screen.
+	ShrinkSidePanelsToContent bool `yaml:"shrinkSidePanelsToContent"`
+	// The side panels, in the order they appear from top to bottom.
+	// Each entry is a list of one or more names that share a single panel as tabs (cycle through them with the next-tab/previous-tab keys).
+	// Omit a name to hide it; give a name its own one-element list to promote a tab to a top-level panel.
+	// Valid names are: 'status', 'files', 'worktrees', 'submodules', 'branches', 'remotes', 'tags', 'commits', 'reflog', 'stash'. 'files', 'branches', and 'commits' must always be included; they can't be hidden.
+	SidePanels []SidePanel `yaml:"sidePanels"`
 	// Sometimes the main window is split in two (e.g. when the selected file has both staged and unstaged changes). This setting controls how the two sections are split.
 	// Options are:
 	// - 'horizontal': split the window horizontally
@@ -253,37 +269,39 @@ type SpinnerConfig struct {
 }
 
 type GitConfig struct {
-	// Array of pagers. Each entry has the following format:
-	// [dev] The following documentation is duplicated from the PagingConfig struct below.
+	// Array of diff renderers. Each entry has the following format:
+	// [dev] The following documentation is duplicated from the DiffRendererConfig struct below.
 	//
-	//   # A name for the pager, shown in the notification when cycling pagers.
-	//   # If not set, the name is derived from the first word of the pager
-	//   # command (or of the external diff command).
+	//   # The type of diff renderer. One of: 'stdinFilter' (default) | 'extDiff'
+	//   # | 'rawGit'
+	//   type: "stdinFilter"
+	//
+	//   # A name for the diff renderer, shown in the notification when cycling
+	//   # renderers. If not set, the name is derived from the first word of the
+	//   # renderer command.
 	//   name: ""
 	//
-	//   # Value of the --color arg in the git diff command. Some pagers want
-	//   # this to be set to 'always' and some want it set to 'never'
+	//   # Value of the --color arg in the git diff command. Only used for type
+	//   # 'stdinFilter'. Some renderers want this to be set to 'always' and some
+	//   # want it set to 'never'.
 	//   colorArg: "always"
 	//
+	//   # The command to use for rendering diffs. This is either a stdinFilter or
+	//   # an external diff command, depending on the type field; not applicable if
+	//   # the type is 'rawGit'.
 	//   # e.g.
 	//   # diff-so-fancy
 	//   # delta --dark --paging=never
-	//   # ydiff -p cat -s --wrap --width={{columnWidth}}
-	//   pager: ""
+	//   # ydiff -p cat
+	//   # difft --color=always
+	//   command: ""
 	//
-	//   # e.g. 'difft --color=always'
-	//   externalDiffCommand: ""
+	//   # Extra arguments (array of strings) passed to the git command. Only
+	//   # applicable if the type is 'rawGit'.
+	//   args: []
 	//
-	//   # If true, Lazygit will use git's `diff.external` config for paging.
-	//   # The advantage over `externalDiffCommand` is that this can be
-	//   # configured per file type in .gitattributes; see
-	//   # https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
-	//   useExternalDiffGitConfig: false
-	//
-	// 'pager', 'externalDiffCommand', and 'useExternalDiffGitConfig' are mutually exclusive; set at most one per entry.
-	//
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md for more information.
-	Pagers []PagingConfig `yaml:"pagers"`
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_DiffRenderers.md for more information.
+	DiffRenderers []DiffRendererConfig `yaml:"diffRenderers"`
 	// Config relating to committing
 	Commit CommitConfig `yaml:"commit"`
 	// Config relating to merging
@@ -296,6 +314,8 @@ type GitConfig struct {
 	AutoFetch bool `yaml:"autoFetch"`
 	// If true, periodically refresh files and submodules
 	AutoRefresh bool `yaml:"autoRefresh"`
+	// If true, poll the repo periodically for external ref changes (commits, branch updates, checkouts made outside lazygit) and refresh when one is detected. Independent of autoRefresh, which only governs the files panel.
+	AutoDetectExternalChanges bool `yaml:"autoDetectExternalChanges"`
 	// If not "none", lazygit will automatically fast-forward local branches to match their upstream after fetching. Applies to branches that are not the currently checked out branch, and only to those that are strictly behind their upstream (as opposed to diverged).
 	// Possible values: 'none' | 'onlyMainBranches' | 'allBranches'
 	AutoForwardBranches string `yaml:"autoForwardBranches" jsonschema:"enum=none,enum=onlyMainBranches,enum=allBranches"`
@@ -340,31 +360,34 @@ type GitConfig struct {
 	TruncateCopiedCommitHashesTo int `yaml:"truncateCopiedCommitHashesTo"`
 }
 
-type PagerType string
+type DiffRendererCommandType string
 
-func (PagerType) JSONSchemaExtend(schema *jsonschema.Schema) {
+func (DiffRendererCommandType) JSONSchemaExtend(schema *jsonschema.Schema) {
 	schema.Examples = []any{
 		"delta --dark --paging=never",
 		"diff-so-fancy",
-		"ydiff -p cat -s --wrap --width={{columnWidth}}",
+		"ydiff -p cat",
+		"difft --color=always",
 	}
 }
 
 // [dev] This documentation is duplicated in the GitConfig struct. If you make changes here, make them there too.
-type PagingConfig struct {
-	// A name for the pager, shown in the notification when cycling pagers. If not set, the name is derived from the first word of the pager command (or of the external diff command).
+type DiffRendererConfig struct {
+	// The type of diff renderer. One of: 'stdinFilter' (default) | 'extDiff' | 'rawGit'
+	Type string `yaml:"type" jsonschema:"enum=stdinFilter,enum=extDiff,enum=rawGit"`
+	// A name for the diff renderer, shown in the notification when cycling renderers. If not set, the name is derived from the first word of the renderer command.
 	Name string `yaml:"name"`
-	// Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'
+	// Value of the --color arg in the git diff command. Only used for type 'stdinFilter'. Some renderers want this to be set to 'always' and some want it set to 'never'.
 	ColorArg string `yaml:"colorArg" jsonschema:"enum=always,enum=never"`
+	// The command to use for rendering diffs. This is either a stdinFilter or an external diff command, depending on the type field; not applicable if the type is 'rawGit'.
 	// e.g.
 	// diff-so-fancy
 	// delta --dark --paging=never
-	// ydiff -p cat -s --wrap --width={{columnWidth}}
-	Pager PagerType `yaml:"pager"`
-	// e.g. 'difft --color=always'
-	ExternalDiffCommand string `yaml:"externalDiffCommand"`
-	// If true, Lazygit will use git's `diff.external` config for paging. The advantage over `externalDiffCommand` is that this can be configured per file type in .gitattributes; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
-	UseExternalDiffGitConfig bool `yaml:"useExternalDiffGitConfig"`
+	// ydiff -p cat
+	// difft --color=always
+	Command DiffRendererCommandType `yaml:"command"`
+	// Extra arguments (array of strings) passed to the git command. Only applicable if the type is 'rawGit'.
+	Args []string `yaml:"args"`
 }
 
 type CommitConfig struct {
@@ -408,6 +431,13 @@ type CommitPrefixConfig struct {
 	Replace string `yaml:"replace" jsonschema:"example=[$1]"`
 }
 
+type WorktreeConfig struct {
+	// Default parent directory for new worktrees. It is offered as a candidate location alongside the parent directories of any worktrees you already have.
+	// A relative path is resolved against the repository's root directory, so "../worktrees" sits beside the repo and ".worktrees" sits inside it.
+	// A leading "~" is expanded to your home directory, so "~/worktrees" works.
+	DefaultPath string `yaml:"defaultPath"`
+}
+
 type UpdateConfig struct {
 	// One of: 'prompt' (default) | 'background' | 'never'
 	Method string `yaml:"method" jsonschema:"enum=prompt,enum=background,enum=never"`
@@ -420,7 +450,6 @@ type KeybindingConfig struct {
 	Status         KeybindingStatusConfig         `yaml:"status"`
 	Files          KeybindingFilesConfig          `yaml:"files"`
 	Branches       KeybindingBranchesConfig       `yaml:"branches"`
-	Worktrees      KeybindingWorktreesConfig      `yaml:"worktrees"`
 	Commits        KeybindingCommitsConfig        `yaml:"commits"`
 	AmendAttribute KeybindingAmendAttributeConfig `yaml:"amendAttribute"`
 	Stash          KeybindingStashConfig          `yaml:"stash"`
@@ -488,6 +517,7 @@ type KeybindingUniversalConfig struct {
 	ConfirmInEditorAlt Keybinding `yaml:"confirmInEditor-alt"`
 	Remove             Keybinding `yaml:"remove"`
 	New                Keybinding `yaml:"new"`
+	NewWorktree        Keybinding `yaml:"newWorktree"`
 	Edit               Keybinding `yaml:"edit"`
 	OpenFile           Keybinding `yaml:"openFile"`
 	ScrollUpMain       Keybinding `yaml:"scrollUpMain"`
@@ -499,23 +529,23 @@ type KeybindingUniversalConfig struct {
 	// Deprecated: add the key to `scrollUpMain` instead.
 	ScrollUpMainAlt2 Keybinding `yaml:"scrollUpMain-alt2"`
 	// Deprecated: add the key to `scrollDownMain` instead.
-	ScrollDownMainAlt2      Keybinding `yaml:"scrollDownMain-alt2"`
-	ExecuteShellCommand     Keybinding `yaml:"executeShellCommand"`
-	CreateRebaseOptionsMenu Keybinding `yaml:"createRebaseOptionsMenu"`
-	Push                    Keybinding `yaml:"pushFiles"` // 'Files' appended for legacy reasons
-	Pull                    Keybinding `yaml:"pullFiles"` // 'Files' appended for legacy reasons
-	Refresh                 Keybinding `yaml:"refresh"`
-	CreatePatchOptionsMenu  Keybinding `yaml:"createPatchOptionsMenu"`
-	NextTab                 Keybinding `yaml:"nextTab"`
-	PrevTab                 Keybinding `yaml:"prevTab"`
-	NextScreenMode          Keybinding `yaml:"nextScreenMode"`
-	PrevScreenMode          Keybinding `yaml:"prevScreenMode"`
-	CyclePagers             Keybinding `yaml:"cyclePagers"`
-	CyclePagersReverse      Keybinding `yaml:"cyclePagersReverse"`
-	Undo                    Keybinding `yaml:"undo"`
-	Redo                    Keybinding `yaml:"redo"`
-	FilteringMenu           Keybinding `yaml:"filteringMenu"`
-	DiffingMenu             Keybinding `yaml:"diffingMenu"`
+	ScrollDownMainAlt2        Keybinding `yaml:"scrollDownMain-alt2"`
+	ExecuteShellCommand       Keybinding `yaml:"executeShellCommand"`
+	CreateRebaseOptionsMenu   Keybinding `yaml:"createRebaseOptionsMenu"`
+	Push                      Keybinding `yaml:"pushFiles"` // 'Files' appended for legacy reasons
+	Pull                      Keybinding `yaml:"pullFiles"` // 'Files' appended for legacy reasons
+	Refresh                   Keybinding `yaml:"refresh"`
+	CreatePatchOptionsMenu    Keybinding `yaml:"createPatchOptionsMenu"`
+	NextTab                   Keybinding `yaml:"nextTab"`
+	PrevTab                   Keybinding `yaml:"prevTab"`
+	NextScreenMode            Keybinding `yaml:"nextScreenMode"`
+	PrevScreenMode            Keybinding `yaml:"prevScreenMode"`
+	CycleDiffRenderers        Keybinding `yaml:"cycleDiffRenderers"`
+	CycleDiffRenderersReverse Keybinding `yaml:"cycleDiffRenderersReverse"`
+	Undo                      Keybinding `yaml:"undo"`
+	Redo                      Keybinding `yaml:"redo"`
+	FilteringMenu             Keybinding `yaml:"filteringMenu"`
+	DiffingMenu               Keybinding `yaml:"diffingMenu"`
 	// Deprecated: add the key to `diffingMenu` instead.
 	DiffingMenuAlt                    Keybinding `yaml:"diffingMenu-alt"`
 	CopyToClipboard                   Keybinding `yaml:"copyToClipboard"`
@@ -528,6 +558,7 @@ type KeybindingUniversalConfig struct {
 	IncreaseRenameSimilarityThreshold Keybinding `yaml:"increaseRenameSimilarityThreshold"`
 	DecreaseRenameSimilarityThreshold Keybinding `yaml:"decreaseRenameSimilarityThreshold"`
 	OpenDiffTool                      Keybinding `yaml:"openDiffTool"`
+	EditConfig                        Keybinding `yaml:"editConfig"`
 }
 
 type KeybindingStatusConfig struct {
@@ -579,10 +610,6 @@ type KeybindingBranchesConfig struct {
 	FetchRemote              Keybinding `yaml:"fetchRemote"`
 	AddForkRemote            Keybinding `yaml:"addForkRemote"`
 	SortOrder                Keybinding `yaml:"sortOrder"`
-}
-
-type KeybindingWorktreesConfig struct {
-	ViewWorktreeOptions Keybinding `yaml:"viewWorktreeOptions"`
 }
 
 type KeybindingCommitsConfig struct {
@@ -827,18 +854,26 @@ func GetDefaultConfig() *UserConfig {
 func GetDefaultConfigForPlatform(platform string) *UserConfig {
 	return &UserConfig{
 		Gui: GuiConfig{
-			ScrollHeight:             2,
-			ScrollPastBottom:         true,
-			ScrollOffMargin:          2,
-			ScrollOffBehavior:        "margin",
-			TabWidth:                 4,
-			MouseEvents:              true,
-			SkipAmendWarning:         false,
-			SkipDiscardChangeWarning: false,
-			SkipStashWarning:         false,
-			SidePanelWidth:           0.3333,
-			ExpandFocusedSidePanel:   false,
-			ExpandedSidePanelWeight:  2,
+			ScrollHeight:              2,
+			ScrollPastBottom:          true,
+			ScrollOffMargin:           2,
+			ScrollOffBehavior:         "margin",
+			TabWidth:                  4,
+			MouseEvents:               true,
+			SkipAmendWarning:          false,
+			SkipDiscardChangeWarning:  false,
+			SkipStashWarning:          false,
+			SidePanelWidth:            0.3333,
+			ExpandFocusedSidePanel:    false,
+			ExpandedSidePanelWeight:   2,
+			ShrinkSidePanelsToContent: false,
+			SidePanels: []SidePanel{
+				{"status"},
+				{"files", "worktrees", "submodules"},
+				{"branches", "remotes", "tags"},
+				{"commits", "reflog"},
+				{"stash"},
+			},
 			MainPanelSplitMode:       "flexible",
 			EnlargedSideViewLocation: "left",
 			WrapLinesInStagingView:   true,
@@ -892,8 +927,8 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			PortraitModeAutoMinHeight:           46,
 			FilterMode:                          "substring",
 			Spinner: SpinnerConfig{
-				Frames: []string{"|", "/", "-", "\\"},
-				Rate:   50,
+				Frames: []string{"●∙∙", "∙●∙", "∙∙●", "∙●∙"},
+				Rate:   180,
 			},
 			StatusPanelView:              "dashboard",
 			SwitchToFilesAfterStashPop:   true,
@@ -922,6 +957,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			MainBranches:                 []string{"master", "main"},
 			AutoFetch:                    true,
 			AutoRefresh:                  true,
+			AutoDetectExternalChanges:    true,
 			AutoForwardBranches:          "onlyMainBranches",
 			FetchAll:                     true,
 			AutoStageResolvedConflicts:   true,
@@ -936,9 +972,13 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			ParseEmoji:                   false,
 			TruncateCopiedCommitHashesTo: 12,
 		},
+		Worktree: WorktreeConfig{
+			DefaultPath: "",
+		},
 		Refresher: RefresherConfig{
-			RefreshInterval: 10,
-			FetchInterval:   60,
+			RefreshInterval:             10,
+			FetchInterval:               60,
+			ExternalChangeCheckInterval: 2,
 		},
 		Update: UpdateConfig{
 			Method: "prompt",
@@ -1000,6 +1040,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				ConfirmInEditorAlt:                Keybinding{"<ctrl+s>"},
 				Remove:                            Keybinding{"d"},
 				New:                               Keybinding{"n"},
+				NewWorktree:                       Keybinding{"w"},
 				Edit:                              Keybinding{"e"},
 				OpenFile:                          Keybinding{"o"},
 				OpenRecentRepos:                   Keybinding{"<ctrl+r>"},
@@ -1019,8 +1060,8 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				PrevTab:                           Keybinding{"["},
 				NextScreenMode:                    Keybinding{"+"},
 				PrevScreenMode:                    Keybinding{"_"},
-				CyclePagers:                       Keybinding{"|"},
-				CyclePagersReverse:                Keybinding{"\\"},
+				CycleDiffRenderers:                Keybinding{"|"},
+				CycleDiffRenderersReverse:         Keybinding{"\\"},
 				Undo:                              Keybinding{"z"},
 				Redo:                              Keybinding{"Z"},
 				FilteringMenu:                     Keybinding{"<ctrl+s>"},
@@ -1035,6 +1076,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				IncreaseRenameSimilarityThreshold: Keybinding{")"},
 				DecreaseRenameSimilarityThreshold: Keybinding{"("},
 				OpenDiffTool:                      Keybinding{"<ctrl+t>"},
+				EditConfig:                        Keybinding{"<alt+shift+c>"},
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate:             Keybinding{"u"},
@@ -1083,9 +1125,6 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				FetchRemote:              Keybinding{"f"},
 				AddForkRemote:            Keybinding{"F"},
 				SortOrder:                Keybinding{"s"},
-			},
-			Worktrees: KeybindingWorktreesConfig{
-				ViewWorktreeOptions: Keybinding{"w"},
 			},
 			Commits: KeybindingCommitsConfig{
 				SquashDown:                     Keybinding{"s"},

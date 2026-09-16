@@ -271,7 +271,7 @@ func (self *UndoController) hardResetWithAutoStash(commitHash string, options ha
 			if err != nil {
 				return err
 			}
-			self.c.Refresh(types.RefreshOptions{})
+			self.c.RefreshFromWorker(types.RefreshOptions{})
 			return nil
 		})
 	}

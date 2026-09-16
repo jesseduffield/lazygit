@@ -24,44 +24,44 @@ var SelectedCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		// Select different commits in each of the commit views
 		t.Views().Commits().Focus().
-			NavigateToLine(Contains("commit 01"))
+			NavigateToLine(Contains("commit-01"))
 		t.Views().ReflogCommits().Focus().
-			NavigateToLine(Contains("commit 02"))
+			NavigateToLine(Contains("commit-02"))
 		t.Views().Branches().Focus().
 			Lines(Contains("master").IsSelected()).
 			PressEnter()
 		t.Views().SubCommits().IsFocused().
-			NavigateToLine(Contains("commit 03"))
+			NavigateToLine(Contains("commit-03"))
 
 		// SubCommits
 		t.GlobalPress(config.Keybinding{"X"})
-		t.FileSystem().FileContent("file.txt", Equals("commit 03"))
+		t.FileSystem().FileContent("file.txt", Equals("commit-03"))
 
 		t.Views().SubCommits().PressEnter()
 		t.GlobalPress(config.Keybinding{"X"})
-		t.FileSystem().FileContent("file.txt", Equals("commit 03"))
+		t.FileSystem().FileContent("file.txt", Equals("commit-03"))
 
 		// ReflogCommits
 		t.Views().ReflogCommits().Focus()
 		t.GlobalPress(config.Keybinding{"X"})
-		t.FileSystem().FileContent("file.txt", Equals("commit: commit 02"))
+		t.FileSystem().FileContent("file.txt", Equals("commit: commit-02"))
 
 		t.Views().ReflogCommits().PressEnter()
 		t.GlobalPress(config.Keybinding{"X"})
-		t.FileSystem().FileContent("file.txt", Equals("commit: commit 02"))
+		t.FileSystem().FileContent("file.txt", Equals("commit: commit-02"))
 
 		// LocalCommits
 		t.Views().Commits().Focus()
 		t.GlobalPress(config.Keybinding{"X"})
-		t.FileSystem().FileContent("file.txt", Equals("commit 01"))
+		t.FileSystem().FileContent("file.txt", Equals("commit-01"))
 
 		t.Views().Commits().PressEnter()
 		t.GlobalPress(config.Keybinding{"X"})
-		t.FileSystem().FileContent("file.txt", Equals("commit 01"))
+		t.FileSystem().FileContent("file.txt", Equals("commit-01"))
 
 		// None of these
 		t.Views().Files().Focus()
 		t.GlobalPress(config.Keybinding{"X"})
-		t.FileSystem().FileContent("file.txt", Equals("commit 01"))
+		t.FileSystem().FileContent("file.txt", Equals("commit-01"))
 	},
 })

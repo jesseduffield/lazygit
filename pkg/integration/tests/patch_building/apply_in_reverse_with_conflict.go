@@ -83,11 +83,10 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Focus().
 			Lines(
-				Equals("▼ /").IsSelected(),
-				Equals("  M  file1"),
+				Equals("▼ /"),
+				Equals("  M  file1").IsSelected(),
 				Equals("  M  file2"),
-			).
-			SelectNextItem()
+			)
 
 		t.Views().Main().
 			ContainsLines(

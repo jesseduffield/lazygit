@@ -174,7 +174,7 @@ func (self *CommitLoader) MergeRebasingCommits(hashPool *utils.StringPool, commi
 	}
 
 	if workingTreeState.Rebasing {
-		rebasingCommits, err := self.getHydratedRebasingCommits(hashPool, addConflictedRebasingCommit)
+		rebasingCommits, err := self.getHydratedRebasingCommits(hashPool, commits, addConflictedRebasingCommit)
 		if err != nil {
 			return nil, err
 		}
@@ -251,8 +251,8 @@ func (self *CommitLoader) extractCommitFromLine(hashPool *utils.StringPool, line
 	})
 }
 
-func (self *CommitLoader) getHydratedRebasingCommits(hashPool *utils.StringPool, addConflictingCommit bool) ([]*models.Commit, error) {
-	return self.getHydratedTodoCommits(hashPool, self.getRebasingCommits(hashPool, addConflictingCommit), false)
+func (self *CommitLoader) getHydratedRebasingCommits(hashPool *utils.StringPool, existingCommits []*models.Commit, addConflictingCommit bool) ([]*models.Commit, error) {
+	return self.getHydratedTodoCommits(hashPool, self.getRebasingCommits(hashPool, addConflictingCommit), existingCommits, false)
 }
 
 func (self *CommitLoader) getHydratedSequencerCommits(hashPool *utils.StringPool, workingTreeState models.WorkingTreeState) ([]*models.Commit, error) {
@@ -271,39 +271,56 @@ func (self *CommitLoader) getHydratedSequencerCommits(hashPool *utils.StringPool
 		}
 	}
 
-	return self.getHydratedTodoCommits(hashPool, commits, true)
+	return self.getHydratedTodoCommits(hashPool, commits, nil, true)
 }
 
-func (self *CommitLoader) getHydratedTodoCommits(hashPool *utils.StringPool, todoCommits []*models.Commit, todoFileHasShortHashes bool) ([]*models.Commit, error) {
+func (self *CommitLoader) getHydratedTodoCommits(
+	hashPool *utils.StringPool,
+	todoCommits []*models.Commit,
+	existingCommits []*models.Commit,
+	todoFileHasShortHashes bool,
+) ([]*models.Commit, error) {
 	if len(todoCommits) == 0 {
 		return nil, nil
 	}
 
-	commitHashes := lo.FilterMap(todoCommits, func(commit *models.Commit, _ int) (string, bool) {
-		return commit.Hash(), commit.Hash() != ""
-	})
-
-	// note that we're not filtering these as we do non-rebasing commits just because
-	// I suspect that will cause some damage
-	cmdObj := self.cmd.New(
-		NewGitCmd("show").
-			Config("log.showSignature=false").
-			Arg("--no-patch", "--oneline", "--abbrev=20", prettyFormat).
-			Arg(commitHashes...).
-			ToArgv(),
-	).DontLog()
-
+	// A refresh of only the rebasing todos should reuse the already loaded todos to avoid
+	// unnecessary git show calls.
 	fullCommits := map[string]*models.Commit{}
-	err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
-		if line == "" || line[0] != '+' {
-			return false, nil
+	for _, commit := range existingCommits {
+		if commit.IsTODO() && commit.Hash() != "" {
+			// Make a copy of the commit; that's necessary to avoid mutating the original commit
+			// when we later reuse it in the loop at the end of this function.
+			fullCommits[commit.Hash()] = lo.ToPtr(*commit)
 		}
-		commit := self.extractCommitFromLine(hashPool, line[1:], false)
-		fullCommits[commit.Hash()] = commit
-		return false, nil
+	}
+
+	commitHashesToFetch := lo.FilterMap(todoCommits, func(commit *models.Commit, _ int) (string, bool) {
+		return commit.Hash(), commit.Hash() != "" && fullCommits[commit.Hash()] == nil
 	})
-	if err != nil {
-		return nil, err
+
+	if len(commitHashesToFetch) > 0 {
+		// note that we're not filtering these as we do non-rebasing commits just because
+		// I suspect that will cause some damage
+		cmdObj := self.cmd.New(
+			NewGitCmd("show").
+				Config("log.showSignature=false").
+				Arg("--no-patch", "--oneline", "--abbrev=20", prettyFormat).
+				Arg(commitHashesToFetch...).
+				ToArgv(),
+		).DontLog()
+
+		err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
+			if line == "" || line[0] != '+' {
+				return false, nil
+			}
+			commit := self.extractCommitFromLine(hashPool, line[1:], false)
+			fullCommits[commit.Hash()] = commit
+			return false, nil
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	findFullCommit := lo.Ternary(todoFileHasShortHashes,

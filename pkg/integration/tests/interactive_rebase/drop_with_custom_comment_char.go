@@ -17,8 +17,8 @@ var DropWithCustomCommentChar = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().Focus().
 			Lines(
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit-02").IsSelected(),
+				Contains("commit-01"),
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
@@ -28,7 +28,7 @@ var DropWithCustomCommentChar = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("commit 01").IsSelected(),
+				Contains("commit-01").IsSelected(),
 			)
 	},
 })

@@ -134,11 +134,12 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				})
 			},
 			testCases: []testCase{
-				{value: "", valid: false},
-				{value: "1,2,3", valid: false},
+				// The number of entries no longer has to match the number of side
+				// panels, so only the validity of the individual keys matters.
+				{value: "1,2,3", valid: true},
 				{value: "1,2,3,4,5", valid: true},
+				{value: "1,2,3,4,5,6", valid: true},
 				{value: "1,2,3,4,invalid", valid: false},
-				{value: "1,2,3,4,5,6", valid: false},
 			},
 		},
 		{
@@ -221,6 +222,43 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				{value: "log", valid: true},
 				{value: "logWithPty", valid: true},
 				{value: "popup", valid: true},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
+			name: "Custom command context",
+			setup: func(config *UserConfig, value string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Context: value,
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: true},
+				{value: "global", valid: true},
+				{value: "commits", valid: true},
+				{value: "commits, subCommits", valid: true},
+				{value: "commits,subCommits", valid: true},
+				{value: "invalid_value", valid: false},
+				{value: "commits, invalid_value", valid: false},
+			},
+		},
+		{
+			name: "Custom command context in a sub menu",
+			setup: func(config *UserConfig, value string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Key: Keybinding{"X"},
+						CommandMenu: []CustomCommand{
+							{Key: Keybinding{"1"}, Command: "echo 'hello'", Context: value},
+						},
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: true},
+				{value: "commits", valid: true},
 				{value: "invalid_value", valid: false},
 			},
 		},
@@ -324,26 +362,66 @@ func TestUserConfigValidate_spinnerFrames(t *testing.T) {
 	}
 }
 
-func TestUserConfigValidate_pagers(t *testing.T) {
+func TestUserConfigValidate_sidePanels(t *testing.T) {
 	scenarios := []struct {
-		name  string
-		pager PagingConfig
-		valid bool
+		name   string
+		panels []SidePanel
+		valid  bool
 	}{
-		{name: "empty", pager: PagingConfig{}, valid: true},
-		{name: "pager only", pager: PagingConfig{Pager: "delta"}, valid: true},
-		{name: "external diff command only", pager: PagingConfig{ExternalDiffCommand: "difft"}, valid: true},
-		{name: "git config external diff only", pager: PagingConfig{UseExternalDiffGitConfig: true}, valid: true},
-		{name: "pager and external diff command", pager: PagingConfig{Pager: "delta", ExternalDiffCommand: "difft"}, valid: false},
-		{name: "pager and git config external diff", pager: PagingConfig{Pager: "delta", UseExternalDiffGitConfig: true}, valid: false},
-		{name: "both external diff mechanisms", pager: PagingConfig{ExternalDiffCommand: "difft", UseExternalDiffGitConfig: true}, valid: false},
-		{name: "all three", pager: PagingConfig{Pager: "delta", ExternalDiffCommand: "difft", UseExternalDiffGitConfig: true}, valid: false},
+		{name: "default layout", panels: []SidePanel{{"status"}, {"files", "worktrees", "submodules"}, {"branches", "remotes", "tags"}, {"commits", "reflog"}, {"stash"}}, valid: true},
+		{name: "reordered", panels: []SidePanel{{"status"}, {"files"}, {"commits"}, {"branches"}, {"stash"}}, valid: true},
+		{name: "hidden stash panel", panels: []SidePanel{{"status"}, {"files"}, {"branches"}, {"commits"}}, valid: true},
+		{name: "promoted tab", panels: []SidePanel{{"files", "submodules"}, {"worktrees"}, {"branches"}, {"commits"}}, valid: true},
+		{name: "core panels only", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}}, valid: true},
+		{name: "empty", panels: []SidePanel{}, valid: false},
+		{name: "empty panel", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}, {}}, valid: false},
+		{name: "unknown name", panels: []SidePanel{{"files"}, {"branches"}, {"commits"}, {"bogus"}}, valid: false},
+		{name: "duplicate within panel", panels: []SidePanel{{"files", "files"}, {"branches"}, {"commits"}}, valid: false},
+		{name: "duplicate across panels", panels: []SidePanel{{"files"}, {"branches", "files"}, {"commits"}}, valid: false},
+		{name: "missing files", panels: []SidePanel{{"branches"}, {"commits"}}, valid: false},
+		{name: "missing branches", panels: []SidePanel{{"files"}, {"commits"}}, valid: false},
+		{name: "missing commits", panels: []SidePanel{{"files"}, {"branches"}}, valid: false},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
 			config := GetDefaultConfig()
-			config.Git.Pagers = []PagingConfig{s.pager}
+			config.Gui.SidePanels = s.panels
+			err := config.Validate()
+
+			if s.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}
+
+func TestUserConfigValidate_diffRenderers(t *testing.T) {
+	scenarios := []struct {
+		name         string
+		diffRenderer DiffRendererConfig
+		valid        bool
+	}{
+		{name: "stdinFilter with type default", diffRenderer: DiffRendererConfig{Command: "delta"}, valid: true},
+		{name: "stdinFilter with explicit type", diffRenderer: DiffRendererConfig{Type: "stdinFilter", Command: "delta"}, valid: true},
+		{name: "stdinFilter with explicit type", diffRenderer: DiffRendererConfig{Type: "stdinFilter"}, valid: false},
+		{name: "stdinFilter with type default without command", diffRenderer: DiffRendererConfig{}, valid: false},
+		{name: "stdinFilter with args", diffRenderer: DiffRendererConfig{Type: "stdinFilter", Command: "delta", Args: []string{"-x"}}, valid: false},
+		{name: "external diff", diffRenderer: DiffRendererConfig{Type: "extDiff", Command: "difft"}, valid: true},
+		{name: "external diff without command", diffRenderer: DiffRendererConfig{Type: "extDiff"}, valid: true},
+		{name: "external diff with args", diffRenderer: DiffRendererConfig{Type: "extDiff", Command: "difft", Args: []string{"-x"}}, valid: false},
+		{name: "raw git", diffRenderer: DiffRendererConfig{Type: "rawGit"}, valid: true},
+		{name: "raw git with args", diffRenderer: DiffRendererConfig{Type: "rawGit", Args: []string{"-x"}}, valid: true},
+		{name: "raw git with command", diffRenderer: DiffRendererConfig{Type: "rawGit", Command: "delta"}, valid: false},
+		{name: "unknown type", diffRenderer: DiffRendererConfig{Type: "unknown"}, valid: false},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			config := GetDefaultConfig()
+			config.Git.DiffRenderers = []DiffRendererConfig{s.diffRenderer}
 			err := config.Validate()
 
 			if s.valid {

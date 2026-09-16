@@ -28,20 +28,20 @@ var FixupKeepMessageRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("First Commit")).
 			Press(keys.Universal.Edit).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("pick CI Third Commit"),
 				Contains("pick CI Second Commit"),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("First Commit").IsSelected(),
 			).
 			// Mark second commit as fixup
 			NavigateToLine(Contains("Second Commit")).
 			Press(keys.Commits.MarkCommitAsFixup).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("pick  CI Third Commit"),
 				Contains("fixup CI Second Commit").IsSelected(),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("First Commit"),
 			).
 			// Now set the -C flag using the SetFixupMessage keybinding
@@ -53,10 +53,10 @@ var FixupKeepMessageRebase = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("--- Pending rebase todos ---"),
+				Contains("─── Pending rebase todos"),
 				Contains("pick     CI Third Commit"),
 				Contains("fixup -C CI Second Commit").IsSelected(),
-				Contains("--- Commits ---"),
+				Contains("─── Commits"),
 				Contains("First Commit"),
 			).
 			// Continue the rebase

@@ -6,6 +6,7 @@ import (
 
 	"github.com/jesseduffield/generics/maps"
 	"github.com/samber/lo"
+	"github.com/sasha-s/go-deadlock"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,10 +26,14 @@ type fileInfo struct {
 	mode                PatchStatus
 	includedLineIndices []int
 	diff                string
+	// For a renamed file, the path it was renamed from; empty otherwise. We
+	// need to keep hold of it so we can re-render the file's patch (which is
+	// keyed by the new path) without the caller having to supply it again.
+	previousPath string
 }
 
 type (
-	loadFileDiffFunc func(from string, to string, reverse bool, filename string, plain bool) (string, error)
+	loadFileDiffFunc func(from string, to string, reverse bool, filename string, previousPath string, plain bool) (string, error)
 )
 
 // PatchBuilder manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
@@ -46,6 +51,13 @@ type PatchBuilder struct {
 	fileInfoMap map[string]*fileInfo
 	Log         *logrus.Entry
 
+	// mutex guards the fields that a git worker can mutate (via Reset, at the
+	// end of a patch-consuming operation) while the UI thread reads them to
+	// render — chiefly To and the fileInfoMap pointer. The map's *entries* are
+	// only ever touched on the UI thread, so we only hold the lock long enough
+	// to read or swap the fields, never across the git I/O in getFileInfo.
+	mutex deadlock.Mutex
+
 	// loadFileDiff loads the diff of a file, for a given to (typically a commit hash)
 	loadFileDiff loadFileDiffFunc
 }
@@ -58,6 +70,9 @@ func NewPatchBuilder(log *logrus.Entry, loadFileDiff loadFileDiffFunc) *PatchBui
 }
 
 func (p *PatchBuilder) Start(from, to string, reverse bool, canRebase bool) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
 	p.To = to
 	p.From = from
 	p.reverse = reverse
@@ -65,16 +80,28 @@ func (p *PatchBuilder) Start(from, to string, reverse bool, canRebase bool) {
 	p.fileInfoMap = map[string]*fileInfo{}
 }
 
+// snapshotFileInfoMap returns the current fileInfoMap under the lock. The map's
+// entries are only mutated on the UI thread, so callers can read the returned
+// map without holding the lock; the lock only serializes the pointer swap that
+// Reset/Start do (potentially from a git worker) against these reads.
+func (p *PatchBuilder) snapshotFileInfoMap() map[string]*fileInfo {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	return p.fileInfoMap
+}
+
 func (p *PatchBuilder) PatchToApply(reverse bool, turnAddedFilesIntoDiffAgainstEmptyFile bool) string {
 	var patch strings.Builder
 
-	for filename, info := range p.fileInfoMap {
+	for filename, info := range p.snapshotFileInfoMap() {
 		if info.mode == UNSELECTED {
 			continue
 		}
 
 		patch.WriteString(p.RenderPatchForFile(RenderPatchForFileOpts{
 			Filename:                               filename,
+			PreviousPath:                           info.previousPath,
 			Plain:                                  true,
 			Reverse:                                reverse,
 			TurnAddedFilesIntoDiffAgainstEmptyFile: turnAddedFilesIntoDiffAgainstEmptyFile,
@@ -102,8 +129,8 @@ func (p *PatchBuilder) removeFile(info *fileInfo) {
 	info.includedLineIndices = nil
 }
 
-func (p *PatchBuilder) AddFileWhole(filename string) error {
-	info, err := p.getFileInfo(filename)
+func (p *PatchBuilder) AddFileWhole(filename string, previousPath string) error {
+	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
 		return err
 	}
@@ -113,8 +140,8 @@ func (p *PatchBuilder) AddFileWhole(filename string) error {
 	return nil
 }
 
-func (p *PatchBuilder) RemoveFile(filename string) error {
-	info, err := p.getFileInfo(filename)
+func (p *PatchBuilder) RemoveFile(filename string, previousPath string) error {
+	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
 		return err
 	}
@@ -124,28 +151,34 @@ func (p *PatchBuilder) RemoveFile(filename string) error {
 	return nil
 }
 
-func (p *PatchBuilder) getFileInfo(filename string) (*fileInfo, error) {
-	info, ok := p.fileInfoMap[filename]
+func (p *PatchBuilder) getFileInfo(filename string, previousPath string) (*fileInfo, error) {
+	p.mutex.Lock()
+	fileInfoMap := p.fileInfoMap
+	from, to, reverse := p.From, p.To, p.reverse
+	p.mutex.Unlock()
+
+	info, ok := fileInfoMap[filename]
 	if ok {
 		return info, nil
 	}
 
-	diff, err := p.loadFileDiff(p.From, p.To, p.reverse, filename, true)
+	diff, err := p.loadFileDiff(from, to, reverse, filename, previousPath, true)
 	if err != nil {
 		return nil, err
 	}
 	info = &fileInfo{
-		mode: UNSELECTED,
-		diff: diff,
+		mode:         UNSELECTED,
+		diff:         diff,
+		previousPath: previousPath,
 	}
 
-	p.fileInfoMap[filename] = info
+	fileInfoMap[filename] = info
 
 	return info, nil
 }
 
-func (p *PatchBuilder) AddFileLineRange(filename string, lineIndices []int) error {
-	info, err := p.getFileInfo(filename)
+func (p *PatchBuilder) AddFileLineRange(filename string, previousPath string, lineIndices []int) error {
+	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
 		return err
 	}
@@ -155,8 +188,8 @@ func (p *PatchBuilder) AddFileLineRange(filename string, lineIndices []int) erro
 	return nil
 }
 
-func (p *PatchBuilder) RemoveFileLineRange(filename string, lineIndices []int) error {
-	info, err := p.getFileInfo(filename)
+func (p *PatchBuilder) RemoveFileLineRange(filename string, previousPath string, lineIndices []int) error {
+	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
 		return err
 	}
@@ -171,13 +204,14 @@ func (p *PatchBuilder) RemoveFileLineRange(filename string, lineIndices []int) e
 
 type RenderPatchForFileOpts struct {
 	Filename                               string
+	PreviousPath                           string
 	Plain                                  bool
 	Reverse                                bool
 	TurnAddedFilesIntoDiffAgainstEmptyFile bool
 }
 
 func (p *PatchBuilder) RenderPatchForFile(opts RenderPatchForFileOpts) string {
-	info, err := p.getFileInfo(opts.Filename)
+	info, err := p.getFileInfo(opts.Filename, opts.PreviousPath)
 	if err != nil {
 		p.Log.Error(err)
 		return ""
@@ -198,7 +232,12 @@ func (p *PatchBuilder) RenderPatchForFile(opts RenderPatchForFileOpts) string {
 		Transform(TransformOpts{
 			Reverse:                                opts.Reverse,
 			TurnAddedFilesIntoDiffAgainstEmptyFile: opts.TurnAddedFilesIntoDiffAgainstEmptyFile,
-			IncludedLineIndices:                    info.includedLineIndices,
+			// For a partial selection of a renamed file we keep only the
+			// content change and drop the rename, so that the rename stays in
+			// the commit. A whole-file selection keeps the rename (and short-
+			// circuits before this for plain output).
+			StripRename:         info.mode == PART && info.previousPath != "",
+			IncludedLineIndices: info.includedLineIndices,
 		})
 
 	if opts.Plain {
@@ -208,13 +247,16 @@ func (p *PatchBuilder) RenderPatchForFile(opts RenderPatchForFileOpts) string {
 }
 
 func (p *PatchBuilder) renderEachFilePatch(plain bool) []string {
+	fileInfoMap := p.snapshotFileInfoMap()
+
 	// sort files by name then iterate through and render each patch
-	filenames := maps.Keys(p.fileInfoMap)
+	filenames := maps.Keys(fileInfoMap)
 
 	sort.Strings(filenames)
 	patches := lo.Map(filenames, func(filename string, _ int) string {
 		return p.RenderPatchForFile(RenderPatchForFileOpts{
 			Filename:                               filename,
+			PreviousPath:                           fileInfoMap[filename].previousPath,
 			Plain:                                  plain,
 			Reverse:                                false,
 			TurnAddedFilesIntoDiffAgainstEmptyFile: true,
@@ -232,11 +274,16 @@ func (p *PatchBuilder) RenderAggregatedPatch(plain bool) string {
 }
 
 func (p *PatchBuilder) GetFileStatus(filename string, parent string) PatchStatus {
-	if parent != p.To {
+	p.mutex.Lock()
+	to := p.To
+	fileInfoMap := p.fileInfoMap
+	p.mutex.Unlock()
+
+	if parent != to {
 		return UNSELECTED
 	}
 
-	info, ok := p.fileInfoMap[filename]
+	info, ok := fileInfoMap[filename]
 	if !ok {
 		return UNSELECTED
 	}
@@ -244,8 +291,8 @@ func (p *PatchBuilder) GetFileStatus(filename string, parent string) PatchStatus
 	return info.mode
 }
 
-func (p *PatchBuilder) GetFileIncLineIndices(filename string) ([]int, error) {
-	info, err := p.getFileInfo(filename)
+func (p *PatchBuilder) GetFileIncLineIndices(filename string, previousPath string) ([]int, error) {
+	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
 		return nil, err
 	}
@@ -254,16 +301,22 @@ func (p *PatchBuilder) GetFileIncLineIndices(filename string) ([]int, error) {
 
 // clears the patch
 func (p *PatchBuilder) Reset() {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
 	p.To = ""
 	p.fileInfoMap = map[string]*fileInfo{}
 }
 
 func (p *PatchBuilder) Active() bool {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
 	return p.To != ""
 }
 
 func (p *PatchBuilder) IsEmpty() bool {
-	for _, fileInfo := range p.fileInfoMap {
+	for _, fileInfo := range p.snapshotFileInfoMap() {
 		if fileInfo.mode == WHOLE || (fileInfo.mode == PART && len(fileInfo.includedLineIndices) > 0) {
 			return false
 		}
@@ -274,9 +327,12 @@ func (p *PatchBuilder) IsEmpty() bool {
 
 // if any of these things change we'll need to reset and start a new patch
 func (p *PatchBuilder) NewPatchRequired(from string, to string, reverse bool) bool {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
 	return from != p.From || to != p.To || reverse != p.reverse
 }
 
 func (p *PatchBuilder) AllFilesInPatch() []string {
-	return lo.Keys(p.fileInfoMap)
+	return lo.Keys(p.snapshotFileInfoMap())
 }

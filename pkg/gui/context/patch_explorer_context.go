@@ -47,7 +47,7 @@ func NewPatchExplorerContext(
 			Key:                        key,
 			Kind:                       types.MAIN_CONTEXT,
 			Focusable:                  true,
-			HighlightOnFocus:           true,
+			HasSelectableContent:       true,
 			NeedsRerenderOnWidthChange: types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES,
 		})),
 		SearchTrait: NewSearchTrait(c),
