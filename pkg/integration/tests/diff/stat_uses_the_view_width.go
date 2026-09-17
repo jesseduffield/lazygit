@@ -37,9 +37,6 @@ var StatUsesTheViewWidth = NewIntegrationTest(NewIntegrationTestArgs{
 			)
 
 		t.Views().Main().
-			/* EXPECTED:
 			Content(MatchesRegexp(`(?m)^ file1 \| 200 \+{80,}$`))
-			ACTUAL: */
-			Content(MatchesRegexp(`(?m)^ file1 \| 200 \+{60,70}$`))
 	},
 })
