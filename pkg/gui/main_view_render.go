@@ -112,11 +112,22 @@ type runRender func(spec renderSpec) (startRender, onCloseRender)
 // view, running the command the given way. key names what is rendered, so that
 // a re-render of the same content can be told from a render of other content.
 func (gui *Gui) newTaskForRender(spec renderSpec, prefix string, key string, run runRender) error {
+	setColumnsEnvVar(spec.cmd, spec.width)
+
 	start, onClose := run(spec)
 
 	manager := gui.getManager(spec.view)
 	linesToRead := gui.linesToReadFromCmdTask(spec.view)
 	return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), key)
+}
+
+// setColumnsEnvVar tells a command how wide the view its output goes into is.
+// git reads COLUMNS in preference to the size of the terminal it is talking to,
+// and lays the diffstat graph out to it; a diff renderer with no terminal to
+// ask may read it too (difftastic and diff-so-fancy do, delta does not). A
+// command told nothing renders for 80 columns.
+func setColumnsEnvVar(cmd *exec.Cmd, width int) {
+	cmd.Env = append(cmd.Env, fmt.Sprintf("COLUMNS=%d", width))
 }
 
 func removeExistingTermEnvVars(env []string) []string {
