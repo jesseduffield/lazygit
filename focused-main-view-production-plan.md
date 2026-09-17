@@ -2775,8 +2775,9 @@ item 4's guard was dropped is
 ### PR 11 — Open the selected diff line in the branch's GitHub PR
 
 **Status: DONE 2026-09-13** on branch `open-pull-request-at-diff-line`, off
-PR 10's tip. Four commits, each building, unit-testing and linting clean on its
-own; whole e2e suite green. §6 interactive sign-off owed.
+PR 10's tip. Four commits plus round 1's two `fixup!`s and an `amend!`, each
+building, unit-testing and linting clean on its own; whole e2e suite green.
+§6 interactive sign-off owed.
 
 Self-contained; after PR 5. Planned as one or two commits (N§5):
 
@@ -2834,6 +2835,58 @@ preparations and the command.
    offered and the three reasons it refuses, and `TestGithubPullRequestLineURL`
    covers the URL itself, including the `L`/`R` sides and the SHA-256 of the
    path.
+
+#### Review round 1 (2026-09-17) — the commits a pull request can be asked for
+
+The user read the branch and raised two things the URL gets wrong. A range of
+commits selected in the commits panel opened the pull request at the newest of
+them, so a line of the selected hunk may be nowhere in the commit the page
+shows. And a branch that has diverged from its remote opened a page saying "We
+went looking everywhere, but couldn't find those commits"; a commit from before
+the branch gets the same page.
+
+GitHub's range form was read off a real pull request (lazygit#5870, 8 commits),
+by fetching candidate URLs and counting the file anchors each page carries:
+
+- `/pull/N/changes/<a>..<b>` is **exclusive on the left**. `c7..c8` shows only
+  c8's two files, and `c1..c3` shows the nine of c2 and c3 but not c1's. So the
+  left end is the parent of the range's oldest commit, and lazygit's own range
+  diff (`git diff <oldest>^ <newest>`) is the page's.
+- Both ends have to be commits **of the pull request**. The commit it was
+  opened against 404s there, as does `<a>..<a>`.
+- **`BASE`** stands for the commit the pull request was opened against (the
+  user found it in GitHub's own UI): `BASE..c2` shows commits 1 and 2, and
+  `BASE..<tip>` the whole pull request. Case doesn't matter.
+- A commit the pull request doesn't hold 404s on its own too. This is the page
+  the user saw.
+
+Two `fixup!` commits and an `amend!`, inserted mid-branch:
+
+1. **`CommitsForPullRequest` on `types.PullRequestDiffContext`** answers with
+   the commits whose diff is on screen and the hash of the commit that diff
+   starts after, in place of the single hash the command took from
+   `RefForAdjustingLineNumberInDiff`. `githubCommitRange` names one commit by
+   its hash and a range as `<base>..<newest>`, with `BASE` for the base where
+   the pull request holds no commit before the range. Two shared functions in
+   the context package, both unit-tested: `commitsShownInDiff` mirrors what the
+   panel hands `GetUpdateTaskForRenderingCommitsDiff`, so a selection the panel
+   has no range to diff for (a rebase todo entry at either end, or a range
+   spanning the divergence boundary in the sub-commits panel) reports the one
+   commit the pane shows; `pullRequestBaseForCommits` looks the oldest commit's
+   first parent up among the panel's commits and offers it only while it is
+   pushed.
+2. **The command refuses where the pull request doesn't hold the commits.**
+   `Status == StatusPushed` is the test (the user's call): a pull request holds
+   the commits of its branch that are on the remote, so an unpushed commit is
+   none of its own, and neither is one that is in a main branch already. Two
+   strings, `CommitNotInPullRequest` and `CommitsNotInPullRequest`. Amending a
+   commit in the middle of a branch leaves the command working below it, as the
+   user asked.
+3. The `amend!` rewrites the message around the range form and the refusal.
+
+Nothing headless reaches a pull request (deviation 5), so the refusal sits
+below `NoPullRequestDisabledReason` where no e2e test can see it. The range
+naming and the base lookup are unit-tested instead.
 
 ### PR 12 — Jump to a file of the diff from a menu
 
@@ -2941,7 +2994,7 @@ user pass before merge:
 | 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
 | 9 | `enter` and double-click on a file (working tree and commit) under each renderer; `{`/`}` down to 0 and back while a patch is being built; the keybindings menu's tooltips over both kinds of diff; screen modes with a diff focused; `wrapLinesInDiffView: false` with a long line in a diff, a branch log, the status and a conflict hint on screen in turn (round 1) |
 | 10 | Ghostty, iTerm2, VS Code |
-| 11 | The URL the browser lands on, in a repo whose branch has a pull request: a line of a commit's diff, a deleted line (`L`), a file-header row, and the same from the commit files panel and the sub-commits panel. Nothing headless reaches a pull request (PR 11 deviation 5), so every one of these is untested |
+| 11 | The URL the browser lands on, in a repo whose branch has a pull request: a line of a commit's diff, a deleted line (`L`), a file-header row, a range of commits (`<base>..<newest>`), a range reaching down to the pull request's first commit (`BASE..<newest>`), and the same from the commit files panel and the sub-commits panel; plus the refusal over an unpushed commit and over one from before the branch (round 1). Nothing headless reaches a pull request (PR 11 deviation 5), so every one of these is untested |
 | 12 | The menu over a many-file commit under each renderer (a file of a difftastic diff begins at its first content row), and the landing row for each; filtering as you type. Round 1's scrolling is **approved 2026-09-13** and has moved to PR 5; the message a single-file diff gets is still for the user to try |
 
 Patched renderer builds: `cargo build` in delta/difftastic worktrees
@@ -3005,7 +3058,8 @@ The remaining rows are agreed as keep/defer:
 | Focusing at the top of a commit whose diffstat fills the screen lands the selection on a stat row (new, PR 5 round 6) | **Keep** — the user's call, 2026-09-06. Focusing never moves the view, and with no change line on screen the selection goes to the middle visible line. Reaching the first hunk from there is one press of `a` or `right`, which is preferable to the view scrolling on its own |
 | A modified click on a renderer's hyperlink opens the hyperlink, not the clicked line (new, PR 10) | Keep. The hyperlink is handled before any mouse binding and ignores modifiers, as on master. Both paths open the same file at the same line for `lazygit-edit://` links, so only a renderer pointing its links elsewhere would tell the difference |
 | `e` over the custom patch's preview opens the file at a line the patch numbers, not the commit's (new, PR 11) | Raised, not acted on. The preview is a diff of the two trees the patch was materialized into, so a line below an omitted change sits at a number the file doesn't have it at, and `AdjustLineNumber` carries that number forward as if it were the commit's. PR 11 refuses there for the same reason; `e` has behaved this way since PR 8 and is left as it is for the user to decide on |
-| A range of commits selected in the commits panel opens the pull request at the newest of them (new, PR 11) | Keep. `RefForAdjustingLineNumberInDiff` names that commit, and the line numbers of a range diff are its, so the anchor is right wherever the line is one that commit changed too; where it isn't, the page opens at the commit without scrolling to a line. GitHub's own range form (`<base>..<head>`) is undocumented, and inventing it risks a URL that opens nothing |
+| A range of commits selected in the commits panel opens the pull request at the newest of them (new, PR 11) | **Done in round 1**: the URL names the range as the pull request's own pages do, `<base>..<newest>`, with the keyword `BASE` where the range starts where the pull request itself does. The form was read off a real pull request, one candidate URL at a time |
+| The command refuses over the commits of a branch whose pull request is merged (new, PR 11 round 1) | Keep. Merging a pull request puts its commits in a main branch, so they come out `StatusMerged` rather than `StatusPushed`, and the test for what a pull request holds turns them down although its pages still show them. Telling a commit of the remote branch apart from one that only reached a main branch takes a rev-list against the upstream that nothing else needs, and the local branch is usually gone by the time its pull request is merged |
 | A renderer that keeps the diff and hunk headers but drops body lines could be mis-parsed where it ends the buffer (new, PR 2 round 1) | Keep. The leniency applies to one section, the one the buffer breaks off in, and every renderer that restructures a body lengthens hunks rather than shortening them. A mis-parse would act on the wrong line only in the focused main view, and there the diff is either git's own or one whose lines state their own identity (`MainViewDiffMode`) |
 
 ## 9. Open questions (resolve before/during the marked PR)
@@ -3168,8 +3222,10 @@ The remaining rows are agreed as keep/defer:
    PR 9; §6 sign-off owed
 - [x] PR 11 — open PR at line — **DONE 2026-09-13** on branch
    `open-pull-request-at-diff-line` (4 commits: three preparations and the
-   command, every one green on its own), stacked on PR 10; §6 sign-off owed,
-   and nothing headless can reach a pull request (PR 11 deviation 5)
+   command, every one green on its own), stacked on PR 10; **round 1 on
+   2026-09-17** added two `fixup!`s and an `amend!` for the commits a pull
+   request can be asked for; §6 sign-off owed, and nothing headless can reach a
+   pull request (PR 11 deviation 5)
 - [x] PR 12 — jump-to-file menu — **DONE 2026-09-13** on branch
    `diff-file-menu` (3 commits, every one green on its own), stacked on PR 11.
    PR 5's skipped commit 7, revived; §6 sign-off owed
@@ -3178,6 +3234,19 @@ The remaining rows are agreed as keep/defer:
 deviations from this plan inline, dated.)
 
 Log:
+
+- **2026-09-17:** **PR 11 round 1**, on the two things the user found in the
+  URL. A range of commits opened the pull request at the newest of them, and a
+  branch that had diverged from its remote opened a page that couldn't find the
+  commits at all. GitHub's range form was read off a real pull request by
+  fetching candidate URLs: the left end is exclusive and has to be a commit of
+  the pull request, and the keyword `BASE` (the user found it) stands for the
+  commit the pull request was opened against. So the panel beneath now answers
+  with the commits whose diff is on screen plus the commit that diff starts
+  after (`CommitsForPullRequest`), the URL names a range as `<base>..<newest>`,
+  and the command refuses wherever a commit of the diff isn't pushed. Two
+  `fixup!`s and an `amend!`, inserted mid-branch; PR 12 replayed on top; whole
+  e2e suite green.
 
 - **2026-09-13:** **PRs 11 and 12 written**, both from prototype commits the
   user had cherry-picked onto the stack to see them work and then asked for
