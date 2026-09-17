@@ -2775,7 +2775,7 @@ item 4's guard was dropped is
 ### PR 11 — Open the selected diff line in the branch's GitHub PR
 
 **Status: DONE 2026-09-13** on branch `open-pull-request-at-diff-line`, off
-PR 10's tip. Four commits plus round 1's two `fixup!`s and an `amend!`, each
+PR 10's tip. Four commits plus round 1's three `fixup!`s and an `amend!`, each
 building, unit-testing and linting clean on its own; whole e2e suite green.
 §6 interactive sign-off owed.
 
@@ -2860,7 +2860,8 @@ by fetching candidate URLs and counting the file anchors each page carries:
 - A commit the pull request doesn't hold 404s on its own too. This is the page
   the user saw.
 
-Two `fixup!` commits and an `amend!`, inserted mid-branch:
+Two `fixup!` commits and an `amend!`, inserted mid-branch, and a third `fixup!`
+correcting a comment in the second:
 
 1. **`CommitsForPullRequest` on `types.PullRequestDiffContext`** answers with
    the commits whose diff is on screen and the hash of the commit that diff
@@ -3223,7 +3224,7 @@ The remaining rows are agreed as keep/defer:
 - [x] PR 11 — open PR at line — **DONE 2026-09-13** on branch
    `open-pull-request-at-diff-line` (4 commits: three preparations and the
    command, every one green on its own), stacked on PR 10; **round 1 on
-   2026-09-17** added two `fixup!`s and an `amend!` for the commits a pull
+   2026-09-17** added three `fixup!`s and an `amend!` for the commits a pull
    request can be asked for; §6 sign-off owed, and nothing headless can reach a
    pull request (PR 11 deviation 5)
 - [x] PR 12 — jump-to-file menu — **DONE 2026-09-13** on branch
@@ -3244,7 +3245,7 @@ Log:
   commit the pull request was opened against. So the panel beneath now answers
   with the commits whose diff is on screen plus the commit that diff starts
   after (`CommitsForPullRequest`), the URL names a range as `<base>..<newest>`,
-  and the command refuses wherever a commit of the diff isn't pushed. Two
+  and the command refuses wherever a commit of the diff isn't pushed. Three
   `fixup!`s and an `amend!`, inserted mid-branch; PR 12 replayed on top; whole
   e2e suite green.
 
