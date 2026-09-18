@@ -20,7 +20,7 @@ func (gui *Gui) runTaskForView(view *gocui.View, task types.UpdateTask) error {
 	case *types.RunCommandTask:
 		return gui.newCmdTask(view, v.Cmd, v.Prefix)
 
-	case *types.RunPtyTask:
+	case *types.RunDiffRendererTask:
 		return gui.newRenderTask(view, v.Cmd, v.Prefix)
 	}
 

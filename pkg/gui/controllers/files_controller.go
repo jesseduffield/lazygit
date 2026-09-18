@@ -356,7 +356,7 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 			prefix += self.c.Tr.MergeConflictCurrentDiff
 		}
 		prefix += "\n\n"
-		self.renderToMainWithTask(types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix))
+		self.renderToMainWithTask(types.NewRunDiffRendererTaskWithPrefix(cmdObj.GetCmd(), prefix))
 		return
 	}
 
@@ -378,7 +378,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	refreshOpts := types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
-			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+			Task:     types.NewRunDiffRendererTask(cmdObj.GetCmd()),
 			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 			Title:    title,
 		},
@@ -395,7 +395,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 		refreshOpts.Secondary = &types.ViewUpdateOpts{
 			Title:    title,
 			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+			Task:     types.NewRunDiffRendererTask(cmdObj.GetCmd()),
 		}
 	}
 
