@@ -45,6 +45,13 @@ var (
 	DiffTerminalColor = style.FgMagenta
 
 	UnstagedChangesColor = style.New()
+
+	ModifiedColor  = style.New()
+	DeletedColor   = style.New()
+	UntrackedColor = style.New()
+	AddedColor     = style.New()
+	RenamedColor   = style.New()
+	CopiedColor    = style.New()
 )
 
 // UpdateTheme updates all theme variables
@@ -65,6 +72,38 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 
 	unstagedChangesTextStyle := GetTextStyle(themeConfig.UnstagedChangesColor, false)
 	UnstagedChangesColor = unstagedChangesTextStyle
+
+	// Per-status colors — fall back to UnstagedChangesColor or hardcoded defaults if not set
+	if len(themeConfig.ModifiedColor) > 0 {
+		ModifiedColor = GetTextStyle(themeConfig.ModifiedColor, false)
+	} else {
+		ModifiedColor = UnstagedChangesColor
+	}
+	if len(themeConfig.DeletedColor) > 0 {
+		DeletedColor = GetTextStyle(themeConfig.DeletedColor, false)
+	} else {
+		DeletedColor = UnstagedChangesColor
+	}
+	if len(themeConfig.UntrackedColor) > 0 {
+		UntrackedColor = GetTextStyle(themeConfig.UntrackedColor, false)
+	} else {
+		UntrackedColor = UnstagedChangesColor
+	}
+	if len(themeConfig.AddedColor) > 0 {
+		AddedColor = GetTextStyle(themeConfig.AddedColor, false)
+	} else {
+		AddedColor = style.FgGreen
+	}
+	if len(themeConfig.RenamedColor) > 0 {
+		RenamedColor = GetTextStyle(themeConfig.RenamedColor, false)
+	} else {
+		RenamedColor = UnstagedChangesColor
+	}
+	if len(themeConfig.CopiedColor) > 0 {
+		CopiedColor = GetTextStyle(themeConfig.CopiedColor, false)
+	} else {
+		CopiedColor = style.FgCyan
+	}
 
 	GocuiSelectedLineBgColor = GetGocuiStyle(themeConfig.SelectedLineBgColor)
 	GocuiInactiveViewSelectedLineBgColor = GetGocuiStyle(themeConfig.InactiveViewSelectedLineBgColor)
