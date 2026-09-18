@@ -152,6 +152,7 @@ succession (§2.3); 10–11 any time after their dependencies.
 |---|---|---|---|
 | 0 | Validate the context a custom command names — **DONE: landed on master as #5989** | — | fix (found reviewing PR 9) |
 | 0b | Render the focused main view again while it is being searched | — | fixes, gocui/tasks (foot of the stack) |
+| 0c | Render diffs without a pty on Windows | — | fix, oscommands/gui (foot of the stack; design-reviewed 2026-09-18) |
 | 1 | Fix flicker, scroll glitches, and crashes in async diff rendering | — | fixes, gocui/tasks |
 | 2 | Internal: resolve diff lines to (file, line, kind) identities | 1 | infra |
 | 3 | Rename the "pagers" config to "diff renderers" — **DONE: landed on master as #5870** | — | rename + migration |
@@ -3292,6 +3293,28 @@ The remaining rows are agreed as keep/defer:
 deviations from this plan inline, dated.)
 
 Log:
+
+- **2026-09-18 (later):** **The foot branch that renders without a pty on
+  Windows, reviewed for its design.** `render-diffs-without-a-pty-on-windows`
+  sits below the whole stack: in a ConPTY a diff renderer's OSC 1717 records
+  reach lazygit detached from the rows they describe, so on Windows the command
+  runs through a pipe, with a stdin filter as a command of lazygit's own. The
+  review found the structure sound and one duplication real. COLUMNS was set in
+  two places because `newCmdTask` and the render path each built their own
+  task; the plain way of running a command is now a third sibling of the pty
+  and pipe ways, and the three share one tail, `newTaskForRender`, where
+  COLUMNS is set once. GIT_PAGER moved into the pty way, the only one git reads
+  it in. `RunPtyTask` became `RunDiffRendererTask`, a pty being one way of two.
+  LAZYGIT_COLUMNS is gone, the width reaching every renderer as COLUMNS or
+  `{{width}}`. Both pipeline entry points gate their log entry the same way,
+  and a handful of comments no longer compare the code with what it did
+  before. Left alone at the user's word: the width parameter on the
+  renderer-command getters, and the piped filter running under cmd.exe where
+  git would have used its sh. Nine `fixup!`s, one `amend!` and two commits
+  mid-branch, the stack replayed in one pass with a `break` after each target;
+  every upstack line naming the task type was renamed on the way. Unit, lint
+  and the whole e2e suite green at the branch tip and at the stack tip; backup
+  tag `jump-to-file-from-diffstat-2026-09-18-2055-backup`.
 
 - **2026-09-18:** **PR 2 round 2**, on a submodule of the repo. A commit that
   moves a submodule shows it in a section of its own, with no `diff --git`
