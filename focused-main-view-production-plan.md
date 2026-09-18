@@ -565,8 +565,25 @@ row carrying the previous file's record, which is why the menu showed "." for
 it (a record with an empty path, resolved against the worktree) rather than
 the file above.
 
+The first cut of the parser change let the section run to the next one, as a
+file's does, and the user found what that costs under a renderer: the menu
+listed the submodule again between every pair of files. A renderer prints no
+`diff --git` line, so there was nothing below the submodule to stop at, and
+every row carrying no record of its own — the blank rows delta puts between
+one file and the next — came out as a row of the submodule. A second `fixup!`
+on the same commit ends the section where what git writes for the submodule
+ends: the line naming it, and the log of the commits it moved over. The rows
+below are placed by the records the renderer states for them, and the log
+lines now resolve under a renderer too, since it passes them through as git
+wrote them.
+
+Checked against all three backends over a commit whose submodule sorts first
+and whose files have several hunks each, and over `--submodule=diff`, which
+lazygit never asks for but which degrades sensibly (the submodule, then the
+file inside it).
+
 `Rename parsedDiffLine.RelPath to Path` (PR 4) again gained the occurrences
-the fixup's test added, as in round 1.
+the fixups' tests added, as in round 1 — once per fixup, since each added one.
 
 ### PR 3 — Rename the "pagers" config to "diff renderers" — DONE (master #5870)
 
@@ -3101,7 +3118,7 @@ The remaining rows are agreed as keep/defer:
 | A range of commits selected in the commits panel opens the pull request at the newest of them (new, PR 11) | **Done in round 1**: the URL names the range as the pull request's own pages do, `<base>..<newest>`, with the keyword `BASE` where the range starts where the pull request itself does. The form was read off a real pull request, one candidate URL at a time |
 | The command refuses over the commits of a branch whose pull request is merged (new, PR 11 round 1) | Keep. Merging a pull request puts its commits in a main branch, so they come out `StatusMerged` rather than `StatusPushed`, and the test for what a pull request holds turns them down although its pages still show them. Telling a commit of the remote branch apart from one that only reached a main branch takes a rev-list against the upstream that nothing else needs, and the local branch is usually gone by the time its pull request is merged |
 | A renderer that keeps the diff and hunk headers but drops body lines could be mis-parsed where it ends the buffer (new, PR 2 round 1) | Keep. The leniency applies to one section, the one the buffer breaks off in, and every renderer that restructures a body lengthens hunks rather than shortening them. A mis-parse would act on the wrong line only in the focused main view, and there the diff is either git's own or one whose lines state their own identity (`MainViewDiffMode`) |
-| Under delta and diff-so-fancy a submodule's log lines carry no record, so `n` pressed on one of them steps to the file *after* the next (new, PR 2 round 2) | Keep. Git's own diff has them, since the whole section parses as the submodule's; the two renderers state a record for the row that names the submodule and nothing for the lines below it, which are the log of the commits and belong to no file. Tagging them would mean a second piece of state in each renderer for the two or three rows it buys |
+| A submodule's log lines go unresolved wherever diff-so-fancy has taken a column off them (new, PR 2 round 2) | Keep. Nothing states a record for those lines, so they are placed by parsing them, and diff-so-fancy strips the leading indicator column from every line it reads while it is inside a hunk — which a submodule's section below one still counts as. The cost is that `n` pressed on one of them steps to the file after the next. The submodule itself is listed and navigated to from the line naming it, which every renderer passes through as git wrote it |
 
 ## 9. Open questions (resolve before/during the marked PR)
 
@@ -3282,9 +3299,13 @@ Log:
   submodule, the menu of the diff's files left it out, and clicking its name in
   the diffstat found no such file. One `fixup!` mid-branch for the buffer
   parser, and one apiece for delta and diff-so-fancy, which state a record for
-  every row and had none to state for this one. Whole e2e suite green, all 128
-  commits replayed; backup tag
-  `jump-to-file-from-diffstat-2026-09-18-1845-backup`.
+  every row and had none to state for this one. A second `fixup!` followed the
+  same day, on what the user found next: a submodule's section has to end where
+  git's lines for it end, or under a renderer — which prints no `diff --git`
+  line for it to stop at — it takes every untagged row below it, and the menu
+  lists the submodule between every pair of files. Whole e2e suite green, all
+  129 commits replayed; backup tags
+  `jump-to-file-from-diffstat-2026-09-18-1845-backup` and `…-2015-backup`.
 
 - **2026-09-17:** **PR 11 round 1**, on the two things the user found in the
   URL. A range of commits opened the pull request at the newest of them, and a
