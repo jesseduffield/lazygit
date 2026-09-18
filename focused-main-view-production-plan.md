@@ -529,6 +529,45 @@ view gains a selection at all, so it went to PR 5's round 1 below.
 `Rename parsedDiffLine.RelPath to Path` (PR 4) gained the one occurrence the
 fixup's test added, since the branch below it now has one more.
 
+#### Review round 2 (2026-09-18) — a submodule of the repo
+
+The user found that a commit changing a submodule had no submodule in it as
+far as the host was concerned: `n`/`N` passed over it, the menu of the diff's
+files left it out, and clicking its name in the diffstat said the diff held no
+such file. A submodule gets no `diff --git` header — lazygit asks for
+`--submodule`, so git states which commits it moved between and lists them
+("Submodule modules/xyz a32f27c..2d9f921:") — and the scan for the section a
+row belongs to looked for that header alone.
+
+One `fixup!` on "Recover the identity of a diff line from the rendered diff":
+a `Submodule …` row opens a section too, and `pathFromDiffHeader` reads the
+path off it. The section holds no hunks, so `patch.Parse` makes every row of
+it a header row, which is what they are — what git states there is which
+commits the submodule moved between, not lines of a file. Both shapes git
+writes are recognized (the commit has moved, or the working tree is dirty);
+`TestSubmodulePath` holds the six forms of the first and the two of the
+second.
+
+Two renderers needed the same thing said on their side, since nothing can
+parse what they print (their branches, unpushed):
+
+- **delta** tagged the row with no record at all, having been given one in the
+  first place to stop it naming the file above it. It now reads the path off
+  the row, the same way. A `fixup!` on "Emit `f` and `h` records on file and
+  hunk header rows".
+- **diff-so-fancy** passed the row through as an ordinary line, whose
+  classifier answers for content lines only. A `fixup!` on its commit of the
+  same name adds `submodule_header_path`, and the one row that names a
+  submodule gets an `f`.
+
+The user's delta binary predates the earlier fixup that stopped a submodule
+row carrying the previous file's record, which is why the menu showed "." for
+it (a record with an empty path, resolved against the worktree) rather than
+the file above.
+
+`Rename parsedDiffLine.RelPath to Path` (PR 4) again gained the occurrences
+the fixup's test added, as in round 1.
+
 ### PR 3 — Rename the "pagers" config to "diff renderers" — DONE (master #5870)
 
 **Landed on master** as #5870 ("Rework the custom pager config (rename to
@@ -3062,6 +3101,7 @@ The remaining rows are agreed as keep/defer:
 | A range of commits selected in the commits panel opens the pull request at the newest of them (new, PR 11) | **Done in round 1**: the URL names the range as the pull request's own pages do, `<base>..<newest>`, with the keyword `BASE` where the range starts where the pull request itself does. The form was read off a real pull request, one candidate URL at a time |
 | The command refuses over the commits of a branch whose pull request is merged (new, PR 11 round 1) | Keep. Merging a pull request puts its commits in a main branch, so they come out `StatusMerged` rather than `StatusPushed`, and the test for what a pull request holds turns them down although its pages still show them. Telling a commit of the remote branch apart from one that only reached a main branch takes a rev-list against the upstream that nothing else needs, and the local branch is usually gone by the time its pull request is merged |
 | A renderer that keeps the diff and hunk headers but drops body lines could be mis-parsed where it ends the buffer (new, PR 2 round 1) | Keep. The leniency applies to one section, the one the buffer breaks off in, and every renderer that restructures a body lengthens hunks rather than shortening them. A mis-parse would act on the wrong line only in the focused main view, and there the diff is either git's own or one whose lines state their own identity (`MainViewDiffMode`) |
+| Under delta and diff-so-fancy a submodule's log lines carry no record, so `n` pressed on one of them steps to the file *after* the next (new, PR 2 round 2) | Keep. Git's own diff has them, since the whole section parses as the submodule's; the two renderers state a record for the row that names the submodule and nothing for the lines below it, which are the log of the commits and belong to no file. Tagging them would mean a second piece of state in each renderer for the two or three rows it buys |
 
 ## 9. Open questions (resolve before/during the marked PR)
 
@@ -3235,6 +3275,16 @@ The remaining rows are agreed as keep/defer:
 deviations from this plan inline, dated.)
 
 Log:
+
+- **2026-09-18:** **PR 2 round 2**, on a submodule of the repo. A commit that
+  moves a submodule shows it in a section of its own, with no `diff --git`
+  header, and nothing placed those rows in a file: navigation stepped over the
+  submodule, the menu of the diff's files left it out, and clicking its name in
+  the diffstat found no such file. One `fixup!` mid-branch for the buffer
+  parser, and one apiece for delta and diff-so-fancy, which state a record for
+  every row and had none to state for this one. Whole e2e suite green, all 128
+  commits replayed; backup tag
+  `jump-to-file-from-diffstat-2026-09-18-1845-backup`.
 
 - **2026-09-17:** **PR 11 round 1**, on the two things the user found in the
   URL. A range of commits opened the pull request at the newest of them, and a
