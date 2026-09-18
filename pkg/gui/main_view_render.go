@@ -34,11 +34,6 @@ type renderSpec struct {
 // user has configured. The renderer lays its rendering out to the width of the
 // view, which only the layout settles, so the task is created after it.
 func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
-	width := view.InnerWidth()
-
-	// Set LAZYGIT_COLUMNS for diff renderer scripts that can't query the terminal width directly.
-	cmd.Env = append(cmd.Env, fmt.Sprintf("LAZYGIT_COLUMNS=%d", width))
-
 	if gui.stateAccessor.GetDiffRendererConfigManager().GetDiffRendererType() == config.DiffRendererType_RawGit {
 		// If we're not using a custom diff renderer, then we don't need to use a pty
 		return gui.newCmdTask(view, cmd, prefix)
@@ -58,9 +53,9 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 
 	// Run the render after layout so that it gets the correct size
 	gui.afterLayout(func() error {
-		// Need to get the width and the renderer command again because the layout
-		// might have changed the size of the view
-		width = view.InnerWidth()
+		// The layout may have changed the size of the view, so only now is the
+		// width to render at known, and with it the renderer command.
+		width := view.InnerWidth()
 		diffRendererConfigManager := gui.stateAccessor.GetDiffRendererConfigManager()
 		stdinFilter := diffRendererConfigManager.GetStdinFilterCommand(width)
 		externalDiff := diffRendererConfigManager.GetExternalDiffCommand(gui.c.UserConfig().Git.DiffContextSize, width)
