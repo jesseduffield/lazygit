@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/sirupsen/logrus"
 )
@@ -150,12 +151,34 @@ func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) e
 	return nil
 }
 
+// contentWriter returns what a render of the given view writes its content to: the
+// view itself, or, for a pane of the main section, the writer that links the files
+// named in the diffstat on its way there (see DiffStatLinkWriter).
+func (gui *Gui) contentWriter(view *gocui.View) io.Writer {
+	if gui.mainContextForView(view) == nil {
+		return view
+	}
+	return gui.diffStatLinkWriter(view)
+}
+
+// diffStatLinkWriter returns the writer that links the diffstat of the given pane,
+// making it if the pane hasn't rendered yet. It lasts as long as the view does, and
+// each render tells it what to make of that render (see DiffStatLinkWriter.BeginRender).
+func (gui *Gui) diffStatLinkWriter(view *gocui.View) *helpers.DiffStatLinkWriter {
+	writer, ok := gui.diffStatLinkWriterMap[view.Name()]
+	if !ok {
+		writer = helpers.NewDiffStatLinkWriter(view)
+		gui.diffStatLinkWriterMap[view.Name()] = writer
+	}
+	return writer
+}
+
 func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 	manager, ok := gui.viewBufferManagerMap[view.Name()]
 	if !ok {
 		manager = tasks.NewViewBufferManager(
 			gui.Log,
-			view,
+			gui.contentWriter(view),
 			func() {
 				// Called before showing the "loading..." indicator: clear the
 				// displayed buffer so only "loading..." is shown. The actual content
