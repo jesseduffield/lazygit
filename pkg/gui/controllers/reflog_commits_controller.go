@@ -47,7 +47,7 @@ func (self *ReflogCommitsController) GetOnRenderToMain() func() {
 			} else {
 				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.c.Helpers().Diff.FilterPathsForCommit(commit))
 
-				task = types.NewRunPtyTask(cmdObj.GetCmd())
+				task = types.NewRunDiffRendererTask(cmdObj.GetCmd())
 			}
 
 			self.c.RenderToMainViews(types.RefreshMainOpts{
