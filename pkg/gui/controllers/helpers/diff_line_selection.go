@@ -7,9 +7,9 @@ import (
 	"github.com/samber/lo"
 )
 
-// Putting a selection in the focused main view: where it starts out, and how it is
-// widened to a whole change block. Both are answered from what the view is showing,
-// as recovered by the queries next door.
+// Putting a selection in the focused main view: where it starts out, where a jump
+// leaves it, and how it is widened to a whole change block. All three are answered
+// from what the view is showing, as recovered by the queries next door.
 
 // EstablishSelection turns on the focused main view's selection once the view has
 // been focused. clickedViewLine is the view line a click pointed at, or -1 for
@@ -61,6 +61,66 @@ func (self *DiffLineHelper) EstablishSelection(mainContext *context.MainContext,
 		return
 	}
 	self.ShowSelectionAtLine(view, target, false)
+}
+
+// PlaceNavigationTarget moves the pane's selection to the row a jump found, bringing
+// it on screen if it isn't already. With no selection to move — a pane that isn't
+// focused, or one showing a diff with nothing selectable in it — the row goes to the
+// top of the view instead, that being all a jump can do there.
+//
+// alignTop asks for the target to become the view's top line, so that everything that
+// begins there is on screen. It only applies to a target the view has to scroll to: a
+// jump to something already on screen leaves the view alone, there being nothing to
+// gain from moving what the user is looking at. In hunk mode what ends up selected is
+// the first change block at or below the target, which a large context size can put
+// further down than a screenful; the selection is then scrolled into view as any other
+// jump's is, and the alignment gives way to that.
+func (self *DiffLineHelper) PlaceNavigationTarget(
+	pane types.DiffPaneContext, target int, alignTop bool,
+) {
+	view := pane.GetView()
+	if !view.Highlight {
+		view.SetOrigin(0, target)
+		return
+	}
+	if alignTop {
+		self.scrollTargetToTop(pane, target)
+	}
+	// Jumping to another block or file moves the cursor without shift held, so a
+	// range that grows only while shift is held collapses rather than stretching all
+	// the way to the target. A sticky range stretches instead; this is the point of
+	// being sticky.
+	self.CollapseNonStickyRange(pane)
+	if pane.DiffSelectState().Mode == types.DiffSelectModeHunk {
+		self.SelectChangeBlock(pane, target, true)
+		return
+	}
+	// Line mode leaves a single-line selection at the target; an active range extends
+	// to it, the anchor being untouched.
+	self.ShowSelectionAtLine(view, target, true)
+}
+
+// scrollTargetToTop scrolls the given row of the diff to the top of the view, leaving
+// the view where it is when that row is on screen already. The last screenful of the
+// diff is as far as it goes, so that the view doesn't scroll past the end of what it is
+// showing.
+func (self *DiffLineHelper) scrollTargetToTop(pane types.DiffPaneContext, target int) {
+	view := pane.GetView()
+	originY, height := pane.GetViewTrait().ViewPortYBounds()
+	if target >= originY && target < originY+height {
+		return
+	}
+	view.SetOriginY(min(target, max(0, view.ViewLinesHeight()-height)))
+}
+
+// CollapseNonStickyRange drops a range that only grows while shift is held back to a
+// single line at the cursor.
+func (self *DiffLineHelper) CollapseNonStickyRange(pane types.DiffPaneContext) {
+	sel := pane.DiffSelectState()
+	if sel.Mode == types.DiffSelectModeRange && !sel.RangeIsSticky {
+		sel.Mode = types.DiffSelectModeLine
+		pane.GetView().CancelRangeSelect()
+	}
 }
 
 // changeToSelectOnScreen returns the change line keyboard focus establishes the
