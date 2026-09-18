@@ -838,50 +838,8 @@ func (self *MainViewController) prevFile() error {
 	return nil
 }
 
-// placeNavigationTarget moves the selection to the row a jump found, bringing it on
-// screen if it isn't already.
-//
-// alignTop asks for the target to become the view's top line, so that everything that
-// begins there is on screen. It only applies to a target the view has to scroll to: a
-// jump to something already on screen leaves the view alone, there being nothing to
-// gain from moving what the user is looking at. In hunk mode what ends up selected is
-// the first change block at or below the target, which a large context size can put
-// further down than a screenful; the selection is then scrolled into view as any other
-// jump's is, and the alignment gives way to that.
 func (self *MainViewController) placeNavigationTarget(target int, alignTop bool) {
-	v := self.context.GetView()
-	if !v.Highlight {
-		v.SetOrigin(0, target)
-		return
-	}
-	if alignTop {
-		self.scrollTargetToTop(target)
-	}
-	// Jumping to another block or file moves the cursor without shift held, so a
-	// range that grows only while shift is held collapses rather than stretching all
-	// the way to the target. A sticky range stretches instead; this is the point of
-	// being sticky.
-	self.collapseNonStickyRange()
-	if self.diffSelectState().Mode == types.DiffSelectModeHunk {
-		self.selectHunkAround(target, true)
-		return
-	}
-	// Line mode leaves a single-line selection at the target; an active range extends
-	// to it, the anchor being untouched.
-	self.c.Helpers().DiffLine.ShowSelectionAtLine(v, target, true)
-}
-
-// scrollTargetToTop scrolls the given row of the diff to the top of the view, leaving
-// the view where it is when that row is on screen already. The last screenful of the
-// diff is as far as it goes, so that the view doesn't scroll past the end of what it is
-// showing.
-func (self *MainViewController) scrollTargetToTop(target int) {
-	view := self.context.GetView()
-	originY, height := self.context.GetViewTrait().ViewPortYBounds()
-	if target >= originY && target < originY+height {
-		return
-	}
-	view.SetOriginY(min(target, max(0, view.ViewLinesHeight()-height)))
+	self.c.Helpers().DiffLine.PlaceNavigationTarget(self.context, target, alignTop)
 }
 
 // moveCursor moves the selection cursor by delta view lines (negative = up), with the
@@ -913,17 +871,7 @@ func (self *MainViewController) collapseForLineMove() {
 		self.context.GetView().CancelRangeSelect()
 		return
 	}
-	self.collapseNonStickyRange()
-}
-
-// collapseNonStickyRange drops a range that only grows while shift is held back to a
-// single line at the cursor.
-func (self *MainViewController) collapseNonStickyRange() {
-	sel := self.diffSelectState()
-	if sel.Mode == types.DiffSelectModeRange && !sel.RangeIsSticky {
-		sel.Mode = types.DiffSelectModeLine
-		self.context.GetView().CancelRangeSelect()
-	}
+	self.c.Helpers().DiffLine.CollapseNonStickyRange(self.context)
 }
 
 // adjustSelection moves the selection by delta view lines, for the plain up/down and
