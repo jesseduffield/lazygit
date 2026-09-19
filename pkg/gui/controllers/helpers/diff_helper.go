@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -172,6 +173,24 @@ func (self *DiffHelper) IgnoringWhitespaceSubTitle() string {
 	}
 
 	return ""
+}
+
+func (self *DiffHelper) CommitSignatureSubTitle(commit *models.Commit) string {
+	if commit == nil || !commit.HasSignature() {
+		return ""
+	}
+
+	icon := ""
+	if icons.IsIconEnabled() {
+		icon = icons.SIGNED_COMMIT_ICON + " "
+	}
+
+	return icon + self.c.Tr.CommitSignatureVerifiedSubTitle
+}
+
+func (self *DiffHelper) CombineSubTitles(subtitles ...string) string {
+	parts := lo.Filter(subtitles, func(subtitle string, _ int) bool { return subtitle != "" })
+	return strings.Join(parts, " | ")
 }
 
 func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {

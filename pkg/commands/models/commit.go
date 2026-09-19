@@ -50,6 +50,9 @@ type Commit struct {
 	AuthorName    string // something like 'Jesse Duffield'
 	AuthorEmail   string // something like 'jessedduffield@gmail.com'
 	UnixTimestamp int64
+	// SignatureStatus is based on `git log --pretty=%G?`
+	// See `git help pretty-formats` for possible values.
+	SignatureStatus GitSignatureStatus
 
 	// Hashes of parent commits (will be multiple if it's a merge commit)
 	parents []*string
@@ -65,35 +68,70 @@ type Commit struct {
 }
 
 type NewCommitOpts struct {
-	Hash          string
-	Name          string
-	Status        CommitStatus
-	Action        todo.TodoCommand
-	ActionFlag    string
-	Tags          []string
-	ExtraInfo     string
-	AuthorName    string
-	AuthorEmail   string
-	UnixTimestamp int64
-	Divergence    Divergence
-	Parents       []string
+	Hash            string
+	Name            string
+	Status          CommitStatus
+	Action          todo.TodoCommand
+	ActionFlag      string
+	Tags            []string
+	ExtraInfo       string
+	AuthorName      string
+	AuthorEmail     string
+	UnixTimestamp   int64
+	SignatureStatus GitSignatureStatus
+	Divergence      Divergence
+	Parents         []string
 }
 
 func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
 	return &Commit{
-		hash:          hashPool.Add(opts.Hash),
-		Name:          opts.Name,
-		Status:        opts.Status,
-		Action:        opts.Action,
-		ActionFlag:    opts.ActionFlag,
-		Tags:          opts.Tags,
-		ExtraInfo:     opts.ExtraInfo,
-		AuthorName:    opts.AuthorName,
-		AuthorEmail:   opts.AuthorEmail,
-		UnixTimestamp: opts.UnixTimestamp,
-		Divergence:    opts.Divergence,
-		parents:       lo.Map(opts.Parents, func(s string, _ int) *string { return hashPool.Add(s) }),
+		hash:            hashPool.Add(opts.Hash),
+		Name:            opts.Name,
+		Status:          opts.Status,
+		Action:          opts.Action,
+		ActionFlag:      opts.ActionFlag,
+		Tags:            opts.Tags,
+		ExtraInfo:       opts.ExtraInfo,
+		AuthorName:      opts.AuthorName,
+		AuthorEmail:     opts.AuthorEmail,
+		UnixTimestamp:   opts.UnixTimestamp,
+		SignatureStatus: opts.SignatureStatus,
+		Divergence:      opts.Divergence,
+		parents:         lo.Map(opts.Parents, func(s string, _ int) *string { return hashPool.Add(s) }),
 	}
+}
+
+// GitSignatureStatus represents `git log --pretty=%G?` (1-byte code).
+// See `git help pretty-formats` for details.
+type GitSignatureStatus byte
+
+const (
+	// GitSignatureStatusUnknown means we didn't capture the status (e.g. synthetic commits).
+	GitSignatureStatusUnknown GitSignatureStatus = 0
+	// GitSignatureStatusNone means "no signature".
+	GitSignatureStatusNone GitSignatureStatus = 'N'
+	// GitSignatureStatusGood means "good signature".
+	GitSignatureStatusGood GitSignatureStatus = 'G'
+	// GitSignatureStatusBad means "bad signature".
+	GitSignatureStatusBad GitSignatureStatus = 'B'
+	// GitSignatureStatusUnknownValidity means "good signature, unknown validity".
+	GitSignatureStatusUnknownValidity GitSignatureStatus = 'U'
+	// GitSignatureStatusExpired means "good signature, expired".
+	GitSignatureStatusExpired GitSignatureStatus = 'X'
+	// GitSignatureStatusExpiredKey means "good signature, expired key".
+	GitSignatureStatusExpiredKey GitSignatureStatus = 'Y'
+	// GitSignatureStatusRevokedKey means "good signature, revoked key".
+	GitSignatureStatusRevokedKey GitSignatureStatus = 'R'
+	// GitSignatureStatusCannotCheck means "signature cannot be checked".
+	GitSignatureStatusCannotCheck GitSignatureStatus = 'E'
+)
+
+func (c *Commit) HasSignature() bool {
+	return c.SignatureStatus != GitSignatureStatusUnknown && c.SignatureStatus != GitSignatureStatusNone
+}
+
+func (c *Commit) HasValidSignature() bool {
+	return c.SignatureStatus == GitSignatureStatusGood
 }
 
 func (c *Commit) Hash() string {
