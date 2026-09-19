@@ -12,7 +12,11 @@ import (
 	"github.com/samber/lo"
 )
 
-func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitHashSet *set.Set[string], diffName string, now time.Time, timeFormat string, shortTimeFormat string, parseEmoji bool) [][]string {
+func GetReflogCommitListDisplayStrings(commits []*models.Commit, startIdx int, endIdx int, fullDescription bool, cherryPickedCommitHashSet *set.Set[string], diffName string, now time.Time, timeFormat string, shortTimeFormat string, parseEmoji bool) [][]string {
+	if startIdx >= len(commits) {
+		return nil
+	}
+
 	var displayFunc func(*models.Commit, reflogCommitDisplayAttributes) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForReflogCommit
@@ -20,7 +24,7 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription
 		displayFunc = getDisplayStringsForReflogCommit
 	}
 
-	return lo.Map(commits, func(commit *models.Commit, _ int) []string {
+	return lo.Map(commits[startIdx:endIdx], func(commit *models.Commit, _ int) []string {
 		diffed := commit.Hash() == diffName
 		cherryPicked := cherryPickedCommitHashSet.Includes(commit.Hash())
 		return displayFunc(commit,
