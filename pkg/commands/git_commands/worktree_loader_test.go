@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/go-errors/errors"
@@ -11,6 +12,13 @@ import (
 )
 
 func TestGetWorktrees(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		// Path conversion via cygpath is not pure and cannot be meaningfully
+		// tested, it is affected by and thus dependant on at least Cygwin
+		// install location and Cygwin /etc/fstab custom mounts, possibly more.
+		t.Skip("Skipping test on Windows")
+	}
+
 	type scenario struct {
 		testName          string
 		repoPaths         *RepoPaths
