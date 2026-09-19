@@ -12,21 +12,22 @@ import (
 var (
 	decoloriseCache = make(map[string]string)
 	decoloriseMutex sync.RWMutex
+
+	colorCodeRe = regexp.MustCompile(`\x1B\[([0-9]{1,3}(;[0-9]{1,3})*)?[mGK]`)
+	linkRe      = regexp.MustCompile(`\x1B]8;[^;]*;(.*?)(\x1B.|\x07)`)
 )
 
 // Decolorise strips a string of color
 func Decolorise(str string) string {
 	decoloriseMutex.RLock()
-	val := decoloriseCache[str]
+	val, ok := decoloriseCache[str]
 	decoloriseMutex.RUnlock()
 
-	if val != "" {
+	if ok {
 		return val
 	}
 
-	re := regexp.MustCompile(`\x1B\[([0-9]{1,3}(;[0-9]{1,3})*)?[mGK]`)
-	linkRe := regexp.MustCompile(`\x1B]8;[^;]*;(.*?)(\x1B.|\x07)`)
-	ret := re.ReplaceAllString(str, "")
+	ret := colorCodeRe.ReplaceAllString(str, "")
 	ret = linkRe.ReplaceAllString(ret, "")
 
 	decoloriseMutex.Lock()

@@ -17,8 +17,13 @@ import (
 	"github.com/xo/terminfo"
 )
 
+// Scenarios write their expected output as a raw string literal, indented with
+// tabs so that it lines up with the surrounding code. Strip that indentation,
+// along with the newlines after the opening backtick and before the closing
+// one. Spaces are left alone, so that a scenario can expect a line that starts
+// with an empty column.
 func formatExpected(expected string) string {
-	return strings.TrimSpace(strings.ReplaceAll(expected, "\t", ""))
+	return strings.Trim(strings.ReplaceAll(expected, "\t", ""), "\n")
 }
 
 func TestGetCommitListDisplayStrings(t *testing.T) {
@@ -270,8 +275,8 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
-		hash4 ○ commit4
-		hash5 ○ commit5
+		hash4      ○ commit4
+		hash5      ○ commit5
 				`),
 		},
 		{
@@ -331,6 +336,25 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			expected: formatExpected(`
 			hash1 pick commit1
 			hash2 pick commit2
+				`),
+		},
+		{
+			testName: "only showing TODO commits that have no hash",
+			commitOpts: []models.NewCommitOpts{
+				{Name: "refs/heads/branch1", Action: todo.UpdateRef},
+				{Name: "refs/heads/branch2", Action: todo.UpdateRef},
+				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2"}, Action: todo.Pick},
+				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}},
+			},
+			startIdx:                  0,
+			endIdx:                    2,
+			showGraph:                 false,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		      update-ref branch1
+		      update-ref branch2
 				`),
 		},
 		{
@@ -523,6 +547,25 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			expected: formatExpected(`
 		hash1 2:03AM     Jesse Duffield    commit1
 		hash2 2019-12-20 Jesse Duffield    commit2
+						`),
+		},
+		{
+			testName: "only showing commits from today",
+			commitOpts: []models.NewCommitOpts{
+				{Name: "commit1", Hash: "hash1", UnixTimestamp: 1577844184, AuthorName: "Jesse Duffield"},
+				{Name: "commit2", Hash: "hash2", UnixTimestamp: 1576844184, AuthorName: "Jesse Duffield"},
+			},
+			fullDescription:           true,
+			timeFormat:                "2006-01-02",
+			shortTimeFormat:           "3:04PM",
+			startIdx:                  0,
+			endIdx:                    1,
+			showGraph:                 false,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			now:                       time.Date(2020, 1, 1, 5, 3, 4, 0, time.UTC),
+			expected: formatExpected(`
+		hash1 2:03AM     Jesse Duffield    commit1
 						`),
 		},
 	}
