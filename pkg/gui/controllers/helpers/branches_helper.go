@@ -16,13 +16,84 @@ import (
 type BranchesHelper struct {
 	c              *HelperCommon
 	worktreeHelper *WorktreeHelper
+	refsHelper     *RefsHelper
 }
 
-func NewBranchesHelper(c *HelperCommon, worktreeHelper *WorktreeHelper) *BranchesHelper {
+func NewBranchesHelper(c *HelperCommon, worktreeHelper *WorktreeHelper, refsHelper *RefsHelper) *BranchesHelper {
 	return &BranchesHelper{
 		c:              c,
 		worktreeHelper: worktreeHelper,
+		refsHelper:     refsHelper,
 	}
+}
+
+func (self *BranchesHelper) CreateDeleteMenu(branches []*models.Branch) error {
+	checkedOutBranch := self.refsHelper.GetCheckedOutRef()
+	isBranchCheckedOut := lo.SomeBy(branches, func(branch *models.Branch) bool {
+		return checkedOutBranch.Name == branch.Name
+	})
+	hasUpstream := lo.EveryBy(branches, func(branch *models.Branch) bool {
+		return branch.IsTrackingRemote() && !branch.UpstreamGone
+	})
+
+	localDeleteItem := &types.MenuItem{
+		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalBranches, self.c.Tr.DeleteLocalBranch),
+		Keys:  menuKey('c'),
+		OnPress: func() error {
+			return self.ConfirmLocalDelete(branches)
+		},
+	}
+	if isBranchCheckedOut {
+		localDeleteItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CantDeleteCheckOutBranch}
+	}
+
+	remoteDeleteItem := &types.MenuItem{
+		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteRemoteBranches, self.c.Tr.DeleteRemoteBranch),
+		Keys:  menuKey('r'),
+		OnPress: func() error {
+			remoteBranches := lo.Map(branches, func(branch *models.Branch, _ int) *models.RemoteBranch {
+				return &models.RemoteBranch{Name: branch.UpstreamBranch, RemoteName: branch.UpstreamRemote}
+			})
+			return self.ConfirmDeleteRemote(remoteBranches, false)
+		},
+	}
+	if !hasUpstream {
+		remoteDeleteItem.DisabledReason = &types.DisabledReason{
+			Text: lo.Ternary(len(branches) > 1, self.c.Tr.UpstreamsNotSetError, self.c.Tr.UpstreamNotSetError),
+		}
+	}
+
+	deleteBothItem := &types.MenuItem{
+		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalAndRemoteBranches, self.c.Tr.DeleteLocalAndRemoteBranch),
+		Keys:  menuKey('b'),
+		OnPress: func() error {
+			return self.ConfirmLocalAndRemoteDelete(branches)
+		},
+	}
+	if isBranchCheckedOut {
+		deleteBothItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CantDeleteCheckOutBranch}
+	} else if !hasUpstream {
+		deleteBothItem.DisabledReason = &types.DisabledReason{
+			Text: lo.Ternary(len(branches) > 1, self.c.Tr.UpstreamsNotSetError, self.c.Tr.UpstreamNotSetError),
+		}
+	}
+
+	var menuTitle string
+	if len(branches) == 1 {
+		menuTitle = utils.ResolvePlaceholderString(
+			self.c.Tr.DeleteBranchTitle,
+			map[string]string{
+				"selectedBranchName": branches[0].Name,
+			},
+		)
+	} else {
+		menuTitle = self.c.Tr.DeleteBranchesTitle
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: menuTitle,
+		Items: []*types.MenuItem{localDeleteItem, remoteDeleteItem, deleteBothItem},
+	})
 }
 
 func (self *BranchesHelper) ConfirmLocalDelete(branches []*models.Branch) error {
