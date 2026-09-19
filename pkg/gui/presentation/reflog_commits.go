@@ -18,8 +18,13 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, startIdx int, e
 	}
 
 	var displayFunc func(*models.Commit, reflogCommitDisplayAttributes) []string
+	reservedDateWidth := 0
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForReflogCommit
+		// See getReservedColumnWidths for why the oldest entry alone decides
+		// how much width the date column needs.
+		reservedDateWidth = utils.StringWidth(utils.UnixToDateSmart(
+			now, commits[len(commits)-1].UnixTimestamp, timeFormat, shortTimeFormat))
 	} else {
 		displayFunc = getDisplayStringsForReflogCommit
 	}
@@ -29,12 +34,13 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, startIdx int, e
 		cherryPicked := cherryPickedCommitHashSet.Includes(commit.Hash())
 		return displayFunc(commit,
 			reflogCommitDisplayAttributes{
-				cherryPicked:    cherryPicked,
-				diffed:          diffed,
-				parseEmoji:      parseEmoji,
-				timeFormat:      timeFormat,
-				shortTimeFormat: shortTimeFormat,
-				now:             now,
+				cherryPicked:      cherryPicked,
+				diffed:            diffed,
+				parseEmoji:        parseEmoji,
+				timeFormat:        timeFormat,
+				shortTimeFormat:   shortTimeFormat,
+				now:               now,
+				reservedDateWidth: reservedDateWidth,
 			})
 	})
 }
@@ -59,6 +65,9 @@ type reflogCommitDisplayAttributes struct {
 	timeFormat      string
 	shortTimeFormat string
 	now             time.Time
+	// The width the date column needs for the whole reflog, not just for the
+	// lines that are on screen
+	reservedDateWidth int
 }
 
 func getFullDescriptionDisplayStringsForReflogCommit(c *models.Commit, attrs reflogCommitDisplayAttributes) []string {
@@ -67,9 +76,12 @@ func getFullDescriptionDisplayStringsForReflogCommit(c *models.Commit, attrs ref
 		name = emoji.Sprint(name)
 	}
 
+	date := style.FgMagenta.Sprint(
+		utils.UnixToDateSmart(attrs.now, c.UnixTimestamp, attrs.timeFormat, attrs.shortTimeFormat))
+
 	return []string{
 		reflogHashColor(attrs.cherryPicked, attrs.diffed).Sprint(c.ShortHash()),
-		style.FgMagenta.Sprint(utils.UnixToDateSmart(attrs.now, c.UnixTimestamp, attrs.timeFormat, attrs.shortTimeFormat)),
+		utils.WithPadding(date, attrs.reservedDateWidth, utils.AlignLeft),
 		theme.DefaultTextColor.Sprint(name),
 	}
 }

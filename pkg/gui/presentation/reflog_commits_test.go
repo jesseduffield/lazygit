@@ -77,13 +77,8 @@ func TestGetReflogCommitListDisplayStrings(t *testing.T) {
 			startIdx:        0,
 			endIdx:          1,
 			now:             time.Date(2020, 1, 1, 5, 3, 4, 0, time.UTC),
-			/* EXPECTED:
 			expected: formatExpected(`
 		hash1 2:03AM     commit: today
-				`),
-			ACTUAL: */
-			expected: formatExpected(`
-		hash1 2:03AM commit: today
 				`),
 		},
 	}
