@@ -9,6 +9,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type RemoteLoader struct {
@@ -103,8 +104,18 @@ func (self *RemoteLoader) getRemotesFromConfig() []*models.Remote {
 }
 
 func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.RemoteBranch, error) {
-	remoteBranchesByRemoteName := make(map[string][]*models.RemoteBranch)
+	remoteBranches, err := self.getRemoteBranches()
+	if err != nil {
+		return nil, err
+	}
 
+	return lo.GroupBy(remoteBranches, func(branch *models.RemoteBranch) string {
+		return branch.RemoteName
+	}), nil
+}
+
+// Returns all remote branches, sorted the way the config asks for
+func (self *RemoteLoader) getRemoteBranches() ([]*models.RemoteBranch, error) {
 	var sortOrder string
 	switch strings.ToLower(self.UserConfig().Git.RemoteBranchSortOrder) {
 	case "alphabetical":
@@ -121,6 +132,7 @@ func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.
 		Arg("refs/remotes").
 		ToArgv()
 
+	remoteBranches := []*models.RemoteBranch{}
 	err := self.cmd.New(cmdArgs).DontLog().RunAndProcessLines(func(line string) (bool, error) {
 		line = strings.TrimSpace(line)
 
@@ -135,12 +147,7 @@ func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.
 			return false, nil
 		}
 
-		_, ok := remoteBranchesByRemoteName[remoteName]
-		if !ok {
-			remoteBranchesByRemoteName[remoteName] = []*models.RemoteBranch{}
-		}
-
-		remoteBranchesByRemoteName[remoteName] = append(remoteBranchesByRemoteName[remoteName],
+		remoteBranches = append(remoteBranches,
 			&models.RemoteBranch{
 				Name:       name,
 				RemoteName: remoteName,
@@ -151,5 +158,5 @@ func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.
 		return nil, err
 	}
 
-	return remoteBranchesByRemoteName, nil
+	return remoteBranches, nil
 }
