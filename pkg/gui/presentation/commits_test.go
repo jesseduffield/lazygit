@@ -274,15 +274,9 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-			/* EXPECTED:
 			expected: formatExpected(`
 		hash4      ○ commit4
 		hash5      ○ commit5
-				`),
-			ACTUAL: */
-			expected: formatExpected(`
-		hash4 ○ commit4
-		hash5 ○ commit5
 				`),
 		},
 		{
@@ -358,15 +352,9 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-			/* EXPECTED:
 			expected: formatExpected(`
 		      update-ref branch1
 		      update-ref branch2
-				`),
-			ACTUAL: */
-			expected: formatExpected(`
-		update-ref branch1
-		update-ref branch2
 				`),
 		},
 		{
@@ -576,13 +564,8 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			bisectInfo:                git_commands.NewNullBisectInfo(),
 			cherryPickedCommitHashSet: set.New[string](),
 			now:                       time.Date(2020, 1, 1, 5, 3, 4, 0, time.UTC),
-			/* EXPECTED:
 			expected: formatExpected(`
 		hash1 2:03AM     Jesse Duffield    commit1
-						`),
-			ACTUAL: */
-			expected: formatExpected(`
-		hash1 2:03AM Jesse Duffield    commit1
 						`),
 		},
 	}
