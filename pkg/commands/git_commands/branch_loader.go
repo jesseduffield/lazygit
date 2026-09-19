@@ -71,9 +71,17 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 	onWorker func(func() error),
 	renderFunc func(),
 ) ([]*models.Branch, error) {
-	branches := self.obtainBranches()
+	branches, tips := self.obtainBranches()
 
-	if self.UserConfig().Git.LocalBranchSortOrder == "recency" {
+	switch self.UserConfig().Git.LocalBranchSortOrder {
+	case "date":
+		if err := sortRefsWithEqualDatesByAncestry(
+			self.cmd, self.version, branches, (*models.Branch).FullRefName, tips,
+		); err != nil {
+			self.Log.Errorf("Failed to sort branches by ancestry: %v", err)
+		}
+
+	case "recency":
 		reflogBranches := self.obtainReflogBranches(reflogCommits)
 		// loop through reflog branches. If there is a match, merge them, then remove it from the branches and keep it in the reflog branches
 		branchesWithRecency := make([]*models.Branch, 0)
@@ -274,7 +282,9 @@ func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *Mai
 	return split[0], nil
 }
 
-func (self *BranchLoader) obtainBranches() []*models.Branch {
+// Returns the branches, along with the tip of each of them, keyed by full ref
+// name
+func (self *BranchLoader) obtainBranches() ([]*models.Branch, map[string]refTip) {
 	output, err := self.getRawBranches()
 	if err != nil {
 		panic(err)
@@ -283,7 +293,8 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 	trimmedOutput := strings.TrimSpace(output)
 	outputLines := strings.Split(trimmedOutput, "\n")
 
-	return lo.FilterMap(outputLines, func(line string, _ int) (*models.Branch, bool) {
+	tips := make(map[string]refTip, len(outputLines))
+	branches := lo.FilterMap(outputLines, func(line string, _ int) (*models.Branch, bool) {
 		if line == "" {
 			return nil, false
 		}
@@ -297,8 +308,12 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 		}
 
 		storeCommitDateAsRecency := self.UserConfig().Git.LocalBranchSortOrder != "recency"
-		return obtainBranch(split, storeCommitDateAsRecency), true
+		branch, tip := obtainBranch(split, storeCommitDateAsRecency)
+		tips[branch.FullRefName()] = tip
+		return branch, true
 	})
+
+	return branches, tips
 }
 
 func (self *BranchLoader) getRawBranches() (string, error) {
@@ -340,7 +355,7 @@ var branchFields = []string{
 }
 
 // Obtain branch information from parsed line output of getRawBranches()
-func obtainBranch(split []string, storeCommitDateAsRecency bool) *models.Branch {
+func obtainBranch(split []string, storeCommitDateAsRecency bool) (*models.Branch, refTip) {
 	headMarker := split[0]
 	fullName := split[1]
 	upstreamName := split[2]
@@ -361,7 +376,7 @@ func obtainBranch(split []string, storeCommitDateAsRecency bool) *models.Branch 
 		}
 	}
 
-	return &models.Branch{
+	branch := &models.Branch{
 		Name:          name,
 		Recency:       recency,
 		AheadForPull:  aheadForPull,
@@ -373,6 +388,8 @@ func obtainBranch(split []string, storeCommitDateAsRecency bool) *models.Branch 
 		Subject:       subject,
 		CommitHash:    commitHash,
 	}
+
+	return branch, refTip{hash: commitHash, committerDate: commitDate}
 }
 
 func parseUpstreamInfo(upstreamName string, track string) (string, string, bool) {
