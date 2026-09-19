@@ -523,6 +523,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description:     self.c.Tr.DropCommit,
 			Tooltip:         self.c.Tr.DropCommitTooltip,
 			DisplayOnScreen: true,
+			OpensMenu:       true,
 		},
 		{
 			Keys:    opts.GetKeys(editCommitKey),
@@ -984,10 +985,21 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 
 	isMerge := selectedCommits[0].IsMerge()
 
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.DropCommitTitle,
-		Prompt: lo.Ternary(isMerge, self.c.Tr.DropMergeCommitPrompt, self.c.Tr.DropCommitPrompt),
-		HandleConfirm: func() error {
+	var dropCommitLabel string
+	switch {
+	case len(selectedCommits) > 1:
+		dropCommitLabel = self.c.Tr.DropCommits
+	case isMerge:
+		dropCommitLabel = self.c.Tr.DropMergeCommit
+	default:
+		dropCommitLabel = self.c.Tr.DropCommitTitle
+	}
+
+	dropCommitItem := &types.MenuItem{
+		Label:          dropCommitLabel,
+		Keys:           menuKey('d'),
+		DisabledReason: self.canDropCommitsOutsideRebase(selectedCommits),
+		OnPress: func() error {
 			commits := self.c.Model().Commits
 			if !isMerge {
 				self.selectRebaseResultCommit(startIdx)
@@ -1003,9 +1015,71 @@ func (self *LocalCommitsController) drop(selectedCommits []*models.Commit, start
 				return self.interactiveRebase(commits, todo.Drop, startIdx, endIdx)
 			})
 		},
+	}
+	if isMerge {
+		dropCommitItem.Tooltip = self.c.Tr.DropMergeCommitTooltip
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: lo.Ternary(len(selectedCommits) > 1, self.c.Tr.DropCommitsOrDeleteBranchesTitle, self.c.Tr.DropCommitOrDeleteBranchTitle),
+		Items: append([]*types.MenuItem{dropCommitItem}, self.deleteBranchMenuItems(selectedCommits)...),
+	})
+}
+
+// deletableBranchesAt returns the branches pointing at the selected commits,
+// except the checked-out one, which can't be deleted anyway, and the reason to
+// show when that leaves nothing.
+func (self *LocalCommitsController) deletableBranchesAt(selectedCommits []*models.Commit) ([]*models.Branch, string) {
+	selectedHashes := lo.Map(selectedCommits, func(commit *models.Commit, _ int) string { return commit.Hash() })
+	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
+	branches := lo.Filter(self.c.Model().Branches, func(branch *models.Branch, _ int) bool {
+		return branch != checkedOutBranch && lo.Contains(selectedHashes, branch.CommitHash)
 	})
 
-	return nil
+	var noneReason string
+	switch {
+	case checkedOutBranch != nil && lo.Contains(selectedHashes, checkedOutBranch.CommitHash):
+		noneReason = self.c.Tr.CantDeleteCheckOutBranch
+	case len(selectedCommits) > 1:
+		noneReason = self.c.Tr.NoBranchesFoundAtCommitsTooltip
+	default:
+		noneReason = self.c.Tr.NoBranchesFoundAtCommitTooltip
+	}
+
+	return branches, noneReason
+}
+
+func (self *LocalCommitsController) deleteBranchMenuItems(selectedCommits []*models.Commit) []*types.MenuItem {
+	branches, noneReason := self.deletableBranchesAt(selectedCommits)
+
+	menuItems := self.c.Helpers().Refs.MenuItemsForBranchesAtCommit(
+		branches,
+		self.c.Tr.DeleteBranch,
+		noneReason,
+		func(branch *models.Branch) string {
+			return utils.ResolvePlaceholderString(
+				self.c.Tr.DeleteBranchAtCommit,
+				map[string]string{"branchName": branch.Name},
+			)
+		},
+		func(branch *models.Branch) error {
+			return self.c.Helpers().BranchesHelper.CreateDeleteMenu([]*models.Branch{branch})
+		},
+	)
+
+	if len(branches) > 1 {
+		branchNames := lo.Map(branches, func(branch *models.Branch, _ int) string { return branch.Name })
+		menuItems = append(menuItems, &types.MenuItem{
+			Label:   self.c.Tr.DeleteBranches,
+			Tooltip: strings.Join(branchNames, ", "),
+			Keys:    menuKey('a'),
+			OnPress: func() error {
+				return self.c.Helpers().BranchesHelper.CreateDeleteMenu(branches)
+			},
+		})
+	}
+
+	return menuItems
 }
 
 func (self *LocalCommitsController) dropMergeCommit(commits []*models.Commit, commitIdx int) error {
@@ -1963,12 +2037,13 @@ func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits 
 	return nil
 }
 
+// Outside a rebase the reason sits on the drop menu entry instead, see drop().
 func (self *LocalCommitsController) canDropCommits(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
 	if self.isRebasing() {
 		return self.canDropTodos(selectedCommits)
 	}
 
-	return self.canDropCommitsOutsideRebase(selectedCommits)
+	return nil
 }
 
 func (self *LocalCommitsController) canDropCommitsOutsideRebase(selectedCommits []*models.Commit) *types.DisabledReason {

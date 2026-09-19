@@ -320,6 +320,7 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 	branchItems := self.MenuItemsForBranchesAtCommit(
 		branches,
 		self.c.Tr.Actions.CheckoutBranch,
+		self.c.Tr.NoBranchesFoundAtCommitTooltip,
 		func(branch *models.Branch) string {
 			return fmt.Sprintf(self.c.Tr.Actions.CheckoutBranchAtCommit, branch.Name)
 		},
@@ -340,6 +341,7 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 func (self *RefsHelper) MenuItemsForBranchesAtCommit(
 	branches []*models.Branch,
 	placeholderLabel string,
+	placeholderDisabledReason string,
 	label func(branch *models.Branch) string,
 	onPress func(branch *models.Branch) error,
 ) []*types.MenuItem {
@@ -347,7 +349,7 @@ func (self *RefsHelper) MenuItemsForBranchesAtCommit(
 		return []*types.MenuItem{{
 			Label:          placeholderLabel,
 			OnPress:        func() error { return nil },
-			DisabledReason: &types.DisabledReason{Text: self.c.Tr.NoBranchesFoundAtCommitTooltip},
+			DisabledReason: &types.DisabledReason{Text: placeholderDisabledReason},
 			Keys:           menuKey('1'),
 		}}
 	}
