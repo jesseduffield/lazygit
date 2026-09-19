@@ -10,6 +10,7 @@ import (
 // Holds parsed values from a single %(ahead-behind:<base>) field.
 type aheadBehind struct {
 	ahead, behind int
+	valid         bool
 }
 
 type branchAheadBehind struct {
@@ -23,7 +24,8 @@ type branchAheadBehind struct {
 //
 // Lines whose NUL-split column count doesn't match (1 + numBases) are dropped.
 // Blank lines are ignored.
-// Individual malformed ahead-behind fields produce {valid: false} entries
+// Individual malformed ahead-behind fields produce {valid: false} entries, so
+// that the entries of a line stay aligned with the bases.
 func parseAheadBehindForEachRefOutput(
 	output string,
 	numBases int, // number of %(ahead-behind:...) tokens
@@ -39,7 +41,7 @@ func parseAheadBehindForEachRefOutput(
 			continue
 		}
 		refName := cols[0]
-		aheadBehinds := lo.FilterMap(cols[1:], func(col string, _ int) (aheadBehind, bool) {
+		aheadBehinds := lo.Map(cols[1:], func(col string, _ int) aheadBehind {
 			return parseAheadBehindField(col)
 		})
 		entry := branchAheadBehind{
@@ -51,17 +53,17 @@ func parseAheadBehindForEachRefOutput(
 	return result
 }
 
-func parseAheadBehindField(s string) (aheadBehind, bool) {
+func parseAheadBehindField(s string) aheadBehind {
 	parts := strings.Fields(s)
 	if len(parts) != 2 {
-		return aheadBehind{}, false
+		return aheadBehind{}
 	}
 	ahead, err1 := strconv.Atoi(parts[0])
 	behind, err2 := strconv.Atoi(parts[1])
 	if err1 != nil || err2 != nil {
-		return aheadBehind{}, false
+		return aheadBehind{}
 	}
-	return aheadBehind{ahead: ahead, behind: behind}, true
+	return aheadBehind{ahead: ahead, behind: behind, valid: true}
 }
 
 // Picks the "closest" base by smallest ahead value (commits the branch
@@ -69,7 +71,10 @@ func parseAheadBehindField(s string) (aheadBehind, bool) {
 // its behind value.
 // Ties are broken by index order
 func selectBehindForBranch(aheadBehinds []aheadBehind) int {
-	return lo.MinBy(aheadBehinds, func(a, b aheadBehind) bool {
+	validOnes := lo.Filter(aheadBehinds, func(ab aheadBehind, _ int) bool {
+		return ab.valid
+	})
+	return lo.MinBy(validOnes, func(a, b aheadBehind) bool {
 		return a.ahead < b.ahead
 	}).behind
 }
