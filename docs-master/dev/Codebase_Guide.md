@@ -38,7 +38,7 @@
 * `pkg/gui/status`: Contains code for invoking loaders and toasts
 * `pkg/gui/style`: Contains code for specifying text styles (colour, bold, etc)
 * `pkg/gui/types`: Contains various gui-specific types and interfaces. Lots of code lives here to avoid circular dependencies
-* `vendor/github.com/jesseduffield/gocui`: Gocui is the underlying library used for handling the gui event loop, handling keypresses, and rendering the UI. It defines the View struct which our own context structs build upon.
+* `pkg/gocui`: Gocui is the underlying library used for handling the gui event loop, handling keypresses, and rendering the UI. It defines the View struct which our own context structs build upon.
 
 ## Important files
 
@@ -59,8 +59,8 @@
 * `pkg/i18n/english.go`: defines the set of i18n strings and their English values
 * `pkg/gui/controllers/helpers/refresh_helper.go`: manages refreshing of models. The refresh helper is typically invoked at the end of an action to re-load affected models from git (e.g. re-load branches after doing a git pull)
 * `pkg/gui/controllers/quit_actions.go`: contains code that runs when you hit 'escape' on a view (assuming the view doesn't define its own escape handler)
-* `vendor/github.com/jesseduffield/gocui/gui.go`: defines the gocui gui struct
-* `vendor/github.com/jesseduffield/gocui/view.go`: defines the gocui view struct
+* `pkg/gocui/gui.go`: defines the gocui gui struct
+* `pkg/gocui/view.go`: defines the gocui view struct
 
 ## Concepts
 
@@ -82,7 +82,7 @@ In terms of dependencies, controllers sit at the highest level, so they can refe
 
 ## Event loop and threads
 
-The event loop is managed in the `MainLoop` function of `vendor/github.com/jesseduffield/gocui/gui.go`. Any time there is an event like a key press or a window resize, the event will be processed and then the screen will be redrawn. This involves calling the `layout` function defined in `pkg/gui/layout.go`, which lays out the windows and invokes some on-render hooks.
+The event loop is managed in the `MainLoop` function of `pkg/gocui/gui.go`. Any time there is an event like a key press or a window resize, the event will be processed and then the screen will be redrawn. This involves calling the `layout` function defined in `pkg/gui/layout.go`, which lays out the windows and invokes some on-render hooks.
 
 Often, as part of handling a keypress, we'll want to run some code asynchronously so that it doesn't block the UI thread. For this we'll typically run `self.c.OnWorker(myFunc)`. If the worker wants to then do something on the UI thread again it can call `self.c.OnUIThread(myOtherFunc)`.
 
