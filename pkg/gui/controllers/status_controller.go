@@ -146,7 +146,7 @@ func (self *StatusController) editConfig() error {
 
 func (self *StatusController) showAllBranchLogs() {
 	cmdObj := self.c.Git().Branch.AllBranchesLogCmdObj()
-	task := types.NewRunPtyTask(cmdObj.GetCmd())
+	task := types.NewRunDiffRendererTask(cmdObj.GetCmd())
 
 	title := self.c.Tr.LogTitle
 	if i, n := self.c.Git().Branch.GetAllBranchesLogIdxAndCount(); n > 1 {

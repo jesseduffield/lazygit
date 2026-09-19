@@ -17,13 +17,15 @@ Fields only for `stdinFilter`:
 
 - **command** The command line to use for `GIT_PAGER`.
 
+  If the diff renderer needs to know the width of the view (side-by-side diff renderers do, but others might too), and you are on Windows, you need to pass it to the renderer with an appropriate command-line argument; the `{{width}}` template variable is provided for this purpose (or `{{columnWidth}}` for the width of one side of a side-by-side rendering). See below for concrete examples. The reason is that on Windows we don't run the diff renderer in a pty, so it can't ask "the terminal" for the width.
+
 - **colorArg** whether you want the `--color=always` arg in your `git diff` command. Some diff renderers want it set to `always`, others want it set to `never`. The default is `always`, since that's what most renderers need.
 
 Fields only for `extDiff`:
 
 - **command** The command line to use for the `diff.external` git config. If left empty, it uses the global value of git's `diff.external` config; this can be useful if you also want to use it for diffs on the command line, and it also has the advantage that you can configure it per file type in `.gitattributes`; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
 
-  You can include the `{{diffContext}}` template variable to pass lazygit's current diff context size (the value controlled by the `{`/`}` keybindings) to the diff tool.
+  You can include the `{{diffContext}}` template variable to pass lazygit's current diff context size (the value controlled by the `{`/`}` keybindings) to the diff tool, and `{{width}}` to pass the width that lazygit renders the diff at. The latter is only needed on Windows because we don't run the diff command in a pty there, so the renderer can't ask "the terminal" for the width.
 
 Fields only for `rawGit`:
 
@@ -38,7 +40,7 @@ git:
     - command: ydiff -p cat
       colorArg: never
     - type: extDiff
-      command: difft --color=always --context={{diffContext}}
+      command: difft --color=always --context={{diffContext}} --width={{width}}
     - type: rawGit
       args: [--color-words]
       name: color-words
@@ -59,6 +61,8 @@ git:
 A cool feature of delta is --hyperlinks, which renders clickable links for the line numbers in the left margin, and lazygit supports these. To use them, set the `command:` field to `delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"`; this allows you to click on an underlined line number in the diff to jump right to that same line in your editor.
 
 Note that delta's `--navigate` option doesn't work in lazygit, for technical reasons.
+
+On Windows you need to add `-w {{width}}` to the command line.
 
 ## Diff-so-fancy
 
@@ -82,3 +86,5 @@ git:
 ```
 
 ![](https://i.imgur.com/vaa8z0H.png)
+
+On Windows you need to add `--width={{columnWidth}}` to the command line.

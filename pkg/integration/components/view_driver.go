@@ -88,6 +88,17 @@ func (self *ViewDriver) IsImmediatelyBelow(upper *ViewDriver) *ViewDriver {
 	return self
 }
 
+// TitlePrefix asserts on the label a view wears in front of its title, which is the
+// key that jumps to it.
+func (self *ViewDriver) TitlePrefix(expected *TextMatcher) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actual := self.getView().TitlePrefix
+		return expected.context(fmt.Sprintf("%s title prefix", self.context)).test(actual)
+	})
+
+	return self
+}
+
 func (self *ViewDriver) Clear() *ViewDriver {
 	// clearing multiple times in case there's multiple lines
 	//  (the clear button only clears a single line at a time)
@@ -141,6 +152,24 @@ func (self *ViewDriver) VisibleLines(matchers ...*TextMatcher) *ViewDriver {
 	return self.assertLines(originY, matchers...)
 }
 
+// Asserts on the line the view shows at the top of its viewport, i.e. on where the
+// view is scrolled to. It is a view line, so a wrapped line above it doesn't throw the
+// count off.
+func (self *ViewDriver) TopVisibleLine(matcher *TextMatcher) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		lines := view.ViewBufferLines()
+		originY := view.OriginY()
+		if originY >= len(lines) {
+			return false, fmt.Sprintf("%s: the view is scrolled to line %d, but it has only %d lines",
+				self.context, originY, len(lines))
+		}
+		return matcher.context(fmt.Sprintf("%s top visible line", self.context)).test(lines[originY])
+	})
+
+	return self
+}
+
 // asserts that somewhere in the view there are consecutive lines matching the given matchers.
 func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)
@@ -177,11 +206,43 @@ func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 		expectedContent := expectedContentFromMatchers(matchers)
 
 		return false, fmt.Sprintf(
-			"Expected the following to be contained in the staging panel:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----\nSelected range: %d-%d",
+			"Expected the following lines to be contained in the selected range:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----\nSelected range: %d-%d",
 			expectedContent,
 			content,
 			startIdx,
 			endIdx,
+		)
+	})
+
+	return self
+}
+
+// asserts that somewhere in the view there are consecutive lines matching the given
+// matchers, taking the lines as the view lays them out rather than as its content has
+// them: a line of content too long for a view that wraps is several of these.
+func (self *ViewDriver) ContainsViewLines(matchers ...*TextMatcher) *ViewDriver {
+	self.validateMatchersPassed(matchers)
+
+	self.t.assertWithRetries(func() (bool, string) {
+		lines := self.getView().ViewBufferLines()
+
+		for i := range len(lines) - len(matchers) + 1 {
+			matches := true
+			for j, matcher := range matchers {
+				if ok, _ := matcher.test(lines[i+j]); !ok {
+					matches = false
+					break
+				}
+			}
+			if matches {
+				return true, ""
+			}
+		}
+
+		return false, fmt.Sprintf(
+			"Expected the following view lines:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----",
+			expectedContentFromMatchers(matchers),
+			strings.Join(lines, "\n"),
 		)
 	})
 
@@ -244,6 +305,21 @@ func (self *ViewDriver) SelectedLines(matchers ...*TextMatcher) *ViewDriver {
 		}
 
 		return true, ""
+	})
+
+	return self
+}
+
+// SelectedViewLineRange asserts which view lines the selection covers. View lines
+// count the wrapped segments a line is drawn as, so this can say whether a selection
+// covers a wrapped line to its end; SelectedLines, which reports the lines of the
+// content, cannot.
+func (self *ViewDriver) SelectedViewLineRange(first int, last int) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actualFirst, actualLast := self.getSelectedRange()
+		return actualFirst == first && actualLast == last,
+			fmt.Sprintf("%s: Expected view lines %d-%d to be selected, but %d-%d were.",
+				self.context, first, last, actualFirst, actualLast)
 	})
 
 	return self
@@ -356,6 +432,48 @@ func (self *ViewDriver) Content(matcher *TextMatcher) *ViewDriver {
 			return self.getView().Buffer()
 		},
 	)
+
+	return self
+}
+
+// MarkedLines asserts which lines of the view are marked as being in the custom patch
+// being built. The marks are drawn over the content rather than being part of it, so
+// they are read from the view rather than matched against what Content returns.
+func (self *ViewDriver) MarkedLines(matchers ...*TextMatcher) *ViewDriver {
+	self.validateMatchersPassed(matchers)
+
+	self.t.assertWithRetries(func() (bool, string) {
+		markedLines := self.getView().MarkedLines()
+
+		markedContent := strings.Join(markedLines, "\n")
+		expectedContent := expectedContentFromMatchers(matchers)
+
+		if len(markedLines) != len(matchers) {
+			return false, fmt.Sprintf("%s: Expected the following lines to be marked as being in the custom patch:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----", self.context, expectedContent, markedContent)
+		}
+
+		for i, line := range markedLines {
+			ok, message := matchers[i].test(line)
+			if !ok {
+				return false, fmt.Sprintf("%s: Error: %s. Expected the following lines to be marked as being in the custom patch:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----", self.context, message, expectedContent, markedContent)
+			}
+		}
+
+		return true, ""
+	})
+
+	return self
+}
+
+// NoMarkedLines asserts that no line of the view is marked as being in the custom
+// patch, which is also what a view showing no marks at all reports.
+func (self *ViewDriver) NoMarkedLines() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		markedLines := self.getView().MarkedLines()
+		return len(markedLines) == 0, fmt.Sprintf(
+			"%s: Expected no line to be marked as being in the custom patch, but these were:\n-----\n%s\n-----",
+			self.context, strings.Join(markedLines, "\n"))
+	})
 
 	return self
 }
@@ -603,6 +721,25 @@ func (self *ViewDriver) Click(x, y int) *ViewDriver {
 	offsetX, offsetY, _ := self.viewGeometry()
 
 	self.t.click(offsetX+1+x, offsetY+1+y)
+
+	return self
+}
+
+// AltClick and ShiftClick click with a modifier held down. Both modifiers are
+// bound to the same gestures, because no single one of them reaches lazygit in
+// every terminal.
+func (self *ViewDriver) AltClick(x, y int) *ViewDriver {
+	offsetX, offsetY, _ := self.viewGeometry()
+
+	self.t.clickWithModifier(offsetX+1+x, offsetY+1+y, gocui.ModAlt, "Alt")
+
+	return self
+}
+
+func (self *ViewDriver) ShiftClick(x, y int) *ViewDriver {
+	offsetX, offsetY, _ := self.viewGeometry()
+
+	self.t.clickWithModifier(offsetX+1+x, offsetY+1+y, gocui.ModShift, "Shift")
 
 	return self
 }

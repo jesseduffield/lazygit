@@ -41,7 +41,7 @@ var Remove = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			SelectNextItem()
 
-		t.Views().Main().Content(
+		t.Views().Secondary().Content(
 			Contains("-[submodule \"my_submodule_name\"]").
 				Contains("-   path = my_submodule_path").
 				Contains("-   url = ../my_submodule_name"),

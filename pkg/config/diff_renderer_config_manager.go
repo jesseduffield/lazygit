@@ -67,6 +67,7 @@ func (self *DiffRendererConfigManager) GetStdinFilterCommand(width int) string {
 	}
 
 	templateValues := map[string]string{
+		"width":       strconv.Itoa(width),
 		"columnWidth": strconv.Itoa(width/2 - 6),
 	}
 
@@ -87,7 +88,7 @@ func (self *DiffRendererConfigManager) GetColorArg() string {
 	return colorArg
 }
 
-func (self *DiffRendererConfigManager) GetExternalDiffCommand(diffContext uint64) string {
+func (self *DiffRendererConfigManager) GetExternalDiffCommand(diffContext uint64, width int) string {
 	currentDiffRendererConfig := self.currentDiffRendererConfig()
 	if currentDiffRendererConfig == nil || currentDiffRendererConfig.getType() != DiffRendererType_ExtDiff {
 		return ""
@@ -95,6 +96,7 @@ func (self *DiffRendererConfigManager) GetExternalDiffCommand(diffContext uint64
 
 	templateValues := map[string]string{
 		"diffContext": strconv.Itoa(int(diffContext)),
+		"width":       strconv.Itoa(width),
 	}
 
 	return utils.ResolvePlaceholderString(string(currentDiffRendererConfig.Command), templateValues)
