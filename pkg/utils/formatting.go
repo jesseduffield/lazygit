@@ -36,6 +36,12 @@ func StringWidth(s string) int {
 
 // WithPadding pads a string as much as you want
 func WithPadding(str string, padding int, alignment Alignment) string {
+	if padding <= 0 {
+		// Nothing to pad to, and measuring the string isn't free: Decolorise
+		// compiles a regex whenever it is called with a string it hasn't cached.
+		return str
+	}
+
 	uncoloredStr := Decolorise(str)
 	width := StringWidth(uncoloredStr)
 	if padding < width {
