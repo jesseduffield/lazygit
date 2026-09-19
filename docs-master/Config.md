@@ -513,9 +513,17 @@ git:
     # (`<ctrl+l>` in the commits window by default).
     showGraph: always
 
-    # displays the whole git graph by default in the commits view (equivalent to
-    # passing the `--all` argument to `git log`)
+    # displays the whole git graph by default in the commits view (see `allRefsArgs`
+    # for which refs that includes)
     showWholeGraph: false
+
+    # The `git log` args used to select which refs are shown in the commits view
+    # when showing the whole graph. Defaults to `["--all"]`, which includes every
+    # ref; set it to something narrower such as `["--branches", "--remotes"]` to
+    # leave out refs that aren't branches, e.g. stashes or refs written by external
+    # tooling.
+    allRefsArgs:
+      - --all
 
   # How branches are sorted in the local branches view.
   # One of: 'date' (default) | 'recency' | 'alphabetical'

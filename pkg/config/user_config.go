@@ -420,8 +420,10 @@ type LogConfig struct {
 	//
 	// Can be toggled from within lazygit with `Log menu -> Show git graph` (`<ctrl+l>` in the commits window by default).
 	ShowGraph string `yaml:"showGraph" jsonschema:"enum=always,enum=never,enum=when-maximised"`
-	// displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
+	// displays the whole git graph by default in the commits view (see `allRefsArgs` for which refs that includes)
 	ShowWholeGraph bool `yaml:"showWholeGraph"`
+	// The `git log` args used to select which refs are shown in the commits view when showing the whole graph. Defaults to `["--all"]`, which includes every ref; set it to something narrower such as `["--branches", "--remotes"]` to leave out refs that aren't branches, e.g. stashes or refs written by external tooling.
+	AllRefsArgs []string `yaml:"allRefsArgs"`
 }
 
 type CommitPrefixConfig struct {
@@ -950,6 +952,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				Order:          "topo-order",
 				ShowGraph:      "always",
 				ShowWholeGraph: false,
+				AllRefsArgs:    []string{"--all"},
 			},
 			LocalBranchSortOrder:         "date",
 			RemoteBranchSortOrder:        "date",
