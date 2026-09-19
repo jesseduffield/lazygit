@@ -8,24 +8,16 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type RemoteLoader struct {
-	*common.Common
-	cmd oscommands.ICmdObjBuilder
+	*GitCommon
 }
 
-func NewRemoteLoader(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-) *RemoteLoader {
-	return &RemoteLoader{
-		Common: common,
-		cmd:    cmd,
-	}
+func NewRemoteLoader(gitCommon *GitCommon) *RemoteLoader {
+	return &RemoteLoader{GitCommon: gitCommon}
 }
 
 func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
@@ -112,28 +104,44 @@ func (self *RemoteLoader) getRemotesFromConfig() []*models.Remote {
 }
 
 func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.RemoteBranch, error) {
-	remoteBranchesByRemoteName := make(map[string][]*models.RemoteBranch)
+	remoteBranches, err := self.getRemoteBranches()
+	if err != nil {
+		return nil, err
+	}
 
-	var sortOrder string
-	switch strings.ToLower(self.UserConfig().Git.RemoteBranchSortOrder) {
-	case "alphabetical":
-		sortOrder = "refname"
-	case "date":
+	return lo.GroupBy(remoteBranches, func(branch *models.RemoteBranch) string {
+		return branch.RemoteName
+	}), nil
+}
+
+// Returns all remote branches, sorted the way the config asks for
+func (self *RemoteLoader) getRemoteBranches() ([]*models.RemoteBranch, error) {
+	sortByDate := strings.ToLower(self.UserConfig().Git.RemoteBranchSortOrder) == "date"
+	sortOrder := "refname"
+	if sortByDate {
 		sortOrder = "-committerdate"
-	default:
-		sortOrder = "refname"
+	}
+
+	// Asking for the tip of a branch makes git read its commit, so only do it
+	// when we are going to sort by ancestry below
+	format := "%(refname)"
+	if sortByDate {
+		format += "%00%(objectname)%00%(committerdate:unix)"
 	}
 
 	cmdArgs := NewGitCmd("for-each-ref").
 		Arg(fmt.Sprintf("--sort=%s", sortOrder)).
-		Arg("--format=%(refname)").
+		Arg(fmt.Sprintf("--format=%s", format)).
 		Arg("refs/remotes").
 		ToArgv()
 
+	remoteBranches := []*models.RemoteBranch{}
+	tips := map[string]refTip{}
 	err := self.cmd.New(cmdArgs).DontLog().RunAndProcessLines(func(line string) (bool, error) {
-		line = strings.TrimSpace(line)
+		fields := strings.Split(strings.TrimSpace(line), "\x00")
+		refName := fields[0]
 
-		split := strings.SplitN(line, "/", 4)
+		split := strings.SplitN(refName, "/", 4)
 		if len(split) != 4 {
 			return false, nil
 		}
@@ -144,21 +152,27 @@ func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.
 			return false, nil
 		}
 
-		_, ok := remoteBranchesByRemoteName[remoteName]
-		if !ok {
-			remoteBranchesByRemoteName[remoteName] = []*models.RemoteBranch{}
-		}
-
-		remoteBranchesByRemoteName[remoteName] = append(remoteBranchesByRemoteName[remoteName],
+		remoteBranches = append(remoteBranches,
 			&models.RemoteBranch{
 				Name:       name,
 				RemoteName: remoteName,
 			})
+		if len(fields) == 3 {
+			tips[refName] = refTip{hash: fields[1], committerDate: fields[2]}
+		}
 		return false, nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return remoteBranchesByRemoteName, nil
+	if sortByDate {
+		if err := sortRefsWithEqualDatesByAncestry(
+			self.cmd, self.version, remoteBranches, (*models.RemoteBranch).FullRefName, tips,
+		); err != nil {
+			self.Log.Errorf("Failed to sort remote branches by ancestry: %v", err)
+		}
+	}
+
+	return remoteBranches, nil
 }
