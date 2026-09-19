@@ -736,6 +736,52 @@ usable one. Write the PR descriptions so that they don't promise a git
 feature that doesn't exist upstream: describe the protocol and the probe,
 not "works with git --color-words".
 
+#### Review round 1 (2026-09-19) — a rendering is read one way or the other
+
+Under delta, the jump-to-file menu for a commit of delta's own repo listed
+`img.png` between every pair of files, and `n`/`N` stopped there too. The
+commit adds a test whose input is a diff, so one of its added lines reads
+`diff --git a/img.png b/img.png`, and delta shows that line without its `+`.
+The buffer parser took the row for the start of a file section. The section
+ran to the end of the rendering, since a renderer prints no `diff --git` line
+to stop at; it had no `+++` line to name the file, so the name came off the
+`diff --git` line; and with no `@@` below, every row of it counted as a header
+of `img.png`, so the well-formedness gate had nothing to object to. The
+resolvers let the records win only row by row, and filled every untagged row
+(the blank ones delta puts between hunks and files) from that parse.
+
+The fix, decided with the user: **which source a rendering is read by is
+settled once, for the rendering as a whole**, by whether any row of it carries
+a record we understand (`renderingStatesDiffLines`; the version-only handshake
+doesn't count). A rendering with records is never parsed, not even for the rows
+the renderer says nothing about; those have no identity, as spec §6.4 has it.
+A rendering without any record is parsed as the unified diff it is. Content
+was chosen over the probe as the source of that answer: it is ground truth for
+the view in front of us, needs no renderer state in a query path, and has no
+stale window while cycling renderers. `DiffRowsCanBePlaced` stays probe-based,
+being asked before there is content.
+
+Three fixups, one per commit that owned a copy of the per-row mix: an `amend!`
+on "Take a diff renderer at its word about a diff line" (PR 4; the single-row
+path, plus the predicate and its unit test), a `fixup!` on "Show a selection in
+the focused main view" (PR 5; `resolveDiffLines`), and a `fixup!` on "Keep your
+place in the diff when changing the context size" (PR 6). The last one also
+unifies the two batch resolvers on one pure core, `parseDiffLineIdentities`,
+and tests the composition with the `img.png` shape. Inserted with one
+`rebase -i` and a `break` after each target; three later picks conflicted in
+the single-row path and were resolved to the same gate. Whole e2e suite green
+at the tip (626 tests); backup tags `*-2026-09-19-1442-backup` on the stack's
+tip and on the three branches.
+
+What this gives up: under a renderer, the mix had placed a submodule's
+`Submodule …` header and its `  > subject` log lines by parsing them, since
+delta and diff-so-fancy passed them through untagged. Both renderers have since
+been given an `f` record for the header (PR 2 round 2), so the submodule is
+still listed and navigated to. Its log lines now go unresolved under delta, as
+they already did under diff-so-fancy (§8 row widened). The parser's bounding
+of a submodule section (PR 2 round 2's second fixup) stays, for the renderings
+that are parsed.
+
 ### PR 5 — Select, navigate, edit and copy diff lines in the focused main view
 
 The focused main view (already reachable via `0`/click on master) gains a
@@ -3119,7 +3165,7 @@ The remaining rows are agreed as keep/defer:
 | A range of commits selected in the commits panel opens the pull request at the newest of them (new, PR 11) | **Done in round 1**: the URL names the range as the pull request's own pages do, `<base>..<newest>`, with the keyword `BASE` where the range starts where the pull request itself does. The form was read off a real pull request, one candidate URL at a time |
 | The command refuses over the commits of a branch whose pull request is merged (new, PR 11 round 1) | Keep. Merging a pull request puts its commits in a main branch, so they come out `StatusMerged` rather than `StatusPushed`, and the test for what a pull request holds turns them down although its pages still show them. Telling a commit of the remote branch apart from one that only reached a main branch takes a rev-list against the upstream that nothing else needs, and the local branch is usually gone by the time its pull request is merged |
 | A renderer that keeps the diff and hunk headers but drops body lines could be mis-parsed where it ends the buffer (new, PR 2 round 1) | Keep. The leniency applies to one section, the one the buffer breaks off in, and every renderer that restructures a body lengthens hunks rather than shortening them. A mis-parse would act on the wrong line only in the focused main view, and there the diff is either git's own or one whose lines state their own identity (`MainViewDiffMode`) |
-| A submodule's log lines go unresolved wherever diff-so-fancy has taken a column off them (new, PR 2 round 2) | Keep. Nothing states a record for those lines, so they are placed by parsing them, and diff-so-fancy strips the leading indicator column from every line it reads while it is inside a hunk — which a submodule's section below one still counts as. The cost is that `n` pressed on one of them steps to the file after the next. The submodule itself is listed and navigated to from the line naming it, which every renderer passes through as git wrote it |
+| A submodule's log lines go unresolved under a renderer that states records (PR 2 round 2, widened by PR 4 round 1) | Keep. Nothing states a record for those lines, and since PR 4 round 1 a rendering with records is not parsed for the rows without one, so under delta as under diff-so-fancy they have no identity (before that round, only diff-so-fancy lost them, by stripping the leading indicator column off every line it reads while inside a hunk). The cost is that `n` pressed on one of them steps to the file after the next. The submodule itself is listed and navigated to from the line naming it, for which both renderers state an `f` record. Spec §6.4 wants every row of a header block tagged, so delta could tag the log lines with the submodule's `f` as well; not done |
 
 ## 9. Open questions (resolve before/during the marked PR)
 
@@ -3224,7 +3270,8 @@ The remaining rows are agreed as keep/defer:
 - [x] PR 4 — OSC 1717 support — **DONE 2026-08-09** on branch
       `support-osc-1717-diff-metadata` (7 commits, all checks green, every
       commit builds and tests clean), stacked on
-      `resolve-diff-lines-to-identities`. §6 sign-off **approved**
+      `resolve-diff-lines-to-identities`. §6 sign-off **approved**. Round 1
+      on 2026-09-19 added an `amend!`, with a `fixup!` each in PRs 5 and 6
 - [x] PR 5 — selection & navigation — **DONE 2026-08-10** on branch
       `select-diff-lines-in-main-view` (9 commits, plus round 4's 2 commits,
       round 7's 2 preparations, and the 4 `fixup!`s of rounds 5 to 7, all checks
@@ -3293,6 +3340,20 @@ The remaining rows are agreed as keep/defer:
 deviations from this plan inline, dated.)
 
 Log:
+
+- **2026-09-19:** **PR 4 round 1**, on a phantom file in the jump-to-file menu.
+  Under delta, a commit whose added lines include a `diff --git` line (a test
+  whose input is a diff) listed `img.png` between every pair of files: the
+  buffer parser opened a file section at that row and claimed every untagged
+  row below it, and the resolvers let the records win only row by row. A
+  rendering is now read one way or the other, settled by whether any row of it
+  carries a record we understand; one with records is never parsed. Three
+  fixups mid-stack (PR 4's single-row path, PR 5's `resolveDiffLines`, PR 6's
+  identities form, the last unifying both batch resolvers on a tested pure
+  core), one `rebase -i` with `break` stops, three conflicts in the one spot.
+  Whole e2e suite green at the tip; backup tags `*-2026-09-19-1442-backup`.
+  Cost: a submodule's log lines go unresolved under delta too now (§8 row
+  widened).
 
 - **2026-09-18 (later):** **The foot branch that renders without a pty on
   Windows, reviewed for its design.** `render-diffs-without-a-pty-on-windows`
