@@ -17,8 +17,13 @@ import (
 	"github.com/xo/terminfo"
 )
 
+// Scenarios write their expected output as a raw string literal, indented with
+// tabs so that it lines up with the surrounding code. Strip that indentation,
+// along with the newlines after the opening backtick and before the closing
+// one. Spaces are left alone, so that a scenario can expect a line that starts
+// with an empty column.
 func formatExpected(expected string) string {
-	return strings.TrimSpace(strings.ReplaceAll(expected, "\t", ""))
+	return strings.Trim(strings.ReplaceAll(expected, "\t", ""), "\n")
 }
 
 func TestGetCommitListDisplayStrings(t *testing.T) {
