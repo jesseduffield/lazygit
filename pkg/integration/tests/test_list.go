@@ -88,6 +88,7 @@ var tests = []*components.IntegrationTest{
 	branch.SortLocalBranches,
 	branch.SortLocalBranchesInStackOrder,
 	branch.SortRemoteBranches,
+	branch.SortRemoteBranchesInStackOrder,
 	branch.SquashMerge,
 	branch.Suggestions,
 	branch.UnsetUpstream,
