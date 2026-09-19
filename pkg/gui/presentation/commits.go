@@ -313,29 +313,50 @@ func getBisectStatus(index int, commitHash string, bisectInfo *git_commands.Bise
 }
 
 func getBisectStatusText(bisectStatus BisectStatus, bisectInfo *git_commands.BisectInfo) string {
-	if bisectStatus == BisectStatusNone {
-		return ""
-	}
-
-	style := getBisectStatusColor(bisectStatus)
-
 	switch bisectStatus {
 	case BisectStatusNew:
-		return style.Sprintf("<-- " + bisectInfo.NewTerm())
+		return "<-- " + bisectInfo.NewTerm()
 	case BisectStatusOld:
-		return style.Sprintf("<-- " + bisectInfo.OldTerm())
+		return "<-- " + bisectInfo.OldTerm()
 	case BisectStatusCurrent:
 		// TODO: i18n
-		return style.Sprintf("<-- current")
+		return "<-- current"
 	case BisectStatusSkipped:
-		return style.Sprintf("<-- skipped")
+		return "<-- skipped"
 	case BisectStatusCandidate:
-		return style.Sprintf("?")
+		return "?"
 	case BisectStatusNone:
 		return ""
 	}
 
 	return ""
+}
+
+func getHashText(commit *models.Commit, hashLength int) string {
+	hash := commit.Hash()
+	if hashLength >= len(hash) {
+		return hash
+	}
+	if hashLength > 0 {
+		return hash[:hashLength]
+	}
+	if !icons.IsIconEnabled() { // hashLength <= 0
+		return "*"
+	}
+	return ""
+}
+
+func getActionText(commit *models.Commit) string {
+	if commit.Action == models.ActionNone {
+		return ""
+	}
+
+	text := commit.Action.String()
+	// Only show the flag for fixup commands (where -C changes the meaning)
+	if commit.ActionFlag != "" && commit.Action == todo.Fixup {
+		text += " " + commit.ActionFlag
+	}
+	return text
 }
 
 func displayCommit(
@@ -356,17 +377,15 @@ func displayCommit(
 	bisectStatus BisectStatus,
 	bisectInfo *git_commands.BisectInfo,
 ) []string {
-	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
+	bisectString := ""
+	if bisectText := getBisectStatusText(bisectStatus, bisectInfo); bisectText != "" {
+		bisectString = getBisectStatusColor(bisectStatus).Sprint(bisectText)
+	}
 
-	hashString := ""
 	hashColor := getHashColor(commit, diffName, cherryPickedCommitHashSet, bisectStatus, bisectInfo)
-	hashLength := common.UserConfig().Gui.CommitHashLength
-	if hashLength >= len(commit.Hash()) {
-		hashString = hashColor.Sprint(commit.Hash())
-	} else if hashLength > 0 {
-		hashString = hashColor.Sprint(commit.Hash()[:hashLength])
-	} else if !icons.IsIconEnabled() { // hashLength <= 0
-		hashString = hashColor.Sprint("*")
+	hashString := ""
+	if hashText := getHashText(commit, common.UserConfig().Gui.CommitHashLength); hashText != "" {
+		hashString = hashColor.Sprint(hashText)
 	}
 
 	divergenceString := ""
@@ -384,13 +403,8 @@ func displayCommit(
 	}
 
 	actionString := ""
-	if commit.Action != models.ActionNone {
-		actionStr := commit.Action.String()
-		// Only show the flag for fixup commands (where -C changes the meaning)
-		if commit.ActionFlag != "" && commit.Action == todo.Fixup {
-			actionStr += " " + commit.ActionFlag
-		}
-		actionString = actionColorMap(commit.Action, commit.Status).Sprint(actionStr)
+	if actionText := getActionText(commit); actionText != "" {
+		actionString = actionColorMap(commit.Action, commit.Status).Sprint(actionText)
 	}
 
 	tagString := ""
