@@ -8,24 +8,15 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type RemoteLoader struct {
-	*common.Common
-	cmd oscommands.ICmdObjBuilder
+	*GitCommon
 }
 
-func NewRemoteLoader(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-) *RemoteLoader {
-	return &RemoteLoader{
-		Common: common,
-		cmd:    cmd,
-	}
+func NewRemoteLoader(gitCommon *GitCommon) *RemoteLoader {
+	return &RemoteLoader{GitCommon: gitCommon}
 }
 
 func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
