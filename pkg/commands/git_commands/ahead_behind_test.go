@@ -197,15 +197,17 @@ func TestSelectBehindForBranch(t *testing.T) {
 
 func TestBuildAheadBehindForEachRefArgs(t *testing.T) {
 	type scenario struct {
-		testName       string
-		mainBranchRefs []string
-		expected       []string
+		testName    string
+		bases       []string
+		refPatterns []string
+		expected    []string
 	}
 
 	scenarios := []scenario{
 		{
-			testName:       "single base",
-			mainBranchRefs: []string{"refs/heads/master"},
+			testName:    "single base",
+			bases:       []string{"refs/heads/master"},
+			refPatterns: []string{"refs/heads"},
 			expected: []string{
 				"git",
 				"for-each-ref",
@@ -214,8 +216,9 @@ func TestBuildAheadBehindForEachRefArgs(t *testing.T) {
 			},
 		},
 		{
-			testName:       "two bases",
-			mainBranchRefs: []string{"refs/heads/master", "refs/remotes/origin/develop"},
+			testName:    "two bases",
+			bases:       []string{"refs/heads/master", "refs/remotes/origin/develop"},
+			refPatterns: []string{"refs/heads"},
 			expected: []string{
 				"git",
 				"for-each-ref",
@@ -224,8 +227,9 @@ func TestBuildAheadBehindForEachRefArgs(t *testing.T) {
 			},
 		},
 		{
-			testName:       "four bases",
-			mainBranchRefs: []string{"refs/heads/a", "refs/heads/b", "refs/heads/c", "refs/heads/d"},
+			testName:    "four bases",
+			bases:       []string{"refs/heads/a", "refs/heads/b", "refs/heads/c", "refs/heads/d"},
+			refPatterns: []string{"refs/heads"},
 			expected: []string{
 				"git",
 				"for-each-ref",
@@ -233,11 +237,23 @@ func TestBuildAheadBehindForEachRefArgs(t *testing.T) {
 				"refs/heads",
 			},
 		},
+		{
+			testName:    "commit hashes as bases, individual refs as patterns",
+			bases:       []string{"1234567", "89abcde"},
+			refPatterns: []string{"refs/heads/a", "refs/remotes/origin/b"},
+			expected: []string{
+				"git",
+				"for-each-ref",
+				"--format=%(refname)%00%(ahead-behind:1234567)%00%(ahead-behind:89abcde)",
+				"refs/heads/a",
+				"refs/remotes/origin/b",
+			},
+		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			result := buildAheadBehindForEachRefArgs(s.mainBranchRefs)
+			result := buildAheadBehindForEachRefArgs(s.bases, s.refPatterns)
 			assert.Equal(t, s.expected, result)
 		})
 	}

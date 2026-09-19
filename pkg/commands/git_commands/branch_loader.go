@@ -214,7 +214,7 @@ func (self *BranchLoader) getBehindBaseBranchValuesFast(
 	t := time.Now()
 
 	output, err := self.cmd.New(
-		buildAheadBehindForEachRefArgs(mainBranchRefs),
+		buildAheadBehindForEachRefArgs(mainBranchRefs, []string{"refs/heads"}),
 	).DontLog().RunWithOutput()
 	if err != nil {
 		return err

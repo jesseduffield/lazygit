@@ -74,23 +74,25 @@ func selectBehindForBranch(aheadBehinds []aheadBehind) int {
 	}).behind
 }
 
-// The output format is:
+// Builds a for-each-ref command that reports, for each ref matched by one of
+// refPatterns, how far it is ahead and behind each of the bases. A base is a
+// ref name or a commit hash. The output format is:
 //
 //	<refname>\x00<ahead> <behind>\x00<ahead> <behind>...\n
 //
-// with one ahead-behind field per base, in the same order as mainBranchRefs.
+// with one ahead-behind field per base, in the same order as bases.
 //
 // Requires git >= 2.41 (when %(ahead-behind:...) was added).
-func buildAheadBehindForEachRefArgs(mainBranchRefs []string) []string {
-	formatParts := make([]string, 0, 1+len(mainBranchRefs))
+func buildAheadBehindForEachRefArgs(bases []string, refPatterns []string) []string {
+	formatParts := make([]string, 0, 1+len(bases))
 	formatParts = append(formatParts, "%(refname)")
-	for _, ref := range mainBranchRefs {
-		formatParts = append(formatParts, "%(ahead-behind:"+ref+")")
+	for _, base := range bases {
+		formatParts = append(formatParts, "%(ahead-behind:"+base+")")
 	}
 	format := strings.Join(formatParts, "%00")
 
 	return NewGitCmd("for-each-ref").
 		Arg("--format=" + format).
-		Arg("refs/heads").
+		Arg(refPatterns...).
 		ToArgv()
 }
