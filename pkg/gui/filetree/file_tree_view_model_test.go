@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -120,6 +121,82 @@ func TestSetTreeFollowsRenameIntoCollapsedDir(t *testing.T) {
 				{Path: "a/b.go"},
 				{Path: "a/new.go", PreviousPath: "old.go"},
 			}
+			viewModel.SetTree()
+
+			assert.Equal(t, s.expectedPath, viewModel.GetSelectedPath())
+		})
+	}
+}
+
+func TestSetTreeKeepsSelectionAcrossCompressionChanges(t *testing.T) {
+	scenarios := []struct {
+		name         string
+		filesBefore  []string
+		selectedPath string
+		filesAfter   []string
+		expectedPath string
+	}{
+		{
+			name:         "compressed root directory splits",
+			filesBefore:  []string{"pkg/gui/controllers/helpers/refresh_helper.go"},
+			selectedPath: "pkg/gui/controllers/helpers",
+			filesAfter: []string{
+				"pkg/gui/context/base_context.go",
+				"pkg/gui/controllers/helpers/refresh_helper.go",
+			},
+			expectedPath: "pkg/gui",
+		},
+		{
+			name:         "compressed subdirectory splits",
+			filesBefore:  []string{"a/b/c/file1", "file2"},
+			selectedPath: "a/b/c",
+			filesAfter:   []string{"a/b/c/file1", "a/b/d/file3", "file2"},
+			expectedPath: "a/b",
+		},
+		{
+			name:         "file inside a compressed directory that splits",
+			filesBefore:  []string{"pkg/gui/controllers/helpers/refresh_helper.go"},
+			selectedPath: "pkg/gui/controllers/helpers/refresh_helper.go",
+			filesAfter: []string{
+				"pkg/gui/context/base_context.go",
+				"pkg/gui/controllers/helpers/refresh_helper.go",
+			},
+			expectedPath: "pkg/gui/controllers/helpers/refresh_helper.go",
+		},
+		{
+			name: "directories merge into one compressed node",
+			filesBefore: []string{
+				"pkg/gui/context/base_context.go",
+				"pkg/gui/controllers/helpers/refresh_helper.go",
+			},
+			selectedPath: "pkg/gui",
+			filesAfter:   []string{"pkg/gui/controllers/helpers/refresh_helper.go"},
+			expectedPath: "pkg/gui/controllers/helpers",
+		},
+	}
+
+	toFiles := func(paths []string) []*models.File {
+		return lo.Map(paths, func(path string, _ int) *models.File {
+			return &models.File{Path: path}
+		})
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			files := toFiles(s.filesBefore)
+			cmn := common.NewDummyCommon()
+			viewModel := NewFileTreeViewModel(
+				func() []*models.File { return files },
+				cmn,
+				true,
+			)
+			viewModel.SetTree()
+			showRootItem := cmn.UserConfig().Gui.ShowRootItemInFileTree
+			idx, found := viewModel.GetIndexForPath(InternalTreePathForFilePath(s.selectedPath, showRootItem))
+			assert.True(t, found)
+			viewModel.SetSelection(idx)
+
+			files = toFiles(s.filesAfter)
 			viewModel.SetTree()
 
 			assert.Equal(t, s.expectedPath, viewModel.GetSelectedPath())

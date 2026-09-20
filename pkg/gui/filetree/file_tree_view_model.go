@@ -131,6 +131,13 @@ func (self *FileTreeViewModel) SetTree() {
 // nodes until we find one that exists in the new set of nodes, then move the cursor
 // to that.
 // prevNodes starts from our previously selected node because we don't need to consider anything above that
+//
+// A compressed directory node stands for every directory that was squished
+// into it, so it matches any new node that stands for at least one of the same
+// directories. When a compressed directory splits into several nodes because
+// a file appeared in another of its subdirectories, the topmost of these nodes
+// comes first in currNodes and takes over the selection; this keeps the cursor
+// on the same line.
 func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNodes []*FileNode) int {
 	// Paths are compared as the user sees them, without the "./" prefix of the
 	// root item, so that they line up with the names of a rename.
@@ -141,7 +148,7 @@ func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNod
 		if node.File != nil && node.File.IsRename() {
 			return node.File.Names()
 		}
-		return []string{node.GetPath()}
+		return node.GetPaths()
 	}
 
 	for _, prevNode := range prevNodes {
