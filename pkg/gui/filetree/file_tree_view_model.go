@@ -98,22 +98,22 @@ func (self *FileTreeViewModel) GetSelectedPath() string {
 }
 
 func (self *FileTreeViewModel) SetTree() {
-	newFiles := self.GetAllFiles()
 	selectedNode := self.GetSelected()
-
-	// for when you stage the old file of a rename and the new file is in a collapsed dir
-	for _, file := range newFiles {
-		if selectedNode != nil && selectedNode.path != "" && file.PreviousPath == selectedNode.path {
-			self.ExpandToPath(file.Path)
-		}
-	}
-
 	prevNodes := self.GetAllItems()
 	prevSelectedLineIdx := self.GetSelectedLineIdx()
 
 	self.IFileTree.SetTree()
 
 	if selectedNode != nil {
+		// If the selected file has become the old half of a rename, e.g. because
+		// its deletion was staged, make sure the rename is visible so that the
+		// selection can move to it.
+		for _, node := range self.GetRoot().GetLeaves() {
+			if node.File.PreviousPath == selectedNode.GetPath() {
+				self.ExpandToPath(node.GetInternalPath())
+			}
+		}
+
 		newNodes := self.GetAllItems()
 		newIdx := self.findNewSelectedIdx(prevNodes[prevSelectedLineIdx:], newNodes)
 		if newIdx != -1 && newIdx != prevSelectedLineIdx {
@@ -131,7 +131,16 @@ func (self *FileTreeViewModel) SetTree() {
 // nodes until we find one that exists in the new set of nodes, then move the cursor
 // to that.
 // prevNodes starts from our previously selected node because we don't need to consider anything above that
+//
+// A compressed directory node stands for every directory that was squished
+// into it, so it matches any new node that stands for at least one of the same
+// directories. When a compressed directory splits into several nodes because
+// a file appeared in another of its subdirectories, the topmost of these nodes
+// comes first in currNodes and takes over the selection; this keeps the cursor
+// on the same line.
 func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNodes []*FileNode) int {
+	// Paths are compared as the user sees them, without the "./" prefix of the
+	// root item, so that they line up with the names of a rename.
 	getPaths := func(node *FileNode) []string {
 		if node == nil {
 			return nil
@@ -139,7 +148,7 @@ func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNod
 		if node.File != nil && node.File.IsRename() {
 			return node.File.Names()
 		}
-		return []string{node.path}
+		return node.GetPaths()
 	}
 
 	for _, prevNode := range prevNodes {
@@ -150,7 +159,7 @@ func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNod
 
 			// If you started off with a rename selected, and now it's broken in two, we want you to jump to the new file, not the old file.
 			// This is because the new should be in the same position as the rename was meaning less cursor jumping
-			foundOldFileInRename := prevNode.File != nil && prevNode.File.IsRename() && node.path == prevNode.File.PreviousPath
+			foundOldFileInRename := prevNode.File != nil && prevNode.File.IsRename() && node.GetPath() == prevNode.File.PreviousPath
 			foundNode := utils.StringArraysOverlap(paths, selectedPaths) && !foundOldFileInRename
 			if foundNode {
 				return idx
