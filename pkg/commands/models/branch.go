@@ -126,6 +126,13 @@ func (b *Branch) IsBehindForPush() bool {
 	return b.RemoteBranchStoredLocally() && b.BehindForPush != "0"
 }
 
+// Whether the branch has commits that its push destination doesn't have. False
+// if the remote branch it would be pushed to isn't stored locally, in which
+// case the count is "?".
+func (b *Branch) IsAheadForPush() bool {
+	return b.RemoteBranchStoredLocally() && b.AheadForPush != "0" && b.AheadForPush != "?"
+}
+
 // for when we're in a detached head state
 func (b *Branch) IsRealBranch() bool {
 	return b.AheadForPull != "" && b.BehindForPull != ""

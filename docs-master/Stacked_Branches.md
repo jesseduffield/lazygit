@@ -16,3 +16,11 @@ branches properly stacked onto it.
 Lazygit visualizes the individual branch heads in the stack by marking them with a
 cyan asterisk (or a cyan branch symbol if you are using [nerd
 fonts](Config.md#display-nerd-fonts-icons)).
+
+When you push the topmost branch of the stack with `P`, and the branches below
+it have commits that haven't been pushed yet, lazygit offers to push them along
+with it. After rebasing the stack this saves you from checking out and
+force-pushing every branch one by one; you are asked to confirm the force push
+once for all of them. Only branches that already have an upstream are included.
+Each of them is pushed to where `git push` would push it if it were checked out,
+so your push configuration applies to them as usual.
