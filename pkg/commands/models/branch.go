@@ -31,6 +31,13 @@ type Branch struct {
 	// 'git@github.com:tiwood/lazygit.git'
 	UpstreamRemote string
 	UpstreamBranch string
+	// The remote and the remote branch that `git push` would push this branch
+	// to, as git determines them from push.default, remote.pushDefault and
+	// branch.<name>.pushRemote. In a triangular workflow these differ from the
+	// upstream. Both are empty if git has no push destination for the branch,
+	// e.g. because push.default is "upstream" and the branch has no upstream.
+	PushRemote string
+	PushBranch string
 	// subject line in commit message
 	Subject string
 	// commit hash
