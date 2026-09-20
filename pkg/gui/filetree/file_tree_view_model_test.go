@@ -78,3 +78,57 @@ func TestSetTreeSelectsNewFileWhenSelectedRenameSplits(t *testing.T) {
 		})
 	}
 }
+
+func TestSetTreeFollowsRenameIntoCollapsedDir(t *testing.T) {
+	scenarios := []struct {
+		name         string
+		showRootItem bool
+		expectedPath string
+	}{
+		{
+			name:         "with root item",
+			showRootItem: true,
+			/* EXPECTED:
+			expectedPath: "a/new.go",
+			ACTUAL: */
+			expectedPath: "a",
+		},
+		{
+			name:         "without root item",
+			showRootItem: false,
+			/* EXPECTED:
+			expectedPath: "a/new.go",
+			ACTUAL: */
+			expectedPath: "a/b.go",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			userConfig := config.GetDefaultConfig()
+			userConfig.Gui.ShowRootItemInFileTree = s.showRootItem
+			cmn := common.NewDummyCommonWithUserConfigAndAppState(userConfig, nil)
+
+			files := []*models.File{
+				{Path: "a/b.go"},
+				{Path: "a/new.go"},
+				{Path: "old.go"},
+			}
+			viewModel := NewFileTreeViewModel(func() []*models.File { return files }, cmn, true)
+			viewModel.SetTree()
+			viewModel.ToggleCollapsed(InternalTreePathForFilePath("a", s.showRootItem))
+			idx, found := viewModel.GetIndexForPath(InternalTreePathForFilePath("old.go", s.showRootItem))
+			assert.True(t, found)
+			viewModel.SetSelection(idx)
+
+			// staging the deletion of old.go turns it into the old half of a rename
+			files = []*models.File{
+				{Path: "a/b.go"},
+				{Path: "a/new.go", PreviousPath: "old.go"},
+			}
+			viewModel.SetTree()
+
+			assert.Equal(t, s.expectedPath, viewModel.GetSelectedPath())
+		})
+	}
+}
