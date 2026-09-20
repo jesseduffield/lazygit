@@ -2577,6 +2577,42 @@ assertions on the pane's visibility in the existing
 The commit that distils the helper into `CustomPatchHelper` (PR 9's "Remove the
 explorer behavior behind the retired panels") carries the change forward.
 
+#### Review round 2 (2026-09-20) — the trees are not a working tree
+
+Reported from Windows: building a custom patch printed `warning: in the working
+copy of 'a/pkg/gui/controllers.go', LF will be replaced by CRLF the next time
+Git touches it` above the patch in the pane previewing it. This repo's
+`.gitattributes` gives `*.go` files `text eol=lf` and says nothing about `*.txt`
+files; both warned. Nothing else looked wrong.
+
+The trees live under the temp dir, outside any repo, so neither the repo's
+`.gitattributes` nor its config reaches the two commands over them. git goes by
+`core.autocrlf` instead, and Git for Windows installs itself with that setting
+on. Both commands then convert, and the two conversions cancel out. `git apply`
+writes the after tree with CRLF while the before tree keeps the LF we wrote it
+with, `git diff --no-index` converts both back for the diff, and the patch comes
+out right with a warning per file above it.
+
+Two things made the conversion itself worth taking away rather than only the
+warning. An external diff renderer is handed the two files as they are on disk,
+so under difftastic the preview would report every line of every file as
+changed. And fixing one of the two commands alone would leave the trees
+differing in every line.
+
+`GitCommandBuilder.NoLineEndingConversion()` goes on both commands. It sets
+`core.autocrlf=false`, `core.eol=lf` for the attributes file a machine may have
+outside the repo, and `core.safecrlf=false` for the attribute that names CRLF
+outright. One `fixup!` on "Materialize the custom patch so the diff renderer can
+show it", with `custom_patch_ignores_line_ending_conversion`. The test reaches a
+command run outside the repo through `GIT_CONFIG_COUNT` and its `KEY`/`VALUE`
+variables as `ExtraEnvVars`, a `-c` on the command line beating them. Every
+branch above replayed, one conflict in the generated test list.
+
+Owed: the Windows retest, and with it which setting was in force there. The user
+reported `core.autocrlf` as unset, so that machine may be converting by an
+attributes file instead. `core.eol=lf` answers for one of those, unless the
+attribute names CRLF itself (§8 row).
+
 ### PR 9 — Replace the staging and patch-building panels with the focused main view
 
 The removal PR. Also the PR whose title tells users the big story — consider
@@ -3141,7 +3177,7 @@ user pass before merge:
 | 6 | ✅ **APPROVED 2026-08-15.** `{`/`}`, `ctrl+w` and renderer-cycle scrolled down: no top-jump, offset preserved, both anchor cases; ignoring whitespace where it removes the anchor's hunk, and where it empties the diff. Nothing found; the whitespace consumer called out as a welcome addition |
 | 6b | Copying under delta (unified + SxS) and difftastic: a hunk with its header, a file header, a selection that is all additions, a commit's message alone and a selection spanning it into the diff; and both toasts. The headless tests use fake renderers throughout |
 | 7 | ✅ **APPROVED 2026-08-16**, except for `E` ("Edit hunk"), ported here on 2026-09-01 and still owing a pass with a real editor, including a patch edited to something neither side of the diff says. Full staging matrix under no-renderer / patched delta (unified + SxS) / difftastic; cross-pane focus-follow; raw fallback feel under stock delta / diff-so-fancy-without-metadata; binary-file focus stability (N§21.30 repro). Four review comments about the stack as a whole, all fixed the same day — see PR 7's sign-off section |
-| 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta |
+| 8 | Gutter under delta/no-renderer/difftastic; whole-commit path on LocalCommits (canRebase menu); secondary pane preview per renderer; **secondary-pane removal under difftastic specifically** (the prototype's known-broken case: reordered `d`/`a` records, collapsed modification rows, a/b record-path leak) and under delta. On Windows, a preview with nothing said about line endings above it, under difftastic as well as git's own diff (round 2) |
 | 9 | `enter` and double-click on a file (working tree and commit) under each renderer; `{`/`}` down to 0 and back while a patch is being built; the keybindings menu's tooltips over both kinds of diff; screen modes with a diff focused; `wrapLinesInDiffView: false` with a long line in a diff, a branch log, the status and a conflict hint on screen in turn (round 1) |
 | 10 | Ghostty, iTerm2, VS Code |
 | 11 | The URL the browser lands on, in a repo whose branch has a pull request: a line of a commit's diff, a deleted line (`L`), a file-header row, a range of commits (`<base>..<newest>`), a range reaching down to the pull request's first commit (`BASE..<newest>`), and the same from the commit files panel and the sub-commits panel; plus the refusal over an unpushed commit and over one from before the branch (round 1). Nothing headless reaches a pull request (PR 11 deviation 5), so every one of these is untested |
@@ -3212,6 +3248,7 @@ The remaining rows are agreed as keep/defer:
 | The command refuses over the commits of a branch whose pull request is merged (new, PR 11 round 1) | Keep. Merging a pull request puts its commits in a main branch, so they come out `StatusMerged` rather than `StatusPushed`, and the test for what a pull request holds turns them down although its pages still show them. Telling a commit of the remote branch apart from one that only reached a main branch takes a rev-list against the upstream that nothing else needs, and the local branch is usually gone by the time its pull request is merged |
 | A renderer that keeps the diff and hunk headers but drops body lines could be mis-parsed where it ends the buffer (new, PR 2 round 1) | Keep. The leniency applies to one section, the one the buffer breaks off in, and every renderer that restructures a body lengthens hunks rather than shortening them. A mis-parse would act on the wrong line only in the focused main view, and there the diff is either git's own or one whose lines state their own identity (`MainViewDiffMode`) |
 | A submodule's log lines go unresolved under a renderer that states records (PR 2 round 2, widened by PR 4 round 1) | Keep. Nothing states a record for those lines, and since PR 4 round 1 a rendering with records is not parsed for the rows without one, so under delta as under diff-so-fancy they have no identity (before that round, only diff-so-fancy lost them, by stripping the leading indicator column off every line it reads while inside a hunk). The cost is that `n` pressed on one of them steps to the file after the next. The submodule itself is listed and navigated to from the line naming it, for which both renderers state an `f` record. Spec §6.4 wants every row of a header block tagged, so delta could tag the log lines with the submodule's `f` as well; not done |
+| An attributes file outside the repo can still convert the custom patch's trees (new, PR 8 round 2) | Raised, not acted on. `core.autocrlf=false` and `core.eol=lf` answer for every machine that converts by config, and for an attribute that asks for text without saying which endings. A global or system `.gitattributes` naming `eol=crlf` outright overrides `core.eol`, and then `git apply` writes the after tree with CRLF while the before tree we write ourselves keeps its LF. git's own diff still converts both back, so only a renderer handed the two files reports them as differing throughout, and `core.safecrlf=false` keeps the warning about it off the pane. The airtight form is `core.attributesfile` pointed at a file of lazygit's own reading `* -text`, at the cost of the diff drivers a global attributes file sets |
 
 ## 9. Open questions (resolve before/during the marked PR)
 
@@ -3389,6 +3426,23 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-09-20 (later):** **PR 8 round 2**, on a warning above the custom patch
+  on Windows. The trees the patch is materialized into sit outside any repo, so
+  the repo's `.gitattributes` never reaches the commands over them and git
+  converts their line endings by `core.autocrlf`, which Git for Windows
+  installs itself with. `git apply` wrote the after tree with CRLF while the
+  before tree kept the LF we wrote it with, and `git diff --no-index` converted
+  both back, so the patch was right and every file of it carried a warning
+  above it. An external diff renderer is handed the files themselves, and would
+  have shown the pair as differing throughout. One `fixup!` on "Materialize the
+  custom patch so the diff renderer can show it" puts
+  `NoLineEndingConversion()` on both commands, with
+  `custom_patch_ignores_line_ending_conversion` reaching them through
+  `GIT_CONFIG_COUNT`. Five branches replayed, one conflict in the generated
+  test list; build, unit and lint green at every branch tip, whole e2e suite
+  green at the fixup and at the tip. Backup tag
+  `jump-to-file-from-diffstat-2026-09-20-1912-backup`. The Windows retest is
+  owed, and one case is left open for the user (§8 row).
 - **2026-09-20:** **PR 6 round 1**, on `just lint` failing at PR 6's tip:
   `diffLineInfoFromRecords` had lost its last caller there once the 2026-09-19
   fixup below it moved `resolveDiffLines` off it, and PR 7's use of it kept the
