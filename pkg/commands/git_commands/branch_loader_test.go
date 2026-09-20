@@ -26,7 +26,7 @@ func TestObtainBranch(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName:                 "TrimHeads",
-			input:                    []string{"", "heads/a_branch", "", "", "", "subject", "123", timeStamp},
+			input:                    []string{"", "heads/a_branch", "", "", "", "", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -41,7 +41,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "NoUpstream",
-			input:                    []string{"", "a_branch", "", "", "", "subject", "123", timeStamp},
+			input:                    []string{"", "a_branch", "", "", "", "", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -56,7 +56,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "IsHead",
-			input:                    []string{"*", "a_branch", "", "", "", "subject", "123", timeStamp},
+			input:                    []string{"*", "a_branch", "", "", "", "", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -71,7 +71,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "IsBehindAndAhead",
-			input:                    []string{"", "a_branch", "a_remote/a_branch", "[behind 2, ahead 3]", "[behind 2, ahead 3]", "subject", "123", timeStamp},
+			input:                    []string{"", "a_branch", "a_remote/a_branch", "[behind 2, ahead 3]", "[behind 2, ahead 3]", "refs/remotes/a_remote/a_branch", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -79,6 +79,40 @@ func TestObtainBranch(t *testing.T) {
 				BehindForPull: "2",
 				AheadForPush:  "3",
 				BehindForPush: "2",
+				PushRemote:    "a_remote",
+				PushBranch:    "a_branch",
+				Head:          false,
+				Subject:       "subject",
+				CommitHash:    "123",
+			},
+		},
+		{
+			testName:                 "PushDestinationDiffersFromUpstream",
+			input:                    []string{"", "a_branch", "a_remote/a_branch", "[ahead 3]", "[ahead 5]", "refs/remotes/my_fork/feature/a_branch", "subject", "123", timeStamp},
+			storeCommitDateAsRecency: false,
+			expectedBranch: &models.Branch{
+				Name:          "a_branch",
+				AheadForPull:  "3",
+				BehindForPull: "0",
+				AheadForPush:  "5",
+				BehindForPush: "0",
+				PushRemote:    "my_fork",
+				PushBranch:    "feature/a_branch",
+				Head:          false,
+				Subject:       "subject",
+				CommitHash:    "123",
+			},
+		},
+		{
+			testName:                 "PushDestinationNotARemoteTrackingRef",
+			input:                    []string{"", "a_branch", "a_remote/a_branch", "", "", "refs/published/a_branch", "subject", "123", timeStamp},
+			storeCommitDateAsRecency: false,
+			expectedBranch: &models.Branch{
+				Name:          "a_branch",
+				AheadForPull:  "0",
+				BehindForPull: "0",
+				AheadForPush:  "0",
+				BehindForPush: "0",
 				Head:          false,
 				Subject:       "subject",
 				CommitHash:    "123",
@@ -86,7 +120,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "RemoteBranchIsGone",
-			input:                    []string{"", "a_branch", "a_remote/a_branch", "[gone]", "[gone]", "subject", "123", timeStamp},
+			input:                    []string{"", "a_branch", "a_remote/a_branch", "[gone]", "[gone]", "refs/remotes/a_remote/a_branch", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -95,6 +129,8 @@ func TestObtainBranch(t *testing.T) {
 				BehindForPull: "?",
 				AheadForPush:  "?",
 				BehindForPush: "?",
+				PushRemote:    "a_remote",
+				PushBranch:    "a_branch",
 				Head:          false,
 				Subject:       "subject",
 				CommitHash:    "123",
@@ -102,7 +138,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "WithCommitDateAsRecency",
-			input:                    []string{"", "a_branch", "", "", "", "subject", "123", timeStamp},
+			input:                    []string{"", "a_branch", "", "", "", "", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: true,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",

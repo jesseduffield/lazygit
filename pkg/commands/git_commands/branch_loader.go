@@ -349,6 +349,7 @@ var branchFields = []string{
 	"upstream:short",
 	"upstream:track",
 	"push:track",
+	"push",
 	"subject",
 	"objectname",
 	"committerdate:unix",
@@ -361,13 +362,15 @@ func obtainBranch(split []string, storeCommitDateAsRecency bool) (*models.Branch
 	upstreamName := split[2]
 	track := split[3]
 	pushTrack := split[4]
-	subject := split[5]
-	commitHash := split[6]
-	commitDate := split[7]
+	pushRef := split[5]
+	subject := split[6]
+	commitHash := split[7]
+	commitDate := split[8]
 
 	name := strings.TrimPrefix(fullName, "heads/")
 	aheadForPull, behindForPull, gone := parseUpstreamInfo(upstreamName, track)
 	aheadForPush, behindForPush, _ := parseUpstreamInfo(upstreamName, pushTrack)
+	pushRemote, pushBranch := parsePushDestination(pushRef)
 
 	recency := ""
 	if storeCommitDateAsRecency {
@@ -383,6 +386,8 @@ func obtainBranch(split []string, storeCommitDateAsRecency bool) (*models.Branch
 		BehindForPull: behindForPull,
 		AheadForPush:  aheadForPush,
 		BehindForPush: behindForPush,
+		PushRemote:    pushRemote,
+		PushBranch:    pushBranch,
 		UpstreamGone:  gone,
 		Head:          headMarker == "*",
 		Subject:       subject,
@@ -408,6 +413,25 @@ func parseUpstreamInfo(upstreamName string, track string) (string, string, bool)
 	behind := parseDifference(track, `behind (\d+)`)
 
 	return ahead, behind, false
+}
+
+// Splits the remote-tracking ref that the %(push) field names, e.g.
+// refs/remotes/origin/main, into the remote and the remote branch. Returns
+// empty strings if the field is empty because git has no push destination for
+// the branch, or if the ref isn't under refs/remotes/.
+func parsePushDestination(pushRef string) (string, string) {
+	remoteAndBranch, ok := strings.CutPrefix(pushRef, "refs/remotes/")
+	if !ok {
+		return "", ""
+	}
+
+	// Remote names can't contain slashes, so the first one ends the remote name
+	remote, branch, ok := strings.Cut(remoteAndBranch, "/")
+	if !ok {
+		return "", ""
+	}
+
+	return remote, branch
 }
 
 func parseDifference(track string, regexStr string) string {
