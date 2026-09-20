@@ -1447,6 +1447,33 @@ commit builds and unit-tests clean on its own. §6 sign-off **approved
 12. Deviations 3 and 10 arrived as `fixup!` commits, on the mechanism commit and
     on the helper commit; the user has folded them in.
 
+#### Review round 1 (2026-09-20) — lint at the branch tip
+
+`just lint` failed at the tip commit, "Keep both ends of a selected range
+across a re-render": `diffLineInfoFromRecords` unused. The function dates from
+PR 5, where it read a row's record directly and had two callers, the single-row
+read and `resolveDiffLines`. PR 4 round 1's fixup on "Keep your place in the
+diff when changing the context size" turned it into a wrapper over
+`diffLineIdentitiesFromRecords` and moved `resolveDiffLines` off it, in every
+commit above; the tip commit had already moved the single-row read onto
+`diffLineIdentitiesAt`. So after that round the wrapper had no caller at this
+PR's tip. PR 7's "Carry the selection to the next change after staging" calls
+it again, and lint on 2026-09-19 ran at the stack tip only, so nothing noticed.
+
+A `fixup!` on the tip commit deletes the wrapper and moves its explanation of a
+row carrying two records onto `diffLineIdentitiesFromRecords`, whose
+cross-reference now names `GetDiffLineInfo` and `resolveDiffLines` as the
+readers that take a row's leading identity. PR 7 re-adds the wrapper beside its
+only caller (see its addendum). Inserted with one `rebase -i` and a `break`
+between each target's pick and its `update-ref` line, so the branch ref lands
+on the fixup without a manual move; no pick conflicted. Build, lint and the
+helpers' unit tests green at the stop; backup tags `*-2026-09-20-0921-backup`
+on the stack's tip and on this branch and PR 7's.
+
+The lesson, proposed for AGENTS.md (uncommitted in the feature worktree): after
+a mid-stack fixup, check every branch tip above it, not only the stack tip; a
+later PR can hide an unused symbol.
+
 ### PR 6b — Copy the selected diff lines from the focused main view
 
 Split out of PR 7 on 2026-09-13, at the user's suggestion: PR 7's first two
@@ -2255,6 +2282,25 @@ New tests: `TestBlockingEvents_KeysArrivingBeforeTheReplayGoBehindIt`, and the
 three existing block-events tests now pump the queued work, which asserts the
 deferral. Whole suite green, `just lint` clean, and every rewritten commit
 builds.
+
+#### Addendum 2026-09-20 — the wrapper comes back here
+
+PR 6 round 1 deleted `diffLineInfoFromRecords` at PR 6's tip, where its last
+caller went. "Carry the selection to the next change after staging" is the
+next commit to need a row's leading identity from its records (the early
+search of `RevealChangeLineAtOrdinal`, which counts change rows as they
+arrive), so a `fixup!` on it adds the wrapper back, as a thin form of
+`diffLineIdentitiesFromRecords`, with a comment that states the rule itself.
+The alternative, indexing the plural result inline at the call site, was set
+aside because the wrapper's name carries the rule that a row's own identity is
+its leftmost one.
+
+Between the two fixups, this commit does not build (it calls a method the
+earlier fixup deleted) until its own fixup lands right behind it. The user
+confirmed this is the wanted shape. A reviewable fixup outranks a green
+intermediate state, and the fixups are folded in soon after review. Build,
+lint and unit tests green at the fixup and at the stack tip;
+`select_next_change_after_staging` passes at the tip.
 
 ### PR 8 — Build custom patches directly from a commit's diff view
 
@@ -3295,7 +3341,9 @@ The remaining rows are agreed as keep/defer:
       "Edit hunk" (see PR 7's addendum; `E` still owes its interactive pass)
       (17 commits with round 4's folded in, 55
       across the whole stack, all checks green, every commit building and
-      unit-testing clean on its own), stacked on
+      unit-testing clean on its own; since 2026-09-20 "Carry the selection to
+      the next change after staging" builds only once its `fixup!` is folded
+      in, see the addendum), stacked on
       `show-staged-changes-in-lower-pane`, which is itself stacked on
       `keep-diff-position-on-rerender`. §6 sign-off **approved 2026-08-16**,
       with four cross-cutting review comments fixed as mid-branch fixups in
@@ -3341,6 +3389,17 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-09-20:** **PR 6 round 1**, on `just lint` failing at PR 6's tip:
+  `diffLineInfoFromRecords` had lost its last caller there once the 2026-09-19
+  fixup below it moved `resolveDiffLines` off it, and PR 7's use of it kept the
+  stack tip clean. A `fixup!` on PR 6's tip deletes it, a `fixup!` on PR 7's
+  "Carry the selection to the next change after staging" adds it back beside
+  its only caller; that commit does not build between the two, by the user's
+  choice (reviewable fixups over green intermediate states). One `rebase -i`,
+  `break` before each `update-ref`, no conflicts; build/lint/unit green at both
+  stops and the tip. Backup tags `*-2026-09-20-0921-backup`. Two AGENTS.md
+  paragraphs proposed, uncommitted: fixups may break commits before them, and
+  check every branch tip after a mid-stack fixup.
 - **2026-09-19:** **PR 4 round 1**, on a phantom file in the jump-to-file menu.
   Under delta, a commit whose added lines include a `diff --git` line (a test
   whose input is a diff) listed `img.png` between every pair of files: the
