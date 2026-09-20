@@ -140,7 +140,7 @@ changes.
 `fixup!` on an early commit deletes something that a later commit still uses,
 the later commit doesn't build until its own `fixup!`, right behind it, catches
 up; the same goes for lint. That is expected. The rules above about every
-commit compiling, testing and linting clean describe the history *after*
+commit compiling, testing and linting clean describe the history _after_
 autosquash, and I fold fixups in soon after reviewing them. Never amend a
 commit directly, or edit the commits between two fixups, to keep every commit
 of the un-squashed history green. The reviewable fixup is worth more than a
@@ -208,7 +208,7 @@ looks messy. The whole point of a fixup is that the iteration stays
 **visible and reviewable**; squashing it away yourself destroys exactly the
 artifact it exists to create. Collapsing fixups into their targets is the
 user's action, taken once they've reviewed the iterations. Every mention of
-`--autosquash` in this section describes what the *user* will eventually
+`--autosquash` in this section describes what the _user_ will eventually
 run, never a step for you to perform. If you think the history is ready to
 collapse, say so and leave it to them.
 
@@ -348,7 +348,7 @@ refactor to an earlier commit (but don't do it without asking first).
 ## Don't read model state right after a `Refresh`
 
 A `Refresh` (or `RefreshFromWorker`) does its git work on a worker and then
-*enqueues* the model update onto the UI thread. So when `Refresh` returns, the
+_enqueues_ the model update onto the UI thread. So when `Refresh` returns, the
 model is **not** updated yet — the write is still queued. Reading a field
 synchronously right after refreshing its scope reads the stale, pre-refresh
 value (and this is true even for SYNC refreshes):
@@ -434,7 +434,7 @@ column. Applies only to `pkg/i18n/english.go`.
 
 ## Code comments are for future readers, not development history
 
-Comments in source code explain *why this code is shaped the way it is*. They
+Comments in source code explain _why this code is shaped the way it is_. They
 are not the place to narrate the path we took during development — what was
 tried first, what didn't work, what's "more reliable" or "cleaner" than some
 alternative. That framing is interesting in the moment, but it's noise to
@@ -450,7 +450,7 @@ Avoid phrasings like:
 - "X rather than Y", where Y is what the code did before the change
 
 The iteration story is sometimes worth preserving — but it belongs in the
-commit message, which is the durable record of *why this change was made*. The
+commit message, which is the durable record of _why this change was made_. The
 code comment should make sense to someone who has never seen any prior version
 and is just trying to understand the file as it currently exists.
 
@@ -503,7 +503,7 @@ So:
   struct, run `just generate` and include the regenerated
   `docs-master/Config.md` (and `schema-master/config.json`) in your commit.
 - Don't hard-wrap the doc comments on `userConfig` fields. This applies
-  *only* to `userConfig`, because those comments are fed through the doc
+  _only_ to `userConfig`, because those comments are fed through the doc
   generator; comments on every other struct follow the normal Go wrapping
   conventions. For `userConfig` fields, write each sentence (or paragraph)
   as a single unwrapped line, however long — the generator re-wraps them for
