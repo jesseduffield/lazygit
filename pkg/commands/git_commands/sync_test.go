@@ -41,12 +41,11 @@ func TestSyncPush(t *testing.T) {
 			},
 		},
 		{
-			testName: "Push with force disabled, upstream supplied",
+			testName: "Push with force disabled, refspec supplied",
 			opts: PushOpts{
 				ForceWithLease: false,
-				CurrentBranch:  "master",
-				UpstreamRemote: "origin",
-				UpstreamBranch: "master",
+				Remote:         "origin",
+				Refspecs:       []string{"refs/heads/master:master"},
 			},
 			test: func(cmdObj *oscommands.CmdObj, err error) {
 				assert.Equal(t, cmdObj.Args(), []string{"git", "push", "origin", "refs/heads/master:master"})
@@ -57,9 +56,8 @@ func TestSyncPush(t *testing.T) {
 			testName: "Push with force disabled, setting upstream",
 			opts: PushOpts{
 				ForceWithLease: false,
-				CurrentBranch:  "master-local",
-				UpstreamRemote: "origin",
-				UpstreamBranch: "master",
+				Remote:         "origin",
+				Refspecs:       []string{"refs/heads/master-local:master"},
 				SetUpstream:    true,
 			},
 			test: func(cmdObj *oscommands.CmdObj, err error) {
@@ -71,9 +69,8 @@ func TestSyncPush(t *testing.T) {
 			testName: "Push with force-with-lease enabled, setting upstream",
 			opts: PushOpts{
 				ForceWithLease: true,
-				CurrentBranch:  "master",
-				UpstreamRemote: "origin",
-				UpstreamBranch: "master",
+				Remote:         "origin",
+				Refspecs:       []string{"refs/heads/master:master"},
 				SetUpstream:    true,
 			},
 			test: func(cmdObj *oscommands.CmdObj, err error) {
@@ -82,11 +79,23 @@ func TestSyncPush(t *testing.T) {
 			},
 		},
 		{
-			testName: "Push with remote branch but no origin",
+			testName: "Push several refspecs",
 			opts: PushOpts{
 				ForceWithLease: true,
-				UpstreamRemote: "",
-				UpstreamBranch: "master",
+				Remote:         "origin",
+				Refspecs:       []string{"refs/heads/a:refs/heads/a", "refs/heads/b:refs/heads/b"},
+			},
+			test: func(cmdObj *oscommands.CmdObj, err error) {
+				assert.Equal(t, cmdObj.Args(), []string{"git", "push", "--force-with-lease", "origin", "refs/heads/a:refs/heads/a", "refs/heads/b:refs/heads/b"})
+				assert.NoError(t, err)
+			},
+		},
+		{
+			testName: "Push with refspec but no remote",
+			opts: PushOpts{
+				ForceWithLease: true,
+				Remote:         "",
+				Refspecs:       []string{"refs/heads/master:master"},
 				SetUpstream:    true,
 			},
 			test: func(cmdObj *oscommands.CmdObj, err error) {
