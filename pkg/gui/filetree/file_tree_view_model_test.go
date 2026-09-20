@@ -88,18 +88,12 @@ func TestSetTreeFollowsRenameIntoCollapsedDir(t *testing.T) {
 		{
 			name:         "with root item",
 			showRootItem: true,
-			/* EXPECTED:
 			expectedPath: "a/new.go",
-			ACTUAL: */
-			expectedPath: "a",
 		},
 		{
 			name:         "without root item",
 			showRootItem: false,
-			/* EXPECTED:
 			expectedPath: "a/new.go",
-			ACTUAL: */
-			expectedPath: "a/b.go",
 		},
 	}
 

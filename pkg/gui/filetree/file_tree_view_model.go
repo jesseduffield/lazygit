@@ -98,22 +98,22 @@ func (self *FileTreeViewModel) GetSelectedPath() string {
 }
 
 func (self *FileTreeViewModel) SetTree() {
-	newFiles := self.GetAllFiles()
 	selectedNode := self.GetSelected()
-
-	// for when you stage the old file of a rename and the new file is in a collapsed dir
-	for _, file := range newFiles {
-		if selectedNode != nil && selectedNode.path != "" && file.PreviousPath == selectedNode.path {
-			self.ExpandToPath(file.Path)
-		}
-	}
-
 	prevNodes := self.GetAllItems()
 	prevSelectedLineIdx := self.GetSelectedLineIdx()
 
 	self.IFileTree.SetTree()
 
 	if selectedNode != nil {
+		// If the selected file has become the old half of a rename, e.g. because
+		// its deletion was staged, make sure the rename is visible so that the
+		// selection can move to it.
+		for _, node := range self.GetRoot().GetLeaves() {
+			if node.File.PreviousPath == selectedNode.GetPath() {
+				self.ExpandToPath(node.GetInternalPath())
+			}
+		}
+
 		newNodes := self.GetAllItems()
 		newIdx := self.findNewSelectedIdx(prevNodes[prevSelectedLineIdx:], newNodes)
 		if newIdx != -1 && newIdx != prevSelectedLineIdx {
