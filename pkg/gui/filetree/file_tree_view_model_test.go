@@ -41,10 +41,7 @@ func TestSetTreeSelectsNewFileWhenSelectedRenameSplits(t *testing.T) {
 		{
 			name:         "with root item",
 			showRootItem: true,
-			/* EXPECTED:
 			expectedPath: "dir/new.go",
-			ACTUAL: */
-			expectedPath: "other.go",
 		},
 		{
 			name:         "without root item",
