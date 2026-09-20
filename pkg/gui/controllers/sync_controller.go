@@ -87,18 +87,26 @@ func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func(
 }
 
 func (self *SyncController) push(currentBranch *models.Branch) error {
-	// if we are behind our upstream branch we'll ask if the user wants to force push
-	if currentBranch.IsTrackingRemote() {
-		opts := pushOpts{remoteBranchStoredLocally: currentBranch.RemoteBranchStoredLocally()}
+	return self.resolvePushOfCurrentBranch(currentBranch, func(opts pushOpts) error {
+		// if we are behind our upstream branch we'll ask if the user wants to force push
 		if currentBranch.IsBehindForPush() {
 			return self.requestToForcePush(currentBranch, opts)
 		}
 
 		return self.pushAux(currentBranch, opts)
+	})
+}
+
+// Works out where the current branch is pushed to: to its upstream, to a
+// branch of the same name if push.default is "current", or to an upstream the
+// user enters in a prompt. Calls onResolved with the options for that push.
+func (self *SyncController) resolvePushOfCurrentBranch(currentBranch *models.Branch, onResolved func(pushOpts) error) error {
+	if currentBranch.IsTrackingRemote() {
+		return onResolved(pushOpts{remoteBranchStoredLocally: currentBranch.RemoteBranchStoredLocally()})
 	}
 
 	if self.c.Git().Config.GetPushToCurrent() {
-		return self.pushAux(currentBranch, pushOpts{setUpstream: true})
+		return onResolved(pushOpts{setUpstream: true})
 	}
 
 	return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
@@ -107,7 +115,7 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 			return err
 		}
 
-		return self.pushAux(currentBranch, pushOpts{
+		return onResolved(pushOpts{
 			setUpstream:    true,
 			upstreamRemote: upstreamRemote,
 			upstreamBranch: upstreamBranch,
