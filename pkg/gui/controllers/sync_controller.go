@@ -195,15 +195,18 @@ type pushOpts struct {
 func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts) error {
 	return self.c.WithInlineStatus(currentBranch, types.ItemOperationPushing, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.Push)
+		refspecs := []string{}
+		if opts.upstreamBranch != "" {
+			refspecs = append(refspecs, fmt.Sprintf("refs/heads/%s:%s", currentBranch.Name, opts.upstreamBranch))
+		}
 		err := self.c.Git().Sync.Push(
 			task,
 			git_commands.PushOpts{
 				Force:          opts.force,
 				ForceWithLease: opts.forceWithLease,
-				CurrentBranch:  currentBranch.Name,
-				UpstreamRemote: opts.upstreamRemote,
-				UpstreamBranch: opts.upstreamBranch,
 				SetUpstream:    opts.setUpstream,
+				Remote:         opts.upstreamRemote,
+				Refspecs:       refspecs,
 			})
 		if err != nil {
 			if !opts.force && !opts.forceWithLease && strings.Contains(err.Error(), "Updates were rejected") {
