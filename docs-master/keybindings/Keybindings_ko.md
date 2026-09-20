@@ -10,7 +10,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | 메인 패널을 위로 스크롤 |  |
 | `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | 메인 패널을 아래로로 스크롤 |  |
 | `` @ `` | 명령어 로그 메뉴 열기 | View options for the command log e.g. show/hide the command log and focus the command log. |
-| `` P `` | 푸시 | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
+| `` P `` | 푸시 | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have commits to push, you are offered to push those too. |
 | `` p `` | 업데이트 | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. |
 | `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |

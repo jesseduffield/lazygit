@@ -239,6 +239,11 @@ type TranslationSet struct {
 	ForcePush                             string
 	ForcePushPrompt                       string
 	ForcePushDisabled                     string
+	ForcePushBranchesPrompt               string
+	ForcePushBranchesDisabled             string
+	BranchesBelowHaveCommitsToPush        string
+	PushBranchAndBranchesBelow            string
+	PushOnlyCurrentBranch                 string
 	UpdatesRejected                       string
 	UpdatesRejectedAndForcePushDisabled   string
 	CheckForUpdate                        string
@@ -1222,7 +1227,7 @@ func EnglishTranslationSet() *TranslationSet {
 		Refresh:                              "Refresh",
 		RefreshTooltip:                       "Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`.",
 		Push:                                 "Push",
-		PushTooltip:                          "Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
+		PushTooltip:                          "Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have commits to push, you are offered to push those too.",
 		Pull:                                 "Pull",
 		PullTooltip:                          "Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
 		MergeConflictsTitle:                  "Merge conflicts",
@@ -1400,6 +1405,11 @@ func EnglishTranslationSet() *TranslationSet {
 		ForcePush:                            "Force push",
 		ForcePushPrompt:                      "Your branch has diverged from the remote branch. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to force push.",
 		ForcePushDisabled:                    "Your branch has diverged from the remote branch and you've disabled force pushing",
+		ForcePushBranchesPrompt:              "The following branches have diverged from their remote branches:\n\n{{.branches}}\n\nPress {{.cancelKey}} to cancel, or {{.confirmKey}} to force push.",
+		ForcePushBranchesDisabled:            "Some of these branches have diverged from their remote branches and you've disabled force pushing",
+		BranchesBelowHaveCommitsToPush:       "The following branches stacked below '{{.branchName}}' also have commits to push:",
+		PushBranchAndBranchesBelow:           "Push all these branches in addition to the current one",
+		PushOnlyCurrentBranch:                "Push only '{{.branchName}}'",
 		UpdatesRejected:                      "Updates were rejected. Please fetch and examine the remote changes before pushing again.",
 		UpdatesRejectedAndForcePushDisabled:  "Updates were rejected and you have disabled force pushing",
 		CheckForUpdate:                       "Check for update",
