@@ -121,10 +121,7 @@ func TestOverwriteLinesAfterContentEndingInANewline(t *testing.T) {
 
 	v.OverwriteLines(0, "x")
 
-	/* EXPECTED:
 	assert.Equal(t, []string{"x", "b"}, v.BufferLines())
-	ACTUAL: */
-	assert.Equal(t, []string{"a", "x"}, v.BufferLines())
 }
 
 func TestUpdatedCursorAndOrigin(t *testing.T) {
