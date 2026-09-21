@@ -640,10 +640,17 @@ test it knew of, so the five tips from PR 9 up stopped building until a second
 tests and lint green at every one of the 13 branch tips from PR 2 up; the whole
 e2e suite green at the stack tip.
 
-Seen on the way, not fixed, from master: `overwriteLines` sets the write cursor
-directly and leaves `pendingNewline` standing, so an `OverwriteLines` after
-content ending in a newline writes one line lower than asked. Nothing in the
-stack calls it that way.
+Seen on the way, from master: `overwriteLines` set the write cursor directly
+and left `pendingNewline` standing, so an `OverwriteLines` after content ending
+in a newline wrote one line lower than asked. Nothing in lazygit calls it that
+way, but the user wanted it fixed while we were there, so it went in at the
+foot of this branch as a demonstrate/fix pair ("Demonstrate that overwriting
+lines after a pending newline lands a line low", "Clear a pending newline when
+overwriting lines in place": the cursor moves through `SetWritePos`, which
+drops the pending newline). Backup tag
+`jump-to-file-from-diffstat-2026-09-21-0938-backup`. After that replay every
+branch tip builds, PR 2's tip and the stack tip pass unit tests and lint, and
+the whole e2e suite is green at the stack tip.
 
 ### PR 3 — Rename the "pagers" config to "diff renderers" — DONE (master #5870)
 
@@ -3496,9 +3503,12 @@ Log:
   start of PR 2 and three `fixup!`s (PRs 2, 4, 7), PR 6's moved loop resolved in
   the replay, `stage_diff_lines_of_a_path_with_a_space` added, and a second
   `fixup!` on PR 9's rename commit for the test's config key (the 2026-09-13
-  replay trap). Build, unit and lint green at all 13 branch tips, whole e2e
-  green at the tip. Backup tags `jump-to-file-from-diffstat-2026-09-21-0839-backup`
-  and `-0905-backup`.
+  replay trap). Also fixed at the foot of PR 2, as a demonstrate/fix pair at
+  the user's word: `OverwriteLines` after content ending in a newline wrote one
+  line lower than asked (from master; nothing in lazygit hit it). Build, unit
+  and lint green at all 13 branch tips, whole e2e green at the tip. Backup tags
+  `jump-to-file-from-diffstat-2026-09-21-0839-backup`, `-0905-backup` and
+  `-0938-backup`.
 - **2026-09-20 (later):** **PR 8 round 2**, on a warning above the custom patch
   on Windows. The trees the patch is materialized into sit outside any repo, so
   the repo's `.gitattributes` never reaches the commands over them and git
