@@ -113,6 +113,20 @@ func TestWriteString(t *testing.T) {
 	}
 }
 
+func TestOverwriteLinesAfterContentEndingInANewline(t *testing.T) {
+	v := NewView("name", 0, 0, 20, 10, OutputNormal)
+	// The trailing newline is held back until more content arrives, so that the
+	// view doesn't end in an empty line.
+	v.writeString("a\nb\n")
+
+	v.OverwriteLines(0, "x")
+
+	/* EXPECTED:
+	assert.Equal(t, []string{"x", "b"}, v.BufferLines())
+	ACTUAL: */
+	assert.Equal(t, []string{"a", "x"}, v.BufferLines())
+}
+
 func TestUpdatedCursorAndOrigin(t *testing.T) {
 	tests := []struct {
 		prevOrigin     int
