@@ -5,6 +5,7 @@
 package gocui
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"slices"
@@ -687,6 +688,23 @@ type lineType struct {
 	// matches the current width; nil means nothing is cached yet.
 	wrappedCells   [][]cell
 	wrappedColumns int
+
+	// asWritten is the text of the line as its writer wrote it, escape sequences
+	// left out, kept from the first character on that the cells spell differently:
+	// a tab, which the cells hold as the spaces it fills, or a carriage return,
+	// which they hold as the overwrite it caused. nil while the cells spell the
+	// line as it was written, as they do for most lines.
+	asWritten []byte
+}
+
+// textAsWritten returns the line's text as its writer wrote it, escape sequences
+// left out. A reader that parses a view's content rather than showing it wants
+// this form; the cells' text is for showing.
+func (l *lineType) textAsWritten() string {
+	if l.asWritten != nil {
+		return string(l.asWritten)
+	}
+	return l.cells.String()
 }
 
 // trailingFillAttributes describes the fg/bg colors that draw() should
@@ -949,8 +967,7 @@ func (v *View) SetWritePos(x, y int) {
 		y = 0
 	}
 
-	v.buf.wx = x
-	v.buf.wy = y
+	v.buf.seekWrite(x, y)
 
 	// Changing the write position makes a pending newline obsolete
 	v.buf.pendingNewline = false
@@ -1034,6 +1051,35 @@ func (b *viewBuffer) writeCells(cells []cell) {
 	b.wx += len(cells)
 }
 
+// seekWrite moves the write cursor to (x, y). Writing there starts the line over,
+// so whatever it kept of its text as written is dropped; the text a line keeps is
+// the text written to it from its start. A carriage return continues a line
+// instead, and moves the cursor without this (see write).
+func (b *viewBuffer) seekWrite(x, y int) {
+	b.wx = x
+	b.wy = y
+	if y < len(b.lines) {
+		b.lines[y].asWritten = nil
+	}
+}
+
+// startAsWritten begins keeping the current line's text as written (see
+// lineType.asWritten), at the first character the cells won't spell the same way.
+// Up to here they spell it exactly, so their text is what was written so far.
+func (b *viewBuffer) startAsWritten() {
+	if line := &b.lines[b.wy]; line.asWritten == nil {
+		line.asWritten = append([]byte{}, line.cells.String()...)
+	}
+}
+
+// noteAsWritten records text the writer wrote to the current line, once the line
+// keeps its text as written at all.
+func (b *viewBuffer) noteAsWritten(text []byte) {
+	if line := &b.lines[b.wy]; line.asWritten != nil {
+		line.asWritten = append(line.asWritten, text...)
+	}
+}
+
 // Write appends a byte slice into the view's internal buffer. Because
 // View implements the io.Writer interface, it can be passed as parameter
 // of functions like fmt.Fprintf, fmt.Fprintln, io.Copy, etc. Clear must
@@ -1080,8 +1126,7 @@ func (b *viewBuffer) write(v *View, p []byte) {
 	}
 
 	advanceToNextLine := func() {
-		b.wx = 0
-		b.wy++
+		b.seekWrite(0, b.wy+1)
 		if b.wy >= len(b.lines) {
 			b.lines = append(b.lines, lineType{})
 		}
@@ -1114,6 +1159,10 @@ func (b *viewBuffer) write(v *View, p []byte) {
 			b.ei.notifyRowAdvance()
 		case characterEquals(chr, '\r'):
 			finishLine()
+			// The cells will hold what follows as an overwrite of what came
+			// before; the text as written keeps the return itself.
+			b.startAsWritten()
+			b.noteAsWritten(chr)
 			b.wx = 0
 			b.ei.notifyColumnReset()
 		default:
@@ -1230,7 +1279,8 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 
 	isEscape, err := b.ei.parseOne(ch)
 	if err != nil {
-		for _, chr := range b.ei.characters() {
+		characters := b.ei.characters()
+		for _, chr := range characters {
 			c := cell{
 				fgColor: v.FgColor,
 				bgColor: v.BgColor,
@@ -1239,6 +1289,7 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			}
 			cells = append(cells, c)
 		}
+		b.noteAsWritten([]byte(strings.Join(characters, "")))
 		b.ei.reset()
 	} else {
 		repeatCount := 1
@@ -1264,10 +1315,15 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			repeatCount = cf.n
 			ch = []byte{' '}
 			width = 1
+			b.noteAsWritten(bytes.Repeat(ch, repeatCount))
 		} else if isEscape {
 			// do not output anything
 			return truncateLine, nil
 		} else if characterEquals(ch, '\t') {
+			// The cells hold a tab as the spaces it fills; the text as written
+			// keeps the tab itself.
+			b.startAsWritten()
+			b.noteAsWritten(ch)
 			// fill tab-sized space
 			tabWidth := v.TabWidth
 			if tabWidth < 1 {
@@ -1276,6 +1332,8 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			ch = []byte{' '}
 			width = 1
 			repeatCount = tabWidth - (x % tabWidth)
+		} else {
+			b.noteAsWritten(ch)
 		}
 		c := cell{
 			fgColor:   b.ei.curFgColor,
@@ -1855,6 +1913,24 @@ func (v *View) BufferLines() []string {
 	lines := make([]string, len(v.buf.lines))
 	for i, l := range v.buf.lines {
 		lines[i] = l.cells.String()
+	}
+	return lines
+}
+
+// LinesAsWritten returns the lines of the view's internal buffer as their writer
+// wrote them, escape sequences left out, where BufferLines returns them as the
+// cells spell them. The two differ where the cells can't spell what was written:
+// a tab, which they hold as the spaces it fills, and a carriage return, which
+// they hold as the overwrite it caused. A reader that parses the content rather
+// than showing it wants this form. git, for one, terminates a path containing a
+// space with a tab in a diff header, and a parser of the diff has to see the tab.
+func (v *View) LinesAsWritten() []string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	lines := make([]string, len(v.buf.lines))
+	for i := range v.buf.lines {
+		lines[i] = v.buf.lines[i].textAsWritten()
 	}
 	return lines
 }

@@ -124,6 +124,83 @@ func TestOverwriteLinesAfterContentEndingInANewline(t *testing.T) {
 	assert.Equal(t, []string{"x", "b"}, v.BufferLines())
 }
 
+func TestLinesAsWritten(t *testing.T) {
+	tests := []struct {
+		name              string
+		stringsToWrite    []string
+		expectedShown     []string
+		expectedAsWritten []string
+	}{
+		{
+			name:              "a line the cells spell as written",
+			stringsToWrite:    []string{"abc\n"},
+			expectedShown:     []string{"abc"},
+			expectedAsWritten: []string{"abc"},
+		},
+		{
+			name:              "a tab is kept rather than the spaces it fills",
+			stringsToWrite:    []string{"a\tb\n"},
+			expectedShown:     []string{"a   b"},
+			expectedAsWritten: []string{"a\tb"},
+		},
+		{
+			name:              "a carriage return is kept rather than the overwrite it causes",
+			stringsToWrite:    []string{"abc\rde\n"},
+			expectedShown:     []string{"dec"},
+			expectedAsWritten: []string{"abc\rde"},
+		},
+		{
+			// git writes a CRLF file's lines as "+foo\r", the color reset, "\n".
+			name:              "escape sequences are left out",
+			stringsToWrite:    []string{"\x1b[32m+foo\r\x1b[m\n"},
+			expectedShown:     []string{"+foo"},
+			expectedAsWritten: []string{"+foo\r"},
+		},
+		{
+			// ConPTY writes a run of spaces as a cursor-forward escape.
+			name:              "a cursor-forward escape stands for the spaces it skips",
+			stringsToWrite:    []string{"\ta\x1b[2Cb\n"},
+			expectedShown:     []string{"    a  b"},
+			expectedAsWritten: []string{"\ta  b"},
+		},
+		{
+			name:              "a line written in two parts",
+			stringsToWrite:    []string{"a\t", "b\n"},
+			expectedShown:     []string{"a   b"},
+			expectedAsWritten: []string{"a\tb"},
+		},
+		{
+			name:              "only the lines with a tab or a return are kept separately",
+			stringsToWrite:    []string{"x\n", "y\tz\n", "w\n"},
+			expectedShown:     []string{"x", "y   z", "w"},
+			expectedAsWritten: []string{"x", "y\tz", "w"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			v := NewView("name", 0, 0, 20, 10, OutputNormal)
+			for _, s := range test.stringsToWrite {
+				v.writeString(s)
+			}
+			assert.Equal(t, test.expectedShown, v.BufferLines())
+			assert.Equal(t, test.expectedAsWritten, v.LinesAsWritten())
+		})
+	}
+}
+
+func TestLinesAsWrittenOfAnOverwrittenLine(t *testing.T) {
+	v := NewView("name", 0, 0, 20, 10, OutputNormal)
+	v.writeString("a\tb\nc\td")
+
+	// Overwriting a line starts it over: what it kept of its earlier text goes,
+	// and the line below is left alone.
+	v.OverwriteLines(0, "xy")
+
+	assert.Equal(t, []string{"xy", "c   d"}, v.BufferLines())
+	assert.Equal(t, []string{"xy", "c\td"}, v.LinesAsWritten())
+}
+
 func TestUpdatedCursorAndOrigin(t *testing.T) {
 	tests := []struct {
 		prevOrigin     int
