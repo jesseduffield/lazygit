@@ -2253,8 +2253,7 @@ func (v *View) ClearTextArea() {
 
 func (v *View) overwriteLines(y int, content string) {
 	// break by newline, then for each line, write it, then add that erase command
-	v.buf.wx = 0
-	v.buf.wy = y
+	v.SetWritePos(0, y)
 	v.clearViewLines()
 
 	lines := strings.ReplaceAll(content, "\n", "\x1b[K\n")
