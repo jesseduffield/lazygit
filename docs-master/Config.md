@@ -40,6 +40,9 @@ gui:
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
   authorColors: {}
 
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-co-authors
+  additionalAuthors: []
+
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
   branchColorPatterns: {}
 
@@ -1046,6 +1049,24 @@ gui:
     # use blue for other authors
     '*': '#0000ff'
 ```
+
+## Custom Co-Authors
+
+When you add a co-author to one or more commits (via the amend attribute menu,
+by default on `a`), lazygit offers suggestions for the author, gleaned from your
+commit history. If you frequently co-author with people (or AI agents) whose
+names don't show up in your history yet, you can seed the suggestion list with
+them:
+
+```yaml
+gui:
+  additionalAuthors:
+    - 'Jane Doe <jane@example.com>'
+    - 'My AI Agent <agent@example.com>'
+```
+
+Each entry must be of the form `"Name <mail>"`, and they are suggested on top of
+any authors from your commit history.
 
 ## Custom Branch Color
 
