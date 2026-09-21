@@ -144,9 +144,7 @@ func TerminateLivePtys() {
 // graceful signal worth waiting on — git and the common diff tools leave it
 // to the default handler, which calls ExitProcess at whatever instruction
 // the process happens to execute — so clients that got the event are
-// already dying. Killing at an arbitrary point cannot leak a stale
-// index.lock, because pty-rendered commands don't take that lock (see
-// withPtyGitConfig in pkg/gui/pty.go).
+// already dying.
 //
 // The pseudoconsole close gets its own goroutine because the kill must not
 // wait for it: on builds where ClosePseudoConsole blocks until the console

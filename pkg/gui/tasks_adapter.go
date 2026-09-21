@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/sirupsen/logrus"
 )
@@ -17,11 +18,10 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		cmdStr,
 	).Debug("RunCommand")
 
-	manager := gui.getManager(view)
 	// Mark the view as loading synchronously (before the task's goroutine runs
 	// and before the next layout pass) so the layout doesn't clamp the scroll
 	// position to the not-yet-loaded content.
-	manager.StartLoading()
+	gui.getManager(view).StartLoading()
 	// Hold the scrollbar at the height the view has now (the previous render),
 	// while it still shows that render: once the re-render swaps in its first
 	// partial paint the displayed buffer is briefly short, and we don't want the
@@ -29,17 +29,23 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	view.FreezeScrollbarHeight()
 
 	// Snapshot the view width here, on the UI thread, so the task goroutine
-	// doesn't read the view's live dimensions while it streams output. It's
-	// applied inside start() below rather than now, because start() runs once
-	// the previous task has stopped -- applying it here would race that task's
-	// still-running writes (see View.SetContentWidth).
-	contentWidth := view.InnerWidth()
+	// doesn't read the view's live dimensions while it streams output.
+	spec := renderSpec{view: view, cmd: cmd, width: view.InnerWidth()}
 
+	return gui.newTaskForRender(spec, prefix, cmdStr, gui.plainRender)
+}
+
+// plainRender runs the command as it is, with its output going straight into
+// a pipe.
+func (gui *Gui) plainRender(spec renderSpec) (startRender, onCloseRender) {
 	var r io.ReadCloser
 	start := func() (tasks.Cmd, io.Reader) {
-		view.SetContentWidth(contentWidth)
+		// The view wraps to this width; apply it here, on the task's goroutine
+		// once the previous task has stopped, so it doesn't race that task's
+		// still-running writes (see View.SetContentWidth).
+		spec.view.SetContentWidth(spec.width)
 
-		execCmd, pipe := startCmdWithPipe(cmd, gui.c.Log)
+		execCmd, pipe := startCmdWithPipe(spec.cmd, gui.c.Log)
 		r = pipe
 		return execCmd, pipe
 	}
@@ -51,12 +57,7 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		}
 	}
 
-	linesToRead := gui.linesToReadFromCmdTask(view)
-	if err := manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr); err != nil {
-		gui.c.Log.Error(err)
-	}
-
-	return nil
+	return start, onClose
 }
 
 // startCmdWithPipe starts cmd with its stdout and stderr going to a single
@@ -87,10 +88,14 @@ func (gui *Gui) newStringTask(view *gocui.View, str string) error {
 
 func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 	manager := gui.getManager(view)
+	// Whatever the view was going to be put back to belonged to a re-render of its
+	// content; this is a message instead, so there is nothing to put back.
+	manager.DropRestoreForNextTask()
 
 	f := func(tasks.TaskOpts) error {
 		return gui.g.OnUIThreadAndWaitBackground(func() {
 			gui.c.SetViewContent(view, str)
+			gui.updateDiffPaneDecorations(view, true)
 			gui.reApplySearch(view)
 		})
 	}
@@ -104,11 +109,15 @@ func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 
 func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX int, originY int) error {
 	manager := gui.getManager(view)
+	// Whatever the view was going to be put back to belonged to a re-render of its
+	// content; this is a message instead, so there is nothing to put back.
+	manager.DropRestoreForNextTask()
 
 	f := func(tasks.TaskOpts) error {
 		return gui.g.OnUIThreadAndWaitBackground(func() {
 			gui.c.SetViewContent(view, str)
 			view.SetOrigin(originX, originY)
+			gui.updateDiffPaneDecorations(view, true)
 			gui.reApplySearch(view)
 		})
 	}
@@ -122,11 +131,15 @@ func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX in
 
 func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) error {
 	manager := gui.getManager(view)
+	// Whatever the view was going to be put back to belonged to a re-render of its
+	// content; this is a message instead, so there is nothing to put back.
+	manager.DropRestoreForNextTask()
 
 	f := func(tasks.TaskOpts) error {
 		return gui.g.OnUIThreadAndWaitBackground(func() {
 			gui.c.ResetViewOrigin(view)
 			gui.c.SetViewContent(view, str)
+			gui.updateDiffPaneDecorations(view, true)
 			gui.reApplySearch(view)
 		})
 	}
@@ -138,12 +151,34 @@ func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) e
 	return nil
 }
 
+// contentWriter returns what a render of the given view writes its content to: the
+// view itself, or, for a pane of the main section, the writer that links the files
+// named in the diffstat on its way there (see DiffStatLinkWriter).
+func (gui *Gui) contentWriter(view *gocui.View) io.Writer {
+	if gui.mainContextForView(view) == nil {
+		return view
+	}
+	return gui.diffStatLinkWriter(view)
+}
+
+// diffStatLinkWriter returns the writer that links the diffstat of the given pane,
+// making it if the pane hasn't rendered yet. It lasts as long as the view does, and
+// each render tells it what to make of that render (see DiffStatLinkWriter.BeginRender).
+func (gui *Gui) diffStatLinkWriter(view *gocui.View) *helpers.DiffStatLinkWriter {
+	writer, ok := gui.diffStatLinkWriterMap[view.Name()]
+	if !ok {
+		writer = helpers.NewDiffStatLinkWriter(view)
+		gui.diffStatLinkWriterMap[view.Name()] = writer
+	}
+	return writer
+}
+
 func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 	manager, ok := gui.viewBufferManagerMap[view.Name()]
 	if !ok {
 		manager = tasks.NewViewBufferManager(
 			gui.Log,
-			view,
+			gui.contentWriter(view),
 			func() {
 				// Called before showing the "loading..." indicator: clear the
 				// displayed buffer so only "loading..." is shown. The actual content
@@ -154,10 +189,20 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			func() {
 				// As the task reads more lines, the only thing that changes is the
 				// view's content (and its scrollbar); the window layout doesn't. So a
-				// content-only render is enough, and it's much cheaper than a full
-				// layout-and-redraw on every read - which matters a lot when reading
-				// a long diff, where reads happen repeatedly as the user scrolls.
-				gui.renderContentOnly()
+				// content-only render is enough — it skips the layout pass and redraws
+				// only the cells that differ — and it's much cheaper than a full
+				// layout-and-redraw on every read, which matters a lot when reading a
+				// long diff, where reads happen repeatedly as the user scrolls.
+				//
+				// What this draws is more of the content than the pane held a moment
+				// ago, so it is also where what is drawn over that content is worked
+				// out again. The screenful the first paint reveals may not be enough
+				// to say whether there is anything to select, and for a diff that
+				// opens with a long diffstat it isn't.
+				gui.c.OnUIThreadContentOnly(func() error {
+					gui.updateDiffPaneDecorations(view, false)
+					return nil
+				})
 			},
 			func() {
 				// The content is fully loaded now, so let the scrollbar track it
@@ -174,13 +219,22 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 					view.SetOrigin(0, newOriginY)
 				}
 
+				gui.updateDiffPaneDecorations(view, true)
+				gui.clampDiffSelectionToContent(view)
 				gui.reApplySearch(view)
 			},
 			func() {
 				view.SetOrigin(0, 0)
 			},
 			view.BeginOffscreenRender,
-			view.SwapInOffscreenRender,
+			func() {
+				view.SwapInOffscreenRender()
+
+				// The content the pane is being given is on display from here on, so
+				// what is drawn over it is settled against that content rather than
+				// against the render before it.
+				gui.updateDiffPaneDecorations(view, false)
+			},
 			func() gocui.Task {
 				// A background task: rendering content into a view is display
 				// work, not lazygit driving a git operation, so it must not

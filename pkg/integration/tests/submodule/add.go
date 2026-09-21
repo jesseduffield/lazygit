@@ -50,7 +50,7 @@ var Add = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			SelectNextItem().
 			Tap(func() {
-				t.Views().Main().Content(
+				t.Views().Secondary().Content(
 					Contains("[submodule \"my_submodule\"]").
 						Contains("path = my_submodule_path").
 						Contains("url = ../other_repo"),
@@ -58,7 +58,7 @@ var Add = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			SelectNextItem().
 			Tap(func() {
-				t.Views().Main().Content(
+				t.Views().Secondary().Content(
 					Contains("Submodule my_submodule_path").
 						Contains("(new submodule)"),
 				)

@@ -63,6 +63,95 @@ func TestCurrentDiffRendererName(t *testing.T) {
 	}
 }
 
+func TestGetStdinFilterCommand(t *testing.T) {
+	scenarios := []struct {
+		name               string
+		diffRendererConfig DiffRendererConfig
+		width              int
+		expected           string
+	}{
+		{
+			name:               "a command without template variables is passed through",
+			diffRendererConfig: DiffRendererConfig{Command: "delta --paging=never"},
+			width:              120,
+			expected:           "delta --paging=never",
+		},
+		{
+			name:               "the width the diff is rendered at",
+			diffRendererConfig: DiffRendererConfig{Command: "delta --width={{width}}"},
+			width:              120,
+			expected:           "delta --width=120",
+		},
+		{
+			name:               "the width of one side of a side-by-side rendering",
+			diffRendererConfig: DiffRendererConfig{Command: "ydiff -p cat -w {{columnWidth}}"},
+			width:              120,
+			expected:           "ydiff -p cat -w 54",
+		},
+		{
+			name:               "a template variable can also be written with a leading dot",
+			diffRendererConfig: DiffRendererConfig{Command: "delta --width={{.width}}"},
+			width:              120,
+			expected:           "delta --width=120",
+		},
+		{
+			name:               "nothing is returned for a renderer of another type",
+			diffRendererConfig: DiffRendererConfig{Type: "extDiff", Command: "difft --width={{width}}"},
+			width:              120,
+			expected:           "",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			userConfig := &UserConfig{}
+			userConfig.Git.DiffRenderers = []DiffRendererConfig{s.diffRendererConfig}
+			config := NewDiffRendererConfigManager(func() *UserConfig { return userConfig })
+
+			assert.Equal(t, s.expected, config.GetStdinFilterCommand(s.width))
+		})
+	}
+}
+
+func TestGetExternalDiffCommand(t *testing.T) {
+	scenarios := []struct {
+		name               string
+		diffRendererConfig DiffRendererConfig
+		expected           string
+	}{
+		{
+			name:               "a command without template variables is passed through",
+			diffRendererConfig: DiffRendererConfig{Type: "extDiff", Command: "difft --color=always"},
+			expected:           "difft --color=always",
+		},
+		{
+			name:               "the width the diff is rendered at",
+			diffRendererConfig: DiffRendererConfig{Type: "extDiff", Command: "difft --width={{width}}"},
+			expected:           "difft --width=120",
+		},
+		{
+			name:               "the width alongside the diff context size",
+			diffRendererConfig: DiffRendererConfig{Type: "extDiff", Command: "difft --width={{width}} --context={{diffContext}}"},
+			expected:           "difft --width=120 --context=3",
+		},
+		{
+			name:               "nothing is returned for a renderer of another type",
+			diffRendererConfig: DiffRendererConfig{Command: "delta --width={{width}}"},
+			expected:           "",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			userConfig := &UserConfig{}
+			userConfig.Git.DiffRenderers = []DiffRendererConfig{s.diffRendererConfig}
+			config := NewDiffRendererConfigManager(func() *UserConfig { return userConfig })
+
+			assert.Equal(t, s.expected, config.GetExternalDiffCommand(3, 120))
+		})
+	}
+}
+
 func TestCurrentDiffRendererNameWithoutDiffRenderers(t *testing.T) {
 	config := NewDiffRendererConfigManager(func() *UserConfig { return &UserConfig{} })
 

@@ -312,7 +312,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
 			diffRendererConfig:  &config.DiffRendererConfig{Type: "extDiff", Command: "difft --color=always"},
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.external=difft --color=always", "-c", "diff.noprefix=false", "show", "--ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
 			testName:            "Show diff using git's external diff config",
@@ -341,7 +341,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			}
 			instance := buildCommitCommands(commonDeps{userConfig: userConfig, appState: &config.AppState{}, runner: runner, repoPaths: &repoPaths})
 
-			assert.NoError(t, instance.ShowCmdObj("1234567890", s.filterPaths).Run())
+			assert.NoError(t, instance.ShowCmdObj("1234567890", s.filterPaths, DiffModeRendered).Run())
 			runner.CheckForMissingCalls()
 		})
 	}

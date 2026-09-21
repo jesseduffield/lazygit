@@ -135,7 +135,7 @@ Lazygit is not my fulltime job but it is a hefty part time job so if you want to
 
 ### Stage individual lines
 
-Press space on the selected line to stage it, or press `v` to start selecting a range of lines. You can also press `a` to select the entirety of the current hunk.
+Press `<enter>` on a changed file to focus its diff in the main view. Press `<space>` on the selected line to stage it, or press `v` to start selecting a range of lines. You can also press `a` to switch to hunk selection mode. When a file has both staged and unstaged changes, use `<tab>` to move between the two diff panes; the same actions stage or unstage the selection depending on the pane.
 
 ![stage_lines](../assets/demo/stage_lines-compressed.gif)
 
@@ -195,7 +195,7 @@ You can create worktrees to have multiple branches going at once without the nee
 
 You can build a custom patch from an old commit and then remove the patch from the commit, split out a new commit, apply the patch in reverse to the index, and more.
 
-In this example we have a redundant comment that we want to remove from an old commit. We hit `<enter>` on the commit to view its files, then `<enter>` on a file to focus the patch, then `<space>` to add the comment line to our custom patch, and then `ctrl+p` to view the custom patch options; selecting to remove the patch from the current commit.
+In this example we have a redundant comment that we want to remove from an old commit. We hit `<enter>` on the commit to view its files, then `<enter>` on a file to focus its diff. From there, `<space>` adds the selected comment line to the custom patch and `ctrl+p` opens the custom patch options, where we choose to remove the patch from the original commit.
 
 Learn more in the [Rebase magic Youtube tutorial](https://youtu.be/4XaToVut_hs).
 

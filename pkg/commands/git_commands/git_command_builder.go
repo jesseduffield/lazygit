@@ -123,18 +123,42 @@ func (self *GitCommandBuilder) GitDirIf(condition bool, path string) *GitCommand
 	return self
 }
 
-func (self *GitCommandBuilder) AddCommonDiffArgs(diffRendererConfigManager *config.DiffRendererConfigManager, userConfig *config.UserConfig, forUI bool) *GitCommandBuilder {
+// NoLineEndingConversion keeps git's line-ending machinery away from files that are not
+// a working tree's. The trees the custom patch is materialized into hold the bytes git
+// states the patch in, so a command over them has to read and write those bytes as they
+// are. On a machine that checks files out with CRLF, `git apply` writes the after tree
+// in that form while the before tree keeps the LF it was written with. git's own diff
+// converts both back, but it warns about a round trip through a working tree these
+// files never belong to, and an external diff renderer is handed the two files as they
+// stand, one line ending apart in every line.
+func (self *GitCommandBuilder) NoLineEndingConversion() *GitCommandBuilder {
+	return self.
+		// The setting that converts on most machines, and the one Git for Windows
+		// installs itself with.
+		Config("core.autocrlf=false").
+		// An attributes file outside the repo can still mark the files as text. The
+		// form to keep them in is then the form they are written in.
+		Config("core.eol=lf").
+		// An attribute naming CRLF outright overrides that, and git converts after all.
+		// The warning it gives is about a checkout these files never have.
+		Config("core.safecrlf=false")
+}
+
+func (self *GitCommandBuilder) AddCommonDiffArgs(diffRendererConfigManager *config.DiffRendererConfigManager, userConfig *config.UserConfig, mode DiffMode) *GitCommandBuilder {
 	contextSize := userConfig.Git.DiffContextSize
-	extDiffCmd := diffRendererConfigManager.GetExternalDiffCommand(contextSize)
-	useExtDiff := forUI && diffRendererConfigManager.GetDiffRendererType() == config.DiffRendererType_ExtDiff
+	useExtDiff := mode == DiffModeRendered && diffRendererConfigManager.GetDiffRendererType() == config.DiffRendererType_ExtDiff
 
 	return self.
-		ConfigIf(forUI && extDiffCmd != "", "diff.external="+extDiffCmd).
 		ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
-		ArgIf(forUI && userConfig.Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
+		// Ignoring whitespace is about what the user wants to see, so it holds for a raw
+		// diff as much as for a rendered one. Patches are built from a plain diff,
+		// where a diff that leaves changes out would apply to nothing.
+		ArgIf(mode != DiffModePlain && userConfig.Git.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg(fmt.Sprintf("--find-renames=%d%%", userConfig.Git.RenameSimilarityThreshold)).
-		ArgIf(forUI, diffRendererConfigManager.GetRawGitArgs()...)
+		// The renderer's own arguments to git — a word diff, say — are part of the
+		// rendering, so they go with it.
+		ArgIf(mode == DiffModeRendered, diffRendererConfigManager.GetRawGitArgs()...)
 }
 
 func (self *GitCommandBuilder) ToArgv() []string {
