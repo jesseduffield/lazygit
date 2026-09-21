@@ -586,6 +586,65 @@ file inside it).
 `Rename parsedDiffLine.RelPath to Path` (PR 4) again gained the occurrences
 the fixups' tests added, as in round 1 — once per fixup, since each added one.
 
+#### Review round 3 (2026-09-21) — a path with a space in it
+
+Staging a line of a file whose path contains a space did nothing under git's
+own diff. git terminates the path field of a `---`/`+++` header line with a tab
+when the path contains a space (`+++ b/foo bar<TAB>`), and the parser read the
+diff back from the view's cells, where gocui had expanded the tab into one to
+four spaces. `pathFromDiffHeaderField` strips a tab, not spaces, so the path came
+out as `foo bar` plus spaces; `PlainDiffOfSelection` looked it up in the plain
+diff it fetched from git, found nothing, and staged nothing. A quoted path with
+a space (`+++ "b/caf\303\251 x"<TAB>`) failed a step earlier, `strconv.Unquote`
+rejecting the trailing spaces, so every line of such a file went unresolved.
+
+Options weighed with the user: trimming trailing spaces in the parser (wrong for
+a path ending in a space, which git does not quote), cross-checking against the
+`diff --git` line (exact, but the parser would be modelling the rendering), a
+per-cell marker in gocui, and a per-line copy of the text as written. The user
+favoured the last, and rightly: the text as written is the bytes written to the
+line with escape sequences left out, so a `\r` is one more byte to keep, and the
+display is what loses information (a content line `+abc\rdef` shows as `defc`).
+It is kept lazily, from the first `\t` or `\r` on a line, seeded from the cells'
+text at that moment (exact, since nothing lossy came before), so a line without
+either costs nothing in any view; no per-view opt-in was wanted once that held.
+
+Landed as one gocui prep commit at the start of this branch, "Keep a view's
+lines as they were written, beside their cells" (`lineType.asWritten`,
+`textAsWritten`, `seekWrite` dropping a line's kept text when the write cursor
+arrives at it by anything but `\r`, and `View.LinesAsWritten` beside
+`BufferLines`; unit tests for a tab, a lone `\r`, a coloured CRLF line, ConPTY's
+cursor-forward, a line written in two parts, and an overwritten line), plus
+three `fixup!`s so that no commit of the stack parses display text:
+
+1. "Recover the identity of a diff line from the rendered diff" (PR 2) reads
+   `LinesAsWritten`.
+2. "Read the OSC 1717 records a diff renderer emits" (PR 4): `DiffLineContent.Text`
+   is the text as written, and `LinesAsWritten` goes with its only caller. "Let
+   a view be read while it is re-rendering" (PR 6) took the change along in its
+   conflict resolution, `diffLineContentsFrom` being where the loop moved to.
+3. "Stage and unstage diff lines from the focused main view" (PR 7) gains
+   `stage_diff_lines_of_a_path_with_a_space`, checked to fail with the kept text
+   disabled. The quoted case is covered by `TestPathFromDiffHeaderField`, which
+   already fed the parser a real tab; the view now hands it one too.
+
+One `rebase -i` with a `break` first and one after each of the four targets;
+conflicts in the parser's call site and gocui's accessor block (PR 4's pick),
+in the moved loop (PR 6's pick) and once in the generated test list. Backup tag
+`jump-to-file-from-diffstat-2026-09-21-0839-backup`. The replay trap of
+2026-09-13 struck again: the new test named `UseHunkModeInStagingView`, which
+PR 9's "Name diff options after the view that now uses them" renames in every
+test it knew of, so the five tips from PR 9 up stopped building until a second
+`rebase -i` put a `fixup!` on that commit renaming the key in the new test too
+(backup tag `jump-to-file-from-diffstat-2026-09-21-0905-backup`). Build, unit
+tests and lint green at every one of the 13 branch tips from PR 2 up; the whole
+e2e suite green at the stack tip.
+
+Seen on the way, not fixed, from master: `overwriteLines` sets the write cursor
+directly and leaves `pendingNewline` standing, so an `OverwriteLines` after
+content ending in a newline writes one line lower than asked. Nothing in the
+stack calls it that way.
+
 ### PR 3 — Rename the "pagers" config to "diff renderers" — DONE (master #5870)
 
 **Landed on master** as #5870 ("Rework the custom pager config (rename to
@@ -3429,6 +3488,17 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-09-21:** **PR 2 round 3**, on staging a line of a file whose path has a
+  space in it, which did nothing under git's own diff: git ends the header's path
+  field with a tab then, and the parser read the view's cells, where the tab had
+  become spaces. gocui now keeps a line's text as written from the first `\t` or
+  `\r` on it, and `DiffLineContent.Text` is that text; one prep commit at the
+  start of PR 2 and three `fixup!`s (PRs 2, 4, 7), PR 6's moved loop resolved in
+  the replay, `stage_diff_lines_of_a_path_with_a_space` added, and a second
+  `fixup!` on PR 9's rename commit for the test's config key (the 2026-09-13
+  replay trap). Build, unit and lint green at all 13 branch tips, whole e2e
+  green at the tip. Backup tags `jump-to-file-from-diffstat-2026-09-21-0839-backup`
+  and `-0905-backup`.
 - **2026-09-20 (later):** **PR 8 round 2**, on a warning above the custom patch
   on Windows. The trees the patch is materialized into sit outside any repo, so
   the repo's `.gitattributes` never reaches the commands over them and git
