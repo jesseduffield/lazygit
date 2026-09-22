@@ -47,7 +47,8 @@ A simple terminal UI for git commands
 
 [![GitHub Releases](https://img.shields.io/github/downloads/jesseduffield/lazygit/total)](https://github.com/jesseduffield/lazygit/releases) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/f46416b715d74622895657935fcada21)](https://app.codacy.com/gh/jesseduffield/lazygit/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade) [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/f46416b715d74622895657935fcada21)](https://app.codacy.com/gh/jesseduffield/lazygit/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage) [![golangci-lint](https://img.shields.io/badge/linted%20by-golangci--lint-brightgreen)](https://golangci-lint.run/) [![GitHub tag](https://img.shields.io/github/v/tag/jesseduffield/lazygit?color=blue)](https://github.com/jesseduffield/lazygit/releases/latest) [![homebrew](https://img.shields.io/homebrew/v/lazygit?color=blue)](https://formulae.brew.sh/formula/lazygit)
 
-![commit_and_push](../assets/demo/commit_and_push-compressed.gif)
+<!-- demo: commit_and_push -->
+<video src="https://github.com/user-attachments/assets/032c61ae-067a-4547-856d-a552a5a8e14c" controls></video>
 
 </div>
 
@@ -137,7 +138,8 @@ Lazygit is not my fulltime job but it is a hefty part time job so if you want to
 
 Press `0` on a changed file to focus its diff in the main view. The selection covers a whole hunk to begin with, so `<space>` stages that hunk and moves on to the next one. When you want only part of a hunk, press `a` for line-by-line selection and `v` to select a range of lines. What you staged shows up in the pane below. Press `<tab>` to move between the two panes; `<space>` unstages in the lower one. Press `c` to commit without leaving the diff.
 
-![stage_hunks_or_lines](../assets/demo/stage_hunks_or_lines-compressed.gif)
+<!-- demo: stage_hunks_or_lines -->
+<video src="https://github.com/user-attachments/assets/d9b0777b-37cd-4d2d-bfe5-724f6e453e43" controls></video>
 
 ### Interactive Rebase
 
@@ -147,49 +149,57 @@ You can also perform any of these actions as a once-off (e.g. pressing `s` on a 
 
 This demo also uses shift+down to select a range of commits to move and fixup.
 
-![interactive_rebase](../assets/demo/interactive_rebase-compressed.gif)
+<!-- demo: interactive_rebase -->
+<video src="https://github.com/user-attachments/assets/0e6670a6-e43a-424a-abf3-10f7554c84c8" controls></video>
 
 ### Cherry-pick
 
 Press `shift+c` on a commit to copy it and press `shift+v` to paste (cherry-pick) it.
 
-![cherry_pick](../assets/demo/cherry_pick-compressed.gif)
+<!-- demo: cherry_pick -->
+<video src="https://github.com/user-attachments/assets/d02a9988-e8c6-469a-8a32-53aa8c89fbd7" controls></video>
 
 ### Bisect
 
 Press `b` in the commits view to mark a commit as good/bad in order to begin a git bisect.
 
-![bisect](../assets/demo/bisect-compressed.gif)
+<!-- demo: bisect -->
+<video src="https://github.com/user-attachments/assets/572a2d66-3244-443c-9113-63806dfa1402" controls></video>
 
 ### Nuke the working tree
 
 For when you really want to just get rid of anything that shows up when you run `git status` (and yes that includes dirty submodules) [kidpix style](https://www.youtube.com/watch?v=N4E2B_k2Bss), press `shift+d` to bring up the reset options menu and then select the 'nuke' option.
 
-![Nuke working tree](../assets/demo/nuke_working_tree-compressed.gif)
+<!-- demo: nuke_working_tree -->
+<video src="https://github.com/user-attachments/assets/2b80fd1b-20d0-4fa0-9e8b-efd6b6020592" controls></video>
 
 ### Amend an old commit
 
 Pressing `shift+a` on any commit will amend that commit with the currently staged changes (running an interactive rebase in the background).
 
-![amend_old_commit](../assets/demo/amend_old_commit-compressed.gif)
+<!-- demo: amend_old_commit -->
+<video src="https://github.com/user-attachments/assets/084dcd4e-7bf9-42db-b9a4-406df0cf26db" controls></video>
 
 ### Filter
 
 You can filter a view with `/`. Here we filter down our branches view and then hit `enter` to view its commits.
 
-![filter](../assets/demo/filter-compressed.gif)
+<!-- demo: filter -->
+<video src="https://github.com/user-attachments/assets/928e1ad9-a225-42a4-87fb-47104cca648d" controls></video>
 
 ### Invoke a custom command
 
 Lazygit has a very flexible [custom command system](docs/Custom_Command_Keybindings.md). In this example a custom command is defined which emulates the built-in branch checkout action.
 
-![custom_command](../assets/demo/custom_command-compressed.gif)
+<!-- demo: custom_command -->
+<video src="https://github.com/user-attachments/assets/44d21622-4cc2-47d3-a292-b0066843ce22" controls></video>
 
 ### Worktrees
 
 You can create worktrees to have multiple branches going at once without the need for stashing or creating WIP commits when switching between them. Press `w` in the branches view to create a worktree from the selected branch and switch to it.
 
-![worktree_create_from_branches](../assets/demo/worktree_create_from_branches-compressed.gif)
+<!-- demo: worktree_create_from_branches -->
+<video src="https://github.com/user-attachments/assets/a2fb0a29-fb0b-4ee5-afa2-2896e48fea74" controls></video>
 
 ### Rebase magic (custom patches)
 
@@ -199,17 +209,20 @@ In this example an old commit contains a change that belongs in a commit of its 
 
 Learn more in the [Rebase magic Youtube tutorial](https://youtu.be/4XaToVut_hs).
 
-![custom_patch](../assets/demo/custom_patch-compressed.gif)
+<!-- demo: custom_patch -->
+<video src="https://github.com/user-attachments/assets/5ed43a09-042b-4d29-997d-55dc9db4550f" controls></video>
 
 If you only want to remove a hunk from an old commit, you don't need a custom patch for that. Select the hunk in the commit's diff and press `d`. Lazygit rewrites the commit without it, running an interactive rebase in the background.
 
-![remove_hunk_from_commit](../assets/demo/remove_hunk_from_commit-compressed.gif)
+<!-- demo: remove_hunk_from_commit -->
+<video src="https://github.com/user-attachments/assets/3b0091f3-2a64-4094-b101-d5d5a72bb79e" controls></video>
 
 ### Rebase from marked base commit
 
 Say you're on a feature branch that was itself branched off of the develop branch, and you've decided you'd rather be branching off the master branch. You need a way to rebase only the commits from your feature branch. In this demo we check to see which was the last commit on the develop branch, then press `shift+b` to mark that commit as our base commit, then press `r` on the master branch to rebase onto it, only bringing across the commits from our feature branch. Then we push our changes with `shift+p`.
 
-![rebase_onto](../assets/demo/rebase_onto-compressed.gif)
+<!-- demo: rebase_onto -->
+<video src="https://github.com/user-attachments/assets/6cb8eed7-5623-4a91-8a36-670540cfbe0d" controls></video>
 
 ### Undo
 
@@ -218,19 +231,22 @@ Undo uses the reflog which is specific to commits and branches so we can't undo 
 
 [More info](/docs/Undoing.md)
 
-![undo](../assets/demo/undo-compressed.gif)
+<!-- demo: undo -->
+<video src="https://github.com/user-attachments/assets/8c8fa5b7-2493-484d-bacb-97f049f8c864" controls></video>
 
 ### Commit graph
 
 When viewing the commit graph in an enlarged window (use `+` and `_` to cycle screen modes), the commit graph is shown. Colours correspond to the commit authors, and as you navigate down the graph, the parent commits of the selected commit are highlighted.
 
-![commit_graph](../assets/demo/commit_graph-compressed.gif)
+<!-- demo: commit_graph -->
+<video src="https://github.com/user-attachments/assets/fa4fe760-0924-4e12-a2b3-931df425d7ee" controls></video>
 
 ### Compare two commits
 
 If you press `shift+w` on a commit (or branch/ref) a menu will open that allows you to mark that commit so that any other commit you select will be diffed against it. Once you've selected the second commit, you'll see the diff in the main view and if you press `<enter>` you'll see the files of the diff. You can press `shift+w` to view the diff menu again to see options like reversing the diff direction or exiting diff mode. You can also exit diff mode by pressing `<escape>`.
 
-![diff_commits](../assets/demo/diff_commits-compressed.gif)
+<!-- demo: diff_commits -->
+<video src="https://github.com/user-attachments/assets/2ef5dac7-3ab6-4f92-9289-aab56a658762" controls></video>
 
 ### Show GitHub pull requests
 
