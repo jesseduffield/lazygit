@@ -106,3 +106,26 @@ every recording.
 
 Uploading needs push access to the lazygit repository. If you don't have it,
 record the demo, then ask a maintainer to upload the mp4 for you.
+
+### Re-recording every demo on a page
+
+Write the name of the demo above each video, so that we can find our way from
+a page back to the demo that produced it:
+
+```html
+<!-- demo: commit_and_push -->
+<video src="https://github.com/user-attachments/assets/<uuid>" controls></video>
+```
+
+GitHub drops the comment when it renders the page. With it in place, a change
+to `demo/settings.tape` or to lazygit's own appearance can be rolled out across
+every recording at once:
+
+```sh
+scripts/rerecord_demos.sh
+# or, to look before you upload anything:
+scripts/rerecord_demos.sh --no-upload
+```
+
+That re-records every demo the README embeds and rewrites each URL in place.
+Name other pages as arguments to do the same for them.
