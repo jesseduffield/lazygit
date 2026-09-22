@@ -22,4 +22,25 @@ Set Height 1140
 # in the bright variant of a colour, so brightGreen is the one those frames end
 # up using.
 
-Set Theme { "background": "#1d1d1d", "foreground": "#dddad6", "cursor": "#c7c7c7", "selection": "#44475a", "black": "#7a7a7a", "red": "#fc4384", "green": "#3fb950", "yellow": "#ffa727", "blue": "#102895", "magenta": "#c930c7", "cyan": "#00c5c7", "white": "#c7c7c7", "brightBlack": "#676767", "brightRed": "#ff7fac", "brightGreen": "#56d364", "brightYellow": "#ebdf86", "brightBlue": "#6871ff", "brightMagenta": "#ff76ff", "brightCyan": "#5ffdff", "brightWhite": "#fffefe" }
+Set Theme {
+    "background": "#1d1d1d",
+    "foreground": "#dddad6",
+    "cursor": "#c7c7c7",
+    "selection": "#44475a",
+    "black": "#7a7a7a",
+    "red": "#fc4384",
+    "green": "#3fb950",
+    "yellow": "#ffa727",
+    "blue": "#102895",
+    "magenta": "#c930c7",
+    "cyan": "#00c5c7",
+    "white": "#c7c7c7",
+    "brightBlack": "#676767",
+    "brightRed": "#ff7fac",
+    "brightGreen": "#56d364",
+    "brightYellow": "#ebdf86",
+    "brightBlue": "#6871ff",
+    "brightMagenta": "#ff76ff",
+    "brightCyan": "#5ffdff",
+    "brightWhite": "#fffefe"
+}
