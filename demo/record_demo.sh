@@ -88,11 +88,27 @@ then
     exit 1
 fi
 
+# The browser draws its playback controls over the bottom of the video, and
+# they are tall enough to hide lazygit's caption line. Pad the frame so that
+# the caption sits above them. Scaled down to the width of a README, 150px
+# comes out at roughly 90 CSS pixels, which clears Chrome's controls with room
+# to spare for the taller bars other browsers draw. Work it out again if
+# demo/settings.tape changes the size of the recording.
+CAPTION_CLEARANCE=150
+
+BACKGROUND=$(sed -n 's/.*"background": *"\(#[0-9a-fA-F]*\)".*/\1/p' demo/settings.tape)
+
+if [ -z "$BACKGROUND" ]
+then
+    echo "Could not read the background colour from demo/settings.tape"
+    exit 1
+fi
+
 # Hold the last frame for a moment so that the end state stays readable, and
 # move the moov atom to the front so that the video starts playing before it
 # has fully downloaded.
 ffmpeg -y -loglevel error -i "$RECORDING" \
-    -vf "tpad=stop_mode=clone:stop_duration=1.2" \
+    -vf "tpad=stop_mode=clone:stop_duration=1.2,pad=iw:ih+$CAPTION_CLEARANCE:0:0:color=$BACKGROUND" \
     -c:v libx264 -crf 23 -preset slow -pix_fmt yuv420p \
     -movflags +faststart -an "$OUTPUT"
 
