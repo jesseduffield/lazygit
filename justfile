@@ -74,5 +74,9 @@ bump-gocui:
 demo *args:
     demo/record_demo.sh {{ args }}
 
+# Re-record every demo the README embeds
+rerecord-demos *args:
+    demo/rerecord_demos.sh {{ args }}
+
 vendor:
     go mod tidy && go mod vendor
