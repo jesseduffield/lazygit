@@ -5,10 +5,8 @@ import (
 	"maps"
 	"slices"
 	"strings"
-	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -20,29 +18,11 @@ func NewRemoteLoader(gitCommon *GitCommon) *RemoteLoader {
 	return &RemoteLoader{GitCommon: gitCommon}
 }
 
-func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-
-	var remoteBranchesByRemoteName map[string][]*models.RemoteBranch
-	var remoteBranchesErr error
-	go utils.Safe(func() {
-		defer wg.Done()
-
-		remoteBranchesByRemoteName, remoteBranchesErr = self.getRemoteBranchesByRemoteName()
-	})
-
+// GetRemotes returns the repo's remotes, without their branches; those are
+// loaded separately with GetRemoteBranchesByRemoteName, which takes a lot longer
+// in a repo with many remote branches.
+func (self *RemoteLoader) GetRemotes() []*models.Remote {
 	remotes := self.getRemotesFromConfig()
-
-	wg.Wait()
-
-	if remoteBranchesErr != nil {
-		return nil, remoteBranchesErr
-	}
-
-	for _, remote := range remotes {
-		remote.Branches = remoteBranchesByRemoteName[remote.Name]
-	}
 
 	// now lets sort our remotes by name alphabetically
 	slices.SortFunc(remotes, func(a, b *models.Remote) int {
@@ -56,7 +36,7 @@ func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
 		return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name))
 	})
 
-	return remotes, nil
+	return remotes
 }
 
 func (self *RemoteLoader) getRemotesFromConfig() []*models.Remote {
@@ -103,7 +83,9 @@ func (self *RemoteLoader) getRemotesFromConfig() []*models.Remote {
 	return slices.Collect(maps.Values(remotesByName))
 }
 
-func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.RemoteBranch, error) {
+// GetRemoteBranchesByRemoteName returns all remote branches, keyed by the name
+// of the remote they belong to.
+func (self *RemoteLoader) GetRemoteBranchesByRemoteName() (map[string][]*models.RemoteBranch, error) {
 	remoteBranches, err := self.getRemoteBranches()
 	if err != nil {
 		return nil, err

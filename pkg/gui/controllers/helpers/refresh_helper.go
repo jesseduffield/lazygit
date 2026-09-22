@@ -470,7 +470,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		}
 		branchesAndRemotesWg.Add(1)
 		refresh("remotes", func() {
-			loadedRemotes, _ = self.refreshRemotes(prevSelectedRemote, env)
+			loadedRemotes = self.refreshRemotes(prevSelectedRemote, env)
 			branchesAndRemotesWg.Done()
 		})
 	}
@@ -1544,14 +1544,16 @@ func (self *RefreshHelper) refreshReflogCommits(captured capturedReflogState, en
 	return reflogCommits, nil
 }
 
-func (self *RefreshHelper) refreshRemotes(prevSelectedRemote *models.Remote, env refreshEnv) ([]*models.Remote, error) {
-	remotes, err := env.git.Loaders.RemoteLoader.GetRemotes()
-	if err != nil {
-		return nil, err
-	}
+func (self *RefreshHelper) refreshRemotes(prevSelectedRemote *models.Remote, env refreshEnv) []*models.Remote {
+	remotes := env.git.Loaders.RemoteLoader.GetRemotes()
 
+	// Put the remotes in the model before loading their branches below. The map
+	// from branches to pull requests is built from the remotes' URLs (see
+	// GenerateGithubPullRequestMap), and loading the remote branches takes much
+	// longer than loading the remotes themselves. If the map had to wait for the
+	// branches, the pull request icons would show up long after the branch list.
 	self.onUIThreadUnlessRepoChanged(env, func() {
-		self.c.Model().Remotes = remotes
+		self.c.Model().Remotes = remotesWithCarriedOverBranches(remotes, self.c.Model().Remotes)
 
 		hadPrs := len(self.c.Model().PullRequestsMap) != 0
 		self.rebuildPullRequestsMap()
@@ -1559,11 +1561,31 @@ func (self *RefreshHelper) refreshRemotes(prevSelectedRemote *models.Remote, env
 			// if we didn't have PRs in the map before but now we do, we need to redraw the branches view
 			self.refreshView(self.c.Contexts().Branches, env)
 		}
+	})
+
+	self.refreshView(self.c.Contexts().Remotes, env)
+
+	remoteBranchesByRemoteName, err := env.git.Loaders.RemoteLoader.GetRemoteBranchesByRemoteName()
+	if err != nil {
+		// The remotes themselves are in the model already; log the failure and
+		// leave them there without their branches.
+		self.c.Log.Error(err)
+		return remotes
+	}
+
+	remotesWithBranches := lo.Map(remotes, func(remote *models.Remote, _ int) *models.Remote {
+		withBranches := *remote
+		withBranches.Branches = remoteBranchesByRemoteName[remote.Name]
+		return &withBranches
+	})
+
+	self.onUIThreadUnlessRepoChanged(env, func() {
+		self.c.Model().Remotes = remotesWithBranches
 
 		// we need to ensure our selected remote branches aren't now outdated
 		if prevSelectedRemote != nil && self.c.Model().RemoteBranches != nil {
 			// find remote now
-			for _, remote := range remotes {
+			for _, remote := range remotesWithBranches {
 				if remote.Name == prevSelectedRemote.Name {
 					self.c.Model().RemoteBranches = remote.Branches
 					break
@@ -1574,7 +1596,25 @@ func (self *RefreshHelper) refreshRemotes(prevSelectedRemote *models.Remote, env
 
 	self.refreshView(self.c.Contexts().Remotes, env)
 	self.refreshView(self.c.Contexts().RemoteBranches, env)
-	return remotes, nil
+	return remotesWithBranches
+}
+
+// remotesWithCarriedOverBranches returns copies of the freshly loaded remotes,
+// each carrying the branches of the remote of the same name in the model. Those
+// branches are the ones the views are showing right now, so carrying them over
+// keeps the remote branches, and the branch counts in the remotes view, in place
+// until the fresh ones are loaded. The copies also leave the remotes we were
+// given untouched, so that the caller can go on reading them off the UI thread.
+func remotesWithCarriedOverBranches(remotes []*models.Remote, modelRemotes []*models.Remote) []*models.Remote {
+	return lo.Map(remotes, func(remote *models.Remote, _ int) *models.Remote {
+		copied := *remote
+		if previous, found := lo.Find(modelRemotes, func(modelRemote *models.Remote) bool {
+			return modelRemote.Name == remote.Name
+		}); found {
+			copied.Branches = previous.Branches
+		}
+		return &copied
+	})
 }
 
 func (self *RefreshHelper) loadWorktrees(env refreshEnv) []*models.Worktree {
