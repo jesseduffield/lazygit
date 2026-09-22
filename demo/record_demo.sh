@@ -2,36 +2,48 @@
 
 set -e
 
-TEST=$1
-
 # The repository the demo is uploaded to. GitHub only plays videos that live in
 # its own attachment store, and an attachment is tied to one repository.
 REPO=jesseduffield/lazygit
 
 # The issue that collects the demo recordings. Posting a comment there is what
 # makes an uploaded video readable by people who are not signed in to GitHub.
-PUBLISH_ISSUE=
+# It can stay closed; commenting on a closed issue publishes the video just as
+# well, and does not reopen it.
+PUBLISH_ISSUE=6051
 
 usage() {
-    echo "Usage: $0 <test path>"
+    echo "Usage: $0 [--no-upload] <test path>"
     echo "e.g. $0 pkg/integration/tests/demo/nuke_working_tree.go"
+    echo
+    echo "--no-upload leaves the video in demo/output and stops there, for"
+    echo "checking how a change to demo/settings.tape turns out."
     exit 1
 }
+
+UPLOAD=true
+
+if [ "$1" = "--no-upload" ]
+then
+    UPLOAD=false
+    shift
+fi
+
+TEST=$1
 
 if [ "$#" -ne 1 ]
 then
     usage
 fi
 
-if [ -z "$PUBLISH_ISSUE" ]
+TOOLS="vhs ttyd ffmpeg"
+
+if [ "$UPLOAD" = true ]
 then
-    echo "Set PUBLISH_ISSUE at the top of this script to the number of the issue"
-    echo "that collects demo recordings. Without a comment referring to it, the"
-    echo "video is only visible to people who are signed in to GitHub."
-    exit 1
+    TOOLS="$TOOLS gh"
 fi
 
-for TOOL in vhs ttyd ffmpeg gh
+for TOOL in $TOOLS
 do
     if ! command -v "$TOOL" > /dev/null 2>&1
     then
@@ -41,17 +53,22 @@ do
     fi
 done
 
-WORKTREE_PATH=$(git worktree list | grep assets | awk '{print $1}')
-
-if [ -z "$WORKTREE_PATH" ]
+if [ "$UPLOAD" = true ]
 then
-    echo "Could not find assets worktree. You'll need to create a worktree for the assets branch using the following command:"
-    echo "git worktree add .worktrees/assets assets"
-    echo "The assets branch has no shared history with the main branch: it exists to store assets which are too large to store in the main branch."
-    exit 1
-fi
+    WORKTREE_PATH=$(git worktree list | grep assets | awk '{print $1}')
 
-OUTPUT_DIR="$WORKTREE_PATH/demo"
+    if [ -z "$WORKTREE_PATH" ]
+    then
+        echo "Could not find assets worktree. You'll need to create a worktree for the assets branch using the following command:"
+        echo "git worktree add .worktrees/assets assets"
+        echo "The assets branch has no shared history with the main branch: it exists to store assets which are too large to store in the main branch."
+        exit 1
+    fi
+
+    OUTPUT_DIR="$WORKTREE_PATH/demo"
+else
+    OUTPUT_DIR=demo/output
+fi
 
 # Get last part of the test path and set that as the output name
 # example test path: pkg/integration/tests/01_basic_test.go
@@ -102,11 +119,11 @@ fi
 
 # The browser draws its playback controls over the bottom of the video, and
 # they are tall enough to hide lazygit's caption line. Pad the frame so that
-# the caption sits above them. Scaled down to the width of a README, 150px
-# comes out at roughly 90 CSS pixels, which clears Chrome's controls with room
-# to spare for the taller bars other browsers draw. Work it out again if
-# demo/settings.tape changes the size of the recording.
-CAPTION_CLEARANCE=150
+# the caption sits above them. Chrome draws the tallest bar of the three, and
+# at the width a README gives the video its buttons start to overlap the
+# caption below about 90px, so there is not much room to trim here. Measure it
+# again if demo/settings.tape changes the size of the recording.
+CAPTION_CLEARANCE=90
 
 BACKGROUND=$(sed -n 's/.*"background": *"\(#[0-9a-fA-F]*\)".*/\1/p' demo/settings.tape)
 
@@ -123,6 +140,12 @@ ffmpeg -y -loglevel error -i "$RECORDING" \
     -vf "tpad=stop_mode=clone:stop_duration=1.2,pad=iw:ih+$CAPTION_CLEARANCE:0:0:color=$BACKGROUND" \
     -c:v libx264 -crf 23 -preset slow -pix_fmt yuv420p \
     -movflags +faststart -an "$OUTPUT"
+
+if [ "$UPLOAD" = false ]
+then
+    echo "Demo recorded to $OUTPUT"
+    exit 0
+fi
 
 # GitHub's web editor posts to this endpoint when you drag a file into a
 # comment box. It is undocumented, but it accepts an ordinary token, so we can

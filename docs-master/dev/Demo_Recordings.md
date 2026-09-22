@@ -64,6 +64,14 @@ scripts/record_demo.sh pkg/integration/tests/demo/interactive_rebase.go
 The terminal size, font and colours live in `demo/settings.tape`, which the
 script sources into the tape it generates for the demo.
 
+While you are still working on how a demo looks, pass `--no-upload`. That
+leaves the video in `demo/output` (which is git-ignored) and stops there, so
+you can watch it without uploading anything or touching the assets worktree:
+
+```sh
+scripts/record_demo.sh --no-upload pkg/integration/tests/demo/interactive_rebase.go
+```
+
 ### Including demos in README/docs
 
 Recording a demo does three things with the mp4: it writes it to your assets
