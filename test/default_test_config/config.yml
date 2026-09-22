@@ -8,8 +8,11 @@ gui:
     activeBorderColor:
     - green
     - bold
+    # Not the "black" of the terminal palette: that is a real black in an
+    # ordinary terminal, which makes the frames all but invisible when you run
+    # a test with `just e2e-cli`.
     inactiveBorderColor:
-    - black
+    - '#999999'
   # Not important in tests but it creates clutter in demos
   showRandomTip: false
   animateExplosion: false # takes too long
