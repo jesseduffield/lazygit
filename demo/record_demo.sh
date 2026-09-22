@@ -8,6 +8,10 @@ TEST=$1
 # its own attachment store, and an attachment is tied to one repository.
 REPO=jesseduffield/lazygit
 
+# The issue that collects the demo recordings. Posting a comment there is what
+# makes an uploaded video readable by people who are not signed in to GitHub.
+PUBLISH_ISSUE=
+
 usage() {
     echo "Usage: $0 <test path>"
     echo "e.g. $0 pkg/integration/tests/demo/nuke_working_tree.go"
@@ -17,6 +21,14 @@ usage() {
 if [ "$#" -ne 1 ]
 then
     usage
+fi
+
+if [ -z "$PUBLISH_ISSUE" ]
+then
+    echo "Set PUBLISH_ISSUE at the top of this script to the number of the issue"
+    echo "that collects demo recordings. Without a comment referring to it, the"
+    echo "video is only visible to people who are signed in to GitHub."
+    exit 1
 fi
 
 for TOOL in vhs ttyd ffmpeg gh
@@ -133,6 +145,36 @@ if [ -z "$URL" ]
 then
     echo "Could not read an attachment URL out of GitHub's response:"
     echo "$RESPONSE"
+    exit 1
+fi
+
+# An attachment stays private until a posted comment somewhere in the
+# repository refers to it. Until that happens the video is a 404 for anyone who
+# is not signed in, and the README shows a broken player. Referring to it once
+# makes it public for good, even if the comment is deleted afterwards, so we
+# collect the recordings in one issue and leave the comments in place.
+gh api "repos/$REPO/issues/$PUBLISH_ISSUE/comments" \
+    --raw-field "body=$NAME
+
+$URL" > /dev/null
+
+# Make sure that worked before handing over a URL, because the person recording
+# the demo is signed in and will not see the failure.
+ATTEMPT=0
+while [ "$ATTEMPT" -lt 30 ]
+do
+    if curl --silent --fail --output /dev/null --max-time 20 --range 0-1 "$URL"
+    then
+        break
+    fi
+    ATTEMPT=$((ATTEMPT + 1))
+    sleep 2
+done
+
+if [ "$ATTEMPT" -eq 30 ]
+then
+    echo "$URL is still not readable without signing in to GitHub."
+    echo "Embedding it now would give logged-out readers a broken player."
     exit 1
 fi
 

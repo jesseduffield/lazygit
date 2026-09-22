@@ -66,8 +66,9 @@ script sources into the tape it generates for the demo.
 
 ### Including demos in README/docs
 
-Recording a demo does two things with the mp4: it writes it to your assets
-worktree, and it uploads a copy to GitHub's attachment store. The script then
+Recording a demo does three things with the mp4: it writes it to your assets
+worktree, it uploads a copy to GitHub's attachment store, and it posts that
+copy as a comment on the issue named by `PUBLISH_ISSUE` in the script. Then it
 prints the tag to embed:
 
 ```html
@@ -84,6 +85,16 @@ would for any other asset.
 
 Attachment URLs are opaque and have no path we can predict, so a new recording
 of an existing demo means a new URL and an edit to the page that embeds it.
+
+That comment on `PUBLISH_ISSUE` is not bookkeeping; it is what makes the video
+watchable. An uploaded attachment is readable only by people signed in to
+GitHub until some posted comment in the repository refers to it, and a README
+on a branch does not count. Skip that step and the video plays for you and
+404s for everyone else, which is easy to miss because you are signed in. The
+script waits until the video can be fetched without a token before it prints
+the tag. Referring to an attachment once is enough and cannot be undone, so
+the comments could be deleted later, but leaving them gives us a dated list of
+every recording.
 
 Uploading needs push access to the lazygit repository. If you don't have it,
 record the demo, then ask a maintainer to upload the mp4 for you.
