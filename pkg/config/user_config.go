@@ -70,6 +70,8 @@ func (c *RefresherConfig) ExternalChangeCheckIntervalDuration() time.Duration {
 type GuiConfig struct {
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
 	AuthorColors map[string]string `yaml:"authorColors"`
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-co-authors
+	AdditionalAuthors []string `yaml:"additionalAuthors" jsonschema:"uniqueItems=true"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
 	// Deprecated: use branchColorPatterns instead
 	BranchColors map[string]string `yaml:"branchColors" jsonschema:"deprecated"`

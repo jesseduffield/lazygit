@@ -537,6 +537,14 @@
           "type": "object",
           "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color"
         },
+        "additionalAuthors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-co-authors"
+        },
         "branchColors": {
           "additionalProperties": {
             "type": "string"
