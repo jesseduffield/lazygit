@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -431,6 +432,46 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool, fe
 		},
 	})
 	return fetchErr
+}
+
+func (self *BranchesHelper) FastForwardBranch(branch *models.Branch) error {
+	action := self.c.Tr.Actions.FastForwardBranch
+	worktree, ok := self.worktreeForBranch(branch)
+
+	return self.c.WithInlineStatus(branch, types.ItemOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
+		if ok {
+			self.c.LogAction(action)
+
+			worktreeGitDir := ""
+			worktreePath := ""
+			// if it is the current worktree path, no need to specify the path
+			if !worktree.IsCurrent {
+				worktreeGitDir = worktree.GitDir
+				worktreePath = worktree.Path
+			}
+
+			err := self.c.Git().Sync.Pull(
+				task,
+				git_commands.PullOptions{
+					RemoteName:      branch.UpstreamRemote,
+					BranchName:      branch.UpstreamBranch,
+					FastForwardOnly: true,
+					WorktreeGitDir:  worktreeGitDir,
+					WorktreePath:    worktreePath,
+				},
+			)
+			self.c.RefreshFromWorker(types.RefreshOptions{})
+			return err
+		}
+
+		self.c.LogAction(action)
+
+		err := self.c.Git().Sync.FastForward(
+			task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
+		)
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}})
+		return err
+	})
 }
 
 func (self *BranchesHelper) AutoForwardBranches(background bool) error {
