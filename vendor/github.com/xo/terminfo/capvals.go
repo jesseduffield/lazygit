@@ -353,9 +353,9 @@ const (
 	KeyStab
 	// The KeyUp [key_up, kcuu1] string capability is the up-arrow key.
 	KeyUp
-	// The KeypadLocal [keypad_local, rmkx] string capability is the leave 'keyboard_transmit' mode.
+	// The KeypadLocal [keypad_local, rmkx] string capability is the leave keypad transmit mode.
 	KeypadLocal
-	// The KeypadXmit [keypad_xmit, smkx] string capability is the enter 'keyboard_transmit' mode.
+	// The KeypadXmit [keypad_xmit, smkx] string capability is the enter keypad transmit mode.
 	KeypadXmit
 	// The LabF0 [lab_f0, lf0] string capability is the label on function key f0 if not f0.
 	LabF0
@@ -719,7 +719,7 @@ const (
 	ClrBol
 	// The ClearMargins [clear_margins, mgc] string capability is the clear right and left soft margins.
 	ClearMargins
-	// The SetLeftMargin [set_left_margin, smgl] string capability is the set left soft margin at current column.	 (ML is not in BSD termcap).
+	// The SetLeftMargin [set_left_margin, smgl] string capability is the set left soft margin at current column (not in BSD \fItermcap\fP).
 	SetLeftMargin
 	// The SetRightMargin [set_right_margin, smgr] string capability is the set right soft margin at current column.
 	SetRightMargin
@@ -901,7 +901,7 @@ const (
 	SetABackground
 	// The PkeyPlab [pkey_plab, pfxl] string capability is the Program function key #1 to type string #2 and show string #3.
 	PkeyPlab
-	// The DeviceType [device_type, devt] string capability is the Indicate language/codeset support.
+	// The DeviceType [device_type, devt] string capability is the Indicate language, codeset support.
 	DeviceType
 	// The CodeSetInit [code_set_init, csin] string capability is the Init sequence for multiple codesets.
 	CodeSetInit
