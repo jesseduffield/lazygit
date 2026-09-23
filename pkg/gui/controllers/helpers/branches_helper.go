@@ -434,16 +434,33 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool, fe
 	return fetchErr
 }
 
-// Updates the given branch to its upstream branch, fetching that first. The
-// branch is moved forward if it is behind its upstream, and reset to it if it
-// has diverged without having any commits of its own.
-func (self *BranchesHelper) FastForwardBranch(branch *models.Branch) error {
-	worktree, checkedOut := self.worktreeForBranch(branch)
+// One of the branches that a fast-forward is about to bring to its upstream
+type branchToForward struct {
+	branch *models.Branch
+	// the worktree that the branch is checked out in, nil if there is none
+	worktree *models.Worktree
+	// whether the branch has to be reset to its upstream because it has
+	// diverged from it, as opposed to being moved forward
+	reset bool
+}
 
-	return self.c.WithInlineStatus(branch, types.ItemOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
+// Updates the given branches to their upstream branches, fetching those first.
+// A branch that is behind its upstream is moved forward to it; one that has
+// diverged from it is reset to it, as long as it has no commits of its own. If
+// any of the branches can't be updated, none of them is.
+func (self *BranchesHelper) FastForwardBranches(branches []*models.Branch) error {
+	// The worktrees come from the model, so they have to be looked up here,
+	// before the work moves to a worker
+	toForward := lo.Map(branches, func(branch *models.Branch, _ int) *branchToForward {
+		worktree, _ := self.worktreeForBranch(branch)
+		return &branchToForward{branch: branch, worktree: worktree}
+	})
+	anyCheckedOut := lo.SomeBy(toForward, func(f *branchToForward) bool { return f.worktree != nil })
+
+	return self.withFastForwardingStatus(branches, func(task gocui.Task) error {
 		defer func() {
-			if checkedOut {
-				// The files of that worktree have changed as well
+			if anyCheckedOut {
+				// The files of those worktrees have changed as well
 				self.c.RefreshFromWorker(types.RefreshOptions{})
 			} else {
 				self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}})
@@ -452,72 +469,152 @@ func (self *BranchesHelper) FastForwardBranch(branch *models.Branch) error {
 
 		self.c.LogAction(self.c.Tr.Actions.FastForwardBranch)
 
-		err := self.c.Git().Sync.FetchRemoteBranch(task, branch.UpstreamRemote, branch.UpstreamBranch)
-		if err != nil {
+		if err := self.fetchUpstreamBranches(task, branches); err != nil {
 			return err
 		}
 
-		isFastForward := self.c.Git().Branch.IsAncestor(
-			branch.FullRefName(), branch.FullUpstreamRefName())
-		if !isFastForward {
-			// Moving the branch to its upstream means giving up the commits it
-			// is ahead by, so make sure that none of them is ours
-			hasLocalOnlyCommits, err := self.c.Git().Branch.HasLocalOnlyCommits(branch)
-			if err != nil {
+		// Look at all the branches before moving any of them, so that one we
+		// have to refuse leaves the others alone too
+		for _, f := range toForward {
+			if err := self.planForwardingBranch(f); err != nil {
 				return err
 			}
-			if hasLocalOnlyCommits {
-				return errors.New(utils.ResolvePlaceholderString(
-					self.c.Tr.FwdLocalOnlyCommits,
-					map[string]string{"branchName": branch.Name},
-				))
-			}
 		}
 
-		if checkedOut {
-			return self.forwardCheckedOutBranch(branch, worktree, isFastForward)
-		}
-
-		updateCommand := fmt.Sprintf("update %s %s %s",
-			branch.FullRefName(), branch.FullUpstreamRefName(), branch.CommitHash)
-		self.c.LogCommand(updateCommand, false)
-		return self.c.Git().Branch.UpdateBranchRefs(updateCommand + "\n")
+		return self.forwardBranches(toForward)
 	})
 }
 
-// Updates a branch that is checked out in the given worktree, which needs the
-// files there to be updated along with it.
-func (self *BranchesHelper) forwardCheckedOutBranch(
-	branch *models.Branch, worktree *models.Worktree, isFastForward bool,
-) error {
-	worktreeGitDir := ""
-	worktreePath := ""
-	// if it is the current worktree path, no need to specify the path
-	if !worktree.IsCurrent {
-		worktreeGitDir = worktree.GitDir
-		worktreePath = worktree.Path
+// Runs f with all the given branches shown as being fast-forwarded
+func (self *BranchesHelper) withFastForwardingStatus(branches []*models.Branch, f func(gocui.Task) error) error {
+	return self.c.WithInlineStatus(branches[0], types.ItemOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
+		for _, branch := range branches[1:] {
+			self.c.State().SetItemOperation(branch, types.ItemOperationFastForwarding)
+		}
+		defer func() {
+			for _, branch := range branches[1:] {
+				self.c.State().ClearItemOperation(branch)
+			}
+		}()
+
+		return f(task)
+	})
+}
+
+func (self *BranchesHelper) fetchUpstreamBranches(task gocui.Task, branches []*models.Branch) error {
+	remotes := lo.Uniq(lo.Map(branches, func(branch *models.Branch, _ int) string {
+		return branch.UpstreamRemote
+	}))
+
+	for _, remote := range remotes {
+		remoteBranches := []string{}
+		for _, branch := range branches {
+			if branch.UpstreamRemote == remote {
+				remoteBranches = append(remoteBranches, branch.UpstreamBranch)
+			}
+		}
+
+		if err := self.c.Git().Sync.FetchRemoteBranches(task, remote, remoteBranches); err != nil {
+			return err
+		}
 	}
 
-	if isFastForward {
-		return self.c.Git().Branch.FastForwardMerge(
-			branch.FullUpstreamRefName(), worktreeGitDir, worktreePath)
+	return nil
+}
+
+// Works out whether the branch has to be reset to its upstream, and returns an
+// error if it can't be brought there at all.
+func (self *BranchesHelper) planForwardingBranch(f *branchToForward) error {
+	f.reset = !self.c.Git().Branch.IsAncestor(
+		f.branch.FullRefName(), f.branch.FullUpstreamRefName())
+	if !f.reset {
+		return nil
 	}
 
-	// Resetting the branch changes the files of the worktree under the user's
-	// feet, so only do it while they have no changes of their own there
-	hasChanges, err := self.c.Git().WorkingTree.HasChangesToTrackedFiles(worktreeGitDir, worktreePath)
+	// Moving the branch to its upstream means giving up the commits it is
+	// ahead by, so make sure that none of them is ours
+	hasLocalOnlyCommits, err := self.c.Git().Branch.HasLocalOnlyCommits(f.branch)
 	if err != nil {
 		return err
 	}
-	if hasChanges {
+	if hasLocalOnlyCommits {
 		return errors.New(utils.ResolvePlaceholderString(
-			self.c.Tr.FwdUncommittedChanges,
-			map[string]string{"branchName": branch.Name},
+			self.c.Tr.FwdLocalOnlyCommits,
+			map[string]string{"branchName": f.branch.Name},
 		))
 	}
 
-	return self.c.Git().WorkingTree.ResetKeep(
-		branch.FullUpstreamRefName(), worktreeGitDir, worktreePath)
+	if f.worktree != nil {
+		// Resetting the branch changes the files of the worktree under the
+		// user's feet, so only do it while they have no changes of their own
+		// there
+		worktreeGitDir, worktreePath := self.worktreeArgs(f.worktree)
+		hasChanges, err := self.c.Git().WorkingTree.HasChangesToTrackedFiles(worktreeGitDir, worktreePath)
+		if err != nil {
+			return err
+		}
+		if hasChanges {
+			return errors.New(utils.ResolvePlaceholderString(
+				self.c.Tr.FwdUncommittedChanges,
+				map[string]string{"branchName": f.branch.Name},
+			))
+		}
+	}
+
+	return nil
+}
+
+func (self *BranchesHelper) forwardBranches(toForward []*branchToForward) error {
+	// The branches that aren't checked out anywhere are nothing but refs to
+	// update, so they can all be done in one go
+	updateCommands := ""
+	for _, f := range toForward {
+		if f.worktree == nil {
+			updateCommands += fmt.Sprintf("update %s %s %s\n",
+				f.branch.FullRefName(), f.branch.FullUpstreamRefName(), f.branch.CommitHash)
+		}
+	}
+
+	if updateCommands != "" {
+		self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
+		if err := self.c.Git().Branch.UpdateBranchRefs(updateCommands); err != nil {
+			return err
+		}
+	}
+
+	// A branch that is checked out somewhere needs the files of that worktree
+	// to be updated along with it
+	for _, f := range toForward {
+		if f.worktree == nil {
+			continue
+		}
+
+		worktreeGitDir, worktreePath := self.worktreeArgs(f.worktree)
+
+		var err error
+		if f.reset {
+			err = self.c.Git().WorkingTree.ResetKeep(
+				f.branch.FullUpstreamRefName(), worktreeGitDir, worktreePath)
+		} else {
+			err = self.c.Git().Branch.FastForwardMerge(
+				f.branch.FullUpstreamRefName(), worktreeGitDir, worktreePath)
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Returns the git dir and the path to pass for the given worktree; both are
+// empty for the current one, which git commands use by default anyway.
+func (self *BranchesHelper) worktreeArgs(worktree *models.Worktree) (string, string) {
+	if worktree.IsCurrent {
+		return "", ""
+	}
+
+	return worktree.GitDir, worktree.Path
 }
 
 func (self *BranchesHelper) AutoForwardBranches(background bool) error {

@@ -36,3 +36,8 @@ branch at some point. It finds that out from the reflog of the remote-tracking
 branch. Reflogs are enabled by default, except in a bare repository; if you work
 in one with linked worktrees, set `core.logAllRefUpdates` to true there to make
 this work.
+
+`f` works on a [range selection](Range_Select.md) too, so you can select the
+whole stack and bring all of it back in sync at once. If any of the selected
+branches can't be updated, none of them is, so that you don't end up with half
+of the stack updated.
