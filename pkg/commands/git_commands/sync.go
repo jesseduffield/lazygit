@@ -6,6 +6,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/samber/lo"
 )
 
 type SyncCommands struct {
@@ -113,20 +114,25 @@ func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
 	return self.cmd.New(cmdArgs).AddEnvVars("GIT_SEQUENCE_EDITOR=:").PromptOnCredentialRequest(task).Run()
 }
 
-// Fetches the given branch of the given remote, updating its remote-tracking
-// branch. Local branches are left alone, including the one that tracks it.
-func (self *SyncCommands) FetchRemoteBranch(
+// Fetches the given branches of the given remote, updating their
+// remote-tracking branches. Local branches are left alone, including the ones
+// that track them.
+func (self *SyncCommands) FetchRemoteBranches(
 	task gocui.Task,
 	remoteName string,
-	remoteBranchName string,
+	remoteBranchNames []string,
 ) error {
+	// The explicit destinations and the leading + make sure that the
+	// remote-tracking branches are updated even when the remote branches were
+	// rewritten, whatever the remote's fetch refspec says
+	refspecs := lo.Map(remoteBranchNames, func(remoteBranchName string, _ int) string {
+		return fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s",
+			remoteBranchName, remoteName, remoteBranchName)
+	})
+
 	cmdArgs := self.fetchCommandBuilder(false).
 		Arg(remoteName).
-		// The explicit destination and the leading + make sure that the
-		// remote-tracking branch is updated even when the remote branch was
-		// rewritten, whatever the remote's fetch refspec says
-		Arg(fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s",
-			remoteBranchName, remoteName, remoteBranchName)).
+		Arg(refspecs...).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()

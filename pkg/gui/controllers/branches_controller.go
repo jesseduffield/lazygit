@@ -143,8 +143,8 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Branches.FastForward),
-			Handler:           self.withItem(self.fastForward),
-			GetDisabledReason: self.require(self.singleItemSelected(self.branchIsReal)),
+			Handler:           self.withItems(self.fastForward),
+			GetDisabledReason: self.require(self.itemRangeSelected(self.branchesAreReal)),
 			Description:       self.c.Tr.FastForward,
 			Tooltip:           self.c.Tr.FastForwardTooltip,
 		},
@@ -654,21 +654,23 @@ func (self *BranchesController) rebase(branch *models.Branch) error {
 	return self.c.Helpers().MergeAndRebase.RebaseOntoRef(branch.Name)
 }
 
-func (self *BranchesController) fastForward(branch *models.Branch) error {
-	if !branch.IsTrackingRemote() {
+func (self *BranchesController) fastForward(branches []*models.Branch) error {
+	if !lo.EveryBy(branches, func(branch *models.Branch) bool { return branch.IsTrackingRemote() }) {
 		return errors.New(self.c.Tr.FwdNoUpstream)
 	}
-	if !branch.RemoteBranchStoredLocally() {
+	if !lo.EveryBy(branches, func(branch *models.Branch) bool { return branch.RemoteBranchStoredLocally() }) {
 		return errors.New(self.c.Tr.FwdNoLocalUpstream)
 	}
 	// A branch that is only ahead has nothing to fast-forward to. One that is
 	// both ahead and behind may still be reset to its upstream, so let the
 	// helper look into it.
-	if branch.IsAheadForPull() && !branch.IsBehindForPull() {
+	if lo.SomeBy(branches, func(branch *models.Branch) bool {
+		return branch.IsAheadForPull() && !branch.IsBehindForPull()
+	}) {
 		return errors.New(self.c.Tr.FwdCommitsToPush)
 	}
 
-	return self.c.Helpers().BranchesHelper.FastForwardBranch(branch)
+	return self.c.Helpers().BranchesHelper.FastForwardBranches(branches)
 }
 
 func (self *BranchesController) createTag(branch *models.Branch) error {
