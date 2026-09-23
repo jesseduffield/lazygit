@@ -34,6 +34,7 @@ var (
 
 	AttrUnderline = New().SetUnderline()
 	AttrBold      = New().SetBold()
+	AttrDim       = New().SetDim()
 
 	ColorMap = map[string]struct {
 		Foreground TextStyle
