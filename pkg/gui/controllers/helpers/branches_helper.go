@@ -577,7 +577,7 @@ func (self *BranchesHelper) forwardBranches(toForward []*branchToForward) error 
 
 	if updateCommands != "" {
 		self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
-		if err := self.c.Git().Branch.UpdateBranchRefs(updateCommands); err != nil {
+		if err := self.c.Git().Branch.UpdateBranchRefs(updateCommands, "lazygit: update to upstream branch"); err != nil {
 			return err
 		}
 	}
@@ -647,7 +647,7 @@ func (self *BranchesHelper) AutoForwardBranches(background bool) error {
 
 	self.c.LogAction(self.c.Tr.Actions.AutoForwardBranches)
 	self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
-	err := self.c.Git().Branch.UpdateBranchRefs(updateCommands)
+	err := self.c.Git().Branch.UpdateBranchRefs(updateCommands, "lazygit: fast-forward to upstream branch")
 
 	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Background: background})
 
