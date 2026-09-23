@@ -285,11 +285,12 @@ func (self *BranchCommands) Merge(branchName string, variant MergeVariant) error
 	return self.cmd.New(cmdArgs).Run()
 }
 
-// Returns whether refName can be fast-forward merged into the current branch
-func (self *BranchCommands) CanDoFastForwardMerge(refName string) bool {
+// Returns whether the first ref is an ancestor of the second one, which also
+// means that the second one can be fast-forward merged into the first one
+func (self *BranchCommands) IsAncestor(ancestorRefName string, refName string) bool {
 	cmdArgs := NewGitCmd("merge-base").
 		Arg("--is-ancestor").
-		Arg("HEAD", refName).
+		Arg(ancestorRefName, refName).
 		ToArgv()
 	err := self.cmd.New(cmdArgs).DontLog().Run()
 	return err == nil
