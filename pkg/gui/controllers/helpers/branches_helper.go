@@ -434,14 +434,34 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool, fe
 	return fetchErr
 }
 
+// Updates the given branch to its upstream branch, fetching that first. The
+// branch must not have any commits that its upstream doesn't have, so that
+// nothing is lost.
 func (self *BranchesHelper) FastForwardBranch(branch *models.Branch) error {
-	action := self.c.Tr.Actions.FastForwardBranch
-	worktree, ok := self.worktreeForBranch(branch)
+	worktree, checkedOut := self.worktreeForBranch(branch)
 
 	return self.c.WithInlineStatus(branch, types.ItemOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
-		if ok {
-			self.c.LogAction(action)
+		defer func() {
+			if checkedOut {
+				// The files of that worktree have changed as well
+				self.c.RefreshFromWorker(types.RefreshOptions{})
+			} else {
+				self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}})
+			}
+		}()
 
+		self.c.LogAction(self.c.Tr.Actions.FastForwardBranch)
+
+		err := self.c.Git().Sync.FetchRemoteBranch(task, branch.UpstreamRemote, branch.UpstreamBranch)
+		if err != nil {
+			return err
+		}
+
+		if !self.c.Git().Branch.IsAncestor(branch.FullRefName(), branch.FullUpstreamRefName()) {
+			return errors.New(self.c.Tr.FwdCommitsToPush)
+		}
+
+		if checkedOut {
 			worktreeGitDir := ""
 			worktreePath := ""
 			// if it is the current worktree path, no need to specify the path
@@ -450,27 +470,14 @@ func (self *BranchesHelper) FastForwardBranch(branch *models.Branch) error {
 				worktreePath = worktree.Path
 			}
 
-			err := self.c.Git().Sync.Pull(
-				task,
-				git_commands.PullOptions{
-					RemoteName:      branch.UpstreamRemote,
-					BranchName:      branch.UpstreamBranch,
-					FastForwardOnly: true,
-					WorktreeGitDir:  worktreeGitDir,
-					WorktreePath:    worktreePath,
-				},
-			)
-			self.c.RefreshFromWorker(types.RefreshOptions{})
-			return err
+			return self.c.Git().Branch.FastForwardMerge(
+				branch.FullUpstreamRefName(), worktreeGitDir, worktreePath)
 		}
 
-		self.c.LogAction(action)
-
-		err := self.c.Git().Sync.FastForward(
-			task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
-		)
-		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}})
-		return err
+		updateCommand := fmt.Sprintf("update %s %s %s",
+			branch.FullRefName(), branch.FullUpstreamRefName(), branch.CommitHash)
+		self.c.LogCommand(updateCommand, false)
+		return self.c.Git().Branch.UpdateBranchRefs(updateCommand + "\n")
 	})
 }
 
