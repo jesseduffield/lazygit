@@ -1,6 +1,8 @@
 package git_commands
 
 import (
+	"fmt"
+
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -111,15 +113,20 @@ func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
 	return self.cmd.New(cmdArgs).AddEnvVars("GIT_SEQUENCE_EDITOR=:").PromptOnCredentialRequest(task).Run()
 }
 
-func (self *SyncCommands) FastForward(
+// Fetches the given branch of the given remote, updating its remote-tracking
+// branch. Local branches are left alone, including the one that tracks it.
+func (self *SyncCommands) FetchRemoteBranch(
 	task gocui.Task,
-	branchName string,
 	remoteName string,
 	remoteBranchName string,
 ) error {
 	cmdArgs := self.fetchCommandBuilder(false).
 		Arg(remoteName).
-		Arg("refs/heads/" + remoteBranchName + ":" + branchName).
+		// The explicit destination and the leading + make sure that the
+		// remote-tracking branch is updated even when the remote branch was
+		// rewritten, whatever the remote's fetch refspec says
+		Arg(fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s",
+			remoteBranchName, remoteName, remoteBranchName)).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()

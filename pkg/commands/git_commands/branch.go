@@ -285,6 +285,20 @@ func (self *BranchCommands) Merge(branchName string, variant MergeVariant) error
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// Fast-forwards the branch that is checked out in the given worktree to the
+// given ref. Fails if that can't be done without a merge commit. Pass empty
+// strings for the worktree to use the current one.
+func (self *BranchCommands) FastForwardMerge(refName string, worktreeGitDir string, worktreePath string) error {
+	cmdArgs := NewGitCmd("merge").
+		Arg("--ff-only").
+		Arg(refName).
+		GitDirIf(worktreeGitDir != "", worktreeGitDir).
+		WorktreePathIf(worktreePath != "", worktreePath).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 // Returns whether the first ref is an ancestor of the second one, which also
 // means that the second one can be fast-forward merged into the first one
 func (self *BranchCommands) IsAncestor(ancestorRefName string, refName string) bool {
