@@ -55,6 +55,31 @@ func createRebasedStackOfBranches(shell *Shell) {
 	shell.EmptyCommit("three-rebased")
 }
 
+// Creates the branch "feature" with two commits on top of master, pushes it,
+// and then rewrites those two commits and force-pushes them the way somebody
+// else rebasing the branch would. The local branch stays where it was, so it
+// has diverged from its remote branch without having any commits of its own.
+// Leaves master checked out.
+func createBranchRewrittenOnTheRemote(shell *Shell) {
+	shell.EmptyCommit("one")
+	shell.NewBranch("feature")
+	shell.EmptyCommit("two")
+	shell.EmptyCommit("three")
+
+	shell.CloneIntoRemote("origin")
+	shell.SetBranchUpstream("feature", "origin/feature")
+
+	shell.CreateLightweightTag("before-rewrite", "feature")
+	shell.HardReset("master")
+	shell.EmptyCommit("two-rewritten")
+	shell.EmptyCommit("three-rewritten")
+	shell.RunCommand([]string{"git", "push", "--force", "origin", "feature"})
+	shell.HardReset("before-rewrite")
+	shell.RunCommand([]string{"git", "tag", "-d", "before-rewrite"})
+
+	shell.Checkout("master")
+}
+
 func assertSuccessfullyPushed(t *TestDriver) {
 	t.Views().Status().Content(Equals("✓ repo → master"))
 

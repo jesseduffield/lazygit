@@ -374,6 +374,8 @@ type TranslationSet struct {
 	FwdNoUpstream                         string
 	FwdNoLocalUpstream                    string
 	FwdCommitsToPush                      string
+	FwdLocalOnlyCommits                   string
+	FwdUncommittedChanges                 string
 	PullRequestNoUpstream                 string
 	PullRequestChecksPassing              string
 	PullRequestChecksPending              string
@@ -1488,7 +1490,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleStagingViewTooltip:             "Switch to other view (staged/unstaged changes).",
 		ReturnToFilesPanel:                   `Return to files panel`,
 		FastForward:                          `Fast-forward`,
-		FastForwardTooltip:                   "Fast-forward selected branch from its upstream.",
+		FastForwardTooltip:                   "Fast-forward selected branch from its upstream. If the branch has diverged from its upstream because the upstream branch was rewritten, and it has no commits of its own, it is reset to its upstream instead. This needs reflogs to be enabled; a bare repository doesn't keep them by default (core.logAllRefUpdates).",
 		FastForwarding:                       "Fast-forwarding",
 		FoundConflictsTitle:                  "Conflicts!",
 		ViewConflictsMenuItem:                "View conflicts",
@@ -1547,6 +1549,8 @@ func EnglishTranslationSet() *TranslationSet {
 		FwdNoUpstream:                        "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                   "Cannot fast-forward a branch whose remote is not registered locally",
 		FwdCommitsToPush:                     "Cannot fast-forward a branch with commits to push",
+		FwdLocalOnlyCommits:                  "Cannot fast-forward '{{.branchName}}' because it has commits which were never on its remote branch",
+		FwdUncommittedChanges:                "Cannot fast-forward '{{.branchName}}' because the worktree it is checked out in has uncommitted changes",
 		PullRequestNoUpstream:                "Cannot open a pull request for a branch with no upstream",
 		PullRequestChecksPassing:             "Passing",
 		PullRequestChecksPending:             "Pending",
