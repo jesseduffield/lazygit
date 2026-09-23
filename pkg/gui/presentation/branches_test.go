@@ -436,3 +436,30 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 		})
 	}
 }
+
+func TestBranchStatus(t *testing.T) {
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelMillions)
+	defer color.ForceSetColorLevel(oldColorLevel)
+
+	c := common.NewDummyCommon()
+
+	divergedBranch := func(upstreamRewritten bool) *models.Branch {
+		branch := &models.Branch{
+			Name:           "branch",
+			UpstreamRemote: "origin",
+			UpstreamBranch: "branch",
+			AheadForPull:   "3",
+			BehindForPull:  "5",
+		}
+		branch.UpstreamRewritten.Store(upstreamRewritten)
+		return branch
+	}
+
+	status := func(branch *models.Branch) string {
+		return BranchStatus(branch, types.ItemOperationNone, c.Tr, time.Time{}, c.UserConfig())
+	}
+
+	assert.Equal(t, "\x1b[33m↓5↑3\x1b[0m", status(divergedBranch(false)))
+	assert.Equal(t, "\x1b[33;2m↓5↑3\x1b[0m", status(divergedBranch(true)),
+		"a branch whose upstream was rewritten should be dimmed")
+}

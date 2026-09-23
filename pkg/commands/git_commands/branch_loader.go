@@ -44,6 +44,7 @@ type BranchLoader struct {
 	*GitCommon
 	cmd                  oscommands.ICmdObjBuilder
 	getCurrentBranchInfo func() (BranchInfo, error)
+	hasLocalOnlyCommits  func(*models.Branch) (bool, error)
 	config               BranchLoaderConfigCommands
 }
 
@@ -52,6 +53,7 @@ func NewBranchLoader(
 	gitCommon *GitCommon,
 	cmd oscommands.ICmdObjBuilder,
 	getCurrentBranchInfo func() (BranchInfo, error),
+	hasLocalOnlyCommits func(*models.Branch) (bool, error),
 	config BranchLoaderConfigCommands,
 ) *BranchLoader {
 	return &BranchLoader{
@@ -59,6 +61,7 @@ func NewBranchLoader(
 		GitCommon:            gitCommon,
 		cmd:                  cmd,
 		getCurrentBranchInfo: getCurrentBranchInfo,
+		hasLocalOnlyCommits:  hasLocalOnlyCommits,
 		config:               config,
 	}
 }
@@ -135,22 +138,61 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 			branch.UpstreamBranch = match.Merge
 		}
 
-		// If the branch already existed, take over its BehindBaseBranch value
-		// to reduce flicker
+		// If the branch already existed, take over the values that are
+		// determined in the background, to reduce flicker
 		if oldBranch, found := lo.Find(oldBranches, func(b *models.Branch) bool {
 			return b.Name == branch.Name
 		}); found {
 			branch.BehindBaseBranch.Store(oldBranch.BehindBaseBranch.Load())
+			branch.UpstreamRewritten.Store(oldBranch.UpstreamRewritten.Load())
 		}
 	}
 
-	if loadExtraInfo && self.UserConfig().Gui.ShowDivergenceFromBaseBranch != "none" {
+	if loadExtraInfo {
+		if self.UserConfig().Gui.ShowDivergenceFromBaseBranch != "none" {
+			onWorker(func() error {
+				return self.GetBehindBaseBranchValuesForAllBranches(branches, mainBranches, renderFunc)
+			})
+		}
+
 		onWorker(func() error {
-			return self.GetBehindBaseBranchValuesForAllBranches(branches, mainBranches, renderFunc)
+			return self.checkForRewrittenUpstreams(branches, renderFunc)
 		})
 	}
 
 	return branches, nil
+}
+
+// For each branch that has diverged from its upstream, determines whether the
+// divergence comes from the upstream branch having been rewritten, and stores
+// the answer in the branch. A branch that we can't determine it for keeps the
+// answer "no", so that we don't offer anything we aren't sure about.
+func (self *BranchLoader) checkForRewrittenUpstreams(branches []*models.Branch, renderFunc func()) error {
+	t := time.Now()
+	errg := errgroup.Group{}
+
+	for _, branch := range branches {
+		if !branch.IsAheadForPull() || !branch.IsBehindForPull() {
+			branch.UpstreamRewritten.Store(false)
+			continue
+		}
+
+		errg.Go(func() error {
+			hasLocalOnlyCommits, err := self.hasLocalOnlyCommits(branch)
+			if err != nil {
+				// Not worth bothering the user about; it only means that we
+				// don't show this branch differently.
+				self.Log.Errorf("Failed to check whether branch %s has commits of its own: %v", branch.Name, err)
+			}
+			branch.UpstreamRewritten.Store(err == nil && !hasLocalOnlyCommits)
+			return nil
+		})
+	}
+
+	err := errg.Wait()
+	self.Log.Debugf("time to check for rewritten upstreams for all branches: %s", time.Since(t))
+	renderFunc()
+	return err
 }
 
 func (self *BranchLoader) GetBehindBaseBranchValuesForAllBranches(

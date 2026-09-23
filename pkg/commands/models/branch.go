@@ -47,6 +47,13 @@ type Branch struct {
 	// determined yet, or up to date with base branch. (We don't need to
 	// distinguish the two, as we don't draw anything in both cases.)
 	BehindBaseBranch atomic.Int32
+
+	// Whether the branch has diverged from its upstream because the upstream
+	// branch was rewritten, and not because the branch has commits of its own.
+	// Such a branch can be reset to its upstream without losing anything.
+	// False for branches that haven't diverged, and for those we haven't
+	// determined it for yet.
+	UpstreamRewritten atomic.Bool
 }
 
 func (b *Branch) FullRefName() string {
