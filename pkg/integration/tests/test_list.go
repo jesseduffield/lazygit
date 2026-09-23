@@ -451,6 +451,7 @@ var tests = []*components.IntegrationTest{
 	stash.StashAll,
 	stash.StashAndKeepIndex,
 	stash.StashIncludingUntrackedFiles,
+	stash.StashNoTrackedChanges,
 	stash.StashStaged,
 	stash.StashStagedPartialFile,
 	stash.StashUnstaged,
