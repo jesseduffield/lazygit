@@ -26,6 +26,8 @@ type branchColorPattern struct {
 
 var branchColorPatterns []branchColorPattern
 
+var dimYellow = style.FgYellow.SetDim()
+
 func GetBranchListDisplayStrings(
 	branches []*models.Branch,
 	getItemOperation func(item types.HasUrn) types.ItemOperation,
@@ -223,7 +225,12 @@ func BranchStatus(
 		} else if branch.RemoteBranchNotStoredLocally() {
 			result = style.FgMagenta.Sprint("?")
 		} else if branch.IsBehindForPull() && branch.IsAheadForPull() {
-			result = style.FgYellow.Sprintf("↓%s↑%s", branch.BehindForPull, branch.AheadForPull)
+			// A branch that diverged only because its upstream was rewritten
+			// has no commits of its own, and fast-forwarding it resolves the
+			// divergence. Dim it to set it apart from a branch whose
+			// divergence needs a decision.
+			divergenceStyle := lo.Ternary(branch.UpstreamRewritten.Load(), dimYellow, style.FgYellow)
+			result = divergenceStyle.Sprintf("↓%s↑%s", branch.BehindForPull, branch.AheadForPull)
 		} else if branch.IsBehindForPull() {
 			result = style.FgYellow.Sprintf("↓%s", branch.BehindForPull)
 		} else if branch.IsAheadForPull() {
