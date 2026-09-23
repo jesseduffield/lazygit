@@ -69,6 +69,25 @@ func TestMerge(t *testing.T) {
 			"\x1b[1mfoo\x1b[0m",
 		},
 		{
+			"dim attribute",
+			[]TextStyle{AttrDim},
+			TextStyle{
+				decoration: Decoration{dim: true},
+				Style:      color.Style{color.OpFuzzy},
+			},
+			"\x1b[2mfoo\x1b[0m",
+		},
+		{
+			"dim attribute and color",
+			[]TextStyle{FgRed.SetDim()},
+			TextStyle{
+				fg:         &Color{basic: &fgRed},
+				decoration: Decoration{dim: true},
+				Style:      color.Style{fgRed, color.OpFuzzy},
+			},
+			"\x1b[31;2mfoo\x1b[0m",
+		},
+		{
 			"multiple attributes",
 			[]TextStyle{AttrBold, AttrUnderline},
 			TextStyle{
