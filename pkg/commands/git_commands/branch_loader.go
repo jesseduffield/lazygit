@@ -67,7 +67,7 @@ func NewBranchLoader(
 func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 	mainBranches *MainBranches,
 	oldBranches []*models.Branch,
-	loadBehindCounts bool,
+	loadExtraInfo bool,
 	onWorker func(func() error),
 	renderFunc func(),
 ) ([]*models.Branch, error) {
@@ -144,7 +144,7 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 		}
 	}
 
-	if loadBehindCounts && self.UserConfig().Gui.ShowDivergenceFromBaseBranch != "none" {
+	if loadExtraInfo && self.UserConfig().Gui.ShowDivergenceFromBaseBranch != "none" {
 		onWorker(func() error {
 			return self.GetBehindBaseBranchValuesForAllBranches(branches, mainBranches, renderFunc)
 		})
