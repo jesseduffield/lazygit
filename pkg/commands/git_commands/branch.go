@@ -440,9 +440,13 @@ func (self *BranchCommands) previousUpstreamValues(upstreamRef string) []string 
 	return values
 }
 
-func (self *BranchCommands) UpdateBranchRefs(updateCommands string) error {
+// Moves branches by writing refs directly. The reflog message is what
+// `git reflog <branch>` shows for the update; it is the only hint about who
+// moved the branch, as no git command shows up in the reflog for this.
+func (self *BranchCommands) UpdateBranchRefs(updateCommands string, reflogMessage string) error {
 	cmdArgs := NewGitCmd("update-ref").
 		Arg("--stdin").
+		Arg("-m", reflogMessage).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).SetStdin(updateCommands).Run()
