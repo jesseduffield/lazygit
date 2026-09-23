@@ -661,7 +661,10 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 	if !branch.RemoteBranchStoredLocally() {
 		return errors.New(self.c.Tr.FwdNoLocalUpstream)
 	}
-	if branch.IsAheadForPull() {
+	// A branch that is only ahead has nothing to fast-forward to. One that is
+	// both ahead and behind may still be reset to its upstream, so let the
+	// helper look into it.
+	if branch.IsAheadForPull() && !branch.IsBehindForPull() {
 		return errors.New(self.c.Tr.FwdCommitsToPush)
 	}
 

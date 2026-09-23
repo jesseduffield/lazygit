@@ -223,7 +223,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` d `` | 삭제 | View delete options for local/remote branch. |
 | `` r `` | 체크아웃된 브랜치를 이 브랜치에 리베이스 | Rebase the checked-out branch onto the selected branch. |
 | `` M `` | 현재 브랜치에 병합 | View options for merging the selected item into the current branch (regular merge, squash merge) |
-| `` f `` | Fast-forward this branch from its upstream | Fast-forward selected branch from its upstream. |
+| `` f `` | Fast-forward this branch from its upstream | Fast-forward selected branch from its upstream. If the branch has diverged from its upstream because the upstream branch was rewritten, and it has no commits of its own, it is reset to its upstream instead. This needs reflogs to be enabled; a bare repository doesn't keep them by default (core.logAllRefUpdates). |
 | `` T `` | 태그를 생성 |  |
 | `` s `` | Sort order |  |
 | `` g `` | View reset options |  |

@@ -24,3 +24,15 @@ force-pushing every branch one by one; you are asked to confirm the force push
 once for all of them. Only branches that already have an upstream are included.
 Each of them is pushed to where `git push` would push it if it were checked out,
 so your push configuration applies to them as usual.
+
+When somebody else rebases the stack and force-pushes it, all your branches
+show up as diverged, for example `↓5↑3`, even though the commits they are ahead
+by are only the old versions of the ones that are now on the remote. Lazygit
+tells this apart from a branch that carries work of your own, and shows the
+divergence dimmed for such a branch. Pressing `f` on it resets it to its
+upstream instead of refusing, so you don't have to check the branch out and pull
+it. Lazygit only does this when every commit of the branch was on its remote
+branch at some point. It finds that out from the reflog of the remote-tracking
+branch. Reflogs are enabled by default, except in a bare repository; if you work
+in one with linked worktrees, set `core.logAllRefUpdates` to true there to make
+this work.

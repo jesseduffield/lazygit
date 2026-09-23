@@ -524,6 +524,38 @@ func (self *WorkingTreeCommands) ResetSoft(ref string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// ResetKeep runs `git reset --keep` in the given worktree, which moves the
+// checked out branch to the given ref while keeping local modifications. It
+// fails rather than overwriting a file that differs between the two commits.
+// Pass empty strings for the worktree to use the current one.
+func (self *WorkingTreeCommands) ResetKeep(ref string, worktreeGitDir string, worktreePath string) error {
+	cmdArgs := NewGitCmd("reset").Arg("--keep", ref).
+		GitDirIf(worktreeGitDir != "", worktreeGitDir).
+		WorktreePathIf(worktreePath != "", worktreePath).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
+// Returns whether the given worktree has changes to tracked files, either in
+// its working tree or in its index. Untracked files don't count. Pass empty
+// strings for the worktree to use the current one.
+func (self *WorkingTreeCommands) HasChangesToTrackedFiles(worktreeGitDir string, worktreePath string) (bool, error) {
+	cmdArgs := NewGitCmd("status").
+		Arg("--porcelain").
+		Arg("--untracked-files=no").
+		GitDirIf(worktreeGitDir != "", worktreeGitDir).
+		WorktreePathIf(worktreePath != "", worktreePath).
+		ToArgv()
+
+	stdout, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
+	if err != nil {
+		return false, err
+	}
+
+	return stdout != "", nil
+}
+
 func (self *WorkingTreeCommands) ResetMixed(ref string) error {
 	cmdArgs := NewGitCmd("reset").Arg("--mixed", ref).
 		ToArgv()
