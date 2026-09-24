@@ -383,16 +383,8 @@ func (self *SyncController) pushBranchesAux(currentBranch *models.Branch, branch
 // Runs f as a push of the current branch, showing it and the other branches
 // as being pushed while it runs
 func (self *SyncController) withPushingStatus(currentBranch *models.Branch, otherBranches []*models.Branch, f func(gocui.Task) error) error {
-	return self.c.WithInlineStatus(currentBranch, types.ItemOperationPushing, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
-		for _, branch := range otherBranches {
-			self.c.State().SetItemOperation(branch, types.ItemOperationPushing)
-		}
-		defer func() {
-			for _, branch := range otherBranches {
-				self.c.State().ClearItemOperation(branch)
-			}
-		}()
-
+	branches := append([]*models.Branch{currentBranch}, otherBranches...)
+	return self.c.Helpers().BranchesHelper.WithInlineStatusOnBranches(branches, types.ItemOperationPushing, func(task gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.Push)
 		return f(task)
 	})

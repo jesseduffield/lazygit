@@ -449,7 +449,7 @@ func (self *BranchesHelper) FastForwardBranches(branches []*models.Branch) error
 		return err
 	}
 
-	return self.withFastForwardingStatus(branches, fastForward)
+	return self.WithInlineStatusOnBranches(branches, types.ItemOperationFastForwarding, fastForward)
 }
 
 // Does the part of FastForwardBranches that looks at the model, and so has to
@@ -501,11 +501,12 @@ func (self *BranchesHelper) PrepareFastForward(branches []*models.Branch) (func(
 	}, nil
 }
 
-// Runs f with all the given branches shown as being fast-forwarded
-func (self *BranchesHelper) withFastForwardingStatus(branches []*models.Branch, f func(gocui.Task) error) error {
-	return self.c.WithInlineStatus(branches[0], types.ItemOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
+// Runs f on a worker with all the given branches shown as being in the given
+// operation while it runs
+func (self *BranchesHelper) WithInlineStatusOnBranches(branches []*models.Branch, operation types.ItemOperation, f func(gocui.Task) error) error {
+	return self.c.WithInlineStatus(branches[0], operation, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
 		for _, branch := range branches[1:] {
-			self.c.State().SetItemOperation(branch, types.ItemOperationFastForwarding)
+			self.c.State().SetItemOperation(branch, operation)
 		}
 		defer func() {
 			for _, branch := range branches[1:] {
