@@ -1443,7 +1443,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 							Message:              self.c.Tr.CreatingFixupCommitStatus,
 							HideWorkingTreeState: true,
 						}, func(gocui.Task) error {
-							if err := self.c.Git().Commit.CreateFixupCommit(commit.Hash()); err != nil {
+							if err := self.c.Git().Commit.CreateFixupCommit(commit.Hash(), commit.Name); err != nil {
 								return err
 							}
 

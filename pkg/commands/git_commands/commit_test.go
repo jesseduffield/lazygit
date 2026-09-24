@@ -51,72 +51,80 @@ func TestCommitResetToCommit(t *testing.T) {
 
 func TestCommitCommitCmdObj(t *testing.T) {
 	type scenario struct {
-		testName             string
-		summary              string
-		forceSkipHooks       bool
-		description          string
-		configSignoff        bool
-		configSkipHookPrefix string
-		expectedArgs         []string
+		testName               string
+		summary                string
+		forceSkipHooks         bool
+		description            string
+		configSignoff          bool
+		configSkipHookPrefixes []string
+		expectedArgs           []string
 	}
 
 	scenarios := []scenario{
 		{
-			testName:             "Commit",
-			summary:              "test",
-			forceSkipHooks:       false,
-			configSignoff:        false,
-			configSkipHookPrefix: "",
-			expectedArgs:         []string{"commit", "-m", "test"},
+			testName:               "Commit",
+			summary:                "test",
+			forceSkipHooks:         false,
+			configSignoff:          false,
+			configSkipHookPrefixes: nil,
+			expectedArgs:           []string{"commit", "-m", "test"},
 		},
 		{
-			testName:             "Commit with --no-verify flag < only prefix",
-			summary:              "WIP: test",
-			forceSkipHooks:       false,
-			configSignoff:        false,
-			configSkipHookPrefix: "WIP",
-			expectedArgs:         []string{"commit", "--no-verify", "-m", "WIP: test"},
+			testName:               "Commit with --no-verify flag < only prefix",
+			summary:                "WIP: test",
+			forceSkipHooks:         false,
+			configSignoff:          false,
+			configSkipHookPrefixes: []string{"WIP"},
+			expectedArgs:           []string{"commit", "--no-verify", "-m", "WIP: test"},
 		},
 		{
-			testName:             "Commit with --no-verify flag < skip flag and prefix",
-			summary:              "WIP: test",
-			forceSkipHooks:       true,
-			configSignoff:        false,
-			configSkipHookPrefix: "WIP",
-			expectedArgs:         []string{"commit", "--no-verify", "-m", "WIP: test"},
+			testName:               "Commit with --no-verify flag < skip flag and prefix",
+			summary:                "WIP: test",
+			forceSkipHooks:         true,
+			configSignoff:          false,
+			configSkipHookPrefixes: []string{"WIP"},
+			expectedArgs:           []string{"commit", "--no-verify", "-m", "WIP: test"},
 		},
 		{
-			testName:             "Commit with --no-verify flag < skip flag no prefix",
-			summary:              "test",
-			forceSkipHooks:       true,
-			configSignoff:        false,
-			configSkipHookPrefix: "WIP",
-			expectedArgs:         []string{"commit", "--no-verify", "-m", "test"},
+			testName:               "Commit with --no-verify flag < skip flag no prefix",
+			summary:                "test",
+			forceSkipHooks:         true,
+			configSignoff:          false,
+			configSkipHookPrefixes: []string{"WIP"},
+			expectedArgs:           []string{"commit", "--no-verify", "-m", "test"},
 		},
 		{
-			testName:             "Commit with multiline message",
-			summary:              "line1",
-			forceSkipHooks:       false,
-			description:          "line2",
-			configSignoff:        false,
-			configSkipHookPrefix: "",
-			expectedArgs:         []string{"commit", "-m", "line1", "-m", "line2"},
+			testName:               "Commit with multiline message",
+			summary:                "line1",
+			forceSkipHooks:         false,
+			description:            "line2",
+			configSignoff:          false,
+			configSkipHookPrefixes: nil,
+			expectedArgs:           []string{"commit", "-m", "line1", "-m", "line2"},
 		},
 		{
-			testName:             "Commit with signoff",
-			summary:              "test",
-			forceSkipHooks:       false,
-			configSignoff:        true,
-			configSkipHookPrefix: "",
-			expectedArgs:         []string{"commit", "--signoff", "-m", "test"},
+			testName:               "Commit with signoff",
+			summary:                "test",
+			forceSkipHooks:         false,
+			configSignoff:          true,
+			configSkipHookPrefixes: nil,
+			expectedArgs:           []string{"commit", "--signoff", "-m", "test"},
 		},
 		{
-			testName:             "Commit with signoff and no-verify",
-			summary:              "WIP: test",
-			forceSkipHooks:       true,
-			configSignoff:        true,
-			configSkipHookPrefix: "WIP",
-			expectedArgs:         []string{"commit", "--no-verify", "--signoff", "-m", "WIP: test"},
+			testName:               "Commit with signoff and no-verify",
+			summary:                "WIP: test",
+			forceSkipHooks:         true,
+			configSignoff:          true,
+			configSkipHookPrefixes: []string{"WIP"},
+			expectedArgs:           []string{"commit", "--no-verify", "--signoff", "-m", "WIP: test"},
+		},
+		{
+			testName:               "Commit with multiple prefixes, second matches",
+			summary:                "fixup! some commit",
+			forceSkipHooks:         false,
+			configSignoff:          false,
+			configSkipHookPrefixes: []string{"WIP", "fixup!", "squash!"},
+			expectedArgs:           []string{"commit", "--no-verify", "-m", "fixup! some commit"},
 		},
 	}
 
@@ -124,7 +132,7 @@ func TestCommitCommitCmdObj(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.Commit.SignOff = s.configSignoff
-			userConfig.Git.SkipHookPrefix = s.configSkipHookPrefix
+			userConfig.Git.SkipHookPrefixes = s.configSkipHookPrefixes
 
 			runner := oscommands.NewFakeRunner(t).ExpectGitArgs(s.expectedArgs, "", nil)
 			instance := buildCommitCommands(commonDeps{userConfig: userConfig, runner: runner})
@@ -171,18 +179,60 @@ func TestCommitCommitEditorCmdObj(t *testing.T) {
 
 func TestCommitCreateFixupCommit(t *testing.T) {
 	type scenario struct {
-		testName string
-		hash     string
-		runner   *oscommands.FakeCmdObjRunner
-		test     func(error)
+		testName        string
+		hash            string
+		originalSubject string
+		userConfig      *config.UserConfig
+		runner          *oscommands.FakeCmdObjRunner
+		test            func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			testName: "valid case",
-			hash:     "12345",
+			testName:        "valid case",
+			hash:            "12345",
+			originalSubject: "some commit",
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"commit", "--fixup=12345"}, "", nil),
+			test: func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			testName:        "with matching skipHookPrefixes for original subject",
+			hash:            "12345",
+			originalSubject: "WIP do stuff",
+			userConfig: &config.UserConfig{
+				Git: config.GitConfig{SkipHookPrefixes: []string{"fixup! WIP"}},
+			},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"commit", "--no-verify", "--fixup=12345"}, "", nil),
+			test: func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			testName:        "with non-matching skipHookPrefixes",
+			hash:            "12345",
+			originalSubject: "some commit",
+			userConfig: &config.UserConfig{
+				Git: config.GitConfig{SkipHookPrefixes: []string{"WIP"}},
+			},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"commit", "--fixup=12345"}, "", nil),
+			test: func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			testName:        "with multiple prefixes including fixup! WIP",
+			hash:            "12345",
+			originalSubject: "WIP my feature",
+			userConfig: &config.UserConfig{
+				Git: config.GitConfig{SkipHookPrefixes: []string{"WIP", "fixup! WIP"}},
+			},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"commit", "--no-verify", "--fixup=12345"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -191,8 +241,8 @@ func TestCommitCreateFixupCommit(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			instance := buildCommitCommands(commonDeps{runner: s.runner})
-			s.test(instance.CreateFixupCommit(s.hash))
+			instance := buildCommitCommands(commonDeps{runner: s.runner, userConfig: s.userConfig})
+			s.test(instance.CreateFixupCommit(s.hash, s.originalSubject))
 			s.runner.CheckForMissingCalls()
 		})
 	}
@@ -205,6 +255,7 @@ func TestCommitCreateAmendCommit(t *testing.T) {
 		newSubject         string
 		newDescription     string
 		includeFileChanges bool
+		userConfig         *config.UserConfig
 		runner             *oscommands.FakeCmdObjRunner
 	}
 
@@ -236,11 +287,47 @@ func TestCommitCreateAmendCommit(t *testing.T) {
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"commit", "-m", "amend! original subject", "-m", "new subject", "--only", "--allow-empty"}, "", nil),
 		},
+		{
+			testName:           "with matching skipHookPrefixes on new subject",
+			originalSubject:    "original subject",
+			newSubject:         "WIP new subject",
+			newDescription:     "",
+			includeFileChanges: true,
+			userConfig: &config.UserConfig{
+				Git: config.GitConfig{SkipHookPrefixes: []string{"WIP"}},
+			},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"commit", "--no-verify", "-m", "amend! original subject", "-m", "WIP new subject"}, "", nil),
+		},
+		{
+			testName:           "with non-matching skipHookPrefixes",
+			originalSubject:    "original subject",
+			newSubject:         "new subject",
+			newDescription:     "",
+			includeFileChanges: true,
+			userConfig: &config.UserConfig{
+				Git: config.GitConfig{SkipHookPrefixes: []string{"WIP"}},
+			},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"commit", "-m", "amend! original subject", "-m", "new subject"}, "", nil),
+		},
+		{
+			testName:           "renaming WIP commit to non-WIP runs hooks",
+			originalSubject:    "WIP my feature",
+			newSubject:         "Implement my feature",
+			newDescription:     "",
+			includeFileChanges: true,
+			userConfig: &config.UserConfig{
+				Git: config.GitConfig{SkipHookPrefixes: []string{"WIP"}},
+			},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"commit", "-m", "amend! WIP my feature", "-m", "Implement my feature"}, "", nil),
+		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			instance := buildCommitCommands(commonDeps{runner: s.runner})
+			instance := buildCommitCommands(commonDeps{runner: s.runner, userConfig: s.userConfig})
 			err := instance.CreateAmendCommit(s.originalSubject, s.newSubject, s.newDescription, s.includeFileChanges)
 			assert.NoError(t, err)
 			s.runner.CheckForMissingCalls()
