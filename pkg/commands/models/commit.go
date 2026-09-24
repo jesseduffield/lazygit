@@ -8,8 +8,11 @@ import (
 	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
-// Special commit hash for empty tree object
-const EmptyTreeCommitHash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+// Empty tree commit hashes for SHA-1 and SHA-256 object formats
+const (
+	EmptyTreeCommitHash      = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+	EmptyTreeCommitHashSha256 = "6ef19b41225c5369f1c104d45d8d85efa9b057b53b14b4b9b939dd74decc5321"
+)
 
 type CommitStatus uint8
 
@@ -122,9 +125,18 @@ func (c *Commit) ShortRefName() string {
 
 func (c *Commit) ParentRefName() string {
 	if c.IsFirstCommit() {
-		return EmptyTreeCommitHash
+		return emptyTreeCommitHash(c.Hash())
 	}
 	return c.RefName() + "^"
+}
+
+// emptyTreeCommitHash returns the empty tree hash matching the object format
+// of the given commit hash. SHA-256 repos use 64-character hashes; SHA-1 uses 40.
+func emptyTreeCommitHash(commitHash string) string {
+	if len(commitHash) > 40 {
+		return EmptyTreeCommitHashSha256
+	}
+	return EmptyTreeCommitHash
 }
 
 func (c *Commit) Parents() []string {
