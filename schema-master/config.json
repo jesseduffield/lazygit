@@ -19,6 +19,10 @@
           "type": "integer",
           "description": "If autoWrapCommitMessage is true, the width to wrap to",
           "default": 72
+        },
+        "generateCommand": {
+          "type": "string",
+          "description": "Shell command that generates a commit message from a diff piped to stdin.\nThe command's stdout is used as the commit message (markdown fences are stripped automatically).\nAccessible via the commit menu (\u003cc-o\u003e then 'g').\nExample: \"claude -p 'Generate a conventional commit message for this diff:'\""
         }
       },
       "additionalProperties": false,
