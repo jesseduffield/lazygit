@@ -32,9 +32,10 @@ type Pipe struct {
 }
 
 var (
-	highlightStyle      = style.FgLightWhite.SetBold()
-	EmptyTreeCommitHash = models.EmptyTreeCommitHash
-	StartCommitHash     = "START"
+	highlightStyle            = style.FgLightWhite.SetBold()
+	EmptyTreeCommitHash       = models.EmptyTreeCommitHash
+	EmptyTreeCommitHashSHA256 = models.EmptyTreeCommitHashSHA256
+	StartCommitHash           = "START"
 )
 
 func (self Pipe) left() int16 {
@@ -142,7 +143,11 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 
 	var toHash *string
 	if commit.IsFirstCommit() {
-		toHash = &EmptyTreeCommitHash
+		if len(commit.Hash()) == len(EmptyTreeCommitHashSHA256) {
+			toHash = &EmptyTreeCommitHashSHA256
+		} else {
+			toHash = &EmptyTreeCommitHash
+		}
 	} else {
 		toHash = commit.ParentPtrs()[0]
 	}
