@@ -421,14 +421,8 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool, fe
 			if self.c.State().GetRepoGeneration() != fetchGeneration {
 				return nil
 			}
-			err := self.AutoForwardBranches(background)
-			if background && err != nil {
-				// The background poller discards this return value, so surface
-				// the error in the log rather than as a popup for background work.
-				self.c.Log.Error(err)
-				return nil
-			}
-			return err
+			self.AutoForwardBranches(background)
+			return nil
 		},
 	})
 	return fetchErr
@@ -628,14 +622,16 @@ func (self *BranchesHelper) worktreeArgs(worktree *models.Worktree) (string, str
 	return worktree.GitDir, worktree.Path
 }
 
-func (self *BranchesHelper) AutoForwardBranches(background bool) error {
+// Reads the branches from the model, so it must be called on the UI thread; the
+// git work happens on a worker.
+func (self *BranchesHelper) AutoForwardBranches(background bool) {
 	if self.c.UserConfig().Git.AutoForwardBranches == "none" {
-		return nil
+		return
 	}
 
 	branches := self.c.Model().Branches
 	if len(branches) == 0 {
-		return nil
+		return
 	}
 
 	allBranches := self.c.UserConfig().Git.AutoForwardBranches == "allBranches"
@@ -653,14 +649,26 @@ func (self *BranchesHelper) AutoForwardBranches(background bool) error {
 	}
 
 	if updateCommands == "" {
-		return nil
+		return
 	}
 
-	self.c.LogAction(self.c.Tr.Actions.AutoForwardBranches)
-	self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
-	err := self.c.Git().Branch.UpdateBranchRefs(updateCommands, "lazygit: fast-forward to upstream branch")
+	// A background worker doesn't block switching repos, so it has to stick
+	// to the git commands of the repo that the branches came from
+	git := self.c.Git()
+	onWorker := lo.Ternary(background, self.c.OnWorkerBackground, self.c.OnWorker)
+	onWorker(func(gocui.Task) error {
+		self.c.LogAction(self.c.Tr.Actions.AutoForwardBranches)
+		self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
+		err := git.Branch.UpdateBranchRefs(updateCommands, "lazygit: fast-forward to upstream branch")
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Background: background})
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Background: background})
 
-	return err
+		if background && err != nil {
+			// Surface the error in the log rather than as a popup for background
+			// work
+			self.c.Log.Error(err)
+			return nil
+		}
+		return err
+	})
 }
