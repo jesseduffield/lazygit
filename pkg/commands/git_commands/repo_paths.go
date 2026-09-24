@@ -2,7 +2,9 @@ package git_commands
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/go-errors/errors"
@@ -298,5 +300,45 @@ func runGitRevParse(gitCmd *oscommands.CmdObj) (string, error) {
 	if err != nil {
 		return "", errors.Errorf("'%s' failed: %v", gitCmd.ToString(), err)
 	}
-	return strings.TrimSpace(res), nil
+
+	res = strings.TrimSpace(res)
+
+	// On Windows, we may encounter Cygwin Git repos, which returns Unix
+	// paths which are illegible to Windows. Try running it through cygpath.
+	if runtime.GOOS == "windows" {
+		// Some callers pass in a command that produces newline delimited
+		// multiline output, e.g., multiple rev-parse args.
+		lines := strings.Split(res, "\n")
+		converted := false
+		for i, line := range lines {
+			// Relative paths should never trip in the first place, so guard
+			// this fallback with a prefix check. Guard is placed here and not
+			// earlier before splitting to avoid bailing too early in case
+			// callers produce both absolute and relative paths.
+			if strings.HasPrefix(line, "/") {
+				norm, err := exec.Command("cygpath", "-w", line).Output()
+				if err != nil {
+					// If cygpath doesn't exist, that's fine, just pray the
+					// original works,
+					if errors.Is(err, exec.ErrNotFound) {
+						return res, nil
+					}
+
+					// but don't swallow other possibly interesting errors.
+					return "", errors.Errorf("'cygpath -w %s' failed: %v", line, err)
+				}
+
+				lines[i] = strings.TrimSpace(string(norm))
+				converted = true
+			}
+		}
+
+		// Do not bother spending even more effort rejoining if we did not
+		// work on anything
+		if converted {
+			return strings.Join(lines, "\n"), nil
+		}
+	}
+
+	return res, nil
 }
