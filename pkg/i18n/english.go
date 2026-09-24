@@ -244,6 +244,9 @@ type TranslationSet struct {
 	BranchesBelowHaveCommitsToPush        string
 	PushBranchAndBranchesBelow            string
 	PushOnlyCurrentBranch                 string
+	BranchesBelowHaveChangedOnRemote      string
+	PullBranchAndBranchesBelow            string
+	PullOnlyCurrentBranch                 string
 	UpdatesRejected                       string
 	UpdatesRejectedAndForcePushDisabled   string
 	CheckForUpdate                        string
@@ -1232,7 +1235,7 @@ func EnglishTranslationSet() *TranslationSet {
 		Push:                                 "Push",
 		PushTooltip:                          "Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have commits to push, you are offered to push those too.",
 		Pull:                                 "Pull",
-		PullTooltip:                          "Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
+		PullTooltip:                          "Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have changed on the remote, you are offered to update those too.",
 		MergeConflictsTitle:                  "Merge conflicts",
 		MergeConflictDescription_DD:          "Conflict: this file was moved or renamed both in the current and the incoming changes, but to different destinations. I don't know which ones, but they should both show up as conflicts too (marked 'AU' and 'UA', respectively). The most likely resolution is to delete this file, and pick one of the destinations and delete the other.",
 		MergeConflictDescription_AU:          "Conflict: this file is the destination of a move or rename in the current changes, but was moved or renamed to a different destination in the incoming changes. That other destination should also show up as a conflict (marked 'UA'), as well as the file that both were renamed from (marked 'DD').",
@@ -1413,6 +1416,9 @@ func EnglishTranslationSet() *TranslationSet {
 		BranchesBelowHaveCommitsToPush:       "The following branches stacked below '{{.branchName}}' also have commits to push:",
 		PushBranchAndBranchesBelow:           "Push all these branches in addition to the current one",
 		PushOnlyCurrentBranch:                "Push only '{{.branchName}}'",
+		BranchesBelowHaveChangedOnRemote:     "The following branches stacked below '{{.branchName}}' have also changed on the remote:",
+		PullBranchAndBranchesBelow:           "Pull all these branches in addition to the current one",
+		PullOnlyCurrentBranch:                "Pull only '{{.branchName}}'",
 		UpdatesRejected:                      "Updates were rejected. Please fetch and examine the remote changes before pushing again.",
 		UpdatesRejectedAndForcePushDisabled:  "Updates were rejected and you have disabled force pushing",
 		CheckForUpdate:                       "Check for update",
