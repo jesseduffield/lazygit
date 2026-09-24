@@ -73,7 +73,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
 - [Elevator Pitch](#elevator-pitch)
 - [Table of contents](#table-of-contents)
 - [Features](#features)
-  - [Stage individual lines](#stage-individual-lines)
+  - [Stage hunks or individual lines](#stage-hunks-or-individual-lines)
   - [Interactive Rebase](#interactive-rebase)
   - [Cherry-pick](#cherry-pick)
   - [Bisect](#bisect)
@@ -133,11 +133,11 @@ Lazygit is not my fulltime job but it is a hefty part time job so if you want to
 
 ## Features
 
-### Stage individual lines
+### Stage hunks or individual lines
 
-Press `<enter>` on a changed file to focus its diff in the main view. Press `<space>` on the selected line to stage it, or press `v` to start selecting a range of lines. You can also press `a` to switch to hunk selection mode. When a file has both staged and unstaged changes, use `<tab>` to move between the two diff panes; the same actions stage or unstage the selection depending on the pane.
+Press `0` on a changed file to focus its diff in the main view. The selection covers a whole hunk to begin with, so `<space>` stages that hunk and moves on to the next one. When you want only part of a hunk, press `a` for line-by-line selection and `v` to select a range of lines. What you staged shows up in the pane below. Press `<tab>` to move between the two panes; `<space>` unstages in the lower one. Press `c` to commit without leaving the diff.
 
-![stage_lines](../assets/demo/stage_lines-compressed.gif)
+![stage_hunks_or_lines](../assets/demo/stage_hunks_or_lines-compressed.gif)
 
 ### Interactive Rebase
 
@@ -195,11 +195,15 @@ You can create worktrees to have multiple branches going at once without the nee
 
 You can build a custom patch from an old commit and then remove the patch from the commit, split out a new commit, apply the patch in reverse to the index, and more.
 
-In this example we have a redundant comment that we want to remove from an old commit. We hit `<enter>` on the commit to view its files, then `<enter>` on a file to focus its diff. From there, `<space>` adds the selected comment line to the custom patch and `ctrl+p` opens the custom patch options, where we choose to remove the patch from the original commit.
+In this example an old commit contains a change that belongs in a commit of its own. We hit `0` on the commit to focus its diff. `<space>` on the hunk we want to move adds it to the custom patch, and `ctrl+p` opens the custom patch options, where we choose to move the patch into a new commit.
 
 Learn more in the [Rebase magic Youtube tutorial](https://youtu.be/4XaToVut_hs).
 
 ![custom_patch](../assets/demo/custom_patch-compressed.gif)
+
+If you only want to remove a hunk from an old commit, you don't need a custom patch for that. Select the hunk in the commit's diff and press `d`. Lazygit rewrites the commit without it, running an interactive rebase in the background.
+
+![remove_hunk_from_commit](../assets/demo/remove_hunk_from_commit-compressed.gif)
 
 ### Rebase from marked base commit
 
