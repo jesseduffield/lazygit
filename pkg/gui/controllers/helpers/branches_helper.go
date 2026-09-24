@@ -457,6 +457,17 @@ func (self *BranchesHelper) FastForwardBranches(branches []*models.Branch) error
 	})
 	anyCheckedOut := lo.SomeBy(toForward, func(f *branchToForward) bool { return f.worktree != nil })
 
+	// Updating that worktree would move its detached HEAD, which belongs to the
+	// rebase or bisect, and leave the branch alone
+	for _, f := range toForward {
+		if f.worktree != nil && f.worktree.IsRebasingOrBisecting {
+			return errors.New(utils.ResolvePlaceholderString(
+				self.c.Tr.FwdBranchRebasingOrBisecting,
+				map[string]string{"branchName": f.branch.Name, "worktreeName": f.worktree.Name},
+			))
+		}
+	}
+
 	return self.withFastForwardingStatus(branches, func(task gocui.Task) error {
 		defer func() {
 			if anyCheckedOut {

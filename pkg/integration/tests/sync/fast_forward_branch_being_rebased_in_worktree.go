@@ -39,12 +39,10 @@ var FastForwardBranchBeingRebasedInWorktree = NewIntegrationTest(NewIntegrationT
 			NavigateToLine(Contains("master")).
 			Press(keys.Branches.FastForward)
 
-		/* EXPECTED:
 		t.ExpectPopup().Alert().
 			Title(Equals("Error")).
 			Content(Equals("Cannot fast-forward 'master' because it is being rebased or bisected in worktree linked-worktree")).
 			Confirm()
-		ACTUAL: */
 
 		t.Views().Worktrees().
 			Focus().
@@ -57,11 +55,6 @@ var FastForwardBranchBeingRebasedInWorktree = NewIntegrationTest(NewIntegrationT
 			Lines(
 				Contains("─── Pending rebase todos"),
 				Contains("─── Commits"),
-				/* EXPECTED:
-				Contains("two"),
-				Contains("one"),
-				ACTUAL: */
-				Contains("three"),
 				Contains("two"),
 				Contains("one"),
 			)

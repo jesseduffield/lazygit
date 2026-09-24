@@ -376,6 +376,7 @@ type TranslationSet struct {
 	FwdCommitsToPush                      string
 	FwdLocalOnlyCommits                   string
 	FwdUncommittedChanges                 string
+	FwdBranchRebasingOrBisecting          string
 	PullRequestNoUpstream                 string
 	PullRequestChecksPassing              string
 	PullRequestChecksPending              string
@@ -1551,6 +1552,7 @@ func EnglishTranslationSet() *TranslationSet {
 		FwdCommitsToPush:                     "Cannot fast-forward a branch with commits to push",
 		FwdLocalOnlyCommits:                  "Cannot fast-forward '{{.branchName}}' because it has commits which were never on its remote branch",
 		FwdUncommittedChanges:                "Cannot fast-forward '{{.branchName}}' because the worktree it is checked out in has uncommitted changes",
+		FwdBranchRebasingOrBisecting:         "Cannot fast-forward '{{.branchName}}' because it is being rebased or bisected in worktree {{.worktreeName}}",
 		PullRequestNoUpstream:                "Cannot open a pull request for a branch with no upstream",
 		PullRequestChecksPassing:             "Passing",
 		PullRequestChecksPending:             "Pending",
