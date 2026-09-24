@@ -640,20 +640,32 @@ func (self *BranchesHelper) AutoForwardBranches(background bool) {
 	}
 
 	allBranches := self.c.UserConfig().Git.AutoForwardBranches == "allBranches"
-	updateCommands := ""
+	toForward := []*branchToForward{}
 	// The first branch is the currently checked out branch; skip it
 	for _, branch := range branches[1:] {
-		if branch.RemoteBranchStoredLocally() &&
-			!self.checkedOutByOtherWorktree(branch) &&
-			(allBranches || lo.Contains(self.c.UserConfig().Git.MainBranches, branch.Name)) {
-			isStrictlyBehind := branch.IsBehindForPull() && !branch.IsAheadForPull()
-			if isStrictlyBehind {
-				updateCommands += fmt.Sprintf("update %s %s %s\n", branch.FullRefName(), branch.FullUpstreamRefName(), branch.CommitHash)
-			}
+		if !branch.RemoteBranchStoredLocally() ||
+			!(allBranches || lo.Contains(self.c.UserConfig().Git.MainBranches, branch.Name)) {
+			continue
 		}
+
+		isStrictlyBehind := branch.IsBehindForPull() && !branch.IsAheadForPull()
+		if !isStrictlyBehind {
+			continue
+		}
+
+		// Changing the files of the current worktree without being asked to
+		// would be surprising. A worktree that is mid-rebase or mid-bisect has
+		// its HEAD detached from the branch, so the branch can't be moved
+		// there, and neither can it in a worktree whose directory is missing.
+		worktree, _ := self.worktreeForBranch(branch)
+		if worktree != nil && (worktree.IsCurrent || worktree.IsRebasingOrBisecting || worktree.IsPathMissing) {
+			continue
+		}
+
+		toForward = append(toForward, &branchToForward{branch: branch, worktree: worktree})
 	}
 
-	if updateCommands == "" {
+	if len(toForward) == 0 {
 		return
 	}
 
@@ -662,9 +674,26 @@ func (self *BranchesHelper) AutoForwardBranches(background bool) {
 	git := self.c.Git()
 	onWorker := lo.Ternary(background, self.c.OnWorkerBackground, self.c.OnWorker)
 	onWorker(func(gocui.Task) error {
+		// Only change the files of another worktree while the user has no
+		// changes of their own there
+		toForward := lo.Filter(toForward, func(f *branchToForward, _ int) bool {
+			if f.worktree == nil {
+				return true
+			}
+
+			worktreeGitDir, worktreePath := self.worktreeArgs(f.worktree)
+			hasChanges, err := git.WorkingTree.HasChangesToTrackedFiles(worktreeGitDir, worktreePath)
+			if err != nil {
+				self.c.Log.Errorf("Failed to check worktree %s for changes: %v", f.worktree.Name, err)
+			}
+			return err == nil && !hasChanges
+		})
+		if len(toForward) == 0 {
+			return nil
+		}
+
 		self.c.LogAction(self.c.Tr.Actions.AutoForwardBranches)
-		self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
-		err := git.Branch.UpdateBranchRefs(updateCommands, "lazygit: fast-forward to upstream branch")
+		err := self.forwardBranches(git, toForward)
 
 		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Background: background})
 

@@ -489,6 +489,8 @@ var tests = []*components.IntegrationTest{
 	sync.FastForwardRewrittenStackOfBranchesWithLocalCommits,
 	sync.FetchAndAutoForwardBranchesAllBranches,
 	sync.FetchAndAutoForwardBranchesAllBranchesCheckedOutInOtherWorktree,
+	sync.FetchAndAutoForwardBranchesBeingRebasedInCurrentWorktree,
+	sync.FetchAndAutoForwardBranchesCheckedOutInOtherWorktreeWithStaleSubmodule,
 	sync.FetchAndAutoForwardBranchesNone,
 	sync.FetchAndAutoForwardBranchesOnlyMainBranches,
 	sync.FetchAndAutoForwardBranchesWorktreeAddedAfterStartup,
