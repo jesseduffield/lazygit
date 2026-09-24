@@ -478,6 +478,7 @@ var tests = []*components.IntegrationTest{
 	sync.FastForwardBehindBranchCheckedOut,
 	sync.FastForwardBehindBranchWithoutReflogs,
 	sync.FastForwardBranchBeingRebasedInWorktree,
+	sync.FastForwardBranchesInWorktreesWithOneFailing,
 	sync.FastForwardRewrittenBranch,
 	sync.FastForwardRewrittenBranchCheckedOut,
 	sync.FastForwardRewrittenBranchWithLocalCommits,

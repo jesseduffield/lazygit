@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -486,7 +487,7 @@ func (self *BranchesHelper) FastForwardBranches(branches []*models.Branch) error
 			}
 		}
 
-		return self.forwardBranches(toForward)
+		return self.forwardBranches(self.c.Git(), toForward)
 	})
 }
 
@@ -569,7 +570,11 @@ func (self *BranchesHelper) planForwardingBranch(f *branchToForward) error {
 	return nil
 }
 
-func (self *BranchesHelper) forwardBranches(toForward []*branchToForward) error {
+// Keeps going when a branch fails to update, so that it doesn't hold up the
+// others, and returns the errors of all the failed ones.
+func (self *BranchesHelper) forwardBranches(git *commands.GitCommand, toForward []*branchToForward) error {
+	var errs []error
+
 	// The branches that aren't checked out anywhere are nothing but refs to
 	// update, so they can all be done in one go
 	updateCommands := ""
@@ -582,8 +587,8 @@ func (self *BranchesHelper) forwardBranches(toForward []*branchToForward) error 
 
 	if updateCommands != "" {
 		self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
-		if err := self.c.Git().Branch.UpdateBranchRefs(updateCommands, "lazygit: update to upstream branch"); err != nil {
-			return err
+		if err := git.Branch.UpdateBranchRefs(updateCommands, "lazygit: update to upstream branch"); err != nil {
+			errs = append(errs, err)
 		}
 	}
 
@@ -598,18 +603,18 @@ func (self *BranchesHelper) forwardBranches(toForward []*branchToForward) error 
 
 		var err error
 		if f.reset {
-			err = self.c.Git().WorkingTree.ResetKeep(
+			err = git.WorkingTree.ResetKeep(
 				f.branch.FullUpstreamRefName(), worktreeGitDir, worktreePath)
 		} else {
-			err = self.c.Git().Branch.FastForwardMerge(
+			err = git.Branch.FastForwardMerge(
 				f.branch.FullUpstreamRefName(), worktreeGitDir, worktreePath)
 		}
 		if err != nil {
-			return err
+			errs = append(errs, err)
 		}
 	}
 
-	return nil
+	return errors.Join(errs...)
 }
 
 // Returns the git dir and the path to pass for the given worktree; both are
