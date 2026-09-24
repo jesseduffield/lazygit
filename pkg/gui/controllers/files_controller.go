@@ -91,7 +91,6 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:           self.withItems(self.edit),
-			GetDisabledReason: self.require(self.itemsSelected(self.canEditFiles)),
 			Description:       self.c.Tr.Edit,
 			Tooltip:           self.c.Tr.EditFileTooltip,
 			DisplayOnScreen:   true,
@@ -1214,20 +1213,26 @@ func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayF
 }
 
 func (self *FilesController) edit(nodes []*filetree.FileNode) error {
-	return self.c.Helpers().Files.EditFiles(lo.FilterMap(nodes,
-		func(node *filetree.FileNode, _ int) (string, bool) {
-			return node.GetPath(), node.IsFile()
-		}))
-}
-
-func (self *FilesController) canEditFiles(nodes []*filetree.FileNode) *types.DisabledReason {
-	if lo.NoneBy(nodes, func(node *filetree.FileNode) bool { return node.IsFile() }) {
-		return &types.DisabledReason{
-			Text:             self.c.Tr.ErrCannotEditDirectory,
-			ShowErrorInPanel: true,
+	var files, dirs []string
+	for _, node := range nodes {
+		if node.IsFile() {
+			files = append(files, node.GetPath())
+		} else {
+			dirs = append(dirs, node.GetPath())
 		}
 	}
 
+	err := self.c.Helpers().Files.EditFiles(files)
+	if err != nil {
+		return err
+	}
+
+	for _, dir := range dirs {
+		err := self.c.Helpers().Files.OpenDirInEditor(dir)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
