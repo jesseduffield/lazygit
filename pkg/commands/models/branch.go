@@ -31,6 +31,13 @@ type Branch struct {
 	// 'git@github.com:tiwood/lazygit.git'
 	UpstreamRemote string
 	UpstreamBranch string
+	// The remote and the remote branch that `git push` would push this branch
+	// to, as git determines them from push.default, remote.pushDefault and
+	// branch.<name>.pushRemote. In a triangular workflow these differ from the
+	// upstream. Both are empty if git has no push destination for the branch,
+	// e.g. because push.default is "upstream" and the branch has no upstream.
+	PushRemote string
+	PushBranch string
 	// subject line in commit message
 	Subject string
 	// commit hash
@@ -40,6 +47,13 @@ type Branch struct {
 	// determined yet, or up to date with base branch. (We don't need to
 	// distinguish the two, as we don't draw anything in both cases.)
 	BehindBaseBranch atomic.Int32
+
+	// Whether the branch has diverged from its upstream because the upstream
+	// branch was rewritten, and not because the branch has commits of its own.
+	// Such a branch can be reset to its upstream without losing anything.
+	// False for branches that haven't diverged, and for those we haven't
+	// determined it for yet.
+	UpstreamRewritten atomic.Bool
 }
 
 func (b *Branch) FullRefName() string {
@@ -117,6 +131,13 @@ func (b *Branch) IsBehindForPull() bool {
 
 func (b *Branch) IsBehindForPush() bool {
 	return b.RemoteBranchStoredLocally() && b.BehindForPush != "0"
+}
+
+// Whether the branch has commits that its push destination doesn't have. False
+// if the remote branch it would be pushed to isn't stored locally, in which
+// case the count is "?".
+func (b *Branch) IsAheadForPush() bool {
+	return b.RemoteBranchStoredLocally() && b.AheadForPush != "0" && b.AheadForPush != "?"
 }
 
 // for when we're in a detached head state

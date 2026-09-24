@@ -44,6 +44,7 @@ type BranchLoader struct {
 	*GitCommon
 	cmd                  oscommands.ICmdObjBuilder
 	getCurrentBranchInfo func() (BranchInfo, error)
+	hasLocalOnlyCommits  func(*models.Branch) (bool, error)
 	config               BranchLoaderConfigCommands
 }
 
@@ -52,6 +53,7 @@ func NewBranchLoader(
 	gitCommon *GitCommon,
 	cmd oscommands.ICmdObjBuilder,
 	getCurrentBranchInfo func() (BranchInfo, error),
+	hasLocalOnlyCommits func(*models.Branch) (bool, error),
 	config BranchLoaderConfigCommands,
 ) *BranchLoader {
 	return &BranchLoader{
@@ -59,6 +61,7 @@ func NewBranchLoader(
 		GitCommon:            gitCommon,
 		cmd:                  cmd,
 		getCurrentBranchInfo: getCurrentBranchInfo,
+		hasLocalOnlyCommits:  hasLocalOnlyCommits,
 		config:               config,
 	}
 }
@@ -67,7 +70,7 @@ func NewBranchLoader(
 func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 	mainBranches *MainBranches,
 	oldBranches []*models.Branch,
-	loadBehindCounts bool,
+	loadExtraInfo bool,
 	onWorker func(func() error),
 	renderFunc func(),
 ) ([]*models.Branch, error) {
@@ -135,22 +138,61 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 			branch.UpstreamBranch = match.Merge
 		}
 
-		// If the branch already existed, take over its BehindBaseBranch value
-		// to reduce flicker
+		// If the branch already existed, take over the values that are
+		// determined in the background, to reduce flicker
 		if oldBranch, found := lo.Find(oldBranches, func(b *models.Branch) bool {
 			return b.Name == branch.Name
 		}); found {
 			branch.BehindBaseBranch.Store(oldBranch.BehindBaseBranch.Load())
+			branch.UpstreamRewritten.Store(oldBranch.UpstreamRewritten.Load())
 		}
 	}
 
-	if loadBehindCounts && self.UserConfig().Gui.ShowDivergenceFromBaseBranch != "none" {
+	if loadExtraInfo {
+		if self.UserConfig().Gui.ShowDivergenceFromBaseBranch != "none" {
+			onWorker(func() error {
+				return self.GetBehindBaseBranchValuesForAllBranches(branches, mainBranches, renderFunc)
+			})
+		}
+
 		onWorker(func() error {
-			return self.GetBehindBaseBranchValuesForAllBranches(branches, mainBranches, renderFunc)
+			return self.checkForRewrittenUpstreams(branches, renderFunc)
 		})
 	}
 
 	return branches, nil
+}
+
+// For each branch that has diverged from its upstream, determines whether the
+// divergence comes from the upstream branch having been rewritten, and stores
+// the answer in the branch. A branch that we can't determine it for keeps the
+// answer "no", so that we don't offer anything we aren't sure about.
+func (self *BranchLoader) checkForRewrittenUpstreams(branches []*models.Branch, renderFunc func()) error {
+	t := time.Now()
+	errg := errgroup.Group{}
+
+	for _, branch := range branches {
+		if !branch.IsAheadForPull() || !branch.IsBehindForPull() {
+			branch.UpstreamRewritten.Store(false)
+			continue
+		}
+
+		errg.Go(func() error {
+			hasLocalOnlyCommits, err := self.hasLocalOnlyCommits(branch)
+			if err != nil {
+				// Not worth bothering the user about; it only means that we
+				// don't show this branch differently.
+				self.Log.Errorf("Failed to check whether branch %s has commits of its own: %v", branch.Name, err)
+			}
+			branch.UpstreamRewritten.Store(err == nil && !hasLocalOnlyCommits)
+			return nil
+		})
+	}
+
+	err := errg.Wait()
+	self.Log.Debugf("time to check for rewritten upstreams for all branches: %s", time.Since(t))
+	renderFunc()
+	return err
 }
 
 func (self *BranchLoader) GetBehindBaseBranchValuesForAllBranches(
@@ -349,6 +391,7 @@ var branchFields = []string{
 	"upstream:short",
 	"upstream:track",
 	"push:track",
+	"push",
 	"subject",
 	"objectname",
 	"committerdate:unix",
@@ -361,13 +404,15 @@ func obtainBranch(split []string, storeCommitDateAsRecency bool) (*models.Branch
 	upstreamName := split[2]
 	track := split[3]
 	pushTrack := split[4]
-	subject := split[5]
-	commitHash := split[6]
-	commitDate := split[7]
+	pushRef := split[5]
+	subject := split[6]
+	commitHash := split[7]
+	commitDate := split[8]
 
 	name := strings.TrimPrefix(fullName, "heads/")
 	aheadForPull, behindForPull, gone := parseUpstreamInfo(upstreamName, track)
 	aheadForPush, behindForPush, _ := parseUpstreamInfo(upstreamName, pushTrack)
+	pushRemote, pushBranch := parsePushDestination(pushRef)
 
 	recency := ""
 	if storeCommitDateAsRecency {
@@ -383,6 +428,8 @@ func obtainBranch(split []string, storeCommitDateAsRecency bool) (*models.Branch
 		BehindForPull: behindForPull,
 		AheadForPush:  aheadForPush,
 		BehindForPush: behindForPush,
+		PushRemote:    pushRemote,
+		PushBranch:    pushBranch,
 		UpstreamGone:  gone,
 		Head:          headMarker == "*",
 		Subject:       subject,
@@ -408,6 +455,25 @@ func parseUpstreamInfo(upstreamName string, track string) (string, string, bool)
 	behind := parseDifference(track, `behind (\d+)`)
 
 	return ahead, behind, false
+}
+
+// Splits the remote-tracking ref that the %(push) field names, e.g.
+// refs/remotes/origin/main, into the remote and the remote branch. Returns
+// empty strings if the field is empty because git has no push destination for
+// the branch, or if the ref isn't under refs/remotes/.
+func parsePushDestination(pushRef string) (string, string) {
+	remoteAndBranch, ok := strings.CutPrefix(pushRef, "refs/remotes/")
+	if !ok {
+		return "", ""
+	}
+
+	// Remote names can't contain slashes, so the first one ends the remote name
+	remote, branch, ok := strings.Cut(remoteAndBranch, "/")
+	if !ok {
+		return "", ""
+	}
+
+	return remote, branch
 }
 
 func parseDifference(track string, regexStr string) string {

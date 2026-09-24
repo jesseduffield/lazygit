@@ -7,7 +7,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -144,8 +143,8 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Branches.FastForward),
-			Handler:           self.withItem(self.fastForward),
-			GetDisabledReason: self.require(self.singleItemSelected(self.branchIsReal)),
+			Handler:           self.withItems(self.fastForward),
+			GetDisabledReason: self.require(self.itemRangeSelected(self.branchesAreReal)),
 			Description:       self.c.Tr.FastForward,
 			Tooltip:           self.c.Tr.FastForwardTooltip,
 		},
@@ -655,54 +654,23 @@ func (self *BranchesController) rebase(branch *models.Branch) error {
 	return self.c.Helpers().MergeAndRebase.RebaseOntoRef(branch.Name)
 }
 
-func (self *BranchesController) fastForward(branch *models.Branch) error {
-	if !branch.IsTrackingRemote() {
+func (self *BranchesController) fastForward(branches []*models.Branch) error {
+	if !lo.EveryBy(branches, func(branch *models.Branch) bool { return branch.IsTrackingRemote() }) {
 		return errors.New(self.c.Tr.FwdNoUpstream)
 	}
-	if !branch.RemoteBranchStoredLocally() {
+	if !lo.EveryBy(branches, func(branch *models.Branch) bool { return branch.RemoteBranchStoredLocally() }) {
 		return errors.New(self.c.Tr.FwdNoLocalUpstream)
 	}
-	if branch.IsAheadForPull() {
+	// A branch that is only ahead has nothing to fast-forward to. One that is
+	// both ahead and behind may still be reset to its upstream, so let the
+	// helper look into it.
+	if lo.SomeBy(branches, func(branch *models.Branch) bool {
+		return branch.IsAheadForPull() && !branch.IsBehindForPull()
+	}) {
 		return errors.New(self.c.Tr.FwdCommitsToPush)
 	}
 
-	action := self.c.Tr.Actions.FastForwardBranch
-	worktree, ok := self.worktreeForBranch(branch)
-
-	return self.c.WithInlineStatus(branch, types.ItemOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
-		if ok {
-			self.c.LogAction(action)
-
-			worktreeGitDir := ""
-			worktreePath := ""
-			// if it is the current worktree path, no need to specify the path
-			if !worktree.IsCurrent {
-				worktreeGitDir = worktree.GitDir
-				worktreePath = worktree.Path
-			}
-
-			err := self.c.Git().Sync.Pull(
-				task,
-				git_commands.PullOptions{
-					RemoteName:      branch.UpstreamRemote,
-					BranchName:      branch.UpstreamBranch,
-					FastForwardOnly: true,
-					WorktreeGitDir:  worktreeGitDir,
-					WorktreePath:    worktreePath,
-				},
-			)
-			self.c.RefreshFromWorker(types.RefreshOptions{})
-			return err
-		}
-
-		self.c.LogAction(action)
-
-		err := self.c.Git().Sync.FastForward(
-			task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
-		)
-		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}})
-		return err
-	})
+	return self.c.Helpers().BranchesHelper.FastForwardBranches(branches)
 }
 
 func (self *BranchesController) createTag(branch *models.Branch) error {

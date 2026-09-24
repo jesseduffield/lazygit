@@ -238,6 +238,14 @@ type TranslationSet struct {
 	ForcePush                             string
 	ForcePushPrompt                       string
 	ForcePushDisabled                     string
+	ForcePushBranchesPrompt               string
+	ForcePushBranchesDisabled             string
+	BranchesBelowHaveCommitsToPush        string
+	PushBranchAndBranchesBelow            string
+	PushOnlyCurrentBranch                 string
+	BranchesBelowHaveChangedOnRemote      string
+	PullBranchAndBranchesBelow            string
+	PullOnlyCurrentBranch                 string
 	UpdatesRejected                       string
 	UpdatesRejectedAndForcePushDisabled   string
 	CheckForUpdate                        string
@@ -373,6 +381,9 @@ type TranslationSet struct {
 	FwdNoUpstream                         string
 	FwdNoLocalUpstream                    string
 	FwdCommitsToPush                      string
+	FwdLocalOnlyCommits                   string
+	FwdUncommittedChanges                 string
+	FwdBranchRebasingOrBisecting          string
 	PullRequestNoUpstream                 string
 	PullRequestChecksPassing              string
 	PullRequestChecksPending              string
@@ -1224,9 +1235,9 @@ func EnglishTranslationSet() *TranslationSet {
 		Refresh:                              "Refresh",
 		RefreshTooltip:                       "Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`.",
 		Push:                                 "Push",
-		PushTooltip:                          "Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
+		PushTooltip:                          "Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have commits to push, you are offered to push those too.",
 		Pull:                                 "Pull",
-		PullTooltip:                          "Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
+		PullTooltip:                          "Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have changed on the remote, you are offered to update those too.",
 		MergeConflictsTitle:                  "Merge conflicts",
 		MergeConflictDescription_DD:          "Conflict: this file was moved or renamed both in the current and the incoming changes, but to different destinations. I don't know which ones, but they should both show up as conflicts too (marked 'AU' and 'UA', respectively). The most likely resolution is to delete this file, and pick one of the destinations and delete the other.",
 		MergeConflictDescription_AU:          "Conflict: this file is the destination of a move or rename in the current changes, but was moved or renamed to a different destination in the incoming changes. That other destination should also show up as a conflict (marked 'UA'), as well as the file that both were renamed from (marked 'DD').",
@@ -1402,6 +1413,14 @@ func EnglishTranslationSet() *TranslationSet {
 		ForcePush:                            "Force push",
 		ForcePushPrompt:                      "Your branch has diverged from the remote branch. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to force push.",
 		ForcePushDisabled:                    "Your branch has diverged from the remote branch and you've disabled force pushing",
+		ForcePushBranchesPrompt:              "The following branches have diverged from their remote branches:\n\n{{.branches}}\n\nPress {{.cancelKey}} to cancel, or {{.confirmKey}} to force push.",
+		ForcePushBranchesDisabled:            "Some of these branches have diverged from their remote branches and you've disabled force pushing",
+		BranchesBelowHaveCommitsToPush:       "The following branches stacked below '{{.branchName}}' also have commits to push:",
+		PushBranchAndBranchesBelow:           "Push all these branches in addition to the current one",
+		PushOnlyCurrentBranch:                "Push only '{{.branchName}}'",
+		BranchesBelowHaveChangedOnRemote:     "The following branches stacked below '{{.branchName}}' have also changed on the remote:",
+		PullBranchAndBranchesBelow:           "Pull all these branches in addition to the current one",
+		PullOnlyCurrentBranch:                "Pull only '{{.branchName}}'",
 		UpdatesRejected:                      "Updates were rejected. Please fetch and examine the remote changes before pushing again.",
 		UpdatesRejectedAndForcePushDisabled:  "Updates were rejected and you have disabled force pushing",
 		CheckForUpdate:                       "Check for update",
@@ -1486,7 +1505,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleDiffPaneTooltip:                "Switch to the other focused diff pane.",
 		ReturnToFilesPanel:                   `Return to files panel`,
 		FastForward:                          `Fast-forward`,
-		FastForwardTooltip:                   "Fast-forward selected branch from its upstream.",
+		FastForwardTooltip:                   "Fast-forward selected branch from its upstream. If the branch has diverged from its upstream because the upstream branch was rewritten, and it has no commits of its own, it is reset to its upstream instead. This needs reflogs to be enabled; a bare repository doesn't keep them by default (core.logAllRefUpdates).",
 		FastForwarding:                       "Fast-forwarding",
 		FoundConflictsTitle:                  "Conflicts!",
 		ViewConflictsMenuItem:                "View conflicts",
@@ -1544,6 +1563,9 @@ func EnglishTranslationSet() *TranslationSet {
 		FwdNoUpstream:                        "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                   "Cannot fast-forward a branch whose remote is not registered locally",
 		FwdCommitsToPush:                     "Cannot fast-forward a branch with commits to push",
+		FwdLocalOnlyCommits:                  "Cannot fast-forward '{{.branchName}}' because it has commits which were never on its remote branch",
+		FwdUncommittedChanges:                "Cannot fast-forward '{{.branchName}}' because the worktree it is checked out in has uncommitted changes",
+		FwdBranchRebasingOrBisecting:         "Cannot fast-forward '{{.branchName}}' because it is being rebased or bisected in worktree {{.worktreeName}}",
 		PullRequestNoUpstream:                "Cannot open a pull request for a branch with no upstream",
 		PullRequestChecksPassing:             "Passing",
 		PullRequestChecksPending:             "Pending",

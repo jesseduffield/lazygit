@@ -6,8 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/sasha-s/go-deadlock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +28,7 @@ func TestObtainBranch(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName:                 "TrimHeads",
-			input:                    []string{"", "heads/a_branch", "", "", "", "subject", "123", timeStamp},
+			input:                    []string{"", "heads/a_branch", "", "", "", "", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -41,7 +43,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "NoUpstream",
-			input:                    []string{"", "a_branch", "", "", "", "subject", "123", timeStamp},
+			input:                    []string{"", "a_branch", "", "", "", "", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -56,7 +58,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "IsHead",
-			input:                    []string{"*", "a_branch", "", "", "", "subject", "123", timeStamp},
+			input:                    []string{"*", "a_branch", "", "", "", "", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -71,7 +73,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "IsBehindAndAhead",
-			input:                    []string{"", "a_branch", "a_remote/a_branch", "[behind 2, ahead 3]", "[behind 2, ahead 3]", "subject", "123", timeStamp},
+			input:                    []string{"", "a_branch", "a_remote/a_branch", "[behind 2, ahead 3]", "[behind 2, ahead 3]", "refs/remotes/a_remote/a_branch", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -79,6 +81,40 @@ func TestObtainBranch(t *testing.T) {
 				BehindForPull: "2",
 				AheadForPush:  "3",
 				BehindForPush: "2",
+				PushRemote:    "a_remote",
+				PushBranch:    "a_branch",
+				Head:          false,
+				Subject:       "subject",
+				CommitHash:    "123",
+			},
+		},
+		{
+			testName:                 "PushDestinationDiffersFromUpstream",
+			input:                    []string{"", "a_branch", "a_remote/a_branch", "[ahead 3]", "[ahead 5]", "refs/remotes/my_fork/feature/a_branch", "subject", "123", timeStamp},
+			storeCommitDateAsRecency: false,
+			expectedBranch: &models.Branch{
+				Name:          "a_branch",
+				AheadForPull:  "3",
+				BehindForPull: "0",
+				AheadForPush:  "5",
+				BehindForPush: "0",
+				PushRemote:    "my_fork",
+				PushBranch:    "feature/a_branch",
+				Head:          false,
+				Subject:       "subject",
+				CommitHash:    "123",
+			},
+		},
+		{
+			testName:                 "PushDestinationNotARemoteTrackingRef",
+			input:                    []string{"", "a_branch", "a_remote/a_branch", "", "", "refs/published/a_branch", "subject", "123", timeStamp},
+			storeCommitDateAsRecency: false,
+			expectedBranch: &models.Branch{
+				Name:          "a_branch",
+				AheadForPull:  "0",
+				BehindForPull: "0",
+				AheadForPush:  "0",
+				BehindForPush: "0",
 				Head:          false,
 				Subject:       "subject",
 				CommitHash:    "123",
@@ -86,7 +122,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "RemoteBranchIsGone",
-			input:                    []string{"", "a_branch", "a_remote/a_branch", "[gone]", "[gone]", "subject", "123", timeStamp},
+			input:                    []string{"", "a_branch", "a_remote/a_branch", "[gone]", "[gone]", "refs/remotes/a_remote/a_branch", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -95,6 +131,8 @@ func TestObtainBranch(t *testing.T) {
 				BehindForPull: "?",
 				AheadForPush:  "?",
 				BehindForPush: "?",
+				PushRemote:    "a_remote",
+				PushBranch:    "a_branch",
 				Head:          false,
 				Subject:       "subject",
 				CommitHash:    "123",
@@ -102,7 +140,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "WithCommitDateAsRecency",
-			input:                    []string{"", "a_branch", "", "", "", "subject", "123", timeStamp},
+			input:                    []string{"", "a_branch", "", "", "", "", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: true,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -254,4 +292,63 @@ func TestGetBehindBaseBranchValuesForAllBranches_LegacyPath(t *testing.T) {
 	assert.Equal(t, int32(7), branches[0].BehindBaseBranch.Load())
 
 	runner.CheckForMissingCalls()
+}
+
+func TestCheckForRewrittenUpstreams(t *testing.T) {
+	branch := func(name string, ahead string, behind string) *models.Branch {
+		return &models.Branch{
+			Name:           name,
+			UpstreamRemote: "origin",
+			UpstreamBranch: name,
+			AheadForPull:   ahead,
+			BehindForPull:  behind,
+		}
+	}
+
+	notDiverged := branch("not-diverged", "0", "2")
+	rewritten := branch("rewritten", "3", "5")
+	ownCommits := branch("own-commits", "3", "5")
+	failing := branch("failing", "1", "1")
+
+	// A branch that is no longer diverged must lose the value it had before
+	notDiverged.UpstreamRewritten.Store(true)
+
+	branches := []*models.Branch{notDiverged, rewritten, ownCommits, failing}
+
+	var mutex deadlock.Mutex
+	queried := []string{}
+	hasLocalOnlyCommits := func(branch *models.Branch) (bool, error) {
+		mutex.Lock()
+		queried = append(queried, branch.Name)
+		mutex.Unlock()
+
+		switch branch.Name {
+		case "own-commits":
+			return true, nil
+		case "failing":
+			return false, errors.New("error")
+		default:
+			return false, nil
+		}
+	}
+
+	gitCommon := buildGitCommon(commonDeps{})
+	loader := &BranchLoader{
+		Common:              gitCommon.Common,
+		GitCommon:           gitCommon,
+		cmd:                 gitCommon.cmd,
+		hasLocalOnlyCommits: hasLocalOnlyCommits,
+	}
+
+	rendered := false
+	err := loader.checkForRewrittenUpstreams(branches, func() { rendered = true })
+	assert.NoError(t, err)
+	assert.True(t, rendered, "renderFunc should have been called")
+
+	assert.ElementsMatch(t, []string{"rewritten", "own-commits", "failing"}, queried,
+		"only diverged branches should be looked at")
+	assert.False(t, notDiverged.UpstreamRewritten.Load())
+	assert.True(t, rewritten.UpstreamRewritten.Load())
+	assert.False(t, ownCommits.UpstreamRewritten.Load())
+	assert.False(t, failing.UpstreamRewritten.Load(), "a failed check should not claim anything")
 }

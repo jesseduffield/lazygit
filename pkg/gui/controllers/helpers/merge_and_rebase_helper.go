@@ -525,7 +525,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 	}
 
 	wantFastForward, wantNonFastForward := self.fastForwardMergeUserPreference()
-	canFastForward := self.c.Git().Branch.CanDoFastForwardMerge(refName)
+	canFastForward := self.c.Git().Branch.IsAncestor("HEAD", refName)
 
 	var firstRegularMergeItem *types.MenuItem
 	var secondRegularMergeItem *types.MenuItem

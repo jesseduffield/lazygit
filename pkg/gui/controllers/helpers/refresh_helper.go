@@ -1126,14 +1126,14 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs(env refreshEnv) ([]*mode
 
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
-func (self *RefreshHelper) refreshBranches(captured capturedBranchState, waitForWorktrees func(), waitForRemotes func(), branchSelection types.BranchSelectionBehavior, loadBehindCounts bool, reflogCommits []*models.Commit, env refreshEnv) []*models.Branch {
+func (self *RefreshHelper) refreshBranches(captured capturedBranchState, waitForWorktrees func(), waitForRemotes func(), branchSelection types.BranchSelectionBehavior, loadExtraInfo bool, reflogCommits []*models.Commit, env refreshEnv) []*models.Branch {
 	loadSeq := self.branchLoadSeq.Add(1)
 
 	branches, err := env.git.Loaders.BranchLoader.Load(
 		reflogCommits,
 		captured.mainBranches,
 		captured.oldBranches,
-		loadBehindCounts,
+		loadExtraInfo,
 		func(f func() error) {
 			self.onWorker(env.background, func(_ gocui.Task) error {
 				err := f()
