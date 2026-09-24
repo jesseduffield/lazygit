@@ -225,6 +225,16 @@ func (self *BranchesHelper) promptWorktreeBranchDelete(
 					})
 				},
 			},
+			{
+				Label:   self.c.Tr.RemoveWorktreeAndBranch,
+				Tooltip: self.c.Tr.RemoveWorktreeTooltip,
+				OnPress: func() error {
+					if err := self.worktreeHelper.Remove(worktree, false); err != nil {
+						return err
+					}
+					return self.c.Git().Branch.LocalDelete([]string{selectedBranch.Name}, true)
+				},
+			},
 		},
 	})
 }
