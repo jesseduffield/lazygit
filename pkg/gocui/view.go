@@ -5,6 +5,7 @@
 package gocui
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"slices"
@@ -245,23 +246,138 @@ type pos struct {
 	x, y int
 }
 
-// call this in the event of a view resize, or if you want to render new content
-// without the chance of old content still appearing, or if you want to remove
-// a line from the existing content
+// call this if you want to render new content without the chance of old content
+// still appearing, or if you want to remove a line from the existing content. For
+// a view whose size has changed, whose content is the same but has to be wrapped
+// afresh, call RewrapContent instead.
 func (v *View) clearViewLines() {
 	v.tainted = true
 	v.viewLines = nil
 	v.clearHover()
 }
 
-// ClearViewLines is clearViewLines guarded by writeMutex. It's for callers on
-// the UI thread (the layout pass) that touch a view whose content a task
-// goroutine may be writing concurrently: viewLines/tainted/hover are all
-// buffer state that writeMutex protects.
-func (v *View) ClearViewLines() {
+// RewrapContent wraps the view's content for the size the view has now, and puts
+// the positions into that content — the scroll offset, the cursor, a range's
+// anchor — back on the lines they were on. They are all view lines, which count
+// the segments each line is wrapped into, so wrapping the content at another
+// width leaves every one of them pointing at a different line.
+//
+// Call it on the UI thread whenever the view's size changes; a task goroutine may
+// be writing the content concurrently, and all of this is state writeMutex
+// protects.
+func (v *View) RewrapContent() {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+	origin := v.contentPosOf(v.oy)
+	cursor := v.contentPosOf(v.oy + v.cy)
+	anchor := v.contentPosOf(v.rangeSelectStartY)
+	cursorRow := v.cy
+
 	v.clearViewLines()
+	v.refreshViewLinesIfNeeded()
+
+	if !origin.ok {
+		return
+	}
+
+	cursorLine, cursorOk := v.viewLineOf(cursor)
+	if anchorLine, ok := v.viewLineOf(anchor); ok {
+		v.rangeSelectStartY = anchorLine
+		if cursorOk {
+			// A range covers lines of content, not the wrapped segments those
+			// lines are drawn as, so its ends go back on the outermost segments
+			// of their lines: a line that was covered whole stays covered whole.
+			cursorLine = v.viewLineOfRangeEnd(cursor, anchor)
+			v.rangeSelectStartY = v.viewLineOfRangeEnd(anchor, cursor)
+		}
+	}
+
+	// The line the cursor is on keeps the row it was drawn on, so that it doesn't
+	// move under the user; with no cursor on screen the view keeps its own place
+	// in the content instead.
+	if v.Highlight && cursorOk && cursorRow >= 0 && cursorRow < v.InnerHeight() {
+		v.SetOriginY(cursorLine - cursorRow)
+	} else if originLine, ok := v.viewLineOf(origin); ok {
+		v.SetOriginY(originLine)
+	}
+	if cursorOk {
+		v.cy = cursorLine - v.oy
+	}
+}
+
+// contentPos is a position in a view's content in terms that survive the content
+// being wrapped again: which line of it, and which of that line's segments.
+type contentPos struct {
+	line, segment int
+	ok            bool
+}
+
+// contentPosOf returns where the given view line sits in the content. Only call
+// this with a lock on writeMutex, and with the view lines up to date.
+func (v *View) contentPosOf(viewLine int) contentPos {
+	if viewLine < 0 || viewLine >= len(v.viewLines) {
+		return contentPos{}
+	}
+	return contentPos{
+		line:    v.viewLines[viewLine].linesY,
+		segment: v.viewLines[viewLine].linesX,
+		ok:      true,
+	}
+}
+
+// viewLineOf returns the view line drawing the given position in the content,
+// on the nearest segment its line still has. Only call this with a lock on
+// writeMutex, and with the view lines up to date.
+func (v *View) viewLineOf(pos contentPos) (int, bool) {
+	first, last, ok := v.segmentSpanOf(pos)
+	if !ok {
+		return 0, false
+	}
+	return min(first+pos.segment, last), true
+}
+
+// viewLineOfRangeEnd returns the view line for one end of a range selection: the
+// outermost segment of its line, so that the range covers that line whole. other
+// is the range's other end, which says which way is outward. Both ends have to be
+// positions whose lines are drawn, which viewLineOf answers.
+func (v *View) viewLineOfRangeEnd(pos contentPos, other contentPos) int {
+	first, last, _ := v.segmentSpanOf(pos)
+	if pos.line <= other.line {
+		return first
+	}
+	return last
+}
+
+// segmentSpanOf returns the first and last view line drawing the given position's
+// line of the content. ok is false when the position was never taken, or its line
+// isn't drawn at all.
+func (v *View) segmentSpanOf(pos contentPos) (int, int, bool) {
+	if !pos.ok {
+		return 0, 0, false
+	}
+	return v.viewLineSpanOfBufferLine(pos.line)
+}
+
+// viewLineSpanOfBufferLine returns the first and last view line drawing the given
+// buffer line, i.e. the first and last segment it is wrapped into. Both are the
+// same view line when the line doesn't wrap. ok is false when the line isn't drawn
+// at all. Only call this with a lock on writeMutex, and with the view lines up to
+// date.
+func (v *View) viewLineSpanOfBufferLine(bufferLine int) (int, int, bool) {
+	first, last := -1, -1
+	for i, vline := range v.viewLines {
+		if vline.linesY == bufferLine {
+			if first == -1 {
+				first = i
+			}
+			last = i
+		} else if first != -1 {
+			break
+		}
+	}
+	return first, last, first != -1
 }
 
 type searcher struct {
@@ -572,6 +688,23 @@ type lineType struct {
 	// matches the current width; nil means nothing is cached yet.
 	wrappedCells   [][]cell
 	wrappedColumns int
+
+	// asWritten is the text of the line as its writer wrote it, escape sequences
+	// left out, kept from the first character on that the cells spell differently:
+	// a tab, which the cells hold as the spaces it fills, or a carriage return,
+	// which they hold as the overwrite it caused. nil while the cells spell the
+	// line as it was written, as they do for most lines.
+	asWritten []byte
+}
+
+// textAsWritten returns the line's text as its writer wrote it, escape sequences
+// left out. A reader that parses a view's content rather than showing it wants
+// this form; the cells' text is for showing.
+func (l *lineType) textAsWritten() string {
+	if l.asWritten != nil {
+		return string(l.asWritten)
+	}
+	return l.cells.String()
 }
 
 // trailingFillAttributes describes the fg/bg colors that draw() should
@@ -834,8 +967,7 @@ func (v *View) SetWritePos(x, y int) {
 		y = 0
 	}
 
-	v.buf.wx = x
-	v.buf.wy = y
+	v.buf.seekWrite(x, y)
 
 	// Changing the write position makes a pending newline obsolete
 	v.buf.pendingNewline = false
@@ -919,6 +1051,35 @@ func (b *viewBuffer) writeCells(cells []cell) {
 	b.wx += len(cells)
 }
 
+// seekWrite moves the write cursor to (x, y). Writing there starts the line over,
+// so whatever it kept of its text as written is dropped; the text a line keeps is
+// the text written to it from its start. A carriage return continues a line
+// instead, and moves the cursor without this (see write).
+func (b *viewBuffer) seekWrite(x, y int) {
+	b.wx = x
+	b.wy = y
+	if y < len(b.lines) {
+		b.lines[y].asWritten = nil
+	}
+}
+
+// startAsWritten begins keeping the current line's text as written (see
+// lineType.asWritten), at the first character the cells won't spell the same way.
+// Up to here they spell it exactly, so their text is what was written so far.
+func (b *viewBuffer) startAsWritten() {
+	if line := &b.lines[b.wy]; line.asWritten == nil {
+		line.asWritten = append([]byte{}, line.cells.String()...)
+	}
+}
+
+// noteAsWritten records text the writer wrote to the current line, once the line
+// keeps its text as written at all.
+func (b *viewBuffer) noteAsWritten(text []byte) {
+	if line := &b.lines[b.wy]; line.asWritten != nil {
+		line.asWritten = append(line.asWritten, text...)
+	}
+}
+
 // Write appends a byte slice into the view's internal buffer. Because
 // View implements the io.Writer interface, it can be passed as parameter
 // of functions like fmt.Fprintf, fmt.Fprintln, io.Copy, etc. Clear must
@@ -965,8 +1126,7 @@ func (b *viewBuffer) write(v *View, p []byte) {
 	}
 
 	advanceToNextLine := func() {
-		b.wx = 0
-		b.wy++
+		b.seekWrite(0, b.wy+1)
 		if b.wy >= len(b.lines) {
 			b.lines = append(b.lines, lineType{})
 		}
@@ -999,6 +1159,10 @@ func (b *viewBuffer) write(v *View, p []byte) {
 			b.ei.notifyRowAdvance()
 		case characterEquals(chr, '\r'):
 			finishLine()
+			// The cells will hold what follows as an overwrite of what came
+			// before; the text as written keeps the return itself.
+			b.startAsWritten()
+			b.noteAsWritten(chr)
 			b.wx = 0
 			b.ei.notifyColumnReset()
 		default:
@@ -1115,7 +1279,8 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 
 	isEscape, err := b.ei.parseOne(ch)
 	if err != nil {
-		for _, chr := range b.ei.characters() {
+		characters := b.ei.characters()
+		for _, chr := range characters {
 			c := cell{
 				fgColor: v.FgColor,
 				bgColor: v.BgColor,
@@ -1124,6 +1289,7 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			}
 			cells = append(cells, c)
 		}
+		b.noteAsWritten([]byte(strings.Join(characters, "")))
 		b.ei.reset()
 	} else {
 		repeatCount := 1
@@ -1149,10 +1315,15 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			repeatCount = cf.n
 			ch = []byte{' '}
 			width = 1
+			b.noteAsWritten(bytes.Repeat(ch, repeatCount))
 		} else if isEscape {
 			// do not output anything
 			return truncateLine, nil
 		} else if characterEquals(ch, '\t') {
+			// The cells hold a tab as the spaces it fills; the text as written
+			// keeps the tab itself.
+			b.startAsWritten()
+			b.noteAsWritten(ch)
 			// fill tab-sized space
 			tabWidth := v.TabWidth
 			if tabWidth < 1 {
@@ -1161,6 +1332,8 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			ch = []byte{' '}
 			width = 1
 			repeatCount = tabWidth - (x % tabWidth)
+		} else {
+			b.noteAsWritten(ch)
 		}
 		c := cell{
 			fgColor:   b.ei.curFgColor,
@@ -1744,6 +1917,64 @@ func (v *View) BufferLines() []string {
 	return lines
 }
 
+// LinesAsWritten returns the lines of the view's internal buffer as their writer
+// wrote them, escape sequences left out, where BufferLines returns them as the
+// cells spell them. The two differ where the cells can't spell what was written:
+// a tab, which they hold as the spaces it fills, and a carriage return, which
+// they hold as the overwrite it caused. A reader that parses the content rather
+// than showing it wants this form. git, for one, terminates a path containing a
+// space with a tab in a diff header, and a parser of the diff has to see the tab.
+func (v *View) LinesAsWritten() []string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	lines := make([]string, len(v.buf.lines))
+	for i := range v.buf.lines {
+		lines[i] = v.buf.lines[i].textAsWritten()
+	}
+	return lines
+}
+
+// BufferLineForViewLine maps a view line index (which counts wrapped lines) to
+// the index of the corresponding line in the unwrapped internal buffer (as
+// returned by BufferLines). Several view lines map to the same buffer line when
+// that line wraps. Returns false if the view line is out of range.
+func (v *View) BufferLineForViewLine(y int) (int, bool) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	return v.bufferLineForViewLine(y)
+}
+
+// ViewLineForBufferLine maps an unwrapped buffer line index to the index of the
+// first view line that renders it — the inverse of BufferLineForViewLine, for
+// turning a line found by examining the buffer into a line to scroll to or
+// select. Returns false if the buffer line isn't rendered into any view line.
+func (v *View) ViewLineForBufferLine(bufferLineIdx int) (int, bool) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+
+	first, _, ok := v.viewLineSpanOfBufferLine(bufferLineIdx)
+	return first, ok
+}
+
+// LastViewLineForBufferLine maps an unwrapped buffer line index to the index of
+// the last view line that renders it, which for a line that doesn't wrap is the
+// same as the first. It is where the far end of a range goes: a range is over
+// buffer lines, so it has to cover the last one of them to its final segment
+// rather than stopping where that line begins.
+func (v *View) LastViewLineForBufferLine(bufferLineIdx int) (int, bool) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshViewLinesIfNeeded()
+
+	_, last, ok := v.viewLineSpanOfBufferLine(bufferLineIdx)
+	return last, ok
+}
+
 // Buffer returns a string with the contents of the view's internal
 // buffer.
 func (v *View) Buffer() string {
@@ -1975,11 +2206,12 @@ func (v *View) SelectedLine() string {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	if len(v.buf.lines) == 0 {
+	idx, ok := v.bufferLineForViewLine(v.SelectedLineIdx())
+	if !ok {
 		return ""
 	}
 
-	return v.lineContentAtIdx(v.SelectedLineIdx())
+	return v.lineContentAtIdx(idx)
 }
 
 // expected to only be used in tests
@@ -1994,8 +2226,17 @@ func (v *View) SelectedLines() []string {
 	startIdx, endIdx := v.SelectedLineRange()
 
 	lines := make([]string, 0, endIdx-startIdx+1)
+	previous := -1
 	for i := startIdx; i <= endIdx; i++ {
-		lines = append(lines, v.lineContentAtIdx(i))
+		// The selection is in view lines, which count the segments a wrapped line
+		// is drawn as; a line the selection covers several segments of is still
+		// the one line it is.
+		idx, ok := v.bufferLineForViewLine(i)
+		if !ok || idx == previous {
+			continue
+		}
+		previous = idx
+		lines = append(lines, v.lineContentAtIdx(idx))
 	}
 
 	return lines
@@ -2003,6 +2244,19 @@ func (v *View) SelectedLines() []string {
 
 func (v *View) lineContentAtIdx(idx int) string {
 	return v.buf.lines[idx].cells.String()
+}
+
+// bufferLineForViewLine maps a view line index, which counts the wrapped
+// segments of the lines it draws, to the index of the line of content it is a
+// segment of. Only call this with a lock on writeMutex.
+func (v *View) bufferLineForViewLine(y int) (int, bool) {
+	v.refreshViewLinesIfNeeded()
+
+	if y < 0 || y >= len(v.viewLines) {
+		return 0, false
+	}
+
+	return v.viewLines[y].linesY, true
 }
 
 func (v *View) SelectedPoint() (int, int) {
@@ -2075,8 +2329,7 @@ func (v *View) ClearTextArea() {
 
 func (v *View) overwriteLines(y int, content string) {
 	// break by newline, then for each line, write it, then add that erase command
-	v.buf.wx = 0
-	v.buf.wy = y
+	v.SetWritePos(0, y)
 	v.clearViewLines()
 
 	lines := strings.ReplaceAll(content, "\n", "\x1b[K\n")

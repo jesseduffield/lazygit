@@ -113,6 +113,94 @@ func TestWriteString(t *testing.T) {
 	}
 }
 
+func TestOverwriteLinesAfterContentEndingInANewline(t *testing.T) {
+	v := NewView("name", 0, 0, 20, 10, OutputNormal)
+	// The trailing newline is held back until more content arrives, so that the
+	// view doesn't end in an empty line.
+	v.writeString("a\nb\n")
+
+	v.OverwriteLines(0, "x")
+
+	assert.Equal(t, []string{"x", "b"}, v.BufferLines())
+}
+
+func TestLinesAsWritten(t *testing.T) {
+	tests := []struct {
+		name              string
+		stringsToWrite    []string
+		expectedShown     []string
+		expectedAsWritten []string
+	}{
+		{
+			name:              "a line the cells spell as written",
+			stringsToWrite:    []string{"abc\n"},
+			expectedShown:     []string{"abc"},
+			expectedAsWritten: []string{"abc"},
+		},
+		{
+			name:              "a tab is kept rather than the spaces it fills",
+			stringsToWrite:    []string{"a\tb\n"},
+			expectedShown:     []string{"a   b"},
+			expectedAsWritten: []string{"a\tb"},
+		},
+		{
+			name:              "a carriage return is kept rather than the overwrite it causes",
+			stringsToWrite:    []string{"abc\rde\n"},
+			expectedShown:     []string{"dec"},
+			expectedAsWritten: []string{"abc\rde"},
+		},
+		{
+			// git writes a CRLF file's lines as "+foo\r", the color reset, "\n".
+			name:              "escape sequences are left out",
+			stringsToWrite:    []string{"\x1b[32m+foo\r\x1b[m\n"},
+			expectedShown:     []string{"+foo"},
+			expectedAsWritten: []string{"+foo\r"},
+		},
+		{
+			// ConPTY writes a run of spaces as a cursor-forward escape.
+			name:              "a cursor-forward escape stands for the spaces it skips",
+			stringsToWrite:    []string{"\ta\x1b[2Cb\n"},
+			expectedShown:     []string{"    a  b"},
+			expectedAsWritten: []string{"\ta  b"},
+		},
+		{
+			name:              "a line written in two parts",
+			stringsToWrite:    []string{"a\t", "b\n"},
+			expectedShown:     []string{"a   b"},
+			expectedAsWritten: []string{"a\tb"},
+		},
+		{
+			name:              "only the lines with a tab or a return are kept separately",
+			stringsToWrite:    []string{"x\n", "y\tz\n", "w\n"},
+			expectedShown:     []string{"x", "y   z", "w"},
+			expectedAsWritten: []string{"x", "y\tz", "w"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			v := NewView("name", 0, 0, 20, 10, OutputNormal)
+			for _, s := range test.stringsToWrite {
+				v.writeString(s)
+			}
+			assert.Equal(t, test.expectedShown, v.BufferLines())
+			assert.Equal(t, test.expectedAsWritten, v.LinesAsWritten())
+		})
+	}
+}
+
+func TestLinesAsWrittenOfAnOverwrittenLine(t *testing.T) {
+	v := NewView("name", 0, 0, 20, 10, OutputNormal)
+	v.writeString("a\tb\nc\td")
+
+	// Overwriting a line starts it over: what it kept of its earlier text goes,
+	// and the line below is left alone.
+	v.OverwriteLines(0, "xy")
+
+	assert.Equal(t, []string{"xy", "c   d"}, v.BufferLines())
+	assert.Equal(t, []string{"xy", "c\td"}, v.LinesAsWritten())
+}
+
 func TestUpdatedCursorAndOrigin(t *testing.T) {
 	tests := []struct {
 		prevOrigin     int
@@ -202,6 +290,61 @@ func TestViewLinesTruncatedByShorterRender(t *testing.T) {
 	v.SwapInOffscreenRender()
 	assert.Equal(t, 3, v.ViewLinesHeight())
 	assert.Equal(t, []string{"aaa", "bbb", "ccc"}, v.ViewBufferLines())
+}
+
+func TestBufferLineForViewLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// Buffer line 0 is short (view line 0); buffer line 1 wraps into three view
+	// lines (1, 2, 3); buffer line 2 is short again (view line 4).
+	v.writeString("short\n" + strings.Repeat("b", 27) + "\nlast")
+
+	for viewLine, wantBufferLine := range []int{0, 1, 1, 1, 2} {
+		bufferLine, ok := v.BufferLineForViewLine(viewLine)
+		assert.True(t, ok)
+		assert.Equal(t, wantBufferLine, bufferLine)
+	}
+
+	_, ok := v.BufferLineForViewLine(5)
+	assert.False(t, ok)
+
+	_, ok = v.BufferLineForViewLine(-1)
+	assert.False(t, ok)
+}
+
+func TestViewLineForBufferLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// A wrapped buffer line maps to the first of the view lines it spans.
+	v.writeString("short\n" + strings.Repeat("b", 27) + "\nlast")
+
+	for bufferLine, wantViewLine := range []int{0, 1, 4} {
+		viewLine, ok := v.ViewLineForBufferLine(bufferLine)
+		assert.True(t, ok)
+		assert.Equal(t, wantViewLine, viewLine)
+	}
+
+	_, ok := v.ViewLineForBufferLine(3)
+	assert.False(t, ok)
+}
+
+func TestLastViewLineForBufferLine(t *testing.T) {
+	v := NewView("name", 0, 0, 10, 10, OutputNormal) // InnerWidth is 9
+	v.Wrap = true
+
+	// A wrapped buffer line maps to the last of the view lines it spans.
+	v.writeString("short\n" + strings.Repeat("b", 27) + "\nlast")
+
+	for bufferLine, wantViewLine := range []int{0, 3, 4} {
+		viewLine, ok := v.LastViewLineForBufferLine(bufferLine)
+		assert.True(t, ok)
+		assert.Equal(t, wantViewLine, viewLine)
+	}
+
+	_, ok := v.LastViewLineForBufferLine(3)
+	assert.False(t, ok)
 }
 
 // While an async re-render loads, it swaps in only a partially-filled buffer at
@@ -779,4 +922,54 @@ func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
 		assert.Equal(t, color.Green, style.GetBackground(),
 			"trailing cell at (%d, 2) should have green bg", x)
 	}
+}
+
+// A view that wraps draws one line of its content as several view lines, and the
+// cursor and the range anchor count those. What is asked about a selection is
+// which lines of the content it covers, so those are what it has to be reported
+// in.
+func TestSelectedLinesOfWrappedContent(t *testing.T) {
+	v := NewView("name", 0, 0, 11, 10, OutputNormal) // InnerWidth 10
+	v.Wrap = true
+	v.Highlight = true
+
+	// "a line that wraps" takes two view lines, so the four lines of content are
+	// drawn as five: "one", "two", "a line th", "at wraps", "four".
+	v.writeString("one\ntwo\na line that wraps\nfour\n")
+	assert.Equal(t, 5, v.ViewLinesHeight())
+
+	// The cursor on the wrapped line's second half is on that line.
+	v.FocusPoint(0, 3, false)
+	assert.Equal(t, "a line that wraps", v.SelectedLine())
+
+	// A range over both halves of the wrapped line covers one line of content.
+	v.SetRangeSelectStart(2)
+	assert.Equal(t, []string{"a line that wraps"}, v.SelectedLines())
+}
+
+// Resizing a view throws away the wrapping of its content and wraps it again for
+// the new width, which moves every line of it to a different view line. The
+// positions into the view count view lines, so they all have to come along.
+func TestResizingAWrappingViewKeepsItsPlaceInTheContent(t *testing.T) {
+	g := &Gui{}
+	v, _ := g.SetView("name", 0, 0, 11, 10, 0) // InnerWidth 10
+	v.Wrap = true
+	v.Highlight = true
+
+	// Two wrapping lines, with a single line between them: eight view lines for
+	// five lines of content.
+	v.writeString("one\na line that wraps\ntwo\nanother wrapping line\nthree\n")
+	assert.Equal(t, 8, v.ViewLinesHeight())
+
+	// A range over the whole of the second wrapping line, which is drawn as view
+	// lines 4 to 6.
+	v.SetRangeSelectStart(4)
+	v.FocusPoint(0, 6, false)
+	assert.Equal(t, []string{"another wrapping line"}, v.SelectedLines())
+
+	// Widen the view so that nothing wraps any more.
+	_, _ = g.SetView("name", 0, 0, 31, 10, 0) // InnerWidth 30
+	assert.Equal(t, 5, v.ViewLinesHeight())
+
+	assert.Equal(t, []string{"another wrapping line"}, v.SelectedLines())
 }
