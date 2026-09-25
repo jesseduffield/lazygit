@@ -21,7 +21,11 @@ type authorNameCacheKey struct {
 var (
 	authorInitialCache = make(map[string]string)
 	authorNameCache    = make(map[authorNameCacheKey]string)
-	authorStyleCache   = make(map[string]*style.TextStyle)
+
+	// The styles from gui.authorColors
+	customAuthorStyles = make(map[string]*style.TextStyle)
+	// The styles derived from the names of the other authors
+	authorStyleCache = make(map[string]*style.TextStyle)
 )
 
 const authorNameWildcard = "*"
@@ -74,12 +78,16 @@ func AuthorWithLength(authorName string, length int) string {
 }
 
 func AuthorStyle(authorName string) *style.TextStyle {
-	if value, ok := authorStyleCache[authorName]; ok {
+	if value, ok := customAuthorStyles[authorName]; ok {
 		return value
 	}
 
 	// use the unified style whatever the author name is
-	if value, ok := authorStyleCache[authorNameWildcard]; ok {
+	if value, ok := customAuthorStyles[authorNameWildcard]; ok {
+		return value
+	}
+
+	if value, ok := authorStyleCache[authorName]; ok {
 		return value
 	}
 
@@ -128,5 +136,5 @@ func getInitials(authorName string) string {
 }
 
 func SetCustomAuthors(customAuthorColors map[string]string) {
-	authorStyleCache = utils.SetCustomColors(customAuthorColors)
+	customAuthorStyles = utils.SetCustomColors(customAuthorColors)
 }
