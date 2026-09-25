@@ -124,9 +124,15 @@ func validateDiffRenderers(diffRenderers []DiffRendererConfig) error {
 			if len(diffRenderer.Args) > 0 {
 				return errors.New("git.diffRenderers: 'args' cannot be used with diff renderer type 'stdinFilter'.")
 			}
+			if err := validateDiffRendererCommand(diffRenderer); err != nil {
+				return err
+			}
 		case "extDiff":
 			if len(diffRenderer.Args) > 0 {
 				return errors.New("git.diffRenderers: 'args' cannot be used with diff renderer type 'extDiff'.")
+			}
+			if err := validateDiffRendererCommand(diffRenderer); err != nil {
+				return err
 			}
 		case "rawGit":
 			if diffRenderer.Command != "" {
@@ -137,6 +143,14 @@ func validateDiffRenderers(diffRenderers []DiffRendererConfig) error {
 		}
 	}
 	return nil
+}
+
+// validateDiffRendererCommand resolves the command with made-up values, so that
+// a mistake in it shows up when the config is loaded rather than when a diff
+// is rendered.
+func validateDiffRendererCommand(diffRenderer DiffRendererConfig) error {
+	_, err := diffRenderer.resolveCommand(DiffRendererValues{Width: 80, DiffContext: 3})
+	return err
 }
 
 func validateEnum(name string, value string, allowedValues []string) error {

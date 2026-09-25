@@ -1,8 +1,9 @@
 package config
 
 import (
-	"strconv"
+	"fmt"
 	"strings"
+	"text/template"
 
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -68,10 +69,10 @@ type DiffRendererValues struct {
 	DiffContext uint64
 }
 
-func (self *DiffRendererConfigManager) GetStdinFilterCommand(values DiffRendererValues) string {
+func (self *DiffRendererConfigManager) GetStdinFilterCommand(values DiffRendererValues) (string, error) {
 	currentDiffRendererConfig := self.currentDiffRendererConfig()
 	if currentDiffRendererConfig == nil || currentDiffRendererConfig.getType() != DiffRendererType_StdinFilter {
-		return ""
+		return "", nil
 	}
 
 	return currentDiffRendererConfig.resolveCommand(values)
@@ -90,30 +91,41 @@ func (self *DiffRendererConfigManager) GetColorArg() string {
 	return colorArg
 }
 
-func (self *DiffRendererConfigManager) GetExternalDiffCommand(values DiffRendererValues) string {
+func (self *DiffRendererConfigManager) GetExternalDiffCommand(values DiffRendererValues) (string, error) {
 	currentDiffRendererConfig := self.currentDiffRendererConfig()
 	if currentDiffRendererConfig == nil || currentDiffRendererConfig.getType() != DiffRendererType_ExtDiff {
-		return ""
+		return "", nil
 	}
 
 	return currentDiffRendererConfig.resolveCommand(values)
 }
 
-// resolveCommand fills in the values that the renderer's command refers to.
-func (self *DiffRendererConfig) resolveCommand(values DiffRendererValues) string {
-	placeholders := map[string]string{
-		"width": strconv.Itoa(values.Width),
+// resolveCommand resolves the renderer's command, which is a Go template with
+// the values it can refer to as its variables. A variable can be written with
+// or without the leading dot, as in {{.width}} or {{width}}.
+func (self *DiffRendererConfig) resolveCommand(values DiffRendererValues) (string, error) {
+	variables := map[string]any{
+		"width": values.Width,
 	}
 	switch self.getType() {
 	case DiffRendererType_StdinFilter:
-		placeholders["columnWidth"] = strconv.Itoa(values.Width/2 - 6)
+		variables["columnWidth"] = values.Width/2 - 6
 	case DiffRendererType_ExtDiff:
-		placeholders["diffContext"] = strconv.Itoa(int(values.DiffContext))
+		variables["diffContext"] = values.DiffContext
 	case DiffRendererType_RawGit:
 		// has no command
 	}
 
-	return utils.ResolvePlaceholderString(string(self.Command), placeholders)
+	funcs := template.FuncMap{}
+	for name, value := range variables {
+		funcs[name] = func() any { return value }
+	}
+
+	command, err := utils.ResolveTemplate(string(self.Command), variables, funcs)
+	if err != nil {
+		return "", fmt.Errorf("git.diffRenderers: can't use the command '%s': %w", self.Command, err)
+	}
+	return command, nil
 }
 
 func (self *DiffRendererConfigManager) GetRawGitArgs() []string {

@@ -23,11 +23,17 @@ Fields only for `extDiff`:
 
 - **command** The command line to use for the `diff.external` git config. If left empty, it uses the global value of git's `diff.external` config; this can be useful if you also want to use it for diffs on the command line, and it also has the advantage that you can configure it per file type in `.gitattributes`; see https://git-scm.com/docs/gitattributes#_defining_an_external_diff_driver.
 
-  You can include the `{{diffContext}}` template variable to pass lazygit's current diff context size (the value controlled by the `{`/`}` keybindings) to the diff tool.
-
 Fields only for `rawGit`:
 
 - **args** The additional arguments to use in the `git diff` or `git show` call (e.g. `--color-words`), as an array of strings.
+
+The `command` of a `stdinFilter` or `extDiff` renderer is a [Go template](https://pkg.go.dev/text/template) with these variables:
+
+- `{{width}}`: the width of the view that the diff is rendered into.
+- `{{columnWidth}}` (only for `stdinFilter`): the width of one side of a side-by-side rendering, e.g. for `ydiff -p cat -s -w {{columnWidth}}`.
+- `{{diffContext}}` (only for `extDiff`): lazygit's current diff context size, the value controlled by the `{`/`}` keybindings.
+
+A variable can also be written with a leading dot, as in `{{.width}}`. The command can use template expressions too; for example, `delta --paging=never{{if gt .width 160}} --side-by-side{{end}}` shows the diff side by side only when there is room for it.
 
 Here's an example for a multi-renderer setup:
 
