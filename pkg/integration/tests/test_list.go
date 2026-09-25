@@ -110,6 +110,7 @@ var tests = []*components.IntegrationTest{
 	commit.AmendWhenThereAreConflictsAndContinue,
 	commit.AutoWrapMessage,
 	commit.Checkout,
+	commit.CheckoutBranchOfOtherWorktree,
 	commit.CheckoutFileFromCommit,
 	commit.CheckoutFileFromRangeSelectionOfCommits,
 	commit.CheckoutFileWithLocalModifications,
