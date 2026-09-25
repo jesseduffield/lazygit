@@ -103,11 +103,67 @@ func ScanLinesAndTruncateWhenLongerThanBuffer(maxBufferSize int) func(data []byt
 	}
 }
 
+type escapeSequenceState int
+
+const (
+	notInEscapeSequence escapeSequenceState = iota
+	afterEscapeChar
+	inCSISequence
+)
+
+// Recognizes ANSI escape sequences while iterating over the characters of a
+// string. Only CSI sequences (ESC [ ... final byte) are recognized; these are
+// the color and style codes that lazygit puts into view content.
+type escapeSequenceTracker struct {
+	state escapeSequenceState
+}
+
+// Feeds the next character to the tracker. Returns true if the character is
+// part of an escape sequence, and so takes up no space on screen.
+func (self *escapeSequenceTracker) consume(chr rune) bool {
+	switch self.state {
+	case afterEscapeChar:
+		if chr == '[' {
+			self.state = inCSISequence
+		} else {
+			self.state = notInEscapeSequence
+		}
+		return true
+	case inCSISequence:
+		// Parameter and intermediate bytes are in the range 0x20-0x3F, the
+		// final byte is in the range 0x40-0x7E
+		if chr >= 0x40 && chr <= 0x7e {
+			self.state = notInEscapeSequence
+		}
+		return true
+	default:
+		if chr == '\x1b' {
+			self.state = afterEscapeChar
+			return true
+		}
+		return false
+	}
+}
+
+// The width that the string takes up on screen, leaving out escape sequences
+func widthIgnoringEscapeSequences(s string) int {
+	tracker := escapeSequenceTracker{}
+	width := 0
+	for _, chr := range s {
+		if !tracker.consume(chr) {
+			width += uniseg.StringWidth(string(chr))
+		}
+	}
+	return width
+}
+
 // Wrap lines to a given width, and return:
 // - the wrapped lines
 // - the line indices of the wrapped lines, indexed by the original line indices
 // - the line indices of the original lines, indexed by the wrapped line indices
 // If wrap is false, the text is returned as is.
+// Escape sequences stay in the wrapped lines, but don't count towards the
+// width, and a line is never broken inside one.
 // This code needs to behave the same as `gocui.lineWrap` does.
 func WrapViewLinesToWidth(wrap bool, editable bool, text string, width int, tabWidth int) ([]string, []int, []int) {
 	if !editable {
@@ -150,7 +206,12 @@ func WrapViewLinesToWidth(wrap bool, editable bool, text string, width int, tabW
 		n := 0
 		offset := 0
 		lastWhitespaceIndex := -1
+		escapeSequences := escapeSequenceTracker{}
 		for i, currChr := range line {
+			if escapeSequences.consume(currChr) {
+				continue
+			}
+
 			rw := uniseg.StringWidth(string(currChr))
 			n += rw
 
@@ -170,7 +231,7 @@ func WrapViewLinesToWidth(wrap bool, editable bool, text string, width int, tabW
 						appendWrappedLine(line[offset:lastWhitespaceIndex])
 					}
 					offset = lastWhitespaceIndex + 1
-					n = uniseg.StringWidth(line[offset : i+1])
+					n = widthIgnoringEscapeSequences(line[offset : i+1])
 				} else {
 					appendWrappedLine(line[offset:i])
 					offset = i
