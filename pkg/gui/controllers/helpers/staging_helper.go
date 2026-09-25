@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -53,8 +54,8 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) {
 		return
 	}
 
-	mainDiff := self.c.Git().WorkingTree.WorktreeFileDiff(file, true, false)
-	secondaryDiff := self.c.Git().WorkingTree.WorktreeFileDiff(file, true, true)
+	mainDiff := self.c.Git().WorkingTree.WorktreeFileDiff(file, git_commands.DiffModePlain, false)
+	secondaryDiff := self.c.Git().WorkingTree.WorktreeFileDiff(file, git_commands.DiffModePlain, true)
 
 	// grabbing locks here and releasing before we finish the function
 	// because pushing say the secondary context could mean entering this function

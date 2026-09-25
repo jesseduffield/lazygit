@@ -3,6 +3,8 @@ package helpers
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -73,7 +75,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 
 	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
-	diff, err := self.c.Git().WorkingTree.ShowFileDiff(from, to, reverse, file.Path, file.PreviousPath, true)
+	diff, err := self.c.Git().WorkingTree.ShowFileDiff(from, to, reverse, file.Path, file.PreviousPath, git_commands.DiffModePlain)
 	if err != nil {
 		return
 	}

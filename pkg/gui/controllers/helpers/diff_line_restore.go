@@ -230,20 +230,148 @@ func (self *DiffLineHelper) findDiffLine(view *gocui.View, identity types.DiffLi
 func (self *DiffLineHelper) restoreDiffLinePositionOnRerender(
 	view *gocui.View, candidates []diffLineAnchor, place func(anchor diffLineAnchor, viewLine int),
 ) {
-	manager := self.c.GetViewBufferManagerForView(view)
-	if manager == nil || len(candidates) == 0 {
+	if len(candidates) == 0 {
 		return
 	}
 
-	// The readiness check below runs on the task's own goroutine, where neither the
-	// view's dimensions nor the repo we are in may be read — a repo switch replaces
-	// the latter — so take both here, on the UI thread, for it to work from.
-	viewHeight := view.InnerHeight()
+	// The search of the loading content runs on the task's own goroutine, where the
+	// repo we are in may not be read — a repo switch replaces it — so take it here, on
+	// the UI thread, for the search to work from.
 	worktreePath := self.c.Git().RepoPaths.WorktreePath()
+
+	// Which candidate the search settled on, for place to put back where it was.
+	found := diffLineAnchor{}
+
+	self.installDiffLineRestore(view,
+		func(rows []gocui.DiffLineContent, offset int) (int, bool) {
+			for i, row := range rows {
+				if rowShowsDiffLine(row, worktreePath, candidates[0].identity) {
+					found = candidates[0]
+					return offset + i, true
+				}
+			}
+			return 0, false
+		},
+		func(contents []gocui.DiffLineContent) (int, bool) {
+			anchor, bufferLine := self.nearestSurvivingCandidate(contents, candidates)
+			if bufferLine == -1 {
+				return 0, false
+			}
+			found = anchor
+			return bufferLine, true
+		},
+		func(viewLine int) { place(found, viewLine) },
+		nil,
+	)
+}
+
+// ChangeLineOrdinal returns how many change lines of view's rendered diff come before
+// the one at the given view line — that line's place in the sequence of changes. ok is
+// false when the view line belongs to no row of the content.
+//
+// It is how a place in a diff is remembered across acting on it: an action consumes
+// the lines it acted on, so the identity of the line the user was on is gone, but the
+// place it left behind is the same one that identity used to have.
+func (self *DiffLineHelper) ChangeLineOrdinal(view *gocui.View, viewLine int) (int, bool) {
+	bufferLine, ok := view.BufferLineForViewLine(viewLine)
+	if !ok {
+		return 0, false
+	}
+
+	ordinal := 0
+	for i, row := range self.resolveDiffLines(view.DiffLineContents()) {
+		if i >= bufferLine {
+			break
+		}
+		if row.ok && row.info.IsChange() {
+			ordinal++
+		}
+	}
+	return ordinal, true
+}
+
+// RevealChangeLineAtOrdinal arranges for view's next re-render to be shown with the
+// change line at the given ordinal placed by place — the diff having changed under the
+// user, this is where what they were doing carries on. When the new diff has fewer
+// changes than that, because the ones acted on were its last, it lands on the last
+// change left.
+//
+// done is called once the selection is where it belongs, or once it turns out that no
+// render is coming to put it there, for a caller that must not let the user act again
+// in between.
+func (self *DiffLineHelper) RevealChangeLineAtOrdinal(
+	view *gocui.View, ordinal int, place func(viewLine int), done func(),
+) {
+	// How many change lines the incremental search has passed, so that it can carry on
+	// counting where it left off.
+	seen := 0
+
+	self.installDiffLineRestore(view,
+		func(rows []gocui.DiffLineContent, offset int) (int, bool) {
+			for i, row := range rows {
+				if info, ok := self.diffLineInfoFromRecords(row.Metadata); ok && info.IsChange() {
+					if seen == ordinal {
+						return offset + i, true
+					}
+					seen++
+				}
+			}
+			return 0, false
+		},
+		func(contents []gocui.DiffLineContent) (int, bool) {
+			last, count := -1, 0
+			for i, row := range self.resolveDiffLines(contents) {
+				if !row.ok || !row.info.IsChange() {
+					continue
+				}
+				if count == ordinal {
+					return i, true
+				}
+				count++
+				last = i
+			}
+			return last, last != -1
+		},
+		place,
+		done,
+	)
+}
+
+// installDiffLineRestore is what the restores are built on: it arranges for view's
+// next re-render to be revealed with the row a search finds in it placed by place,
+// instead of from the top.
+//
+// The search comes in two halves, because the content arrives a line at a time.
+// findEarly is given the rows that have loaded since it last looked, so that the
+// re-render can be revealed as soon as the row is there rather than waiting for the
+// rest of a long diff; it can only go by what the renderer states about a row, a
+// partly-loaded diff being unparseable. findComplete is given the whole rendering at
+// the swap, for a target the incremental search couldn't settle on. Either returns the
+// buffer line it found, and place is not called at all when neither does.
+func (self *DiffLineHelper) installDiffLineRestore(
+	view *gocui.View,
+	findEarly func(rows []gocui.DiffLineContent, offset int) (int, bool),
+	findComplete func(contents []gocui.DiffLineContent) (int, bool),
+	place func(viewLine int),
+	done func(),
+) {
+	// Get-or-create, because the pane may not have rendered anything yet: a file whose
+	// diff has only just become split has a second pane whose first render is the one
+	// this restore is for.
+	manager := self.c.GetOrCreateViewBufferManagerForView(view)
+	if manager == nil {
+		if done != nil {
+			done()
+		}
+		return
+	}
+
+	// The readiness check below runs on the task's own goroutine, which may not read
+	// the view's dimensions, so take them here, on the UI thread.
+	viewHeight := view.InnerHeight()
 
 	// What the search of the loading content has found, and how far it has looked, so
 	// that each line is looked at once.
-	found := diffLineAnchor{}
 	foundLine := -1
 	scanned := 0
 
@@ -251,11 +379,8 @@ func (self *DiffLineHelper) restoreDiffLinePositionOnRerender(
 		FirstPaintReady: func() bool {
 			if foundLine == -1 {
 				rows := view.OffscreenDiffLineContentsFrom(scanned)
-				for i, row := range rows {
-					if rowShowsDiffLine(row, worktreePath, candidates[0].identity) {
-						found, foundLine = candidates[0], scanned+i
-						break
-					}
+				if bufferLine, ok := findEarly(rows, scanned); ok {
+					foundLine = bufferLine
 				}
 				scanned += len(rows)
 				if foundLine == -1 {
@@ -266,24 +391,24 @@ func (self *DiffLineHelper) restoreDiffLinePositionOnRerender(
 			// revealed with it stranded at the bottom of a half-filled view.
 			return view.OffscreenLineCount() >= foundLine+viewHeight
 		},
-		Apply: func(swapIn func()) bool {
-			anchor, bufferLine := found, foundLine
+		Apply: func(swapIn func()) {
+			bufferLine := foundLine
 			if bufferLine == -1 {
-				anchor, bufferLine = self.nearestSurvivingCandidate(view.OffscreenDiffLineContents(), candidates)
+				if line, ok := findComplete(view.OffscreenDiffLineContents()); ok {
+					bufferLine = line
+				}
 			}
 
 			swapIn()
 
 			if bufferLine == -1 {
-				return false
+				return
 			}
-			viewLine, ok := view.ViewLineForBufferLine(bufferLine)
-			if !ok {
-				return false
+			if viewLine, ok := view.ViewLineForBufferLine(bufferLine); ok {
+				place(viewLine)
 			}
-			place(anchor, viewLine)
-			return true
 		},
+		Done: done,
 	})
 }
 

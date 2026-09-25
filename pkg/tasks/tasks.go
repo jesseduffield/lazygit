@@ -191,10 +191,28 @@ type RenderRestore struct {
 	// while the previous content is still displayed, and the new content is never
 	// drawn at the previous render's scroll position.
 	//
-	// It must call swapIn either way, and reports whether it placed the view: when
-	// it didn't, because what it was looking for is not in the new content, the
-	// task does what it would have done without a restore.
-	Apply func(swapIn func()) bool
+	// It must call swapIn even when it finds nothing to place the view on, in which
+	// case the view keeps the position the paint gave it: the offset it had, or the
+	// top for content the view hasn't seen.
+	Apply func(swapIn func())
+
+	// Done is called once the restore has had its render — after Apply, or when it
+	// is given up because the view is being shown something other than a re-render
+	// of what it was remembered from. It is how a caller that has to wait for the
+	// view to be back where it belongs knows that it either is, or never will be.
+	// Optional, and called on the UI thread, as Apply is.
+	Done func()
+}
+
+// resolved reports that this restore's render has happened, or that there will not be
+// one. Called on the UI thread, from wherever the restore ends: once, whichever way it
+// ended.
+func (self *RenderRestore) resolved() {
+	if self.Done != nil {
+		done := self.Done
+		self.Done = nil
+		done()
+	}
 }
 
 // SetRestoreForNextTask arranges for the next command task to put the view back
@@ -205,6 +223,16 @@ func (self *ViewBufferManager) SetRestoreForNextTask(restore *RenderRestore) {
 	defer self.taskIDMutex.Unlock()
 
 	self.restoreForNextTask = restore
+}
+
+// HasRestoreForNextTask reports whether the next command task already has a position
+// waiting to be put back, for a caller that would otherwise install one of its own
+// over it.
+func (self *ViewBufferManager) HasRestoreForNextTask() bool {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	return self.restoreForNextTask != nil
 }
 
 func (self *ViewBufferManager) getRestoreForNextTask() *RenderRestore {
@@ -241,6 +269,22 @@ func (self *ViewBufferManager) clearRestore(restore *RenderRestore) {
 
 	if self.restoreForNextTask == restore {
 		self.restoreForNextTask = nil
+	}
+}
+
+// DropRestoreForNextTask gives up a restore that has no render to ride, because the
+// view is being given something other than a re-render of the content it was
+// remembered from — a message where a diff was. Without this the restore would sit
+// there and claim some later render of that view, putting the user somewhere they
+// haven't been for a while.
+func (self *ViewBufferManager) DropRestoreForNextTask() {
+	self.taskIDMutex.Lock()
+	restore := self.restoreForNextTask
+	self.restoreForNextTask = nil
+	self.taskIDMutex.Unlock()
+
+	if restore != nil {
+		restore.resolved()
 	}
 }
 
@@ -541,22 +585,23 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 					return
 				}
 				painted = true
-				if restore != nil {
-					// The restore does the swap itself, so that it can find where the
-					// user was in the new content before it is revealed.
-					placed := restore.Apply(self.swapInRender)
-					self.clearRestore(restore)
-					if placed {
-						// The view is where the user left it, which is exactly what the
-						// scroll reset would undo.
-						self.newContentPending.Store(false)
-						return
-					}
-				}
-				self.swapInRender()
+				// Content the view hasn't seen is shown from the top, and this is where
+				// the view goes there — before the restore below, which decides where to
+				// put the view from where it is. The position the paint settles on is the
+				// restore's to move from, so it has to be the one the new content is
+				// about to be revealed at.
 				if self.newContentPending.Swap(false) {
 					self.resetOrigin()
 				}
+				if restore != nil {
+					// The restore does the swap itself, so that it can find where the
+					// user was in the new content before it is revealed.
+					restore.Apply(self.swapInRender)
+					self.clearRestore(restore)
+					restore.resolved()
+					return
+				}
+				self.swapInRender()
 			}
 
 			// Set LAZYGIT_SLOW_RENDER=<milliseconds> to sleep that long after each

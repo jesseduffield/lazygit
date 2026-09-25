@@ -9,6 +9,11 @@ import (
 
 type DiffLineHelper struct {
 	c *HelperCommon
+
+	// What the probe said about the diff renderer that rendererSignature names, or nil
+	// before it has been asked about any (see diffRendererEmitsMetadata).
+	rendererEmitsMetadata *bool
+	rendererSignature     string
 }
 
 func NewDiffLineHelper(c *HelperCommon) *DiffLineHelper {
@@ -84,6 +89,18 @@ func (self *DiffLineHelper) diffLineIdentitiesAt(
 // rendering.
 func (self *DiffLineHelper) diffLineIdentitiesFromRecords(metadata []string) []types.DiffLineInfo {
 	return self.diffLineInfos(parseDiffLineRecords(metadata))
+}
+
+// diffLineInfoFromRecords recovers a row's own identity from the records the diff
+// renderer stated for it. That is the line the row leads with, of the ones
+// diffLineIdentitiesFromRecords finds on it. ok is false when the row carries no
+// record we understand.
+func (self *DiffLineHelper) diffLineInfoFromRecords(metadata []string) (types.DiffLineInfo, bool) {
+	identities := self.diffLineIdentitiesFromRecords(metadata)
+	if len(identities) == 0 {
+		return types.DiffLineInfo{}, false
+	}
+	return identities[0], true
 }
 
 // resolvedDiffLine is one rendered row's recovered identity, plus whether it could
