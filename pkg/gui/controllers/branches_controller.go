@@ -409,13 +409,7 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 		return errors.New(self.c.Tr.AlreadyCheckedOutBranch)
 	}
 
-	worktreeForRef, ok := self.worktreeForBranch(selectedBranch)
-	if ok && !worktreeForRef.IsCurrent {
-		return self.promptToCheckoutWorktree(worktreeForRef)
-	}
-
-	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
-	return self.c.Helpers().Refs.CheckoutRef(selectedBranch.Name, types.CheckoutRefOptions{})
+	return self.c.Helpers().BranchesHelper.CheckoutBranch(selectedBranch, context.LOCAL_BRANCHES_CONTEXT_KEY)
 }
 
 func (self *BranchesController) notPulling() *types.DisabledReason {
@@ -432,20 +426,6 @@ func (self *BranchesController) notPulling() *types.DisabledReason {
 
 func (self *BranchesController) worktreeForBranch(branch *models.Branch) (*models.Worktree, bool) {
 	return git_commands.WorktreeForBranch(branch, self.c.Model().Worktrees)
-}
-
-func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktree) error {
-	prompt := utils.ResolvePlaceholderString(self.c.Tr.AlreadyCheckedOutByWorktree, map[string]string{
-		"worktreeName": worktree.Name,
-	})
-
-	return self.c.ConfirmIf(!self.c.UserConfig().Gui.SkipSwitchWorktreeOnCheckoutWarning, types.ConfirmOpts{
-		Title:  self.c.Tr.SwitchToWorktree,
-		Prompt: prompt,
-		HandleConfirm: func() error {
-			return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
-		},
-	})
 }
 
 func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.Branch) error {
