@@ -130,6 +130,14 @@ gui:
     - [commits, reflog]
     - [stash]
 
+  # The side panel that is focused when lazygit starts, or when you switch to
+  # another repository.
+  # Must be one of the names listed in `sidePanels`; you can't focus a panel you
+  # have hidden.
+  # Starting lazygit with a path filter or with a git subcommand (e.g. `lazygit
+  # log`) takes precedence over this setting.
+  initialSidePanel: files
+
   # Sometimes the main window is split in two (e.g. when the selected file has
   # both staged and unstaged changes). This setting controls how the two sections
   # are split.

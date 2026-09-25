@@ -522,6 +522,8 @@ var tests = []*components.IntegrationTest{
 	ui.FilteringScrollsSelectionIntoView,
 	ui.FindBaseCommitForFixupScrollsIntoView,
 	ui.HideSidePanel,
+	ui.InitialSidePanel,
+	ui.InitialSidePanelNotFirstTab,
 	ui.KeybindingSuggestionsDontCrashOnDisabledBindings,
 	ui.KeybindingSuggestionsWhenSwitchingRepos,
 	ui.MenuScrollPositionIsReset,

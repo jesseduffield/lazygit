@@ -27,6 +27,19 @@ var ValidSidePanelTabs = []string{
 	"stash",
 }
 
+// SidePanelName is the name of a single side panel, i.e. one of
+// ValidSidePanelTabs.
+type SidePanelName string
+
+// JSONSchema restricts a side panel name to the known names.
+func (SidePanelName) JSONSchema() *jsonschema.Schema {
+	return &jsonschema.Schema{Type: "string", Enum: validSidePanelTabsAsAny()}
+}
+
+func validSidePanelTabsAsAny() []any {
+	return lo.Map(ValidSidePanelTabs, func(name string, _ int) any { return name })
+}
+
 func (p SidePanel) MarshalYAML() (any, error) {
 	// Render in flow style (`[a, b]`) rather than the default block style, which
 	// is more compact and reads better in the generated docs.
@@ -46,9 +59,8 @@ func (p SidePanel) MarshalYAML() (any, error) {
 // JSONSchema describes a side panel as a list of tab names, restricted to the
 // known names.
 func (SidePanel) JSONSchema() *jsonschema.Schema {
-	names := lo.Map(ValidSidePanelTabs, func(name string, _ int) any { return name })
 	return &jsonschema.Schema{
 		Type:  "array",
-		Items: &jsonschema.Schema{Type: "string", Enum: names},
+		Items: &jsonschema.Schema{Type: "string", Enum: validSidePanelTabsAsAny()},
 	}
 }
