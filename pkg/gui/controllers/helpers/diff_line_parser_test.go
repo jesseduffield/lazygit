@@ -420,3 +420,61 @@ func TestRenderingStatesDiffLines(t *testing.T) {
 		})
 	}
 }
+
+func TestParseDiffLineIdentities(t *testing.T) {
+	row := func(text string, records ...string) gocui.DiffLineContent {
+		return gocui.DiffLineContent{Text: text, Metadata: records}
+	}
+
+	t.Run("a rendering with records is read by them alone", func(t *testing.T) {
+		// A renderer's picture of a commit that adds a test whose input is a diff. The
+		// test's "diff --git" line is an added line of the test's file and is shown on
+		// a row of its own, and the rows the renderer puts between hunks carry no
+		// record. Parsed as a diff, that row would open a section of a file the diff
+		// doesn't have and claim every untagged row below it.
+		contents := []gocui.DiffLineContent{
+			row("src/parser.rs", "1;f;;;src/parser.rs"),
+			row(`let input = "\`, "1;c;10;;src/parser.rs"),
+			row("diff --git a/img.png b/img.png", "1;a;11;;src/parser.rs"),
+			row("Binary files a/img.png and b/img.png differ", "1;a;12;;src/parser.rs"),
+			row(""),
+			row("fn later() {}", "1;c;40;;src/parser.rs"),
+		}
+
+		assert.Equal(t, [][]parsedDiffLine{
+			{{Path: "src/parser.rs", Type: types.DiffLineFileHeader}},
+			{{Path: "src/parser.rs", Type: types.DiffLineContext, NewLine: 10}},
+			{{Path: "src/parser.rs", Type: types.DiffLineAdded, NewLine: 11}},
+			{{Path: "src/parser.rs", Type: types.DiffLineAdded, NewLine: 12}},
+			nil,
+			{{Path: "src/parser.rs", Type: types.DiffLineContext, NewLine: 40}},
+		}, parseDiffLineIdentities(contents))
+	})
+
+	t.Run("a row with two records shows both of their lines", func(t *testing.T) {
+		contents := []gocui.DiffLineContent{
+			row("two │ TWO", "1;d;2;2;file1", "1;a;2;;file1"),
+		}
+
+		assert.Equal(t, [][]parsedDiffLine{
+			{
+				{Path: "file1", Type: types.DiffLineDeleted, NewLine: 2, OldLine: 2},
+				{Path: "file1", Type: types.DiffLineAdded, NewLine: 2},
+			},
+		}, parseDiffLineIdentities(contents))
+	})
+
+	t.Run("a rendering without records is parsed as a diff", func(t *testing.T) {
+		bufferLines := strings.Split(twoFileDiff, "\n")
+		contents := make([]gocui.DiffLineContent, len(bufferLines))
+		for i, line := range bufferLines {
+			contents[i] = row(line)
+		}
+
+		identities := parseDiffLineIdentities(contents)
+		for i, parsed := range parseAllDiffLinesFromBuffer(bufferLines) {
+			assert.True(t, parsed.ok, "line %d", i)
+			assert.Equal(t, []parsedDiffLine{parsed.parsed}, identities[i], "line %d", i)
+		}
+	})
+}
