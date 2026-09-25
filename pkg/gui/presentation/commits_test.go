@@ -642,8 +642,5 @@ func TestGraphColorsFollowTheAuthorColors(t *testing.T) {
 	assert.Contains(t, renderGraph(), style.FgRed.Sprint("○"))
 
 	authors.SetCustomAuthors(map[string]string{"Jane Doe": "blue"})
-	/* EXPECTED:
 	assert.Contains(t, renderGraph(), style.FgBlue.Sprint("○"))
-	ACTUAL: */
-	assert.Contains(t, renderGraph(), style.FgRed.Sprint("○"))
 }

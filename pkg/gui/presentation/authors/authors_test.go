@@ -55,12 +55,6 @@ func TestAuthorColorsFollowTheConfig(t *testing.T) {
 	assert.Equal(t, style.FgRed.Sprint("Jane Doe"), LongAuthor("Jane Doe", 8))
 
 	SetCustomAuthors(map[string]string{"Jane Doe": "blue"})
-	/* EXPECTED:
 	assert.Equal(t, style.FgBlue.Sprint("JD"), ShortAuthor("Jane Doe"))
-	ACTUAL: */
-	assert.Equal(t, style.FgRed.Sprint("JD"), ShortAuthor("Jane Doe"))
-	/* EXPECTED:
 	assert.Equal(t, style.FgBlue.Sprint("Jane Doe"), LongAuthor("Jane Doe", 8))
-	ACTUAL: */
-	assert.Equal(t, style.FgRed.Sprint("Jane Doe"), LongAuthor("Jane Doe", 8))
 }

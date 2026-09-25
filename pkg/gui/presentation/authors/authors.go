@@ -26,6 +26,8 @@ var (
 	customAuthorStyles = make(map[string]*style.TextStyle)
 	// The styles derived from the names of the other authors
 	authorStyleCache = make(map[string]*style.TextStyle)
+
+	colorsVersion int
 )
 
 const authorNameWildcard = "*"
@@ -137,4 +139,19 @@ func getInitials(authorName string) string {
 
 func SetCustomAuthors(customAuthorColors map[string]string) {
 	customAuthorStyles = utils.SetCustomColors(customAuthorColors)
+	colorsChanged()
+}
+
+// colorsChanged drops what was rendered with the previous colors of authors.
+func colorsChanged() {
+	authorInitialCache = make(map[string]string)
+	authorNameCache = make(map[authorNameCacheKey]string)
+	colorsVersion++
+}
+
+// ColorsVersion changes whenever the colors of authors change, so that
+// whatever keeps the styles of authors around can tell when they are out of
+// date.
+func ColorsVersion() int {
+	return colorsVersion
 }
