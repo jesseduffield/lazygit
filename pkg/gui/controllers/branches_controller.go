@@ -565,85 +565,8 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 	return nil
 }
 
-func (self *BranchesController) localDelete(branches []*models.Branch) error {
-	return self.c.Helpers().BranchesHelper.ConfirmLocalDelete(branches)
-}
-
-func (self *BranchesController) remoteDelete(branches []*models.Branch) error {
-	remoteBranches := lo.Map(branches, func(branch *models.Branch, _ int) *models.RemoteBranch {
-		return &models.RemoteBranch{Name: branch.UpstreamBranch, RemoteName: branch.UpstreamRemote}
-	})
-	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(remoteBranches, false)
-}
-
-func (self *BranchesController) localAndRemoteDelete(branches []*models.Branch) error {
-	return self.c.Helpers().BranchesHelper.ConfirmLocalAndRemoteDelete(branches)
-}
-
 func (self *BranchesController) delete(branches []*models.Branch) error {
-	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
-	isBranchCheckedOut := lo.SomeBy(branches, func(branch *models.Branch) bool {
-		return checkedOutBranch.Name == branch.Name
-	})
-	hasUpstream := lo.EveryBy(branches, func(branch *models.Branch) bool {
-		return branch.IsTrackingRemote() && !branch.UpstreamGone
-	})
-
-	localDeleteItem := &types.MenuItem{
-		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalBranches, self.c.Tr.DeleteLocalBranch),
-		Keys:  menuKey('c'),
-		OnPress: func() error {
-			return self.localDelete(branches)
-		},
-	}
-	if isBranchCheckedOut {
-		localDeleteItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CantDeleteCheckOutBranch}
-	}
-
-	remoteDeleteItem := &types.MenuItem{
-		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteRemoteBranches, self.c.Tr.DeleteRemoteBranch),
-		Keys:  menuKey('r'),
-		OnPress: func() error {
-			return self.remoteDelete(branches)
-		},
-	}
-	if !hasUpstream {
-		remoteDeleteItem.DisabledReason = &types.DisabledReason{
-			Text: lo.Ternary(len(branches) > 1, self.c.Tr.UpstreamsNotSetError, self.c.Tr.UpstreamNotSetError),
-		}
-	}
-
-	deleteBothItem := &types.MenuItem{
-		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalAndRemoteBranches, self.c.Tr.DeleteLocalAndRemoteBranch),
-		Keys:  menuKey('b'),
-		OnPress: func() error {
-			return self.localAndRemoteDelete(branches)
-		},
-	}
-	if isBranchCheckedOut {
-		deleteBothItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.CantDeleteCheckOutBranch}
-	} else if !hasUpstream {
-		deleteBothItem.DisabledReason = &types.DisabledReason{
-			Text: lo.Ternary(len(branches) > 1, self.c.Tr.UpstreamsNotSetError, self.c.Tr.UpstreamNotSetError),
-		}
-	}
-
-	var menuTitle string
-	if len(branches) == 1 {
-		menuTitle = utils.ResolvePlaceholderString(
-			self.c.Tr.DeleteBranchTitle,
-			map[string]string{
-				"selectedBranchName": branches[0].Name,
-			},
-		)
-	} else {
-		menuTitle = self.c.Tr.DeleteBranchesTitle
-	}
-
-	return self.c.Menu(types.CreateMenuOptions{
-		Title: menuTitle,
-		Items: []*types.MenuItem{localDeleteItem, remoteDeleteItem, deleteBothItem},
-	})
+	return self.c.Helpers().BranchesHelper.CreateDeleteMenu(branches)
 }
 
 func (self *BranchesController) merge() error {

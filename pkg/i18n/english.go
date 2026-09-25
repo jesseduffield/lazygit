@@ -415,9 +415,15 @@ type TranslationSet struct {
 	AmendCommitWithConflictsContinue      string
 	AmendCommitWithConflictsAmend         string
 	DropCommitTitle                       string
-	DropCommitPrompt                      string
+	DropCommitOrDeleteBranchTitle         string
+	DropCommitsOrDeleteBranchesTitle      string
+	DropCommits                           string
 	DropUpdateRefPrompt                   string
-	DropMergeCommitPrompt                 string
+	DropMergeCommit                       string
+	DropMergeCommitTooltip                string
+	DeleteBranch                          string
+	DeleteBranches                        string
+	DeleteBranchAtCommit                  string
 	PullingStatus                         string
 	PushingStatus                         string
 	FetchingStatus                        string
@@ -616,6 +622,7 @@ type TranslationSet struct {
 	FetchRemoteTooltip                    string
 	CheckoutCommitTooltip                 string
 	NoBranchesFoundAtCommitTooltip        string
+	NoBranchesFoundAtCommitsTooltip       string
 	GitFlowOptions                        string
 	NotAGitFlowBranch                     string
 	NewBranchNamePrompt                   string
@@ -1346,7 +1353,7 @@ func EnglishTranslationSet() *TranslationSet {
 		Reword:                               "Reword",
 		CommitRewordTooltip:                  "Reword the selected commit's message.",
 		DropCommit:                           "Drop",
-		DropCommitTooltip:                    "Drop the selected commit. This will remove the commit from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts.",
+		DropCommitTooltip:                    "Drop the selected commit, or delete a branch pointing at it. Dropping a commit removes it from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts.",
 		MoveDownCommit:                       "Move commit down one",
 		MoveUpCommit:                         "Move commit up one",
 		CannotMoveAnyFurther:                 "Cannot move any further",
@@ -1583,8 +1590,14 @@ func EnglishTranslationSet() *TranslationSet {
 		AmendCommitWithConflictsContinue:     "No, continue rebase",
 		AmendCommitWithConflictsAmend:        "Yes, amend previous commit",
 		DropCommitTitle:                      "Drop commit",
-		DropCommitPrompt:                     "Are you sure you want to drop the selected commit(s)?",
-		DropMergeCommitPrompt:                "Are you sure you want to drop the selected merge commit? Note that it will also drop all the commits that were merged in by it.",
+		DropCommitOrDeleteBranchTitle:        "Drop commit or delete branch",
+		DropCommitsOrDeleteBranchesTitle:     "Drop commits or delete branches",
+		DropCommits:                          "Drop commits",
+		DropMergeCommit:                      "Drop merge commit",
+		DropMergeCommitTooltip:               "This will also drop all the commits that were merged in by it.",
+		DeleteBranch:                         "Delete branch",
+		DeleteBranches:                       "Delete branches",
+		DeleteBranchAtCommit:                 "Delete branch '{{.branchName}}'",
 		DropUpdateRefPrompt:                  "Are you sure you want to delete the selected update-ref todo(s)? This is irreversible except by aborting the rebase.",
 		PullingStatus:                        "Pulling",
 		PushingStatus:                        "Pushing",
@@ -1776,19 +1789,20 @@ func EnglishTranslationSet() *TranslationSet {
 		DeleteLocalAndRemoteTagPrompt:        "Are you sure you want to delete '{{.tagName}}' from both your machine and from '{{.upstream}}'?",
 		PushTagTitle:                         "Remote to push tag '{{.tagName}}' to:",
 		// Using 'push tag' rather than just 'push' to disambiguate from a global push
-		PushTag:                        "Push tag",
-		PushTagTooltip:                 "Push the selected tag to a remote. You'll be prompted to select a remote.",
-		NewTag:                         "New tag",
-		NewTagTooltip:                  "Create new tag from current commit. You'll be prompted to enter a tag name and optional description.",
-		CreatingTag:                    "Creating tag",
-		ForceTag:                       "Force Tag",
-		ForceTagPrompt:                 "The tag '{{.tagName}}' exists already. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to overwrite.",
-		FetchRemoteTooltip:             "Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches.",
-		CheckoutCommitTooltip:          "Checkout the selected commit as a detached HEAD.",
-		NoBranchesFoundAtCommitTooltip: "No branches found at selected commit.",
-		GitFlowOptions:                 "Show git-flow options",
-		NotAGitFlowBranch:              "This does not seem to be a git flow branch",
-		NewGitFlowBranchPrompt:         "New {{.branchType}} name:",
+		PushTag:                         "Push tag",
+		PushTagTooltip:                  "Push the selected tag to a remote. You'll be prompted to select a remote.",
+		NewTag:                          "New tag",
+		NewTagTooltip:                   "Create new tag from current commit. You'll be prompted to enter a tag name and optional description.",
+		CreatingTag:                     "Creating tag",
+		ForceTag:                        "Force Tag",
+		ForceTagPrompt:                  "The tag '{{.tagName}}' exists already. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to overwrite.",
+		FetchRemoteTooltip:              "Fetch updates from the remote repository. This retrieves new commits and branches without merging them into your local branches.",
+		CheckoutCommitTooltip:           "Checkout the selected commit as a detached HEAD.",
+		NoBranchesFoundAtCommitTooltip:  "No branches found at selected commit.",
+		NoBranchesFoundAtCommitsTooltip: "No branches found at selected commits.",
+		GitFlowOptions:                  "Show git-flow options",
+		NotAGitFlowBranch:               "This does not seem to be a git flow branch",
+		NewGitFlowBranchPrompt:          "New {{.branchType}} name:",
 
 		IgnoreTracked:                    "Ignore tracked file",
 		IgnoreTrackedPrompt:              "Are you sure you want to ignore a tracked file?",

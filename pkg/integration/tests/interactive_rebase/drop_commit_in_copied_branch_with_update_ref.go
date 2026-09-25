@@ -32,9 +32,9 @@ var DropCommitInCopiedBranchWithUpdateRef = NewIntegrationTest(NewIntegrationTes
 			NavigateToLine(Contains("commit-02")).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
-					Title(Equals("Drop commit")).
-					Content(Equals("Are you sure you want to drop the selected commit(s)?")).
+				t.ExpectPopup().Menu().
+					Title(Equals("Drop commit or delete branch")).
+					Select(Contains("Drop commit")).
 					Confirm()
 			}).
 			Lines(

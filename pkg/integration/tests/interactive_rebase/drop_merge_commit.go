@@ -29,9 +29,10 @@ var DropMergeCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
-					Title(Equals("Drop commit")).
-					Content(Equals("Are you sure you want to drop the selected merge commit? Note that it will also drop all the commits that were merged in by it.")).
+				t.ExpectPopup().Menu().
+					Title(Equals("Drop commit or delete branch")).
+					Select(Contains("Drop merge commit")).
+					Tooltip(Equals("This will also drop all the commits that were merged in by it.")).
 					Confirm()
 			}).
 			Lines(
