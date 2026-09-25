@@ -58,7 +58,7 @@ var Apply = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("file1").IsSelected(),
 			)
 
-		t.Views().Main().
+		t.Views().Secondary().
 			Content(Contains("second line"))
 	},
 })

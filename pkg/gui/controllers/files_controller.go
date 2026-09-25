@@ -366,36 +366,34 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	self.c.Helpers().MergeConflicts.ResetMergeState()
 
-	split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
-	mainShowsStaged := !split && node.GetHasStagedChanges()
+	// The unstaged side of a file's diff is shown in the main pane and the staged side
+	// in the secondary one, each only where there is a side to show — so a side is
+	// always in the same place, whatever the file happens to have. A file with nothing
+	// unstaged therefore shows its staged changes in the secondary pane, which then has
+	// the whole section to itself. Configured to always split, both panes are shown
+	// whether or not there is anything on either side.
+	alwaysSplit := self.c.UserConfig().Gui.SplitDiff == "always"
+	showStaged := node.GetHasStagedChanges() || alwaysSplit
+	showUnstaged := node.GetHasUnstagedChanges() || alwaysSplit || !showStaged
 
 	paths := self.pathsForDiff(node)
-	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, paths)
-	title := self.c.Tr.UnstagedChanges
-	if mainShowsStaged {
-		title = self.c.Tr.StagedChanges
-	}
-	refreshOpts := types.RefreshMainOpts{
-		Pair: self.c.MainViewPairs().Normal,
-		Main: &types.ViewUpdateOpts{
+	refreshOpts := types.RefreshMainOpts{Pair: self.c.MainViewPairs().Normal}
+
+	if showUnstaged {
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, false, paths)
+		refreshOpts.Main = &types.ViewUpdateOpts{
 			Task:     types.NewRunDiffRendererTask(cmdObj.GetCmd()),
 			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-			Title:    title,
-		},
-	}
-
-	if split {
-		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, paths)
-
-		title := self.c.Tr.StagedChanges
-		if mainShowsStaged {
-			title = self.c.Tr.UnstagedChanges
+			Title:    self.c.Tr.UnstagedChanges,
 		}
+	}
 
+	if showStaged {
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, paths)
 		refreshOpts.Secondary = &types.ViewUpdateOpts{
-			Title:    title,
-			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 			Task:     types.NewRunDiffRendererTask(cmdObj.GetCmd()),
+			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			Title:    self.c.Tr.StagedChanges,
 		}
 	}
 

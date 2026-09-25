@@ -251,6 +251,17 @@ func (self *ViewBufferManager) GetTaskKey() string {
 	return self.taskKey
 }
 
+// ForgetRenderedContent records that the view no longer shows the render whose key it
+// is holding, because it has been emptied. The key says what the view is showing, and
+// the next task is compared against it to tell whether that task renders something
+// new. A view with nothing in it is showing nothing, so whatever comes next is new.
+func (self *ViewBufferManager) ForgetRenderedContent() {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	self.taskKey = ""
+}
+
 func NewViewBufferManager(
 	log *logrus.Entry,
 	writer io.Writer,

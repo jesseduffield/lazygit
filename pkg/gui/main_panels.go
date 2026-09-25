@@ -110,8 +110,13 @@ func (gui *Gui) allMainContextPairs() []types.MainContextPair {
 func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
 	gui.moveMainContextPairToTop(opts.Pair)
 
+	panes := mainPanesFor(opts)
+	gui.handOverMainSection(opts.Pair, panes)
+
 	if opts.Main != nil {
 		gui.RefreshMainView(opts.Main, opts.Pair.Main)
+	} else {
+		gui.clearMainView(opts.Pair.Main)
 	}
 
 	if opts.Secondary != nil {
@@ -134,7 +139,50 @@ func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
 		}
 	}
 
-	gui.splitMainPanel(opts.Secondary != nil)
+	gui.setMainPanes(panes)
+}
+
+// handOverMainSection carries the content of the main section from the pane that has
+// been showing it on its own to the pane about to, when a render moves the section's
+// content from one to the other — a file's changes going from unstaged to staged, say.
+//
+// The section is one region of the screen to the user, so a change of which pane holds
+// it has to look like that region re-rendering rather than blanking and filling in
+// again: the incoming pane shows what the outgoing one was showing, where it was
+// showing it, until its own render has read enough to be swapped in. It renders from
+// the top when it does, the content it took over not being its own (see
+// clearMainView).
+func (gui *Gui) handOverMainSection(pair types.MainContextPair, panes types.MainPanes) {
+	// The lower pane is always the same view, being the only one a render can leave
+	// holding the section on its own; the upper one is whichever view of the main
+	// window this render is for, which moveMainContextPairToTop has just given a copy
+	// of what that window was showing.
+	upper, lower := pair.Main.GetView(), gui.Views.Secondary
+
+	var from, to *gocui.View
+	switch {
+	case gui.State.MainPanes == types.MainPaneOnly && panes == types.SecondaryPaneOnly:
+		from, to = upper, lower
+	case gui.State.MainPanes == types.SecondaryPaneOnly && panes == types.MainPaneOnly:
+		from, to = lower, upper
+	default:
+		return
+	}
+
+	gui.g.CopyContent(from, to)
+}
+
+// mainPanesFor says which panes the given render occupies: the one it has content for,
+// or both when it has content for both.
+func mainPanesFor(opts types.RefreshMainOpts) types.MainPanes {
+	switch {
+	case opts.Secondary == nil:
+		return types.MainPaneOnly
+	case opts.Main == nil:
+		return types.SecondaryPaneOnly
+	default:
+		return types.BothMainPanes
+	}
 }
 
 // clampDiffSelectionToContent brings the focused main view's selection back onto the
@@ -162,10 +210,19 @@ func (gui *Gui) clampDiffSelectionToContent(view *gocui.View) {
 }
 
 // clearMainView empties a pane that is being given nothing to show, selection and all.
+//
+// An emptied pane is showing nothing, so it also goes back to the top and stops
+// claiming the render it was showing: whatever it is given next is content the user
+// hasn't seen there, and is shown from the top like any other.
 func (gui *Gui) clearMainView(mainContext types.Context) {
-	mainContext.GetView().Clear()
+	view := mainContext.GetView()
+	view.Clear()
+	view.SetOrigin(0, 0)
 	mainContext.SetHasSelectableContent(false)
 	gui.State.ContextMgr.UpdateSelectionHighlights()
+	if manager := gui.getViewBufferManagerForView(view); manager != nil {
+		manager.ForgetRenderedContent()
+	}
 }
 
 // updateDiffSelectionVisibility works out whether a main pane holds anything for a
@@ -289,8 +346,24 @@ func (gui *Gui) mainContextForView(view *gocui.View) *context.MainContext {
 	return nil
 }
 
-func (gui *Gui) splitMainPanel(splitMainPanel bool) {
-	gui.State.SplitMainPanel = splitMainPanel
+func (gui *Gui) setMainPanes(panes types.MainPanes) {
+	gui.State.MainPanes = panes
+
+	// The label for the key that focuses the main view belongs on the pane that key
+	// focuses, which is the secondary one while it is the only one shown.
+	if panes == types.SecondaryPaneOnly {
+		gui.showFocusMainViewJumpLabelOn(gui.Views.Secondary)
+	} else {
+		gui.showFocusMainViewJumpLabelOn(gui.Views.Main)
+	}
+}
+
+// showFocusMainViewJumpLabelOn puts the main view's jump label on the given pane and
+// takes it off the other one, so that only the pane the key focuses wears it.
+func (gui *Gui) showFocusMainViewJumpLabelOn(view *gocui.View) {
+	gui.Views.Main.TitlePrefix = ""
+	gui.Views.Secondary.TitlePrefix = ""
+	view.TitlePrefix = gui.focusMainViewJumpLabel
 }
 
 // reApplySearch runs a search the view holds again over the content a render has just

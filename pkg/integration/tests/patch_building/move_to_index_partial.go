@@ -85,7 +85,7 @@ var MoveToIndexPartial = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Focus()
 
-		t.Views().Main().
+		t.Views().Secondary().
 			ContainsLines(
 				Contains(`-first line`),
 				Contains(`+first line2`),

@@ -88,7 +88,7 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("  M  file2"),
 			)
 
-		t.Views().Main().
+		t.Views().Secondary().
 			ContainsLines(
 				Contains(" file1 content"),
 				Contains("-more file1 content"),

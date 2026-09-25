@@ -461,8 +461,8 @@ type IRepoStateAccessor interface {
 	SetScreenMode(ScreenMode)
 	InSearchPrompt() bool
 	GetSearchState() *SearchState
-	SetSplitMainPanel(bool)
-	GetSplitMainPanel() bool
+	SetMainPanes(MainPanes)
+	GetMainPanes() MainPanes
 	GetMergeOrRebaseStartedInLazygit() bool
 	SetMergeOrRebaseStartedInLazygit(bool)
 }
