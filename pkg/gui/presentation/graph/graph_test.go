@@ -37,6 +37,7 @@ func TestRenderCommitGraph(t *testing.T) {
 	tests := []struct {
 		name           string
 		commitOpts     []models.NewCommitOpts
+		selectedHash   string
 		expectedOutput string
 	}{
 		{
@@ -185,6 +186,100 @@ func TestRenderCommitGraph(t *testing.T) {
 			01ce5b08 ○`,
 		},
 		{
+			name:         "merge whose line to its second parent starts where a child's line ends, 605d0386 selected",
+			commitOpts:   historyWithSharedCell,
+			selectedHash: "605d0386",
+			expectedOutput: `
+			2fce98ea ◎─╮
+			ea0f2e05 │ ○
+			057f088d │ ○
+			057f22a6 │ ○
+			f2fa175e │ ○
+			e27fe383 ◎─│─╮
+			239f0925 │ │ ○
+			79e7921d │ │ ○
+			ffd78db7 │ │ ○
+			605d0386 │ │ ○
+			a82c0d01 ◎───╯
+			7a0f4754 │ ○
+			5fcbdadc ○─╯
+			01ce5b08 ○`,
+		},
+		{
+			name:         "merge whose line to its second parent starts where a child's line ends, a82c0d01 selected",
+			commitOpts:   historyWithSharedCell,
+			selectedHash: "a82c0d01",
+			/* EXPECTED:
+			expectedOutput: `
+			2fce98ea ◎─╮
+			ea0f2e05 │ ○
+			057f088d │ ○
+			057f22a6 │ ○
+			f2fa175e │ ○
+			e27fe383 ◎─│─╮
+			239f0925 │ │ ○
+			79e7921d │ │ ○
+			ffd78db7 │ │ ○
+			605d0386 │ │ ○
+			a82c0d01 ◎─╮─╯
+			7a0f4754 │ ○
+			5fcbdadc ○─╯
+			01ce5b08 ○`,
+			ACTUAL: */
+			expectedOutput: `
+			2fce98ea ◎─╮
+			ea0f2e05 │ ○
+			057f088d │ ○
+			057f22a6 │ ○
+			f2fa175e │ ○
+			e27fe383 ◎─│─╮
+			239f0925 │ │ ○
+			79e7921d │ │ ○
+			ffd78db7 │ │ ○
+			605d0386 │ │ ○
+			a82c0d01 ◎─╮ ╯
+			7a0f4754 │ ○
+			5fcbdadc ○ ╯
+			01ce5b08 ○`,
+		},
+		{
+			name:         "merge whose line to its second parent starts where a child's line ends, f2fa175e selected",
+			commitOpts:   historyWithSharedCell,
+			selectedHash: "f2fa175e",
+			/* EXPECTED:
+			expectedOutput: `
+			2fce98ea ◎─╮
+			ea0f2e05 │ ○
+			057f088d │ ○
+			057f22a6 │ ○
+			f2fa175e │ ○
+			e27fe383 ◎─│─╮
+			239f0925 │ │ ○
+			79e7921d │ │ ○
+			ffd78db7 │ │ ○
+			605d0386 │ │ ○
+			a82c0d01 ◎─╯─╯
+			7a0f4754 │ ○
+			5fcbdadc ○─╯
+			01ce5b08 ○`,
+			ACTUAL: */
+			expectedOutput: `
+			2fce98ea ◎─╮
+			ea0f2e05 │ ○
+			057f088d │ ○
+			057f22a6 │ ○
+			f2fa175e │ ○
+			e27fe383 ◎─│ ╮
+			239f0925 │ │ ○
+			79e7921d │ │ ○
+			ffd78db7 │ │ ○
+			605d0386 │ │ ○
+			a82c0d01 ◎─╯ ╯
+			7a0f4754 │ ○
+			5fcbdadc ○─╯
+			01ce5b08 ○`,
+		},
+		{
 			name: "new merge path fills gap before continuing path on right",
 			commitOpts: []models.NewCommitOpts{
 				{Hash: "1", Parents: []string{"2", "3", "4", "5"}},
@@ -260,7 +355,7 @@ func TestRenderCommitGraph(t *testing.T) {
 			getStyle := func(c *models.Commit) *style.TextStyle { return &style.FgDefault }
 			commits := lo.Map(test.commitOpts,
 				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
-			lines := RenderCommitGraph(commits, hashPool.Add("blah"), getStyle)
+			lines := RenderCommitGraph(commits, hashPool.Add(test.selectedHash), getStyle)
 
 			trimmedExpectedOutput := ""
 			for line := range strings.SplitSeq(strings.TrimPrefix(test.expectedOutput, "\n"), "\n") {
@@ -375,11 +470,17 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 3, toPos: 0, fromHash: pool("e1"), toHash: pool("selected"), kind: TERMINATES, style: &green},
 				{fromPos: 0, toPos: 2, fromHash: pool("selected"), toHash: pool("c3"), kind: STARTS, style: &yellow},
 			},
-			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
+			/* EXPECTED:
+			expectedStr: "◎───╮─╯",
+			expectedStyles: []style.TextStyle{
+				highlightStyle, highlightStyle, highlightStyle, highlightStyle, highlightStyle, green, green,
+			},
+			ACTUAL: */
 			expectedStr: "◎───╮ ╯",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, highlightStyle, highlightStyle, highlightStyle, highlightStyle, nothing, green,
 			},
+			prevCommit: models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
 		},
 		{
 			name: "many terminating pipes",
