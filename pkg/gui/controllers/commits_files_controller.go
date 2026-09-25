@@ -23,6 +23,9 @@ type CommitFilesController struct {
 	baseController
 	*ListControllerTrait[*filetree.CommitFileNode]
 	c *ControllerCommon
+
+	// what this panel offers on the diff it shows in the focused main view
+	diffActions *CommitDiffActions
 }
 
 var _ types.IController = &CommitFilesController{}
@@ -30,7 +33,7 @@ var _ types.IController = &CommitFilesController{}
 func NewCommitFilesController(
 	c *ControllerCommon,
 ) *CommitFilesController {
-	return &CommitFilesController{
+	controller := &CommitFilesController{
 		baseController: baseController{},
 		c:              c,
 		ListControllerTrait: NewListControllerTrait(
@@ -40,6 +43,18 @@ func NewCommitFilesController(
 			c.Contexts().CommitFiles.GetSelectedItems,
 		),
 	}
+	controller.diffActions = NewCommitDiffActions(c, c.Contexts().CommitFiles, controller.diffTarget)
+	return controller
+}
+
+// diffTarget is the commit whose files this panel is showing. Its main view shows the
+// diff of that commit.
+func (self *CommitFilesController) diffTarget() *commitDiffTarget {
+	if self.context().GetRef() == nil && self.context().GetRefRange() == nil {
+		return nil
+	}
+	from, to := self.context().GetFromAndToForDiff()
+	return &commitDiffTarget{from: from, to: to, canRebase: self.context().GetCanRebase()}
 }
 
 func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
@@ -193,15 +208,7 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 }
 
 func (self *CommitFilesController) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {
-	return self
-}
-
-// PlainDiff hands out the commit's diff for the given files. Both panes show the same
-// diff here — the secondary one shows the custom patch built from it, which is not a
-// diff of the commit — so which pane asks makes no difference.
-func (self *CommitFilesController) PlainDiff(_ types.DiffPaneContext, paths []string) string {
-	from, to := self.context().GetFromAndToForDiff()
-	return self.c.Helpers().Diff.PlainDiffBetweenRefs(from, to, paths)
+	return self.diffActions
 }
 
 func (self *CommitFilesController) copyDiffToClipboard(paths []string, toastMessage string) error {

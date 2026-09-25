@@ -80,22 +80,31 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Tooltip:           self.c.Tr.EditFileTooltip,
 		},
 		{
-			Keys:              opts.GetKeys(opts.Config.Universal.Select),
-			Handler:           self.primaryAction,
+			Keys:    opts.GetKeys(opts.Config.Universal.Select),
+			Handler: self.primaryAction,
+			// The description is of the working tree's diff, which is where the key does
+			// the thing users know it for; over a commit's diff it says so for itself.
 			Description:       self.c.Tr.Stage,
-			DescriptionFunc:   self.workingTreeActionDescription(self.c.Tr.Stage),
+			DescriptionFunc:   self.diffActionDescription(self.c.Tr.Stage, self.c.Tr.ToggleSelectionForPatch),
 			GetDisabledReason: self.diffSelectionDisabledReason,
 			Tooltip:           self.c.Tr.StageSelectionTooltip,
-			DisplayOnScreen:   true,
+			// Over a commit's diff the key toggles lines in the custom patch, which the
+			// description says for itself; there is nothing to add to it.
+			TooltipFunc:     self.diffActionDescription(self.c.Tr.StageSelectionTooltip, ""),
+			DisplayOnScreen: true,
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.discardSelection,
 			Description:       self.c.Tr.DiscardSelection,
-			DescriptionFunc:   self.workingTreeActionDescription(self.c.Tr.DiscardSelection),
-			GetDisabledReason: self.diffSelectionDisabledReason,
+			DescriptionFunc:   self.diffActionDescription(self.c.Tr.DiscardSelection, self.c.Tr.RemoveSelectionFromPatch),
+			GetDisabledReason: self.discardSelectionDisabledReason,
 			Tooltip:           self.c.Tr.DiscardSelectionTooltip,
-			DisplayOnScreen:   true,
+			// Over a commit's diff the key rewrites the commit rather than touching the
+			// index, which is worth the warning the other tooltip carries.
+			TooltipFunc: self.diffActionDescription(
+				self.c.Tr.DiscardSelectionTooltip, self.c.Tr.RemoveSelectionFromPatchTooltip),
+			DisplayOnScreen: true,
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Main.EditSelectHunk),
@@ -239,6 +248,14 @@ func (self *MainViewController) Context() types.Context {
 	return self.context
 }
 
+// GetOnFocus brings on the marks over the lines that are in the custom patch, which
+// are an affordance of the focused view, so they arrive with the focus.
+func (self *MainViewController) GetOnFocus() func(types.OnFocusOpts) {
+	return func(types.OnFocusOpts) {
+		self.c.Helpers().DiffLine.RefreshInclusionGutter()
+	}
+}
+
 func (self *MainViewController) togglePanel() error {
 	if !self.otherContext.GetView().Visible {
 		return nil
@@ -340,56 +357,6 @@ func (self *MainViewController) primaryAction() error {
 	return actions.PrimaryAction(self.context, first, last)
 }
 
-// revealSelectionAfterAction moves the selection to the change that takes the place of
-// the one just acted on, once the changed diff has re-rendered. Call it from the panel's
-// action handler with the pane it acted in, the pane the work carries on in, and the
-// first line of the selection, before triggering the re-render.
-//
-// The line acted on is gone from the diff, so what is remembered is its place among the
-// diff's changes: the next change moves up into it, which is where you want to be to
-// carry on. A range collapses to a single line at its start, and hunk mode selects the
-// whole block it lands in, so that pressing the key again acts on the next hunk. The
-// target pane inherits that select mode, this being the same piece of work continuing
-// in another pane — and shows no selection until the restore places one, so that what
-// it was left showing the last time it was used doesn't appear for a frame.
-//
-// done is called once the selection is where it belongs, or once it turns out that no
-// render is coming to put it there, for a caller that must not let the user act again
-// in between.
-func revealSelectionAfterAction(
-	c *ControllerCommon, source types.DiffPaneContext, target types.DiffPaneContext,
-	firstLineIdx int, done func(),
-) {
-	ordinal, ok := c.Helpers().DiffLine.ChangeLineOrdinal(source.GetView(), firstLineIdx)
-	if !ok {
-		done()
-		return
-	}
-
-	sel := source.DiffSelectState()
-	if sel.Mode == types.DiffSelectModeRange {
-		sel.Mode = types.DiffSelectModeLine
-		sel.RangeIsSticky = false
-	}
-	*target.DiffSelectState() = *sel
-	selectHunk := sel.Mode == types.DiffSelectModeHunk
-
-	targetView := target.GetView()
-	if target != source {
-		target.SetHasSelectableContent(false)
-		c.Context().UpdateSelectionHighlights()
-	}
-
-	c.Helpers().DiffLine.RevealChangeLineAtOrdinal(targetView, ordinal, func(viewLine int) {
-		if selectHunk {
-			c.Helpers().DiffLine.SelectChangeBlock(target, viewLine, true)
-			return
-		}
-		targetView.CancelRangeSelect()
-		c.Helpers().DiffLine.ShowSelectionAtLine(targetView, viewLine, true)
-	}, done)
-}
-
 // discardSelection takes the selected diff lines back out of what they are part of,
 // which — like the primary action — is the panel's business, and so is the re-render
 // that follows.
@@ -431,11 +398,23 @@ func (self *MainViewController) workingTreeAction(action func() error) func() er
 // workingTreeActionDescription gives a command's description only where the command
 // applies — over the working tree's diff — so that it is listed there and nowhere else.
 func (self *MainViewController) workingTreeActionDescription(description string) func() string {
+	return self.diffActionDescription(description, "")
+}
+
+// diffActionDescription describes a command in the words that suit the diff it applies
+// to: acting on the working tree's diff stages, acting on a commit's builds a custom
+// patch. Over content that is no diff at all the command doesn't apply, and describes
+// itself as nothing, which keeps it out of the keybindings menu there.
+func (self *MainViewController) diffActionDescription(staging string, patchBuilding string) func() string {
 	return func() string {
-		if self.diffMainViewType() != types.DiffMainViewTypeStaging {
+		switch self.diffMainViewType() {
+		case types.DiffMainViewTypeStaging:
+			return staging
+		case types.DiffMainViewTypePatchBuilding:
+			return patchBuilding
+		default:
 			return ""
 		}
-		return description
 	}
 }
 
@@ -517,6 +496,19 @@ func (self *MainViewController) diffSelectionDisabledReason() *types.DisabledRea
 	return nil
 }
 
+// discardSelectionDisabledReason disables discarding while there is nothing to discard,
+// and where the panel beneath won't have it: taking lines out of a commit means
+// rewriting it, which isn't always something we may do.
+func (self *MainViewController) discardSelectionDisabledReason() *types.DisabledReason {
+	if reason := self.diffSelectionDisabledReason(); reason != nil {
+		return reason
+	}
+	if actions := self.focusedMainViewActions(); actions != nil {
+		return actions.DiscardSelectionDisabledReason(self.context)
+	}
+	return nil
+}
+
 func (self *MainViewController) onClickInAlreadyFocusedView(opts gocui.ViewMouseBindingOpts) error {
 	self.selectClickedDiffLine(opts.Y)
 	return nil
@@ -580,6 +572,10 @@ func (self *MainViewController) GetOnFocusLost() func(types.OnFocusLostOpts) {
 			self.draggingWithMouse = false
 			self.c.GocuiGui().CancelMouseCapture()
 		}
+		// Where the focus has gone is already known here, so asking again keeps the
+		// patch marks over a move to the pane beside this one, and takes them away
+		// when the focus leaves the pair.
+		self.c.Helpers().DiffLine.RefreshInclusionGutter()
 	}
 }
 

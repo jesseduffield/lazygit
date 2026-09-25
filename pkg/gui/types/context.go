@@ -256,8 +256,20 @@ type FocusedMainViewActions interface {
 	PrimaryAction(pane DiffPaneContext, firstLineIdx int, lastLineIdx int) error
 
 	// DiscardSelection takes the selected diff lines back out of whatever they are part
-	// of: the working tree for the files panel.
+	// of: the working tree for the files panel, the commit itself for the panels showing
+	// a commit's diff.
 	DiscardSelection(pane DiffPaneContext, firstLineIdx int, lastLineIdx int) error
+
+	// DiscardSelectionDisabledReason says why the selection can't be discarded where it
+	// is, and nil when it can. Taking lines out of a commit means rewriting it, which
+	// isn't always something we may do; the working tree has no such condition.
+	DiscardSelectionDisabledReason(pane DiffPaneContext) *DisabledReason
+
+	// PatchInclusion says which lines of the diff this panel shows are in the custom
+	// patch being built from it. The marks over those lines are drawn from this. nil
+	// where nothing about this diff is being built into a patch, which is always so
+	// for a diff that can't be.
+	PatchInclusion() func(info DiffLineInfo) bool
 }
 
 type IListContext interface {

@@ -1079,3 +1079,91 @@ func TestResizingAWrappingViewKeepsItsPlaceInTheContent(t *testing.T) {
 
 	assert.Equal(t, []string{"another wrapping line"}, v.SelectedLines())
 }
+
+// The inclusion gutter reserves columns at the left of every line, draws its marker
+// on the marked lines only, and moves the content out of the way.
+func TestInclusionGutter(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	// InnerWidth 10; the frame puts view x=0 at screen x=1.
+	v := NewView("name", 0, 0, 11, 5, OutputNormal)
+	v.Wrap = true
+	v.InclusionGutterMarker = "✓"
+
+	v.writeString("aaa\nbbb\nccc\n")
+
+	// The gutter is two columns wide — the marker and a space; mark the middle line.
+	v.SetInclusionGutter(true, []bool{false, true, false})
+	v.draw(true)
+
+	chr, _, _ := Screen.Get(1, 1)
+	assert.Equal(t, " ", chr, "an unmarked line has no marker")
+	chr, _, _ = Screen.Get(1, 2)
+	assert.Equal(t, "✓", chr, "a marked line has one")
+	chr, _, _ = Screen.Get(1, 3)
+	assert.Equal(t, " ", chr, "an unmarked line has no marker")
+
+	// The content begins after the gutter: view x=2, i.e. screen x=3.
+	chr, _, _ = Screen.Get(3, 1)
+	assert.Equal(t, "a", chr)
+	chr, _, _ = Screen.Get(3, 2)
+	assert.Equal(t, "b", chr)
+	chr, _, _ = Screen.Get(3, 3)
+	assert.Equal(t, "c", chr)
+
+	// Hiding the gutter puts the content back at the left edge.
+	v.SetInclusionGutter(false, nil)
+	v.draw(true)
+	chr, _, _ = Screen.Get(1, 1)
+	assert.Equal(t, "a", chr)
+}
+
+// A marked line the view wraps is marked on every segment it is drawn as, so that
+// the mark doesn't look like it belongs to the first part of the line alone. The
+// gutter takes its columns out of the width the content wraps in.
+func TestInclusionGutterMarksEverySegmentOfAWrappedLine(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.Wrap = true
+	v.InclusionGutterMarker = "✓"
+
+	// Ten cells, wrapping at eight once the two-column gutter is shown.
+	v.writeString("0123456789\n")
+	v.SetInclusionGutter(true, []bool{true})
+	v.draw(true)
+
+	chr, _, _ := Screen.Get(1, 1)
+	assert.Equal(t, "✓", chr)
+	chr, _, _ = Screen.Get(3, 1)
+	assert.Equal(t, "0", chr)
+	chr, _, _ = Screen.Get(10, 1)
+	assert.Equal(t, "7", chr, "the content wraps at the width the gutter leaves it")
+
+	chr, _, _ = Screen.Get(1, 2)
+	assert.Equal(t, "✓", chr, "the line's second segment is marked too")
+	chr, _, _ = Screen.Get(3, 2)
+	assert.Equal(t, "8", chr)
+}
+
+// Showing the gutter narrows the content, so the content wraps again — and the
+// positions into it, which count the segments lines are drawn as, have to come
+// along, as they do for any other change of width.
+func TestShowingTheInclusionGutterKeepsThePlaceInTheContent(t *testing.T) {
+	v := NewView("name", 0, 0, 11, 10, OutputNormal) // InnerWidth 10
+	v.Wrap = true
+	v.Highlight = true
+	v.InclusionGutterMarker = "✓"
+
+	v.writeString("one\ntwo\nthree\nsomethingfartoolong\n")
+	assert.Equal(t, 5, v.ViewLinesHeight())
+
+	v.FocusPoint(0, 2, false)
+	assert.Equal(t, "three", v.SelectedLine())
+
+	// With eight columns left for the content, the last line wraps into three
+	// segments rather than two.
+	v.SetInclusionGutter(true, []bool{false, false, true, false})
+	assert.Equal(t, 6, v.ViewLinesHeight())
+	assert.Equal(t, "three", v.SelectedLine())
+}

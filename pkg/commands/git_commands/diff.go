@@ -155,6 +155,28 @@ func (self *DiffCommands) DiffCmdObj(diffArgs []string, mode DiffMode) *oscomman
 	)
 }
 
+// CustomPatchDiffCmdObj is the command that renders the custom patch being built: a diff
+// of the two trees the patch was materialized into (PatchCommands.WriteCustomPatchDiffTrees),
+// under the directory holding them. It goes through the same wiring as any other diff we
+// show, so the patch is rendered by whatever renders the rest of them, and git works out
+// how much context to give it.
+//
+// git's own path prefixes are suppressed because the trees are named a and b themselves,
+// which leaves the paths reading like an ordinary diff's over the repo's own paths.
+func (self *DiffCommands) CustomPatchDiffCmdObj(dir string, mode DiffMode) *oscommands.CmdObj {
+	return self.cmd.New(
+		NewGitCmd("diff").
+			AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), mode).
+			NoLineEndingConversion().
+			Arg("--no-index").
+			Arg("--no-prefix").
+			Arg(fmt.Sprintf("--color=%s", mode.colorArg(self.diffRendererConfigManager))).
+			Arg("a", "b").
+			Dir(dir).
+			ToArgv(),
+	)
+}
+
 // This is a basic generic diff command that can be used for any diff operation
 // (e.g. copying a diff to the clipboard). It will not use a custom diff renderer,
 // and does not use user configs such as ignore whitespace.

@@ -36,11 +36,16 @@ var RenamedFileWhole = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("Building patch"))
 
-		// The whole file is added, so the patch carries the rename itself.
+		// The whole file is added, so the patch carries the rename itself, and the diff
+		// the patch is shown as carries it too. The trees the patch is materialized into
+		// are what git names in the rename lines, the paths of the two sides being all it
+		// has to go by.
 		t.Views().Secondary().
 			ContainsLines(
-				Contains("rename from original"),
-				Contains("rename to renamed"),
+				Contains("diff --git a/original b/renamed"),
+				Contains("similarity index"),
+				Contains("rename from a/original"),
+				Contains("rename to b/renamed"),
 			)
 
 		t.Common().SelectPatchOption(Contains("Remove patch from original commit"))

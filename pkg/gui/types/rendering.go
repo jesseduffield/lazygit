@@ -69,25 +69,12 @@ func NewRenderStringTask(str string) *RenderStringTask {
 
 type RenderStringWithoutScrollTask struct {
 	Str string
-
-	// contentIsDiff marks a string that is a panel's own diff; see ContentIsDiff.
-	contentIsDiff bool
 }
 
 func (t *RenderStringWithoutScrollTask) IsUpdateTask() {}
 
 func NewRenderStringWithoutScrollTask(str string) *RenderStringWithoutScrollTask {
 	return &RenderStringWithoutScrollTask{Str: str}
-}
-
-// NewMainViewDiffStringTask returns the task for rendering a diff we hold as text
-// rather than as a command to run — the custom patch being built, which we assemble
-// ourselves. The view stays where it is, the patch being rendered again on every
-// change to it.
-func NewMainViewDiffStringTask(str string) UpdateTask {
-	task := NewRenderStringWithoutScrollTask(str)
-	task.contentIsDiff = true
-	return task
 }
 
 type RenderStringWithScrollTask struct {
@@ -166,8 +153,6 @@ func NewMainViewDiffTaskWithPrefix(cmd *exec.Cmd, prefix string, mode git_comman
 // such a render that there is anything to point at.
 func ContentIsDiff(task UpdateTask) bool {
 	switch task := task.(type) {
-	case *RenderStringWithoutScrollTask:
-		return task.contentIsDiff
 	case *RunCommandTask:
 		return task.contentIsDiff
 	case *RunDiffRendererTask:
