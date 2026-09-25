@@ -10,7 +10,7 @@ var StageUnderConformingDiffRenderer = NewIntegrationTest(NewIntegrationTestArgs
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		// A renderer that announces the protocol with a version-only record before
 		// anything else, then says who it is and passes the diff through. The diff it
 		// passes through keeps its structure, so the rows can be placed by reading it.

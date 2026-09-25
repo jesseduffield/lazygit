@@ -10,7 +10,7 @@ var SelectNextChangeAfterUnstaging = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "c0\na1\na2\na3\nc1\nc2\noldB\nc3\n")

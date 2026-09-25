@@ -58,7 +58,7 @@ var StageLines = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			PressEnter()
 
-		t.Views().Staging().
+		t.Views().Main().
 			IsFocused().
 			Press(keys.Universal.ToggleRangeSelect).
 			PressFast(keys.Universal.NextItem).

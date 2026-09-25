@@ -41,10 +41,6 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.SubCommits, name: "subCommits"},
 		{viewPtr: &gui.Views.CommitFiles, name: "commitFiles"},
 
-		{viewPtr: &gui.Views.Staging, name: "staging"},
-		{viewPtr: &gui.Views.StagingSecondary, name: "stagingSecondary"},
-		{viewPtr: &gui.Views.PatchBuilding, name: "patchBuilding"},
-		{viewPtr: &gui.Views.PatchBuildingSecondary, name: "patchBuildingSecondary"},
 		{viewPtr: &gui.Views.MergeConflicts, name: "mergeConflicts"},
 		{viewPtr: &gui.Views.Secondary, name: "secondary"},
 		{viewPtr: &gui.Views.Main, name: "main"},
@@ -106,16 +102,12 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Search.Frame = false
 	gui.Views.Search.Editor = gocui.EditorFunc(gui.searchEditor)
 
-	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
+	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.MergeConflicts} {
 		view.Wrap = true
 		view.UnderlineHyperLinksOnlyOnHover = true
 		view.AutoRenderHyperLinks = true
 	}
 
-	gui.Views.Staging.Wrap = true
-	gui.Views.StagingSecondary.Wrap = true
-	gui.Views.PatchBuilding.Wrap = true
-	gui.Views.PatchBuildingSecondary.Wrap = true
 	gui.Views.MergeConflicts.Wrap = false
 	gui.Views.Limit.Wrap = true
 
@@ -236,19 +228,15 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.Submodules.Title = gui.c.Tr.SubmodulesTitle
 	gui.Views.Tags.Title = gui.c.Tr.TagsTitle
 	gui.Views.Files.Title = gui.c.Tr.FilesTitle
-	gui.Views.PatchBuilding.Title = gui.c.Tr.Patch
-	gui.Views.PatchBuildingSecondary.Title = gui.c.Tr.CustomPatch
 	gui.Views.MergeConflicts.Title = gui.c.Tr.MergeConflictsTitle
 	gui.Views.Limit.Title = gui.c.Tr.NotEnoughSpace
 	gui.Views.Status.Title = gui.c.Tr.StatusTitle
-	gui.Views.Staging.Title = gui.c.Tr.UnstagedChanges
-	gui.Views.StagingSecondary.Title = gui.c.Tr.StagedChanges
 	gui.Views.CommitMessage.Title = gui.c.Tr.CommitSummary
 	gui.Views.CommitDescription.Title = gui.c.Tr.CommitDescriptionTitle
 	gui.Views.Extras.Title = gui.c.Tr.CommandLog
 	gui.Views.Snake.Title = gui.c.Tr.SnakeTitle
 
-	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
+	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.MergeConflicts} {
 		view.Title = gui.c.Tr.DiffTitle
 		view.CanScrollPastBottom = gui.c.UserConfig().Gui.ScrollPastBottom
 		view.TabWidth = gui.c.UserConfig().Gui.TabWidth

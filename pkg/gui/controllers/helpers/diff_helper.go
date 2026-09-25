@@ -211,7 +211,7 @@ func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {
 // AdjustLineNumber is used to adjust a line number in the diff that's currently
 // being viewed, so that it corresponds to the line number in the actual working
 // copy state of the file. It is used when clicking on a delta hyperlink in a
-// diff, or when pressing `e` in the staging or patch building panels. It works
+// diff, or when pressing `e` in a focused diff. It works
 // by getting a diff of what's being viewed in the main view against the working
 // copy, and then using that diff to adjust the line number.
 // path is the file path of the file being viewed
@@ -222,7 +222,7 @@ func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {
 func (self *DiffHelper) AdjustLineNumber(path string, linenumber int, viewname string) int {
 	switch viewname {
 
-	case "main", "patchBuilding":
+	case "main":
 		if diffableContext, ok := self.c.Context().CurrentSide().(types.DiffableContext); ok {
 			ref := diffableContext.RefForAdjustingLineNumberInDiff()
 			if len(ref) != 0 {
@@ -233,7 +233,7 @@ func (self *DiffHelper) AdjustLineNumber(path string, linenumber int, viewname s
 		// unstaged changes view of the Files panel; no need to adjust line
 		// numbers in this case
 
-	case "secondary", "stagingSecondary":
+	case "secondary":
 		return self.adjustLineNumber(linenumber, "--", path)
 	}
 
