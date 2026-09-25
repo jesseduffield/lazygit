@@ -206,13 +206,13 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 			} else {
 				cmdObj := self.c.Git().Branch.GetGraphCmdObj(branch.FullRefName())
 
-				ptyTask := types.NewRunPtyTask(cmdObj.GetCmd())
-				task = ptyTask
+				rendererTask := types.NewRunDiffRendererTask(cmdObj.GetCmd())
+				task = rendererTask
 
 				pr, ok := self.c.Model().PullRequestsMap[branch.Name]
 				if ok && presentation.ShouldShowPrForBranch(pr, branch.Name, self.c.UserConfig()) {
-					ptyTask.Prefix = presentation.FormatPullRequestHeader(pr, self.c.Tr)
-					ptyTask.Prefix += strings.Repeat("─", self.c.Contexts().Normal.GetView().InnerWidth()) + "\n"
+					rendererTask.Prefix = presentation.FormatPullRequestHeader(pr, self.c.Tr)
+					rendererTask.Prefix += strings.Repeat("─", self.c.Contexts().Normal.GetView().InnerWidth()) + "\n"
 				}
 			}
 
