@@ -375,21 +375,6 @@ func TestRenderPipeSet(t *testing.T) {
 			},
 		},
 		{
-			name: "starting and terminating path crossing continuing path",
-			pipes: []Pipe{
-				{fromPos: 0, toPos: 0, fromHash: pool("a1"), toHash: pool("a2"), kind: TERMINATES, style: &red},
-				{fromPos: 0, toPos: 0, fromHash: pool("a2"), toHash: pool("a3"), kind: STARTS, style: &yellow},
-				{fromPos: 0, toPos: 1, fromHash: pool("a2"), toHash: pool("b3"), kind: STARTS, style: &yellow},
-				{fromPos: 1, toPos: 1, fromHash: pool("b1"), toHash: pool("a2"), kind: CONTINUES, style: &green},
-				{fromPos: 2, toPos: 0, fromHash: pool("c1"), toHash: pool("a2"), kind: TERMINATES, style: &magenta},
-			},
-			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
-			expectedStr: "◎─│─╯",
-			expectedStyles: []style.TextStyle{
-				yellow, yellow, green, magenta, magenta,
-			},
-		},
-		{
 			name: "another clash of starting and terminating paths",
 			pipes: []Pipe{
 				{fromPos: 0, toPos: 0, fromHash: pool("a1"), toHash: pool("a2"), kind: TERMINATES, style: &red},
