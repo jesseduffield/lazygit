@@ -82,6 +82,9 @@ type Gui struct {
 	statusManager        *status.StatusManager
 	waitForIntro         sync.WaitGroup
 	viewBufferManagerMap map[string]*tasks.ViewBufferManager
+	// holds a mapping of the main section's view names to the writers that link the
+	// files named in the diffstat of what is rendered into them
+	diffStatLinkWriterMap map[string]*helpers.DiffStatLinkWriter
 	// holds a mapping of view names to ptmx's. This is for rendering command outputs
 	// from within a pty. The point of keeping track of them is so that if we re-size
 	// the window, we can tell the pty it needs to resize accordingly.
@@ -413,6 +416,17 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 				return gui.helpers.Files.EditFileAtLine(filepath, lineNumber)
 			}
 			return gui.helpers.Files.EditFiles([]string{filepath})
+		}
+
+		if entry, ok := strings.CutPrefix(url, helpers.DiffStatLinkScheme); ok {
+			view, err := gui.g.View(viewname)
+			if err != nil {
+				return nil
+			}
+			if pane := gui.mainContextForView(view); pane != nil {
+				gui.helpers.DiffLine.JumpToFileNamedInDiffStat(pane, entry)
+			}
+			return nil
 		}
 
 		if err := gui.os.OpenLink(url); err != nil {
@@ -783,17 +797,18 @@ func NewGui(
 	test integrationTypes.IntegrationTest,
 ) (*Gui, error) {
 	gui := &Gui{
-		Common:               cmn,
-		gitVersion:           gitVersion,
-		Config:               configurer,
-		Updater:              updater,
-		statusManager:        status.NewStatusManager(),
-		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
-		viewPtmxMap:          map[string]oscommands.Pty{},
-		showRecentRepos:      showRecentRepos,
-		RepoPathStack:        &utils.Stack[types.RepoLocation]{},
-		RepoStateMap:         map[Repo]*GuiRepoState{},
-		GuiLog:               []string{},
+		Common:                cmn,
+		gitVersion:            gitVersion,
+		Config:                configurer,
+		Updater:               updater,
+		statusManager:         status.NewStatusManager(),
+		viewBufferManagerMap:  map[string]*tasks.ViewBufferManager{},
+		diffStatLinkWriterMap: map[string]*helpers.DiffStatLinkWriter{},
+		viewPtmxMap:           map[string]oscommands.Pty{},
+		showRecentRepos:       showRecentRepos,
+		RepoPathStack:         &utils.Stack[types.RepoLocation]{},
+		RepoStateMap:          map[Repo]*GuiRepoState{},
+		GuiLog:                []string{},
 
 		// initializing this to true for the time being; it will be reset to the
 		// real value after loading the user config:
