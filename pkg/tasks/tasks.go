@@ -212,8 +212,20 @@ func (self *ViewBufferManager) StartLoading() {
 }
 
 func (self *ViewBufferManager) ReadToEnd(then func()) {
-	// The reading happens on the task's own goroutine, and the caller hears about
-	// it through then, so lazygit must not count as idle in between.
+	self.readHoldingATask(-1, then)
+}
+
+// ReadLinesAndWait is ReadLines for lines lazygit is itself waiting on, rather than
+// reading ahead of the user. It holds a gocui task until they have been read, so
+// lazygit doesn't count as idle in the meantime (docs/dev/Busy.md).
+func (self *ViewBufferManager) ReadLinesAndWait(totalLines int) {
+	self.readHoldingATask(totalLines, nil)
+}
+
+// readHoldingATask asks the task to have read totalLines lines in total (-1 for all of
+// them) and calls then once it has. The reading happens on the task's own goroutine and
+// the caller is waiting on the result, so lazygit must not count as idle in between.
+func (self *ViewBufferManager) readHoldingATask(totalLines int, then func()) {
 	task := self.newGocuiTask()
 	answered := func() {
 		task.Done()
@@ -222,7 +234,7 @@ func (self *ViewBufferManager) ReadToEnd(then func()) {
 		}
 	}
 
-	request := LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: answered}
+	request := LinesToRead{Total: totalLines, InitialRefreshAfter: -1, Then: answered}
 	if !self.readRequests.enqueue(request) {
 		// With no task reading, everything there is to read has been read.
 		answered()

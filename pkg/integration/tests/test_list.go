@@ -18,6 +18,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_author"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_path"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/main_view"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/patch_building"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/reflog"
@@ -362,6 +363,33 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.SwapInRebaseWithConflictAndEdit,
 	interactive_rebase.SwapWithConflict,
 	interactive_rebase.ViewFilesOfTodoEntries,
+	main_view.ClickSelectsDiffLine,
+	main_view.DragRangeWithAutoscroll,
+	main_view.DragSelectsDiffLineRange,
+	main_view.EditSelectedDiffLine,
+	main_view.EscapeDismissesSelection,
+	main_view.FileNavigationScrollsToTheTop,
+	main_view.HideSelectionWhenChangesVanish,
+	main_view.KeepSelectionVisibleWhenDiffShrinks,
+	main_view.NavigateByHunkAndFile,
+	main_view.NoSelectionOverABinaryDiff,
+	main_view.NoSelectionOverACommitLog,
+	main_view.NoSelectionWhenNoChanges,
+	main_view.RangeSelectDiffLines,
+	main_view.SearchCollapsesTheSelection,
+	main_view.SearchFollowsTheSelection,
+	main_view.SelectBelowALongCommitMessage,
+	main_view.SelectBelowALongDiffstat,
+	main_view.SelectDiffLines,
+	main_view.SelectHunkBelowLastChange,
+	main_view.SelectHunkInDiff,
+	main_view.SelectHunkOnFocusingMainView,
+	main_view.SelectInADiffReadInPart,
+	main_view.SelectLineWhenWholeFileIsOneHunk,
+	main_view.SelectVisibleChangeOnFocusingMainView,
+	main_view.SelectVisibleHunkOnFocusingMainView,
+	main_view.SelectionCommandsOnlyWhereTheyApply,
+	main_view.SelectionOverTheCustomPatch,
 	misc.ConfirmOnQuit,
 	misc.CopyConfirmationMessageToClipboard,
 	misc.CopyToClipboard,

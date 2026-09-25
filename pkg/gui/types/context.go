@@ -78,6 +78,7 @@ type IBaseContext interface {
 	// true if the context holds something for a selection to sit on. Contexts that
 	// don't show a selection at all say false, and so do lists with nothing in them.
 	HasSelectableContent() bool
+	SetHasSelectableContent(bool)
 
 	// the total height of the content that the view is currently showing
 	TotalContentHeight() int
@@ -102,9 +103,6 @@ type IBaseContext interface {
 	// that the generic ListController can be specialized by view-specific controllers.
 	// We'll need to think of a better way to do this.
 	AddOnDoubleClickFn(func() error)
-	// Likewise for the focused main view: we need this to communicate between a
-	// side panel controller and the focused main view controller.
-	AddOnClickFocusedMainViewFn(func(mainViewName string, clickedLineIdx int) error)
 	// Adding on to the above, this is so that a list-specific handler can register
 	// a hook for doing additional click handling
 	AddOnClickFn(func(opts gocui.ViewMouseBindingOpts) error)
@@ -178,6 +176,48 @@ type DiffableContext interface {
 	// we need to pass the first commit of the range. This is used by
 	// DiffHelper.AdjustLineNumber.
 	RefForAdjustingLineNumberInDiff() string
+}
+
+// DiffMainViewContext is implemented by the side panel contexts whose focused
+// main view shows a unified diff — files, local commits, sub-commits, reflog,
+// stash, and commit files — as opposed to a commit log or other non-diff content
+// (branches, tags, status, …). It is distinct from DiffableContext, which is
+// about producing a diff between two refs for the diff menu. The focused main
+// view shows a selection only for a context that implements this: a selection is
+// only meaningful where there are diff lines to act on (edit one, copy some, jump
+// by hunk or file). The returned type additionally classifies what acting on that
+// selection means.
+type DiffMainViewContext interface {
+	Context
+
+	GetDiffMainViewType() DiffMainViewType
+}
+
+// DiffMainViewType classifies what the focused main view's diff belongs to, which
+// decides what acting on a selection in it means.
+type DiffMainViewType int
+
+const (
+	// DiffMainViewTypeNone: the main view holds no diff, so there is nothing to
+	// select. A side panel that doesn't implement DiffMainViewContext counts as
+	// this; no panel returns it itself.
+	DiffMainViewTypeNone DiffMainViewType = iota
+	// DiffMainViewTypeStaging: the diff is the working tree's, so the selection can
+	// be staged or unstaged (the files panel).
+	DiffMainViewTypeStaging
+	// DiffMainViewTypePatchBuilding: the diff belongs to a commit, so the selection
+	// can be taken into a custom patch (the commit files / commits / sub-commits /
+	// reflog / stash panels).
+	DiffMainViewTypePatchBuilding
+)
+
+// DiffPaneContext is one of the two panes the main section can show, as the thing
+// that holds a diff with a selection in it. The panels that act on such a selection
+// are handed the pane it was made in, and speak to it through this.
+type DiffPaneContext interface {
+	Context
+
+	DiffSelectState() *DiffSelectState
 }
 
 type IListContext interface {
@@ -275,10 +315,6 @@ type HasKeybindings interface {
 	// HandleFocus has already been called (so the main view is up to date). Should return nil if it
 	// decides not to do anything with the click.
 	GetOnClick() func(opts gocui.ViewMouseBindingOpts) error
-
-	// Implement this in a side-panel controller to get called when there's a click in the main view
-	// that belongs to your panel while the main view is already focused.
-	GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error
 }
 
 type IController interface {
@@ -339,6 +375,8 @@ type IContextMgr interface {
 	CurrentSide() Context
 	CurrentPopup() []Context
 	NextInStack(context Context) Context
+	IsInStack(context Context) bool
+	UpdateSelectionHighlights()
 	IsCurrent(c Context) bool
 	IsCurrentOrParent(c Context) bool
 	ForEach(func(Context))
