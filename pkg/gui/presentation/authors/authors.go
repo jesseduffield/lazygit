@@ -106,6 +106,8 @@ func trueColorStyle(str string) style.TextStyle {
 	return style.New().SetFg(style.NewRGBColor(color.RGB(uint8(c.R*255), uint8(c.G*255), uint8(c.B*255))))
 }
 
+// To check the colors at the edges of the ranges below, run
+// `go run ./cmd/author_colors_repo <path>` and open the repository it creates.
 func colorAtPosition(hue, saturation, lightness float64) colorful.Color {
 	return colorful.Hsl(hue*360.0, 0.6+0.4*saturation, 0.4+lightness*0.2)
 }
