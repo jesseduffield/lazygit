@@ -719,6 +719,16 @@
           "description": "Format used when displaying time if the time is less than 24 hours ago.\nUses Go's time format syntax: https://pkg.go.dev/time#Time.Format",
           "default": "3:04PM"
         },
+        "colorScheme": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "dark",
+            "light"
+          ],
+          "description": "Whether the terminal has a dark or a light background. The colors of authors are picked to stand out against it.\nOne of: 'auto' (default) | 'dark' | 'light'\nWith 'auto', lazygit asks the terminal, and assumes a dark background if the terminal doesn't tell.",
+          "default": "auto"
+        },
         "theme": {
           "$ref": "#/$defs/ThemeConfig",
           "description": "Config relating to colors and styles.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes"

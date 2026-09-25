@@ -945,6 +945,9 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	gui.c.Log.Infof("Terminal color scheme: %s", g.DetectedColorScheme())
 	g.SetColorSchemeChangeHandler(func(colorScheme gocui.DetectedColorScheme) error {
 		gui.c.Log.Infof("Terminal color scheme changed: %s", colorScheme)
+		gui.applyTerminalBackground()
+		gui.c.Contexts().LocalCommits.HandleRender()
+		gui.c.Contexts().SubCommits.HandleRender()
 		return nil
 	})
 
@@ -1259,6 +1262,27 @@ func (gui *Gui) setColorScheme() {
 	gui.g.SelFgColor = theme.ActiveBorderColor
 	gui.g.FrameColor = theme.InactiveBorderColor
 	gui.g.SelFrameColor = theme.ActiveBorderColor
+
+	gui.applyTerminalBackground()
+}
+
+// applyTerminalBackground tells the colors that depend on the terminal's
+// background whether it is light.
+func (gui *Gui) applyTerminalBackground() {
+	authors.SetLightBackground(gui.terminalHasLightBackground())
+}
+
+// terminalHasLightBackground goes by gui.colorScheme, or by what the terminal
+// tells us if that is 'auto'.
+func (gui *Gui) terminalHasLightBackground() bool {
+	switch gui.UserConfig().Gui.ColorScheme {
+	case "dark":
+		return false
+	case "light":
+		return true
+	default:
+		return gui.g.DetectedColorScheme().ColorScheme == gocui.ColorSchemeLight
+	}
 }
 
 func (gui *Gui) onUIThread(f func() error) {

@@ -27,6 +27,10 @@ var (
 	// The styles derived from the names of the other authors
 	authorStyleCache = make(map[string]*style.TextStyle)
 
+	// Whether the terminal has a light background, for the derived styles to
+	// stand out against
+	lightBackground bool
+
 	colorsVersion int
 )
 
@@ -114,13 +118,19 @@ func colorAtPosition(hue, saturation, lightness float64) colorful.Color {
 	// HSL spreads them instead. At one and the same lightness, it gives a
 	// glaring yellow and a blue that all but disappears.
 	//
-	// The lightness range keeps every author above a contrast ratio of 4.5:1
-	// against common dark backgrounds, such as #1e1e1e.
+	// There is one lightness range for a dark background and one for a light
+	// background. Each keeps every author above a contrast ratio of 4.5:1
+	// against common backgrounds of its kind, such as #1e1e1e and #fdf6e3.
 	//
 	// Saturation in HSLuv is a fraction of the most colorful a hue can get at
 	// that lightness, and pale colors are hard to tell apart, so keep it near
 	// the top of its range.
-	return colorful.HSLuv(hue*360.0, 0.8+0.2*saturation, 0.57+0.15*lightness)
+	minLightness := 0.57
+	if lightBackground {
+		minLightness = 0.31
+	}
+
+	return colorful.HSLuv(hue*360.0, 0.8+0.2*saturation, minLightness+0.15*lightness)
 }
 
 // ColorPosition says where an author's color lies within the range of hues,
@@ -163,6 +173,18 @@ func getInitials(authorName string) string {
 
 func SetCustomAuthors(customAuthorColors map[string]string) {
 	customAuthorStyles = utils.SetCustomColors(customAuthorColors)
+	colorsChanged()
+}
+
+// SetLightBackground says whether the terminal has a light background, for the
+// colors of authors to stand out against.
+func SetLightBackground(light bool) {
+	if light == lightBackground {
+		return
+	}
+
+	lightBackground = light
+	authorStyleCache = make(map[string]*style.TextStyle)
 	colorsChanged()
 }
 
