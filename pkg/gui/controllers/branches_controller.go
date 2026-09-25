@@ -209,7 +209,7 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 				rendererTask := types.NewRunDiffRendererTask(cmdObj.GetCmd())
 				task = rendererTask
 
-				pr, ok := self.c.Model().PullRequestsMap[branch.Name]
+				pr, ok := self.c.Helpers().Host.PullRequestForBranch(branch.Name)
 				if ok && presentation.ShouldShowPrForBranch(pr, branch.Name, self.c.UserConfig()) {
 					rendererTask.Prefix = presentation.FormatPullRequestHeader(pr, self.c.Tr)
 					rendererTask.Prefix += strings.Repeat("─", self.c.Contexts().Normal.GetView().InnerWidth()) + "\n"
@@ -463,7 +463,7 @@ func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *mode
 
 func (self *BranchesController) getPullRequestURL() (string, error) {
 	branch := self.context().GetSelected()
-	if pr, ok := self.c.Model().PullRequestsMap[branch.Name]; ok {
+	if pr, ok := self.c.Helpers().Host.PullRequestForBranch(branch.Name); ok {
 		return pr.Url, nil
 	}
 
@@ -887,15 +887,11 @@ func (self *BranchesController) branchIsReal(branch *models.Branch) *types.Disab
 }
 
 func (self *BranchesController) branchHasPR(branch *models.Branch) *types.DisabledReason {
-	if _, ok := self.c.Model().PullRequestsMap[branch.Name]; !ok {
-		return &types.DisabledReason{Text: self.c.Tr.NoPullRequestForBranch, ShowErrorInPanel: true}
-	}
-
-	return nil
+	return self.c.Helpers().Host.NoPullRequestDisabledReason(branch.Name)
 }
 
 func (self *BranchesController) openPRInBrowser(branch *models.Branch) error {
-	pr, ok := self.c.Model().PullRequestsMap[branch.Name]
+	pr, ok := self.c.Helpers().Host.PullRequestForBranch(branch.Name)
 	if !ok {
 		// Should be guarded against by the DisabledReason check, but be defensive in case
 		// PullRequestsMap was updated concurrently by a background refresh

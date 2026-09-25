@@ -95,6 +95,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <right>, l `` | 다음 hunk를 선택 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
+| `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | Exit back to side panel |  |
 | `` c `` | 커밋 변경내용 | 스테이징된 변경 사항 커밋. |
 | `` w `` | Commit changes without pre-commit hook |  |
@@ -188,6 +189,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <right>, l `` | 다음 hunk를 선택 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
+| `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | Exit back to side panel |  |
 | `` c `` | 커밋 변경내용 | 스테이징된 변경 사항 커밋. |
 | `` w `` | Commit changes without pre-commit hook |  |
