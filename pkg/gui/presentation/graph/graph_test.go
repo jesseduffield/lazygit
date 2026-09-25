@@ -209,7 +209,6 @@ func TestRenderCommitGraph(t *testing.T) {
 			name:         "merge whose line to its second parent starts where a child's line ends, a82c0d01 selected",
 			commitOpts:   historyWithSharedCell,
 			selectedHash: "a82c0d01",
-			/* EXPECTED:
 			expectedOutput: `
 			2fce98ea ◎─╮
 			ea0f2e05 │ ○
@@ -225,28 +224,11 @@ func TestRenderCommitGraph(t *testing.T) {
 			7a0f4754 │ ○
 			5fcbdadc ○─╯
 			01ce5b08 ○`,
-			ACTUAL: */
-			expectedOutput: `
-			2fce98ea ◎─╮
-			ea0f2e05 │ ○
-			057f088d │ ○
-			057f22a6 │ ○
-			f2fa175e │ ○
-			e27fe383 ◎─│─╮
-			239f0925 │ │ ○
-			79e7921d │ │ ○
-			ffd78db7 │ │ ○
-			605d0386 │ │ ○
-			a82c0d01 ◎─╮ ╯
-			7a0f4754 │ ○
-			5fcbdadc ○ ╯
-			01ce5b08 ○`,
 		},
 		{
 			name:         "merge whose line to its second parent starts where a child's line ends, f2fa175e selected",
 			commitOpts:   historyWithSharedCell,
 			selectedHash: "f2fa175e",
-			/* EXPECTED:
 			expectedOutput: `
 			2fce98ea ◎─╮
 			ea0f2e05 │ ○
@@ -259,22 +241,6 @@ func TestRenderCommitGraph(t *testing.T) {
 			ffd78db7 │ │ ○
 			605d0386 │ │ ○
 			a82c0d01 ◎─╯─╯
-			7a0f4754 │ ○
-			5fcbdadc ○─╯
-			01ce5b08 ○`,
-			ACTUAL: */
-			expectedOutput: `
-			2fce98ea ◎─╮
-			ea0f2e05 │ ○
-			057f088d │ ○
-			057f22a6 │ ○
-			f2fa175e │ ○
-			e27fe383 ◎─│ ╮
-			239f0925 │ │ ○
-			79e7921d │ │ ○
-			ffd78db7 │ │ ○
-			605d0386 │ │ ○
-			a82c0d01 ◎─╯ ╯
 			7a0f4754 │ ○
 			5fcbdadc ○─╯
 			01ce5b08 ○`,
@@ -470,15 +436,9 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 3, toPos: 0, fromHash: pool("e1"), toHash: pool("selected"), kind: TERMINATES, style: &green},
 				{fromPos: 0, toPos: 2, fromHash: pool("selected"), toHash: pool("c3"), kind: STARTS, style: &yellow},
 			},
-			/* EXPECTED:
 			expectedStr: "◎───╮─╯",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, highlightStyle, highlightStyle, highlightStyle, highlightStyle, green, green,
-			},
-			ACTUAL: */
-			expectedStr: "◎───╮ ╯",
-			expectedStyles: []style.TextStyle{
-				highlightStyle, highlightStyle, highlightStyle, highlightStyle, highlightStyle, nothing, green,
 			},
 			prevCommit: models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
 		},
