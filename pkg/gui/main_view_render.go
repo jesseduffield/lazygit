@@ -35,6 +35,16 @@ type renderSpec struct {
 // user has configured. The renderer lays its rendering out to the width of the
 // view, which only the layout settles, so the task is created after it.
 func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
+	// Ask whatever renders the diff to state, in an OSC 1717 record per line,
+	// which line of which file it is rendering. This lets us act on the line the
+	// user is pointing at even when the rendering no longer looks like a diff.
+	// The variable names the protocol versions we understand, and a renderer
+	// that doesn't understand it ignores it, so we can set it always. It has to
+	// be set before the plain path below, since on that path git renders the
+	// diff itself, and git speaks the protocol too, for its word-diff formats,
+	// whose markup we could not otherwise resolve.
+	cmd.Env = append(cmd.Env, "OSC1717=V1")
+
 	if gui.stateAccessor.GetDiffRendererConfigManager().GetDiffRendererType() == config.DiffRendererType_RawGit {
 		// If we're not using a custom diff renderer, then we don't need to use a pty
 		return gui.newCmdTask(view, cmd, prefix)
