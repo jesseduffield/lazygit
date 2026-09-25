@@ -10,6 +10,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -619,4 +622,28 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestGraphColorsFollowTheAuthorColors(t *testing.T) {
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelMillions)
+	defer color.ForceSetColorLevel(oldColorLevel)
+	t.Cleanup(func() { authors.SetCustomAuthors(nil) })
+
+	hashPool := &utils.StringPool{}
+	commits := []*models.Commit{
+		models.NewCommit(hashPool, models.NewCommitOpts{Hash: "authorcolors1", AuthorName: "Jane Doe", Parents: []string{"authorcolors2"}}),
+		models.NewCommit(hashPool, models.NewCommitOpts{Hash: "authorcolors2", AuthorName: "Jane Doe"}),
+	}
+	renderGraph := func() string {
+		return strings.Join(graph.RenderAux(loadPipesets(commits), commits, nil), "\n")
+	}
+
+	authors.SetCustomAuthors(map[string]string{"Jane Doe": "red"})
+	assert.Contains(t, renderGraph(), style.FgRed.Sprint("○"))
+
+	authors.SetCustomAuthors(map[string]string{"Jane Doe": "blue"})
+	/* EXPECTED:
+	assert.Contains(t, renderGraph(), style.FgBlue.Sprint("○"))
+	ACTUAL: */
+	assert.Contains(t, renderGraph(), style.FgRed.Sprint("○"))
 }
