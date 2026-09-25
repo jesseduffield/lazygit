@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -387,8 +388,7 @@ func (self *BasicCommitsController) checkout(commit *models.Commit) error {
 			return &types.MenuItem{
 				LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutBranchAtCommit, branch.Name)},
 				OnPress: func() error {
-					self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
-					return self.c.Helpers().Refs.CheckoutRef(branch.RefName(), types.CheckoutRefOptions{})
+					return self.c.Helpers().BranchesHelper.CheckoutBranch(branch, context.LOCAL_COMMITS_CONTEXT_KEY)
 				},
 				Keys: keys,
 			}
