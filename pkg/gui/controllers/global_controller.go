@@ -3,7 +3,6 @@ package controllers
 import (
 	"strconv"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -185,13 +184,7 @@ func (self *GlobalController) cycleDiffRenderersBackward() error {
 // onDiffRenderersChanged re-renders the main view so the newly selected diff renderer
 // takes effect, and shows a toast naming it.
 func (self *GlobalController) onDiffRenderersChanged() {
-	currentSide := self.c.Context().CurrentSide()
-	currentKey := self.c.Context().Current().GetKey()
-	if currentSide.GetKey() == currentKey ||
-		currentKey == context.NORMAL_MAIN_CONTEXT_KEY ||
-		currentKey == context.NORMAL_SECONDARY_CONTEXT_KEY {
-		currentSide.HandleRenderToMain()
-	}
+	self.c.Helpers().Diff.RenderToMainAgain()
 
 	diffRendererConfigManager := self.c.State().GetDiffRendererConfigManager()
 	current, total := diffRendererConfigManager.CurrentDiffRendererIndex()
