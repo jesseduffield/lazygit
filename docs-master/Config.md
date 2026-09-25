@@ -669,6 +669,7 @@ keybinding:
       - "4"
       - "5"
     focusMainView: "0"
+    jumpToFile: <ctrl+g>
     nextMatch: "n"
     prevMatch: "N"
     startSearch: /

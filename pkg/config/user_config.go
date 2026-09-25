@@ -499,6 +499,7 @@ type KeybindingUniversalConfig struct {
 	PrevBlockAlt2     Keybinding   `yaml:"prevBlock-alt2"`
 	JumpToBlock       []Keybinding `yaml:"jumpToBlock"`
 	FocusMainView     Keybinding   `yaml:"focusMainView"`
+	JumpToFile        Keybinding   `yaml:"jumpToFile"`
 	NextMatch         Keybinding   `yaml:"nextMatch"`
 	PrevMatch         Keybinding   `yaml:"prevMatch"`
 	StartSearch       Keybinding   `yaml:"startSearch"`
@@ -1025,6 +1026,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				NextBlockAlt2:                     Keybinding{"<tab>"},
 				JumpToBlock:                       []Keybinding{{"1"}, {"2"}, {"3"}, {"4"}, {"5"}},
 				FocusMainView:                     Keybinding{"0"},
+				JumpToFile:                        Keybinding{"<ctrl+g>"},
 				NextMatch:                         Keybinding{"n"},
 				PrevMatch:                         Keybinding{"N"},
 				StartSearch:                       Keybinding{"/"},

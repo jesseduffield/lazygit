@@ -24,6 +24,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` _ `` | 上一屏模式 |  |
 | `` \| `` | Cycle diff renderers | Choose the next renderer in the list of configured diff renderers. |
 | `` \ `` | Cycle diff renderers (reverse) | Choose the previous renderer in the list of configured diff renderers. |
+| `` <ctrl+g> `` | Jump to file in diff | Pick one of the files of the diff shown in the main view, and scroll the main view to it. The focus stays in this panel. |
 | `` <esc> `` | 取消 |  |
 | `` ? `` | 打开菜单 |  |
 | `` <ctrl+s> `` | 查看按路径过滤选项 | 查看用于过滤提交日志的选项，以便仅显示与过滤器匹配的提交。 |
@@ -281,6 +282,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <right>, l `` | 选择下一个区块 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
+| `` <ctrl+g> `` | Jump to file |  |
 | `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | 退出回到侧边面板 |  |
 | `` c `` | 提交变更 | 提交暂存文件 |
@@ -323,6 +325,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <right>, l `` | 选择下一个区块 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
+| `` <ctrl+g> `` | Jump to file |  |
 | `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | 退出回到侧边面板 |  |
 | `` c `` | 提交变更 | 提交暂存文件 |
