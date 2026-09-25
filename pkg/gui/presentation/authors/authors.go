@@ -101,10 +101,21 @@ func AuthorStyle(authorName string) *style.TextStyle {
 }
 
 func trueColorStyle(str string) style.TextStyle {
-	hash := md5.Sum([]byte(str))
-	c := colorful.Hsl(randFloat(hash[0:4])*360.0, 0.6+0.4*randFloat(hash[4:8]), 0.4+randFloat(hash[8:12])*0.2)
+	c := colorAtPosition(ColorPosition(str))
 
 	return style.New().SetFg(style.NewRGBColor(color.RGB(uint8(c.R*255), uint8(c.G*255), uint8(c.B*255))))
+}
+
+func colorAtPosition(hue, saturation, lightness float64) colorful.Color {
+	return colorful.Hsl(hue*360.0, 0.6+0.4*saturation, 0.4+lightness*0.2)
+}
+
+// ColorPosition says where an author's color lies within the range of hues,
+// saturations and lightnesses that colorAtPosition picks from. Each is a
+// fraction from 0 up to 1, derived from a hash of the author's name.
+func ColorPosition(authorName string) (hue, saturation, lightness float64) {
+	hash := md5.Sum([]byte(authorName))
+	return randFloat(hash[0:4]), randFloat(hash[4:8]), randFloat(hash[8:12])
 }
 
 func randFloat(hash []byte) float64 {
