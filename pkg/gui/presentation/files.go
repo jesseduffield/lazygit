@@ -183,21 +183,44 @@ func getFileLine(
 
 func formatFileStatus(file *models.File, restColor style.TextStyle) string {
 	firstChar := file.ShortStatus[0:1]
-	firstCharCl := style.FgGreen
-	switch firstChar {
-	case "?":
-		firstCharCl = theme.UnstagedChangesColor
-	case " ":
+	firstCharCl := colorForStatusChar(firstChar, true)
+	if firstCharCl == (style.TextStyle{}) {
 		firstCharCl = restColor
 	}
 
 	secondChar := file.ShortStatus[1:2]
-	secondCharCl := theme.UnstagedChangesColor
-	if secondChar == " " {
+	secondCharCl := colorForStatusChar(secondChar, false)
+	if secondCharCl == (style.TextStyle{}) {
 		secondCharCl = restColor
 	}
 
 	return firstCharCl.Sprint(firstChar) + secondCharCl.Sprint(secondChar)
+}
+
+// colorForStatusChar returns the color for a single status character from git short status.
+// isStagedColumn indicates whether this is the first (index/staged) or second (worktree) column.
+func colorForStatusChar(ch string, isStagedColumn bool) style.TextStyle {
+	switch ch {
+	case "M":
+		return theme.ModifiedColor
+	case "D":
+		return theme.DeletedColor
+	case "?":
+		return theme.UntrackedColor
+	case "A":
+		return theme.AddedColor
+	case "R":
+		return theme.RenamedColor
+	case "C":
+		return theme.CopiedColor
+	case "T":
+		return theme.ModifiedColor
+	case " ":
+		// space means no change in this column — use rest/name color (caller handles this)
+		return style.TextStyle{}
+	default:
+		return theme.UnstagedChangesColor
+	}
 }
 
 func formatLineChanges(linesAdded, linesDeleted int) string {
@@ -285,15 +308,17 @@ func getCommitFileLine(
 func getColorForChangeStatus(changeStatus string) style.TextStyle {
 	switch changeStatus {
 	case "A":
-		return style.FgGreen
-	case "M", "R":
-		return style.FgYellow
+		return theme.AddedColor
+	case "M":
+		return theme.ModifiedColor
+	case "R":
+		return theme.RenamedColor
 	case "D":
-		return theme.UnstagedChangesColor
+		return theme.DeletedColor
 	case "C":
-		return style.FgCyan
+		return theme.CopiedColor
 	case "T":
-		return style.FgMagenta
+		return theme.ModifiedColor
 	default:
 		return theme.DefaultTextColor
 	}
