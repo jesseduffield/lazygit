@@ -13,14 +13,15 @@ type BaseContext struct {
 	windowName      string
 	onGetOptionsMap func() map[string]string
 
-	keybindingsFns      []types.KeybindingsFn
-	mouseKeybindingsFns []types.MouseKeybindingsFn
-	onDoubleClickFn     func() error
-	onClickFn           func(opts gocui.ViewMouseBindingOpts) error
-	onRenderToMainFn    func()
-	onFocusFns          []onFocusFn
-	onFocusLostFns      []onFocusLostFn
-	onQuitFns           []func()
+	keybindingsFns            []types.KeybindingsFn
+	mouseKeybindingsFns       []types.MouseKeybindingsFn
+	onDoubleClickFn           func() error
+	onClickFn                 func(opts gocui.ViewMouseBindingOpts) error
+	focusedMainViewDiffSource types.FocusedMainViewDiffSource
+	onRenderToMainFn          func()
+	onFocusFns                []onFocusFn
+	onFocusLostFns            []onFocusLostFn
+	onQuitFns                 []func()
 
 	focusable                   bool
 	transient                   bool
@@ -159,6 +160,7 @@ func (self *BaseContext) ClearAllAttachedControllerFunctions() {
 	self.onQuitFns = nil
 	self.onDoubleClickFn = nil
 	self.onClickFn = nil
+	self.focusedMainViewDiffSource = nil
 	self.onRenderToMainFn = nil
 }
 
@@ -180,12 +182,25 @@ func (self *BaseContext) AddOnClickFn(fn func(opts gocui.ViewMouseBindingOpts) e
 	}
 }
 
+func (self *BaseContext) AddFocusedMainViewDiffSource(source types.FocusedMainViewDiffSource) {
+	if source != nil {
+		if self.focusedMainViewDiffSource != nil {
+			panic("only one controller is allowed to set the focused main view diff source")
+		}
+		self.focusedMainViewDiffSource = source
+	}
+}
+
 func (self *BaseContext) GetOnDoubleClick() func() error {
 	return self.onDoubleClickFn
 }
 
 func (self *BaseContext) GetOnClick() func(opts gocui.ViewMouseBindingOpts) error {
 	return self.onClickFn
+}
+
+func (self *BaseContext) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {
+	return self.focusedMainViewDiffSource
 }
 
 func (self *BaseContext) AddOnRenderToMainFn(fn func()) {

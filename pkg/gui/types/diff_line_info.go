@@ -40,3 +40,11 @@ type DiffLineInfo struct {
 func (self DiffLineInfo) IsChange() bool {
 	return self.Type == DiffLineAdded || self.Type == DiffLineDeleted
 }
+
+// IsContent reports whether the row is a line of the file itself — a change or a
+// context line — as opposed to a header or a marker. Those are the rows that have a
+// position in the file, and so can be looked for in another rendering of the same
+// diff, or in the diff itself.
+func (self DiffLineInfo) IsContent() bool {
+	return self.IsChange() || self.Type == DiffLineContext
+}
