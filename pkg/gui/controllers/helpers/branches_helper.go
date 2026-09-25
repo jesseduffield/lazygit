@@ -16,12 +16,14 @@ import (
 type BranchesHelper struct {
 	c              *HelperCommon
 	worktreeHelper *WorktreeHelper
+	refsHelper     *RefsHelper
 }
 
-func NewBranchesHelper(c *HelperCommon, worktreeHelper *WorktreeHelper) *BranchesHelper {
+func NewBranchesHelper(c *HelperCommon, worktreeHelper *WorktreeHelper, refsHelper *RefsHelper) *BranchesHelper {
 	return &BranchesHelper{
 		c:              c,
 		worktreeHelper: worktreeHelper,
+		refsHelper:     refsHelper,
 	}
 }
 
@@ -172,6 +174,15 @@ func (self *BranchesHelper) ConfirmLocalAndRemoteDelete(branches []*models.Branc
 
 func ShortBranchName(fullBranchName string) string {
 	return strings.TrimPrefix(strings.TrimPrefix(fullBranchName, "refs/heads/"), "refs/remotes/")
+}
+
+func (self *BranchesHelper) CheckoutBranch(branch *models.Branch, contextKeyAfterWorktreeSwitch types.ContextKey) error {
+	if worktree, ok := self.worktreeForBranch(branch); ok && !worktree.IsCurrent {
+		return self.worktreeHelper.PromptToSwitchToWorktree(worktree, contextKeyAfterWorktreeSwitch)
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
+	return self.refsHelper.CheckoutRef(branch.Name, types.CheckoutRefOptions{})
 }
 
 func (self *BranchesHelper) checkedOutByOtherWorktree(branch *models.Branch) bool {
