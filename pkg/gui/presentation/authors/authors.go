@@ -109,7 +109,18 @@ func trueColorStyle(str string) style.TextStyle {
 // To check the colors at the edges of the ranges below, run
 // `go run ./cmd/author_colors_repo <path>` and open the repository it creates.
 func colorAtPosition(hue, saturation, lightness float64) colorful.Color {
-	return colorful.Hsl(hue*360.0, 0.6+0.4*saturation, 0.4+lightness*0.2)
+	// The lightness of an HSLuv color is how bright it looks, so every author
+	// comes out about equally readable whichever hue their name lands on. Plain
+	// HSL spreads them instead. At one and the same lightness, it gives a
+	// glaring yellow and a blue that all but disappears.
+	//
+	// The lightness range keeps every author above a contrast ratio of 4.5:1
+	// against common dark backgrounds, such as #1e1e1e.
+	//
+	// Saturation in HSLuv is a fraction of the most colorful a hue can get at
+	// that lightness, and pale colors are hard to tell apart, so keep it near
+	// the top of its range.
+	return colorful.HSLuv(hue*360.0, 0.8+0.2*saturation, 0.57+0.15*lightness)
 }
 
 // ColorPosition says where an author's color lies within the range of hues,
