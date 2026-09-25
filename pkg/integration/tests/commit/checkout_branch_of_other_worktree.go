@@ -30,31 +30,19 @@ var CheckoutBranchOfOtherWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 
 		t.ExpectPopup().
-			/* EXPECTED:
 			Confirmation().
 			Title(Equals("Switch to worktree")).
 			Content(Equals("This branch is checked out by worktree linked-worktree. Do you want to switch to that worktree?")).
-			ACTUAL: */
-			Alert().
-			Title(Equals("Error")).
-			Content(Contains("already")).
 			Confirm()
 
 		t.Views().
-			/* EXPECTED:
 			Commits().
-			ACTUAL: */
-			Branches().
 			IsFocused()
 
 		t.Views().Branches().
 			Lines(
-				/* EXPECTED:
 				Contains("linked"),
 				Contains("master (worktree repo)"),
-				ACTUAL: */
-				Contains("master"),
-				Contains("linked (worktree linked-worktree)"),
 			)
 	},
 })
