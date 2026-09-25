@@ -68,6 +68,7 @@ func TestGetStdinFilterCommand(t *testing.T) {
 		name               string
 		diffRendererConfig DiffRendererConfig
 		width              int
+		lightBackground    bool
 		expected           string
 		expectedError      string
 	}{
@@ -94,6 +95,26 @@ func TestGetStdinFilterCommand(t *testing.T) {
 			diffRendererConfig: DiffRendererConfig{Command: "delta --width={{.width}}"},
 			width:              120,
 			expected:           "delta --width=120",
+		},
+		{
+			name:               "the color scheme on a dark background",
+			diffRendererConfig: DiffRendererConfig{Command: "delta --{{colorScheme}}"},
+			width:              120,
+			expected:           "delta --dark",
+		},
+		{
+			name:               "the color scheme on a light background",
+			diffRendererConfig: DiffRendererConfig{Command: "delta --{{colorScheme}}"},
+			width:              120,
+			lightBackground:    true,
+			expected:           "delta --light",
+		},
+		{
+			name:               "the command can choose between options by the color scheme",
+			diffRendererConfig: DiffRendererConfig{Command: `delta --syntax-theme={{if eq .colorScheme "light"}}GitHub{{else}}Dracula{{end}}`},
+			width:              120,
+			lightBackground:    true,
+			expected:           "delta --syntax-theme=GitHub",
 		},
 		{
 			name:               "the command can use template expressions",
@@ -127,7 +148,7 @@ func TestGetStdinFilterCommand(t *testing.T) {
 			userConfig.Git.DiffRenderers = []DiffRendererConfig{s.diffRendererConfig}
 			config := NewDiffRendererConfigManager(func() *UserConfig { return userConfig })
 
-			command, err := config.GetStdinFilterCommand(DiffRendererValues{Width: s.width})
+			command, err := config.GetStdinFilterCommand(DiffRendererValues{Width: s.width, LightBackground: s.lightBackground})
 			if s.expectedError != "" {
 				assert.ErrorContains(t, err, s.expectedError)
 			} else {
@@ -154,6 +175,11 @@ func TestGetExternalDiffCommand(t *testing.T) {
 			name:               "the width the diff is rendered at",
 			diffRendererConfig: DiffRendererConfig{Type: "extDiff", Command: "difft --width={{width}}"},
 			expected:           "difft --width=120",
+		},
+		{
+			name:               "the color scheme",
+			diffRendererConfig: DiffRendererConfig{Type: "extDiff", Command: "difft --background={{colorScheme}}"},
+			expected:           "difft --background=dark",
 		},
 		{
 			name:               "the width alongside the diff context size",

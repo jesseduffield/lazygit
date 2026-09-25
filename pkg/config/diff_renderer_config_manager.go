@@ -67,6 +67,8 @@ type DiffRendererValues struct {
 	Width int
 	// The number of lines of context around each hunk
 	DiffContext uint64
+	// Whether the terminal has a light background
+	LightBackground bool
 }
 
 func (self *DiffRendererConfigManager) GetStdinFilterCommand(values DiffRendererValues) (string, error) {
@@ -104,8 +106,13 @@ func (self *DiffRendererConfigManager) GetExternalDiffCommand(values DiffRendere
 // the values it can refer to as its variables. A variable can be written with
 // or without the leading dot, as in {{.width}} or {{width}}.
 func (self *DiffRendererConfig) resolveCommand(values DiffRendererValues) (string, error) {
+	colorScheme := "dark"
+	if values.LightBackground {
+		colorScheme = "light"
+	}
 	variables := map[string]any{
-		"width": values.Width,
+		"width":       values.Width,
+		"colorScheme": colorScheme,
 	}
 	switch self.getType() {
 	case DiffRendererType_StdinFilter:

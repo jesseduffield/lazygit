@@ -30,6 +30,7 @@ Fields only for `rawGit`:
 The `command` of a `stdinFilter` or `extDiff` renderer is a [Go template](https://pkg.go.dev/text/template) with these variables:
 
 - `{{width}}`: the width of the view that the diff is rendered into.
+- `{{colorScheme}}`: `dark` or `light`, depending on whether the terminal has a dark or a light background. Lazygit asks the terminal about this; if yours doesn't tell, set `gui.colorScheme`.
 - `{{columnWidth}}` (only for `stdinFilter`): the width of one side of a side-by-side rendering, e.g. for `ydiff -p cat -s -w {{columnWidth}}`.
 - `{{diffContext}}` (only for `extDiff`): lazygit's current diff context size, the value controlled by the `{`/`}` keybindings.
 
@@ -40,11 +41,11 @@ Here's an example for a multi-renderer setup:
 ```yaml
 git:
   diffRenderers:
-    - command: delta --dark --paging=never
+    - command: delta --{{colorScheme}} --paging=never
     - command: ydiff -p cat
       colorArg: never
     - type: extDiff
-      command: difft --color=always --context={{diffContext}}
+      command: difft --color=always --background={{colorScheme}} --context={{diffContext}}
     - type: rawGit
       args: [--color-words]
       name: color-words
@@ -57,12 +58,14 @@ git:
 ```yaml
 git:
   diffRenderers:
-    - command: delta --dark --paging=never
+    - command: delta --{{colorScheme}} --paging=never
 ```
 
 ![](https://i.imgur.com/QJpQkF3.png)
 
-A cool feature of delta is --hyperlinks, which renders clickable links for the line numbers in the left margin, and lazygit supports these. To use them, set the `command:` field to `delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"`; this allows you to click on an underlined line number in the diff to jump right to that same line in your editor.
+`--{{colorScheme}}` passes `--dark` or `--light` to delta, so that it matches the background of your terminal.
+
+A cool feature of delta is --hyperlinks, which renders clickable links for the line numbers in the left margin, and lazygit supports these. To use them, set the `command:` field to `delta --{{colorScheme}} --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"`; this allows you to click on an underlined line number in the diff to jump right to that same line in your editor.
 
 Note that delta's `--navigate` option doesn't work in lazygit, for technical reasons.
 
