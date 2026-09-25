@@ -108,7 +108,7 @@ func TestGetStdinFilterCommand(t *testing.T) {
 			userConfig.Git.DiffRenderers = []DiffRendererConfig{s.diffRendererConfig}
 			config := NewDiffRendererConfigManager(func() *UserConfig { return userConfig })
 
-			assert.Equal(t, s.expected, config.GetStdinFilterCommand(s.width))
+			assert.Equal(t, s.expected, config.GetStdinFilterCommand(DiffRendererValues{Width: s.width}))
 		})
 	}
 }
@@ -147,7 +147,7 @@ func TestGetExternalDiffCommand(t *testing.T) {
 			userConfig.Git.DiffRenderers = []DiffRendererConfig{s.diffRendererConfig}
 			config := NewDiffRendererConfigManager(func() *UserConfig { return userConfig })
 
-			assert.Equal(t, s.expected, config.GetExternalDiffCommand(3, 120))
+			assert.Equal(t, s.expected, config.GetExternalDiffCommand(DiffRendererValues{Width: 120, DiffContext: 3}))
 		})
 	}
 }

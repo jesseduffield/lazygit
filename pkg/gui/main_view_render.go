@@ -56,8 +56,9 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 		// width to render at known, and with it the renderer command.
 		width := view.InnerWidth()
 		diffRendererConfigManager := gui.stateAccessor.GetDiffRendererConfigManager()
-		stdinFilter := diffRendererConfigManager.GetStdinFilterCommand(width)
-		externalDiff := diffRendererConfigManager.GetExternalDiffCommand(gui.c.UserConfig().Git.DiffContextSize, width)
+		values := config.DiffRendererValues{Width: width, DiffContext: gui.c.UserConfig().Git.DiffContextSize}
+		stdinFilter := diffRendererConfigManager.GetStdinFilterCommand(values)
+		externalDiff := diffRendererConfigManager.GetExternalDiffCommand(values)
 
 		cmdStr := strings.Join(cmd.Args, " ")
 

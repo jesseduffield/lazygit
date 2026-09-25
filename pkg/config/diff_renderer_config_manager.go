@@ -60,19 +60,21 @@ func (self *DiffRendererConfigManager) GetDiffRendererType() DiffRendererType {
 	return currentDiffRendererConfig.getType()
 }
 
-func (self *DiffRendererConfigManager) GetStdinFilterCommand(width int) string {
+// DiffRendererValues are what the command of a diff renderer can refer to.
+type DiffRendererValues struct {
+	// The width of the view that the diff is rendered into
+	Width int
+	// The number of lines of context around each hunk
+	DiffContext uint64
+}
+
+func (self *DiffRendererConfigManager) GetStdinFilterCommand(values DiffRendererValues) string {
 	currentDiffRendererConfig := self.currentDiffRendererConfig()
 	if currentDiffRendererConfig == nil || currentDiffRendererConfig.getType() != DiffRendererType_StdinFilter {
 		return ""
 	}
 
-	templateValues := map[string]string{
-		"width":       strconv.Itoa(width),
-		"columnWidth": strconv.Itoa(width/2 - 6),
-	}
-
-	commandTemplate := string(currentDiffRendererConfig.Command)
-	return utils.ResolvePlaceholderString(commandTemplate, templateValues)
+	return currentDiffRendererConfig.resolveCommand(values)
 }
 
 func (self *DiffRendererConfigManager) GetColorArg() string {
@@ -88,18 +90,30 @@ func (self *DiffRendererConfigManager) GetColorArg() string {
 	return colorArg
 }
 
-func (self *DiffRendererConfigManager) GetExternalDiffCommand(diffContext uint64, width int) string {
+func (self *DiffRendererConfigManager) GetExternalDiffCommand(values DiffRendererValues) string {
 	currentDiffRendererConfig := self.currentDiffRendererConfig()
 	if currentDiffRendererConfig == nil || currentDiffRendererConfig.getType() != DiffRendererType_ExtDiff {
 		return ""
 	}
 
-	templateValues := map[string]string{
-		"diffContext": strconv.Itoa(int(diffContext)),
-		"width":       strconv.Itoa(width),
+	return currentDiffRendererConfig.resolveCommand(values)
+}
+
+// resolveCommand fills in the values that the renderer's command refers to.
+func (self *DiffRendererConfig) resolveCommand(values DiffRendererValues) string {
+	placeholders := map[string]string{
+		"width": strconv.Itoa(values.Width),
+	}
+	switch self.getType() {
+	case DiffRendererType_StdinFilter:
+		placeholders["columnWidth"] = strconv.Itoa(values.Width/2 - 6)
+	case DiffRendererType_ExtDiff:
+		placeholders["diffContext"] = strconv.Itoa(int(values.DiffContext))
+	case DiffRendererType_RawGit:
+		// has no command
 	}
 
-	return utils.ResolvePlaceholderString(string(currentDiffRendererConfig.Command), templateValues)
+	return utils.ResolvePlaceholderString(string(self.Command), placeholders)
 }
 
 func (self *DiffRendererConfigManager) GetRawGitArgs() []string {
