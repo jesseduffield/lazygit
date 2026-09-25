@@ -1222,9 +1222,11 @@ func (self *FilesController) edit(nodes []*filetree.FileNode) error {
 		}
 	}
 
-	err := self.c.Helpers().Files.EditFiles(files)
-	if err != nil {
-		return err
+	if len(files) != 0 {
+		err := self.c.Helpers().Files.EditFiles(files)
+		if err != nil {
+			return err
+		}
 	}
 
 	for _, dir := range dirs {
