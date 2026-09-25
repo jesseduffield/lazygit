@@ -942,6 +942,12 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	g.ErrorHandler = gui.PopupHandler.ErrorHandler
 
+	gui.c.Log.Infof("Terminal color scheme: %s", g.DetectedColorScheme())
+	g.SetColorSchemeChangeHandler(func(colorScheme gocui.DetectedColorScheme) error {
+		gui.c.Log.Infof("Terminal color scheme changed: %s", colorScheme)
+		return nil
+	})
+
 	gui.g.ShouldHandleMouseEvent = func(view *gocui.View, key gocui.KeyName) bool {
 		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != view.Name() &&
 			!gocui.IsMouseScrollKey(key) {
