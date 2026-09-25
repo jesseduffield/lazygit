@@ -324,10 +324,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 3, toPos: 0, fromHash: pool("e1"), toHash: pool("a2"), kind: TERMINATES, style: &green},
 				{fromPos: 0, toPos: 2, fromHash: pool("a2"), toHash: pool("c3"), kind: STARTS, style: &yellow},
 			},
-			/* EXPECTED:
 			expectedStr: "◎─│─╮─╯",
-			ACTUAL: */
-			expectedStr: "◎─│─┬─╯",
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, magenta, yellow, yellow, green, green,
@@ -356,10 +353,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 1, toPos: 0, fromHash: pool("b1"), toHash: pool("a2"), kind: TERMINATES, style: &magenta},
 				{fromPos: 2, toPos: 0, fromHash: pool("c1"), toHash: pool("a2"), kind: TERMINATES, style: &green},
 			},
-			/* EXPECTED:
 			expectedStr: "○─╯─╯",
-			ACTUAL: */
-			expectedStr: "○─┴─╯",
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
 			expectedStyles: []style.TextStyle{
 				yellow, magenta, magenta, green, green,
@@ -389,10 +383,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 2, toPos: 2, fromHash: pool("c1"), toHash: pool("c3"), kind: CONTINUES, style: &green},
 				{fromPos: 3, toPos: 0, fromHash: pool("d1"), toHash: pool("a2"), kind: TERMINATES, style: &magenta},
 			},
-			/* EXPECTED:
 			expectedStr: "◎─╮─│─╯",
-			ACTUAL: */
-			expectedStr: "◎─┬─│─╯",
 			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
 			expectedStyles: []style.TextStyle{
 				yellow, yellow, yellow, magenta, green, magenta, magenta,

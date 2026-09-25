@@ -298,6 +298,14 @@ func renderPipeSet(
 		return &Cell{cellType: CONNECTION, style: &style.FgDefault}
 	})
 
+	// columns in which a child's line ends, apart from the commit's own
+	endingColumns := make([]bool, len(cells))
+	for _, pipe := range pipes {
+		if pipe.kind == TERMINATES && pipe.fromPos != commitPos {
+			endingColumns[pipe.fromPos] = true
+		}
+	}
+
 	renderPipe := func(pipe *Pipe, style *style.TextStyle, overrideRightStyle bool) {
 		left := pipe.left()
 		right := pipe.right()
@@ -360,6 +368,8 @@ func renderPipeSet(
 		}
 	}
 
+	separateUnrelatedLines(cells, pipes, commitPos, endingColumns)
+
 	cType := COMMIT
 	if isMerge {
 		cType = MERGE
@@ -374,6 +384,38 @@ func renderPipeSet(
 		cell.render(writer)
 	}
 	return writer.String()
+}
+
+// Lines that end or start next to each other in the commit row would join in
+// a junction (┴ or ┬), which reads as if they belonged together. That's only
+// true for lines of the same kind and colour, so between any others the one
+// closer to the commit loses its stroke toward the other, and the horizontal
+// line runs behind it through the connector. Lines passing the row don't count
+// as neighbours.
+//
+// Only the right side needs this: the commit takes the column of the leftmost
+// line leading to it, so no child's line ends to its left.
+func separateUnrelatedLines(cells []*Cell, pipes []Pipe, commitPos int16, ending []bool) {
+	// the style of the line that ends or starts in each column
+	lineStyles := make([]*style.TextStyle, len(cells))
+	for _, pipe := range pipes {
+		if pipe.kind == TERMINATES && pipe.fromPos > commitPos {
+			lineStyles[pipe.fromPos] = pipe.style
+		} else if pipe.kind == STARTS && pipe.toPos > commitPos && !ending[pipe.toPos] {
+			lineStyles[pipe.toPos] = pipe.style
+		}
+	}
+
+	closer := int16(-1)
+	for i := commitPos + 1; i < int16(len(cells)); i++ {
+		if lineStyles[i] == nil {
+			continue
+		}
+		if closer >= 0 && (ending[closer] != ending[i] || lineStyles[closer] != lineStyles[i]) {
+			cells[closer].right = false
+		}
+		closer = i
+	}
 }
 
 func equalHashes(a, b *string) bool {
