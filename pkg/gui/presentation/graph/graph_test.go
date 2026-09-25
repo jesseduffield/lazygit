@@ -158,25 +158,16 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Hash: "4", Parents: []string{"6", "7"}},
 				{Hash: "6", Parents: []string{"8"}},
 			},
-			/* EXPECTED:
 			expectedOutput: `
 			1 ◎─╮
 			3 │ ○
 			2 ◎─╯
 			4 ◎─│─╮
 			6 ○ │ │`,
-			ACTUAL: */
-			expectedOutput: `
-			1 ◎─╮
-			3 │ ○
-			2 ◎─│
-			4 ◎─│─╮
-			6 ○ │ │`,
 		},
 		{
 			name:       "merge whose line to its second parent starts where a child's line ends",
 			commitOpts: historyWithSharedCell,
-			/* EXPECTED:
 			expectedOutput: `
 			2fce98ea ◎─╮
 			ea0f2e05 │ ○
@@ -189,22 +180,6 @@ func TestRenderCommitGraph(t *testing.T) {
 			ffd78db7 │ │ ○
 			605d0386 │ │ ○
 			a82c0d01 ◎─┴─╯
-			7a0f4754 │ ○
-			5fcbdadc ○─╯
-			01ce5b08 ○`,
-			ACTUAL: */
-			expectedOutput: `
-			2fce98ea ◎─╮
-			ea0f2e05 │ ○
-			057f088d │ ○
-			057f22a6 │ ○
-			f2fa175e │ ○
-			e27fe383 ◎─│─╮
-			239f0925 │ │ ○
-			79e7921d │ │ ○
-			ffd78db7 │ │ ○
-			605d0386 │ │ ○
-			a82c0d01 ◎─│─╯
 			7a0f4754 │ ○
 			5fcbdadc ○─╯
 			01ce5b08 ○`,
@@ -370,15 +345,9 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromHash: pool("b"), toHash: pool("d"), kind: STARTS, style: &green},
 				{fromPos: 0, toPos: 1, fromHash: pool("b"), toHash: pool("e"), kind: STARTS, style: &green},
 			},
-			/* EXPECTED:
 			expectedStr: "◎─╯",
 			expectedStyles: []style.TextStyle{
 				green, magenta, magenta,
-			},
-			ACTUAL: */
-			expectedStr: "◎─│",
-			expectedStyles: []style.TextStyle{
-				green, green, magenta,
 			},
 			prevCommit: models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
 		},
