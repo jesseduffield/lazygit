@@ -102,12 +102,13 @@ func cachedSprint(style style.TextStyle, str string) string {
 	return style.Sprint(str)
 }
 
+// reset keeps the connector: in the last cell a highlighted line spans, it
+// leads out of that line, and the line redraws it in every other cell.
 func (cell *Cell) reset() {
 	cell.up = false
 	cell.down = false
 	cell.left = false
 	cell.right = false
-	cell.connector = false
 }
 
 func (cell *Cell) setUp(style *style.TextStyle) *Cell {
