@@ -345,7 +345,10 @@ func renderPipeSet(
 	})
 
 	for _, pipe := range nonSelectedPipes {
-		if pipe.kind == STARTS {
+		// a new line that starts in the column of a child's line ending here
+		// would continue that line straight down, so it only appears from the
+		// next row on
+		if pipe.kind == STARTS && !endingColumns[pipe.toPos] {
 			renderPipe(&pipe, pipe.style, true)
 		}
 	}
