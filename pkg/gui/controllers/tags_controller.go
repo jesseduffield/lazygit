@@ -167,7 +167,7 @@ func (self *TagsController) checkout(tag *models.Tag) error {
 func (self *TagsController) localDelete(tag *models.Tag) error {
 	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.DeleteLocalTag)
-		err := self.c.Git().Tag.LocalDelete(tag.Name)
+		err := self.c.Git().Tag.LocalDelete([]string{tag.Name})
 		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 		return err
 	})
@@ -206,7 +206,7 @@ func (self *TagsController) remoteDelete(tag *models.Tag) error {
 				HandleConfirm: func() error {
 					return self.c.WithInlineStatus(tag, types.ItemOperationDeleting, context.TAGS_CONTEXT_KEY, func(task gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.DeleteRemoteTag)
-						if err := self.c.Git().Remote.DeleteRemoteTag(task, upstream, tag.Name); err != nil {
+						if err := self.c.Git().Remote.DeleteRemoteTag(task, upstream, []string{tag.Name}); err != nil {
 							return err
 						}
 						self.c.Toast(self.c.Tr.RemoteTagDeletedMessage)
@@ -256,12 +256,12 @@ func (self *TagsController) localAndRemoteDelete(tag *models.Tag) error {
 				HandleConfirm: func() error {
 					return self.c.WithInlineStatus(tag, types.ItemOperationDeleting, context.TAGS_CONTEXT_KEY, func(task gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.DeleteRemoteTag)
-						if err := self.c.Git().Remote.DeleteRemoteTag(task, upstream, tag.Name); err != nil {
+						if err := self.c.Git().Remote.DeleteRemoteTag(task, upstream, []string{tag.Name}); err != nil {
 							return err
 						}
 
 						self.c.LogAction(self.c.Tr.Actions.DeleteLocalTag)
-						if err := self.c.Git().Tag.LocalDelete(tag.Name); err != nil {
+						if err := self.c.Git().Tag.LocalDelete([]string{tag.Name}); err != nil {
 							return err
 						}
 						self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})

@@ -46,8 +46,8 @@ func (self *TagCommands) HasTag(tagName string) bool {
 	return self.cmd.New(cmdArgs).DontLog().Run() == nil
 }
 
-func (self *TagCommands) LocalDelete(tagName string) error {
-	cmdArgs := NewGitCmd("tag").Arg("-d", tagName).
+func (self *TagCommands) LocalDelete(tagNames []string) error {
+	cmdArgs := NewGitCmd("tag").Arg("-d").Arg(tagNames...).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
