@@ -538,7 +538,7 @@ func displayCommit(
 func getBisectStatusColor(status BisectStatus) style.TextStyle {
 	switch status {
 	case BisectStatusNone:
-		return style.FgBlack
+		return theme.DefaultTextColor.SetDim()
 	case BisectStatusNew:
 		return style.FgRed
 	case BisectStatusOld:
