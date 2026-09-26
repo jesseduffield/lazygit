@@ -3,6 +3,13 @@
   "$id": "https://github.com/jesseduffield/lazygit/pkg/config/user-config",
   "$ref": "#/$defs/UserConfig",
   "$defs": {
+    "ColorPatterns": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object",
+      "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
+    },
     "CommitConfig": {
       "properties": {
         "signOff": {
@@ -538,10 +545,7 @@
           "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color"
         },
         "branchColorPatterns": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "type": "object",
+          "$ref": "#/$defs/ColorPatterns",
           "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
         },
         "customIcons": {

@@ -1069,6 +1069,8 @@ gui:
 
 Note that the regular expressions are not implicitly anchored to the beginning/end of the branch name. If you want to do that, add leading `^` and/or trailing `$` as needed.
 
+If several patterns match a branch, the first one wins.
+
 ## Custom Files Icon & Color
 
 You can customize the icon and color of files based on filenames or extensions:
