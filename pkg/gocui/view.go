@@ -138,6 +138,12 @@ type View struct {
 	// focus.
 	InactiveViewSelBgColor Attribute
 
+	// SelTextColor is applied to the text of the selected line when it is
+	// highlighted, whether the view has the focus or not. Its attributes are
+	// added to those of the text, and if it has a color, that replaces the
+	// color of the text.
+	SelTextColor Attribute
+
 	// If Editable is true, keystrokes will be added to the view's internal
 	// buffer at the cursor position.
 	Editable bool
@@ -631,7 +637,7 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 
 	v.FgColor, v.BgColor = ColorDefault, ColorDefault
 	v.SelFgColor, v.SelBgColor = ColorDefault, ColorDefault
-	v.InactiveViewSelBgColor = ColorDefault
+	v.InactiveViewSelBgColor, v.SelTextColor = ColorDefault, ColorDefault
 	v.TitleColor, v.FrameColor = ColorDefault, ColorDefault
 	v.buf.ei.screenColMax = v.InnerWidth()
 	return v
@@ -722,7 +728,7 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute, isW
 		}
 
 		if y >= rangeSelectStart && y <= rangeSelectEnd {
-			fgColor = fgColor | AttrBold
+			fgColor = applySelTextColor(fgColor, v.SelTextColor)
 			if v.HighlightInactive || !isWindowFocused {
 				bgColor = (bgColor & AttrStyleBits) | v.InactiveViewSelBgColor
 			} else {
@@ -1836,6 +1842,15 @@ func (v *View) Word(x, y int) (string, bool) {
 // and 0.
 func indexFunc(r rune) bool {
 	return r == ' ' || r == 0
+}
+
+// applySelTextColor adds the attributes of selTextColor to fgColor, and
+// replaces the color of fgColor with that of selTextColor if it has one.
+func applySelTextColor(fgColor, selTextColor Attribute) Attribute {
+	if selTextColor&AttrColorBits != ColorDefault {
+		fgColor = fgColor&AttrStyleBits | selTextColor&AttrColorBits
+	}
+	return fgColor | selTextColor&AttrStyleBits
 }
 
 // SetHighlight toggles highlighting of separate lines, for custom lists

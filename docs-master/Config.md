@@ -192,6 +192,13 @@ gui:
     optionsTextColor:
       - blue
 
+    # Color and attributes of the text of the selected line. The attributes are
+    # added to those of the text, and a color replaces the colors of the text.
+    # Set it to 'default' to leave the text as it is, e.g. if you don't want the
+    # selected line in bold.
+    selectedLineFgColor:
+      - bold
+
     # Background color of selected line.
     # Default: 'blue' if the terminal has a dark background, or a suitable RGB blue
     # computed from the background color if it is light.
@@ -1041,6 +1048,15 @@ gui:
   theme:
     selectedLineBgColor:
       - reverse
+```
+
+The text of the selected line is bold by default. If you don't want that, set `selectedLineFgColor` to `default`:
+
+```yaml
+gui:
+  theme:
+    selectedLineFgColor:
+      - default
 ```
 
 ## Themes for dark and light backgrounds
