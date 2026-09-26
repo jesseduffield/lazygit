@@ -786,10 +786,7 @@
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
-              "description": "Background color of selected line when view doesn't have focus.",
-              "default": [
-                "bold"
-              ]
+              "description": "Background color of selected line when view doesn't have focus.\nDefault: a suitable RGB grey computed from the terminal's background color."
             },
             "cherryPickedCommitFgColor": {
               "items": {
@@ -929,7 +926,7 @@
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
-              "description": "Background color of selected line when view doesn't have focus."
+              "description": "Background color of selected line when view doesn't have focus.\nDefault: a suitable RGB grey computed from the terminal's background color."
             },
             "cherryPickedCommitFgColor": {
               "items": {
@@ -1051,7 +1048,7 @@
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
-              "description": "Background color of selected line when view doesn't have focus."
+              "description": "Background color of selected line when view doesn't have focus.\nDefault: a suitable RGB grey computed from the terminal's background color."
             },
             "cherryPickedCommitFgColor": {
               "items": {

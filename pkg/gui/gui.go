@@ -1252,7 +1252,7 @@ func (gui *Gui) showBreakingChangesMessage() {
 // applyTheme sets the colors of the app from the theme in the user config,
 // with the overrides for the terminal's background applied
 func (gui *Gui) applyTheme() {
-	themeConfig := gui.UserConfig().Gui.ThemeForBackground(gui.terminalHasLightBackground())
+	themeConfig := gui.UserConfig().Gui.ThemeForBackground(gui.terminalHasLightBackground(), gui.terminalBackgroundColor())
 	theme.UpdateTheme(themeConfig)
 	authors.SetCustomAuthors(themeConfig.AuthorColors)
 	presentation.SetCustomBranches(themeConfig.BranchColorPatterns)
@@ -1282,6 +1282,17 @@ func (gui *Gui) terminalHasLightBackground() bool {
 	default:
 		return gui.g.DetectedColorScheme().ColorScheme == gocui.ColorSchemeLight
 	}
+}
+
+// terminalBackgroundColor returns the background color that the terminal told
+// us, as #rrggbb. It returns "" if the terminal didn't tell us, or if
+// gui.colorScheme disagrees with it about whether the background is light.
+func (gui *Gui) terminalBackgroundColor() string {
+	detected := gui.g.DetectedColorScheme()
+	if (detected.ColorScheme == gocui.ColorSchemeLight) != gui.terminalHasLightBackground() {
+		return ""
+	}
+	return detected.Background
 }
 
 func (gui *Gui) onUIThread(f func() error) {

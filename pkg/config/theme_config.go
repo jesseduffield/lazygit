@@ -3,17 +3,61 @@ package config
 import (
 	"fmt"
 	"maps"
+	"math"
 	"reflect"
 	"slices"
+	"strconv"
 
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
 // ThemeForBackground returns gui.theme with the overrides for a dark or a light
-// background applied.
-func (c *GuiConfig) ThemeForBackground(lightBackground bool) ThemeConfig {
+// background applied, and with the defaults for that background in the fields
+// that neither of them sets. backgroundColor is the terminal's background color
+// as #rrggbb, or empty if we don't know it.
+func (c *GuiConfig) ThemeForBackground(lightBackground bool, backgroundColor string) ThemeConfig {
 	override := lo.Ternary(lightBackground, c.LightTheme, c.DarkTheme)
-	return mergeThemes(override, c.Theme)
+	return mergeThemes(override, c.Theme, themeDefaults(lightBackground, backgroundColor))
+}
+
+// themeDefaults returns the defaults of the theme fields whose default depends
+// on the terminal's background. GetDefaultConfig leaves these fields empty in
+// gui.theme, so that a value there comes from the user, and wins over these.
+//
+// They are derived from the background color, so that they keep the same
+// distance from it however dark or light it is. If we don't know the
+// background color, we assume black or white.
+func themeDefaults(lightBackground bool, backgroundColor string) ThemeConfig {
+	if len(backgroundColor) != 7 || !utils.IsValidHexValue(backgroundColor) {
+		backgroundColor = lo.Ternary(lightBackground, "#ffffff", "#000000")
+	}
+
+	if lightBackground {
+		return ThemeConfig{
+			InactiveViewSelectedLineBgColor: []string{mixHexColors(backgroundColor, "#000000", 0.15)},
+		}
+	}
+
+	return ThemeConfig{
+		InactiveViewSelectedLineBgColor: []string{mixHexColors(backgroundColor, "#ffffff", 0.3)},
+	}
+}
+
+// mixHexColors mixes two colors given as #rrggbb. amount is how much of b to
+// take: 0 gives a, 1 gives b.
+func mixHexColors(a, b string, amount float64) string {
+	channel := func(color string, i int) float64 {
+		value, _ := strconv.ParseUint(color[1+2*i:3+2*i], 16, 8)
+		return float64(value)
+	}
+
+	result := "#"
+	for i := range 3 {
+		mixed := channel(a, i) + (channel(b, i)-channel(a, i))*amount
+		result += fmt.Sprintf("%02x", int(math.Round(mixed)))
+	}
+	return result
 }
 
 // mergeThemes takes each field from the first of the themes that sets it. For
