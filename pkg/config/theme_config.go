@@ -25,8 +25,8 @@ func (c *GuiConfig) ThemeForBackground(lightBackground bool, backgroundColor str
 // on the terminal's background. GetDefaultConfig leaves these fields empty in
 // gui.theme, so that a value there comes from the user, and wins over these.
 //
-// They are derived from the background color, so that they keep the same
-// distance from it however dark or light it is. If we don't know the
+// Most of them are derived from the background color, so that they keep the
+// same distance from it however dark or light it is. If we don't know the
 // background color, we assume black or white.
 func themeDefaults(lightBackground bool, backgroundColor string) ThemeConfig {
 	if len(backgroundColor) != 7 || !utils.IsValidHexValue(backgroundColor) {
@@ -35,11 +35,20 @@ func themeDefaults(lightBackground bool, backgroundColor string) ThemeConfig {
 
 	if lightBackground {
 		return ThemeConfig{
+			// The colors of a light palette are dark enough to read as text on
+			// the background, so none of them works as a background for text.
+			// Some blue mixed into the background keeps the colored text on the
+			// selected line as readable as elsewhere.
+			SelectedLineBgColor:             []string{mixHexColors(backgroundColor, "#0064ff", 0.25)},
 			InactiveViewSelectedLineBgColor: []string{mixHexColors(backgroundColor, "#000000", 0.15)},
 		}
 	}
 
 	return ThemeConfig{
+		// Dark palettes make their blue dark enough to work as a background for
+		// text. Unlike a color derived from a dark background, it doesn't turn
+		// into black on terminals with only 8 colors.
+		SelectedLineBgColor:             []string{"blue"},
 		InactiveViewSelectedLineBgColor: []string{mixHexColors(backgroundColor, "#ffffff", 0.3)},
 	}
 }

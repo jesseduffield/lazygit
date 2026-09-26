@@ -774,10 +774,7 @@
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
-              "description": "Background color of selected line.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line",
-              "default": [
-                "blue"
-              ]
+              "description": "Background color of selected line.\nDefault: 'blue' if the terminal has a dark background, or a suitable RGB blue computed from the background color if it is light.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line"
             },
             "inactiveViewSelectedLineBgColor": {
               "items": {
@@ -917,7 +914,7 @@
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
-              "description": "Background color of selected line.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line"
+              "description": "Background color of selected line.\nDefault: 'blue' if the terminal has a dark background, or a suitable RGB blue computed from the background color if it is light.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line"
             },
             "inactiveViewSelectedLineBgColor": {
               "items": {
@@ -1039,7 +1036,7 @@
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
-              "description": "Background color of selected line.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line"
+              "description": "Background color of selected line.\nDefault: 'blue' if the terminal has a dark background, or a suitable RGB blue computed from the background color if it is light.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line"
             },
             "inactiveViewSelectedLineBgColor": {
               "items": {

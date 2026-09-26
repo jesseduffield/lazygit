@@ -193,9 +193,10 @@ gui:
       - blue
 
     # Background color of selected line.
+    # Default: 'blue' if the terminal has a dark background, or a suitable RGB blue
+    # computed from the background color if it is light.
     # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
-    selectedLineBgColor:
-      - blue
+    selectedLineBgColor: []
 
     # Background color of selected line when view doesn't have focus.
     # Default: a suitable RGB grey computed from the terminal's background color.
