@@ -163,8 +163,9 @@ gui:
   # Uses Go's time format syntax: https://pkg.go.dev/time#Time.Format
   shortTimeFormat: 3:04PM
 
-  # Whether the terminal has a dark or a light background. The colors of authors
-  # are picked to stand out against it.
+  # Whether the terminal has a dark or a light background. This decides whether
+  # 'darkTheme' or 'lightTheme' applies, and the colors of authors are picked to
+  # stand out against it.
   # One of: 'auto' (default) | 'dark' | 'light'
   # With 'auto', lazygit asks the terminal, and assumes a dark background if the
   # terminal doesn't tell.
@@ -229,6 +230,16 @@ gui:
 
     # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
     branchColorPatterns: {}
+
+  # Colors and styles that override those in 'theme' when the terminal has a dark
+  # background. It has the same fields as 'theme'.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#themes-for-dark-and-light-backgrounds
+  darkTheme: {}
+
+  # Colors and styles that override those in 'theme' when the terminal has a light
+  # background. It has the same fields as 'theme'.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#themes-for-dark-and-light-backgrounds
+  lightTheme: {}
 
   # Config relating to the commit length indicator
   commitLength:
@@ -1029,6 +1040,26 @@ gui:
     selectedLineBgColor:
       - reverse
 ```
+
+## Themes for dark and light backgrounds
+
+The colors in `gui.theme` apply whether your terminal has a dark or a light background. If you want different colors for the two, set them in `gui.darkTheme` or `gui.lightTheme`. These have the same fields as `gui.theme`, and a field that you set in them overrides the one in `gui.theme`:
+
+```yaml
+gui:
+  theme:
+    activeBorderColor:
+      - green
+      - bold
+  lightTheme:
+    activeBorderColor:
+      - blue
+      - bold
+```
+
+For `authorColors` and `branchColorPatterns`, each entry overrides the one with the same key in `gui.theme`, and the other entries of `gui.theme` still apply. Branch color patterns of `gui.darkTheme` or `gui.lightTheme` come before those of `gui.theme`.
+
+Lazygit asks the terminal whether its background is dark or light. If your terminal doesn't tell, lazygit assumes a dark background; set `gui.colorScheme` to `light` if yours is light.
 
 ## Custom Author Color
 
