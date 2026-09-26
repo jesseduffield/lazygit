@@ -335,7 +335,7 @@ func (self *TagsController) push(tag *models.Tag) error {
 		HandleConfirm: func(response string) error {
 			return self.c.WithInlineStatus(tag, types.ItemOperationPushing, context.TAGS_CONTEXT_KEY, func(task gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.PushTag)
-				return self.c.Git().Tag.Push(task, response, tag.Name)
+				return self.c.Git().Tag.Push(task, response, []string{tag.Name})
 			})
 		},
 	})

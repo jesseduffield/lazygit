@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/samber/lo"
 )
 
 type TagCommands struct {
@@ -53,8 +54,9 @@ func (self *TagCommands) LocalDelete(tagNames []string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *TagCommands) Push(task gocui.Task, remoteName string, tagName string) error {
-	cmdArgs := NewGitCmd("push").Arg(remoteName, "tag", tagName).
+func (self *TagCommands) Push(task gocui.Task, remoteName string, tagNames []string) error {
+	cmdArgs := NewGitCmd("push").Arg(remoteName).
+		Arg(lo.FlatMap(tagNames, func(t string, _ int) []string { return []string{"tag", t} })...).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
