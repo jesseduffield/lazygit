@@ -17,6 +17,7 @@ var gocuiColorMap = map[string]gocui.Attribute{
 	"cyan":          gocui.ColorCyan,
 	"white":         gocui.ColorWhite,
 	"bold":          gocui.AttrBold,
+	"dim":           gocui.AttrDim,
 	"reverse":       gocui.AttrReverse,
 	"underline":     gocui.AttrUnderline,
 	"strikethrough": gocui.AttrStrikeThrough,

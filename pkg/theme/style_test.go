@@ -40,6 +40,12 @@ func TestGetTextStyle(t *testing.T) {
 			expected:   style.New().SetFg(style.NewRGBColor(color.RGBColor{0x12, 0x34, 0x56, 0})),
 		},
 		{
+			name:       "dim",
+			keys:       []string{"dim"},
+			background: false,
+			expected:   style.New().SetDim(),
+		},
+		{
 			name:       "hex color, bg",
 			keys:       []string{"#abcdef"},
 			background: true,

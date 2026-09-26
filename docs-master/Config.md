@@ -1017,6 +1017,7 @@ The available attributes are:
 
 - bold
 - default
+- dim # faint text; not supported by every terminal
 - reverse # useful for high-contrast
 - underline
 - strikethrough

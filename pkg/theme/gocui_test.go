@@ -28,6 +28,11 @@ func TestGetGocuiStyle(t *testing.T) {
 			keys:     []string{"red", "strikethrough"},
 			expected: gocui.ColorRed | gocui.AttrStrikeThrough,
 		},
+		{
+			name:     "dim",
+			keys:     []string{"default", "dim"},
+			expected: gocui.ColorDefault | gocui.AttrDim,
+		},
 	}
 
 	for _, scenario := range scenarios {
