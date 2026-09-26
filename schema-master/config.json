@@ -537,17 +537,6 @@
     },
     "GuiConfig": {
       "properties": {
-        "authorColors": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "type": "object",
-          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color"
-        },
-        "branchColorPatterns": {
-          "$ref": "#/$defs/ColorPatterns",
-          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
-        },
         "customIcons": {
           "$ref": "#/$defs/CustomIconsConfig",
           "description": "Custom icons for filenames and file extensions\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color"
@@ -3807,6 +3796,17 @@
           "default": [
             "default"
           ]
+        },
+        "authorColors": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color"
+        },
+        "branchColorPatterns": {
+          "$ref": "#/$defs/ColorPatterns",
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
         }
       },
       "additionalProperties": false,

@@ -517,7 +517,6 @@ func (gui *Gui) onUserConfigLoaded() error {
 	// sake of backwards compatibility. We're making use of short circuiting here
 	gui.ShowExtrasWindow = userConfig.Gui.ShowCommandLog && !gui.c.GetAppState().HideCommandLog
 
-	authors.SetCustomAuthors(userConfig.Gui.AuthorColors)
 	if userConfig.Gui.NerdFontsVersion != "" {
 		icons.SetNerdFontsVersion(userConfig.Gui.NerdFontsVersion)
 	} else if userConfig.Gui.ShowIcons {
@@ -525,8 +524,6 @@ func (gui *Gui) onUserConfigLoaded() error {
 	} else {
 		icons.SetNerdFontsVersion("")
 	}
-
-	presentation.SetCustomBranches(userConfig.Gui.BranchColorPatterns)
 
 	return nil
 }
@@ -1253,6 +1250,8 @@ func (gui *Gui) showBreakingChangesMessage() {
 func (gui *Gui) setColorScheme() {
 	userConfig := gui.UserConfig()
 	theme.UpdateTheme(userConfig.Gui.Theme)
+	authors.SetCustomAuthors(userConfig.Gui.Theme.AuthorColors)
+	presentation.SetCustomBranches(userConfig.Gui.Theme.BranchColorPatterns)
 
 	gui.g.FgColor = theme.InactiveBorderColor
 	gui.g.SelFgColor = theme.ActiveBorderColor
