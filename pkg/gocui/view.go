@@ -722,11 +722,6 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute, isW
 		}
 
 		if y >= rangeSelectStart && y <= rangeSelectEnd {
-			// this ensures we use the bright variant of a colour upon highlight
-			fgColorComponent := fgColor & ^AttrAll
-			if fgColorComponent >= AttrIsValidColor && fgColorComponent < AttrIsValidColor+8 {
-				fgColor += 8
-			}
 			fgColor = fgColor | AttrBold
 			if v.HighlightInactive || !isWindowFocused {
 				bgColor = (bgColor & AttrStyleBits) | v.InactiveViewSelBgColor
