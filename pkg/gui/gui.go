@@ -526,12 +526,7 @@ func (gui *Gui) onUserConfigLoaded() error {
 		icons.SetNerdFontsVersion("")
 	}
 
-	if len(userConfig.Gui.BranchColorPatterns) > 0 {
-		presentation.SetCustomBranches(userConfig.Gui.BranchColorPatterns, true)
-	} else {
-		// Fall back to the deprecated branchColors config
-		presentation.SetCustomBranches(userConfig.Gui.BranchColors, false)
-	}
+	presentation.SetCustomBranches(userConfig.Gui.BranchColorPatterns)
 
 	return nil
 }

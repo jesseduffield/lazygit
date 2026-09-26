@@ -21,7 +21,6 @@ import (
 
 type colorMatcher struct {
 	patterns map[string]*style.TextStyle
-	isRegex  bool // NOTE: this value is needed only until the deprecated branchColors config is removed and only regex color patterns are used
 }
 
 var colorPatterns *colorMatcher
@@ -201,17 +200,9 @@ func GetBranchTextStyle(name string) style.TextStyle {
 }
 
 func (m *colorMatcher) match(name string) (*style.TextStyle, bool) {
-	if m.isRegex {
-		for pattern, style := range m.patterns {
-			if matched, _ := regexp.MatchString(pattern, name); matched {
-				return style, true
-			}
-		}
-	} else {
-		// old behavior using the deprecated branchColors behavior matching on branch type
-		branchType := strings.Split(name, "/")[0]
-		if value, ok := m.patterns[branchType]; ok {
-			return value, true
+	for pattern, style := range m.patterns {
+		if matched, _ := regexp.MatchString(pattern, name); matched {
+			return style, true
 		}
 	}
 
@@ -271,10 +262,9 @@ func divergenceStr(
 	return result
 }
 
-func SetCustomBranches(customBranchColors map[string]string, isRegex bool) {
+func SetCustomBranches(customBranchColors map[string]string) {
 	colorPatterns = &colorMatcher{
 		patterns: utils.SetCustomColors(customBranchColors),
-		isRegex:  isRegex,
 	}
 }
 
