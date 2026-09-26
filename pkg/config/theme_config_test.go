@@ -91,6 +91,10 @@ func TestBackgroundDefaultsAreDerivedFromTheBackgroundColor(t *testing.T) {
 	gui := GetDefaultConfig().Gui
 	assert.Equal(t, []string{"#626262"}, gui.ThemeForBackground(false, "#1e1e1e").InactiveViewSelectedLineBgColor)
 	assert.Equal(t, []string{"#d7d1c1"}, gui.ThemeForBackground(true, "#fdf6e3").InactiveViewSelectedLineBgColor)
+
+	assert.Equal(t, []string{"blue"}, gui.ThemeForBackground(false, "#1e1e1e").SelectedLineBgColor)
+	assert.Equal(t, []string{"#bed2ea"}, gui.ThemeForBackground(true, "#fdf6e3").SelectedLineBgColor)
+	assert.Equal(t, []string{"#bfd8ff"}, gui.ThemeForBackground(true, "").SelectedLineBgColor)
 }
 
 // If gui.theme had a default for a field that also has a default for the

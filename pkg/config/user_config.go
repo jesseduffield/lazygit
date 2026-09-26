@@ -241,6 +241,7 @@ type ThemeConfig struct {
 	// Color of keybindings help text in the bottom line
 	OptionsTextColor []string `yaml:"optionsTextColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Background color of selected line.
+	// Default: 'blue' if the terminal has a dark background, or a suitable RGB blue computed from the background color if it is light.
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
 	SelectedLineBgColor []string `yaml:"selectedLineBgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Background color of selected line when view doesn't have focus.
@@ -895,7 +896,6 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				SearchingActiveBorderColor: []string{"cyan", "bold"},
 				InactiveBorderColor:        []string{"dim"},
 				OptionsTextColor:           []string{"blue"},
-				SelectedLineBgColor:        []string{"blue"},
 				CherryPickedCommitBgColor:  []string{"cyan"},
 				CherryPickedCommitFgColor:  []string{"blue"},
 				MarkedBaseCommitBgColor:    []string{"yellow"},
