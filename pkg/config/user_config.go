@@ -141,6 +141,10 @@ type GuiConfig struct {
 	// Format used when displaying time if the time is less than 24 hours ago.
 	// Uses Go's time format syntax: https://pkg.go.dev/time#Time.Format
 	ShortTimeFormat string `yaml:"shortTimeFormat"`
+	// Whether the terminal has a dark or a light background. The colors of authors are picked to stand out against it.
+	// One of: 'auto' (default) | 'dark' | 'light'
+	// With 'auto', lazygit asks the terminal, and assumes a dark background if the terminal doesn't tell.
+	ColorScheme string `yaml:"colorScheme" jsonschema:"enum=auto,enum=dark,enum=light"`
 	// Config relating to colors and styles.
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes
 	Theme ThemeConfig `yaml:"theme"`
@@ -881,6 +885,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			Language:                 "auto",
 			TimeFormat:               "02 Jan 06",
 			ShortTimeFormat:          time.Kitchen,
+			ColorScheme:              "auto",
 			Theme: ThemeConfig{
 				ActiveBorderColor:               []string{"green", "bold"},
 				SearchingActiveBorderColor:      []string{"cyan", "bold"},

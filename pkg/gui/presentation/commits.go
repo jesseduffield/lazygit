@@ -30,6 +30,10 @@ type pipeSetCacheKey struct {
 var (
 	pipeSetCache = make(map[pipeSetCacheKey][][]graph.Pipe)
 	mutex        deadlock.Mutex
+
+	// The pipes have the colors of the authors of the commits they start at,
+	// so they are only good for as long as these colors don't change
+	pipeSetCacheAuthorColors = authors.ColorsVersion()
 )
 
 type bisectBounds struct {
@@ -302,6 +306,11 @@ func indexOfFirstNonTODOCommit(commits []*models.Commit) int {
 }
 
 func loadPipesets(commits []*models.Commit) [][]graph.Pipe {
+	if pipeSetCacheAuthorColors != authors.ColorsVersion() {
+		pipeSetCache = make(map[pipeSetCacheKey][][]graph.Pipe)
+		pipeSetCacheAuthorColors = authors.ColorsVersion()
+	}
+
 	// given that our cache key is a commit hash and a commit count, it's very important that we don't actually try to render pipes
 	// when dealing with things like filtered commits.
 	cacheKey := pipeSetCacheKey{

@@ -169,6 +169,13 @@ gui:
   # Uses Go's time format syntax: https://pkg.go.dev/time#Time.Format
   shortTimeFormat: 3:04PM
 
+  # Whether the terminal has a dark or a light background. The colors of authors
+  # are picked to stand out against it.
+  # One of: 'auto' (default) | 'dark' | 'light'
+  # With 'auto', lazygit asks the terminal, and assumes a dark background if the
+  # terminal doesn't tell.
+  colorScheme: auto
+
   # Config relating to colors and styles.
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes
   theme:
@@ -1026,6 +1033,8 @@ gui:
 ## Custom Author Color
 
 Lazygit will assign a random color for every commit author in the commits pane by default.
+
+These colors are picked to be readable against the background of your terminal, and lazygit asks the terminal whether its background is dark or light. If your terminal doesn't tell, lazygit assumes a dark background; set `gui.colorScheme` to `light` if yours is light.
 
 You can customize the color in case you're not happy with the randomly assigned one:
 

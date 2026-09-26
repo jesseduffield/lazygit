@@ -227,6 +227,12 @@ type Gui struct {
 	// readable from anywhere, so it's atomic.
 	focused atomic.Bool
 
+	// colorSchemeTty is nil when running headless. colorScheme and
+	// colorSchemeHandler are only touched on the UI thread.
+	colorSchemeTty     *colorSchemeTty
+	colorScheme        DetectedColorScheme
+	colorSchemeHandler func(DetectedColorScheme) error
+
 	// blockInputCount, when greater than zero, withholds keyboard input from
 	// the handlers: key events are buffered into bufferedKeyEvents and replayed
 	// once the count drops back to zero, while mouse clicks and hover are
@@ -317,6 +323,18 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	// never happened.
 	g.focused.Store(true)
 
+	if g.colorSchemeTty != nil {
+		g.colorScheme = g.colorSchemeTty.subscribe(func(colorScheme DetectedColorScheme) {
+			g.UpdateBackground(func(g *Gui) error {
+				g.colorScheme = colorScheme
+				if g.colorSchemeHandler != nil {
+					return g.colorSchemeHandler(colorScheme)
+				}
+				return nil
+			})
+		})
+	}
+
 	return g, nil
 }
 
@@ -374,6 +392,7 @@ func (g *Gui) WaitUntilIdle() {
 // initialization and when gocui is not needed anymore.
 func (g *Gui) Close() {
 	close(g.stop)
+	g.waitForColorSchemeReplies()
 	Screen.Fini()
 }
 
@@ -706,6 +725,29 @@ func (g *Gui) CancelMouseCapture() {
 
 func (g *Gui) SetFocusHandler(handler func(bool) error) {
 	g.focusHandler = handler
+}
+
+// DetectedColorScheme returns what the terminal has told us about its colors.
+// It is known before the first layout, for the terminals that tell us at all.
+func (g *Gui) DetectedColorScheme() DetectedColorScheme {
+	return g.colorScheme
+}
+
+// SetColorSchemeChangeHandler sets a function to call on the UI thread whenever
+// the terminal's colors change after startup.
+func (g *Gui) SetColorSchemeChangeHandler(handler func(DetectedColorScheme) error) {
+	g.colorSchemeHandler = handler
+}
+
+// Long enough for the round trip of a slow ssh connection
+const colorSchemeReplyTimeout = 500 * time.Millisecond
+
+// waitForColorSchemeReplies is for before we give up the terminal. tcell is
+// still reading the input at that point, so the answers are consumed as usual.
+func (g *Gui) waitForColorSchemeReplies() {
+	if g.colorSchemeTty != nil {
+		g.colorSchemeTty.waitForReplies(colorSchemeReplyTimeout)
+	}
 }
 
 func (g *Gui) SetOpenHyperlinkFunc(openHyperlinkFunc func(string, string) error) {
@@ -2043,6 +2085,10 @@ func (g *Gui) onFocus(ev *GocuiEvent) error {
 	}
 	g.focused.Store(ev.Focused)
 
+	if ev.Focused && g.colorSchemeTty != nil {
+		g.colorSchemeTty.onFocusGained()
+	}
+
 	if g.focusHandler != nil {
 		return g.focusHandler(ev.Focused)
 	}
@@ -2059,6 +2105,8 @@ func (g *Gui) onFocus(ev *GocuiEvent) error {
 // after re-engaging.
 
 func (g *Gui) Suspend() error {
+	g.waitForColorSchemeReplies()
+
 	g.suspendedMutex.Lock()
 	defer g.suspendedMutex.Unlock()
 
