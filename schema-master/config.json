@@ -767,6 +767,18 @@
                 "blue"
               ]
             },
+            "selectedLineFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color and attributes of the text of the selected line. The attributes are added to those of the text, and a color replaces the colors of the text.\nSet it to 'default' to leave the text as it is, e.g. if you don't want the selected line in bold.",
+              "default": [
+                "bold"
+              ]
+            },
             "selectedLineBgColor": {
               "items": {
                 "type": "string"
@@ -907,6 +919,15 @@
               "uniqueItems": true,
               "description": "Color of keybindings help text in the bottom line"
             },
+            "selectedLineFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color and attributes of the text of the selected line. The attributes are added to those of the text, and a color replaces the colors of the text.\nSet it to 'default' to leave the text as it is, e.g. if you don't want the selected line in bold."
+            },
             "selectedLineBgColor": {
               "items": {
                 "type": "string"
@@ -1028,6 +1049,15 @@
               "minItems": 1,
               "uniqueItems": true,
               "description": "Color of keybindings help text in the bottom line"
+            },
+            "selectedLineFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color and attributes of the text of the selected line. The attributes are added to those of the text, and a color replaces the colors of the text.\nSet it to 'default' to leave the text as it is, e.g. if you don't want the selected line in bold."
             },
             "selectedLineBgColor": {
               "items": {

@@ -204,6 +204,7 @@ func (gui *Gui) configureViewProperties() {
 		(*mapping.viewPtr).SelBgColor = theme.GocuiSelectedLineBgColor
 		(*mapping.viewPtr).SelFgColor = gui.g.SelFgColor
 		(*mapping.viewPtr).InactiveViewSelBgColor = theme.GocuiInactiveViewSelectedLineBgColor
+		(*mapping.viewPtr).SelTextColor = theme.GocuiSelectedLineFgColor
 	}
 
 	gui.Views.MenuFilterFrame.FrameRunes = frameRunesWithTopCorners(frameRunes, teeLeft, teeRight)
