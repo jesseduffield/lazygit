@@ -609,13 +609,21 @@ type TranslationSet struct {
 	LightweightTag                        string
 	AnnotatedTag                          string
 	DeleteTagTitle                        string
+	DeleteTagsTitle                       string
 	DeleteLocalTag                        string
+	DeleteLocalTags                       string
 	DeleteRemoteTag                       string
+	DeleteRemoteTags                      string
 	DeleteLocalAndRemoteTag               string
+	DeleteLocalAndRemoteTags              string
 	SelectRemoteTagUpstream               string
+	SelectRemoteTagsUpstream              string
 	DeleteRemoteTagPrompt                 string
+	DeleteRemoteTagsPrompt                string
 	DeleteLocalAndRemoteTagPrompt         string
+	DeleteLocalAndRemoteTagsPrompt        string
 	RemoteTagDeletedMessage               string
+	RemoteTagsDeletedMessage              string
 	PushTagTitle                          string
 	PushTag                               string
 	PushTagTooltip                        string
@@ -1789,13 +1797,21 @@ func EnglishTranslationSet() *TranslationSet {
 		AnnotatedTag:                         "Annotated tag",
 		LightweightTag:                       "Lightweight tag",
 		DeleteTagTitle:                       "Delete tag '{{.tagName}}'?",
+		DeleteTagsTitle:                      "Delete selected tags?",
 		DeleteLocalTag:                       "Delete local tag",
+		DeleteLocalTags:                      "Delete local tags",
 		DeleteRemoteTag:                      "Delete remote tag",
+		DeleteRemoteTags:                     "Delete remote tags",
 		DeleteLocalAndRemoteTag:              "Delete local and remote tag",
+		DeleteLocalAndRemoteTags:             "Delete local and remote tags",
 		RemoteTagDeletedMessage:              "Remote tag deleted",
+		RemoteTagsDeletedMessage:             "Remote tags deleted",
 		SelectRemoteTagUpstream:              "Remote from which to remove tag '{{.tagName}}':",
+		SelectRemoteTagsUpstream:             "Remote from which to remove the selected tags:",
 		DeleteRemoteTagPrompt:                "Are you sure you want to delete the remote tag '{{.tagName}}' from '{{.upstream}}'?",
+		DeleteRemoteTagsPrompt:               "Are you sure you want to delete the selected tags from '{{.upstream}}'?",
 		DeleteLocalAndRemoteTagPrompt:        "Are you sure you want to delete '{{.tagName}}' from both your machine and from '{{.upstream}}'?",
+		DeleteLocalAndRemoteTagsPrompt:       "Are you sure you want to delete the selected tags from both your machine and from '{{.upstream}}'?",
 		PushTagTitle:                         "Remote to push tag '{{.tagName}}' to:",
 		// Using 'push tag' rather than just 'push' to disambiguate from a global push
 		PushTag:                        "Push tag",

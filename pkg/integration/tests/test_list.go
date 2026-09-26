@@ -533,6 +533,7 @@ var tests = []*components.IntegrationTest{
 	tag.CrudAnnotated,
 	tag.CrudLightweight,
 	tag.DeleteLocalAndRemote,
+	tag.DeleteMultiple,
 	tag.DeleteRemoteTagWhenBranchWithSameNameExists,
 	tag.ForceTagAnnotated,
 	tag.ForceTagLightweight,
