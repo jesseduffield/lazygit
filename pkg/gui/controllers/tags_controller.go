@@ -174,56 +174,41 @@ func (self *TagsController) localDelete(tag *models.Tag) error {
 }
 
 func (self *TagsController) remoteDelete(tag *models.Tag) error {
-	title := utils.ResolvePlaceholderString(
-		self.c.Tr.SelectRemoteTagUpstream,
-		map[string]string{
-			"tagName": tag.Name,
-		},
-	)
-
-	self.c.Prompt(types.PromptOpts{
-		Title:               title,
-		InitialContent:      "origin",
-		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRemoteSuggestionsFunc(),
-		HandleConfirm: func(upstream string) error {
-			confirmTitle := utils.ResolvePlaceholderString(
-				self.c.Tr.DeleteTagTitle,
-				map[string]string{
-					"tagName": tag.Name,
-				},
-			)
-			confirmPrompt := utils.ResolvePlaceholderString(
-				self.c.Tr.DeleteRemoteTagPrompt,
-				map[string]string{
-					"tagName":  tag.Name,
-					"upstream": upstream,
-				},
-			)
-
-			self.c.Confirm(types.ConfirmOpts{
-				Title:  confirmTitle,
-				Prompt: confirmPrompt,
-				HandleConfirm: func() error {
-					return self.c.WithInlineStatus(tag, types.ItemOperationDeleting, context.TAGS_CONTEXT_KEY, func(task gocui.Task) error {
-						self.c.LogAction(self.c.Tr.Actions.DeleteRemoteTag)
-						if err := self.c.Git().Remote.DeleteRemoteTag(task, upstream, []string{tag.Name}); err != nil {
-							return err
-						}
-						self.c.Toast(self.c.Tr.RemoteTagDeletedMessage)
-						self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
-						return nil
-					})
-				},
-			})
-
-			return nil
-		},
+	return self.confirmRemoteDelete(tag, self.c.Tr.DeleteRemoteTagPrompt, func(task gocui.Task, upstream string) error {
+		self.c.LogAction(self.c.Tr.Actions.DeleteRemoteTag)
+		if err := self.c.Git().Remote.DeleteRemoteTag(task, upstream, []string{tag.Name}); err != nil {
+			return err
+		}
+		self.c.Toast(self.c.Tr.RemoteTagDeletedMessage)
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+		return nil
 	})
-
-	return nil
 }
 
 func (self *TagsController) localAndRemoteDelete(tag *models.Tag) error {
+	return self.confirmRemoteDelete(tag, self.c.Tr.DeleteLocalAndRemoteTagPrompt, func(task gocui.Task, upstream string) error {
+		self.c.LogAction(self.c.Tr.Actions.DeleteRemoteTag)
+		if err := self.c.Git().Remote.DeleteRemoteTag(task, upstream, []string{tag.Name}); err != nil {
+			return err
+		}
+
+		self.c.LogAction(self.c.Tr.Actions.DeleteLocalTag)
+		if err := self.c.Git().Tag.LocalDelete([]string{tag.Name}); err != nil {
+			return err
+		}
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+		return nil
+	})
+}
+
+// Asks for the remote to delete the tag from and for a confirmation, and then
+// runs deleteTag on a worker with the tag shown as being deleted.
+// confirmPromptTemplate can use the placeholders tagName and upstream.
+func (self *TagsController) confirmRemoteDelete(
+	tag *models.Tag,
+	confirmPromptTemplate string,
+	deleteTag func(task gocui.Task, upstream string) error,
+) error {
 	title := utils.ResolvePlaceholderString(
 		self.c.Tr.SelectRemoteTagUpstream,
 		map[string]string{
@@ -243,7 +228,7 @@ func (self *TagsController) localAndRemoteDelete(tag *models.Tag) error {
 				},
 			)
 			confirmPrompt := utils.ResolvePlaceholderString(
-				self.c.Tr.DeleteLocalAndRemoteTagPrompt,
+				confirmPromptTemplate,
 				map[string]string{
 					"tagName":  tag.Name,
 					"upstream": upstream,
@@ -255,17 +240,7 @@ func (self *TagsController) localAndRemoteDelete(tag *models.Tag) error {
 				Prompt: confirmPrompt,
 				HandleConfirm: func() error {
 					return self.c.WithInlineStatus(tag, types.ItemOperationDeleting, context.TAGS_CONTEXT_KEY, func(task gocui.Task) error {
-						self.c.LogAction(self.c.Tr.Actions.DeleteRemoteTag)
-						if err := self.c.Git().Remote.DeleteRemoteTag(task, upstream, []string{tag.Name}); err != nil {
-							return err
-						}
-
-						self.c.LogAction(self.c.Tr.Actions.DeleteLocalTag)
-						if err := self.c.Git().Tag.LocalDelete([]string{tag.Name}); err != nil {
-							return err
-						}
-						self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
-						return nil
+						return deleteTag(task, upstream)
 					})
 				},
 			})
