@@ -948,6 +948,7 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 		gui.applyTerminalBackground()
 		gui.c.Contexts().LocalCommits.HandleRender()
 		gui.c.Contexts().SubCommits.HandleRender()
+		gui.helpers.Diff.RenderToMainAgain()
 		return nil
 	})
 

@@ -68,7 +68,9 @@ func TestGetStdinFilterCommand(t *testing.T) {
 		name               string
 		diffRendererConfig DiffRendererConfig
 		width              int
+		lightBackground    bool
 		expected           string
+		expectedError      string
 	}{
 		{
 			name:               "a command without template variables is passed through",
@@ -95,6 +97,44 @@ func TestGetStdinFilterCommand(t *testing.T) {
 			expected:           "delta --width=120",
 		},
 		{
+			name:               "the color scheme on a dark background",
+			diffRendererConfig: DiffRendererConfig{Command: "delta --{{colorScheme}}"},
+			width:              120,
+			expected:           "delta --dark",
+		},
+		{
+			name:               "the color scheme on a light background",
+			diffRendererConfig: DiffRendererConfig{Command: "delta --{{colorScheme}}"},
+			width:              120,
+			lightBackground:    true,
+			expected:           "delta --light",
+		},
+		{
+			name:               "the command can choose between options by the color scheme",
+			diffRendererConfig: DiffRendererConfig{Command: `delta --syntax-theme={{if eq .colorScheme "light"}}GitHub{{else}}Dracula{{end}}`},
+			width:              120,
+			lightBackground:    true,
+			expected:           "delta --syntax-theme=GitHub",
+		},
+		{
+			name:               "the command can use template expressions",
+			diffRendererConfig: DiffRendererConfig{Command: "delta{{if gt .width 100}} --side-by-side{{end}}"},
+			width:              120,
+			expected:           "delta --side-by-side",
+		},
+		{
+			name:               "an unknown template variable is an error",
+			diffRendererConfig: DiffRendererConfig{Command: "delta --width={{.widht}}"},
+			width:              120,
+			expectedError:      "can't use the command 'delta --width={{.widht}}'",
+		},
+		{
+			name:               "an unknown template variable without a leading dot is an error too",
+			diffRendererConfig: DiffRendererConfig{Command: "delta --width={{widht}}"},
+			width:              120,
+			expectedError:      "can't use the command 'delta --width={{widht}}'",
+		},
+		{
 			name:               "nothing is returned for a renderer of another type",
 			diffRendererConfig: DiffRendererConfig{Type: "extDiff", Command: "difft --width={{width}}"},
 			width:              120,
@@ -108,7 +148,13 @@ func TestGetStdinFilterCommand(t *testing.T) {
 			userConfig.Git.DiffRenderers = []DiffRendererConfig{s.diffRendererConfig}
 			config := NewDiffRendererConfigManager(func() *UserConfig { return userConfig })
 
-			assert.Equal(t, s.expected, config.GetStdinFilterCommand(s.width))
+			command, err := config.GetStdinFilterCommand(DiffRendererValues{Width: s.width, LightBackground: s.lightBackground})
+			if s.expectedError != "" {
+				assert.ErrorContains(t, err, s.expectedError)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, s.expected, command)
+			}
 		})
 	}
 }
@@ -118,6 +164,7 @@ func TestGetExternalDiffCommand(t *testing.T) {
 		name               string
 		diffRendererConfig DiffRendererConfig
 		expected           string
+		expectedError      string
 	}{
 		{
 			name:               "a command without template variables is passed through",
@@ -130,9 +177,19 @@ func TestGetExternalDiffCommand(t *testing.T) {
 			expected:           "difft --width=120",
 		},
 		{
+			name:               "the color scheme",
+			diffRendererConfig: DiffRendererConfig{Type: "extDiff", Command: "difft --background={{colorScheme}}"},
+			expected:           "difft --background=dark",
+		},
+		{
 			name:               "the width alongside the diff context size",
 			diffRendererConfig: DiffRendererConfig{Type: "extDiff", Command: "difft --width={{width}} --context={{diffContext}}"},
 			expected:           "difft --width=120 --context=3",
+		},
+		{
+			name:               "a variable of stdin filters is an error",
+			diffRendererConfig: DiffRendererConfig{Type: "extDiff", Command: "difft --width={{columnWidth}}"},
+			expectedError:      "can't use the command 'difft --width={{columnWidth}}'",
 		},
 		{
 			name:               "nothing is returned for a renderer of another type",
@@ -147,7 +204,13 @@ func TestGetExternalDiffCommand(t *testing.T) {
 			userConfig.Git.DiffRenderers = []DiffRendererConfig{s.diffRendererConfig}
 			config := NewDiffRendererConfigManager(func() *UserConfig { return userConfig })
 
-			assert.Equal(t, s.expected, config.GetExternalDiffCommand(3, 120))
+			command, err := config.GetExternalDiffCommand(DiffRendererValues{Width: 120, DiffContext: 3})
+			if s.expectedError != "" {
+				assert.ErrorContains(t, err, s.expectedError)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, s.expected, command)
+			}
 		})
 	}
 }
