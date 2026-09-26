@@ -937,9 +937,12 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	gui.c.Log.Infof("Terminal color scheme: %s", g.DetectedColorScheme())
 	g.SetColorSchemeChangeHandler(func(colorScheme gocui.DetectedColorScheme) error {
 		gui.c.Log.Infof("Terminal color scheme changed: %s", colorScheme)
-		gui.applyTerminalBackground()
-		gui.c.Contexts().LocalCommits.HandleRender()
-		gui.c.Contexts().SubCommits.HandleRender()
+		gui.applyTheme()
+		gui.configureViewProperties()
+		for _, context := range gui.c.Context().AllList() {
+			context.HandleRender()
+		}
+		gui.helpers.Refresh.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STATUS}})
 		gui.helpers.Diff.RenderToMainAgain()
 		return nil
 	})
@@ -1246,12 +1249,13 @@ func (gui *Gui) showBreakingChangesMessage() {
 	}
 }
 
-// applyTheme sets the colors of the app from the theme in the user config
+// applyTheme sets the colors of the app from the theme in the user config,
+// with the overrides for the terminal's background applied
 func (gui *Gui) applyTheme() {
-	userConfig := gui.UserConfig()
-	theme.UpdateTheme(userConfig.Gui.Theme)
-	authors.SetCustomAuthors(userConfig.Gui.Theme.AuthorColors)
-	presentation.SetCustomBranches(userConfig.Gui.Theme.BranchColorPatterns)
+	themeConfig := gui.UserConfig().Gui.ThemeForBackground(gui.terminalHasLightBackground())
+	theme.UpdateTheme(themeConfig)
+	authors.SetCustomAuthors(themeConfig.AuthorColors)
+	presentation.SetCustomBranches(themeConfig.BranchColorPatterns)
 
 	gui.g.FgColor = theme.InactiveBorderColor
 	gui.g.SelFgColor = theme.ActiveBorderColor
