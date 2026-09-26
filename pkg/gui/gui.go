@@ -494,7 +494,7 @@ func (gui *Gui) onUserConfigLoaded() error {
 		gui.previousLanguageConfig = userConfig.Gui.Language
 	}
 
-	gui.setColorScheme()
+	gui.applyTheme()
 	gui.configureViewProperties()
 
 	gui.g.SearchEscapeKeys = config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.Return)
@@ -1246,8 +1246,8 @@ func (gui *Gui) showBreakingChangesMessage() {
 	}
 }
 
-// setColorScheme sets the color scheme for the app based on the user config
-func (gui *Gui) setColorScheme() {
+// applyTheme sets the colors of the app from the theme in the user config
+func (gui *Gui) applyTheme() {
 	userConfig := gui.UserConfig()
 	theme.UpdateTheme(userConfig.Gui.Theme)
 	authors.SetCustomAuthors(userConfig.Gui.Theme.AuthorColors)
