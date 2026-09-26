@@ -181,7 +181,7 @@ gui:
 
     # Border color of non-focused windows
     inactiveBorderColor:
-      - default
+      - dim
 
     # Border color of focused window when searching in that window
     searchingActiveBorderColor:
