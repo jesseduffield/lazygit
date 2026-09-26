@@ -71,9 +71,6 @@ type GuiConfig struct {
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
 	AuthorColors map[string]string `yaml:"authorColors"`
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
-	// Deprecated: use branchColorPatterns instead
-	BranchColors map[string]string `yaml:"branchColors" jsonschema:"deprecated"`
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
 	BranchColorPatterns map[string]string `yaml:"branchColorPatterns"`
 	// Custom icons for filenames and file extensions
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color

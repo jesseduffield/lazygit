@@ -821,3 +821,107 @@ func TestPagerMigration(t *testing.T) {
 		})
 	}
 }
+
+func TestBranchColorsMigration(t *testing.T) {
+	scenarios := []struct {
+		name              string
+		input             string
+		expected          string
+		expectedDidChange bool
+		expectedChanges   []string
+	}{
+		{
+			name: "No branchColors",
+			input: "gui:\n" +
+				"  branchColorPatterns:\n" +
+				"    '^docs/': blue\n",
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "branchColors is not an object",
+			input: "gui:\n" +
+				"  branchColors: 5\n",
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+		{
+			name: "branchColors is converted to patterns in place",
+			input: "gui:\n" +
+				"  scrollHeight: 2\n" +
+				"  branchColors:\n" +
+				"    feature: green\n" +
+				"    v1.x: '#ff0000'\n" +
+				"    123: red\n" +
+				"  mouseEvents: false\n",
+			expected: "gui:\n" +
+				"  scrollHeight: 2\n" +
+				"  branchColorPatterns:\n" +
+				"    ^feature(/|$): green\n" +
+				"    ^v1\\.x(/|$): '#ff0000'\n" +
+				"    ^123(/|$): red\n" +
+				"  mouseEvents: false\n",
+			expectedDidChange: true,
+			expectedChanges:   []string{"Converted 'gui.branchColors' to 'gui.branchColorPatterns'"},
+		},
+		{
+			name: "branchColors is removed if branchColorPatterns is set",
+			input: "gui:\n" +
+				"  branchColors:\n" +
+				"    feature: green\n" +
+				"  branchColorPatterns:\n" +
+				"    '^docs/': blue\n",
+			expected: "gui:\n" +
+				"  branchColorPatterns:\n" +
+				"    '^docs/': blue\n",
+			expectedDidChange: true,
+			expectedChanges:   []string{"Removed 'gui.branchColors'; it had no effect because 'gui.branchColorPatterns' is set"},
+		},
+		{
+			name: "branchColors replaces an empty branchColorPatterns",
+			input: "gui:\n" +
+				"  branchColorPatterns: {}\n" +
+				"  branchColors:\n" +
+				"    feature: green\n",
+			expected: "gui:\n" +
+				"  branchColorPatterns:\n" +
+				"    ^feature(/|$): green\n",
+			expectedDidChange: true,
+			expectedChanges:   []string{"Converted 'gui.branchColors' to 'gui.branchColorPatterns'"},
+		},
+		{
+			name: "branchColors replaces a null branchColorPatterns",
+			input: "gui:\n" +
+				"  branchColorPatterns:\n" +
+				"  branchColors:\n" +
+				"    feature: green\n",
+			expected: "gui:\n" +
+				"  branchColorPatterns:\n" +
+				"    ^feature(/|$): green\n",
+			expectedDidChange: true,
+			expectedChanges:   []string{"Converted 'gui.branchColors' to 'gui.branchColorPatterns'"},
+		},
+		{
+			name: "branchColors is kept if branchColorPatterns is not an object",
+			input: "gui:\n" +
+				"  branchColorPatterns: 5\n" +
+				"  branchColors:\n" +
+				"    feature: green\n",
+			expectedDidChange: false,
+			expectedChanges:   []string{},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			changes := NewChangesSet()
+			actual, didChange, err := computeMigratedConfig("path doesn't matter", []byte(s.input), changes)
+			assert.NoError(t, err)
+			assert.Equal(t, s.expectedDidChange, didChange)
+			if didChange {
+				assert.Equal(t, s.expected, string(actual))
+			}
+			assert.Equal(t, s.expectedChanges, changes.ToSliceFromOldest())
+		})
+	}
+}
