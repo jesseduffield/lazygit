@@ -494,7 +494,7 @@ func (gui *Gui) onUserConfigLoaded() error {
 		gui.previousLanguageConfig = userConfig.Gui.Language
 	}
 
-	gui.setColorScheme()
+	gui.applyTheme()
 	gui.configureViewProperties()
 
 	gui.g.SearchEscapeKeys = config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.Return)
@@ -517,20 +517,12 @@ func (gui *Gui) onUserConfigLoaded() error {
 	// sake of backwards compatibility. We're making use of short circuiting here
 	gui.ShowExtrasWindow = userConfig.Gui.ShowCommandLog && !gui.c.GetAppState().HideCommandLog
 
-	authors.SetCustomAuthors(userConfig.Gui.AuthorColors)
 	if userConfig.Gui.NerdFontsVersion != "" {
 		icons.SetNerdFontsVersion(userConfig.Gui.NerdFontsVersion)
 	} else if userConfig.Gui.ShowIcons {
 		icons.SetNerdFontsVersion("2")
 	} else {
 		icons.SetNerdFontsVersion("")
-	}
-
-	if len(userConfig.Gui.BranchColorPatterns) > 0 {
-		presentation.SetCustomBranches(userConfig.Gui.BranchColorPatterns, true)
-	} else {
-		// Fall back to the deprecated branchColors config
-		presentation.SetCustomBranches(userConfig.Gui.BranchColors, false)
 	}
 
 	return nil
@@ -945,9 +937,12 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	gui.c.Log.Infof("Terminal color scheme: %s", g.DetectedColorScheme())
 	g.SetColorSchemeChangeHandler(func(colorScheme gocui.DetectedColorScheme) error {
 		gui.c.Log.Infof("Terminal color scheme changed: %s", colorScheme)
-		gui.applyTerminalBackground()
-		gui.c.Contexts().LocalCommits.HandleRender()
-		gui.c.Contexts().SubCommits.HandleRender()
+		gui.applyTheme()
+		gui.configureViewProperties()
+		for _, context := range gui.c.Context().AllList() {
+			context.HandleRender()
+		}
+		gui.helpers.Refresh.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STATUS}})
 		gui.helpers.Diff.RenderToMainAgain()
 		return nil
 	})
@@ -1254,10 +1249,13 @@ func (gui *Gui) showBreakingChangesMessage() {
 	}
 }
 
-// setColorScheme sets the color scheme for the app based on the user config
-func (gui *Gui) setColorScheme() {
-	userConfig := gui.UserConfig()
-	theme.UpdateTheme(userConfig.Gui.Theme)
+// applyTheme sets the colors of the app from the theme in the user config,
+// with the overrides for the terminal's background applied
+func (gui *Gui) applyTheme() {
+	themeConfig := gui.UserConfig().Gui.ThemeForBackground(gui.terminalHasLightBackground(), gui.terminalBackgroundColor())
+	theme.UpdateTheme(themeConfig)
+	authors.SetCustomAuthors(themeConfig.AuthorColors)
+	presentation.SetCustomBranches(themeConfig.BranchColorPatterns)
 
 	gui.g.FgColor = theme.InactiveBorderColor
 	gui.g.SelFgColor = theme.ActiveBorderColor
@@ -1284,6 +1282,17 @@ func (gui *Gui) terminalHasLightBackground() bool {
 	default:
 		return gui.g.DetectedColorScheme().ColorScheme == gocui.ColorSchemeLight
 	}
+}
+
+// terminalBackgroundColor returns the background color that the terminal told
+// us, as #rrggbb. It returns "" if the terminal didn't tell us, or if
+// gui.colorScheme disagrees with it about whether the background is light.
+func (gui *Gui) terminalBackgroundColor() string {
+	detected := gui.g.DetectedColorScheme()
+	if (detected.ColorScheme == gocui.ColorSchemeLight) != gui.terminalHasLightBackground() {
+		return ""
+	}
+	return detected.Background
 }
 
 func (gui *Gui) onUIThread(f func() error) {

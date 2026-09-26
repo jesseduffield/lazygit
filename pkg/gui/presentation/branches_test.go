@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"fmt"
+	"slices"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -9,10 +10,12 @@ import (
 	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/xo/terminfo"
@@ -419,7 +422,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 	defer color.ForceSetColorLevel(oldColorLevel)
 
 	c := common.NewDummyCommon()
-	SetCustomBranches(c.UserConfig().Gui.BranchColorPatterns, true)
+	SetCustomBranches(c.UserConfig().Gui.Theme.BranchColorPatterns)
 
 	for i, s := range scenarios {
 		icons.SetNerdFontsVersion(lo.Ternary(s.useIcons, "3", ""))
@@ -435,4 +438,22 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			assert.Equal(t, s.expected, strings)
 		})
 	}
+}
+
+func TestGetBranchTextStyle(t *testing.T) {
+	defer SetCustomBranches(nil)
+
+	patterns := config.ColorPatterns{
+		{Pattern: "^feature/", Color: "green"},
+		{Pattern: `ISSUE-\d+`, Color: "red"},
+	}
+
+	SetCustomBranches(patterns)
+	assert.Equal(t, style.FgGreen, GetBranchTextStyle("feature/ISSUE-1"))
+	assert.Equal(t, style.FgRed, GetBranchTextStyle("fix/ISSUE-1"))
+	assert.Equal(t, theme.DefaultTextColor, GetBranchTextStyle("main"))
+
+	slices.Reverse(patterns)
+	SetCustomBranches(patterns)
+	assert.Equal(t, style.FgRed, GetBranchTextStyle("feature/ISSUE-1"))
 }

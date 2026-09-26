@@ -26,6 +26,8 @@ var (
 	GocuiSelectedLineBgColor gocui.Attribute
 	// GocuiInactiveViewSelectedLineBgColor is the background color for the selected line in gocui if the view doesn't have focus
 	GocuiInactiveViewSelectedLineBgColor gocui.Attribute
+	// GocuiSelectedLineFgColor is applied to the text of the selected line in gocui
+	GocuiSelectedLineFgColor gocui.Attribute
 
 	OptionsColor gocui.Attribute
 
@@ -68,6 +70,7 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 
 	GocuiSelectedLineBgColor = GetGocuiStyle(themeConfig.SelectedLineBgColor)
 	GocuiInactiveViewSelectedLineBgColor = GetGocuiStyle(themeConfig.InactiveViewSelectedLineBgColor)
+	GocuiSelectedLineFgColor = GetGocuiStyle(themeConfig.SelectedLineFgColor)
 	OptionsColor = GetGocuiStyle(themeConfig.OptionsTextColor)
 	OptionsFgColor = GetTextStyle(themeConfig.OptionsTextColor, false)
 

@@ -13,6 +13,8 @@ func GetTextStyle(keys []string, background bool) style.TextStyle {
 		switch key {
 		case "bold":
 			s = s.SetBold()
+		case "dim":
+			s = s.SetDim()
 		case "reverse":
 			s = s.SetReverse()
 		case "underline":
