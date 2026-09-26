@@ -10,6 +10,6 @@ import (
 
 func main() {
 	fmt.Printf("Generating jsonschema in %s...\n", jsonschema.GetSchemaDir())
-	schema := jsonschema.GenerateSchema()
-	jsonschema.GenerateConfigDocs(schema)
+	schema, repeatedStructs := jsonschema.GenerateSchema()
+	jsonschema.GenerateConfigDocs(schema, repeatedStructs)
 }

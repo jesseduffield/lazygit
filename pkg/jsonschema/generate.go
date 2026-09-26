@@ -19,16 +19,19 @@ func GetSchemaDir() string {
 	return utils.MustFindLazygitRootDirectory() + "/schema-master"
 }
 
-func GenerateSchema() *jsonschema.Schema {
-	schema := customReflect(&config.UserConfig{})
+// GenerateSchema writes the schema of the user config, and returns it together
+// with the properties that repeat the fields of a struct that the schema has at
+// an earlier path.
+func GenerateSchema() (*jsonschema.Schema, []*jsonschema.Schema) {
+	schema, repeatedStructs := customReflect(&config.UserConfig{})
 	obj, _ := json.MarshalIndent(schema, "", "  ")
 	obj = append(obj, '\n')
 
 	if err := os.WriteFile(GetSchemaDir()+"/config.json", obj, 0o644); err != nil {
 		fmt.Println("Error writing to file:", err)
-		return nil
+		return nil, nil
 	}
-	return schema
+	return schema, repeatedStructs
 }
 
 func getSubSchema(rootSchema, parentSchema *jsonschema.Schema, key string) *jsonschema.Schema {
@@ -51,7 +54,7 @@ func getSubSchema(rootSchema, parentSchema *jsonschema.Schema, key string) *json
 	return subSchema
 }
 
-func customReflect(v *config.UserConfig) *jsonschema.Schema {
+func customReflect(v *config.UserConfig) (*jsonschema.Schema, []*jsonschema.Schema) {
 	r := &jsonschema.Reflector{FieldNameTag: "yaml", RequiredFromJSONSchemaTags: true}
 	if err := r.AddGoComments("github.com/jesseduffield/lazygit/pkg/config", "../config"); err != nil {
 		panic(err)
@@ -59,6 +62,7 @@ func customReflect(v *config.UserConfig) *jsonschema.Schema {
 	filterOutDevComments(r)
 	schema := r.Reflect(v)
 	inlineKeybindingRefs(schema)
+	repeatedStructs := inlineSharedStructDefinitions(schema, "UserConfig")
 	defaultConfig := config.GetDefaultConfig()
 	defaultConfig.Keybinding.MergeLegacyAltKeybindings()
 	userConfigSchema := schema.Definitions["UserConfig"]
@@ -76,7 +80,125 @@ func customReflect(v *config.UserConfig) *jsonschema.Schema {
 		setDefaultVals(schema, subSchema, defaultValue.FieldByName(fieldName).Interface())
 	}
 
-	return schema
+	return schema, repeatedStructs
+}
+
+// inlineSharedStructDefinitions gives each property whose struct definition is
+// shared with other properties a copy of that definition of its own. The
+// defaults of a struct's fields depend on its path, and setDefaultVals writes
+// them into the definition; properties that share a definition would get each
+// other's defaults.
+//
+// It returns the copies at all but the first path of each struct, in the order
+// in which a depth-first walk from the root definition meets them.
+func inlineSharedStructDefinitions(schema *jsonschema.Schema, rootDefinition string) []*jsonschema.Schema {
+	var repeatedStructs []*jsonschema.Schema
+	inlinedDefinitions := map[string]bool{}
+
+	// A property inside a shared definition is met once for each path of that
+	// definition. It only gets copies of its own once its parent has them, so
+	// this repeats until no definition is shared.
+	for {
+		var properties []*jsonschema.Schema
+		var collect func(s *jsonschema.Schema)
+		collect = func(s *jsonschema.Schema) {
+			if s.Properties == nil {
+				return
+			}
+			for pair := s.Properties.Oldest(); pair != nil; pair = pair.Next() {
+				property := pair.Value
+				if def := structDefinition(schema, property); def != nil {
+					properties = append(properties, property)
+					collect(def)
+				} else {
+					collect(property)
+				}
+			}
+		}
+		collect(schema.Definitions[rootDefinition])
+		properties = lo.Uniq(properties)
+
+		refCounts := lo.CountValuesBy(properties, func(s *jsonschema.Schema) string { return s.Ref })
+		shared := lo.Filter(properties, func(s *jsonschema.Schema, _ int) bool { return refCounts[s.Ref] > 1 })
+		if len(shared) == 0 {
+			break
+		}
+
+		seenRefs := map[string]bool{}
+		for _, property := range shared {
+			ref := property.Ref
+			description := property.Description
+			*property = *copySchema(structDefinition(schema, property))
+			property.Description = description
+
+			if seenRefs[ref] {
+				repeatedStructs = append(repeatedStructs, property)
+			}
+			seenRefs[ref] = true
+			inlinedDefinitions[strings.TrimPrefix(ref, "#/$defs/")] = true
+		}
+	}
+
+	for name := range inlinedDefinitions {
+		if !isReferenced(schema, "#/$defs/"+name) {
+			delete(schema.Definitions, name)
+		}
+	}
+
+	return repeatedStructs
+}
+
+func isReferenced(schema *jsonschema.Schema, ref string) bool {
+	var refers func(s *jsonschema.Schema) bool
+	refers = func(s *jsonschema.Schema) bool {
+		if s == nil {
+			return false
+		}
+		if s.Ref == ref || refers(s.Items) || refers(s.AdditionalProperties) {
+			return true
+		}
+		if s.Properties != nil {
+			for pair := s.Properties.Oldest(); pair != nil; pair = pair.Next() {
+				if refers(pair.Value) {
+					return true
+				}
+			}
+		}
+		return false
+	}
+	return lo.SomeBy(lo.Values(schema.Definitions), refers)
+}
+
+// structDefinition returns the definition that s refers to if it is the
+// definition of a struct, and nil otherwise.
+func structDefinition(schema, s *jsonschema.Schema) *jsonschema.Schema {
+	if s.Ref == "" {
+		return nil
+	}
+	def := schema.Definitions[strings.TrimPrefix(s.Ref, "#/$defs/")]
+	if def == nil || def.Properties == nil {
+		return nil
+	}
+	return def
+}
+
+// copySchema copies s and the schemas that it has for its properties, items and
+// additional properties.
+func copySchema(s *jsonschema.Schema) *jsonschema.Schema {
+	c := *s
+	if s.Properties != nil {
+		c.Properties = jsonschema.NewProperties()
+		for pair := s.Properties.Oldest(); pair != nil; pair = pair.Next() {
+			c.Properties.Set(pair.Key, copySchema(pair.Value))
+		}
+	}
+	if s.Items != nil {
+		c.Items = copySchema(s.Items)
+	}
+	if s.AdditionalProperties != nil {
+		c.AdditionalProperties = copySchema(s.AdditionalProperties)
+	}
+	return &c
 }
 
 // inlineKeybindingRefs replaces every `$ref: #/$defs/Keybinding` in the
