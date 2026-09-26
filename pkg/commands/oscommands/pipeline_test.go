@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -26,6 +27,12 @@ func pipelineMember(role string) *CmdObj {
 // TestPipelineMember is the program the pipeline tests run, not a test of its
 // own. It exits before the testing package reports anything, so that its output
 // is what the role wrote and nothing else.
+//
+// For the same reason it exits with syscall.Exit, which skips the exit hooks
+// that os.Exit runs. In a binary built with -cover, one of these hooks writes
+// coverage data to $GOCOVERDIR and prints an error to stderr if that fails. On
+// Windows it fails now and then if two members of a pipeline exit at the same
+// time, because both of them replace the same file in that directory.
 func TestPipelineMember(t *testing.T) {
 	switch os.Getenv(pipelineRoleEnvVar) {
 	case "":
@@ -41,7 +48,7 @@ func TestPipelineMember(t *testing.T) {
 		_, _ = io.Copy(os.Stdout, os.Stdin)
 	case "complain":
 		fmt.Fprintln(os.Stderr, "something went wrong")
-		os.Exit(3)
+		syscall.Exit(3)
 	case "flood":
 		// A failed write means the reader is gone, and there is no point
 		// writing to nobody. On platforms that raise a signal for it instead,
@@ -53,7 +60,7 @@ func TestPipelineMember(t *testing.T) {
 		}
 	}
 
-	os.Exit(0)
+	syscall.Exit(0)
 }
 
 func TestStartPipelineStreamsTheOutputOfTheLastCommand(t *testing.T) {
