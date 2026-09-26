@@ -31,13 +31,13 @@ func TestThemeForBackground(t *testing.T) {
 		},
 	}
 
-	dark := gui.ThemeForBackground(false)
+	dark := gui.ThemeForBackground(false, "")
 	assert.Equal(t, []string{"yellow"}, dark.ActiveBorderColor)
 	assert.Equal(t, []string{"default"}, dark.InactiveBorderColor)
 	assert.Equal(t, map[string]string{"Alice": "red", "Bob": "blue"}, dark.AuthorColors)
 	assert.Equal(t, gui.Theme.BranchColorPatterns, dark.BranchColorPatterns)
 
-	light := gui.ThemeForBackground(true)
+	light := gui.ThemeForBackground(true, "")
 	assert.Equal(t, []string{"green"}, light.ActiveBorderColor)
 	assert.Equal(t, []string{"#777777"}, light.InactiveBorderColor)
 	assert.Equal(t, map[string]string{"Alice": "red", "Bob": "#000080"}, light.AuthorColors)
@@ -70,5 +70,54 @@ func TestEveryThemeFieldCanBeOverridden(t *testing.T) {
 
 	gui := GetDefaultConfig().Gui
 	gui.DarkTheme = override
-	assert.Equal(t, override, gui.ThemeForBackground(false))
+	assert.Equal(t, override, gui.ThemeForBackground(false, ""))
+}
+
+func TestThemeForBackgroundFallsBackToTheDefaultsForTheBackground(t *testing.T) {
+	gui := GetDefaultConfig().Gui
+	assert.Equal(t, []string{"#4d4d4d"}, gui.ThemeForBackground(false, "").InactiveViewSelectedLineBgColor)
+	assert.Equal(t, []string{"#d9d9d9"}, gui.ThemeForBackground(true, "").InactiveViewSelectedLineBgColor)
+
+	gui.Theme.InactiveViewSelectedLineBgColor = []string{"bold"}
+	assert.Equal(t, []string{"bold"}, gui.ThemeForBackground(false, "").InactiveViewSelectedLineBgColor)
+	assert.Equal(t, []string{"bold"}, gui.ThemeForBackground(true, "").InactiveViewSelectedLineBgColor)
+
+	gui.LightTheme.InactiveViewSelectedLineBgColor = []string{"white"}
+	assert.Equal(t, []string{"bold"}, gui.ThemeForBackground(false, "").InactiveViewSelectedLineBgColor)
+	assert.Equal(t, []string{"white"}, gui.ThemeForBackground(true, "").InactiveViewSelectedLineBgColor)
+}
+
+func TestBackgroundDefaultsAreDerivedFromTheBackgroundColor(t *testing.T) {
+	gui := GetDefaultConfig().Gui
+	assert.Equal(t, []string{"#626262"}, gui.ThemeForBackground(false, "#1e1e1e").InactiveViewSelectedLineBgColor)
+	assert.Equal(t, []string{"#d7d1c1"}, gui.ThemeForBackground(true, "#fdf6e3").InactiveViewSelectedLineBgColor)
+}
+
+// If gui.theme had a default for a field that also has a default for the
+// terminal's background, the former would always win.
+func TestFieldsWithBackgroundDefaultsHaveNoDefaultInGuiTheme(t *testing.T) {
+	genericDefaults := setThemeFields(GetDefaultConfig().Gui.Theme)
+	for _, field := range setThemeFields(themeDefaults(false, "")) {
+		assert.NotContains(t, genericDefaults, field)
+	}
+	for _, field := range setThemeFields(themeDefaults(true, "")) {
+		assert.NotContains(t, genericDefaults, field)
+	}
+}
+
+// If only one of the backgrounds had a default for a field, the field would
+// have no value at all with the other.
+func TestDarkAndLightDefaultsSetTheSameFields(t *testing.T) {
+	assert.Equal(t, setThemeFields(themeDefaults(false, "")), setThemeFields(themeDefaults(true, "")))
+}
+
+func setThemeFields(theme ThemeConfig) []string {
+	var fields []string
+	themeValue := reflect.ValueOf(theme)
+	for i := range themeValue.NumField() {
+		if themeValue.Field(i).Len() > 0 {
+			fields = append(fields, themeValue.Type().Field(i).Name)
+		}
+	}
+	return fields
 }

@@ -244,6 +244,7 @@ type ThemeConfig struct {
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
 	SelectedLineBgColor []string `yaml:"selectedLineBgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Background color of selected line when view doesn't have focus.
+	// Default: a suitable RGB grey computed from the terminal's background color.
 	InactiveViewSelectedLineBgColor []string `yaml:"inactiveViewSelectedLineBgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Foreground color of copied commit
 	CherryPickedCommitFgColor []string `yaml:"cherryPickedCommitFgColor" jsonschema:"minItems=1,uniqueItems=true"`
@@ -890,18 +891,17 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			ShortTimeFormat:          time.Kitchen,
 			ColorScheme:              "auto",
 			Theme: ThemeConfig{
-				ActiveBorderColor:               []string{"green", "bold"},
-				SearchingActiveBorderColor:      []string{"cyan", "bold"},
-				InactiveBorderColor:             []string{"default"},
-				OptionsTextColor:                []string{"blue"},
-				SelectedLineBgColor:             []string{"blue"},
-				InactiveViewSelectedLineBgColor: []string{"bold"},
-				CherryPickedCommitBgColor:       []string{"cyan"},
-				CherryPickedCommitFgColor:       []string{"blue"},
-				MarkedBaseCommitBgColor:         []string{"yellow"},
-				MarkedBaseCommitFgColor:         []string{"blue"},
-				UnstagedChangesColor:            []string{"red"},
-				DefaultFgColor:                  []string{"default"},
+				ActiveBorderColor:          []string{"green", "bold"},
+				SearchingActiveBorderColor: []string{"cyan", "bold"},
+				InactiveBorderColor:        []string{"default"},
+				OptionsTextColor:           []string{"blue"},
+				SelectedLineBgColor:        []string{"blue"},
+				CherryPickedCommitBgColor:  []string{"cyan"},
+				CherryPickedCommitFgColor:  []string{"blue"},
+				MarkedBaseCommitBgColor:    []string{"yellow"},
+				MarkedBaseCommitFgColor:    []string{"blue"},
+				UnstagedChangesColor:       []string{"red"},
+				DefaultFgColor:             []string{"default"},
 			},
 			CommitLength:                        CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning:            false,

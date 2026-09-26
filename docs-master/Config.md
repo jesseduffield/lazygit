@@ -198,8 +198,8 @@ gui:
       - blue
 
     # Background color of selected line when view doesn't have focus.
-    inactiveViewSelectedLineBgColor:
-      - bold
+    # Default: a suitable RGB grey computed from the terminal's background color.
+    inactiveViewSelectedLineBgColor: []
 
     # Foreground color of copied commit
     cherryPickedCommitFgColor:
