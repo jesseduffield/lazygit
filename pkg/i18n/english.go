@@ -625,6 +625,7 @@ type TranslationSet struct {
 	RemoteTagDeletedMessage               string
 	RemoteTagsDeletedMessage              string
 	PushTagTitle                          string
+	PushTagsTitle                         string
 	PushTag                               string
 	PushTagTooltip                        string
 	NewTag                                string
@@ -1813,6 +1814,7 @@ func EnglishTranslationSet() *TranslationSet {
 		DeleteLocalAndRemoteTagPrompt:        "Are you sure you want to delete '{{.tagName}}' from both your machine and from '{{.upstream}}'?",
 		DeleteLocalAndRemoteTagsPrompt:       "Are you sure you want to delete the selected tags from both your machine and from '{{.upstream}}'?",
 		PushTagTitle:                         "Remote to push tag '{{.tagName}}' to:",
+		PushTagsTitle:                        "Remote to push the selected tags to:",
 		// Using 'push tag' rather than just 'push' to disambiguate from a global push
 		PushTag:                        "Push tag",
 		PushTagTooltip:                 "Push the selected tag to a remote. You'll be prompted to select a remote.",

@@ -537,6 +537,7 @@ var tests = []*components.IntegrationTest{
 	tag.DeleteRemoteTagWhenBranchWithSameNameExists,
 	tag.ForceTagAnnotated,
 	tag.ForceTagLightweight,
+	tag.PushMultiple,
 	tag.Reset,
 	tag.ResetToDuplicateNamedBranch,
 	ui.Accordion,

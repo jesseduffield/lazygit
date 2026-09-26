@@ -71,8 +71,8 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 		},
 		{
 			Keys:              opts.GetKeys(opts.Config.Branches.PushTag),
-			Handler:           self.withItem(self.push),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			Handler:           self.withItems(self.push),
+			GetDisabledReason: self.require(self.itemsSelected()),
 			Description:       self.c.Tr.PushTag,
 			Tooltip:           self.c.Tr.PushTagTooltip,
 			DisplayOnScreen:   true,
@@ -320,22 +320,27 @@ func (self *TagsController) deleteTagsTitle(tags []*models.Tag) string {
 	)
 }
 
-func (self *TagsController) push(tag *models.Tag) error {
-	title := utils.ResolvePlaceholderString(
-		self.c.Tr.PushTagTitle,
-		map[string]string{
-			"tagName": tag.Name,
-		},
-	)
+func (self *TagsController) push(tags []*models.Tag) error {
+	var title string
+	if len(tags) == 1 {
+		title = utils.ResolvePlaceholderString(
+			self.c.Tr.PushTagTitle,
+			map[string]string{
+				"tagName": tags[0].Name,
+			},
+		)
+	} else {
+		title = self.c.Tr.PushTagsTitle
+	}
 
 	self.c.Prompt(types.PromptOpts{
 		Title:               title,
 		InitialContent:      "origin",
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRemoteSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
-			return self.c.WithInlineStatus(tag, types.ItemOperationPushing, context.TAGS_CONTEXT_KEY, func(task gocui.Task) error {
+			return helpers.WithInlineStatusOnItems(self.c.HelperCommon, tags, types.ItemOperationPushing, context.TAGS_CONTEXT_KEY, func(task gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.PushTag)
-				return self.c.Git().Tag.Push(task, response, []string{tag.Name})
+				return self.c.Git().Tag.Push(task, response, tagNames(tags))
 			})
 		},
 	})
