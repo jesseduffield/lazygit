@@ -37,12 +37,6 @@ This is only meant as a reference for what config options exist, and what their 
 ```yaml
 # Config relating to the Lazygit UI
 gui:
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
-  authorColors: {}
-
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
-  branchColorPatterns: {}
-
   # Custom icons for filenames and file extensions
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color
   customIcons:
@@ -229,6 +223,12 @@ gui:
     # Default text color
     defaultFgColor:
       - default
+
+    # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
+    authorColors: {}
+
+    # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
+    branchColorPatterns: {}
 
   # Config relating to the commit length indicator
   commitLength:
@@ -1040,20 +1040,22 @@ You can customize the color in case you're not happy with the randomly assigned 
 
 ```yaml
 gui:
-  authorColors:
-    'John Smith': 'red' # use red for John Smith
-    'Alan Smithee': '#00ff00' # use green for Alan Smithee
+  theme:
+    authorColors:
+      'John Smith': 'red' # use red for John Smith
+      'Alan Smithee': '#00ff00' # use green for Alan Smithee
 ```
 
 You can use wildcard to set a unified color in case your are lazy to customize the color for every author or you just want a single color for all/other authors:
 
 ```yaml
 gui:
-  authorColors:
-    # use red for John Smith
-    'John Smith': 'red'
-    # use blue for other authors
-    '*': '#0000ff'
+  theme:
+    authorColors:
+      # use red for John Smith
+      'John Smith': 'red'
+      # use blue for other authors
+      '*': '#0000ff'
 ```
 
 ## Custom Branch Color
@@ -1062,9 +1064,10 @@ You can customize the color of branches based on branch patterns (regular expres
 
 ```yaml
 gui:
-  branchColorPatterns:
-    '^docs/': '#11aaff' # use a light blue for branches beginning with 'docs/'
-    'ISSUE-\d+': '#ff5733' # use a bright orange for branches containing 'ISSUE-<some-number>'
+  theme:
+    branchColorPatterns:
+      '^docs/': '#11aaff' # use a light blue for branches beginning with 'docs/'
+      'ISSUE-\d+': '#ff5733' # use a bright orange for branches containing 'ISSUE-<some-number>'
 ```
 
 Note that the regular expressions are not implicitly anchored to the beginning/end of the branch name. If you want to do that, add leading `^` and/or trailing `$` as needed.

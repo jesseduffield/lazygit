@@ -310,6 +310,13 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		}
 	}
 
+	// This creates gui.branchColorPatterns, so it must run before the move of
+	// that key into gui.theme below.
+	err = migrateBranchColors(&rootNode, changes)
+	if err != nil {
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
+	}
+
 	pathsToMove := []struct {
 		oldPath []string
 		newPath []string
@@ -317,6 +324,14 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		{
 			[]string{"keybinding", "worktrees", "viewWorktreeOptions"},
 			[]string{"keybinding", "universal", "newWorktree"},
+		},
+		{
+			[]string{"gui", "authorColors"},
+			[]string{"gui", "theme", "authorColors"},
+		},
+		{
+			[]string{"gui", "branchColorPatterns"},
+			[]string{"gui", "theme", "branchColorPatterns"},
 		},
 	}
 
@@ -361,11 +376,6 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 	}
 
 	err = migratePagersToDiffRenderers(&rootNode, changes)
-	if err != nil {
-		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
-	}
-
-	err = migrateBranchColors(&rootNode, changes)
 	if err != nil {
 		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
 	}

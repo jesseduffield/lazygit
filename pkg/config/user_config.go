@@ -68,10 +68,6 @@ func (c *RefresherConfig) ExternalChangeCheckIntervalDuration() time.Duration {
 }
 
 type GuiConfig struct {
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
-	AuthorColors map[string]string `yaml:"authorColors"`
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
-	BranchColorPatterns ColorPatterns `yaml:"branchColorPatterns"`
 	// Custom icons for filenames and file extensions
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color
 	CustomIcons CustomIconsConfig `yaml:"customIcons"`
@@ -255,6 +251,10 @@ type ThemeConfig struct {
 	UnstagedChangesColor []string `yaml:"unstagedChangesColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Default text color
 	DefaultFgColor []string `yaml:"defaultFgColor" jsonschema:"minItems=1,uniqueItems=true"`
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
+	AuthorColors map[string]string `yaml:"authorColors"`
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
+	BranchColorPatterns ColorPatterns `yaml:"branchColorPatterns"`
 }
 
 type CommitLengthConfig struct {
