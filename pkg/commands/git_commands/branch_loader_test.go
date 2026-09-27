@@ -6,8 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/sasha-s/go-deadlock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -290,4 +292,63 @@ func TestGetBehindBaseBranchValuesForAllBranches_LegacyPath(t *testing.T) {
 	assert.Equal(t, int32(7), branches[0].BehindBaseBranch.Load())
 
 	runner.CheckForMissingCalls()
+}
+
+func TestCheckForRewrittenUpstreams(t *testing.T) {
+	branch := func(name string, ahead string, behind string) *models.Branch {
+		return &models.Branch{
+			Name:           name,
+			UpstreamRemote: "origin",
+			UpstreamBranch: name,
+			AheadForPull:   ahead,
+			BehindForPull:  behind,
+		}
+	}
+
+	notDiverged := branch("not-diverged", "0", "2")
+	rewritten := branch("rewritten", "3", "5")
+	ownCommits := branch("own-commits", "3", "5")
+	failing := branch("failing", "1", "1")
+
+	// A branch that is no longer diverged must lose the value it had before
+	notDiverged.UpstreamRewritten.Store(true)
+
+	branches := []*models.Branch{notDiverged, rewritten, ownCommits, failing}
+
+	var mutex deadlock.Mutex
+	queried := []string{}
+	hasLocalOnlyCommits := func(branch *models.Branch) (bool, error) {
+		mutex.Lock()
+		queried = append(queried, branch.Name)
+		mutex.Unlock()
+
+		switch branch.Name {
+		case "own-commits":
+			return true, nil
+		case "failing":
+			return false, errors.New("error")
+		default:
+			return false, nil
+		}
+	}
+
+	gitCommon := buildGitCommon(commonDeps{})
+	loader := &BranchLoader{
+		Common:              gitCommon.Common,
+		GitCommon:           gitCommon,
+		cmd:                 gitCommon.cmd,
+		hasLocalOnlyCommits: hasLocalOnlyCommits,
+	}
+
+	rendered := false
+	err := loader.checkForRewrittenUpstreams(branches, func() { rendered = true })
+	assert.NoError(t, err)
+	assert.True(t, rendered, "renderFunc should have been called")
+
+	assert.ElementsMatch(t, []string{"rewritten", "own-commits", "failing"}, queried,
+		"only diverged branches should be looked at")
+	assert.False(t, notDiverged.UpstreamRewritten.Load())
+	assert.True(t, rewritten.UpstreamRewritten.Load())
+	assert.False(t, ownCommits.UpstreamRewritten.Load())
+	assert.False(t, failing.UpstreamRewritten.Load(), "a failed check should not claim anything")
 }

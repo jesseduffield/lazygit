@@ -140,12 +140,14 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 		rebasedBranch, ok := self.rebasedBranch(worktree)
 		if ok {
 			worktree.Branch = rebasedBranch
+			worktree.IsRebasingOrBisecting = true
 			continue
 		}
 
 		bisectedBranch, ok := self.bisectedBranch(worktree)
 		if ok {
 			worktree.Branch = bisectedBranch
+			worktree.IsRebasingOrBisecting = true
 			continue
 		}
 	}

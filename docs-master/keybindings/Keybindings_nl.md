@@ -113,7 +113,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` d `` | Verwijderen | View delete options for local/remote branch. |
 | `` r `` | Rebase branch | Rebase de uitgecheckte branch bovenop de geselecteerde branch. |
 | `` M `` | Merge in met huidige checked out branch | View options for merging the selected item into the current branch (regular merge, squash merge) |
-| `` f `` | Fast-forward deze branch vanaf zijn upstream | Fast-forward selected branch from its upstream. |
+| `` f `` | Fast-forward deze branch vanaf zijn upstream | Fast-forward selected branch from its upstream. If the branch has diverged from its upstream because the upstream branch was rewritten, and it has no commits of its own, it is reset to its upstream instead. This needs reflogs to be enabled; a bare repository doesn't keep them by default (core.logAllRefUpdates). |
 | `` T `` | Creëer tag |  |
 | `` s `` | Sort order |  |
 | `` g `` | Bekijk reset opties |  |
