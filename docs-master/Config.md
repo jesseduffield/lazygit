@@ -301,6 +301,18 @@ gui:
   # NerdFontsVersion is not empty.
   showFileIcons: true
 
+  # How the commit graph is drawn.
+  # One of: 'auto' (default) | 'classic' | 'detailed'
+  # 'detailed' connects the lines to the commit circles, and shows exactly where
+  # branches fork off and merge. It draws the graph with the git branch drawing
+  # symbols (U+F5D0 to U+F60D), so it needs a terminal that draws these itself:
+  # kitty, Ghostty, WezTerm (nightly builds), Contour, or VS Code's terminal with
+  # GPU acceleration. Other terminals need a font that contains them, such as
+  # https://github.com/rbong/flog-symbols.
+  # 'auto' uses 'detailed' if lazygit recognizes the terminal as one that draws
+  # these symbols (kitty and Ghostty), and 'classic' otherwise.
+  commitGraphStyle: auto
+
   # Length of author name in (non-expanded) commits view. 2 means show initials
   # only.
   commitAuthorShortLength: 2

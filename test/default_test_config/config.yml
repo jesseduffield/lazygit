@@ -12,6 +12,9 @@ gui:
     - black
   # Not important in tests but it creates clutter in demos
   showRandomTip: false
+  # The expected output of the tests draws the commit graph with box drawing
+  # characters, whichever terminal a test runs in
+  commitGraphStyle: classic
   animateExplosion: false # takes too long
 git:
   # We don't want to run any periodic background git commands because it'll introduce race conditions and flakiness.
