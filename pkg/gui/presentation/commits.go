@@ -59,6 +59,7 @@ func GetCommitListDisplayStrings(
 	startIdx int,
 	endIdx int,
 	showGraph bool,
+	graphSymbolSet graph.SymbolSet,
 	bisectInfo *git_commands.BisectInfo,
 ) [][]string {
 	mutex.Lock()
@@ -107,6 +108,7 @@ func GetCommitListDisplayStrings(
 						graphPipeSets,
 						graphCommits,
 						selectedCommitHashPtr,
+						graphSymbolSet,
 					)
 					allGraphLines = append(allGraphLines, graphLines...)
 				}
@@ -124,6 +126,7 @@ func GetCommitListDisplayStrings(
 						graphPipeSets,
 						graphCommits,
 						selectedCommitHashPtr,
+						graphSymbolSet,
 					)
 					allGraphLines = append(allGraphLines, graphLines...)
 				}
@@ -145,6 +148,7 @@ func GetCommitListDisplayStrings(
 				graphPipeSets,
 				graphCommits,
 				selectedCommitHashPtr,
+				graphSymbolSet,
 			)
 			getGraphLine = func(idx int) string {
 				if idx >= graphOffset {
