@@ -1540,6 +1540,23 @@ The lesson, proposed for AGENTS.md (uncommitted in the feature worktree): after
 a mid-stack fixup, check every branch tip above it, not only the stack tip; a
 later PR can hide an unused symbol.
 
+#### Rebase onto master (2026-09-27) — the renderer switch goes through master's helper
+
+Master's #6063 moved the re-render in `onDiffRenderersChanged` into
+`DiffHelper.RenderToMainAgain`. Its dark/light switch in `gui.go` calls the
+same helper. Commit 5, "Keep your place in the diff when switching diff
+renderers", conflicted there. The user chose to put the two
+`PreserveDiffPositionOnRerender` calls inside the helper, so a switch between a
+dark and a light terminal background keeps your place too. `DiffHelper` now gets
+`DiffLineHelper` injected in this commit. PR 7's "Show git's own diff when the
+renderer's can't be acted on" did the same injection later and now only adds
+its comment on the field. The commit message gained a paragraph about the
+dark/light switch. Rejected: the calls in `onDiffRenderersChanged` ahead of the
+helper call (when the helper doesn't render, the restore stays installed and
+the next render claims it, perhaps of another item), and a `beforeRender`
+callback on the helper. No e2e test reaches the dark/light switch, because the
+harness can't change the colour scheme.
+
 ### PR 6b — Copy the selected diff lines from the focused main view
 
 Split out of PR 7 on 2026-09-13, at the user's suggestion: PR 7's first two
@@ -3495,6 +3512,24 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-09-27:** **The stack rebased onto master** (`cfbbf18656`, past
+  #6061–#6071: author colours, `{{colorScheme}}` for diff renderers, dark and
+  light themes, pushing and pulling stacked branches, tag range selection). The
+  foot branch `render-diffs-without-a-pty-on-windows` had landed as #6025. The
+  draft "Derive author colours in a colour space where lightness means
+  brightness" at the top of `rerecord-demos-and-update-readme` was dropped;
+  master's 7282c21aa5 is its reviewed form. Conflicts: PR 2's first test beside
+  master's `TestApplySelTextColor`; PR 5's narrow bar now applies master's
+  `applySelTextColor` inside the bar's width; PR 6's renderer switch (see PR 6's
+  section); PR 7's probe and renderer signature call master's
+  `DiffRendererValues` API (the probe with the `{Width: 80, DiffContext: 3}` that
+  config validation uses, the signature with zero values, ignoring errors);
+  PR 10's removal of `SetHighlight` and its line flash beside
+  `applySelTextColor`. PR 12's menu commit needed the `context` import back in
+  `global_controller.go`, since master's helper extraction had dropped it. Every
+  commit builds and vets the packages it touches; build, unit, lint and generate
+  green at all 14 branch tips; whole e2e suite (658 tests) green at the tip.
+  Backup tags `*-2026-09-27-1131-backup`.
 - **2026-09-21:** **PR 2 round 3**, on staging a line of a file whose path has a
   space in it, which did nothing under git's own diff: git ends the header's path
   field with a tab then, and the parser read the view's cells, where the tab had
