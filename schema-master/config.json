@@ -1224,11 +1224,12 @@
         "commitGraphStyle": {
           "type": "string",
           "enum": [
+            "auto",
             "classic",
             "detailed"
           ],
-          "description": "How the commit graph is drawn.\nOne of: 'classic' (default) | 'detailed'\n'detailed' connects the lines to the commit circles, and shows exactly where branches fork off and merge. It draws the graph with the git branch drawing symbols (U+F5D0 to U+F60D), so it needs a terminal that draws these itself: kitty, Ghostty, WezTerm (nightly builds), Contour, or VS Code's terminal with GPU acceleration. Other terminals need a font that contains them, such as https://github.com/rbong/flog-symbols.",
-          "default": "classic"
+          "description": "How the commit graph is drawn.\nOne of: 'auto' (default) | 'classic' | 'detailed'\n'detailed' connects the lines to the commit circles, and shows exactly where branches fork off and merge. It draws the graph with the git branch drawing symbols (U+F5D0 to U+F60D), so it needs a terminal that draws these itself: kitty, Ghostty, WezTerm (nightly builds), Contour, or VS Code's terminal with GPU acceleration. Other terminals need a font that contains them, such as https://github.com/rbong/flog-symbols.\n'auto' uses 'detailed' if lazygit recognizes the terminal as one that draws these symbols (kitty and Ghostty), and 'classic' otherwise.",
+          "default": "auto"
         },
         "commitAuthorShortLength": {
           "type": "integer",

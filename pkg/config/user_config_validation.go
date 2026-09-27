@@ -31,7 +31,7 @@ func (config *UserConfig) Validate() error {
 		return err
 	}
 	if err := validateEnum("gui.commitGraphStyle", config.Gui.CommitGraphStyle,
-		[]string{"classic", "detailed"}); err != nil {
+		[]string{"auto", "classic", "detailed"}); err != nil {
 		return err
 	}
 	if err := validateEnum("git.autoForwardBranches", config.Git.AutoForwardBranches,
