@@ -18,6 +18,10 @@ func (config *UserConfig) Validate() error {
 		[]string{"dashboard", "allBranchesLog"}); err != nil {
 		return err
 	}
+	if err := validateEnum("gui.colorScheme", config.Gui.ColorScheme,
+		[]string{"auto", "dark", "light"}); err != nil {
+		return err
+	}
 	if err := validateEnum("gui.showDivergenceFromBaseBranch", config.Gui.ShowDivergenceFromBaseBranch,
 		[]string{"none", "onlyArrow", "arrowAndNumber"}); err != nil {
 		return err

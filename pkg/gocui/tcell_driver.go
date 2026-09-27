@@ -56,7 +56,13 @@ var runeReplacements = map[rune]string{
 func (g *Gui) tcellInit(runeReplacements map[rune]string) error {
 	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
 
-	s, e := tcell.NewScreen()
+	tty, e := tcell.NewDevTty()
+	if e != nil {
+		return e
+	}
+	colorSchemeTty := newColorSchemeTty(tty)
+
+	s, e := tcell.NewTerminfoScreenFromTty(colorSchemeTty)
 	if e != nil {
 		return e
 	}
@@ -68,6 +74,7 @@ func (g *Gui) tcellInit(runeReplacements map[rune]string) error {
 	registerRuneFallbacks(s, runeReplacements)
 
 	g.screen = s
+	g.colorSchemeTty = colorSchemeTty
 	Screen = s
 	return nil
 }
