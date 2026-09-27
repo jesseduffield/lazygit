@@ -21,17 +21,33 @@ const (
 	MERGE
 )
 
+// How a line that touches the top or bottom edge of a cell runs within it
+type verticalLine uint8
+
+const (
+	noLine verticalLine = iota
+	// On to the opposite edge, or into the commit symbol
+	straightLine
+	// Bends towards the left edge
+	lineToLeft
+	// Bends towards the right edge
+	lineToRight
+)
+
 type Cell struct {
-	up, down, left, right bool
-	cellType              cellType
-	rightStyle            *style.TextStyle
-	style                 *style.TextStyle
+	// The lines that touch the top and bottom edges
+	up, down verticalLine
+	// Whether lines touch the left and right edges
+	left, right bool
+	// Whether a line passes through from the left edge to the right edge
+	horizontal bool
+	cellType   cellType
+	rightStyle *style.TextStyle
+	style      *style.TextStyle
 }
 
 func (cell *Cell) render(writer io.StringWriter) {
-	up, down, left, right := cell.up, cell.down, cell.left, cell.right
-
-	first, second := getBoxDrawingChars(up, down, left, right)
+	first, second := getBoxDrawingChars(cell.up != noLine, cell.down != noLine, cell.left, cell.right)
 	var adjustedFirst string
 	switch cell.cellType {
 	case CONNECTION:
@@ -98,40 +114,45 @@ func cachedSprint(style style.TextStyle, str string) string {
 }
 
 func (cell *Cell) reset() {
-	cell.up = false
-	cell.down = false
+	cell.up = noLine
+	cell.down = noLine
 	cell.left = false
 	cell.right = false
+	cell.horizontal = false
 }
 
-func (cell *Cell) setUp(style *style.TextStyle) *Cell {
-	cell.up = true
+func (cell *Cell) setUp(style *style.TextStyle, line verticalLine) *Cell {
+	cell.up = line
 	cell.style = style
 	return cell
 }
 
-func (cell *Cell) setDown(style *style.TextStyle) *Cell {
-	cell.down = true
+func (cell *Cell) setDown(style *style.TextStyle, line verticalLine) *Cell {
+	cell.down = line
 	cell.style = style
 	return cell
 }
 
 func (cell *Cell) setLeft(style *style.TextStyle) *Cell {
 	cell.left = true
-	if !cell.up && !cell.down {
+	if cell.up == noLine && cell.down == noLine {
 		// vertical trumps left
 		cell.style = style
 	}
 	return cell
 }
 
-//nolint:unparam
 func (cell *Cell) setRight(style *style.TextStyle, override bool) *Cell {
 	cell.right = true
 	if cell.rightStyle == nil || override {
 		cell.rightStyle = style
 	}
 	return cell
+}
+
+func (cell *Cell) setHorizontal(style *style.TextStyle, overrideRightStyle bool) *Cell {
+	cell.horizontal = true
+	return cell.setLeft(style).setRight(style, overrideRightStyle)
 }
 
 func (cell *Cell) setStyle(style *style.TextStyle) *Cell {

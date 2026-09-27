@@ -303,17 +303,17 @@ func renderPipeSet(
 
 		if left != right {
 			for i := left + 1; i < right; i++ {
-				cells[i].setLeft(style).setRight(style, overrideRightStyle)
+				cells[i].setHorizontal(style, overrideRightStyle)
 			}
 			cells[left].setRight(style, overrideRightStyle)
 			cells[right].setLeft(style)
 		}
 
 		if pipe.kind == STARTS || pipe.kind == CONTINUES {
-			cells[pipe.toPos].setDown(style)
+			cells[pipe.toPos].setDown(style, lineTowards(pipe.toPos, pipe.fromPos))
 		}
 		if pipe.kind == TERMINATES || pipe.kind == CONTINUES {
-			cells[pipe.fromPos].setUp(style)
+			cells[pipe.fromPos].setUp(style, lineTowards(pipe.fromPos, pipe.toPos))
 		}
 	}
 
@@ -373,6 +373,19 @@ func renderPipeSet(
 		cell.render(writer)
 	}
 	return writer.String()
+}
+
+// The course of a line through the top or bottom edge of the cell at pos,
+// given the column of the pipe's other end
+func lineTowards(pos, otherPos int16) verticalLine {
+	switch {
+	case otherPos < pos:
+		return lineToLeft
+	case otherPos > pos:
+		return lineToRight
+	default:
+		return straightLine
+	}
 }
 
 func equalHashes(a, b *string) bool {
