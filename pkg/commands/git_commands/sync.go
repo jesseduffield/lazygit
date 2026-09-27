@@ -1,8 +1,6 @@
 package git_commands
 
 import (
-	"fmt"
-
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -18,18 +16,21 @@ func NewSyncCommands(gitCommon *GitCommon) *SyncCommands {
 	}
 }
 
-// Push pushes to a branch
 type PushOpts struct {
 	Force          bool
 	ForceWithLease bool
-	CurrentBranch  string
-	UpstreamRemote string
-	UpstreamBranch string
 	SetUpstream    bool
+	// The remote to push to. If empty, git picks it from its configuration,
+	// and Refspecs must be empty too.
+	Remote string
+	// What to push, each in the form "refs/heads/<local branch>:<remote ref>".
+	// If empty, git decides what to push based on push.default and
+	// remote.<name>.push.
+	Refspecs []string
 }
 
 func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (*oscommands.CmdObj, error) {
-	if opts.UpstreamBranch != "" && opts.UpstreamRemote == "" {
+	if len(opts.Refspecs) > 0 && opts.Remote == "" {
 		return nil, errors.New(self.Tr.MustSpecifyOriginError)
 	}
 
@@ -37,8 +38,8 @@ func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (*oscommand
 		ArgIf(opts.Force, "--force").
 		ArgIf(opts.ForceWithLease, "--force-with-lease").
 		ArgIf(opts.SetUpstream, "--set-upstream").
-		ArgIf(opts.UpstreamRemote != "", opts.UpstreamRemote).
-		ArgIf(opts.UpstreamBranch != "", fmt.Sprintf("refs/heads/%s:%s", opts.CurrentBranch, opts.UpstreamBranch)).
+		ArgIf(opts.Remote != "", opts.Remote).
+		Arg(opts.Refspecs...).
 		ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs).PromptOnCredentialRequest(task)
