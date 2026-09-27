@@ -504,18 +504,7 @@ func (self *BranchesHelper) PrepareFastForward(branches []*models.Branch) (func(
 // Runs f on a worker with all the given branches shown as being in the given
 // operation while it runs
 func (self *BranchesHelper) WithInlineStatusOnBranches(branches []*models.Branch, operation types.ItemOperation, f func(gocui.Task) error) error {
-	return self.c.WithInlineStatus(branches[0], operation, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
-		for _, branch := range branches[1:] {
-			self.c.State().SetItemOperation(branch, operation)
-		}
-		defer func() {
-			for _, branch := range branches[1:] {
-				self.c.State().ClearItemOperation(branch)
-			}
-		}()
-
-		return f(task)
-	})
+	return WithInlineStatusOnItems(self.c, branches, operation, context.LOCAL_BRANCHES_CONTEXT_KEY, f)
 }
 
 func (self *BranchesHelper) fetchUpstreamBranches(task gocui.Task, branches []*models.Branch) error {

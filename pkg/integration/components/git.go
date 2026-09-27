@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/samber/lo"
 )
 
 type Git struct {
@@ -24,6 +25,19 @@ func (self *Git) TagNamesAt(ref string, expectedNames []string) *Git {
 func (self *Git) RemoteTagDeleted(ref string, tagName string) *Git {
 	return self.expect([]string{"git", "ls-remote", ref, fmt.Sprintf("refs/tags/%s", tagName)}, func(s string) (bool, string) {
 		return len(s) == 0, fmt.Sprintf("Expected tag %s to have been removed from %s", tagName, ref)
+	})
+}
+
+// Asserts the names of all tags on the remote, in alphabetical order
+func (self *Git) RemoteTagNames(remote string, expectedNames []string) *Git {
+	return self.expect([]string{"git", "ls-remote", "--tags", "--refs", remote}, func(output string) (bool, string) {
+		names := lo.FilterMap(strings.Split(output, "\n"), func(line string, _ int) (string, bool) {
+			_, ref, found := strings.Cut(line, "\t")
+			return strings.TrimPrefix(ref, "refs/tags/"), found
+		})
+		actual := strings.Join(names, "\n")
+		expected := strings.Join(expectedNames, "\n")
+		return actual == expected, fmt.Sprintf("Expected the tags on %s to be\n%s\nbut got\n%s", remote, expected, actual)
 	})
 }
 
