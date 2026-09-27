@@ -47,16 +47,7 @@ type Cell struct {
 }
 
 func (cell *Cell) render(writer io.StringWriter) {
-	first, second := getBoxDrawingChars(cell.up != noLine, cell.down != noLine, cell.left, cell.right)
-	var adjustedFirst string
-	switch cell.cellType {
-	case CONNECTION:
-		adjustedFirst = first
-	case COMMIT:
-		adjustedFirst = string(CommitSymbol)
-	case MERGE:
-		adjustedFirst = string(MergeSymbol)
-	}
+	first, second := cell.boxDrawingChars()
 
 	var rightStyle *style.TextStyle
 	if cell.rightStyle == nil {
@@ -75,8 +66,20 @@ func (cell *Cell) render(writer io.StringWriter) {
 		styledSecondChar = cachedSprint(*rightStyle, second)
 	}
 
-	_, _ = writer.WriteString(cachedSprint(*cell.style, adjustedFirst))
+	_, _ = writer.WriteString(cachedSprint(*cell.style, first))
 	_, _ = writer.WriteString(styledSecondChar)
+}
+
+func (cell *Cell) boxDrawingChars() (string, string) {
+	first, second := getBoxDrawingChars(cell.up != noLine, cell.down != noLine, cell.left, cell.right)
+	switch cell.cellType {
+	case COMMIT:
+		return string(CommitSymbol), second
+	case MERGE:
+		return string(MergeSymbol), second
+	default:
+		return first, second
+	}
 }
 
 type rgbCacheKey struct {
