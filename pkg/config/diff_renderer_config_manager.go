@@ -1,8 +1,9 @@
 package config
 
 import (
-	"strconv"
+	"fmt"
 	"strings"
+	"text/template"
 
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -60,19 +61,23 @@ func (self *DiffRendererConfigManager) GetDiffRendererType() DiffRendererType {
 	return currentDiffRendererConfig.getType()
 }
 
-func (self *DiffRendererConfigManager) GetStdinFilterCommand(width int) string {
+// DiffRendererValues are what the command of a diff renderer can refer to.
+type DiffRendererValues struct {
+	// The width of the view that the diff is rendered into
+	Width int
+	// The number of lines of context around each hunk
+	DiffContext uint64
+	// Whether the terminal has a light background
+	LightBackground bool
+}
+
+func (self *DiffRendererConfigManager) GetStdinFilterCommand(values DiffRendererValues) (string, error) {
 	currentDiffRendererConfig := self.currentDiffRendererConfig()
 	if currentDiffRendererConfig == nil || currentDiffRendererConfig.getType() != DiffRendererType_StdinFilter {
-		return ""
+		return "", nil
 	}
 
-	templateValues := map[string]string{
-		"width":       strconv.Itoa(width),
-		"columnWidth": strconv.Itoa(width/2 - 6),
-	}
-
-	commandTemplate := string(currentDiffRendererConfig.Command)
-	return utils.ResolvePlaceholderString(commandTemplate, templateValues)
+	return currentDiffRendererConfig.resolveCommand(values)
 }
 
 func (self *DiffRendererConfigManager) GetColorArg() string {
@@ -88,18 +93,46 @@ func (self *DiffRendererConfigManager) GetColorArg() string {
 	return colorArg
 }
 
-func (self *DiffRendererConfigManager) GetExternalDiffCommand(diffContext uint64, width int) string {
+func (self *DiffRendererConfigManager) GetExternalDiffCommand(values DiffRendererValues) (string, error) {
 	currentDiffRendererConfig := self.currentDiffRendererConfig()
 	if currentDiffRendererConfig == nil || currentDiffRendererConfig.getType() != DiffRendererType_ExtDiff {
-		return ""
+		return "", nil
 	}
 
-	templateValues := map[string]string{
-		"diffContext": strconv.Itoa(int(diffContext)),
-		"width":       strconv.Itoa(width),
+	return currentDiffRendererConfig.resolveCommand(values)
+}
+
+// resolveCommand resolves the renderer's command, which is a Go template with
+// the values it can refer to as its variables. A variable can be written with
+// or without the leading dot, as in {{.width}} or {{width}}.
+func (self *DiffRendererConfig) resolveCommand(values DiffRendererValues) (string, error) {
+	colorScheme := "dark"
+	if values.LightBackground {
+		colorScheme = "light"
+	}
+	variables := map[string]any{
+		"width":       values.Width,
+		"colorScheme": colorScheme,
+	}
+	switch self.getType() {
+	case DiffRendererType_StdinFilter:
+		variables["columnWidth"] = values.Width/2 - 6
+	case DiffRendererType_ExtDiff:
+		variables["diffContext"] = values.DiffContext
+	case DiffRendererType_RawGit:
+		// has no command
 	}
 
-	return utils.ResolvePlaceholderString(string(currentDiffRendererConfig.Command), templateValues)
+	funcs := template.FuncMap{}
+	for name, value := range variables {
+		funcs[name] = func() any { return value }
+	}
+
+	command, err := utils.ResolveTemplate(string(self.Command), variables, funcs)
+	if err != nil {
+		return "", fmt.Errorf("git.diffRenderers: can't use the command '%s': %w", self.Command, err)
+	}
+	return command, nil
 }
 
 func (self *DiffRendererConfigManager) GetRawGitArgs() []string {

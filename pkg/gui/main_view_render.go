@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -56,8 +57,19 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 		// width to render at known, and with it the renderer command.
 		width := view.InnerWidth()
 		diffRendererConfigManager := gui.stateAccessor.GetDiffRendererConfigManager()
-		stdinFilter := diffRendererConfigManager.GetStdinFilterCommand(width)
-		externalDiff := diffRendererConfigManager.GetExternalDiffCommand(gui.c.UserConfig().Git.DiffContextSize, width)
+		values := config.DiffRendererValues{
+			Width:           width,
+			DiffContext:     gui.c.UserConfig().Git.DiffContextSize,
+			LightBackground: gui.terminalHasLightBackground(),
+		}
+		stdinFilter, stdinFilterErr := diffRendererConfigManager.GetStdinFilterCommand(values)
+		externalDiff, externalDiffErr := diffRendererConfigManager.GetExternalDiffCommand(values)
+		if err := errors.Join(stdinFilterErr, externalDiffErr); err != nil {
+			// The commands are checked with made-up values when the config is
+			// loaded, so only one that fails for some values and not for others
+			// gets here. Git's own diff is shown instead.
+			gui.c.ErrorToast(err.Error())
+		}
 
 		cmdStr := strings.Join(cmd.Args, " ")
 
