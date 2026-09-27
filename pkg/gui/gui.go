@@ -953,6 +953,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	g.ErrorHandler = gui.PopupHandler.ErrorHandler
 
+	terminalName, terminalVersion := g.Terminal()
+	gui.c.Log.Infof("Terminal: %s %s", terminalName, terminalVersion)
 	gui.c.Log.Infof("Terminal color scheme: %s", g.DetectedColorScheme())
 	g.SetColorSchemeChangeHandler(func(colorScheme gocui.DetectedColorScheme) error {
 		gui.c.Log.Infof("Terminal color scheme changed: %s", colorScheme)
