@@ -3512,6 +3512,19 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-09-27 (later):** **PR 5's `select_below_a_long_commit_message`
+  failed once on CI** (git latest, on PR 11's branch): the pane's buffer ended
+  at `-two`, the first change line, and the test asserted on `+TWO` below it.
+  Each read-on asks for `LinesHeight()` plus a render's worth from the
+  content-only refresh, which runs on the UI thread while the reader is still
+  serving earlier requests. So where the reading stops depends on timing, and
+  only the first change line is guaranteed. Measured with temporary logging
+  over 300 local runs: no failure, the last read-on anywhere between 869 and
+  1019 lines. The test now asserts on `-two`, in a `fixup!` of "Show a
+  selection in the focused main view" left at the tip of
+  `rerecord-demos-and-update-readme` for the user to fold in. No code change:
+  a user can't tell the difference, since focusing above the diff lands on the
+  middle visible line and scrolling reads further.
 - **2026-09-27:** **The stack rebased onto master** (`cfbbf18656`, past
   #6061–#6071: author colours, `{{colorScheme}}` for diff renderers, dark and
   light themes, pushing and pulling stacked branches, tag range selection). The
