@@ -74,11 +74,11 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 		}
 		cmdObj := self.c.Git().Diff.DiffCmdObj(args)
 		prefix := style.FgYellow.Sprintf("%s %s-%s\n\n", self.c.Tr.ShowingDiffForRange, from.ShortRefName(), to.ShortRefName())
-		return types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix)
+		return types.NewRunDiffRendererTaskWithPrefix(cmdObj.GetCmd(), prefix)
 	}
 
 	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit))
-	return types.NewRunPtyTask(cmdObj.GetCmd())
+	return types.NewRunDiffRendererTask(cmdObj.GetCmd())
 }
 
 func (self *DiffHelper) FilterPathsForCommit(commit *models.Commit) []string {
@@ -98,6 +98,19 @@ func (self *DiffHelper) ExitDiffMode() error {
 	return nil
 }
 
+// RenderToMainAgain renders the current side panel into the main view again, if
+// that is what the main view shows. This is for when something that the
+// rendering depends on has changed, such as the diff renderer.
+func (self *DiffHelper) RenderToMainAgain() {
+	currentSide := self.c.Context().CurrentSide()
+	currentKey := self.c.Context().Current().GetKey()
+	if currentSide.GetKey() == currentKey ||
+		currentKey == context.NORMAL_MAIN_CONTEXT_KEY ||
+		currentKey == context.NORMAL_SECONDARY_CONTEXT_KEY {
+		currentSide.HandleRenderToMain()
+	}
+}
+
 func (self *DiffHelper) RenderDiff() {
 	args := self.DiffArgs()
 	cmdObj := self.c.Git().Diff.DiffCmdObj(args)
@@ -106,7 +119,7 @@ func (self *DiffHelper) RenderDiff() {
 		self.c.Tr.ShowingGitDiff,
 		"git diff "+strings.Join(args, " "),
 	)
-	task := types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix)
+	task := types.NewRunDiffRendererTaskWithPrefix(cmdObj.GetCmd(), prefix)
 
 	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,

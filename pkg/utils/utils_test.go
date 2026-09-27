@@ -125,3 +125,27 @@ func TestExpandTilde(t *testing.T) {
 		})
 	}
 }
+
+func TestContractTilde(t *testing.T) {
+	home, err := os.UserHomeDir()
+	assert.NoError(t, err)
+
+	scenarios := []struct {
+		name     string
+		path     string
+		expected string
+	}{
+		{"home directory", home, "~"},
+		{"path inside the home directory", filepath.Join(home, "worktrees"), filepath.Join("~", "worktrees")},
+		{"path outside the home directory is untouched", filepath.Join("/absolute", "path"), filepath.Join("/absolute", "path")},
+		{"path merely starting with the home directory's name is untouched", home + "-backup", home + "-backup"},
+		{"relative path is untouched", filepath.Join("relative", "path"), filepath.Join("relative", "path")},
+		{"empty string is untouched", "", ""},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expected, ContractTilde(s.path))
+		})
+	}
+}

@@ -271,13 +271,13 @@ func callGitRevParseWithDir(
 	return runGitRevParse(newGitRevParseCmd(cmd, dir, gitRevArgs...))
 }
 
-// Asks git about a repo that isn't the one we have open; see forOtherRepo.
+// Asks git about a repo that isn't the one we have open; see ForOtherRepo.
 func callGitRevParseInOtherRepo(
 	cmd oscommands.ICmdObjBuilder,
 	dir string,
 	gitRevArgs ...string,
 ) (string, error) {
-	return runGitRevParse(forOtherRepo(newGitRevParseCmd(cmd, dir, gitRevArgs...)))
+	return runGitRevParse(ForOtherRepo(newGitRevParseCmd(cmd, dir, gitRevArgs...)))
 }
 
 func newGitRevParseCmd(

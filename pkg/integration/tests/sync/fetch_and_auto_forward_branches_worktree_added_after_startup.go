@@ -6,7 +6,7 @@ import (
 )
 
 var FetchAndAutoForwardBranchesWorktreeAddedAfterStartup = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Auto-forward skips a main branch that was externally checked out in a linked worktree after lazygit started",
+	Description:  "Auto-forward a main branch in the linked worktree that it was externally checked out in after lazygit started",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
@@ -43,7 +43,7 @@ var FetchAndAutoForwardBranchesWorktreeAddedAfterStartup = NewIntegrationTest(Ne
 		t.Views().Branches().
 			Lines(
 				Contains("feature").IsSelected(),
-				Contains("master (worktree linked-worktree) ↓1"),
+				Contains("master (worktree linked-worktree) ✓"),
 				Contains("wt-branch").DoesNotContain("worktree"),
 			)
 

@@ -93,7 +93,7 @@ func (self *StashController) GetOnRenderToMain() func() {
 				task = types.NewRenderStringTask(self.c.Tr.NoStashEntries)
 			} else {
 				prefix := style.FgYellow.Sprintf("%s\n\n", stashEntry.Description())
-				task = types.NewRunPtyTaskWithPrefix(
+				task = types.NewRunDiffRendererTaskWithPrefix(
 					self.c.Git().Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd(),
 					prefix,
 				)

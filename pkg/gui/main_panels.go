@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -19,8 +20,8 @@ func (gui *Gui) runTaskForView(view *gocui.View, task types.UpdateTask) error {
 	case *types.RunCommandTask:
 		return gui.newCmdTask(view, v.Cmd, v.Prefix)
 
-	case *types.RunPtyTask:
-		return gui.newPtyTask(view, v.Cmd, v.Prefix)
+	case *types.RunDiffRendererTask:
+		return gui.newRenderTask(view, v.Cmd, v.Prefix)
 	}
 
 	return nil
@@ -138,4 +139,18 @@ func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) {
 
 func (gui *Gui) splitMainPanel(splitMainPanel bool) {
 	gui.State.SplitMainPanel = splitMainPanel
+}
+
+// reApplySearch runs a search the view holds again over the content a render has just
+// finished putting there, so that the matches highlighted and the "x of y" status
+// describe what the view shows now rather than what it showed when the search was
+// typed. Call it once the content is final.
+func (gui *Gui) reApplySearch(view *gocui.View) {
+	// While the prompt is open, the search view holds what the user is typing, and the
+	// status would be written over it.
+	if gui.State.ContextMgr.Current().GetKey() == context.SEARCH_CONTEXT_KEY {
+		return
+	}
+
+	view.RefreshSearch()
 }

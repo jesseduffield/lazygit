@@ -27,13 +27,10 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 	)
 
 	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
-		commits := viewModel.GetItems()
-		if startIdx >= len(commits) {
-			return nil
-		}
-
 		return presentation.GetReflogCommitListDisplayStrings(
-			commits[startIdx:endIdx],
+			viewModel.GetItems(),
+			startIdx,
+			endIdx,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,

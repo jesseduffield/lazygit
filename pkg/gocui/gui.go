@@ -227,6 +227,12 @@ type Gui struct {
 	// readable from anywhere, so it's atomic.
 	focused atomic.Bool
 
+	// colorSchemeTty is nil when running headless. colorScheme and
+	// colorSchemeHandler are only touched on the UI thread.
+	colorSchemeTty     *colorSchemeTty
+	colorScheme        DetectedColorScheme
+	colorSchemeHandler func(DetectedColorScheme) error
+
 	// blockInputCount, when greater than zero, withholds keyboard input from
 	// the handlers: key events are buffered into bufferedKeyEvents and replayed
 	// once the count drops back to zero, while mouse clicks and hover are
@@ -317,6 +323,18 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	// never happened.
 	g.focused.Store(true)
 
+	if g.colorSchemeTty != nil {
+		g.colorScheme = g.colorSchemeTty.subscribe(func(colorScheme DetectedColorScheme) {
+			g.UpdateBackground(func(g *Gui) error {
+				g.colorScheme = colorScheme
+				if g.colorSchemeHandler != nil {
+					return g.colorSchemeHandler(colorScheme)
+				}
+				return nil
+			})
+		})
+	}
+
 	return g, nil
 }
 
@@ -374,6 +392,7 @@ func (g *Gui) WaitUntilIdle() {
 // initialization and when gocui is not needed anymore.
 func (g *Gui) Close() {
 	close(g.stop)
+	g.waitForColorSchemeReplies()
 	Screen.Fini()
 }
 
@@ -675,19 +694,15 @@ func (g *Gui) DeleteViewKeybindings(viewname string) {
 }
 
 // SetTabClickBinding sets a binding for a tab click event
-func (g *Gui) SetTabClickBinding(viewName string, handler tabClickHandler) error {
+func (g *Gui) SetTabClickBinding(viewName string, handler tabClickHandler) {
 	g.tabClickBindings = append(g.tabClickBindings, &tabClickBinding{
 		viewName: viewName,
 		handler:  handler,
 	})
-
-	return nil
 }
 
-func (g *Gui) SetViewClickBinding(binding *ViewMouseBinding) error {
+func (g *Gui) SetViewClickBinding(binding *ViewMouseBinding) {
 	g.viewMouseBindings = append(g.viewMouseBindings, binding)
-
-	return nil
 }
 
 // captureMouse routes subsequent mouse events to view until the mouse button is
@@ -710,6 +725,29 @@ func (g *Gui) CancelMouseCapture() {
 
 func (g *Gui) SetFocusHandler(handler func(bool) error) {
 	g.focusHandler = handler
+}
+
+// DetectedColorScheme returns what the terminal has told us about its colors.
+// It is known before the first layout, for the terminals that tell us at all.
+func (g *Gui) DetectedColorScheme() DetectedColorScheme {
+	return g.colorScheme
+}
+
+// SetColorSchemeChangeHandler sets a function to call on the UI thread whenever
+// the terminal's colors change after startup.
+func (g *Gui) SetColorSchemeChangeHandler(handler func(DetectedColorScheme) error) {
+	g.colorSchemeHandler = handler
+}
+
+// Long enough for the round trip of a slow ssh connection
+const colorSchemeReplyTimeout = 500 * time.Millisecond
+
+// waitForColorSchemeReplies is for before we give up the terminal. tcell is
+// still reading the input at that point, so the answers are consumed as usual.
+func (g *Gui) waitForColorSchemeReplies() {
+	if g.colorSchemeTty != nil {
+		g.colorSchemeTty.waitForReplies(colorSchemeReplyTimeout)
+	}
 }
 
 func (g *Gui) SetOpenHyperlinkFunc(openHyperlinkFunc func(string, string) error) {
@@ -1619,6 +1657,20 @@ func (g *Gui) ForceFlushViewsContentOnly(views []*View) error {
 	return g.flushContentOnly(views)
 }
 
+// hasFocus reports whether a view is drawn as focused. Views that are embedded
+// in one another (see View.ParentView) form a single unit, so they are all drawn
+// as focused while any one of them is the current view.
+func (g *Gui) hasFocus(v *View) bool {
+	return g.currentView != nil && outermostView(v) == outermostView(g.currentView)
+}
+
+func outermostView(v *View) *View {
+	for v.ParentView != nil {
+		v = v.ParentView
+	}
+	return v
+}
+
 // draw manages the cursor and calls the draw function of a view.
 func (g *Gui) draw(v *View) error {
 	if !v.Visible || v.y1 < v.y0 || v.x1 < v.x0 {
@@ -1643,7 +1695,7 @@ func (g *Gui) draw(v *View) error {
 
 	if v.Frame {
 		var fgColor, bgColor, frameColor Attribute
-		if g.Highlight && v == g.currentView && g.IsFocused() {
+		if g.Highlight && g.hasFocus(v) && g.IsFocused() {
 			fgColor = g.SelFgColor
 			bgColor = g.SelBgColor
 			frameColor = g.SelFrameColor
@@ -1983,7 +2035,7 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 			matchingParentViewKb = nil
 			break
 		}
-		if v != nil && g.matchView(v.ParentView, kb) {
+		if matchingParentViewKb == nil && v != nil && g.matchView(v.ParentView, kb) {
 			matchingParentViewKb = kb
 		}
 		if globalKb == nil && kb.viewName == "" {
@@ -2033,6 +2085,10 @@ func (g *Gui) onFocus(ev *GocuiEvent) error {
 	}
 	g.focused.Store(ev.Focused)
 
+	if ev.Focused && g.colorSchemeTty != nil {
+		g.colorSchemeTty.onFocusGained()
+	}
+
 	if g.focusHandler != nil {
 		return g.focusHandler(ev.Focused)
 	}
@@ -2049,6 +2105,8 @@ func (g *Gui) onFocus(ev *GocuiEvent) error {
 // after re-engaging.
 
 func (g *Gui) Suspend() error {
+	g.waitForColorSchemeReplies()
+
 	g.suspendedMutex.Lock()
 	defer g.suspendedMutex.Unlock()
 
@@ -2095,13 +2153,15 @@ func (g *Gui) isSuspended() bool {
 	return g.suspended
 }
 
-// matchView returns if the keybinding matches the current view (and the view's context)
+// matchView returns if the keybinding matches the given view (and the view's context)
 func (g *Gui) matchView(v *View, kb *keybinding) bool {
-	// if the user is typing in a field, ignore char keys
 	if v == nil {
 		return false
 	}
-	if v.Editable && kb.key.Str() != "" && kb.key.Mod() == 0 {
+	// If the user is typing in a field, printable keys are theirs to type, so no
+	// keybinding gets a look at them: not the field's own, and not those of the
+	// view it is embedded in either.
+	if field := g.currentView; field != nil && field.Editable && !field.KeybindOnEdit && kb.key.IsPrintable() {
 		return false
 	}
 	if kb.viewName != v.name {

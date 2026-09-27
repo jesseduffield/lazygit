@@ -19,12 +19,12 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/maps"
-	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -49,7 +49,7 @@ func CommandToRun() string {
 }
 
 func GetKeybindingsDir() string {
-	return utils.GetLazyRootDirectory() + "/docs-master/keybindings"
+	return utils.MustFindLazygitRootDirectory() + "/docs-master/keybindings"
 }
 
 func generateAtDir(cheatsheetDir string) {
@@ -58,10 +58,11 @@ func generateAtDir(cheatsheetDir string) {
 		log.Fatal(err)
 	}
 	mConfig := config.NewDummyAppConfig()
+	logger := app.NewLogger(mConfig.GetDebug())
 
 	for lang := range translationSetsByLang {
 		mConfig.GetUserConfig().Gui.Language = lang
-		common, err := app.NewCommon(mConfig)
+		common, err := app.NewCommon(mConfig, logger)
 		if err != nil {
 			log.Fatal(err)
 		}

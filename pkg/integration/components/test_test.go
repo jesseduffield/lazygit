@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	lazycoreUtils "github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -86,6 +86,10 @@ func (self *fakeGuiDriver) Keys() config.KeybindingConfig {
 
 func (self *fakeGuiDriver) CurrentContext() types.Context {
 	return nil
+}
+
+func (self *fakeGuiDriver) CursorVisible() bool {
+	return false
 }
 
 func (self *fakeGuiDriver) ContextForView(viewName string) types.Context {
@@ -223,7 +227,12 @@ func TestFailingFixture(t *testing.T) {
 	paths := NewPaths(t.TempDir())
 	assert.NoError(t, os.MkdirAll(paths.ActualRepo(), 0o777))
 
-	workingDir, err := createFixture(test, paths, lazycoreUtils.GetLazyRootDirectory())
+	rootDir, err := utils.FindLazygitRootDirectory()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	workingDir, err := createFixture(test, paths, rootDir)
 
 	assert.ErrorContains(t, err, "git checkout no-such-branch")
 	assert.Empty(t, workingDir)

@@ -393,7 +393,6 @@
   "DiscardOldFileChangeTooltip": "Descartar as alterações desse commit para este arquivo. Isso executa uma rebase interativa em segundo plano, então você pode ter um conflito de merge se um commit posterior também alterar este arquivo.",
   "DiscardFileChangesTitle": "Descartar alterações de arquivo",
   "CreateRepo": "Não está em um repositório git. Criar um novo repositório git? (y/N): ",
-  "BareRepo": "Você tentou abrir Lazygit em um repositório puro, mas Lazygit ainda não suporta repositórios vazios. Abrir os repositórios mais recentes? (y/n) ",
   "InitialBranch": "Nome da branch? (deixe vazio para o padrão do git): ",
   "NoRecentRepositories": "É necessário abrir lazygit em um repositório git. Nenhum repositório recente válido. Saindo do sistema.",
   "IncorrectNotARepository": "O valor de 'notARepository' está incorreto. Deve ser um dos 'prompt', 'create', 'sk', ou 'quit'.",

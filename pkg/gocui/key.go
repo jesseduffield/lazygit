@@ -61,6 +61,12 @@ func (k Key) IsSet() bool {
 	return k.keyName != 0
 }
 
+// IsPrintable reports whether the key stands for a character that can be typed
+// into a text field.
+func (k Key) IsPrintable() bool {
+	return k.keyName == KeyName(tcell.KeyRune) && k.str != "" && k.mod == ModNone
+}
+
 func (k Key) Equals(otherKey Key) bool {
 	return k.keyName == otherKey.keyName && k.str == otherKey.str && k.mod == otherKey.mod
 }
