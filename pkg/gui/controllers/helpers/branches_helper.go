@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -421,14 +422,8 @@ func (self *BranchesHelper) PostFetchRefresh(fetchErr error, background bool, fe
 			if self.c.State().GetRepoGeneration() != fetchGeneration {
 				return nil
 			}
-			err := self.AutoForwardBranches(background)
-			if background && err != nil {
-				// The background poller discards this return value, so surface
-				// the error in the log rather than as a popup for background work.
-				self.c.Log.Error(err)
-				return nil
-			}
-			return err
+			self.AutoForwardBranches(background)
+			return nil
 		},
 	})
 	return fetchErr
@@ -492,7 +487,7 @@ func (self *BranchesHelper) FastForwardBranches(branches []*models.Branch) error
 			}
 		}
 
-		return self.forwardBranches(toForward)
+		return self.forwardBranches(self.c.Git(), toForward)
 	})
 }
 
@@ -575,7 +570,11 @@ func (self *BranchesHelper) planForwardingBranch(f *branchToForward) error {
 	return nil
 }
 
-func (self *BranchesHelper) forwardBranches(toForward []*branchToForward) error {
+// Keeps going when a branch fails to update, so that it doesn't hold up the
+// others, and returns the errors of all the failed ones.
+func (self *BranchesHelper) forwardBranches(git *commands.GitCommand, toForward []*branchToForward) error {
+	var errs []error
+
 	// The branches that aren't checked out anywhere are nothing but refs to
 	// update, so they can all be done in one go
 	updateCommands := ""
@@ -588,8 +587,8 @@ func (self *BranchesHelper) forwardBranches(toForward []*branchToForward) error 
 
 	if updateCommands != "" {
 		self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
-		if err := self.c.Git().Branch.UpdateBranchRefs(updateCommands, "lazygit: update to upstream branch"); err != nil {
-			return err
+		if err := git.Branch.UpdateBranchRefs(updateCommands, "lazygit: update to upstream branch"); err != nil {
+			errs = append(errs, err)
 		}
 	}
 
@@ -604,18 +603,18 @@ func (self *BranchesHelper) forwardBranches(toForward []*branchToForward) error 
 
 		var err error
 		if f.reset {
-			err = self.c.Git().WorkingTree.ResetKeep(
+			err = git.WorkingTree.ResetKeep(
 				f.branch.FullUpstreamRefName(), worktreeGitDir, worktreePath)
 		} else {
-			err = self.c.Git().Branch.FastForwardMerge(
+			err = git.Branch.FastForwardMerge(
 				f.branch.FullUpstreamRefName(), worktreeGitDir, worktreePath)
 		}
 		if err != nil {
-			return err
+			errs = append(errs, err)
 		}
 	}
 
-	return nil
+	return errors.Join(errs...)
 }
 
 // Returns the git dir and the path to pass for the given worktree; both are
@@ -628,39 +627,82 @@ func (self *BranchesHelper) worktreeArgs(worktree *models.Worktree) (string, str
 	return worktree.GitDir, worktree.Path
 }
 
-func (self *BranchesHelper) AutoForwardBranches(background bool) error {
+// Reads the branches from the model, so it must be called on the UI thread; the
+// git work happens on a worker.
+func (self *BranchesHelper) AutoForwardBranches(background bool) {
 	if self.c.UserConfig().Git.AutoForwardBranches == "none" {
-		return nil
+		return
 	}
 
 	branches := self.c.Model().Branches
 	if len(branches) == 0 {
-		return nil
+		return
 	}
 
 	allBranches := self.c.UserConfig().Git.AutoForwardBranches == "allBranches"
-	updateCommands := ""
+	toForward := []*branchToForward{}
 	// The first branch is the currently checked out branch; skip it
 	for _, branch := range branches[1:] {
-		if branch.RemoteBranchStoredLocally() &&
-			!self.checkedOutByOtherWorktree(branch) &&
-			(allBranches || lo.Contains(self.c.UserConfig().Git.MainBranches, branch.Name)) {
-			isStrictlyBehind := branch.IsBehindForPull() && !branch.IsAheadForPull()
-			if isStrictlyBehind {
-				updateCommands += fmt.Sprintf("update %s %s %s\n", branch.FullRefName(), branch.FullUpstreamRefName(), branch.CommitHash)
-			}
+		if !branch.RemoteBranchStoredLocally() ||
+			!(allBranches || lo.Contains(self.c.UserConfig().Git.MainBranches, branch.Name)) {
+			continue
 		}
+
+		isStrictlyBehind := branch.IsBehindForPull() && !branch.IsAheadForPull()
+		if !isStrictlyBehind {
+			continue
+		}
+
+		// Changing the files of the current worktree without being asked to
+		// would be surprising. A worktree that is mid-rebase or mid-bisect has
+		// its HEAD detached from the branch, so the branch can't be moved
+		// there, and neither can it in a worktree whose directory is missing.
+		worktree, _ := self.worktreeForBranch(branch)
+		if worktree != nil && (worktree.IsCurrent || worktree.IsRebasingOrBisecting || worktree.IsPathMissing) {
+			continue
+		}
+
+		toForward = append(toForward, &branchToForward{branch: branch, worktree: worktree})
 	}
 
-	if updateCommands == "" {
-		return nil
+	if len(toForward) == 0 {
+		return
 	}
 
-	self.c.LogAction(self.c.Tr.Actions.AutoForwardBranches)
-	self.c.LogCommand(strings.TrimRight(updateCommands, "\n"), false)
-	err := self.c.Git().Branch.UpdateBranchRefs(updateCommands, "lazygit: fast-forward to upstream branch")
+	// A background worker doesn't block switching repos, so it has to stick
+	// to the git commands of the repo that the branches came from
+	git := self.c.Git()
+	onWorker := lo.Ternary(background, self.c.OnWorkerBackground, self.c.OnWorker)
+	onWorker(func(gocui.Task) error {
+		// Only change the files of another worktree while the user has no
+		// changes of their own there
+		toForward := lo.Filter(toForward, func(f *branchToForward, _ int) bool {
+			if f.worktree == nil {
+				return true
+			}
 
-	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Background: background})
+			worktreeGitDir, worktreePath := self.worktreeArgs(f.worktree)
+			hasChanges, err := git.WorkingTree.HasChangesToTrackedFiles(worktreeGitDir, worktreePath)
+			if err != nil {
+				self.c.Log.Errorf("Failed to check worktree %s for changes: %v", f.worktree.Name, err)
+			}
+			return err == nil && !hasChanges
+		})
+		if len(toForward) == 0 {
+			return nil
+		}
 
-	return err
+		self.c.LogAction(self.c.Tr.Actions.AutoForwardBranches)
+		err := self.forwardBranches(git, toForward)
+
+		self.c.RefreshFromWorker(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES}, Background: background})
+
+		if background && err != nil {
+			// Surface the error in the log rather than as a popup for background
+			// work
+			self.c.Log.Error(err)
+			return nil
+		}
+		return err
+	})
 }
