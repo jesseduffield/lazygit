@@ -444,8 +444,18 @@ type branchToForward struct {
 // diverged from it is reset to it, as long as it has no commits of its own. If
 // any of the branches can't be updated, none of them is.
 func (self *BranchesHelper) FastForwardBranches(branches []*models.Branch) error {
-	// The worktrees come from the model, so they have to be looked up here,
-	// before the work moves to a worker
+	fastForward, err := self.PrepareFastForward(branches)
+	if err != nil {
+		return err
+	}
+
+	return self.WithInlineStatusOnBranches(branches, types.ItemOperationFastForwarding, fastForward)
+}
+
+// Does the part of FastForwardBranches that looks at the model, and so has to
+// run on the UI thread. Returns the rest, which is to be run on a worker; this
+// lets other operations include the fast-forward in their own task.
+func (self *BranchesHelper) PrepareFastForward(branches []*models.Branch) (func(gocui.Task) error, error) {
 	toForward := lo.Map(branches, func(branch *models.Branch, _ int) *branchToForward {
 		worktree, _ := self.worktreeForBranch(branch)
 		return &branchToForward{branch: branch, worktree: worktree}
@@ -456,14 +466,14 @@ func (self *BranchesHelper) FastForwardBranches(branches []*models.Branch) error
 	// rebase or bisect, and leave the branch alone
 	for _, f := range toForward {
 		if f.worktree != nil && f.worktree.IsRebasingOrBisecting {
-			return errors.New(utils.ResolvePlaceholderString(
+			return nil, errors.New(utils.ResolvePlaceholderString(
 				self.c.Tr.FwdBranchRebasingOrBisecting,
 				map[string]string{"branchName": f.branch.Name, "worktreeName": f.worktree.Name},
 			))
 		}
 	}
 
-	return self.withFastForwardingStatus(branches, func(task gocui.Task) error {
+	return func(task gocui.Task) error {
 		defer func() {
 			if anyCheckedOut {
 				// The files of those worktrees have changed as well
@@ -488,14 +498,15 @@ func (self *BranchesHelper) FastForwardBranches(branches []*models.Branch) error
 		}
 
 		return self.forwardBranches(self.c.Git(), toForward)
-	})
+	}, nil
 }
 
-// Runs f with all the given branches shown as being fast-forwarded
-func (self *BranchesHelper) withFastForwardingStatus(branches []*models.Branch, f func(gocui.Task) error) error {
-	return self.c.WithInlineStatus(branches[0], types.ItemOperationFastForwarding, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
+// Runs f on a worker with all the given branches shown as being in the given
+// operation while it runs
+func (self *BranchesHelper) WithInlineStatusOnBranches(branches []*models.Branch, operation types.ItemOperation, f func(gocui.Task) error) error {
+	return self.c.WithInlineStatus(branches[0], operation, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
 		for _, branch := range branches[1:] {
-			self.c.State().SetItemOperation(branch, types.ItemOperationFastForwarding)
+			self.c.State().SetItemOperation(branch, operation)
 		}
 		defer func() {
 			for _, branch := range branches[1:] {

@@ -41,3 +41,11 @@ this work.
 whole stack and bring all of it back in sync at once. If any of the selected
 branches can't be updated, none of them is, so that you don't end up with half
 of the stack updated.
+
+Alternatively, check out the topmost branch of the stack and pull it with `p`.
+If branches below it can be updated this way, or are simply behind their
+upstream, lazygit offers to update them along with it. Lazygit decides this
+from the last fetch, so a branch whose changes on the remote haven't been
+fetched yet isn't offered; with auto-fetch turned off, pull a second time after
+the first pull has fetched them. Branches that are checked out in another
+worktree are left alone. The topmost branch itself is pulled as usual.

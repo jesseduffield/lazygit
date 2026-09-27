@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -241,7 +240,36 @@ func (self *SyncController) resolvePushOfCurrentBranch(currentBranch *models.Bra
 }
 
 func (self *SyncController) pull(currentBranch *models.Branch) error {
-	action := self.c.Tr.Actions.Pull
+	branchesBelow := self.updatableBranchesBelow(currentBranch)
+	if len(branchesBelow) == 0 {
+		return self.pullCurrentBranch(currentBranch, nil)
+	}
+
+	branchName := map[string]string{"branchName": currentBranch.Name}
+	return self.c.Menu(types.CreateMenuOptions{
+		Title:  self.c.Tr.Pull,
+		Prompt: self.branchesBelowToUpdatePrompt(currentBranch, branchesBelow),
+		Items: []*types.MenuItem{
+			{
+				Label: utils.ResolvePlaceholderString(self.c.Tr.PullBranchAndBranchesBelow, branchName),
+				OnPress: func() error {
+					return self.pullCurrentBranch(currentBranch, branchesBelow)
+				},
+			},
+			{
+				Label: utils.ResolvePlaceholderString(self.c.Tr.PullOnlyCurrentBranch, branchName),
+				OnPress: func() error {
+					return self.pullCurrentBranch(currentBranch, nil)
+				},
+			},
+		},
+	})
+}
+
+// Pulls the current branch, after updating the given branches stacked below it
+// to their upstream branches
+func (self *SyncController) pullCurrentBranch(currentBranch *models.Branch, branchesBelow []*models.Branch) error {
+	opts := PullFilesOptions{Action: self.c.Tr.Actions.Pull, BranchesBelow: branchesBelow}
 
 	// if we have no upstream branch we need to set that first
 	if !currentBranch.IsTrackingRemote() {
@@ -250,11 +278,46 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 				return err
 			}
 
-			return self.PullAux(currentBranch, PullFilesOptions{Action: action})
+			return self.PullAux(currentBranch, opts)
 		})
 	}
 
-	return self.PullAux(currentBranch, PullFilesOptions{Action: action})
+	return self.PullAux(currentBranch, opts)
+}
+
+// The branches stacked below the current one that can be updated to their
+// upstream branches without losing anything: those that are behind them, and
+// those that diverged from them only because they were rewritten
+func (self *SyncController) updatableBranchesBelow(currentBranch *models.Branch) []*models.Branch {
+	branchesBelow := helpers.BranchesBelowInStack(
+		self.c.Model().Commits, self.c.Model().Branches, currentBranch, self.c.UserConfig().Git.MainBranches)
+
+	return lo.Filter(branchesBelow, func(branch *models.Branch, _ int) bool {
+		// Updating a branch that is checked out in another worktree changes
+		// the files there, which is more than pulling the current branch
+		// should do
+		if git_commands.CheckedOutByOtherWorktree(branch, self.c.Model().Worktrees) {
+			return false
+		}
+
+		return branch.IsBehindForPull() && (!branch.IsAheadForPull() || branch.UpstreamRewritten.Load())
+	})
+}
+
+func (self *SyncController) branchesBelowToUpdatePrompt(currentBranch *models.Branch, branchesBelow []*models.Branch) string {
+	intro := utils.ResolvePlaceholderString(
+		self.c.Tr.BranchesBelowHaveChangedOnRemote,
+		map[string]string{"branchName": currentBranch.Name},
+	)
+	lines := lo.Map(branchesBelow, func(branch *models.Branch, _ int) string {
+		divergence := "↓" + branch.BehindForPull
+		if branch.IsAheadForPull() {
+			divergence += "↑" + branch.AheadForPull
+		}
+		return fmt.Sprintf("%s %s", branch.Name, style.FgYellow.Sprint(divergence))
+	})
+
+	return intro + "\n\n  " + strings.Join(lines, "\n  ")
 }
 
 func (self *SyncController) setCurrentBranchUpstream(upstream string) error {
@@ -280,10 +343,35 @@ type PullFilesOptions struct {
 	UpstreamBranch  string
 	FastForwardOnly bool
 	Action          string
+
+	// Branches stacked below the current one, updated to their upstream
+	// branches before the current one is pulled
+	BranchesBelow []*models.Branch
 }
 
 func (self *SyncController) PullAux(currentBranch *models.Branch, opts PullFilesOptions) error {
-	return self.c.WithInlineStatus(currentBranch, types.ItemOperationPulling, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
+	var updateBranchesBelow func(gocui.Task) error
+	if len(opts.BranchesBelow) > 0 {
+		var err error
+		updateBranchesBelow, err = self.c.Helpers().BranchesHelper.PrepareFastForward(opts.BranchesBelow)
+		if err != nil {
+			return err
+		}
+	}
+
+	branches := append([]*models.Branch{currentBranch}, opts.BranchesBelow...)
+	return self.c.Helpers().BranchesHelper.WithInlineStatusOnBranches(branches, types.ItemOperationPulling, func(task gocui.Task) error {
+		// Update the branches below first. If one of them pointed into the
+		// commits that a rebasing pull rebases, the pull would move it when
+		// rebase.updateRefs is set, and updating it afterwards would fail. If
+		// updating them fails, the current branch isn't pulled either; the
+		// user can still choose to pull only the current branch.
+		if updateBranchesBelow != nil {
+			if err := updateBranchesBelow(task); err != nil {
+				return err
+			}
+		}
+
 		return self.pullWithLock(task, opts)
 	})
 }
@@ -383,16 +471,8 @@ func (self *SyncController) pushBranchesAux(currentBranch *models.Branch, branch
 // Runs f as a push of the current branch, showing it and the other branches
 // as being pushed while it runs
 func (self *SyncController) withPushingStatus(currentBranch *models.Branch, otherBranches []*models.Branch, f func(gocui.Task) error) error {
-	return self.c.WithInlineStatus(currentBranch, types.ItemOperationPushing, context.LOCAL_BRANCHES_CONTEXT_KEY, func(task gocui.Task) error {
-		for _, branch := range otherBranches {
-			self.c.State().SetItemOperation(branch, types.ItemOperationPushing)
-		}
-		defer func() {
-			for _, branch := range otherBranches {
-				self.c.State().ClearItemOperation(branch)
-			}
-		}()
-
+	branches := append([]*models.Branch{currentBranch}, otherBranches...)
+	return self.c.Helpers().BranchesHelper.WithInlineStatusOnBranches(branches, types.ItemOperationPushing, func(task gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.Push)
 		return f(task)
 	})
