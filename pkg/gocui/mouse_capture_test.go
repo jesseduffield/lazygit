@@ -36,7 +36,7 @@ func TestMouseCaptureRoutesMotionAndReleaseOutsideView(t *testing.T) {
 			},
 		},
 	} {
-		assert.NoError(t, g.SetViewClickBinding(binding))
+		g.SetViewClickBinding(binding)
 	}
 
 	g.captureMouse(view)
@@ -69,7 +69,7 @@ func TestPrimaryMouseDragStaysWithPressedView(t *testing.T) {
 
 	receivedBy := ""
 	for _, viewName := range []string{"left", "right"} {
-		assert.NoError(t, g.SetViewClickBinding(&ViewMouseBinding{
+		g.SetViewClickBinding(&ViewMouseBinding{
 			ViewName: viewName,
 			Key:      MouseLeft,
 			Modifier: ModMotion,
@@ -77,7 +77,7 @@ func TestPrimaryMouseDragStaysWithPressedView(t *testing.T) {
 				receivedBy = viewName
 				return nil
 			},
-		}))
+		})
 	}
 
 	assert.NoError(t, g.onKey(&GocuiEvent{
@@ -102,10 +102,10 @@ func TestPrimaryMouseDragDoesNotActivateTabs(t *testing.T) {
 	view.Tabs = []string{"first", "second"}
 
 	clickedTabs := []int{}
-	assert.NoError(t, g.SetTabClickBinding("tabs", func(tabIndex int) error {
+	g.SetTabClickBinding("tabs", func(tabIndex int) error {
 		clickedTabs = append(clickedTabs, tabIndex)
 		return nil
-	}))
+	})
 
 	assert.NoError(t, g.onKey(&GocuiEvent{
 		Type:   eventMouse,
@@ -172,7 +172,7 @@ func TestCancelMouseCaptureSuppressesRemainingGesture(t *testing.T) {
 	_, _ = g.SetView("right", 21, 0, 41, 10, 0)
 	receivedBy := ""
 	for _, viewName := range []string{"left", "right"} {
-		assert.NoError(t, g.SetViewClickBinding(&ViewMouseBinding{
+		g.SetViewClickBinding(&ViewMouseBinding{
 			ViewName: viewName,
 			Key:      MouseLeft,
 			Modifier: ModMotion,
@@ -180,7 +180,7 @@ func TestCancelMouseCaptureSuppressesRemainingGesture(t *testing.T) {
 				receivedBy = viewName
 				return nil
 			},
-		}))
+		})
 	}
 
 	g.captureMouse(left)

@@ -6,8 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/sasha-s/go-deadlock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +28,7 @@ func TestObtainBranch(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName:                 "TrimHeads",
-			input:                    []string{"", "heads/a_branch", "", "", "", "subject", "123", timeStamp},
+			input:                    []string{"", "heads/a_branch", "", "", "", "", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -41,7 +43,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "NoUpstream",
-			input:                    []string{"", "a_branch", "", "", "", "subject", "123", timeStamp},
+			input:                    []string{"", "a_branch", "", "", "", "", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -56,7 +58,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "IsHead",
-			input:                    []string{"*", "a_branch", "", "", "", "subject", "123", timeStamp},
+			input:                    []string{"*", "a_branch", "", "", "", "", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -71,7 +73,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "IsBehindAndAhead",
-			input:                    []string{"", "a_branch", "a_remote/a_branch", "[behind 2, ahead 3]", "[behind 2, ahead 3]", "subject", "123", timeStamp},
+			input:                    []string{"", "a_branch", "a_remote/a_branch", "[behind 2, ahead 3]", "[behind 2, ahead 3]", "refs/remotes/a_remote/a_branch", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -79,6 +81,40 @@ func TestObtainBranch(t *testing.T) {
 				BehindForPull: "2",
 				AheadForPush:  "3",
 				BehindForPush: "2",
+				PushRemote:    "a_remote",
+				PushBranch:    "a_branch",
+				Head:          false,
+				Subject:       "subject",
+				CommitHash:    "123",
+			},
+		},
+		{
+			testName:                 "PushDestinationDiffersFromUpstream",
+			input:                    []string{"", "a_branch", "a_remote/a_branch", "[ahead 3]", "[ahead 5]", "refs/remotes/my_fork/feature/a_branch", "subject", "123", timeStamp},
+			storeCommitDateAsRecency: false,
+			expectedBranch: &models.Branch{
+				Name:          "a_branch",
+				AheadForPull:  "3",
+				BehindForPull: "0",
+				AheadForPush:  "5",
+				BehindForPush: "0",
+				PushRemote:    "my_fork",
+				PushBranch:    "feature/a_branch",
+				Head:          false,
+				Subject:       "subject",
+				CommitHash:    "123",
+			},
+		},
+		{
+			testName:                 "PushDestinationNotARemoteTrackingRef",
+			input:                    []string{"", "a_branch", "a_remote/a_branch", "", "", "refs/published/a_branch", "subject", "123", timeStamp},
+			storeCommitDateAsRecency: false,
+			expectedBranch: &models.Branch{
+				Name:          "a_branch",
+				AheadForPull:  "0",
+				BehindForPull: "0",
+				AheadForPush:  "0",
+				BehindForPush: "0",
 				Head:          false,
 				Subject:       "subject",
 				CommitHash:    "123",
@@ -86,7 +122,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "RemoteBranchIsGone",
-			input:                    []string{"", "a_branch", "a_remote/a_branch", "[gone]", "[gone]", "subject", "123", timeStamp},
+			input:                    []string{"", "a_branch", "a_remote/a_branch", "[gone]", "[gone]", "refs/remotes/a_remote/a_branch", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: false,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -95,6 +131,8 @@ func TestObtainBranch(t *testing.T) {
 				BehindForPull: "?",
 				AheadForPush:  "?",
 				BehindForPush: "?",
+				PushRemote:    "a_remote",
+				PushBranch:    "a_branch",
 				Head:          false,
 				Subject:       "subject",
 				CommitHash:    "123",
@@ -102,7 +140,7 @@ func TestObtainBranch(t *testing.T) {
 		},
 		{
 			testName:                 "WithCommitDateAsRecency",
-			input:                    []string{"", "a_branch", "", "", "", "subject", "123", timeStamp},
+			input:                    []string{"", "a_branch", "", "", "", "", "subject", "123", timeStamp},
 			storeCommitDateAsRecency: true,
 			expectedBranch: &models.Branch{
 				Name:          "a_branch",
@@ -120,245 +158,9 @@ func TestObtainBranch(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			branch := obtainBranch(s.input, s.storeCommitDateAsRecency)
+			branch, tip := obtainBranch(s.input, s.storeCommitDateAsRecency)
 			assert.EqualValues(t, s.expectedBranch, branch)
-		})
-	}
-}
-
-func TestParseAheadBehindForEachRefOutput(t *testing.T) {
-	type scenario struct {
-		testName string
-		input    string
-		numBases int
-		expected []branchAheadBehind
-	}
-
-	scenarios := []scenario{
-		{
-			testName: "single branch single base",
-			input:    "refs/heads/feat\x002 5\n",
-			numBases: 1,
-			expected: []branchAheadBehind{
-				{
-					refName:      "refs/heads/feat",
-					aheadBehinds: []aheadBehind{{ahead: 2, behind: 5}},
-				},
-			},
-		},
-		{
-			testName: "multiple branches multiple bases",
-			input: "refs/heads/feat\x002 5\x0010 1\n" +
-				"refs/heads/main\x000 0\x000 0\n",
-			numBases: 2,
-			expected: []branchAheadBehind{
-				{
-					refName: "refs/heads/feat",
-					aheadBehinds: []aheadBehind{
-						{ahead: 2, behind: 5},
-						{ahead: 10, behind: 1},
-					},
-				},
-				{
-					refName: "refs/heads/main",
-					aheadBehinds: []aheadBehind{
-						{ahead: 0, behind: 0},
-						{ahead: 0, behind: 0},
-					},
-				},
-			},
-		},
-		{
-			testName: "empty ahead-behind field for unreachable base",
-			input:    "refs/heads/feat\x00\x002 5\n",
-			numBases: 2,
-			expected: []branchAheadBehind{
-				{
-					refName: "refs/heads/feat",
-					aheadBehinds: []aheadBehind{
-						{ahead: 2, behind: 5},
-					},
-				},
-			},
-		},
-		{
-			testName: "ref name containing slashes and dashes",
-			input:    "refs/heads/feat/foo-bar\x001 2\n",
-			numBases: 1,
-			expected: []branchAheadBehind{
-				{
-					refName:      "refs/heads/feat/foo-bar",
-					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2}},
-				},
-			},
-		},
-		{
-			testName: "trailing newline and blank lines are ignored",
-			input:    "refs/heads/feat\x001 2\n\n",
-			numBases: 1,
-			expected: []branchAheadBehind{
-				{
-					refName:      "refs/heads/feat",
-					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2}},
-				},
-			},
-		},
-		{
-			testName: "line with wrong column count is skipped",
-			input: "refs/heads/good\x001 2\n" +
-				"refs/heads/bad\n" +
-				"refs/heads/also_good\x003 4\n",
-			numBases: 1,
-			expected: []branchAheadBehind{
-				{
-					refName:      "refs/heads/good",
-					aheadBehinds: []aheadBehind{{ahead: 1, behind: 2}},
-				},
-				{
-					refName:      "refs/heads/also_good",
-					aheadBehinds: []aheadBehind{{ahead: 3, behind: 4}},
-				},
-			},
-		},
-		{
-			testName: "malformed ahead-behind field becomes invalid but line is kept",
-			input:    "refs/heads/feat\x00not_a_number\n",
-			numBases: 1,
-			expected: []branchAheadBehind{
-				{
-					refName:      "refs/heads/feat",
-					aheadBehinds: []aheadBehind{},
-				},
-			},
-		},
-		{
-			testName: "empty input",
-			input:    "",
-			numBases: 1,
-			expected: nil,
-		},
-	}
-
-	for _, s := range scenarios {
-		t.Run(s.testName, func(t *testing.T) {
-			result := parseAheadBehindForEachRefOutput(s.input, s.numBases)
-			assert.Equal(t, s.expected, result)
-		})
-	}
-}
-
-func TestSelectBehindForBranch(t *testing.T) {
-	type scenario struct {
-		testName     string
-		aheadBehinds []aheadBehind
-		expected     int
-	}
-
-	scenarios := []scenario{
-		{
-			testName:     "single base, valid value",
-			aheadBehinds: []aheadBehind{{ahead: 3, behind: 7}},
-			expected:     7,
-		},
-		{
-			testName: "multi-base, clear winner by ahead",
-			aheadBehinds: []aheadBehind{
-				{ahead: 50, behind: 10}, // master
-				{ahead: 5, behind: 2},   // develop  ← smallest ahead
-			},
-			expected: 2,
-		},
-		{
-			testName: "develop forked from master case (ancestor-of-each-other)",
-			// feat-x has 5 commits since fork from develop.
-			// develop is 50 commits ahead of master.
-			// ahead vs master = 5 + 50 = 55; behind vs master = 0
-			// ahead vs develop = 5;          behind vs develop = 5
-			aheadBehinds: []aheadBehind{
-				{ahead: 55, behind: 0}, // master
-				{ahead: 5, behind: 5},  // develop  ← smallest ahead
-			},
-			expected: 5,
-		},
-		{
-			testName: "tie on ahead - first base wins (config order)",
-			aheadBehinds: []aheadBehind{
-				{ahead: 5, behind: 10}, // first
-				{ahead: 5, behind: 99}, // second, same ahead
-			},
-			expected: 10,
-		},
-		{
-			testName: "first base invalid, second valid",
-			aheadBehinds: []aheadBehind{
-				{ahead: 3, behind: 8},
-			},
-			expected: 8,
-		},
-		{
-			testName:     "all invalid - returns 0",
-			aheadBehinds: []aheadBehind{},
-			expected:     0,
-		},
-		{
-			testName:     "empty - returns 0",
-			aheadBehinds: nil,
-			expected:     0,
-		},
-	}
-
-	for _, s := range scenarios {
-		t.Run(s.testName, func(t *testing.T) {
-			result := selectBehindForBranch(s.aheadBehinds)
-			assert.Equal(t, s.expected, result)
-		})
-	}
-}
-
-func TestBuildAheadBehindForEachRefArgs(t *testing.T) {
-	type scenario struct {
-		testName       string
-		mainBranchRefs []string
-		expected       []string
-	}
-
-	scenarios := []scenario{
-		{
-			testName:       "single base",
-			mainBranchRefs: []string{"refs/heads/master"},
-			expected: []string{
-				"git",
-				"for-each-ref",
-				"--format=%(refname)%00%(ahead-behind:refs/heads/master)",
-				"refs/heads",
-			},
-		},
-		{
-			testName:       "two bases",
-			mainBranchRefs: []string{"refs/heads/master", "refs/remotes/origin/develop"},
-			expected: []string{
-				"git",
-				"for-each-ref",
-				"--format=%(refname)%00%(ahead-behind:refs/heads/master)%00%(ahead-behind:refs/remotes/origin/develop)",
-				"refs/heads",
-			},
-		},
-		{
-			testName:       "four bases",
-			mainBranchRefs: []string{"refs/heads/a", "refs/heads/b", "refs/heads/c", "refs/heads/d"},
-			expected: []string{
-				"git",
-				"for-each-ref",
-				"--format=%(refname)%00%(ahead-behind:refs/heads/a)%00%(ahead-behind:refs/heads/b)%00%(ahead-behind:refs/heads/c)%00%(ahead-behind:refs/heads/d)",
-				"refs/heads",
-			},
-		},
-	}
-
-	for _, s := range scenarios {
-		t.Run(s.testName, func(t *testing.T) {
-			result := buildAheadBehindForEachRefArgs(s.mainBranchRefs)
-			assert.Equal(t, s.expected, result)
+			assert.Equal(t, refTip{hash: "123", committerDate: timeStamp}, tip)
 		})
 	}
 }
@@ -490,4 +292,63 @@ func TestGetBehindBaseBranchValuesForAllBranches_LegacyPath(t *testing.T) {
 	assert.Equal(t, int32(7), branches[0].BehindBaseBranch.Load())
 
 	runner.CheckForMissingCalls()
+}
+
+func TestCheckForRewrittenUpstreams(t *testing.T) {
+	branch := func(name string, ahead string, behind string) *models.Branch {
+		return &models.Branch{
+			Name:           name,
+			UpstreamRemote: "origin",
+			UpstreamBranch: name,
+			AheadForPull:   ahead,
+			BehindForPull:  behind,
+		}
+	}
+
+	notDiverged := branch("not-diverged", "0", "2")
+	rewritten := branch("rewritten", "3", "5")
+	ownCommits := branch("own-commits", "3", "5")
+	failing := branch("failing", "1", "1")
+
+	// A branch that is no longer diverged must lose the value it had before
+	notDiverged.UpstreamRewritten.Store(true)
+
+	branches := []*models.Branch{notDiverged, rewritten, ownCommits, failing}
+
+	var mutex deadlock.Mutex
+	queried := []string{}
+	hasLocalOnlyCommits := func(branch *models.Branch) (bool, error) {
+		mutex.Lock()
+		queried = append(queried, branch.Name)
+		mutex.Unlock()
+
+		switch branch.Name {
+		case "own-commits":
+			return true, nil
+		case "failing":
+			return false, errors.New("error")
+		default:
+			return false, nil
+		}
+	}
+
+	gitCommon := buildGitCommon(commonDeps{})
+	loader := &BranchLoader{
+		Common:              gitCommon.Common,
+		GitCommon:           gitCommon,
+		cmd:                 gitCommon.cmd,
+		hasLocalOnlyCommits: hasLocalOnlyCommits,
+	}
+
+	rendered := false
+	err := loader.checkForRewrittenUpstreams(branches, func() { rendered = true })
+	assert.NoError(t, err)
+	assert.True(t, rendered, "renderFunc should have been called")
+
+	assert.ElementsMatch(t, []string{"rewritten", "own-commits", "failing"}, queried,
+		"only diverged branches should be looked at")
+	assert.False(t, notDiverged.UpstreamRewritten.Load())
+	assert.True(t, rewritten.UpstreamRewritten.Load())
+	assert.False(t, ownCommits.UpstreamRewritten.Load())
+	assert.False(t, failing.UpstreamRewritten.Load(), "a failed check should not claim anything")
 }

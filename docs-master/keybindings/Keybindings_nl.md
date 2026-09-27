@@ -113,7 +113,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` d `` | Verwijderen | View delete options for local/remote branch. |
 | `` r `` | Rebase branch | Rebase de uitgecheckte branch bovenop de geselecteerde branch. |
 | `` M `` | Merge in met huidige checked out branch | View options for merging the selected item into the current branch (regular merge, squash merge) |
-| `` f `` | Fast-forward deze branch vanaf zijn upstream | Fast-forward selected branch from its upstream. |
+| `` f `` | Fast-forward deze branch vanaf zijn upstream | Fast-forward selected branch from its upstream. If the branch has diverged from its upstream because the upstream branch was rewritten, and it has no commits of its own, it is reset to its upstream instead. This needs reflogs to be enabled; a bare repository doesn't keep them by default (core.logAllRefUpdates). |
 | `` T `` | Creëer tag |  |
 | `` s `` | Sort order |  |
 | `` g `` | Bekijk reset opties |  |
@@ -280,7 +280,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` w `` | New worktree |  |
 | `` M `` | Merge in met huidige checked out branch | View options for merging the selected item into the current branch (regular merge, squash merge) |
 | `` r `` | Rebase branch | Rebase de uitgecheckte branch bovenop de geselecteerde branch. |
-| `` d `` | Verwijderen | Delete the remote branch from the remote. |
+| `` d `` | Verwijderen | Verwijder de remote branch van de remote. |
 | `` u `` | Instellen als upstream | Stel in als upstream van uitgecheckte branch |
 | `` s `` | Sort order |  |
 | `` g `` | Bekijk reset opties | View reset options (soft/mixed/hard) for resetting onto selected item. |
@@ -295,7 +295,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <enter> `` | Bekijk branches |  |
 | `` n `` | Voeg een nieuwe remote toe |  |
-| `` d `` | Verwijderen | Remove the selected remote. Any local branches tracking a remote branch from the remote will be unaffected. |
+| `` d `` | Verwijderen | Verwijder de geselecteerde remote. Locale branches die een branch tracken van de remote worden niet aangepast. |
 | `` e `` | Edit | Wijzig remote |
 | `` f `` | Fetch | Fetch remote |
 | `` F `` | Add fork remote | Quickly add a fork remote by replacing the owner in the origin URL and optionally check out a branch from new remote. |

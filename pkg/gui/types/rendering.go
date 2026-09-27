@@ -84,17 +84,17 @@ func NewRunCommandTaskWithPrefix(cmd *exec.Cmd, prefix string) *RunCommandTask {
 	return &RunCommandTask{Cmd: cmd, Prefix: prefix}
 }
 
-type RunPtyTask struct {
+type RunDiffRendererTask struct {
 	Cmd    *exec.Cmd
 	Prefix string
 }
 
-func (t *RunPtyTask) IsUpdateTask() {}
+func (t *RunDiffRendererTask) IsUpdateTask() {}
 
-func NewRunPtyTask(cmd *exec.Cmd) *RunPtyTask {
-	return &RunPtyTask{Cmd: cmd}
+func NewRunDiffRendererTask(cmd *exec.Cmd) *RunDiffRendererTask {
+	return &RunDiffRendererTask{Cmd: cmd}
 }
 
-func NewRunPtyTaskWithPrefix(cmd *exec.Cmd, prefix string) *RunPtyTask {
-	return &RunPtyTask{Cmd: cmd, Prefix: prefix}
+func NewRunDiffRendererTaskWithPrefix(cmd *exec.Cmd, prefix string) *RunDiffRendererTask {
+	return &RunDiffRendererTask{Cmd: cmd, Prefix: prefix}
 }

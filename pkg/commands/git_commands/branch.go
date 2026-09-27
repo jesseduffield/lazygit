@@ -285,11 +285,26 @@ func (self *BranchCommands) Merge(branchName string, variant MergeVariant) error
 	return self.cmd.New(cmdArgs).Run()
 }
 
-// Returns whether refName can be fast-forward merged into the current branch
-func (self *BranchCommands) CanDoFastForwardMerge(refName string) bool {
+// Fast-forwards the branch that is checked out in the given worktree to the
+// given ref. Fails if that can't be done without a merge commit. Pass empty
+// strings for the worktree to use the current one.
+func (self *BranchCommands) FastForwardMerge(refName string, worktreeGitDir string, worktreePath string) error {
+	cmdArgs := NewGitCmd("merge").
+		Arg("--ff-only").
+		Arg(refName).
+		GitDirIf(worktreeGitDir != "", worktreeGitDir).
+		WorktreePathIf(worktreePath != "", worktreePath).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
+// Returns whether the first ref is an ancestor of the second one, which also
+// means that the second one can be fast-forward merged into the first one
+func (self *BranchCommands) IsAncestor(ancestorRefName string, refName string) bool {
 	cmdArgs := NewGitCmd("merge-base").
 		Arg("--is-ancestor").
-		Arg("HEAD", refName).
+		Arg(ancestorRefName, refName).
 		ToArgv()
 	err := self.cmd.New(cmdArgs).DontLog().Run()
 	return err == nil
@@ -353,9 +368,85 @@ func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *
 	return stdout == "", nil
 }
 
-func (self *BranchCommands) UpdateBranchRefs(updateCommands string) error {
+// Returns whether the given branch has commits of its own, meaning commits
+// that its remote branch never contained. Those are the commits that would be
+// lost if we reset the branch to its upstream.
+//
+// A branch that has diverged from its upstream doesn't necessarily have any
+// commits of its own. If somebody else rewrote the remote branch and
+// force-pushed it, our branch is still at the commits it had before, and all
+// of those were on the remote branch at some point. The reflog of the
+// remote-tracking branch records the values it had before it was rewritten, so
+// a commit that was ever on the remote branch is contained in one of them.
+func (self *BranchCommands) HasLocalOnlyCommits(branch *models.Branch) (bool, error) {
+	upstreamValues := append(
+		[]string{branch.FullUpstreamRefName()},
+		self.previousUpstreamValues(branch.FullUpstreamRefName())...,
+	)
+
+	cmdArgs := NewGitCmd("rev-list").
+		Arg("--max-count=1").
+		// A value that the remote-tracking branch had long ago might not be
+		// available any more, e.g. in a partial clone. Skip it rather than
+		// failing; it only means we exclude fewer commits.
+		Arg("--ignore-missing").
+		Arg(branch.FullRefName()).
+		Arg(lo.Map(upstreamValues, func(value string, _ int) string {
+			return "^" + value
+		})...).
+		Arg("--").
+		ToArgv()
+
+	stdout, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
+	if err != nil {
+		return false, err
+	}
+
+	return stdout != "", nil
+}
+
+// Returns the values that the given remote-tracking branch had before its
+// current one, as far back as its reflog goes. Returns nothing if the reflog
+// is unavailable, for example because core.logAllRefUpdates is false; a branch
+// that is strictly behind its upstream is recognized without it.
+func (self *BranchCommands) previousUpstreamValues(upstreamRef string) []string {
+	cmdArgs := NewGitCmd("reflog").
+		Arg("show").
+		Arg("--format=%H").
+		Arg(upstreamRef).
+		ToArgv()
+
+	stdout, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
+	if err != nil {
+		return nil
+	}
+
+	// Each entry holds the value that the ref was updated to.
+	values := utils.SplitLines(stdout)
+
+	// The value it had before the oldest entry is that entry's old value, and
+	// the only way to name it is <ref>@{<number of entries>}. It doesn't exist
+	// if the oldest entry is the one that created the ref, and asking for it
+	// then is an error rather than an empty result.
+	cmdArgs = NewGitCmd("rev-parse").
+		Arg("-q", "--verify").
+		Arg(fmt.Sprintf("%s@{%d}", upstreamRef, len(values))).
+		ToArgv()
+
+	if stdout, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs(); err == nil {
+		values = append(values, strings.TrimSpace(stdout))
+	}
+
+	return values
+}
+
+// Moves branches by writing refs directly. The reflog message is what
+// `git reflog <branch>` shows for the update; it is the only hint about who
+// moved the branch, as no git command shows up in the reflog for this.
+func (self *BranchCommands) UpdateBranchRefs(updateCommands string, reflogMessage string) error {
 	cmdArgs := NewGitCmd("update-ref").
 		Arg("--stdin").
+		Arg("-m", reflogMessage).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).SetStdin(updateCommands).Run()

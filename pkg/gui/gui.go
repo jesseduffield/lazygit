@@ -368,10 +368,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 	contextToPush := gui.resetState(startArgs)
 
 	gui.resetHelpersAndControllers()
-
-	if err := gui.resetKeybindings(); err != nil {
-		return err
-	}
+	gui.resetKeybindings()
 
 	gui.g.SetFocusHandler(func(Focused bool) error {
 		if Focused {
@@ -383,9 +380,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 				gui.c.Log.Info("User config changed - reloading")
 				reloadErr = gui.onUserConfigLoaded()
 				gui.reloadSidePanels()
-				if err := gui.resetKeybindings(); err != nil {
-					return err
-				}
+				gui.resetKeybindings()
 
 				if err := gui.checkForChangedConfigsThatDontAutoReload(oldConfig, gui.Config.GetUserConfig()); err != nil {
 					return err
@@ -499,7 +494,7 @@ func (gui *Gui) onUserConfigLoaded() error {
 		gui.previousLanguageConfig = userConfig.Gui.Language
 	}
 
-	gui.setColorScheme()
+	gui.applyTheme()
 	gui.configureViewProperties()
 
 	gui.g.SearchEscapeKeys = config.GetValidatedKeyBindingKeys(userConfig.Keybinding.Universal.Return)
@@ -522,20 +517,12 @@ func (gui *Gui) onUserConfigLoaded() error {
 	// sake of backwards compatibility. We're making use of short circuiting here
 	gui.ShowExtrasWindow = userConfig.Gui.ShowCommandLog && !gui.c.GetAppState().HideCommandLog
 
-	authors.SetCustomAuthors(userConfig.Gui.AuthorColors)
 	if userConfig.Gui.NerdFontsVersion != "" {
 		icons.SetNerdFontsVersion(userConfig.Gui.NerdFontsVersion)
 	} else if userConfig.Gui.ShowIcons {
 		icons.SetNerdFontsVersion("2")
 	} else {
 		icons.SetNerdFontsVersion("")
-	}
-
-	if len(userConfig.Gui.BranchColorPatterns) > 0 {
-		presentation.SetCustomBranches(userConfig.Gui.BranchColorPatterns, true)
-	} else {
-		// Fall back to the deprecated branchColors config
-		presentation.SetCustomBranches(userConfig.Gui.BranchColors, false)
 	}
 
 	return nil
@@ -602,13 +589,6 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 	// previous repo drops its model update instead of applying it here (see
 	// RefreshHelper.onUIThreadUnlessRepoChanged).
 	gui.repoGeneration.Add(1)
-
-	// Un-highlight the current view if there is one. The reason we do this is
-	// that the repo we are switching to might have a different view focused,
-	// and would then show an inactive highlight for the previous view.
-	if oldCurrentView := gui.g.CurrentView(); oldCurrentView != nil {
-		oldCurrentView.Highlight = false
-	}
 
 	worktreePath := gui.git.RepoPaths.WorktreePath()
 
@@ -927,6 +907,21 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 	return result
 }
 
+// The views that each popup panel is made up of. A panel's views share the
+// keyboard focus, so clicking from one of them to another stays within the
+// panel.
+var popupPanelViewGroups = [][]string{
+	{"commitMessage", "commitDescription"},
+	{"prompt", "suggestions"},
+	{"menu", "menuFilterFrame", "menuFilter"},
+}
+
+func viewsBelongToSamePopupPanel(viewName string, otherViewName string) bool {
+	return lo.SomeBy(popupPanelViewGroups, func(group []string) bool {
+		return lo.Contains(group, viewName) && lo.Contains(group, otherViewName)
+	})
+}
+
 // Run: setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	g, err := gui.initGocui(Headless(), startArgs.IntegrationTest)
@@ -939,18 +934,27 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	g.ErrorHandler = gui.PopupHandler.ErrorHandler
 
+	gui.c.Log.Infof("Terminal color scheme: %s", g.DetectedColorScheme())
+	g.SetColorSchemeChangeHandler(func(colorScheme gocui.DetectedColorScheme) error {
+		gui.c.Log.Infof("Terminal color scheme changed: %s", colorScheme)
+		gui.applyTheme()
+		gui.configureViewProperties()
+		for _, context := range gui.c.Context().AllList() {
+			context.HandleRender()
+		}
+		gui.helpers.Refresh.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STATUS}})
+		gui.helpers.Diff.RenderToMainAgain()
+		return nil
+	})
+
 	gui.g.ShouldHandleMouseEvent = func(view *gocui.View, key gocui.KeyName) bool {
 		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != view.Name() &&
 			!gocui.IsMouseScrollKey(key) {
-			// we ignore click events on views that aren't popup panels, when a popup panel is focused.
-			// Unless both the current view and the clicked-on view are either commit message or commit
-			// description, or a prompt and the suggestions view, because we want to allow switching
-			// between those two views by clicking.
-			isCommitMessageOrSuggestionsView := func(viewName string) bool {
-				return viewName == "commitMessage" || viewName == "commitDescription" ||
-					viewName == "prompt" || viewName == "suggestions"
-			}
-			if !isCommitMessageOrSuggestionsView(gui.currentViewName()) || !isCommitMessageOrSuggestionsView(view.Name()) {
+			// we ignore click events on views that aren't popup panels, when a popup
+			// panel is focused. Unless the clicked-on view is part of the same popup
+			// panel as the current one, because we want to allow switching between the
+			// views of a panel by clicking.
+			if !viewsBelongToSamePopupPanel(gui.currentViewName(), view.Name()) {
 				return false
 			}
 		}
@@ -1245,15 +1249,50 @@ func (gui *Gui) showBreakingChangesMessage() {
 	}
 }
 
-// setColorScheme sets the color scheme for the app based on the user config
-func (gui *Gui) setColorScheme() {
-	userConfig := gui.UserConfig()
-	theme.UpdateTheme(userConfig.Gui.Theme)
+// applyTheme sets the colors of the app from the theme in the user config,
+// with the overrides for the terminal's background applied
+func (gui *Gui) applyTheme() {
+	themeConfig := gui.UserConfig().Gui.ThemeForBackground(gui.terminalHasLightBackground(), gui.terminalBackgroundColor())
+	theme.UpdateTheme(themeConfig)
+	authors.SetCustomAuthors(themeConfig.AuthorColors)
+	presentation.SetCustomBranches(themeConfig.BranchColorPatterns)
 
 	gui.g.FgColor = theme.InactiveBorderColor
 	gui.g.SelFgColor = theme.ActiveBorderColor
 	gui.g.FrameColor = theme.InactiveBorderColor
 	gui.g.SelFrameColor = theme.ActiveBorderColor
+
+	gui.applyTerminalBackground()
+}
+
+// applyTerminalBackground tells the colors that depend on the terminal's
+// background whether it is light.
+func (gui *Gui) applyTerminalBackground() {
+	authors.SetLightBackground(gui.terminalHasLightBackground())
+}
+
+// terminalHasLightBackground goes by gui.colorScheme, or by what the terminal
+// tells us if that is 'auto'.
+func (gui *Gui) terminalHasLightBackground() bool {
+	switch gui.UserConfig().Gui.ColorScheme {
+	case "dark":
+		return false
+	case "light":
+		return true
+	default:
+		return gui.g.DetectedColorScheme().ColorScheme == gocui.ColorSchemeLight
+	}
+}
+
+// terminalBackgroundColor returns the background color that the terminal told
+// us, as #rrggbb. It returns "" if the terminal didn't tell us, or if
+// gui.colorScheme disagrees with it about whether the background is light.
+func (gui *Gui) terminalBackgroundColor() string {
+	detected := gui.g.DetectedColorScheme()
+	if (detected.ColorScheme == gocui.ColorSchemeLight) != gui.terminalHasLightBackground() {
+		return ""
+	}
+	return detected.Background
 }
 
 func (gui *Gui) onUIThread(f func() error) {

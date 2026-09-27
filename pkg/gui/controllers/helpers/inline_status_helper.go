@@ -94,6 +94,23 @@ func (self *InlineStatusHelper) WithInlineStatus(opts InlineStatusOpts, f func(g
 	}
 }
 
+// Runs f on a worker with all the given items shown as being in the given
+// operation while it runs
+func WithInlineStatusOnItems[T types.HasUrn](c *HelperCommon, items []T, operation types.ItemOperation, contextKey types.ContextKey, f func(gocui.Task) error) error {
+	return c.WithInlineStatus(items[0], operation, contextKey, func(task gocui.Task) error {
+		for _, item := range items[1:] {
+			c.State().SetItemOperation(item, operation)
+		}
+		defer func() {
+			for _, item := range items[1:] {
+				c.State().ClearItemOperation(item)
+			}
+		}()
+
+		return f(task)
+	})
+}
+
 func (self *InlineStatusHelper) start(opts InlineStatusOpts) {
 	self.c.State().SetItemOperation(opts.Item, opts.Operation)
 

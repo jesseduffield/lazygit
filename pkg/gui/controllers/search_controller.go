@@ -37,12 +37,13 @@ func (self *SearchController) GetKeybindings(opts types.KeybindingsOpts) []*type
 	return []*types.Binding{
 		{
 			Keys:        opts.GetKeys(opts.Config.Universal.StartSearch),
-			Handler:     self.OpenSearchPrompt,
+			Handler:     self.openSearchPrompt,
 			Description: self.c.Tr.StartSearch,
 		},
 	}
 }
 
-func (self *SearchController) OpenSearchPrompt() error {
-	return self.c.Helpers().Search.OpenSearchPrompt(self.context)
+func (self *SearchController) openSearchPrompt() error {
+	self.c.Helpers().Search.OpenSearchPrompt(self.context)
+	return nil
 }

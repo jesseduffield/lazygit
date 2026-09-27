@@ -780,3 +780,43 @@ func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
 			"trailing cell at (%d, 2) should have green bg", x)
 	}
 }
+
+func TestApplySelTextColor(t *testing.T) {
+	scenarios := []struct {
+		name         string
+		fgColor      Attribute
+		selTextColor Attribute
+		expected     Attribute
+	}{
+		{
+			name:         "adds attributes",
+			fgColor:      ColorRed | AttrUnderline,
+			selTextColor: AttrBold,
+			expected:     ColorRed | AttrUnderline | AttrBold,
+		},
+		{
+			name:         "replaces the color",
+			fgColor:      ColorRed | AttrUnderline,
+			selTextColor: ColorWhite | AttrBold,
+			expected:     ColorWhite | AttrUnderline | AttrBold,
+		},
+		{
+			name:         "replaces an RGB color",
+			fgColor:      NewRGBColor(0x12, 0x34, 0x56),
+			selTextColor: ColorBlue,
+			expected:     ColorBlue,
+		},
+		{
+			name:         "leaves the text alone if default",
+			fgColor:      ColorRed | AttrUnderline,
+			selTextColor: ColorDefault,
+			expected:     ColorRed | AttrUnderline,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expected, applySelTextColor(s.fgColor, s.selTextColor))
+		})
+	}
+}

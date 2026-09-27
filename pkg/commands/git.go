@@ -145,11 +145,11 @@ func NewGitCommandAux(
 	gitHubCommands := git_commands.NewGitHubCommands(gitCommon)
 	hostingServiceCommands := git_commands.NewHostingServiceCommand(gitCommon)
 
-	branchLoader := git_commands.NewBranchLoader(cmn, gitCommon, cmd, branchCommands.CurrentBranchInfo, configCommands)
+	branchLoader := git_commands.NewBranchLoader(cmn, gitCommon, cmd, branchCommands.CurrentBranchInfo, branchCommands.HasLocalOnlyCommits, configCommands)
 	commitFileLoader := git_commands.NewCommitFileLoader(cmn, cmd)
 	commitLoader := git_commands.NewCommitLoader(cmn, cmd, statusCommands.WorkingTreeState, gitCommon)
 	reflogCommitLoader := git_commands.NewReflogCommitLoader(cmn, cmd)
-	remoteLoader := git_commands.NewRemoteLoader(cmn, cmd)
+	remoteLoader := git_commands.NewRemoteLoader(gitCommon)
 	worktreeLoader := git_commands.NewWorktreeLoader(gitCommon)
 	stashLoader := git_commands.NewStashLoader(cmn, cmd)
 	tagLoader := git_commands.NewTagLoader(cmn, cmd)

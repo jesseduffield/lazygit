@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -420,6 +421,42 @@ func TestWrapViewLinesToWidth(t *testing.T) {
 			expectedWrappedLinesIndices:  []int{0, 1, 2, 3},
 			expectedOriginalLinesIndices: []int{0, 1, 2, 3},
 		},
+		{
+			name:  "Escape sequences don't count towards the width",
+			wrap:  true,
+			text:  "Hello \x1b[33mWorld\x1b[0m",
+			width: 11,
+			expectedWrappedLines: []string{
+				"Hello \x1b[33mWorld\x1b[0m",
+			},
+			expectedWrappedLinesIndices:  []int{0},
+			expectedOriginalLinesIndices: []int{0},
+		},
+		{
+			name:  "Break at a space before a colored word",
+			wrap:  true,
+			text:  "Hello \x1b[33mWorld\x1b[0m",
+			width: 5,
+			expectedWrappedLines: []string{
+				"Hello",
+				"\x1b[33mWorld\x1b[0m",
+			},
+			expectedWrappedLinesIndices:  []int{0},
+			expectedOriginalLinesIndices: []int{0, 0},
+		},
+		{
+			name:  "Width after a break leaves out escape sequences",
+			wrap:  true,
+			text:  "a \x1b[33mbcd\x1b[0mef",
+			width: 4,
+			expectedWrappedLines: []string{
+				"a",
+				"\x1b[33mbcd\x1b[0me",
+				"f",
+			},
+			expectedWrappedLinesIndices:  []int{0},
+			expectedOriginalLinesIndices: []int{0, 0, 0},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -436,14 +473,17 @@ func TestWrapViewLinesToWidth(t *testing.T) {
 				assert.Equal(t, tt.expectedOriginalLinesIndices, originalLinesIndices)
 			}
 
-			// As a sanity check, also test that gocui's line wrapping behaves the same way
+			// As a sanity check, also test that gocui's line wrapping behaves the
+			// same way. gocui turns escape sequences into cell styles, so its
+			// lines don't contain them.
 			view := gocui.NewView("", 0, 0, tt.width+1, 1000, gocui.OutputNormal)
 			view.TabWidth = tabWidth
 			assert.Equal(t, tt.width, view.InnerWidth())
 			view.Wrap = tt.wrap
 			view.Editable = tt.editable
 			view.SetContent(tt.text)
-			assert.Equal(t, wrappedLines, view.ViewBufferLines())
+			plainWrappedLines := lo.Map(wrappedLines, func(line string, _ int) string { return Decolorise(line) })
+			assert.Equal(t, plainWrappedLines, view.ViewBufferLines())
 		})
 	}
 }

@@ -124,6 +124,14 @@ func (self *Views) Menu() *ViewDriver {
 	return self.regularView("menu")
 }
 
+func (self *Views) MenuFilter() *ViewDriver {
+	return self.regularView("menuFilter")
+}
+
+func (self *Views) MenuFilterFrame() *ViewDriver {
+	return self.regularView("menuFilterFrame")
+}
+
 func (self *Views) Confirmation() *ViewDriver {
 	return self.regularView("confirmation")
 }

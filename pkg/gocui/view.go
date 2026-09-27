@@ -138,6 +138,12 @@ type View struct {
 	// focus.
 	InactiveViewSelBgColor Attribute
 
+	// SelTextColor is applied to the text of the selected line when it is
+	// highlighted, whether the view has the focus or not. Its attributes are
+	// added to those of the text, and if it has a color, that replaces the
+	// color of the text.
+	SelTextColor Attribute
+
 	// If Editable is true, keystrokes will be added to the view's internal
 	// buffer at the cursor position.
 	Editable bool
@@ -210,7 +216,9 @@ type View struct {
 	// Overlaps describes which edges are overlapping with another view's edges
 	Overlaps byte
 
-	// ParentView is the view which catches events bubbled up from the given view if there's no matching handler
+	// ParentView is the view which catches events bubbled up from the given view if there's no matching handler.
+	// Views related this way are also drawn as a single focused unit: while one of
+	// them is the current view, they all get the focused frame and title colors.
 	ParentView *View
 
 	searcher *searcher
@@ -269,6 +277,12 @@ type searcher struct {
 	currentSearchIndex int
 	onSelectItem       func(*View, int)
 	renderSearchStatus func(*View, int, int)
+
+	// Whether the content has changed since the positions were worked out, so that
+	// they have to be worked out again before they are read. Working them out walks
+	// the whole view, and content arrives a line at a time, so it happens once per
+	// read rather than once per line written.
+	positionsStale bool
 }
 
 func (v *View) setRenderSearchStatus(renderSearchStatus func(*View, int, int)) {
@@ -285,7 +299,40 @@ func (v *View) renderSearchStatus(index int, itemCount int) {
 	}
 }
 
+// refreshSearchPositions works the search positions out again if the content has
+// changed since they were last worked out. Every read of the positions goes through
+// this, so that no caller has to know whether the view has been drawn since the
+// content it is asking about arrived.
+func (v *View) refreshSearchPositions() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.refreshSearchPositionsIfNeeded()
+}
+
+// refreshSearchPositions for a caller that already holds writeMutex.
+func (v *View) refreshSearchPositionsIfNeeded() {
+	if v.searcher.positionsStale {
+		v.updateSearchPositions()
+	}
+}
+
+// RefreshSearch runs the search again over content the view has just been re-rendered
+// with, and shows the "x of y" status of what it finds. The view stays where it is: the
+// position in the content is the user's, and the search follows it rather than moving
+// it.
+func (v *View) RefreshSearch() {
+	if !v.IsSearching() {
+		return
+	}
+
+	v.UpdateSearchResults(v.searcher.searchString, v.searcher.modelSearchResults)
+	v.renderSearchStatus(v.searcher.currentSearchIndex, len(v.searcher.searchPositions))
+}
+
 func (v *View) gotoNextMatch() error {
+	v.refreshSearchPositions()
+
 	if len(v.searcher.searchPositions) == 0 {
 		return nil
 	}
@@ -305,6 +352,8 @@ func (v *View) gotoNextMatch() error {
 }
 
 func (v *View) gotoPreviousMatch() error {
+	v.refreshSearchPositions()
+
 	if len(v.searcher.searchPositions) == 0 {
 		return nil
 	}
@@ -326,6 +375,8 @@ func (v *View) gotoPreviousMatch() error {
 }
 
 func (v *View) SelectSearchResult(index int) {
+	v.refreshSearchPositions()
+
 	itemCount := len(v.searcher.searchPositions)
 	if itemCount == 0 {
 		return
@@ -345,6 +396,8 @@ func (v *View) SelectSearchResult(index int) {
 
 // Returns <current match index>, <total matches>
 func (v *View) GetSearchStatus() (int, int) {
+	v.refreshSearchPositions()
+
 	return v.searcher.currentSearchIndex, len(v.searcher.searchPositions)
 }
 
@@ -418,6 +471,8 @@ func (v *View) nearestSearchPosition() int {
 }
 
 func (v *View) SetNearestSearchPosition() {
+	v.refreshSearchPositions()
+
 	if len(v.searcher.searchPositions) > 0 {
 		newPos := v.nearestSearchPosition()
 		if newPos != v.searcher.currentSearchIndex {
@@ -582,7 +637,7 @@ func NewView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 
 	v.FgColor, v.BgColor = ColorDefault, ColorDefault
 	v.SelFgColor, v.SelBgColor = ColorDefault, ColorDefault
-	v.InactiveViewSelBgColor = ColorDefault
+	v.InactiveViewSelBgColor, v.SelTextColor = ColorDefault, ColorDefault
 	v.TitleColor, v.FrameColor = ColorDefault, ColorDefault
 	v.buf.ei.screenColMax = v.InnerWidth()
 	return v
@@ -673,12 +728,7 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute, isW
 		}
 
 		if y >= rangeSelectStart && y <= rangeSelectEnd {
-			// this ensures we use the bright variant of a colour upon highlight
-			fgColorComponent := fgColor & ^AttrAll
-			if fgColorComponent >= AttrIsValidColor && fgColorComponent < AttrIsValidColor+8 {
-				fgColor += 8
-			}
-			fgColor = fgColor | AttrBold
+			fgColor = applySelTextColor(fgColor, v.SelTextColor)
 			if v.HighlightInactive || !isWindowFocused {
 				bgColor = (bgColor & AttrStyleBits) | v.InactiveViewSelBgColor
 			} else {
@@ -900,7 +950,7 @@ func (v *View) write(p []byte) {
 
 	v.buf.write(v, p)
 
-	v.updateSearchPositions()
+	v.searcher.positionsStale = true
 }
 
 // write parses p into cells and appends them to the buffer at its write cursor.
@@ -1351,6 +1401,8 @@ func stringToGraphemes(s string) []string {
 }
 
 func (v *View) updateSearchPositions() {
+	v.searcher.positionsStale = false
+
 	if v.searcher.searchString != "" {
 		var normalizeRune func(s string) string
 		var normalizedSearchStr string
@@ -1429,6 +1481,11 @@ func (v *View) updateSearchPositions() {
 			}
 		}
 	}
+
+	// The content may hold fewer matches than it did, so the current one is brought
+	// back into range: readers index the positions by it.
+	v.searcher.currentSearchIndex = min(v.searcher.currentSearchIndex,
+		max(0, len(v.searcher.searchPositions)-1))
 }
 
 // IsTainted tells us if the view is tainted
@@ -1459,6 +1516,7 @@ func (v *View) draw(isWindowFocused bool) {
 	}
 
 	v.refreshViewLinesIfNeeded()
+	v.refreshSearchPositionsIfNeeded()
 
 	visibleViewLinesHeight := v.viewLineLengthIgnoringTrailingBlankLines()
 	if v.Autoscroll && visibleViewLinesHeight > maxY {
@@ -1786,6 +1844,15 @@ func indexFunc(r rune) bool {
 	return r == ' ' || r == 0
 }
 
+// applySelTextColor adds the attributes of selTextColor to fgColor, and
+// replaces the color of fgColor with that of selTextColor if it has one.
+func applySelTextColor(fgColor, selTextColor Attribute) Attribute {
+	if selTextColor&AttrColorBits != ColorDefault {
+		fgColor = fgColor&AttrStyleBits | selTextColor&AttrColorBits
+	}
+	return fgColor | selTextColor&AttrStyleBits
+}
+
 // SetHighlight toggles highlighting of separate lines, for custom lists
 // or multiple selection in views.
 func (v *View) SetHighlight(y int, on bool) {
@@ -2068,6 +2135,8 @@ func (v *View) setContentLineCount(lineCount int) {
 // result that is visible in the view, if any, or the first one that is below the view if none is
 // visible.
 func (v *View) selectVisibleSearchResultAfterScrollUp() {
+	v.refreshSearchPositions()
+
 	if !v.Highlight && len(v.searcher.searchPositions) != 0 {
 		windowBottom := v.oy + v.InnerHeight()
 		if v.searcher.searchPositions[v.searcher.currentSearchIndex].Y >= windowBottom {
@@ -2091,6 +2160,8 @@ func (v *View) selectVisibleSearchResultAfterScrollUp() {
 // result that is visible in the view, if any, or the last one that is above the view if none is
 // visible.
 func (v *View) selectVisibleSearchResultAfterScrollDown() {
+	v.refreshSearchPositions()
+
 	if !v.Highlight && len(v.searcher.searchPositions) != 0 {
 		if v.searcher.searchPositions[v.searcher.currentSearchIndex].Y < v.oy {
 			newSearchIndex := v.searcher.currentSearchIndex

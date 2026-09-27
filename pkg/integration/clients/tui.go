@@ -9,12 +9,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jesseduffield/lazycore/pkg/utils"
+	lazycoreUtils "github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -23,7 +24,7 @@ import (
 var SLOW_INPUT_DELAY = 600
 
 func RunTUI(raceDetector bool) {
-	rootDir := utils.GetLazyRootDirectory()
+	rootDir := utils.MustFindLazygitRootDirectory()
 	testDir := filepath.Join(rootDir, "test", "integration")
 
 	app := newApp(testDir)
@@ -206,7 +207,7 @@ type app struct {
 }
 
 func newApp(testDir string) *app {
-	return &app{testDir: testDir, allTests: tests.GetTests(utils.GetLazyRootDirectory())}
+	return &app{testDir: testDir, allTests: tests.GetTests(utils.MustFindLazygitRootDirectory())}
 }
 
 func (self *app) getCurrentTest() *components.IntegrationTest {
@@ -224,7 +225,7 @@ func (self *app) loadTests() {
 }
 
 func (self *app) adjustCursor() {
-	self.itemIdx = utils.Clamp(self.itemIdx, 0, len(self.filteredTests)-1)
+	self.itemIdx = lazycoreUtils.Clamp(self.itemIdx, 0, len(self.filteredTests)-1)
 }
 
 func (self *app) filterWithString(needle string) {

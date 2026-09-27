@@ -12,21 +12,22 @@ import (
 var (
 	decoloriseCache = make(map[string]string)
 	decoloriseMutex sync.RWMutex
+
+	colorCodeRe = regexp.MustCompile(`\x1B\[([0-9]{1,3}(;[0-9]{1,3})*)?[mGK]`)
+	linkRe      = regexp.MustCompile(`\x1B]8;[^;]*;(.*?)(\x1B.|\x07)`)
 )
 
 // Decolorise strips a string of color
 func Decolorise(str string) string {
 	decoloriseMutex.RLock()
-	val := decoloriseCache[str]
+	val, ok := decoloriseCache[str]
 	decoloriseMutex.RUnlock()
 
-	if val != "" {
+	if ok {
 		return val
 	}
 
-	re := regexp.MustCompile(`\x1B\[([0-9]{1,3}(;[0-9]{1,3})*)?[mGK]`)
-	linkRe := regexp.MustCompile(`\x1B]8;[^;]*;(.*?)(\x1B.|\x07)`)
-	ret := re.ReplaceAllString(str, "")
+	ret := colorCodeRe.ReplaceAllString(str, "")
 	ret = linkRe.ReplaceAllString(ret, "")
 
 	decoloriseMutex.Lock()
@@ -59,10 +60,16 @@ func IsValidHexValue(v string) bool {
 
 func SetCustomColors(customColors map[string]string) map[string]*style.TextStyle {
 	return lo.MapValues(customColors, func(c string, key string) *style.TextStyle {
-		if s, ok := style.ColorMap[c]; ok {
-			return &s.Foreground
-		}
-		value := style.New().SetFg(style.NewRGBColor(color.HEX(c, false)))
+		value := CustomColorStyle(c)
 		return &value
 	})
+}
+
+// CustomColorStyle returns the text style for a color that the user
+// configured, either by the name of a terminal color or as a hex value.
+func CustomColorStyle(c string) style.TextStyle {
+	if s, ok := style.ColorMap[c]; ok {
+		return s.Foreground
+	}
+	return style.New().SetFg(style.NewRGBColor(color.HEX(c, false)))
 }

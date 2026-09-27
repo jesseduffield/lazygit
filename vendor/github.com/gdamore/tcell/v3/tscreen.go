@@ -179,7 +179,7 @@ const (
 	notifyDesktop777  = "\x1b]777;notify;%s;%s\x1b\\"       // Most commonly supported
 	queryKittyKbd     = "\x1b[?u"                           // Query for Kitty keyboard support
 	enableKittyKbd    = "\x1b[=1u"                          // Technically this pushes
-	enableKittyKbdAdv = "\x1b[=15u"                         // disambiguation, events, alternate keys, all keys
+	enableKittyKbdAdv = "\x1b[=31u"                         // disambiguation, events, alternate keys, all keys, text
 	disableKittyKbd   = "\x1b[=0u"                          // Technically this means pop previous mode
 	queryXTermKbd     = "\x1b[?4m"                          // Query for XTerm modify other keys support
 	enableXTermKbd    = "\x1b[>4;2m"                        // Enable modify other keys protocol
@@ -286,6 +286,11 @@ type tScreen struct {
 	advancedKeys       bool
 	controlStringLimit int
 	input              *inputParser
+	compat             struct {
+		mouseUnsupported         bool
+		focusUnsupported         bool
+		clipboardReadUnsupported bool
+	}
 	sync.Mutex
 }
 
@@ -780,6 +785,10 @@ func (t *tScreen) emitAttrs(attrs AttrMask) {
 // The assumption is that sgr0 was already printed ahead of this.
 func (t *tScreen) emitUnderline(us UnderlineStyle, uc Color) {
 	if us != UnderlineStyleNone {
+		if t.legacy {
+			t.Print(underline)
+			return
+		}
 		// NB: under color should have been reset by sgr0
 		if uc.IsRGB() {
 			r, g, b := uc.RGB()
@@ -1100,6 +1109,9 @@ func (t *tScreen) enableMouse(f MouseFlags) {
 	// so we enable the mouse unconditionally unless we get a report
 	// that says we have mouse, but not SGR mouse.  This is suboptimal, but
 	// a concession forced by the sorry state of terminal emulators.
+	if t.compat.mouseUnsupported {
+		return
+	}
 	if t.mouseDisabled {
 		f = 0
 	}
@@ -1203,10 +1215,16 @@ func (t *tScreen) DisableFocus() {
 }
 
 func (t *tScreen) enableFocusReporting() {
+	if t.compat.focusUnsupported {
+		return
+	}
 	t.Print(vt.PmFocusReports.Enable())
 }
 
 func (t *tScreen) disableFocusReporting() {
+	if t.compat.focusUnsupported {
+		return
+	}
 	t.Print(vt.PmFocusReports.Disable())
 }
 
@@ -1336,13 +1354,18 @@ func (t *tScreen) mainLoop(stopQ chan struct{}) {
 		case chunk := <-t.keyQ:
 			buf.Write(chunk)
 			t.scanInput(buf)
-			if t.input.Waiting() {
-				ta = time.After(time.Millisecond * 100)
+			if timeout := t.input.WaitDuration(); timeout > 0 {
+				ta = time.After(timeout)
 			} else {
 				ta = nil
 			}
 		case <-ta:
 			t.input.Scan()
+			if timeout := t.input.WaitDuration(); timeout > 0 {
+				ta = time.After(timeout)
+			} else {
+				ta = nil
+			}
 		}
 	}
 }
@@ -1351,13 +1374,24 @@ func (t *tScreen) inputLoop(stopQ chan struct{}) {
 
 	defer t.wg.Done()
 	for {
+		readDone := make(chan bool)
+		chunk := make([]byte, 128)
+		var n int
+		var e error
 		select {
 		case <-stopQ:
 			return
 		default:
+			go func() {
+				n, e = t.tty.Read(chunk)
+				close(readDone)
+			}()
+			select {
+			case <-stopQ:
+				return
+			case <-readDone:
+			}
 		}
-		chunk := make([]byte, 128)
-		n, e := t.tty.Read(chunk)
 		switch e {
 		case nil:
 		default:
@@ -1373,7 +1407,11 @@ func (t *tScreen) inputLoop(stopQ chan struct{}) {
 			return
 		}
 		if n > 0 {
-			t.keyQ <- chunk[:n]
+			select {
+			case t.keyQ <- chunk[:n]:
+			case <-t.quit:
+				return
+			}
 		}
 	}
 }
@@ -1449,7 +1487,31 @@ func (t *tScreen) Tty() (Tty, bool) {
 	return t.tty, true
 }
 
-func (t *tScreen) applyKnownTerminalProfile(goos, termProgram string) bool {
+func isSTTerminal(term string) bool {
+	return term == "st" || strings.HasPrefix(term, "st-")
+}
+
+func (t *tScreen) applyKnownTerminalProfile(goos, term, termProgram string) bool {
+	if isSTTerminal(term) {
+		// st implements a small subset of xterm extensions.  In particular,
+		// it has neither an advanced keyboard protocol nor SGR mouse or focus
+		// reporting.  It also reports unsupported CSI and OSC sequences to
+		// stderr, so avoid probing or using extensions it does not implement.
+		t.legacy = true
+		t.compat.mouseUnsupported = true
+		t.compat.focusUnsupported = true
+		t.enterUrl = ""
+		t.exitUrl = ""
+		t.setWinSize = ""
+		t.saveTitle = ""
+		t.restoreTitle = ""
+		t.setTitle = "\x1b]2;%s\x1b\\"
+		t.notifyDesktop = ""
+		t.compat.clipboardReadUnsupported = true
+		t.termName = "st"
+		return true
+	}
+
 	switch termProgram {
 	case "Apple_Terminal":
 		// macOS Terminal.app cannot handle the startup queries, but it does
@@ -1525,7 +1587,7 @@ func (t *tScreen) engageLocked() error {
 		// Eventually they'll hopefully fix this.  As the environment variable
 		// does not convey by default via ssh, remote sessions might see spurious characters
 		// emitted during startup.  See the blog post for alternatives.
-		if !t.applyKnownTerminalProfile(runtime.GOOS, os.Getenv("TERM_PROGRAM")) && t.negotiate {
+		if !t.applyKnownTerminalProfile(runtime.GOOS, t.term, os.Getenv("TERM_PROGRAM")) && t.negotiate {
 			if useVTWindowSizeQuery(runtime.GOOS) {
 				t.Print(requestWindowSize)
 			}
@@ -1551,6 +1613,7 @@ func (t *tScreen) engageLocked() error {
 	}
 	t.processInitQ()
 	t.applyKeyboardProtocolOverride()
+	t.input.SetKeyboardProtocol(t.keyboardProtocol())
 	if t.useAltScreen() {
 		// Technically this may not be right, but every terminal we know about
 		// (even Wyse 60) uses this to enter the alternate screen buffer, and
@@ -1589,7 +1652,7 @@ func (t *tScreen) engageLocked() error {
 	if t.title != "" && t.setTitle != "" {
 		t.Printf(t.setTitle, t.title)
 	}
-	if t.negotiate && useVTWindowSizeQuery(runtime.GOOS) {
+	if t.negotiate && !t.legacy && useVTWindowSizeQuery(runtime.GOOS) {
 		t.Print(requestWindowSize)
 	}
 
@@ -1744,7 +1807,7 @@ func (t *tScreen) GetClipboard() {
 		t.Unlock()
 		return
 	}
-	if t.setClipboard != "" {
+	if !t.compat.clipboardReadUnsupported && t.setClipboard != "" {
 		t.Printf(t.setClipboard, "?")
 	}
 	t.Unlock()
@@ -1773,6 +1836,11 @@ func (t *tScreen) Terminal() (string, string) {
 func (t *tScreen) KeyboardProtocol() KeyProtocol {
 	t.Lock()
 	defer t.Unlock()
+	return t.keyboardProtocol()
+}
+
+// keyboardProtocol reports the selected keyboard protocol while t is locked.
+func (t *tScreen) keyboardProtocol() KeyProtocol {
 	if t.haveWin32Kbd {
 		return Win32Keyboard
 	}

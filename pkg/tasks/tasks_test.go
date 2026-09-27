@@ -253,12 +253,9 @@ func TestNewCmdTaskQueuedReadAtEndOfInput(t *testing.T) {
 	})
 
 	<-reader.blocked
+	// The request is queued by the time this returns, so it is outstanding when we
+	// let the task reach EOF below.
 	manager.ReadToEnd(func() { thenCalled = true })
-	// ReadToEnd queues its request from a goroutine; wait for it to land so that
-	// it is definitely outstanding by the time we let the task reach EOF.
-	for len(*manager.readLines.Load()) == 0 {
-		time.Sleep(time.Millisecond)
-	}
 	close(reader.unblock)
 
 	wg.Wait()
@@ -485,4 +482,43 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 				s.name, s.expectedLineCountsOnRefresh, lineCountsOnRefresh)
 		}
 	}
+}
+
+// A read request is answered by the task that serves it calling the request's Then.
+// This checks that requests still waiting when the task is stopped are answered too,
+// which is what happens when a re-render replaces the task.
+func TestQueuedReadRequestsAreAnsweredWhenTheTaskStops(t *testing.T) {
+	noop := func() {}
+	task := gocui.NewFakeTask()
+
+	// A pipe the task blocks on, so that the requests are still waiting when it stops.
+	pipeReader, pipeWriter := io.Pipe()
+	defer pipeWriter.Close()
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(), bytes.NewBuffer(nil), noop, noop, noop, noop, noop, noop,
+		func() gocui.Task { return task },
+		func(f func()) error { f(); return nil },
+	)
+
+	stop := make(chan struct{})
+	fn := manager.NewCmdTask(
+		func() (Cmd, io.Reader) { return ExecCmd{Cmd: exec.Command("true")}, pipeReader },
+		"", LinesToRead{Total: 1, InitialRefreshAfter: -1}, noop)
+	go func() { _, _ = pipeWriter.Write([]byte("first line\n")) }()
+	go func() { _ = fn(TaskOpts{Stop: stop, InitialContentLoaded: noop}) }()
+	// Let the task start and read the line it was asked for, so that the requests
+	// below are handed to a task that is waiting for them.
+	time.Sleep(50 * time.Millisecond)
+
+	answered := atomic.Int32{}
+	manager.ReadToEnd(func() { answered.Add(1) })
+	manager.ReadToEnd(func() { answered.Add(1) })
+
+	// Let the first request be picked up and block on the pipe, then stop the task.
+	time.Sleep(50 * time.Millisecond)
+	close(stop)
+	time.Sleep(50 * time.Millisecond)
+
+	assert.EqualValues(t, 2, answered.Load())
 }

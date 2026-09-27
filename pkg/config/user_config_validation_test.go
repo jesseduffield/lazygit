@@ -226,6 +226,43 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			},
 		},
 		{
+			name: "Custom command context",
+			setup: func(config *UserConfig, value string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Context: value,
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: true},
+				{value: "global", valid: true},
+				{value: "commits", valid: true},
+				{value: "commits, subCommits", valid: true},
+				{value: "commits,subCommits", valid: true},
+				{value: "invalid_value", valid: false},
+				{value: "commits, invalid_value", valid: false},
+			},
+		},
+		{
+			name: "Custom command context in a sub menu",
+			setup: func(config *UserConfig, value string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Key: Keybinding{"X"},
+						CommandMenu: []CustomCommand{
+							{Key: Keybinding{"1"}, Command: "echo 'hello'", Context: value},
+						},
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: true},
+				{value: "commits", valid: true},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
 			name: "Custom command sub menu",
 			setup: func(config *UserConfig, _ string) {
 				config.CustomCommands = []CustomCommand{
@@ -372,9 +409,14 @@ func TestUserConfigValidate_diffRenderers(t *testing.T) {
 		{name: "stdinFilter with explicit type", diffRenderer: DiffRendererConfig{Type: "stdinFilter"}, valid: false},
 		{name: "stdinFilter with type default without command", diffRenderer: DiffRendererConfig{}, valid: false},
 		{name: "stdinFilter with args", diffRenderer: DiffRendererConfig{Type: "stdinFilter", Command: "delta", Args: []string{"-x"}}, valid: false},
+		{name: "stdinFilter with a template", diffRenderer: DiffRendererConfig{Command: "delta --width={{width}}{{if gt .width 100}} --side-by-side{{end}}"}, valid: true},
+		{name: "stdinFilter with an unknown template variable", diffRenderer: DiffRendererConfig{Command: "delta --width={{.widht}}"}, valid: false},
+		{name: "stdinFilter with a broken template", diffRenderer: DiffRendererConfig{Command: "delta {{if .width}}"}, valid: false},
 		{name: "external diff", diffRenderer: DiffRendererConfig{Type: "extDiff", Command: "difft"}, valid: true},
 		{name: "external diff without command", diffRenderer: DiffRendererConfig{Type: "extDiff"}, valid: true},
 		{name: "external diff with args", diffRenderer: DiffRendererConfig{Type: "extDiff", Command: "difft", Args: []string{"-x"}}, valid: false},
+		{name: "external diff with a template", diffRenderer: DiffRendererConfig{Type: "extDiff", Command: "difft --context={{diffContext}}"}, valid: true},
+		{name: "external diff with a variable of stdin filters", diffRenderer: DiffRendererConfig{Type: "extDiff", Command: "difft --width={{columnWidth}}"}, valid: false},
 		{name: "raw git", diffRenderer: DiffRendererConfig{Type: "rawGit"}, valid: true},
 		{name: "raw git with args", diffRenderer: DiffRendererConfig{Type: "rawGit", Args: []string{"-x"}}, valid: true},
 		{name: "raw git with command", diffRenderer: DiffRendererConfig{Type: "rawGit", Command: "delta"}, valid: false},

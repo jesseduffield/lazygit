@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
-	"github.com/jesseduffield/lazycore/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/karimkhaleel/jsonschema"
 	"github.com/samber/lo"
 
@@ -163,7 +164,7 @@ func (n *Node) MarshalYAML() (any, error) {
 }
 
 func writeToConfigDocs(config []byte) error {
-	configPath := utils.GetLazyRootDirectory() + "/docs-master/Config.md"
+	configPath := utils.MustFindLazygitRootDirectory() + "/docs-master/Config.md"
 	markdown, err := os.ReadFile(configPath)
 	if err != nil {
 		return fmt.Errorf("Error reading Config.md file %w", err)
@@ -192,12 +193,15 @@ func writeToConfigDocs(config []byte) error {
 	return nil
 }
 
-func GenerateConfigDocs(schema *jsonschema.Schema) {
+// GenerateConfigDocs writes the default config into Config.md. For the
+// properties in repeatedStructs, it writes only their description, instead of
+// repeating the fields of their struct.
+func GenerateConfigDocs(schema *jsonschema.Schema, repeatedStructs []*jsonschema.Schema) {
 	rootNode := &Node{
 		Children: make([]*Node, 0),
 	}
 
-	recurseOverSchema(schema, schema.Definitions["UserConfig"], rootNode)
+	recurseOverSchema(schema, schema.Definitions["UserConfig"], rootNode, repeatedStructs)
 
 	var buffer bytes.Buffer
 	encoder := yaml.NewEncoder(&buffer)
@@ -219,7 +223,7 @@ func GenerateConfigDocs(schema *jsonschema.Schema) {
 	}
 }
 
-func recurseOverSchema(rootSchema, schema *jsonschema.Schema, parent *Node) {
+func recurseOverSchema(rootSchema, schema *jsonschema.Schema, parent *Node, repeatedStructs []*jsonschema.Schema) {
 	if schema == nil || schema.Properties == nil || schema.Properties.Len() == 0 {
 		return
 	}
@@ -237,7 +241,9 @@ func recurseOverSchema(rootSchema, schema *jsonschema.Schema, parent *Node) {
 			Default:     getZeroValue(subSchema.Default, subSchema.Type),
 		}
 		parent.Children = append(parent.Children, &node)
-		recurseOverSchema(rootSchema, subSchema, &node)
+		if !slices.Contains(repeatedStructs, subSchema) {
+			recurseOverSchema(rootSchema, subSchema, &node, repeatedStructs)
+		}
 	}
 }
 

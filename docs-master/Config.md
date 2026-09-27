@@ -37,12 +37,6 @@ This is only meant as a reference for what config options exist, and what their 
 ```yaml
 # Config relating to the Lazygit UI
 gui:
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
-  authorColors: {}
-
-  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
-  branchColorPatterns: {}
-
   # Custom icons for filenames and file extensions
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color
   customIcons:
@@ -169,6 +163,14 @@ gui:
   # Uses Go's time format syntax: https://pkg.go.dev/time#Time.Format
   shortTimeFormat: 3:04PM
 
+  # Whether the terminal has a dark or a light background. This decides whether
+  # 'darkTheme' or 'lightTheme' applies, and the colors of authors are picked to
+  # stand out against it.
+  # One of: 'auto' (default) | 'dark' | 'light'
+  # With 'auto', lazygit asks the terminal, and assumes a dark background if the
+  # terminal doesn't tell.
+  colorScheme: auto
+
   # Config relating to colors and styles.
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes
   theme:
@@ -179,7 +181,7 @@ gui:
 
     # Border color of non-focused windows
     inactiveBorderColor:
-      - default
+      - dim
 
     # Border color of focused window when searching in that window
     searchingActiveBorderColor:
@@ -190,14 +192,22 @@ gui:
     optionsTextColor:
       - blue
 
+    # Color and attributes of the text of the selected line. The attributes are
+    # added to those of the text, and a color replaces the colors of the text.
+    # Set it to 'default' to leave the text as it is, e.g. if you don't want the
+    # selected line in bold.
+    selectedLineFgColor:
+      - bold
+
     # Background color of selected line.
+    # Default: 'blue' if the terminal has a dark background, or a suitable RGB blue
+    # computed from the background color if it is light.
     # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
-    selectedLineBgColor:
-      - blue
+    selectedLineBgColor: []
 
     # Background color of selected line when view doesn't have focus.
-    inactiveViewSelectedLineBgColor:
-      - bold
+    # Default: a suitable RGB grey computed from the terminal's background color.
+    inactiveViewSelectedLineBgColor: []
 
     # Foreground color of copied commit
     cherryPickedCommitFgColor:
@@ -222,6 +232,22 @@ gui:
     # Default text color
     defaultFgColor:
       - default
+
+    # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
+    authorColors: {}
+
+    # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
+    branchColorPatterns: {}
+
+  # Colors and styles that override those in 'theme' when the terminal has a dark
+  # background. It has the same fields as 'theme'.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#themes-for-dark-and-light-backgrounds
+  darkTheme: {}
+
+  # Colors and styles that override those in 'theme' when the terminal has a light
+  # background. It has the same fields as 'theme'.
+  # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#themes-for-dark-and-light-backgrounds
+  lightTheme: {}
 
   # Config relating to the commit length indicator
   commitLength:
@@ -443,7 +469,9 @@ git:
   # If not "none", lazygit will automatically fast-forward local branches to match
   # their upstream after fetching. Applies to branches that are not the currently
   # checked out branch, and only to those that are strictly behind their upstream
-  # (as opposed to diverged).
+  # (as opposed to diverged). A branch that is checked out in another worktree is
+  # fast-forwarded there, unless that worktree has changes to tracked files or is
+  # in the middle of a rebase or bisect.
   # Possible values: 'none' | 'onlyMainBranches' | 'allBranches'
   autoForwardBranches: onlyMainBranches
 
@@ -999,6 +1027,7 @@ The available attributes are:
 
 - bold
 - default
+- dim # faint text; not supported by every terminal
 - reverse # useful for high-contrast
 - underline
 - strikethrough
@@ -1023,28 +1052,61 @@ gui:
       - reverse
 ```
 
+The text of the selected line is bold by default. If you don't want that, set `selectedLineFgColor` to `default`:
+
+```yaml
+gui:
+  theme:
+    selectedLineFgColor:
+      - default
+```
+
+## Themes for dark and light backgrounds
+
+The colors in `gui.theme` apply whether your terminal has a dark or a light background. If you want different colors for the two, set them in `gui.darkTheme` or `gui.lightTheme`. These have the same fields as `gui.theme`, and a field that you set in them overrides the one in `gui.theme`:
+
+```yaml
+gui:
+  theme:
+    activeBorderColor:
+      - green
+      - bold
+  lightTheme:
+    activeBorderColor:
+      - blue
+      - bold
+```
+
+For `authorColors` and `branchColorPatterns`, each entry overrides the one with the same key in `gui.theme`, and the other entries of `gui.theme` still apply. Branch color patterns of `gui.darkTheme` or `gui.lightTheme` come before those of `gui.theme`.
+
+Lazygit asks the terminal whether its background is dark or light. If your terminal doesn't tell, lazygit assumes a dark background; set `gui.colorScheme` to `light` if yours is light.
+
 ## Custom Author Color
 
 Lazygit will assign a random color for every commit author in the commits pane by default.
+
+These colors are picked to be readable against the background of your terminal, and lazygit asks the terminal whether its background is dark or light. If your terminal doesn't tell, lazygit assumes a dark background; set `gui.colorScheme` to `light` if yours is light.
 
 You can customize the color in case you're not happy with the randomly assigned one:
 
 ```yaml
 gui:
-  authorColors:
-    'John Smith': 'red' # use red for John Smith
-    'Alan Smithee': '#00ff00' # use green for Alan Smithee
+  theme:
+    authorColors:
+      'John Smith': 'red' # use red for John Smith
+      'Alan Smithee': '#00ff00' # use green for Alan Smithee
 ```
 
 You can use wildcard to set a unified color in case your are lazy to customize the color for every author or you just want a single color for all/other authors:
 
 ```yaml
 gui:
-  authorColors:
-    # use red for John Smith
-    'John Smith': 'red'
-    # use blue for other authors
-    '*': '#0000ff'
+  theme:
+    authorColors:
+      # use red for John Smith
+      'John Smith': 'red'
+      # use blue for other authors
+      '*': '#0000ff'
 ```
 
 ## Custom Branch Color
@@ -1053,12 +1115,15 @@ You can customize the color of branches based on branch patterns (regular expres
 
 ```yaml
 gui:
-  branchColorPatterns:
-    '^docs/': '#11aaff' # use a light blue for branches beginning with 'docs/'
-    'ISSUE-\d+': '#ff5733' # use a bright orange for branches containing 'ISSUE-<some-number>'
+  theme:
+    branchColorPatterns:
+      '^docs/': '#11aaff' # use a light blue for branches beginning with 'docs/'
+      'ISSUE-\d+': '#ff5733' # use a bright orange for branches containing 'ISSUE-<some-number>'
 ```
 
 Note that the regular expressions are not implicitly anchored to the beginning/end of the branch name. If you want to do that, add leading `^` and/or trailing `$` as needed.
+
+If several patterns match a branch, the first one wins.
 
 ## Custom Files Icon & Color
 

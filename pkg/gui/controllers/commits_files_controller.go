@@ -177,7 +177,7 @@ func (self *CommitFilesController) GetOnRenderToMain() func() {
 
 		paths := self.pathsForDiff(node)
 		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(from, to, reverse, paths, false)
-		task := types.NewRunPtyTask(cmdObj.GetCmd())
+		task := types.NewRunDiffRendererTask(cmdObj.GetCmd())
 
 		self.c.RenderToMainViews(types.RefreshMainOpts{
 			Pair: self.c.MainViewPairs().Normal,

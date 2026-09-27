@@ -68,13 +68,6 @@ func (c *RefresherConfig) ExternalChangeCheckIntervalDuration() time.Duration {
 }
 
 type GuiConfig struct {
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
-	AuthorColors map[string]string `yaml:"authorColors"`
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
-	// Deprecated: use branchColorPatterns instead
-	BranchColors map[string]string `yaml:"branchColors" jsonschema:"deprecated"`
-	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
-	BranchColorPatterns map[string]string `yaml:"branchColorPatterns"`
 	// Custom icons for filenames and file extensions
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color
 	CustomIcons CustomIconsConfig `yaml:"customIcons"`
@@ -141,9 +134,19 @@ type GuiConfig struct {
 	// Format used when displaying time if the time is less than 24 hours ago.
 	// Uses Go's time format syntax: https://pkg.go.dev/time#Time.Format
 	ShortTimeFormat string `yaml:"shortTimeFormat"`
+	// Whether the terminal has a dark or a light background. This decides whether 'darkTheme' or 'lightTheme' applies, and the colors of authors are picked to stand out against it.
+	// One of: 'auto' (default) | 'dark' | 'light'
+	// With 'auto', lazygit asks the terminal, and assumes a dark background if the terminal doesn't tell.
+	ColorScheme string `yaml:"colorScheme" jsonschema:"enum=auto,enum=dark,enum=light"`
 	// Config relating to colors and styles.
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes
 	Theme ThemeConfig `yaml:"theme"`
+	// Colors and styles that override those in 'theme' when the terminal has a dark background. It has the same fields as 'theme'.
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#themes-for-dark-and-light-backgrounds
+	DarkTheme ThemeConfig `yaml:"darkTheme"`
+	// Colors and styles that override those in 'theme' when the terminal has a light background. It has the same fields as 'theme'.
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#themes-for-dark-and-light-backgrounds
+	LightTheme ThemeConfig `yaml:"lightTheme"`
 	// Config relating to the commit length indicator
 	CommitLength CommitLengthConfig `yaml:"commitLength"`
 	// If true, show the '5 of 20' footer at the bottom of list views
@@ -237,10 +240,15 @@ type ThemeConfig struct {
 	SearchingActiveBorderColor []string `yaml:"searchingActiveBorderColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Color of keybindings help text in the bottom line
 	OptionsTextColor []string `yaml:"optionsTextColor" jsonschema:"minItems=1,uniqueItems=true"`
+	// Color and attributes of the text of the selected line. The attributes are added to those of the text, and a color replaces the colors of the text.
+	// Set it to 'default' to leave the text as it is, e.g. if you don't want the selected line in bold.
+	SelectedLineFgColor []string `yaml:"selectedLineFgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Background color of selected line.
+	// Default: 'blue' if the terminal has a dark background, or a suitable RGB blue computed from the background color if it is light.
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
 	SelectedLineBgColor []string `yaml:"selectedLineBgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Background color of selected line when view doesn't have focus.
+	// Default: a suitable RGB grey computed from the terminal's background color.
 	InactiveViewSelectedLineBgColor []string `yaml:"inactiveViewSelectedLineBgColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Foreground color of copied commit
 	CherryPickedCommitFgColor []string `yaml:"cherryPickedCommitFgColor" jsonschema:"minItems=1,uniqueItems=true"`
@@ -254,6 +262,10 @@ type ThemeConfig struct {
 	UnstagedChangesColor []string `yaml:"unstagedChangesColor" jsonschema:"minItems=1,uniqueItems=true"`
 	// Default text color
 	DefaultFgColor []string `yaml:"defaultFgColor" jsonschema:"minItems=1,uniqueItems=true"`
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
+	AuthorColors map[string]string `yaml:"authorColors"`
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color
+	BranchColorPatterns ColorPatterns `yaml:"branchColorPatterns"`
 }
 
 type CommitLengthConfig struct {
@@ -316,7 +328,7 @@ type GitConfig struct {
 	AutoRefresh bool `yaml:"autoRefresh"`
 	// If true, poll the repo periodically for external ref changes (commits, branch updates, checkouts made outside lazygit) and refresh when one is detected. Independent of autoRefresh, which only governs the files panel.
 	AutoDetectExternalChanges bool `yaml:"autoDetectExternalChanges"`
-	// If not "none", lazygit will automatically fast-forward local branches to match their upstream after fetching. Applies to branches that are not the currently checked out branch, and only to those that are strictly behind their upstream (as opposed to diverged).
+	// If not "none", lazygit will automatically fast-forward local branches to match their upstream after fetching. Applies to branches that are not the currently checked out branch, and only to those that are strictly behind their upstream (as opposed to diverged). A branch that is checked out in another worktree is fast-forwarded there, unless that worktree has changes to tracked files or is in the middle of a rebase or bisect.
 	// Possible values: 'none' | 'onlyMainBranches' | 'allBranches'
 	AutoForwardBranches string `yaml:"autoForwardBranches" jsonschema:"enum=none,enum=onlyMainBranches,enum=allBranches"`
 	// If true, pass the --all arg to git fetch
@@ -881,19 +893,19 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			Language:                 "auto",
 			TimeFormat:               "02 Jan 06",
 			ShortTimeFormat:          time.Kitchen,
+			ColorScheme:              "auto",
 			Theme: ThemeConfig{
-				ActiveBorderColor:               []string{"green", "bold"},
-				SearchingActiveBorderColor:      []string{"cyan", "bold"},
-				InactiveBorderColor:             []string{"default"},
-				OptionsTextColor:                []string{"blue"},
-				SelectedLineBgColor:             []string{"blue"},
-				InactiveViewSelectedLineBgColor: []string{"bold"},
-				CherryPickedCommitBgColor:       []string{"cyan"},
-				CherryPickedCommitFgColor:       []string{"blue"},
-				MarkedBaseCommitBgColor:         []string{"yellow"},
-				MarkedBaseCommitFgColor:         []string{"blue"},
-				UnstagedChangesColor:            []string{"red"},
-				DefaultFgColor:                  []string{"default"},
+				ActiveBorderColor:          []string{"green", "bold"},
+				SearchingActiveBorderColor: []string{"cyan", "bold"},
+				InactiveBorderColor:        []string{"dim"},
+				OptionsTextColor:           []string{"blue"},
+				SelectedLineFgColor:        []string{"bold"},
+				CherryPickedCommitBgColor:  []string{"cyan"},
+				CherryPickedCommitFgColor:  []string{"blue"},
+				MarkedBaseCommitBgColor:    []string{"yellow"},
+				MarkedBaseCommitFgColor:    []string{"blue"},
+				UnstagedChangesColor:       []string{"red"},
+				DefaultFgColor:             []string{"default"},
 			},
 			CommitLength:                        CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning:            false,

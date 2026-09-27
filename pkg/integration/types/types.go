@@ -45,6 +45,8 @@ type GuiDriver interface {
 	FocusInAndClick(int, int)
 	Keys() config.KeybindingConfig
 	CurrentContext() types.Context
+	// Whether the terminal's text cursor is currently shown
+	CursorVisible() bool
 	ContextForView(viewName string) types.Context
 	Fail(message string)
 	// These two log methods are for the sake of debugging while testing. There's no need to actually

@@ -44,6 +44,7 @@ type BranchLoader struct {
 	*GitCommon
 	cmd                  oscommands.ICmdObjBuilder
 	getCurrentBranchInfo func() (BranchInfo, error)
+	hasLocalOnlyCommits  func(*models.Branch) (bool, error)
 	config               BranchLoaderConfigCommands
 }
 
@@ -52,6 +53,7 @@ func NewBranchLoader(
 	gitCommon *GitCommon,
 	cmd oscommands.ICmdObjBuilder,
 	getCurrentBranchInfo func() (BranchInfo, error),
+	hasLocalOnlyCommits func(*models.Branch) (bool, error),
 	config BranchLoaderConfigCommands,
 ) *BranchLoader {
 	return &BranchLoader{
@@ -59,6 +61,7 @@ func NewBranchLoader(
 		GitCommon:            gitCommon,
 		cmd:                  cmd,
 		getCurrentBranchInfo: getCurrentBranchInfo,
+		hasLocalOnlyCommits:  hasLocalOnlyCommits,
 		config:               config,
 	}
 }
@@ -67,13 +70,21 @@ func NewBranchLoader(
 func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 	mainBranches *MainBranches,
 	oldBranches []*models.Branch,
-	loadBehindCounts bool,
+	loadExtraInfo bool,
 	onWorker func(func() error),
 	renderFunc func(),
 ) ([]*models.Branch, error) {
-	branches := self.obtainBranches()
+	branches, tips := self.obtainBranches()
 
-	if self.UserConfig().Git.LocalBranchSortOrder == "recency" {
+	switch self.UserConfig().Git.LocalBranchSortOrder {
+	case "date":
+		if err := sortRefsWithEqualDatesByAncestry(
+			self.cmd, self.version, branches, (*models.Branch).FullRefName, tips,
+		); err != nil {
+			self.Log.Errorf("Failed to sort branches by ancestry: %v", err)
+		}
+
+	case "recency":
 		reflogBranches := self.obtainReflogBranches(reflogCommits)
 		// loop through reflog branches. If there is a match, merge them, then remove it from the branches and keep it in the reflog branches
 		branchesWithRecency := make([]*models.Branch, 0)
@@ -127,22 +138,61 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 			branch.UpstreamBranch = match.Merge
 		}
 
-		// If the branch already existed, take over its BehindBaseBranch value
-		// to reduce flicker
+		// If the branch already existed, take over the values that are
+		// determined in the background, to reduce flicker
 		if oldBranch, found := lo.Find(oldBranches, func(b *models.Branch) bool {
 			return b.Name == branch.Name
 		}); found {
 			branch.BehindBaseBranch.Store(oldBranch.BehindBaseBranch.Load())
+			branch.UpstreamRewritten.Store(oldBranch.UpstreamRewritten.Load())
 		}
 	}
 
-	if loadBehindCounts && self.UserConfig().Gui.ShowDivergenceFromBaseBranch != "none" {
+	if loadExtraInfo {
+		if self.UserConfig().Gui.ShowDivergenceFromBaseBranch != "none" {
+			onWorker(func() error {
+				return self.GetBehindBaseBranchValuesForAllBranches(branches, mainBranches, renderFunc)
+			})
+		}
+
 		onWorker(func() error {
-			return self.GetBehindBaseBranchValuesForAllBranches(branches, mainBranches, renderFunc)
+			return self.checkForRewrittenUpstreams(branches, renderFunc)
 		})
 	}
 
 	return branches, nil
+}
+
+// For each branch that has diverged from its upstream, determines whether the
+// divergence comes from the upstream branch having been rewritten, and stores
+// the answer in the branch. A branch that we can't determine it for keeps the
+// answer "no", so that we don't offer anything we aren't sure about.
+func (self *BranchLoader) checkForRewrittenUpstreams(branches []*models.Branch, renderFunc func()) error {
+	t := time.Now()
+	errg := errgroup.Group{}
+
+	for _, branch := range branches {
+		if !branch.IsAheadForPull() || !branch.IsBehindForPull() {
+			branch.UpstreamRewritten.Store(false)
+			continue
+		}
+
+		errg.Go(func() error {
+			hasLocalOnlyCommits, err := self.hasLocalOnlyCommits(branch)
+			if err != nil {
+				// Not worth bothering the user about; it only means that we
+				// don't show this branch differently.
+				self.Log.Errorf("Failed to check whether branch %s has commits of its own: %v", branch.Name, err)
+			}
+			branch.UpstreamRewritten.Store(err == nil && !hasLocalOnlyCommits)
+			return nil
+		})
+	}
+
+	err := errg.Wait()
+	self.Log.Debugf("time to check for rewritten upstreams for all branches: %s", time.Since(t))
+	renderFunc()
+	return err
 }
 
 func (self *BranchLoader) GetBehindBaseBranchValuesForAllBranches(
@@ -206,94 +256,6 @@ func (self *BranchLoader) getBehindBaseBranchValuesLegacy(
 	return err
 }
 
-// Holds parsed values from a single %(ahead-behind:<base>) field.
-type aheadBehind struct {
-	ahead, behind int
-}
-
-type branchAheadBehind struct {
-	refName      string
-	aheadBehinds []aheadBehind
-}
-
-// Parses output produced by:
-//
-//	git for-each-ref --format='%(refname)\x00%(ahead-behind:<base1>)\x00...' refs/heads
-//
-// Lines whose NUL-split column count doesn't match (1 + numBases) are dropped.
-// Blank lines are ignored.
-// Individual malformed ahead-behind fields produce {valid: false} entries
-func parseAheadBehindForEachRefOutput(
-	output string,
-	numBases int, // number of %(ahead-behind:...) tokens
-) []branchAheadBehind {
-	if output == "" {
-		return nil
-	}
-	lines := strings.Split(output, "\n")
-	result := make([]branchAheadBehind, 0, len(lines))
-	for _, line := range lines {
-		cols := strings.Split(line, "\x00")
-		if len(cols) != numBases+1 {
-			continue
-		}
-		refName := cols[0]
-		aheadBehinds := lo.FilterMap(cols[1:], func(col string, _ int) (aheadBehind, bool) {
-			return parseAheadBehindField(col)
-		})
-		entry := branchAheadBehind{
-			refName:      refName,
-			aheadBehinds: aheadBehinds,
-		}
-		result = append(result, entry)
-	}
-	return result
-}
-
-func parseAheadBehindField(s string) (aheadBehind, bool) {
-	parts := strings.Fields(s)
-	if len(parts) != 2 {
-		return aheadBehind{}, false
-	}
-	ahead, err1 := strconv.Atoi(parts[0])
-	behind, err2 := strconv.Atoi(parts[1])
-	if err1 != nil || err2 != nil {
-		return aheadBehind{}, false
-	}
-	return aheadBehind{ahead: ahead, behind: behind}, true
-}
-
-// Picks the "closest" base by smallest ahead value (commits the branch
-// has that the base doesn't = roughly "since fork point") and returns
-// its behind value.
-// Ties are broken by index order
-func selectBehindForBranch(aheadBehinds []aheadBehind) int {
-	return lo.MinBy(aheadBehinds, func(a, b aheadBehind) bool {
-		return a.ahead < b.ahead
-	}).behind
-}
-
-// The output format is:
-//
-//	<refname>\x00<ahead> <behind>\x00<ahead> <behind>...\n
-//
-// with one ahead-behind field per base, in the same order as mainBranchRefs.
-//
-// Requires git >= 2.41 (when %(ahead-behind:...) was added).
-func buildAheadBehindForEachRefArgs(mainBranchRefs []string) []string {
-	formatParts := make([]string, 0, 1+len(mainBranchRefs))
-	formatParts = append(formatParts, "%(refname)")
-	for _, ref := range mainBranchRefs {
-		formatParts = append(formatParts, "%(ahead-behind:"+ref+")")
-	}
-	format := strings.Join(formatParts, "%00")
-
-	return NewGitCmd("for-each-ref").
-		Arg("--format=" + format).
-		Arg("refs/heads").
-		ToArgv()
-}
-
 func (self *BranchLoader) getBehindBaseBranchValuesFast(
 	branches []*models.Branch,
 	mainBranchRefs []string,
@@ -302,7 +264,7 @@ func (self *BranchLoader) getBehindBaseBranchValuesFast(
 	t := time.Now()
 
 	output, err := self.cmd.New(
-		buildAheadBehindForEachRefArgs(mainBranchRefs),
+		buildAheadBehindForEachRefArgs(mainBranchRefs, []string{"refs/heads"}),
 	).DontLog().RunWithOutput()
 	if err != nil {
 		return err
@@ -362,7 +324,9 @@ func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *Mai
 	return split[0], nil
 }
 
-func (self *BranchLoader) obtainBranches() []*models.Branch {
+// Returns the branches, along with the tip of each of them, keyed by full ref
+// name
+func (self *BranchLoader) obtainBranches() ([]*models.Branch, map[string]refTip) {
 	output, err := self.getRawBranches()
 	if err != nil {
 		panic(err)
@@ -371,7 +335,8 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 	trimmedOutput := strings.TrimSpace(output)
 	outputLines := strings.Split(trimmedOutput, "\n")
 
-	return lo.FilterMap(outputLines, func(line string, _ int) (*models.Branch, bool) {
+	tips := make(map[string]refTip, len(outputLines))
+	branches := lo.FilterMap(outputLines, func(line string, _ int) (*models.Branch, bool) {
 		if line == "" {
 			return nil, false
 		}
@@ -385,8 +350,12 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 		}
 
 		storeCommitDateAsRecency := self.UserConfig().Git.LocalBranchSortOrder != "recency"
-		return obtainBranch(split, storeCommitDateAsRecency), true
+		branch, tip := obtainBranch(split, storeCommitDateAsRecency)
+		tips[branch.FullRefName()] = tip
+		return branch, true
 	})
+
+	return branches, tips
 }
 
 func (self *BranchLoader) getRawBranches() (string, error) {
@@ -422,25 +391,28 @@ var branchFields = []string{
 	"upstream:short",
 	"upstream:track",
 	"push:track",
+	"push",
 	"subject",
 	"objectname",
 	"committerdate:unix",
 }
 
 // Obtain branch information from parsed line output of getRawBranches()
-func obtainBranch(split []string, storeCommitDateAsRecency bool) *models.Branch {
+func obtainBranch(split []string, storeCommitDateAsRecency bool) (*models.Branch, refTip) {
 	headMarker := split[0]
 	fullName := split[1]
 	upstreamName := split[2]
 	track := split[3]
 	pushTrack := split[4]
-	subject := split[5]
-	commitHash := split[6]
-	commitDate := split[7]
+	pushRef := split[5]
+	subject := split[6]
+	commitHash := split[7]
+	commitDate := split[8]
 
 	name := strings.TrimPrefix(fullName, "heads/")
 	aheadForPull, behindForPull, gone := parseUpstreamInfo(upstreamName, track)
 	aheadForPush, behindForPush, _ := parseUpstreamInfo(upstreamName, pushTrack)
+	pushRemote, pushBranch := parsePushDestination(pushRef)
 
 	recency := ""
 	if storeCommitDateAsRecency {
@@ -449,18 +421,22 @@ func obtainBranch(split []string, storeCommitDateAsRecency bool) *models.Branch 
 		}
 	}
 
-	return &models.Branch{
+	branch := &models.Branch{
 		Name:          name,
 		Recency:       recency,
 		AheadForPull:  aheadForPull,
 		BehindForPull: behindForPull,
 		AheadForPush:  aheadForPush,
 		BehindForPush: behindForPush,
+		PushRemote:    pushRemote,
+		PushBranch:    pushBranch,
 		UpstreamGone:  gone,
 		Head:          headMarker == "*",
 		Subject:       subject,
 		CommitHash:    commitHash,
 	}
+
+	return branch, refTip{hash: commitHash, committerDate: commitDate}
 }
 
 func parseUpstreamInfo(upstreamName string, track string) (string, string, bool) {
@@ -479,6 +455,25 @@ func parseUpstreamInfo(upstreamName string, track string) (string, string, bool)
 	behind := parseDifference(track, `behind (\d+)`)
 
 	return ahead, behind, false
+}
+
+// Splits the remote-tracking ref that the %(push) field names, e.g.
+// refs/remotes/origin/main, into the remote and the remote branch. Returns
+// empty strings if the field is empty because git has no push destination for
+// the branch, or if the ref isn't under refs/remotes/.
+func parsePushDestination(pushRef string) (string, string) {
+	remoteAndBranch, ok := strings.CutPrefix(pushRef, "refs/remotes/")
+	if !ok {
+		return "", ""
+	}
+
+	// Remote names can't contain slashes, so the first one ends the remote name
+	remote, branch, ok := strings.Cut(remoteAndBranch, "/")
+	if !ok {
+		return "", ""
+	}
+
+	return remote, branch
 }
 
 func parseDifference(track string, regexStr string) string {
