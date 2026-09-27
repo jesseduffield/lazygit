@@ -13,6 +13,14 @@ const (
 	CommitSymbol = '○'
 )
 
+// The characters that the commit graph is drawn with
+type SymbolSet uint8
+
+const (
+	BoxDrawingSymbols SymbolSet = iota
+	BranchDrawingSymbols
+)
+
 type cellType int
 
 const (
@@ -41,13 +49,21 @@ type Cell struct {
 	left, right bool
 	// Whether a line passes through from the left edge to the right edge
 	horizontal bool
-	cellType   cellType
-	rightStyle *style.TextStyle
-	style      *style.TextStyle
+	// Whether that line is drawn over the vertical line that it crosses
+	horizontalOnTop bool
+	cellType        cellType
+	rightStyle      *style.TextStyle
+	style           *style.TextStyle
 }
 
-func (cell *Cell) render(writer io.StringWriter) {
-	first, second := cell.boxDrawingChars()
+func (cell *Cell) render(writer io.StringWriter, symbolSet SymbolSet) {
+	var first, second string
+	switch symbolSet {
+	case BoxDrawingSymbols:
+		first, second = cell.boxDrawingChars()
+	case BranchDrawingSymbols:
+		first, second = cell.branchDrawingChars()
+	}
 
 	var rightStyle *style.TextStyle
 	if cell.rightStyle == nil {
@@ -122,6 +138,7 @@ func (cell *Cell) reset() {
 	cell.left = false
 	cell.right = false
 	cell.horizontal = false
+	cell.horizontalOnTop = false
 }
 
 func (cell *Cell) setUp(style *style.TextStyle, line verticalLine) *Cell {
