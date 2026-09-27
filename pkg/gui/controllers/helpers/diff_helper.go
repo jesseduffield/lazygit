@@ -14,12 +14,14 @@ import (
 )
 
 type DiffHelper struct {
-	c *HelperCommon
+	c              *HelperCommon
+	diffLineHelper *DiffLineHelper
 }
 
-func NewDiffHelper(c *HelperCommon) *DiffHelper {
+func NewDiffHelper(c *HelperCommon, diffLineHelper *DiffLineHelper) *DiffHelper {
 	return &DiffHelper{
-		c: c,
+		c:              c,
+		diffLineHelper: diffLineHelper,
 	}
 }
 
@@ -107,6 +109,11 @@ func (self *DiffHelper) RenderToMainAgain() {
 	if currentSide.GetKey() == currentKey ||
 		currentKey == context.NORMAL_MAIN_CONTEXT_KEY ||
 		currentKey == context.NORMAL_SECONDARY_CONTEXT_KEY {
+		// Whatever changed can make the diff come out differently, such as a new
+		// renderer laying it out its own way, so the line you were looking at could
+		// end up anywhere in the view; keep it in front of you.
+		self.diffLineHelper.PreserveDiffPositionOnRerender(self.c.Contexts().Normal.GetView())
+		self.diffLineHelper.PreserveDiffPositionOnRerender(self.c.Contexts().NormalSecondary.GetView())
 		currentSide.HandleRenderToMain()
 	}
 }
