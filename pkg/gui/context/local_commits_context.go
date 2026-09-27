@@ -352,8 +352,13 @@ func shouldShowGraph(c *ContextCommon) bool {
 }
 
 func commitGraphSymbolSet(c *ContextCommon) graph.SymbolSet {
-	if c.UserConfig().Gui.CommitGraphStyle == "detailed" {
+	switch c.UserConfig().Gui.CommitGraphStyle {
+	case "detailed":
 		return graph.BranchDrawingSymbols
+	case "auto":
+		if graph.TerminalDrawsBranchDrawingSymbols(c.GocuiGui().Terminal()) {
+			return graph.BranchDrawingSymbols
+		}
 	}
 	return graph.BoxDrawingSymbols
 }

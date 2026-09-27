@@ -733,6 +733,12 @@ func (g *Gui) DetectedColorScheme() DetectedColorScheme {
 	return g.colorScheme
 }
 
+// Terminal returns the name and version that the terminal reported at
+// startup. Both are empty if it didn't report them.
+func (g *Gui) Terminal() (string, string) {
+	return g.screen.Terminal()
+}
+
 // SetColorSchemeChangeHandler sets a function to call on the UI thread whenever
 // the terminal's colors change after startup.
 func (g *Gui) SetColorSchemeChangeHandler(handler func(DetectedColorScheme) error) {

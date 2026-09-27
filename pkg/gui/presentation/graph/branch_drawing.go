@@ -1,5 +1,11 @@
 package graph
 
+import (
+	"slices"
+	"strconv"
+	"strings"
+)
+
 // The branch drawing symbols are characters in the Unicode Private Use Area
 // (U+F5D0 to U+F60D) for drawing git graphs, introduced by kitty in
 // https://github.com/kovidgoyal/kitty/pull/7681. Unlike the box drawing
@@ -94,4 +100,33 @@ func (cell *Cell) branchDrawingChars() (string, string) {
 		first, _ := getBoxDrawingChars(cell.up != noLine, cell.down != noLine, cell.left, cell.right)
 		return first, second
 	}
+}
+
+// The terminals that draw the branch drawing symbols themselves, with the
+// first version that draws all of them
+var terminalsWithBranchDrawingSymbols = map[string][]int{
+	"kitty":   {0, 36, 2},
+	"ghostty": {1, 0, 0},
+}
+
+// TerminalDrawsBranchDrawingSymbols says whether a terminal is known to draw
+// the branch drawing symbols itself, given the name and version it reports
+func TerminalDrawsBranchDrawingSymbols(name, version string) bool {
+	minVersion, ok := terminalsWithBranchDrawingSymbols[strings.ToLower(name)]
+	return ok && slices.Compare(versionNumbers(version), minVersion) >= 0
+}
+
+// The numbers at the start of the dot-separated parts of a version, e.g.
+// [1 3 0] for "1.3.0-dev+abc"
+func versionNumbers(version string) []int {
+	var numbers []int
+	for part := range strings.SplitSeq(version, ".") {
+		digits := part[:len(part)-len(strings.TrimLeft(part, "0123456789"))]
+		number, err := strconv.Atoi(digits)
+		if err != nil {
+			break
+		}
+		numbers = append(numbers, number)
+	}
+	return numbers
 }
