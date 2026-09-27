@@ -60,10 +60,16 @@ func IsValidHexValue(v string) bool {
 
 func SetCustomColors(customColors map[string]string) map[string]*style.TextStyle {
 	return lo.MapValues(customColors, func(c string, key string) *style.TextStyle {
-		if s, ok := style.ColorMap[c]; ok {
-			return &s.Foreground
-		}
-		value := style.New().SetFg(style.NewRGBColor(color.HEX(c, false)))
+		value := CustomColorStyle(c)
 		return &value
 	})
+}
+
+// CustomColorStyle returns the text style for a color that the user
+// configured, either by the name of a terminal color or as a hex value.
+func CustomColorStyle(c string) style.TextStyle {
+	if s, ok := style.ColorMap[c]; ok {
+		return s.Foreground
+	}
+	return style.New().SetFg(style.NewRGBColor(color.HEX(c, false)))
 }

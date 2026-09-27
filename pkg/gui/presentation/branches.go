@@ -19,12 +19,12 @@ import (
 	"github.com/samber/lo"
 )
 
-type colorMatcher struct {
-	patterns map[string]*style.TextStyle
-	isRegex  bool // NOTE: this value is needed only until the deprecated branchColors config is removed and only regex color patterns are used
+type branchColorPattern struct {
+	pattern string
+	style   style.TextStyle
 }
 
-var colorPatterns *colorMatcher
+var branchColorPatterns []branchColorPattern
 
 func GetBranchListDisplayStrings(
 	branches []*models.Branch,
@@ -193,29 +193,13 @@ func getBranchDisplayStrings(
 
 // GetBranchTextStyle branch color
 func GetBranchTextStyle(name string) style.TextStyle {
-	if style, ok := colorPatterns.match(name); ok {
-		return *style
+	for _, p := range branchColorPatterns {
+		if matched, _ := regexp.MatchString(p.pattern, name); matched {
+			return p.style
+		}
 	}
 
 	return theme.DefaultTextColor
-}
-
-func (m *colorMatcher) match(name string) (*style.TextStyle, bool) {
-	if m.isRegex {
-		for pattern, style := range m.patterns {
-			if matched, _ := regexp.MatchString(pattern, name); matched {
-				return style, true
-			}
-		}
-	} else {
-		// old behavior using the deprecated branchColors behavior matching on branch type
-		branchType := strings.Split(name, "/")[0]
-		if value, ok := m.patterns[branchType]; ok {
-			return value, true
-		}
-	}
-
-	return nil, false
 }
 
 func BranchStatus(
@@ -271,11 +255,10 @@ func divergenceStr(
 	return result
 }
 
-func SetCustomBranches(customBranchColors map[string]string, isRegex bool) {
-	colorPatterns = &colorMatcher{
-		patterns: utils.SetCustomColors(customBranchColors),
-		isRegex:  isRegex,
-	}
+func SetCustomBranches(patterns config.ColorPatterns) {
+	branchColorPatterns = lo.Map(patterns, func(p config.ColorPattern, _ int) branchColorPattern {
+		return branchColorPattern{pattern: p.Pattern, style: utils.CustomColorStyle(p.Color)}
+	})
 }
 
 func WithPrColor(state string, text string, isBg bool) string {
