@@ -102,18 +102,11 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Hash: "A", Parents: []string{"B"}},
 				{Hash: "B"},
 			},
-			/* EXPECTED:
 			expectedOutput: `
 			1 ○
 			2 ○
 			A ○
 			B ○`,
-			ACTUAL: */
-			expectedOutput: `
-			1 ○
-			2 ○
-			A │ ○
-			B │ ○`,
 		},
 		{
 			name: "with a merge of an unrelated history",
@@ -123,18 +116,11 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Hash: "A"},
 				{Hash: "3"},
 			},
-			/* EXPECTED:
 			expectedOutput: `
 			1 ◎─╮
 			2 ○ │
 			A │ ○
 			3 ○`,
-			ACTUAL: */
-			expectedOutput: `
-			1 ◎─╮
-			2 ○ │
-			A │ ○
-			3 ○ │`,
 		},
 		{
 			name: "with a path that has room to move to the left and continues",
@@ -570,10 +556,7 @@ func TestGetNextPipes(t *testing.T) {
 				Parents: []string{},
 			}),
 			expected: []Pipe{
-				/* EXPECTED:
 				{fromPos: 0, toPos: 0, fromHash: pool("root"), toHash: pool(models.EmptyTreeCommitHash), kind: STARTS, style: &style.FgDefault},
-				ACTUAL: */
-				{fromPos: 1, toPos: 1, fromHash: pool("root"), toHash: pool(models.EmptyTreeCommitHash), kind: STARTS, style: &style.FgDefault},
 			},
 		},
 	}
