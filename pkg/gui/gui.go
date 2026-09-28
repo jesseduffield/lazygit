@@ -463,9 +463,36 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 
 	gui.c.Context().Push(contextToPush, types.OnFocusOpts{})
 
+	gui.reportThemeLoadError()
+
 	gui.render()
 
 	return nil
+}
+
+// reportThemeLoadError tells the user that the selected theme couldn't be
+// loaded and that lazygit runs without it. A toast only has room for the
+// theme's name, so the error itself goes to the log. Toasts are shown by the
+// helpers, so this must run after resetHelpersAndControllers.
+func (gui *Gui) reportThemeLoadError() {
+	err := gui.Config.GetThemeLoadError()
+	if err == nil {
+		return
+	}
+
+	gui.Log.Warnf("error loading theme: %v", err)
+
+	name := gui.Config.GetSelectedTheme()
+	if name == "" {
+		// The file that says which theme is selected couldn't be read
+		gui.c.ErrorToast(gui.c.Tr.SelectedThemeNotLoaded)
+		return
+	}
+
+	gui.c.ErrorToast(utils.ResolvePlaceholderString(
+		gui.c.Tr.ThemeNotLoaded,
+		map[string]string{"name": name},
+	))
 }
 
 func (gui *Gui) getPerRepoConfigFiles() []*config.ConfigFile {
