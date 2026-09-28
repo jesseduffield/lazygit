@@ -955,8 +955,8 @@ func (v *View) write(p []byte) {
 
 // write parses p into cells and appends them to the buffer at its write cursor.
 // It only touches the buffer; the View wrapper above handles display-side
-// effects (tainting, hover, search). v supplies render config (Editable, colors,
-// width, tab width, hyperlink auto-rendering).
+// effects (tainting, hover, search). v supplies render config (Editable, tab
+// width, hyperlink auto-rendering), but no colors: only draw applies those.
 func (b *viewBuffer) write(v *View, p []byte) {
 	// Fill with empty cells, if writing outside current view buffer
 	b.makeWriteable(b.wx, b.wy)
@@ -1116,10 +1116,14 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 
 	isEscape, err := b.ei.parseOne(ch)
 	if err != nil {
+		// Write the characters of the broken sequence as text, in the default
+		// colors like any other text without colors of its own; draw replaces
+		// those with the view's colors. The view's colors must not be read
+		// here, because the UI thread may set them while a task goroutine writes.
 		for _, chr := range b.ei.characters() {
 			c := cell{
-				fgColor: v.FgColor,
-				bgColor: v.BgColor,
+				fgColor: ColorDefault,
+				bgColor: ColorDefault,
 				chr:     chr,
 				width:   uniseg.StringWidth(chr),
 			}

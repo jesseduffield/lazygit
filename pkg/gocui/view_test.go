@@ -820,3 +820,40 @@ func TestApplySelTextColor(t *testing.T) {
 		})
 	}
 }
+
+// TestBrokenEscapeSequenceGetsTheViewsColorsOnlyWhenDrawn verifies that the
+// characters of an escape sequence that can't be parsed, which are written as
+// text, get the default colors like any other text without colors of its own,
+// and get the view's colors only when drawn. Writing must not read the view's
+// colors, because the UI thread may set them while a task goroutine writes
+// command output into the view.
+func TestBrokenEscapeSequenceGetsTheViewsColorsOnlyWhenDrawn(t *testing.T) {
+	WithSimulationScreen(t, 14, 5)
+
+	v := NewView("name", 0, 0, 11, 4, OutputNormal)
+	v.FgColor = ColorGreen
+	v.BgColor = ColorBlue
+
+	// ':' can't follow "\x1b[", so the sequence breaks off there. The "a" after
+	// it is ordinary text.
+	v.writeString("\x1b[:a")
+
+	cells := v.buf.lines[0].cells
+	assert.Equal(t, []string{"\x1b", "[", ":", "a"}, cellsToStrings(cells))
+	for _, c := range cells {
+		assert.Equal(t, ColorDefault, c.fgColor, "fg of %q", c.chr)
+		assert.Equal(t, ColorDefault, c.bgColor, "bg of %q", c.chr)
+	}
+
+	v.draw(true)
+
+	// The escape character has no width, so "[" is drawn over it. In
+	// OutputNormal, gocui's ColorGreen and ColorBlue are drawn as tcell's
+	// color.Green and color.Navy (xterm colors 2 and 4).
+	for x, chr := range []string{"[", ":", "a"} {
+		str, style, _ := Screen.Get(x+1, 1)
+		assert.Equal(t, chr, str)
+		assert.Equal(t, color.Green, style.GetForeground(), "fg of %q", chr)
+		assert.Equal(t, color.Navy, style.GetBackground(), "bg of %q", chr)
+	}
+}
