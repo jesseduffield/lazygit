@@ -20,6 +20,9 @@ go install github.com/charmbracelet/vhs@v0.11.0
 wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/SourceCodePro.tar.xz && \
   tar -xf SourceCodePro.tar.xz -C ~/Library/Fonts && \
   rm SourceCodePro.tar.xz
+
+# font with the branch drawing symbols of the commit graph
+cp demo/fonts/FlogSymbolsDemo-*.ttf ~/Library/Fonts
 ```
 
 ## Creating a demo
