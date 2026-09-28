@@ -48,17 +48,20 @@ func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
 		return
 	}
 
-	textStyle := theme.DefaultTextColor
-	if !commandLine {
-		// if we're not dealing with a direct command that could be run on the command line,
-		// we style it differently to communicate that
-		textStyle = style.FgMagenta
-	}
 	indentedCmdStr := "  " + strings.ReplaceAll(cmdStr, "\n", "\n  ")
 
 	// See the comment in LogAction: bounce onto the UI thread since we may be
 	// called from a git worker, in the background so it can't block a repo switch.
+	// Pick the text color there too: it comes from the theme, which the UI
+	// thread sets when it applies the user config.
 	gui.onUIThreadBackground(func() error {
+		textStyle := theme.DefaultTextColor
+		if !commandLine {
+			// if we're not dealing with a direct command that could be run on the command line,
+			// we style it differently to communicate that
+			textStyle = style.FgMagenta
+		}
+
 		gui.Views.Extras.Autoscroll = true
 
 		gui.GuiLog = append(gui.GuiLog, cmdStr)
