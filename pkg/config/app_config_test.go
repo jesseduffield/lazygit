@@ -994,10 +994,7 @@ func TestLoadUserConfigMergesCustomCommands(t *testing.T) {
 				"    command: echo first\n",
 			secondConfig: "git:\n" +
 				"  autoFetch: false\n",
-			/* EXPECTED:
 			expectedCommands: []string{"echo first"},
-			ACTUAL: */
-			expectedCommands: []string{"echo first", "echo first"},
 		},
 	}
 

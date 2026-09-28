@@ -211,7 +211,12 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig, isGuiInitialize
 			return nil, err
 		}
 
+		// The custom commands of all config files add up, with those of later
+		// files first so that they take precedence. yaml.Unmarshal leaves the
+		// list untouched for a file that has no customCommands key, so empty it
+		// first to collect only the commands of this file.
 		existingCustomCommands := base.CustomCommands
+		base.CustomCommands = nil
 
 		if err := yaml.Unmarshal(content, base); err != nil {
 			return nil, fmt.Errorf("The config at `%s` couldn't be parsed, please inspect it before opening up an issue.\n%w", path, err)
