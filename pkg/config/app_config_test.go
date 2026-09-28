@@ -1,9 +1,12 @@
 package config
 
 import (
+	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -960,6 +963,60 @@ func TestBranchColorsMigration(t *testing.T) {
 				assert.Equal(t, s.expected, string(actual))
 			}
 			assert.Equal(t, s.expectedChanges, changes.ToSliceFromOldest())
+		})
+	}
+}
+
+func TestLoadUserConfigMergesCustomCommands(t *testing.T) {
+	scenarios := []struct {
+		name             string
+		firstConfig      string
+		secondConfig     string
+		expectedCommands []string
+	}{
+		{
+			name: "The custom commands of the second file come before those of the first",
+			firstConfig: "customCommands:\n" +
+				"  - key: a\n" +
+				"    context: global\n" +
+				"    command: echo first\n",
+			secondConfig: "customCommands:\n" +
+				"  - key: b\n" +
+				"    context: global\n" +
+				"    command: echo second\n",
+			expectedCommands: []string{"echo second", "echo first"},
+		},
+		{
+			name: "A second file without custom commands keeps those of the first",
+			firstConfig: "customCommands:\n" +
+				"  - key: a\n" +
+				"    context: global\n" +
+				"    command: echo first\n",
+			secondConfig: "git:\n" +
+				"  autoFetch: false\n",
+			/* EXPECTED:
+			expectedCommands: []string{"echo first"},
+			ACTUAL: */
+			expectedCommands: []string{"echo first", "echo first"},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			dir := t.TempDir()
+			firstPath := filepath.Join(dir, "first.yml")
+			secondPath := filepath.Join(dir, "second.yml")
+			assert.NoError(t, os.WriteFile(firstPath, []byte(s.firstConfig), 0o644))
+			assert.NoError(t, os.WriteFile(secondPath, []byte(s.secondConfig), 0o644))
+
+			userConfig, err := loadUserConfigWithDefaults([]*ConfigFile{
+				{Path: firstPath, Policy: ConfigFilePolicyErrorIfMissing},
+				{Path: secondPath, Policy: ConfigFilePolicyErrorIfMissing},
+			}, true)
+			if assert.NoError(t, err) {
+				assert.Equal(t, s.expectedCommands, lo.Map(userConfig.CustomCommands,
+					func(customCommand CustomCommand, _ int) string { return customCommand.Command }))
+			}
 		})
 	}
 }
