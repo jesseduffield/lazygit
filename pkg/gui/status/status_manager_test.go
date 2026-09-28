@@ -93,10 +93,7 @@ func TestToastIsShownAheadOfNewerWaitingStatus(t *testing.T) {
 
 	toastId := statusManager.AddToastStatus("Something went wrong", types.ToastKindError)
 	assert.NoError(t, statusManager.WithWaitingStatus("Fetching", noRender, func(*WaitingStatusHandle) error {
-		/* EXPECTED:
 		assert.Equal(t, displayedStatus{text: "Something went wrong", color: gocui.ColorRed}, getDisplayedStatus(statusManager))
-		ACTUAL: */
-		assert.Equal(t, displayedStatus{text: "Fetching *", color: gocui.ColorCyan}, getDisplayedStatus(statusManager))
 
 		expireToast(statusManager, toastId)
 		assert.Equal(t, displayedStatus{text: "Fetching *", color: gocui.ColorCyan}, getDisplayedStatus(statusManager))
