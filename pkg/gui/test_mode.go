@@ -10,11 +10,27 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type IntegrationTest interface {
 	Run(*GuiDriver)
+}
+
+// captureToastsForIntegrationTest sends the toasts of an integration test to a
+// channel, from which the test checks them with ExpectToast. NewGui calls it
+// before anything can show a toast, so that the test also gets the toasts
+// shown while lazygit starts up.
+func (gui *Gui) captureToastsForIntegrationTest(test integrationTypes.IntegrationTest) {
+	if test == nil || os.Getenv(components.SANDBOX_ENV_VAR) == "true" {
+		return
+	}
+
+	toastChan := make(chan string, 100)
+	gui.PopupHandler.(*popup.PopupHandler).SetToastFunc(
+		func(message string, kind types.ToastKind) { toastChan <- message })
+	gui.testToastChan = toastChan
 }
 
 func (gui *Gui) handleTestMode() {
@@ -31,11 +47,7 @@ func (gui *Gui) handleTestMode() {
 		go func() {
 			waitUntilIdle()
 
-			toastChan := make(chan string, 100)
-			gui.PopupHandler.(*popup.PopupHandler).SetToastFunc(
-				func(message string, kind types.ToastKind) { toastChan <- message })
-
-			test.Run(&GuiDriver{gui: gui, toastChan: toastChan, headless: Headless()})
+			test.Run(&GuiDriver{gui: gui, toastChan: gui.testToastChan, headless: Headless()})
 
 			gui.g.Update(func(*gocui.Gui) error {
 				return gocui.ErrQuit

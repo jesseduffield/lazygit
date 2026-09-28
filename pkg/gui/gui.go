@@ -149,6 +149,10 @@ type Gui struct {
 
 	integrationTest integrationTypes.IntegrationTest
 
+	// The toasts shown while an integration test runs, for the test to check
+	// (see captureToastsForIntegrationTest)
+	testToastChan chan string
+
 	afterLayoutFuncs chan func() error
 }
 
@@ -828,6 +832,8 @@ func NewGui(
 		func() string { return gui.Views.Prompt.TextArea.GetContent() },
 		func() bool { return gui.c.InDemo() },
 	)
+
+	gui.captureToastsForIntegrationTest(test)
 
 	guiCommon := &guiCommon{gui: gui, IPopupHandler: gui.PopupHandler}
 	helperCommon := &helpers.HelperCommon{IGuiCommon: guiCommon, Common: cmn, IGetContexts: gui}
