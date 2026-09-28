@@ -95,6 +95,48 @@ func TestRenderCommitGraph(t *testing.T) {
 			6 ○ ╭───╯`,
 		},
 		{
+			name: "with a root commit followed by an unrelated history",
+			commitOpts: []models.NewCommitOpts{
+				{Hash: "1", Parents: []string{"2"}},
+				{Hash: "2"},
+				{Hash: "A", Parents: []string{"B"}},
+				{Hash: "B"},
+			},
+			/* EXPECTED:
+			expectedOutput: `
+			1 ○
+			2 ○
+			A ○
+			B ○`,
+			ACTUAL: */
+			expectedOutput: `
+			1 ○
+			2 ○
+			A │ ○
+			B │ ○`,
+		},
+		{
+			name: "with a merge of an unrelated history",
+			commitOpts: []models.NewCommitOpts{
+				{Hash: "1", Parents: []string{"2", "A"}},
+				{Hash: "2", Parents: []string{"3"}},
+				{Hash: "A"},
+				{Hash: "3"},
+			},
+			/* EXPECTED:
+			expectedOutput: `
+			1 ◎─╮
+			2 ○ │
+			A │ ○
+			3 ○`,
+			ACTUAL: */
+			expectedOutput: `
+			1 ◎─╮
+			2 ○ │
+			A │ ○
+			3 ○ │`,
+		},
+		{
 			name: "with a path that has room to move to the left and continues",
 			commitOpts: []models.NewCommitOpts{
 				{Hash: "1", Parents: []string{"2"}},
@@ -528,6 +570,9 @@ func TestGetNextPipes(t *testing.T) {
 				Parents: []string{},
 			}),
 			expected: []Pipe{
+				/* EXPECTED:
+				{fromPos: 0, toPos: 0, fromHash: pool("root"), toHash: pool(models.EmptyTreeCommitHash), kind: STARTS, style: &style.FgDefault},
+				ACTUAL: */
 				{fromPos: 1, toPos: 1, fromHash: pool("root"), toHash: pool(models.EmptyTreeCommitHash), kind: STARTS, style: &style.FgDefault},
 			},
 		},
