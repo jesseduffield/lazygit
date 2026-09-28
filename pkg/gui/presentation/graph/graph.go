@@ -107,18 +107,17 @@ func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPt
 }
 
 func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *models.Commit) *style.TextStyle) []Pipe {
-	maxPos := int16(0)
-	for _, pipe := range prevPipes {
-		if pipe.toPos > maxPos {
-			maxPos = pipe.toPos
-		}
-	}
-
 	// a pipe that terminated in the previous line has no bearing on the current line
-	// so we'll filter those out
+	// so we'll filter those out. The same goes for the pipe from a root commit to
+	// the empty tree, because no commit comes after a root commit.
 	currentPipes := lo.Filter(prevPipes, func(pipe Pipe, _ int) bool {
-		return pipe.kind != TERMINATES
+		return pipe.kind != TERMINATES && !equalHashes(pipe.toHash, &EmptyTreeCommitHash)
 	})
+
+	maxPos := int16(-1)
+	for _, pipe := range currentPipes {
+		maxPos = max(maxPos, pipe.toPos)
+	}
 
 	newPipes := make([]Pipe, 0, len(currentPipes)+len(commit.ParentPtrs()))
 	// start by assuming that we've got a brand new commit not related to any preceding commit.
