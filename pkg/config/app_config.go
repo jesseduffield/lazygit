@@ -829,6 +829,20 @@ func stateFilePath(filename string) (string, error) {
 	return xdg.StateFile(filepath.Join("lazygit", filename))
 }
 
+// stateSiblingFilePath returns the path of the file with the given name in the
+// folder of state.yml. It goes through state.yml because stateFilePath finds a
+// file in a legacy config folder only if that file exists already, so asking
+// it for a file that doesn't exist yet could give a different folder than the
+// one state.yml is in.
+func stateSiblingFilePath(filename string) (string, error) {
+	path, err := stateFilePath(stateFileName)
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(filepath.Dir(path), filename), nil
+}
+
 // SaveAppState marshalls the AppState struct and writes it to the disk
 func (c *AppConfig) SaveAppState() error {
 	marshalledAppState, err := yaml.Marshal(c.appState)
