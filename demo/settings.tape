@@ -2,8 +2,10 @@
 # demo/record_demo.sh generates for a demo sources this file.
 
 # Use the non-Mono Nerd Font variant; the Mono variant renders the icons too
-# small.
-Set FontFamily "SauceCodePro NF"
+# small. The terminal that vhs records doesn't draw the branch drawing symbols
+# of the commit graph itself, so they come from the second font, which is in
+# demo/fonts.
+Set FontFamily "SauceCodePro NF,Flog Symbols Demo"
 Set FontSize 24
 Set LineHeight 1.0
 Set Padding 20
