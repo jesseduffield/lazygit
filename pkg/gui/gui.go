@@ -379,6 +379,12 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			if didChange && reloadErr == nil {
 				gui.c.Log.Info("User config changed - reloading")
 				reloadErr = gui.onUserConfigLoaded()
+				if reloadErr == nil {
+					// onUserConfigLoaded gives the focused view the frame color of
+					// an active view, which is the wrong one while a search or
+					// filter is active there
+					gui.helpers.Search.RenderSearchStatus(gui.c.Context().Current())
+				}
 				gui.reloadSidePanels()
 				gui.resetKeybindings()
 
