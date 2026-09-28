@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"golang.org/x/exp/slices"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
@@ -74,20 +75,24 @@ func (self *SuggestionsHelper) getBranchNames() []string {
 
 func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*types.Suggestion {
 	branchNames := self.getBranchNames()
+	// The returned func runs on the suggestions worker, where it must not read
+	// the branch colors or the theme: the UI thread sets both when it applies
+	// the user config. So the labels are styled here, once.
+	suggestions := lo.Map(branchNames, func(branchName string, _ int) *types.Suggestion {
+		return &types.Suggestion{
+			Value: branchName,
+			Label: presentation.GetBranchTextStyle(branchName).Sprint(branchName),
+		}
+	})
+	useFuzzySearch := self.c.UserConfig().Gui.UseFuzzySearch()
 
 	return func(input string) []*types.Suggestion {
-		var matchingBranchNames []string
 		if input == "" {
-			matchingBranchNames = branchNames
-		} else {
-			matchingBranchNames = utils.FilterStrings(input, branchNames, self.c.UserConfig().Gui.UseFuzzySearch())
+			return suggestions
 		}
 
-		return lo.Map(matchingBranchNames, func(branchName string, _ int) *types.Suggestion {
-			return &types.Suggestion{
-				Value: branchName,
-				Label: presentation.GetBranchTextStyle(branchName).Sprint(branchName),
-			}
+		return lo.Map(utils.Find(input, branchNames, useFuzzySearch), func(match fuzzy.Match, _ int) *types.Suggestion {
+			return suggestions[match.Index]
 		})
 	}
 }
