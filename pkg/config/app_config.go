@@ -322,12 +322,14 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		},
 	}
 
-	err = moveYamlKeys(&rootNode, path, pathsToMove, changes)
+	migrationError := fmt.Sprintf("Couldn't migrate config file at `%s`", path)
+
+	err = moveYamlKeys(&rootNode, migrationError, pathsToMove, changes)
 	if err != nil {
 		return nil, false, err
 	}
 
-	err = migrateThemeKeys(&rootNode, path, changes)
+	err = migrateThemeKeys(&rootNode, migrationError, changes)
 	if err != nil {
 		return nil, false, err
 	}
@@ -386,12 +388,13 @@ type yamlKeyMove struct {
 }
 
 // moveYamlKeys makes the given moves in order, and adds each one that it made
-// to changes. The config file's path is only used in error messages.
-func moveYamlKeys(rootNode *yaml.Node, path string, moves []yamlKeyMove, changes *ChangesSet) error {
+// to changes. The message of an error that it returns starts with errorPrefix,
+// followed by the key that couldn't be moved.
+func moveYamlKeys(rootNode *yaml.Node, errorPrefix string, moves []yamlKeyMove, changes *ChangesSet) error {
 	for _, move := range moves {
 		err, didMove := yaml_utils.MoveYamlKey(rootNode, move.oldPath, move.newPath)
 		if err != nil {
-			return fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %w", path, strings.Join(move.oldPath, "."), err)
+			return fmt.Errorf("%s for key %s: %w", errorPrefix, strings.Join(move.oldPath, "."), err)
 		}
 		if didMove {
 			changes.Add(fmt.Sprintf("Moved '%s' to '%s'", strings.Join(move.oldPath, "."), strings.Join(move.newPath, ".")))
@@ -656,16 +659,16 @@ func migratePagersToDiffRenderers(rootNode *yaml.Node, changes *ChangesSet) erro
 
 // migrateThemeKeys moves the theme settings that used to be directly in gui
 // into gui.theme, converting gui.branchColors to gui.branchColorPatterns first.
-// The config file's path is only used in error messages.
-func migrateThemeKeys(rootNode *yaml.Node, path string, changes *ChangesSet) error {
+// The message of an error that it returns starts with errorPrefix.
+func migrateThemeKeys(rootNode *yaml.Node, errorPrefix string, changes *ChangesSet) error {
 	// This creates gui.branchColorPatterns, so it must run before the move of
 	// that key into gui.theme below.
 	err := migrateBranchColors(rootNode, changes)
 	if err != nil {
-		return fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
+		return fmt.Errorf("%s: %w", errorPrefix, err)
 	}
 
-	return moveYamlKeys(rootNode, path, []yamlKeyMove{
+	return moveYamlKeys(rootNode, errorPrefix, []yamlKeyMove{
 		{
 			[]string{"gui", "authorColors"},
 			[]string{"gui", "theme", "authorColors"},

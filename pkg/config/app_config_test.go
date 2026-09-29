@@ -967,6 +967,17 @@ func TestBranchColorsMigration(t *testing.T) {
 	}
 }
 
+func TestMigrationFailsIfThemeKeyIsAlsoInTheme(t *testing.T) {
+	changes := NewChangesSet()
+	_, _, err := computeMigratedConfig("config.yml", []byte("gui:\n"+
+		"  authorColors:\n"+
+		"    John: red\n"+
+		"  theme:\n"+
+		"    authorColors:\n"+
+		"      Jane: blue\n"), changes)
+	assert.EqualError(t, err, "Couldn't migrate config file at `config.yml` for key gui.authorColors: new key `authorColors' already exists")
+}
+
 func TestLoadUserConfigMergesCustomCommands(t *testing.T) {
 	scenarios := []struct {
 		name             string
