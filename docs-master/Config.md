@@ -1271,7 +1271,15 @@ If lazygit can't read `selected_theme.yml` itself, e.g. after a hand edit that b
 
 Lazygit doesn't set the background color of its window; it draws on your terminal's background, and there is no setting for it, so a theme can't change it either. Lazygit does find out whether that background is dark or light, and uses `gui.darkTheme` or `gui.lightTheme` accordingly (see [Themes for dark and light backgrounds](#themes-for-dark-and-light-backgrounds)). The colors that a theme sets in `gui.theme` are the same on both, though, so a light theme in a dark terminal (or the other way round) looks wrong, with text that's hard to read. Pick a theme that matches your terminal's color scheme and switch the two together, or one that has colors for both backgrounds, like the example above.
 
-The colors of a diff renderer such as delta aren't part of a theme either. Its options, e.g. delta's `--light`, are set in `git.diffRenderers`, which a theme file can't contain. If you switch between light and dark themes, you can configure a renderer for each and cycle between them with `|` (see [Custom Diff Renderers](Custom_DiffRenderers.md)):
+The colors of a diff renderer such as delta aren't part of a theme either. Its options, e.g. delta's `--light`, are set in `git.diffRenderers`, which a theme file can't contain. To have the renderer match the background of your terminal, use `{{colorScheme}}` in its command. Lazygit replaces it with `dark` or `light` according to the same background that decides between `gui.darkTheme` and `gui.lightTheme` (see [Custom Diff Renderers](Custom_DiffRenderers.md)):
+
+```yaml
+git:
+  diffRenderers:
+    - command: delta --{{colorScheme}} --paging=never
+```
+
+`{{colorScheme}}` follows the terminal's background, not the selected theme, which is enough when you switch the two together. If you switch to a theme with a different look without changing the terminal's background, configure a renderer for each look and cycle between them with `|`:
 
 ```yaml
 git:
