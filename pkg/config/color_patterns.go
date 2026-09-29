@@ -57,7 +57,8 @@ func mappingKeys(node *yaml.Node) ([]string, error) {
 	var mergeValue *yaml.Node
 	for i := 0; i < len(node.Content)-1; i += 2 {
 		if isMergeKey(node.Content[i]) {
-			// yaml only merges the value of the last merge key
+			// A mapping has at most one merge key, because yaml rejects
+			// duplicate keys
 			mergePosition, mergeValue = len(ownKeys), node.Content[i+1]
 			continue
 		}
