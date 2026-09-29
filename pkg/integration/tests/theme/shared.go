@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
+	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
 // writeThemeFile creates a theme file in the themes folder of the config dir.
@@ -39,5 +40,14 @@ func writeSelectedThemeFile(cfg *config.AppConfig, content string) {
 	path := filepath.Join(cfg.GetUserConfigDir(), "selected_theme.yml")
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		panic(err)
+	}
+}
+
+// writeThemeFileWhileRunning creates or changes a theme file from a test's
+// Run function. Run is called inside the lazygit process, so
+// config.ConfigDir() is the test's own config dir.
+func writeThemeFileWhileRunning(t *TestDriver, name string, content string) {
+	if err := writeThemeFileTo(config.ConfigDir(), name, content); err != nil {
+		t.Fail(err.Error())
 	}
 }

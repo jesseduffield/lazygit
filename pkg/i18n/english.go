@@ -268,6 +268,14 @@ type TranslationSet struct {
 	NonReloadableConfigWarning            string
 	ThemeNotLoaded                        string
 	SelectedThemeNotLoaded                string
+	SelectTheme                           string
+	SelectThemeTooltip                    string
+	NoTheme                               string
+	MissingTheme                          string
+	ThemeNotLoadedLabel                   string
+	NoThemesFound                         string
+	SelectedTheme                         string
+	ThemeNotFound                         string
 	GitconfigParseErr                     string
 	EditFile                              string
 	EditFileTooltip                       string
@@ -1451,6 +1459,14 @@ func EnglishTranslationSet() *TranslationSet {
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,
 		ThemeNotLoaded:                       "Couldn't load theme '{{.name}}'",
 		SelectedThemeNotLoaded:               "Couldn't load the selected theme",
+		SelectTheme:                          "Select theme",
+		SelectThemeTooltip:                   "Switch to one of the theme files in the themes folder of your config directory. Your choice is remembered for future sessions.",
+		NoTheme:                              "(none)",
+		MissingTheme:                         "{{.name}} (not found)",
+		ThemeNotLoadedLabel:                  "{{.name}} (not loaded)",
+		NoThemesFound:                        "No theme files found in {{.dir}}",
+		SelectedTheme:                        "Theme: {{.name}}",
+		ThemeNotFound:                        "Theme '{{.name}}' not found in {{.dir}}",
 		GitconfigParseErr:                    `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		EditFile:                             `Edit file`,
 		EditFileTooltip:                      "Open file in external editor.",

@@ -565,6 +565,15 @@ func (gui *Gui) onUserConfigLoaded() error {
 	return nil
 }
 
+// onThemeSelected applies the user config after the theme menu has replaced
+// its theme-related settings. Nothing else has changed, so unlike after
+// reloading the config files there is no need to reset keybindings or side
+// panels.
+func (gui *Gui) onThemeSelected() {
+	gui.Common.SetUserConfig(gui.Config.GetUserConfig())
+	gui.reapplyTheme()
+}
+
 func (gui *Gui) checkForChangedConfigsThatDontAutoReload(oldConfig *config.UserConfig, newConfig *config.UserConfig) error {
 	configsThatDontAutoReload := []string{
 		"Git.AutoFetch",
