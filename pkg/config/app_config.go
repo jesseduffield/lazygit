@@ -241,12 +241,18 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig, isGuiInitialize
 		base.CustomCommands = nil
 
 		if err := yaml.Unmarshal(content, base); err != nil {
+			if configFile.isTheme {
+				return nil, &ThemeFileError{Path: path, Err: err}
+			}
 			return nil, fmt.Errorf("The config at `%s` couldn't be parsed, please inspect it before opening up an issue.\n%w", path, err)
 		}
 
 		base.CustomCommands = append(base.CustomCommands, existingCustomCommands...)
 
 		if err := base.Validate(); err != nil {
+			if configFile.isTheme {
+				return nil, &ThemeFileError{Path: path, Err: err}
+			}
 			return nil, fmt.Errorf("The config at `%s` has a validation error.\n%w", path, err)
 		}
 	}

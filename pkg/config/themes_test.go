@@ -13,6 +13,7 @@ import (
 const (
 	allowedThemeKeysMessage = "may only set gui.theme, gui.darkTheme and gui.lightTheme"
 	emptyThemeValueMessage  = "none of its values may be empty"
+	convertedThemeMessage   = "so it was converted in memory"
 )
 
 func TestValidateThemeFileContent(t *testing.T) {
@@ -47,6 +48,10 @@ func TestValidateThemeFileContent(t *testing.T) {
 		},
 		{
 			name:    "Merge keys within the allowed keys",
+			content: "gui: {theme: {authorColors: &palette {'*': '#b4befe'}, branchColorPatterns: {<<: *palette, '^feature/': green}}}",
+		},
+		{
+			name:    "Merge keys across themes",
 			content: "gui: {theme: {authorColors: &palette {'*': '#b4befe'}}, lightTheme: {authorColors: {<<: *palette, John: green}}}",
 		},
 		{
@@ -81,6 +86,11 @@ func TestValidateThemeFileContent(t *testing.T) {
 			name:           "Unknown theme key",
 			content:        "gui: {theme: {selectedRangeBgColor: [blue]}}",
 			expectedErrors: []string{allowedThemeKeysMessage, "field selectedRangeBgColor not found"},
+		},
+		{
+			name:           "Branch color patterns that aren't a map",
+			content:        "gui: {theme: {branchColorPatterns: ['^feature/']}}",
+			expectedErrors: []string{allowedThemeKeysMessage, "cannot unmarshal !!seq into map[string]string"},
 		},
 		{
 			name:           "Unknown dark theme key",
@@ -155,10 +165,11 @@ func TestValidateThemeFileContent(t *testing.T) {
 
 func TestConvertOldThemeLayout(t *testing.T) {
 	scenarios := []struct {
-		name          string
-		content       string
-		expected      string
-		expectedError string
+		name              string
+		content           string
+		expected          string
+		expectedConverted bool
+		expectedError     string
 	}{
 		{
 			// Marshaling would indent this by two spaces
@@ -207,6 +218,7 @@ func TestConvertOldThemeLayout(t *testing.T) {
 				"      '*': '#b4befe'\n" +
 				"    branchColorPatterns:\n" +
 				"      '^feature/': green\n",
+			expectedConverted: true,
 		},
 		{
 			name: "Branch colors become branch color patterns in the theme",
@@ -217,6 +229,7 @@ func TestConvertOldThemeLayout(t *testing.T) {
 				"  theme:\n" +
 				"    branchColorPatterns:\n" +
 				"      ^feature(/|$): green\n",
+			expectedConverted: true,
 		},
 		{
 			name: "Anchors and aliases",
@@ -240,6 +253,25 @@ func TestConvertOldThemeLayout(t *testing.T) {
 				"    authorColors:\n" +
 				"      !!merge <<: *authors\n" +
 				"      John: green\n",
+			expectedConverted: true,
+		},
+		{
+			// The moved setting goes to the end of gui.theme, so the result
+			// doesn't parse; readThemeFile explains that
+			name: "Alias ahead of the anchor that moves",
+			content: "gui:\n" +
+				"  authorColors:\n" +
+				"    '*': &lavender '#b4befe'\n" +
+				"  theme:\n" +
+				"    activeBorderColor:\n" +
+				"      - *lavender\n",
+			expected: "gui:\n" +
+				"  theme:\n" +
+				"    activeBorderColor:\n" +
+				"      - *lavender\n" +
+				"    authorColors:\n" +
+				"      '*': &lavender '#b4befe'\n",
+			expectedConverted: true,
 		},
 		{
 			name: "Author colors both in gui and in the theme",
@@ -249,7 +281,7 @@ func TestConvertOldThemeLayout(t *testing.T) {
 				"  theme:\n" +
 				"    authorColors:\n" +
 				"      John: green\n",
-			expectedError: "for key gui.authorColors: new key `authorColors' already exists",
+			expectedError: "Couldn't convert the theme to the current layout for key gui.authorColors: new key `authorColors' already exists",
 		},
 		{
 			name: "Branch colors in gui and branch color patterns in the theme",
@@ -265,13 +297,14 @@ func TestConvertOldThemeLayout(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			actual, err := convertOldThemeLayout("path doesn't matter", []byte(s.content))
+			actual, converted, err := convertOldThemeLayout([]byte(s.content))
 			if s.expectedError != "" {
 				assert.ErrorContains(t, err, s.expectedError)
 				return
 			}
 			assert.NoError(t, err)
 			assert.Equal(t, s.expected, string(actual))
+			assert.Equal(t, s.expectedConverted, converted)
 		})
 	}
 }
@@ -629,6 +662,7 @@ func TestReloadUserConfigForRepoFallsBackToNoThemeWhenThemeFileIsInvalid(t *test
 	assert.ErrorContains(t, themeLoadError, "The theme file `"+themePath+"` couldn't be loaded.")
 	assert.ErrorContains(t, themeLoadError, "field nerdFontsVersion not found")
 	assert.ErrorContains(t, themeLoadError, allowedThemeKeysMessage)
+	assert.NotContains(t, themeLoadError.Error(), convertedThemeMessage, "the theme needed no conversion")
 	assert.Equal(t, themeLoadError, appConfig.GetThemeLoadError(), "reading the error doesn't clear it")
 }
 
@@ -981,6 +1015,48 @@ gui:
 	assert.Equal(t, themeContent, string(actualContent))
 }
 
+func TestOldLayoutThemeWithMergeKeysInBranchColorPatternsIsConverted(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	writeThemeTestFile(t, filepath.Join(configDir, "themes", "palette.yml"), `gui:
+  authorColors: &palette
+    '*': '#b4befe'
+  branchColorPatterns:
+    <<: *palette
+    '^feature/': green
+`)
+	selectThemeForTest(t, configDir, "palette")
+
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+
+	assert.NoError(t, appConfig.GetThemeLoadError())
+	assert.Equal(t,
+		ColorPatterns{{Pattern: "*", Color: "#b4befe"}, {Pattern: "^feature/", Color: "green"}},
+		appConfig.GetUserConfig().Gui.Theme.BranchColorPatterns,
+	)
+}
+
+// Converting a theme moves its settings to the end of gui.theme, which can put
+// an alias ahead of its anchor, so that the converted theme doesn't parse
+func TestReloadUserConfigForRepoExplainsErrorInConvertedTheme(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	themePath := filepath.Join(configDir, "themes", "mocha.yml")
+	writeThemeTestFile(t, themePath, "gui: {authorColors: {'*': &lav '#b4befe'}, theme: {activeBorderColor: [*lav, bold]}}\n")
+	selectThemeForTest(t, configDir, "mocha")
+
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+
+	assert.Equal(t, "", appConfig.GetAppliedTheme())
+	themeLoadError := appConfig.GetThemeLoadError()
+	var themeFileError *ThemeFileError
+	if assert.ErrorAs(t, themeLoadError, &themeFileError) {
+		assert.Equal(t, themePath, themeFileError.Path)
+	}
+	assert.ErrorContains(t, themeLoadError, "unknown anchor 'lav' referenced")
+	assert.ErrorContains(t, themeLoadError, convertedThemeMessage)
+	assert.ErrorContains(t, themeLoadError, "the lines and keys above refer to the converted layout")
+	assert.ErrorContains(t, themeLoadError, "Moving authorColors and branchColorPatterns into gui.theme yourself")
+}
+
 func TestReloadUserConfigForRepoFallsBackWhenThemeHasOldAndNewAuthorColors(t *testing.T) {
 	appConfig, configDir := newThemeTestAppConfig(t, "")
 	themePath := filepath.Join(configDir, "themes", "mocha.yml")
@@ -1001,7 +1077,9 @@ func TestReloadUserConfigForRepoFallsBackWhenThemeHasOldAndNewAuthorColors(t *te
 	if assert.ErrorAs(t, appConfig.GetThemeLoadError(), &themeFileError) {
 		assert.Equal(t, themePath, themeFileError.Path)
 	}
-	assert.ErrorContains(t, appConfig.GetThemeLoadError(), "new key `authorColors' already exists")
+	assert.ErrorContains(t, appConfig.GetThemeLoadError(),
+		"Couldn't convert the theme to the current layout for key gui.authorColors: new key `authorColors' already exists")
+	assert.NotContains(t, appConfig.GetThemeLoadError().Error(), "migrate", "theme files are never migrated")
 }
 
 // newThemeTestAppConfig creates an AppConfig whose config dir, which is also

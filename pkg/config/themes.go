@@ -156,28 +156,42 @@ func checkThemeValue(node *yaml.Node, path string, checked map[*yaml.Node]bool) 
 // convertOldThemeLayout returns the content of a theme file with the settings
 // that themes for older versions of lazygit have directly in gui moved into
 // gui.theme, by the same steps that migrate them in config files (see
-// migrateThemeKeys). It applies none of the other migrations, since those
-// reject the YAML aliases that a theme may use to share colors. Content that
-// needs no conversion is returned as it is.
-func convertOldThemeLayout(path string, content []byte) ([]byte, error) {
+// migrateThemeKeys), and whether it had to move any. It applies none of the
+// other migrations, since those reject the YAML aliases that a theme may use
+// to share colors. Content that needs no conversion is returned as it is.
+func convertOldThemeLayout(content []byte) ([]byte, bool, error) {
 	var rootNode yaml.Node
 	if err := yaml.Unmarshal(content, &rootNode); err != nil || !hasGuiMap(&rootNode) {
 		// Only a gui map can have the old layout. validateThemeFileContent
 		// reports what is wrong with anything else, and accepts a gui without
 		// a value, which migrateThemeKeys would reject.
-		return content, nil
+		return content, false, nil
 	}
 
 	changes := NewChangesSet()
-	if err := migrateThemeKeys(&rootNode, path, changes); err != nil {
-		return nil, err
+	if err := migrateThemeKeys(&rootNode, "Couldn't convert the theme to the current layout", changes); err != nil {
+		return nil, false, err
 	}
 	if changes.Len() == 0 {
-		return content, nil
+		return content, false, nil
 	}
 
-	return yaml_utils.YamlMarshal(&rootNode)
+	convertedContent, err := yaml_utils.YamlMarshal(&rootNode)
+	if err != nil {
+		return nil, false, err
+	}
+	return convertedContent, true, nil
 }
+
+// convertedThemeHint follows an error in the content of a theme that
+// convertOldThemeLayout has converted. The error's lines and keys are those of
+// the converted content, and moving settings to the end of gui.theme can put
+// an alias ahead of its anchor.
+const convertedThemeHint = "This theme has authorColors, branchColorPatterns or branchColors " +
+	"directly in gui, as themes for older versions of lazygit do, so it was converted in memory, " +
+	"with these settings moved to the end of gui.theme; the lines and keys above refer to the " +
+	"converted layout. Moving authorColors and branchColorPatterns into gui.theme yourself, and " +
+	"replacing branchColors with gui.theme.branchColorPatterns, avoids the conversion."
 
 // hasGuiMap reports whether the parsed YAML document is a map whose gui key is
 // a map too.
@@ -201,12 +215,15 @@ func readThemeFile(path string) ([]byte, error) {
 		return nil, err
 	}
 
-	content, err = convertOldThemeLayout(path, content)
+	content, converted, err := convertOldThemeLayout(content)
 	if err != nil {
 		return nil, err
 	}
 
 	if err := validateThemeFileContent(content); err != nil {
+		if converted {
+			return nil, fmt.Errorf("%w\n%s", err, convertedThemeHint)
+		}
 		return nil, err
 	}
 
