@@ -976,13 +976,7 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	gui.c.Log.Infof("Terminal color scheme: %s", g.DetectedColorScheme())
 	g.SetColorSchemeChangeHandler(func(colorScheme gocui.DetectedColorScheme) error {
 		gui.c.Log.Infof("Terminal color scheme changed: %s", colorScheme)
-		gui.applyTheme()
-		gui.configureViewProperties()
-		for _, context := range gui.c.Context().AllList() {
-			context.HandleRender()
-		}
-		gui.helpers.Refresh.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STATUS}})
-		gui.helpers.Diff.RenderToMainAgain()
+		gui.reapplyTheme()
 		return nil
 	})
 
@@ -1302,6 +1296,19 @@ func (gui *Gui) applyTheme() {
 	gui.g.SelFrameColor = theme.ActiveBorderColor
 
 	gui.applyTerminalBackground()
+}
+
+// reapplyTheme applies the theme again while lazygit is running, after the
+// colors that it resolves to have changed, and renders again the views whose
+// content was styled with the previous colors when it was rendered.
+func (gui *Gui) reapplyTheme() {
+	gui.applyTheme()
+	gui.configureViewProperties()
+	for _, context := range gui.c.Context().AllList() {
+		context.HandleRender()
+	}
+	gui.helpers.Refresh.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STATUS}})
+	gui.helpers.Diff.RenderToMainAgain()
 }
 
 // applyTerminalBackground tells the colors that depend on the terminal's
