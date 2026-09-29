@@ -57,16 +57,9 @@ func TestColorPatternsExpandMergeKeys(t *testing.T) {
 				"  '^x': yellow\n" +
 				"  <<: *base\n" +
 				"  '^b': blue\n",
-			/* EXPECTED:
 			expected: ColorPatterns{
 				{Pattern: "^x", Color: "yellow"},
 				{Pattern: "^a", Color: "red"},
-				{Pattern: "^b", Color: "blue"},
-			},
-			ACTUAL: */
-			expected: ColorPatterns{
-				{Pattern: "^x", Color: "yellow"},
-				{Pattern: "<<", Color: ""},
 				{Pattern: "^b", Color: "blue"},
 			},
 		},
@@ -81,16 +74,10 @@ func TestColorPatternsExpandMergeKeys(t *testing.T) {
 				"patterns:\n" +
 				"  <<: [*first, *second]\n" +
 				"  '^z': black\n",
-			/* EXPECTED:
 			expected: ColorPatterns{
 				{Pattern: "^a", Color: "red"},
 				{Pattern: "^c", Color: "white"},
 				{Pattern: "^b", Color: "blue"},
-				{Pattern: "^z", Color: "black"},
-			},
-			ACTUAL: */
-			expected: ColorPatterns{
-				{Pattern: "<<", Color: ""},
 				{Pattern: "^z", Color: "black"},
 			},
 		},
@@ -99,14 +86,8 @@ func TestColorPatternsExpandMergeKeys(t *testing.T) {
 			content: "patterns:\n" +
 				"  <<: {'^a': red}\n" +
 				"  '^b': blue\n",
-			/* EXPECTED:
 			expected: ColorPatterns{
 				{Pattern: "^a", Color: "red"},
-				{Pattern: "^b", Color: "blue"},
-			},
-			ACTUAL: */
-			expected: ColorPatterns{
-				{Pattern: "<<", Color: ""},
 				{Pattern: "^b", Color: "blue"},
 			},
 		},
@@ -120,15 +101,9 @@ func TestColorPatternsExpandMergeKeys(t *testing.T) {
 				"patterns:\n" +
 				"  <<: *extended\n" +
 				"  '^c': blue\n",
-			/* EXPECTED:
 			expected: ColorPatterns{
 				{Pattern: "^a", Color: "red"},
 				{Pattern: "^b", Color: "green"},
-				{Pattern: "^c", Color: "blue"},
-			},
-			ACTUAL: */
-			expected: ColorPatterns{
-				{Pattern: "<<", Color: ""},
 				{Pattern: "^c", Color: "blue"},
 			},
 		},
@@ -142,6 +117,14 @@ func TestColorPatternsExpandMergeKeys(t *testing.T) {
 			assert.Equal(t, s.expected, config.Patterns)
 		})
 	}
+}
+
+func TestColorPatternsRejectMergeKeyThatMergesItsOwnMapping(t *testing.T) {
+	var config colorPatternsConfig
+	err := yaml.Unmarshal([]byte("patterns: &patterns\n"+
+		"  '^a': red\n"+
+		"  <<: *patterns\n"), &config)
+	assert.ErrorContains(t, err, "anchor 'patterns' value contains itself")
 }
 
 func TestColorPatternsMustBeAMapping(t *testing.T) {
