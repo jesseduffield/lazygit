@@ -224,6 +224,32 @@ func TestConvertOldThemeLayout(t *testing.T) {
 			expectedConverted: true,
 		},
 		{
+			// MoveYamlKey rejects a theme that isn't a map
+			name: "Theme without a value",
+			content: "gui:\n" +
+				"  theme:\n" +
+				"  authorColors:\n" +
+				"    '*': '#b4befe'\n",
+			expected: "gui:\n" +
+				"  theme:\n" +
+				"    authorColors:\n" +
+				"      '*': '#b4befe'\n",
+			expectedConverted: true,
+		},
+		{
+			name:              "Theme that is null",
+			content:           "gui: {theme: ~, authorColors: {'*': '#b4befe'}}\n",
+			expected:          "gui: {theme: {authorColors: {'*': '#b4befe'}}}\n",
+			expectedConverted: true,
+		},
+		{
+			// The empty map that stands in for the theme's null value must not
+			// end up in content that has nothing to move
+			name:     "Theme without a value and nothing to move",
+			content:  "gui:\n  theme:\n  darkTheme:\n    activeBorderColor: [blue]\n",
+			expected: "gui:\n  theme:\n  darkTheme:\n    activeBorderColor: [blue]\n",
+		},
+		{
 			name: "Branch colors become branch color patterns in the theme",
 			content: "gui:\n" +
 				"  branchColors:\n" +
@@ -988,6 +1014,29 @@ func TestOldLayoutThemeWithBranchColorsIsConverted(t *testing.T) {
 		ColorPatterns{{Pattern: "^feature(/|$)", Color: "green"}},
 		appConfig.GetUserConfig().Gui.Theme.BranchColorPatterns,
 	)
+	actualContent, err := os.ReadFile(themePath)
+	assert.NoError(t, err)
+	assert.Equal(t, themeContent, string(actualContent))
+}
+
+// The theme: line that the themes for older versions of lazygit start with may
+// have nothing after it.
+func TestOldLayoutThemeWithoutValueForThemeIsConverted(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	themePath := filepath.Join(configDir, "themes", "mocha.yml")
+	themeContent := `gui:
+  theme:
+  authorColors:
+    '*': '#b4befe'
+`
+	writeThemeTestFile(t, themePath, themeContent)
+	selectThemeForTest(t, configDir, "mocha")
+
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+
+	assert.NoError(t, appConfig.GetThemeLoadError())
+	assert.Equal(t, "mocha", appConfig.GetAppliedTheme())
+	assert.Equal(t, map[string]string{"*": "#b4befe"}, appConfig.GetUserConfig().Gui.Theme.AuthorColors)
 	actualContent, err := os.ReadFile(themePath)
 	assert.NoError(t, err)
 	assert.Equal(t, themeContent, string(actualContent))

@@ -182,6 +182,8 @@ func convertOldThemeLayout(content []byte) ([]byte, bool, error) {
 		return content, false, nil
 	}
 
+	fillNullTheme(&rootNode)
+
 	changes := NewChangesSet()
 	if err := migrateThemeKeys(&rootNode, "Couldn't convert the theme to the current layout", changes); err != nil {
 		return nil, false, err
@@ -195,6 +197,25 @@ func convertOldThemeLayout(content []byte) ([]byte, bool, error) {
 		return nil, false, err
 	}
 	return convertedContent, true, nil
+}
+
+// fillNullTheme replaces a gui.theme that has no value with an empty map, which
+// migrateThemeKeys can move settings into, unlike a null. The two are the same
+// when the theme is loaded, and the converted content is returned only if
+// something has moved into the map. The gui of rootNode must be a map (see
+// hasGuiMap).
+func fillNullTheme(rootNode *yaml.Node) {
+	_, guiNode := yaml_utils.LookupKey(rootNode.Content[0], "gui")
+	_, themeNode := yaml_utils.LookupKey(guiNode, "theme")
+	if themeNode == nil || themeNode.Kind != yaml.ScalarNode || themeNode.ShortTag() != "!!null" {
+		return
+	}
+
+	// Keep the node's anchor, which an alias may refer to, and its comments
+	themeNode.Kind = yaml.MappingNode
+	themeNode.Tag = "!!map"
+	themeNode.Value = ""
+	themeNode.Style = 0
 }
 
 // convertedThemeHint follows an error in the content of a theme that
