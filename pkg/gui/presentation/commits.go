@@ -308,6 +308,7 @@ func indexOfFirstNonTODOCommit(commits []*models.Commit) int {
 func loadPipesets(commits []*models.Commit) [][]graph.Pipe {
 	if pipeSetCacheAuthorColors != authors.ColorsVersion() {
 		pipeSetCache = make(map[pipeSetCacheKey][][]graph.Pipe)
+		graph.ResetRGBCache()
 		pipeSetCacheAuthorColors = authors.ColorsVersion()
 	}
 

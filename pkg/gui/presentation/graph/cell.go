@@ -97,6 +97,17 @@ func cachedSprint(style style.TextStyle, str string) string {
 	return style.Sprint(str)
 }
 
+// ResetRGBCache empties the cache that cachedSprint keeps for RGB styles. Call
+// it when the styles that pipes are built with are replaced: the cache is keyed
+// by style pointer, so it would never hit the entries of the old styles again,
+// but would keep them in memory forever.
+func ResetRGBCache() {
+	rgbCacheMutex.Lock()
+	defer rgbCacheMutex.Unlock()
+
+	rgbCache = make(map[rgbCacheKey]string)
+}
+
 func (cell *Cell) reset() {
 	cell.up = false
 	cell.down = false
