@@ -3,11 +3,14 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"reflect"
+	"syscall"
 	"testing"
 	"time"
 
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -1120,4 +1123,516 @@ func selectThemeForTest(t *testing.T, configDir string, name string) {
 	t.Helper()
 
 	writeThemeTestFile(t, filepath.Join(configDir, selectedThemeFileName), "name: "+name+"\n")
+}
+
+const pinkThemeTestContent = "gui:\n  theme:\n    branchColorPatterns:\n      master: '#ff00ff'\n"
+
+var pinkThemeTestPatterns = ColorPatterns{{Pattern: "master", Color: "#ff00ff"}}
+
+func TestSelectThemeUpdatesOnlyTheThemeSettings(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "git:\n  autoFetch: false\n")
+	writeThemeTestFile(t, filepath.Join(configDir, "themes", "pink.yml"), `gui:
+  theme:
+    activeBorderColor:
+      - '#ff00ff'
+    authorColors:
+      '*': '#ff00ff'
+    branchColorPatterns:
+      master: '#ff00ff'
+`)
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+	// A setting changed at runtime, like the sort order picked from its menu,
+	appConfig.GetUserConfig().Git.LocalBranchSortOrder = "alphabetical"
+	// and an edit of config.yml that hasn't been reloaded yet
+	rewriteThemeTestFile(t, filepath.Join(configDir, ConfigFilename), "git:\n  autoFetch: true\n")
+	previousUserConfig := appConfig.GetUserConfig()
+
+	assert.NoError(t, appConfig.SelectTheme("pink"))
+
+	userConfig := appConfig.GetUserConfig()
+	assert.Equal(t, pinkThemeTestPatterns, userConfig.Gui.Theme.BranchColorPatterns)
+	assert.Equal(t, map[string]string{"*": "#ff00ff"}, userConfig.Gui.Theme.AuthorColors)
+	assert.Equal(t, []string{"#ff00ff"}, userConfig.Gui.Theme.ActiveBorderColor)
+	assert.Equal(t, "alphabetical", userConfig.Git.LocalBranchSortOrder)
+	assert.False(t, userConfig.Git.AutoFetch)
+	assert.Empty(t, previousUserConfig.Gui.Theme.BranchColorPatterns, "the previous config isn't changed in place")
+	assert.Equal(t, GetDefaultConfig().Gui.Theme.ActiveBorderColor, previousUserConfig.Gui.Theme.ActiveBorderColor,
+		"the previous config isn't changed in place")
+
+	// The edit of config.yml is still picked up by the next reload
+	err, didChange := appConfig.ReloadChangedUserConfigFiles()
+	assert.NoError(t, err)
+	assert.True(t, didChange)
+	assert.True(t, appConfig.GetUserConfig().Git.AutoFetch)
+	assert.Equal(t, pinkThemeTestPatterns, appConfig.GetUserConfig().Gui.Theme.BranchColorPatterns)
+}
+
+func TestSelectThemeReplacesDarkAndLightThemes(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, `gui:
+  darkTheme:
+    activeBorderColor:
+      - red
+    inactiveBorderColor:
+      - yellow
+`)
+	writeThemeTestFile(t, filepath.Join(configDir, "themes", "pink.yml"), `gui:
+  darkTheme:
+    activeBorderColor:
+      - '#00ffff'
+  lightTheme:
+    activeBorderColor:
+      - '#0000ff'
+`)
+	writeThemeTestFile(t, filepath.Join(configDir, "themes", "blue.yml"), `gui:
+  darkTheme:
+    optionsTextColor:
+      - '#00ff00'
+  lightTheme:
+    selectedLineBgColor:
+      - '#ccd0da'
+`)
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+
+	assert.NoError(t, appConfig.SelectTheme("pink"))
+
+	guiConfig := appConfig.GetUserConfig().Gui
+	assert.Equal(t, []string{"#00ffff"}, guiConfig.DarkTheme.ActiveBorderColor, "the theme's darkTheme overrides the one in config.yml")
+	assert.Equal(t, []string{"yellow"}, guiConfig.DarkTheme.InactiveBorderColor, "config.yml stays where the theme is silent")
+	assert.Equal(t, []string{"#0000ff"}, guiConfig.LightTheme.ActiveBorderColor)
+
+	assert.NoError(t, appConfig.SelectTheme("blue"))
+
+	guiConfig = appConfig.GetUserConfig().Gui
+	assert.Equal(t, []string{"red"}, guiConfig.DarkTheme.ActiveBorderColor, "nothing is left of pink's darkTheme")
+	assert.Equal(t, []string{"yellow"}, guiConfig.DarkTheme.InactiveBorderColor)
+	assert.Equal(t, []string{"#00ff00"}, guiConfig.DarkTheme.OptionsTextColor)
+	assert.Empty(t, guiConfig.LightTheme.ActiveBorderColor, "nothing is left of pink's lightTheme")
+	assert.Equal(t, []string{"#ccd0da"}, guiConfig.LightTheme.SelectedLineBgColor)
+}
+
+func TestSelectThemeLeavesNoDarkThemeOfThePreviousThemeBehind(t *testing.T) {
+	for _, nextTheme := range []string{"plain", ""} {
+		t.Run("switch to '"+nextTheme+"'", func(t *testing.T) {
+			appConfig, configDir := newThemeTestAppConfig(t, "")
+			writeThemeTestFile(t, filepath.Join(configDir, "themes", "night.yml"), `gui:
+  darkTheme:
+    activeBorderColor:
+      - '#00ffff'
+  lightTheme:
+    activeBorderColor:
+      - '#0000ff'
+`)
+			writeThemeTestFile(t, filepath.Join(configDir, "themes", "plain.yml"), pinkThemeTestContent)
+			assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+			assert.NoError(t, appConfig.SelectTheme("night"))
+			assert.Equal(t, []string{"#00ffff"}, appConfig.GetUserConfig().Gui.ThemeForBackground(false, "").ActiveBorderColor)
+
+			assert.NoError(t, appConfig.SelectTheme(nextTheme))
+
+			guiConfig := appConfig.GetUserConfig().Gui
+			assert.Equal(t, GetDefaultConfig().Gui.DarkTheme, guiConfig.DarkTheme)
+			assert.Equal(t, GetDefaultConfig().Gui.LightTheme, guiConfig.LightTheme)
+			assert.Equal(t, GetDefaultConfig().Gui.Theme.ActiveBorderColor, guiConfig.ThemeForBackground(false, "").ActiveBorderColor)
+			assert.Equal(t, GetDefaultConfig().Gui.Theme.ActiveBorderColor, guiConfig.ThemeForBackground(true, "").ActiveBorderColor)
+		})
+	}
+}
+
+// Themes for older versions of lazygit have the author colors and the branch
+// color patterns directly in gui. Selecting one converts it in memory and
+// leaves the file as it is.
+func TestSelectThemeConvertsOldLayoutWithoutRewritingTheFile(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	themePath := filepath.Join(configDir, "themes", "mocha.yml")
+	themeContent := `gui:
+  theme:
+    activeBorderColor:
+      - '#89b4fa'
+      - bold
+  authorColors:
+    '*': '#b4befe'
+  branchColorPatterns:
+    '^feature/': green
+`
+	writeThemeTestFile(t, themePath, themeContent)
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+
+	assert.NoError(t, appConfig.SelectTheme("mocha"))
+
+	assert.Equal(t, "mocha", appConfig.GetAppliedTheme())
+	assert.NoError(t, appConfig.GetThemeLoadError())
+	themeConfig := appConfig.GetUserConfig().Gui.Theme
+	assert.Equal(t, []string{"#89b4fa", "bold"}, themeConfig.ActiveBorderColor)
+	assert.Equal(t, map[string]string{"*": "#b4befe"}, themeConfig.AuthorColors)
+	assert.Equal(t, ColorPatterns{{Pattern: "^feature/", Color: "green"}}, themeConfig.BranchColorPatterns)
+	actualContent, err := os.ReadFile(themePath)
+	assert.NoError(t, err)
+	assert.Equal(t, themeContent, string(actualContent))
+
+	// The selected theme file is watched, and reloading it after a change
+	// doesn't rewrite it either
+	rewriteThemeTestFile(t, themePath, "gui:\n  branchColors:\n    feature: red\n")
+	err, didChange := appConfig.ReloadChangedUserConfigFiles()
+	assert.NoError(t, err)
+	assert.True(t, didChange)
+	assert.Equal(t,
+		ColorPatterns{{Pattern: "^feature(/|$)", Color: "red"}},
+		appConfig.GetUserConfig().Gui.Theme.BranchColorPatterns,
+	)
+	actualContent, err = os.ReadFile(themePath)
+	assert.NoError(t, err)
+	assert.Equal(t, "gui:\n  branchColors:\n    feature: red\n", string(actualContent))
+}
+
+func TestSelectThemeRemembersTheChoice(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	writeThemeTestFile(t, filepath.Join(configDir, "themes", "pink.yml"), pinkThemeTestContent)
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+
+	assert.NoError(t, appConfig.SelectTheme("pink"))
+
+	assert.Equal(t, "pink", appConfig.GetSelectedTheme())
+	assert.Equal(t, "pink", appConfig.GetAppliedTheme())
+	content, err := os.ReadFile(filepath.Join(configDir, selectedThemeFileName))
+	assert.NoError(t, err)
+	assert.Equal(t, "name: pink\n", string(content))
+
+	// The next start of lazygit applies it again
+	restartedAppConfig, err := NewAppConfig("lazygit", "unversioned", "", "", "", false, t.TempDir())
+	assert.NoError(t, err)
+	assert.NoError(t, restartedAppConfig.ReloadUserConfigForRepo(nil))
+	assert.Equal(t, "pink", restartedAppConfig.GetAppliedTheme())
+	assert.Equal(t, pinkThemeTestPatterns, restartedAppConfig.GetUserConfig().Gui.Theme.BranchColorPatterns)
+}
+
+func TestSelectThemeFailsWhenTheChoiceCantBeSaved(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	writeThemeTestFile(t, filepath.Join(configDir, "themes", "pink.yml"), pinkThemeTestContent)
+	writeThemeTestFile(t, filepath.Join(configDir, "themes", "blue.yml"),
+		"gui:\n  theme:\n    branchColorPatterns:\n      master: '#0000ff'\n")
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+	assert.NoError(t, appConfig.SelectTheme("pink"))
+	// Nobody can open a directory for writing, not even root, so one in place
+	// of the file makes saving fail whoever runs the test
+	selectionPath := filepath.Join(configDir, selectedThemeFileName)
+	assert.NoError(t, os.Remove(selectionPath))
+	assert.NoError(t, os.Mkdir(selectionPath, 0o755))
+	userConfig := appConfig.GetUserConfig()
+
+	err := appConfig.SelectTheme("blue")
+
+	assert.ErrorIs(t, err, syscall.EISDIR)
+	assert.Same(t, userConfig, appConfig.GetUserConfig())
+	assert.Equal(t, "pink", appConfig.GetSelectedTheme())
+	assert.Equal(t, "pink", appConfig.GetAppliedTheme())
+	assert.NoError(t, appConfig.GetThemeLoadError())
+
+	// Once the file can be written again, so can the choice
+	assert.NoError(t, os.Remove(selectionPath))
+	selectThemeForTest(t, configDir, "pink")
+	assert.NoError(t, appConfig.SelectTheme("blue"))
+	assert.Equal(t, "blue", appConfig.GetAppliedTheme())
+	assert.Equal(t,
+		ColorPatterns{{Pattern: "master", Color: "#0000ff"}},
+		appConfig.GetUserConfig().Gui.Theme.BranchColorPatterns,
+	)
+}
+
+func TestSelectThemeWithEmptyNameDeselectsTheTheme(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	themePath := filepath.Join(configDir, "themes", "pink.yml")
+	writeThemeTestFile(t, themePath, pinkThemeTestContent)
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+	assert.NoError(t, appConfig.SelectTheme("pink"))
+
+	assert.NoError(t, appConfig.SelectTheme(""))
+
+	assert.Equal(t, "", appConfig.GetSelectedTheme())
+	assert.Equal(t, "", appConfig.GetAppliedTheme())
+	assert.Empty(t, appConfig.GetUserConfig().Gui.Theme.BranchColorPatterns)
+	savedName, err := loadSelectedThemeName()
+	assert.NoError(t, err)
+	assert.Equal(t, "", savedName)
+
+	// The file of the theme that was selected before is no longer watched
+	rewriteThemeTestFile(t, themePath, "gui:\n  theme:\n    branchColorPatterns:\n      master: '#00ff00'\n")
+	err, didChange := appConfig.ReloadChangedUserConfigFiles()
+	assert.NoError(t, err)
+	assert.False(t, didChange)
+}
+
+func TestSelectThemeRejectsNamesThatAreNotListed(t *testing.T) {
+	for _, name := range []string{"nope", "Pink", "pink.yml", ".pink", filepath.Join("..", themesDirName, "pink")} {
+		t.Run(name, func(t *testing.T) {
+			appConfig, configDir := newThemeTestAppConfig(t, "")
+			writeThemeTestFile(t, filepath.Join(configDir, "themes", "pink.yml"), pinkThemeTestContent)
+			writeThemeTestFile(t, filepath.Join(configDir, "themes", ".pink.yml"), pinkThemeTestContent)
+			assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+			userConfig := appConfig.GetUserConfig()
+
+			err := appConfig.SelectTheme(name)
+
+			assert.ErrorIs(t, err, ErrThemeNotFound)
+			assert.Same(t, userConfig, appConfig.GetUserConfig())
+			assert.Equal(t, "", appConfig.GetSelectedTheme())
+			assert.NoFileExists(t, filepath.Join(configDir, selectedThemeFileName))
+		})
+	}
+}
+
+func TestSelectBrokenThemeChangesNothing(t *testing.T) {
+	scenarios := []struct {
+		name    string
+		content string
+	}{
+		{name: "setting that isn't a theme setting", content: "gui:\n  theme:\n    branchColorPatterns:\n      master: '#00ff00'\ngit:\n  autoFetch: false\n"},
+		{name: "gui setting that isn't a theme setting", content: "gui:\n  colorScheme: dark\n"},
+		{name: "empty value", content: "gui:\n  theme:\n    authorColors:\n"},
+		{name: "invalid yaml", content: "gui: [\n"},
+		{name: "old and new layout of the author colors", content: "gui:\n  authorColors:\n    '*': '#b4befe'\n  theme:\n    authorColors:\n      John: green\n"},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			appConfig, configDir := newThemeTestAppConfig(t, "")
+			writeThemeTestFile(t, filepath.Join(configDir, "themes", "pink.yml"), pinkThemeTestContent)
+			brokenPath := filepath.Join(configDir, "themes", "broken.yml")
+			writeThemeTestFile(t, brokenPath, s.content)
+			assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+			assert.NoError(t, appConfig.SelectTheme("pink"))
+			userConfig := appConfig.GetUserConfig()
+			// An edit of config.yml that hasn't been reloaded yet
+			rewriteThemeTestFile(t, filepath.Join(configDir, ConfigFilename), "git:\n  autoFetch: false\n")
+
+			err := appConfig.SelectTheme("broken")
+
+			var themeFileError *ThemeFileError
+			if assert.ErrorAs(t, err, &themeFileError) {
+				assert.Equal(t, brokenPath, themeFileError.Path)
+			}
+			assert.Same(t, userConfig, appConfig.GetUserConfig())
+			assert.Equal(t, "pink", appConfig.GetSelectedTheme())
+			assert.Equal(t, "pink", appConfig.GetAppliedTheme())
+			assert.NoError(t, appConfig.GetThemeLoadError(), "broken isn't the selected theme")
+			savedName, err := loadSelectedThemeName()
+			assert.NoError(t, err)
+			assert.Equal(t, "pink", savedName)
+
+			// The edit of config.yml is still picked up by the next reload, and
+			// the previous theme is still in place
+			err, didChange := appConfig.ReloadChangedUserConfigFiles()
+			assert.NoError(t, err)
+			assert.True(t, didChange)
+			assert.False(t, appConfig.GetUserConfig().Git.AutoFetch)
+			assert.Equal(t, pinkThemeTestPatterns, appConfig.GetUserConfig().Gui.Theme.BranchColorPatterns)
+		})
+	}
+}
+
+func TestSelectListedThemeReportsThemeFileThatDisappeared(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+	userConfig := appConfig.GetUserConfig()
+
+	// SelectTheme has listed the theme, but its file is gone by the time it is
+	// loaded
+	err := appConfig.selectListedTheme("gone")
+
+	assert.ErrorIs(t, err, ErrThemeNotFound)
+	assert.Same(t, userConfig, appConfig.GetUserConfig())
+	assert.Equal(t, "", appConfig.GetSelectedTheme())
+	assert.NoFileExists(t, filepath.Join(configDir, selectedThemeFileName))
+	assert.False(t, lo.SomeBy(appConfig.userConfigFiles, func(f *ConfigFile) bool { return f.isTheme }))
+}
+
+func TestSelectThemeClearsThemeLoadError(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	themePath := filepath.Join(configDir, "themes", "pink.yml")
+	writeThemeTestFile(t, themePath, "gui:\n  nerdFontsVersion: \"3\"\n")
+	selectThemeForTest(t, configDir, "pink")
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+	assert.Error(t, appConfig.GetThemeLoadError())
+
+	writeThemeTestFile(t, themePath, pinkThemeTestContent)
+	assert.NoError(t, appConfig.SelectTheme("pink"))
+
+	assert.NoError(t, appConfig.GetThemeLoadError())
+	assert.Equal(t, "pink", appConfig.GetAppliedTheme())
+	assert.Equal(t, pinkThemeTestPatterns, appConfig.GetUserConfig().Gui.Theme.BranchColorPatterns)
+}
+
+func TestFailedReselectReplacesThemeLoadError(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	themePath := filepath.Join(configDir, "themes", "pink.yml")
+	writeThemeTestFile(t, themePath, "gui:\n  nerdFontsVersion: \"3\"\n")
+	writeThemeTestFile(t, filepath.Join(configDir, "themes", "other.yml"), "gui:\n  colorScheme: dark\n")
+	selectThemeForTest(t, configDir, "pink")
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+	startupError := appConfig.GetThemeLoadError()
+	assert.ErrorContains(t, startupError, "field nerdFontsVersion not found")
+	userConfig := appConfig.GetUserConfig()
+
+	// A theme other than the selected one that fails to load says nothing
+	// about why the selected one isn't applied
+	var themeFileError *ThemeFileError
+	assert.ErrorAs(t, appConfig.SelectTheme("other"), &themeFileError)
+	assert.Same(t, startupError, appConfig.GetThemeLoadError())
+
+	// Choosing the selected theme again loads its file again, which is now
+	// broken in another way
+	writeThemeTestFile(t, themePath, "gui:\n  theme:\n    authorColors:\n")
+	err := appConfig.SelectTheme("pink")
+
+	assert.ErrorAs(t, err, &themeFileError)
+	assert.ErrorContains(t, err, "gui.theme.authorColors has no value")
+	assert.Same(t, err, appConfig.GetThemeLoadError())
+	assert.Same(t, userConfig, appConfig.GetUserConfig())
+	assert.Equal(t, "pink", appConfig.GetSelectedTheme())
+	assert.Equal(t, "", appConfig.GetAppliedTheme())
+	savedName, err := loadSelectedThemeName()
+	assert.NoError(t, err)
+	assert.Equal(t, "pink", savedName)
+}
+
+func TestThemeLoadErrorIsClearedWhenAReloadOnFocusLoadsTheTheme(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	selectThemeForTest(t, configDir, "later")
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+	// The missing theme file appears, but broken, so choosing the theme again
+	// fails
+	themePath := filepath.Join(configDir, "themes", "later.yml")
+	writeThemeTestFile(t, themePath, "gui:\n  nerdFontsVersion: \"3\"\n")
+	err := appConfig.SelectTheme("later")
+	assert.Error(t, err)
+	assert.Same(t, err, appConfig.GetThemeLoadError())
+
+	// The file is watched because it was missing at the last load, so fixing
+	// it gets it loaded
+	rewriteThemeTestFile(t, themePath, pinkThemeTestContent)
+	err, didChange := appConfig.ReloadChangedUserConfigFiles()
+
+	assert.NoError(t, err)
+	assert.True(t, didChange)
+	assert.Equal(t, "later", appConfig.GetAppliedTheme())
+	assert.Equal(t, pinkThemeTestPatterns, appConfig.GetUserConfig().Gui.Theme.BranchColorPatterns)
+	assert.NoError(t, appConfig.GetThemeLoadError())
+}
+
+func TestSelectingNoThemeClearsThemeLoadError(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	writeThemeTestFile(t, filepath.Join(configDir, "themes", "pink.yml"), "gui:\n  nerdFontsVersion: \"3\"\n")
+	selectThemeForTest(t, configDir, "pink")
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+	assert.Error(t, appConfig.GetThemeLoadError())
+
+	assert.NoError(t, appConfig.SelectTheme(""))
+
+	assert.NoError(t, appConfig.GetThemeLoadError())
+	assert.Equal(t, "", appConfig.GetSelectedTheme())
+}
+
+func TestSelectThemeReplacesUnparsableThemeSelection(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	writeThemeTestFile(t, filepath.Join(configDir, "themes", "pink.yml"), pinkThemeTestContent)
+	writeThemeTestFile(t, filepath.Join(configDir, selectedThemeFileName), "name: [pink\n")
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+	assert.Error(t, appConfig.GetThemeLoadError())
+
+	assert.NoError(t, appConfig.SelectTheme("pink"))
+
+	assert.NoError(t, appConfig.GetThemeLoadError())
+	assert.Equal(t, "pink", appConfig.GetAppliedTheme())
+	savedName, err := loadSelectedThemeName()
+	assert.NoError(t, err)
+	assert.Equal(t, "pink", savedName)
+}
+
+func TestSelectThemeKeepsRepoConfigOnTop(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	writeThemeTestFile(t, filepath.Join(configDir, "themes", "pink.yml"),
+		"gui:\n  theme:\n    branchColorPatterns:\n      master: '#ff00ff'\n      other: '#ff00ff'\n")
+	repoConfigPath := filepath.Join(t.TempDir(), "lazygit.yml")
+	writeThemeTestFile(t, repoConfigPath, "gui:\n  theme:\n    branchColorPatterns:\n      master: '#00ff00'\n")
+	repoConfigFiles := []*ConfigFile{{Path: repoConfigPath, Policy: ConfigFilePolicySkipIfMissing}}
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(repoConfigFiles))
+
+	assert.NoError(t, appConfig.SelectTheme("pink"))
+
+	assert.Equal(t,
+		ColorPatterns{{Pattern: "master", Color: "#00ff00"}, {Pattern: "other", Color: "#ff00ff"}},
+		appConfig.GetUserConfig().Gui.Theme.BranchColorPatterns,
+	)
+
+	// The repo config file is still watched
+	rewriteThemeTestFile(t, repoConfigPath, "gui:\n  theme:\n    branchColorPatterns:\n      master: '#0000ff'\n")
+	err, didChange := appConfig.ReloadChangedUserConfigFiles()
+	assert.NoError(t, err)
+	assert.True(t, didChange)
+	assert.Equal(t,
+		ColorPatterns{{Pattern: "master", Color: "#0000ff"}, {Pattern: "other", Color: "#ff00ff"}},
+		appConfig.GetUserConfig().Gui.Theme.BranchColorPatterns,
+	)
+}
+
+func TestThemeFileSelectedAtRuntimeIsReloadedWhenChanged(t *testing.T) {
+	appConfig, configDir := newThemeTestAppConfig(t, "")
+	themePath := filepath.Join(configDir, "themes", "pink.yml")
+	writeThemeTestFile(t, themePath, pinkThemeTestContent)
+	assert.NoError(t, appConfig.ReloadUserConfigForRepo(nil))
+	assert.NoError(t, appConfig.SelectTheme("pink"))
+
+	// Right after selecting, no file counts as changed
+	err, didChange := appConfig.ReloadChangedUserConfigFiles()
+	assert.NoError(t, err)
+	assert.False(t, didChange)
+
+	rewriteThemeTestFile(t, themePath, "gui:\n  theme:\n    branchColorPatterns:\n      master: '#00ff00'\n")
+	err, didChange = appConfig.ReloadChangedUserConfigFiles()
+	assert.NoError(t, err)
+	assert.True(t, didChange)
+	assert.Equal(t,
+		ColorPatterns{{Pattern: "master", Color: "#00ff00"}},
+		appConfig.GetUserConfig().Gui.Theme.BranchColorPatterns,
+	)
+}
+
+func TestCopyThemeFieldsCopiesEverySettingThatAThemeMayContain(t *testing.T) {
+	from := GetDefaultConfig()
+	assert.NoError(t, yaml.Unmarshal([]byte(`
+gui:
+  theme:
+    activeBorderColor:
+      - '#ff00ff'
+    authorColors:
+      John: '#ff00ff'
+    branchColorPatterns:
+      master: '#ff00ff'
+  darkTheme:
+    optionsTextColor:
+      - '#00ffff'
+  lightTheme:
+    selectedLineBgColor:
+      - '#0000ff'
+  nerdFontsVersion: "3"
+`), from))
+	to := GetDefaultConfig()
+
+	themeFields := reflect.VisibleFields(reflect.TypeFor[themeGuiConfig]())
+	for _, field := range themeFields {
+		assert.NotEqual(t, themeTestGuiField(from, field.Name), themeTestGuiField(to, field.Name),
+			"the test must set %s so that copying it is verified", field.Name)
+	}
+
+	copyThemeFields(to, from)
+
+	for _, field := range themeFields {
+		assert.Equal(t, themeTestGuiField(from, field.Name), themeTestGuiField(to, field.Name), field.Name)
+	}
+	assert.Equal(t, "", to.Gui.NerdFontsVersion)
+}
+
+// themeTestGuiField returns the value of the GuiConfig field with the given
+// name.
+func themeTestGuiField(userConfig *UserConfig, name string) any {
+	return reflect.ValueOf(userConfig.Gui).FieldByName(name).Interface()
 }

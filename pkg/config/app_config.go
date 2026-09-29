@@ -58,6 +58,7 @@ type AppConfigurer interface {
 	GetThemesDir() string
 	ListThemes() ([]string, error)
 	GetSelectedTheme() string
+	SelectTheme(name string) error
 	GetAppliedTheme() string
 	GetThemeLoadError() error
 
@@ -868,6 +869,11 @@ func (c *AppConfig) ReloadChangedUserConfigFiles() (error, bool) {
 
 	c.userConfig = userConfig
 	c.appliedTheme = c.loadedThemeName()
+	if c.appliedTheme != "" {
+		// A failed SelectTheme can have left an error about the selected
+		// theme's file, which is out of date now that the file has loaded
+		c.themeLoadError = nil
+	}
 	return nil, true
 }
 

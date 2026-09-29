@@ -22,6 +22,10 @@ const (
 	selectedThemeFileName = "selected_theme.yml"
 )
 
+// ErrThemeNotFound is returned by SelectTheme when there is no theme with the
+// given name in the themes folder.
+var ErrThemeNotFound = errors.New("theme not found")
+
 // ThemeFileError reports a theme file that couldn't be loaded.
 type ThemeFileError struct {
 	Path string
@@ -45,6 +49,16 @@ type themeGuiConfig struct {
 
 type themeFile struct {
 	Gui themeGuiConfig `yaml:"gui"`
+}
+
+// copyThemeFields copies the settings that a theme file may contain, which
+// are the fields of themeGuiConfig.
+// TestCopyThemeFieldsCopiesEverySettingThatAThemeMayContain checks that none
+// is missing.
+func copyThemeFields(to *UserConfig, from *UserConfig) {
+	to.Gui.Theme = from.Gui.Theme
+	to.Gui.DarkTheme = from.Gui.DarkTheme
+	to.Gui.LightTheme = from.Gui.LightTheme
 }
 
 // validateThemeFileContent checks that a theme file sets no other keys than
@@ -277,6 +291,25 @@ func loadSelectedThemeName() (string, error) {
 	return state.Name, nil
 }
 
+// saveSelectedThemeName remembers the selected theme ("" for none) for future
+// sessions. Unlike SaveAppState, it also reports a file that can't be written
+// for lack of permission: ReloadUserConfigForRepo reads the name from the file
+// again on every repo switch, so a choice that wasn't saved would silently be
+// undone there.
+func saveSelectedThemeName(name string) error {
+	path, err := selectedThemeFilePath()
+	if err != nil {
+		return err
+	}
+
+	content, err := yaml.Marshal(selectedThemeState{Name: name})
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, content, 0o644)
+}
+
 // GetThemesDir returns the folder that holds the theme files, or "" if there
 // is no config dir (as with NewDummyAppConfig), in which case the folder would
 // resolve relative to the working directory.
@@ -386,10 +419,12 @@ func (c *AppConfig) loadedThemeName() string {
 	return c.selectedTheme
 }
 
-// GetThemeLoadError returns the error that kept the last
-// ReloadUserConfigForRepo from applying the selected theme, or nil. It is
-// either the theme file's error, or the error reading which theme is
-// selected, in which case GetSelectedTheme returns "".
+// GetThemeLoadError returns the error from the last failed attempt to load the
+// selected theme, or nil if there is none or the theme has loaded since. It is
+// either the theme file's error, or the error reading which theme is selected,
+// in which case GetSelectedTheme returns "". ReloadUserConfigForRepo and
+// SelectTheme set or clear it. A reload on focus returns its error instead,
+// but clears this one when it loads the selected theme.
 func (c *AppConfig) GetThemeLoadError() error {
 	return c.themeLoadError
 }
@@ -422,4 +457,84 @@ func (c *AppConfig) composeUserConfigFiles(theme *ConfigFile, repoConfigFiles []
 	}
 
 	return slices.Concat(c.globalUserConfigFiles, []*ConfigFile{theme}, repoConfigFiles)
+}
+
+// SelectTheme makes the theme with the given name, which must be one that
+// ListThemes returns, the applied theme, or applies no theme if the name is
+// empty, and remembers the choice for future sessions. It only updates the
+// settings that a theme file may contain: every other setting keeps its
+// current value, including ones changed at runtime, and pending edits of the
+// config files are left for ReloadChangedUserConfigFiles to pick up. On
+// success it clears the error of GetThemeLoadError. On error nothing is saved
+// or applied; if the name is that of the selected theme and its file fails to
+// load again, GetThemeLoadError returns that error from then on, and otherwise
+// nothing changes at all.
+func (c *AppConfig) SelectTheme(name string) error {
+	if name != "" {
+		themes, err := c.ListThemes()
+		if err != nil {
+			return err
+		}
+		// This also rejects a name that differs only in case from a listed
+		// one, whose file a case-insensitive file system would find anyway
+		if !slices.Contains(themes, name) {
+			return ErrThemeNotFound
+		}
+	}
+
+	return c.selectListedTheme(name)
+}
+
+// selectListedTheme does the work of SelectTheme for "" or a name that
+// ListThemes has returned.
+func (c *AppConfig) selectListedTheme(name string) error {
+	newThemeFile := c.themeConfigFile(name)
+	composedFiles := c.composeUserConfigFiles(newThemeFile, c.repoUserConfigFiles)
+	// Load copies of the global and per-repo files, so that the record of what
+	// was last loaded from them stays as it is, and a pending edit of one of
+	// them is still detected by ReloadChangedUserConfigFiles. The theme file
+	// is a new object that nothing else refers to yet.
+	candidateFiles := make([]*ConfigFile, 0, len(composedFiles))
+	for _, f := range composedFiles {
+		if f == newThemeFile {
+			candidateFiles = append(candidateFiles, f)
+			continue
+		}
+		fileCopy := *f
+		candidateFiles = append(candidateFiles, &fileCopy)
+	}
+	candidate, err := loadUserConfigWithDefaults(candidateFiles, true)
+	if err != nil {
+		var themeFileError *ThemeFileError
+		if name == c.selectedTheme && errors.As(err, &themeFileError) {
+			// Choosing the selected theme again is another attempt to load
+			// it, so what went wrong this time replaces what went wrong
+			// before, which may be about an older version of the file
+			c.themeLoadError = err
+		}
+		return err
+	}
+	// A theme file that was deleted after it was listed is skipped by the load
+	// instead of failing it
+	if newThemeFile != nil && !newThemeFile.exists {
+		return ErrThemeNotFound
+	}
+
+	// Remember the choice only once the theme has loaded, so that a broken
+	// theme file isn't selected again at the next start, and apply it only
+	// once it is remembered (see saveSelectedThemeName)
+	if err := saveSelectedThemeName(name); err != nil {
+		return err
+	}
+
+	userConfig := *c.userConfig
+	copyThemeFields(&userConfig, candidate)
+	c.userConfig = &userConfig
+	// The live global and per-repo files, and the theme file that has just
+	// been loaded, so that its changes are watched from now on
+	c.userConfigFiles = composedFiles
+	c.selectedTheme = name
+	c.appliedTheme = c.loadedThemeName()
+	c.themeLoadError = nil
+	return nil
 }
