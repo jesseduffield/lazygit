@@ -111,9 +111,11 @@ func (self *ThemeHelper) selectTheme(name string) error {
 	// already focused the current context again, before the theme was
 	// applied, and the renders started then finish in the background, so they
 	// would bring back the previous theme's colors. Activating it once more
-	// renders them again after those, with the new colors. It also renders the
-	// search status again, whose frame color applying the theme has reset.
-	self.c.Context().Activate(self.c.Context().Current(), types.OnFocusOpts{})
+	// renders them again after those, with the new colors; a side panel's
+	// main view has been rendered with them already, so it is left alone. It
+	// also renders the search status again, whose frame color applying the
+	// theme has reset.
+	self.c.Context().Activate(self.c.Context().Current(), types.OnFocusOpts{SkipMainViewUpdate: true})
 
 	displayName := name
 	if name == "" {
