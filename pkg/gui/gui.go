@@ -1303,7 +1303,7 @@ func (gui *Gui) applyTheme() {
 // content was styled with the previous colors when it was rendered.
 func (gui *Gui) reapplyTheme() {
 	gui.applyTheme()
-	gui.configureViewProperties()
+	gui.applyViewColors()
 	for _, context := range gui.c.Context().AllList() {
 		context.HandleRender()
 	}
