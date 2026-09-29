@@ -553,6 +553,7 @@ var tests = []*components.IntegrationTest{
 	theme.SelectTheme,
 	theme.SelectThemeDeletedWhileMenuOpen,
 	theme.SelectThemeFromKeybindingsMenu,
+	theme.SelectThemeKeepsCommitFilesTitle,
 	theme.SelectThemeKeepsRuntimeSettings,
 	theme.SelectThemeRecolorsMergeConflicts,
 	theme.SelectThemeRecolorsViews,
