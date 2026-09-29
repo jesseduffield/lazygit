@@ -315,39 +315,21 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		}
 	}
 
-	// This creates gui.branchColorPatterns, so it must run before the move of
-	// that key into gui.theme below.
-	err = migrateBranchColors(&rootNode, changes)
-	if err != nil {
-		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
-	}
-
-	pathsToMove := []struct {
-		oldPath []string
-		newPath []string
-	}{
+	pathsToMove := []yamlKeyMove{
 		{
 			[]string{"keybinding", "worktrees", "viewWorktreeOptions"},
 			[]string{"keybinding", "universal", "newWorktree"},
 		},
-		{
-			[]string{"gui", "authorColors"},
-			[]string{"gui", "theme", "authorColors"},
-		},
-		{
-			[]string{"gui", "branchColorPatterns"},
-			[]string{"gui", "theme", "branchColorPatterns"},
-		},
 	}
 
-	for _, pathToMove := range pathsToMove {
-		err, didMove := yaml_utils.MoveYamlKey(&rootNode, pathToMove.oldPath, pathToMove.newPath)
-		if err != nil {
-			return nil, false, fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %w", path, strings.Join(pathToMove.oldPath, "."), err)
-		}
-		if didMove {
-			changes.Add(fmt.Sprintf("Moved '%s' to '%s'", strings.Join(pathToMove.oldPath, "."), strings.Join(pathToMove.newPath, ".")))
-		}
+	err = moveYamlKeys(&rootNode, path, pathsToMove, changes)
+	if err != nil {
+		return nil, false, err
+	}
+
+	err = migrateThemeKeys(&rootNode, path, changes)
+	if err != nil {
+		return nil, false, err
 	}
 
 	err = changeNullKeybindingsToDisabled(&rootNode, changes)
@@ -396,6 +378,27 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		return nil, false, fmt.Errorf("Failed to remarsal!\n %w", err)
 	}
 	return newContent, true, nil
+}
+
+type yamlKeyMove struct {
+	oldPath []string
+	newPath []string
+}
+
+// moveYamlKeys makes the given moves in order, and adds each one that it made
+// to changes. The config file's path is only used in error messages.
+func moveYamlKeys(rootNode *yaml.Node, path string, moves []yamlKeyMove, changes *ChangesSet) error {
+	for _, move := range moves {
+		err, didMove := yaml_utils.MoveYamlKey(rootNode, move.oldPath, move.newPath)
+		if err != nil {
+			return fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %w", path, strings.Join(move.oldPath, "."), err)
+		}
+		if didMove {
+			changes.Add(fmt.Sprintf("Moved '%s' to '%s'", strings.Join(move.oldPath, "."), strings.Join(move.newPath, ".")))
+		}
+	}
+
+	return nil
 }
 
 func changeNullKeybindingsToDisabled(rootNode *yaml.Node, changes *ChangesSet) error {
@@ -649,6 +652,29 @@ func migratePagersToDiffRenderers(rootNode *yaml.Node, changes *ChangesSet) erro
 
 		return nil
 	})
+}
+
+// migrateThemeKeys moves the theme settings that used to be directly in gui
+// into gui.theme, converting gui.branchColors to gui.branchColorPatterns first.
+// The config file's path is only used in error messages.
+func migrateThemeKeys(rootNode *yaml.Node, path string, changes *ChangesSet) error {
+	// This creates gui.branchColorPatterns, so it must run before the move of
+	// that key into gui.theme below.
+	err := migrateBranchColors(rootNode, changes)
+	if err != nil {
+		return fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
+	}
+
+	return moveYamlKeys(rootNode, path, []yamlKeyMove{
+		{
+			[]string{"gui", "authorColors"},
+			[]string{"gui", "theme", "authorColors"},
+		},
+		{
+			[]string{"gui", "branchColorPatterns"},
+			[]string{"gui", "theme", "branchColorPatterns"},
+		},
+	}, changes)
 }
 
 // The deprecated gui.branchColors matched its keys against the part of a branch
