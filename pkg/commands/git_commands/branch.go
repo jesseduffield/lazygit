@@ -142,15 +142,18 @@ func (self *BranchCommands) LocalDelete(branches []string, force bool) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-// Checkout checks out a branch (or commit), with --force if you set the force arg to true
+// Checkout checks out a branch (or commit), with --force if you set the force arg to true,
+// and with --merge if you set the merge arg to true
 type CheckoutOptions struct {
 	Force   bool
+	Merge   bool
 	EnvVars []string
 }
 
 func (self *BranchCommands) Checkout(branch string, options CheckoutOptions) error {
 	cmdArgs := NewGitCmd("checkout").
 		ArgIf(options.Force, "--force").
+		ArgIf(options.Merge, "--merge").
 		Arg(branch).
 		ToArgv()
 
