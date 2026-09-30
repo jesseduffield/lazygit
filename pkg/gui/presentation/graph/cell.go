@@ -22,16 +22,21 @@ const (
 )
 
 type Cell struct {
+	// strokes of the first character, which carries the vertical line
 	up, down, left, right bool
-	cellType              cellType
-	rightStyle            *style.TextStyle
-	style                 *style.TextStyle
+	// the second character, a horizontal line joining the next cell
+	connector  bool
+	cellType   cellType
+	rightStyle *style.TextStyle
+	style      *style.TextStyle
 }
 
 func (cell *Cell) render(writer io.StringWriter) {
-	up, down, left, right := cell.up, cell.down, cell.left, cell.right
-
-	first, second := getBoxDrawingChars(up, down, left, right)
+	first := getBoxDrawingChar(cell.up, cell.down, cell.left, cell.right)
+	second := " "
+	if cell.connector {
+		second = "─"
+	}
 	var adjustedFirst string
 	switch cell.cellType {
 	case CONNECTION:
@@ -97,6 +102,8 @@ func cachedSprint(style style.TextStyle, str string) string {
 	return style.Sprint(str)
 }
 
+// reset keeps the connector: in the last cell a highlighted line spans, it
+// leads out of that line, and the line redraws it in every other cell.
 func (cell *Cell) reset() {
 	cell.up = false
 	cell.down = false
@@ -128,6 +135,7 @@ func (cell *Cell) setLeft(style *style.TextStyle) *Cell {
 //nolint:unparam
 func (cell *Cell) setRight(style *style.TextStyle, override bool) *Cell {
 	cell.right = true
+	cell.connector = true
 	if cell.rightStyle == nil || override {
 		cell.rightStyle = style
 	}
@@ -144,39 +152,39 @@ func (cell *Cell) setType(cellType cellType) *Cell {
 	return cell
 }
 
-func getBoxDrawingChars(up, down, left, right bool) (string, string) {
+func getBoxDrawingChar(up, down, left, right bool) string {
 	if up && down && left && right {
-		return "│", "─"
+		return "│"
 	} else if up && down && left && !right {
-		return "│", " "
+		return "│"
 	} else if up && down && !left && right {
-		return "│", "─"
+		return "│"
 	} else if up && down && !left && !right {
-		return "│", " "
+		return "│"
 	} else if up && !down && left && right {
-		return "┴", "─"
+		return "┴"
 	} else if up && !down && left && !right {
-		return "╯", " "
+		return "╯"
 	} else if up && !down && !left && right {
-		return "╰", "─"
+		return "╰"
 	} else if up && !down && !left && !right {
-		return "╵", " "
+		return "╵"
 	} else if !up && down && left && right {
-		return "┬", "─"
+		return "┬"
 	} else if !up && down && left && !right {
-		return "╮", " "
+		return "╮"
 	} else if !up && down && !left && right {
-		return "╭", "─"
+		return "╭"
 	} else if !up && down && !left && !right {
-		return "╷", " "
+		return "╷"
 	} else if !up && !down && left && right {
-		return "─", "─"
+		return "─"
 	} else if !up && !down && left && !right {
-		return "─", " "
+		return "─"
 	} else if !up && !down && !left && right {
-		return "╶", "─"
+		return "╶"
 	} else if !up && !down && !left && !right {
-		return " ", " "
+		return " "
 	}
 
 	panic("should not be possible")
