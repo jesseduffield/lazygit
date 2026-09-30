@@ -308,44 +308,62 @@ func (self *RefsHelper) CreateCheckoutMenu(commit *models.Commit) error {
 
 	hash := commit.Hash()
 
-	menuItems := []*types.MenuItem{
-		{
-			LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutCommitAsDetachedHead, utils.ShortHash(hash))},
-			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
-				return self.CheckoutRef(hash, types.CheckoutRefOptions{})
-			},
-			Keys: menuKey('d'),
+	detachedHeadItem := &types.MenuItem{
+		LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutCommitAsDetachedHead, utils.ShortHash(hash))},
+		OnPress: func() error {
+			self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
+			return self.CheckoutRef(hash, types.CheckoutRefOptions{})
 		},
+		Keys: menuKey('d'),
 	}
 
-	if len(branches) > 0 {
-		menuItems = append(menuItems, lo.Map(branches, func(branch *models.Branch, index int) *types.MenuItem {
-			var keys []gocui.Key
-			if index < 9 {
-				keys = menuKey(rune(index + 1 + '0')) // Convert 1-based index to key
-			}
-			return &types.MenuItem{
-				LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutBranchAtCommit, branch.Name)},
-				OnPress: func() error {
-					self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
-					return self.CheckoutRef(branch.RefName(), types.CheckoutRefOptions{})
-				},
-				Keys: keys,
-			}
-		})...)
-	} else {
-		menuItems = append(menuItems, &types.MenuItem{
-			LabelColumns:   []string{self.c.Tr.Actions.CheckoutBranch},
-			OnPress:        func() error { return nil },
-			DisabledReason: &types.DisabledReason{Text: self.c.Tr.NoBranchesFoundAtCommitTooltip},
-			Keys:           menuKey('1'),
-		})
-	}
+	branchItems := self.MenuItemsForBranchesAtCommit(
+		branches,
+		self.c.Tr.Actions.CheckoutBranch,
+		self.c.Tr.NoBranchesFoundAtCommitTooltip,
+		func(branch *models.Branch) string {
+			return fmt.Sprintf(self.c.Tr.Actions.CheckoutBranchAtCommit, branch.Name)
+		},
+		func(branch *models.Branch) error {
+			self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
+			return self.CheckoutRef(branch.RefName(), types.CheckoutRefOptions{})
+		},
+	)
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Actions.CheckoutBranchOrCommit,
-		Items: menuItems,
+		Items: append([]*types.MenuItem{detachedHeadItem}, branchItems...),
+	})
+}
+
+// With no branches, returns a single disabled placeholder item so the menu
+// still has an entry to explain why nothing is selectable.
+func (self *RefsHelper) MenuItemsForBranchesAtCommit(
+	branches []*models.Branch,
+	placeholderLabel string,
+	placeholderDisabledReason string,
+	label func(branch *models.Branch) string,
+	onPress func(branch *models.Branch) error,
+) []*types.MenuItem {
+	if len(branches) == 0 {
+		return []*types.MenuItem{{
+			Label:          placeholderLabel,
+			OnPress:        func() error { return nil },
+			DisabledReason: &types.DisabledReason{Text: placeholderDisabledReason},
+			Keys:           menuKey('1'),
+		}}
+	}
+
+	return lo.Map(branches, func(branch *models.Branch, index int) *types.MenuItem {
+		var keys []gocui.Key
+		if index < 9 {
+			keys = menuKey('1' + rune(index))
+		}
+		return &types.MenuItem{
+			Label:   label(branch),
+			OnPress: func() error { return onPress(branch) },
+			Keys:    keys,
+		}
 	})
 }
 
