@@ -8,7 +8,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
-	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
 // our UI command log looks like this:
@@ -48,21 +47,25 @@ func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
 		return
 	}
 
-	textStyle := theme.DefaultTextColor
-	if !commandLine {
-		// if we're not dealing with a direct command that could be run on the command line,
-		// we style it differently to communicate that
-		textStyle = style.FgMagenta
-	}
 	indentedCmdStr := "  " + strings.ReplaceAll(cmdStr, "\n", "\n  ")
 
 	// See the comment in LogAction: bounce onto the UI thread since we may be
 	// called from a git worker, in the background so it can't block a repo switch.
 	gui.onUIThreadBackground(func() error {
+		// A command that could be run on the command line has no style of its
+		// own, so it is drawn in the view's text color, which changes with the
+		// theme
+		logStr := indentedCmdStr
+		if !commandLine {
+			// if we're not dealing with a direct command that could be run on the command line,
+			// we style it differently to communicate that
+			logStr = style.FgMagenta.Sprint(indentedCmdStr)
+		}
+
 		gui.Views.Extras.Autoscroll = true
 
 		gui.GuiLog = append(gui.GuiLog, cmdStr)
-		fmt.Fprint(gui.Views.Extras, "\n"+textStyle.Sprint(indentedCmdStr))
+		fmt.Fprint(gui.Views.Extras, "\n"+logStr)
 		return nil
 	})
 }

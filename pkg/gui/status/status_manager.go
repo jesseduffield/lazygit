@@ -78,14 +78,30 @@ func (self *StatusManager) GetStatusString(userConfig *config.UserConfig) (strin
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 
-	if len(self.statuses) == 0 {
+	shownStatus, ok := self.statusToShow()
+	if !ok {
 		return "", gocui.ColorDefault
 	}
-	topStatus := self.statuses[0]
-	if topStatus.statusType == "waiting" {
-		return topStatus.message + " " + presentation.Loader(time.Now(), userConfig.Gui.Spinner), topStatus.color
+	if shownStatus.statusType == "waiting" {
+		return shownStatus.message + " " + presentation.Loader(time.Now(), userConfig.Gui.Spinner), shownStatus.color
 	}
-	return topStatus.message, topStatus.color
+	return shownStatus.message, shownStatus.color
+}
+
+// statusToShow picks the status for the status line, or returns false if
+// there is none. Toasts go ahead of waiting statuses: a toast is only shown
+// for a few seconds, whereas a waiting status lasts as long as its operation
+// (e.g. a slow fetch) and is still there once the toast has expired. Since
+// statuses are kept newest first, the newest toast, or else the newest
+// waiting status, wins. Must be called with the mutex held.
+func (self *StatusManager) statusToShow() (appStatus, bool) {
+	toast, found := lo.Find(self.statuses, func(status appStatus) bool {
+		return status.statusType == "toast"
+	})
+	if found {
+		return toast, true
+	}
+	return lo.First(self.statuses)
 }
 
 func (self *StatusManager) HasStatus() bool {

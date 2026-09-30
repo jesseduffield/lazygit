@@ -16,6 +16,9 @@ type patchPresenter struct {
 
 	// line indices for tagged lines (e.g. lines added to a custom patch)
 	incLineIndices *set.Set[int]
+
+	// the style of the text that isn't an addition, a deletion or a hunk range
+	defaultTextStyle style.TextStyle
 }
 
 // formats the patch as a plain string
@@ -44,16 +47,19 @@ type FormatViewOpts struct {
 }
 
 // formats the patch for rendering within a view, meaning it's coloured and
-// highlights selected items
+// highlights selected items. It reads the theme, so only the UI thread may
+// call it; formatPlain doesn't read it, because workers build plain patches,
+// for example to apply a custom patch during a rebase.
 func formatView(patch *Patch, opts FormatViewOpts) string {
 	includedLineIndices := opts.IncLineIndices
 	if includedLineIndices == nil {
 		includedLineIndices = set.New[int]()
 	}
 	presenter := &patchPresenter{
-		patch:          patch,
-		plain:          false,
-		incLineIndices: includedLineIndices,
+		patch:            patch,
+		plain:            false,
+		incLineIndices:   includedLineIndices,
+		defaultTextStyle: theme.DefaultTextColor,
 	}
 	return presenter.format()
 }
@@ -75,7 +81,7 @@ func (self *patchPresenter) format() string {
 
 	for _, line := range self.patch.header {
 		// always passing false for 'included' here because header lines are not part of the patch
-		appendLine(self.formatLineAux(line, theme.DefaultTextColor.SetBold(), false))
+		appendLine(self.formatLineAux(line, self.defaultTextStyle.SetBold(), false))
 	}
 
 	for _, hunk := range self.patch.hunks {
@@ -90,7 +96,7 @@ func (self *patchPresenter) format() string {
 				// of the actual patch
 				self.formatLineAux(
 					hunk.headerContext,
-					theme.DefaultTextColor,
+					self.defaultTextStyle,
 					false,
 				),
 		)
@@ -115,7 +121,7 @@ func (self *patchPresenter) patchLineStyle(patchLine *PatchLine) style.TextStyle
 	case DELETION:
 		return style.FgRed
 	default:
-		return theme.DefaultTextColor
+		return self.defaultTextStyle
 	}
 }
 

@@ -200,12 +200,9 @@ func (gui *Gui) configureViewProperties() {
 	for _, mapping := range gui.orderedViewNameMappings() {
 		(*mapping.viewPtr).FrameRunes = frameRunes
 		(*mapping.viewPtr).BgColor = gui.g.BgColor
-		(*mapping.viewPtr).FgColor = theme.GocuiDefaultTextColor
-		(*mapping.viewPtr).SelBgColor = theme.GocuiSelectedLineBgColor
-		(*mapping.viewPtr).SelFgColor = gui.g.SelFgColor
-		(*mapping.viewPtr).InactiveViewSelBgColor = theme.GocuiInactiveViewSelectedLineBgColor
-		(*mapping.viewPtr).SelTextColor = theme.GocuiSelectedLineFgColor
 	}
+
+	gui.applyViewColors()
 
 	gui.Views.MenuFilterFrame.FrameRunes = frameRunesWithTopCorners(frameRunes, teeLeft, teeRight)
 
@@ -239,7 +236,6 @@ func (gui *Gui) configureViewProperties() {
 		view.TabWidth = gui.c.UserConfig().Gui.TabWidth
 	}
 
-	gui.Views.CommitDescription.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.CommitDescription.TextArea.AutoWrap = gui.c.UserConfig().Git.Commit.AutoWrapCommitMessage
 	gui.Views.CommitDescription.TextArea.AutoWrapWidth = gui.c.UserConfig().Git.Commit.AutoWrapWidth
 
@@ -302,5 +298,17 @@ func (gui *Gui) configureViewProperties() {
 		vt := tabsByView[view.Name()]
 		view.Tabs = vt.tabs
 		view.TabIndex = vt.index
+	}
+}
+
+// applyViewColors sets the colors that come from the theme on every view. It
+// reads what applyTheme derives from the theme, so it must run after it.
+func (gui *Gui) applyViewColors() {
+	for _, mapping := range gui.orderedViewNameMappings() {
+		(*mapping.viewPtr).FgColor = theme.GocuiDefaultTextColor
+		(*mapping.viewPtr).SelBgColor = theme.GocuiSelectedLineBgColor
+		(*mapping.viewPtr).SelFgColor = gui.g.SelFgColor
+		(*mapping.viewPtr).InactiveViewSelBgColor = theme.GocuiInactiveViewSelectedLineBgColor
+		(*mapping.viewPtr).SelTextColor = theme.GocuiSelectedLineFgColor
 	}
 }

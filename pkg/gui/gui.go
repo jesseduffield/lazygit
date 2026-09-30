@@ -149,6 +149,10 @@ type Gui struct {
 
 	integrationTest integrationTypes.IntegrationTest
 
+	// The toasts shown while an integration test runs, for the test to check
+	// (see captureToastsForIntegrationTest)
+	testToastChan chan string
+
 	afterLayoutFuncs chan func() error
 }
 
@@ -379,6 +383,12 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			if didChange && reloadErr == nil {
 				gui.c.Log.Info("User config changed - reloading")
 				reloadErr = gui.onUserConfigLoaded()
+				if reloadErr == nil {
+					// onUserConfigLoaded gives the focused view the frame color of
+					// an active view, which is the wrong one while a search or
+					// filter is active there
+					gui.helpers.Search.RenderSearchStatus(gui.c.Context().Current())
+				}
 				gui.reloadSidePanels()
 				gui.resetKeybindings()
 
@@ -453,9 +463,36 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 
 	gui.c.Context().Push(contextToPush, types.OnFocusOpts{})
 
+	gui.reportThemeLoadError()
+
 	gui.render()
 
 	return nil
+}
+
+// reportThemeLoadError tells the user that the selected theme couldn't be
+// loaded and that lazygit runs without it. A toast only has room for the
+// theme's name, so the error itself goes to the log. Toasts are shown by the
+// helpers, so this must run after resetHelpersAndControllers.
+func (gui *Gui) reportThemeLoadError() {
+	err := gui.Config.GetThemeLoadError()
+	if err == nil {
+		return
+	}
+
+	gui.Log.Warnf("error loading theme: %v", err)
+
+	name := gui.Config.GetSelectedTheme()
+	if name == "" {
+		// The file that says which theme is selected couldn't be read
+		gui.c.ErrorToast(gui.c.Tr.SelectedThemeNotLoaded)
+		return
+	}
+
+	gui.c.ErrorToast(utils.ResolvePlaceholderString(
+		gui.c.Tr.ThemeNotLoaded,
+		map[string]string{"name": name},
+	))
 }
 
 func (gui *Gui) getPerRepoConfigFiles() []*config.ConfigFile {
@@ -526,6 +563,15 @@ func (gui *Gui) onUserConfigLoaded() error {
 	}
 
 	return nil
+}
+
+// onThemeSelected applies the user config after the theme menu has replaced
+// its theme-related settings. Nothing else has changed, so unlike after
+// reloading the config files there is no need to reset keybindings or side
+// panels.
+func (gui *Gui) onThemeSelected() {
+	gui.Common.SetUserConfig(gui.Config.GetUserConfig())
+	gui.reapplyTheme()
 }
 
 func (gui *Gui) checkForChangedConfigsThatDontAutoReload(oldConfig *config.UserConfig, newConfig *config.UserConfig) error {
@@ -823,6 +869,8 @@ func NewGui(
 		func() bool { return gui.c.InDemo() },
 	)
 
+	gui.captureToastsForIntegrationTest(test)
+
 	guiCommon := &guiCommon{gui: gui, IPopupHandler: gui.PopupHandler}
 	helperCommon := &helpers.HelperCommon{IGuiCommon: guiCommon, Common: cmn, IGetContexts: gui}
 
@@ -937,13 +985,7 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	gui.c.Log.Infof("Terminal color scheme: %s", g.DetectedColorScheme())
 	g.SetColorSchemeChangeHandler(func(colorScheme gocui.DetectedColorScheme) error {
 		gui.c.Log.Infof("Terminal color scheme changed: %s", colorScheme)
-		gui.applyTheme()
-		gui.configureViewProperties()
-		for _, context := range gui.c.Context().AllList() {
-			context.HandleRender()
-		}
-		gui.helpers.Refresh.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STATUS}})
-		gui.helpers.Diff.RenderToMainAgain()
+		gui.reapplyTheme()
 		return nil
 	})
 
@@ -1263,6 +1305,19 @@ func (gui *Gui) applyTheme() {
 	gui.g.SelFrameColor = theme.ActiveBorderColor
 
 	gui.applyTerminalBackground()
+}
+
+// reapplyTheme applies the theme again while lazygit is running, after the
+// colors that it resolves to have changed, and renders again the views whose
+// content was styled with the previous colors when it was rendered.
+func (gui *Gui) reapplyTheme() {
+	gui.applyTheme()
+	gui.applyViewColors()
+	for _, context := range gui.c.Context().AllList() {
+		context.HandleRender()
+	}
+	gui.helpers.Refresh.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STATUS}})
+	gui.helpers.Diff.RenderToMainAgain()
 }
 
 // applyTerminalBackground tells the colors that depend on the terminal's

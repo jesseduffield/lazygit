@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"sync"
 )
 
@@ -42,12 +41,7 @@ func loadGithubPullRequestCache() *githubPullRequestCache {
 }
 
 func githubPullRequestCachePath() (string, error) {
-	path, err := stateFilePath(stateFileName)
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(filepath.Dir(path), githubPullRequestsCacheFileName), nil
+	return stateSiblingFilePath(githubPullRequestsCacheFileName)
 }
 
 func newGithubPullRequestCache(path string) *githubPullRequestCache {
