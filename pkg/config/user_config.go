@@ -752,6 +752,8 @@ type CustomCommand struct {
 	Output string `yaml:"output" jsonschema:"enum=none,enum=terminal,enum=log,enum=logWithPty,enum=popup"`
 	// The title to display in the popup panel if output is set to 'popup'. If left unset, the command will be used as the title.
 	OutputTitle string `yaml:"outputTitle"`
+	// Whether to display a keybinding hint in the footer of the panel when the command's context is active
+	DisplayHint bool `yaml:"displayHint"`
 	// Actions to take after the command has completed
 	// [dev] Pointer so that we can tell whether it appears in the config file
 	After *CustomCommandAfterHook `yaml:"after"`
