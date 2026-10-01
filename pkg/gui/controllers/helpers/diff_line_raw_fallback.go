@@ -33,6 +33,21 @@ func (self *DiffLineHelper) MainViewDiffMode() git_commands.DiffMode {
 	return git_commands.DiffModeRendered
 }
 
+// DiffRowsCanBePlaced reports whether the rows of the diff the main view is about to be
+// given can be placed in the file they show. git's own diff describes itself, whether it
+// is what the user configured or what MainViewDiffMode is about to substitute for a
+// rendering that can't be acted on; any other rendering says where its rows belong only
+// if it states records for them.
+//
+// It is what anything that means to go from a row back to the file it shows has to ask
+// first: with neither records nor a diff that describes itself, there is nothing to go
+// on, and offering the user the way there would be offering nothing.
+func (self *DiffLineHelper) DiffRowsCanBePlaced() bool {
+	return !self.diffNeedsMetadata() ||
+		self.MainViewDiffMode() == git_commands.DiffModeRaw ||
+		self.diffRendererEmitsMetadata()
+}
+
 // RenderFocusedMainViewAgain has the panel beneath the focused main view render its
 // diff again — which, the main view now holding focus, is git's own diff rather than
 // the renderer's — and calls place once that is on screen.
