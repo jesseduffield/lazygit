@@ -2752,6 +2752,51 @@ options…" build only with their `fixup!` folded in.
 The render width ignoring the gutter was found on the way; the user wants it
 discussed next (§8 row).
 
+#### Review round 4 (2026-10-01) — the marks with or without the focus, and the width they leave
+
+Round 3's open row on the render width (§8). delta's file-header rules and
+git's diffstat line for a big file are as wide as the render width, and the
+gutter took its two columns without any render being told. While the marks
+showed, those lines wrapped and left a `──` or `+++` fragment on a row of its
+own. Telling a render the width the gutter leaves fixed it everywhere except
+one place: focusing the main view brought the gutter without a render.
+
+Three options were discussed: re-render on focus, as the raw fallback does;
+keep the columns free whenever a patch of this diff exists; or draw the marks
+in the left frame column, the way the right one carries the scrollbar. The third
+was tried as a throwaway build and the user rejected it on its look.
+
+The user's call: **the marks are shown whenever the main view shows the diff
+the patch is built from, focused or not**. The pane beside the diff previews the
+patch all the while, and marks missing while browsing had looked like a bug to
+them. The gutter then depends only on the patch and the selected item. Those
+change only through things that re-render already, so the focus needs nothing.
+
+An `amend!` on "Mark the lines of a commit's diff that are in the custom patch"
+for the rule. `patchInclusion` asks `CurrentSide()` and no longer requires the
+focus, the focus handlers' gutter refreshes are gone, and
+`patch_marks_show_while_the_diff_is_focused` became
+`patch_marks_show_whenever_their_diff_is_on_screen`. The message lost a
+`, which is what` on the way.
+
+A `fixup!` on the same commit for the width. Whether the gutter shows is decided
+from what is known before the content arrives (`ShowsInclusionGutter`): a patch
+for this panel's diff, and a render that is the panel's diff (`ContentIsDiff`),
+no longer whether the diff has change lines. `renderWidth` lays both render
+paths and the pty out to the width the gutter leaves.
+`render_the_diff_beside_the_patch_marks` asserts that git's stat line stays one
+row, through a new `ViewDriver.ContainsViewLines`; it was checked to fail
+without the fix. PR 9's "Let wrapLinesInDiffView govern the two main panes" had
+added a `ContainsViewLines` of its own, so a `fixup!` there drops it; that commit
+builds only with its fixup folded in.
+
+Checked under delta in the real app: no fragments once the diff has rendered
+again, focused or not. The press that starts a patch still shows the old
+rendering wrapped until the re-render that follows it arrives.
+
+git's own diff taking its width before the layout pass was found on the way;
+it comes from master and is left open (§8 row).
+
 ### PR 9 — Replace the staging and patch-building panels with the focused main view
 
 The removal PR. Also the PR whose title tells users the big story — consider
@@ -3388,7 +3433,8 @@ The remaining rows are agreed as keep/defer:
 | A renderer that keeps the diff and hunk headers but drops body lines could be mis-parsed where it ends the buffer (new, PR 2 round 1) | Keep. The leniency applies to one section, the one the buffer breaks off in, and every renderer that restructures a body lengthens hunks rather than shortening them. A mis-parse would act on the wrong line only in the focused main view, and there the diff is either git's own or one whose lines state their own identity (`MainViewDiffMode`) |
 | A submodule's log lines go unresolved under a renderer that states records (PR 2 round 2, widened by PR 4 round 1) | Keep. Nothing states a record for those lines, and since PR 4 round 1 a rendering with records is not parsed for the rows without one, so under delta as under diff-so-fancy they have no identity (before that round, only diff-so-fancy lost them, by stripping the leading indicator column off every line it reads while inside a hunk). The cost is that `n` pressed on one of them steps to the file after the next. The submodule itself is listed and navigated to from the line naming it, for which both renderers state an `f` record. Spec §6.4 wants every row of a header block tagged, so delta could tag the log lines with the submodule's `f` as well; not done |
 | An attributes file outside the repo can still convert the custom patch's trees (new, PR 8 round 2) | **Keep until someone reports it — the user's call, 2026-09-20.** `core.autocrlf=false` and `core.eol=lf` answer for every machine that converts by config, and for an attribute that asks for text without saying which endings. A global or system `.gitattributes` naming `eol=crlf` outright overrides `core.eol`, and then `git apply` writes the after tree with CRLF while the before tree we write ourselves keeps its LF. git's own diff converts both back, so the pane is right either way, and `core.safecrlf=false` keeps the warning off it. What is left is the two files a renderer reads directly, one line ending apart. The airtight form is `core.attributesfile` pointed at a file of lazygit's own reading `* -text`, at the cost of the diff drivers a global attributes file sets |
-| The diff renderer lays out to the view's full width while the marks' gutter takes two columns of it (new, PR 8 round 3) | **Open — to be discussed with the user after round 3.** delta's file-header rules and git's diffstat line for a big file are as wide as the render width, so while the gutter shows they wrap and leave a `──` or `+++` fragment on a row of its own, on every render. The gutter comes and goes with the focus, so rendering narrower means either re-rendering on a focus change or keeping the columns free whenever a patch of this diff exists |
+| The diff renderer lays out to the view's full width while the marks' gutter takes two columns of it (new, PR 8 round 3) | **Done in PR 8 round 4**: a render is laid out to the width the gutter leaves, decided before the content arrives, and the marks show whenever the diff the patch is built from is on screen, so the focus no longer moves the gutter |
+| git's own diff takes its render width before the layout pass (new, PR 8 round 4) | **Open, to raise with the user.** From master: `newCmdTask` reads `InnerWidth()` at once, while a renderer's render waits for `afterLayout`. A render triggered by something that also splits the main view, such as the first line of a patch opening the preview pane beside the diff, lays git's diffstat out to the width from before the split, so its graph wraps until the next render |
 | `ViewDriver.NavigateToLine` indexes `BufferLines()` with a view line (new, PR 8 round 3) | From master. It misnavigates once a line above the target wraps; nothing in the stack's tests hits it |
 
 ## 9. Open questions (resolve before/during the marked PR)
@@ -3567,6 +3613,19 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-10-01 (later):** **PR 8 round 4**, the render width. The marks are now
+  shown whenever the main view shows the diff the patch is built from, focused
+  or not (the user's call, after a throwaway build with the marks in the frame
+  was rejected on its look), and a render is laid out to the width the gutter
+  leaves. An `amend!` and a `fixup!` on "Mark the lines of a commit's diff…",
+  with `patch_marks_show_whenever_their_diff_is_on_screen` (renamed and
+  rewritten) and `render_the_diff_beside_the_patch_marks`, and a `fixup!` on
+  PR 9's "Let wrapLinesInDiffView govern the two main panes" dropping its
+  second `ContainsViewLines`; that commit builds only with its fixup folded in,
+  and every other replayed commit builds and vets. Build, unit, lint and
+  generate green at all 7 branch tips from PR 8 up; whole e2e suite (660 tests)
+  green at the tip. Backup tags `*-2026-10-01-1235-backup`. Found and left
+  open: git's own diff takes its width before the layout pass (§8 row).
 - **2026-10-01:** **PR 8 round 3**, on space under delta landing in the hunk
   above instead of on the next change. The actions were handed view lines, and
   the marks' gutter, appearing with the first line of a patch, rewrapped the
