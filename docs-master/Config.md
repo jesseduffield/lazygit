@@ -785,6 +785,7 @@ keybinding:
     copyFileInfoToClipboard: "y"
     collapseAll: '-'
     expandAll: =
+    collapseParentDirectory: <ctrl+x>
   branches:
     createPullRequest: o
     viewPullRequestOptions: O

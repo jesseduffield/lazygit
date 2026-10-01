@@ -36,6 +36,7 @@ type ITree[T any] interface {
 	CollapseAll()
 	ExpandAll()
 	GetVisualDepth(index int) int
+	GetParentIndex(index int) (int, bool)
 }
 
 type IFileTree interface {
@@ -243,6 +244,15 @@ func (self *FileTree) CollapsedPaths() *CollapsedPaths {
 
 func (self *FileTree) GetVisualDepth(index int) int {
 	return self.tree.GetVisualDepthAtIndex(index+1, self.collapsedPaths) // +1 to skip root
+}
+
+func (self *FileTree) GetParentIndex(index int) (int, bool) {
+	parentIndex, found := self.tree.GetParentIndexAtIndex(index+1, self.collapsedPaths) // +1 to skip root
+	if !found {
+		return -1, false
+	}
+
+	return parentIndex - 1, true
 }
 
 func (self *FileTree) GetStatusFilter() FileTreeDisplayFilter {

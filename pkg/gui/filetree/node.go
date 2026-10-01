@@ -267,6 +267,32 @@ func (self *Node[T]) GetVisualDepthAtIndex(index int, collapsedPaths *CollapsedP
 	return depth
 }
 
+// GetParentIndexAtIndex returns the flat index of the node that visually
+// contains the node at the given index, i.e. the closest node above it that is
+// rendered at a smaller visual depth. Returns false if the node is at the top
+// level, or if the index is out of range.
+func (self *Node[T]) GetParentIndexAtIndex(index int, collapsedPaths *CollapsedPaths) (int, bool) {
+	if self == nil {
+		return -1, false
+	}
+
+	depth := self.GetVisualDepthAtIndex(index, collapsedPaths)
+
+	// index 0 is this node itself, which isn't rendered, so anything at depth 0
+	// is already at the top level. A depth of -1 means the index is out of range.
+	if depth <= 0 {
+		return -1, false
+	}
+
+	for i := index - 1; i >= 1; i-- {
+		if self.GetVisualDepthAtIndex(i, collapsedPaths) < depth {
+			return i, true
+		}
+	}
+
+	return -1, false
+}
+
 func (self *Node[T]) getNodeAtIndexAux(index int, collapsedPaths *CollapsedPaths, visualDepth int) (*Node[T], int, int) {
 	offset := 1
 
