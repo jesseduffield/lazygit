@@ -141,6 +141,39 @@ func (self *ViewDriver) VisibleLines(matchers ...*TextMatcher) *ViewDriver {
 	return self.assertLines(originY, matchers...)
 }
 
+// ContainsViewLines asserts that somewhere in the view there are consecutive view lines
+// matching the given matchers. View lines are the rows the view draws its content in,
+// so a line too long for the view is as many view lines as the view wraps it into.
+func (self *ViewDriver) ContainsViewLines(matchers ...*TextMatcher) *ViewDriver {
+	self.validateMatchersPassed(matchers)
+
+	self.t.assertWithRetries(func() (bool, string) {
+		lines := self.getView().ViewBufferLines()
+
+		for i := 0; i+len(matchers) <= len(lines); i++ {
+			matches := true
+			for j, matcher := range matchers {
+				if ok, _ := matcher.test(lines[i+j]); !ok {
+					matches = false
+					break
+				}
+			}
+			if matches {
+				return true, ""
+			}
+		}
+
+		return false, fmt.Sprintf(
+			"%s: Expected the following view lines to be contained:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----",
+			self.context,
+			expectedContentFromMatchers(matchers),
+			strings.Join(lines, "\n"),
+		)
+	})
+
+	return self
+}
+
 // asserts that somewhere in the view there are consecutive lines matching the given matchers.
 func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)

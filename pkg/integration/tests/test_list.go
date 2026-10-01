@@ -231,6 +231,7 @@ var tests = []*components.IntegrationTest{
 	diff.IgnoreWhitespace,
 	diff.RenameSimilarityThresholdChange,
 	diff.RenderThroughAPipe,
+	diff.StatFollowsAScreenModeChange,
 	diff.StatUsesTheViewWidth,
 	file.ClickArrowToCollapse,
 	file.CollapseExpand,
