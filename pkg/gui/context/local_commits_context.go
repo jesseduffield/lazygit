@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -217,11 +218,12 @@ func (self *LocalCommitsContext) ClearDropInsertionIndex() {
 type LocalCommitsViewModel struct {
 	*ListViewModel[*models.Commit]
 
-	// If this is true we limit the amount of commits we load, for the sake of keeping things fast.
+	// If this is non-nil we limit the amount of commits we load, for the sake of keeping things fast.
 	// If the user attempts to scroll past the end of the list, we will load more commits.
+	// A nil value means no limit; we load the whole log.
 	// Atomic because a checkout or reset sets it from a worker goroutine while the
 	// commits refresh reads it on the UI thread to decide how many commits to load.
-	limitCommits atomic.Bool
+	gitLogLimit atomic.Pointer[git_commands.GitLogLimit]
 
 	// If this is true we'll use git log --all when fetching the commits.
 	showWholeGitGraph bool
@@ -232,7 +234,7 @@ func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon
 		ListViewModel:     NewListViewModel(getModel),
 		showWholeGitGraph: c.UserConfig().Git.Log.ShowWholeGraph,
 	}
-	self.limitCommits.Store(true)
+	self.gitLogLimit.Store(git_commands.DefaultGitLogLimit())
 
 	return self
 }
@@ -303,12 +305,12 @@ func (self *LocalCommitsContext) ModelSearchResults(searchStr string, caseSensit
 	return searchModelCommits(caseSensitive, self.GetCommits(), self.ColumnPositions(), self.modelToViewIndexConverter(), searchStr)
 }
 
-func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {
-	self.limitCommits.Store(value)
+func (self *LocalCommitsViewModel) SetGitLogLimit(limit *git_commands.GitLogLimit) {
+	self.gitLogLimit.Store(limit)
 }
 
-func (self *LocalCommitsViewModel) GetLimitCommits() bool {
-	return self.limitCommits.Load()
+func (self *LocalCommitsViewModel) GetGitLogLimit() *git_commands.GitLogLimit {
+	return self.gitLogLimit.Load()
 }
 
 func (self *LocalCommitsViewModel) SetShowWholeGitGraph(value bool) {

@@ -41,7 +41,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 	refresh := func() {
 		// loading a heap of commits is slow so we limit them whenever doing a reset
-		self.c.Contexts().LocalCommits.SetLimitCommits(true)
+		self.c.Contexts().LocalCommits.SetGitLogLimit(git_commands.DefaultGitLogLimit())
 
 		scope := []types.RefreshableView{
 			types.COMMITS,
@@ -204,7 +204,7 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 	}
 
 	// loading a heap of commits is slow so we limit them whenever doing a reset
-	self.c.Contexts().LocalCommits.SetLimitCommits(true)
+	self.c.Contexts().LocalCommits.SetGitLogLimit(git_commands.DefaultGitLogLimit())
 
 	self.c.RefreshFromWorker(types.RefreshOptions{
 		Scope:                 []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS},
