@@ -19,6 +19,11 @@ type MainContext struct {
 	// was worked out from. What there is to select is a property of the content, so an
 	// answer about the content of another render says nothing about this one.
 	selectableContentRenderKey string
+	// contentIsDiff says the render this pane was last given is the diff the panel
+	// beneath offers here, rather than a message or an explanation (see
+	// types.ContentIsDiff). It is known as the render is asked for, well before there
+	// is any content to look at.
+	contentIsDiff bool
 }
 
 var (
@@ -63,6 +68,17 @@ func (self *MainContext) SelectableContentRenderKey() string {
 // SetSelectableContentRenderKey records which render HasSelectableContent describes.
 func (self *MainContext) SetSelectableContentRenderKey(key string) {
 	self.selectableContentRenderKey = key
+}
+
+// ContentIsDiff reports whether this pane is showing the panel's diff (see
+// contentIsDiff).
+func (self *MainContext) ContentIsDiff() bool {
+	return self.contentIsDiff
+}
+
+// SetContentIsDiff records what kind of render the pane is being given.
+func (self *MainContext) SetContentIsDiff(value bool) {
+	self.contentIsDiff = value
 }
 
 func NewMainContext(

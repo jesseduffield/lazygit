@@ -289,12 +289,19 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` v `` | 切换拖动选择 |  |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
+| `` <space> `` | 切换暂存状态 | 切换行暂存状态 |
+| `` d `` | 取消变更(git reset) | 当选择未暂存的变更时，使用git reset丢弃该变更。当选择已暂存的变更时，取消暂存该变更 |
+| `` E `` | 编辑代码块 | 在外部编辑器中编辑选中的代码块 |
 | `` <ctrl+o> `` | 复制选中文本到剪贴板 |  |
 | `` <left>, h `` | 选择上一个区块 |  |
 | `` <right>, l `` | 选择下一个区块 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | 退出回到侧边面板 |  |
+| `` c `` | 提交变更 | 提交暂存文件 |
+| `` w `` | 提交变更而无需预先提交钩子 |  |
+| `` C `` | 使用 Git 编辑器提交变更 |  |
+| `` <ctrl+f> `` | 找到用于修复的基准提交 | 找到您当前变更所基于的提交，以便于修正/改进该提交。这样做可以省去您逐一查看分支提交来确定应该修正/改进哪个提交的麻烦。请参阅文档: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 开始搜索 |  |
 
 ## 正在合并
@@ -345,12 +352,19 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | 切换代码块选择 | 切换逐行选择与代码块选择模式。 |
 | `` v `` | 切换拖动选择 |  |
 | `` e `` | 编辑文件 | 使用外部编辑器打开文件 |
+| `` <space> `` | 切换暂存状态 | 切换行暂存状态 |
+| `` d `` | 取消变更(git reset) | 当选择未暂存的变更时，使用git reset丢弃该变更。当选择已暂存的变更时，取消暂存该变更 |
+| `` E `` | 编辑代码块 | 在外部编辑器中编辑选中的代码块 |
 | `` <ctrl+o> `` | 复制选中文本到剪贴板 |  |
 | `` <left>, h `` | 选择上一个区块 |  |
 | `` <right>, l `` | 选择下一个区块 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | 退出回到侧边面板 |  |
+| `` c `` | 提交变更 | 提交暂存文件 |
+| `` w `` | 提交变更而无需预先提交钩子 |  |
+| `` C `` | 使用 Git 编辑器提交变更 |  |
+| `` <ctrl+f> `` | 找到用于修复的基准提交 | 找到您当前变更所基于的提交，以便于修正/改进该提交。这样做可以省去您逐一查看分支提交来确定应该修正/改进哪个提交的麻烦。请参阅文档: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 开始搜索 |  |
 
 ## 状态

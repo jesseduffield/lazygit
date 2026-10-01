@@ -87,12 +87,19 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | 드래그 선택 전환 |  |
 | `` e `` | 파일 편집 | Open file in external editor. |
+| `` <space> `` | Staged 전환 | 선택한 행을 staged / unstaged |
+| `` d `` | 변경을 삭제 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` E `` | Edit hunk | Edit selected hunk in external editor. |
 | `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
 | `` <left>, h `` | 이전 hunk를 선택 |  |
 | `` <right>, l `` | 다음 hunk를 선택 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | 커밋 변경내용 | 스테이징된 변경 사항 커밋. |
+| `` w `` | Commit changes without pre-commit hook |  |
+| `` C `` | Git 편집기를 사용하여 변경 내용을 커밋합니다. |  |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 검색 시작 |  |
 
 ## Stash
@@ -173,12 +180,19 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | 드래그 선택 전환 |  |
 | `` e `` | 파일 편집 | Open file in external editor. |
+| `` <space> `` | Staged 전환 | 선택한 행을 staged / unstaged |
+| `` d `` | 변경을 삭제 (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` E `` | Edit hunk | Edit selected hunk in external editor. |
 | `` <ctrl+o> `` | 선택한 텍스트를 클립보드에 복사 |  |
 | `` <left>, h `` | 이전 hunk를 선택 |  |
 | `` <right>, l `` | 다음 hunk를 선택 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | 커밋 변경내용 | 스테이징된 변경 사항 커밋. |
+| `` w `` | Commit changes without pre-commit hook |  |
+| `` C `` | Git 편집기를 사용하여 변경 내용을 커밋합니다. |  |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 검색 시작 |  |
 
 ## 메인 패널 (Patch Building)
