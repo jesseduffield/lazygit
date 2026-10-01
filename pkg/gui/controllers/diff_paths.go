@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -129,4 +130,15 @@ func fileIsInDir[T any, PT fileWithNames[T]](f *T, dir string) bool {
 func isInDir(path string, dir string) bool {
 	// "." is the root item, which contains every file
 	return dir == "." || strings.HasPrefix(path, dir+"/")
+}
+
+// repoRelativePath turns the absolute path a diff line carries into the one git speaks
+// of the file: relative to the worktree, with forward slashes. It is "" for a path that
+// is no file of this repo, which a diff renderer's own naming of a line can produce.
+func repoRelativePath(worktreePath string, absolutePath string) string {
+	relativePath, err := filepath.Rel(worktreePath, absolutePath)
+	if err != nil || strings.HasPrefix(relativePath, "..") {
+		return ""
+	}
+	return filepath.ToSlash(relativePath)
 }

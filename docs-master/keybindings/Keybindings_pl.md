@@ -110,6 +110,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <right>, l `` | Idź do następnego fragmentu |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
+| `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | Exit back to side panel |  |
 | `` c `` | Commit | Zatwierdź zmiany zatwierdzone. |
 | `` w `` | Zatwierdź zmiany bez hooka pre-commit |  |
@@ -211,6 +212,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <right>, l `` | Idź do następnego fragmentu |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
+| `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | Exit back to side panel |  |
 | `` c `` | Commit | Zatwierdź zmiany zatwierdzone. |
 | `` w `` | Zatwierdź zmiany bez hooka pre-commit |  |
