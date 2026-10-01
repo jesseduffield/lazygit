@@ -106,6 +106,10 @@ type IBaseContext interface {
 	// Adding on to the above, this is so that a list-specific handler can register
 	// a hook for doing additional click handling
 	AddOnClickFn(func(opts gocui.ViewMouseBindingOpts) error)
+	// Likewise for the focused main view, which acts on the diff of whichever panel
+	// is beneath it and so has to reach that panel's controller. nil for a panel
+	// that shows no diff.
+	AddFocusedMainViewDiffSource(FocusedMainViewDiffSource)
 
 	AddOnRenderToMainFn(func())
 	AddOnFocusFn(func(OnFocusOpts))
@@ -220,6 +224,21 @@ type DiffPaneContext interface {
 	DiffSelectState() *DiffSelectState
 }
 
+// FocusedMainViewDiffSource is how a side panel hands out the diff behind what it
+// renders into the focused main view: the diff of the given files as git writes it,
+// with no colour and no diff renderer in the way. What the main view shows is that
+// same diff after a renderer has had it, which may have restructured, reordered or
+// dropped parts of it — so anything that needs the diff itself, rather than a picture
+// of it, asks the panel that produced it.
+//
+// paths are repo-relative, and are asked for rather than assumed so that a few lines
+// of a commit's diff can be had without fetching the whole thing. pane says which of
+// the two main panes is asking, since a panel can show a different diff in each — the
+// files panel shows the unstaged changes in one and the staged ones in the other.
+type FocusedMainViewDiffSource interface {
+	PlainDiff(pane DiffPaneContext, paths []string) string
+}
+
 type IListContext interface {
 	Context
 
@@ -315,6 +334,11 @@ type HasKeybindings interface {
 	// HandleFocus has already been called (so the main view is up to date). Should return nil if it
 	// decides not to do anything with the click.
 	GetOnClick() func(opts gocui.ViewMouseBindingOpts) error
+
+	// Implement this in a side-panel controller to hand out the diff behind what your
+	// panel renders into the focused main view, for the commands that act on a
+	// selection in it. nil for a controller whose panel shows no diff.
+	GetFocusedMainViewDiffSource() FocusedMainViewDiffSource
 }
 
 type IController interface {

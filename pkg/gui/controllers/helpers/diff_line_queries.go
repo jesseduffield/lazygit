@@ -8,8 +8,31 @@ import (
 
 // The questions a diff view can be asked about what it is showing — where the change
 // lines are, which block or file a row belongs to — answered in the view-line terms a
-// cursor and a click speak. They are all built on the identities recovered in
+// cursor and a click speak, except for what a selection covers (see
+// DiffLinesInBufferRange). They are all built on the identities recovered in
 // diff_line_helper.go, which is where the answering stops and the recovering starts.
+
+// DiffLinesInBufferRange returns the identity of every diff line shown by the rows in
+// the inclusive buffer-line range [first, last] of view's rendered diff, in display
+// order. Rows whose identity can't be recovered are left out.
+//
+// The range is what a selection covers (see View.SelectedBufferLineRange). It is given
+// in buffer lines because a buffer line stays on its line of the content however the
+// view wraps it, so the selection can be read when a key is pressed and acted on after
+// the view has changed.
+//
+// A row can show more than one diff line — a side-by-side rendering puts a deletion
+// beside the addition replacing it — and all of them are reported: what the user
+// pointed at is the row, so everything on it is selected.
+func (self *DiffLineHelper) DiffLinesInBufferRange(view *gocui.View, first int, last int) []types.DiffLineInfo {
+	identities := self.resolveDiffLineIdentities(view.DiffLineContents())
+
+	infos := []types.DiffLineInfo{}
+	for bufferLine := first; bufferLine <= min(last, len(identities)-1); bufferLine++ {
+		infos = append(infos, identities[bufferLine]...)
+	}
+	return infos
+}
 
 // changeLines resolves view's rendered diff to one flag per buffer line: whether
 // that row is a change line (an addition or a deletion), as opposed to context, a

@@ -226,6 +226,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | Toggle range select |  |
 | `` e `` | Edit file | Open file in external editor. |
+| `` <ctrl+o> `` | Copy selected text to clipboard |  |
 | `` <left>, h `` | Go to previous hunk |  |
 | `` <right>, l `` | Go to next hunk |  |
 | `` N `` | Go to previous file |  |
@@ -338,6 +339,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | Toggle range select |  |
 | `` e `` | Edit file | Open file in external editor. |
+| `` <ctrl+o> `` | Copy selected text to clipboard |  |
 | `` <left>, h `` | Go to previous hunk |  |
 | `` <right>, l `` | Go to next hunk |  |
 | `` N `` | Go to previous file |  |

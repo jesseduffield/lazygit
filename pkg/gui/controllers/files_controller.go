@@ -21,6 +21,9 @@ type FilesController struct {
 	baseController
 	*ListControllerTrait[*filetree.FileNode]
 	c *ControllerCommon
+
+	// what this panel offers on the diff it shows in the focused main view
+	diffActions *WorkingTreeDiffActions
 }
 
 var _ types.IController = &FilesController{}
@@ -36,6 +39,7 @@ func NewFilesController(
 			c.Contexts().Files.GetSelected,
 			c.Contexts().Files.GetSelectedItems,
 		),
+		diffActions: NewWorkingTreeDiffActions(c),
 	}
 }
 
@@ -398,6 +402,10 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	}
 
 	self.c.RenderToMainViews(refreshOpts)
+}
+
+func (self *FilesController) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {
+	return self.diffActions
 }
 
 func (self *FilesController) GetOnDoubleClick() func() error {
