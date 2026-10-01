@@ -10,7 +10,7 @@ var CopyRowsThatAreNoDiffLine = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		cfg.GetUserConfig().OS.CopyToClipboardCmd = "printf '%s' {{text}} > clipboard"
 		// A renderer that states which line of the file each row of its diff shows, and
 		// ends with a row of its own that shows none. It ignores its input and prints

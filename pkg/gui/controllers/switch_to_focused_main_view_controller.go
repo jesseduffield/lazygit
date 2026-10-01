@@ -71,20 +71,28 @@ func (self *SwitchToFocusedMainViewController) onClickSecondary(opts gocui.ViewM
 }
 
 func (self *SwitchToFocusedMainViewController) handleFocusMainView() error {
+	return focusMainView(self.c, self.context, -1)
+}
+
+func focusMainView(c *ControllerCommon, source types.Context, clickedLineIdx int) error {
 	// Usually the main pane, but the content can be in the secondary one alone: a file
 	// with nothing but staged changes shows them there.
-	mainViewContext := self.c.Contexts().Normal
-	if self.c.State().GetRepoState().GetMainPanes() == types.SecondaryPaneOnly {
-		mainViewContext = self.c.Contexts().NormalSecondary
+	mainViewContext := c.Contexts().Normal
+	if c.State().GetRepoState().GetMainPanes() == types.SecondaryPaneOnly {
+		mainViewContext = c.Contexts().NormalSecondary
 	}
-	return self.focusMainView(mainViewContext, -1)
+	return focusMainViewPane(c, source, mainViewContext, clickedLineIdx)
 }
 
 func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext *context.MainContext, clickedLineIdx int) error {
-	mainViewContext.ClearSearchString()
-	self.c.Context().Push(mainViewContext, types.OnFocusOpts{})
+	return focusMainViewPane(self.c, self.context, mainViewContext, clickedLineIdx)
+}
 
-	if _, ok := self.context.(types.DiffMainViewContext); !ok {
+func focusMainViewPane(c *ControllerCommon, source types.Context, mainViewContext *context.MainContext, clickedLineIdx int) error {
+	mainViewContext.ClearSearchString()
+	c.Context().Push(mainViewContext, types.OnFocusOpts{})
+
+	if _, ok := source.(types.DiffMainViewContext); !ok {
 		return nil
 	}
 
@@ -93,13 +101,13 @@ func (self *SwitchToFocusedMainViewController) focusMainView(mainViewContext *co
 	// is. Now that the user wants to act on it, it is re-rendered as git's own diff — the
 	// panel below decides that for itself, from the same question — and the selection
 	// goes on that instead of on rows we can't place.
-	if self.c.Helpers().DiffLine.MainViewDiffMode() == git_commands.DiffModeRaw {
-		self.c.Helpers().DiffLine.RenderFocusedMainViewAgain(mainViewContext.GetView(), self.context, func() {
-			self.c.Helpers().DiffLine.EstablishSelection(mainViewContext, clickedLineIdx)
+	if c.Helpers().DiffLine.MainViewDiffMode() == git_commands.DiffModeRaw {
+		c.Helpers().DiffLine.RenderFocusedMainViewAgain(mainViewContext.GetView(), source, func() {
+			c.Helpers().DiffLine.EstablishSelection(mainViewContext, clickedLineIdx)
 		})
 		return nil
 	}
 
-	self.c.Helpers().DiffLine.EstablishSelection(mainViewContext, clickedLineIdx)
+	c.Helpers().DiffLine.EstablishSelection(mainViewContext, clickedLineIdx)
 	return nil
 }

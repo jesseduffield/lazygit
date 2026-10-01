@@ -442,16 +442,22 @@ func ChangeLineIndicesForLines(parsed *Patch, lines []LineIdentity) []int {
 }
 
 // PatchLineIndicesForLines maps change lines of filename to their indices in that
-// file's diff, which is what the patch is built in terms of.
+// file's diff; the patch is built in terms of those indices. everyChange reports
+// whether the given lines cover all of the file's changes; this distinguishes acting
+// on some of a file's lines from acting on the file itself.
 func (p *PatchBuilder) PatchLineIndicesForLines(
 	filename string, previousPath string, lines []LineIdentity,
-) ([]int, error) {
+) (indices []int, everyChange bool, err error) {
 	info, err := p.getFileInfo(filename, previousPath)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	return ChangeLineIndicesForLines(Parse(info.diff), lines), nil
+	parsed := Parse(info.diff)
+	selected := set.NewFromSlice(lines)
+	everyChange = lo.EveryBy(maps.Keys(ChangeLineIndexByIdentity(parsed)),
+		func(identity LineIdentity) bool { return selected.Includes(identity) })
+	return ChangeLineIndicesForLines(parsed, lines), everyChange, nil
 }
 
 // IncludedLineIdentities says which change lines of filename are in the patch, as the

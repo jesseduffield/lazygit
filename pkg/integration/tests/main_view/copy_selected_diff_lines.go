@@ -19,7 +19,7 @@ var CopySelectedDiffLines = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = true
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = true
 		// Emulate the clipboard by writing to a file.
 		cfg.GetUserConfig().OS.CopyToClipboardCmd = "printf '%s' {{text}} > clipboard"
 		// A renderer that decorates every line of a diff's body, so that what is on
