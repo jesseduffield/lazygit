@@ -49,10 +49,7 @@ var StatFollowsAScreenModeChange = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Main().
 			ContainsViewLines(
 				Contains("file1 | 200"),
-				/* EXPECTED:
 				Contains("1 file changed"),
-				ACTUAL: */
-				MatchesRegexp(`^\++$`),
 			)
 	},
 })
