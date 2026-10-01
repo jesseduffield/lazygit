@@ -227,9 +227,10 @@ M file1
 			}
 			patchBuilder := patch.NewPatchBuilder(
 				utils.NewDummyLog(),
-				func(from string, to string, reverse bool, filename string, previousPath string, plain bool) (string, error) {
+				func(from string, to string, reverse bool, filename string, previousPath string) (string, error) {
 					return "", nil
 				},
+				nil,
 			)
 			patchBuilder.Start("from", "to", false, false)
 			result := RenderCommitFileTree(viewModel, patchBuilder, false, &config.CustomIconsConfig{})

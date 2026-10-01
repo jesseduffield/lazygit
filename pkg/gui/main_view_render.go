@@ -36,10 +36,25 @@ type renderSpec struct {
 // user has configured. The renderer lays its rendering out to the width of the
 // view, which only the layout settles, so the task is created after it.
 func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
+	// Ask whatever renders the diff to state, in an OSC 1717 record per line,
+	// which line of which file it is rendering. This lets us act on the line the
+	// user is pointing at even when the rendering no longer looks like a diff.
+	// The variable names the protocol versions we understand, and a renderer
+	// that doesn't understand it ignores it, so we can set it always. It has to
+	// be set before the plain path below, since on that path git renders the
+	// diff itself, and git speaks the protocol too, for its word-diff formats,
+	// whose markup we could not otherwise resolve.
+	cmd.Env = append(cmd.Env, "OSC1717=V1")
+
 	if gui.stateAccessor.GetDiffRendererConfigManager().GetDiffRendererType() == config.DiffRendererType_RawGit {
 		// If we're not using a custom diff renderer, then we don't need to use a pty
 		return gui.newCmdTask(view, cmd, prefix)
 	}
+
+	// The key the render is remembered under says which diff it is of, so that a
+	// re-render of the same diff can be told from a render of another one. Take
+	// it before anything else can touch the command's arguments.
+	cmdStr := strings.Join(cmd.Args, " ")
 
 	// Mark the view as loading synchronously now, before the layout pass: the
 	// actual task is created in afterLayout (below), which runs after layout, so
@@ -55,7 +70,7 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 	gui.afterLayout(func() error {
 		// The layout may have changed the size of the view, so only now is the
 		// width to render at known, and with it the renderer command.
-		width := view.InnerWidth()
+		width := gui.renderWidth(view)
 		diffRendererConfigManager := gui.stateAccessor.GetDiffRendererConfigManager()
 		values := config.DiffRendererValues{
 			Width:           width,
@@ -70,8 +85,6 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 			// gets here. Git's own diff is shown instead.
 			gui.c.ErrorToast(err.Error())
 		}
-
-		cmdStr := strings.Join(cmd.Args, " ")
 
 		// This communicates to diff renderers that we're in a very simple
 		// terminal that they should not expect to have much capabilities.
@@ -104,6 +117,17 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 	})
 
 	return nil
+}
+
+// renderWidth is the width a render into view is laid out to: the view's own, less the
+// columns the custom patch's marks take from it where they are drawn over the render
+// (see DiffLineHelper.ShowsInclusionGutter).
+func (gui *Gui) renderWidth(view *gocui.View) int {
+	width := view.InnerWidth()
+	if gui.helpers.DiffLine.ShowsInclusionGutter(view) {
+		width -= view.InclusionGutterWidthWhenShown()
+	}
+	return max(0, width)
 }
 
 // The start and onClose functions a render hands to its task: how to get the
