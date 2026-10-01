@@ -3128,6 +3128,20 @@
           ],
           "default": "0"
         },
+        "jumpToFile": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+g\u003e"
+        },
         "nextMatch": {
           "oneOf": [
             {

@@ -48,6 +48,41 @@ func TestChangeBlockStart(t *testing.T) {
 	}
 }
 
+func TestFileStarts(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		paths    []string
+		expected []diffFileStart
+	}{
+		{
+			name:     "a parseable diff begins each file at its header",
+			paths:    []string{"a", "a", "a", "b", "b"},
+			expected: []diffFileStart{{path: "a", row: 0}, {path: "b", row: 3}},
+		},
+		{
+			name:     "a diff whose headers carry no path begins each file at its first content line",
+			paths:    []string{"", "", "a", "a", "", "", "b", "b"},
+			expected: []diffFileStart{{path: "a", row: 2}, {path: "b", row: 6}},
+		},
+		{
+			name:     "an unlocated row within a file doesn't begin another one",
+			paths:    []string{"a", "", "a", "b"},
+			expected: []diffFileStart{{path: "a", row: 0}, {path: "b", row: 3}},
+		},
+		{
+			name:     "a diff with no located rows shows no files",
+			paths:    []string{"", ""},
+			expected: []diffFileStart{},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expected, fileStarts(s.paths))
+		})
+	}
+}
+
 func TestFileStart(t *testing.T) {
 	// A parseable two-file diff: every row carries its file's path, headers included,
 	// as the buffer parser reports it.
