@@ -1,7 +1,7 @@
 package terminfo
 
 import (
-	"sort"
+	"slices"
 )
 
 const (
@@ -29,7 +29,7 @@ const (
 	fieldExtBoolCount = iota
 	fieldExtNumCount
 	fieldExtStringCount
-	fieldExtOffsetCount
+	fieldExtOffsetUsed
 	fieldExtTableSize
 )
 
@@ -50,11 +50,29 @@ func capLength(h []int) int {
 		h[fieldTableSize]
 }
 
+// extOffsetCount returns the number of offsets stored in the extended string
+// data table index.
+//
+// An offset is written for every extended string cap, followed by one for the
+// name of every extended bool, num and string cap.
+func extOffsetCount(h []int) int {
+	return h[fieldExtBoolCount] +
+		h[fieldExtNumCount] +
+		h[fieldExtStringCount]*2
+}
+
 // hasInvalidExtOffset determines if the extended offset field is valid.
+//
+// The field holds the number of offsets that are actually used (ie, that point
+// into the string data table), which excludes any absent or cancelled extended
+// string cap, and so is only ever less than or equal to the number of offsets
+// present in the file.
 func hasInvalidExtOffset(h []int) bool {
-	return h[fieldExtBoolCount]+
-		h[fieldExtNumCount]+
-		h[fieldExtStringCount]*2 != h[fieldExtOffsetCount]
+	return h[fieldExtBoolCount] < 0 ||
+		h[fieldExtNumCount] < 0 ||
+		h[fieldExtStringCount] < 0 ||
+		h[fieldExtOffsetUsed] < 0 ||
+		h[fieldExtOffsetUsed] > extOffsetCount(h)
 }
 
 // extCapLength returns the total length of extended capabilities in bytes.
@@ -62,7 +80,7 @@ func extCapLength(h []int, numWidth int) int {
 	return h[fieldExtBoolCount] +
 		h[fieldExtBoolCount]%2 + // account for word align
 		h[fieldExtNumCount]*(numWidth/8) +
-		h[fieldExtOffsetCount]*2 +
+		extOffsetCount(h)*2 +
 		h[fieldExtTableSize]
 }
 
@@ -76,22 +94,28 @@ func findNull(buf []byte, i int) int {
 	return -1
 }
 
-// readStrings decodes n strings from string data table buf using the indexes in idx.
-func readStrings(idx []int, buf []byte, n int) (map[int][]byte, int, error) {
+// readStrings decodes n strings from string data table buf using the indexes in
+// idx, returning the decoded strings, the cancelled strings, and the offset of
+// the end of the last decoded string.
+func readStrings(idx []int, buf []byte, n int) (map[int][]byte, map[int]bool, int, error) {
 	var last int
-	m := make(map[int][]byte)
-	for i := 0; i < n; i++ {
+	m, mm := make(map[int][]byte), make(map[int]bool)
+	for i := range n {
 		start := idx[i]
+		if start == -2 {
+			mm[i] = true
+			continue
+		}
 		if start < 0 {
 			continue
 		}
 		if end := findNull(buf, start); end != -1 {
 			m[i], last = buf[start:end], end+1
 		} else {
-			return nil, 0, ErrInvalidStringTable
+			return nil, nil, 0, ErrInvalidStringTable
 		}
 	}
-	return m, last, nil
+	return m, mm, last, nil
 }
 
 // decoder holds state info while decoding a terminfo file.
@@ -124,11 +148,11 @@ func (d *decoder) readInts(n, w int) ([]int, error) {
 	for i, j := 0, 0; i < l; i, j = i+w, j+1 {
 		switch w {
 		case 1:
-			z[i] = int(buf[i])
+			z[j] = int(buf[i])
 		case 2:
-			z[j] = int(int16(buf[i+1])<<8 | int16(buf[i]))
+			z[j] = int(int16(uint16(buf[i+1])<<8 | uint16(buf[i])))
 		case 4:
-			z[j] = int(buf[i+3])<<24 | int(buf[i+2])<<16 | int(buf[i+1])<<8 | int(buf[i])
+			z[j] = int(int32(uint32(buf[i+3])<<24 | uint32(buf[i+2])<<16 | uint32(buf[i+1])<<8 | uint32(buf[i])))
 		}
 	}
 	return z, nil
@@ -159,7 +183,7 @@ func (d *decoder) readNums(n, w int) (map[int]int, map[int]bool, error) {
 	}
 	// process
 	nums, numsM := make(map[int]int), make(map[int]bool)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		nums[i] = buf[i]
 		if buf[i] == -2 {
 			numsM[i] = true
@@ -185,7 +209,7 @@ func (d *decoder) readStringTable(n, sz int) ([][]byte, []int, error) {
 	// process
 	s := make([][]byte, n)
 	var m []int
-	for i := 0; i < n; i++ {
+	for i := range n {
 		start := buf[i]
 		if start == -2 {
 			m = append(m, i)
@@ -231,12 +255,10 @@ func canonicalizeAscChars(z []byte) []byte {
 		if _, ok := enc[z[i]]; !ok {
 			a, b := z[i], z[i+1]
 			// log.Printf(">>> a: %d %c, b: %d %c", a, a, b, b)
-			c, enc[a] = append(c, b), b
+			c, enc[a] = append(c, a), b
 		}
 	}
-	sort.Slice(c, func(i, j int) bool {
-		return c[i] < c[j]
-	})
+	slices.Sort(c)
 	r := make([]byte, 2*len(c))
 	for i := 0; i < len(c); i++ {
 		r[i*2], r[i*2+1] = c[i], enc[c[i]]

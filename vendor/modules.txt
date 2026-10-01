@@ -157,8 +157,8 @@ github.com/stretchr/testify/internal/spew
 # github.com/wk8/go-ordered-map/v2 v2.1.8
 ## explicit; go 1.18
 github.com/wk8/go-ordered-map/v2
-# github.com/xo/terminfo v1.0.0
-## explicit; go 1.19
+# github.com/xo/terminfo v1.2.0
+## explicit; go 1.25
 github.com/xo/terminfo
 # go.yaml.in/yaml/v3 v3.0.5
 ## explicit; go 1.16
