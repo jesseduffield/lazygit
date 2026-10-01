@@ -3434,7 +3434,7 @@ The remaining rows are agreed as keep/defer:
 | A submodule's log lines go unresolved under a renderer that states records (PR 2 round 2, widened by PR 4 round 1) | Keep. Nothing states a record for those lines, and since PR 4 round 1 a rendering with records is not parsed for the rows without one, so under delta as under diff-so-fancy they have no identity (before that round, only diff-so-fancy lost them, by stripping the leading indicator column off every line it reads while inside a hunk). The cost is that `n` pressed on one of them steps to the file after the next. The submodule itself is listed and navigated to from the line naming it, for which both renderers state an `f` record. Spec §6.4 wants every row of a header block tagged, so delta could tag the log lines with the submodule's `f` as well; not done |
 | An attributes file outside the repo can still convert the custom patch's trees (new, PR 8 round 2) | **Keep until someone reports it — the user's call, 2026-09-20.** `core.autocrlf=false` and `core.eol=lf` answer for every machine that converts by config, and for an attribute that asks for text without saying which endings. A global or system `.gitattributes` naming `eol=crlf` outright overrides `core.eol`, and then `git apply` writes the after tree with CRLF while the before tree we write ourselves keeps its LF. git's own diff converts both back, so the pane is right either way, and `core.safecrlf=false` keeps the warning off it. What is left is the two files a renderer reads directly, one line ending apart. The airtight form is `core.attributesfile` pointed at a file of lazygit's own reading `* -text`, at the cost of the diff drivers a global attributes file sets |
 | The diff renderer lays out to the view's full width while the marks' gutter takes two columns of it (new, PR 8 round 3) | **Done in PR 8 round 4**: a render is laid out to the width the gutter leaves, decided before the content arrives, and the marks show whenever the diff the patch is built from is on screen, so the focus no longer moves the gutter |
-| git's own diff takes its render width before the layout pass (new, PR 8 round 4) | **Open, to raise with the user.** From master: `newCmdTask` reads `InnerWidth()` at once, while a renderer's render waits for `afterLayout`. A render triggered by something that also splits the main view, such as the first line of a patch opening the preview pane beside the diff, lays git's diffstat out to the width from before the split, so its graph wraps until the next render |
+| git's own diff takes its render width before the layout pass (new, PR 8 round 4) | **Done on a new foot branch, `render-git-diffs-after-layout`** (2026-10-01, at the user's word): `newCmdTask` creates its task after the layout, as a renderer's render does. From master, where a screen mode change showed it: `+` in the commits panel left git's diffstat graph as wide as the main view had been. In the stack, the first line of a patch opening the preview pane beside the diff did the same |
 | `ViewDriver.NavigateToLine` indexes `BufferLines()` with a view line (new, PR 8 round 3) | From master. It misnavigates once a line above the target wraps; nothing in the stack's tests hits it |
 
 ## 9. Open questions (resolve before/during the marked PR)
@@ -3613,6 +3613,20 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-10-01 (evening):** **A new foot branch, `render-git-diffs-after-layout`**
+  (2 commits off master `ff375b124d`): git's own diff took its render width
+  before the layout pass, so a render that came with a size change of the
+  main view laid git's diffstat out to the old width. On master a screen mode
+  change shows it; `stat_follows_a_screen_mode_change` demonstrates it, then
+  the fix creates the plain task after the layout. `ViewDriver.ContainsViewLines`
+  moved down into that branch from PR 8 round 4's fixup, which no longer adds
+  it. The whole stack replayed onto it; conflicts in `view_driver.go` beside
+  `TopVisibleLine` (PR 5), in round 4's fixup (`newCmdTask`'s width, now inside
+  the layout callback), and in generated test lists. Every commit builds and
+  vets except PR 9's "Let wrapLinesInDiffView govern…", which waits for its
+  `fixup!`; build, unit, lint and generate green at all 15 branch tips; whole
+  e2e suite (661 tests) green at the tip. Backup tags
+  `*-2026-10-01-1651-backup`.
 - **2026-10-01 (later):** **PR 8 round 4**, the render width. The marks are now
   shown whenever the main view shows the diff the patch is built from, focused
   or not (the user's call, after a throwaway build with the marks in the frame
