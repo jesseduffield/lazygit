@@ -2699,6 +2699,59 @@ nothing visible even before the fix, under delta and under difftastic alike, so
 the warning was the whole of what the user saw. What a renderer that reads the
 files less forgivingly would have shown is untested.
 
+#### Review round 3 (2026-10-01) — a view line taken before the marks appear
+
+Reported under delta, in 26ad23a8d2ff: space on the deleted `return
+self.PullAux(currentBranch, PullFilesOptions{Action: action})` in
+`sync_controller.go` put the selection on an addition in the hunk above (new
+line 266) instead of on the addition right below it. git's own diff and
+diff-so-fancy moved on as expected.
+
+The actions were handed the selection as view lines, and `PrimaryAction`
+refreshes the marks before it asks where to carry on. When a press starts a
+patch, the gutter appears and takes two columns from the content, so the view
+wraps again and a view line taken before that points at another row. delta
+draws its file-header rules exactly as wide as the render width: in that commit
+48 more view lines appeared above the selection, and the count of changes
+before it came out as 38 instead of 46. git draws the diffstat line of a big
+file to the full width too, so git's own diff shifts by one row. That is
+harmless on the deletion, whose row above is context, but space on `+281`
+below it left the selection there. Only a press that starts or ends a patch
+moves the gutter.
+
+The user chose the better end result over the smaller diff, a reorder in
+`PrimaryAction`. The selection is now read in buffer lines where it is read,
+with the new `View.SelectedBufferLineRange()`, and every action takes buffer
+lines. That is `PrimaryAction`, `DiscardSelection`,
+`EditHunk` and copy's `PlainDiffOfSelection`, and with them
+`DiffLinesInBufferRange`, `ChangeLinesInBufferRange` (renamed from
+`…InViewRange`), `ChangeLineOrdinal` (no `ok` any more) and
+`RevealSelectionAfterAction`. Nothing else changes with wrapped lines. An
+action already took a row's whole wrapped run as that row, and the selection
+still lands on a row's first view line. This also covers a view rewrapped
+while a confirmation is open.
+
+`fixup!`s on PR 6b "Copy the selected diff lines…" (with the gocui method and
+its test), PR 7 "Stage and unstage diff lines…", "Carry the selection to the
+next change…", "Discard the selected diff lines…" and "Edit the selected
+hunk…", PR 8 "Keep the diff selection when a commit is rewritten…", "Build a
+custom patch…", "Mark the lines…" and "Take lines back out…", and PR 9 "Name
+diff options after the view that now uses them" (the new test's config key,
+the 2026-09-13 replay trap again). The test,
+`move_on_when_the_patch_marks_rewrap_the_diff`, needs no renderer: a 300-line
+file makes git's stat line as wide as the view. It went with the marks rather
+than with "Build a custom patch…" as first proposed, since before the marks
+nothing rewraps; it was checked to fail with the conversion done late.
+Conflicts resolved in the replay of "Carry the acted-on lines…", "Hold input
+back…", "Move the post-action reveal onto the diff-line helper", "Keep the diff
+selection…" (its nil check on `done` went with the `ok` branch) and the
+generated test list in PR 9. The picks of "Stage and unstage…", "Carry the
+selection…", "Build a custom patch…", "Take lines back out…" and "Name diff
+options…" build only with their `fixup!` folded in.
+
+The render width ignoring the gutter was found on the way; the user wants it
+discussed next (§8 row).
+
 ### PR 9 — Replace the staging and patch-building panels with the focused main view
 
 The removal PR. Also the PR whose title tells users the big story — consider
@@ -3335,6 +3388,8 @@ The remaining rows are agreed as keep/defer:
 | A renderer that keeps the diff and hunk headers but drops body lines could be mis-parsed where it ends the buffer (new, PR 2 round 1) | Keep. The leniency applies to one section, the one the buffer breaks off in, and every renderer that restructures a body lengthens hunks rather than shortening them. A mis-parse would act on the wrong line only in the focused main view, and there the diff is either git's own or one whose lines state their own identity (`MainViewDiffMode`) |
 | A submodule's log lines go unresolved under a renderer that states records (PR 2 round 2, widened by PR 4 round 1) | Keep. Nothing states a record for those lines, and since PR 4 round 1 a rendering with records is not parsed for the rows without one, so under delta as under diff-so-fancy they have no identity (before that round, only diff-so-fancy lost them, by stripping the leading indicator column off every line it reads while inside a hunk). The cost is that `n` pressed on one of them steps to the file after the next. The submodule itself is listed and navigated to from the line naming it, for which both renderers state an `f` record. Spec §6.4 wants every row of a header block tagged, so delta could tag the log lines with the submodule's `f` as well; not done |
 | An attributes file outside the repo can still convert the custom patch's trees (new, PR 8 round 2) | **Keep until someone reports it — the user's call, 2026-09-20.** `core.autocrlf=false` and `core.eol=lf` answer for every machine that converts by config, and for an attribute that asks for text without saying which endings. A global or system `.gitattributes` naming `eol=crlf` outright overrides `core.eol`, and then `git apply` writes the after tree with CRLF while the before tree we write ourselves keeps its LF. git's own diff converts both back, so the pane is right either way, and `core.safecrlf=false` keeps the warning off it. What is left is the two files a renderer reads directly, one line ending apart. The airtight form is `core.attributesfile` pointed at a file of lazygit's own reading `* -text`, at the cost of the diff drivers a global attributes file sets |
+| The diff renderer lays out to the view's full width while the marks' gutter takes two columns of it (new, PR 8 round 3) | **Open — to be discussed with the user after round 3.** delta's file-header rules and git's diffstat line for a big file are as wide as the render width, so while the gutter shows they wrap and leave a `──` or `+++` fragment on a row of its own, on every render. The gutter comes and goes with the focus, so rendering narrower means either re-rendering on a focus change or keeping the columns free whenever a patch of this diff exists |
+| `ViewDriver.NavigateToLine` indexes `BufferLines()` with a view line (new, PR 8 round 3) | From master. It misnavigates once a line above the target wraps; nothing in the stack's tests hits it |
 
 ## 9. Open questions (resolve before/during the marked PR)
 
@@ -3512,6 +3567,20 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-10-01:** **PR 8 round 3**, on space under delta landing in the hunk
+  above instead of on the next change. The actions were handed view lines, and
+  the marks' gutter, appearing with the first line of a patch, rewrapped the
+  view before the reveal counted from its view line. The selection is now read
+  in buffer lines where it is read (`View.SelectedBufferLineRange()`), and every
+  action takes buffer lines; the user chose this over a reorder in
+  `PrimaryAction` as the better end result. `fixup!`s in PR 6b, four in PR 7,
+  four in PR 8 and one on PR 9's config rename; the new
+  `move_on_when_the_patch_marks_rewrap_the_diff` sits in the marks commit's
+  fixup. Five picks build only with their fixup folded in, and every other
+  replayed commit builds and vets. Build, unit, lint and generate green at all
+  9 branch tips from PR 6b up; whole e2e suite (659 tests) green at the tip.
+  Backup tags `*-2026-10-01-1039-backup`. The render width ignoring the gutter
+  stays open for the next discussion (§8 row).
 - **2026-09-27 (later):** **PR 5's `select_below_a_long_commit_message`
   failed once on CI** (git latest, on PR 11's branch): the pane's buffer ended
   at `-two`, the first change line, and the test asserted on `+TWO` below it.
