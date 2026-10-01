@@ -35,7 +35,7 @@ func TestGetWindowDimensions(t *testing.T) {
 			// Each panel shows its first tab by default; for the special-cased
 			// panels (status, stash) the view name matches the window name.
 			ActiveViewForWindow: func(window string) string { return window },
-			SplitMainPanel:      false,
+			MainPanes:           types.MainPaneOnly,
 			ScreenMode:          types.SCREEN_NORMAL,
 			AppStatus:           "",
 			InformationStr:      "information",

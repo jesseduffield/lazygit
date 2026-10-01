@@ -26,7 +26,7 @@ var SelectLineWhenWholeFileIsOneHunk = NewIntegrationTest(NewIntegrationTestArgs
 
 		// Every line of the file is an addition, so widening to the change block would
 		// select the file entire; hunk mode gives way to a single line.
-		t.Views().Main().
+		t.Views().Secondary().
 			IsFocused().
 			SelectedLines(
 				Contains("+one"),
