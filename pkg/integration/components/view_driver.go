@@ -905,6 +905,14 @@ func (self *ViewDriver) NavigateToLine(matcher *TextMatcher) *ViewDriver {
 		keyPress = func() { self.SelectPreviousItem() }
 	}
 
+	// The loop below only looks at the lines it moves onto, so the line we are
+	// starting from has to be checked here. After jumping to the top that line
+	// is the first item of the list, and for a list we had to scroll through
+	// it is a plausible target.
+	if ok, _ := matcher.test(view.BufferLines()[selectedLineIdx]); ok {
+		return self
+	}
+
 	for range maxNumKeyPresses {
 		keyPress()
 		idx := self.getSelectedLineIdx()

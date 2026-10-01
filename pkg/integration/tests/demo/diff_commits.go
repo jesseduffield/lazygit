@@ -15,6 +15,7 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 
 		config.GetUserConfig().Gui.ShowFileTree = false
 		config.GetUserConfig().Gui.ShowCommandLog = false
+		config.GetUserConfig().Gui.ExpandFocusedSidePanel = true
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateNCommitsWithRandomMessages(50)
