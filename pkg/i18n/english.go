@@ -310,6 +310,7 @@ type TranslationSet struct {
 	DiscardSelectionTooltip               string
 	ToggleSelectHunk                      string
 	SelectHunk                            string
+	NothingToSelectInDiff                 string
 	SelectLineByLine                      string
 	ToggleSelectHunkTooltip               string
 	HunkStagingHint                       string
@@ -410,6 +411,8 @@ type TranslationSet struct {
 	AskQuestion                           string
 	PrevHunk                              string
 	NextHunk                              string
+	PrevFileInDiff                        string
+	NextFileInDiff                        string
 	PrevConflict                          string
 	NextConflict                          string
 	SelectPrevHunk                        string
@@ -1493,6 +1496,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleRangeSelect:                    "Toggle range select",
 		DismissRangeSelect:                   "Dismiss range select",
 		ToggleSelectHunk:                     "Toggle hunk selection",
+		NothingToSelectInDiff:                "There is nothing to select here",
 		SelectHunk:                           "Select hunks",
 		SelectLineByLine:                     "Select line-by-line",
 		ToggleSelectHunkTooltip:              "Toggle line-by-line vs. hunk selection mode.",
@@ -1598,6 +1602,8 @@ func EnglishTranslationSet() *TranslationSet {
 		AskQuestion:                          "Ask Question",
 		PrevHunk:                             "Go to previous hunk",
 		NextHunk:                             "Go to next hunk",
+		PrevFileInDiff:                       "Go to previous file",
+		NextFileInDiff:                       "Go to next file",
 		PrevConflict:                         "Previous conflict",
 		NextConflict:                         "Next conflict",
 		SelectPrevHunk:                       "Previous hunk",
