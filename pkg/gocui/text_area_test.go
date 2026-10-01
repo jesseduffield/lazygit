@@ -644,6 +644,123 @@ func TestTextArea(t *testing.T) {
 		},
 		{
 			actions: func(textarea *TextArea) {
+				textarea.TypeString("字abc")
+				textarea.BackSpaceWord()
+			},
+			expectedContent:   "字",
+			expectedCursor:    3,
+			expectedClipboard: "abc",
+		},
+		{
+			actions: func(textarea *TextArea) {
+				textarea.TypeString("abc字")
+				textarea.BackSpaceWord()
+			},
+			expectedContent:   "abc",
+			expectedCursor:    3,
+			expectedClipboard: "字",
+		},
+		{
+			actions: func(textarea *TextArea) {
+				textarea.TypeString("字abc")
+				textarea.BackSpaceWord()
+				textarea.BackSpaceWord()
+			},
+			expectedContent:   "",
+			expectedCursor:    0,
+			expectedClipboard: "字",
+		},
+		{
+			actions: func(textarea *TextArea) {
+				textarea.TypeString("abc 字abc")
+				textarea.BackSpaceWord()
+			},
+			expectedContent:   "abc 字",
+			expectedCursor:    7,
+			expectedClipboard: "abc",
+		},
+		{
+			actions: func(textarea *TextArea) {
+				textarea.TypeString("字abc")
+				textarea.MoveLeftWord()
+			},
+			expectedContent:   "字abc",
+			expectedCursor:    3,
+			expectedClipboard: "",
+		},
+		{
+			actions: func(textarea *TextArea) {
+				textarea.TypeString("abc字")
+				textarea.MoveLeftWord()
+			},
+			expectedContent:   "abc字",
+			expectedCursor:    3,
+			expectedClipboard: "",
+		},
+		//
+		{
+			actions: func(textarea *TextArea) {
+				textarea.TypeString("字abc")
+				textarea.GoToStartOfLine()
+				textarea.ForwardDeleteWord()
+			},
+			expectedContent:   "abc",
+			expectedCursor:    0,
+			expectedClipboard: "字",
+		},
+		{
+			actions: func(textarea *TextArea) {
+				textarea.TypeString("abc字")
+				textarea.GoToStartOfLine()
+				textarea.ForwardDeleteWord()
+			},
+			expectedContent:   "字",
+			expectedCursor:    0,
+			expectedClipboard: "abc",
+		},
+		{
+			actions: func(textarea *TextArea) {
+				textarea.TypeString("字abc")
+				textarea.GoToStartOfLine()
+				textarea.ForwardDeleteWord()
+				textarea.ForwardDeleteWord()
+			},
+			expectedContent:   "",
+			expectedCursor:    0,
+			expectedClipboard: "abc",
+		},
+		{
+			actions: func(textarea *TextArea) {
+				textarea.TypeString("abc 字abc")
+				textarea.GoToStartOfLine()
+				textarea.ForwardDeleteWord()
+			},
+			expectedContent:   " 字abc",
+			expectedCursor:    0,
+			expectedClipboard: "abc",
+		},
+		{
+			actions: func(textarea *TextArea) {
+				textarea.TypeString("字abc")
+				textarea.GoToStartOfLine()
+				textarea.MoveRightWord()
+			},
+			expectedContent:   "字abc",
+			expectedCursor:    3,
+			expectedClipboard: "",
+		},
+		{
+			actions: func(textarea *TextArea) {
+				textarea.TypeString("abc字")
+				textarea.GoToStartOfLine()
+				textarea.MoveRightWord()
+			},
+			expectedContent:   "abc字",
+			expectedCursor:    3,
+			expectedClipboard: "",
+		},
+		{
+			actions: func(textarea *TextArea) {
 				textarea.TypeString(`abc`)
 				textarea.Yank()
 			},
