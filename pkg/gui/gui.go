@@ -71,7 +71,8 @@ type Gui struct {
 
 	diffRendererConfig *config.DiffRendererConfigManager
 
-	CustomCommandsClient *custom_commands.Client
+	CustomCommandsClient  *custom_commands.Client
+	customCommandBindings []*types.Binding
 
 	// this is a mapping of repos to gui states, so that we can restore the original
 	// gui state when returning from a subrepo.

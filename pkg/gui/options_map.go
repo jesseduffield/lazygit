@@ -17,7 +17,8 @@ import (
 )
 
 type OptionsMapMgr struct {
-	c *helpers.HelperCommon
+	c                     *helpers.HelperCommon
+	customCommandBindings []*types.Binding
 }
 
 func (gui *Gui) renderContextOptionsMap() {
@@ -25,7 +26,8 @@ func (gui *Gui) renderContextOptionsMap() {
 	if gui.integrationTest != nil && gui.integrationTest.IsDemo() {
 		return
 	}
-	mgr := OptionsMapMgr{c: gui.c}
+
+	mgr := OptionsMapMgr{c: gui.c, customCommandBindings: gui.customCommandBindings}
 	mgr.renderContextOptionsMap()
 }
 
@@ -39,14 +41,38 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 
 	currentContextBindings := currentContext.GetKeybindings(self.c.KeybindingsOpts())
 	globalBindings := self.c.Contexts().Global.GetKeybindings(self.c.KeybindingsOpts())
+	customCommandBindings := self.customCommandBindings
+	if currentContext.GetKey() == context.SEARCH_CONTEXT_KEY {
+		customCommandBindings = nil
+	}
+	customGlobalBindings := []*types.Binding{}
+
+	if len(customCommandBindings) > 0 {
+		currentViewName := currentContext.GetViewName()
+		customContextBindings := lo.Filter(customCommandBindings, func(b *types.Binding, _ int) bool {
+			return b.ViewName == currentViewName
+		})
+		currentContextBindings = append(customContextBindings, currentContextBindings...)
+	}
 
 	currentContextKeys := set.NewFromSlice(
 		lo.FlatMap(currentContextBindings, func(binding *types.Binding, _ int) []gocui.Key {
 			return binding.Keys
 		}))
+	if len(customCommandBindings) > 0 {
+		customGlobalBindings = lo.Filter(customCommandBindings, func(binding *types.Binding, _ int) bool {
+			return binding.ViewName == "" && len(binding.Keys) > 0 && !currentContextKeys.Includes(binding.Keys[0])
+		})
+	}
 
-	allBindings := append(currentContextBindings, lo.Filter(globalBindings, func(b *types.Binding, _ int) bool {
-		return len(b.Keys) > 0 && !currentContextKeys.Includes(b.Keys[0])
+	customGlobalKeys := set.NewFromSlice(
+		lo.FlatMap(customGlobalBindings, func(binding *types.Binding, _ int) []gocui.Key {
+			return binding.Keys
+		}))
+
+	allBindings := append(customGlobalBindings, currentContextBindings...)
+	allBindings = append(allBindings, lo.Filter(globalBindings, func(binding *types.Binding, _ int) bool {
+		return len(binding.Keys) > 0 && !currentContextKeys.Includes(binding.Keys[0]) && !customGlobalKeys.Includes(binding.Keys[0])
 	})...)
 
 	bindingsToDisplay := lo.Filter(allBindings, func(binding *types.Binding, _ int) bool {
