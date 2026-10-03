@@ -197,7 +197,7 @@ type View struct {
 	Title string
 
 	// If non-empty, TitlePrefix is prepended to the title of a view regardless on
-	// the the currently selected tab (if any.)
+	// the currently selected tab (if any.)
 	TitlePrefix string
 
 	Tabs     []string
