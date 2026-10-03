@@ -531,6 +531,19 @@ func TestGetNextPipes(t *testing.T) {
 				{fromPos: 1, toPos: 1, fromHash: pool("root"), toHash: pool(models.EmptyTreeCommitHash), kind: STARTS, style: &style.FgDefault},
 			},
 		},
+		// SHA-256 repo: first commit with a 64-char hash should use the SHA-256 empty tree hash
+		{
+			prevPipes: []Pipe{
+				{fromPos: 0, toPos: 0, fromHash: pool("a"), toHash: pool("ba741fcd02b3cd42187ee46d4bdbfed10bf8fdbb15ccf739cb9ce583aefe5cae"), kind: TERMINATES, style: &style.FgDefault},
+			},
+			commit: models.NewCommit(hashPool, models.NewCommitOpts{
+				Hash:    "ba741fcd02b3cd42187ee46d4bdbfed10bf8fdbb15ccf739cb9ce583aefe5cae",
+				Parents: []string{},
+			}),
+			expected: []Pipe{
+				{fromPos: 1, toPos: 1, fromHash: pool("ba741fcd02b3cd42187ee46d4bdbfed10bf8fdbb15ccf739cb9ce583aefe5cae"), toHash: pool(models.EmptyTreeCommitHashSHA256), kind: STARTS, style: &style.FgDefault},
+			},
+		},
 	}
 
 	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelMillions)
