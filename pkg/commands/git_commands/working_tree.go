@@ -367,19 +367,29 @@ func escapeFilename(filename string) string {
 	return "/" + re.ReplaceAllString(filename, `\${0}`)
 }
 
-// Ignore adds a file to the gitignore for the repo
-func (self *WorkingTreeCommands) Ignore(filename string) error {
-	return self.os.AppendLineToFile(".gitignore", escapeFilename(filename))
+// Ignore adds the given files to the gitignore for the repo
+func (self *WorkingTreeCommands) Ignore(filenames []string) error {
+	for _, filename := range filenames {
+		if err := self.os.AppendLineToFile(".gitignore", escapeFilename(filename)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-// Exclude adds a file to the .git/info/exclude for the repo
-func (self *WorkingTreeCommands) Exclude(filename string) error {
+// Exclude adds the given files to the .git/info/exclude for the repo
+func (self *WorkingTreeCommands) Exclude(filenames []string) error {
 	infoDir := filepath.Join(self.repoPaths.repoGitDirPath, "info")
 	if err := os.MkdirAll(infoDir, 0o755); err != nil {
 		return err
 	}
 	excludeFile := filepath.Join(infoDir, "exclude")
-	return self.os.AppendLineToFile(excludeFile, escapeFilename(filename))
+	for _, filename := range filenames {
+		if err := self.os.AppendLineToFile(excludeFile, escapeFilename(filename)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // WorktreeFileDiff returns the diff of a file
