@@ -13,7 +13,7 @@ var _ types.IController = &SwitchToDiffFilesController{}
 
 type CanSwitchToDiffFiles interface {
 	types.IListContext
-	CanRebase() bool
+	CanRebase(currentBranch *models.Branch) bool
 	GetSelectedRef() models.Ref
 	GetSelectedRefRangeForDiffFiles() *types.RefRange
 }
@@ -69,7 +69,7 @@ func (self *SwitchToDiffFilesController) enter() error {
 	refsRange := self.context.GetSelectedRefRangeForDiffFiles()
 	commitFilesContext := self.c.Contexts().CommitFiles
 
-	canRebase := self.context.CanRebase()
+	canRebase := self.context.CanRebase(self.c.Helpers().Refs.GetCheckedOutRef())
 	if canRebase {
 		if self.c.Modes().Diffing.Active() {
 			if self.c.Modes().Diffing.Ref != ref.RefName() {
