@@ -80,7 +80,8 @@ func GetCommitListDisplayStrings(
 	bisectBounds := getbisectBounds(commits, bisectInfo)
 
 	// function expects to be passed the index of the commit in terms of the `commits` slice
-	var getGraphLine func(int) string
+	getGraphLine := func(int) string { return "" }
+
 	if showGraph {
 		if len(commits) > 0 && commits[0].Divergence != models.DivergenceNone {
 			// Showing a divergence log; we know we don't have any rebasing
@@ -111,9 +112,9 @@ func GetCommitListDisplayStrings(
 					allGraphLines = append(allGraphLines, graphLines...)
 				}
 			}
-			if localSectionStart < len(commits) {
+			if localSectionStart < len(commits) && localSectionStart < endIdx {
 				// we have some local commits
-				pipeSets := loadPipesets(commits[localSectionStart:])
+				pipeSets := loadPipesets(commits[localSectionStart:endIdx])
 				if localSectionStart < endIdx {
 					// some of the local commits are visible
 					graphOffset := max(startIdx, localSectionStart)
@@ -132,12 +133,12 @@ func GetCommitListDisplayStrings(
 			getGraphLine = func(idx int) string {
 				return allGraphLines[idx-startIdx]
 			}
-		} else {
+		} else if rebaseOffset < endIdx {
 			// this is where the graph begins (may be beyond the TODO commits depending on startIdx,
 			// but we'll never include TODO commits as part of the graph because it'll be messy)
 			graphOffset := max(startIdx, rebaseOffset)
 
-			pipeSets := loadPipesets(commits[rebaseOffset:])
+			pipeSets := loadPipesets(commits[rebaseOffset:endIdx])
 			pipeSetOffset := max(startIdx-rebaseOffset, 0)
 			graphPipeSets := pipeSets[pipeSetOffset:max(endIdx-rebaseOffset, 0)]
 			graphCommits := commits[graphOffset:endIdx]
@@ -153,8 +154,6 @@ func GetCommitListDisplayStrings(
 				return ""
 			}
 		}
-	} else {
-		getGraphLine = func(int) string { return "" }
 	}
 
 	// Determine the hashes of the local branches for which we want to show a
