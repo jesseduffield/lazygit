@@ -213,13 +213,15 @@ func (self *ViewBufferManager) StartLoading() {
 
 func (self *ViewBufferManager) ReadToEnd(then func()) {
 	// The reading happens on the task's own goroutine, and the caller hears about
-	// it through then, so lazygit must not count as idle in between.
+	// it through then, so lazygit must not count as idle in between. The task is
+	// done only once then has returned, because then typically hands its work to
+	// the UI thread, and that work counts as busy only once it is enqueued.
 	task := self.newGocuiTask()
 	answered := func() {
-		task.Done()
 		if then != nil {
 			then()
 		}
+		task.Done()
 	}
 
 	request := LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: answered}

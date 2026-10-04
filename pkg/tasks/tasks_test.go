@@ -541,9 +541,6 @@ func TestReadToEndHoldsItsTaskUntilThenReturns(t *testing.T) {
 	var statusDuringThen gocui.TaskStatus
 	manager.ReadToEnd(func() { statusDuringThen = task.Status() })
 
-	/* EXPECTED:
 	assert.Equal(t, gocui.TaskStatusBusy, statusDuringThen)
-	ACTUAL: */
-	assert.Equal(t, gocui.TaskStatusDone, statusDuringThen)
 	assert.Equal(t, gocui.TaskStatusDone, task.Status())
 }
