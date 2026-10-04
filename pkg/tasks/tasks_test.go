@@ -522,3 +522,25 @@ func TestQueuedReadRequestsAreAnsweredWhenTheTaskStops(t *testing.T) {
 
 	assert.EqualValues(t, 2, answered.Load())
 }
+
+// The callers of ReadToEnd hand their follow-up work to the UI thread from then, and
+// that work holds a task of its own from the moment it is enqueued. If the task that
+// ReadToEnd holds were done before then runs, lazygit would count as idle for a moment
+// in between, and an integration test would carry on before the follow-up work is done.
+func TestReadToEndHoldsItsTaskUntilThenReturns(t *testing.T) {
+	noop := func() {}
+	task := gocui.NewFakeTask()
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(), bytes.NewBuffer(nil), noop, noop, noop, noop, noop, noop,
+		func() gocui.Task { return task },
+		func(f func()) error { f(); return nil },
+	)
+
+	// With no command task serving read requests, ReadToEnd answers right away.
+	var statusDuringThen gocui.TaskStatus
+	manager.ReadToEnd(func() { statusDuringThen = task.Status() })
+
+	assert.Equal(t, gocui.TaskStatusBusy, statusDuringThen)
+	assert.Equal(t, gocui.TaskStatusDone, task.Status())
+}
