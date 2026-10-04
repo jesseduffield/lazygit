@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -73,6 +74,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			startIdx,
 			endIdx,
 			shouldShowGraph(c),
+			commitGraphSymbolSet(c),
 			c.Model().BisectInfo,
 		)
 	}
@@ -347,6 +349,18 @@ func shouldShowGraph(c *ContextCommon) bool {
 
 	log.Fatalf("Unknown value for git.log.showGraph: %s. Expected one of: 'always', 'never', 'when-maximised'", value)
 	return false
+}
+
+func commitGraphSymbolSet(c *ContextCommon) graph.SymbolSet {
+	switch c.UserConfig().Gui.CommitGraphStyle {
+	case "detailed":
+		return graph.BranchDrawingSymbols
+	case "auto":
+		if graph.TerminalDrawsBranchDrawingSymbols(c.GocuiGui().Terminal()) {
+			return graph.BranchDrawingSymbols
+		}
+	}
+	return graph.BoxDrawingSymbols
 }
 
 func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPositions []int,
