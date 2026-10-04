@@ -3882,6 +3882,20 @@
             }
           ],
           "default": "\u003calt+shift+c\u003e"
+        },
+        "selectTheme": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "#"
         }
       },
       "additionalProperties": false,

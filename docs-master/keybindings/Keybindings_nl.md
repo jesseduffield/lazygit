@@ -32,6 +32,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+z> `` | Pauzeer de applicatie |  |
 | `` <ctrl+w> `` | Witruimte weergeven in-/uitschakelen | Toggle whether or not whitespace changes are shown in the diff view.<br><br>The default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'. |
 | `` <alt+shift+c> `` | Verander config bestand | Open bestand in externe editor. |
+| `` # `` | Select theme | Switch to one of the theme files in the themes folder of your config directory. Your choice is remembered for future sessions. |
 | `` z `` | Ongedaan maken (via reflog) (experimenteel) | The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration. |
 | `` Z `` | Redo (via reflog) (experimenteel) | Het reflog wordt gebruikt om te bepalen welk git commando moet worden gebruikt om het laatste git commando te herhalen. Wijzigingen aan de working tree worden niet meegenomen, alleen command's zijn kandidaten. |
 

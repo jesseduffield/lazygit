@@ -141,6 +141,13 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Description: self.c.Tr.EditConfig,
 			Tooltip:     self.c.Tr.EditFileTooltip,
 		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Universal.SelectTheme),
+			Handler:     opts.Guards.NoPopupPanel(self.c.Helpers().Theme.OpenThemeMenu),
+			Description: self.c.Tr.SelectTheme,
+			Tooltip:     self.c.Tr.SelectThemeTooltip,
+			OpensMenu:   true,
+		},
 	}
 }
 

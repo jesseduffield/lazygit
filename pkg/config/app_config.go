@@ -29,11 +29,15 @@ type AppConfig struct {
 	buildSource            string `long:"build-source" env:"BUILD_SOURCE" default:""`
 	userConfig             *UserConfig
 	globalUserConfigFiles  []*ConfigFile
+	repoUserConfigFiles    []*ConfigFile
 	userConfigFiles        []*ConfigFile
 	userConfigDir          string
 	tempDir                string
 	appState               *AppState
 	githubPullRequestCache *githubPullRequestCache
+	selectedTheme          string
+	appliedTheme           string
+	themeLoadError         error
 }
 
 type AppConfigurer interface {
@@ -50,6 +54,13 @@ type AppConfigurer interface {
 	ReloadUserConfigForRepo(repoConfigFiles []*ConfigFile) error
 	ReloadChangedUserConfigFiles() (error, bool)
 	GetTempDir() string
+
+	GetThemesDir() string
+	ListThemes() ([]string, error)
+	GetSelectedTheme() string
+	SelectTheme(name string) error
+	GetAppliedTheme() string
+	GetThemeLoadError() error
 
 	GetAppState() *AppState
 	SaveAppState() error
@@ -70,6 +81,7 @@ type ConfigFile struct {
 	Policy  ConfigFilePolicy
 	modDate time.Time
 	exists  bool
+	isTheme bool
 }
 
 // NewAppConfig makes a new app config
@@ -170,6 +182,9 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig, isGuiInitialize
 			configFile.modDate = statInfo.ModTime()
 		} else {
 			if !os.IsNotExist(err) {
+				if configFile.isTheme {
+					return nil, &ThemeFileError{Path: path, Err: err}
+				}
 				return nil, err
 			}
 
@@ -201,25 +216,44 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig, isGuiInitialize
 			}
 		}
 
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return nil, err
+		var content []byte
+		if configFile.isTheme {
+			content, err = readThemeFile(path)
+			if err != nil {
+				return nil, &ThemeFileError{Path: path, Err: err}
+			}
+		} else {
+			content, err = os.ReadFile(path)
+			if err != nil {
+				return nil, err
+			}
+
+			content, err = migrateUserConfig(path, content, isGuiInitialized)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		content, err = migrateUserConfig(path, content, isGuiInitialized)
-		if err != nil {
-			return nil, err
-		}
-
+		// The custom commands of all config files add up, with those of later
+		// files first so that they take precedence. yaml.Unmarshal leaves the
+		// list untouched for a file that has no customCommands key, so empty it
+		// first to collect only the commands of this file.
 		existingCustomCommands := base.CustomCommands
+		base.CustomCommands = nil
 
 		if err := yaml.Unmarshal(content, base); err != nil {
+			if configFile.isTheme {
+				return nil, &ThemeFileError{Path: path, Err: err}
+			}
 			return nil, fmt.Errorf("The config at `%s` couldn't be parsed, please inspect it before opening up an issue.\n%w", path, err)
 		}
 
 		base.CustomCommands = append(base.CustomCommands, existingCustomCommands...)
 
 		if err := base.Validate(); err != nil {
+			if configFile.isTheme {
+				return nil, &ThemeFileError{Path: path, Err: err}
+			}
 			return nil, fmt.Errorf("The config at `%s` has a validation error.\n%w", path, err)
 		}
 	}
@@ -310,39 +344,23 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		}
 	}
 
-	// This creates gui.branchColorPatterns, so it must run before the move of
-	// that key into gui.theme below.
-	err = migrateBranchColors(&rootNode, changes)
-	if err != nil {
-		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
-	}
-
-	pathsToMove := []struct {
-		oldPath []string
-		newPath []string
-	}{
+	pathsToMove := []yamlKeyMove{
 		{
 			[]string{"keybinding", "worktrees", "viewWorktreeOptions"},
 			[]string{"keybinding", "universal", "newWorktree"},
 		},
-		{
-			[]string{"gui", "authorColors"},
-			[]string{"gui", "theme", "authorColors"},
-		},
-		{
-			[]string{"gui", "branchColorPatterns"},
-			[]string{"gui", "theme", "branchColorPatterns"},
-		},
 	}
 
-	for _, pathToMove := range pathsToMove {
-		err, didMove := yaml_utils.MoveYamlKey(&rootNode, pathToMove.oldPath, pathToMove.newPath)
-		if err != nil {
-			return nil, false, fmt.Errorf("Couldn't migrate config file at `%s` for key %s: %w", path, strings.Join(pathToMove.oldPath, "."), err)
-		}
-		if didMove {
-			changes.Add(fmt.Sprintf("Moved '%s' to '%s'", strings.Join(pathToMove.oldPath, "."), strings.Join(pathToMove.newPath, ".")))
-		}
+	migrationError := fmt.Sprintf("Couldn't migrate config file at `%s`", path)
+
+	err = moveYamlKeys(&rootNode, migrationError, pathsToMove, changes)
+	if err != nil {
+		return nil, false, err
+	}
+
+	err = migrateThemeKeys(&rootNode, migrationError, changes)
+	if err != nil {
+		return nil, false, err
 	}
 
 	err = changeNullKeybindingsToDisabled(&rootNode, changes)
@@ -391,6 +409,28 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		return nil, false, fmt.Errorf("Failed to remarsal!\n %w", err)
 	}
 	return newContent, true, nil
+}
+
+type yamlKeyMove struct {
+	oldPath []string
+	newPath []string
+}
+
+// moveYamlKeys makes the given moves in order, and adds each one that it made
+// to changes. The message of an error that it returns starts with errorPrefix,
+// followed by the key that couldn't be moved.
+func moveYamlKeys(rootNode *yaml.Node, errorPrefix string, moves []yamlKeyMove, changes *ChangesSet) error {
+	for _, move := range moves {
+		err, didMove := yaml_utils.MoveYamlKey(rootNode, move.oldPath, move.newPath)
+		if err != nil {
+			return fmt.Errorf("%s for key %s: %w", errorPrefix, strings.Join(move.oldPath, "."), err)
+		}
+		if didMove {
+			changes.Add(fmt.Sprintf("Moved '%s' to '%s'", strings.Join(move.oldPath, "."), strings.Join(move.newPath, ".")))
+		}
+	}
+
+	return nil
 }
 
 func changeNullKeybindingsToDisabled(rootNode *yaml.Node, changes *ChangesSet) error {
@@ -646,6 +686,29 @@ func migratePagersToDiffRenderers(rootNode *yaml.Node, changes *ChangesSet) erro
 	})
 }
 
+// migrateThemeKeys moves the theme settings that used to be directly in gui
+// into gui.theme, converting gui.branchColors to gui.branchColorPatterns first.
+// The message of an error that it returns starts with errorPrefix.
+func migrateThemeKeys(rootNode *yaml.Node, errorPrefix string, changes *ChangesSet) error {
+	// This creates gui.branchColorPatterns, so it must run before the move of
+	// that key into gui.theme below.
+	err := migrateBranchColors(rootNode, changes)
+	if err != nil {
+		return fmt.Errorf("%s: %w", errorPrefix, err)
+	}
+
+	return moveYamlKeys(rootNode, errorPrefix, []yamlKeyMove{
+		{
+			[]string{"gui", "authorColors"},
+			[]string{"gui", "theme", "authorColors"},
+		},
+		{
+			[]string{"gui", "branchColorPatterns"},
+			[]string{"gui", "theme", "branchColorPatterns"},
+		},
+	}, changes)
+}
+
 // The deprecated gui.branchColors matched its keys against the part of a branch
 // name before the first slash. Turn each key into a pattern that matches the
 // same branches. If the file has a non-empty gui.branchColorPatterns,
@@ -738,9 +801,13 @@ func (c *AppConfig) SaveCachedGithubPullRequests(repoPath string, pullRequests [
 	return c.githubPullRequestCache.save(repoPath, pullRequests)
 }
 
+// GetUserConfigPaths returns the existing config files that the user can edit.
+// The theme file is left out: themes are typically picked rather than written,
+// and listing it would turn the edit config action into a menu for everyone
+// who has selected a theme.
 func (c *AppConfig) GetUserConfigPaths() []string {
 	return lo.FilterMap(c.userConfigFiles, func(f *ConfigFile, _ int) (string, bool) {
-		return f.Path, f.exists
+		return f.Path, f.exists && !f.isTheme
 	})
 }
 
@@ -748,15 +815,35 @@ func (c *AppConfig) GetUserConfigDir() string {
 	return c.userConfigDir
 }
 
+// ReloadUserConfigForRepo loads the user config from the global config files,
+// the selected theme, and the given repo config files (see
+// composeUserConfigFiles). The selected theme's name is read from
+// selected_theme.yml every time and matched against the listed themes (see
+// resolveThemeName). A theme that can't be loaded mustn't keep the user out of
+// lazygit, so the config is then loaded without it, and the error is kept for
+// GetThemeLoadError.
 func (c *AppConfig) ReloadUserConfigForRepo(repoConfigFiles []*ConfigFile) error {
-	configFiles := append(c.globalUserConfigFiles, repoConfigFiles...)
+	persistedTheme, themeLoadError := loadSelectedThemeName()
+	selectedTheme := c.resolveThemeName(persistedTheme)
+
+	configFiles := c.composeUserConfigFiles(c.themeConfigFile(selectedTheme), repoConfigFiles)
 	userConfig, err := loadUserConfigWithDefaults(configFiles, true)
+	var themeFileError *ThemeFileError
+	if errors.As(err, &themeFileError) {
+		themeLoadError = err
+		configFiles = c.composeUserConfigFiles(nil, repoConfigFiles)
+		userConfig, err = loadUserConfigWithDefaults(configFiles, true)
+	}
 	if err != nil {
 		return err
 	}
 
 	c.userConfig = userConfig
 	c.userConfigFiles = configFiles
+	c.repoUserConfigFiles = repoConfigFiles
+	c.selectedTheme = selectedTheme
+	c.appliedTheme = c.loadedThemeName()
+	c.themeLoadError = themeLoadError
 	return nil
 }
 
@@ -781,6 +868,12 @@ func (c *AppConfig) ReloadChangedUserConfigFiles() (error, bool) {
 	}
 
 	c.userConfig = userConfig
+	c.appliedTheme = c.loadedThemeName()
+	if c.appliedTheme != "" {
+		// A failed SelectTheme can have left an error about the selected
+		// theme's file, which is out of date now that the file has loaded
+		c.themeLoadError = nil
+	}
 	return nil, true
 }
 
@@ -822,6 +915,20 @@ func stateFilePath(filename string) (string, error) {
 
 	// looks for XDG_STATE_HOME/lazygit/filename
 	return xdg.StateFile(filepath.Join("lazygit", filename))
+}
+
+// stateSiblingFilePath returns the path of the file with the given name in the
+// folder of state.yml. It goes through state.yml because stateFilePath finds a
+// file in a legacy config folder only if that file exists already, so asking
+// it for a file that doesn't exist yet could give a different folder than the
+// one state.yml is in.
+func stateSiblingFilePath(filename string) (string, error) {
+	path, err := stateFilePath(stateFileName)
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(filepath.Dir(path), filename), nil
 }
 
 // SaveAppState marshalls the AppState struct and writes it to the disk
