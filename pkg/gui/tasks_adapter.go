@@ -27,11 +27,17 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// thumb to shrink and snap back as the rest loads.
 	view.FreezeScrollbarHeight()
 
-	// Snapshot the view width here, on the UI thread, so the task goroutine
-	// doesn't read the view's live dimensions while it streams output.
-	spec := renderSpec{view: view, cmd: cmd, width: view.InnerWidth()}
+	// The command lays its output out to the width of the view (git's diffstat
+	// graph does), and only the layout settles that, so the task is created after
+	// it, as a diff renderer's is. Taking the width there, on the UI thread, also
+	// keeps the task goroutine from reading the view's live dimensions while it
+	// streams output.
+	gui.afterLayout(func() error {
+		spec := renderSpec{view: view, cmd: cmd, width: view.InnerWidth()}
+		return gui.newTaskForRender(spec, prefix, cmdStr, gui.plainRender)
+	})
 
-	return gui.newTaskForRender(spec, prefix, cmdStr, gui.plainRender)
+	return nil
 }
 
 // plainRender runs the command as it is, with its output going straight into
