@@ -3258,6 +3258,59 @@ Nothing headless reaches a pull request (deviation 5), so the refusal sits
 below `NoPullRequestDisabledReason` where no e2e test can see it. The range
 naming and the base lookup are unit-tested instead.
 
+#### Review round 2 (2026-10-04) — the branch below in a stack
+
+The user hit it on this stack. With the top branch checked out, `G` over the
+diff of a commit from a lower PR opened the top branch's pull request, and its
+page said it couldn't find those commits. The panel's own branch was the only
+one asked.
+
+One `amend!` on "Open the selected diff line in the branch's pull request",
+the tip of the branch. PR 12 and everything above it replayed unchanged.
+
+1. **The nearest branch with a pull request at or above the commit.** The
+   commits panel and the sub-commits panel list the commits of the branches
+   below the listed one too. `pullRequestBranchAt` walks up the list from a
+   commit to the first one that is the head of a branch in `PullRequestsMap`.
+   It skips commits that are in a main branch already, as the commit list
+   skips their branch markers. If it finds no such head, it falls back to the
+   listed branch, so a branch without a stack behaves as before. Where two
+   branches with a pull request share a head, the first in `Model().Branches`
+   wins; that is the checked-out branch.
+2. **A range across the head of such a branch is refused** (the user's call,
+   a disabled reason or an error toast). `SpansBranches` compares the walk for
+   the newest and the oldest commit of the diff. New string
+   `CommitsInSeveralPullRequests`, "These commits are not all in the same pull
+   request". The check comes before the no-pull-request one, so a range from a
+   branch without a pull request down into one with a pull request reports
+   this.
+3. **The base of a range** counts the parent as the pull request's own only if
+   the walk takes the parent to the same branch. A range starting at the first
+   commit of the upper branch used to name the lower branch's head by its
+   hash, and GitHub can't find commits named that way. It now names `BASE`.
+4. **One call on the interface.** `BranchForPullRequest` and
+   `CommitsForPullRequest` became `PullRequestDiff() types.PullRequestDiff`
+   (branch, `SpansBranches`, commits, base hash), because the branch now
+   depends on the selection as the base does. `commitsShownInDiff` became
+   `commitRangeShownInDiff` and returns indices. `pullRequestBaseForCommits`
+   is folded into `pullRequestDiff`. `TestPullRequestDiff` covers a stack of
+   two branches in 14 cases.
+
+Two decisions the user made, both recorded in §8. The test for "pushed" stays
+`StatusPushed`. It is worked out against the listed branch's upstream, so it is
+right for a lower branch as long as the stack is pushed together. Asking git
+about the lower branch's upstream at press time, or counting its
+`AheadForPull`, were offered and declined for now. And the commits panel's own
+`G` keeps opening the checked-out branch's pull request. Following the selected
+commit there too was suggested for consistency with the main view's `G`; the
+user preferred to keep it as it is for now.
+
+Nothing headless reaches a pull request, so this is unit-tested only. Every
+replayed commit builds and vets, and `range-diff` shows the 21 replayed commits
+unchanged. Build, unit and lint are green at the four branch tips from PR 11
+up, and so is `open_pull_request_only_over_a_commits_diff`. Backup tag
+`rerecord-demos-and-update-readme-2026-10-04-1700-backup`.
+
 ### PR 12 — Jump to a file of the diff from a menu
 
 **Status: DONE 2026-09-13** on branch `diff-file-menu`, off PR 11's tip. Three
@@ -3436,6 +3489,8 @@ The remaining rows are agreed as keep/defer:
 | The diff renderer lays out to the view's full width while the marks' gutter takes two columns of it (new, PR 8 round 3) | **Done in PR 8 round 4**: a render is laid out to the width the gutter leaves, decided before the content arrives, and the marks show whenever the diff the patch is built from is on screen, so the focus no longer moves the gutter |
 | git's own diff takes its render width before the layout pass (new, PR 8 round 4) | **Done on a new foot branch, `render-git-diffs-after-layout`** (2026-10-01, at the user's word): `newCmdTask` creates its task after the layout, as a renderer's render does. From master, where a screen mode change showed it: `+` in the commits panel left git's diffstat graph as wide as the main view had been. In the stack, the first line of a patch opening the preview pane beside the diff did the same |
 | `ViewDriver.NavigateToLine` indexes `BufferLines()` with a view line (new, PR 8 round 3) | From master. It misnavigates once a line above the target wraps; nothing in the stack's tests hits it |
+| Whether a commit of a lower branch in a stack is pushed is judged against the listed branch's upstream (new, PR 11 round 2) | **Keep until someone reports it — the user's call, 2026-10-04.** `StatusPushed` comes from the upstream of the panel's own branch, and that is right as long as the stack is pushed together. If only the lower branch was force-pushed, its new commits are refused although its pull request has them. If only the upper one was, they are offered and the page can't find them. The exact answer is `git merge-base --is-ancestor <newest> <branch>@{u}` at press time |
+| A lower branch in a stack without a pull request of its own, but targeted by the pull request above it (new, PR 11 round 2) | Keep. The pull request model carries no base branch, so the walk can't tell that the upper pull request stops at that branch. Its commits are offered in the upper pull request, whose page can't find them. Fetching `baseRefName` with the pull requests would let the walk stop there |
 
 ## 9. Open questions (resolve before/during the marked PR)
 
@@ -3602,8 +3657,9 @@ The remaining rows are agreed as keep/defer:
    `open-pull-request-at-diff-line` (4 commits: three preparations and the
    command, every one green on its own), stacked on PR 10; **round 1 on
    2026-09-17** added three `fixup!`s and an `amend!` for the commits a pull
-   request can be asked for; §6 sign-off owed, and nothing headless can reach a
-   pull request (PR 11 deviation 5)
+   request can be asked for; **round 2 on 2026-10-04** added an `amend!` for
+   the branches below in a stack; §6 sign-off owed, and nothing headless can
+   reach a pull request (PR 11 deviation 5)
 - [x] PR 12 — jump-to-file menu — **DONE 2026-09-13** on branch
    `diff-file-menu` (3 commits, every one green on its own), stacked on PR 11.
    PR 5's skipped commit 7, revived; §6 sign-off owed
@@ -3613,6 +3669,15 @@ deviations from this plan inline, dated.)
 
 Log:
 
+- **2026-10-04:** **PR 11 round 2**, the branch below in a stack. `G` in the
+  focused main view now opens the pull request of the nearest branch with one
+  at or above the commit, refuses a range across the head of such a branch,
+  and names `BASE` for a range that starts at a branch's first commit. One
+  `amend!` on the tip of `open-pull-request-at-diff-line`; PR 12,
+  `jump-to-file-from-diffstat` and `rerecord-demos-and-update-readme` replayed
+  unchanged (`range-diff`). Every replayed commit builds and vets; build, unit
+  and lint green at the four tips from PR 11 up. Backup tag
+  `rerecord-demos-and-update-readme-2026-10-04-1700-backup`.
 - **2026-10-01 (evening):** **A new foot branch, `render-git-diffs-after-layout`**
   (2 commits off master `ff375b124d`): git's own diff took its render width
   before the layout pass, so a render that came with a size change of the
