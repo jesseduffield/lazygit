@@ -225,9 +225,11 @@ func (self *PatchBuildingController) discardSelectionFromCommit() error {
 
 	commits := self.c.Model().Commits
 	commitIndex := self.getPatchCommitIndex()
+	selectedCommits, _, endIdx := self.c.Contexts().LocalCommits.GetSelectedItems()
+	_, parentIdx := self.c.Helpers().Commits.GetParentCommit(selectedCommits, endIdx, 1)
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.RemovePatchFromCommit)
-		err := self.c.Git().Patch.DeletePatchesFromCommit(commits, commitIndex)
+		err := self.c.Git().Patch.DeletePatchesFromCommit(commits, commitIndex, parentIdx)
 		// Escape pops the patch-building context, so run it on the UI thread
 		// before the refresh below.
 		_ = self.c.GocuiGui().OnUIThreadAndWait(func() {

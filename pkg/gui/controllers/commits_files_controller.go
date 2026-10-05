@@ -339,6 +339,8 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 		HandleConfirm: func() error {
 			commits := self.c.Model().Commits
 			selectedLineIdx := self.c.Contexts().LocalCommits.GetSelectedLineIdx()
+			selectedCommits, _, endIdx := self.c.Contexts().LocalCommits.GetSelectedItems()
+			_, parentIdx := self.c.Helpers().Commits.GetParentCommit(selectedCommits, endIdx, 1)
 			return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
 				Message:              self.c.Tr.RebasingStatus,
 				HideWorkingTreeState: true,
@@ -361,7 +363,7 @@ func (self *CommitFilesController) discard(selectedNodes []*filetree.CommitFileN
 					})
 				}
 
-				err := self.c.Git().Rebase.DiscardOldFileChanges(commits, selectedLineIdx, filePaths)
+				err := self.c.Git().Rebase.DiscardOldFileChanges(commits, selectedLineIdx, parentIdx, filePaths)
 				if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 					return err
 				}
