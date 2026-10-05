@@ -91,7 +91,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` c `` | Set fixup message | Set the message option for the fixup commit. The -C option means to use this commit's message instead of the target commit's message. |
 | `` r `` | Reword | Reword the selected commit's message. |
 | `` R `` | Reword with editor |  |
-| `` d `` | Drop | Drop the selected commit. This will remove the commit from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts. |
+| `` d `` | Drop | Drop the selected commit, or delete a branch pointing at it. Dropping a commit removes it from the branch via a rebase. If the commit makes changes that later commits depend on, you may need to resolve merge conflicts. |
 | `` e `` | Edit (start interactive rebase) | Edit the selected commit. Use this to start an interactive rebase from the selected commit. When already mid-rebase, this will mark the selected commit for editing, which means that upon continuing the rebase, the rebase will pause at the selected commit to allow you to make changes. |
 | `` i `` | Start interactive rebase | Start an interactive rebase for the commits on your branch. This will include all commits from the HEAD commit down to the first merge commit or main branch commit.<br>If you would instead like to start an interactive rebase from the selected commit, press `e`. |
 | `` p `` | Pick | Mark the selected commit to be picked (when mid-rebase). This means that the commit will be retained upon continuing the rebase. |

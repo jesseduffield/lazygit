@@ -21,9 +21,9 @@ var Undo = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Wait(1000)
 
 		confirmCommitDrop := func() {
-			t.ExpectPopup().Confirmation().
-				Title(Equals("Drop commit")).
-				Content(Equals("Are you sure you want to drop the selected commit(s)?")).
+			t.ExpectPopup().Menu().
+				Title(Equals("Drop commit or delete branch")).
+				Select(Contains("Drop commit")).
 				Wait(500).
 				Confirm()
 		}

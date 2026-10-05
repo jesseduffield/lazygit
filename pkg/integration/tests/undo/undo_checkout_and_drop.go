@@ -23,9 +23,9 @@ var UndoCheckoutAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		// we're going to drop a commit, switch branch, drop a commit there, then undo everything, then redo everything.
 
 		confirmCommitDrop := func() {
-			t.ExpectPopup().Confirmation().
-				Title(Equals("Drop commit")).
-				Content(Equals("Are you sure you want to drop the selected commit(s)?")).
+			t.ExpectPopup().Menu().
+				Title(Equals("Drop commit or delete branch")).
+				Select(Contains("Drop commit")).
 				Confirm()
 		}
 
