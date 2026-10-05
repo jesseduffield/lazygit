@@ -34,6 +34,15 @@ func (self *DiffLineHelper) DiffLinesInBufferRange(view *gocui.View, first int, 
 	return infos
 }
 
+// ChangeLinesInBufferRange returns the change lines — the additions and deletions —
+// among the diff lines shown by the rows in the inclusive buffer-line range. Those are
+// the lines a patch is built from: a patch carries whatever context it needs around
+// them by itself, so a selection contributes only its changes.
+func (self *DiffLineHelper) ChangeLinesInBufferRange(view *gocui.View, first int, last int) []types.DiffLineInfo {
+	return lo.Filter(self.DiffLinesInBufferRange(view, first, last),
+		func(info types.DiffLineInfo, _ int) bool { return info.IsChange() })
+}
+
 // changeLines resolves view's rendered diff to one flag per buffer line: whether
 // that row is a change line (an addition or a deletion), as opposed to context, a
 // header, or a row whose identity couldn't be recovered. Those are the rows a
@@ -212,17 +221,6 @@ func (self *DiffLineHelper) ChangeBlockBounds(view *gocui.View, anchorViewLine i
 		return 0, 0, false
 	}
 	return startView, endView, true
-}
-
-// SelectedHunkBounds returns the change block selected in hunk mode. The range
-// anchor stays on the block's far end when a click moves the cursor before its
-// handler runs, so it still identifies the selected block.
-func (self *DiffLineHelper) SelectedHunkBounds(view *gocui.View) (int, int, bool) {
-	anchor := view.RangeSelectStartY()
-	if anchor < 0 {
-		return 0, 0, false
-	}
-	return self.ChangeBlockBounds(view, anchor)
 }
 
 // AdjacentChangeBlock returns the view line to move to for next/previous change-block

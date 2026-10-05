@@ -77,12 +77,19 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | Переключить выборку перетаскивания |  |
 | `` e `` | Редактировать файл | Open file in external editor. |
+| `` <space> `` | Переключить индекс | Переключить строку в проиндексированные / непроиндексированные |
+| `` d `` | Отменить изменение (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` E `` | Изменить эту часть | Edit selected hunk in external editor. |
 | `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
 | `` <left>, h `` | Выбрать предыдущую часть |  |
 | `` <right>, l `` | Выбрать следующую часть |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | Сохранить изменения | Commit staged changes. |
+| `` w `` | Закоммитить изменения без предварительного хука коммита |  |
+| `` C `` | Сохранить изменения с помощью редактора git |  |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Найти |  |
 
 ## Главная панель (Индексирование)
@@ -117,12 +124,19 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | Toggle hunk selection | Toggle line-by-line vs. hunk selection mode. |
 | `` v `` | Переключить выборку перетаскивания |  |
 | `` e `` | Редактировать файл | Open file in external editor. |
+| `` <space> `` | Переключить индекс | Переключить строку в проиндексированные / непроиндексированные |
+| `` d `` | Отменить изменение (git reset) | When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change. |
+| `` E `` | Изменить эту часть | Edit selected hunk in external editor. |
 | `` <ctrl+o> `` | Скопировать выделенный текст в буфер обмена |  |
 | `` <left>, h `` | Выбрать предыдущую часть |  |
 | `` <right>, l `` | Выбрать следующую часть |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | Exit back to side panel |  |
+| `` c `` | Сохранить изменения | Commit staged changes. |
+| `` w `` | Закоммитить изменения без предварительного хука коммита |  |
+| `` C `` | Сохранить изменения с помощью редактора git |  |
+| `` <ctrl+f> `` | Find base commit for fixup | Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | Найти |  |
 
 ## Главная панель (Слияние)

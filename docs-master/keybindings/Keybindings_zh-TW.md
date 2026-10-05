@@ -78,12 +78,19 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | 切換程式碼塊選擇 | 切換逐行選擇與程式碼塊選擇模式。 |
 | `` v `` | 切換拖曳選擇 |  |
 | `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
+| `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
+| `` d `` | 刪除變更 (git reset) | 選取未暫存的變更時，使用 `git reset` 捨棄變更。選取已暫存的變更時，取消暫存變更。 |
+| `` E `` | 編輯程式碼塊 | 在外部編輯器中編輯選中的程式碼塊。 |
 | `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
 | `` <left>, h `` | 選擇上一段 |  |
 | `` <right>, l `` | 選擇下一段 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | 退出回到側邊面板 |  |
+| `` c `` | 提交變更 | 提交暫存區變更 |
+| `` w `` | 沒有預提交 hook 就提交更改 |  |
+| `` C `` | 使用 git 編輯器提交變更 |  |
+| `` <ctrl+f> `` | 尋找 fixup 的基礎提交 | 找出目前變更所依據的提交，以便 amend/fixup。這樣不必逐一檢視分支中的提交來找出要 amend/fixup 的提交。請見文件：<https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 搜尋 |  |
 
 ## 主面板（合併）
@@ -367,12 +374,19 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | 切換程式碼塊選擇 | 切換逐行選擇與程式碼塊選擇模式。 |
 | `` v `` | 切換拖曳選擇 |  |
 | `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
+| `` <space> `` | 切換預存 | 切換現有行的狀態 (已預存/未預存) |
+| `` d `` | 刪除變更 (git reset) | 選取未暫存的變更時，使用 `git reset` 捨棄變更。選取已暫存的變更時，取消暫存變更。 |
+| `` E `` | 編輯程式碼塊 | 在外部編輯器中編輯選中的程式碼塊。 |
 | `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
 | `` <left>, h `` | 選擇上一段 |  |
 | `` <right>, l `` | 選擇下一段 |  |
 | `` N `` | Go to previous file |  |
 | `` n `` | Go to next file |  |
 | `` <esc> `` | 退出回到側邊面板 |  |
+| `` c `` | 提交變更 | 提交暫存區變更 |
+| `` w `` | 沒有預提交 hook 就提交更改 |  |
+| `` C `` | 使用 git 編輯器提交變更 |  |
+| `` <ctrl+f> `` | 尋找 fixup 的基礎提交 | 找出目前變更所依據的提交，以便 amend/fixup。這樣不必逐一檢視分支中的提交來找出要 amend/fixup 的提交。請見文件：<https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 搜尋 |  |
 
 ## 狀態
