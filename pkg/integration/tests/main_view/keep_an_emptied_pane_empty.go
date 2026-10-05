@@ -38,9 +38,6 @@ var KeepAnEmptiedPaneEmpty = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Secondary().
 			IsInvisible().
-			/* EXPECTED:
 			Content(Equals(""))
-			ACTUAL: */
-			Content(Contains("+STAGED"))
 	},
 })
