@@ -870,3 +870,91 @@ func TestReservedTaskDoesntReplaceATaskAskedForLater(t *testing.T) {
 
 	assert.Equal(t, []string{"message"}, tasksRun)
 }
+
+// A message that replaces a command task while the task is still reading its
+// output leaves nothing loading content into the view.
+func TestMessageEndsTheLoadingOfTheTaskItReplaces(t *testing.T) {
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		bytes.NewBuffer(nil),
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	stalled := BlockingLineReader{
+		linesToYield: 3,
+		blocked:      make(chan struct{}),
+		unblock:      make(chan struct{}),
+	}
+	defer close(stalled.unblock)
+	start := func() (Cmd, io.Reader) {
+		// not actually starting this because it's not necessary
+		return ExecCmd{Cmd: exec.Command("blah")}, &stalled
+	}
+
+	reservation := manager.ReserveTask()
+	manager.StartLoading()
+	_ = manager.NewReservedTask(reservation, manager.NewCmdTask(start, "", LinesToRead{100, 50, nil}, nil), "cmd")
+	<-stalled.blocked
+	assert.True(t, manager.IsLoading())
+
+	_ = manager.NewTask(func(TaskOpts) error { return nil }, "message")
+	/* EXPECTED:
+	assert.False(t, manager.IsLoading())
+	ACTUAL: */
+	assert.True(t, manager.IsLoading())
+}
+
+// The view is loading the content of the command task asked for last. A task
+// asked for before it reaching the end of its input doesn't end that.
+func TestEarlierTaskEndingLeavesALaterTaskLoading(t *testing.T) {
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		bytes.NewBuffer(nil),
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	stalled := BlockingLineReader{
+		linesToYield: 3,
+		blocked:      make(chan struct{}),
+		unblock:      make(chan struct{}),
+	}
+	start := func() (Cmd, io.Reader) {
+		// not actually starting this because it's not necessary
+		return ExecCmd{Cmd: exec.Command("blah")}, &stalled
+	}
+
+	earlierDone := make(chan struct{})
+	reservation := manager.ReserveTask()
+	manager.StartLoading()
+	_ = manager.NewReservedTask(reservation,
+		manager.NewCmdTask(start, "", LinesToRead{100, 50, nil}, func() { close(earlierDone) }), "earlier")
+	<-stalled.blocked
+
+	// The later task is asked for, but not created yet, as for a render whose task
+	// is created after the layout.
+	manager.ReserveTask()
+	manager.StartLoading()
+
+	close(stalled.unblock)
+	<-earlierDone
+	/* EXPECTED:
+	assert.True(t, manager.IsLoading())
+	ACTUAL: */
+	assert.False(t, manager.IsLoading())
+}
