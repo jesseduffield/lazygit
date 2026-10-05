@@ -355,9 +355,12 @@ func (gui *Gui) clampDiffSelectionToContent(view *gocui.View) {
 // claiming the render it was showing: whatever it is given next is content the user
 // hasn't seen there, and is shown from the top like any other.
 //
-// A position waiting to be put back goes too: this pane is getting no render for it
-// to ride, and whoever is waiting for the view to be back where it belongs has to
-// hear that it never will be.
+// The pane is emptied right away, and it is also given an empty render. The render
+// takes its place among the view's tasks, so that a render asked for before it can't
+// fill the pane again, whether that render's task is still to be created or is still
+// reading. Like any render that isn't a re-render of what the pane was showing, it
+// drops a position waiting to be put back: whoever is waiting for the view to be back
+// where it belongs has to hear that it never will be.
 func (gui *Gui) clearMainView(mainContext types.Context) {
 	view := mainContext.GetView()
 	view.Clear()
@@ -369,7 +372,9 @@ func (gui *Gui) clearMainView(mainContext types.Context) {
 	gui.State.ContextMgr.UpdateSelectionHighlights()
 	if manager := gui.getViewBufferManagerForView(view); manager != nil {
 		manager.ForgetRenderedContent()
-		manager.DropRestoreForNextTask()
+		if err := gui.newStringTask(view, ""); err != nil {
+			gui.c.Log.Error(err)
+		}
 	}
 }
 

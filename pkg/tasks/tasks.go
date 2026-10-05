@@ -64,9 +64,10 @@ type ViewBufferManager struct {
 
 	waitingMutex deadlock.Mutex
 	// Guards newTaskID and taskKey, which identify the most recently requested
-	// task. Both are written on the goroutine NewTask spawns, and taskKey is
-	// read from the UI thread (GetTaskKey), so neither may be touched without
-	// holding this.
+	// task. newTaskID is written wherever a task is asked for (ReserveTask) and
+	// read on the goroutine NewReservedTask spawns. taskKey is written on that
+	// goroutine and read from the UI thread (GetTaskKey). So neither may be
+	// touched without holding this.
 	taskIDMutex deadlock.Mutex
 	Log         *logrus.Entry
 	newTaskID   int
@@ -116,10 +117,12 @@ type ViewBufferManager struct {
 	// Guarded by taskIDMutex, like the task key.
 	keepScrollForNextTask bool
 
-	// Whether a command task is currently reading content into the view. While
-	// this is true the content is still growing, so callers (e.g. the layout)
-	// must not clamp the view's scroll position to the amount loaded so far.
-	loading atomic.Bool
+	// The command task whose output the view is loading: the one that was asked
+	// for last when StartLoading was called. It is cleared when that task has
+	// read all of its input. The view counts as loading only while this task is
+	// still the one asked for last; a task asked for after it takes the view
+	// over, whatever it shows. Guarded by taskIDMutex, like the task key.
+	loadingTaskID int
 
 	// beforeStart is the function that is called before starting a new task
 	beforeStart  func()
@@ -343,19 +346,36 @@ func (self *ViewBufferManager) ReadLines(totalLines int) {
 	self.readRequests.enqueue(LinesToRead{Total: totalLines, InitialRefreshAfter: -1})
 }
 
-// IsLoading reports whether a command task is currently reading content into the
-// view, meaning the content is still growing.
+// IsLoading reports whether the task asked for last is a command task that is
+// still reading content into the view, meaning the content is still growing.
 func (self *ViewBufferManager) IsLoading() bool {
-	return self.loading.Load()
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	return self.loadingTaskID != 0 && self.loadingTaskID == self.newTaskID
 }
 
-// StartLoading marks the view as loading content. It must be called
-// synchronously when a command/pty task is started, before the task's goroutine
-// runs, so that a layout pass happening in between doesn't clamp the scroll
-// position to the not-yet-loaded content. It is cleared when the task reaches
-// the end of its input.
+// StartLoading marks the view as loading the output of the task asked for last,
+// which must be a command task. Call it right when that task is asked for, before
+// its goroutine runs and before the next layout pass, so that the layout doesn't
+// clamp the scroll position to the not-yet-loaded content. The view stops loading
+// when the task reaches the end of its input, or when another task is asked for.
 func (self *ViewBufferManager) StartLoading() {
-	self.loading.Store(true)
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	self.loadingTaskID = self.newTaskID
+}
+
+// finishLoading records that the given task has read all of its input. If the
+// view is loading another task's output, that task is still loading.
+func (self *ViewBufferManager) finishLoading(taskID int) {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	if self.loadingTaskID == taskID {
+		self.loadingTaskID = 0
+	}
 }
 
 func (self *ViewBufferManager) ReadToEnd(then func()) {
@@ -700,10 +720,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 								self.onEndOfInput()
 							})
 							// The content is fully loaded now, so it's safe again for the
-							// layout to clamp the scroll position to it. We deliberately
-							// don't clear this when stopped (rather than EOF'd), because that
-							// means a newer task is taking over and is still loading.
-							self.loading.Store(false)
+							// layout to clamp the scroll position to it.
+							self.finishLoading(opts.taskID)
 							callThen()
 							break outer
 						}
@@ -815,9 +833,48 @@ type TaskOpts struct {
 	// We use this to keep track of when a user's action is complete (i.e. all views
 	// have been refreshed to display the results of their action)
 	InitialContentLoaded func()
+
+	// The task's place in the order of the view's tasks (see ReserveTask).
+	taskID int
 }
 
+// A TaskReservation holds a task's place in the order of the view's tasks, from
+// when the task is asked for until it is created. See ReserveTask.
+type TaskReservation struct {
+	taskID int
+}
+
+// ReserveTask gives a task its place in the order of the view's tasks, for a task
+// that is only created later, with NewReservedTask. The view shows the task that
+// was asked for last. If another task is asked for after the reservation, that
+// task replaces the reserved one, even when it is created first.
+func (self *ViewBufferManager) ReserveTask() TaskReservation {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	self.newTaskID++
+	return TaskReservation{taskID: self.newTaskID}
+}
+
+// IsSuperseded reports whether another task has been asked for since the
+// reservation was made. The reserved task would then stop as soon as it was
+// created, so there is no point in creating it.
+func (self *ViewBufferManager) IsSuperseded(reservation TaskReservation) bool {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	return reservation.taskID < self.newTaskID
+}
+
+// NewTask creates a task that takes its place in the order of the view's tasks
+// right away.
 func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error {
+	return self.NewReservedTask(self.ReserveTask(), f, key)
+}
+
+// NewReservedTask creates the task that the reservation was made for. It doesn't
+// run if another task has been asked for since the reservation was made.
+func (self *ViewBufferManager) NewReservedTask(reservation TaskReservation, f func(TaskOpts) error, key string) error {
 	gocuiTask := self.newGocuiTask()
 
 	var completeTaskOnce sync.Once
@@ -828,15 +885,7 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		})
 	}
 
-	// Assign the taskID synchronously so it reflects NewTask call order
-	// rather than the order in which the spawned goroutines happen to be
-	// scheduled. Otherwise two NewTask calls in quick succession can have
-	// their goroutines race, with the later-called task ending up with the
-	// lower taskID and losing the staleness check below.
-	self.taskIDMutex.Lock()
-	self.newTaskID++
-	taskID := self.newTaskID
-	self.taskIDMutex.Unlock()
+	taskID := reservation.taskID
 
 	go utils.Safe(func() {
 		defer completeGocuiTask()
@@ -906,7 +955,7 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 
 		self.waitingMutex.Unlock()
 
-		if err := f(TaskOpts{Stop: stop, InitialContentLoaded: completeGocuiTask}); err != nil {
+		if err := f(TaskOpts{Stop: stop, InitialContentLoaded: completeGocuiTask, taskID: taskID}); err != nil {
 			self.Log.Error(err) // might need an onError callback
 		}
 
