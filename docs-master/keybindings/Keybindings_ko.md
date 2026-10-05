@@ -392,7 +392,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | Stash 옵션 보기 | View stash options (e.g. stash all, stash staged, stash unstaged). |
 | `` a `` | 모든 변경을 Staged/unstaged으로 전환 | Toggle staged/unstaged for all files in working tree. |
-| `` <enter> `` | Stage individual hunks/lines for file, or collapse/expand for directory | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
+| `` <enter> `` | Focus file diff / Collapse directory | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
 | `` d `` | View 'discard changes' options | View options for discarding changes to the selected file. |
 | `` g `` | View upstream reset options |  |
 | `` D `` | 초기화 | View reset options for working tree (e.g. nuking the working tree). |

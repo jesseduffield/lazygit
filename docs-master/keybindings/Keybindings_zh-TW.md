@@ -10,8 +10,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | 向上捲動主面板 |  |
 | `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | 向下捲動主面板 |  |
 | `` @ `` | 開啟命令記錄選單 | 檢視命令日誌的選項，例如顯示/隱藏命令日誌以及聚焦命令日誌。 |
-| `` P `` | 推送 | 推送到遠端。如果沒有設定遠端，會開啟設定視窗。 |
-| `` p `` | 拉取 | 從遠端同步當前分支。如果沒有設定遠端，會開啟設定視窗。 |
+| `` P `` | 推送 | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have commits to push, you are offered to push those too. |
+| `` p `` | 拉取 | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have changed on the remote, you are offered to update those too. |
 | `` ) `` | 提高重新命名相似度閾值 | 提高將刪除和新增對視為重新命名所需的相似度閾值。<br><br>預設值可在設定檔中透過鍵 'git.renameSimilarityThreshold' 更改。 |
 | `` ( `` | 降低重新命名相似度閾值 | 降低將刪除和新增對視為重新命名所需的相似度閾值。<br><br>預設值可在設定檔中透過鍵 'git.renameSimilarityThreshold' 更改。 |
 | `` } `` | 增加差異檢視中顯示變更周圍上下文的大小 | 增加差異檢視中變更周圍顯示的上下文量。<br><br>預設值可在設定檔中透過鍵 'git.diffContextSize' 更改。 |
@@ -271,7 +271,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` d `` | 刪除 | 檢視本地/遠端分支的刪除選項。 |
 | `` r `` | 將已檢出的分支變基至此分支 | 將檢出的分支變基到所選的分支上。 |
 | `` M `` | 合併到當前檢出的分支 | 檢視將選中項合併到目前分支的選項(正常合併，壓縮合並) |
-| `` f `` | 從上游快進此分支 | 從遠端快進所選的分支 |
+| `` f `` | 從上游快進此分支 | Fast-forward selected branch from its upstream. If the branch has diverged from its upstream because the upstream branch was rewritten, and it has no commits of its own, it is reset to its upstream instead. This needs reflogs to be enabled; a bare repository doesn't keep them by default (core.logAllRefUpdates). |
 | `` T `` | 建立標籤 |  |
 | `` s `` | 排序規則 |  |
 | `` g `` | 檢視重設選項 |  |
@@ -318,7 +318,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | 收藏 | 貯藏所有變更.若要使用其他貯藏變體,請使用檢視貯藏選項快捷鍵。 |
 | `` S `` | 檢視收藏選項 | 檢視貯藏選項（例如：貯藏所有、貯藏已暫存變更、貯藏未暫存變更）。 |
 | `` a `` | 全部預存/取消預存 | 切換工作區中所有檔案的已暫存/未暫存狀態。 |
-| `` <enter> `` | 選擇檔案中的單個程式碼塊/行，或展開/折疊目錄 | 如果選中的是一個檔案，則會進入到暫存檢視，以便可以暫存單個程式碼塊/行。如果選中的是一個目錄，則會摺疊/展開這個目錄。 |
+| `` <enter> `` | Focus file diff / Collapse directory | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
 | `` d `` | 捨棄 | 檢視選中變動進行捨棄復原 |
 | `` g `` | 檢視遠端重設選項 |  |
 | `` D `` | 重設 | 檢視工作樹的重置選項（例如：清除工作樹）。 |

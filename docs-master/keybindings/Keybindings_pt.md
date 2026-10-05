@@ -10,8 +10,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | Rolar janela principal para cima |  |
 | `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | Rolar a janela principal para baixo |  |
 | `` @ `` | View command log options | View options for the command log e.g. show/hide the command log and focus the command log. |
-| `` P `` | Empurre (Push) | Faça push do branch atual para o seu branch upstream. Se nenhum upstream estiver configurado, você será solicitado a configurar um branch a montante. |
-| `` p `` | Puxar (Pull) | Puxe alterações do controle remoto para o ramo atual. Se nenhum upstream estiver configurado, será solicitado configurar um ramo a montante. |
+| `` P `` | Empurre (Push) | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have commits to push, you are offered to push those too. |
+| `` p `` | Puxar (Pull) | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have changed on the remote, you are offered to update those too. |
 | `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` } `` | Increase diff context size | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
@@ -73,7 +73,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | Stash | Stash todas as alterações. Para outras variações de armazenamento, use a fixação de teclas de armazenamento. |
 | `` S `` | Ver opções de stash | Ver opções de stash (por exemplo, trash all, stash staged, stash unsttued). |
 | `` a `` | Stage completo | Alternar para todos os arquivos na árvore de trabalho |
-| `` <enter> `` | Stage lines / Colapso diretório | Se o item selecionado for um arquivo, o foco na exibição de preparo para o estágio de cenas/linhas individuais. Se o item selecionado for um diretório, recolher/expandi-lo. |
+| `` <enter> `` | Focus file diff / Collapse directory | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
 | `` d `` | Descartar | Exibir opções para descartar alterações para o arquivo selecionado. |
 | `` g `` | View upstream reset options |  |
 | `` D `` | Restaurar | Opções de redefinição de exibição para árvore de trabalho (por exemplo, nukando a árvore de trabalho). |
@@ -106,7 +106,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` d `` | Apagar | Ver opções de exclusão para a branch local/remoto. |
 | `` r `` | Refazer | Refazer a branch checada na branch selecionada |
 | `` M `` | Mesclar | Ver opções para mesclar o item selecionado no branch atual (mesclar regularmente, mesclar squash) |
-| `` f `` | Avanço rápido | Encaminhamento rápido de branch selecionada a partir do upstream. |
+| `` f `` | Avanço rápido | Fast-forward selected branch from its upstream. If the branch has diverged from its upstream because the upstream branch was rewritten, and it has no commits of its own, it is reset to its upstream instead. This needs reflogs to be enabled; a bare repository doesn't keep them by default (core.logAllRefUpdates). |
 | `` T `` | Nova etiqueta |  |
 | `` s `` | Sort order |  |
 | `` g `` | Restaurar |  |
