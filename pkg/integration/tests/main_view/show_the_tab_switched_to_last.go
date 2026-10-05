@@ -34,9 +34,6 @@ var ShowTheTabSwitchedToLast = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused()
 
 		t.Views().Main().
-			/* EXPECTED:
 			Content(Contains("Path:"))
-			ACTUAL: */
-			Content(Contains("diff --git a/file1 b/file1"))
 	},
 })

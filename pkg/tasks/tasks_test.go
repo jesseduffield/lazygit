@@ -813,3 +813,60 @@ func TestReadToEndHoldsItsTaskUntilThenReturns(t *testing.T) {
 	assert.Equal(t, gocui.TaskStatusBusy, statusDuringThen)
 	assert.Equal(t, gocui.TaskStatusDone, task.Status())
 }
+
+// doneSignallingTask lets a test wait for the tasks of a view to finish, including
+// those that never get to run.
+type doneSignallingTask struct {
+	*gocui.FakeTask
+	done func()
+}
+
+func (self *doneSignallingTask) Done() {
+	self.FakeTask.Done()
+	self.done()
+}
+
+// A render whose task is only created after the layout takes its place among the
+// view's tasks when it is asked for. A message asked for after it, before the
+// layout, is created first, and the render's task mustn't replace it.
+func TestReservedTaskDoesntReplaceATaskAskedForLater(t *testing.T) {
+	var tasksDone sync.WaitGroup
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		bytes.NewBuffer(nil),
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() gocui.Task {
+			tasksDone.Add(1)
+			return &doneSignallingTask{FakeTask: gocui.NewFakeTask(), done: tasksDone.Done}
+		},
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	var mutex sync.Mutex
+	var tasksRun []string
+	task := func(name string) func(TaskOpts) error {
+		return func(TaskOpts) error {
+			mutex.Lock()
+			defer mutex.Unlock()
+			tasksRun = append(tasksRun, name)
+			return nil
+		}
+	}
+
+	reservation := manager.ReserveTask()
+	assert.False(t, manager.IsSuperseded(reservation))
+
+	_ = manager.NewTask(task("message"), "message")
+	assert.True(t, manager.IsSuperseded(reservation))
+
+	_ = manager.NewReservedTask(reservation, task("render"), "render")
+	tasksDone.Wait()
+
+	assert.Equal(t, []string{"message"}, tasksRun)
+}

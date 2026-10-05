@@ -64,9 +64,10 @@ type ViewBufferManager struct {
 
 	waitingMutex deadlock.Mutex
 	// Guards newTaskID and taskKey, which identify the most recently requested
-	// task. Both are written on the goroutine NewTask spawns, and taskKey is
-	// read from the UI thread (GetTaskKey), so neither may be touched without
-	// holding this.
+	// task. newTaskID is written wherever a task is asked for (ReserveTask) and
+	// read on the goroutine NewReservedTask spawns. taskKey is written on that
+	// goroutine and read from the UI thread (GetTaskKey). So neither may be
+	// touched without holding this.
 	taskIDMutex deadlock.Mutex
 	Log         *logrus.Entry
 	newTaskID   int
@@ -817,7 +818,43 @@ type TaskOpts struct {
 	InitialContentLoaded func()
 }
 
+// A TaskReservation holds a task's place in the order of the view's tasks, from
+// when the task is asked for until it is created. See ReserveTask.
+type TaskReservation struct {
+	taskID int
+}
+
+// ReserveTask gives a task its place in the order of the view's tasks, for a task
+// that is only created later, with NewReservedTask. The view shows the task that
+// was asked for last. If another task is asked for after the reservation, that
+// task replaces the reserved one, even when it is created first.
+func (self *ViewBufferManager) ReserveTask() TaskReservation {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	self.newTaskID++
+	return TaskReservation{taskID: self.newTaskID}
+}
+
+// IsSuperseded reports whether another task has been asked for since the
+// reservation was made. The reserved task would then stop as soon as it was
+// created, so there is no point in creating it.
+func (self *ViewBufferManager) IsSuperseded(reservation TaskReservation) bool {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	return reservation.taskID < self.newTaskID
+}
+
+// NewTask creates a task that takes its place in the order of the view's tasks
+// right away.
 func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error {
+	return self.NewReservedTask(self.ReserveTask(), f, key)
+}
+
+// NewReservedTask creates the task that the reservation was made for. It doesn't
+// run if another task has been asked for since the reservation was made.
+func (self *ViewBufferManager) NewReservedTask(reservation TaskReservation, f func(TaskOpts) error, key string) error {
 	gocuiTask := self.newGocuiTask()
 
 	var completeTaskOnce sync.Once
@@ -828,15 +865,7 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		})
 	}
 
-	// Assign the taskID synchronously so it reflects NewTask call order
-	// rather than the order in which the spawned goroutines happen to be
-	// scheduled. Otherwise two NewTask calls in quick succession can have
-	// their goroutines race, with the later-called task ending up with the
-	// lower taskID and losing the staleness check below.
-	self.taskIDMutex.Lock()
-	self.newTaskID++
-	taskID := self.newTaskID
-	self.taskIDMutex.Unlock()
+	taskID := reservation.taskID
 
 	go utils.Safe(func() {
 		defer completeGocuiTask()

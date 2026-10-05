@@ -56,11 +56,16 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 	// it before anything else can touch the command's arguments.
 	cmdStr := strings.Join(cmd.Args, " ")
 
+	manager := gui.getManager(view)
+	// The task takes its place among the view's tasks now, although it is only
+	// created after the layout (see the matching call in newCmdTask).
+	reservation := manager.ReserveTask()
+
 	// Mark the view as loading synchronously now, before the layout pass: the
 	// actual task is created in afterLayout (below), which runs after layout, so
 	// without this the next layout pass would clamp the scroll position to the
 	// not-yet-loaded content.
-	gui.getManager(view).StartLoading()
+	manager.StartLoading()
 	// Hold the scrollbar at its current height while the re-render loads, so the
 	// thumb doesn't shrink and snap back when the first partial paint swaps in
 	// (see the matching call in newCmdTask).
@@ -68,6 +73,10 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 
 	// Run the render after layout so that it gets the correct size
 	gui.afterLayout(func() error {
+		if manager.IsSuperseded(reservation) {
+			return nil
+		}
+
 		// The layout may have changed the size of the view, so only now is the
 		// width to render at known, and with it the renderer command.
 		width := gui.renderWidth(view)
@@ -113,7 +122,7 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 		if rendersThroughAPipe() {
 			run = gui.pipedRender
 		}
-		return gui.newTaskForRender(spec, prefix, cmdStr, run)
+		return gui.newTaskForRender(reservation, spec, prefix, cmdStr, run)
 	})
 
 	return nil
@@ -144,16 +153,17 @@ type (
 type runRender func(spec renderSpec) (startRender, onCloseRender)
 
 // newTaskForRender creates the task that reads the render's output into its
-// view, running the command the given way. key names what is rendered, so that
+// view, running the command the given way. The task takes the place that the
+// reservation holds among the view's tasks. key names what is rendered, so that
 // a re-render of the same content can be told from a render of other content.
-func (gui *Gui) newTaskForRender(spec renderSpec, prefix string, key string, run runRender) error {
+func (gui *Gui) newTaskForRender(reservation tasks.TaskReservation, spec renderSpec, prefix string, key string, run runRender) error {
 	setColumnsEnvVar(spec.cmd, spec.width)
 
 	start, onClose := run(spec)
 
 	manager := gui.getManager(spec.view)
 	linesToRead := gui.linesToReadFromCmdTask(spec.view)
-	return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), key)
+	return manager.NewReservedTask(reservation, manager.NewCmdTask(start, prefix, linesToRead, onClose), key)
 }
 
 // renderWithoutPtyEnvVar makes a render take the piped path on a platform that

@@ -18,10 +18,16 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		cmdStr,
 	).Debug("RunCommand")
 
+	manager := gui.getManager(view)
+	// The task is only created after the layout (see below), but it has to take
+	// its place among the view's tasks now. Otherwise a task asked for after this
+	// one, but created before the layout, would be replaced by it.
+	reservation := manager.ReserveTask()
+
 	// Mark the view as loading synchronously (before the task's goroutine runs
 	// and before the next layout pass) so the layout doesn't clamp the scroll
 	// position to the not-yet-loaded content.
-	gui.getManager(view).StartLoading()
+	manager.StartLoading()
 	// Hold the scrollbar at the height the view has now (the previous render),
 	// while it still shows that render: once the re-render swaps in its first
 	// partial paint the displayed buffer is briefly short, and we don't want the
@@ -34,8 +40,12 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	// keeps the task goroutine from reading the view's live dimensions while it
 	// streams output.
 	gui.afterLayout(func() error {
+		if manager.IsSuperseded(reservation) {
+			return nil
+		}
+
 		spec := renderSpec{view: view, cmd: cmd, width: gui.renderWidth(view)}
-		return gui.newTaskForRender(spec, prefix, cmdStr, gui.plainRender)
+		return gui.newTaskForRender(reservation, spec, prefix, cmdStr, gui.plainRender)
 	})
 
 	return nil
