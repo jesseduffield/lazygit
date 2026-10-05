@@ -1,27 +1,38 @@
 package helpers
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
 type DiffHelper struct {
 	c              *HelperCommon
 	diffLineHelper *DiffLineHelper
+
+	// Diffs of the messages of "amend!" commits, keyed by everything that
+	// shapes them: the two commits, the diff renderer, and the values its
+	// command was resolved with. An empty diff means that the commit doesn't
+	// change the message. Only accessed on the UI thread, so a diff produced
+	// on a render's goroutine is stored by way of OnUIThread.
+	commitMessageDiffs map[string]string
 }
 
 func NewDiffHelper(c *HelperCommon, diffLineHelper *DiffLineHelper) *DiffHelper {
 	return &DiffHelper{
-		c:              c,
-		diffLineHelper: diffLineHelper,
+		c:                  c,
+		diffLineHelper:     diffLineHelper,
+		commitMessageDiffs: make(map[string]string),
 	}
 }
 
@@ -54,7 +65,13 @@ func (self *DiffHelper) DiffArgs() []string {
 // and the refRange for a range selection. If the refRange is nil (meaning that
 // either there's no range, or it can't be diffed for some reason), then we want
 // to fall back to rendering the diff for the single commit.
-func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Commit, refRange *types.RefRange) types.UpdateTask {
+// In addition, we need to pass the list of all commits; this is needed for
+// showing the commit message diff for "amend!" commits.
+func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(
+	commits []*models.Commit,
+	commit *models.Commit,
+	refRange *types.RefRange,
+) types.UpdateTask {
 	mode := self.diffLineHelper.MainViewDiffMode()
 
 	if refRange != nil {
@@ -82,7 +99,110 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 	}
 
 	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit), mode)
-	return types.NewMainViewDiffTask(cmdObj.GetCmd(), mode)
+	return types.NewMainViewDiffTaskWithPrefix(cmdObj.GetCmd(), self.commitMessageDiffPrefix(commits, commit), mode)
+}
+
+// For an "amend!" commit, returns a prefix with a diff of the commit message it
+// sets against the message it replaces, to be shown above the commit's own diff.
+// Returns nil for any other commit. The prefix is empty for an "amend!" commit
+// that only changes the contents of the commit it applies to.
+func (self *DiffHelper) commitMessageDiffPrefix(commits []*models.Commit, commit *models.Commit) types.Prefix {
+	previousCommit, ok := findCommitWithPreviousMessage(commits, commit)
+	if !ok {
+		return nil
+	}
+
+	header := style.FgYellow.Sprintf("%s\n", utils.ResolvePlaceholderString(
+		self.c.Tr.CommitMessageChanges,
+		map[string]string{"hash": previousCommit.ShortHash()},
+	))
+
+	return func(width int) func() string {
+		produceDiff := self.commitMessageDiff(previousCommit.Hash(), commit.Hash(), width)
+		return func() string {
+			diff := produceDiff()
+			if diff == "" {
+				return ""
+			}
+
+			return header + diff + strings.Repeat("─", width) + "\n"
+		}
+	}
+}
+
+// The names the two messages are diffed under. A diff renderer shows them as the
+// names of the files being diffed, so they are what tells the reader which side
+// is which. They are not translated because they end up as file names, and git
+// mangles paths outside of ASCII when it states them in a diff.
+const (
+	oldMessageName = "old message"
+	newMessageName = "new message"
+)
+
+// commitMessageDiff returns the function that produces the diff of the messages
+// of the two commits, laid out to the given width. It is called on the UI
+// thread, and the function it returns on the render's own goroutine (see
+// types.Prefix).
+func (self *DiffHelper) commitMessageDiff(previousHash string, hash string, width int) func() string {
+	values := config.DiffRendererValues{
+		Width:           width,
+		DiffContext:     self.c.UserConfig().Git.DiffContextSize,
+		LightBackground: self.c.TerminalHasLightBackground(),
+	}
+
+	// The diff renderer lays the diff out, and lays it out according to the
+	// values its command is resolved with, so both belong in the key along with
+	// the two messages.
+	key := fmt.Sprintf("%s\x00%s\x00%+v\x00%s",
+		hash,
+		previousHash,
+		values,
+		self.c.State().GetDiffRendererConfigManager().Signature())
+	if diff, ok := self.commitMessageDiffs[key]; ok {
+		return func() string { return diff }
+	}
+
+	differ, err := self.c.Git().Diff.NewTextDiffer(values, self.c.Contexts().Normal.GetView().InnerHeight())
+	if err != nil {
+		self.c.Log.Error(err)
+		return func() string { return "" }
+	}
+	commitCommands := self.c.Git().Commit
+
+	return func() string {
+		diff, err := renderCommitMessageDiff(commitCommands, differ, previousHash, hash)
+		if err != nil {
+			self.c.Log.Error(err)
+			return ""
+		}
+
+		self.c.OnUIThread(func() error {
+			self.commitMessageDiffs[key] = diff
+			return nil
+		})
+		return diff
+	}
+}
+
+// renderCommitMessageDiff returns the diff of the messages of the two commits, or
+// an empty string if they are the same.
+func renderCommitMessageDiff(
+	commitCommands *git_commands.CommitCommands, differ *git_commands.TextDiffer, previousHash string, hash string,
+) (string, error) {
+	messages, err := commitCommands.GetCommitMessages([]string{previousHash, hash})
+	if err != nil {
+		return "", err
+	}
+
+	before := messageAfterAmending(messages[0])
+	after := messageAfterAmending(messages[1])
+	if before == after {
+		return "", nil
+	}
+
+	return differ.RenderedDiff(
+		git_commands.NamedText{Name: oldMessageName, Content: before},
+		git_commands.NamedText{Name: newMessageName, Content: after})
 }
 
 // PlainDiffBetweenRefs returns the diff of the given files between two refs as git

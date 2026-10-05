@@ -159,6 +159,10 @@ type IGuiCommon interface {
 
 	// Returns true if we're in a demo recording/playback
 	InDemo() bool
+
+	// Returns true if the terminal has a light background, going by
+	// gui.colorScheme, or by what the terminal tells us if that is 'auto'
+	TerminalHasLightBackground() bool
 }
 
 type IModeMgr interface {

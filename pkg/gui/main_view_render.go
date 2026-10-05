@@ -4,16 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
-	"github.com/samber/lo"
 )
 
 // renderSpec describes a render of a command's output into a view: what a way
@@ -96,12 +94,7 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix types.Pref
 			gui.c.ErrorToast(err.Error())
 		}
 
-		// This communicates to diff renderers that we're in a very simple
-		// terminal that they should not expect to have much capabilities.
-		// Moving the cursor, clearing the screen, or querying for colors are among such "advanced" capabilities.
-		// Context: https://github.com/jesseduffield/lazygit/issues/3419
-		cmd.Env = removeExistingTermEnvVars(cmd.Env)
-		cmd.Env = append(cmd.Env, "TERM=dumb")
+		oscommands.SetDumbTerminalEnv(cmd)
 
 		// An external diff command is named to git here, in the environment,
 		// because the width it renders at is only known after the layout, and
@@ -120,7 +113,7 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix types.Pref
 			stdinFilter: stdinFilter,
 		}
 		run := gui.ptyRender
-		if rendersThroughAPipe() {
+		if oscommands.RendersThroughAPipe() {
 			run = gui.pipedRender
 		}
 		return gui.newTaskForRender(reservation, spec, prefix, cmdStr, run)
@@ -172,26 +165,6 @@ func (gui *Gui) newTaskForRender(reservation tasks.TaskReservation, spec renderS
 	manager := gui.getManager(spec.view)
 	linesToRead := gui.linesToReadFromCmdTask(spec.view)
 	return manager.NewReservedTask(reservation, manager.NewCmdTask(start, producePrefix, linesToRead, onClose), key)
-}
-
-// renderWithoutPtyEnvVar makes a render take the piped path on a platform that
-// would otherwise use a pty, so that tests can exercise it anywhere.
-const renderWithoutPtyEnvVar = "LAZYGIT_RENDER_WITHOUT_PTY"
-
-// rendersThroughAPipe reports whether a render feeds the diff renderer the
-// command's output through a pipe rather than running it in a pty.
-//
-// On Windows it has to. ConPTY doesn't pass a command's output through; it
-// parses it into a screen buffer and re-encodes that for the terminal side,
-// and it hands a sequence it can't represent there the moment it parses it,
-// separately from the text around it. So what a renderer writes is not what
-// lazygit reads. A pipe carries the bytes as the renderer wrote them.
-//
-// Everywhere else the pty is kept, since a renderer can read the width it
-// should lay out to off it, and a configuration that doesn't name a width would
-// otherwise render at whatever width the renderer falls back to.
-func rendersThroughAPipe() bool {
-	return runtime.GOOS == "windows" || os.Getenv(renderWithoutPtyEnvVar) != ""
 }
 
 // pipedRender feeds the diff renderer the command's output through a pipe.
@@ -253,21 +226,4 @@ func (gui *Gui) pipedRender(spec renderSpec) (startRender, onCloseRender) {
 // command told nothing renders for 80 columns.
 func setColumnsEnvVar(cmd *exec.Cmd, width int) {
 	cmd.Env = append(cmd.Env, fmt.Sprintf("COLUMNS=%d", width))
-}
-
-func removeExistingTermEnvVars(env []string) []string {
-	return lo.Filter(env, func(envVar string, _ int) bool {
-		return !isTermEnvVar(envVar)
-	})
-}
-
-// Terminals set a variety of different environment variables
-// to identify themselves to processes. This list should catch the most common among them.
-func isTermEnvVar(envVar string) bool {
-	return strings.HasPrefix(envVar, "TERM=") ||
-		strings.HasPrefix(envVar, "TERM_PROGRAM=") ||
-		strings.HasPrefix(envVar, "TERM_PROGRAM_VERSION=") ||
-		strings.HasPrefix(envVar, "TERMINAL_EMULATOR=") ||
-		strings.HasPrefix(envVar, "TERMINAL_NAME=") ||
-		strings.HasPrefix(envVar, "TERMINAL_VERSION_")
 }
