@@ -132,6 +132,13 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Tooltip:           self.c.Tr.ExpandAllTooltip,
 			GetDisabledReason: self.require(self.isInTreeMode),
 		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Files.CollapseParentDirectory),
+			Handler:           self.collapseParentDirectory,
+			Description:       self.c.Tr.CollapseParentDirectory,
+			Tooltip:           self.c.Tr.CollapseParentDirectoryTooltip,
+			GetDisabledReason: self.require(self.isInTreeMode),
+		},
 	}
 
 	return bindings
@@ -600,6 +607,27 @@ func (self *CommitFilesController) collapseAll() error {
 
 func (self *CommitFilesController) expandAll() error {
 	self.context().CommitFileTreeViewModel.ExpandAll()
+
+	self.c.PostRefreshUpdate(self.context())
+
+	return nil
+}
+
+// Collapses the directory that the selected item sits in, and moves the cursor
+// onto it.
+func (self *CommitFilesController) collapseParentDirectory() error {
+	parentIdx, found := self.context().CommitFileTreeViewModel.GetParentIndex(self.context().GetSelectedLineIdx())
+	if !found {
+		return nil
+	}
+
+	parentNode := self.context().CommitFileTreeViewModel.Get(parentIdx)
+	if parentNode == nil || parentNode.File != nil {
+		return nil
+	}
+
+	self.context().CommitFileTreeViewModel.ToggleCollapsed(parentNode.GetInternalPath())
+	self.context().CommitFileTreeViewModel.SetSelection(parentIdx)
 
 	self.c.PostRefreshUpdate(self.context())
 
