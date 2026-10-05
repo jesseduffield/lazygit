@@ -73,6 +73,11 @@ type Gui struct {
 
 	CustomCommandsClient *custom_commands.Client
 
+	// Unlike the other modes, the cherry-picking mode is shared by all repo
+	// states, so that you can copy commits in one worktree or repo and paste
+	// them in another.
+	cherryPicking *cherrypicking.CherryPicking
+
 	// this is a mapping of repos to gui states, so that we can restore the original
 	// gui state when returning from a subrepo.
 	// In repos with multiple worktrees, we store a separate repo state per worktree.
@@ -647,7 +652,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 		},
 		Modes: &types.Modes{
 			Filtering:        filtering.New(startArgs.FilterPath, ""),
-			CherryPicking:    cherrypicking.New(),
+			CherryPicking:    gui.cherryPicking,
 			Diffing:          diffing.New(),
 			MarkedBaseCommit: marked_base_commit.New(),
 		},
@@ -800,6 +805,7 @@ func NewGui(
 		showRecentRepos:       showRecentRepos,
 		RepoPathStack:         &utils.Stack[types.RepoLocation]{},
 		RepoStateMap:          map[Repo]*GuiRepoState{},
+		cherryPicking:         cherrypicking.New(),
 		GuiLog:                []string{},
 
 		// initializing this to true for the time being; it will be reset to the
