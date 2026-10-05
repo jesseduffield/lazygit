@@ -906,10 +906,7 @@ func TestMessageEndsTheLoadingOfTheTaskItReplaces(t *testing.T) {
 	assert.True(t, manager.IsLoading())
 
 	_ = manager.NewTask(func(TaskOpts) error { return nil }, "message")
-	/* EXPECTED:
 	assert.False(t, manager.IsLoading())
-	ACTUAL: */
-	assert.True(t, manager.IsLoading())
 }
 
 // The view is loading the content of the command task asked for last. A task
@@ -953,8 +950,5 @@ func TestEarlierTaskEndingLeavesALaterTaskLoading(t *testing.T) {
 
 	close(stalled.unblock)
 	<-earlierDone
-	/* EXPECTED:
 	assert.True(t, manager.IsLoading())
-	ACTUAL: */
-	assert.False(t, manager.IsLoading())
 }
