@@ -51,34 +51,40 @@ func (self *GuiDriver) PressKeysRapidly(keyStrs ...string) {
 }
 
 func (self *GuiDriver) Click(x, y int) {
+	self.ClickWithModifier(x, y, gocui.ModNone)
+}
+
+// ClickWithModifier clicks with a keyboard modifier held down for the whole
+// gesture, as a terminal reports it.
+func (self *GuiDriver) ClickWithModifier(x, y int, modifier gocui.Modifier) {
 	self.CheckAllToastsAcknowledged()
 
-	self.replayMouseEvent(x, y, tcell.ButtonPrimary)
-	self.replayMouseEvent(x, y, tcell.ButtonNone)
+	self.replayMouseEvent(x, y, tcell.ButtonPrimary, modifier)
+	self.replayMouseEvent(x, y, tcell.ButtonNone, modifier)
 }
 
 func (self *GuiDriver) ClickAndHold(x, y int) {
 	self.CheckAllToastsAcknowledged()
-	self.replayMouseEvent(x, y, tcell.ButtonPrimary)
+	self.replayMouseEvent(x, y, tcell.ButtonPrimary, gocui.ModNone)
 }
 
 // MouseMove reports the mouse at a new position with the left button still
 // held down, i.e. a drag movement. (No test needs pointer motion without a
 // button held, so that variant doesn't exist.)
 func (self *GuiDriver) MouseMove(x, y int) {
-	self.replayMouseEvent(x, y, tcell.ButtonPrimary)
+	self.replayMouseEvent(x, y, tcell.ButtonPrimary, gocui.ModNone)
 }
 
 func (self *GuiDriver) ScrollWheelDown(x, y int) {
-	self.replayMouseEvent(x, y, tcell.WheelDown)
+	self.replayMouseEvent(x, y, tcell.WheelDown, gocui.ModNone)
 }
 
 func (self *GuiDriver) MouseRelease(x, y int) {
-	self.replayMouseEvent(x, y, tcell.ButtonNone)
+	self.replayMouseEvent(x, y, tcell.ButtonNone, gocui.ModNone)
 }
 
 func (self *GuiDriver) MouseReleaseWithoutWaiting(x, y int) {
-	self.replayMouseEventWithoutWaiting(x, y, tcell.ButtonNone)
+	self.replayMouseEventWithoutWaiting(x, y, tcell.ButtonNone, gocui.ModNone)
 }
 
 func (self *GuiDriver) WaitUntilIdle() {
@@ -89,14 +95,16 @@ func (self *GuiDriver) OnUIThreadAndWait(f func()) {
 	_ = self.gui.g.OnUIThreadAndWait(f)
 }
 
-func (self *GuiDriver) replayMouseEvent(x, y int, buttons tcell.ButtonMask) {
-	self.replayMouseEventWithoutWaiting(x, y, buttons)
+func (self *GuiDriver) replayMouseEvent(x, y int, buttons tcell.ButtonMask, modifier gocui.Modifier) {
+	self.replayMouseEventWithoutWaiting(x, y, buttons, modifier)
 	self.waitTillIdle()
 }
 
-func (self *GuiDriver) replayMouseEventWithoutWaiting(x, y int, buttons tcell.ButtonMask) {
+func (self *GuiDriver) replayMouseEventWithoutWaiting(
+	x, y int, buttons tcell.ButtonMask, modifier gocui.Modifier,
+) {
 	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
-		tcell.NewEventMouse(x, y, buttons, 0),
+		tcell.NewEventMouse(x, y, buttons, tcell.ModMask(modifier)),
 		0,
 	))
 }
