@@ -10,7 +10,7 @@ var StageDiffLinesOfAPathWithASpace = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 	},
 	SetupRepo: func(shell *Shell) {
 		// git ends the path field of the diff's "---" and "+++" lines with a tab

@@ -34,10 +34,6 @@ func (self *Views) regularView(viewName string) *ViewDriver {
 	}
 }
 
-func (self *Views) patchExplorerViewByName(viewName string) *ViewDriver {
-	return self.regularView(viewName)
-}
-
 func (self *Views) MergeConflicts() *ViewDriver {
 	return self.regularView("mergeConflicts")
 }
@@ -100,24 +96,6 @@ func (self *Views) CommitFiles() *ViewDriver {
 
 func (self *Views) Stash() *ViewDriver {
 	return self.regularView("stash")
-}
-
-func (self *Views) Staging() *ViewDriver {
-	return self.patchExplorerViewByName("staging")
-}
-
-func (self *Views) StagingSecondary() *ViewDriver {
-	return self.patchExplorerViewByName("stagingSecondary")
-}
-
-func (self *Views) PatchBuilding() *ViewDriver {
-	return self.patchExplorerViewByName("patchBuilding")
-}
-
-func (self *Views) PatchBuildingSecondary() *ViewDriver {
-	// this is not a patch explorer view because you can't actually focus it: it
-	// just renders content
-	return self.regularView("patchBuildingSecondary")
 }
 
 func (self *Views) Menu() *ViewDriver {

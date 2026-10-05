@@ -15,7 +15,7 @@ var SelectVisibleChangeOnFocusingMainView = NewIntegrationTest(NewIntegrationTes
 	Width:        120,
 	Height:       30,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		// Enough context around each change to scroll into a stretch of the diff that
 		// holds none.
 		cfg.GetUserConfig().Git.DiffContextSize = 20

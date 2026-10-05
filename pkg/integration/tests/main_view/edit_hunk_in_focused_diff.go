@@ -10,7 +10,7 @@ var EditHunkInFocusedDiff = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		// Stand in for the editor: record the line it was pointed at, outside the
 		// repo so that the files panel keeps saying what the test is about, then
 		// write a patch that stages something neither side of the diff says. That

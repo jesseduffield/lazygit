@@ -10,7 +10,7 @@ var FocusLeavesAnAlwaysSplitEmptyPane = NewIntegrationTest(NewIntegrationTestArg
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		cfg.GetUserConfig().Gui.SplitDiff = "always"
 	},
 	SetupRepo: func(shell *Shell) {

@@ -15,7 +15,7 @@ var KeepScrollWhenTheDiffCantBeRead = NewIntegrationTest(NewIntegrationTestArgs{
 	Width:        120,
 	Height:       30,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.GetUserConfig().Gui.UseHunkModeInStagingView = false
+		cfg.GetUserConfig().Gui.UseHunkModeInDiffView = false
 		// A renderer that says nothing about which line of which file each row shows,
 		// and mangles the diff enough that it can't be read back as one either: no line
 		// of it can be looked for in the re-render.

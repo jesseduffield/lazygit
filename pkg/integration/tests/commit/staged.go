@@ -28,25 +28,25 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			SelectNextItem().
 			PressPrimaryAction(). // stage the file
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
-		t.Views().StagingSecondary().
+		t.Views().Secondary().
 			IsFocused().
 			Tap(func() {
 				// we start with both lines having been staged
-				t.Views().StagingSecondary().Content(Contains("+myfile content"))
-				t.Views().StagingSecondary().Content(Contains("+with a second line"))
-				t.Views().Staging().Content(DoesNotContain("+myfile content"))
-				t.Views().Staging().Content(DoesNotContain("+with a second line"))
+				t.Views().Secondary().Content(Contains("+myfile content"))
+				t.Views().Secondary().Content(Contains("+with a second line"))
+				t.Views().Main().Content(DoesNotContain("+myfile content"))
+				t.Views().Main().Content(DoesNotContain("+with a second line"))
 			}).
 			// unstage the selected line
 			PressPrimaryAction().
 			Tap(func() {
 				// the line should have been moved to the main view
-				t.Views().StagingSecondary().Content(DoesNotContain("+myfile content"))
-				t.Views().StagingSecondary().Content(Contains("+with a second line"))
-				t.Views().Staging().Content(Contains("+myfile content"))
-				t.Views().Staging().Content(DoesNotContain("+with a second line"))
+				t.Views().Secondary().Content(DoesNotContain("+myfile content"))
+				t.Views().Secondary().Content(Contains("+with a second line"))
+				t.Views().Main().Content(Contains("+myfile content"))
+				t.Views().Main().Content(DoesNotContain("+with a second line"))
 			}).
 			Press(keys.Files.CommitChanges)
 
@@ -58,10 +58,9 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains(commitMessage),
 			)
 
-		t.Views().StagingSecondary().
-			IsEmpty()
+		t.Views().Secondary().IsInvisible()
 
-		t.Views().Staging().
+		t.Views().Main().
 			IsFocused().
 			Content(Contains("+myfile content")).
 			Content(DoesNotContain("+with a second line"))
