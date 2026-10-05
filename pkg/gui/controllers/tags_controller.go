@@ -109,7 +109,7 @@ func (self *TagsController) GetOnRenderToMain() func() {
 			} else {
 				cmdObj := self.c.Git().Branch.GetGraphCmdObj(tag.FullRefName())
 				prefix := self.getTagInfo(tag) + "\n\n---\n\n"
-				task = types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix)
+				task = types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), types.StaticPrefix(prefix))
 			}
 
 			self.c.RenderToMainViews(types.RefreshMainOpts{

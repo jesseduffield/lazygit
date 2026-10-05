@@ -78,7 +78,7 @@ func (self *DiffHelper) GetUpdateTaskForRenderingCommitsDiff(commit *models.Comm
 		}
 		cmdObj := self.c.Git().Diff.DiffCmdObj(args, mode)
 		prefix := style.FgYellow.Sprintf("%s %s-%s\n\n", self.c.Tr.ShowingDiffForRange, from.ShortRefName(), to.ShortRefName())
-		return types.NewMainViewDiffTaskWithPrefix(cmdObj.GetCmd(), prefix, mode)
+		return types.NewMainViewDiffTaskWithPrefix(cmdObj.GetCmd(), types.StaticPrefix(prefix), mode)
 	}
 
 	cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Hash(), self.FilterPathsForCommit(commit), mode)
@@ -141,7 +141,7 @@ func (self *DiffHelper) RenderDiff() {
 		self.c.Tr.ShowingGitDiff,
 		"git diff "+strings.Join(args, " "),
 	)
-	task := types.NewMainViewDiffTaskWithPrefix(cmdObj.GetCmd(), prefix, git_commands.DiffModeRendered)
+	task := types.NewMainViewDiffTaskWithPrefix(cmdObj.GetCmd(), types.StaticPrefix(prefix), git_commands.DiffModeRendered)
 
 	self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,

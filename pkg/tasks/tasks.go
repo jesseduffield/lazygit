@@ -421,7 +421,11 @@ func (self *ViewBufferManager) stopServingReadRequests() {
 	}
 }
 
-func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
+// NewCmdTask returns a task that renders the output of the command that start
+// starts. prefix, unless nil, produces the text shown above that output. It is
+// called on the task's goroutine before the command starts, so a prefix that
+// takes a while to produce holds up only this task.
+func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix func() string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
 	return func(opts TaskOpts) error {
 		var onDoneOnce sync.Once
 		var onFirstPageShownOnce sync.Once
@@ -460,6 +464,18 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 		if stopped() {
 			onDone()
 			return nil
+		}
+
+		prefixText := ""
+		if prefix != nil {
+			prefixText = prefix()
+
+			// A task stopped while it was producing its prefix has no use for the
+			// command's output any more.
+			if stopped() {
+				onDone()
+				return nil
+			}
 		}
 
 		startTime := time.Now()
@@ -683,8 +699,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							// displayed until we swap in below; this is what keeps an async
 							// re-render from showing a half-loaded buffer.
 							self.beginRender()
-							if prefix != "" {
-								writeToView([]byte(prefix))
+							if prefixText != "" {
+								writeToView([]byte(prefixText))
 							}
 							loaded = true
 						}
