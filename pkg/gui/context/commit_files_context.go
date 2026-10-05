@@ -19,14 +19,25 @@ type CommitFilesContext struct {
 }
 
 var (
-	_ types.IListContext        = (*CommitFilesContext)(nil)
-	_ types.DiffableContext     = (*CommitFilesContext)(nil)
-	_ types.IFilterableContext  = (*CommitFilesContext)(nil)
-	_ types.DiffMainViewContext = (*CommitFilesContext)(nil)
+	_ types.IListContext           = (*CommitFilesContext)(nil)
+	_ types.DiffableContext        = (*CommitFilesContext)(nil)
+	_ types.IFilterableContext     = (*CommitFilesContext)(nil)
+	_ types.DiffMainViewContext    = (*CommitFilesContext)(nil)
+	_ types.PullRequestDiffContext = (*CommitFilesContext)(nil)
 )
 
 func (self *CommitFilesContext) GetDiffMainViewType() types.DiffMainViewType {
 	return types.DiffMainViewTypePatchBuilding
+}
+
+// PullRequestDiff asks the panel this one was entered from. The files listed here are
+// those of the commits selected there, and that panel knows which branch's pull request
+// those commits are in.
+func (self *CommitFilesContext) PullRequestDiff() types.PullRequestDiff {
+	if parent, ok := self.GetParentContext().(types.PullRequestDiffContext); ok {
+		return parent.PullRequestDiff()
+	}
+	return types.PullRequestDiff{}
 }
 
 func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {

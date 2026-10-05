@@ -2,8 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"path/filepath"
-	"strings"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -443,11 +441,7 @@ func (self *CommitDiffActions) patchEndpoints(target *commitDiffTarget) (string,
 // patchBuilderPath turns the absolute path a diff line carries into the repo-relative
 // one the patch builder keys a file by, and "" for a path that is no file of this repo.
 func (self *CommitDiffActions) patchBuilderPath(path string) string {
-	relativePath, err := filepath.Rel(self.c.Git().RepoPaths.WorktreePath(), path)
-	if err != nil || strings.HasPrefix(relativePath, "..") {
-		return ""
-	}
-	return filepath.ToSlash(relativePath)
+	return repoRelativePath(self.c.Git().RepoPaths.WorktreePath(), path)
 }
 
 // indexOfTargetCommit finds the commit the diff belongs to among the commits of the
