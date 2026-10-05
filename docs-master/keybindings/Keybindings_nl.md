@@ -10,8 +10,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | Scroll naar beneden vanaf hoofdpaneel |  |
 | `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | Scroll naar beneden vanaf hoofdpaneel |  |
 | `` @ `` | Commandolog opties weergeven | Bekijk commandolog opties, bijv. commandolog tonen/verbergen en focus. |
-| `` P `` | Push | Push de huidige branch naar de bijbehorende upstream-branch. Als er geen upstream is geconfigureerd wordt er gevraagd om een upstream-branch te configureren. |
-| `` p `` | Pull | Pull wijzigingen van de remote voor de huidige branch. Als er geen upstream is geconfigureerd wordt er gevraagd om een upstream-branch te configureren. |
+| `` P `` | Push | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have commits to push, you are offered to push those too. |
+| `` p `` | Pull | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have changed on the remote, you are offered to update those too. |
 | `` ) `` | Increase rename similarity threshold | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` ( `` | Decrease rename similarity threshold | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` } `` | Increase diff context size | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
@@ -73,7 +73,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | Bekijk stash opties | View stash options (e.g. stash all, stash staged, stash unstaged). |
 | `` a `` | Toggle staged alle | Toggle staged/unstaged for all files in working tree. |
-| `` <enter> `` | Stage individuele hunks/lijnen | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
+| `` <enter> `` | Focus file diff / Collapse directory | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
 | `` d `` | Bekijk 'veranderingen ongedaan maken' opties | View options for discarding changes to the selected file. |
 | `` g `` | Bekijk upstream reset opties |  |
 | `` D `` | Resetten | View reset options for working tree (e.g. nuking the working tree). |

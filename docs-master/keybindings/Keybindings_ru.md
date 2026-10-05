@@ -386,7 +386,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | Stash | Stash all changes. For other variations of stashing, use the view stash options keybinding. |
 | `` S `` | Просмотреть параметры хранилища | View stash options (e.g. stash all, stash staged, stash unstaged). |
 | `` a `` | Все проиндексированные/непроиндексированные | Toggle staged/unstaged for all files in working tree. |
-| `` <enter> `` | Проиндексировать отдельные части/строки для файла или свернуть/развернуть для каталога | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
+| `` <enter> `` | Focus file diff / Collapse directory | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
 | `` d `` | Просмотреть параметры «отмены изменении» | View options for discarding changes to the selected file. |
 | `` g `` | Просмотреть параметры сброса upstream-ветки |  |
 | `` D `` | Reset | View reset options for working tree (e.g. nuking the working tree). |

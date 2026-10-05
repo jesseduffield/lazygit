@@ -10,8 +10,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | 向上滚动主面板 |  |
 | `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | 向下滚动主面板 |  |
 | `` @ `` | 打开命令日志菜单 | 查看命令日志的选项，例如显示/隐藏命令日志以及聚焦命令日志 |
-| `` P `` | 推送 | 推送当前分支到它的上游。如果上游未配置，您可以在弹窗中配置上游分支。 |
-| `` p `` | 拉取 | 从当前分支的远程分支获取改动。如果上游未配置，您可以在弹窗中配置上游分支。 |
+| `` P `` | 推送 | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have commits to push, you are offered to push those too. |
+| `` p `` | 拉取 | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have changed on the remote, you are offered to update those too. |
 | `` ) `` | 提高重命名相似度阈值 | 提高将删除和添加对视为重命名所需的相似度阈值。<br><br>默认值可在配置文件中通过键 'git.renameSimilarityThreshold' 更改。 |
 | `` ( `` | 降低重命名相似度阈值 | 降低将删除和添加对视为重命名所需的相似度阈值。<br><br>默认值可在配置文件中通过键 'git.renameSimilarityThreshold' 更改。 |
 | `` } `` | 扩大差异视图中显示的上下文范围 | 增加差异视图中变更周围显示的上下文量。<br><br>默认值可在配置文件中通过键 'git.diffContextSize' 更改。 |
@@ -206,7 +206,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | 贮藏 | 贮藏所有变更.若要使用其他贮藏变体,请使用查看贮藏选项快捷键 |
 | `` S `` | 查看贮藏选项 | 查看贮藏选项（例如：贮藏所有、贮藏已暂存变更、贮藏未暂存变更） |
 | `` a `` | 切换所有文件的暂存状态 | 切换工作区中所有文件的已暂存/未暂存状态 |
-| `` <enter> `` | 暂存单个 块/行 用于文件, 或 折叠/展开 目录 | 如果选中的是一个文件，则会进入到暂存视图，以便可以暂存单个代码块/行。如果选中的是一个目录，则会折叠/展开这个目录 |
+| `` <enter> `` | Focus file diff / Collapse directory | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
 | `` d `` | 查看'放弃变更'选项 | 查看选中文件的放弃变更选项 |
 | `` g `` | 查看上游重置选项 |  |
 | `` D `` | 重置 | 查看工作树的重置选项（例如：清除工作树）。 |
@@ -239,7 +239,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` d `` | 删除 | 查看本地/远程分支的删除选项 |
 | `` r `` | 变基 | 将检出的分支变基到所选的分支上。 |
 | `` M `` | 合并到当前检出的分支 | 查看将选中项合并到当前分支的选项(正常合并，压缩合并) |
-| `` f `` | 从上游快进此分支 | 将当前分支直接移动到远程追踪分支的最新提交 |
+| `` f `` | 从上游快进此分支 | Fast-forward selected branch from its upstream. If the branch has diverged from its upstream because the upstream branch was rewritten, and it has no commits of its own, it is reset to its upstream instead. This needs reflogs to be enabled; a bare repository doesn't keep them by default (core.logAllRefUpdates). |
 | `` T `` | 创建标签 |  |
 | `` s `` | 排序 |  |
 | `` g `` | 查看重置选项 |  |
