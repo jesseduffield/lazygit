@@ -410,6 +410,7 @@ var tests = []*components.IntegrationTest{
 	main_view.JumpToAFileOfTheDiff,
 	main_view.JumpToAFileOnlyOverADiff,
 	main_view.KeepAWrappedLineCoveredAcrossARerender,
+	main_view.KeepAnEmptiedPaneEmpty,
 	main_view.KeepBothHalvesOfAChangeSelected,
 	main_view.KeepPositionByTheVisibleEndOfASelection,
 	main_view.KeepPositionInBothPanesWhenChangingContextSize,
