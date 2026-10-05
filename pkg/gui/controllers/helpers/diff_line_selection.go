@@ -131,3 +131,73 @@ func (self *DiffLineHelper) SelectedHunkBounds(view *gocui.View) (int, int, bool
 	}
 	return self.ChangeBlockBounds(view, anchor)
 }
+
+// RefreshInclusionGutter updates the marks drawn over the diff in the main pane, which
+// say which of its lines are in the custom patch being built from it.
+//
+// They are shown whenever the pane shows a diff the patch is being built from, whether
+// or not it has the focus. The pane beside it previews the patch all the while, and the
+// marks show the same lines from the side of the diff. A diff of some other commit gets
+// none, since a patch built from another commit says nothing about the lines of this one.
+//
+// Call it whenever either of those can have changed: as a pane's content settles, and
+// when the patch itself changes.
+func (self *DiffLineHelper) RefreshInclusionGutter() {
+	view := self.c.Contexts().Normal.GetView()
+
+	included := self.gutterInclusion()
+	if included == nil {
+		view.SetInclusionGutter(false, nil)
+		return
+	}
+
+	resolved := self.resolveDiffLines(view.DiffLineContents())
+	marks := make([]bool, len(resolved))
+	for i, row := range resolved {
+		if row.ok && row.info.IsChange() {
+			marks[i] = included(row.info)
+		}
+	}
+	view.SetInclusionGutter(true, marks)
+}
+
+// ShowsInclusionGutter reports whether the custom patch's marks are drawn over what the
+// given view is being given to show: the upper main pane, while it shows the diff of a
+// panel the patch is being built from.
+//
+// It goes by what is known before the content arrives, so that a render can be laid out
+// to the width the gutter leaves it. Whether the diff turns out to have any change lines
+// to mark doesn't come into it.
+func (self *DiffLineHelper) ShowsInclusionGutter(view *gocui.View) bool {
+	return view == self.c.Contexts().Normal.GetView() && self.gutterInclusion() != nil
+}
+
+// gutterInclusion is patchInclusion for the gutter over the upper main pane, which is
+// shown only over the panel's diff and not, say, over a message in its place.
+func (self *DiffLineHelper) gutterInclusion() func(types.DiffLineInfo) bool {
+	if !self.c.Contexts().Normal.ContentIsDiff() {
+		return nil
+	}
+	return self.patchInclusion()
+}
+
+// patchInclusion asks the panel whose diff the main pane is showing which of that diff's
+// lines are in the custom patch being built from it, and answers nil where there is no
+// such patch.
+func (self *DiffLineHelper) patchInclusion() func(types.DiffLineInfo) bool {
+	// The side panel nearest the top of the stack, whether it holds the focus itself or
+	// either main pane above it does.
+	sidePanel := self.c.Context().CurrentSide()
+	actions, ok := sidePanel.GetFocusedMainViewDiffSource().(types.FocusedMainViewActions)
+	if !ok {
+		return nil
+	}
+	return actions.PatchInclusion()
+}
+
+// ShowsCustomPatch reports whether the given view is the one previewing the custom patch
+// being built, which is the lower pane while a patch is being built from the diff in the
+// upper one.
+func (self *DiffLineHelper) ShowsCustomPatch(view *gocui.View) bool {
+	return view == self.c.Contexts().NormalSecondary.GetView() && self.patchInclusion() != nil
+}

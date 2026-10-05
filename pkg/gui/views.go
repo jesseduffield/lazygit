@@ -177,6 +177,13 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Main.SelectedLineColorWidth = 2
 	gui.Views.Secondary.SelectedLineColorWidth = 2
 
+	// A tick, for the lines of a commit's diff that are in the custom patch being
+	// built. A plus would collide with a diff's own plus column.
+	gui.Views.Main.InclusionGutterMarker = "✓"
+	gui.Views.Main.InclusionGutterMarkerColor = gocui.ColorGreen
+	gui.Views.Secondary.InclusionGutterMarker = "✓"
+	gui.Views.Secondary.InclusionGutterMarkerColor = gocui.ColorGreen
+
 	return nil
 }
 

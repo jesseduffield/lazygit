@@ -43,7 +43,10 @@ func (self *PatchBuildingHelper) Escape() {
 func (self *PatchBuildingHelper) Reset() error {
 	self.c.Git().Patch.PatchBuilder.Reset()
 
-	if self.c.Context().CurrentStatic().GetKind() != types.SIDE_CONTEXT {
+	// The patch-building view is the one thing with nothing left to show once the patch is
+	// gone, so it is the one thing left behind. Everywhere else the user is looking at
+	// something of their own — a commit's diff, the working tree's — which is still there.
+	if self.c.Context().CurrentStatic().GetKey() == self.c.Contexts().CustomPatchBuilder.GetKey() {
 		self.Escape()
 	}
 
@@ -51,8 +54,11 @@ func (self *PatchBuildingHelper) Reset() error {
 		Scope: []types.RefreshableView{types.COMMIT_FILES},
 	})
 
-	// refreshing the current context so that the secondary panel is hidden if necessary.
-	self.c.PostRefreshUpdate(self.c.Context().Current())
+	// Render again so that the pane that was previewing the patch goes with it. The
+	// panel asked to do that is the side panel rather than whichever context has the
+	// focus. Both main panes are rendered by the panel beneath them, so a reset from
+	// within the focused main view has to go through that panel too.
+	self.c.PostRefreshUpdate(self.c.Context().CurrentSide())
 	return nil
 }
 
