@@ -49,7 +49,7 @@ func NewStashContext(
 	}
 }
 
-func (self *StashContext) CanRebase() bool {
+func (self *StashContext) CanRebase(currentBranch *models.Branch) bool {
 	return false
 }
 

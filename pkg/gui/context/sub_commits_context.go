@@ -171,8 +171,8 @@ func (self *SubCommitsViewModel) GetShowBranchHeads() bool {
 	return self.showBranchHeads
 }
 
-func (self *SubCommitsContext) CanRebase() bool {
-	return false
+func (self *SubCommitsContext) CanRebase(currentBranch *models.Branch) bool {
+	return self.GetRef() == currentBranch
 }
 
 func (self *SubCommitsContext) GetSelectedRef() models.Ref {
