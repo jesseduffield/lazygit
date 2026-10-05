@@ -266,12 +266,12 @@ func (self *GuiDriver) TopViewInWindow(windowName string) *gocui.View {
 }
 
 func (self *GuiDriver) SetCaption(caption string) {
-	self.gui.setCaption(caption)
+	self.OnUIThreadAndWait(func() { self.gui.setCaption(caption) })
 	self.waitTillIdle()
 }
 
 func (self *GuiDriver) SetCaptionPrefix(prefix string) {
-	self.gui.setCaptionPrefix(prefix)
+	self.OnUIThreadAndWait(func() { self.gui.setCaptionPrefix(prefix) })
 	self.waitTillIdle()
 }
 
