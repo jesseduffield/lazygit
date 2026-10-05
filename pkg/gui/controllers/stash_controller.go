@@ -96,7 +96,7 @@ func (self *StashController) GetOnRenderToMain() func() {
 				prefix := style.FgYellow.Sprintf("%s\n\n", stashEntry.Description())
 				task = types.NewMainViewDiffTaskWithPrefix(
 					self.c.Git().Stash.ShowStashEntryCmdObj(stashEntry.Index, mode).GetCmd(),
-					prefix,
+					types.StaticPrefix(prefix),
 					mode,
 				)
 			}

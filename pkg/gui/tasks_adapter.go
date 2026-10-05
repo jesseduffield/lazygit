@@ -7,11 +7,12 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/sirupsen/logrus"
 )
 
-func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
+func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix types.Prefix) error {
 	cmdStr := strings.Join(cmd.Args, " ")
 	gui.c.Log.WithField(
 		"command",

@@ -210,8 +210,10 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 
 				pr, ok := self.c.Helpers().Host.PullRequestForBranch(branch.Name)
 				if ok && presentation.ShouldShowPrForBranch(pr, branch.Name, self.c.UserConfig()) {
-					rendererTask.Prefix = presentation.FormatPullRequestHeader(pr, self.c.Tr)
-					rendererTask.Prefix += strings.Repeat("─", self.c.Contexts().Normal.GetView().InnerWidth()) + "\n"
+					header := presentation.FormatPullRequestHeader(pr, self.c.Tr)
+					rendererTask.Prefix = types.PrefixForWidth(func(width int) string {
+						return header + strings.Repeat("─", width) + "\n"
+					})
 				}
 			}
 

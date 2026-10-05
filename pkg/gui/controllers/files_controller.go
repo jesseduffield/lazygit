@@ -360,7 +360,7 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 			prefix += self.c.Tr.MergeConflictCurrentDiff
 		}
 		prefix += "\n\n"
-		self.renderToMainWithTask(types.NewRunDiffRendererTaskWithPrefix(cmdObj.GetCmd(), prefix))
+		self.renderToMainWithTask(types.NewRunDiffRendererTaskWithPrefix(cmdObj.GetCmd(), types.StaticPrefix(prefix)))
 		return
 	}
 

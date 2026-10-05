@@ -421,7 +421,11 @@ func (self *ViewBufferManager) stopServingReadRequests() {
 	}
 }
 
-func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
+// NewCmdTask returns a task that renders the output of the command that start
+// starts. prefix, unless nil, produces the text shown above that output. It is
+// called on the task's goroutine before the command starts, so a prefix that
+// takes a while to produce holds up only this task.
+func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix func() string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
 	return func(opts TaskOpts) error {
 		var onDoneOnce sync.Once
 		var onFirstPageShownOnce sync.Once
@@ -448,11 +452,30 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			time.Sleep(THROTTLE_TIME)
 		}
 
-		select {
-		case <-opts.Stop:
+		stopped := func() bool {
+			select {
+			case <-opts.Stop:
+				return true
+			default:
+				return false
+			}
+		}
+
+		if stopped() {
 			onDone()
 			return nil
-		default:
+		}
+
+		prefixText := ""
+		if prefix != nil {
+			prefixText = prefix()
+
+			// A task stopped while it was producing its prefix has no use for the
+			// command's output any more.
+			if stopped() {
+				onDone()
+				return nil
+			}
 		}
 
 		startTime := time.Now()
@@ -573,22 +596,6 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				}
 			}
 
-			// Go's select picks randomly among ready cases, so once opts.Stop is
-			// closed the selects below could still service a ready data channel
-			// instead of bailing. Check stop explicitly first to give it priority:
-			// a task that's been stopped (it's being replaced by a newer one) must
-			// not touch the view here — it would start an off-screen render and
-			// write the prefix into it, clobbering what the incoming task is about
-			// to render.
-			stopped := func() bool {
-				select {
-				case <-opts.Stop:
-					return true
-				default:
-					return false
-				}
-			}
-
 			// The total number of lines we have read so far. Requests specify an
 			// absolute target total (see LinesToRead.Total), so we compare against
 			// this to work out how many more lines, if any, we still need to read.
@@ -637,6 +644,13 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				}
 			}
 
+			// Go's select picks randomly among ready cases, so once opts.Stop is
+			// closed the selects below could still service a ready data channel
+			// instead of bailing. Check stop explicitly first to give it priority:
+			// a task that's been stopped (it's being replaced by a newer one) must
+			// not touch the view here — it would start an off-screen render and
+			// write the prefix into it, clobbering what the incoming task is about
+			// to render.
 		outer:
 			for {
 				if stopped() {
@@ -685,8 +699,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							// displayed until we swap in below; this is what keeps an async
 							// re-render from showing a half-loaded buffer.
 							self.beginRender()
-							if prefix != "" {
-								writeToView([]byte(prefix))
+							if prefixText != "" {
+								writeToView([]byte(prefixText))
 							}
 							loaded = true
 						}

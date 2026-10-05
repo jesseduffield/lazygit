@@ -11,6 +11,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/samber/lo"
 )
@@ -35,7 +36,7 @@ type renderSpec struct {
 // newRenderTask renders cmd's output into view, through the diff renderer the
 // user has configured. The renderer lays its rendering out to the width of the
 // view, which only the layout settles, so the task is created after it.
-func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
+func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix types.Prefix) error {
 	// Ask whatever renders the diff to state, in an OSC 1717 record per line,
 	// which line of which file it is rendering. This lets us act on the line the
 	// user is pointing at even when the rendering no longer looks like a diff.
@@ -156,14 +157,21 @@ type runRender func(spec renderSpec) (startRender, onCloseRender)
 // view, running the command the given way. The task takes the place that the
 // reservation holds among the view's tasks. key names what is rendered, so that
 // a re-render of the same content can be told from a render of other content.
-func (gui *Gui) newTaskForRender(reservation tasks.TaskReservation, spec renderSpec, prefix string, key string, run runRender) error {
+func (gui *Gui) newTaskForRender(reservation tasks.TaskReservation, spec renderSpec, prefix types.Prefix, key string, run runRender) error {
 	setColumnsEnvVar(spec.cmd, spec.width)
 
 	start, onClose := run(spec)
 
+	// The prefix is laid out here, on the UI thread, now that the width is
+	// known; its text is produced on the task's goroutine.
+	var producePrefix func() string
+	if prefix != nil {
+		producePrefix = prefix(spec.width)
+	}
+
 	manager := gui.getManager(spec.view)
 	linesToRead := gui.linesToReadFromCmdTask(spec.view)
-	return manager.NewReservedTask(reservation, manager.NewCmdTask(start, prefix, linesToRead, onClose), key)
+	return manager.NewReservedTask(reservation, manager.NewCmdTask(start, producePrefix, linesToRead, onClose), key)
 }
 
 // renderWithoutPtyEnvVar makes a render take the piped path on a platform that
