@@ -480,6 +480,7 @@ var tests = []*components.IntegrationTest{
 	main_view.SelectionCommandTooltipsFollowTheDiff,
 	main_view.SelectionCommandsOnlyWhereTheyApply,
 	main_view.SelectionOverTheCustomPatch,
+	main_view.ShowTheTabSwitchedToLast,
 	main_view.StageDeletedFile,
 	main_view.StageDiffLines,
 	main_view.StageDiffLinesOfAPathWithASpace,
