@@ -68,6 +68,10 @@ bump-lazycore:
 record-demo:
 	demo/record_demo.sh $(filter-out $@,$(MAKECMDGOALS))
 
+.PHONY: rerecord-demos
+rerecord-demos:
+	demo/rerecord_demos.sh $(filter-out $@,$(MAKECMDGOALS))
+
 .PHONY: vendor
 vendor:
 	go mod tidy && go mod vendor

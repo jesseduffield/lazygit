@@ -16,4 +16,7 @@ func setGeneratedAuthorColours(config *config.AppConfig) {
 func setDefaultDemoConfig(config *config.AppConfig) {
 	// demos look much nicer with icons shown
 	config.GetUserConfig().Gui.NerdFontsVersion = "3"
+	// The terminal that we record demos in doesn't tell us that it can draw the
+	// detailed graph; demo/settings.tape gives it a font for it
+	config.GetUserConfig().Gui.CommitGraphStyle = "detailed"
 }
