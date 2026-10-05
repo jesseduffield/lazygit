@@ -83,6 +83,11 @@ func (self *ContextLinesController) applyChange() error {
 	case context.STAGING_MAIN_CONTEXT_KEY, context.STAGING_SECONDARY_CONTEXT_KEY:
 		self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STAGING}})
 	default:
+		// The diff is about to be rendered again with more or less context around
+		// each change, which reads as the lines you were looking at moving up or down
+		// the view; keep them where they are instead.
+		self.c.Helpers().DiffLine.PreserveDiffPositionOnRerender(self.c.Contexts().Normal.GetView())
+		self.c.Helpers().DiffLine.PreserveDiffPositionOnRerender(self.c.Contexts().NormalSecondary.GetView())
 		currentContext.HandleRenderToMain()
 	}
 	return nil
