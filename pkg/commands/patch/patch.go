@@ -79,6 +79,44 @@ func (self *Patch) HunkEndIdx(hunkIndex int) int {
 	return self.HunkStartIdx(hunkIndex) + self.hunks[hunkIndex].lineCount() - 1
 }
 
+// IsWellFormed reports whether every hunk's body matches the lengths declared in
+// its header. A faithful unified diff always satisfies this; a rendering that
+// restructured the diff body does not — a diff renderer that puts line numbers in
+// a gutter, say, shifts the +/- marker off the start of each line, so every body
+// line reads as context and the computed lengths no longer match the header. That
+// makes this the test for whether a rendered diff can be parsed as a unified diff
+// at all, rather than trusting a mis-parse. Only meaningful for patches produced
+// by Parse, which is where the declared lengths come from.
+func (self *Patch) IsWellFormed() bool {
+	return self.isWellFormed(false)
+}
+
+// IsWellFormedSoFar is IsWellFormed for a patch parsed from a diff we have only the
+// beginning of. Its last hunk holds the first lines of a body that hasn't all arrived,
+// so every hunk but the last has to match its header exactly, as before, while the last
+// one only has to fit within what its header declares.
+//
+// The check exists to tell a faithful rendering from a restructured one, and it still
+// does that. A rendering that moves the +/- marker off the start of the line makes us
+// read a change as context, and a context line counts towards both lengths, so such a
+// hunk comes out longer than its header declares rather than shorter.
+func (self *Patch) IsWellFormedSoFar() bool {
+	return self.isWellFormed(true)
+}
+
+func (self *Patch) isWellFormed(lastHunkMayBeIncomplete bool) bool {
+	for i, hunk := range self.hunks {
+		if lastHunkMayBeIncomplete && i == len(self.hunks)-1 {
+			return hunk.oldLength() <= hunk.declaredOldLength &&
+				hunk.newLength() <= hunk.declaredNewLength
+		}
+		if hunk.oldLength() != hunk.declaredOldLength || hunk.newLength() != hunk.declaredNewLength {
+			return false
+		}
+	}
+	return true
+}
+
 func (self *Patch) ContainsChanges() bool {
 	return lo.SomeBy(self.hunks, func(hunk *Hunk) bool {
 		return hunk.containsChanges()
@@ -112,6 +150,37 @@ func (self *Patch) LineNumberOfLine(idx int) int {
 	lines := hunk.bodyLines[:idxInHunk-1]
 	offset := nLinesWithKind(lines, []PatchLineKind{ADDITION, CONTEXT})
 	return hunk.newStart + offset
+}
+
+// Takes a line index in the patch and returns the line number in the old file.
+// This is the old-file counterpart of LineNumberOfLine; for a deletion it gives
+// the line's position in the old file (additions get the position they sit at).
+// If the line is a header line, returns 1.
+// If the line is a hunk header line, returns the first old-file line number in that hunk.
+// If the line is out of range below, returns the last old-file line number in the last hunk.
+func (self *Patch) OldLineNumberOfLine(idx int) int {
+	if idx < len(self.header) || len(self.hunks) == 0 {
+		return 1
+	}
+
+	hunkIdx := self.HunkContainingLine(idx)
+	// cursor out of range, return last file line number
+	if hunkIdx == -1 {
+		lastHunk := self.hunks[len(self.hunks)-1]
+		return lastHunk.oldStart + lastHunk.oldLength() - 1
+	}
+
+	hunk := self.hunks[hunkIdx]
+	hunkStartIdx := self.HunkStartIdx(hunkIdx)
+	idxInHunk := idx - hunkStartIdx
+
+	if idxInHunk == 0 {
+		return hunk.oldStart
+	}
+
+	lines := hunk.bodyLines[:idxInHunk-1]
+	offset := nLinesWithKind(lines, []PatchLineKind{DELETION, CONTEXT})
+	return hunk.oldStart + offset
 }
 
 // Returns hunk index containing the line at the given patch line index
