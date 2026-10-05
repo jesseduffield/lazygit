@@ -448,11 +448,18 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			time.Sleep(THROTTLE_TIME)
 		}
 
-		select {
-		case <-opts.Stop:
+		stopped := func() bool {
+			select {
+			case <-opts.Stop:
+				return true
+			default:
+				return false
+			}
+		}
+
+		if stopped() {
 			onDone()
 			return nil
-		default:
 		}
 
 		startTime := time.Now()
@@ -573,22 +580,6 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				}
 			}
 
-			// Go's select picks randomly among ready cases, so once opts.Stop is
-			// closed the selects below could still service a ready data channel
-			// instead of bailing. Check stop explicitly first to give it priority:
-			// a task that's been stopped (it's being replaced by a newer one) must
-			// not touch the view here — it would start an off-screen render and
-			// write the prefix into it, clobbering what the incoming task is about
-			// to render.
-			stopped := func() bool {
-				select {
-				case <-opts.Stop:
-					return true
-				default:
-					return false
-				}
-			}
-
 			// The total number of lines we have read so far. Requests specify an
 			// absolute target total (see LinesToRead.Total), so we compare against
 			// this to work out how many more lines, if any, we still need to read.
@@ -637,6 +628,13 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				}
 			}
 
+			// Go's select picks randomly among ready cases, so once opts.Stop is
+			// closed the selects below could still service a ready data channel
+			// instead of bailing. Check stop explicitly first to give it priority:
+			// a task that's been stopped (it's being replaced by a newer one) must
+			// not touch the view here — it would start an off-screen render and
+			// write the prefix into it, clobbering what the incoming task is about
+			// to render.
 		outer:
 			for {
 				if stopped() {
