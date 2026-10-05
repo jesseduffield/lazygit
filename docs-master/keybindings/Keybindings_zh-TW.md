@@ -78,6 +78,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | 切換程式碼塊選擇 | 切換逐行選擇與程式碼塊選擇模式。 |
 | `` v `` | 切換拖曳選擇 |  |
 | `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
+| `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
 | `` <left>, h `` | 選擇上一段 |  |
 | `` <right>, l `` | 選擇下一段 |  |
 | `` N `` | Go to previous file |  |
@@ -366,6 +367,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` a `` | 切換程式碼塊選擇 | 切換逐行選擇與程式碼塊選擇模式。 |
 | `` v `` | 切換拖曳選擇 |  |
 | `` e `` | 編輯檔案 | 使用外部編輯器開啟 |
+| `` <ctrl+o> `` | 複製所選文本至剪貼簿 |  |
 | `` <left>, h `` | 選擇上一段 |  |
 | `` <right>, l `` | 選擇下一段 |  |
 | `` N `` | Go to previous file |  |
