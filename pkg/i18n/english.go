@@ -158,6 +158,7 @@ type TranslationSet struct {
 	CannotMoveCommitsNoUnpushedCommits    string
 	NoBranchesThisRepo                    string
 	CommitWithoutMessageErr               string
+	CommitWithoutMessagePrompt            string
 	Close                                 string
 	CloseCancel                           string
 	Confirm                               string
@@ -1342,6 +1343,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CannotMoveCommitsNoUnpushedCommits:   "There are no unpushed commits to move to a new branch",
 		NoBranchesThisRepo:                   "No branches for this repo",
 		CommitWithoutMessageErr:              "You cannot commit without a commit message",
+		CommitWithoutMessagePrompt:           "You have not entered a commit message. Commit anyway with an empty message?",
 		Close:                                "Close",
 		CloseCancel:                          "Close/Cancel",
 		Confirm:                              "Confirm",
