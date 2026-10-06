@@ -4,6 +4,7 @@ import (
 	"errors"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -20,6 +21,13 @@ type CommitsHelper struct {
 	getCommitDescription          func() string
 	getUnwrappedCommitDescription func() string
 	setCommitDescription          func(string)
+
+	// set to 1 while commit message generation is in progress
+	generating atomic.Int32
+}
+
+func (self *CommitsHelper) IsGenerating() bool {
+	return self.generating.Load() == 1
 }
 
 func NewCommitsHelper(
@@ -222,6 +230,13 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 		}
 	}
 
+	var disabledReasonForGenerate *types.DisabledReason
+	if self.c.UserConfig().Git.Commit.GenerateCommand == "" {
+		disabledReasonForGenerate = &types.DisabledReason{
+			Text: self.c.Tr.NoGenerateCommandConfigured,
+		}
+	}
+
 	menuItems := []*types.MenuItem{
 		{
 			Label: self.c.Tr.OpenInEditor,
@@ -244,6 +259,14 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 				return self.pasteCommitMessageFromClipboard()
 			},
 			Keys: menuKey('p'),
+		},
+		{
+			Label: self.c.Tr.GenerateCommitMessage,
+			OnPress: func() error {
+				return self.generateCommitMessage()
+			},
+			Key:            'g',
+			DisabledReason: disabledReasonForGenerate,
 		},
 	}
 	return self.c.Menu(types.CreateMenuOptions{
@@ -285,4 +308,71 @@ func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
 			return nil
 		},
 	})
+}
+
+func (self *CommitsHelper) generateCommitMessage() error {
+	self.generating.Store(1)
+	self.c.Views().CommitMessage.Editable = false
+	self.c.Views().CommitDescription.Editable = false
+	originalTitle := self.c.Views().CommitMessage.Title
+	self.c.Views().CommitMessage.Title = self.c.Tr.GeneratingCommitMessageStatus
+
+	restore := func() {
+		self.c.OnUIThread(func() error {
+			self.generating.Store(0)
+			self.c.Views().CommitMessage.Editable = true
+			self.c.Views().CommitDescription.Editable = true
+			self.c.Views().CommitMessage.Title = originalTitle
+			return nil
+		})
+	}
+
+	return self.c.WithWaitingStatus(self.c.Tr.GeneratingCommitMessageStatus, func(_ gocui.Task) error {
+		defer restore()
+
+		diff, err := self.c.Git().Diff.GetDiff(true)
+		if err != nil {
+			return err
+		}
+		if strings.TrimSpace(diff) == "" {
+			self.c.OnUIThread(func() error {
+				self.c.ErrorToast(self.c.Tr.NoStagedChangesForGenerate)
+				return nil
+			})
+			return nil
+		}
+
+		command := self.c.UserConfig().Git.Commit.GenerateCommand
+		message, err := self.c.OS().Cmd.NewShell(command, "").SetStdin(diff).DontLog().RunWithOutput()
+		if err != nil {
+			return err
+		}
+
+		message = parseGenerateOutput(message)
+		if message == "" {
+			return errors.New("generate command returned an empty commit message")
+		}
+
+		self.c.OnUIThread(func() error {
+			self.SetMessageAndDescriptionInView(message)
+			return nil
+		})
+		return nil
+	})
+}
+
+// parseGenerateOutput strips markdown code fences and any preamble before them.
+func parseGenerateOutput(s string) string {
+	s = strings.TrimSpace(s)
+	if start := strings.Index(s, "```"); start >= 0 {
+		rest := s[start:]
+		if idx := strings.Index(rest, "\n"); idx >= 0 {
+			rest = rest[idx+1:]
+		}
+		if idx := strings.LastIndex(rest, "```"); idx >= 0 {
+			rest = rest[:idx]
+		}
+		s = strings.TrimSpace(rest)
+	}
+	return s
 }
