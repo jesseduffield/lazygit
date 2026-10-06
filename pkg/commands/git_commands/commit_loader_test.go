@@ -34,6 +34,7 @@ func TestGetCommits(t *testing.T) {
 		expectedCommitOpts []models.NewCommitOpts
 		expectedError      error
 		logOrder           string
+		allRefsArgs        []string
 		opts               GetCommitsOptions
 		mainBranches       []string
 	}
@@ -57,6 +58,29 @@ func TestGetCommits(t *testing.T) {
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
 				ExpectGitArgs([]string{"log", "refs/heads/mybranch", "--topo-order", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
+
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
+		},
+		{
+			testName: "should pass the default all-refs args when showing the whole graph",
+			logOrder: "topo-order",
+			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false, All: true},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--all", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
+
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
+		},
+		{
+			testName:    "should pass the configured all-refs args when showing the whole graph",
+			logOrder:    "topo-order",
+			allRefsArgs: []string{"--branches", "--remotes"},
+			opts:        GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false, All: true},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--branches", "--remotes", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommitOpts: []models.NewCommitOpts{},
 			expectedError:      nil,
@@ -300,6 +324,9 @@ func TestGetCommits(t *testing.T) {
 		t.Run(scenario.testName, func(t *testing.T) {
 			common := common.NewDummyCommon()
 			common.UserConfig().Git.Log.Order = scenario.logOrder
+			if scenario.allRefsArgs != nil {
+				common.UserConfig().Git.Log.AllRefsArgs = scenario.allRefsArgs
+			}
 			cmd := oscommands.NewDummyCmdObjBuilder(scenario.runner)
 
 			builder := &CommitLoader{
