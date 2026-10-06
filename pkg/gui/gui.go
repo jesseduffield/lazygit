@@ -1174,7 +1174,7 @@ func (gui *Gui) loadNewRepo() error {
 	refresh(options)
 
 	if err := gui.os.UpdateWindowTitle(); err != nil {
-		return err
+		gui.c.Log.Warnf("Failed to update window title: %v", err)
 	}
 
 	return nil
