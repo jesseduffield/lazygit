@@ -22,6 +22,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// httpClient is used for all update-related HTTP requests. A 30-second timeout
+// prevents the update checker from stalling indefinitely if GitHub is slow or unreachable.
+var httpClient = &http.Client{Timeout: 30 * time.Second}
+
 // Updater checks for updates and does updates
 type Updater struct {
 	*common.Common
@@ -51,7 +55,7 @@ func (u *Updater) getLatestVersionNumber() (string, error) {
 	}
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -265,7 +269,7 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	defer out.Close()
 
 	// Get the data
-	resp, err := http.Get(rawUrl)
+	resp, err := httpClient.Get(rawUrl)
 	if err != nil {
 		return err
 	}
@@ -318,7 +322,7 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 }
 
 func (u *Updater) verifyResourceFound(rawUrl string) bool {
-	resp, err := http.Head(rawUrl)
+	resp, err := httpClient.Head(rawUrl)
 	if err != nil {
 		return false
 	}
