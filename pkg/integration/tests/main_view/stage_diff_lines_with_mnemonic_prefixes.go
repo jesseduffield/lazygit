@@ -42,10 +42,7 @@ var StageDiffLinesWithMnemonicPrefixes = NewIntegrationTest(NewIntegrationTestAr
 			PressPrimaryAction()
 
 		t.Views().Files().Lines(
-			/* EXPECTED:
 			Contains("MM file1"),
-			ACTUAL: */
-			Contains(" M file1"),
 		)
 	},
 })

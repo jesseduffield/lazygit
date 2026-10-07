@@ -308,15 +308,17 @@ func diffLineTypeForKind(kind patch.PatchLineKind) types.DiffLineType {
 
 // pathFromDiffHeader extracts the new-file path of a single diff section. A
 // submodule's section states its path in the line it opens with. For a file of the
-// repo the path comes from the "+++ b/<path>" line, falling back to "--- a/<path>"
-// when the new path is /dev/null (a deleted file), and to the "diff --git" line when
-// there are no such lines at all (a pure rename, which has no hunks).
+// repo the path comes from the "+++ " line, falling back to the "--- " line when the
+// new path is /dev/null (a deleted file). A section without these lines has no hunks:
+// it is a rename or copy without a content change, a change of the file mode, or a
+// binary file. The path then comes from the "rename to" or "copy to" line, or failing
+// that from the "diff --git" line.
 func pathFromDiffHeader(fileLines []string) string {
 	if path := submodulePath(fileLines[0]); path != "" {
 		return path
 	}
 
-	var oldPath, newPath string
+	var oldPath, newPath, copiedOrRenamedPath string
 	for _, line := range fileLines {
 		if strings.HasPrefix(line, "@@") {
 			break // past the header
@@ -326,6 +328,10 @@ func pathFromDiffHeader(fileLines []string) string {
 			newPath = pathFromDiffHeaderField(strings.TrimPrefix(line, "+++ "))
 		case strings.HasPrefix(line, "--- "):
 			oldPath = pathFromDiffHeaderField(strings.TrimPrefix(line, "--- "))
+		case strings.HasPrefix(line, "rename to "):
+			copiedOrRenamedPath, _ = unquoteDiffPath(strings.TrimPrefix(line, "rename to "))
+		case strings.HasPrefix(line, "copy to "):
+			copiedOrRenamedPath, _ = unquoteDiffPath(strings.TrimPrefix(line, "copy to "))
 		}
 	}
 
@@ -335,6 +341,9 @@ func pathFromDiffHeader(fileLines []string) string {
 	if oldPath != "" && oldPath != "/dev/null" {
 		return oldPath
 	}
+	if copiedOrRenamedPath != "" {
+		return copiedOrRenamedPath
+	}
 	return pathFromDiffGitLine(fileLines[0])
 }
 
@@ -342,12 +351,15 @@ func pathFromDiffHeader(fileLines []string) string {
 // after "--- " or "+++ ", or one of the two paths on the "diff --git" line —
 // into the repo-relative path it names.
 //
-// Returns "" for a quoted field we can't decode: better to resolve nothing than
-// to point a consumer at a path that doesn't exist.
+// Returns "" for a field we can't decode: better to resolve nothing than to point
+// a consumer at a path that doesn't exist.
 func pathFromDiffHeaderField(field string) string {
 	path, ok := unquoteDiffPath(field)
 	if !ok {
 		return ""
+	}
+	if path == "/dev/null" {
+		return path
 	}
 	return stripDiffPathPrefix(path)
 }
@@ -374,14 +386,20 @@ func unquoteDiffPath(field string) (path string, ok bool) {
 	return field, true
 }
 
-// stripDiffPathPrefix removes the a/ or b/ prefix git puts on the paths in a
-// diff header. We ask git for these prefixes explicitly (diff.noprefix=false),
-// so they are always there.
+// stripDiffPathPrefix removes the prefix git puts in front of the paths in a diff
+// header. By default this is a/ or b/, but with diff.mnemonicPrefix git uses a
+// letter that names what is compared, such as i/ for the index and w/ for the
+// working tree. Either way the prefix is the first component of the path, and we
+// ask git to always put one there (ParseableDiffPrefixes). `git apply` strips the
+// same component by default.
+//
+// Returns "" for a path without a slash, which has no prefix to strip.
 func stripDiffPathPrefix(path string) string {
-	if strings.HasPrefix(path, "a/") || strings.HasPrefix(path, "b/") {
-		return path[2:]
+	_, rest, found := strings.Cut(path, "/")
+	if !found {
+		return ""
 	}
-	return path
+	return rest
 }
 
 // parseDiffLineMetadata parses the payload of an OSC 1717 record, in which a
@@ -445,17 +463,21 @@ func diffLineTypeFromMetadata(typeField string) (types.DiffLineType, bool) {
 	}
 }
 
-// pathFromDiffGitLine extracts the new-file path from a "diff --git a/X b/X"
-// line, where the two paths are separated by a space and either may be quoted.
-// A path containing " b/" (or ` "b/`) would defeat this, but the +++/--- lines
-// are unambiguous and we only get here when they are absent.
+// pathFromDiffGitLine extracts the path from a "diff --git" line of a file whose
+// path is the same on both sides. The two paths are separated by a space, but a
+// path may contain spaces too. So, like `git apply`, we split the line at the space
+// where the two halves name the same path once their prefixes are stripped. Either
+// half may be quoted.
 func pathFromDiffGitLine(line string) string {
 	rest := strings.TrimPrefix(line, diffFilePrefix)
-	if idx := strings.LastIndex(rest, ` "b/`); idx != -1 {
-		return pathFromDiffHeaderField(rest[idx+1:])
-	}
-	if idx := strings.LastIndex(rest, " b/"); idx != -1 {
-		return pathFromDiffHeaderField(rest[idx+1:])
+	for i, c := range rest {
+		if c != ' ' {
+			continue
+		}
+		path := pathFromDiffHeaderField(rest[i+1:])
+		if path != "" && path == pathFromDiffHeaderField(rest[:i]) {
+			return path
+		}
 	}
 	return ""
 }
