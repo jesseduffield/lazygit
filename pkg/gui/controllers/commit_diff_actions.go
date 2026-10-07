@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/generics/set"
@@ -9,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -236,7 +238,8 @@ func (self *CommitDiffActions) DiscardSelection(pane types.DiffPaneContext, firs
 	}
 	commitIndex := self.indexOfTargetCommit(target)
 	if commitIndex == -1 {
-		return nil
+		return errors.New(utils.ResolvePlaceholderString(self.c.Tr.CommitNotInCommitsPanel,
+			map[string]string{"hash": utils.ShortHash(target.to)}))
 	}
 	selection, err := self.selectionByFile(lines)
 	if err != nil {
