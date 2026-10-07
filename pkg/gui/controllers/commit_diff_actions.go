@@ -125,13 +125,15 @@ func (self *CommitDiffActions) PrimaryAction(pane types.DiffPaneContext, firstBu
 				patchBuilder.Start(from, target.to, reverse, target.canRebase)
 			}
 
-			if err := self.togglePatchLines(selection); err != nil {
-				return err
-			}
+			err := self.togglePatchLines(selection)
 			// Taking the last line back out ends the patch rather than leaving an empty
 			// one, so that the pane previewing it and the marks over the diff go with it.
+			// The same goes for a patch just started that no line could be put into.
 			if patchBuilder.IsEmpty() {
 				patchBuilder.Reset()
+			}
+			if err != nil {
+				return err
 			}
 
 			// The diff on screen is the one the marks belong to, so they can be brought up
@@ -189,7 +191,7 @@ func (self *CommitDiffActions) removePatchLines(
 			}
 		}
 		if len(indices) == 0 {
-			continue
+			return diffLinesNotFoundError(self.c, filename)
 		}
 		indicesByFilename[filename] = indices
 	}
@@ -254,6 +256,9 @@ func (self *CommitDiffActions) DiscardSelection(pane types.DiffPaneContext, firs
 			patchBuilder.Reset()
 			patchBuilder.Start(from, target.to, reverse, target.canRebase)
 			if err := self.togglePatchLines(selection); err != nil {
+				// This patch exists only to be removed from the commit, so don't leave it
+				// behind.
+				patchBuilder.Reset()
 				return err
 			}
 			if patchBuilder.IsEmpty() {
@@ -385,6 +390,9 @@ func (self *CommitDiffActions) togglePatchLines(selection commitDiffSelection) e
 		if err != nil {
 			return err
 		}
+		if len(indices) == 0 {
+			return diffLinesNotFoundError(self.c, path)
+		}
 		indicesByPath[path] = indices
 
 		// Selecting every change of a file the commit adds or deletes is selecting the
@@ -397,12 +405,9 @@ func (self *CommitDiffActions) togglePatchLines(selection commitDiffSelection) e
 	if err != nil {
 		return err
 	}
-	removing := len(indicesByPath[paths[0]]) > 0 && lo.Contains(included, indicesByPath[paths[0]][0])
+	removing := lo.Contains(included, indicesByPath[paths[0]][0])
 
 	for _, path := range paths {
-		if len(indicesByPath[path]) == 0 {
-			continue
-		}
 		previousPath := files.previousPath(path)
 		var err error
 		switch {

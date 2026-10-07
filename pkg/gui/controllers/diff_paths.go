@@ -146,6 +146,13 @@ func diffLinesFileNotFoundError(c *ControllerCommon, absolutePath string) error 
 		map[string]string{"path": path}))
 }
 
+// diffLinesNotFoundError reports that selected diff lines can't be found in the diff of
+// the file at the given path in the repo.
+func diffLinesNotFoundError(c *ControllerCommon, path string) error {
+	return errors.New(utils.ResolvePlaceholderString(c.Tr.DiffLinesNotFound,
+		map[string]string{"path": path}))
+}
+
 // repoRelativePath turns the absolute path a diff line carries into the one git speaks
 // of the file: relative to the worktree, with forward slashes. It is "" for a path that
 // is no file of this repo, which a diff renderer's own naming of a line can produce.
