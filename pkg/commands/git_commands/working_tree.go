@@ -425,7 +425,7 @@ func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bo
 
 func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, mode DiffMode) *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("diff").
-		Config("diff.noprefix=false").
+		ParseableDiffPrefixes().
 		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), mode).
 		Arg("--submodule").
 		Arg(fmt.Sprintf("--color=%s", mode.colorArg(self.diffRendererConfigManager))).
