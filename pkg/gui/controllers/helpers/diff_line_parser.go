@@ -342,27 +342,36 @@ func pathFromDiffHeader(fileLines []string) string {
 // after "--- " or "+++ ", or one of the two paths on the "diff --git" line —
 // into the repo-relative path it names.
 //
-// git spells such a field in three ways: plain; terminated by a tab, when the
-// path contains a space; or C-quoted as a whole, when the path contains
-// characters git won't print raw — which, with core.quotePath enabled (the
-// default), includes every non-ASCII byte, so `café` arrives as
-// `"b/caf\303\251"`. The quoting is Go's string syntax, octal escapes included,
-// so strconv decodes it for us.
-//
 // Returns "" for a quoted field we can't decode: better to resolve nothing than
 // to point a consumer at a path that doesn't exist.
 func pathFromDiffHeaderField(field string) string {
+	path, ok := unquoteDiffPath(field)
+	if !ok {
+		return ""
+	}
+	return stripDiffPathPrefix(path)
+}
+
+// unquoteDiffPath decodes a path as git spells it in a diff header. git does this
+// in three ways: plain; terminated by a tab, when the path contains a space; or
+// C-quoted as a whole, when the path contains characters git won't print raw —
+// which, with core.quotePath enabled (the default), includes every non-ASCII byte,
+// so `café` arrives as `"b/caf\303\251"`. The quoting is Go's string syntax, octal
+// escapes included, so strconv decodes it for us.
+//
+// ok is false for a quoted path we can't decode.
+func unquoteDiffPath(field string) (path string, ok bool) {
 	field = strings.TrimSuffix(field, "\t")
 
 	if strings.HasPrefix(field, `"`) {
 		unquoted, err := strconv.Unquote(field)
 		if err != nil {
-			return ""
+			return "", false
 		}
-		field = unquoted
+		return unquoted, true
 	}
 
-	return stripDiffPathPrefix(field)
+	return field, true
 }
 
 // stripDiffPathPrefix removes the a/ or b/ prefix git puts on the paths in a
