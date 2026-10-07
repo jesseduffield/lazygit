@@ -178,6 +178,7 @@ func (self *CommitDiffActions) removePatchLines(
 	if err != nil {
 		return err
 	}
+	indicesByFilename := map[string][]int{}
 	for path, ordinals := range self.c.Helpers().DiffLine.ChangeLineOrdinals(self.customPatchDiff(), lines) {
 		filename := self.patchBuilderPath(path)
 		if filename == "" {
@@ -193,6 +194,9 @@ func (self *CommitDiffActions) removePatchLines(
 		if len(indices) == 0 {
 			continue
 		}
+		indicesByFilename[filename] = indices
+	}
+	for filename, indices := range indicesByFilename {
 		if err := patchBuilder.RemoveFileLineRange(filename, files.previousPath(filename), indices); err != nil {
 			return err
 		}

@@ -229,17 +229,20 @@ func (self *WorkingTreeDiffActions) applyDiffLineSelection(
 	pane types.DiffPaneContext, firstBufferLine int,
 	linesByFile []fileDiffLines, onStagedSide bool, opts git_commands.ApplyPatchOpts,
 ) error {
+	patches := lo.Map(linesByFile, func(fileLines fileDiffLines, _ int) diffLinesPatch {
+		return self.buildDiffLinesPatch(fileLines.file, fileLines.lines, onStagedSide, opts)
+	})
+
 	self.c.LogAction(self.c.Tr.Actions.ApplyPatch)
 
 	acted := set.New[string]()
 	actedSideRemains := false
-	for _, fileLines := range linesByFile {
-		changesLeft, err := self.applyDiffLines(fileLines.file, fileLines.lines, onStagedSide, opts)
-		if err != nil {
+	for _, p := range patches {
+		if err := self.applyDiffLinesPatch(p, opts); err != nil {
 			return err
 		}
-		acted.Add(fileLines.file.GetPath())
-		actedSideRemains = actedSideRemains || changesLeft
+		acted.Add(p.file.GetPath())
+		actedSideRemains = actedSideRemains || p.changesLeft
 	}
 	if !actedSideRemains {
 		actedSideRemains = self.anyFileHasChangesOnSide(acted, onStagedSide)
@@ -273,8 +276,24 @@ func (self *WorkingTreeDiffActions) fileForDiffLinePath(path string) *models.Fil
 	return self.context().FileTreeViewModel.GetFile(relativePath)
 }
 
-// applyDiffLines applies the given change lines of one file — a line, a hunk, a range —
-// as a patch built from that file's own diff:
+// diffLinesPatch is how the selected change lines of one file are applied.
+type diffLinesPatch struct {
+	file *models.File
+
+	// Whether the lines are every change of the file's diff. Acting on all of them is
+	// acting on the file itself, which is staged or unstaged as a whole.
+	wholeFile bool
+
+	// The patch of the lines, where they are not the whole file. Empty when none of
+	// them could be found in the file's diff.
+	patch string
+
+	// Whether the diff the lines were found in holds changes they don't cover.
+	changesLeft bool
+}
+
+// buildDiffLinesPatch builds what applies the given change lines of one file — a line,
+// a hunk, a range — as a patch built from that file's own diff:
 //
 //   - stage:   read the unstaged diff, apply it to the index
 //   - unstage: read the staged diff, apply it to the index backwards
@@ -289,12 +308,12 @@ func (self *WorkingTreeDiffActions) fileForDiffLinePath(path string) *models.Fil
 // selected: a patch of the lines you picked keeps whatever context it needs around
 // them by itself.
 //
-// It reports whether the diff it read holds changes the selection didn't cover. The
+// It records whether the diff it read holds changes the selection didn't cover. The
 // caller uses this to tell whether the side acted on still has anything of this file
 // in it once we are done.
-func (self *WorkingTreeDiffActions) applyDiffLines(
+func (self *WorkingTreeDiffActions) buildDiffLinesPatch(
 	file *models.File, infos []types.DiffLineInfo, sourceCached bool, opts git_commands.ApplyPatchOpts,
-) (bool, error) {
+) diffLinesPatch {
 	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, git_commands.DiffModePlain, sourceCached))
 
 	patchLineIndices := patch.ChangeLineIndicesForLines(parsedPatch,
@@ -311,10 +330,7 @@ func (self *WorkingTreeDiffActions) applyDiffLines(
 	// and taking that back out leaves an empty file in the index rather than an
 	// untracked one.
 	if !changesLeft && opts.Cached {
-		if opts.Reverse {
-			return false, self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked)
-		}
-		return false, self.c.Git().WorkingTree.StageFile(file.GetPath())
+		return diffLinesPatch{file: file, wholeFile: true}
 	}
 
 	patchToApply := parsedPatch.
@@ -324,11 +340,21 @@ func (self *WorkingTreeDiffActions) applyDiffLines(
 			FileNameOverride:    file.GetPath(),
 		}).
 		FormatPlain()
-	if patchToApply == "" {
-		return changesLeft, nil
-	}
+	return diffLinesPatch{file: file, patch: patchToApply, changesLeft: changesLeft}
+}
 
-	return changesLeft, self.c.Git().Patch.ApplyPatch(patchToApply, opts)
+// applyDiffLinesPatch applies what buildDiffLinesPatch built, as opts says.
+func (self *WorkingTreeDiffActions) applyDiffLinesPatch(p diffLinesPatch, opts git_commands.ApplyPatchOpts) error {
+	if p.wholeFile {
+		if opts.Reverse {
+			return self.c.Git().WorkingTree.UnStageFile(p.file.Names(), p.file.Tracked)
+		}
+		return self.c.Git().WorkingTree.StageFile(p.file.GetPath())
+	}
+	if p.patch == "" {
+		return nil
+	}
+	return self.c.Git().Patch.ApplyPatch(p.patch, opts)
 }
 
 // changeLineCount returns how many of a patch's lines are changes rather than context
