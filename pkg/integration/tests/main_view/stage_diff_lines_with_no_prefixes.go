@@ -41,10 +41,7 @@ var StageDiffLinesWithNoPrefixes = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().Lines(
 			Contains("▼ b"),
-			/* EXPECTED:
 			Contains("MM file1"),
-			ACTUAL: */
-			Contains(" M file1"),
 		)
 	},
 })

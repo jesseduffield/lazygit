@@ -39,10 +39,7 @@ var JumpToAFileOfAStashWithNoPrefixes = NewIntegrationTest(NewIntegrationTestArg
 		t.ExpectPopup().Menu().
 			Title(Equals("Jump to file")).
 			Lines(
-				/* EXPECTED:
 				Equals("b/file1"),
-				ACTUAL: */
-				Equals("file1"),
 				Equals("file2"),
 				Equals("Cancel"),
 			)

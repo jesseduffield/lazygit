@@ -397,6 +397,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, mode 
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
 
 	cmdArgs := NewGitCmd("diff").
+		ParseableDiffPrefixes().
 		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), mode).
 		Arg("--submodule").
 		Arg(fmt.Sprintf("--color=%s", mode.colorArg(self.diffRendererConfigManager))).
