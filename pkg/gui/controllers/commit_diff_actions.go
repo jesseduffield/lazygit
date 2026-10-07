@@ -104,7 +104,10 @@ func (self *CommitDiffActions) PrimaryAction(pane types.DiffPaneContext, firstBu
 	if len(lines) == 0 {
 		return nil
 	}
-	selection := self.selectionByFile(lines)
+	selection, err := self.selectionByFile(lines)
+	if err != nil {
+		return err
+	}
 	if len(selection.paths) == 0 {
 		return nil
 	}
@@ -171,7 +174,10 @@ func (self *CommitDiffActions) removePatchLines(
 	}
 
 	patchBuilder := self.c.Git().Patch.PatchBuilder
-	files := self.filesInDiff()
+	files, err := self.filesInDiff()
+	if err != nil {
+		return err
+	}
 	for path, ordinals := range self.c.Helpers().DiffLine.ChangeLineOrdinals(self.customPatchDiff(), lines) {
 		filename := self.patchBuilderPath(path)
 		if filename == "" {
@@ -229,7 +235,10 @@ func (self *CommitDiffActions) DiscardSelection(pane types.DiffPaneContext, firs
 	if commitIndex == -1 {
 		return nil
 	}
-	selection := self.selectionByFile(lines)
+	selection, err := self.selectionByFile(lines)
+	if err != nil {
+		return err
+	}
 	if len(selection.paths) == 0 {
 		return nil
 	}
@@ -341,11 +350,12 @@ type commitDiffSelection struct {
 
 // selectionByFile groups the given lines of the commit's diff by the file they belong
 // to. A line whose path is no file of this repo is left out.
-func (self *CommitDiffActions) selectionByFile(lines []types.DiffLineInfo) commitDiffSelection {
-	selection := commitDiffSelection{
-		files:       self.filesInDiff(),
-		linesByPath: map[string][]patch.LineIdentity{},
+func (self *CommitDiffActions) selectionByFile(lines []types.DiffLineInfo) (commitDiffSelection, error) {
+	files, err := self.filesInDiff()
+	if err != nil {
+		return commitDiffSelection{}, err
 	}
+	selection := commitDiffSelection{files: files, linesByPath: map[string][]patch.LineIdentity{}}
 	for _, line := range lines {
 		path := self.patchBuilderPath(line.Path)
 		if path == "" {
@@ -356,7 +366,7 @@ func (self *CommitDiffActions) selectionByFile(lines []types.DiffLineInfo) commi
 		}
 		selection.linesByPath[path] = append(selection.linesByPath[path], line.PatchLineIdentity())
 	}
-	return selection
+	return selection, nil
 }
 
 // togglePatchLines takes the selected lines of the commit's diff into the custom patch,
@@ -438,20 +448,20 @@ func (self commitDiffFiles) isWholeFileOperation(path string) bool {
 
 // filesInDiff asks git which files the diff a patch is being built from covers, and
 // what it does to each.
-func (self *CommitDiffActions) filesInDiff() commitDiffFiles {
+func (self *CommitDiffActions) filesInDiff() (commitDiffFiles, error) {
 	target := self.target()
 	if target == nil {
-		return nil
+		return nil, nil
 	}
 	from, reverse := self.patchEndpoints(target)
 	files, err := self.c.Git().Loaders.CommitFileLoader.GetFilesInDiff(from, target.to, reverse)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	return lo.SliceToMap(files, func(file *models.CommitFile) (string, *models.CommitFile) {
 		return file.Path, file
-	})
+	}), nil
 }
 
 // patchEndpoints gives the two ends of the diff a patch is built from. They are the ends
