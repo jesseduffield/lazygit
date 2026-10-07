@@ -488,6 +488,7 @@ var tests = []*components.IntegrationTest{
 	main_view.StageDeletedFile,
 	main_view.StageDiffLines,
 	main_view.StageDiffLinesOfAPathWithASpace,
+	main_view.StageDiffLinesWithCustomPrefixes,
 	main_view.StageDiffLinesWithNoPrefixes,
 	main_view.StageHunksWithRapidKeypresses,
 	main_view.StagePartialBlockOfChangesFirstLines,
