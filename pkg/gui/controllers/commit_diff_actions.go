@@ -108,9 +108,6 @@ func (self *CommitDiffActions) PrimaryAction(pane types.DiffPaneContext, firstBu
 	if err != nil {
 		return err
 	}
-	if len(selection.paths) == 0 {
-		return nil
-	}
 
 	patchBuilder := self.c.Git().Patch.PatchBuilder
 	from, reverse := self.patchEndpoints(target)
@@ -182,7 +179,7 @@ func (self *CommitDiffActions) removePatchLines(
 	for path, ordinals := range self.c.Helpers().DiffLine.ChangeLineOrdinals(self.customPatchDiff(), lines) {
 		filename := self.patchBuilderPath(path)
 		if filename == "" {
-			continue
+			return diffLinesFileNotFoundError(self.c, path)
 		}
 		included := patchBuilder.IncludedChangeLineIndices(filename)
 		indices := []int{}
@@ -242,9 +239,6 @@ func (self *CommitDiffActions) DiscardSelection(pane types.DiffPaneContext, firs
 	selection, err := self.selectionByFile(lines)
 	if err != nil {
 		return err
-	}
-	if len(selection.paths) == 0 {
-		return nil
 	}
 
 	patchBuilder := self.c.Git().Patch.PatchBuilder
@@ -353,7 +347,8 @@ type commitDiffSelection struct {
 }
 
 // selectionByFile groups the given lines of the commit's diff by the file they belong
-// to. A line whose path is no file of this repo is left out.
+// to. If a line belongs to no file of the diff, the diff on screen and the one the
+// patch is built from disagree, so this fails and we build nothing.
 func (self *CommitDiffActions) selectionByFile(lines []types.DiffLineInfo) (commitDiffSelection, error) {
 	files, err := self.filesInDiff()
 	if err != nil {
@@ -362,8 +357,8 @@ func (self *CommitDiffActions) selectionByFile(lines []types.DiffLineInfo) (comm
 	selection := commitDiffSelection{files: files, linesByPath: map[string][]patch.LineIdentity{}}
 	for _, line := range lines {
 		path := self.patchBuilderPath(line.Path)
-		if path == "" {
-			continue
+		if _, ok := files[path]; !ok {
+			return commitDiffSelection{}, diffLinesFileNotFoundError(self.c, line.Path)
 		}
 		if _, seen := selection.linesByPath[path]; !seen {
 			selection.paths = append(selection.paths, path)

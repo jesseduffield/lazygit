@@ -748,6 +748,7 @@ type TranslationSet struct {
 	CopySelectedDiffLinesToClipboard      string
 	SelectedDiffLinesCopiedToast          string
 	SelectionNotFoundInDiffToast          string
+	DiffLinesFileNotFound                 string
 	NoFilesStagedTitle                    string
 	NoFilesStagedPrompt                   string
 	BranchNotFoundTitle                   string
@@ -1938,6 +1939,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CopySelectedDiffLinesToClipboard:         "Copy selected diff lines to clipboard",
 		SelectedDiffLinesCopiedToast:             "Selected diff lines copied to clipboard",
 		SelectionNotFoundInDiffToast:             "Nothing in the selection could be found in the diff",
+		DiffLinesFileNotFound:                    "Can't find the file '{{.path}}' that the selected lines belong to",
 		CommitPrefixPatternError:                 "Error in commitPrefix pattern",
 		NoFilesStagedTitle:                       "No files staged",
 		NoFilesStagedPrompt:                      "You have not staged any files. Commit all files?",

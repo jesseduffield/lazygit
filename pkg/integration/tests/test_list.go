@@ -463,6 +463,8 @@ var tests = []*components.IntegrationTest{
 	main_view.RemovePartOfAddedFileFromCommit,
 	main_view.RemovePatchFromCommit,
 	main_view.RenderTheDiffBesideThePatchMarks,
+	main_view.ReportLinesOfAFileMissingFromTheCommitsDiff,
+	main_view.ReportLinesOfAFileMissingFromTheFilesPanel,
 	main_view.ResetAPatchBuiltFromACommitsDiff,
 	main_view.ResetPatchWithEscape,
 	main_view.ResetThePatchFromThePaneShowingIt,

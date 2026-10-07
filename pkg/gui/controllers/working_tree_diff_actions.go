@@ -59,7 +59,10 @@ func (self *WorkingTreeDiffActions) PrimaryAction(pane types.DiffPaneContext, fi
 			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
 	}
 
-	linesByFile, onStagedSide := self.diffLineSelection(pane, firstBufferLine, lastBufferLine)
+	linesByFile, onStagedSide, err := self.diffLineSelection(pane, firstBufferLine, lastBufferLine)
+	if err != nil {
+		return err
+	}
 	if len(linesByFile) == 0 {
 		return nil
 	}
@@ -79,7 +82,10 @@ func (self *WorkingTreeDiffActions) DiscardSelection(pane types.DiffPaneContext,
 			self.c.UserConfig().Keybinding.Universal.IncreaseContextInDiffView)
 	}
 
-	linesByFile, onStagedSide := self.diffLineSelection(pane, firstBufferLine, lastBufferLine)
+	linesByFile, onStagedSide, err := self.diffLineSelection(pane, firstBufferLine, lastBufferLine)
+	if err != nil {
+		return err
+	}
 	if len(linesByFile) == 0 {
 		return nil
 	}
@@ -117,7 +123,10 @@ func (self *WorkingTreeDiffActions) DiscardSelectionDisabledReason(types.DiffPan
 func (self *WorkingTreeDiffActions) EditHunk(
 	pane types.DiffPaneContext, firstBufferLine int, lastBufferLine int,
 ) error {
-	linesByFile, onStagedSide := self.diffLineSelection(pane, firstBufferLine, lastBufferLine)
+	linesByFile, onStagedSide, err := self.diffLineSelection(pane, firstBufferLine, lastBufferLine)
+	if err != nil {
+		return err
+	}
 	if len(linesByFile) == 0 {
 		return nil
 	}
@@ -203,21 +212,23 @@ type fileDiffLines struct {
 // there is nothing to act on.
 //
 // A directory's diff spans several files, and a patch is of one file, so the lines are
-// grouped by the file they belong to, in the order the diff shows the files.
+// grouped by the file they belong to, in the order the diff shows the files. If a line
+// belongs to no file of the files panel, the diff and the panel disagree. Acting on the
+// other lines would do only part of what the user asked for, so this fails instead.
 func (self *WorkingTreeDiffActions) diffLineSelection(
 	pane types.DiffPaneContext, firstBufferLine int, lastBufferLine int,
-) (linesByFile []fileDiffLines, onStagedSide bool) {
+) (linesByFile []fileDiffLines, onStagedSide bool, err error) {
 	infos := self.c.Helpers().DiffLine.ChangeLinesInBufferRange(pane.GetView(), firstBufferLine, lastBufferLine)
 	infosByPath := lo.GroupBy(infos, func(info types.DiffLineInfo) string { return info.Path })
 	paths := lo.Uniq(lo.Map(infos, func(info types.DiffLineInfo, _ int) string { return info.Path }))
 	for _, path := range paths {
 		file := self.fileForDiffLinePath(path)
 		if file == nil {
-			continue
+			return nil, false, diffLinesFileNotFoundError(self.c, path)
 		}
 		linesByFile = append(linesByFile, fileDiffLines{file: file, lines: infosByPath[path]})
 	}
-	return linesByFile, self.showsStagedSide(pane)
+	return linesByFile, self.showsStagedSide(pane), nil
 }
 
 // applyDiffLineSelection applies the selected change lines, a patch per file, and

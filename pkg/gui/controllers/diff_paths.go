@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"errors"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -130,6 +132,18 @@ func fileIsInDir[T any, PT fileWithNames[T]](f *T, dir string) bool {
 func isInDir(path string, dir string) bool {
 	// "." is the root item, which contains every file
 	return dir == "." || strings.HasPrefix(path, dir+"/")
+}
+
+// diffLinesFileNotFoundError reports that the file selected diff lines belong to can't
+// be found. It names the file by its path in the repo, or by the path the diff line
+// carries for one outside of it.
+func diffLinesFileNotFoundError(c *ControllerCommon, absolutePath string) error {
+	path := repoRelativePath(c.Git().RepoPaths.WorktreePath(), absolutePath)
+	if path == "" {
+		path = absolutePath
+	}
+	return errors.New(utils.ResolvePlaceholderString(c.Tr.DiffLinesFileNotFound,
+		map[string]string{"path": path}))
 }
 
 // repoRelativePath turns the absolute path a diff line carries into the one git speaks
