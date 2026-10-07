@@ -303,6 +303,15 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` F `` | Add fork remote | Quickly add a fork remote by replacing the owner in the origin URL and optionally check out a branch from new remote. |
 | `` / `` | Filter the current view by text |  |
 
+## Repositories
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <space> `` | Switch | Switch to the selected repository. |
+| `` e `` | Verander config bestand | Open bestand in externe editor. |
+| `` u `` | Check voor updates |  |
+| `` / `` | Filter the current view by text |  |
+
 ## Secondary
 
 | Key | Action | Info |

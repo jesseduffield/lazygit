@@ -54,6 +54,10 @@ func (self *Views) Status() *ViewDriver {
 	return self.regularView("status")
 }
 
+func (self *Views) Repos() *ViewDriver {
+	return self.regularView("repos")
+}
+
 func (self *Views) Submodules() *ViewDriver {
 	return self.regularView("submodules")
 }

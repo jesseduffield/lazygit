@@ -123,7 +123,7 @@ func NewApp(config config.AppConfigurer, test integrationTypes.IntegrationTest, 
 		common.Log.Infof("Error getting repo paths: %v", err)
 	}
 
-	showRecentRepos, err := app.setupRepo(repoPaths)
+	showRecentRepos, multiRepoRoot, err := app.setupRepo(repoPaths)
 	if err != nil {
 		return app, err
 	}
@@ -133,7 +133,7 @@ func NewApp(config config.AppConfigurer, test integrationTypes.IntegrationTest, 
 		showRecentRepos = true
 	}
 
-	app.Gui, err = gui.NewGui(common, config, gitVersion, updater, showRecentRepos, dirName, test)
+	app.Gui, err = gui.NewGui(common, config, gitVersion, updater, showRecentRepos, dirName, multiRepoRoot, test)
 	if err != nil {
 		return app, err
 	}
@@ -170,18 +170,7 @@ func isDirectoryAGitRepository(dir string) (bool, error) {
 func openRecentRepo(app *App) bool {
 	for _, repoDir := range app.Config.GetAppState().RecentRepos {
 		if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
-			if err := os.Chdir(repoDir); err == nil {
-				// We're still in setup, before the gui exists, so we can't show the approval popup
-				// that DispatchSwitchTo offers for blocked .envrc files; just log and move on.
-				// Also, the logs only go to the debug log, not the Command Log, because that's not
-				// available yet, either.
-				result := direnv.Load(app.OSCommand.Cmd)
-				if result.Message != "" {
-					app.Log.WithField("message", result.Message).Info("direnv")
-				}
-				if result.Err != nil {
-					app.Log.WithError(result.Err).Warn("direnv load failed")
-				}
+			if enterRepo(app, repoDir) {
 				return true
 			}
 		}
@@ -190,23 +179,62 @@ func openRecentRepo(app *App) bool {
 	return false
 }
 
+// isUsableRepo runs the repo check of NewGitCommand. Discovery only sees that a
+// .git exists, and a stale worktree link or an empty .git dir would make
+// NewGitCommand fail and abort startup.
+func isUsableRepo(app *App, dir string) bool {
+	repoPaths, err := git_commands.GetRepoPathsForDir(dir, app.OSCommand.Cmd)
+	return err == nil && !repoPaths.IsBareRepo()
+}
+
+func enterRepo(app *App, repoDir string) bool {
+	if err := os.Chdir(repoDir); err != nil {
+		return false
+	}
+
+	// We're still in setup, before the gui exists, so we can't show the approval popup
+	// that DispatchSwitchTo offers for blocked .envrc files; just log and move on.
+	// Also, the logs only go to the debug log, not the Command Log, because that's not
+	// available yet, either.
+	result := direnv.Load(app.OSCommand.Cmd)
+	if result.Message != "" {
+		app.Log.WithField("message", result.Message).Info("direnv")
+	}
+	if result.Err != nil {
+		app.Log.WithError(result.Err).Warn("direnv load failed")
+	}
+	return true
+}
+
 func (app *App) setupRepo(
 	repoPaths *git_commands.RepoPaths,
-) (bool, error) {
+) (bool, string, error) {
 	if env.GetGitDirEnv() != "" {
 		// we've been given the git dir directly. Skip setup
-		return false, nil
+		return false, "", nil
 	}
 
 	// if we are not in a git repo, we ask if we want to `git init`
 	if repoPaths == nil {
 		cwd, err := os.Getwd()
 		if err != nil {
-			return false, err
+			return false, "", err
 		}
 
 		if isRepo, err := isDirectoryAGitRepository(cwd); isRepo {
-			return false, err
+			return false, "", err
+		}
+
+		// git reports the current repo's path with symlinks resolved, and the
+		// repos list compares against it.
+		root := cwd
+		if resolved, err := filepath.EvalSymlinks(cwd); err == nil {
+			root = resolved
+		}
+		for _, repo := range git_commands.DiscoverRepos(root, app.UserConfig().MultiRepo.MaxDepth) {
+			if isUsableRepo(app, repo) && enterRepo(app, repo) {
+				return false, root, nil
+			}
 		}
 
 		var shouldInitRepo bool
@@ -243,15 +271,15 @@ func (app *App) setupRepo(
 				args = append(args, initialBranchArg)
 			}
 			if err := app.OSCommand.Cmd.New(args).Run(); err != nil {
-				return false, err
+				return false, "", err
 			}
 
-			return false, nil
+			return false, "", nil
 		}
 
 		// check if we have a recent repo we can open
 		if openRecentRepo(app) {
-			return true, nil
+			return true, "", nil
 		}
 
 		fmt.Fprintln(os.Stderr, app.Tr.NoRecentRepositories)
@@ -270,14 +298,14 @@ func (app *App) setupRepo(
 		}
 
 		if openRecentRepo(app) {
-			return true, nil
+			return true, "", nil
 		}
 
 		fmt.Println(app.Tr.NoRecentRepositories)
 		os.Exit(1)
 	}
 
-	return false, nil
+	return false, "", nil
 }
 
 func (app *App) Run(startArgs appTypes.StartArgs) error {

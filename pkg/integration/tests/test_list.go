@@ -20,6 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/main_view"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/multi_repo"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/patch_building"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/reflog"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/remote"
@@ -511,6 +512,12 @@ var tests = []*components.IntegrationTest{
 	misc.RecentReposReftableRepo,
 	misc.RecentReposWithLongNames,
 	misc.StartInGitDir,
+	multi_repo.EmptyDirFallback,
+	multi_repo.NewBranchUpdatesRow,
+	multi_repo.SkipBrokenRepos,
+	multi_repo.StartInParent,
+	multi_repo.StartInSymlinkedParent,
+	multi_repo.SwitchRepo,
 	patch_building.CopyRenamedFileDiff,
 	patch_building.RenameSimilarityThresholdChange,
 	patch_building.RenamedFileWhole,

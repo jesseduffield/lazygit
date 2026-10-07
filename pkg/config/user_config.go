@@ -13,6 +13,8 @@ type UserConfig struct {
 	Git GitConfig `yaml:"git"`
 	// Config relating to git worktrees
 	Worktree WorktreeConfig `yaml:"worktree"`
+	// Config relating to multi-repo mode, which lazygit uses when you start it in a directory that is not a git repo but contains git repos
+	MultiRepo MultiRepoConfig `yaml:"multiRepo"`
 	// Periodic update checks
 	Update UpdateConfig `yaml:"update"`
 	// Background refreshes
@@ -453,6 +455,11 @@ type WorktreeConfig struct {
 	// A relative path is resolved against the repository's root directory, so "../worktrees" sits beside the repo and ".worktrees" sits inside it.
 	// A leading "~" is expanded to your home directory, so "~/worktrees" works.
 	DefaultPath string `yaml:"defaultPath"`
+}
+
+type MultiRepoConfig struct {
+	// How many directory levels below the start directory lazygit searches for git repos. A value of 1 searches only the direct subdirectories.
+	MaxDepth int `yaml:"maxDepth" jsonschema:"minimum=1"`
 }
 
 type UpdateConfig struct {
@@ -995,6 +1002,9 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 		},
 		Worktree: WorktreeConfig{
 			DefaultPath: "",
+		},
+		MultiRepo: MultiRepoConfig{
+			MaxDepth: 2,
 		},
 		Refresher: RefresherConfig{
 			RefreshInterval:             10,

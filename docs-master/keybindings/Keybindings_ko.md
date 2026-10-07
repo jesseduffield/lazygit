@@ -80,6 +80,15 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <enter> `` | 커밋 보기 |  |
 | `` / `` | Filter the current view by text |  |
 
+## Repositories
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <space> `` | Switch | Switch to the selected repository. |
+| `` e `` | 설정 파일 수정 | Open file in external editor. |
+| `` u `` | 업데이트 확인 |  |
+| `` / `` | Filter the current view by text |  |
+
 ## Secondary
 
 | Key | Action | Info |

@@ -25,6 +25,7 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 				Focusable:  true,
 			}),
 		),
+		Repos:           NewReposContext(c),
 		Files:           NewWorkingTreeContext(c),
 		Submodules:      NewSubmodulesContext(c),
 		Menu:            NewMenuContext(c),

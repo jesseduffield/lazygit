@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -33,6 +34,7 @@ type RefreshHelper struct {
 	mergeConflictsHelper *MergeConflictsHelper
 	worktreeHelper       *WorktreeHelper
 	searchHelper         *SearchHelper
+	reposHelper          *ReposHelper
 
 	// Tracks repos for which the user has dismissed the "select base GitHub remote"
 	// prompt, to avoid re-prompting on every subsequent refresh within the same session.
@@ -63,6 +65,7 @@ func NewRefreshHelper(
 	mergeConflictsHelper *MergeConflictsHelper,
 	worktreeHelper *WorktreeHelper,
 	searchHelper *SearchHelper,
+	reposHelper *ReposHelper,
 ) *RefreshHelper {
 	return &RefreshHelper{
 		c:                    c,
@@ -71,7 +74,30 @@ func NewRefreshHelper(
 		mergeConflictsHelper: mergeConflictsHelper,
 		worktreeHelper:       worktreeHelper,
 		searchHelper:         searchHelper,
+		reposHelper:          reposHelper,
 	}
+}
+
+// No REPOS: it runs git status in every listed repo, too slow for routine
+// refreshes such as the one on every terminal focus event.
+var defaultRefreshScopes = []types.RefreshableView{
+	types.COMMITS,
+	types.BRANCHES,
+	types.FILES,
+	types.STASH,
+	types.REFLOG,
+	types.TAGS,
+	types.REMOTES,
+	types.WORKTREES,
+	types.STATUS,
+	types.BISECT_INFO,
+	types.PULL_REQUESTS,
+}
+
+// DefaultScopesWithRepos returns the default scopes plus REPOS, for the
+// refreshes that reload the whole multi-repo list.
+func DefaultScopesWithRepos() []types.RefreshableView {
+	return append(slices.Clone(defaultRefreshScopes), types.REPOS)
 }
 
 func (self *RefreshHelper) Refresh(options types.RefreshOptions) {
@@ -242,19 +268,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 
 	var scopeSet *set.Set[types.RefreshableView]
 	if len(options.Scope) == 0 {
-		scopeSet = set.NewFromSlice([]types.RefreshableView{
-			types.COMMITS,
-			types.BRANCHES,
-			types.FILES,
-			types.STASH,
-			types.REFLOG,
-			types.TAGS,
-			types.REMOTES,
-			types.WORKTREES,
-			types.STATUS,
-			types.BISECT_INFO,
-			types.PULL_REQUESTS,
-		})
+		scopeSet = set.NewFromSlice(defaultRefreshScopes)
 	} else {
 		scopeSet = set.NewFromSlice(options.Scope)
 	}
@@ -328,6 +342,12 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			defer worktreesWg.Done()
 			self.refreshWorktrees(env, scopeSet.Includes(types.BRANCHES))
 		})
+	}
+
+	if scopeSet.Includes(types.REPOS) {
+		refresh("repos", func() { self.refreshRepos() })
+	} else if len(options.Scope) == 0 {
+		refresh("current repo row", func() { self.refreshCurrentRepoRow(env) })
 	}
 
 	branchesAndRemotesWg := sync.WaitGroup{}
@@ -624,6 +644,69 @@ func (self *RefreshHelper) updateRefsSnapshotIfRelevant(scopeSet *set.Set[types.
 	self.SetRefsSnapshot(snapshot)
 }
 
+// refreshRepos loads the multi-repo list. The branches load inline, so the
+// panel fills fast. The dirty checks run as a background task, because a refresh
+// stays busy until all its scopes finish, and many slow git status calls must
+// not block repo switches. The writes skip onUIThreadUnlessRepoChanged: the list
+// belongs to the Gui, so it has to survive a repo switch.
+func (self *RefreshHelper) refreshRepos() {
+	root := self.c.State().GetMultiRepoRoot()
+	if root == "" {
+		return
+	}
+
+	seq := self.c.State().NextRepoListLoadSeq()
+	repos := self.reposHelper.LoadRepoBranches(root)
+
+	self.c.OnUIThread(func() error {
+		if len(self.c.State().GetRepoList()) == 0 {
+			self.setRepoList(repos, seq)
+		}
+		return nil
+	})
+
+	self.c.OnWorkerBackground(func(gocui.Task) error {
+		stale := func() bool { return !self.c.State().IsLatestRepoListLoad(seq) }
+		withDirty := self.reposHelper.WithDirtyState(repos, stale)
+		if stale() {
+			return nil
+		}
+		self.c.OnUIThreadBackground(func() error {
+			self.setRepoList(withDirty, seq)
+			return nil
+		})
+		return nil
+	})
+}
+
+func (self *RefreshHelper) setRepoList(repos []*models.Repo, seq int64) {
+	if !self.c.State().IsLatestRepoListLoad(seq) {
+		return
+	}
+	self.applyRepoList(repos)
+}
+
+// refreshCurrentRepoRow patches the list that is current on the UI thread, so
+// it can't bring back an older list. A repo switch drops the patch, but reloads
+// the whole list.
+func (self *RefreshHelper) refreshCurrentRepoRow(env refreshEnv) {
+	if self.c.State().GetMultiRepoRoot() == "" {
+		return
+	}
+
+	current := self.reposHelper.LoadRepo(env.git.RepoPaths.WorktreePath())
+	self.onUIThreadUnlessRepoChanged(env, func() {
+		self.applyRepoList(withRepoRowUpdated(self.c.State().GetRepoList(), current))
+	})
+}
+
+func (self *RefreshHelper) applyRepoList(repos []*models.Repo) {
+	self.c.State().SetRepoList(repos)
+	ctx := self.c.Contexts().Repos
+	self.searchHelper.ReApplyFilter(ctx)
+	self.c.PostRefreshUpdate(ctx)
+}
+
 func getScopeNames(scopes []types.RefreshableView) []string {
 	scopeNameMap := map[types.RefreshableView]string{
 		types.COMMITS:         "commits",
@@ -631,6 +714,7 @@ func getScopeNames(scopes []types.RefreshableView) []string {
 		types.BRANCHES:        "branches",
 		types.FILES:           "files",
 		types.SUBMODULES:      "submodules",
+		types.REPOS:           "repos",
 		types.SUB_COMMITS:     "subCommits",
 		types.STASH:           "stash",
 		types.REFLOG:          "reflog",

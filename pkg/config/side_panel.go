@@ -16,6 +16,7 @@ type SidePanel []string
 // here; a test enforces that the two stay in sync.
 var ValidSidePanelTabs = []string{
 	"status",
+	"repos",
 	"files",
 	"worktrees",
 	"submodules",
@@ -51,4 +52,27 @@ func (SidePanel) JSONSchema() *jsonschema.Schema {
 		Type:  "array",
 		Items: &jsonschema.Schema{Type: "string", Enum: names},
 	}
+}
+
+// SidePanelsForMultiRepo puts repos in the place of status, or first if there
+// is no status, because multi-repo mode focuses repos at startup.
+func SidePanelsForMultiRepo(panels []SidePanel) []SidePanel {
+	hasTab := func(name string) bool {
+		return lo.SomeBy(panels, func(panel SidePanel) bool { return lo.Contains(panel, name) })
+	}
+	if hasTab("repos") {
+		return panels
+	}
+	if !hasTab("status") {
+		return append([]SidePanel{{"repos"}}, panels...)
+	}
+
+	return lo.Map(panels, func(panel SidePanel, _ int) SidePanel {
+		return lo.Map(panel, func(name string, _ int) string {
+			if name == "status" {
+				return "repos"
+			}
+			return name
+		})
+	})
 }

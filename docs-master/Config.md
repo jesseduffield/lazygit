@@ -581,6 +581,13 @@ worktree:
   # A leading "~" is expanded to your home directory, so "~/worktrees" works.
   defaultPath: ""
 
+# Config relating to multi-repo mode, which lazygit uses when you start it in a
+# directory that is not a git repo but contains git repos
+multiRepo:
+  # How many directory levels below the start directory lazygit searches for git
+  # repos. A value of 1 searches only the direct subdirectories.
+  maxDepth: 2
+
 # Periodic update checks
 update:
   # One of: 'prompt' (default) | 'background' | 'never'
