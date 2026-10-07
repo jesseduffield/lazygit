@@ -409,6 +409,7 @@ var tests = []*components.IntegrationTest{
 	main_view.FocusLeavesAnAlwaysSplitEmptyPane,
 	main_view.FocusReturnsWhenSplitCollapses,
 	main_view.HideSelectionWhenChangesVanish,
+	main_view.JumpToAFileOfAStashWithNoPrefixes,
 	main_view.JumpToAFileOfTheDiff,
 	main_view.JumpToAFileOnlyOverADiff,
 	main_view.KeepAWrappedLineCoveredAcrossARerender,
