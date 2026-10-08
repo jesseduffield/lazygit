@@ -25,7 +25,7 @@ A community fork based on the amazing work of [jroimartin](https://github.com/jr
 
 This fork has many improvements over the original work from [jroimartin](https://github.com/jroimartin/gocui).
 
-* Written ontop of TCell
+* Written on top of TCell
 * Better wide character support
 * Support for 1 Line height views
 * Better support for running in docker container
