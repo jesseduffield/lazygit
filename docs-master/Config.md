@@ -145,6 +145,8 @@ gui:
   # If true, wrap lines in focused diffs to the width of the view. This makes it
   # much easier to work with diffs that have long lines, e.g. paragraphs of
   # markdown text.
+  # If false, scroll a focused diff sideways with the scrollLeft and scrollRight
+  # keys (H and L by default).
   wrapLinesInDiffView: true
 
   # If true, hunk selection mode will be enabled by default when focusing a diff.

@@ -238,6 +238,8 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextPage), Handler: self.handleNextPage, Description: self.c.Tr.NextPage},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoTop), Handler: self.handleGotoTop, Description: self.c.Tr.GotoTop},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoBottom), Handler: self.handleGotoBottom, Description: self.c.Tr.GotoBottom},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.ScrollLeft), Handler: self.handleScrollLeft, Description: self.c.Tr.ScrollLeft},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.ScrollRight), Handler: self.handleScrollRight, Description: self.c.Tr.ScrollRight},
 	}
 }
 
@@ -1049,6 +1051,16 @@ func (self *MainViewController) handleGotoBottom() error {
 		})
 	}
 
+	return nil
+}
+
+func (self *MainViewController) handleScrollLeft() error {
+	self.context.GetViewTrait().ScrollLeft()
+	return nil
+}
+
+func (self *MainViewController) handleScrollRight() error {
+	self.context.GetViewTrait().ScrollRight()
 	return nil
 }
 
