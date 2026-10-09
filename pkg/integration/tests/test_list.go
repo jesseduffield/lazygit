@@ -694,6 +694,7 @@ var tests = []*components.IntegrationTest{
 	worktree.DetachWorktreeFromBranch,
 	worktree.DotfileBareRepo,
 	worktree.DoubleNestedLinkedSubmodule,
+	worktree.EditFileOfBranchInOtherWorktree,
 	worktree.ExcludeFileInWorktree,
 	worktree.FastForwardWorktreeBranch,
 	worktree.FastForwardWorktreeBranchShouldNotPolluteCurrentWorktree,
