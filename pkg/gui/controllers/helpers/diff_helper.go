@@ -245,6 +245,13 @@ func (self *DiffHelper) EditFileOfDiffAtLine(path string, lineNumber int, viewNa
 	return self.filesHelper.EditFileAtLine(path, lineNumber)
 }
 
+// OpenFileOfDiff opens a file of the diff that the current side panel shows with the
+// default application for it. Like EditFilesOfDiff, it opens the file from the
+// worktree of the diff.
+func (self *DiffHelper) OpenFileOfDiff(path string) error {
+	return self.filesHelper.OpenFile(self.pathInWorktreeOfDiff(path))
+}
+
 // otherWorktreeOfDiff returns the path of the worktree to open files of the diff in
 // the current side panel from, if that isn't the current worktree. If the diff is of a
 // commit of a branch, and another worktree has that branch checked out, that is the

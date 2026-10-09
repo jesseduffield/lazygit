@@ -47,10 +47,7 @@ var OpenFileOfBranchInOtherWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.OpenFile).
 			Tap(func() {
-				/* EXPECTED:
 				t.FileSystem().FileContent("open-command", Contains("/linked-worktree/file.txt\n"))
-				ACTUAL: */
-				t.FileSystem().FileContent("open-command", Contains("/repo/file.txt\n"))
 			}).
 			Press(keys.Files.CopyFileInfoToClipboard).
 			Tap(func() {

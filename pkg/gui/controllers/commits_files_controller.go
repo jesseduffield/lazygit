@@ -428,7 +428,7 @@ func (self *CommitFilesController) canDiscardFileChanges(nodes []*filetree.Commi
 }
 
 func (self *CommitFilesController) open(node *filetree.CommitFileNode) error {
-	return self.c.Helpers().Files.OpenFile(node.GetPath())
+	return self.c.Helpers().Diff.OpenFileOfDiff(node.GetPath())
 }
 
 func (self *CommitFilesController) edit(nodes []*filetree.CommitFileNode) error {
