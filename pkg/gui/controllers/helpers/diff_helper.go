@@ -16,12 +16,14 @@ import (
 type DiffHelper struct {
 	c              *HelperCommon
 	diffLineHelper *DiffLineHelper
+	filesHelper    *FilesHelper
 }
 
-func NewDiffHelper(c *HelperCommon, diffLineHelper *DiffLineHelper) *DiffHelper {
+func NewDiffHelper(c *HelperCommon, diffLineHelper *DiffLineHelper, filesHelper *FilesHelper) *DiffHelper {
 	return &DiffHelper{
 		c:              c,
 		diffLineHelper: diffLineHelper,
+		filesHelper:    filesHelper,
 	}
 }
 
@@ -222,6 +224,20 @@ func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {
 			Staged:      false,
 		}))
 	return err
+}
+
+// EditFilesOfDiff opens files of the diff that the current side panel shows in the
+// editor.
+func (self *DiffHelper) EditFilesOfDiff(paths []string) error {
+	return self.filesHelper.EditFiles(paths)
+}
+
+// EditFileOfDiffAtLine opens a file of the diff shown in the given view in the editor,
+// at a line of that diff. The line is carried forward to where it is in the file now
+// (see AdjustLineNumber).
+func (self *DiffHelper) EditFileOfDiffAtLine(path string, lineNumber int, viewName string) error {
+	lineNumber = self.AdjustLineNumber(path, lineNumber, viewName)
+	return self.filesHelper.EditFileAtLine(path, lineNumber)
 }
 
 // AdjustLineNumber is used to adjust a line number in the diff that's currently

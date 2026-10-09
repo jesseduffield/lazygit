@@ -432,7 +432,7 @@ func (self *CommitFilesController) open(node *filetree.CommitFileNode) error {
 }
 
 func (self *CommitFilesController) edit(nodes []*filetree.CommitFileNode) error {
-	return self.c.Helpers().Files.EditFiles(lo.FilterMap(nodes,
+	return self.c.Helpers().Diff.EditFilesOfDiff(lo.FilterMap(nodes,
 		func(node *filetree.CommitFileNode, _ int) (string, bool) {
 			return node.GetPath(), node.IsFile()
 		}))
