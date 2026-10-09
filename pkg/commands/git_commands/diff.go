@@ -186,15 +186,26 @@ func (self *DiffCommands) CustomPatchDiffCmdObj(dir string, mode DiffMode) *osco
 // want to restrict the diff to specific paths, pass them in additionalArgs
 // after the `--`.
 func (self *DiffCommands) GetDiff(staged bool, additionalArgs ...string) (string, error) {
+	return self.getDiffCmdObj(self.repoPaths.worktreePath, staged, additionalArgs).RunWithOutput()
+}
+
+// GetDiffInOtherWorktree is GetDiff without --staged, run in the worktree at
+// worktreePath. That has to be a worktree of our repo other than the current one. A
+// diff against the working copy is then a diff against that worktree's files.
+func (self *DiffCommands) GetDiffInOtherWorktree(worktreePath string, additionalArgs ...string) (string, error) {
+	return ForOtherRepo(self.getDiffCmdObj(worktreePath, false, additionalArgs)).RunWithOutput()
+}
+
+func (self *DiffCommands) getDiffCmdObj(worktreePath string, staged bool, additionalArgs []string) *oscommands.CmdObj {
 	return self.cmd.New(
 		NewGitCmd("diff").
 			ParseableDiffPrefixes().
 			Arg("--no-ext-diff", "--no-color").
 			ArgIf(staged, "--staged").
-			Dir(self.repoPaths.worktreePath).
+			Dir(worktreePath).
 			Arg(additionalArgs...).
 			ToArgv(),
-	).DontLog().RunWithOutput()
+	).DontLog()
 }
 
 type DiffToolCmdOptions struct {
