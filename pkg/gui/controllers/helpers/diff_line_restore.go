@@ -81,7 +81,7 @@ func (self *DiffLineHelper) PreserveDiffPositionOnRerender(view *gocui.View) {
 			// Put the line back on the screen row it was on, clamped into the view for
 			// the fallback lines, which can come from off screen.
 			row := lo.Clamp(anchor.row, 0, max(0, view.InnerHeight()-1))
-			view.SetOrigin(0, max(0, viewLine-row))
+			view.SetOriginY(max(0, viewLine-row))
 			if showSelection {
 				// Put the far end back before the cursor, so that the selection covers
 				// the same lines again; a selection whose far end didn't survive the

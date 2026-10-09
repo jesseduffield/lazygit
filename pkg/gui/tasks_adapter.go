@@ -233,7 +233,7 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 				if linesHeight < originY {
 					newOriginY := linesHeight
 
-					view.SetOrigin(0, newOriginY)
+					view.SetOriginY(newOriginY)
 				}
 
 				gui.updateDiffPaneDecorations(view, true)
