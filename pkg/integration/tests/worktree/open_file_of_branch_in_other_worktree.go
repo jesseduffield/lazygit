@@ -58,10 +58,7 @@ var OpenFileOfBranchInOtherWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 
 				t.ExpectToast(Equals("File path copied to clipboard"))
 
-				/* EXPECTED:
 				t.FileSystem().FileContent("clipboard", Contains("/linked-worktree/file.txt"))
-				ACTUAL: */
-				t.FileSystem().FileContent("clipboard", Contains("/repo/file.txt"))
 			})
 	},
 })

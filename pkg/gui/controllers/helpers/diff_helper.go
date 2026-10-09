@@ -252,6 +252,12 @@ func (self *DiffHelper) OpenFileOfDiff(path string) error {
 	return self.filesHelper.OpenFile(self.pathInWorktreeOfDiff(path))
 }
 
+// AbsolutePathOfFileOfDiff returns the absolute path of a file of the diff that the
+// current side panel shows, in the worktree that EditFilesOfDiff opens it from.
+func (self *DiffHelper) AbsolutePathOfFileOfDiff(path string) (string, error) {
+	return filepath.Abs(self.pathInWorktreeOfDiff(path))
+}
+
 // otherWorktreeOfDiff returns the path of the worktree to open files of the diff in
 // the current side panel from, if that isn't the current worktree. If the diff is of a
 // commit of a branch, and another worktree has that branch checked out, that is the

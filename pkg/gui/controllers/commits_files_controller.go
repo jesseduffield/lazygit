@@ -3,7 +3,6 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -267,7 +266,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyAbsolutePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyAbsoluteFilePath,
 		OnPress: func() error {
-			absPath, err := filepath.Abs(node.GetPath())
+			absPath, err := self.c.Helpers().Diff.AbsolutePathOfFileOfDiff(node.GetPath())
 			if err != nil {
 				return err
 			}
