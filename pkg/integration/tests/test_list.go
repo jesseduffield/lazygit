@@ -703,6 +703,7 @@ var tests = []*components.IntegrationTest{
 	worktree.LocationCandidates,
 	worktree.NewWorktreePicker,
 	worktree.NewWorktreePickerRemote,
+	worktree.OpenFileOfBranchInOtherWorktree,
 	worktree.RemoveWorktreeAndBothBranches,
 	worktree.RemoveWorktreeAndBranch,
 	worktree.RemoveWorktreeAndDeleteLocalAndRemoteBranch,
