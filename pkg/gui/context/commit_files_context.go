@@ -24,6 +24,7 @@ var (
 	_ types.IFilterableContext     = (*CommitFilesContext)(nil)
 	_ types.DiffMainViewContext    = (*CommitFilesContext)(nil)
 	_ types.PullRequestDiffContext = (*CommitFilesContext)(nil)
+	_ types.BranchDiffContext      = (*CommitFilesContext)(nil)
 )
 
 func (self *CommitFilesContext) GetDiffMainViewType() types.DiffMainViewType {
@@ -38,6 +39,15 @@ func (self *CommitFilesContext) PullRequestDiff() types.PullRequestDiff {
 		return parent.PullRequestDiff()
 	}
 	return types.PullRequestDiff{}
+}
+
+// BranchOfDiff asks the panel this one was entered from, since the files listed here
+// are those of the commits selected there.
+func (self *CommitFilesContext) BranchOfDiff() *models.Branch {
+	if parent, ok := self.GetParentContext().(types.BranchDiffContext); ok {
+		return parent.BranchOfDiff()
+	}
+	return nil
 }
 
 func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {

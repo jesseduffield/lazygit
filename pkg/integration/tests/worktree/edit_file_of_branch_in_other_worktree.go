@@ -50,10 +50,7 @@ var EditFileOfBranchInOtherWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("+2")).
 			Press(keys.Universal.Edit).
 			Tap(func() {
-				/* EXPECTED:
 				t.FileSystem().FileContent("edit-command", Contains("/linked-worktree/file.txt:3\n"))
-				ACTUAL: */
-				t.FileSystem().FileContent("edit-command", Contains("/repo/file.txt:0\n"))
 			}).
 			PressEscape()
 
@@ -68,10 +65,7 @@ var EditFileOfBranchInOtherWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.Edit).
 			Tap(func() {
-				/* EXPECTED:
 				t.FileSystem().FileContent("edit-command", Contains("/linked-worktree/file.txt\n"))
-				ACTUAL: */
-				t.FileSystem().FileContent("edit-command", Contains("/repo/file.txt\n"))
 			})
 	},
 })

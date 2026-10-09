@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -227,17 +228,60 @@ func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {
 }
 
 // EditFilesOfDiff opens files of the diff that the current side panel shows in the
-// editor.
+// editor. They are opened from the worktree of the diff (see otherWorktreeOfDiff).
 func (self *DiffHelper) EditFilesOfDiff(paths []string) error {
-	return self.filesHelper.EditFiles(paths)
+	return self.filesHelper.EditFiles(lo.Map(paths, func(path string, _ int) string {
+		return self.pathInWorktreeOfDiff(path)
+	}))
 }
 
 // EditFileOfDiffAtLine opens a file of the diff shown in the given view in the editor,
 // at a line of that diff. The line is carried forward to where it is in the file now
-// (see AdjustLineNumber).
+// (see AdjustLineNumber). Like EditFilesOfDiff, it opens the file from the worktree of
+// the diff.
 func (self *DiffHelper) EditFileOfDiffAtLine(path string, lineNumber int, viewName string) error {
+	path = self.pathInWorktreeOfDiff(path)
 	lineNumber = self.AdjustLineNumber(path, lineNumber, viewName)
 	return self.filesHelper.EditFileAtLine(path, lineNumber)
+}
+
+// otherWorktreeOfDiff returns the path of the worktree to open files of the diff in
+// the current side panel from, if that isn't the current worktree. If the diff is of a
+// commit of a branch, and another worktree has that branch checked out, that is the
+// other worktree. It has the files as the branch has them; the current worktree may
+// have them in a different state, or not at all.
+func (self *DiffHelper) otherWorktreeOfDiff() (string, bool) {
+	branchDiffContext, ok := self.c.Context().CurrentSide().(types.BranchDiffContext)
+	if !ok {
+		return "", false
+	}
+	branch := branchDiffContext.BranchOfDiff()
+	if branch == nil {
+		return "", false
+	}
+	worktree, ok := git_commands.WorktreeForBranch(branch, self.c.Model().Worktrees)
+	if !ok || worktree.IsCurrent || worktree.IsPathMissing {
+		return "", false
+	}
+	return worktree.Path, true
+}
+
+// pathInWorktreeOfDiff returns the path to open a file of the diff from. The path
+// passed in is either relative to the current worktree, or an absolute path in it, as
+// a diff renderer may state paths.
+func (self *DiffHelper) pathInWorktreeOfDiff(path string) string {
+	worktreePath, ok := self.otherWorktreeOfDiff()
+	if !ok {
+		return path
+	}
+	if filepath.IsAbs(path) {
+		relativePath := repoRelativePath(self.c.Git().RepoPaths.WorktreePath(), path)
+		if relativePath == "" {
+			return path
+		}
+		path = relativePath
+	}
+	return filepath.Join(worktreePath, path)
 }
 
 // AdjustLineNumber is used to adjust a line number in the diff that's currently
@@ -245,8 +289,9 @@ func (self *DiffHelper) EditFileOfDiffAtLine(path string, lineNumber int, viewNa
 // copy state of the file. It is used when clicking on a delta hyperlink in a
 // diff, or when pressing `e` in a focused diff. It works
 // by getting a diff of what's being viewed in the main view against the working
-// copy, and then using that diff to adjust the line number.
-// path is the file path of the file being viewed
+// copy, and then using that diff to adjust the line number. The working copy is that
+// of the worktree the file is opened from (see otherWorktreeOfDiff).
+// path is the file path of the file being viewed, in that worktree
 // linenumber is the line number to adjust (one-based)
 // viewname is the name of the view that shows the diff. We need to pass it
 // because the diff adjustment is slightly different depending on which view is
@@ -274,7 +319,13 @@ func (self *DiffHelper) AdjustLineNumber(path string, linenumber int, viewname s
 
 func (self *DiffHelper) adjustLineNumber(linenumber int, diffArgs ...string) int {
 	args := append([]string{"--unified=0"}, diffArgs...)
-	diff, err := self.c.Git().Diff.GetDiff(false, args...)
+	var diff string
+	var err error
+	if worktreePath, ok := self.otherWorktreeOfDiff(); ok {
+		diff, err = self.c.Git().Diff.GetDiffInOtherWorktree(worktreePath, args...)
+	} else {
+		diff, err = self.c.Git().Diff.GetDiff(false, args...)
+	}
 	if err != nil {
 		return linenumber
 	}
