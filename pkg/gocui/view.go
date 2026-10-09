@@ -1878,13 +1878,7 @@ func (v *View) draw(isWindowFocused bool) {
 
 		var c cell
 		for x < maxX {
-			if x < 0 {
-				if cellIdx < len(vline.line) {
-					x += uniseg.StringWidth(vline.line[cellIdx].chr)
-					cellIdx++
-					continue
-				}
-
+			if x < 0 && cellIdx >= len(vline.line) {
 				// no more characters to write so we're only going to be printing empty cells
 				// past this point
 				x = gutterWidth
@@ -1895,6 +1889,22 @@ func (v *View) draw(isWindowFocused bool) {
 				c = trailingCell
 			} else {
 				c = vline.line[cellIdx]
+			}
+
+			// Skip the cells scrolled out to the left.
+			if x < 0 && x+c.width <= 0 {
+				x += c.width
+				cellIdx++
+				continue
+			}
+
+			// A terminal can't show half of a double-width character, so one that is cut
+			// off by the left or right edge shows as a blank in the column of it that is
+			// on screen.
+			if x < 0 || x+c.width > maxX {
+				c.chr = " "
+				c.width = 1
+				x = max(x, 0)
 			}
 
 			fgColor := c.fgColor

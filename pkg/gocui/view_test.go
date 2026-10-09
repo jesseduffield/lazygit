@@ -1178,12 +1178,8 @@ func TestDoubleWidthCharacterAtTheRightEdge(t *testing.T) {
 
 	// The frame puts view column 9 at screen column 10.
 	chr, _, width := Screen.Get(10, 1)
-	/* EXPECTED:
 	assert.Equal(t, " ", chr)
 	assert.Equal(t, 1, width)
-	ACTUAL: */
-	assert.Equal(t, "プ", chr)
-	assert.Equal(t, 2, width)
 }
 
 // A double-width character that is scrolled halfway out to the left shows as a blank
@@ -1203,10 +1199,7 @@ func TestDoubleWidthCharacterCutOffAtTheLeftEdge(t *testing.T) {
 	chr, style, _ := Screen.Get(1, 1)
 	assert.Equal(t, " ", chr)
 	assert.Equal(t,
-		/* EXPECTED:
 		true,
-		ACTUAL: */
-		false,
 		style.GetBackground() != tcell.ColorDefault,
 		"the selection covers the column")
 
