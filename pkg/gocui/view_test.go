@@ -1267,10 +1267,7 @@ func TestSearchMatchBesideTheInclusionGutter(t *testing.T) {
 	}
 	// The row reads "✓ 01234567", so the match is at view columns 5 and 6.
 	assert.Equal(t,
-		/* EXPECTED:
 		".....##...",
-		ACTUAL: */
-		"...##.....",
 		highlightedColumns(1))
 }
 
@@ -1299,10 +1296,7 @@ func TestHoveredHyperlinkBesideTheInclusionGutter(t *testing.T) {
 		return s
 	}
 	assert.Equal(t,
-		/* EXPECTED:
 		"....____..",
-		ACTUAL: */
-		"..____....",
 		underlinedColumns(1))
 }
 
@@ -1328,10 +1322,7 @@ func TestClickHyperlinkBesideTheInclusionGutter(t *testing.T) {
 		Key: NewKeyName(MouseLeft),
 	}))
 	assert.Equal(t,
-		/* EXPECTED:
 		[]string{"https://example.com"},
-		ACTUAL: */
-		[]string{},
 		opened)
 }
 

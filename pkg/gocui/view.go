@@ -2008,10 +2008,17 @@ func (v *View) viewLineLengthIgnoringTrailingBlankLines() int {
 	return 0
 }
 
+// contentX returns the column of the view's content that is drawn at column x of the
+// view. The content starts after the inclusion gutter, and is scrolled by the view's
+// horizontal origin.
+func (v *View) contentX(x int) int {
+	return x - v.inclusionGutterWidth() + v.ox
+}
+
 func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
 	for i, pos := range v.searcher.searchPositions {
 		adjustedY := y + v.oy
-		adjustedX := x + v.ox
+		adjustedX := v.contentX(x)
 		if adjustedY == pos.Y && adjustedX >= pos.XStart && adjustedX < pos.XEnd {
 			return true, i == v.searcher.currentSearchIndex
 		}
@@ -2022,7 +2029,7 @@ func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
 func (v *View) isHoveredHyperlink(x, y int) bool {
 	if v.UnderlineHyperLinksOnlyOnHover && v.hoveredHyperlink != nil {
 		adjustedY := y + v.oy
-		adjustedX := x + v.ox
+		adjustedX := v.contentX(x)
 		return adjustedY == v.hoveredHyperlink.Y && adjustedX >= v.hoveredHyperlink.XStart && adjustedX < v.hoveredHyperlink.XEnd
 	}
 	return false
@@ -2846,7 +2853,7 @@ func (v *View) onMouseMove(x int, y int) {
 	newCx := x - v.x0 - 1
 	newCy := y - v.y0 - 1
 	// newX and newY are relative to the view's content, independent of its scroll position
-	newX := newCx + v.ox
+	newX := v.contentX(newCx)
 	newY := newCy + v.oy
 
 	if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
