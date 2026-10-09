@@ -1351,6 +1351,36 @@ func TestInclusionGutterWithHorizontallyScrolledContent(t *testing.T) {
 	assert.Equal(t, "  3456789a", row(2))
 }
 
+// A view scrolled further right than its content needs goes back as far as it takes
+// to put the end of the widest line at the right edge, and no further.
+func TestClampOriginXToContent(t *testing.T) {
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.InclusionGutterMarker = "✓"
+
+	// The widest line is 16 wide.
+	v.writeString("0123456789abcdef\nshort\n")
+
+	v.SetOriginX(4)
+	v.ClampOriginXToContent()
+	assert.Equal(t, 4, v.OriginX(), "the widest line still reaches the right edge")
+
+	v.SetOriginX(10)
+	v.ClampOriginXToContent()
+	assert.Equal(t, 6, v.OriginX())
+
+	// The gutter leaves the content eight columns.
+	v.SetInclusionGutter(true, []bool{false, false})
+	v.SetOriginX(10)
+	v.ClampOriginXToContent()
+	assert.Equal(t, 8, v.OriginX())
+
+	// Content that fits needs no scrolling at all.
+	v.Clear()
+	v.writeString("short\n")
+	v.ClampOriginXToContent()
+	assert.Equal(t, 0, v.OriginX())
+}
+
 // A marked line the view wraps is marked on every segment it is drawn as, so that
 // the mark doesn't look like it belongs to the first part of the line alone. The
 // gutter takes its columns out of the width the content wraps in.

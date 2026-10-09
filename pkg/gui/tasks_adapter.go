@@ -235,6 +235,7 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 
 					view.SetOriginY(newOriginY)
 				}
+				view.ClampOriginXToContent()
 
 				gui.updateDiffPaneDecorations(view, true)
 				gui.clampDiffSelectionToContent(view)

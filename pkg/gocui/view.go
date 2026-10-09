@@ -2693,6 +2693,37 @@ func (v *View) ScrollRight(amount int) {
 	v.clearHover()
 }
 
+// ClampOriginXToContent scrolls the view back to the left if it is scrolled further
+// than its content needs, so that the end of the widest line is at the right edge.
+// A view that doesn't wrap keeps its horizontal scroll position when its content
+// changes, and the new content may not reach as far.
+func (v *View) ClampOriginXToContent() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.ox == 0 {
+		return
+	}
+
+	v.refreshViewLinesIfNeeded()
+	widest := 0
+	for _, vline := range v.viewLines {
+		width := 0
+		for _, c := range vline.line {
+			width += c.width
+		}
+		widest = max(widest, width)
+	}
+
+	contentWidth := v.InnerWidth() - v.inclusionGutterWidth()
+	newOx := min(v.ox, max(0, widest-contentWidth))
+	if newOx != v.ox {
+		v.SetOriginX(newOx)
+
+		v.clearHover()
+	}
+}
+
 func (v *View) adjustDownwardScrollAmount(scrollHeight int) int {
 	_, oy := v.Origin()
 	y := oy
