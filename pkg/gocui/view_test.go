@@ -1326,6 +1326,31 @@ func TestClickHyperlinkBesideTheInclusionGutter(t *testing.T) {
 		opened)
 }
 
+// Content scrolled to the right goes under the gutter, not over it: the gutter
+// stays where it is, and the content shows from the scroll position onwards.
+func TestInclusionGutterWithHorizontallyScrolledContent(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.InclusionGutterMarker = "✓"
+
+	v.writeString("0123456789abcdef\n0123456789abcdef\n")
+	v.SetInclusionGutter(true, []bool{true, false})
+	v.SetOriginX(3)
+	v.draw(true)
+
+	row := func(y int) string {
+		s := ""
+		for x := 1; x <= 10; x++ {
+			chr, _, _ := Screen.Get(x, y)
+			s += chr
+		}
+		return s
+	}
+	assert.Equal(t, "✓ 3456789a", row(1))
+	assert.Equal(t, "  3456789a", row(2))
+}
+
 // A marked line the view wraps is marked on every segment it is drawn as, so that
 // the mark doesn't look like it belongs to the first part of the line alone. The
 // gutter takes its columns out of the width the content wraps in.

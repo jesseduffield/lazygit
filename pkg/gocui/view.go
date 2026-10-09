@@ -1878,7 +1878,7 @@ func (v *View) draw(isWindowFocused bool) {
 
 		var c cell
 		for x < maxX {
-			if x < 0 && cellIdx >= len(vline.line) {
+			if x < gutterWidth && cellIdx >= len(vline.line) {
 				// no more characters to write so we're only going to be printing empty cells
 				// past this point
 				x = gutterWidth
@@ -1891,8 +1891,9 @@ func (v *View) draw(isWindowFocused bool) {
 				c = vline.line[cellIdx]
 			}
 
-			// Skip the cells scrolled out to the left.
-			if x < 0 && x+c.width <= 0 {
+			// Skip the cells scrolled past the left edge of the content area; the
+			// content area starts after the gutter.
+			if x < gutterWidth && x+c.width <= gutterWidth {
 				x += c.width
 				cellIdx++
 				continue
@@ -1901,10 +1902,10 @@ func (v *View) draw(isWindowFocused bool) {
 			// A terminal can't show half of a double-width character, so one that is cut
 			// off by the left or right edge shows as a blank in the column of it that is
 			// on screen.
-			if x < 0 || x+c.width > maxX {
+			if x < gutterWidth || x+c.width > maxX {
 				c.chr = " "
 				c.width = 1
-				x = max(x, 0)
+				x = max(x, gutterWidth)
 			}
 
 			fgColor := c.fgColor
