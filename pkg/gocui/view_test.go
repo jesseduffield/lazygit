@@ -1245,6 +1245,96 @@ func TestInclusionGutter(t *testing.T) {
 	assert.Equal(t, "a", chr)
 }
 
+// A search match beside the inclusion gutter is highlighted where it is drawn.
+func TestSearchMatchBesideTheInclusionGutter(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.InclusionGutterMarker = "✓"
+
+	v.writeString("0123456789\n")
+	v.SetInclusionGutter(true, []bool{true})
+	v.UpdateSearchResults("34", nil)
+	v.draw(true)
+
+	highlightedColumns := func(y int) string {
+		s := ""
+		for x := 1; x <= 10; x++ {
+			_, style, _ := Screen.Get(x, y)
+			s += lo.Ternary(style.GetBackground() != tcell.ColorDefault, "#", ".")
+		}
+		return s
+	}
+	// The row reads "✓ 01234567", so the match is at view columns 5 and 6.
+	assert.Equal(t,
+		/* EXPECTED:
+		".....##...",
+		ACTUAL: */
+		"...##.....",
+		highlightedColumns(1))
+}
+
+// A hyperlink beside the inclusion gutter is underlined while the mouse is over it.
+func TestHoveredHyperlinkBesideTheInclusionGutter(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.InclusionGutterMarker = "✓"
+	v.UnderlineHyperLinksOnlyOnHover = true
+
+	v.writeString("ab\x1b]8;;https://example.com\x1b\\link\x1b]8;;\x1b\\cd\n")
+	v.SetInclusionGutter(true, []bool{true})
+
+	// The row reads "✓ ablinkcd". Point at the "l" of "link", at view column 4,
+	// which the frame puts at screen column 5.
+	v.onMouseMove(5, 1)
+	v.draw(true)
+
+	underlinedColumns := func(y int) string {
+		s := ""
+		for x := 1; x <= 10; x++ {
+			_, style, _ := Screen.Get(x, y)
+			s += lo.Ternary(style.HasUnderline(), "_", ".")
+		}
+		return s
+	}
+	assert.Equal(t,
+		/* EXPECTED:
+		"....____..",
+		ACTUAL: */
+		"..____....",
+		underlinedColumns(1))
+}
+
+// Clicking a hyperlink beside the inclusion gutter opens it.
+func TestClickHyperlinkBesideTheInclusionGutter(t *testing.T) {
+	g := newTestGui(t)
+	v, _ := g.SetView("main", 0, 0, 20, 10, 0)
+	v.InclusionGutterMarker = "✓"
+
+	v.writeString("\x1b]8;;https://example.com\x1b\\link\x1b]8;;\x1b\\ text\n")
+	v.SetInclusionGutter(true, []bool{true})
+
+	opened := []string{}
+	g.SetOpenHyperlinkFunc(func(link string, _ string) error {
+		opened = append(opened, link)
+		return nil
+	})
+
+	// The row reads "✓ link text". Click the "k" of "link", at view column 5, which
+	// the frame puts at screen column 6.
+	assert.NoError(t, g.onKey(&GocuiEvent{
+		Type: eventMouse, MouseX: 6, MouseY: 1,
+		Key: NewKeyName(MouseLeft),
+	}))
+	assert.Equal(t,
+		/* EXPECTED:
+		[]string{"https://example.com"},
+		ACTUAL: */
+		[]string{},
+		opened)
+}
+
 // A marked line the view wraps is marked on every segment it is drawn as, so that
 // the mark doesn't look like it belongs to the first part of the line alone. The
 // gutter takes its columns out of the width the content wraps in.
