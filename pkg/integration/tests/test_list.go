@@ -135,6 +135,7 @@ var tests = []*components.IntegrationTest{
 	commit.DiscardRenamedFile,
 	commit.DiscardSubmoduleChanges,
 	commit.DoNotShowBranchMarkerForHeadCommit,
+	commit.EditFilesMissingFromWorkingTree,
 	commit.FailHooksThenCommitNoHooks,
 	commit.FindBaseCommitForFixup,
 	commit.FindBaseCommitForFixupDisregardFixupsForSameBaseCommit,

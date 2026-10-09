@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"path/filepath"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -229,27 +231,87 @@ func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {
 
 // EditFilesOfDiff opens files of the diff that the current side panel shows in the
 // editor. They are opened from the worktree of the diff (see otherWorktreeOfDiff).
+// Files that don't exist there are left out, and if none of them exist, it returns an
+// error (see existingPathsInWorktreeOfDiff).
 func (self *DiffHelper) EditFilesOfDiff(paths []string) error {
-	return self.filesHelper.EditFiles(lo.Map(paths, func(path string, _ int) string {
-		return self.pathInWorktreeOfDiff(path)
-	}))
+	existingPaths, err := self.existingPathsInWorktreeOfDiff(paths)
+	if err != nil {
+		return err
+	}
+	return self.filesHelper.EditFiles(existingPaths)
 }
 
 // EditFileOfDiffAtLine opens a file of the diff shown in the given view in the editor,
 // at a line of that diff. The line is carried forward to where it is in the file now
 // (see AdjustLineNumber). Like EditFilesOfDiff, it opens the file from the worktree of
-// the diff.
+// the diff, and returns an error if the file doesn't exist there.
 func (self *DiffHelper) EditFileOfDiffAtLine(path string, lineNumber int, viewName string) error {
-	path = self.pathInWorktreeOfDiff(path)
+	path, err := self.existingPathInWorktreeOfDiff(path)
+	if err != nil {
+		return err
+	}
 	lineNumber = self.AdjustLineNumber(path, lineNumber, viewName)
 	return self.filesHelper.EditFileAtLine(path, lineNumber)
 }
 
 // OpenFileOfDiff opens a file of the diff that the current side panel shows with the
 // default application for it. Like EditFilesOfDiff, it opens the file from the
-// worktree of the diff.
+// worktree of the diff, and returns an error if the file doesn't exist there.
 func (self *DiffHelper) OpenFileOfDiff(path string) error {
-	return self.filesHelper.OpenFile(self.pathInWorktreeOfDiff(path))
+	path, err := self.existingPathInWorktreeOfDiff(path)
+	if err != nil {
+		return err
+	}
+	return self.filesHelper.OpenFile(path)
+}
+
+// existingPathsInWorktreeOfDiff returns the absolute paths of those of the given files
+// of the diff that exist in the worktree of the diff. A file of a diff may be missing
+// there, for example if a later commit deleted it, or if the worktree has a branch
+// checked out that doesn't have it. An editor would create such a file as a new, empty
+// one, so it is left out.
+//
+// If none of the files exist, it returns an error. If only some of them are missing, it
+// leaves them out silently. The user would see such an error only after returning from
+// the editor.
+func (self *DiffHelper) existingPathsInWorktreeOfDiff(paths []string) ([]string, error) {
+	absPaths := make([]string, 0, len(paths))
+	for _, path := range paths {
+		absPath, err := self.AbsolutePathOfFileOfDiff(path)
+		if err != nil {
+			return nil, err
+		}
+		absPaths = append(absPaths, absPath)
+	}
+
+	existingPaths := lo.Filter(absPaths, func(path string, _ int) bool {
+		exists, err := self.c.OS().FileExists(path)
+		// If we can't tell, the editor reports the problem
+		return exists || err != nil
+	})
+	if len(existingPaths) > 0 {
+		return existingPaths, nil
+	}
+
+	if len(absPaths) == 1 {
+		return nil, errors.New(utils.ResolvePlaceholderString(
+			self.c.Tr.FileOfDiffDoesNotExist, map[string]string{"path": absPaths[0]}))
+	}
+	worktreePath, ok := self.otherWorktreeOfDiff()
+	if !ok {
+		worktreePath = self.c.Git().RepoPaths.WorktreePath()
+	}
+	return nil, errors.New(utils.ResolvePlaceholderString(
+		self.c.Tr.NoFileOfDiffExists, map[string]string{"worktreePath": worktreePath}))
+}
+
+// existingPathInWorktreeOfDiff is existingPathsInWorktreeOfDiff for a single file.
+func (self *DiffHelper) existingPathInWorktreeOfDiff(path string) (string, error) {
+	existingPaths, err := self.existingPathsInWorktreeOfDiff([]string{path})
+	if err != nil {
+		return "", err
+	}
+	return existingPaths[0], nil
 }
 
 // AbsolutePathOfFileOfDiff returns the absolute path of a file of the diff that the
