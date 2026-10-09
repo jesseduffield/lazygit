@@ -1351,6 +1351,38 @@ func TestInclusionGutterWithHorizontallyScrolledContent(t *testing.T) {
 	assert.Equal(t, "  3456789a", row(2))
 }
 
+// Selecting a search match that is off screen to the side scrolls the view so that
+// the match starts a third of the way across it, or back to the left edge if that
+// is enough to show the match. A match on screen leaves the view where it is.
+func TestSelectSearchResultScrollsTheMatchIntoView(t *testing.T) {
+	v := NewView("name", 0, 0, 13, 5, OutputNormal) // InnerWidth 12
+
+	v.writeString("0123456789abcdefghijklmnopqrstuvwxyz\n")
+
+	v.UpdateSearchResults("uv", nil)
+	v.SelectSearchResult(0)
+	assert.Equal(t, 26, v.OriginX(), "u is at 30, and a third of the width is 4")
+
+	v.UpdateSearchResults("yz", nil)
+	v.SelectSearchResult(0)
+	assert.Equal(t, 26, v.OriginX(), "the match is on screen")
+
+	v.UpdateSearchResults("mn", nil)
+	v.SelectSearchResult(0)
+	assert.Equal(t, 18, v.OriginX())
+
+	v.UpdateSearchResults("ab", nil)
+	v.SelectSearchResult(0)
+	assert.Equal(t, 0, v.OriginX(), "the match fits without scrolling")
+
+	// The gutter leaves the content ten columns, of which a third is 3.
+	v.InclusionGutterMarker = "✓"
+	v.SetInclusionGutter(true, []bool{false})
+	v.UpdateSearchResults("ab", nil)
+	v.SelectSearchResult(0)
+	assert.Equal(t, 7, v.OriginX(), "a is at 10, and doesn't fit in the first ten columns")
+}
+
 // A view scrolled further right than its content needs goes back as far as it takes
 // to put the end of the widest line at the right edge, and no further.
 func TestClampOriginXToContent(t *testing.T) {

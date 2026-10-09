@@ -534,9 +534,14 @@ func (v *View) SelectSearchResult(index int) {
 		index = itemCount - 1
 	}
 
-	y := v.searcher.searchPositions[index].Y
+	pos := v.searcher.searchPositions[index]
+	y := pos.Y
 
 	v.FocusPoint(v.ox, y, true)
+	// A match without a position in the line has nothing to scroll to.
+	if pos.XStart >= 0 {
+		v.scrollColumnsIntoView(pos.XStart, pos.XEnd)
+	}
 	v.renderSearchStatus(index, itemCount)
 	if v.searcher.onSelectItem != nil {
 		v.searcher.onSelectItem(v, y)
@@ -2689,6 +2694,29 @@ func (v *View) ScrollLeft(amount int) {
 // not applying any limits to this
 func (v *View) ScrollRight(amount int) {
 	v.SetOriginX(v.ox + amount)
+
+	v.clearHover()
+}
+
+// scrollColumnsIntoView scrolls the view sideways if the columns from xStart up to
+// xEnd aren't all on screen. If they fit in the view without any scrolling, the view
+// goes back to the left edge; otherwise xStart ends up a third of the way across, so
+// that some of what comes before it is on screen too. Only a view that doesn't wrap
+// has columns off screen.
+func (v *View) scrollColumnsIntoView(xStart, xEnd int) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	width := v.InnerWidth() - v.inclusionGutterWidth()
+	if xStart >= v.ox && xEnd <= v.ox+width {
+		return
+	}
+
+	if xEnd <= width {
+		v.SetOriginX(0)
+	} else {
+		v.SetOriginX(xStart - width/3)
+	}
 
 	v.clearHover()
 }
