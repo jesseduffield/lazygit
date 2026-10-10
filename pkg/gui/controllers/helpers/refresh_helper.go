@@ -30,8 +30,6 @@ type RefreshHelper struct {
 	c                    *HelperCommon
 	refsHelper           *RefsHelper
 	mergeAndRebaseHelper *MergeAndRebaseHelper
-	patchBuildingHelper  *PatchBuildingHelper
-	stagingHelper        *StagingHelper
 	mergeConflictsHelper *MergeConflictsHelper
 	worktreeHelper       *WorktreeHelper
 	searchHelper         *SearchHelper
@@ -62,8 +60,6 @@ func NewRefreshHelper(
 	c *HelperCommon,
 	refsHelper *RefsHelper,
 	mergeAndRebaseHelper *MergeAndRebaseHelper,
-	patchBuildingHelper *PatchBuildingHelper,
-	stagingHelper *StagingHelper,
 	mergeConflictsHelper *MergeConflictsHelper,
 	worktreeHelper *WorktreeHelper,
 	searchHelper *SearchHelper,
@@ -72,8 +68,6 @@ func NewRefreshHelper(
 		c:                    c,
 		refsHelper:           refsHelper,
 		mergeAndRebaseHelper: mergeAndRebaseHelper,
-		patchBuildingHelper:  patchBuildingHelper,
-		stagingHelper:        stagingHelper,
 		mergeConflictsHelper: mergeConflictsHelper,
 		worktreeHelper:       worktreeHelper,
 		searchHelper:         searchHelper,
@@ -248,8 +242,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 
 	var scopeSet *set.Set[types.RefreshableView]
 	if len(options.Scope) == 0 {
-		// not refreshing staging/patch-building unless explicitly requested because we only need
-		// to refresh those while focused.
 		scopeSet = set.NewFromSlice([]types.RefreshableView{
 			types.COMMITS,
 			types.BRANCHES,
@@ -261,7 +253,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			types.WORKTREES,
 			types.STATUS,
 			types.BISECT_INFO,
-			types.STAGING,
 			types.PULL_REQUESTS,
 		})
 	} else {
@@ -348,6 +339,39 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	// branchesAndRemotesWg gives the fetch the happens-before to read them.
 	var loadedBranches []*models.Branch
 	var loadedRemotes []*models.Remote
+
+	// The branches view also shows a pull request icon against a branch, and
+	// those icons come from the remotes, so the branches refresh waits for the
+	// remotes as well, for the same reason it waits for the worktrees. Only the
+	// remotes themselves are waited for, not their branches, which are loaded
+	// afterwards (see refreshRemotes). The remotes scope has to be started before
+	// the branches scope for that wait to be safe. One of the early returns below
+	// would otherwise leave the branches refresh waiting for a scope that never
+	// started.
+	remotesWg := sync.WaitGroup{}
+	waitForRemotes := func() { remotesWg.Wait() }
+	if scopeSet.Includes(types.REMOTES) {
+		// Capture the previously-selected remote on the UI thread; the worker
+		// needs it to keep the remote-branches selection valid, and reading
+		// the Remotes context off the UI thread races its render.
+		var prevSelectedRemote *models.Remote
+		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
+			prevSelectedRemote = self.c.Contexts().Remotes.GetSelected()
+		}) {
+			return
+		}
+		remotesWg.Add(1)
+		remotesLoaded := sync.OnceFunc(remotesWg.Done)
+		branchesAndRemotesWg.Add(1)
+		refresh("remotes", func() {
+			// Signal again on the way out, so that a future early return in
+			// refreshRemotes can't leave the branches refresh waiting for ever.
+			defer remotesLoaded()
+			defer branchesAndRemotesWg.Done()
+			loadedRemotes = self.refreshRemotes(prevSelectedRemote, remotesLoaded, env)
+		})
+	}
+
 	if scopeSet.Includes(types.COMMITS) {
 		// Capture the refresh's inputs (model, contexts, modes) on the UI
 		// thread, before the git work is dispatched to a worker, so the worker
@@ -390,7 +414,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		if self.c.UserConfig().Git.LocalBranchSortOrder == "recency" {
 			branchesAndRemotesWg.Add(1)
 			refresh("reflog and branches", func() {
-				loadedBranches = self.refreshReflogAndBranches(capturedReflog, capturedBranches, waitForWorktrees, options.BranchSelection, options.SelectTopReflogCommit, env)
+				loadedBranches = self.refreshReflogAndBranches(capturedReflog, capturedBranches, waitForWorktrees, waitForRemotes, options.BranchSelection, options.SelectTopReflogCommit, env)
 				branchesAndRemotesWg.Done()
 			})
 		} else {
@@ -399,7 +423,7 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 				// Not a recency sort, so branches doesn't depend on the reflog
 				// being fresh; it runs concurrently with the reflog refresh
 				// below and uses the reflog we captured up front, as it always has.
-				loadedBranches = self.refreshBranches(capturedBranches, waitForWorktrees, options.BranchSelection, true, capturedReflog.reflogCommits, env)
+				loadedBranches = self.refreshBranches(capturedBranches, waitForWorktrees, waitForRemotes, options.BranchSelection, true, capturedReflog.reflogCommits, env)
 				branchesAndRemotesWg.Done()
 			})
 			refresh("reflog", func() {
@@ -458,23 +482,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		refresh("tags", func() { _ = self.refreshTags(env) })
 	}
 
-	if scopeSet.Includes(types.REMOTES) {
-		// Capture the previously-selected remote on the UI thread; the worker
-		// needs it to keep the remote-branches selection valid, and reading
-		// the Remotes context off the UI thread races its render.
-		var prevSelectedRemote *models.Remote
-		if !self.captureOnUIThread(calledFromWorker, env.background, func() {
-			prevSelectedRemote = self.c.Contexts().Remotes.GetSelected()
-		}) {
-			return
-		}
-		branchesAndRemotesWg.Add(1)
-		refresh("remotes", func() {
-			loadedRemotes, _ = self.refreshRemotes(prevSelectedRemote, env)
-			branchesAndRemotesWg.Done()
-		})
-	}
-
 	if scopeSet.Includes(types.PULL_REQUESTS) {
 		// Fetching pull requests talks to the GitHub API over the network; on
 		// a bad connection that request can stall for a long time. It runs no
@@ -500,37 +507,9 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		})
 	}
 
-	if scopeSet.Includes(types.STAGING) {
-		refresh("staging", func() {
-			fileWg.Wait()
-			// Bounce onto the UI thread so this runs after the files
-			// scope's model-update bounce — RefreshStagingPanel reads
-			// Model.Files (via Files.GetSelected) and would otherwise
-			// see the pre-refresh model. Guard on the generation so a
-			// repo switch mid-refresh drops it, like the model bounces.
-			self.onUIThreadUnlessRepoChanged(env, func() {
-				self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
-			})
-		})
-	}
-
-	if scopeSet.Includes(types.PATCH_BUILDING) {
-		refresh("patch building", func() {
-			// Bounce onto the UI thread, like the staging panel above:
-			// RefreshPatchBuildingPanel reads the commit-files selection and
-			// sets the patch view's origin, neither of which may run off the UI
-			// thread. Guard on the generation so a repo switch mid-refresh drops
-			// it, like the model bounces.
-			self.onUIThreadUnlessRepoChanged(env, func() {
-				self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{})
-			})
-		})
-	}
-
 	if scopeSet.Includes(types.MERGE_CONFLICTS) {
 		refresh("merge conflicts", func() {
-			// Bounce onto the UI thread, like the staging and patch-building
-			// panels above: RefreshMergeState reads the current context and
+			// Bounce onto the UI thread: RefreshMergeState reads the current context and
 			// renders (or escapes) the merge-conflicts view, none of which may
 			// run off the UI thread.
 			self.onUIThreadUnlessRepoChanged(env, func() {
@@ -573,7 +552,8 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			// this runs — and the keys buffered during the refresh replay —
 			// the refreshed state is in place.
 			self.c.OnUIThread(func() error {
-				return self.c.GocuiGui().EndBlockingEvents()
+				self.c.GocuiGui().EndBlockingEvents()
+				return nil
 			})
 		}
 
@@ -659,8 +639,6 @@ func getScopeNames(scopes []types.RefreshableView) []string {
 		types.WORKTREES:       "worktrees",
 		types.STATUS:          "status",
 		types.BISECT_INFO:     "bisect",
-		types.STAGING:         "staging",
-		types.PATCH_BUILDING:  "patchBuilding",
 		types.MERGE_CONFLICTS: "mergeConflicts",
 		types.COMMIT_FILES:    "commitFiles",
 		types.PULL_REQUESTS:   "pullRequests",
@@ -726,19 +704,19 @@ func (self *RefreshHelper) captureBranchState() capturedBranchState {
 	}
 }
 
-func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflogState, capturedBranches capturedBranchState, waitForWorktrees func(), branchSelection types.BranchSelectionBehavior, selectTopReflogCommit bool, env refreshEnv) []*models.Branch {
+func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflogState, capturedBranches capturedBranchState, waitForWorktrees func(), waitForRemotes func(), branchSelection types.BranchSelectionBehavior, selectTopReflogCommit bool, env refreshEnv) []*models.Branch {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
 		// Return the immediate (non-recency) load's branches; the recency-sorted
 		// reload below runs on its own worker after we return. Both hold the same
 		// set of branches, which is all the caller (the PR fetch) needs.
-		branches := self.refreshBranches(capturedBranches, waitForWorktrees, branchSelection, false, capturedReflog.reflogCommits, env)
+		branches := self.refreshBranches(capturedBranches, waitForWorktrees, waitForRemotes, branchSelection, false, capturedReflog.reflogCommits, env)
 
 		self.onWorker(env.background, func(_ gocui.Task) error {
 			reflogCommits, _ := self.refreshReflogCommits(capturedReflog, env, false)
-			// The load above already waited for the worktrees, so this one has
-			// nothing left to wait for.
-			self.refreshBranches(capturedBranches, func() {}, types.SelectCheckedOutBranch, true, reflogCommits, env)
+			// The load above already waited for the worktrees and the remotes, so
+			// this one has nothing left to wait for.
+			self.refreshBranches(capturedBranches, func() {}, func() {}, types.SelectCheckedOutBranch, true, reflogCommits, env)
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)
 			return nil
 		})
@@ -747,7 +725,7 @@ func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflo
 
 	case types.COMPLETE:
 		reflogCommits, _ := self.refreshReflogCommits(capturedReflog, env, selectTopReflogCommit)
-		return self.refreshBranches(capturedBranches, waitForWorktrees, branchSelection, true, reflogCommits, env)
+		return self.refreshBranches(capturedBranches, waitForWorktrees, waitForRemotes, branchSelection, true, reflogCommits, env)
 	}
 
 	return nil
@@ -1069,17 +1047,31 @@ type capturedCommitFilesState struct {
 	from    string
 	to      string
 	reverse bool
+	// Whether there is a commit to load the files of at all. The panel is only ever
+	// pointed at one by being entered, and a patch can now be built from a commit's diff
+	// without that — after which anything that refreshes the panel would otherwise be
+	// asking for the files of nothing.
+	hasCommit bool
 }
 
 // captureCommitFilesState reads the commit-files refresh's diff endpoints into
 // an immutable snapshot. It must run on the UI thread.
 func (self *RefreshHelper) captureCommitFilesState() capturedCommitFilesState {
-	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
+	commitFilesContext := self.c.Contexts().CommitFiles
+	if commitFilesContext.GetRef() == nil && commitFilesContext.GetRefRange() == nil {
+		return capturedCommitFilesState{}
+	}
+
+	from, to := commitFilesContext.GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
-	return capturedCommitFilesState{from: from, to: to, reverse: reverse}
+	return capturedCommitFilesState{from: from, to: to, reverse: reverse, hasCommit: true}
 }
 
 func (self *RefreshHelper) refreshCommitFilesContext(captured capturedCommitFilesState, env refreshEnv) error {
+	if !captured.hasCommit {
+		return nil
+	}
+
 	files, err := env.git.Loaders.CommitFileLoader.GetFilesInDiff(captured.from, captured.to, captured.reverse)
 	if err != nil {
 		return err
@@ -1134,14 +1126,14 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs(env refreshEnv) ([]*mode
 
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
-func (self *RefreshHelper) refreshBranches(captured capturedBranchState, waitForWorktrees func(), branchSelection types.BranchSelectionBehavior, loadBehindCounts bool, reflogCommits []*models.Commit, env refreshEnv) []*models.Branch {
+func (self *RefreshHelper) refreshBranches(captured capturedBranchState, waitForWorktrees func(), waitForRemotes func(), branchSelection types.BranchSelectionBehavior, loadExtraInfo bool, reflogCommits []*models.Commit, env refreshEnv) []*models.Branch {
 	loadSeq := self.branchLoadSeq.Add(1)
 
 	branches, err := env.git.Loaders.BranchLoader.Load(
 		reflogCommits,
 		captured.mainBranches,
 		captured.oldBranches,
-		loadBehindCounts,
+		loadExtraInfo,
 		func(f func() error) {
 			self.onWorker(env.background, func(_ gocui.Task) error {
 				err := f()
@@ -1168,9 +1160,11 @@ func (self *RefreshHelper) refreshBranches(captured capturedBranchState, waitFor
 		self.c.Log.Error(err)
 	}
 
-	// Render only once the refreshed worktrees are in the model; the branches
-	// view shows them against the branches (see performRefresh).
+	// Render only once the refreshed worktrees and remotes are in the model. The
+	// branches view shows the worktrees against the branches, and the pull
+	// request icons come from the remotes (see performRefresh).
 	waitForWorktrees()
+	waitForRemotes()
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
 		// Drop this write if a branch load that started later has already applied
@@ -1544,14 +1538,16 @@ func (self *RefreshHelper) refreshReflogCommits(captured capturedReflogState, en
 	return reflogCommits, nil
 }
 
-func (self *RefreshHelper) refreshRemotes(prevSelectedRemote *models.Remote, env refreshEnv) ([]*models.Remote, error) {
-	remotes, err := env.git.Loaders.RemoteLoader.GetRemotes()
-	if err != nil {
-		return nil, err
-	}
+func (self *RefreshHelper) refreshRemotes(prevSelectedRemote *models.Remote, remotesLoaded func(), env refreshEnv) []*models.Remote {
+	remotes := env.git.Loaders.RemoteLoader.GetRemotes()
 
+	// Put the remotes in the model before loading their branches below. The map
+	// from branches to pull requests is built from the remotes' URLs (see
+	// GenerateGithubPullRequestMap), and loading the remote branches takes much
+	// longer than loading the remotes themselves. If the map had to wait for the
+	// branches, the pull request icons would show up long after the branch list.
 	self.onUIThreadUnlessRepoChanged(env, func() {
-		self.c.Model().Remotes = remotes
+		self.c.Model().Remotes = remotesWithCarriedOverBranches(remotes, self.c.Model().Remotes)
 
 		hadPrs := len(self.c.Model().PullRequestsMap) != 0
 		self.rebuildPullRequestsMap()
@@ -1559,11 +1555,35 @@ func (self *RefreshHelper) refreshRemotes(prevSelectedRemote *models.Remote, env
 			// if we didn't have PRs in the map before but now we do, we need to redraw the branches view
 			self.refreshView(self.c.Contexts().Branches, env)
 		}
+	})
+
+	// Tell the branches refresh that the remotes write is queued, so that it can
+	// queue its own write behind ours and render the icons with the branches.
+	remotesLoaded()
+
+	self.refreshView(self.c.Contexts().Remotes, env)
+
+	remoteBranchesByRemoteName, err := env.git.Loaders.RemoteLoader.GetRemoteBranchesByRemoteName()
+	if err != nil {
+		// The remotes themselves are in the model already; log the failure and
+		// leave them there without their branches.
+		self.c.Log.Error(err)
+		return remotes
+	}
+
+	remotesWithBranches := lo.Map(remotes, func(remote *models.Remote, _ int) *models.Remote {
+		withBranches := *remote
+		withBranches.Branches = remoteBranchesByRemoteName[remote.Name]
+		return &withBranches
+	})
+
+	self.onUIThreadUnlessRepoChanged(env, func() {
+		self.c.Model().Remotes = remotesWithBranches
 
 		// we need to ensure our selected remote branches aren't now outdated
 		if prevSelectedRemote != nil && self.c.Model().RemoteBranches != nil {
 			// find remote now
-			for _, remote := range remotes {
+			for _, remote := range remotesWithBranches {
 				if remote.Name == prevSelectedRemote.Name {
 					self.c.Model().RemoteBranches = remote.Branches
 					break
@@ -1574,7 +1594,25 @@ func (self *RefreshHelper) refreshRemotes(prevSelectedRemote *models.Remote, env
 
 	self.refreshView(self.c.Contexts().Remotes, env)
 	self.refreshView(self.c.Contexts().RemoteBranches, env)
-	return remotes, nil
+	return remotesWithBranches
+}
+
+// remotesWithCarriedOverBranches returns copies of the freshly loaded remotes,
+// each carrying the branches of the remote of the same name in the model. Those
+// branches are the ones the views are showing right now, so carrying them over
+// keeps the remote branches, and the branch counts in the remotes view, in place
+// until the fresh ones are loaded. The copies also leave the remotes we were
+// given untouched, so that the caller can go on reading them off the UI thread.
+func remotesWithCarriedOverBranches(remotes []*models.Remote, modelRemotes []*models.Remote) []*models.Remote {
+	return lo.Map(remotes, func(remote *models.Remote, _ int) *models.Remote {
+		copied := *remote
+		if previous, found := lo.Find(modelRemotes, func(modelRemote *models.Remote) bool {
+			return modelRemote.Name == remote.Name
+		}); found {
+			copied.Branches = previous.Branches
+		}
+		return &copied
+	})
 }
 
 func (self *RefreshHelper) loadWorktrees(env refreshEnv) []*models.Worktree {

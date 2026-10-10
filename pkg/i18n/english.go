@@ -21,7 +21,6 @@ type TranslationSet struct {
 	EasterEgg                             string
 	UnstagedChanges                       string
 	StagedChanges                         string
-	StagingTitle                          string
 	MergingTitle                          string
 	NormalTitle                           string
 	LogTitle                              string
@@ -239,6 +238,14 @@ type TranslationSet struct {
 	ForcePush                             string
 	ForcePushPrompt                       string
 	ForcePushDisabled                     string
+	ForcePushBranchesPrompt               string
+	ForcePushBranchesDisabled             string
+	BranchesBelowHaveCommitsToPush        string
+	PushBranchAndBranchesBelow            string
+	PushOnlyCurrentBranch                 string
+	BranchesBelowHaveChangedOnRemote      string
+	PullBranchAndBranchesBelow            string
+	PullOnlyCurrentBranch                 string
 	UpdatesRejected                       string
 	UpdatesRejectedAndForcePushDisabled   string
 	CheckForUpdate                        string
@@ -286,6 +293,8 @@ type TranslationSet struct {
 	UnsupportedGitService                 string
 	CopyPullRequestURL                    string
 	OpenPullRequestInBrowser              string
+	OpenPullRequestAtSelectedLine         string
+	OpenPullRequestAtSelectedLineTooltip  string
 	NoPullRequestForBranch                string
 	NoBranchOnRemote                      string
 	Fetch                                 string
@@ -302,16 +311,21 @@ type TranslationSet struct {
 	DiscardSelectionTooltip               string
 	ToggleSelectHunk                      string
 	SelectHunk                            string
+	NothingToSelectInDiff                 string
+	NotAvailableInDiffingMode             string
+	NotAvailableForCustomPatch            string
+	CommitNotInPullRequest                string
+	CommitsNotInPullRequest               string
+	CommitsInSeveralPullRequests          string
 	SelectLineByLine                      string
 	ToggleSelectHunkTooltip               string
-	HunkStagingHint                       string
 	ToggleSelectionForPatch               string
 	RemoveSelectionFromPatch              string
 	RemoveSelectionFromPatchTooltip       string
 	EditHunk                              string
 	EditHunkTooltip                       string
-	ToggleStagingView                     string
-	ToggleStagingViewTooltip              string
+	ToggleDiffPane                        string
+	ToggleDiffPaneTooltip                 string
 	ReturnToFilesPanel                    string
 	FastForward                           string
 	FastForwardTooltip                    string
@@ -332,6 +346,9 @@ type TranslationSet struct {
 	NotMidRebase                          string
 	MustSelectFixupCommit                 string
 	RecentRepos                           string
+	RecentReposRepoLabel                  string
+	RecentReposBranchLabel                string
+	RecentReposPathLabel                  string
 	MergeOptionsTitle                     string
 	RebaseOptionsTitle                    string
 	CherryPickOptionsTitle                string
@@ -348,7 +365,6 @@ type TranslationSet struct {
 	CommitMenuTitle                       string
 	RemotesTitle                          string
 	RemoteBranchesTitle                   string
-	PatchBuildingTitle                    string
 	InformationTitle                      string
 	SecondaryTitle                        string
 	ReflogCommitsTitle                    string
@@ -366,6 +382,9 @@ type TranslationSet struct {
 	FwdNoUpstream                         string
 	FwdNoLocalUpstream                    string
 	FwdCommitsToPush                      string
+	FwdLocalOnlyCommits                   string
+	FwdUncommittedChanges                 string
+	FwdBranchRebasingOrBisecting          string
 	PullRequestNoUpstream                 string
 	PullRequestChecksPassing              string
 	PullRequestChecksPending              string
@@ -396,6 +415,13 @@ type TranslationSet struct {
 	AskQuestion                           string
 	PrevHunk                              string
 	NextHunk                              string
+	PrevFileInDiff                        string
+	NextFileInDiff                        string
+	JumpToFile                            string
+	JumpToFileInDiff                      string
+	JumpToFileInDiffTooltip               string
+	OnlyOneFileInDiff                     string
+	NoFileInDiffNamed                     string
 	PrevConflict                          string
 	NextConflict                          string
 	SelectPrevHunk                        string
@@ -455,6 +481,7 @@ type TranslationSet struct {
 	CheckoutCommitFileTooltip             string
 	CannotCheckoutWithModifiedFilesErr    string
 	CanOnlyDiscardFromLocalCommits        string
+	CannotDiscardFromCustomPatchView      string
 	CannotDiscardFromMultipleCommits      string
 	Remove                                string
 	DiscardOldFileChangeTooltip           string
@@ -546,9 +573,9 @@ type TranslationSet struct {
 	PatchOptionsTitle                     string
 	NoPatchError                          string
 	EmptyPatchError                       string
-	EnterCommitFile                       string
-	EnterCommitFileTooltip                string
-	ExitCustomPatchBuilder                string
+	FocusCommitFileDiff                   string
+	FocusCommitFileDiffTooltip            string
+	ResetCustomPatch                      string
 	ExitFocusedMainView                   string
 	EnterUpstream                         string
 	InvalidUpstream                       string
@@ -595,14 +622,23 @@ type TranslationSet struct {
 	LightweightTag                        string
 	AnnotatedTag                          string
 	DeleteTagTitle                        string
+	DeleteTagsTitle                       string
 	DeleteLocalTag                        string
+	DeleteLocalTags                       string
 	DeleteRemoteTag                       string
+	DeleteRemoteTags                      string
 	DeleteLocalAndRemoteTag               string
+	DeleteLocalAndRemoteTags              string
 	SelectRemoteTagUpstream               string
+	SelectRemoteTagsUpstream              string
 	DeleteRemoteTagPrompt                 string
+	DeleteRemoteTagsPrompt                string
 	DeleteLocalAndRemoteTagPrompt         string
+	DeleteLocalAndRemoteTagsPrompt        string
 	RemoteTagDeletedMessage               string
+	RemoteTagsDeletedMessage              string
 	PushTagTitle                          string
+	PushTagsTitle                         string
 	PushTag                               string
 	PushTagTooltip                        string
 	NewTag                                string
@@ -709,12 +745,15 @@ type TranslationSet struct {
 	CopyTagToClipboard                    string
 	CopyPathToClipboard                   string
 	CommitPrefixPatternError              string
-	CopySelectedTextToClipboard           string
+	CopySelectedDiffLinesToClipboard      string
+	SelectedDiffLinesCopiedToast          string
+	SelectionNotFoundInDiffToast          string
 	NoFilesStagedTitle                    string
 	NoFilesStagedPrompt                   string
 	BranchNotFoundTitle                   string
 	BranchNotFoundPrompt                  string
 	BranchUnknown                         string
+	HeadDetachedAt                        string
 	DiscardChangeTitle                    string
 	DiscardChangePrompt                   string
 	DiscardLinesFromCommitTitle           string
@@ -792,7 +831,6 @@ type TranslationSet struct {
 	ToggleWhitespaceInDiffView               string
 	ToggleWhitespaceInDiffViewTooltip        string
 	IgnoreWhitespaceDiffViewSubTitle         string
-	IgnoreWhitespaceNotSupportedHere         string
 	IncreaseContextInDiffView                string
 	IncreaseContextInDiffViewTooltip         string
 	DecreaseContextInDiffView                string
@@ -834,7 +872,6 @@ type TranslationSet struct {
 	SortOrderPrompt                          string
 	SortCommits                              string
 	SortCommitsTooltip                       string
-	CantChangeContextSizeError               string
 	CantChangeRenameThresholdError           string
 	OpenCommitInBrowser                      string
 	ViewBisectOptions                        string
@@ -1156,15 +1193,6 @@ const englishNonReloadableConfigWarning = `The following config settings were ch
 
 {{configs}}`
 
-const englishHunkStagingHint = `Hunk selection mode is now the default for staging. If you want to stage individual lines, press '%s' to switch to line-by-line mode.
-
-If you prefer to use line-by-line mode by default (like in earlier lazygit versions), add
-
-gui:
-  useHunkModeInStagingView: false
-
-to your lazygit config.`
-
 // exporting this so we can use it in tests
 func EnglishTranslationSet() *TranslationSet {
 	return &TranslationSet{
@@ -1178,7 +1206,6 @@ func EnglishTranslationSet() *TranslationSet {
 		EasterEgg:                            "Easter egg",
 		UnstagedChanges:                      "Unstaged changes",
 		StagedChanges:                        "Staged changes",
-		StagingTitle:                         "Main panel (staging)",
 		MergingTitle:                         "Main panel (merging)",
 		NormalTitle:                          "Main panel (normal)",
 		LogTitle:                             "Log",
@@ -1218,9 +1245,9 @@ func EnglishTranslationSet() *TranslationSet {
 		Refresh:                              "Refresh",
 		RefreshTooltip:                       "Refresh the git state (i.e. run `git status`, `git branch`, etc in background to update the contents of panels). This does not run `git fetch`.",
 		Push:                                 "Push",
-		PushTooltip:                          "Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
+		PushTooltip:                          "Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have commits to push, you are offered to push those too.",
 		Pull:                                 "Pull",
-		PullTooltip:                          "Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch.",
+		PullTooltip:                          "Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have changed on the remote, you are offered to update those too.",
 		MergeConflictsTitle:                  "Merge conflicts",
 		MergeConflictDescription_DD:          "Conflict: this file was moved or renamed both in the current and the incoming changes, but to different destinations. I don't know which ones, but they should both show up as conflicts too (marked 'AU' and 'UA', respectively). The most likely resolution is to delete this file, and pick one of the destinations and delete the other.",
 		MergeConflictDescription_AU:          "Conflict: this file is the destination of a move or rename in the current changes, but was moved or renamed to a different destination in the incoming changes. That other destination should also show up as a conflict (marked 'UA'), as well as the file that both were renamed from (marked 'DD').",
@@ -1396,6 +1423,14 @@ func EnglishTranslationSet() *TranslationSet {
 		ForcePush:                            "Force push",
 		ForcePushPrompt:                      "Your branch has diverged from the remote branch. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to force push.",
 		ForcePushDisabled:                    "Your branch has diverged from the remote branch and you've disabled force pushing",
+		ForcePushBranchesPrompt:              "The following branches have diverged from their remote branches:\n\n{{.branches}}\n\nPress {{.cancelKey}} to cancel, or {{.confirmKey}} to force push.",
+		ForcePushBranchesDisabled:            "Some of these branches have diverged from their remote branches and you've disabled force pushing",
+		BranchesBelowHaveCommitsToPush:       "The following branches stacked below '{{.branchName}}' also have commits to push:",
+		PushBranchAndBranchesBelow:           "Push all these branches in addition to the current one",
+		PushOnlyCurrentBranch:                "Push only '{{.branchName}}'",
+		BranchesBelowHaveChangedOnRemote:     "The following branches stacked below '{{.branchName}}' have also changed on the remote:",
+		PullBranchAndBranchesBelow:           "Pull all these branches in addition to the current one",
+		PullOnlyCurrentBranch:                "Pull only '{{.branchName}}'",
 		UpdatesRejected:                      "Updates were rejected. Please fetch and examine the remote changes before pushing again.",
 		UpdatesRejectedAndForcePushDisabled:  "Updates were rejected and you have disabled force pushing",
 		CheckForUpdate:                       "Check for update",
@@ -1444,6 +1479,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CreatePullRequest:                    `Create pull request`,
 		CopyPullRequestURL:                   `Copy pull request URL to clipboard`,
 		OpenPullRequestInBrowser:             `Open pull request in browser`,
+		OpenPullRequestAtSelectedLine:        `Open pull request at selected line`,
+		OpenPullRequestAtSelectedLineTooltip: "Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found.",
 		NoPullRequestForBranch:               `No pull request found for this branch`,
 		NoBranchOnRemote:                     `This branch doesn't exist on remote. You need to push it to remote first.`,
 		Fetch:                                `Fetch`,
@@ -1453,28 +1490,33 @@ func EnglishTranslationSet() *TranslationSet {
 		ExpandAll:                            "Expand all files",
 		ExpandAllTooltip:                     "Expand all directories in the file tree",
 		DisabledInFlatView:                   "Not available in flat view",
-		FileEnter:                            `Stage lines / Collapse directory`,
-		FileEnterTooltip:                     "If the selected item is a file, focus the staging view so you can stage individual hunks/lines. If the selected item is a directory, collapse/expand it.",
+		FileEnter:                            `Focus file diff / Collapse directory`,
+		FileEnterTooltip:                     "If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it.",
 		StageSelectionTooltip:                `Toggle selection staged / unstaged.`,
 		DiscardSelection:                     `Discard`,
 		DiscardSelectionTooltip:              "When unstaged change is selected, discard the change using `git reset`. When staged change is selected, unstage the change.",
 		ToggleRangeSelect:                    "Toggle range select",
 		DismissRangeSelect:                   "Dismiss range select",
 		ToggleSelectHunk:                     "Toggle hunk selection",
+		NothingToSelectInDiff:                "There is nothing to select here",
+		NotAvailableInDiffingMode:            "Not available in diffing mode",
+		NotAvailableForCustomPatch:           "Not available for the custom patch",
+		CommitNotInPullRequest:               "This commit is not part of the pull request",
+		CommitsNotInPullRequest:              "Not all of these commits are part of the pull request",
+		CommitsInSeveralPullRequests:         "These commits are not all in the same pull request",
 		SelectHunk:                           "Select hunks",
 		SelectLineByLine:                     "Select line-by-line",
 		ToggleSelectHunkTooltip:              "Toggle line-by-line vs. hunk selection mode.",
-		HunkStagingHint:                      englishHunkStagingHint,
 		ToggleSelectionForPatch:              `Toggle lines in patch`,
 		RemoveSelectionFromPatch:             `Remove lines from commit`,
 		RemoveSelectionFromPatchTooltip:      "Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines.",
 		EditHunk:                             `Edit hunk`,
 		EditHunkTooltip:                      "Edit selected hunk in external editor.",
-		ToggleStagingView:                    "Switch view",
-		ToggleStagingViewTooltip:             "Switch to other view (staged/unstaged changes).",
+		ToggleDiffPane:                       "Switch diff pane",
+		ToggleDiffPaneTooltip:                "Switch to the other focused diff pane.",
 		ReturnToFilesPanel:                   `Return to files panel`,
 		FastForward:                          `Fast-forward`,
-		FastForwardTooltip:                   "Fast-forward selected branch from its upstream.",
+		FastForwardTooltip:                   "Fast-forward selected branch from its upstream. If the branch has diverged from its upstream because the upstream branch was rewritten, and it has no commits of its own, it is reset to its upstream instead. This needs reflogs to be enabled; a bare repository doesn't keep them by default (core.logAllRefUpdates).",
 		FastForwarding:                       "Fast-forwarding",
 		FoundConflictsTitle:                  "Conflicts!",
 		ViewConflictsMenuItem:                "View conflicts",
@@ -1490,6 +1532,9 @@ func EnglishTranslationSet() *TranslationSet {
 		NotMidRebase:                         "This action only works during an interactive rebase",
 		MustSelectFixupCommit:                "This action only works on fixup commits",
 		RecentRepos:                          "Recent repositories",
+		RecentReposRepoLabel:                 "Repo:",
+		RecentReposBranchLabel:               "Branch:",
+		RecentReposPathLabel:                 "Path:",
 		MergeOptionsTitle:                    "Merge options",
 		RebaseOptionsTitle:                   "Rebase options",
 		CherryPickOptionsTitle:               "Cherry-pick options",
@@ -1506,7 +1551,6 @@ func EnglishTranslationSet() *TranslationSet {
 		CommitMenuTitle:                      "Commit Menu",
 		RemotesTitle:                         "Remotes",
 		RemoteBranchesTitle:                  "Remote branches",
-		PatchBuildingTitle:                   "Main panel (patch building)",
 		InformationTitle:                     "Information",
 		SecondaryTitle:                       "Secondary",
 		ReflogCommitsTitle:                   "Reflog",
@@ -1530,6 +1574,9 @@ func EnglishTranslationSet() *TranslationSet {
 		FwdNoUpstream:                        "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                   "Cannot fast-forward a branch whose remote is not registered locally",
 		FwdCommitsToPush:                     "Cannot fast-forward a branch with commits to push",
+		FwdLocalOnlyCommits:                  "Cannot fast-forward '{{.branchName}}' because it has commits which were never on its remote branch",
+		FwdUncommittedChanges:                "Cannot fast-forward '{{.branchName}}' because the worktree it is checked out in has uncommitted changes",
+		FwdBranchRebasingOrBisecting:         "Cannot fast-forward '{{.branchName}}' because it is being rebased or bisected in worktree {{.worktreeName}}",
 		PullRequestNoUpstream:                "Cannot open a pull request for a branch with no upstream",
 		PullRequestChecksPassing:             "Passing",
 		PullRequestChecksPending:             "Pending",
@@ -1560,6 +1607,13 @@ func EnglishTranslationSet() *TranslationSet {
 		AskQuestion:                          "Ask Question",
 		PrevHunk:                             "Go to previous hunk",
 		NextHunk:                             "Go to next hunk",
+		PrevFileInDiff:                       "Go to previous file",
+		NextFileInDiff:                       "Go to next file",
+		JumpToFile:                           "Jump to file",
+		JumpToFileInDiff:                     "Jump to file in diff",
+		JumpToFileInDiffTooltip:              "Pick one of the files of the diff shown in the main view, and scroll the main view to it. The focus stays in this panel.",
+		OnlyOneFileInDiff:                    "There is only one file in this diff",
+		NoFileInDiffNamed:                    "This diff has no file named '{{.path}}'",
 		PrevConflict:                         "Previous conflict",
 		NextConflict:                         "Next conflict",
 		SelectPrevHunk:                       "Previous hunk",
@@ -1619,6 +1673,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CheckoutCommitFileTooltip:            "Checkout file. This replaces the file in your working tree with the version from the selected commit.",
 		CannotCheckoutWithModifiedFilesErr:   "You have local modifications for the file(s) you are trying to check out. You need to stash or discard these first.",
 		CanOnlyDiscardFromLocalCommits:       "Changes can only be discarded from local commits",
+		CannotDiscardFromCustomPatchView:     "Lines shown here are the custom patch's; press space to take them back out of it",
 		CannotDiscardFromMultipleCommits:     "Changes cannot be discarded from a multiselection of commits",
 		Remove:                               "Remove",
 		DiscardOldFileChangeTooltip:          "Discard this commit's changes to this file. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes this file.",
@@ -1711,9 +1766,9 @@ func EnglishTranslationSet() *TranslationSet {
 		PatchOptionsTitle:                    "Patch options",
 		NoPatchError:                         "No patch created yet. To start building a patch, use 'space' on a commit file or enter to add specific lines",
 		EmptyPatchError:                      "Patch is still empty. Add some files or lines to your patch first.",
-		EnterCommitFile:                      "Enter file / Toggle directory collapsed",
-		EnterCommitFileTooltip:               "If a file is selected, enter the file so that you can add/remove individual lines to the custom patch. If a directory is selected, toggle the directory.",
-		ExitCustomPatchBuilder:               `Exit custom patch builder`,
+		FocusCommitFileDiff:                  "Focus file diff / Toggle directory",
+		FocusCommitFileDiffTooltip:           "If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it.",
+		ResetCustomPatch:                     `Reset custom patch`,
 		ExitFocusedMainView:                  "Exit back to side panel",
 		EnterUpstream:                        `Enter upstream as '<remote> <branchname>'`,
 		InvalidUpstream:                      "Invalid upstream. Must be in the format '<remote> <branchname>'",
@@ -1760,14 +1815,23 @@ func EnglishTranslationSet() *TranslationSet {
 		AnnotatedTag:                         "Annotated tag",
 		LightweightTag:                       "Lightweight tag",
 		DeleteTagTitle:                       "Delete tag '{{.tagName}}'?",
+		DeleteTagsTitle:                      "Delete selected tags?",
 		DeleteLocalTag:                       "Delete local tag",
+		DeleteLocalTags:                      "Delete local tags",
 		DeleteRemoteTag:                      "Delete remote tag",
+		DeleteRemoteTags:                     "Delete remote tags",
 		DeleteLocalAndRemoteTag:              "Delete local and remote tag",
+		DeleteLocalAndRemoteTags:             "Delete local and remote tags",
 		RemoteTagDeletedMessage:              "Remote tag deleted",
+		RemoteTagsDeletedMessage:             "Remote tags deleted",
 		SelectRemoteTagUpstream:              "Remote from which to remove tag '{{.tagName}}':",
+		SelectRemoteTagsUpstream:             "Remote from which to remove the selected tags:",
 		DeleteRemoteTagPrompt:                "Are you sure you want to delete the remote tag '{{.tagName}}' from '{{.upstream}}'?",
+		DeleteRemoteTagsPrompt:               "Are you sure you want to delete the selected tags from '{{.upstream}}'?",
 		DeleteLocalAndRemoteTagPrompt:        "Are you sure you want to delete '{{.tagName}}' from both your machine and from '{{.upstream}}'?",
+		DeleteLocalAndRemoteTagsPrompt:       "Are you sure you want to delete the selected tags from both your machine and from '{{.upstream}}'?",
 		PushTagTitle:                         "Remote to push tag '{{.tagName}}' to:",
+		PushTagsTitle:                        "Remote to push the selected tags to:",
 		// Using 'push tag' rather than just 'push' to disambiguate from a global push
 		PushTag:                        "Push tag",
 		PushTagTooltip:                 "Push the selected tag to a remote. You'll be prompted to select a remote.",
@@ -1871,13 +1935,16 @@ func EnglishTranslationSet() *TranslationSet {
 		CopyBranchNameToClipboard:                "Copy branch name to clipboard",
 		CopyTagToClipboard:                       "Copy tag to clipboard",
 		CopyPathToClipboard:                      "Copy path to clipboard",
-		CopySelectedTextToClipboard:              "Copy selected text to clipboard",
+		CopySelectedDiffLinesToClipboard:         "Copy selected diff lines to clipboard",
+		SelectedDiffLinesCopiedToast:             "Selected diff lines copied to clipboard",
+		SelectionNotFoundInDiffToast:             "Nothing in the selection could be found in the diff",
 		CommitPrefixPatternError:                 "Error in commitPrefix pattern",
 		NoFilesStagedTitle:                       "No files staged",
 		NoFilesStagedPrompt:                      "You have not staged any files. Commit all files?",
 		BranchNotFoundTitle:                      "Branch not found",
 		BranchNotFoundPrompt:                     "Branch not found. Create a new branch named",
 		BranchUnknown:                            "Branch unknown",
+		HeadDetachedAt:                           "HEAD detached at {{.hash}}",
 		DiscardChangeTitle:                       "Discard change",
 		DiscardChangePrompt:                      "Are you sure you want to discard this change (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipDiscardChangeWarning' to true",
 		DiscardLinesFromCommitTitle:              "Discard lines from commit",
@@ -1954,7 +2021,6 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleWhitespaceInDiffView:               "Toggle whitespace",
 		ToggleWhitespaceInDiffViewTooltip:        "Toggle whether or not whitespace changes are shown in the diff view.\n\nThe default can be changed in the config file with the key 'git.ignoreWhitespaceInDiffView'.",
 		IgnoreWhitespaceDiffViewSubTitle:         "(ignoring whitespace)",
-		IgnoreWhitespaceNotSupportedHere:         "Ignoring whitespace is not supported in this view",
 		IncreaseContextInDiffView:                "Increase diff context size",
 		IncreaseContextInDiffViewTooltip:         "Increase the amount of the context shown around changes in the diff view.\n\nThe default can be changed in the config file with the key 'git.diffContextSize'.",
 		DecreaseContextInDiffView:                "Decrease diff context size",
@@ -1994,7 +2060,6 @@ func EnglishTranslationSet() *TranslationSet {
 		SortBasedOnReflog:                        "(based on reflog)",
 		SortCommits:                              "Commit sort order",
 		SortCommitsTooltip:                       "Change the sort order of the commits in the commit log.\n\nThe default can be changed in the config file with the key 'git.log.sortOrder'.",
-		CantChangeContextSizeError:               "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
 		CantChangeRenameThresholdError:           "Cannot change the rename similarity threshold while in patch building mode, because the custom patch can't cope with a rename turning into a delete and add underneath it.",
 		OpenCommitInBrowser:                      "Open commit in browser",
 		ViewBisectOptions:                        "View bisect options",

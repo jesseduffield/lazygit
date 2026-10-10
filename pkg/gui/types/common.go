@@ -72,6 +72,10 @@ type IGuiCommon interface {
 	// return the view buffer manager for the given view, or nil if it doesn't have one
 	GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
 
+	// return the view buffer manager for the given view, making one if the view has
+	// never rendered anything, for saying something about a render still to come
+	GetOrCreateViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
+
 	// read enough lines into the given view's buffer to fill it at its current
 	// scroll position, plus some read-ahead for smooth scrolling
 	ReadLinesToFillView(view *gocui.View)
@@ -310,6 +314,12 @@ type MenuItem struct {
 	// alternative to Label. Allows specifying columns which will be auto-aligned
 	LabelColumns []string
 
+	// The strings that filtering the menu matches against, for menus that
+	// abbreviate their columns to keep them narrow. If nil, LabelColumns are
+	// matched, so that a menu only needs to set this if what it displays is not
+	// the full text.
+	FilterColumns []string
+
 	OnPress func() error
 
 	// Only applies when Label is used
@@ -455,8 +465,8 @@ type IRepoStateAccessor interface {
 	SetScreenMode(ScreenMode)
 	InSearchPrompt() bool
 	GetSearchState() *SearchState
-	SetSplitMainPanel(bool)
-	GetSplitMainPanel() bool
+	SetMainPanes(MainPanes)
+	GetMainPanes() MainPanes
 	GetMergeOrRebaseStartedInLazygit() bool
 	SetMergeOrRebaseStartedInLazygit(bool)
 }

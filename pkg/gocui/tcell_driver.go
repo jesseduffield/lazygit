@@ -56,7 +56,13 @@ var runeReplacements = map[rune]string{
 func (g *Gui) tcellInit(runeReplacements map[rune]string) error {
 	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
 
-	s, e := tcell.NewScreen()
+	tty, e := tcell.NewDevTty()
+	if e != nil {
+		return e
+	}
+	colorSchemeTty := newColorSchemeTty(tty)
+
+	s, e := tcell.NewTerminfoScreenFromTty(colorSchemeTty)
 	if e != nil {
 		return e
 	}
@@ -68,6 +74,7 @@ func (g *Gui) tcellInit(runeReplacements map[rune]string) error {
 	registerRuneFallbacks(s, runeReplacements)
 
 	g.screen = s
+	g.colorSchemeTty = colorSchemeTty
 	Screen = s
 	return nil
 }
@@ -202,6 +209,7 @@ const (
 
 var (
 	lastMouseKey tcell.ButtonMask = tcell.ButtonNone
+	lastMouseMod tcell.ModMask    = tcell.ModNone
 	dragState                     = NOT_DRAGGING
 	lastX                         = 0
 	lastY                         = 0
@@ -370,6 +378,12 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 		if button != tcell.ButtonNone && lastMouseKey == tcell.ButtonNone {
 			newButtonPress = true
 			lastMouseKey = button
+			// The keyboard modifiers held at press time apply to the whole gesture:
+			// the press, every drag event, and the release. Snapshotting them here
+			// keeps a modified press from producing events that match unmodified
+			// bindings, and ignores modifier changes while the button is held.
+			lastMouseMod = tev.Modifiers()
+			mouseMod = Modifier(lastMouseMod)
 			switch button {
 			case tcell.ButtonPrimary:
 				mouseKey = MouseLeft
@@ -395,7 +409,8 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 				case tcell.ButtonMiddle:
 				default:
 				}
-				mouseMod = ModNone
+				mouseMod = Modifier(lastMouseMod)
+				lastMouseMod = tcell.ModNone
 				lastMouseKey = tcell.ButtonNone
 			}
 		default:
@@ -426,10 +441,10 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 				// reaches drag bindings instead of being delivered with the
 				// default MouseRelease key.
 				dragState = DRAGGING
-				mouseMod = ModMotion
+				mouseMod = Modifier(lastMouseMod) | ModMotion
 				mouseKey = MouseLeft
 			case DRAGGING:
-				mouseMod = ModMotion
+				mouseMod = Modifier(lastMouseMod) | ModMotion
 				mouseKey = MouseLeft
 			}
 		}

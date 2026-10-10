@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
@@ -17,9 +17,9 @@ type ChangeTodoAction struct {
 	Flag      string
 }
 
-func handleInteractiveRebase(common *common.Common, f func(path string) error) error {
-	common.Log.Info("Lazygit invoked as interactive rebase demon")
-	common.Log.Info("args: ", os.Args)
+func handleInteractiveRebase(log *logrus.Entry, f func(path string) error) error {
+	log.Info("Lazygit invoked as interactive rebase demon")
+	log.Info("args: ", os.Args)
 	path := os.Args[1]
 
 	if strings.HasSuffix(path, "git-rebase-todo") {
@@ -32,7 +32,7 @@ func handleInteractiveRebase(common *common.Common, f func(path string) error) e
 		// if we are rebasing and squashing, we'll see a COMMIT_EDITMSG
 		// but in this case we don't need to edit it, so we'll just return
 	} else {
-		common.Log.Info("Lazygit demon did not match on any use cases")
+		log.Info("Lazygit demon did not match on any use cases")
 	}
 
 	return nil

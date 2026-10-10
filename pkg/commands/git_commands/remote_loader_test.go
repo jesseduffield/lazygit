@@ -6,7 +6,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -95,8 +94,7 @@ func TestGetRemotesFromConfig(t *testing.T) {
 	for _, scenario := range scenarios {
 		t.Run(scenario.testName, func(t *testing.T) {
 			loader := &RemoteLoader{
-				Common: common.NewDummyCommon(),
-				cmd:    oscommands.NewDummyCmdObjBuilder(scenario.runner),
+				GitCommon: buildGitCommon(commonDeps{runner: scenario.runner}),
 			}
 
 			// map iteration order is non-deterministic, so compare unordered

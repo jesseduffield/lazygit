@@ -39,6 +39,14 @@ type Screen interface {
 	// is called (or Sync).
 	Fill(rune, Style)
 
+	// FillArea fills a rectangular region of the screen with the given
+	// character and style.  The region starts at column x, row y and
+	// extends width columns to the right and height rows down.  Any part
+	// of the region outside the screen is ignored, so it's safe to pass
+	// coordinates that overflow the screen.  Like Fill, the change is not
+	// visible until Show (or Sync) is called.
+	FillArea(x int, y int, width int, height int, r rune, style Style)
+
 	// Put writes the first grapheme of the given string with th
 	// given style at the given coordinates. (Only the first grapheme
 	// occupying either one or two cells is stored.) It returns the
@@ -423,6 +431,13 @@ func (b *baseScreen) Fill(r rune, style Style) {
 	cb := b.GetCells()
 	b.Lock()
 	cb.Fill(r, style)
+	b.Unlock()
+}
+
+func (b *baseScreen) FillArea(x, y, width, height int, r rune, style Style) {
+	cb := b.GetCells()
+	b.Lock()
+	cb.FillArea(x, y, width, height, r, style)
 	b.Unlock()
 }
 

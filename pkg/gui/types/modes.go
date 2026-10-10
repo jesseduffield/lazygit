@@ -9,7 +9,7 @@ import (
 
 type Modes struct {
 	Filtering        filtering.Filtering
-	CherryPicking    *cherrypicking.CherryPicking
+	CherryPicking    *cherrypicking.CherryPicking // shared by all repo states; see Gui.cherryPicking
 	Diffing          diffing.Diffing
 	MarkedBaseCommit marked_base_commit.MarkedBaseCommit
 }

@@ -89,6 +89,10 @@ func NewMenuViewModel(c *ContextCommon) *MenuViewModel {
 				})
 			}
 
+			if item.FilterColumns != nil {
+				return item.FilterColumns
+			}
+
 			return item.LabelColumns
 		},
 	)

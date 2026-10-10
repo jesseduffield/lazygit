@@ -118,27 +118,36 @@ func (self *ConfirmationHelper) getPopupPanelDimensionsAux(contentWidth int, con
 		y0 += 1
 		return x0, y0, x0 + panelWidth - 1, y0 + panelHeight - 1
 	}
-	return width/2 - panelWidth/2,
-		height/2 - panelHeight/2 - panelHeight%2,
-		// Currently, X1/Y1 of a gocui view is one less than you would expect based on its
-		// width/height, so we need to subtract 1 here. See
-		// https://github.com/jesseduffield/lazygit/commit/f6f2a52dee8bba3ebd7e3b34b4b7c7d3e3795f3e
-		width/2 + panelWidth/2 - 1,
-		height/2 + panelHeight/2 - 1
+	x0 := (width - panelWidth) / 2
+	y0 := height/2 - panelHeight/2 - panelHeight%2
+	// Currently, X1/Y1 of a gocui view is one less than you would expect based on its
+	// width/height, so we need to subtract 1 here. See
+	// https://github.com/jesseduffield/lazygit/commit/f6f2a52dee8bba3ebd7e3b34b4b7c7d3e3795f3e
+	return x0, y0, x0 + panelWidth - 1, y0 + panelHeight - 1
 }
+
+const (
+	// The width a popup panel keeps as long as it fits into the window at all,
+	// even when the panel asks for less.
+	popupPanelMinWidth = 80
+
+	// The margin we try to leave between a popup panel and the sides of the
+	// window, so that the panel doesn't sit flush against them as soon as the
+	// window gets a little narrow.
+	popupPanelMargin = 3
+)
 
 // Returns the outer width of the view, including its frame. To decide how to wrap text, subtract 2.
 // Also, note that X1-X0 of the view is one less than this.
-func (self *ConfirmationHelper) getPopupPanelWidth(maxWidth int) int {
-	width, _ := self.c.GocuiGui().Size()
-	// we want a minimum width up to a point, then we do it based on ratio, but only up to the given max width
-	panelWidth := min(4*width/7, maxWidth)
-	minWidth := 80
-	if panelWidth < minWidth {
-		panelWidth = min(width-2, minWidth)
-	}
+func (self *ConfirmationHelper) getPopupPanelWidth(requestedWidth int) int {
+	windowWidth, _ := self.c.GocuiGui().Size()
+	// A panel gets the width it asks for as long as the margin fits beside it.
+	// It gives the margin up before it goes below the minimum width, and a
+	// column on either side is all it leaves in the end.
+	widthWithMargin := windowWidth - 2*popupPanelMargin
+	widthAtMinWidth := min(popupPanelMinWidth, windowWidth-2)
 
-	return panelWidth
+	return min(requestedWidth, max(widthWithMargin, widthAtMinWidth))
 }
 
 func (self *ConfirmationHelper) prepareConfirmationPanel(
@@ -324,6 +333,10 @@ func (self *ConfirmationHelper) ResizeCurrentPopupPanels() {
 	}
 }
 
+// The width a menu grows to when the window is wide enough for it. Its content
+// is two columns narrower than this, for the frame.
+const menuMaxWidth = 90
+
 // The rows that a filter row adds to a menu popup: one for the input, and one
 // for its bottom border. Its top border is the menu's bottom border.
 const menuFilterRowHeight = 2
@@ -359,7 +372,7 @@ func (self *ConfirmationHelper) resizeMenu(parentPopupContext types.Context) {
 	// resize the window
 	itemCount := menuContext.UnfilteredLen()
 	offset := 3
-	panelWidth := self.getPopupPanelWidth(90)
+	panelWidth := self.getPopupPanelWidth(menuMaxWidth)
 	contentWidth := panelWidth - 2 // minus 2 for the frame
 	promptLinesCount := self.layoutMenuPrompt(contentWidth)
 	// The row is reserved for the whole time the menu is open, even though it only

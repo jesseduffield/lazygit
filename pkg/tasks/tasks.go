@@ -64,9 +64,10 @@ type ViewBufferManager struct {
 
 	waitingMutex deadlock.Mutex
 	// Guards newTaskID and taskKey, which identify the most recently requested
-	// task. Both are written on the goroutine NewTask spawns, and taskKey is
-	// read from the UI thread (GetTaskKey), so neither may be touched without
-	// holding this.
+	// task. newTaskID is written wherever a task is asked for (ReserveTask) and
+	// read on the goroutine NewReservedTask spawns. taskKey is written on that
+	// goroutine and read from the UI thread (GetTaskKey). So neither may be
+	// touched without holding this.
 	taskIDMutex deadlock.Mutex
 	Log         *logrus.Entry
 	newTaskID   int
@@ -98,10 +99,30 @@ type ViewBufferManager struct {
 	// what that task was owed.
 	newContentPending atomic.Bool
 
-	// Whether a command task is currently reading content into the view. While
-	// this is true the content is still growing, so callers (e.g. the layout)
-	// must not clamp the view's scroll position to the amount loaded so far.
-	loading atomic.Bool
+	// When set, the next command task puts the view back where it was once it has
+	// re-rendered the content, instead of showing the new render from the top (see
+	// RenderRestore). It is installed just before the re-render is triggered.
+	//
+	// Like newContentPending it outlives the task it was installed for, and for the
+	// same reason: that task can be stopped and replaced before it ever paints, and
+	// the replacement, rendering the same content, is then the one that owes the
+	// user their position. It is cleared by whichever task applies it. Guarded by
+	// taskIDMutex, like the task key.
+	restoreForNextTask *RenderRestore
+
+	// When set, the next command task leaves the view's scroll position alone even
+	// though it renders a different command's output, that output being the same
+	// content laid out differently (see SetKeepScrollPositionForNextTask). The task
+	// that starts consumes it, in place of noting that new content is on its way.
+	// Guarded by taskIDMutex, like the task key.
+	keepScrollForNextTask bool
+
+	// The command task whose output the view is loading: the one that was asked
+	// for last when StartLoading was called. It is cleared when that task has
+	// read all of its input. The view counts as loading only while this task is
+	// still the one asked for last; a task asked for after it takes the view
+	// over, whatever it shows. Guarded by taskIDMutex, like the task key.
+	loadingTaskID int
 
 	// beforeStart is the function that is called before starting a new task
 	beforeStart  func()
@@ -152,11 +173,140 @@ type LinesToRead struct {
 	Then func()
 }
 
+// RenderRestore puts a view back where it was when it re-renders content the user
+// is already looking at, laid out differently — a different context size, whitespace
+// ignored, another diff renderer — instead of showing the new render from the top.
+//
+// The task reads the new content into an off-screen buffer; the restore says when
+// enough of it has arrived to show the remembered position (FirstPaintReady), and
+// then finds that position and reveals it (Apply). It is a pair of callbacks rather
+// than a scroll position because a different layout of the same content puts the
+// remembered line somewhere else, and only the new content itself says where.
+type RenderRestore struct {
+	// FirstPaintReady reports whether enough of the new content has been read for
+	// the restore to show what it is looking for. It is consulted after each line
+	// is read, on the task's own goroutine.
+	FirstPaintReady func() bool
+
+	// Apply runs once, on the UI thread, at the first paint. It finds its target in
+	// the off-screen content, calls swapIn to promote that content to the display,
+	// and places the view on the target — in that order, so that the search runs
+	// while the previous content is still displayed, and the new content is never
+	// drawn at the previous render's scroll position.
+	//
+	// It must call swapIn even when it finds nothing to place the view on, in which
+	// case the view keeps the position the paint gave it: the offset it had, or the
+	// top for content the view hasn't seen.
+	Apply func(swapIn func())
+
+	// Done is called once the restore has had its render — after Apply, or when it
+	// is given up because the view is being shown something other than a re-render
+	// of what it was remembered from. It is how a caller that has to wait for the
+	// view to be back where it belongs knows that it either is, or never will be.
+	// Optional, and called on the UI thread, as Apply is.
+	Done func()
+}
+
+// resolved reports that this restore's render has happened, or that there will not be
+// one. Called on the UI thread, from wherever the restore ends: once, whichever way it
+// ended.
+func (self *RenderRestore) resolved() {
+	if self.Done != nil {
+		done := self.Done
+		self.Done = nil
+		done()
+	}
+}
+
+// SetRestoreForNextTask arranges for the next command task to put the view back
+// where it is now once it has re-rendered. Call it right before triggering a
+// re-render of the content the view is showing; see RenderRestore.
+func (self *ViewBufferManager) SetRestoreForNextTask(restore *RenderRestore) {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	self.restoreForNextTask = restore
+}
+
+// HasRestoreForNextTask reports whether the next command task already has a position
+// waiting to be put back, for a caller that would otherwise install one of its own
+// over it.
+func (self *ViewBufferManager) HasRestoreForNextTask() bool {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	return self.restoreForNextTask != nil
+}
+
+func (self *ViewBufferManager) getRestoreForNextTask() *RenderRestore {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	return self.restoreForNextTask
+}
+
+// SetKeepScrollPositionForNextTask arranges for the next command task to leave the
+// view's scroll position alone, rather than showing its content from the top the way a
+// render of different content does. Call it right before triggering a re-render of the
+// content the view is showing, when the command producing it is not the one that
+// produced what is on screen — a different context size, another diff renderer.
+//
+// It is the coarser sibling of SetRestoreForNextTask, for the same moment. The restore
+// puts the view back on the line it remembers, which it can only do when the lines of
+// the new rendering can be told apart. This one says merely "the content is a
+// rearrangement of what is there, so the offset into it is nearer to where the user was
+// than the top is". Both can be set at once, and then the restore has the first say.
+func (self *ViewBufferManager) SetKeepScrollPositionForNextTask() {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	self.keepScrollForNextTask = true
+}
+
+// clearRestore drops a restore once a task has applied it, so that it rides exactly
+// one re-render. One installed since — the user pressing the key again while this
+// task was still reading — is left alone: it belongs to the render on its way.
+func (self *ViewBufferManager) clearRestore(restore *RenderRestore) {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	if self.restoreForNextTask == restore {
+		self.restoreForNextTask = nil
+	}
+}
+
+// DropRestoreForNextTask gives up a restore that has no render to ride, because the
+// view is being given something other than a re-render of the content it was
+// remembered from — a message where a diff was. Without this the restore would sit
+// there and claim some later render of that view, putting the user somewhere they
+// haven't been for a while.
+func (self *ViewBufferManager) DropRestoreForNextTask() {
+	self.taskIDMutex.Lock()
+	restore := self.restoreForNextTask
+	self.restoreForNextTask = nil
+	self.taskIDMutex.Unlock()
+
+	if restore != nil {
+		restore.resolved()
+	}
+}
+
 func (self *ViewBufferManager) GetTaskKey() string {
 	self.taskIDMutex.Lock()
 	defer self.taskIDMutex.Unlock()
 
 	return self.taskKey
+}
+
+// ForgetRenderedContent records that the view no longer shows the render whose key it
+// is holding, because it has been emptied. The key says what the view is showing, and
+// the next task is compared against it to tell whether that task renders something
+// new. A view with nothing in it is showing nothing, so whatever comes next is new.
+func (self *ViewBufferManager) ForgetRenderedContent() {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	self.taskKey = ""
 }
 
 func NewViewBufferManager(
@@ -196,33 +346,64 @@ func (self *ViewBufferManager) ReadLines(totalLines int) {
 	self.readRequests.enqueue(LinesToRead{Total: totalLines, InitialRefreshAfter: -1})
 }
 
-// IsLoading reports whether a command task is currently reading content into the
-// view, meaning the content is still growing.
+// IsLoading reports whether the task asked for last is a command task that is
+// still reading content into the view, meaning the content is still growing.
 func (self *ViewBufferManager) IsLoading() bool {
-	return self.loading.Load()
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	return self.loadingTaskID != 0 && self.loadingTaskID == self.newTaskID
 }
 
-// StartLoading marks the view as loading content. It must be called
-// synchronously when a command/pty task is started, before the task's goroutine
-// runs, so that a layout pass happening in between doesn't clamp the scroll
-// position to the not-yet-loaded content. It is cleared when the task reaches
-// the end of its input.
+// StartLoading marks the view as loading the output of the task asked for last,
+// which must be a command task. Call it right when that task is asked for, before
+// its goroutine runs and before the next layout pass, so that the layout doesn't
+// clamp the scroll position to the not-yet-loaded content. The view stops loading
+// when the task reaches the end of its input, or when another task is asked for.
 func (self *ViewBufferManager) StartLoading() {
-	self.loading.Store(true)
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	self.loadingTaskID = self.newTaskID
+}
+
+// finishLoading records that the given task has read all of its input. If the
+// view is loading another task's output, that task is still loading.
+func (self *ViewBufferManager) finishLoading(taskID int) {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	if self.loadingTaskID == taskID {
+		self.loadingTaskID = 0
+	}
 }
 
 func (self *ViewBufferManager) ReadToEnd(then func()) {
-	// The reading happens on the task's own goroutine, and the caller hears about
-	// it through then, so lazygit must not count as idle in between.
+	self.readHoldingATask(-1, then)
+}
+
+// ReadLinesAndWait is ReadLines for lines lazygit is itself waiting on, rather than
+// reading ahead of the user. It holds a gocui task until they have been read, so
+// lazygit doesn't count as idle in the meantime (docs/dev/Busy.md).
+func (self *ViewBufferManager) ReadLinesAndWait(totalLines int) {
+	self.readHoldingATask(totalLines, nil)
+}
+
+// readHoldingATask asks the task to have read totalLines lines in total (-1 for all of
+// them) and calls then once it has. The reading happens on the task's own goroutine and
+// the caller is waiting on the result, so lazygit must not count as idle in between.
+// The task is done only once then has returned, because then typically hands its work
+// to the UI thread, and that work counts as busy only once it is enqueued.
+func (self *ViewBufferManager) readHoldingATask(totalLines int, then func()) {
 	task := self.newGocuiTask()
 	answered := func() {
-		task.Done()
 		if then != nil {
 			then()
 		}
+		task.Done()
 	}
 
-	request := LinesToRead{Total: -1, InitialRefreshAfter: -1, Then: answered}
+	request := LinesToRead{Total: totalLines, InitialRefreshAfter: -1, Then: answered}
 	if !self.readRequests.enqueue(request) {
 		// With no task reading, everything there is to read has been read.
 		answered()
@@ -240,7 +421,11 @@ func (self *ViewBufferManager) stopServingReadRequests() {
 	}
 }
 
-func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
+// NewCmdTask returns a task that renders the output of the command that start
+// starts. prefix, unless nil, produces the text shown above that output. It is
+// called on the task's goroutine before the command starts, so a prefix that
+// takes a while to produce holds up only this task.
+func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix func() string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
 	return func(opts TaskOpts) error {
 		var onDoneOnce sync.Once
 		var onFirstPageShownOnce sync.Once
@@ -258,16 +443,39 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			onFirstPageShown()
 		}
 
+		// Whatever position is owed to the user belongs to this render: it was
+		// remembered just before the re-render that led here was triggered.
+		restore := self.getRestoreForNextTask()
+
 		if self.throttle.Load() {
 			self.Log.Info("throttling task")
 			time.Sleep(THROTTLE_TIME)
 		}
 
-		select {
-		case <-opts.Stop:
+		stopped := func() bool {
+			select {
+			case <-opts.Stop:
+				return true
+			default:
+				return false
+			}
+		}
+
+		if stopped() {
 			onDone()
 			return nil
-		default:
+		}
+
+		prefixText := ""
+		if prefix != nil {
+			prefixText = prefix()
+
+			// A task stopped while it was producing its prefix has no use for the
+			// command's output any more.
+			if stopped() {
+				onDone()
+				return nil
+			}
 		}
 
 		startTime := time.Now()
@@ -356,7 +564,12 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				// content is common (a background refresh over a repo with submodules
 				// that have uncommitted changes, say). The pending flag isn't consumed
 				// here; the first paint still owes the scroll reset.
-				if !loaded && self.newContentPending.Load() {
+				//
+				// A restore keeps the view too: it is there to make a re-render of what
+				// the user is looking at seamless, and blanking the view for a message
+				// before putting them back where they were is the flicker it exists to
+				// avoid.
+				if !loaded && restore == nil && self.newContentPending.Load() {
 					self.beforeStart()
 					// beforeStart cleared the previous content to show "loading...", so
 					// put the view back at the top for it (beforeStart doesn't touch the
@@ -383,22 +596,6 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				}
 			}
 
-			// Go's select picks randomly among ready cases, so once opts.Stop is
-			// closed the selects below could still service a ready data channel
-			// instead of bailing. Check stop explicitly first to give it priority:
-			// a task that's been stopped (it's being replaced by a newer one) must
-			// not touch the view here — it would start an off-screen render and
-			// write the prefix into it, clobbering what the incoming task is about
-			// to render.
-			stopped := func() bool {
-				select {
-				case <-opts.Stop:
-					return true
-				default:
-					return false
-				}
-			}
-
 			// The total number of lines we have read so far. Requests specify an
 			// absolute target total (see LinesToRead.Total), so we compare against
 			// this to work out how many more lines, if any, we still need to read.
@@ -417,10 +614,23 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 					return
 				}
 				painted = true
-				self.swapInRender()
+				// Content the view hasn't seen is shown from the top, and this is where
+				// the view goes there — before the restore below, which decides where to
+				// put the view from where it is. The position the paint settles on is the
+				// restore's to move from, so it has to be the one the new content is
+				// about to be revealed at.
 				if self.newContentPending.Swap(false) {
 					self.resetOrigin()
 				}
+				if restore != nil {
+					// The restore does the swap itself, so that it can find where the
+					// user was in the new content before it is revealed.
+					restore.Apply(self.swapInRender)
+					self.clearRestore(restore)
+					restore.resolved()
+					return
+				}
+				self.swapInRender()
 			}
 
 			// Set LAZYGIT_SLOW_RENDER=<milliseconds> to sleep that long after each
@@ -434,6 +644,13 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				}
 			}
 
+			// Go's select picks randomly among ready cases, so once opts.Stop is
+			// closed the selects below could still service a ready data channel
+			// instead of bailing. Check stop explicitly first to give it priority:
+			// a task that's been stopped (it's being replaced by a newer one) must
+			// not touch the view here — it would start an off-screen render and
+			// write the prefix into it, clobbering what the incoming task is about
+			// to render.
 		outer:
 			for {
 				if stopped() {
@@ -455,7 +672,13 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							linesToRead.Then()
 						}
 					}
-					for linesToRead.Total == -1 || linesRead < linesToRead.Total {
+					// A restore that hasn't painted yet keeps us reading past the lines
+					// asked for, all the way to the end of the input if need be. What it
+					// is looking for may be anywhere in the new content, and a rendering
+					// that has to be parsed as a diff to be searched at all can only be
+					// parsed whole — so stopping early would leave it nothing to find,
+					// and the view somewhere the user didn't put it.
+					for linesToRead.Total == -1 || linesRead < linesToRead.Total || (restore != nil && !painted) {
 						if stopped() {
 							callThen()
 							break outer
@@ -476,8 +699,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							// displayed until we swap in below; this is what keeps an async
 							// re-render from showing a half-loaded buffer.
 							self.beginRender()
-							if prefix != "" {
-								writeToView([]byte(prefix))
+							if prefixText != "" {
+								writeToView([]byte(prefixText))
 							}
 							loaded = true
 						}
@@ -511,10 +734,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 								self.onEndOfInput()
 							})
 							// The content is fully loaded now, so it's safe again for the
-							// layout to clamp the scroll position to it. We deliberately
-							// don't clear this when stopped (rather than EOF'd), because that
-							// means a newer task is taking over and is still loading.
-							self.loading.Store(false)
+							// layout to clamp the scroll position to it.
+							self.finishLoading(opts.taskID)
 							callThen()
 							break outer
 						}
@@ -526,12 +747,22 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							time.Sleep(slowRenderPerLine)
 						}
 
-						if linesRead == linesToRead.InitialRefreshAfter {
-							// We have read enough lines to fill the view, so do the first paint
-							// and refresh to show it. Continue reading and refresh again at the
+						if !painted {
+							// Do the first paint once we have read enough lines to fill the
+							// view — or, when a position is waiting to be restored, once the
+							// restore says it can show it, since where the view should be is
+							// its call. Continue reading afterwards and refresh again at the
 							// end to make sure the scrollbar has the right size.
-							_ = self.onUIThread(firstPaint)
-							refreshViewIfStale()
+							var ready bool
+							if restore != nil {
+								ready = restore.FirstPaintReady()
+							} else {
+								ready = linesRead == linesToRead.InitialRefreshAfter
+							}
+							if ready {
+								_ = self.onUIThread(firstPaint)
+								refreshViewIfStale()
+							}
 						}
 					}
 					refreshViewIfStale()
@@ -616,9 +847,48 @@ type TaskOpts struct {
 	// We use this to keep track of when a user's action is complete (i.e. all views
 	// have been refreshed to display the results of their action)
 	InitialContentLoaded func()
+
+	// The task's place in the order of the view's tasks (see ReserveTask).
+	taskID int
 }
 
+// A TaskReservation holds a task's place in the order of the view's tasks, from
+// when the task is asked for until it is created. See ReserveTask.
+type TaskReservation struct {
+	taskID int
+}
+
+// ReserveTask gives a task its place in the order of the view's tasks, for a task
+// that is only created later, with NewReservedTask. The view shows the task that
+// was asked for last. If another task is asked for after the reservation, that
+// task replaces the reserved one, even when it is created first.
+func (self *ViewBufferManager) ReserveTask() TaskReservation {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	self.newTaskID++
+	return TaskReservation{taskID: self.newTaskID}
+}
+
+// IsSuperseded reports whether another task has been asked for since the
+// reservation was made. The reserved task would then stop as soon as it was
+// created, so there is no point in creating it.
+func (self *ViewBufferManager) IsSuperseded(reservation TaskReservation) bool {
+	self.taskIDMutex.Lock()
+	defer self.taskIDMutex.Unlock()
+
+	return reservation.taskID < self.newTaskID
+}
+
+// NewTask creates a task that takes its place in the order of the view's tasks
+// right away.
 func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error {
+	return self.NewReservedTask(self.ReserveTask(), f, key)
+}
+
+// NewReservedTask creates the task that the reservation was made for. It doesn't
+// run if another task has been asked for since the reservation was made.
+func (self *ViewBufferManager) NewReservedTask(reservation TaskReservation, f func(TaskOpts) error, key string) error {
 	gocuiTask := self.newGocuiTask()
 
 	var completeTaskOnce sync.Once
@@ -629,15 +899,7 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		})
 	}
 
-	// Assign the taskID synchronously so it reflects NewTask call order
-	// rather than the order in which the spawned goroutines happen to be
-	// scheduled. Otherwise two NewTask calls in quick succession can have
-	// their goroutines race, with the later-called task ending up with the
-	// lower taskID and losing the staleness check below.
-	self.taskIDMutex.Lock()
-	self.newTaskID++
-	taskID := self.newTaskID
-	self.taskIDMutex.Unlock()
+	taskID := reservation.taskID
 
 	go utils.Safe(func() {
 		defer completeGocuiTask()
@@ -658,10 +920,19 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 		// newContentPending), so the previous content — left displayed until the
 		// swap — doesn't visibly jump to the top before the new content appears.
 		// Read taskKey directly: we already hold the mutex that guards it, and
-		// GetTaskKey would take it again.
-		if self.taskKey != key && self.resetOrigin != nil {
+		// GetTaskKey would take it again. A pending restore isn't dropped here
+		// either, even for a different command: the re-renders it rides are all
+		// different commands (a different context size, another diff renderer), and
+		// it validates itself against the content it lands in anyway.
+		// A task told to keep the scroll position renders the content the view is
+		// already showing, laid out differently, so the reset it would otherwise owe
+		// would take the user away from what they are reading — and the loading
+		// message, which the same flag governs, would blank content that is about to
+		// come back looking much the same.
+		if self.taskKey != key && self.resetOrigin != nil && !self.keepScrollForNextTask {
 			self.newContentPending.Store(true)
 		}
+		self.keepScrollForNextTask = false
 		self.taskKey = key
 
 		self.taskIDMutex.Unlock()
@@ -698,7 +969,7 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 
 		self.waitingMutex.Unlock()
 
-		if err := f(TaskOpts{Stop: stop, InitialContentLoaded: completeGocuiTask}); err != nil {
+		if err := f(TaskOpts{Stop: stop, InitialContentLoaded: completeGocuiTask, taskID: taskID}); err != nil {
 			self.Log.Error(err) // might need an onError callback
 		}
 

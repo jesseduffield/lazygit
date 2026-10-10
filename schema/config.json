@@ -3,6 +3,13 @@
   "$id": "https://github.com/jesseduffield/lazygit/pkg/config/user-config",
   "$ref": "#/$defs/UserConfig",
   "$defs": {
+    "ColorPatterns": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object",
+      "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
+    },
     "CommitConfig": {
       "properties": {
         "signOff": {
@@ -414,7 +421,7 @@
             "onlyMainBranches",
             "allBranches"
           ],
-          "description": "If not \"none\", lazygit will automatically fast-forward local branches to match their upstream after fetching. Applies to branches that are not the currently checked out branch, and only to those that are strictly behind their upstream (as opposed to diverged).\nPossible values: 'none' | 'onlyMainBranches' | 'allBranches'",
+          "description": "If not \"none\", lazygit will automatically fast-forward local branches to match their upstream after fetching. Applies to branches that are not the currently checked out branch, and only to those that are strictly behind their upstream (as opposed to diverged). A branch that is checked out in another worktree is fast-forwarded there, unless that worktree has changes to tracked files or is in the middle of a rebase or bisect.\nPossible values: 'none' | 'onlyMainBranches' | 'allBranches'",
           "default": "onlyMainBranches"
         },
         "fetchAll": {
@@ -530,27 +537,6 @@
     },
     "GuiConfig": {
       "properties": {
-        "authorColors": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "type": "object",
-          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color"
-        },
-        "branchColors": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "type": "object",
-          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color\nDeprecated: use branchColorPatterns instead"
-        },
-        "branchColorPatterns": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "type": "object",
-          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
-        },
         "customIcons": {
           "$ref": "#/$defs/CustomIconsConfig",
           "description": "Custom icons for filenames and file extensions\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color"
@@ -594,7 +580,7 @@
         },
         "skipDiscardChangeWarning": {
           "type": "boolean",
-          "description": "If true, do not show a warning when discarding changes in the staging view.",
+          "description": "If true, do not show a warning when discarding changes from a focused diff.",
           "default": false
         },
         "skipStashWarning": {
@@ -683,14 +669,14 @@
           "description": "How the window is split when in half screen mode (i.e. after hitting '+' once).\nPossible values:\n- 'left': split the window horizontally (side panel on the left, main view on the right)\n- 'top': split the window vertically (side panel on top, main view below)",
           "default": "left"
         },
-        "wrapLinesInStagingView": {
+        "wrapLinesInDiffView": {
           "type": "boolean",
-          "description": "If true, wrap lines in the staging view to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.",
+          "description": "If true, wrap lines in focused diffs to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.",
           "default": true
         },
-        "useHunkModeInStagingView": {
+        "useHunkModeInDiffView": {
           "type": "boolean",
-          "description": "If true, hunk selection mode will be enabled by default when entering the staging view.",
+          "description": "If true, hunk selection mode will be enabled by default when focusing a diff.",
           "default": true
         },
         "language": {
@@ -719,9 +705,443 @@
           "description": "Format used when displaying time if the time is less than 24 hours ago.\nUses Go's time format syntax: https://pkg.go.dev/time#Time.Format",
           "default": "3:04PM"
         },
+        "colorScheme": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "dark",
+            "light"
+          ],
+          "description": "Whether the terminal has a dark or a light background. This decides whether 'darkTheme' or 'lightTheme' applies, and the colors of authors are picked to stand out against it.\nOne of: 'auto' (default) | 'dark' | 'light'\nWith 'auto', lazygit asks the terminal, and assumes a dark background if the terminal doesn't tell.",
+          "default": "auto"
+        },
         "theme": {
-          "$ref": "#/$defs/ThemeConfig",
+          "properties": {
+            "activeBorderColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Border color of focused window",
+              "default": [
+                "green",
+                "bold"
+              ]
+            },
+            "inactiveBorderColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Border color of non-focused windows",
+              "default": [
+                "default"
+              ]
+            },
+            "searchingActiveBorderColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Border color of focused window when searching in that window",
+              "default": [
+                "cyan",
+                "bold"
+              ]
+            },
+            "optionsTextColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color of keybindings help text in the bottom line",
+              "default": [
+                "blue"
+              ]
+            },
+            "selectedLineFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color and attributes of the text of the selected line. The attributes are added to those of the text, and a color replaces the colors of the text.\nSet it to 'default' to leave the text as it is, e.g. if you don't want the selected line in bold.",
+              "default": [
+                "bold"
+              ]
+            },
+            "selectedLineBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Background color of selected line.\nDefault: 'blue' if the terminal has a dark background, or a suitable RGB blue computed from the background color if it is light.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line"
+            },
+            "inactiveViewSelectedLineBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Background color of selected line when view doesn't have focus.\nDefault: a suitable RGB grey computed from the terminal's background color."
+            },
+            "cherryPickedCommitFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Foreground color of copied commit",
+              "default": [
+                "blue"
+              ]
+            },
+            "cherryPickedCommitBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Background color of copied commit",
+              "default": [
+                "cyan"
+              ]
+            },
+            "markedBaseCommitFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "description": "Foreground color of marked base commit (for rebase)",
+              "default": [
+                "blue"
+              ]
+            },
+            "markedBaseCommitBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "description": "Background color of marked base commit (for rebase)",
+              "default": [
+                "yellow"
+              ]
+            },
+            "unstagedChangesColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color for file with unstaged changes",
+              "default": [
+                "red"
+              ]
+            },
+            "defaultFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Default text color",
+              "default": [
+                "default"
+              ]
+            },
+            "authorColors": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object",
+              "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color"
+            },
+            "branchColorPatterns": {
+              "$ref": "#/$defs/ColorPatterns",
+              "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
           "description": "Config relating to colors and styles.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes"
+        },
+        "darkTheme": {
+          "properties": {
+            "activeBorderColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Border color of focused window"
+            },
+            "inactiveBorderColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Border color of non-focused windows"
+            },
+            "searchingActiveBorderColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Border color of focused window when searching in that window"
+            },
+            "optionsTextColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color of keybindings help text in the bottom line"
+            },
+            "selectedLineFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color and attributes of the text of the selected line. The attributes are added to those of the text, and a color replaces the colors of the text.\nSet it to 'default' to leave the text as it is, e.g. if you don't want the selected line in bold."
+            },
+            "selectedLineBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Background color of selected line.\nDefault: 'blue' if the terminal has a dark background, or a suitable RGB blue computed from the background color if it is light.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line"
+            },
+            "inactiveViewSelectedLineBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Background color of selected line when view doesn't have focus.\nDefault: a suitable RGB grey computed from the terminal's background color."
+            },
+            "cherryPickedCommitFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Foreground color of copied commit"
+            },
+            "cherryPickedCommitBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Background color of copied commit"
+            },
+            "markedBaseCommitFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "description": "Foreground color of marked base commit (for rebase)"
+            },
+            "markedBaseCommitBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "description": "Background color of marked base commit (for rebase)"
+            },
+            "unstagedChangesColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color for file with unstaged changes"
+            },
+            "defaultFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Default text color"
+            },
+            "authorColors": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object",
+              "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color"
+            },
+            "branchColorPatterns": {
+              "$ref": "#/$defs/ColorPatterns",
+              "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "description": "Colors and styles that override those in 'theme' when the terminal has a dark background. It has the same fields as 'theme'.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#themes-for-dark-and-light-backgrounds"
+        },
+        "lightTheme": {
+          "properties": {
+            "activeBorderColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Border color of focused window"
+            },
+            "inactiveBorderColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Border color of non-focused windows"
+            },
+            "searchingActiveBorderColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Border color of focused window when searching in that window"
+            },
+            "optionsTextColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color of keybindings help text in the bottom line"
+            },
+            "selectedLineFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color and attributes of the text of the selected line. The attributes are added to those of the text, and a color replaces the colors of the text.\nSet it to 'default' to leave the text as it is, e.g. if you don't want the selected line in bold."
+            },
+            "selectedLineBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Background color of selected line.\nDefault: 'blue' if the terminal has a dark background, or a suitable RGB blue computed from the background color if it is light.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line"
+            },
+            "inactiveViewSelectedLineBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Background color of selected line when view doesn't have focus.\nDefault: a suitable RGB grey computed from the terminal's background color."
+            },
+            "cherryPickedCommitFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Foreground color of copied commit"
+            },
+            "cherryPickedCommitBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Background color of copied commit"
+            },
+            "markedBaseCommitFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "description": "Foreground color of marked base commit (for rebase)"
+            },
+            "markedBaseCommitBgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "description": "Background color of marked base commit (for rebase)"
+            },
+            "unstagedChangesColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Color for file with unstaged changes"
+            },
+            "defaultFgColor": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Default text color"
+            },
+            "authorColors": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object",
+              "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color"
+            },
+            "branchColorPatterns": {
+              "$ref": "#/$defs/ColorPatterns",
+              "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "description": "Colors and styles that override those in 'theme' when the terminal has a light background. It has the same fields as 'theme'.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#themes-for-dark-and-light-backgrounds"
         },
         "commitLength": {
           "$ref": "#/$defs/CommitLengthConfig",
@@ -800,6 +1220,16 @@
           "type": "boolean",
           "description": "If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.",
           "default": true
+        },
+        "commitGraphStyle": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "classic",
+            "detailed"
+          ],
+          "description": "How the commit graph is drawn.\nOne of: 'auto' (default) | 'classic' | 'detailed'\n'detailed' connects the lines to the commit circles, and shows exactly where branches fork off and merge. It draws the graph with the git branch drawing symbols (U+F5D0 to U+F60D), so it needs a terminal that draws these itself: kitty, Ghostty, WezTerm (nightly builds), Contour, or VS Code's terminal with GPU acceleration. Other terminals need a font that contains them, such as https://github.com/rbong/flog-symbols.\n'auto' uses 'detailed' if lazygit recognizes the terminal as one that draws these symbols (kitty and Ghostty), and 'classic' otherwise.",
+          "default": "auto"
         },
         "commitAuthorShortLength": {
           "type": "integer",
@@ -2041,6 +2471,34 @@
             "l"
           ]
         },
+        "prevFile": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "N"
+        },
+        "nextFile": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "n"
+        },
         "toggleSelectHunk": {
           "oneOf": [
             {
@@ -2679,6 +3137,20 @@
             }
           ],
           "default": "0"
+        },
+        "jumpToFile": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+g\u003e"
         },
         "nextMatch": {
           "oneOf": [
@@ -3656,155 +4128,6 @@
       "additionalProperties": false,
       "type": "object",
       "description": "Config relating to the spinner."
-    },
-    "ThemeConfig": {
-      "properties": {
-        "activeBorderColor": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Border color of focused window",
-          "default": [
-            "green",
-            "bold"
-          ]
-        },
-        "inactiveBorderColor": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Border color of non-focused windows",
-          "default": [
-            "default"
-          ]
-        },
-        "searchingActiveBorderColor": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Border color of focused window when searching in that window",
-          "default": [
-            "cyan",
-            "bold"
-          ]
-        },
-        "optionsTextColor": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Color of keybindings help text in the bottom line",
-          "default": [
-            "blue"
-          ]
-        },
-        "selectedLineBgColor": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Background color of selected line.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line",
-          "default": [
-            "blue"
-          ]
-        },
-        "inactiveViewSelectedLineBgColor": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Background color of selected line when view doesn't have focus.",
-          "default": [
-            "bold"
-          ]
-        },
-        "cherryPickedCommitFgColor": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Foreground color of copied commit",
-          "default": [
-            "blue"
-          ]
-        },
-        "cherryPickedCommitBgColor": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Background color of copied commit",
-          "default": [
-            "cyan"
-          ]
-        },
-        "markedBaseCommitFgColor": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "description": "Foreground color of marked base commit (for rebase)",
-          "default": [
-            "blue"
-          ]
-        },
-        "markedBaseCommitBgColor": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "description": "Background color of marked base commit (for rebase)",
-          "default": [
-            "yellow"
-          ]
-        },
-        "unstagedChangesColor": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Color for file with unstaged changes",
-          "default": [
-            "red"
-          ]
-        },
-        "defaultFgColor": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Default text color",
-          "default": [
-            "default"
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "description": "Config relating to colors and styles.\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#color-attributes"
     },
     "UpdateConfig": {
       "properties": {

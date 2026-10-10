@@ -135,8 +135,15 @@ func NewGitCommandAux(
 	rebaseCommands := git_commands.NewRebaseCommands(gitCommon, commitCommands, workingTreeCommands)
 	stashCommands := git_commands.NewStashCommands(gitCommon, fileLoader, workingTreeCommands)
 	patchBuilder := patch.NewPatchBuilder(cmn.Log,
-		func(from string, to string, reverse bool, filename string, previousPath string, plain bool) (string, error) {
-			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, previousPath, plain)
+		func(from string, to string, reverse bool, filename string, previousPath string) (string, error) {
+			// A patch is built from git's own diff: what a diff renderer would make of it
+			// is a picture of it, not something that can be applied.
+			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, previousPath, git_commands.DiffModePlain)
+		},
+		func() (string, error) {
+			// Under lazygit's own temp dir, so that it honours the configured location
+			// and is cleaned up with everything else when we exit.
+			return os.MkdirTemp(osCommand.GetTempDir(), "custom-patch-")
 		})
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)
@@ -145,11 +152,11 @@ func NewGitCommandAux(
 	gitHubCommands := git_commands.NewGitHubCommands(gitCommon)
 	hostingServiceCommands := git_commands.NewHostingServiceCommand(gitCommon)
 
-	branchLoader := git_commands.NewBranchLoader(cmn, gitCommon, cmd, branchCommands.CurrentBranchInfo, configCommands)
+	branchLoader := git_commands.NewBranchLoader(cmn, gitCommon, cmd, branchCommands.CurrentBranchInfo, branchCommands.HasLocalOnlyCommits, configCommands)
 	commitFileLoader := git_commands.NewCommitFileLoader(cmn, cmd)
 	commitLoader := git_commands.NewCommitLoader(cmn, cmd, statusCommands.WorkingTreeState, gitCommon)
 	reflogCommitLoader := git_commands.NewReflogCommitLoader(cmn, cmd)
-	remoteLoader := git_commands.NewRemoteLoader(cmn, cmd)
+	remoteLoader := git_commands.NewRemoteLoader(gitCommon)
 	worktreeLoader := git_commands.NewWorktreeLoader(gitCommon)
 	stashLoader := git_commands.NewStashLoader(cmn, cmd)
 	tagLoader := git_commands.NewTagLoader(cmn, cmd)

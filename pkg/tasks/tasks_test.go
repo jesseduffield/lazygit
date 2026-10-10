@@ -60,7 +60,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		return ExecCmd{Cmd: cmd}, reader
 	}
 
-	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{20, -1, nil}, onDone)
+	fn := manager.NewCmdTask(start, func() string { return "prefix\n" }, LinesToRead{20, -1, nil}, onDone)
 
 	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: func() { task.Done() }})
 
@@ -131,7 +131,7 @@ func TestNewCmdTask(t *testing.T) {
 		return ExecCmd{Cmd: cmd}, reader
 	}
 
-	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{20, -1, nil}, onDone)
+	fn := manager.NewCmdTask(start, func() string { return "prefix\n" }, LinesToRead{20, -1, nil}, onDone)
 	wg := sync.WaitGroup{}
 	wg.Go(func() {
 		time.Sleep(100 * time.Millisecond)
@@ -169,6 +169,39 @@ func TestNewCmdTask(t *testing.T) {
 	if actualContent != expectedContent {
 		t.Errorf("expected writer to receive the following content: \n%s\n. But instead it received: %s", expectedContent, actualContent)
 	}
+}
+
+// A prefix is produced before the command starts, so a task stopped while it
+// produces its prefix never gets as far as starting the command.
+func TestNewCmdTaskStoppedWhileProducingItsPrefix(t *testing.T) {
+	noop := func() {}
+	task := gocui.NewFakeTask()
+	writer := bytes.NewBuffer(nil)
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(), writer, noop, noop, noop, noop, noop, noop,
+		func() gocui.Task { return task },
+		func(f func()) error { f(); return nil },
+	)
+
+	stop := make(chan struct{})
+	started := false
+	start := func() (Cmd, io.Reader) {
+		started = true
+		return ExecCmd{Cmd: exec.Command("true")}, bytes.NewBufferString("output")
+	}
+	prefix := func() string {
+		close(stop)
+		return "prefix\n"
+	}
+	onDone, getOnDoneCallCount := getCounter()
+
+	fn := manager.NewCmdTask(start, prefix, LinesToRead{20, -1, nil}, onDone)
+	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: func() { task.Done() }})
+
+	assert.False(t, started)
+	assert.Equal(t, 1, getOnDoneCallCount())
+	assert.Empty(t, writer.String())
 }
 
 // A dummy reader that simply yields as many blank lines as requested. The only
@@ -244,7 +277,7 @@ func TestNewCmdTaskQueuedReadAtEndOfInput(t *testing.T) {
 
 	// The initial request asks for far more lines than the reader has, so the
 	// task reaches EOF while that request is still the one being served.
-	fn := manager.NewCmdTask(start, "", LinesToRead{100, -1, nil}, func() {})
+	fn := manager.NewCmdTask(start, nil, LinesToRead{100, -1, nil}, func() {})
 
 	thenCalled := false
 	wg := sync.WaitGroup{}
@@ -293,7 +326,7 @@ func TestResetOriginSurvivesTaskReplacement(t *testing.T) {
 		}
 		// The first-paint point is far beyond what any of these readers yield, so
 		// only reaching EOF paints.
-		_ = manager.NewTask(manager.NewCmdTask(start, "", LinesToRead{100, 50, nil}, onDone), key)
+		_ = manager.NewTask(manager.NewCmdTask(start, nil, LinesToRead{100, 50, nil}, onDone), key)
 	}
 	runTaskToCompletion := func(key string) {
 		done := make(chan struct{})
@@ -348,7 +381,7 @@ func TestLoadingIndicatorOnlyTakesOverForNewContent(t *testing.T) {
 			// not actually starting this because it's not necessary
 			return ExecCmd{Cmd: exec.Command("blah")}, reader
 		}
-		_ = manager.NewTask(manager.NewCmdTask(start, "", LinesToRead{100, 50, nil}, onDone), key)
+		_ = manager.NewTask(manager.NewCmdTask(start, nil, LinesToRead{100, 50, nil}, onDone), key)
 	}
 	// Starts a task whose command produces nothing at all, so that it is still
 	// waiting for its first line when the loading indicator falls due. Returns
@@ -383,6 +416,275 @@ func TestLoadingIndicatorOnlyTakesOverForNewContent(t *testing.T) {
 	assert.Eventually(t,
 		func() bool { return beforeStartCount.Load() == 1 },
 		2*time.Second, 10*time.Millisecond)
+}
+
+// A pending restore takes the first paint over: it says when enough of the new
+// content has arrived to show the position it remembers, and does the swap itself so
+// that it can look for that position while the previous content is still displayed.
+// The scroll reset that new content is owed happens before it runs, so that where it
+// puts the view is where the view stays.
+func TestNewCmdTaskRestore(t *testing.T) {
+	writer := bytes.NewBuffer(nil)
+	linesWritten := func() int { return strings.Count(writer.String(), "\n") }
+	resetOrigin, getResetOriginCallCount := getCounter()
+
+	swapped := false
+	applyCount := 0
+	applyAtLines := -1
+	swappedBeforeApply := false
+	swappedByApply := false
+	resetsBeforeApply := -1
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		writer,
+		func() {}, // beforeStart
+		func() {}, // refreshView
+		func() {}, // onEndOfInput
+		resetOrigin,
+		func() {},                 // beginRender
+		func() { swapped = true }, // swapInRender
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	manager.SetRestoreForNextTask(&RenderRestore{
+		// Ready once five lines have loaded — well before the view is filled (30).
+		FirstPaintReady: func() bool { return linesWritten() >= 5 },
+		Apply: func(swapIn func()) {
+			applyCount++
+			applyAtLines = linesWritten()
+			swappedBeforeApply = swappedBeforeApply || swapped
+			resetsBeforeApply = getResetOriginCallCount()
+			swapIn()
+			swappedByApply = swapped
+		},
+	})
+
+	done := make(chan struct{})
+	start := func() (Cmd, io.Reader) {
+		// not actually starting this because it's not necessary
+		return ExecCmd{Cmd: exec.Command("blah")}, &BlankLineReader{totalLinesToYield: 50}
+	}
+	_ = manager.NewTask(manager.NewCmdTask(start, nil, LinesToRead{100, 30, nil}, func() { close(done) }), "cmd")
+	<-done
+
+	assert.Equal(t, 1, applyCount, "Apply should run exactly once")
+	assert.False(t, swappedBeforeApply, "the off-screen render should not be swapped in before Apply runs")
+	assert.True(t, swappedByApply, "Apply should swap the off-screen render in via swapIn")
+	// The first paint was driven by the restore, not by having read enough lines to
+	// fill the view.
+	assert.GreaterOrEqual(t, applyAtLines, 5)
+	assert.Less(t, applyAtLines, 30)
+	assert.Equal(t, 1, resetsBeforeApply, "new content should be put at the top before the restore places it")
+	assert.Equal(t, 1, getResetOriginCallCount(), "and not reset again afterwards, over the restore")
+}
+
+// A restore that never finds what it is looking for keeps the task reading to the
+// end of its input, since the line might have been anywhere in it. Once there is no
+// more content to hope for, the render is revealed with the scroll reset that new
+// content is owed.
+func TestNewCmdTaskRestoreThatFindsNothing(t *testing.T) {
+	writer := bytes.NewBuffer(nil)
+	linesWritten := func() int { return strings.Count(writer.String(), "\n") }
+	resetOrigin, getResetOriginCallCount := getCounter()
+
+	applyCount := 0
+	swappedAtLines := -1
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		writer,
+		func() {}, // beforeStart
+		func() {}, // refreshView
+		func() {}, // onEndOfInput
+		resetOrigin,
+		func() {}, // beginRender
+		func() { swappedAtLines = linesWritten() },
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	manager.SetRestoreForNextTask(&RenderRestore{
+		FirstPaintReady: func() bool { return false },
+		Apply: func(swapIn func()) {
+			applyCount++
+			swapIn()
+		},
+	})
+
+	done := make(chan struct{})
+	start := func() (Cmd, io.Reader) {
+		// not actually starting this because it's not necessary
+		return ExecCmd{Cmd: exec.Command("blah")}, &BlankLineReader{totalLinesToYield: 50}
+	}
+	_ = manager.NewTask(manager.NewCmdTask(start, nil, LinesToRead{100, 30, nil}, func() { close(done) }), "cmd")
+	<-done
+
+	assert.Equal(t, 1, applyCount, "Apply should still run, to swap the render in")
+	assert.Equal(t, 50, swappedAtLines, "the whole input should be read before giving up on the restore")
+	assert.Equal(t, 1, getResetOriginCallCount(), "new content the restore couldn't place starts at the top")
+}
+
+// The task a restore was installed for can be stopped and replaced before it ever
+// paints — a background refresh landing right after the key was pressed. The
+// replacement renders the same content, so it is the one that owes the user their
+// position.
+func TestRestoreSurvivesTaskReplacement(t *testing.T) {
+	var applyCount atomic.Int32
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		io.Discard,
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	manager.SetRestoreForNextTask(&RenderRestore{
+		FirstPaintReady: func() bool { return false },
+		Apply: func(swapIn func()) {
+			applyCount.Add(1)
+			swapIn()
+		},
+	})
+
+	startTask := func(reader io.Reader, onDone func()) {
+		start := func() (Cmd, io.Reader) {
+			// not actually starting this because it's not necessary
+			return ExecCmd{Cmd: exec.Command("blah")}, reader
+		}
+		_ = manager.NewTask(manager.NewCmdTask(start, nil, LinesToRead{100, 50, nil}, onDone), "cmd")
+	}
+
+	// The task the restore was installed for stalls before it can paint.
+	stalled := BlockingLineReader{
+		linesToYield: 3,
+		blocked:      make(chan struct{}),
+		unblock:      make(chan struct{}),
+	}
+	defer close(stalled.unblock)
+	startTask(&stalled, nil)
+	<-stalled.blocked
+
+	done := make(chan struct{})
+	startTask(&BlankLineReader{totalLinesToYield: 3}, func() { close(done) })
+	<-done
+
+	assert.EqualValues(t, 1, applyCount.Load(), "the replacement should apply the restore the stopped task couldn't")
+}
+
+// A task told to keep the scroll position renders the content the view is showing
+// under another command — the same diff with more context around it, say — so it
+// neither resets the scroll nor blanks the view to say "loading...", both of which are
+// for content the user hasn't seen.
+func TestKeepScrollPositionForNextTask(t *testing.T) {
+	var beforeStartCount atomic.Int32
+	resetOrigin, getResetOriginCallCount := getCounter()
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		io.Discard,
+		func() { beforeStartCount.Add(1) },
+		func() {}, // refreshView
+		func() {}, // onEndOfInput
+		resetOrigin,
+		func() {}, // beginRender
+		func() {}, // swapInRender
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	startTask := func(key string, reader io.Reader, onDone func()) {
+		start := func() (Cmd, io.Reader) {
+			// not actually starting this because it's not necessary
+			return ExecCmd{Cmd: exec.Command("blah")}, reader
+		}
+		_ = manager.NewTask(manager.NewCmdTask(start, nil, LinesToRead{100, 50, nil}, onDone), key)
+	}
+	runTaskToCompletion := func(key string) {
+		done := make(chan struct{})
+		startTask(key, &BlankLineReader{totalLinesToYield: 3}, func() { close(done) })
+		<-done
+	}
+
+	// Content the view wasn't showing, to have something to keep the position in.
+	runTaskToCompletion("cmd1")
+	assert.Equal(t, 1, getResetOriginCallCount())
+
+	manager.SetKeepScrollPositionForNextTask()
+	runTaskToCompletion("cmd2")
+	assert.Equal(t, 1, getResetOriginCallCount(), "the same content under another command keeps its position")
+
+	// And the request rides one task only: the next different command is a different
+	// diff as far as anyone knows.
+	runTaskToCompletion("cmd3")
+	assert.Equal(t, 2, getResetOriginCallCount())
+
+	// The loading indicator goes by the same question, so it stays out of the way too.
+	manager.SetKeepScrollPositionForNextTask()
+	stalled := BlockingLineReader{
+		blocked: make(chan struct{}),
+		unblock: make(chan struct{}),
+	}
+	defer close(stalled.unblock)
+	startTask("cmd4", &stalled, nil)
+	<-stalled.blocked
+	time.Sleep(500 * time.Millisecond)
+	assert.EqualValues(t, 0, beforeStartCount.Load())
+}
+
+// A view that has been emptied is showing nothing, so the render it was showing is no
+// longer the one to compare the next task against: running the same command again is
+// putting content into the view that isn't there any more, and starts from the top.
+func TestForgetRenderedContent(t *testing.T) {
+	resetOrigin, getResetOriginCallCount := getCounter()
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		io.Discard,
+		func() {}, // beforeStart
+		func() {}, // refreshView
+		func() {}, // onEndOfInput
+		resetOrigin,
+		func() {}, // beginRender
+		func() {}, // swapInRender
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	runTaskToCompletion := func(key string) {
+		start := func() (Cmd, io.Reader) {
+			// not actually starting this because it's not necessary
+			return ExecCmd{Cmd: exec.Command("blah")}, &BlankLineReader{totalLinesToYield: 3}
+		}
+		done := make(chan struct{})
+		_ = manager.NewTask(
+			manager.NewCmdTask(start, nil, LinesToRead{100, 50, nil}, func() { close(done) }), key)
+		<-done
+	}
+
+	runTaskToCompletion("cmd1")
+	assert.Equal(t, 1, getResetOriginCallCount())
+
+	// Rendering the same command's output again leaves the view where it is, that being
+	// what it already shows.
+	runTaskToCompletion("cmd1")
+	assert.Equal(t, 1, getResetOriginCallCount())
+
+	manager.ForgetRenderedContent()
+	runTaskToCompletion("cmd1")
+	assert.Equal(t, 2, getResetOriginCallCount(), "an emptied view is shown its content afresh")
 }
 
 func TestNewCmdTaskRefresh(t *testing.T) {
@@ -467,7 +769,7 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 			return ExecCmd{Cmd: cmd}, &reader
 		}
 
-		fn := manager.NewCmdTask(start, "", s.linesToRead, func() {})
+		fn := manager.NewCmdTask(start, nil, s.linesToRead, func() {})
 		wg := sync.WaitGroup{}
 		wg.Go(func() {
 			time.Sleep(100 * time.Millisecond)
@@ -504,7 +806,7 @@ func TestQueuedReadRequestsAreAnsweredWhenTheTaskStops(t *testing.T) {
 	stop := make(chan struct{})
 	fn := manager.NewCmdTask(
 		func() (Cmd, io.Reader) { return ExecCmd{Cmd: exec.Command("true")}, pipeReader },
-		"", LinesToRead{Total: 1, InitialRefreshAfter: -1}, noop)
+		nil, LinesToRead{Total: 1, InitialRefreshAfter: -1}, noop)
 	go func() { _, _ = pipeWriter.Write([]byte("first line\n")) }()
 	go func() { _ = fn(TaskOpts{Stop: stop, InitialContentLoaded: noop}) }()
 	// Let the task start and read the line it was asked for, so that the requests
@@ -521,4 +823,165 @@ func TestQueuedReadRequestsAreAnsweredWhenTheTaskStops(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	assert.EqualValues(t, 2, answered.Load())
+}
+
+// The callers of ReadToEnd hand their follow-up work to the UI thread from then, and
+// that work holds a task of its own from the moment it is enqueued. If the task that
+// ReadToEnd holds were done before then runs, lazygit would count as idle for a moment
+// in between, and an integration test would carry on before the follow-up work is done.
+func TestReadToEndHoldsItsTaskUntilThenReturns(t *testing.T) {
+	noop := func() {}
+	task := gocui.NewFakeTask()
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(), bytes.NewBuffer(nil), noop, noop, noop, noop, noop, noop,
+		func() gocui.Task { return task },
+		func(f func()) error { f(); return nil },
+	)
+
+	// With no command task serving read requests, ReadToEnd answers right away.
+	var statusDuringThen gocui.TaskStatus
+	manager.ReadToEnd(func() { statusDuringThen = task.Status() })
+
+	assert.Equal(t, gocui.TaskStatusBusy, statusDuringThen)
+	assert.Equal(t, gocui.TaskStatusDone, task.Status())
+}
+
+// doneSignallingTask lets a test wait for the tasks of a view to finish, including
+// those that never get to run.
+type doneSignallingTask struct {
+	*gocui.FakeTask
+	done func()
+}
+
+func (self *doneSignallingTask) Done() {
+	self.FakeTask.Done()
+	self.done()
+}
+
+// A render whose task is only created after the layout takes its place among the
+// view's tasks when it is asked for. A message asked for after it, before the
+// layout, is created first, and the render's task mustn't replace it.
+func TestReservedTaskDoesntReplaceATaskAskedForLater(t *testing.T) {
+	var tasksDone sync.WaitGroup
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		bytes.NewBuffer(nil),
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() gocui.Task {
+			tasksDone.Add(1)
+			return &doneSignallingTask{FakeTask: gocui.NewFakeTask(), done: tasksDone.Done}
+		},
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	var mutex sync.Mutex
+	var tasksRun []string
+	task := func(name string) func(TaskOpts) error {
+		return func(TaskOpts) error {
+			mutex.Lock()
+			defer mutex.Unlock()
+			tasksRun = append(tasksRun, name)
+			return nil
+		}
+	}
+
+	reservation := manager.ReserveTask()
+	assert.False(t, manager.IsSuperseded(reservation))
+
+	_ = manager.NewTask(task("message"), "message")
+	assert.True(t, manager.IsSuperseded(reservation))
+
+	_ = manager.NewReservedTask(reservation, task("render"), "render")
+	tasksDone.Wait()
+
+	assert.Equal(t, []string{"message"}, tasksRun)
+}
+
+// A message that replaces a command task while the task is still reading its
+// output leaves nothing loading content into the view.
+func TestMessageEndsTheLoadingOfTheTaskItReplaces(t *testing.T) {
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		bytes.NewBuffer(nil),
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	stalled := BlockingLineReader{
+		linesToYield: 3,
+		blocked:      make(chan struct{}),
+		unblock:      make(chan struct{}),
+	}
+	defer close(stalled.unblock)
+	start := func() (Cmd, io.Reader) {
+		// not actually starting this because it's not necessary
+		return ExecCmd{Cmd: exec.Command("blah")}, &stalled
+	}
+
+	reservation := manager.ReserveTask()
+	manager.StartLoading()
+	_ = manager.NewReservedTask(reservation, manager.NewCmdTask(start, nil, LinesToRead{100, 50, nil}, nil), "cmd")
+	<-stalled.blocked
+	assert.True(t, manager.IsLoading())
+
+	_ = manager.NewTask(func(TaskOpts) error { return nil }, "message")
+	assert.False(t, manager.IsLoading())
+}
+
+// The view is loading the content of the command task asked for last. A task
+// asked for before it reaching the end of its input doesn't end that.
+func TestEarlierTaskEndingLeavesALaterTaskLoading(t *testing.T) {
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		bytes.NewBuffer(nil),
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() {},
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	stalled := BlockingLineReader{
+		linesToYield: 3,
+		blocked:      make(chan struct{}),
+		unblock:      make(chan struct{}),
+	}
+	start := func() (Cmd, io.Reader) {
+		// not actually starting this because it's not necessary
+		return ExecCmd{Cmd: exec.Command("blah")}, &stalled
+	}
+
+	earlierDone := make(chan struct{})
+	reservation := manager.ReserveTask()
+	manager.StartLoading()
+	_ = manager.NewReservedTask(reservation,
+		manager.NewCmdTask(start, nil, LinesToRead{100, 50, nil}, func() { close(earlierDone) }), "earlier")
+	<-stalled.blocked
+
+	// The later task is asked for, but not created yet, as for a render whose task
+	// is created after the layout.
+	manager.ReserveTask()
+	manager.StartLoading()
+
+	close(stalled.unblock)
+	<-earlierDone
+	assert.True(t, manager.IsLoading())
 }

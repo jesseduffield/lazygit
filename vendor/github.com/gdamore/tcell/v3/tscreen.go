@@ -179,7 +179,7 @@ const (
 	notifyDesktop777  = "\x1b]777;notify;%s;%s\x1b\\"       // Most commonly supported
 	queryKittyKbd     = "\x1b[?u"                           // Query for Kitty keyboard support
 	enableKittyKbd    = "\x1b[=1u"                          // Technically this pushes
-	enableKittyKbdAdv = "\x1b[=15u"                         // disambiguation, events, alternate keys, all keys
+	enableKittyKbdAdv = "\x1b[=31u"                         // disambiguation, events, alternate keys, all keys, text
 	disableKittyKbd   = "\x1b[=0u"                          // Technically this means pop previous mode
 	queryXTermKbd     = "\x1b[?4m"                          // Query for XTerm modify other keys support
 	enableXTermKbd    = "\x1b[>4;2m"                        // Enable modify other keys protocol
@@ -1374,13 +1374,24 @@ func (t *tScreen) inputLoop(stopQ chan struct{}) {
 
 	defer t.wg.Done()
 	for {
+		readDone := make(chan bool)
+		chunk := make([]byte, 128)
+		var n int
+		var e error
 		select {
 		case <-stopQ:
 			return
 		default:
+			go func() {
+				n, e = t.tty.Read(chunk)
+				close(readDone)
+			}()
+			select {
+			case <-stopQ:
+				return
+			case <-readDone:
+			}
 		}
-		chunk := make([]byte, 128)
-		n, e := t.tty.Read(chunk)
 		switch e {
 		case nil:
 		default:

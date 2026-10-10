@@ -19,12 +19,14 @@ import (
 	"github.com/samber/lo"
 )
 
-type colorMatcher struct {
-	patterns map[string]*style.TextStyle
-	isRegex  bool // NOTE: this value is needed only until the deprecated branchColors config is removed and only regex color patterns are used
+type branchColorPattern struct {
+	pattern string
+	style   style.TextStyle
 }
 
-var colorPatterns *colorMatcher
+var branchColorPatterns []branchColorPattern
+
+var dimYellow = style.FgYellow.SetDim()
 
 func GetBranchListDisplayStrings(
 	branches []*models.Branch,
@@ -193,29 +195,13 @@ func getBranchDisplayStrings(
 
 // GetBranchTextStyle branch color
 func GetBranchTextStyle(name string) style.TextStyle {
-	if style, ok := colorPatterns.match(name); ok {
-		return *style
+	for _, p := range branchColorPatterns {
+		if matched, _ := regexp.MatchString(p.pattern, name); matched {
+			return p.style
+		}
 	}
 
 	return theme.DefaultTextColor
-}
-
-func (m *colorMatcher) match(name string) (*style.TextStyle, bool) {
-	if m.isRegex {
-		for pattern, style := range m.patterns {
-			if matched, _ := regexp.MatchString(pattern, name); matched {
-				return style, true
-			}
-		}
-	} else {
-		// old behavior using the deprecated branchColors behavior matching on branch type
-		branchType := strings.Split(name, "/")[0]
-		if value, ok := m.patterns[branchType]; ok {
-			return value, true
-		}
-	}
-
-	return nil, false
 }
 
 func BranchStatus(
@@ -239,7 +225,12 @@ func BranchStatus(
 		} else if branch.RemoteBranchNotStoredLocally() {
 			result = style.FgMagenta.Sprint("?")
 		} else if branch.IsBehindForPull() && branch.IsAheadForPull() {
-			result = style.FgYellow.Sprintf("↓%s↑%s", branch.BehindForPull, branch.AheadForPull)
+			// A branch that diverged only because its upstream was rewritten
+			// has no commits of its own, and fast-forwarding it resolves the
+			// divergence. Dim it to set it apart from a branch whose
+			// divergence needs a decision.
+			divergenceStyle := lo.Ternary(branch.UpstreamRewritten.Load(), dimYellow, style.FgYellow)
+			result = divergenceStyle.Sprintf("↓%s↑%s", branch.BehindForPull, branch.AheadForPull)
 		} else if branch.IsBehindForPull() {
 			result = style.FgYellow.Sprintf("↓%s", branch.BehindForPull)
 		} else if branch.IsAheadForPull() {
@@ -271,11 +262,10 @@ func divergenceStr(
 	return result
 }
 
-func SetCustomBranches(customBranchColors map[string]string, isRegex bool) {
-	colorPatterns = &colorMatcher{
-		patterns: utils.SetCustomColors(customBranchColors),
-		isRegex:  isRegex,
-	}
+func SetCustomBranches(patterns config.ColorPatterns) {
+	branchColorPatterns = lo.Map(patterns, func(p config.ColorPattern, _ int) branchColorPattern {
+		return branchColorPattern{pattern: p.Pattern, style: utils.CustomColorStyle(p.Color)}
+	})
 }
 
 func WithPrColor(state string, text string, isBg bool) string {
