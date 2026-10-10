@@ -255,9 +255,21 @@ func validateCustomCommandContext(context string) error {
 }
 
 func validateCustomCommands(customCommands []CustomCommand) error {
+	return validateCustomCommandsInMenu(customCommands, false)
+}
+
+func validateCustomCommandsInMenu(customCommands []CustomCommand, inCommandMenu bool) error {
 	for _, customCommand := range customCommands {
 		if err := validateCustomCommandKey(customCommand.Key); err != nil {
 			return err
+		}
+
+		if inCommandMenu && customCommand.DisplayHint {
+			commandRef := ""
+			if len(customCommand.Key) > 0 {
+				commandRef = fmt.Sprintf(" with key '%s'", customCommand.Key.String())
+			}
+			return fmt.Errorf("Error with custom command%s: it is not allowed to use displayHint for commands in a command menu.", commandRef)
 		}
 
 		if len(customCommand.CommandMenu) > 0 {
@@ -267,6 +279,7 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 				len(customCommand.LoadingText) > 0 ||
 				len(customCommand.Output) > 0 ||
 				len(customCommand.OutputTitle) > 0 ||
+				customCommand.DisplayHint ||
 				customCommand.After != nil {
 				commandRef := ""
 				if len(customCommand.Key) > 0 {
@@ -275,7 +288,7 @@ func validateCustomCommands(customCommands []CustomCommand) error {
 				return fmt.Errorf("Error with custom command%s: it is not allowed to use both commandMenu and any of the other fields except key and description.", commandRef)
 			}
 
-			if err := validateCustomCommands(customCommand.CommandMenu); err != nil {
+			if err := validateCustomCommandsInMenu(customCommand.CommandMenu, true); err != nil {
 				return err
 			}
 		} else {

@@ -342,16 +342,18 @@ func (gui *Gui) GetInitialKeybindingsWithCustomCommands() ([]*types.Binding, []*
 	}
 
 	bindings, mouseBindings := gui.GetInitialKeybindings()
-	customBindings, err := gui.CustomCommandsClient.GetCustomCommandKeybindings()
-	if err != nil {
-		log.Fatal(err)
-	}
 	// prepending because we want to give our custom keybindings precedence over default keybindings
-	bindings = append(customBindings, bindings...)
+	bindings = append(gui.customCommandBindings, bindings...)
 	return bindings, mouseBindings
 }
 
 func (gui *Gui) resetKeybindings() {
+	customCommandBindings, err := gui.CustomCommandsClient.GetCustomCommandKeybindings()
+	if err != nil {
+		log.Fatal(err)
+	}
+	gui.customCommandBindings = customCommandBindings
+
 	gui.g.DeleteAllKeybindings()
 
 	bindings, mouseBindings := gui.GetInitialKeybindingsWithCustomCommands()
