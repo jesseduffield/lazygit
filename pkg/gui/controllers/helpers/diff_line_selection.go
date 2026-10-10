@@ -75,6 +75,10 @@ func (self *DiffLineHelper) EstablishSelection(mainContext *context.MainContext,
 // the first change block at or below the target, which a large context size can put
 // further down than a screenful; the selection is then scrolled into view as any other
 // jump's is, and the alignment gives way to that.
+//
+// A jump that aligns its target to the top also scrolls the view back to the left
+// edge, whether or not the target is on screen already. Such a jump goes to a file, and
+// the user goes there to read the file from its start.
 func (self *DiffLineHelper) PlaceNavigationTarget(
 	pane types.DiffPaneContext, target int, alignTop bool,
 ) {
@@ -84,6 +88,7 @@ func (self *DiffLineHelper) PlaceNavigationTarget(
 		return
 	}
 	if alignTop {
+		view.SetOriginX(0)
 		self.scrollTargetToTop(pane, target)
 	}
 	// Jumping to another block or file moves the cursor without shift held, so a

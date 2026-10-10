@@ -534,9 +534,14 @@ func (v *View) SelectSearchResult(index int) {
 		index = itemCount - 1
 	}
 
-	y := v.searcher.searchPositions[index].Y
+	pos := v.searcher.searchPositions[index]
+	y := pos.Y
 
 	v.FocusPoint(v.ox, y, true)
+	// A match without a position in the line has nothing to scroll to.
+	if pos.XStart >= 0 {
+		v.scrollColumnsIntoView(pos.XStart, pos.XEnd)
+	}
 	v.renderSearchStatus(index, itemCount)
 	if v.searcher.onSelectItem != nil {
 		v.searcher.onSelectItem(v, y)
@@ -1878,7 +1883,7 @@ func (v *View) draw(isWindowFocused bool) {
 
 		var c cell
 		for x < maxX {
-			if x < 0 && cellIdx >= len(vline.line) {
+			if x < gutterWidth && cellIdx >= len(vline.line) {
 				// no more characters to write so we're only going to be printing empty cells
 				// past this point
 				x = gutterWidth
@@ -1891,8 +1896,9 @@ func (v *View) draw(isWindowFocused bool) {
 				c = vline.line[cellIdx]
 			}
 
-			// Skip the cells scrolled out to the left.
-			if x < 0 && x+c.width <= 0 {
+			// Skip the cells scrolled past the left edge of the content area; the
+			// content area starts after the gutter.
+			if x < gutterWidth && x+c.width <= gutterWidth {
 				x += c.width
 				cellIdx++
 				continue
@@ -1901,10 +1907,10 @@ func (v *View) draw(isWindowFocused bool) {
 			// A terminal can't show half of a double-width character, so one that is cut
 			// off by the left or right edge shows as a blank in the column of it that is
 			// on screen.
-			if x < 0 || x+c.width > maxX {
+			if x < gutterWidth || x+c.width > maxX {
 				c.chr = " "
 				c.width = 1
-				x = max(x, 0)
+				x = max(x, gutterWidth)
 			}
 
 			fgColor := c.fgColor
@@ -2690,6 +2696,60 @@ func (v *View) ScrollRight(amount int) {
 	v.SetOriginX(v.ox + amount)
 
 	v.clearHover()
+}
+
+// scrollColumnsIntoView scrolls the view sideways if the columns from xStart up to
+// xEnd aren't all on screen. If they fit in the view without any scrolling, the view
+// goes back to the left edge; otherwise xStart ends up a third of the way across, so
+// that some of what comes before it is on screen too. Only a view that doesn't wrap
+// has columns off screen.
+func (v *View) scrollColumnsIntoView(xStart, xEnd int) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	width := v.InnerWidth() - v.inclusionGutterWidth()
+	if xStart >= v.ox && xEnd <= v.ox+width {
+		return
+	}
+
+	if xEnd <= width {
+		v.SetOriginX(0)
+	} else {
+		v.SetOriginX(xStart - width/3)
+	}
+
+	v.clearHover()
+}
+
+// ClampOriginXToContent scrolls the view back to the left if it is scrolled further
+// than its content needs, so that the end of the widest line is at the right edge.
+// A view that doesn't wrap keeps its horizontal scroll position when its content
+// changes, and the new content may not reach as far.
+func (v *View) ClampOriginXToContent() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.ox == 0 {
+		return
+	}
+
+	v.refreshViewLinesIfNeeded()
+	widest := 0
+	for _, vline := range v.viewLines {
+		width := 0
+		for _, c := range vline.line {
+			width += c.width
+		}
+		widest = max(widest, width)
+	}
+
+	contentWidth := v.InnerWidth() - v.inclusionGutterWidth()
+	newOx := min(v.ox, max(0, widest-contentWidth))
+	if newOx != v.ox {
+		v.SetOriginX(newOx)
+
+		v.clearHover()
+	}
 }
 
 func (v *View) adjustDownwardScrollAmount(scrollHeight int) int {

@@ -568,6 +568,15 @@ func (self *ViewDriver) OriginY(expected int) *ViewDriver {
 	return self
 }
 
+func (self *ViewDriver) OriginX(expected int) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		actual := self.getView().OriginX()
+		return expected == actual, fmt.Sprintf("%s: Expected origin X to be %d, got %d", self.context, expected, actual)
+	})
+
+	return self
+}
+
 // asserts that the selected line is inside the visible area of the view
 func (self *ViewDriver) SelectedLineIsVisible() *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
