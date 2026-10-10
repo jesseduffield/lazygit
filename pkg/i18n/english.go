@@ -422,6 +422,8 @@ type TranslationSet struct {
 	JumpToFileInDiffTooltip               string
 	OnlyOneFileInDiff                     string
 	NoFileInDiffNamed                     string
+	FileOfDiffDoesNotExist                string
+	NoFileOfDiffExists                    string
 	PrevConflict                          string
 	NextConflict                          string
 	SelectPrevHunk                        string
@@ -1617,6 +1619,8 @@ func EnglishTranslationSet() *TranslationSet {
 		JumpToFileInDiffTooltip:              "Pick one of the files of the diff shown in the main view, and scroll the main view to it. The focus stays in this panel.",
 		OnlyOneFileInDiff:                    "There is only one file in this diff",
 		NoFileInDiffNamed:                    "This diff has no file named '{{.path}}'",
+		FileOfDiffDoesNotExist:               "File '{{.path}}' doesn't exist in the working tree",
+		NoFileOfDiffExists:                   "None of the selected files exist in the working tree at '{{.worktreePath}}'",
 		PrevConflict:                         "Previous conflict",
 		NextConflict:                         "Next conflict",
 		SelectPrevHunk:                       "Previous hunk",

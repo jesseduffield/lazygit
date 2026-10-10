@@ -1085,13 +1085,10 @@ func (self *MainViewController) editDiffLine(viewLine int, beforeEdit func()) er
 	// it opens the file without jumping anywhere — as pressing edit on a file in a side
 	// panel does.
 	if info.Type == types.DiffLineFileHeader {
-		return self.c.Helpers().Files.EditFiles([]string{info.Path})
+		return self.c.Helpers().Diff.EditFilesOfDiff([]string{info.Path})
 	}
 
-	// The diff may be of an older commit, whose line numbers aren't the file's current
-	// ones, so they have to be carried forward before we can point an editor at them.
-	lineNumber := self.c.Helpers().Diff.AdjustLineNumber(info.Path, info.NewLine, self.context.GetViewName())
-	return self.c.Helpers().Files.EditFileAtLine(info.Path, lineNumber)
+	return self.c.Helpers().Diff.EditFileOfDiffAtLine(info.Path, info.NewLine, self.context.GetViewName())
 }
 
 // openPullRequestAtSelectedLine opens the pull request of the branch whose commit the

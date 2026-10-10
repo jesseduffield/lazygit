@@ -26,6 +26,7 @@ var (
 	_ types.ISearchableContext     = (*SubCommitsContext)(nil)
 	_ types.DiffMainViewContext    = (*SubCommitsContext)(nil)
 	_ types.PullRequestDiffContext = (*SubCommitsContext)(nil)
+	_ types.BranchDiffContext      = (*SubCommitsContext)(nil)
 )
 
 func (self *SubCommitsContext) GetDiffMainViewType() types.DiffMainViewType {
@@ -47,6 +48,13 @@ func (self *SubCommitsContext) PullRequestDiff() types.PullRequestDiff {
 		selectionStart, selectionEnd, self.GetSelectedLineIdx(), self.GetSelectedRefRangeForDiffFiles())
 	return pullRequestDiff(
 		self.GetCommits(), startIdx, endIdx, branch.Name, self.c.Model().Branches, self.c.Model().PullRequestsMap)
+}
+
+// BranchOfDiff is nil if the panel was entered from a tag, a remote branch or the
+// reflog instead of a local branch.
+func (self *SubCommitsContext) BranchOfDiff() *models.Branch {
+	branch, _ := self.GetRef().(*models.Branch)
+	return branch
 }
 
 func NewSubCommitsContext(
