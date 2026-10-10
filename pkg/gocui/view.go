@@ -174,9 +174,11 @@ type View struct {
 	HighlightInactive bool
 
 	// If SelectedLineColorWidth is greater than zero, a highlighted line is painted
-	// in the selection colors on that many columns at its left edge only, rather
-	// than across its whole width, leaving the line's own colors to show through.
-	// For content that conveys meaning by color of its own.
+	// in the selection colors on that many columns at its left and right edges only,
+	// rather than across its whole width, leaving the line's own colors to show
+	// through. For content that conveys meaning by color of its own. A double-width
+	// character that reaches into these columns is painted whole, so the colored part
+	// can be a column wider.
 	SelectedLineColorWidth int
 
 	// InclusionGutterMarker is the glyph the inclusion gutter draws on a marked line
@@ -936,8 +938,8 @@ func (v *View) InclusionGutterWidthWhenShown() int {
 
 // setCharacter sets a character (grapheme cluster) at the given point relative to the view. It applies
 // the specified colors, taking into account if the cell must be highlighted. Also, it checks if the
-// position is valid.
-func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute, isWindowFocused bool) {
+// position is valid. width is the number of columns the character takes up.
+func (v *View) setCharacter(x, y int, ch string, width int, fgColor, bgColor Attribute, isWindowFocused bool) {
 	maxX, maxY := v.Size()
 	if x < 0 || x >= maxX || y < 0 || y >= maxY {
 		return
@@ -957,7 +959,8 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute, isW
 		}
 
 		colorWidth := v.SelectedLineColorWidth
-		if y >= rangeSelectStart && y <= rangeSelectEnd && (colorWidth == 0 || x < colorWidth) {
+		if y >= rangeSelectStart && y <= rangeSelectEnd &&
+			(colorWidth == 0 || x < colorWidth || x+width > v.InnerWidth()-colorWidth) {
 			fgColor = applySelTextColor(fgColor, v.SelTextColor)
 			if v.HighlightInactive || !isWindowFocused {
 				bgColor = (bgColor & AttrStyleBits) | v.InactiveViewSelBgColor
@@ -1869,10 +1872,11 @@ func (v *View) draw(isWindowFocused bool) {
 		// content begins after it. The blanks go through setCharacter like everything
 		// else, so that a selection reaching the left edge covers the gutter too.
 		for gx := range gutterWidth {
-			v.setCharacter(gx, y, " ", v.FgColor, v.BgColor, isWindowFocused)
+			v.setCharacter(gx, y, " ", 1, v.FgColor, v.BgColor, isWindowFocused)
 		}
 		if gutterWidth > 0 && vline.linesY < len(v.inclusionGutterMarks) && v.inclusionGutterMarks[vline.linesY] {
-			v.setCharacter(0, y, v.InclusionGutterMarker, v.InclusionGutterMarkerColor, v.BgColor, isWindowFocused)
+			v.setCharacter(0, y, v.InclusionGutterMarker, uniseg.StringWidth(v.InclusionGutterMarker),
+				v.InclusionGutterMarkerColor, v.BgColor, isWindowFocused)
 		}
 
 		// x tracks the current x position in the view, and cellIdx tracks the
@@ -1925,7 +1929,7 @@ func (v *View) draw(isWindowFocused bool) {
 				fgColor |= AttrUnderline
 			}
 
-			v.setCharacter(x, y, c.chr, fgColor, bgColor, isWindowFocused)
+			v.setCharacter(x, y, c.chr, c.width, fgColor, bgColor, isWindowFocused)
 
 			x += c.width
 			cellIdx++
