@@ -4,6 +4,7 @@ Some actions can be performed on a range of contiguous items. For example:
 * staging multiple files at once
 * squashing multiple commits at once
 * copying (for cherry-pick) multiple commits at once
+* copying the ids (commit hash, branch name, path, etc.) of multiple items to the clipboard
 
 There are two ways to select a range of items:
 1. Sticky range select: Press 'v' to toggle range select, then expand the selection using the up/down arrow key. To reset the selection, press 'v' again.

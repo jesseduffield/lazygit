@@ -822,6 +822,7 @@ type TranslationSet struct {
 	PatchCopiedToClipboard                   string
 	MessageCopiedToClipboard                 string
 	CopiedToClipboard                        string
+	ItemsCopiedToClipboard                   string
 	ErrCannotEditDirectory                   string
 	ErrCannotCopyContentOfDirectory          string
 	ErrStageDirWithInlineMergeConflicts      string
@@ -2017,6 +2018,7 @@ func EnglishTranslationSet() *TranslationSet {
 		PatchCopiedToClipboard:                   "Patch copied to clipboard",
 		MessageCopiedToClipboard:                 "Message copied to clipboard",
 		CopiedToClipboard:                        "copied to clipboard",
+		ItemsCopiedToClipboard:                   "{{.count}} items copied to clipboard",
 		ErrCannotEditDirectory:                   "Cannot edit directories: you can only edit individual files",
 		ErrCannotCopyContentOfDirectory:          "Cannot copy content of directories: you can only copy content of individual files",
 		ErrStageDirWithInlineMergeConflicts:      "Cannot stage/unstage directory containing files with inline merge conflicts. Please fix up the merge conflicts first",
