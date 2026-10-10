@@ -1793,7 +1793,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		newCx := mx - v.x0 - 1
 		newCy := my - v.y0 - 1
 		// newX and newY are relative to the view's content, independent of its scroll position
-		newX := newCx + v.ox
+		newX := v.contentX(newCx)
 		newY := newCy + v.oy
 		// if view is editable don't go further than the furthest character for that line
 		if v.Editable {

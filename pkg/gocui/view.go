@@ -2008,10 +2008,17 @@ func (v *View) viewLineLengthIgnoringTrailingBlankLines() int {
 	return 0
 }
 
+// contentX returns the column of the view's content that is drawn at column x of the
+// view. The content starts after the inclusion gutter, and is scrolled by the view's
+// horizontal origin.
+func (v *View) contentX(x int) int {
+	return x - v.inclusionGutterWidth() + v.ox
+}
+
 func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
 	for i, pos := range v.searcher.searchPositions {
 		adjustedY := y + v.oy
-		adjustedX := x + v.ox
+		adjustedX := v.contentX(x)
 		if adjustedY == pos.Y && adjustedX >= pos.XStart && adjustedX < pos.XEnd {
 			return true, i == v.searcher.currentSearchIndex
 		}
@@ -2022,37 +2029,10 @@ func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
 func (v *View) isHoveredHyperlink(x, y int) bool {
 	if v.UnderlineHyperLinksOnlyOnHover && v.hoveredHyperlink != nil {
 		adjustedY := y + v.oy
-		adjustedX := x + v.ox
+		adjustedX := v.contentX(x)
 		return adjustedY == v.hoveredHyperlink.Y && adjustedX >= v.hoveredHyperlink.XStart && adjustedX < v.hoveredHyperlink.XEnd
 	}
 	return false
-}
-
-// realPosition returns the position in the internal buffer corresponding to the
-// point (x, y) of the view.
-func (v *View) realPosition(vx, vy int) (x, y int, ok bool) {
-	vx = v.ox + vx
-	vy = v.oy + vy
-
-	if vx < 0 || vy < 0 {
-		return 0, 0, false
-	}
-
-	if len(v.viewLines) == 0 {
-		return vx, vy, true
-	}
-
-	if vy < len(v.viewLines) {
-		vline := v.viewLines[vy]
-		x = vline.linesX + vx
-		y = vline.linesY
-	} else {
-		vline := v.viewLines[len(v.viewLines)-1]
-		x = vx
-		y = vline.linesY + vy - len(v.viewLines) + 1
-	}
-
-	return x, y, true
 }
 
 // clearRunes erases all the cells in the view.
@@ -2281,56 +2261,6 @@ func (v *View) ViewBuffer() string {
 	}
 
 	return strings.Join(strs, "\n")
-}
-
-// Line returns a string with the line of the view's internal buffer
-// at the position corresponding to the point (x, y).
-func (v *View) Line(y int) (string, bool) {
-	_, y, ok := v.realPosition(0, y)
-	if !ok {
-		return "", false
-	}
-
-	if y < 0 || y >= len(v.buf.lines) {
-		return "", false
-	}
-
-	return v.buf.lines[y].cells.String(), true
-}
-
-// Word returns a string with the word of the view's internal buffer
-// at the position corresponding to the point (x, y).
-func (v *View) Word(x, y int) (string, bool) {
-	x, y, ok := v.realPosition(x, y)
-	if !ok {
-		return "", false
-	}
-
-	if x < 0 || y < 0 || y >= len(v.buf.lines) || x >= len(v.buf.lines[y].cells) {
-		return "", false
-	}
-
-	str := v.buf.lines[y].cells.String()
-
-	nl := strings.LastIndexFunc(str[:x], indexFunc)
-	if nl == -1 {
-		nl = 0
-	} else {
-		nl = nl + 1
-	}
-	nr := strings.IndexFunc(str[x:], indexFunc)
-	if nr == -1 {
-		nr = len(str)
-	} else {
-		nr = nr + x
-	}
-	return str[nl:nr], true
-}
-
-// indexFunc allows to split lines by words taking into account spaces
-// and 0.
-func indexFunc(r rune) bool {
-	return r == ' ' || r == 0
 }
 
 // applySelTextColor adds the attributes of selTextColor to fgColor, and
@@ -2846,7 +2776,7 @@ func (v *View) onMouseMove(x int, y int) {
 	newCx := x - v.x0 - 1
 	newCy := y - v.y0 - 1
 	// newX and newY are relative to the view's content, independent of its scroll position
-	newX := newCx + v.ox
+	newX := v.contentX(newCx)
 	newY := newCy + v.oy
 
 	if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {
