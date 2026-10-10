@@ -1166,6 +1166,47 @@ func TestResizingAWrappingViewKeepsItsPlaceInTheContent(t *testing.T) {
 	assert.Equal(t, []string{"another wrapping line"}, v.SelectedLines())
 }
 
+// A double-width character that starts in the last column doesn't fit, and shows as a
+// blank there rather than reaching into the frame.
+func TestDoubleWidthCharacterAtTheRightEdge(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+
+	v.writeString("abcdefghiプ\n")
+	v.draw(true)
+
+	// The frame puts view column 9 at screen column 10.
+	chr, _, width := Screen.Get(10, 1)
+	assert.Equal(t, " ", chr)
+	assert.Equal(t, 1, width)
+}
+
+// A double-width character that is scrolled halfway out to the left shows as a blank
+// in the column it still reaches into, so that the column is drawn like every other.
+func TestDoubleWidthCharacterCutOffAtTheLeftEdge(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.Highlight = true
+	v.SelBgColor = ColorBlue
+
+	v.writeString("にプ\n")
+	v.SetOriginX(1)
+	v.draw(true)
+
+	// The frame puts view column 0 at screen column 1.
+	chr, style, _ := Screen.Get(1, 1)
+	assert.Equal(t, " ", chr)
+	assert.Equal(t,
+		true,
+		style.GetBackground() != tcell.ColorDefault,
+		"the selection covers the column")
+
+	chr, _, _ = Screen.Get(2, 1)
+	assert.Equal(t, "プ", chr)
+}
+
 // The inclusion gutter reserves columns at the left of every line, draws its marker
 // on the marked lines only, and moves the content out of the way.
 func TestInclusionGutter(t *testing.T) {
