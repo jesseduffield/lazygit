@@ -201,6 +201,7 @@ func TestBranchCheckout(t *testing.T) {
 		runner   *oscommands.FakeCmdObjRunner
 		test     func(error)
 		force    bool
+		merge    bool
 	}
 
 	scenarios := []scenario{
@@ -211,6 +212,7 @@ func TestBranchCheckout(t *testing.T) {
 				assert.NoError(t, err)
 			},
 			false,
+			false,
 		},
 		{
 			"Checkout forced",
@@ -219,13 +221,23 @@ func TestBranchCheckout(t *testing.T) {
 				assert.NoError(t, err)
 			},
 			true,
+			false,
+		},
+		{
+			"Checkout with merge",
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"checkout", "--merge", "test"}, "", nil),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+			false,
+			true,
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildBranchCommands(commonDeps{runner: s.runner})
-			s.test(instance.Checkout("test", CheckoutOptions{Force: s.force}))
+			s.test(instance.Checkout("test", CheckoutOptions{Force: s.force, Merge: s.merge}))
 			s.runner.CheckForMissingCalls()
 		})
 	}
