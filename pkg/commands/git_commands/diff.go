@@ -146,7 +146,7 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 func (self *DiffCommands) DiffCmdObj(diffArgs []string, mode DiffMode) *oscommands.CmdObj {
 	return self.cmd.New(
 		NewGitCmd("diff").
-			Config("diff.noprefix=false").
+			ParseableDiffPrefixes().
 			AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), mode).
 			Arg("--submodule").
 			Arg(fmt.Sprintf("--color=%s", mode.colorArg(self.diffRendererConfigManager))).
@@ -188,7 +188,7 @@ func (self *DiffCommands) CustomPatchDiffCmdObj(dir string, mode DiffMode) *osco
 func (self *DiffCommands) GetDiff(staged bool, additionalArgs ...string) (string, error) {
 	return self.cmd.New(
 		NewGitCmd("diff").
-			Config("diff.noprefix=false").
+			ParseableDiffPrefixes().
 			Arg("--no-ext-diff", "--no-color").
 			ArgIf(staged, "--staged").
 			Dir(self.repoPaths.worktreePath).
@@ -238,7 +238,7 @@ func (self *DiffCommands) OpenDiffToolCmdObj(opts DiffToolCmdOptions) *oscommand
 func (self *DiffCommands) DiffIndexCmdObj(diffArgs ...string) *oscommands.CmdObj {
 	return self.cmd.New(
 		NewGitCmd("diff-index").
-			Config("diff.noprefix=false").
+			ParseableDiffPrefixes().
 			Arg("--submodule", "--no-ext-diff", "--no-color", "--patch").
 			Arg(diffArgs...).ToArgv(),
 	)

@@ -434,7 +434,7 @@ func (self *PatchCommands) PullPatchIntoNewCommitBefore(
 // get the diff of HEAD and the original commit and then apply that.
 func (self *PatchCommands) diffHeadAgainstCommit(commit *models.Commit) (string, error) {
 	cmdArgs := NewGitCmd("diff").
-		Config("diff.noprefix=false").
+		ParseableDiffPrefixes().
 		Arg("--no-ext-diff", "--no-color").
 		Arg("HEAD.." + commit.Hash()).
 		ToArgv()

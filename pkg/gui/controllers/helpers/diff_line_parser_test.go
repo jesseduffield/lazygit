@@ -250,6 +250,11 @@ func TestPathFromDiffHeaderField(t *testing.T) {
 		{"new side", "b/file.go", "file.go"},
 		{"old side", "a/file.go", "file.go"},
 		{"a missing file", "/dev/null", "/dev/null"},
+		{"file in a directory", "b/dir/file.go", "dir/file.go"},
+		// diff.mnemonicPrefix makes git name the two sides by what they are.
+		{"index side", "i/file.go", "file.go"},
+		{"working tree side", "w/file.go", "file.go"},
+		{"no prefix", "file.go", ""},
 		// git terminates the field with a tab when the path has a space in it.
 		{"path with a space", "b/with space.go\t", "with space.go"},
 		// With core.quotePath enabled (the default) every non-ASCII byte is
@@ -260,6 +265,7 @@ func TestPathFromDiffHeaderField(t *testing.T) {
 		{"path with a backslash", `"b/back\\slash.go"`, `back\slash.go`},
 		{"path with a tab", `"b/tab\there.go"`, "tab\there.go"},
 		{"undecodable", `"b/unterminated`, ""},
+		{"quoted with a mnemonic prefix", `"w/caf\303\251.go"`, "café.go"},
 	}
 
 	for _, s := range scenarios {
@@ -267,6 +273,66 @@ func TestPathFromDiffHeaderField(t *testing.T) {
 			assert.Equal(t, s.expected, pathFromDiffHeaderField(s.field))
 		})
 	}
+}
+
+func TestPathFromDiffGitLine(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		line     string
+		expected string
+	}{
+		{"default prefixes", "diff --git a/file.go b/file.go", "file.go"},
+		{"mnemonic prefixes", "diff --git i/file.go w/file.go", "file.go"},
+		{"path with a space", "diff --git i/my file.go w/my file.go", "my file.go"},
+		{"path that looks like it holds the other path", "diff --git i/x w/y w/x w/y", "x w/y"},
+		{"quoted paths", `diff --git "i/caf\303\251.go" "w/caf\303\251.go"`, "café.go"},
+		// A rename; its path comes from the "rename to" line.
+		{"different paths", "diff --git c/old.go i/new.go", ""},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expected, pathFromDiffGitLine(s.line))
+		})
+	}
+}
+
+func TestParseDiffLineFromBufferMnemonicPrefixes(t *testing.T) {
+	// With diff.mnemonicPrefix, git names the two sides of the working tree's diff
+	// i/ and w/, and those of the staged diff c/ and i/.
+	modified := strings.Split(`diff --git i/file.go w/file.go
+index 1111111..2222222 100644
+--- i/file.go
++++ w/file.go
+@@ -1,2 +1,2 @@
+ apple
+-grape
++kiwi`, "\n")
+
+	result, ok := parseDiffLineFromBuffer(modified, 7)
+	assert.True(t, ok)
+	assert.Equal(t, parsedDiffLine{Path: "file.go", Type: types.DiffLineAdded, NewLine: 2}, result)
+
+	// A change of the file mode has no +++/--- lines, so the path comes from the
+	// "diff --git" line.
+	modeChange := strings.Split(`diff --git i/run.sh w/run.sh
+old mode 100644
+new mode 100755`, "\n")
+
+	result, ok = parseDiffLineFromBuffer(modeChange, 2)
+	assert.True(t, ok)
+	assert.Equal(t, parsedDiffLine{Path: "run.sh", Type: types.DiffLineFileHeader, NewLine: 1}, result)
+
+	// Neither does a copy without a content change, and the two paths on its
+	// "diff --git" line differ, so the path comes from the "copy to" line.
+	copied := strings.Split(`diff --git c/run.sh i/copy of run.sh
+similarity index 100%
+copy from run.sh
+copy to copy of run.sh`, "\n")
+
+	result, ok = parseDiffLineFromBuffer(copied, 2)
+	assert.True(t, ok)
+	assert.Equal(t, parsedDiffLine{Path: "copy of run.sh", Type: types.DiffLineFileHeader, NewLine: 1}, result)
 }
 
 func TestParseDiffLineFromBufferQuotedPath(t *testing.T) {
