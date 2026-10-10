@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/generics/set"
@@ -9,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -104,6 +106,10 @@ func (self *CommitDiffActions) PrimaryAction(pane types.DiffPaneContext, firstBu
 	if len(lines) == 0 {
 		return nil
 	}
+	selection, err := self.selectionByFile(lines)
+	if err != nil {
+		return err
+	}
 
 	patchBuilder := self.c.Git().Patch.PatchBuilder
 	from, reverse := self.patchEndpoints(target)
@@ -121,13 +127,15 @@ func (self *CommitDiffActions) PrimaryAction(pane types.DiffPaneContext, firstBu
 				patchBuilder.Start(from, target.to, reverse, target.canRebase)
 			}
 
-			if err := self.togglePatchLines(lines); err != nil {
-				return err
-			}
+			err := self.togglePatchLines(selection)
 			// Taking the last line back out ends the patch rather than leaving an empty
 			// one, so that the pane previewing it and the marks over the diff go with it.
+			// The same goes for a patch just started that no line could be put into.
 			if patchBuilder.IsEmpty() {
 				patchBuilder.Reset()
+			}
+			if err != nil {
+				return err
 			}
 
 			// The diff on screen is the one the marks belong to, so they can be brought up
@@ -167,11 +175,15 @@ func (self *CommitDiffActions) removePatchLines(
 	}
 
 	patchBuilder := self.c.Git().Patch.PatchBuilder
-	files := self.filesInDiff()
+	files, err := self.filesInDiff()
+	if err != nil {
+		return err
+	}
+	indicesByFilename := map[string][]int{}
 	for path, ordinals := range self.c.Helpers().DiffLine.ChangeLineOrdinals(self.customPatchDiff(), lines) {
 		filename := self.patchBuilderPath(path)
 		if filename == "" {
-			continue
+			return diffLinesFileNotFoundError(self.c, path)
 		}
 		included := patchBuilder.IncludedChangeLineIndices(filename)
 		indices := []int{}
@@ -181,8 +193,11 @@ func (self *CommitDiffActions) removePatchLines(
 			}
 		}
 		if len(indices) == 0 {
-			continue
+			return diffLinesNotFoundError(self.c, filename)
 		}
+		indicesByFilename[filename] = indices
+	}
+	for filename, indices := range indicesByFilename {
 		if err := patchBuilder.RemoveFileLineRange(filename, files.previousPath(filename), indices); err != nil {
 			return err
 		}
@@ -223,7 +238,12 @@ func (self *CommitDiffActions) DiscardSelection(pane types.DiffPaneContext, firs
 	}
 	commitIndex := self.indexOfTargetCommit(target)
 	if commitIndex == -1 {
-		return nil
+		return errors.New(utils.ResolvePlaceholderString(self.c.Tr.CommitNotInCommitsPanel,
+			map[string]string{"hash": utils.ShortHash(target.to)}))
+	}
+	selection, err := self.selectionByFile(lines)
+	if err != nil {
+		return err
 	}
 
 	patchBuilder := self.c.Git().Patch.PatchBuilder
@@ -238,7 +258,10 @@ func (self *CommitDiffActions) DiscardSelection(pane types.DiffPaneContext, firs
 			from, reverse := self.patchEndpoints(target)
 			patchBuilder.Reset()
 			patchBuilder.Start(from, target.to, reverse, target.canRebase)
-			if err := self.togglePatchLines(lines); err != nil {
+			if err := self.togglePatchLines(selection); err != nil {
+				// This patch exists only to be removed from the commit, so don't leave it
+				// behind.
+				patchBuilder.Reset()
 				return err
 			}
 			if patchBuilder.IsEmpty() {
@@ -318,40 +341,60 @@ func (self *CommitDiffActions) PatchInclusion() func(types.DiffLineInfo) bool {
 	}
 }
 
-// togglePatchLines takes the given lines of the commit's diff into the custom patch, or
-// out of it. The first line of the selection decides which of the two happens, once for
-// the whole selection: pointing at a line that is already in the patch takes the whole
-// selection out of it, as toggling a selection of files in the commit files panel does.
-func (self *CommitDiffActions) togglePatchLines(lines []types.DiffLineInfo) error {
-	patchBuilder := self.c.Git().Patch.PatchBuilder
+// commitDiffSelection is the selected lines of a commit's diff, by the file they belong
+// to: a patch is built a file at a time, while a selection can span several of them.
+type commitDiffSelection struct {
+	// What the diff says about each of the files it covers.
+	files commitDiffFiles
 
-	// The files the selection covers, in the order the diff shows them, and per file the
-	// lines of it that are selected: a patch is built a file at a time, while a selection
-	// can span several of them.
-	paths := []string{}
-	linesByPath := map[string][]patch.LineIdentity{}
+	// The files the selection covers, in the order the diff shows them.
+	paths []string
+
+	// Per file, the lines of it that are selected.
+	linesByPath map[string][]patch.LineIdentity
+}
+
+// selectionByFile groups the given lines of the commit's diff by the file they belong
+// to. If a line belongs to no file of the diff, the diff on screen and the one the
+// patch is built from disagree, so this fails and we build nothing.
+func (self *CommitDiffActions) selectionByFile(lines []types.DiffLineInfo) (commitDiffSelection, error) {
+	files, err := self.filesInDiff()
+	if err != nil {
+		return commitDiffSelection{}, err
+	}
+	selection := commitDiffSelection{files: files, linesByPath: map[string][]patch.LineIdentity{}}
 	for _, line := range lines {
 		path := self.patchBuilderPath(line.Path)
-		if path == "" {
-			continue
+		if _, ok := files[path]; !ok {
+			return commitDiffSelection{}, diffLinesFileNotFoundError(self.c, line.Path)
 		}
-		if _, seen := linesByPath[path]; !seen {
-			paths = append(paths, path)
+		if _, seen := selection.linesByPath[path]; !seen {
+			selection.paths = append(selection.paths, path)
 		}
-		linesByPath[path] = append(linesByPath[path], line.PatchLineIdentity())
+		selection.linesByPath[path] = append(selection.linesByPath[path], line.PatchLineIdentity())
 	}
-	if len(paths) == 0 {
-		return nil
-	}
+	return selection, nil
+}
 
-	files := self.filesInDiff()
+// togglePatchLines takes the selected lines of the commit's diff into the custom patch,
+// or out of it. The first line of the selection decides which of the two happens, once
+// for the whole selection: pointing at a line that is already in the patch takes the
+// whole selection out of it, as toggling a selection of files in the commit files panel
+// does.
+func (self *CommitDiffActions) togglePatchLines(selection commitDiffSelection) error {
+	patchBuilder := self.c.Git().Patch.PatchBuilder
+	files, paths := selection.files, selection.paths
+
 	indicesByPath := map[string][]int{}
 	wholeFileByPath := map[string]bool{}
 	for _, path := range paths {
 		indices, everyChange, err := patchBuilder.PatchLineIndicesForLines(
-			path, files.previousPath(path), linesByPath[path])
+			path, files.previousPath(path), selection.linesByPath[path])
 		if err != nil {
 			return err
+		}
+		if len(indices) == 0 {
+			return diffLinesNotFoundError(self.c, path)
 		}
 		indicesByPath[path] = indices
 
@@ -365,12 +408,9 @@ func (self *CommitDiffActions) togglePatchLines(lines []types.DiffLineInfo) erro
 	if err != nil {
 		return err
 	}
-	removing := len(indicesByPath[paths[0]]) > 0 && lo.Contains(included, indicesByPath[paths[0]][0])
+	removing := lo.Contains(included, indicesByPath[paths[0]][0])
 
 	for _, path := range paths {
-		if len(indicesByPath[path]) == 0 {
-			continue
-		}
 		previousPath := files.previousPath(path)
 		var err error
 		switch {
@@ -415,20 +455,20 @@ func (self commitDiffFiles) isWholeFileOperation(path string) bool {
 
 // filesInDiff asks git which files the diff a patch is being built from covers, and
 // what it does to each.
-func (self *CommitDiffActions) filesInDiff() commitDiffFiles {
+func (self *CommitDiffActions) filesInDiff() (commitDiffFiles, error) {
 	target := self.target()
 	if target == nil {
-		return nil
+		return nil, nil
 	}
 	from, reverse := self.patchEndpoints(target)
 	files, err := self.c.Git().Loaders.CommitFileLoader.GetFilesInDiff(from, target.to, reverse)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	return lo.SliceToMap(files, func(file *models.CommitFile) (string, *models.CommitFile) {
 		return file.Path, file
-	})
+	}), nil
 }
 
 // patchEndpoints gives the two ends of the diff a patch is built from. They are the ends

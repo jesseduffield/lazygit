@@ -1105,7 +1105,7 @@ func (self *MainViewController) openPullRequestAtSelectedLine() error {
 	}
 	relativePath := repoRelativePath(self.c.Git().RepoPaths.WorktreePath(), info.Path)
 	if relativePath == "" {
-		return nil
+		return diffLinesFileNotFoundError(self.c, info.Path)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)
