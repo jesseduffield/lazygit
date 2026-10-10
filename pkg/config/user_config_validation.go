@@ -219,6 +219,7 @@ func validateCustomCommandKey(key Keybinding) error {
 var ValidCustomCommandContexts = []string{
 	"global",
 	"status",
+	"repos",
 	"files",
 	"localBranches",
 	"remotes",

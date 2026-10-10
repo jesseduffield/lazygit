@@ -2,10 +2,15 @@ package helpers
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -105,4 +110,99 @@ func TestReadHeadInfo(t *testing.T) {
 			assert.Equal(t, s.expected, head)
 		})
 	}
+}
+
+type osGuiCommon struct {
+	types.IGuiCommon
+	os *oscommands.OSCommand
+}
+
+func (self osGuiCommon) OS() *oscommands.OSCommand { return self.os }
+
+func TestWithDirtyState(t *testing.T) {
+	root := t.TempDir()
+	run := func(dir string, args ...string) {
+		cmd := exec.Command("git", args...)
+		cmd.Dir = dir
+		out, err := cmd.CombinedOutput()
+		assert.NoError(t, err, string(out))
+	}
+	clean := filepath.Join(root, "clean")
+	dirty := filepath.Join(root, "dirty")
+	for _, dir := range []string{clean, dirty} {
+		assert.NoError(t, os.Mkdir(dir, 0o755))
+		run(dir, "init", "-q")
+	}
+	assert.NoError(t, os.WriteFile(filepath.Join(dirty, "new.txt"), []byte("x"), 0o644))
+
+	input := []*models.Repo{{Path: clean, Name: "clean"}, {Path: dirty, Name: "dirty"}}
+
+	result := newDirtyTestHelper().WithDirtyState(input, func() bool { return false })
+
+	assert.Len(t, result, 2)
+	assert.False(t, result[0].Dirty)
+	assert.True(t, result[1].Dirty)
+	assert.Equal(t, "dirty", result[1].Name)
+	assert.False(t, input[1].Dirty)
+	assert.NotSame(t, input[1], result[1])
+}
+
+func newDirtyTestHelper() *ReposHelper {
+	return &ReposHelper{c: &HelperCommon{
+		Common:     common.NewDummyCommon(),
+		IGuiCommon: osGuiCommon{os: oscommands.NewDummyOSCommand()},
+	}}
+}
+
+func TestWithDirtyStateNotARepo(t *testing.T) {
+	dir := t.TempDir()
+	result := newDirtyTestHelper().WithDirtyState(
+		[]*models.Repo{{Path: dir, Name: "plain"}}, func() bool { return false })
+	assert.Len(t, result, 1)
+	assert.False(t, result[0].Dirty)
+}
+
+func TestWithDirtyStateStaleSkipsChecks(t *testing.T) {
+	root := t.TempDir()
+	cmd := exec.Command("git", "init", "-q")
+	cmd.Dir = root
+	assert.NoError(t, cmd.Run())
+	assert.NoError(t, os.WriteFile(filepath.Join(root, "new.txt"), []byte("x"), 0o644))
+
+	result := newDirtyTestHelper().WithDirtyState(
+		[]*models.Repo{{Path: root}}, func() bool { return true })
+	assert.False(t, result[0].Dirty)
+}
+
+func TestLoadRepo(t *testing.T) {
+	root := t.TempDir()
+	cmd := exec.Command("git", "init", "-q", "-b", "topic")
+	cmd.Dir = root
+	assert.NoError(t, cmd.Run())
+	assert.NoError(t, os.WriteFile(filepath.Join(root, "new.txt"), []byte("x"), 0o644))
+
+	repo := newDirtyTestHelper().LoadRepo(root)
+
+	assert.Equal(t, &models.Repo{Path: root, Branch: "topic", Dirty: true}, repo)
+}
+
+func TestWithRepoRowUpdated(t *testing.T) {
+	alpha := &models.Repo{Path: filepath.FromSlash("/w/alpha"), Name: "alpha", Branch: "main"}
+	beta := &models.Repo{Path: filepath.FromSlash("/w/beta"), Name: "beta", Branch: "main"}
+	repos := []*models.Repo{alpha, beta}
+
+	t.Run("updates the row at the path", func(t *testing.T) {
+		result := withRepoRowUpdated(repos, &models.Repo{Path: "/w/beta/", Branch: "topic", Dirty: true})
+
+		assert.Same(t, alpha, result[0])
+		assert.Equal(t, &models.Repo{Path: beta.Path, Name: "beta", Branch: "topic", Dirty: true}, result[1])
+		assert.Equal(t, "main", beta.Branch, "input must not change")
+		assert.False(t, beta.Dirty, "input must not change")
+	})
+
+	t.Run("keeps the rows if none is at the path", func(t *testing.T) {
+		result := withRepoRowUpdated(repos, &models.Repo{Path: "/w/gamma", Branch: "topic"})
+
+		assert.Equal(t, repos, result)
+	})
 }

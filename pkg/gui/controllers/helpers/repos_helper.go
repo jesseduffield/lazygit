@@ -14,11 +14,13 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"golang.org/x/sync/errgroup"
 )
 
 type onNewRepoFn func(startArgs appTypes.StartArgs, contextKey types.ContextKey) error
@@ -161,6 +163,70 @@ func (self *ReposHelper) askGit(repoPath string, subcommand string, args ...stri
 	return output, output != ""
 }
 
+// LoadRepoBranches finds the repos below root and reads their branches.
+func (self *ReposHelper) LoadRepoBranches(root string) []*models.Repo {
+	paths := git_commands.DiscoverRepos(root, self.c.UserConfig().MultiRepo.MaxDepth)
+	return lo.Map(paths, func(path string, _ int) *models.Repo {
+		name, err := filepath.Rel(root, path)
+		if err != nil {
+			name = path
+		}
+		return &models.Repo{Path: path, Name: name, Branch: self.getCurrentBranch(path)}
+	})
+}
+
+// WithDirtyState returns copies of repos with Dirty set. It leaves repos as is.
+// Once stale returns true, the remaining repos are copied without a check.
+func (self *ReposHelper) WithDirtyState(repos []*models.Repo, stale func() bool) []*models.Repo {
+	result := make([]*models.Repo, len(repos))
+	var group errgroup.Group
+	group.SetLimit(8)
+	for i, repo := range repos {
+		group.Go(func() error {
+			updated := *repo
+			if !stale() {
+				updated.Dirty = self.isDirty(repo.Path)
+			}
+			result[i] = &updated
+			return nil
+		})
+	}
+	_ = group.Wait()
+	return result
+}
+
+// LoadRepo reads the branch and the dirty state of the repo at path.
+func (self *ReposHelper) LoadRepo(path string) *models.Repo {
+	repo := &models.Repo{Path: path, Branch: self.getCurrentBranch(path)}
+	return self.WithDirtyState([]*models.Repo{repo}, func() bool { return false })[0]
+}
+
+// withRepoRowUpdated returns a copy of repos in which the row of the repo at
+// loaded.Path has the branch and dirty state of loaded.
+func withRepoRowUpdated(repos []*models.Repo, loaded *models.Repo) []*models.Repo {
+	return lo.Map(repos, func(repo *models.Repo, _ int) *models.Repo {
+		if !presentation.IsCurrentRepo(repo, loaded.Path) {
+			return repo
+		}
+		updated := *repo
+		updated.Branch = loaded.Branch
+		updated.Dirty = loaded.Dirty
+		return &updated
+	})
+}
+
+// isDirty sets GIT_OPTIONAL_LOCKS=0 because the OS command builder does not,
+// and status would otherwise take index.lock in a repo the user may be using.
+func (self *ReposHelper) isDirty(repoPath string) bool {
+	cmdObj := self.c.OS().Cmd.New(git_commands.NewGitCmd("status").
+		Dir(repoPath).
+		Arg("--porcelain", "--untracked-files=normal").
+		ToArgv()).DontLog().
+		AddEnvVars(git_commands.OptionalLocksEnvVar + "=0")
+	stdout, _, err := git_commands.ForOtherRepo(cmdObj).RunWithOutputs()
+	return err == nil && strings.TrimSpace(stdout) != ""
+}
+
 func (self *ReposHelper) getCurrentBranch(path string) string {
 	head, ok := readHeadInfo(path)
 	if !ok {
@@ -296,16 +362,7 @@ func (self *ReposHelper) recentRepoMenuItem(entry recentRepoEntry, widths recent
 		FilterColumns: []string{entry.nameColumn, entry.branchName, entry.path},
 		Tooltip:       strings.Join(tooltipLines, "\n"),
 		OnPress: func() error {
-			// Check before clearing the stack, so a refused switch doesn't
-			// forget the submodule breadcrumb (which would leave escape
-			// unable to return to the parent repo).
-			if self.switchRefusedBecauseBusy() {
-				return nil
-			}
-			// if we were in a submodule, we want to forget about that stack of repos
-			// so that hitting escape in the new repo does nothing
-			self.c.State().GetRepoPathStack().Clear()
-			return self.switchTo(entry.path, self.c.Tr.ErrRepositoryMovedOrDeleted, context.NO_CONTEXT)
+			return self.SwitchToTopLevelRepo(entry.path, context.NO_CONTEXT)
 		},
 	}
 }
@@ -367,6 +424,18 @@ func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey
 		return nil
 	}
 	return self.switchTo(path, errMsg, contextKey)
+}
+
+// SwitchToTopLevelRepo switches to the repo at path and forgets the submodule
+// stack, so that escape in the new repo does nothing. It checks for an
+// in-flight operation before it clears the stack, so that a refused switch
+// keeps the submodule breadcrumb.
+func (self *ReposHelper) SwitchToTopLevelRepo(path string, contextKey types.ContextKey) error {
+	if self.switchRefusedBecauseBusy() {
+		return nil
+	}
+	self.c.State().GetRepoPathStack().Clear()
+	return self.switchTo(path, self.c.Tr.ErrRepositoryMovedOrDeleted, contextKey)
 }
 
 // switchRefusedBecauseBusy reports (and shows a toast) whether a repo switch

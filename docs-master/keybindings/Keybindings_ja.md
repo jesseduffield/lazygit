@@ -60,6 +60,15 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <enter> `` | 確認 |  |
 | `` <esc> `` | 閉じる/キャンセル |  |
 
+## Repositories
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <space> `` | チェックアウト（切り替え） | Switch to the selected repository. |
+| `` e `` | 設定ファイルを編集 | 外部エディタでファイルを開きます。 |
+| `` u `` | 更新を確認 |  |
+| `` / `` | 現在のビューをテキストでフィルタリング |  |
+
 ## コミット
 
 | Key | Action | Info |

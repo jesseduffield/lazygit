@@ -307,6 +307,15 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <enter> `` | Potwierdź |  |
 | `` <esc> `` | Zamknij |  |
 
+## Repositories
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <space> `` | Przełącz | Switch to the selected repository. |
+| `` e `` | Edytuj plik konfiguracyjny | Otwórz plik w zewnętrznym edytorze. |
+| `` u `` | Sprawdź aktualizacje |  |
+| `` / `` | Filtruj bieżący widok po tekście |  |
+
 ## Schowek
 
 | Key | Action | Info |

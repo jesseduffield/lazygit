@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -166,7 +167,7 @@ func (self *GlobalController) createCustomPatchOptionsMenu() error {
 }
 
 func (self *GlobalController) refresh() error {
-	self.c.Refresh(types.RefreshOptions{})
+	self.c.Refresh(types.RefreshOptions{Scope: helpers.DefaultScopesWithRepos()})
 	return nil
 }
 

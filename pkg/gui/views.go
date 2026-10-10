@@ -27,6 +27,7 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		// first layer. Ordering within this layer does not matter because there are
 		// no overlapping views
 		{viewPtr: &gui.Views.Status, name: "status"},
+		{viewPtr: &gui.Views.Repos, name: "repos"},
 		{viewPtr: &gui.Views.Snake, name: "snake"},
 		{viewPtr: &gui.Views.Submodules, name: "submodules"},
 		{viewPtr: &gui.Views.Worktrees, name: "worktrees"},
@@ -232,6 +233,7 @@ func (gui *Gui) configureViewProperties() {
 	gui.Views.MergeConflicts.Title = gui.c.Tr.MergeConflictsTitle
 	gui.Views.Limit.Title = gui.c.Tr.NotEnoughSpace
 	gui.Views.Status.Title = gui.c.Tr.StatusTitle
+	gui.Views.Repos.Title = gui.c.Tr.ReposTitle
 	gui.Views.CommitMessage.Title = gui.c.Tr.CommitSummary
 	gui.Views.CommitDescription.Title = gui.c.Tr.CommitDescriptionTitle
 	gui.Views.Extras.Title = gui.c.Tr.CommandLog

@@ -48,6 +48,8 @@ type TranslationSet struct {
 	BaseCommitIsNotInCurrentView          string
 	HunksWithOnlyAddedLinesWarning        string
 	StatusTitle                           string
+	ReposTitle                            string
+	NoRepos                               string
 	GlobalTitle                           string
 	Execute                               string
 	Stage                                 string
@@ -927,6 +929,7 @@ type TranslationSet struct {
 	Switch                                   string
 	SwitchToWorktree                         string
 	SwitchToWorktreeTooltip                  string
+	SwitchToRepoTooltip                      string
 	AlreadyCheckedOutByWorktree              string
 	BranchCheckedOutByWorktree               string
 	SomeBranchesCheckedOutByWorktreeError    string
@@ -1238,6 +1241,8 @@ func EnglishTranslationSet() *TranslationSet {
 		BaseCommitIsNotInCurrentView:         "Base commit is not in current view",
 		HunksWithOnlyAddedLinesWarning:       "There are ranges of only added lines in the diff; be careful to check that these belong in the found base commit.\n\nProceed?",
 		StatusTitle:                          "Status",
+		ReposTitle:                           "Repositories",
+		NoRepos:                              "No repositories",
 		Execute:                              "Execute",
 		Stage:                                "Stage",
 		StageTooltip:                         "Toggle staged for selected file.",
@@ -2122,6 +2127,7 @@ func EnglishTranslationSet() *TranslationSet {
 		Switch:                                   "Switch",
 		SwitchToWorktree:                         "Switch to worktree",
 		SwitchToWorktreeTooltip:                  "Switch to the selected worktree.",
+		SwitchToRepoTooltip:                      "Switch to the selected repository.",
 		AlreadyCheckedOutByWorktree:              "This branch is checked out by worktree {{.worktreeName}}. Do you want to switch to that worktree?",
 		BranchCheckedOutByWorktree:               "Branch {{.branchName}} is checked out by worktree {{.worktreeName}}",
 		SomeBranchesCheckedOutByWorktreeError:    "Some of the selected branches are checked out by other worktrees. Select them one by one to delete them.",
