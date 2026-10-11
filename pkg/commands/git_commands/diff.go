@@ -124,7 +124,7 @@ func (self *DiffCommands) probeFiles() (string, string, func(), bool) {
 }
 
 func (self *DiffCommands) probeEmitsMetadata(cmdObj *oscommands.CmdObj) bool {
-	cmdObj.AddEnvVars("OSC1717=V1")
+	cmdObj.AddEnvVars("OSC1717=V1").DontLog()
 	// A renderer may well object to being handed nothing to render. We want to know
 	// whatever it said before objecting, and that is captured either way.
 	output, _ := cmdObj.RunWithOutput()
