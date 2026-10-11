@@ -195,6 +195,7 @@ func (gui *Gui) getRandomTip() string {
 			"If you ever find a bug, do not hesitate to raise an issue on the repo:\n%s",
 			constants.Links.Issues,
 		),
+		"You can alt-click a line in a diff to open it in your editor. Not all terminals support this; if yours doesn't, try shift-click instead.",
 	}
 
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
