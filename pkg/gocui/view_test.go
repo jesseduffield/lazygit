@@ -1139,6 +1139,30 @@ func TestLineFlashReversesTheSelectionBarWithoutChangingSelection(t *testing.T) 
 	assert.False(t, style.HasReverse(), "clearing should remove the flash")
 }
 
+// The selection bar on the right edge covers a double-width character that reaches
+// into it, like the bar on the left edge does.
+func TestSelectionBarOnTheRightEdgeCoversADoubleWidthCharacter(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.Highlight = true
+	v.SelBgColor = ColorBlue
+	v.SelectedLineColorWidth = 2
+
+	// に takes view columns 7 and 8, and the bar the last two, 8 and 9.
+	v.writeString("abcdefgにj\n")
+	v.draw(true)
+
+	// The frame puts view column x at screen column x+1.
+	highlighted := func(x int) bool {
+		_, style, _ := Screen.Get(x+1, 1)
+		return style.GetBackground() != tcell.ColorDefault
+	}
+	assert.False(t, highlighted(6))
+	assert.True(t, highlighted(7), "に reaches into the bar")
+	assert.True(t, highlighted(9))
+}
+
 // Resizing a view throws away the wrapping of its content and wraps it again for
 // the new width, which moves every line of it to a different view line. The
 // positions into the view count view lines, so they all have to come along.
