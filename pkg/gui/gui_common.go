@@ -175,14 +175,16 @@ func (self *guiCommon) RenderToMainViews(opts types.RefreshMainOpts) {
 func (self *guiCommon) MainViewPairs() types.MainViewPairs {
 	return types.MainViewPairs{
 		Normal:         self.gui.normalMainContextPair(),
-		Staging:        self.gui.stagingMainContextPair(),
-		PatchBuilding:  self.gui.patchBuildingMainContextPair(),
 		MergeConflicts: self.gui.mergingMainContextPair(),
 	}
 }
 
 func (self *guiCommon) GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager {
 	return self.gui.getViewBufferManagerForView(view)
+}
+
+func (self *guiCommon) GetOrCreateViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager {
+	return self.gui.getManager(view)
 }
 
 func (self *guiCommon) ReadLinesToFillView(view *gocui.View) {

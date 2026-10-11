@@ -50,7 +50,11 @@ func (self *OptionsMapMgr) renderContextOptionsMap() {
 	})...)
 
 	bindingsToDisplay := lo.Filter(allBindings, func(binding *types.Binding, _ int) bool {
-		return len(binding.Keys) > 0 && binding.DisplayOnScreen && !binding.IsDisabled()
+		// A binding that describes itself as nothing has nothing to do where we are —
+		// that is how a command which only applies to some of a view's contents says so
+		// — and an empty entry in the options bar would say nothing about it.
+		return len(binding.Keys) > 0 && binding.DisplayOnScreen && !binding.IsDisabled() &&
+			binding.GetShortDescription() != ""
 	})
 
 	optionsMap := lo.Map(bindingsToDisplay, func(binding *types.Binding, _ int) bindingInfo {

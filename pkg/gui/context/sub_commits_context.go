@@ -21,10 +21,41 @@ type SubCommitsContext struct {
 }
 
 var (
-	_ types.IListContext       = (*SubCommitsContext)(nil)
-	_ types.DiffableContext    = (*SubCommitsContext)(nil)
-	_ types.ISearchableContext = (*SubCommitsContext)(nil)
+	_ types.IListContext           = (*SubCommitsContext)(nil)
+	_ types.DiffableContext        = (*SubCommitsContext)(nil)
+	_ types.ISearchableContext     = (*SubCommitsContext)(nil)
+	_ types.DiffMainViewContext    = (*SubCommitsContext)(nil)
+	_ types.PullRequestDiffContext = (*SubCommitsContext)(nil)
+	_ types.BranchDiffContext      = (*SubCommitsContext)(nil)
 )
+
+func (self *SubCommitsContext) GetDiffMainViewType() types.DiffMainViewType {
+	return types.DiffMainViewTypePatchBuilding
+}
+
+// This panel shows the commits of the branch it was entered from, and of the branches
+// below it in a stack. PullRequestDiff looks for their pull request among those
+// branches. The panel is also entered from a tag, a remote branch and the reflog, none of
+// which a pull request is made from.
+func (self *SubCommitsContext) PullRequestDiff() types.PullRequestDiff {
+	branch, ok := self.GetRef().(*models.Branch)
+	if !ok {
+		return types.PullRequestDiff{}
+	}
+
+	_, selectionStart, selectionEnd := self.GetSelectedItems()
+	startIdx, endIdx := commitRangeShownInDiff(
+		selectionStart, selectionEnd, self.GetSelectedLineIdx(), self.GetSelectedRefRangeForDiffFiles())
+	return pullRequestDiff(
+		self.GetCommits(), startIdx, endIdx, branch.Name, self.c.Model().Branches, self.c.Model().PullRequestsMap)
+}
+
+// BranchOfDiff is nil if the panel was entered from a tag, a remote branch or the
+// reflog instead of a local branch.
+func (self *SubCommitsContext) BranchOfDiff() *models.Branch {
+	branch, _ := self.GetRef().(*models.Branch)
+	return branch
+}
 
 func NewSubCommitsContext(
 	c *ContextCommon,
@@ -75,6 +106,7 @@ func NewSubCommitsContext(
 			startIdx,
 			endIdx,
 			shouldShowGraph(c),
+			commitGraphSymbolSet(c),
 			git_commands.NewNullBisectInfo(),
 		)
 	}

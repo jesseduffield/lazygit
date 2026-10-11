@@ -87,7 +87,7 @@ type GuiConfig struct {
 	MouseEvents bool `yaml:"mouseEvents"`
 	// If true, do not show a warning when amending a commit.
 	SkipAmendWarning bool `yaml:"skipAmendWarning"`
-	// If true, do not show a warning when discarding changes in the staging view.
+	// If true, do not show a warning when discarding changes from a focused diff.
 	SkipDiscardChangeWarning bool `yaml:"skipDiscardChangeWarning"`
 	// If true, do not show warning when applying/popping the stash
 	SkipStashWarning bool `yaml:"skipStashWarning"`
@@ -122,10 +122,11 @@ type GuiConfig struct {
 	// - 'left': split the window horizontally (side panel on the left, main view on the right)
 	// - 'top': split the window vertically (side panel on top, main view below)
 	EnlargedSideViewLocation string `yaml:"enlargedSideViewLocation"`
-	// If true, wrap lines in the staging view to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.
-	WrapLinesInStagingView bool `yaml:"wrapLinesInStagingView"`
-	// If true, hunk selection mode will be enabled by default when entering the staging view.
-	UseHunkModeInStagingView bool `yaml:"useHunkModeInStagingView"`
+	// If true, wrap lines in focused diffs to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.
+	// If false, scroll a focused diff sideways with the scrollLeft and scrollRight keys (H and L by default).
+	WrapLinesInDiffView bool `yaml:"wrapLinesInDiffView"`
+	// If true, hunk selection mode will be enabled by default when focusing a diff.
+	UseHunkModeInDiffView bool `yaml:"useHunkModeInDiffView"`
 	// One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru' | 'pt'
 	Language string `yaml:"language" jsonschema:"enum=auto,enum=en,enum=zh-TW,enum=zh-CN,enum=pl,enum=nl,enum=ja,enum=ko,enum=ru"`
 	// Format used when displaying time e.g. commit time.
@@ -179,6 +180,11 @@ type GuiConfig struct {
 	NerdFontsVersion string `yaml:"nerdFontsVersion" jsonschema:"enum=2,enum=3,enum="`
 	// If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.
 	ShowFileIcons bool `yaml:"showFileIcons"`
+	// How the commit graph is drawn.
+	// One of: 'auto' (default) | 'classic' | 'detailed'
+	// 'detailed' connects the lines to the commit circles, and shows exactly where branches fork off and merge. It draws the graph with the git branch drawing symbols (U+F5D0 to U+F60D), so it needs a terminal that draws these itself: kitty, Ghostty, WezTerm (nightly builds), Contour, or VS Code's terminal with GPU acceleration. Other terminals need a font that contains them, such as https://github.com/rbong/flog-symbols.
+	// 'auto' uses 'detailed' if lazygit recognizes the terminal as one that draws these symbols (kitty and Ghostty), and 'classic' otherwise.
+	CommitGraphStyle string `yaml:"commitGraphStyle" jsonschema:"enum=auto,enum=classic,enum=detailed"`
 	// Length of author name in (non-expanded) commits view. 2 means show initials only.
 	CommitAuthorShortLength int `yaml:"commitAuthorShortLength"`
 	// Length of author name in expanded commits view. 2 means show initials only.
@@ -511,6 +517,7 @@ type KeybindingUniversalConfig struct {
 	PrevBlockAlt2     Keybinding   `yaml:"prevBlock-alt2"`
 	JumpToBlock       []Keybinding `yaml:"jumpToBlock"`
 	FocusMainView     Keybinding   `yaml:"focusMainView"`
+	JumpToFile        Keybinding   `yaml:"jumpToFile"`
 	NextMatch         Keybinding   `yaml:"nextMatch"`
 	PrevMatch         Keybinding   `yaml:"prevMatch"`
 	StartSearch       Keybinding   `yaml:"startSearch"`
@@ -672,6 +679,8 @@ type KeybindingCommitFilesConfig struct {
 type KeybindingMainConfig struct {
 	PrevHunk         Keybinding `yaml:"prevHunk"`
 	NextHunk         Keybinding `yaml:"nextHunk"`
+	PrevFile         Keybinding `yaml:"prevFile"`
+	NextFile         Keybinding `yaml:"nextFile"`
 	ToggleSelectHunk Keybinding `yaml:"toggleSelectHunk"`
 	PickBothHunks    Keybinding `yaml:"pickBothHunks"`
 	EditSelectHunk   Keybinding `yaml:"editSelectHunk"`
@@ -888,8 +897,8 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			},
 			MainPanelSplitMode:       "flexible",
 			EnlargedSideViewLocation: "left",
-			WrapLinesInStagingView:   true,
-			UseHunkModeInStagingView: true,
+			WrapLinesInDiffView:      true,
+			UseHunkModeInDiffView:    true,
 			Language:                 "auto",
 			TimeFormat:               "02 Jan 06",
 			ShortTimeFormat:          time.Kitchen,
@@ -922,6 +931,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			ShowIcons:                           false,
 			NerdFontsVersion:                    "",
 			ShowFileIcons:                       true,
+			CommitGraphStyle:                    "auto",
 			CommitAuthorShortLength:             2,
 			CommitAuthorLongLength:              17,
 			CommitHashLength:                    8,
@@ -1035,6 +1045,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				NextBlockAlt2:                     Keybinding{"<tab>"},
 				JumpToBlock:                       []Keybinding{{"1"}, {"2"}, {"3"}, {"4"}, {"5"}},
 				FocusMainView:                     Keybinding{"0"},
+				JumpToFile:                        Keybinding{"<ctrl+g>"},
 				NextMatch:                         Keybinding{"n"},
 				PrevMatch:                         Keybinding{"N"},
 				StartSearch:                       Keybinding{"/"},
@@ -1182,6 +1193,8 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			Main: KeybindingMainConfig{
 				PrevHunk:         Keybinding{"<left>", "h"},
 				NextHunk:         Keybinding{"<right>", "l"},
+				PrevFile:         Keybinding{"N"},
+				NextFile:         Keybinding{"n"},
 				ToggleSelectHunk: Keybinding{"a"},
 				PickBothHunks:    Keybinding{"b"},
 				EditSelectHunk:   Keybinding{"E"},
