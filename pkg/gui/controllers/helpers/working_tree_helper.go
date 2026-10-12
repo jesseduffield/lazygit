@@ -113,6 +113,12 @@ func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfi
 	return nil
 }
 
+// WorktreeForFile returns the worktree that an entry of the files panel is, if
+// it is one
+func (self *WorkingTreeHelper) WorktreeForFile(file *models.File) (*models.Worktree, bool) {
+	return worktreeOfFile(file, self.c.Model().Worktrees, self.c.Git().RepoPaths.WorktreePath())
+}
+
 func (self *WorkingTreeHelper) OpenMergeTool() error {
 	self.c.LogAction(self.c.Tr.Actions.OpenMergeTool)
 	return self.c.RunSubprocessAndRefresh(

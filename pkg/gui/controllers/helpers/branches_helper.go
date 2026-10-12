@@ -293,8 +293,8 @@ func (self *BranchesHelper) RemoveWorktreeMenu(worktree *models.Worktree) error 
 
 // RemoveWorktreeAndDeleteBranch removes the worktree and deletes the local branch
 // it has checked out, force-warning first if the branch isn't fully merged. It's
-// the worktrees-panel counterpart to deleting a worktree-checked-out branch from
-// the branches panel.
+// the remove-worktree menu's counterpart to deleting a worktree-checked-out
+// branch from the branches panel.
 func (self *BranchesHelper) RemoveWorktreeAndDeleteBranch(
 	worktree *models.Worktree, branch *models.Branch,
 ) error {

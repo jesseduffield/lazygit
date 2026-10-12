@@ -1691,23 +1691,40 @@ func findSubmoduleNode(nodes []*filetree.FileNode, submodules []*models.Submodul
 	return nil
 }
 
+func findWorktreeNode(nodes []*filetree.FileNode) *models.File {
+	for _, node := range nodes {
+		if worktreeFile := node.FindFirstFileBy(func(f *models.File) bool { return f.IsWorktree }); worktreeFile != nil {
+			return worktreeFile
+		}
+	}
+	return nil
+}
+
 func (self *FilesController) canRemove(selectedNodes []*filetree.FileNode) *types.DisabledReason {
-	// Return disabled if the selection contains multiple changed items and includes a submodule change.
+	// Return disabled if the selection contains multiple changed items and
+	// includes a submodule change or a worktree. These have menus of their own.
 	submodules := self.c.Model().Submodules
 	hasFiles := false
 	uniqueSelectedSubmodules := set.New[*models.SubmoduleConfig]()
+	uniqueSelectedWorktreePaths := set.New[string]()
 
 	for _, node := range selectedNodes {
 		_ = node.ForEachFile(func(f *models.File) error {
 			if submodule := f.SubmoduleConfig(submodules); submodule != nil {
 				uniqueSelectedSubmodules.Add(submodule)
+			} else if f.IsWorktree {
+				uniqueSelectedWorktreePaths.Add(f.Path)
 			} else {
 				hasFiles = true
 			}
 			return nil
 		})
-		if uniqueSelectedSubmodules.Len() > 0 && (hasFiles || uniqueSelectedSubmodules.Len() > 1) {
+		if uniqueSelectedSubmodules.Len() > 0 &&
+			(hasFiles || uniqueSelectedWorktreePaths.Len() > 0 || uniqueSelectedSubmodules.Len() > 1) {
 			return &types.DisabledReason{Text: self.c.Tr.MultiSelectNotSupportedForSubmodules}
+		}
+		if uniqueSelectedWorktreePaths.Len() > 0 && (hasFiles || uniqueSelectedWorktreePaths.Len() > 1) {
+			return &types.DisabledReason{Text: self.c.Tr.MultiSelectNotSupportedForWorktrees}
 		}
 	}
 
@@ -1735,6 +1752,13 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 		}
 
 		return self.c.Menu(types.CreateMenuOptions{Title: submoduleNode.GetPath(), Items: menuItems})
+	}
+
+	// Likewise, if we have a worktree, it is the only thing selected
+	if worktreeFile := findWorktreeNode(selectedNodes); worktreeFile != nil {
+		if worktree, ok := self.c.Helpers().WorkingTree.WorktreeForFile(worktreeFile); ok {
+			return self.c.Helpers().BranchesHelper.RemoveWorktreeMenu(worktree)
+		}
 	}
 
 	discardAllChangesItem := types.MenuItem{

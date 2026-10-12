@@ -696,6 +696,7 @@ var tests = []*components.IntegrationTest{
 	worktree.CustomCommand,
 	worktree.DefaultPathTilde,
 	worktree.DetachWorktreeFromBranch,
+	worktree.DiscardRangeWithWorktree,
 	worktree.DotfileBareRepo,
 	worktree.DoubleNestedLinkedSubmodule,
 	worktree.EditFileOfBranchInOtherWorktree,
