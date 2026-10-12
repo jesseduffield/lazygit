@@ -245,6 +245,7 @@ var tests = []*components.IntegrationTest{
 	file.DirectoryDiffWithRenamedFiles,
 	file.DiscardAllDirChanges,
 	file.DiscardAllDirChangesWhenFiltering,
+	file.DiscardNestedRepositories,
 	file.DiscardRangeSelect,
 	file.DiscardStagedChanges,
 	file.DiscardUnstagedDirChanges,

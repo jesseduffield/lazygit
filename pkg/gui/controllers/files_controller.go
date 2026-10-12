@@ -1879,19 +1879,21 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 	discardAllChangesItem := types.MenuItem{
 		Label: self.c.Tr.DiscardAllChanges,
 		OnPress: func() error {
-			self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
+			return self.confirmDiscardingNestedRepositories(selectedNodes, func() error {
+				self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
 
-			if self.context().IsSelectingRange() {
-				defer self.context().CancelRangeSelect()
-			}
+				if self.context().IsSelectingRange() {
+					defer self.context().CancelRangeSelect()
+				}
 
-			nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
-			if err := self.c.Git().WorkingTree.DiscardAllDirChanges(nodes); err != nil {
-				return err
-			}
+				nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
+				if err := self.c.Git().WorkingTree.DiscardAllDirChanges(nodes); err != nil {
+					return err
+				}
 
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
-			return nil
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+				return nil
+			})
 		},
 		Keys: self.c.KeybindingsOpts().GetKeys(self.c.UserConfig().Keybinding.Files.ConfirmDiscard),
 		Tooltip: utils.ResolvePlaceholderString(
@@ -1905,19 +1907,21 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 	discardUnstagedChangesItem := types.MenuItem{
 		Label: self.c.Tr.DiscardUnstagedChanges,
 		OnPress: func() error {
-			self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
+			return self.confirmDiscardingNestedRepositories(selectedNodes, func() error {
+				self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
 
-			if self.context().IsSelectingRange() {
-				defer self.context().CancelRangeSelect()
-			}
+				if self.context().IsSelectingRange() {
+					defer self.context().CancelRangeSelect()
+				}
 
-			nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
-			if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(nodes); err != nil {
-				return err
-			}
+				nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
+				if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(nodes); err != nil {
+					return err
+				}
 
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
-			return nil
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+				return nil
+			})
 		},
 		Keys: menuKey('u'),
 		Tooltip: utils.ResolvePlaceholderString(
@@ -1938,6 +1942,60 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.DiscardChangesTitle, Items: menuItems})
+}
+
+// confirmDiscardingNestedRepositories calls discard, but asks first if
+// discarding the given nodes would discard something of a nested repository in
+// them that can't be restored: the repository itself, if it keeps its git dir
+// inside its directory, or changes that it has that aren't committed.
+func (self *FilesController) confirmDiscardingNestedRepositories(nodes []*filetree.FileNode, discard func() error) error {
+	var nestedRepositories []*models.File
+	for _, node := range nodes {
+		_ = node.ForEachFile(func(file *models.File) error {
+			if file.IsNestedRepository() {
+				nestedRepositories = append(nestedRepositories, file)
+			}
+			return nil
+		})
+	}
+
+	if len(nestedRepositories) == 0 {
+		return discard()
+	}
+
+	return self.c.WithWaitingStatus(self.c.Tr.CheckingNestedRepositories, func(gocui.Task) error {
+		var losses []string
+		for _, file := range nestedRepositories {
+			placeholders := map[string]string{"path": file.Path}
+			if self.c.Git().WorkingTree.NestedRepositoryHasOwnGitDir(file.Path) {
+				losses = append(losses, utils.ResolvePlaceholderString(
+					self.c.Tr.NestedRepositoryHistoryWouldBeLost, placeholders))
+				continue
+			}
+
+			// If we can't tell, assume that there are changes, so that we ask
+			hasChanges, err := self.c.Git().WorkingTree.NestedRepositoryHasUncommittedChanges(file.Path)
+			if hasChanges || err != nil {
+				losses = append(losses, utils.ResolvePlaceholderString(
+					self.c.Tr.NestedRepositoryChangesWouldBeLost, placeholders))
+			}
+		}
+
+		self.c.OnUIThread(func() error {
+			if len(losses) == 0 {
+				return discard()
+			}
+
+			self.c.Confirm(types.ConfirmOpts{
+				Title:         self.c.Tr.DiscardChangesTitle,
+				Prompt:        self.c.Tr.DiscardNestedRepositoriesPrompt + "\n\n- " + strings.Join(losses, "\n- "),
+				HandleConfirm: discard,
+			})
+			return nil
+		})
+
+		return nil
+	})
 }
 
 func (self *FilesController) ResetSubmodule(submodule *models.SubmoduleConfig) error {

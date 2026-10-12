@@ -433,6 +433,19 @@ func (self *WorkingTreeCommands) NestedRepositoryHasOwnGitDir(path string) bool 
 	return err == nil && info.IsDir()
 }
 
+// NestedRepositoryHasUncommittedChanges reports whether the git repository at
+// the given path of the working tree has changes that aren't committed,
+// including untracked files
+func (self *WorkingTreeCommands) NestedRepositoryHasUncommittedChanges(path string) (bool, error) {
+	cmdArgs := NewGitCmd("status").
+		Dir(path).
+		Arg("--porcelain", "--untracked-files=normal").
+		ToArgv()
+
+	output, err := ForOtherRepo(self.cmd.New(cmdArgs)).DontLog().RunWithOutput()
+	return strings.TrimSpace(output) != "", err
+}
+
 // UntrackedFilesCmdObj returns the command that lists the untracked files in
 // the given directory, for the main view
 func (self *WorkingTreeCommands) UntrackedFilesCmdObj(dirPath string) *oscommands.CmdObj {
