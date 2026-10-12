@@ -266,6 +266,10 @@ func (self *WorkingTreeHelper) WithEnsureCommittableFiles(handler func() error) 
 	}
 
 	if !self.AnyStagedFiles() {
+		if nestedRepository, ok := lo.Find(self.c.Model().Files, (*models.File).IsNestedRepository); ok {
+			return errors.New(self.CantStageNestedRepository(nestedRepository).Text)
+		}
+
 		if self.c.UserConfig().Gui.SkipNoStagedFilesWarning {
 			self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
 			if err := self.c.Git().WorkingTree.StageAll(false); err != nil {
