@@ -161,18 +161,23 @@ func getFileLine(
 
 	isSubmodule := file != nil && file.IsSubmodule(submoduleConfigs)
 	isLinkedWorktree := file != nil && file.IsWorktree
-	isDirectory := file == nil
+	isDirectory := file == nil || file.DirectoryKind != models.NotADirectory
 
 	if showFileIcons {
-		icon := icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory, customIconsConfig)
+		isRemovedSubmodule := file != nil && file.DirectoryKind == models.RemovedSubmodule
+		icon := icons.IconForFile(name, isSubmodule || isRemovedSubmodule, isLinkedWorktree, isDirectory, customIconsConfig)
 		paint := color.HEX(icon.Color, false)
 		output += paint.Sprint(icon.Icon) + nameColor.Sprint(" ")
 	}
 
 	output += nameColor.Sprint(utils.EscapeSpecialChars(name))
 
-	if isSubmodule {
-		output += theme.DefaultTextColor.Sprint(" (" + tr.SubmoduleLabel + ")")
+	if file != nil && file.DirectoryKind == models.PlainDirectory {
+		output += nameColor.Sprint("/")
+	}
+
+	if label := fileLabel(file, isSubmodule, tr); label != "" {
+		output += theme.DefaultTextColor.Sprint(" (" + label + ")")
 	}
 
 	if file != nil && showNumstat {
@@ -182,6 +187,26 @@ func getFileLine(
 	}
 
 	return output
+}
+
+// fileLabel returns what to show in parentheses after the name of an entry of
+// the files panel that is something other than a file or directory of this
+// repo, or "" if it isn't.
+func fileLabel(file *models.File, isSubmodule bool, tr *i18n.TranslationSet) string {
+	switch {
+	case file == nil:
+		return ""
+	case isSubmodule:
+		return tr.SubmoduleLabel
+	case file.IsWorktree:
+		return tr.WorktreeLabel
+	case file.DirectoryKind == models.RemovedSubmodule:
+		return tr.RemovedSubmoduleLabel
+	case file.DirectoryKind == models.NestedRepository:
+		return tr.NestedRepositoryLabel
+	default:
+		return ""
+	}
 }
 
 func formatFileStatus(file *models.File, restColor style.TextStyle) string {

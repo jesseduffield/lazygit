@@ -27,7 +27,7 @@ var DiscardRemovedSubmodule = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Lines(
 				Equals("▼ modules").IsSelected(),
-				Equals("  ?? sub"),
+				Equals("  ?? sub (removed submodule)"),
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {

@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"fmt"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -16,17 +17,19 @@ type FileLoaderConfig interface {
 
 type FileLoader struct {
 	*GitCommon
-	cmd         oscommands.ICmdObjBuilder
-	config      FileLoaderConfig
-	getFileType func(string) string
+	cmd              oscommands.ICmdObjBuilder
+	config           FileLoaderConfig
+	getFileType      func(string) string
+	getDirectoryKind func(dirPath string, worktreeGitDirPath string) models.DirectoryKind
 }
 
 func NewFileLoader(gitCommon *GitCommon, cmd oscommands.ICmdObjBuilder, config FileLoaderConfig) *FileLoader {
 	return &FileLoader{
-		GitCommon:   gitCommon,
-		cmd:         cmd,
-		getFileType: oscommands.FileType,
-		config:      config,
+		GitCommon:        gitCommon,
+		cmd:              cmd,
+		getFileType:      oscommands.FileType,
+		getDirectoryKind: directoryKind,
+		config:           config,
 	}
 }
 
@@ -79,12 +82,19 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 		// take the slash off so that the file tree shows the directory as a
 		// single entry; it would otherwise split the path into a directory and
 		// a file without a name.
-		path := strings.TrimSuffix(status.Path, "/")
+		path, isDirectory := strings.CutSuffix(status.Path, "/")
 
 		file := &models.File{
 			Path:          path,
 			PreviousPath:  status.PreviousPath,
 			DisplayString: status.StatusString,
+		}
+
+		if isDirectory {
+			file.DirectoryKind = self.getDirectoryKind(
+				filepath.Join(self.repoPaths.WorktreePath(), path),
+				self.repoPaths.WorktreeGitDirPath(),
+			)
 		}
 
 		if diff, ok := fileDiffs[status.Path]; ok {
@@ -99,6 +109,27 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 	self.setConflictMarkerSizes(files)
 
 	return files
+}
+
+// directoryKind tells what kind of directory git status reported as a whole.
+// dirPath is the directory's absolute path, and worktreeGitDirPath is the git
+// dir of the worktree that we're in.
+func directoryKind(dirPath string, worktreeGitDirPath string) models.DirectoryKind {
+	gitDir, ok := GitDirOfRepo(dirPath)
+	if !ok {
+		return models.PlainDirectory
+	}
+
+	// git keeps the git dir of a submodule in the "modules" directory of the
+	// git dir of the worktree that it is checked out in, and puts a .git file
+	// into the submodule's directory that points there. That .git file stays
+	// when a commit removes the submodule.
+	relPath, err := filepath.Rel(filepath.Join(worktreeGitDirPath, "modules"), gitDir)
+	if err == nil && relPath != "." && !strings.HasPrefix(relPath, "..") {
+		return models.RemovedSubmodule
+	}
+
+	return models.NestedRepository
 }
 
 // Looks up how long the conflict markers in the conflicted files are. We ask

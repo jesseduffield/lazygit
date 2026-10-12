@@ -1,6 +1,8 @@
 package git_commands
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -205,6 +207,7 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasInlineMergeConflicts: false,
 					DisplayString:           "?? dir/nested/",
 					ShortStatus:             "??",
+					DirectoryKind:           models.NestedRepository,
 				},
 			},
 		},
@@ -320,9 +323,55 @@ func TestFileGetStatusFiles(t *testing.T) {
 				cmd:         cmd,
 				config:      &FakeFileLoaderConfig{showUntrackedFiles: "yes"},
 				getFileType: func(string) string { return "file" },
+				getDirectoryKind: func(string, string) models.DirectoryKind {
+					return models.NestedRepository
+				},
 			}
 
 			assert.EqualValues(t, s.expectedFiles, loader.GetStatusFiles(GetStatusFileOptions{}))
+		})
+	}
+}
+
+func TestDirectoryKind(t *testing.T) {
+	repoDir := t.TempDir()
+	worktreeGitDir := filepath.Join(repoDir, ".git")
+
+	writeGitFile := func(dir string, gitDir string) {
+		assert.NoError(t, os.MkdirAll(dir, 0o755))
+		assert.NoError(t, os.WriteFile(filepath.Join(dir, ".git"), []byte("gitdir: "+gitDir+"\n"), 0o644))
+	}
+
+	plainDir := filepath.Join(repoDir, "plain")
+	assert.NoError(t, os.MkdirAll(plainDir, 0o755))
+
+	nestedRepoDir := filepath.Join(repoDir, "nested")
+	assert.NoError(t, os.MkdirAll(filepath.Join(nestedRepoDir, ".git"), 0o755))
+
+	removedSubmoduleDir := filepath.Join(repoDir, "modules", "sub")
+	writeGitFile(removedSubmoduleDir, "../../.git/modules/sub")
+
+	otherReposSubmoduleDir := filepath.Join(repoDir, "other-sub")
+	writeGitFile(otherReposSubmoduleDir, filepath.Join(t.TempDir(), ".git", "modules", "sub"))
+
+	worktreeDir := filepath.Join(repoDir, "worktree")
+	writeGitFile(worktreeDir, filepath.Join(worktreeGitDir, "worktrees", "worktree"))
+
+	scenarios := []struct {
+		name     string
+		dirPath  string
+		expected models.DirectoryKind
+	}{
+		{"directory without a .git", plainDir, models.PlainDirectory},
+		{"repository with a .git directory", nestedRepoDir, models.NestedRepository},
+		{"submodule of this repo", removedSubmoduleDir, models.RemovedSubmodule},
+		{"submodule of another repo", otherReposSubmoduleDir, models.NestedRepository},
+		{"worktree of this repo", worktreeDir, models.NestedRepository},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expected, directoryKind(s.dirPath, worktreeGitDir))
 		})
 	}
 }

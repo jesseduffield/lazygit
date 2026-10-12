@@ -104,6 +104,9 @@ type TranslationSet struct {
 	MergeConflictTakeIncomingCommit       string
 	SubmoduleMergeConflictDescription     string
 	SubmoduleLabel                        string
+	RemovedSubmoduleLabel                 string
+	NestedRepositoryLabel                 string
+	WorktreeLabel                         string
 	StageConflictsRangeDisabled           string
 	Checkout                              string
 	CheckoutTooltip                       string
@@ -1270,6 +1273,9 @@ func EnglishTranslationSet() *TranslationSet {
 		MergeConflictTakeIncomingCommit:      "Take incoming commit",
 		SubmoduleMergeConflictDescription:    "Conflict: the submodule '{{.path}}' was set to a different commit in the current and the incoming changes. Pick which commit to keep.",
 		SubmoduleLabel:                       "submodule",
+		RemovedSubmoduleLabel:                "removed submodule",
+		NestedRepositoryLabel:                "nested repository",
+		WorktreeLabel:                        "worktree",
 		StageConflictsRangeDisabled:          "Cannot stage a selection that includes files with merge conflicts; resolve them individually with {{.goIntoKey}} first.",
 		Checkout:                             "Checkout",
 		CheckoutTooltip:                      "Checkout selected item.",
