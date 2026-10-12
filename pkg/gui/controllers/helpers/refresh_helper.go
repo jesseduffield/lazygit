@@ -1476,10 +1476,7 @@ func markWorktreeFiles(files []*models.File, worktrees []*models.Worktree, workt
 	changed := false
 
 	for _, file := range files {
-		absPath := filepath.Join(worktreePath, file.Path)
-		isWorktree := lo.SomeBy(worktrees, func(worktree *models.Worktree) bool {
-			return worktree.Path == absPath
-		})
+		_, isWorktree := worktreeOfFile(file, worktrees, worktreePath)
 
 		if isWorktree != file.IsWorktree {
 			file.IsWorktree = isWorktree
@@ -1488,6 +1485,15 @@ func markWorktreeFiles(files []*models.File, worktrees []*models.Worktree, workt
 	}
 
 	return changed
+}
+
+// worktreeOfFile returns the worktree that an entry of the files panel is, if
+// it is one. worktreePath is the path of the worktree that we're in.
+func worktreeOfFile(file *models.File, worktrees []*models.Worktree, worktreePath string) (*models.Worktree, bool) {
+	absPath := filepath.Join(worktreePath, file.Path)
+	return lo.Find(worktrees, func(worktree *models.Worktree) bool {
+		return worktree.Path == absPath
+	})
 }
 
 // the reflogs panel is the only panel where we cache data, in that we only
