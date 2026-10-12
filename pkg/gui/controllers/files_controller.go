@@ -137,7 +137,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Keys:              opts.GetKeys(opts.Config.Files.ToggleStagedAll),
 			Handler:           self.toggleStagedAll,
-			GetDisabledReason: self.require(self.anyFilesDisplayed),
+			GetDisabledReason: self.require(self.anyFilesDisplayed, self.canStageAll),
 			Description:       self.c.Tr.ToggleStagedAll,
 			Tooltip:           self.c.Tr.ToggleStagedAllTooltip,
 		},
@@ -842,7 +842,8 @@ func (self *FilesController) conflictNeedsResolutionDialog(file *models.File) bo
 
 // canStageSelection disables staging when a multiple selection includes a file
 // with a conflict that must be resolved through a dialog; those have to be
-// resolved one at a time.
+// resolved one at a time. It also disables it when the selection includes a
+// nested repository.
 func (self *FilesController) canStageSelection(nodes []*filetree.FileNode) *types.DisabledReason {
 	if len(nodes) > 1 {
 		for _, node := range nodes {
@@ -856,6 +857,33 @@ func (self *FilesController) canStageSelection(nodes []*filetree.FileNode) *type
 				}
 			}
 		}
+	}
+
+	for _, node := range nodes {
+		if nestedRepository := node.FindFirstFileBy((*models.File).IsNestedRepository); nestedRepository != nil {
+			return self.c.Helpers().WorkingTree.CantStageNestedRepository(nestedRepository)
+		}
+	}
+
+	return nil
+}
+
+// canStageAll disables staging all files when that would stage a nested
+// repository.
+func (self *FilesController) canStageAll() *types.DisabledReason {
+	var nestedRepository *models.File
+	switch self.stageAllScope() {
+	case stageAllVisibleFiles:
+		nestedRepository = self.context().FileTreeViewModel.GetRoot().FindFirstFileBy((*models.File).IsNestedRepository)
+	case stageAllTrackedFiles:
+		// A nested repository is never tracked
+		return nil
+	default:
+		nestedRepository, _ = lo.Find(self.c.Model().Files, (*models.File).IsNestedRepository)
+	}
+
+	if nestedRepository != nil {
+		return self.c.Helpers().WorkingTree.CantStageNestedRepository(nestedRepository)
 	}
 
 	return nil

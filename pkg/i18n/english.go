@@ -115,6 +115,8 @@ type TranslationSet struct {
 	NestedRepositoryStatus                string
 	PlainDirectoryDescription             string
 	PlainDirectoryFiles                   string
+	StageNestedRepositoryDisabled         string
+	StageWorktreeDisabled                 string
 	StageConflictsRangeDisabled           string
 	Checkout                              string
 	CheckoutTooltip                       string
@@ -1291,6 +1293,8 @@ func EnglishTranslationSet() *TranslationSet {
 		NestedRepositoryDiscardWarning:       "Pressing {{.discardKey}} discards the directory, including the repository with all of its history.",
 		WorktreeInsideRepoDescription:        "'{{.path}}' is a linked worktree of this repository. Git doesn't look into it, so it shows up as a single untracked entry.\n\nTo remove the worktree, press {{.removeKey}}. If you keep worktrees inside the repository, add their directory to .gitignore so that they don't show up here.",
 		NestedRepositoryStatus:               "Status of '{{.path}}'",
+		StageNestedRepositoryDisabled:        "Can't stage '{{.path}}' because it is a git repository of its own. Discard it with {{.discardKey}}, or ignore it with {{.ignoreKey}}.",
+		StageWorktreeDisabled:                "Can't stage '{{.path}}' because it is a worktree. Remove it with {{.removeKey}}, or ignore it with {{.ignoreKey}}.",
 		PlainDirectoryDescription:            "'{{.path}}' is an untracked directory. Git shows it as a single entry because status.showUntrackedFiles is set to \"normal\".",
 		PlainDirectoryFiles:                  "Files in '{{.path}}'",
 		StageConflictsRangeDisabled:          "Cannot stage a selection that includes files with merge conflicts; resolve them individually with {{.goIntoKey}} first.",

@@ -53,6 +53,13 @@ const (
 	RemovedSubmodule
 )
 
+// IsNestedRepository reports whether the file is a git repository of its own
+// inside the working tree, such as a linked worktree or the directory of a
+// removed submodule
+func (f *File) IsNestedRepository() bool {
+	return f.DirectoryKind == NestedRepository || f.DirectoryKind == RemovedSubmodule
+}
+
 // sometimes we need to deal with either a node (which contains a file) or an actual file
 type IFile interface {
 	GetHasUnstagedChanges() bool

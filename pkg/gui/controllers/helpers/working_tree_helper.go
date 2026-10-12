@@ -13,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -128,6 +129,21 @@ func (self *WorkingTreeHelper) NestedRepositoryPlaceholders(file *models.File) m
 		"discardKey": keybindings.Universal.Remove.String(),
 		"removeKey":  keybindings.Universal.Remove.String(),
 		"ignoreKey":  keybindings.Files.IgnoreFile.String(),
+	}
+}
+
+// CantStageNestedRepository returns why the given nested repository can't be
+// staged. git add records a nested repository as an embedded repository: a
+// gitlink without an entry in .gitmodules. Nobody wants that, so we don't let
+// you stage one, and say how to get rid of it instead.
+func (self *WorkingTreeHelper) CantStageNestedRepository(file *models.File) *types.DisabledReason {
+	text := self.c.Tr.StageNestedRepositoryDisabled
+	if file.IsWorktree {
+		text = self.c.Tr.StageWorktreeDisabled
+	}
+
+	return &types.DisabledReason{
+		Text: utils.ResolvePlaceholderString(text, self.NestedRepositoryPlaceholders(file)),
 	}
 }
 
