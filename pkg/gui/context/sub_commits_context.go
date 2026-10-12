@@ -108,6 +108,7 @@ func NewSubCommitsContext(
 			shouldShowGraph(c),
 			commitGraphSymbolSet(c),
 			git_commands.NewNullBisectInfo(),
+			false,
 		)
 	}
 

@@ -1705,6 +1705,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 				Label: self.c.Tr.ToggleShowGitGraphAll,
 				OnPress: func() error {
 					self.context().SetShowWholeGitGraph(!self.context().GetShowWholeGitGraph())
+					self.context().SetFirstParent(false)
 
 					if self.context().GetShowWholeGitGraph() {
 						self.context().SetLimitCommits(false)
@@ -1714,6 +1715,26 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 						self.c.Refresh(
 							types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}},
 						)
+						return nil
+					})
+				},
+			},
+			{
+				Label: self.c.Tr.ToggleFirstParent,
+				OnPress: func() error {
+					self.context().SetFirstParent(!self.context().GetFirstParent())
+					self.context().SetShowWholeGitGraph(false)
+
+					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
+						if self.c.GetConfig().GetDebug() {
+							self.c.RefreshFromWorker(
+								types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}},
+							)
+						} else {
+							self.c.Refresh(
+								types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}},
+							)
+						}
 						return nil
 					})
 				},

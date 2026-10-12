@@ -51,7 +51,7 @@ func RenderCommitGraph(commits []*models.Commit, selectedCommitHashPtr *string, 
 		return nil
 	}
 
-	lines := RenderAux(pipeSets, commits, selectedCommitHashPtr, symbolSet)
+	lines := RenderAux(pipeSets, commits, selectedCommitHashPtr, symbolSet, false)
 
 	return lines
 }
@@ -69,7 +69,7 @@ func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) *styl
 	})
 }
 
-func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPtr *string, symbolSet SymbolSet) []string {
+func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPtr *string, symbolSet SymbolSet, firstParent bool) []string {
 	maxProcs := runtime.GOMAXPROCS(0)
 
 	// splitting up the rendering of the graph into multiple goroutines allows us to render the graph in parallel
@@ -93,7 +93,7 @@ func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPt
 				if k > 0 {
 					prevCommit = commits[k-1]
 				}
-				line := renderPipeSet(pipeSet, selectedCommitHashPtr, prevCommit, symbolSet)
+				line := renderPipeSet(pipeSet, selectedCommitHashPtr, prevCommit, symbolSet, firstParent)
 				innerLines = append(innerLines, line)
 			}
 			chunks[i] = innerLines
@@ -276,6 +276,7 @@ func renderPipeSet(
 	selectedCommitHashPtr *string,
 	prevCommit *models.Commit,
 	symbolSet SymbolSet,
+	firstParent bool,
 ) string {
 	maxPos := int16(0)
 	commitPos := int16(0)
@@ -293,6 +294,25 @@ func renderPipeSet(
 		}
 	}
 	isMerge := startCount > 1
+
+	if firstParent {
+		writer := &strings.Builder{}
+		writer.Grow(2)
+		cell := &Cell{
+			cellType: COMMIT,
+			style: &style.FgDefault,
+		}
+		if isMerge {
+			cell.cellType = MERGE
+		}
+		for i, pipe := range pipes {
+			if pipe.kind == STARTS {
+				cell.style = pipes[i].style
+			}
+		}
+		cell.render(writer, symbolSet)
+		return writer.String()
+	}
 
 	cells := lo.Map(lo.Range(int(maxPos)+1), func(i int, _ int) *Cell {
 		return &Cell{cellType: CONNECTION, style: &style.FgDefault}

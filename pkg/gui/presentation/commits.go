@@ -61,6 +61,7 @@ func GetCommitListDisplayStrings(
 	showGraph bool,
 	graphSymbolSet graph.SymbolSet,
 	bisectInfo *git_commands.BisectInfo,
+	firstParent bool,
 ) [][]string {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -97,7 +98,7 @@ func GetCommitListDisplayStrings(
 
 			if localSectionStart > 0 {
 				// we have some remote commits
-				pipeSets := loadPipesets(commits[:localSectionStart])
+				pipeSets := loadPipesets(commits[:localSectionStart], firstParent)
 				if startIdx < localSectionStart {
 					// some of the remote commits are visible
 					start := startIdx
@@ -109,13 +110,14 @@ func GetCommitListDisplayStrings(
 						graphCommits,
 						selectedCommitHashPtr,
 						graphSymbolSet,
+						firstParent,
 					)
 					allGraphLines = append(allGraphLines, graphLines...)
 				}
 			}
 			if localSectionStart < len(commits) {
 				// we have some local commits
-				pipeSets := loadPipesets(commits[localSectionStart:])
+				pipeSets := loadPipesets(commits[localSectionStart:], firstParent)
 				if localSectionStart < endIdx {
 					// some of the local commits are visible
 					graphOffset := max(startIdx, localSectionStart)
@@ -127,6 +129,7 @@ func GetCommitListDisplayStrings(
 						graphCommits,
 						selectedCommitHashPtr,
 						graphSymbolSet,
+						firstParent,
 					)
 					allGraphLines = append(allGraphLines, graphLines...)
 				}
@@ -140,7 +143,7 @@ func GetCommitListDisplayStrings(
 			// but we'll never include TODO commits as part of the graph because it'll be messy)
 			graphOffset := max(startIdx, rebaseOffset)
 
-			pipeSets := loadPipesets(commits[rebaseOffset:])
+			pipeSets := loadPipesets(commits[rebaseOffset:], firstParent)
 			pipeSetOffset := max(startIdx-rebaseOffset, 0)
 			graphPipeSets := pipeSets[pipeSetOffset:max(endIdx-rebaseOffset, 0)]
 			graphCommits := commits[graphOffset:endIdx]
@@ -149,6 +152,7 @@ func GetCommitListDisplayStrings(
 				graphCommits,
 				selectedCommitHashPtr,
 				graphSymbolSet,
+				firstParent,
 			)
 			getGraphLine = func(idx int) string {
 				if idx >= graphOffset {
@@ -309,7 +313,7 @@ func indexOfFirstNonTODOCommit(commits []*models.Commit) int {
 	return 0
 }
 
-func loadPipesets(commits []*models.Commit) [][]graph.Pipe {
+func loadPipesets(commits []*models.Commit, firstParent bool) [][]graph.Pipe {
 	if pipeSetCacheAuthorColors != authors.ColorsVersion() {
 		pipeSetCache = make(map[pipeSetCacheKey][][]graph.Pipe)
 		pipeSetCacheAuthorColors = authors.ColorsVersion()

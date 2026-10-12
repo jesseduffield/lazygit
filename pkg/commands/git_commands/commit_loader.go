@@ -64,6 +64,7 @@ type GetCommitsOptions struct {
 	RefForPushedStatus   models.Ref // the ref to use for determining pushed/unpushed status
 	// determines if we show the whole git graph i.e. pass the '--all' flag
 	All bool
+	FirstParent bool
 	// If non-empty, show divergence from this ref (left-right log)
 	RefToShowDivergenceFrom string
 	MainBranches            *MainBranches
@@ -610,6 +611,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 		Arg("--oneline").
 		Arg(prettyFormat).
 		Arg("--abbrev=40").
+		ArgIf(opts.FirstParent, "--first-parent").
 		ArgIf(opts.FilterAuthor != "", "--author="+opts.FilterAuthor).
 		ArgIf(opts.Limit, "-300").
 		ArgIf(opts.FilterPath != "", "--follow", "--name-status").
