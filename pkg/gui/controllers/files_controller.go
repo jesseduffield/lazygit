@@ -993,22 +993,44 @@ func (self *FilesController) toggleStagedAll() error {
 	return nil
 }
 
+// What staging all files stages
+type stageAllScope int
+
+const (
+	// Only the files that are visible, because a text filter is active
+	stageAllVisibleFiles stageAllScope = iota
+	// Only tracked files, because only those are shown
+	stageAllTrackedFiles
+	stageAllFiles
+)
+
+func (self *FilesController) stageAllScope() stageAllScope {
+	if self.context().IsFiltering() {
+		return stageAllVisibleFiles
+	}
+	if self.context().GetStatusFilter() == filetree.DisplayTracked {
+		return stageAllTrackedFiles
+	}
+	return stageAllFiles
+}
+
 func (self *FilesController) toggleStagedAllWithLock() error {
 	root := self.context().FileTreeViewModel.GetRoot()
 
 	stage := func(unstagedNodes []*filetree.FileNode) error {
-		if self.context().IsFiltering() {
-			// When filtering, only stage visible files
+		switch self.stageAllScope() {
+		case stageAllVisibleFiles:
 			var paths []string
 			_ = root.ForEachFile(func(file *models.File) error {
 				paths = append(paths, file.Path)
 				return nil
 			})
 			return self.c.Git().WorkingTree.StageFiles(paths, nil)
+		case stageAllTrackedFiles:
+			return self.c.Git().WorkingTree.StageAll(true)
+		default:
+			return self.c.Git().WorkingTree.StageAll(false)
 		}
-
-		onlyTrackedFiles := self.context().GetStatusFilter() == filetree.DisplayTracked
-		return self.c.Git().WorkingTree.StageAll(onlyTrackedFiles)
 	}
 
 	unstage := func(nodes []*filetree.FileNode) error {
