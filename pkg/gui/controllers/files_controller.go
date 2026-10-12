@@ -749,11 +749,18 @@ func (self *FilesController) enterFile(clickedViewLineIdx int) error {
 func (self *FilesController) conflictResolutionHint(description string) string {
 	message := description + "\n\n" + fmt.Sprintf(self.c.Tr.MergeConflictPressEnterToResolve,
 		self.c.UserConfig().Keybinding.Universal.GoInto)
-	if self.c.Views().Main.InnerWidth() > 70 {
-		lines, _, _ := utils.WrapViewLinesToWidth(true, false, message, 70, 4)
-		message = strings.Join(lines, "\n")
+	return wrapForReadability(message, self.c.Views().Main.InnerWidth())
+}
+
+// wrapForReadability wraps a message for the main view when the view is wide
+// enough that long lines would otherwise hurt readability.
+func wrapForReadability(message string, viewWidth int) string {
+	const readableWidth = 70
+	if viewWidth <= readableWidth {
+		return message
 	}
-	return message
+	lines, _, _ := utils.WrapViewLinesToWidth(true, false, message, readableWidth, 4)
+	return strings.Join(lines, "\n")
 }
 
 // conflictNeedsResolutionDialog reports whether a file's merge conflict can only
