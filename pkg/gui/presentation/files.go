@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -26,12 +27,13 @@ func RenderFileTree(
 	showNumstat bool,
 	customIconsConfig *config.CustomIconsConfig,
 	showRootItem bool,
+	tr *i18n.TranslationSet,
 ) []string {
 	collapsedPaths := tree.CollapsedPaths()
 	return renderAux(tree.GetRoot().Raw(), collapsedPaths, -1, -1, func(node *filetree.Node[models.File], treeDepth int, visualDepth int, isCollapsed bool) string {
 		fileNode := filetree.NewFileNode(node)
 
-		return getFileLine(isCollapsed, fileNode.GetHasUnstagedChanges(), fileNode.GetHasStagedChanges(), treeDepth, visualDepth, showNumstat, showFileIcons, submoduleConfigs, node, customIconsConfig, showRootItem)
+		return getFileLine(isCollapsed, fileNode.GetHasUnstagedChanges(), fileNode.GetHasStagedChanges(), treeDepth, visualDepth, showNumstat, showFileIcons, submoduleConfigs, node, customIconsConfig, showRootItem, tr)
 	})
 }
 
@@ -121,6 +123,7 @@ func getFileLine(
 	node *filetree.Node[models.File],
 	customIconsConfig *config.CustomIconsConfig,
 	showRootItem bool,
+	tr *i18n.TranslationSet,
 ) string {
 	name := fileNameAtDepth(node, treeDepth, showRootItem)
 	output := ""
@@ -169,7 +172,7 @@ func getFileLine(
 	output += nameColor.Sprint(utils.EscapeSpecialChars(name))
 
 	if isSubmodule {
-		output += theme.DefaultTextColor.Sprint(" (submodule)")
+		output += theme.DefaultTextColor.Sprint(" (" + tr.SubmoduleLabel + ")")
 	}
 
 	if file != nil && showNumstat {
