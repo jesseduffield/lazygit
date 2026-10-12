@@ -73,8 +73,16 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 			continue
 		}
 
+		// git status reports a directory that it doesn't descend into with a
+		// trailing slash. This is the case for a nested repository, and for
+		// any untracked directory if status.showUntrackedFiles is "normal". We
+		// take the slash off so that the file tree shows the directory as a
+		// single entry; it would otherwise split the path into a directory and
+		// a file without a name.
+		path := strings.TrimSuffix(status.Path, "/")
+
 		file := &models.File{
-			Path:          status.Path,
+			Path:          path,
 			PreviousPath:  status.PreviousPath,
 			DisplayString: status.StatusString,
 		}

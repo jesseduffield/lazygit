@@ -189,6 +189,26 @@ func TestFileGetStatusFiles(t *testing.T) {
 			},
 		},
 		{
+			testName:            "Directory that git doesn't descend into",
+			similarityThreshold: 50,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z", "--find-renames=50%"}, "?? dir/nested/", nil),
+			expectedFiles: []*models.File{
+				{
+					Path:                    "dir/nested",
+					HasStagedChanges:        false,
+					HasUnstagedChanges:      true,
+					Tracked:                 false,
+					Added:                   true,
+					Deleted:                 false,
+					HasMergeConflicts:       false,
+					HasInlineMergeConflicts: false,
+					DisplayString:           "?? dir/nested/",
+					ShortStatus:             "??",
+				},
+			},
+		},
+		{
 			testName:            "Renamed files",
 			similarityThreshold: 50,
 			runner: oscommands.NewFakeRunner(t).

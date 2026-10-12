@@ -1467,9 +1467,7 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 }
 
 // markWorktreeFiles marks the files that are linked worktrees of this repo, so
-// that the files view can render them as such. `git status` reports a worktree
-// as an untracked directory, i.e. with a trailing slash, which we take off:
-// keeping it would build a directory node with a nameless file inside it.
+// that the files view can render them as such.
 //
 // It must run on the UI thread, as it works on the model. Both models it needs
 // are written by refreshes of their own, so it is called after either of them
@@ -1486,12 +1484,6 @@ func markWorktreeFiles(files []*models.File, worktrees []*models.Worktree, workt
 		if isWorktree != file.IsWorktree {
 			file.IsWorktree = isWorktree
 			changed = true
-		}
-		if isWorktree {
-			if trimmed := strings.TrimSuffix(file.Path, "/"); trimmed != file.Path {
-				file.Path = trimmed
-				changed = true
-			}
 		}
 	}
 

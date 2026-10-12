@@ -26,12 +26,8 @@ var DiscardRemovedSubmodule = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				/* EXPECTED:
 				Equals("▼ modules").IsSelected(),
 				Equals("  ?? sub"),
-				ACTUAL: */
-				Equals("▼ modules/sub").IsSelected(),
-				Equals("  ?? "),
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
@@ -40,15 +36,7 @@ var DiscardRemovedSubmodule = NewIntegrationTest(NewIntegrationTestArgs{
 					Select(Contains("Discard all changes")).
 					Confirm()
 			}).
-			/* EXPECTED:
 			IsFocused().
-			ACTUAL: */
-			Tap(func() {
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Equals("open modules/sub: no such file or directory")).
-					Confirm()
-			}).
 			IsEmpty()
 
 		t.FileSystem().PathNotPresent("modules/sub")
