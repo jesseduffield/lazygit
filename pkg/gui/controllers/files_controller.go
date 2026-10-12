@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -275,8 +276,65 @@ func (self *FilesController) GetOnRenderToMain() func() {
 				return
 			}
 
+			if node.File != nil && node.File.DirectoryKind != models.NotADirectory {
+				self.renderDirectoryEntry(node.File)
+				return
+			}
+
 			self.renderWorkingTreeDiff(node)
 		})
+	}
+}
+
+// renderDirectoryEntry renders an entry that git status reports as a whole
+// directory. It explains what the directory is and what to do about it, and
+// below a divider shows the status of the repository that it is, or the files
+// in it if it isn't one.
+func (self *FilesController) renderDirectoryEntry(file *models.File) {
+	self.c.Helpers().MergeConflicts.ResetMergeState()
+
+	placeholders := map[string]string{"path": file.Path}
+	var description string
+	var heading string
+	var cmdObj *oscommands.CmdObj
+	if file.DirectoryKind == models.PlainDirectory {
+		description = utils.ResolvePlaceholderString(self.c.Tr.PlainDirectoryDescription, placeholders)
+		heading = utils.ResolvePlaceholderString(self.c.Tr.PlainDirectoryFiles, placeholders)
+		cmdObj = self.c.Git().WorkingTree.UntrackedFilesCmdObj(file.Path)
+	} else {
+		description = self.nestedRepositoryDescription(file)
+		heading = utils.ResolvePlaceholderString(self.c.Tr.NestedRepositoryStatus, placeholders)
+		cmdObj = self.c.Git().WorkingTree.NestedRepositoryStatusCmdObj(file.Path)
+	}
+
+	prefix := types.PrefixForWidth(func(width int) string {
+		return wrapForReadability(description, width) + "\n\n" + titledRule(heading, width) + "\n\n"
+	})
+	self.renderToMainWithTask(types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix))
+}
+
+// titledRule returns a horizontal line across the given width with a title in
+// it, for dividing a view's content into sections
+func titledRule(title string, width int) string {
+	start := "── " + title + " "
+	return start + strings.Repeat("─", max(width-utils.StringWidth(start), 0))
+}
+
+func (self *FilesController) nestedRepositoryDescription(file *models.File) string {
+	placeholders := self.c.Helpers().WorkingTree.NestedRepositoryPlaceholders(file)
+
+	switch {
+	case file.IsWorktree:
+		return utils.ResolvePlaceholderString(self.c.Tr.WorktreeInsideRepoDescription, placeholders)
+	case file.DirectoryKind == models.RemovedSubmodule:
+		return utils.ResolvePlaceholderString(self.c.Tr.RemovedSubmoduleDescription, placeholders)
+	default:
+		discardHint := self.c.Tr.NestedRepositoryDiscardHint
+		if self.c.Git().WorkingTree.NestedRepositoryHasOwnGitDir(file.Path) {
+			discardHint = self.c.Tr.NestedRepositoryDiscardWarning
+		}
+		return utils.ResolvePlaceholderString(
+			self.c.Tr.NestedRepositoryDescription+"\n\n"+discardHint, placeholders)
 	}
 }
 

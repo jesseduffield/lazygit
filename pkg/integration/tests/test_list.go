@@ -253,6 +253,8 @@ var tests = []*components.IntegrationTest{
 	file.DiscardVariousChanges,
 	file.DiscardVariousChangesRangeSelect,
 	file.ExcludeWithoutInfoDir,
+	file.ExplainNestedRepositories,
+	file.ExplainUntrackedDirectory,
 	file.Gitignore,
 	file.GitignoreSpecialCharacters,
 	file.PaneShownAgainStartsAtTheTop,

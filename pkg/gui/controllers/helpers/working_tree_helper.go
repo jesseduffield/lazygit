@@ -119,6 +119,18 @@ func (self *WorkingTreeHelper) WorktreeForFile(file *models.File) (*models.Workt
 	return worktreeOfFile(file, self.c.Model().Worktrees, self.c.Git().RepoPaths.WorktreePath())
 }
 
+// NestedRepositoryPlaceholders returns the placeholders for the texts that
+// tell you what to do about a nested repository
+func (self *WorkingTreeHelper) NestedRepositoryPlaceholders(file *models.File) map[string]string {
+	keybindings := self.c.UserConfig().Keybinding
+	return map[string]string{
+		"path":       file.Path,
+		"discardKey": keybindings.Universal.Remove.String(),
+		"removeKey":  keybindings.Universal.Remove.String(),
+		"ignoreKey":  keybindings.Files.IgnoreFile.String(),
+	}
+}
+
 func (self *WorkingTreeHelper) OpenMergeTool() error {
 	self.c.LogAction(self.c.Tr.Actions.OpenMergeTool)
 	return self.c.RunSubprocessAndRefresh(

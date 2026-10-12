@@ -107,6 +107,14 @@ type TranslationSet struct {
 	RemovedSubmoduleLabel                 string
 	NestedRepositoryLabel                 string
 	WorktreeLabel                         string
+	RemovedSubmoduleDescription           string
+	NestedRepositoryDescription           string
+	NestedRepositoryDiscardHint           string
+	NestedRepositoryDiscardWarning        string
+	WorktreeInsideRepoDescription         string
+	NestedRepositoryStatus                string
+	PlainDirectoryDescription             string
+	PlainDirectoryFiles                   string
 	StageConflictsRangeDisabled           string
 	Checkout                              string
 	CheckoutTooltip                       string
@@ -1277,6 +1285,14 @@ func EnglishTranslationSet() *TranslationSet {
 		RemovedSubmoduleLabel:                "removed submodule",
 		NestedRepositoryLabel:                "nested repository",
 		WorktreeLabel:                        "worktree",
+		RemovedSubmoduleDescription:          "'{{.path}}' is left over from a submodule that this repository no longer has. A commit that you pulled or checked out probably removed it. Git leaves the files of a removed submodule behind, so they show up as an untracked directory.\n\nIf you don't need them any more, press {{.discardKey}} to discard the directory. This also discards any uncommitted changes in it; see the status below. The submodule's commits stay in its git directory, so checking out an older commit that still has the submodule keeps working.",
+		NestedRepositoryDescription:          "'{{.path}}' is a git repository of its own inside this one. Git doesn't look into it, so it shows up as a single untracked entry.\n\nIf this repository is meant to track it, add it as a submodule. Otherwise, you can ignore it with {{.ignoreKey}} so that it no longer shows up here.",
+		NestedRepositoryDiscardHint:          "Pressing {{.discardKey}} discards the directory, including any uncommitted changes in it; see the status below.",
+		NestedRepositoryDiscardWarning:       "Pressing {{.discardKey}} discards the directory, including the repository with all of its history.",
+		WorktreeInsideRepoDescription:        "'{{.path}}' is a linked worktree of this repository. Git doesn't look into it, so it shows up as a single untracked entry.\n\nTo remove the worktree, press {{.removeKey}}. If you keep worktrees inside the repository, add their directory to .gitignore so that they don't show up here.",
+		NestedRepositoryStatus:               "Status of '{{.path}}'",
+		PlainDirectoryDescription:            "'{{.path}}' is an untracked directory. Git shows it as a single entry because status.showUntrackedFiles is set to \"normal\".",
+		PlainDirectoryFiles:                  "Files in '{{.path}}'",
 		StageConflictsRangeDisabled:          "Cannot stage a selection that includes files with merge conflicts; resolve them individually with {{.goIntoKey}} first.",
 		Checkout:                             "Checkout",
 		CheckoutTooltip:                      "Checkout selected item.",

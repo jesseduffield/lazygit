@@ -412,6 +412,37 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, mode 
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
+// NestedRepositoryStatusCmdObj returns the command that shows the status of a
+// git repository inside the working tree, for the main view
+func (self *WorkingTreeCommands) NestedRepositoryStatusCmdObj(path string) *oscommands.CmdObj {
+	cmdArgs := NewGitCmd("status").
+		Config("color.status=always").
+		Config("advice.statusHints=false").
+		Dir(path).
+		ToArgv()
+
+	return ForOtherRepo(self.cmd.New(cmdArgs)).DontLog()
+}
+
+// NestedRepositoryHasOwnGitDir reports whether the git repository at the given
+// path of the working tree keeps its git dir inside its directory, so that
+// discarding the directory discards the repository's history too. A submodule
+// or a worktree keeps it elsewhere.
+func (self *WorkingTreeCommands) NestedRepositoryHasOwnGitDir(path string) bool {
+	info, err := os.Stat(filepath.Join(self.repoPaths.worktreePath, path, ".git"))
+	return err == nil && info.IsDir()
+}
+
+// UntrackedFilesCmdObj returns the command that lists the untracked files in
+// the given directory, for the main view
+func (self *WorkingTreeCommands) UntrackedFilesCmdObj(dirPath string) *oscommands.CmdObj {
+	cmdArgs := NewGitCmd("ls-files").
+		Arg("--others", "--exclude-standard", "--", dirPath).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).DontLog()
+}
+
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
 // but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
 // For a renamed file, previousPath is the path it was renamed from (empty otherwise);
