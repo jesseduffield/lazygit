@@ -226,6 +226,24 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		return
 	}
 
+	// If the repo or worktree was deleted, there's nothing we can show any
+	// more, and every git command would fail.
+	if path, missing := env.git.RepoPaths.MissingDir(); missing {
+		self.c.OnUIThread(func() error {
+			if self.c.State().GetRepoGeneration() != env.generation {
+				// We have switched away from the deleted worktree
+				return nil
+			}
+
+			return types.ErrQuitWithMessage{
+				Message: utils.ResolvePlaceholderString(
+					self.c.Tr.RepoDirNoLongerExists, map[string]string{"path": path},
+				),
+			}
+		})
+		return
+	}
+
 	// A RefreshBlockingInput caller wants keyboard input withheld until the
 	// refreshed state is in place (see IGuiCommon.RefreshBlockingInput). Begin
 	// the block synchronously here in the calling handler, so that no keypress
