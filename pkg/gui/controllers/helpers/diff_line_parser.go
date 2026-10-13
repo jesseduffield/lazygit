@@ -272,6 +272,7 @@ func parseFileSection(fileLines []string, endsTheBuffer bool) []bufferLineParse 
 		return result
 	}
 	patchLines := p.Lines()
+	newLineNumbers, oldLineNumbers := p.LineNumbersOfLines()
 	for i := range fileLines {
 		if i >= len(patchLines) {
 			break
@@ -279,10 +280,10 @@ func parseFileSection(fileLines []string, endsTheBuffer bool) []bufferLineParse 
 		parsed := parsedDiffLine{
 			Path:    relPath,
 			Type:    diffLineTypeForKind(patchLines[i].Kind),
-			NewLine: p.LineNumberOfLine(i),
+			NewLine: newLineNumbers[i],
 		}
 		if parsed.Type == types.DiffLineDeleted {
-			parsed.OldLine = p.OldLineNumberOfLine(i)
+			parsed.OldLine = oldLineNumbers[i]
 		}
 		result[i] = bufferLineParse{parsed, true}
 	}

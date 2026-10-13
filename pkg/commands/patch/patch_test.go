@@ -838,6 +838,37 @@ func TestOldLineNumberOfLine(t *testing.T) {
 	}
 }
 
+func TestLineNumbersOfLines(t *testing.T) {
+	scenarios := []struct {
+		testName string
+		patchStr string
+	}{
+		{"simpleDiff", simpleDiff},
+		{"twoHunks", twoHunks},
+		{"twoHunksWithMoreAdditionsThanRemovals", twoHunksWithMoreAdditionsThanRemovals},
+		{"twoChangesInOneHunk", twoChangesInOneHunk},
+		{"consecutiveDeletions", consecutiveDeletions},
+		{"renameWithModificationDiff", renameWithModificationDiff},
+		{"addNewlineToEndOfFile", addNewlineToEndOfFile},
+		{"newFile", newFile},
+		{"deletedFile", deletedFile},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			patch := Parse(s.patchStr)
+			newLineNumbers, oldLineNumbers := patch.LineNumbersOfLines()
+
+			assert.Len(t, newLineNumbers, patch.LineCount())
+			assert.Len(t, oldLineNumbers, patch.LineCount())
+			for idx := range patch.LineCount() {
+				assert.Equal(t, patch.LineNumberOfLine(idx), newLineNumbers[idx], "new line number of line %d", idx)
+				assert.Equal(t, patch.OldLineNumberOfLine(idx), oldLineNumbers[idx], "old line number of line %d", idx)
+			}
+		})
+	}
+}
+
 func TestGetNextStageableLineIndex(t *testing.T) {
 	type scenario struct {
 		testName  string
