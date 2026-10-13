@@ -174,8 +174,28 @@ type LinesToRead struct {
 	// showing the previous render.
 	InitialRefreshAfter int
 
+	// The number of lines above the view when the task was asked for. Only set
+	// for the initial read request, whose Total and InitialRefreshAfter don't
+	// count these lines. A task that shows its content where the view is reads
+	// them as well, so that it fills the view there. A task that shows content
+	// the view isn't showing yet shows it from the top and doesn't read them.
+	LinesAboveView int
+
 	// Function to call after reading the lines is done
 	Then func()
+}
+
+// includingLinesAboveView returns the initial read request for a task that shows its
+// content where the view is rather than from the top. Such a task reads the lines
+// above the view as well.
+func (self LinesToRead) includingLinesAboveView() LinesToRead {
+	if self.Total != -1 {
+		self.Total += self.LinesAboveView
+	}
+	if self.InitialRefreshAfter != -1 {
+		self.InitialRefreshAfter += self.LinesAboveView
+	}
+	return self
 }
 
 // RenderRestore puts a view back where it was when it re-renders content the user
@@ -451,6 +471,14 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 		// Whatever position is owed to the user belongs to this render: it was
 		// remembered just before the re-render that led here was triggered.
 		restore := self.getRestoreForNextTask()
+
+		// Content the view isn't showing yet is shown from the top (see
+		// newContentPending), and content the view is showing is shown where the
+		// view is.
+		initialRequest := linesToRead
+		if !self.newContentPending.Load() {
+			initialRequest = linesToRead.includingLinesAboveView()
+		}
 
 		if self.throttle.Load() {
 			self.Log.Info("throttling task")
@@ -804,7 +832,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			close(lineWrittenChan)
 		})
 
-		self.readRequests.enqueue(linesToRead)
+		self.readRequests.enqueue(initialRequest)
 
 		<-done
 

@@ -687,6 +687,62 @@ func TestForgetRenderedContent(t *testing.T) {
 	assert.Equal(t, 2, getResetOriginCallCount(), "an emptied view is shown its content afresh")
 }
 
+// A render of the content the view is showing keeps the view where it is, so it reads
+// the lines above the view as well, both before it first paints and in all. A render
+// of content the view isn't showing yet is shown from the top, so the lines above the
+// view are no use to it. Reading them would only hold up the first paint of a diff
+// selected while the view is scrolled far down another one.
+func TestOnlyARenderInPlaceReadsTheLinesAboveTheView(t *testing.T) {
+	writer := bytes.NewBuffer(nil)
+	linesWritten := func() int { return strings.Count(writer.String(), "\n") }
+	linesWrittenAtFirstPaint := -1
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		writer,
+		func() {}, // beforeStart
+		func() {}, // refreshView
+		func() {}, // onEndOfInput
+		func() {}, // resetOrigin
+		writer.Reset,
+		func() { linesWrittenAtFirstPaint = linesWritten() },
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+	defer manager.Close()
+
+	// Renders the given command's output, which is longer than any of the reading
+	// asked for here, and returns once the task has read the lines it was asked for.
+	render := func(key string) {
+		start := func() (Cmd, io.Reader) {
+			// not actually starting this because it's not necessary
+			return ExecCmd{Cmd: exec.Command("blah")}, &BlankLineReader{totalLinesToYield: 1000}
+		}
+		served := make(chan struct{})
+		linesToRead := LinesToRead{
+			Total:               20,
+			InitialRefreshAfter: 15,
+			LinesAboveView:      100,
+			Then:                func() { close(served) },
+		}
+		_ = manager.NewTask(manager.NewCmdTask(start, nil, linesToRead, nil), key)
+		<-served
+	}
+
+	render("cmd1")
+	assert.Equal(t, 15, linesWrittenAtFirstPaint)
+	assert.Equal(t, 20, linesWritten())
+
+	render("cmd1")
+	assert.Equal(t, 115, linesWrittenAtFirstPaint)
+	assert.Equal(t, 120, linesWritten())
+
+	render("cmd2")
+	assert.Equal(t, 15, linesWrittenAtFirstPaint)
+	assert.Equal(t, 20, linesWritten())
+}
+
 func TestNewCmdTaskRefresh(t *testing.T) {
 	type scenario struct {
 		name                        string
