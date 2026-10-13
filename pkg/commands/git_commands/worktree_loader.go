@@ -236,9 +236,16 @@ func getUniqueNamesFromPathsAux(paths []pathWithIndexT, depth int) []nameWithInd
 
 	result := []nameWithIndexT{}
 	for _, group := range groups {
-		if len(group) == 1 {
-			path := group[0]
-			result = append(result, nameWithIndexT{index: path.index, name: sliceAtDepth(path.path, depth)})
+		// Identical paths can't be told apart at any depth, so they are named
+		// like a single path. Git reports two worktrees with the same path when
+		// a worktree directory was deleted and another worktree was moved to
+		// its place.
+		if lo.EveryBy(group, func(path pathWithIndexT) bool {
+			return trimSlashes(path.path) == trimSlashes(group[0].path)
+		}) {
+			for _, path := range group {
+				result = append(result, nameWithIndexT{index: path.index, name: sliceAtDepth(path.path, depth)})
+			}
 		} else {
 			result = append(result, getUniqueNamesFromPathsAux(group, depth+1)...)
 		}
