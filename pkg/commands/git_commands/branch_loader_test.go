@@ -179,11 +179,8 @@ func TestLoadWhenListingBranchesFails(t *testing.T) {
 		cmd:       gitCommon.cmd,
 	}
 
-	/* EXPECTED:
 	_, err := loader.Load(nil, nil, nil, false, nil, nil)
 	assert.EqualError(t, err, "chdir /path/to/repo: no such file or directory")
-	ACTUAL: */
-	assert.PanicsWithError(t, "chdir /path/to/repo: no such file or directory", func() { _, _ = loader.Load(nil, nil, nil, false, nil, nil) })
 
 	runner.CheckForMissingCalls()
 }
