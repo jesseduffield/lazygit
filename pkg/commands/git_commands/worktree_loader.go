@@ -249,11 +249,8 @@ func getUniqueNamesFromPathsAux(paths []pathWithIndexT, depth int) []nameWithInd
 
 // if the path is /a/b/c/d, and the depth is 0, the value is 'd'. If the depth is 1, the value is 'c', etc
 func valueAtDepth(path string, depth int) string {
-	path = strings.TrimPrefix(path, "/")
-	path = strings.TrimSuffix(path, "/")
-
 	// Split the path into segments
-	segments := strings.Split(path, "/")
+	segments := strings.Split(trimSlashes(path), "/")
 
 	// Get the length of segments
 	length := len(segments)
@@ -269,11 +266,8 @@ func valueAtDepth(path string, depth int) string {
 
 // if the path is /a/b/c/d, and the depth is 0, the value is 'd'. If the depth is 1, the value is 'b/c', etc
 func sliceAtDepth(path string, depth int) string {
-	path = strings.TrimPrefix(path, "/")
-	path = strings.TrimSuffix(path, "/")
-
 	// Split the path into segments
-	segments := strings.Split(path, "/")
+	segments := strings.Split(trimSlashes(path), "/")
 
 	// Get the length of segments
 	length := len(segments)
@@ -285,4 +279,9 @@ func sliceAtDepth(path string, depth int) string {
 
 	// Join the segments from the specified depth till end of the path
 	return strings.Join(segments[length-1-depth:], "/")
+}
+
+func trimSlashes(path string) string {
+	path = strings.TrimPrefix(path, "/")
+	return strings.TrimSuffix(path, "/")
 }
