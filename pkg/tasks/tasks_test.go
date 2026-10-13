@@ -881,6 +881,73 @@ func TestQueuedReadRequestsAreAnsweredWhenTheTaskStops(t *testing.T) {
 	assert.EqualValues(t, 2, answered.Load())
 }
 
+// A caller of ReadToEnd acts on the whole of what the view shows once it is answered,
+// such as listing the files of the diff in a menu. If a re-render replaces the task
+// that is reading the content, the content is the re-render's, so whoever is waiting
+// is answered once that has been read to the end, whether the replaced task was
+// already reading to the end for them or hadn't got to their request yet.
+func TestReadToEndWaitingWhenARerenderReplacesTheTask(t *testing.T) {
+	writer := bytes.NewBuffer(nil)
+	linesWritten := func() int { return strings.Count(writer.String(), "\n") }
+	firstPaint := make(chan struct{}, 1)
+
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(),
+		writer,
+		func() {}, // beforeStart
+		func() {}, // refreshView
+		func() {}, // onEndOfInput
+		func() {}, // resetOrigin
+		writer.Reset,
+		func() { firstPaint <- struct{}{} },
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+	defer manager.Close()
+
+	startTask := func(reader io.Reader) {
+		start := func() (Cmd, io.Reader) {
+			// not actually starting this because it's not necessary
+			return ExecCmd{Cmd: exec.Command("blah")}, reader
+		}
+		linesToRead := LinesToRead{Total: 1, InitialRefreshAfter: 1}
+		_ = manager.NewTask(manager.NewCmdTask(start, nil, linesToRead, nil), "cmd")
+	}
+
+	var mutex sync.Mutex
+	linesWrittenWhenAnswered := []int{}
+	var answered sync.WaitGroup
+	readToEnd := func() {
+		answered.Add(1)
+		manager.ReadToEnd(func() {
+			mutex.Lock()
+			linesWrittenWhenAnswered = append(linesWrittenWhenAnswered, linesWritten())
+			mutex.Unlock()
+			answered.Done()
+		})
+	}
+
+	// The render reads the line it was asked for, and stalls while reading to the end
+	// for the first caller. The second one's request waits behind it.
+	stalled := BlockingLineReader{linesToYield: 3, blocked: make(chan struct{}), unblock: make(chan struct{})}
+	defer close(stalled.unblock)
+	startTask(&stalled)
+	<-firstPaint
+	readToEnd()
+	<-stalled.blocked
+	readToEnd()
+
+	// A re-render of the same content, as a refresh does.
+	startTask(&BlankLineReader{totalLinesToYield: 50})
+	answered.Wait()
+
+	/* EXPECTED:
+	assert.Equal(t, []int{50, 50}, linesWrittenWhenAnswered)
+	ACTUAL: */
+	assert.Equal(t, []int{3, 3}, linesWrittenWhenAnswered)
+}
+
 // The callers of ReadToEnd hand their follow-up work to the UI thread from then, and
 // that work holds a task of its own from the moment it is enqueued. If the task that
 // ReadToEnd holds were done before then runs, lazygit would count as idle for a moment
