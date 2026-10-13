@@ -1106,7 +1106,7 @@ func (g *Gui) SetManager(managers ...Manager) {
 	g.keybindings = nil
 	g.tabClickBindings = nil
 
-	go func() { g.gEvents <- GocuiEvent{Type: eventResize} }()
+	go safe(func() { g.gEvents <- GocuiEvent{Type: eventResize} })
 }
 
 // SetManagerFunc sets the given manager function. It deletes all views and
@@ -1120,7 +1120,7 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 func (g *Gui) MainLoop() error {
 	defer close(g.loopExited)
 
-	go func() {
+	go safe(func() {
 		for {
 			select {
 			case <-g.stop:
@@ -1129,7 +1129,7 @@ func (g *Gui) MainLoop() error {
 				g.gEvents <- g.pollEvent()
 			}
 		}
-	}()
+	})
 
 	Screen.EnableFocus()
 	Screen.EnablePaste()
@@ -2187,7 +2187,7 @@ func (g *Gui) Resume() error {
 	// Schedule a redraw of the whole screen. Nothing else guarantees one:
 	// flushes are skipped while suspended, and after re-engaging the screen
 	// the terminal shows nothing until we draw again.
-	go func() { g.gEvents <- GocuiEvent{Type: eventResize} }()
+	go safe(func() { g.gEvents <- GocuiEvent{Type: eventResize} })
 
 	return nil
 }
