@@ -842,45 +842,6 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 	}
 }
 
-// A read request is answered by the task that serves it calling the request's Then.
-// This checks that requests still waiting when the task is stopped are answered too,
-// which is what happens when a re-render replaces the task.
-func TestQueuedReadRequestsAreAnsweredWhenTheTaskStops(t *testing.T) {
-	noop := func() {}
-	task := gocui.NewFakeTask()
-
-	// A pipe the task blocks on, so that the requests are still waiting when it stops.
-	pipeReader, pipeWriter := io.Pipe()
-	defer pipeWriter.Close()
-
-	manager := NewViewBufferManager(
-		utils.NewDummyLog(), bytes.NewBuffer(nil), noop, noop, noop, noop, noop, noop,
-		func() gocui.Task { return task },
-		func(f func()) error { f(); return nil },
-	)
-
-	stop := make(chan struct{})
-	fn := manager.NewCmdTask(
-		func() (Cmd, io.Reader) { return ExecCmd{Cmd: exec.Command("true")}, pipeReader },
-		nil, LinesToRead{Total: 1, InitialRefreshAfter: -1}, noop)
-	go func() { _, _ = pipeWriter.Write([]byte("first line\n")) }()
-	go func() { _ = fn(TaskOpts{Stop: stop, InitialContentLoaded: noop}) }()
-	// Let the task start and read the line it was asked for, so that the requests
-	// below are handed to a task that is waiting for them.
-	time.Sleep(50 * time.Millisecond)
-
-	answered := atomic.Int32{}
-	manager.ReadToEnd(func() { answered.Add(1) })
-	manager.ReadToEnd(func() { answered.Add(1) })
-
-	// Let the first request be picked up and block on the pipe, then stop the task.
-	time.Sleep(50 * time.Millisecond)
-	close(stop)
-	time.Sleep(50 * time.Millisecond)
-
-	assert.EqualValues(t, 2, answered.Load())
-}
-
 // A caller of ReadToEnd acts on the whole of what the view shows once it is answered,
 // such as listing the files of the diff in a menu. If a re-render replaces the task
 // that is reading the content, the content is the re-render's, so whoever is waiting
@@ -942,10 +903,107 @@ func TestReadToEndWaitingWhenARerenderReplacesTheTask(t *testing.T) {
 	startTask(&BlankLineReader{totalLinesToYield: 50})
 	answered.Wait()
 
-	/* EXPECTED:
 	assert.Equal(t, []int{50, 50}, linesWrittenWhenAnswered)
-	ACTUAL: */
-	assert.Equal(t, []int{3, 3}, linesWrittenWhenAnswered)
+}
+
+// A task that reads no command's output, such as one showing a message, has given the
+// view all of its content once it returns. So when it replaces a task that was reading
+// for someone, it answers the requests that task leaves it, after showing its content.
+func TestReadRequestsLeftToAMessageAreAnsweredOnceItIsShown(t *testing.T) {
+	noop := func() {}
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(), bytes.NewBuffer(nil), noop, noop, noop, noop, noop, noop,
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+	defer manager.Close()
+
+	stalled := BlockingLineReader{linesToYield: 1, blocked: make(chan struct{}), unblock: make(chan struct{})}
+	defer close(stalled.unblock)
+	start := func() (Cmd, io.Reader) {
+		// not actually starting this because it's not necessary
+		return ExecCmd{Cmd: exec.Command("blah")}, &stalled
+	}
+	_ = manager.NewTask(manager.NewCmdTask(start, nil, LinesToRead{Total: 1, InitialRefreshAfter: 1}, nil), "cmd")
+	<-stalled.blocked
+
+	var messageShown atomic.Bool
+	answeredAfterTheMessage := make(chan bool, 2)
+	for range 2 {
+		manager.ReadToEnd(func() { answeredAfterTheMessage <- messageShown.Load() })
+	}
+
+	_ = manager.NewTask(func(TaskOpts) error {
+		messageShown.Store(true)
+		return nil
+	}, "message")
+
+	assert.True(t, <-answeredAfterTheMessage)
+	assert.True(t, <-answeredAfterTheMessage)
+}
+
+// A render whose task is created after the layout is the one whose content a request
+// made in the meantime is about, so the request waits for that task to read it, even
+// though the task before it had read all of its own.
+func TestReadToEndWaitsForATaskAskedForButNotCreatedYet(t *testing.T) {
+	writer := bytes.NewBuffer(nil)
+	linesWritten := func() int { return strings.Count(writer.String(), "\n") }
+	noop := func() {}
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(), writer, noop, noop, noop, noop, writer.Reset, noop,
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+	defer manager.Close()
+
+	newCmdTask := func(lines int, onDone func()) func(TaskOpts) error {
+		start := func() (Cmd, io.Reader) {
+			// not actually starting this because it's not necessary
+			return ExecCmd{Cmd: exec.Command("blah")}, &BlankLineReader{totalLinesToYield: lines}
+		}
+		return manager.NewCmdTask(start, nil, LinesToRead{Total: 100, InitialRefreshAfter: 1}, onDone)
+	}
+
+	done := make(chan struct{})
+	_ = manager.NewTask(newCmdTask(3, func() { close(done) }), "cmd1")
+	<-done
+
+	reservation := manager.ReserveTask()
+	linesWrittenWhenAnswered := make(chan int, 1)
+	manager.ReadToEnd(func() { linesWrittenWhenAnswered <- linesWritten() })
+
+	_ = manager.NewReservedTask(reservation, newCmdTask(50, nil), "cmd2")
+	assert.Equal(t, 50, <-linesWrittenWhenAnswered)
+}
+
+// Once the view's tasks are closed, no task is going to read anything, so whoever is
+// waiting for content to be read is answered.
+func TestCloseAnswersWaitingReadRequests(t *testing.T) {
+	noop := func() {}
+	manager := NewViewBufferManager(
+		utils.NewDummyLog(), bytes.NewBuffer(nil), noop, noop, noop, noop, noop, noop,
+		func() gocui.Task { return gocui.NewFakeTask() },
+		// no UI thread in the test; run the view mutations inline
+		func(f func()) error { f(); return nil },
+	)
+
+	stalled := BlockingLineReader{linesToYield: 1, blocked: make(chan struct{}), unblock: make(chan struct{})}
+	defer close(stalled.unblock)
+	start := func() (Cmd, io.Reader) {
+		// not actually starting this because it's not necessary
+		return ExecCmd{Cmd: exec.Command("blah")}, &stalled
+	}
+	_ = manager.NewTask(manager.NewCmdTask(start, nil, LinesToRead{Total: 1, InitialRefreshAfter: 1}, nil), "cmd")
+	<-stalled.blocked
+
+	answered := atomic.Int32{}
+	manager.ReadToEnd(func() { answered.Add(1) })
+	manager.ReadToEnd(func() { answered.Add(1) })
+
+	manager.Close()
+	assert.EqualValues(t, 2, answered.Load())
 }
 
 // The callers of ReadToEnd hand their follow-up work to the UI thread from then, and
