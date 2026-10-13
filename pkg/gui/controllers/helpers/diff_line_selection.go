@@ -106,16 +106,21 @@ func (self *DiffLineHelper) PlaceNavigationTarget(
 }
 
 // scrollTargetToTop scrolls the given row of the diff to the top of the view, leaving
-// the view where it is when that row is on screen already. The last screenful of the
-// diff is as far as it goes, so that the view doesn't scroll past the end of what it is
-// showing.
+// the view where it is when that row is on screen already.
 func (self *DiffLineHelper) scrollTargetToTop(pane types.DiffPaneContext, target int) {
-	view := pane.GetView()
 	originY, height := pane.GetViewTrait().ViewPortYBounds()
 	if target >= originY && target < originY+height {
 		return
 	}
-	view.SetOriginY(min(target, max(0, view.ViewLinesHeight()-height)))
+	pane.GetView().SetOriginY(originYWithTargetAtTop(pane, target))
+}
+
+// originYWithTargetAtTop returns the origin that puts the given row of the diff at the
+// top of the view. The last screenful of the diff is as far as it goes, so that the
+// view doesn't scroll past the end of what it is showing.
+func originYWithTargetAtTop(pane types.DiffPaneContext, target int) int {
+	_, height := pane.GetViewTrait().ViewPortYBounds()
+	return min(target, max(0, pane.GetView().ViewLinesHeight()-height))
 }
 
 // CollapseNonStickyRange drops a range that only grows while shift is held back to a
