@@ -203,17 +203,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		panic("a refresh with a Then callback must not set DontBlockRepoSwitch")
 	}
 
-	// A RefreshBlockingInput caller wants keyboard input withheld until the
-	// refreshed state is in place (see IGuiCommon.RefreshBlockingInput). Begin
-	// the block synchronously here in the calling handler, so that no keypress
-	// can slip through before it; the finishing step ends it from a callback
-	// queued behind the refresh's own updates (see waitAndFinalize). Demos
-	// take the blocking inline path below and need none of this.
-	blockInputUntilDone := blockInput && !self.c.InDemo()
-	if blockInputUntilDone {
-		self.c.GocuiGui().BeginBlockingEvents()
-	}
-
 	// Capture the refresh's baseline once, here at the start: the repo
 	// generation that every scope's bounce is guarded against, and the git
 	// command instance the scopes run their commands through. The two are
@@ -236,6 +225,18 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	}) {
 		return
 	}
+
+	// A RefreshBlockingInput caller wants keyboard input withheld until the
+	// refreshed state is in place (see IGuiCommon.RefreshBlockingInput). Begin
+	// the block synchronously here in the calling handler, so that no keypress
+	// can slip through before it; the finishing step ends it from a callback
+	// queued behind the refresh's own updates (see waitAndFinalize). Demos
+	// take the blocking inline path below and need none of this.
+	blockInputUntilDone := blockInput && !self.c.InDemo()
+	if blockInputUntilDone {
+		self.c.GocuiGui().BeginBlockingEvents()
+	}
+
 	if options.BatchUIUpdates {
 		env.batch = &refreshBounceBatch{}
 	}
