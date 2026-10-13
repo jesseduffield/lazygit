@@ -47,13 +47,14 @@ func (self *DiffLineHelper) DiffLinesInBufferRange(view *gocui.View, first int, 
 func (self *DiffLineHelper) ChangeLineOrdinals(
 	diff string, infos []types.DiffLineInfo,
 ) map[string][]int {
+	toDiffLineInfo := self.diffLineInfoConverter()
 	ordinals := map[patchLine]int{}
 	counts := map[string]int{}
 	for _, parsed := range parseAllDiffLinesFromBuffer(strings.Split(diff, "\n")) {
 		if !parsed.ok {
 			continue
 		}
-		info := self.diffLineInfo(parsed.parsed)
+		info := toDiffLineInfo(parsed.parsed)
 		if !info.IsChange() {
 			continue
 		}
