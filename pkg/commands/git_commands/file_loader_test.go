@@ -1,6 +1,9 @@
 package git_commands
 
 import (
+	"encoding/binary"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -313,4 +316,182 @@ type FakeFileLoaderConfig struct {
 
 func (self *FakeFileLoaderConfig) GetShowUntrackedFiles() string {
 	return self.showUntrackedFiles
+}
+
+// writeFakeIndexHeader writes a minimal git index file (just the 12-byte header:
+// "DIRC" + version + big-endian entry count) at <worktreeDir>/.git/index, which
+// is where MockRepoPaths expects it.
+func writeFakeIndexHeader(t *testing.T, worktreeDir string, entryCount uint32) {
+	t.Helper()
+	gitDir := filepath.Join(worktreeDir, ".git")
+	if err := os.MkdirAll(gitDir, 0o700); err != nil {
+		t.Fatalf("failed to create .git dir: %v", err)
+	}
+	header := make([]byte, 12)
+	copy(header, "DIRC")
+	binary.BigEndian.PutUint32(header[4:8], 2) // index format version
+	binary.BigEndian.PutUint32(header[8:12], entryCount)
+	if err := os.WriteFile(filepath.Join(gitDir, "index"), header, 0o600); err != nil {
+		t.Fatalf("failed to write index: %v", err)
+	}
+}
+
+// TestFileLoaderUntrackedFilesArg covers how GetStatusFiles chooses the
+// --untracked-files argument: an explicit status.showUntrackedFiles setting is
+// always honored, an unset setting defaults to "all" but downgrades to "normal"
+// in large repos, and the ForceShowUntracked filter forces "all" regardless.
+func TestFileLoaderUntrackedFilesArg(t *testing.T) {
+	type scenario struct {
+		testName string
+		// git config status.showUntrackedFiles ("" means unset)
+		showUntrackedFiles string
+		// number of entries to record in the fake index header
+		indexEntryCount uint32
+		// if false, no index file is written (simulates an unreadable/missing index)
+		writeIndex         bool
+		forceShowUntracked bool
+		expectedArg        string
+	}
+
+	scenarios := []scenario{
+		{
+			testName:        "unset config, large repo -> normal",
+			indexEntryCount: untrackedFilesAllMaxTrackedFiles + 1,
+			writeIndex:      true,
+			expectedArg:     "--untracked-files=normal",
+		},
+		{
+			testName:        "unset config, small repo -> all",
+			indexEntryCount: 100,
+			writeIndex:      true,
+			expectedArg:     "--untracked-files=all",
+		},
+		{
+			testName:        "unset config, count exactly at threshold -> all (strict >)",
+			indexEntryCount: untrackedFilesAllMaxTrackedFiles,
+			writeIndex:      true,
+			expectedArg:     "--untracked-files=all",
+		},
+		{
+			testName:    "unset config, missing/unreadable index -> all (fail-safe)",
+			writeIndex:  false,
+			expectedArg: "--untracked-files=all",
+		},
+		{
+			testName:           "explicit 'all' honored even in large repo",
+			showUntrackedFiles: "all",
+			indexEntryCount:    untrackedFilesAllMaxTrackedFiles + 1,
+			writeIndex:         true,
+			expectedArg:        "--untracked-files=all",
+		},
+		{
+			testName:           "explicit 'no' honored even in large repo",
+			showUntrackedFiles: "no",
+			indexEntryCount:    untrackedFilesAllMaxTrackedFiles + 1,
+			writeIndex:         true,
+			expectedArg:        "--untracked-files=no",
+		},
+		{
+			testName:           "explicit 'normal' honored in small repo",
+			showUntrackedFiles: "normal",
+			indexEntryCount:    100,
+			writeIndex:         true,
+			expectedArg:        "--untracked-files=normal",
+		},
+		{
+			testName:           "ForceShowUntracked forces all in large repo",
+			indexEntryCount:    untrackedFilesAllMaxTrackedFiles + 1,
+			writeIndex:         true,
+			forceShowUntracked: true,
+			expectedArg:        "--untracked-files=all",
+		},
+		{
+			testName:           "ForceShowUntracked overrides explicit 'no'",
+			showUntrackedFiles: "no",
+			indexEntryCount:    100,
+			writeIndex:         true,
+			forceShowUntracked: true,
+			expectedArg:        "--untracked-files=all",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			worktreeDir := t.TempDir()
+			if s.writeIndex {
+				writeFakeIndexHeader(t, worktreeDir, s.indexEntryCount)
+			}
+
+			runner := oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"status", s.expectedArg, "--porcelain", "-z", "--find-renames=50%"}, "", nil)
+			cmd := oscommands.NewDummyCmdObjBuilder(runner)
+
+			userConfig := &config.UserConfig{}
+			userConfig.Git.RenameSimilarityThreshold = 50
+
+			loader := &FileLoader{
+				GitCommon: buildGitCommon(commonDeps{
+					appState:   &config.AppState{},
+					userConfig: userConfig,
+					repoPaths:  MockRepoPaths(worktreeDir),
+				}),
+				cmd:         cmd,
+				config:      &FakeFileLoaderConfig{showUntrackedFiles: s.showUntrackedFiles},
+				getFileType: func(string) string { return "file" },
+			}
+
+			loader.GetStatusFiles(GetStatusFileOptions{ForceShowUntracked: s.forceShowUntracked})
+			runner.CheckForMissingCalls()
+		})
+	}
+}
+
+func TestTrackedFileCountFromIndex(t *testing.T) {
+	validHeader := func(count uint32) []byte {
+		b := make([]byte, 12)
+		copy(b, "DIRC")
+		binary.BigEndian.PutUint32(b[4:8], 2)
+		binary.BigEndian.PutUint32(b[8:12], count)
+		return b
+	}
+	writeIndex := func(t *testing.T, content []byte) string {
+		t.Helper()
+		path := filepath.Join(t.TempDir(), "index")
+		if err := os.WriteFile(path, content, 0o600); err != nil {
+			t.Fatalf("failed to write index: %v", err)
+		}
+		return path
+	}
+
+	t.Run("valid header returns entry count", func(t *testing.T) {
+		count, ok := trackedFileCountFromIndex(writeIndex(t, validHeader(123456)))
+		assert.True(t, ok)
+		assert.Equal(t, 123456, count)
+	})
+
+	t.Run("trailing entry bytes don't affect the count", func(t *testing.T) {
+		count, ok := trackedFileCountFromIndex(writeIndex(t, append(validHeader(42), []byte("trailing entry data")...)))
+		assert.True(t, ok)
+		assert.Equal(t, 42, count)
+	})
+
+	t.Run("missing file returns not-ok", func(t *testing.T) {
+		count, ok := trackedFileCountFromIndex(filepath.Join(t.TempDir(), "does-not-exist"))
+		assert.False(t, ok)
+		assert.Equal(t, 0, count)
+	})
+
+	t.Run("truncated header returns not-ok", func(t *testing.T) {
+		count, ok := trackedFileCountFromIndex(writeIndex(t, []byte("DIRC")))
+		assert.False(t, ok)
+		assert.Equal(t, 0, count)
+	})
+
+	t.Run("wrong signature returns not-ok", func(t *testing.T) {
+		bad := validHeader(999)
+		copy(bad, "XXXX")
+		count, ok := trackedFileCountFromIndex(writeIndex(t, bad))
+		assert.False(t, ok)
+		assert.Equal(t, 0, count)
+	})
 }
