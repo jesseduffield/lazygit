@@ -44,10 +44,12 @@ func (gui *Gui) linesToReadFromCmdTask(v *gocui.View) tasks.LinesToRead {
 	linesToReadForAccurateScrollbar := min(
 		// However, cap it at some arbitrary max limit, so that we don't get
 		// performance problems for huge monitors or tiny font sizes
-		height*(height-1)/minScrollbarHeight+oy, 5000)
+		height*(height-1)/minScrollbarHeight, 5000) + oy
 
 	return tasks.LinesToRead{
-		Total:               linesToReadForAccurateScrollbar,
+		// A view no more than a few lines tall needs fewer lines for its scrollbar
+		// than it takes to fill it, and the task must read at least those.
+		Total:               max(linesToReadForAccurateScrollbar, linesForFirstRefresh),
 		InitialRefreshAfter: linesForFirstRefresh,
 	}
 }

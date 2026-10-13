@@ -47,9 +47,6 @@ var ShowAnotherLongDiffAfterScrollingFarDown = NewIntegrationTest(NewIntegration
 			SelectedLine(Contains("first commit"))
 
 		t.Views().Main().
-			/* EXPECTED:
 			Content(Contains("diff --git a/first.txt b/first.txt"))
-			ACTUAL: */
-			Content(Contains("diff --git a/second.txt b/second.txt"))
 	},
 })

@@ -167,6 +167,11 @@ type LinesToRead struct {
 	// Number of lines after which we have read enough to fill the view, and can
 	// do an initial refresh. Only set for the initial read request; -1 for
 	// subsequent requests.
+	//
+	// Unless Total is -1, it must not be more than Total. The task shows nothing
+	// of what it reads until it has read this many lines or has reached the end
+	// of its input, so a task that stops reading before then leaves the view
+	// showing the previous render.
 	InitialRefreshAfter int
 
 	// Function to call after reading the lines is done
