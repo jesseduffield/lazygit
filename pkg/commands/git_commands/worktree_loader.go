@@ -53,7 +53,7 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 			path := strings.SplitN(splitLine, " ", 2)[1]
 
 			current = &models.Worktree{
-				IsPathMissing: self.pathExists(path),
+				IsPathMissing: !self.pathExists(path),
 				Path:          path,
 				// we defer populating GitDir until a loop below so that
 				// we can parallelize the calls to git rev-parse, and
@@ -158,12 +158,13 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 func (self *WorktreeLoader) pathExists(path string) bool {
 	if _, err := self.Fs.Stat(path); err != nil {
 		if errors.Is(err, iofs.ErrNotExist) {
-			return true
+			return false
 		}
+		// We can't tell, so we don't show the worktree as missing
 		self.Log.Errorf("failed to check if worktree path `%s` exists\n%v", path, err)
-		return false
+		return true
 	}
-	return false
+	return true
 }
 
 func (self *WorktreeLoader) rebasedBranch(worktree *models.Worktree) (string, bool) {
