@@ -45,9 +45,6 @@ var JumpToTheLastFileOfALongDiff = NewIntegrationTest(NewIntegrationTestArgs{
 		// The view shows the last screenful of the diff: the end of long.txt's diff,
 		// and all of short.txt's below it.
 		t.Views().Main().
-			/* EXPECTED:
 			TopVisibleLine(Equals("+line5994"))
-			ACTUAL: */
-			TopVisibleLine(Equals("diff --git a/short.txt b/short.txt"))
 	},
 })

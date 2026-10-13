@@ -65,8 +65,9 @@ func (self *DiffLineHelper) EstablishSelection(mainContext *context.MainContext,
 
 // PlaceNavigationTarget moves the pane's selection to the row a jump found, bringing
 // it on screen if it isn't already. With no selection to move — a pane that isn't
-// focused, or one showing a diff with nothing selectable in it — the row goes to the
-// top of the view instead, that being all a jump can do there.
+// focused, or one showing a diff with nothing selectable in it — all a jump can do is
+// scroll the row to the top of the view, or as close to the top as the end of the diff
+// allows.
 //
 // alignTop asks for the target to become the view's top line, so that everything that
 // begins there is on screen. It only applies to a target the view has to scroll to: a
@@ -84,7 +85,7 @@ func (self *DiffLineHelper) PlaceNavigationTarget(
 ) {
 	view := pane.GetView()
 	if !view.Highlight {
-		view.SetOrigin(0, target)
+		view.SetOrigin(0, originYWithTargetAtTop(pane, target))
 		return
 	}
 	if alignTop {
