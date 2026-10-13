@@ -1049,13 +1049,25 @@ func (g *Gui) OnWorkerBackground(f func(Task) error) {
 
 func (g *Gui) onWorker(f func(Task) error, background bool) {
 	task := g.taskManager.NewTask(background)
-	go func() {
+	go safe(func() {
 		g.onWorkerAux(f, task)
 		task.Done()
-	}()
+	})
 }
 
 func (g *Gui) onWorkerAux(f func(Task) error, task Task) {
+	err := f(task)
+	if err != nil {
+		g.Update(func(g *Gui) error {
+			return err
+		})
+	}
+}
+
+// safe runs f and closes the screen if f panics, so that the panic is printed
+// to a usable terminal. utils.Safe does the same for the rest of lazygit, but
+// gocui can't use it because utils imports gocui.
+func safe(f func()) {
 	panicking := true
 	defer func() {
 		if panicking && Screen != nil {
@@ -1063,15 +1075,9 @@ func (g *Gui) onWorkerAux(f func(Task) error, task Task) {
 		}
 	}()
 
-	err := f(task)
+	f()
 
 	panicking = false
-
-	if err != nil {
-		g.Update(func(g *Gui) error {
-			return err
-		})
-	}
 }
 
 // A Manager is in charge of GUI's layout and can be used to build widgets.
