@@ -165,6 +165,29 @@ func TestObtainBranch(t *testing.T) {
 	}
 }
 
+func TestLoadWhenListingBranchesFails(t *testing.T) {
+	runner := oscommands.NewFakeRunner(t).
+		ExpectFunc("git for-each-ref", func(cmdObj *oscommands.CmdObj) bool {
+			return cmdObj.GetCmd().Args[1] == "for-each-ref"
+		}, "", errors.New("chdir /path/to/repo: no such file or directory"))
+
+	gitCommon := buildGitCommon(commonDeps{runner: runner})
+
+	loader := &BranchLoader{
+		Common:    gitCommon.Common,
+		GitCommon: gitCommon,
+		cmd:       gitCommon.cmd,
+	}
+
+	/* EXPECTED:
+	_, err := loader.Load(nil, nil, nil, false, nil, nil)
+	assert.EqualError(t, err, "chdir /path/to/repo: no such file or directory")
+	ACTUAL: */
+	assert.PanicsWithError(t, "chdir /path/to/repo: no such file or directory", func() { _, _ = loader.Load(nil, nil, nil, false, nil, nil) })
+
+	runner.CheckForMissingCalls()
+}
+
 func TestGetBehindBaseBranchValuesForAllBranches_FastPath(t *testing.T) {
 	mainBranchRefs := []string{"refs/heads/master", "refs/remotes/origin/develop"}
 
