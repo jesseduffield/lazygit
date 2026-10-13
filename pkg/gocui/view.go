@@ -754,6 +754,15 @@ type lineType struct {
 	// which they hold as the overwrite it caused. nil while the cells spell the
 	// line as it was written, as they do for most lines.
 	asWritten []byte
+
+	// metadata holds the OSC 1717 records that the line's cells carry, each once, in
+	// the order they first appear. They are collected when the write cursor moves on
+	// to the next line, so that a reader can take them from here instead of going
+	// through every cell of every line. metadataCollected is false until then, and
+	// again once anything is written to the line; a reader then takes them from the
+	// cells.
+	metadata          []string
+	metadataCollected bool
 }
 
 // textAsWritten returns the line's text as its writer wrote it, escape sequences
@@ -764,6 +773,34 @@ func (l *lineType) textAsWritten() string {
 		return string(l.asWritten)
 	}
 	return l.cells.String()
+}
+
+// diffLineMetadata returns the OSC 1717 records that the line's cells carry (see
+// lineType.metadata).
+func (l *lineType) diffLineMetadata() []string {
+	if l.metadataCollected {
+		return l.metadata
+	}
+	return metadataOfCells(l.cells)
+}
+
+// collectMetadata keeps the records that the line's cells carry, for readers to take
+// without going through the cells (see lineType.metadata).
+func (l *lineType) collectMetadata() {
+	l.metadata = metadataOfCells(l.cells)
+	l.metadataCollected = true
+}
+
+// metadataOfCells returns the OSC 1717 records that the given cells carry, each once,
+// in the order they first appear.
+func metadataOfCells(cells []cell) []string {
+	var metadata []string
+	for _, c := range cells {
+		if c.metadata != "" && !slices.Contains(metadata, c.metadata) {
+			metadata = append(metadata, c.metadata)
+		}
+	}
+	return metadata
 }
 
 // trailingFillAttributes describes the fg/bg colors that draw() should
@@ -1153,6 +1190,7 @@ func (b *viewBuffer) writeCells(cells []cell) {
 		}
 	}
 	b.lines[b.wy].cells = line[:newLen]
+	b.lines[b.wy].metadataCollected = false
 	b.wx += len(cells)
 }
 
@@ -1244,6 +1282,7 @@ func (b *viewBuffer) write(v *View, p []byte) {
 	}
 
 	advanceToNextLine := func() {
+		b.lines[b.wy].collectMetadata()
 		b.seekWrite(0, b.wy+1)
 		if b.wy >= len(b.lines) {
 			b.lines = append(b.lines, lineType{})
@@ -2170,13 +2209,7 @@ func diffLineContentsFrom(buf *viewBuffer, from int) []DiffLineContent {
 	contents := make([]DiffLineContent, len(lines))
 	for i := range lines {
 		line := &lines[i]
-		var metadata []string
-		for _, c := range line.cells {
-			if c.metadata != "" && !slices.Contains(metadata, c.metadata) {
-				metadata = append(metadata, c.metadata)
-			}
-		}
-		contents[i] = DiffLineContent{Text: line.textAsWritten(), Metadata: metadata}
+		contents[i] = DiffLineContent{Text: line.textAsWritten(), Metadata: line.diffLineMetadata()}
 	}
 	return contents
 }
