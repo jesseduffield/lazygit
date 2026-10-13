@@ -60,7 +60,7 @@ func (self *DiffLineHelper) diffLineIdentitiesAt(
 		return nil, false
 	}
 
-	contents := view.DiffLineContents()
+	contents := diffLineContents(view)
 	if bufferLineIdx >= len(contents) {
 		return nil, false
 	}

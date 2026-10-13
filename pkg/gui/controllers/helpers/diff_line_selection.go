@@ -222,7 +222,7 @@ func (self *DiffLineHelper) RefreshInclusionGutter() {
 		return
 	}
 
-	resolved := self.resolveDiffLines(view.DiffLineContents())
+	resolved := self.resolveDiffLines(diffLineContents(view))
 	marks := make([]bool, len(resolved))
 	for i, row := range resolved {
 		if row.ok && row.info.IsChange() {

@@ -544,3 +544,22 @@ func TestParseDiffLineIdentities(t *testing.T) {
 		}
 	})
 }
+
+func TestDiffLineContentsLeaveOutTheTextOfARenderingWithRecords(t *testing.T) {
+	record := func(payload string) string { return "\x1b]1717;" + payload + "\x1b\\" }
+
+	rendering := gocui.NewView("rendering", 0, 0, 80, 10, gocui.OutputNormal)
+	rendering.WriteString(record("1;a;1;;foo.txt") + "added\n" + "a divider\n")
+	assert.Equal(t, []gocui.DiffLineContent{
+		{Metadata: []string{"1;a;1;;foo.txt"}},
+		{},
+	}, diffLineContents(rendering))
+
+	// A diff without records is read by its text, so it keeps it.
+	diff := gocui.NewView("diff", 0, 0, 80, 10, gocui.OutputNormal)
+	diff.WriteString("diff --git a/foo.txt b/foo.txt\n+added\n")
+	assert.Equal(t, []gocui.DiffLineContent{
+		{Text: "diff --git a/foo.txt b/foo.txt"},
+		{Text: "+added"},
+	}, diffLineContents(diff))
+}

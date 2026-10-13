@@ -2158,6 +2158,20 @@ func (v *View) DiffLineContents() []DiffLineContent {
 	return diffLineContentsFrom(v.buf, 0)
 }
 
+// DiffLineMetadata is DiffLineContents without the text of the lines, for a reader
+// that only needs the records. Taking the text is most of the cost of
+// DiffLineContents.
+func (v *View) DiffLineMetadata() [][]string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	metadata := make([][]string, len(v.buf.lines))
+	for i := range v.buf.lines {
+		metadata[i] = v.buf.lines[i].diffLineMetadata()
+	}
+	return metadata
+}
+
 // OffscreenDiffLineContents is DiffLineContents for the content of a re-render in
 // progress (see BeginOffscreenRender). A reader deciding where the new content
 // should be shown has to work from this: it has to answer before the swap, since

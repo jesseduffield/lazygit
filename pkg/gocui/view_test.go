@@ -354,6 +354,21 @@ func TestDiffLineContentsOfARewrittenLine(t *testing.T) {
 	}, v.DiffLineContents())
 }
 
+func TestDiffLineMetadata(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+	v.writeString(strings.Join([]string{
+		osc1717("1;d;2;2;foo.txt") + "old2    " + osc1717("1;a;2;;foo.txt") + "new2",
+		"@@ a hunk header, which carries no record @@",
+		osc1717("1;c;3;;foo.txt") + "line3",
+	}, "\n"))
+
+	assert.Equal(t, [][]string{
+		{"1;d;2;2;foo.txt", "1;a;2;;foo.txt"},
+		nil,
+		{"1;c;3;;foo.txt"},
+	}, v.DiffLineMetadata())
+}
+
 func TestDiffLineContentsSwallowsHandshake(t *testing.T) {
 	v := NewView("name", 0, 0, 80, 10, OutputNormal)
 

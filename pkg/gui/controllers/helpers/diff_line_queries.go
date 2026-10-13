@@ -28,7 +28,7 @@ import (
 // beside the addition replacing it — and all of them are reported: what the user
 // pointed at is the row, so everything on it is selected.
 func (self *DiffLineHelper) DiffLinesInBufferRange(view *gocui.View, first int, last int) []types.DiffLineInfo {
-	identities := self.resolveDiffLineIdentities(view.DiffLineContents())
+	identities := self.resolveDiffLineIdentities(diffLineContents(view))
 
 	infos := []types.DiffLineInfo{}
 	for bufferLine := first; bufferLine <= min(last, len(identities)-1); bufferLine++ {
@@ -136,7 +136,7 @@ func (self *DiffLineHelper) ChangeLinesInBufferRange(view *gocui.View, first int
 // header, or a row whose identity couldn't be recovered. Those are the rows a
 // selection is anchored on and navigation moves between.
 func (self *DiffLineHelper) changeLines(view *gocui.View) []bool {
-	resolved := self.resolveDiffLines(view.DiffLineContents())
+	resolved := self.resolveDiffLines(diffLineContents(view))
 	isChange := make([]bool, len(resolved))
 	for i, r := range resolved {
 		isChange[i] = r.ok && r.info.IsChange()
@@ -244,7 +244,7 @@ func (self *DiffLineHelper) IsSingleHunkForWholeFile(view *gocui.View, changeVie
 	if !ok {
 		return false
 	}
-	resolved := self.resolveDiffLines(view.DiffLineContents())
+	resolved := self.resolveDiffLines(diffLineContents(view))
 	if anchor >= len(resolved) || !resolved[anchor].ok {
 		return false
 	}
@@ -375,7 +375,7 @@ func (self *DiffLineHelper) StartOfFileInDiff(view *gocui.View, path string) (in
 // was materialized into, so that both halves of a change belong to the same file however
 // the diff renderer states them.
 func (self *DiffLineHelper) filePaths(view *gocui.View) []string {
-	resolved := self.resolveDiffLines(view.DiffLineContents())
+	resolved := self.resolveDiffLines(diffLineContents(view))
 	toRepoTerms := self.repoTermsMapper(view)
 	paths := make([]string, len(resolved))
 	for i, row := range resolved {
