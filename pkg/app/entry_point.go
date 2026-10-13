@@ -166,11 +166,11 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 	}
 
 	if cliArgs.Profile {
-		go func() {
+		go utils.Safe(func() {
 			if err := http.ListenAndServe("localhost:6060", nil); err != nil {
 				log.Fatal(err)
 			}
-		}()
+		})
 	}
 
 	parsedGitArg := parseGitArg(cliArgs.GitArg)

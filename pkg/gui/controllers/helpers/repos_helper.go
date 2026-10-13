@@ -324,10 +324,10 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 	wg.Add(len(recentRepoPaths))
 
 	for i, path := range recentRepoPaths {
-		go func() {
+		go utils.Safe(func() {
 			defer wg.Done()
 			currentBranches[i] = self.getCurrentBranch(path)
-		}()
+		})
 	}
 
 	wg.Wait()

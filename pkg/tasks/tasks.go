@@ -818,7 +818,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				// the process takes a while until it actually terminates. We still want to call
 				// Wait to reclaim any resources, but do it on a background goroutine, and ignore
 				// any errors.
-				go func() { _ = cmd.Wait() }()
+				go utils.Safe(func() { _ = cmd.Wait() })
 			default:
 				if err := cmd.Wait(); err != nil {
 					self.Log.Errorf("Unexpected error when running cmd task: %v; Failed command: %v", err, cmd.String())

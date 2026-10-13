@@ -280,13 +280,13 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, 
 		})
 	}
 
-	go func() {
+	go utils.Safe(func() {
 		// We don't care about the error here, we'll check it later (in the
 		// return statement below). Here we only wait for all the goroutines to
 		// finish so that we can close the channel.
 		_ = errg.Wait()
 		close(hashChan)
-	}()
+	})
 
 	result := set.New[string]()
 	for hash := range hashChan {
@@ -343,13 +343,13 @@ func (self *FixupHelper) blameAddedLines(commits []*models.Commit, addedLineHunk
 		})
 	}
 
-	go func() {
+	go utils.Safe(func() {
 		// We don't care about the error here, we'll check it later (in the
 		// return statement below). Here we only wait for all the goroutines to
 		// finish so that we can close the channel.
 		_ = errg.Wait()
 		close(hashesChan)
-	}()
+	})
 
 	result := set.New[string]()
 	for hashes := range hashesChan {

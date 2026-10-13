@@ -80,7 +80,7 @@ func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPt
 	wg.Add(maxProcs)
 
 	for i := range maxProcs {
-		go func() {
+		go utils.Safe(func() {
 			from := i * perProc
 			to := (i + 1) * perProc
 			if i == maxProcs-1 {
@@ -98,7 +98,7 @@ func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPt
 			}
 			chunks[i] = innerLines
 			wg.Done()
-		}()
+		})
 	}
 
 	wg.Wait()
