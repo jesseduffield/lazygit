@@ -267,7 +267,7 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, 
 	hashChan := make(chan string)
 
 	for _, h := range deletedLineHunks {
-		errg.Go(func() error {
+		errg.Go(utils.SafeFuncWithError(func() error {
 			blameOutput, err := self.c.Git().Blame.BlameLineRange(h.filename, "HEAD", h.startLineIdx, h.numLines)
 			if err != nil {
 				return err
@@ -277,7 +277,7 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, 
 				hashChan <- strings.Split(line, " ")[0]
 			}
 			return nil
-		})
+		}))
 	}
 
 	go utils.Safe(func() {
@@ -301,7 +301,7 @@ func (self *FixupHelper) blameAddedLines(commits []*models.Commit, addedLineHunk
 	hashesChan := make(chan []string)
 
 	for _, h := range addedLineHunks {
-		errg.Go(func() error {
+		errg.Go(utils.SafeFuncWithError(func() error {
 			result := make([]string, 0, 2)
 
 			appendBlamedLine := func(blameOutput string) {
@@ -340,7 +340,7 @@ func (self *FixupHelper) blameAddedLines(commits []*models.Commit, addedLineHunk
 
 			hashesChan <- result
 			return nil
-		})
+		}))
 	}
 
 	go utils.Safe(func() {

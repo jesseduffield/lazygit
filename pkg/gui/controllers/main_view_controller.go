@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -629,14 +630,14 @@ func (self *MainViewController) editClickedLine(opts gocui.ViewMouseBindingOpts)
 		self.c.GocuiGui().ForceFlushViewsContentOnly(self.c.GocuiGui().Views())
 	})
 	if flashGeneration != 0 {
-		time.AfterFunc(editedLineFlashDuration, func() {
+		time.AfterFunc(editedLineFlashDuration, utils.SafeFunc(func() {
 			self.c.OnUIThreadContentOnlyBackground(func() error {
 				if self.lineFlashGeneration == flashGeneration {
 					self.context.GetView().ClearLineFlash()
 				}
 				return nil
 			})
-		})
+		}))
 	}
 	return err
 }

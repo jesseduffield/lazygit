@@ -177,7 +177,7 @@ func (self *BranchLoader) checkForRewrittenUpstreams(branches []*models.Branch, 
 			continue
 		}
 
-		errg.Go(func() error {
+		errg.Go(utils.SafeFuncWithError(func() error {
 			hasLocalOnlyCommits, err := self.hasLocalOnlyCommits(branch)
 			if err != nil {
 				// Not worth bothering the user about; it only means that we
@@ -186,7 +186,7 @@ func (self *BranchLoader) checkForRewrittenUpstreams(branches []*models.Branch, 
 			}
 			branch.UpstreamRewritten.Store(err == nil && !hasLocalOnlyCommits)
 			return nil
-		})
+		}))
 	}
 
 	err := errg.Wait()
@@ -220,7 +220,7 @@ func (self *BranchLoader) getBehindBaseBranchValuesLegacy(
 	errg := errgroup.Group{}
 
 	for _, branch := range branches {
-		errg.Go(func() error {
+		errg.Go(utils.SafeFuncWithError(func() error {
 			baseBranch, err := self.GetBaseBranch(branch, mainBranches)
 			if err != nil {
 				return err
@@ -247,7 +247,7 @@ func (self *BranchLoader) getBehindBaseBranchValuesLegacy(
 			}
 			branch.BehindBaseBranch.Store(int32(behind))
 			return nil
-		})
+		}))
 	}
 
 	err := errg.Wait()
