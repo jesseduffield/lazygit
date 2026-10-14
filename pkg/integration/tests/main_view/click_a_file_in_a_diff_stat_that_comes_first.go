@@ -1,6 +1,8 @@
 package main_view
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
@@ -23,7 +25,9 @@ var ClickAFileInADiffStatThatComesFirst = NewIntegrationTest(NewIntegrationTestA
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("aaa.txt", "one\n")
 		shell.Commit("one")
-		shell.CreateFileAndAdd("zzz.txt", "one\n")
+		// Longer than the view, so that the diff can be scrolled to put aaa.txt at the
+		// top.
+		shell.CreateFileAndAdd("zzz.txt", strings.Repeat("line\n", 40))
 		shell.Commit("two")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
