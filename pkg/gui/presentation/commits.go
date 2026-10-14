@@ -25,6 +25,7 @@ type pipeSetCacheKey struct {
 	commitHash  string
 	commitCount int
 	divergence  models.Divergence
+	firstParent bool
 }
 
 var (
@@ -110,7 +111,6 @@ func GetCommitListDisplayStrings(
 						graphCommits,
 						selectedCommitHashPtr,
 						graphSymbolSet,
-						firstParent,
 					)
 					allGraphLines = append(allGraphLines, graphLines...)
 				}
@@ -129,7 +129,6 @@ func GetCommitListDisplayStrings(
 						graphCommits,
 						selectedCommitHashPtr,
 						graphSymbolSet,
-						firstParent,
 					)
 					allGraphLines = append(allGraphLines, graphLines...)
 				}
@@ -152,7 +151,6 @@ func GetCommitListDisplayStrings(
 				graphCommits,
 				selectedCommitHashPtr,
 				graphSymbolSet,
-				firstParent,
 			)
 			getGraphLine = func(idx int) string {
 				if idx >= graphOffset {
@@ -325,6 +323,7 @@ func loadPipesets(commits []*models.Commit, firstParent bool) [][]graph.Pipe {
 		commitHash:  commits[0].Hash(),
 		commitCount: len(commits),
 		divergence:  commits[0].Divergence,
+		firstParent: firstParent,
 	}
 
 	pipeSets, ok := pipeSetCache[cacheKey]
@@ -334,7 +333,7 @@ func loadPipesets(commits []*models.Commit, firstParent bool) [][]graph.Pipe {
 		getStyle := func(commit *models.Commit) *style.TextStyle {
 			return authors.AuthorStyle(commit.AuthorName)
 		}
-		pipeSets = graph.GetPipeSets(commits, getStyle)
+		pipeSets = graph.GetPipeSets(commits, getStyle, firstParent)
 		pipeSetCache[cacheKey] = pipeSets
 	}
 

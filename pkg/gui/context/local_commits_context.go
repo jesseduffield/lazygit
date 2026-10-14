@@ -194,7 +194,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			shouldShowGraph(c),
 			commitGraphSymbolSet(c),
 			c.Model().BisectInfo,
-			viewModel.GetFirstParent(),
+			c.Modes().FirstParent[LOCAL_COMMITS_CONTEXT_KEY],
 		)
 	}
 

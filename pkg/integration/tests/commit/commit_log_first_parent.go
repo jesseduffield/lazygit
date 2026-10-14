@@ -30,9 +30,10 @@ var CommitLogFirstParent = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Commits.OpenLogMenu)
 
 		t.Views().Menu().
-			Wait(1000).
+			Wait(500).
 			SelectNextItem().
-			Wait(1000).
+			SelectedLine(Contains("--first-parent")).
+			Wait(500).
 			PressPrimaryAction()
 
 		t.Views().Commits().
@@ -41,52 +42,27 @@ var CommitLogFirstParent = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("feat/b"),
 				Contains("feat/a"),
 				Contains("MASTER"),
+			).
+			Wait(500)
+
+		t.Views().Branches().
+			Focus().
+			Wait(500).
+			PressEnter().
+			Wait(500)
+
+		t.Views().SubCommits().
+			Press(keys.Commits.OpenLogMenu)
+
+		t.Views().Menu().
+			SelectedLine(Contains("--first-parent")).
+			PressPrimaryAction()
+
+		t.Views().SubCommits().
+			Lines(
+				Contains("feat/b"),
+				Contains("feat/a"),
+				Contains("MASTER"),
 			)
-
-
-		// t.Views().Files().
-		// 	IsFocused().
-		// 	Lines(
-		// 		Equals("▼ /").IsSelected(),
-		// 		Equals("  ?? myfile"),
-		// 		Equals("  ?? myfile2"),
-		// 	).
-		// 	SelectNextItem().
-		// 	PressPrimaryAction(). // stage file
-		// 	Lines(
-		// 		Equals("▼ /"),
-		// 		Equals("  A  myfile").IsSelected(),
-		// 		Equals("  ?? myfile2"),
-		// 	).
-		// 	SelectNextItem().
-		// 	PressPrimaryAction(). // stage other file
-		// 	Lines(
-		// 		Equals("▼ /"),
-		// 		Equals("  A  myfile"),
-		// 		Equals("  A  myfile2").IsSelected(),
-		// 	).
-		// 	Press(keys.Files.CommitChanges)
-		//
-		// commitMessage := "my commit message"
-		//
-		// t.ExpectPopup().CommitMessagePanel().Type(commitMessage).Confirm()
-		//
-		// t.Views().Files().
-		// 	IsEmpty()
-		//
-		// t.Views().Commits().
-		// 	Focus().
-		// 	Lines(
-		// 		Contains(commitMessage).IsSelected(),
-		// 	).
-		// 	PressEnter()
-		//
-		// t.Views().CommitFiles().
-		// 	IsFocused().
-		// 	Lines(
-		// 		Equals("▼ /"),
-		// 		Equals("  A myfile"),
-		// 		Equals("  A myfile2"),
-		// 	)
 	},
 })

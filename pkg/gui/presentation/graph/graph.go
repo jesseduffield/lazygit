@@ -46,17 +46,17 @@ func (self Pipe) right() int16 {
 }
 
 func RenderCommitGraph(commits []*models.Commit, selectedCommitHashPtr *string, getStyle func(c *models.Commit) *style.TextStyle, symbolSet SymbolSet) []string {
-	pipeSets := GetPipeSets(commits, getStyle)
+	pipeSets := GetPipeSets(commits, getStyle, false)
 	if len(pipeSets) == 0 {
 		return nil
 	}
 
-	lines := RenderAux(pipeSets, commits, selectedCommitHashPtr, symbolSet, false)
+	lines := RenderAux(pipeSets, commits, selectedCommitHashPtr, symbolSet)
 
 	return lines
 }
 
-func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) *style.TextStyle) [][]Pipe {
+func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) *style.TextStyle, firstParent bool) [][]Pipe {
 	if len(commits) == 0 {
 		return nil
 	}
@@ -64,12 +64,12 @@ func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) *styl
 	pipes := []Pipe{{fromPos: 0, toPos: 0, fromHash: &StartCommitHash, toHash: commits[0].HashPtr(), kind: STARTS, style: &style.FgDefault}}
 
 	return lo.Map(commits, func(commit *models.Commit, _ int) []Pipe {
-		pipes = getNextPipes(pipes, commit, getStyle)
+		pipes = getNextPipes(pipes, commit, getStyle, firstParent)
 		return pipes
 	})
 }
 
-func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPtr *string, symbolSet SymbolSet, firstParent bool) []string {
+func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPtr *string, symbolSet SymbolSet) []string {
 	maxProcs := runtime.GOMAXPROCS(0)
 
 	// splitting up the rendering of the graph into multiple goroutines allows us to render the graph in parallel
@@ -93,7 +93,7 @@ func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPt
 				if k > 0 {
 					prevCommit = commits[k-1]
 				}
-				line := renderPipeSet(pipeSet, selectedCommitHashPtr, prevCommit, symbolSet, firstParent)
+				line := renderPipeSet(pipeSet, selectedCommitHashPtr, prevCommit, symbolSet)
 				innerLines = append(innerLines, line)
 			}
 			chunks[i] = innerLines
@@ -106,13 +106,44 @@ func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPt
 	return lo.Flatten(chunks)
 }
 
-func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *models.Commit) *style.TextStyle) []Pipe {
+func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *models.Commit) *style.TextStyle, firstParent bool) []Pipe {
 	// a pipe that terminated in the previous line has no bearing on the current line
 	// so we'll filter those out. The same goes for the pipe from a root commit to
 	// the empty tree, because no commit comes after a root commit.
 	currentPipes := lo.Filter(prevPipes, func(pipe Pipe, _ int) bool {
 		return pipe.kind != TERMINATES && !equalHashes(pipe.toHash, &EmptyTreeCommitHash)
 	})
+
+	if firstParent {
+		newPipes := make([]Pipe, 1)
+		var toHash *string
+		if commit.IsFirstCommit() {
+			toHash = &EmptyTreeCommitHash
+		} else {
+			toHash = commit.ParentPtrs()[0]
+		}
+		newPipes = append(newPipes, Pipe{
+			fromPos:  0,
+			toPos:    0,
+			fromHash: commit.HashPtr(),
+			toHash:   toHash,
+			kind:     STARTS,
+			style:    getStyle(commit),
+		})
+
+		if commit.IsMerge() {
+			toHash = commit.ParentPtrs()[1]
+			newPipes = append(newPipes, Pipe{
+				fromPos:  0,
+				toPos:    0,
+				fromHash: commit.HashPtr(),
+				toHash:   toHash,
+				kind:     STARTS,
+				style:    getStyle(commit),
+			})
+		}
+		return newPipes
+	}
 
 	maxPos := int16(-1)
 	for _, pipe := range currentPipes {
@@ -276,7 +307,6 @@ func renderPipeSet(
 	selectedCommitHashPtr *string,
 	prevCommit *models.Commit,
 	symbolSet SymbolSet,
-	firstParent bool,
 ) string {
 	maxPos := int16(0)
 	commitPos := int16(0)
@@ -294,25 +324,6 @@ func renderPipeSet(
 		}
 	}
 	isMerge := startCount > 1
-
-	if firstParent {
-		writer := &strings.Builder{}
-		writer.Grow(2)
-		cell := &Cell{
-			cellType: COMMIT,
-			style: &style.FgDefault,
-		}
-		if isMerge {
-			cell.cellType = MERGE
-		}
-		for i, pipe := range pipes {
-			if pipe.kind == STARTS {
-				cell.style = pipes[i].style
-			}
-		}
-		cell.render(writer, symbolSet)
-		return writer.String()
-	}
 
 	cells := lo.Map(lo.Range(int(maxPos)+1), func(i int, _ int) *Cell {
 		return &Cell{cellType: CONNECTION, style: &style.FgDefault}

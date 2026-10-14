@@ -108,7 +108,7 @@ func NewSubCommitsContext(
 			shouldShowGraph(c),
 			commitGraphSymbolSet(c),
 			git_commands.NewNullBisectInfo(),
-			false,
+			c.Modes().FirstParent[SUB_COMMITS_CONTEXT_KEY],
 		)
 	}
 
@@ -177,6 +177,7 @@ type SubCommitsViewModel struct {
 
 	limitCommits    bool
 	showBranchHeads bool
+	firstParent     bool
 }
 
 func (self *SubCommitsViewModel) SetRef(ref models.Ref) {
@@ -201,6 +202,14 @@ func (self *SubCommitsViewModel) SetShowBranchHeads(value bool) {
 
 func (self *SubCommitsViewModel) GetShowBranchHeads() bool {
 	return self.showBranchHeads
+}
+
+func (self *SubCommitsViewModel) SetFirstParent(v bool) {
+	self.firstParent = v
+}
+
+func (self *SubCommitsViewModel) GetFirstParent() bool {
+	return self.firstParent
 }
 
 func (self *SubCommitsContext) CanRebase() bool {

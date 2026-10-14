@@ -583,7 +583,7 @@ func TestRenderPipeSetWithBranchDrawingSymbols(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actualStr := renderPipeSet(test.pipes, pool("selected"), test.prevCommit, BranchDrawingSymbols, false)
+			actualStr := renderPipeSet(test.pipes, pool("selected"), test.prevCommit, BranchDrawingSymbols)
 			if len([]rune(test.expectedStr)) != len(test.expectedStyles) {
 				t.Fatalf("Error in test setup: you have %d characters in the expected output but have specified %d styles", len([]rune(test.expectedStr)), len(test.expectedStyles))
 			}
@@ -829,7 +829,7 @@ func TestRenderPipeSet(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actualStr := renderPipeSet(test.pipes, pool("selected"), test.prevCommit, BoxDrawingSymbols, false)
+			actualStr := renderPipeSet(test.pipes, pool("selected"), test.prevCommit, BoxDrawingSymbols)
 			t.Log("actual cells:")
 			t.Log(actualStr)
 			expectedStr := ""
@@ -905,10 +905,10 @@ func TestGetNextPipes(t *testing.T) {
 
 	for _, test := range tests {
 		getStyle := func(c *models.Commit) *style.TextStyle { return &style.FgDefault }
-		pipes := getNextPipes(test.prevPipes, test.commit, getStyle)
+		pipes := getNextPipes(test.prevPipes, test.commit, getStyle, false)
 		// rendering cells so that it's easier to see what went wrong
-		actualStr := renderPipeSet(pipes, pool("selected"), nil, BoxDrawingSymbols, false)
-		expectedStr := renderPipeSet(test.expected, pool("selected"), nil, BoxDrawingSymbols, false)
+		actualStr := renderPipeSet(pipes, pool("selected"), nil, BoxDrawingSymbols)
+		expectedStr := renderPipeSet(test.expected, pool("selected"), nil, BoxDrawingSymbols)
 		t.Log("expected cells:")
 		t.Log(expectedStr)
 		t.Log("actual cells:")
