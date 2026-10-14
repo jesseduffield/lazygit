@@ -61,6 +61,12 @@ func (self *TestDriver) click(x, y int) {
 	self.Wait(self.inputDelay)
 }
 
+func (self *TestDriver) doubleClick(x, y int) {
+	self.SetCaption(fmt.Sprintf("Double-clicking %d, %d", x, y))
+	self.gui.DoubleClick(x, y)
+	self.Wait(self.inputDelay)
+}
+
 func (self *TestDriver) clickWithModifier(x, y int, modifier gocui.Modifier, what string) {
 	self.SetCaption(fmt.Sprintf("%s-clicking %d, %d", what, x, y))
 	self.gui.ClickWithModifier(x, y, modifier)

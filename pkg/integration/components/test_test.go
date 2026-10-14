@@ -51,6 +51,10 @@ func (self *fakeGuiDriver) ClickWithModifier(x, y int, modifier gocui.Modifier) 
 	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
 }
 
+func (self *fakeGuiDriver) DoubleClick(x, y int) {
+	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
+}
+
 func (self *fakeGuiDriver) ClickAndHold(x, y int) {
 	self.heldCoordinates = append(self.heldCoordinates, coordinate{x: x, y: y})
 }
@@ -207,6 +211,7 @@ func TestViewDriverPointerCoordinates(t *testing.T) {
 		AltClick(2, 3).
 		ShiftClick(4, 5).
 		FocusInAndClick(3, 4).
+		DoubleClick(6, 7).
 		ClickAndHold(5, 6).
 		MouseMove(7, 8).
 		MouseMoveToBottom(9).
@@ -214,12 +219,12 @@ func TestViewDriverPointerCoordinates(t *testing.T) {
 		ScrollWheelDown()
 
 	assert.Equal(t,
-		[]coordinate{{12, 23}, {13, 24}, {15, 26}, {14, 25}},
+		[]coordinate{{12, 23}, {13, 24}, {15, 26}, {14, 25}, {17, 28}},
 		guiDriver.clickedCoordinates)
 	assert.Equal(t, []coordinate{{16, 27}}, guiDriver.heldCoordinates)
 	assert.Equal(t, []coordinate{{18, 29}, {20, 30}, {51, 62}}, guiDriver.movedCoordinates)
 	assert.Equal(t, []coordinate{{11, 21}}, guiDriver.scrolledCoordinates)
-	assert.Equal(t, 9, guiDriver.onUIThreadCallCount)
+	assert.Equal(t, 10, guiDriver.onUIThreadCallCount)
 }
 
 func TestFailingFixture(t *testing.T) {

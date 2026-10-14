@@ -1825,7 +1825,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		if IsMouseKey(ev.Key) {
 			mouseOpts = ViewMouseBindingOpts{
 				X: newX, Y: newY, Key: ev.Key.KeyName(),
-				IsDoubleClick: g.isDoubleClick(newX, newY, ev.Key.KeyName(), v),
+				IsDoubleClick: g.isDoubleClick(newX, newY, ev.Key.KeyName(), v, ev.When),
 			}
 
 			// Dispatch bindings that opt into firing while a popup panel is focused
@@ -1835,7 +1835,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 				return err
 			}
 			if matched {
-				g.recordClickInfo(newX, newY, ev.Key.KeyName(), v)
+				g.recordClickInfo(newX, newY, ev.Key.KeyName(), v, ev.When)
 				return nil
 			}
 		}
@@ -1899,7 +1899,7 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		}
 
 		if IsMouseKey(ev.Key) {
-			g.recordClickInfo(newX, newY, ev.Key.KeyName(), v)
+			g.recordClickInfo(newX, newY, ev.Key.KeyName(), v, ev.When)
 			matched, err := g.execMouseKeybindings(v, ev, mouseOpts, false)
 			if err != nil {
 				return err
@@ -1933,8 +1933,10 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 }
 
 // isDoubleClick reports whether this click follows one just like it, closely
-// enough in time to count as a double click.
-func (g *Gui) isDoubleClick(x, y int, key KeyName, v *View) bool {
+// enough in time to count as a double click. It goes by when the clicks were
+// read. The second click may wait in the event queue while the first one is
+// handled, and that wait doesn't count.
+func (g *Gui) isDoubleClick(x, y int, key KeyName, v *View, when time.Time) bool {
 	return g.lastClick != nil &&
 		!IsMouseScrollKey(key) &&
 		key != MouseRelease &&
@@ -1942,13 +1944,13 @@ func (g *Gui) isDoubleClick(x, y int, key KeyName, v *View) bool {
 		y == g.lastClick.y &&
 		key == g.lastClick.key &&
 		v.Name() == g.lastClick.viewName &&
-		time.Now().Before(g.lastClick.time.Add(DOUBLE_CLICK_THRESHOLD))
+		when.Before(g.lastClick.time.Add(DOUBLE_CLICK_THRESHOLD))
 }
 
 // recordClickInfo remembers this click as the one a following click is compared
 // against. Only the clicks that reach a binding are recorded, so a click the
 // client rejects leaves double-click detection where it was.
-func (g *Gui) recordClickInfo(x, y int, key KeyName, v *View) {
+func (g *Gui) recordClickInfo(x, y int, key KeyName, v *View, when time.Time) {
 	if IsMouseScrollKey(key) {
 		g.lastClick = nil
 		return
@@ -1965,7 +1967,7 @@ func (g *Gui) recordClickInfo(x, y int, key KeyName, v *View) {
 		y:        y,
 		key:      key,
 		viewName: v.Name(),
-		time:     time.Now(),
+		time:     when,
 	}
 }
 
