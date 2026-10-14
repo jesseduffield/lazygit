@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 // diffFilePrefix marks the start of a file's section in a (possibly multi-file)
@@ -123,6 +124,20 @@ func renderingStatesDiffLines(contents []gocui.DiffLineContent) bool {
 			return ok
 		})
 	})
+}
+
+// diffLineContents returns the contents of view's rows, as the queries about the lines
+// of a diff read them. A rendering that states which diff line each row shows is read
+// by those records alone (see renderingStatesDiffLines), so the text of its rows is
+// left out then. Taking the text is most of the cost of reading a long diff.
+func diffLineContents(view *gocui.View) []gocui.DiffLineContent {
+	contents := lo.Map(view.DiffLineMetadata(), func(metadata []string, _ int) gocui.DiffLineContent {
+		return gocui.DiffLineContent{Metadata: metadata}
+	})
+	if renderingStatesDiffLines(contents) {
+		return contents
+	}
+	return view.DiffLineContents()
 }
 
 // parseDiffLineRecords parses the records a row carries, left to right, leaving out
@@ -272,6 +287,7 @@ func parseFileSection(fileLines []string, endsTheBuffer bool) []bufferLineParse 
 		return result
 	}
 	patchLines := p.Lines()
+	newLineNumbers, oldLineNumbers := p.LineNumbersOfLines()
 	for i := range fileLines {
 		if i >= len(patchLines) {
 			break
@@ -279,10 +295,10 @@ func parseFileSection(fileLines []string, endsTheBuffer bool) []bufferLineParse 
 		parsed := parsedDiffLine{
 			Path:    relPath,
 			Type:    diffLineTypeForKind(patchLines[i].Kind),
-			NewLine: p.LineNumberOfLine(i),
+			NewLine: newLineNumbers[i],
 		}
 		if parsed.Type == types.DiffLineDeleted {
-			parsed.OldLine = p.OldLineNumberOfLine(i)
+			parsed.OldLine = oldLineNumbers[i]
 		}
 		result[i] = bufferLineParse{parsed, true}
 	}

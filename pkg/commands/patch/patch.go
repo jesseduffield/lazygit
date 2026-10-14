@@ -183,6 +183,35 @@ func (self *Patch) OldLineNumberOfLine(idx int) int {
 	return hunk.oldStart + offset
 }
 
+// LineNumbersOfLines returns what LineNumberOfLine and OldLineNumberOfLine return for
+// each line of the patch. It numbers all of them in one pass, whereas calling those
+// two for every line takes time quadratic in the length of a hunk.
+func (self *Patch) LineNumbersOfLines() (newLineNumbers []int, oldLineNumbers []int) {
+	newLineNumbers = make([]int, 0, self.LineCount())
+	oldLineNumbers = make([]int, 0, self.LineCount())
+	for range self.header {
+		newLineNumbers = append(newLineNumbers, 1)
+		oldLineNumbers = append(oldLineNumbers, 1)
+	}
+	for _, hunk := range self.hunks {
+		newLineNumber, oldLineNumber := hunk.newStart, hunk.oldStart
+		// The hunk's header line has the numbers of the hunk's first line.
+		newLineNumbers = append(newLineNumbers, newLineNumber)
+		oldLineNumbers = append(oldLineNumbers, oldLineNumber)
+		for _, line := range hunk.bodyLines {
+			newLineNumbers = append(newLineNumbers, newLineNumber)
+			oldLineNumbers = append(oldLineNumbers, oldLineNumber)
+			if line.Kind == ADDITION || line.Kind == CONTEXT {
+				newLineNumber++
+			}
+			if line.Kind == DELETION || line.Kind == CONTEXT {
+				oldLineNumber++
+			}
+		}
+	}
+	return newLineNumbers, oldLineNumbers
+}
+
 // Returns hunk index containing the line at the given patch line index
 func (self *Patch) HunkContainingLine(idx int) int {
 	for hunkIdx, hunk := range self.hunks {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type DiffLineHelper struct {
@@ -59,7 +60,7 @@ func (self *DiffLineHelper) diffLineIdentitiesAt(
 		return nil, false
 	}
 
-	contents := view.DiffLineContents()
+	contents := diffLineContents(view)
 	if bufferLineIdx >= len(contents) {
 		return nil, false
 	}
@@ -134,10 +135,13 @@ func (self *DiffLineHelper) resolveDiffLines(contents []gocui.DiffLineContent) [
 // side-by-side row leads with the deletion whose addition was what got remembered
 // under a unified one.
 func (self *DiffLineHelper) resolveDiffLineIdentities(contents []gocui.DiffLineContent) [][]types.DiffLineInfo {
+	toDiffLineInfo := self.diffLineInfoConverter()
 	identities := make([][]types.DiffLineInfo, len(contents))
 	for i, parsed := range parseDiffLineIdentities(contents) {
 		if len(parsed) > 0 {
-			identities[i] = self.diffLineInfos(parsed)
+			identities[i] = lo.Map(parsed, func(line parsedDiffLine, _ int) types.DiffLineInfo {
+				return toDiffLineInfo(line)
+			})
 		}
 	}
 	return identities
@@ -159,19 +163,40 @@ func (self *DiffLineHelper) diffLineInfos(parsed []parsedDiffLine) []types.DiffL
 	return infos
 }
 
+// diffLineInfoConverter returns diffLineInfo as a function, for the callers that turn
+// every line of a diff into an identity (see diffLineInfoConverterIn).
+func (self *DiffLineHelper) diffLineInfoConverter() func(parsedDiffLine) types.DiffLineInfo {
+	return diffLineInfoConverterIn(self.c.Git().RepoPaths.WorktreePath())
+}
+
 // diffLineInfoIn is diffLineInfo against a given worktree, for the callers that can't
 // ask which repo we are in where they run: a repo switch replaces it, so only the UI
 // thread may read it.
 func diffLineInfoIn(worktreePath string, parsed parsedDiffLine) types.DiffLineInfo {
-	path := parsed.Path
-	if !filepath.IsAbs(path) {
-		path = filepath.Join(worktreePath, path)
-	}
+	return diffLineInfoConverterIn(worktreePath)(parsed)
+}
 
-	return types.DiffLineInfo{
-		Path:    path,
-		Type:    parsed.Type,
-		NewLine: parsed.NewLine,
-		OldLine: parsed.OldLine,
+// diffLineInfoConverterIn returns diffLineInfoIn for the given worktree as a function,
+// for the callers that turn every line of a diff into an identity. The lines of a diff
+// come file by file, so the path of a line is nearly always the path of the line
+// before it. The function makes a path absolute only when it differs from the one
+// before.
+func diffLineInfoConverterIn(worktreePath string) func(parsedDiffLine) types.DiffLineInfo {
+	path, absolutePath := "", ""
+	return func(parsed parsedDiffLine) types.DiffLineInfo {
+		if absolutePath == "" || parsed.Path != path {
+			path = parsed.Path
+			absolutePath = parsed.Path
+			if !filepath.IsAbs(absolutePath) {
+				absolutePath = filepath.Join(worktreePath, absolutePath)
+			}
+		}
+
+		return types.DiffLineInfo{
+			Path:    absolutePath,
+			Type:    parsed.Type,
+			NewLine: parsed.NewLine,
+			OldLine: parsed.OldLine,
+		}
 	}
 }
