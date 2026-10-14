@@ -100,9 +100,6 @@ func TestDoubleClicksAreTimedByWhenTheClicksWereRead(t *testing.T) {
 	click(readAt.Add(DOUBLE_CLICK_THRESHOLD + 100*time.Millisecond))
 
 	assert.Equal(t,
-		/* EXPECTED:
 		[]bool{false, false, true},
-		ACTUAL: */
-		[]bool{false, true, true},
 		doubleClicks)
 }

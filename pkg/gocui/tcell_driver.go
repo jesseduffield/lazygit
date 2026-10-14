@@ -5,6 +5,8 @@
 package gocui
 
 import (
+	"time"
+
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
 )
@@ -163,6 +165,8 @@ type gocuiEventType uint8
 //
 //	The 'Mod', 'Key' and 'Ch' fields are valid if 'Type' is 'eventKey'.
 //	The 'MouseX' and 'MouseY' fields are valid if 'Type' is 'eventMouse'.
+//	The 'When' field is valid if 'Type' is 'eventMouse'. It is the time the
+//	  input was read, which can be well before the main loop handles the event.
 //	The 'Width' and 'Height' fields are valid if 'Type' is 'eventResize'.
 //	The 'Focused' field is valid if 'Type' is 'eventFocus'.
 //	The 'Start' field is valid if 'Type' is 'eventPaste'. It is true for the
@@ -176,6 +180,7 @@ type GocuiEvent struct {
 	Err     error
 	MouseX  int
 	MouseY  int
+	When    time.Time
 	Focused bool
 	Start   bool
 	N       int
@@ -241,6 +246,7 @@ type TcellMouseEventWrapper struct {
 	Y          int
 	ButtonMask tcell.ButtonMask
 	ModMask    tcell.ModMask
+	When       time.Time
 
 	task Task // see GocuiEvent.task
 }
@@ -252,11 +258,14 @@ func NewTcellMouseEventWrapper(event *tcell.EventMouse) *TcellMouseEventWrapper 
 		Y:          y,
 		ButtonMask: event.Buttons(),
 		ModMask:    event.Modifiers(),
+		When:       event.When(),
 	}
 }
 
 func (wrapper TcellMouseEventWrapper) toTcellEvent() tcell.Event {
-	return tcell.NewEventMouse(wrapper.X, wrapper.Y, wrapper.ButtonMask, wrapper.ModMask)
+	event := tcell.NewEventMouse(wrapper.X, wrapper.Y, wrapper.ButtonMask, wrapper.ModMask)
+	event.SetEventTime(wrapper.When)
+	return event
 }
 
 type TcellResizeEventWrapper struct {
@@ -446,6 +455,7 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 			MouseX: x,
 			MouseY: y,
 			Key:    NewKey(mouseKey, "", mouseMod),
+			When:   tev.When(),
 		}
 	case *tcell.EventFocus:
 		return GocuiEvent{
