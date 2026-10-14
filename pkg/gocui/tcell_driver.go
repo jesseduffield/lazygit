@@ -217,20 +217,18 @@ var (
 
 // this wrapper struct has public keys so we can easily serialize/deserialize to JSON
 type TcellKeyEventWrapper struct {
-	Timestamp int64
-	Mod       tcell.ModMask
-	Key       tcell.Key
-	Ch        string
+	Mod tcell.ModMask
+	Key tcell.Key
+	Ch  string
 
 	task Task // see GocuiEvent.task
 }
 
-func NewTcellKeyEventWrapper(event *tcell.EventKey, timestamp int64) *TcellKeyEventWrapper {
+func NewTcellKeyEventWrapper(event *tcell.EventKey) *TcellKeyEventWrapper {
 	return &TcellKeyEventWrapper{
-		Timestamp: timestamp,
-		Mod:       event.Modifiers(),
-		Key:       event.Key(),
-		Ch:        event.Str(),
+		Mod: event.Modifiers(),
+		Key: event.Key(),
+		Ch:  event.Str(),
 	}
 }
 
@@ -239,7 +237,6 @@ func (wrapper TcellKeyEventWrapper) toTcellEvent() tcell.Event {
 }
 
 type TcellMouseEventWrapper struct {
-	Timestamp  int64
 	X          int
 	Y          int
 	ButtonMask tcell.ButtonMask
@@ -248,10 +245,9 @@ type TcellMouseEventWrapper struct {
 	task Task // see GocuiEvent.task
 }
 
-func NewTcellMouseEventWrapper(event *tcell.EventMouse, timestamp int64) *TcellMouseEventWrapper {
+func NewTcellMouseEventWrapper(event *tcell.EventMouse) *TcellMouseEventWrapper {
 	x, y := event.Position()
 	return &TcellMouseEventWrapper{
-		Timestamp:  timestamp,
 		X:          x,
 		Y:          y,
 		ButtonMask: event.Buttons(),
@@ -264,18 +260,16 @@ func (wrapper TcellMouseEventWrapper) toTcellEvent() tcell.Event {
 }
 
 type TcellResizeEventWrapper struct {
-	Timestamp int64
-	Width     int
-	Height    int
+	Width  int
+	Height int
 }
 
-func NewTcellResizeEventWrapper(event *tcell.EventResize, timestamp int64) *TcellResizeEventWrapper {
+func NewTcellResizeEventWrapper(event *tcell.EventResize) *TcellResizeEventWrapper {
 	w, h := event.Size()
 
 	return &TcellResizeEventWrapper{
-		Timestamp: timestamp,
-		Width:     w,
-		Height:    h,
+		Width:  w,
+		Height: h,
 	}
 }
 
@@ -284,16 +278,14 @@ func (wrapper TcellResizeEventWrapper) toTcellEvent() tcell.Event {
 }
 
 type TcellFocusEventWrapper struct {
-	Timestamp int64
-	Focused   bool
+	Focused bool
 
 	task Task // see GocuiEvent.task
 }
 
-func NewTcellFocusEventWrapper(event *tcell.EventFocus, timestamp int64) *TcellFocusEventWrapper {
+func NewTcellFocusEventWrapper(event *tcell.EventFocus) *TcellFocusEventWrapper {
 	return &TcellFocusEventWrapper{
-		Timestamp: timestamp,
-		Focused:   event.Focused,
+		Focused: event.Focused,
 	}
 }
 
