@@ -166,8 +166,8 @@ func (gui *Gui) createAllViews() error {
 	// leaves one unreadable block; so mark the selection with a narrow bar at the left
 	// edge instead, and leave the rest of the line to the diff. Two columns, enough to
 	// read as a marker rather than as an artefact.
-	gui.Views.Main.SelectedLineColorWidth = 2
-	gui.Views.Secondary.SelectedLineColorWidth = 2
+	gui.Views.Main.SelectedLineColorWidth = gui.c.UserConfig().Gui.SelectedLineColorWidth
+	gui.Views.Secondary.SelectedLineColorWidth = gui.c.UserConfig().Gui.SelectedLineColorWidth
 
 	// A tick, for the lines of a commit's diff that are in the custom patch being
 	// built. A plus would collide with a diff's own plus column.
