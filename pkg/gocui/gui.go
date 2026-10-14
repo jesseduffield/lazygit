@@ -1049,13 +1049,25 @@ func (g *Gui) OnWorkerBackground(f func(Task) error) {
 
 func (g *Gui) onWorker(f func(Task) error, background bool) {
 	task := g.taskManager.NewTask(background)
-	go func() {
+	go safe(func() {
 		g.onWorkerAux(f, task)
 		task.Done()
-	}()
+	})
 }
 
 func (g *Gui) onWorkerAux(f func(Task) error, task Task) {
+	err := f(task)
+	if err != nil {
+		g.Update(func(g *Gui) error {
+			return err
+		})
+	}
+}
+
+// safe runs f and closes the screen if f panics, so that the panic is printed
+// to a usable terminal. utils.Safe does the same for the rest of lazygit, but
+// gocui can't use it because utils imports gocui.
+func safe(f func()) {
 	panicking := true
 	defer func() {
 		if panicking && Screen != nil {
@@ -1063,15 +1075,9 @@ func (g *Gui) onWorkerAux(f func(Task) error, task Task) {
 		}
 	}()
 
-	err := f(task)
+	f()
 
 	panicking = false
-
-	if err != nil {
-		g.Update(func(g *Gui) error {
-			return err
-		})
-	}
 }
 
 // A Manager is in charge of GUI's layout and can be used to build widgets.
@@ -1100,7 +1106,7 @@ func (g *Gui) SetManager(managers ...Manager) {
 	g.keybindings = nil
 	g.tabClickBindings = nil
 
-	go func() { g.gEvents <- GocuiEvent{Type: eventResize} }()
+	go safe(func() { g.gEvents <- GocuiEvent{Type: eventResize} })
 }
 
 // SetManagerFunc sets the given manager function. It deletes all views and
@@ -1114,7 +1120,7 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 func (g *Gui) MainLoop() error {
 	defer close(g.loopExited)
 
-	go func() {
+	go safe(func() {
 		for {
 			select {
 			case <-g.stop:
@@ -1123,7 +1129,7 @@ func (g *Gui) MainLoop() error {
 				g.gEvents <- g.pollEvent()
 			}
 		}
-	}()
+	})
 
 	Screen.EnableFocus()
 	Screen.EnablePaste()
@@ -2181,7 +2187,7 @@ func (g *Gui) Resume() error {
 	// Schedule a redraw of the whole screen. Nothing else guarantees one:
 	// flushes are skipped while suspended, and after re-engaging the screen
 	// the terminal shows nothing until we draw again.
-	go func() { g.gEvents <- GocuiEvent{Type: eventResize} }()
+	go safe(func() { g.gEvents <- GocuiEvent{Type: eventResize} })
 
 	return nil
 }

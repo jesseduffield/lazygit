@@ -15,6 +15,7 @@ import (
 	"github.com/cli/go-gh/v2/pkg/auth"
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"golang.org/x/sync/errgroup"
 )
@@ -233,14 +234,14 @@ func (self *GitHubCommands) FetchRecentPRs(branches []string, serviceInfo *hosti
 		branchChunk := branches[i:end]
 
 		// Launch a goroutine for each chunk of branches
-		g.Go(func() error {
+		g.Go(utils.SafeFuncWithError(func() error {
 			prs, err := self.fetchRecentPRsAux(endpoint, serviceInfo.Owner, serviceInfo.Repository, branchChunk, token)
 			if err != nil {
 				return err
 			}
 			results <- prs
 			return nil
-		})
+		}))
 	}
 
 	// Wait for all goroutines, then close the channel so the range loop exits
