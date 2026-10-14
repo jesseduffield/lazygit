@@ -32,8 +32,7 @@ var EnterAndDoubleClickFocusFileDiff = NewIntegrationTest(NewIntegrationTestArgs
 
 		t.Views().Files().
 			IsFocused().
-			Click(3, 0).
-			Click(3, 0)
+			DoubleClick(3, 0)
 		t.Views().Main().
 			IsFocused().
 			SelectedLines(Contains("-base")).
@@ -60,8 +59,7 @@ var EnterAndDoubleClickFocusFileDiff = NewIntegrationTest(NewIntegrationTestArgs
 
 		t.Views().CommitFiles().
 			IsFocused().
-			Click(3, 0).
-			Click(3, 0)
+			DoubleClick(3, 0)
 		t.Views().Main().
 			IsFocused().
 			SelectedLines(Contains("+base"))

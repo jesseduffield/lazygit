@@ -63,6 +63,16 @@ func (self *GuiDriver) ClickWithModifier(x, y int, modifier gocui.Modifier) {
 	self.replayMouseEvent(x, y, tcell.ButtonNone, modifier)
 }
 
+func (self *GuiDriver) DoubleClick(x, y int) {
+	self.CheckAllToastsAcknowledged()
+
+	for range 2 {
+		self.replayMouseEventWithoutWaiting(x, y, tcell.ButtonPrimary, gocui.ModNone)
+		self.replayMouseEventWithoutWaiting(x, y, tcell.ButtonNone, gocui.ModNone)
+	}
+	self.waitTillIdle()
+}
+
 func (self *GuiDriver) ClickAndHold(x, y int) {
 	self.CheckAllToastsAcknowledged()
 	self.replayMouseEvent(x, y, tcell.ButtonPrimary, gocui.ModNone)
