@@ -313,3 +313,34 @@ func runGitRevParse(gitCmd *oscommands.CmdObj) (string, error) {
 	}
 	return strings.TrimSpace(res), nil
 }
+
+// GitDirOfRepo returns the directory that holds the git data of the repo at
+// repoPath, and whether it could be found. An ordinary repo keeps that data in
+// a .git directory; a worktree and a submodule have a .git file naming the
+// directory instead.
+func GitDirOfRepo(repoPath string) (string, bool) {
+	gitDirPath := filepath.Join(repoPath, ".git")
+
+	stat, err := os.Stat(gitDirPath)
+	if err != nil {
+		return "", false
+	}
+	if stat.IsDir() {
+		return gitDirPath, true
+	}
+
+	content, err := os.ReadFile(gitDirPath)
+	if err != nil {
+		return "", false
+	}
+	gitDir, ok := strings.CutPrefix(strings.TrimSpace(string(content)), "gitdir: ")
+	if !ok {
+		return "", false
+	}
+	// A relative name is relative to the repo. Git writes one for a submodule,
+	// and for a worktree created with --relative-paths.
+	if !filepath.IsAbs(gitDir) {
+		gitDir = filepath.Join(repoPath, gitDir)
+	}
+	return gitDir, true
+}

@@ -1467,9 +1467,7 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 }
 
 // markWorktreeFiles marks the files that are linked worktrees of this repo, so
-// that the files view can render them as such. `git status` reports a worktree
-// as an untracked directory, i.e. with a trailing slash, which we take off:
-// keeping it would build a directory node with a nameless file inside it.
+// that the files view can render them as such.
 //
 // It must run on the UI thread, as it works on the model. Both models it needs
 // are written by refreshes of their own, so it is called after either of them
@@ -1478,24 +1476,24 @@ func markWorktreeFiles(files []*models.File, worktrees []*models.Worktree, workt
 	changed := false
 
 	for _, file := range files {
-		absPath := filepath.Join(worktreePath, file.Path)
-		isWorktree := lo.SomeBy(worktrees, func(worktree *models.Worktree) bool {
-			return worktree.Path == absPath
-		})
+		_, isWorktree := worktreeOfFile(file, worktrees, worktreePath)
 
 		if isWorktree != file.IsWorktree {
 			file.IsWorktree = isWorktree
 			changed = true
 		}
-		if isWorktree {
-			if trimmed := strings.TrimSuffix(file.Path, "/"); trimmed != file.Path {
-				file.Path = trimmed
-				changed = true
-			}
-		}
 	}
 
 	return changed
+}
+
+// worktreeOfFile returns the worktree that an entry of the files panel is, if
+// it is one. worktreePath is the path of the worktree that we're in.
+func worktreeOfFile(file *models.File, worktrees []*models.Worktree, worktreePath string) (*models.Worktree, bool) {
+	absPath := filepath.Join(worktreePath, file.Path)
+	return lo.Find(worktrees, func(worktree *models.Worktree) bool {
+		return worktree.Path == absPath
+	})
 }
 
 // the reflogs panel is the only panel where we cache data, in that we only

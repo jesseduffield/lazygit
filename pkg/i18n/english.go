@@ -103,6 +103,24 @@ type TranslationSet struct {
 	MergeConflictTakeCurrentCommit        string
 	MergeConflictTakeIncomingCommit       string
 	SubmoduleMergeConflictDescription     string
+	SubmoduleLabel                        string
+	RemovedSubmoduleLabel                 string
+	NestedRepositoryLabel                 string
+	WorktreeLabel                         string
+	RemovedSubmoduleDescription           string
+	NestedRepositoryDescription           string
+	NestedRepositoryDiscardHint           string
+	NestedRepositoryDiscardWarning        string
+	WorktreeInsideRepoDescription         string
+	NestedRepositoryStatus                string
+	PlainDirectoryDescription             string
+	PlainDirectoryFiles                   string
+	StageNestedRepositoryDisabled         string
+	StageWorktreeDisabled                 string
+	CheckingNestedRepositories            string
+	DiscardNestedRepositoriesPrompt       string
+	NestedRepositoryHistoryWouldBeLost    string
+	NestedRepositoryChangesWouldBeLost    string
 	StageConflictsRangeDisabled           string
 	Checkout                              string
 	CheckoutTooltip                       string
@@ -999,6 +1017,7 @@ type TranslationSet struct {
 	SelectedItemIsNotABranch                 string
 	SelectedItemDoesNotHaveFiles             string
 	MultiSelectNotSupportedForSubmodules     string
+	MultiSelectNotSupportedForWorktrees      string
 	NothingToStageForSubmodule               string
 	CommandDoesNotSupportOpeningInEditor     string
 	CustomCommands                           string
@@ -1268,6 +1287,24 @@ func EnglishTranslationSet() *TranslationSet {
 		MergeConflictTakeCurrentCommit:       "Take current commit",
 		MergeConflictTakeIncomingCommit:      "Take incoming commit",
 		SubmoduleMergeConflictDescription:    "Conflict: the submodule '{{.path}}' was set to a different commit in the current and the incoming changes. Pick which commit to keep.",
+		SubmoduleLabel:                       "submodule",
+		RemovedSubmoduleLabel:                "removed submodule",
+		NestedRepositoryLabel:                "nested repository",
+		WorktreeLabel:                        "worktree",
+		RemovedSubmoduleDescription:          "'{{.path}}' is left over from a submodule that this repository no longer has. A commit that you pulled or checked out probably removed it. Git leaves the files of a removed submodule behind, so they show up as an untracked directory.\n\nIf you don't need them any more, press {{.discardKey}} to discard the directory. This also discards any uncommitted changes in it; see the status below. The submodule's commits stay in its git directory, so checking out an older commit that still has the submodule keeps working.",
+		NestedRepositoryDescription:          "'{{.path}}' is a git repository of its own inside this one. Git doesn't look into it, so it shows up as a single untracked entry.\n\nIf this repository is meant to track it, add it as a submodule. Otherwise, you can ignore it with {{.ignoreKey}} so that it no longer shows up here.",
+		NestedRepositoryDiscardHint:          "Pressing {{.discardKey}} discards the directory, including any uncommitted changes in it; see the status below.",
+		NestedRepositoryDiscardWarning:       "Pressing {{.discardKey}} discards the directory, including the repository with all of its history.",
+		WorktreeInsideRepoDescription:        "'{{.path}}' is a linked worktree of this repository. Git doesn't look into it, so it shows up as a single untracked entry.\n\nTo remove the worktree, press {{.removeKey}}. If you keep worktrees inside the repository, add their directory to .gitignore so that they don't show up here.",
+		NestedRepositoryStatus:               "Status of '{{.path}}'",
+		StageNestedRepositoryDisabled:        "Can't stage '{{.path}}' because it is a git repository of its own. Discard it with {{.discardKey}}, or ignore it with {{.ignoreKey}}.",
+		StageWorktreeDisabled:                "Can't stage '{{.path}}' because it is a worktree. Remove it with {{.removeKey}}, or ignore it with {{.ignoreKey}}.",
+		CheckingNestedRepositories:           "Checking for uncommitted changes",
+		DiscardNestedRepositoriesPrompt:      "Discarding this also discards the following. Are you sure?",
+		NestedRepositoryHistoryWouldBeLost:   "'{{.path}}': the repository with all of its history",
+		NestedRepositoryChangesWouldBeLost:   "'{{.path}}': uncommitted changes",
+		PlainDirectoryDescription:            "'{{.path}}' is an untracked directory. Git shows it as a single entry because status.showUntrackedFiles is set to \"normal\".",
+		PlainDirectoryFiles:                  "Files in '{{.path}}'",
 		StageConflictsRangeDisabled:          "Cannot stage a selection that includes files with merge conflicts; resolve them individually with {{.goIntoKey}} first.",
 		Checkout:                             "Checkout",
 		CheckoutTooltip:                      "Checkout selected item.",
@@ -2191,6 +2228,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SelectedItemIsNotABranch:                 "Selected item is not a branch",
 		SelectedItemDoesNotHaveFiles:             "Selected item does not have files to view",
 		MultiSelectNotSupportedForSubmodules:     "Multiselection not supported for submodules",
+		MultiSelectNotSupportedForWorktrees:      "Multiselection not supported for worktrees",
 		NothingToStageForSubmodule:               "Nothing to stage: the parent repo can only stage a new submodule commit, not the uncommitted changes inside a submodule. Commit inside the submodule first.",
 		CommandDoesNotSupportOpeningInEditor:     "This command doesn't support switching to the editor",
 		CustomCommands:                           "Custom commands",
