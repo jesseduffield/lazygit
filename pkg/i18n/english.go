@@ -561,6 +561,7 @@ type TranslationSet struct {
 	StashOptions                          string
 	NotARepository                        string
 	WorkingDirectoryDoesNotExist          string
+	RepoDirNoLongerExists                 string
 	ScrollLeft                            string
 	ScrollRight                           string
 	DiscardPatch                          string
@@ -1759,6 +1760,7 @@ func EnglishTranslationSet() *TranslationSet {
 		StashOptions:                         "Stash options",
 		NotARepository:                       "Error: must be run inside a git repository",
 		WorkingDirectoryDoesNotExist:         "Error: the current working directory does not exist",
+		RepoDirNoLongerExists:                "Error: {{.path}} no longer exists",
 		ScrollLeft:                           "Scroll left",
 		ScrollRight:                          "Scroll right",
 		DiscardPatch:                         "Discard patch",

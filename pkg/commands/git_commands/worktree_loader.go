@@ -53,7 +53,7 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 			path := strings.SplitN(splitLine, " ", 2)[1]
 
 			current = &models.Worktree{
-				IsPathMissing: self.pathExists(path),
+				IsPathMissing: !self.pathExists(path),
 				Path:          path,
 				// we defer populating GitDir until a loop below so that
 				// we can parallelize the calls to git rev-parse, and
@@ -158,12 +158,13 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 func (self *WorktreeLoader) pathExists(path string) bool {
 	if _, err := self.Fs.Stat(path); err != nil {
 		if errors.Is(err, iofs.ErrNotExist) {
-			return true
+			return false
 		}
+		// We can't tell, so we don't show the worktree as missing
 		self.Log.Errorf("failed to check if worktree path `%s` exists\n%v", path, err)
-		return false
+		return true
 	}
-	return false
+	return true
 }
 
 func (self *WorktreeLoader) rebasedBranch(worktree *models.Worktree) (string, bool) {
@@ -235,9 +236,16 @@ func getUniqueNamesFromPathsAux(paths []pathWithIndexT, depth int) []nameWithInd
 
 	result := []nameWithIndexT{}
 	for _, group := range groups {
-		if len(group) == 1 {
-			path := group[0]
-			result = append(result, nameWithIndexT{index: path.index, name: sliceAtDepth(path.path, depth)})
+		// Identical paths can't be told apart at any depth, so they are named
+		// like a single path. Git reports two worktrees with the same path when
+		// a worktree directory was deleted and another worktree was moved to
+		// its place.
+		if lo.EveryBy(group, func(path pathWithIndexT) bool {
+			return trimSlashes(path.path) == trimSlashes(group[0].path)
+		}) {
+			for _, path := range group {
+				result = append(result, nameWithIndexT{index: path.index, name: sliceAtDepth(path.path, depth)})
+			}
 		} else {
 			result = append(result, getUniqueNamesFromPathsAux(group, depth+1)...)
 		}
@@ -248,11 +256,8 @@ func getUniqueNamesFromPathsAux(paths []pathWithIndexT, depth int) []nameWithInd
 
 // if the path is /a/b/c/d, and the depth is 0, the value is 'd'. If the depth is 1, the value is 'c', etc
 func valueAtDepth(path string, depth int) string {
-	path = strings.TrimPrefix(path, "/")
-	path = strings.TrimSuffix(path, "/")
-
 	// Split the path into segments
-	segments := strings.Split(path, "/")
+	segments := strings.Split(trimSlashes(path), "/")
 
 	// Get the length of segments
 	length := len(segments)
@@ -268,11 +273,8 @@ func valueAtDepth(path string, depth int) string {
 
 // if the path is /a/b/c/d, and the depth is 0, the value is 'd'. If the depth is 1, the value is 'b/c', etc
 func sliceAtDepth(path string, depth int) string {
-	path = strings.TrimPrefix(path, "/")
-	path = strings.TrimSuffix(path, "/")
-
 	// Split the path into segments
-	segments := strings.Split(path, "/")
+	segments := strings.Split(trimSlashes(path), "/")
 
 	// Get the length of segments
 	length := len(segments)
@@ -284,4 +286,9 @@ func sliceAtDepth(path string, depth int) string {
 
 	// Join the segments from the specified depth till end of the path
 	return strings.Join(segments[length-1-depth:], "/")
+}
+
+func trimSlashes(path string) string {
+	path = strings.TrimPrefix(path, "/")
+	return strings.TrimSuffix(path, "/")
 }

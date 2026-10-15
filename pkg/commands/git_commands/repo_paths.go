@@ -81,6 +81,19 @@ func (self *RepoPaths) GitLocationEnvVars() []string {
 	return self.gitLocationEnvVars
 }
 
+// Returns the path of the worktree or of the worktree's git dir if it no longer
+// exists. This happens if the repo or the worktree is deleted while lazygit is
+// running.
+func (self *RepoPaths) MissingDir() (string, bool) {
+	for _, path := range []string{self.worktreePath, self.worktreeGitDirPath} {
+		if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+			return path, true
+		}
+	}
+
+	return "", false
+}
+
 // Returns the repo paths for a typical repo
 func MockRepoPaths(currentPath string) *RepoPaths {
 	return &RepoPaths{

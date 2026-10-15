@@ -203,17 +203,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		panic("a refresh with a Then callback must not set DontBlockRepoSwitch")
 	}
 
-	// A RefreshBlockingInput caller wants keyboard input withheld until the
-	// refreshed state is in place (see IGuiCommon.RefreshBlockingInput). Begin
-	// the block synchronously here in the calling handler, so that no keypress
-	// can slip through before it; the finishing step ends it from a callback
-	// queued behind the refresh's own updates (see waitAndFinalize). Demos
-	// take the blocking inline path below and need none of this.
-	blockInputUntilDone := blockInput && !self.c.InDemo()
-	if blockInputUntilDone {
-		self.c.GocuiGui().BeginBlockingEvents()
-	}
-
 	// Capture the refresh's baseline once, here at the start: the repo
 	// generation that every scope's bounce is guarded against, and the git
 	// command instance the scopes run their commands through. The two are
@@ -236,6 +225,36 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	}) {
 		return
 	}
+
+	// If the repo or worktree was deleted, there's nothing we can show any
+	// more, and every git command would fail.
+	if path, missing := env.git.RepoPaths.MissingDir(); missing {
+		self.c.OnUIThread(func() error {
+			if self.c.State().GetRepoGeneration() != env.generation {
+				// We have switched away from the deleted worktree
+				return nil
+			}
+
+			return types.ErrQuitWithMessage{
+				Message: utils.ResolvePlaceholderString(
+					self.c.Tr.RepoDirNoLongerExists, map[string]string{"path": path},
+				),
+			}
+		})
+		return
+	}
+
+	// A RefreshBlockingInput caller wants keyboard input withheld until the
+	// refreshed state is in place (see IGuiCommon.RefreshBlockingInput). Begin
+	// the block synchronously here in the calling handler, so that no keypress
+	// can slip through before it; the finishing step ends it from a callback
+	// queued behind the refresh's own updates (see waitAndFinalize). Demos
+	// take the blocking inline path below and need none of this.
+	blockInputUntilDone := blockInput && !self.c.InDemo()
+	if blockInputUntilDone {
+		self.c.GocuiGui().BeginBlockingEvents()
+	}
+
 	if options.BatchUIUpdates {
 		env.batch = &refreshBounceBatch{}
 	}
