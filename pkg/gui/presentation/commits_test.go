@@ -613,6 +613,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.showGraph,
 					graph.BoxDrawingSymbols,
 					s.bisectInfo,
+					false,
 				)
 
 				renderedLines, _ := utils.RenderDisplayStrings(result, nil)
@@ -636,7 +637,7 @@ func TestGraphColorsFollowTheAuthorColors(t *testing.T) {
 		models.NewCommit(hashPool, models.NewCommitOpts{Hash: "authorcolors2", AuthorName: "Jane Doe"}),
 	}
 	renderGraph := func() string {
-		return strings.Join(graph.RenderAux(loadPipesets(commits), commits, nil, graph.BoxDrawingSymbols), "\n")
+		return strings.Join(graph.RenderAux(loadPipesets(commits, false), commits, nil, graph.BoxDrawingSymbols), "\n")
 	}
 
 	authors.SetCustomAuthors(map[string]string{"Jane Doe": "red"})

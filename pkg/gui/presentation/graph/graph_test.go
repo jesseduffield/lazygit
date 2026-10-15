@@ -905,7 +905,7 @@ func TestGetNextPipes(t *testing.T) {
 
 	for _, test := range tests {
 		getStyle := func(c *models.Commit) *style.TextStyle { return &style.FgDefault }
-		pipes := getNextPipes(test.prevPipes, test.commit, getStyle)
+		pipes := getNextPipes(test.prevPipes, test.commit, getStyle, false)
 		// rendering cells so that it's easier to see what went wrong
 		actualStr := renderPipeSet(pipes, pool("selected"), nil, BoxDrawingSymbols)
 		expectedStr := renderPipeSet(test.expected, pool("selected"), nil, BoxDrawingSymbols)

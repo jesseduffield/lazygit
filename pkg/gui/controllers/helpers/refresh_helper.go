@@ -758,6 +758,7 @@ func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflo
 type capturedCommitState struct {
 	limitCommits         bool
 	showWholeGitGraph    bool
+	firstParent          bool
 	filterPath           string
 	filterAuthor         string
 	mainBranches         *git_commands.MainBranches
@@ -775,6 +776,7 @@ func (self *RefreshHelper) captureCommitsState() capturedCommitState {
 	return capturedCommitState{
 		limitCommits:         self.c.Contexts().LocalCommits.GetLimitCommits(),
 		showWholeGitGraph:    self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
+		firstParent:          self.c.Contexts().LocalCommits.GetFirstParent(),
 		filterPath:           self.c.Modes().Filtering.GetPath(),
 		filterAuthor:         self.c.Modes().Filtering.GetAuthor(),
 		mainBranches:         self.c.Model().MainBranches,
@@ -853,6 +855,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 			All:                  captured.showWholeGitGraph,
 			MainBranches:         captured.mainBranches,
 			HashPool:             captured.hashPool,
+			FirstParent:          captured.firstParent,
 		},
 	)
 	if err != nil {
@@ -871,6 +874,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 
 		self.c.Model().BisectInfo = bisectInfo
 		self.c.Model().Commits = commits
+		self.c.Modes().FirstParent[self.c.Context().Current().GetKey()] = captured.firstParent
 		self.c.Model().CommitsWereFilteredAtLastRefresh = captured.filterPath != "" || captured.filterAuthor != ""
 		self.RefreshAuthors(commits)
 		self.c.Model().WorkingTreeStateAtLastCommitRefresh = workingTreeState
@@ -1002,6 +1006,7 @@ type capturedSubCommitState struct {
 	filterAuthor            string
 	mainBranches            *git_commands.MainBranches
 	hashPool                *utils.StringPool
+	firstParent             bool
 }
 
 // captureSubCommitState reads the sub-commits refresh's inputs into an immutable
@@ -1015,6 +1020,7 @@ func (self *RefreshHelper) captureSubCommitState() capturedSubCommitState {
 		filterAuthor:            self.c.Modes().Filtering.GetAuthor(),
 		mainBranches:            self.c.Model().MainBranches,
 		hashPool:                self.c.Model().HashPool,
+		firstParent:             self.c.Contexts().SubCommits.GetFirstParent(),
 	}
 }
 
@@ -1034,6 +1040,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit(captured capturedSubCommit
 			RefForPushedStatus:      captured.ref,
 			MainBranches:            captured.mainBranches,
 			HashPool:                captured.hashPool,
+			FirstParent:             captured.firstParent,
 		},
 	)
 	if err != nil {
@@ -1041,6 +1048,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit(captured capturedSubCommit
 	}
 	self.onUIThreadUnlessRepoChanged(env, func() {
 		self.c.Model().SubCommits = commits
+		self.c.Modes().FirstParent[self.c.Context().Current().GetKey()] = captured.firstParent
 		self.RefreshAuthors(commits)
 	})
 

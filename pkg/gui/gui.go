@@ -654,6 +654,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 			CherryPicking:    gui.cherryPicking,
 			Diffing:          diffing.New(),
 			MarkedBaseCommit: marked_base_commit.New(),
+			FirstParent:      make(map[types.ContextKey]bool, 2),
 		},
 		ScreenMode: initialScreenMode,
 		// TODO: only use contexts from context manager

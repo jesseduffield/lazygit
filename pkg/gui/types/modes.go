@@ -12,4 +12,5 @@ type Modes struct {
 	CherryPicking    *cherrypicking.CherryPicking // shared by all repo states; see Gui.cherryPicking
 	Diffing          diffing.Diffing
 	MarkedBaseCommit marked_base_commit.MarkedBaseCommit
+	FirstParent      map[ContextKey]bool // use this instead of the viewModel, the GetCommitListDisplayStrings gets called first before the Model().Commits is updated
 }

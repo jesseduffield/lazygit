@@ -69,6 +69,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | 重置已拣选(复制)的提交 |  |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` * `` | 选择当前分支的提交 |  |
+| `` <ctrl+l> `` | 打开日志菜单 | 查看提交日志的选项，例如更改排序顺序、隐藏 git graph、显示整个 git graph。 |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交的文件 |  |
 | `` / `` | 开始搜索 |  |
@@ -113,6 +114,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | 重置已拣选(复制)的提交 |  |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` * `` | 选择当前分支的提交 |  |
+| `` <ctrl+l> `` | 打开日志菜单 | 查看提交日志的选项，例如更改排序顺序、隐藏 git graph、显示整个 git graph。 |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |
 | `` / `` | 通过文本过滤当前视图 |  |

@@ -25,6 +25,7 @@ type pipeSetCacheKey struct {
 	commitHash  string
 	commitCount int
 	divergence  models.Divergence
+	firstParent bool
 }
 
 var (
@@ -61,6 +62,7 @@ func GetCommitListDisplayStrings(
 	showGraph bool,
 	graphSymbolSet graph.SymbolSet,
 	bisectInfo *git_commands.BisectInfo,
+	firstParent bool,
 ) [][]string {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -97,7 +99,7 @@ func GetCommitListDisplayStrings(
 
 			if localSectionStart > 0 {
 				// we have some remote commits
-				pipeSets := loadPipesets(commits[:localSectionStart])
+				pipeSets := loadPipesets(commits[:localSectionStart], firstParent)
 				if startIdx < localSectionStart {
 					// some of the remote commits are visible
 					start := startIdx
@@ -115,7 +117,7 @@ func GetCommitListDisplayStrings(
 			}
 			if localSectionStart < len(commits) {
 				// we have some local commits
-				pipeSets := loadPipesets(commits[localSectionStart:])
+				pipeSets := loadPipesets(commits[localSectionStart:], firstParent)
 				if localSectionStart < endIdx {
 					// some of the local commits are visible
 					graphOffset := max(startIdx, localSectionStart)
@@ -140,7 +142,7 @@ func GetCommitListDisplayStrings(
 			// but we'll never include TODO commits as part of the graph because it'll be messy)
 			graphOffset := max(startIdx, rebaseOffset)
 
-			pipeSets := loadPipesets(commits[rebaseOffset:])
+			pipeSets := loadPipesets(commits[rebaseOffset:], firstParent)
 			pipeSetOffset := max(startIdx-rebaseOffset, 0)
 			graphPipeSets := pipeSets[pipeSetOffset:max(endIdx-rebaseOffset, 0)]
 			graphCommits := commits[graphOffset:endIdx]
@@ -309,7 +311,7 @@ func indexOfFirstNonTODOCommit(commits []*models.Commit) int {
 	return 0
 }
 
-func loadPipesets(commits []*models.Commit) [][]graph.Pipe {
+func loadPipesets(commits []*models.Commit, firstParent bool) [][]graph.Pipe {
 	if pipeSetCacheAuthorColors != authors.ColorsVersion() {
 		pipeSetCache = make(map[pipeSetCacheKey][][]graph.Pipe)
 		pipeSetCacheAuthorColors = authors.ColorsVersion()
@@ -321,6 +323,7 @@ func loadPipesets(commits []*models.Commit) [][]graph.Pipe {
 		commitHash:  commits[0].Hash(),
 		commitCount: len(commits),
 		divergence:  commits[0].Divergence,
+		firstParent: firstParent,
 	}
 
 	pipeSets, ok := pipeSetCache[cacheKey]
@@ -330,7 +333,7 @@ func loadPipesets(commits []*models.Commit) [][]graph.Pipe {
 		getStyle := func(commit *models.Commit) *style.TextStyle {
 			return authors.AuthorStyle(commit.AuthorName)
 		}
-		pipeSets = graph.GetPipeSets(commits, getStyle)
+		pipeSets = graph.GetPipeSets(commits, getStyle, firstParent)
 		pipeSetCache[cacheKey] = pipeSets
 	}
 

@@ -268,6 +268,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | Reset cherry-picked (gekopieerde) commits selectie |  |
 | `` <ctrl+t> `` | Open externe diff applicatie (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` <ctrl+l> `` | Log opties weergeven | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` / `` | Filter the current view by text |  |
@@ -369,6 +370,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | Reset cherry-picked (gekopieerde) commits selectie |  |
 | `` <ctrl+t> `` | Open externe diff applicatie (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` <ctrl+l> `` | Log opties weergeven | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk gecommite bestanden |  |
 | `` / `` | Start met zoeken |  |

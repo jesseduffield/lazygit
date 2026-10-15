@@ -76,6 +76,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | Reset cherry-picked (copied) commits selection |  |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` <ctrl+l> `` | 로그 메뉴 열기 | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 커밋 보기 |  |
 | `` / `` | Filter the current view by text |  |
@@ -135,6 +136,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | Reset cherry-picked (copied) commits selection |  |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` <ctrl+l> `` | 로그 메뉴 열기 | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View selected item's files |  |
 | `` / `` | 검색 시작 |  |

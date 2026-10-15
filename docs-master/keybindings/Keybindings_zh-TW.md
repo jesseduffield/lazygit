@@ -120,6 +120,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | 重設選定的揀選 (複製) 提交 |  |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` * `` | 選擇目前分支的提交 |  |
+| `` <ctrl+l> `` | 開啟記錄選單 | 檢視提交日誌的選項，例如更改排序順序、隱藏 git graph、顯示整個 git graph。 |
 | `` 0 `` | 聚焦主檢視 |  |
 | `` <enter> `` | 檢視所選項目的檔案 |  |
 | `` / `` | 搜尋 |  |
@@ -247,6 +248,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | 重設選定的揀選 (複製) 提交 |  |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` * `` | 選擇目前分支的提交 |  |
+| `` <ctrl+l> `` | 開啟記錄選單 | 檢視提交日誌的選項，例如更改排序順序、隱藏 git graph、顯示整個 git graph。 |
 | `` 0 `` | 聚焦主檢視 |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` / `` | 搜尋 |  |

@@ -6,6 +6,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -133,6 +134,13 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Handler:           self.selectCommitsOfCurrentBranch,
 			GetDisabledReason: self.require(self.canSelectCommitsOfCurrentBranch),
 			Description:       self.c.Tr.SelectCommitsOfCurrentBranch,
+		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Commits.OpenLogMenu),
+			Handler:     self.handleOpenLogMenu,
+			Description: self.c.Tr.OpenLogMenu,
+			Tooltip:     self.c.Tr.OpenLogMenuTooltip,
+			OpensMenu:   true,
 		},
 	}
 
@@ -428,4 +436,32 @@ func (self *BasicCommitsController) selectCommitsOfCurrentBranch() error {
 	self.context.SetSelectionRangeAndMode(0, index-1, mode)
 	self.context.HandleFocus(types.OnFocusOpts{})
 	return nil
+}
+
+func (self *BasicCommitsController) handleOpenLogMenu() error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.LogMenuTitle,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.ToggleFirstParent,
+				OnPress: func() error {
+					v := self.c.Contexts().SubCommits.GetFirstParent()
+					self.c.Contexts().SubCommits.SetFirstParent(!v)
+
+					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
+						if self.c.GetConfig().GetDebug() {
+							self.c.RefreshFromWorker(
+								types.RefreshOptions{Scope: []types.RefreshableView{types.SUB_COMMITS}},
+							)
+						} else {
+							self.c.Refresh(
+								types.RefreshOptions{Scope: []types.RefreshableView{types.SUB_COMMITS}},
+							)
+						}
+						return nil
+					})
+				},
+			},
+		},
+	})
 }

@@ -46,7 +46,7 @@ func (self Pipe) right() int16 {
 }
 
 func RenderCommitGraph(commits []*models.Commit, selectedCommitHashPtr *string, getStyle func(c *models.Commit) *style.TextStyle, symbolSet SymbolSet) []string {
-	pipeSets := GetPipeSets(commits, getStyle)
+	pipeSets := GetPipeSets(commits, getStyle, false)
 	if len(pipeSets) == 0 {
 		return nil
 	}
@@ -56,7 +56,7 @@ func RenderCommitGraph(commits []*models.Commit, selectedCommitHashPtr *string, 
 	return lines
 }
 
-func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) *style.TextStyle) [][]Pipe {
+func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) *style.TextStyle, firstParent bool) [][]Pipe {
 	if len(commits) == 0 {
 		return nil
 	}
@@ -64,7 +64,7 @@ func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) *styl
 	pipes := []Pipe{{fromPos: 0, toPos: 0, fromHash: &StartCommitHash, toHash: commits[0].HashPtr(), kind: STARTS, style: &style.FgDefault}}
 
 	return lo.Map(commits, func(commit *models.Commit, _ int) []Pipe {
-		pipes = getNextPipes(pipes, commit, getStyle)
+		pipes = getNextPipes(pipes, commit, getStyle, firstParent)
 		return pipes
 	})
 }
@@ -106,13 +106,44 @@ func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitHashPt
 	return lo.Flatten(chunks)
 }
 
-func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *models.Commit) *style.TextStyle) []Pipe {
+func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *models.Commit) *style.TextStyle, firstParent bool) []Pipe {
 	// a pipe that terminated in the previous line has no bearing on the current line
 	// so we'll filter those out. The same goes for the pipe from a root commit to
 	// the empty tree, because no commit comes after a root commit.
 	currentPipes := lo.Filter(prevPipes, func(pipe Pipe, _ int) bool {
 		return pipe.kind != TERMINATES && !equalHashes(pipe.toHash, &EmptyTreeCommitHash)
 	})
+
+	if firstParent {
+		newPipes := make([]Pipe, 1)
+		var toHash *string
+		if commit.IsFirstCommit() {
+			toHash = &EmptyTreeCommitHash
+		} else {
+			toHash = commit.ParentPtrs()[0]
+		}
+		newPipes = append(newPipes, Pipe{
+			fromPos:  0,
+			toPos:    0,
+			fromHash: commit.HashPtr(),
+			toHash:   toHash,
+			kind:     STARTS,
+			style:    getStyle(commit),
+		})
+
+		if commit.IsMerge() {
+			toHash = commit.ParentPtrs()[1]
+			newPipes = append(newPipes, Pipe{
+				fromPos:  0,
+				toPos:    0,
+				fromHash: commit.HashPtr(),
+				toHash:   toHash,
+				kind:     STARTS,
+				style:    getStyle(commit),
+			})
+		}
+		return newPipes
+	}
 
 	maxPos := int16(-1)
 	for _, pipe := range currentPipes {

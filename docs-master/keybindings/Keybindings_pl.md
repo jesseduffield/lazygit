@@ -146,6 +146,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | Resetuj wybrane (cherry-picked) commity |  |
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` <ctrl+l> `` | Zobacz opcje logów | Zobacz opcje dla logów commitów, np. zmiana kolejności sortowania, ukrywanie grafu gita, pokazywanie całego grafu gita. |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Pokaż commity |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |
@@ -348,6 +349,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | Resetuj wybrane (cherry-picked) commity |  |
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` <ctrl+l> `` | Zobacz opcje logów | Zobacz opcje dla logów commitów, np. zmiana kolejności sortowania, ukrywanie grafu gita, pokazywanie całego grafu gita. |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Wyświetl pliki |  |
 | `` / `` | Szukaj w bieżącym widoku po tekście |  |

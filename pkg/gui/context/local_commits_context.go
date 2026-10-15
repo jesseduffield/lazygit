@@ -194,6 +194,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			shouldShowGraph(c),
 			commitGraphSymbolSet(c),
 			c.Model().BisectInfo,
+			c.Modes().FirstParent[LOCAL_COMMITS_CONTEXT_KEY],
 		)
 	}
 
@@ -345,12 +346,14 @@ type LocalCommitsViewModel struct {
 
 	// If this is true we'll use git log --all when fetching the commits.
 	showWholeGitGraph bool
+	showFirstParent bool
 }
 
 func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon) *LocalCommitsViewModel {
 	self := &LocalCommitsViewModel{
 		ListViewModel:     NewListViewModel(getModel),
 		showWholeGitGraph: c.UserConfig().Git.Log.ShowWholeGraph,
+		showFirstParent: false,
 	}
 	self.limitCommits.Store(true)
 
@@ -437,6 +440,14 @@ func (self *LocalCommitsViewModel) SetShowWholeGitGraph(value bool) {
 
 func (self *LocalCommitsViewModel) GetShowWholeGitGraph() bool {
 	return self.showWholeGitGraph
+}
+
+func (self *LocalCommitsViewModel) SetFirstParent(value bool) {
+	self.showFirstParent = value
+}
+
+func (self *LocalCommitsViewModel) GetFirstParent() bool {
+	return self.showFirstParent
 }
 
 func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
