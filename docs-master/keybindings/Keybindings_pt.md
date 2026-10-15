@@ -296,6 +296,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` <ctrl+l> `` | View log options | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver commits |  |
 | `` / `` | Filtrar a visualização atual por texto |  |
@@ -378,6 +379,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+r> `` | Reset copied (cherry-picked) commits selection |  |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` * `` | Select commits of current branch |  |
+| `` <ctrl+l> `` | View log options | View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph. |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver arquivos |  |
 | `` / `` | Pesquisar na visualização atual por texto |  |
