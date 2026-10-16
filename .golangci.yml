@@ -1,6 +1,6 @@
 version: "2"
 run:
-  go: "1.25"
+  go: "1.26"
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0

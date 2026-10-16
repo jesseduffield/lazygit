@@ -1,7 +1,7 @@
 name: Continuous Integration
 
 env:
-  GO_VERSION: 1.25.x
+  GO_VERSION: 1.26.x
 
 on:
   push:
