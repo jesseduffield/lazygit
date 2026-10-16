@@ -58,6 +58,18 @@ jobs:
           token: ${{ secrets.LAZYGIT_RELEASE_PAT }}
           fetch-depth: 0
 
+      - name: Check that release.yml is up to date
+        run: |
+          # This workflow runs in a fork, but releases jesseduffield/lazygit, so
+          # its release.yml must match the one on jesseduffield/lazygit's master.
+          git fetch --quiet "https://github.com/$GITHUB_REPOSITORY" "$GITHUB_WORKFLOW_SHA"
+
+          if ! git diff --quiet "$GITHUB_WORKFLOW_SHA" origin/master -- .github/workflows/release.yml; then
+            echo "Error: release.yml differs from the one on jesseduffield/lazygit's master."
+            echo "Update $GITHUB_REPOSITORY from there and run the workflow again."
+            exit 1
+          fi
+
       - name: Get Latest Tag
         run: |
           latest_tag=$(git describe --tags --abbrev=0 || echo "v0.0.0")
