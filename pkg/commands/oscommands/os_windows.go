@@ -41,6 +41,10 @@ func (c *OSCommand) UpdateWindowTitle() error {
 	return c.Cmd.NewShell(argString, c.UserConfig().OS.ShellFunctionsFile).Run()
 }
 
+// DetachFromTerminal does nothing on Windows; see the version for the other
+// platforms.
+func DetachFromTerminal(cmd *exec.Cmd) {}
+
 func TerminateProcessGracefully(proc *os.Process) error {
 	// Signals other than SIGKILL are not supported on Windows
 	return nil

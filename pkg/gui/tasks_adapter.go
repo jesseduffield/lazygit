@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -12,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix types.Prefix) error {
+func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix types.Prefix, contentTag func() any) error {
 	cmdStr := strings.Join(cmd.Args, " ")
 	gui.c.Log.WithField(
 		"command",
@@ -46,7 +47,7 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix types.Prefix)
 		}
 
 		spec := renderSpec{view: view, cmd: cmd, width: gui.renderWidth(view)}
-		return gui.newTaskForRender(reservation, spec, prefix, cmdStr, gui.plainRender)
+		return gui.newTaskForRender(reservation, spec, prefix, contentTag, cmdStr, gui.plainRender)
 	})
 
 	return nil
@@ -90,6 +91,11 @@ func startCmdWithPipe(cmd *exec.Cmd, log *logrus.Entry) (tasks.Cmd, io.ReadClose
 		return tasks.ExecCmd{Cmd: cmd}, io.NopCloser(strings.NewReader(""))
 	}
 	cmd.Stderr = cmd.Stdout
+	// A render's command writes to the view, not to lazygit's terminal. A diff
+	// renderer that found that terminal would lay itself out to the width of the
+	// whole window rather than to the width of the view, which it is told in
+	// COLUMNS.
+	oscommands.DetachFromTerminal(cmd)
 
 	if err := cmd.Start(); err != nil {
 		log.Error(err)

@@ -45,6 +45,16 @@ func (c *OSCommand) UpdateWindowTitle() error {
 // this call is reached on every host; only the Windows build does anything.
 func setRawCmdLine(cmd *exec.Cmd, cmdLine string) {}
 
+// DetachFromTerminal has cmd start in a session of its own, which has no
+// controlling terminal. A command that asks its terminal something, such as how
+// wide it is, then finds no terminal rather than lazygit's.
+func DetachFromTerminal(cmd *exec.Cmd) {
+	if cmd.SysProcAttr == nil {
+		cmd.SysProcAttr = &syscall.SysProcAttr{}
+	}
+	cmd.SysProcAttr.Setsid = true
+}
+
 func TerminateProcessGracefully(proc *os.Process) error {
 	if proc == nil {
 		return nil

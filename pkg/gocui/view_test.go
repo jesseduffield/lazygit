@@ -396,7 +396,7 @@ func TestOffscreenRender(t *testing.T) {
 	assert.Equal(t, []string{"a", "b", "c"}, v.ViewBufferLines())
 
 	// Render new, longer content off-screen.
-	v.BeginOffscreenRender()
+	v.BeginOffscreenRender(nil)
 	v.writeString("w\nx\ny\nz")
 
 	// The displayed buffer is untouched: readers still see the previous render.
@@ -409,6 +409,39 @@ func TestOffscreenRender(t *testing.T) {
 	// A further write now appends to the displayed buffer directly.
 	v.writeString("\nmore")
 	assert.Equal(t, []string{"w", "x", "y", "z", "more"}, v.ViewBufferLines())
+}
+
+// What a render attaches to its content is there for as long as the content is
+// displayed, and only then.
+func TestContentTag(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+
+	v.writeString("a")
+	assert.Nil(t, v.ContentTag())
+
+	// While the new content is built off-screen, the displayed content keeps the tag it
+	// has, which is none.
+	v.BeginOffscreenRender("tag")
+	v.writeString("b")
+	assert.Nil(t, v.ContentTag())
+
+	// The tag comes with the content, and stays while more of it arrives.
+	v.SwapInOffscreenRender()
+	assert.Equal(t, "tag", v.ContentTag())
+	v.writeString("\nc")
+	assert.Equal(t, "tag", v.ContentTag())
+
+	// Content copied from another view is that view's render, tag and all.
+	other := NewView("other", 0, 0, 80, 10, OutputNormal)
+	other.CopyContent(v)
+	assert.Equal(t, "tag", other.ContentTag())
+
+	// Content that replaces it without such a render has none.
+	v.SetContent("d")
+	assert.Nil(t, v.ContentTag())
+
+	other.Reset()
+	assert.Nil(t, other.ContentTag())
 }
 
 // When a render produces fewer view lines than the previous one,
@@ -425,7 +458,7 @@ func TestViewLinesTruncatedByShorterRender(t *testing.T) {
 	assert.Equal(t, 6, v.ViewLinesHeight())
 
 	// Re-render with three short, unwrapped lines: only 3 view lines remain.
-	v.BeginOffscreenRender()
+	v.BeginOffscreenRender(nil)
 	v.writeString("aaa\nbbb\nccc")
 	v.SwapInOffscreenRender()
 	assert.Equal(t, 3, v.ViewLinesHeight())
@@ -524,7 +557,7 @@ func TestScrollbarHeightHeldWhileLoading(t *testing.T) {
 	v.FreezeScrollbarHeight()
 
 	// The off-screen render swaps in only a screenful at its first paint.
-	v.BeginOffscreenRender()
+	v.BeginOffscreenRender(nil)
 	v.writeString(strings.Repeat("y\n", 30))
 	v.SwapInOffscreenRender()
 
@@ -689,7 +722,7 @@ func TestWriteCursorPositionEscapeInOffscreenRender(t *testing.T) {
 	v := NewView("name", 0, 0, 30, 30, OutputNormal)
 	v.SetContentWidth(5)
 
-	v.BeginOffscreenRender()
+	v.BeginOffscreenRender(nil)
 	// Seven characters soft-wrap once on a 5-column screen, putting ConPTY on
 	// row 2; CUP to row 3 should then skip no rows at all.
 	v.writeString("aaaaaaa\x1b[3;1Hb\n")

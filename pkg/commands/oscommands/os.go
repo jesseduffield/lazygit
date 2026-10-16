@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 // OSCommand holds all the os commands
@@ -332,4 +334,30 @@ func GetLazygitPath() string {
 		ex = os.Args[0] // fallback to the first call argument if needed
 	}
 	return `"` + filepath.ToSlash(ex) + `"`
+}
+
+// SetDumbTerminalEnv tells diff renderers that we're in a very simple terminal
+// that they should not expect to have much capabilities.
+// Moving the cursor, clearing the screen, or querying for colors are among such
+// "advanced" capabilities.
+// Context: https://github.com/jesseduffield/lazygit/issues/3419
+func SetDumbTerminalEnv(cmd *exec.Cmd) {
+	cmd.Env = append(removeExistingTermEnvVars(cmd.Env), "TERM=dumb")
+}
+
+func removeExistingTermEnvVars(env []string) []string {
+	return lo.Filter(env, func(envVar string, _ int) bool {
+		return !isTermEnvVar(envVar)
+	})
+}
+
+// Terminals set a variety of different environment variables
+// to identify themselves to processes. This list should catch the most common among them.
+func isTermEnvVar(envVar string) bool {
+	return strings.HasPrefix(envVar, "TERM=") ||
+		strings.HasPrefix(envVar, "TERM_PROGRAM=") ||
+		strings.HasPrefix(envVar, "TERM_PROGRAM_VERSION=") ||
+		strings.HasPrefix(envVar, "TERMINAL_EMULATOR=") ||
+		strings.HasPrefix(envVar, "TERMINAL_NAME=") ||
+		strings.HasPrefix(envVar, "TERMINAL_VERSION_")
 }

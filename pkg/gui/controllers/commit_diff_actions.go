@@ -52,16 +52,16 @@ func NewCommitDiffActions(
 // The patch's own diff is handed out whole: it is only ever as big as the patch, and it
 // names its files under the trees the patch was materialized into rather than under the
 // paths asked for.
-func (self *CommitDiffActions) PlainDiff(pane types.DiffPaneContext, paths []string) string {
+func (self *CommitDiffActions) PlainDiff(pane types.DiffPaneContext, paths []string) (string, error) {
 	if self.showsCustomPatch(pane) {
-		return self.customPatchDiff()
+		return self.customPatchDiff(), nil
 	}
 
 	target := self.target()
 	if target == nil {
-		return ""
+		return "", nil
 	}
-	return self.c.Helpers().Diff.PlainDiffBetweenRefs(target.from, target.to, paths)
+	return self.c.Helpers().Diff.PlainDiffBetweenRefs(target.from, target.to, paths), nil
 }
 
 // customPatchDiff is the diff the custom patch is previewed as, as git writes it — the
