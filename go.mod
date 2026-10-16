@@ -39,7 +39,7 @@ require (
 	github.com/spkg/bom v1.0.1
 	github.com/stefanhaller/git-todo-parser v0.0.7-0.20250905083220-c50528f08304
 	github.com/stretchr/testify v1.12.1
-	github.com/xo/terminfo v1.0.0
+	github.com/xo/terminfo v1.2.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/sync v0.22.0
 	golang.org/x/sys v0.47.0
