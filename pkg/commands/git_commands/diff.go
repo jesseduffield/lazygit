@@ -2,11 +2,15 @@ package git_commands
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
 )
 
@@ -206,6 +210,171 @@ func (self *DiffCommands) getDiffCmdObj(worktreePath string, staged bool, additi
 			Arg(additionalArgs...).
 			ToArgv(),
 	).DontLog()
+}
+
+// NamedText is a text to be diffed by a TextDiffer, along with the name to show
+// for it in the diff. The name doubles as the name of the temporary file holding
+// the text, so it has to be usable as a file name.
+type NamedText struct {
+	Name    string
+	Content string
+}
+
+// A TextDiffer diffs two texts with the configured diff renderer, in the same way
+// as every other diff we show. It holds everything it takes from the
+// configuration, so that it can render a diff on any goroutine.
+type TextDiffer struct {
+	diffCommands *DiffCommands
+
+	// The git command that diffs the two texts, up to the names of the files
+	// holding them
+	args         []string
+	rawGit       bool
+	stdinFilter  string
+	externalDiff string
+	width        int
+}
+
+// NewTextDiffer resolves what a TextDiffer takes from the configuration. values
+// are what the renderer's command is resolved with. values.Width is the width of
+// the view the diff is going to be shown in; a diff renderer lays its output out
+// to it.
+//
+// It has to be called on the UI thread, since that is where the user switches
+// diff renderers and has the config reloaded.
+func (self *DiffCommands) NewTextDiffer(values config.DiffRendererValues) (*TextDiffer, error) {
+	manager := self.diffRendererConfigManager
+	stdinFilter, err := manager.GetStdinFilterCommand(values)
+	if err != nil {
+		return nil, err
+	}
+	externalDiff, err := manager.GetExternalDiffCommand(values)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TextDiffer{
+		diffCommands: self,
+		args: NewGitCmd("diff").
+			// git heads a hunk with the nearest line above it that starts with
+			// a letter, for the name of the function the hunk is in. In a text,
+			// that is just a line out of context. A pattern that never matches
+			// leaves it out; "default" is the driver of a file that no
+			// attribute gives one.
+			Config("diff.default.xfuncname=x^").
+			AddCommonDiffArgs(manager, self.UserConfig(), DiffModeRendered).
+			Arg("--no-index", "--no-prefix").
+			Arg(fmt.Sprintf("--color=%s", DiffModeRendered.colorArg(manager))).
+			ToArgv(),
+		rawGit:       manager.GetDiffRendererType() == config.DiffRendererType_RawGit,
+		stdinFilter:  stdinFilter,
+		externalDiff: externalDiff,
+		width:        values.Width,
+	}, nil
+}
+
+// RenderedDiff returns a diff of the two given texts.
+//
+// git can only diff files, so the texts are written to temporary files named
+// after them. Under a diff renderer those names are what the diff calls the two
+// sides; under git's own diff they go away with the rest of the header.
+func (self *TextDiffer) RenderedDiff(before NamedText, after NamedText) (string, error) {
+	dir, err := os.MkdirTemp(self.diffCommands.os.GetTempDir(), "textdiff-")
+	if err != nil {
+		return "", err
+	}
+	defer os.RemoveAll(dir)
+
+	for _, text := range []NamedText{before, after} {
+		content := text.Content
+		// End the file with a newline, or git says that it doesn't, which tells
+		// a reader of the diff nothing about the two texts.
+		if content != "" && !strings.HasSuffix(content, "\n") {
+			content += "\n"
+		}
+		if err := self.diffCommands.os.CreateFileWithContent(filepath.Join(dir, text.Name), content); err != nil {
+			return "", err
+		}
+	}
+
+	cmdObj := self.diffCommands.cmd.New(
+		append(slices.Clone(self.args), "--", before.Name, after.Name),
+	).SetWd(dir).DontLog()
+
+	// --no-index implies --exit-code, so git exits with a non-zero status
+	// whenever the two texts differ; that is only an error if it left us with
+	// nothing to show.
+	if self.rawGit {
+		// git renders the diff itself here, and needs none of what a renderer is
+		// told below.
+		output, err := cmdObj.RunWithOutput()
+		if output == "" && err != nil {
+			return "", err
+		}
+
+		return stripDiffHeaders(output), nil
+	}
+
+	oscommands.SetDumbTerminalEnv(cmdObj.GetCmd())
+	// A renderer has no terminal to ask how wide it is (see runThroughAPipe).
+	cmdObj.AddEnvVars(fmt.Sprintf("COLUMNS=%d", self.width))
+	// An empty command means that git's own diff.external config applies, and
+	// git consults that only while the variable is unset.
+	if self.externalDiff != "" {
+		cmdObj.AddEnvVars("GIT_EXTERNAL_DIFF=" + self.externalDiff)
+	}
+
+	output, err := self.runThroughAPipe(cmdObj)
+	if output == "" && err != nil {
+		return "", err
+	}
+
+	return output, nil
+}
+
+// runThroughAPipe feeds the output of cmdObj to the stdin filter through a pipe
+// and returns what the filter wrote. git only runs a stdin filter itself when it
+// thinks it is talking to a terminal, so here the filter is a command of our
+// own. An external diff renderer is run by git, so with one the command runs
+// alone.
+//
+// The commands start without a controlling terminal, like those of the main
+// view's renders. A renderer that found lazygit's terminal would lay itself out
+// to the width of the whole window rather than to the width it is told in
+// COLUMNS.
+func (self *TextDiffer) runThroughAPipe(cmdObj *oscommands.CmdObj) (string, error) {
+	oscommands.DetachFromTerminal(cmdObj.GetCmd())
+	if self.stdinFilter == "" {
+		return cmdObj.RunWithOutput()
+	}
+
+	// The filter runs in a plain shell, with git's environment, since that is
+	// how git would have run it.
+	filter := self.diffCommands.cmd.NewShell(self.stdinFilter, "").SetEnviron(cmdObj.GetCmd().Env).DontLog()
+	oscommands.DetachFromTerminal(filter.GetCmd())
+	pipeline, reader, err := self.diffCommands.os.StartPipeline(cmdObj, filter)
+	if err != nil {
+		return "", err
+	}
+	defer reader.Close()
+
+	// The output ends once every command in the pipeline has exited, and Wait
+	// says how they did.
+	output, _ := io.ReadAll(reader)
+	return string(output), pipeline.Wait()
+}
+
+// Strips the file header and the first hunk header from a diff. For a diff of
+// two temporary files these say nothing that a reader could make sense of.
+func stripDiffHeaders(diff string) string {
+	lines := strings.SplitAfter(diff, "\n")
+	for i, line := range lines {
+		if strings.HasPrefix(utils.Decolorise(line), "@@ ") {
+			return strings.Join(lines[i+1:], "")
+		}
+	}
+
+	return diff
 }
 
 type DiffToolCmdOptions struct {

@@ -421,7 +421,7 @@ git:
   #   # e.g.
   #   # diff-so-fancy
   #   # delta --dark --paging=never
-  #   # ydiff -p cat
+  #   # ydiff -p cat --color=always
   #   # difft --color=always
   #   command: ""
   #

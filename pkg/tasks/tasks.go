@@ -18,10 +18,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Cmd abstracts over a started external process. *exec.Cmd satisfies the bulk
-// of it via ExecCmd, but pty implementations can supply their own types — on
-// Windows, ConPTY has to spawn via CreateProcess directly and can't use
-// *exec.Cmd (see golang/go#62708).
+// Cmd abstracts over a started external process, or a chain of them. *exec.Cmd
+// satisfies the bulk of it via ExecCmd, and oscommands.Pipeline satisfies it for
+// a chain.
 type Cmd interface {
 	Wait() error
 	String() string
@@ -133,7 +132,8 @@ type ViewBufferManager struct {
 	// disturbing what's displayed. swapInRender then promotes it to the display
 	// in one step. Together they keep the view showing the previous render until
 	// the new one has read enough to paint, instead of revealing it line by line.
-	beginRender  func()
+	// beginRender is given what the task attaches to its content (see NewCmdTask).
+	beginRender  func(tag any)
 	swapInRender func()
 
 	// see docs/dev/Busy.md
@@ -341,7 +341,7 @@ func NewViewBufferManager(
 	refreshView func(),
 	onEndOfInput func(),
 	resetOrigin func(),
-	beginRender func(),
+	beginRender func(tag any),
 	swapInRender func(),
 	newGocuiTask func() gocui.Task,
 	onUIThread func(f func()) error,
@@ -466,10 +466,13 @@ func answerReadRequests(requests []LinesToRead) {
 }
 
 // NewCmdTask returns a task that renders the output of the command that start
-// starts. prefix, unless nil, produces the text shown above that output. It is
-// called on the task's goroutine before the command starts, so a prefix that
-// takes a while to produce holds up only this task.
-func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix func() string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
+// starts. prefix, unless nil, produces the text shown above that output. tag,
+// unless nil, produces what the task attaches to the content it renders (see
+// gocui.View.BeginOffscreenRender). Both are called on the task's goroutine before
+// the command starts, so one that takes a while holds up only this task.
+func (self *ViewBufferManager) NewCmdTask(
+	start func() (Cmd, io.Reader), prefix func() string, tag func() any, linesToRead LinesToRead, onDoneFn func(),
+) func(TaskOpts) error {
 	return func(opts TaskOpts) error {
 		var onDoneOnce sync.Once
 		var onFirstPageShownOnce sync.Once
@@ -530,6 +533,17 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			}
 		}
 
+		var tagValue any
+		if tag != nil {
+			tagValue = tag()
+
+			// Likewise for its tag.
+			if stopped() {
+				onDone()
+				return nil
+			}
+		}
+
 		startTime := time.Now()
 		cmd, r := start()
 		timeToStart := time.Since(startTime)
@@ -557,7 +571,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 					self.Log.Errorf("error when trying to terminate cmd task: %v; Command: %v", err, cmd.String())
 				}
 
-				// close the task's stdout pipe (or the pty if we're using one) to make the command terminate
+				// close the task's output pipe to make the command terminate
 				onDone()
 			}
 		})
@@ -757,7 +771,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							// Build the new content off-screen, leaving the previous render
 							// displayed until we swap in below; this is what keeps an async
 							// re-render from showing a half-loaded buffer.
-							self.beginRender()
+							self.beginRender(tagValue)
 							if prefixText != "" {
 								writeToView([]byte(prefixText))
 							}

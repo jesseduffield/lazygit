@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/stretchr/testify/assert"
@@ -386,6 +387,36 @@ func TestParseAllDiffLinesFromBuffer(t *testing.T) {
 		assert.False(t, all[i].ok)
 	}
 	assert.True(t, all[6].ok)
+}
+
+func TestFileVersionsOfSections(t *testing.T) {
+	// Decoration above the diff, a submodule's section, a change of a file's mode alone,
+	// and a deleted file, whose path comes from its "---" line. The submodule and the
+	// mode change have no index line.
+	bufferLines := append(
+		[]string{"commit 1234567", "", "    do a thing", ""},
+		strings.Split(twoFileDiff+`
+Submodule sub a32f27c..2d9f921:
+  > a commit of the submodule
+diff --git a/script.sh b/script.sh
+old mode 100644
+new mode 100755
+diff --git a/gone.go b/gone.go
+deleted file mode 100644
+index 5555555..0000000
+--- a/gone.go
++++ /dev/null
+@@ -1 +0,0 @@
+-gone`, "\n")...,
+	)
+
+	assert.Equal(t,
+		map[string]patch.FileVersions{
+			"file1.go":     {OldBlob: "1111111", NewBlob: "2222222", OldMode: "100644", NewMode: "100644"},
+			"dir/file2.go": {OldBlob: "3333333", NewBlob: "4444444", OldMode: "100644", NewMode: "100644"},
+			"gone.go":      {OldBlob: "5555555", NewBlob: "0000000", OldMode: "100644"},
+		},
+		fileVersionsOfSections(bufferLines))
 }
 
 func TestParseDiffLineMetadata(t *testing.T) {

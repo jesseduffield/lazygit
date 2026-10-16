@@ -205,6 +205,187 @@ func TestFixupHelper_IsFixupCommit(t *testing.T) {
 	}
 }
 
+func TestFixupHelper_findCommitWithPreviousMessage(t *testing.T) {
+	hashPool := &utils.StringPool{}
+
+	type commitDesc struct {
+		Hash string
+		Name string
+	}
+
+	scenarios := []struct {
+		name         string
+		commits      []commitDesc
+		index        int
+		expectedHash string
+	}{
+		{
+			name: "not an amend commit",
+			commits: []commitDesc{
+				{"abc123", "Some feature"},
+			},
+			index:        0,
+			expectedHash: "",
+		},
+		{
+			name: "fixup commits don't change the message",
+			commits: []commitDesc{
+				{"abc123", "fixup! Some feature"},
+				{"def456", "Some feature"},
+			},
+			index:        0,
+			expectedHash: "",
+		},
+		{
+			name: "a fixup of an amend commit doesn't change the message either",
+			commits: []commitDesc{
+				{"abc123", "fixup! amend! Some feature"},
+				{"def456", "amend! Some feature"},
+				{"ghi789", "Some feature"},
+			},
+			index:        0,
+			expectedHash: "",
+		},
+		{
+			name: "base commit right below the amend commit",
+			commits: []commitDesc{
+				{"abc123", "amend! Some feature"},
+				{"def456", "Some feature"},
+			},
+			index:        0,
+			expectedHash: "def456",
+		},
+		{
+			name: "base commit further down the list",
+			commits: []commitDesc{
+				{"abc123", "amend! Some feature"},
+				{"def456", "Unrelated commit"},
+				{"ghi789", "Some feature"},
+			},
+			index:        0,
+			expectedHash: "ghi789",
+		},
+		{
+			name: "amend commit in the middle of the list",
+			commits: []commitDesc{
+				{"abc123", "Unrelated commit"},
+				{"def456", "amend! Some feature"},
+				{"ghi789", "Some feature"},
+			},
+			index:        1,
+			expectedHash: "ghi789",
+		},
+		{
+			name: "the nearest earlier amend commit holds the message",
+			commits: []commitDesc{
+				{"abc123", "amend! Some feature"},
+				{"def456", "amend! Some feature"},
+				{"ghi789", "Some feature"},
+			},
+			index:        0,
+			expectedHash: "def456",
+		},
+		{
+			name: "fixup and squash commits in between are skipped",
+			commits: []commitDesc{
+				{"abc123", "amend! Some feature"},
+				{"def456", "fixup! Some feature"},
+				{"ghi789", "squash! Some feature"},
+				{"jkl012", "amend! Some feature"},
+				{"mno345", "Some feature"},
+			},
+			index:        0,
+			expectedHash: "jkl012",
+		},
+		{
+			name: "amend commit with several prefixes applies to the innermost subject",
+			commits: []commitDesc{
+				{"abc123", "amend! amend! Some feature"},
+				{"def456", "amend! Some feature"},
+				{"ghi789", "Some feature"},
+			},
+			index:        0,
+			expectedHash: "def456",
+		},
+		{
+			name: "base commit is not in the list",
+			commits: []commitDesc{
+				{"abc123", "amend! Some feature"},
+				{"def456", "Unrelated commit"},
+			},
+			index:        0,
+			expectedHash: "",
+		},
+		{
+			name: "base commit is above the amend commit",
+			commits: []commitDesc{
+				{"abc123", "Some feature"},
+				{"def456", "amend! Some feature"},
+			},
+			index:        1,
+			expectedHash: "",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			commits := lo.Map(s.commits, func(desc commitDesc, _ int) *models.Commit {
+				return models.NewCommit(hashPool, models.NewCommitOpts{Hash: desc.Hash, Name: desc.Name})
+			})
+
+			result, ok := findCommitWithPreviousMessage(commits, commits[s.index])
+
+			if s.expectedHash == "" {
+				assert.False(t, ok)
+				assert.Nil(t, result)
+			} else {
+				assert.True(t, ok)
+				assert.Equal(t, s.expectedHash, result.Hash())
+			}
+		})
+	}
+}
+
+func TestFixupHelper_messageAfterAmending(t *testing.T) {
+	scenarios := []struct {
+		name            string
+		message         string
+		expectedMessage string
+	}{
+		{
+			name:            "subject only",
+			message:         "Some feature",
+			expectedMessage: "Some feature",
+		},
+		{
+			name:            "subject and body",
+			message:         "Some feature\n\nSome description",
+			expectedMessage: "Some feature\n\nSome description",
+		},
+		{
+			name:            "amend commit",
+			message:         "amend! Some feature\n\nA better subject\n\nSome description",
+			expectedMessage: "A better subject\n\nSome description",
+		},
+		{
+			name:            "amend commit without a replacement message",
+			message:         "amend! Some feature",
+			expectedMessage: "amend! Some feature",
+		},
+		{
+			name:            "fixup commit",
+			message:         "fixup! amend! Some feature\n\nSome description",
+			expectedMessage: "fixup! amend! Some feature\n\nSome description",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expectedMessage, messageAfterAmending(s.message))
+		})
+	}
+}
+
 func TestFixupHelper_removeFixupCommits(t *testing.T) {
 	hashPool := &utils.StringPool{}
 

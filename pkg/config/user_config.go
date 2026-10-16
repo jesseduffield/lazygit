@@ -310,7 +310,7 @@ type GitConfig struct {
 	//   # e.g.
 	//   # diff-so-fancy
 	//   # delta --dark --paging=never
-	//   # ydiff -p cat
+	//   # ydiff -p cat --color=always
 	//   # difft --color=always
 	//   command: ""
 	//
@@ -384,7 +384,7 @@ func (DiffRendererCommandType) JSONSchemaExtend(schema *jsonschema.Schema) {
 	schema.Examples = []any{
 		"delta --dark --paging=never",
 		"diff-so-fancy",
-		"ydiff -p cat",
+		"ydiff -p cat --color=always",
 		"difft --color=always",
 	}
 }
@@ -401,7 +401,7 @@ type DiffRendererConfig struct {
 	// e.g.
 	// diff-so-fancy
 	// delta --dark --paging=never
-	// ydiff -p cat
+	// ydiff -p cat --color=always
 	// difft --color=always
 	Command DiffRendererCommandType `yaml:"command"`
 	// Extra arguments (array of strings) passed to the git command. Only applicable if the type is 'rawGit'.

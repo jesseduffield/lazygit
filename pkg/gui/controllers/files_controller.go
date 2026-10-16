@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -445,10 +446,18 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	paths := self.pathsForDiff(node)
 	refreshOpts := types.RefreshMainOpts{Pair: self.c.MainViewPairs().Normal}
 
+	// A diff renderer that states its rows shows none of git's headers, so what the diff
+	// is made from is taken along with it, to tell whether it is still the current one
+	// when the user acts on it.
+	var contentTag func() any
+	if self.c.Helpers().DiffLine.MayRenderStatedRows(mode) {
+		contentTag = self.diffInputsTag(node, showStaged, showUnstaged)
+	}
+
 	if showUnstaged {
 		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, mode, false, paths)
 		refreshOpts.Main = &types.ViewUpdateOpts{
-			Task:           types.NewMainViewDiffTask(cmdObj.GetCmd(), mode),
+			Task:           types.NewMainViewDiffTaskWithContentTag(cmdObj.GetCmd(), contentTag, mode),
 			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 			Title:          self.c.Tr.UnstagedChanges,
 			NothingToActOn: !node.GetHasUnstagedChanges(),
@@ -458,7 +467,7 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	if showStaged {
 		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, mode, true, paths)
 		refreshOpts.Secondary = &types.ViewUpdateOpts{
-			Task:           types.NewMainViewDiffTask(cmdObj.GetCmd(), mode),
+			Task:           types.NewMainViewDiffTaskWithContentTag(cmdObj.GetCmd(), contentTag, mode),
 			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 			Title:          self.c.Tr.StagedChanges,
 			NothingToActOn: !node.GetHasStagedChanges(),
@@ -466,6 +475,30 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	}
 
 	self.c.RenderToMainViews(refreshOpts)
+}
+
+// diffInputsTag returns the content tag for a render of the node's diff: the inputs of
+// the diffs of its files (see git_commands.DiffInputs), for the sides the panes show.
+// The renders of both panes share them, taken once, before whichever of their commands
+// starts first.
+func (self *FilesController) diffInputsTag(node *filetree.FileNode, stagedSide bool, unstagedSide bool) func() any {
+	paths := []string{}
+	_ = node.ForEachFile(func(file *models.File) error {
+		paths = append(paths, file.Names()...)
+		return nil
+	})
+
+	// A repo switch replaces the git commands, so they are captured here, on the UI
+	// thread, rather than read where the renders run.
+	workingTree := self.c.Git().WorkingTree
+	return sync.OnceValue(func() any {
+		inputs, err := workingTree.GetDiffInputs(paths, stagedSide, unstagedSide)
+		if err != nil {
+			self.c.Log.Error(err)
+			return nil
+		}
+		return inputs
+	})
 }
 
 func (self *FilesController) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {

@@ -25,28 +25,14 @@ type winPty struct {
 	inWrite *os.File
 	outRead *os.File
 
-	// mu guards hpcClosed, which gates ClosePseudoConsole (it must run
-	// exactly once) and also keeps Resize from touching the HPCON once it's
-	// been freed: the background waiter in StartPty closes the pseudoconsole
-	// on child exit, which would otherwise race a concurrent onResize and
-	// hand ResizePseudoConsole a freed handle.
+	// mu guards hpcClosed, which gates ClosePseudoConsole: it must run exactly
+	// once, and more than one goroutine may get to it (see closeHpc).
 	mu        sync.Mutex
 	hpcClosed bool
 }
 
 func (p *winPty) Read(buf []byte) (int, error)  { return p.outRead.Read(buf) }
 func (p *winPty) Write(buf []byte) (int, error) { return p.inWrite.Write(buf) }
-
-func (p *winPty) Resize(cols, rows uint16) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.hpcClosed {
-		// The child already exited and the pseudoconsole was torn down, so
-		// there is nothing left to resize.
-		return nil
-	}
-	return windows.ResizePseudoConsole(p.hpc, clampPtySize(cols, rows))
-}
 
 // clampPtySize clamps a requested pty size to the minimum that ConPTY
 // accepts: CreatePseudoConsole and ResizePseudoConsole reject zero
@@ -119,12 +105,9 @@ func TerminateLivePtys() {
 // It has to, because ClosePseudoConsole can block for a long time: before
 // Windows 11 24H2 it waits for the console host to exit, and since closing
 // only delivers CTRL_CLOSE_EVENT to the attached client without terminating
-// it, a client that keeps running (git still computing an expensive diff, a
-// diff renderer waiting for input) keeps the host — and with it
-// ClosePseudoConsole — alive arbitrarily long. Close is called while holding
-// the global PtyMutex and while the task's onDone once is executing, where
-// blocking wedges every subsequent task for the view (and with it the UI), so
-// none of this may happen on the caller's thread.
+// it, a client that keeps running keeps the host — and with it
+// ClosePseudoConsole — alive arbitrarily long. None of this may happen on the
+// caller's thread, which would be held up for that long.
 //
 // Within the teardown, the pipe ends must be closed before the
 // pseudoconsole, and without holding p.mu: closing the pseudoconsole flushes
