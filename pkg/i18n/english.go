@@ -749,6 +749,7 @@ type TranslationSet struct {
 	OpenCommandLogMenuTooltip             string
 	ShowingGitDiff                        string
 	ShowingDiffForRange                   string
+	CommitMessageChanges                  string
 	CommitDiff                            string
 	CopyCommitHashToClipboard             string
 	CommitHash                            string
@@ -771,6 +772,7 @@ type TranslationSet struct {
 	SelectionNotFoundInDiffToast          string
 	DiffLinesFileNotFound                 string
 	DiffLinesNotFound                     string
+	DiffChangedSinceShown                 string
 	CommitNotInCommitsPanel               string
 	NoFilesStagedTitle                    string
 	NoFilesStagedPrompt                   string
@@ -1965,6 +1967,7 @@ func EnglishTranslationSet() *TranslationSet {
 		OpenCommandLogMenuTooltip:                "View options for the command log e.g. show/hide the command log and focus the command log.",
 		ShowingGitDiff:                           "Showing output for:",
 		ShowingDiffForRange:                      "Showing diff for range",
+		CommitMessageChanges:                     "Commit message changes compared to {{.hash}}:",
 		CommitDiff:                               "Commit diff",
 		CopyCommitHashToClipboard:                "Copy abbreviated commit hash to clipboard",
 		CommitHash:                               "Commit hash",
@@ -1986,6 +1989,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SelectionNotFoundInDiffToast:             "Nothing in the selection could be found in the diff",
 		DiffLinesFileNotFound:                    "Can't find the file '{{.path}}' that the selected lines belong to",
 		DiffLinesNotFound:                        "Can't find the selected lines in the diff of '{{.path}}'",
+		DiffChangedSinceShown:                    "The diff of '{{.path}}' has changed since it was shown. Check the updated diff and select the lines again.",
 		CommitNotInCommitsPanel:                  "Can't find commit {{.hash}} in the commits panel",
 		CommitPrefixPatternError:                 "Error in commitPrefix pattern",
 		NoFilesStagedTitle:                       "No files staged",

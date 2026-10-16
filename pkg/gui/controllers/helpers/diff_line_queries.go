@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -35,6 +36,39 @@ func (self *DiffLineHelper) DiffLinesInBufferRange(view *gocui.View, first int, 
 		infos = append(infos, identities[bufferLine]...)
 	}
 	return self.inRepoTerms(view, infos)
+}
+
+// FileVersionsOnScreen returns the versions of each file whose diff view shows, as the
+// header of the file's diff states them (see patch.FileVersions), by the file's absolute
+// path. A file is left out if its header shows no index line (see
+// fileVersionsOfSections). ok is false for a rendering whose rows a diff renderer
+// stated (see renderingStatesDiffLines): its text is the renderer's picture of the
+// diff, which shows no header to read them from.
+func (self *DiffLineHelper) FileVersionsOnScreen(view *gocui.View) (versions map[string]patch.FileVersions, ok bool) {
+	contents := view.DiffLineContents()
+	if renderingStatesDiffLines(contents) {
+		return nil, false
+	}
+	return self.absoluteFileVersions(fileVersionsOfSections(diffLineTexts(contents))), true
+}
+
+// FileVersionsInDiff returns the versions of each file of a diff given as git's text,
+// as FileVersionsOnScreen does for a view. A file the diff doesn't have, or has without
+// an index line, is left out.
+func (self *DiffLineHelper) FileVersionsInDiff(diff string) map[string]patch.FileVersions {
+	return self.absoluteFileVersions(fileVersionsOfSections(strings.Split(diff, "\n")))
+}
+
+// absoluteFileVersions keys versions by the absolute paths of their files, as a diff
+// line's identity names them, rather than by the repo-relative ones the diff names
+// them by.
+func (self *DiffLineHelper) absoluteFileVersions(
+	versions map[string]patch.FileVersions,
+) map[string]patch.FileVersions {
+	worktreePath := self.c.Git().RepoPaths.WorktreePath()
+	return lo.MapKeys(versions, func(_ patch.FileVersions, path string) string {
+		return filepath.Join(worktreePath, path)
+	})
 }
 
 // ChangeLineOrdinals says, for each of the given change lines, which of its file's

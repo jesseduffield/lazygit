@@ -4,16 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
-	"github.com/samber/lo"
 )
 
 // renderSpec describes a render of a command's output into a view: what a way
@@ -25,18 +23,17 @@ type renderSpec struct {
 	// counts its own wrapping against. Read after the layout pass, which
 	// settles it.
 	width int
-	// The configured stdin filter, empty unless one is configured. How git gets
-	// to run it depends on the way the render runs. An external diff renderer
-	// is named to git in the environment before the render is set up, whichever
-	// way it runs, so it doesn't appear here; nothing else is a command of its
-	// own.
+	// The configured stdin filter, empty unless one is configured. It runs as a
+	// command of our own that git's output is piped into (see pipedRender). An
+	// external diff renderer is named to git in the environment before the render
+	// is set up, so it doesn't appear here; nothing else is a command of its own.
 	stdinFilter string
 }
 
 // newRenderTask renders cmd's output into view, through the diff renderer the
 // user has configured. The renderer lays its rendering out to the width of the
 // view, which only the layout settles, so the task is created after it.
-func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix types.Prefix) error {
+func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix types.Prefix, contentTag func() any) error {
 	// Ask whatever renders the diff to state, in an OSC 1717 record per line,
 	// which line of which file it is rendering. This lets us act on the line the
 	// user is pointing at even when the rendering no longer looks like a diff.
@@ -48,8 +45,8 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix types.Pref
 	cmd.Env = append(cmd.Env, "OSC1717=V1")
 
 	if gui.stateAccessor.GetDiffRendererConfigManager().GetDiffRendererType() == config.DiffRendererType_RawGit {
-		// If we're not using a custom diff renderer, then we don't need to use a pty
-		return gui.newCmdTask(view, cmd, prefix)
+		// Git renders its own diff, without anything that the rest of this sets up.
+		return gui.newCmdTask(view, cmd, prefix, contentTag)
 	}
 
 	// The key the render is remembered under says which diff it is of, so that a
@@ -96,12 +93,7 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix types.Pref
 			gui.c.ErrorToast(err.Error())
 		}
 
-		// This communicates to diff renderers that we're in a very simple
-		// terminal that they should not expect to have much capabilities.
-		// Moving the cursor, clearing the screen, or querying for colors are among such "advanced" capabilities.
-		// Context: https://github.com/jesseduffield/lazygit/issues/3419
-		cmd.Env = removeExistingTermEnvVars(cmd.Env)
-		cmd.Env = append(cmd.Env, "TERM=dumb")
+		oscommands.SetDumbTerminalEnv(cmd)
 
 		// An external diff command is named to git here, in the environment,
 		// because the width it renders at is only known after the layout, and
@@ -119,11 +111,7 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix types.Pref
 			width:       width,
 			stdinFilter: stdinFilter,
 		}
-		run := gui.ptyRender
-		if rendersThroughAPipe() {
-			run = gui.pipedRender
-		}
-		return gui.newTaskForRender(reservation, spec, prefix, cmdStr, run)
+		return gui.newTaskForRender(reservation, spec, prefix, contentTag, cmdStr, gui.pipedRender)
 	})
 
 	return nil
@@ -149,15 +137,17 @@ type (
 )
 
 // runRender is a way of running a render's command and getting at its output:
-// plainly, in a pty, or through a pipe with the stdin filter as a command of our
-// own. It returns the functions the task drives the command by.
+// plainly, or through a pipe with the stdin filter as a command of our own. It
+// returns the functions the task drives the command by.
 type runRender func(spec renderSpec) (startRender, onCloseRender)
 
 // newTaskForRender creates the task that reads the render's output into its
 // view, running the command the given way. The task takes the place that the
 // reservation holds among the view's tasks. key names what is rendered, so that
 // a re-render of the same content can be told from a render of other content.
-func (gui *Gui) newTaskForRender(reservation tasks.TaskReservation, spec renderSpec, prefix types.Prefix, key string, run runRender) error {
+func (gui *Gui) newTaskForRender(
+	reservation tasks.TaskReservation, spec renderSpec, prefix types.Prefix, contentTag func() any, key string, run runRender,
+) error {
 	setColumnsEnvVar(spec.cmd, spec.width)
 
 	start, onClose := run(spec)
@@ -171,30 +161,18 @@ func (gui *Gui) newTaskForRender(reservation tasks.TaskReservation, spec renderS
 
 	manager := gui.getManager(spec.view)
 	linesToRead := gui.linesToReadFromCmdTask(spec.view)
-	return manager.NewReservedTask(reservation, manager.NewCmdTask(start, producePrefix, linesToRead, onClose), key)
-}
-
-// renderWithoutPtyEnvVar makes a render take the piped path on a platform that
-// would otherwise use a pty, so that tests can exercise it anywhere.
-const renderWithoutPtyEnvVar = "LAZYGIT_RENDER_WITHOUT_PTY"
-
-// rendersThroughAPipe reports whether a render feeds the diff renderer the
-// command's output through a pipe rather than running it in a pty.
-//
-// On Windows it has to. ConPTY doesn't pass a command's output through; it
-// parses it into a screen buffer and re-encodes that for the terminal side,
-// and it hands a sequence it can't represent there the moment it parses it,
-// separately from the text around it. So what a renderer writes is not what
-// lazygit reads. A pipe carries the bytes as the renderer wrote them.
-//
-// Everywhere else the pty is kept, since a renderer can read the width it
-// should lay out to off it, and a configuration that doesn't name a width would
-// otherwise render at whatever width the renderer falls back to.
-func rendersThroughAPipe() bool {
-	return runtime.GOOS == "windows" || os.Getenv(renderWithoutPtyEnvVar) != ""
+	return manager.NewReservedTask(reservation,
+		manager.NewCmdTask(start, producePrefix, contentTag, linesToRead, onClose), key)
 }
 
 // pipedRender feeds the diff renderer the command's output through a pipe.
+//
+// The renderer doesn't run in a terminal. A pty would carry its output more
+// slowly, and on Windows not as the renderer wrote it: ConPTY parses a command's
+// output into a screen buffer and re-encodes that for the terminal side, and it
+// hands a sequence it can't represent there over separately from the text around
+// it. A renderer learns the width to lay itself out to from COLUMNS (see
+// setColumnsEnvVar), or from its command line.
 //
 // A stdin filter becomes a command of our own here, because git only invokes
 // the one named by GIT_PAGER when it thinks it is talking to a terminal, so
@@ -211,17 +189,18 @@ func (gui *Gui) pipedRender(spec renderSpec) (startRender, onCloseRender) {
 
 	var pipe io.ReadCloser
 	start := func() (tasks.Cmd, io.Reader) {
-		// See the matching call in ptyRender for why this happens here.
+		// See the matching call in plainRender for why this happens here.
 		view.SetContentWidth(spec.width)
 
 		// The filter runs in a plain shell, without lazygit's shell functions
 		// sourced, since that is the shell git would have run it in. It is
 		// handed git's environment for the same reason: as git's child it
 		// would have inherited exactly that.
-		pipeline, reader, err := gui.os.StartPipeline(
-			gui.os.Cmd.NewFromCmd(cmd).DontLog(),
-			gui.os.Cmd.NewShell(spec.stdinFilter, "").SetEnviron(cmd.Env).DontLog(),
-		)
+		filter := gui.os.Cmd.NewShell(spec.stdinFilter, "").SetEnviron(cmd.Env).DontLog()
+		// See the matching call in startCmdWithPipe.
+		oscommands.DetachFromTerminal(cmd)
+		oscommands.DetachFromTerminal(filter.GetCmd())
+		pipeline, reader, err := gui.os.StartPipeline(gui.os.Cmd.NewFromCmd(cmd).DontLog(), filter)
 		if err != nil {
 			gui.c.Log.Error(err)
 			// The command has been started and stopped again by now, so it
@@ -249,25 +228,8 @@ func (gui *Gui) pipedRender(spec renderSpec) (startRender, onCloseRender) {
 // setColumnsEnvVar tells a command how wide the view its output goes into is.
 // git reads COLUMNS in preference to the size of the terminal it is talking to,
 // and lays the diffstat graph out to it; a diff renderer with no terminal to
-// ask may read it too (difftastic and diff-so-fancy do, delta does not). A
-// command told nothing renders for 80 columns.
+// ask may read it too (difftastic, diff-so-fancy and recent versions of delta
+// do). A command told nothing renders for 80 columns.
 func setColumnsEnvVar(cmd *exec.Cmd, width int) {
 	cmd.Env = append(cmd.Env, fmt.Sprintf("COLUMNS=%d", width))
-}
-
-func removeExistingTermEnvVars(env []string) []string {
-	return lo.Filter(env, func(envVar string, _ int) bool {
-		return !isTermEnvVar(envVar)
-	})
-}
-
-// Terminals set a variety of different environment variables
-// to identify themselves to processes. This list should catch the most common among them.
-func isTermEnvVar(envVar string) bool {
-	return strings.HasPrefix(envVar, "TERM=") ||
-		strings.HasPrefix(envVar, "TERM_PROGRAM=") ||
-		strings.HasPrefix(envVar, "TERM_PROGRAM_VERSION=") ||
-		strings.HasPrefix(envVar, "TERMINAL_EMULATOR=") ||
-		strings.HasPrefix(envVar, "TERMINAL_NAME=") ||
-		strings.HasPrefix(envVar, "TERMINAL_VERSION_")
 }

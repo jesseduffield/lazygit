@@ -2,7 +2,7 @@
 
 Custom diff renderers are useful for showing a better rendering of a diff than git's builtin raw diff, and using one is strongly recommended (I personally prefer delta myself, but that's a matter of personal preference). There are three types of diff renderers that lazygit supports:
 
-- **stdin filters**, e.g. [delta](#delta) and [diff-so-fancy](#diff-so-fancy). They take git's raw output as stdin and produce something nicer on stdout, and they are hooked up using git's GIT_PAGER mechanism. (These used to be called "custom pagers" in earlier lazygit versions.)
+- **stdin filters**, e.g. [delta](#delta) and [diff-so-fancy](#diff-so-fancy). They take git's raw output as stdin and produce something nicer on stdout; lazygit pipes git's output into them. (These used to be called "custom pagers" in earlier lazygit versions.)
 - **external diff programs**, e.g. difftastic; these are called using git's `--ext-diff` flag, and they take over diff generation from git completely rather than post-processing git's output.
 - **git's raw output using custom arguments**; mainly useful for `--color-words` (or `--word-diff` if you are color blind).
 
@@ -15,7 +15,7 @@ Fields that are shared by all renderer types:
 
 Fields only for `stdinFilter`:
 
-- **command** The command line to use for `GIT_PAGER`.
+- **command** The command line that git's output is piped into.
 
 - **colorArg** whether you want the `--color=always` arg in your `git diff` command. Some diff renderers want it set to `always`, others want it set to `never`. The default is `always`, since that's what most renderers need.
 
@@ -31,10 +31,15 @@ The `command` of a `stdinFilter` or `extDiff` renderer is a [Go template](https:
 
 - `{{width}}`: the width of the view that the diff is rendered into.
 - `{{colorScheme}}`: `dark` or `light`, depending on whether the terminal has a dark or a light background. Lazygit asks the terminal about this; if yours doesn't tell, set `gui.colorScheme`.
-- `{{columnWidth}}` (only for `stdinFilter`): the width of one side of a side-by-side rendering, e.g. for `ydiff -p cat -s -w {{columnWidth}}`.
+- `{{columnWidth}}` (only for `stdinFilter`): the width of one side of a side-by-side rendering, e.g. for `ydiff -p cat --color=always -s -w {{columnWidth}}`.
 - `{{diffContext}}` (only for `extDiff`): lazygit's current diff context size, the value controlled by the `{`/`}` keybindings.
 
 A variable can also be written with a leading dot, as in `{{.width}}`. The command can use template expressions too; for example, `delta --paging=never {{if gt .width 160}}--side-by-side{{end}}` shows the diff side by side only when there is room for it, or `delta --syntax-theme={{if eq .colorScheme "light"}}Github{{else}}Dracula{{end}}` picks a different syntax theme based on the background.
+
+A diff renderer doesn't run in a terminal; its output reaches lazygit through a pipe. So:
+
+- A renderer that uses colors only when it writes to a terminal has to be told to use them anyway, for example with `--color=always` for difftastic or ydiff.
+- A renderer can't ask a terminal how wide it should lay itself out. Lazygit sets the `COLUMNS` environment variable to the width of the view, which difftastic, diff-so-fancy and recent versions of delta read. For a renderer that doesn't, pass the width with `{{width}}`, for example `delta --width={{width}}`.
 
 Here's an example for a multi-renderer setup:
 
@@ -42,7 +47,7 @@ Here's an example for a multi-renderer setup:
 git:
   diffRenderers:
     - command: delta --{{colorScheme}} --paging=never
-    - command: ydiff -p cat
+    - command: ydiff -p cat --color=always
       colorArg: never
     - type: extDiff
       command: difft --color=always --background={{colorScheme}} --context={{diffContext}}
@@ -87,7 +92,7 @@ gui:
 git:
   diffRenderers:
     - colorArg: never
-      command: ydiff -p cat
+      command: ydiff -p cat --color=always
 ```
 
 ![](https://i.imgur.com/vaa8z0H.png)

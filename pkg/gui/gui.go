@@ -90,11 +90,7 @@ type Gui struct {
 	// holds a mapping of the main section's view names to the writers that link the
 	// files named in the diffstat of what is rendered into them
 	diffStatLinkWriterMap map[string]*helpers.DiffStatLinkWriter
-	// holds a mapping of view names to ptmx's. This is for rendering command outputs
-	// from within a pty. The point of keeping track of them is so that if we re-size
-	// the window, we can tell the pty it needs to resize accordingly.
-	viewPtmxMap map[string]oscommands.Pty
-	stopChan    chan struct{}
+	stopChan              chan struct{}
 
 	// when lazygit is opened outside a git directory we want to open to the most
 	// recent repo with the recent repos popup showing
@@ -235,8 +231,6 @@ func (self *StateAccessor) ClearItemOperation(item types.HasUrn) {
 // things have changed
 type PrevLayout struct {
 	Information string
-	MainWidth   int
-	MainHeight  int
 }
 
 type GuiRepoState struct {
@@ -800,7 +794,6 @@ func NewGui(
 		statusManager:         status.NewStatusManager(),
 		viewBufferManagerMap:  map[string]*tasks.ViewBufferManager{},
 		diffStatLinkWriterMap: map[string]*helpers.DiffStatLinkWriter{},
-		viewPtmxMap:           map[string]oscommands.Pty{},
 		showRecentRepos:       showRecentRepos,
 		RepoPathStack:         &utils.Stack[types.RepoLocation]{},
 		RepoStateMap:          map[Repo]*GuiRepoState{},

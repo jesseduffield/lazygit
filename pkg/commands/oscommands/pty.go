@@ -10,7 +10,6 @@ import (
 // ConPTY on Windows.
 type Pty interface {
 	io.ReadWriteCloser
-	Resize(cols, rows uint16) error
 }
 
 // StartedPty is the result of StartPty.

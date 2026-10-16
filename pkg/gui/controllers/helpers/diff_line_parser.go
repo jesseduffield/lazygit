@@ -95,6 +95,32 @@ func parseAllDiffLinesFromBuffer(bufferLines []string) []bufferLineParse {
 	return result
 }
 
+// fileVersionsOfSections reads the versions of each file that a (possibly multi-file)
+// diff shows, from the header of the file's section (see patch.FileVersions), by the
+// path the section names, relative to the repo root.
+//
+// A section whose header has no index line is left out. git writes one for every
+// section that has lines to select, so a section without one either has none (a
+// submodule, a rename without a content change, a change of the mode alone), or comes
+// from a diff renderer that left the line out. Either way the versions can't be read.
+func fileVersionsOfSections(lines []string) map[string]patch.FileVersions {
+	versions := map[string]patch.FileVersions{}
+	for i := 0; i < len(lines); {
+		if !startsFileSection(lines[i]) {
+			i++
+			continue
+		}
+		end := fileSectionEnd(lines, i)
+		path := pathFromDiffHeader(lines[i:end])
+		sectionVersions := patch.ParseFileVersions(lines[i:end])
+		if path != "" && sectionVersions.OldBlob != "" {
+			versions[path] = sectionVersions
+		}
+		i = end
+	}
+	return versions
+}
+
 // diffLineTexts extracts the text of each rendered row — the material the buffer
 // parser works on.
 func diffLineTexts(contents []gocui.DiffLineContent) []string {
