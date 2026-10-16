@@ -85,6 +85,18 @@ func SafeWithError(f func() error) error {
 	return err
 }
 
+// SafeFunc returns a function that runs f through Safe. Use it for functions
+// that something else runs on a goroutine of its own, such as time.AfterFunc.
+func SafeFunc(f func()) func() {
+	return func() { Safe(f) }
+}
+
+// SafeFuncWithError is like SafeFunc, for functions that return an error, such
+// as the ones passed to errgroup.Group.Go.
+func SafeFuncWithError(f func() error) func() error {
+	return func() error { return SafeWithError(f) }
+}
+
 func StackTrace() string {
 	buf := make([]byte, 10000)
 	n := runtime.Stack(buf, false)
@@ -119,4 +131,25 @@ func ExpandTilde(path string) string {
 		return home
 	}
 	return filepath.Join(home, path[2:])
+}
+
+// ContractTilde is the inverse of ExpandTilde: it replaces the current user's
+// home directory at the start of a path with "~", so that paths can be shown
+// in a shorter form. Paths outside the home directory are left untouched, as
+// is the path if the home directory can't be determined.
+func ContractTilde(path string) string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return path
+	}
+
+	if path == home {
+		return "~"
+	}
+
+	if rest, found := strings.CutPrefix(path, home+string(filepath.Separator)); found {
+		return "~" + string(filepath.Separator) + rest
+	}
+
+	return path
 }

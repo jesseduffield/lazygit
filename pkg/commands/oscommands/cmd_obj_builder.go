@@ -33,6 +33,16 @@ func (self *CmdObjBuilder) New(args []string) *CmdObj {
 	return cmdObj
 }
 
+// NewFromCmd wraps a command that has already been built, for a caller that
+// holds an *exec.Cmd and needs it as a CmdObj. The command itself is shared,
+// not copied, so whatever was set on it still applies.
+func (self *CmdObjBuilder) NewFromCmd(cmd *exec.Cmd) *CmdObj {
+	return &CmdObj{
+		cmd:    cmd,
+		runner: self.runner,
+	}
+}
+
 // A command with explicit environment from env
 func (self *CmdObjBuilder) NewWithEnviron(args []string, env []string) *CmdObj {
 	cmd := exec.Command(args[0], args[1:]...)

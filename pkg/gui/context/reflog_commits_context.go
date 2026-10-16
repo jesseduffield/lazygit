@@ -14,9 +14,14 @@ type ReflogCommitsContext struct {
 }
 
 var (
-	_ types.IListContext    = (*ReflogCommitsContext)(nil)
-	_ types.DiffableContext = (*ReflogCommitsContext)(nil)
+	_ types.IListContext        = (*ReflogCommitsContext)(nil)
+	_ types.DiffableContext     = (*ReflogCommitsContext)(nil)
+	_ types.DiffMainViewContext = (*ReflogCommitsContext)(nil)
 )
+
+func (self *ReflogCommitsContext) GetDiffMainViewType() types.DiffMainViewType {
+	return types.DiffMainViewTypePatchBuilding
+}
 
 func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 	viewModel := NewFilteredListViewModel(
@@ -27,13 +32,10 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 	)
 
 	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
-		commits := viewModel.GetItems()
-		if startIdx >= len(commits) {
-			return nil
-		}
-
 		return presentation.GetReflogCommitListDisplayStrings(
-			commits[startIdx:endIdx],
+			viewModel.GetItems(),
+			startIdx,
+			endIdx,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().CherryPicking.SelectedHashSet(),
 			c.Modes().Diffing.Ref,

@@ -49,6 +49,32 @@ func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key) bool {
 	return matched
 }
 
+func (gui *Gui) menuFilterEditor(v *gocui.View, key gocui.Key) bool {
+	contentBefore := v.TextArea.GetContent()
+
+	matched := gui.handleEditorKeypress(v, key, false)
+	if !matched {
+		// Give the global keybindings a chance at the key, e.g. so that ctrl-c
+		// still quits while a menu is open.
+		return false
+	}
+
+	v.RenderTextArea()
+
+	content := v.TextArea.GetContent()
+	if content == contentBefore {
+		// The key just moved the cursor around within the filter; refiltering would
+		// throw away the menu's selection for nothing.
+		return true
+	}
+
+	menuContext := gui.State.Contexts.Menu
+	menuContext.SetFilterStarted(true)
+	gui.helpers.Search.ApplyFilter(menuContext, content)
+
+	return true
+}
+
 func (gui *Gui) searchEditor(v *gocui.View, key gocui.Key) bool {
 	matched := gui.handleEditorKeypress(v, key, false)
 	v.RenderTextArea()

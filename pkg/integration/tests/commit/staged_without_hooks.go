@@ -34,23 +34,23 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			SelectNextItem().
 			PressPrimaryAction().
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
 		// we start with both lines having been staged
-		t.Views().StagingSecondary().Content(
+		t.Views().Secondary().Content(
 			Contains("+myfile content").Contains("+with a second line"),
 		)
-		t.Views().Staging().Content(
+		t.Views().Main().Content(
 			DoesNotContain("+myfile content").DoesNotContain("+with a second line"),
 		)
 
 		// unstage the selected line
-		t.Views().StagingSecondary().
+		t.Views().Secondary().
 			IsFocused().
 			PressPrimaryAction().
 			Tap(func() {
 				// the line should have been moved to the main view
-				t.Views().Staging().Content(Contains("+myfile content").DoesNotContain("+with a second line"))
+				t.Views().Main().Content(Contains("+myfile content").DoesNotContain("+with a second line"))
 			}).
 			Content(DoesNotContain("+myfile content").Contains("+with a second line")).
 			Press(keys.Files.CommitChangesWithoutHook)
@@ -63,10 +63,9 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains(commitMessage),
 			)
 
-		t.Views().StagingSecondary().
-			IsEmpty()
+		t.Views().Secondary().IsInvisible()
 
-		t.Views().Staging().
+		t.Views().Main().
 			IsFocused().
 			Content(Contains("+myfile content")).
 			Content(DoesNotContain("+with a second line"))

@@ -398,9 +398,9 @@ func (self *WorkingTreeCommands) Exclude(filename string) error {
 }
 
 // WorktreeFileDiff returns the diff of a file
-func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool, cached bool) string {
+func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, mode DiffMode, cached bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := self.WorktreeFileDiffCmdObj(file, plain, cached, file.Names()).RunWithOutput()
+	s, _ := self.WorktreeFileDiffCmdObj(file, mode, cached, file.Names()).RunWithOutput()
 	return s
 }
 
@@ -408,18 +408,14 @@ func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool,
 // in the working tree. node is the item they belong to; all it decides is
 // whether git has to compare against /dev/null, which is the case for a file
 // that isn't in the index yet.
-func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cached bool, paths []string) *oscommands.CmdObj {
-	colorArg := self.diffRendererConfigManager.GetColorArg()
-	if plain {
-		colorArg = "never"
-	}
-
+func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, mode DiffMode, cached bool, paths []string) *oscommands.CmdObj {
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
 
 	cmdArgs := NewGitCmd("diff").
-		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
+		ParseableDiffPrefixes().
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), mode).
 		Arg("--submodule").
-		Arg(fmt.Sprintf("--color=%s", colorArg)).
+		Arg(fmt.Sprintf("--color=%s", mode.colorArg(self.diffRendererConfigManager))).
 		ArgIf(cached, "--cached").
 		ArgIf(noIndex, "--no-index").
 		Arg("--").
@@ -431,29 +427,68 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
+// NestedRepositoryStatusCmdObj returns the command that shows the status of a
+// git repository inside the working tree, for the main view
+func (self *WorkingTreeCommands) NestedRepositoryStatusCmdObj(path string) *oscommands.CmdObj {
+	cmdArgs := NewGitCmd("status").
+		Config("color.status=always").
+		Config("advice.statusHints=false").
+		Dir(path).
+		ToArgv()
+
+	return ForOtherRepo(self.cmd.New(cmdArgs)).DontLog()
+}
+
+// NestedRepositoryHasOwnGitDir reports whether the git repository at the given
+// path of the working tree keeps its git dir inside its directory, so that
+// discarding the directory discards the repository's history too. A submodule
+// or a worktree keeps it elsewhere.
+func (self *WorkingTreeCommands) NestedRepositoryHasOwnGitDir(path string) bool {
+	info, err := os.Stat(filepath.Join(self.repoPaths.worktreePath, path, ".git"))
+	return err == nil && info.IsDir()
+}
+
+// NestedRepositoryHasUncommittedChanges reports whether the git repository at
+// the given path of the working tree has changes that aren't committed,
+// including untracked files
+func (self *WorkingTreeCommands) NestedRepositoryHasUncommittedChanges(path string) (bool, error) {
+	cmdArgs := NewGitCmd("status").
+		Dir(path).
+		Arg("--porcelain", "--untracked-files=normal").
+		ToArgv()
+
+	output, err := ForOtherRepo(self.cmd.New(cmdArgs)).DontLog().RunWithOutput()
+	return strings.TrimSpace(output) != "", err
+}
+
+// UntrackedFilesCmdObj returns the command that lists the untracked files in
+// the given directory, for the main view
+func (self *WorkingTreeCommands) UntrackedFilesCmdObj(dirPath string) *oscommands.CmdObj {
+	cmdArgs := NewGitCmd("ls-files").
+		Arg("--others", "--exclude-standard", "--", dirPath).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).DontLog()
+}
+
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
 // but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
 // For a renamed file, previousPath is the path it was renamed from (empty otherwise);
 // both paths must be passed to git for the rename to be detected.
-func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bool, fileName string, previousPath string, plain bool) (string, error) {
+func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bool, fileName string, previousPath string, mode DiffMode) (string, error) {
 	fileNames := []string{fileName}
 	if previousPath != "" {
 		fileNames = append(fileNames, previousPath)
 	}
-	return self.ShowFileDiffCmdObj(from, to, reverse, fileNames, plain).RunWithOutput()
+	return self.ShowFileDiffCmdObj(from, to, reverse, fileNames, mode).RunWithOutput()
 }
 
-func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, plain bool) *oscommands.CmdObj {
-	colorArg := self.diffRendererConfigManager.GetColorArg()
-	if plain {
-		colorArg = "never"
-	}
-
+func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileNames []string, mode DiffMode) *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("diff").
-		Config("diff.noprefix=false").
-		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), !plain).
+		ParseableDiffPrefixes().
+		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), mode).
 		Arg("--submodule").
-		Arg(fmt.Sprintf("--color=%s", colorArg)).
+		Arg(fmt.Sprintf("--color=%s", mode.colorArg(self.diffRendererConfigManager))).
 		Arg(from).
 		Arg(to).
 		ArgIf(reverse, "-R").
@@ -537,6 +572,42 @@ func (self *WorkingTreeCommands) ResetSoft(ref string) error {
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
+}
+
+// ResetKeep runs `git reset --keep` in the given worktree, which moves the
+// checked out branch to the given ref while keeping local modifications. It
+// fails rather than overwriting a file that differs between the two commits.
+// Pass empty strings for the worktree to use the current one.
+func (self *WorkingTreeCommands) ResetKeep(ref string, worktreeGitDir string, worktreePath string) error {
+	cmdArgs := NewGitCmd("reset").Arg("--keep", ref).
+		GitDirIf(worktreeGitDir != "", worktreeGitDir).
+		WorktreePathIf(worktreePath != "", worktreePath).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
+// Returns whether the given worktree has changes to tracked files, either in
+// its working tree or in its index. Untracked files don't count, and neither do
+// submodules. A submodule that is checked out at a different commit than the
+// one recorded, or that has changes of its own, doesn't get in the way of
+// moving the branch, because moving it leaves the submodules alone. Pass empty
+// strings for the worktree to use the current one.
+func (self *WorkingTreeCommands) HasChangesToTrackedFiles(worktreeGitDir string, worktreePath string) (bool, error) {
+	cmdArgs := NewGitCmd("status").
+		Arg("--porcelain").
+		Arg("--untracked-files=no").
+		Arg("--ignore-submodules").
+		GitDirIf(worktreeGitDir != "", worktreeGitDir).
+		WorktreePathIf(worktreePath != "", worktreePath).
+		ToArgv()
+
+	stdout, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
+	if err != nil {
+		return false, err
+	}
+
+	return stdout != "", nil
 }
 
 func (self *WorkingTreeCommands) ResetMixed(ref string) error {

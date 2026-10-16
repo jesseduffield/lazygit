@@ -131,11 +131,15 @@ variables provide user escape hatches when the automatic path is not reliable:
   terminal responses themselves are problematic.
 - `TCELL_MOUSE=auto|disable` prevents applications from enabling terminal mouse
   reporting.
+- `TCELL_ESCDELAY=<milliseconds>` controls how long tcell waits for a possible
+  escape sequence after receiving Escape. This defaults to 50 ms (125 ms on
+  Windows); increasing it avoids split-sequence input at the cost of delaying a
+  standalone Escape.
 
-Applications can also choose a keyboard protocol with `OptKeyboardProtocol` or
-disable startup negotiation with `OptNegotiation`. Environment variables take
-precedence so users can recover from bad terminal behavior without modifying an
-application.
+Applications can also choose a keyboard protocol with `OptKeyboardProtocol`,
+disable startup negotiation with `OptNegotiation`, or set an escape delay with
+`OptEscapeTimeout`. Environment variables take precedence so users can recover
+from bad terminal behavior without modifying an application.
 
 ## Performance
 
@@ -146,6 +150,14 @@ avoiding repeated sequences or drawing the same cell on refresh updates.
 
 Mouse tracking, buttons, and even wheel mice are supported on most terminal
 emulators, as well as Windows.
+
+On the Linux virtual console, _Tcell_ can receive mouse events through GPM
+when the `gpm` daemon is installed and running.  For example, on Debian or
+Ubuntu systems install it with `apt install gpm`; the daemon provides
+`/dev/gpmctl`, which _Tcell_ uses automatically when available.  If GPM is
+not installed, not running, or the application is not attached to a virtual
+console, mouse enablement remains best-effort and falls back to the usual
+terminal mouse protocols.
 
 ## Bracketed Paste
 

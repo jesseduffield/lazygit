@@ -15,18 +15,16 @@ type Views struct {
 	Commits        *gocui.View
 	Stash          *gocui.View
 
-	Main                   *gocui.View
-	Secondary              *gocui.View
-	Staging                *gocui.View
-	StagingSecondary       *gocui.View
-	PatchBuilding          *gocui.View
-	PatchBuildingSecondary *gocui.View
-	MergeConflicts         *gocui.View
+	Main           *gocui.View
+	Secondary      *gocui.View
+	MergeConflicts *gocui.View
 
 	Options           *gocui.View
 	Confirmation      *gocui.View
 	Prompt            *gocui.View
 	Menu              *gocui.View
+	MenuFilterFrame   *gocui.View
+	MenuFilter        *gocui.View
 	CommitMessage     *gocui.View
 	CommitDescription *gocui.View
 	CommitFiles       *gocui.View

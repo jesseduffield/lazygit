@@ -69,8 +69,12 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	gui.State.Contexts.Menu.SetPrompt(opts.Prompt)
 	gui.State.Contexts.Menu.SetAllowFilteringKeybindings(opts.AllowFilteringKeybindings)
 	gui.State.Contexts.Menu.SetKeybindingsTakePrecedence(!opts.KeepConflictingKeybindings)
+	gui.State.Contexts.Menu.SetFilterAsYouType(opts.FilterAsYouType)
 	gui.State.Contexts.Menu.SetOnCancel(opts.OnCancel)
 	gui.State.Contexts.Menu.SetSelection(0)
+
+	gui.Views.MenuFilter.ClearTextArea()
+	gui.Views.MenuFilter.RenderTextArea()
 
 	gui.Views.Menu.Title = opts.Title
 	gui.Views.Menu.FgColor = theme.GocuiDefaultTextColor
@@ -80,9 +84,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	gui.Views.Tooltip.Visible = true
 
 	// resetting keybindings so that the menu-specific keybindings are registered
-	if err := gui.resetKeybindings(); err != nil {
-		return err
-	}
+	gui.resetKeybindings()
 
 	gui.c.PostRefreshUpdate(gui.State.Contexts.Menu)
 

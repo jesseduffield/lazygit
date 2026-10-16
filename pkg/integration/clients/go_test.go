@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"github.com/creack/pty"
-	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,8 +37,13 @@ func TestIntegration(t *testing.T) {
 	codeCoverageDir := os.Getenv("LAZYGIT_GOCOVERDIR")
 	testNumber := 0
 
-	err := components.RunTests(components.RunTestArgs{
-		Tests:  tests.GetTests(utils.GetLazyRootDirectory()),
+	rootDir, err := utils.FindLazygitRootDirectory()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = components.RunTests(components.RunTestArgs{
+		Tests:  tests.GetTests(rootDir),
 		Logf:   t.Logf,
 		RunCmd: runCmdHeadless,
 		TestWrapper: func(test *components.IntegrationTest, f func() error) {

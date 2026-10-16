@@ -63,6 +63,12 @@ func (b TextStyle) SetBold() TextStyle {
 	return b
 }
 
+func (b TextStyle) SetDim() TextStyle {
+	b.decoration.SetDim()
+	b.Style = b.deriveStyle()
+	return b
+}
+
 func (b TextStyle) SetUnderline() TextStyle {
 	b.decoration.SetUnderline()
 	b.Style = b.deriveStyle()

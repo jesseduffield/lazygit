@@ -33,7 +33,17 @@ func (self *FilterController) Context() types.Context {
 	return self.context
 }
 
+// A context that filters as the user types has an input field of its own, so it
+// has no use for the filter prompt.
+type contextThatFiltersAsYouType interface {
+	FilterAsYouType() bool
+}
+
 func (self *FilterController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	if context, ok := self.context.(contextThatFiltersAsYouType); ok && context.FilterAsYouType() {
+		return nil
+	}
+
 	return []*types.Binding{
 		{
 			Keys:        opts.GetKeys(opts.Config.Universal.StartSearch),
@@ -44,5 +54,6 @@ func (self *FilterController) GetKeybindings(opts types.KeybindingsOpts) []*type
 }
 
 func (self *FilterController) OpenFilterPrompt() error {
-	return self.c.Helpers().Search.OpenFilterPrompt(self.context)
+	self.c.Helpers().Search.OpenFilterPrompt(self.context)
+	return nil
 }

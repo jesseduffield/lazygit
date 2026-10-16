@@ -39,6 +39,15 @@ var NukeWorkingTree = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("")).
 					Select(Contains("Nuke working tree")).
 					Confirm()
-			})
+
+				t.ExpectPopup().Confirmation().
+					Title(Equals("Nuke working tree")).
+					Content(AnyString()).
+					Wait(1000).
+					Confirm()
+			}).
+			// Retries until the explosion animation has played out and the panel has
+			// been refreshed, so that the recording shows both.
+			IsEmpty()
 	},
 })

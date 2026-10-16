@@ -41,6 +41,7 @@ func SimpleEditor(v *View, key Key) bool {
 		key.Equals(NewKeyStrMod("d", ModAlt)):
 		v.TextArea.ForwardDeleteWord()
 	case key.Equals(NewKeyName(KeyBackspace)),
+		key.Equals(NewKey(KeyBackspace, "", ModShift)),
 		key.Equals(NewKeyStrMod("h", ModCtrl)):
 		v.TextArea.BackSpaceChar()
 	case key.Equals(NewKeyStrMod("d", ModCtrl)),
@@ -78,7 +79,7 @@ func SimpleEditor(v *View, key Key) bool {
 		v.TextArea.GoToEndOfLine()
 	case key.Equals(NewKeyStrMod("y", ModCtrl)):
 		v.TextArea.Yank()
-	case key.Str() != "" && key.Mod() == 0:
+	case key.IsPrintable():
 		v.TextArea.TypeCharacter(key.Str())
 	default:
 		return false

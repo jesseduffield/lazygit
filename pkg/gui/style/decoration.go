@@ -4,6 +4,7 @@ import "github.com/gookit/color"
 
 type Decoration struct {
 	bold          bool
+	dim           bool
 	underline     bool
 	reverse       bool
 	strikethrough bool
@@ -11,6 +12,10 @@ type Decoration struct {
 
 func (d *Decoration) SetBold() {
 	d.bold = true
+}
+
+func (d *Decoration) SetDim() {
+	d.dim = true
 }
 
 func (d *Decoration) SetUnderline() {
@@ -26,10 +31,14 @@ func (d *Decoration) SetStrikethrough() {
 }
 
 func (d Decoration) ToOpts() color.Opts {
-	opts := make([]color.Color, 0, 3)
+	opts := make([]color.Color, 0, 5)
 
 	if d.bold {
 		opts = append(opts, color.OpBold)
+	}
+
+	if d.dim {
+		opts = append(opts, color.OpFuzzy)
 	}
 
 	if d.underline {
@@ -50,6 +59,10 @@ func (d Decoration) ToOpts() color.Opts {
 func (d Decoration) Merge(other Decoration) Decoration {
 	if other.bold {
 		d.bold = true
+	}
+
+	if other.dim {
+		d.dim = true
 	}
 
 	if other.underline {

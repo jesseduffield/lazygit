@@ -43,11 +43,6 @@ func (self *ViewTrait) SetContent(content string) {
 	self.view.SetContent(content)
 }
 
-func (self *ViewTrait) SetHighlight(highlight bool) {
-	self.view.Highlight = highlight
-	self.view.HighlightInactive = false
-}
-
 func (self *ViewTrait) SetFooter(value string) {
 	self.view.Footer = value
 }

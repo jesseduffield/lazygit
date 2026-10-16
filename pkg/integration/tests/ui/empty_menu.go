@@ -17,16 +17,19 @@ var EmptyMenu = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Press(keys.Universal.OptionMenu)
 
+		t.ExpectPopup().Menu().
+			// a string that filters everything out
+			Filter("ljasldkjaslkdjalskdjalsdjaslkd")
+
 		t.Views().Menu().
 			IsFocused().
-			// a string that filters everything out
-			FilterOrSearch("ljasldkjaslkdjalskdjalsdjaslkd").
 			IsEmpty().
-			Press(keys.Universal.Select).
+			// space is filter text in this menu, so we confirm with enter
+			Press(keys.Universal.ConfirmMenu).
 			Tap(func() {
 				t.ExpectToast(Equals("Disabled: No item selected"))
 			}).
-			// escape the search
+			// escape the filter
 			PressEscape().
 			// escape the view
 			PressEscape()

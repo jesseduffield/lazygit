@@ -28,6 +28,13 @@ type GuiDriver interface {
 	// user typing faster than lazygit processes the input.
 	PressKeysRapidly(...string)
 	Click(int, int)
+	// Click with a keyboard modifier held down, for the gestures that only exist
+	// as a modified click.
+	ClickWithModifier(int, int, gocui.Modifier)
+	// Two clicks in immediate succession, waiting for lazygit to become idle only
+	// after the second one. If it waited after the first one too, the second click
+	// could come too late to count as a double click.
+	DoubleClick(int, int)
 	ClickAndHold(int, int)
 	MouseMove(int, int)
 	MouseRelease(int, int)
@@ -45,6 +52,8 @@ type GuiDriver interface {
 	FocusInAndClick(int, int)
 	Keys() config.KeybindingConfig
 	CurrentContext() types.Context
+	// Whether the terminal's text cursor is currently shown
+	CursorVisible() bool
 	ContextForView(viewName string) types.Context
 	Fail(message string)
 	// These two log methods are for the sake of debugging while testing. There's no need to actually

@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/samber/lo"
 
 	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -203,61 +201,25 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C
 func (c *OSCommand) PipeCommands(cmdObjs ...*CmdObj) error {
-	cmds := lo.Map(cmdObjs, func(cmdObj *CmdObj, _ int) *exec.Cmd {
-		return cmdObj.GetCmd()
-	})
+	c.logPipeline(cmdObjs)
 
-	logCmdStr := strings.Join(
-		lo.Map(cmdObjs, func(cmdObj *CmdObj, _ int) string {
-			return cmdObj.ToString()
-		}),
-		" | ",
-	)
-
-	c.LogCommand(logCmdStr, true)
-
-	for i := range len(cmds) - 1 {
-		stdout, err := cmds[i].StdoutPipe()
-		if err != nil {
-			return err
-		}
-
-		cmds[i+1].Stdin = stdout
+	cmds, parentEnds, err := wirePipeline(cmdObjs)
+	if err != nil {
+		return err
 	}
-
-	// keeping this here in case I adapt this code for some other purpose in the future
-	// cmds[len(cmds)-1].Stdout = os.Stdout
 
 	stderrs := make([]bytes.Buffer, len(cmds))
 	for i := range cmds {
 		cmds[i].Stderr = &stderrs[i]
 	}
 
-	// Start every command before waiting for any of them: waiting for a command
-	// closes our end of the pipe that feeds the next one, and a command that
-	// hasn't been started by then would inherit a closed stdin.
-	started := 0
-	var startErr error
-	for _, cmd := range cmds {
-		if err := cmd.Start(); err != nil {
-			startErr = err
-			break
-		}
-
-		started++
-	}
+	started, startErr := startPipeline(cmds, parentEnds)
 
 	finalErrors := []string{}
 
 	if startErr != nil {
 		c.Log.Error(startErr)
 		finalErrors = append(finalErrors, startErr.Error())
-
-		// Without the rest of the pipeline to drain them, the commands we did
-		// start could block forever writing to a full pipe.
-		for _, cmd := range cmds[:started] {
-			_ = cmd.Process.Kill()
-		}
 	}
 
 	for i, cmd := range cmds[:started] {

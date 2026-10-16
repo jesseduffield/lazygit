@@ -35,12 +35,12 @@ func NewMergeConflictsContext(
 		viewModel: viewModel,
 		Context: NewSimpleContext(
 			NewBaseContext(NewBaseContextOpts{
-				Kind:             types.MAIN_CONTEXT,
-				View:             c.Views().MergeConflicts,
-				WindowName:       "main",
-				Key:              MERGE_CONFLICTS_CONTEXT_KEY,
-				Focusable:        true,
-				HighlightOnFocus: true,
+				Kind:                 types.MAIN_CONTEXT,
+				View:                 c.Views().MergeConflicts,
+				WindowName:           "main",
+				Key:                  MERGE_CONFLICTS_CONTEXT_KEY,
+				Focusable:            true,
+				HasSelectableContent: true,
 			}),
 		),
 		c: c,

@@ -112,7 +112,6 @@ func (gui *Gui) getRandomTip() string {
 			"In flat file view, merge conflicts are sorted to the top. To switch to flat file view press '%s'",
 			config.Files.ToggleTreeView,
 		),
-		"If you want to learn Go and can think of ways to improve lazygit, join the team! Click 'Ask Question' and express your interest",
 		fmt.Sprintf(
 			"If you press '%s'/'%s' you can undo/redo your changes. Be wary though, this only applies to branches/commits, so only do this if your worktree is clear.\nDocs: %s",
 			config.Universal.Undo,
@@ -202,6 +201,7 @@ func (gui *Gui) getRandomTip() string {
 			"If you ever find a bug, do not hesitate to raise an issue on the repo:\n%s",
 			constants.Links.Issues,
 		),
+		"You can alt-click a line in a diff to open it in your editor. Not all terminals support this; if yours doesn't, try shift-click instead.",
 	}
 
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))

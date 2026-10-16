@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -296,6 +297,8 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		{[]string{"keybinding", "universal", "cyclePagers"}, "cycleDiffRenderers"},
 		{[]string{"keybinding", "universal", "cyclePagersReverse"}, "cycleDiffRenderersReverse"},
 		{[]string{"gui", "windowSize"}, "screenMode"},
+		{[]string{"gui", "wrapLinesInStagingView"}, "wrapLinesInDiffView"},
+		{[]string{"gui", "useHunkModeInStagingView"}, "useHunkModeInDiffView"},
 		{[]string{"keybinding", "files", "openMergeTool"}, "openMergeOptions"},
 	}
 
@@ -309,6 +312,13 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		}
 	}
 
+	// This creates gui.branchColorPatterns, so it must run before the move of
+	// that key into gui.theme below.
+	err = migrateBranchColors(&rootNode, changes)
+	if err != nil {
+		return nil, false, fmt.Errorf("Couldn't migrate config file at `%s`: %w", path, err)
+	}
+
 	pathsToMove := []struct {
 		oldPath []string
 		newPath []string
@@ -316,6 +326,14 @@ func computeMigratedConfig(path string, content []byte, changes *ChangesSet) ([]
 		{
 			[]string{"keybinding", "worktrees", "viewWorktreeOptions"},
 			[]string{"keybinding", "universal", "newWorktree"},
+		},
+		{
+			[]string{"gui", "authorColors"},
+			[]string{"gui", "theme", "authorColors"},
+		},
+		{
+			[]string{"gui", "branchColorPatterns"},
+			[]string{"gui", "theme", "branchColorPatterns"},
 		},
 	}
 
@@ -630,6 +648,43 @@ func migratePagersToDiffRenderers(rootNode *yaml.Node, changes *ChangesSet) erro
 	})
 }
 
+// The deprecated gui.branchColors matched its keys against the part of a branch
+// name before the first slash. Turn each key into a pattern that matches the
+// same branches. If the file has a non-empty gui.branchColorPatterns,
+// gui.branchColors was ignored, so remove it.
+func migrateBranchColors(rootNode *yaml.Node, changes *ChangesSet) error {
+	return yaml_utils.TransformNode(rootNode, []string{"gui"}, func(guiNode *yaml.Node) error {
+		branchColorsKeyNode, branchColorsValueNode := yaml_utils.LookupKey(guiNode, "branchColors")
+		if branchColorsKeyNode == nil || branchColorsValueNode.Kind != yaml.MappingNode {
+			return nil
+		}
+
+		patternsKeyNode, patternsValueNode := yaml_utils.LookupKey(guiNode, "branchColorPatterns")
+		if patternsKeyNode != nil {
+			switch {
+			case patternsValueNode.Kind == yaml.MappingNode && len(patternsValueNode.Content) > 0:
+				yaml_utils.RemoveKey(guiNode, "branchColors")
+				changes.Add("Removed 'gui.branchColors'; it had no effect because 'gui.branchColorPatterns' is set")
+				return nil
+			case patternsValueNode.Kind == yaml.MappingNode || patternsValueNode.Tag == "!!null":
+				yaml_utils.RemoveKey(guiNode, "branchColorPatterns")
+			default:
+				return nil
+			}
+		}
+
+		branchColorsKeyNode.Value = "branchColorPatterns"
+		for i := 0; i < len(branchColorsValueNode.Content)-1; i += 2 {
+			keyNode := branchColorsValueNode.Content[i]
+			keyNode.Value = "^" + regexp.QuoteMeta(keyNode.Value) + "(/|$)"
+			keyNode.Tag = "!!str"
+		}
+		changes.Add("Converted 'gui.branchColors' to 'gui.branchColorPatterns'")
+
+		return nil
+	})
+}
+
 func hasNonNullScalarValue(node *yaml.Node) bool {
 	return node != nil && node.Kind == yaml.ScalarNode && node.Tag != "!!null" && node.Value != ""
 }
@@ -845,11 +900,10 @@ func (c *AppConfig) SaveGlobalUserConfig() {
 // AppState stores data between runs of the app like when the last update check
 // was performed and which other repos have been checked out
 type AppState struct {
-	LastUpdateCheck        int64
-	RecentRepos            []string
-	StartupPopupVersion    int
-	DidShowHunkStagingHint bool
-	LastVersion            string // this is the last version the user was using, for the purpose of showing release notes
+	LastUpdateCheck     int64
+	RecentRepos         []string
+	StartupPopupVersion int
+	LastVersion         string // this is the last version the user was using, for the purpose of showing release notes
 
 	// these are for shell commands typed in directly, not for custom commands in the lazygit config.
 	// For backwards compatibility we keep the old name in yaml files.

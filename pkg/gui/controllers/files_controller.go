@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -21,6 +22,9 @@ type FilesController struct {
 	baseController
 	*ListControllerTrait[*filetree.FileNode]
 	c *ControllerCommon
+
+	// what this panel offers on the diff it shows in the focused main view
+	diffActions *WorkingTreeDiffActions
 }
 
 var _ types.IController = &FilesController{}
@@ -36,6 +40,7 @@ func NewFilesController(
 			c.Contexts().Files.GetSelected,
 			c.Contexts().Files.GetSelectedItems,
 		),
+		diffActions: NewWorkingTreeDiffActions(c),
 	}
 }
 
@@ -132,7 +137,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Keys:              opts.GetKeys(opts.Config.Files.ToggleStagedAll),
 			Handler:           self.toggleStagedAll,
-			GetDisabledReason: self.require(self.anyFilesDisplayed),
+			GetDisabledReason: self.require(self.anyFilesDisplayed, self.canStageAll),
 			Description:       self.c.Tr.ToggleStagedAll,
 			Tooltip:           self.c.Tr.ToggleStagedAllTooltip,
 		},
@@ -271,8 +276,65 @@ func (self *FilesController) GetOnRenderToMain() func() {
 				return
 			}
 
+			if node.File != nil && node.File.DirectoryKind != models.NotADirectory {
+				self.renderDirectoryEntry(node.File)
+				return
+			}
+
 			self.renderWorkingTreeDiff(node)
 		})
+	}
+}
+
+// renderDirectoryEntry renders an entry that git status reports as a whole
+// directory. It explains what the directory is and what to do about it, and
+// below a divider shows the status of the repository that it is, or the files
+// in it if it isn't one.
+func (self *FilesController) renderDirectoryEntry(file *models.File) {
+	self.c.Helpers().MergeConflicts.ResetMergeState()
+
+	placeholders := map[string]string{"path": file.Path}
+	var description string
+	var heading string
+	var cmdObj *oscommands.CmdObj
+	if file.DirectoryKind == models.PlainDirectory {
+		description = utils.ResolvePlaceholderString(self.c.Tr.PlainDirectoryDescription, placeholders)
+		heading = utils.ResolvePlaceholderString(self.c.Tr.PlainDirectoryFiles, placeholders)
+		cmdObj = self.c.Git().WorkingTree.UntrackedFilesCmdObj(file.Path)
+	} else {
+		description = self.nestedRepositoryDescription(file)
+		heading = utils.ResolvePlaceholderString(self.c.Tr.NestedRepositoryStatus, placeholders)
+		cmdObj = self.c.Git().WorkingTree.NestedRepositoryStatusCmdObj(file.Path)
+	}
+
+	prefix := types.PrefixForWidth(func(width int) string {
+		return wrapForReadability(description, width) + "\n\n" + titledRule(heading, width) + "\n\n"
+	})
+	self.renderToMainWithTask(types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix))
+}
+
+// titledRule returns a horizontal line across the given width with a title in
+// it, for dividing a view's content into sections
+func titledRule(title string, width int) string {
+	start := "── " + title + " "
+	return start + strings.Repeat("─", max(width-utils.StringWidth(start), 0))
+}
+
+func (self *FilesController) nestedRepositoryDescription(file *models.File) string {
+	placeholders := self.c.Helpers().WorkingTree.NestedRepositoryPlaceholders(file)
+
+	switch {
+	case file.IsWorktree:
+		return utils.ResolvePlaceholderString(self.c.Tr.WorktreeInsideRepoDescription, placeholders)
+	case file.DirectoryKind == models.RemovedSubmodule:
+		return utils.ResolvePlaceholderString(self.c.Tr.RemovedSubmoduleDescription, placeholders)
+	default:
+		discardHint := self.c.Tr.NestedRepositoryDiscardHint
+		if self.c.Git().WorkingTree.NestedRepositoryHasOwnGitDir(file.Path) {
+			discardHint = self.c.Tr.NestedRepositoryDiscardWarning
+		}
+		return utils.ResolvePlaceholderString(
+			self.c.Tr.NestedRepositoryDescription+"\n\n"+discardHint, placeholders)
 	}
 }
 
@@ -348,7 +410,7 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 	message := self.conflictResolutionHint(node.File.GetMergeStateDescription(self.c.Tr))
 
 	if node.File.ShortStatus == "DU" || node.File.ShortStatus == "UD" {
-		cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()})
+		cmdObj := self.c.Git().Diff.DiffCmdObj([]string{"--base", "--", node.GetPath()}, git_commands.DiffModeRendered)
 		prefix := message + "\n\n"
 		if node.File.ShortStatus == "DU" {
 			prefix += self.c.Tr.MergeConflictIncomingDiff
@@ -356,7 +418,7 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 			prefix += self.c.Tr.MergeConflictCurrentDiff
 		}
 		prefix += "\n\n"
-		self.renderToMainWithTask(types.NewRunPtyTaskWithPrefix(cmdObj.GetCmd(), prefix))
+		self.renderToMainWithTask(types.NewRunDiffRendererTaskWithPrefix(cmdObj.GetCmd(), types.StaticPrefix(prefix)))
 		return
 	}
 
@@ -366,56 +428,52 @@ func (self *FilesController) renderNonTextualConflict(node *filetree.FileNode) {
 func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 	self.c.Helpers().MergeConflicts.ResetMergeState()
 
-	split := self.c.UserConfig().Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
-	mainShowsStaged := !split && node.GetHasStagedChanges()
+	// The unstaged side of a file's diff is shown in the main pane and the staged side
+	// in the secondary one, each only where there is a side to show — so a side is
+	// always in the same place, whatever the file happens to have. A file with nothing
+	// unstaged therefore shows its staged changes in the secondary pane, which then has
+	// the whole section to itself. Configured to always split, both panes are shown
+	// whether or not there is anything on either side.
+	alwaysSplit := self.c.UserConfig().Gui.SplitDiff == "always"
+	showStaged := node.GetHasStagedChanges() || alwaysSplit
+	showUnstaged := node.GetHasUnstagedChanges() || alwaysSplit || !showStaged
+
+	// While the main view is focused to act on this diff, it may have to be git's own
+	// rather than the diff renderer's; both panes have to agree about that.
+	mode := self.c.Helpers().DiffLine.MainViewDiffMode()
 
 	paths := self.pathsForDiff(node)
-	cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, paths)
-	title := self.c.Tr.UnstagedChanges
-	if mainShowsStaged {
-		title = self.c.Tr.StagedChanges
-	}
-	refreshOpts := types.RefreshMainOpts{
-		Pair: self.c.MainViewPairs().Normal,
-		Main: &types.ViewUpdateOpts{
-			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
-			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-			Title:    title,
-		},
-	}
+	refreshOpts := types.RefreshMainOpts{Pair: self.c.MainViewPairs().Normal}
 
-	if split {
-		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, paths)
-
-		title := self.c.Tr.StagedChanges
-		if mainShowsStaged {
-			title = self.c.Tr.UnstagedChanges
+	if showUnstaged {
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, mode, false, paths)
+		refreshOpts.Main = &types.ViewUpdateOpts{
+			Task:           types.NewMainViewDiffTask(cmdObj.GetCmd(), mode),
+			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			Title:          self.c.Tr.UnstagedChanges,
+			NothingToActOn: !node.GetHasUnstagedChanges(),
 		}
+	}
 
+	if showStaged {
+		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, mode, true, paths)
 		refreshOpts.Secondary = &types.ViewUpdateOpts{
-			Title:    title,
-			SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
-			Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+			Task:           types.NewMainViewDiffTask(cmdObj.GetCmd(), mode),
+			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+			Title:          self.c.Tr.StagedChanges,
+			NothingToActOn: !node.GetHasStagedChanges(),
 		}
 	}
 
 	self.c.RenderToMainViews(refreshOpts)
 }
 
-func (self *FilesController) GetOnDoubleClick() func() error {
-	return self.withItemGraceful(func(node *filetree.FileNode) error {
-		return self.press([]*filetree.FileNode{node})
-	})
+func (self *FilesController) GetFocusedMainViewDiffSource() types.FocusedMainViewDiffSource {
+	return self.diffActions
 }
 
-func (self *FilesController) GetOnClickFocusedMainView() func(mainViewName string, clickedLineIdx int) error {
-	return func(mainViewName string, clickedLineIdx int) error {
-		node := self.getSelectedItem()
-		if node != nil && node.File != nil {
-			return self.EnterFile(types.OnFocusOpts{ClickedWindowName: mainViewName, ClickedViewLineIdx: clickedLineIdx})
-		}
-		return nil
-	}
+func (self *FilesController) GetOnDoubleClick() func() error {
+	return self.enter
 }
 
 // if we are dealing with a status for which there is no key in this map,
@@ -721,7 +779,7 @@ func (self *FilesController) getSelectedFile() *models.File {
 }
 
 func (self *FilesController) enter() error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
+	return self.enterFile(-1)
 }
 
 func (self *FilesController) collapseAll() error {
@@ -740,7 +798,10 @@ func (self *FilesController) expandAll() error {
 	return nil
 }
 
-func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
+// enterFile focuses the diff of the selected file, which is where the commands that
+// act on its lines live. clickedViewLineIdx is the row of the diff a click landed on,
+// or -1 when the diff wasn't clicked.
+func (self *FilesController) enterFile(clickedViewLineIdx int) error {
 	node := self.context().GetSelected()
 	if node == nil {
 		return nil
@@ -766,11 +827,7 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return self.switchToMerge()
 	}
 
-	context := lo.Ternary(opts.ClickedWindowName == "secondary", self.c.Contexts().StagingSecondary, self.c.Contexts().Staging)
-	self.c.Context().Push(context, opts)
-	self.c.Helpers().PatchBuilding.ShowHunkStagingHint()
-
-	return nil
+	return focusMainView(self.c, self.context(), clickedViewLineIdx)
 }
 
 // conflictResolutionHint formats a conflict description for the main view,
@@ -779,11 +836,18 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 func (self *FilesController) conflictResolutionHint(description string) string {
 	message := description + "\n\n" + fmt.Sprintf(self.c.Tr.MergeConflictPressEnterToResolve,
 		self.c.UserConfig().Keybinding.Universal.GoInto)
-	if self.c.Views().Main.InnerWidth() > 70 {
-		lines, _, _ := utils.WrapViewLinesToWidth(true, false, message, 70, 4)
-		message = strings.Join(lines, "\n")
+	return wrapForReadability(message, self.c.Views().Main.InnerWidth())
+}
+
+// wrapForReadability wraps a message for the main view when the view is wide
+// enough that long lines would otherwise hurt readability.
+func wrapForReadability(message string, viewWidth int) string {
+	const readableWidth = 70
+	if viewWidth <= readableWidth {
+		return message
 	}
-	return message
+	lines, _, _ := utils.WrapViewLinesToWidth(true, false, message, readableWidth, 4)
+	return strings.Join(lines, "\n")
 }
 
 // conflictNeedsResolutionDialog reports whether a file's merge conflict can only
@@ -807,7 +871,8 @@ func (self *FilesController) conflictNeedsResolutionDialog(file *models.File) bo
 
 // canStageSelection disables staging when a multiple selection includes a file
 // with a conflict that must be resolved through a dialog; those have to be
-// resolved one at a time.
+// resolved one at a time. It also disables it when the selection includes a
+// nested repository.
 func (self *FilesController) canStageSelection(nodes []*filetree.FileNode) *types.DisabledReason {
 	if len(nodes) > 1 {
 		for _, node := range nodes {
@@ -821,6 +886,33 @@ func (self *FilesController) canStageSelection(nodes []*filetree.FileNode) *type
 				}
 			}
 		}
+	}
+
+	for _, node := range nodes {
+		if nestedRepository := node.FindFirstFileBy((*models.File).IsNestedRepository); nestedRepository != nil {
+			return self.c.Helpers().WorkingTree.CantStageNestedRepository(nestedRepository)
+		}
+	}
+
+	return nil
+}
+
+// canStageAll disables staging all files when that would stage a nested
+// repository.
+func (self *FilesController) canStageAll() *types.DisabledReason {
+	var nestedRepository *models.File
+	switch self.stageAllScope() {
+	case stageAllVisibleFiles:
+		nestedRepository = self.context().FileTreeViewModel.GetRoot().FindFirstFileBy((*models.File).IsNestedRepository)
+	case stageAllTrackedFiles:
+		// A nested repository is never tracked
+		return nil
+	default:
+		nestedRepository, _ = lo.Find(self.c.Model().Files, (*models.File).IsNestedRepository)
+	}
+
+	if nestedRepository != nil {
+		return self.c.Helpers().WorkingTree.CantStageNestedRepository(nestedRepository)
 	}
 
 	return nil
@@ -975,22 +1067,44 @@ func (self *FilesController) toggleStagedAll() error {
 	return nil
 }
 
+// What staging all files stages
+type stageAllScope int
+
+const (
+	// Only the files that are visible, because a text filter is active
+	stageAllVisibleFiles stageAllScope = iota
+	// Only tracked files, because only those are shown
+	stageAllTrackedFiles
+	stageAllFiles
+)
+
+func (self *FilesController) stageAllScope() stageAllScope {
+	if self.context().IsFiltering() {
+		return stageAllVisibleFiles
+	}
+	if self.context().GetStatusFilter() == filetree.DisplayTracked {
+		return stageAllTrackedFiles
+	}
+	return stageAllFiles
+}
+
 func (self *FilesController) toggleStagedAllWithLock() error {
 	root := self.context().FileTreeViewModel.GetRoot()
 
 	stage := func(unstagedNodes []*filetree.FileNode) error {
-		if self.context().IsFiltering() {
-			// When filtering, only stage visible files
+		switch self.stageAllScope() {
+		case stageAllVisibleFiles:
 			var paths []string
 			_ = root.ForEachFile(func(file *models.File) error {
 				paths = append(paths, file.Path)
 				return nil
 			})
 			return self.c.Git().WorkingTree.StageFiles(paths, nil)
+		case stageAllTrackedFiles:
+			return self.c.Git().WorkingTree.StageAll(true)
+		default:
+			return self.c.Git().WorkingTree.StageAll(false)
 		}
-
-		onlyTrackedFiles := self.context().GetStatusFilter() == filetree.DisplayTracked
-		return self.c.Git().WorkingTree.StageAll(onlyTrackedFiles)
 	}
 
 	unstage := func(nodes []*filetree.FileNode) error {
@@ -1578,7 +1692,7 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 }
 
 func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
+	return self.enterFile(opts.Y)
 }
 
 func (self *FilesController) fetch() error {
@@ -1738,23 +1852,40 @@ func findSubmoduleNode(nodes []*filetree.FileNode, submodules []*models.Submodul
 	return nil
 }
 
+func findWorktreeNode(nodes []*filetree.FileNode) *models.File {
+	for _, node := range nodes {
+		if worktreeFile := node.FindFirstFileBy(func(f *models.File) bool { return f.IsWorktree }); worktreeFile != nil {
+			return worktreeFile
+		}
+	}
+	return nil
+}
+
 func (self *FilesController) canRemove(selectedNodes []*filetree.FileNode) *types.DisabledReason {
-	// Return disabled if the selection contains multiple changed items and includes a submodule change.
+	// Return disabled if the selection contains multiple changed items and
+	// includes a submodule change or a worktree. These have menus of their own.
 	submodules := self.c.Model().Submodules
 	hasFiles := false
 	uniqueSelectedSubmodules := set.New[*models.SubmoduleConfig]()
+	uniqueSelectedWorktreePaths := set.New[string]()
 
 	for _, node := range selectedNodes {
 		_ = node.ForEachFile(func(f *models.File) error {
 			if submodule := f.SubmoduleConfig(submodules); submodule != nil {
 				uniqueSelectedSubmodules.Add(submodule)
+			} else if f.IsWorktree {
+				uniqueSelectedWorktreePaths.Add(f.Path)
 			} else {
 				hasFiles = true
 			}
 			return nil
 		})
-		if uniqueSelectedSubmodules.Len() > 0 && (hasFiles || uniqueSelectedSubmodules.Len() > 1) {
+		if uniqueSelectedSubmodules.Len() > 0 &&
+			(hasFiles || uniqueSelectedWorktreePaths.Len() > 0 || uniqueSelectedSubmodules.Len() > 1) {
 			return &types.DisabledReason{Text: self.c.Tr.MultiSelectNotSupportedForSubmodules}
+		}
+		if uniqueSelectedWorktreePaths.Len() > 0 && (hasFiles || uniqueSelectedWorktreePaths.Len() > 1) {
+			return &types.DisabledReason{Text: self.c.Tr.MultiSelectNotSupportedForWorktrees}
 		}
 	}
 
@@ -1784,22 +1915,31 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 		return self.c.Menu(types.CreateMenuOptions{Title: submoduleNode.GetPath(), Items: menuItems})
 	}
 
+	// Likewise, if we have a worktree, it is the only thing selected
+	if worktreeFile := findWorktreeNode(selectedNodes); worktreeFile != nil {
+		if worktree, ok := self.c.Helpers().WorkingTree.WorktreeForFile(worktreeFile); ok {
+			return self.c.Helpers().BranchesHelper.RemoveWorktreeMenu(worktree)
+		}
+	}
+
 	discardAllChangesItem := types.MenuItem{
 		Label: self.c.Tr.DiscardAllChanges,
 		OnPress: func() error {
-			self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
+			return self.confirmDiscardingNestedRepositories(selectedNodes, func() error {
+				self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
 
-			if self.context().IsSelectingRange() {
-				defer self.context().CancelRangeSelect()
-			}
+				if self.context().IsSelectingRange() {
+					defer self.context().CancelRangeSelect()
+				}
 
-			nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
-			if err := self.c.Git().WorkingTree.DiscardAllDirChanges(nodes); err != nil {
-				return err
-			}
+				nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
+				if err := self.c.Git().WorkingTree.DiscardAllDirChanges(nodes); err != nil {
+					return err
+				}
 
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
-			return nil
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+				return nil
+			})
 		},
 		Keys: self.c.KeybindingsOpts().GetKeys(self.c.UserConfig().Keybinding.Files.ConfirmDiscard),
 		Tooltip: utils.ResolvePlaceholderString(
@@ -1813,19 +1953,21 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 	discardUnstagedChangesItem := types.MenuItem{
 		Label: self.c.Tr.DiscardUnstagedChanges,
 		OnPress: func() error {
-			self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
+			return self.confirmDiscardingNestedRepositories(selectedNodes, func() error {
+				self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
 
-			if self.context().IsSelectingRange() {
-				defer self.context().CancelRangeSelect()
-			}
+				if self.context().IsSelectingRange() {
+					defer self.context().CancelRangeSelect()
+				}
 
-			nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
-			if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(nodes); err != nil {
-				return err
-			}
+				nodes := lo.Map(selectedNodes, func(n *filetree.FileNode, _ int) git_commands.IFileNode { return n })
+				if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(nodes); err != nil {
+					return err
+				}
 
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
-			return nil
+				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+				return nil
+			})
 		},
 		Keys: menuKey('u'),
 		Tooltip: utils.ResolvePlaceholderString(
@@ -1846,6 +1988,60 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.DiscardChangesTitle, Items: menuItems})
+}
+
+// confirmDiscardingNestedRepositories calls discard, but asks first if
+// discarding the given nodes would discard something of a nested repository in
+// them that can't be restored: the repository itself, if it keeps its git dir
+// inside its directory, or changes that it has that aren't committed.
+func (self *FilesController) confirmDiscardingNestedRepositories(nodes []*filetree.FileNode, discard func() error) error {
+	var nestedRepositories []*models.File
+	for _, node := range nodes {
+		_ = node.ForEachFile(func(file *models.File) error {
+			if file.IsNestedRepository() {
+				nestedRepositories = append(nestedRepositories, file)
+			}
+			return nil
+		})
+	}
+
+	if len(nestedRepositories) == 0 {
+		return discard()
+	}
+
+	return self.c.WithWaitingStatus(self.c.Tr.CheckingNestedRepositories, func(gocui.Task) error {
+		var losses []string
+		for _, file := range nestedRepositories {
+			placeholders := map[string]string{"path": file.Path}
+			if self.c.Git().WorkingTree.NestedRepositoryHasOwnGitDir(file.Path) {
+				losses = append(losses, utils.ResolvePlaceholderString(
+					self.c.Tr.NestedRepositoryHistoryWouldBeLost, placeholders))
+				continue
+			}
+
+			// If we can't tell, assume that there are changes, so that we ask
+			hasChanges, err := self.c.Git().WorkingTree.NestedRepositoryHasUncommittedChanges(file.Path)
+			if hasChanges || err != nil {
+				losses = append(losses, utils.ResolvePlaceholderString(
+					self.c.Tr.NestedRepositoryChangesWouldBeLost, placeholders))
+			}
+		}
+
+		self.c.OnUIThread(func() error {
+			if len(losses) == 0 {
+				return discard()
+			}
+
+			self.c.Confirm(types.ConfirmOpts{
+				Title:         self.c.Tr.DiscardChangesTitle,
+				Prompt:        self.c.Tr.DiscardNestedRepositoriesPrompt + "\n\n- " + strings.Join(losses, "\n- "),
+				HandleConfirm: discard,
+			})
+			return nil
+		})
+
+		return nil
+	})
 }
 
 func (self *FilesController) ResetSubmodule(submodule *models.SubmoduleConfig) error {

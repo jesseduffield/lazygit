@@ -63,6 +63,20 @@ func (self *Node[T]) GetInternalPath() string {
 	return self.path
 }
 
+// This returns the logical paths of all the directories that this node stands
+// for, from the user's point of view like GetPath. For most nodes that's just
+// its own path. A compressed node (see CompressionLevel) also stands for the
+// directories that were squished into it, so for "a/b/c" with a
+// CompressionLevel of 2 this returns "a/b/c", "a/b" and "a".
+func (self *Node[T]) GetPaths() []string {
+	splitPath := split(self.path)
+	paths := make([]string, 0, self.CompressionLevel+1)
+	for i := 0; i <= self.CompressionLevel; i++ {
+		paths = append(paths, strings.TrimPrefix(join(splitPath[:len(splitPath)-i]), "./"))
+	}
+	return paths
+}
+
 func (self *Node[T]) Sort(cmp func(a, b *Node[T]) int) {
 	self.SortChildren(cmp)
 

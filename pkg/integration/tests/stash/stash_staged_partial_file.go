@@ -19,9 +19,10 @@ var StashStagedPartialFile = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Files().
 			IsFocused().
-			PressEnter()
+			Press(keys.Universal.FocusMainView)
 
-		t.Views().Staging().
+		t.Views().Main().
+			IsFocused().
 			Content(
 				Contains(" line1\n-line2\n+line2 mod\n line3\n-line4\n+line4 mod"),
 			).

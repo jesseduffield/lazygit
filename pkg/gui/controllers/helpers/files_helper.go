@@ -46,8 +46,16 @@ func (self *FilesHelper) EditFileAtLineAndWait(filename string, lineNumber int) 
 
 	// Always suspend, regardless of the value of the suspend config,
 	// since we want to prevent interacting with the UI until the editor
-	// returns, even if the editor doesn't use the terminal
-	return self.callEditor(cmdStr, true)
+	// returns, even if the editor doesn't use the terminal.
+	//
+	// And nothing is refreshed here; that is why this doesn't go through
+	// callEditor. The editor was handed a patch we wrote for it, so the repo
+	// hasn't changed when it returns; it changes when the caller applies what
+	// came back. A refresh in between reads the state from before that, and
+	// then races the caller's own refresh to publish it.
+	_, err = self.c.RunSubprocess(
+		self.c.OS().Cmd.NewShell(cmdStr, self.c.UserConfig().OS.ShellFunctionsFile))
+	return err
 }
 
 func (self *FilesHelper) OpenDirInEditor(path string) error {

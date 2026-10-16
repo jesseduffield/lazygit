@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -262,10 +261,6 @@ func (self *CommitFileTreeViewModel) IsFiltering() bool {
 
 // used for type switch
 func (self *CommitFileTreeViewModel) IsFilterableContext() {}
-
-func (self *CommitFileTreeViewModel) FilterPrefix(tr *i18n.TranslationSet) string {
-	return tr.FilterPrefix
-}
 
 func (self *CommitFileTreeViewModel) GetSearchHistory() *utils.HistoryBuffer[string] {
 	return self.searchHistory

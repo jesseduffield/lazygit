@@ -14,7 +14,7 @@ type ModeHelper struct {
 	c *HelperCommon
 
 	diffHelper                   *DiffHelper
-	patchBuildingHelper          *PatchBuildingHelper
+	customPatchHelper            *CustomPatchHelper
 	cherryPickHelper             *CherryPickHelper
 	mergeAndRebaseHelper         *MergeAndRebaseHelper
 	bisectHelper                 *BisectHelper
@@ -24,7 +24,7 @@ type ModeHelper struct {
 func NewModeHelper(
 	c *HelperCommon,
 	diffHelper *DiffHelper,
-	patchBuildingHelper *PatchBuildingHelper,
+	customPatchHelper *CustomPatchHelper,
 	cherryPickHelper *CherryPickHelper,
 	mergeAndRebaseHelper *MergeAndRebaseHelper,
 	bisectHelper *BisectHelper,
@@ -32,7 +32,7 @@ func NewModeHelper(
 	return &ModeHelper{
 		c:                    c,
 		diffHelper:           diffHelper,
-		patchBuildingHelper:  patchBuildingHelper,
+		customPatchHelper:    customPatchHelper,
 		cherryPickHelper:     cherryPickHelper,
 		mergeAndRebaseHelper: mergeAndRebaseHelper,
 		bisectHelper:         bisectHelper,
@@ -71,9 +71,9 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 				return self.withResetButton(self.c.Tr.BuildingPatch, style.FgYellow.SetBold())
 			},
 			CancelLabel: func() string {
-				return self.c.Tr.ExitCustomPatchBuilder
+				return self.c.Tr.ResetCustomPatch
 			},
-			Reset: self.patchBuildingHelper.Reset,
+			Reset: self.customPatchHelper.Reset,
 		},
 		{
 			IsActive: self.c.Modes().Filtering.Active,

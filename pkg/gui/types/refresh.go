@@ -16,8 +16,6 @@ const (
 	WORKTREES
 	STATUS
 	SUBMODULES
-	STAGING
-	PATCH_BUILDING
 	MERGE_CONFLICTS
 	COMMIT_FILES
 	// not actually views. Will refactor this later

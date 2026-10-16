@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
@@ -60,6 +61,18 @@ func (self *TestDriver) click(x, y int) {
 	self.Wait(self.inputDelay)
 }
 
+func (self *TestDriver) doubleClick(x, y int) {
+	self.SetCaption(fmt.Sprintf("Double-clicking %d, %d", x, y))
+	self.gui.DoubleClick(x, y)
+	self.Wait(self.inputDelay)
+}
+
+func (self *TestDriver) clickWithModifier(x, y int, modifier gocui.Modifier, what string) {
+	self.SetCaption(fmt.Sprintf("%s-clicking %d, %d", what, x, y))
+	self.gui.ClickWithModifier(x, y, modifier)
+	self.Wait(self.inputDelay)
+}
+
 func (self *TestDriver) clickAndHold(x, y int) {
 	self.SetCaption(fmt.Sprintf("Clicking and holding %d, %d", x, y))
 	self.mouseX, self.mouseY = x, y
@@ -95,6 +108,24 @@ func (self *TestDriver) mouseRelease() {
 // You probably shouldn't use this function, and should instead go through a view like t.Views().Commit().Focus().Press(...)
 func (self *TestDriver) GlobalPress(key config.Keybinding) {
 	self.press(key[0])
+}
+
+// asserts that the terminal's text cursor is shown, i.e. that there is a text
+// field to type into
+func (self *TestDriver) CursorIsVisible() *TestDriver {
+	self.assertWithRetries(func() (bool, string) {
+		return self.gui.CursorVisible(), "Expected the cursor to be visible"
+	})
+
+	return self
+}
+
+func (self *TestDriver) CursorIsHidden() *TestDriver {
+	self.assertWithRetries(func() (bool, string) {
+		return !self.gui.CursorVisible(), "Expected the cursor to be hidden"
+	})
+
+	return self
 }
 
 // FocusIn simulates the terminal window regaining focus, which causes lazygit

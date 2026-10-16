@@ -16,6 +16,7 @@ package tcell
 
 import (
 	"sync"
+	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v3/color"
 )
@@ -38,6 +39,14 @@ type Screen interface {
 	// The effect of filling the screen is not visible until Show
 	// is called (or Sync).
 	Fill(rune, Style)
+
+	// FillArea fills a rectangular region of the screen with the given
+	// character and style.  The region starts at column x, row y and
+	// extends width columns to the right and height rows down.  Any part
+	// of the region outside the screen is ignored, so it's safe to pass
+	// coordinates that overflow the screen.  Like Fill, the change is not
+	// visible until Show (or Sync) is called.
+	FillArea(x int, y int, width int, height int, r rune, style Style)
 
 	// Put writes the first grapheme of the given string with th
 	// given style at the given coordinates. (Only the first grapheme
@@ -384,6 +393,8 @@ type screenImpl interface {
 
 type baseScreen struct {
 	screenImpl
+	// Content strings are shared by cells and protected by the screen lock.
+	contentCache map[string]string
 }
 
 func (b *baseScreen) Put(x int, y int, str string, style Style) (remain string, width int) {
@@ -426,8 +437,47 @@ func (b *baseScreen) Fill(r rune, style Style) {
 	b.Unlock()
 }
 
+func (b *baseScreen) FillArea(x, y, width, height int, r rune, style Style) {
+	cb := b.GetCells()
+	b.Lock()
+	cb.FillArea(x, y, width, height, r, style)
+	b.Unlock()
+}
+
 func (b *baseScreen) SetContent(x, y int, mainc rune, combc []rune, style Style) {
-	b.Put(x, y, string(append([]rune{mainc}, combc...)), style)
+	cells := b.GetCells()
+	b.Lock()
+	defer b.Unlock()
+	if x < 0 || y < 0 || x >= cells.w || y >= cells.h {
+		return
+	}
+
+	var scratch [64]byte
+	buf := utf8.AppendRune(scratch[:0], mainc)
+	for _, r := range combc {
+		buf = utf8.AppendRune(buf, r)
+	}
+
+	var str string
+	if curr := cells.cells[y*cells.w+x].currStr; curr == string(buf) {
+		// Comparing a temporary byte-to-string conversion does not allocate.
+		// Reuse the cell's string without looking it up in the cache.
+		str = curr
+	} else if len(buf) == 1 {
+		// Go shares static storage for one-byte string conversions, so ASCII
+		// needs neither a cache entry nor an explicit lookup table.
+		str = string(buf)
+	} else if cached, ok := b.contentCache[string(buf)]; ok {
+		// A temporary byte-to-string map lookup also avoids allocation.
+		str = cached
+	} else {
+		str = string(buf)
+		if b.contentCache == nil {
+			b.contentCache = make(map[string]string)
+		}
+		b.contentCache[str] = str
+	}
+	cells.Put(x, y, str, style)
 }
 
 func (b *baseScreen) Get(x, y int) (string, Style, int) {

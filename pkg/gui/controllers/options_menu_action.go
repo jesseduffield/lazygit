@@ -27,7 +27,7 @@ func (self *OptionsMenuAction) Call() error {
 				if binding.GetDisabledReason != nil {
 					disabledReason = binding.GetDisabledReason()
 				}
-				tooltip := binding.Tooltip
+				tooltip := binding.GetTooltip()
 				if len(binding.Keys) > 1 {
 					if tooltip != "" {
 						tooltip += "\n\n"
@@ -64,6 +64,7 @@ func (self *OptionsMenuAction) Call() error {
 		ColumnAlignment:            []utils.Alignment{utils.AlignRight, utils.AlignLeft},
 		AllowFilteringKeybindings:  true,
 		KeepConflictingKeybindings: true,
+		FilterAsYouType:            true,
 	})
 }
 

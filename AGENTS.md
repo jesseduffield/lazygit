@@ -63,7 +63,9 @@ Prefer a fine-grained commit history. Commits should be as small as possible
 while still being meaningful and self-contained.
 
 - **Every commit must compile and pass all tests.** No "WIP" commits, no
-  commits that leave the tree broken and rely on a follow-up to fix it.
+  commits that leave the tree broken and rely on a follow-up to fix it. A
+  `fixup!` is not such a follow-up; see "Iterate with `fixup!` commits" for
+  what one may leave broken until it is folded in.
 - **Every commit must be `gofumpt`-formatted.** Run `just format` before
   committing.
 - **Every commit must be lint-clean.** Run `just lint` before committing —
@@ -82,6 +84,17 @@ while still being meaningful and self-contained.
   excuse bundling it in. Before committing, review your diff and split out any
   hunk that is behavior-preserving (an extraction, a rename, a move) into a
   preceding commit, by staging hunks or resetting and recommitting in order.
+- **A preparatory refactor is a new commit only when it prepares something
+  new.** Before adding one, find the commit that introduced the code you are
+  about to restructure. If that commit is on this branch, the refactor is a
+  `fixup!` for it rather than a commit of its own: a branch must never contain
+  a commit whose code a later commit on the same branch tidies up. A prep
+  refactor earns a commit of its own only when the shape it corrects came from
+  before the branch. This holds across a branch stack too — if the commit that
+  introduced the code is in an earlier branch of the stack, the fixup belongs
+  there, and the branches above it get replayed. The one exception is when
+  fixing it there turns out to be unreasonably difficult; ask me what to do
+  rather than deciding to leave the repair at the tip.
 - **Do not use conventional commits** (no `feat:`/`fix:`/`chore:` prefixes).
   Match the plain English imperative style of the existing history.
 - **Wrap message body to 72 characters**. The subject is allowed to go up to 80
@@ -109,6 +122,10 @@ separate, reviewable commit that the user decides when to fold in. A bare
 `--amend` rewrites the commit on the spot and skips that checkpoint. Don't
 treat "I'm only touching the tip commit" as an exception.
 
+Always use `fixup!` or `amend!` commits, never amend changes directly, even if
+you naturally would because "the branch isn't pushed yet". The user always wants
+to review what you changed, so make this transparent; no exceptions.
+
 **When the tip is the wrong place for a fixup, insert it mid-branch.**
 Committing a fixup at the tip of the branch only works while the code it
 touches still looks the same there; once later commits have rewritten that
@@ -118,6 +135,32 @@ target, make the change, `git commit --fixup=<target>`, then
 `git rebase --onto <the fixup> <target> <branch>` to replay the rest of the
 branch. The fixup stays a separate, reviewable commit; only its position
 changes.
+
+**A fixup may leave commits before it broken until it is folded in.** If a
+`fixup!` on an early commit deletes something that a later commit still uses,
+the later commit doesn't build until its own `fixup!`, right behind it, catches
+up; the same goes for lint. That is expected. The rules above about every
+commit compiling, testing and linting clean describe the history _after_
+autosquash, and I fold fixups in soon after reviewing them. Never amend a
+commit directly, or edit the commits between two fixups, to keep every commit
+of the un-squashed history green. The reviewable fixup is worth more than a
+green intermediate state. Verify at each fixup instead, since the tree there
+is what the folded-in history will have at that point, and say in the handoff
+which commits stay broken until which fixup.
+
+**After a mid-stack fixup, check every branch tip above it, not just the stack
+tip.** A fixup that deletes or renames something rewrites every commit replayed
+above it, and a commit further up can hide the damage at the tip. A helper
+whose last caller the fixup deleted is flagged as unused by `just lint` at the
+tip of its own PR, but a later PR that calls it again makes the stack tip lint
+clean. Each PR is reviewed and merged on its own, so each PR branch tip has to
+be green on its own. After the replay, run `just build`, `just unit-test` and
+`just lint` at each branch tip from the insertion point up. If the fixup deleted
+or renamed a symbol, also build every replayed commit, for example with
+`git -c rebase.autosquash=false rebase -x 'go build ./...' <insertion point>`;
+unchanged commits are fast-forwarded, so their hashes stay, and the commits a
+fixup is expected to leave broken stop it, so `git rebase --continue` past
+those.
 
 If the changes don't map cleanly onto existing commits — say they cut
 across several of them, or restructure something at a different layer
@@ -165,7 +208,7 @@ looks messy. The whole point of a fixup is that the iteration stays
 **visible and reviewable**; squashing it away yourself destroys exactly the
 artifact it exists to create. Collapsing fixups into their targets is the
 user's action, taken once they've reviewed the iterations. Every mention of
-`--autosquash` in this section describes what the *user* will eventually
+`--autosquash` in this section describes what the _user_ will eventually
 run, never a step for you to perform. If you think the history is ready to
 collapse, say so and leave it to them.
 
@@ -305,7 +348,7 @@ refactor to an earlier commit (but don't do it without asking first).
 ## Don't read model state right after a `Refresh`
 
 A `Refresh` (or `RefreshFromWorker`) does its git work on a worker and then
-*enqueues* the model update onto the UI thread. So when `Refresh` returns, the
+_enqueues_ the model update onto the UI thread. So when `Refresh` returns, the
 model is **not** updated yet — the write is still queued. Reading a field
 synchronously right after refreshing its scope reads the stale, pre-refresh
 value (and this is true even for SYNC refreshes):
@@ -391,7 +434,7 @@ column. Applies only to `pkg/i18n/english.go`.
 
 ## Code comments are for future readers, not development history
 
-Comments in source code explain *why this code is shaped the way it is*. They
+Comments in source code explain _why this code is shaped the way it is_. They
 are not the place to narrate the path we took during development — what was
 tried first, what didn't work, what's "more reliable" or "cleaner" than some
 alternative. That framing is interesting in the moment, but it's noise to
@@ -407,7 +450,7 @@ Avoid phrasings like:
 - "X rather than Y", where Y is what the code did before the change
 
 The iteration story is sometimes worth preserving — but it belongs in the
-commit message, which is the durable record of *why this change was made*. The
+commit message, which is the durable record of _why this change was made_. The
 code comment should make sense to someone who has never seen any prior version
 and is just trying to understand the file as it currently exists.
 
@@ -460,7 +503,7 @@ So:
   struct, run `just generate` and include the regenerated
   `docs-master/Config.md` (and `schema-master/config.json`) in your commit.
 - Don't hard-wrap the doc comments on `userConfig` fields. This applies
-  *only* to `userConfig`, because those comments are fed through the doc
+  _only_ to `userConfig`, because those comments are fed through the doc
   generator; comments on every other struct follow the normal Go wrapping
   conventions. For `userConfig` fields, write each sentence (or paragraph)
   as a single unwrapped line, however long — the generator re-wraps them for

@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	lazycoreUtils "github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -44,6 +44,14 @@ func (self *fakeGuiDriver) PressKeysRapidly(keys ...string) {
 }
 
 func (self *fakeGuiDriver) Click(x, y int) {
+	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
+}
+
+func (self *fakeGuiDriver) ClickWithModifier(x, y int, modifier gocui.Modifier) {
+	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
+}
+
+func (self *fakeGuiDriver) DoubleClick(x, y int) {
 	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
 }
 
@@ -86,6 +94,10 @@ func (self *fakeGuiDriver) Keys() config.KeybindingConfig {
 
 func (self *fakeGuiDriver) CurrentContext() types.Context {
 	return nil
+}
+
+func (self *fakeGuiDriver) CursorVisible() bool {
+	return false
 }
 
 func (self *fakeGuiDriver) ContextForView(viewName string) types.Context {
@@ -196,18 +208,23 @@ func TestViewDriverPointerCoordinates(t *testing.T) {
 
 	viewDriver.
 		Click(1, 2).
+		AltClick(2, 3).
+		ShiftClick(4, 5).
 		FocusInAndClick(3, 4).
+		DoubleClick(6, 7).
 		ClickAndHold(5, 6).
 		MouseMove(7, 8).
 		MouseMoveToBottom(9).
 		MouseMoveToView(targetViewDriver, 10, 11).
 		ScrollWheelDown()
 
-	assert.Equal(t, []coordinate{{12, 23}, {14, 25}}, guiDriver.clickedCoordinates)
+	assert.Equal(t,
+		[]coordinate{{12, 23}, {13, 24}, {15, 26}, {14, 25}, {17, 28}},
+		guiDriver.clickedCoordinates)
 	assert.Equal(t, []coordinate{{16, 27}}, guiDriver.heldCoordinates)
 	assert.Equal(t, []coordinate{{18, 29}, {20, 30}, {51, 62}}, guiDriver.movedCoordinates)
 	assert.Equal(t, []coordinate{{11, 21}}, guiDriver.scrolledCoordinates)
-	assert.Equal(t, 7, guiDriver.onUIThreadCallCount)
+	assert.Equal(t, 10, guiDriver.onUIThreadCallCount)
 }
 
 func TestFailingFixture(t *testing.T) {
@@ -223,7 +240,12 @@ func TestFailingFixture(t *testing.T) {
 	paths := NewPaths(t.TempDir())
 	assert.NoError(t, os.MkdirAll(paths.ActualRepo(), 0o777))
 
-	workingDir, err := createFixture(test, paths, lazycoreUtils.GetLazyRootDirectory())
+	rootDir, err := utils.FindLazygitRootDirectory()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	workingDir, err := createFixture(test, paths, rootDir)
 
 	assert.ErrorContains(t, err, "git checkout no-such-branch")
 	assert.Empty(t, workingDir)

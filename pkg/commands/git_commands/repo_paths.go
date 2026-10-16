@@ -81,6 +81,19 @@ func (self *RepoPaths) GitLocationEnvVars() []string {
 	return self.gitLocationEnvVars
 }
 
+// Returns the path of the worktree or of the worktree's git dir if it no longer
+// exists. This happens if the repo or the worktree is deleted while lazygit is
+// running.
+func (self *RepoPaths) MissingDir() (string, bool) {
+	for _, path := range []string{self.worktreePath, self.worktreeGitDirPath} {
+		if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+			return path, true
+		}
+	}
+
+	return "", false
+}
+
 // Returns the repo paths for a typical repo
 func MockRepoPaths(currentPath string) *RepoPaths {
 	return &RepoPaths{
@@ -271,13 +284,13 @@ func callGitRevParseWithDir(
 	return runGitRevParse(newGitRevParseCmd(cmd, dir, gitRevArgs...))
 }
 
-// Asks git about a repo that isn't the one we have open; see forOtherRepo.
+// Asks git about a repo that isn't the one we have open; see ForOtherRepo.
 func callGitRevParseInOtherRepo(
 	cmd oscommands.ICmdObjBuilder,
 	dir string,
 	gitRevArgs ...string,
 ) (string, error) {
-	return runGitRevParse(forOtherRepo(newGitRevParseCmd(cmd, dir, gitRevArgs...)))
+	return runGitRevParse(ForOtherRepo(newGitRevParseCmd(cmd, dir, gitRevArgs...)))
 }
 
 func newGitRevParseCmd(
@@ -299,4 +312,35 @@ func runGitRevParse(gitCmd *oscommands.CmdObj) (string, error) {
 		return "", errors.Errorf("'%s' failed: %v", gitCmd.ToString(), err)
 	}
 	return strings.TrimSpace(res), nil
+}
+
+// GitDirOfRepo returns the directory that holds the git data of the repo at
+// repoPath, and whether it could be found. An ordinary repo keeps that data in
+// a .git directory; a worktree and a submodule have a .git file naming the
+// directory instead.
+func GitDirOfRepo(repoPath string) (string, bool) {
+	gitDirPath := filepath.Join(repoPath, ".git")
+
+	stat, err := os.Stat(gitDirPath)
+	if err != nil {
+		return "", false
+	}
+	if stat.IsDir() {
+		return gitDirPath, true
+	}
+
+	content, err := os.ReadFile(gitDirPath)
+	if err != nil {
+		return "", false
+	}
+	gitDir, ok := strings.CutPrefix(strings.TrimSpace(string(content)), "gitdir: ")
+	if !ok {
+		return "", false
+	}
+	// A relative name is relative to the repo. Git writes one for a submodule,
+	// and for a worktree created with --relative-paths.
+	if !filepath.IsAbs(gitDir) {
+		gitDir = filepath.Join(repoPath, gitDir)
+	}
+	return gitDir, true
 }

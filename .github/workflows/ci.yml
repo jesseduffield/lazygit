@@ -1,7 +1,7 @@
 name: Continuous Integration
 
 env:
-  GO_VERSION: 1.25
+  GO_VERSION: 1.26.x
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v7
         with:
-          go-version: 1.25.x
+          go-version: ${{ env.GO_VERSION }}
       - name: Test code
         # we're passing -short so that we skip the integration tests, which will be run in parallel below
         run: |
@@ -95,7 +95,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v7
         with:
-          go-version: 1.25.x
+          go-version: ${{ env.GO_VERSION }}
       - name: Print git version
         run: git --version
       - name: Test code
@@ -132,7 +132,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v7
         with:
-          go-version: 1.25.x
+          go-version: ${{ env.GO_VERSION }}
       - name: Build linux binary
         run: |
           GOOS=linux go build
@@ -159,7 +159,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v7
         with:
-          go-version: 1.25.x
+          go-version: ${{ env.GO_VERSION }}
       - name: Check Vendor Directory
         # ensure our vendor directory matches up with our go modules
         run: |
@@ -185,7 +185,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v7
         with:
-          go-version: 1.25.x
+          go-version: ${{ env.GO_VERSION }}
       - name: Check formatting
         run: ./scripts/gofumpt-check.sh
       - name: Lint
@@ -208,7 +208,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v7
         with:
-          go-version: 1.25.x
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Download all coverage artifacts
         uses: actions/download-artifact@v8

@@ -11,7 +11,7 @@ var Highlight = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().Git.Log.ShowGraph = "always"
-		config.GetUserConfig().Gui.AuthorColors = map[string]string{
+		config.GetUserConfig().Gui.Theme.AuthorColors = map[string]string{
 			"CI": "red",
 		}
 	},

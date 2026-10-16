@@ -19,6 +19,9 @@ type Worktree struct {
 	// * the worktree is mid-rebase on the branch
 	// * the worktree is mid-bisect on the branch
 	Branch string
+	// If true, the worktree is mid-rebase or mid-bisect on Branch, so its HEAD
+	// is detached rather than pointing at the branch
+	IsRebasingOrBisecting bool
 	// The HEAD sha of the worktree. Always populated (even when Branch is set).
 	// Used for display when Branch is empty (detached HEAD state).
 	Head string

@@ -97,6 +97,7 @@
               # Go toolchain
               go
               gotools
+              gopls
 
               # Development tools
               git

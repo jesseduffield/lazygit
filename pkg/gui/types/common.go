@@ -72,6 +72,10 @@ type IGuiCommon interface {
 	// return the view buffer manager for the given view, or nil if it doesn't have one
 	GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
 
+	// return the view buffer manager for the given view, making one if the view has
+	// never rendered anything, for saying something about a render still to come
+	GetOrCreateViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
+
 	// read enough lines into the given view's buffer to fill it at its current
 	// scroll position, plus some read-ahead for smooth scrolling
 	ReadLinesToFillView(view *gocui.View)
@@ -158,7 +162,7 @@ type IGuiCommon interface {
 	KeybindingsOpts() KeybindingsOpts
 	CallKeybindingHandler(binding *Binding) error
 
-	ResetKeybindings() error
+	ResetKeybindings()
 
 	// hopefully we can remove this once we've moved all our keybinding stuff out of the gui god struct.
 	GetInitialKeybindingsWithCustomCommands() ([]*Binding, []*gocui.ViewMouseBinding)
@@ -226,6 +230,11 @@ type CreateMenuOptions struct {
 	ColumnAlignment            []utils.Alignment
 	AllowFilteringKeybindings  bool
 	KeepConflictingKeybindings bool // if true, the keybindings that match essential bindings such as confirm or return will not be removed from menu items
+	// if true, the menu has a filter row of its own and filters its items as the
+	// user types, instead of being filtered through the search prompt. Only for
+	// menus whose items don't have keybindings of their own, because those keys
+	// would clash with typing.
+	FilterAsYouType bool
 }
 
 type CreatePopupPanelOpts struct {
@@ -317,6 +326,12 @@ type MenuItem struct {
 
 	// alternative to Label. Allows specifying columns which will be auto-aligned
 	LabelColumns []string
+
+	// The strings that filtering the menu matches against, for menus that
+	// abbreviate their columns to keep them narrow. If nil, LabelColumns are
+	// matched, so that a menu only needs to set this if what it displays is not
+	// the full text.
+	FilterColumns []string
 
 	OnPress func() error
 
@@ -463,8 +478,8 @@ type IRepoStateAccessor interface {
 	SetScreenMode(ScreenMode)
 	InSearchPrompt() bool
 	GetSearchState() *SearchState
-	SetSplitMainPanel(bool)
-	GetSplitMainPanel() bool
+	SetMainPanes(MainPanes)
+	GetMainPanes() MainPanes
 	GetMergeOrRebaseStartedInLazygit() bool
 	SetMergeOrRebaseStartedInLazygit(bool)
 }
@@ -488,3 +503,17 @@ const (
 	SCREEN_HALF
 	SCREEN_FULL
 )
+
+// Returning this error from a handler quits lazygit like gocui.ErrQuit does,
+// and then prints the message in the terminal.
+type ErrQuitWithMessage struct {
+	Message string
+}
+
+func (e ErrQuitWithMessage) Error() string {
+	return e.Message
+}
+
+func (e ErrQuitWithMessage) Unwrap() error {
+	return gocui.ErrQuit
+}
