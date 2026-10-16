@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/samber/lo"
 )
 
 var ErrInvalidCommitIndex = errors.New("invalid commit index")
@@ -155,13 +156,39 @@ func (self *CommitCommands) signoffFlag() string {
 }
 
 func (self *CommitCommands) GetCommitMessage(commitHash string) (string, error) {
+	messages, err := self.GetCommitMessages([]string{commitHash})
+	if err != nil {
+		return "", err
+	}
+
+	return messages[0], nil
+}
+
+// GetCommitMessages returns the messages of the given commits, in the order in
+// which the hashes were passed in.
+func (self *CommitCommands) GetCommitMessages(commitHashes []string) ([]string, error) {
 	cmdArgs := NewGitCmd("log").
-		Arg("--format=%B", "--max-count=1", commitHash).
+		Arg("--no-walk=unsorted", "--format=%B%x00").
+		Arg(commitHashes...).
 		Config("log.showsignature=false").
 		ToArgv()
 
-	message, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-	return strings.ReplaceAll(strings.TrimSpace(message), "\r\n", "\n"), err
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	// The messages are NUL-terminated, so the split gives us one more element
+	// than we asked for (holding the newline that git prints after the last
+	// message).
+	messages := strings.Split(output, "\x00")
+	if len(messages) <= len(commitHashes) {
+		return nil, errors.New("unexpected output from git log")
+	}
+
+	return lo.Map(messages[:len(commitHashes)], func(message string, _ int) string {
+		return strings.ReplaceAll(strings.TrimSpace(message), "\r\n", "\n")
+	}), nil
 }
 
 func (self *CommitCommands) GetCommitSubject(commitHash string) (string, error) {

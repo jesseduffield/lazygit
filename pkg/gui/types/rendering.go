@@ -114,6 +114,11 @@ type RunCommandTask struct {
 	Cmd    *exec.Cmd
 	Prefix Prefix
 
+	// ContentTag, unless nil, produces what the render attaches to the content it
+	// renders (see gocui.View.BeginOffscreenRender). It is called on the render's own
+	// goroutine before the command starts.
+	ContentTag func() any
+
 	// contentIsDiff marks output that is a panel's own diff; see ContentIsDiff.
 	contentIsDiff bool
 }
@@ -131,6 +136,9 @@ func NewRunCommandTaskWithPrefix(cmd *exec.Cmd, prefix Prefix) *RunCommandTask {
 type RunDiffRendererTask struct {
 	Cmd    *exec.Cmd
 	Prefix Prefix
+
+	// ContentTag is as for RunCommandTask.
+	ContentTag func() any
 
 	// contentIsDiff marks output that is a panel's own diff; see ContentIsDiff.
 	contentIsDiff bool
@@ -158,12 +166,24 @@ func NewMainViewDiffTask(cmd *exec.Cmd, mode git_commands.DiffMode) UpdateTask {
 }
 
 func NewMainViewDiffTaskWithPrefix(cmd *exec.Cmd, prefix Prefix, mode git_commands.DiffMode) UpdateTask {
+	return newMainViewDiffTask(cmd, prefix, nil, mode)
+}
+
+// NewMainViewDiffTaskWithContentTag is NewMainViewDiffTask for a render that attaches
+// what contentTag produces to its content (see RunCommandTask.ContentTag).
+func NewMainViewDiffTaskWithContentTag(cmd *exec.Cmd, contentTag func() any, mode git_commands.DiffMode) UpdateTask {
+	return newMainViewDiffTask(cmd, nil, contentTag, mode)
+}
+
+func newMainViewDiffTask(cmd *exec.Cmd, prefix Prefix, contentTag func() any, mode git_commands.DiffMode) UpdateTask {
 	if mode == git_commands.DiffModeRaw {
 		task := NewRunCommandTaskWithPrefix(cmd, prefix)
+		task.ContentTag = contentTag
 		task.contentIsDiff = true
 		return task
 	}
 	task := NewRunDiffRendererTaskWithPrefix(cmd, prefix)
+	task.ContentTag = contentTag
 	task.contentIsDiff = true
 	return task
 }

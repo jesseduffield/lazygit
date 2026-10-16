@@ -203,15 +203,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		gui.State.ViewsSetup = true
 	}
 
-	mainViewWidth, mainViewHeight := gui.Views.Main.Size()
-	if mainViewWidth != gui.PrevLayout.MainWidth || mainViewHeight != gui.PrevLayout.MainHeight {
-		gui.PrevLayout.MainWidth = mainViewWidth
-		gui.PrevLayout.MainHeight = mainViewHeight
-		if err := gui.onResize(); err != nil {
-			return err
-		}
-	}
-
 	for _, context := range contextsToRerender {
 		context.HandleRender()
 	}

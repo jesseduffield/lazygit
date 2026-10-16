@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
@@ -10,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -31,18 +34,34 @@ func (self *WorkingTreeDiffActions) context() *context.WorkingTreeContext {
 }
 
 // PlainDiff hands out the working tree's diff for the given files, taken from the
-// side of the index that the asking pane shows.
-func (self *WorkingTreeDiffActions) PlainDiff(pane types.DiffPaneContext, paths []string) string {
+// side of the index that the asking pane shows. It fails if the diff of one of the
+// files is no longer the one the pane shows (see shownDiff).
+func (self *WorkingTreeDiffActions) PlainDiff(pane types.DiffPaneContext, paths []string) (string, error) {
 	node := self.context().GetSelected()
 	if node == nil {
-		return ""
+		return "", nil
 	}
+	shown := self.shownDiffs(pane)
+	onStagedSide := self.showsStagedSide(pane)
 	// An error means there is no diff to be had, which for our purposes is the same as
 	// an empty one.
 	diff, _ := self.c.Git().WorkingTree.
-		WorktreeFileDiffCmdObj(node, git_commands.DiffModePlain, self.showsStagedSide(pane), paths).
+		WorktreeFileDiffCmdObj(node, git_commands.DiffModePlain, onStagedSide, paths).
 		RunWithOutput()
-	return diff
+
+	versions := self.c.Helpers().DiffLine.FileVersionsInDiff(diff)
+	worktreePath := self.c.Git().RepoPaths.WorktreePath()
+	for _, path := range paths {
+		absolutePath := filepath.Join(worktreePath, path)
+		filePaths := []string{path}
+		if file := self.fileForDiffLinePath(absolutePath); file != nil {
+			filePaths = file.Names()
+		}
+		if err := self.checkShown(shown[absolutePath], filePaths, onStagedSide, versions[absolutePath]); err != nil {
+			return "", err
+		}
+	}
+	return diff, nil
 }
 
 // showsStagedSide reports whether the given main pane is the one showing the staged
@@ -94,7 +113,21 @@ func (self *WorkingTreeDiffActions) DiscardSelection(pane types.DiffPaneContext,
 	// how destructive that is. On the staged side it goes to the index; this is the
 	// same as unstaging, so nothing is lost. On the unstaged side it goes to the
 	// working tree, where the change is gone for good, so we ask first.
-	return self.c.ConfirmIf(!onStagedSide && !self.c.UserConfig().Gui.SkipDiscardChangeWarning,
+	askFirst := !onStagedSide && !self.c.UserConfig().Gui.SkipDiscardChangeWarning
+
+	// Building the patch reads the diff again and fails if it changed since it was
+	// shown. That happens once the user has confirmed, since the diff can change while
+	// they decide; checking before asking as well spares them confirming a discard
+	// that won't happen.
+	if askFirst {
+		for _, fileLines := range linesByFile {
+			if _, err := self.readFileDiff(fileLines, onStagedSide); err != nil {
+				return err
+			}
+		}
+	}
+
+	return self.c.ConfirmIf(askFirst,
 		types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardChangeTitle,
 			Prompt: self.c.Tr.DiscardChangePrompt,
@@ -132,7 +165,10 @@ func (self *WorkingTreeDiffActions) EditHunk(
 	}
 	file := linesByFile[0].file
 
-	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, git_commands.DiffModePlain, onStagedSide))
+	parsedPatch, err := self.readFileDiff(linesByFile[0], onStagedSide)
+	if err != nil {
+		return err
+	}
 	lineIndices := patch.ChangeLineIndicesForLines(parsedPatch,
 		[]patch.LineIdentity{linesByFile[0].lines[0].PatchLineIdentity()})
 	if len(lineIndices) == 0 {
@@ -203,6 +239,83 @@ func (self *WorkingTreeDiffActions) PatchInclusion() func(types.DiffLineInfo) bo
 type fileDiffLines struct {
 	file  *models.File
 	lines []types.DiffLineInfo
+
+	// What the pane showed of the file's diff when the lines were selected.
+	shown shownDiff
+}
+
+// shownDiff is what a pane showed of a file's diff at one moment, to tell whether a
+// diff of the file read later is still that diff. The selected lines are looked up in
+// the diff read later by where they sit in the file, and in a different diff that
+// place can hold a different line. The diff changes whenever the file, the index or
+// HEAD is changed outside of lazygit and lazygit hasn't refreshed since.
+type shownDiff struct {
+	// The versions of the file the diff is between, as the header of the diff on screen
+	// states them; nil if the screen shows no header to read them from (see
+	// DiffLineHelper.FileVersionsOnScreen).
+	versions *patch.FileVersions
+
+	// What the diff on screen was made from, as its render took it before running git
+	// (see FilesController.diffInputsTag); nil if it took nothing. A diff renderer that
+	// states its rows shows no header, and this is what is left to tell by.
+	inputs *git_commands.DiffInputs
+}
+
+// shownDiffs reads what the pane shows of the diff of each of its files, by the file's
+// absolute path.
+func (self *WorkingTreeDiffActions) shownDiffs(pane types.DiffPaneContext) map[string]shownDiff {
+	shown := map[string]shownDiff{}
+	view := pane.GetView()
+
+	if inputs, ok := view.ContentTag().(*git_commands.DiffInputs); ok {
+		worktreePath := self.c.Git().RepoPaths.WorktreePath()
+		for _, path := range inputs.Paths() {
+			shown[filepath.Join(worktreePath, path)] = shownDiff{inputs: inputs}
+		}
+	}
+
+	// The versions on screen are the diff itself, so they win where there are both.
+	versions, _ := self.c.Helpers().DiffLine.FileVersionsOnScreen(view)
+	for path, fileVersions := range versions {
+		shown[path] = shownDiff{versions: &fileVersions}
+	}
+	return shown
+}
+
+// checkShown fails if a diff of a file, just read from the given side of the index and
+// between the given versions, isn't the diff that was shown. paths are the file's
+// paths in the repo: the one it has, and the one it was renamed from, if any (see
+// models.File.Names). With nothing to tell by, any diff passes.
+//
+// The inputs of the diff are taken after the diff was read, so that a change in
+// between counts as a change.
+func (self *WorkingTreeDiffActions) checkShown(
+	shown shownDiff, paths []string, onStagedSide bool, versions patch.FileVersions,
+) error {
+	same := true
+	switch {
+	case shown.versions != nil:
+		same = shown.versions.Same(versions)
+	case shown.inputs != nil:
+		current, err := self.c.Git().WorkingTree.GetDiffInputs(paths, onStagedSide, !onStagedSide)
+		if err != nil {
+			return err
+		}
+		same = shown.inputs.SameFor(current, paths, onStagedSide)
+	}
+	if !same {
+		return self.diffChangedError(paths[0])
+	}
+	return nil
+}
+
+// diffChangedError reports that the diff of the file at the given path in the repo is
+// no longer the one on screen. It has the files panel refreshed, so that the diff on
+// screen is the current one when the user looks at it again.
+func (self *WorkingTreeDiffActions) diffChangedError(path string) error {
+	self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+	return errors.New(utils.ResolvePlaceholderString(self.c.Tr.DiffChangedSinceShown,
+		map[string]string{"path": path}))
 }
 
 // diffLineSelection resolves what the user has selected in a pane of the focused main
@@ -215,18 +328,22 @@ type fileDiffLines struct {
 // grouped by the file they belong to, in the order the diff shows the files. If a line
 // belongs to no file of the files panel, the diff and the panel disagree. Acting on the
 // other lines would do only part of what the user asked for, so this fails instead.
+//
+// With each file's lines goes what the pane shows of the file's diff, read at the same
+// moment as the lines.
 func (self *WorkingTreeDiffActions) diffLineSelection(
 	pane types.DiffPaneContext, firstBufferLine int, lastBufferLine int,
 ) (linesByFile []fileDiffLines, onStagedSide bool, err error) {
 	infos := self.c.Helpers().DiffLine.ChangeLinesInBufferRange(pane.GetView(), firstBufferLine, lastBufferLine)
 	infosByPath := lo.GroupBy(infos, func(info types.DiffLineInfo) string { return info.Path })
 	paths := lo.Uniq(lo.Map(infos, func(info types.DiffLineInfo, _ int) string { return info.Path }))
+	shown := self.shownDiffs(pane)
 	for _, path := range paths {
 		file := self.fileForDiffLinePath(path)
 		if file == nil {
 			return nil, false, diffLinesFileNotFoundError(self.c, path)
 		}
-		linesByFile = append(linesByFile, fileDiffLines{file: file, lines: infosByPath[path]})
+		linesByFile = append(linesByFile, fileDiffLines{file: file, lines: infosByPath[path], shown: shown[path]})
 	}
 	return linesByFile, self.showsStagedSide(pane), nil
 }
@@ -244,7 +361,7 @@ func (self *WorkingTreeDiffActions) applyDiffLineSelection(
 	// patch is built before any is applied.
 	patches := make([]diffLinesPatch, 0, len(linesByFile))
 	for _, fileLines := range linesByFile {
-		p, err := self.buildDiffLinesPatch(fileLines.file, fileLines.lines, onStagedSide, opts)
+		p, err := self.buildDiffLinesPatch(fileLines, onStagedSide, opts)
 		if err != nil {
 			return err
 		}
@@ -329,16 +446,19 @@ type diffLinesPatch struct {
 // caller uses this to tell whether the side acted on still has anything of this file
 // in it once we are done.
 //
-// It fails if none of the lines are in the diff. The diff on screen is then not the
-// one it read; either the file changed since the diff was shown, or we read the
-// lines wrongly.
+// It fails if the diff it reads is no longer the one on screen (see readFileDiff), and
+// if none of the lines are in it.
 func (self *WorkingTreeDiffActions) buildDiffLinesPatch(
-	file *models.File, infos []types.DiffLineInfo, sourceCached bool, opts git_commands.ApplyPatchOpts,
+	fileLines fileDiffLines, sourceCached bool, opts git_commands.ApplyPatchOpts,
 ) (diffLinesPatch, error) {
-	parsedPatch := patch.Parse(self.c.Git().WorkingTree.WorktreeFileDiff(file, git_commands.DiffModePlain, sourceCached))
+	file := fileLines.file
+	parsedPatch, err := self.readFileDiff(fileLines, sourceCached)
+	if err != nil {
+		return diffLinesPatch{}, err
+	}
 
 	patchLineIndices := patch.ChangeLineIndicesForLines(parsedPatch,
-		lo.Map(infos, func(info types.DiffLineInfo, _ int) patch.LineIdentity {
+		lo.Map(fileLines.lines, func(info types.DiffLineInfo, _ int) patch.LineIdentity {
 			return info.PatchLineIdentity()
 		}))
 	if len(patchLineIndices) == 0 {
@@ -365,6 +485,18 @@ func (self *WorkingTreeDiffActions) buildDiffLinesPatch(
 		}).
 		FormatPlain()
 	return diffLinesPatch{file: file, patch: patchToApply, changesLeft: changesLeft}, nil
+}
+
+// readFileDiff reads the diff of the file the given lines belong to, from the side of
+// the index they were selected on: the diff to look them up in. It fails if this is no
+// longer the diff that was on screen when they were selected (see shownDiff).
+func (self *WorkingTreeDiffActions) readFileDiff(fileLines fileDiffLines, onStagedSide bool) (*patch.Patch, error) {
+	parsedPatch := patch.Parse(
+		self.c.Git().WorkingTree.WorktreeFileDiff(fileLines.file, git_commands.DiffModePlain, onStagedSide))
+	if err := self.checkShown(fileLines.shown, fileLines.file.Names(), onStagedSide, parsedPatch.FileVersions()); err != nil {
+		return nil, err
+	}
+	return parsedPatch, nil
 }
 
 // applyDiffLinesPatch applies what buildDiffLinesPatch built, as opts says.

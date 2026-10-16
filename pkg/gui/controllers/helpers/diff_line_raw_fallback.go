@@ -33,6 +33,19 @@ func (self *DiffLineHelper) MainViewDiffMode() git_commands.DiffMode {
 	return git_commands.DiffModeRendered
 }
 
+// MayRenderStatedRows reports whether a diff rendered in the given mode may reach the
+// main view as a rendering whose rows the diff renderer states (see
+// renderingStatesDiffLines). Such a rendering shows none of git's headers. It doesn't
+// ask the renderer, so as not to hold up a render with that; until the renderer has
+// been asked about (see diffRendererEmitsMetadata), any renderer but git's own may.
+func (self *DiffLineHelper) MayRenderStatedRows(mode git_commands.DiffMode) bool {
+	if mode != git_commands.DiffModeRendered || !self.diffNeedsMetadata() {
+		return false
+	}
+	verdict, ok := self.rememberedRendererVerdict()
+	return verdict || !ok
+}
+
 // DiffRowsCanBePlaced reports whether the rows of the diff the main view is about to be
 // given can be placed in the file they show. git's own diff describes itself, whether it
 // is what the user configured or what MainViewDiffMode is about to substitute for a
@@ -101,13 +114,22 @@ func (self *DiffLineHelper) diffNeedsMetadata() bool {
 // once and remembered until the renderer changes — the user cycling to another one, or a
 // changed config being reloaded.
 func (self *DiffLineHelper) diffRendererEmitsMetadata() bool {
-	signature := self.diffRendererSignature()
-	if self.rendererEmitsMetadata == nil || signature != self.rendererSignature {
-		verdict := self.c.Git().Diff.ProbeDiffRendererEmitsMetadata()
-		self.rendererEmitsMetadata = &verdict
-		self.rendererSignature = signature
+	if verdict, ok := self.rememberedRendererVerdict(); ok {
+		return verdict
 	}
-	return *self.rendererEmitsMetadata
+	verdict := self.c.Git().Diff.ProbeDiffRendererEmitsMetadata()
+	self.rendererEmitsMetadata = &verdict
+	self.rendererSignature = self.diffRendererSignature()
+	return verdict
+}
+
+// rememberedRendererVerdict returns what the probe said about the current diff
+// renderer. ok is false if it hasn't been asked about this one.
+func (self *DiffLineHelper) rememberedRendererVerdict() (verdict bool, ok bool) {
+	if self.rendererEmitsMetadata == nil || self.rendererSignature != self.diffRendererSignature() {
+		return false, false
+	}
+	return *self.rendererEmitsMetadata, true
 }
 
 // diffRendererSignature identifies the current diff renderer, so that the remembered

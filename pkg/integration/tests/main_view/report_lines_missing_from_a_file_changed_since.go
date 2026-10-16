@@ -41,7 +41,7 @@ var ReportLinesMissingFromAFileChangedSince = NewIntegrationTest(NewIntegrationT
 
 		t.ExpectPopup().Alert().
 			Title(Equals("Error")).
-			Content(Equals("Can't find the selected lines in the diff of 'file1'")).
+			Content(Equals("The diff of 'file1' has changed since it was shown. Check the updated diff and select the lines again.")).
 			Confirm()
 	},
 })

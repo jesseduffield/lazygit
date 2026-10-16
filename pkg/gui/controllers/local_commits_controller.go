@@ -729,7 +729,8 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() {
 				task = types.NewRenderStringTask(string(patch))
 			} else {
 				refRange := self.context().GetSelectedRefRangeForDiffFiles()
-				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange)
+				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(
+					self.c.Model().Commits, commit, refRange)
 			}
 
 			self.c.RenderToMainViews(types.RefreshMainOpts{
