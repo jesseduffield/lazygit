@@ -119,6 +119,20 @@ func (o OptNegotiation) apply(t *tScreen) {
 	t.negotiate = bool(o)
 }
 
+// OptEscapeTimeout sets how long the input parser waits for bytes that may
+// follow an Escape. The default is 50 ms, or 125 ms on Windows. Increasing
+// this can accommodate terminals that split escape sequences across delayed
+// reads, at the cost of delaying a standalone Escape by the same amount. A
+// positive TCELL_ESCDELAY environment variable, expressed in milliseconds,
+// overrides this setting. Values less than or equal to zero use the default.
+type OptEscapeTimeout time.Duration
+
+func (o OptEscapeTimeout) apply(t *tScreen) {
+	if o > 0 {
+		t.escapeTimeout = time.Duration(o)
+	}
+}
+
 // OptControlStringLimit sets the maximum inbound control-string payload size
 // accepted from the terminal before the parser drops the sequence. This limits
 // OSC and XDA strings, including OSC 52 clipboard strings; OSC 52 is the
@@ -196,6 +210,7 @@ func NewTerminfoScreenFromTty(tty Tty, opts ...TerminfoScreenOption) (Screen, er
 		altScreen:          true,
 		negotiate:          true,
 		controlStringLimit: defaultControlStringLimit,
+		escapeTimeout:      platformEscapeTimeout(),
 	}
 
 	t.prepareCursorStyles()
@@ -261,6 +276,7 @@ type tScreen struct {
 	wg                 sync.WaitGroup
 	eventWg            sync.WaitGroup
 	mouseFlags         MouseFlags
+	consoleMouse       consoleMouse
 	pasteEnabled       bool
 	focusEnabled       bool
 	setTitle           string
@@ -285,9 +301,11 @@ type tScreen struct {
 	mouseDisabled      bool
 	advancedKeys       bool
 	controlStringLimit int
+	escapeTimeout      time.Duration
 	input              *inputParser
 	compat             struct {
 		mouseUnsupported         bool
+		mousePixelUnsupported    bool
 		focusUnsupported         bool
 		clipboardReadUnsupported bool
 	}
@@ -341,6 +359,10 @@ func (t *tScreen) applyKeyboardProtocolOverride() {
 }
 
 func (t *tScreen) applyEnvironmentOverrides() {
+	if delay, err := strconv.Atoi(os.Getenv("TCELL_ESCDELAY")); err == nil && delay > 0 {
+		t.escapeTimeout = time.Duration(delay) * time.Millisecond
+	}
+
 	switch os.Getenv("TCELL_KEYBOARD_PROTOCOL") {
 	case "auto":
 		t.forceKbd = false
@@ -459,6 +481,7 @@ func (t *tScreen) Init() error {
 	t.input = newInputParser(t.filterEvents())
 	t.input.advanced = t.advancedKeys
 	t.input.controlStringMax = t.controlStringLimit
+	t.input.SetEscapeTimeout(t.escapeTimeout)
 
 	t.Lock()
 	t.cx = -1
@@ -1097,6 +1120,11 @@ func (t *tScreen) EnableMouse(flags ...MouseFlags) {
 }
 
 func (t *tScreen) enableMouse(f MouseFlags) {
+	t.stopConsoleMouse()
+	if f != 0 && !t.mouseDisabled && t.startConsoleMouse(f) {
+		return
+	}
+
 	// Rather than using terminfo to find mouse escape sequences, we rely on the fact that
 	// pretty much *every* terminal that supports mouse tracking follows the
 	// XTerm standards (the modern ones).  It is expected that all terminals understand
@@ -1124,9 +1152,11 @@ func (t *tScreen) enableMouse(f MouseFlags) {
 	t.Print(vt.PmMouseDrag.Disable())
 	t.Print(vt.PmMouseMotion.Disable())
 	t.Print(vt.PmMouseSgr.Disable())
-	t.Print(vt.PmMouseSgrPixel.Disable())
+	if !t.compat.mousePixelUnsupported {
+		t.Print(vt.PmMouseSgrPixel.Disable())
+	}
 
-	pixel := f&MousePixelEvents != 0
+	pixel := f&MousePixelEvents != 0 && !t.compat.mousePixelUnsupported
 	t.input.SetPixelMouse(pixel)
 
 	if f&(MouseButtonEvents|MouseDragEvents|MouseMotionEvents) != 0 {
@@ -1144,6 +1174,31 @@ func (t *tScreen) enableMouse(f MouseFlags) {
 		} else {
 			t.Print(vt.PmMouseSgr.Enable())
 		}
+	}
+}
+
+func (t *tScreen) startConsoleMouse(f MouseFlags) bool {
+	if t.eventQ == nil || f&(MouseButtonEvents|MouseDragEvents|MouseMotionEvents) == 0 {
+		return false
+	}
+	cm, err := newConsoleMouse(t.eventQ)
+	if err != nil {
+		return false
+	}
+	cm.SetSize(t.w, t.h)
+	if err = cm.Start(f); err != nil {
+		cm.Stop()
+		return false
+	}
+	t.consoleMouse = cm
+	t.input.SetPixelMouse(false)
+	return true
+}
+
+func (t *tScreen) stopConsoleMouse() {
+	if t.consoleMouse != nil {
+		t.consoleMouse.Stop()
+		t.consoleMouse = nil
 	}
 }
 
@@ -1250,7 +1305,10 @@ func (t *tScreen) resize() {
 	t.cells.Invalidate()
 	t.h = ws.Height
 	t.w = ws.Width
-	t.input.SetSize(ws.Width, ws.Height)
+	t.input.SetSize(ws)
+	if t.consoleMouse != nil {
+		t.consoleMouse.SetSize(ws.Width, ws.Height)
+	}
 }
 
 func (t *tScreen) Colors() int {
@@ -1494,12 +1552,16 @@ func isSTTerminal(term string) bool {
 func (t *tScreen) applyKnownTerminalProfile(goos, term, termProgram string) bool {
 	if isSTTerminal(term) {
 		// st implements a small subset of xterm extensions.  In particular,
-		// it has neither an advanced keyboard protocol nor SGR mouse or focus
-		// reporting.  It also reports unsupported CSI and OSC sequences to
-		// stderr, so avoid probing or using extensions it does not implement.
+		// it has neither an advanced keyboard protocol nor pixel-precision
+		// (SGR-pixel) mouse reporting.  It does, however, implement ordinary
+		// SGR mouse reporting (1006) and focus reporting (1004), so declare
+		// those as supported rather than disabling them.  It also reports
+		// unsupported CSI and OSC sequences to stderr, so avoid probing or
+		// using extensions it does not implement.
 		t.legacy = true
-		t.compat.mouseUnsupported = true
-		t.compat.focusUnsupported = true
+		t.haveMouse = true
+		t.haveMouseSgr = true
+		t.compat.mousePixelUnsupported = true
 		t.enterUrl = ""
 		t.exitUrl = ""
 		t.setWinSize = ""
