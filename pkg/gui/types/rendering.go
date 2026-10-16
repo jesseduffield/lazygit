@@ -175,6 +175,10 @@ func NewMainViewDiffTaskWithContentTag(cmd *exec.Cmd, contentTag func() any, mod
 	return newMainViewDiffTask(cmd, nil, contentTag, mode)
 }
 
+func NewMainViewDiffTaskWithPrefixAndContentTag(cmd *exec.Cmd, prefix Prefix, contentTag func() any, mode git_commands.DiffMode) UpdateTask {
+	return newMainViewDiffTask(cmd, prefix, contentTag, mode)
+}
+
 func newMainViewDiffTask(cmd *exec.Cmd, prefix Prefix, contentTag func() any, mode git_commands.DiffMode) UpdateTask {
 	if mode == git_commands.DiffModeRaw {
 		task := NewRunCommandTaskWithPrefix(cmd, prefix)

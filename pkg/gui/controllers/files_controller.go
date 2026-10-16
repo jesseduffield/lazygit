@@ -314,6 +314,38 @@ func (self *FilesController) renderDirectoryEntry(file *models.File) {
 	self.renderToMainWithTask(types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix))
 }
 
+// submoduleStatusPrefix returns the prefix for the diff of the submodule at the
+// given path. It shows the given text, followed by the status of the submodule
+// if the submodule has changes that aren't committed: the diff only says that
+// the submodule contains modified or untracked content, not which. The status
+// is read on the render's goroutine, so that a large submodule doesn't hold up
+// the UI.
+func submoduleStatusPrefix(c *ControllerCommon, path string, text string) types.Prefix {
+	workingTree := c.Git().WorkingTree
+	diffHeading := c.Tr.DiffTitle
+
+	return func(width int) func() string {
+		return func() string {
+			hasChanges, err := workingTree.NestedRepositoryHasUncommittedChanges(path)
+			if err != nil || !hasChanges {
+				return text
+			}
+
+			status, err := workingTree.NestedRepositoryStatusCmdObj(path).RunWithOutput()
+			if err != nil {
+				return text
+			}
+
+			// A blank line keeps the status away from the frame's title
+			if text == "" {
+				text = "\n"
+			}
+
+			return text + strings.TrimRight(status, "\n") + "\n\n" + titledRule(diffHeading, width) + "\n\n"
+		}
+	}
+}
+
 // titledRule returns a horizontal line across the given width with a title in
 // it, for dividing a view's content into sections
 func titledRule(title string, width int) string {
@@ -456,8 +488,12 @@ func (self *FilesController) renderWorkingTreeDiff(node *filetree.FileNode) {
 
 	if showUnstaged {
 		cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, mode, false, paths)
+		var prefix types.Prefix
+		if node.File != nil && node.File.IsSubmodule(self.c.Model().Submodules) {
+			prefix = submoduleStatusPrefix(self.c, node.File.Path, "")
+		}
 		refreshOpts.Main = &types.ViewUpdateOpts{
-			Task:           types.NewMainViewDiffTaskWithContentTag(cmdObj.GetCmd(), contentTag, mode),
+			Task:           types.NewMainViewDiffTaskWithPrefixAndContentTag(cmdObj.GetCmd(), prefix, contentTag, mode),
 			SubTitle:       self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
 			Title:          self.c.Tr.UnstagedChanges,
 			NothingToActOn: !node.GetHasUnstagedChanges(),
