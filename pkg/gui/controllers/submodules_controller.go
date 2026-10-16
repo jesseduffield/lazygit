@@ -126,7 +126,7 @@ func (self *SubmodulesController) GetOnRenderToMain() func() {
 					task = types.NewRenderStringTask(prefix)
 				} else {
 					cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(file, git_commands.DiffModeRendered, !file.HasUnstagedChanges && file.HasStagedChanges, file.Names())
-					task = types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), types.StaticPrefix(prefix))
+					task = types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), submoduleStatusPrefix(self.c, file.Path, prefix))
 				}
 			}
 
