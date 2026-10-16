@@ -624,6 +624,7 @@ var tests = []*components.IntegrationTest{
 	submodule.ResetFolder,
 	submodule.ResolveConflict,
 	submodule.ResolveConflictRewoundSide,
+	submodule.ShowStatusOfDirtySubmodule,
 	submodule.Stage,
 	submodule.StageAllWithDirtySubmodule,
 	submodule.StageDirtyOnly,
