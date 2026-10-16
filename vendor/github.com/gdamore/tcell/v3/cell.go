@@ -224,12 +224,12 @@ func (cb *CellBuffer) Resize(w, h int) {
 			nc.currStr = oc.currStr
 			nc.currStyle = oc.currStyle
 			nc.width = oc.width
-			nc.lastStr = ""
 		}
 	}
 	cb.cells = newc
 	cb.h = h
 	cb.w = w
+	cb.Invalidate()
 }
 
 // Fill fills the entire cell buffer array with the specified character
@@ -238,9 +238,10 @@ func (cb *CellBuffer) Resize(w, h int) {
 // If either the foreground or background are ColorNone, then the respective
 // color is unchanged.
 func (cb *CellBuffer) Fill(r rune, style Style) {
+	str := string(r)
 	for i := range cb.cells {
 		c := &cb.cells[i]
-		c.currStr = string(r)
+		c.currStr = str
 		cs := style
 		if cs.fg == ColorNone {
 			cs.fg = c.currStyle.fg
@@ -278,18 +279,23 @@ func (cb *CellBuffer) FillArea(x, y, w, h int, r rune, style Style) {
 	if y < cb.h-h {
 		y1 = y + h
 	}
+	if x0 >= x1 {
+		return
+	}
+	str := string(r)
 	for row := y0; row < y1; row++ {
-		for col := x0; col < x1; col++ {
-			c := &cb.cells[(row*cb.w)+col]
-			c.currStr = string(r)
-			cs := style
-			if cs.fg == ColorNone {
-				cs.fg = c.currStyle.fg
+		cells := cb.cells[row*cb.w+x0 : row*cb.w+x1]
+		for i := range cells {
+			c := &cells[i]
+			c.currStr = str
+			fg, bg := c.currStyle.fg, c.currStyle.bg
+			c.currStyle = style
+			if style.fg == ColorNone {
+				c.currStyle.fg = fg
 			}
-			if cs.bg == ColorNone {
-				cs.bg = c.currStyle.bg
+			if style.bg == ColorNone {
+				c.currStyle.bg = bg
 			}
-			c.currStyle = cs
 			c.width = 1
 		}
 	}
