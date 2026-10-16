@@ -35,10 +35,11 @@ import (
 // plainDiff fetches the diff of the given repo-relative files, and is asked only for
 // the files the selection touches, so that copying three lines of a commit's diff
 // doesn't fetch the whole of it. fromDiff is "" when no selected row could be found in
-// the diff, e.g. because the selection covers nothing but a renderer's decoration.
+// the diff, e.g. because the selection covers nothing but a renderer's decoration. If
+// plainDiff fails, so does this.
 func (self *DiffLineHelper) PlainDiffOfSelection(
-	view *gocui.View, first int, last int, plainDiff func(paths []string) string,
-) (aboveDiff string, fromDiff string) {
+	view *gocui.View, first int, last int, plainDiff func(paths []string) (string, error),
+) (aboveDiff string, fromDiff string, err error) {
 	worktreePath := self.c.Git().RepoPaths.WorktreePath()
 	aboveDiff = self.textAboveDiff(view, first, last)
 
@@ -68,10 +69,14 @@ func (self *DiffLineHelper) PlainDiffOfSelection(
 
 	relPaths := repoRelativePaths(worktreePath, paths)
 	if len(relPaths) == 0 {
-		return aboveDiff, ""
+		return aboveDiff, "", nil
 	}
 
-	diffLines := strings.Split(strings.TrimSuffix(plainDiff(relPaths), "\n"), "\n")
+	diff, err := plainDiff(relPaths)
+	if err != nil {
+		return "", "", err
+	}
+	diffLines := strings.Split(strings.TrimSuffix(diff, "\n"), "\n")
 	toDiffLineInfo := diffLineInfoConverterIn(worktreePath)
 	runs := map[string][2]int{}
 	for i, parsed := range parseAllDiffLinesFromBuffer(diffLines) {
@@ -101,7 +106,7 @@ func (self *DiffLineHelper) PlainDiffOfSelection(
 			text.WriteString("\n")
 		}
 	}
-	return aboveDiff, text.String()
+	return aboveDiff, text.String(), nil
 }
 
 // textAboveDiff returns the text of the selected rows that sit above the diff, as they

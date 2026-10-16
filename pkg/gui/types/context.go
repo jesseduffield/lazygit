@@ -286,8 +286,10 @@ type DiffPaneContext interface {
 // of a commit's diff can be had without fetching the whole thing. pane says which of
 // the two main panes is asking, since a panel can show a different diff in each — the
 // files panel shows the unstaged changes in one and the staged ones in the other.
+//
+// It fails, with an error to show to the user, when there is no diff to hand out.
 type FocusedMainViewDiffSource interface {
-	PlainDiff(pane DiffPaneContext, paths []string) string
+	PlainDiff(pane DiffPaneContext, paths []string) (string, error)
 }
 
 // FocusedMainViewActions describes what a side panel does when the user acts on a

@@ -46,6 +46,10 @@ type viewBuffer struct {
 	// set pendingNewline to true. If more text is written, we write the newline
 	// then. This avoids an extra blank line at the end of the view.
 	pendingNewline bool
+
+	// What the render that produced the content attached to it (see
+	// BeginOffscreenRender), or nil.
+	tag any
 }
 
 // A View is a window. It maintains its own internal buffer and cursor
@@ -1569,6 +1573,7 @@ func (v *View) Read(p []byte) (n int, err error) {
 func (v *View) clear() {
 	v.rewind()
 	v.buf.lines = nil
+	v.buf.tag = nil
 	v.clearViewLines()
 	// Abandon any in-progress off-screen render: a synchronous SetContent/Clear
 	// is taking over the displayed buffer, so writes must go there, not into a
@@ -1620,6 +1625,7 @@ func (v *View) CopyContent(from *View) {
 	// and stays shared, so the cost is proportional to the number of rows, not
 	// their contents.
 	v.buf.lines = slices.Clone(from.buf.lines)
+	v.buf.tag = from.buf.tag
 	v.viewLines = slices.Clone(from.viewLines)
 	v.SetOriginX(from.ox)
 	v.SetOriginY(from.oy)
@@ -1643,6 +1649,7 @@ func (v *View) Reset() {
 
 	v.rewind()
 	v.buf.lines = nil
+	v.buf.tag = nil
 	// As in clear(): abandon any in-progress off-screen render so writes after a
 	// reset go to the displayed buffer.
 	v.offscreen = nil
@@ -1653,7 +1660,11 @@ func (v *View) Reset() {
 // displayed buffer — what every reader sees — is left as it was. This is how an
 // async re-render avoids exposing a half-written buffer: it accumulates
 // off-screen and swaps in once it has read enough to paint.
-func (v *View) BeginOffscreenRender() {
+//
+// tag is what the render knows about the content it produces that the content
+// doesn't say itself, or nil. ContentTag returns it for as long as that content is
+// displayed, so a reader can't get it from one render and the content from another.
+func (v *View) BeginOffscreenRender(tag any) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
@@ -1663,7 +1674,17 @@ func (v *View) BeginOffscreenRender() {
 	// needs it too — otherwise it counts no soft wraps and cursor-positioning
 	// escapes land on the wrong rows.
 	ei.screenColMax = v.buf.ei.screenColMax
-	v.offscreen = &viewBuffer{ei: ei}
+	v.offscreen = &viewBuffer{ei: ei, tag: tag}
+}
+
+// ContentTag returns what the render of the displayed content attached to it (see
+// BeginOffscreenRender), or nil if it attached nothing, or if the content didn't come
+// from such a render.
+func (v *View) ContentTag() any {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	return v.buf.tag
 }
 
 // SwapInOffscreenRender promotes the off-screen buffer (see BeginOffscreenRender)

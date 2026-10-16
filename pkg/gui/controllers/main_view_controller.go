@@ -487,7 +487,10 @@ func (self *MainViewController) pullRequestDescription(description string) func(
 // The rows above the diff (a commit's message, git's summary of it) belong to no file,
 // so they are copied as they stand on screen.
 func (self *MainViewController) copySelection() error {
-	text := self.textOfSelection()
+	text, err := self.textOfSelection()
+	if err != nil {
+		return err
+	}
 	if text == "" {
 		self.c.ErrorToast(self.c.Tr.SelectionNotFoundInDiffToast)
 		return nil
@@ -503,25 +506,28 @@ func (self *MainViewController) copySelection() error {
 
 // textOfSelection is what copying the selection puts on the clipboard. It is "" when
 // none of the selected rows could be placed in the diff, which is what a rendering's
-// own decoration comes to.
-func (self *MainViewController) textOfSelection() string {
+// own decoration comes to. It fails if the panel can't hand out the diff behind it.
+func (self *MainViewController) textOfSelection() (string, error) {
 	source := self.diffSource()
 	if source == nil {
-		return ""
+		return "", nil
 	}
 	view := self.context.GetView()
 	first, last, ok := view.SelectedBufferLineRange()
 	if !ok {
-		return ""
+		return "", nil
 	}
-	aboveDiff, fromDiff := self.c.Helpers().DiffLine.PlainDiffOfSelection(view, first, last,
-		func(paths []string) string { return source.PlainDiff(self.context, paths) })
+	aboveDiff, fromDiff, err := self.c.Helpers().DiffLine.PlainDiffOfSelection(view, first, last,
+		func(paths []string) (string, error) { return source.PlainDiff(self.context, paths) })
+	if err != nil {
+		return "", err
+	}
 	if aboveDiff == "" {
 		// Only text that is all diff has a +/- column to lose: a line of a commit message
 		// may begin with a '-' without being a deletion of anything.
 		fromDiff = dropDiffPrefix(fromDiff)
 	}
-	return aboveDiff + fromDiff
+	return aboveDiff + fromDiff, nil
 }
 
 // diffSelectState returns this pane's diff selection mode state.
