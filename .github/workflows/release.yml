@@ -161,6 +161,24 @@ jobs:
           echo "New tag: $new_tag"
           echo "new_tag=$new_tag" >> $GITHUB_ENV
 
+      - name: Get Go version
+        run: |
+          # Take the Go version from the go.mod of the code being released, so
+          # that a patch release from a branch off an older tag is built with
+          # that branch's Go version, not with master's.
+          #
+          # Turn "go 1.26.0" into "1.26.x" so that setup-go installs the latest
+          # patch release. With go-version-file, it would install exactly 1.26.0.
+          go_version=$(sed -n 's/^go \([0-9]*\.[0-9]*\).*/\1.x/p' go.mod)
+
+          if ! [[ $go_version =~ ^[0-9]+\.[0-9]+\.x$ ]]; then
+            echo "Error: Could not read the go version from go.mod"
+            exit 1
+          fi
+
+          echo "Go version: $go_version"
+          echo "go_version=$go_version" >> $GITHUB_ENV
+
       - name: Create and Push Tag
         env:
           NEW_TAG: ${{ env.new_tag }}
@@ -174,7 +192,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v7
         with:
-          go-version: 1.26.x
+          go-version: ${{ env.go_version }}
 
       - name: Run goreleaser
         uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
