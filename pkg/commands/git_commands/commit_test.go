@@ -378,7 +378,7 @@ func TestGetCommitMsg(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{
-				runner: oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"-c", "log.showsignature=false", "log", "--format=%B", "--max-count=1", "deadbeef"}, s.input, nil),
+				runner: oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"-c", "log.showsignature=false", "log", "--no-walk=unsorted", "--format=%B%x00", "deadbeef"}, s.input+"\x00\n", nil),
 			})
 
 			output, err := instance.GetCommitMessage("deadbeef")
@@ -388,6 +388,21 @@ func TestGetCommitMsg(t *testing.T) {
 			assert.Equal(t, s.expectedOutput, output)
 		})
 	}
+}
+
+func TestGetCommitMessages(t *testing.T) {
+	instance := buildCommitCommands(commonDeps{
+		runner: oscommands.NewFakeRunner(t).ExpectGitArgs(
+			[]string{"-c", "log.showsignature=false", "log", "--no-walk=unsorted", "--format=%B%x00", "deadbeef", "1234567"},
+			"first subject\n\nfirst body\n\x00\nsecond subject\n\x00\n",
+			nil,
+		),
+	})
+
+	output, err := instance.GetCommitMessages([]string{"deadbeef", "1234567"})
+
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"first subject\n\nfirst body", "second subject"}, output)
 }
 
 func TestGetCommitMessageFromHistory(t *testing.T) {
@@ -406,7 +421,7 @@ func TestGetCommitMessageFromHistory(t *testing.T) {
 		},
 		{
 			"Default case to retrieve a commit in history",
-			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"log", "-1", "--skip=2", "--pretty=%H"}, "hash3 \n", nil).ExpectGitArgs([]string{"-c", "log.showsignature=false", "log", "--format=%B", "--max-count=1", "hash3"}, `use generics to DRY up context code`, nil),
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"log", "-1", "--skip=2", "--pretty=%H"}, "hash3 \n", nil).ExpectGitArgs([]string{"-c", "log.showsignature=false", "log", "--no-walk=unsorted", "--format=%B%x00", "hash3"}, "use generics to DRY up context code\x00\n", nil),
 			func(output string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "use generics to DRY up context code", output)

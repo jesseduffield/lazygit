@@ -409,3 +409,62 @@ func IsFixupCommit(subject string) (string, bool) {
 
 	return subject, false
 }
+
+// Check whether the given subject line is the subject of an "amend!" commit,
+// i.e. of a commit that replaces the message of the commit it applies to, and
+// return the subject of that commit if so. Note that a commit with a subject
+// like "fixup! amend! Bla" is not an "amend!" commit; only the outermost
+// prefix decides what happens to the message.
+func isAmendCommit(subject string) (string, bool) {
+	if !strings.HasPrefix(subject, "amend! ") {
+		return subject, false
+	}
+
+	return IsFixupCommit(subject)
+}
+
+// For an "amend!" commit, find the commit that holds the message it replaces.
+// This is the nearest "amend!" commit below it that applies to the same commit,
+// or, if there is none, the commit it applies to itself. Returns false if the
+// given commit isn't an "amend!" commit, or if the commit it applies to isn't
+// in the given list.
+func findCommitWithPreviousMessage(commits []*models.Commit, commit *models.Commit) (*models.Commit, bool) {
+	baseSubject, isAmend := isAmendCommit(commit.Name)
+	if !isAmend {
+		return nil, false
+	}
+
+	_, index, ok := lo.FindIndexOf(commits, func(c *models.Commit) bool {
+		return c.Hash() == commit.Hash()
+	})
+	if !ok {
+		return nil, false
+	}
+
+	for _, previousCommit := range commits[index+1:] {
+		if previousCommit.Name == baseSubject {
+			return previousCommit, true
+		}
+		if subject, isAmend := isAmendCommit(previousCommit.Name); isAmend && subject == baseSubject {
+			return previousCommit, true
+		}
+	}
+
+	return nil, false
+}
+
+// Return the message that the given commit leaves on the commit it applies to:
+// for an "amend!" commit this is its message without the "amend! <subject>"
+// line at the top, and for any other commit it is simply its own message.
+func messageAfterAmending(message string) string {
+	subject, body, found := strings.Cut(message, "\n")
+	if !found {
+		return message
+	}
+
+	if _, isAmend := isAmendCommit(subject); !isAmend {
+		return message
+	}
+
+	return strings.TrimLeft(body, "\n")
+}

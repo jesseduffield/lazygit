@@ -143,6 +143,24 @@ func (self *DiffRendererConfigManager) GetRawGitArgs() []string {
 	return currentDiffRendererConfig.Args
 }
 
+// Signature is what identifies the current diff renderer, so that something we
+// remembered about what it produced can be dropped once it no longer describes
+// the renderer we have. The values a command is resolved with are no part of
+// its identity, so the command's template stands for it.
+func (self *DiffRendererConfigManager) Signature() string {
+	currentDiffRendererConfig := self.currentDiffRendererConfig()
+	if currentDiffRendererConfig == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%d\x00%s\x00%s\x00%s\x00%s",
+		self.diffRendererIndex,
+		currentDiffRendererConfig.Type,
+		currentDiffRendererConfig.ColorArg,
+		currentDiffRendererConfig.Command,
+		strings.Join(currentDiffRendererConfig.Args, "\x00"))
+}
+
 func (self *DiffRendererConfigManager) CycleDiffRenderers() {
 	self.diffRendererIndex = (self.diffRendererIndex + 1) % len(self.getUserConfig().Git.DiffRenderers)
 }

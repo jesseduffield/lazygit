@@ -187,11 +187,25 @@ func (self *GitCommandBuilder) ToString() string {
 }
 
 // runGitCmdOnPaths runs `git <subcommand> -- <paths...>`, splitting into
-// multiple calls if needed to stay under the OS command-line length limit.
-// Windows CreateProcess has a ~32 KB limit; we use 30 KB as a safe threshold.
+// multiple calls if needed (see pathsPerCommandLine).
 func runGitCmdOnPaths(subcommand string, paths []string, cmd oscommands.ICmdObjBuilder) error {
+	for _, batch := range pathsPerCommandLine(paths) {
+		if err := cmd.New(NewGitCmd(subcommand).Arg("--").
+			Arg(batch...).
+			ToArgv()).Run(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// pathsPerCommandLine splits paths into batches that each stay under the OS
+// command-line length limit when passed as arguments. Windows CreateProcess has a
+// ~32 KB limit; we use 30 KB as a safe threshold.
+func pathsPerCommandLine(paths []string) [][]string {
 	const maxArgBytes = 30_000
 
+	batches := [][]string{}
 	start := 0
 	for start < len(paths) {
 		end := start
@@ -203,12 +217,8 @@ func runGitCmdOnPaths(subcommand string, paths []string, cmd oscommands.ICmdObjB
 			}
 			end++
 		}
-		if err := cmd.New(NewGitCmd(subcommand).Arg("--").
-			Arg(paths[start:end]...).
-			ToArgv()).Run(); err != nil {
-			return err
-		}
+		batches = append(batches, paths[start:end])
 		start = end
 	}
-	return nil
+	return batches
 }

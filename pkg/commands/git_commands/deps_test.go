@@ -120,6 +120,11 @@ func buildSubmoduleCommands(deps commonDeps) *SubmoduleCommands {
 	return NewSubmoduleCommands(gitCommon)
 }
 
+func buildDiffCommands(deps commonDeps) *DiffCommands {
+	gitCommon := buildGitCommon(deps)
+	return NewDiffCommands(gitCommon)
+}
+
 func buildCommitCommands(deps commonDeps) *CommitCommands {
 	gitCommon := buildGitCommon(deps)
 	return NewCommitCommands(gitCommon)

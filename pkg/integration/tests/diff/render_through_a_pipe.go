@@ -6,13 +6,9 @@ import (
 )
 
 var RenderThroughAPipe = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "A stdin filter renders the diff when it is fed through a pipe rather than run in a pty",
+	Description:  "A stdin filter renders the diff that it is fed through a pipe",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	// This is how a render works on Windows, where a pty can't carry a
-	// renderer's output faithfully. Ask for it here so that the path is
-	// covered on the platforms the integration tests do run on.
-	ExtraEnvVars: map[string]string{"LAZYGIT_RENDER_WITHOUT_PTY": "1"},
 	SetupConfig: func(cfg *config.AppConfig) {
 		// Reports the width it was given, then passes the diff through. git
 		// only runs a filter of its own when it talks to a terminal, so the
