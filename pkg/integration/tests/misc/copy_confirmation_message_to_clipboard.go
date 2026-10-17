@@ -15,19 +15,22 @@ var CopyConfirmationMessageToClipboard = NewIntegrationTest(NewIntegrationTestAr
 
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("commit")
+		shell.CreateFile("file", "content")
+		shell.GitAddAll()
+		shell.Stash("stash one")
 	},
 
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Commits().
+		t.Views().Stash().
 			Focus().
 			Lines(
-				Contains("commit").IsSelected(),
+				Contains("stash one").IsSelected(),
 			).
 			Press(keys.Universal.Remove)
 
 		t.ExpectPopup().Alert().
-			Title(Equals("Drop commit")).
-			Content(Equals("Are you sure you want to drop the selected commit(s)?")).
+			Title(Equals("Stash drop")).
+			Content(Equals("Are you sure you want to drop the selected stash entry(ies)?")).
 			Tap(func() {
 				t.GlobalPress(keys.Universal.CopyToClipboard)
 				t.ExpectToast(Equals("Message copied to clipboard"))
@@ -35,6 +38,6 @@ var CopyConfirmationMessageToClipboard = NewIntegrationTest(NewIntegrationTestAr
 			Confirm()
 
 		t.FileSystem().FileContent("clipboard",
-			Equals("Are you sure you want to drop the selected commit(s)?"))
+			Equals("Are you sure you want to drop the selected stash entry(ies)?"))
 	},
 })
