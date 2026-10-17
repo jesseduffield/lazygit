@@ -146,6 +146,10 @@
           "type": "string",
           "description": "The title to display in the popup panel if output is set to 'popup'. If left unset, the command will be used as the title."
         },
+        "displayHint": {
+          "type": "boolean",
+          "description": "Whether to display a keybinding hint in the footer of the panel when the command's context is active"
+        },
         "after": {
           "$ref": "#/$defs/CustomCommandAfterHook",
           "description": "Actions to take after the command has completed"

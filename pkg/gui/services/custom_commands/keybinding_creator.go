@@ -34,10 +34,11 @@ func (self *KeybindingCreator) call(customCommand config.CustomCommand, handler 
 
 	return lo.Map(viewNames, func(viewName string, _ int) *types.Binding {
 		return &types.Binding{
-			ViewName:    viewName,
-			Keys:        config.GetValidatedKeyBindingKeys(customCommand.Key),
-			Handler:     handler,
-			Description: customCommand.GetDescription(),
+			ViewName:        viewName,
+			Keys:            config.GetValidatedKeyBindingKeys(customCommand.Key),
+			Handler:         handler,
+			Description:     customCommand.GetDescription(),
+			DisplayOnScreen: customCommand.DisplayHint,
 		}
 	}), nil
 }
