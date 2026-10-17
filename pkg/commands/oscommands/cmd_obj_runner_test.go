@@ -101,6 +101,14 @@ func TestProcessOutput(t *testing.T) {
 			expectedToWrite:         "pin",
 		},
 		{
+			// ssh-keygen names only the key type, with no path after it,
+			// unlike ssh. This is what signing a commit with a sk key asks.
+			name:                    "security key pin prompt without key path",
+			promptUserForCredential: defaultPromptUserForCredential,
+			output:                  "Enter PIN for ED25519-SK key:",
+			expectedToWrite:         "pin",
+		},
+		{
 			name:                    "2FA token prompt",
 			promptUserForCredential: defaultPromptUserForCredential,
 			output:                  "testuser 2FA Token (citadel)",
