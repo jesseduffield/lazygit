@@ -113,6 +113,18 @@ func (self *MainBranches) determineMainBranches(configuredMainBranches []string)
 				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
 			).DontLog().Run(); err == nil {
 				existingBranches[i] = ref
+				return
+			}
+
+			// If this is a brand new repository with no commits, then the current branch would be the default
+			desiredRef := "refs/heads/" + branchName
+			if ref, err := self.cmd.New(
+				NewGitCmd("symbolic-ref").Arg("HEAD").ToArgv(),
+			).DontLog().RunWithOutput(); err == nil {
+				if strings.TrimSpace(ref) == desiredRef {
+					existingBranches[i] = desiredRef
+					return
+				}
 			}
 		})
 	}
