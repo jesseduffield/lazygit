@@ -169,6 +169,7 @@ var tests = []*components.IntegrationTest{
 	commit.Unstaged,
 	config.CustomCommandsInPerRepoConfig,
 	config.NegativeRefspec,
+	config.RebindConfirmSearchAndPrompt,
 	config.RemoteNamedStar,
 	config.SidePanelsInPerRepoConfig,
 	conflicts.ConflictMarkerSizeNotAutoStaged,
