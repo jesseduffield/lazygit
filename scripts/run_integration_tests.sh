@@ -7,7 +7,7 @@ if [ -n "$LAZYGIT_GOCOVERDIR" ]; then
   # Go expects us to either be running the test binary directly or running `go test`, but because
   # we're doing both and because we want to combine coverage data for both, we need to be a little
   # hacky. To capture the coverage data for the test runner we pass the test.gocoverdir positional
-  # arg, but if we do that then the GOCOVERDIR env var (which you typically pass to the test binary) will be overwritten by the test runner. So we're passing LAZYGIT_COCOVERDIR instead
+  # arg, but if we do that then the GOCOVERDIR env var (which you typically pass to the test binary) will be overwritten by the test runner. So we're passing LAZYGIT_GOCOVERDIR instead
   # and then internally passing that to the test binary as GOCOVERDIR.
   go test -timeout 30m -cover -coverpkg=github.com/jesseduffield/lazygit/pkg/... pkg/integration/clients/*.go -args -test.gocoverdir="/tmp/code_coverage"
   EXITCODE=$?
