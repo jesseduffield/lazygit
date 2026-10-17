@@ -997,7 +997,7 @@ func (v *View) setCharacter(x, y int, ch string, width int, fgColor, bgColor Att
 
 		colorWidth := v.SelectedLineColorWidth
 		if y >= rangeSelectStart && y <= rangeSelectEnd &&
-			(colorWidth == 0 || x < colorWidth || x+width > v.InnerWidth()-colorWidth) {
+			(colorWidth == 0 || x < colorWidth || (colorWidth < 0 && x+width > v.InnerWidth()+colorWidth)) {
 			fgColor = applySelTextColor(fgColor, v.SelTextColor)
 			if v.HighlightInactive || !isWindowFocused {
 				bgColor = (bgColor & AttrStyleBits) | v.InactiveViewSelBgColor
