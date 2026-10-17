@@ -68,6 +68,8 @@ func (c *RefresherConfig) ExternalChangeCheckIntervalDuration() time.Duration {
 }
 
 type GuiConfig struct {
+	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-co-authors
+	AdditionalAuthors []string `yaml:"additionalAuthors" jsonschema:"uniqueItems=true"`
 	// Custom icons for filenames and file extensions
 	// See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color
 	CustomIcons CustomIconsConfig `yaml:"customIcons"`

@@ -238,6 +238,10 @@ func (self *SuggestionsHelper) GetAuthorsSuggestionsFunc() func(string) []*types
 		return author.Combined()
 	})
 
+	authors = append(authors, lo.Filter(self.c.UserConfig().Gui.AdditionalAuthors, func(author string, _ int) bool {
+		return author != ""
+	})...)
+
 	slices.Sort(authors)
 
 	return FilterFunc(authors, self.c.UserConfig().Gui.UseFuzzySearch())
