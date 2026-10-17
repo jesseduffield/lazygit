@@ -35,14 +35,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
       - name: Test code
         # we're passing -short so that we skip the integration tests, which will be run in parallel below
-        run: |
-          mkdir -p /tmp/code_coverage
-          go test ./... -short -cover -args "-test.gocoverdir=/tmp/code_coverage"
-      - name: Upload code coverage artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-unit-${{ matrix.os }}-${{ github.run_id }}
-          path: /tmp/code_coverage
+        run: go test ./... -short
 
   integration-tests:
     strategy:
@@ -100,11 +93,6 @@ jobs:
         run: git --version
       - name: Test code
         env:
-          # See https://go.dev/blog/integration-test-coverage. The race variant
-          # skips coverage: it's redundant with the non-race latest job and
-          # would only slow the -race build down further. Leaving the dir unset
-          # makes run_integration_tests.sh take its non-coverage path.
-          LAZYGIT_GOCOVERDIR: ${{ !matrix.race && '/tmp/code_coverage' || '' }}
           # Only set for the race variant. The race detector needs cgo; it's on
           # by default on the Linux runner, but we set it explicitly to be safe.
           LAZYGIT_RACE_DETECTOR: ${{ matrix.race && '1' || '' }}
@@ -112,15 +100,7 @@ jobs:
           # Append each test's duration to this file; run_integration_tests.sh
           # prints the slowest at the end, to spot slow/anomalous tests.
           LAZYGIT_TEST_TIMING: /tmp/test_timings.txt
-        run: |
-          mkdir -p /tmp/code_coverage
-          ./scripts/run_integration_tests.sh
-      - name: Upload code coverage artifacts
-        if: ${{ !matrix.race }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-integration-${{ matrix.git-version }}-${{ github.run_id }}
-          path: /tmp/code_coverage
+        run: ./scripts/run_integration_tests.sh
   build:
     runs-on: ubuntu-latest
     env:
@@ -196,43 +176,6 @@ jobs:
         with:
           # If you change this, make sure to also update scripts/golangci-lint-shim.sh
           version: v2.15.0
-  upload-coverage:
-    # List all jobs that produce coverage files
-    needs: [unit-tests, integration-tests]
-    if: github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Setup Go
-        uses: actions/setup-go@v7
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Download all coverage artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: /tmp/code_coverage
-
-      - name: Combine coverage files
-        run: |
-          # Find all directories in /tmp/code_coverage and create a comma-separated list
-          COVERAGE_DIRS=$(find /tmp/code_coverage -mindepth 1 -maxdepth 1 -type d -printf '/tmp/code_coverage/%f,' | sed 's/,$//')
-          echo "Coverage directories: $COVERAGE_DIRS"
-          # Run the combine command with the generated list
-          go tool covdata textfmt -i=$COVERAGE_DIRS -o coverage.out
-          echo "Combined coverage:"
-          go tool cover -func coverage.out | tail -1 | awk '{print $3}'
-
-      - name: Upload to Codacy
-        run: |
-          CODACY_PROJECT_TOKEN="${CODACY_PROJECT_TOKEN}" \
-            bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
-            --force-coverage-parser go -r coverage.out
-
-        env:
-          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   check-for-fixups:
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/master'
