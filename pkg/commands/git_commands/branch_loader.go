@@ -46,6 +46,7 @@ type BranchLoader struct {
 	getCurrentBranchInfo func() (BranchInfo, error)
 	hasLocalOnlyCommits  func(*models.Branch) (bool, error)
 	config               BranchLoaderConfigCommands
+	svn                  *SvnCommands
 }
 
 func NewBranchLoader(
@@ -55,6 +56,7 @@ func NewBranchLoader(
 	getCurrentBranchInfo func() (BranchInfo, error),
 	hasLocalOnlyCommits func(*models.Branch) (bool, error),
 	config BranchLoaderConfigCommands,
+	svn *SvnCommands,
 ) *BranchLoader {
 	return &BranchLoader{
 		Common:               cmn,
@@ -63,6 +65,7 @@ func NewBranchLoader(
 		getCurrentBranchInfo: getCurrentBranchInfo,
 		hasLocalOnlyCommits:  hasLocalOnlyCommits,
 		config:               config,
+		svn:                  svn,
 	}
 }
 
@@ -139,6 +142,35 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 		if match != nil {
 			branch.UpstreamRemote = match.Remote
 			branch.UpstreamBranch = match.Merge
+		} else if !branch.DetachedHead && self.GitCommon.IsSvnRepo() && self.svn != nil {
+			// git-svn: .git/config 中无 tracking 配置，通过 git-svn-id 反推
+			remote, upstreamBranch, err := self.svn.GetSvnUpstream(branch.Name)
+			if err == nil && remote != "" {
+				branch.UpstreamRemote = remote
+				branch.UpstreamBranch = upstreamBranch
+				
+				// 计算 ahead/behind （使状态指示器显示✓，而非?)
+				upstreamRef := fmt.Sprintf("refs/remotes/%s/%s", remote, upstreamBranch)
+				revOutput, revErr := self.cmd.New(
+					NewGitCmd("rev-list").
+					Arg("--left-right").
+					Arg("--count").
+					Arg(fmt.Sprintf("%s...%s", branch.FullRefName(), upstreamRef)).
+					ToArgv(),
+				).DontLog().RunWithOutput()
+				if revErr == nil {
+					parts := strings.Split(strings.TrimSpace(revOutput), "\t")
+					if len(parts) == 2 {
+						branch.AheadForPull = strings.TrimSpace(parts[0])
+						branch.BehindForPull = strings.TrimSpace(parts[1])
+						branch.AheadForPush = branch.AheadForPull
+						branch.BehindForPush = branch.BehindForPull
+					}
+				} else {
+					// 远程引用不存在（已被删除），标记为 gone
+					branch.UpstreamGone = true
+				}
+			}
 		}
 
 		// If the branch already existed, take over the values that are

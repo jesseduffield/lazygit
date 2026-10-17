@@ -66,6 +66,14 @@ func (self *guiCommon) PauseBackgroundRefreshes(pause bool) {
 	self.gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(pause)
 }
 
+func (self *guiCommon) NextFilesRefreshToken() int64 {
+	return self.gui.helpers.Refresh.NextFilesRefreshToken()
+}
+
+func (self *guiCommon) ResetFilesRefreshToken() {
+	self.gui.helpers.Refresh.ResetFilesRefreshToken()
+}
+
 // assertOnUIThread panics (in debug builds) if called from a worker goroutine.
 // Use it to guard accessors for state that only the UI thread may touch, so
 // that a stray worker access fails deterministically -- and points at itself --

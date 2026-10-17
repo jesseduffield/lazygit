@@ -42,12 +42,20 @@ func getTagDisplayStrings(
 	if icons.IsIconEnabled() {
 		res = append(res, textStyle.Sprint(icons.IconForTag(t)))
 	}
+
+	name := t.Name
+
+	if t.IsSvnTag() && t.StaleStatus == models.SvnBranchStatusMissing {
+		name = t.Name + "(not fetched)"
+		textStyle = style.FgWhite
+	}
+
 	descriptionColor := style.FgYellow
 	descriptionStr := descriptionColor.Sprint(t.Description())
 	itemOperationStr := ItemOperationToString(itemOperation, tr)
 	if itemOperationStr != "" {
 		descriptionStr = style.FgCyan.Sprint(itemOperationStr+" "+Loader(time.Now(), userConfig.Gui.Spinner)) + " " + descriptionStr
 	}
-	res = append(res, textStyle.Sprint(t.Name), descriptionStr)
+	res = append(res, textStyle.Sprint(name), descriptionStr)
 	return res
 }
