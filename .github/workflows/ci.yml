@@ -196,43 +196,6 @@ jobs:
         with:
           # If you change this, make sure to also update scripts/golangci-lint-shim.sh
           version: v2.15.0
-  upload-coverage:
-    # List all jobs that produce coverage files
-    needs: [unit-tests, integration-tests]
-    if: github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Setup Go
-        uses: actions/setup-go@v7
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Download all coverage artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: /tmp/code_coverage
-
-      - name: Combine coverage files
-        run: |
-          # Find all directories in /tmp/code_coverage and create a comma-separated list
-          COVERAGE_DIRS=$(find /tmp/code_coverage -mindepth 1 -maxdepth 1 -type d -printf '/tmp/code_coverage/%f,' | sed 's/,$//')
-          echo "Coverage directories: $COVERAGE_DIRS"
-          # Run the combine command with the generated list
-          go tool covdata textfmt -i=$COVERAGE_DIRS -o coverage.out
-          echo "Combined coverage:"
-          go tool cover -func coverage.out | tail -1 | awk '{print $3}'
-
-      - name: Upload to Codacy
-        run: |
-          CODACY_PROJECT_TOKEN="${CODACY_PROJECT_TOKEN}" \
-            bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
-            --force-coverage-parser go -r coverage.out
-
-        env:
-          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   check-for-fixups:
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/master'
