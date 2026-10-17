@@ -7,17 +7,16 @@ if [ -n "$LAZYGIT_GOCOVERDIR" ]; then
   # Go expects us to either be running the test binary directly or running `go test`, but because
   # we're doing both and because we want to combine coverage data for both, we need to be a little
   # hacky. To capture the coverage data for the test runner we pass the test.gocoverdir positional
-  # arg, but if we do that then the GOCOVERDIR env var (which you typically pass to the test binary) will be overwritten by the test runner. So we're passing LAZYGIT_COCOVERDIR instead
+  # arg, but if we do that then the GOCOVERDIR env var (which you typically pass to the test binary) will be overwritten by the test runner. So we're passing LAZYGIT_GOCOVERDIR instead
   # and then internally passing that to the test binary as GOCOVERDIR.
-  go test -timeout 30m -cover -coverpkg=github.com/jesseduffield/lazygit/pkg/... pkg/integration/clients/*.go -args -test.gocoverdir="/tmp/code_coverage"
+  #
+  # Go doesn't create the coverage directory itself. The lazygit binary runs in
+  # the directory of the test's repo, so it also needs an absolute path.
+  mkdir -p "$LAZYGIT_GOCOVERDIR"
+  LAZYGIT_GOCOVERDIR=$(cd "$LAZYGIT_GOCOVERDIR" && pwd)
+  export LAZYGIT_GOCOVERDIR
+  go test -timeout 30m -cover -coverpkg=github.com/jesseduffield/lazygit/pkg/... pkg/integration/clients/*.go -args -test.gocoverdir="$LAZYGIT_GOCOVERDIR"
   EXITCODE=$?
-
-  # We're merging the coverage data for the sake of having fewer artefacts to upload.
-  # We can't merge inline so we're merging to a tmp dir then moving back to the original.
-  mkdir -p /tmp/code_coverage_merged
-  go tool covdata merge -i=/tmp/code_coverage -o=/tmp/code_coverage_merged
-  rm -rf /tmp/code_coverage
-  mv /tmp/code_coverage_merged /tmp/code_coverage
 else
   go test -timeout 30m pkg/integration/clients/*.go
   EXITCODE=$?

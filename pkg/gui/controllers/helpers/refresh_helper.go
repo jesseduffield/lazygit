@@ -203,17 +203,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		panic("a refresh with a Then callback must not set DontBlockRepoSwitch")
 	}
 
-	// A RefreshBlockingInput caller wants keyboard input withheld until the
-	// refreshed state is in place (see IGuiCommon.RefreshBlockingInput). Begin
-	// the block synchronously here in the calling handler, so that no keypress
-	// can slip through before it; the finishing step ends it from a callback
-	// queued behind the refresh's own updates (see waitAndFinalize). Demos
-	// take the blocking inline path below and need none of this.
-	blockInputUntilDone := blockInput && !self.c.InDemo()
-	if blockInputUntilDone {
-		self.c.GocuiGui().BeginBlockingEvents()
-	}
-
 	// Capture the refresh's baseline once, here at the start: the repo
 	// generation that every scope's bounce is guarded against, and the git
 	// command instance the scopes run their commands through. The two are
@@ -236,6 +225,36 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	}) {
 		return
 	}
+
+	// If the repo or worktree was deleted, there's nothing we can show any
+	// more, and every git command would fail.
+	if path, missing := env.git.RepoPaths.MissingDir(); missing {
+		self.c.OnUIThread(func() error {
+			if self.c.State().GetRepoGeneration() != env.generation {
+				// We have switched away from the deleted worktree
+				return nil
+			}
+
+			return types.ErrQuitWithMessage{
+				Message: utils.ResolvePlaceholderString(
+					self.c.Tr.RepoDirNoLongerExists, map[string]string{"path": path},
+				),
+			}
+		})
+		return
+	}
+
+	// A RefreshBlockingInput caller wants keyboard input withheld until the
+	// refreshed state is in place (see IGuiCommon.RefreshBlockingInput). Begin
+	// the block synchronously here in the calling handler, so that no keypress
+	// can slip through before it; the finishing step ends it from a callback
+	// queued behind the refresh's own updates (see waitAndFinalize). Demos
+	// take the blocking inline path below and need none of this.
+	blockInputUntilDone := blockInput && !self.c.InDemo()
+	if blockInputUntilDone {
+		self.c.GocuiGui().BeginBlockingEvents()
+	}
+
 	if options.BatchUIUpdates {
 		env.batch = &refreshBounceBatch{}
 	}
@@ -1448,9 +1467,7 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 }
 
 // markWorktreeFiles marks the files that are linked worktrees of this repo, so
-// that the files view can render them as such. `git status` reports a worktree
-// as an untracked directory, i.e. with a trailing slash, which we take off:
-// keeping it would build a directory node with a nameless file inside it.
+// that the files view can render them as such.
 //
 // It must run on the UI thread, as it works on the model. Both models it needs
 // are written by refreshes of their own, so it is called after either of them
@@ -1459,24 +1476,24 @@ func markWorktreeFiles(files []*models.File, worktrees []*models.Worktree, workt
 	changed := false
 
 	for _, file := range files {
-		absPath := filepath.Join(worktreePath, file.Path)
-		isWorktree := lo.SomeBy(worktrees, func(worktree *models.Worktree) bool {
-			return worktree.Path == absPath
-		})
+		_, isWorktree := worktreeOfFile(file, worktrees, worktreePath)
 
 		if isWorktree != file.IsWorktree {
 			file.IsWorktree = isWorktree
 			changed = true
 		}
-		if isWorktree {
-			if trimmed := strings.TrimSuffix(file.Path, "/"); trimmed != file.Path {
-				file.Path = trimmed
-				changed = true
-			}
-		}
 	}
 
 	return changed
+}
+
+// worktreeOfFile returns the worktree that an entry of the files panel is, if
+// it is one. worktreePath is the path of the worktree that we're in.
+func worktreeOfFile(file *models.File, worktrees []*models.Worktree, worktreePath string) (*models.Worktree, bool) {
+	absPath := filepath.Join(worktreePath, file.Path)
+	return lo.Find(worktrees, func(worktree *models.Worktree) bool {
+		return worktree.Path == absPath
+	})
 }
 
 // the reflogs panel is the only panel where we cache data, in that we only

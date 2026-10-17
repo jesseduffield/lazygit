@@ -43,7 +43,6 @@ func (self *GuiDriver) PressKeysRapidly(keyStrs ...string) {
 
 		self.gui.g.ReplayKeyEvent(gocui.NewTcellKeyEventWrapper(
 			tcell.NewEventKey(tcell.Key(key.KeyName()), key.Str(), tcell.ModMask(key.Mod())),
-			0,
 		))
 	}
 
@@ -61,6 +60,16 @@ func (self *GuiDriver) ClickWithModifier(x, y int, modifier gocui.Modifier) {
 
 	self.replayMouseEvent(x, y, tcell.ButtonPrimary, modifier)
 	self.replayMouseEvent(x, y, tcell.ButtonNone, modifier)
+}
+
+func (self *GuiDriver) DoubleClick(x, y int) {
+	self.CheckAllToastsAcknowledged()
+
+	for range 2 {
+		self.replayMouseEventWithoutWaiting(x, y, tcell.ButtonPrimary, gocui.ModNone)
+		self.replayMouseEventWithoutWaiting(x, y, tcell.ButtonNone, gocui.ModNone)
+	}
+	self.waitTillIdle()
 }
 
 func (self *GuiDriver) ClickAndHold(x, y int) {
@@ -105,7 +114,6 @@ func (self *GuiDriver) replayMouseEventWithoutWaiting(
 ) {
 	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
 		tcell.NewEventMouse(x, y, buttons, tcell.ModMask(modifier)),
-		0,
 	))
 }
 
@@ -115,11 +123,9 @@ func (self *GuiDriver) replayMouseEventWithoutWaiting(
 func (self *GuiDriver) replayFocusIn() {
 	self.gui.g.ReplayFocusEvent(gocui.NewTcellFocusEventWrapper(
 		tcell.NewEventFocus(false),
-		0,
 	))
 	self.gui.g.ReplayFocusEvent(gocui.NewTcellFocusEventWrapper(
 		tcell.NewEventFocus(true),
-		0,
 	))
 }
 
@@ -138,12 +144,10 @@ func (self *GuiDriver) FocusInAndClick(x, y int) {
 	self.replayFocusIn()
 	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
 		tcell.NewEventMouse(x, y, tcell.ButtonPrimary, 0),
-		0,
 	))
 	self.waitTillIdle()
 	self.gui.g.ReplayMouseEvent(gocui.NewTcellMouseEventWrapper(
 		tcell.NewEventMouse(x, y, tcell.ButtonNone, 0),
-		0,
 	))
 	self.waitTillIdle()
 }

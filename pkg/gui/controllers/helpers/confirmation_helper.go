@@ -505,7 +505,7 @@ func (self *ConfirmationHelper) TooltipForMenuItem(menuItem *types.MenuItem) str
 		if tooltip != "" {
 			tooltip += "\n\n"
 		}
-		tooltip += style.FgRed.Sprintf(self.c.Tr.DisabledMenuItemPrefix) + menuItem.DisabledReason.Text
+		tooltip += style.FgRed.Sprint(self.c.Tr.DisabledMenuItemPrefix) + menuItem.DisabledReason.Text
 	}
 	return tooltip
 }

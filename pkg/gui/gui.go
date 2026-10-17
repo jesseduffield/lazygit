@@ -1046,7 +1046,7 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 
 			close(gui.stopChan)
 
-			if errors.Is(err, gocui.ErrQuit) {
+			if errors.Is(err, gocui.ErrQuit) && !errors.As(err, &types.ErrQuitWithMessage{}) {
 				if gui.c.State().GetRetainOriginalDir() {
 					if err := gui.helpers.RecordDirectory.RecordDirectory(gui.InitialDir); err != nil {
 						return err

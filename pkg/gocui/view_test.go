@@ -335,6 +335,40 @@ func TestDiffLineContentsWithRecordsCoveringNoCell(t *testing.T) {
 	}, v.DiffLineContents())
 }
 
+func TestDiffLineContentsOfARewrittenLine(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+	v.writeString(strings.Join([]string{
+		osc1717("1;c;1;;foo.txt") + "line1",
+		osc1717("1;c;2;;foo.txt") + "line2",
+		"last line",
+	}, "\n"))
+
+	// The records of a line that is written again are the ones it is written with,
+	// even when the line's earlier records were taken from it already.
+	v.OverwriteLines(0, osc1717("1;a;7;;bar.txt")+"new1")
+
+	assert.Equal(t, []DiffLineContent{
+		{Text: "new1", Metadata: []string{"1;a;7;;bar.txt"}},
+		{Text: "line2", Metadata: []string{"1;c;2;;foo.txt"}},
+		{Text: "last line"},
+	}, v.DiffLineContents())
+}
+
+func TestDiffLineMetadata(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+	v.writeString(strings.Join([]string{
+		osc1717("1;d;2;2;foo.txt") + "old2    " + osc1717("1;a;2;;foo.txt") + "new2",
+		"@@ a hunk header, which carries no record @@",
+		osc1717("1;c;3;;foo.txt") + "line3",
+	}, "\n"))
+
+	assert.Equal(t, [][]string{
+		{"1;d;2;2;foo.txt", "1;a;2;;foo.txt"},
+		nil,
+		{"1;c;3;;foo.txt"},
+	}, v.DiffLineMetadata())
+}
+
 func TestDiffLineContentsSwallowsHandshake(t *testing.T) {
 	v := NewView("name", 0, 0, 80, 10, OutputNormal)
 

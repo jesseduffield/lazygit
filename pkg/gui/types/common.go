@@ -490,3 +490,17 @@ const (
 	SCREEN_HALF
 	SCREEN_FULL
 )
+
+// Returning this error from a handler quits lazygit like gocui.ErrQuit does,
+// and then prints the message in the terminal.
+type ErrQuitWithMessage struct {
+	Message string
+}
+
+func (e ErrQuitWithMessage) Error() string {
+	return e.Message
+}
+
+func (e ErrQuitWithMessage) Unwrap() error {
+	return gocui.ErrQuit
+}

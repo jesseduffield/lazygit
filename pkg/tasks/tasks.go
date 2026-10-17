@@ -167,10 +167,35 @@ type LinesToRead struct {
 	// Number of lines after which we have read enough to fill the view, and can
 	// do an initial refresh. Only set for the initial read request; -1 for
 	// subsequent requests.
+	//
+	// Unless Total is -1, it must not be more than Total. The task shows nothing
+	// of what it reads until it has read this many lines or has reached the end
+	// of its input, so a task that stops reading before then leaves the view
+	// showing the previous render.
 	InitialRefreshAfter int
+
+	// The number of lines above the view when the task was asked for. Only set
+	// for the initial read request, whose Total and InitialRefreshAfter don't
+	// count these lines. A task that shows its content where the view is reads
+	// them as well, so that it fills the view there. A task that shows content
+	// the view isn't showing yet shows it from the top and doesn't read them.
+	LinesAboveView int
 
 	// Function to call after reading the lines is done
 	Then func()
+}
+
+// includingLinesAboveView returns the initial read request for a task that shows its
+// content where the view is rather than from the top. Such a task reads the lines
+// above the view as well.
+func (self LinesToRead) includingLinesAboveView() LinesToRead {
+	if self.Total != -1 {
+		self.Total += self.LinesAboveView
+	}
+	if self.InitialRefreshAfter != -1 {
+		self.InitialRefreshAfter += self.LinesAboveView
+	}
+	return self
 }
 
 // RenderRestore puts a view back where it was when it re-renders content the user
@@ -410,11 +435,30 @@ func (self *ViewBufferManager) readHoldingATask(totalLines int, then func()) {
 	}
 }
 
-// stopServingReadRequests takes the task away from the read-request queue and
-// answers whatever it never got to, so that nobody is left waiting for a callback
-// that isn't coming.
+// stopServingReadRequests stops holding read requests for a task and answers the
+// ones still waiting, so that nobody is left waiting for a callback that isn't
+// coming.
 func (self *ViewBufferManager) stopServingReadRequests() {
-	for _, request := range self.readRequests.stopServing() {
+	answerReadRequests(self.readRequests.stopServing())
+}
+
+// answerReadRequestsIfLatest answers the read requests still waiting once the given
+// task has given the view all of its content, unless another task has been asked for
+// since. The requests are waiting for that task's content then, so they are left for
+// it to serve.
+func (self *ViewBufferManager) answerReadRequestsIfLatest(taskID int) {
+	self.taskIDMutex.Lock()
+	var unanswered []LinesToRead
+	if taskID == self.newTaskID {
+		unanswered = self.readRequests.stopServing()
+	}
+	self.taskIDMutex.Unlock()
+
+	answerReadRequests(unanswered)
+}
+
+func answerReadRequests(requests []LinesToRead) {
+	for _, request := range requests {
 		if request.Then != nil {
 			request.Then()
 		}
@@ -446,6 +490,14 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 		// Whatever position is owed to the user belongs to this render: it was
 		// remembered just before the re-render that led here was triggered.
 		restore := self.getRestoreForNextTask()
+
+		// Content the view isn't showing yet is shown from the top (see
+		// newContentPending), and content the view is showing is shown where the
+		// view is.
+		initialRequest := linesToRead
+		if !self.newContentPending.Load() {
+			initialRequest = linesToRead.includingLinesAboveView()
+		}
 
 		if self.throttle.Load() {
 			self.Log.Info("throttling task")
@@ -512,9 +564,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 
 		loadingMutex := deadlock.Mutex{}
 
-		// Begin serving before any goroutine starts, so that the first request below
-		// can't arrive before there is a task to take it.
-		readRequests := self.readRequests.beginServing()
+		readRequests := self.readRequests.beginServing(initialRequest)
 
 		scanner := bufio.NewScanner(r)
 		scanner.Split(utils.ScanLinesAndTruncateWhenLongerThanBuffer(bufio.MaxScanTokenSize))
@@ -672,6 +722,15 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							linesToRead.Then()
 						}
 					}
+					// A task that is stopped is being replaced by one that renders the
+					// content the caller is going to act on, so the request is left for
+					// that one to serve. A request without a Then has nobody waiting on
+					// it, and the task replacing this one reads what it needs by itself.
+					handOver := func() {
+						if linesToRead.Then != nil {
+							self.readRequests.requeue(linesToRead)
+						}
+					}
 					// A restore that hasn't painted yet keeps us reading past the lines
 					// asked for, all the way to the end of the input if need be. What it
 					// is looking for may be anywhere in the new content, and a rendering
@@ -680,14 +739,14 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 					// and the view somewhere the user didn't put it.
 					for linesToRead.Total == -1 || linesRead < linesToRead.Total || (restore != nil && !painted) {
 						if stopped() {
-							callThen()
+							handOver()
 							break outer
 						}
 						var ok bool
 						var line []byte
 						select {
 						case <-opts.Stop:
-							callThen()
+							handOver()
 							break outer
 						case line, ok = <-lineChan:
 							// process line below
@@ -719,7 +778,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 							// case above.
 							select {
 							case <-opts.Stop:
-								callThen()
+								handOver()
 								break outer
 							default:
 							}
@@ -772,10 +831,10 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			}
 
 			// Whoever made a request the loop never got to is waiting to hear that the
-			// content it asked for has been read, and there is nothing here to read it
-			// any more: at end of input it has all been read already, and a task that
-			// was stopped is handing the view over to the one replacing it.
-			self.stopServingReadRequests()
+			// content it asked for has been read. At end of input it has all been read
+			// already. A task that was stopped leaves the requests to the one replacing
+			// it.
+			self.answerReadRequestsIfLatest(opts.taskID)
 
 			refreshViewIfStale()
 
@@ -785,7 +844,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 				// the process takes a while until it actually terminates. We still want to call
 				// Wait to reclaim any resources, but do it on a background goroutine, and ignore
 				// any errors.
-				go func() { _ = cmd.Wait() }()
+				go utils.Safe(func() { _ = cmd.Wait() })
 			default:
 				if err := cmd.Wait(); err != nil {
 					self.Log.Errorf("Unexpected error when running cmd task: %v; Failed command: %v", err, cmd.String())
@@ -799,8 +858,6 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 			close(lineWrittenChan)
 		})
 
-		self.readRequests.enqueue(linesToRead)
-
 		<-done
 
 		return nil
@@ -809,6 +866,10 @@ func (self *ViewBufferManager) NewCmdTask(start func() (Cmd, io.Reader), prefix 
 
 // Close closes the task manager, killing whatever task may currently be running
 func (self *ViewBufferManager) Close() {
+	// No task is going to read anything after this, so nobody may be left waiting
+	// for content to be read.
+	defer self.stopServingReadRequests()
+
 	// stopCurrentTask is written by NewTask's goroutine under waitingMutex (and
 	// so is the sync.Once it closes over), so read it under the lock and call
 	// the captured value; a task starting on shutdown must not race us here.
@@ -867,6 +928,8 @@ func (self *ViewBufferManager) ReserveTask() TaskReservation {
 	defer self.taskIDMutex.Unlock()
 
 	self.newTaskID++
+	// Whoever asks for content to be read from now on is asking for this task's.
+	self.readRequests.hold()
 	return TaskReservation{taskID: self.newTaskID}
 }
 
@@ -953,9 +1016,6 @@ func (self *ViewBufferManager) NewReservedTask(reservation TaskReservation, f fu
 			self.stopCurrentTask()
 		}
 
-		// Nothing serves read requests between one task and the next.
-		self.stopServingReadRequests()
-
 		stop := make(chan struct{})
 		notifyStopped := make(chan struct{})
 
@@ -972,6 +1032,10 @@ func (self *ViewBufferManager) NewReservedTask(reservation TaskReservation, f fu
 		if err := f(TaskOpts{Stop: stop, InitialContentLoaded: completeGocuiTask, taskID: taskID}); err != nil {
 			self.Log.Error(err) // might need an onError callback
 		}
+
+		// A task that reads no command's output, such as one showing a message, has
+		// given the view all of its content once it returns.
+		self.answerReadRequestsIfLatest(taskID)
 
 		close(notifyStopped)
 	})

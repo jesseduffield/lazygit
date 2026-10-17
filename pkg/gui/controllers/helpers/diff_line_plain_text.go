@@ -72,12 +72,13 @@ func (self *DiffLineHelper) PlainDiffOfSelection(
 	}
 
 	diffLines := strings.Split(strings.TrimSuffix(plainDiff(relPaths), "\n"), "\n")
+	toDiffLineInfo := diffLineInfoConverterIn(worktreePath)
 	runs := map[string][2]int{}
 	for i, parsed := range parseAllDiffLinesFromBuffer(diffLines) {
 		if !parsed.ok {
 			continue
 		}
-		info := diffLineInfoIn(worktreePath, parsed.parsed)
+		info := toDiffLineInfo(parsed.parsed)
 		selected := selection[info.Path]
 		if selected == nil || !selected.covers(info) {
 			continue

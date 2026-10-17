@@ -65,8 +65,9 @@ func (self *DiffLineHelper) EstablishSelection(mainContext *context.MainContext,
 
 // PlaceNavigationTarget moves the pane's selection to the row a jump found, bringing
 // it on screen if it isn't already. With no selection to move — a pane that isn't
-// focused, or one showing a diff with nothing selectable in it — the row goes to the
-// top of the view instead, that being all a jump can do there.
+// focused, or one showing a diff with nothing selectable in it — all a jump can do is
+// scroll the row to the top of the view, or as close to the top as the end of the diff
+// allows.
 //
 // alignTop asks for the target to become the view's top line, so that everything that
 // begins there is on screen. It only applies to a target the view has to scroll to: a
@@ -84,7 +85,7 @@ func (self *DiffLineHelper) PlaceNavigationTarget(
 ) {
 	view := pane.GetView()
 	if !view.Highlight {
-		view.SetOrigin(0, target)
+		view.SetOrigin(0, originYWithTargetAtTop(pane, target))
 		return
 	}
 	if alignTop {
@@ -106,16 +107,21 @@ func (self *DiffLineHelper) PlaceNavigationTarget(
 }
 
 // scrollTargetToTop scrolls the given row of the diff to the top of the view, leaving
-// the view where it is when that row is on screen already. The last screenful of the
-// diff is as far as it goes, so that the view doesn't scroll past the end of what it is
-// showing.
+// the view where it is when that row is on screen already.
 func (self *DiffLineHelper) scrollTargetToTop(pane types.DiffPaneContext, target int) {
-	view := pane.GetView()
 	originY, height := pane.GetViewTrait().ViewPortYBounds()
 	if target >= originY && target < originY+height {
 		return
 	}
-	view.SetOriginY(min(target, max(0, view.ViewLinesHeight()-height)))
+	pane.GetView().SetOriginY(originYWithTargetAtTop(pane, target))
+}
+
+// originYWithTargetAtTop returns the origin that puts the given row of the diff at the
+// top of the view. The last screenful of the diff is as far as it goes, so that the
+// view doesn't scroll past the end of what it is showing.
+func originYWithTargetAtTop(pane types.DiffPaneContext, target int) int {
+	_, height := pane.GetViewTrait().ViewPortYBounds()
+	return min(target, max(0, pane.GetView().ViewLinesHeight()-height))
 }
 
 // CollapseNonStickyRange drops a range that only grows while shift is held back to a
@@ -216,7 +222,7 @@ func (self *DiffLineHelper) RefreshInclusionGutter() {
 		return
 	}
 
-	resolved := self.resolveDiffLines(view.DiffLineContents())
+	resolved := self.resolveDiffLines(diffLineContents(view))
 	marks := make([]bool, len(resolved))
 	for i, row := range resolved {
 		if row.ok && row.info.IsChange() {
