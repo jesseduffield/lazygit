@@ -440,6 +440,11 @@ type IStateAccessor interface {
 	SetUpdating(bool)
 	GetShowExtrasWindow() bool
 	SetShowExtrasWindow(bool)
+	GetRepoList() []*models.Repo
+	SetRepoList(repos []*models.Repo)
+	NextRepoListLoadSeq() int64
+	IsLatestRepoListLoad(seq int64) bool
+	GetMultiRepoRoot() string
 	GetRetainOriginalDir() bool
 	SetRetainOriginalDir(bool)
 	GetItemOperation(item HasUrn) ItemOperation

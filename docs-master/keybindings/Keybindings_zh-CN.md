@@ -53,6 +53,15 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` ] `` | 下一个标签 |  |
 | `` [ `` | 上一个标签 |  |
 
+## Repositories
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <space> `` | 切换 | Switch to the selected repository. |
+| `` e `` | 编辑配置文件 | 使用外部编辑器打开文件 |
+| `` u `` | 检查更新 |  |
+| `` / `` | 通过文本过滤当前视图 |  |
+
 ## 子提交
 
 | Key | Action | Info |

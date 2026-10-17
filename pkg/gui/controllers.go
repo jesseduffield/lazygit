@@ -63,6 +63,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		mergeConflictsHelper,
 		worktreeHelper,
 		searchHelper,
+		reposHelper,
 	)
 	diffLineHelper := helpers.NewDiffLineHelper(helperCommon)
 	filesHelper := helpers.NewFilesHelper(helperCommon)
@@ -170,6 +171,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		func(branches []*models.RemoteBranch) { gui.State.Model.RemoteBranches = branches },
 	)
 	worktreesController := controllers.NewWorktreesController(common)
+	reposController := controllers.NewReposController(common)
 	undoController := controllers.NewUndoController(common)
 	globalController := controllers.NewGlobalController(common)
 	contextLinesController := controllers.NewContextLinesController(common)
@@ -207,6 +209,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	// allow for navigating between side window contexts
 	for _, context := range []types.Context{
 		gui.State.Contexts.Status,
+		gui.State.Contexts.Repos,
 		gui.State.Contexts.Remotes,
 		gui.State.Contexts.Worktrees,
 		gui.State.Contexts.Tags,
@@ -324,6 +327,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.Worktrees,
 		worktreesController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Repos,
+		reposController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Stash,

@@ -60,6 +60,15 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <enter> `` | Подтвердить |  |
 | `` <esc> `` | Закрыть/отменить |  |
 
+## Repositories
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <space> `` | Switch | Switch to the selected repository. |
+| `` e `` | Редактировать файл конфигурации | Open file in external editor. |
+| `` u `` | Проверить обновления |  |
+| `` / `` | Filter the current view by text |  |
+
 ## Worktrees
 
 | Key | Action | Info |

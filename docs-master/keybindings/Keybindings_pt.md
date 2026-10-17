@@ -312,6 +312,15 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` F `` | Add fork remote | Quickly add a fork remote by replacing the owner in the origin URL and optionally check out a branch from new remote. |
 | `` / `` | Filtrar a visualização atual por texto |  |
 
+## Repositories
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <space> `` | Switch | Switch to the selected repository. |
+| `` e `` | Editar arquivo de configuração | Abrir arquivo no editor externo. |
+| `` u `` | Verificar atualização |  |
+| `` / `` | Filtrar a visualização atual por texto |  |
+
 ## Secundário
 
 | Key | Action | Info |

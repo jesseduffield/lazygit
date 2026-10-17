@@ -53,6 +53,15 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` ] `` | 下一個索引標籤 |  |
 | `` [ `` | 上一個索引標籤 |  |
 
+## Repositories
+
+| Key | Action | Info |
+|-----|--------|-------------|
+| `` <space> `` | 切換 | Switch to the selected repository. |
+| `` e `` | 編輯設定檔案 | 使用外部編輯器開啟 |
+| `` u `` | 檢查更新 |  |
+| `` / `` | 搜尋 |  |
+
 ## 主面板（一般）
 
 | Key | Action | Info |

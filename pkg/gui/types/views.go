@@ -4,6 +4,7 @@ import "github.com/jesseduffield/lazygit/pkg/gocui"
 
 type Views struct {
 	Status         *gocui.View
+	Repos          *gocui.View
 	Submodules     *gocui.View
 	Files          *gocui.View
 	Branches       *gocui.View

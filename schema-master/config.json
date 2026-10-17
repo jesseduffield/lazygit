@@ -3996,6 +3996,19 @@
       "type": "object",
       "description": "Config relating to merging"
     },
+    "MultiRepoConfig": {
+      "properties": {
+        "maxDepth": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How many directory levels below the start directory lazygit searches for git repos. A value of 1 searches only the direct subdirectories.",
+          "default": 2
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config relating to multi-repo mode, which lazygit uses when you start it in a directory that is not a git repo but contains git repos"
+    },
     "OSConfig": {
       "properties": {
         "edit": {
@@ -4090,6 +4103,7 @@
         "type": "string",
         "enum": [
           "status",
+          "repos",
           "files",
           "worktrees",
           "submodules",
@@ -4165,6 +4179,10 @@
         "worktree": {
           "$ref": "#/$defs/WorktreeConfig",
           "description": "Config relating to git worktrees"
+        },
+        "multiRepo": {
+          "$ref": "#/$defs/MultiRepoConfig",
+          "description": "Config relating to multi-repo mode, which lazygit uses when you start it in a directory that is not a git repo but contains git repos"
         },
         "update": {
           "$ref": "#/$defs/UpdateConfig",

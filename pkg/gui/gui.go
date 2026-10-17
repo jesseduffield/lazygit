@@ -121,6 +121,18 @@ type Gui struct {
 	// the extras window contains things like the command log
 	ShowExtrasWindow bool
 
+	// The repos of multi-repo mode. It lives here and not in GuiRepoState
+	// because it must survive switching between the repos it lists.
+	repoList []*models.Repo
+
+	// Numbers the loads of repoList, so that a slow load can't overwrite a
+	// newer one. It lives here because the helpers that start a load are
+	// rebuilt on every repo switch.
+	repoListLoadSeq atomic.Int64
+
+	// The directory that multi-repo mode lists repos from. Empty when the mode is off.
+	multiRepoRoot string
+
 	PopupHandler types.IPopupHandler
 
 	// Bumped every time we switch to a different repository (in resetState).
@@ -200,6 +212,26 @@ func (self *StateAccessor) GetShowExtrasWindow() bool {
 
 func (self *StateAccessor) SetShowExtrasWindow(value bool) {
 	self.gui.ShowExtrasWindow = value
+}
+
+func (self *StateAccessor) GetRepoList() []*models.Repo {
+	return self.gui.repoList
+}
+
+func (self *StateAccessor) NextRepoListLoadSeq() int64 {
+	return self.gui.repoListLoadSeq.Add(1)
+}
+
+func (self *StateAccessor) IsLatestRepoListLoad(seq int64) bool {
+	return self.gui.repoListLoadSeq.Load() == seq
+}
+
+func (self *StateAccessor) GetMultiRepoRoot() string {
+	return self.gui.multiRepoRoot
+}
+
+func (self *StateAccessor) SetRepoList(repos []*models.Repo) {
+	self.gui.repoList = repos
 }
 
 func (self *StateAccessor) GetRetainOriginalDir() bool {
@@ -505,6 +537,9 @@ func (gui *Gui) getPerRepoConfigFiles() []*config.ConfigFile {
 
 func (gui *Gui) onUserConfigLoaded() error {
 	userConfig := gui.Config.GetUserConfig()
+	if gui.multiRepoRoot != "" {
+		userConfig.Gui.SidePanels = config.SidePanelsForMultiRepo(userConfig.Gui.SidePanels)
+	}
 	gui.Common.SetUserConfig(userConfig)
 
 	if gui.previousLanguageConfig != userConfig.Gui.Language {
@@ -666,7 +701,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 
 	gui.applySidePanelConfig()
 
-	return initialContext(contextTree, startArgs)
+	return initialContext(contextTree, startArgs, gui.multiRepoRoot != "")
 }
 
 func (gui *Gui) loadCachedPullRequests() []*models.GithubPullRequest {
@@ -754,8 +789,11 @@ func parseScreenModeArg(screenModeArg string) types.ScreenMode {
 	}
 }
 
-func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartArgs) types.IListContext {
+func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartArgs, multiRepo bool) types.IListContext {
 	var initialContext types.IListContext = contextTree.Files
+	if multiRepo {
+		initialContext = contextTree.Repos
+	}
 
 	if startArgs.FilterPath != "" {
 		initialContext = contextTree.LocalCommits
@@ -790,6 +828,7 @@ func NewGui(
 	updater *updates.Updater,
 	showRecentRepos bool,
 	initialDir string,
+	multiRepoRoot string,
 	test integrationTypes.IntegrationTest,
 ) (*Gui, error) {
 	gui := &Gui{
@@ -812,6 +851,7 @@ func NewGui(
 		ShowExtrasWindow: true,
 
 		InitialDir:       initialDir,
+		multiRepoRoot:    multiRepoRoot,
 		afterLayoutFuncs: make(chan func() error, 1000),
 
 		itemOperations: make(map[string]types.ItemOperation),
@@ -1162,7 +1202,7 @@ func (gui *Gui) loadNewRepo() error {
 	// the old repo's data while others already show the new one's data, so
 	// update the UI only when everything is ready, and also block input to
 	// prevent accidentally trying to act on the old, stale data.
-	options := types.RefreshOptions{DontBlockRepoSwitch: true}
+	options := types.RefreshOptions{Scope: helpers.DefaultScopesWithRepos(), DontBlockRepoSwitch: true}
 	refresh := gui.c.Refresh
 	if isFirstRefreshAfterStartup {
 		isFirstRefreshAfterStartup = false

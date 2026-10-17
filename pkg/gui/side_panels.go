@@ -12,6 +12,7 @@ import (
 // config.ValidSidePanelTabs (enforced by a test).
 var sidePanelViewNames = map[string]string{
 	"status":     "status",
+	"repos":      "repos",
 	"files":      "files",
 	"worktrees":  "worktrees",
 	"submodules": "submodules",
@@ -28,6 +29,7 @@ func (gui *Gui) sidePanelTabTitles() map[string]string {
 	tr := gui.c.Tr
 	return map[string]string{
 		"status":     tr.StatusTitle,
+		"repos":      tr.ReposTitle,
 		"files":      tr.FilesTitle,
 		"worktrees":  tr.WorktreesTitle,
 		"submodules": tr.SubmodulesTitle,
@@ -44,6 +46,7 @@ func (gui *Gui) sidePanelTabTitles() map[string]string {
 func sidePanelContexts(contextTree *context.ContextTree) map[string]types.Context {
 	return map[string]types.Context{
 		"status":     contextTree.Status,
+		"repos":      contextTree.Repos,
 		"files":      contextTree.Files,
 		"worktrees":  contextTree.Worktrees,
 		"submodules": contextTree.Submodules,
