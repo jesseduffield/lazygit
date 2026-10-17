@@ -34,7 +34,7 @@ type ViewSubCommitsOpts struct {
 func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                   true,
+			LogLimit:                git_commands.DefaultGitLogLimit(),
 			FilterPath:              self.c.Modes().Filtering.GetPath(),
 			FilterAuthor:            self.c.Modes().Filtering.GetAuthor(),
 			IncludeRebaseCommits:    false,
@@ -59,7 +59,7 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 	subCommitsContext.SetTitleRef(utils.TruncateWithEllipsis(opts.TitleRef, 50))
 	subCommitsContext.SetRef(opts.Ref)
 	subCommitsContext.SetRefToShowDivergenceFrom(opts.RefToShowDivergenceFrom)
-	subCommitsContext.SetLimitCommits(true)
+	subCommitsContext.SetGitLogLimit(git_commands.DefaultGitLogLimit())
 	subCommitsContext.SetShowBranchHeads(opts.ShowBranchHeads)
 	subCommitsContext.ClearSearchString()
 	subCommitsContext.GetView().ClearSearch()
