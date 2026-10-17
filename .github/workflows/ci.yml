@@ -35,14 +35,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
       - name: Test code
         # we're passing -short so that we skip the integration tests, which will be run in parallel below
-        run: |
-          mkdir -p /tmp/code_coverage
-          go test ./... -short -cover -args "-test.gocoverdir=/tmp/code_coverage"
-      - name: Upload code coverage artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-unit-${{ matrix.os }}-${{ github.run_id }}
-          path: /tmp/code_coverage
+        run: go test ./... -short
 
   integration-tests:
     strategy:
@@ -100,11 +93,6 @@ jobs:
         run: git --version
       - name: Test code
         env:
-          # See https://go.dev/blog/integration-test-coverage. The race variant
-          # skips coverage: it's redundant with the non-race latest job and
-          # would only slow the -race build down further. Leaving the dir unset
-          # makes run_integration_tests.sh take its non-coverage path.
-          LAZYGIT_GOCOVERDIR: ${{ !matrix.race && '/tmp/code_coverage' || '' }}
           # Only set for the race variant. The race detector needs cgo; it's on
           # by default on the Linux runner, but we set it explicitly to be safe.
           LAZYGIT_RACE_DETECTOR: ${{ matrix.race && '1' || '' }}
@@ -112,15 +100,7 @@ jobs:
           # Append each test's duration to this file; run_integration_tests.sh
           # prints the slowest at the end, to spot slow/anomalous tests.
           LAZYGIT_TEST_TIMING: /tmp/test_timings.txt
-        run: |
-          mkdir -p /tmp/code_coverage
-          ./scripts/run_integration_tests.sh
-      - name: Upload code coverage artifacts
-        if: ${{ !matrix.race }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-integration-${{ matrix.git-version }}-${{ github.run_id }}
-          path: /tmp/code_coverage
+        run: ./scripts/run_integration_tests.sh
   build:
     runs-on: ubuntu-latest
     env:

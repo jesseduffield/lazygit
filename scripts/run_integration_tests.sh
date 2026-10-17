@@ -11,13 +11,6 @@ if [ -n "$LAZYGIT_GOCOVERDIR" ]; then
   # and then internally passing that to the test binary as GOCOVERDIR.
   go test -timeout 30m -cover -coverpkg=github.com/jesseduffield/lazygit/pkg/... pkg/integration/clients/*.go -args -test.gocoverdir="/tmp/code_coverage"
   EXITCODE=$?
-
-  # We're merging the coverage data for the sake of having fewer artefacts to upload.
-  # We can't merge inline so we're merging to a tmp dir then moving back to the original.
-  mkdir -p /tmp/code_coverage_merged
-  go tool covdata merge -i=/tmp/code_coverage -o=/tmp/code_coverage_merged
-  rm -rf /tmp/code_coverage
-  mv /tmp/code_coverage_merged /tmp/code_coverage
 else
   go test -timeout 30m pkg/integration/clients/*.go
   EXITCODE=$?
