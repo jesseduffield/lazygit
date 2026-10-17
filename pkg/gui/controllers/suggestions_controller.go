@@ -49,6 +49,7 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 			Handler: func() error {
 				return self.context().State.OnDeleteSuggestion()
 			},
+			GetDisabledReason: self.require(self.singleItemSelected()),
 		},
 		{
 			Keys: opts.GetKeys(opts.Config.Universal.Edit),
