@@ -483,7 +483,9 @@ func RgbToHex(rgb []int) string {
 	hexNodes := make([]string, 0, len(rgb))
 
 	for _, v := range rgb {
-		hexNodes = append(hexNodes, strconv.FormatInt(int64(v), 16))
+		// Channels below 0x10 must keep two digits, or the fixed-width format and
+		// the round-trip with HexToRgb both break.
+		hexNodes = append(hexNodes, fmt.Sprintf("%02x", v))
 	}
 	return strings.Join(hexNodes, "")
 }
@@ -610,6 +612,14 @@ func RgbTo256(r, g, b uint8) uint8 {
 
 // C256ToRgb convert an 256 color code to RGB numbers
 func C256ToRgb(val uint8) (rgb []uint8) {
+	if val >= 232 {
+		level := uint8(8 + 10*int(val-232))
+		return []uint8{level, level, level}
+	}
+	if val >= 16 {
+		index := val - 16
+		return []uint8{incs[index/36], incs[index/6%6], incs[index%6]}
+	}
 	hex := c256ToHexMap[val]
 	// convert to rgb code
 	rgbInts := Hex2rgb(hex)
