@@ -112,8 +112,14 @@ func TestClosingAPipelinesOutputBringsItDown(t *testing.T) {
 
 	assert.NoError(t, reader.Close())
 
-	done := make(chan error, 1)
-	go func() { done <- pipeline.Wait() }()
+	// Only whether Wait returns matters here, not its error. If a write into a
+	// closed pipe raises a signal, the last command dies of it and Wait reports
+	// that; otherwise the command exits normally.
+	done := make(chan struct{})
+	go func() {
+		_ = pipeline.Wait()
+		close(done)
+	}()
 
 	select {
 	case <-done:
