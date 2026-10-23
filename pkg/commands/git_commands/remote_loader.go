@@ -29,24 +29,10 @@ func (self *RemoteLoader) GetRemotes() []*models.Remote {
 	// refs/remotes/<svn-remote-name>/*，需要手动注入使其显示在 UI 中
 	if self.GitCommon != nil && self.GitCommon.IsSvnRepo() {
 		svnRemoteName := self.GitCommon.Svn.GetSvnRemoteName()
-		tagsPaths, _ := self.GitCommon.Svn.GetTagsRefsPaths()
-		svnBranches := remoteBranchesByRemoteName[svnRemoteName]
-
-		// 过滤掉属于 tags 的分支（应由 Tags 界面管理）
-		var filteredBranches []*models.RemoteBranch
-		for _, b := range svnBranches {
-			if !self.isTagRef(b.Name, tagsPaths, svnRemoteName) {
-				filteredBranches = append(filteredBranches, b)
-			}
-		}
-
-		if len(filteredBranches) > 0 || len(svnBranches) > 0 {
 			remotes = append(remotes, &models.Remote{
 				Name: svnRemoteName,
 				Urls: []string{"(git-svn)"},
-				Branches: filteredBranches,
 			})
-		}
 	}
 
 	// now lets sort our remotes by name alphabetically
@@ -178,6 +164,21 @@ func (self *RemoteLoader) getRemoteBranches() ([]*models.RemoteBranch, error) {
 			self.cmd, self.version, remoteBranches, (*models.RemoteBranch).FullRefName, tips,
 		); err != nil {
 			self.Log.Errorf("Failed to sort remote branches by ancestry: %v", err)
+		}
+	}
+
+	if self.GitCommon != nil && self.GitCommon.IsSvnRepo() {
+		svnRemoteName := self.GitCommon.Svn.GetSvnRemoteName()
+		tagsPaths, _ := self.GitCommon.Svn.GetTagsRefsPaths()
+		if len(tagsPaths) >  0 {
+			filtered := remoteBranches[:0]
+			for _, b := range remoteBranches {
+				if b.RemoteName == svnRemoteName && self.isTagRef(b.Name, tagsPaths, svnRemoteName) {
+					continue
+				}
+				filtered = append(filtered, b)
+			}
+			remoteBranches = filtered
 		}
 	}
 
