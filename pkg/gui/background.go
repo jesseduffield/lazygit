@@ -129,7 +129,7 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 			return err
 		}
 
-		if self.gui.UserConfig().Gui.ShowBottomLine || firstTimeOrRetriggered {
+		if git.Sync.IsGitSvnRepo || self.gui.UserConfig().Gui.ShowBottomLine || firstTimeOrRetriggered {
 			return appStatusHelper.WithWaitingStatusImpl(self.gui.Tr.FetchingStatus, func(gocui.Task) error {
 				return self.backgroundFetch(git, branchesHelper, fetchGeneration)
 			}, nil)

@@ -13,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type RemotesController struct {
@@ -60,7 +61,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Remove),
 			Handler:           self.withItem(self.remove),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.notGitSvnRemote),
 			Description:       self.c.Tr.Remove,
 			Tooltip:           self.c.Tr.RemoveRemoteTooltip,
 			DisplayOnScreen:   true,
@@ -68,7 +69,7 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 		{
 			Keys:              opts.GetKeys(opts.Config.Universal.Edit),
 			Handler:           self.withItem(self.edit),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.require(self.singleItemSelected(), self.notGitSvnRemote),
 			Description:       self.c.Tr.Edit,
 			Tooltip:           self.c.Tr.EditRemoteTooltip,
 			DisplayOnScreen:   true,
@@ -145,6 +146,10 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 
 	self.c.PostRefreshUpdate(remoteBranchesContext)
 
+	// SVN automatic stale detection
+	if remote.Name == self.c.Git().Svn.GetSvnRemoteName() && self.c.Git().Sync.GitCommon.IsSvnRepo() {
+		self.checkSvnBranchStatusAsync()
+	}
 	self.c.Context().Push(remoteBranchesContext, types.OnFocusOpts{})
 	return nil
 }
@@ -370,6 +375,9 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 		refreshOptions := types.RefreshOptions{
 			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
 		}
+		if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+			refreshOptions.Scope = append(refreshOptions.Scope, types.TAGS)
+		}
 		if branchName != "" {
 			err = self.c.Git().Branch.New(branchName, remote.Name+"/"+branchName)
 			if err == nil {
@@ -389,6 +397,70 @@ func (self *RemotesController) fetchAndCheckout(remote *models.Remote, branchNam
 			}
 		}
 		self.c.RefreshFromWorker(refreshOptions)
+		
+		if self.c.Git().Sync.GitCommon.IsSvnRepo() && remote.Name == self.c.Git().Svn.GetSvnRemoteName() {
+			self.checkSvnBranchStatusAsync()
+		}
 		return err
+	})
+}
+
+func (self *RemotesController) notGitSvnRemote() *types.DisabledReason {
+	remote := self.context().GetSelected()
+	if remote != nil && self.c.Git().Sync.GitCommon.IsSvnRepo() && remote.Name == self.c.Git().Svn.GetSvnRemoteName() {
+		return &types.DisabledReason{Text: "Cannot modify git-svn remote"}
+	}
+	return nil
+}
+
+func (self *RemotesController) checkSvnBranchStatusAsync() {
+	self.c.WithWaitingStatus(self.c.Tr.CheckingSvnStatus, func (task gocui.Task) error {
+		svnRemoteName := self.c.Git().Svn.GetSvnRemoteName()
+
+		pruned, err := self.c.Git().Svn.PruneStaleRefs("branches")
+		if err != nil {
+			return err
+		}
+		prunedSet := make(map[string]bool)
+		for _, p := range pruned {
+			prunedSet[p] = true
+		}
+
+		missing, err := self.c.Git().Svn.GetMissingRefs("branches")
+		if err != nil {
+			return err
+		}
+
+		self.c.OnUIThread(func() error {
+			if len(prunedSet) > 0 {
+				self.c.Model().RemoteBranches = lo.Filter(self.c.Model().RemoteBranches, func(b *models.RemoteBranch, _ int) bool {
+					if b.RemoteName != svnRemoteName {
+						return true
+					}
+					return !prunedSet[b.Name]
+				})
+			}
+
+			existingNames := make(map[string]bool)
+			for _, b := range self.c.Model().RemoteBranches {
+				if b.RemoteName == svnRemoteName {
+					existingNames[b.Name] = true
+				}
+			}
+			for _, m := range missing {
+				if !existingNames[m] {
+					self.c.Model().RemoteBranches = append(self.c.Model().RemoteBranches,
+				&models.RemoteBranch{
+					Name: m,
+					RemoteName: svnRemoteName,
+					StaleStatus: models.SvnBranchStatusMissing,
+				})
+				}
+			}
+
+			self.c.PostRefreshUpdate(self.c.Contexts().RemoteBranches)
+			return nil
+		})
+		return nil
 	})
 }
