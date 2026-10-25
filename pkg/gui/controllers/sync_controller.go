@@ -90,7 +90,7 @@ func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func(
 
 func (self *SyncController) push(currentBranch *models.Branch) error {
 	branchesBelow := self.unpushedBranchesBelow(currentBranch)
-	if len(branchesBelow) == 0 {
+	if len(branchesBelow) == 0 || self.c.UserConfig().Git.SkipStackedBranchesPushPrompt {
 		return self.pushCurrentBranch(currentBranch)
 	}
 
