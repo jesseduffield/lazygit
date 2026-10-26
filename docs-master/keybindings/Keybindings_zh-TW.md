@@ -280,6 +280,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | 檢視重設選項 |  |
 | `` R `` | 重新命名分支 |  |
 | `` u `` | 檢視遠端設定 | 檢視有關遠端分支的設定（例如重設至遠端） |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` 0 `` | 聚焦主檢視 |  |
 | `` <enter> `` | 檢視提交 |  |

@@ -113,6 +113,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Restaurar |  |
 | `` R `` | Renomear branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver commits |  |

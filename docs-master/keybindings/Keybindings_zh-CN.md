@@ -248,6 +248,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | 查看重置选项 |  |
 | `` R `` | 重命名分支 |  |
 | `` u `` | 查看上游选项 | 查看与分支上游相关的选项，例如设置/取消设置上游和重置为上游。 |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |

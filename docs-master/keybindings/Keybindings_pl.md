@@ -185,6 +185,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Reset |  |
 | `` R `` | Zmień nazwę gałęzi |  |
 | `` u `` | Pokaż opcje upstream | Pokaż opcje dotyczące upstream gałęzi, np. ustawianie/usuwanie upstream i resetowanie do upstream. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Pokaż commity |  |

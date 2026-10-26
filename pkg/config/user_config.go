@@ -629,6 +629,7 @@ type KeybindingBranchesConfig struct {
 	FetchRemote              Keybinding `yaml:"fetchRemote"`
 	AddForkRemote            Keybinding `yaml:"addForkRemote"`
 	SortOrder                Keybinding `yaml:"sortOrder"`
+	ViewBranchDiff           Keybinding `yaml:"viewBranchDiff"`
 }
 
 type KeybindingCommitsConfig struct {
@@ -1148,6 +1149,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				FetchRemote:              Keybinding{"f"},
 				AddForkRemote:            Keybinding{"F"},
 				SortOrder:                Keybinding{"s"},
+				ViewBranchDiff:           Keybinding{"<ctrl+b>"},
 			},
 			Commits: KeybindingCommitsConfig{
 				SquashDown:                     Keybinding{"s"},

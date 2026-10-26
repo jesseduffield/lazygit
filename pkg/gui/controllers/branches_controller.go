@@ -185,6 +185,13 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen:   true,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Branches.ViewBranchDiff),
+			Handler:           self.withItem(self.viewBranchDiff),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ViewBranchDiff,
+			Tooltip:           self.c.Tr.ViewBranchDiffTooltip,
+		},
+		{
 			Keys: opts.GetKeys(opts.Config.Universal.OpenDiffTool),
 			Handler: self.withItem(func(selectedBranch *models.Branch) error {
 				return self.c.Helpers().Diff.OpenDiffToolForRef(selectedBranch)
@@ -226,6 +233,10 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 			})
 		})
 	}
+}
+
+func (self *BranchesController) viewBranchDiff(branch *models.Branch) error {
+	return (&BranchDiffAction{c: self.c}).View(branch, self.context())
 }
 
 func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branch) error {

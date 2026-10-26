@@ -637,6 +637,8 @@ type TranslationSet struct {
 	UnsetUpstream                         string
 	ViewDivergenceFromUpstream            string
 	ViewDivergenceFromBaseBranch          string
+	ViewBranchDiff                        string
+	ViewBranchDiffTooltip                 string
 	CouldNotDetermineBaseBranch           string
 	DivergenceSectionHeaderLocal          string
 	DivergenceSectionHeaderRemote         string
@@ -1876,6 +1878,8 @@ func EnglishTranslationSet() *TranslationSet {
 		UnsetUpstream:                        "Unset upstream of selected branch",
 		ViewDivergenceFromUpstream:           "View divergence from upstream",
 		ViewDivergenceFromBaseBranch:         "View divergence from base branch ({{.baseBranch}})",
+		ViewBranchDiff:                       "View branch diff",
+		ViewBranchDiffTooltip:                "View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out.",
 		CouldNotDetermineBaseBranch:          "Couldn't determine base branch",
 		DivergenceSectionHeaderLocal:         "Local",
 		DivergenceSectionHeaderRemote:        "Remote",
