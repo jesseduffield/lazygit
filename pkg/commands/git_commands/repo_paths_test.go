@@ -2,6 +2,8 @@ package git_commands
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -311,6 +313,48 @@ func TestGetRepoPaths(t *testing.T) {
 				assert.Nil(t, err)
 				assert.Equal(t, s.Expected, repoPaths)
 			}
+		})
+	}
+}
+
+func TestMissingDir(t *testing.T) {
+	scenarios := []struct {
+		name       string
+		deletedDir func(repoPaths *RepoPaths) string
+	}{
+		{
+			name:       "nothing deleted",
+			deletedDir: nil,
+		},
+		{
+			name:       "worktree deleted",
+			deletedDir: (*RepoPaths).WorktreePath,
+		},
+		{
+			name:       "git dir deleted",
+			deletedDir: (*RepoPaths).WorktreeGitDirPath,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			root := t.TempDir()
+			repoPaths := &RepoPaths{
+				worktreePath:       filepath.Join(root, "worktree"),
+				worktreeGitDirPath: filepath.Join(root, "repo", ".git", "worktrees", "worktree"),
+			}
+			assert.NoError(t, os.MkdirAll(repoPaths.WorktreePath(), 0o755))
+			assert.NoError(t, os.MkdirAll(repoPaths.WorktreeGitDirPath(), 0o755))
+
+			expectedPath := ""
+			if s.deletedDir != nil {
+				expectedPath = s.deletedDir(repoPaths)
+				assert.NoError(t, os.RemoveAll(expectedPath))
+			}
+
+			path, missing := repoPaths.MissingDir()
+			assert.Equal(t, expectedPath, path)
+			assert.Equal(t, expectedPath != "", missing)
 		})
 	}
 }

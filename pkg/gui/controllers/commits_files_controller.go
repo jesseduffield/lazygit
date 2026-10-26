@@ -3,7 +3,6 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -267,7 +266,7 @@ func (self *CommitFilesController) openCopyMenu() error {
 	copyAbsolutePathItem := &types.MenuItem{
 		Label: self.c.Tr.CopyAbsoluteFilePath,
 		OnPress: func() error {
-			absPath, err := filepath.Abs(node.GetPath())
+			absPath, err := self.c.Helpers().Diff.AbsolutePathOfFileOfDiff(node.GetPath())
 			if err != nil {
 				return err
 			}
@@ -428,11 +427,11 @@ func (self *CommitFilesController) canDiscardFileChanges(nodes []*filetree.Commi
 }
 
 func (self *CommitFilesController) open(node *filetree.CommitFileNode) error {
-	return self.c.Helpers().Files.OpenFile(node.GetPath())
+	return self.c.Helpers().Diff.OpenFileOfDiff(node.GetPath())
 }
 
 func (self *CommitFilesController) edit(nodes []*filetree.CommitFileNode) error {
-	return self.c.Helpers().Files.EditFiles(lo.FilterMap(nodes,
+	return self.c.Helpers().Diff.EditFilesOfDiff(lo.FilterMap(nodes,
 		func(node *filetree.CommitFileNode, _ int) (string, bool) {
 			return node.GetPath(), node.IsFile()
 		}))

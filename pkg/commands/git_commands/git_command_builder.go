@@ -144,6 +144,23 @@ func (self *GitCommandBuilder) NoLineEndingConversion() *GitCommandBuilder {
 		Config("core.safecrlf=false")
 }
 
+// ParseableDiffPrefixes makes git put a prefix that we know how to strip in
+// front of the paths of a diff. We read the paths of the diffs we show out of
+// their headers, and we build patches from them for `git apply`. Both rely on
+// such a prefix.
+//
+// For this we override three configs of the user. diff.noprefix leaves the
+// prefix out, and diff.srcPrefix and diff.dstPrefix can set it to any string.
+// We leave diff.mnemonicPrefix alone. The prefixes it chooses, such as i/ and
+// w/, are a single path component like a/ and b/, so we can strip them too, and
+// the diffs we show keep the prefixes the user asked for.
+func (self *GitCommandBuilder) ParseableDiffPrefixes() *GitCommandBuilder {
+	return self.
+		Config("diff.noprefix=false").
+		Config("diff.srcPrefix=a/").
+		Config("diff.dstPrefix=b/")
+}
+
 func (self *GitCommandBuilder) AddCommonDiffArgs(diffRendererConfigManager *config.DiffRendererConfigManager, userConfig *config.UserConfig, mode DiffMode) *GitCommandBuilder {
 	contextSize := userConfig.Git.DiffContextSize
 	useExtDiff := mode == DiffModeRendered && diffRendererConfigManager.GetDiffRendererType() == config.DiffRendererType_ExtDiff

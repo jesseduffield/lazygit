@@ -70,37 +70,6 @@ type headInfo struct {
 	hash string
 }
 
-// gitDirOfRepo returns the directory that holds the git data of the repo at
-// repoPath, and whether it could be found. An ordinary repo keeps that data in
-// a .git directory; a worktree and a submodule have a .git file naming the
-// directory instead.
-func gitDirOfRepo(repoPath string) (string, bool) {
-	gitDirPath := filepath.Join(repoPath, ".git")
-
-	stat, err := os.Stat(gitDirPath)
-	if err != nil {
-		return "", false
-	}
-	if stat.IsDir() {
-		return gitDirPath, true
-	}
-
-	content, err := os.ReadFile(gitDirPath)
-	if err != nil {
-		return "", false
-	}
-	gitDir, ok := strings.CutPrefix(strings.TrimSpace(string(content)), "gitdir: ")
-	if !ok {
-		return "", false
-	}
-	// A relative name is relative to the repo. Git writes one for a submodule,
-	// and for a worktree created with --relative-paths.
-	if !filepath.IsAbs(gitDir) {
-		gitDir = filepath.Join(repoPath, gitDir)
-	}
-	return gitDir, true
-}
-
 // The branch git names in the HEAD file of a repo that keeps its refs in a
 // reftable. The refs live in a binary table there, and the name in HEAD
 // resolves nowhere, so that a reader of the file gets an error instead of a
@@ -110,7 +79,7 @@ const reftablePlaceholderBranch = ".invalid"
 // readHeadInfo reads the HEAD file of the repo at repoPath to find out what it
 // has checked out, and reports whether that worked.
 func readHeadInfo(repoPath string) (headInfo, bool) {
-	gitDir, ok := gitDirOfRepo(repoPath)
+	gitDir, ok := git_commands.GitDirOfRepo(repoPath)
 	if !ok {
 		return headInfo{}, false
 	}
@@ -324,10 +293,10 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 	wg.Add(len(recentRepoPaths))
 
 	for i, path := range recentRepoPaths {
-		go func() {
+		go utils.Safe(func() {
 			defer wg.Done()
 			currentBranches[i] = self.getCurrentBranch(path)
-		}()
+		})
 	}
 
 	wg.Wait()

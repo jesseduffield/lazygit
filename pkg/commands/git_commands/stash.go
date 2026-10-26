@@ -83,6 +83,7 @@ func (self *StashCommands) Hash(index int) (string, error) {
 func (self *StashCommands) ShowStashEntryCmdObj(index int, mode DiffMode) *oscommands.CmdObj {
 	// "-u" is the same as "--include-untracked", but the latter fails in older git versions for some reason
 	cmdArgs := NewGitCmd("stash").Arg("show").
+		ParseableDiffPrefixes().
 		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), mode).
 		Arg("-p").
 		Arg("--stat").

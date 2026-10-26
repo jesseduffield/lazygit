@@ -81,7 +81,7 @@ func (self *DiffLineHelper) PreserveDiffPositionOnRerender(view *gocui.View) {
 			// Put the line back on the screen row it was on, clamped into the view for
 			// the fallback lines, which can come from off screen.
 			row := lo.Clamp(anchor.row, 0, max(0, view.InnerHeight()-1))
-			view.SetOrigin(0, max(0, viewLine-row))
+			view.SetOriginY(max(0, viewLine-row))
 			if showSelection {
 				// Put the far end back before the cursor, so that the selection covers
 				// the same lines again; a selection whose far end didn't survive the
@@ -151,7 +151,7 @@ func (self *DiffLineHelper) selectionLine(
 	if len(candidates) == 0 {
 		return anchorViewLine
 	}
-	_, bufferLine := self.nearestSurvivingCandidate(view.DiffLineContents(), candidates)
+	_, bufferLine := self.nearestSurvivingCandidate(diffLineContents(view), candidates)
 	if bufferLine == -1 {
 		return anchorViewLine
 	}
@@ -208,7 +208,7 @@ func selectionFarEndViewLine(view *gocui.View) (int, bool, bool) {
 // findDiffLine returns the view line showing the given diff line in what view is
 // displaying now, for placing a remembered line once the re-render is on screen.
 func (self *DiffLineHelper) findDiffLine(view *gocui.View, identity types.DiffLineInfo) (int, bool) {
-	bufferLine, ok := self.patchLineRows(view.DiffLineContents())[patchLineOf(identity)]
+	bufferLine, ok := self.patchLineRows(diffLineContents(view))[patchLineOf(identity)]
 	if !ok {
 		return 0, false
 	}
@@ -273,7 +273,7 @@ func (self *DiffLineHelper) restoreDiffLinePositionOnRerender(
 // place it left behind is the same one that identity used to have.
 func (self *DiffLineHelper) ChangeLineOrdinal(view *gocui.View, bufferLine int) int {
 	ordinal := 0
-	for i, row := range self.resolveDiffLines(view.DiffLineContents()) {
+	for i, row := range self.resolveDiffLines(diffLineContents(view)) {
 		if i >= bufferLine {
 			break
 		}
@@ -421,7 +421,7 @@ func (self *DiffLineHelper) nearbyDiffLines(view *gocui.View, anchorViewLine int
 	if !ok {
 		return nil
 	}
-	resolved := self.resolveDiffLines(view.DiffLineContents())
+	resolved := self.resolveDiffLines(diffLineContents(view))
 	if anchor >= len(resolved) {
 		return nil
 	}

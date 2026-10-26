@@ -2,6 +2,7 @@ package gocui
 
 import (
 	"testing"
+	"time"
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/stretchr/testify/assert"
@@ -65,4 +66,40 @@ func TestASwallowedClickIsNoHalfOfADoubleClick(t *testing.T) {
 	assert.NoError(t, g.onKey(&press))
 
 	assert.Equal(t, []bool{false}, doubleClicks)
+}
+
+func TestDoubleClicksAreTimedByWhenTheClicksWereRead(t *testing.T) {
+	t.Cleanup(resetMouseState)
+	resetMouseState()
+	g := newTestGui(t)
+	view, _ := g.SetView("list", 0, 0, 20, 10, 0)
+	doubleClicks := []bool{}
+	g.SetViewClickBinding(&ViewMouseBinding{
+		ViewName: "list",
+		Key:      MouseLeft,
+		Handler: func(opts ViewMouseBindingOpts) error {
+			doubleClicks = append(doubleClicks, opts.IsDoubleClick)
+			return nil
+		},
+	})
+
+	click := func(readAt time.Time) {
+		for _, buttons := range []tcell.ButtonMask{tcell.ButtonPrimary, tcell.ButtonNone} {
+			tev := tcell.NewEventMouse(view.x0+1, view.y0+1, buttons, tcell.ModNone)
+			tev.SetEventTime(readAt)
+			event := gocuiEventFromTcellEvent(tev)
+			assert.NoError(t, g.onKey(&event))
+		}
+	}
+
+	// The clicks are handled right after each other, long after they were read,
+	// as they are when they wait in the queue while the main loop is busy.
+	readAt := time.Now().Add(-time.Minute)
+	click(readAt)
+	click(readAt.Add(DOUBLE_CLICK_THRESHOLD + time.Millisecond))
+	click(readAt.Add(DOUBLE_CLICK_THRESHOLD + 100*time.Millisecond))
+
+	assert.Equal(t,
+		[]bool{false, false, true},
+		doubleClicks)
 }

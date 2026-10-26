@@ -416,12 +416,13 @@ type LineIdentity struct {
 // old file keeps them apart.
 func ChangeLineIndexByIdentity(parsed *Patch) map[LineIdentity]int {
 	byIdentity := map[LineIdentity]int{}
+	newLineNumbers, oldLineNumbers := parsed.LineNumbersOfLines()
 	for idx, line := range parsed.Lines() {
 		switch {
 		case line.IsAddition():
-			byIdentity[LineIdentity{parsed.LineNumberOfLine(idx), false}] = idx
+			byIdentity[LineIdentity{newLineNumbers[idx], false}] = idx
 		case line.IsDeletion():
-			byIdentity[LineIdentity{parsed.OldLineNumberOfLine(idx), true}] = idx
+			byIdentity[LineIdentity{oldLineNumbers[idx], true}] = idx
 		}
 	}
 	return byIdentity

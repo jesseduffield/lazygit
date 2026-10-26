@@ -127,7 +127,7 @@ func (self *OptionsMapMgr) formatBindingInfos(bindingInfos []bindingInfo) string
 			break
 		}
 
-		formatted := info.style.Sprintf(plainText)
+		formatted := info.style.Sprint(plainText)
 
 		if i > 0 {
 			builder.WriteString(theme.OptionsFgColor.Sprint(separator))

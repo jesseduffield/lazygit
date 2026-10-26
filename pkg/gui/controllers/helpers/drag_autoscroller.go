@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 const (
@@ -91,12 +92,12 @@ func (self *DragAutoscroller) Cancel() {
 }
 
 func (self *DragAutoscroller) schedule(generation uint64, delay time.Duration) {
-	time.AfterFunc(delay, func() {
+	time.AfterFunc(delay, utils.SafeFunc(func() {
 		self.c.OnUIThreadBackground(func() error {
 			self.tick(generation)
 			return nil
 		})
-	})
+	}))
 }
 
 func (self *DragAutoscroller) tick(generation uint64) {

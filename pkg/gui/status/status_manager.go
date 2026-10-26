@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
 )
@@ -64,12 +65,12 @@ func (self *StatusManager) WithWaitingStatus(message string, renderFunc func(), 
 func (self *StatusManager) AddToastStatus(message string, kind types.ToastKind) int {
 	id := self.addStatus(message, "toast", kind)
 
-	go func() {
+	go utils.Safe(func() {
 		delay := lo.Ternary(kind == types.ToastKindError, time.Second*4, time.Second*2)
 		time.Sleep(delay)
 
 		self.removeStatus(id)
-	}()
+	})
 
 	return id
 }

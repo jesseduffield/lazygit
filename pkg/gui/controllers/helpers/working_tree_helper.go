@@ -13,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -111,6 +112,39 @@ func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfi
 	}
 
 	return nil
+}
+
+// WorktreeForFile returns the worktree that an entry of the files panel is, if
+// it is one
+func (self *WorkingTreeHelper) WorktreeForFile(file *models.File) (*models.Worktree, bool) {
+	return worktreeOfFile(file, self.c.Model().Worktrees, self.c.Git().RepoPaths.WorktreePath())
+}
+
+// NestedRepositoryPlaceholders returns the placeholders for the texts that
+// tell you what to do about a nested repository
+func (self *WorkingTreeHelper) NestedRepositoryPlaceholders(file *models.File) map[string]string {
+	keybindings := self.c.UserConfig().Keybinding
+	return map[string]string{
+		"path":       file.Path,
+		"discardKey": keybindings.Universal.Remove.String(),
+		"removeKey":  keybindings.Universal.Remove.String(),
+		"ignoreKey":  keybindings.Files.IgnoreFile.String(),
+	}
+}
+
+// CantStageNestedRepository returns why the given nested repository can't be
+// staged. git add records a nested repository as an embedded repository: a
+// gitlink without an entry in .gitmodules. Nobody wants that, so we don't let
+// you stage one, and say how to get rid of it instead.
+func (self *WorkingTreeHelper) CantStageNestedRepository(file *models.File) *types.DisabledReason {
+	text := self.c.Tr.StageNestedRepositoryDisabled
+	if file.IsWorktree {
+		text = self.c.Tr.StageWorktreeDisabled
+	}
+
+	return &types.DisabledReason{
+		Text: utils.ResolvePlaceholderString(text, self.NestedRepositoryPlaceholders(file)),
+	}
 }
 
 func (self *WorkingTreeHelper) OpenMergeTool() error {
@@ -232,6 +266,10 @@ func (self *WorkingTreeHelper) WithEnsureCommittableFiles(handler func() error) 
 	}
 
 	if !self.AnyStagedFiles() {
+		if nestedRepository, ok := lo.Find(self.c.Model().Files, (*models.File).IsNestedRepository); ok {
+			return errors.New(self.CantStageNestedRepository(nestedRepository).Text)
+		}
+
 		if self.c.UserConfig().Gui.SkipNoStagedFilesWarning {
 			self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
 			if err := self.c.Git().WorkingTree.StageAll(false); err != nil {

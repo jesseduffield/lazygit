@@ -174,9 +174,11 @@ type View struct {
 	HighlightInactive bool
 
 	// If SelectedLineColorWidth is greater than zero, a highlighted line is painted
-	// in the selection colors on that many columns at its left edge only, rather
-	// than across its whole width, leaving the line's own colors to show through.
-	// For content that conveys meaning by color of its own.
+	// in the selection colors on that many columns at its left and right edges only,
+	// rather than across its whole width, leaving the line's own colors to show
+	// through. For content that conveys meaning by color of its own. A double-width
+	// character that reaches into these columns is painted whole, so the colored part
+	// can be a column wider.
 	SelectedLineColorWidth int
 
 	// InclusionGutterMarker is the glyph the inclusion gutter draws on a marked line
@@ -534,9 +536,14 @@ func (v *View) SelectSearchResult(index int) {
 		index = itemCount - 1
 	}
 
-	y := v.searcher.searchPositions[index].Y
+	pos := v.searcher.searchPositions[index]
+	y := pos.Y
 
 	v.FocusPoint(v.ox, y, true)
+	// A match without a position in the line has nothing to scroll to.
+	if pos.XStart >= 0 {
+		v.scrollColumnsIntoView(pos.XStart, pos.XEnd)
+	}
 	v.renderSearchStatus(index, itemCount)
 	if v.searcher.onSelectItem != nil {
 		v.searcher.onSelectItem(v, y)
@@ -747,6 +754,15 @@ type lineType struct {
 	// which they hold as the overwrite it caused. nil while the cells spell the
 	// line as it was written, as they do for most lines.
 	asWritten []byte
+
+	// metadata holds the OSC 1717 records that the line's cells carry, each once, in
+	// the order they first appear. They are collected when the write cursor moves on
+	// to the next line, so that a reader can take them from here instead of going
+	// through every cell of every line. metadataCollected is false until then, and
+	// again once anything is written to the line; a reader then takes them from the
+	// cells.
+	metadata          []string
+	metadataCollected bool
 }
 
 // textAsWritten returns the line's text as its writer wrote it, escape sequences
@@ -757,6 +773,34 @@ func (l *lineType) textAsWritten() string {
 		return string(l.asWritten)
 	}
 	return l.cells.String()
+}
+
+// diffLineMetadata returns the OSC 1717 records that the line's cells carry (see
+// lineType.metadata).
+func (l *lineType) diffLineMetadata() []string {
+	if l.metadataCollected {
+		return l.metadata
+	}
+	return metadataOfCells(l.cells)
+}
+
+// collectMetadata keeps the records that the line's cells carry, for readers to take
+// without going through the cells (see lineType.metadata).
+func (l *lineType) collectMetadata() {
+	l.metadata = metadataOfCells(l.cells)
+	l.metadataCollected = true
+}
+
+// metadataOfCells returns the OSC 1717 records that the given cells carry, each once,
+// in the order they first appear.
+func metadataOfCells(cells []cell) []string {
+	var metadata []string
+	for _, c := range cells {
+		if c.metadata != "" && !slices.Contains(metadata, c.metadata) {
+			metadata = append(metadata, c.metadata)
+		}
+	}
+	return metadata
 }
 
 // trailingFillAttributes describes the fg/bg colors that draw() should
@@ -931,8 +975,8 @@ func (v *View) InclusionGutterWidthWhenShown() int {
 
 // setCharacter sets a character (grapheme cluster) at the given point relative to the view. It applies
 // the specified colors, taking into account if the cell must be highlighted. Also, it checks if the
-// position is valid.
-func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute, isWindowFocused bool) {
+// position is valid. width is the number of columns the character takes up.
+func (v *View) setCharacter(x, y int, ch string, width int, fgColor, bgColor Attribute, isWindowFocused bool) {
 	maxX, maxY := v.Size()
 	if x < 0 || x >= maxX || y < 0 || y >= maxY {
 		return
@@ -952,7 +996,8 @@ func (v *View) setCharacter(x, y int, ch string, fgColor, bgColor Attribute, isW
 		}
 
 		colorWidth := v.SelectedLineColorWidth
-		if y >= rangeSelectStart && y <= rangeSelectEnd && (colorWidth == 0 || x < colorWidth) {
+		if y >= rangeSelectStart && y <= rangeSelectEnd &&
+			(colorWidth == 0 || x < colorWidth || x+width > v.InnerWidth()-colorWidth) {
 			fgColor = applySelTextColor(fgColor, v.SelTextColor)
 			if v.HighlightInactive || !isWindowFocused {
 				bgColor = (bgColor & AttrStyleBits) | v.InactiveViewSelBgColor
@@ -1145,6 +1190,7 @@ func (b *viewBuffer) writeCells(cells []cell) {
 		}
 	}
 	b.lines[b.wy].cells = line[:newLen]
+	b.lines[b.wy].metadataCollected = false
 	b.wx += len(cells)
 }
 
@@ -1236,6 +1282,7 @@ func (b *viewBuffer) write(v *View, p []byte) {
 	}
 
 	advanceToNextLine := func() {
+		b.lines[b.wy].collectMetadata()
 		b.seekWrite(0, b.wy+1)
 		if b.wy >= len(b.lines) {
 			b.lines = append(b.lines, lineType{})
@@ -1864,10 +1911,11 @@ func (v *View) draw(isWindowFocused bool) {
 		// content begins after it. The blanks go through setCharacter like everything
 		// else, so that a selection reaching the left edge covers the gutter too.
 		for gx := range gutterWidth {
-			v.setCharacter(gx, y, " ", v.FgColor, v.BgColor, isWindowFocused)
+			v.setCharacter(gx, y, " ", 1, v.FgColor, v.BgColor, isWindowFocused)
 		}
 		if gutterWidth > 0 && vline.linesY < len(v.inclusionGutterMarks) && v.inclusionGutterMarks[vline.linesY] {
-			v.setCharacter(0, y, v.InclusionGutterMarker, v.InclusionGutterMarkerColor, v.BgColor, isWindowFocused)
+			v.setCharacter(0, y, v.InclusionGutterMarker, uniseg.StringWidth(v.InclusionGutterMarker),
+				v.InclusionGutterMarkerColor, v.BgColor, isWindowFocused)
 		}
 
 		// x tracks the current x position in the view, and cellIdx tracks the
@@ -1878,13 +1926,7 @@ func (v *View) draw(isWindowFocused bool) {
 
 		var c cell
 		for x < maxX {
-			if x < 0 {
-				if cellIdx < len(vline.line) {
-					x += uniseg.StringWidth(vline.line[cellIdx].chr)
-					cellIdx++
-					continue
-				}
-
+			if x < gutterWidth && cellIdx >= len(vline.line) {
 				// no more characters to write so we're only going to be printing empty cells
 				// past this point
 				x = gutterWidth
@@ -1895,6 +1937,23 @@ func (v *View) draw(isWindowFocused bool) {
 				c = trailingCell
 			} else {
 				c = vline.line[cellIdx]
+			}
+
+			// Skip the cells scrolled past the left edge of the content area; the
+			// content area starts after the gutter.
+			if x < gutterWidth && x+c.width <= gutterWidth {
+				x += c.width
+				cellIdx++
+				continue
+			}
+
+			// A terminal can't show half of a double-width character, so one that is cut
+			// off by the left or right edge shows as a blank in the column of it that is
+			// on screen.
+			if x < gutterWidth || x+c.width > maxX {
+				c.chr = " "
+				c.width = 1
+				x = max(x, gutterWidth)
 			}
 
 			fgColor := c.fgColor
@@ -1909,7 +1968,7 @@ func (v *View) draw(isWindowFocused bool) {
 				fgColor |= AttrUnderline
 			}
 
-			v.setCharacter(x, y, c.chr, fgColor, bgColor, isWindowFocused)
+			v.setCharacter(x, y, c.chr, c.width, fgColor, bgColor, isWindowFocused)
 
 			x += c.width
 			cellIdx++
@@ -1998,10 +2057,17 @@ func (v *View) viewLineLengthIgnoringTrailingBlankLines() int {
 	return 0
 }
 
+// contentX returns the column of the view's content that is drawn at column x of the
+// view. The content starts after the inclusion gutter, and is scrolled by the view's
+// horizontal origin.
+func (v *View) contentX(x int) int {
+	return x - v.inclusionGutterWidth() + v.ox
+}
+
 func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
 	for i, pos := range v.searcher.searchPositions {
 		adjustedY := y + v.oy
-		adjustedX := x + v.ox
+		adjustedX := v.contentX(x)
 		if adjustedY == pos.Y && adjustedX >= pos.XStart && adjustedX < pos.XEnd {
 			return true, i == v.searcher.currentSearchIndex
 		}
@@ -2012,37 +2078,10 @@ func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
 func (v *View) isHoveredHyperlink(x, y int) bool {
 	if v.UnderlineHyperLinksOnlyOnHover && v.hoveredHyperlink != nil {
 		adjustedY := y + v.oy
-		adjustedX := x + v.ox
+		adjustedX := v.contentX(x)
 		return adjustedY == v.hoveredHyperlink.Y && adjustedX >= v.hoveredHyperlink.XStart && adjustedX < v.hoveredHyperlink.XEnd
 	}
 	return false
-}
-
-// realPosition returns the position in the internal buffer corresponding to the
-// point (x, y) of the view.
-func (v *View) realPosition(vx, vy int) (x, y int, ok bool) {
-	vx = v.ox + vx
-	vy = v.oy + vy
-
-	if vx < 0 || vy < 0 {
-		return 0, 0, false
-	}
-
-	if len(v.viewLines) == 0 {
-		return vx, vy, true
-	}
-
-	if vy < len(v.viewLines) {
-		vline := v.viewLines[vy]
-		x = vline.linesX + vx
-		y = vline.linesY
-	} else {
-		vline := v.viewLines[len(v.viewLines)-1]
-		x = vx
-		y = vline.linesY + vy - len(v.viewLines) + 1
-	}
-
-	return x, y, true
 }
 
 // clearRunes erases all the cells in the view.
@@ -2119,6 +2158,20 @@ func (v *View) DiffLineContents() []DiffLineContent {
 	return diffLineContentsFrom(v.buf, 0)
 }
 
+// DiffLineMetadata is DiffLineContents without the text of the lines, for a reader
+// that only needs the records. Taking the text is most of the cost of
+// DiffLineContents.
+func (v *View) DiffLineMetadata() [][]string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	metadata := make([][]string, len(v.buf.lines))
+	for i := range v.buf.lines {
+		metadata[i] = v.buf.lines[i].diffLineMetadata()
+	}
+	return metadata
+}
+
 // OffscreenDiffLineContents is DiffLineContents for the content of a re-render in
 // progress (see BeginOffscreenRender). A reader deciding where the new content
 // should be shown has to work from this: it has to answer before the swap, since
@@ -2170,13 +2223,7 @@ func diffLineContentsFrom(buf *viewBuffer, from int) []DiffLineContent {
 	contents := make([]DiffLineContent, len(lines))
 	for i := range lines {
 		line := &lines[i]
-		var metadata []string
-		for _, c := range line.cells {
-			if c.metadata != "" && !slices.Contains(metadata, c.metadata) {
-				metadata = append(metadata, c.metadata)
-			}
-		}
-		contents[i] = DiffLineContent{Text: line.textAsWritten(), Metadata: metadata}
+		contents[i] = DiffLineContent{Text: line.textAsWritten(), Metadata: line.diffLineMetadata()}
 	}
 	return contents
 }
@@ -2271,56 +2318,6 @@ func (v *View) ViewBuffer() string {
 	}
 
 	return strings.Join(strs, "\n")
-}
-
-// Line returns a string with the line of the view's internal buffer
-// at the position corresponding to the point (x, y).
-func (v *View) Line(y int) (string, bool) {
-	_, y, ok := v.realPosition(0, y)
-	if !ok {
-		return "", false
-	}
-
-	if y < 0 || y >= len(v.buf.lines) {
-		return "", false
-	}
-
-	return v.buf.lines[y].cells.String(), true
-}
-
-// Word returns a string with the word of the view's internal buffer
-// at the position corresponding to the point (x, y).
-func (v *View) Word(x, y int) (string, bool) {
-	x, y, ok := v.realPosition(x, y)
-	if !ok {
-		return "", false
-	}
-
-	if x < 0 || y < 0 || y >= len(v.buf.lines) || x >= len(v.buf.lines[y].cells) {
-		return "", false
-	}
-
-	str := v.buf.lines[y].cells.String()
-
-	nl := strings.LastIndexFunc(str[:x], indexFunc)
-	if nl == -1 {
-		nl = 0
-	} else {
-		nl = nl + 1
-	}
-	nr := strings.IndexFunc(str[x:], indexFunc)
-	if nr == -1 {
-		nr = len(str)
-	} else {
-		nr = nr + x
-	}
-	return str[nl:nr], true
-}
-
-// indexFunc allows to split lines by words taking into account spaces
-// and 0.
-func indexFunc(r rune) bool {
-	return r == ' ' || r == 0
 }
 
 // applySelTextColor adds the attributes of selTextColor to fgColor, and
@@ -2752,6 +2749,60 @@ func (v *View) ScrollRight(amount int) {
 	v.clearHover()
 }
 
+// scrollColumnsIntoView scrolls the view sideways if the columns from xStart up to
+// xEnd aren't all on screen. If they fit in the view without any scrolling, the view
+// goes back to the left edge; otherwise xStart ends up a third of the way across, so
+// that some of what comes before it is on screen too. Only a view that doesn't wrap
+// has columns off screen.
+func (v *View) scrollColumnsIntoView(xStart, xEnd int) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	width := v.InnerWidth() - v.inclusionGutterWidth()
+	if xStart >= v.ox && xEnd <= v.ox+width {
+		return
+	}
+
+	if xEnd <= width {
+		v.SetOriginX(0)
+	} else {
+		v.SetOriginX(xStart - width/3)
+	}
+
+	v.clearHover()
+}
+
+// ClampOriginXToContent scrolls the view back to the left if it is scrolled further
+// than its content needs, so that the end of the widest line is at the right edge.
+// A view that doesn't wrap keeps its horizontal scroll position when its content
+// changes, and the new content may not reach as far.
+func (v *View) ClampOriginXToContent() {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	if v.ox == 0 {
+		return
+	}
+
+	v.refreshViewLinesIfNeeded()
+	widest := 0
+	for _, vline := range v.viewLines {
+		width := 0
+		for _, c := range vline.line {
+			width += c.width
+		}
+		widest = max(widest, width)
+	}
+
+	contentWidth := v.InnerWidth() - v.inclusionGutterWidth()
+	newOx := min(v.ox, max(0, widest-contentWidth))
+	if newOx != v.ox {
+		v.SetOriginX(newOx)
+
+		v.clearHover()
+	}
+}
+
 func (v *View) adjustDownwardScrollAmount(scrollHeight int) int {
 	_, oy := v.Origin()
 	y := oy
@@ -2836,7 +2887,7 @@ func (v *View) onMouseMove(x int, y int) {
 	newCx := x - v.x0 - 1
 	newCy := y - v.y0 - 1
 	// newX and newY are relative to the view's content, independent of its scroll position
-	newX := newCx + v.ox
+	newX := v.contentX(newCx)
 	newY := newCy + v.oy
 
 	if newY >= 0 && newY <= len(v.viewLines)-1 && newX >= 0 && newX <= len(v.viewLines[newY].line)-1 {

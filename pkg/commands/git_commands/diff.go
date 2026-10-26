@@ -124,7 +124,7 @@ func (self *DiffCommands) probeFiles() (string, string, func(), bool) {
 }
 
 func (self *DiffCommands) probeEmitsMetadata(cmdObj *oscommands.CmdObj) bool {
-	cmdObj.AddEnvVars("OSC1717=V1")
+	cmdObj.AddEnvVars("OSC1717=V1").DontLog()
 	// A renderer may well object to being handed nothing to render. We want to know
 	// whatever it said before objecting, and that is captured either way.
 	output, _ := cmdObj.RunWithOutput()
@@ -146,7 +146,7 @@ func NewDiffCommands(gitCommon *GitCommon) *DiffCommands {
 func (self *DiffCommands) DiffCmdObj(diffArgs []string, mode DiffMode) *oscommands.CmdObj {
 	return self.cmd.New(
 		NewGitCmd("diff").
-			Config("diff.noprefix=false").
+			ParseableDiffPrefixes().
 			AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), mode).
 			Arg("--submodule").
 			Arg(fmt.Sprintf("--color=%s", mode.colorArg(self.diffRendererConfigManager))).
@@ -186,15 +186,26 @@ func (self *DiffCommands) CustomPatchDiffCmdObj(dir string, mode DiffMode) *osco
 // want to restrict the diff to specific paths, pass them in additionalArgs
 // after the `--`.
 func (self *DiffCommands) GetDiff(staged bool, additionalArgs ...string) (string, error) {
+	return self.getDiffCmdObj(self.repoPaths.worktreePath, staged, additionalArgs).RunWithOutput()
+}
+
+// GetDiffInOtherWorktree is GetDiff without --staged, run in the worktree at
+// worktreePath. That has to be a worktree of our repo other than the current one. A
+// diff against the working copy is then a diff against that worktree's files.
+func (self *DiffCommands) GetDiffInOtherWorktree(worktreePath string, additionalArgs ...string) (string, error) {
+	return ForOtherRepo(self.getDiffCmdObj(worktreePath, false, additionalArgs)).RunWithOutput()
+}
+
+func (self *DiffCommands) getDiffCmdObj(worktreePath string, staged bool, additionalArgs []string) *oscommands.CmdObj {
 	return self.cmd.New(
 		NewGitCmd("diff").
-			Config("diff.noprefix=false").
+			ParseableDiffPrefixes().
 			Arg("--no-ext-diff", "--no-color").
 			ArgIf(staged, "--staged").
-			Dir(self.repoPaths.worktreePath).
+			Dir(worktreePath).
 			Arg(additionalArgs...).
 			ToArgv(),
-	).DontLog().RunWithOutput()
+	).DontLog()
 }
 
 type DiffToolCmdOptions struct {
@@ -238,7 +249,7 @@ func (self *DiffCommands) OpenDiffToolCmdObj(opts DiffToolCmdOptions) *oscommand
 func (self *DiffCommands) DiffIndexCmdObj(diffArgs ...string) *oscommands.CmdObj {
 	return self.cmd.New(
 		NewGitCmd("diff-index").
-			Config("diff.noprefix=false").
+			ParseableDiffPrefixes().
 			Arg("--submodule", "--no-ext-diff", "--no-color", "--patch").
 			Arg(diffArgs...).ToArgv(),
 	)

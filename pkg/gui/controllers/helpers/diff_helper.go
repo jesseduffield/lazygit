@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"errors"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -10,18 +12,21 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
 type DiffHelper struct {
 	c              *HelperCommon
 	diffLineHelper *DiffLineHelper
+	filesHelper    *FilesHelper
 }
 
-func NewDiffHelper(c *HelperCommon, diffLineHelper *DiffLineHelper) *DiffHelper {
+func NewDiffHelper(c *HelperCommon, diffLineHelper *DiffLineHelper, filesHelper *FilesHelper) *DiffHelper {
 	return &DiffHelper{
 		c:              c,
 		diffLineHelper: diffLineHelper,
+		filesHelper:    filesHelper,
 	}
 }
 
@@ -224,13 +229,144 @@ func (self *DiffHelper) OpenDiffToolForRef(selectedRef models.Ref) error {
 	return err
 }
 
+// EditFilesOfDiff opens files of the diff that the current side panel shows in the
+// editor. They are opened from the worktree of the diff (see otherWorktreeOfDiff).
+// Files that don't exist there are left out, and if none of them exist, it returns an
+// error (see existingPathsInWorktreeOfDiff).
+func (self *DiffHelper) EditFilesOfDiff(paths []string) error {
+	existingPaths, err := self.existingPathsInWorktreeOfDiff(paths)
+	if err != nil {
+		return err
+	}
+	return self.filesHelper.EditFiles(existingPaths)
+}
+
+// EditFileOfDiffAtLine opens a file of the diff shown in the given view in the editor,
+// at a line of that diff. The line is carried forward to where it is in the file now
+// (see AdjustLineNumber). Like EditFilesOfDiff, it opens the file from the worktree of
+// the diff, and returns an error if the file doesn't exist there.
+func (self *DiffHelper) EditFileOfDiffAtLine(path string, lineNumber int, viewName string) error {
+	path, err := self.existingPathInWorktreeOfDiff(path)
+	if err != nil {
+		return err
+	}
+	lineNumber = self.AdjustLineNumber(path, lineNumber, viewName)
+	return self.filesHelper.EditFileAtLine(path, lineNumber)
+}
+
+// OpenFileOfDiff opens a file of the diff that the current side panel shows with the
+// default application for it. Like EditFilesOfDiff, it opens the file from the
+// worktree of the diff, and returns an error if the file doesn't exist there.
+func (self *DiffHelper) OpenFileOfDiff(path string) error {
+	path, err := self.existingPathInWorktreeOfDiff(path)
+	if err != nil {
+		return err
+	}
+	return self.filesHelper.OpenFile(path)
+}
+
+// existingPathsInWorktreeOfDiff returns the absolute paths of those of the given files
+// of the diff that exist in the worktree of the diff. A file of a diff may be missing
+// there, for example if a later commit deleted it, or if the worktree has a branch
+// checked out that doesn't have it. An editor would create such a file as a new, empty
+// one, so it is left out.
+//
+// If none of the files exist, it returns an error. If only some of them are missing, it
+// leaves them out silently. The user would see such an error only after returning from
+// the editor.
+func (self *DiffHelper) existingPathsInWorktreeOfDiff(paths []string) ([]string, error) {
+	absPaths := make([]string, 0, len(paths))
+	for _, path := range paths {
+		absPath, err := self.AbsolutePathOfFileOfDiff(path)
+		if err != nil {
+			return nil, err
+		}
+		absPaths = append(absPaths, absPath)
+	}
+
+	existingPaths := lo.Filter(absPaths, func(path string, _ int) bool {
+		exists, err := self.c.OS().FileExists(path)
+		// If we can't tell, the editor reports the problem
+		return exists || err != nil
+	})
+	if len(existingPaths) > 0 {
+		return existingPaths, nil
+	}
+
+	if len(absPaths) == 1 {
+		return nil, errors.New(utils.ResolvePlaceholderString(
+			self.c.Tr.FileOfDiffDoesNotExist, map[string]string{"path": absPaths[0]}))
+	}
+	worktreePath, ok := self.otherWorktreeOfDiff()
+	if !ok {
+		worktreePath = self.c.Git().RepoPaths.WorktreePath()
+	}
+	return nil, errors.New(utils.ResolvePlaceholderString(
+		self.c.Tr.NoFileOfDiffExists, map[string]string{"worktreePath": worktreePath}))
+}
+
+// existingPathInWorktreeOfDiff is existingPathsInWorktreeOfDiff for a single file.
+func (self *DiffHelper) existingPathInWorktreeOfDiff(path string) (string, error) {
+	existingPaths, err := self.existingPathsInWorktreeOfDiff([]string{path})
+	if err != nil {
+		return "", err
+	}
+	return existingPaths[0], nil
+}
+
+// AbsolutePathOfFileOfDiff returns the absolute path of a file of the diff that the
+// current side panel shows, in the worktree that EditFilesOfDiff opens it from.
+func (self *DiffHelper) AbsolutePathOfFileOfDiff(path string) (string, error) {
+	return filepath.Abs(self.pathInWorktreeOfDiff(path))
+}
+
+// otherWorktreeOfDiff returns the path of the worktree to open files of the diff in
+// the current side panel from, if that isn't the current worktree. If the diff is of a
+// commit of a branch, and another worktree has that branch checked out, that is the
+// other worktree. It has the files as the branch has them; the current worktree may
+// have them in a different state, or not at all.
+func (self *DiffHelper) otherWorktreeOfDiff() (string, bool) {
+	branchDiffContext, ok := self.c.Context().CurrentSide().(types.BranchDiffContext)
+	if !ok {
+		return "", false
+	}
+	branch := branchDiffContext.BranchOfDiff()
+	if branch == nil {
+		return "", false
+	}
+	worktree, ok := git_commands.WorktreeForBranch(branch, self.c.Model().Worktrees)
+	if !ok || worktree.IsCurrent || worktree.IsPathMissing {
+		return "", false
+	}
+	return worktree.Path, true
+}
+
+// pathInWorktreeOfDiff returns the path to open a file of the diff from. The path
+// passed in is either relative to the current worktree, or an absolute path in it, as
+// a diff renderer may state paths.
+func (self *DiffHelper) pathInWorktreeOfDiff(path string) string {
+	worktreePath, ok := self.otherWorktreeOfDiff()
+	if !ok {
+		return path
+	}
+	if filepath.IsAbs(path) {
+		relativePath := repoRelativePath(self.c.Git().RepoPaths.WorktreePath(), path)
+		if relativePath == "" {
+			return path
+		}
+		path = relativePath
+	}
+	return filepath.Join(worktreePath, path)
+}
+
 // AdjustLineNumber is used to adjust a line number in the diff that's currently
 // being viewed, so that it corresponds to the line number in the actual working
 // copy state of the file. It is used when clicking on a delta hyperlink in a
 // diff, or when pressing `e` in a focused diff. It works
 // by getting a diff of what's being viewed in the main view against the working
-// copy, and then using that diff to adjust the line number.
-// path is the file path of the file being viewed
+// copy, and then using that diff to adjust the line number. The working copy is that
+// of the worktree the file is opened from (see otherWorktreeOfDiff).
+// path is the file path of the file being viewed, in that worktree
 // linenumber is the line number to adjust (one-based)
 // viewname is the name of the view that shows the diff. We need to pass it
 // because the diff adjustment is slightly different depending on which view is
@@ -258,7 +394,13 @@ func (self *DiffHelper) AdjustLineNumber(path string, linenumber int, viewname s
 
 func (self *DiffHelper) adjustLineNumber(linenumber int, diffArgs ...string) int {
 	args := append([]string{"--unified=0"}, diffArgs...)
-	diff, err := self.c.Git().Diff.GetDiff(false, args...)
+	var diff string
+	var err error
+	if worktreePath, ok := self.otherWorktreeOfDiff(); ok {
+		diff, err = self.c.Git().Diff.GetDiffInOtherWorktree(worktreePath, args...)
+	} else {
+		diff, err = self.c.Git().Diff.GetDiff(false, args...)
+	}
 	if err != nil {
 		return linenumber
 	}

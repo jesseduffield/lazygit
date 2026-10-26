@@ -253,6 +253,19 @@ type PullRequestDiff struct {
 	BaseHash string
 }
 
+// BranchDiffContext is implemented by the side panel contexts that show, in their
+// focused main view, the diff of a commit of a branch entered from the branches panel:
+// the sub-commits panel, and the commit files panel entered from it. If another
+// worktree has that branch checked out, files of the diff are opened from there (see
+// DiffHelper.EditFilesOfDiff).
+type BranchDiffContext interface {
+	Context
+
+	// BranchOfDiff returns the local branch whose commits the panel shows the diff of,
+	// or nil if the panel wasn't entered from a local branch.
+	BranchOfDiff() *models.Branch
+}
+
 // DiffPaneContext is one of the two panes the main section can show, as the thing
 // that holds a diff with a selection in it. The panels that act on such a selection
 // are handed the pane it was made in, and speak to it through this.

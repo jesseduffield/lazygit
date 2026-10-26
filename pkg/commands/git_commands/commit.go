@@ -242,7 +242,7 @@ func (self *CommitCommands) AmendHeadCmdObj() *oscommands.CmdObj {
 
 func (self *CommitCommands) ShowCmdObj(hash string, filterPaths []string, mode DiffMode) *oscommands.CmdObj {
 	cmdArgs := NewGitCmd("show").
-		Config("diff.noprefix=false").
+		ParseableDiffPrefixes().
 		AddCommonDiffArgs(self.diffRendererConfigManager, self.UserConfig(), mode).
 		Arg("--submodule").
 		Arg("--color=" + mode.colorArg(self.diffRendererConfigManager)).

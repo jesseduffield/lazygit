@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -238,6 +239,8 @@ func (self *MainViewController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.NextPage), Handler: self.handleNextPage, Description: self.c.Tr.NextPage},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoTop), Handler: self.handleGotoTop, Description: self.c.Tr.GotoTop},
 		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.GotoBottom), Handler: self.handleGotoBottom, Description: self.c.Tr.GotoBottom},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.ScrollLeft), Handler: self.handleScrollLeft, Description: self.c.Tr.ScrollLeft},
+		{Tag: "navigation", Keys: opts.GetKeys(opts.Config.Universal.ScrollRight), Handler: self.handleScrollRight, Description: self.c.Tr.ScrollRight},
 	}
 }
 
@@ -627,14 +630,14 @@ func (self *MainViewController) editClickedLine(opts gocui.ViewMouseBindingOpts)
 		self.c.GocuiGui().ForceFlushViewsContentOnly(self.c.GocuiGui().Views())
 	})
 	if flashGeneration != 0 {
-		time.AfterFunc(editedLineFlashDuration, func() {
+		time.AfterFunc(editedLineFlashDuration, utils.SafeFunc(func() {
 			self.c.OnUIThreadContentOnlyBackground(func() error {
 				if self.lineFlashGeneration == flashGeneration {
 					self.context.GetView().ClearLineFlash()
 				}
 				return nil
 			})
-		})
+		}))
 	}
 	return err
 }
@@ -1052,6 +1055,16 @@ func (self *MainViewController) handleGotoBottom() error {
 	return nil
 }
 
+func (self *MainViewController) handleScrollLeft() error {
+	self.context.GetViewTrait().ScrollLeft()
+	return nil
+}
+
+func (self *MainViewController) handleScrollRight() error {
+	self.context.GetViewTrait().ScrollRight()
+	return nil
+}
+
 func (self *MainViewController) editLine() error {
 	view := self.context.GetView()
 	if !view.Highlight {
@@ -1073,13 +1086,10 @@ func (self *MainViewController) editDiffLine(viewLine int, beforeEdit func()) er
 	// it opens the file without jumping anywhere — as pressing edit on a file in a side
 	// panel does.
 	if info.Type == types.DiffLineFileHeader {
-		return self.c.Helpers().Files.EditFiles([]string{info.Path})
+		return self.c.Helpers().Diff.EditFilesOfDiff([]string{info.Path})
 	}
 
-	// The diff may be of an older commit, whose line numbers aren't the file's current
-	// ones, so they have to be carried forward before we can point an editor at them.
-	lineNumber := self.c.Helpers().Diff.AdjustLineNumber(info.Path, info.NewLine, self.context.GetViewName())
-	return self.c.Helpers().Files.EditFileAtLine(info.Path, lineNumber)
+	return self.c.Helpers().Diff.EditFileOfDiffAtLine(info.Path, info.NewLine, self.context.GetViewName())
 }
 
 // openPullRequestAtSelectedLine opens the pull request of the branch whose commit the
@@ -1105,7 +1115,7 @@ func (self *MainViewController) openPullRequestAtSelectedLine() error {
 	}
 	relativePath := repoRelativePath(self.c.Git().RepoPaths.WorktreePath(), info.Path)
 	if relativePath == "" {
-		return nil
+		return diffLinesFileNotFoundError(self.c, info.Path)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)

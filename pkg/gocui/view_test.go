@@ -335,6 +335,40 @@ func TestDiffLineContentsWithRecordsCoveringNoCell(t *testing.T) {
 	}, v.DiffLineContents())
 }
 
+func TestDiffLineContentsOfARewrittenLine(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+	v.writeString(strings.Join([]string{
+		osc1717("1;c;1;;foo.txt") + "line1",
+		osc1717("1;c;2;;foo.txt") + "line2",
+		"last line",
+	}, "\n"))
+
+	// The records of a line that is written again are the ones it is written with,
+	// even when the line's earlier records were taken from it already.
+	v.OverwriteLines(0, osc1717("1;a;7;;bar.txt")+"new1")
+
+	assert.Equal(t, []DiffLineContent{
+		{Text: "new1", Metadata: []string{"1;a;7;;bar.txt"}},
+		{Text: "line2", Metadata: []string{"1;c;2;;foo.txt"}},
+		{Text: "last line"},
+	}, v.DiffLineContents())
+}
+
+func TestDiffLineMetadata(t *testing.T) {
+	v := NewView("name", 0, 0, 80, 10, OutputNormal)
+	v.writeString(strings.Join([]string{
+		osc1717("1;d;2;2;foo.txt") + "old2    " + osc1717("1;a;2;;foo.txt") + "new2",
+		"@@ a hunk header, which carries no record @@",
+		osc1717("1;c;3;;foo.txt") + "line3",
+	}, "\n"))
+
+	assert.Equal(t, [][]string{
+		{"1;d;2;2;foo.txt", "1;a;2;;foo.txt"},
+		nil,
+		{"1;c;3;;foo.txt"},
+	}, v.DiffLineMetadata())
+}
+
 func TestDiffLineContentsSwallowsHandshake(t *testing.T) {
 	v := NewView("name", 0, 0, 80, 10, OutputNormal)
 
@@ -1139,6 +1173,30 @@ func TestLineFlashReversesTheSelectionBarWithoutChangingSelection(t *testing.T) 
 	assert.False(t, style.HasReverse(), "clearing should remove the flash")
 }
 
+// The selection bar on the right edge covers a double-width character that reaches
+// into it, like the bar on the left edge does.
+func TestSelectionBarOnTheRightEdgeCoversADoubleWidthCharacter(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.Highlight = true
+	v.SelBgColor = ColorBlue
+	v.SelectedLineColorWidth = 2
+
+	// に takes view columns 7 and 8, and the bar the last two, 8 and 9.
+	v.writeString("abcdefgにj\n")
+	v.draw(true)
+
+	// The frame puts view column x at screen column x+1.
+	highlighted := func(x int) bool {
+		_, style, _ := Screen.Get(x+1, 1)
+		return style.GetBackground() != tcell.ColorDefault
+	}
+	assert.False(t, highlighted(6))
+	assert.True(t, highlighted(7), "に reaches into the bar")
+	assert.True(t, highlighted(9))
+}
+
 // Resizing a view throws away the wrapping of its content and wraps it again for
 // the new width, which moves every line of it to a different view line. The
 // positions into the view count view lines, so they all have to come along.
@@ -1164,6 +1222,47 @@ func TestResizingAWrappingViewKeepsItsPlaceInTheContent(t *testing.T) {
 	assert.Equal(t, 5, v.ViewLinesHeight())
 
 	assert.Equal(t, []string{"another wrapping line"}, v.SelectedLines())
+}
+
+// A double-width character that starts in the last column doesn't fit, and shows as a
+// blank there rather than reaching into the frame.
+func TestDoubleWidthCharacterAtTheRightEdge(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+
+	v.writeString("abcdefghiプ\n")
+	v.draw(true)
+
+	// The frame puts view column 9 at screen column 10.
+	chr, _, width := Screen.Get(10, 1)
+	assert.Equal(t, " ", chr)
+	assert.Equal(t, 1, width)
+}
+
+// A double-width character that is scrolled halfway out to the left shows as a blank
+// in the column it still reaches into, so that the column is drawn like every other.
+func TestDoubleWidthCharacterCutOffAtTheLeftEdge(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.Highlight = true
+	v.SelBgColor = ColorBlue
+
+	v.writeString("にプ\n")
+	v.SetOriginX(1)
+	v.draw(true)
+
+	// The frame puts view column 0 at screen column 1.
+	chr, style, _ := Screen.Get(1, 1)
+	assert.Equal(t, " ", chr)
+	assert.Equal(t,
+		true,
+		style.GetBackground() != tcell.ColorDefault,
+		"the selection covers the column")
+
+	chr, _, _ = Screen.Get(2, 1)
+	assert.Equal(t, "プ", chr)
 }
 
 // The inclusion gutter reserves columns at the left of every line, draws its marker
@@ -1202,6 +1301,174 @@ func TestInclusionGutter(t *testing.T) {
 	v.draw(true)
 	chr, _, _ = Screen.Get(1, 1)
 	assert.Equal(t, "a", chr)
+}
+
+// A search match beside the inclusion gutter is highlighted where it is drawn.
+func TestSearchMatchBesideTheInclusionGutter(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.InclusionGutterMarker = "✓"
+
+	v.writeString("0123456789\n")
+	v.SetInclusionGutter(true, []bool{true})
+	v.UpdateSearchResults("34", nil)
+	v.draw(true)
+
+	highlightedColumns := func(y int) string {
+		s := ""
+		for x := 1; x <= 10; x++ {
+			_, style, _ := Screen.Get(x, y)
+			s += lo.Ternary(style.GetBackground() != tcell.ColorDefault, "#", ".")
+		}
+		return s
+	}
+	// The row reads "✓ 01234567", so the match is at view columns 5 and 6.
+	assert.Equal(t,
+		".....##...",
+		highlightedColumns(1))
+}
+
+// A hyperlink beside the inclusion gutter is underlined while the mouse is over it.
+func TestHoveredHyperlinkBesideTheInclusionGutter(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.InclusionGutterMarker = "✓"
+	v.UnderlineHyperLinksOnlyOnHover = true
+
+	v.writeString("ab\x1b]8;;https://example.com\x1b\\link\x1b]8;;\x1b\\cd\n")
+	v.SetInclusionGutter(true, []bool{true})
+
+	// The row reads "✓ ablinkcd". Point at the "l" of "link", at view column 4,
+	// which the frame puts at screen column 5.
+	v.onMouseMove(5, 1)
+	v.draw(true)
+
+	underlinedColumns := func(y int) string {
+		s := ""
+		for x := 1; x <= 10; x++ {
+			_, style, _ := Screen.Get(x, y)
+			s += lo.Ternary(style.HasUnderline(), "_", ".")
+		}
+		return s
+	}
+	assert.Equal(t,
+		"....____..",
+		underlinedColumns(1))
+}
+
+// Clicking a hyperlink beside the inclusion gutter opens it.
+func TestClickHyperlinkBesideTheInclusionGutter(t *testing.T) {
+	g := newTestGui(t)
+	v, _ := g.SetView("main", 0, 0, 20, 10, 0)
+	v.InclusionGutterMarker = "✓"
+
+	v.writeString("\x1b]8;;https://example.com\x1b\\link\x1b]8;;\x1b\\ text\n")
+	v.SetInclusionGutter(true, []bool{true})
+
+	opened := []string{}
+	g.SetOpenHyperlinkFunc(func(link string, _ string) error {
+		opened = append(opened, link)
+		return nil
+	})
+
+	// The row reads "✓ link text". Click the "k" of "link", at view column 5, which
+	// the frame puts at screen column 6.
+	assert.NoError(t, g.onKey(&GocuiEvent{
+		Type: eventMouse, MouseX: 6, MouseY: 1,
+		Key: NewKeyName(MouseLeft),
+	}))
+	assert.Equal(t,
+		[]string{"https://example.com"},
+		opened)
+}
+
+// Content scrolled to the right goes under the gutter, not over it: the gutter
+// stays where it is, and the content shows from the scroll position onwards.
+func TestInclusionGutterWithHorizontallyScrolledContent(t *testing.T) {
+	WithSimulationScreen(t, 14, 6)
+
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.InclusionGutterMarker = "✓"
+
+	v.writeString("0123456789abcdef\n0123456789abcdef\n")
+	v.SetInclusionGutter(true, []bool{true, false})
+	v.SetOriginX(3)
+	v.draw(true)
+
+	row := func(y int) string {
+		s := ""
+		for x := 1; x <= 10; x++ {
+			chr, _, _ := Screen.Get(x, y)
+			s += chr
+		}
+		return s
+	}
+	assert.Equal(t, "✓ 3456789a", row(1))
+	assert.Equal(t, "  3456789a", row(2))
+}
+
+// Selecting a search match that is off screen to the side scrolls the view so that
+// the match starts a third of the way across it, or back to the left edge if that
+// is enough to show the match. A match on screen leaves the view where it is.
+func TestSelectSearchResultScrollsTheMatchIntoView(t *testing.T) {
+	v := NewView("name", 0, 0, 13, 5, OutputNormal) // InnerWidth 12
+
+	v.writeString("0123456789abcdefghijklmnopqrstuvwxyz\n")
+
+	v.UpdateSearchResults("uv", nil)
+	v.SelectSearchResult(0)
+	assert.Equal(t, 26, v.OriginX(), "u is at 30, and a third of the width is 4")
+
+	v.UpdateSearchResults("yz", nil)
+	v.SelectSearchResult(0)
+	assert.Equal(t, 26, v.OriginX(), "the match is on screen")
+
+	v.UpdateSearchResults("mn", nil)
+	v.SelectSearchResult(0)
+	assert.Equal(t, 18, v.OriginX())
+
+	v.UpdateSearchResults("ab", nil)
+	v.SelectSearchResult(0)
+	assert.Equal(t, 0, v.OriginX(), "the match fits without scrolling")
+
+	// The gutter leaves the content ten columns, of which a third is 3.
+	v.InclusionGutterMarker = "✓"
+	v.SetInclusionGutter(true, []bool{false})
+	v.UpdateSearchResults("ab", nil)
+	v.SelectSearchResult(0)
+	assert.Equal(t, 7, v.OriginX(), "a is at 10, and doesn't fit in the first ten columns")
+}
+
+// A view scrolled further right than its content needs goes back as far as it takes
+// to put the end of the widest line at the right edge, and no further.
+func TestClampOriginXToContent(t *testing.T) {
+	v := NewView("name", 0, 0, 11, 5, OutputNormal) // InnerWidth 10
+	v.InclusionGutterMarker = "✓"
+
+	// The widest line is 16 wide.
+	v.writeString("0123456789abcdef\nshort\n")
+
+	v.SetOriginX(4)
+	v.ClampOriginXToContent()
+	assert.Equal(t, 4, v.OriginX(), "the widest line still reaches the right edge")
+
+	v.SetOriginX(10)
+	v.ClampOriginXToContent()
+	assert.Equal(t, 6, v.OriginX())
+
+	// The gutter leaves the content eight columns.
+	v.SetInclusionGutter(true, []bool{false, false})
+	v.SetOriginX(10)
+	v.ClampOriginXToContent()
+	assert.Equal(t, 8, v.OriginX())
+
+	// Content that fits needs no scrolling at all.
+	v.Clear()
+	v.writeString("short\n")
+	v.ClampOriginXToContent()
+	assert.Equal(t, 0, v.OriginX())
 }
 
 // A marked line the view wraps is marked on every segment it is drawn as, so that

@@ -267,7 +267,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
 			diffRendererConfig:  nil,
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.dstPrefix=b/", "-c", "diff.srcPrefix=a/", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
 			testName:            "Default case with filter path",
@@ -276,7 +276,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
 			diffRendererConfig:  nil,
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--", "file.txt"},
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.dstPrefix=b/", "-c", "diff.srcPrefix=a/", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--", "file.txt"},
 		},
 		{
 			testName:            "Show diff with custom context size",
@@ -285,7 +285,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
 			diffRendererConfig:  nil,
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=77", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.dstPrefix=b/", "-c", "diff.srcPrefix=a/", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=77", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
 			testName:            "Show diff with custom similarity threshold",
@@ -294,7 +294,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			similarityThreshold: 33,
 			ignoreWhitespace:    false,
 			diffRendererConfig:  nil,
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=3", "--find-renames=33%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.dstPrefix=b/", "-c", "diff.srcPrefix=a/", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=3", "--find-renames=33%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
 			testName:            "Show diff, ignoring whitespace",
@@ -303,7 +303,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			similarityThreshold: 50,
 			ignoreWhitespace:    true,
 			diffRendererConfig:  nil,
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=77", "--ignore-all-space", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.dstPrefix=b/", "-c", "diff.srcPrefix=a/", "-c", "diff.noprefix=false", "show", "--no-ext-diff", "--unified=77", "--ignore-all-space", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
 			testName:            "Show diff with external diff command",
@@ -312,7 +312,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
 			diffRendererConfig:  &config.DiffRendererConfig{Type: "extDiff", Command: "difft --color=always"},
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.dstPrefix=b/", "-c", "diff.srcPrefix=a/", "-c", "diff.noprefix=false", "show", "--ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 		{
 			testName:            "Show diff using git's external diff config",
@@ -321,7 +321,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			similarityThreshold: 50,
 			ignoreWhitespace:    false,
 			diffRendererConfig:  &config.DiffRendererConfig{Type: "extDiff"},
-			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.noprefix=false", "show", "--ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
+			expected:            []string{"-C", "/path/to/worktree", "-c", "diff.dstPrefix=b/", "-c", "diff.srcPrefix=a/", "-c", "diff.noprefix=false", "show", "--ext-diff", "--unified=3", "--find-renames=50%", "--submodule", "--color=always", "--stat", "--decorate", "-p", "1234567890", "--"},
 		},
 	}
 

@@ -74,7 +74,10 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 	onWorker func(func() error),
 	renderFunc func(),
 ) ([]*models.Branch, error) {
-	branches, tips := self.obtainBranches()
+	branches, tips, err := self.obtainBranches()
+	if err != nil {
+		return nil, err
+	}
 
 	switch self.UserConfig().Git.LocalBranchSortOrder {
 	case "date":
@@ -177,7 +180,7 @@ func (self *BranchLoader) checkForRewrittenUpstreams(branches []*models.Branch, 
 			continue
 		}
 
-		errg.Go(func() error {
+		errg.Go(utils.SafeFuncWithError(func() error {
 			hasLocalOnlyCommits, err := self.hasLocalOnlyCommits(branch)
 			if err != nil {
 				// Not worth bothering the user about; it only means that we
@@ -186,7 +189,7 @@ func (self *BranchLoader) checkForRewrittenUpstreams(branches []*models.Branch, 
 			}
 			branch.UpstreamRewritten.Store(err == nil && !hasLocalOnlyCommits)
 			return nil
-		})
+		}))
 	}
 
 	err := errg.Wait()
@@ -220,7 +223,7 @@ func (self *BranchLoader) getBehindBaseBranchValuesLegacy(
 	errg := errgroup.Group{}
 
 	for _, branch := range branches {
-		errg.Go(func() error {
+		errg.Go(utils.SafeFuncWithError(func() error {
 			baseBranch, err := self.GetBaseBranch(branch, mainBranches)
 			if err != nil {
 				return err
@@ -247,7 +250,7 @@ func (self *BranchLoader) getBehindBaseBranchValuesLegacy(
 			}
 			branch.BehindBaseBranch.Store(int32(behind))
 			return nil
-		})
+		}))
 	}
 
 	err := errg.Wait()
@@ -326,10 +329,10 @@ func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *Mai
 
 // Returns the branches, along with the tip of each of them, keyed by full ref
 // name
-func (self *BranchLoader) obtainBranches() ([]*models.Branch, map[string]refTip) {
+func (self *BranchLoader) obtainBranches() ([]*models.Branch, map[string]refTip, error) {
 	output, err := self.getRawBranches()
 	if err != nil {
-		panic(err)
+		return nil, nil, err
 	}
 
 	trimmedOutput := strings.TrimSpace(output)
@@ -355,7 +358,7 @@ func (self *BranchLoader) obtainBranches() ([]*models.Branch, map[string]refTip)
 		return branch, true
 	})
 
-	return branches, tips
+	return branches, tips, nil
 }
 
 func (self *BranchLoader) getRawBranches() (string, error) {

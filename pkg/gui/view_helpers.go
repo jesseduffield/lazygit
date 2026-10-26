@@ -18,12 +18,14 @@ func (gui *Gui) resetViewOrigin(v *gocui.View) {
 
 // Returns the number of lines that we should read initially from a cmd task so
 // that the scrollbar has the correct size, along with the number of lines after
-// which the view is filled and we can do a first refresh.
+// which the view is filled and we can do a first refresh. Both count from the top
+// of the view. The task adds the lines above the view if it shows its content
+// where the view is (see LinesToRead.LinesAboveView).
 func (gui *Gui) linesToReadFromCmdTask(v *gocui.View) tasks.LinesToRead {
 	height := v.InnerHeight()
-	oy := v.OriginY()
+	linesAboveView := v.OriginY()
 
-	linesForFirstRefresh := height + oy + 10
+	linesForFirstRefresh := height + 10
 
 	// A search counts the matches in everything the view holds, so a re-render of a
 	// view that is being searched is read all the way to the end (as opening the
@@ -34,6 +36,7 @@ func (gui *Gui) linesToReadFromCmdTask(v *gocui.View) tasks.LinesToRead {
 		return tasks.LinesToRead{
 			Total:               -1,
 			InitialRefreshAfter: linesForFirstRefresh,
+			LinesAboveView:      linesAboveView,
 		}
 	}
 
@@ -44,11 +47,14 @@ func (gui *Gui) linesToReadFromCmdTask(v *gocui.View) tasks.LinesToRead {
 	linesToReadForAccurateScrollbar := min(
 		// However, cap it at some arbitrary max limit, so that we don't get
 		// performance problems for huge monitors or tiny font sizes
-		height*(height-1)/minScrollbarHeight+oy, 5000)
+		height*(height-1)/minScrollbarHeight, 5000)
 
 	return tasks.LinesToRead{
-		Total:               linesToReadForAccurateScrollbar,
+		// A view no more than a few lines tall needs fewer lines for its scrollbar
+		// than it takes to fill it, and the task must read at least those.
+		Total:               max(linesToReadForAccurateScrollbar, linesForFirstRefresh),
 		InitialRefreshAfter: linesForFirstRefresh,
+		LinesAboveView:      linesAboveView,
 	}
 }
 
