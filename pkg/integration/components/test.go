@@ -23,6 +23,14 @@ const (
 	defaultHeight = 100
 )
 
+// The terminal size that demo/settings.tape gives a recording. How a demo
+// behaves depends on how much of a list fits on the screen, so run demos at
+// the size they will be recorded at. Keep these in step with that file.
+const (
+	demoWidth  = 120
+	demoHeight = 35
+)
+
 type IntegrationTest struct {
 	name         string
 	description  string
@@ -213,6 +221,10 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 
 func (self *IntegrationTest) HeadlessDimensions() (int, int) {
 	if self.width == 0 && self.height == 0 {
+		if self.isDemo {
+			return demoWidth, demoHeight
+		}
+
 		return defaultWidth, defaultHeight
 	}
 

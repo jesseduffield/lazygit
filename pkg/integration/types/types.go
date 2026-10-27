@@ -28,6 +28,13 @@ type GuiDriver interface {
 	// user typing faster than lazygit processes the input.
 	PressKeysRapidly(...string)
 	Click(int, int)
+	// Click with a keyboard modifier held down, for the gestures that only exist
+	// as a modified click.
+	ClickWithModifier(int, int, gocui.Modifier)
+	// Two clicks in immediate succession, waiting for lazygit to become idle only
+	// after the second one. If it waited after the first one too, the second click
+	// could come too late to count as a double click.
+	DoubleClick(int, int)
 	ClickAndHold(int, int)
 	MouseMove(int, int)
 	MouseRelease(int, int)

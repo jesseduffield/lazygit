@@ -30,8 +30,6 @@ type RefreshHelper struct {
 	c                    *HelperCommon
 	refsHelper           *RefsHelper
 	mergeAndRebaseHelper *MergeAndRebaseHelper
-	patchBuildingHelper  *PatchBuildingHelper
-	stagingHelper        *StagingHelper
 	mergeConflictsHelper *MergeConflictsHelper
 	worktreeHelper       *WorktreeHelper
 	searchHelper         *SearchHelper
@@ -62,8 +60,6 @@ func NewRefreshHelper(
 	c *HelperCommon,
 	refsHelper *RefsHelper,
 	mergeAndRebaseHelper *MergeAndRebaseHelper,
-	patchBuildingHelper *PatchBuildingHelper,
-	stagingHelper *StagingHelper,
 	mergeConflictsHelper *MergeConflictsHelper,
 	worktreeHelper *WorktreeHelper,
 	searchHelper *SearchHelper,
@@ -72,8 +68,6 @@ func NewRefreshHelper(
 		c:                    c,
 		refsHelper:           refsHelper,
 		mergeAndRebaseHelper: mergeAndRebaseHelper,
-		patchBuildingHelper:  patchBuildingHelper,
-		stagingHelper:        stagingHelper,
 		mergeConflictsHelper: mergeConflictsHelper,
 		worktreeHelper:       worktreeHelper,
 		searchHelper:         searchHelper,
@@ -209,17 +203,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		panic("a refresh with a Then callback must not set DontBlockRepoSwitch")
 	}
 
-	// A RefreshBlockingInput caller wants keyboard input withheld until the
-	// refreshed state is in place (see IGuiCommon.RefreshBlockingInput). Begin
-	// the block synchronously here in the calling handler, so that no keypress
-	// can slip through before it; the finishing step ends it from a callback
-	// queued behind the refresh's own updates (see waitAndFinalize). Demos
-	// take the blocking inline path below and need none of this.
-	blockInputUntilDone := blockInput && !self.c.InDemo()
-	if blockInputUntilDone {
-		self.c.GocuiGui().BeginBlockingEvents()
-	}
-
 	// Capture the refresh's baseline once, here at the start: the repo
 	// generation that every scope's bounce is guarded against, and the git
 	// command instance the scopes run their commands through. The two are
@@ -242,14 +225,42 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	}) {
 		return
 	}
+
+	// If the repo or worktree was deleted, there's nothing we can show any
+	// more, and every git command would fail.
+	if path, missing := env.git.RepoPaths.MissingDir(); missing {
+		self.c.OnUIThread(func() error {
+			if self.c.State().GetRepoGeneration() != env.generation {
+				// We have switched away from the deleted worktree
+				return nil
+			}
+
+			return types.ErrQuitWithMessage{
+				Message: utils.ResolvePlaceholderString(
+					self.c.Tr.RepoDirNoLongerExists, map[string]string{"path": path},
+				),
+			}
+		})
+		return
+	}
+
+	// A RefreshBlockingInput caller wants keyboard input withheld until the
+	// refreshed state is in place (see IGuiCommon.RefreshBlockingInput). Begin
+	// the block synchronously here in the calling handler, so that no keypress
+	// can slip through before it; the finishing step ends it from a callback
+	// queued behind the refresh's own updates (see waitAndFinalize). Demos
+	// take the blocking inline path below and need none of this.
+	blockInputUntilDone := blockInput && !self.c.InDemo()
+	if blockInputUntilDone {
+		self.c.GocuiGui().BeginBlockingEvents()
+	}
+
 	if options.BatchUIUpdates {
 		env.batch = &refreshBounceBatch{}
 	}
 
 	var scopeSet *set.Set[types.RefreshableView]
 	if len(options.Scope) == 0 {
-		// not refreshing staging/patch-building unless explicitly requested because we only need
-		// to refresh those while focused.
 		scopeSet = set.NewFromSlice([]types.RefreshableView{
 			types.COMMITS,
 			types.BRANCHES,
@@ -261,7 +272,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			types.WORKTREES,
 			types.STATUS,
 			types.BISECT_INFO,
-			types.STAGING,
 			types.PULL_REQUESTS,
 		})
 	} else {
@@ -516,37 +526,9 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		})
 	}
 
-	if scopeSet.Includes(types.STAGING) {
-		refresh("staging", func() {
-			fileWg.Wait()
-			// Bounce onto the UI thread so this runs after the files
-			// scope's model-update bounce — RefreshStagingPanel reads
-			// Model.Files (via Files.GetSelected) and would otherwise
-			// see the pre-refresh model. Guard on the generation so a
-			// repo switch mid-refresh drops it, like the model bounces.
-			self.onUIThreadUnlessRepoChanged(env, func() {
-				self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
-			})
-		})
-	}
-
-	if scopeSet.Includes(types.PATCH_BUILDING) {
-		refresh("patch building", func() {
-			// Bounce onto the UI thread, like the staging panel above:
-			// RefreshPatchBuildingPanel reads the commit-files selection and
-			// sets the patch view's origin, neither of which may run off the UI
-			// thread. Guard on the generation so a repo switch mid-refresh drops
-			// it, like the model bounces.
-			self.onUIThreadUnlessRepoChanged(env, func() {
-				self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{})
-			})
-		})
-	}
-
 	if scopeSet.Includes(types.MERGE_CONFLICTS) {
 		refresh("merge conflicts", func() {
-			// Bounce onto the UI thread, like the staging and patch-building
-			// panels above: RefreshMergeState reads the current context and
+			// Bounce onto the UI thread: RefreshMergeState reads the current context and
 			// renders (or escapes) the merge-conflicts view, none of which may
 			// run off the UI thread.
 			self.onUIThreadUnlessRepoChanged(env, func() {
@@ -589,7 +571,8 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			// this runs — and the keys buffered during the refresh replay —
 			// the refreshed state is in place.
 			self.c.OnUIThread(func() error {
-				return self.c.GocuiGui().EndBlockingEvents()
+				self.c.GocuiGui().EndBlockingEvents()
+				return nil
 			})
 		}
 
@@ -675,8 +658,6 @@ func getScopeNames(scopes []types.RefreshableView) []string {
 		types.WORKTREES:       "worktrees",
 		types.STATUS:          "status",
 		types.BISECT_INFO:     "bisect",
-		types.STAGING:         "staging",
-		types.PATCH_BUILDING:  "patchBuilding",
 		types.MERGE_CONFLICTS: "mergeConflicts",
 		types.COMMIT_FILES:    "commitFiles",
 		types.PULL_REQUESTS:   "pullRequests",
@@ -1085,17 +1066,31 @@ type capturedCommitFilesState struct {
 	from    string
 	to      string
 	reverse bool
+	// Whether there is a commit to load the files of at all. The panel is only ever
+	// pointed at one by being entered, and a patch can now be built from a commit's diff
+	// without that — after which anything that refreshes the panel would otherwise be
+	// asking for the files of nothing.
+	hasCommit bool
 }
 
 // captureCommitFilesState reads the commit-files refresh's diff endpoints into
 // an immutable snapshot. It must run on the UI thread.
 func (self *RefreshHelper) captureCommitFilesState() capturedCommitFilesState {
-	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
+	commitFilesContext := self.c.Contexts().CommitFiles
+	if commitFilesContext.GetRef() == nil && commitFilesContext.GetRefRange() == nil {
+		return capturedCommitFilesState{}
+	}
+
+	from, to := commitFilesContext.GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
-	return capturedCommitFilesState{from: from, to: to, reverse: reverse}
+	return capturedCommitFilesState{from: from, to: to, reverse: reverse, hasCommit: true}
 }
 
 func (self *RefreshHelper) refreshCommitFilesContext(captured capturedCommitFilesState, env refreshEnv) error {
+	if !captured.hasCommit {
+		return nil
+	}
+
 	files, err := env.git.Loaders.CommitFileLoader.GetFilesInDiff(captured.from, captured.to, captured.reverse)
 	if err != nil {
 		return err
@@ -1472,9 +1467,7 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 }
 
 // markWorktreeFiles marks the files that are linked worktrees of this repo, so
-// that the files view can render them as such. `git status` reports a worktree
-// as an untracked directory, i.e. with a trailing slash, which we take off:
-// keeping it would build a directory node with a nameless file inside it.
+// that the files view can render them as such.
 //
 // It must run on the UI thread, as it works on the model. Both models it needs
 // are written by refreshes of their own, so it is called after either of them
@@ -1483,24 +1476,24 @@ func markWorktreeFiles(files []*models.File, worktrees []*models.Worktree, workt
 	changed := false
 
 	for _, file := range files {
-		absPath := filepath.Join(worktreePath, file.Path)
-		isWorktree := lo.SomeBy(worktrees, func(worktree *models.Worktree) bool {
-			return worktree.Path == absPath
-		})
+		_, isWorktree := worktreeOfFile(file, worktrees, worktreePath)
 
 		if isWorktree != file.IsWorktree {
 			file.IsWorktree = isWorktree
 			changed = true
 		}
-		if isWorktree {
-			if trimmed := strings.TrimSuffix(file.Path, "/"); trimmed != file.Path {
-				file.Path = trimmed
-				changed = true
-			}
-		}
 	}
 
 	return changed
+}
+
+// worktreeOfFile returns the worktree that an entry of the files panel is, if
+// it is one. worktreePath is the path of the worktree that we're in.
+func worktreeOfFile(file *models.File, worktrees []*models.Worktree, worktreePath string) (*models.Worktree, bool) {
+	absPath := filepath.Join(worktreePath, file.Path)
+	return lo.Find(worktrees, func(worktree *models.Worktree) bool {
+		return worktree.Path == absPath
+	})
 }
 
 // the reflogs panel is the only panel where we cache data, in that we only

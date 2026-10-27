@@ -25,10 +25,10 @@ type EventResize struct {
 // NewEventResize creates an EventResize with the new updated window size,
 // which is given in character cells.
 func NewEventResize(width, height int) *EventResize {
-	ws := WindowSize{
-		Width:  width,
-		Height: height,
-	}
+	return newEventResize(WindowSize{Width: width, Height: height})
+}
+
+func newEventResize(ws WindowSize) *EventResize {
 	ev := &EventResize{ws: ws}
 	ev.SetEventNow()
 	return ev

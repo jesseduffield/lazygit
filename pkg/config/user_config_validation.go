@@ -30,6 +30,10 @@ func (config *UserConfig) Validate() error {
 		[]string{"mixed", "filesFirst", "foldersFirst"}); err != nil {
 		return err
 	}
+	if err := validateEnum("gui.commitGraphStyle", config.Gui.CommitGraphStyle,
+		[]string{"auto", "classic", "detailed"}); err != nil {
+		return err
+	}
 	if err := validateEnum("git.autoForwardBranches", config.Git.AutoForwardBranches,
 		[]string{"none", "onlyMainBranches", "allBranches"}); err != nil {
 		return err
@@ -228,10 +232,6 @@ var ValidCustomCommandContexts = []string{
 	"stash",
 	"normal",
 	"normalSecondary",
-	"staging",
-	"stagingSecondary",
-	"patchBuilding",
-	"patchBuildingSecondary",
 	"mergeConflicts",
 	"menu",
 	"confirmation",

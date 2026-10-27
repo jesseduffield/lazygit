@@ -22,12 +22,7 @@ func (gui *Gui) scrollDownView(view *gocui.View) {
 }
 
 func (gui *Gui) scrollUpMain() error {
-	var view *gocui.View
-	if gui.c.Context().Current().GetWindowName() == "secondary" {
-		view = gui.secondaryView()
-	} else {
-		view = gui.mainView()
-	}
+	view := gui.mainSectionView()
 
 	if view.Name() == "mergeConflicts" {
 		// although we have this same logic in the controller, this method can be invoked
@@ -43,12 +38,7 @@ func (gui *Gui) scrollUpMain() error {
 }
 
 func (gui *Gui) scrollDownMain() error {
-	var view *gocui.View
-	if gui.c.Context().Current().GetWindowName() == "secondary" {
-		view = gui.secondaryView()
-	} else {
-		view = gui.mainView()
-	}
+	view := gui.mainSectionView()
 
 	if view.Name() == "mergeConflicts" {
 		gui.State.Contexts.MergeConflicts.SetUserScrolling(true)
@@ -57,6 +47,17 @@ func (gui *Gui) scrollDownMain() error {
 	gui.scrollDownView(view)
 
 	return nil
+}
+
+// mainSectionView returns the view that the keys for scrolling the main section act
+// on: the pane the focus is in when it is in one of them, and otherwise the pane the
+// section is showing — which is the lower one whenever it has the section to itself.
+func (gui *Gui) mainSectionView() *gocui.View {
+	if gui.c.Context().Current().GetWindowName() == "secondary" ||
+		gui.State.MainPanes == types.SecondaryPaneOnly {
+		return gui.secondaryView()
+	}
+	return gui.mainView()
 }
 
 func (gui *Gui) mainView() *gocui.View {

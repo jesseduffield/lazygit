@@ -28,8 +28,7 @@ type Helpers struct {
 	MergeConflicts *MergeConflictsHelper
 	CherryPick     *CherryPickHelper
 	Host           *HostHelper
-	PatchBuilding  *PatchBuildingHelper
-	Staging        *StagingHelper
+	CustomPatch    *CustomPatchHelper
 	GPG            *GpgHelper
 	Upstream       *UpstreamHelper
 	AmendHelper    *AmendHelper
@@ -39,6 +38,7 @@ type Helpers struct {
 	Snake          *SnakeHelper
 	// lives in context package because our contexts need it to render to main
 	Diff              *DiffHelper
+	DiffLine          *DiffLineHelper
 	Repos             *ReposHelper
 	RecordDirectory   *RecordDirectoryHelper
 	Update            *UpdateHelper
@@ -67,8 +67,7 @@ func NewStubHelpers() *Helpers {
 		MergeConflicts:    &MergeConflictsHelper{},
 		CherryPick:        &CherryPickHelper{},
 		Host:              &HostHelper{},
-		PatchBuilding:     &PatchBuildingHelper{},
-		Staging:           &StagingHelper{},
+		CustomPatch:       &CustomPatchHelper{},
 		GPG:               &GpgHelper{},
 		Upstream:          &UpstreamHelper{},
 		AmendHelper:       &AmendHelper{},
@@ -76,6 +75,7 @@ func NewStubHelpers() *Helpers {
 		Commits:           &CommitsHelper{},
 		Snake:             &SnakeHelper{},
 		Diff:              &DiffHelper{},
+		DiffLine:          &DiffLineHelper{},
 		Repos:             &ReposHelper{},
 		RecordDirectory:   &RecordDirectoryHelper{},
 		Update:            &UpdateHelper{},

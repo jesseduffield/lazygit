@@ -580,7 +580,7 @@
         },
         "skipDiscardChangeWarning": {
           "type": "boolean",
-          "description": "If true, do not show a warning when discarding changes in the staging view.",
+          "description": "If true, do not show a warning when discarding changes from a focused diff.",
           "default": false
         },
         "skipStashWarning": {
@@ -669,14 +669,14 @@
           "description": "How the window is split when in half screen mode (i.e. after hitting '+' once).\nPossible values:\n- 'left': split the window horizontally (side panel on the left, main view on the right)\n- 'top': split the window vertically (side panel on top, main view below)",
           "default": "left"
         },
-        "wrapLinesInStagingView": {
+        "wrapLinesInDiffView": {
           "type": "boolean",
-          "description": "If true, wrap lines in the staging view to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.",
+          "description": "If true, wrap lines in focused diffs to the width of the view. This makes it much easier to work with diffs that have long lines, e.g. paragraphs of markdown text.\nIf false, scroll a focused diff sideways with the scrollLeft and scrollRight keys (H and L by default).",
           "default": true
         },
-        "useHunkModeInStagingView": {
+        "useHunkModeInDiffView": {
           "type": "boolean",
-          "description": "If true, hunk selection mode will be enabled by default when entering the staging view.",
+          "description": "If true, hunk selection mode will be enabled by default when focusing a diff.",
           "default": true
         },
         "language": {
@@ -739,7 +739,7 @@
               "uniqueItems": true,
               "description": "Border color of non-focused windows",
               "default": [
-                "dim"
+                "default"
               ]
             },
             "searchingActiveBorderColor": {
@@ -1220,6 +1220,16 @@
           "type": "boolean",
           "description": "If true (default), file icons are shown in the file views. Only relevant if NerdFontsVersion is not empty.",
           "default": true
+        },
+        "commitGraphStyle": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "classic",
+            "detailed"
+          ],
+          "description": "How the commit graph is drawn.\nOne of: 'auto' (default) | 'classic' | 'detailed'\n'detailed' connects the lines to the commit circles, and shows exactly where branches fork off and merge. It draws the graph with the git branch drawing symbols (U+F5D0 to U+F60D), so it needs a terminal that draws these itself: kitty, Ghostty, WezTerm (nightly builds), Contour, or VS Code's terminal with GPU acceleration. Other terminals need a font that contains them, such as https://github.com/rbong/flog-symbols.\n'auto' uses 'detailed' if lazygit recognizes the terminal as one that draws these symbols (kitty and Ghostty), and 'classic' otherwise.",
+          "default": "auto"
         },
         "commitAuthorShortLength": {
           "type": "integer",
@@ -2461,6 +2471,34 @@
             "l"
           ]
         },
+        "prevFile": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "N"
+        },
+        "nextFile": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "n"
+        },
         "toggleSelectHunk": {
           "oneOf": [
             {
@@ -3099,6 +3137,20 @@
             }
           ],
           "default": "0"
+        },
+        "jumpToFile": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+g\u003e"
         },
         "nextMatch": {
           "oneOf": [

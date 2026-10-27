@@ -16,6 +16,7 @@ package tcell
 
 import (
 	"sync"
+	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v3/color"
 )
@@ -392,6 +393,8 @@ type screenImpl interface {
 
 type baseScreen struct {
 	screenImpl
+	// Content strings are shared by cells and protected by the screen lock.
+	contentCache map[string]string
 }
 
 func (b *baseScreen) Put(x int, y int, str string, style Style) (remain string, width int) {
@@ -442,7 +445,39 @@ func (b *baseScreen) FillArea(x, y, width, height int, r rune, style Style) {
 }
 
 func (b *baseScreen) SetContent(x, y int, mainc rune, combc []rune, style Style) {
-	b.Put(x, y, string(append([]rune{mainc}, combc...)), style)
+	cells := b.GetCells()
+	b.Lock()
+	defer b.Unlock()
+	if x < 0 || y < 0 || x >= cells.w || y >= cells.h {
+		return
+	}
+
+	var scratch [64]byte
+	buf := utf8.AppendRune(scratch[:0], mainc)
+	for _, r := range combc {
+		buf = utf8.AppendRune(buf, r)
+	}
+
+	var str string
+	if curr := cells.cells[y*cells.w+x].currStr; curr == string(buf) {
+		// Comparing a temporary byte-to-string conversion does not allocate.
+		// Reuse the cell's string without looking it up in the cache.
+		str = curr
+	} else if len(buf) == 1 {
+		// Go shares static storage for one-byte string conversions, so ASCII
+		// needs neither a cache entry nor an explicit lookup table.
+		str = string(buf)
+	} else if cached, ok := b.contentCache[string(buf)]; ok {
+		// A temporary byte-to-string map lookup also avoids allocation.
+		str = cached
+	} else {
+		str = string(buf)
+		if b.contentCache == nil {
+			b.contentCache = make(map[string]string)
+		}
+		b.contentCache[str] = str
+	}
+	cells.Put(x, y, str, style)
 }
 
 func (b *baseScreen) Get(x, y int) (string, Style, int) {

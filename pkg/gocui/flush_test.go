@@ -64,8 +64,8 @@ func TestFlushContentOnly_SkipsUntaintedViews(t *testing.T) {
 	assert.True(t, status.IsTainted(), "status view should be tainted after SetContent")
 	assert.False(t, main.IsTainted(), "main view should not be tainted (was not modified)")
 
-	// flushContentOnly should succeed and clear status tainted flag
-	assert.NoError(t, g.flushContentOnly(g.views))
+	// flushContentOnly should clear status tainted flag
+	g.flushContentOnly(g.views)
 
 	assert.False(t, status.IsTainted(), "status view should not be tainted after flushContentOnly")
 	assert.False(t, main.IsTainted(), "main view should not be tainted after flushContentOnly")
@@ -76,9 +76,26 @@ func TestFlushContentOnly_WritesCorrectContent(t *testing.T) {
 	status, _ := setupViews(t, g)
 
 	status.SetContent("Fetching |")
-	assert.NoError(t, g.flushContentOnly(g.views))
+	g.flushContentOnly(g.views)
 
 	assert.Equal(t, "Fetching |", status.Buffer())
+}
+
+func TestForceFlushViewsContentOnlyDrawsLineFlash(t *testing.T) {
+	g := newTestGui(t)
+	_, main := setupViews(t, g)
+	main.Highlight = true
+	main.SelBgColor = ColorBlue
+	main.SelectedLineColorWidth = 2
+	main.FocusPoint(0, 0, false)
+
+	main.SetLineFlash(0)
+	g.ForceFlushViewsContentOnly(g.Views())
+
+	for x := main.x0 + 1; x <= main.x0+2; x++ {
+		_, style, _ := Screen.Get(x, main.y0+1)
+		assert.True(t, style.HasReverse(), "selection-bar cell at x=%d should flash", x)
+	}
 }
 
 func TestProcessEvent_ContentOnlyEvent_SkipsTaintedCheck(t *testing.T) {
@@ -231,7 +248,7 @@ func TestFlushContentOnly_DoesNotOverdrawHigherZViews(t *testing.T) {
 	assert.False(t, popup.IsTainted(), "popup should not be tainted")
 
 	// flushContentOnly is what spinner ticks ultimately invoke.
-	assert.NoError(t, g.flushContentOnly(g.views))
+	g.flushContentOnly(g.views)
 
 	assert.Equal(t, "P", cellAt(21, 9),
 		"popup region must still show popup content after flushContentOnly; "+
@@ -279,7 +296,7 @@ func TestFlushContentOnly_RedrawsTransitivelyOverlappingViews(t *testing.T) {
 	assert.False(t, b.IsTainted())
 	assert.False(t, c.IsTainted())
 
-	assert.NoError(t, g.flushContentOnly(g.views))
+	g.flushContentOnly(g.views)
 
 	// a redrawn (direct).
 	assert.Equal(t, "X", cellAt(5, 5), "a should be redrawn (tainted)")

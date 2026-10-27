@@ -5,6 +5,8 @@
 package gocui
 
 import (
+	"time"
+
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
 )
@@ -163,6 +165,8 @@ type gocuiEventType uint8
 //
 //	The 'Mod', 'Key' and 'Ch' fields are valid if 'Type' is 'eventKey'.
 //	The 'MouseX' and 'MouseY' fields are valid if 'Type' is 'eventMouse'.
+//	The 'When' field is valid if 'Type' is 'eventMouse'. It is the time the
+//	  input was read, which can be well before the main loop handles the event.
 //	The 'Width' and 'Height' fields are valid if 'Type' is 'eventResize'.
 //	The 'Focused' field is valid if 'Type' is 'eventFocus'.
 //	The 'Start' field is valid if 'Type' is 'eventPaste'. It is true for the
@@ -176,6 +180,7 @@ type GocuiEvent struct {
 	Err     error
 	MouseX  int
 	MouseY  int
+	When    time.Time
 	Focused bool
 	Start   bool
 	N       int
@@ -209,6 +214,7 @@ const (
 
 var (
 	lastMouseKey tcell.ButtonMask = tcell.ButtonNone
+	lastMouseMod tcell.ModMask    = tcell.ModNone
 	dragState                     = NOT_DRAGGING
 	lastX                         = 0
 	lastY                         = 0
@@ -216,20 +222,18 @@ var (
 
 // this wrapper struct has public keys so we can easily serialize/deserialize to JSON
 type TcellKeyEventWrapper struct {
-	Timestamp int64
-	Mod       tcell.ModMask
-	Key       tcell.Key
-	Ch        string
+	Mod tcell.ModMask
+	Key tcell.Key
+	Ch  string
 
 	task Task // see GocuiEvent.task
 }
 
-func NewTcellKeyEventWrapper(event *tcell.EventKey, timestamp int64) *TcellKeyEventWrapper {
+func NewTcellKeyEventWrapper(event *tcell.EventKey) *TcellKeyEventWrapper {
 	return &TcellKeyEventWrapper{
-		Timestamp: timestamp,
-		Mod:       event.Modifiers(),
-		Key:       event.Key(),
-		Ch:        event.Str(),
+		Mod: event.Modifiers(),
+		Key: event.Key(),
+		Ch:  event.Str(),
 	}
 }
 
@@ -238,43 +242,43 @@ func (wrapper TcellKeyEventWrapper) toTcellEvent() tcell.Event {
 }
 
 type TcellMouseEventWrapper struct {
-	Timestamp  int64
 	X          int
 	Y          int
 	ButtonMask tcell.ButtonMask
 	ModMask    tcell.ModMask
+	When       time.Time
 
 	task Task // see GocuiEvent.task
 }
 
-func NewTcellMouseEventWrapper(event *tcell.EventMouse, timestamp int64) *TcellMouseEventWrapper {
+func NewTcellMouseEventWrapper(event *tcell.EventMouse) *TcellMouseEventWrapper {
 	x, y := event.Position()
 	return &TcellMouseEventWrapper{
-		Timestamp:  timestamp,
 		X:          x,
 		Y:          y,
 		ButtonMask: event.Buttons(),
 		ModMask:    event.Modifiers(),
+		When:       event.When(),
 	}
 }
 
 func (wrapper TcellMouseEventWrapper) toTcellEvent() tcell.Event {
-	return tcell.NewEventMouse(wrapper.X, wrapper.Y, wrapper.ButtonMask, wrapper.ModMask)
+	event := tcell.NewEventMouse(wrapper.X, wrapper.Y, wrapper.ButtonMask, wrapper.ModMask)
+	event.SetEventTime(wrapper.When)
+	return event
 }
 
 type TcellResizeEventWrapper struct {
-	Timestamp int64
-	Width     int
-	Height    int
+	Width  int
+	Height int
 }
 
-func NewTcellResizeEventWrapper(event *tcell.EventResize, timestamp int64) *TcellResizeEventWrapper {
+func NewTcellResizeEventWrapper(event *tcell.EventResize) *TcellResizeEventWrapper {
 	w, h := event.Size()
 
 	return &TcellResizeEventWrapper{
-		Timestamp: timestamp,
-		Width:     w,
-		Height:    h,
+		Width:  w,
+		Height: h,
 	}
 }
 
@@ -283,16 +287,14 @@ func (wrapper TcellResizeEventWrapper) toTcellEvent() tcell.Event {
 }
 
 type TcellFocusEventWrapper struct {
-	Timestamp int64
-	Focused   bool
+	Focused bool
 
 	task Task // see GocuiEvent.task
 }
 
-func NewTcellFocusEventWrapper(event *tcell.EventFocus, timestamp int64) *TcellFocusEventWrapper {
+func NewTcellFocusEventWrapper(event *tcell.EventFocus) *TcellFocusEventWrapper {
 	return &TcellFocusEventWrapper{
-		Timestamp: timestamp,
-		Focused:   event.Focused,
+		Focused: event.Focused,
 	}
 }
 
@@ -377,6 +379,12 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 		if button != tcell.ButtonNone && lastMouseKey == tcell.ButtonNone {
 			newButtonPress = true
 			lastMouseKey = button
+			// The keyboard modifiers held at press time apply to the whole gesture:
+			// the press, every drag event, and the release. Snapshotting them here
+			// keeps a modified press from producing events that match unmodified
+			// bindings, and ignores modifier changes while the button is held.
+			lastMouseMod = tev.Modifiers()
+			mouseMod = Modifier(lastMouseMod)
 			switch button {
 			case tcell.ButtonPrimary:
 				mouseKey = MouseLeft
@@ -402,7 +410,8 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 				case tcell.ButtonMiddle:
 				default:
 				}
-				mouseMod = ModNone
+				mouseMod = Modifier(lastMouseMod)
+				lastMouseMod = tcell.ModNone
 				lastMouseKey = tcell.ButtonNone
 			}
 		default:
@@ -433,10 +442,10 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 				// reaches drag bindings instead of being delivered with the
 				// default MouseRelease key.
 				dragState = DRAGGING
-				mouseMod = ModMotion
+				mouseMod = Modifier(lastMouseMod) | ModMotion
 				mouseKey = MouseLeft
 			case DRAGGING:
-				mouseMod = ModMotion
+				mouseMod = Modifier(lastMouseMod) | ModMotion
 				mouseKey = MouseLeft
 			}
 		}
@@ -446,6 +455,7 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 			MouseX: x,
 			MouseY: y,
 			Key:    NewKey(mouseKey, "", mouseMod),
+			When:   tev.When(),
 		}
 	case *tcell.EventFocus:
 		return GocuiEvent{

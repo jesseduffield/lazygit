@@ -1,12 +1,12 @@
 package terminfo
 
-type stack []interface{}
+type stack []any
 
-func (s *stack) push(v interface{}) {
+func (s *stack) push(v any) {
 	*s = append(*s, v)
 }
 
-func (s *stack) pop() interface{} {
+func (s *stack) pop() any {
 	if len(*s) == 0 {
 		return nil
 	}

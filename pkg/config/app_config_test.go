@@ -108,6 +108,22 @@ func TestMigrationOfRenamedKeys(t *testing.T) {
 				"Renamed 'gui.windowSize' to 'screenMode'",
 			},
 		},
+		{
+			name: "Rename staging view options",
+			input: `gui:
+  wrapLinesInStagingView: false
+  useHunkModeInStagingView: true
+`,
+			expected: `gui:
+  wrapLinesInDiffView: false
+  useHunkModeInDiffView: true
+`,
+			expectedDidChange: true,
+			expectedChanges: []string{
+				"Renamed 'gui.wrapLinesInStagingView' to 'wrapLinesInDiffView'",
+				"Renamed 'gui.useHunkModeInStagingView' to 'useHunkModeInDiffView'",
+			},
+		},
 	}
 
 	for _, s := range scenarios {
