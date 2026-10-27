@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
+	"github.com/stretchr/testify/assert"
 )
 
 // contentHeights builds a ContentHeightForWindow function from a map of window
@@ -916,6 +917,112 @@ func TestGetWindowDimensions(t *testing.T) {
 				t.Errorf("Expected:\n%s\n\nGot:\n%s", expected, output)
 			}
 		})
+	}
+}
+
+func TestGetWindowDimensionsSidePanelMaxWidth(t *testing.T) {
+	for _, test := range []struct {
+		name          string
+		width         int
+		maxWidth      int
+		ratio         float64
+		mainPanes     types.MainPanes
+		wantSideWidth int
+	}{
+		{name: "unlimited", width: 300, ratio: 0.3333, wantSideWidth: 100},
+		{name: "capped", width: 300, maxWidth: 60, ratio: 0.3333, wantSideWidth: 60},
+		{name: "equal", width: 300, maxWidth: 100, ratio: 0.3333, wantSideWidth: 100},
+		{name: "larger", width: 300, maxWidth: 101, ratio: 0.3333, wantSideWidth: 100},
+		{name: "remainder below cap", width: 103, maxWidth: 43, ratio: 0.4, wantSideWidth: 42},
+		{name: "remainder exceeds cap", width: 103, maxWidth: 41, ratio: 0.4, wantSideWidth: 41},
+		{name: "narrow terminal", width: 10, maxWidth: 60, ratio: 0.3333, wantSideWidth: 4},
+		{name: "smallest cap", width: 75, maxWidth: 1, ratio: 0.3333, wantSideWidth: 1},
+		{name: "zero fraction", width: 75, maxWidth: 60, wantSideWidth: 0},
+		{name: "full fraction", width: 75, maxWidth: 60, ratio: 1, wantSideWidth: 60},
+		{name: "split main capped", width: 300, maxWidth: 40, ratio: 0.3333, mainPanes: types.BothMainPanes, wantSideWidth: 40},
+		{name: "split main below cap", width: 300, maxWidth: 60, ratio: 0.3333, mainPanes: types.BothMainPanes, wantSideWidth: 50},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			args := WindowArrangementArgs{
+				Width:               test.width,
+				Height:              40,
+				UserConfig:          config.GetDefaultConfig(),
+				CurrentWindow:       "files",
+				CurrentSideWindow:   "files",
+				ActiveViewForWindow: func(window string) string { return window },
+				MainPanes:           test.mainPanes,
+			}
+			args.UserConfig.Gui.PortraitMode = "never"
+			args.UserConfig.Gui.SidePanelWidth = test.ratio
+			args.UserConfig.Gui.SidePanelMaxWidth = test.maxWidth
+			windows := GetWindowDimensions(args)
+			for _, name := range []string{"status", "files", "branches", "commits", "stash"} {
+				assert.Equal(t, 0, windows[name].X0, name)
+				assert.Equal(t, test.wantSideWidth, windows[name].X1+1, name)
+			}
+			assert.Equal(t, test.wantSideWidth, windows["main"].X0)
+			if test.mainPanes == types.BothMainPanes {
+				assert.Equal(t, windows["main"].X1+1, windows["secondary"].X0)
+				assert.Equal(t, test.width-1, windows["secondary"].X1)
+			} else {
+				assert.Equal(t, test.width-1, windows["main"].X1)
+			}
+		})
+	}
+}
+
+func TestGetWindowDimensionsSidePanelMaxWidthResize(t *testing.T) {
+	args := WindowArrangementArgs{
+		Height:              40,
+		UserConfig:          config.GetDefaultConfig(),
+		CurrentWindow:       "files",
+		CurrentSideWindow:   "files",
+		ActiveViewForWindow: func(window string) string { return window },
+		MainPanes:           types.MainPaneOnly,
+	}
+	args.UserConfig.Gui.SidePanelMaxWidth = 60
+	for _, test := range []struct{ width, sideWidth int }{
+		{120, 40}, {179, 60}, {180, 60}, {181, 60}, {300, 60}, {120, 40},
+	} {
+		args.Width = test.width
+		windows := GetWindowDimensions(args)
+		assert.Equal(t, test.sideWidth, windows["files"].X1+1)
+		assert.Equal(t, test.sideWidth, windows["main"].X0)
+		assert.Equal(t, test.width-1, windows["main"].X1)
+	}
+}
+
+func TestGetWindowDimensionsSidePanelMaxWidthAlternateModes(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		mode     types.ScreenMode
+		portrait string
+		location string
+	}{
+		{"portrait", types.SCREEN_NORMAL, "always", "left"},
+		{"half left", types.SCREEN_HALF, "never", "left"},
+		{"half top", types.SCREEN_HALF, "never", "top"},
+		{"full", types.SCREEN_FULL, "never", "left"},
+	} {
+		for _, focused := range []string{"files", "main"} {
+			t.Run(test.name+"/"+focused, func(t *testing.T) {
+				args := WindowArrangementArgs{
+					Width:               300,
+					Height:              40,
+					UserConfig:          config.GetDefaultConfig(),
+					CurrentWindow:       focused,
+					CurrentSideWindow:   "files",
+					ActiveViewForWindow: func(window string) string { return window },
+					MainPanes:           types.MainPaneOnly,
+					ScreenMode:          test.mode,
+				}
+				args.UserConfig.Gui.PortraitMode = test.portrait
+				args.UserConfig.Gui.EnlargedSideViewLocation = test.location
+				uncapped := GetWindowDimensions(args)
+				args.UserConfig.Gui.SidePanelMaxWidth = 60
+				assert.Equal(t, uncapped, GetWindowDimensions(args))
+			})
+		}
 	}
 }
 

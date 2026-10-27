@@ -95,6 +95,11 @@ gui:
   # Number from 0 to 1.0.
   sidePanelWidth: 0.3333
 
+  # Maximum width of the left side section in terminal columns, including borders.
+  # 0 means unlimited. Only applies in normal landscape mode; the section can
+  # still be narrower according to sidePanelWidth.
+  sidePanelMaxWidth: 0
+
   # If true, increase the height of the focused side window; creating an accordion
   # effect.
   expandFocusedSidePanel: false
