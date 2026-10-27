@@ -462,26 +462,27 @@ func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *mode
 	return self.createPullRequestMenu(selectedBranch, checkedOutBranch)
 }
 
-func (self *BranchesController) getPullRequestURL() (string, error) {
+func (self *BranchesController) copyPullRequestURL() error {
 	branch := self.context().GetSelected()
 	if pr, ok := self.c.Helpers().Host.PullRequestForBranch(branch.Name); ok {
-		return pr.Url, nil
+		return self.copyPullRequestURLToClipboard(pr.Url)
 	}
 
-	branchExistsOnRemote := self.c.Git().Remote.CheckRemoteBranchExists(branch.Name)
+	return self.c.Helpers().Host.WithRemoteURL(func(remoteName string, remoteURL string) error {
+		if !self.c.Git().Remote.CheckRemoteBranchExists(remoteName, branch.Name) {
+			return errors.New(self.c.Tr.NoBranchOnRemote)
+		}
 
-	if !branchExistsOnRemote {
-		return "", errors.New(self.c.Tr.NoBranchOnRemote)
-	}
+		url, err := self.c.Helpers().Host.GetPullRequestURL(remoteURL, branch.Name, "")
+		if err != nil {
+			return err
+		}
 
-	return self.c.Helpers().Host.GetPullRequestURL(branch.Name, "")
+		return self.copyPullRequestURLToClipboard(url)
+	})
 }
 
-func (self *BranchesController) copyPullRequestURL() error {
-	url, err := self.getPullRequestURL()
-	if err != nil {
-		return err
-	}
+func (self *BranchesController) copyPullRequestURLToClipboard(url string) error {
 	self.c.LogAction(self.c.Tr.Actions.CopyPullRequestURL)
 	if err := self.c.OS().CopyToClipboard(url); err != nil {
 		return err
@@ -834,18 +835,11 @@ func (self *BranchesController) promptForTargetBranchNameAndCreatePullRequest(fr
 }
 
 func (self *BranchesController) createPullRequest(from string, to string) error {
-	url, err := self.c.Helpers().Host.GetPullRequestURL(from, to)
-	if err != nil {
-		return err
-	}
+	return self.c.Helpers().Host.WithPullRequestURL(from, to, func(url string) error {
+		self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)
 
-	self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)
-
-	if err := self.c.OS().OpenLink(url); err != nil {
-		return err
-	}
-
-	return nil
+		return self.c.OS().OpenLink(url)
+	})
 }
 
 func (self *BranchesController) branchIsReal(branch *models.Branch) *types.DisabledReason {

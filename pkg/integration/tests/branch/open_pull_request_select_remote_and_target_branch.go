@@ -63,6 +63,13 @@ var OpenPullRequestSelectRemoteAndTargetBranch = NewIntegrationTest(NewIntegrati
 				Equals("master")).
 			ConfirmSuggestion(Equals("master"))
 
+		// With multiple remotes, choose which remote's web URL to open the PR against.
+		t.ExpectPopup().
+			Menu().
+			Title(Equals("Select remote")).
+			Select(Contains("origin")).
+			Confirm()
+
 		// Verify that the expected URL is used (by checking the openlink file)
 		//
 		// Please note that when targeting a different remote - like it's done here in this test -
