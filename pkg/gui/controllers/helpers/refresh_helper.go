@@ -134,6 +134,14 @@ type refreshEnv struct {
 	batch *refreshBounceBatch
 }
 
+// focusOpts returns the options for re-rendering the views this refresh updates.
+func (env refreshEnv) focusOpts() types.OnFocusOpts {
+	return types.OnFocusOpts{
+		KeepScrollPosition: env.keepScrollPosition,
+		SkipMainViewUpdate: env.skipMainViewUpdate,
+	}
+}
+
 // refreshBounceBatch collects the UI-thread bounces of a batched refresh so they
 // can be applied together in one frame rather than one scope at a time. The
 // scopes run on separate worker goroutines and add concurrently, hence the
@@ -897,9 +905,10 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 		case types.KeepCommitSelectionIndex:
 			// The caller set the selection index deliberately; leave it untouched.
 		}
+
+		self.rerenderView(self.c.Contexts().LocalCommits, env.focusOpts())
 	})
 
-	self.refreshView(self.c.Contexts().LocalCommits, env)
 	return nil
 }
 
@@ -1725,27 +1734,30 @@ func (self *RefreshHelper) refreshView(context types.Context, env refreshEnv) {
 	// dropped, so there's nothing fresh to render — and the captured context
 	// belongs to the old repo's now-replaced context tree anyway.
 	self.onUIThreadUnlessRepoChanged(env, func() {
-		// Re-applying the filter must be done before re-rendering the view, so that
-		// the filtered list model is up to date for rendering.
-		self.searchHelper.ReApplyFilter(context)
+		self.rerenderView(context, env.focusOpts())
+	})
+}
 
-		self.c.PostRefreshUpdateWithOptions(context, types.OnFocusOpts{
-			KeepScrollPosition: env.keepScrollPosition,
-			SkipMainViewUpdate: env.skipMainViewUpdate,
-		})
+// rerenderView re-renders a context's view after a refresh has updated the
+// model it shows. It must run on the UI thread.
+func (self *RefreshHelper) rerenderView(context types.Context, opts types.OnFocusOpts) {
+	// Re-applying the filter must be done before re-rendering the view, so that
+	// the filtered list model is up to date for rendering.
+	self.searchHelper.ReApplyFilter(context)
 
-		self.c.AfterLayout(func() error {
-			// Re-applying the search must be done after re-rendering the view though,
-			// so that the "x of y" status is shown correctly.
-			//
-			// Also, it must be done after layout, because otherwise FocusPoint
-			// hasn't been called yet (see ListContextTrait.FocusLine), which means
-			// that the scroll position might be such that the entire visible
-			// content is outside the viewport. And this would cause problems in
-			// searchModelCommits.
-			self.searchHelper.ReApplySearch(context)
-			return nil
-		})
+	self.c.PostRefreshUpdateWithOptions(context, opts)
+
+	self.c.AfterLayout(func() error {
+		// Re-applying the search must be done after re-rendering the view though,
+		// so that the "x of y" status is shown correctly.
+		//
+		// Also, it must be done after layout, because otherwise FocusPoint
+		// hasn't been called yet (see ListContextTrait.FocusLine), which means
+		// that the scroll position might be such that the entire visible
+		// content is outside the viewport. And this would cause problems in
+		// searchModelCommits.
+		self.searchHelper.ReApplySearch(context)
+		return nil
 	})
 }
 
