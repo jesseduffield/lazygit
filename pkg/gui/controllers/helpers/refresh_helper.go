@@ -854,7 +854,7 @@ func (self *RefreshHelper) determineCheckedOutRef(env refreshEnv) models.Ref {
 func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState, commitSelection types.CommitSelectionBehavior, env refreshEnv) error {
 	checkedOutRef := self.determineCheckedOutRef(env)
 	refName, bisectInfo := self.refForLog(env)
-	limit := lo.Ternary(captured.limitCommits, commitLimit, 0)
+	limit := self.commitLimitForLog(captured.limitCommits, refName, bisectInfo, env)
 	commits, err := env.git.Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
 			Limit:                limit,
@@ -1775,6 +1775,27 @@ func (self *RefreshHelper) refForLog(env refreshEnv) (string, *git_commands.Bise
 	}
 
 	return bisectInfo.GetStartHash(), bisectInfo
+}
+
+// commitLimitForLog returns the number of commits to load for the commits view,
+// or 0 to load all of them.
+func (self *RefreshHelper) commitLimitForLog(limitCommits bool, refName string, bisectInfo *git_commands.BisectInfo, env refreshEnv) int {
+	if !limitCommits {
+		return 0
+	}
+
+	if hash := bisectCommitToSelect(bisectInfo); hash != "" {
+		// Load the commit that the user needs to look at, and as many commits
+		// after it as we load from the top otherwise. This way we can select it
+		// without having to load all commits.
+		count, err := env.git.Bisect.CountCommitsAbove(hash, refName)
+		if err == nil {
+			return count + commitLimit
+		}
+		self.c.Log.Warnf("Failed to count the commits above the bisect commit to select: %v", err)
+	}
+
+	return commitLimit
 }
 
 func (self *RefreshHelper) refreshView(context types.Context, env refreshEnv) {

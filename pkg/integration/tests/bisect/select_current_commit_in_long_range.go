@@ -23,9 +23,6 @@ var SelectCurrentCommitInLongRange = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
-			/* EXPECTED:
 			SelectedLine(Contains("<-- current"))
-			ACTUAL: */
-			SelectedLine(Contains("commit 700"))
 	},
 })

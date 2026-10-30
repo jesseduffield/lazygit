@@ -3,6 +3,7 @@ package git_commands
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -191,4 +192,21 @@ func (self *BisectCommands) ReachableFromStart(bisectInfo *BisectInfo) bool {
 	err := self.cmd.New(cmdArgs).DontLog().Run()
 
 	return err == nil
+}
+
+// Returns the number of commits that are reachable from logRef but not from
+// the given commit. In a log of logRef, parents come after their children
+// (unless the log uses git's default order and commit dates are skewed), so
+// the commit is at most this many commits down from the top.
+func (self *BisectCommands) CountCommitsAbove(hash string, logRef string) (int, error) {
+	cmdArgs := NewGitCmd("rev-list").
+		Arg("--count", hash+".."+logRef).
+		ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return 0, err
+	}
+
+	return strconv.Atoi(strings.TrimSpace(output))
 }
