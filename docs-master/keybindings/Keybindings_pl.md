@@ -135,6 +135,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` b `` | Zobacz opcje bisect |  |
 | `` <space> `` | Przełącz | Przełącz wybrany commit jako odłączoną HEAD. |
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
 | `` o `` | Otwórz commit w przeglądarce |  |
@@ -162,6 +163,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Kopiuj nazwę gałęzi do schowka |  |
+| `` b `` | Zobacz opcje bisect |  |
 | `` i `` | Pokaż opcje git-flow |  |
 | `` <space> `` | Przełącz | Przełącz wybrany element. |
 | `` n `` | Nowa gałąź |  |
@@ -337,6 +339,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` b `` | Zobacz opcje bisect |  |
 | `` <space> `` | Przełącz | Przełącz wybrany commit jako odłączoną HEAD. |
 | `` y `` | Kopiuj atrybut commita do schowka | Kopiuj atrybut commita do schowka (np. hash, URL, różnice, wiadomość, autor). |
 | `` o `` | Otwórz commit w przeglądarce |  |
@@ -371,6 +374,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Skopiuj tag do schowka |  |
+| `` b `` | Zobacz opcje bisect |  |
 | `` <space> `` | Przełącz | Przełącz wybrany tag jako odłączoną głowę (detached HEAD). |
 | `` n `` | Nowy tag | Utwórz nowy tag z bieżącego commita. Zostaniesz poproszony o wprowadzenie nazwy tagu i opcjonalnego opisu. |
 | `` w `` | Nowe drzewo pracy |  |
@@ -409,6 +413,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | Kolejność sortowania |  |
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
+| `` b `` | Zobacz opcje bisect |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Pokaż commity |  |
 | `` / `` | Filtruj bieżący widok po tekście |  |

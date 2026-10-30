@@ -109,6 +109,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | 複製縮略提交雜湊值到剪貼簿 |  |
+| `` b `` | 查看二分選項 |  |
 | `` <space> `` | 檢出 | 檢出所選擇的提交作為分離HEAD。 |
 | `` y `` | 複製提交屬性 | 複製提交屬性到剪貼簿(如hash、URL、diff、訊息、作者)。 |
 | `` o `` | 在瀏覽器中開啟提交 |  |
@@ -236,6 +237,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | 複製縮略提交雜湊值到剪貼簿 |  |
+| `` b `` | 查看二分選項 |  |
 | `` <space> `` | 檢出 | 檢出所選擇的提交作為分離HEAD。 |
 | `` y `` | 複製提交屬性 | 複製提交屬性到剪貼簿(如hash、URL、diff、訊息、作者)。 |
 | `` o `` | 在瀏覽器中開啟提交 |  |
@@ -256,6 +258,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | 複製分支名稱到剪貼簿 |  |
+| `` b `` | 查看二分選項 |  |
 | `` i `` | 顯示 git-flow 選項 |  |
 | `` <space> `` | 檢出 | 檢出選定的項目。 |
 | `` n `` | 新分支 |  |
@@ -287,6 +290,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | 複製標籤到剪貼簿 |  |
+| `` b `` | 查看二分選項 |  |
 | `` <space> `` | 檢出 | 檢出選擇的標籤作為分離的HEAD。 |
 | `` n `` | 建立標籤 | 基於目前提交建立一個新標籤。您將在彈窗中輸入標籤名稱和描述(可選)。 |
 | `` w `` | 新建工作樹 |  |
@@ -409,6 +413,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | 排序規則 |  |
 | `` g `` | 檢視重設選項 | 檢視重置選項 (soft/mixed/hard) 用於重置到選擇項。 |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
+| `` b `` | 查看二分選項 |  |
 | `` 0 `` | 聚焦主檢視 |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` / `` | 搜尋 |  |
