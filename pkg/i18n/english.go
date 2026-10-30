@@ -1048,8 +1048,11 @@ type Bisect struct {
 	NewTermPrompt               string
 	BisectMenuTitle             string
 	Mark                        string
+	MarkRef                     string
 	SkipCurrent                 string
 	SkipSelected                string
+	SkipRef                     string
+	CommitRef                   string
 	CompleteTitle               string
 	CompletePrompt              string
 	CompletePromptIndeterminate string
@@ -2374,6 +2377,9 @@ func EnglishTranslationSet() *TranslationSet {
 			MarkStart:                   "Mark %s as %s (start bisect)",
 			SkipCurrent:                 "Skip current commit (%s)",
 			SkipSelected:                "Skip selected commit (%s)",
+			MarkRef:                     "Mark {{.ref}} as {{.term}}",
+			SkipRef:                     "Skip {{.ref}}",
+			CommitRef:                   "commit {{.hash}}",
 			ResetTitle:                  "Reset 'git bisect'",
 			ResetPrompt:                 "Are you sure you want to reset 'git bisect'?",
 			ResetOption:                 "Reset bisect",

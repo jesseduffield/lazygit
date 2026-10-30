@@ -63,18 +63,20 @@ func (self *BisectController) openMenu(commit *models.Commit) error {
 // a bad commit yet. Its entries act on the selected commit.
 func (self *BisectController) openMenuBeforeBisecting(info *git_commands.BisectInfo, commit *models.Commit) error {
 	disabledReason := self.require(self.singleItemSelected())()
+	ref := utils.ResolvePlaceholderString(self.c.Tr.Bisect.CommitRef,
+		map[string]string{"hash": commit.ShortHash()})
+	markLabel := func(term string) string {
+		return utils.ResolvePlaceholderString(self.c.Tr.Bisect.MarkRef,
+			map[string]string{"ref": ref, "term": term})
+	}
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Bisect.BisectMenuTitle,
 		Items: []*types.MenuItem{
-			self.markMenuItem(
-				fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortHash(), info.NewTerm()),
-				commit.Hash(), info.NewTerm(), disabledReason, 'b'),
-			self.markMenuItem(
-				fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortHash(), info.OldTerm()),
-				commit.Hash(), info.OldTerm(), disabledReason, 'g'),
+			self.markMenuItem(markLabel(info.NewTerm()), commit.Hash(), info.NewTerm(), disabledReason, 'b'),
+			self.markMenuItem(markLabel(info.OldTerm()), commit.Hash(), info.OldTerm(), disabledReason, 'g'),
 			self.skipMenuItem(
-				fmt.Sprintf(self.c.Tr.Bisect.SkipCurrent, commit.ShortHash()),
+				utils.ResolvePlaceholderString(self.c.Tr.Bisect.SkipRef, map[string]string{"ref": ref}),
 				commit.Hash(), types.KeepCommitSelectionByHash, disabledReason, 's'),
 			self.resetMenuItem(),
 		},
