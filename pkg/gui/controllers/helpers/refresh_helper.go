@@ -1753,12 +1753,16 @@ func (self *RefreshHelper) refreshStatus(env refreshEnv) {
 func (self *RefreshHelper) refForLog(env refreshEnv) (string, *git_commands.BisectInfo) {
 	bisectInfo := env.git.Bisect.GetInfo()
 
-	if !bisectInfo.Started() {
+	// Until we know both a good and a bad commit, git hasn't checked out
+	// anything for the user to test, and the user may be checking out
+	// branches to find the commits to mark. Show the log of what's checked
+	// out, as usual.
+	if !bisectInfo.Bisecting() {
 		return "HEAD", bisectInfo
 	}
 
 	// need to see if our bisect's current commit is reachable from our 'new' ref.
-	if bisectInfo.Bisecting() && !env.git.Bisect.ReachableFromStart(bisectInfo) {
+	if !env.git.Bisect.ReachableFromStart(bisectInfo) {
 		return bisectInfo.GetNewHash(), bisectInfo
 	}
 
