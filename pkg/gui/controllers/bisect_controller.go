@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/samber/lo"
 )
 
 type BisectController struct {
@@ -51,100 +50,113 @@ func (self *BisectController) openMenu(commit *models.Commit) error {
 	// no shame in getting this directly rather than using the cached value
 	// given how cheap it is to obtain
 	info := self.c.Git().Bisect.GetInfo()
-	if info.Started() {
-		return self.openMidBisectMenu(info, commit)
+	if !info.Started() {
+		return self.openStartBisectMenu(info, commit)
 	}
-	return self.openStartBisectMenu(info, commit)
+	if info.GetCurrentHash() == "" {
+		return self.openMenuBeforeBisecting(info, commit)
+	}
+	return self.openMidBisectMenu(info, commit)
 }
 
+// The menu for when a bisect has started, but git doesn't know both a good and
+// a bad commit yet. Its entries act on the selected commit.
+func (self *BisectController) openMenuBeforeBisecting(info *git_commands.BisectInfo, commit *models.Commit) error {
+	disabledReason := self.require(self.singleItemSelected())()
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Bisect.BisectMenuTitle,
+		Items: []*types.MenuItem{
+			self.markMenuItem(
+				fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortHash(), info.NewTerm()),
+				commit.Hash(), info.NewTerm(), disabledReason, 'b'),
+			self.markMenuItem(
+				fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortHash(), info.OldTerm()),
+				commit.Hash(), info.OldTerm(), disabledReason, 'g'),
+			self.skipMenuItem(
+				fmt.Sprintf(self.c.Tr.Bisect.SkipCurrent, commit.ShortHash()),
+				commit.Hash(), types.KeepCommitSelectionByHash, disabledReason, 's'),
+			self.resetMenuItem(),
+		},
+	})
+}
+
+// The menu for while bisecting. Its entries act on the commit that git wants the
+// user to test, except for the one that skips the selected commit.
 func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, commit *models.Commit) error {
-	// If we have a current hash already, then we always want to use that one. If
-	// not, we're still picking the initial commits before we really start, so
-	// use the selected commit in that case.
-
-	bisecting := info.GetCurrentHash() != ""
-	hashToMark := lo.Ternary(bisecting, info.GetCurrentHash(), commit.Hash())
-	shortHashToMark := utils.ShortHash(hashToMark)
-
-	// For marking a commit as bad, when we're not already bisecting, we require
-	// a single item selected, but once we are bisecting, it doesn't matter because
-	// the action applies to the HEAD commit rather than the selected commit.
-	var singleItemIfNotBisecting *types.DisabledReason
-	if !bisecting {
-		singleItemIfNotBisecting = self.require(self.singleItemSelected())()
-	}
+	currentHash := info.GetCurrentHash()
+	shortCurrentHash := utils.ShortHash(currentHash)
 
 	menuItems := []*types.MenuItem{
-		{
-			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, shortHashToMark, info.NewTerm()),
-			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.BisectMark)
-				if err := self.c.Git().Bisect.Mark(hashToMark, info.NewTerm()); err != nil {
-					return err
-				}
-
-				return self.afterMark(types.KeepCommitSelectionByHash)
-			},
-			DisabledReason: singleItemIfNotBisecting,
-			Keys:           menuKey('b'),
-		},
-		{
-			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, shortHashToMark, info.OldTerm()),
-			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.BisectMark)
-				if err := self.c.Git().Bisect.Mark(hashToMark, info.OldTerm()); err != nil {
-					return err
-				}
-
-				return self.afterMark(types.KeepCommitSelectionByHash)
-			},
-			DisabledReason: singleItemIfNotBisecting,
-			Keys:           menuKey('g'),
-		},
-		{
-			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipCurrent, shortHashToMark),
-			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.BisectSkip)
-				if err := self.c.Git().Bisect.Skip(hashToMark); err != nil {
-					return err
-				}
-
-				return self.afterMark(types.KeepCommitSelectionByHash)
-			},
-			DisabledReason: singleItemIfNotBisecting,
-			Keys:           menuKey('s'),
-		},
+		self.markMenuItem(
+			fmt.Sprintf(self.c.Tr.Bisect.Mark, shortCurrentHash, info.NewTerm()),
+			currentHash, info.NewTerm(), nil, 'b'),
+		self.markMenuItem(
+			fmt.Sprintf(self.c.Tr.Bisect.Mark, shortCurrentHash, info.OldTerm()),
+			currentHash, info.OldTerm(), nil, 'g'),
+		self.skipMenuItem(
+			fmt.Sprintf(self.c.Tr.Bisect.SkipCurrent, shortCurrentHash),
+			currentHash, types.KeepCommitSelectionByHash, nil, 's'),
 	}
-	if info.GetCurrentHash() != "" && info.GetCurrentHash() != commit.Hash() {
-		menuItems = append(menuItems, lo.ToPtr(types.MenuItem{
-			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipSelected, commit.ShortHash()),
-			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.BisectSkip)
-				if err := self.c.Git().Bisect.Skip(commit.Hash()); err != nil {
-					return err
-				}
-
-				// Git may pick a different commit to test now. Keep the skipped
-				// commit selected anyway, so that the user can go on skipping
-				// commits near it.
-				return self.afterMark(types.KeepCommitSelectionIndex)
-			},
-			DisabledReason: self.require(self.singleItemSelected())(),
-			Keys:           menuKey('S'),
-		}))
+	if currentHash != commit.Hash() {
+		menuItems = append(menuItems, self.skipMenuItem(
+			fmt.Sprintf(self.c.Tr.Bisect.SkipSelected, commit.ShortHash()),
+			commit.Hash(),
+			// Git may pick a different commit to test now. Keep the skipped
+			// commit selected anyway, so that the user can go on skipping
+			// commits near it.
+			types.KeepCommitSelectionIndex,
+			self.require(self.singleItemSelected())(),
+			'S'))
 	}
-	menuItems = append(menuItems, lo.ToPtr(types.MenuItem{
-		Label: self.c.Tr.Bisect.ResetOption,
-		OnPress: func() error {
-			return self.c.Helpers().Bisect.Reset()
-		},
-		Keys: menuKey('r'),
-	}))
+	menuItems = append(menuItems, self.resetMenuItem())
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Bisect.BisectMenuTitle,
 		Items: menuItems,
 	})
+}
+
+func (self *BisectController) markMenuItem(label string, hash string, term string, disabledReason *types.DisabledReason, key rune) *types.MenuItem {
+	return &types.MenuItem{
+		Label: label,
+		OnPress: func() error {
+			self.c.LogAction(self.c.Tr.Actions.BisectMark)
+			if err := self.c.Git().Bisect.Mark(hash, term); err != nil {
+				return err
+			}
+
+			return self.afterMark(types.KeepCommitSelectionByHash)
+		},
+		DisabledReason: disabledReason,
+		Keys:           menuKey(key),
+	}
+}
+
+func (self *BisectController) skipMenuItem(label string, hash string, commitSelection types.CommitSelectionBehavior, disabledReason *types.DisabledReason, key rune) *types.MenuItem {
+	return &types.MenuItem{
+		Label: label,
+		OnPress: func() error {
+			self.c.LogAction(self.c.Tr.Actions.BisectSkip)
+			if err := self.c.Git().Bisect.Skip(hash); err != nil {
+				return err
+			}
+
+			return self.afterMark(commitSelection)
+		},
+		DisabledReason: disabledReason,
+		Keys:           menuKey(key),
+	}
+}
+
+func (self *BisectController) resetMenuItem() *types.MenuItem {
+	return &types.MenuItem{
+		Label: self.c.Tr.Bisect.ResetOption,
+		OnPress: func() error {
+			return self.c.Helpers().Bisect.Reset()
+		},
+		Keys: menuKey('r'),
+	}
 }
 
 func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo, commit *models.Commit) error {
