@@ -48,6 +48,11 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 	}
 
 	if self.c.Git().Patch.PatchBuilder.CanRebase && self.c.Git().Status.WorkingTreeState().None() {
+		var disabledReasonForMergeCommit *types.DisabledReason
+		if self.isPatchFromMergeCommit() {
+			disabledReasonForMergeCommit = &types.DisabledReason{Text: self.c.Tr.NotSupportedForPatchFromMergeCommit}
+		}
+
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
 				Label:   fmt.Sprintf(self.c.Tr.RemovePatchFromOriginalCommit, utils.ShortHash(self.c.Git().Patch.PatchBuilder.To)),
@@ -68,10 +73,11 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 				Keys:    menuKey('n'),
 			},
 			{
-				Label:   self.c.Tr.MovePatchIntoNewCommitBefore,
-				Tooltip: self.c.Tr.MovePatchIntoNewCommitBeforeTooltip,
-				OnPress: self.handlePullPatchIntoNewCommitBefore,
-				Keys:    menuKey('N'),
+				Label:          self.c.Tr.MovePatchIntoNewCommitBefore,
+				Tooltip:        self.c.Tr.MovePatchIntoNewCommitBeforeTooltip,
+				OnPress:        self.handlePullPatchIntoNewCommitBefore,
+				Keys:           menuKey('N'),
+				DisabledReason: disabledReasonForMergeCommit,
 			},
 		}...)
 
@@ -79,7 +85,10 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 			selectedCommit := self.c.Contexts().LocalCommits.GetSelected()
 			if selectedCommit != nil && self.c.Git().Patch.PatchBuilder.To != selectedCommit.Hash() {
 
-				var disabledReason *types.DisabledReason
+				disabledReason := disabledReasonForMergeCommit
+				if selectedCommit.IsMerge() {
+					disabledReason = &types.DisabledReason{Text: self.c.Tr.CannotMovePatchToMergeCommit}
+				}
 				if self.c.Contexts().LocalCommits.AreMultipleItemsSelected() {
 					disabledReason = &types.DisabledReason{Text: self.c.Tr.RangeSelectNotSupported}
 				}
@@ -121,6 +130,11 @@ func (self *CustomPatchOptionsMenuAction) getPatchCommitIndex() int {
 		}
 	}
 	return -1
+}
+
+func (self *CustomPatchOptionsMenuAction) isPatchFromMergeCommit() bool {
+	commitIndex := self.getPatchCommitIndex()
+	return commitIndex != -1 && self.c.Model().Commits[commitIndex].IsMerge()
 }
 
 func (self *CustomPatchOptionsMenuAction) handleDeletePatchFromCommit() error {
