@@ -906,7 +906,14 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 			// The caller set the selection index deliberately; leave it untouched.
 		}
 
-		self.rerenderView(self.c.Contexts().LocalCommits, env.focusOpts())
+		focusOpts := env.focusOpts()
+		if newConflictedCommitIdx != nil {
+			// We selected a commit that the user needs to look at next, so
+			// scroll it into view even if the refresh keeps the scroll position
+			// otherwise.
+			focusOpts.KeepScrollPosition = false
+		}
+		self.rerenderView(self.c.Contexts().LocalCommits, focusOpts)
 	})
 
 	return nil

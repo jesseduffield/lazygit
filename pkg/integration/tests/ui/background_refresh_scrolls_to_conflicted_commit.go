@@ -31,10 +31,7 @@ var BackgroundRefreshScrollsToConflictedCommit = NewIntegrationTest(NewIntegrati
 			}).
 			// The conflicted commit, below the 30 pending todos and their header
 			SelectedLineIdx(31).
-			/* EXPECTED:
 			SelectedLineIsVisible().
 			SelectedLine(Contains("<-- CONFLICT --- this will conflict"))
-			ACTUAL: */
-			OriginY(0)
 	},
 })
