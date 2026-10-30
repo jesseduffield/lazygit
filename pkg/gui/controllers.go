@@ -146,7 +146,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	submodulesController := controllers.NewSubmodulesController(common)
 
-	bisectController := controllers.NewBisectController(common)
+	bisectController := controllers.NewBisectController(common, gui.State.Contexts.LocalCommits)
 
 	commitMessageController := controllers.NewCommitMessageController(
 		common,
