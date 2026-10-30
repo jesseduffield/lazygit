@@ -44,7 +44,6 @@ var MovePatchFromAddedFileToEarlierCommit = NewIntegrationTest(NewIntegrationTes
 		t.Views().Commits().Focus().SelectNextItem()
 		t.Common().SelectPatchOption(Contains("Move patch to selected commit"))
 
-		/* EXPECTED:
 		t.Views().Commits().
 			IsFocused().
 			Lines(
@@ -52,42 +51,6 @@ var MovePatchFromAddedFileToEarlierCommit = NewIntegrationTest(NewIntegrationTes
 				Contains("destination commit").IsSelected(),
 				Contains("first commit"),
 			).
-			PressEnter()
-		ACTUAL: */
-		// The source commit tries to add a file that the moved line now causes to exist.
-		t.Common().AcknowledgeConflicts()
-
-		t.Views().Files().
-			IsFocused().
-			Lines(
-				Contains("AA").Contains("file"),
-			).
-			PressEnter()
-
-		t.Views().MergeConflicts().
-			IsFocused().
-			TopLines(
-				Contains("<<<<<<< HEAD"),
-				Contains("2nd line"),
-				Contains("======="),
-				Contains("1st line"),
-				Contains("2nd line"),
-				Contains("3rd line"),
-				Contains(">>>>>>>"),
-			).
-			SelectNextItem().
-			PressPrimaryAction()
-
-		t.Common().ContinueOnConflictsResolved("rebase")
-
-		t.Views().Commits().
-			Focus().
-			Lines(
-				Contains("commit to move from").IsSelected(),
-				Contains("destination commit"),
-				Contains("first commit"),
-			).
-			NavigateToLine(Contains("destination commit")).
 			PressEnter()
 
 		t.Views().CommitFiles().

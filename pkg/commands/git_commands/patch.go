@@ -211,6 +211,11 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 			return err
 		}
 
+		if err := self.pickCopyWithPatchInParent(commits[sourceCommitIdx]); err != nil {
+			_ = self.rebase.AbortRebase()
+			return err
+		}
+
 		// apply each patch forward
 		if err := self.ApplyCustomPatch(false, false); err != nil {
 			// Don't abort the rebase here; this might cause conflicts, so give
@@ -425,6 +430,109 @@ func (self *PatchCommands) PullPatchIntoNewCommitBefore(
 
 	self.PatchBuilder.Reset()
 	return self.rebase.ContinueRebase()
+}
+
+// When moving the patch to an earlier commit, we apply it to that commit, and
+// the rebase then picks the commit that the patch was built from. Picking that
+// commit unchanged would rely on git noticing that the patch is already
+// applied, and git doesn't always notice this. If the patch contains only some
+// of several adjacent added lines, the pick conflicts; if git can place the
+// patch's added lines in more than one position, it may add them a second
+// time. So we make the rebase pick a copy of the commit instead, whose parent
+// already contains the patch.
+func (self *PatchCommands) pickCopyWithPatchInParent(commit *models.Commit) error {
+	copyHash, err := self.copyCommitWithPatchInParent(commit)
+	if err != nil {
+		return err
+	}
+
+	return self.rebase.ChangeTodoCommit(commit.Hash(), copyHash)
+}
+
+// Creates a copy of the given commit, with the same tree, author, and message,
+// whose parent is the commit's original parent with the custom patch applied.
+// It does this without touching the working tree or the index.
+func (self *PatchCommands) copyCommitWithPatchInParent(commit *models.Commit) (string, error) {
+	indexDir, err := os.MkdirTemp(self.os.GetTempDir(), "index")
+	if err != nil {
+		return "", err
+	}
+	defer os.RemoveAll(indexDir)
+	indexFileEnvVar := "GIT_INDEX_FILE=" + filepath.Join(indexDir, "index")
+
+	cmd := self.cmd.New(NewGitCmd("read-tree").Arg(commit.Parents()[0]).ToArgv())
+	err = cmd.AddEnvVars(indexFileEnvVar).DontLog().Run()
+	if err != nil {
+		return "", err
+	}
+
+	patchFilePath, err := self.SaveTemporaryPatch(self.PatchBuilder.PatchToApply(false, false))
+	if err != nil {
+		return "", err
+	}
+	cmd = self.cmd.New(NewGitCmd("apply").Arg("--cached", patchFilePath).ToArgv())
+	err = cmd.AddEnvVars(indexFileEnvVar).DontLog().Run()
+	if err != nil {
+		return "", err
+	}
+
+	cmd = self.cmd.New(NewGitCmd("write-tree").ToArgv())
+	tree, _, err := cmd.AddEnvVars(indexFileEnvVar).DontLog().RunWithOutputs()
+	if err != nil {
+		return "", err
+	}
+
+	cmd = self.cmd.New(NewGitCmd("cat-file").Arg("commit", commit.Hash()).ToArgv())
+	commitObject, _, err := cmd.DontLog().RunWithOutputs()
+	if err != nil {
+		return "", err
+	}
+
+	parentHash, err := self.writeCommitObject(
+		commitObjectWithHeader(commitObject, "tree", strings.TrimSpace(tree)))
+	if err != nil {
+		return "", err
+	}
+
+	return self.writeCommitObject(commitObjectWithHeader(commitObject, "parent", parentHash))
+}
+
+func (self *PatchCommands) writeCommitObject(commitObject string) (string, error) {
+	cmd := self.cmd.New(
+		NewGitCmd("hash-object").
+			Arg("-t", "commit", "-w", "--stdin").ToArgv())
+	hash, _, err := cmd.
+		SetStdin(commitObject).
+		DontLog().
+		RunWithOutputs()
+	return strings.TrimSpace(hash), err
+}
+
+// Returns the given raw commit object with the value of the given header
+// replaced. The commit's signature is dropped, since it no longer matches.
+func commitObjectWithHeader(commitObject string, name string, value string) string {
+	headers, message, _ := strings.Cut(commitObject, "\n\n")
+
+	newHeaders := []string{}
+	isInSignature := false
+	for line := range strings.SplitSeq(headers, "\n") {
+		// Continuation lines of a multi-line header start with a space
+		if isInSignature && strings.HasPrefix(line, " ") {
+			continue
+		}
+
+		isInSignature = strings.HasPrefix(line, "gpgsig ") || strings.HasPrefix(line, "gpgsig-sha256 ")
+		if isInSignature {
+			continue
+		}
+
+		if strings.HasPrefix(line, name+" ") {
+			line = name + " " + value
+		}
+		newHeaders = append(newHeaders, line)
+	}
+
+	return strings.Join(newHeaders, "\n") + "\n\n" + message
 }
 
 // We have just applied a patch in reverse to discard it from a commit; if we

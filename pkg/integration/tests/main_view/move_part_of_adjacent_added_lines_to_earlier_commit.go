@@ -48,7 +48,6 @@ var MovePartOfAdjacentAddedLinesToEarlierCommit = NewIntegrationTest(NewIntegrat
 		t.Views().Commits().Focus().SelectNextItem()
 		t.Common().SelectPatchOption(Contains("Move patch to selected commit"))
 
-		/* EXPECTED:
 		t.Views().Commits().
 			IsFocused().
 			Lines(
@@ -63,13 +62,5 @@ var MovePartOfAdjacentAddedLinesToEarlierCommit = NewIntegrationTest(NewIntegrat
 			Tap(func() {
 				t.Views().Main().Content(Contains(" 1st line\n+2nd line"))
 			})
-		ACTUAL: */
-		t.Common().AcknowledgeConflicts()
-
-		t.Views().Files().
-			IsFocused().
-			Lines(
-				Contains("UU").Contains("file1"),
-			)
 	},
 })
