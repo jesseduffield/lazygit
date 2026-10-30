@@ -21,6 +21,21 @@ import (
 // after selecting the 200th commit, we'll load in all the rest
 const COMMIT_THRESHOLD = 200
 
+type canLoadAllCommits interface {
+	GetSelectedLineIdx() int
+	GetLimitCommits() bool
+	SetLimitCommits(value bool)
+}
+
+// If we loaded only the first commits of a list, and the selection gets close to
+// the end of them, load all of them.
+func loadAllCommitsIfSelectionIsNearEnd(c *ControllerCommon, context canLoadAllCommits, scope types.RefreshableView) {
+	if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
+		context.SetLimitCommits(false)
+		c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{scope}})
+	}
+}
+
 // How long a commit move may take before the drop indicator switches to a
 // "moving commits here" spinner; quick moves stay free of flicker.
 const commitDragMovingIndicatorDelay = 200 * time.Millisecond
@@ -1807,11 +1822,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 
 func (self *LocalCommitsController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
-		context := self.context()
-		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
-			context.SetLimitCommits(false)
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
-		}
+		loadAllCommitsIfSelectionIsNearEnd(self.c, self.context(), types.COMMITS)
 	}
 }
 
