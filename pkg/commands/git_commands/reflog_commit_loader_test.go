@@ -144,7 +144,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "when passing filterAuthor",
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--format=+%H%x00%ct%x00%gs%x00%P", "--author=John Doe <john@doe.com>"}, reflogOutput, nil),
+				ExpectGitArgs([]string{"-c", "log.showSignature=false", "log", "-g", "--format=+%H%x00%ct%x00%gs%x00%P", "--use-mailmap", "--author=John Doe <john@doe.com>"}, reflogOutput, nil),
 
 			lastReflogCommit: models.NewCommit(hashPool, models.NewCommitOpts{
 				Hash:          "c3c4b66b64c97ffeecde",

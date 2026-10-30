@@ -24,17 +24,11 @@ var MailmapSelectAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Filtering")).
-			/* EXPECTED:
 			Select(Contains("Filter by 'Canonical Name <new@example.com>'")).
-			ACTUAL: */
-			Select(Contains("Filter by 'Canonical Name <old@example.com>'")).
 			Confirm()
 
 		t.Views().Commits().
 			IsFocused().
-			/* EXPECTED:
 			Lines(Contains("mapped commit"))
-			ACTUAL: */
-			IsEmpty()
 	},
 })

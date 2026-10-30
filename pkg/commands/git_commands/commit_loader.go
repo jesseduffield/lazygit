@@ -622,4 +622,4 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
-const prettyFormat = `--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s`
+const prettyFormat = `--pretty=format:+%H%x00%at%x00%aN%x00%aE%x00%P%x00%m%x00%D%x00%s`
