@@ -40,6 +40,7 @@ var tests = []*components.IntegrationTest{
 	bisect.ChooseTerms,
 	bisect.FromOtherBranch,
 	bisect.SelectCurrentCommit,
+	bisect.SelectCurrentCommitInLongRange,
 	bisect.Skip,
 	branch.CheckoutAutostash,
 	branch.CheckoutByName,
