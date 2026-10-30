@@ -27,7 +27,26 @@ var Skip = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("commit-01")).
 			Press(keys.Commits.ViewBisectOptions).
 			Tap(func() {
-				t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`Mark .* as good`)).Confirm()
+				t.ExpectPopup().Menu().Title(Equals("Bisect")).
+					// There's no current commit yet, so the entries act on the
+					// selected commit:
+					/* EXPECTED:
+					Lines(
+						Contains("b Mark commit").Contains("as bad"),
+						Contains("g Mark commit").Contains("as good"),
+						Contains("s Skip commit"),
+						Contains("r Reset bisect"),
+						Contains("Cancel"),
+					).
+					ACTUAL: */
+					Lines(
+						Contains("b Mark current commit").Contains("as bad"),
+						Contains("g Mark current commit").Contains("as good"),
+						Contains("s Skip current commit"),
+						Contains("r Reset bisect"),
+						Contains("Cancel"),
+					).
+					Select(MatchesRegexp(`Mark .* as good`)).Confirm()
 				t.Views().Information().Content(Contains("Bisecting"))
 			}).
 			Lines(
