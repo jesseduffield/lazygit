@@ -610,7 +610,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 		Arg("--oneline").
 		Arg(prettyFormat).
 		Arg("--abbrev=40").
-		ArgIf(opts.FilterAuthor != "", "--author="+opts.FilterAuthor).
+		FilterByAuthor(opts.FilterAuthor).
 		ArgIf(opts.Limit, "-300").
 		ArgIf(opts.FilterPath != "", "--follow", "--name-status").
 		Arg("--no-show-signature").
