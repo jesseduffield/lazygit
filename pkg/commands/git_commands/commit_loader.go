@@ -56,7 +56,7 @@ func NewCommitLoader(
 }
 
 type GetCommitsOptions struct {
-	Limit                bool
+	Limit                int // the maximum number of commits to load, or 0 to load all of them
 	FilterPath           string
 	FilterAuthor         string
 	IncludeRebaseCommits bool
@@ -611,7 +611,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 		Arg(prettyFormat).
 		Arg("--abbrev=40").
 		ArgIf(opts.FilterAuthor != "", "--author="+opts.FilterAuthor).
-		ArgIf(opts.Limit, "-300").
+		ArgIf(opts.Limit > 0, fmt.Sprintf("-%d", opts.Limit)).
 		ArgIf(opts.FilterPath != "", "--follow", "--name-status").
 		Arg("--no-show-signature").
 		ArgIf(opts.RefToShowDivergenceFrom != "", "--left-right").

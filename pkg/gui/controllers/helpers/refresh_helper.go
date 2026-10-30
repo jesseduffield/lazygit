@@ -758,6 +758,10 @@ func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflo
 	return nil
 }
 
+// The number of commits that the commits and sub-commits views load at first,
+// to keep things fast. They load the rest when the user scrolls near the end.
+const commitLimit = 300
+
 // capturedCommitState holds everything the commits refresh reads from the
 // model, contexts, and modes. It is gathered on the UI thread (see
 // captureCommitsState) before the git work is dispatched to a worker, so the
@@ -852,7 +856,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 	refName, bisectInfo := self.refForLog(env)
 	commits, err := env.git.Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                captured.limitCommits,
+			Limit:                lo.Ternary(captured.limitCommits, commitLimit, 0),
 			FilterPath:           captured.filterPath,
 			FilterAuthor:         captured.filterAuthor,
 			IncludeRebaseCommits: true,
@@ -1073,7 +1077,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit(captured capturedSubCommit
 
 	commits, err := env.git.Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                   captured.limitCommits,
+			Limit:                   lo.Ternary(captured.limitCommits, commitLimit, 0),
 			FilterPath:              captured.filterPath,
 			FilterAuthor:            captured.filterAuthor,
 			IncludeRebaseCommits:    false,

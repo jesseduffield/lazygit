@@ -34,7 +34,7 @@ type ViewSubCommitsOpts struct {
 func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                   true,
+			Limit:                   commitLimit,
 			FilterPath:              self.c.Modes().Filtering.GetPath(),
 			FilterAuthor:            self.c.Modes().Filtering.GetAuthor(),
 			IncludeRebaseCommits:    false,
