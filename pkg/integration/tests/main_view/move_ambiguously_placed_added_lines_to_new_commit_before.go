@@ -62,10 +62,7 @@ var MoveAmbiguouslyPlacedAddedLinesToNewCommitBefore = NewIntegrationTest(NewInt
 
 		t.FileSystem().FileContent(
 			"file1",
-			/* EXPECTED:
 			Equals("first line\nextra line\n}\nadded line\n}\nlast line\n"),
-			ACTUAL: */
-			Equals("first line\nextra line\n}\nadded line\n}\nadded line\n}\nlast line\n"),
 		)
 	},
 })
