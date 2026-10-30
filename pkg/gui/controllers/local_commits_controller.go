@@ -18,19 +18,22 @@ import (
 	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
-// after selecting the 200th commit, we'll load in all the rest
-const COMMIT_THRESHOLD = 200
+// If the selection gets this close to the end of the commits that we loaded,
+// we load all the rest
+const loadAllCommitsMargin = 100
 
 type canLoadAllCommits interface {
 	GetSelectedLineIdx() int
 	GetLimitCommits() bool
 	SetLimitCommits(value bool)
+	GetLoadedCommitLimit() int
 }
 
 // If we loaded only the first commits of a list, and the selection gets close to
 // the end of them, load all of them.
 func loadAllCommitsIfSelectionIsNearEnd(c *ControllerCommon, context canLoadAllCommits, scope types.RefreshableView) {
-	if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
+	limit := context.GetLoadedCommitLimit()
+	if context.GetLimitCommits() && limit > 0 && context.GetSelectedLineIdx() > limit-loadAllCommitsMargin {
 		context.SetLimitCommits(false)
 		c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{scope}})
 	}

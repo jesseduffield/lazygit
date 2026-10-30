@@ -174,8 +174,11 @@ type SubCommitsViewModel struct {
 	refToShowDivergenceFrom string
 	*ListViewModel[*models.Commit]
 
-	limitCommits    bool
-	showBranchHeads bool
+	limitCommits bool
+	// The limit that the commits in the model were loaded with, or 0 if they
+	// were loaded without one.
+	loadedCommitLimit int
+	showBranchHeads   bool
 }
 
 func (self *SubCommitsViewModel) SetRef(ref models.Ref) {
@@ -237,6 +240,14 @@ func (self *SubCommitsContext) SetLimitCommits(value bool) {
 
 func (self *SubCommitsContext) GetLimitCommits() bool {
 	return self.limitCommits
+}
+
+func (self *SubCommitsContext) SetLoadedCommitLimit(value int) {
+	self.loadedCommitLimit = value
+}
+
+func (self *SubCommitsContext) GetLoadedCommitLimit() int {
+	return self.loadedCommitLimit
 }
 
 func (self *SubCommitsContext) GetDiffTerminals() []string {

@@ -854,9 +854,10 @@ func (self *RefreshHelper) determineCheckedOutRef(env refreshEnv) models.Ref {
 func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState, commitSelection types.CommitSelectionBehavior, env refreshEnv) error {
 	checkedOutRef := self.determineCheckedOutRef(env)
 	refName, bisectInfo := self.refForLog(env)
+	limit := lo.Ternary(captured.limitCommits, commitLimit, 0)
 	commits, err := env.git.Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                lo.Ternary(captured.limitCommits, commitLimit, 0),
+			Limit:                limit,
 			FilterPath:           captured.filterPath,
 			FilterAuthor:         captured.filterAuthor,
 			IncludeRebaseCommits: true,
@@ -886,6 +887,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 
 		self.c.Model().BisectInfo = bisectInfo
 		self.c.Model().Commits = commits
+		self.c.Contexts().LocalCommits.SetLoadedCommitLimit(limit)
 		self.c.Model().CommitsWereFilteredAtLastRefresh = captured.filterPath != "" || captured.filterAuthor != ""
 		self.RefreshAuthors(commits)
 		self.c.Model().WorkingTreeStateAtLastCommitRefresh = workingTreeState
@@ -1075,9 +1077,10 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit(captured capturedSubCommit
 		return nil
 	}
 
+	limit := lo.Ternary(captured.limitCommits, commitLimit, 0)
 	commits, err := env.git.Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                   lo.Ternary(captured.limitCommits, commitLimit, 0),
+			Limit:                   limit,
 			FilterPath:              captured.filterPath,
 			FilterAuthor:            captured.filterAuthor,
 			IncludeRebaseCommits:    false,
@@ -1093,6 +1096,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit(captured capturedSubCommit
 	}
 	self.onUIThreadUnlessRepoChanged(env, func() {
 		self.c.Model().SubCommits = commits
+		self.c.Contexts().SubCommits.SetLoadedCommitLimit(limit)
 		self.RefreshAuthors(commits)
 	})
 

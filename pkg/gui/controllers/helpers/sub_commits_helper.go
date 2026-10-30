@@ -60,6 +60,7 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 	subCommitsContext.SetRef(opts.Ref)
 	subCommitsContext.SetRefToShowDivergenceFrom(opts.RefToShowDivergenceFrom)
 	subCommitsContext.SetLimitCommits(true)
+	subCommitsContext.SetLoadedCommitLimit(commitLimit)
 	subCommitsContext.SetShowBranchHeads(opts.ShowBranchHeads)
 	subCommitsContext.ClearSearchString()
 	subCommitsContext.GetView().ClearSearch()
