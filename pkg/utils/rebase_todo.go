@@ -331,3 +331,30 @@ func dropMergeCommit(todos []todo.Todo, hash string) ([]todo.Todo, error) {
 	_, idx, _ := lo.FindIndexOf(todos, isMerge)
 	return slices.Delete(todos, idx, idx+1), nil
 }
+
+// Read a git-rebase-todo file, make the todo for the given commit use a
+// different commit instead, and write it back
+func ChangeTodoCommit(fileName string, hash string, newHash string, commentChar byte) error {
+	todos, err := ReadRebaseTodoFile(fileName, commentChar)
+	if err != nil {
+		return err
+	}
+
+	newTodos, err := changeTodoCommit(todos, hash, newHash)
+	if err != nil {
+		return err
+	}
+
+	return WriteRebaseTodoFile(fileName, newTodos, commentChar)
+}
+
+func changeTodoCommit(todos []todo.Todo, hash string, newHash string) ([]todo.Todo, error) {
+	idx, ok := findTodo(todos, Todo{Hash: hash})
+	if !ok {
+		// Should never happen
+		return nil, fmt.Errorf("Todo %s not found in git-rebase-todo", hash)
+	}
+
+	todos[idx].Commit = newHash
+	return todos, nil
+}
