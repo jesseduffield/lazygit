@@ -419,6 +419,11 @@ func (self *PatchCommands) PullPatchIntoNewCommitBefore(
 		return err
 	}
 
+	if err := self.pickCopyWithPatchInParent(commits[commitIdx]); err != nil {
+		_ = self.rebase.AbortRebase()
+		return err
+	}
+
 	if err := self.ApplyCustomPatch(false, false); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
@@ -432,14 +437,15 @@ func (self *PatchCommands) PullPatchIntoNewCommitBefore(
 	return self.rebase.ContinueRebase()
 }
 
-// When moving the patch to an earlier commit, we apply it to that commit, and
-// the rebase then picks the commit that the patch was built from. Picking that
-// commit unchanged would rely on git noticing that the patch is already
-// applied, and git doesn't always notice this. If the patch contains only some
-// of several adjacent added lines, the pick conflicts; if git can place the
-// patch's added lines in more than one position, it may add them a second
-// time. So we make the rebase pick a copy of the commit instead, whose parent
-// already contains the patch.
+// When moving the patch to an earlier commit, or into a new commit before the
+// one it was built from, we first apply it there, and the rebase then picks
+// the commit that the patch was built from. Picking that commit unchanged
+// would rely on git noticing that the patch is already applied, and git
+// doesn't always notice this. If the patch contains only some of several
+// adjacent added lines, the pick conflicts; if git can place the patch's added
+// lines in more than one position, it may add them a second time. So we make
+// the rebase pick a copy of the commit instead, whose parent already contains
+// the patch.
 func (self *PatchCommands) pickCopyWithPatchInParent(commit *models.Commit) error {
 	copyHash, err := self.copyCommitWithPatchInParent(commit)
 	if err != nil {

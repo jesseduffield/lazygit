@@ -49,7 +49,6 @@ var MovePartOfAdjacentAddedLinesToNewCommitBefore = NewIntegrationTest(NewIntegr
 
 		t.Views().Commits().
 			IsFocused().
-			/* EXPECTED:
 			Lines(
 				Contains("commit to move from").IsSelected(),
 				Contains("new commit"),
@@ -62,13 +61,5 @@ var MovePartOfAdjacentAddedLinesToNewCommitBefore = NewIntegrationTest(NewIntegr
 			Tap(func() {
 				t.Views().Main().Content(Contains("+1st line").DoesNotContain("2nd line"))
 			})
-			ACTUAL: */
-			Lines(
-				Contains("─── Pending rebase todos"),
-				Contains("pick").Contains("<-- CONFLICT --- commit to move from"),
-				Contains("─── Commits"),
-				Contains("new commit"),
-				Contains("first commit"),
-			)
 	},
 })
