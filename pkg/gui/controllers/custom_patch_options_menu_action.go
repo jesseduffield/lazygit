@@ -199,14 +199,20 @@ func (self *CustomPatchOptionsMenuAction) pullPatchIntoNewCommit(beforeOriginalC
 				self.c.Helpers().Commits.CloseCommitMessagePanel()
 				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 					self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
-					var err error
+					var result error
 					if beforeOriginalCommit {
-						err = self.c.Git().Patch.PullPatchIntoNewCommitBefore(commits, commitIndex, summary, description)
+						result = self.c.Git().Patch.PullPatchIntoNewCommitBefore(commits, commitIndex, summary, description)
 					} else {
-						err = self.c.Git().Patch.PullPatchIntoNewCommit(commits, commitIndex, summary, description)
+						result = self.c.Git().Patch.PullPatchIntoNewCommit(commits, commitIndex, summary, description)
 					}
-					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
+					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(result); err != nil {
 						return err
+					}
+					// If the rebase stopped at conflicts, CheckMergeOrRebase has asked the
+					// user how to handle them; focusing the commits view would close that
+					// popup.
+					if result != nil {
+						return nil
 					}
 					self.c.OnUIThread(func() error {
 						self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})

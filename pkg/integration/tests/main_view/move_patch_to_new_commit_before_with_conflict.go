@@ -47,23 +47,12 @@ var MovePatchToNewCommitBeforeWithConflict = NewIntegrationTest(NewIntegrationTe
 			InitialText(Equals("")).
 			Type("new commit").Confirm()
 
-		/* EXPECTED:
 		t.Common().AcknowledgeConflicts()
 
 		t.Views().Files().
 			IsFocused().
 			Lines(
 				Contains("UU").Contains("file1"),
-			)
-		ACTUAL: */
-		t.Views().Commits().
-			IsFocused().
-			Lines(
-				Contains("─── Pending rebase todos"),
-				Contains("pick").Contains("<-- CONFLICT --- commit to move from"),
-				Contains("─── Commits"),
-				Contains("new commit"),
-				Contains("first commit"),
 			)
 	},
 })
