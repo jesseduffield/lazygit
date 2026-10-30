@@ -352,6 +352,17 @@ func (self *RebaseCommands) EditRebaseTodo(commits []*models.Commit, action todo
 	)
 }
 
+// Makes the todo for the given commit in the git-rebase-todo file use a
+// different commit instead
+func (self *RebaseCommands) ChangeTodoCommit(hash string, newHash string) error {
+	return utils.ChangeTodoCommit(
+		filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"),
+		hash,
+		newHash,
+		self.config.GetCoreCommentChar(),
+	)
+}
+
 func (self *RebaseCommands) DeleteUpdateRefTodos(commits []*models.Commit) error {
 	todosToDelete := lo.Map(commits, func(commit *models.Commit, _ int) utils.Todo {
 		return todoFromCommit(commit)
