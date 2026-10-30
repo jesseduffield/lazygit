@@ -299,6 +299,7 @@ var tests = []*components.IntegrationTest{
 	filter_and_search.SearchStatusAfterARerender,
 	filter_and_search.StageAllStagesOnlyTrackedFilesInTrackedOnlyFilter,
 	filter_and_search.StagingFolderStagesOnlyTrackedFilesInTrackedOnlyFilter,
+	filter_by_author.MailmapSelectAuthor,
 	filter_by_author.SelectAuthor,
 	filter_by_author.TypeAuthor,
 	filter_by_path.CliArg,

@@ -53,6 +53,10 @@ func (self *GitCommandBuilder) ArgIf(condition bool, ifTrue ...string) *GitComma
 	return self
 }
 
+func (self *GitCommandBuilder) FilterByAuthor(author string) *GitCommandBuilder {
+	return self.ArgIf(author != "", "--use-mailmap", "--author="+author)
+}
+
 func (self *GitCommandBuilder) ArgIfElse(condition bool, ifTrue string, ifFalse string) *GitCommandBuilder {
 	if condition {
 		return self.Arg(ifTrue)
