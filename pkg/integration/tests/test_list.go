@@ -655,6 +655,7 @@ var tests = []*components.IntegrationTest{
 	tag.ResetToDuplicateNamedBranch,
 	ui.Accordion,
 	ui.BackgroundRefreshKeepsScrollPosition,
+	ui.BackgroundRefreshScrollsToConflictedCommit,
 	ui.BranchesNotFirstTab,
 	ui.CommitsNotFirstTab,
 	ui.DisableSwitchTabWithPanelJumpKeys,
