@@ -458,6 +458,7 @@ var tests = []*components.IntegrationTest{
 	main_view.MovePatchToLaterCommit,
 	main_view.MovePatchToNewCommit,
 	main_view.MovePatchToNewCommitBefore,
+	main_view.MovePatchToNewCommitBeforeWithConflict,
 	main_view.MovePatchToNewCommitInStackedBranch,
 	main_view.NavigateByHunkAndFile,
 	main_view.NoDiffStatLinksUnderAnExternalDiff,
