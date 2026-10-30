@@ -870,11 +870,14 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
 		var selectionRange *localCommitSelectionRange
-		var newConflictedCommitIdx *int
+		var jumpToCommitIdx *int
 		if commitSelection == types.KeepCommitSelectionByHash {
 			selectedIdx, rangeStartIdx, rangeSelectMode := self.c.Contexts().LocalCommits.GetSelectionRangeAndMode()
 			selectionRange = captureLocalCommitSelectionRange(self.c.Model().Commits, selectedIdx, rangeStartIdx, rangeSelectMode)
-			newConflictedCommitIdx = findNewConflictedCommit(self.c.Model().Commits, commits)
+			jumpToCommitIdx = findNewConflictedCommit(self.c.Model().Commits, commits)
+			if jumpToCommitIdx == nil {
+				jumpToCommitIdx = findNewBisectCommitToSelect(self.c.Model().BisectInfo, bisectInfo, commits)
+			}
 		}
 
 		self.c.Model().BisectInfo = bisectInfo
@@ -894,8 +897,8 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 				self.c.Contexts().LocalCommits.SetSelection(headCommitIdx)
 			}
 		case types.KeepCommitSelectionByHash:
-			if newConflictedCommitIdx != nil {
-				self.c.Contexts().LocalCommits.SetSelection(*newConflictedCommitIdx)
+			if jumpToCommitIdx != nil {
+				self.c.Contexts().LocalCommits.SetSelection(*jumpToCommitIdx)
 			} else if selectionRange != nil {
 				selectedIdx, rangeStartIdx, found := findLocalCommitSelectionRange(commits, selectionRange)
 				if found {
@@ -907,7 +910,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 		}
 
 		focusOpts := env.focusOpts()
-		if newConflictedCommitIdx != nil {
+		if jumpToCommitIdx != nil {
 			// We selected a commit that the user needs to look at next, so
 			// scroll it into view even if the refresh keeps the scroll position
 			// otherwise.
@@ -1005,6 +1008,35 @@ func findNewConflictedCommit(previousCommits []*models.Commit, commits []*models
 	}
 
 	return nil
+}
+
+// Returns the index of the commit that the user needs to look at during a
+// bisect, if it is in the new commits slice and it is a different commit than
+// at the previous refresh (or there wasn't one then). Otherwise returns nil.
+func findNewBisectCommitToSelect(previousBisectInfo *git_commands.BisectInfo, bisectInfo *git_commands.BisectInfo, commits []*models.Commit) *int {
+	hash := bisectCommitToSelect(bisectInfo)
+	if hash == "" || hash == bisectCommitToSelect(previousBisectInfo) {
+		return nil
+	}
+
+	_, idx, found := lo.FindIndexOf(commits, func(commit *models.Commit) bool {
+		return commit.Hash() == hash
+	})
+	if found {
+		return &idx
+	}
+
+	return nil
+}
+
+// Returns the commit that the user needs to look at during a bisect: the one
+// that git wants them to test. Returns "" if there's none.
+func bisectCommitToSelect(bisectInfo *git_commands.BisectInfo) string {
+	if !bisectInfo.Bisecting() {
+		return ""
+	}
+
+	return bisectInfo.GetCurrentHash()
 }
 
 // capturedSubCommitState holds the sub-commits refresh's model/context/mode
