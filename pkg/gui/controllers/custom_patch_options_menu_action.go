@@ -176,39 +176,14 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 }
 
 func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
-	commitIndex := self.getPatchCommitIndex()
-	self.c.Helpers().Commits.OpenCommitMessagePanel(
-		&helpers.OpenCommitMessagePanelOpts{
-			// Pass a commit index of one less than the moved-from commit, so that
-			// you can press up arrow once to recall the original commit message:
-			CommitIndex:      commitIndex - 1,
-			InitialMessage:   "",
-			SummaryTitle:     self.c.Tr.CommitSummaryTitle,
-			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
-			PreserveMessage:  false,
-			OnConfirm: func(summary string, description string) error {
-				commits := self.c.Model().Commits
-				self.c.Helpers().Commits.CloseCommitMessagePanel()
-				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
-					self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
-					err := self.c.Git().Patch.PullPatchIntoNewCommit(commits, commitIndex, summary, description)
-					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
-						return err
-					}
-					self.c.OnUIThread(func() error {
-						self.c.Context().Push(self.c.Contexts().LocalCommits, types.OnFocusOpts{})
-						return nil
-					})
-					return nil
-				})
-			},
-		},
-	)
-
-	return nil
+	return self.pullPatchIntoNewCommit(false)
 }
 
 func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommitBefore() error {
+	return self.pullPatchIntoNewCommit(true)
+}
+
+func (self *CustomPatchOptionsMenuAction) pullPatchIntoNewCommit(beforeOriginalCommit bool) error {
 	commitIndex := self.getPatchCommitIndex()
 	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
@@ -224,7 +199,12 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommitBefore() e
 				self.c.Helpers().Commits.CloseCommitMessagePanel()
 				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 					self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
-					err := self.c.Git().Patch.PullPatchIntoNewCommitBefore(commits, commitIndex, summary, description)
+					var err error
+					if beforeOriginalCommit {
+						err = self.c.Git().Patch.PullPatchIntoNewCommitBefore(commits, commitIndex, summary, description)
+					} else {
+						err = self.c.Git().Patch.PullPatchIntoNewCommit(commits, commitIndex, summary, description)
+					}
 					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
