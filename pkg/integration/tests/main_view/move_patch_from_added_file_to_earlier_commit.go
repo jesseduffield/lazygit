@@ -44,6 +44,16 @@ var MovePatchFromAddedFileToEarlierCommit = NewIntegrationTest(NewIntegrationTes
 		t.Views().Commits().Focus().SelectNextItem()
 		t.Common().SelectPatchOption(Contains("Move patch to selected commit"))
 
+		/* EXPECTED:
+		t.Views().Commits().
+			IsFocused().
+			Lines(
+				Contains("commit to move from"),
+				Contains("destination commit").IsSelected(),
+				Contains("first commit"),
+			).
+			PressEnter()
+		ACTUAL: */
 		// The source commit tries to add a file that the moved line now causes to exist.
 		t.Common().AcknowledgeConflicts()
 
