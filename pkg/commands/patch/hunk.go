@@ -47,12 +47,10 @@ func (self *Hunk) lineCount() int {
 	return len(self.bodyLines) + 1
 }
 
-// Returns all lines in the hunk, including the header line
-func (self *Hunk) allLines() []*PatchLine {
-	lines := make([]*PatchLine, 1, 1+len(self.bodyLines))
-	lines[0] = &PatchLine{Content: self.formatHeaderLine(), Kind: HUNK_HEADER}
-	lines = append(lines, self.bodyLines...)
-	return lines
+// Appends all lines in the hunk, including the header line, to the given slice
+func (self *Hunk) appendLinesTo(lines []*PatchLine) []*PatchLine {
+	lines = append(lines, &PatchLine{Content: self.formatHeaderLine(), Kind: HUNK_HEADER})
+	return append(lines, self.bodyLines...)
 }
 
 // Returns the header line, including the unified diff header and the context
