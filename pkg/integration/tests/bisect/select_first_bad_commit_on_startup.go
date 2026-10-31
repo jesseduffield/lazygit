@@ -23,9 +23,6 @@ var SelectFirstBadCommitOnStartup = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			IsFocused().
-			/* EXPECTED:
 			SelectedLine(Contains("CI commit-08").Contains("<-- bad"))
-			ACTUAL: */
-			SelectedLine(Contains("CI commit-07"))
 	},
 })

@@ -63,6 +63,21 @@ func (self *BisectInfo) GetCurrentHash() string {
 	return self.current
 }
 
+// Whether git has checked out a commit for the user to test, and the user
+// hasn't marked it yet. After the user marks it, git checks out the next one,
+// unless there's nothing left to test. This is the case if git has found the
+// first new commit, or if only skipped commits are left. Git checks out the
+// first commit to test once it knows both a new and an old commit, unless the
+// old commit is a parent of the new one.
+func (self *BisectInfo) HasCommitToTest() bool {
+	if self.current == "" {
+		return false
+	}
+
+	_, marked := self.statusMap[self.current]
+	return !marked
+}
+
 func (self *BisectInfo) GetStartHash() string {
 	return self.start
 }

@@ -1036,13 +1036,20 @@ func findNewBisectCommitToSelect(previousBisectInfo *git_commands.BisectInfo, bi
 }
 
 // Returns the commit that the user needs to look at during a bisect: the one
-// that git wants them to test. Returns "" if there's none.
+// that git wants them to test, or the first bad commit once git has found it.
+// Returns "" if git doesn't know both a good and a bad commit yet.
 func bisectCommitToSelect(bisectInfo *git_commands.BisectInfo) string {
 	if !bisectInfo.Bisecting() {
 		return ""
 	}
 
-	return bisectInfo.GetCurrentHash()
+	if bisectInfo.HasCommitToTest() {
+		return bisectInfo.GetCurrentHash()
+	}
+
+	// There's nothing left to test, so the commit marked bad is the first bad
+	// commit. (If only skipped commits are left, it is one of the candidates.)
+	return bisectInfo.GetNewHash()
 }
 
 // capturedSubCommitState holds the sub-commits refresh's model/context/mode
