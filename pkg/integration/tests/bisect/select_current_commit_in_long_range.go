@@ -8,7 +8,7 @@ import (
 )
 
 var SelectCurrentCommitInLongRange = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Select the current bisect commit when it is further down than the commits that we load at first",
+	Description:  "Select the current bisect commit when it is further down than the commits that we load at first, and mark the commits around it that the bisect hasn't ruled out yet",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
@@ -23,6 +23,14 @@ var SelectCurrentCommitInLongRange = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
-			SelectedLine(Contains("<-- current"))
+			SelectedLine(Contains("<-- current")).
+			// The commits between the current one and the good one are still
+			// to be tested. The good one is further down than the commits that
+			// we load.
+			SelectNextItem().
+			/* EXPECTED:
+			SelectedLine(Contains("?"))
+			ACTUAL: */
+			SelectedLine(DoesNotContain("?"))
 	},
 })

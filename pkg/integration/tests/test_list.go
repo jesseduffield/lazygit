@@ -39,6 +39,7 @@ var tests = []*components.IntegrationTest{
 	bisect.CheckOutBranchBeforeBisecting,
 	bisect.ChooseTerms,
 	bisect.FromOtherBranch,
+	bisect.MarkCandidatesWhileTestingMergeBase,
 	bisect.OfferResetWhenMergeBaseIsBad,
 	bisect.SelectCurrentCommit,
 	bisect.SelectCurrentCommitInLongRange,
