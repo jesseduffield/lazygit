@@ -34,6 +34,16 @@ var SelectFirstBadCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 				t.ExpectPopup().Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit-08.*Do you want to reset")).Cancel()
 			}).
-			SelectedLine(Contains("CI commit-08").Contains("<-- bad"))
+			TopLines(
+				Contains("CI commit-10"),
+				Contains("CI commit-09"),
+				Contains("CI commit-08").Contains("<-- bad").IsSelected(),
+				/* EXPECTED:
+				Contains("CI commit-07").Contains("<-- good"),
+				ACTUAL: */
+				Contains("CI commit-07").Contains("<-- current"),
+				Contains("CI commit-06"),
+				Contains("CI commit-05").Contains("<-- good"),
+			)
 	},
 })
