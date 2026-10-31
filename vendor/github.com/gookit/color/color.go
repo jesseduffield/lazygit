@@ -120,21 +120,36 @@ func ResetOptions() {
 	output = os.Stdout
 }
 
+var oldLevelVal Level
+
 // ForceSetColorLevel force open color render
 func ForceSetColorLevel(level Level) Level {
-	oldLevelVal := colorLevel
+	oldLevelVal = colorLevel
 	colorLevel = level
 	return oldLevelVal
 }
 
-// ForceColor force open color render
+// ForceColor force open color render. alias of ForceOpenColor
+//
+// Use for testing:
+//
+//	color.ForceColor()
+//	defer color.RevertColorLevel()
 func ForceColor() Level { return ForceOpenColor() }
 
 // ForceOpenColor force open color render
+//
+// Use for testing:
+//
+//	color.ForceColor()
+//	defer color.RevertColorLevel()
 func ForceOpenColor() Level {
 	// TODO should set level to ?
 	return ForceSetColorLevel(LevelRgb)
 }
+
+// RevertColorLevel value
+func RevertColorLevel() { colorLevel = oldLevelVal }
 
 // EnableDebug enable debug mode
 func EnableDebug() { debugMode = true }
