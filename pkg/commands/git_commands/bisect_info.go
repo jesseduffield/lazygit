@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"github.com/jesseduffield/generics/maps"
+	"github.com/jesseduffield/generics/set"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
@@ -34,6 +35,11 @@ type BisectInfo struct {
 
 	// the hash of the commit that's under test
 	current string
+
+	// the commits that the bisect hasn't ruled out yet, among those that the
+	// commits view has loaded. Nil until BisectCommands.LoadCandidates is
+	// called.
+	candidates *set.Set[string]
 }
 
 type BisectStatus int
@@ -76,6 +82,14 @@ func (self *BisectInfo) HasCommitToTest() bool {
 
 	_, marked := self.statusMap[self.current]
 	return !marked
+}
+
+// Whether the bisect hasn't ruled out the commit yet. This is the case if the
+// new commit can reach it, but no old one can, so it includes the new commit
+// and the skipped ones. Only known for the commits that the commits view has
+// loaded.
+func (self *BisectInfo) IsCandidate(commitHash string) bool {
+	return self.candidates != nil && self.candidates.Includes(commitHash)
 }
 
 func (self *BisectInfo) GetStartHash() string {

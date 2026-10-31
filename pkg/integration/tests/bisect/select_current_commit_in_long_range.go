@@ -28,9 +28,6 @@ var SelectCurrentCommitInLongRange = NewIntegrationTest(NewIntegrationTestArgs{
 			// to be tested. The good one is further down than the commits that
 			// we load.
 			SelectNextItem().
-			/* EXPECTED:
 			SelectedLine(Contains("?"))
-			ACTUAL: */
-			SelectedLine(DoesNotContain("?"))
 	},
 })

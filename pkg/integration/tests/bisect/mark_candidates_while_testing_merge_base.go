@@ -28,10 +28,7 @@ var MarkCandidatesWhileTestingMergeBase = NewIntegrationTest(NewIntegrationTestA
 			IsFocused().
 			Lines(
 				Contains("CI commit-05").Contains("<-- bad"),
-				/* EXPECTED:
 				MatchesRegexp(`\?.*commit-04`),
-				ACTUAL: */
-				Contains("CI commit-04").DoesNotContain("?"),
 				Contains("CI commit-02").Contains("<-- current").IsSelected(),
 				// This is an ancestor of the good commit-03, so the bisect has
 				// ruled it out

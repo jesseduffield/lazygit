@@ -871,6 +871,9 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 	if err != nil {
 		return err
 	}
+	if err := env.git.Bisect.LoadCandidates(bisectInfo, commits); err != nil {
+		self.c.Log.Warnf("Failed to find the commits that the bisect hasn't ruled out yet: %v", err)
+	}
 	workingTreeState := env.git.Status.WorkingTreeState()
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
