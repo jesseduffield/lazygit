@@ -45,6 +45,7 @@ var tests = []*components.IntegrationTest{
 	bisect.StartFromBranches,
 	bisect.StartFromSubCommitsAndReflog,
 	bisect.StartFromTagsAndRemoteBranches,
+	bisect.StartInCommitsPanel,
 	branch.CheckoutAutostash,
 	branch.CheckoutByName,
 	branch.CheckoutPreviousBranch,
