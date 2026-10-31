@@ -14,6 +14,9 @@ import (
 )
 
 func (config *UserConfig) Validate() error {
+	if config.Gui.SidePanelMaxWidth < 0 {
+		return errors.New("gui.sidePanelMaxWidth must not be negative.")
+	}
 	if err := validateEnum("gui.statusPanelView", config.Gui.StatusPanelView,
 		[]string{"dashboard", "allBranchesLog"}); err != nil {
 		return err
