@@ -113,7 +113,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Restaurar |  |
 | `` R `` | Renomear branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
-| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver commits |  |
@@ -131,7 +131,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` r `` | Refazer | Refazer a branch checada na branch selecionada |
 | `` d `` | Apagar | Excluir o branch remoto do controle remoto. |
 | `` u `` | Definir como upstream | Definir o ramo remoto selecionado como fluxo do branch check-out. |
-| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` s `` | Sort order |  |
 | `` g `` | Restaurar | Ver opções de redefinição (soft/mixed/hard) para redefinir para o item selecionado. |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |

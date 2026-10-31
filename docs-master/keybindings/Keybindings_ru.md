@@ -228,7 +228,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Просмотреть параметры сброса |  |
 | `` R `` | Переименовать ветку |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
-| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
@@ -352,7 +352,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` r `` | Перебазировать переключённую ветку на эту ветку | Rebase the checked-out branch onto the selected branch. |
 | `` d `` | Delete | Delete the remote branch from the remote. |
 | `` u `` | Set as upstream | Установить как upstream-ветку переключённую ветку |
-| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` s `` | Порядок сортировки |  |
 | `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |

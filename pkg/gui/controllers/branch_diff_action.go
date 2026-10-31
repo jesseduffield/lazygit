@@ -30,7 +30,7 @@ func (self *BranchDiffAction) View(branch models.Ref, parent types.Context) erro
 	if err != nil {
 		return err
 	}
-	bases, err := self.bases(branch)
+	bases, err := self.bases(branch, tip)
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (self *BranchDiffAction) MenuItems(branch models.Ref, parent types.Context)
 	if err != nil {
 		return nil, err
 	}
-	bases, err := self.bases(branch)
+	bases, err := self.bases(branch, tip)
 	if err != nil {
 		return []*types.MenuItem{{
 			LabelColumns:   []string{self.c.Tr.ViewBranchDiff},
@@ -74,8 +74,10 @@ func (self *BranchDiffAction) view(branch models.Ref, tip string, base branchDif
 	return viewCommitFiles(self.c, ref, nil, false, parent)
 }
 
-// bases returns the branches that the diff of branch can start from.
-func (self *BranchDiffAction) bases(branch models.Ref) ([]branchDiffBase, error) {
+// bases returns the branches that the diff of branch, whose tip is the given commit,
+// can start from, closest first: the local branches that a local branch is stacked on,
+// then its base branch.
+func (self *BranchDiffAction) bases(branch models.Ref, tip string) ([]branchDiffBase, error) {
 	mainBranches := self.c.Model().MainBranches
 	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(branch.FullRefName(), mainBranches)
 	if err != nil {
@@ -85,5 +87,42 @@ func (self *BranchDiffAction) bases(branch models.Ref) ([]branchDiffBase, error)
 	if baseBranch == "" || mergeBase == "" {
 		return nil, errors.New(self.c.Tr.CouldNotDetermineBaseBranch)
 	}
-	return []branchDiffBase{{name: helpers.ShortBranchName(baseBranch), mergeBase: mergeBase}}, nil
+	mainBase := branchDiffBase{name: helpers.ShortBranchName(baseBranch), mergeBase: mergeBase}
+
+	localBranch, ok := branch.(*models.Branch)
+	if !ok {
+		return []branchDiffBase{mainBase}, nil
+	}
+	stackedBases, err := self.stackedBases(localBranch, tip, mergeBase)
+	if err != nil {
+		return nil, err
+	}
+	return append(stackedBases, mainBase), nil
+}
+
+// stackedBases returns the local branches that branch is stacked on: those whose tip
+// is one of the commits of branch since its merge base with its base branch, other than
+// its own tip. The diff since one of them starts from its tip.
+func (self *BranchDiffAction) stackedBases(branch *models.Branch, tip string, mergeBase string) ([]branchDiffBase, error) {
+	hashes, err := self.c.Git().Branch.GetCommitHashesBetween(mergeBase, tip)
+	if err != nil {
+		return nil, err
+	}
+
+	mainBranchNames := self.c.UserConfig().Git.MainBranches
+	branchesByTip := lo.GroupBy(
+		lo.Filter(self.c.Model().Branches, func(other *models.Branch, _ int) bool {
+			return other.Name != branch.Name && !other.DetachedHead &&
+				other.CommitHash != tip && !lo.Contains(mainBranchNames, other.Name)
+		}),
+		func(other *models.Branch) string { return other.CommitHash },
+	)
+
+	result := []branchDiffBase{}
+	for _, hash := range hashes {
+		for _, other := range branchesByTip[hash] {
+			result = append(result, branchDiffBase{name: other.Name, mergeBase: hash})
+		}
+	}
+	return result, nil
 }

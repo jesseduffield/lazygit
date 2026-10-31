@@ -333,6 +333,22 @@ func (self *BranchCommands) GetCommitHash(refName string) (string, error) {
 	return strings.TrimSpace(output), nil
 }
 
+// GetCommitHashesBetween returns the hashes of the commits that are reachable from
+// toRef but not from fromRef, children before their parents.
+func (self *BranchCommands) GetCommitHashesBetween(fromRef string, toRef string) ([]string, error) {
+	cmdArgs := NewGitCmd("rev-list").
+		Arg("--topo-order").
+		Arg(fmt.Sprintf("%s..%s", fromRef, toRef)).
+		ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.SplitLines(output), nil
+}
+
 // Returns whether the first ref is an ancestor of the second one, which also
 // means that the second one can be fast-forward merged into the first one
 func (self *BranchCommands) IsAncestor(ancestorRefName string, refName string) bool {

@@ -280,7 +280,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | 檢視重設選項 |  |
 | `` R `` | 重新命名分支 |  |
 | `` u `` | 檢視遠端設定 | 檢視有關遠端分支的設定（例如重設至遠端） |
-| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
 | `` 0 `` | 聚焦主檢視 |  |
 | `` <enter> `` | 檢視提交 |  |
@@ -411,7 +411,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` r `` | 將已檢出的分支變基至此分支 | 將檢出的分支變基到所選的分支上。 |
 | `` d `` | 刪除 | 從遠端刪除遠端分支。 |
 | `` u `` | 設置為遠端 | 將此分支設為當前分支之遠端 |
-| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` s `` | 排序規則 |  |
 | `` g `` | 檢視重設選項 | 檢視重置選項 (soft/mixed/hard) 用於重置到選擇項。 |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |

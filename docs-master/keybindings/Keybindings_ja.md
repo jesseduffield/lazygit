@@ -360,7 +360,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` r `` | リベース | チェックアウトしたブランチを選択したブランチ上にリベースします。 |
 | `` d `` | 削除 | リモートからリモートブランチを削除します。 |
 | `` u `` | アップストリームとして設定 | 選択したリモートブランチをチェックアウトされたブランチのアップストリームとして設定します。 |
-| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` s `` | 並び順 |  |
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
@@ -396,7 +396,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | リセット |  |
 | `` R `` | ブランチ名を変更 |  |
 | `` u `` | アップストリームオプションを表示 | ブランチのアップストリームに関連するオプションを表示します（例：アップストリームの設定/解除やアップストリームへのリセット）。 |
-| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | コミットを表示 |  |

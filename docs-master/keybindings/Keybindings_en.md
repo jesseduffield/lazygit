@@ -197,7 +197,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Reset |  |
 | `` R `` | Rename branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
-| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | View commits |  |
@@ -287,7 +287,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` r `` | Rebase | Rebase the checked-out branch onto the selected branch. |
 | `` d `` | Delete | Delete the remote branch from the remote. |
 | `` u `` | Set as upstream | Set the selected remote branch as the upstream of the checked-out branch. |
-| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` s `` | Sort order |  |
 | `` g `` | Reset | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |

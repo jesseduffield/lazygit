@@ -118,6 +118,7 @@ var tests = []*components.IntegrationTest{
 	branch.UnsetUpstream,
 	branch.ViewBranchDiff,
 	branch.ViewRemoteBranchDiff,
+	branch.ViewStackedBranchDiff,
 	cherry_pick.AbortCherryPickAfterEditingPickedFile,
 	cherry_pick.CherryPick,
 	cherry_pick.CherryPickAcrossWorktrees,
