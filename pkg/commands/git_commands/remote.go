@@ -68,10 +68,10 @@ func (self *RemoteCommands) DeleteRemoteTag(task gocui.Task, remoteName string, 
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
 }
 
-// CheckRemoteBranchExists Returns remote branch
-func (self *RemoteCommands) CheckRemoteBranchExists(branchName string) bool {
+// CheckRemoteBranchExists returns whether the given branch exists on the given remote.
+func (self *RemoteCommands) CheckRemoteBranchExists(remoteName string, branchName string) bool {
 	cmdArgs := NewGitCmd("show-ref").
-		Arg("--verify", "--", fmt.Sprintf("refs/remotes/origin/%s", branchName)).
+		Arg("--verify", "--", fmt.Sprintf("refs/remotes/%s/%s", remoteName, branchName)).
 		ToArgv()
 
 	_, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()

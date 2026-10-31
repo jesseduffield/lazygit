@@ -239,18 +239,15 @@ func (self *BasicCommitsController) copyCommitHashToClipboard(commit *models.Com
 }
 
 func (self *BasicCommitsController) copyCommitURLToClipboard(commit *models.Commit) error {
-	url, err := self.c.Helpers().Host.GetCommitURL(commit.Hash())
-	if err != nil {
-		return err
-	}
+	return self.c.Helpers().Host.WithCommitURL(commit.Hash(), func(url string) error {
+		self.c.LogAction(self.c.Tr.Actions.CopyCommitURLToClipboard)
+		if err := self.c.OS().CopyToClipboard(url); err != nil {
+			return err
+		}
 
-	self.c.LogAction(self.c.Tr.Actions.CopyCommitURLToClipboard)
-	if err := self.c.OS().CopyToClipboard(url); err != nil {
-		return err
-	}
-
-	self.c.Toast(self.c.Tr.CommitURLCopiedToClipboard)
-	return nil
+		self.c.Toast(self.c.Tr.CommitURLCopiedToClipboard)
+		return nil
+	})
 }
 
 func (self *BasicCommitsController) copyCommitDiffToClipboard(commit *models.Commit) error {
@@ -338,17 +335,10 @@ func (self *BasicCommitsController) copyCommitTagsToClipboard(commit *models.Com
 }
 
 func (self *BasicCommitsController) openInBrowser(commit *models.Commit) error {
-	url, err := self.c.Helpers().Host.GetCommitURL(commit.Hash())
-	if err != nil {
-		return err
-	}
-
-	self.c.LogAction(self.c.Tr.Actions.OpenCommitInBrowser)
-	if err := self.c.OS().OpenLink(url); err != nil {
-		return err
-	}
-
-	return nil
+	return self.c.Helpers().Host.WithCommitURL(commit.Hash(), func(url string) error {
+		self.c.LogAction(self.c.Tr.Actions.OpenCommitInBrowser)
+		return self.c.OS().OpenLink(url)
+	})
 }
 
 func (self *BasicCommitsController) newBranch(commit *models.Commit) error {

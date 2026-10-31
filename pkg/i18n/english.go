@@ -691,6 +691,8 @@ type TranslationSet struct {
 	StartSearch                           string
 	StartFilter                           string
 	SelectRemoteRepository                string
+	SelectRemote                          string
+	NoRemotesFound                        string
 	FetchingPullRequests                  string
 	Keybindings                           string
 	KeybindingsMenuSectionLocal           string
@@ -1917,6 +1919,8 @@ func EnglishTranslationSet() *TranslationSet {
 		StartSearch:                      "Search the current view by text",
 		StartFilter:                      "Filter the current view by text",
 		SelectRemoteRepository:           "Select base repository for pull requests",
+		SelectRemote:                     "Select remote",
+		NoRemotesFound:                   "No remotes configured",
 		FetchingPullRequests:             "Fetching pull requests",
 		RenameBranch:                     "Rename branch",
 		BranchUpstreamOptionsTitle:       "Upstream options",
