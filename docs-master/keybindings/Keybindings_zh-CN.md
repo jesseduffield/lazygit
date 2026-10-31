@@ -59,6 +59,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <ctrl+o> `` | 复制缩略提交哈希值到剪贴板 |  |
 | `` b `` | 查看二分查找选项 |  |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -140,6 +141,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+j>, <alt+down> `` | 下移提交 |  |
 | `` <ctrl+k>, <alt+up> `` | 上移提交 |  |
 | `` V `` | 粘贴提交(拣选) |  |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` B `` | 标记一个主提交用于变基 | 选择下一次变基的主提交。当您变基到一个分支时，只有高于主提交的提交才会被引入。这使用“git rebase --onto”命令。 |
 | `` A `` | 修补(Amend) | 用已暂存的变更来修补提交 |
 | `` a `` | 修补提交属性 | 设置或重置提交的作者，或添加其他作者。 |

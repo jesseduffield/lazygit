@@ -640,6 +640,8 @@ type TranslationSet struct {
 	ViewBranchDiff                        string
 	ViewBranchDiffTooltip                 string
 	ViewBranchDiffSince                   string
+	NotCommitsOfABranch                   string
+	NotOnABranch                          string
 	CouldNotDetermineBaseBranch           string
 	DivergenceSectionHeaderLocal          string
 	DivergenceSectionHeaderRemote         string
@@ -1881,6 +1883,8 @@ func EnglishTranslationSet() *TranslationSet {
 		ViewDivergenceFromBaseBranch:         "View divergence from base branch ({{.baseBranch}})",
 		ViewBranchDiff:                       "View branch diff",
 		ViewBranchDiffSince:                  "View branch diff since {{.baseBranch}}",
+		NotCommitsOfABranch:                  "These are not the commits of a branch",
+		NotOnABranch:                         "HEAD is detached, so there is no branch to view the diff of",
 		ViewBranchDiffTooltip:                "View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too.",
 		CouldNotDetermineBaseBranch:          "Couldn't determine base branch",
 		DivergenceSectionHeaderLocal:         "Local",

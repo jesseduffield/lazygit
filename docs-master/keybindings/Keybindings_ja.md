@@ -81,6 +81,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+j>, <alt+down> `` | コミットを1つ下に移動 |  |
 | `` <ctrl+k>, <alt+up> `` | コミットを1つ上に移動 |  |
 | `` V `` | ペースト（チェリーピック） |  |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` B `` | リベース用のベースコミットとしてマーク | 次のリベース用のベースコミットを選択します。ブランチにリベースするとき、ベースコミットより上のコミットのみが持ち込まれます。これは `git rebase --onto` コマンドを使用します。 |
 | `` A `` | 修正 | ステージされた変更でコミットを修正します。選択したコミットがHEADコミットの場合、これは `git commit --amend` を実行します。それ以外の場合、コミットはリベースを通じて修正されます。 |
 | `` a `` | コミット属性を修正 | コミット作者の設定/リセットまたは共同作者の設定を行います。 |
@@ -135,6 +136,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` b `` | bisectオプションを表示 |  |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択したコミットをデタッチドヘッド（特定のブランチに属さない状態）としてチェックアウトします。 |
 | `` y `` | コミット属性をクリップボードにコピー | コミット属性をクリップボードにコピーします（例：ハッシュ、URL、差分、メッセージ、作者）。 |
 | `` o `` | ブラウザでコミットを開く |  |

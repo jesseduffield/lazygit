@@ -110,6 +110,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <ctrl+o> `` | 複製縮略提交雜湊值到剪貼簿 |  |
 | `` b `` | 查看二分選項 |  |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` <space> `` | 檢出 | 檢出所選擇的提交作為分離HEAD。 |
 | `` y `` | 複製提交屬性 | 複製提交屬性到剪貼簿(如hash、URL、diff、訊息、作者)。 |
 | `` o `` | 在瀏覽器中開啟提交 |  |
@@ -170,6 +171,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+j>, <alt+down> `` | 向下移動提交 |  |
 | `` <ctrl+k>, <alt+up> `` | 向上移動提交 |  |
 | `` V `` | 貼上提交 (揀選) |  |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` B `` | 為了變基已標注提交為基準提交 | 請為了下一次變基選擇一項基準提交；此將執行 `git rebase --onto`。 |
 | `` A `` | 修改 | 使用已預存的更改修正提交 |
 | `` a `` | 設定/重設提交作者 | 設定或重置提交的作者，或新增其他作者。 |

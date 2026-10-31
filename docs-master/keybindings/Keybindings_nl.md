@@ -175,6 +175,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+j>, <alt+down> `` | Verplaats commit 1 naar beneden |  |
 | `` <ctrl+k>, <alt+up> `` | Verplaats commit 1 naar boven |  |
 | `` V `` | Plak commits (cherry-pick) |  |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` B `` | Markeer als basiscommit voor rebase | Selecteer een basiscommit voor de volgende rebase. Als je rebased op een branch worden alleen commits boven de basiscommit meegenomen. Hiervoor wordt het `git rebase --onto` commando gebruikt. |
 | `` A `` | Amend | Wijzig commit met staged veranderingen |
 | `` a `` | Amend commit attribute | Set/Reset commit author or set co-author. |
@@ -364,6 +365,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` b `` | View bisect options |  |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` <space> `` | Uitchecken | Check de geselecteerde branch uit als een detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
