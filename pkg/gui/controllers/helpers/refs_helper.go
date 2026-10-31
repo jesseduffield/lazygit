@@ -97,6 +97,15 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 						Prompt: self.c.Tr.AutoStashPrompt,
 						HandleConfirm: func() error {
 							return withCheckoutStatus(func(gocui.Task) error {
+								if self.c.Git().Version.IsAtLeast(2, 55, 0) {
+									mergeOptions := git_commands.CheckoutOptions{Merge: true, EnvVars: options.EnvVars}
+									if err := self.c.Git().Branch.Checkout(ref, mergeOptions); err != nil {
+										return err
+									}
+									refresh()
+									return nil
+								}
+
 								if err := self.c.Git().Stash.Push(fmt.Sprintf(self.c.Tr.AutoStashForCheckout, ref)); err != nil {
 									return err
 								}
