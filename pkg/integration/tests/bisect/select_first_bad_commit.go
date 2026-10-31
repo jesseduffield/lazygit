@@ -38,10 +38,7 @@ var SelectFirstBadCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("CI commit-10"),
 				Contains("CI commit-09"),
 				Contains("CI commit-08").Contains("<-- bad").IsSelected(),
-				/* EXPECTED:
 				Contains("CI commit-07").Contains("<-- good"),
-				ACTUAL: */
-				Contains("CI commit-07").Contains("<-- current"),
 				Contains("CI commit-06"),
 				Contains("CI commit-05").Contains("<-- good"),
 			)

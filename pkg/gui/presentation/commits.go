@@ -357,7 +357,7 @@ func getBisectStatus(index int, commitHash string, bisectInfo *git_commands.Bise
 		return BisectStatusNone
 	}
 
-	if bisectInfo.GetCurrentHash() == commitHash {
+	if bisectInfo.HasCommitToTest() && bisectInfo.GetCurrentHash() == commitHash {
 		return BisectStatusCurrent
 	}
 
