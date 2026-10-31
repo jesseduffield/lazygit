@@ -41,6 +41,8 @@ var tests = []*components.IntegrationTest{
 	bisect.FromOtherBranch,
 	bisect.SelectCurrentCommit,
 	bisect.SelectCurrentCommitInLongRange,
+	bisect.SelectFirstBadCommit,
+	bisect.SelectFirstBadCommitOnStartup,
 	bisect.Skip,
 	bisect.StartFromBranches,
 	bisect.StartFromSubCommitsAndReflog,
