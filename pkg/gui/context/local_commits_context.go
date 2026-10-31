@@ -343,6 +343,10 @@ type LocalCommitsViewModel struct {
 	// commits refresh reads it on the UI thread to decide how many commits to load.
 	limitCommits atomic.Bool
 
+	// The limit that the commits in the model were loaded with, or 0 if they
+	// were loaded without one.
+	loadedCommitLimit int
+
 	// If this is true we'll use git log --all when fetching the commits.
 	showWholeGitGraph bool
 }
@@ -429,6 +433,14 @@ func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {
 
 func (self *LocalCommitsViewModel) GetLimitCommits() bool {
 	return self.limitCommits.Load()
+}
+
+func (self *LocalCommitsViewModel) SetLoadedCommitLimit(value int) {
+	self.loadedCommitLimit = value
+}
+
+func (self *LocalCommitsViewModel) GetLoadedCommitLimit() int {
+	return self.loadedCommitLimit
 }
 
 func (self *LocalCommitsViewModel) SetShowWholeGitGraph(value bool) {

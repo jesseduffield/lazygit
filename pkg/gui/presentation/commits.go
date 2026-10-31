@@ -36,11 +36,6 @@ var (
 	pipeSetCacheAuthorColors = authors.ColorsVersion()
 )
 
-type bisectBounds struct {
-	newIndex int
-	oldIndex int
-}
-
 func GetCommitListDisplayStrings(
 	common *common.Common,
 	commits []*models.Commit,
@@ -77,8 +72,6 @@ func GetCommitListDisplayStrings(
 	rebaseOffset := min(indexOfFirstNonTODOCommit(commits), endIdx)
 
 	filteredCommits := commits[startIdx:endIdx]
-
-	bisectBounds := getbisectBounds(commits, bisectInfo)
 
 	// function expects to be passed the index of the commit in terms of the `commits` slice
 	var getGraphLine func(int) string
@@ -187,14 +180,14 @@ func GetCommitListDisplayStrings(
 
 	reservedWidths := getReservedColumnWidths(
 		commits, common.UserConfig().Gui.CommitHashLength, fullDescription,
-		timeFormat, shortTimeFormat, now, bisectInfo, bisectBounds)
+		timeFormat, shortTimeFormat, now, bisectInfo)
 
 	lines := make([][]string, 0, len(filteredCommits))
 	var bisectStatus BisectStatus
 	willBeRebased := markedBaseCommit == ""
 	for i, commit := range filteredCommits {
 		unfilteredIdx := i + startIdx
-		bisectStatus = getBisectStatus(unfilteredIdx, commit.Hash(), bisectInfo, bisectBounds)
+		bisectStatus = getBisectStatus(commit.Hash(), bisectInfo)
 		isMarkedBaseCommit := commit.Hash() != "" && commit.Hash() == markedBaseCommit
 		if isMarkedBaseCommit {
 			willBeRebased = true
@@ -243,16 +236,15 @@ func getReservedColumnWidths(
 	shortTimeFormat string,
 	now time.Time,
 	bisectInfo *git_commands.BisectInfo,
-	bisectBounds *bisectBounds,
 ) reservedColumnWidths {
 	result := reservedColumnWidths{}
 
-	for i, commit := range commits {
+	for _, commit := range commits {
 		result.hash = max(result.hash, utils.StringWidth(getHashText(commit, hashLength)))
 		if commit.IsTODO() {
 			result.action = max(result.action, utils.StringWidth(getActionText(commit)))
 		}
-		bisectStatus := getBisectStatus(i, commit.Hash(), bisectInfo, bisectBounds)
+		bisectStatus := getBisectStatus(commit.Hash(), bisectInfo)
 		result.bisect = max(result.bisect,
 			utils.StringWidth(getBisectStatusText(bisectStatus, bisectInfo)))
 	}
@@ -272,29 +264,6 @@ func getReservedColumnWidths(
 	}
 
 	return result
-}
-
-func getbisectBounds(commits []*models.Commit, bisectInfo *git_commands.BisectInfo) *bisectBounds {
-	if !bisectInfo.Bisecting() {
-		return nil
-	}
-
-	bisectBounds := &bisectBounds{}
-
-	for i, commit := range commits {
-		if commit.Hash() == bisectInfo.GetNewHash() {
-			bisectBounds.newIndex = i
-		}
-
-		status, ok := bisectInfo.Status(commit.Hash())
-		if ok && status == git_commands.BisectStatusOld {
-			bisectBounds.oldIndex = i
-			return bisectBounds
-		}
-	}
-
-	// shouldn't land here
-	return nil
 }
 
 // precondition: slice is not empty
@@ -345,19 +314,18 @@ const (
 	BisectStatusOld
 	BisectStatusNew
 	BisectStatusSkipped
-	// adding candidate here which isn't present in the commands package because
-	// we need to actually go through the commits to get this info
+	// a commit that has no mark, and that the bisect hasn't ruled out yet
 	BisectStatusCandidate
 	// also adding this
 	BisectStatusCurrent
 )
 
-func getBisectStatus(index int, commitHash string, bisectInfo *git_commands.BisectInfo, bisectBounds *bisectBounds) BisectStatus {
+func getBisectStatus(commitHash string, bisectInfo *git_commands.BisectInfo) BisectStatus {
 	if !bisectInfo.Started() {
 		return BisectStatusNone
 	}
 
-	if bisectInfo.GetCurrentHash() == commitHash {
+	if bisectInfo.HasCommitToTest() && bisectInfo.GetCurrentHash() == commitHash {
 		return BisectStatusCurrent
 	}
 
@@ -372,7 +340,7 @@ func getBisectStatus(index int, commitHash string, bisectInfo *git_commands.Bise
 			return BisectStatusSkipped
 		}
 	} else {
-		if bisectBounds != nil && index >= bisectBounds.newIndex && index <= bisectBounds.oldIndex {
+		if bisectInfo.IsCandidate(commitHash) {
 			return BisectStatusCandidate
 		}
 		return BisectStatusNone

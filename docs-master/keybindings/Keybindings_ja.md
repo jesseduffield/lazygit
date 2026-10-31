@@ -134,6 +134,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` b `` | bisectオプションを表示 |  |
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択したコミットをデタッチドヘッド（特定のブランチに属さない状態）としてチェックアウトします。 |
 | `` y `` | コミット属性をクリップボードにコピー | コミット属性をクリップボードにコピーします（例：ハッシュ、URL、差分、メッセージ、作者）。 |
 | `` o `` | ブラウザでコミットを開く |  |
@@ -218,6 +219,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | タグをクリップボードにコピー |  |
+| `` b `` | bisectオプションを表示 |  |
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択したタグをデタッチドHEADとしてチェックアウトします。 |
 | `` n `` | 新しいタグを作成 | 現在のコミットから新しいタグを作成します。タグ名とオプションの説明を入力するよう促されます。 |
 | `` w `` | 新しいワークツリー |  |
@@ -318,6 +320,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` b `` | bisectオプションを表示 |  |
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択したコミットをデタッチドヘッド（特定のブランチに属さない状態）としてチェックアウトします。 |
 | `` y `` | コミット属性をクリップボードにコピー | コミット属性をクリップボードにコピーします（例：ハッシュ、URL、差分、メッセージ、作者）。 |
 | `` o `` | ブラウザでコミットを開く |  |
@@ -360,6 +363,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | 並び順 |  |
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
+| `` b `` | bisectオプションを表示 |  |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` <enter> `` | コミットを表示 |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
@@ -369,6 +373,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | ブランチ名をクリップボードにコピー |  |
+| `` b `` | bisectオプションを表示 |  |
 | `` i `` | git-flowオプションを表示 |  |
 | `` <space> `` | チェックアウト（ブランチの切り替え） | 選択した項目をチェックアウトします。 |
 | `` n `` | 新しいブランチ |  |
