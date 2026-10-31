@@ -83,8 +83,8 @@ github.com/kardianos/osext
 # github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3
 ## explicit; go 1.18
 github.com/karimkhaleel/jsonschema
-# github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
-## explicit
+# github.com/kr/logfmt v0.0.0-20210122060352-19f9bcb100e6
+## explicit; go 1.14
 github.com/kr/logfmt
 # github.com/kyokomi/emoji/v2 v2.2.14
 ## explicit; go 1.21
