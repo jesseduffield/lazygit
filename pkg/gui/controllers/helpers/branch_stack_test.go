@@ -12,8 +12,8 @@ import (
 
 func TestBranchesBelowInStack(t *testing.T) {
 	hashPool := &utils.StringPool{}
-	commit := func(hash string, status models.CommitStatus) *models.Commit {
-		return models.NewCommit(hashPool, models.NewCommitOpts{Hash: hash, Status: status})
+	commit := func(hash string, status models.CommitStatus, parents ...string) *models.Commit {
+		return models.NewCommit(hashPool, models.NewCommitOpts{Hash: hash, Status: status, Parents: parents})
 	}
 	todoCommit := func(hash string) *models.Commit {
 		return models.NewCommit(hashPool, models.NewCommitOpts{Hash: hash, Action: todo.Pick, Status: models.StatusRebasing})
@@ -29,6 +29,8 @@ func TestBranchesBelowInStack(t *testing.T) {
 		testName string
 		commits  []*models.Commit
 		branches []*models.Branch
+		// The branch to look for branches below; the one called "current" if nil
+		current  *models.Branch
 		expected []string
 	}{
 		{
@@ -70,6 +72,41 @@ func TestBranchesBelowInStack(t *testing.T) {
 			expected: []string{},
 		},
 		{
+			testName: "nothing is stacked below a main branch",
+			commits: []*models.Commit{
+				commit("m2", models.StatusUnpushed, "m1", "w1"),
+				commit("w1", models.StatusUnpushed, "m1"),
+				commit("m1", models.StatusMerged),
+			},
+			branches: []*models.Branch{branch("master", "m2"), branch("wip", "w1")},
+			current:  branch("master", "m2"),
+			expected: []string{},
+		},
+		{
+			testName: "branches merged into a local main branch below the current one are left out",
+			commits: []*models.Commit{
+				commit("c3", models.StatusUnpushed, "c2"),
+				commit("c2", models.StatusUnpushed, "m2"),
+				commit("m2", models.StatusUnpushed, "m1", "w1"),
+				commit("w1", models.StatusUnpushed, "m1"),
+				commit("m1", models.StatusMerged),
+			},
+			branches: []*models.Branch{current, branch("first", "c2"), branch("master", "m2"), branch("wip", "w1")},
+			expected: []string{"first"},
+		},
+		{
+			testName: "branches merged into a local main branch that was merged into the current one are left out",
+			commits: []*models.Commit{
+				commit("c3", models.StatusUnpushed, "c2", "m2"),
+				commit("m2", models.StatusUnpushed, "m1", "w1"),
+				commit("w1", models.StatusUnpushed, "m1"),
+				commit("c2", models.StatusUnpushed, "m1"),
+				commit("m1", models.StatusMerged),
+			},
+			branches: []*models.Branch{current, branch("first", "c2"), branch("master", "m2"), branch("wip", "w1")},
+			expected: []string{"first"},
+		},
+		{
 			testName: "branches whose tip is merged are left out",
 			commits: []*models.Commit{
 				commit("c3", models.StatusUnpushed),
@@ -100,7 +137,11 @@ func TestBranchesBelowInStack(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			result := BranchesBelowInStack(s.commits, s.branches, current, mainBranches)
+			branch := current
+			if s.current != nil {
+				branch = s.current
+			}
+			result := BranchesBelowInStack(s.commits, s.branches, branch, mainBranches)
 			names := lo.Map(result, func(b *models.Branch, _ int) string { return b.Name })
 			assert.Equal(t, s.expected, names)
 		})
