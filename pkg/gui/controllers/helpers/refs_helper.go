@@ -440,7 +440,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 
 func (self *RefsHelper) MoveCommitsToNewBranch() error {
 	currentBranch := self.c.Model().Branches[0]
-	baseBranchRef, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(currentBranch, self.c.Model().MainBranches)
+	baseBranchRef, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(currentBranch.FullRefName(), self.c.Model().MainBranches)
 	if err != nil {
 		return err
 	}

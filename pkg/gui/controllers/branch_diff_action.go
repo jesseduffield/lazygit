@@ -18,7 +18,7 @@ type BranchDiffAction struct {
 // diff.
 func (self *BranchDiffAction) View(branch *models.Branch, parent types.Context) error {
 	mainBranches := self.c.Model().MainBranches
-	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(branch, mainBranches)
+	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(branch.FullRefName(), mainBranches)
 	if err != nil {
 		return err
 	}

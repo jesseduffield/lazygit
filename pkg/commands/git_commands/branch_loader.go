@@ -224,7 +224,7 @@ func (self *BranchLoader) getBehindBaseBranchValuesLegacy(
 
 	for _, branch := range branches {
 		errg.Go(utils.SafeFuncWithError(func() error {
-			baseBranch, err := self.GetBaseBranch(branch, mainBranches)
+			baseBranch, err := self.GetBaseBranch(branch.FullRefName(), mainBranches)
 			if err != nil {
 				return err
 			}
@@ -294,16 +294,16 @@ func (self *BranchLoader) getBehindBaseBranchValuesFast(
 	return nil
 }
 
-// Find the base branch for the given branch (i.e. the main branch that the
-// given branch was forked off of)
+// Find the base branch for the given branch, local or remote, named by its full
+// ref name (i.e. the main branch that the given branch was forked off of)
 //
 // Note that this function may return an empty string even if the returned error
 // is nil, e.g. when none of the configured main branches exist. This is not
 // considered an error condition, so callers need to check both the returned
 // error and whether the returned base branch is empty (and possibly react
 // differently in both cases).
-func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *MainBranches) (string, error) {
-	mergeBase := mainBranches.GetMergeBase(branch.FullRefName())
+func (self *BranchLoader) GetBaseBranch(fullRefName string, mainBranches *MainBranches) (string, error) {
+	mergeBase := mainBranches.GetMergeBase(fullRefName)
 	if mergeBase == "" {
 		return "", nil
 	}
