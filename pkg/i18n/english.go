@@ -1013,6 +1013,8 @@ type TranslationSet struct {
 	RangeSelectUp                            string
 	RangeSelectDown                          string
 	RangeSelectNotSupported                  string
+	NotSupportedForPatchFromMergeCommit      string
+	CannotMovePatchToMergeCommit             string
 	NoItemSelected                           string
 	SelectedItemIsNotABranch                 string
 	SelectedItemDoesNotHaveFiles             string
@@ -2230,6 +2232,8 @@ func EnglishTranslationSet() *TranslationSet {
 		RangeSelectUp:                            "Range select up",
 		RangeSelectDown:                          "Range select down",
 		RangeSelectNotSupported:                  "Action does not support range selection, please select a single item",
+		NotSupportedForPatchFromMergeCommit:      "Not supported for a patch from a merge commit",
+		CannotMovePatchToMergeCommit:             "Cannot move a patch to a merge commit",
 		NoItemSelected:                           "No item selected",
 		SelectedItemIsNotABranch:                 "Selected item is not a branch",
 		SelectedItemDoesNotHaveFiles:             "Selected item does not have files to view",
