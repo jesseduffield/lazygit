@@ -78,6 +78,27 @@ var ViewBranchDiff = NewIntegrationTest(NewIntegrationTestArgs{
 			Title(Equals("Diff files (main since main)")).
 			Lines(
 				Contains("(none)"),
+			).
+			PressEscape()
+
+		// Asking again picks up the commit made since, and the upstream options offer
+		// the branch diff too
+		t.Views().Branches().
+			IsFocused().
+			NavigateToLine(Contains("feature")).
+			Press(keys.Branches.SetUpstream)
+
+		t.ExpectPopup().Menu().Title(Contains("Upstream")).
+			Select(Contains("View branch diff since main")).Confirm()
+
+		t.Views().CommitFiles().
+			IsFocused().
+			Title(Equals("Diff files (feature since main)")).
+			Lines(
+				Equals("▼ dir").IsSelected(),
+				Equals("  A feature-file-1"),
+				Equals("  A feature-file-2"),
+				Equals("  A feature-file-3"),
 			)
 	},
 })

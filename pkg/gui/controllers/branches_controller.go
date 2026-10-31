@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -393,14 +394,21 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		upstreamRebaseItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.UpstreamNotSetError}
 	}
 
-	options := []*types.MenuItem{
-		viewDivergenceItem,
-		viewDivergenceFromBaseBranchItem,
-		unsetUpstreamItem,
-		setUpstreamItem,
-		upstreamResetItem,
-		upstreamRebaseItem,
+	viewBranchDiffItems, err := (&BranchDiffAction{c: self.c}).MenuItems(selectedBranch, self.context())
+	if err != nil {
+		return err
 	}
+
+	options := slices.Concat(
+		[]*types.MenuItem{viewDivergenceItem, viewDivergenceFromBaseBranchItem},
+		viewBranchDiffItems,
+		[]*types.MenuItem{
+			unsetUpstreamItem,
+			setUpstreamItem,
+			upstreamResetItem,
+			upstreamRebaseItem,
+		},
+	)
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.BranchUpstreamOptionsTitle,
