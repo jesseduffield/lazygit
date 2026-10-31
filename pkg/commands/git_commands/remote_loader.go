@@ -24,6 +24,17 @@ func NewRemoteLoader(gitCommon *GitCommon) *RemoteLoader {
 func (self *RemoteLoader) GetRemotes() []*models.Remote {
 	remotes := self.getRemotesFromConfig()
 
+	// SVN 仓库：注入 git-svn 虚拟 remote
+	// go-git 的 repo.Remotes() 不包含 svn-remote，但 git for-each-ref 已经扫描到了
+	// refs/remotes/<svn-remote-name>/*，需要手动注入使其显示在 UI 中
+	if self.GitCommon != nil && self.GitCommon.IsSvnRepo() {
+		svnRemoteName := self.GitCommon.Svn.GetSvnRemoteName()
+			remotes = append(remotes, &models.Remote{
+				Name: svnRemoteName,
+				Urls: []string{"(git-svn)"},
+			})
+	}
+
 	// now lets sort our remotes by name alphabetically
 	slices.SortFunc(remotes, func(a, b *models.Remote) int {
 		// we want origin at the top because we'll be most likely to want it
@@ -156,5 +167,30 @@ func (self *RemoteLoader) getRemoteBranches() ([]*models.RemoteBranch, error) {
 		}
 	}
 
+	if self.GitCommon != nil && self.GitCommon.IsSvnRepo() {
+		svnRemoteName := self.GitCommon.Svn.GetSvnRemoteName()
+		tagsPaths, _ := self.GitCommon.Svn.GetTagsRefsPaths()
+		if len(tagsPaths) >  0 {
+			filtered := remoteBranches[:0]
+			for _, b := range remoteBranches {
+				if b.RemoteName == svnRemoteName && self.isTagRef(b.Name, tagsPaths, svnRemoteName) {
+					continue
+				}
+				filtered = append(filtered, b)
+			}
+			remoteBranches = filtered
+		}
+	}
+
 	return remoteBranches, nil
+}
+
+func (self *RemoteLoader) isTagRef(refName string, tagsPaths []string, svnRemoteName string) bool {
+	for _, path := range tagsPaths {
+		fullRef := "refs/remotes/" + svnRemoteName + "/" + refName
+		if strings.HasPrefix(fullRef, path) {
+			return true
+		}
+	}
+	return false
 }
