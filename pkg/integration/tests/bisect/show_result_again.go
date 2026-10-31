@@ -26,10 +26,7 @@ var ShowResultAgain = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectedLine(Contains("CI commit-08").Contains("<-- bad")).
 			Press(keys.Commits.ViewBisectOptions).
 			Tap(func() {
-				/* EXPECTED:
 				t.ExpectPopup().Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit-08.*Do you want to reset")).Cancel()
-				ACTUAL: */
-				t.ExpectPopup().Menu().Title(Equals("Bisect")).TopLines(Contains("Mark current commit")).Cancel()
 			})
 
 		t.Views().Branches().

@@ -35,10 +35,7 @@ var OfferResetWhenMergeBaseIsBad = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.ViewBisectOptions).
 			Tap(func() {
-				/* EXPECTED:
 				t.ExpectPopup().Confirmation().Title(Equals("Reset 'git bisect'")).Content(Equals("Are you sure you want to reset 'git bisect'?")).Cancel()
-				ACTUAL: */
-				t.ExpectPopup().Menu().Title(Equals("Bisect")).TopLines(Contains("Mark current commit")).Cancel()
 			})
 	},
 })

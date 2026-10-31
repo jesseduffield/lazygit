@@ -81,10 +81,31 @@ func (self *BisectController) openMenu(ref models.Ref) error {
 	if !info.Started() {
 		return self.openStartBisectMenu(info, ref)
 	}
-	if info.GetCurrentHash() == "" {
+	if !info.Bisecting() {
 		return self.openMenuBeforeBisecting(info, ref)
 	}
+	if !info.HasCommitToTest() {
+		return self.showBisectResult()
+	}
 	return self.openMidBisectMenu(info, ref)
+}
+
+// Git has nothing left for the user to test, so show the result, and offer to
+// reset the bisect.
+func (self *BisectController) showBisectResult() error {
+	done, candidateHashes, err := self.c.Git().Bisect.IsDone()
+	if err != nil {
+		return err
+	}
+
+	if !done {
+		// Git stopped without finding the first bad commit, for example
+		// because the merge base of the good and the bad commit is bad. Git
+		// said why when it stopped, so all that's left to do is to reset.
+		return self.c.Helpers().Bisect.Reset()
+	}
+
+	return self.showBisectCompleteMessage(candidateHashes)
 }
 
 // The menu for when a bisect has started, but git doesn't know both a good and

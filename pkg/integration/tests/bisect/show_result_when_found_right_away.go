@@ -29,10 +29,7 @@ var ShowResultWhenFoundRightAway = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.ViewBisectOptions).
 			Tap(func() {
-				/* EXPECTED:
 				t.ExpectPopup().Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit-03.*Do you want to reset")).Cancel()
-				ACTUAL: */
-				t.ExpectPopup().Menu().Title(Equals("Bisect")).TopLines(MatchesRegexp(`b Mark commit [0-9a-f]+ as bad`)).Cancel()
 			})
 
 		t.Views().Branches().
