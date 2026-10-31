@@ -14,9 +14,9 @@ type BranchDiffAction struct {
 	c *ControllerCommon
 }
 
-// View opens the commit files panel on top of parent, listing the files of branch's
-// diff.
-func (self *BranchDiffAction) View(branch *models.Branch, parent types.Context) error {
+// View opens the commit files panel on top of parent, listing the files of the diff of
+// branch, a local branch or a remote one.
+func (self *BranchDiffAction) View(branch models.Ref, parent types.Context) error {
 	mainBranches := self.c.Model().MainBranches
 	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(branch.FullRefName(), mainBranches)
 	if err != nil {
@@ -26,12 +26,16 @@ func (self *BranchDiffAction) View(branch *models.Branch, parent types.Context) 
 	if baseBranch == "" || mergeBase == "" {
 		return errors.New(self.c.Tr.CouldNotDetermineBaseBranch)
 	}
+	tip, err := self.c.Git().Branch.GetCommitHash(branch.FullRefName())
+	if err != nil {
+		return err
+	}
 
 	ref := &models.BranchDiff{
 		Branch:     branch,
 		BaseBranch: helpers.ShortBranchName(baseBranch),
 		MergeBase:  mergeBase,
-		Tip:        branch.CommitHash,
+		Tip:        tip,
 	}
 	return viewCommitFiles(self.c, ref, nil, false, parent)
 }

@@ -318,6 +318,21 @@ func (self *BranchCommands) FastForwardMerge(refName string, worktreeGitDir stri
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// GetCommitHash returns the hash of the commit the given ref points at.
+func (self *BranchCommands) GetCommitHash(refName string) (string, error) {
+	cmdArgs := NewGitCmd("rev-parse").
+		Arg("--verify", "--quiet").
+		Arg(refName + "^{commit}").
+		ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(output), nil
+}
+
 // Returns whether the first ref is an ancestor of the second one, which also
 // means that the second one can be fast-forward merged into the first one
 func (self *BranchCommands) IsAncestor(ancestorRefName string, refName string) bool {

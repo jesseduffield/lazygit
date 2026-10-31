@@ -411,6 +411,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` r `` | 变基 | 将检出的分支变基到所选的分支上。 |
 | `` d `` | 删除 | 从远程删除远程分支。 |
 | `` u `` | 设置为上游 | 设置为检出分支的上游 |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
 | `` s `` | 排序 |  |
 | `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |

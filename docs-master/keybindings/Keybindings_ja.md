@@ -360,6 +360,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` r `` | リベース | チェックアウトしたブランチを選択したブランチ上にリベースします。 |
 | `` d `` | 削除 | リモートからリモートブランチを削除します。 |
 | `` u `` | アップストリームとして設定 | 選択したリモートブランチをチェックアウトされたブランチのアップストリームとして設定します。 |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
 | `` s `` | 並び順 |  |
 | `` g `` | リセット | 選択した項目へのリセットオプション（ソフト/ミックス/ハード）を表示します。各リセットタイプの詳細は次の通りです：<br>- ソフトリセット：変更を保持し、ステージされた状態にします<br>- ミックスリセット：変更を保持し、ステージされていない状態にします<br>- ハードリセット：すべての変更を破棄します |
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |

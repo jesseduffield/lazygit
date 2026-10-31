@@ -87,6 +87,13 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			DisplayOnScreen:   true,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Branches.ViewBranchDiff),
+			Handler:           self.withItem(self.viewBranchDiff),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ViewBranchDiff,
+			Tooltip:           self.c.Tr.ViewBranchDiffTooltip,
+		},
+		{
 			Keys:        opts.GetKeys(opts.Config.Branches.SortOrder),
 			Handler:     self.createSortMenu,
 			Description: self.c.Tr.SortOrder,
@@ -167,6 +174,10 @@ func (self *RemoteBranchesController) createSortMenu() error {
 
 func (self *RemoteBranchesController) createResetMenu(selectedBranch *models.RemoteBranch) error {
 	return self.c.Helpers().Refs.CreateGitResetMenu(selectedBranch.FullName(), selectedBranch.FullRefName())
+}
+
+func (self *RemoteBranchesController) viewBranchDiff(branch *models.RemoteBranch) error {
+	return (&BranchDiffAction{c: self.c}).View(branch, self.context())
 }
 
 func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.RemoteBranch) error {

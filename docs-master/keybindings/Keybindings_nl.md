@@ -287,6 +287,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` r `` | Rebase branch | Rebase de uitgecheckte branch bovenop de geselecteerde branch. |
 | `` d `` | Verwijderen | Verwijder de remote branch van de remote. |
 | `` u `` | Instellen als upstream | Stel in als upstream van uitgecheckte branch |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
 | `` s `` | Sort order |  |
 | `` g `` | Bekijk reset opties | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | Open externe diff applicatie (git difftool) |  |

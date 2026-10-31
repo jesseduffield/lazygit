@@ -411,6 +411,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` r `` | Przebazuj | Przebazuj przełączoną gałąź na wybraną gałąź. |
 | `` d `` | Usuń | Usuń gałąź zdalną ze zdalnego. |
 | `` u `` | Ustaw jako upstream | Ustaw wybraną gałąź zdalną jako upstream sprawdzonej gałęzi. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. |
 | `` s `` | Kolejność sortowania |  |
 | `` g `` | Reset | Wyświetl opcje resetu (miękki/mieszany/twardy) do wybranego elementu. |
 | `` <ctrl+t> `` | Otwórz zewnętrzne narzędzie różnic (git difftool) |  |
