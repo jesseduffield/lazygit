@@ -48,6 +48,7 @@ type reflogAction struct {
 	kind ReflogActionKind
 	from string
 	to   string
+	msg  bool
 }
 
 func (self *UndoController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
@@ -94,7 +95,15 @@ func (self *UndoController) reflogUndo() error {
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Undo)
 					return self.c.WithWaitingStatus(undoingStatus, func(gocui.Task) error {
-						return self.c.Helpers().Refs.ResetToRef(action.from, "soft", undoEnvVars)
+						if err := self.c.Helpers().Refs.ResetToRef(action.from, "soft", undoEnvVars); err != nil {
+							return err
+						}
+
+						if action.msg {
+							return self.c.Helpers().Commits.PreserveCommitMessageForCommit(action.to)
+						}
+
+						return nil
 					})
 				},
 			})
@@ -160,10 +169,18 @@ func (self *UndoController) reflogRedo() error {
 				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, utils.ShortHash(action.to)),
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Redo)
-					return self.hardResetWithAutoStash(action.to, hardResetOptions{
+					if err := self.hardResetWithAutoStash(action.to, hardResetOptions{
 						EnvVars:       redoEnvVars,
 						WaitingStatus: redoingStatus,
-					})
+					}); err != nil {
+						return err
+					}
+
+					if action.msg {
+						self.c.Helpers().Commits.ClearPreservedCommitMessage()
+					}
+
+					return nil
 				},
 			})
 			return true, nil
@@ -219,7 +236,9 @@ func (self *UndoController) parseReflogForActions(onUserAction func(counter int,
 				rebaseFinishCommitHash = reflogCommit.Hash()
 			} else if ok, match := utils.FindStringSubmatch(reflogCommit.Name, `^checkout: moving from ([\S]+) to ([\S]+)`); ok {
 				action = &reflogAction{kind: CHECKOUT, from: match[1], to: match[2]}
-			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^commit|^reset: moving to|^pull`); ok {
+			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^commit`); ok {
+				action = &reflogAction{kind: COMMIT, from: prevCommitHash, to: reflogCommit.Hash(), msg: true}
+			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^reset: moving to|^pull`); ok {
 				action = &reflogAction{kind: COMMIT, from: prevCommitHash, to: reflogCommit.Hash()}
 			} else if ok, _ := utils.FindStringSubmatch(reflogCommit.Name, `^rebase (-i )?\(start\)`); ok {
 				// if we're here then we must be currently inside an interactive rebase
