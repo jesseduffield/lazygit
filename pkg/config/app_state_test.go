@@ -31,8 +31,5 @@ func TestStartupWithBrokenAppStateFile(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = newAppConfig(t)
-	/* EXPECTED:
 	assert.NoError(t, err)
-	ACTUAL: */
-	assert.ErrorContains(t, err, "control characters are not allowed")
 }
