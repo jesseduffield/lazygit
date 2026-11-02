@@ -25,7 +25,8 @@ func (gui *Gui) updateRecentRepoList() error {
 	// TODO: migrate this file to use forward slashes on all OSes for consistency
 	// (windows uses backslashes at the moment)
 	gui.c.GetAppState().RecentRepos = recentRepos
-	return gui.c.SaveAppState()
+	gui.c.SaveAppStateAndLogError()
+	return nil
 }
 
 // newRecentReposList returns a new repo list with a new entry but only when it doesn't exist yet
