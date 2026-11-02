@@ -1,8 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
+	"sync"
 	"testing"
 	"time"
 
@@ -98,4 +101,54 @@ func TestAppStateUpdateSkipsWritingUnchangedState(t *testing.T) {
 	info, err := os.Stat(statePath)
 	assert.NoError(t, err)
 	assert.True(t, info.ModTime().Equal(past))
+}
+
+func TestAppStateConcurrentUpdatesOfSeveralInstances(t *testing.T) {
+	useTempConfigDir(t)
+	const instanceCount = 8
+	const updatesPerInstance = 10
+
+	instances := make([]*AppConfig, instanceCount)
+	for i := range instances {
+		instance, err := newAppConfig(t)
+		assert.NoError(t, err)
+		instances[i] = instance
+	}
+
+	var waitGroup sync.WaitGroup
+	for i, instance := range instances {
+		waitGroup.Go(func() {
+			for j := range updatesPerInstance {
+				err := instance.UpdateAppState(addToHistory(fmt.Sprintf("command %d-%d", i, j)))
+				assert.NoError(t, err)
+				_, err = instance.ReadAppState()
+				assert.NoError(t, err)
+			}
+		})
+	}
+	waitGroup.Wait()
+
+	appState, err := instances[0].ReadAppState()
+	assert.NoError(t, err)
+	assert.Len(t, appState.ShellCommandsHistory, instanceCount*updatesPerInstance)
+}
+
+func TestAppStateInReadOnlyFolder(t *testing.T) {
+	if runtime.GOOS == "windows" || os.Geteuid() == 0 {
+		t.Skip("needs file permissions that apply to the current user")
+	}
+
+	configDir := useTempConfigDir(t)
+	appConfig, err := newAppConfig(t)
+	assert.NoError(t, err)
+	statePath := filepath.Join(configDir, stateFileName)
+	assert.NoError(t, os.WriteFile(statePath, []byte("customcommandshistory:\n    - ls\n"), 0o444))
+	assert.NoError(t, os.Chmod(configDir, 0o555))
+	t.Cleanup(func() { _ = os.Chmod(configDir, 0o755) })
+
+	assert.NoError(t, appConfig.UpdateAppState(addToHistory("pwd")))
+
+	appState, err := appConfig.ReadAppState()
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"ls"}, appState.ShellCommandsHistory)
 }

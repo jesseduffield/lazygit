@@ -27,6 +27,12 @@ func appStateFilePath() (string, error) {
 // it returns the defaults together with the error. Changing the returned struct
 // has no effect; use UpdateAppState for that.
 func (c *AppConfig) ReadAppState() (*AppState, error) {
+	unlock, err := c.lockAppState(sharedLock)
+	if err != nil {
+		return getDefaultAppState(), err
+	}
+	defer unlock()
+
 	content, err := c.readAppStateFile()
 	if err != nil {
 		return getDefaultAppState(), err
@@ -41,6 +47,12 @@ func (c *AppConfig) ReadAppState() (*AppState, error) {
 // earlier, because that would undo changes that other instances made in the
 // meantime.
 func (c *AppConfig) UpdateAppState(update func(state *AppState)) error {
+	unlock, err := c.lockAppState(exclusiveLock)
+	if err != nil {
+		return err
+	}
+	defer unlock()
+
 	content, err := c.readAppStateFile()
 	if err != nil {
 		return err
@@ -57,6 +69,58 @@ func (c *AppConfig) UpdateAppState(update func(state *AppState)) error {
 		return nil
 	}
 	return c.writeAppStateFile(newContent)
+}
+
+type lockKind int
+
+const (
+	sharedLock lockKind = iota
+	exclusiveLock
+)
+
+// lockAppState locks state.yml.lock, a file next to state.yml, and returns a
+// function that releases the lock. Updates take an exclusive lock and reads a
+// shared one, so a read never sees a half-written file, and two updates never
+// start from the same contents.
+//
+// We don't lock state.yml itself, because on Windows a lock keeps other
+// processes from reading the locked part of a file. We never delete the lock
+// file. Otherwise one process could hold a lock on the deleted file while
+// another one locks a new file of the same name.
+func (c *AppConfig) lockAppState(kind lockKind) (func(), error) {
+	if c.appStatePath == "" {
+		return func() {}, nil
+	}
+
+	path := c.appStatePath + ".lock"
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0o644)
+	if err != nil && os.IsPermission(err) {
+		// We can't create the lock file in a read-only folder. Lock it if it
+		// exists, and do without it otherwise; apparently when people have
+		// read-only permissions they prefer us to fail silently.
+		file, err = os.Open(path)
+		if err != nil {
+			return func() {}, nil
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if err := lockFile(file, kind); err != nil {
+		file.Close()
+		if isLockingUnsupported(err) {
+			// Some network file systems don't support locks. Doing without is
+			// better than never reading or saving the state.
+			return func() {}, nil
+		}
+		return nil, err
+	}
+
+	return func() {
+		_ = unlockFile(file)
+		file.Close()
+	}, nil
 }
 
 func (c *AppConfig) readAppStateFile() ([]byte, error) {
