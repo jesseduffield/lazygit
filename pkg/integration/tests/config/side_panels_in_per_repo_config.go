@@ -13,7 +13,9 @@ var SidePanelsInPerRepoConfig = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
 		otherRepo, _ := filepath.Abs("../other")
-		cfg.GetAppState().RecentRepos = []string{otherRepo}
+		_ = cfg.UpdateAppState(func(state *config.AppState) {
+			state.RecentRepos = []string{otherRepo}
+		})
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CloneNonBare("other")
