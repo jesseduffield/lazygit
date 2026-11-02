@@ -280,12 +280,12 @@ func (self *ReposHelper) recentRepoMenuItem(entry recentRepoEntry, widths recent
 }
 
 func (self *ReposHelper) CreateRecentReposMenu() error {
-	// we'll show an empty panel if there are no recent repos
-	recentRepoPaths := []string{}
-	if len(self.c.GetAppState().RecentRepos) > 0 {
-		// we skip the first one because we're currently in it
-		recentRepoPaths = self.c.GetAppState().RecentRepos[1:]
+	currentRepo, err := os.Getwd()
+	if err != nil {
+		return err
 	}
+	// Don't offer the repo we're in
+	recentRepoPaths := lo.Without(self.c.GetAppState().RecentRepos, currentRepo)
 
 	currentBranches := make([]string, len(recentRepoPaths))
 
