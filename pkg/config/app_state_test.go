@@ -25,13 +25,22 @@ func newAppConfig(t *testing.T) (*AppConfig, error) {
 	return NewAppConfig("lazygit", "unversioned", "", "", "", false, t.TempDir())
 }
 
-func TestStartupWithBrokenAppStateFile(t *testing.T) {
+func TestBrokenAppStateFile(t *testing.T) {
 	configDir := useTempConfigDir(t)
 	err := os.WriteFile(filepath.Join(configDir, stateFileName), make([]byte, 4096), 0o644)
 	assert.NoError(t, err)
 
-	_, err = newAppConfig(t)
+	appConfig, err := newAppConfig(t)
 	assert.NoError(t, err)
+
+	appState, err := appConfig.ReadAppState()
+	assert.ErrorContains(t, err, "control characters are not allowed")
+	assert.Equal(t, getDefaultAppState(), appState)
+
+	assert.NoError(t, appConfig.UpdateAppState(addToHistory("ls")))
+	appState, err = appConfig.ReadAppState()
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"ls"}, appState.ShellCommandsHistory)
 }
 
 func addToHistory(command string) func(state *AppState) {
@@ -51,10 +60,7 @@ func TestAppStateReadSeesUpdatesOfOtherInstances(t *testing.T) {
 
 	appState, err := instanceA.ReadAppState()
 	assert.NoError(t, err)
-	/* EXPECTED:
 	assert.Equal(t, []string{"from B"}, appState.ShellCommandsHistory)
-	ACTUAL: */
-	assert.Empty(t, appState.ShellCommandsHistory)
 }
 
 func TestAppStateUpdateKeepsUpdatesOfOtherInstances(t *testing.T) {
@@ -71,8 +77,5 @@ func TestAppStateUpdateKeepsUpdatesOfOtherInstances(t *testing.T) {
 	assert.NoError(t, err)
 	appState, err := instanceC.ReadAppState()
 	assert.NoError(t, err)
-	/* EXPECTED:
 	assert.Equal(t, []string{"from B", "from A"}, appState.ShellCommandsHistory)
-	ACTUAL: */
-	assert.Equal(t, []string{"from B"}, appState.ShellCommandsHistory)
 }
