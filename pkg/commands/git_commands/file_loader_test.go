@@ -319,7 +319,7 @@ func TestFileGetStatusFiles(t *testing.T) {
 			userConfig.Git.RenameSimilarityThreshold = s.similarityThreshold
 
 			loader := &FileLoader{
-				GitCommon:   buildGitCommon(commonDeps{appState: &config.AppState{}, userConfig: userConfig}),
+				GitCommon:   buildGitCommon(commonDeps{userConfig: userConfig}),
 				cmd:         cmd,
 				config:      &FakeFileLoaderConfig{showUntrackedFiles: "yes"},
 				getFileType: func(string) string { return "file" },
