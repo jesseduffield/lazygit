@@ -4,7 +4,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -78,4 +80,22 @@ func TestAppStateUpdateKeepsUpdatesOfOtherInstances(t *testing.T) {
 	appState, err := instanceC.ReadAppState()
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"from B", "from A"}, appState.ShellCommandsHistory)
+}
+
+func TestAppStateUpdateSkipsWritingUnchangedState(t *testing.T) {
+	configDir := useTempConfigDir(t)
+	statePath := filepath.Join(configDir, stateFileName)
+	appConfig, err := newAppConfig(t)
+	assert.NoError(t, err)
+	assert.NoError(t, appConfig.UpdateAppState(addToHistory("ls")))
+	past := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	assert.NoError(t, os.Chtimes(statePath, past, past))
+
+	assert.NoError(t, appConfig.UpdateAppState(func(state *AppState) {
+		state.ShellCommandsHistory = lo.Uniq(append([]string{"ls"}, state.ShellCommandsHistory...))
+	}))
+
+	info, err := os.Stat(statePath)
+	assert.NoError(t, err)
+	assert.True(t, info.ModTime().Equal(past))
 }
