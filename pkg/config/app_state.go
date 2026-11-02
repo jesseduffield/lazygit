@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -47,7 +48,15 @@ func (c *AppConfig) UpdateAppState(update func(state *AppState)) error {
 	// If the file can't be parsed, we start from the defaults and replace it.
 	appState, _ := parseAppState(content)
 	update(appState)
-	return c.writeAppStateFile(appState)
+
+	newContent, err := yaml.Marshal(appState)
+	if err != nil {
+		return err
+	}
+	if bytes.Equal(newContent, content) {
+		return nil
+	}
+	return c.writeAppStateFile(newContent)
 }
 
 func (c *AppConfig) readAppStateFile() ([]byte, error) {
@@ -73,17 +82,12 @@ func parseAppState(content []byte) (*AppState, error) {
 	return appState, nil
 }
 
-func (c *AppConfig) writeAppStateFile(appState *AppState) error {
+func (c *AppConfig) writeAppStateFile(content []byte) error {
 	if c.appStatePath == "" {
 		return nil
 	}
 
-	content, err := yaml.Marshal(appState)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(c.appStatePath, content, 0o644)
+	err := os.WriteFile(c.appStatePath, content, 0o644)
 	if err != nil && os.IsPermission(err) {
 		// apparently when people have read-only permissions they prefer us to fail silently
 		return nil
