@@ -58,7 +58,11 @@ func loadAppState() (*AppState, error) {
 
 	err = yaml.Unmarshal(appStateBytes, appState)
 	if err != nil {
-		return nil, err
+		// Nothing in state.yml is important enough to keep lazygit from
+		// starting. So if it can't be parsed (users have seen it filled with
+		// zero bytes after a crash), start with the defaults. The next save
+		// replaces the file.
+		return getDefaultAppState(), nil
 	}
 
 	return appState, nil
