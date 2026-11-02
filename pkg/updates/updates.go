@@ -70,8 +70,9 @@ func (u *Updater) getLatestVersionNumber() (string, error) {
 
 // RecordLastUpdateCheck records last time an update check was performed
 func (u *Updater) RecordLastUpdateCheck() error {
-	u.Config.GetAppState().LastUpdateCheck = time.Now().Unix()
-	return u.Config.SaveAppState()
+	return u.Config.UpdateAppState(func(state *config.AppState) {
+		state.LastUpdateCheck = time.Now().Unix()
+	})
 }
 
 // expecting version to be of the form `v12.34.56`
@@ -175,7 +176,11 @@ func (u *Updater) skipUpdateCheck() bool {
 	}
 
 	currentTimestamp := time.Now().Unix()
-	lastUpdateCheck := u.Config.GetAppState().LastUpdateCheck
+	appState, err := u.Config.ReadAppState()
+	if err != nil {
+		u.Log.Errorf("error when reading app state: %v", err)
+	}
+	lastUpdateCheck := appState.LastUpdateCheck
 	days := userConfig.Update.Days
 
 	if (currentTimestamp-lastUpdateCheck)/(60*60*24) < days {

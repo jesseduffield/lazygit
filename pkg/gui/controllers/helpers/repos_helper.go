@@ -285,7 +285,7 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 		return err
 	}
 	// Don't offer the repo we're in
-	recentRepoPaths := lo.Without(self.c.GetAppState().RecentRepos, currentRepo)
+	recentRepoPaths := lo.Without(self.c.ReadAppState().RecentRepos, currentRepo)
 
 	currentBranches := make([]string, len(recentRepoPaths))
 

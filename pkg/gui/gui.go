@@ -537,7 +537,7 @@ func (gui *Gui) onUserConfigLoaded() error {
 	// originally we could only hide the command log permanently via the config
 	// but now we do it via state. So we need to still support the config for the
 	// sake of backwards compatibility. We're making use of short circuiting here
-	gui.ShowExtrasWindow = userConfig.Gui.ShowCommandLog && !gui.c.GetAppState().HideCommandLog
+	gui.ShowExtrasWindow = userConfig.Gui.ShowCommandLog && !gui.c.ReadAppState().HideCommandLog
 
 	if userConfig.Gui.NerdFontsVersion != "" {
 		icons.SetNerdFontsVersion(userConfig.Gui.NerdFontsVersion)
@@ -1188,8 +1188,9 @@ func (gui *Gui) showIntroPopupMessage() {
 
 	gui.c.OnUIThread(func() error {
 		onConfirm := func() error {
-			gui.c.GetAppState().StartupPopupVersion = StartupPopupVersion
-			gui.c.SaveAppStateAndLogError()
+			gui.c.UpdateAppState(func(state *config.AppState) {
+				state.StartupPopupVersion = StartupPopupVersion
+			})
 			gui.waitForIntro.Done()
 			return nil
 		}
@@ -1222,7 +1223,7 @@ func (gui *Gui) showBreakingChangesMessage() {
 	}
 
 	last := &types.VersionNumber{}
-	lastVersionStr := gui.c.GetAppState().LastVersion
+	lastVersionStr := gui.c.ReadAppState().LastVersion
 	// If there's no saved last version, we show all release notes. This is for
 	// people upgrading from a version before we started to save lastVersion.
 	// First time new users won't see the release notes because we show them the
