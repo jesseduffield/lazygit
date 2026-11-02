@@ -1189,9 +1189,9 @@ func (gui *Gui) showIntroPopupMessage() {
 	gui.c.OnUIThread(func() error {
 		onConfirm := func() error {
 			gui.c.GetAppState().StartupPopupVersion = StartupPopupVersion
-			err := gui.c.SaveAppState()
+			gui.c.SaveAppStateAndLogError()
 			gui.waitForIntro.Done()
-			return err
+			return nil
 		}
 
 		introMessage := utils.ResolvePlaceholderString(
