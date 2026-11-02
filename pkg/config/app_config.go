@@ -32,7 +32,7 @@ type AppConfig struct {
 	userConfigFiles        []*ConfigFile
 	userConfigDir          string
 	tempDir                string
-	appState               *AppState
+	appStatePath           string
 	githubPullRequestCache *githubPullRequestCache
 }
 
@@ -107,7 +107,7 @@ func NewAppConfig(
 		return nil, err
 	}
 
-	appState, err := loadAppState()
+	appStatePath, err := appStateFilePath()
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func NewAppConfig(
 		userConfigFiles:        configFiles,
 		userConfigDir:          configDir,
 		tempDir:                tempDir,
-		appState:               appState,
+		appStatePath:           appStatePath,
 		githubPullRequestCache: githubPullRequestCache,
 	}
 

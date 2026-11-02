@@ -6,74 +6,90 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// ReadAppState returns the app state. If it can't be read, it returns the
-// defaults together with the error. Don't change the returned struct; use
-// UpdateAppState for that.
+var stateFileName = "state.yml"
+
+// appStateFilePath returns the path of state.yml. It returns "" if we lack the
+// permissions to create its folder; we don't persist the app state then.
+func appStateFilePath() (string, error) {
+	path, err := stateFilePath(stateFileName)
+	if err != nil {
+		if os.IsPermission(err) {
+			// apparently when people have read-only permissions they prefer us to fail silently
+			return "", nil
+		}
+		return "", err
+	}
+	return path, nil
+}
+
+// ReadAppState reads state.yml and returns its contents. If it can't be read,
+// it returns the defaults together with the error. Changing the returned struct
+// has no effect; use UpdateAppState for that.
 func (c *AppConfig) ReadAppState() (*AppState, error) {
-	return c.appState, nil
+	content, err := c.readAppStateFile()
+	if err != nil {
+		return getDefaultAppState(), err
+	}
+	return parseAppState(content)
 }
 
-// UpdateAppState calls update to change the app state, and saves it.
+// UpdateAppState reads state.yml, calls update to change what it found, and
+// writes the result back. Other lazygit instances can change the file at any
+// time, so update must apply its change to the state that it gets, e.g. add an
+// entry to a list. It must not set a field to a value that the caller read
+// earlier, because that would undo changes that other instances made in the
+// meantime.
 func (c *AppConfig) UpdateAppState(update func(state *AppState)) error {
-	update(c.appState)
-	return c.saveAppState()
+	content, err := c.readAppStateFile()
+	if err != nil {
+		return err
+	}
+	// If the file can't be parsed, we start from the defaults and replace it.
+	appState, _ := parseAppState(content)
+	update(appState)
+	return c.writeAppStateFile(appState)
 }
 
-// saveAppState marshalls the AppState struct and writes it to the disk
-func (c *AppConfig) saveAppState() error {
-	marshalledAppState, err := yaml.Marshal(c.appState)
+func (c *AppConfig) readAppStateFile() ([]byte, error) {
+	if c.appStatePath == "" {
+		return nil, nil
+	}
+
+	content, err := os.ReadFile(c.appStatePath)
+	if err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+	return content, nil
+}
+
+// parseAppState returns the defaults together with the error if content can't
+// be parsed. Nothing in state.yml is important enough to keep lazygit from
+// working, and users have seen the file filled with zero bytes after a crash.
+func parseAppState(content []byte) (*AppState, error) {
+	appState := getDefaultAppState()
+	if err := yaml.Unmarshal(content, appState); err != nil {
+		return getDefaultAppState(), err
+	}
+	return appState, nil
+}
+
+func (c *AppConfig) writeAppStateFile(appState *AppState) error {
+	if c.appStatePath == "" {
+		return nil
+	}
+
+	content, err := yaml.Marshal(appState)
 	if err != nil {
 		return err
 	}
 
-	filepath, err := stateFilePath(stateFileName)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(filepath, marshalledAppState, 0o644)
+	err = os.WriteFile(c.appStatePath, content, 0o644)
 	if err != nil && os.IsPermission(err) {
 		// apparently when people have read-only permissions they prefer us to fail silently
 		return nil
 	}
 
 	return err
-}
-
-var stateFileName = "state.yml"
-
-// loadAppState loads recorded AppState from file
-func loadAppState() (*AppState, error) {
-	appState := getDefaultAppState()
-
-	filepath, err := stateFilePath(stateFileName)
-	if err != nil {
-		if os.IsPermission(err) {
-			// apparently when people have read-only permissions they prefer us to fail silently
-			return appState, nil
-		}
-		return nil, err
-	}
-
-	appStateBytes, err := os.ReadFile(filepath)
-	if err != nil && !os.IsNotExist(err) {
-		return nil, err
-	}
-
-	if len(appStateBytes) == 0 {
-		return appState, nil
-	}
-
-	err = yaml.Unmarshal(appStateBytes, appState)
-	if err != nil {
-		// Nothing in state.yml is important enough to keep lazygit from
-		// starting. So if it can't be parsed (users have seen it filled with
-		// zero bytes after a crash), start with the defaults. The next save
-		// replaces the file.
-		return getDefaultAppState(), nil
-	}
-
-	return appState, nil
 }
 
 // AppState stores data between runs of the app like when the last update check
