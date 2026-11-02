@@ -152,3 +152,69 @@ func TestAppStateInReadOnlyFolder(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"ls"}, appState.ShellCommandsHistory)
 }
+
+func TestAppStateUpdateReplacesTheTargetOfASymlink(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("creating symlinks needs special privileges on Windows")
+	}
+
+	configDir := useTempConfigDir(t)
+	statePath := filepath.Join(configDir, stateFileName)
+	targetPath := filepath.Join(t.TempDir(), "synced-state.yml")
+	assert.NoError(t, os.WriteFile(targetPath, nil, 0o644))
+	assert.NoError(t, os.Symlink(targetPath, statePath))
+	appConfig, err := newAppConfig(t)
+	assert.NoError(t, err)
+
+	assert.NoError(t, appConfig.UpdateAppState(addToHistory("ls")))
+
+	info, err := os.Lstat(statePath)
+	assert.NoError(t, err)
+	assert.Equal(t, os.ModeSymlink, info.Mode().Type())
+	content, err := os.ReadFile(targetPath)
+	assert.NoError(t, err)
+	assert.Contains(t, string(content), "- ls\n")
+}
+
+func TestAppStateUpdateKeepsFilePermissions(t *testing.T) {
+	if runtime.GOOS == "windows" || os.Geteuid() == 0 {
+		t.Skip("needs file permissions that apply to the current user")
+	}
+
+	configDir := useTempConfigDir(t)
+	statePath := filepath.Join(configDir, stateFileName)
+	assert.NoError(t, os.WriteFile(statePath, nil, 0o600))
+	appConfig, err := newAppConfig(t)
+	assert.NoError(t, err)
+
+	assert.NoError(t, appConfig.UpdateAppState(addToHistory("ls")))
+	info, err := os.Stat(statePath)
+	assert.NoError(t, err)
+	assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
+
+	// A read-only file stays as it is, without an error
+	assert.NoError(t, os.Chmod(statePath, 0o400))
+	assert.NoError(t, appConfig.UpdateAppState(addToHistory("pwd")))
+	appState, err := appConfig.ReadAppState()
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"ls"}, appState.ShellCommandsHistory)
+	info, err = os.Stat(statePath)
+	assert.NoError(t, err)
+	assert.Equal(t, os.FileMode(0o400), info.Mode().Perm())
+}
+
+func TestAppStateUpdateReportsFileHeldOpenByAnotherProcess(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("only Windows refuses to replace a file that another process has open")
+	}
+
+	configDir := useTempConfigDir(t)
+	appConfig, err := newAppConfig(t)
+	assert.NoError(t, err)
+	assert.NoError(t, appConfig.UpdateAppState(addToHistory("ls")))
+	file, err := os.Open(filepath.Join(configDir, stateFileName))
+	assert.NoError(t, err)
+	defer file.Close()
+
+	assert.Error(t, appConfig.UpdateAppState(addToHistory("pwd")))
+}

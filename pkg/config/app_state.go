@@ -2,7 +2,11 @@ package config
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
+	"math/rand/v2"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 )
@@ -83,10 +87,10 @@ const (
 // shared one, so a read never sees a half-written file, and two updates never
 // start from the same contents.
 //
-// We don't lock state.yml itself, because on Windows a lock keeps other
-// processes from reading the locked part of a file. We never delete the lock
-// file. Otherwise one process could hold a lock on the deleted file while
-// another one locks a new file of the same name.
+// We don't lock state.yml itself, because writing it replaces the file, and
+// because on Windows a lock keeps other processes from reading the locked part
+// of a file. We never delete the lock file. Otherwise one process could hold a
+// lock on the deleted file while another one locks a new file of the same name.
 func (c *AppConfig) lockAppState(kind lockKind) (func(), error) {
 	if c.appStatePath == "" {
 		return func() {}, nil
@@ -151,12 +155,80 @@ func (c *AppConfig) writeAppStateFile(content []byte) error {
 		return nil
 	}
 
-	err := os.WriteFile(c.appStatePath, content, 0o644)
+	err := writeFileAtomically(c.appStatePath, content)
 	if err != nil && os.IsPermission(err) {
 		// apparently when people have read-only permissions they prefer us to fail silently
 		return nil
 	}
 
+	return err
+}
+
+// writeFileAtomically replaces the file at path with a new one that has the
+// given content. A reader that doesn't take the lock sees either the old file
+// or the complete new one. The same holds after a crash, or if the disk is full.
+// It returns a permission error only if we may not write to the file or create
+// a file in its folder.
+func writeFileAtomically(path string, content []byte) error {
+	// If path is a symlink, replace the file that it points to
+	if resolvedPath, err := filepath.EvalSymlinks(path); err == nil {
+		path = resolvedPath
+	}
+
+	mode := os.FileMode(0o644)
+	if info, err := os.Stat(path); err == nil {
+		// Don't replace a file that we're not allowed to write to
+		file, err := os.OpenFile(path, os.O_WRONLY, 0)
+		if err != nil {
+			return err
+		}
+		file.Close()
+		mode = info.Mode().Perm()
+	}
+
+	tempFile, err := createTempFile(path, mode)
+	if err != nil {
+		return err
+	}
+	err = writeAndClose(tempFile, content)
+	if err == nil {
+		err = os.Rename(tempFile.Name(), path)
+		if err != nil {
+			// On Windows, the rename fails with ERROR_ACCESS_DENIED if another
+			// process has the file open. Keep only the message, so that this
+			// doesn't count as a permission error.
+			err = errors.New(err.Error())
+		}
+	}
+	if err != nil {
+		_ = os.Remove(tempFile.Name())
+	}
+	return err
+}
+
+// createTempFile creates a new file next to path. Unlike os.CreateTemp, it
+// uses the given mode, minus the umask.
+func createTempFile(path string, mode os.FileMode) (*os.File, error) {
+	for {
+		tempPath := fmt.Sprintf("%s.%d.tmp", path, rand.Uint32())
+		file, err := os.OpenFile(tempPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, mode)
+		if !os.IsExist(err) {
+			return file, err
+		}
+	}
+}
+
+func writeAndClose(file *os.File, content []byte) error {
+	_, err := file.Write(content)
+	if err == nil {
+		// Without this, the rename can reach the disk before the content, and
+		// a crash leaves a file that is filled with zero bytes. Users on
+		// Windows have seen this happen.
+		err = file.Sync()
+	}
+	if closeErr := file.Close(); err == nil {
+		err = closeErr
+	}
 	return err
 }
 
