@@ -3,6 +3,8 @@ package gui
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/jesseduffield/lazygit/pkg/config"
 )
 
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,
@@ -16,16 +18,15 @@ func (gui *Gui) updateRecentRepoList() error {
 		return nil
 	}
 
-	recentRepos := gui.c.GetAppState().RecentRepos
 	currentRepo, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	recentRepos = newRecentReposList(recentRepos, currentRepo)
 	// TODO: migrate this file to use forward slashes on all OSes for consistency
 	// (windows uses backslashes at the moment)
-	gui.c.GetAppState().RecentRepos = recentRepos
-	gui.c.SaveAppStateAndLogError()
+	gui.c.UpdateAppState(func(state *config.AppState) {
+		state.RecentRepos = newRecentReposList(state.RecentRepos, currentRepo)
+	})
 	return nil
 }
 

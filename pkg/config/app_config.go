@@ -51,8 +51,8 @@ type AppConfigurer interface {
 	ReloadChangedUserConfigFiles() (error, bool)
 	GetTempDir() string
 
-	GetAppState() *AppState
-	SaveAppState() error
+	ReadAppState() (*AppState, error)
+	UpdateAppState(update func(state *AppState)) error
 	GetCachedGithubPullRequests(repoPath string) ([]CachedPullRequest, error)
 	SaveCachedGithubPullRequests(repoPath string, pullRequests []CachedPullRequest) error
 }

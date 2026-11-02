@@ -11,9 +11,11 @@ var SwitchRepoMovesTheSelection = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "The selection follows the focus of the repo being switched to, rather than the one being left",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig: func(config *config.AppConfig) {
+	SetupConfig: func(cfg *config.AppConfig) {
 		otherRepo, _ := filepath.Abs("../other")
-		config.GetAppState().RecentRepos = []string{otherRepo}
+		_ = cfg.UpdateAppState(func(state *config.AppState) {
+			state.RecentRepos = []string{otherRepo}
+		})
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CloneNonBare("other")

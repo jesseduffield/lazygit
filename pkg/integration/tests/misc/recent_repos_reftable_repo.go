@@ -20,7 +20,9 @@ var RecentReposReftableRepo = NewIntegrationTest(NewIntegrationTestArgs{
 		current, _ := filepath.Abs(".")
 		reftable, _ := filepath.Abs("../reftable")
 		unborn, _ := filepath.Abs("../reftable-unborn")
-		cfg.GetAppState().RecentRepos = []string{current, reftable, unborn}
+		_ = cfg.UpdateAppState(func(state *config.AppState) {
+			state.RecentRepos = []string{current, reftable, unborn}
+		})
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")

@@ -166,7 +166,11 @@ func isDirectoryAGitRepository(dir string) (bool, error) {
 }
 
 func openRecentRepo(app *App) bool {
-	for _, repoDir := range app.Config.GetAppState().RecentRepos {
+	appState, err := app.Config.ReadAppState()
+	if err != nil {
+		app.Log.Errorf("error when reading app state: %v", err)
+	}
+	for _, repoDir := range appState.RecentRepos {
 		if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
 			if err := os.Chdir(repoDir); err == nil {
 				// We're still in setup, before the gui exists, so we can't show the approval popup

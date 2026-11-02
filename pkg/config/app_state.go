@@ -6,13 +6,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// GetAppState returns the app state
-func (c *AppConfig) GetAppState() *AppState {
-	return c.appState
+// ReadAppState returns the app state. If it can't be read, it returns the
+// defaults together with the error. Don't change the returned struct; use
+// UpdateAppState for that.
+func (c *AppConfig) ReadAppState() (*AppState, error) {
+	return c.appState, nil
 }
 
-// SaveAppState marshalls the AppState struct and writes it to the disk
-func (c *AppConfig) SaveAppState() error {
+// UpdateAppState calls update to change the app state, and saves it.
+func (c *AppConfig) UpdateAppState(update func(state *AppState)) error {
+	update(c.appState)
+	return c.saveAppState()
+}
+
+// saveAppState marshalls the AppState struct and writes it to the disk
+func (c *AppConfig) saveAppState() error {
 	marshalledAppState, err := yaml.Marshal(c.appState)
 	if err != nil {
 		return err
