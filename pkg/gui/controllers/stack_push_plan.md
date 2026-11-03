@@ -2,16 +2,16 @@
 
 ## Status and scope
 
-Planning only; implementation has not been authorized. The three requested
+Implementation authorized on 2026-11-03; Step 1 complete; Step 2 is next. The three requested
 capabilities are accepted: disable the stack push feature, add direct menu
 shortcuts, and configure the initially selected choice. Exact configuration
-names and the behavioral proposals below remain reviewable recommendations.
+names and behavior below are adopted from the proposed plan.
 One tracker owns this work: this file.
 
 Baseline inspected: `master`, `0002c0354770ff8ec6abe4d5ab4d025ea40e1619`.
 The checkout was clean before this plan. No separate reference implementation
 or reference branch was supplied; the baseline implementation is the reference.
-No application code, tests, or generated files have changed.
+Implementation changes and validation are tracked below.
 
 ## Evidence and existing behavior
 
@@ -64,10 +64,9 @@ git:
 
 - Recommendation: disabling means push only the current branch, independently
   of the menu default. Do not silently push other branches when disabled.
-  User clarification was requested; record the answer here before implementation.
+  Adopted for implementation following the user's request to implement the plan.
 - Recommendation: `a` directly executes the current-plus-below choice, and `o`
-  directly executes only-current. User preference between `a`/`o` and `1`/`2`
-  was requested. Shortcuts invoke the existing callbacks, including subsequent
+  directly executes only-current. Adopted for implementation. Shortcuts invoke the existing callbacks, including subsequent
   force confirmations; they do not merely highlight a row.
 - Keep item order stable. Changing the default changes the highlighted row;
   Enter runs that row. Reordering rows would also change the visual layout and
@@ -90,16 +89,15 @@ git:
 Problem: `push` always performs stack discovery and opens the menu when eligible
 branches exist. There is no opt-out in configuration.
 
-- [ ] Resolve the disabling-behavior question and finalize the configuration
-  name with the user. Record accepted decisions above.
-- [ ] Add `git.enableStackedPush`, default true, with an unwrapped field comment.
+- [x] Adopt the proposed disabling behavior and configuration name.
+- [x] Add `git.enableStackedPush`, default true, with an unwrapped field comment.
   When false, return `pushCurrentBranch` before discovering branches below.
-- [ ] Add integration coverage with an eligible rebased stack: disabling pushes
+- [x] Add integration coverage with an eligible rebased stack: disabling pushes
   only the current branch, retains force-push confirmation, and leaves lower
   remote refs unchanged. Preserve existing enabled and no-eligible-branch cases.
-- [ ] Run `just generate`; include generated config/schema and test registration
+- [x] Run `just generate`; include generated config/schema and test registration
   changes. Never edit `docs/` or generated config documentation by hand.
-- [ ] Run the new focused e2e case and existing stacked push cases, then the
+- [x] Run the new focused e2e case and existing stacked push cases, then the
   implementation commit gates below; update this tracker and commit Step 1.
 
 Exit: opt-out bypasses the menu while retaining current-branch push safeguards;
@@ -109,7 +107,7 @@ omitted configuration retains baseline behavior.
 
 Depends on Step 1 for serial delivery, but changes a separate capability.
 
-- [ ] Resolve the shortcut preference and record it above.
+- [x] Adopt the proposed `a` / `o` shortcuts.
 - [ ] Add `menuKey` declarations to the two existing push menu items. Keep
   their labels, ordering, and callbacks; rely on the existing shortcut renderer.
 - [ ] Test both shortcuts through actual menu keypresses without navigation or
@@ -152,11 +150,9 @@ preserve baseline behavior, and other menus retain their existing defaults.
 
 ## Orchestration, validation, and handoff
 
-- Planning owns only this document. Implementation begins only when requested.
-  The orchestrator then dispatches implementation agents in series for Steps
-  1, 2, 3; it coordinates scope and handoffs without duplicating implementation.
-  Each agent owns its code, checks, scoped incremental commits, and tracker
-  updates. No concurrent or nested parallel work.
+- User override: implement directly without sub-agents. The primary agent owns
+  implementation, checks, focused commits, and tracker updates, in order 1–3.
+  This supersedes the original serial delegation workflow. No agents are active.
 - No model or effort was specified by the user. Inherit the session defaults
   for implementation; use fresh context if requested. No review checkpoint is
   currently selected. If selected later, the skill prescribes a fresh-context
@@ -172,10 +168,12 @@ preserve baseline behavior, and other menus retain their existing defaults.
   configuration, tests, or keybindings require it. Run focused tests per step;
   after the shared menu change also run existing menu integration coverage.
   Record unavailable gates instead of reporting success. `just` was not found
-  on PATH during planning; resolve tooling availability before execution.
+  on PATH during planning; installed at `/tmp/lazygit-tools/bin/just`.
+  Run unit tests with `env -u NO_COLOR` because the session sets `NO_COLOR=1`
+  and presentation tests assert ANSI output.
 - Planning-only validation is final diff review and `git diff --check`; no
   expensive application suites are needed for this prose-only commit, per the
-  invoked skill. Implementation validation remains entirely outstanding.
+  invoked skill. Implementation results are recorded per step below.
 - Follow repository commit conventions: small coherent commits, `[codex]`
   titles under 60 characters including the stable implementation step number,
   explanatory body wrapped within 72 columns (also within the global 80-column
@@ -189,10 +187,10 @@ preserve baseline behavior, and other menus retain their existing defaults.
   open gates, decisions, and next action here. Successors reconcile actual
   checkout/process state first, preserve user changes, and finish/account for
   live processes before dispatching another agent. Partial checks stay partial.
-- Initial handoff: baseline above, no agents or background processes, no
-  temporary artifacts, only this plan owned by the planning task. Next action:
-  review configuration and shortcut recommendations and record user answers;
-  implementation remains pending a user request.
+- Active handoff: Step 1 complete in this commit; Step 2 is next. No running
+  processes or agents. All changes belong to this task. Tooling is installed
+  outside the checkout under `/tmp/lazygit-tools`; unit log is
+  `/tmp/lazygit-step1-unit.log`. Next action: implement and validate shortcuts.
 
 ## Worklog
 
@@ -200,3 +198,10 @@ preserve baseline behavior, and other menus retain their existing defaults.
   traced push/menu/config/test/CI callers and drafted Steps 1–3. No application
   checks executed. Final plan diff reviewed; `git diff --check` passed.
   All implementation and execution gates remain open.
+
+- 2026-11-03 — Step 1 (this commit): added `enableStackedPush` and a disabled
+  integration case. `just generate`, `just format`, `just build`,
+  `env -u NO_COLOR just unit-test`, `just lint` (0 issues), and
+  `just e2e 'sync/push_stacked_branches.*'` passed. The initial unit run
+  failed solely on ANSI expectations with `NO_COLOR=1`; the clean-environment
+  rerun passed. Steps 2–3 and their gates remain open.

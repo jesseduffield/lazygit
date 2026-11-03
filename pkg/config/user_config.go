@@ -326,6 +326,8 @@ type GitConfig struct {
 	Merging MergingConfig `yaml:"merging"`
 	// list of branches that are considered 'main' branches, used when displaying commits
 	MainBranches []string `yaml:"mainBranches" jsonschema:"uniqueItems=true"`
+	// If true, offer to push branches stacked below the current branch when they have unpushed commits. If false, push only the current branch, keeping upstream and force-push prompts.
+	EnableStackedPush bool `yaml:"enableStackedPush"`
 	// Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'
 	SkipHookPrefix string `yaml:"skipHookPrefix"`
 	// If true, periodically fetch from remote
@@ -977,6 +979,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			RemoteBranchSortOrder:        "date",
 			SkipHookPrefix:               "WIP",
 			MainBranches:                 []string{"master", "main"},
+			EnableStackedPush:            true,
 			AutoFetch:                    true,
 			AutoRefresh:                  true,
 			AutoDetectExternalChanges:    true,
