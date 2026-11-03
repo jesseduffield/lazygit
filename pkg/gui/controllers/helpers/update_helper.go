@@ -2,7 +2,10 @@ package helpers
 
 import (
 	"errors"
+	"path/filepath"
+	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -21,82 +24,164 @@ func NewUpdateHelper(c *HelperCommon, updater *updates.Updater) *UpdateHelper {
 	}
 }
 
-func (self *UpdateHelper) CheckForUpdateInBackground() {
-	self.updater.CheckForNewUpdate(func(newVersion string, err error) error {
-		if err != nil {
-			// ignoring the error for now so that I'm not annoying users
-			self.c.Log.Error(err.Error())
-			return nil
-		}
-		if newVersion == "" {
-			return nil
-		}
-		if self.c.UserConfig().Update.Method == "background" {
-			self.startUpdating(newVersion)
-			return nil
-		}
-		return self.showUpdatePrompt(newVersion)
-	}, false)
+func (self *UpdateHelper) OnStartup() {
+	self.c.OnWorkerBackground(func(gocui.Task) error {
+		self.updater.CleanUpAfterUpdate()
+		return nil
+	})
+}
+
+func (self *UpdateHelper) CheckForUpdateDisabledReason() *types.DisabledReason {
+	if self.updater.Installation().Kind == updates.InstallKindDevBuild {
+		return &types.DisabledReason{Text: utils.ResolvePlaceholderString(
+			self.c.Tr.UpdateCheckNotPossibleForDevBuild,
+			map[string]string{"version": self.c.GetConfig().GetVersion()},
+		)}
+	}
+
+	if self.updater.IsInstalling() {
+		return &types.DisabledReason{Text: self.c.Tr.UpdateAlreadyInProgress}
+	}
+
+	return nil
 }
 
 func (self *UpdateHelper) CheckForUpdateInForeground() error {
 	return self.c.WithWaitingStatus(self.c.Tr.CheckingForUpdates, func(gocui.Task) error {
-		self.updater.CheckForNewUpdate(func(newVersion string, err error) error {
-			if err != nil {
-				return err
-			}
-			if newVersion == "" {
-				return errors.New(self.c.Tr.FailedToRetrieveLatestVersionErr)
-			}
-			return self.showUpdatePrompt(newVersion)
-		}, true)
-
-		return nil
-	})
-}
-
-func (self *UpdateHelper) startUpdating(newVersion string) {
-	_ = self.c.WithWaitingStatus(self.c.Tr.UpdateInProgressWaitingStatus, func(gocui.Task) error {
-		self.c.State().SetUpdating(true)
-		err := self.updater.Update(newVersion)
-		return self.onUpdateFinish(err)
-	})
-}
-
-func (self *UpdateHelper) onUpdateFinish(err error) error {
-	self.c.State().SetUpdating(false)
-	self.c.OnUIThread(func() error {
-		self.c.SetViewContent(self.c.Views().AppStatus, "")
+		newVersion, err := self.updater.CheckForUpdate()
 		if err != nil {
-			errMessage := utils.ResolvePlaceholderString(
-				self.c.Tr.UpdateFailedErr, map[string]string{
-					"errMessage": err.Error(),
-				},
-			)
-			return errors.New(errMessage)
+			return errors.New(utils.ResolvePlaceholderString(
+				self.c.Tr.UpdateCheckFailed, map[string]string{"error": err.Error()},
+			))
 		}
-		self.c.Alert(self.c.Tr.UpdateCompletedTitle, self.c.Tr.UpdateCompleted)
+
+		if newVersion == nil {
+			self.c.OnUIThread(func() error {
+				self.c.Alert(self.c.Tr.NoUpdateAvailableTitle, utils.ResolvePlaceholderString(
+					self.c.Tr.NoUpdateAvailable,
+					map[string]string{"currentVersion": self.updater.CurrentVersion().String()},
+				))
+				return nil
+			})
+			return nil
+		}
+
+		if installedVersion := self.updater.InstalledVersion(); installedVersion != nil && !installedVersion.IsOlderThan(newVersion) {
+			self.c.OnUIThread(func() error {
+				self.c.Toast(self.updateInstalledMessage(installedVersion))
+				return nil
+			})
+			return nil
+		}
+
+		menuOpts := self.updateMenuOptions(newVersion)
+		self.c.OnUIThread(func() error {
+			return self.c.Menu(menuOpts)
+		})
 		return nil
 	})
-
-	return nil
 }
 
-func (self *UpdateHelper) showUpdatePrompt(newVersion string) error {
-	message := utils.ResolvePlaceholderString(
-		self.c.Tr.UpdateAvailable, map[string]string{
-			"newVersion": newVersion,
+// updateMenuOptions returns the options for the menu that tells the user about
+// a new version. Call it on a worker, because it accesses the file system.
+func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) types.CreateMenuOptions {
+	installation := self.updater.Installation()
+	paragraphs := []string{utils.ResolvePlaceholderString(
+		self.c.Tr.NewVersionAvailable,
+		map[string]string{
+			"newVersion":     newVersion.String(),
+			"currentVersion": self.updater.CurrentVersion().String(),
 		},
-	)
+	)}
+	items := []*types.MenuItem{}
 
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.UpdateAvailableTitle,
-		Prompt: message,
-		HandleConfirm: func() error {
-			self.startUpdating(newVersion)
-			return nil
-		},
+	switch installation.Kind {
+	case updates.InstallKindRelease:
+		if err := self.updater.CheckCanInstall(); err != nil {
+			self.c.Log.Infof("Can't install the update: %v", err)
+			paragraphs = append(paragraphs, utils.ResolvePlaceholderString(
+				self.c.Tr.UpdateFolderNotWritable,
+				map[string]string{"folder": filepath.Dir(installation.ExecutablePath)},
+			))
+			items = append(items, self.openInstallationInstructionsMenuItem())
+		} else {
+			items = append(items, &types.MenuItem{
+				Label:   self.c.Tr.InstallUpdateNow,
+				OnPress: func() error { return self.install(newVersion) },
+			})
+		}
+
+	case updates.InstallKindHomebrew, updates.InstallKindGoInstall, updates.InstallKindScoop,
+		updates.InstallKindWinget, updates.InstallKindChocolatey:
+		paragraphs = append(paragraphs, utils.ResolvePlaceholderString(
+			self.c.Tr.UpdateWithPackageManager,
+			map[string]string{
+				"packageManager": installation.PackageManagerName(),
+				"command":        installation.UpdateCommand(),
+			},
+		))
+		if installation.Kind != updates.InstallKindHomebrew && installation.Kind != updates.InstallKindGoInstall {
+			paragraphs = append(paragraphs, self.c.Tr.PackageManagersCanBeSlow)
+		}
+		items = append(items, &types.MenuItem{
+			Label: self.c.Tr.CopyUpdateCommand,
+			OnPress: func() error {
+				if err := self.c.OS().CopyToClipboard(installation.UpdateCommand()); err != nil {
+					return err
+				}
+				self.c.Toast(self.c.Tr.UpdateCommandCopiedToClipboard)
+				return nil
+			},
+		})
+
+	default:
+		paragraphs = append(paragraphs, self.c.Tr.UpdateFromPackageManagerOrRelease)
+		items = append(items, self.openInstallationInstructionsMenuItem())
+	}
+
+	items = append(items, &types.MenuItem{
+		Label:   self.c.Tr.OpenReleaseNotes,
+		OnPress: func() error { return self.c.OS().OpenLink(constants.Links.Releases) },
 	})
+	paragraphs = append(paragraphs, self.c.Tr.TurnOffUpdateChecks)
 
-	return nil
+	return types.CreateMenuOptions{
+		Title:  self.c.Tr.UpdateAvailableTitle,
+		Prompt: strings.Join(paragraphs, "\n\n"),
+		Items:  items,
+	}
+}
+
+func (self *UpdateHelper) openInstallationInstructionsMenuItem() *types.MenuItem {
+	return &types.MenuItem{
+		Label:   self.c.Tr.OpenInstallationInstructions,
+		OnPress: func() error { return self.c.OS().OpenLink(constants.Links.InstallationInstructions) },
+	}
+}
+
+func (self *UpdateHelper) install(newVersion *types.VersionNumber) error {
+	status := utils.ResolvePlaceholderString(
+		self.c.Tr.InstallingUpdateStatus, map[string]string{"newVersion": newVersion.String()},
+	)
+	return self.c.WithWaitingStatus(status, func(gocui.Task) error {
+		err := self.updater.Install(newVersion)
+		self.c.OnUIThread(func() error {
+			if err != nil {
+				return errors.New(utils.ResolvePlaceholderString(
+					self.c.Tr.UpdateInstallFailed,
+					map[string]string{"newVersion": newVersion.String(), "error": err.Error()},
+				))
+			}
+
+			self.c.Toast(self.updateInstalledMessage(newVersion))
+			return nil
+		})
+		return nil
+	})
+}
+
+func (self *UpdateHelper) updateInstalledMessage(version *types.VersionNumber) string {
+	return utils.ResolvePlaceholderString(
+		self.c.Tr.UpdateInstalled, map[string]string{"newVersion": version.String()},
+	)
 }

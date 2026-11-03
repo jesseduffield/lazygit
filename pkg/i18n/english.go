@@ -268,18 +268,26 @@ type TranslationSet struct {
 	UpdatesRejectedAndForcePushDisabled   string
 	CheckForUpdate                        string
 	CheckingForUpdates                    string
+	UpdateCheckFailed                     string
+	UpdateCheckNotPossibleForDevBuild     string
+	UpdateAlreadyInProgress               string
+	NoUpdateAvailableTitle                string
+	NoUpdateAvailable                     string
 	UpdateAvailableTitle                  string
-	UpdateAvailable                       string
-	UpdateInProgressWaitingStatus         string
-	UpdateCompletedTitle                  string
-	UpdateCompleted                       string
-	FailedToRetrieveLatestVersionErr      string
-	OnLatestVersionErr                    string
-	MajorVersionErr                       string
-	CouldNotFindBinaryErr                 string
-	UpdateFailedErr                       string
-	ConfirmQuitDuringUpdateTitle          string
-	ConfirmQuitDuringUpdate               string
+	NewVersionAvailable                   string
+	UpdateFolderNotWritable               string
+	UpdateWithPackageManager              string
+	PackageManagersCanBeSlow              string
+	UpdateFromPackageManagerOrRelease     string
+	TurnOffUpdateChecks                   string
+	InstallUpdateNow                      string
+	CopyUpdateCommand                     string
+	UpdateCommandCopiedToClipboard        string
+	OpenInstallationInstructions          string
+	OpenReleaseNotes                      string
+	InstallingUpdateStatus                string
+	UpdateInstalled                       string
+	UpdateInstallFailed                   string
 	IntroPopupMessage                     string
 	NonReloadableConfigWarningTitle       string
 	NonReloadableConfigWarning            string
@@ -1495,18 +1503,26 @@ func EnglishTranslationSet() *TranslationSet {
 		UpdatesRejectedAndForcePushDisabled:  "Updates were rejected and you have disabled force pushing",
 		CheckForUpdate:                       "Check for update",
 		CheckingForUpdates:                   "Checking for updates...",
-		UpdateAvailableTitle:                 "Update available!",
-		UpdateAvailable:                      "Download and install version {{.newVersion}}?",
-		UpdateInProgressWaitingStatus:        "Updating",
-		UpdateCompletedTitle:                 "Update completed!",
-		UpdateCompleted:                      "Update has been installed successfully. Restart lazygit for it to take effect.",
-		FailedToRetrieveLatestVersionErr:     "Failed to retrieve version information",
-		OnLatestVersionErr:                   "You already have the latest version",
-		MajorVersionErr:                      "New version ({{.newVersion}}) has non-backwards compatible changes compared to the current version ({{.currentVersion}})",
-		CouldNotFindBinaryErr:                "Could not find any binary at {{.url}}",
-		UpdateFailedErr:                      "Update failed: {{.errMessage}}",
-		ConfirmQuitDuringUpdateTitle:         "Currently updating",
-		ConfirmQuitDuringUpdate:              "An update is in progress. Are you sure you want to quit?",
+		UpdateCheckFailed:                    "Couldn't check for updates: {{.error}}",
+		UpdateCheckNotPossibleForDevBuild:    "This is a development build ({{.version}}), so lazygit can't check for updates.",
+		UpdateAlreadyInProgress:              "An update is already in progress.",
+		NoUpdateAvailableTitle:               "No update available",
+		NoUpdateAvailable:                    "You have the latest version ({{.currentVersion}}).",
+		UpdateAvailableTitle:                 "Update available",
+		NewVersionAvailable:                  "lazygit {{.newVersion}} is available. You have {{.currentVersion}}.",
+		UpdateFolderNotWritable:              "lazygit can't update itself because you don't have write access to {{.folder}}. If you install lazygit in a folder that you can write to, it will keep itself up to date from then on.",
+		UpdateWithPackageManager:             "You installed lazygit with {{.packageManager}}. To update it, run:\n\n{{.command}}",
+		PackageManagersCanBeSlow:             "Package managers sometimes take a few days to get a new version.",
+		UpdateFromPackageManagerOrRelease:    "If you installed lazygit with a package manager, check whether it has the new version yet. If it doesn't, you can install lazygit from our releases instead, and it will keep itself up to date from then on.",
+		TurnOffUpdateChecks:                  "To turn off update checks, set update.method to never in your config file.",
+		InstallUpdateNow:                     "Install now",
+		CopyUpdateCommand:                    "Copy command",
+		UpdateCommandCopiedToClipboard:       "Command copied to clipboard",
+		OpenInstallationInstructions:         "Open installation instructions",
+		OpenReleaseNotes:                     "Open release notes",
+		InstallingUpdateStatus:               "Installing {{.newVersion}}",
+		UpdateInstalled:                      "lazygit {{.newVersion}} is installed. It takes effect the next time you start lazygit.",
+		UpdateInstallFailed:                  "Couldn't install lazygit {{.newVersion}}: {{.error}}",
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		NonReloadableConfigWarningTitle:      "Config changed",
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,

@@ -436,9 +436,6 @@ type IStateAccessor interface {
 	GetRepoPathStack() *utils.Stack[RepoLocation]
 	GetRepoState() IRepoStateAccessor
 	GetDiffRendererConfigManager() *config.DiffRendererConfigManager
-	// tells us whether we're currently updating lazygit
-	GetUpdating() bool
-	SetUpdating(bool)
 	GetShowExtrasWindow() bool
 	SetShowExtrasWindow(bool)
 	GetRetainOriginalDir() bool

@@ -245,6 +245,16 @@ type AppState struct {
 	ShellCommandsHistory []string `yaml:"customcommandshistory"`
 
 	HideCommandLog bool
+
+	Updates UpdatesState
+}
+
+// UpdatesState is what lazygit remembers about updates
+type UpdatesState struct {
+	// The version that an update installed in place of the executable at
+	// InstalledPath. It takes effect when lazygit is restarted.
+	InstalledVersion string
+	InstalledPath    string
 }
 
 func getDefaultAppState() *AppState {
