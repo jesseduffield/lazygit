@@ -191,7 +191,7 @@ func (self *StatusController) showDashboard() {
 		// Don't just take the version string as is, but format it again. This
 		// way it will be correct even if a distribution omits the "v", or the
 		// ".0" at the end.
-		versionStr = fmt.Sprintf("v%d.%d.%d", version.Major, version.Minor, version.Patch)
+		versionStr = version.String()
 	}
 
 	dashboardString := strings.Join(
