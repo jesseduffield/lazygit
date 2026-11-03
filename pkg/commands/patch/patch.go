@@ -39,13 +39,13 @@ func (self *Patch) FormatView(opts FormatViewOpts) string {
 
 // Returns the lines of the patch
 func (self *Patch) Lines() []*PatchLine {
-	lines := []*PatchLine{}
+	lines := make([]*PatchLine, 0, self.LineCount())
 	for _, line := range self.header {
 		lines = append(lines, &PatchLine{Content: line, Kind: PATCH_HEADER})
 	}
 
 	for _, hunk := range self.hunks {
-		lines = append(lines, hunk.allLines()...)
+		lines = hunk.appendLinesTo(lines)
 	}
 
 	return lines
