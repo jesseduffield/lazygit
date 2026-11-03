@@ -52,7 +52,8 @@ type BuildInfo struct {
 
 func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTest) {
 	cliArgs := parseCliArgsAndEnvVars()
-	mergeBuildInfo(buildInfo)
+	goBuildInfo, _ := debug.ReadBuildInfo()
+	mergeBuildInfo(buildInfo, goBuildInfo)
 
 	if cliArgs.RepoPath != "" {
 		if cliArgs.WorkTree != "" || cliArgs.GitDir != "" {
@@ -277,7 +278,7 @@ func parseGitArg(gitArg string) appTypes.GitArg {
 // into the binary by default e.g. the git commit hash. So in this function
 // we merge the two together, giving priority to the stuff set by LDFLAGS.
 // Note: this mutates the argument passed in
-func mergeBuildInfo(buildInfo *BuildInfo) {
+func mergeBuildInfo(buildInfo *BuildInfo, goBuildInfo *debug.BuildInfo) {
 	// if the version has already been set by build flags then we'll honour that.
 	// chances are it's something like v0.31.0 which is more informative than a
 	// commit hash.
@@ -287,8 +288,7 @@ func mergeBuildInfo(buildInfo *BuildInfo) {
 
 	buildInfo.Version = "unversioned"
 
-	goBuildInfo, ok := debug.ReadBuildInfo()
-	if !ok {
+	if goBuildInfo == nil {
 		return
 	}
 
