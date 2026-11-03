@@ -87,6 +87,10 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 		self.gui.helpers.Update.CheckForUpdateInBackground()
 		return nil
 	})
+	self.goEvery(10*time.Second, self.gui.stopChan, nil, func(_ bool) error {
+		self.gui.helpers.Update.RemindIfDue()
+		return nil
+	})
 
 	if self.gui.Config.GetDebug() {
 		self.goEvery(time.Second*time.Duration(10), self.gui.stopChan, nil, func(_ bool) error {

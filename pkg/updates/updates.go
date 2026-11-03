@@ -20,6 +20,27 @@ import (
 const (
 	checkTimeout   = 30 * time.Second
 	installTimeout = 10 * time.Minute
+
+	// How long we wait before showing the update menu again after the user
+	// responded to it
+	reminderInterval = 24 * time.Hour
+	// How long an update must have been available before we show the update
+	// menu at startup, if the user hasn't responded to it otherwise
+	startupReminderDelay = 7 * 24 * time.Hour
+	// How long after lazygit started we use ReminderMenuAtStartup
+	startupPeriod = time.Minute
+)
+
+// The ways in which lazygit reminds the user of an available update
+type Reminder int
+
+const (
+	// Show the update menu after the user hasn't used lazygit for a while
+	ReminderMenuWhenIdle Reminder = iota
+	// Show the update menu at startup. We only do this if the user hasn't
+	// responded to the menu for a long time, e.g. because they never leave
+	// lazygit idle.
+	ReminderMenuAtStartup
 )
 
 // The part of config.AppConfigurer that the updater needs
@@ -46,6 +67,11 @@ type Updater struct {
 	statusMutex sync.Mutex
 	status      Status
 
+	startTime time.Time
+
+	// Replaced in tests
+	now func() time.Time
+
 	// Held while we replace the executable, so that lazygit doesn't exit in
 	// the middle of it
 	replaceMutex sync.Mutex
@@ -63,6 +89,8 @@ func NewUpdater(cmn *common.Common, config config.AppConfigurer) *Updater {
 		repoURL:        constants.Links.RepoUrl,
 		goos:           runtime.GOOS,
 		goarch:         runtime.GOARCH,
+		startTime:      time.Now(),
+		now:            time.Now,
 	}
 }
 
@@ -112,7 +140,7 @@ func (u *Updater) CheckForUpdateIfDue() error {
 
 	state := u.readAppState()
 	interval := time.Duration(u.UserConfig().Update.Days) * 24 * time.Hour
-	if time.Since(time.Unix(state.Updates.LastCheck, 0)) < interval {
+	if u.now().Sub(time.Unix(state.Updates.LastCheck, 0)) < interval {
 		u.RefreshStatus()
 		return nil
 	}
@@ -134,8 +162,11 @@ func (u *Updater) CheckForUpdate() (*types.VersionNumber, error) {
 
 	u.Log.Infof("Current version is %s, latest version is %s", u.currentVersion, latestVersion)
 	u.updateAppState(func(state *config.AppState) {
-		state.Updates.LastCheck = time.Now().Unix()
-		state.Updates.LatestVersion = latestVersion.String()
+		state.Updates.LastCheck = u.now().Unix()
+		if state.Updates.LatestVersion != latestVersion.String() {
+			state.Updates.LatestVersion = latestVersion.String()
+			state.Updates.LatestVersionFoundAt = u.now().Unix()
+		}
 	})
 	u.RefreshStatus()
 
@@ -195,16 +226,21 @@ func (u *Updater) replaceExecutable(binary []byte) error {
 func (u *Updater) RefreshStatus() Status {
 	state := u.readAppState()
 
+	status := u.statusFromAppState(state)
+
+	u.statusMutex.Lock()
+	defer u.statusMutex.Unlock()
+	u.status = status
+	return status
+}
+
+func (u *Updater) statusFromAppState(state *config.AppState) Status {
 	status := Status{
 		AvailableVersion: u.newerVersion(state.Updates.LatestVersion),
 	}
 	if state.Updates.InstalledPath == u.installation.ExecutablePath {
 		status.InstalledVersion = u.newerVersion(state.Updates.InstalledVersion)
 	}
-
-	u.statusMutex.Lock()
-	defer u.statusMutex.Unlock()
-	u.status = status
 	return status
 }
 
@@ -213,6 +249,66 @@ func (u *Updater) Status() Status {
 	u.statusMutex.Lock()
 	defer u.statusMutex.Unlock()
 	return u.status
+}
+
+// IsStartingUp returns whether lazygit started less than a minute ago
+func (u *Updater) IsStartingUp() bool {
+	return u.now().Sub(u.startTime) < startupPeriod
+}
+
+// DueReminder returns the version to remind the user of, or nil if no reminder
+// is due
+func (u *Updater) DueReminder(reminder Reminder) *types.VersionNumber {
+	return u.dueReminder(u.readAppState(), reminder)
+}
+
+func (u *Updater) dueReminder(state *config.AppState, reminder Reminder) *types.VersionNumber {
+	if !u.ChecksEnabled() {
+		return nil
+	}
+
+	status := u.statusFromAppState(state)
+	if status.AvailableVersion == nil || status.InstalledVersion != nil {
+		return nil
+	}
+	if state.Updates.SkippedVersion == state.Updates.LatestVersion {
+		return nil
+	}
+	if u.now().Sub(time.Unix(state.Updates.LastResponse, 0)) < reminderInterval {
+		return nil
+	}
+	if reminder == ReminderMenuAtStartup {
+		if state.Updates.RespondedVersion == state.Updates.LatestVersion ||
+			u.now().Sub(time.Unix(state.Updates.LatestVersionFoundAt, 0)) < startupReminderDelay {
+			return nil
+		}
+	}
+	return status.AvailableVersion
+}
+
+// RecordResponse records that the user responded to the update menu for the
+// given version, in whatever way. lazygit doesn't show the menu again for a
+// day, and the other lazygit instances close theirs.
+func (u *Updater) RecordResponse(version *types.VersionNumber) {
+	u.updateAppState(func(state *config.AppState) {
+		state.Updates.LastResponse = u.now().Unix()
+		state.Updates.RespondedVersion = version.String()
+	})
+}
+
+// IsHandledAfter returns whether the user responded to the update menu in any
+// lazygit instance after the given time, or the update got installed. A menu
+// that was shown at that time is obsolete then.
+func (u *Updater) IsHandledAfter(t time.Time) bool {
+	state := u.readAppState()
+	return state.Updates.LastResponse > t.Unix() || u.statusFromAppState(state).InstalledVersion != nil
+}
+
+// SkipVersion keeps lazygit from reminding the user of the given version
+func (u *Updater) SkipVersion(version *types.VersionNumber) {
+	u.updateAppState(func(state *config.AppState) {
+		state.Updates.SkippedVersion = version.String()
+	})
 }
 
 // newerVersion parses the given version and returns it if it is newer than the

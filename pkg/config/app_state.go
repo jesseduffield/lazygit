@@ -254,6 +254,15 @@ type UpdatesState struct {
 	// the latest version that it found
 	LastCheck     int64
 	LatestVersion string
+	// When a check first found LatestVersion
+	LatestVersionFoundAt int64
+
+	// When the user last responded to the update menu, in any lazygit
+	// instance, and the version that the menu was for
+	LastResponse     int64
+	RespondedVersion string
+	// The version that the user doesn't want to be reminded of
+	SkippedVersion string
 
 	// The version that an update installed in place of the executable at
 	// InstalledPath. It takes effect when lazygit is restarted.

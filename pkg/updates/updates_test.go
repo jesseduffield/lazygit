@@ -200,6 +200,204 @@ func TestInstall(t *testing.T) {
 	assert.Nil(t, restartedUpdater.RefreshStatus().InstalledVersion)
 }
 
+func TestReminders(t *testing.T) {
+	now := time.Date(2026, 11, 3, 12, 0, 0, 0, time.UTC)
+	hoursAgo := func(hours int) int64 { return now.Add(-time.Duration(hours) * time.Hour).Unix() }
+	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
+
+	scenarios := []struct {
+		name            string
+		state           config.UpdatesState
+		expectWhenIdle  *types.VersionNumber
+		expectAtStartup *types.VersionNumber
+	}{
+		{
+			name:            "no update",
+			state:           config.UpdatesState{LatestVersion: "v0.66.2", LatestVersionFoundAt: hoursAgo(1000)},
+			expectWhenIdle:  nil,
+			expectAtStartup: nil,
+		},
+		{
+			name:            "update found recently",
+			state:           config.UpdatesState{LatestVersion: "v0.67.0", LatestVersionFoundAt: hoursAgo(1)},
+			expectWhenIdle:  v0670,
+			expectAtStartup: nil,
+		},
+		{
+			name:            "update found a week ago",
+			state:           config.UpdatesState{LatestVersion: "v0.67.0", LatestVersionFoundAt: hoursAgo(7 * 24)},
+			expectWhenIdle:  v0670,
+			expectAtStartup: v0670,
+		},
+		{
+			name: "update found a week ago, responded to the menu for an older version",
+			state: config.UpdatesState{
+				LatestVersion: "v0.67.0", LatestVersionFoundAt: hoursAgo(7 * 24),
+				LastResponse: hoursAgo(25), RespondedVersion: "v0.66.3",
+			},
+			expectWhenIdle:  v0670,
+			expectAtStartup: v0670,
+		},
+		{
+			name: "update found a week ago, responded to the menu already",
+			state: config.UpdatesState{
+				LatestVersion: "v0.67.0", LatestVersionFoundAt: hoursAgo(7 * 24),
+				LastResponse: hoursAgo(25), RespondedVersion: "v0.67.0",
+			},
+			expectWhenIdle:  v0670,
+			expectAtStartup: nil,
+		},
+		{
+			name: "responded less than a day ago",
+			state: config.UpdatesState{
+				LatestVersion: "v0.67.0", LatestVersionFoundAt: hoursAgo(7 * 24),
+				LastResponse: hoursAgo(23), RespondedVersion: "v0.67.0",
+			},
+			expectWhenIdle:  nil,
+			expectAtStartup: nil,
+		},
+		{
+			name: "version skipped",
+			state: config.UpdatesState{
+				LatestVersion: "v0.67.0", LatestVersionFoundAt: hoursAgo(7 * 24),
+				SkippedVersion: "v0.67.0",
+			},
+			expectWhenIdle:  nil,
+			expectAtStartup: nil,
+		},
+		{
+			name: "older version skipped",
+			state: config.UpdatesState{
+				LatestVersion: "v0.67.0", LatestVersionFoundAt: hoursAgo(1),
+				SkippedVersion: "v0.66.3",
+			},
+			expectWhenIdle:  v0670,
+			expectAtStartup: nil,
+		},
+		{
+			name: "update installed already",
+			state: config.UpdatesState{
+				LatestVersion: "v0.67.0", LatestVersionFoundAt: hoursAgo(7 * 24),
+				InstalledVersion: "v0.67.0", InstalledPath: "/bin/lazygit",
+			},
+			expectWhenIdle:  nil,
+			expectAtStartup: nil,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: InstallKindRelease, ExecutablePath: "/bin/lazygit"})
+			updater.now = func() time.Time { return now }
+			updater.appState.(*fakeAppStateStore).state.Updates = s.state
+
+			assert.Equal(t, s.expectWhenIdle, updater.DueReminder(ReminderMenuWhenIdle))
+			assert.Equal(t, s.expectAtStartup, updater.DueReminder(ReminderMenuAtStartup))
+		})
+	}
+}
+
+func TestRecordResponse(t *testing.T) {
+	now := time.Date(2026, 11, 3, 12, 0, 0, 0, time.UTC)
+	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
+
+	updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: InstallKindRelease, ExecutablePath: "/bin/lazygit"})
+	updater.now = func() time.Time { return now }
+	state := updater.appState.(*fakeAppStateStore).state
+	state.Updates = config.UpdatesState{LatestVersion: "v0.67.0", LatestVersionFoundAt: now.Add(-time.Hour).Unix()}
+
+	// Showing the menu doesn't change anything, so other lazygit instances
+	// show it too
+	assert.Equal(t, v0670, updater.DueReminder(ReminderMenuWhenIdle))
+	assert.Equal(t, v0670, updater.DueReminder(ReminderMenuWhenIdle))
+
+	updater.RecordResponse(v0670)
+	assert.Equal(t, now.Unix(), state.Updates.LastResponse)
+	assert.Equal(t, "v0.67.0", state.Updates.RespondedVersion)
+
+	now = now.Add(23 * time.Hour)
+	assert.Nil(t, updater.DueReminder(ReminderMenuWhenIdle))
+	now = now.Add(2 * time.Hour)
+	assert.Equal(t, v0670, updater.DueReminder(ReminderMenuWhenIdle))
+
+	updater.SkipVersion(v0670)
+	assert.Nil(t, updater.DueReminder(ReminderMenuWhenIdle))
+}
+
+func TestIsHandledAfter(t *testing.T) {
+	now := time.Date(2026, 11, 3, 12, 0, 0, 0, time.UTC)
+	shownAt := now
+	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
+
+	updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: InstallKindRelease, ExecutablePath: "/bin/lazygit"})
+	updater.now = func() time.Time { return now }
+	state := updater.appState.(*fakeAppStateStore).state
+	state.Updates = config.UpdatesState{
+		LatestVersion: "v0.67.0", LastResponse: now.Add(-25 * time.Hour).Unix(), RespondedVersion: "v0.67.0",
+	}
+
+	assert.False(t, updater.IsHandledAfter(shownAt))
+
+	// The user responds in another lazygit
+	now = now.Add(5 * time.Second)
+	updater.RecordResponse(v0670)
+	assert.True(t, updater.IsHandledAfter(shownAt))
+
+	// Another lazygit installs the update
+	state.Updates.LastResponse = 0
+	assert.False(t, updater.IsHandledAfter(shownAt))
+	state.Updates.InstalledVersion = "v0.67.0"
+	state.Updates.InstalledPath = "/bin/lazygit"
+	assert.True(t, updater.IsHandledAfter(shownAt))
+}
+
+func TestRemindersAreOffWhenChecksAre(t *testing.T) {
+	updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: InstallKindRelease, ExecutablePath: "/bin/lazygit"})
+	updater.appState.(*fakeAppStateStore).state.Updates = config.UpdatesState{LatestVersion: "v0.67.0"}
+	updater.UserConfig().Update.Method = "never"
+
+	assert.Nil(t, updater.DueReminder(ReminderMenuWhenIdle))
+}
+
+func TestIsStartingUp(t *testing.T) {
+	updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: InstallKindRelease})
+	now := updater.startTime
+	updater.now = func() time.Time { return now }
+
+	assert.True(t, updater.IsStartingUp())
+	now = now.Add(time.Minute)
+	assert.False(t, updater.IsStartingUp())
+}
+
+func TestCheckRecordsWhenItFirstFoundAVersion(t *testing.T) {
+	latest := "v0.67.0"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`{"tag_name":"` + latest + `"}`))
+	}))
+	defer server.Close()
+
+	now := time.Date(2026, 11, 3, 12, 0, 0, 0, time.UTC)
+	updater := newTestUpdater(t, server, "0.66.2", Installation{Kind: InstallKindRelease})
+	updater.now = func() time.Time { return now }
+	state := updater.appState.(*fakeAppStateStore).state
+
+	_, err := updater.CheckForUpdate()
+	assert.NoError(t, err)
+	assert.Equal(t, now.Unix(), state.Updates.LatestVersionFoundAt)
+
+	foundAt := now
+	now = now.Add(48 * time.Hour)
+	_, err = updater.CheckForUpdate()
+	assert.NoError(t, err)
+	assert.Equal(t, foundAt.Unix(), state.Updates.LatestVersionFoundAt)
+	assert.Equal(t, now.Unix(), state.Updates.LastCheck)
+
+	latest = "v0.67.1"
+	_, err = updater.CheckForUpdate()
+	assert.NoError(t, err)
+	assert.Equal(t, now.Unix(), state.Updates.LatestVersionFoundAt)
+}
+
 func newTestUpdater(t *testing.T, server *httptest.Server, currentVersion string, installation Installation) *Updater {
 	t.Helper()
 
@@ -213,6 +411,8 @@ func newTestUpdater(t *testing.T, server *httptest.Server, currentVersion string
 		currentVersion: version,
 		goos:           "linux",
 		goarch:         "amd64",
+		startTime:      time.Now(),
+		now:            time.Now,
 	}
 	if server != nil {
 		updater.httpClient = server.Client()

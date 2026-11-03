@@ -4,9 +4,12 @@ import (
 	"errors"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -14,24 +17,107 @@ import (
 )
 
 type UpdateHelper struct {
-	c       *HelperCommon
-	updater *updates.Updater
+	c                  *HelperCommon
+	updater            *updates.Updater
+	confirmationHelper *ConfirmationHelper
+
+	// When we showed the update menu (Unix time), or 0 if it isn't showing
+	menuShownAt atomic.Int64
+	// The prompt of the update menu, to recognize it. Only accessed on the UI
+	// thread.
+	menuPrompt string
 }
 
-func NewUpdateHelper(c *HelperCommon, updater *updates.Updater) *UpdateHelper {
+func NewUpdateHelper(c *HelperCommon, updater *updates.Updater, confirmationHelper *ConfirmationHelper) *UpdateHelper {
 	return &UpdateHelper{
-		c:       c,
-		updater: updater,
+		c:                  c,
+		updater:            updater,
+		confirmationHelper: confirmationHelper,
 	}
 }
 
 // The link of the note that tells the user about an update
 const UpdateNoteLink = "lazygit-update:"
 
+// How long the user must not have used lazygit before we remind them of an
+// update
+const idleTimeBeforeReminder = time.Minute
+
 func (self *UpdateHelper) OnStartup() {
 	self.c.OnWorkerBackground(func(gocui.Task) error {
 		self.updater.CleanUpAfterUpdate()
 		self.CheckForUpdateInBackground()
+		self.RemindIfDue()
+		return nil
+	})
+}
+
+// RemindIfDue shows the update menu if the user hasn't used lazygit for a
+// while, and a reminder is due. Every lazygit instance that is idle shows it,
+// so that one that the user forgot about in some terminal tab doesn't keep the
+// others from reminding them. When the user responds to the menu in one of
+// them, the others close theirs. Call it on a worker.
+func (self *UpdateHelper) RemindIfDue() {
+	if shownAt := self.menuShownAt.Load(); shownAt != 0 {
+		if self.updater.IsHandledAfter(time.Unix(shownAt, 0)) {
+			self.c.OnUIThreadBackground(self.closeUpdateMenu)
+		}
+		return
+	}
+
+	reminder := updates.ReminderMenuWhenIdle
+	if self.updater.IsStartingUp() {
+		reminder = updates.ReminderMenuAtStartup
+	} else if self.c.GocuiGui().TimeSinceLastInput() < idleTimeBeforeReminder {
+		return
+	}
+
+	version := self.updater.DueReminder(reminder)
+	if version == nil {
+		return
+	}
+
+	menuOpts := self.updateMenuOptions(version)
+	self.c.OnUIThreadBackground(func() error {
+		// Don't get in the way of whatever the user is doing in a popup; we'll
+		// try again later
+		if self.confirmationHelper.IsPopupPanelFocused() {
+			return nil
+		}
+		return self.showUpdateMenu(menuOpts)
+	})
+}
+
+// showUpdateMenu shows the update menu, and remembers that it is showing. Call
+// it on the UI thread.
+func (self *UpdateHelper) showUpdateMenu(menuOpts types.CreateMenuOptions) error {
+	self.menuPrompt = menuOpts.Prompt
+	self.menuShownAt.Store(time.Now().Unix())
+	return self.c.Menu(menuOpts)
+}
+
+// closeUpdateMenu closes the update menu without counting this as a response,
+// because the user responded in another lazygit. Call it on the UI thread.
+func (self *UpdateHelper) closeUpdateMenu() error {
+	if self.menuShownAt.Swap(0) == 0 {
+		return nil
+	}
+
+	// Leave the menu alone if something else is on top of it; the user can
+	// close it themselves then
+	menu := self.c.Contexts().Menu
+	if self.c.Context().Current().GetKey() == context.MENU_CONTEXT_KEY && menu.GetPrompt() == self.menuPrompt {
+		self.c.Context().Pop()
+	}
+	return nil
+}
+
+// recordResponse records that the user responded to the update menu. Call it
+// on the UI thread.
+func (self *UpdateHelper) recordResponse(version *types.VersionNumber) {
+	self.menuShownAt.Store(0)
+	self.c.OnWorkerBackground(func(gocui.Task) error {
+		self.updater.RecordResponse(version)
 		return nil
 	})
 }
@@ -81,7 +167,7 @@ func (self *UpdateHelper) ShowUpdateMenu() error {
 	self.c.OnWorker(func(gocui.Task) error {
 		menuOpts := self.updateMenuOptions(status.AvailableVersion)
 		self.c.OnUIThread(func() error {
-			return self.c.Menu(menuOpts)
+			return self.showUpdateMenu(menuOpts)
 		})
 		return nil
 	})
@@ -138,7 +224,7 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 
 		menuOpts := self.updateMenuOptions(newVersion)
 		self.c.OnUIThread(func() error {
-			return self.c.Menu(menuOpts)
+			return self.showUpdateMenu(menuOpts)
 		})
 		return nil
 	})
@@ -204,10 +290,42 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) typ
 		items = append(items, self.openInstallationInstructionsMenuItem())
 	}
 
+	items = append(items,
+		&types.MenuItem{
+			Label: self.c.Tr.RemindMeTomorrow,
+			// Recording the response below is all it takes
+			OnPress: func() error { return nil },
+		},
+		&types.MenuItem{
+			Label: self.c.Tr.SkipThisVersion,
+			OnPress: func() error {
+				self.c.OnWorkerBackground(func(gocui.Task) error {
+					self.updater.SkipVersion(newVersion)
+					return nil
+				})
+				return nil
+			},
+		},
+	)
+	// Whatever the user chooses counts as a response, and so does closing the
+	// menu
+	for _, item := range items {
+		onPress := item.OnPress
+		item.OnPress = func() error {
+			self.recordResponse(newVersion)
+			return onPress()
+		}
+	}
+
 	return types.CreateMenuOptions{
-		Title:  self.c.Tr.UpdateAvailableTitle,
-		Prompt: strings.Join(paragraphs, "\n\n"),
-		Items:  items,
+		Title:      self.c.Tr.UpdateAvailableTitle,
+		Prompt:     strings.Join(paragraphs, "\n\n"),
+		Items:      items,
+		HideCancel: true,
+		OnCancel: func() error {
+			self.recordResponse(newVersion)
+			return nil
+		},
 	}
 }
 

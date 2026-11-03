@@ -87,6 +87,8 @@ func (gui *Gui) resetHelpersAndControllers() {
 		modeHelper,
 	)
 
+	confirmationHelper := helpers.NewConfirmationHelper(helperCommon)
+
 	gui.helpers = &helpers.Helpers{
 		Refs:            refsHelper,
 		Host:            helpers.NewHostHelper(helperCommon),
@@ -111,11 +113,11 @@ func (gui *Gui) resetHelpersAndControllers() {
 		DiffLine:        diffLineHelper,
 		Repos:           reposHelper,
 		RecordDirectory: recordDirectoryHelper,
-		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater),
+		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater, confirmationHelper),
 		Window:          windowHelper,
 		View:            viewHelper,
 		Refresh:         refreshHelper,
-		Confirmation:    helpers.NewConfirmationHelper(helperCommon),
+		Confirmation:    confirmationHelper,
 		Mode:            modeHelper,
 		AppStatus:       appStatusHelper,
 		InlineStatus:    helpers.NewInlineStatusHelper(helperCommon, windowHelper),
