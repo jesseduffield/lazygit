@@ -127,6 +127,8 @@ type GuiConfig struct {
 	WrapLinesInDiffView bool `yaml:"wrapLinesInDiffView"`
 	// If true, hunk selection mode will be enabled by default when focusing a diff.
 	UseHunkModeInDiffView bool `yaml:"useHunkModeInDiffView"`
+	// Width of the selected line color bar in the main and secondary diff views (0 means full line highlight).
+	SelectedLineColorWidth int `yaml:"selectedLineColorWidth"`
 	// One of 'auto' (default) | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru' | 'pt'
 	Language string `yaml:"language" jsonschema:"enum=auto,enum=en,enum=zh-TW,enum=zh-CN,enum=pl,enum=nl,enum=ja,enum=ko,enum=ru"`
 	// Format used when displaying time e.g. commit time.
@@ -899,6 +901,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			EnlargedSideViewLocation: "left",
 			WrapLinesInDiffView:      true,
 			UseHunkModeInDiffView:    true,
+			SelectedLineColorWidth:   2,
 			Language:                 "auto",
 			TimeFormat:               "02 Jan 06",
 			ShortTimeFormat:          time.Kitchen,
