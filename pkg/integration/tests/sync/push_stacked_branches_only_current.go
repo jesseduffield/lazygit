@@ -6,7 +6,7 @@ import (
 )
 
 var PushStackedBranchesOnlyCurrent = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Use the menu shortcut to push only the current branch in a rebased stack",
+	Description:  "Decline pushing the branches below the current one in a rebased stack, pushing only the current branch",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {

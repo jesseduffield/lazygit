@@ -6,7 +6,7 @@ import (
 )
 
 var PushStackedBranches = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Use the menu shortcut to push a rebased stack, force-pushing all branches after a single confirmation",
+	Description:  "Push a rebased stack of branches in one go, force-pushing all of them after a single confirmation",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
