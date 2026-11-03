@@ -19,8 +19,10 @@ import (
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/logs/tail"
+	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"gopkg.in/yaml.v3"
@@ -300,6 +302,12 @@ func mergeBuildInfo(buildInfo *BuildInfo, goBuildInfo *debug.BuildInfo) {
 		// if lazygit was built from source we'll show the version as the
 		// abbreviated commit hash
 		buildInfo.Version = utils.ShortHash(revision.Value)
+	} else if _, err := types.ParseVersionNumber(goBuildInfo.Main.Version); err == nil {
+		// Built with `go install github.com/jesseduffield/lazygit@<version>`.
+		// Go doesn't record any VCS information in this case, but it does
+		// record the version of the module.
+		buildInfo.Version = strings.TrimPrefix(goBuildInfo.Main.Version, "v")
+		buildInfo.BuildSource = updates.BuildSourceGoInstall
 	}
 
 	// if version hasn't been set we assume that neither has the date
