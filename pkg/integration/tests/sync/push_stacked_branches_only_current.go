@@ -6,7 +6,7 @@ import (
 )
 
 var PushStackedBranchesOnlyCurrent = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Decline pushing the branches below the current one in a rebased stack, pushing only the current branch",
+	Description:  "Use the menu shortcut to push only the current branch in a rebased stack",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
@@ -20,8 +20,9 @@ var PushStackedBranchesOnlyCurrent = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Push")).
-			Select(Contains("Push only 'branch3'")).
-			Confirm()
+			ContainsLines(Contains("o Push only 'branch3'"))
+
+		t.Views().Menu().Press(config.Keybinding{"o"})
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Force push")).

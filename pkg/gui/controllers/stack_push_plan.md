@@ -2,7 +2,7 @@
 
 ## Status and scope
 
-Implementation authorized on 2026-11-03; Step 1 complete; Step 2 is next. The three requested
+Implementation authorized on 2026-11-03; Steps 1–2 complete; Step 3 is next. The three requested
 capabilities are accepted: disable the stack push feature, add direct menu
 shortcuts, and configure the initially selected choice. Exact configuration
 names and behavior below are adopted from the proposed plan.
@@ -108,15 +108,15 @@ omitted configuration retains baseline behavior.
 Depends on Step 1 for serial delivery, but changes a separate capability.
 
 - [x] Adopt the proposed `a` / `o` shortcuts.
-- [ ] Add `menuKey` declarations to the two existing push menu items. Keep
+- [x] Add `menuKey` declarations to the two existing push menu items. Keep
   their labels, ordering, and callbacks; rely on the existing shortcut renderer.
-- [ ] Test both shortcuts through actual menu keypresses without navigation or
+- [x] Test both shortcuts through actual menu keypresses without navigation or
   Enter. Verify remote refs distinguish pushing only current from pushing all
   eligible branches, and required force confirmations remain in effect.
-- [ ] Cover primary-key conflict behavior using the existing menu coverage if
+- [x] Cover primary-key conflict behavior using the existing menu coverage if
   available; otherwise add one focused regression through a customized binding.
   Keep cancellation and ordinary navigation covered by existing cases.
-- [ ] Run `just generate` for added integration tests and affected cheatsheets,
+- [x] Run `just generate` for added integration tests and affected cheatsheets,
   inspect generated changes, run focused e2e cases and commit gates, update the
   tracker, and commit Step 2.
 
@@ -187,10 +187,9 @@ preserve baseline behavior, and other menus retain their existing defaults.
   open gates, decisions, and next action here. Successors reconcile actual
   checkout/process state first, preserve user changes, and finish/account for
   live processes before dispatching another agent. Partial checks stay partial.
-- Active handoff: Step 1 complete in this commit; Step 2 is next. No running
-  processes or agents. All changes belong to this task. Tooling is installed
-  outside the checkout under `/tmp/lazygit-tools`; unit log is
-  `/tmp/lazygit-step1-unit.log`. Next action: implement and validate shortcuts.
+- Active handoff: Step 1 is `55a4e37bd`; Step 2 completes in this commit.
+  Step 3 is next. No running processes or agents. Logs are under
+  `/tmp/lazygit-step2-{unit,e2e}.log`. Next action: add configurable selection.
 
 ## Worklog
 
@@ -205,3 +204,11 @@ preserve baseline behavior, and other menus retain their existing defaults.
   `just e2e 'sync/push_stacked_branches.*'` passed. The initial unit run
   failed solely on ANSI expectations with `NO_COLOR=1`; the clean-environment
   rerun passed. Steps 2–3 and their gates remain open.
+
+- 2026-11-03 — Step 2 (this commit), after `55a4e37bd`: added visible `a`/`o`
+  shortcuts and exercised both existing push paths through keypresses. Added
+  a navigation-conflict/cancel integration case. `just generate`, `just format`,
+  `just build`, `env -u NO_COLOR just unit-test`, `just lint` (0 issues), and
+  `just e2e 'sync/push_stacked_branches.*'` passed. Initial e2e assertions
+  were corrected for prompt rows and adjacency before the passing rerun.
+  Step 3 and its gates remain open.

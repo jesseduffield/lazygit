@@ -650,6 +650,7 @@ var tests = []*components.IntegrationTest{
 	sync.PushStackedBranchesDisabled,
 	sync.PushStackedBranchesNoForce,
 	sync.PushStackedBranchesOnlyCurrent,
+	sync.PushStackedBranchesShortcutConflict,
 	sync.PushTag,
 	sync.PushWithCredentialPrompt,
 	sync.RenameBranchAndPull,

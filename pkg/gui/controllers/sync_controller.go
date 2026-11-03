@@ -105,12 +105,14 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 		Items: []*types.MenuItem{
 			{
 				Label: utils.ResolvePlaceholderString(self.c.Tr.PushBranchAndBranchesBelow, branchName),
+				Keys:  menuKey('a'),
 				OnPress: func() error {
 					return self.pushWithBranchesBelow(currentBranch, branchesBelow)
 				},
 			},
 			{
 				Label: utils.ResolvePlaceholderString(self.c.Tr.PushOnlyCurrentBranch, branchName),
+				Keys:  menuKey('o'),
 				OnPress: func() error {
 					return self.pushCurrentBranch(currentBranch)
 				},
