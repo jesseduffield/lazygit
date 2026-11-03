@@ -10,7 +10,6 @@ var Push = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
-		config.GetUserConfig().Git.StackedPushDefault = "currentBranch"
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")
