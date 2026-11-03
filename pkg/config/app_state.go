@@ -263,6 +263,8 @@ type UpdatesState struct {
 	RespondedVersion string
 	// The version that the user doesn't want to be reminded of
 	SkippedVersion string
+	// When lazygit last printed a reminder after exiting
+	LastExitMessage int64
 
 	// The version that an update installed in place of the executable at
 	// InstalledPath. It takes effect when lazygit is restarted.

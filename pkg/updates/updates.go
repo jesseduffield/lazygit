@@ -41,6 +41,8 @@ const (
 	// responded to the menu for a long time, e.g. because they never leave
 	// lazygit idle.
 	ReminderMenuAtStartup
+	// Print a message to the terminal after lazygit exits
+	ReminderExitMessage
 )
 
 // The part of config.AppConfigurer that the updater needs
@@ -269,6 +271,20 @@ func (u *Updater) DueReminder(reminder Reminder) *types.VersionNumber {
 	return u.dueReminder(u.readAppState(), reminder)
 }
 
+// ClaimExitMessage returns the version to remind the user of in a message
+// after lazygit exits, or nil if no reminder is due, and records that we print
+// the message. We print it at most once a day.
+func (u *Updater) ClaimExitMessage() *types.VersionNumber {
+	var version *types.VersionNumber
+	u.updateAppState(func(state *config.AppState) {
+		version = u.dueReminder(state, ReminderExitMessage)
+		if version != nil {
+			state.Updates.LastExitMessage = u.now().Unix()
+		}
+	})
+	return version
+}
+
 func (u *Updater) dueReminder(state *config.AppState, reminder Reminder) *types.VersionNumber {
 	if !u.RemindersEnabled() {
 		return nil
@@ -289,6 +305,10 @@ func (u *Updater) dueReminder(state *config.AppState, reminder Reminder) *types.
 			u.now().Sub(time.Unix(state.Updates.LatestVersionFoundAt, 0)) < startupReminderDelay {
 			return nil
 		}
+	}
+	if reminder == ReminderExitMessage &&
+		u.now().Sub(time.Unix(state.Updates.LastExitMessage, 0)) < reminderInterval {
+		return nil
 	}
 	return status.AvailableVersion
 }

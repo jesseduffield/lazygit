@@ -1059,6 +1059,10 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 					}
 				}
 
+				if message := gui.helpers.Update.ExitMessage(); message != "" {
+					fmt.Println(message)
+				}
+
 				return nil
 			}
 

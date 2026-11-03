@@ -156,6 +156,61 @@ func (self *UpdateHelper) Note() string {
 	return ""
 }
 
+// ExitMessage returns a message about an available update that we print after
+// lazygit exits, or "" if no reminder is due. This reaches users who never
+// leave lazygit idle, and they are in the shell, where they can update right
+// away.
+func (self *UpdateHelper) ExitMessage() string {
+	version := self.updater.ClaimExitMessage()
+	if version == nil {
+		return ""
+	}
+
+	lines := []string{utils.ResolvePlaceholderString(
+		self.c.Tr.NewVersionAvailable,
+		map[string]string{
+			"newVersion":     version.String(),
+			"currentVersion": self.updater.CurrentVersion().String(),
+		},
+	)}
+
+	installation := self.updater.Installation()
+	installationInstructions := utils.ResolvePlaceholderString(
+		self.c.Tr.ExitMessageInstallationInstructions,
+		map[string]string{"url": constants.Links.InstallationInstructions},
+	)
+	switch {
+	case installation.Kind == updates.InstallKindRelease:
+		if err := self.updater.CheckCanInstall(); err != nil {
+			lines = append(lines,
+				utils.ResolvePlaceholderString(
+					self.c.Tr.UpdateFolderNotWritable,
+					map[string]string{"folder": filepath.Dir(installation.ExecutablePath)},
+				),
+				installationInstructions,
+			)
+		} else if key := self.c.UserConfig().Keybinding.Status.CheckForUpdate.String(); key != "" {
+			lines = append(lines, utils.ResolvePlaceholderString(
+				self.c.Tr.ExitMessageInstallWithKey, map[string]string{"key": key},
+			))
+		}
+	case installation.UpdateCommand() != "":
+		lines = append(lines, utils.ResolvePlaceholderString(
+			self.c.Tr.ExitMessageUpdateCommand, map[string]string{"command": installation.UpdateCommand()},
+		))
+	default:
+		lines = append(lines, self.c.Tr.ExitMessageCheckPackageManager, installationInstructions)
+	}
+
+	lines = append(lines,
+		utils.ResolvePlaceholderString(
+			self.c.Tr.ExitMessageReleaseNotes, map[string]string{"url": constants.Links.Releases},
+		),
+		self.c.Tr.TurnOffUpdateReminders,
+	)
+	return strings.Join(lines, "\n")
+}
+
 // ShowUpdateMenu shows the menu for the update that the note in the
 // bottom-right corner tells the user about
 func (self *UpdateHelper) ShowUpdateMenu() error {

@@ -351,6 +351,32 @@ func TestIsHandledAfter(t *testing.T) {
 	assert.True(t, updater.IsHandledAfter(shownAt))
 }
 
+func TestClaimExitMessage(t *testing.T) {
+	now := time.Date(2026, 11, 3, 12, 0, 0, 0, time.UTC)
+	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
+
+	updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: InstallKindRelease, ExecutablePath: "/bin/lazygit"})
+	updater.now = func() time.Time { return now }
+	state := updater.appState.(*fakeAppStateStore).state
+	state.Updates = config.UpdatesState{LatestVersion: "v0.67.0", LatestVersionFoundAt: now.Add(-8 * 24 * time.Hour).Unix()}
+
+	assert.Equal(t, v0670, updater.ClaimExitMessage())
+	assert.Nil(t, updater.ClaimExitMessage())
+
+	// The exit message isn't a response to the menu, so the menu still
+	// appears
+	assert.Equal(t, v0670, updater.DueReminder(ReminderMenuWhenIdle))
+	assert.Equal(t, v0670, updater.DueReminder(ReminderMenuAtStartup))
+
+	now = now.Add(25 * time.Hour)
+	assert.Equal(t, v0670, updater.ClaimExitMessage())
+
+	// After a response to the menu, there's no exit message for a day
+	now = now.Add(25 * time.Hour)
+	updater.RecordResponse(v0670)
+	assert.Nil(t, updater.ClaimExitMessage())
+}
+
 func TestRemindersAreOffWithUpdateMethodNever(t *testing.T) {
 	updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: InstallKindRelease, ExecutablePath: "/bin/lazygit"})
 	updater.appState.(*fakeAppStateStore).state.Updates = config.UpdatesState{LatestVersion: "v0.67.0"}

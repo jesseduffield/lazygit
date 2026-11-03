@@ -292,6 +292,11 @@ type TranslationSet struct {
 	RemindMeTomorrow                      string
 	SkipThisVersion                       string
 	TurnOffUpdateReminders                string
+	ExitMessageInstallWithKey             string
+	ExitMessageUpdateCommand              string
+	ExitMessageCheckPackageManager        string
+	ExitMessageInstallationInstructions   string
+	ExitMessageReleaseNotes               string
 	IntroPopupMessage                     string
 	NonReloadableConfigWarningTitle       string
 	NonReloadableConfigWarning            string
@@ -1531,6 +1536,11 @@ func EnglishTranslationSet() *TranslationSet {
 		RemindMeTomorrow:                     "Remind me tomorrow",
 		SkipThisVersion:                      "Skip this version",
 		TurnOffUpdateReminders:               "To turn off these reminders, set update.method to never in your config file.",
+		ExitMessageInstallWithKey:            "To install it, start lazygit and press {{.key}} in the status panel.",
+		ExitMessageUpdateCommand:             "To update, run: {{.command}}",
+		ExitMessageCheckPackageManager:       "Check whether your package manager has it yet, or install lazygit from our releases.",
+		ExitMessageInstallationInstructions:  "Installation instructions: {{.url}}",
+		ExitMessageReleaseNotes:              "Release notes: {{.url}}",
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		NonReloadableConfigWarningTitle:      "Config changed",
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,
