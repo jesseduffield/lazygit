@@ -591,7 +591,7 @@ update:
   method: prompt
 
   # Period in days between update checks
-  days: 14
+  days: 1
 
 # Background refreshes
 refresher:

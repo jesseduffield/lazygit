@@ -80,6 +80,14 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 		}
 	}
 
+	// The check itself happens at most once a day (see update.days); checking
+	// every hour whether it is due makes sure that it happens even if lazygit
+	// keeps running for days.
+	self.goEvery(time.Hour, self.gui.stopChan, nil, func(_ bool) error {
+		self.gui.helpers.Update.CheckForUpdateInBackground()
+		return nil
+	})
+
 	if self.gui.Config.GetDebug() {
 		self.goEvery(time.Second*time.Duration(10), self.gui.stopChan, nil, func(_ bool) error {
 			formatBytes := func(b uint64) string {

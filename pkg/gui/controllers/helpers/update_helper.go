@@ -25,11 +25,67 @@ func NewUpdateHelper(c *HelperCommon, updater *updates.Updater) *UpdateHelper {
 	}
 }
 
+// The link of the note that tells the user about an update
+const UpdateNoteLink = "lazygit-update:"
+
 func (self *UpdateHelper) OnStartup() {
 	self.c.OnWorkerBackground(func(gocui.Task) error {
 		self.updater.CleanUpAfterUpdate()
+		self.CheckForUpdateInBackground()
 		return nil
 	})
+}
+
+// CheckForUpdateInBackground checks for an update if one is due, and shows the
+// result in the note in the bottom-right corner. Call it on a worker.
+func (self *UpdateHelper) CheckForUpdateInBackground() {
+	if err := self.updater.CheckForUpdateIfDue(); err != nil {
+		self.c.Log.Errorf("Error checking for an update: %v", err)
+	}
+	self.rerenderNote()
+}
+
+func (self *UpdateHelper) rerenderNote() {
+	// The information view is rendered in every layout, so we only need to
+	// trigger one
+	self.c.OnUIThreadBackground(func() error { return nil })
+}
+
+// Note returns the note that tells the user about an update, for the bottom-right
+// corner, or "" if there's nothing to tell
+func (self *UpdateHelper) Note() string {
+	if !self.updater.ChecksEnabled() {
+		return ""
+	}
+
+	status := self.updater.Status()
+	if status.InstalledVersion != nil {
+		return style.FgGreen.Sprint(utils.ResolvePlaceholderString(
+			self.c.Tr.RestartToUseNewVersion, map[string]string{"newVersion": status.InstalledVersion.String()},
+		))
+	}
+	if status.AvailableVersion != nil {
+		return style.FgGreen.Sprint(style.PrintHyperlink(self.c.Tr.UpdateAvailableNote, UpdateNoteLink))
+	}
+	return ""
+}
+
+// ShowUpdateMenu shows the menu for the update that the note in the
+// bottom-right corner tells the user about
+func (self *UpdateHelper) ShowUpdateMenu() error {
+	status := self.updater.Status()
+	if status.AvailableVersion == nil || status.InstalledVersion != nil {
+		return nil
+	}
+
+	self.c.OnWorker(func(gocui.Task) error {
+		menuOpts := self.updateMenuOptions(status.AvailableVersion)
+		self.c.OnUIThread(func() error {
+			return self.c.Menu(menuOpts)
+		})
+		return nil
+	})
+	return nil
 }
 
 func (self *UpdateHelper) CheckForUpdateDisabledReason() *types.DisabledReason {
@@ -72,7 +128,7 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 			return nil
 		}
 
-		if installedVersion := self.updater.InstalledVersion(); installedVersion != nil && !installedVersion.IsOlderThan(newVersion) {
+		if installedVersion := self.updater.Status().InstalledVersion; installedVersion != nil && !installedVersion.IsOlderThan(newVersion) {
 			self.c.OnUIThread(func() error {
 				self.c.Toast(self.updateInstalledMessage(installedVersion))
 				return nil

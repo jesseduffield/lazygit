@@ -235,7 +235,6 @@ func writeAndClose(file *os.File, content []byte) error {
 // AppState stores data between runs of the app like when the last update check
 // was performed and which other repos have been checked out
 type AppState struct {
-	LastUpdateCheck     int64
 	RecentRepos         []string
 	StartupPopupVersion int
 	LastVersion         string // this is the last version the user was using, for the purpose of showing release notes
@@ -251,6 +250,11 @@ type AppState struct {
 
 // UpdatesState is what lazygit remembers about updates
 type UpdatesState struct {
+	// When the last successful check for an update happened (Unix time), and
+	// the latest version that it found
+	LastCheck     int64
+	LatestVersion string
+
 	// The version that an update installed in place of the executable at
 	// InstalledPath. It takes effect when lazygit is restarted.
 	InstalledVersion string

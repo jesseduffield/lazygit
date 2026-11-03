@@ -1005,7 +1005,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 		},
 		Update: UpdateConfig{
 			Method: "prompt",
-			Days:   14,
+			Days:   1,
 		},
 		ConfirmOnQuit:                false,
 		QuitOnTopLevelReturn:         false,
