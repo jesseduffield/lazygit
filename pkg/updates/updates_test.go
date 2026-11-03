@@ -385,6 +385,73 @@ func TestRemindersAreOffWithUpdateMethodNever(t *testing.T) {
 	assert.Nil(t, updater.DueReminder(ReminderMenuWhenIdle))
 }
 
+func TestVersionToInstallInBackground(t *testing.T) {
+	executablePath := filepath.Join(t.TempDir(), "lazygit")
+	assert.NoError(t, os.WriteFile(executablePath, []byte("old"), 0o755))
+	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
+
+	scenarios := []struct {
+		name     string
+		kind     InstallKind
+		method   string
+		state    config.UpdatesState
+		expected *types.VersionNumber
+	}{
+		{
+			name:     "update available",
+			kind:     InstallKindRelease,
+			method:   "background",
+			state:    config.UpdatesState{LatestVersion: "v0.67.0"},
+			expected: v0670,
+		},
+		{
+			name:     "prompt",
+			kind:     InstallKindRelease,
+			method:   "prompt",
+			state:    config.UpdatesState{LatestVersion: "v0.67.0"},
+			expected: nil,
+		},
+		{
+			name:     "installed with Homebrew",
+			kind:     InstallKindHomebrew,
+			method:   "background",
+			state:    config.UpdatesState{LatestVersion: "v0.67.0"},
+			expected: nil,
+		},
+		{
+			name:     "no update",
+			kind:     InstallKindRelease,
+			method:   "background",
+			state:    config.UpdatesState{LatestVersion: "v0.66.2"},
+			expected: nil,
+		},
+		{
+			name:     "installed already",
+			kind:     InstallKindRelease,
+			method:   "background",
+			state:    config.UpdatesState{LatestVersion: "v0.67.0", InstalledVersion: "v0.67.0", InstalledPath: executablePath},
+			expected: nil,
+		},
+		{
+			name:     "skipped",
+			kind:     InstallKindRelease,
+			method:   "background",
+			state:    config.UpdatesState{LatestVersion: "v0.67.0", SkippedVersion: "v0.67.0"},
+			expected: nil,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: s.kind, ExecutablePath: executablePath})
+			updater.UserConfig().Update.Method = s.method
+			updater.appState.(*fakeAppStateStore).state.Updates = s.state
+
+			assert.Equal(t, s.expected, updater.VersionToInstallInBackground())
+		})
+	}
+}
+
 func TestIsStartingUp(t *testing.T) {
 	updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: InstallKindRelease})
 	now := updater.startTime

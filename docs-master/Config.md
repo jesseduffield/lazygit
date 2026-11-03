@@ -588,6 +588,11 @@ worktree:
 # Periodic update checks
 update:
   # One of: 'prompt' (default) | 'background' | 'never'
+  # 'prompt': check for updates regularly, and remind you when there is one.
+  # 'background': like 'prompt', but if lazygit was installed from one of our
+  # release archives, install updates without asking.
+  # 'never': don't check for updates. You can still check with `u` in the status
+  # panel.
   method: prompt
 
   # Period in days between update checks

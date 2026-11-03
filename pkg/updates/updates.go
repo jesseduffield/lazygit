@@ -286,7 +286,7 @@ func (u *Updater) ClaimExitMessage() *types.VersionNumber {
 }
 
 func (u *Updater) dueReminder(state *config.AppState, reminder Reminder) *types.VersionNumber {
-	if !u.RemindersEnabled() {
+	if !u.RemindersEnabled() || u.IsInstalling() {
 		return nil
 	}
 
@@ -308,6 +308,26 @@ func (u *Updater) dueReminder(state *config.AppState, reminder Reminder) *types.
 	}
 	if reminder == ReminderExitMessage &&
 		u.now().Sub(time.Unix(state.Updates.LastExitMessage, 0)) < reminderInterval {
+		return nil
+	}
+	return status.AvailableVersion
+}
+
+// VersionToInstallInBackground returns the version that lazygit should install
+// without asking the user, or nil if there's none. This is the case if the user
+// config asks for it, and lazygit can update itself.
+func (u *Updater) VersionToInstallInBackground() *types.VersionNumber {
+	if u.installation.Kind != InstallKindRelease || u.UserConfig().Update.Method != "background" {
+		return nil
+	}
+
+	state := u.readAppState()
+	status := u.statusFromAppState(state)
+	if status.AvailableVersion == nil || status.InstalledVersion != nil ||
+		state.Updates.SkippedVersion == state.Updates.LatestVersion {
+		return nil
+	}
+	if err := u.CheckCanInstall(); err != nil {
 		return nil
 	}
 	return status.AvailableVersion
