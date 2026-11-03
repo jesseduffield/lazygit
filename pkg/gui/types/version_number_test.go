@@ -79,3 +79,15 @@ func TestParseVersionNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestVersionNumberString(t *testing.T) {
+	for _, versionStr := range []string{"1.2.3", "v1.2.3"} {
+		version, err := ParseVersionNumber(versionStr)
+		assert.NoError(t, err)
+		assert.Equal(t, "v1.2.3", version.String())
+	}
+
+	version, err := ParseVersionNumber("1.2")
+	assert.NoError(t, err)
+	assert.Equal(t, "v1.2.0", version.String())
+}
