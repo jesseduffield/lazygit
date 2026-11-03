@@ -212,7 +212,7 @@ type CreateMenuOptions struct {
 	Title                      string
 	Prompt                     string // a message that will be displayed above the menu options
 	Items                      []*MenuItem
-	InitialSelection           int // index of the initially selected item; out-of-range indices select the first item
+	InitialSelection           int // index of the initially selected item; clamped to the available items
 	HideCancel                 bool
 	OnCancel                   func() error // called when the menu is dismissed without selecting an item
 	ColumnAlignment            []utils.Alignment
