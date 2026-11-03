@@ -71,7 +71,10 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	gui.State.Contexts.Menu.SetKeybindingsTakePrecedence(!opts.KeepConflictingKeybindings)
 	gui.State.Contexts.Menu.SetFilterAsYouType(opts.FilterAsYouType)
 	gui.State.Contexts.Menu.SetOnCancel(opts.OnCancel)
-	gui.State.Contexts.Menu.SetSelection(0)
+	if opts.InitialSelection < 0 || opts.InitialSelection >= len(opts.Items) {
+		opts.InitialSelection = 0
+	}
+	gui.State.Contexts.Menu.SetSelection(opts.InitialSelection)
 
 	gui.Views.MenuFilter.ClearTextArea()
 	gui.Views.MenuFilter.RenderTextArea()

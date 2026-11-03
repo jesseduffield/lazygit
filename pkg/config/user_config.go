@@ -328,6 +328,8 @@ type GitConfig struct {
 	MainBranches []string `yaml:"mainBranches" jsonschema:"uniqueItems=true"`
 	// If true, offer to push branches stacked below the current branch when they have unpushed commits. If false, push only the current branch, keeping upstream and force-push prompts.
 	EnableStackedPush bool `yaml:"enableStackedPush"`
+	// Initially selected choice in the stacked push menu: 'allBranches' pushes the current branch and eligible branches below it; 'currentBranch' pushes only the current branch. Ignored when enableStackedPush is false.
+	StackedPushDefault string `yaml:"stackedPushDefault" jsonschema:"enum=allBranches,enum=currentBranch"`
 	// Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks will be skipped when the commit message starts with 'WIP'
 	SkipHookPrefix string `yaml:"skipHookPrefix"`
 	// If true, periodically fetch from remote
@@ -980,6 +982,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			SkipHookPrefix:               "WIP",
 			MainBranches:                 []string{"master", "main"},
 			EnableStackedPush:            true,
+			StackedPushDefault:           "allBranches",
 			AutoFetch:                    true,
 			AutoRefresh:                  true,
 			AutoDetectExternalChanges:    true,

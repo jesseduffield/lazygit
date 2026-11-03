@@ -9,7 +9,9 @@ var MenuScrollPositionIsReset = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "A menu that is opened after a scrolled down one starts at the top again",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.StackedPushDefault = "currentBranch"
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFile("myfile", "myfile")
 	},

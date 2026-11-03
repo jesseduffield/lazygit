@@ -2,7 +2,8 @@
 
 ## Status and scope
 
-Implementation authorized on 2026-11-03; Steps 1–2 complete; Step 3 is next. The three requested
+Implementation complete and locally validated on 2026-11-03. Steps 1–3 are
+complete. External CI has not been run for these changes. The three requested
 capabilities are accepted: disable the stack push feature, add direct menu
 shortcuts, and configure the initially selected choice. Exact configuration
 names and behavior below are adopted from the proposed plan.
@@ -13,7 +14,7 @@ The checkout was clean before this plan. No separate reference implementation
 or reference branch was supplied; the baseline implementation is the reference.
 Implementation changes and validation are tracked below.
 
-## Evidence and existing behavior
+## Baseline evidence (before Steps 1–3)
 
 - `sync_controller.go`: `HandlePush` reaches `push`, which unconditionally
   opens a two-choice menu when `unpushedBranchesBelow` returns any branches.
@@ -42,9 +43,9 @@ Implementation changes and validation are tracked below.
   several Git versions and a race job, generated-file freshness, and lint.
   These are inspected CI callers, not CI runs performed for this plan.
 
-## Proposed behavior and decisions
+## Accepted behavior and decisions
 
-Recommended configuration, preserving existing defaults:
+Configuration defaults, preserving baseline behavior:
 
 ```yaml
 git:
@@ -62,10 +63,10 @@ git:
   stackedPushDefault: currentBranch
 ```
 
-- Recommendation: disabling means push only the current branch, independently
+- Disabling means push only the current branch, independently
   of the menu default. Do not silently push other branches when disabled.
   Adopted for implementation following the user's request to implement the plan.
-- Recommendation: `a` directly executes the current-plus-below choice, and `o`
+- `a` directly executes the current-plus-below choice, and `o`
   directly executes only-current. Adopted for implementation. Shortcuts invoke the existing callbacks, including subsequent
   force confirmations; they do not merely highlight a row.
 - Keep item order stable. Changing the default changes the highlighted row;
@@ -128,21 +129,23 @@ behavior as selecting and confirming their corresponding menu items.
 Depends on Steps 1 and 2. The shared API has a real consumer in this same step;
 adding an optional selection is new behavior, not a preparatory pure refactor.
 
-- [ ] Add the zero-default `InitialSelection` option and consume it in
+- [x] Add the zero-default `InitialSelection` option and consume it in
   `createMenu`, replacing the hard-coded selection with a bounded selection.
-- [ ] Add `git.stackedPushDefault` with `allBranches` and `currentBranch` values,
+- [x] Add `git.stackedPushDefault` with `allBranches` and `currentBranch` values,
   default `allBranches`. Add schema enum tags and runtime `validateEnum` coverage
   for both accepted values and invalid values, following existing config tests.
-- [ ] Map the setting to initial selection in the push menu. Keep shortcut
+- [x] Map the setting to initial selection in the push menu. Keep shortcut
   actions stable under either selection. When Step 1 disables the feature,
   the setting has no effect.
-- [ ] Test opening the menu and pressing Enter without any selection call for
+- [x] Test opening the menu and pressing Enter without any selection call for
   each default; assert selected row and resulting remote refs. Reopen after
   choosing a different row to prove selection resets to the configured default.
-- [ ] Cover disabled plus `allBranches`, disabled plus `currentBranch`, no
+- [x] Cover disabled plus `allBranches`, disabled plus `currentBranch`, no
   eligible branches, and an unrelated menu retaining its first-row default.
-  Add focused shared-menu boundary tests if an existing appropriate seam exists.
-- [ ] Run `just generate`, focused config/menu tests and stacked-push e2e tests;
+  There is no existing isolated `createMenu` unit-test seam; actual menu
+  integration tests cover selection and reset, with an explicit invalid-index
+  fallback retained in `createMenu`.
+- [x] Run `just generate`, focused config/menu tests and stacked-push e2e tests;
   run commit gates, update this tracker, and commit Step 3.
 
 Exit: Enter follows the configured default on every opening, omitted settings
@@ -158,11 +161,11 @@ preserve baseline behavior, and other menus retain their existing defaults.
   currently selected. If selected later, the skill prescribes a fresh-context
   `gpt-6.1-sol` reviewer at high effort; report unavailability, never substitute
   silently. Reviewers edit the tracker and identify corrections, not fixes.
-- Pass repository path, this plan, applicable AGENTS instructions, exact scope,
-  baseline/current revisions, dependencies, and open questions to each agent.
-  Required in-scope corrections get stable suffixes such as 2a, run before
-  dependent work, and receive their own validation; optional advice stays
-  separate. Do not renumber existing steps.
+- Keep scope, baseline/current revisions, dependencies, and open gates in this
+  tracker. If a later review is requested, pass these and repository instructions
+  to the reviewer. Required in-scope corrections get stable suffixes such as 2a,
+  run before dependent work, and receive their own validation; optional advice
+  stays separate. Do not renumber existing steps.
 - Implementation commit gates: `just format`, `just build`, `just unit-test`,
   `just lint`, and relevant `just e2e sync/<test_name>` cases. Generate whenever
   configuration, tests, or keybindings require it. Run focused tests per step;
@@ -187,9 +190,10 @@ preserve baseline behavior, and other menus retain their existing defaults.
   open gates, decisions, and next action here. Successors reconcile actual
   checkout/process state first, preserve user changes, and finish/account for
   live processes before dispatching another agent. Partial checks stay partial.
-- Active handoff: Step 1 is `55a4e37bd`; Step 2 completes in this commit.
-  Step 3 is next. No running processes or agents. Logs are under
-  `/tmp/lazygit-step2-{unit,e2e}.log`. Next action: add configurable selection.
+- Final handoff: Step 1 is `55a4e37bd`; Step 2 is `3c350ea39`; Step 3
+  completes in this commit. No processes or agents are running. Logs are under
+  `/tmp/lazygit-step3-{unit,e2e}.log`. All local implementation gates passed;
+  external CI remains unexecuted. No further implementation is pending.
 
 ## Worklog
 
@@ -198,17 +202,29 @@ preserve baseline behavior, and other menus retain their existing defaults.
   checks executed. Final plan diff reviewed; `git diff --check` passed.
   All implementation and execution gates remain open.
 
-- 2026-11-03 — Step 1 (this commit): added `enableStackedPush` and a disabled
+- 2026-11-03 — Step 1 (`55a4e37bd`): added `enableStackedPush` and a disabled
   integration case. `just generate`, `just format`, `just build`,
   `env -u NO_COLOR just unit-test`, `just lint` (0 issues), and
   `just e2e 'sync/push_stacked_branches.*'` passed. The initial unit run
   failed solely on ANSI expectations with `NO_COLOR=1`; the clean-environment
   rerun passed. Steps 2–3 and their gates remain open.
 
-- 2026-11-03 — Step 2 (this commit), after `55a4e37bd`: added visible `a`/`o`
+- 2026-11-03 — Step 2 (`3c350ea39`), after `55a4e37bd`: added visible `a`/`o`
   shortcuts and exercised both existing push paths through keypresses. Added
   a navigation-conflict/cancel integration case. `just generate`, `just format`,
   `just build`, `env -u NO_COLOR just unit-test`, `just lint` (0 issues), and
   `just e2e 'sync/push_stacked_branches.*'` passed. Initial e2e assertions
   were corrected for prompt rows and adjacency before the passing rerun.
   Step 3 and its gates remain open.
+
+- 2026-11-03 — Step 3 (this commit), after `3c350ea39`: added
+  `stackedPushDefault`, runtime/schema enum validation, and an initial-selection
+  menu option with first-item fallback for invalid indices. Tests cover Enter
+  for both defaults, reopening/reset, shortcuts independent of selection, both
+  disabled/default combinations, ordinary push, and an unrelated menu.
+  `just generate`, `just format`, `just build`,
+  `env -u NO_COLOR just unit-test`, and `just lint` (0 issues) passed.
+  `just e2e 'sync/.*' 'ui/menu_scroll_position_is_reset' 'ui/empty_menu'
+  'filter_and_search/filter_menu.*' 'custom_commands/.*menu.*'` passed.
+  Final diff reviewed and `git diff --check` passed. No implementation gates
+  remain open locally; external CI was not executed.

@@ -100,8 +100,9 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 
 	branchName := map[string]string{"branchName": currentBranch.Name}
 	return self.c.Menu(types.CreateMenuOptions{
-		Title:  self.c.Tr.Push,
-		Prompt: self.branchesBelowPrompt(currentBranch, branchesBelow),
+		Title:            self.c.Tr.Push,
+		Prompt:           self.branchesBelowPrompt(currentBranch, branchesBelow),
+		InitialSelection: lo.Ternary(self.c.UserConfig().Git.StackedPushDefault == "currentBranch", 1, 0),
 		Items: []*types.MenuItem{
 			{
 				Label: utils.ResolvePlaceholderString(self.c.Tr.PushBranchAndBranchesBelow, branchName),

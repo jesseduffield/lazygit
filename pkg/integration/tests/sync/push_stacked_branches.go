@@ -11,6 +11,7 @@ var PushStackedBranches = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().Git.LocalBranchSortOrder = "alphabetical"
+		config.GetUserConfig().Git.StackedPushDefault = "currentBranch"
 	},
 	SetupRepo: func(shell *Shell) {
 		createRebasedStackOfBranches(shell)
