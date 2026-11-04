@@ -163,8 +163,8 @@ func (u *Updater) skipUpdateCheck() bool {
 		return true
 	}
 
-	if u.Config.GetBuildSource() != "buildBinary" {
-		u.Log.Info("Binary is not built with the buildBinary flag so we won't check for an update")
+	if u.Config.GetBuildSource() != "binaryRelease" {
+		u.Log.Info("Binary is not built with the binaryRelease flag so we won't check for an update")
 		return true
 	}
 
