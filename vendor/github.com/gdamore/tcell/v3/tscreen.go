@@ -33,8 +33,10 @@ import (
 	"time"
 	"unicode/utf8"
 
+	gencoding "github.com/gdamore/encoding"
 	"github.com/gdamore/tcell/v3/color"
 	"github.com/gdamore/tcell/v3/vt"
+	"golang.org/x/text/encoding"
 	"golang.org/x/text/transform"
 )
 
@@ -145,6 +147,19 @@ func (o OptControlStringLimit) apply(t *tScreen) {
 }
 
 // Some terminal escapes that are basically universal.
+// Final bytes and parameters for the CSI sequences that csi builds.
+const (
+	csiSGR = 'm' // select graphic rendition
+	csiCUP = 'H' // cursor position: row, column (1-based)
+
+	sgrFg8      = 30 // plus a color below 8
+	sgrBg8      = 40 // plus a color below 8
+	sgrFgExt    = 38 // extended foreground, followed by sgrColor256 or sgrColorRGB
+	sgrBgExt    = 48 // extended background, followed by sgrColor256 or sgrColorRGB
+	sgrColor256 = 5  // followed by a palette index
+	sgrColorRGB = 2  // followed by red, green, blue
+)
+
 // We would really like to be able to use private mode queries for some of
 // these but generally we've found that support for queries is not always present,
 // even when the private modes can be controlled. It appears that *all* terminals
@@ -171,33 +186,27 @@ const (
 	underColor        = "\x1b[58:5:%dm"
 	underRGB          = "\x1b[58:2::%d:%d:%dm"
 	underFg           = "\x1b[59m"
-	enableAltChars    = "\x1b(B\x1b)0"                      // set G0 as US-ASCII, G1 as DEC line drawing
-	startAltChars     = "\x0e"                              // aka Shift-Out
-	endAltChars       = "\x0f"                              // aka Shift-In
-	setFg8            = "\x1b[3%dm"                         // for colors less than 8
-	setFg256          = "\x1b[38;5;%dm"                     // for colors less than 256
-	setFgRgb          = "\x1b[38;2;%d;%d;%dm"               // for RGB
-	setBg8            = "\x1b[4%dm"                         // color colors less than 8
-	setBg256          = "\x1b[48;5;%dm"                     // for colors less than 256
-	setBgRgb          = "\x1b[48;2;%d;%d;%dm"               // for RGB
-	setFgBgRgb        = "\x1b[38;2;%d;%d;%d;48;2;%d;%d;%dm" // for RGB, in one shot
-	enterCA           = "\x1b[?1049h"                       // alternate screen
-	exitCA            = "\x1b[?1049l"                       // alternate screen
-	enterKeypad       = "\x1b[?1h\x1b="                     // Note mode 1 might not be supported everywhere
-	exitKeypad        = "\x1b[?1l\x1b>"                     // Also mode 1
-	requestWindowSize = "\x1b[18t"                          // For modern terminals
-	requestPrimaryDA  = "\x1b[c"                            // Request primary device attributes
-	requestExtAttr    = "\x1b[>q"                           // Request extended attribute (emulator name and version)
-	setClipboard      = "\x1b]52;c;%s\x1b\\"                // Clipboard content is base64
-	notifyDesktop9    = "\x1b]9;%[2]s\x1b\\"                // Args are title, body (but OSC 9 only has body)
-	notifyDesktop777  = "\x1b]777;notify;%s;%s\x1b\\"       // Most commonly supported
-	queryKittyKbd     = "\x1b[?u"                           // Query for Kitty keyboard support
-	enableKittyKbd    = "\x1b[=1u"                          // Technically this pushes
-	enableKittyKbdAdv = "\x1b[=31u"                         // disambiguation, events, alternate keys, all keys, text
-	disableKittyKbd   = "\x1b[=0u"                          // Technically this means pop previous mode
-	queryXTermKbd     = "\x1b[?4m"                          // Query for XTerm modify other keys support
-	enableXTermKbd    = "\x1b[>4;2m"                        // Enable modify other keys protocol
-	disableXTermKbd   = "\x1b[>4;0m"                        // Disable modify other keys protocol
+	enableAltChars    = "\x1b(B\x1b)0"                // set G0 as US-ASCII, G1 as DEC line drawing
+	startAltChars     = "\x0e"                        // aka Shift-Out
+	endAltChars       = "\x0f"                        // aka Shift-In
+	enterCA           = "\x1b[?1049h"                 // alternate screen
+	exitCA            = "\x1b[?1049l"                 // alternate screen
+	enterKeypad       = "\x1b[?1h\x1b="               // Note mode 1 might not be supported everywhere
+	exitKeypad        = "\x1b[?1l\x1b>"               // Also mode 1
+	requestWindowSize = "\x1b[18t"                    // For modern terminals
+	requestPixelSize  = "\x1b[14t"                    // Text area in pixels, for when the tty does not know it
+	requestPrimaryDA  = "\x1b[c"                      // Request primary device attributes
+	requestExtAttr    = "\x1b[>q"                     // Request extended attribute (emulator name and version)
+	setClipboard      = "\x1b]52;c;%s\x1b\\"          // Clipboard content is base64
+	notifyDesktop9    = "\x1b]9;%[2]s\x1b\\"          // Args are title, body (but OSC 9 only has body)
+	notifyDesktop777  = "\x1b]777;notify;%s;%s\x1b\\" // Most commonly supported
+	queryKittyKbd     = "\x1b[?u"                     // Query for Kitty keyboard support
+	enableKittyKbd    = "\x1b[=1u"                    // Technically this pushes
+	enableKittyKbdAdv = "\x1b[=31u"                   // disambiguation, events, alternate keys, all keys, text
+	disableKittyKbd   = "\x1b[=0u"                    // Technically this means pop previous mode
+	queryXTermKbd     = "\x1b[?4m"                    // Query for XTerm modify other keys support
+	enableXTermKbd    = "\x1b[>4;2m"                  // Enable modify other keys protocol
+	disableXTermKbd   = "\x1b[>4;0m"                  // Disable modify other keys protocol
 )
 
 // NewTerminfoScreenFromTty returns a Screen using a custom Tty implementation.
@@ -247,7 +256,8 @@ type tScreen struct {
 	cursory            int
 	acs                map[rune]string
 	charset            string
-	encoder            transform.Transformer
+	encoder            transform.Transformer // nil for UTF-8
+	asciiSuperset      bool                  // the encoder passes ASCII through unchanged
 	decoder            transform.Transformer
 	fallback           map[rune]string
 	ncolor             int
@@ -407,7 +417,11 @@ func (t *tScreen) Init() error {
 
 	t.charset = getCharset()
 	if enc := GetEncoding(t.charset); enc != nil {
-		t.encoder = enc.NewEncoder()
+		// UTF-8 needs no encoder; drawCell writes valid UTF-8 as is.
+		if enc != gencoding.UTF8 && enc != encoding.Nop {
+			t.encoder = enc.NewEncoder()
+			t.asciiSuperset = isASCIISuperset(enc)
+		}
 		t.decoder = enc.NewDecoder()
 	} else {
 		return ErrNoCharset
@@ -704,6 +718,26 @@ func (t *tScreen) encodeStr(s string) []byte {
 	return buf
 }
 
+// isASCIISuperset reports whether enc encodes the 7-bit ASCII range as
+// itself, as ISO 8859, KOI8 and most other encodings do (EBCDIC does not).
+func isASCIISuperset(enc encoding.Encoding) bool {
+	ascii := make([]byte, utf8.RuneSelf)
+	for i := range ascii {
+		ascii[i] = byte(i)
+	}
+	out, err := enc.NewEncoder().Bytes(ascii)
+	return err == nil && bytes.Equal(out, ascii)
+}
+
+func isASCII(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] >= utf8.RuneSelf {
+			return false
+		}
+	}
+	return true
+}
+
 // resolvePalette looks up a color to obtain the palette entry for it.
 func (t *tScreen) resolvePalette(c Color) Color {
 	if v, ok := t.colors[c]; ok {
@@ -740,19 +774,19 @@ func (t *tScreen) sendFgBg(fg Color, bg Color, attr AttrMask) AttrMask {
 		if fg.IsRGB() && bg.IsRGB() {
 			r1, g1, b1 := fg.RGB()
 			r2, g2, b2 := bg.RGB()
-			t.Printf(setFgBgRgb, r1, g1, b1, r2, g2, b2)
+			t.csi(csiSGR, sgrFgExt, sgrColorRGB, int(r1), int(g1), int(b1), sgrBgExt, sgrColorRGB, int(r2), int(g2), int(b2))
 			return attr
 		}
 
 		if fg.IsRGB() {
 			r, g, b := fg.RGB()
-			t.Printf(setFgRgb, r, g, b)
+			t.csi(csiSGR, sgrFgExt, sgrColorRGB, int(r), int(g), int(b))
 			fg = ColorDefault
 		}
 
 		if bg.IsRGB() {
 			r, g, b := bg.RGB()
-			t.Printf(setBgRgb, r, g, b)
+			t.csi(csiSGR, sgrBgExt, sgrColorRGB, int(r), int(g), int(b))
 			bg = ColorDefault
 		}
 	}
@@ -761,9 +795,9 @@ func (t *tScreen) sendFgBg(fg Color, bg Color, attr AttrMask) AttrMask {
 		fg = t.resolvePalette(fg)
 		fgc := fg & 0xffffff
 		if fgc < 8 {
-			t.Printf(setFg8, fgc)
+			t.csi(csiSGR, sgrFg8+int(fgc))
 		} else if fgc < 256 {
-			t.Printf(setFg256, fgc)
+			t.csi(csiSGR, sgrFgExt, sgrColor256, int(fgc))
 		}
 	}
 
@@ -771,9 +805,9 @@ func (t *tScreen) sendFgBg(fg Color, bg Color, attr AttrMask) AttrMask {
 		bg = t.resolvePalette(bg)
 		bgc := bg & 0xffffff
 		if bgc < 8 {
-			t.Printf(setBg8, bgc)
+			t.csi(csiSGR, sgrBg8+int(bgc))
 		} else if bgc < 256 {
-			t.Printf(setBg256, bgc)
+			t.csi(csiSGR, sgrBgExt, sgrColor256, int(bgc))
 		}
 	}
 
@@ -859,13 +893,15 @@ func urlNeedsEmission(oldUrl, newUrl urlInfo) bool {
 
 func (t *tScreen) drawCell(x, y int) int {
 
-	str, style, width := t.cells.Get(x, y)
+	// Check Dirty first: most cells are clean, and Get copies the style.
 	if !t.cells.Dirty(x, y) {
+		_, _, width := t.cells.Get(x, y)
 		return width
 	}
+	str, style, width := t.cells.Get(x, y)
 
 	if t.cy != y || t.cx != x {
-		t.Printf(setCursorPosition, y+1, x+1)
+		t.csi(csiCUP, y+1, x+1)
 		t.cx = x
 		t.cy = y
 	}
@@ -906,8 +942,19 @@ func (t *tScreen) drawCell(x, y int) int {
 		width = 1
 	}
 
-	buf := t.encodeStr(str)
-	str = string(buf)
+	// Skip the encoder (and its allocations) for text it would pass through
+	// unchanged.
+	switch {
+	case str[0] == encoding.ASCIISub:
+		// The encoder path treats SUB as unencodable and draws the fallback.
+		str = string(t.encodeStr(str))
+	case t.encoder == nil && utf8.ValidString(str):
+		// UTF-8 is written as is.
+	case t.asciiSuperset && isASCII(str):
+		// The encoding writes ASCII as itself.
+	default:
+		str = string(t.encodeStr(str))
+	}
 
 	if width > 1 && str == "?" {
 		// No FullWidth character support
@@ -963,8 +1010,13 @@ func (t *tScreen) HideCursor() {
 	t.ShowCursor(-1, -1)
 }
 
-func (t *tScreen) showCursor() {
+func (t *tScreen) GetCursor() (x, y int) {
+	t.Lock()
+	defer t.Unlock()
+	return t.cursorx, t.cursory
+}
 
+func (t *tScreen) showCursor() {
 	x, y := t.cursorx, t.cursory
 	w, h := t.cells.Size()
 	if x < 0 || y < 0 || x >= w || y >= h {
@@ -997,12 +1049,35 @@ func (t *tScreen) Write(b []byte) (int, error) {
 	return t.tty.Write(b)
 }
 
+// Print writes s without converting it to a []byte first.
 func (t *tScreen) Print(s string) {
-	_, _ = io.WriteString(t, s)
+	if t.buffering {
+		_, _ = t.buf.WriteString(s)
+		return
+	}
+	_, _ = io.WriteString(t.tty, s)
 }
 
 func (t *tScreen) Printf(f string, args ...any) {
 	_, _ = fmt.Fprintf(t, f, args...)
+}
+
+// csi writes ESC [ params final.  It avoids fmt, which dominates the cost of
+// drawing styled cells.
+func (t *tScreen) csi(final byte, params ...int) {
+	buf := append(t.buf.AvailableBuffer(), '\x1b', '[')
+	for i, p := range params {
+		if i > 0 {
+			buf = append(buf, ';')
+		}
+		buf = strconv.AppendInt(buf, int64(p), 10)
+	}
+	buf = append(buf, final)
+	if t.buffering {
+		_, _ = t.buf.Write(buf)
+	} else {
+		_, _ = t.tty.Write(buf)
+	}
 }
 
 func (t *tScreen) Show() {
@@ -1306,6 +1381,10 @@ func (t *tScreen) resize() {
 	t.h = ws.Height
 	t.w = ws.Width
 	t.input.SetSize(ws)
+	if t.running && t.shouldRequestPixelSize(ws) {
+		// The terminal answers in order, so the size in cells is known when the pixel size arrives.
+		t.Print(requestWindowSize + requestPixelSize)
+	}
 	if t.consoleMouse != nil {
 		t.consoleMouse.SetSize(ws.Width, ws.Height)
 	}
@@ -1612,6 +1691,12 @@ func useVTWindowSizeQuery(goos string) bool {
 	return goos != "windows"
 }
 
+// shouldRequestPixelSize reports whether to ask the terminal for its size in pixels,
+// which the tty does not know through some layers, such as ConPTY.
+func (t *tScreen) shouldRequestPixelSize(ws WindowSize) bool {
+	return ws.PixelWidth == 0 && t.negotiate && !t.legacy && useVTWindowSizeQuery(runtime.GOOS)
+}
+
 func useXTermKeyboardQuery(goos string) bool {
 	return goos != "windows"
 }
@@ -1698,7 +1783,8 @@ func (t *tScreen) engageLocked() error {
 	}
 
 	t.running = true
-	if ws, err := t.tty.WindowSize(); err == nil && ws.Width != 0 && ws.Height != 0 {
+	ws, err := t.tty.WindowSize()
+	if err == nil && ws.Width != 0 && ws.Height != 0 {
 		t.cells.Resize(ws.Width, ws.Height)
 	}
 	t.enableMouse(t.mouseFlags)
@@ -1716,6 +1802,9 @@ func (t *tScreen) engageLocked() error {
 	}
 	if t.negotiate && !t.legacy && useVTWindowSizeQuery(runtime.GOOS) {
 		t.Print(requestWindowSize)
+	}
+	if t.shouldRequestPixelSize(ws) {
+		t.Print(requestPixelSize)
 	}
 
 	if t.inlineResize {
@@ -1885,7 +1974,9 @@ func (t *tScreen) ShowNotification(title string, body string) {
 		t.Unlock()
 		return
 	}
-	t.Printf(t.notifyDesktop, stripOSCControlsIfNeeded(title), stripOSCControlsIfNeeded(body))
+	if t.notifyDesktop != "" {
+		t.Printf(t.notifyDesktop, stripOSCControlsIfNeeded(title), stripOSCControlsIfNeeded(body))
+	}
 	t.Unlock()
 }
 
