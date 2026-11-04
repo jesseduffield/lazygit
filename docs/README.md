@@ -1,6 +1,6 @@
 # Documentation Overview
 
-* [Configuration](./Config.md).
+* [Configuration](./Config.md)
 * [Custom Commands](./Custom_Command_Keybindings.md)
 * [Custom Diff Renderers](./Custom_DiffRenderers.md)
 * [Dev docs](./dev)
