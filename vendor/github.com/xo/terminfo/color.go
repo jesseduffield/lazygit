@@ -26,6 +26,7 @@ func (c ColorLevel) String() string {
 		return "hundreds"
 	case ColorLevelMillions:
 		return "millions"
+	case ColorLevelNone:
 	}
 	return "none"
 }
@@ -40,6 +41,7 @@ func (c ColorLevel) ChromaFormatterName() string {
 		return "terminal256"
 	case ColorLevelMillions:
 		return "terminal16m"
+	case ColorLevelNone:
 	}
 	return "noop"
 }
@@ -76,11 +78,10 @@ func ColorLevelFromEnv() (ColorLevel, error) {
 		if err != nil {
 			return ColorLevelNone, err
 		}
-		v, ok := ti.Nums[MaxColors]
-		switch {
-		case !ok || v <= 16:
+		switch v, ok := ti.Nums[MaxColors]; {
+		case !ok || v < 8:
 			return ColorLevelNone, nil
-		case ok && v >= 256:
+		case v >= 256:
 			return ColorLevelHundreds, nil
 		}
 	}
