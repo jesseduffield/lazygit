@@ -4,11 +4,13 @@ package terminfo
 //go:generate go run gen.go
 
 import (
+	"bytes"
 	"io"
-	"io/ioutil"
-	"path"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Error is a terminfo error.
@@ -36,8 +38,6 @@ const (
 	ErrInvalidExtendedHeader Error = "invalid extended header"
 	// ErrEmptyTermName is the empty term name error.
 	ErrEmptyTermName Error = "empty term name"
-	// ErrDatabaseDirectoryNotFound is the database directory not found error.
-	ErrDatabaseDirectoryNotFound Error = "database directory not found"
 	// ErrFileNotFound is the file not found error.
 	ErrFileNotFound Error = "file not found"
 	// ErrInvalidTermProgramVersion is the invalid TERM_PROGRAM_VERSION error.
@@ -64,17 +64,17 @@ type Terminfo struct {
 	StringsM map[int]bool
 	// ExtBools are the extended bool capabilities.
 	ExtBools map[int]bool
-	// ExtBoolsNames is the map of extended bool capabilities to their index.
+	// ExtBoolNames is the map of extended bool capabilities to their index.
 	ExtBoolNames map[int][]byte
 	// ExtNums are the extended num capabilities.
 	ExtNums map[int]int
-	// ExtNumsNames is the map of extended num capabilities to their index.
+	// ExtNumNames is the map of extended num capabilities to their index.
 	ExtNumNames map[int][]byte
 	// ExtStrings are the extended string capabilities.
 	ExtStrings map[int][]byte
 	// ExtStringsM are the missing extended string capabilities.
 	ExtStringsM map[int]bool
-	// ExtStringsNames is the map of extended string capabilities to their index.
+	// ExtStringNames is the map of extended string capabilities to their index.
 	ExtStringNames map[int][]byte
 }
 
@@ -96,10 +96,10 @@ func Decode(buf []byte) (*Terminfo, error) {
 	}
 	var numWidth int
 	// check magic
-	switch {
-	case h[fieldMagic] == magic:
+	switch h[fieldMagic] {
+	case magic:
 		numWidth = 16
-	case h[fieldMagic] == magicExtended:
+	case magicExtended:
 		numWidth = 32
 	default:
 		return nil, ErrInvalidMagic
@@ -212,20 +212,21 @@ func Decode(buf []byte) (*Terminfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	// extIndexes = extIndexes[eh[fieldExtStringCount]:]
 	return ti, nil
 }
 
-// Open reads the terminfo file name from the specified directory dir.
+// Open reads the terminfo file name from the specified directory dir. Open
+// adds the entry to the cache of Load, so a caller must not change the
+// returned value, as for Load.
 func Open(dir, name string) (*Terminfo, error) {
 	var err error
 	var buf []byte
 	var filename string
 	for _, f := range []string{
-		path.Join(dir, name[0:1], name),
-		path.Join(dir, strconv.FormatUint(uint64(name[0]), 16), name),
+		filepath.Join(dir, name[0:1], name),
+		filepath.Join(dir, strconv.FormatUint(uint64(name[0]), 16), name),
 	} {
-		buf, err = ioutil.ReadFile(f)
+		buf, err = os.ReadFile(f)
 		if err == nil {
 			filename = f
 			break
@@ -250,22 +251,6 @@ func Open(dir, name string) (*Terminfo, error) {
 	return ti, nil
 }
 
-// boolCaps returns all bool and extended capabilities using f to format the
-// index key.
-func (ti *Terminfo) boolCaps(f func(int) string, extended bool) map[string]bool {
-	m := make(map[string]bool, len(ti.Bools)+len(ti.ExtBools))
-	if !extended {
-		for k, v := range ti.Bools {
-			m[f(k)] = v
-		}
-	} else {
-		for k, v := range ti.ExtBools {
-			m[string(ti.ExtBoolNames[k])] = v
-		}
-	}
-	return m
-}
-
 // BoolCaps returns all bool capabilities.
 func (ti *Terminfo) BoolCaps() map[string]bool {
 	return ti.boolCaps(BoolCapName, false)
@@ -286,22 +271,6 @@ func (ti *Terminfo) ExtBoolCaps() map[string]bool {
 // name as the index.
 func (ti *Terminfo) ExtBoolCapsShort() map[string]bool {
 	return ti.boolCaps(BoolCapNameShort, true)
-}
-
-// numCaps returns all num and extended capabilities using f to format the
-// index key.
-func (ti *Terminfo) numCaps(f func(int) string, extended bool) map[string]int {
-	m := make(map[string]int, len(ti.Nums)+len(ti.ExtNums))
-	if !extended {
-		for k, v := range ti.Nums {
-			m[f(k)] = v
-		}
-	} else {
-		for k, v := range ti.ExtNums {
-			m[string(ti.ExtNumNames[k])] = v
-		}
-	}
-	return m
 }
 
 // NumCaps returns all num capabilities.
@@ -326,23 +295,8 @@ func (ti *Terminfo) ExtNumCapsShort() map[string]int {
 	return ti.numCaps(NumCapNameShort, true)
 }
 
-// stringCaps returns all string and extended capabilities using f to format the
-// index key.
-func (ti *Terminfo) stringCaps(f func(int) string, extended bool) map[string][]byte {
-	m := make(map[string][]byte, len(ti.Strings)+len(ti.ExtStrings))
-	if !extended {
-		for k, v := range ti.Strings {
-			m[f(k)] = v
-		}
-	} else {
-		for k, v := range ti.ExtStrings {
-			m[string(ti.ExtStringNames[k])] = v
-		}
-	}
-	return m
-}
-
-// StringCaps returns all string capabilities.
+// StringCaps returns all string capabilities. It leaves out each absent
+// capability.
 func (ti *Terminfo) StringCaps() map[string][]byte {
 	return ti.stringCaps(StringCapName, false)
 }
@@ -388,10 +342,10 @@ func (ti *Terminfo) Fprintf(w io.Writer, i int, v ...any) {
 	Fprintf(w, ti.Strings[i], v...)
 }
 
-// Color takes a foreground and background color and returns string that sets
-// them for this terminal.
+// Colorf returns str with the escape sequences that set the foreground color
+// fg and the background color bg before it, and reset them after it.
 func (ti *Terminfo) Colorf(fg, bg int, str string) string {
-	maxColors := int(ti.Nums[MaxColors])
+	maxColors := ti.Nums[MaxColors]
 	// map bright colors to lower versions if the color table only holds 8.
 	if maxColors == 8 {
 		if fg > 7 && fg < 16 {
@@ -417,65 +371,158 @@ func (ti *Terminfo) Goto(row, col int) string {
 	return Printf(ti.Strings[CursorAddress], row, col)
 }
 
-// Puts emits the string to the writer, but expands inline padding indications
-// (of the form $<[delay]> where [delay] is msec) to a suitable number of
-// padding characters (usually null bytes) based upon the supplied baud. At
-// high baud rates, more padding characters will be inserted.
-/*func (ti *Terminfo) Puts(w io.Writer, s string, lines, baud int) (int, error) {
-	var err error
-	for {
-		start := strings.Index(s, "$<")
-		if start == -1 {
-			// most strings don't need padding, which is good news!
-			return io.WriteString(w, s)
+// Puts writes s to w, and applies each padding marker in s, such as the
+// $<100/> in the flash capability of xterm. It follows tputs in ncurses.
+//
+// A marker holds a delay in milliseconds, with one optional decimal place. A
+// '*' after the number multiplies the delay by lines, the count of lines that
+// the output affects. A '/' after the number makes the delay mandatory. Puts
+// applies a delay when it is mandatory, when s is the bell or the flash
+// capability, or when baud is at least the padding baud rate and the terminal
+// has no xon/xoff flow control. Puts writes no marker to w.
+//
+// Puts writes a delay as pad characters, and the baud rate sets how many. If
+// the terminal has no pad character, Puts sleeps for the delay instead. Puts
+// limits each delay to 30 seconds.
+func (ti *Terminfo) Puts(w io.Writer, s string, lines, baud int) (int, error) {
+	always := ti.isString(Bell, s) || ti.isString(FlashScreen, s)
+	normal := !ti.Bools[XonXoff] && ti.Nums[PaddingBaudRate] != 0 && baud >= ti.Nums[PaddingBaudRate]
+	var buf []byte
+	var n int
+	for i := 0; i < len(s); i++ {
+		if s[i] != '$' || i+1 == len(s) || s[i+1] != '<' {
+			buf = append(buf, s[i])
+			continue
 		}
-		end := strings.Index(s, ">")
-		if end == -1 {
-			// unterminated... just emit bytes unadulterated.
-			return io.WriteString(w, "$<"+s)
+		// a marker starts with a digit or a '.', and ends with a '>'
+		j := i + 2
+		if j == len(s) || (!isDigit(s[j]) && s[j] != '.') || !strings.Contains(s[j:], ">") {
+			buf = append(buf, '$', '<')
+			i++
+			continue
 		}
-		var c int
-		c, err = io.WriteString(w, s[:start])
-		if err != nil {
-			return n + c, err
+		d, end, mandatory := readDelay(s, j, lines)
+		// skip the '>', as ncurses skips one byte
+		i = end
+		if d <= 0 || (!always && !normal && !mandatory) {
+			continue
 		}
-		n += c
-		s = s[start+2:]
-		val := s[:end]
-		s = s[end+1:]
-		var ms int
-		var dot, mandatory, asterisk bool
-		unit := 1000
-		for _, ch := range val {
-			switch {
-			case ch >= '0' && ch <= '9':
-				ms = (ms * 10) + int(ch-'0')
-				if dot {
-					unit *= 10
-				}
-			case ch == '.' && !dot:
-				dot = true
-			case ch == '*' && !asterisk:
-				ms *= lines
-				asterisk = true
-			case ch == '/':
-				mandatory = true
-			default:
-				break
-			}
-		}
-		z, pad := ((baud/8)/unit)*ms, ti.Strings[PadChar]
-		b := make([]byte, len(pad)*z)
-		for bp := copy(b, pad); bp < len(b); bp *= 2 {
-			copy(b[bp:], b[:bp])
-		}
-		if (!ti.Bools[XonXoff] && baud > int(ti.Nums[PaddingBaudRate])) || mandatory {
-			c, err = w.Write(b)
+		ms := min(d/10, maxDelay)
+		if ti.Bools[NoPadChar] {
+			c, err := w.Write(buf)
+			n, buf = n+c, buf[:0]
 			if err != nil {
-				return n + c, err
+				return n, err
 			}
-			n += c
+			time.Sleep(time.Duration(ms) * time.Millisecond)
+			continue
+		}
+		pad := byte(0)
+		if p := ti.Strings[PadChar]; len(p) != 0 {
+			pad = p[0]
+		}
+		buf = append(buf, bytes.Repeat([]byte{pad}, max(ms*baud/(baudByte*1000), 0))...)
+	}
+	c, err := w.Write(buf)
+	return n + c, err
+}
+
+// boolCaps returns all bool and extended capabilities using f to format the
+// index key.
+func (ti *Terminfo) boolCaps(f func(int) string, extended bool) map[string]bool {
+	m := make(map[string]bool, len(ti.Bools)+len(ti.ExtBools))
+	if !extended {
+		for k, v := range ti.Bools {
+			m[f(k)] = v
+		}
+	} else {
+		for k, v := range ti.ExtBools {
+			m[string(ti.ExtBoolNames[k])] = v
 		}
 	}
-	return n, nil
-}*/
+	return m
+}
+
+// numCaps returns all num and extended capabilities using f to format the
+// index key.
+func (ti *Terminfo) numCaps(f func(int) string, extended bool) map[string]int {
+	m := make(map[string]int, len(ti.Nums)+len(ti.ExtNums))
+	if !extended {
+		for k, v := range ti.Nums {
+			m[f(k)] = v
+		}
+	} else {
+		for k, v := range ti.ExtNums {
+			m[string(ti.ExtNumNames[k])] = v
+		}
+	}
+	return m
+}
+
+// stringCaps returns all string and extended capabilities using f to format the
+// index key. It leaves out each absent capability, which has a nil value.
+func (ti *Terminfo) stringCaps(f func(int) string, extended bool) map[string][]byte {
+	m := make(map[string][]byte, len(ti.Strings)+len(ti.ExtStrings))
+	if !extended {
+		for k, v := range ti.Strings {
+			if v != nil {
+				m[f(k)] = v
+			}
+		}
+	} else {
+		for k, v := range ti.ExtStrings {
+			if v != nil {
+				m[string(ti.ExtStringNames[k])] = v
+			}
+		}
+	}
+	return m
+}
+
+// readDelay reads the padding marker in s that starts at j, after the "$<".
+// It returns the delay in tenths of a millisecond, the index of the byte after
+// the delay, and whether the delay is mandatory.
+func readDelay(s string, j, lines int) (int, int, bool) {
+	var d int
+	for ; j < len(s) && isDigit(s[j]); j++ {
+		d = d*10 + int(s[j]-'0')
+	}
+	d *= 10
+	if j < len(s) && s[j] == '.' {
+		if j++; j < len(s) && isDigit(s[j]) {
+			d += int(s[j] - '0')
+			j++
+		}
+		for j < len(s) && isDigit(s[j]) {
+			j++
+		}
+	}
+	var mandatory bool
+	for ; j < len(s) && (s[j] == '*' || s[j] == '/'); j++ {
+		if s[j] == '*' {
+			d *= lines
+		} else {
+			mandatory = true
+		}
+	}
+	return d, j, mandatory
+}
+
+// maxDelay is the longest delay that Puts applies, in milliseconds. It is
+// MAX_DELAY_MSECS in ncurses.
+const maxDelay = 30000
+
+// baudByte is the count of bits that one byte takes on the line: 7 bits, 1
+// parity bit and 1 stop bit. It is BAUDBYTE in ncurses.
+const baudByte = 9
+
+// isString reports whether the string capability i is present and equal to s.
+func (ti *Terminfo) isString(i int, s string) bool {
+	v, ok := ti.Strings[i]
+	return ok && v != nil && string(v) == s
+}
+
+// isDigit reports whether c is an ASCII digit.
+func isDigit(c byte) bool {
+	return '0' <= c && c <= '9'
+}

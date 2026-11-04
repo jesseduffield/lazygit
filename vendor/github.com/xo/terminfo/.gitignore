@@ -7,3 +7,6 @@
 /.out/
 
 *.txt
+
+# The Claude Code permissions of one person.
+.claude/settings.local.json
