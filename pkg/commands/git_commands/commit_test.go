@@ -339,7 +339,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 			repoPaths := RepoPaths{
 				worktreePath: "/path/to/worktree",
 			}
-			instance := buildCommitCommands(commonDeps{userConfig: userConfig, appState: &config.AppState{}, runner: runner, repoPaths: &repoPaths})
+			instance := buildCommitCommands(commonDeps{userConfig: userConfig, runner: runner, repoPaths: &repoPaths})
 
 			assert.NoError(t, instance.ShowCmdObj("1234567890", s.filterPaths, DiffModeRendered).Run())
 			runner.CheckForMissingCalls()

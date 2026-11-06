@@ -325,7 +325,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 				worktreePath: "/path/to/worktree",
 			}
 
-			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig, appState: &config.AppState{}, repoPaths: &repoPaths})
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig, repoPaths: &repoPaths})
 			result := instance.WorktreeFileDiff(s.file, s.mode, s.cached)
 			assert.Equal(t, expectedResult, result)
 			s.runner.CheckForMissingCalls()
@@ -410,7 +410,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 				worktreePath: "/path/to/worktree",
 			}
 
-			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig, appState: &config.AppState{}, repoPaths: &repoPaths})
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig, repoPaths: &repoPaths})
 
 			result, err := instance.ShowFileDiff(s.from, s.to, s.reverse, s.fileName, s.previousPath, s.mode)
 			assert.NoError(t, err)
