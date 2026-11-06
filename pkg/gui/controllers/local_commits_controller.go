@@ -1268,12 +1268,22 @@ func moveCommitsToArgs(
 func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
 	updateRefBranches := self.context().UpdateRefBranches()
 	destination := commitsDestination{index: endIdx + 2}
+	if len(updateRefBranchesAt(updateRefBranches, endIdx+1)) > 0 {
+		// The commit below is the head of branches of a stack. Move to the end
+		// of these branches, past their update-ref todos only.
+		destination = destinationBelowUpdateRefs(updateRefBranches, endIdx+1)
+	}
 	return self.move(selectedCommits, startIdx, endIdx, destination, updateRefBranches, nil)
 }
 
 func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
 	updateRefBranches := self.context().UpdateRefBranches()
 	destination := destinationBelowUpdateRefs(updateRefBranches, startIdx-1)
+	if len(updateRefBranchesAt(updateRefBranches, startIdx)) > 0 {
+		// The topmost commit is the head of branches of a stack. Move to the
+		// beginning of the branch above, past their update-ref todos only.
+		destination = commitsDestination{index: startIdx}
+	}
 	return self.move(selectedCommits, startIdx, endIdx, destination, updateRefBranches, nil)
 }
 
