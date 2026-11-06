@@ -131,3 +131,83 @@ func Test_countSquashableCommitsAbove(t *testing.T) {
 		})
 	}
 }
+
+func TestMoveCommitsToArgs(t *testing.T) {
+	// The commits at indices 2 and 3 are moved. The topmost of them is the
+	// head of branch "top"; the commit below them is the head of "x1" and
+	// "x2", and the commit at index 0 is the head of "y".
+	updateRefBranches := [][]string{{"y"}, nil, {"top"}, nil, {"x1", "x2"}, nil}
+
+	scenarios := []struct {
+		name                   string
+		destination            commitsDestination
+		expectedOffset         int
+		expectedDestinationIdx int
+		expectedBranchesAbove  []string
+	}{
+		{
+			name:                   "past the commit below",
+			destination:            commitsDestination{index: 5},
+			expectedOffset:         1,
+			expectedDestinationIdx: 5,
+			expectedBranchesAbove:  []string{},
+		},
+		{
+			name:                   "below the update-ref branches of the commit below",
+			destination:            commitsDestination{index: 4, updateRefsAbove: 2},
+			expectedOffset:         0,
+			expectedDestinationIdx: 4,
+			expectedBranchesAbove:  []string{"x1", "x2", "top"},
+		},
+		{
+			name:                   "between the update-ref branches of the commit below",
+			destination:            commitsDestination{index: 4, updateRefsAbove: 1},
+			expectedOffset:         0,
+			expectedDestinationIdx: 4,
+			expectedBranchesAbove:  []string{"x1", "top"},
+		},
+		{
+			name:                   "to the bottom",
+			destination:            commitsDestination{index: 6},
+			expectedOffset:         2,
+			expectedDestinationIdx: 6,
+			expectedBranchesAbove:  []string{},
+		},
+		{
+			name:                   "above the update-ref branches of the topmost moved commit",
+			destination:            commitsDestination{index: 2},
+			expectedOffset:         0,
+			expectedDestinationIdx: 4,
+			expectedBranchesAbove:  []string{},
+		},
+		{
+			name:                   "below the update-ref branches of the commit above",
+			destination:            commitsDestination{index: 1},
+			expectedOffset:         -1,
+			expectedDestinationIdx: 1,
+			expectedBranchesAbove:  []string{},
+		},
+		{
+			name:                   "to the top, below the update-ref branches of the commit there",
+			destination:            commitsDestination{index: 0, updateRefsAbove: 1},
+			expectedOffset:         -2,
+			expectedDestinationIdx: 0,
+			expectedBranchesAbove:  []string{"y"},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expectedOffset, s.destination.offset(2, 3))
+			destinationIdx, branchesAbove := moveCommitsToArgs(updateRefBranches, 2, 3, s.destination)
+			assert.Equal(t, s.expectedDestinationIdx, destinationIdx)
+			assert.ElementsMatch(t, s.expectedBranchesAbove, branchesAbove)
+		})
+	}
+
+	t.Run("without update-ref branches", func(t *testing.T) {
+		destinationIdx, branchesAbove := moveCommitsToArgs(nil, 2, 3, commitsDestination{index: 5})
+		assert.Equal(t, 5, destinationIdx)
+		assert.Empty(t, branchesAbove)
+	})
+}

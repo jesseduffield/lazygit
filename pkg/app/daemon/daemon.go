@@ -31,13 +31,12 @@ const (
 
 	DaemonKindExitImmediately
 	DaemonKindRemoveUpdateRefsForCopiedBranch
-	DaemonKindMoveTodosUp
-	DaemonKindMoveTodosDown
 	DaemonKindInsertBreak
 	DaemonKindChangeTodoActions
 	DaemonKindDropMergeCommit
 	DaemonKindMoveFixupCommitDown
 	DaemonKindWriteRebaseTodo
+	DaemonKindMoveCommitTodos
 )
 
 const (
@@ -56,10 +55,9 @@ func getInstruction() Instruction {
 		DaemonKindChangeTodoActions:               deserializeInstruction[*ChangeTodoActionsInstruction],
 		DaemonKindDropMergeCommit:                 deserializeInstruction[*DropMergeCommitInstruction],
 		DaemonKindMoveFixupCommitDown:             deserializeInstruction[*MoveFixupCommitDownInstruction],
-		DaemonKindMoveTodosUp:                     deserializeInstruction[*MoveTodosUpInstruction],
-		DaemonKindMoveTodosDown:                   deserializeInstruction[*MoveTodosDownInstruction],
 		DaemonKindInsertBreak:                     deserializeInstruction[*InsertBreakInstruction],
 		DaemonKindWriteRebaseTodo:                 deserializeInstruction[*WriteRebaseTodoInstruction],
+		DaemonKindMoveCommitTodos:                 deserializeInstruction[*MoveCommitTodosInstruction],
 	}
 
 	return mapping[getDaemonKind()](jsonData)
@@ -261,67 +259,29 @@ func (self *MoveFixupCommitDownInstruction) run(log *logrus.Entry) error {
 	})
 }
 
-type MoveTodosUpInstruction struct {
-	Hashes   []string
-	Distance int
+type MoveCommitTodosInstruction struct {
+	Hashes      []string
+	Destination utils.TodoMoveDestination
 }
 
-func NewMoveTodosUpInstruction(hashes []string, distance int) Instruction {
-	return &MoveTodosUpInstruction{
-		Hashes:   hashes,
-		Distance: distance,
+func NewMoveCommitTodosInstruction(hashes []string, destination utils.TodoMoveDestination) Instruction {
+	return &MoveCommitTodosInstruction{
+		Hashes:      hashes,
+		Destination: destination,
 	}
 }
 
-func (self *MoveTodosUpInstruction) Kind() DaemonKind {
-	return DaemonKindMoveTodosUp
+func (self *MoveCommitTodosInstruction) Kind() DaemonKind {
+	return DaemonKindMoveCommitTodos
 }
 
-func (self *MoveTodosUpInstruction) SerializedInstructions() string {
+func (self *MoveCommitTodosInstruction) SerializedInstructions() string {
 	return serializeInstruction(self)
 }
 
-func (self *MoveTodosUpInstruction) run(log *logrus.Entry) error {
-	todosToMove := lo.Map(self.Hashes, func(hash string, _ int) utils.Todo {
-		return utils.Todo{
-			Hash: hash,
-		}
-	})
-
+func (self *MoveCommitTodosInstruction) run(log *logrus.Entry) error {
 	return handleInteractiveRebase(log, func(path string) error {
-		return utils.MoveTodos(path, todosToMove, false, -self.Distance, getCommentChar())
-	})
-}
-
-type MoveTodosDownInstruction struct {
-	Hashes   []string
-	Distance int
-}
-
-func NewMoveTodosDownInstruction(hashes []string, distance int) Instruction {
-	return &MoveTodosDownInstruction{
-		Hashes:   hashes,
-		Distance: distance,
-	}
-}
-
-func (self *MoveTodosDownInstruction) Kind() DaemonKind {
-	return DaemonKindMoveTodosDown
-}
-
-func (self *MoveTodosDownInstruction) SerializedInstructions() string {
-	return serializeInstruction(self)
-}
-
-func (self *MoveTodosDownInstruction) run(log *logrus.Entry) error {
-	todosToMove := lo.Map(self.Hashes, func(hash string, _ int) utils.Todo {
-		return utils.Todo{
-			Hash: hash,
-		}
-	})
-
-	return handleInteractiveRebase(log, func(path string) error {
-		return utils.MoveTodos(path, todosToMove, false, self.Distance, getCommentChar())
+		return utils.MoveCommitTodos(path, self.Hashes, self.Destination, getCommentChar())
 	})
 }
 
