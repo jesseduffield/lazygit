@@ -111,35 +111,6 @@ func (self *RebaseCommands) GenericAmend(commits []*models.Commit, start, end in
 	return nil
 }
 
-func (self *RebaseCommands) MoveCommitsDown(commits []*models.Commit, startIdx int, endIdx int) error {
-	return self.MoveCommits(commits, startIdx, endIdx, 1)
-}
-
-func (self *RebaseCommands) MoveCommitsUp(commits []*models.Commit, startIdx int, endIdx int) error {
-	return self.MoveCommits(commits, startIdx, endIdx, -1)
-}
-
-func (self *RebaseCommands) MoveCommits(commits []*models.Commit, startIdx int, endIdx int, offset int) error {
-	baseHashOrRoot := getBaseHashOrRoot(commits, endIdx+max(offset, 0)+1)
-
-	hashes := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
-		return commit.Hash()
-	})
-
-	var instruction daemon.Instruction
-	if offset > 0 {
-		instruction = daemon.NewMoveTodosDownInstruction(hashes, offset)
-	} else {
-		instruction = daemon.NewMoveTodosUpInstruction(hashes, -offset)
-	}
-
-	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseHashOrRoot: baseHashOrRoot,
-		instruction:    instruction,
-		overrideEditor: true,
-	}).Run()
-}
-
 // MoveCommitsTo moves the commits from startIdx to endIdx so that they sit
 // directly on top of the commit at destinationIdx, which must be outside of
 // that range; if destinationIdx is len(commits), they go below the last
@@ -421,21 +392,13 @@ func (self *RebaseCommands) DeleteUpdateRefTodos(commits []*models.Commit) error
 	return self.GitRebaseEditTodo(todosFileContent)
 }
 
-func (self *RebaseCommands) MoveTodosDown(commits []*models.Commit) error {
-	return self.MoveTodos(commits, 1)
-}
-
-func (self *RebaseCommands) MoveTodosUp(commits []*models.Commit) error {
-	return self.MoveTodos(commits, -1)
-}
-
 func (self *RebaseCommands) MoveTodos(commits []*models.Commit, offset int) error {
 	fileName := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo")
 	todosToMove := lo.Map(commits, func(commit *models.Commit, _ int) utils.Todo {
 		return todoFromCommit(commit)
 	})
 
-	return utils.MoveTodos(fileName, todosToMove, true, offset, self.config.GetCoreCommentChar())
+	return utils.MoveTodos(fileName, todosToMove, offset, self.config.GetCoreCommentChar())
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one

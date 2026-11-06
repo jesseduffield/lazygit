@@ -22,7 +22,7 @@ func TestMoveTodos(t *testing.T) {
 	}
 
 	t.Run("moves a range up multiple rendered rows", func(t *testing.T) {
-		actual, err := moveTodos(slices.Clone(todos), []Todo{{Hash: "d"}, {Hash: "c"}}, false, -2)
+		actual, err := moveTodos(slices.Clone(todos), []Todo{{Hash: "d"}, {Hash: "c"}}, -2)
 
 		assert.NoError(t, err)
 		assert.Equal(t, []todo.Todo{
@@ -37,7 +37,7 @@ func TestMoveTodos(t *testing.T) {
 	})
 
 	t.Run("moves a range down multiple rendered rows", func(t *testing.T) {
-		actual, err := moveTodos(slices.Clone(todos), []Todo{{Hash: "e"}, {Hash: "d"}}, false, 2)
+		actual, err := moveTodos(slices.Clone(todos), []Todo{{Hash: "e"}, {Hash: "d"}}, 2)
 
 		assert.NoError(t, err)
 		assert.Equal(t, []todo.Todo{
@@ -235,7 +235,6 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 		testName       string
 		todos          []todo.Todo
 		todoToMoveDown Todo
-		isInRebase     bool
 		expectedErr    string
 		expectedTodos  []todo.Todo
 	}
@@ -287,34 +286,17 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 			},
 		},
 		{
-			testName: "move across update-ref todo in rebase",
+			testName: "move across update-ref todo",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todoToMoveDown: Todo{Hash: "5678"},
-			isInRebase:     true,
 			expectedErr:    "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "5678"},
-				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
-			},
-		},
-		{
-			testName: "move across update-ref todo outside of rebase",
-			todos: []todo.Todo{
-				{Command: todo.Pick, Commit: "1234"},
-				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
-				{Command: todo.Pick, Commit: "5678"},
-			},
-			todoToMoveDown: Todo{Hash: "5678"},
-			isInRebase:     false,
-			expectedErr:    "",
-			expectedTodos: []todo.Todo{
-				{Command: todo.Pick, Commit: "5678"},
-				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 			},
 		},
@@ -326,7 +308,6 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todoToMoveDown: Todo{Hash: "5678"},
-			isInRebase:     true,
 			expectedErr:    "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
@@ -393,7 +374,7 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			rearrangedTodos, err := moveTodoDown(s.todos, s.todoToMoveDown, s.isInRebase)
+			rearrangedTodos, err := moveTodoDown(s.todos, s.todoToMoveDown)
 			if s.expectedErr == "" {
 				assert.NoError(t, err)
 			} else {
@@ -410,7 +391,6 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 		testName      string
 		todos         []todo.Todo
 		todoToMoveUp  Todo
-		isInRebase    bool
 		expectedErr   string
 		expectedTodos []todo.Todo
 	}
@@ -462,35 +442,18 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 			},
 		},
 		{
-			testName: "move across update-ref todo in rebase",
+			testName: "move across update-ref todo",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todoToMoveUp: Todo{Hash: "1234"},
-			isInRebase:   true,
 			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "5678"},
-			},
-		},
-		{
-			testName: "move across update-ref todo outside of rebase",
-			todos: []todo.Todo{
-				{Command: todo.Pick, Commit: "1234"},
-				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
-				{Command: todo.Pick, Commit: "5678"},
-			},
-			todoToMoveUp: Todo{Hash: "1234"},
-			isInRebase:   false,
-			expectedErr:  "",
-			expectedTodos: []todo.Todo{
-				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
-				{Command: todo.Pick, Commit: "5678"},
-				{Command: todo.Pick, Commit: "1234"},
 			},
 		},
 		{
@@ -501,7 +464,6 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todoToMoveUp: Todo{Hash: "1234"},
-			isInRebase:   true,
 			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Exec, ExecCommand: "make test"},
@@ -568,7 +530,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			rearrangedTodos, err := moveTodoUp(s.todos, s.todoToMoveUp, s.isInRebase)
+			rearrangedTodos, err := moveTodoUp(s.todos, s.todoToMoveUp)
 			if s.expectedErr == "" {
 				assert.NoError(t, err)
 			} else {
