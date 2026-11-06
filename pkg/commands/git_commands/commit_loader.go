@@ -116,8 +116,15 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 
 	var unpushedCommitHashes *set.Set[string]
 	if opts.RefForPushedStatus != nil {
+		var upstreamRef string
+		if branch, ok := opts.RefForPushedStatus.(*models.Branch); ok && branch.RemoteBranchStoredLocally() {
+			upstreamRef = branch.FullUpstreamRefName()
+		}
+		if upstreamRef == "" {
+			upstreamRef = opts.RefForPushedStatus.RefName() + "@{u}"
+		}
 		unpushedCommitHashes = self.getReachableHashes(opts.RefForPushedStatus.FullRefName(),
-			append([]string{opts.RefForPushedStatus.RefName() + "@{u}"}, mainBranches...))
+			append([]string{upstreamRef}, mainBranches...))
 	}
 
 	wg.Wait()

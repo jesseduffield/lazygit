@@ -43,6 +43,9 @@ func (self *WorkingTreeCommands) StageFile(path string) error {
 }
 
 func (self *WorkingTreeCommands) StageFiles(paths []string, extraArgs []string) error {
+	self.IndexLock().Lock()
+	defer self.IndexLock().Unlock()
+
 	cmdArgs := NewGitCmd("add").
 		Arg(extraArgs...).
 		Arg("--").
@@ -54,6 +57,9 @@ func (self *WorkingTreeCommands) StageFiles(paths []string, extraArgs []string) 
 
 // StageAll stages all files
 func (self *WorkingTreeCommands) StageAll(onlyTrackedFiles bool) error {
+	self.IndexLock().Lock()
+	defer self.IndexLock().Unlock()
+
 	cmdArgs := NewGitCmd("add").
 		ArgIfElse(onlyTrackedFiles, "-u", "-A").
 		ToArgv()
@@ -63,6 +69,9 @@ func (self *WorkingTreeCommands) StageAll(onlyTrackedFiles bool) error {
 
 // UnstageAll unstages all files
 func (self *WorkingTreeCommands) UnstageAll() error {
+	self.IndexLock().Lock()
+	defer self.IndexLock().Unlock()
+
 	return self.cmd.New(NewGitCmd("reset").ToArgv()).Run()
 }
 
@@ -77,10 +86,16 @@ func (self *WorkingTreeCommands) UnStageFile(paths []string, tracked bool) error
 }
 
 func (self *WorkingTreeCommands) UnstageTrackedFiles(paths []string) error {
+	self.IndexLock().Lock()
+	defer self.IndexLock().Unlock()
+
 	return self.cmd.New(NewGitCmd("reset").Arg("HEAD", "--").Arg(paths...).ToArgv()).Run()
 }
 
 func (self *WorkingTreeCommands) UnstageUntrackedFiles(paths []string) error {
+	self.IndexLock().Lock()
+	defer self.IndexLock().Unlock()
+
 	return self.cmd.New(NewGitCmd("rm").Arg("--cached", "--force", "--").Arg(paths...).ToArgv()).Run()
 }
 
