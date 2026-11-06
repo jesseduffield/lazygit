@@ -464,6 +464,16 @@ git:
     - master
     - main
 
+  # If true, offer to push branches stacked below the current branch when they
+  # have unpushed commits. If false, push only the current branch, keeping
+  # upstream and force-push prompts.
+  enableStackedPush: true
+
+  # Initially selected choice in the stacked push menu: 'allBranches' pushes the
+  # current branch and eligible branches below it; 'currentBranch' pushes only the
+  # current branch. Ignored when enableStackedPush is false.
+  stackedPushDefault: allBranches
+
   # Prefix to use when skipping hooks. E.g. if set to 'WIP', then pre-commit hooks
   # will be skipped when the commit message starts with 'WIP'
   skipHookPrefix: WIP

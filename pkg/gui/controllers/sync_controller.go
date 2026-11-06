@@ -89,6 +89,10 @@ func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func(
 }
 
 func (self *SyncController) push(currentBranch *models.Branch) error {
+	if !self.c.UserConfig().Git.EnableStackedPush {
+		return self.pushCurrentBranch(currentBranch)
+	}
+
 	branchesBelow := self.unpushedBranchesBelow(currentBranch)
 	if len(branchesBelow) == 0 {
 		return self.pushCurrentBranch(currentBranch)
@@ -96,17 +100,20 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 
 	branchName := map[string]string{"branchName": currentBranch.Name}
 	return self.c.Menu(types.CreateMenuOptions{
-		Title:  self.c.Tr.Push,
-		Prompt: self.branchesBelowPrompt(currentBranch, branchesBelow),
+		Title:            self.c.Tr.Push,
+		Prompt:           self.branchesBelowPrompt(currentBranch, branchesBelow),
+		InitialSelection: lo.Ternary(self.c.UserConfig().Git.StackedPushDefault == "currentBranch", 1, 0),
 		Items: []*types.MenuItem{
 			{
 				Label: utils.ResolvePlaceholderString(self.c.Tr.PushBranchAndBranchesBelow, branchName),
+				Keys:  menuKey('a'),
 				OnPress: func() error {
 					return self.pushWithBranchesBelow(currentBranch, branchesBelow)
 				},
 			},
 			{
 				Label: utils.ResolvePlaceholderString(self.c.Tr.PushOnlyCurrentBranch, branchName),
+				Keys:  menuKey('o'),
 				OnPress: func() error {
 					return self.pushCurrentBranch(currentBranch)
 				},

@@ -34,6 +34,10 @@ func (config *UserConfig) Validate() error {
 		[]string{"auto", "classic", "detailed"}); err != nil {
 		return err
 	}
+	if err := validateEnum("git.stackedPushDefault", config.Git.StackedPushDefault,
+		[]string{"allBranches", "currentBranch"}); err != nil {
+		return err
+	}
 	if err := validateEnum("git.autoForwardBranches", config.Git.AutoForwardBranches,
 		[]string{"none", "onlyMainBranches", "allBranches"}); err != nil {
 		return err

@@ -654,6 +654,8 @@ var tests = []*components.IntegrationTest{
 	sync.PushNoFollowTags,
 	sync.PushStackedBranches,
 	sync.PushStackedBranchesCurrentWithoutUpstream,
+	sync.PushStackedBranchesDefaultCurrent,
+	sync.PushStackedBranchesDisabled,
 	sync.PushStackedBranchesNoForce,
 	sync.PushStackedBranchesOnlyCurrent,
 	sync.PushTag,
