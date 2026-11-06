@@ -335,6 +335,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.DragKeepsSelectionHighlighted,
 	interactive_rebase.DragToReorder,
 	interactive_rebase.DragToReorderInRebase,
+	interactive_rebase.DragToReorderPastTheEdges,
 	interactive_rebase.DragToReorderWithAutoscroll,
 	interactive_rebase.DropCommitInCopiedBranchWithUpdateRef,
 	interactive_rebase.DropMergeCommit,
