@@ -77,17 +77,22 @@ type commitDragState struct {
 	selectedOffset   int
 	rangeStartOffset int
 	rangeSelectMode  traits.RangeSelectMode
-	// Smallest and largest allowed insertion index. During a rebase this
+	// Topmost and bottommost allowed destination. During a rebase this
 	// restricts the drag to the contiguous block of movable todos around the
 	// selection.
-	minInsertion int
-	maxInsertion int
-	// Current insertion index, or -1 if dropping wouldn't move anything
-	// (pointer over the dragged block itself).
-	insertionIndex int
+	minDestination commitsDestination
+	maxDestination commitsDestination
+	// Current destination, or noCommitsDestination if dropping wouldn't move
+	// anything (e.g. pointer over the dragged block itself).
+	destination commitsDestination
 	// Whether any drag motion arrived since the press; distinguishes a drag
 	// from a plain click on the selection.
 	hasMoved bool
+	// Whether the pointer has left the pressed row since the press. Only then
+	// do we show the update-ref rows. Otherwise, a click with a slight sideways
+	// movement could make rows appear above the pressed commit, which would
+	// push it away from the pointer and offer a destination for dropping it.
+	leftPressedRow bool
 }
 
 type commitDragIdentity struct {
@@ -167,7 +172,7 @@ func (self *LocalCommitsController) handleCommitDragPress(opts gocui.ViewMouseBi
 		return gocui.ErrKeybindingNotHandled
 	}
 
-	minInsertion, maxInsertion := self.commitDragInsertionBounds(startIndex, endIndex)
+	minInsertionIndex, maxInsertionIndex := self.commitDragInsertionBounds(startIndex, endIndex)
 	self.commitDrag = &commitDragState{
 		pressedIndex: pressedIndex,
 		startIndex:   startIndex,
@@ -178,9 +183,9 @@ func (self *LocalCommitsController) handleCommitDragPress(opts gocui.ViewMouseBi
 		selectedOffset:   selectedIndex - startIndex,
 		rangeStartOffset: rangeStartIndex - startIndex,
 		rangeSelectMode:  rangeSelectMode,
-		minInsertion:     minInsertion,
-		maxInsertion:     maxInsertion,
-		insertionIndex:   -1,
+		minDestination:   commitsDestination{index: minInsertionIndex},
+		maxDestination:   commitsDestination{index: maxInsertionIndex},
+		destination:      noCommitsDestination,
 	}
 	self.restoreCommitDragHighlight()
 	return nil
@@ -208,8 +213,14 @@ func (self *LocalCommitsController) handleCommitDrag(opts gocui.ViewMouseBinding
 		return gocui.ErrKeybindingNotHandled
 	}
 
-	self.commitDrag.hasMoved = true
-	if self.updateCommitDragInsertion(opts.Y) {
+	state := self.commitDrag
+	state.hasMoved = true
+	updateRefRowsAppeared := false
+	if !state.leftPressedRow && opts.Y != self.context().ModelIndexToViewIndex(state.pressedIndex) {
+		state.leftPressedRow = true
+		updateRefRowsAppeared = self.showUpdateRefRows()
+	}
+	if self.updateCommitDragDestination(opts.Y) || updateRefRowsAppeared {
 		self.c.PostRefreshUpdateWithOptions(self.context(),
 			types.OnFocusOpts{KeepScrollPosition: true})
 	}
@@ -219,20 +230,30 @@ func (self *LocalCommitsController) handleCommitDrag(opts gocui.ViewMouseBinding
 	return nil
 }
 
-func (self *LocalCommitsController) updateCommitDragInsertion(viewIndex int) bool {
-	insertionIndex := self.commitDragInsertionIndex(viewIndex)
-	if insertionIndex >= self.commitDrag.startIndex && insertionIndex <= self.commitDrag.endIndex+1 {
-		insertionIndex = -1
-	}
-	if insertionIndex == self.commitDrag.insertionIndex {
+// showUpdateRefRows shows a row for each update-ref branch, so that the
+// dragged commits can be dropped between them. Returns whether any rows
+// appeared.
+func (self *LocalCommitsController) showUpdateRefRows() bool {
+	context := self.context()
+	if !lo.SomeBy(context.UpdateRefBranches(), func(branches []string) bool { return len(branches) > 0 }) {
 		return false
 	}
 
-	self.commitDrag.insertionIndex = insertionIndex
-	if insertionIndex < 0 {
+	context.SetShowUpdateRefRows(true)
+	return true
+}
+
+func (self *LocalCommitsController) updateCommitDragDestination(viewIndex int) bool {
+	destination := self.commitDragDestination(viewIndex)
+	if destination == self.commitDrag.destination {
+		return false
+	}
+
+	self.commitDrag.destination = destination
+	if destination == noCommitsDestination {
 		self.context().ClearDropInsertionIndex()
 	} else {
-		self.context().SetDropInsertionIndex(insertionIndex)
+		self.context().SetDropInsertionIndex(destination.index, destination.updateRefsAbove)
 	}
 	return true
 }
@@ -251,24 +272,57 @@ func (self *LocalCommitsController) restoreCommitDragHighlight() {
 	view.SetRangeSelectStart(context.ModelIndexToViewIndex(rangeStartIndex))
 }
 
-func (self *LocalCommitsController) commitDragInsertionIndex(viewIndex int) int {
+func (self *LocalCommitsController) commitDragDestination(viewIndex int) commitsDestination {
+	state := self.commitDrag
 	context := self.context()
-	if viewIndex < 0 {
-		return self.commitDrag.minInsertion
+	updateRefBranches := context.UpdateRefBranches()
+	var destination commitsDestination
+	switch {
+	case viewIndex < 0:
+		destination = state.minDestination
+	case viewIndex >= context.TotalContentHeight():
+		destination = state.maxDestination
+	default:
+		destination = self.commitDragDestinationAtRow(viewIndex, updateRefBranches)
 	}
-	if viewIndex >= context.TotalContentHeight() {
-		return self.commitDrag.maxInsertion
+	if destination == noCommitsDestination {
+		return noCommitsDestination
 	}
 
-	// Rows above the dragged block insert before the pointed-at commit, rows
-	// below it insert after it, so that in both directions the line under
-	// the pointer is the one that makes way.
-	modelIndex := context.ViewIndexToModelIndex(viewIndex)
-	insertionIndex := modelIndex
-	if modelIndex > self.commitDrag.endIndex {
-		insertionIndex++
+	if destination.isAbove(state.minDestination) {
+		destination = state.minDestination
+	} else if state.maxDestination.isAbove(destination) {
+		destination = state.maxDestination
 	}
-	return max(self.commitDrag.minInsertion, min(insertionIndex, self.commitDrag.maxInsertion))
+	if destination.leavesInPlace(updateRefBranches, state.startIndex, state.endIndex) {
+		return noCommitsDestination
+	}
+	return destination
+}
+
+// commitDragDestinationAtRow returns the destination for the pointer at the
+// given view index, or noCommitsDestination if it is on one of the dragged
+// commits or on an update-ref row between them. Rows above the dragged block
+// insert above the pointed-at row, rows below it insert below it, so that in
+// both directions the row under the pointer is the one that makes way.
+func (self *LocalCommitsController) commitDragDestinationAtRow(
+	viewIndex int, updateRefBranches [][]string,
+) commitsDestination {
+	state := self.commitDrag
+	modelIndex, updateRefRow := self.context().DragRowAt(viewIndex)
+	switch {
+	case modelIndex < state.startIndex || (modelIndex == state.startIndex && updateRefRow >= 0):
+		if updateRefRow >= 0 {
+			return commitsDestination{index: modelIndex, updateRefsAbove: updateRefRow}
+		}
+		return destinationBelowUpdateRefs(updateRefBranches, modelIndex)
+	case modelIndex > state.endIndex:
+		if updateRefRow >= 0 {
+			return commitsDestination{index: modelIndex, updateRefsAbove: updateRefRow + 1}
+		}
+		return commitsDestination{index: modelIndex + 1}
+	}
+	return noCommitsDestination
 }
 
 func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindingOpts) error {
@@ -281,13 +335,13 @@ func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindi
 	self.commitDrag = nil
 
 	if !state.hasMoved {
-		self.context().ClearDropInsertionIndex()
+		self.clearCommitDragRows()
 		self.context().SetSelection(state.pressedIndex)
 		self.c.PostRefreshUpdate(self.context())
 		return nil
 	}
-	if state.insertionIndex < 0 {
-		self.context().ClearDropInsertionIndex()
+	if state.destination == noCommitsDestination {
+		self.clearCommitDragRows()
 		self.c.PostRefreshUpdate(self.context())
 		return nil
 	}
@@ -296,7 +350,7 @@ func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindi
 		self.context().GetItems(), state.commitIdentities,
 	)
 	if !found {
-		self.context().ClearDropInsertionIndex()
+		self.clearCommitDragRows()
 		self.c.PostRefreshUpdate(self.context())
 		return nil
 	}
@@ -308,12 +362,9 @@ func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindi
 	updateRefBranches := self.context().UpdateRefBranches()
 	// If the model was refreshed during the drag, the destination moves along
 	// with the dragged commits.
-	destinationIdx := state.insertionIndex - state.startIndex + startIndex
-	destination := commitsDestination{index: destinationIdx}
-	if destinationIdx < startIndex {
-		destination = destinationBelowUpdateRefs(updateRefBranches, destinationIdx)
-	}
-	self.startMovingCommitsIndicator(state.insertionIndex)
+	destination := state.destination
+	destination.index += startIndex - state.startIndex
+	self.startMovingCommitsIndicator(state.destination)
 	if err := self.move(selectedCommits, startIndex, endIndex, destination, updateRefBranches,
 		func() error { self.stopMovingCommitsIndicator(); return nil }); err != nil {
 		self.stopMovingCommitsIndicator()
@@ -326,7 +377,7 @@ func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindi
 // is running, turning it into a spinner once the grace period elapses. The
 // ticker goroutine only ever touches state from the UI thread, where the
 // comparison against the current stop channel makes late callbacks harmless.
-func (self *LocalCommitsController) startMovingCommitsIndicator(insertionIndex int) {
+func (self *LocalCommitsController) startMovingCommitsIndicator(destination commitsDestination) {
 	self.stopMovingCommitsIndicatorTicker()
 	stop := make(chan struct{})
 	self.movingCommitsIndicatorStop = stop
@@ -337,7 +388,7 @@ func (self *LocalCommitsController) startMovingCommitsIndicator(insertionIndex i
 		case <-graceTimer.C:
 			self.c.OnUIThreadContentOnlyBackground(func() error {
 				if self.movingCommitsIndicatorStop == stop {
-					self.context().SetMovingCommitsInsertionIndex(insertionIndex)
+					self.context().SetMovingCommitsInsertionIndex(destination.index, destination.updateRefsAbove)
 					self.context().HandleRender()
 				}
 				return nil
@@ -367,7 +418,7 @@ func (self *LocalCommitsController) startMovingCommitsIndicator(insertionIndex i
 
 func (self *LocalCommitsController) stopMovingCommitsIndicator() {
 	self.stopMovingCommitsIndicatorTicker()
-	self.context().ClearDropInsertionIndex()
+	self.clearCommitDragRows()
 	self.c.PostRefreshUpdateWithOptions(
 		self.context(), types.OnFocusOpts{SkipMainViewUpdate: true},
 	)
@@ -430,11 +481,18 @@ func (self *LocalCommitsController) GetOnFocusLost() func(types.OnFocusLostOpts)
 	}
 }
 
+// clearCommitDragRows removes the rows that a drag of commits shows: the drop
+// indicator and the update-ref rows.
+func (self *LocalCommitsController) clearCommitDragRows() {
+	self.context().ClearDropInsertionIndex()
+	self.context().SetShowUpdateRefRows(false)
+}
+
 func (self *LocalCommitsController) cancelCommitDrag() {
 	self.dragAutoscroller.Cancel()
 	self.commitDrag = nil
 	self.c.GocuiGui().CancelMouseCapture()
-	self.context().ClearDropInsertionIndex()
+	self.clearCommitDragRows()
 	self.c.PostRefreshUpdate(self.context())
 }
 
@@ -456,9 +514,9 @@ func (self *LocalCommitsController) canCommitDragAutoscroll(direction int) bool 
 		return false
 	}
 	if direction < 0 {
-		return state.insertionIndex != state.minInsertion
+		return state.destination != state.minDestination
 	}
-	return state.insertionIndex != state.maxInsertion
+	return state.destination != state.maxDestination
 }
 
 func (self *LocalCommitsController) handleCommitDragAutoscroll(viewIndex int) bool {
@@ -466,7 +524,7 @@ func (self *LocalCommitsController) handleCommitDragAutoscroll(viewIndex int) bo
 		return false
 	}
 
-	self.updateCommitDragInsertion(viewIndex)
+	self.updateCommitDragDestination(viewIndex)
 	self.context().SetNeedRerenderVisibleLines()
 	self.context().HandleRender()
 	self.restoreCommitDragHighlight()
@@ -1198,6 +1256,26 @@ func (self *LocalCommitsController) isCherryPickingOrReverting() bool {
 type commitsDestination struct {
 	index           int
 	updateRefsAbove int
+}
+
+var noCommitsDestination = commitsDestination{index: -1}
+
+// Whether this destination is above the other one.
+func (self commitsDestination) isAbove(other commitsDestination) bool {
+	return self.index < other.index ||
+		(self.index == other.index && self.updateRefsAbove < other.updateRefsAbove)
+}
+
+// Whether moving the commits from startIdx to endIdx to this destination
+// leaves them and the update-ref branches around them where they are.
+func (self commitsDestination) leavesInPlace(updateRefBranches [][]string, startIdx int, endIdx int) bool {
+	switch self.index {
+	case startIdx:
+		return self.updateRefsAbove == len(updateRefBranchesAt(updateRefBranches, startIdx))
+	case endIdx + 1:
+		return self.updateRefsAbove == 0
+	}
+	return self.index > startIdx && self.index <= endIdx
 }
 
 // How many rows the commits from startIdx to endIdx move when they move to
