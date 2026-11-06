@@ -392,6 +392,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.Move,
 	interactive_rebase.MoveAcrossBranchBoundaryOutsideRebase,
 	interactive_rebase.MoveInRebase,
+	interactive_rebase.MoveRangeSpanningBranchBoundaryOutsideRebase,
 	interactive_rebase.MoveTodoDownWithRapidKeypresses,
 	interactive_rebase.MoveUpdateRefTodo,
 	interactive_rebase.MoveWithCustomCommentChar,
