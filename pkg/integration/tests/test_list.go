@@ -271,6 +271,7 @@ var tests = []*components.IntegrationTest{
 	file.ExplainNestedRepositories,
 	file.ExplainUntrackedDirectory,
 	file.Gitignore,
+	file.GitignoreLocal,
 	file.GitignoreSpecialCharacters,
 	file.PaneShownAgainStartsAtTheTop,
 	file.PaneTakingOverStartsAtTheTop,
