@@ -172,7 +172,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			repoPaths := RepoPaths{
 				worktreePath: "/path/to/worktree",
 			}
-			instance := buildStashCommands(commonDeps{userConfig: userConfig, appState: &config.AppState{}, repoPaths: &repoPaths})
+			instance := buildStashCommands(commonDeps{userConfig: userConfig, repoPaths: &repoPaths})
 
 			cmdStr := instance.ShowStashEntryCmdObj(s.index, DiffModeRendered).Args()
 			assert.Equal(t, s.expected, cmdStr)

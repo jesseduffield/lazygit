@@ -1,9 +1,5 @@
 package config
 
-import (
-	"gopkg.in/yaml.v3"
-)
-
 // NewDummyAppConfig creates a new dummy AppConfig for testing
 func NewDummyAppConfig() *AppConfig {
 	userConfig := GetDefaultConfig()
@@ -13,9 +9,7 @@ func NewDummyAppConfig() *AppConfig {
 		version:                "unversioned",
 		debug:                  false,
 		userConfig:             userConfig,
-		appState:               &AppState{},
 		githubPullRequestCache: newGithubPullRequestCache(""),
 	}
-	_ = yaml.Unmarshal([]byte{}, appConfig.appState)
 	return appConfig
 }
