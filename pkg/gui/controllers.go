@@ -96,7 +96,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Files:           filesHelper,
 		WorkingTree:     helpers.NewWorkingTreeHelper(helperCommon, refsHelper, commitsHelper, gpgHelper, rebaseHelper),
 		Tags:            helpers.NewTagsHelper(helperCommon, commitsHelper, gpgHelper),
-		BranchesHelper:  helpers.NewBranchesHelper(helperCommon, worktreeHelper),
+		BranchesHelper:  helpers.NewBranchesHelper(helperCommon, worktreeHelper, refsHelper),
 		GPG:             helpers.NewGpgHelper(helperCommon),
 		MergeAndRebase:  rebaseHelper,
 		MergeConflicts:  mergeConflictsHelper,

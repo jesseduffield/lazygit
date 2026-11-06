@@ -29,9 +29,9 @@ var OutsideRebaseRangeSelect = NewIntegrationTest(NewIntegrationTestArgs{
 			// Drop commits
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
-					Title(Equals("Drop commit")).
-					Content(Contains("Are you sure you want to drop the selected commit(s)?")).
+				t.ExpectPopup().Menu().
+					Title(Equals("Drop commits or delete branches")).
+					Select(Contains("Drop commit")).
 					Confirm()
 			}).
 			TopLines(
