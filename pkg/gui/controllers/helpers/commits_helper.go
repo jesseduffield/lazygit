@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"errors"
 	"path/filepath"
 	"strings"
 	"time"
@@ -183,7 +182,29 @@ func (self *CommitsHelper) HandleCommitConfirm() error {
 	summary, description := self.getCommitSummary(), self.getCommitDescription()
 
 	if strings.TrimSpace(summary) == "" {
-		return errors.New(self.c.Tr.CommitWithoutMessageErr)
+		self.c.Menu(types.CreateMenuOptions{
+			Title:      self.c.Tr.Confirm,
+			Prompt:     self.c.Tr.CommitWithoutMessagePrompt,
+			HideCancel: true,
+			Items: []*types.MenuItem{
+				{
+					Label: self.c.Tr.Confirm,
+					OnPress: func() error {
+						self.CloseCommitMessagePanel()
+						return self.c.Contexts().CommitMessage.OnConfirm(summary, description)
+					},
+					Keys: menuKey('y'),
+				},
+				{
+					Label: self.c.Tr.Close,
+					OnPress: func() error {
+						return nil
+					},
+					Keys: menuKey('n'),
+				},
+			},
+		})
+		return nil
 	}
 
 	err := self.c.Contexts().CommitMessage.OnConfirm(summary, description)
