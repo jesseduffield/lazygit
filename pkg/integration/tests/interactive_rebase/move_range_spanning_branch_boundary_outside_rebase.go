@@ -44,10 +44,7 @@ var MoveRangeSpanningBranchBoundaryOutsideRebase = NewIntegrationTest(NewIntegra
 			Press(keys.Commits.MoveUpCommit).
 			Lines(
 				Contains("CI commit-06").IsSelected(),
-				/* EXPECTED:
 				Contains("CI * commit-05").IsSelected(),
-				ACTUAL: */
-				Contains("CI commit-05").IsSelected(),
 				Contains("CI commit-04").IsSelected(),
 				Contains("CI commit-07"),
 				Contains("CI * commit-03"),

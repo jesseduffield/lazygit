@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"slices"
 	"strings"
 	"time"
 
@@ -291,10 +292,6 @@ func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindi
 		return nil
 	}
 
-	offset := state.insertionIndex - state.startIndex
-	if state.insertionIndex > state.endIndex {
-		offset = state.insertionIndex - state.endIndex - 1
-	}
 	selectedCommits, startIndex, endIndex, found := findCommitDragBlock(
 		self.context().GetItems(), state.commitIdentities,
 	)
@@ -308,8 +305,16 @@ func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindi
 		startIndex+state.rangeStartOffset,
 		state.rangeSelectMode,
 	)
+	updateRefBranches := self.context().UpdateRefBranches()
+	// If the model was refreshed during the drag, the destination moves along
+	// with the dragged commits.
+	destinationIdx := state.insertionIndex - state.startIndex + startIndex
+	destination := commitsDestination{index: destinationIdx}
+	if destinationIdx < startIndex {
+		destination = destinationBelowUpdateRefs(updateRefBranches, destinationIdx)
+	}
 	self.startMovingCommitsIndicator(state.insertionIndex)
-	if err := self.move(selectedCommits, startIndex, endIndex, offset,
+	if err := self.move(selectedCommits, startIndex, endIndex, destination, updateRefBranches,
 		func() error { self.stopMovingCommitsIndicator(); return nil }); err != nil {
 		self.stopMovingCommitsIndicator()
 		return err
@@ -1185,17 +1190,88 @@ func (self *LocalCommitsController) isCherryPickingOrReverting() bool {
 		self.c.Model().WorkingTreeStateAtLastCommitRefresh.Reverting
 }
 
+// Where moved commits go: directly above the commit at index, or below the
+// last commit if index is the number of commits. If that commit is a boundary
+// between the branches of a stack (see LocalCommitsContext.UpdateRefBranches),
+// the first updateRefsAbove of its update-ref branches end up above the moved
+// commits, and the other ones below them.
+type commitsDestination struct {
+	index           int
+	updateRefsAbove int
+}
+
+// How many rows the commits from startIdx to endIdx move when they move to
+// this destination; negative if they move up.
+func (self commitsDestination) offset(startIdx int, endIdx int) int {
+	if self.index > endIdx {
+		return self.index - endIdx - 1
+	}
+	return self.index - startIdx
+}
+
+// updateRefBranchesAt returns the update-ref branches of the commit at idx,
+// given the result of LocalCommitsContext.UpdateRefBranches.
+func updateRefBranchesAt(updateRefBranches [][]string, idx int) []string {
+	if idx < len(updateRefBranches) {
+		return updateRefBranches[idx]
+	}
+	return nil
+}
+
+// destinationBelowUpdateRefs returns the destination directly above the
+// commit at idx, below all of its update-ref branches.
+func destinationBelowUpdateRefs(updateRefBranches [][]string, idx int) commitsDestination {
+	return commitsDestination{index: idx, updateRefsAbove: len(updateRefBranchesAt(updateRefBranches, idx))}
+}
+
+// moveCommitsToArgs returns the destination index and the branches above it
+// for RebaseCommands.MoveCommitsTo, for moving the commits from startIdx to
+// endIdx to the given destination.
+func moveCommitsToArgs(
+	updateRefBranches [][]string, startIdx int, endIdx int, destination commitsDestination,
+) (int, []string) {
+	destinationIdx := destination.index
+	branchesAbove := slices.Clone(
+		updateRefBranchesAt(updateRefBranches, destinationIdx)[:destination.updateRefsAbove],
+	)
+	switch destinationIdx {
+	case startIdx:
+		// Between the update-ref branches of the topmost moved commit. Once
+		// the moved commits are taken out, these point at the commit below
+		// them.
+		destinationIdx = endIdx + 1
+	case endIdx + 1:
+		// Once the moved commits are taken out, the update-ref branches of the
+		// topmost of them point at the destination commit too, above the ones
+		// that it has already.
+		branchesAbove = append(branchesAbove, updateRefBranchesAt(updateRefBranches, startIdx)...)
+	}
+	return destinationIdx, branchesAbove
+}
+
 func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
-	return self.move(selectedCommits, startIdx, endIdx, 1, nil)
+	updateRefBranches := self.context().UpdateRefBranches()
+	destination := commitsDestination{index: endIdx + 2}
+	return self.move(selectedCommits, startIdx, endIdx, destination, updateRefBranches, nil)
 }
 
 func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
-	return self.move(selectedCommits, startIdx, endIdx, -1, nil)
+	updateRefBranches := self.context().UpdateRefBranches()
+	destination := destinationBelowUpdateRefs(updateRefBranches, startIdx-1)
+	return self.move(selectedCommits, startIdx, endIdx, destination, updateRefBranches, nil)
 }
 
+// move moves the commits from startIdx to endIdx to the given destination.
+// updateRefBranches is the result of LocalCommitsContext.UpdateRefBranches.
 func (self *LocalCommitsController) move(
-	selectedCommits []*models.Commit, startIdx int, endIdx int, offset int, onComplete func() error,
+	selectedCommits []*models.Commit,
+	startIdx int,
+	endIdx int,
+	destination commitsDestination,
+	updateRefBranches [][]string,
+	onComplete func() error,
 ) error {
+	offset := destination.offset(startIdx, endIdx)
 	if self.isRebasing() {
 		if err := self.c.Git().Rebase.MoveTodos(selectedCommits, offset); err != nil {
 			return err
@@ -1220,16 +1296,17 @@ func (self *LocalCommitsController) move(
 	}
 
 	commits := self.c.Model().Commits
+	destinationIdx, branchesAbove := moveCommitsToArgs(updateRefBranches, startIdx, endIdx, destination)
 	return self.c.WithWaitingStatusBlockingInput(types.WaitingStatusOpts{
 		Message:              self.c.Tr.MovingStatus,
 		HideWorkingTreeState: true,
 	}, func(gocui.Task) error {
-		if offset > 0 {
+		if destination.index > endIdx {
 			self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
 		} else {
 			self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
 		}
-		err := self.c.Git().Rebase.MoveCommits(commits, startIdx, endIdx, offset)
+		err := self.c.Git().Rebase.MoveCommitsTo(commits, startIdx, endIdx, destinationIdx, branchesAbove)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
 			err, types.RefreshOptions{
 				BatchUIUpdates:  true,

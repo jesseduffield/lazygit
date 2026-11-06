@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -153,6 +154,60 @@ func pullRequestBranchAt(
 		}
 	}
 	return listedBranch
+}
+
+// UpdateRefBranches returns, for each commit, the branches of a stack that
+// point at it and that git updates when rebasing it. Their update-ref todos
+// are the boundaries between the branches of the stack when we move commits.
+// Returns nil if the rebase.updateRefs config is off, or if a rebase is in
+// progress; moving commits then edits the rebase todo, where update-ref todos
+// are rows of their own.
+func (self *LocalCommitsContext) UpdateRefBranches() [][]string {
+	c := self.ListContextTrait.c
+	if !c.Git().Config.GetRebaseUpdateRefs() || c.Model().WorkingTreeStateAtLastCommitRefresh.Any() {
+		return nil
+	}
+
+	return updateRefBranches(
+		c.Model().Commits,
+		c.Model().Branches,
+		c.Model().CheckedOutBranch,
+		c.UserConfig().Git.MainBranches,
+		c.Model().Worktrees,
+	)
+}
+
+func updateRefBranches(
+	commits []*models.Commit,
+	branches []*models.Branch,
+	currentBranchName string,
+	mainBranches []string,
+	worktrees []*models.Worktree,
+) [][]string {
+	if len(commits) == 0 {
+		return nil
+	}
+
+	branchesByHash := map[string][]string{}
+	for _, branch := range branches {
+		if presentation.IsStackBranch(branch, currentBranchName, mainBranches) &&
+			// Our rebase daemon deletes the update-ref todos of the branches
+			// that point at the head commit
+			branch.CommitHash != commits[0].Hash() &&
+			// git creates no update-ref todos for branches that are checked out
+			// in another worktree
+			!git_commands.CheckedOutByOtherWorktree(branch, worktrees) {
+			branchesByHash[branch.CommitHash] = append(branchesByHash[branch.CommitHash], branch.Name)
+		}
+	}
+
+	return lo.Map(commits, func(commit *models.Commit, _ int) []string {
+		// The commits list doesn't mark the branches at merged commits
+		if commit.Status == models.StatusMerged {
+			return nil
+		}
+		return branchesByHash[commit.Hash()]
+	})
 }
 
 func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
