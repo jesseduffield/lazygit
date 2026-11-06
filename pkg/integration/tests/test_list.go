@@ -151,6 +151,8 @@ var tests = []*components.IntegrationTest{
 	commit.KeepClickedCommitSelectedAfterFocusIn,
 	commit.KeepSelectedCommitAfterExternalCommit,
 	commit.NewBranch,
+	commit.OpenCommitInBrowserPromptForRemote,
+	commit.OpenCommitInBrowserSingleNonOriginRemote,
 	commit.PasteCommitMessage,
 	commit.PasteCommitMessageOverExisting,
 	commit.PreserveCommitMessage,
