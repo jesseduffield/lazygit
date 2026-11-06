@@ -20,7 +20,7 @@ func TestAddCommitDropIndicator(t *testing.T) {
 	spinnerConfig := config.SpinnerConfig{Frames: []string{"one", "two"}, Rate: 100}
 
 	items := addCommitDropIndicator(
-		[]*NonModelItem{pendingHeader}, indicator, "drop here", "moving commits here", spinnerConfig, time.UnixMilli(0),
+		[]*NonModelItem{pendingHeader}, indicator, 0, "drop here", "moving commits here", spinnerConfig, time.UnixMilli(0),
 	)
 	items = append(items, commitsHeader)
 
@@ -41,6 +41,7 @@ func TestAddMovingCommitsIndicator(t *testing.T) {
 	items := addCommitDropIndicator(
 		nil,
 		&commitDropIndicator{insertionIndex: 2, moving: true},
+		0,
 		"drop here",
 		"moving commits here",
 		config.SpinnerConfig{Frames: []string{"one", "two"}, Rate: 100},
@@ -54,6 +55,29 @@ func TestAddMovingCommitsIndicator(t *testing.T) {
 			Column:  6,
 		},
 	}, items)
+}
+
+func TestAddCommitDropIndicatorBetweenUpdateRefRows(t *testing.T) {
+	items := updateRefRows([][]string{nil, {"a", "b", "c"}, nil, {"d"}}, 4)
+	assert.Equal(t, []int{1, 1, 1, 3}, lo.Map(items, func(item *NonModelItem, _ int) int { return item.Index }))
+
+	items = addCommitDropIndicator(
+		items,
+		&commitDropIndicator{insertionIndex: 1, updateRefsAbove: 1},
+		2,
+		"drop here",
+		"moving commits here",
+		config.SpinnerConfig{},
+		time.UnixMilli(0),
+	)
+
+	assert.Equal(t, []string{
+		"──── " + style.FgYellow.Sprint("a"),
+		style.FgCyan.SetBold().Sprint("━━━━━━ drop here ━━━━━━"),
+		"──── " + style.FgYellow.Sprint("b"),
+		"──── " + style.FgYellow.Sprint("c"),
+		"──── " + style.FgYellow.Sprint("d"),
+	}, lo.Map(items, func(item *NonModelItem, _ int) string { return item.Content }))
 }
 
 func TestCommitRangeShownInDiff(t *testing.T) {

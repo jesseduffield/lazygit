@@ -26,6 +26,11 @@ only the branch marker moves. So to add a commit at the end of a branch further
 down in the stack, you can create it at the top of the stack and move it down
 until the marker of that branch is on it.
 
+You can also drag commits with the mouse. While you drag them, lazygit shows the
+boundaries between the branches as horizontal lines labeled with the branch
+name, and you decide on which side of a boundary to drop them. If several
+branches point at the same commit, you can also drop them between their lines.
+
 When you push the topmost branch of the stack with `P`, and the branches below
 it have commits that haven't been pushed yet, lazygit offers to push them along
 with it. After rebasing the stack this saves you from checking out and
