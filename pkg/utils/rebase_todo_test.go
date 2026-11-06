@@ -22,7 +22,7 @@ func TestMoveTodos(t *testing.T) {
 	}
 
 	t.Run("moves a range up multiple rendered rows", func(t *testing.T) {
-		actual, err := moveTodos(slices.Clone(todos), []Todo{{Hash: "d"}, {Hash: "c"}}, false, -2)
+		actual, err := moveTodos(slices.Clone(todos), []Todo{{Hash: "d"}, {Hash: "c"}}, -2)
 
 		assert.NoError(t, err)
 		assert.Equal(t, []todo.Todo{
@@ -37,7 +37,7 @@ func TestMoveTodos(t *testing.T) {
 	})
 
 	t.Run("moves a range down multiple rendered rows", func(t *testing.T) {
-		actual, err := moveTodos(slices.Clone(todos), []Todo{{Hash: "e"}, {Hash: "d"}}, false, 2)
+		actual, err := moveTodos(slices.Clone(todos), []Todo{{Hash: "e"}, {Hash: "d"}}, 2)
 
 		assert.NoError(t, err)
 		assert.Equal(t, []todo.Todo{
@@ -52,12 +52,189 @@ func TestMoveTodos(t *testing.T) {
 	})
 }
 
+func TestMoveCommitTodos(t *testing.T) {
+	pick := func(hash string) todo.Todo { return todo.Todo{Command: todo.Pick, Commit: hash} }
+	updateRef := func(ref string) todo.Todo { return todo.Todo{Command: todo.UpdateRef, Ref: ref} }
+
+	scenarios := []struct {
+		testName      string
+		todos         []todo.Todo
+		hashes        []string
+		destination   TodoMoveDestination
+		expectedErr   string
+		expectedTodos []todo.Todo
+	}{
+		{
+			testName:      "move to the beginning",
+			todos:         []todo.Todo{pick("a"), pick("b"), pick("c")},
+			hashes:        []string{"c"},
+			destination:   TodoMoveDestination{},
+			expectedTodos: []todo.Todo{pick("c"), pick("a"), pick("b")},
+		},
+		{
+			testName: "move to the beginning, after labels and resets",
+			todos: []todo.Todo{
+				{Command: todo.Label, Label: "onto"},
+				{Command: todo.Reset, Label: "onto"},
+				pick("a"),
+				pick("b"),
+			},
+			hashes:      []string{"b"},
+			destination: TodoMoveDestination{},
+			expectedTodos: []todo.Todo{
+				{Command: todo.Label, Label: "onto"},
+				{Command: todo.Reset, Label: "onto"},
+				pick("b"),
+				pick("a"),
+			},
+		},
+		{
+			testName:      "move towards the beginning",
+			todos:         []todo.Todo{pick("a"), pick("b"), pick("c"), pick("d")},
+			hashes:        []string{"d"},
+			destination:   TodoMoveDestination{AfterHash: "a"},
+			expectedTodos: []todo.Todo{pick("a"), pick("d"), pick("b"), pick("c")},
+		},
+		{
+			testName:      "move towards the end",
+			todos:         []todo.Todo{pick("a"), pick("b"), pick("c"), pick("d")},
+			hashes:        []string{"a"},
+			destination:   TodoMoveDestination{AfterHash: "c"},
+			expectedTodos: []todo.Todo{pick("b"), pick("c"), pick("a"), pick("d")},
+		},
+		{
+			testName:      "move several commits",
+			todos:         []todo.Todo{pick("a"), pick("b"), pick("c"), pick("d")},
+			hashes:        []string{"c", "b"},
+			destination:   TodoMoveDestination{AfterHash: "d"},
+			expectedTodos: []todo.Todo{pick("a"), pick("d"), pick("b"), pick("c")},
+		},
+		{
+			testName:      "update-refs between the moved commits move along",
+			todos:         []todo.Todo{pick("a"), pick("b"), updateRef("refs/heads/x"), pick("c"), pick("d")},
+			hashes:        []string{"c", "b"},
+			destination:   TodoMoveDestination{AfterHash: "d"},
+			expectedTodos: []todo.Todo{pick("a"), pick("d"), pick("b"), updateRef("refs/heads/x"), pick("c")},
+		},
+		{
+			testName:      "update-refs after the moved commits stay",
+			todos:         []todo.Todo{pick("a"), pick("b"), updateRef("refs/heads/x"), pick("c")},
+			hashes:        []string{"b"},
+			destination:   TodoMoveDestination{},
+			expectedTodos: []todo.Todo{pick("b"), pick("a"), updateRef("refs/heads/x"), pick("c")},
+		},
+		{
+			testName:      "update-refs at the beginning stay before the moved commits",
+			todos:         []todo.Todo{pick("a"), updateRef("refs/heads/x"), pick("b")},
+			hashes:        []string{"a"},
+			destination:   TodoMoveDestination{},
+			expectedTodos: []todo.Todo{updateRef("refs/heads/x"), pick("a"), pick("b")},
+		},
+		{
+			testName:      "update-refs at the beginning that are listed go after the moved commits",
+			todos:         []todo.Todo{pick("a"), updateRef("refs/heads/x"), pick("b")},
+			hashes:        []string{"a"},
+			destination:   TodoMoveDestination{RefsAfter: []string{"refs/heads/x"}},
+			expectedTodos: []todo.Todo{pick("a"), updateRef("refs/heads/x"), pick("b")},
+		},
+		{
+			testName:      "update-refs of the destination stay before the moved commits",
+			todos:         []todo.Todo{pick("a"), updateRef("refs/heads/x"), pick("b"), pick("c")},
+			hashes:        []string{"c"},
+			destination:   TodoMoveDestination{AfterHash: "a"},
+			expectedTodos: []todo.Todo{pick("a"), updateRef("refs/heads/x"), pick("c"), pick("b")},
+		},
+		{
+			testName: "update-refs of the destination that are listed go after the moved commits",
+			todos: []todo.Todo{
+				pick("a"),
+				updateRef("refs/heads/x"),
+				updateRef("refs/heads/y"),
+				updateRef("refs/heads/z"),
+				pick("b"),
+			},
+			hashes:      []string{"b"},
+			destination: TodoMoveDestination{AfterHash: "a", RefsAfter: []string{"refs/heads/x", "refs/heads/z"}},
+			expectedTodos: []todo.Todo{
+				pick("a"),
+				updateRef("refs/heads/y"),
+				pick("b"),
+				updateRef("refs/heads/x"),
+				updateRef("refs/heads/z"),
+			},
+		},
+		{
+			testName: "update-refs after the moved commits join those of the destination",
+			todos: []todo.Todo{
+				pick("a"),
+				updateRef("refs/heads/x"),
+				pick("b"),
+				updateRef("refs/heads/y"),
+				pick("c"),
+			},
+			hashes:      []string{"b"},
+			destination: TodoMoveDestination{AfterHash: "a", RefsAfter: []string{"refs/heads/x", "refs/heads/y"}},
+			expectedTodos: []todo.Todo{
+				pick("a"),
+				pick("b"),
+				updateRef("refs/heads/x"),
+				updateRef("refs/heads/y"),
+				pick("c"),
+			},
+		},
+		{
+			testName:    "commit not found",
+			todos:       []todo.Todo{pick("a"), pick("b")},
+			hashes:      []string{"c"},
+			destination: TodoMoveDestination{},
+			expectedErr: "Todo c not found in git-rebase-todo",
+		},
+		{
+			testName:    "destination not found",
+			todos:       []todo.Todo{pick("a"), pick("b")},
+			hashes:      []string{"b"},
+			destination: TodoMoveDestination{AfterHash: "c"},
+			expectedErr: "Todo c not found in git-rebase-todo",
+		},
+		{
+			testName:    "other commit between the moved commits",
+			todos:       []todo.Todo{pick("a"), pick("b"), pick("c"), pick("d")},
+			hashes:      []string{"d", "b"},
+			destination: TodoMoveDestination{},
+			expectedErr: "The commits to move are not contiguous in git-rebase-todo",
+		},
+		{
+			testName: "label between the moved commits",
+			todos: []todo.Todo{
+				pick("a"),
+				pick("b"),
+				{Command: todo.Label, Label: "x"},
+				pick("c"),
+			},
+			hashes:      []string{"c", "b"},
+			destination: TodoMoveDestination{},
+			expectedErr: "The commits to move are not contiguous in git-rebase-todo",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			actual, err := moveCommitTodos(s.todos, s.hashes, s.destination)
+			if s.expectedErr == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, s.expectedTodos, actual)
+			} else {
+				assert.EqualError(t, err, s.expectedErr)
+			}
+		})
+	}
+}
+
 func TestRebaseCommands_moveTodoDown(t *testing.T) {
 	type scenario struct {
 		testName       string
 		todos          []todo.Todo
 		todoToMoveDown Todo
-		isInRebase     bool
 		expectedErr    string
 		expectedTodos  []todo.Todo
 	}
@@ -109,34 +286,17 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 			},
 		},
 		{
-			testName: "move across update-ref todo in rebase",
+			testName: "move across update-ref todo",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todoToMoveDown: Todo{Hash: "5678"},
-			isInRebase:     true,
 			expectedErr:    "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "5678"},
-				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
-			},
-		},
-		{
-			testName: "move across update-ref todo outside of rebase",
-			todos: []todo.Todo{
-				{Command: todo.Pick, Commit: "1234"},
-				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
-				{Command: todo.Pick, Commit: "5678"},
-			},
-			todoToMoveDown: Todo{Hash: "5678"},
-			isInRebase:     false,
-			expectedErr:    "",
-			expectedTodos: []todo.Todo{
-				{Command: todo.Pick, Commit: "5678"},
-				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 			},
 		},
@@ -148,7 +308,6 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todoToMoveDown: Todo{Hash: "5678"},
-			isInRebase:     true,
 			expectedErr:    "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
@@ -215,7 +374,7 @@ func TestRebaseCommands_moveTodoDown(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			rearrangedTodos, err := moveTodoDown(s.todos, s.todoToMoveDown, s.isInRebase)
+			rearrangedTodos, err := moveTodoDown(s.todos, s.todoToMoveDown)
 			if s.expectedErr == "" {
 				assert.NoError(t, err)
 			} else {
@@ -232,7 +391,6 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 		testName      string
 		todos         []todo.Todo
 		todoToMoveUp  Todo
-		isInRebase    bool
 		expectedErr   string
 		expectedTodos []todo.Todo
 	}
@@ -284,35 +442,18 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 			},
 		},
 		{
-			testName: "move across update-ref todo in rebase",
+			testName: "move across update-ref todo",
 			todos: []todo.Todo{
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todoToMoveUp: Todo{Hash: "1234"},
-			isInRebase:   true,
 			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
 				{Command: todo.Pick, Commit: "1234"},
 				{Command: todo.Pick, Commit: "5678"},
-			},
-		},
-		{
-			testName: "move across update-ref todo outside of rebase",
-			todos: []todo.Todo{
-				{Command: todo.Pick, Commit: "1234"},
-				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
-				{Command: todo.Pick, Commit: "5678"},
-			},
-			todoToMoveUp: Todo{Hash: "1234"},
-			isInRebase:   false,
-			expectedErr:  "",
-			expectedTodos: []todo.Todo{
-				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
-				{Command: todo.Pick, Commit: "5678"},
-				{Command: todo.Pick, Commit: "1234"},
 			},
 		},
 		{
@@ -323,7 +464,6 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 				{Command: todo.Pick, Commit: "5678"},
 			},
 			todoToMoveUp: Todo{Hash: "1234"},
-			isInRebase:   true,
 			expectedErr:  "",
 			expectedTodos: []todo.Todo{
 				{Command: todo.Exec, ExecCommand: "make test"},
@@ -390,7 +530,7 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			rearrangedTodos, err := moveTodoUp(s.todos, s.todoToMoveUp, s.isInRebase)
+			rearrangedTodos, err := moveTodoUp(s.todos, s.todoToMoveUp)
 			if s.expectedErr == "" {
 				assert.NoError(t, err)
 			} else {
