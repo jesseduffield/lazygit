@@ -179,6 +179,22 @@ func (self *CommitsHelper) ClearPreservedCommitMessage() {
 	self.c.Contexts().CommitMessage.SetPreservedMessageAndLogError("")
 }
 
+func (self *CommitsHelper) PreserveCommitMessageForCommit(commitHash string) error {
+	message, err := self.c.Git().Commit.GetCommitMessage(commitHash)
+	if err != nil {
+		return err
+	}
+
+	summary, description := self.SplitCommitMessageAndDescription(message)
+	preservedMessage := summary
+	if description != "" {
+		preservedMessage += "\n" + description
+	}
+
+	self.c.Contexts().CommitMessage.SetPreservedMessageAndLogError(preservedMessage)
+	return nil
+}
+
 func (self *CommitsHelper) HandleCommitConfirm() error {
 	summary, description := self.getCommitSummary(), self.getCommitDescription()
 
