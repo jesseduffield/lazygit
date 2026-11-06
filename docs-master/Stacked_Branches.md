@@ -17,6 +17,13 @@ Lazygit visualizes the individual branch heads in the stack by marking them with
 cyan asterisk (or a cyan branch symbol if you are using [nerd
 fonts](Config.md#display-nerd-fonts-icons)).
 
+To move commits from one branch of the stack to another, move them with `<c-j>`
+and `<c-k>`. When they get to the boundary between two branches, the next press
+moves them across the boundary only. The order of the commits stays the same;
+only the branch marker moves. So to add a commit at the end of a branch further
+down in the stack, you can create it at the top of the stack and move it down
+until the marker of that branch is on it.
+
 When you push the topmost branch of the stack with `P`, and the branches below
 it have commits that haven't been pushed yet, lazygit offers to push them along
 with it. After rebasing the stack this saves you from checking out and
