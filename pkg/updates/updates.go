@@ -288,6 +288,12 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 		return err
 	}
 
+	u.Log.Info("remove tarball zip file")
+	err = u.OSCommand.Cmd.New([]string{"rm", zipPath}).Run()
+	if err != nil {
+		return err
+	}
+
 	// the `tar` terminal cannot store things in a new location without permission
 	// so it creates it in the current directory. As such our path is fairly simple.
 	// You won't see it because it's gitignored.
