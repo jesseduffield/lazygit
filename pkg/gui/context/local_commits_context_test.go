@@ -236,3 +236,41 @@ func TestPullRequestDiff(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateRefBranches(t *testing.T) {
+	hashPool := &utils.StringPool{}
+	commit := func(hash string, status models.CommitStatus) *models.Commit {
+		return models.NewCommit(hashPool, models.NewCommitOpts{Hash: hash, Status: status})
+	}
+	branch := func(name string, hash string) *models.Branch {
+		return &models.Branch{Name: name, CommitHash: hash}
+	}
+
+	commits := []*models.Commit{
+		commit("e", models.StatusUnpushed),
+		commit("d", models.StatusUnpushed),
+		commit("c", models.StatusUnpushed),
+		commit("b", models.StatusUnpushed),
+		commit("a", models.StatusMerged),
+	}
+	branches := []*models.Branch{
+		branch("current", "e"),
+		branch("copy-of-current", "e"),
+		branch("stacked-1", "c"),
+		branch("stacked-2", "c"),
+		branch("in-other-worktree", "d"),
+		branch("merged-into-local-master", "b"),
+		branch("master", "b"),
+		branch("merged", "a"),
+	}
+	worktrees := []*models.Worktree{
+		{IsCurrent: true, Branch: "current"},
+		{IsCurrent: false, Branch: "in-other-worktree"},
+	}
+
+	assert.Equal(t,
+		[][]string{nil, nil, {"stacked-1", "stacked-2"}, nil, nil},
+		updateRefBranches(commits, branches, "current", []string{"master"}, worktrees),
+	)
+	assert.Nil(t, updateRefBranches(nil, branches, "current", []string{"master"}, worktrees))
+}
