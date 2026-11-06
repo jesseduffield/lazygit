@@ -140,6 +140,47 @@ func (self *RebaseCommands) MoveCommits(commits []*models.Commit, startIdx int, 
 	}).Run()
 }
 
+// MoveCommitsTo moves the commits from startIdx to endIdx so that they sit
+// directly on top of the commit at destinationIdx, which must be outside of
+// that range; if destinationIdx is len(commits), they go below the last
+// commit. Branches that point at commits inside the range stay with them.
+//
+// Once the moved commits are taken out, some branches may point at the commit
+// at destinationIdx: its own ones and, if it is the commit directly below the
+// moved commits, the ones that pointed at the newest of them. Those listed in
+// branchesAbove point at the newest moved commit afterwards, the others at the
+// commit at destinationIdx.
+func (self *RebaseCommands) MoveCommitsTo(
+	commits []*models.Commit, startIdx int, endIdx int, destinationIdx int, branchesAbove []string,
+) error {
+	// The commit at destinationIdx needs to be part of the rebase only if some
+	// of the branches pointing at it are to move; otherwise, the moved commits
+	// can go first in the rebase todo.
+	baseIdx := destinationIdx
+	if len(branchesAbove) > 0 {
+		baseIdx++
+	}
+	baseIdx = max(baseIdx, endIdx+1)
+	destination := utils.TodoMoveDestination{
+		RefsAfter: lo.Map(branchesAbove, func(branch string, _ int) string {
+			return "refs/heads/" + branch
+		}),
+	}
+	if baseIdx != destinationIdx {
+		destination.AfterHash = commits[destinationIdx].Hash()
+	}
+
+	hashes := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
+		return commit.Hash()
+	})
+
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseHashOrRoot: getBaseHashOrRoot(commits, baseIdx),
+		instruction:    daemon.NewMoveCommitTodosInstruction(hashes, destination),
+		overrideEditor: true,
+	}).Run()
+}
+
 func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, startIdx int, endIdx int, action todo.TodoCommand, flag string) error {
 	baseIndex := endIdx + 1
 	if action == todo.Squash || action == todo.Fixup {

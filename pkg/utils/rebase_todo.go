@@ -230,6 +230,90 @@ func moveTodosUp(todos []todo.Todo, todosToMove []Todo, isInRebase bool) ([]todo
 	return todos, nil
 }
 
+// Where MoveCommitTodos puts the todos that it moves.
+type TodoMoveDestination struct {
+	// The commit whose todo the moved todos are to follow. If empty, they go
+	// to the beginning, after any labels and resets.
+	AfterHash string
+	// Once the moved todos are taken out, there may be update-ref todos
+	// directly after the todo of AfterHash (or at the beginning, if AfterHash
+	// is empty). Those for the refs listed here go after the moved todos, so
+	// that git points these refs at the last of them. The other ones stay
+	// before the moved todos.
+	RefsAfter []string
+}
+
+// MoveCommitTodos moves the todos of the given commits to the given
+// destination. The update-ref todos between them move along, so that each
+// commit stays on the branch that it was on. The commits must be contiguous
+// in the todo file apart from these update-ref todos.
+func MoveCommitTodos(fileName string, hashes []string, destination TodoMoveDestination, commentChar byte) error {
+	todos, err := ReadRebaseTodoFile(fileName, commentChar)
+	if err != nil {
+		return err
+	}
+	rearrangedTodos, err := moveCommitTodos(todos, hashes, destination)
+	if err != nil {
+		return err
+	}
+	return WriteRebaseTodoFile(fileName, rearrangedTodos, commentChar)
+}
+
+func moveCommitTodos(todos []todo.Todo, hashes []string, destination TodoMoveDestination) ([]todo.Todo, error) {
+	indices := make([]int, 0, len(hashes))
+	for _, hash := range hashes {
+		idx, ok := findTodo(todos, Todo{Hash: hash})
+		if !ok {
+			// Should never happen
+			return nil, fmt.Errorf("Todo %s not found in git-rebase-todo", hash)
+		}
+		indices = append(indices, idx)
+	}
+
+	start, end := slices.Min(indices), slices.Max(indices)+1
+	isUpdateRefOrComment := func(t todo.Todo) bool {
+		return t.Command == todo.UpdateRef || t.Command == todo.Comment
+	}
+	commitCount := lo.CountBy(todos[start:end], func(t todo.Todo) bool { return t.Commit != "" })
+	if commitCount != len(hashes) || lo.SomeBy(todos[start:end], func(t todo.Todo) bool {
+		return t.Commit == "" && !isUpdateRefOrComment(t)
+	}) {
+		return nil, errors.New("The commits to move are not contiguous in git-rebase-todo")
+	}
+
+	movedTodos := todos[start:end]
+	otherTodos := slices.Concat(todos[:start], todos[end:])
+
+	var runStart int
+	if destination.AfterHash == "" {
+		var found bool
+		_, runStart, found = lo.FindIndexOf(otherTodos, func(t todo.Todo) bool {
+			return t.Commit != "" || t.Command == todo.UpdateRef
+		})
+		if !found {
+			runStart = len(otherTodos)
+		}
+	} else {
+		afterIdx, ok := findTodo(otherTodos, Todo{Hash: destination.AfterHash})
+		if !ok {
+			// Should never happen
+			return nil, fmt.Errorf("Todo %s not found in git-rebase-todo", destination.AfterHash)
+		}
+		runStart = afterIdx + 1
+	}
+	runEnd := runStart
+	for runEnd < len(otherTodos) && isUpdateRefOrComment(otherTodos[runEnd]) {
+		runEnd++
+	}
+	todosBefore, todosAfter := lo.FilterReject(otherTodos[runStart:runEnd], func(t todo.Todo, _ int) bool {
+		return t.Command != todo.UpdateRef || !slices.Contains(destination.RefsAfter, t.Ref)
+	})
+
+	return slices.Concat(
+		otherTodos[:runStart], todosBefore, movedTodos, todosAfter, otherTodos[runEnd:],
+	), nil
+}
+
 func MoveFixupCommitDown(fileName string, originalHash string, fixupHash string, changeToFixup bool, commentChar byte) error {
 	todos, err := ReadRebaseTodoFile(fileName, commentChar)
 	if err != nil {

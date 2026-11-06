@@ -38,6 +38,7 @@ const (
 	DaemonKindDropMergeCommit
 	DaemonKindMoveFixupCommitDown
 	DaemonKindWriteRebaseTodo
+	DaemonKindMoveCommitTodos
 )
 
 const (
@@ -60,6 +61,7 @@ func getInstruction() Instruction {
 		DaemonKindMoveTodosDown:                   deserializeInstruction[*MoveTodosDownInstruction],
 		DaemonKindInsertBreak:                     deserializeInstruction[*InsertBreakInstruction],
 		DaemonKindWriteRebaseTodo:                 deserializeInstruction[*WriteRebaseTodoInstruction],
+		DaemonKindMoveCommitTodos:                 deserializeInstruction[*MoveCommitTodosInstruction],
 	}
 
 	return mapping[getDaemonKind()](jsonData)
@@ -322,6 +324,32 @@ func (self *MoveTodosDownInstruction) run(log *logrus.Entry) error {
 
 	return handleInteractiveRebase(log, func(path string) error {
 		return utils.MoveTodos(path, todosToMove, false, self.Distance, getCommentChar())
+	})
+}
+
+type MoveCommitTodosInstruction struct {
+	Hashes      []string
+	Destination utils.TodoMoveDestination
+}
+
+func NewMoveCommitTodosInstruction(hashes []string, destination utils.TodoMoveDestination) Instruction {
+	return &MoveCommitTodosInstruction{
+		Hashes:      hashes,
+		Destination: destination,
+	}
+}
+
+func (self *MoveCommitTodosInstruction) Kind() DaemonKind {
+	return DaemonKindMoveCommitTodos
+}
+
+func (self *MoveCommitTodosInstruction) SerializedInstructions() string {
+	return serializeInstruction(self)
+}
+
+func (self *MoveCommitTodosInstruction) run(log *logrus.Entry) error {
+	return handleInteractiveRebase(log, func(path string) error {
+		return utils.MoveCommitTodos(path, self.Hashes, self.Destination, getCommentChar())
 	})
 }
 
