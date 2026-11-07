@@ -38,10 +38,7 @@ var SearchKeepsTheCurrentMatchOnRefresh = NewIntegrationTest(NewIntegrationTestA
 
 				t.GlobalPress(keys.Universal.Refresh)
 				t.Views().Search().Content(
-					/* EXPECTED:
 					Contains("matches for 'needle' (1 of 2)"))
-					ACTUAL: */
-					Contains("matches for 'needle' (2 of 2)"))
 			}).
 			NavigateToLine(Contains("commit 01")).
 			Tap(func() {
@@ -49,18 +46,12 @@ var SearchKeepsTheCurrentMatchOnRefresh = NewIntegrationTest(NewIntegrationTestA
 
 				t.GlobalPress(keys.Universal.Refresh)
 				t.Views().Search().Content(
-					/* EXPECTED:
 					Contains("matches for 'needle' (2 of 2)"))
-					ACTUAL: */
-					Contains("matches for 'needle' (1 of 2)"))
 			}).
 			// The next match wraps around to the first one
 			Press(keys.Universal.NextMatch).
 			SelectedLines(
-				/* EXPECTED:
 				Contains("commit 07 needle"),
-				ACTUAL: */
-				Contains("commit 03 needle"),
 			)
 	},
 })

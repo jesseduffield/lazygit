@@ -557,6 +557,10 @@ func (v *View) GetSearchStatus() (int, int) {
 	return v.searcher.currentSearchIndex, len(v.searcher.searchPositions)
 }
 
+// UpdateSearchResults runs the search for str again, for content or model search results
+// that have changed. It doesn't move the view. The match at the cursor becomes the
+// current one, in the same way as when the cursor moves; see SetNearestSearchPosition.
+//
 // modelSearchResults is optional; pass nil to search the view. If non-nil,
 // these positions will be used for highlighting search results. Even in this
 // case the view will still be searched on a per-line basis, so that the caller
@@ -576,7 +580,7 @@ func (v *View) UpdateSearchResults(str string, modelSearchResults []SearchPositi
 	v.updateSearchPositions()
 
 	if v.Highlight && len(v.searcher.searchPositions) > 0 {
-		v.searcher.currentSearchIndex = v.firstSearchPositionAfterCursor()
+		v.searcher.currentSearchIndex = v.nearestSearchPosition()
 	}
 }
 
