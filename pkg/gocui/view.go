@@ -540,13 +540,18 @@ func (v *View) SelectSearchResult(index int) {
 	y := pos.Y
 
 	v.FocusPoint(v.ox, y, true)
-	// A match without a position in the line has nothing to scroll to.
-	if pos.XStart >= 0 {
-		v.scrollColumnsIntoView(pos.XStart, pos.XEnd)
-	}
+	v.scrollSidewaysToSearchResult(pos)
 	v.renderSearchStatus(index, itemCount)
 	if v.searcher.onSelectItem != nil {
 		v.searcher.onSelectItem(v, y)
+	}
+}
+
+// scrollSidewaysToSearchResult scrolls the view sideways to show the given match if it
+// isn't on screen. A match without a position in its line has nothing to scroll to.
+func (v *View) scrollSidewaysToSearchResult(pos SearchPosition) {
+	if pos.XStart >= 0 {
+		v.scrollColumnsIntoView(pos.XStart, pos.XEnd)
 	}
 }
 
