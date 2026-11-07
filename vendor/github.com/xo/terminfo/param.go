@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-// parametizer represents the a scan state for a parameterized string.
+// parametizer holds the scan state for a parameterized string.
 type parametizer struct {
 	// z is the string to parameterize
 	z []byte
@@ -31,8 +31,9 @@ type parametizer struct {
 
 // staticVars are the static, global variables.
 var staticVars = struct {
-	vars [26]any
 	sync.Mutex
+
+	vars [26]any
 }{}
 
 var parametizerPool = sync.Pool{
@@ -45,7 +46,7 @@ var parametizerPool = sync.Pool{
 
 // newParametizer returns a new initialized parametizer from the pool.
 func newParametizer(z []byte) *parametizer {
-	p := parametizerPool.Get().(*parametizer)
+	p, _ := parametizerPool.Get().(*parametizer)
 	p.z = z
 	return p
 }
@@ -104,7 +105,7 @@ func (p *parametizer) scanTextFn() stateFn {
 	}
 }
 
-func (p *parametizer) scanCodeFn() stateFn {
+func (p *parametizer) scanCodeFn() stateFn { //nolint:gocyclo // one case for each % code
 	ch, err := p.peek()
 	if err != nil {
 		return nil
@@ -267,7 +268,7 @@ func (p *parametizer) pushParamFn() stateFn {
 	} else {
 		p.s.push(0)
 	}
-	// skip the '}'
+	// skip the parameter digit
 	p.pos++
 	return p.scanTextFn
 }
@@ -401,5 +402,5 @@ func Printf(z []byte, params ...any) string {
 // Fprintf evaluates a parameterized terminfo value z, interpolating params and
 // writing to w.
 func Fprintf(w io.Writer, z []byte, params ...any) {
-	w.Write([]byte(Printf(z, params...)))
+	_, _ = io.WriteString(w, Printf(z, params...))
 }

@@ -150,9 +150,9 @@ func (d *decoder) readInts(n, w int) ([]int, error) {
 		case 1:
 			z[j] = int(buf[i])
 		case 2:
-			z[j] = int(int16(uint16(buf[i+1])<<8 | uint16(buf[i])))
+			z[j] = int(int16(uint16(buf[i+1])<<8 | uint16(buf[i]))) //nolint:gosec // a number is signed, and -1 and -2 mark absent and cancelled
 		case 4:
-			z[j] = int(int32(uint32(buf[i+3])<<24 | uint32(buf[i+2])<<16 | uint32(buf[i+1])<<8 | uint32(buf[i])))
+			z[j] = int(int32(uint32(buf[i+3])<<24 | uint32(buf[i+2])<<16 | uint32(buf[i+1])<<8 | uint32(buf[i]))) //nolint:gosec // as above
 		}
 	}
 	return z, nil
@@ -168,7 +168,7 @@ func (d *decoder) readBools(n int) (map[int]bool, map[int]bool, error) {
 	bools, boolsM := make(map[int]bool), make(map[int]bool)
 	for i, b := range buf {
 		bools[i] = b == 1
-		if int8(b) == -2 {
+		if int8(b) == -2 { //nolint:gosec // a bool byte of -2 marks a cancelled bool
 			boolsM[i] = true
 		}
 	}
@@ -247,20 +247,19 @@ func (d *decoder) readStrings(n, sz int) (map[int][]byte, map[int]bool, error) {
 
 // canonicalizeAscChars reorders chars to be unique, in order.
 //
-// see repair_ascc in ncurses-6.3/progs/dump_entry.c
+// See repair_acsc in ncurses-6.6/progs/dump_entry.c.
 func canonicalizeAscChars(z []byte) []byte {
 	var c []byte
 	enc := make(map[byte]byte, len(z)/2)
 	for i := 0; i < len(z); i += 2 {
 		if _, ok := enc[z[i]]; !ok {
 			a, b := z[i], z[i+1]
-			// log.Printf(">>> a: %d %c, b: %d %c", a, a, b, b)
 			c, enc[a] = append(c, a), b
 		}
 	}
 	slices.Sort(c)
 	r := make([]byte, 2*len(c))
-	for i := 0; i < len(c); i++ {
+	for i := range c {
 		r[i*2], r[i*2+1] = c[i], enc[c[i]]
 	}
 	return r
