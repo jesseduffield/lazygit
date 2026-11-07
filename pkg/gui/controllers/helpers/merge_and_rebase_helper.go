@@ -64,6 +64,9 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 		return &types.MenuItem{
 			Label: row.option,
 			OnPress: func() error {
+				if row.option == REBASE_OPTION_ABORT {
+					return self.abortMergeOrRebase(false)
+				}
 				return self.genericMergeCommand(row.option)
 			},
 			Keys: row.keys,
@@ -89,8 +92,9 @@ func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 // non-subprocess path runs on a worker with a waiting status.
 //
 // showWaitingStatus is false only for the recursive auto-skip in
-// CheckMergeOrRebaseWithRefreshOptions, which already runs on a worker, so it
-// must not spin up a second waiting status. calledFromWorker is used only by the
+// CheckMergeOrRebaseWithRefreshOptions and for aborting after discarding
+// changes in abortMergeOrRebase; both already run on a worker, so they must not
+// spin up a second waiting status. calledFromWorker is used only by the
 // subprocess path below: it's true for that recursive worker skip and false for
 // genericMergeCommand's UI-thread invocation, so the post-action refresh picks
 // RefreshFromWorker vs Refresh correctly.
@@ -141,7 +145,8 @@ func (self *MergeAndRebaseHelper) genericMergeCommandImpl(command string, showWa
 
 	// runAction always ends up on a worker: either the waiting status below spins
 	// one up, or we're the recursive auto-skip reached from
-	// CheckMergeOrRebaseWithRefreshOptions, which already runs on one.
+	// CheckMergeOrRebaseWithRefreshOptions or the abort in abortMergeOrRebase,
+	// which already run on one.
 	runAction := func() error {
 		result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
 		return self.CheckMergeOrRebaseWithRefreshOptions(result,
@@ -305,7 +310,7 @@ func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
 				Label: utils.ResolvePlaceholderString(self.c.Tr.AbortOperationMenuItem,
 					map[string]string{"operation": operation}),
 				OnPress: func() error {
-					return self.genericMergeCommand(REBASE_OPTION_ABORT)
+					return self.abortMergeOrRebase(false)
 				},
 				Keys: menuKey('a'),
 			},
@@ -315,19 +320,71 @@ func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
 }
 
 func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
-	// prompt user to confirm that they want to abort, then do it
-	placeholders := map[string]string{
-		"operation": self.c.Git().Status.WorkingTreeState().OperationName(self.c.Tr),
-	}
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  utils.ResolvePlaceholderString(self.c.Tr.AbortOperationTitle, placeholders),
-		Prompt: utils.ResolvePlaceholderString(self.c.Tr.AbortOperationPrompt, placeholders),
-		HandleConfirm: func() error {
-			return self.genericMergeCommand(REBASE_OPTION_ABORT)
-		},
-	})
+	return self.abortMergeOrRebase(true)
+}
 
-	return nil
+// abortMergeOrRebase aborts the operation in progress. If alwaysConfirm is
+// false, it asks the user to confirm only if it has to discard changes before
+// git can abort.
+func (self *MergeAndRebaseHelper) abortMergeOrRebase(alwaysConfirm bool) error {
+	status := self.c.Git().Status.WorkingTreeState()
+	placeholders := map[string]string{
+		"operation": status.OperationName(self.c.Tr),
+	}
+
+	pathsToDiscard := pathsToDiscardBeforeAbort(status, self.c.Model().Files, self.c.Model().Submodules)
+	if len(pathsToDiscard) > 0 {
+		self.c.Confirm(types.ConfirmOpts{
+			Title: utils.ResolvePlaceholderString(self.c.Tr.AbortOperationTitle, placeholders),
+			Prompt: utils.ResolvePlaceholderString(self.c.Tr.AbortOperationDiscardsChangesPrompt, placeholders) +
+				"\n\n- " + strings.Join(pathsToDiscard, "\n- "),
+			HandleConfirm: func() error {
+				return self.c.WithWaitingStatus(status.Title(self.c.Tr), func(gocui.Task) error {
+					self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
+					if err := self.c.Git().WorkingTree.DiscardUnstagedChanges(pathsToDiscard); err != nil {
+						return err
+					}
+					return self.genericMergeCommandImpl(REBASE_OPTION_ABORT, false, true)
+				})
+			},
+		})
+		return nil
+	}
+
+	if alwaysConfirm {
+		self.c.Confirm(types.ConfirmOpts{
+			Title:  utils.ResolvePlaceholderString(self.c.Tr.AbortOperationTitle, placeholders),
+			Prompt: utils.ResolvePlaceholderString(self.c.Tr.AbortOperationPrompt, placeholders),
+			HandleConfirm: func() error {
+				return self.genericMergeCommand(REBASE_OPTION_ABORT)
+			},
+		})
+		return nil
+	}
+
+	return self.genericMergeCommand(REBASE_OPTION_ABORT)
+}
+
+// pathsToDiscardBeforeAbort returns the files whose unstaged changes we have to
+// discard before git can abort the operation in progress.
+//
+// Git refuses to start a merge, cherry-pick, revert or "git am" if there are
+// staged changes, or if a file that it has to change has unstaged changes. So
+// if a file has staged changes during the operation, git staged them (or the
+// user did after git stopped), and any unstaged changes on top of them were
+// made after git stopped, for example to fix the build. Git's abort command
+// keeps unstaged changes, but it fails if they are on top of staged changes
+// that it has to reset. A rebase is different. It refuses to start if there are
+// any changes, and its abort command discards all changes.
+func pathsToDiscardBeforeAbort(status models.WorkingTreeState, files []*models.File, submoduleConfigs []*models.SubmoduleConfig) []string {
+	if status.Effective() == models.WORKING_TREE_STATE_REBASING {
+		return nil
+	}
+
+	return lo.FilterMap(files, func(file *models.File, _ int) (string, bool) {
+		return file.Path, file.HasStagedChanges && file.HasUnstagedChanges && !file.HasMergeConflicts &&
+			!file.IsSubmodule(submoduleConfigs)
+	})
 }
 
 // PromptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
