@@ -30,3 +30,15 @@ func HoldIndexLockAfterNextCommit(shell *Shell) {
 	shell.CreateFile(".git/hooks/post-commit", "#!/bin/sh\n"+holdIndexLockScript)
 	shell.MakeExecutable(".git/hooks/post-commit")
 }
+
+// HoldIndexLockBeforeNextPickIsCommitted installs a reference-transaction hook
+// that takes index.lock (see holdIndexLockScript) the next time a rebase or
+// cherry-pick has applied the changes of a commit, but hasn't committed them
+// yet. This is when git creates CHERRY_PICK_HEAD.
+func HoldIndexLockBeforeNextPickIsCommitted(shell *Shell) {
+	shell.CreateFile(".git/hooks/reference-transaction", `#!/bin/sh
+[ "$1" = committed ] || exit 0
+awk '$3 == "CHERRY_PICK_HEAD" && $2 !~ /^0+$/ { found = 1 } END { exit !found }' || exit 0
+`+holdIndexLockScript)
+	shell.MakeExecutable(".git/hooks/reference-transaction")
+}

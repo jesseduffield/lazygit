@@ -362,6 +362,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.InteractiveRebaseOfCopiedBranch,
 	interactive_rebase.InteractiveRebaseWithConflictForEditCommand,
 	interactive_rebase.LockErrorPartwayThroughRebase,
+	interactive_rebase.LockErrorPartwayThroughSkip,
 	interactive_rebase.MidRebaseRangeSelect,
 	interactive_rebase.Move,
 	interactive_rebase.MoveAcrossBranchBoundaryOutsideRebase,
