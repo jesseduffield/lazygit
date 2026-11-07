@@ -64,5 +64,29 @@ var LockErrorPartwayThroughSkip = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("A").Contains("file-y"),
 			)
+
+		t.Views().Status().Content(Contains("(cherry-picking)"))
+
+		t.GlobalPress(keys.Universal.CreateRebaseOptionsMenu)
+		t.ExpectPopup().Menu().
+			Title(Equals("Cherry-pick options")).
+			Select(Contains("continue")).
+			Confirm()
+
+		t.Views().Status().Content(Contains("(rebasing)"))
+
+		t.GlobalPress(keys.Universal.CreateRebaseOptionsMenu)
+		t.ExpectPopup().Menu().
+			Title(Equals("Rebase options")).
+			Select(Contains("continue")).
+			Confirm()
+
+		t.Views().Commits().
+			Lines(
+				Contains("add file-z"),
+				Contains("add file-y"),
+				Contains("edited commit"),
+				Contains("base"),
+			)
 	},
 })
