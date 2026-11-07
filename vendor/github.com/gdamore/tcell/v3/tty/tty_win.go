@@ -93,6 +93,12 @@ type consoleInfo struct {
 	maxsz coord
 }
 
+// windowSize returns the size of the visible window. Before the alternate
+// screen is entered, the buffer includes scrollback and is taller.
+func (ci *consoleInfo) windowSize() (cols, rows uint16) {
+	return uint16(ci.win.right - ci.win.left + 1), uint16(ci.win.bottom - ci.win.top + 1)
+}
+
 type inputRecord struct {
 	typ  uint16
 	_    uint16
@@ -249,9 +255,14 @@ func (w *winTty) getConsoleInput() error {
 				}
 
 			case resizeEvent:
+				// The event carries the buffer size, which includes scrollback
+				// outside the alternate screen, so read the window instead.
+				var ci consoleInfo
+				rv, _, _ := procGetConsoleScreenBufferInfo.Call(uintptr(w.out), uintptr(unsafe.Pointer(&ci)))
 				w.Lock()
-				w.cols = binary.LittleEndian.Uint16(ir.data[0:])
-				w.rows = binary.LittleEndian.Uint16(ir.data[2:])
+				if rv != 0 {
+					w.cols, w.rows = ci.windowSize()
+				}
 				if w.resizeQ != nil {
 					select {
 					case w.resizeQ <- true:
@@ -345,8 +356,7 @@ func NewDevTty() (Tty, error) {
 	_, _, _ = procGetConsoleScreenBufferInfo.Call(uintptr(w.out), uintptr(unsafe.Pointer(&w.oscreen)))
 	_, _, _ = procGetConsoleMode.Call(uintptr(w.out), uintptr(unsafe.Pointer(&w.oomode)))
 	_, _, _ = procGetConsoleMode.Call(uintptr(w.in), uintptr(unsafe.Pointer(&w.oimode)))
-	w.rows = uint16(w.oscreen.size.y)
-	w.cols = uint16(w.oscreen.size.x)
+	w.cols, w.rows = w.oscreen.windowSize()
 
 	return w, nil
 }
@@ -368,8 +378,7 @@ func NewStdIoTty() (Tty, error) {
 	if r, _, err := procGetConsoleMode.Call(uintptr(w.in), uintptr(unsafe.Pointer(&w.oimode))); r == 0 || err != nil {
 		return nil, errors.New("input is not a terminal")
 	}
-	w.rows = uint16(w.oscreen.size.y)
-	w.cols = uint16(w.oscreen.size.x)
+	w.cols, w.rows = w.oscreen.windowSize()
 
 	return w, nil
 }
