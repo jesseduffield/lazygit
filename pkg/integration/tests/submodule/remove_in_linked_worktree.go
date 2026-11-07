@@ -42,11 +42,7 @@ var RemoveInLinkedWorktree = NewIntegrationTest(NewIntegrationTestArgs{
 			IsEmpty()
 
 		t.FileSystem().
-			/* EXPECTED:
 			PathPresent(mainGitDirSubmodulePath).
 			PathNotPresent(linkedGitDirSubmodulePath)
-			ACTUAL: */
-			PathNotPresent(mainGitDirSubmodulePath).
-			PathPresent(linkedGitDirSubmodulePath)
 	},
 })
