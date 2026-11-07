@@ -269,9 +269,8 @@ func (self *SubmoduleCommands) Delete(submodule *models.SubmoduleConfig) error {
 		self.Log.Error(err)
 	}
 
-	// We may in fact want to use the repo's git dir path but git docs say not to
-	// mix submodules and worktrees anyway.
-	return os.RemoveAll(submodule.GitDirPath(self.repoPaths.repoGitDirPath))
+	// Git keeps the git dirs of submodules separately for each worktree
+	return os.RemoveAll(submodule.GitDirPath(self.repoPaths.WorktreeGitDirPath()))
 }
 
 func (self *SubmoduleCommands) Add(name string, path string, url string) error {
