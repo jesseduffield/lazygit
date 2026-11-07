@@ -14,6 +14,74 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestParseGitmodules(t *testing.T) {
+	scenarios := []struct {
+		testName string
+		lines    []string
+		expected []*models.SubmoduleConfig
+	}{
+		{
+			testName: "two submodules",
+			lines: []string{
+				`[submodule "one"]`,
+				"\tpath = path/to/one",
+				"\turl = https://example.com/one.git",
+				`[submodule "two"]`,
+				"\tpath = two",
+				"\turl = ../two",
+			},
+			expected: []*models.SubmoduleConfig{
+				{Name: "one", Path: "path/to/one", Url: "https://example.com/one.git"},
+				{Name: "two", Path: "two", Url: "../two"},
+			},
+		},
+		{
+			testName: "url that contains path=",
+			lines: []string{
+				`[submodule "sub"]`,
+				"\tpath = sub",
+				"\turl = https://example.com/repo?path=other",
+			},
+			/* EXPECTED:
+			expected: []*models.SubmoduleConfig{
+				{Name: "sub", Path: "sub", Url: "https://example.com/repo?path=other"},
+			},
+			ACTUAL: */
+			expected: []*models.SubmoduleConfig{
+				{Name: "sub", Path: "other"},
+			},
+		},
+		{
+			testName: "commented-out section",
+			lines: []string{
+				`[submodule "sub"]`,
+				"\tpath = sub",
+				"\turl = ../sub",
+				`#[submodule "old"]`,
+				"#\tpath = old",
+				"#\turl = ../old",
+			},
+			/* EXPECTED:
+			expected: []*models.SubmoduleConfig{
+				{Name: "sub", Path: "sub", Url: "../sub"},
+			},
+			ACTUAL: */
+			expected: []*models.SubmoduleConfig{
+				{Name: "sub", Path: "sub", Url: "../sub"},
+				{Name: "old", Path: "old", Url: "../old"},
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			configs, err := parseGitmodules(strings.NewReader(strings.Join(s.lines, "\n")), nil)
+			assert.NoError(t, err)
+			assert.Equal(t, s.expected, configs)
+		})
+	}
+}
+
 func TestIsSuspiciousSubmoduleName(t *testing.T) {
 	scenarios := []struct {
 		name       string
