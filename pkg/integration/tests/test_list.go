@@ -578,6 +578,7 @@ var tests = []*components.IntegrationTest{
 	submodule.Enter,
 	submodule.EnterFromDotfileBareRepo,
 	submodule.EnterNested,
+	submodule.IgnoreSuspiciousName,
 	submodule.Remove,
 	submodule.RemoveInLinkedWorktree,
 	submodule.RemoveNested,
