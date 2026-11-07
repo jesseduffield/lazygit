@@ -389,6 +389,23 @@ func pathsToDiscardBeforeAbort(status models.WorkingTreeState, files []*models.F
 	})
 }
 
+// AbortSquashMergeIfNoChangesAreLeft aborts a squash merge in progress if there
+// are no changes left, for example because the user discarded them. Otherwise,
+// SQUASH_MSG would keep the squash merge in progress until the next commit,
+// and that commit would get its message. Untracked files don't count, because
+// a squash merge stages the files that it adds.
+func (self *MergeAndRebaseHelper) AbortSquashMergeIfNoChangesAreLeft() error {
+	if self.c.Git().Status.WorkingTreeState().Effective() != models.WORKING_TREE_STATE_SQUASH_MERGING {
+		return nil
+	}
+
+	if lo.SomeBy(self.c.Model().Files, func(file *models.File) bool { return file.Tracked || file.HasStagedChanges }) {
+		return nil
+	}
+
+	return self.genericMergeCommand(REBASE_OPTION_ABORT)
+}
+
 // PromptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
 func (self *MergeAndRebaseHelper) PromptToContinueRebase() {
 	self.continueRebasePromptShowing = true

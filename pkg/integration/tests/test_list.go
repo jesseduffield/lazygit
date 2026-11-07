@@ -278,6 +278,7 @@ var tests = []*components.IntegrationTest{
 	file.CopyMenu,
 	file.DirWithUntrackedFile,
 	file.DirectoryDiffWithRenamedFiles,
+	file.DiscardAllChangesOfSquashMerge,
 	file.DiscardAllDirChanges,
 	file.DiscardAllDirChangesWhenFiltering,
 	file.DiscardNestedRepositories,
