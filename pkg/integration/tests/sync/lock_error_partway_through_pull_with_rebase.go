@@ -49,28 +49,11 @@ var LockErrorPartwayThroughPullWithRebase = NewIntegrationTest(NewIntegrationTes
 			IsFocused().
 			Press(keys.Universal.Pull)
 
-		/* EXPECTED:
 		t.Views().Status().Content(Equals("↑2 repo → master"))
 
 		t.Views().Commits().
 			Lines(
 				Contains("five"),
-				Contains("four"),
-				Contains("three"),
-				Contains("two"),
-				Contains("one"),
-			)
-		ACTUAL: */
-		t.ExpectPopup().Alert().
-			Title(Equals("Error")).
-			Content(Contains("You are not currently on a branch.")).
-			Confirm()
-
-		t.Views().Commits().
-			Lines(
-				Contains("─── Pending rebase todos"),
-				Contains("pick").Contains("five"),
-				Contains("─── Commits"),
 				Contains("four"),
 				Contains("three"),
 				Contains("two"),
