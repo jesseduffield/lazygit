@@ -42,13 +42,8 @@ func TestParseGitmodules(t *testing.T) {
 				"\tpath = sub",
 				"\turl = https://example.com/repo?path=other",
 			},
-			/* EXPECTED:
 			expected: []*models.SubmoduleConfig{
 				{Name: "sub", Path: "sub", Url: "https://example.com/repo?path=other"},
-			},
-			ACTUAL: */
-			expected: []*models.SubmoduleConfig{
-				{Name: "sub", Path: "other"},
 			},
 		},
 		{
@@ -61,14 +56,8 @@ func TestParseGitmodules(t *testing.T) {
 				"#\tpath = old",
 				"#\turl = ../old",
 			},
-			/* EXPECTED:
 			expected: []*models.SubmoduleConfig{
 				{Name: "sub", Path: "sub", Url: "../sub"},
-			},
-			ACTUAL: */
-			expected: []*models.SubmoduleConfig{
-				{Name: "sub", Path: "sub", Url: "../sub"},
-				{Name: "old", Path: "old", Url: "../old"},
 			},
 		},
 	}

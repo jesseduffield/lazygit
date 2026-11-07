@@ -94,7 +94,7 @@ func parseGitmodules(reader io.Reader, parentModule *models.SubmoduleConfig) ([]
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		if name, ok := firstMatch(line, `\[submodule "(.*)"\]`); ok {
+		if name, ok := firstMatch(line, `^\s*\[submodule "(.*)"\]`); ok {
 			configs = append(configs, &models.SubmoduleConfig{
 				Name: name, ParentModule: parentModule,
 			})
@@ -103,9 +103,9 @@ func parseGitmodules(reader io.Reader, parentModule *models.SubmoduleConfig) ([]
 
 		if len(configs) > 0 {
 			config := configs[len(configs)-1]
-			if path, ok := firstMatch(line, `\s*path\s*=\s*(.*)\s*`); ok {
+			if path, ok := firstMatch(line, `^\s*path\s*=\s*(.*)\s*`); ok {
 				config.Path = path
-			} else if url, ok := firstMatch(line, `\s*url\s*=\s*(.*)\s*`); ok {
+			} else if url, ok := firstMatch(line, `^\s*url\s*=\s*(.*)\s*`); ok {
 				config.Url = url
 			}
 		}
