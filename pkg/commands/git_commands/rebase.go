@@ -408,7 +408,7 @@ func (self *RebaseCommands) SquashAllAboveFixupCommits(commit *models.Commit) er
 		Arg("--interactive", "--rebase-merges", "--autostash", "--autosquash", hashOrRoot).
 		ToArgv()
 
-	return self.runSkipEditorCommand(self.cmd.New(cmdArgs))
+	return skipEditor(self.cmd.New(cmdArgs)).Run()
 }
 
 // BeginInteractiveRebaseForCommit starts an interactive rebase to edit the current
@@ -491,7 +491,7 @@ func (self *RebaseCommands) AbortRebase() error {
 // GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
 // By default we skip the editor in the case where a commit will be made
 func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, command string) error {
-	err := self.runSkipEditorCommand(self.GenericMergeOrRebaseActionCmdObj(commandType, command))
+	err := skipEditor(self.GenericMergeOrRebaseActionCmdObj(commandType, command)).Run()
 	if err != nil {
 		if !strings.Contains(err.Error(), "no rebase in progress") {
 			return err
@@ -513,7 +513,9 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 	return nil
 }
 
-func (self *RebaseCommands) runSkipEditorCommand(cmdObj *oscommands.CmdObj) error {
+// skipEditor makes git use lazygit as the editor for the given command; lazygit
+// then exits right away, so git uses the file as it is.
+func skipEditor(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
 	instruction := daemon.NewExitImmediatelyInstruction()
 	lazyGitPath := oscommands.GetLazygitPath()
 	return cmdObj.
@@ -523,8 +525,7 @@ func (self *RebaseCommands) runSkipEditorCommand(cmdObj *oscommands.CmdObj) erro
 			"EDITOR="+lazyGitPath,
 			"VISUAL="+lazyGitPath,
 		).
-		AddEnvVars(daemon.ToEnvVars(instruction)...).
-		Run()
+		AddEnvVars(daemon.ToEnvVars(instruction)...)
 }
 
 // DiscardOldFileChanges discards changes to a file from an old commit
