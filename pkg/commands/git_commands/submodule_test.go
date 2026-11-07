@@ -45,6 +45,69 @@ func TestIsSuspiciousSubmoduleName(t *testing.T) {
 	}
 }
 
+func TestIsSuspiciousSubmodulePath(t *testing.T) {
+	dir := t.TempDir()
+	parentDir := filepath.Join(dir, "repo")
+	assert.NoError(t, os.MkdirAll(filepath.Join(parentDir, "sub"), 0o755))
+	assert.NoError(t, os.MkdirAll(filepath.Join(parentDir, "path", "to", "sub"), 0o755))
+	assert.NoError(t, os.MkdirAll(filepath.Join(dir, "other"), 0o755))
+	assert.NoError(t, os.WriteFile(filepath.Join(parentDir, "file"), []byte("content"), 0o644))
+
+	scenarios := []struct {
+		path       string
+		suspicious bool
+	}{
+		{path: "sub", suspicious: false},
+		{path: "sub/", suspicious: false},
+		{path: "path/to/sub", suspicious: false},
+		{path: "not_checked_out", suspicious: false},
+		{path: "path/not_checked_out/sub", suspicious: false},
+		{path: "", suspicious: true},
+		{path: ".", suspicious: true},
+		{path: "./", suspicious: true},
+		{path: "sub/..", suspicious: true},
+		{path: "..", suspicious: true},
+		{path: "../other", suspicious: true},
+		{path: "sub/../../other", suspicious: true},
+		{path: filepath.Join(dir, "other"), suspicious: true},
+		{path: "file", suspicious: true},
+		{path: "file/sub", suspicious: true},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.path, func(t *testing.T) {
+			assert.Equal(t, s.suspicious, isSuspiciousSubmodulePath(parentDir, s.path))
+		})
+	}
+}
+
+func TestIsSuspiciousSubmodulePathWithSymlinks(t *testing.T) {
+	dir := t.TempDir()
+	parentDir := filepath.Join(dir, "repo")
+	assert.NoError(t, os.MkdirAll(filepath.Join(parentDir, "sub"), 0o755))
+	assert.NoError(t, os.MkdirAll(filepath.Join(dir, "other", "sub"), 0o755))
+	if err := os.Symlink(filepath.Join("..", "other"), filepath.Join(parentDir, "link_outside")); err != nil {
+		t.Skipf("Can't create symlinks: %v", err)
+	}
+	assert.NoError(t, os.Symlink("sub", filepath.Join(parentDir, "link_inside")))
+
+	scenarios := []struct {
+		path       string
+		suspicious bool
+	}{
+		{path: "sub", suspicious: false},
+		{path: "link_outside", suspicious: true},
+		{path: "link_outside/sub", suspicious: true},
+		{path: "link_inside", suspicious: true},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.path, func(t *testing.T) {
+			assert.Equal(t, s.suspicious, isSuspiciousSubmodulePath(parentDir, s.path))
+		})
+	}
+}
+
 func TestSubmoduleDeleteOutsideModulesDir(t *testing.T) {
 	scenarios := []struct {
 		testName string

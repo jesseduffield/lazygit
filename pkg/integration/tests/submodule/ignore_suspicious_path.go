@@ -38,13 +38,7 @@ var IgnoreSuspiciousPath = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Submodules().
-			/* EXPECTED:
 			IsEmpty()
-			ACTUAL: */
-			Lines(
-				Contains("other"),
-				Contains("linked"),
-			)
 
 		t.Views().Files().Focus().
 			Lines(
@@ -65,11 +59,7 @@ var IgnoreSuspiciousPath = NewIntegrationTest(NewIntegrationTestArgs{
 			IsEmpty()
 
 		t.FileSystem().
-			/* EXPECTED:
 			FileContent("../other_repo/file", Equals("modified")).
 			FileContent("../linked_repo/file", Equals("modified"))
-			ACTUAL: */
-			FileContent("../other_repo/file", Equals("original")).
-			FileContent("../linked_repo/file", Equals("original"))
 	},
 })

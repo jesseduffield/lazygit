@@ -60,13 +60,16 @@ func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) 
 			continue
 		}
 
+		if isSuspiciousSubmodulePath(dir, config.Path) {
+			self.Log.Warnf("Ignoring suspicious submodule path: %s", config.Path)
+			continue
+		}
+
 		configs = append(configs, config)
 
-		if config.Path != "" {
-			nestedConfigs, err := self.GetConfigs(config)
-			if err == nil {
-				configs = append(configs, nestedConfigs...)
-			}
+		nestedConfigs, err := self.GetConfigs(config)
+		if err == nil {
+			configs = append(configs, nestedConfigs...)
 		}
 	}
 
@@ -129,6 +132,36 @@ func isSuspiciousSubmoduleName(name string) bool {
 		return r == '/' || r == '\\'
 	})
 	return lo.Contains(components, "..")
+}
+
+// isSuspiciousSubmodulePath reports whether a submodule path from the
+// .gitmodules file in parentDir might lead somewhere other than a directory
+// below parentDir. We run commands in the submodule's directory and read the
+// .gitmodules file in it, so the path must not lead anywhere else.
+//
+// Git never checks out a file through a symlink, so a path that goes through
+// a symlink can't be a submodule in the first place. We reject such paths
+// even if the symlink points to a directory below parentDir.
+func isSuspiciousSubmodulePath(parentDir string, path string) bool {
+	if !filepath.IsLocal(path) || filepath.Clean(path) == "." {
+		return true
+	}
+
+	dir := parentDir
+	for _, component := range strings.Split(filepath.Clean(path), string(filepath.Separator)) {
+		dir = filepath.Join(dir, component)
+		fileInfo, err := os.Lstat(dir)
+		if os.IsNotExist(err) {
+			// Nothing below this point exists (e.g. because the submodule
+			// isn't checked out), so it can't lead anywhere else either
+			return false
+		}
+		if err != nil || !fileInfo.IsDir() {
+			return true
+		}
+	}
+
+	return false
 }
 
 // AnyHaveStageableChanges reports whether any of the given submodule paths has
