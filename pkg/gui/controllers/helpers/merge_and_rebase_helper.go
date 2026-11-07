@@ -611,15 +611,24 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 		}
 	}
 
+	// Git refuses to merge while there are staged changes, but not if it can
+	// fast-forward the squash merge. It would add the changes of the branch to
+	// the staged ones then, and we couldn't tell them apart anymore.
+	var squashMergeDisabledReason *types.DisabledReason
+	if AnyStagedFiles(self.c.Model().Files) {
+		squashMergeDisabledReason = &types.DisabledReason{Text: self.c.Tr.CantSquashMergeWithStagedChanges}
+	}
+
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Merge,
 		Items: []*types.MenuItem{
 			firstRegularMergeItem,
 			secondRegularMergeItem,
 			{
-				Label:   self.c.Tr.SquashMergeUncommitted,
-				OnPress: self.SquashMergeUncommitted(refName),
-				Keys:    menuKey('s'),
+				Label:          self.c.Tr.SquashMergeUncommitted,
+				OnPress:        self.SquashMergeUncommitted(refName),
+				DisabledReason: squashMergeDisabledReason,
+				Keys:           menuKey('s'),
 				Tooltip: utils.ResolvePlaceholderString(
 					self.c.Tr.SquashMergeUncommittedTooltip,
 					map[string]string{
@@ -628,9 +637,10 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 				),
 			},
 			{
-				Label:   self.c.Tr.SquashMergeCommitted,
-				OnPress: self.SquashMergeCommitted(refName, checkedOutBranchName),
-				Keys:    menuKey('S'),
+				Label:          self.c.Tr.SquashMergeCommitted,
+				OnPress:        self.SquashMergeCommitted(refName, checkedOutBranchName),
+				DisabledReason: squashMergeDisabledReason,
+				Keys:           menuKey('S'),
 				Tooltip: utils.ResolvePlaceholderString(
 					self.c.Tr.SquashMergeCommittedTooltip,
 					map[string]string{

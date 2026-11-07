@@ -304,6 +304,7 @@ type TranslationSet struct {
 	SquashMergeUncommittedTooltip         string
 	SquashMergeCommitted                  string
 	SquashMergeCommittedTooltip           string
+	CantSquashMergeWithStagedChanges      string
 	ConfirmQuit                           string
 	SwitchRepo                            string
 	AllBranchesLogGraph                   string
@@ -1533,6 +1534,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SquashMergeUncommittedTooltip:        "Squash merge '{{.selectedBranch}}' into the working tree.",
 		SquashMergeCommitted:                 "Squash merge and commit",
 		SquashMergeCommittedTooltip:          "Squash merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}' as a single commit.",
+		CantSquashMergeWithStagedChanges:     "Cannot squash merge while there are staged changes",
 		ConfirmQuit:                          `Are you sure you want to quit?`,
 		SwitchRepo:                           `Switch to a recent repo`,
 		AllBranchesLogGraph:                  `Show/cycle all branch logs`,

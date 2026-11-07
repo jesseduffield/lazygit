@@ -34,7 +34,6 @@ var SquashMergeWithStagedChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			Select(Contains("Squash merge and commit")).
 			Confirm()
 
-		/* EXPECTED:
 		t.ExpectToast(Equals("Disabled: Cannot squash merge while there are staged changes"))
 
 		t.ExpectPopup().Menu().
@@ -43,22 +42,5 @@ var SquashMergeWithStagedChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 
 		t.ExpectToast(Equals("Disabled: Cannot squash merge while there are staged changes"))
-		ACTUAL: */
-		t.Views().Commits().
-			Focus().
-			Lines(
-				Contains("Squash merge feature-branch into original-branch"),
-				Contains("one"),
-			).
-			NavigateToLine(Contains("Squash merge feature-branch into original-branch")).
-			PressEnter()
-
-		t.Views().CommitFiles().
-			IsFocused().
-			Lines(
-				Equals("▼ /"),
-				Contains("feature-file"),
-				Contains("staged-file"),
-			)
 	},
 })
