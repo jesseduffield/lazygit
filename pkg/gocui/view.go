@@ -547,6 +547,18 @@ func (v *View) SelectSearchResult(index int) {
 	}
 }
 
+// ScrollSidewaysToCurrentSearchResult scrolls the view sideways to show the current
+// match if it isn't on screen. SelectSearchResult does this too, but if the view renders
+// only the lines on screen, a match that was off screen has no position in its line
+// yet. Call this once its line has been rendered.
+func (v *View) ScrollSidewaysToCurrentSearchResult() {
+	v.refreshSearchPositions()
+
+	if len(v.searcher.searchPositions) > 0 {
+		v.scrollSidewaysToSearchResult(v.searcher.searchPositions[v.searcher.currentSearchIndex])
+	}
+}
+
 // scrollSidewaysToSearchResult scrolls the view sideways to show the given match if it
 // isn't on screen. A match without a position in its line has nothing to scroll to.
 func (v *View) scrollSidewaysToSearchResult(pos SearchPosition) {

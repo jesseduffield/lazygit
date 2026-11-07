@@ -42,9 +42,6 @@ var SearchScrollsToAMatchOffTheEdge = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectedLines(
 				Contains("commit 03"),
 			).
-			/* EXPECTED:
 			OriginX(212)
-			ACTUAL: */
-			OriginX(112)
 	},
 })
