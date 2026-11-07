@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
@@ -85,6 +86,30 @@ func abortSequenceAfterLockError(
 			}
 		}
 		return cmdObj
+	})
+}
+
+// retryContinueOrSkipAfterLockError sets the lock-error recovery (see
+// CmdObj.RecoverFromLockErrorWith) of cmdObj, a command that continues or skips
+// a step of an operation in progress, such as a cherry-pick or revert.
+// progressFile is the file in which git records how far the operation has got.
+// Call this function right before running the command, since it records the
+// contents of progressFile at that time.
+//
+// If a lock stops the command before it changes progressFile, we run the
+// command again. Otherwise it has got past the step that it continued or
+// skipped, and the lock stopped it at the next one. Unlike a rebase, git doesn't
+// reschedule that step (see abortSequenceAfterLockError), and running the
+// command again could skip it. So we give up and leave the operation to the
+// user.
+func retryContinueOrSkipAfterLockError(cmdObj *oscommands.CmdObj, progressFile string) *oscommands.CmdObj {
+	progressBefore, _ := os.ReadFile(progressFile)
+	return cmdObj.RecoverFromLockErrorWith(func() *oscommands.CmdObj {
+		progress, _ := os.ReadFile(progressFile)
+		if bytes.Equal(progress, progressBefore) {
+			return cmdObj
+		}
+		return nil
 	})
 }
 

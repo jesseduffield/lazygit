@@ -55,7 +55,6 @@ var LockErrorPartwayThroughSkip = NewIntegrationTest(NewIntegrationTestArgs{
 			Select(Contains("skip")).
 			Confirm()
 
-		/* EXPECTED:
 		t.ExpectPopup().Alert().
 			Title(Equals("Error")).
 			Content(Contains("index.lock': File exists.")).
@@ -64,13 +63,6 @@ var LockErrorPartwayThroughSkip = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			Lines(
 				Contains("A").Contains("file-y"),
-			)
-		ACTUAL: */
-		t.Views().Commits().
-			Lines(
-				Contains("add file-z"),
-				Contains("edited commit"),
-				Contains("base"),
 			)
 	},
 })

@@ -501,7 +501,18 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 		}
 	}
 
-	err := skipEditor(self.GenericMergeOrRebaseActionCmdObj(commandType, command)).Run()
+	cmdObj := skipEditor(self.GenericMergeOrRebaseActionCmdObj(commandType, command))
+	if command == "continue" || command == "skip" {
+		switch commandType {
+		case "rebase":
+			cmdObj = self.resumeAfterLockError(cmdObj)
+		case "cherry-pick", "revert":
+			cmdObj = retryContinueOrSkipAfterLockError(cmdObj,
+				filepath.Join(self.repoPaths.WorktreeGitDirPath(), "sequencer", "todo"))
+		}
+	}
+
+	err := cmdObj.Run()
 	if err != nil {
 		undoRepeatingTodo()
 		if !strings.Contains(err.Error(), "no rebase in progress") {
@@ -524,8 +535,8 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 	return nil
 }
 
-// resumeAfterLockError makes cmdObj, a command that starts a rebase, resume
-// the rebase if a lock error stops it partway through; see
+// resumeAfterLockError makes cmdObj, a command that starts or continues a
+// rebase, resume the rebase if a lock error stops it partway through; see
 // resumeRebaseAfterLockError.
 func (self *RebaseCommands) resumeAfterLockError(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
 	return resumeRebaseAfterLockError(cmdObj, self.repoPaths.WorktreeGitDirPath(), self.config.GetCoreCommentChar(),

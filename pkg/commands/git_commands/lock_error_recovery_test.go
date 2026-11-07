@@ -175,3 +175,55 @@ func TestAbortSequenceAfterLockError(t *testing.T) {
 		})
 	}
 }
+
+func TestRetryContinueOrSkipAfterLockError(t *testing.T) {
+	newCmdObj := func(args ...string) *oscommands.CmdObj {
+		return oscommands.NewDummyCmdObjBuilder(nil).New(args)
+	}
+
+	writeTodos := func(gitDir string, todos string) {
+		dir := filepath.Join(gitDir, "sequencer")
+		assert.NoError(t, os.MkdirAll(dir, 0o755))
+		assert.NoError(t, os.WriteFile(filepath.Join(dir, "todo"), []byte(todos), 0o644))
+	}
+
+	t.Run("runs the command again if it didn't change the todos", func(t *testing.T) {
+		gitDir := t.TempDir()
+		writeTodos(gitDir, "pick 1234567 one\npick 2345678 two\n")
+		cmdObj := newCmdObj("git", "cherry-pick", "--continue")
+
+		retryContinueOrSkipAfterLockError(cmdObj, filepath.Join(gitDir, "sequencer", "todo"))
+
+		assert.Same(t, cmdObj, cmdObj.GetLockErrorRecovery()())
+	})
+
+	t.Run("runs the command again for a cherry-pick of a single commit", func(t *testing.T) {
+		cmdObj := newCmdObj("git", "cherry-pick", "--continue")
+
+		retryContinueOrSkipAfterLockError(cmdObj, filepath.Join(t.TempDir(), "sequencer", "todo"))
+
+		assert.Same(t, cmdObj, cmdObj.GetLockErrorRecovery()())
+	})
+
+	t.Run("gives up if it changed the todos", func(t *testing.T) {
+		gitDir := t.TempDir()
+		writeTodos(gitDir, "pick 1234567 one\npick 2345678 two\n")
+		cmdObj := newCmdObj("git", "cherry-pick", "--continue")
+
+		retryContinueOrSkipAfterLockError(cmdObj, filepath.Join(gitDir, "sequencer", "todo"))
+		writeTodos(gitDir, "pick 2345678 two\n")
+
+		assert.Nil(t, cmdObj.GetLockErrorRecovery()())
+	})
+
+	t.Run("gives up if the cherry-pick is gone", func(t *testing.T) {
+		gitDir := t.TempDir()
+		writeTodos(gitDir, "pick 1234567 one\n")
+		cmdObj := newCmdObj("git", "cherry-pick", "--continue")
+
+		retryContinueOrSkipAfterLockError(cmdObj, filepath.Join(gitDir, "sequencer", "todo"))
+		assert.NoError(t, os.RemoveAll(filepath.Join(gitDir, "sequencer")))
+
+		assert.Nil(t, cmdObj.GetLockErrorRecovery()())
+	})
+}
