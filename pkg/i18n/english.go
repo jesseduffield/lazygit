@@ -416,6 +416,7 @@ type TranslationSet struct {
 	PendingRebaseTodosSectionHeader       string
 	PendingCherryPicksSectionHeader       string
 	PendingRevertsSectionHeader           string
+	PendingPatchesSectionHeader           string
 	CommitsSectionHeader                  string
 	MoveCommitsHere                       string
 	MovingCommitsHere                     string
@@ -423,6 +424,7 @@ type TranslationSet struct {
 	RewordNotSupported                    string
 	ChangingThisActionIsNotAllowed        string
 	NotAllowedMidCherryPickOrRevert       string
+	NotAllowedWhileApplyingPatches        string
 	PickIsOnlyAllowedDuringRebase         string
 	DroppingMergeRequiresSingleSelection  string
 	CherryPickCopy                        string
@@ -1650,6 +1652,7 @@ func EnglishTranslationSet() *TranslationSet {
 		PendingRebaseTodosSectionHeader:      "Pending rebase todos",
 		PendingCherryPicksSectionHeader:      "Pending cherry-picks",
 		PendingRevertsSectionHeader:          "Pending reverts",
+		PendingPatchesSectionHeader:          "Pending patches",
 		CommitsSectionHeader:                 "Commits",
 		MoveCommitsHere:                      "drop here",
 		MovingCommitsHere:                    "moving commits here",
@@ -1657,6 +1660,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RewordNotSupported:                   "Rewording commits while interactively rebasing is not currently supported",
 		ChangingThisActionIsNotAllowed:       "Changing this kind of rebase todo entry is not allowed",
 		NotAllowedMidCherryPickOrRevert:      "This action is not allowed while cherry-picking or reverting",
+		NotAllowedWhileApplyingPatches:       "This action is not allowed while applying patches",
 		PickIsOnlyAllowedDuringRebase:        "This action is only allowed while rebasing",
 		DroppingMergeRequiresSingleSelection: "Dropping a merge commit requires a single selected item",
 		CherryPickCopy:                       "Copy (cherry-pick)",

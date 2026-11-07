@@ -128,7 +128,7 @@ func (self WorkingTreeState) CommandName() string {
 }
 
 func (self WorkingTreeState) CanShowTodos() bool {
-	return self.Rebasing || self.CherryPicking || self.Reverting
+	return self.Rebasing || self.CherryPicking || self.Reverting || self.ApplyingPatches
 }
 
 func (self WorkingTreeState) CanSkip() bool {

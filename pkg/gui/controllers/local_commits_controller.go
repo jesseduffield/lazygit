@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"os"
 	"strings"
 	"time"
 
@@ -718,6 +719,14 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() {
 			} else if commit.Action == todo.Exec {
 				task = types.NewRenderStringTask(
 					self.c.Tr.ExecCommandHere + "\n\n" + commit.Name)
+			} else if commit.PatchFile != "" {
+				// We have no commit for a patch that "git am" hasn't applied
+				// yet, so we show the patch itself
+				patch, err := os.ReadFile(commit.PatchFile)
+				if err != nil {
+					self.c.Log.Error(err)
+				}
+				task = types.NewRenderStringTask(string(patch))
 			} else {
 				refRange := self.context().GetSelectedRefRangeForDiffFiles()
 				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange)
@@ -1181,12 +1190,15 @@ func (self *LocalCommitsController) isRebasing() bool {
 }
 
 // todosNotEditableReason returns why the todos in the commits panel can't be
-// edited, if they can't. This is the case during a cherry-pick or revert;
-// git has no way of changing their todos.
+// edited, if they can't. This is the case during a cherry-pick or revert, or
+// while applying patches with "git am"; git has no way of changing their todos.
 func (self *LocalCommitsController) todosNotEditableReason() *types.DisabledReason {
 	if self.c.Model().WorkingTreeStateAtLastCommitRefresh.CherryPicking ||
 		self.c.Model().WorkingTreeStateAtLastCommitRefresh.Reverting {
 		return &types.DisabledReason{Text: self.c.Tr.NotAllowedMidCherryPickOrRevert}
+	}
+	if self.c.Model().WorkingTreeStateAtLastCommitRefresh.ApplyingPatches {
+		return &types.DisabledReason{Text: self.c.Tr.NotAllowedWhileApplyingPatches}
 	}
 	return nil
 }

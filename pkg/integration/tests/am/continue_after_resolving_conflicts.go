@@ -24,6 +24,27 @@ var ContinueAfterResolvingConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("UU").Contains("file"),
 			)
 
+		t.Views().Commits().
+			Focus().
+			Lines(
+				Contains("─── Pending patches"),
+				Contains("pick").Contains("add file2"),
+				Contains("pick").Contains("<-- CONFLICT --- change file").IsSelected(),
+				Contains("─── Commits"),
+				Contains("conflicting change"),
+				Contains("base"),
+			).
+			NavigateToLine(Contains("add file2")).
+			Tap(func() {
+				t.Views().Main().Content(
+					Contains("Subject: [PATCH 2/2] add file2").
+						Contains("+two"))
+			}).
+			Press(keys.Universal.Remove).
+			Tap(func() {
+				t.ExpectToast(Equals("Disabled: This action is not allowed while applying patches"))
+			})
+
 		t.Shell().UpdateFileAndAdd("file", "resolved\n")
 
 		t.GlobalPress(keys.Universal.CreateRebaseOptionsMenu)
