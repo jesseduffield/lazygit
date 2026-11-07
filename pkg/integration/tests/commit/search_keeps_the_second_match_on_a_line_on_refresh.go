@@ -37,17 +37,11 @@ var SearchKeepsTheSecondMatchOnALineOnRefresh = NewIntegrationTest(NewIntegratio
 
 				t.GlobalPress(keys.Universal.Refresh)
 				t.Views().Search().Content(
-					/* EXPECTED:
 					Contains("matches for 'needle' (2 of 3)"))
-					ACTUAL: */
-					Contains("matches for 'needle' (1 of 3)"))
 			}).
 			Press(keys.Universal.NextMatch).
 			SelectedLines(
-				/* EXPECTED:
 				Contains("commit 02 needle"),
-				ACTUAL: */
-				Contains("commit 04 needle and needle"),
 			)
 	},
 })

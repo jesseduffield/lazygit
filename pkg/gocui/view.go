@@ -638,8 +638,15 @@ func (v *View) IsSearching() bool {
 	return v.searcher.searchString != ""
 }
 
+// nearestSearchPosition returns the current match if it is on the cursor's line.
+// Otherwise it returns the first match on that line, or else the last match above it,
+// or the first match if there is none above.
 func (v *View) nearestSearchPosition() int {
 	currentLineIndex := v.cy + v.oy
+	if v.searcher.searchPositions[v.searcher.currentSearchIndex].Y == currentLineIndex {
+		return v.searcher.currentSearchIndex
+	}
+
 	lastSearchPos := 0
 	for i, pos := range v.searcher.searchPositions {
 		if pos.Y == currentLineIndex {
