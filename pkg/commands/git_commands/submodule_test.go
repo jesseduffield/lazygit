@@ -1,10 +1,13 @@
 package git_commands
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/samber/lo"
@@ -38,6 +41,53 @@ func TestIsSuspiciousSubmoduleName(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
 			assert.Equal(t, s.suspicious, isSuspiciousSubmoduleName(s.name))
+		})
+	}
+}
+
+func TestSubmoduleDeleteOutsideModulesDir(t *testing.T) {
+	scenarios := []struct {
+		testName string
+		name     string
+		// relative to the directory that contains the repo
+		victimPath string
+	}{
+		{
+			testName:   "modules dir itself",
+			name:       ".",
+			victimPath: "repo/.git/modules/other_submodule",
+		},
+		{
+			testName:   "outside the repo",
+			name:       "../../../victim",
+			victimPath: "victim",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			dir := t.TempDir()
+			victimFile := filepath.Join(dir, s.victimPath, "file")
+			assert.NoError(t, os.MkdirAll(filepath.Dir(victimFile), 0o755))
+			assert.NoError(t, os.WriteFile(victimFile, []byte("content"), 0o644))
+
+			runner := oscommands.NewFakeRunner(t)
+			runner.
+				ExpectGitArgs([]string{"submodule", "deinit", "--force", "--", "sub"}, "", nil).
+				ExpectGitArgs([]string{"rm", "--force", "-r", "sub"}, "", nil)
+			instance := buildSubmoduleCommands(commonDeps{
+				runner:    runner,
+				repoPaths: MockRepoPaths(filepath.Join(dir, "repo")),
+			})
+
+			err := instance.Delete(&models.SubmoduleConfig{Name: s.name, Path: "sub"})
+			/* EXPECTED:
+			assert.Error(t, err)
+			assert.FileExists(t, victimFile)
+			ACTUAL: */
+			assert.NoError(t, err)
+			assert.NoFileExists(t, victimFile)
+			runner.CheckForMissingCalls()
 		})
 	}
 }
