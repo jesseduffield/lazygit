@@ -117,6 +117,7 @@ var tests = []*components.IntegrationTest{
 	cherry_pick.CherryPickRange,
 	cherry_pick.CherryPickRangeAfterPaste,
 	cherry_pick.CherryPickStoppedByUntrackedFile,
+	cherry_pick.LockErrorPartwayThroughCherryPick,
 	commit.AddCoAuthor,
 	commit.AddCoAuthorRange,
 	commit.AddCoAuthorWhileCommitting,
