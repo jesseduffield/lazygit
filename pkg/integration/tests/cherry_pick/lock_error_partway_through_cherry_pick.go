@@ -63,23 +63,8 @@ var LockErrorPartwayThroughCherryPick = NewIntegrationTest(NewIntegrationTestArg
 					Content(Contains("Are you sure you want to cherry-pick the 2 copied commit(s) onto this branch?")).
 					Confirm()
 			}).
-			/* EXPECTED:
 			Lines(
 				Contains("two"),
-				Contains("one"),
-				Contains("base"),
-			)
-			ACTUAL: */
-			Tap(func() {
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Contains("cherry-pick is already in progress")).
-					Confirm()
-			}).
-			Lines(
-				Contains("─── Pending cherry-picks"),
-				Contains("pick").Contains("two"),
-				Contains("─── Commits"),
 				Contains("one"),
 				Contains("base"),
 			)

@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -105,4 +106,72 @@ func TestResumeRebaseAfterLockError(t *testing.T) {
 			assert.NoError(t, os.MkdirAll(filepath.Join(gitDir, "rebase-apply"), 0o755))
 		}))
 	})
+}
+
+func TestAbortSequenceAfterLockError(t *testing.T) {
+	scenarios := []struct {
+		testName           string
+		numCommits         int
+		sequencerExists    bool
+		runner             *oscommands.FakeCmdObjRunner
+		expectRecovery     bool
+		expectRunningAgain bool
+	}{
+		{
+			testName:       "single commit",
+			numCommits:     1,
+			runner:         oscommands.NewFakeRunner(t),
+			expectRecovery: false,
+		},
+		{
+			testName:           "the lock stopped the command before it started",
+			numCommits:         2,
+			runner:             oscommands.NewFakeRunner(t),
+			expectRecovery:     true,
+			expectRunningAgain: true,
+		},
+		{
+			testName:        "the lock stopped the command partway through",
+			numCommits:      2,
+			sequencerExists: true,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"cherry-pick", "--abort"}, "", nil),
+			expectRecovery:     true,
+			expectRunningAgain: true,
+		},
+		{
+			testName:        "aborting fails",
+			numCommits:      2,
+			sequencerExists: true,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"cherry-pick", "--abort"}, "", errors.New("error")),
+			expectRecovery:     true,
+			expectRunningAgain: false,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitDir := t.TempDir()
+			if s.sequencerExists {
+				assert.NoError(t, os.MkdirAll(filepath.Join(gitDir, "sequencer"), 0o755))
+			}
+			builder := oscommands.NewDummyCmdObjBuilder(s.runner)
+			cmdObj := builder.New([]string{"git", "cherry-pick", "1234567", "2345678"})
+
+			abortSequenceAfterLockError(cmdObj, gitDir, s.numCommits, func() *oscommands.CmdObj {
+				return builder.New([]string{"git", "cherry-pick", "--abort"})
+			})
+
+			recovery := cmdObj.GetLockErrorRecovery()
+			if !s.expectRecovery {
+				assert.Nil(t, recovery)
+			} else if s.expectRunningAgain {
+				assert.Same(t, cmdObj, recovery())
+			} else {
+				assert.Nil(t, recovery())
+			}
+			s.runner.CheckForMissingCalls()
+		})
+	}
 }

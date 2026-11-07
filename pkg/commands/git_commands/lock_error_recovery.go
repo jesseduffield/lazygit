@@ -49,6 +49,45 @@ func resumeRebaseAfterLockError(
 	return recoverFrom(cmdObj, rebaseState(gitDir))
 }
 
+// abortSequenceAfterLockError sets the lock-error recovery (see
+// CmdObj.RecoverFromLockErrorWith) of cmdObj, a cherry-pick or revert of
+// numCommits commits in the worktree whose git dir is gitDir.
+//
+// If a lock stops a cherry-pick or revert of several commits after it has
+// applied some of them, git leaves the operation in progress in
+// .git/sequencer. Unlike a rebase, it doesn't reschedule the commit that
+// failed, and continuing the operation would skip that commit. So we abort the
+// operation with the command made by newAbortCmdObj, and run the command
+// again. The runner calls the recovery after its last attempt too, so we
+// also abort when it gives up, and the user isn't left with an operation that
+// stopped halfway.
+func abortSequenceAfterLockError(
+	cmdObj *oscommands.CmdObj,
+	gitDir string,
+	numCommits int,
+	newAbortCmdObj func() *oscommands.CmdObj,
+) *oscommands.CmdObj {
+	// For a single commit, git doesn't use .git/sequencer. If a lock stops it,
+	// it has either not changed anything yet, or it has staged the changes, and
+	// running it again fails with an error. Git also doesn't check whether
+	// another operation is in progress in .git/sequencer, so we must not abort
+	// that one.
+	if numCommits < 2 {
+		return cmdObj
+	}
+
+	return cmdObj.RecoverFromLockErrorWith(func() *oscommands.CmdObj {
+		// Git refuses to start a cherry-pick or revert of several commits while
+		// one is in progress, so if there is one now, our command started it.
+		if dirExists(filepath.Join(gitDir, "sequencer")) {
+			if err := newAbortCmdObj().Run(); err != nil {
+				return nil
+			}
+		}
+		return cmdObj
+	})
+}
+
 // rebaseState returns a snapshot of the rebase that is in progress in gitDir,
 // made of the files in which git records how far it has got. It's empty if no
 // rebase is in progress.

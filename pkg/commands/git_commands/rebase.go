@@ -598,7 +598,10 @@ func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 		Arg(lo.Reverse(lo.Map(commits, func(c *models.Commit, _ int) string { return c.Hash() }))...).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return abortSequenceAfterLockError(self.cmd.New(cmdArgs), self.repoPaths.WorktreeGitDirPath(), len(commits),
+		func() *oscommands.CmdObj {
+			return self.cmd.New(NewGitCmd("cherry-pick").Arg("--abort").ToArgv())
+		}).Run()
 }
 
 func (self *RebaseCommands) DropMergeCommit(commits []*models.Commit, commitIndex int) error {
