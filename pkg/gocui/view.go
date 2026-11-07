@@ -575,32 +575,52 @@ func (v *View) UpdateSearchResults(str string, modelSearchResults []SearchPositi
 	v.searcher.search(str, modelSearchResults)
 	v.updateSearchPositions()
 
-	if len(v.searcher.searchPositions) > 0 {
-		// get the first result past the current cursor
-		currentIndex := 0
-		if v.Highlight {
-			// ...but only if we're showing the highlighted line
-			adjustedY := v.oy + v.cy
-			adjustedX := v.ox + v.cx
-			for i, pos := range v.searcher.searchPositions {
-				if pos.Y > adjustedY || (pos.Y == adjustedY && pos.XStart > adjustedX) {
-					currentIndex = i
-					break
-				}
-			}
-		}
-		v.searcher.currentSearchIndex = currentIndex
+	if v.Highlight && len(v.searcher.searchPositions) > 0 {
+		v.searcher.currentSearchIndex = v.firstSearchPositionAfterCursor()
 	}
 }
 
+// Search starts a search for str and goes to its first match after the cursor. See
+// UpdateSearchResults for what modelSearchResults is.
 func (v *View) Search(str string, modelSearchResults []SearchPosition) {
-	v.UpdateSearchResults(str, modelSearchResults)
-
-	if len(v.searcher.searchPositions) > 0 {
+	if v.startSearch(str, modelSearchResults) {
 		v.SelectSearchResult(v.searcher.currentSearchIndex)
 	} else {
 		v.renderSearchStatus(0, 0)
 	}
+}
+
+// startSearch runs a new search for str and makes its first match after the cursor the
+// current one. It returns whether there are any matches.
+func (v *View) startSearch(str string, modelSearchResults []SearchPosition) bool {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.searcher.search(str, modelSearchResults)
+	v.updateSearchPositions()
+
+	if len(v.searcher.searchPositions) == 0 {
+		return false
+	}
+	// If the view doesn't show a selection, the search starts at the first match.
+	if v.Highlight {
+		v.searcher.currentSearchIndex = v.firstSearchPositionAfterCursor()
+	}
+	return true
+}
+
+// firstSearchPositionAfterCursor returns the first match after the cursor, counting one
+// on the cursor's line if it starts right of the cursor. If there is none, it returns
+// the first match, so that the search wraps around.
+func (v *View) firstSearchPositionAfterCursor() int {
+	cursorY := v.oy + v.cy
+	cursorX := v.ox + v.cx
+	for i, pos := range v.searcher.searchPositions {
+		if pos.Y > cursorY || (pos.Y == cursorY && pos.XStart > cursorX) {
+			return i
+		}
+	}
+	return 0
 }
 
 func (v *View) ClearSearch() {
