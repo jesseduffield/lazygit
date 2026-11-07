@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -275,6 +276,18 @@ func (self *SubmoduleCommands) runInParentModule(submodule *models.SubmoduleConf
 func (self *SubmoduleCommands) Delete(submodule *models.SubmoduleConfig) error {
 	// based on https://gist.github.com/myusuf3/7f645819ded92bda6677
 
+	// Git keeps the git dirs of submodules separately for each worktree
+	gitDirPath := submodule.GitDirPath(self.repoPaths.WorktreeGitDirPath())
+
+	// The name of the submodule comes from .gitmodules, so it is under the
+	// control of whoever committed that file. Make sure that we never delete
+	// anything other than a directory below the "modules" directory of the
+	// worktree's git dir.
+	modulesDirPath := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "modules")
+	if relPath, err := filepath.Rel(modulesDirPath, gitDirPath); err != nil || relPath == "." || !filepath.IsLocal(relPath) {
+		return fmt.Errorf("refusing to delete %s because it is not inside %s", gitDirPath, modulesDirPath)
+	}
+
 	if err := self.runInParentModule(submodule, self.cmd.New(
 		NewGitCmd("submodule").
 			Arg("deinit", "--force", "--", submodule.Path).ToArgv(),
@@ -307,8 +320,7 @@ func (self *SubmoduleCommands) Delete(submodule *models.SubmoduleConfig) error {
 		self.Log.Error(err)
 	}
 
-	// Git keeps the git dirs of submodules separately for each worktree
-	return os.RemoveAll(submodule.GitDirPath(self.repoPaths.WorktreeGitDirPath()))
+	return os.RemoveAll(gitDirPath)
 }
 
 func (self *SubmoduleCommands) Add(name string, path string, url string) error {

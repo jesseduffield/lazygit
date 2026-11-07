@@ -72,21 +72,14 @@ func TestSubmoduleDeleteOutsideModulesDir(t *testing.T) {
 			assert.NoError(t, os.WriteFile(victimFile, []byte("content"), 0o644))
 
 			runner := oscommands.NewFakeRunner(t)
-			runner.
-				ExpectGitArgs([]string{"submodule", "deinit", "--force", "--", "sub"}, "", nil).
-				ExpectGitArgs([]string{"rm", "--force", "-r", "sub"}, "", nil)
 			instance := buildSubmoduleCommands(commonDeps{
 				runner:    runner,
 				repoPaths: MockRepoPaths(filepath.Join(dir, "repo")),
 			})
 
 			err := instance.Delete(&models.SubmoduleConfig{Name: s.name, Path: "sub"})
-			/* EXPECTED:
 			assert.Error(t, err)
 			assert.FileExists(t, victimFile)
-			ACTUAL: */
-			assert.NoError(t, err)
-			assert.NoFileExists(t, victimFile)
 			runner.CheckForMissingCalls()
 		})
 	}
