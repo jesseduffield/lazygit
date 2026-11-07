@@ -117,14 +117,16 @@ func (self WorkingTreeState) OperationName(tr *i18n.TranslationSet) string {
 	}[self.Effective()]
 }
 
-func (self WorkingTreeState) CommandName() string {
+// CommandName returns the git command whose --continue, --skip and --abort
+// options continue, skip or abort the operation
+func (self EffectiveWorkingTreeState) CommandName() string {
 	return map[EffectiveWorkingTreeState]string{
 		WORKING_TREE_STATE_REBASING:         "rebase",
 		WORKING_TREE_STATE_MERGING:          "merge",
 		WORKING_TREE_STATE_CHERRY_PICKING:   "cherry-pick",
 		WORKING_TREE_STATE_REVERTING:        "revert",
 		WORKING_TREE_STATE_APPLYING_PATCHES: "am",
-	}[self.Effective()]
+	}[self]
 }
 
 func (self WorkingTreeState) CanShowTodos() bool {

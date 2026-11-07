@@ -121,7 +121,6 @@ func (self *MergeAndRebaseHelper) genericMergeCommandImpl(command string, showWa
 		}
 	}
 
-	commandType := status.CommandName()
 	selectHeadCommitOnSuccess := command == REBASE_OPTION_CONTINUE &&
 		effectiveStatus == models.WORKING_TREE_STATE_MERGING
 
@@ -135,7 +134,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommandImpl(command string, showWa
 
 	if needsSubprocess {
 		// TODO: see if we should be calling more of the code from self.Git.Rebase.GenericMergeOrRebaseAction
-		success, err := self.c.RunSubprocess(self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command))
+		success, err := self.c.RunSubprocess(self.c.Git().Rebase.GenericMergeOrRebaseActionCmdObj(effectiveStatus, command))
 		self.refreshAfterMergeOrRebase(types.RefreshOptions{
 			CommitSelection: commitSelectionAfterMerge(success && selectHeadCommitOnSuccess),
 		}, calledFromWorker)
@@ -148,7 +147,7 @@ func (self *MergeAndRebaseHelper) genericMergeCommandImpl(command string, showWa
 	// CheckMergeOrRebaseWithRefreshOptions or the abort in abortMergeOrRebase,
 	// which already run on one.
 	runAction := func() error {
-		result := self.c.Git().Rebase.GenericMergeOrRebaseAction(commandType, command)
+		result := self.c.Git().Rebase.GenericMergeOrRebaseAction(effectiveStatus, command)
 		return self.CheckMergeOrRebaseWithRefreshOptions(result,
 			types.RefreshOptions{
 				CommitSelection: commitSelectionAfterMerge(result == nil && selectHeadCommitOnSuccess),
