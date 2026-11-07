@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"bufio"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -46,7 +47,28 @@ func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) 
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
+	parsedConfigs, err := parseGitmodules(file, parentModule)
+	if err != nil {
+		return nil, err
+	}
+
+	configs := []*models.SubmoduleConfig{}
+	for _, config := range parsedConfigs {
+		configs = append(configs, config)
+
+		if config.Path != "" {
+			nestedConfigs, err := self.GetConfigs(config)
+			if err == nil {
+				configs = append(configs, nestedConfigs...)
+			}
+		}
+	}
+
+	return configs, nil
+}
+
+func parseGitmodules(reader io.Reader, parentModule *models.SubmoduleConfig) ([]*models.SubmoduleConfig, error) {
+	scanner := bufio.NewScanner(reader)
 	scanner.Split(bufio.ScanLines)
 
 	firstMatch := func(str string, regex string) (string, bool) {
@@ -60,7 +82,6 @@ func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) 
 	}
 
 	configs := []*models.SubmoduleConfig{}
-	lastConfigIdx := -1
 	for scanner.Scan() {
 		line := scanner.Text()
 
@@ -68,19 +89,15 @@ func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) 
 			configs = append(configs, &models.SubmoduleConfig{
 				Name: name, ParentModule: parentModule,
 			})
-			lastConfigIdx = len(configs) - 1
 			continue
 		}
 
-		if lastConfigIdx != -1 {
+		if len(configs) > 0 {
+			config := configs[len(configs)-1]
 			if path, ok := firstMatch(line, `\s*path\s*=\s*(.*)\s*`); ok {
-				configs[lastConfigIdx].Path = path
-				nestedConfigs, err := self.GetConfigs(configs[lastConfigIdx])
-				if err == nil {
-					configs = append(configs, nestedConfigs...)
-				}
+				config.Path = path
 			} else if url, ok := firstMatch(line, `\s*url\s*=\s*(.*)\s*`); ok {
-				configs[lastConfigIdx].Url = url
+				config.Url = url
 			}
 		}
 	}
