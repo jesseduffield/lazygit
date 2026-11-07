@@ -42,3 +42,11 @@ awk '$3 == "CHERRY_PICK_HEAD" && $2 !~ /^0+$/ { found = 1 } END { exit !found }'
 `+holdIndexLockScript)
 	shell.MakeExecutable(".git/hooks/reference-transaction")
 }
+
+// HoldIndexLockAfterNextAppliedPatch installs a post-applypatch hook that takes
+// index.lock (see holdIndexLockScript) after "git am" has committed the next
+// patch.
+func HoldIndexLockAfterNextAppliedPatch(shell *Shell) {
+	shell.CreateFile(".git/hooks/post-applypatch", "#!/bin/sh\n"+holdIndexLockScript)
+	shell.MakeExecutable(".git/hooks/post-applypatch")
+}

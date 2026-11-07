@@ -235,6 +235,13 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 	if result == nil {
 		return nil
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
+		if self.c.Git().Status.WorkingTreeState().ApplyingPatches {
+			// "git am" says this not only if resolving the conflicts of a patch
+			// left nothing to commit, but also if the patch didn't apply at
+			// all. Without --3way, it leaves the files alone then, and skipping
+			// would lose the patch. Show git's explanation instead.
+			return result
+		}
 		return self.genericMergeCommandImpl(REBASE_OPTION_SKIP, false, true)
 	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") {
 		return self.genericMergeCommandImpl(REBASE_OPTION_SKIP, false, true)

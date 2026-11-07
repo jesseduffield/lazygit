@@ -515,6 +515,9 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 		case "cherry-pick", "revert":
 			cmdObj = retryContinueOrSkipAfterLockError(cmdObj,
 				filepath.Join(self.repoPaths.WorktreeGitDirPath(), "sequencer", "todo"))
+		case "am":
+			cmdObj = retryContinueOrSkipAfterLockError(cmdObj,
+				filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply", "next"))
 		}
 	}
 
