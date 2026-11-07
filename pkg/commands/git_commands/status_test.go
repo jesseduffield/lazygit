@@ -114,6 +114,31 @@ func TestStatusWorkingTreeStateOfCherryPickOrRevert(t *testing.T) {
 			expectedReverting: true,
 		},
 		{
+			testName: "CHERRY_PICK_HEAD of a rebase that stopped because of conflicts",
+			files: map[string]string{
+				"CHERRY_PICK_HEAD":         "2345678abcdef\n",
+				"rebase-merge/stopped-sha": "2345678\n",
+				"rebase-merge/done":        "pick 1234567abcdef one\npick 2345678abcdef two\n",
+			},
+			expectedCherryPicking: false,
+		},
+		{
+			testName: "CHERRY_PICK_HEAD of a rebase that couldn't commit a pick",
+			files: map[string]string{
+				"CHERRY_PICK_HEAD":  "2345678abcdef\n",
+				"rebase-merge/done": "pick 1234567abcdef one\npick 2345678abcdef two\n",
+			},
+			expectedCherryPicking: false,
+		},
+		{
+			testName: "cherry-pick while a rebase is stopped",
+			files: map[string]string{
+				"CHERRY_PICK_HEAD":  "3456789abcdef\n",
+				"rebase-merge/done": "pick 1234567abcdef one\nedit 2345678abcdef two\n",
+			},
+			expectedCherryPicking: true,
+		},
+		{
 			testName:              "cherry-pick of several commits that stopped before applying one",
 			files:                 map[string]string{"sequencer/todo": "pick 1234567 one\npick 2345678 two\n"},
 			expectedCherryPicking: true,
@@ -139,6 +164,61 @@ func TestStatusWorkingTreeStateOfCherryPickOrRevert(t *testing.T) {
 
 			assert.Equal(t, s.expectedCherryPicking, state.CherryPicking)
 			assert.Equal(t, s.expectedReverting, state.Reverting)
+		})
+	}
+}
+
+func TestRebaseStoppedBeforeCommittingPick(t *testing.T) {
+	scenarios := []struct {
+		testName string
+		files    map[string]string
+		expected bool
+	}{
+		{
+			testName: "the rebase couldn't commit a pick",
+			files: map[string]string{
+				"CHERRY_PICK_HEAD":  "2345678abcdef\n",
+				"rebase-merge/done": "pick 1234567abcdef one\npick 2345678abcdef two\n",
+			},
+			expected: true,
+		},
+		{
+			testName: "the rebase stopped because a pick conflicted",
+			files: map[string]string{
+				"CHERRY_PICK_HEAD":         "2345678abcdef\n",
+				"rebase-merge/stopped-sha": "2345678\n",
+				"rebase-merge/message":     "two\n",
+				"rebase-merge/done":        "pick 1234567abcdef one\npick 2345678abcdef two\n",
+			},
+			expected: false,
+		},
+		{
+			testName: "no CHERRY_PICK_HEAD",
+			files: map[string]string{
+				"rebase-merge/done": "pick 1234567abcdef one\nedit 2345678abcdef two\n",
+			},
+			expected: false,
+		},
+		{
+			testName: "CHERRY_PICK_HEAD of a cherry-pick while a rebase is stopped",
+			files: map[string]string{
+				"CHERRY_PICK_HEAD":  "3456789abcdef\n",
+				"rebase-merge/done": "pick 1234567abcdef one\nedit 2345678abcdef two\n",
+			},
+			expected: false,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitDir := t.TempDir()
+			for path, content := range s.files {
+				fullPath := filepath.Join(gitDir, path)
+				assert.NoError(t, os.MkdirAll(filepath.Dir(fullPath), 0o755))
+				assert.NoError(t, os.WriteFile(fullPath, []byte(content), 0o644))
+			}
+
+			assert.Equal(t, s.expected, rebaseStoppedBeforeCommittingPick(gitDir, '#'))
 		})
 	}
 }

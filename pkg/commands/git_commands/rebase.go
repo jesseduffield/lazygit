@@ -501,6 +501,12 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 		}
 	}
 
+	if commandType == "rebase" && command == "continue" {
+		if err := self.commitPickThatRebaseStoppedAt(); err != nil {
+			return err
+		}
+	}
+
 	cmdObj := skipEditor(self.GenericMergeOrRebaseActionCmdObj(commandType, command))
 	if command == "continue" || command == "skip" {
 		switch commandType {
@@ -533,6 +539,19 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 		self.onSuccessfulContinue = nil
 	}
 	return nil
+}
+
+// commitPickThatRebaseStoppedAt commits the changes of a pick if the rebase
+// stopped after it applied them, but before it committed them (see
+// rebaseStoppedBeforeCommittingPick). "git rebase --continue" refuses to commit
+// them in that case. "git cherry-pick --continue" commits them with the author
+// and message of the pick, like the rebase would have.
+func (self *RebaseCommands) commitPickThatRebaseStoppedAt() error {
+	if !rebaseStoppedBeforeCommittingPick(self.repoPaths.WorktreeGitDirPath(), self.config.GetCoreCommentChar()) {
+		return nil
+	}
+
+	return skipEditor(self.GenericMergeOrRebaseActionCmdObj("cherry-pick", "continue")).Run()
 }
 
 // resumeAfterLockError makes cmdObj, a command that starts or continues a
