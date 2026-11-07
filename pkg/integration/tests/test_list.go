@@ -110,6 +110,7 @@ var tests = []*components.IntegrationTest{
 	branch.SortRemoteBranches,
 	branch.SortRemoteBranchesInStackOrder,
 	branch.SquashMerge,
+	branch.SquashMergeWithStagedChanges,
 	branch.Suggestions,
 	branch.UnsetUpstream,
 	cherry_pick.CherryPick,
