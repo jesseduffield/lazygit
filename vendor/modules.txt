@@ -18,8 +18,8 @@ github.com/bahlo/generic-list-go
 # github.com/buger/jsonparser v1.1.2
 ## explicit; go 1.13
 github.com/buger/jsonparser
-# github.com/cli/go-gh/v2 v2.16.2
-## explicit; go 1.25.0
+# github.com/cli/go-gh/v2 v2.17.0
+## explicit; go 1.26.7
 github.com/cli/go-gh/v2/internal/set
 github.com/cli/go-gh/v2/internal/yamlmap
 github.com/cli/go-gh/v2/pkg/auth
@@ -182,10 +182,10 @@ golang.org/x/sync/semaphore
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.46.0
+# golang.org/x/term v0.47.0
 ## explicit; go 1.26.0
 golang.org/x/term
-# golang.org/x/text v0.42.0
+# golang.org/x/text v0.43.0
 ## explicit; go 1.26.0
 golang.org/x/text/cases
 golang.org/x/text/encoding
@@ -198,8 +198,8 @@ golang.org/x/text/language
 golang.org/x/text/runes
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.49.0
-## explicit; go 1.25.0
+# golang.org/x/tools v0.51.0
+## explicit; go 1.26.0
 golang.org/x/tools/go/ast/astutil
 # gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c
 ## explicit; go 1.11
