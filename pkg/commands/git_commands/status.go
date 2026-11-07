@@ -73,6 +73,16 @@ func (self *StatusCommands) IsInSquashMerge() (bool, error) {
 	return self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "SQUASH_MSG"))
 }
 
+// SquashMergeMessage returns the message in SQUASH_MSG (see IsInSquashMerge), or
+// an empty string if there is no squash merge in progress
+func (self *StatusCommands) SquashMergeMessage() string {
+	content, err := os.ReadFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "SQUASH_MSG"))
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(content))
+}
+
 func (self *StatusCommands) IsInCherryPick() (bool, error) {
 	hasCherryPickHead, err := self.hasCherryPickHead()
 	if err != nil || hasCherryPickHead {

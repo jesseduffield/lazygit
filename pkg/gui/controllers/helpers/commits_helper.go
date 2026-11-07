@@ -143,10 +143,7 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 	}
 
 	// When there's no explicit initial message but we're in a preservation
-	// context, fall back to any previously preserved message. This is stored as
-	// the "initial" value so the unchanged-message check on close still works
-	// correctly (in particular, clearing the panel then escaping will notice
-	// the difference and delete the preserved file).
+	// context, fall back to any previously preserved message.
 	initialMessage := opts.InitialMessage
 	initialMessageIsPreserved := false
 	if opts.PreserveMessage && initialMessage == "" {
@@ -159,7 +156,6 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 		opts.SummaryTitle,
 		opts.DescriptionTitle,
 		opts.PreserveMessage,
-		initialMessage,
 		onConfirm,
 		opts.OnSwitchToEditor,
 		opts.ForceSkipHooks,
@@ -171,6 +167,14 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 	} else {
 		self.SetMessageAndDescriptionInView(initialMessage)
 	}
+
+	// PreserveCommitMessage compares the message in the panel with this when the
+	// panel closes, so that it preserves the message only if the user changed it
+	// (in particular, clearing the panel then escaping will notice the
+	// difference and delete the preserved file). Take it from the panel, because
+	// a message with a blank line after the summary comes out of the panel
+	// without it.
+	self.c.Contexts().CommitMessage.SetInitialMessage(self.JoinCommitMessageAndUnwrappedDescription())
 
 	self.c.Context().Push(self.c.Contexts().CommitMessage, types.OnFocusOpts{})
 }
