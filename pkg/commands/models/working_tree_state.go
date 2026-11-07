@@ -94,6 +94,17 @@ func (self WorkingTreeState) OptionsMapTitle(tr *i18n.TranslationSet) string {
 	}[self.Effective()]
 }
 
+// OperationName returns a phrase for the current operation that we can use in
+// sentences like "Abort <operation>".
+func (self WorkingTreeState) OperationName(tr *i18n.TranslationSet) string {
+	return map[EffectiveWorkingTreeState]string{
+		WORKING_TREE_STATE_REBASING:       tr.RebaseOperationName,
+		WORKING_TREE_STATE_MERGING:        tr.MergeOperationName,
+		WORKING_TREE_STATE_CHERRY_PICKING: tr.CherryPickOperationName,
+		WORKING_TREE_STATE_REVERTING:      tr.RevertOperationName,
+	}[self.Effective()]
+}
+
 func (self WorkingTreeState) CommandName() string {
 	return map[EffectiveWorkingTreeState]string{
 		WORKING_TREE_STATE_REBASING:       "rebase",
