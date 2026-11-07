@@ -11,6 +11,37 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestIsSuspiciousSubmoduleName(t *testing.T) {
+	scenarios := []struct {
+		name       string
+		suspicious bool
+	}{
+		{name: "sub", suspicious: false},
+		{name: "path/to/sub", suspicious: false},
+		{name: "path\\to\\sub", suspicious: false},
+		{name: ".", suspicious: false},
+		{name: "...", suspicious: false},
+		{name: "..sub", suspicious: false},
+		{name: "sub..", suspicious: false},
+		{name: "a..b/c", suspicious: false},
+		{name: "", suspicious: true},
+		{name: "..", suspicious: true},
+		{name: "../victim", suspicious: true},
+		{name: "../../../victim", suspicious: true},
+		{name: "sub/..", suspicious: true},
+		{name: "sub/../../victim", suspicious: true},
+		{name: "..\\victim", suspicious: true},
+		{name: "sub\\..\\..\\victim", suspicious: true},
+		{name: "sub/..\\..\\victim", suspicious: true},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.suspicious, isSuspiciousSubmoduleName(s.name))
+		})
+	}
+}
+
 func TestSubmoduleGetConflictCommits(t *testing.T) {
 	type scenario struct {
 		testName       string

@@ -28,27 +28,9 @@ var IgnoreSuspiciousName = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Submodules().Focus().
-			/* EXPECTED:
 			IsEmpty()
-			ACTUAL: */
-			Lines(
-				Contains("../../../victim").IsSelected(),
-			).
-			Press(keys.Universal.Remove).
-			Tap(func() {
-				t.ExpectPopup().Confirmation().
-					Title(Equals("Remove submodule")).
-					Content(Equals("Are you sure you want to remove submodule '../../../victim' and its corresponding directory? This is irreversible.")).
-					Confirm()
-			}).
-			Lines(
-				Contains("../../../victim").IsSelected(),
-			)
 
 		t.FileSystem().
-			/* EXPECTED:
 			PathPresent("../victim/file")
-			ACTUAL: */
-			PathNotPresent("../victim/file")
 	},
 })

@@ -54,6 +54,11 @@ func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) 
 
 	configs := []*models.SubmoduleConfig{}
 	for _, config := range parsedConfigs {
+		if isSuspiciousSubmoduleName(config.Name) {
+			self.Log.Warnf("Ignoring suspicious submodule name: %s", config.Name)
+			continue
+		}
+
 		configs = append(configs, config)
 
 		if config.Path != "" {
@@ -107,6 +112,22 @@ func parseGitmodules(reader io.Reader, parentModule *models.SubmoduleConfig) ([]
 	}
 
 	return configs, nil
+}
+
+// isSuspiciousSubmoduleName applies the same rule as git's
+// check_submodule_name(); git ignores a submodule whose name fails it. The
+// git dir of a submodule is .git/modules/<name>, so a ".." component in the
+// name could put it outside the repository. Like git, we treat both slashes
+// and backslashes as separators on every platform.
+func isSuspiciousSubmoduleName(name string) bool {
+	if name == "" {
+		return true
+	}
+
+	components := strings.FieldsFunc(name, func(r rune) bool {
+		return r == '/' || r == '\\'
+	})
+	return lo.Contains(components, "..")
 }
 
 // AnyHaveStageableChanges reports whether any of the given submodule paths has
