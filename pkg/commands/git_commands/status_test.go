@@ -1,6 +1,8 @@
 package git_commands
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/go-errors/errors"
@@ -86,6 +88,57 @@ func TestStatusRefsSnapshot(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, forEachRefOutput+s.expectedHead, snapshot)
 			s.runner.CheckForMissingCalls()
+		})
+	}
+}
+
+func TestStatusWorkingTreeStateOfCherryPickOrRevert(t *testing.T) {
+	scenarios := []struct {
+		testName              string
+		files                 map[string]string
+		expectedCherryPicking bool
+		expectedReverting     bool
+	}{
+		{
+			testName: "nothing in progress",
+			files:    map[string]string{},
+		},
+		{
+			testName:              "CHERRY_PICK_HEAD",
+			files:                 map[string]string{"CHERRY_PICK_HEAD": "1234567\n"},
+			expectedCherryPicking: true,
+		},
+		{
+			testName:          "REVERT_HEAD",
+			files:             map[string]string{"REVERT_HEAD": "1234567\n"},
+			expectedReverting: true,
+		},
+		{
+			testName:              "cherry-pick of several commits that stopped before applying one",
+			files:                 map[string]string{"sequencer/todo": "pick 1234567 one\npick 2345678 two\n"},
+			expectedCherryPicking: true,
+		},
+		{
+			testName:          "revert of several commits that stopped before applying one",
+			files:             map[string]string{"sequencer/todo": "revert 1234567 one\nrevert 2345678 two\n"},
+			expectedReverting: true,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			repoDir := t.TempDir()
+			for path, content := range s.files {
+				fullPath := filepath.Join(repoDir, ".git", path)
+				assert.NoError(t, os.MkdirAll(filepath.Dir(fullPath), 0o755))
+				assert.NoError(t, os.WriteFile(fullPath, []byte(content), 0o644))
+			}
+			instance := buildStatusCommands(commonDeps{repoPaths: MockRepoPaths(repoDir)})
+
+			state := instance.WorkingTreeState()
+
+			assert.Equal(t, s.expectedCherryPicking, state.CherryPicking)
+			assert.Equal(t, s.expectedReverting, state.Reverting)
 		})
 	}
 }

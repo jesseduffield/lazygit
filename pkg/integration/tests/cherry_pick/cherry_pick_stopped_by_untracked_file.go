@@ -65,7 +65,6 @@ var CherryPickStoppedByUntrackedFile = NewIntegrationTest(NewIntegrationTestArgs
 					Content(Contains("The following untracked working tree files would be overwritten by merge")).
 					Confirm()
 			}).
-			/* EXPECTED:
 			Lines(
 				Contains("─── Pending cherry-picks"),
 				Contains("pick").DoesNotContain("CONFLICT").Contains("two"),
@@ -73,22 +72,13 @@ var CherryPickStoppedByUntrackedFile = NewIntegrationTest(NewIntegrationTestArgs
 				Contains("one"),
 				Contains("base"),
 			)
-			ACTUAL: */
-			Lines(
-				Contains("one"),
-				Contains("base"),
-			)
 
 		t.Views().Status().
-			/* EXPECTED:
 			Content(Equals("(cherry-picking) repo → master"))
-			ACTUAL: */
-			Content(Equals("repo → master"))
 
 		t.Shell().DeleteFile("file2")
 
 		t.GlobalPress(keys.Universal.CreateRebaseOptionsMenu)
-		/* EXPECTED:
 		t.ExpectPopup().Menu().
 			Title(Equals("Cherry-pick options")).
 			Select(Contains("continue")).
@@ -102,7 +92,5 @@ var CherryPickStoppedByUntrackedFile = NewIntegrationTest(NewIntegrationTestArgs
 				Contains("one"),
 				Contains("base"),
 			)
-		ACTUAL: */
-		t.ExpectToast(Equals("Disabled: You are currently neither rebasing nor merging"))
 	},
 })

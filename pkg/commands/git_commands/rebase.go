@@ -491,8 +491,19 @@ func (self *RebaseCommands) AbortRebase() error {
 // GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
 // By default we skip the editor in the case where a commit will be made
 func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, command string) error {
+	undoRepeatingTodo := func() {}
+	if command == "continue" && (commandType == "cherry-pick" || commandType == "revert") {
+		var err error
+		undoRepeatingTodo, err = repeatCurrentSequencerTodo(
+			self.cmd, self.repoPaths.WorktreeGitDirPath(), self.config.GetCoreCommentChar())
+		if err != nil {
+			return err
+		}
+	}
+
 	err := skipEditor(self.GenericMergeOrRebaseActionCmdObj(commandType, command)).Run()
 	if err != nil {
+		undoRepeatingTodo()
 		if !strings.Contains(err.Error(), "no rebase in progress") {
 			return err
 		}

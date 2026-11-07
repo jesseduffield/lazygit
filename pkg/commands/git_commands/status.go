@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spf13/afero"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 type StatusCommands struct {
@@ -49,6 +51,14 @@ func (self *StatusCommands) IsInMergeState() (bool, error) {
 }
 
 func (self *StatusCommands) IsInCherryPick() (bool, error) {
+	hasCherryPickHead, err := self.hasCherryPickHead()
+	if err != nil || hasCherryPickHead {
+		return hasCherryPickHead, err
+	}
+	return self.sequencerCommand() == todo.Pick, nil
+}
+
+func (self *StatusCommands) hasCherryPickHead() (bool, error) {
 	exists, err := self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "CHERRY_PICK_HEAD"))
 	if err != nil || !exists {
 		return exists, err
@@ -81,7 +91,26 @@ func (self *StatusCommands) IsInCherryPick() (bool, error) {
 }
 
 func (self *StatusCommands) IsInRevert() (bool, error) {
-	return self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "REVERT_HEAD"))
+	hasRevertHead, err := self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "REVERT_HEAD"))
+	if err != nil || hasRevertHead {
+		return hasRevertHead, err
+	}
+	return self.sequencerCommand() == todo.Revert, nil
+}
+
+// sequencerCommand returns the command of the first todo of a cherry-pick or
+// revert of several commits that is in progress, or 0 if there is none. Git
+// keeps the todos of such an operation in .git/sequencer. If it stops before it
+// starts to apply a commit (for example because the commit would overwrite an
+// untracked file), it doesn't write CHERRY_PICK_HEAD or REVERT_HEAD. Like git
+// status, we still consider the cherry-pick or revert to be in progress then.
+func (self *StatusCommands) sequencerCommand() todo.TodoCommand {
+	todos, err := utils.ReadRebaseTodoFile(
+		filepath.Join(self.repoPaths.WorktreeGitDirPath(), "sequencer", "todo"), self.config.GetCoreCommentChar())
+	if err != nil || len(todos) == 0 {
+		return 0
+	}
+	return todos[0].Command
 }
 
 // RefsSnapshot returns a string fingerprint of the current state of local
