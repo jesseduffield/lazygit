@@ -174,6 +174,7 @@ var tests = []*components.IntegrationTest{
 	commit.RevertWithConflictSingleCommit,
 	commit.Reword,
 	commit.Search,
+	commit.SearchKeepsTheCurrentMatchOnRefresh,
 	commit.SetAuthor,
 	commit.SetAuthorRange,
 	commit.StageRangeOfLines,
