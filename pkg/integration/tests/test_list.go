@@ -644,6 +644,7 @@ var tests = []*components.IntegrationTest{
 	sync.ForcePushMultipleUpstream,
 	sync.ForcePushRemoteBranchNotStoredLocally,
 	sync.ForcePushTriangular,
+	sync.LockErrorPartwayThroughPullWithRebase,
 	sync.Pull,
 	sync.PullAndSetUpstream,
 	sync.PullMerge,
