@@ -28,10 +28,7 @@ var SearchOverACommitLogKeepsTheCurrentMatchOnRefresh = NewIntegrationTest(NewIn
 
 				t.GlobalPress(keys.Universal.Refresh)
 				t.Views().Search().Content(
-					/* EXPECTED:
 					Contains("matches for 'commit-0' (2 of 3)"))
-					ACTUAL: */
-					Contains("matches for 'commit-0' (1 of 3)"))
 			})
 	},
 })

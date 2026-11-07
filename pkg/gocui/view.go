@@ -560,6 +560,7 @@ func (v *View) GetSearchStatus() (int, int) {
 // UpdateSearchResults runs the search for str again, for content or model search results
 // that have changed. It doesn't move the view. The match at the cursor becomes the
 // current one, in the same way as when the cursor moves; see SetNearestSearchPosition.
+// If the view doesn't show a selection, the current match stays the same.
 //
 // modelSearchResults is optional; pass nil to search the view. If non-nil,
 // these positions will be used for highlighting search results. Even in this
@@ -606,9 +607,11 @@ func (v *View) startSearch(str string, modelSearchResults []SearchPosition) bool
 	if len(v.searcher.searchPositions) == 0 {
 		return false
 	}
-	// If the view doesn't show a selection, the search starts at the first match.
 	if v.Highlight {
 		v.searcher.currentSearchIndex = v.firstSearchPositionAfterCursor()
+	} else {
+		// If the view doesn't show a selection, the search starts at the first match.
+		v.searcher.currentSearchIndex = 0
 	}
 	return true
 }
@@ -726,11 +729,12 @@ func calculateNewOrigin(selectedLine int, oldOrigin int, lineCount int, viewHeig
 	return oldOrigin
 }
 
+// search sets what to search for. It leaves the current match for the caller to choose
+// once the positions have been worked out.
 func (s *searcher) search(str string, modelSearchResults []SearchPosition) {
 	s.searchString = str
 	s.searchPositions = []SearchPosition{}
 	s.modelSearchResults = modelSearchResults
-	s.currentSearchIndex = 0
 }
 
 func (s *searcher) clearSearch() {
