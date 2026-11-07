@@ -34,24 +34,9 @@ var LockErrorPartwayThroughRebase = NewIntegrationTest(NewIntegrationTestArgs{
 					Content(Contains("Are you sure you want to drop the selected commit(s)?")).
 					Confirm()
 			}).
-			/* EXPECTED:
 			IsFocused().
 			Lines(
 				Contains("commit-04"),
-				Contains("commit-03"),
-				Contains("commit-01"),
-			)
-			ACTUAL: */
-			Tap(func() {
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Contains("It seems that there is already a rebase-merge directory")).
-					Confirm()
-			}).
-			Lines(
-				Contains("─── Pending rebase todos"),
-				Contains("pick").Contains("commit-04"),
-				Contains("─── Commits"),
 				Contains("commit-03"),
 				Contains("commit-01"),
 			)

@@ -256,7 +256,7 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 		cmdObj.AddEnvVars("GIT_EDITOR=" + ex)
 	}
 
-	return cmdObj
+	return self.resumeAfterLockError(cmdObj)
 }
 
 // GitRebaseEditTodo runs "git rebase --edit-todo", saving the given todosFileContent to the file
@@ -408,7 +408,7 @@ func (self *RebaseCommands) SquashAllAboveFixupCommits(commit *models.Commit) er
 		Arg("--interactive", "--rebase-merges", "--autostash", "--autosquash", hashOrRoot).
 		ToArgv()
 
-	return skipEditor(self.cmd.New(cmdArgs)).Run()
+	return self.resumeAfterLockError(skipEditor(self.cmd.New(cmdArgs))).Run()
 }
 
 // BeginInteractiveRebaseForCommit starts an interactive rebase to edit the current
@@ -511,6 +511,16 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 		self.onSuccessfulContinue = nil
 	}
 	return nil
+}
+
+// resumeAfterLockError makes cmdObj, a command that starts a rebase, resume
+// the rebase if a lock error stops it partway through; see
+// resumeRebaseAfterLockError.
+func (self *RebaseCommands) resumeAfterLockError(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
+	return resumeRebaseAfterLockError(cmdObj, self.repoPaths.WorktreeGitDirPath(), self.config.GetCoreCommentChar(),
+		func() *oscommands.CmdObj {
+			return skipEditor(self.GenericMergeOrRebaseActionCmdObj("rebase", "continue"))
+		})
 }
 
 // skipEditor makes git use lazygit as the editor for the given command; lazygit
