@@ -4,9 +4,9 @@ import "github.com/jesseduffield/lazygit/pkg/i18n"
 
 // The state of the working tree. Several of these can be true at once.
 // In particular, the concrete multi-state combinations that can occur in
-// practice are Rebasing+CherryPicking, Rebasing+Reverting, and
-// Rebasing+ApplyingPatches. Theoretically, I guess Rebasing+Merging could also
-// happen, but it probably won't in practice.
+// practice are Rebasing+CherryPicking, Rebasing+Reverting,
+// Rebasing+ApplyingPatches, and Rebasing+SquashMerging. Theoretically, I guess
+// Rebasing+Merging could also happen, but it probably won't in practice.
 type WorkingTreeState struct {
 	Rebasing      bool
 	Merging       bool
@@ -14,10 +14,13 @@ type WorkingTreeState struct {
 	Reverting     bool
 	// git am
 	ApplyingPatches bool
+	// git merge --squash, until the changes are committed
+	SquashMerging bool
 }
 
 func (self WorkingTreeState) Any() bool {
-	return self.Rebasing || self.Merging || self.CherryPicking || self.Reverting || self.ApplyingPatches
+	return self.Rebasing || self.Merging || self.CherryPicking || self.Reverting || self.ApplyingPatches ||
+		self.SquashMerging
 }
 
 func (self WorkingTreeState) None() bool {
@@ -34,6 +37,7 @@ const (
 	WORKING_TREE_STATE_CHERRY_PICKING
 	WORKING_TREE_STATE_REVERTING
 	WORKING_TREE_STATE_APPLYING_PATCHES
+	WORKING_TREE_STATE_SQUASH_MERGING
 )
 
 // Effective returns the "current" state; if several states are true at once,
@@ -56,6 +60,9 @@ func (self WorkingTreeState) Effective() EffectiveWorkingTreeState {
 	if self.Merging {
 		return WORKING_TREE_STATE_MERGING
 	}
+	if self.SquashMerging {
+		return WORKING_TREE_STATE_SQUASH_MERGING
+	}
 	if self.ApplyingPatches {
 		return WORKING_TREE_STATE_APPLYING_PATCHES
 	}
@@ -69,6 +76,7 @@ func (self WorkingTreeState) Title(tr *i18n.TranslationSet) string {
 	return map[EffectiveWorkingTreeState]string{
 		WORKING_TREE_STATE_REBASING:         tr.RebasingStatus,
 		WORKING_TREE_STATE_MERGING:          tr.MergingStatus,
+		WORKING_TREE_STATE_SQUASH_MERGING:   tr.MergingStatus,
 		WORKING_TREE_STATE_CHERRY_PICKING:   tr.CherryPickingStatus,
 		WORKING_TREE_STATE_REVERTING:        tr.RevertingStatus,
 		WORKING_TREE_STATE_APPLYING_PATCHES: tr.ApplyingPatchesStatus,
@@ -79,6 +87,7 @@ func (self WorkingTreeState) LowerCaseTitle(tr *i18n.TranslationSet) string {
 	return map[EffectiveWorkingTreeState]string{
 		WORKING_TREE_STATE_REBASING:         tr.LowercaseRebasingStatus,
 		WORKING_TREE_STATE_MERGING:          tr.LowercaseMergingStatus,
+		WORKING_TREE_STATE_SQUASH_MERGING:   tr.LowercaseMergingStatus,
 		WORKING_TREE_STATE_CHERRY_PICKING:   tr.LowercaseCherryPickingStatus,
 		WORKING_TREE_STATE_REVERTING:        tr.LowercaseRevertingStatus,
 		WORKING_TREE_STATE_APPLYING_PATCHES: tr.LowercaseApplyingPatchesStatus,
@@ -89,6 +98,7 @@ func (self WorkingTreeState) OptionsMenuTitle(tr *i18n.TranslationSet) string {
 	return map[EffectiveWorkingTreeState]string{
 		WORKING_TREE_STATE_REBASING:         tr.RebaseOptionsTitle,
 		WORKING_TREE_STATE_MERGING:          tr.MergeOptionsTitle,
+		WORKING_TREE_STATE_SQUASH_MERGING:   tr.MergeOptionsTitle,
 		WORKING_TREE_STATE_CHERRY_PICKING:   tr.CherryPickOptionsTitle,
 		WORKING_TREE_STATE_REVERTING:        tr.RevertOptionsTitle,
 		WORKING_TREE_STATE_APPLYING_PATCHES: tr.ApplyPatchesOptionsTitle,
@@ -99,6 +109,7 @@ func (self WorkingTreeState) OptionsMapTitle(tr *i18n.TranslationSet) string {
 	return map[EffectiveWorkingTreeState]string{
 		WORKING_TREE_STATE_REBASING:         tr.ViewRebaseOptions,
 		WORKING_TREE_STATE_MERGING:          tr.ViewMergeOptions,
+		WORKING_TREE_STATE_SQUASH_MERGING:   tr.ViewMergeOptions,
 		WORKING_TREE_STATE_CHERRY_PICKING:   tr.ViewCherryPickOptions,
 		WORKING_TREE_STATE_REVERTING:        tr.ViewRevertOptions,
 		WORKING_TREE_STATE_APPLYING_PATCHES: tr.ViewApplyPatchesOptions,
@@ -111,6 +122,7 @@ func (self WorkingTreeState) OperationName(tr *i18n.TranslationSet) string {
 	return map[EffectiveWorkingTreeState]string{
 		WORKING_TREE_STATE_REBASING:         tr.RebaseOperationName,
 		WORKING_TREE_STATE_MERGING:          tr.MergeOperationName,
+		WORKING_TREE_STATE_SQUASH_MERGING:   tr.MergeOperationName,
 		WORKING_TREE_STATE_CHERRY_PICKING:   tr.CherryPickOperationName,
 		WORKING_TREE_STATE_REVERTING:        tr.RevertOperationName,
 		WORKING_TREE_STATE_APPLYING_PATCHES: tr.ApplyPatchesOperationName,
@@ -118,7 +130,8 @@ func (self WorkingTreeState) OperationName(tr *i18n.TranslationSet) string {
 }
 
 // CommandName returns the git command whose --continue, --skip and --abort
-// options continue, skip or abort the operation
+// options continue, skip or abort the operation. A squash merge has no such
+// command.
 func (self EffectiveWorkingTreeState) CommandName() string {
 	return map[EffectiveWorkingTreeState]string{
 		WORKING_TREE_STATE_REBASING:         "rebase",

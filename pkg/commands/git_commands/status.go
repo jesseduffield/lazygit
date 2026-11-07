@@ -31,6 +31,7 @@ func (self *StatusCommands) WorkingTreeState() models.WorkingTreeState {
 	result.CherryPicking, _ = self.IsInCherryPick()
 	result.Reverting, _ = self.IsInRevert()
 	result.ApplyingPatches, _ = self.IsApplyingPatches()
+	result.SquashMerging, _ = self.IsInSquashMerge()
 	return result
 }
 
@@ -61,6 +62,15 @@ func (self *StatusCommands) IsApplyingPatches() (bool, error) {
 // IsInMergeState states whether we are still mid-merge
 func (self *StatusCommands) IsInMergeState() (bool, error) {
 	return self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "MERGE_HEAD"))
+}
+
+// IsInSquashMerge tells whether "git merge --squash" has staged changes that
+// haven't been committed yet. "git merge --squash" writes SQUASH_MSG, a message
+// for committing them, but no MERGE_HEAD. "git commit" uses the message and
+// removes the file; so do "git reset" without paths, switching branches, and
+// "git stash".
+func (self *StatusCommands) IsInSquashMerge() (bool, error) {
+	return self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "SQUASH_MSG"))
 }
 
 func (self *StatusCommands) IsInCherryPick() (bool, error) {

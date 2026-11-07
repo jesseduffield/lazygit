@@ -477,9 +477,29 @@ func (self *RebaseCommands) RebaseBranchFromBaseCommit(targetBranchName string, 
 // GenericMergeOrRebaseActionCmdObj returns the command that continues, skips or
 // aborts the given operation; command is "continue", "skip" or "abort".
 func (self *RebaseCommands) GenericMergeOrRebaseActionCmdObj(operation models.EffectiveWorkingTreeState, command string) *oscommands.CmdObj {
+	if operation == models.WORKING_TREE_STATE_SQUASH_MERGING {
+		return self.cmd.New(squashMergeActionArgs(command))
+	}
+
 	cmdArgs := NewGitCmd(operation.CommandName()).Arg("--" + command).ToArgv()
 
 	return self.cmd.New(cmdArgs)
+}
+
+// squashMergeActionArgs returns the arguments of the command that continues or
+// aborts a squash merge. "git merge --continue" and "git merge --abort" refuse
+// to run without MERGE_HEAD, which a squash merge doesn't write. "git commit"
+// commits the changes with the message in SQUASH_MSG. "git merge --abort" runs
+// "git reset --merge" too.
+func squashMergeActionArgs(command string) []string {
+	switch command {
+	case "continue":
+		return NewGitCmd("commit").ToArgv()
+	case "abort":
+		return NewGitCmd("reset").Arg("--merge").ToArgv()
+	}
+
+	panic("can't " + command + " a squash merge")
 }
 
 func (self *RebaseCommands) ContinueRebase() error {
@@ -522,7 +542,7 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(operation models.Effectiv
 		case models.WORKING_TREE_STATE_APPLYING_PATCHES:
 			cmdObj = retryContinueOrSkipAfterLockError(cmdObj,
 				filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply", "next"))
-		case models.WORKING_TREE_STATE_MERGING, models.WORKING_TREE_STATE_NONE:
+		case models.WORKING_TREE_STATE_MERGING, models.WORKING_TREE_STATE_SQUASH_MERGING, models.WORKING_TREE_STATE_NONE:
 		}
 	}
 
