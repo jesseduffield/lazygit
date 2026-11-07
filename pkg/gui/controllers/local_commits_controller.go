@@ -1180,9 +1180,15 @@ func (self *LocalCommitsController) isRebasing() bool {
 	return self.c.Model().WorkingTreeStateAtLastCommitRefresh.Any()
 }
 
-func (self *LocalCommitsController) isCherryPickingOrReverting() bool {
-	return self.c.Model().WorkingTreeStateAtLastCommitRefresh.CherryPicking ||
-		self.c.Model().WorkingTreeStateAtLastCommitRefresh.Reverting
+// todosNotEditableReason returns why the todos in the commits panel can't be
+// edited, if they can't. This is the case during a cherry-pick or revert;
+// git has no way of changing their todos.
+func (self *LocalCommitsController) todosNotEditableReason() *types.DisabledReason {
+	if self.c.Model().WorkingTreeStateAtLastCommitRefresh.CherryPicking ||
+		self.c.Model().WorkingTreeStateAtLastCommitRefresh.Reverting {
+		return &types.DisabledReason{Text: self.c.Tr.NotAllowedMidCherryPickOrRevert}
+	}
+	return nil
 }
 
 func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
@@ -1936,8 +1942,8 @@ func (self *LocalCommitsController) canMoveUp(selectedCommits []*models.Commit, 
 
 // Ensures that if we are mid-rebase, we're only selecting valid commits (non-conflict TODO commits)
 func (self *LocalCommitsController) midRebaseCommandEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
-	if self.isCherryPickingOrReverting() {
-		return &types.DisabledReason{Text: self.c.Tr.NotAllowedMidCherryPickOrRevert}
+	if reason := self.todosNotEditableReason(); reason != nil {
+		return reason
 	}
 
 	if !self.isRebasing() {
@@ -1959,8 +1965,8 @@ func (self *LocalCommitsController) midRebaseCommandEnabled(selectedCommits []*m
 
 // Ensures that if we are mid-rebase, we're only selecting commits that can be moved
 func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
-	if self.isCherryPickingOrReverting() {
-		return &types.DisabledReason{Text: self.c.Tr.NotAllowedMidCherryPickOrRevert}
+	if reason := self.todosNotEditableReason(); reason != nil {
+		return reason
 	}
 
 	if !self.isRebasing() {
@@ -1987,8 +1993,8 @@ func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits 
 }
 
 func (self *LocalCommitsController) canDropCommits(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
-	if self.isCherryPickingOrReverting() {
-		return &types.DisabledReason{Text: self.c.Tr.NotAllowedMidCherryPickOrRevert}
+	if reason := self.todosNotEditableReason(); reason != nil {
+		return reason
 	}
 
 	if !self.isRebasing() {
@@ -2035,8 +2041,8 @@ func isChangeOfRebaseTodoAllowed(oldAction todo.TodoCommand) bool {
 }
 
 func (self *LocalCommitsController) pickEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
-	if self.isCherryPickingOrReverting() {
-		return &types.DisabledReason{Text: self.c.Tr.NotAllowedMidCherryPickOrRevert}
+	if reason := self.todosNotEditableReason(); reason != nil {
+		return reason
 	}
 
 	if !self.isRebasing() {
