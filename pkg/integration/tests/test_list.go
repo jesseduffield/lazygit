@@ -503,6 +503,7 @@ var tests = []*components.IntegrationTest{
 	main_view.ScrollDiffHorizontally,
 	main_view.SearchCollapsesTheSelection,
 	main_view.SearchFollowsTheSelection,
+	main_view.SearchOverACommitLogKeepsTheCurrentMatchOnRefresh,
 	main_view.SearchScrollsToAMatchOffTheEdge,
 	main_view.SelectBelowALongCommitMessage,
 	main_view.SelectBelowALongDiffstat,
