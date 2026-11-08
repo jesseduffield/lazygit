@@ -3,6 +3,7 @@ package context
 import (
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -185,7 +186,8 @@ func TestIndexForGotoBottomInCommits(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			assert.Equal(t, s.expected, indexForGotoBottomInCommits(s.commits, s.selectedIdx, s.branchesBelow))
+			assert.Equal(t, s.expected, indexForGotoBottomInCommits(
+				s.commits, s.selectedIdx, s.branchesBelow, git_commands.NewNullBisectInfo()))
 		})
 	}
 }

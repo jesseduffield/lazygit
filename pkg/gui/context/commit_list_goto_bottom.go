@@ -2,6 +2,7 @@ package context
 
 import (
 	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/samber/lo"
 	"github.com/stefanhaller/git-todo-parser/todo"
@@ -18,9 +19,21 @@ import (
 //   - each branch of a stack, given by branchesBelow. Among the todos of a
 //     rebase, update-ref todos separate the branches.
 //   - the commits that aren't merged into a main branch yet
+//
+// During a bisect, it stops at the bottommost commit marked bad, at the commit
+// to test, and at the topmost commit marked good instead. The commits list
+// doesn't color the commits by whether they are merged during a bisect, so the
+// beginnings of the sections would look like arbitrary commits.
 func indexForGotoBottomInCommits(
-	commits []*models.Commit, selectedIdx int, branchesBelow []*models.Branch,
+	commits []*models.Commit,
+	selectedIdx int,
+	branchesBelow []*models.Branch,
+	bisectInfo *git_commands.BisectInfo,
 ) int {
+	if bisectInfo.Started() {
+		return closestStopBelow(bisectStops(commits, bisectInfo), selectedIdx, len(commits)-1)
+	}
+
 	stops := []int{}
 
 	if headIdx := models.HeadCommitIdx(commits); headIdx > 0 {
@@ -49,6 +62,30 @@ func indexForGotoBottomInCommits(
 	}
 
 	return closestStopBelow(stops, selectedIdx, len(commits)-1)
+}
+
+func bisectStops(commits []*models.Commit, bisectInfo *git_commands.BisectInfo) []int {
+	hasStatus := func(status git_commands.BisectStatus) func(*models.Commit) bool {
+		return func(commit *models.Commit) bool {
+			commitStatus, ok := bisectInfo.Status(commit.Hash())
+			return ok && commitStatus == status
+		}
+	}
+	isCommitToTest := func(commit *models.Commit) bool {
+		return bisectInfo.HasCommitToTest() && commit.Hash() == bisectInfo.GetCurrentHash()
+	}
+
+	stops := []int{}
+	if _, idx, found := lo.FindLastIndexOf(commits, hasStatus(git_commands.BisectStatusNew)); found {
+		stops = append(stops, idx)
+	}
+	if _, idx, found := lo.FindIndexOf(commits, isCommitToTest); found {
+		stops = append(stops, idx)
+	}
+	if _, idx, found := lo.FindIndexOf(commits, hasStatus(git_commands.BisectStatusOld)); found {
+		stops = append(stops, idx)
+	}
+	return stops
 }
 
 // Returns the smallest of the given stops that is greater than the selected

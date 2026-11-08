@@ -525,5 +525,5 @@ func (self *LocalCommitsContext) IndexForGotoBottom() int {
 	commits := self.GetCommits()
 	branchesBelow := branchstack.BranchesBelow(
 		commits, c.Model().Branches, c.Model().CheckedOutBranch, c.UserConfig().Git.MainBranches)
-	return indexForGotoBottomInCommits(commits, self.GetSelectedLineIdx(), branchesBelow)
+	return indexForGotoBottomInCommits(commits, self.GetSelectedLineIdx(), branchesBelow, c.Model().BisectInfo)
 }

@@ -276,5 +276,6 @@ func (self *SubCommitsContext) IndexForGotoBottom() int {
 		branchesBelow = branchstack.BranchesBelow(
 			commits, self.c.Model().Branches, self.GetRef().RefName(), self.c.UserConfig().Git.MainBranches)
 	}
-	return indexForGotoBottomInCommits(commits, self.GetSelectedLineIdx(), branchesBelow)
+	return indexForGotoBottomInCommits(
+		commits, self.GetSelectedLineIdx(), branchesBelow, git_commands.NewNullBisectInfo())
 }
