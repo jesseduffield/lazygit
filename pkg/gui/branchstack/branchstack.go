@@ -27,16 +27,13 @@ func BranchesBelow(
 	mainBranches []string,
 ) []*models.Branch {
 	branchesByTip := map[string][]*models.Branch{}
-	mainBranchTips := []string{}
 	for _, other := range branches {
-		if lo.Contains(mainBranches, other.Name) {
-			mainBranchTips = append(mainBranchTips, other.CommitHash)
-		} else if other.Name != branch.Name {
+		if !lo.Contains(mainBranches, other.Name) && other.Name != branch.Name {
 			branchesByTip[other.CommitHash] = append(branchesByTip[other.CommitHash], other)
 		}
 	}
 
-	mergedLocally := reachableCommits(commits, mainBranchTips)
+	mergedLocally := CommitsMergedIntoLocalMainBranch(commits, branches, mainBranches)
 
 	result := []*models.Branch{}
 	for _, commit := range commits {
@@ -49,29 +46,47 @@ func BranchesBelow(
 	return result
 }
 
-// Returns the hashes of those of the given commits that can be reached from
-// any of the given tips by following their parents
-func reachableCommits(commits []*models.Commit, tips []string) *set.Set[string] {
-	commitsByHash := map[string]*models.Commit{}
+// Returns the hashes of those of the given commits that a local main branch
+// contains, but whose status doesn't say that they are merged. The status
+// looks at the remote branch of a main branch if it has one, so these are
+// commits that were merged into a local main branch but not pushed yet.
+func CommitsMergedIntoLocalMainBranch(
+	commits []*models.Commit,
+	branches []*models.Branch,
+	mainBranches []string,
+) *set.Set[string] {
+	result := set.New[string]()
+
+	mainBranchTips := lo.FilterMap(branches, func(branch *models.Branch, _ int) (string, bool) {
+		return branch.CommitHash, lo.Contains(mainBranches, branch.Name)
+	})
+	if len(mainBranchTips) == 0 {
+		return result
+	}
+
+	// The parents of a merged commit are merged too, so the walk never needs
+	// to go past a merged commit. Usually the tip of a local main branch is
+	// merged itself, so there is nothing to walk; this keeps it cheap enough to
+	// do on every render of the commits list.
+	unmergedCommitsByHash := map[string]*models.Commit{}
 	for _, commit := range commits {
-		if !commit.IsTODO() {
-			commitsByHash[commit.Hash()] = commit
+		if !commit.IsTODO() && commit.Status != models.StatusMerged {
+			unmergedCommitsByHash[commit.Hash()] = commit
 		}
 	}
 
-	reachable := set.New[string]()
-	pending := append([]string{}, tips...)
+	pending := mainBranchTips
 	for len(pending) > 0 {
 		hash := pending[len(pending)-1]
 		pending = pending[:len(pending)-1]
 
-		commit, ok := commitsByHash[hash]
-		if !ok || reachable.Includes(hash) {
+		commit, ok := unmergedCommitsByHash[hash]
+		if !ok || result.Includes(hash) {
 			continue
 		}
-		reachable.Add(hash)
+		result.Add(hash)
 		pending = append(pending, commit.Parents()...)
 	}
 
-	return reachable
+	return result
 }
