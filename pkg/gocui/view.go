@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"slices"
+	"sort"
 	"strings"
 	"sync"
 	"unicode"
@@ -2117,12 +2118,20 @@ func (v *View) contentX(x int) int {
 }
 
 func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
-	for i, pos := range v.searcher.searchPositions {
-		adjustedY := y + v.oy
-		adjustedX := v.contentX(x)
-		if adjustedY == pos.Y && adjustedX >= pos.XStart && adjustedX < pos.XEnd {
-			return true, i == v.searcher.currentSearchIndex
-		}
+	positions := v.searcher.searchPositions
+	if len(positions) == 0 {
+		return false, false
+	}
+	adjustedY := y + v.oy
+	adjustedX := v.contentX(x)
+	// Matches are ordered by row and then by column. Search for the first
+	// match ending past this cell so overlapping matches keep their priority.
+	i := sort.Search(len(positions), func(i int) bool {
+		pos := positions[i]
+		return pos.Y > adjustedY || (pos.Y == adjustedY && pos.XEnd > adjustedX)
+	})
+	if i < len(positions) && positions[i].Y == adjustedY && positions[i].XStart <= adjustedX {
+		return true, i == v.searcher.currentSearchIndex
 	}
 	return false, false
 }
