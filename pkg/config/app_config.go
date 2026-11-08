@@ -46,6 +46,7 @@ type AppConfigurer interface {
 
 	GetUserConfig() *UserConfig
 	GetUserConfigPaths() []string
+	GetIgnoredUserConfigPaths() []string
 	GetUserConfigDir() string
 	ReloadUserConfigForRepo(repoConfigFiles []*ConfigFile) error
 	ReloadChangedUserConfigFiles() (error, bool)
@@ -66,10 +67,16 @@ const (
 )
 
 type ConfigFile struct {
-	Path    string
-	Policy  ConfigFilePolicy
+	Path   string
+	Policy ConfigFilePolicy
+
+	// If set, it is called each time the file is about to be loaded (but not if
+	// it doesn't exist), and the file is not loaded if it returns true.
+	ShouldIgnore func(path string) bool
+
 	modDate time.Time
 	exists  bool
+	ignored bool
 }
 
 // NewAppConfig makes a new app config
@@ -179,6 +186,7 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig, isGuiInitialize
 
 			case ConfigFilePolicySkipIfMissing:
 				configFile.exists = false
+				configFile.ignored = false
 				continue
 
 			case ConfigFilePolicyCreateIfMissing:
@@ -199,6 +207,11 @@ func loadUserConfig(configFiles []*ConfigFile, base *UserConfig, isGuiInitialize
 				}
 				configFile.modDate = statInfo.ModTime()
 			}
+		}
+
+		configFile.ignored = configFile.ShouldIgnore != nil && configFile.ShouldIgnore(path)
+		if configFile.ignored {
+			continue
 		}
 
 		content, err := os.ReadFile(path)
@@ -737,7 +750,15 @@ func (c *AppConfig) SaveCachedGithubPullRequests(repoPath string, pullRequests [
 
 func (c *AppConfig) GetUserConfigPaths() []string {
 	return lo.FilterMap(c.userConfigFiles, func(f *ConfigFile, _ int) (string, bool) {
-		return f.Path, f.exists
+		return f.Path, f.exists && !f.ignored
+	})
+}
+
+// The paths of the config files that exist, but weren't loaded because their
+// ShouldIgnore function returned true.
+func (c *AppConfig) GetIgnoredUserConfigPaths() []string {
+	return lo.FilterMap(c.userConfigFiles, func(f *ConfigFile, _ int) (string, bool) {
+		return f.Path, f.ignored
 	})
 }
 

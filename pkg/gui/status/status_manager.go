@@ -82,7 +82,15 @@ func (self *StatusManager) GetStatusString(userConfig *config.UserConfig) (strin
 	if len(self.statuses) == 0 {
 		return "", gocui.ColorDefault
 	}
-	topStatus := self.statuses[0]
+	// A toast disappears after a few seconds, but a waiting status can stay for
+	// much longer. So a toast is shown above any waiting status; if it weren't,
+	// a toast that is added before a long operation starts would never be seen.
+	topStatus, found := lo.Find(self.statuses, func(status appStatus) bool {
+		return status.statusType == "toast"
+	})
+	if !found {
+		topStatus = self.statuses[0]
+	}
 	if topStatus.statusType == "waiting" {
 		return topStatus.message + " " + presentation.Loader(time.Now(), userConfig.Gui.Spinner), topStatus.color
 	}
