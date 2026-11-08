@@ -75,10 +75,7 @@ func TestIndexForGotoBottomInCommits(t *testing.T) {
 				commit("c1", models.StatusUnpushed),
 				commit("m1", models.StatusMerged),
 			},
-			/* EXPECTED:
 			expected: 4,
-			ACTUAL: */
-			expected: 0,
 		},
 	}
 

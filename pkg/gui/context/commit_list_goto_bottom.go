@@ -6,18 +6,33 @@ import (
 )
 
 // Returns the index of the commit that the "go to bottom" command selects in a
-// list of commits
+// list of commits. If the list has several sections, the command first goes to
+// the beginning of the section that the selection is in, which is its oldest
+// commit. From there it goes to the beginning of the next section, and from the
+// last section to the bottom of the list.
+//
+// The sections are:
+//   - the commits of the branch that aren't merged into a main branch yet
 func indexForGotoBottomInCommits(commits []*models.Commit, selectedIdx int) int {
-	if selectedIdx >= 0 && selectedIdx < len(commits)-1 {
-		if commits[selectedIdx+1].Status != models.StatusMerged {
-			_, idx, found := lo.FindIndexOf(commits, func(c *models.Commit) bool {
-				return c.Status == models.StatusMerged
-			})
-			if found {
-				return idx - 1
-			}
-		}
+	stops := []int{}
+
+	if _, idx, found := lo.FindIndexOf(commits, func(c *models.Commit) bool {
+		return c.Status == models.StatusMerged
+	}); found {
+		stops = append(stops, idx-1)
 	}
 
-	return len(commits) - 1
+	return closestStopBelow(stops, selectedIdx, len(commits)-1)
+}
+
+// Returns the smallest of the given stops that is greater than the selected
+// index, or the last index if there is none
+func closestStopBelow(stops []int, selectedIdx int, lastIdx int) int {
+	result := lastIdx
+	for _, stop := range stops {
+		if stop > selectedIdx && stop < result {
+			result = stop
+		}
+	}
+	return result
 }
