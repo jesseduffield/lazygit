@@ -173,6 +173,11 @@ func (self *CommitLoader) MergeRebasingCommits(hashPool *utils.StringPool, commi
 		addConflictedRebasingCommit = false
 	}
 
+	if workingTreeState.ApplyingPatches {
+		result = append(self.getPendingPatches(hashPool), result...)
+		addConflictedRebasingCommit = false
+	}
+
 	if workingTreeState.Rebasing {
 		rebasingCommits, err := self.getHydratedRebasingCommits(hashPool, commits, addConflictedRebasingCommit)
 		if err != nil {

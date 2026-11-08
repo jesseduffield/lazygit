@@ -4,6 +4,7 @@ package tests
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/am"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/bisect"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/branch"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/cherry_pick"
@@ -35,6 +36,11 @@ import (
 )
 
 var tests = []*components.IntegrationTest{
+	am.AbortAfterConflictWhenContinuing,
+	am.ContinueAfterResolvingConflicts,
+	am.ContinueWithoutResolving,
+	am.LockErrorPartwayThroughSkip,
+	am.SkipConflictingPatch,
 	bisect.Basic,
 	bisect.CheckOutBranchBeforeBisecting,
 	bisect.ChooseTerms,

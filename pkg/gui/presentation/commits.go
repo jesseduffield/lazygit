@@ -554,7 +554,7 @@ func getHashColor(
 		hashColor = style.FgYellow
 	case models.StatusMerged:
 		hashColor = style.FgGreen
-	case models.StatusRebasing, models.StatusCherryPickingOrReverting, models.StatusConflicted:
+	case models.StatusRebasing, models.StatusCherryPickingOrReverting, models.StatusApplyingPatch, models.StatusConflicted:
 		hashColor = style.FgBlue
 	case models.StatusReflog:
 		hashColor = style.FgBlue

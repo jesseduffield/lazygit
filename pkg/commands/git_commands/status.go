@@ -30,6 +30,7 @@ func (self *StatusCommands) WorkingTreeState() models.WorkingTreeState {
 	result.Merging, _ = self.IsInMergeState()
 	result.CherryPicking, _ = self.IsInCherryPick()
 	result.Reverting, _ = self.IsInRevert()
+	result.ApplyingPatches, _ = self.IsApplyingPatches()
 	return result
 }
 
@@ -42,7 +43,19 @@ func (self *StatusCommands) IsInRebase() (bool, error) {
 	if err == nil && exists {
 		return true, nil
 	}
-	return self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply"))
+
+	// "git am" uses the rebase-apply directory too
+	exists, err = self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply"))
+	if err != nil || !exists {
+		return false, err
+	}
+	isApplyingPatches, err := self.IsApplyingPatches()
+	return !isApplyingPatches, err
+}
+
+// IsApplyingPatches tells whether a "git am" is in progress
+func (self *StatusCommands) IsApplyingPatches() (bool, error) {
+	return self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply", "applying"))
 }
 
 // IsInMergeState states whether we are still mid-merge

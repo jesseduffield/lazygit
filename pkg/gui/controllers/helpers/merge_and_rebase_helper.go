@@ -235,6 +235,13 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result er
 	if result == nil {
 		return nil
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
+		if self.c.Git().Status.WorkingTreeState().ApplyingPatches {
+			// "git am" says this not only if resolving the conflicts of a patch
+			// left nothing to commit, but also if the patch didn't apply at
+			// all. Without --3way, it leaves the files alone then, and skipping
+			// would lose the patch. Show git's explanation instead.
+			return result
+		}
 		return self.genericMergeCommandImpl(REBASE_OPTION_SKIP, false, true)
 	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") {
 		return self.genericMergeCommandImpl(REBASE_OPTION_SKIP, false, true)
@@ -283,7 +290,7 @@ func (self *MergeAndRebaseHelper) CheckForConflicts(result error) error {
 }
 
 func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
-	mode := self.c.Git().Status.WorkingTreeState().CommandName()
+	operation := self.c.Git().Status.WorkingTreeState().OperationName(self.c.Tr)
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.FoundConflictsTitle,
 		Items: []*types.MenuItem{
@@ -295,7 +302,8 @@ func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
 				},
 			},
 			{
-				Label: fmt.Sprintf(self.c.Tr.AbortMenuItem, mode),
+				Label: utils.ResolvePlaceholderString(self.c.Tr.AbortOperationMenuItem,
+					map[string]string{"operation": operation}),
 				OnPress: func() error {
 					return self.genericMergeCommand(REBASE_OPTION_ABORT)
 				},
@@ -308,10 +316,12 @@ func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
 
 func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 	// prompt user to confirm that they want to abort, then do it
-	mode := self.c.Git().Status.WorkingTreeState().CommandName()
+	placeholders := map[string]string{
+		"operation": self.c.Git().Status.WorkingTreeState().OperationName(self.c.Tr),
+	}
 	self.c.Confirm(types.ConfirmOpts{
-		Title:  fmt.Sprintf(self.c.Tr.AbortTitle, mode),
-		Prompt: fmt.Sprintf(self.c.Tr.AbortPrompt, mode),
+		Title:  utils.ResolvePlaceholderString(self.c.Tr.AbortOperationTitle, placeholders),
+		Prompt: utils.ResolvePlaceholderString(self.c.Tr.AbortOperationPrompt, placeholders),
 		HandleConfirm: func() error {
 			return self.genericMergeCommand(REBASE_OPTION_ABORT)
 		},
@@ -324,8 +334,10 @@ func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 func (self *MergeAndRebaseHelper) PromptToContinueRebase() {
 	self.continueRebasePromptShowing = true
 	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.Continue,
-		Prompt: fmt.Sprintf(self.c.Tr.ConflictsResolved, self.c.Git().Status.WorkingTreeState().CommandName()),
+		Title: self.c.Tr.Continue,
+		Prompt: utils.ResolvePlaceholderString(self.c.Tr.ContinueAfterConflictsResolved, map[string]string{
+			"operation": self.c.Git().Status.WorkingTreeState().OperationName(self.c.Tr),
+		}),
 		HandleClose: func() error {
 			self.continueRebasePromptShowing = false
 			return nil

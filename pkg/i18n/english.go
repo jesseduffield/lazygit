@@ -350,7 +350,7 @@ type TranslationSet struct {
 	FastForwarding                        string
 	FoundConflictsTitle                   string
 	ViewConflictsMenuItem                 string
-	AbortMenuItem                         string
+	AbortOperationMenuItem                string
 	PickHunk                              string
 	PickBothHunks                         string
 	ViewMergeRebaseOptions                string
@@ -359,6 +359,7 @@ type TranslationSet struct {
 	ViewRebaseOptions                     string
 	ViewCherryPickOptions                 string
 	ViewRevertOptions                     string
+	ViewApplyPatchesOptions               string
 	NotMergingOrRebasing                  string
 	AlreadyRebasing                       string
 	NotMidRebase                          string
@@ -371,6 +372,7 @@ type TranslationSet struct {
 	RebaseOptionsTitle                    string
 	CherryPickOptionsTitle                string
 	RevertOptionsTitle                    string
+	ApplyPatchesOptionsTitle              string
 	CommitSummaryTitle                    string
 	CommitDescriptionTitle                string
 	CommitDescriptionSubTitle             string
@@ -386,7 +388,7 @@ type TranslationSet struct {
 	InformationTitle                      string
 	SecondaryTitle                        string
 	ReflogCommitsTitle                    string
-	ConflictsResolved                     string
+	ContinueAfterConflictsResolved        string
 	Continue                              string
 	UnstagedFilesAfterConflictsResolved   string
 	RebasingTitle                         string
@@ -414,6 +416,7 @@ type TranslationSet struct {
 	PendingRebaseTodosSectionHeader       string
 	PendingCherryPicksSectionHeader       string
 	PendingRevertsSectionHeader           string
+	PendingPatchesSectionHeader           string
 	CommitsSectionHeader                  string
 	MoveCommitsHere                       string
 	MovingCommitsHere                     string
@@ -421,6 +424,7 @@ type TranslationSet struct {
 	RewordNotSupported                    string
 	ChangingThisActionIsNotAllowed        string
 	NotAllowedMidCherryPickOrRevert       string
+	NotAllowedWhileApplyingPatches        string
 	PickIsOnlyAllowedDuringRebase         string
 	DroppingMergeRequiresSingleSelection  string
 	CherryPickCopy                        string
@@ -475,6 +479,13 @@ type TranslationSet struct {
 	LowercaseMergingStatus                string
 	LowercaseCherryPickingStatus          string
 	LowercaseRevertingStatus              string
+	RebaseOperationName                   string
+	MergeOperationName                    string
+	CherryPickOperationName               string
+	RevertOperationName                   string
+	ApplyPatchesOperationName             string
+	LowercaseApplyingPatchesStatus        string
+	ApplyingPatchesStatus                 string
 	AmendingStatus                        string
 	CherryPickingStatus                   string
 	UndoingStatus                         string
@@ -878,8 +889,8 @@ type TranslationSet struct {
 	MustSpecifyOriginError                   string
 	GitOutput                                string
 	GitCommandFailed                         string
-	AbortTitle                               string
-	AbortPrompt                              string
+	AbortOperationTitle                      string
+	AbortOperationPrompt                     string
 	OpenLogMenu                              string
 	OpenLogMenuTooltip                       string
 	LogMenuTitle                             string
@@ -1571,13 +1582,14 @@ func EnglishTranslationSet() *TranslationSet {
 		FastForwarding:                       "Fast-forwarding",
 		FoundConflictsTitle:                  "Conflicts!",
 		ViewConflictsMenuItem:                "View conflicts",
-		AbortMenuItem:                        "Abort the %s",
+		AbortOperationMenuItem:               "Abort {{.operation}}",
 		ViewMergeRebaseOptions:               "View merge/rebase options",
 		ViewMergeRebaseOptionsTooltip:        "View options to abort/continue/skip the current merge/rebase.",
 		ViewMergeOptions:                     "View merge options",
 		ViewRebaseOptions:                    "View rebase options",
 		ViewCherryPickOptions:                "View cherry-pick options",
 		ViewRevertOptions:                    "View revert options",
+		ViewApplyPatchesOptions:              "View 'am' options",
 		NotMergingOrRebasing:                 "You are currently neither rebasing nor merging",
 		AlreadyRebasing:                      "Can't perform this action during a rebase",
 		NotMidRebase:                         "This action only works during an interactive rebase",
@@ -1590,6 +1602,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RebaseOptionsTitle:                   "Rebase options",
 		CherryPickOptionsTitle:               "Cherry-pick options",
 		RevertOptionsTitle:                   "Revert options",
+		ApplyPatchesOptionsTitle:             "Applying patches",
 		CommitSummaryTitle:                   "Commit summary",
 		CommitDescriptionTitle:               "Commit description",
 		CommitDescriptionSubTitle:            "Press {{.togglePanelKeyBinding}} to toggle focus, {{.commitMenuKeybinding}} to open menu",
@@ -1606,7 +1619,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SecondaryTitle:                       "Secondary",
 		ReflogCommitsTitle:                   "Reflog",
 		GlobalTitle:                          "Global keybindings",
-		ConflictsResolved:                    "All merge conflicts resolved. Continue the %s?",
+		ContinueAfterConflictsResolved:       "All merge conflicts resolved. Continue {{.operation}}?",
 		Continue:                             "Continue",
 		UnstagedFilesAfterConflictsResolved:  "Files have been modified since conflicts were resolved. Auto-stage them and continue?",
 		Keybindings:                          "Keybindings",
@@ -1639,6 +1652,7 @@ func EnglishTranslationSet() *TranslationSet {
 		PendingRebaseTodosSectionHeader:      "Pending rebase todos",
 		PendingCherryPicksSectionHeader:      "Pending cherry-picks",
 		PendingRevertsSectionHeader:          "Pending reverts",
+		PendingPatchesSectionHeader:          "Pending patches",
 		CommitsSectionHeader:                 "Commits",
 		MoveCommitsHere:                      "drop here",
 		MovingCommitsHere:                    "moving commits here",
@@ -1646,6 +1660,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RewordNotSupported:                   "Rewording commits while interactively rebasing is not currently supported",
 		ChangingThisActionIsNotAllowed:       "Changing this kind of rebase todo entry is not allowed",
 		NotAllowedMidCherryPickOrRevert:      "This action is not allowed while cherry-picking or reverting",
+		NotAllowedWhileApplyingPatches:       "This action is not allowed while applying patches",
 		PickIsOnlyAllowedDuringRebase:        "This action is only allowed while rebasing",
 		DroppingMergeRequiresSingleSelection: "Dropping a merge commit requires a single selected item",
 		CherryPickCopy:                       "Copy (cherry-pick)",
@@ -1700,6 +1715,13 @@ func EnglishTranslationSet() *TranslationSet {
 		LowercaseMergingStatus:               "merging",        // lowercase because it shows up in parentheses
 		LowercaseCherryPickingStatus:         "cherry-picking", // lowercase because it shows up in parentheses
 		LowercaseRevertingStatus:             "reverting",      // lowercase because it shows up in parentheses
+		RebaseOperationName:                  "the rebase",
+		MergeOperationName:                   "the merge",
+		CherryPickOperationName:              "the cherry-pick",
+		RevertOperationName:                  "the revert",
+		ApplyPatchesOperationName:            "applying patches",
+		LowercaseApplyingPatchesStatus:       "applying patches", // lowercase because it shows up in parentheses
+		ApplyingPatchesStatus:                "Applying patches",
 		AmendingStatus:                       "Amending",
 		CherryPickingStatus:                  "Cherry-picking",
 		UndoingStatus:                        "Undoing",
@@ -2100,8 +2122,8 @@ func EnglishTranslationSet() *TranslationSet {
 		MustSpecifyOriginError:                   "Must specify a remote if specifying a branch",
 		GitOutput:                                "Git output:",
 		GitCommandFailed:                         "Git command failed. Check command log for details (open with %s)",
-		AbortTitle:                               "Abort %s",
-		AbortPrompt:                              "Are you sure you want to abort the current %s?",
+		AbortOperationTitle:                      "Abort {{.operation}}",
+		AbortOperationPrompt:                     "Are you sure you want to abort {{.operation}}?",
 		OpenLogMenu:                              "View log options",
 		OpenLogMenuTooltip:                       "View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph.",
 		LogMenuTitle:                             "Commit Log Options",

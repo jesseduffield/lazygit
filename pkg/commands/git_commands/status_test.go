@@ -222,3 +222,51 @@ func TestRebaseStoppedBeforeCommittingPick(t *testing.T) {
 		})
 	}
 }
+
+func TestStatusWorkingTreeStateOfRebaseApplyDir(t *testing.T) {
+	scenarios := []struct {
+		testName                string
+		files                   map[string]string
+		expectedRebasing        bool
+		expectedApplyingPatches bool
+	}{
+		{
+			testName:                "git am",
+			files:                   map[string]string{"rebase-apply/applying": ""},
+			expectedRebasing:        false,
+			expectedApplyingPatches: true,
+		},
+		{
+			testName:                "rebase that uses the apply backend",
+			files:                   map[string]string{"rebase-apply/rebasing": ""},
+			expectedRebasing:        true,
+			expectedApplyingPatches: false,
+		},
+		{
+			testName: "git am while an interactive rebase is stopped",
+			files: map[string]string{
+				"rebase-apply/applying":        "",
+				"rebase-merge/git-rebase-todo": "",
+			},
+			expectedRebasing:        true,
+			expectedApplyingPatches: true,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			repoDir := t.TempDir()
+			for path, content := range s.files {
+				fullPath := filepath.Join(repoDir, ".git", path)
+				assert.NoError(t, os.MkdirAll(filepath.Dir(fullPath), 0o755))
+				assert.NoError(t, os.WriteFile(fullPath, []byte(content), 0o644))
+			}
+			instance := buildStatusCommands(commonDeps{repoPaths: MockRepoPaths(repoDir)})
+
+			state := instance.WorkingTreeState()
+
+			assert.Equal(t, s.expectedRebasing, state.Rebasing)
+			assert.Equal(t, s.expectedApplyingPatches, state.ApplyingPatches)
+		})
+	}
+}

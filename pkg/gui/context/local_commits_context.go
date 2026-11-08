@@ -227,6 +227,20 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				})
 			}
 
+			if c.Model().WorkingTreeStateAtLastCommitRefresh.ApplyingPatches {
+				_, firstPatch, found := lo.FindIndexOf(
+					c.Model().Commits, func(c *models.Commit) bool {
+						return c.PatchFile != ""
+					})
+				if !found {
+					firstPatch = 0
+				}
+				result = append(result, &NonModelItem{
+					Index:   firstPatch,
+					Content: formatListSectionHeader(c.Tr.PendingPatchesSectionHeader),
+				})
+			}
+
 			result = addCommitDropIndicator(
 				result,
 				dropIndicator,
