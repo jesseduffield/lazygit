@@ -2,6 +2,8 @@ package git_commands
 
 import (
 	"bufio"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -46,7 +48,36 @@ func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) 
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
+	parsedConfigs, err := parseGitmodules(file, parentModule)
+	if err != nil {
+		return nil, err
+	}
+
+	configs := []*models.SubmoduleConfig{}
+	for _, config := range parsedConfigs {
+		if isSuspiciousSubmoduleName(config.Name) {
+			self.Log.Warnf("Ignoring suspicious submodule name: %s", config.Name)
+			continue
+		}
+
+		if isSuspiciousSubmodulePath(dir, config.Path) {
+			self.Log.Warnf("Ignoring suspicious submodule path: %s", config.Path)
+			continue
+		}
+
+		configs = append(configs, config)
+
+		nestedConfigs, err := self.GetConfigs(config)
+		if err == nil {
+			configs = append(configs, nestedConfigs...)
+		}
+	}
+
+	return configs, nil
+}
+
+func parseGitmodules(reader io.Reader, parentModule *models.SubmoduleConfig) ([]*models.SubmoduleConfig, error) {
+	scanner := bufio.NewScanner(reader)
 	scanner.Split(bufio.ScanLines)
 
 	firstMatch := func(str string, regex string) (string, bool) {
@@ -60,27 +91,22 @@ func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) 
 	}
 
 	configs := []*models.SubmoduleConfig{}
-	lastConfigIdx := -1
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		if name, ok := firstMatch(line, `\[submodule "(.*)"\]`); ok {
+		if name, ok := firstMatch(line, `^\s*\[submodule "(.*)"\]`); ok {
 			configs = append(configs, &models.SubmoduleConfig{
 				Name: name, ParentModule: parentModule,
 			})
-			lastConfigIdx = len(configs) - 1
 			continue
 		}
 
-		if lastConfigIdx != -1 {
-			if path, ok := firstMatch(line, `\s*path\s*=\s*(.*)\s*`); ok {
-				configs[lastConfigIdx].Path = path
-				nestedConfigs, err := self.GetConfigs(configs[lastConfigIdx])
-				if err == nil {
-					configs = append(configs, nestedConfigs...)
-				}
-			} else if url, ok := firstMatch(line, `\s*url\s*=\s*(.*)\s*`); ok {
-				configs[lastConfigIdx].Url = url
+		if len(configs) > 0 {
+			config := configs[len(configs)-1]
+			if path, ok := firstMatch(line, `^\s*path\s*=\s*(.*)\s*`); ok {
+				config.Path = path
+			} else if url, ok := firstMatch(line, `^\s*url\s*=\s*(.*)\s*`); ok {
+				config.Url = url
 			}
 		}
 	}
@@ -90,6 +116,52 @@ func (self *SubmoduleCommands) GetConfigs(parentModule *models.SubmoduleConfig) 
 	}
 
 	return configs, nil
+}
+
+// isSuspiciousSubmoduleName applies the same rule as git's
+// check_submodule_name(); git ignores a submodule whose name fails it. The
+// git dir of a submodule is .git/modules/<name>, so a ".." component in the
+// name could put it outside the repository. Like git, we treat both slashes
+// and backslashes as separators on every platform.
+func isSuspiciousSubmoduleName(name string) bool {
+	if name == "" {
+		return true
+	}
+
+	components := strings.FieldsFunc(name, func(r rune) bool {
+		return r == '/' || r == '\\'
+	})
+	return lo.Contains(components, "..")
+}
+
+// isSuspiciousSubmodulePath reports whether a submodule path from the
+// .gitmodules file in parentDir might lead somewhere other than a directory
+// below parentDir. We run commands in the submodule's directory and read the
+// .gitmodules file in it, so the path must not lead anywhere else.
+//
+// Git never checks out a file through a symlink, so a path that goes through
+// a symlink can't be a submodule in the first place. We reject such paths
+// even if the symlink points to a directory below parentDir.
+func isSuspiciousSubmodulePath(parentDir string, path string) bool {
+	if !filepath.IsLocal(path) || filepath.Clean(path) == "." {
+		return true
+	}
+
+	dir := parentDir
+	for _, component := range strings.Split(filepath.Clean(path), string(filepath.Separator)) {
+		dir = filepath.Join(dir, component)
+		fileInfo, err := os.Lstat(dir)
+		if os.IsNotExist(err) {
+			// Nothing below this point exists (e.g. because the submodule
+			// isn't checked out), so it can't lead anywhere else either
+			return false
+		}
+		if err != nil || !fileInfo.IsDir() {
+			return true
+		}
+	}
+
+	return false
 }
 
 // AnyHaveStageableChanges reports whether any of the given submodule paths has
@@ -237,6 +309,18 @@ func (self *SubmoduleCommands) runInParentModule(submodule *models.SubmoduleConf
 func (self *SubmoduleCommands) Delete(submodule *models.SubmoduleConfig) error {
 	// based on https://gist.github.com/myusuf3/7f645819ded92bda6677
 
+	// Git keeps the git dirs of submodules separately for each worktree
+	gitDirPath := submodule.GitDirPath(self.repoPaths.WorktreeGitDirPath())
+
+	// The name of the submodule comes from .gitmodules, so it is under the
+	// control of whoever committed that file. Make sure that we never delete
+	// anything other than a directory below the "modules" directory of the
+	// worktree's git dir.
+	modulesDirPath := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "modules")
+	if relPath, err := filepath.Rel(modulesDirPath, gitDirPath); err != nil || relPath == "." || !filepath.IsLocal(relPath) {
+		return fmt.Errorf("refusing to delete %s because it is not inside %s", gitDirPath, modulesDirPath)
+	}
+
 	if err := self.runInParentModule(submodule, self.cmd.New(
 		NewGitCmd("submodule").
 			Arg("deinit", "--force", "--", submodule.Path).ToArgv(),
@@ -269,9 +353,7 @@ func (self *SubmoduleCommands) Delete(submodule *models.SubmoduleConfig) error {
 		self.Log.Error(err)
 	}
 
-	// We may in fact want to use the repo's git dir path but git docs say not to
-	// mix submodules and worktrees anyway.
-	return os.RemoveAll(submodule.GitDirPath(self.repoPaths.repoGitDirPath))
+	return os.RemoveAll(gitDirPath)
 }
 
 func (self *SubmoduleCommands) Add(name string, path string, url string) error {
