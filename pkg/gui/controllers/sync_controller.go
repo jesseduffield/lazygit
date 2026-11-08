@@ -8,7 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/jesseduffield/lazygit/pkg/gui/branchstack"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -128,7 +128,7 @@ func (self *SyncController) pushCurrentBranch(currentBranch *models.Branch) erro
 
 // The branches stacked below the current one that have commits to push
 func (self *SyncController) unpushedBranchesBelow(currentBranch *models.Branch) []*models.Branch {
-	branchesBelow := helpers.BranchesBelowInStack(
+	branchesBelow := branchstack.BranchesBelow(
 		self.c.Model().Commits, self.c.Model().Branches, currentBranch, self.c.UserConfig().Git.MainBranches)
 
 	return lo.Filter(branchesBelow, func(branch *models.Branch, _ int) bool {
@@ -289,7 +289,7 @@ func (self *SyncController) pullCurrentBranch(currentBranch *models.Branch, bran
 // upstream branches without losing anything: those that are behind them, and
 // those that diverged from them only because they were rewritten
 func (self *SyncController) updatableBranchesBelow(currentBranch *models.Branch) []*models.Branch {
-	branchesBelow := helpers.BranchesBelowInStack(
+	branchesBelow := branchstack.BranchesBelow(
 		self.c.Model().Commits, self.c.Model().Branches, currentBranch, self.c.UserConfig().Git.MainBranches)
 
 	return lo.Filter(branchesBelow, func(branch *models.Branch, _ int) bool {

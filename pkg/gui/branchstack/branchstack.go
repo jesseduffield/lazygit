@@ -1,4 +1,4 @@
-package helpers
+package branchstack
 
 import (
 	"github.com/jesseduffield/generics/set"
@@ -20,7 +20,7 @@ import (
 //
 // Only the commits passed in are looked at, so a branch whose tip is further
 // down the history than the loaded commits is not found.
-func BranchesBelowInStack(
+func BranchesBelow(
 	commits []*models.Commit,
 	branches []*models.Branch,
 	branch *models.Branch,
