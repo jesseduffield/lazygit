@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -978,4 +980,54 @@ func TestBranchColorsMigration(t *testing.T) {
 			assert.Equal(t, s.expectedChanges, changes.ToSliceFromOldest())
 		})
 	}
+}
+
+func TestIgnoredConfigFiles(t *testing.T) {
+	dir := t.TempDir()
+	loadedPath := filepath.Join(dir, "loaded.yml")
+	ignoredPath := filepath.Join(dir, "ignored.yml")
+	assert.NoError(t, os.WriteFile(loadedPath, []byte("os:\n  edit: loaded-editor\n"), 0o644))
+	assert.NoError(t, os.WriteFile(ignoredPath, []byte("os:\n  edit: ignored-editor\n"), 0o644))
+
+	shouldIgnore := func(path string) bool { return path == ignoredPath }
+	appConfig := NewDummyAppConfig()
+	err := appConfig.ReloadUserConfigForRepo([]*ConfigFile{
+		{Path: loadedPath, Policy: ConfigFilePolicySkipIfMissing, ShouldIgnore: shouldIgnore},
+		{Path: ignoredPath, Policy: ConfigFilePolicySkipIfMissing, ShouldIgnore: shouldIgnore},
+	})
+	assert.NoError(t, err)
+
+	assert.Equal(t, "loaded-editor", appConfig.GetUserConfig().OS.Edit)
+	assert.Equal(t, []string{loadedPath}, appConfig.GetUserConfigPaths())
+	assert.Equal(t, []string{ignoredPath}, appConfig.GetIgnoredUserConfigPaths())
+}
+
+func TestIgnoredConfigFileOnReload(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yml")
+	appConfig := NewDummyAppConfig()
+	err := appConfig.ReloadUserConfigForRepo([]*ConfigFile{
+		{Path: path, Policy: ConfigFilePolicySkipIfMissing, ShouldIgnore: func(string) bool { return true }},
+	})
+	assert.NoError(t, err)
+	assert.Empty(t, appConfig.GetIgnoredUserConfigPaths())
+
+	// A file that appears later is checked too
+	assert.NoError(t, os.WriteFile(path, []byte("os:\n  edit: my-editor\n"), 0o644))
+	err, didChange := appConfig.ReloadChangedUserConfigFiles()
+	assert.NoError(t, err)
+	assert.True(t, didChange)
+	assert.NotEqual(t, "my-editor", appConfig.GetUserConfig().OS.Edit)
+	assert.Equal(t, []string{path}, appConfig.GetIgnoredUserConfigPaths())
+
+	// An ignored file that doesn't change doesn't cause a reload
+	err, didChange = appConfig.ReloadChangedUserConfigFiles()
+	assert.NoError(t, err)
+	assert.False(t, didChange)
+
+	// A deleted file is no longer reported as ignored
+	assert.NoError(t, os.Remove(path))
+	err, didChange = appConfig.ReloadChangedUserConfigFiles()
+	assert.NoError(t, err)
+	assert.True(t, didChange)
+	assert.Empty(t, appConfig.GetIgnoredUserConfigPaths())
 }
