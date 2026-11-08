@@ -34,11 +34,39 @@ func TestIndexForGotoBottomInCommits(t *testing.T) {
 		commit("m1", models.StatusMerged),
 	}
 
+	updateRefTodo := func(branchName string) *models.Commit {
+		return models.NewCommit(hashPool, models.NewCommitOpts{
+			Name: "refs/heads/" + branchName, Action: todo.UpdateRef, Status: models.StatusRebasing,
+		})
+	}
+	branch := func(name string, tip string) *models.Branch {
+		return &models.Branch{Name: name, CommitHash: tip}
+	}
+
+	stackCommits := []*models.Commit{
+		commit("c4", models.StatusUnpushed),
+		commit("c3", models.StatusUnpushed),
+		commit("c2", models.StatusPushed),
+		commit("c1", models.StatusUnpushed),
+		commit("m1", models.StatusMerged),
+	}
+
+	stackRebaseCommits := []*models.Commit{
+		todoCommit("t4", todo.Pick),
+		todoCommit("t3", todo.Pick),
+		updateRefTodo("lower"),
+		todoCommit("t2", todo.Pick),
+		todoCommit("t1", todo.Pick),
+		commit("c1", models.StatusUnpushed),
+		commit("m1", models.StatusMerged),
+	}
+
 	scenarios := []struct {
-		testName    string
-		selectedIdx int
-		commits     []*models.Commit
-		expected    int
+		testName      string
+		selectedIdx   int
+		commits       []*models.Commit
+		branchesBelow []*models.Branch
+		expected      int
 	}{
 		{
 			testName:    "goes to the beginning of the branch first",
@@ -111,11 +139,53 @@ func TestIndexForGotoBottomInCommits(t *testing.T) {
 			},
 			expected: 1,
 		},
+		{
+			testName:      "goes to the beginning of the branch of a stack that the selection is in",
+			selectedIdx:   0,
+			commits:       stackCommits,
+			branchesBelow: []*models.Branch{branch("lower", "c2")},
+			expected:      1,
+		},
+		{
+			testName:      "goes to the beginning of the lower branch of a stack from the upper one",
+			selectedIdx:   1,
+			commits:       stackCommits,
+			branchesBelow: []*models.Branch{branch("lower", "c2")},
+			expected:      3,
+		},
+		{
+			testName:      "goes to the beginning of the branch of a stack among the todos of a rebase",
+			selectedIdx:   0,
+			commits:       stackRebaseCommits,
+			branchesBelow: []*models.Branch{},
+			expected:      1,
+		},
+		{
+			testName:      "goes from the beginning of a branch among the todos to the first todo",
+			selectedIdx:   1,
+			commits:       stackRebaseCommits,
+			branchesBelow: []*models.Branch{},
+			expected:      4,
+		},
+		{
+			testName:    "goes past update-ref todos without todos between them",
+			selectedIdx: 0,
+			commits: []*models.Commit{
+				todoCommit("t3", todo.Pick),
+				updateRefTodo("upper"),
+				updateRefTodo("lower"),
+				todoCommit("t2", todo.Pick),
+				todoCommit("t1", todo.Pick),
+				commit("c1", models.StatusUnpushed),
+			},
+			branchesBelow: []*models.Branch{},
+			expected:      4,
+		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			assert.Equal(t, s.expected, indexForGotoBottomInCommits(s.commits, s.selectedIdx))
+			assert.Equal(t, s.expected, indexForGotoBottomInCommits(s.commits, s.selectedIdx, s.branchesBelow))
 		})
 	}
 }

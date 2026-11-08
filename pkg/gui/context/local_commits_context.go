@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/branchstack"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -520,5 +521,9 @@ func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPosi
 }
 
 func (self *LocalCommitsContext) IndexForGotoBottom() int {
-	return indexForGotoBottomInCommits(self.GetCommits(), self.GetSelectedLineIdx())
+	c := self.ListContextTrait.c
+	commits := self.GetCommits()
+	branchesBelow := branchstack.BranchesBelow(
+		commits, c.Model().Branches, c.Model().CheckedOutBranch, c.UserConfig().Git.MainBranches)
+	return indexForGotoBottomInCommits(commits, self.GetSelectedLineIdx(), branchesBelow)
 }

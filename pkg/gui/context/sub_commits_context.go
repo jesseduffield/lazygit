@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/branchstack"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -269,5 +270,11 @@ func (self *SubCommitsContext) ModelSearchResults(searchStr string, caseSensitiv
 }
 
 func (self *SubCommitsContext) IndexForGotoBottom() int {
-	return indexForGotoBottomInCommits(self.GetCommits(), self.GetSelectedLineIdx())
+	commits := self.GetCommits()
+	var branchesBelow []*models.Branch
+	if self.GetShowBranchHeads() {
+		branchesBelow = branchstack.BranchesBelow(
+			commits, self.c.Model().Branches, self.GetRef().RefName(), self.c.UserConfig().Git.MainBranches)
+	}
+	return indexForGotoBottomInCommits(commits, self.GetSelectedLineIdx(), branchesBelow)
 }

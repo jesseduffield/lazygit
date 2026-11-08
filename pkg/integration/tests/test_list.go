@@ -156,6 +156,7 @@ var tests = []*components.IntegrationTest{
 	commit.FindBaseCommitForFixupDisregardMainBranch,
 	commit.FindBaseCommitForFixupOnlyAddedLines,
 	commit.FindBaseCommitForFixupWarningForAddedLines,
+	commit.GotoBottomInBranchStack,
 	commit.Highlight,
 	commit.History,
 	commit.HistoryComplex,
