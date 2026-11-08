@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/branchstack"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -520,18 +521,9 @@ func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPosi
 }
 
 func (self *LocalCommitsContext) IndexForGotoBottom() int {
+	c := self.ListContextTrait.c
 	commits := self.GetCommits()
-	selectedIdx := self.GetSelectedLineIdx()
-	if selectedIdx >= 0 && selectedIdx < len(commits)-1 {
-		if commits[selectedIdx+1].Status != models.StatusMerged {
-			_, idx, found := lo.FindIndexOf(commits, func(c *models.Commit) bool {
-				return c.Status == models.StatusMerged
-			})
-			if found {
-				return idx - 1
-			}
-		}
-	}
-
-	return self.list.Len() - 1
+	branchesBelow := branchstack.BranchesBelow(
+		commits, c.Model().Branches, c.Model().CheckedOutBranch, c.UserConfig().Git.MainBranches)
+	return indexForGotoBottomInCommits(commits, self.GetSelectedLineIdx(), branchesBelow, c.Model().BisectInfo)
 }

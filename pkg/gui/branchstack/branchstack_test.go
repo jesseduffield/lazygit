@@ -1,4 +1,4 @@
-package helpers
+package branchstack
 
 import (
 	"testing"
@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBranchesBelowInStack(t *testing.T) {
+func TestBranchesBelow(t *testing.T) {
 	hashPool := &utils.StringPool{}
 	commit := func(hash string, status models.CommitStatus, parents ...string) *models.Commit {
 		return models.NewCommit(hashPool, models.NewCommitOpts{Hash: hash, Status: status, Parents: parents})
@@ -141,7 +141,7 @@ func TestBranchesBelowInStack(t *testing.T) {
 			if s.current != nil {
 				branch = s.current
 			}
-			result := BranchesBelowInStack(s.commits, s.branches, branch, mainBranches)
+			result := BranchesBelow(s.commits, s.branches, branch.Name, mainBranches)
 			names := lo.Map(result, func(b *models.Branch, _ int) string { return b.Name })
 			assert.Equal(t, s.expected, names)
 		})

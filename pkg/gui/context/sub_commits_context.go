@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/branchstack"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -270,17 +271,11 @@ func (self *SubCommitsContext) ModelSearchResults(searchStr string, caseSensitiv
 
 func (self *SubCommitsContext) IndexForGotoBottom() int {
 	commits := self.GetCommits()
-	selectedIdx := self.GetSelectedLineIdx()
-	if selectedIdx >= 0 && selectedIdx < len(commits)-1 {
-		if commits[selectedIdx+1].Status != models.StatusMerged {
-			_, idx, found := lo.FindIndexOf(commits, func(c *models.Commit) bool {
-				return c.Status == models.StatusMerged
-			})
-			if found {
-				return idx - 1
-			}
-		}
+	var branchesBelow []*models.Branch
+	if self.GetShowBranchHeads() {
+		branchesBelow = branchstack.BranchesBelow(
+			commits, self.c.Model().Branches, self.GetRef().RefName(), self.c.UserConfig().Git.MainBranches)
 	}
-
-	return self.list.Len() - 1
+	return indexForGotoBottomInCommits(
+		commits, self.GetSelectedLineIdx(), branchesBelow, git_commands.NewNullBisectInfo())
 }
