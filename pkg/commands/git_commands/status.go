@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spf13/afero"
+	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
 type StatusCommands struct {
@@ -49,39 +51,87 @@ func (self *StatusCommands) IsInMergeState() (bool, error) {
 }
 
 func (self *StatusCommands) IsInCherryPick() (bool, error) {
-	exists, err := self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "CHERRY_PICK_HEAD"))
+	hasCherryPickHead, err := self.hasCherryPickHead()
+	if err != nil || hasCherryPickHead {
+		return hasCherryPickHead, err
+	}
+	return self.sequencerCommand() == todo.Pick, nil
+}
+
+func (self *StatusCommands) hasCherryPickHead() (bool, error) {
+	gitDir := self.repoPaths.WorktreeGitDirPath()
+	exists, err := self.os.FileExists(filepath.Join(gitDir, "CHERRY_PICK_HEAD"))
 	if err != nil || !exists {
 		return exists, err
 	}
-	// Sometimes, CHERRY_PICK_HEAD is present during rebases even if no
-	// cherry-pick is in progress. I suppose this is because rebase used to be
-	// implemented as a series of cherry-picks, so this could be remnants of
-	// code that is shared between cherry-pick and rebase, or something. The way
-	// to tell if this is the case is to check for the presence of the
-	// stopped-sha file, which records the sha of the last pick that was
-	// executed before the rebase stopped, and seeing if the sha in that file is
-	// the same as the one in CHERRY_PICK_HEAD.
-	cherryPickHead, err := os.ReadFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "CHERRY_PICK_HEAD"))
+	cherryPickHead, err := os.ReadFile(filepath.Join(gitDir, "CHERRY_PICK_HEAD"))
 	if err != nil {
 		return false, err
 	}
-	stoppedSha, err := os.ReadFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge", "stopped-sha"))
+	return !cherryPickHeadBelongsToRebase(gitDir, strings.TrimSpace(string(cherryPickHead)), self.config.GetCoreCommentChar()), nil
+}
+
+// cherryPickHeadBelongsToRebase tells whether CHERRY_PICK_HEAD, whose value is
+// cherryPickHead, belongs to a pick of the rebase that is in progress in
+// gitDir, rather than to a cherry-pick. A rebase writes CHERRY_PICK_HEAD when it
+// has applied the changes of a pick, and removes it when it has committed them.
+// So it is still there if the rebase stopped because the pick conflicted; git
+// records the pick in rebase-merge/stopped-sha then. It is also still there if
+// git couldn't commit the changes, for example because it couldn't take the
+// index lock. Git exits without writing stopped-sha in that case, but the pick
+// is the last line of rebase-merge/done.
+func cherryPickHeadBelongsToRebase(gitDir string, cherryPickHead string, commentChar byte) bool {
+	// The hashes in these files may be abbreviated
+	isPrefixOfCherryPickHead := func(hash string) bool {
+		return hash != "" && strings.HasPrefix(cherryPickHead, hash)
+	}
+
+	stoppedSha, err := os.ReadFile(filepath.Join(gitDir, "rebase-merge", "stopped-sha"))
+	if err == nil && isPrefixOfCherryPickHead(strings.TrimSpace(string(stoppedSha))) {
+		return true
+	}
+
+	doneTodos, err := utils.ReadRebaseTodoFile(filepath.Join(gitDir, "rebase-merge", "done"), commentChar)
+	return err == nil && len(doneTodos) > 0 && isPrefixOfCherryPickHead(doneTodos[len(doneTodos)-1].Commit)
+}
+
+// rebaseStoppedBeforeCommittingPick tells whether the rebase that is in
+// progress in gitDir has applied the changes of a pick, but exited before it
+// could commit them (see cherryPickHeadBelongsToRebase). "git rebase
+// --continue" refuses to commit the changes in that case, because git didn't
+// write the message file that it writes when a pick conflicts.
+func rebaseStoppedBeforeCommittingPick(gitDir string, commentChar byte) bool {
+	cherryPickHead, err := os.ReadFile(filepath.Join(gitDir, "CHERRY_PICK_HEAD"))
 	if err != nil {
-		// If we get an error we assume the file doesn't exist
-		return true, nil
+		return false
 	}
-	cherryPickHeadStr := strings.TrimSpace(string(cherryPickHead))
-	stoppedShaStr := strings.TrimSpace(string(stoppedSha))
-	// Need to use HasPrefix here because the cherry-pick HEAD is a full sha1,
-	// but stopped-sha is an abbreviated sha1
-	if strings.HasPrefix(cherryPickHeadStr, stoppedShaStr) {
-		return false, nil
+	if _, err := os.Stat(filepath.Join(gitDir, "rebase-merge", "message")); err == nil {
+		return false
 	}
-	return true, nil
+	return cherryPickHeadBelongsToRebase(gitDir, strings.TrimSpace(string(cherryPickHead)), commentChar)
 }
 
 func (self *StatusCommands) IsInRevert() (bool, error) {
-	return self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "REVERT_HEAD"))
+	hasRevertHead, err := self.os.FileExists(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "REVERT_HEAD"))
+	if err != nil || hasRevertHead {
+		return hasRevertHead, err
+	}
+	return self.sequencerCommand() == todo.Revert, nil
+}
+
+// sequencerCommand returns the command of the first todo of a cherry-pick or
+// revert of several commits that is in progress, or 0 if there is none. Git
+// keeps the todos of such an operation in .git/sequencer. If it stops before it
+// starts to apply a commit (for example because the commit would overwrite an
+// untracked file), it doesn't write CHERRY_PICK_HEAD or REVERT_HEAD. Like git
+// status, we still consider the cherry-pick or revert to be in progress then.
+func (self *StatusCommands) sequencerCommand() todo.TodoCommand {
+	todos, err := utils.ReadRebaseTodoFile(
+		filepath.Join(self.repoPaths.WorktreeGitDirPath(), "sequencer", "todo"), self.config.GetCoreCommentChar())
+	if err != nil || len(todos) == 0 {
+		return 0
+	}
+	return todos[0].Command
 }
 
 // RefsSnapshot returns a string fingerprint of the current state of local

@@ -256,7 +256,7 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 		cmdObj.AddEnvVars("GIT_EDITOR=" + ex)
 	}
 
-	return cmdObj
+	return self.resumeAfterLockError(cmdObj)
 }
 
 // GitRebaseEditTodo runs "git rebase --edit-todo", saving the given todosFileContent to the file
@@ -408,7 +408,7 @@ func (self *RebaseCommands) SquashAllAboveFixupCommits(commit *models.Commit) er
 		Arg("--interactive", "--rebase-merges", "--autostash", "--autosquash", hashOrRoot).
 		ToArgv()
 
-	return self.runSkipEditorCommand(self.cmd.New(cmdArgs))
+	return self.resumeAfterLockError(skipEditor(self.cmd.New(cmdArgs))).Run()
 }
 
 // BeginInteractiveRebaseForCommit starts an interactive rebase to edit the current
@@ -491,8 +491,36 @@ func (self *RebaseCommands) AbortRebase() error {
 // GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
 // By default we skip the editor in the case where a commit will be made
 func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, command string) error {
-	err := self.runSkipEditorCommand(self.GenericMergeOrRebaseActionCmdObj(commandType, command))
+	undoRepeatingTodo := func() {}
+	if command == "continue" && (commandType == "cherry-pick" || commandType == "revert") {
+		var err error
+		undoRepeatingTodo, err = repeatCurrentSequencerTodo(
+			self.cmd, self.repoPaths.WorktreeGitDirPath(), self.config.GetCoreCommentChar())
+		if err != nil {
+			return err
+		}
+	}
+
+	if commandType == "rebase" && command == "continue" {
+		if err := self.commitPickThatRebaseStoppedAt(); err != nil {
+			return err
+		}
+	}
+
+	cmdObj := skipEditor(self.GenericMergeOrRebaseActionCmdObj(commandType, command))
+	if command == "continue" || command == "skip" {
+		switch commandType {
+		case "rebase":
+			cmdObj = self.resumeAfterLockError(cmdObj)
+		case "cherry-pick", "revert":
+			cmdObj = retryContinueOrSkipAfterLockError(cmdObj,
+				filepath.Join(self.repoPaths.WorktreeGitDirPath(), "sequencer", "todo"))
+		}
+	}
+
+	err := cmdObj.Run()
 	if err != nil {
+		undoRepeatingTodo()
 		if !strings.Contains(err.Error(), "no rebase in progress") {
 			return err
 		}
@@ -513,7 +541,32 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 	return nil
 }
 
-func (self *RebaseCommands) runSkipEditorCommand(cmdObj *oscommands.CmdObj) error {
+// commitPickThatRebaseStoppedAt commits the changes of a pick if the rebase
+// stopped after it applied them, but before it committed them (see
+// rebaseStoppedBeforeCommittingPick). "git rebase --continue" refuses to commit
+// them in that case. "git cherry-pick --continue" commits them with the author
+// and message of the pick, like the rebase would have.
+func (self *RebaseCommands) commitPickThatRebaseStoppedAt() error {
+	if !rebaseStoppedBeforeCommittingPick(self.repoPaths.WorktreeGitDirPath(), self.config.GetCoreCommentChar()) {
+		return nil
+	}
+
+	return skipEditor(self.GenericMergeOrRebaseActionCmdObj("cherry-pick", "continue")).Run()
+}
+
+// resumeAfterLockError makes cmdObj, a command that starts or continues a
+// rebase, resume the rebase if a lock error stops it partway through; see
+// resumeRebaseAfterLockError.
+func (self *RebaseCommands) resumeAfterLockError(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
+	return resumeRebaseAfterLockError(cmdObj, self.repoPaths.WorktreeGitDirPath(), self.config.GetCoreCommentChar(),
+		func() *oscommands.CmdObj {
+			return skipEditor(self.GenericMergeOrRebaseActionCmdObj("rebase", "continue"))
+		})
+}
+
+// skipEditor makes git use lazygit as the editor for the given command; lazygit
+// then exits right away, so git uses the file as it is.
+func skipEditor(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
 	instruction := daemon.NewExitImmediatelyInstruction()
 	lazyGitPath := oscommands.GetLazygitPath()
 	return cmdObj.
@@ -523,8 +576,7 @@ func (self *RebaseCommands) runSkipEditorCommand(cmdObj *oscommands.CmdObj) erro
 			"EDITOR="+lazyGitPath,
 			"VISUAL="+lazyGitPath,
 		).
-		AddEnvVars(daemon.ToEnvVars(instruction)...).
-		Run()
+		AddEnvVars(daemon.ToEnvVars(instruction)...)
 }
 
 // DiscardOldFileChanges discards changes to a file from an old commit
@@ -576,7 +628,10 @@ func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 		Arg(lo.Reverse(lo.Map(commits, func(c *models.Commit, _ int) string { return c.Hash() }))...).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).Run()
+	return abortSequenceAfterLockError(self.cmd.New(cmdArgs), self.repoPaths.WorktreeGitDirPath(), len(commits),
+		func() *oscommands.CmdObj {
+			return self.cmd.New(NewGitCmd("cherry-pick").Arg("--abort").ToArgv())
+		}).Run()
 }
 
 func (self *RebaseCommands) DropMergeCommit(commits []*models.Commit, commitIndex int) error {
