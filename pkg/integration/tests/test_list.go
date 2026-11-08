@@ -219,6 +219,8 @@ var tests = []*components.IntegrationTest{
 	commit.StagedWithoutHooks,
 	commit.Unstaged,
 	config.CustomCommandsInPerRepoConfig,
+	config.IgnoreTrackedConfigInParentDir,
+	config.IgnoreTrackedConfigInParentDirOnReload,
 	config.NegativeRefspec,
 	config.RemoteNamedStar,
 	config.SidePanelsInPerRepoConfig,

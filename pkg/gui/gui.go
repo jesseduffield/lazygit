@@ -375,6 +375,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 
 	gui.resetHelpersAndControllers()
 	gui.resetKeybindings()
+	gui.toastIgnoredConfigFiles()
 
 	gui.g.SetFocusHandler(func(Focused bool) error {
 		if Focused {
@@ -387,6 +388,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 				reloadErr = gui.onUserConfigLoaded()
 				gui.reloadSidePanels()
 				gui.resetKeybindings()
+				gui.toastIgnoredConfigFiles()
 
 				if err := gui.checkForChangedConfigsThatDontAutoReload(oldConfig, gui.Config.GetUserConfig()); err != nil {
 					return err
@@ -488,13 +490,40 @@ func (gui *Gui) getPerRepoConfigFiles() []*config.ConfigFile {
 	dir := filepath.Dir(prevDir)
 	for dir != prevDir {
 		repoConfigFiles = utils.Prepend(repoConfigFiles, &config.ConfigFile{
-			Path:   filepath.Join(dir, ".lazygit.yml"),
-			Policy: config.ConfigFilePolicySkipIfMissing,
+			Path:         filepath.Join(dir, ".lazygit.yml"),
+			Policy:       config.ConfigFilePolicySkipIfMissing,
+			ShouldIgnore: gui.isTrackedByEnclosingRepo,
 		})
 		prevDir = dir
 		dir = filepath.Dir(dir)
 	}
 	return repoConfigFiles
+}
+
+// A .lazygit.yml in a parent directory is for config that the user wants to
+// apply to all repos below that directory. If git tracks the file, it comes
+// from a repository's content instead; for example, the parent directories of
+// a submodule include the superproject's working tree. Anybody who can commit
+// to that repository could then make lazygit run commands of their choosing,
+// so we don't load such a file.
+func (gui *Gui) isTrackedByEnclosingRepo(path string) bool {
+	isTracked, err := git_commands.IsTrackedByEnclosingRepo(gui.os.Cmd, path)
+	if err != nil {
+		gui.c.Log.WithError(err).Warnf("Couldn't tell whether git tracks %s, so we don't load it", path)
+		return true
+	}
+	return isTracked
+}
+
+func (gui *Gui) toastIgnoredConfigFiles() {
+	paths := gui.Config.GetIgnoredUserConfigPaths()
+	if len(paths) == 0 {
+		return
+	}
+
+	gui.c.ErrorToast(utils.ResolvePlaceholderString(gui.c.Tr.IgnoredTrackedConfigFiles, map[string]string{
+		"paths": strings.Join(paths, ", "),
+	}))
 }
 
 func (gui *Gui) onUserConfigLoaded() error {

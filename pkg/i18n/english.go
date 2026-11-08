@@ -283,6 +283,7 @@ type TranslationSet struct {
 	IntroPopupMessage                     string
 	NonReloadableConfigWarningTitle       string
 	NonReloadableConfigWarning            string
+	IgnoredTrackedConfigFiles             string
 	GitconfigParseErr                     string
 	EditFile                              string
 	EditFileTooltip                       string
@@ -1512,6 +1513,7 @@ func EnglishTranslationSet() *TranslationSet {
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		NonReloadableConfigWarningTitle:      "Config changed",
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,
+		IgnoredTrackedConfigFiles:            "Ignored config tracked by git: {{.paths}}",
 		GitconfigParseErr:                    `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		EditFile:                             `Edit file`,
 		EditFileTooltip:                      "Open file in external editor.",
