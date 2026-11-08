@@ -60,5 +60,7 @@ var SquashMerge = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().Focus().Lines(
 			Contains("work"),
 		)
+
+		t.Views().Status().Content(Equals("(merging) repo → original-branch"))
 	},
 })

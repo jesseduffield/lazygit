@@ -237,6 +237,9 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 	var initialMessage string
 	preservedMessage := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
 	if preservedMessage == "" {
+		initialMessage = self.c.Git().Status.SquashMergeMessage()
+	}
+	if preservedMessage == "" && initialMessage == "" {
 		commitPrefixConfigs := self.commitPrefixConfigsForRepo()
 		for _, commitPrefixConfig := range commitPrefixConfigs {
 			prefixPattern := commitPrefixConfig.Pattern

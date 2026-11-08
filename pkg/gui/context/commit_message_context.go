@@ -131,6 +131,10 @@ func (self *CommitMessageContext) GetInitialMessage() string {
 	return self.viewModel.initialMessage
 }
 
+func (self *CommitMessageContext) SetInitialMessage(message string) {
+	self.viewModel.initialMessage = message
+}
+
 func (self *CommitMessageContext) GetHistoryMessage() string {
 	return self.viewModel.historyMessage
 }
@@ -148,7 +152,6 @@ func (self *CommitMessageContext) SetPanelState(
 	summaryTitle string,
 	descriptionTitle string,
 	preserveMessage bool,
-	initialMessage string,
 	onConfirm func(string, string) error,
 	onSwitchToEditor func(string) error,
 	forceSkipHooks bool,
@@ -156,7 +159,6 @@ func (self *CommitMessageContext) SetPanelState(
 ) {
 	self.viewModel.selectedindex = index
 	self.viewModel.preserveMessage = preserveMessage
-	self.viewModel.initialMessage = initialMessage
 	self.viewModel.onConfirm = onConfirm
 	self.viewModel.onSwitchToEditor = onSwitchToEditor
 	self.viewModel.forceSkipHooks = forceSkipHooks

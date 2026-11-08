@@ -474,25 +474,49 @@ func (self *RebaseCommands) RebaseBranchFromBaseCommit(targetBranchName string, 
 	}).Run()
 }
 
-func (self *RebaseCommands) GenericMergeOrRebaseActionCmdObj(commandType string, command string) *oscommands.CmdObj {
-	cmdArgs := NewGitCmd(commandType).Arg("--" + command).ToArgv()
+// GenericMergeOrRebaseActionCmdObj returns the command that continues, skips or
+// aborts the given operation; command is "continue", "skip" or "abort".
+func (self *RebaseCommands) GenericMergeOrRebaseActionCmdObj(operation models.EffectiveWorkingTreeState, command string) *oscommands.CmdObj {
+	if operation == models.WORKING_TREE_STATE_SQUASH_MERGING {
+		return self.cmd.New(squashMergeActionArgs(command))
+	}
+
+	cmdArgs := NewGitCmd(operation.CommandName()).Arg("--" + command).ToArgv()
 
 	return self.cmd.New(cmdArgs)
 }
 
+// squashMergeActionArgs returns the arguments of the command that continues or
+// aborts a squash merge. "git merge --continue" and "git merge --abort" refuse
+// to run without MERGE_HEAD, which a squash merge doesn't write. "git commit"
+// commits the changes with the message in SQUASH_MSG. "git merge --abort" runs
+// "git reset --merge" too.
+func squashMergeActionArgs(command string) []string {
+	switch command {
+	case "continue":
+		return NewGitCmd("commit").ToArgv()
+	case "abort":
+		return NewGitCmd("reset").Arg("--merge").ToArgv()
+	}
+
+	panic("can't " + command + " a squash merge")
+}
+
 func (self *RebaseCommands) ContinueRebase() error {
-	return self.GenericMergeOrRebaseAction("rebase", "continue")
+	return self.GenericMergeOrRebaseAction(models.WORKING_TREE_STATE_REBASING, "continue")
 }
 
 func (self *RebaseCommands) AbortRebase() error {
-	return self.GenericMergeOrRebaseAction("rebase", "abort")
+	return self.GenericMergeOrRebaseAction(models.WORKING_TREE_STATE_REBASING, "abort")
 }
 
-// GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
-// By default we skip the editor in the case where a commit will be made
-func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, command string) error {
+// GenericMergeOrRebaseAction continues, skips or aborts the given operation;
+// command is "continue", "skip" or "abort". If this makes a commit, we skip the
+// editor.
+func (self *RebaseCommands) GenericMergeOrRebaseAction(operation models.EffectiveWorkingTreeState, command string) error {
 	undoRepeatingTodo := func() {}
-	if command == "continue" && (commandType == "cherry-pick" || commandType == "revert") {
+	if command == "continue" &&
+		(operation == models.WORKING_TREE_STATE_CHERRY_PICKING || operation == models.WORKING_TREE_STATE_REVERTING) {
 		var err error
 		undoRepeatingTodo, err = repeatCurrentSequencerTodo(
 			self.cmd, self.repoPaths.WorktreeGitDirPath(), self.config.GetCoreCommentChar())
@@ -501,23 +525,24 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 		}
 	}
 
-	if commandType == "rebase" && command == "continue" {
+	if operation == models.WORKING_TREE_STATE_REBASING && command == "continue" {
 		if err := self.commitPickThatRebaseStoppedAt(); err != nil {
 			return err
 		}
 	}
 
-	cmdObj := skipEditor(self.GenericMergeOrRebaseActionCmdObj(commandType, command))
+	cmdObj := skipEditor(self.GenericMergeOrRebaseActionCmdObj(operation, command))
 	if command == "continue" || command == "skip" {
-		switch commandType {
-		case "rebase":
+		switch operation {
+		case models.WORKING_TREE_STATE_REBASING:
 			cmdObj = self.resumeAfterLockError(cmdObj)
-		case "cherry-pick", "revert":
+		case models.WORKING_TREE_STATE_CHERRY_PICKING, models.WORKING_TREE_STATE_REVERTING:
 			cmdObj = retryContinueOrSkipAfterLockError(cmdObj,
 				filepath.Join(self.repoPaths.WorktreeGitDirPath(), "sequencer", "todo"))
-		case "am":
+		case models.WORKING_TREE_STATE_APPLYING_PATCHES:
 			cmdObj = retryContinueOrSkipAfterLockError(cmdObj,
 				filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply", "next"))
+		case models.WORKING_TREE_STATE_MERGING, models.WORKING_TREE_STATE_SQUASH_MERGING, models.WORKING_TREE_STATE_NONE:
 		}
 	}
 
@@ -533,7 +558,7 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 	// sometimes we need to do a sequence of things in a rebase but the user needs to
 	// fix merge conflicts along the way. When this happens we queue up the next step
 	// so that after the next successful rebase continue we can continue from where we left off
-	if commandType == "rebase" && command == "continue" && self.onSuccessfulContinue != nil {
+	if operation == models.WORKING_TREE_STATE_REBASING && command == "continue" && self.onSuccessfulContinue != nil {
 		f := self.onSuccessfulContinue
 		self.onSuccessfulContinue = nil
 		return f()
@@ -554,7 +579,7 @@ func (self *RebaseCommands) commitPickThatRebaseStoppedAt() error {
 		return nil
 	}
 
-	return skipEditor(self.GenericMergeOrRebaseActionCmdObj("cherry-pick", "continue")).Run()
+	return skipEditor(self.GenericMergeOrRebaseActionCmdObj(models.WORKING_TREE_STATE_CHERRY_PICKING, "continue")).Run()
 }
 
 // resumeAfterLockError makes cmdObj, a command that starts or continues a
@@ -563,7 +588,7 @@ func (self *RebaseCommands) commitPickThatRebaseStoppedAt() error {
 func (self *RebaseCommands) resumeAfterLockError(cmdObj *oscommands.CmdObj) *oscommands.CmdObj {
 	return resumeRebaseAfterLockError(cmdObj, self.repoPaths.WorktreeGitDirPath(), self.config.GetCoreCommentChar(),
 		func() *oscommands.CmdObj {
-			return skipEditor(self.GenericMergeOrRebaseActionCmdObj("rebase", "continue"))
+			return skipEditor(self.GenericMergeOrRebaseActionCmdObj(models.WORKING_TREE_STATE_REBASING, "continue"))
 		})
 }
 

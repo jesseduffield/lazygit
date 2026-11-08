@@ -304,6 +304,7 @@ type TranslationSet struct {
 	SquashMergeUncommittedTooltip         string
 	SquashMergeCommitted                  string
 	SquashMergeCommittedTooltip           string
+	CantSquashMergeWithStagedChanges      string
 	ConfirmQuit                           string
 	SwitchRepo                            string
 	AllBranchesLogGraph                   string
@@ -891,6 +892,7 @@ type TranslationSet struct {
 	GitCommandFailed                         string
 	AbortOperationTitle                      string
 	AbortOperationPrompt                     string
+	AbortOperationDiscardsChangesPrompt      string
 	OpenLogMenu                              string
 	OpenLogMenuTooltip                       string
 	LogMenuTitle                             string
@@ -1533,6 +1535,7 @@ func EnglishTranslationSet() *TranslationSet {
 		SquashMergeUncommittedTooltip:        "Squash merge '{{.selectedBranch}}' into the working tree.",
 		SquashMergeCommitted:                 "Squash merge and commit",
 		SquashMergeCommittedTooltip:          "Squash merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}' as a single commit.",
+		CantSquashMergeWithStagedChanges:     "Cannot squash merge while there are staged changes",
 		ConfirmQuit:                          `Are you sure you want to quit?`,
 		SwitchRepo:                           `Switch to a recent repo`,
 		AllBranchesLogGraph:                  `Show/cycle all branch logs`,
@@ -2124,6 +2127,7 @@ func EnglishTranslationSet() *TranslationSet {
 		GitCommandFailed:                         "Git command failed. Check command log for details (open with %s)",
 		AbortOperationTitle:                      "Abort {{.operation}}",
 		AbortOperationPrompt:                     "Are you sure you want to abort {{.operation}}?",
+		AbortOperationDiscardsChangesPrompt:      "Aborting {{.operation}} also discards the unstaged changes of these files. Are you sure?",
 		OpenLogMenu:                              "View log options",
 		OpenLogMenuTooltip:                       "View options for commit log e.g. changing sort order, hiding the git graph, showing the whole git graph.",
 		LogMenuTitle:                             "Commit Log Options",
