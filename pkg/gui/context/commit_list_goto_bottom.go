@@ -19,6 +19,7 @@ import (
 //   - each branch of a stack, given by branchesBelow. Among the todos of a
 //     rebase, update-ref todos separate the branches.
 //   - the commits that aren't merged into a main branch yet
+//   - the remote commits of a divergence view, which are above the local ones
 //
 // During a bisect, it stops at the bottommost commit marked bad, at the commit
 // to test, and at the topmost commit marked good instead. The commits list
@@ -57,6 +58,12 @@ func indexForGotoBottomInCommits(
 
 	if _, idx, found := lo.FindIndexOf(commits, func(c *models.Commit) bool {
 		return c.Status == models.StatusMerged
+	}); found {
+		stops = append(stops, idx-1)
+	}
+
+	if _, idx, found := lo.FindIndexOf(commits, func(c *models.Commit) bool {
+		return c.Divergence == models.DivergenceLeft
 	}); found {
 		stops = append(stops, idx-1)
 	}

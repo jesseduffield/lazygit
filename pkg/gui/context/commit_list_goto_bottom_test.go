@@ -40,6 +40,9 @@ func TestIndexForGotoBottomInCommits(t *testing.T) {
 			Name: "refs/heads/" + branchName, Action: todo.UpdateRef, Status: models.StatusRebasing,
 		})
 	}
+	divergentCommit := func(hash string, divergence models.Divergence) *models.Commit {
+		return models.NewCommit(hashPool, models.NewCommitOpts{Hash: hash, Divergence: divergence})
+	}
 	branch := func(name string, tip string) *models.Branch {
 		return &models.Branch{Name: name, CommitHash: tip}
 	}
@@ -60,6 +63,14 @@ func TestIndexForGotoBottomInCommits(t *testing.T) {
 		todoCommit("t1", todo.Pick),
 		commit("c1", models.StatusUnpushed),
 		commit("m1", models.StatusMerged),
+	}
+
+	divergenceCommits := []*models.Commit{
+		divergentCommit("r2", models.DivergenceRight),
+		divergentCommit("r1", models.DivergenceRight),
+		divergentCommit("l3", models.DivergenceLeft),
+		divergentCommit("l2", models.DivergenceLeft),
+		divergentCommit("l1", models.DivergenceLeft),
 	}
 
 	scenarios := []struct {
@@ -181,6 +192,27 @@ func TestIndexForGotoBottomInCommits(t *testing.T) {
 			},
 			branchesBelow: []*models.Branch{},
 			expected:      4,
+		},
+		{
+			testName:    "goes to the beginning of the remote commits of a divergence view",
+			selectedIdx: 0,
+			commits:     divergenceCommits,
+			expected:    1,
+		},
+		{
+			testName:    "goes from the remote commits of a divergence view to the bottom",
+			selectedIdx: 1,
+			commits:     divergenceCommits,
+			expected:    4,
+		},
+		{
+			testName:    "goes to the bottom of a divergence view without remote commits",
+			selectedIdx: 0,
+			commits: []*models.Commit{
+				divergentCommit("l2", models.DivergenceLeft),
+				divergentCommit("l1", models.DivergenceLeft),
+			},
+			expected: 1,
 		},
 	}
 
