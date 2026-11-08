@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/gui/branchstack"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
@@ -182,6 +183,9 @@ func GetCommitListDisplayStrings(
 		commits, common.UserConfig().Gui.CommitHashLength, fullDescription,
 		timeFormat, shortTimeFormat, now, bisectInfo)
 
+	mergedIntoLocalMainBranch := branchstack.CommitsMergedIntoLocalMainBranch(
+		commits, branches, common.UserConfig().Git.MainBranches)
+
 	lines := make([][]string, 0, len(filteredCommits))
 	var bisectStatus BisectStatus
 	willBeRebased := markedBaseCommit == ""
@@ -196,6 +200,7 @@ func GetCommitListDisplayStrings(
 			common,
 			commit,
 			branchHeadsToVisualize,
+			mergedIntoLocalMainBranch.Includes(commit.Hash()),
 			hasRebaseUpdateRefsConfig,
 			cherryPickedCommitHashSet,
 			isMarkedBaseCommit,
@@ -401,6 +406,7 @@ func displayCommit(
 	common *common.Common,
 	commit *models.Commit,
 	branchHeadsToVisualize *set.Set[string],
+	isMergedIntoLocalMainBranch bool,
 	hasRebaseUpdateRefsConfig bool,
 	cherryPickedCommitHashSet *set.Set[string],
 	isMarkedBaseCommit bool,
@@ -457,8 +463,9 @@ func displayCommit(
 		}
 
 		if branchHeadsToVisualize.Includes(commit.Hash()) &&
-			// Don't show branch head on commits that are already merged to a main branch
-			commit.Status != models.StatusMerged &&
+			// Don't show branch head on commits that are already merged to a
+			// main branch, be it its remote branch or the local one
+			commit.Status != models.StatusMerged && !isMergedIntoLocalMainBranch &&
 			// Don't show branch head on a "pick" todo if the rebase.updateRefs config is on
 			!(commit.IsTODO() && hasRebaseUpdateRefsConfig) {
 			tagString = style.FgCyan.SetBold().Sprint(
