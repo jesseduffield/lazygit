@@ -12,9 +12,14 @@ import (
 // last section to the bottom of the list.
 //
 // The sections are:
+//   - the todos of a rebase, cherry-pick or revert
 //   - the commits of the branch that aren't merged into a main branch yet
 func indexForGotoBottomInCommits(commits []*models.Commit, selectedIdx int) int {
 	stops := []int{}
+
+	if headIdx := models.HeadCommitIdx(commits); headIdx > 0 {
+		stops = append(stops, headIdx-1)
+	}
 
 	if _, idx, found := lo.FindIndexOf(commits, func(c *models.Commit) bool {
 		return c.Status == models.StatusMerged
