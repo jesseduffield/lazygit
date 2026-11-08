@@ -6,11 +6,11 @@ import (
 	"github.com/samber/lo"
 )
 
-// Returns the branches stacked below the given branch: those whose tip is one
-// of the given commits of the branch that hasn't been merged into a main
-// branch yet. The branch itself and the main branches are left out. The
-// result is in the order in which the tips appear in commits, so the branch
-// closest to the given one comes first.
+// Returns the branches stacked below the branch with the given name: those
+// whose tip is one of the given commits of the branch that hasn't been
+// merged into a main branch yet. The branch itself and the main branches
+// are left out. The result is in the order in which the tips appear in
+// commits, so the branch closest to the given one comes first.
 //
 // A commit counts as merged if the remote branch of a main branch contains it
 // (this is what the commit's status says), but also if the local main branch
@@ -23,12 +23,12 @@ import (
 func BranchesBelow(
 	commits []*models.Commit,
 	branches []*models.Branch,
-	branch *models.Branch,
+	branchName string,
 	mainBranches []string,
 ) []*models.Branch {
 	branchesByTip := map[string][]*models.Branch{}
 	for _, other := range branches {
-		if !lo.Contains(mainBranches, other.Name) && other.Name != branch.Name {
+		if !lo.Contains(mainBranches, other.Name) && other.Name != branchName {
 			branchesByTip[other.CommitHash] = append(branchesByTip[other.CommitHash], other)
 		}
 	}

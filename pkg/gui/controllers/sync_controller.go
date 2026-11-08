@@ -129,7 +129,7 @@ func (self *SyncController) pushCurrentBranch(currentBranch *models.Branch) erro
 // The branches stacked below the current one that have commits to push
 func (self *SyncController) unpushedBranchesBelow(currentBranch *models.Branch) []*models.Branch {
 	branchesBelow := branchstack.BranchesBelow(
-		self.c.Model().Commits, self.c.Model().Branches, currentBranch, self.c.UserConfig().Git.MainBranches)
+		self.c.Model().Commits, self.c.Model().Branches, currentBranch.Name, self.c.UserConfig().Git.MainBranches)
 
 	return lo.Filter(branchesBelow, func(branch *models.Branch, _ int) bool {
 		// Pushing a branch whose remote branch was deleted would recreate it.
@@ -290,7 +290,7 @@ func (self *SyncController) pullCurrentBranch(currentBranch *models.Branch, bran
 // those that diverged from them only because they were rewritten
 func (self *SyncController) updatableBranchesBelow(currentBranch *models.Branch) []*models.Branch {
 	branchesBelow := branchstack.BranchesBelow(
-		self.c.Model().Commits, self.c.Model().Branches, currentBranch, self.c.UserConfig().Git.MainBranches)
+		self.c.Model().Commits, self.c.Model().Branches, currentBranch.Name, self.c.UserConfig().Git.MainBranches)
 
 	return lo.Filter(branchesBelow, func(branch *models.Branch, _ int) bool {
 		// Updating a branch that is checked out in another worktree changes

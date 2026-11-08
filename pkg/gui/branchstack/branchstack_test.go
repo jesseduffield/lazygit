@@ -141,7 +141,7 @@ func TestBranchesBelow(t *testing.T) {
 			if s.current != nil {
 				branch = s.current
 			}
-			result := BranchesBelow(s.commits, s.branches, branch, mainBranches)
+			result := BranchesBelow(s.commits, s.branches, branch.Name, mainBranches)
 			names := lo.Map(result, func(b *models.Branch, _ int) string { return b.Name })
 			assert.Equal(t, s.expected, names)
 		})
