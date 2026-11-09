@@ -1327,6 +1327,19 @@ func TestSearchMatchBesideTheInclusionGutter(t *testing.T) {
 	assert.Equal(t,
 		".....##...",
 		highlightedColumns(1))
+
+	// Scrolled sideways, a match that begins in the columns scrolled off to the left
+	// is highlighted where it shows, and not in the gutter.
+	v.UpdateSearchResults("12", nil)
+	v.SetOriginX(2)
+	v.draw(true)
+	// The row reads "✓ 23456789", so the "2" of the match is at view column 2.
+	assert.Equal(t,
+		/* EXPECTED:
+		"..#.......",
+		ACTUAL: */
+		".##.......",
+		highlightedColumns(1))
 }
 
 // A hyperlink beside the inclusion gutter is underlined while the mouse is over it.
@@ -1337,7 +1350,7 @@ func TestHoveredHyperlinkBesideTheInclusionGutter(t *testing.T) {
 	v.InclusionGutterMarker = "✓"
 	v.UnderlineHyperLinksOnlyOnHover = true
 
-	v.writeString("ab\x1b]8;;https://example.com\x1b\\link\x1b]8;;\x1b\\cd\n")
+	v.writeString("ab\x1b]8;;https://example.com\x1b\\link\x1b]8;;\x1b\\cdefg\n")
 	v.SetInclusionGutter(true, []bool{true})
 
 	// The row reads "✓ ablinkcd". Point at the "l" of "link", at view column 4,
@@ -1355,6 +1368,19 @@ func TestHoveredHyperlinkBesideTheInclusionGutter(t *testing.T) {
 	}
 	assert.Equal(t,
 		"....____..",
+		underlinedColumns(1))
+
+	// Scrolled sideways, a hyperlink that begins in the columns scrolled off to the
+	// left is underlined where it shows, and not in the gutter. The row reads
+	// "✓ inkcdefg"; point at the "k" of "link", at view column 4 again.
+	v.SetOriginX(3)
+	v.onMouseMove(5, 1)
+	v.draw(true)
+	assert.Equal(t,
+		/* EXPECTED:
+		"..___.....",
+		ACTUAL: */
+		".____.....",
 		underlinedColumns(1))
 }
 
