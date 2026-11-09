@@ -16,16 +16,16 @@ import (
 )
 
 // WithSimulationScreen swaps the package-level Screen for a tcell
-// terminfo-backed mock terminal so tests can call view.draw() and
-// inspect rendered cells via Screen.Get(). The previous Screen is
-// restored on test cleanup.
-func WithSimulationScreen(t *testing.T, width, height int) {
-	t.Helper()
+// terminfo-backed mock terminal so tests and benchmarks can call
+// view.draw() and inspect rendered cells via Screen.Get(). The previous
+// Screen is restored on test cleanup.
+func WithSimulationScreen(tb testing.TB, width, height int) {
+	tb.Helper()
 	saved := Screen
 	if err := (&Gui{}).tcellInitSimulation(width, height); err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
-	t.Cleanup(func() {
+	tb.Cleanup(func() {
 		Screen.Fini()
 		Screen = saved
 	})
