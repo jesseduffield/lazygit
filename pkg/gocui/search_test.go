@@ -56,3 +56,18 @@ func BenchmarkWriteToSearchedView(b *testing.B) {
 		v.GetSearchStatus()
 	}
 }
+
+func BenchmarkDrawViewWithManySearchMatches(b *testing.B) {
+	WithSimulationScreen(b, 102, 42)
+	v := NewView("name", 0, 0, 101, 41, OutputNormal)
+	// 44000 matches, as when searching a long log for a single letter.
+	for i := range 4000 {
+		fmt.Fprintf(v, "line %d of a branch log, where we searched for every letter e\n", i)
+	}
+	v.Search("e", nil)
+	v.SetOriginY(2000)
+
+	for b.Loop() {
+		v.draw(true)
+	}
+}
