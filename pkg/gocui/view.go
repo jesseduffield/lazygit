@@ -1034,8 +1034,12 @@ func (v *View) InclusionGutterWidthWhenShown() int {
 
 // setCharacter sets a character (grapheme cluster) at the given point relative to the view. It applies
 // the specified colors, taking into account if the cell must be highlighted. Also, it checks if the
-// position is valid. width is the number of columns the character takes up.
-func (v *View) setCharacter(x, y int, ch string, width int, fgColor, bgColor Attribute, isWindowFocused bool) {
+// position is valid. width is the number of columns the character takes up. match says whether
+// the character is part of a search match, and hoveredHyperlink whether it is part of the
+// hyperlink under the mouse.
+func (v *View) setCharacter(x, y int, ch string, width int, fgColor, bgColor Attribute, isWindowFocused bool,
+	match searchMatch, hoveredHyperlink bool,
+) {
 	maxX, maxY := v.Size()
 	if x < 0 || x >= maxX || y < 0 || y >= maxY {
 		return
@@ -1066,16 +1070,16 @@ func (v *View) setCharacter(x, y int, ch string, width int, fgColor, bgColor Att
 		}
 	}
 
-	if matched, selected := v.isPatternMatchedRune(x, y); matched {
+	if match != noSearchMatch {
 		fgColor = ColorBlack
-		if selected {
+		if match == currentSearchMatch {
 			bgColor = ColorCyan
 		} else {
 			bgColor = ColorYellow
 		}
 	}
 
-	if v.isHoveredHyperlink(x, y) {
+	if hoveredHyperlink {
 		fgColor |= AttrUnderline
 	}
 
@@ -1968,13 +1972,15 @@ func (v *View) draw(isWindowFocused bool) {
 
 		// The inclusion gutter is blank but for the marker on a marked line, and the
 		// content begins after it. The blanks go through setCharacter like everything
-		// else, so that a selection reaching the left edge covers the gutter too.
+		// else, so that a selection reaching the left edge covers the gutter too. Search
+		// matches and the hovered hyperlink belong to the content, so they don't show in
+		// the gutter, even where the content is scrolled off under it.
 		for gx := range gutterWidth {
-			v.setCharacter(gx, y, " ", 1, v.FgColor, v.BgColor, isWindowFocused)
+			v.setCharacter(gx, y, " ", 1, v.FgColor, v.BgColor, isWindowFocused, noSearchMatch, false)
 		}
 		if gutterWidth > 0 && vline.linesY < len(v.inclusionGutterMarks) && v.inclusionGutterMarks[vline.linesY] {
 			v.setCharacter(0, y, v.InclusionGutterMarker, uniseg.StringWidth(v.InclusionGutterMarker),
-				v.InclusionGutterMarkerColor, v.BgColor, isWindowFocused)
+				v.InclusionGutterMarkerColor, v.BgColor, isWindowFocused, noSearchMatch, false)
 		}
 
 		// x tracks the current x position in the view, and cellIdx tracks the
@@ -2027,7 +2033,9 @@ func (v *View) draw(isWindowFocused bool) {
 				fgColor |= AttrUnderline
 			}
 
-			v.setCharacter(x, y, c.chr, c.width, fgColor, bgColor, isWindowFocused)
+			contentX, contentY := x-gutterWidth+v.ox, v.oy+y
+			v.setCharacter(x, y, c.chr, c.width, fgColor, bgColor, isWindowFocused,
+				v.searchMatchAt(contentX, contentY), v.isHoveredHyperlink(contentX, contentY))
 
 			x += c.width
 			cellIdx++
@@ -2123,22 +2131,35 @@ func (v *View) contentX(x int) int {
 	return x - v.inclusionGutterWidth() + v.ox
 }
 
-func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
+// searchMatch is whether a cell of the view is part of a search match, and if so,
+// whether that match is the current one.
+type searchMatch int
+
+const (
+	noSearchMatch searchMatch = iota
+	otherSearchMatch
+	currentSearchMatch
+)
+
+// searchMatchAt returns whether the cell at content column x of view line y is part of
+// a search match.
+func (v *View) searchMatchAt(x, y int) searchMatch {
 	for i, pos := range v.searcher.searchPositions {
-		adjustedY := y + v.oy
-		adjustedX := v.contentX(x)
-		if adjustedY == pos.Y && adjustedX >= pos.XStart && adjustedX < pos.XEnd {
-			return true, i == v.searcher.currentSearchIndex
+		if y == pos.Y && x >= pos.XStart && x < pos.XEnd {
+			if i == v.searcher.currentSearchIndex {
+				return currentSearchMatch
+			}
+			return otherSearchMatch
 		}
 	}
-	return false, false
+	return noSearchMatch
 }
 
+// isHoveredHyperlink returns whether the cell at content column x of view line y is
+// part of the hyperlink under the mouse.
 func (v *View) isHoveredHyperlink(x, y int) bool {
 	if v.UnderlineHyperLinksOnlyOnHover && v.hoveredHyperlink != nil {
-		adjustedY := y + v.oy
-		adjustedX := v.contentX(x)
-		return adjustedY == v.hoveredHyperlink.Y && adjustedX >= v.hoveredHyperlink.XStart && adjustedX < v.hoveredHyperlink.XEnd
+		return y == v.hoveredHyperlink.Y && x >= v.hoveredHyperlink.XStart && x < v.hoveredHyperlink.XEnd
 	}
 	return false
 }

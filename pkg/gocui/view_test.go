@@ -1335,10 +1335,7 @@ func TestSearchMatchBesideTheInclusionGutter(t *testing.T) {
 	v.draw(true)
 	// The row reads "✓ 23456789", so the "2" of the match is at view column 2.
 	assert.Equal(t,
-		/* EXPECTED:
 		"..#.......",
-		ACTUAL: */
-		".##.......",
 		highlightedColumns(1))
 }
 
@@ -1377,10 +1374,7 @@ func TestHoveredHyperlinkBesideTheInclusionGutter(t *testing.T) {
 	v.onMouseMove(5, 1)
 	v.draw(true)
 	assert.Equal(t,
-		/* EXPECTED:
 		"..___.....",
-		ACTUAL: */
-		".____.....",
 		underlinedColumns(1))
 }
 
