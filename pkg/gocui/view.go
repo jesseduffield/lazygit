@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"slices"
+	"sort"
 	"strings"
 	"sync"
 	"unicode"
@@ -429,8 +430,13 @@ func (v *View) viewLineSpanOfBufferLine(bufferLine int) (int, int, bool) {
 }
 
 type searcher struct {
-	searchString       string
-	searchPositions    []SearchPosition
+	searchString string
+
+	// The matches, sorted by line, and within a line by the column they start in.
+	// Since all matches in a line have the same width, they are in the order of the
+	// column they end in, too.
+	searchPositions []SearchPosition
+
 	modelSearchResults []SearchPosition
 	currentSearchIndex int
 	onSelectItem       func(*View, int)
@@ -778,6 +784,11 @@ type SearchPosition struct {
 	XStart int
 	XEnd   int
 	Y      int
+}
+
+// contains returns whether the position covers content column x of view line y.
+func (p SearchPosition) contains(x, y int) bool {
+	return p.Y == y && p.XStart <= x && x < p.XEnd
 }
 
 type viewLine struct {
@@ -1955,6 +1966,7 @@ func (v *View) draw(isWindowFocused bool) {
 	emptyCell := cell{chr: " ", width: 1, fgColor: ColorDefault, bgColor: ColorDefault}
 
 	gutterWidth := v.inclusionGutterWidth()
+	searchMatches := v.searcher.matchWalker(v.oy)
 
 	for y, vline := range v.viewLines[start:] {
 		if y >= maxY {
@@ -2035,7 +2047,7 @@ func (v *View) draw(isWindowFocused bool) {
 
 			contentX, contentY := x-gutterWidth+v.ox, v.oy+y
 			v.setCharacter(x, y, c.chr, c.width, fgColor, bgColor, isWindowFocused,
-				v.searchMatchAt(contentX, contentY), v.isHoveredHyperlink(contentX, contentY))
+				searchMatches.matchAt(contentX, contentY), v.isHoveredHyperlink(contentX, contentY))
 
 			x += c.width
 			cellIdx++
@@ -2141,18 +2153,48 @@ const (
 	currentSearchMatch
 )
 
-// searchMatchAt returns whether the cell at content column x of view line y is part of
-// a search match.
-func (v *View) searchMatchAt(x, y int) searchMatch {
-	for i, pos := range v.searcher.searchPositions {
-		if y == pos.Y && x >= pos.XStart && x < pos.XEnd {
-			if i == v.searcher.currentSearchIndex {
-				return currentSearchMatch
-			}
-			return otherSearchMatch
-		}
+// searchMatchWalker tells which cells of the view are part of a search match, for drawing
+// them. It has to be asked about the cells in the order they are drawn: line by line, and
+// from left to right within a line. The matches are in the same order, so the walker steps
+// through them along with the cells.
+type searchMatchWalker struct {
+	positions    []SearchPosition
+	currentIndex int
+
+	// The first match that doesn't end before the cell asked about last.
+	index int
+}
+
+// matchWalker returns a searchMatchWalker for drawing the view from view line firstY
+// on.
+func (s *searcher) matchWalker(firstY int) searchMatchWalker {
+	return searchMatchWalker{
+		positions:    s.searchPositions,
+		currentIndex: s.currentSearchIndex,
+		index: sort.Search(len(s.searchPositions), func(i int) bool {
+			return s.searchPositions[i].Y >= firstY
+		}),
 	}
-	return noSearchMatch
+}
+
+// matchAt returns whether the cell at content column x of view line y is part of a
+// search match.
+func (w *searchMatchWalker) matchAt(x, y int) searchMatch {
+	for w.index < len(w.positions) {
+		pos := w.positions[w.index]
+		if pos.Y > y || (pos.Y == y && pos.XEnd > x) {
+			break
+		}
+		w.index++
+	}
+
+	if w.index == len(w.positions) || !w.positions[w.index].contains(x, y) {
+		return noSearchMatch
+	}
+	if w.index == w.currentIndex {
+		return currentSearchMatch
+	}
+	return otherSearchMatch
 }
 
 // isHoveredHyperlink returns whether the cell at content column x of view line y is
