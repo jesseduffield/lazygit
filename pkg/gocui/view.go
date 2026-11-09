@@ -2178,7 +2178,8 @@ func (s *searcher) matchWalker(firstY int) searchMatchWalker {
 }
 
 // matchAt returns whether the cell at content column x of view line y is part of a
-// search match.
+// search match. If it is part of several overlapping matches, and the current match is
+// one of them, it counts as part of the current one.
 func (w *searchMatchWalker) matchAt(x, y int) searchMatch {
 	for w.index < len(w.positions) {
 		pos := w.positions[w.index]
@@ -2191,7 +2192,7 @@ func (w *searchMatchWalker) matchAt(x, y int) searchMatch {
 	if w.index == len(w.positions) || !w.positions[w.index].contains(x, y) {
 		return noSearchMatch
 	}
-	if w.index == w.currentIndex {
+	if w.positions[w.currentIndex].contains(x, y) {
 		return currentSearchMatch
 	}
 	return otherSearchMatch

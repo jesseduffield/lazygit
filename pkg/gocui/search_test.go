@@ -126,7 +126,7 @@ func TestDrawSearchMatches(t *testing.T) {
 		drawSearchHighlights(v))
 }
 
-// Where matches overlap, a cell is highlighted as part of the first match it is in.
+// Where matches overlap, the current one shows in full.
 func TestDrawOverlappingSearchMatches(t *testing.T) {
 	WithSimulationScreen(t, 14, 6)
 
@@ -139,7 +139,7 @@ func TestDrawOverlappingSearchMatches(t *testing.T) {
 	assert.Equal(t, 3, total)
 
 	assert.Equal(t,
-		[]string{"##*#......"},
+		[]string{"#**#......"},
 		drawSearchHighlights(v))
 }
 
