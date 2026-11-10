@@ -274,21 +274,25 @@ func (self *WorkingTreeHelper) WithEnsureCommittableFiles(handler func() error) 
 		}
 
 		if self.c.UserConfig().Gui.SkipNoStagedFilesWarning {
-			self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-			if err := self.c.Git().WorkingTree.StageAll(false); err != nil {
-				return err
-			}
-			self.c.Refresh(types.RefreshOptions{
-				Scope: []types.RefreshableView{types.FILES},
-				Then:  handler,
-			})
-			return nil
+			return self.stageAllAndThen(handler)
 		}
 
 		return self.promptToStageAllAndRetry(handler)
 	}
 
 	return handler()
+}
+
+func (self *WorkingTreeHelper) stageAllAndThen(then func() error) error {
+	self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
+	if err := self.c.Git().WorkingTree.StageAll(false); err != nil {
+		return err
+	}
+	self.c.Refresh(types.RefreshOptions{
+		Scope: []types.RefreshableView{types.FILES},
+		Then:  then,
+	})
+	return nil
 }
 
 func (self *WorkingTreeHelper) promptToStageAllAndRetry(retry func() error) error {
