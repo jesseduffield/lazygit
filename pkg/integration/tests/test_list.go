@@ -297,6 +297,7 @@ var tests = []*components.IntegrationTest{
 	file.DiscardUnstagedRangeSelect,
 	file.DiscardVariousChanges,
 	file.DiscardVariousChangesRangeSelect,
+	file.DoubleClickTogglesStaging,
 	file.ExcludeWithoutInfoDir,
 	file.ExplainNestedRepositories,
 	file.ExplainUntrackedDirectory,

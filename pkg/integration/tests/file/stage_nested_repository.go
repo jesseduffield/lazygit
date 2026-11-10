@@ -38,6 +38,14 @@ var StageNestedRepository = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectToast(Equals("Disabled: Can't stage 'modules/sub' because it is a git repository of its own. Discard it with d, or ignore it with i."))
 			}).
+			DoubleClick(5, 1).
+			Tap(func() {
+				t.ExpectToast(Equals("Disabled: Can't stage 'modules/sub' because it is a git repository of its own. Discard it with d, or ignore it with i."))
+			}).
+			Lines(
+				Equals("?? file"),
+				Equals("?? modules/sub (removed submodule)").IsSelected(),
+			).
 			// Staging all files works if the nested repository is filtered out
 			FilterOrSearch("file").
 			Lines(
