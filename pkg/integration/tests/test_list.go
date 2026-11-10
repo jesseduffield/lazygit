@@ -145,6 +145,7 @@ var tests = []*components.IntegrationTest{
 	commit.Commit,
 	commit.CommitAllWithNestedRepository,
 	commit.CommitDuringSquashMerge,
+	commit.CommitInEditorWithNothingStaged,
 	commit.CommitMultiline,
 	commit.CommitSkipHooks,
 	commit.CommitSwitchToEditor,
