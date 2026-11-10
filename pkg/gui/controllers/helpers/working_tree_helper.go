@@ -300,13 +300,7 @@ func (self *WorkingTreeHelper) promptToStageAllAndRetry(retry func() error) erro
 		Title:  self.c.Tr.NoFilesStagedTitle,
 		Prompt: self.c.Tr.NoFilesStagedPrompt,
 		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-			if err := self.c.Git().WorkingTree.StageAll(false); err != nil {
-				return err
-			}
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
-
-			return retry()
+			return self.stageAllAndThen(retry)
 		},
 	})
 
