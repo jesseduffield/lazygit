@@ -242,15 +242,15 @@ type Gui struct {
 	colorSchemeHandler func(DetectedColorScheme) error
 
 	// blockInputCount, when greater than zero, withholds keyboard input from
-	// the handlers: key events are buffered into bufferedKeyEvents and replayed
+	// the handlers: key events are buffered into bufferedInputEvents and replayed
 	// once the count drops back to zero, while mouse clicks and hover are
 	// dropped outright. It's a counter so blocking can nest. replayPending says
 	// that the replay is queued but hasn't run yet, and input is withheld until
 	// it has. All three fields are only touched on the UI thread. See
 	// BeginBlockingEvents.
-	blockInputCount   int
-	bufferedKeyEvents []GocuiEvent
-	replayPending     bool
+	blockInputCount     int
+	bufferedInputEvents []GocuiEvent
+	replayPending       bool
 }
 
 type NewGuiOpts struct {
@@ -963,18 +963,18 @@ func (g *Gui) EndBlockingEvents() {
 	// before the replay gets its turn would otherwise be handled ahead of the keys
 	// buffered before it.
 	g.replayPending = true
-	g.Update(func(*Gui) error { return g.replayBufferedKeys() })
+	g.Update(func(*Gui) error { return g.replayBufferedInput() })
 }
 
-// replayBufferedKeys dispatches the keys withheld while input was blocked, and
+// replayBufferedInput dispatches the keys withheld while input was blocked, and
 // lets input through again. One of their handlers may block input afresh, and
 // then the keys after it are withheld in their turn, to be replayed when that
 // block ends.
-func (g *Gui) replayBufferedKeys() error {
+func (g *Gui) replayBufferedInput() error {
 	g.replayPending = false
 
-	buffered := g.bufferedKeyEvents
-	g.bufferedKeyEvents = nil
+	buffered := g.bufferedInputEvents
+	g.bufferedInputEvents = nil
 	for i := range buffered {
 		if err := g.handleEvent(&buffered[i]); err != nil {
 			return err
@@ -1253,7 +1253,7 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 	if g.withholdingInput() && eventWithheldWhileBlocking(ev) {
 		if ev.Type == eventKey {
 			// Buffer keys so they replay against fresh state on unblock.
-			g.bufferedKeyEvents = append(g.bufferedKeyEvents, *ev)
+			g.bufferedInputEvents = append(g.bufferedInputEvents, *ev)
 		}
 		// Mouse clicks and hover fall through to here without being buffered:
 		// replaying them once the operation has changed the layout underneath

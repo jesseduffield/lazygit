@@ -86,7 +86,7 @@ func TestBlockingEvents_KeysBufferedAndReplayed(t *testing.T) {
 
 	runQueuedWork(t, g)
 	assert.Len(t, *fired, 3, "both buffered keys should replay on unblock")
-	assert.Empty(t, g.bufferedKeyEvents)
+	assert.Empty(t, g.bufferedInputEvents)
 }
 
 func TestBlockingEvents_KeysArrivingBeforeTheReplayGoBehindIt(t *testing.T) {
@@ -136,7 +136,7 @@ func TestBlockingEvents_MouseClicksDroppedNotBuffered(t *testing.T) {
 	g.BeginBlockingEvents()
 	click := GocuiEvent{Type: eventMouse, Key: NewKeyName(MouseLeft)}
 	assert.NoError(t, g.handleEvent(&click))
-	assert.Empty(t, g.bufferedKeyEvents, "mouse clicks must be dropped, not buffered")
+	assert.Empty(t, g.bufferedInputEvents, "mouse clicks must be dropped, not buffered")
 	g.EndBlockingEvents()
 	runQueuedWork(t, g)
 }
