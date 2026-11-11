@@ -188,6 +188,7 @@ var tests = []*components.IntegrationTest{
 	commit.PasteCommitMessageWithHardLineBreaks,
 	commit.PasteIntoCommitDescription,
 	commit.PasteMultiLineCommitMessage,
+	commit.PasteMultiLineCommitMessageWithHardLineBreaks,
 	commit.PreserveCommitMessage,
 	commit.PreserveCommitMessageWhitespace,
 	commit.ResetAuthor,
