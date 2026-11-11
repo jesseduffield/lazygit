@@ -1752,8 +1752,6 @@ func (g *Gui) draw(v *View) {
 func (g *Gui) onKey(ev *GocuiEvent) error {
 	switch ev.Type {
 	case eventKey:
-
-		// newlines. I actually don't quite understand why, because from reading
 		// When pasting text in Ghostty, it sends us '\r' (which is delivered as
 		// ctrl-j by tcell) instead of '\n' for newlines. I actually don't quite
 		// understand why, because from reading Ghostty's source code (e.g.
