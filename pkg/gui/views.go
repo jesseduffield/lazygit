@@ -119,10 +119,18 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.CommitMessage.Visible = false
 	gui.Views.CommitMessage.Editable = true
 	gui.Views.CommitMessage.Editor = gocui.EditorFunc(gui.commitMessageEditor)
+	gui.Views.CommitMessage.OnPaste = func(text string) error {
+		gui.helpers.Commits.HandlePasteIntoSummary(text)
+		return nil
+	}
 
 	gui.Views.CommitDescription.Visible = false
 	gui.Views.CommitDescription.Editable = true
 	gui.Views.CommitDescription.Editor = gocui.EditorFunc(gui.commitDescriptionEditor)
+	gui.Views.CommitDescription.OnPaste = func(text string) error {
+		gui.helpers.Commits.HandlePasteIntoDescription(text)
+		return nil
+	}
 
 	gui.Views.Confirmation.Visible = false
 	gui.Views.Confirmation.Wrap = true

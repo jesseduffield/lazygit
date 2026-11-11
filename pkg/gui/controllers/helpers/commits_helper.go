@@ -320,6 +320,37 @@ func (self *CommitsHelper) copyCommitMessageToClipboard() error {
 	return nil
 }
 
+// HandlePasteIntoSummary inserts text that the user pasted into the summary
+// with the terminal's paste command. If the text has several lines, the rest
+// of them goes into the description.
+func (self *CommitsHelper) HandlePasteIntoSummary(text string) {
+	summary, rest, hasMoreLines := strings.Cut(text, "\n")
+
+	view := self.c.Views().CommitMessage
+	view.TextArea.TypeString(replaceTabsInPastedText(summary))
+	view.RenderTextArea()
+	self.c.Contexts().CommitMessage.RenderSubtitle()
+
+	if hasMoreLines {
+		self.c.Context().Replace(self.c.Contexts().CommitDescription)
+		self.HandlePasteIntoDescription(rest)
+	}
+}
+
+// HandlePasteIntoDescription inserts text that the user pasted into the
+// description with the terminal's paste command.
+func (self *CommitsHelper) HandlePasteIntoDescription(text string) {
+	view := self.c.Views().CommitDescription
+	view.TextArea.TypeString(replaceTabsInPastedText(text))
+	view.RenderTextArea()
+}
+
+// Replace each tab with four spaces, without aligning to tab stops. This works
+// well enough for leading indentation, which is common in pasted code snippets.
+func replaceTabsInPastedText(text string) string {
+	return strings.ReplaceAll(text, "\t", "    ")
+}
+
 func stripTrailingWhitespace(message string) string {
 	lines := strings.Split(message, "\n")
 	for i, line := range lines {
