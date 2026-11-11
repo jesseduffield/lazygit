@@ -142,6 +142,7 @@ var tests = []*components.IntegrationTest{
 	commit.CheckoutFileFromCommit,
 	commit.CheckoutFileFromRangeSelectionOfCommits,
 	commit.CheckoutFileWithLocalModifications,
+	commit.ClearCommitMessage,
 	commit.Commit,
 	commit.CommitAllWithNestedRepository,
 	commit.CommitDuringSquashMerge,

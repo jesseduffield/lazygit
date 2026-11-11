@@ -263,6 +263,14 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 			},
 			Keys: menuKey('V'),
 		},
+		{
+			Label: self.c.Tr.ClearCommitMessage,
+			OnPress: func() error {
+				self.setSummaryAndDescriptionInView("", "")
+				return nil
+			},
+			Keys: menuKey('d'),
+		},
 	}
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.CommitMenuTitle,
