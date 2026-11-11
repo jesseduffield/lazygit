@@ -884,9 +884,7 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	if err != nil {
 		return err
 	}
-	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
-		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
-	}
+	commitMessage = self.c.Helpers().Commits.TryRemoveHardLineBreaksIfAutoWrapping(commitMessage)
 	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
 			CommitIndex:      commitIdx,
@@ -1579,9 +1577,7 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 	if err != nil {
 		return err
 	}
-	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
-		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
-	}
+	commitMessage = self.c.Helpers().Commits.TryRemoveHardLineBreaksIfAutoWrapping(commitMessage)
 	originalSubject, _, _ := strings.Cut(commitMessage, "\n")
 	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{

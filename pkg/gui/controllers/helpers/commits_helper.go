@@ -89,7 +89,18 @@ func (self *CommitsHelper) JoinCommitMessageAndUnwrappedDescription() string {
 	return self.getCommitSummary() + "\n" + self.getUnwrappedCommitDescription()
 }
 
-func TryRemoveHardLineBreaks(message string, autoWrapWidth int) string {
+// TryRemoveHardLineBreaksIfAutoWrapping replaces the hard line breaks of a
+// message with spaces wherever auto-wrapping would break the line at the same
+// place, so that the paragraphs reflow when the user edits them in the panel.
+func (self *CommitsHelper) TryRemoveHardLineBreaksIfAutoWrapping(message string) string {
+	commitConfig := self.c.UserConfig().Git.Commit
+	if !commitConfig.AutoWrapCommitMessage {
+		return message
+	}
+	return tryRemoveHardLineBreaks(message, commitConfig.AutoWrapWidth)
+}
+
+func tryRemoveHardLineBreaks(message string, autoWrapWidth int) string {
 	lastHardLineStart := 0
 	result := message
 	for i, b := range message {

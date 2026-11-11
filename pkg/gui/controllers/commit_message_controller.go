@@ -6,7 +6,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -166,9 +165,7 @@ func (self *CommitMessageController) setCommitMessageAtIndex(index int) (bool, e
 		}
 		return false, errors.New(self.c.Tr.CommitWithoutMessageErr)
 	}
-	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
-		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
-	}
+	commitMessage = self.c.Helpers().Commits.TryRemoveHardLineBreaksIfAutoWrapping(commitMessage)
 	self.c.Helpers().Commits.SetMessageAndDescriptionInView(commitMessage)
 	return true, nil
 }
