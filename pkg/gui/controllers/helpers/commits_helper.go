@@ -342,7 +342,7 @@ func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
 		Title:  self.c.Tr.PasteCommitMessageFromClipboard,
 		Prompt: self.c.Tr.SurePasteCommitMessage,
 		HandleConfirm: func() error {
-			self.SetMessageAndDescriptionInView(message)
+			self.SetMessageAndDescriptionInView(self.TryRemoveHardLineBreaksIfAutoWrapping(message))
 			return nil
 		},
 	})
