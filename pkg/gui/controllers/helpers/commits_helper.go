@@ -346,7 +346,11 @@ func (self *CommitsHelper) HandlePasteIntoDescription(text string) {
 		// pastes a whole commit message into the summary
 		text = strings.TrimLeft(text, "\n")
 	}
-	view.TextArea.TypeString(replaceTabsInPastedText(text))
+	// Remove the hard line breaks of the pasted text on its own, even if it
+	// goes into the middle of a line. Its line breaks come from the layout of
+	// the text that it was copied from, not from the line that it goes into.
+	text = self.TryRemoveHardLineBreaksIfAutoWrapping(replaceTabsInPastedText(text))
+	view.TextArea.TypeString(text)
 	view.RenderTextArea()
 }
 

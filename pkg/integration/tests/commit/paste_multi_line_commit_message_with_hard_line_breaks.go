@@ -28,12 +28,7 @@ var PasteMultiLineCommitMessageWithHardLineBreaks = NewIntegrationTest(NewIntegr
 			GoToBeginning().
 			Type("Now ").
 			Content(Equals(
-				/* EXPECTED:
 				"Now The body of this commit was wrapped at the auto-wrap width when it \n" +
 					"was committed, so it contains a hard line break."))
-				ACTUAL: */
-				"Now The body of this commit was wrapped at the auto-wrap width when it \n" +
-					"was\n" +
-					"committed, so it contains a hard line break."))
 	},
 })
