@@ -242,12 +242,12 @@ type Gui struct {
 	colorSchemeHandler func(DetectedColorScheme) error
 
 	// blockInputCount, when greater than zero, withholds keyboard input from
-	// the handlers: key events are buffered into bufferedInputEvents and replayed
-	// once the count drops back to zero, while mouse clicks and hover are
-	// dropped outright. It's a counter so blocking can nest. replayPending says
-	// that the replay is queued but hasn't run yet, and input is withheld until
-	// it has. All three fields are only touched on the UI thread. See
-	// BeginBlockingEvents.
+	// the handlers: key and paste events are buffered into bufferedInputEvents
+	// and replayed once the count drops back to zero, while mouse clicks and
+	// hover are dropped outright. It's a counter so blocking can nest.
+	// replayPending says that the replay is queued but hasn't run yet, and
+	// input is withheld until it has. All three fields are only touched on the
+	// UI thread. See BeginBlockingEvents.
 	blockInputCount     int
 	bufferedInputEvents []GocuiEvent
 	replayPending       bool
@@ -929,9 +929,10 @@ func (g *Gui) IsUIThread() bool {
 // BeginBlockingEvents starts withholding keyboard input from the handlers, so a
 // long-running operation can't be disrupted by keys the user presses while it
 // runs. Keys are buffered and replayed once EndBlockingEvents balances this
-// call; mouse clicks and hover are dropped for the duration. Scrolling,
-// resizing, focus changes and all rendering keep working throughout. It's a
-// counter, so blocking nests; every call must be paired with EndBlockingEvents.
+// call, together with the start and end of a paste around them; mouse clicks
+// and hover are dropped for the duration. Scrolling, resizing, focus changes
+// and all rendering keep working throughout. It's a counter, so blocking nests;
+// every call must be paired with EndBlockingEvents.
 //
 // Must be called on the UI thread. Callers arrange this by beginning the block
 // synchronously from the keybinding handler, before dispatching the operation
@@ -1251,8 +1252,10 @@ func (g *Gui) processRemainingEvents() (bool, error) {
 // etc.)
 func (g *Gui) handleEvent(ev *GocuiEvent) error {
 	if g.withholdingInput() && eventWithheldWhileBlocking(ev) {
-		if ev.Type == eventKey {
-			// Buffer keys so they replay against fresh state on unblock.
+		if ev.Type == eventKey || ev.Type == eventPaste {
+			// Buffer keys so they replay against fresh state on unblock. Buffer
+			// the start and end of a paste with them, so that pasted keys are
+			// still handled as pasted when they replay.
 			g.bufferedInputEvents = append(g.bufferedInputEvents, *ev)
 		}
 		// Mouse clicks and hover fall through to here without being buffered:
@@ -1287,13 +1290,13 @@ func (g *Gui) withholdingInput() bool {
 }
 
 // eventWithheldWhileBlocking reports whether an event must not reach the
-// handlers while input is blocked (see BeginBlockingEvents). Key events are
-// withheld (buffered for replay); mouse clicks and hover are withheld (dropped).
-// Everything else — mouse scrolling, resize, focus, paste, errors — flows
+// handlers while input is blocked (see BeginBlockingEvents). Key and paste
+// events are withheld (buffered for replay); mouse clicks and hover are withheld
+// (dropped). Everything else — mouse scrolling, resize, focus, errors — flows
 // through as usual.
 func eventWithheldWhileBlocking(ev *GocuiEvent) bool {
 	switch ev.Type {
-	case eventKey:
+	case eventKey, eventPaste:
 		return true
 	case eventMouse:
 		return !IsMouseScrollKey(ev.Key.KeyName())

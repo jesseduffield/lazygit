@@ -18,10 +18,7 @@ func TestEventWithheldWhileBlocking(t *testing.T) {
 		{"mouse move", GocuiEvent{Type: eventMouseMove}, true},
 		{"resize", GocuiEvent{Type: eventResize}, false},
 		{"focus", GocuiEvent{Type: eventFocus}, false},
-		/* EXPECTED:
 		{"paste", GocuiEvent{Type: eventPaste}, true},
-		ACTUAL: */
-		{"paste", GocuiEvent{Type: eventPaste}, false},
 		{"error", GocuiEvent{Type: eventError}, false},
 	}
 
@@ -133,10 +130,7 @@ func TestBlockingEvents_PastedKeysReplayedAsPasted(t *testing.T) {
 	assert.NoError(t, g.handleEvent(&pasteEnd))
 	g.EndBlockingEvents()
 	runQueuedWork(t, g)
-	/* EXPECTED:
 	assert.Empty(t, *fired)
-	ACTUAL: */
-	assert.Len(t, *fired, 1)
 	assert.False(t, g.IsPasting)
 }
 
