@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
@@ -249,6 +250,13 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 			Keys: menuKey('c'),
 		},
 		{
+			Label: self.c.Tr.CopyCommitMessageToClipboard,
+			OnPress: func() error {
+				return self.copyCommitMessageToClipboard()
+			},
+			Keys: menuKey('C'),
+		},
+		{
 			Label: self.c.Tr.PasteCommitMessageFromClipboard,
 			OnPress: func() error {
 				return self.pasteCommitMessageFromClipboard()
@@ -275,6 +283,30 @@ func (self *CommitsHelper) addCoAuthor(suggestionFunc func(string) []*types.Sugg
 	})
 
 	return nil
+}
+
+func (self *CommitsHelper) copyCommitMessageToClipboard() error {
+	// The panel keeps the space at the end of each line that it wraps. Git
+	// strips trailing whitespace when it commits, so do the same here; this
+	// makes the copied message look like the committed one.
+	message := stripTrailingWhitespace(
+		self.joinCommitMessageAndDescription(self.getCommitSummary(), self.getCommitDescription()))
+
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitMessageToClipboard)
+	if err := self.c.OS().CopyToClipboard(message); err != nil {
+		return err
+	}
+
+	self.c.Toast(self.c.Tr.CommitMessageCopiedToClipboard)
+	return nil
+}
+
+func stripTrailingWhitespace(message string) string {
+	lines := strings.Split(message, "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimRightFunc(line, unicode.IsSpace)
+	}
+	return strings.Join(lines, "\n")
 }
 
 func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {

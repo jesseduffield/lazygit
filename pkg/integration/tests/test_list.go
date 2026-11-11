@@ -156,6 +156,7 @@ var tests = []*components.IntegrationTest{
 	commit.CommitWithNonMatchingBranchName,
 	commit.CommitWithPrefix,
 	commit.CopyAuthorToClipboard,
+	commit.CopyCommitMessageFromPanel,
 	commit.CopyMessageBodyToClipboard,
 	commit.CopyTagToClipboard,
 	commit.CreateAmendCommit,
