@@ -10,6 +10,38 @@
       "type": "object",
       "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color"
     },
+    "CommitAIConfig": {
+      "properties": {
+        "baseURL": {
+          "type": "string",
+          "description": "Base URL of an OpenAI-compatible chat completions API.\nGroq (free tier available at https://console.groq.com) is the default. Other examples:\nhttps://openrouter.ai/api/v1, https://api.openai.com/v1, http://localhost:11434/v1 (Ollama)",
+          "default": "https://api.groq.com/openai/v1"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model to use, e.g. 'openai/gpt-oss-20b' for Groq",
+          "default": "openai/gpt-oss-20b"
+        },
+        "apiKeyEnv": {
+          "type": "string",
+          "description": "Name of the environment variable that holds the API key.\nSet to an empty string for local servers (e.g. Ollama) that don't need a key.",
+          "default": "GROQ_API_KEY"
+        },
+        "maxDiffLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum number of bytes of the staged diff to send to the model; longer diffs are truncated. 0 means no limit.",
+          "default": 16000
+        },
+        "prompt": {
+          "type": "string",
+          "description": "Custom system prompt. If empty, a built-in prompt is used."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Config for generating commit messages with AI (available from the commit menu, \u003cc-o\u003e in the commit message panel)"
+    },
     "CommitConfig": {
       "properties": {
         "signOff": {
@@ -26,6 +58,10 @@
           "type": "integer",
           "description": "If autoWrapCommitMessage is true, the width to wrap to",
           "default": 72
+        },
+        "ai": {
+          "$ref": "#/$defs/CommitAIConfig",
+          "description": "Config for generating commit messages with AI (available from the commit menu, \u003cc-o\u003e in the commit message panel)"
         }
       },
       "additionalProperties": false,

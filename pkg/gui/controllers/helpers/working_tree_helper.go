@@ -169,8 +169,9 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 				OnSwitchToEditor: func(filepath string) error {
 					return self.switchFromCommitMessagePanelToEditor(filepath, forceSkipHooks)
 				},
-				ForceSkipHooks:  forceSkipHooks,
-				SkipHooksPrefix: self.c.UserConfig().Git.SkipHookPrefix,
+				CanGenerateWithAI: true,
+				ForceSkipHooks:    forceSkipHooks,
+				SkipHooksPrefix:   self.c.UserConfig().Git.SkipHookPrefix,
 			},
 		)
 

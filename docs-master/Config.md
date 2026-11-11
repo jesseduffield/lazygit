@@ -444,6 +444,30 @@ git:
     # If autoWrapCommitMessage is true, the width to wrap to
     autoWrapWidth: 72
 
+    # Config for generating commit messages with AI (available from the commit menu,
+    # <c-o> in the commit message panel)
+    ai:
+      # Base URL of an OpenAI-compatible chat completions API.
+      # Groq (free tier available at https://console.groq.com) is the default. Other
+      # examples:
+      # https://openrouter.ai/api/v1, https://api.openai.com/v1,
+      # http://localhost:11434/v1 (Ollama)
+      baseURL: https://api.groq.com/openai/v1
+
+      # Model to use, e.g. 'openai/gpt-oss-20b' for Groq
+      model: openai/gpt-oss-20b
+
+      # Name of the environment variable that holds the API key.
+      # Set to an empty string for local servers (e.g. Ollama) that don't need a key.
+      apiKeyEnv: GROQ_API_KEY
+
+      # Maximum number of bytes of the staged diff to send to the model; longer diffs
+      # are truncated. 0 means no limit.
+      maxDiffLength: 16000
+
+      # Custom system prompt. If empty, a built-in prompt is used.
+      prompt: ""
+
   # Config relating to merging
   merging:
     # If true, run merges in a subprocess so that if a commit message is required,

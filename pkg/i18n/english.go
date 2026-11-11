@@ -769,6 +769,11 @@ type TranslationSet struct {
 	PasteCommitMessageFromClipboard       string
 	SurePasteCommitMessage                string
 	ClearCommitMessage                    string
+	GenerateCommitMessageWithAI           string
+	GeneratingCommitMessageStatus         string
+	SureOverwriteWithAICommitMessage      string
+	AIApiKeyNotSet                        string
+	AINoStagedChanges                     string
 	CommitMessage                         string
 	CommitMessageBody                     string
 	CommitSubject                         string
@@ -2008,6 +2013,11 @@ func EnglishTranslationSet() *TranslationSet {
 		PasteCommitMessageFromClipboard:          "Paste commit message from clipboard",
 		SurePasteCommitMessage:                   "Pasting will overwrite the current commit message, continue?",
 		ClearCommitMessage:                       "Clear commit message",
+		GenerateCommitMessageWithAI:              "Generate commit message with AI",
+		GeneratingCommitMessageStatus:            "Generating commit message",
+		SureOverwriteWithAICommitMessage:         "This will overwrite the current commit message with the AI-generated one, continue?",
+		AIApiKeyNotSet:                           "Environment variable {{.envVar}} is not set. Get a free API key at https://console.groq.com/keys (or configure git.commit.ai for another provider).",
+		AINoStagedChanges:                        "There are no staged changes to generate a commit message from.",
 		CommitMessage:                            "Commit message (subject and body)",
 		CommitMessageBody:                        "Commit message body",
 		CommitSubject:                            "Commit subject",

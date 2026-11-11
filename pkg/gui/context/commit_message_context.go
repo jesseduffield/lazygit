@@ -40,6 +40,8 @@ type CommitMessageViewModel struct {
 	onConfirm func(string, string) error
 	// invoked when pressing the switch-to-editor key binding
 	onSwitchToEditor func(string) error
+	// whether the commit menu offers to generate the message with AI
+	canGenerateWithAI bool
 
 	// the following two fields are used for the display of the "hooks disabled" subtitle
 	forceSkipHooks  bool
@@ -154,6 +156,7 @@ func (self *CommitMessageContext) SetPanelState(
 	preserveMessage bool,
 	onConfirm func(string, string) error,
 	onSwitchToEditor func(string) error,
+	canGenerateWithAI bool,
 	forceSkipHooks bool,
 	skipHooksPrefix string,
 ) {
@@ -161,6 +164,7 @@ func (self *CommitMessageContext) SetPanelState(
 	self.viewModel.preserveMessage = preserveMessage
 	self.viewModel.onConfirm = onConfirm
 	self.viewModel.onSwitchToEditor = onSwitchToEditor
+	self.viewModel.canGenerateWithAI = canGenerateWithAI
 	self.viewModel.forceSkipHooks = forceSkipHooks
 	self.viewModel.skipHooksPrefix = skipHooksPrefix
 	self.GetView().Title = summaryTitle
@@ -201,4 +205,8 @@ func (self *CommitMessageContext) SwitchToEditor(message string) error {
 
 func (self *CommitMessageContext) CanSwitchToEditor() bool {
 	return self.viewModel.onSwitchToEditor != nil
+}
+
+func (self *CommitMessageContext) CanGenerateWithAI() bool {
+	return self.viewModel.canGenerateWithAI
 }

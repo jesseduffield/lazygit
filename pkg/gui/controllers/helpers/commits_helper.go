@@ -1,15 +1,21 @@
 package helpers
 
 import (
+	"context"
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
 	"unicode"
 
+	"github.com/jesseduffield/lazygit/pkg/ai"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type CommitsHelper struct {
@@ -144,6 +150,10 @@ type OpenCommitMessagePanelOpts struct {
 	OnSwitchToEditor func(string) error
 	InitialMessage   string
 
+	// Whether the commit menu offers to generate the message with AI. This
+	// describes the staged changes, so only set it when committing them.
+	CanGenerateWithAI bool
+
 	// The following two fields are only for the display of the "(hooks
 	// disabled)" display in the commit message panel. They have no effect on
 	// the actual behavior; make sure what you are passing in matches that.
@@ -176,6 +186,7 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 		opts.PreserveMessage,
 		onConfirm,
 		opts.OnSwitchToEditor,
+		opts.CanGenerateWithAI,
 		opts.ForceSkipHooks,
 		opts.SkipHooksPrefix,
 	)
@@ -283,6 +294,16 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 			Keys: menuKey('d'),
 		},
 	}
+	if self.c.Contexts().CommitMessage.CanGenerateWithAI() {
+		menuItems = append(menuItems, &types.MenuItem{
+			Label: self.c.Tr.GenerateCommitMessageWithAI,
+			OnPress: func() error {
+				return self.generateCommitMessageWithAI()
+			},
+			Keys:           menuKey('g'),
+			DisabledReason: self.aiDisabledReason(),
+		})
+	}
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.CommitMenuTitle,
 		Items: menuItems,
@@ -385,5 +406,77 @@ func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
 			self.SetMessageAndDescriptionInView(self.TryRemoveHardLineBreaksIfAutoWrapping(message))
 			return nil
 		},
+	})
+}
+
+func (self *CommitsHelper) aiAPIKey() string {
+	envVar := self.c.UserConfig().Git.Commit.AI.APIKeyEnv
+	if envVar == "" {
+		return ""
+	}
+	return os.Getenv(envVar)
+}
+
+func (self *CommitsHelper) aiDisabledReason() *types.DisabledReason {
+	envVar := self.c.UserConfig().Git.Commit.AI.APIKeyEnv
+	if envVar != "" && self.aiAPIKey() == "" {
+		return &types.DisabledReason{
+			Text: utils.ResolvePlaceholderString(self.c.Tr.AIApiKeyNotSet, map[string]string{
+				"envVar": envVar,
+			}),
+		}
+	}
+	return nil
+}
+
+func (self *CommitsHelper) generateCommitMessageWithAI() error {
+	aiConfig := self.c.UserConfig().Git.Commit.AI
+
+	// Collect the subjects of recent commits on the UI thread, before going async
+	recentSubjects := lo.Map(
+		lo.Slice(self.c.Model().Commits, 0, 10),
+		func(commit *models.Commit, _ int) string { return commit.Name },
+	)
+
+	return self.c.WithWaitingStatus(self.c.Tr.GeneratingCommitMessageStatus, func(gocui.Task) error {
+		diff, err := self.c.Git().Diff.GetDiff(true, "--")
+		if err != nil {
+			return err
+		}
+		if strings.TrimSpace(diff) == "" {
+			return errors.New(self.c.Tr.AINoStagedChanges)
+		}
+		diffStat, err := self.c.Git().Diff.GetDiff(true, "--stat", "--")
+		if err != nil {
+			return err
+		}
+
+		message, err := ai.GenerateCommitMessage(context.Background(), ai.Options{
+			BaseURL:       aiConfig.BaseURL,
+			APIKey:        self.aiAPIKey(),
+			Model:         aiConfig.Model,
+			SystemPrompt:  aiConfig.Prompt,
+			MaxDiffLength: aiConfig.MaxDiffLength,
+		}, ai.Input{
+			DiffStat:             diffStat,
+			Diff:                 diff,
+			RecentCommitSubjects: recentSubjects,
+		})
+		if err != nil {
+			return err
+		}
+
+		self.c.OnUIThread(func() error {
+			currentMessage := self.JoinCommitMessageAndUnwrappedDescription()
+			return self.c.ConfirmIf(strings.TrimSpace(currentMessage) != "", types.ConfirmOpts{
+				Title:  self.c.Tr.GenerateCommitMessageWithAI,
+				Prompt: self.c.Tr.SureOverwriteWithAICommitMessage,
+				HandleConfirm: func() error {
+					self.SetMessageAndDescriptionInView(message)
+					return nil
+				},
+			})
+		})
+		return nil
 	})
 }

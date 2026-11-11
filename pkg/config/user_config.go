@@ -415,6 +415,24 @@ type CommitConfig struct {
 	AutoWrapCommitMessage bool `yaml:"autoWrapCommitMessage"`
 	// If autoWrapCommitMessage is true, the width to wrap to
 	AutoWrapWidth int `yaml:"autoWrapWidth"`
+	// Config for generating commit messages with AI (available from the commit menu, <c-o> in the commit message panel)
+	AI CommitAIConfig `yaml:"ai"`
+}
+
+type CommitAIConfig struct {
+	// Base URL of an OpenAI-compatible chat completions API.
+	// Groq (free tier available at https://console.groq.com) is the default. Other examples:
+	// https://openrouter.ai/api/v1, https://api.openai.com/v1, http://localhost:11434/v1 (Ollama)
+	BaseURL string `yaml:"baseURL"`
+	// Model to use, e.g. 'openai/gpt-oss-20b' for Groq
+	Model string `yaml:"model"`
+	// Name of the environment variable that holds the API key.
+	// Set to an empty string for local servers (e.g. Ollama) that don't need a key.
+	APIKeyEnv string `yaml:"apiKeyEnv"`
+	// Maximum number of bytes of the staged diff to send to the model; longer diffs are truncated. 0 means no limit.
+	MaxDiffLength int `yaml:"maxDiffLength" jsonschema:"minimum=0"`
+	// Custom system prompt. If empty, a built-in prompt is used.
+	Prompt string `yaml:"prompt"`
 }
 
 type MergingConfig struct {
@@ -962,6 +980,13 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				SignOff:               false,
 				AutoWrapCommitMessage: true,
 				AutoWrapWidth:         72,
+				AI: CommitAIConfig{
+					BaseURL:       "https://api.groq.com/openai/v1",
+					Model:         "openai/gpt-oss-20b",
+					APIKeyEnv:     "GROQ_API_KEY",
+					MaxDiffLength: 16000,
+					Prompt:        "",
+				},
 			},
 			Merging: MergingConfig{
 				ManualCommit:       false,
