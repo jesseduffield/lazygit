@@ -190,6 +190,10 @@ type Gui struct {
 
 	IsPasting bool
 
+	// The text pasted so far into pasteView, a view with an OnPaste handler
+	pasteBuffer strings.Builder
+	pasteView   *View
+
 	// If InputEsc is true, when ESC sequence is in the buffer and it doesn't
 	// match any known sequence, ESC means KeyEsc.
 	InputEsc bool
@@ -1285,6 +1289,9 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 		return g.onFocus(ev)
 	case eventPaste:
 		g.IsPasting = ev.Start
+		if !ev.Start {
+			return g.deliverPaste()
+		}
 		return nil
 	default:
 		return nil
@@ -1758,6 +1765,32 @@ func (g *Gui) draw(v *View) {
 	}
 }
 
+func (g *Gui) collectPastedKey(v *View, key Key) {
+	if g.pasteView == nil {
+		g.pasteView = v
+	}
+
+	switch {
+	case key.IsPrintable():
+		g.pasteBuffer.WriteString(key.Str())
+	case key.Equals(NewKeyName(KeyEnter)):
+		g.pasteBuffer.WriteString("\n")
+	case key.Equals(NewKeyName(KeyTab)):
+		g.pasteBuffer.WriteString("\t")
+	}
+}
+
+func (g *Gui) deliverPaste() error {
+	v, text := g.pasteView, g.pasteBuffer.String()
+	g.pasteView = nil
+	g.pasteBuffer.Reset()
+
+	if v == nil || text == "" {
+		return nil
+	}
+	return v.OnPaste(text)
+}
+
 // onKey manages key-press events. A keybinding handler is called when
 // a key-press or mouse event satisfies a configured keybinding. Furthermore,
 // currentView's internal buffer is modified if currentView.Editable is true.
@@ -1774,6 +1807,11 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		// seem harmful for other terminal emulators.
 		if g.IsPasting && ev.Key.Equals(NewKeyStrMod("j", ModCtrl)) {
 			ev.Key = NewKeyName(KeyEnter)
+		}
+
+		if g.IsPasting && g.currentView != nil && g.currentView.OnPaste != nil {
+			g.collectPastedKey(g.currentView, ev.Key)
+			return nil
 		}
 
 		err := g.execKeybindings(g.currentView, ev)

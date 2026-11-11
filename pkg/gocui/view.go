@@ -163,6 +163,12 @@ type View struct {
 	// default.
 	Editor Editor
 
+	// OnPaste, if set, receives pasted text in one piece when the paste ends,
+	// instead of one key press per character. The text consists of the pasted
+	// printable characters, newlines and tabs; other keys in the paste, such as
+	// Esc or control characters, are dropped.
+	OnPaste func(text string) error
+
 	// Overwrite enables or disables the overwrite mode of the view.
 	Overwrite bool
 
