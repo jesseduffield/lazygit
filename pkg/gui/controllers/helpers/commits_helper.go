@@ -247,7 +247,7 @@ func (self *CommitsHelper) OpenCommitMenu(suggestionFunc func(string) []*types.S
 			OnPress: func() error {
 				return self.pasteCommitMessageFromClipboard()
 			},
-			Keys: menuKey('p'),
+			Keys: menuKey('V'),
 		},
 	}
 	return self.c.Menu(types.CreateMenuOptions{
