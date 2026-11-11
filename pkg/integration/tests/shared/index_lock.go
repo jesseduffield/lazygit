@@ -11,10 +11,12 @@ import (
 // of several steps, such as a rebase, is partway through.
 const holdIndexLockScript = `if [ ! -e .git/index-lock-taken ]; then
 	touch .git/index-lock-taken .git/index.lock
+	# If lazygit runs the command in a pty (as it does for a pull), the
+	# background process below gets SIGHUP when the command exits. This can
+	# happen before the process has run its first command, so ignore SIGHUP
+	# before starting it; it inherits this.
+	trap '' HUP
 	(
-		# If lazygit runs the command in a pty (as it does for a pull), we
-		# get SIGHUP when the command exits
-		trap '' HUP
 		while kill -0 $PPID 2>/dev/null; do sleep 0.01; done
 		rm -f .git/index.lock
 	) >/dev/null 2>&1 </dev/null &
