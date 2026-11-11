@@ -341,6 +341,11 @@ func (self *CommitsHelper) HandlePasteIntoSummary(text string) {
 // description with the terminal's paste command.
 func (self *CommitsHelper) HandlePasteIntoDescription(text string) {
 	view := self.c.Views().CommitDescription
+	if view.TextArea.GetUnwrappedContent() == "" {
+		// This drops the blank line between subject and body when the user
+		// pastes a whole commit message into the summary
+		text = strings.TrimLeft(text, "\n")
+	}
 	view.TextArea.TypeString(replaceTabsInPastedText(text))
 	view.RenderTextArea()
 }

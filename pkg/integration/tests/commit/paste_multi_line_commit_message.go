@@ -25,9 +25,6 @@ var PasteMultiLineCommitMessage = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitDescription().
 			IsFocused().
 			Content(Equals(
-				/* EXPECTED:
 				"body line 1\nbody line 2"))
-				ACTUAL: */
-				"\nbody line 1\nbody line 2"))
 	},
 })
