@@ -9,7 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/samber/lo"
 )
 
 type CommitsHelper struct {
@@ -46,6 +45,15 @@ func (self *CommitsHelper) SplitCommitMessageAndDescription(message string) (str
 	summary, description, _ := strings.Cut(message, "\n")
 	description = strings.TrimPrefix(description, "\n")
 	return summary, description
+}
+
+// joinCommitMessageAndDescription is the inverse of
+// SplitCommitMessageAndDescription.
+func (self *CommitsHelper) joinCommitMessageAndDescription(summary string, description string) string {
+	if len(description) == 0 {
+		return summary
+	}
+	return summary + "\n\n" + description
 }
 
 // SplitPreservedCommitMessage splits a message in our preservation format
@@ -103,9 +111,7 @@ func TryRemoveHardLineBreaks(message string, autoWrapWidth int) string {
 }
 
 func (self *CommitsHelper) SwitchToEditor() error {
-	message := lo.Ternary(len(self.getCommitDescription()) == 0,
-		self.getCommitSummary(),
-		self.getCommitSummary()+"\n\n"+self.getCommitDescription())
+	message := self.joinCommitMessageAndDescription(self.getCommitSummary(), self.getCommitDescription())
 	filepath := filepath.Join(self.c.OS().GetTempDir(), self.c.Git().RepoPaths.RepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".msg")
 	err := self.c.OS().CreateFileWithContent(filepath, message)
 	if err != nil {
