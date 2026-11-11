@@ -18,6 +18,9 @@ func TestEventWithheldWhileBlocking(t *testing.T) {
 		{"mouse move", GocuiEvent{Type: eventMouseMove}, true},
 		{"resize", GocuiEvent{Type: eventResize}, false},
 		{"focus", GocuiEvent{Type: eventFocus}, false},
+		/* EXPECTED:
+		{"paste", GocuiEvent{Type: eventPaste}, true},
+		ACTUAL: */
 		{"paste", GocuiEvent{Type: eventPaste}, false},
 		{"error", GocuiEvent{Type: eventError}, false},
 	}
@@ -109,6 +112,32 @@ func TestBlockingEvents_KeysArrivingBeforeTheReplayGoBehindIt(t *testing.T) {
 
 	runQueuedWork(t, g)
 	assert.Equal(t, []int{1, 0}, *fired, "the keys should arrive in the order they were pressed")
+}
+
+func TestBlockingEvents_PastedKeysReplayedAsPasted(t *testing.T) {
+	g := newTestGui(t)
+	keyEvent, fired := setupKeyRecorder(t, g)
+	pasteStart := GocuiEvent{Type: eventPaste, Start: true}
+	pasteEnd := GocuiEvent{Type: eventPaste, Start: false}
+
+	// Pasting into a view that isn't editable doesn't run its keybindings.
+	assert.NoError(t, g.handleEvent(&pasteStart))
+	assert.NoError(t, g.handleEvent(&keyEvent))
+	assert.NoError(t, g.handleEvent(&pasteEnd))
+	assert.Empty(t, *fired)
+
+	// The same must hold for a paste that arrives while input is blocked.
+	g.BeginBlockingEvents()
+	assert.NoError(t, g.handleEvent(&pasteStart))
+	assert.NoError(t, g.handleEvent(&keyEvent))
+	assert.NoError(t, g.handleEvent(&pasteEnd))
+	g.EndBlockingEvents()
+	runQueuedWork(t, g)
+	/* EXPECTED:
+	assert.Empty(t, *fired)
+	ACTUAL: */
+	assert.Len(t, *fired, 1)
+	assert.False(t, g.IsPasting)
 }
 
 func TestBlockingEvents_NestsWithCounter(t *testing.T) {
