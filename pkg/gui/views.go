@@ -150,6 +150,10 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.MenuFilter.Frame = false
 	gui.Views.MenuFilter.Editable = true
 	gui.Views.MenuFilter.Editor = gocui.EditorFunc(gui.menuFilterEditor)
+	gui.Views.MenuFilter.OnPaste = func(text string) error {
+		gui.pasteIntoMenuFilter(text)
+		return nil
+	}
 	// The filter row belongs to the menu: it shares the menu's focus, and keys
 	// that the input field doesn't take are the menu's to handle.
 	gui.Views.MenuFilterFrame.ParentView = gui.Views.Menu

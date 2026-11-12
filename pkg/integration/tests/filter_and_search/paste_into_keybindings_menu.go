@@ -27,10 +27,7 @@ var PasteIntoKeybindingsMenu = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			Lines(
-				/* EXPECTED:
 				Contains(`??`).Contains(`myfile`),
-				ACTUAL: */
-				Contains(`A `).Contains(`myfile`),
 			)
 	},
 })

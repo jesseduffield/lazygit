@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 )
 
@@ -74,6 +76,34 @@ func (gui *Gui) menuFilterEditor(v *gocui.View, key gocui.Key) bool {
 	gui.onMenuFilterContentChanged(content)
 
 	return true
+}
+
+func (gui *Gui) pasteIntoMenuFilter(text string) {
+	v := gui.Views.MenuFilter
+	if typePastedTextIntoSingleLineView(v, text) {
+		gui.onMenuFilterContentChanged(v.TextArea.GetContent())
+	}
+}
+
+// typePastedTextIntoSingleLineView returns false if nothing is left of the text
+// to type.
+func typePastedTextIntoSingleLineView(v *gocui.View, text string) bool {
+	text = pastedTextAsSingleLine(text)
+	if text == "" {
+		return false
+	}
+
+	v.TextArea.TypeString(text)
+	v.RenderTextArea()
+	return true
+}
+
+// Views that take a single line of text get pasted text without the newlines at
+// its start and end, which are often part of a copied line, and with spaces in
+// place of the newlines and tabs inside it.
+func pastedTextAsSingleLine(text string) string {
+	text = strings.Trim(text, "\n")
+	return strings.NewReplacer("\n", " ", "\t", " ").Replace(text)
 }
 
 func (gui *Gui) onMenuFilterContentChanged(content string) {
