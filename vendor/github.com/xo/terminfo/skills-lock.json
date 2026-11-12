@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "go-pedantry": {
+      "source": "oborchers/fractional-cto",
+      "sourceType": "github",
+      "skillPath": "pedantic-coder/skills/go-pedantry/SKILL.md",
+      "computedHash": "31d2344d7292bd589b1b37959b72bad61ea53cb0bc7d187d0ce1b2fe0ec9bf3e"
+    },
+    "simple-english": {
+      "source": "AminBlg/SimpleEnglish",
+      "sourceType": "github",
+      "skillPath": "skills/simple-english/SKILL.md",
+      "computedHash": "27ecd9fcbf49b035da6463dc2aa3459167ae2f2536b65d17eaf52afbaac87f7c"
+    }
+  }
+}

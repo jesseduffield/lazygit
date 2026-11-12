@@ -1,0 +1,54 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - cyclop
+    - err113
+    - errcheck
+    - exhaustruct
+    - exhaustruct_v5
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gomodguard
+    - lll
+    - maintidx
+    - mnd
+    - nestif
+    - nilnil
+    - nlreturn
+    - noinlineerr
+    - paralleltest
+    - prealloc
+    - sqlclosecheck
+    - testableexamples
+    - testpackage
+    - varnamelen
+    - wrapcheck
+    - wsl
+    - wsl_v5
+  settings:
+    depguard:
+      rules:
+        main:
+          list-mode: strict
+          allow:
+            - $gostd
+            - github.com/xo/terminfo
+    gosec:
+      excludes:
+        - G101
+        # Open and Load read the file that the caller names, by design
+        - G304
+        - G703
+    gocritic:
+      disabled-checks:
+        - exitAfterDefer
+  exclusions:
+    rules:
+      # a command prints its output
+      - path: cmd/
+        linters:
+          - forbidigo
