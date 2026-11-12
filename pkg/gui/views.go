@@ -101,6 +101,10 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Search.Editable = true
 	gui.Views.Search.Frame = false
 	gui.Views.Search.Editor = gocui.EditorFunc(gui.searchEditor)
+	gui.Views.Search.OnPaste = func(text string) error {
+		gui.pasteIntoSearch(text)
+		return nil
+	}
 
 	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.MergeConflicts} {
 		view.Wrap = true

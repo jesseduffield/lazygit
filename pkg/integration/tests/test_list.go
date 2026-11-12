@@ -339,6 +339,7 @@ var tests = []*components.IntegrationTest{
 	filter_and_search.NewSearch,
 	filter_and_search.PasteIntoKeybindingsMenu,
 	filter_and_search.PasteIntoMenuFilter,
+	filter_and_search.PasteIntoSearchPrompt,
 	filter_and_search.RerenderTheSearchedMainView,
 	filter_and_search.SearchALongDiff,
 	filter_and_search.SearchStatusAfterARerender,

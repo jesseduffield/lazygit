@@ -119,6 +119,13 @@ func (gui *Gui) onMenuFilterContentChanged(content string) {
 	gui.helpers.Search.ApplyFilter(menuContext, content)
 }
 
+func (gui *Gui) pasteIntoSearch(text string) {
+	v := gui.Views.Search
+	if typePastedTextIntoSingleLineView(v, text) {
+		gui.helpers.Search.OnPromptContentChanged(v.TextArea.GetContent())
+	}
+}
+
 func (gui *Gui) searchEditor(v *gocui.View, key gocui.Key) bool {
 	matched := gui.handleEditorKeypress(v, key, false)
 	v.RenderTextArea()

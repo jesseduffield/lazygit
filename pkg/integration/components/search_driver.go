@@ -24,6 +24,13 @@ func (self *SearchDriver) Type(value string) *SearchDriver {
 	return self
 }
 
+// pastes the text the way a terminal does it
+func (self *SearchDriver) Paste(text string) *SearchDriver {
+	self.t.paste(text)
+
+	return self
+}
+
 func (self *SearchDriver) Clear() *SearchDriver {
 	self.t.press(ClearKey)
 
