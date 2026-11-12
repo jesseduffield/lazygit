@@ -20,7 +20,7 @@ func TestAddCommitDropIndicator(t *testing.T) {
 	spinnerConfig := config.SpinnerConfig{Frames: []string{"one", "two"}, Rate: 100}
 
 	items := addCommitDropIndicator(
-		[]*NonModelItem{pendingHeader}, indicator, "drop here", "moving commits here", spinnerConfig, time.UnixMilli(0),
+		[]*NonModelItem{pendingHeader}, indicator, 0, "drop here", "moving commits here", spinnerConfig, time.UnixMilli(0),
 	)
 	items = append(items, commitsHeader)
 
@@ -41,6 +41,7 @@ func TestAddMovingCommitsIndicator(t *testing.T) {
 	items := addCommitDropIndicator(
 		nil,
 		&commitDropIndicator{insertionIndex: 2, moving: true},
+		0,
 		"drop here",
 		"moving commits here",
 		config.SpinnerConfig{Frames: []string{"one", "two"}, Rate: 100},
@@ -54,6 +55,29 @@ func TestAddMovingCommitsIndicator(t *testing.T) {
 			Column:  6,
 		},
 	}, items)
+}
+
+func TestAddCommitDropIndicatorBetweenUpdateRefRows(t *testing.T) {
+	items := updateRefRows([][]string{nil, {"a", "b", "c"}, nil, {"d"}}, 4)
+	assert.Equal(t, []int{1, 1, 1, 3}, lo.Map(items, func(item *NonModelItem, _ int) int { return item.Index }))
+
+	items = addCommitDropIndicator(
+		items,
+		&commitDropIndicator{insertionIndex: 1, updateRefsAbove: 1},
+		2,
+		"drop here",
+		"moving commits here",
+		config.SpinnerConfig{},
+		time.UnixMilli(0),
+	)
+
+	assert.Equal(t, []string{
+		"──── " + style.FgYellow.Sprint("a"),
+		style.FgCyan.SetBold().Sprint("━━━━━━ drop here ━━━━━━"),
+		"──── " + style.FgYellow.Sprint("b"),
+		"──── " + style.FgYellow.Sprint("c"),
+		"──── " + style.FgYellow.Sprint("d"),
+	}, lo.Map(items, func(item *NonModelItem, _ int) string { return item.Content }))
 }
 
 func TestCommitRangeShownInDiff(t *testing.T) {
@@ -235,4 +259,42 @@ func TestPullRequestDiff(t *testing.T) {
 			assert.Equal(t, s.expected, pullRequestDiff(commits, s.startIdx, s.endIdx, listedBranch, branches, prs))
 		})
 	}
+}
+
+func TestUpdateRefBranches(t *testing.T) {
+	hashPool := &utils.StringPool{}
+	commit := func(hash string, status models.CommitStatus) *models.Commit {
+		return models.NewCommit(hashPool, models.NewCommitOpts{Hash: hash, Status: status})
+	}
+	branch := func(name string, hash string) *models.Branch {
+		return &models.Branch{Name: name, CommitHash: hash}
+	}
+
+	commits := []*models.Commit{
+		commit("e", models.StatusUnpushed),
+		commit("d", models.StatusUnpushed),
+		commit("c", models.StatusUnpushed),
+		commit("b", models.StatusUnpushed),
+		commit("a", models.StatusMerged),
+	}
+	branches := []*models.Branch{
+		branch("current", "e"),
+		branch("copy-of-current", "e"),
+		branch("stacked-1", "c"),
+		branch("stacked-2", "c"),
+		branch("in-other-worktree", "d"),
+		branch("merged-into-local-master", "b"),
+		branch("master", "b"),
+		branch("merged", "a"),
+	}
+	worktrees := []*models.Worktree{
+		{IsCurrent: true, Branch: "current"},
+		{IsCurrent: false, Branch: "in-other-worktree"},
+	}
+
+	assert.Equal(t,
+		[][]string{nil, nil, {"stacked-1", "stacked-2"}, nil, nil},
+		updateRefBranches(commits, branches, "current", []string{"master"}, worktrees),
+	)
+	assert.Nil(t, updateRefBranches(nil, branches, "current", []string{"master"}, worktrees))
 }

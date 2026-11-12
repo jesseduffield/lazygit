@@ -22,6 +22,15 @@ func (self *Git) TagNamesAt(ref string, expectedNames []string) *Git {
 	return self.assert([]string{"git", "tag", "--sort=v:refname", "--points-at", ref}, strings.Join(expectedNames, "\n"))
 }
 
+// Asserts the names of the local branches that point at the given ref, in
+// alphabetical order
+func (self *Git) BranchNamesAt(ref string, expectedNames []string) *Git {
+	return self.assert(
+		[]string{"git", "branch", "--points-at", ref, "--format=%(refname:short)"},
+		strings.Join(expectedNames, "\n"),
+	)
+}
+
 func (self *Git) RemoteTagDeleted(ref string, tagName string) *Git {
 	return self.expect([]string{"git", "ls-remote", ref, fmt.Sprintf("refs/tags/%s", tagName)}, func(s string) (bool, string) {
 		return len(s) == 0, fmt.Sprintf("Expected tag %s to have been removed from %s", tagName, ref)

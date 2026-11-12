@@ -8,12 +8,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/branchstack"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -25,11 +27,18 @@ type LocalCommitsContext struct {
 	*SearchTrait
 
 	dropIndicator *commitDropIndicator
+	// Whether to show a row for each of the branches that UpdateRefBranches
+	// returns, while commits are dragged, so that they can be dropped between
+	// them.
+	showUpdateRefRows bool
 }
 
 type commitDropIndicator struct {
 	insertionIndex int
-	moving         bool
+	// How many of the update-ref rows above the commit at insertionIndex are
+	// above the indicator.
+	updateRefsAbove int
+	moving          bool
 }
 
 var (
@@ -156,7 +165,64 @@ func pullRequestBranchAt(
 	return listedBranch
 }
 
+// UpdateRefBranches returns, for each commit, the branches of a stack that
+// point at it and that git updates when rebasing it. Their update-ref todos
+// are the boundaries between the branches of the stack when we move commits.
+// Returns nil if the rebase.updateRefs config is off, or if a rebase is in
+// progress; moving commits then edits the rebase todo, where update-ref todos
+// are rows of their own.
+func (self *LocalCommitsContext) UpdateRefBranches() [][]string {
+	c := self.ListContextTrait.c
+	if !c.Git().Config.GetRebaseUpdateRefs() || c.Model().WorkingTreeStateAtLastCommitRefresh.Any() {
+		return nil
+	}
+
+	return updateRefBranches(
+		c.Model().Commits,
+		c.Model().Branches,
+		c.Model().CheckedOutBranch,
+		c.UserConfig().Git.MainBranches,
+		c.Model().Worktrees,
+	)
+}
+
+func updateRefBranches(
+	commits []*models.Commit,
+	branches []*models.Branch,
+	currentBranchName string,
+	mainBranches []string,
+	worktrees []*models.Worktree,
+) [][]string {
+	if len(commits) == 0 {
+		return nil
+	}
+
+	branchesByHash := map[string][]string{}
+	for _, branch := range branches {
+		if branchstack.IsStackBranch(branch, currentBranchName, mainBranches) &&
+			// Our rebase daemon deletes the update-ref todos of the branches
+			// that point at the head commit
+			branch.CommitHash != commits[0].Hash() &&
+			// git creates no update-ref todos for branches that are checked out
+			// in another worktree
+			!git_commands.CheckedOutByOtherWorktree(branch, worktrees) {
+			branchesByHash[branch.CommitHash] = append(branchesByHash[branch.CommitHash], branch.Name)
+		}
+	}
+
+	mergedLocally := branchstack.CommitsMergedIntoLocalMainBranch(commits, branches, mainBranches)
+	return lo.Map(commits, func(commit *models.Commit, _ int) []string {
+		// The commits list doesn't mark the branches at commits that are merged
+		// into a main branch, be it its remote branch or the local one
+		if commit.Status == models.StatusMerged || mergedLocally.Includes(commit.Hash()) {
+			return nil
+		}
+		return branchesByHash[commit.Hash()]
+	})
+}
+
 func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
+	var ctx *LocalCommitsContext
 	dropIndicator := &commitDropIndicator{insertionIndex: -1}
 	viewModel := NewLocalCommitsViewModel(
 		func() []*models.Commit { return c.Model().Commits },
@@ -244,6 +310,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			result = addCommitDropIndicator(
 				result,
 				dropIndicator,
+				0,
 				c.Tr.MoveCommitsHere,
 				c.Tr.MovingCommitsHere,
 				c.UserConfig().Gui.Spinner,
@@ -262,9 +329,18 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				Content: formatListSectionHeader(c.Tr.CommitsSectionHeader),
 			})
 		} else {
+			updateRefRowsBelowIndicator := 0
+			if ctx.showUpdateRefRows {
+				updateRefBranches := ctx.UpdateRefBranches()
+				result = updateRefRows(updateRefBranches, c.UserConfig().Gui.CommitHashLength)
+				if idx := dropIndicator.insertionIndex; idx >= 0 && idx < len(updateRefBranches) {
+					updateRefRowsBelowIndicator = len(updateRefBranches[idx]) - dropIndicator.updateRefsAbove
+				}
+			}
 			result = addCommitDropIndicator(
 				result,
 				dropIndicator,
+				updateRefRowsBelowIndicator,
 				c.Tr.MoveCommitsHere,
 				c.Tr.MovingCommitsHere,
 				c.UserConfig().Gui.Spinner,
@@ -275,7 +351,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 		return result
 	}
 
-	ctx := &LocalCommitsContext{
+	ctx = &LocalCommitsContext{
 		LocalCommitsViewModel: viewModel,
 		SearchTrait:           NewSearchTrait(c),
 		dropIndicator:         dropIndicator,
@@ -303,9 +379,41 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	return ctx
 }
 
+// updateRefRows returns a row for each of the given update-ref branches, above
+// its commit. The row is a horizontal line across the hash column, followed by
+// the name of the branch.
+func updateRefRows(updateRefBranches [][]string, hashLength int) []*NonModelItem {
+	lineWidth := hashLength
+	if lineWidth == 0 {
+		// There is no hash column; show a short line anyway
+		lineWidth = 4
+	}
+	line := strings.Repeat("─", lineWidth)
+	branchIcon := ""
+	if icons.IsIconEnabled() {
+		branchIcon = icons.BRANCH_ICON + " "
+	}
+
+	result := []*NonModelItem{}
+	for idx, branches := range updateRefBranches {
+		for _, branch := range branches {
+			result = append(result, &NonModelItem{
+				Index:   idx,
+				Content: line + " " + style.FgYellow.Sprint(branchIcon+branch),
+				Column:  1, // the hash column
+			})
+		}
+	}
+	return result
+}
+
+// addCommitDropIndicator inserts the drop indicator into the given items,
+// which must be ordered by index. Of the items at the indicator's insertion
+// index, the last itemsBelow ones go below it, all others above it.
 func addCommitDropIndicator(
 	items []*NonModelItem,
 	indicator *commitDropIndicator,
+	itemsBelow int,
 	dropLabel string,
 	movingLabel string,
 	spinnerConfig config.SpinnerConfig,
@@ -326,6 +434,7 @@ func addCommitDropIndicator(
 			break
 		}
 	}
+	insertAt -= itemsBelow
 
 	return slices.Insert(items, insertAt, &NonModelItem{
 		Index:   indicator.insertionIndex,
@@ -334,19 +443,60 @@ func addCommitDropIndicator(
 	})
 }
 
-func (self *LocalCommitsContext) SetDropInsertionIndex(index int) {
+// SetDropInsertionIndex shows the drop indicator directly above the commit at
+// index, below the first updateRefsAbove of its update-ref rows.
+func (self *LocalCommitsContext) SetDropInsertionIndex(index int, updateRefsAbove int) {
 	self.dropIndicator.insertionIndex = index
+	self.dropIndicator.updateRefsAbove = updateRefsAbove
 	self.dropIndicator.moving = false
 }
 
-func (self *LocalCommitsContext) SetMovingCommitsInsertionIndex(index int) {
+func (self *LocalCommitsContext) SetMovingCommitsInsertionIndex(index int, updateRefsAbove int) {
 	self.dropIndicator.insertionIndex = index
+	self.dropIndicator.updateRefsAbove = updateRefsAbove
 	self.dropIndicator.moving = true
 }
 
 func (self *LocalCommitsContext) ClearDropInsertionIndex() {
 	self.dropIndicator.insertionIndex = -1
+	self.dropIndicator.updateRefsAbove = 0
 	self.dropIndicator.moving = false
+}
+
+func (self *LocalCommitsContext) SetShowUpdateRefRows(value bool) {
+	self.showUpdateRefRows = value
+}
+
+// DragRowAt tells what the view shows at the given view index while commits
+// are dragged: the commit at the returned model index if the returned
+// update-ref row is -1, or otherwise the update-ref row with that index among
+// the ones above that commit. A section header or the drop indicator counts as
+// the row below it.
+func (self *LocalCommitsContext) DragRowAt(viewIndex int) (int, int) {
+	modelIndex := self.ViewIndexToModelIndex(viewIndex)
+	rowsAboveCommit := self.ModelIndexToViewIndex(modelIndex) - viewIndex
+	if !self.showUpdateRefRows || rowsAboveCommit <= 0 {
+		return modelIndex, -1
+	}
+
+	updateRefBranches := self.UpdateRefBranches()
+	if modelIndex >= len(updateRefBranches) {
+		return modelIndex, -1
+	}
+	updateRefRowCount := len(updateRefBranches[modelIndex])
+	if self.dropIndicator.insertionIndex != modelIndex {
+		return modelIndex, updateRefRowCount - rowsAboveCommit
+	}
+
+	// The drop indicator is among the rows above the commit
+	row := updateRefRowCount + 1 - rowsAboveCommit
+	if row > self.dropIndicator.updateRefsAbove {
+		row--
+	}
+	if row == updateRefRowCount {
+		return modelIndex, -1
+	}
+	return modelIndex, row
 }
 
 type LocalCommitsViewModel struct {
