@@ -55,9 +55,16 @@ func TestPasteIntoViewWithoutPasteHandler(t *testing.T) {
 	_, err := g.SetCurrentView("editor")
 	assert.NoError(t, err)
 
+	enterPressed := false
+	g.SetKeybinding("editor", NewKeyName(KeyEnter), func(*Gui, *View) error {
+		enterPressed = true
+		return nil
+	})
+
 	for _, tev := range []tcell.Event{
 		tcell.NewEventPaste(true),
 		tcell.NewEventKey(tcell.KeyRune, "a", tcell.ModNone),
+		tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone),
 		tcell.NewEventKey(tcell.KeyRune, "b", tcell.ModNone),
 		tcell.NewEventPaste(false),
 	} {
@@ -65,5 +72,6 @@ func TestPasteIntoViewWithoutPasteHandler(t *testing.T) {
 		assert.NoError(t, g.handleEvent(&ev))
 	}
 
-	assert.Equal(t, "ab", v.TextArea.GetContent())
+	assert.Equal(t, "", v.TextArea.GetContent())
+	assert.False(t, enterPressed)
 }

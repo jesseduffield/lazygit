@@ -1809,8 +1809,10 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			ev.Key = NewKeyName(KeyEnter)
 		}
 
-		if g.IsPasting && g.currentView != nil && g.currentView.OnPaste != nil {
-			g.collectPastedKey(g.currentView, ev.Key)
+		if g.IsPasting {
+			if g.currentView != nil && g.currentView.OnPaste != nil {
+				g.collectPastedKey(g.currentView, ev.Key)
+			}
 			return nil
 		}
 
@@ -2086,10 +2088,6 @@ func IsMouseScrollKey(keyName KeyName) bool {
 func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 	var globalKb *keybinding
 	var matchingParentViewKb *keybinding
-
-	if g.IsPasting && v != nil && !v.Editable {
-		return nil
-	}
 
 	// if we're searching, and we've hit n/N/Esc, we ignore the default keybinding
 	if v != nil && v.IsSearching() {
