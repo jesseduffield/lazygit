@@ -136,6 +136,12 @@ func (self *TestDriver) FocusIn() {
 	self.Wait(self.inputDelay)
 }
 
+func (self *TestDriver) paste(text string) {
+	self.SetCaption(fmt.Sprintf("Pasting %q", text))
+	self.gui.Paste(text)
+	self.Wait(self.inputDelay)
+}
+
 func (self *TestDriver) focusInAndClick(x, y int) {
 	self.SetCaption(fmt.Sprintf("Focusing window and clicking %d, %d", x, y))
 	self.gui.FocusInAndClick(x, y)

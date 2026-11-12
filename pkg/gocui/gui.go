@@ -119,6 +119,7 @@ type replayedEvents struct {
 	Resizes     chan *TcellResizeEventWrapper
 	MouseEvents chan *TcellMouseEventWrapper
 	FocusEvents chan *TcellFocusEventWrapper
+	PasteEvents chan *TcellPasteEventWrapper
 }
 
 type RecordingConfig struct {
@@ -305,6 +306,7 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 			Resizes:     make(chan *TcellResizeEventWrapper),
 			MouseEvents: make(chan *TcellMouseEventWrapper),
 			FocusEvents: make(chan *TcellFocusEventWrapper),
+			PasteEvents: make(chan *TcellPasteEventWrapper),
 		}
 	}
 
@@ -382,6 +384,13 @@ func (g *Gui) ReplayMouseEvent(ev *TcellMouseEventWrapper) {
 func (g *Gui) ReplayFocusEvent(ev *TcellFocusEventWrapper) {
 	ev.task = g.NewTask()
 	g.replayedEvents.FocusEvents <- ev
+}
+
+// ReplayPasteEvent is like ReplayKeyEvent, but for the events that mark the
+// start and the end of a paste.
+func (g *Gui) ReplayPasteEvent(ev *TcellPasteEventWrapper) {
+	ev.task = g.NewTask()
+	g.replayedEvents.PasteEvents <- ev
 }
 
 // Busy reports whether any foreground work is in flight, ignoring the event
