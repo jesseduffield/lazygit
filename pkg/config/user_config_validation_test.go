@@ -317,6 +317,39 @@ func TestUserConfigValidate_enums(t *testing.T) {
 				{value: "", valid: false},
 			},
 		},
+		{
+			name: "Custom command sub menu",
+			setup: func(config *UserConfig, _ string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Key:         Keybinding{"X"},
+						DisplayHint: true,
+						CommandMenu: []CustomCommand{
+							{Key: Keybinding{"1"}, Command: "echo 'hello'", Context: "global"},
+						},
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: false},
+			},
+		},
+		{
+			name: "Custom command in sub menu with display hint",
+			setup: func(config *UserConfig, _ string) {
+				config.CustomCommands = []CustomCommand{
+					{
+						Key: Keybinding{"X"},
+						CommandMenu: []CustomCommand{
+							{Key: Keybinding{"1"}, Command: "echo 'hello'", Context: "global", DisplayHint: true},
+						},
+					},
+				}
+			},
+			testCases: []testCase{
+				{value: "", valid: false},
+			},
+		},
 	}
 
 	for _, s := range scenarios {
