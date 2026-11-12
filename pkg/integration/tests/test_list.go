@@ -580,6 +580,7 @@ var tests = []*components.IntegrationTest{
 	misc.DirenvUnloadsOnBlockedEnvrc,
 	misc.FilterRecentRepos,
 	misc.InitialOpen,
+	misc.PasteIntoPrompt,
 	misc.RecentReposBranchColumn,
 	misc.RecentReposColumnWidths,
 	misc.RecentReposOnLaunch,

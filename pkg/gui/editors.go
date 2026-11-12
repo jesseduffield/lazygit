@@ -40,6 +40,13 @@ func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key) bool {
 	return matched
 }
 
+func (gui *Gui) pasteIntoPrompt(text string) {
+	v := gui.Views.Prompt
+	if typePastedTextIntoSingleLineView(v, text) {
+		gui.onPromptContentChanged(v)
+	}
+}
+
 func (gui *Gui) onPromptContentChanged(v *gocui.View) {
 	suggestionsContext := gui.State.Contexts.Suggestions
 	// Capture the suggestions function and the input here, on the UI thread; the

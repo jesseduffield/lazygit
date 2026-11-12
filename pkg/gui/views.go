@@ -140,6 +140,10 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Prompt.Wrap = false // We don't want wrapping in one-line prompts
 	gui.Views.Prompt.Editable = true
 	gui.Views.Prompt.Editor = gocui.EditorFunc(gui.promptEditor)
+	gui.Views.Prompt.OnPaste = func(text string) error {
+		gui.pasteIntoPrompt(text)
+		return nil
+	}
 
 	gui.Views.Suggestions.Visible = false
 
