@@ -2,21 +2,23 @@ package helpers
 
 import (
 	"errors"
+	"slices"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type UpstreamHelper struct {
 	c *HelperCommon
 
-	getRemoteBranchesSuggestionsFunc func(string) func(string) []*types.Suggestion
+	getRemoteBranchesSuggestionsFunc func(string, ...string) func(string) []*types.Suggestion
 }
 
 func NewUpstreamHelper(
 	c *HelperCommon,
-	getRemoteBranchesSuggestionsFunc func(string) func(string) []*types.Suggestion,
+	getRemoteBranchesSuggestionsFunc func(string, ...string) func(string) []*types.Suggestion,
 ) *UpstreamHelper {
 	return &UpstreamHelper{
 		c:                                c,
@@ -37,11 +39,11 @@ func (self *UpstreamHelper) ParseUpstream(upstream string) (string, string, erro
 	return upstreamRemote, upstreamBranch, nil
 }
 
-func (self *UpstreamHelper) promptForUpstream(initialContent string, onConfirm func(string) error) error {
+func (self *UpstreamHelper) promptForUpstream(initialContent string, additionalSuggestions []string, onConfirm func(string) error) error {
 	self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.EnterUpstream,
 		InitialContent:      initialContent,
-		FindSuggestionsFunc: self.getRemoteBranchesSuggestionsFunc(" "),
+		FindSuggestionsFunc: self.getRemoteBranchesSuggestionsFunc(" ", additionalSuggestions...),
 		HandleConfirm:       onConfirm,
 	})
 
@@ -49,30 +51,21 @@ func (self *UpstreamHelper) promptForUpstream(initialContent string, onConfirm f
 }
 
 func (self *UpstreamHelper) PromptForUpstreamWithInitialContent(currentBranch *models.Branch, onConfirm func(string) error) error {
-	suggestedRemote := self.GetSuggestedRemote()
-	initialContent := suggestedRemote + " " + currentBranch.Name
+	suggestedRemote := "origin"
+	remoteNames := lo.Map(self.c.Model().Remotes, func(r *models.Remote, _ int) string { return r.Name })
+	if len(remoteNames) > 0 {
+		// remove 'origin' or the first one from the list
+		i := max(0, slices.Index(remoteNames, "origin"))
+		suggestedRemote = remoteNames[i]
+		remoteNames = slices.Delete(remoteNames, i, i+1)
+	}
 
-	return self.promptForUpstream(initialContent, onConfirm)
+	initialContent := suggestedRemote + " " + currentBranch.Name
+	additionalSuggestions := lo.Map(remoteNames, func(remote string, _ int) string { return remote + " " + currentBranch.Name })
+
+	return self.promptForUpstream(initialContent, additionalSuggestions, onConfirm)
 }
 
 func (self *UpstreamHelper) PromptForUpstreamWithoutInitialContent(_ *models.Branch, onConfirm func(string) error) error {
-	return self.promptForUpstream("", onConfirm)
-}
-
-func (self *UpstreamHelper) GetSuggestedRemote() string {
-	return getSuggestedRemote(self.c.Model().Remotes)
-}
-
-func getSuggestedRemote(remotes []*models.Remote) string {
-	if len(remotes) == 0 {
-		return "origin"
-	}
-
-	for _, remote := range remotes {
-		if remote.Name == "origin" {
-			return remote.Name
-		}
-	}
-
-	return remotes[0].Name
+	return self.promptForUpstream("", nil, onConfirm)
 }
