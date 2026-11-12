@@ -2,12 +2,14 @@ package gui
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 const HORIZONTAL_SCROLL_FACTOR = 3
@@ -143,45 +145,29 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboardWithTruncation(maxWi
 		return nil
 	}
 
-	itemId := listContext.GetSelectedItemId()
+	itemIds, _, _ := listContext.GetSelectedItemIds()
 
-	if itemId == "" {
+	if len(itemIds) == 0 {
 		return nil
 	}
 
 	if maxWidth > 0 {
-		itemId = itemId[:min(len(itemId), maxWidth)]
+		itemIds = lo.Map(itemIds, func(itemId string, _ int) string {
+			return itemId[:min(len(itemId), maxWidth)]
+		})
 	}
 
 	gui.c.LogAction(gui.c.Tr.Actions.CopyToClipboard)
-	if err := gui.os.CopyToClipboard(itemId); err != nil {
+	if err := gui.os.CopyToClipboard(strings.Join(itemIds, "\n")); err != nil {
 		return err
 	}
 
-	truncatedItemId := utils.TruncateWithEllipsis(strings.ReplaceAll(itemId, "\n", " "), 50)
-
-	gui.c.Toast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.c.Tr.CopiedToClipboard))
-
-	return nil
-}
-
-func (gui *Gui) getCopySelectedSideContextItemToClipboardDisabledReason() *types.DisabledReason {
-	// important to note that this assumes we've selected an item in a side context
-	currentSideContext := gui.c.Context().CurrentSide()
-	if currentSideContext == nil {
-		// This should never happen but if it does we'll just ignore the keypress
-		return nil
-	}
-
-	listContext, ok := currentSideContext.(types.IListContext)
-	if !ok {
-		// This should never happen but if it does we'll just ignore the keypress
-		return nil
-	}
-
-	startIdx, endIdx := listContext.GetList().GetSelectionRange()
-	if startIdx != endIdx {
-		return &types.DisabledReason{Text: gui.Tr.RangeSelectNotSupported}
+	if len(itemIds) == 1 {
+		truncatedItemId := utils.TruncateWithEllipsis(strings.ReplaceAll(itemIds[0], "\n", " "), 50)
+		gui.c.Toast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.c.Tr.CopiedToClipboard))
+	} else {
+		gui.c.Toast(utils.ResolvePlaceholderString(gui.c.Tr.ItemsCopiedToClipboard,
+			map[string]string{"count": strconv.Itoa(len(itemIds))}))
 	}
 
 	return nil

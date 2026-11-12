@@ -576,6 +576,7 @@ var tests = []*components.IntegrationTest{
 	misc.ConfirmOnQuit,
 	misc.CopyConfirmationMessageToClipboard,
 	misc.CopyToClipboard,
+	misc.CopyToClipboardRange,
 	misc.DirenvApprovesEnvrc,
 	misc.DirenvLoadedOnRepoSwitch,
 	misc.DirenvUnloadsOnBlockedEnvrc,
