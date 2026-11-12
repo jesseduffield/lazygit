@@ -33,7 +33,12 @@ func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key) bool {
 	matched := gui.handleEditorKeypress(v, key, false)
 
 	v.RenderTextArea()
+	gui.onPromptContentChanged(v)
 
+	return matched
+}
+
+func (gui *Gui) onPromptContentChanged(v *gocui.View) {
 	suggestionsContext := gui.State.Contexts.Suggestions
 	// Capture the suggestions function and the input here, on the UI thread; the
 	// main thread rewrites State.FindSuggestions when it (re)creates a prompt
@@ -45,8 +50,6 @@ func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key) bool {
 			return func() { suggestionsContext.SetSuggestions(suggestions) }
 		})
 	}
-
-	return matched
 }
 
 func (gui *Gui) menuFilterEditor(v *gocui.View, key gocui.Key) bool {
@@ -68,11 +71,15 @@ func (gui *Gui) menuFilterEditor(v *gocui.View, key gocui.Key) bool {
 		return true
 	}
 
+	gui.onMenuFilterContentChanged(content)
+
+	return true
+}
+
+func (gui *Gui) onMenuFilterContentChanged(content string) {
 	menuContext := gui.State.Contexts.Menu
 	menuContext.SetFilterStarted(true)
 	gui.helpers.Search.ApplyFilter(menuContext, content)
-
-	return true
 }
 
 func (gui *Gui) searchEditor(v *gocui.View, key gocui.Key) bool {
