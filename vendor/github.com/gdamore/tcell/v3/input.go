@@ -64,6 +64,13 @@ const (
 // before they can grow without bound while waiting for a string terminator.
 const defaultControlStringLimit = 64 * 1024
 
+// Window operation (XTWINOPS) reports, by their first parameter.
+const (
+	pixelSizeReport  = 4
+	windowSizeReport = 8
+	resizeReport     = 48
+)
+
 const (
 	// defaultEscapeTimeout keeps bare Escape responsive. A lone ESC byte is
 	// always ambiguous, because it can also prefix an Alt-modified key or a
@@ -1197,6 +1204,9 @@ func (ip *inputParser) handleWinKey(P []int) {
 		// Already decoded.
 	} else if chr == 0 && P[0] >= 0x30 && P[0] <= 0x39 {
 		chr = rune(P[0])
+	} else if chr == 0 && P[0] >= 0xbc && P[0] <= 0xbe {
+		// vkOemComma, vkOemMinus, vkOemPeriod: the same character on every layout
+		chr = rune(P[0] - 0x90)
 	} else if chr < ' ' && P[0] >= 0x41 && P[0] <= 0x5a {
 		if ip.advanced {
 			key = KeyRune
@@ -1237,7 +1247,7 @@ func (ip *inputParser) handleWinKey(P []int) {
 		// filter out lone shift for printable chars
 		mod = ModNone
 	}
-	if chr != 0 && mod&(ModCtrl|ModAlt) == ModCtrl|ModAlt {
+	if P[2] >= ' ' && mod&(ModCtrl|ModAlt) == ModCtrl|ModAlt {
 		// Filter out ctrl+alt (it means AltGr)
 		mod = ModNone
 	}
@@ -1491,19 +1501,30 @@ func (ip *inputParser) handleCsi(mode rune, params []byte, intermediate []byte) 
 			break
 		}
 		switch P[0] {
-		case 8:
+		case pixelSizeReport:
 			if len(P) > 2 {
-				// window size report
-				h := P[1]
-				w := P[2]
-				if h != ip.rows || w != ip.cols {
-					ip.SetSize(WindowSize{Width: w, Height: h})
+				ip.post(newEventResize(WindowSize{Width: ip.cols, Height: ip.rows, PixelWidth: P[2], PixelHeight: P[1]}))
+				return
+			}
+		case windowSizeReport:
+			if len(P) > 2 {
+				height := P[1]
+				width := P[2]
+				if height != ip.rows || width != ip.cols {
+					// Not through SetSize's goroutine, so that the pixel size report sent after it is paired with this size.
+					ip.rows, ip.cols = height, width
+					if nested := ip.nested; nested != nil {
+						nested.l.Lock()
+						nested.rows, nested.cols = height, width
+						nested.l.Unlock()
+					}
+					ip.post(newEventResize(WindowSize{Width: width, Height: height}))
 				}
 				return
 			}
-		case 48:
+		case resizeReport:
 			if len(P) > 2 {
-				// window resize report, with the size in pixels if given
+				// The size in pixels is optional.
 				ws := WindowSize{Width: P[2], Height: P[1]}
 				if len(P) > 4 {
 					ws.PixelWidth, ws.PixelHeight = P[4], P[3]
