@@ -50,7 +50,7 @@ var PushStackedBranchesNoForce = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("  branch2 ↑2"),
 				Contains("  branch1 ↑1"),
 			).
-			Select(Contains("Push all these branches in addition to the current one")).
+			ContainsLines(Contains("Push all these branches in addition to the current one").IsSelected()).
 			Confirm()
 
 		t.Views().Branches().

@@ -11,6 +11,7 @@ var PushStackedBranches = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().Git.LocalBranchSortOrder = "alphabetical"
+		config.GetUserConfig().Git.StackedPushDefault = "currentBranch"
 	},
 	SetupRepo: func(shell *Shell) {
 		createRebasedStackOfBranches(shell)
@@ -33,8 +34,9 @@ var PushStackedBranches = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("  branch2 ↓2↑2"),
 				Contains("  branch1 ↓1↑1"),
 			).
-			Select(Contains("Push all these branches in addition to the current one")).
-			Confirm()
+			ContainsLines(Contains("a Push all these branches in addition to the current one"))
+
+		t.Views().Menu().Press(config.Keybinding{"a"})
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Force push")).

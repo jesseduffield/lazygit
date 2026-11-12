@@ -45,6 +45,18 @@ func TestUserConfigValidate_enums(t *testing.T) {
 			},
 		},
 		{
+			name: "Git.StackedPushDefault",
+			setup: func(config *UserConfig, value string) {
+				config.Git.StackedPushDefault = value
+			},
+			testCases: []testCase{
+				{value: "allBranches", valid: true},
+				{value: "currentBranch", valid: true},
+				{value: "", valid: false},
+				{value: "invalid_value", valid: false},
+			},
+		},
+		{
 			name: "Git.AutoForwardBranches",
 			setup: func(config *UserConfig, value string) {
 				config.Git.AutoForwardBranches = value
