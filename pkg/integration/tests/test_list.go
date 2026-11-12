@@ -139,6 +139,7 @@ var tests = []*components.IntegrationTest{
 	commit.AutoWrapMessage,
 	commit.CancelCommitDuringSquashMerge,
 	commit.Checkout,
+	commit.CheckoutBranchOfOtherWorktree,
 	commit.CheckoutFileFromCommit,
 	commit.CheckoutFileFromRangeSelectionOfCommits,
 	commit.CheckoutFileWithLocalModifications,

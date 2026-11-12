@@ -6,6 +6,8 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -360,7 +362,50 @@ func (self *BasicCommitsController) createResetMenu(commit *models.Commit) error
 }
 
 func (self *BasicCommitsController) checkout(commit *models.Commit) error {
-	return self.c.Helpers().Refs.CreateCheckoutMenu(commit)
+	branches := lo.Filter(self.c.Model().Branches, func(branch *models.Branch, _ int) bool {
+		return commit.Hash() == branch.CommitHash && branch.Name != self.c.Model().CheckedOutBranch
+	})
+
+	hash := commit.Hash()
+
+	menuItems := []*types.MenuItem{
+		{
+			LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutCommitAsDetachedHead, utils.ShortHash(hash))},
+			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
+				return self.c.Helpers().Refs.CheckoutRef(hash, types.CheckoutRefOptions{})
+			},
+			Keys: menuKey('d'),
+		},
+	}
+
+	if len(branches) > 0 {
+		menuItems = append(menuItems, lo.Map(branches, func(branch *models.Branch, index int) *types.MenuItem {
+			var keys []gocui.Key
+			if index < 9 {
+				keys = menuKey(rune(index + 1 + '0')) // Convert 1-based index to key
+			}
+			return &types.MenuItem{
+				LabelColumns: []string{fmt.Sprintf(self.c.Tr.Actions.CheckoutBranchAtCommit, branch.Name)},
+				OnPress: func() error {
+					return self.c.Helpers().BranchesHelper.CheckoutBranch(branch, context.LOCAL_COMMITS_CONTEXT_KEY)
+				},
+				Keys: keys,
+			}
+		})...)
+	} else {
+		menuItems = append(menuItems, &types.MenuItem{
+			LabelColumns:   []string{self.c.Tr.Actions.CheckoutBranch},
+			OnPress:        func() error { return nil },
+			DisabledReason: &types.DisabledReason{Text: self.c.Tr.NoBranchesFoundAtCommitTooltip},
+			Keys:           menuKey('1'),
+		})
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Actions.CheckoutBranchOrCommit,
+		Items: menuItems,
+	})
 }
 
 func (self *BasicCommitsController) copyRange(*models.Commit) error {
