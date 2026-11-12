@@ -66,6 +66,15 @@ func (self *MenuDriver) Filter(text string) *MenuDriver {
 	return self
 }
 
+// pastes the text the way a terminal does it. Only for menus that filter as you
+// type.
+func (self *MenuDriver) Paste(text string) *MenuDriver {
+	self.getViewDriver().IsFocused()
+	self.t.paste(text)
+
+	return self
+}
+
 func (self *MenuDriver) LineCount(matcher *IntMatcher) *MenuDriver {
 	self.getViewDriver().LineCount(matcher)
 

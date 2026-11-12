@@ -21,6 +21,14 @@ func (self *CommitDescriptionPanelDriver) Type(value string) *CommitDescriptionP
 	return self
 }
 
+// Paste the text the way a terminal does it, as opposed to pasting it with the
+// commit menu
+func (self *CommitDescriptionPanelDriver) Paste(text string) *CommitDescriptionPanelDriver {
+	self.t.paste(text)
+
+	return self
+}
+
 func (self *CommitDescriptionPanelDriver) SwitchToSummary() *CommitMessagePanelDriver {
 	self.getViewDriver().PressTab()
 	return &CommitMessagePanelDriver{t: self.t}

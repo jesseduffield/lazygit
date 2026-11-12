@@ -138,6 +138,31 @@ func (self *GuiDriver) FocusIn() {
 	self.waitTillIdle()
 }
 
+// Paste sends the events that a terminal with bracketed paste mode sends: the
+// start of the paste, a key press for each character, and the end of the paste.
+func (self *GuiDriver) Paste(text string) {
+	self.CheckAllToastsAcknowledged()
+
+	self.gui.g.ReplayPasteEvent(gocui.NewTcellPasteEventWrapper(tcell.NewEventPaste(true)))
+	for _, char := range text {
+		self.gui.g.ReplayKeyEvent(gocui.NewTcellKeyEventWrapper(keyEventForPastedCharacter(char)))
+	}
+	self.gui.g.ReplayPasteEvent(gocui.NewTcellPasteEventWrapper(tcell.NewEventPaste(false)))
+
+	self.waitTillIdle()
+}
+
+func keyEventForPastedCharacter(char rune) *tcell.EventKey {
+	switch char {
+	case '\n':
+		return tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone)
+	case '\t':
+		return tcell.NewEventKey(tcell.KeyTab, "", tcell.ModNone)
+	default:
+		return tcell.NewEventKey(tcell.KeyRune, string(char), tcell.ModNone)
+	}
+}
+
 func (self *GuiDriver) FocusInAndClick(x, y int) {
 	self.CheckAllToastsAcknowledged()
 

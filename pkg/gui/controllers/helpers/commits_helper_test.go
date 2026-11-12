@@ -34,7 +34,7 @@ func TestTryRemoveHardLineBreaks(t *testing.T) {
 	}
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			actualResult := TryRemoveHardLineBreaks(s.message, s.autoWrapWidth)
+			actualResult := tryRemoveHardLineBreaks(s.message, s.autoWrapWidth)
 			assert.Equal(t, s.expectedResult, actualResult)
 		})
 	}

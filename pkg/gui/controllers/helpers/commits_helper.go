@@ -89,7 +89,18 @@ func (self *CommitsHelper) JoinCommitMessageAndUnwrappedDescription() string {
 	return self.getCommitSummary() + "\n" + self.getUnwrappedCommitDescription()
 }
 
-func TryRemoveHardLineBreaks(message string, autoWrapWidth int) string {
+// TryRemoveHardLineBreaksIfAutoWrapping replaces the hard line breaks of a
+// message with spaces wherever auto-wrapping would break the line at the same
+// place, so that the paragraphs reflow when the user edits them in the panel.
+func (self *CommitsHelper) TryRemoveHardLineBreaksIfAutoWrapping(message string) string {
+	commitConfig := self.c.UserConfig().Git.Commit
+	if !commitConfig.AutoWrapCommitMessage {
+		return message
+	}
+	return tryRemoveHardLineBreaks(message, commitConfig.AutoWrapWidth)
+}
+
+func tryRemoveHardLineBreaks(message string, autoWrapWidth int) string {
 	lastHardLineStart := 0
 	result := message
 	for i, b := range message {
@@ -309,6 +320,46 @@ func (self *CommitsHelper) copyCommitMessageToClipboard() error {
 	return nil
 }
 
+// HandlePasteIntoSummary inserts text that the user pasted into the summary
+// with the terminal's paste command. If the text has several lines, the rest
+// of them goes into the description.
+func (self *CommitsHelper) HandlePasteIntoSummary(text string) {
+	summary, rest, hasMoreLines := strings.Cut(text, "\n")
+
+	view := self.c.Views().CommitMessage
+	view.TextArea.TypeString(replaceTabsInPastedText(summary))
+	view.RenderTextArea()
+	self.c.Contexts().CommitMessage.RenderSubtitle()
+
+	if hasMoreLines {
+		self.c.Context().Replace(self.c.Contexts().CommitDescription)
+		self.HandlePasteIntoDescription(rest)
+	}
+}
+
+// HandlePasteIntoDescription inserts text that the user pasted into the
+// description with the terminal's paste command.
+func (self *CommitsHelper) HandlePasteIntoDescription(text string) {
+	view := self.c.Views().CommitDescription
+	if view.TextArea.GetUnwrappedContent() == "" {
+		// This drops the blank line between subject and body when the user
+		// pastes a whole commit message into the summary
+		text = strings.TrimLeft(text, "\n")
+	}
+	// Remove the hard line breaks of the pasted text on its own, even if it
+	// goes into the middle of a line. Its line breaks come from the layout of
+	// the text that it was copied from, not from the line that it goes into.
+	text = self.TryRemoveHardLineBreaksIfAutoWrapping(replaceTabsInPastedText(text))
+	view.TextArea.TypeString(text)
+	view.RenderTextArea()
+}
+
+// Replace each tab with four spaces, without aligning to tab stops. This works
+// well enough for leading indentation, which is common in pasted code snippets.
+func replaceTabsInPastedText(text string) string {
+	return strings.ReplaceAll(text, "\t", "    ")
+}
+
 func stripTrailingWhitespace(message string) string {
 	lines := strings.Split(message, "\n")
 	for i, line := range lines {
@@ -331,7 +382,7 @@ func (self *CommitsHelper) pasteCommitMessageFromClipboard() error {
 		Title:  self.c.Tr.PasteCommitMessageFromClipboard,
 		Prompt: self.c.Tr.SurePasteCommitMessage,
 		HandleConfirm: func() error {
-			self.SetMessageAndDescriptionInView(message)
+			self.SetMessageAndDescriptionInView(self.TryRemoveHardLineBreaksIfAutoWrapping(message))
 			return nil
 		},
 	})

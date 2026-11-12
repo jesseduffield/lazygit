@@ -119,6 +119,7 @@ type replayedEvents struct {
 	Resizes     chan *TcellResizeEventWrapper
 	MouseEvents chan *TcellMouseEventWrapper
 	FocusEvents chan *TcellFocusEventWrapper
+	PasteEvents chan *TcellPasteEventWrapper
 }
 
 type RecordingConfig struct {
@@ -187,7 +188,13 @@ type Gui struct {
 	// If Mouse is true then mouse events will be enabled.
 	Mouse bool
 
-	IsPasting bool
+	// Whether a paste is in progress, between the terminal's events for its
+	// start and end
+	isPasting bool
+
+	// The text pasted so far into pasteView, a view with an OnPaste handler
+	pasteBuffer strings.Builder
+	pasteView   *View
 
 	// If InputEsc is true, when ESC sequence is in the buffer and it doesn't
 	// match any known sequence, ESC means KeyEsc.
@@ -305,6 +312,7 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 			Resizes:     make(chan *TcellResizeEventWrapper),
 			MouseEvents: make(chan *TcellMouseEventWrapper),
 			FocusEvents: make(chan *TcellFocusEventWrapper),
+			PasteEvents: make(chan *TcellPasteEventWrapper),
 		}
 	}
 
@@ -382,6 +390,13 @@ func (g *Gui) ReplayMouseEvent(ev *TcellMouseEventWrapper) {
 func (g *Gui) ReplayFocusEvent(ev *TcellFocusEventWrapper) {
 	ev.task = g.NewTask()
 	g.replayedEvents.FocusEvents <- ev
+}
+
+// ReplayPasteEvent is like ReplayKeyEvent, but for the events that mark the
+// start and the end of a paste.
+func (g *Gui) ReplayPasteEvent(ev *TcellPasteEventWrapper) {
+	ev.task = g.NewTask()
+	g.replayedEvents.PasteEvents <- ev
 }
 
 // Busy reports whether any foreground work is in flight, ignoring the event
@@ -1275,7 +1290,10 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 	case eventFocus:
 		return g.onFocus(ev)
 	case eventPaste:
-		g.IsPasting = ev.Start
+		g.isPasting = ev.Start
+		if !ev.Start {
+			return g.deliverPaste()
+		}
 		return nil
 	default:
 		return nil
@@ -1749,6 +1767,32 @@ func (g *Gui) draw(v *View) {
 	}
 }
 
+func (g *Gui) collectPastedKey(v *View, key Key) {
+	if g.pasteView == nil {
+		g.pasteView = v
+	}
+
+	switch {
+	case key.IsPrintable():
+		g.pasteBuffer.WriteString(key.Str())
+	case key.Equals(NewKeyName(KeyEnter)):
+		g.pasteBuffer.WriteString("\n")
+	case key.Equals(NewKeyName(KeyTab)):
+		g.pasteBuffer.WriteString("\t")
+	}
+}
+
+func (g *Gui) deliverPaste() error {
+	v, text := g.pasteView, g.pasteBuffer.String()
+	g.pasteView = nil
+	g.pasteBuffer.Reset()
+
+	if v == nil || text == "" {
+		return nil
+	}
+	return v.OnPaste(text)
+}
+
 // onKey manages key-press events. A keybinding handler is called when
 // a key-press or mouse event satisfies a configured keybinding. Furthermore,
 // currentView's internal buffer is modified if currentView.Editable is true.
@@ -1763,8 +1807,15 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		// in bracketed paste mode. Whatever I'm missing here, converting '\r'
 		// back to '\n' fixes pasting multi-line text from Ghostty, and doesn't
 		// seem harmful for other terminal emulators.
-		if g.IsPasting && ev.Key.Equals(NewKeyStrMod("j", ModCtrl)) {
+		if g.isPasting && ev.Key.Equals(NewKeyStrMod("j", ModCtrl)) {
 			ev.Key = NewKeyName(KeyEnter)
+		}
+
+		if g.isPasting {
+			if g.currentView != nil && g.currentView.OnPaste != nil {
+				g.collectPastedKey(g.currentView, ev.Key)
+			}
+			return nil
 		}
 
 		err := g.execKeybindings(g.currentView, ev)
@@ -2039,10 +2090,6 @@ func IsMouseScrollKey(keyName KeyName) bool {
 func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) error {
 	var globalKb *keybinding
 	var matchingParentViewKb *keybinding
-
-	if g.IsPasting && v != nil && !v.Editable {
-		return nil
-	}
 
 	// if we're searching, and we've hit n/N/Esc, we ignore the default keybinding
 	if v != nil && v.IsSearching() {
