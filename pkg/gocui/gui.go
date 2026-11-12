@@ -188,7 +188,9 @@ type Gui struct {
 	// If Mouse is true then mouse events will be enabled.
 	Mouse bool
 
-	IsPasting bool
+	// Whether a paste is in progress, between the terminal's events for its
+	// start and end
+	isPasting bool
 
 	// The text pasted so far into pasteView, a view with an OnPaste handler
 	pasteBuffer strings.Builder
@@ -1288,7 +1290,7 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 	case eventFocus:
 		return g.onFocus(ev)
 	case eventPaste:
-		g.IsPasting = ev.Start
+		g.isPasting = ev.Start
 		if !ev.Start {
 			return g.deliverPaste()
 		}
@@ -1805,11 +1807,11 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		// in bracketed paste mode. Whatever I'm missing here, converting '\r'
 		// back to '\n' fixes pasting multi-line text from Ghostty, and doesn't
 		// seem harmful for other terminal emulators.
-		if g.IsPasting && ev.Key.Equals(NewKeyStrMod("j", ModCtrl)) {
+		if g.isPasting && ev.Key.Equals(NewKeyStrMod("j", ModCtrl)) {
 			ev.Key = NewKeyName(KeyEnter)
 		}
 
-		if g.IsPasting {
+		if g.isPasting {
 			if g.currentView != nil && g.currentView.OnPaste != nil {
 				g.collectPastedKey(g.currentView, ev.Key)
 			}

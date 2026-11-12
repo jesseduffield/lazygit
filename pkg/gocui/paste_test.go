@@ -44,7 +44,7 @@ func TestPasteIntoViewWithPasteHandler(t *testing.T) {
 	assert.Equal(t, []string{"a\n\n\tb"}, pasted)
 	assert.False(t, escPressed)
 	assert.Equal(t, "", v.TextArea.GetContent())
-	assert.False(t, g.IsPasting)
+	assert.False(t, g.isPasting)
 }
 
 func TestPasteIntoViewWithoutPasteHandler(t *testing.T) {

@@ -131,7 +131,7 @@ func TestBlockingEvents_PastedKeysReplayedAsPasted(t *testing.T) {
 	g.EndBlockingEvents()
 	runQueuedWork(t, g)
 	assert.Empty(t, *fired)
-	assert.False(t, g.IsPasting)
+	assert.False(t, g.isPasting)
 }
 
 func TestBlockingEvents_NestsWithCounter(t *testing.T) {
