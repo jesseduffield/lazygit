@@ -434,8 +434,6 @@ type TranslationSet struct {
 	SureCherryPick                        string
 	CherryPick                            string
 	CannotCherryPickNonCommit             string
-	Donate                                string
-	AskQuestion                           string
 	PrevHunk                              string
 	NextHunk                              string
 	PrevFileInDiff                        string
@@ -1222,17 +1220,13 @@ type Actions struct {
 }
 
 const englishIntroPopupMessage = `
-Thanks for using lazygit! Seriously you rock. Three things to share with you:
+Thanks for using lazygit! Seriously you rock. Two things to share with you:
 
  1) If you want to learn about lazygit's features, watch this vid:
       https://youtu.be/CPLdltN7wgE
 
  2) Be sure to read the latest release notes at:
       https://github.com/jesseduffield/lazygit/releases
-
- 3) If lazygit has made your life easier, you can say thanks by clicking the
-    donate button at the bottom right. Donation does not grant priority support,
-    but it is much appreciated.
 
 Press {{confirmationKey}} to get started.
 `
@@ -1674,8 +1668,6 @@ func EnglishTranslationSet() *TranslationSet {
 		SureCherryPick:                       "Are you sure you want to cherry-pick the {{.numCommits}} copied commit(s) onto this branch?",
 		CherryPick:                           "Cherry-pick",
 		CannotCherryPickNonCommit:            "Cannot cherry-pick this kind of todo item",
-		Donate:                               "Donate",
-		AskQuestion:                          "Ask Question",
 		PrevHunk:                             "Go to previous hunk",
 		NextHunk:                             "Go to next hunk",
 		PrevFileInDiff:                       "Go to previous file",
