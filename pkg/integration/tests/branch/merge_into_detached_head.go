@@ -26,6 +26,9 @@ var MergeIntoDetachedHead = NewIntegrationTest(NewIntegrationTestArgs{
 			Checkout("master^0")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Status().
+			Content(MatchesRegexp(`^repo → \(HEAD detached at [0-9a-f]+\)$`))
+
 		t.Views().Branches().
 			Focus().
 			Lines(

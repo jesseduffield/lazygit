@@ -66,7 +66,8 @@ var SquashMergeDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Common().AcknowledgeConflicts()
 
-		t.Views().Status().Content(Contains("(merging) repo → "))
+		t.Views().Status().
+			Content(Equals("(merging) repo → mybranch"))
 
 		t.GlobalPress(keys.Universal.CreateRebaseOptionsMenu)
 		t.ExpectPopup().Menu().
@@ -85,7 +86,8 @@ var SquashMergeDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Common().ContinueOnConflictsResolved("merge")
 
-		t.Views().Status().Content(Contains("(rebasing) repo → "))
+		t.Views().Status().
+			Content(Equals("(rebasing) repo → mybranch"))
 
 		t.Views().Commits().
 			Lines(
