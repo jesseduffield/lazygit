@@ -424,6 +424,7 @@ type MergingConfig struct {
 	// Extra args passed to `git merge`, e.g. --no-ff
 	Args string `yaml:"args" jsonschema:"example=--no-ff"`
 	// The commit message to use for a squash merge commit. Can contain "{{selectedRef}}" and "{{currentBranch}}" placeholders.
+	// If HEAD is detached, "{{currentBranch}}" is the branch being rebased, or "HEAD" if no rebase is in progress.
 	SquashMergeMessage string `yaml:"squashMergeMessage"`
 }
 
