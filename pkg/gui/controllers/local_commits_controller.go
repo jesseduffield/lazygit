@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"os"
 	"strings"
 	"time"
 
@@ -18,8 +19,26 @@ import (
 	"github.com/stefanhaller/git-todo-parser/todo"
 )
 
-// after selecting the 200th commit, we'll load in all the rest
-const COMMIT_THRESHOLD = 200
+// If the selection gets this close to the end of the commits that we loaded,
+// we load all the rest
+const loadAllCommitsMargin = 100
+
+type canLoadAllCommits interface {
+	GetSelectedLineIdx() int
+	GetLimitCommits() bool
+	SetLimitCommits(value bool)
+	GetLoadedCommitLimit() int
+}
+
+// If we loaded only the first commits of a list, and the selection gets close to
+// the end of them, load all of them.
+func loadAllCommitsIfSelectionIsNearEnd(c *ControllerCommon, context canLoadAllCommits, scope types.RefreshableView) {
+	limit := context.GetLoadedCommitLimit()
+	if context.GetLimitCommits() && limit > 0 && context.GetSelectedLineIdx() > limit-loadAllCommitsMargin {
+		context.SetLimitCommits(false)
+		c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{scope}})
+	}
+}
 
 // How long a commit move may take before the drop indicator switches to a
 // "moving commits here" spinner; quick moves stay free of flicker.
@@ -700,6 +719,14 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() {
 			} else if commit.Action == todo.Exec {
 				task = types.NewRenderStringTask(
 					self.c.Tr.ExecCommandHere + "\n\n" + commit.Name)
+			} else if commit.PatchFile != "" {
+				// We have no commit for a patch that "git am" hasn't applied
+				// yet, so we show the patch itself
+				patch, err := os.ReadFile(commit.PatchFile)
+				if err != nil {
+					self.c.Log.Error(err)
+				}
+				task = types.NewRenderStringTask(string(patch))
 			} else {
 				refRange := self.context().GetSelectedRefRangeForDiffFiles()
 				task = self.c.Helpers().Diff.GetUpdateTaskForRenderingCommitsDiff(commit, refRange)
@@ -857,9 +884,7 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	if err != nil {
 		return err
 	}
-	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
-		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
-	}
+	commitMessage = self.c.Helpers().Commits.TryRemoveHardLineBreaksIfAutoWrapping(commitMessage)
 	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
 			CommitIndex:      commitIdx,
@@ -1162,9 +1187,18 @@ func (self *LocalCommitsController) isRebasing() bool {
 	return self.c.Model().WorkingTreeStateAtLastCommitRefresh.Any()
 }
 
-func (self *LocalCommitsController) isCherryPickingOrReverting() bool {
-	return self.c.Model().WorkingTreeStateAtLastCommitRefresh.CherryPicking ||
-		self.c.Model().WorkingTreeStateAtLastCommitRefresh.Reverting
+// todosNotEditableReason returns why the todos in the commits panel can't be
+// edited, if they can't. This is the case during a cherry-pick or revert, or
+// while applying patches with "git am"; git has no way of changing their todos.
+func (self *LocalCommitsController) todosNotEditableReason() *types.DisabledReason {
+	if self.c.Model().WorkingTreeStateAtLastCommitRefresh.CherryPicking ||
+		self.c.Model().WorkingTreeStateAtLastCommitRefresh.Reverting {
+		return &types.DisabledReason{Text: self.c.Tr.NotAllowedMidCherryPickOrRevert}
+	}
+	if self.c.Model().WorkingTreeStateAtLastCommitRefresh.ApplyingPatches {
+		return &types.DisabledReason{Text: self.c.Tr.NotAllowedWhileApplyingPatches}
+	}
+	return nil
 }
 
 func (self *LocalCommitsController) moveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) error {
@@ -1543,9 +1577,7 @@ func (self *LocalCommitsController) createAmendCommit(commit *models.Commit, inc
 	if err != nil {
 		return err
 	}
-	if self.c.UserConfig().Git.Commit.AutoWrapCommitMessage {
-		commitMessage = helpers.TryRemoveHardLineBreaks(commitMessage, self.c.UserConfig().Git.Commit.AutoWrapWidth)
-	}
+	commitMessage = self.c.Helpers().Commits.TryRemoveHardLineBreaksIfAutoWrapping(commitMessage)
 	originalSubject, _, _ := strings.Cut(commitMessage, "\n")
 	self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
@@ -1807,11 +1839,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 
 func (self *LocalCommitsController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
-		context := self.context()
-		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
-			context.SetLimitCommits(false)
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
-		}
+		loadAllCommitsIfSelectionIsNearEnd(self.c, self.context(), types.COMMITS)
 	}
 }
 
@@ -1922,8 +1950,8 @@ func (self *LocalCommitsController) canMoveUp(selectedCommits []*models.Commit, 
 
 // Ensures that if we are mid-rebase, we're only selecting valid commits (non-conflict TODO commits)
 func (self *LocalCommitsController) midRebaseCommandEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
-	if self.isCherryPickingOrReverting() {
-		return &types.DisabledReason{Text: self.c.Tr.NotAllowedMidCherryPickOrRevert}
+	if reason := self.todosNotEditableReason(); reason != nil {
+		return reason
 	}
 
 	if !self.isRebasing() {
@@ -1945,8 +1973,8 @@ func (self *LocalCommitsController) midRebaseCommandEnabled(selectedCommits []*m
 
 // Ensures that if we are mid-rebase, we're only selecting commits that can be moved
 func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
-	if self.isCherryPickingOrReverting() {
-		return &types.DisabledReason{Text: self.c.Tr.NotAllowedMidCherryPickOrRevert}
+	if reason := self.todosNotEditableReason(); reason != nil {
+		return reason
 	}
 
 	if !self.isRebasing() {
@@ -1973,8 +2001,8 @@ func (self *LocalCommitsController) midRebaseMoveCommandEnabled(selectedCommits 
 }
 
 func (self *LocalCommitsController) canDropCommits(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
-	if self.isCherryPickingOrReverting() {
-		return &types.DisabledReason{Text: self.c.Tr.NotAllowedMidCherryPickOrRevert}
+	if reason := self.todosNotEditableReason(); reason != nil {
+		return reason
 	}
 
 	if !self.isRebasing() {
@@ -2021,8 +2049,8 @@ func isChangeOfRebaseTodoAllowed(oldAction todo.TodoCommand) bool {
 }
 
 func (self *LocalCommitsController) pickEnabled(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
-	if self.isCherryPickingOrReverting() {
-		return &types.DisabledReason{Text: self.c.Tr.NotAllowedMidCherryPickOrRevert}
+	if reason := self.todosNotEditableReason(); reason != nil {
+		return reason
 	}
 
 	if !self.isRebasing() {

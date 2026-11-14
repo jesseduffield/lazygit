@@ -66,8 +66,8 @@ type WindowArrangementArgs struct {
 	// The content shown on the bottom left of the screen when showing a loader
 	// or toast e.g. 'Rebasing /'
 	AppStatus string
-	// The content shown on the bottom right of the screen (e.g. the 'donate',
-	// 'ask question' links or a message about the current mode e.g. rebase mode)
+	// The content shown on the bottom right of the screen (e.g. the version
+	// number or a message about the current mode e.g. rebase mode)
 	InformationStr string
 	// Whether to show the extras window which contains the command log context
 	ShowExtrasWindow bool

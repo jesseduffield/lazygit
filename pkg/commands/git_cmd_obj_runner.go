@@ -56,14 +56,14 @@ func (self *gitCmdObjRunner) Run(cmdObj *oscommands.CmdObj) error {
 }
 
 func (self *gitCmdObjRunner) RunWithOutput(cmdObj *oscommands.CmdObj) (string, error) {
-	return self.retryOnLockError(func() (string, error) {
+	return self.retryOnLockError(cmdObj, func(cmdObj *oscommands.CmdObj) (string, error) {
 		return self.innerRunner.RunWithOutput(cmdObj.Clone())
 	})
 }
 
 func (self *gitCmdObjRunner) RunWithOutputs(cmdObj *oscommands.CmdObj) (string, string, error) {
 	var stdout, stderr string
-	_, err := self.retryOnLockError(func() (string, error) {
+	_, err := self.retryOnLockError(cmdObj, func(cmdObj *oscommands.CmdObj) (string, error) {
 		var runErr error
 		stdout, stderr, runErr = self.innerRunner.RunWithOutputs(cmdObj.Clone())
 		return stdout + stderr, runErr
@@ -71,23 +71,33 @@ func (self *gitCmdObjRunner) RunWithOutputs(cmdObj *oscommands.CmdObj) (string, 
 	return stdout, stderr, err
 }
 
-// retryOnLockError runs the given function, retrying if it fails with a
-// transient lock error (see isRetryableError). The string returned by run is
+// retryOnLockError runs the given command with the given function, trying
+// again if it fails with a transient lock error (see isRetryableError). If the
+// command has a lock-error recovery (see CmdObj.RecoverFromLockErrorWith), the
+// recovery decides which command to run next. The string returned by run is
 // the command output we inspect to classify the failure. We clone the command
 // for each attempt (inside run) because an *exec.Cmd can only be run once.
-func (self *gitCmdObjRunner) retryOnLockError(run func() (string, error)) (string, error) {
+func (self *gitCmdObjRunner) retryOnLockError(cmdObj *oscommands.CmdObj, run func(*oscommands.CmdObj) (string, error)) (string, error) {
 	delay := self.initialRetryDelay
 	var output string
 	var err error
 	for attempt := range maxRetries {
-		output, err = run()
+		output, err = run(cmdObj)
 
 		if err == nil || !isRetryableError(output, err) {
 			break
 		}
 
+		if recovery := cmdObj.GetLockErrorRecovery(); recovery != nil {
+			cmdObj = recovery()
+			if cmdObj == nil {
+				self.log.Warn("lock error stopped command partway through; giving up")
+				break
+			}
+		}
+
 		if attempt < maxRetries-1 {
-			self.log.Warnf("lock error prevented command from running; retrying in %s", delay)
+			self.log.Warnf("lock error prevented command from completing; running %q in %s", cmdObj.ToString(), delay)
 			time.Sleep(delay)
 			delay *= 2
 		}

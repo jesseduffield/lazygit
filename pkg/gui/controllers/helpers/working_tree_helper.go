@@ -237,6 +237,9 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 	var initialMessage string
 	preservedMessage := self.c.Contexts().CommitMessage.GetPreservedMessageAndLogError()
 	if preservedMessage == "" {
+		initialMessage = self.c.Git().Status.SquashMergeMessage()
+	}
+	if preservedMessage == "" && initialMessage == "" {
 		commitPrefixConfigs := self.commitPrefixConfigsForRepo()
 		for _, commitPrefixConfig := range commitPrefixConfigs {
 			prefixPattern := commitPrefixConfig.Pattern
@@ -271,15 +274,7 @@ func (self *WorkingTreeHelper) WithEnsureCommittableFiles(handler func() error) 
 		}
 
 		if self.c.UserConfig().Gui.SkipNoStagedFilesWarning {
-			self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-			if err := self.c.Git().WorkingTree.StageAll(false); err != nil {
-				return err
-			}
-			self.c.Refresh(types.RefreshOptions{
-				Scope: []types.RefreshableView{types.FILES},
-				Then:  handler,
-			})
-			return nil
+			return self.stageAllAndThen(handler)
 		}
 
 		return self.promptToStageAllAndRetry(handler)
@@ -288,18 +283,24 @@ func (self *WorkingTreeHelper) WithEnsureCommittableFiles(handler func() error) 
 	return handler()
 }
 
+func (self *WorkingTreeHelper) stageAllAndThen(then func() error) error {
+	self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
+	if err := self.c.Git().WorkingTree.StageAll(false); err != nil {
+		return err
+	}
+	self.c.Refresh(types.RefreshOptions{
+		Scope: []types.RefreshableView{types.FILES},
+		Then:  then,
+	})
+	return nil
+}
+
 func (self *WorkingTreeHelper) promptToStageAllAndRetry(retry func() error) error {
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.NoFilesStagedTitle,
 		Prompt: self.c.Tr.NoFilesStagedPrompt,
 		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-			if err := self.c.Git().WorkingTree.StageAll(false); err != nil {
-				return err
-			}
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
-
-			return retry()
+			return self.stageAllAndThen(retry)
 		},
 	})
 

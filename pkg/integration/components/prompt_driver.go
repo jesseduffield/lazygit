@@ -31,6 +31,13 @@ func (self *PromptDriver) Type(value string) *PromptDriver {
 	return self
 }
 
+// pastes the text the way a terminal does it
+func (self *PromptDriver) Paste(text string) *PromptDriver {
+	self.t.paste(text)
+
+	return self
+}
+
 func (self *PromptDriver) Clear() *PromptDriver {
 	self.t.press(ClearKey)
 

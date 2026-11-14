@@ -89,7 +89,7 @@ func TestRebaseSkipEditorCommand(t *testing.T) {
 		return true
 	}, "", nil)
 	instance := buildRebaseCommands(commonDeps{runner: runner})
-	err := instance.runSkipEditorCommand(instance.cmd.New(cmdArgs))
+	err := skipEditor(instance.cmd.New(cmdArgs)).Run()
 	assert.NoError(t, err)
 	runner.CheckForMissingCalls()
 }

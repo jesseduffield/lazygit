@@ -127,6 +127,37 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 						`),
 		},
 		{
+			testName: "don't show branch heads of branches merged into a local main branch",
+			commitOpts: []models.NewCommitOpts{
+				{Name: "commit1", Hash: "hash1", Parents: []string{"hash2"}},
+				{Name: "commit2", Hash: "hash2", Parents: []string{"hash3"}},
+				{Name: "commit3", Hash: "hash3", Parents: []string{"hash4"}},
+				{Name: "commit4", Hash: "hash4", Parents: []string{"hash5"}},
+				{Name: "commit5", Hash: "hash5", Status: models.StatusMerged},
+			},
+			branches: []*models.Branch{
+				{Name: "current-branch", CommitHash: "hash1", Head: true},
+				{Name: "other-branch", CommitHash: "hash2", Head: false},
+				{Name: "master", CommitHash: "hash3", Head: false},
+				{Name: "merged-into-local-master", CommitHash: "hash4", Head: false},
+			},
+			currentBranchName:         "current-branch",
+			hasUpdateRefConfig:        true,
+			startIdx:                  0,
+			endIdx:                    5,
+			showGraph:                 false,
+			bisectInfo:                git_commands.NewNullBisectInfo(),
+			cherryPickedCommitHashSet: set.New[string](),
+			now:                       time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		hash1 commit1
+		hash2 * commit2
+		hash3 commit3
+		hash4 commit4
+		hash5 commit5
+						`),
+		},
+		{
 			testName: "show local branch head for head commit if updateRefs is on",
 			commitOpts: []models.NewCommitOpts{
 				{Name: "commit1", Hash: "hash1"},

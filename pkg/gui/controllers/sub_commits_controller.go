@@ -64,10 +64,6 @@ func (self *SubCommitsController) GetOnRenderToMain() func() {
 
 func (self *SubCommitsController) GetOnFocus() func(types.OnFocusOpts) {
 	return func(types.OnFocusOpts) {
-		context := self.context()
-		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
-			context.SetLimitCommits(false)
-			self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUB_COMMITS}})
-		}
+		loadAllCommitsIfSelectionIsNearEnd(self.c, self.context(), types.SUB_COMMITS)
 	}
 }

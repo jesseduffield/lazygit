@@ -15,7 +15,9 @@ branches properly stacked onto it.
 
 Lazygit visualizes the individual branch heads in the stack by marking them with a
 cyan asterisk (or a cyan branch symbol if you are using [nerd
-fonts](Config.md#display-nerd-fonts-icons)).
+fonts](Config.md#display-nerd-fonts-icons)). In the commits panel, `>` selects
+the first commit of the branch that the selection is in. Press it again to get
+to the first commit of the next branch down the stack.
 
 When you push the topmost branch of the stack with `P`, and the branches below
 it have commits that haven't been pushed yet, lazygit offers to push them along

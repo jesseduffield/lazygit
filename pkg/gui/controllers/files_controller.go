@@ -1937,7 +1937,10 @@ func (self *FilesController) remove(selectedNodes []*filetree.FileNode) error {
 					return err
 				}
 
-				self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
+				self.c.Refresh(types.RefreshOptions{
+					Scope: []types.RefreshableView{types.FILES, types.WORKTREES},
+					Then:  self.c.Helpers().MergeAndRebase.AbortSquashMergeIfNoChangesAreLeft,
+				})
 				return nil
 			})
 		},

@@ -67,10 +67,10 @@ func (self *Popup) CommitMessagePanel() *CommitMessagePanelDriver {
 	return &CommitMessagePanelDriver{t: self.t}
 }
 
-func (self *Popup) CommitDescriptionPanel() *CommitMessagePanelDriver {
+func (self *Popup) CommitDescriptionPanel() *CommitDescriptionPanelDriver {
 	self.inCommitDescriptionPanel()
 
-	return &CommitMessagePanelDriver{t: self.t}
+	return &CommitDescriptionPanelDriver{t: self.t}
 }
 
 func (self *Popup) inCommitMessagePanel() {

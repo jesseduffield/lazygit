@@ -58,6 +58,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | 复制缩略提交哈希值到剪贴板 |  |
+| `` b `` | 查看二分查找选项 |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -102,6 +103,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | 复制缩略提交哈希值到剪贴板 |  |
+| `` b `` | 查看二分查找选项 |  |
 | `` <space> `` | 检出 | 检出所选择的提交作为分离HEAD。 |
 | `` y `` | 复制提交属性到剪贴板 | 复制提交属性到剪贴板(如hash、URL、diff、消息、作者)。 |
 | `` o `` | 在浏览器中打开提交 |  |
@@ -224,6 +226,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | 复制分支名称到剪贴板 |  |
+| `` b `` | 查看二分查找选项 |  |
 | `` i `` | 显示 git-flow 选项 |  |
 | `` <space> `` | 检出 | 检出选中的项目 |
 | `` n `` | 新分支 |  |
@@ -255,6 +258,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | 复制标签到剪贴板 |  |
+| `` b `` | 查看二分查找选项 |  |
 | `` <space> `` | 检出 | 检出选择的标签作为分离的HEAD |
 | `` n `` | 创建标签 | 基于当前提交创建一个新标签。您将在弹窗中输入标签名称和描述(可选)。 |
 | `` w `` | 新建工作树 |  |
@@ -409,6 +413,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | 排序 |  |
 | `` g `` | 查看重置选项 | 查看重置选项 (soft/mixed/hard) 用于重置到选择项 |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
+| `` b `` | 查看二分查找选项 |  |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |
 | `` / `` | 通过文本过滤当前视图 |  |

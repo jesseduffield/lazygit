@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -283,6 +284,24 @@ func (self *BranchCommands) Merge(branchName string, variant MergeVariant) error
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
+}
+
+// SquashMerge stages the changes of the given branch, and makes message the
+// message for committing them. "git merge --squash" suggests a log of the
+// branch's commits in SQUASH_MSG; "git commit" uses this file.
+func (self *BranchCommands) SquashMerge(branchName string, message string) error {
+	mergeErr := self.Merge(branchName, MERGE_VARIANT_SQUASH)
+
+	// If the merge failed without writing SQUASH_MSG, it didn't start. Writing
+	// the file would make it look like a squash merge is in progress.
+	squashMsgPath := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "SQUASH_MSG")
+	if exists, _ := self.os.FileExists(squashMsgPath); exists {
+		if err := self.os.CreateFileWithContent(squashMsgPath, message+"\n"); err != nil {
+			return err
+		}
+	}
+
+	return mergeErr
 }
 
 // Fast-forwards the branch that is checked out in the given worktree to the

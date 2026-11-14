@@ -146,8 +146,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	submodulesController := controllers.NewSubmodulesController(common)
 
-	bisectController := controllers.NewBisectController(common)
-
 	commitMessageController := controllers.NewCommitMessageController(
 		common,
 	)
@@ -311,8 +309,18 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.LocalCommits,
 		localCommitsController,
-		bisectController,
 	)
+
+	for _, context := range []controllers.CanBisect{
+		gui.State.Contexts.LocalCommits,
+		gui.State.Contexts.SubCommits,
+		gui.State.Contexts.ReflogCommits,
+		gui.State.Contexts.Branches,
+		gui.State.Contexts.RemoteBranches,
+		gui.State.Contexts.Tags,
+	} {
+		controllers.AttachControllers(context, controllers.NewBisectController(common, context))
+	}
 
 	controllers.AttachControllers(gui.State.Contexts.CommitFiles,
 		commitFilesController,
