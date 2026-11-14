@@ -63,17 +63,15 @@ func Run(
 
 func NewCommon(config config.AppConfigurer, log *logrus.Entry) (*common.Common, error) {
 	userConfig := config.GetUserConfig()
-	appState := config.GetAppState()
 	// Initialize with English for the time being; the real translation set for
 	// the configured language will be read after reading the user config
 	tr := i18n.EnglishTranslationSet()
 
 	cmn := &common.Common{
-		Log:      log,
-		Tr:       tr,
-		AppState: appState,
-		Debug:    config.GetDebug(),
-		Fs:       afero.NewOsFs(),
+		Log:   log,
+		Tr:    tr,
+		Debug: config.GetDebug(),
+		Fs:    afero.NewOsFs(),
 	}
 	cmn.SetUserConfig(userConfig)
 	return cmn, nil
@@ -168,7 +166,11 @@ func isDirectoryAGitRepository(dir string) (bool, error) {
 }
 
 func openRecentRepo(app *App) bool {
-	for _, repoDir := range app.Config.GetAppState().RecentRepos {
+	appState, err := app.Config.ReadAppState()
+	if err != nil {
+		app.Log.Errorf("error when reading app state: %v", err)
+	}
+	for _, repoDir := range appState.RecentRepos {
 		if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
 			if err := os.Chdir(repoDir); err == nil {
 				// We're still in setup, before the gui exists, so we can't show the approval popup

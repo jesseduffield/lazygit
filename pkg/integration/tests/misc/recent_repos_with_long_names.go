@@ -19,7 +19,9 @@ var RecentReposWithLongNames = NewIntegrationTest(NewIntegrationTestArgs{
 		current, _ := filepath.Abs(".")
 		target, _ := filepath.Abs("../repo-with-a-name-that-is-far-too-long")
 		other, _ := filepath.Abs("../other")
-		cfg.GetAppState().RecentRepos = []string{current, target, other}
+		_ = cfg.UpdateAppState(func(state *config.AppState) {
+			state.RecentRepos = []string{current, target, other}
+		})
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")
