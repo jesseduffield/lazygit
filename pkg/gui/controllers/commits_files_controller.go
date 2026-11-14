@@ -564,7 +564,9 @@ func (self *CommitFilesController) enter(node *filetree.CommitFileNode) error {
 }
 
 func (self *CommitFilesController) GetOnDoubleClick() func() error {
-	return self.withItemGraceful(self.enter)
+	return self.withItemGraceful(func(node *filetree.CommitFileNode) error {
+		return self.toggleForPatch([]*filetree.CommitFileNode{node})
+	})
 }
 
 func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *filetree.CommitFileNode) error {
