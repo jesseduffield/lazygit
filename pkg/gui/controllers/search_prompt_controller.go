@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -24,7 +23,7 @@ func NewSearchPromptController(
 func (self *SearchPromptController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			Keys:    []gocui.Key{gocui.NewKeyName(gocui.KeyEnter)},
+			Keys:    opts.GetKeys(opts.Config.Universal.ConfirmSearch),
 			Handler: self.confirm,
 		},
 		{
