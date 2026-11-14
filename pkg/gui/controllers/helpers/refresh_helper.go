@@ -1745,6 +1745,7 @@ func (self *RefreshHelper) refreshStashEntries(filterPath string, env refreshEnv
 // never call this on its own, it should only be called from within refreshCommits()
 func (self *RefreshHelper) refreshStatus(env refreshEnv) {
 	workingTreeState := env.git.Status.WorkingTreeState()
+	branchBeingRebased := env.git.Status.NameOfBranchBeingRebased()
 	repoName := env.git.RepoPaths.RepoName()
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
@@ -1759,7 +1760,7 @@ func (self *RefreshHelper) refreshStatus(env refreshEnv) {
 		}
 		linkedWorktreeName := self.worktreeHelper.GetLinkedWorktreeName()
 
-		status := presentation.FormatStatus(repoName, currentBranch, types.ItemOperationNone, linkedWorktreeName, workingTreeState, self.c.Tr, self.c.UserConfig())
+		status := presentation.FormatStatus(repoName, currentBranch, branchBeingRebased, types.ItemOperationNone, linkedWorktreeName, workingTreeState, self.c.Tr, self.c.UserConfig())
 		self.c.SetViewContent(self.c.Views().Status, status)
 	})
 }
