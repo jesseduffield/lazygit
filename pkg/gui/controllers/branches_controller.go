@@ -746,7 +746,12 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 }
 
 func (self *BranchesController) newBranch(selectedBranch *models.Branch) error {
-	return self.c.Helpers().Refs.NewBranch(selectedBranch.FullRefName(), selectedBranch.RefName(), "")
+	fromName := selectedBranch.RefName()
+	if selectedBranch.DetachedHead {
+		// The RefName of a detached HEAD is the full hash of its commit
+		fromName = models.CommitDescription(selectedBranch.Name, selectedBranch.Subject)
+	}
+	return self.c.Helpers().Refs.NewBranch(selectedBranch.FullRefName(), fromName, "")
 }
 
 func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {

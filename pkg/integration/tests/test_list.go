@@ -70,6 +70,7 @@ var tests = []*components.IntegrationTest{
 	branch.DeleteRemoteBranchWithDifferentName,
 	branch.DeleteWhileFiltering,
 	branch.DetachedHead,
+	branch.DetachedHeadHashAndSubject,
 	branch.MergeFastForward,
 	branch.MergeIntoDetachedHead,
 	branch.MergeNonFastForward,
