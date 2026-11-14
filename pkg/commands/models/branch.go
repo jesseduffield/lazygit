@@ -9,7 +9,7 @@ import (
 // duplicating this for now
 type Branch struct {
 	Name string
-	// the displayname is something like '(HEAD detached at 123asdf)', whereas in that case the name would be '123asdf'
+	// the displayname is something like '(HEAD detached at 123asdf)', whereas in that case the name is the full hash of the commit
 	DisplayName string
 	// indicator of when the branch was last checked out e.g. '2d', '3m'
 	Recency string
