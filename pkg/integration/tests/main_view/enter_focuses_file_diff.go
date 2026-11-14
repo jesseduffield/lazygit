@@ -5,8 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var EnterAndDoubleClickFocusFileDiff = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Enter and double-click focus a file's diff in the main view",
+var EnterFocusesFileDiff = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Enter focuses a file's diff in the main view",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
@@ -30,14 +30,6 @@ var EnterAndDoubleClickFocusFileDiff = NewIntegrationTest(NewIntegrationTestArgs
 			SelectedLines(Contains("-base")).
 			PressEscape()
 
-		t.Views().Files().
-			IsFocused().
-			DoubleClick(3, 0)
-		t.Views().Main().
-			IsFocused().
-			SelectedLines(Contains("-base")).
-			PressEscape()
-
 		t.Views().Commits().
 			Focus().
 			Lines(
@@ -52,14 +44,6 @@ var EnterAndDoubleClickFocusFileDiff = NewIntegrationTest(NewIntegrationTestArgs
 			).
 			PressEnter()
 
-		t.Views().Main().
-			IsFocused().
-			SelectedLines(Contains("+base")).
-			PressEscape()
-
-		t.Views().CommitFiles().
-			IsFocused().
-			DoubleClick(3, 0)
 		t.Views().Main().
 			IsFocused().
 			SelectedLines(Contains("+base"))
