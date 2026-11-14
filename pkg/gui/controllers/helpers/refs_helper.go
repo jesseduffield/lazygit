@@ -149,12 +149,25 @@ func (self *RefsHelper) CheckoutRemoteBranch(fullBranchName string, localBranchN
 				Label:   self.c.Tr.CheckoutTypeNewBranch,
 				Tooltip: self.c.Tr.CheckoutTypeNewBranchTooltip,
 				OnPress: func() error {
-					// First create the local branch with the upstream set, and
-					// then check it out. We could do that in one step using
-					// "git checkout -b", but we want to benefit from all the
-					// nice features of the CheckoutRef function.
-					if err := self.c.Git().Branch.CreateWithUpstream(localBranchName, fullBranchName); err != nil {
-						return err
+					// First create the local branch, and then check it out. We
+					// could do that in one step using "git checkout -b", but
+					// we want to benefit from all the nice features of the
+					// CheckoutRef function.
+					//
+					// For git-svn repos there is no real git remote, so
+					// "git branch --track" fails with "cannot set up tracking
+					// information". Use NewWithoutCheckout (without --track)
+					// instead; the SVN upstream is derived from the
+					// git-svn-id in commit messages, not from git tracking
+					// config.
+					var createErr error
+					if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+						createErr = self.c.Git().Branch.NewWithoutCheckout(localBranchName, fullBranchName)
+					} else {
+						createErr = self.c.Git().Branch.CreateWithUpstream(localBranchName, fullBranchName)
+					}
+					if createErr != nil {
+						return createErr
 					}
 					// Refresh the branches and check out from Then, so that the
 					// new branch is already in the model when CheckoutRef looks

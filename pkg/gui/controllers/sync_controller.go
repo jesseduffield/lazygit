@@ -89,6 +89,10 @@ func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func(
 }
 
 func (self *SyncController) push(currentBranch *models.Branch) error {
+	if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+		return self.pushAux(currentBranch, pushOpts{setUpstream: false})
+	}
+
 	branchesBelow := self.unpushedBranchesBelow(currentBranch)
 	if len(branchesBelow) == 0 {
 		return self.pushCurrentBranch(currentBranch)
@@ -272,14 +276,16 @@ func (self *SyncController) pullCurrentBranch(currentBranch *models.Branch, bran
 	opts := PullFilesOptions{Action: self.c.Tr.Actions.Pull, BranchesBelow: branchesBelow}
 
 	// if we have no upstream branch we need to set that first
-	if !currentBranch.IsTrackingRemote() {
-		return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
-			if err := self.setCurrentBranchUpstream(upstream); err != nil {
-				return err
-			}
+	if !self.c.Git().Sync.GitCommon.IsSvnRepo() {
+		if !currentBranch.IsTrackingRemote() {
+			return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
+				if err := self.setCurrentBranchUpstream(upstream); err != nil {
+					return err
+				}
 
-			return self.PullAux(currentBranch, opts)
-		})
+				return self.PullAux(currentBranch, opts)
+			})
+		}
 	}
 
 	return self.PullAux(currentBranch, opts)
@@ -417,6 +423,12 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 		if opts.upstreamBranch != "" {
 			refspecs = append(refspecs, fmt.Sprintf("refs/heads/%s:%s", currentBranch.Name, opts.upstreamBranch))
 		}
+
+		if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+			opts.force = false
+			opts.forceWithLease = false
+		}
+
 		err := self.c.Git().Sync.Push(
 			task,
 			git_commands.PushOpts{
@@ -427,6 +439,10 @@ func (self *SyncController) pushAux(currentBranch *models.Branch, opts pushOpts)
 				Refspecs:       refspecs,
 			})
 		if err != nil {
+			if self.c.Git().Sync.GitCommon.IsSvnRepo() {
+				return fmt.Errorf("Git-SVN dcommit failed: %w", err)
+			}
+
 			if !opts.force && !opts.forceWithLease && strings.Contains(err.Error(), "Updates were rejected") {
 				if opts.remoteBranchStoredLocally {
 					return errors.New(self.c.Tr.UpdatesRejected)

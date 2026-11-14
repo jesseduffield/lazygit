@@ -366,7 +366,11 @@ func (self *BranchCommands) GetAllBranchesLogIdxAndCount() (int, int) {
 func (self *BranchCommands) IsBranchMerged(branch *models.Branch, mainBranches *MainBranches) (bool, error) {
 	branchesToCheckAgainst := []string{"HEAD"}
 	if branch.RemoteBranchStoredLocally() {
-		branchesToCheckAgainst = append(branchesToCheckAgainst, fmt.Sprintf("%s@{upstream}", branch.Name))
+		upstreamRef := branch.FullUpstreamRefName()
+		if upstreamRef == "" {
+			upstreamRef = fmt.Sprintf("%s@{upstream}", branch.Name)
+		}
+		branchesToCheckAgainst = append(branchesToCheckAgainst, upstreamRef)
 	}
 	branchesToCheckAgainst = append(branchesToCheckAgainst, mainBranches.Get()...)
 
