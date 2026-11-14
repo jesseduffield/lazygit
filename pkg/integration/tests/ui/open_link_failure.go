@@ -12,13 +12,26 @@ var OpenLinkFailure = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(config *config.AppConfig) {
 		config.GetUserConfig().OS.OpenLink = "exit 42"
 	},
-	SetupRepo: func(shell *Shell) {},
+	SetupRepo: func(shell *Shell) {
+		shell.EmptyCommit("https://example.com")
+	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Information().Click(0, 0)
+		t.Views().Commits().
+			Focus()
+
+		t.Views().Main().
+			TopLines(
+				Contains("commit"),
+				Contains("Author:"),
+				Contains("Date:"),
+				Equals(""),
+				Equals("    https://example.com"),
+			).
+			Click(4, 4)
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Error")).
-			Content(Equals("Failed to open URL https://github.com/sponsors/jesseduffield\n\nError: exit status 42")).
+			Content(Equals("Failed to open URL https://example.com\n\nError: exit status 42")).
 			Confirm()
 	},
 })

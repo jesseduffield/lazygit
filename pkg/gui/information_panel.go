@@ -1,22 +1,12 @@
 package gui
 
 import (
-	"fmt"
-
-	"github.com/jesseduffield/lazygit/pkg/constants"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) informationStr() string {
 	if activeMode, ok := gui.helpers.Mode.GetActiveMode(); ok {
 		return activeMode.InfoLabel()
-	}
-
-	if gui.g.Mouse {
-		donate := style.FgMagenta.Sprint(style.PrintHyperlink(gui.c.Tr.Donate, constants.Links.Donate))
-		askQuestion := style.FgYellow.Sprint(style.PrintHyperlink(gui.c.Tr.AskQuestion, constants.Links.Discussions))
-		return fmt.Sprintf("%s %s %s", donate, askQuestion, gui.Config.GetVersion())
 	}
 
 	return gui.Config.GetVersion()
