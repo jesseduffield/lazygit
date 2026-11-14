@@ -40,7 +40,8 @@ type Branch struct {
 	PushBranch string
 	// subject line in commit message
 	Subject string
-	// commit hash
+	// commit hash; empty for a detached HEAD, whose Name is the hash. Code that
+	// looks for branches at a commit relies on this.
 	CommitHash string
 
 	// How far we have fallen behind our base branch. 0 means either not

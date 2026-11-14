@@ -20,10 +20,7 @@ var DetachedHeadHashAndSubject = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Press(keys.Universal.NextScreenMode).
 			Lines(
-				/* EXPECTED:
 				MatchesRegexp(`^  \* [0-9a-f]{8} \(HEAD detached at [0-9a-f]+\) {3}commit-02$`).IsSelected(),
-				ACTUAL: */
-				MatchesRegexp(`^  \* {10}\(HEAD detached at [0-9a-f]+\) {3}$`).IsSelected(),
 				MatchesRegexp(`[0-9a-f]{8} master +commit-03$`),
 			)
 	},

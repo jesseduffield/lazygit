@@ -78,7 +78,7 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	}
 	output, err := self.cmd.New(
 		NewGitCmd("branch").
-			Arg("--points-at=HEAD", "--format=%(HEAD)%00%(objectname)%00%(refname)").
+			Arg("--points-at=HEAD", "--format=%(HEAD)%00%(objectname)%00%(refname)%00%(contents:subject)").
 			ToArgv(),
 	).DontLog().RunWithOutput()
 	if err != nil {
@@ -86,13 +86,15 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	}
 	for _, line := range utils.SplitLines(output) {
 		split := strings.Split(strings.TrimRight(line, "\r\n"), "\x00")
-		if len(split) == 3 && split[0] == "*" {
+		if len(split) == 4 && split[0] == "*" {
 			hash := split[1]
 			displayName := split[2]
+			subject := split[3]
 			return BranchInfo{
 				RefName:      hash,
 				DisplayName:  displayName,
 				DetachedHead: true,
+				Subject:      subject,
 			}, nil
 		}
 	}
