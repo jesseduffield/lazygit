@@ -265,6 +265,21 @@ func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 		}
 	}
 
+	if maxWidth := args.UserConfig.Gui.SidePanelMaxWidth; maxWidth > 0 && args.ScreenMode == types.SCREEN_NORMAL && !shouldUsePortraitMode(args) {
+		// Resolve the section widths with the same remainder distribution as the
+		// panel layout. The cap includes the space occupied by panel borders.
+		sections := boxlayout.ArrangeWindows(&boxlayout.Box{
+			Direction: boxlayout.COLUMN,
+			Children: []*boxlayout.Box{
+				{Window: "side", Weight: sideSectionWeight},
+				{Window: "main", Weight: mainSectionWeight},
+			},
+		}, 0, 0, args.Width, 1)
+		if sections["side"].X1+1 > maxWidth {
+			return maxWidth, args.Width - maxWidth
+		}
+	}
+
 	return sideSectionWeight, mainSectionWeight
 }
 

@@ -253,6 +253,8 @@ func getZeroValue(val any, t string) any {
 	}
 
 	switch t {
+	case "integer":
+		return 0
 	case "string":
 		return ""
 	case "boolean":

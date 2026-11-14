@@ -100,6 +100,8 @@ type GuiConfig struct {
 	// Fraction of the total screen width to use for the left side section. You may want to pick a small number (e.g. 0.2) if you're using a narrow screen, so that you can see more of the main section.
 	// Number from 0 to 1.0.
 	SidePanelWidth float64 `yaml:"sidePanelWidth" jsonschema:"maximum=1,minimum=0"`
+	// Maximum width of the left side section in terminal columns, including borders. 0 means unlimited. Only applies in normal landscape mode; the section can still be narrower according to sidePanelWidth.
+	SidePanelMaxWidth int `yaml:"sidePanelMaxWidth" jsonschema:"minimum=0"`
 	// If true, increase the height of the focused side window; creating an accordion effect.
 	ExpandFocusedSidePanel bool `yaml:"expandFocusedSidePanel"`
 	// The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
@@ -885,6 +887,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			SkipDiscardChangeWarning:  false,
 			SkipStashWarning:          false,
 			SidePanelWidth:            0.3333,
+			SidePanelMaxWidth:         0,
 			ExpandFocusedSidePanel:    false,
 			ExpandedSidePanelWeight:   2,
 			ShrinkSidePanelsToContent: false,
