@@ -28,8 +28,8 @@ var githubServiceDef = ServiceDefinition{
 
 var bitbucketServiceDef = ServiceDefinition{
 	provider:                        "bitbucket",
-	pullRequestURLIntoDefaultBranch: "/pull-requests/new?source={{.From}}&t=1",
-	pullRequestURLIntoTargetBranch:  "/pull-requests/new?source={{.From}}&dest={{.To}}&t=1",
+	pullRequestURLIntoDefaultBranch: "/pull-requests/new?source={{.From}}",
+	pullRequestURLIntoTargetBranch:  "/pull-requests/new?source={{.From}}&dest={{.To}}",
 	commitURL:                       "/commits/{{.CommitHash}}",
 	urlRegexps: []*regexp.Regexp{
 		regexp.MustCompile(`^(?:https?|ssh)://.*/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`),
