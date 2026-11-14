@@ -151,7 +151,13 @@ func (c *Commit) ID() string {
 }
 
 func (c *Commit) Description() string {
-	return fmt.Sprintf("%s %s", c.Hash()[:7], c.Name)
+	return CommitDescription(c.Hash(), c.Name)
+}
+
+// CommitDescription returns the short hash and the subject of a commit, e.g.
+// "6f71c57 Fix the thing".
+func CommitDescription(hash string, subject string) string {
+	return fmt.Sprintf("%s %s", hash[:min(7, len(hash))], subject)
 }
 
 func (c *Commit) IsMerge() bool {
