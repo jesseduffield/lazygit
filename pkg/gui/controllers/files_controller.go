@@ -542,7 +542,15 @@ func (self *FilesController) GetFocusedMainViewDiffSource() types.FocusedMainVie
 }
 
 func (self *FilesController) GetOnDoubleClick() func() error {
-	return self.enter
+	return self.withItemGraceful(func(node *filetree.FileNode) error {
+		nodes := []*filetree.FileNode{node}
+		if disabledReason := self.canStageSelection(nodes); disabledReason != nil {
+			self.c.ErrorToast(self.c.Tr.DisabledMenuItemPrefix + disabledReason.Text)
+			return nil
+		}
+
+		return self.press(nodes)
+	})
 }
 
 // if we are dealing with a status for which there is no key in this map,
