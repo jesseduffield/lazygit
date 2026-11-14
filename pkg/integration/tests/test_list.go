@@ -91,6 +91,7 @@ var tests = []*components.IntegrationTest{
 	branch.RebaseConflictsFixBuildErrors,
 	branch.RebaseConflictsFixBuildErrorsWithOutOfDateSubmodule,
 	branch.RebaseCopiedBranch,
+	branch.RebaseDetachedHead,
 	branch.RebaseDoesNotAutosquash,
 	branch.RebaseFromMarkedBase,
 	branch.RebaseOntoBaseBranch,

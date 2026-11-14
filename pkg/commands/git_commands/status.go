@@ -237,3 +237,14 @@ func (self *StatusCommands) BranchBeingRebased() string {
 	}
 	return ""
 }
+
+// NameOfBranchBeingRebased returns the name (e.g. "mybranch") of the branch
+// that is currently being rebased. It returns an empty string if we're not in
+// a rebase, or if the rebase started on a detached HEAD.
+func (self *StatusCommands) NameOfBranchBeingRebased() string {
+	branchName, ok := strings.CutPrefix(self.BranchBeingRebased(), "refs/heads/")
+	if !ok {
+		return ""
+	}
+	return branchName
+}

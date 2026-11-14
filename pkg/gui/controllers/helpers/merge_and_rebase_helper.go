@@ -486,9 +486,8 @@ func (self *MergeAndRebaseHelper) DismissContinueRebasePromptIfShowing() {
 
 func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 	checkedOutBranch := self.c.Model().Branches[0]
-	checkedOutBranchName := checkedOutBranch.Name
 	var disabledReason, baseBranchDisabledReason *types.DisabledReason
-	if checkedOutBranchName == ref {
+	if checkedOutBranch.Name == ref {
 		disabledReason = &types.DisabledReason{Text: self.c.Tr.CantRebaseOntoSelf}
 	}
 
@@ -593,7 +592,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			self.c.Tr.RebasingFromBaseCommitTitle,
 			self.c.Tr.RebasingTitle),
 		map[string]string{
-			"checkedOutBranch": checkedOutBranchName,
+			"checkedOutBranch": self.checkedOutBranchNameForMessages(),
 		},
 	)
 
@@ -607,10 +606,10 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 	if self.c.Git().Branch.IsHeadDetached() {
 		return errors.New("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
 	}
-	checkedOutBranchName := self.c.Model().Branches[0].Name
-	if checkedOutBranchName == refName {
+	if self.c.Model().Branches[0].Name == refName {
 		return errors.New(self.c.Tr.CantMergeBranchIntoItself)
 	}
+	checkedOutBranchName := self.checkedOutBranchNameForMessages()
 
 	wantFastForward, wantNonFastForward := self.fastForwardMergeUserPreference()
 	canFastForward := self.c.Git().Branch.IsAncestor("HEAD", refName)
@@ -766,6 +765,25 @@ func (self *MergeAndRebaseHelper) SquashMergeCommitted(refName, checkedOutBranch
 			return self.CheckMergeOrRebaseAndSelectHeadCommit(err)
 		})
 	}
+}
+
+// checkedOutBranchNameForMessages returns the name of the checked-out branch
+// for menu titles, tooltips and commit messages. If HEAD is detached, the Name
+// of the checked-out branch in the model is a commit hash, so we use a
+// different name. During a rebase, we use the name of the branch being
+// rebased. For any other detached HEAD, we use "HEAD", like git does in the
+// messages of merge commits.
+func (self *MergeAndRebaseHelper) checkedOutBranchNameForMessages() string {
+	checkedOutBranch := self.c.Model().Branches[0]
+	if !checkedOutBranch.DetachedHead {
+		return checkedOutBranch.Name
+	}
+
+	if branchName := self.c.Git().Status.NameOfBranchBeingRebased(); branchName != "" {
+		return branchName
+	}
+
+	return "HEAD"
 }
 
 func (self *MergeAndRebaseHelper) squashMergeMessage(refName, checkedOutBranchName string) string {
