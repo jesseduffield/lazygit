@@ -236,13 +236,6 @@ func (self *BranchCommands) countDifferences(from, to string) (string, error) {
 	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
-func (self *BranchCommands) IsHeadDetached() bool {
-	cmdArgs := NewGitCmd("symbolic-ref").Arg("-q", "HEAD").ToArgv()
-
-	err := self.cmd.New(cmdArgs).DontLog().Run()
-	return err != nil
-}
-
 func (self *BranchCommands) Rename(oldName string, newName string) error {
 	cmdArgs := NewGitCmd("branch").
 		Arg("--move", oldName, newName).
