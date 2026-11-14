@@ -180,6 +180,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+j>, <alt+down> `` | Переместить коммит вниз на один |  |
 | `` <ctrl+k>, <alt+up> `` | Переместить коммит вверх на один |  |
 | `` V `` | Вставить отобранные коммиты (cherry-pick) |  |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` B `` | Mark as base commit for rebase | Select a base commit for the next rebase. When you rebase onto a branch, only commits above the base commit will be brought across. This uses the `git rebase --onto` command. |
 | `` A `` | Amend | Править последний коммит с проиндексированными изменениями |
 | `` a `` | Установить/убрать автора коммита | Set/Reset commit author or set co-author. |
@@ -228,6 +229,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` g `` | Просмотреть параметры сброса |  |
 | `` R `` | Переименовать ветку |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Просмотреть коммиты |  |
@@ -255,6 +257,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
 | `` b `` | Просмотреть параметры бинарного поиска |  |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` <space> `` | Переключить | Checkout the selected commit as a detached HEAD. |
 | `` y `` | Скопировать атрибут коммита | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Открыть коммит в браузере |  |
@@ -351,6 +354,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` r `` | Перебазировать переключённую ветку на эту ветку | Rebase the checked-out branch onto the selected branch. |
 | `` d `` | Delete | Delete the remote branch from the remote. |
 | `` u `` | Set as upstream | Установить как upstream-ветку переключённую ветку |
+| `` <ctrl+b> `` | View branch diff | View the files the selected branch changed since it diverged from its base branch, as a pull request of it would show them. Changes it got by merging in the base branch are left out. A branch stacked on other branches starts from the closest of them instead; the upstream options offer the others too. |
 | `` s `` | Порядок сортировки |  |
 | `` g `` | Просмотреть параметры сброса | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | Open external diff tool (git difftool) |  |

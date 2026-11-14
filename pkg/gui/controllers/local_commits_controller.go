@@ -623,6 +623,13 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			DisplayStyle:      &style.FgCyan,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Branches.ViewBranchDiff),
+			Handler:           self.viewBranchDiff,
+			GetDisabledReason: self.require(self.checkedOutBranchSelected),
+			Description:       self.c.Tr.ViewBranchDiff,
+			Tooltip:           self.c.Tr.ViewBranchDiffTooltip,
+		},
+		{
 			Keys:              opts.GetKeys(opts.Config.Commits.MarkCommitAsBaseForRebase),
 			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.markAsBaseCommit)),
 			GetDisabledReason: self.require(self.singleItemSelected()),
@@ -2058,4 +2065,18 @@ func (self *LocalCommitsController) pickEnabled(selectedCommits []*models.Commit
 	}
 
 	return self.midRebaseCommandEnabled(selectedCommits, startIdx, endIdx)
+}
+
+// viewBranchDiff lists the files of the diff of the checked-out branch, whose commits
+// this panel shows.
+func (self *LocalCommitsController) viewBranchDiff() error {
+	return (&BranchDiffAction{c: self.c}).View(self.c.Helpers().Refs.GetCheckedOutRef(), self.context())
+}
+
+func (self *LocalCommitsController) checkedOutBranchSelected() *types.DisabledReason {
+	branch := self.c.Helpers().Refs.GetCheckedOutRef()
+	if branch == nil || branch.DetachedHead {
+		return &types.DisabledReason{Text: self.c.Tr.NotOnABranch}
+	}
+	return nil
 }

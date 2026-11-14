@@ -819,6 +819,7 @@ keybinding:
     fetchRemote: f
     addForkRemote: F
     sortOrder: s
+    viewBranchDiff: <ctrl+b>
   commits:
     squashDown: s
     renameCommit: r
