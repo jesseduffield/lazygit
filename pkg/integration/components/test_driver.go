@@ -97,6 +97,13 @@ func (self *TestDriver) scrollWheelDown(x, y int) {
 	self.Wait(self.inputDelay)
 }
 
+func (self *TestDriver) hover(x, y int) {
+	self.SetCaption(fmt.Sprintf("Hovering at %d, %d", x, y))
+	self.mouseX, self.mouseY = x, y
+	self.gui.Hover(x, y)
+	self.Wait(self.inputDelay)
+}
+
 func (self *TestDriver) mouseRelease() {
 	self.SetCaption(fmt.Sprintf("Releasing mouse at %d, %d", self.mouseX, self.mouseY))
 	self.gui.MouseRelease(self.mouseX, self.mouseY)

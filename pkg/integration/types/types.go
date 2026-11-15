@@ -38,6 +38,8 @@ type GuiDriver interface {
 	ClickAndHold(int, int)
 	MouseMove(int, int)
 	MouseRelease(int, int)
+	// Move the mouse with no button held down
+	Hover(int, int)
 	ScrollWheelDown(int, int)
 	// Perform the refresh that a background routine would perform on a timer
 	RefreshInBackground()
