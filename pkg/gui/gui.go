@@ -121,6 +121,10 @@ type Gui struct {
 	// the extras window contains things like the command log
 	ShowExtrasWindow bool
 
+	// The sizes of the side panels that the user set, for each layout (see
+	// config.AppState.SidePanelSizes)
+	SidePanelSizes map[config.SidePanelLayout][]config.SidePanelSize
+
 	PopupHandler types.IPopupHandler
 
 	// Bumped every time we switch to a different repository (in resetState).
@@ -200,6 +204,10 @@ func (self *StateAccessor) GetShowExtrasWindow() bool {
 
 func (self *StateAccessor) SetShowExtrasWindow(value bool) {
 	self.gui.ShowExtrasWindow = value
+}
+
+func (self *StateAccessor) GetSidePanelSizes() map[config.SidePanelLayout][]config.SidePanelSize {
+	return self.gui.SidePanelSizes
 }
 
 func (self *StateAccessor) GetRetainOriginalDir() bool {
@@ -874,9 +882,15 @@ func NewGui(
 	gui.BackgroundRoutineMgr = &BackgroundRoutineMgr{gui: gui}
 	gui.stateAccessor = &StateAccessor{gui: gui}
 
+	gui.loadSidePanelSizes()
+
 	gui.diffRendererConfig = config.NewDiffRendererConfigManager(func() *config.UserConfig { return gui.UserConfig() })
 
 	return gui, nil
+}
+
+func (gui *Gui) loadSidePanelSizes() {
+	gui.SidePanelSizes = helpers.ValidSidePanelSizes(gui.c.ReadAppState().SidePanelSizes)
 }
 
 var RuneReplacements = map[rune]string{

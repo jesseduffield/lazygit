@@ -245,6 +245,21 @@ type AppState struct {
 	ShellCommandsHistory []string `yaml:"customcommandshistory"`
 
 	HideCommandLog bool
+
+	// The sizes of the side panels that the user set by dragging the boundary
+	// between them and the main view, for each layout
+	SidePanelSizes map[SidePanelLayout][]SidePanelSize
+}
+
+// SidePanelSize is a size of the side panels that the user set by dragging the
+// boundary between them and the main view.
+type SidePanelSize struct {
+	// The size of the screen at the time: its width if the side panels are
+	// left of the main view, otherwise its height without the line at the
+	// bottom of the screen
+	ScreenSize int
+	// The fraction of ScreenSize that the side panels took up
+	Ratio float64
 }
 
 // SidePanelLayout names an arrangement of the side panels relative to the main
