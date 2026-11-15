@@ -537,6 +537,66 @@ func TestGetWindowDimensions(t *testing.T) {
 			`,
 		},
 		{
+			name: "portrait mode, main view split side by side",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Width = 50
+				args.Height = 20
+				args.UserConfig.Gui.PortraitMode = "always"
+				args.UserConfig.Gui.MainPanelSplitMode = "horizontal"
+				args.MainPanes = types.BothMainPanes
+			},
+			/* EXPECTED:
+			expected: `
+			<status──────────────────────────────────────────>
+			╭files───────────────────────────────────────────╮
+			│                                                │
+			╰────────────────────────────────────────────────╯
+			<branches────────────────────────────────────────>
+			<commits─────────────────────────────────────────>
+			<stash───────────────────────────────────────────>
+			╭main───────────────────╮╭secondary──────────────╮
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			╰───────────────────────╯╰───────────────────────╯
+			<options─────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+			ACTUAL: */
+			expected: `
+			<status──────────────────────────────────────────>
+			<fileshes────────────────────────────────────────>
+			<commits─────────────────────────────────────────>
+			<stash───────────────────────────────────────────>
+			╭main───────────────────╮╭secondary──────────────╮
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			╰───────────────────────╯╰───────────────────────╯
+			<options─────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
 			name: "portrait auto mode, disabled because width is too large",
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.Width = 50
