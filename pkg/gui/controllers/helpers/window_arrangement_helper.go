@@ -245,7 +245,7 @@ func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 	mainSectionWeight := int(math.Round(maxColumnCount * (1 - sidePanelWidthRatio)))
 	sideSectionWeight := int(math.Round(maxColumnCount * sidePanelWidthRatio))
 
-	if splitMainPanelSideBySide(args) {
+	if splitMainPanelSideBySide(args) && !shouldUsePortraitMode(args) {
 		mainSectionWeight = sideSectionWeight * 5 // need to shrink side panel to make way for main panels if side-by-side
 	}
 
