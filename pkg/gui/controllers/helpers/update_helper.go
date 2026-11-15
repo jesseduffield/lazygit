@@ -167,7 +167,7 @@ func (self *UpdateHelper) ExitMessage() string {
 	}
 
 	lines := []string{utils.ResolvePlaceholderString(
-		self.c.Tr.NewVersionAvailable,
+		self.c.Tr.ExitMessageNewVersionAvailable,
 		map[string]string{
 			"newVersion":     version.String(),
 			"currentVersion": self.updater.CurrentVersion().String(),
